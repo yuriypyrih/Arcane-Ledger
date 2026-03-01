@@ -1,0 +1,72 @@
+.page {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(240px, 0.8fr);
+  gap: 1.5rem;
+  align-items: center;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 32px;
+  background:
+    radial-gradient(circle at top left, rgba(217, 184, 146, 0.45), transparent 34%),
+    linear-gradient(135deg, rgba(255, 248, 236, 0.96), rgba(244, 239, 230, 0.88));
+  box-shadow: 0 18px 60px rgba(54, 34, 21, 0.08);
+  overflow: hidden;
+  padding: clamp(1.5rem, 4vw, 3rem);
+}
+
+.heroCopy {
+  display: grid;
+  gap: 1rem;
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--color-accent);
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.title {
+  margin: 0;
+  font-size: clamp(2.1rem, 5vw, 4.2rem);
+  line-height: 0.95;
+}
+
+.description {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 1.05rem;
+  line-height: 1.6;
+  max-width: 42rem;
+}
+
+.logoWrap {
+  display: grid;
+  place-items: center;
+}
+
+.logo {
+  width: min(100%, 280px);
+  filter: drop-shadow(0 24px 36px rgba(75, 47, 29, 0.18));
+}
+
+.cardGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+@media (max-width: 900px) {
+  .hero {
+    grid-template-columns: 1fr;
+  }
+
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+}

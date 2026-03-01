@@ -1,0 +1,44 @@
+.resultPopup {
+  position: absolute;
+  top: 1rem;
+  left: 50%;
+  transform: translateX(-50%);
+  display: grid;
+  gap: 0.35rem;
+  justify-items: center;
+  width: min(320px, calc(100% - 7rem));
+  border-radius: 22px;
+  background: rgba(26, 17, 11, 0.88);
+  backdrop-filter: blur(10px);
+  box-shadow: 0 16px 40px rgba(20, 12, 8, 0.28);
+  padding: 0.9rem 1rem;
+  text-align: center;
+}
+
+.resultPopupLabel {
+  margin: 0;
+  color: rgba(255, 239, 214, 0.72);
+  font-size: 0.76rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.resultPopupValue {
+  color: #fff8ee;
+  font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-size: 2.4rem;
+  line-height: 1;
+}
+
+.resultPopupText {
+  margin: 0;
+  color: rgba(255, 239, 214, 0.82);
+  line-height: 1.4;
+}
+
+@media (max-width: 640px) {
+  .resultPopup {
+    top: 0.75rem;
+    width: calc(100% - 6rem);
+  }
+}

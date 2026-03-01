@@ -1,0 +1,54 @@
+.page {
+  display: grid;
+  gap: 1rem;
+}
+
+.panel {
+  display: grid;
+  gap: 1.25rem;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 28px;
+  background: rgba(255, 250, 241, 0.92);
+  box-shadow: 0 18px 50px rgba(54, 34, 21, 0.06);
+  padding: 1.5rem;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.eyebrow {
+  margin: 0 0 0.35rem;
+  color: var(--color-accent);
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.title,
+.resultsHeader h3,
+.card h4 {
+  margin: 0;
+}
+
+.description,
+.resultsHeader span,
+.card small,
+.card p {
+  color: var(--color-ink-soft);
+}
+
+.description {
+  margin: 0;
+  max-width: 30rem;
+  line-height: 1.6;
+}
+
+@media (max-width: 900px) {
+  .header {
+    flex-direction: column;
+  }
+}
