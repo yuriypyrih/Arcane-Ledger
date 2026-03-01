@@ -1,0 +1,44 @@
+[
+  {
+    "id": "spell-magic-missile",
+    "name": "Magic Missile",
+    "category": "Spell",
+    "tag": "1st-level evocation",
+    "summary": "Three glowing darts strike automatically for reliable force damage."
+  },
+  {
+    "id": "spell-cure-wounds",
+    "name": "Cure Wounds",
+    "category": "Spell",
+    "tag": "1st-level evocation",
+    "summary": "Restore hit points to a creature you can touch."
+  },
+  {
+    "id": "weapon-longsword",
+    "name": "Longsword",
+    "category": "Weapon",
+    "tag": "Martial melee weapon",
+    "summary": "Versatile slashing weapon dealing 1d8 damage, or 1d10 with two hands."
+  },
+  {
+    "id": "weapon-shortbow",
+    "name": "Shortbow",
+    "category": "Weapon",
+    "tag": "Simple ranged weapon",
+    "summary": "Compact ranged weapon dealing 1d6 piercing damage."
+  },
+  {
+    "id": "armor-chain-mail",
+    "name": "Chain Mail",
+    "category": "Armor",
+    "tag": "Heavy armor",
+    "summary": "Armor class 16 with strength and stealth tradeoffs."
+  },
+  {
+    "id": "rule-advantage",
+    "name": "Advantage",
+    "category": "Rule",
+    "tag": "Core mechanic",
+    "summary": "Roll two d20s and use the higher result when conditions favor you."
+  }
+]

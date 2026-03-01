@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192" role="img" aria-labelledby="title desc">
+  <title id="title">DnD Companion Icon</title>
+  <desc id="desc">A twenty-sided die on a parchment background.</desc>
+  <rect width="192" height="192" rx="32" fill="#f4efe6" />
+  <rect x="14" y="14" width="164" height="164" rx="26" fill="#4b2f1d" opacity="0.12" />
+  <polygon
+    points="96,26 145,56 160,112 126,161 66,161 32,112 47,56"
+    fill="#7a4b2f"
+    stroke="#4b2f1d"
+    stroke-width="8"
+    stroke-linejoin="round"
+  />
+  <text x="96" y="108" text-anchor="middle" font-size="48" font-family="Georgia, serif" fill="#f4efe6">20</text>
+</svg>

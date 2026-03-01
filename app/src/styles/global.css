@@ -1,0 +1,66 @@
+:root {
+  color-scheme: light;
+  font-family: "Trebuchet MS", "Gill Sans", sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  color: #2e2017;
+  background:
+    radial-gradient(circle at top, rgba(217, 184, 146, 0.45), transparent 30%),
+    linear-gradient(180deg, #efe4d3 0%, #f4efe6 50%, #e7dcc8 100%);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  --color-ink: #2e2017;
+  --color-ink-soft: #664b38;
+  --color-accent: #8f5b38;
+  --color-panel-strong: rgba(255, 250, 241, 0.98);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  margin: 0;
+  min-height: 100%;
+}
+
+body {
+  min-width: 320px;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(75, 47, 29, 0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(75, 47, 29, 0.03) 1px, transparent 1px);
+  background-size: 22px 22px;
+  pointer-events: none;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+button,
+input,
+select {
+  font: inherit;
+}
+
+button,
+a,
+input,
+select {
+  -webkit-tap-highlight-color: transparent;
+}
