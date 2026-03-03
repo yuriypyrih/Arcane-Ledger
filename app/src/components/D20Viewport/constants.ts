@@ -1,10 +1,11 @@
 import * as THREE from "three";
 import type { FaceMeta } from "./types";
+import { buildFaces, createD10Faces } from "./polyhedra";
 
 export const TABLE_Y = -1.65;
 export const DIE_Y = TABLE_Y + 1.38;
-export const TOTAL_DURATION = 2150;
-export const SETTLE_START = 0.68;
+export const TOTAL_DURATION = 2325;
+export const SETTLE_START = 0.74;
 export const UP_AXIS = new THREE.Vector3(0, 1, 0);
 
 export const ROYAL_BLUE_THEME = {
@@ -15,35 +16,53 @@ export const ROYAL_BLUE_THEME = {
   glow: "#7e95ff"
 };
 
-function buildFaces(geometry: THREE.BufferGeometry): FaceMeta[] {
-  const positions = geometry.getAttribute("position");
-  const faces: FaceMeta[] = [];
+const d20FaceGeometry = new THREE.IcosahedronGeometry(1.14, 0).toNonIndexed();
+export const d20Faces = buildFaces(d20FaceGeometry);
+d20FaceGeometry.dispose();
 
-  for (let index = 0; index < positions.count; index += 3) {
-    const a = new THREE.Vector3().fromBufferAttribute(positions, index);
-    const b = new THREE.Vector3().fromBufferAttribute(positions, index + 1);
-    const c = new THREE.Vector3().fromBufferAttribute(positions, index + 2);
+const d4FaceGeometry = new THREE.TetrahedronGeometry(1.38, 0).toNonIndexed();
+export const d4Faces = buildFaces(d4FaceGeometry);
+d4FaceGeometry.dispose();
 
-    const center = new THREE.Vector3().add(a).add(b).add(c).divideScalar(3);
-    const normal = new THREE.Vector3()
-      .subVectors(b, a)
-      .cross(new THREE.Vector3().subVectors(c, a))
-      .normalize();
+const d8FaceGeometry = new THREE.OctahedronGeometry(1.34, 0).toNonIndexed();
+export const d8Faces = buildFaces(d8FaceGeometry);
+d8FaceGeometry.dispose();
 
-    if (normal.dot(center) < 0) {
-      normal.multiplyScalar(-1);
-    }
-
-    faces.push({
-      center,
-      normal,
-      value: faces.length + 1
-    });
+export const d6Faces: FaceMeta[] = [
+  {
+    center: new THREE.Vector3(0, 1, 0),
+    normal: new THREE.Vector3(0, 1, 0),
+    value: 1
+  },
+  {
+    center: new THREE.Vector3(1, 0, 0),
+    normal: new THREE.Vector3(1, 0, 0),
+    value: 2
+  },
+  {
+    center: new THREE.Vector3(0, 0, 1),
+    normal: new THREE.Vector3(0, 0, 1),
+    value: 3
+  },
+  {
+    center: new THREE.Vector3(0, 0, -1),
+    normal: new THREE.Vector3(0, 0, -1),
+    value: 4
+  },
+  {
+    center: new THREE.Vector3(-1, 0, 0),
+    normal: new THREE.Vector3(-1, 0, 0),
+    value: 5
+  },
+  {
+    center: new THREE.Vector3(0, -1, 0),
+    normal: new THREE.Vector3(0, -1, 0),
+    value: 6
   }
+];
 
-  return faces;
-}
+export const d10Faces = createD10Faces();
 
-const faceGeometry = new THREE.IcosahedronGeometry(1.14, 0).toNonIndexed();
-export const d20Faces = buildFaces(faceGeometry);
-faceGeometry.dispose();
+const d12FaceGeometry = new THREE.DodecahedronGeometry(1.18, 0).toNonIndexed();
+export const d12Faces = buildFaces(d12FaceGeometry);
+d12FaceGeometry.dispose();

@@ -53,53 +53,43 @@ function DicePage() {
 
   return (
     <section className={styles.page}>
-      <div className={styles.panel}>
-        <div className={styles.panelHeader}>
-          <div>
-            <p className={styles.eyebrow}>Dice roller</p>
-            <h2 className={styles.title}>Three.js dice pool preview.</h2>
-          </div>
-        </div>
+      <div className={styles.stageSection}>
+        <D20Viewport
+          dice={currentDice}
+          rollToken={rollToken}
+          onRollComplete={(rolledDice, completedToken) => {
+            if (completedToken !== rollToken) {
+              return;
+            }
 
-        <div className={styles.stageSection}>
-          <D20Viewport
-            dice={currentDice}
-            rollToken={rollToken}
-            onRollComplete={(rolledDice, completedToken) => {
-              if (completedToken !== rollToken) {
-                return;
-              }
+            setResultPopup(createResultPopup(rolledDice, completedToken));
+          }}
+        />
 
-              setResultPopup(createResultPopup(rolledDice, completedToken));
-            }}
+        <div className={styles.controlsOverlay}>
+          <DiceControls
+            selection={selection}
+            totalSelectedDice={totalSelectedDice}
+            onAdjustSelection={adjustSelection}
+            onRoll={commitRoll}
           />
-
-          <div className={styles.controlsOverlay}>
-            <DiceControls
-              selection={selection}
-              totalSelectedDice={totalSelectedDice}
-              onAdjustSelection={adjustSelection}
-              onRoll={commitRoll}
-            />
-          </div>
-
-          <button
-            type="button"
-            className={styles.historyToggle}
-            aria-label={historyOpen ? "Hide roll history" : "Show roll history"}
-            aria-expanded={historyOpen}
-            onClick={() => setHistoryOpen((current) => !current)}
-          >
-            <History size={18} />
-          </button>
-
-          {historyOpen ? (
-            <RollHistoryDrawer history={history} />
-          ) : null}
-
-          {resultPopup ? <RollResultPopup result={resultPopup} /> : null}
         </div>
 
+        <button
+          type="button"
+          className={styles.historyToggle}
+          aria-label={historyOpen ? "Hide roll history" : "Show roll history"}
+          aria-expanded={historyOpen}
+          onClick={() => setHistoryOpen((current) => !current)}
+        >
+          <History size={18} />
+        </button>
+
+        {historyOpen ? (
+          <RollHistoryDrawer history={history} />
+        ) : null}
+
+        {resultPopup ? <RollResultPopup result={resultPopup} /> : null}
         {error ? <p className={styles.error}>{error}</p> : null}
       </div>
     </section>

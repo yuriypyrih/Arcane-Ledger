@@ -1,6 +1,9 @@
 .shell {
-  min-height: 100vh;
-  padding: 1.5rem;
+  --shell-gutter: 1.5rem;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 100dvh;
+  padding: var(--shell-gutter);
 }
 
 .header {
@@ -29,6 +32,14 @@
 .main {
   margin: 0 auto;
   max-width: 1200px;
+  min-height: 0;
+  width: 100%;
+}
+
+.mainFullBleed {
+  margin: 0 calc(var(--shell-gutter) * -1) calc(var(--shell-gutter) * -1);
+  max-width: none;
+  width: calc(100% + (var(--shell-gutter) * 2));
 }
 
 @media (max-width: 780px) {

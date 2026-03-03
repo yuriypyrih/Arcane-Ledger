@@ -63,7 +63,7 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
     scene.add(ambientLight);
 
     const keyLight = new THREE.DirectionalLight(0xfff1de, 3.1);
-    keyLight.position.set(1.35, 11.3, 1.15);
+    keyLight.position.set(2.35, 10.9, 2.05);
     keyLight.castShadow = true;
     keyLight.shadow.mapSize.set(2048, 2048);
     keyLight.shadow.camera.left = -7;
@@ -73,11 +73,11 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
     scene.add(keyLight);
 
     const rimLight = new THREE.PointLight(0x84b7ff, 4.4, 18, 2);
-    rimLight.position.set(-4.2, 3.4, -3.2);
+    rimLight.position.set(-5.1, 3.8, -4.4);
     scene.add(rimLight);
 
     const fillLight = new THREE.PointLight(0xc5976f, 3.4, 22, 2);
-    fillLight.position.set(2.4, 3.1, 4.5);
+    fillLight.position.set(3.2, 3.5, 5.6);
     scene.add(fillLight);
 
     const woodTexture = createWoodTexture();
@@ -129,8 +129,9 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
       clearDiceLayer();
 
       const visuals = nextDice.map((die, index) => {
+        const spinScale = index < 4 ? 0.58 : 0.7;
         const root = new THREE.Group();
-        const shapeData = createDieShape();
+        const shapeData = createDieShape(die.sides);
         const valueLabel = createPlaneMesh(
           createValueTexture(die.value),
           1.06,
@@ -163,13 +164,13 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
           typeLabel,
           startPosition: start,
           endPosition: end,
-          targetQuaternion: getTargetQuaternion(Math.max(1, Math.min(20, die.value))),
+          targetQuaternion: getTargetQuaternion(die.sides, die.value),
           spinVelocity: new THREE.Vector3(
-            0.16 + Math.random() * 0.08,
-            0.28 + Math.random() * 0.08,
-            0.14 + Math.random() * 0.06
+            (0.15 + Math.random() * 0.05) * spinScale,
+            (0.24 + Math.random() * 0.06) * spinScale,
+            (0.13 + Math.random() * 0.05) * spinScale
           ),
-          delay: index * 70,
+          delay: index * 75,
           settleStarted: false,
           settleQuaternion: new THREE.Quaternion()
         } satisfies DieVisual;
@@ -178,7 +179,7 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
       animationRef.current = {
         rolling: true,
         startedAt: time,
-        completesAt: time + TOTAL_DURATION + Math.max(0, (nextDice.length - 1) * 70),
+        completesAt: time + TOTAL_DURATION + Math.max(0, (nextDice.length - 1) * 75),
         activeRollToken: nextRollToken,
         dice: visuals
       };
@@ -249,9 +250,9 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
         }
       }
 
-      keyLight.position.x = 1.35 + Math.sin(time * 0.00045) * 0.16;
-      keyLight.position.z = 1.15 + Math.cos(time * 0.0004) * 0.14;
-      rimLight.position.z = -3.2 + Math.cos(time * 0.00075) * 0.18;
+      keyLight.position.x = 2.35 + Math.sin(time * 0.00045) * 0.2;
+      keyLight.position.z = 2.05 + Math.cos(time * 0.0004) * 0.18;
+      rimLight.position.z = -4.4 + Math.cos(time * 0.00075) * 0.22;
 
       renderer.render(scene, camera);
       rafId = window.requestAnimationFrame(renderFrame);
