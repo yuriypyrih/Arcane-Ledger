@@ -1,7 +1,7 @@
 import { useState } from "react";
 import clsx from "clsx";
-import type { DiceSelection, DiceSides } from "../../../../types";
-import { selectableDice } from "../../../../utils/dice";
+import type { DiceSelection, DiceSides } from "../../../types";
+import { selectableDice } from "../../../utils/dice";
 import styles from "./DiceControls.module.css";
 
 type DiceControlsProps = {

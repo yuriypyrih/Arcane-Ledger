@@ -1,5 +1,5 @@
 import DragonDiceLogo from "../../assets/dragon-dice.svg?react";
-import FeatureCard from "./FeatureCard";
+import HomeFeatureCard from "../../components/HomePage/HomeFeatureCard";
 import { homeCards } from "./homePage.data";
 import styles from "./HomePage.module.css";
 
@@ -22,7 +22,7 @@ function HomePage() {
 
       <div className={styles.cardGrid}>
         {homeCards.map((card) => (
-          <FeatureCard key={card.title} card={card} />
+          <HomeFeatureCard key={card.title} card={card} />
         ))}
       </div>
     </section>

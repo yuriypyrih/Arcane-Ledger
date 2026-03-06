@@ -1,0 +1,416 @@
+.page {
+  display: grid;
+  gap: 1rem;
+  max-width: 1120px;
+  margin: 0 auto;
+}
+
+.backButton,
+.editButton,
+.saveButton,
+.cancelButton,
+.hpActionButton,
+.modeButton,
+.primaryLink {
+  border: none;
+  cursor: pointer;
+  font: inherit;
+}
+
+.backButton {
+  justify-self: start;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-ink);
+  min-height: 44px;
+  padding: 0 1rem;
+}
+
+.notFoundCard {
+  display: grid;
+  gap: 0.8rem;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 30px;
+  background: rgba(255, 250, 241, 0.95);
+  box-shadow: 0 18px 50px rgba(54, 34, 21, 0.08);
+  padding: 1.5rem;
+}
+
+.notFoundCard h2,
+.notFoundCard p {
+  margin: 0;
+}
+
+.primaryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  justify-self: start;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #5e3a24, #8f5b38);
+  color: #fff8ee;
+  min-height: 46px;
+  padding: 0 1rem;
+  text-decoration: none;
+}
+
+.cascadeStack {
+  display: grid;
+  gap: 1rem;
+}
+
+.sectionCard {
+  display: grid;
+  gap: 1rem;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 30px;
+  background: rgba(255, 250, 241, 0.95);
+  box-shadow: 0 18px 50px rgba(54, 34, 21, 0.08);
+  padding: 1.4rem;
+}
+
+.cascadeOne {
+  transform: translateX(0);
+}
+
+.cascadeTwo {
+  transform: translateX(10px);
+}
+
+.cascadeThree {
+  transform: translateX(18px);
+}
+
+.cascadeFour {
+  transform: translateX(10px);
+}
+
+.cascadeFive {
+  transform: translateX(0);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.25rem;
+  color: var(--color-accent);
+  font-size: 0.82rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.title,
+.subtitle {
+  margin: 0;
+}
+
+.editButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.1);
+  color: var(--color-ink);
+  min-height: 38px;
+  padding: 0 0.9rem;
+  white-space: nowrap;
+}
+
+.formGrid {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.field,
+.fieldWide {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.field span,
+.fieldWide span {
+  color: var(--color-ink-soft);
+  font-size: 0.82rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.fieldWide {
+  grid-column: 1 / -1;
+}
+
+.formActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  grid-column: 1 / -1;
+}
+
+.saveButton,
+.cancelButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  border-radius: 14px;
+  min-height: 42px;
+  padding: 0 0.9rem;
+}
+
+.saveButton {
+  background: linear-gradient(135deg, #5e3a24, #8f5b38);
+  color: #fff8ee;
+}
+
+.cancelButton {
+  background: rgba(75, 47, 29, 0.09);
+  color: var(--color-ink);
+}
+
+.metaList {
+  display: grid;
+  gap: 0.65rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.metaList li {
+  display: grid;
+  gap: 0.2rem;
+  border-radius: 16px;
+  background: rgba(75, 47, 29, 0.06);
+  padding: 0.65rem 0.75rem;
+}
+
+.metaList span {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.backgroundText,
+.emptyText {
+  margin: 0;
+  white-space: pre-line;
+}
+
+.emptyText {
+  color: var(--color-ink-soft);
+}
+
+.hpSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.hpSummary strong {
+  font-size: 1.2rem;
+}
+
+.hpSummary span {
+  color: var(--color-ink-soft);
+  font-size: 0.92rem;
+}
+
+.hpBarTrack {
+  block-size: 16px;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.12);
+  overflow: hidden;
+}
+
+.hpBarFill {
+  block-size: 100%;
+  background: linear-gradient(90deg, #943629, #b6513f, #d08d54);
+  transition: width 180ms ease;
+}
+
+.hpControls {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.hpStepInput {
+  max-width: 120px;
+}
+
+.hpActionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  color: #fff8ee;
+  min-height: 40px;
+  min-width: 40px;
+}
+
+.hpDamage {
+  background: linear-gradient(135deg, #933325, #ba4b39);
+}
+
+.hpHeal {
+  background: linear-gradient(135deg, #2b6a3e, #3b8a54);
+}
+
+.modeControl {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-radius: 22px;
+  background: rgba(75, 47, 29, 0.07);
+  padding: 0.25rem;
+}
+
+.modeButton {
+  border-radius: 18px;
+  background: transparent;
+  color: var(--color-ink-soft);
+  min-height: 40px;
+  padding: 0 0.9rem;
+}
+
+.modeButtonActive {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-ink);
+  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
+}
+
+.helperText {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.9rem;
+}
+
+.abilityInputGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.abilityInputCard {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.abilityInputCard span {
+  color: var(--color-ink-soft);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.modifierGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.modifierCard {
+  display: grid;
+  gap: 0.2rem;
+  border-radius: 18px;
+  background: rgba(75, 47, 29, 0.07);
+  padding: 0.75rem 0.85rem;
+  text-align: center;
+}
+
+.modifierCard strong {
+  font-size: 1.4rem;
+}
+
+.modifierCard span {
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.modifierCard small {
+  color: var(--color-ink-soft);
+  font-size: 0.8rem;
+}
+
+.choiceGrid {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.choiceChip {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.45rem 0.55rem;
+}
+
+.choiceChip input {
+  accent-color: #8f5b38;
+  margin: 0;
+}
+
+.choiceChipActive {
+  background: rgba(143, 91, 56, 0.18);
+  border-color: rgba(143, 91, 56, 0.42);
+}
+
+.tagList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tagList li {
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.1);
+  padding: 0.4rem 0.75rem;
+}
+
+@media (max-width: 860px) {
+  .cascadeTwo,
+  .cascadeThree,
+  .cascadeFour,
+  .cascadeFive {
+    transform: none;
+  }
+
+  .metaList,
+  .abilityInputGrid,
+  .modifierGrid,
+  .choiceGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .sectionHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .formGrid,
+  .metaList,
+  .abilityInputGrid,
+  .modifierGrid,
+  .choiceGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .hpControls {
+    flex-wrap: wrap;
+  }
+}

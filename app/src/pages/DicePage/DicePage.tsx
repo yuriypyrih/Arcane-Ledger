@@ -1,11 +1,11 @@
 import { useState } from "react";
 import { History } from "lucide-react";
 import D20Viewport from "../../components/D20Viewport";
+import DiceControls from "../../components/DicePage/DiceControls";
+import RollHistoryDrawer from "../../components/DicePage/RollHistoryDrawer";
+import RollResultPopup from "../../components/DicePage/RollResultPopup";
 import type { DiceSelection, DiceSides, RolledDie } from "../../types";
 import { createEmptySelection, rollDicePool, selectableDice } from "../../utils/dice";
-import DiceControls from "./components/DiceControls";
-import RollHistoryDrawer from "./components/RollHistoryDrawer";
-import RollResultPopup from "./components/RollResultPopup";
 import { createResultPopup, createRollRecord } from "./utils";
 import styles from "./DicePage.module.css";
 import type { ResultPopup, RollRecord } from "./types";

@@ -1,0 +1,24 @@
+.textarea {
+  border: 1px solid rgba(75, 47, 29, 0.18);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--color-ink);
+  font: inherit;
+  min-height: 154px;
+  padding: 0.9rem 1rem;
+  resize: vertical;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    background-color 140ms ease;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: rgba(143, 91, 56, 0.8);
+  box-shadow: 0 0 0 4px rgba(143, 91, 56, 0.12);
+}
+
+.textareaInvalid {
+  border-color: rgba(169, 56, 32, 0.42);
+}

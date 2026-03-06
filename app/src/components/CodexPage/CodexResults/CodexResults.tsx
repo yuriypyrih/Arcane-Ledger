@@ -1,4 +1,4 @@
-import type { CodexEntry, CodexStatus } from "../../../../types";
+import type { CodexEntry, CodexStatus } from "../../../types";
 import styles from "./CodexResults.module.css";
 
 type CodexResultsProps = {

@@ -1,4 +1,4 @@
-import type { ResultPopup } from "../../types";
+import type { ResultPopup } from "../../../pages/DicePage/types";
 import styles from "./RollResultPopup.module.css";
 
 type RollResultPopupProps = {

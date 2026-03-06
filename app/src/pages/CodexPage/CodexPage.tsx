@@ -1,7 +1,7 @@
 import { useState } from "react";
+import CodexFilters from "../../components/CodexPage/CodexFilters";
+import CodexResults from "../../components/CodexPage/CodexResults";
 import { filterCodexEntries, getCodexCategories } from "../../utils/codex";
-import CodexFilters from "./components/CodexFilters";
-import CodexResults from "./components/CodexResults";
 import { useCodexEntries } from "./useCodexEntries";
 import styles from "./CodexPage.module.css";
 

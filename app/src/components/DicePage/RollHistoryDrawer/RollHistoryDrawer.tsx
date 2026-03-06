@@ -1,4 +1,4 @@
-import type { RollRecord } from "../../types";
+import type { RollRecord } from "../../../pages/DicePage/types";
 import styles from "./RollHistoryDrawer.module.css";
 
 type RollHistoryDrawerProps = {

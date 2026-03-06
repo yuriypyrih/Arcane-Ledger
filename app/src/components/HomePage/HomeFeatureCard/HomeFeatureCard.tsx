@@ -1,12 +1,12 @@
 import { Link } from "react-router-dom";
-import type { HomeCard } from "../homePage.data";
-import styles from "./FeatureCard.module.css";
+import type { HomeCard } from "../../../pages/HomePage/homePage.data";
+import styles from "./HomeFeatureCard.module.css";
 
-type FeatureCardProps = {
+type HomeFeatureCardProps = {
   card: HomeCard;
 };
 
-function FeatureCard({ card }: FeatureCardProps) {
+function HomeFeatureCard({ card }: HomeFeatureCardProps) {
   const { title, description, to, icon: Icon } = card;
 
   return (
@@ -21,4 +21,4 @@ function FeatureCard({ card }: FeatureCardProps) {
   );
 }
 
-export default FeatureCard;
+export default HomeFeatureCard;

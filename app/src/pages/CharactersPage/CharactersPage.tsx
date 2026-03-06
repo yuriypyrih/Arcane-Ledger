@@ -1,69 +1,27 @@
-import { useState, type FormEvent } from "react";
-import type { Character, CharacterDraft } from "../../types";
-import CharacterForm from "./components/CharacterForm";
-import CharacterList from "./components/CharacterList";
-import { emptyCharacter } from "./constants";
+import { Link } from "react-router-dom";
+import CharacterList from "../../components/CharactersPage/CharacterList";
+import { loadCharacters } from "./storage";
 import styles from "./CharactersPage.module.css";
 
 function CharactersPage() {
-  const [characters, setCharacters] = useState<Character[]>([]);
-  const [editingId, setEditingId] = useState<number | null>(null);
-  const [draft, setDraft] = useState<CharacterDraft>(emptyCharacter);
-
-  function resetForm() {
-    setDraft(emptyCharacter);
-    setEditingId(null);
-  }
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-
-    const payload = {
-      name: draft.name.trim(),
-      className: draft.className.trim(),
-      level: Math.max(1, draft.level)
-    };
-
-    if (!payload.name || !payload.className) {
-      return;
-    }
-
-    // TODO: Persist character records to local storage or the API when storage is added.
-    if (editingId === null) {
-      setCharacters((current) => [
-        { id: Date.now(), ...payload },
-        ...current
-      ]);
-    } else {
-      setCharacters((current) =>
-        current.map((character) =>
-          character.id === editingId ? { ...character, ...payload } : character
-        )
-      );
-    }
-
-    resetForm();
-  }
-
-  function startEditing(character: Character) {
-    setEditingId(character.id);
-    setDraft({
-      name: character.name,
-      className: character.className,
-      level: character.level
-    });
-  }
+  const characters = loadCharacters();
 
   return (
     <section className={styles.page}>
-      <CharacterForm
-        draft={draft}
-        isEditing={editingId !== null}
-        onSubmit={handleSubmit}
-        onDraftChange={setDraft}
-        onCancel={resetForm}
-      />
-      <CharacterList characters={characters} onEdit={startEditing} />
+      <div className={styles.heroCard}>
+        <div>
+          <p className={styles.eyebrow}>Character forge</p>
+          <h2 className={styles.title}>Build and revisit your party roster</h2>
+          <p className={styles.description}>
+            Start a new sheet on a separate page, then come back here to review or update the
+            heroes you have already created.
+          </p>
+        </div>
+        <Link to="/characters/new" className={styles.primaryButton}>
+          New character
+        </Link>
+      </div>
+      <CharacterList characters={characters} />
     </section>
   );
 }
