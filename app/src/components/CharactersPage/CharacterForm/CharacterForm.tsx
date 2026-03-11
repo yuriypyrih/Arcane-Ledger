@@ -1,23 +1,30 @@
 import clsx from "clsx";
 import { Dice6 } from "lucide-react";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
-import type { AbilityKey, AbilityScores, AttributeMode, CharacterDraft } from "../../../types";
+import type { AbilityKey, AbilityScores, AttributeMode, CharacterDraft, SkillName } from "../../../types";
 import {
   POINT_BUY_BUDGET,
   abilityKeys,
   alignmentGrid,
   cloneAbilities,
   createDefaultAbilities,
-  equipmentOptions,
+  createEmptyCharacter,
   getAffordablePointBuyMax,
   getPointBuyCost,
   getPointBuyRemaining,
   normalizePointBuyAbilities,
-  roleOptions,
-  skillsOptions,
+  classOptions,
   speciesOptions
 } from "../../../pages/CharactersPage/constants";
+import {
+  getAvailableEquipmentNamesForClass,
+  getSkillProficiencyOptionsForClass,
+  getSkillSelectionLimitForClass,
+  normalizeSelectionsForClass,
+  resolveSkillProficienciesForCharacter
+} from "../../../pages/CharactersPage/proficiency";
+import { normalizeLevelAndXp } from "../../../pages/CharactersPage/experience";
 import NumberInput from "../FormInputs/NumberInput";
 import SelectInput from "../FormInputs/SelectInput";
 import TextAreaInput from "../FormInputs/TextAreaInput";
@@ -29,6 +36,270 @@ type CharacterFormProps = {
   initialValues: CharacterDraft;
   onSubmit: (draft: CharacterDraft) => void;
   onBack: () => void;
+};
+
+type CreationStep = 1 | 2 | 3;
+
+type ClassBuildPlan = {
+  primary: AbilityKey;
+  secondary: AbilityKey;
+  tertiary: AbilityKey;
+  hitDie: number;
+  preferredSkills: string[];
+  preferredEquipment: string[];
+  alignment: CharacterDraft["alignment"];
+};
+
+const alignmentOptions = alignmentGrid.flat();
+
+const fallbackBuildPlan: ClassBuildPlan = {
+  primary: "STR",
+  secondary: "CON",
+  tertiary: "DEX",
+  hitDie: 10,
+  preferredSkills: ["Athletics", "Perception", "Survival", "Intimidation"],
+  preferredEquipment: [
+    "Longsword",
+    "Shield",
+    "Chain Mail",
+    "Backpack",
+    "Rations (1 day)",
+    "Torch"
+  ],
+  alignment: "True Neutral"
+};
+
+const classBuildPlans: Record<string, ClassBuildPlan> = {
+  Artificer: {
+    primary: "INT",
+    secondary: "CON",
+    tertiary: "DEX",
+    hitDie: 8,
+    preferredSkills: ["Arcana", "Investigation", "History", "Perception", "Insight"],
+    preferredEquipment: [
+      "Spellbook",
+      "Healer's Kit",
+      "Leather Armor",
+      "Dagger",
+      "Backpack",
+      "Explorer's Pack"
+    ],
+    alignment: "Lawful Neutral"
+  },
+  Barbarian: {
+    primary: "STR",
+    secondary: "CON",
+    tertiary: "DEX",
+    hitDie: 12,
+    preferredSkills: ["Athletics", "Survival", "Intimidation", "Perception", "Animal Handling"],
+    preferredEquipment: [
+      "Longsword",
+      "Shield",
+      "Backpack",
+      "Rations (1 day)",
+      "Torch",
+      "Rope (50 ft.)"
+    ],
+    alignment: "Chaotic Neutral"
+  },
+  Bard: {
+    primary: "CHA",
+    secondary: "DEX",
+    tertiary: "CON",
+    hitDie: 8,
+    preferredSkills: ["Performance", "Persuasion", "Deception", "Insight", "History"],
+    preferredEquipment: [
+      "Shortsword",
+      "Leather Armor",
+      "Backpack",
+      "Waterskin",
+      "Torch",
+      "Spellbook"
+    ],
+    alignment: "Neutral Good"
+  },
+  Cleric: {
+    primary: "WIS",
+    secondary: "CON",
+    tertiary: "STR",
+    hitDie: 8,
+    preferredSkills: ["Religion", "Insight", "Medicine", "Persuasion", "History"],
+    preferredEquipment: [
+      "Chain Mail",
+      "Shield",
+      "Longsword",
+      "Healer's Kit",
+      "Backpack",
+      "Torch"
+    ],
+    alignment: "Lawful Good"
+  },
+  Druid: {
+    primary: "WIS",
+    secondary: "CON",
+    tertiary: "DEX",
+    hitDie: 8,
+    preferredSkills: ["Nature", "Animal Handling", "Medicine", "Survival", "Perception"],
+    preferredEquipment: [
+      "Leather Armor",
+      "Shield",
+      "Dagger",
+      "Healer's Kit",
+      "Waterskin",
+      "Rations (1 day)"
+    ],
+    alignment: "True Neutral"
+  },
+  Fighter: {
+    primary: "STR",
+    secondary: "CON",
+    tertiary: "DEX",
+    hitDie: 10,
+    preferredSkills: ["Athletics", "Perception", "Survival", "Intimidation", "History"],
+    preferredEquipment: [
+      "Chain Mail",
+      "Shield",
+      "Longsword",
+      "Shortsword",
+      "Backpack",
+      "Rope (50 ft.)"
+    ],
+    alignment: "Lawful Neutral"
+  },
+  Monk: {
+    primary: "DEX",
+    secondary: "WIS",
+    tertiary: "CON",
+    hitDie: 8,
+    preferredSkills: ["Acrobatics", "Stealth", "Insight", "Athletics", "Perception"],
+    preferredEquipment: [
+      "Shortsword",
+      "Dagger",
+      "Backpack",
+      "Rations (1 day)",
+      "Waterskin",
+      "Torch"
+    ],
+    alignment: "Lawful Good"
+  },
+  Paladin: {
+    primary: "STR",
+    secondary: "CHA",
+    tertiary: "CON",
+    hitDie: 10,
+    preferredSkills: ["Persuasion", "Athletics", "Insight", "Intimidation", "Religion"],
+    preferredEquipment: [
+      "Chain Mail",
+      "Shield",
+      "Longsword",
+      "Backpack",
+      "Torch",
+      "Rations (1 day)"
+    ],
+    alignment: "Lawful Good"
+  },
+  Ranger: {
+    primary: "DEX",
+    secondary: "WIS",
+    tertiary: "CON",
+    hitDie: 10,
+    preferredSkills: ["Survival", "Perception", "Stealth", "Nature", "Athletics"],
+    preferredEquipment: [
+      "Leather Armor",
+      "Longsword",
+      "Shortsword",
+      "Backpack",
+      "Rope (50 ft.)",
+      "Rations (1 day)"
+    ],
+    alignment: "Neutral Good"
+  },
+  Rogue: {
+    primary: "DEX",
+    secondary: "INT",
+    tertiary: "CHA",
+    hitDie: 8,
+    preferredSkills: ["Stealth", "Sleight of Hand", "Deception", "Acrobatics", "Investigation"],
+    preferredEquipment: [
+      "Leather Armor",
+      "Dagger",
+      "Shortsword",
+      "Thieves' Tools",
+      "Backpack",
+      "Torch"
+    ],
+    alignment: "Chaotic Neutral"
+  },
+  Sorcerer: {
+    primary: "CHA",
+    secondary: "CON",
+    tertiary: "DEX",
+    hitDie: 6,
+    preferredSkills: ["Arcana", "Deception", "Persuasion", "Insight", "Intimidation"],
+    preferredEquipment: ["Spellbook", "Dagger", "Backpack", "Waterskin", "Torch", "Rations (1 day)"],
+    alignment: "Chaotic Good"
+  },
+  Warlock: {
+    primary: "CHA",
+    secondary: "CON",
+    tertiary: "INT",
+    hitDie: 8,
+    preferredSkills: ["Arcana", "Deception", "Intimidation", "Investigation", "Religion"],
+    preferredEquipment: [
+      "Spellbook",
+      "Dagger",
+      "Leather Armor",
+      "Backpack",
+      "Torch",
+      "Rations (1 day)"
+    ],
+    alignment: "Neutral Evil"
+  },
+  Wizard: {
+    primary: "INT",
+    secondary: "CON",
+    tertiary: "DEX",
+    hitDie: 6,
+    preferredSkills: ["Arcana", "History", "Investigation", "Insight", "Religion"],
+    preferredEquipment: ["Spellbook", "Dagger", "Backpack", "Waterskin", "Torch", "Rations (1 day)"],
+    alignment: "Lawful Neutral"
+  }
+};
+
+const speciesAbilityBonuses: Partial<Record<string, Partial<Record<AbilityKey, number>>>> = {
+  Dragonborn: { STR: 2, CHA: 1 },
+  Dwarf: { CON: 2, WIS: 1 },
+  Elf: { DEX: 2, INT: 1 },
+  Gnome: { INT: 2, DEX: 1 },
+  "Half-Elf": { CHA: 2, DEX: 1, CON: 1 },
+  "Half-Orc": { STR: 2, CON: 1 },
+  Halfling: { DEX: 2, CHA: 1 },
+  Human: { STR: 1, DEX: 1, CON: 1, INT: 1, WIS: 1, CHA: 1 },
+  Tiefling: { CHA: 2, INT: 1 }
+};
+
+const speciesSkillAffinity: Partial<Record<string, string[]>> = {
+  Dragonborn: ["Intimidation", "Persuasion", "Athletics"],
+  Dwarf: ["History", "Insight", "Survival"],
+  Elf: ["Perception", "Stealth", "Arcana"],
+  Gnome: ["Arcana", "Investigation", "History"],
+  "Half-Elf": ["Persuasion", "Insight", "Deception"],
+  "Half-Orc": ["Athletics", "Intimidation", "Survival"],
+  Halfling: ["Stealth", "Perception", "Persuasion"],
+  Human: ["Insight", "Perception", "Persuasion"],
+  Tiefling: ["Deception", "Arcana", "Intimidation"]
+};
+
+const speciesEquipmentAffinity: Partial<Record<string, string[]>> = {
+  Dragonborn: ["Shield", "Longsword"],
+  Dwarf: ["Chain Mail", "Shield"],
+  Elf: ["Leather Armor", "Longsword"],
+  Gnome: ["Healer's Kit", "Backpack"],
+  "Half-Elf": ["Leather Armor", "Shortsword"],
+  "Half-Orc": ["Shield", "Longsword"],
+  Halfling: ["Dagger", "Backpack"],
+  Human: ["Backpack", "Rope (50 ft.)"],
+  Tiefling: ["Spellbook", "Dagger"]
 };
 
 function clampNumber(rawValue: string, min: number, max: number, fallback: number): number {
@@ -48,9 +319,174 @@ function normalizeCustomAbilities(abilities: AbilityScores): AbilityScores {
   }, {} as AbilityScores);
 }
 
-function normalizeSelection(values: string[], validOptions: string[]): string[] {
+function normalizeSelection<T extends string>(values: string[], validOptions: readonly T[]): T[] {
   const validOptionSet = new Set(validOptions);
-  return [...new Set(values)].filter((value) => validOptionSet.has(value));
+  return [...new Set(values)].filter((value): value is T => validOptionSet.has(value as T));
+}
+
+function areStringArraysEqual(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((value, index) => value === right[index]);
+}
+
+function createBasicProfileSnapshot(values: CharacterDraft): CharacterDraft {
+  const defaults = createEmptyCharacter();
+  const normalizedProgress = normalizeLevelAndXp(values.level, values.xp);
+
+  return {
+    ...defaults,
+    name: values.name,
+    species: values.species,
+    className: values.className,
+    level: normalizedProgress.level,
+    xp: normalizedProgress.xp
+  };
+}
+
+function getBuildPlan(className: string): ClassBuildPlan {
+  return classBuildPlans[className] ?? fallbackBuildPlan;
+}
+
+function getAbilityPriorityOrder(plan: ClassBuildPlan): AbilityKey[] {
+  const preferredAbilities = [plan.primary, plan.secondary, plan.tertiary];
+
+  return [
+    ...preferredAbilities,
+    ...abilityKeys.filter((ability) => !preferredAbilities.includes(ability))
+  ];
+}
+
+function createRecommendedAbilities(
+  species: string,
+  level: number,
+  buildPlan: ClassBuildPlan
+): AbilityScores {
+  const recommendedScores = [15, 14, 13, 12, 10, 8];
+  const abilityOrder = getAbilityPriorityOrder(buildPlan);
+  const abilities = abilityOrder.reduce((next, ability, index) => {
+    next[ability] = recommendedScores[index] ?? 8;
+    return next;
+  }, {} as AbilityScores);
+  const normalizedLevel = clampNumber(String(level), 1, 20, 1);
+  const speciesBonuses = speciesAbilityBonuses[species] ?? {};
+
+  abilityKeys.forEach((ability) => {
+    abilities[ability] += speciesBonuses[ability] ?? 0;
+  });
+
+  const abilityIncreaseCount = Math.floor((normalizedLevel - 1) / 4);
+  const levelIncreaseOrder = [buildPlan.primary, buildPlan.secondary, buildPlan.tertiary];
+
+  for (let index = 0; index < abilityIncreaseCount; index += 1) {
+    const targetAbility = levelIncreaseOrder[index % levelIncreaseOrder.length];
+    abilities[targetAbility] = Math.min(99, abilities[targetAbility] + 1);
+  }
+
+  return normalizeCustomAbilities(abilities);
+}
+
+function calculateRecommendedHitPoints(hitDie: number, level: number, constitutionScore: number): number {
+  const normalizedLevel = clampNumber(String(level), 1, 20, 1);
+  const constitutionModifier = Math.floor((constitutionScore - 10) / 2);
+  const firstLevelHitPoints = Math.max(1, hitDie + constitutionModifier);
+  const averagePerLevel = Math.max(1, Math.floor(hitDie / 2) + 1 + constitutionModifier);
+
+  return Math.max(1, firstLevelHitPoints + (normalizedLevel - 1) * averagePerLevel);
+}
+
+function createRecommendedSkills(
+  species: string,
+  className: string,
+  buildPlan: ClassBuildPlan
+): SkillName[] {
+  const availableClassSkills = getSkillProficiencyOptionsForClass(className);
+  const targetCount = getSkillSelectionLimitForClass(className);
+
+  return normalizeSelection(
+    [...buildPlan.preferredSkills, ...(speciesSkillAffinity[species] ?? []), ...availableClassSkills],
+    availableClassSkills
+  ).slice(0, targetCount);
+}
+
+function createRecommendedEquipment(
+  species: string,
+  level: number,
+  className: string,
+  buildPlan: ClassBuildPlan
+): string[] {
+  const availableClassEquipment = getAvailableEquipmentNamesForClass(className);
+  const targetCount = Math.max(4, Math.min(8, 5 + Math.floor((level - 1) / 4)));
+
+  return normalizeSelection(
+    [
+      ...buildPlan.preferredEquipment,
+      ...(speciesEquipmentAffinity[species] ?? []),
+      ...availableClassEquipment
+    ],
+    availableClassEquipment
+  ).slice(0, targetCount);
+}
+
+function createRecommendedBackground(
+  profile: CharacterDraft,
+  level: number,
+  buildPlan: ClassBuildPlan
+): string {
+  const characterName = profile.name.trim() || "This adventurer";
+
+  return [
+    `${characterName} is a level ${level} ${profile.species} ${profile.className}.`,
+    `Recommended focus: ${buildPlan.primary}, then ${buildPlan.secondary}, with ${buildPlan.tertiary} as support.`,
+    `Current outlook leans ${buildPlan.alignment.toLowerCase()} and can be adjusted later as the story evolves.`
+  ].join("\n");
+}
+
+function createRecommendedCharacterDraft(profile: CharacterDraft): CharacterDraft {
+  const normalizedLevel = clampNumber(String(profile.level), 1, 20, 1);
+  const normalizedProgress = normalizeLevelAndXp(normalizedLevel, profile.xp);
+  const buildPlan = getBuildPlan(profile.className);
+  const recommendedAbilities = createRecommendedAbilities(
+    profile.species,
+    normalizedProgress.level,
+    buildPlan
+  );
+  const maxHitPoints = clampNumber(
+    String(
+      calculateRecommendedHitPoints(
+        buildPlan.hitDie,
+        normalizedProgress.level,
+        recommendedAbilities.CON
+      )
+    ),
+    1,
+    999,
+    8
+  );
+
+  return {
+    ...createEmptyCharacter(),
+    name: profile.name,
+    species: profile.species,
+    className: profile.className,
+    level: normalizedProgress.level,
+    xp: normalizedProgress.xp,
+    hitPoints: maxHitPoints,
+    currentHitPoints: maxHitPoints,
+    attributeMode: "custom",
+    abilities: recommendedAbilities,
+    alignment: buildPlan.alignment,
+    background: createRecommendedBackground(profile, normalizedProgress.level, buildPlan),
+    skills: createRecommendedSkills(profile.species, profile.className, buildPlan),
+    equipment: createRecommendedEquipment(
+      profile.species,
+      normalizedProgress.level,
+      profile.className,
+      buildPlan
+    )
+  };
 }
 
 const randomNamePrefixes = [
@@ -137,7 +573,7 @@ function getRandomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
-function getRandomItem<T>(items: T[]): T {
+function getRandomItem<T>(items: readonly T[]): T {
   return items[getRandomInt(0, items.length - 1)];
 }
 
@@ -152,9 +588,20 @@ function shuffle<T>(values: T[]): T[] {
   return nextValues;
 }
 
-function pickRandomSubset(options: string[], minSize: number, maxSize: number): string[] {
-  const size = getRandomInt(minSize, Math.min(maxSize, options.length));
-  return shuffle(options).slice(0, size);
+function pickRandomSubset<T extends string>(
+  options: readonly T[],
+  minSize: number,
+  maxSize: number
+): T[] {
+  if (options.length === 0) {
+    return [];
+  }
+
+  const normalizedMin = Math.max(0, Math.min(minSize, options.length));
+  const normalizedMax = Math.max(normalizedMin, Math.min(maxSize, options.length));
+  const size = getRandomInt(normalizedMin, normalizedMax);
+
+  return shuffle([...options]).slice(0, size);
 }
 
 function createRandomCustomAbilities(): AbilityScores {
@@ -206,6 +653,8 @@ function createRandomName(): string {
 }
 
 function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: CharacterFormProps) {
+  const [wizardStep, setWizardStep] = useState<CreationStep>(1);
+  const [stepOneSnapshot, setStepOneSnapshot] = useState<CharacterDraft | null>(null);
   const {
     control,
     formState: { errors },
@@ -214,15 +663,21 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     register,
     reset,
     setValue,
+    trigger,
     watch
   } = useForm<CharacterDraft>({
     defaultValues: initialValues
   });
+  const selectedClassName = watch("className") ?? initialValues.className;
+  const selectedSpecies = watch("species") ?? initialValues.species;
   const attributeMode = watch("attributeMode") ?? initialValues.attributeMode;
   const abilities = watch("abilities") ?? initialValues.abilities;
   const alignment = watch("alignment") ?? initialValues.alignment;
   const selectedSkills = watch("skills") ?? initialValues.skills;
   const selectedEquipment = watch("equipment") ?? initialValues.equipment;
+  const availableSkillOptions = getSkillProficiencyOptionsForClass(selectedClassName);
+  const skillSelectionLimit = getSkillSelectionLimitForClass(selectedClassName);
+  const availableEquipmentOptions = getAvailableEquipmentNamesForClass(selectedClassName);
   const lastCustomAbilitiesRef = useRef(cloneAbilities(initialValues.abilities));
   const lastPointBuyAbilitiesRef = useRef(
     initialValues.attributeMode === "pointBuy"
@@ -230,6 +685,17 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       : createDefaultAbilities()
   );
   const pointBuyRemaining = getPointBuyRemaining(abilities);
+
+  const creationTitleByStep: Record<CreationStep, string> = {
+    1: "Create a new character",
+    2: "Customize your build",
+    3: "Finalize the background"
+  };
+  const creationDescriptionByStep: Record<CreationStep, string> = {
+    1: "Start with identity details, then either create instantly with a recommended build or continue customizing manually.",
+    2: "Adjust stats, abilities, skills, and equipment. Going back will reset these custom changes.",
+    3: "Set alignment and background notes, then create the character."
+  };
 
   useEffect(() => {
     reset(initialValues);
@@ -241,7 +707,34 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       initialValues.attributeMode === "pointBuy"
         ? normalizePointBuyAbilities(initialValues.abilities)
         : createDefaultAbilities();
+    setWizardStep(1);
+    setStepOneSnapshot(null);
   }, [initialValues, reset]);
+
+  useEffect(() => {
+    const currentSkills = getValues("skills") ?? [];
+    const currentEquipment = getValues("equipment") ?? [];
+    const normalizedSelections = normalizeSelectionsForClass(
+      selectedClassName,
+      currentSkills,
+      currentEquipment,
+      selectedSpecies
+    );
+
+    if (!areStringArraysEqual(currentSkills, normalizedSelections.skills)) {
+      setValue("skills", normalizedSelections.skills, {
+        shouldDirty: true,
+        shouldValidate: true
+      });
+    }
+
+    if (!areStringArraysEqual(currentEquipment, normalizedSelections.equipment)) {
+      setValue("equipment", normalizedSelections.equipment, {
+        shouldDirty: true,
+        shouldValidate: true
+      });
+    }
+  }, [getValues, selectedClassName, selectedSpecies, setValue]);
 
   function commitAbilities(nextAbilities: AbilityScores, mode: AttributeMode) {
     setValue("abilities", nextAbilities, {
@@ -304,26 +797,106 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     );
   }
 
-  function submitForm(values: CharacterDraft) {
+  function normalizeDraft(values: CharacterDraft): CharacterDraft {
     const maxHitPoints = clampNumber(String(values.hitPoints), 1, 999, 8);
+    const normalizedProgress = normalizeLevelAndXp(values.level, values.xp);
+    const normalizedClassName = values.className.trim();
+    const normalizedSelections = normalizeSelectionsForClass(
+      normalizedClassName,
+      values.skills ?? [],
+      values.equipment ?? [],
+      values.species
+    );
 
-    onSubmit({
+    return {
       ...values,
       name: values.name.trim(),
-      level: clampNumber(String(values.level), 1, 20, 1),
+      species: values.species.trim(),
+      className: normalizedClassName,
+      level: normalizedProgress.level,
+      xp: normalizedProgress.xp,
       hitPoints: maxHitPoints,
-      currentHitPoints: clampNumber(String(values.currentHitPoints), 0, maxHitPoints, maxHitPoints),
+      currentHitPoints: isEditing
+        ? clampNumber(String(values.currentHitPoints), 0, maxHitPoints, maxHitPoints)
+        : maxHitPoints,
       background: values.background.trim(),
-      skills: normalizeSelection(values.skills, skillsOptions),
-      equipment: normalizeSelection(values.equipment, equipmentOptions),
+      alignment: alignmentOptions.includes(values.alignment) ? values.alignment : "True Neutral",
+      skills: normalizedSelections.skills,
+      equipment: normalizedSelections.equipment,
       abilities:
         values.attributeMode === "pointBuy"
           ? normalizePointBuyAbilities(values.abilities)
           : normalizeCustomAbilities(values.abilities)
-    });
+    };
+  }
+
+  function submitForm(values: CharacterDraft) {
+    onSubmit(normalizeDraft(values));
+  }
+
+  async function validateWizardStepOne(): Promise<boolean> {
+    return trigger(["name", "species", "className", "level"]);
+  }
+
+  async function handleRecommendedCreate() {
+    const isValid = await validateWizardStepOne();
+
+    if (!isValid) {
+      return;
+    }
+
+    const snapshot = createBasicProfileSnapshot(getValues());
+    const recommendedDraft = createRecommendedCharacterDraft(snapshot);
+
+    reset(recommendedDraft);
+    onSubmit(normalizeDraft(recommendedDraft));
+  }
+
+  async function handleStartCustomization() {
+    const isValid = await validateWizardStepOne();
+
+    if (!isValid) {
+      return;
+    }
+
+    const snapshot = createBasicProfileSnapshot(getValues());
+    setStepOneSnapshot(snapshot);
+    reset(snapshot);
+    setWizardStep(2);
+  }
+
+  async function handleProceedToBackground() {
+    const isValid = await trigger(["hitPoints"]);
+
+    if (!isValid) {
+      return;
+    }
+
+    setWizardStep(3);
+  }
+
+  function handleBackToStepOne() {
+    reset(stepOneSnapshot ?? createBasicProfileSnapshot(getValues()));
+    setWizardStep(1);
   }
 
   function handleRandomize() {
+    if (!isEditing && wizardStep === 1) {
+      const randomClassName = getRandomItem(classOptions);
+      reset({
+        ...createEmptyCharacter(),
+        name: createRandomName(),
+        species: getRandomItem(speciesOptions),
+        className: randomClassName,
+        level: 1
+      });
+      return;
+    }
+
+    const randomClassName = getRandomItem(classOptions);
+    const randomClassSkillOptions = getSkillProficiencyOptionsForClass(randomClassName);
+    const randomClassSkillLimit = getSkillSelectionLimitForClass(randomClassName);
+    const randomClassEquipmentOptions = getAvailableEquipmentNamesForClass(randomClassName);
     const randomMode: AttributeMode = Math.random() < 0.5 ? "custom" : "pointBuy";
     const randomizedAbilities =
       randomMode === "custom" ? createRandomCustomAbilities() : createRandomPointBuyAbilities();
@@ -334,16 +907,25 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const randomizedDraft: CharacterDraft = {
       name: createRandomName(),
       species: getRandomItem(speciesOptions),
-      role: getRandomItem(roleOptions),
-      level: getRandomInt(1, 12),
+      className: randomClassName,
+      level: 1,
+      xp: 0,
       hitPoints: getRandomInt(8, 90),
       currentHitPoints: 0,
       attributeMode: randomMode,
       abilities: randomizedAbilities,
       alignment: getRandomItem(alignmentGrid.flat()),
       background: createRandomBackground(),
-      skills: pickRandomSubset(skillsOptions, 3, 8),
-      equipment: pickRandomSubset(equipmentOptions, 3, 8)
+      skills: pickRandomSubset(
+        randomClassSkillOptions,
+        randomClassSkillLimit,
+        randomClassSkillLimit
+      ),
+      equipment: pickRandomSubset(
+        randomClassEquipmentOptions,
+        3,
+        Math.min(8, randomClassEquipmentOptions.length)
+      )
     };
     randomizedDraft.currentHitPoints = randomizedDraft.hitPoints;
 
@@ -352,107 +934,96 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     lastCustomAbilitiesRef.current = cloneAbilities(randomizedCustomAbilities);
   }
 
-  return (
-    <div className={styles.page}>
-      <button type="button" className={styles.backButton} onClick={onBack}>
-        Go back
-      </button>
-
-      <div className={styles.header}>
-        <p className={styles.eyebrow}>Character forge</p>
-        <h2 className={styles.title}>{isEditing ? "Refine your character" : "Create a new character"}</h2>
-        <p className={styles.description}>
-          Set the essentials first, then distribute the six core abilities with either freeform
-          numbers or a standard {POINT_BUY_BUDGET}-point DnD point buy.
-        </p>
-      </div>
-
-      <form className={styles.form} onSubmit={handleSubmit(submitForm)} noValidate>
-        <section className={clsx(styles.sectionCard, styles.primarySection)}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <p className={styles.sectionEyebrow}>Basic profile</p>
-              <h3>Identity and starting stats</h3>
-            </div>
-            <button
-              type="button"
-              className={styles.randomizeButton}
-              onClick={handleRandomize}
-              aria-label="Randomize character"
-              title="Randomize character"
-            >
-              <Dice6 size={20} />
-            </button>
+  function renderBasicProfileSection(includeHitPoints: boolean) {
+    return (
+      <section className={clsx(styles.sectionCard, styles.primarySection)}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.sectionEyebrow}>Basic profile</p>
+            <h3>Identity and starting stats</h3>
           </div>
+          <button
+            type="button"
+            className={styles.randomizeButton}
+            onClick={handleRandomize}
+            aria-label="Randomize character"
+            title="Randomize character"
+          >
+            <Dice6 size={20} />
+          </button>
+        </div>
 
-          <div className={styles.fieldGrid}>
-            <label className={styles.field}>
-              <span>Character name</span>
-              <TextInput
-                className={styles.fieldInput}
-                invalid={Boolean(errors.name)}
-                placeholder="Mira Nightbloom"
-                {...register("name", {
-                  required: "Enter a character name",
-                  validate: (value) =>
-                    value.trim().length > 0 || "Enter a character name"
-                })}
-              />
-              {errors.name ? <small className={styles.errorText}>{errors.name.message}</small> : null}
-            </label>
+        <div className={styles.fieldGrid}>
+          <label className={styles.field}>
+            <span>Character name</span>
+            <TextInput
+              className={styles.fieldInput}
+              invalid={Boolean(errors.name)}
+              placeholder="Mira Nightbloom"
+              {...register("name", {
+                required: "Enter a character name",
+                validate: (value) =>
+                  value.trim().length > 0 || "Enter a character name"
+              })}
+            />
+            {errors.name ? <small className={styles.errorText}>{errors.name.message}</small> : null}
+          </label>
 
-            <label className={styles.field}>
-              <span>Species</span>
-              <SelectInput
-                className={styles.fieldInput}
-                invalid={Boolean(errors.species)}
-                {...register("species", { required: "Choose a species" })}
-              >
-                <option value="">Select a species</option>
-                {speciesOptions.map((species) => (
-                  <option key={species} value={species}>
-                    {species}
-                  </option>
-                ))}
-              </SelectInput>
-              {errors.species ? (
-                <small className={styles.errorText}>{errors.species.message}</small>
-              ) : null}
-            </label>
+          <label className={styles.field}>
+            <span>Species</span>
+            <SelectInput
+              className={styles.fieldInput}
+              invalid={Boolean(errors.species)}
+              {...register("species", { required: "Choose a species" })}
+            >
+              <option value="">Select a species</option>
+              {speciesOptions.map((species) => (
+                <option key={species} value={species}>
+                  {species}
+                </option>
+              ))}
+            </SelectInput>
+            {errors.species ? (
+              <small className={styles.errorText}>{errors.species.message}</small>
+            ) : null}
+          </label>
 
-            <label className={styles.field}>
-              <span>Role</span>
-              <SelectInput
-                className={styles.fieldInput}
-                invalid={Boolean(errors.role)}
-                {...register("role", { required: "Choose a role" })}
-              >
-                <option value="">Select a role</option>
-                {roleOptions.map((role) => (
-                  <option key={role} value={role}>
-                    {role}
-                  </option>
-                ))}
-              </SelectInput>
-              {errors.role ? <small className={styles.errorText}>{errors.role.message}</small> : null}
-            </label>
+          <label className={styles.field}>
+            <span>Class</span>
+            <SelectInput
+              className={styles.fieldInput}
+              invalid={Boolean(errors.className)}
+              {...register("className", { required: "Choose a class" })}
+            >
+              <option value="">Select a class</option>
+              {classOptions.map((characterClass) => (
+                <option key={characterClass} value={characterClass}>
+                  {characterClass}
+                </option>
+              ))}
+            </SelectInput>
+            {errors.className ? (
+              <small className={styles.errorText}>{errors.className.message}</small>
+            ) : null}
+          </label>
 
-            <label className={styles.field}>
-              <span>Level</span>
-              <NumberInput
-                className={styles.fieldInput}
-                invalid={Boolean(errors.level)}
-                min={1}
-                max={20}
-                {...register("level", {
-                  valueAsNumber: true,
-                  min: { value: 1, message: "Level must be at least 1" },
-                  max: { value: 20, message: "Level cannot exceed 20" }
-                })}
-              />
-              {errors.level ? <small className={styles.errorText}>{errors.level.message}</small> : null}
-            </label>
+          <label className={styles.field}>
+            <span>Starting level</span>
+            <NumberInput
+              className={styles.fieldInput}
+              invalid={Boolean(errors.level)}
+              min={1}
+              max={20}
+              {...register("level", {
+                valueAsNumber: true,
+                min: { value: 1, message: "Level must be at least 1" },
+                max: { value: 20, message: "Level cannot exceed 20" }
+              })}
+            />
+            {errors.level ? <small className={styles.errorText}>{errors.level.message}</small> : null}
+          </label>
 
+          {includeHitPoints ? (
             <label className={styles.field}>
               <span>Hit points</span>
               <NumberInput
@@ -470,283 +1041,509 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 <small className={styles.helperText}>Default starts at 8 and can be adjusted.</small>
               )}
             </label>
-          </div>
-        </section>
-
-        <section className={styles.sectionCard}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <p className={styles.sectionEyebrow}>Ability scores</p>
-              <h3>Distribute STR, DEX, CON, INT, WIS, CHA</h3>
-            </div>
-            <span>{attributeMode === "custom" ? "1-99 custom range" : `${pointBuyRemaining} points left`}</span>
-          </div>
-
-          <div className={styles.segmentedControl} role="tablist" aria-label="Ability distribution mode">
-            <button
-              type="button"
-              className={clsx(
-                styles.segmentButton,
-                attributeMode === "custom" && styles.segmentButtonActive
-              )}
-              onClick={() => handleAttributeModeChange("custom")}
-            >
-              Custom
-            </button>
-            <button
-              type="button"
-              className={clsx(
-                styles.segmentButton,
-                attributeMode === "pointBuy" && styles.segmentButtonActive
-              )}
-              onClick={() => handleAttributeModeChange("pointBuy")}
-            >
-              Point Buy
-            </button>
-          </div>
-
-          <p className={styles.helperText}>
-            {attributeMode === "custom"
-              ? "Custom mode allows any value from 1 to 99 for each attribute."
-              : "Point Buy follows standard DnD rules: scores start at 8, can rise to 15 before species bonuses, and must stay within a 27-point budget."}
-          </p>
-
-          {attributeMode === "pointBuy" ? (
-            <div className={styles.pointSummary}>
-              <strong>{pointBuyRemaining} points remaining</strong>
-              <span>{POINT_BUY_BUDGET - pointBuyRemaining} spent</span>
-            </div>
           ) : null}
+        </div>
+      </section>
+    );
+  }
 
-          <div className={styles.attributesGrid}>
-            {abilityKeys.map((ability) => (
-              <Controller
-                key={ability}
-                control={control}
-                name={`abilities.${ability}` as const}
-                render={({ field }) => {
-                  const currentValue = field.value ?? 8;
-                  const maxPointBuyScore =
-                    attributeMode === "pointBuy"
-                      ? getAffordablePointBuyMax(ability, abilities)
-                      : 99;
+  function renderHitPointsSection() {
+    return (
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.sectionEyebrow}>Combat stats</p>
+            <h3>Set your starting hit points</h3>
+          </div>
+          <span>Current HP starts at max when created</span>
+        </div>
 
-                  return (
-                    <div className={styles.abilityCard}>
-                      <div className={styles.abilityHeader}>
-                        <div>
-                          <strong>{ability}</strong>
-                          {attributeMode === "pointBuy" ? (
-                            <span>{getPointBuyCost(currentValue)} points spent</span>
-                          ) : (
-                            <span>Custom score</span>
-                          )}
-                        </div>
+        <label className={styles.field}>
+          <span>Hit points</span>
+          <NumberInput
+            className={styles.fieldInput}
+            invalid={Boolean(errors.hitPoints)}
+            min={1}
+            {...register("hitPoints", {
+              valueAsNumber: true,
+              min: { value: 1, message: "Hit points must be at least 1" },
+              onChange: (event) => {
+                const nextMaxHitPoints = clampNumber(event.target.value, 1, 999, 8);
+                setValue("currentHitPoints", nextMaxHitPoints, { shouldDirty: true });
+              }
+            })}
+          />
+          {errors.hitPoints ? (
+            <small className={styles.errorText}>{errors.hitPoints.message}</small>
+          ) : (
+            <small className={styles.helperText}>
+              This can be adjusted later from the character presentation view.
+            </small>
+          )}
+        </label>
+      </section>
+    );
+  }
+
+  function renderAbilitiesSection() {
+    return (
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.sectionEyebrow}>Ability scores</p>
+            <h3>Distribute STR, DEX, CON, INT, WIS, CHA</h3>
+          </div>
+          <span>{attributeMode === "custom" ? "1-99 custom range" : `${pointBuyRemaining} points left`}</span>
+        </div>
+
+        <div className={styles.segmentedControl} role="tablist" aria-label="Ability distribution mode">
+          <button
+            type="button"
+            className={clsx(
+              styles.segmentButton,
+              attributeMode === "custom" && styles.segmentButtonActive
+            )}
+            onClick={() => handleAttributeModeChange("custom")}
+          >
+            Custom
+          </button>
+          <button
+            type="button"
+            className={clsx(
+              styles.segmentButton,
+              attributeMode === "pointBuy" && styles.segmentButtonActive
+            )}
+            onClick={() => handleAttributeModeChange("pointBuy")}
+          >
+            Point Buy
+          </button>
+        </div>
+
+        <p className={styles.helperText}>
+          {attributeMode === "custom"
+            ? "Custom mode allows any value from 1 to 99 for each attribute."
+            : "Point Buy follows standard DnD rules: scores start at 8, can rise to 15 before species bonuses, and must stay within a 27-point budget."}
+        </p>
+
+        {attributeMode === "pointBuy" ? (
+          <div className={styles.pointSummary}>
+            <strong>{pointBuyRemaining} points remaining</strong>
+            <span>{POINT_BUY_BUDGET - pointBuyRemaining} spent</span>
+          </div>
+        ) : null}
+
+        <div className={styles.attributesGrid}>
+          {abilityKeys.map((ability) => (
+            <Controller
+              key={ability}
+              control={control}
+              name={`abilities.${ability}` as const}
+              render={({ field }) => {
+                const currentValue = field.value ?? 8;
+                const maxPointBuyScore =
+                  attributeMode === "pointBuy"
+                    ? getAffordablePointBuyMax(ability, abilities)
+                    : 99;
+
+                return (
+                  <div className={styles.abilityCard}>
+                    <div className={styles.abilityHeader}>
+                      <div>
+                        <strong>{ability}</strong>
                         {attributeMode === "pointBuy" ? (
-                          <small>8-15 only</small>
+                          <span>{getPointBuyCost(currentValue)} points spent</span>
                         ) : (
-                          <small>1-99</small>
+                          <span>Custom score</span>
                         )}
                       </div>
+                      {attributeMode === "pointBuy" ? (
+                        <small>8-15 only</small>
+                      ) : (
+                        <small>1-99</small>
+                      )}
+                    </div>
 
-                      {attributeMode === "custom" ? (
+                    {attributeMode === "custom" ? (
+                      <NumberInput
+                        className={styles.abilityInput}
+                        min={1}
+                        max={99}
+                        value={currentValue}
+                        onBlur={field.onBlur}
+                        onChange={(event) =>
+                          handleCustomAbilityChange(ability, event.target.value)
+                        }
+                      />
+                    ) : (
+                      <div className={styles.stepper}>
+                        <button
+                          type="button"
+                          className={styles.stepButton}
+                          disabled={currentValue <= 8}
+                          onClick={() => {
+                            handlePointBuyAbilityChange(ability, String(currentValue - 1));
+                          }}
+                        >
+                          -
+                        </button>
                         <NumberInput
                           className={styles.abilityInput}
-                          min={1}
-                          max={99}
+                          min={8}
+                          max={15}
                           value={currentValue}
                           onBlur={field.onBlur}
                           onChange={(event) =>
-                            handleCustomAbilityChange(ability, event.target.value)
+                            handlePointBuyAbilityChange(ability, event.target.value)
                           }
                         />
-                      ) : (
-                        <div className={styles.stepper}>
-                          <button
-                            type="button"
-                            className={styles.stepButton}
-                            disabled={currentValue <= 8}
-                            onClick={() => {
-                              handlePointBuyAbilityChange(ability, String(currentValue - 1));
-                            }}
-                          >
-                            -
-                          </button>
-                          <NumberInput
-                            className={styles.abilityInput}
-                            min={8}
-                            max={15}
-                            value={currentValue}
-                            onBlur={field.onBlur}
-                            onChange={(event) =>
-                              handlePointBuyAbilityChange(ability, event.target.value)
-                            }
-                          />
-                          <button
-                            type="button"
-                            className={styles.stepButton}
-                            disabled={currentValue >= maxPointBuyScore}
-                            onClick={() => {
-                              handlePointBuyAbilityChange(ability, String(currentValue + 1));
-                            }}
-                          >
-                            +
-                          </button>
-                        </div>
-                      )}
-                    </div>
-                  );
-                }}
-              />
+                        <button
+                          type="button"
+                          className={styles.stepButton}
+                          disabled={currentValue >= maxPointBuyScore}
+                          onClick={() => {
+                            handlePointBuyAbilityChange(ability, String(currentValue + 1));
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                );
+              }}
+            />
+          ))}
+        </div>
+
+        {attributeMode === "pointBuy" ? (
+          <div className={styles.legend}>
+            {[8, 9, 10, 11, 12, 13, 14, 15].map((score) => (
+              <span key={score} className={styles.legendChip}>
+                {score} = {getPointBuyCost(score)}
+              </span>
             ))}
           </div>
+        ) : null}
+      </section>
+    );
+  }
 
-          {attributeMode === "pointBuy" ? (
-            <div className={styles.legend}>
-              {[8, 9, 10, 11, 12, 13, 14, 15].map((score) => (
-                <span key={score} className={styles.legendChip}>
-                  {score} = {getPointBuyCost(score)}
-                </span>
-              ))}
-            </div>
-          ) : null}
-        </section>
-
-        <section className={styles.sectionCard}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <p className={styles.sectionEyebrow}>Character background</p>
-              <h3>Behavior and personality</h3>
-            </div>
-            <span>Choose alignment + write notes</span>
+  function renderBackgroundSection() {
+    return (
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.sectionEyebrow}>Character background</p>
+            <h3>Behavior and personality</h3>
           </div>
+          <span>Choose alignment + write notes</span>
+        </div>
 
-          <div className={styles.alignmentGrid} role="radiogroup" aria-label="Character alignment">
-            {alignmentGrid.flat().map((option) => (
-              <button
-                key={option}
-                type="button"
-                role="radio"
-                aria-checked={alignment === option}
-                className={clsx(
-                  styles.alignmentOption,
-                  alignment === option && styles.alignmentOptionActive
-                )}
-                onClick={() =>
-                  setValue("alignment", option, {
-                    shouldDirty: true,
-                    shouldValidate: true
-                  })
-                }
-              >
-                {option}
-              </button>
-            ))}
-          </div>
+        <div className={styles.alignmentGrid} role="radiogroup" aria-label="Character alignment">
+          {alignmentGrid.flat().map((option) => (
+            <button
+              key={option}
+              type="button"
+              role="radio"
+              aria-checked={alignment === option}
+              className={clsx(
+                styles.alignmentOption,
+                alignment === option && styles.alignmentOptionActive
+              )}
+              onClick={() =>
+                setValue("alignment", option, {
+                  shouldDirty: true,
+                  shouldValidate: true
+                })
+              }
+            >
+              {option}
+            </button>
+          ))}
+        </div>
 
-          {errors.alignment ? <small className={styles.errorText}>{errors.alignment.message}</small> : null}
+        {errors.alignment ? <small className={styles.errorText}>{errors.alignment.message}</small> : null}
 
-          <input
-            type="hidden"
-            {...register("alignment", {
-              required: "Select an alignment"
+        <input
+          type="hidden"
+          {...register("alignment", {
+            required: "Select an alignment"
+          })}
+        />
+
+        <label className={styles.field}>
+          <span>Background notes</span>
+          <TextAreaInput
+            className={styles.backgroundInput}
+            invalid={Boolean(errors.background)}
+            placeholder="Background, Personal Traits, Ideals, Bonds, Flaws, etc."
+            {...register("background", {
+              maxLength: {
+                value: 2000,
+                message: "Background notes cannot exceed 2000 characters"
+              }
             })}
           />
+          {errors.background ? (
+            <small className={styles.errorText}>{errors.background.message}</small>
+          ) : (
+            <small className={styles.helperText}>
+              Use this section to capture key roleplay details and story hooks.
+            </small>
+          )}
+        </label>
+      </section>
+    );
+  }
 
-          <label className={styles.field}>
-            <span>Background notes</span>
-            <TextAreaInput
-              className={styles.backgroundInput}
-              invalid={Boolean(errors.background)}
-              placeholder="Background, Personal Traits, Ideals, Bonds, Flaws, etc."
-              {...register("background", {
-                maxLength: {
-                  value: 2000,
-                  message: "Background notes cannot exceed 2000 characters"
-                }
-              })}
-            />
-            {errors.background ? (
-              <small className={styles.errorText}>{errors.background.message}</small>
+  function renderLoadoutSection() {
+    const resolvedSkills = resolveSkillProficienciesForCharacter(
+      selectedClassName,
+      selectedSpecies,
+      selectedSkills
+    );
+    const grantedSkillProficiencies = resolvedSkills.granted;
+    const grantedSkillSet = new Set(grantedSkillProficiencies.map((entry) => entry.skill));
+    const availableManualSkillOptions = availableSkillOptions.filter(
+      (skill) => !grantedSkillSet.has(skill)
+    );
+    const selectedSkillCount = resolvedSkills.manual.length;
+    const isSkillSelectionLimited = skillSelectionLimit > 0;
+    const isSkillSelectionAtLimit = isSkillSelectionLimited && selectedSkillCount >= skillSelectionLimit;
+
+    return (
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.sectionEyebrow}>Skills and equipment</p>
+            <h3>Choose current proficiencies and gear</h3>
+          </div>
+          <span>
+            {isSkillSelectionLimited
+              ? `${selectedSkillCount}/${skillSelectionLimit} class skills selected`
+              : "Select a class to view proficiencies"}
+          </span>
+        </div>
+
+        <div className={styles.loadoutGrid}>
+          <fieldset className={styles.choiceGroup}>
+            <legend>Skills</legend>
+            <p className={styles.helperText}>Granted proficiencies (locked):</p>
+            {grantedSkillProficiencies.length === 0 ? (
+              <p className={styles.helperText}>No granted proficiencies from class or species.</p>
             ) : (
-              <small className={styles.helperText}>
-                Use this section to capture key roleplay details and story hooks.
-              </small>
+              <ul className={styles.grantedSkillList}>
+                {grantedSkillProficiencies.map((entry) => (
+                  <li key={entry.skill}>
+                    <span>{entry.skill}</span>
+                    <small>{entry.sources.join(", ")}</small>
+                  </li>
+                ))}
+              </ul>
             )}
-          </label>
-        </section>
-
-        <section className={styles.sectionCard}>
-          <div className={styles.sectionHeader}>
-            <div>
-              <p className={styles.sectionEyebrow}>Skills and equipment</p>
-              <h3>Choose current proficiencies and gear</h3>
+            <p className={styles.helperText}>
+              {isSkillSelectionLimited
+                ? `Choose exactly ${skillSelectionLimit} manual skills allowed by this class.`
+                : "Choose a class to unlock skill proficiency options."}
+            </p>
+            <div className={styles.choiceGrid}>
+              {availableManualSkillOptions.map((skill) => (
+                <label
+                  key={skill}
+                  className={clsx(
+                    styles.choiceOption,
+                    resolvedSkills.manual.includes(skill) && styles.choiceOptionActive
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    value={skill}
+                    className={styles.choiceCheckbox}
+                    disabled={!resolvedSkills.manual.includes(skill) && isSkillSelectionAtLimit}
+                    {...register("skills")}
+                  />
+                  <span>{skill}</span>
+                </label>
+              ))}
             </div>
-            <span>Default options for now</span>
-          </div>
+          </fieldset>
 
-          <div className={styles.loadoutGrid}>
-            <fieldset className={styles.choiceGroup}>
-              <legend>Skills</legend>
-              <p className={styles.helperText}>
-                Pick the skills currently relevant for this character.
-              </p>
-              <div className={styles.choiceGrid}>
-                {skillsOptions.map((skill) => (
-                  <label
-                    key={skill}
-                    className={clsx(
-                      styles.choiceOption,
-                      selectedSkills.includes(skill) && styles.choiceOptionActive
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      value={skill}
-                      className={styles.choiceCheckbox}
-                      {...register("skills")}
-                    />
-                    <span>{skill}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
+          <fieldset className={styles.choiceGroup}>
+            <legend>Equipment</legend>
+            <p className={styles.helperText}>
+              Weapons and armor are filtered by class proficiency type.
+            </p>
+            <div className={styles.choiceGrid}>
+              {availableEquipmentOptions.map((item) => (
+                <label
+                  key={item}
+                  className={clsx(
+                    styles.choiceOption,
+                    selectedEquipment.includes(item) && styles.choiceOptionActive
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    value={item}
+                    className={styles.choiceCheckbox}
+                    {...register("equipment")}
+                  />
+                  <span>{item}</span>
+                </label>
+              ))}
+            </div>
+          </fieldset>
+        </div>
+      </section>
+    );
+  }
 
-            <fieldset className={styles.choiceGroup}>
-              <legend>Equipment</legend>
-              <p className={styles.helperText}>
-                Select the base gear currently on this character sheet.
-              </p>
-              <div className={styles.choiceGrid}>
-                {equipmentOptions.map((item) => (
-                  <label
-                    key={item}
-                    className={clsx(
-                      styles.choiceOption,
-                      selectedEquipment.includes(item) && styles.choiceOptionActive
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      value={item}
-                      className={styles.choiceCheckbox}
-                      {...register("equipment")}
-                    />
-                    <span>{item}</span>
-                  </label>
-                ))}
-              </div>
-            </fieldset>
+  return (
+    <div className={styles.page}>
+      <button type="button" className={styles.backButton} onClick={onBack}>
+        Go back
+      </button>
+
+      <div className={styles.header}>
+        <p className={styles.eyebrow}>Character forge</p>
+        <h2 className={styles.title}>
+          {isEditing ? "Refine your character" : creationTitleByStep[wizardStep]}
+        </h2>
+        <p className={styles.description}>
+          {isEditing
+            ? `Set the essentials first, then distribute the six core abilities with either freeform numbers or a standard ${POINT_BUY_BUDGET}-point DnD point buy.`
+            : creationDescriptionByStep[wizardStep]}
+        </p>
+
+        {!isEditing ? (
+          <div className={styles.wizardProgress} aria-label="Character creation steps">
+            <span
+              className={clsx(
+                styles.stepBadge,
+                wizardStep === 1 && styles.stepBadgeActive,
+                wizardStep > 1 && styles.stepBadgeDone
+              )}
+            >
+              1. Basic profile
+            </span>
+            <span
+              className={clsx(
+                styles.stepBadge,
+                wizardStep === 2 && styles.stepBadgeActive,
+                wizardStep > 2 && styles.stepBadgeDone
+              )}
+            >
+              2. Build setup
+            </span>
+            <span
+              className={clsx(styles.stepBadge, wizardStep === 3 && styles.stepBadgeActive)}
+            >
+              3. Background
+            </span>
           </div>
-        </section>
+        ) : null}
+      </div>
+
+      <form
+        className={styles.form}
+        onSubmit={
+          isEditing || wizardStep === 3
+            ? handleSubmit(submitForm)
+            : (event) => {
+                event.preventDefault();
+              }
+        }
+        noValidate
+      >
+        <input type="hidden" {...register("currentHitPoints", { valueAsNumber: true })} />
+
+        {isEditing ? (
+          <>
+            {renderBasicProfileSection(true)}
+            {renderAbilitiesSection()}
+            {renderBackgroundSection()}
+            {renderLoadoutSection()}
+          </>
+        ) : null}
+
+        {!isEditing && wizardStep === 1 ? renderBasicProfileSection(false) : null}
+
+        {!isEditing && wizardStep === 2 ? (
+          <>
+            {renderHitPointsSection()}
+            {renderAbilitiesSection()}
+            {renderLoadoutSection()}
+          </>
+        ) : null}
+
+        {!isEditing && wizardStep === 3 ? renderBackgroundSection() : null}
 
         <div className={styles.actions}>
-          <button type="submit" className={styles.primaryButton}>
-            {isEditing ? "Update character" : "Save character"}
-          </button>
-          <button type="button" className={styles.secondaryButton} onClick={onBack}>
-            Cancel
-          </button>
+          {isEditing ? (
+            <>
+              <button type="submit" className={styles.primaryButton}>
+                Update character
+              </button>
+              <button type="button" className={styles.secondaryButton} onClick={onBack}>
+                Cancel
+              </button>
+            </>
+          ) : null}
+
+          {!isEditing && wizardStep === 1 ? (
+            <>
+              <button
+                type="button"
+                className={styles.primaryButton}
+                onClick={() => {
+                  void handleRecommendedCreate();
+                }}
+              >
+                Create with recommended build
+              </button>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => {
+                  void handleStartCustomization();
+                }}
+              >
+                Customize based on your needs
+              </button>
+            </>
+          ) : null}
+
+          {!isEditing && wizardStep === 2 ? (
+            <>
+              <button type="button" className={styles.secondaryButton} onClick={handleBackToStepOne}>
+                Back (reset changes)
+              </button>
+              <button
+                type="button"
+                className={styles.primaryButton}
+                onClick={() => {
+                  void handleProceedToBackground();
+                }}
+              >
+                Proceed
+              </button>
+            </>
+          ) : null}
+
+          {!isEditing && wizardStep === 3 ? (
+            <>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={() => setWizardStep(2)}
+              >
+                Back
+              </button>
+              <button type="submit" className={styles.primaryButton}>
+                Create Character
+              </button>
+            </>
+          ) : null}
         </div>
       </form>
     </div>

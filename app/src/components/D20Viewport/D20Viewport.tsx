@@ -23,7 +23,7 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
   const diceRef = useRef(dice);
   const rollTokenRef = useRef(rollToken);
   const onRollCompleteRef = useRef(onRollComplete);
-  const completedRollTokenRef = useRef(rollToken);
+  const completedRollTokenRef = useRef(rollToken - 1);
   const animationRef = useRef<AnimationState>({
     rolling: false,
     startedAt: 0,
@@ -191,7 +191,14 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
     const renderFrame = (time: number) => {
       const animation = animationRef.current;
 
-      if (rollTokenRef.current !== lastRollToken && diceRef.current.length > 0) {
+      const shouldStartRoll =
+        diceRef.current.length > 0 &&
+        (rollTokenRef.current !== lastRollToken ||
+          (!animation.rolling &&
+            animation.dice.length === 0 &&
+            completedRollTokenRef.current !== rollTokenRef.current));
+
+      if (shouldStartRoll) {
         lastRollToken = rollTokenRef.current;
         buildRoll(diceRef.current, rollTokenRef.current, time);
       }

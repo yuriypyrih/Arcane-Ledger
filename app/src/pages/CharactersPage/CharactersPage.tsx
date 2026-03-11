@@ -1,10 +1,15 @@
 import { Link } from "react-router-dom";
+import { useState } from "react";
 import CharacterList from "../../components/CharactersPage/CharacterList";
-import { loadCharacters } from "./storage";
+import { deleteCharacter, loadCharacters } from "./storage";
 import styles from "./CharactersPage.module.css";
 
 function CharactersPage() {
-  const characters = loadCharacters();
+  const [characters, setCharacters] = useState(() => loadCharacters());
+
+  function handleDeleteCharacter(characterId: number) {
+    setCharacters(deleteCharacter(characterId));
+  }
 
   return (
     <section className={styles.page}>
@@ -21,7 +26,7 @@ function CharactersPage() {
           New character
         </Link>
       </div>
-      <CharacterList characters={characters} />
+      <CharacterList characters={characters} onDeleteCharacter={handleDeleteCharacter} />
     </section>
   );
 }

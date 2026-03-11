@@ -1,0 +1,233 @@
+.headerActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.viewSwitch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.2rem;
+  border: none;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.08);
+  cursor: pointer;
+  padding: 0.24rem;
+}
+
+.viewSwitch:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+.viewSwitchIconSlot {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  color: var(--color-ink-soft);
+  min-height: 34px;
+  min-width: 34px;
+  padding: 0 0.5rem;
+}
+
+.viewSwitchIconSlotActive {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-ink);
+  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
+}
+
+.tabRow {
+  display: inline-grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.2rem;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.08);
+  padding: 0.24rem;
+}
+
+.tabButton {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  font: inherit;
+  min-height: 36px;
+  padding: 0 0.86rem;
+  white-space: nowrap;
+}
+
+.tabButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.tabButtonActive {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-ink);
+  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
+}
+
+.fullViewStack {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.statsGroup {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.statsGroupHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.statsGroupTitle {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.modeControl {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-radius: 22px;
+  background: rgba(75, 47, 29, 0.07);
+  padding: 0.25rem;
+}
+
+.modeButton {
+  border: none;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  font: inherit;
+  min-height: 40px;
+  padding: 0 0.9rem;
+}
+
+.modeButtonActive {
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-ink);
+  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
+}
+
+.abilityInputGrid,
+.coreInputGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.abilityInputCard,
+.coreInputCard {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.abilityInputCard span,
+.coreInputCard span {
+  color: var(--color-ink-soft);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+}
+
+.abilityInputCard span {
+  text-transform: uppercase;
+}
+
+.modifierGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.modifierCard {
+  display: grid;
+  gap: 0.35rem;
+  border-radius: 18px;
+  background: rgba(75, 47, 29, 0.07);
+  padding: 0.75rem 0.85rem;
+  text-align: center;
+}
+
+.modifierLabelRow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+}
+
+.modifierLabel {
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.coreStatLabel {
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.modifierStar {
+  color: #a26a22;
+  font-size: 0.92rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.modifierCard strong {
+  font-size: 1.4rem;
+}
+
+.savingThrowValueProficient {
+  color: #6f2bc5;
+}
+
+.savingThrowEditCard {
+  cursor: pointer;
+  position: relative;
+  border: 1px solid transparent;
+  padding-right: 2rem;
+}
+
+.savingThrowEditCardActive {
+  background: rgba(111, 43, 197, 0.13);
+  border-color: rgba(111, 43, 197, 0.4);
+}
+
+.savingThrowEditCheckbox {
+  accent-color: #6f2bc5;
+  cursor: inherit;
+  height: 0.95rem;
+  margin: 0;
+  pointer-events: none;
+  position: absolute;
+  width: 0.95rem;
+  right: 0.5rem;
+  top: 0.45rem;
+}
+
+@media (max-width: 860px) {
+  .abilityInputGrid,
+  .coreInputGrid,
+  .modifierGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .abilityInputGrid,
+  .coreInputGrid,
+  .modifierGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .statsGroupHeader {
+    flex-wrap: wrap;
+  }
+}

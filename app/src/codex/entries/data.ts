@@ -1,0 +1,699 @@
+import {
+  ABILITY_TYPES,
+  ARMOR_TYPES,
+  CLASS_TYPES,
+  DAMAGE_TYPES,
+  DICE_TYPES,
+  ENTRY_CATEGORIES,
+  GENERAL_PROFICIENCIES,
+  ITEM_TYPES,
+  MONSTER_TYPES,
+  RARITY_TYPES,
+  RULE_TYPES,
+  SPECIES_TYPES,
+  SPELL_TYPES,
+  TOOL_PROFICIENCIES,
+  WEAPON_TYPES
+} from "./enums";
+import type { CodexEntry } from "./types";
+
+export const hardcodedCodexEntries: CodexEntry[] = [
+  {
+    id: "spell-catnip-spark",
+    name: "Catnip Spark",
+    category: ENTRY_CATEGORIES.SPELLS,
+    spellLevel: 0,
+    tags: [SPELL_TYPES.CANTRIP, SPELL_TYPES.BONUS_ACTION],
+    rarity: RARITY_TYPES.COMMON,
+    damage: [],
+    damageType: null,
+    summary: "A teasing mote of magic lures a nearby creature and grants advantage on your next trick."
+  },
+  {
+    id: "spell-cure-wounds",
+    name: "Cure Wounds",
+    category: ENTRY_CATEGORIES.SPELLS,
+    spellLevel: 1,
+    tags: [SPELL_TYPES.FULL_ACTION],
+    rarity: RARITY_TYPES.COMMON,
+    damage: [],
+    damageType: null,
+    summary: "Restore hit points to a creature you can touch."
+  },
+  {
+    id: "spell-ember-snap",
+    name: "Ember Snap",
+    category: ENTRY_CATEGORIES.SPELLS,
+    spellLevel: 0,
+    tags: [SPELL_TYPES.CANTRIP, SPELL_TYPES.FULL_ACTION],
+    rarity: RARITY_TYPES.COMMON,
+    damage: [DICE_TYPES.DICE_TYPE_D6],
+    damageType: DAMAGE_TYPES.FIRE,
+    summary: "You snap your fingers to launch a focused ember burst at a nearby target."
+  },
+  {
+    id: "spell-frost-thread",
+    name: "Frost Thread",
+    category: ENTRY_CATEGORIES.SPELLS,
+    spellLevel: 0,
+    tags: [SPELL_TYPES.CANTRIP, SPELL_TYPES.FULL_ACTION],
+    rarity: RARITY_TYPES.COMMON,
+    damage: [DICE_TYPES.DICE_TYPE_D4],
+    damageType: DAMAGE_TYPES.COLD,
+    summary: "A thin ribbon of winter magic chills a creature and numbs its movement."
+  },
+  {
+    id: "spell-arcane-lance",
+    name: "Arcane Lance",
+    category: ENTRY_CATEGORIES.SPELLS,
+    spellLevel: 1,
+    tags: [SPELL_TYPES.FULL_ACTION],
+    rarity: RARITY_TYPES.COMMON,
+    damage: [DICE_TYPES.DICE_TYPE_D8],
+    damageType: DAMAGE_TYPES.FORCE,
+    summary: "Conjure a sharp spear of force that streaks toward one creature."
+  },
+  {
+    id: "spell-thunder-mark",
+    name: "Thunder Mark",
+    category: ENTRY_CATEGORIES.SPELLS,
+    spellLevel: 1,
+    tags: [SPELL_TYPES.BONUS_ACTION],
+    rarity: RARITY_TYPES.COMMON,
+    damage: [DICE_TYPES.DICE_TYPE_D6],
+    damageType: DAMAGE_TYPES.THUNDER,
+    summary: "Mark a foe with resonant energy that detonates with your next strike."
+  },
+  {
+    id: "spell-veil-of-mending",
+    name: "Veil of Mending",
+    category: ENTRY_CATEGORIES.SPELLS,
+    spellLevel: 1,
+    tags: [SPELL_TYPES.BONUS_ACTION],
+    rarity: RARITY_TYPES.COMMON,
+    damage: [],
+    damageType: null,
+    summary: "A soft arcane veil closes wounds and stabilizes an ally's breathing."
+  },
+  {
+    id: "spell-shatter-halo",
+    name: "Shatter Halo",
+    category: ENTRY_CATEGORIES.SPELLS,
+    spellLevel: 2,
+    tags: [SPELL_TYPES.FULL_ACTION],
+    rarity: RARITY_TYPES.RARE,
+    damage: [DICE_TYPES.DICE_TYPE_D8, DICE_TYPES.DICE_TYPE_D8],
+    damageType: DAMAGE_TYPES.THUNDER,
+    summary: "A crackling ring of sound erupts around a point and batters nearby enemies."
+  },
+  {
+    id: "spell-phantom-chains",
+    name: "Phantom Chains",
+    category: ENTRY_CATEGORIES.SPELLS,
+    spellLevel: 2,
+    tags: [SPELL_TYPES.FULL_ACTION],
+    rarity: RARITY_TYPES.RARE,
+    damage: [DICE_TYPES.DICE_TYPE_D6, DICE_TYPES.DICE_TYPE_D6],
+    damageType: DAMAGE_TYPES.PSYCHIC,
+    summary: "Spectral chains lash a target's mind, dealing pain and pinning its focus."
+  },
+  {
+    id: "spell-mist-ward",
+    name: "Mist Ward",
+    category: ENTRY_CATEGORIES.SPELLS,
+    spellLevel: 2,
+    tags: [SPELL_TYPES.BONUS_ACTION],
+    rarity: RARITY_TYPES.RARE,
+    damage: [],
+    damageType: null,
+    summary: "A protective haze surrounds an ally and blurs incoming attacks."
+  },
+  {
+    id: "spell-searing-rayline",
+    name: "Searing Rayline",
+    category: ENTRY_CATEGORIES.SPELLS,
+    spellLevel: 2,
+    tags: [SPELL_TYPES.FULL_ACTION],
+    rarity: RARITY_TYPES.RARE,
+    damage: [DICE_TYPES.DICE_TYPE_D6, DICE_TYPES.DICE_TYPE_D6],
+    damageType: DAMAGE_TYPES.FIRE,
+    summary: "Draw a burning line through the battlefield that scorches creatures in its path."
+  },
+  {
+    id: "spell-storm-spearfall",
+    name: "Storm Spearfall",
+    category: ENTRY_CATEGORIES.SPELLS,
+    spellLevel: 3,
+    tags: [SPELL_TYPES.FULL_ACTION],
+    rarity: RARITY_TYPES.EPIC,
+    damage: [DICE_TYPES.DICE_TYPE_D8, DICE_TYPES.DICE_TYPE_D8, DICE_TYPES.DICE_TYPE_D8],
+    damageType: DAMAGE_TYPES.LIGHTNING,
+    summary: "Call down spears of lightning that strike multiple enemies from above."
+  },
+  {
+    id: "spell-grave-bloom",
+    name: "Grave Bloom",
+    category: ENTRY_CATEGORIES.SPELLS,
+    spellLevel: 3,
+    tags: [SPELL_TYPES.FULL_ACTION],
+    rarity: RARITY_TYPES.EPIC,
+    damage: [DICE_TYPES.DICE_TYPE_D6, DICE_TYPES.DICE_TYPE_D6, DICE_TYPES.DICE_TYPE_D6],
+    damageType: DAMAGE_TYPES.NECROTIC,
+    summary: "Dark petals burst from the ground, draining vitality from nearby foes."
+  },
+  {
+    id: "spell-radiant-bastion",
+    name: "Radiant Bastion",
+    category: ENTRY_CATEGORIES.SPELLS,
+    spellLevel: 3,
+    tags: [SPELL_TYPES.BONUS_ACTION],
+    rarity: RARITY_TYPES.EPIC,
+    damage: [],
+    damageType: null,
+    summary: "Create a bright protective bastion that shelters your party from harm."
+  },
+  {
+    id: "spell-rift-volley",
+    name: "Rift Volley",
+    category: ENTRY_CATEGORIES.SPELLS,
+    spellLevel: 3,
+    tags: [SPELL_TYPES.FULL_ACTION],
+    rarity: RARITY_TYPES.EPIC,
+    damage: [DICE_TYPES.DICE_TYPE_D10, DICE_TYPES.DICE_TYPE_D10],
+    damageType: DAMAGE_TYPES.FORCE,
+    summary: "Open brief rifts that fire violent force bolts in quick succession."
+  },
+  {
+    id: "weapon-longsword",
+    name: "Longsword",
+    category: ENTRY_CATEGORIES.WEAPONS,
+    tags: [WEAPON_TYPES.MARTIAL_MELEE, WEAPON_TYPES.VERSATILE],
+    rarity: RARITY_TYPES.COMMON,
+    damage: [DICE_TYPES.DICE_TYPE_D8],
+    damageType: DAMAGE_TYPES.SLASHING,
+    summary: "A disciplined blade favored by knights and soldiers for one or two-handed fighting."
+  },
+  {
+    id: "weapon-shortbow",
+    name: "Shortbow",
+    category: ENTRY_CATEGORIES.WEAPONS,
+    tags: [WEAPON_TYPES.SIMPLE_RANGED, WEAPON_TYPES.TWO_HANDED],
+    rarity: RARITY_TYPES.COMMON,
+    damage: [DICE_TYPES.DICE_TYPE_D6],
+    damageType: DAMAGE_TYPES.PIERCING,
+    summary: "A compact bow built for scouts and skirmishers."
+  },
+  {
+    id: "weapon-dagger",
+    name: "Dagger",
+    category: ENTRY_CATEGORIES.WEAPONS,
+    tags: [WEAPON_TYPES.SIMPLE_MELEE, WEAPON_TYPES.FINESSE],
+    rarity: RARITY_TYPES.COMMON,
+    damage: [DICE_TYPES.DICE_TYPE_D4],
+    damageType: DAMAGE_TYPES.PIERCING,
+    summary: "A lightweight blade ideal for precise strikes and concealed carry."
+  },
+  {
+    id: "weapon-spear",
+    name: "Spear",
+    category: ENTRY_CATEGORIES.WEAPONS,
+    tags: [WEAPON_TYPES.SIMPLE_MELEE, WEAPON_TYPES.VERSATILE],
+    rarity: RARITY_TYPES.COMMON,
+    damage: [DICE_TYPES.DICE_TYPE_D6],
+    damageType: DAMAGE_TYPES.PIERCING,
+    summary: "A reliable pole weapon effective at close range and with thrown attacks."
+  },
+  {
+    id: "weapon-warhammer",
+    name: "Warhammer",
+    category: ENTRY_CATEGORIES.WEAPONS,
+    tags: [WEAPON_TYPES.MARTIAL_MELEE, WEAPON_TYPES.VERSATILE],
+    rarity: RARITY_TYPES.COMMON,
+    damage: [DICE_TYPES.DICE_TYPE_D8],
+    damageType: DAMAGE_TYPES.BLUDGEONING,
+    summary: "A heavy striking weapon designed to crush armor and shields."
+  },
+  {
+    id: "weapon-greatsword",
+    name: "Greatsword",
+    category: ENTRY_CATEGORIES.WEAPONS,
+    tags: [WEAPON_TYPES.MARTIAL_MELEE, WEAPON_TYPES.TWO_HANDED],
+    rarity: RARITY_TYPES.COMMON,
+    damage: [DICE_TYPES.DICE_TYPE_D6, DICE_TYPES.DICE_TYPE_D6],
+    damageType: DAMAGE_TYPES.SLASHING,
+    summary: "A large two-handed blade that delivers high-impact sweeping blows."
+  },
+  {
+    id: "weapon-rapier",
+    name: "Rapier",
+    category: ENTRY_CATEGORIES.WEAPONS,
+    tags: [WEAPON_TYPES.MARTIAL_MELEE, WEAPON_TYPES.FINESSE],
+    rarity: RARITY_TYPES.COMMON,
+    damage: [DICE_TYPES.DICE_TYPE_D8],
+    damageType: DAMAGE_TYPES.PIERCING,
+    summary: "A precise dueling blade built for speed, balance, and agility."
+  },
+  {
+    id: "weapon-handaxe",
+    name: "Handaxe",
+    category: ENTRY_CATEGORIES.WEAPONS,
+    tags: [WEAPON_TYPES.SIMPLE_MELEE],
+    rarity: RARITY_TYPES.COMMON,
+    damage: [DICE_TYPES.DICE_TYPE_D6],
+    damageType: DAMAGE_TYPES.SLASHING,
+    summary: "A compact axe that performs well in melee and can be thrown when needed."
+  },
+  {
+    id: "weapon-light-crossbow",
+    name: "Light Crossbow",
+    category: ENTRY_CATEGORIES.WEAPONS,
+    tags: [WEAPON_TYPES.SIMPLE_RANGED, WEAPON_TYPES.TWO_HANDED],
+    rarity: RARITY_TYPES.COMMON,
+    damage: [DICE_TYPES.DICE_TYPE_D8],
+    damageType: DAMAGE_TYPES.PIERCING,
+    summary: "A straightforward ranged weapon with steady power and broad accessibility."
+  },
+  {
+    id: "weapon-longbow",
+    name: "Longbow",
+    category: ENTRY_CATEGORIES.WEAPONS,
+    tags: [WEAPON_TYPES.MARTIAL_RANGED, WEAPON_TYPES.TWO_HANDED],
+    rarity: RARITY_TYPES.RARE,
+    damage: [DICE_TYPES.DICE_TYPE_D8],
+    damageType: DAMAGE_TYPES.PIERCING,
+    summary: "A long-range bow with excellent reach in skilled hands."
+  },
+  {
+    id: "weapon-heavy-crossbow",
+    name: "Heavy Crossbow",
+    category: ENTRY_CATEGORIES.WEAPONS,
+    tags: [WEAPON_TYPES.MARTIAL_RANGED, WEAPON_TYPES.TWO_HANDED],
+    rarity: RARITY_TYPES.RARE,
+    damage: [DICE_TYPES.DICE_TYPE_D10],
+    damageType: DAMAGE_TYPES.PIERCING,
+    summary: "A hard-hitting ranged weapon that rewards deliberate, powerful shots."
+  },
+  {
+    id: "weapon-voidcleaver",
+    name: "Voidcleaver",
+    category: ENTRY_CATEGORIES.WEAPONS,
+    tags: [WEAPON_TYPES.MARTIAL_MELEE, WEAPON_TYPES.TWO_HANDED],
+    rarity: RARITY_TYPES.EPIC,
+    damage: [DICE_TYPES.DICE_TYPE_D8, DICE_TYPES.DICE_TYPE_D8],
+    damageType: DAMAGE_TYPES.FORCE,
+    summary: "A star-forged greatblade that tears through armor with crackling arcane force."
+  },
+  {
+    id: "weapon-javelin",
+    name: "Javelin",
+    category: ENTRY_CATEGORIES.WEAPONS,
+    tags: [WEAPON_TYPES.SIMPLE_MELEE, WEAPON_TYPES.SIMPLE_RANGED],
+    rarity: RARITY_TYPES.COMMON,
+    damage: [DICE_TYPES.DICE_TYPE_D6],
+    damageType: DAMAGE_TYPES.PIERCING,
+    summary: "A balanced throwing spear usable in both melee and ranged combat."
+  },
+  {
+    id: "armor-leather-armor",
+    name: "Leather Armor",
+    category: ENTRY_CATEGORIES.ARMOR,
+    tags: [ARMOR_TYPES.LIGHT_ARMOR],
+    rarity: RARITY_TYPES.COMMON,
+    armorBase: 11,
+    maxDexModifier: null,
+    shieldBonus: 0,
+    summary: "Flexible light armor that combines a base AC of 11 with your full DEX modifier."
+  },
+  {
+    id: "armor-studded-leather",
+    name: "Studded Leather Armor",
+    category: ENTRY_CATEGORIES.ARMOR,
+    tags: [ARMOR_TYPES.LIGHT_ARMOR],
+    rarity: RARITY_TYPES.COMMON,
+    armorBase: 12,
+    maxDexModifier: null,
+    shieldBonus: 0,
+    summary: "Reinforced light armor with metal studs that keeps full DEX scaling and improves base AC."
+  },
+  {
+    id: "armor-hide",
+    name: "Hide Armor",
+    category: ENTRY_CATEGORIES.ARMOR,
+    tags: [ARMOR_TYPES.MEDIUM_ARMOR],
+    rarity: RARITY_TYPES.COMMON,
+    armorBase: 12,
+    maxDexModifier: 2,
+    shieldBonus: 0,
+    summary: "Practical medium armor with natural materials and a DEX modifier cap of +2."
+  },
+  {
+    id: "armor-half-plate",
+    name: "Half Plate Armor",
+    category: ENTRY_CATEGORIES.ARMOR,
+    tags: [ARMOR_TYPES.MEDIUM_ARMOR],
+    rarity: RARITY_TYPES.RARE,
+    armorBase: 15,
+    maxDexModifier: 2,
+    shieldBonus: 0,
+    summary: "Sturdy medium armor that offers high base protection while capping DEX contribution at +2."
+  },
+  {
+    id: "armor-chain-mail",
+    name: "Chain Mail",
+    category: ENTRY_CATEGORIES.ARMOR,
+    tags: [ARMOR_TYPES.HEAVY_ARMOR],
+    rarity: RARITY_TYPES.RARE,
+    armorBase: 16,
+    maxDexModifier: 0,
+    shieldBonus: 0,
+    summary: "Reliable heavy metal armor with a base AC of 16 and no DEX modifier applied."
+  },
+  {
+    id: "armor-plate-armor",
+    name: "Plate Armor",
+    category: ENTRY_CATEGORIES.ARMOR,
+    tags: [ARMOR_TYPES.HEAVY_ARMOR],
+    rarity: RARITY_TYPES.EPIC,
+    armorBase: 18,
+    maxDexModifier: 0,
+    shieldBonus: 0,
+    summary: "Full heavy plate for maximum baseline protection with no DEX modifier contribution."
+  },
+  {
+    id: "armor-shield",
+    name: "Shield",
+    category: ENTRY_CATEGORIES.ARMOR,
+    tags: [ARMOR_TYPES.SHIELD],
+    rarity: RARITY_TYPES.COMMON,
+    armorBase: 0,
+    maxDexModifier: null,
+    shieldBonus: 2,
+    summary: "A defensive shield that adds +2 AC when equipped."
+  },
+  {
+    id: "item-thieves-toolkit",
+    name: "Thieve's Toolkit",
+    category: ENTRY_CATEGORIES.ITEMS,
+    tags: [ITEM_TYPES.TOOLKIT],
+    summary: "Compact lock and trap tools for stealthy infiltration jobs."
+  },
+  {
+    id: "item-disarm-toolkit",
+    name: "Disarm Toolkit",
+    category: ENTRY_CATEGORIES.ITEMS,
+    tags: [ITEM_TYPES.TOOLKIT],
+    summary: "Specialized picks, probes, and mirrors made for disabling mechanisms safely."
+  },
+  {
+    id: "item-rope-50ft",
+    name: "Rope (50ft)",
+    category: ENTRY_CATEGORIES.ITEMS,
+    tags: [ITEM_TYPES.ADVENTURING_GEAR],
+    summary: "A durable 50-foot rope for climbing, anchoring, and traversal."
+  },
+  {
+    id: "item-shovel",
+    name: "Shovel",
+    category: ENTRY_CATEGORIES.ITEMS,
+    tags: [ITEM_TYPES.ADVENTURING_GEAR],
+    summary: "A field shovel useful for digging cover, graves, and hidden caches."
+  },
+  {
+    id: "item-mining-pickaxe",
+    name: "Mining Pickaxe",
+    category: ENTRY_CATEGORIES.ITEMS,
+    tags: [ITEM_TYPES.ADVENTURING_GEAR],
+    summary: "A heavy pickaxe suited for stonework, excavation, and forced entry."
+  },
+  {
+    id: "item-disguise-kit",
+    name: "Disguise Kit",
+    category: ENTRY_CATEGORIES.ITEMS,
+    tags: [ITEM_TYPES.TOOLKIT],
+    summary: "Cosmetic and wardrobe tools for changing appearance and mannerisms."
+  },
+  {
+    id: "species-elf",
+    name: "Elf",
+    category: ENTRY_CATEGORIES.SPECIES,
+    tags: [SPECIES_TYPES.HUMANOID, SPECIES_TYPES.FEY_ANCESTRY, SPECIES_TYPES.ARCANE_AFFINITY],
+    speed: 30,
+    abilityBonuses: {
+      [ABILITY_TYPES.DEX]: 2,
+      [ABILITY_TYPES.INT]: 1
+    },
+    innateProficiencies: [],
+    grantedSkillProficiencies: ["Perception"],
+    grantedToolProficiencies: [],
+    summary: "Graceful, long-lived people known for keen senses and innate magical talent."
+  },
+  {
+    id: "class-artificer",
+    name: "Artificer",
+    category: ENTRY_CATEGORIES.CLASSES,
+    tags: [CLASS_TYPES.ARCANE, CLASS_TYPES.SUPPORT],
+    primaryAbilityModifiers: [ABILITY_TYPES.INT],
+    hitPointDie: DICE_TYPES.DICE_TYPE_D8,
+    savingThrowProficiencies: [ABILITY_TYPES.CON, ABILITY_TYPES.INT],
+    innateProficiencies: [
+      GENERAL_PROFICIENCIES.SIMPLE_WEAPONS,
+      GENERAL_PROFICIENCIES.LIGHT_ARMOR,
+      GENERAL_PROFICIENCIES.MEDIUM_ARMOR,
+      GENERAL_PROFICIENCIES.SHIELDS
+    ],
+    grantedSkillProficiencies: ["Arcana"],
+    grantedToolProficiencies: [],
+
+    summary: "A magical inventor who fuses engineering and spellwork into adaptable battlefield tools."
+  },
+  {
+    id: "class-barbarian",
+    name: "Barbarian",
+    category: ENTRY_CATEGORIES.CLASSES,
+    tags: [CLASS_TYPES.MARTIAL],
+    primaryAbilityModifiers: [ABILITY_TYPES.STR, ABILITY_TYPES.CON],
+    hitPointDie: DICE_TYPES.DICE_TYPE_D12,
+    savingThrowProficiencies: [ABILITY_TYPES.STR, ABILITY_TYPES.CON],
+    innateProficiencies: [
+      GENERAL_PROFICIENCIES.SIMPLE_WEAPONS,
+      GENERAL_PROFICIENCIES.MARTIAL_WEAPONS,
+      GENERAL_PROFICIENCIES.LIGHT_ARMOR,
+      GENERAL_PROFICIENCIES.MEDIUM_ARMOR,
+      GENERAL_PROFICIENCIES.SHIELDS
+    ],
+    grantedSkillProficiencies: ["Athletics"],
+    grantedToolProficiencies: [],
+
+    summary: "A relentless frontline warrior who channels primal rage into unstoppable offense."
+  },
+  {
+    id: "class-bard",
+    name: "Bard",
+    category: ENTRY_CATEGORIES.CLASSES,
+    tags: [CLASS_TYPES.ARCANE, CLASS_TYPES.SUPPORT, CLASS_TYPES.SKILL_EXPERT],
+    primaryAbilityModifiers: [ABILITY_TYPES.CHA],
+    hitPointDie: DICE_TYPES.DICE_TYPE_D8,
+    savingThrowProficiencies: [ABILITY_TYPES.DEX, ABILITY_TYPES.CHA],
+    innateProficiencies: [
+      GENERAL_PROFICIENCIES.SIMPLE_WEAPONS,
+      GENERAL_PROFICIENCIES.MARTIAL_WEAPONS,
+      GENERAL_PROFICIENCIES.LIGHT_ARMOR
+    ],
+    grantedSkillProficiencies: ["Performance"],
+    grantedToolProficiencies: [],
+
+    summary: "A versatile performer whose magic and skill mastery strengthen every party role."
+  },
+  {
+    id: "class-cleric",
+    name: "Cleric",
+    category: ENTRY_CATEGORIES.CLASSES,
+    tags: [CLASS_TYPES.DIVINE, CLASS_TYPES.SUPPORT],
+    primaryAbilityModifiers: [ABILITY_TYPES.WIS],
+    hitPointDie: DICE_TYPES.DICE_TYPE_D8,
+    savingThrowProficiencies: [ABILITY_TYPES.WIS, ABILITY_TYPES.CHA],
+    innateProficiencies: [
+      GENERAL_PROFICIENCIES.SIMPLE_WEAPONS,
+      GENERAL_PROFICIENCIES.LIGHT_ARMOR,
+      GENERAL_PROFICIENCIES.MEDIUM_ARMOR,
+      GENERAL_PROFICIENCIES.SHIELDS
+    ],
+    grantedSkillProficiencies: ["Religion"],
+    grantedToolProficiencies: [],
+
+    summary: "A divine champion who balances healing, protection, and holy offense."
+  },
+  {
+    id: "class-druid",
+    name: "Druid",
+    category: ENTRY_CATEGORIES.CLASSES,
+    tags: [CLASS_TYPES.PRIMAL, CLASS_TYPES.SUPPORT],
+    primaryAbilityModifiers: [ABILITY_TYPES.WIS],
+    hitPointDie: DICE_TYPES.DICE_TYPE_D8,
+    savingThrowProficiencies: [ABILITY_TYPES.INT, ABILITY_TYPES.WIS],
+    innateProficiencies: [
+      GENERAL_PROFICIENCIES.SIMPLE_WEAPONS,
+      GENERAL_PROFICIENCIES.LIGHT_ARMOR,
+      GENERAL_PROFICIENCIES.MEDIUM_ARMOR,
+      GENERAL_PROFICIENCIES.SHIELDS
+    ],
+    grantedSkillProficiencies: ["Nature"],
+    grantedToolProficiencies: [],
+
+    summary: "A primal spellcaster who commands nature, shapeshifts, and controls the battlefield."
+  },
+  {
+    id: "class-fighter",
+    name: "Fighter",
+    category: ENTRY_CATEGORIES.CLASSES,
+    tags: [CLASS_TYPES.MARTIAL],
+    primaryAbilityModifiers: [ABILITY_TYPES.STR, ABILITY_TYPES.DEX],
+    hitPointDie: DICE_TYPES.DICE_TYPE_D10,
+    savingThrowProficiencies: [ABILITY_TYPES.STR, ABILITY_TYPES.CON],
+    innateProficiencies: [
+      GENERAL_PROFICIENCIES.SIMPLE_WEAPONS,
+      GENERAL_PROFICIENCIES.MARTIAL_WEAPONS,
+      GENERAL_PROFICIENCIES.LIGHT_ARMOR,
+      GENERAL_PROFICIENCIES.MEDIUM_ARMOR,
+      GENERAL_PROFICIENCIES.HEAVY_ARMOR,
+      GENERAL_PROFICIENCIES.SHIELDS
+    ],
+    grantedSkillProficiencies: ["Athletics"],
+    grantedToolProficiencies: [],
+
+    summary: "A tactical combat specialist with unmatched weapon and armor discipline."
+  },
+  {
+    id: "class-monk",
+    name: "Monk",
+    category: ENTRY_CATEGORIES.CLASSES,
+    tags: [CLASS_TYPES.MARTIAL],
+    primaryAbilityModifiers: [ABILITY_TYPES.DEX, ABILITY_TYPES.WIS],
+    hitPointDie: DICE_TYPES.DICE_TYPE_D8,
+    savingThrowProficiencies: [ABILITY_TYPES.STR, ABILITY_TYPES.DEX],
+    innateProficiencies: [GENERAL_PROFICIENCIES.SIMPLE_WEAPONS],
+    grantedSkillProficiencies: ["Acrobatics"],
+    grantedToolProficiencies: [],
+
+    summary: "A disciplined martial artist who blends mobility, precision, and ki techniques."
+  },
+  {
+    id: "class-paladin",
+    name: "Paladin",
+    category: ENTRY_CATEGORIES.CLASSES,
+    tags: [CLASS_TYPES.MARTIAL, CLASS_TYPES.DIVINE, CLASS_TYPES.SUPPORT],
+    primaryAbilityModifiers: [ABILITY_TYPES.STR, ABILITY_TYPES.CHA],
+    hitPointDie: DICE_TYPES.DICE_TYPE_D10,
+    savingThrowProficiencies: [ABILITY_TYPES.WIS, ABILITY_TYPES.CHA],
+    innateProficiencies: [
+      GENERAL_PROFICIENCIES.SIMPLE_WEAPONS,
+      GENERAL_PROFICIENCIES.MARTIAL_WEAPONS,
+      GENERAL_PROFICIENCIES.LIGHT_ARMOR,
+      GENERAL_PROFICIENCIES.MEDIUM_ARMOR,
+      GENERAL_PROFICIENCIES.HEAVY_ARMOR,
+      GENERAL_PROFICIENCIES.SHIELDS
+    ],
+    grantedSkillProficiencies: ["Persuasion"],
+    grantedToolProficiencies: [],
+
+    summary: "A holy knight who combines durable frontline defense with radiant burst damage."
+  },
+  {
+    id: "class-ranger",
+    name: "Ranger",
+    category: ENTRY_CATEGORIES.CLASSES,
+    tags: [CLASS_TYPES.MARTIAL, CLASS_TYPES.PRIMAL],
+    primaryAbilityModifiers: [ABILITY_TYPES.DEX, ABILITY_TYPES.WIS],
+    hitPointDie: DICE_TYPES.DICE_TYPE_D10,
+    savingThrowProficiencies: [ABILITY_TYPES.STR, ABILITY_TYPES.DEX],
+    innateProficiencies: [
+      GENERAL_PROFICIENCIES.SIMPLE_WEAPONS,
+      GENERAL_PROFICIENCIES.MARTIAL_WEAPONS,
+      GENERAL_PROFICIENCIES.LIGHT_ARMOR,
+      GENERAL_PROFICIENCIES.MEDIUM_ARMOR,
+      GENERAL_PROFICIENCIES.SHIELDS
+    ],
+    grantedSkillProficiencies: ["Survival"],
+    grantedToolProficiencies: [],
+
+    summary: "A wilderness hunter who excels at tracking foes and controlling range."
+  },
+  {
+    id: "class-rogue",
+    name: "Rogue",
+    category: ENTRY_CATEGORIES.CLASSES,
+    tags: [CLASS_TYPES.SKILL_EXPERT, CLASS_TYPES.MARTIAL],
+    primaryAbilityModifiers: [ABILITY_TYPES.DEX],
+    hitPointDie: DICE_TYPES.DICE_TYPE_D8,
+    savingThrowProficiencies: [ABILITY_TYPES.DEX, ABILITY_TYPES.INT],
+    innateProficiencies: [
+      GENERAL_PROFICIENCIES.SIMPLE_WEAPONS,
+      GENERAL_PROFICIENCIES.MARTIAL_WEAPONS,
+      GENERAL_PROFICIENCIES.LIGHT_ARMOR
+    ],
+    grantedSkillProficiencies: ["Stealth"],
+    grantedToolProficiencies: [TOOL_PROFICIENCIES.THIEVES_TOOLKIT],
+
+    summary: "A precision striker and expert operative built around stealth, timing, and utility."
+  },
+  {
+    id: "class-sorcerer",
+    name: "Sorcerer",
+    category: ENTRY_CATEGORIES.CLASSES,
+    tags: [CLASS_TYPES.ARCANE],
+    primaryAbilityModifiers: [ABILITY_TYPES.CHA],
+    hitPointDie: DICE_TYPES.DICE_TYPE_D6,
+    savingThrowProficiencies: [ABILITY_TYPES.CON, ABILITY_TYPES.CHA],
+    innateProficiencies: [GENERAL_PROFICIENCIES.SIMPLE_WEAPONS],
+    grantedSkillProficiencies: ["Arcana"],
+    grantedToolProficiencies: [],
+
+    summary: "An innate arcane caster whose bloodline power fuels explosive spell output."
+  },
+  {
+    id: "class-warlock",
+    name: "Warlock",
+    category: ENTRY_CATEGORIES.CLASSES,
+    tags: [CLASS_TYPES.ARCANE],
+    primaryAbilityModifiers: [ABILITY_TYPES.CHA],
+    hitPointDie: DICE_TYPES.DICE_TYPE_D8,
+    savingThrowProficiencies: [ABILITY_TYPES.WIS, ABILITY_TYPES.CHA],
+    innateProficiencies: [
+      GENERAL_PROFICIENCIES.SIMPLE_WEAPONS,
+      GENERAL_PROFICIENCIES.LIGHT_ARMOR
+    ],
+    grantedSkillProficiencies: ["Deception"],
+    grantedToolProficiencies: [],
+
+    summary: "A pact-bound caster with focused spell slots and potent invocations."
+  },
+  {
+    id: "class-wizard",
+    name: "Wizard",
+    category: ENTRY_CATEGORIES.CLASSES,
+    tags: [CLASS_TYPES.ARCANE],
+    primaryAbilityModifiers: [ABILITY_TYPES.INT],
+    hitPointDie: DICE_TYPES.DICE_TYPE_D6,
+    savingThrowProficiencies: [ABILITY_TYPES.INT, ABILITY_TYPES.WIS],
+    innateProficiencies: [GENERAL_PROFICIENCIES.SIMPLE_WEAPONS],
+    grantedSkillProficiencies: ["Arcana"],
+    grantedToolProficiencies: [],
+
+    summary: "A scholar of spellcraft who prepares flexible arcane solutions for almost any challenge."
+  },
+  {
+    id: "rule-advantage",
+    name: "Advantage",
+    category: ENTRY_CATEGORIES.RULES,
+    tags: [RULE_TYPES.CORE, RULE_TYPES.COMBAT],
+    summary: "Roll two d20s and keep the higher result when conditions favor you."
+  },
+  {
+    id: "monster-young-red-dragon",
+    name: "Young Red Dragon",
+    category: ENTRY_CATEGORIES.MONSTERS,
+    tags: [MONSTER_TYPES.DRAGON, MONSTER_TYPES.BOSS],
+    rarity: RARITY_TYPES.LEGENDARY,
+    summary: "A proud and brutal predator with fiery breath and a hunger for treasure."
+  }
+];

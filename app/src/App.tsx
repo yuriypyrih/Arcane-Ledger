@@ -3,6 +3,7 @@ import AppShell from "./components/AppShell";
 import CharacterBuilderPage from "./pages/CharactersPage/CharacterBuilderPage";
 import CharacterSheetPage from "./pages/CharactersPage/CharacterSheetPage";
 import CharactersPage from "./pages/CharactersPage";
+import CodexEntryPage from "./pages/CodexEntryPage";
 import CodexPage from "./pages/CodexPage";
 import DicePage from "./pages/DicePage";
 import HomePage from "./pages/HomePage";
@@ -18,6 +19,7 @@ function App() {
         <Route path="/characters/:characterId/edit" element={<CharacterBuilderPage />} />
         <Route path="/characters/:characterId" element={<CharacterSheetPage />} />
         <Route path="/codex" element={<CodexPage />} />
+        <Route path="/codex/:entryId" element={<CodexEntryPage />} />
         <Route path="*" element={<Navigate replace to="/" />} />
       </Route>
     </Routes>

@@ -1,0 +1,136 @@
+.spellcastingSectionDisabled {
+  opacity: 0.72;
+}
+
+.spellSlotHeader {
+  display: flex;
+  justify-content: center;
+}
+
+.spellSlotGrid {
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: repeat(9, minmax(0, 1fr));
+  justify-items: center;
+}
+
+.spellSlotCard {
+  display: grid;
+  align-content: start;
+  justify-items: center;
+  gap: 0.25rem;
+  border-radius: 12px;
+  background: rgba(75, 47, 29, 0.07);
+  min-height: 56px;
+  max-width: 70px;
+  padding: 0.42rem 0.28rem;
+  width: 100%;
+}
+
+.spellSlotCard span {
+  color: var(--color-ink-soft);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.spellSlotCardEmpty {
+  opacity: 0.56;
+}
+
+.spellSlotDash {
+  color: var(--color-ink-soft);
+  font-size: 0.9rem;
+  line-height: 1;
+}
+
+.spellSlotSquares {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem;
+  justify-content: center;
+}
+
+.spellSlotSquare {
+  block-size: 9px;
+  inline-size: 9px;
+  border: 1px solid rgba(47, 120, 255, 0.42);
+  border-radius: 2px;
+  background: rgba(255, 255, 255, 0.8);
+}
+
+.spellSlotSquareFilled {
+  background: #2f78ff;
+  border-color: #2f78ff;
+}
+
+.spellListStack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.spellGroup {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.spellGroupTitle {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.spellList {
+  display: grid;
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.spellButton {
+  display: grid;
+  gap: 0.22rem;
+  width: 100%;
+  border: 1px solid rgba(75, 47, 29, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.62rem 0.72rem;
+  text-align: left;
+  transition:
+    border-color 140ms ease,
+    transform 140ms ease;
+}
+
+.spellButton:hover {
+  border-color: rgba(143, 91, 56, 0.44);
+  transform: translateY(-1px);
+}
+
+.spellButton span {
+  font-weight: 600;
+}
+
+.spellButton small {
+  color: var(--color-ink-soft);
+  font-size: 0.74rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 860px) {
+  .spellSlotGrid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .spellSlotGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

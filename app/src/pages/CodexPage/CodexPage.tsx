@@ -1,15 +1,30 @@
 import { useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import CodexFilters from "../../components/CodexPage/CodexFilters";
 import CodexResults from "../../components/CodexPage/CodexResults";
-import { filterCodexEntries, getCodexCategories } from "../../utils/codex";
+import {
+  filterCodexEntries,
+  getCodexCategories,
+  type CodexFilterCategory
+} from "../../utils/codex";
+import { ENTRY_CATEGORIES } from "../../codex/entries";
 import { useCodexEntries } from "./useCodexEntries";
 import styles from "./CodexPage.module.css";
 
 function CodexPage() {
   const { entries, status } = useCodexEntries();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("All");
-  const categories = getCodexCategories(entries);
+  const categories = getCodexCategories();
+  const categoryParam = searchParams.get("category");
+  const category = categories.includes(categoryParam as CodexFilterCategory)
+    ? (categoryParam as CodexFilterCategory)
+    : ENTRY_CATEGORIES.CLASSES;
+  const updateCategory = (nextCategory: CodexFilterCategory) => {
+    const nextSearchParams = new URLSearchParams(searchParams);
+    nextSearchParams.set("category", nextCategory);
+    setSearchParams(nextSearchParams, { replace: true });
+  };
   const filteredEntries = filterCodexEntries(entries, query, category);
 
   return (
@@ -21,8 +36,7 @@ function CodexPage() {
             <h2 className={styles.title}>Search the starter codex.</h2>
           </div>
           <p className={styles.description}>
-            Placeholder content lives in <code>codex.sample.json</code> and can be replaced later
-            with real rules data.
+            Starter entries are currently hardcoded in <code>src/codex/entries</code>.
           </p>
         </div>
 
@@ -31,11 +45,11 @@ function CodexPage() {
           category={category}
           categories={categories}
           onQueryChange={setQuery}
-          onCategoryChange={setCategory}
+          onCategoryChange={updateCategory}
         />
       </div>
 
-      <CodexResults entries={filteredEntries} status={status} />
+      <CodexResults entries={filteredEntries} status={status} category={category} />
     </section>
   );
 }

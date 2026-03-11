@@ -1,5 +1,5 @@
 .shell {
-  --shell-gutter: 1.5rem;
+  --shell-gutter: var(--space-shell-gutter);
   display: grid;
   grid-template-rows: auto minmax(0, 1fr);
   min-height: 100dvh;
@@ -10,8 +10,8 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 1rem;
-  margin: 0 auto 1.5rem;
+  gap: var(--space-section-gap);
+  margin: 0 auto var(--space-page-gap);
   max-width: 1200px;
 }
 

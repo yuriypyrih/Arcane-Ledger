@@ -1,16 +1,16 @@
 .page {
   display: grid;
-  gap: 1rem;
+  gap: var(--space-page-gap);
 }
 
 .panel {
   display: grid;
-  gap: 1.25rem;
+  gap: var(--space-page-gap);
   border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: 28px;
   background: rgba(255, 250, 241, 0.92);
   box-shadow: 0 18px 50px rgba(54, 34, 21, 0.06);
-  padding: 1.5rem;
+  padding: var(--space-card-padding);
 }
 
 .header {

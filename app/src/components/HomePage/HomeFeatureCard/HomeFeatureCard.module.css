@@ -1,8 +1,8 @@
 .card {
   display: grid;
-  gap: 0.9rem;
+  gap: var(--space-section-gap);
   min-height: 220px;
-  padding: 1.5rem;
+  padding: var(--space-card-padding);
   border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: 28px;
   background: rgba(255, 250, 241, 0.92);

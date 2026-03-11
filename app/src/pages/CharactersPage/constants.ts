@@ -1,4 +1,16 @@
-import type { AbilityKey, AbilityScores, Alignment, CharacterDraft } from "../../types";
+import type {
+  AbilityKey,
+  AbilityScores,
+  Alignment,
+  CharacterDraft,
+  CoreStats
+} from "../../types";
+export {
+  classOptions,
+  equipmentCatalog,
+  equipmentOptions,
+  skillsOptions
+} from "./proficiency";
 
 export const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
@@ -14,65 +26,10 @@ export const speciesOptions = [
   "Tiefling"
 ];
 
-export const roleOptions = [
-  "Barbarian",
-  "Bard",
-  "Cleric",
-  "Druid",
-  "Fighter",
-  "Monk",
-  "Paladin",
-  "Ranger",
-  "Rogue",
-  "Sorcerer",
-  "Warlock",
-  "Wizard"
-];
-
 export const alignmentGrid: Alignment[][] = [
   ["Lawful Good", "Neutral Good", "Chaotic Good"],
   ["Lawful Neutral", "True Neutral", "Chaotic Neutral"],
   ["Lawful Evil", "Neutral Evil", "Chaotic Evil"]
-];
-
-export const skillsOptions = [
-  "Acrobatics",
-  "Animal Handling",
-  "Arcana",
-  "Athletics",
-  "Deception",
-  "History",
-  "Insight",
-  "Intimidation",
-  "Investigation",
-  "Medicine",
-  "Nature",
-  "Perception",
-  "Performance",
-  "Persuasion",
-  "Religion",
-  "Sleight of Hand",
-  "Stealth",
-  "Survival"
-];
-
-export const equipmentOptions = [
-  "Backpack",
-  "Bedroll",
-  "Rope (50 ft.)",
-  "Torch",
-  "Rations (1 day)",
-  "Waterskin",
-  "Dagger",
-  "Shortsword",
-  "Longsword",
-  "Shield",
-  "Leather Armor",
-  "Chain Mail",
-  "Spellbook",
-  "Thieves' Tools",
-  "Healer's Kit",
-  "Explorer's Pack"
 ];
 
 export const POINT_BUY_BUDGET = 27;
@@ -101,20 +58,39 @@ export function createDefaultAbilities(): AbilityScores {
   };
 }
 
+export function createDefaultCoreStats(): CoreStats {
+  return {
+    armorClass: "16",
+    initiative: "+2",
+    speed: "30 ft",
+    passivePerception: "12",
+    proficiencyBonus: "+2",
+    hitDice: "1d8"
+  };
+}
+
 export function createEmptyCharacter(): CharacterDraft {
   return {
     name: "",
     species: "",
-    role: "",
+    className: "",
     level: 1,
+    xp: 0,
     hitPoints: 8,
     currentHitPoints: 8,
+    hitDiceRemaining: 1,
     attributeMode: "custom",
     abilities: createDefaultAbilities(),
     alignment: "True Neutral",
     background: "",
     skills: [],
-    equipment: []
+    skillExpertise: [],
+    toolProficiencies: [],
+    equipment: [],
+    knownSpellIds: [],
+    spellSlotsExpended: Array.from({ length: 9 }, () => 0),
+    shortRestsUsedToday: 0,
+    coreStats: createDefaultCoreStats()
   };
 }
 

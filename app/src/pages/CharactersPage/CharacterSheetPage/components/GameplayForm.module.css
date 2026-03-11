@@ -1,0 +1,155 @@
+.hpSummary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.hpSummary strong {
+  font-size: 1.2rem;
+}
+
+.hpSummary span {
+  color: var(--color-ink-soft);
+  font-size: 0.92rem;
+}
+
+.hpBarTrack {
+  block-size: 16px;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.12);
+  overflow: hidden;
+}
+
+.hpBarFill {
+  block-size: 100%;
+  background: linear-gradient(90deg, #943629, #b6513f, #d08d54);
+  transition: width 180ms ease;
+}
+
+.gameplayHpRow {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.75rem;
+}
+
+.hpMeter {
+  display: grid;
+  flex: 1;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.hpStepControl {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  flex-shrink: 0;
+}
+
+.hpStepInput {
+  width: 4.15rem;
+  min-width: 4.15rem;
+  min-height: 42px;
+  padding: 0 0.45rem;
+  text-align: center;
+}
+
+.hpActionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  color: #fff8ee;
+  cursor: pointer;
+  min-height: 32px;
+  min-width: 32px;
+}
+
+.hpDamage {
+  background: linear-gradient(135deg, #933325, #ba4b39);
+}
+
+.hpHeal {
+  background: linear-gradient(135deg, #2b6a3e, #3b8a54);
+}
+
+.weaponActionGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  align-items: flex-start;
+}
+
+.weaponActionButton {
+  display: grid;
+  gap: 0.3rem;
+  border: 1px solid rgba(75, 47, 29, 0.16);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.7);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  max-width: 100%;
+  padding: 0.72rem 0.78rem;
+  text-align: left;
+  width: fit-content;
+}
+
+.weaponActionButton strong {
+  font-size: 0.96rem;
+}
+
+.weaponActionButton span,
+.weaponActionButton small {
+  color: var(--color-ink-soft);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.gameplayCampButtonRow {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.campButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background:
+    radial-gradient(circle at 35% 30%, rgba(255, 241, 216, 0.95), rgba(205, 136, 74, 0.9)),
+    linear-gradient(135deg, #724728, #9a6138);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.42),
+    0 10px 24px rgba(56, 31, 18, 0.24);
+  color: #fff8ee;
+  cursor: pointer;
+  font: inherit;
+  min-height: 76px;
+  min-width: 76px;
+  position: relative;
+  text-transform: uppercase;
+}
+
+.campButton span {
+  border-radius: 999px;
+  background: rgba(36, 20, 12, 0.26);
+  font-size: 0.7rem;
+  letter-spacing: 0.09em;
+  line-height: 1;
+  padding: 0.22rem 0.5rem;
+}
+
+@media (max-width: 620px) {
+  .gameplayHpRow {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .hpStepControl {
+    align-self: flex-end;
+  }
+}

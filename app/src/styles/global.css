@@ -15,6 +15,11 @@
   --color-ink-soft: #664b38;
   --color-accent: #8f5b38;
   --color-panel-strong: rgba(255, 250, 241, 0.98);
+  --space-shell-gutter: clamp(0.5rem, 2.2vw, 1.35rem);
+  --space-page-gap: clamp(0.65rem, 2vw, 1.35rem);
+  --space-section-gap: clamp(0.6rem, 1.7vw, 1.1rem);
+  --space-card-padding: clamp(0.78rem, 2.3vw, 1.35rem);
+  --space-card-padding-tight: clamp(0.68rem, 2vw, 1.15rem);
 }
 
 * {
@@ -28,8 +33,32 @@ body,
   min-height: 100%;
 }
 
+html {
+  font-size: 16px;
+}
+
 body {
   min-width: 320px;
+}
+
+@media (max-width: 620px) {
+  :root {
+    --space-shell-gutter: clamp(0.45rem, 1.9vw, 0.9rem);
+    --space-page-gap: clamp(0.52rem, 1.8vw, 0.92rem);
+    --space-section-gap: clamp(0.45rem, 1.6vw, 0.8rem);
+    --space-card-padding: clamp(0.65rem, 2.2vw, 0.98rem);
+    --space-card-padding-tight: clamp(0.58rem, 1.9vw, 0.9rem);
+  }
+
+  html {
+    font-size: 14px;
+  }
+}
+
+@media (max-width: 420px) {
+  html {
+    font-size: 13.5px;
+  }
 }
 
 body::before {

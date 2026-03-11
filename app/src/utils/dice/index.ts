@@ -5,3 +5,4 @@ export { parseFormula } from "./parseFormula";
 export { rollD20 } from "./rollD20";
 export { rollDicePool } from "./rollDicePool";
 export { rollFormula } from "./rollFormula";
+export { rollFormulaWithDice } from "./rollFormulaWithDice";
