@@ -15,6 +15,13 @@
   gap: var(--space-section-gap);
 }
 
+.headerActions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
 .eyebrow {
   margin: 0 0 0.25rem;
   color: var(--color-accent);
@@ -41,6 +48,28 @@
   min-height: 38px;
   padding: 0 0.9rem;
   white-space: nowrap;
+}
+
+.currencyPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 211, 102, 0.24);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.86rem;
+  min-height: 38px;
+  padding: 0 0.72rem;
+  white-space: nowrap;
+}
+
+.currencyIcon {
+  block-size: 18px;
+  inline-size: 18px;
+  object-fit: contain;
 }
 
 .editButton:disabled {
@@ -184,6 +213,10 @@
   .sectionHeader {
     flex-direction: column;
     align-items: flex-start;
+  }
+
+  .headerActions {
+    justify-content: flex-start;
   }
 
   .formGrid,

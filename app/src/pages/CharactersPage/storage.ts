@@ -8,6 +8,7 @@ import {
   createEmptyCharacter
 } from "./constants";
 import {
+  isBackgroundName,
   normalizeEquipmentSelectionsForClass,
   normalizeManualSkillSelections,
   normalizeSkillExpertiseSelectionsForCharacter,
@@ -65,6 +66,35 @@ function normalizeCoreStats(value: unknown): CoreStats {
   };
 }
 
+function normalizeCurrencies(
+  value: unknown,
+  fallbackCurrencies: Character["currencies"]
+): Character["currencies"] {
+  const normalizedCurrencies: Character["currencies"] = {
+    ...fallbackCurrencies
+  };
+
+  if (value && typeof value === "object") {
+    Object.entries(value as Record<string, unknown>).forEach(([currencyKey, currencyValue]) => {
+      if (!currencyKey) {
+        return;
+      }
+
+      normalizedCurrencies[currencyKey] = Math.max(
+        0,
+        Math.floor(clampNumber(currencyValue, 0, 999999999, 0))
+      );
+    });
+  }
+
+  normalizedCurrencies.gold = Math.max(
+    0,
+    Math.floor(clampNumber(normalizedCurrencies.gold, 0, 999999999, fallbackCurrencies.gold))
+  );
+
+  return normalizedCurrencies;
+}
+
 function normalizeSavingThrowProficiencies(
   value: unknown,
   fallbackClassName: string
@@ -95,6 +125,7 @@ function normalizeCharacter(value: unknown): Character | null {
     skillExpertise?: unknown;
     toolProficiencies?: unknown;
     coreStats?: unknown;
+    currencies?: unknown;
     savingThrowProficiencies?: unknown;
     hitDiceRemaining?: unknown;
   };
@@ -120,6 +151,11 @@ function normalizeCharacter(value: unknown): Character | null {
         : typeof record.role === "string"
           ? record.role.trim()
           : defaults.className;
+  const normalizedBackground =
+    typeof record.background === "string" ? record.background.trim() : defaults.background;
+  const resolvedBackground = isBackgroundName(normalizedBackground)
+    ? normalizedBackground
+    : defaults.background;
   const rawSkills = Array.isArray(record.skills)
     ? (record.skills as unknown[]).filter((skill): skill is string => typeof skill === "string")
     : defaults.skills;
@@ -140,6 +176,7 @@ function normalizeCharacter(value: unknown): Character | null {
   const normalizedSkillExpertise = normalizeSkillExpertiseSelectionsForCharacter(
     normalizedClassName,
     normalizedSpecies,
+    resolvedBackground,
     normalizedSkills,
     rawSkillExpertise
   );
@@ -164,6 +201,7 @@ function normalizeCharacter(value: unknown): Character | null {
     normalizedLevel
   );
   const normalizedCoreStats = normalizeCoreStats(record.coreStats);
+  const normalizedCurrencies = normalizeCurrencies(record.currencies, defaults.currencies);
   const normalizedSavingThrowProficiencies = normalizeSavingThrowProficiencies(
     record.savingThrowProficiencies,
     normalizedClassName
@@ -194,7 +232,8 @@ function normalizeCharacter(value: unknown): Character | null {
     alignment: (alignmentGrid.flat() as string[]).includes(record.alignment ?? "")
       ? (record.alignment as Character["alignment"])
       : defaults.alignment,
-    background: typeof record.background === "string" ? record.background : defaults.background,
+    background: resolvedBackground,
+    currencies: normalizedCurrencies,
     skills: normalizedSkills,
     skillExpertise: normalizedSkillExpertise,
     toolProficiencies: normalizedToolProficiencies,

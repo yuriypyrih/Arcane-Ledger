@@ -45,6 +45,11 @@ function getItemTypeSubtitle(entry: CodexEntry): string | null {
     return itemType ? formatCodexLabel(itemType) : null;
   }
 
+  if (entry.category === ENTRY_CATEGORIES.BACKGROUNDS) {
+    const backgroundType = entry.tags[0];
+    return backgroundType ? formatCodexLabel(backgroundType) : null;
+  }
+
   return null;
 }
 

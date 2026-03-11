@@ -7,6 +7,7 @@ import {
   POINT_BUY_BUDGET,
   abilityKeys,
   alignmentGrid,
+  backgroundOptions,
   cloneAbilities,
   createDefaultAbilities,
   createEmptyCharacter,
@@ -19,6 +20,7 @@ import {
 } from "../../../pages/CharactersPage/constants";
 import {
   getAvailableEquipmentNamesForClass,
+  getGrantedSkillProficienciesForCharacter,
   getSkillProficiencyOptionsForClass,
   getSkillSelectionLimitForClass,
   normalizeSelectionsForClass,
@@ -27,7 +29,6 @@ import {
 import { normalizeLevelAndXp } from "../../../pages/CharactersPage/experience";
 import NumberInput from "../FormInputs/NumberInput";
 import SelectInput from "../FormInputs/SelectInput";
-import TextAreaInput from "../FormInputs/TextAreaInput";
 import TextInput from "../FormInputs/TextInput";
 import styles from "./CharacterForm.module.css";
 
@@ -47,6 +48,7 @@ type ClassBuildPlan = {
   hitDie: number;
   preferredSkills: string[];
   preferredEquipment: string[];
+  background: string;
   alignment: CharacterDraft["alignment"];
 };
 
@@ -66,6 +68,7 @@ const fallbackBuildPlan: ClassBuildPlan = {
     "Rations (1 day)",
     "Torch"
   ],
+  background: "Soldier",
   alignment: "True Neutral"
 };
 
@@ -84,6 +87,7 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
       "Backpack",
       "Explorer's Pack"
     ],
+    background: "Guild Artisan / Merchant",
     alignment: "Lawful Neutral"
   },
   Barbarian: {
@@ -100,6 +104,7 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
       "Torch",
       "Rope (50 ft.)"
     ],
+    background: "Outlander",
     alignment: "Chaotic Neutral"
   },
   Bard: {
@@ -116,6 +121,7 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
       "Torch",
       "Spellbook"
     ],
+    background: "Entertainer",
     alignment: "Neutral Good"
   },
   Cleric: {
@@ -132,6 +138,7 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
       "Backpack",
       "Torch"
     ],
+    background: "Acolyte",
     alignment: "Lawful Good"
   },
   Druid: {
@@ -148,6 +155,7 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
       "Waterskin",
       "Rations (1 day)"
     ],
+    background: "Hermit",
     alignment: "True Neutral"
   },
   Fighter: {
@@ -164,6 +172,7 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
       "Backpack",
       "Rope (50 ft.)"
     ],
+    background: "Soldier",
     alignment: "Lawful Neutral"
   },
   Monk: {
@@ -180,6 +189,7 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
       "Waterskin",
       "Torch"
     ],
+    background: "Hermit",
     alignment: "Lawful Good"
   },
   Paladin: {
@@ -196,6 +206,7 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
       "Torch",
       "Rations (1 day)"
     ],
+    background: "Noble",
     alignment: "Lawful Good"
   },
   Ranger: {
@@ -212,6 +223,7 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
       "Rope (50 ft.)",
       "Rations (1 day)"
     ],
+    background: "Outlander",
     alignment: "Neutral Good"
   },
   Rogue: {
@@ -228,6 +240,7 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
       "Backpack",
       "Torch"
     ],
+    background: "Criminal / Spy",
     alignment: "Chaotic Neutral"
   },
   Sorcerer: {
@@ -237,6 +250,7 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
     hitDie: 6,
     preferredSkills: ["Arcana", "Deception", "Persuasion", "Insight", "Intimidation"],
     preferredEquipment: ["Spellbook", "Dagger", "Backpack", "Waterskin", "Torch", "Rations (1 day)"],
+    background: "Charlatan",
     alignment: "Chaotic Good"
   },
   Warlock: {
@@ -253,6 +267,7 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
       "Torch",
       "Rations (1 day)"
     ],
+    background: "Charlatan",
     alignment: "Neutral Evil"
   },
   Wizard: {
@@ -262,6 +277,7 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
     hitDie: 6,
     preferredSkills: ["Arcana", "History", "Investigation", "Insight", "Religion"],
     preferredEquipment: ["Spellbook", "Dagger", "Backpack", "Waterskin", "Torch", "Rations (1 day)"],
+    background: "Sage",
     alignment: "Lawful Neutral"
   }
 };
@@ -404,11 +420,18 @@ function createRecommendedSkills(
 ): SkillName[] {
   const availableClassSkills = getSkillProficiencyOptionsForClass(className);
   const targetCount = getSkillSelectionLimitForClass(className);
+  const grantedSkillSet = new Set(
+    getGrantedSkillProficienciesForCharacter(className, species, buildPlan.background).map(
+      (entry) => entry.skill
+    )
+  );
 
   return normalizeSelection(
     [...buildPlan.preferredSkills, ...(speciesSkillAffinity[species] ?? []), ...availableClassSkills],
     availableClassSkills
-  ).slice(0, targetCount);
+  )
+    .filter((skill) => !grantedSkillSet.has(skill))
+    .slice(0, targetCount);
 }
 
 function createRecommendedEquipment(
@@ -430,18 +453,10 @@ function createRecommendedEquipment(
   ).slice(0, targetCount);
 }
 
-function createRecommendedBackground(
-  profile: CharacterDraft,
-  level: number,
-  buildPlan: ClassBuildPlan
-): string {
-  const characterName = profile.name.trim() || "This adventurer";
-
-  return [
-    `${characterName} is a level ${level} ${profile.species} ${profile.className}.`,
-    `Recommended focus: ${buildPlan.primary}, then ${buildPlan.secondary}, with ${buildPlan.tertiary} as support.`,
-    `Current outlook leans ${buildPlan.alignment.toLowerCase()} and can be adjusted later as the story evolves.`
-  ].join("\n");
+function createRecommendedBackgroundChoice(buildPlan: ClassBuildPlan): string {
+  return backgroundOptions.includes(buildPlan.background)
+    ? buildPlan.background
+    : (backgroundOptions[0] ?? "");
 }
 
 function createRecommendedCharacterDraft(profile: CharacterDraft): CharacterDraft {
@@ -478,7 +493,7 @@ function createRecommendedCharacterDraft(profile: CharacterDraft): CharacterDraf
     attributeMode: "custom",
     abilities: recommendedAbilities,
     alignment: buildPlan.alignment,
-    background: createRecommendedBackground(profile, normalizedProgress.level, buildPlan),
+    background: createRecommendedBackgroundChoice(buildPlan),
     skills: createRecommendedSkills(profile.species, profile.className, buildPlan),
     equipment: createRecommendedEquipment(
       profile.species,
@@ -526,47 +541,6 @@ const randomNameSuffixes = [
   "Sunspire",
   "Thornhollow",
   "Wildmere"
-];
-
-const randomOrigins = [
-  "Raised by caravan merchants on dangerous frontier roads.",
-  "Trained in a secluded monastery before leaving for the wider world.",
-  "Former city guard who walked away after a political betrayal.",
-  "Academic apprentice who fled after uncovering forbidden lore.",
-  "Wanderer from a vanished village with only scattered clues left behind.",
-  "Shipwreck survivor who swore to never be powerless again."
-];
-
-const randomTraits = [
-  "Always speaks with calm confidence in tense moments.",
-  "Collects tiny trophies from every completed job.",
-  "Keeps a running notebook of people, favors, and grudges.",
-  "Protects strangers first and asks questions later.",
-  "Uses humor to cut through fear and uncertainty."
-];
-
-const randomIdeals = [
-  "Justice must outlast any kingdom.",
-  "Knowledge should never be hoarded by the powerful.",
-  "Freedom matters more than comfort.",
-  "Loyalty to companions is sacred.",
-  "Greatness is earned through relentless discipline."
-];
-
-const randomBonds = [
-  "Owes a life debt to an old mentor who disappeared.",
-  "Searches for a missing sibling taken years ago.",
-  "Guards a family relic tied to an ancient prophecy.",
-  "Supports a struggling hometown with every coin to spare.",
-  "Carries a promise to protect one specific person at all costs."
-];
-
-const randomFlaws = [
-  "Slow to trust anyone in authority.",
-  "Cannot resist a dangerous mystery.",
-  "Holds grudges far longer than is healthy.",
-  "Overcommits and refuses to ask for help.",
-  "Acts impulsively when allies are threatened."
 ];
 
 function getRandomInt(min: number, max: number): number {
@@ -639,13 +613,7 @@ function createRandomPointBuyAbilities(): AbilityScores {
 }
 
 function createRandomBackground(): string {
-  return [
-    `Background: ${getRandomItem(randomOrigins)}`,
-    `Personal Trait: ${getRandomItem(randomTraits)}`,
-    `Ideal: ${getRandomItem(randomIdeals)}`,
-    `Bond: ${getRandomItem(randomBonds)}`,
-    `Flaw: ${getRandomItem(randomFlaws)}`
-  ].join("\n");
+  return backgroundOptions.length > 0 ? getRandomItem(backgroundOptions) : "";
 }
 
 function createRandomName(): string {
@@ -670,6 +638,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   });
   const selectedClassName = watch("className") ?? initialValues.className;
   const selectedSpecies = watch("species") ?? initialValues.species;
+  const selectedBackground = watch("background") ?? initialValues.background;
   const attributeMode = watch("attributeMode") ?? initialValues.attributeMode;
   const abilities = watch("abilities") ?? initialValues.abilities;
   const alignment = watch("alignment") ?? initialValues.alignment;
@@ -694,7 +663,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const creationDescriptionByStep: Record<CreationStep, string> = {
     1: "Start with identity details, then either create instantly with a recommended build or continue customizing manually.",
     2: "Adjust stats, abilities, skills, and equipment. Going back will reset these custom changes.",
-    3: "Set alignment and background notes, then create the character."
+    3: "Choose a background and alignment, then create the character."
   };
 
   useEffect(() => {
@@ -718,7 +687,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       selectedClassName,
       currentSkills,
       currentEquipment,
-      selectedSpecies
+      selectedSpecies,
+      selectedBackground
     );
 
     if (!areStringArraysEqual(currentSkills, normalizedSelections.skills)) {
@@ -734,7 +704,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         shouldValidate: true
       });
     }
-  }, [getValues, selectedClassName, selectedSpecies, setValue]);
+  }, [getValues, selectedBackground, selectedClassName, selectedSpecies, setValue]);
 
   function commitAbilities(nextAbilities: AbilityScores, mode: AttributeMode) {
     setValue("abilities", nextAbilities, {
@@ -801,11 +771,16 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const maxHitPoints = clampNumber(String(values.hitPoints), 1, 999, 8);
     const normalizedProgress = normalizeLevelAndXp(values.level, values.xp);
     const normalizedClassName = values.className.trim();
+    const normalizedBackground = values.background.trim();
+    const resolvedBackground = backgroundOptions.includes(normalizedBackground)
+      ? normalizedBackground
+      : "";
     const normalizedSelections = normalizeSelectionsForClass(
       normalizedClassName,
       values.skills ?? [],
       values.equipment ?? [],
-      values.species
+      values.species,
+      resolvedBackground
     );
 
     return {
@@ -819,7 +794,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       currentHitPoints: isEditing
         ? clampNumber(String(values.currentHitPoints), 0, maxHitPoints, maxHitPoints)
         : maxHitPoints,
-      background: values.background.trim(),
+      background: resolvedBackground,
       alignment: alignmentOptions.includes(values.alignment) ? values.alignment : "True Neutral",
       skills: normalizedSelections.skills,
       equipment: normalizedSelections.equipment,
@@ -888,6 +863,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         name: createRandomName(),
         species: getRandomItem(speciesOptions),
         className: randomClassName,
+        background: createRandomBackground(),
         level: 1
       });
       return;
@@ -916,6 +892,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       abilities: randomizedAbilities,
       alignment: getRandomItem(alignmentGrid.flat()),
       background: createRandomBackground(),
+      currencies: {
+        gold: 0
+      },
       skills: pickRandomSubset(
         randomClassSkillOptions,
         randomClassSkillLimit,
@@ -1229,15 +1208,42 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   function renderBackgroundSection() {
+    const hasSelectedBackground = selectedBackground.trim().length > 0;
+
     return (
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Character background</p>
-            <h3>Behavior and personality</h3>
+            <h3>Choose origin and outlook</h3>
           </div>
-          <span>Choose alignment + write notes</span>
+          <span>Choose background + alignment</span>
         </div>
+
+        <label className={styles.field}>
+          <span>Background</span>
+          <SelectInput
+            className={styles.fieldInput}
+            invalid={Boolean(errors.background)}
+            {...register("background", {
+              required: "Choose a background"
+            })}
+          >
+            <option value="">Select a background</option>
+            {backgroundOptions.map((background) => (
+              <option key={background} value={background}>
+                {background}
+              </option>
+            ))}
+          </SelectInput>
+          {errors.background ? (
+            <small className={styles.errorText}>{errors.background.message}</small>
+          ) : (
+            <small className={styles.helperText}>
+              Background grants innate skill and tool proficiencies.
+            </small>
+          )}
+        </label>
 
         <div className={styles.alignmentGrid} role="radiogroup" aria-label="Character alignment">
           {alignmentGrid.flat().map((option) => (
@@ -1246,6 +1252,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               type="button"
               role="radio"
               aria-checked={alignment === option}
+              disabled={!hasSelectedBackground}
               className={clsx(
                 styles.alignmentOption,
                 alignment === option && styles.alignmentOptionActive
@@ -1263,6 +1270,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         </div>
 
         {errors.alignment ? <small className={styles.errorText}>{errors.alignment.message}</small> : null}
+        {!hasSelectedBackground ? (
+          <small className={styles.helperText}>Choose a background before selecting alignment.</small>
+        ) : null}
 
         <input
           type="hidden"
@@ -1270,28 +1280,6 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             required: "Select an alignment"
           })}
         />
-
-        <label className={styles.field}>
-          <span>Background notes</span>
-          <TextAreaInput
-            className={styles.backgroundInput}
-            invalid={Boolean(errors.background)}
-            placeholder="Background, Personal Traits, Ideals, Bonds, Flaws, etc."
-            {...register("background", {
-              maxLength: {
-                value: 2000,
-                message: "Background notes cannot exceed 2000 characters"
-              }
-            })}
-          />
-          {errors.background ? (
-            <small className={styles.errorText}>{errors.background.message}</small>
-          ) : (
-            <small className={styles.helperText}>
-              Use this section to capture key roleplay details and story hooks.
-            </small>
-          )}
-        </label>
       </section>
     );
   }
@@ -1300,6 +1288,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const resolvedSkills = resolveSkillProficienciesForCharacter(
       selectedClassName,
       selectedSpecies,
+      selectedBackground,
       selectedSkills
     );
     const grantedSkillProficiencies = resolvedSkills.granted;
@@ -1330,7 +1319,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             <legend>Skills</legend>
             <p className={styles.helperText}>Granted proficiencies (locked):</p>
             {grantedSkillProficiencies.length === 0 ? (
-              <p className={styles.helperText}>No granted proficiencies from class or species.</p>
+              <p className={styles.helperText}>
+                No granted proficiencies from class, species, or background.
+              </p>
             ) : (
               <ul className={styles.grantedSkillList}>
                 {grantedSkillProficiencies.map((entry) => (
@@ -1539,8 +1530,14 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               >
                 Back
               </button>
-              <button type="submit" className={styles.primaryButton}>
-                Create Character
+              <button
+                type="submit"
+                className={styles.primaryButton}
+                disabled={selectedBackground.trim().length === 0}
+              >
+                {selectedBackground.trim().length === 0
+                  ? "Choose Background First"
+                  : "Create Character"}
               </button>
             </>
           ) : null}

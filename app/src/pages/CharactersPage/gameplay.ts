@@ -316,12 +316,14 @@ function getSkillModifierForCharacter(character: Character, skill: SkillName): n
   const proficiencyBonus = getProficiencyBonus(character.level);
   const grantedSkills = getGrantedSkillProficienciesForCharacter(
     character.className,
-    character.species
+    character.species,
+    character.background
   ).map((entry) => entry.skill);
   const normalizedManualSkills = normalizeManualSkillSelections(character.skills);
   const normalizedExpertSkills = normalizeSkillExpertiseSelectionsForCharacter(
     character.className,
     character.species,
+    character.background,
     normalizedManualSkills,
     character.skillExpertise ?? []
   );

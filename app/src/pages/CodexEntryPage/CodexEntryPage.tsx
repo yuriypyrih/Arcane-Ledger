@@ -171,7 +171,7 @@ function CodexEntryPage() {
                   <strong>{formatCodexList(entry.savingThrowProficiencies)}</strong>
                 </div>
                 <div className={styles.detailItem}>
-                  <span>Innate Proficiencies</span>
+                  <span>Granted Proficiencies</span>
                   <strong>
                     {formatInnateProficiencyList({
                       grantedSkillProficiencies: entry.grantedSkillProficiencies,
@@ -194,7 +194,7 @@ function CodexEntryPage() {
                   <strong>{formatAbilityBonusList(entry.abilityBonuses)}</strong>
                 </div>
                 <div className={styles.detailItem}>
-                  <span>Innate Proficiencies</span>
+                  <span>Granted Proficiencies</span>
                   <strong>
                     {formatInnateProficiencyList({
                       grantedSkillProficiencies: entry.grantedSkillProficiencies,
@@ -204,6 +204,19 @@ function CodexEntryPage() {
                   </strong>
                 </div>
               </>
+            ) : null}
+
+            {entry.category === ENTRY_CATEGORIES.BACKGROUNDS ? (
+              <div className={styles.detailItem}>
+                <span>Granted Proficiencies</span>
+                <strong>
+                  {formatInnateProficiencyList({
+                    grantedSkillProficiencies: entry.grantedSkillProficiencies,
+                    innateProficiencies: [],
+                    grantedToolProficiencies: entry.grantedToolProficiencies
+                  })}
+                </strong>
+              </div>
             ) : null}
           </div>
         </article>

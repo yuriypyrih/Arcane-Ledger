@@ -6,6 +6,7 @@ import type {
   CoreStats
 } from "../../types";
 export {
+  backgroundOptions,
   classOptions,
   equipmentCatalog,
   equipmentOptions,
@@ -83,6 +84,9 @@ export function createEmptyCharacter(): CharacterDraft {
     abilities: createDefaultAbilities(),
     alignment: "True Neutral",
     background: "",
+    currencies: {
+      gold: 0
+    },
     skills: [],
     skillExpertise: [],
     toolProficiencies: [],

@@ -1,10 +1,8 @@
 import type { AbilityScores, AttributeMode, Character } from "../../../types";
 
-export type EditableSection = "identity" | "hp" | "abilities" | "skills" | "equipment";
-
-export type SpellManagementMode = "menu" | "edit";
-
 export type SkillLevel = "none" | "proficient" | "expert";
+export type SpellManagementMode = "menu" | "edit";
+export type PersistCharacterUpdater = (updater: (current: Character) => Character) => void;
 
 export type IdentityDraft = {
   name: string;

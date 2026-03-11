@@ -1,6 +1,7 @@
 export {
   ABILITY_TYPES,
   ARMOR_TYPES,
+  BACKGROUND_TYPES,
   CLASS_TYPES,
   COLOR_TYPES,
   DAMAGE_TYPES,
@@ -18,6 +19,7 @@ export {
 } from "../codex/entries";
 export type {
   ArmorEntry,
+  BackgroundEntry,
   ClassEntry,
   CodexCategory,
   CodexEntry,

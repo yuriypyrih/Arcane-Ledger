@@ -1,6 +1,7 @@
 import { X } from "lucide-react";
 import { useEffect } from "react";
 import D20Viewport from "../../D20Viewport";
+import { useBodyScrollLock } from "../../../lib/useBodyScrollLock";
 import styles from "./DiceRollerPopup.module.css";
 import type { DiceRollerPopupState } from "./types";
 
@@ -11,6 +12,8 @@ type DiceRollerPopupProps = {
 };
 
 function DiceRollerPopup({ state, onClose, onRollComplete }: DiceRollerPopupProps) {
+  useBodyScrollLock(Boolean(state));
+
   useEffect(() => {
     if (!state) {
       return;

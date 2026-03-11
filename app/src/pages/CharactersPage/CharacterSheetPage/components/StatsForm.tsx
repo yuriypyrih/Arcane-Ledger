@@ -1,44 +1,42 @@
 import clsx from "clsx";
 import { Component, Diamond, Pencil, Save, X } from "lucide-react";
-import { useMemo, useState, type Dispatch, type SetStateAction } from "react";
+import { useMemo, useState } from "react";
+import { useFormContext } from "react-hook-form";
 import NumberInput from "../../../../components/CharactersPage/FormInputs/NumberInput";
+import {
+  loadPreferences,
+  updatePreferences,
+  type StatsViewMode
+} from "../../../../storage/preferences";
 import type { AbilityKey, Character, CoreStats } from "../../../../types";
-import { type StatsViewMode } from "../../../../storage/preferences";
-import { abilityKeys, createDefaultCoreStats } from "../../constants";
+import {
+  abilityKeys,
+  createDefaultCoreStats,
+  getPointBuyRemaining,
+  normalizePointBuyAbilities
+} from "../../constants";
 import {
   formatAbilityModifier,
   getAbilityModifier,
   getArmorClassForCharacter,
   getHitDiceDisplayForCharacter,
   getInitiativeForCharacter,
+  getMainAbilityForClass,
   getPassivePerceptionForCharacter,
   getProficiencyBonus,
+  getSavingThrowProficienciesForClass,
   getSpeedForCharacter
 } from "../../gameplay";
-import type { AbilitiesDraft } from "../types";
+import type { AbilitiesDraft, PersistCharacterUpdater } from "../types";
+import { clampNumber, cloneAbilityScores, normalizeCustomAbilityScores } from "../utils";
 import shared from "./CharacterSheetSectionShared.module.css";
 import styles from "./StatsForm.module.css";
 
 type StatsTab = "core" | "modifiers" | "savingThrows";
 
-type StatsFormProps = {
+type CharacterStatsFormProps = {
   className?: string;
-  abilitiesDraft: AbilitiesDraft;
-  character: Character;
-  isEditing: boolean;
-  mainAbility: AbilityKey | null;
-  savingThrowProficienciesDraft: AbilityKey[];
-  savingThrowProficiencies: AbilityKey[];
-  pointBuyRemaining: number | null;
-  statsViewMode: StatsViewMode;
-  onBeginEdit: () => void;
-  onCancel: () => void;
-  onChangeStatsViewMode: (nextMode: StatsViewMode) => void;
-  onSaveAbilities: () => void;
-  onSaveSavingThrows: () => void;
-  onToggleSavingThrowProficiency: (ability: AbilityKey) => void;
-  onUpdateAbilityScore: (ability: AbilityKey, value: string) => void;
-  setAbilitiesDraft: Dispatch<SetStateAction<AbilitiesDraft>>;
+  onPersistCharacter: PersistCharacterUpdater;
 };
 
 const coreStatFields: Array<{ key: keyof CoreStats; label: string }> = [
@@ -56,31 +54,49 @@ const statsTabLabels: Record<StatsTab, string> = {
   savingThrows: "Saving Throws"
 };
 
-function StatsForm({
-  className,
-  abilitiesDraft,
-  character,
-  isEditing,
-  mainAbility,
-  savingThrowProficienciesDraft,
-  savingThrowProficiencies,
-  pointBuyRemaining,
-  statsViewMode,
-  onBeginEdit,
-  onCancel,
-  onChangeStatsViewMode,
-  onSaveAbilities,
-  onSaveSavingThrows,
-  onToggleSavingThrowProficiency,
-  onUpdateAbilityScore,
-  setAbilitiesDraft
-}: StatsFormProps) {
+function createAbilitiesDraft(character: Character): AbilitiesDraft {
+  return {
+    attributeMode: character.attributeMode,
+    abilities: cloneAbilityScores(character.abilities)
+  };
+}
+
+function getSavingThrowProficiencies(character: Character): AbilityKey[] {
+  return character.savingThrowProficiencies ?? getSavingThrowProficienciesForClass(character.className);
+}
+
+function normalizeSavingThrowSelections(values: AbilityKey[]): AbilityKey[] {
+  const validAbilitySet = new Set(abilityKeys);
+  const normalizedSelections = values.filter((ability) => validAbilitySet.has(ability));
+  return [...new Set(normalizedSelections)];
+}
+
+function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFormProps) {
+  const { watch } = useFormContext<Character>();
+  const character = watch() as Character;
+  const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState<StatsTab>("modifiers");
   const [editingTab, setEditingTab] = useState<StatsTab>("modifiers");
+  const [abilitiesDraft, setAbilitiesDraft] = useState<AbilitiesDraft>(() =>
+    createAbilitiesDraft(character)
+  );
+  const [savingThrowProficienciesDraft, setSavingThrowProficienciesDraft] = useState<AbilityKey[]>(
+    () => getSavingThrowProficiencies(character)
+  );
+  const [statsViewMode, setStatsViewMode] = useState<StatsViewMode>(
+    () => loadPreferences().statsViewMode
+  );
+
+  const mainAbility = getMainAbilityForClass(character.className);
+  const pointBuyRemaining =
+    abilitiesDraft.attributeMode === "pointBuy"
+      ? getPointBuyRemaining(abilitiesDraft.abilities)
+      : null;
+
   const displayedSavingThrowProficiencies =
     isEditing && editingTab === "savingThrows"
       ? savingThrowProficienciesDraft
-      : savingThrowProficiencies;
+      : getSavingThrowProficiencies(character);
   const savingThrowProficiencySet = new Set<AbilityKey>(displayedSavingThrowProficiencies);
   const proficiencyBonus = getProficiencyBonus(character.level);
   const isTabMode = statsViewMode === "tabs";
@@ -112,8 +128,7 @@ function StatsForm({
       abilityKeys.map((ability) => {
         const abilityModifier = getAbilityModifier(displayedAbilities[ability]);
         const isSavingThrowProficient = savingThrowProficiencySet.has(ability);
-        const totalSavingThrow =
-          abilityModifier + (isSavingThrowProficient ? proficiencyBonus : 0);
+        const totalSavingThrow = abilityModifier + (isSavingThrowProficient ? proficiencyBonus : 0);
 
         return {
           ability,
@@ -125,23 +140,92 @@ function StatsForm({
     [displayedAbilities, proficiencyBonus, savingThrowProficiencySet]
   );
 
+  function syncDraftsFromCharacter() {
+    setAbilitiesDraft(createAbilitiesDraft(character));
+    setSavingThrowProficienciesDraft(getSavingThrowProficiencies(character));
+  }
+
   function toggleStatsViewMode() {
-    onChangeStatsViewMode(isTabMode ? "full" : "tabs");
+    const nextMode: StatsViewMode = isTabMode ? "full" : "tabs";
+    setStatsViewMode(nextMode);
+    updatePreferences({ statsViewMode: nextMode });
   }
 
   function beginEditingFor(tab: StatsTab) {
+    syncDraftsFromCharacter();
     setEditingTab(tab);
     setActiveTab(tab);
-    onBeginEdit();
+    setIsEditing(true);
+  }
+
+  function cancelEditing() {
+    syncDraftsFromCharacter();
+    setIsEditing(false);
+  }
+
+  function saveAbilities() {
+    const nextAbilities =
+      abilitiesDraft.attributeMode === "pointBuy"
+        ? normalizePointBuyAbilities(cloneAbilityScores(abilitiesDraft.abilities))
+        : normalizeCustomAbilityScores(cloneAbilityScores(abilitiesDraft.abilities));
+
+    onPersistCharacter((currentCharacter) => ({
+      ...currentCharacter,
+      attributeMode: abilitiesDraft.attributeMode,
+      abilities: nextAbilities
+    }));
+
+    setIsEditing(false);
+  }
+
+  function saveSavingThrows() {
+    const nextSavingThrowProficiencies = normalizeSavingThrowSelections(
+      savingThrowProficienciesDraft
+    );
+
+    onPersistCharacter((currentCharacter) => ({
+      ...currentCharacter,
+      savingThrowProficiencies: nextSavingThrowProficiencies
+    }));
+
+    setIsEditing(false);
   }
 
   function saveCurrentEdit() {
     if (editingTab === "savingThrows") {
-      onSaveSavingThrows();
+      saveSavingThrows();
       return;
     }
 
-    onSaveAbilities();
+    saveAbilities();
+  }
+
+  function updateAbilityScore(ability: AbilityKey, value: string) {
+    const isPointBuy = abilitiesDraft.attributeMode === "pointBuy";
+    const nextValue = clampNumber(
+      value,
+      isPointBuy ? 8 : 1,
+      isPointBuy ? 15 : 99,
+      abilitiesDraft.abilities[ability]
+    );
+
+    setAbilitiesDraft((current) => ({
+      ...current,
+      abilities: {
+        ...current.abilities,
+        [ability]: nextValue
+      }
+    }));
+  }
+
+  function toggleSavingThrowProficiency(ability: AbilityKey) {
+    setSavingThrowProficienciesDraft((currentSelections) => {
+      if (currentSelections.includes(ability)) {
+        return currentSelections.filter((currentAbility) => currentAbility !== ability);
+      }
+
+      return [...currentSelections, ability];
+    });
   }
 
   function renderEditActions() {
@@ -151,7 +235,7 @@ function StatsForm({
           <Save size={16} />
           Save
         </button>
-        <button type="button" className={shared.cancelButton} onClick={onCancel}>
+        <button type="button" className={shared.cancelButton} onClick={cancelEditing}>
           <X size={16} />
           Cancel
         </button>
@@ -169,9 +253,7 @@ function StatsForm({
           {coreStatFields.map((field) => (
             <div key={field.key} className={styles.modifierCard}>
               <div className={styles.modifierLabelRow}>
-                <span className={clsx(styles.modifierLabel, styles.coreStatLabel)}>
-                  {field.label}
-                </span>
+                <span className={clsx(styles.modifierLabel, styles.coreStatLabel)}>{field.label}</span>
               </div>
               <strong>{displayedCoreStats[field.key]}</strong>
             </div>
@@ -245,7 +327,7 @@ function StatsForm({
                     min={abilitiesDraft.attributeMode === "pointBuy" ? 8 : 1}
                     max={abilitiesDraft.attributeMode === "pointBuy" ? 15 : 99}
                     value={abilitiesDraft.abilities[ability]}
-                    onChange={(event) => onUpdateAbilityScore(ability, event.target.value)}
+                    onChange={(event) => updateAbilityScore(ability, event.target.value)}
                   />
                 </label>
               ))}
@@ -296,9 +378,7 @@ function StatsForm({
 
         {isSectionEditing ? (
           <>
-            <p className={shared.helperText}>
-              Select the saving throw proficiencies for this character.
-            </p>
+            <p className={shared.helperText}>Select the saving throw proficiencies for this character.</p>
             <div className={styles.modifierGrid}>
               {savingThrowCards.map((card) => (
                 <label
@@ -306,8 +386,7 @@ function StatsForm({
                   className={clsx(
                     styles.modifierCard,
                     styles.savingThrowEditCard,
-                    card.isSavingThrowProficient &&
-                      styles.savingThrowEditCardActive
+                    card.isSavingThrowProficient && styles.savingThrowEditCardActive
                   )}
                 >
                   <div className={styles.modifierLabelRow}>
@@ -316,9 +395,7 @@ function StatsForm({
                     </span>
                   </div>
                   <strong
-                    className={clsx(
-                      card.isSavingThrowProficient && styles.savingThrowValueProficient
-                    )}
+                    className={clsx(card.isSavingThrowProficient && styles.savingThrowValueProficient)}
                   >
                     {card.totalSavingThrow}
                   </strong>
@@ -326,9 +403,7 @@ function StatsForm({
                     type="checkbox"
                     checked={card.isSavingThrowProficient}
                     className={styles.savingThrowEditCheckbox}
-                    onChange={() =>
-                      onToggleSavingThrowProficiency(card.ability)
-                    }
+                    onChange={() => toggleSavingThrowProficiency(card.ability)}
                     aria-label={`Toggle ${card.ability} saving throw proficiency`}
                   />
                 </label>
@@ -346,9 +421,7 @@ function StatsForm({
                   </span>
                 </div>
                 <strong
-                  className={clsx(
-                    card.isSavingThrowProficient && styles.savingThrowValueProficient
-                  )}
+                  className={clsx(card.isSavingThrowProficient && styles.savingThrowValueProficient)}
                 >
                   {card.totalSavingThrow}
                 </strong>
@@ -381,10 +454,7 @@ function StatsForm({
             role="tab"
             aria-selected={currentTab === "modifiers"}
             disabled={isEditing}
-            className={clsx(
-              styles.tabButton,
-              currentTab === "modifiers" && styles.tabButtonActive
-            )}
+            className={clsx(styles.tabButton, currentTab === "modifiers" && styles.tabButtonActive)}
             onClick={() => setActiveTab("modifiers")}
           >
             Ability Modifiers
@@ -427,10 +497,7 @@ function StatsForm({
             title={isTabMode ? "Switch to full view" : "Switch to tab view"}
           >
             <span
-              className={clsx(
-                styles.viewSwitchIconSlot,
-                isTabMode && styles.viewSwitchIconSlotActive
-              )}
+              className={clsx(styles.viewSwitchIconSlot, isTabMode && styles.viewSwitchIconSlotActive)}
             >
               <Diamond size={16} />
             </span>
@@ -443,7 +510,6 @@ function StatsForm({
               <Component size={16} />
             </span>
           </button>
-
         </div>
       </div>
 
@@ -460,4 +526,4 @@ function StatsForm({
   );
 }
 
-export default StatsForm;
+export default CharacterStatsForm;

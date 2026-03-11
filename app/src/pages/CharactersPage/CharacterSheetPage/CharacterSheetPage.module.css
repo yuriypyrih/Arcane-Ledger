@@ -58,28 +58,13 @@
   gap: var(--space-page-gap);
 }
 
-.cascadeOne {
-  transform: translateX(0);
-}
-
-.cascadeTwo {
-  transform: translateX(10px);
-}
-
-.cascadeThree {
-  transform: translateX(18px);
-}
-
-.cascadeFour {
-  transform: translateX(10px);
-}
-
-.cascadeFive {
-  transform: translateX(0);
-}
-
+.cascadeOne,
+.cascadeTwo,
+.cascadeThree,
+.cascadeFour,
+.cascadeFive,
 .cascadeSix {
-  transform: translateX(10px);
+  transform: none;
 }
 
 .eyebrow {
@@ -432,6 +417,7 @@
   box-shadow: 0 28px 70px rgba(32, 18, 12, 0.35);
   overflow: auto;
   padding: 0.95rem;
+  animation: drawerSlideUp 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 .spellDrawerHandle {
@@ -570,15 +556,82 @@
   opacity: 0.52;
 }
 
-@media (max-width: 860px) {
-  .cascadeTwo,
-  .cascadeThree,
-  .cascadeFour,
-  .cascadeFive,
-  .cascadeSix {
-    transform: none;
+.currencyDrawerContent {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.58rem;
+}
+
+.currencyDrawerField {
+  display: grid;
+  gap: 0.4rem;
+  flex: 1;
+  min-width: 0;
+}
+
+.currencyDrawerField span {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.currencyDrawerInput {
+  width: min(320px, 100%);
+  min-height: 44px;
+}
+
+.currencyDrawerActions {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.58rem;
+}
+
+.currencySpendButton,
+.currencyGainButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.32rem;
+  border: none;
+  border-radius: 14px;
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  min-height: 42px;
+  min-width: 104px;
+  padding: 0 0.9rem;
+}
+
+.currencySpendButton {
+  background: rgba(210, 79, 62, 0.14);
+  color: #7d2216;
+}
+
+.currencyGainButton {
+  background: rgba(75, 47, 29, 0.09);
+}
+
+.currencySpendButton:disabled,
+.currencyGainButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.5;
+}
+
+@keyframes drawerSlideUp {
+  from {
+    transform: translateY(calc(100% + 1.5rem));
+    opacity: 0.8;
   }
 
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@media (max-width: 860px) {
   .restOptionGrid {
     grid-template-columns: 1fr;
   }
@@ -636,5 +689,19 @@
 
   .castButton {
     width: 100%;
+  }
+
+  .currencyDrawerContent {
+    gap: 0.5rem;
+  }
+
+  .currencyDrawerActions {
+    gap: 0.42rem;
+  }
+
+  .currencySpendButton,
+  .currencyGainButton {
+    min-width: 92px;
+    padding: 0 0.72rem;
   }
 }

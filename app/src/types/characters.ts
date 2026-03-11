@@ -15,6 +15,10 @@ export type CoreStats = {
   hitDice: string;
 };
 
+export type CharacterCurrencies = {
+  gold: number;
+} & Record<string, number>;
+
 export type Alignment =
   | "Lawful Good"
   | "Neutral Good"
@@ -39,6 +43,7 @@ export type Character = {
   abilities: AbilityScores;
   alignment: Alignment;
   background: string;
+  currencies: CharacterCurrencies;
   skills: SkillName[];
   skillExpertise?: SkillName[];
   toolProficiencies?: string[];

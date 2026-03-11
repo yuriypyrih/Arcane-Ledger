@@ -7,6 +7,7 @@ import {
   WEAPON_TYPES,
   hardcodedCodexEntries,
   type ArmorEntry,
+  type BackgroundEntry,
   type ItemEntry,
   type WeaponEntry
 } from "../../codex/entries";
@@ -466,9 +467,28 @@ const equipmentCatalogByName = new Map<string, EquipmentDefinition>(
 const loadoutCodexEntriesByName = new Map<string, LoadoutCodexEntry>(
   loadoutCodexEntries.map((entry) => [entry.name, entry])
 );
+const backgroundCodexEntriesByName = new Map<string, BackgroundEntry>(
+  hardcodedCodexEntries
+    .filter(
+      (entry): entry is BackgroundEntry => entry.category === ENTRY_CATEGORIES.BACKGROUNDS
+    )
+    .map((entry) => [entry.name, entry])
+);
+export const backgroundOptions = [...backgroundCodexEntriesByName.keys()].sort((left, right) =>
+  left.localeCompare(right)
+);
+const backgroundOptionSet = new Set(backgroundOptions);
 
 export function isClassName(value: string): value is ClassName {
   return classOptionSet.has(value);
+}
+
+export function isBackgroundName(value: string): boolean {
+  return backgroundOptionSet.has(value);
+}
+
+export function getBackgroundEntryByName(backgroundName: string): BackgroundEntry | undefined {
+  return backgroundCodexEntriesByName.get(backgroundName);
 }
 
 export function getClassProficiencyProfile(className: string): ClassProficiencyProfile | null {
@@ -577,17 +597,47 @@ function normalizeSkillName(value: string): SkillName | null {
   return skillOptionSet.has(value) ? (value as SkillName) : null;
 }
 
-function resolveGrantedProficiencyEntries(className: string, species: string): GrantedProficiency[] {
+function getBackgroundGrantedSkillProficiencies(background: string): SkillName[] {
+  const entry = backgroundCodexEntriesByName.get(background);
+
+  if (!entry) {
+    return [];
+  }
+
+  return entry.grantedSkillProficiencies
+    .map((skill) => normalizeSkillName(skill))
+    .filter((skill): skill is SkillName => skill !== null);
+}
+
+function getBackgroundGrantedToolProficiencies(background: string): ToolProficiency[] {
+  const entry = backgroundCodexEntriesByName.get(background);
+
+  if (!entry) {
+    return [];
+  }
+
+  return normalizeToolProficiencySelections(entry.grantedToolProficiencies);
+}
+
+function resolveGrantedProficiencyEntries(
+  className: string,
+  species: string,
+  background = ""
+): GrantedProficiency[] {
   const grantedByKey = new Map<string, { kind: GrantedProficiencyKind; name: string; sources: Set<string> }>();
   const classGrants = isClassName(className) ? classGrantedSkillProficiencies[className] ?? [] : [];
   const speciesGrants = speciesGrantedSkillProficiencies[species] ?? [];
+  const backgroundSkillGrants = getBackgroundGrantedSkillProficiencies(background);
+  const backgroundToolGrants = getBackgroundGrantedToolProficiencies(background);
   const classProfile = getClassProficiencyProfile(className);
   const classSourceLabel = className.trim();
   const speciesSourceLabel = species.trim();
+  const backgroundSourceLabel = background.trim();
 
   const sourceBuckets: Array<{ sourceLabel: string; kind: GrantedProficiencyKind; names: string[] }> = [
     { sourceLabel: classSourceLabel, kind: "skill", names: classGrants },
     { sourceLabel: speciesSourceLabel, kind: "skill", names: speciesGrants },
+    { sourceLabel: backgroundSourceLabel, kind: "skill", names: backgroundSkillGrants },
     {
       sourceLabel: classSourceLabel,
       kind: "weapon",
@@ -610,6 +660,13 @@ function resolveGrantedProficiencyEntries(className: string, species: string): G
             (toolProficiency) => toolProficiencyLabelsByType[toolProficiency]
           )
         : []
+    },
+    {
+      sourceLabel: backgroundSourceLabel,
+      kind: "tool",
+      names: backgroundToolGrants.map(
+        (toolProficiency) => toolProficiencyLabelsByType[toolProficiency]
+      )
     }
   ];
 
@@ -642,8 +699,12 @@ function resolveGrantedProficiencyEntries(className: string, species: string): G
   }));
 }
 
-function resolveGrantedSkillEntries(className: string, species: string): GrantedSkillProficiency[] {
-  return resolveGrantedProficiencyEntries(className, species)
+function resolveGrantedSkillEntries(
+  className: string,
+  species: string,
+  background = ""
+): GrantedSkillProficiency[] {
+  return resolveGrantedProficiencyEntries(className, species, background)
     .filter((entry): entry is GrantedProficiency & { kind: "skill" } => entry.kind === "skill")
     .map((entry) => ({
       skill: entry.name as SkillName,
@@ -653,22 +714,25 @@ function resolveGrantedSkillEntries(className: string, species: string): Granted
 
 export function getGrantedProficienciesForCharacter(
   className: string,
-  species: string
+  species: string,
+  background = ""
 ): GrantedProficiency[] {
-  return resolveGrantedProficiencyEntries(className, species);
+  return resolveGrantedProficiencyEntries(className, species, background);
 }
 
 export function getGrantedSkillProficienciesForCharacter(
   className: string,
-  species: string
+  species: string,
+  background = ""
 ): GrantedSkillProficiency[] {
-  return resolveGrantedSkillEntries(className, species);
+  return resolveGrantedSkillEntries(className, species, background);
 }
 
 export function normalizeSkillSelectionsForClass(
   className: string,
   selectedSkills: string[],
-  species = ""
+  species = "",
+  background = ""
 ): SkillName[] {
   const profile = getClassProficiencyProfile(className);
 
@@ -678,7 +742,7 @@ export function normalizeSkillSelectionsForClass(
 
   const allowedSkillSet = new Set<string>(profile.skillProficiencyOptions);
   const grantedSkillSet = new Set<string>(
-    resolveGrantedSkillEntries(className, species).map((entry) => entry.skill)
+    resolveGrantedSkillEntries(className, species, background).map((entry) => entry.skill)
   );
 
   return dedupe(selectedSkills)
@@ -705,11 +769,12 @@ export function normalizeSkillExpertiseSelections(
 export function normalizeSkillExpertiseSelectionsForCharacter(
   className: string,
   species: string,
+  background: string,
   selectedSkills: string[],
   selectedSkillExpertise: string[]
 ): SkillName[] {
   const grantedSkillSet = new Set<string>(
-    resolveGrantedSkillEntries(className, species).map((entry) => entry.skill)
+    resolveGrantedSkillEntries(className, species, background).map((entry) => entry.skill)
   );
   const manualSkillSet = new Set<string>(normalizeManualSkillSelections(selectedSkills));
   const proficientSkills = [...new Set([...grantedSkillSet, ...manualSkillSet])];
@@ -730,10 +795,11 @@ export function normalizeSelectionsForClass(
   className: string,
   selectedSkills: string[],
   selectedEquipment: string[],
-  species = ""
+  species = "",
+  background = ""
 ): Pick<CharacterDraft, "skills" | "equipment"> {
   return {
-    skills: normalizeSkillSelectionsForClass(className, selectedSkills, species),
+    skills: normalizeSkillSelectionsForClass(className, selectedSkills, species, background),
     equipment: normalizeEquipmentSelectionsForClass(className, selectedEquipment)
   };
 }
@@ -741,10 +807,11 @@ export function normalizeSelectionsForClass(
 export function resolveSkillProficienciesForCharacter(
   className: string,
   species: string,
+  background: string,
   selectedSkills: string[]
 ): ResolvedSkillProficiencies {
-  const granted = resolveGrantedSkillEntries(className, species);
-  const manual = normalizeSkillSelectionsForClass(className, selectedSkills, species);
+  const granted = resolveGrantedSkillEntries(className, species, background);
+  const manual = normalizeSkillSelectionsForClass(className, selectedSkills, species, background);
   const all = dedupe([...granted.map((entry) => entry.skill), ...manual]).filter(
     (skill): skill is SkillName => skillOptionSet.has(skill)
   );

@@ -1,6 +1,7 @@
 import type {
   ABILITY_TYPES,
   ARMOR_TYPES,
+  BACKGROUND_TYPES,
   CLASS_TYPES,
   DAMAGE_TYPES,
   DICE_TYPES,
@@ -52,6 +53,10 @@ export type ArmorEntry = BaseCodexEntry<ENTRY_CATEGORIES.ARMOR, ARMOR_TYPES> &
     shieldBonus: number;
   };
 export type ItemEntry = BaseCodexEntry<ENTRY_CATEGORIES.ITEMS, ITEM_TYPES>;
+export type BackgroundEntry = BaseCodexEntry<ENTRY_CATEGORIES.BACKGROUNDS, BACKGROUND_TYPES> & {
+  grantedSkillProficiencies: string[];
+  grantedToolProficiencies: TOOL_PROFICIENCIES[];
+};
 export type SpeciesEntry = BaseCodexEntry<ENTRY_CATEGORIES.SPECIES, SPECIES_TYPES> & {
   speed: number;
   abilityBonuses: Partial<Record<ABILITY_TYPES, number>>;
@@ -75,6 +80,7 @@ export type CodexEntry =
   | WeaponEntry
   | ArmorEntry
   | ItemEntry
+  | BackgroundEntry
   | SpeciesEntry
   | ClassEntry
   | RuleEntry

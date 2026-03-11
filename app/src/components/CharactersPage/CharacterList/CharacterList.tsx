@@ -1,6 +1,7 @@
 import { Eye, Trash2 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
+import { useBodyScrollLock } from "../../../lib/useBodyScrollLock";
 import { abilityKeys } from "../../../pages/CharactersPage/constants";
 import type { Character } from "../../../types";
 import styles from "./CharacterList.module.css";
@@ -12,6 +13,7 @@ type CharacterListProps = {
 
 function CharacterList({ characters, onDeleteCharacter }: CharacterListProps) {
   const [pendingDeleteCharacter, setPendingDeleteCharacter] = useState<Character | null>(null);
+  useBodyScrollLock(Boolean(pendingDeleteCharacter));
 
   useEffect(() => {
     if (!pendingDeleteCharacter) {
