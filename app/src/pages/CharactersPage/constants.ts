@@ -2,9 +2,11 @@ import type {
   AbilityKey,
   AbilityScores,
   Alignment,
+  CharacterCurrencies,
   CharacterDraft,
   CoreStats
 } from "../../types";
+import { loadPreferences } from "../../storage/preferences";
 export {
   backgroundOptions,
   classOptions,
@@ -70,7 +72,19 @@ export function createDefaultCoreStats(): CoreStats {
   };
 }
 
+export function createDefaultCurrencies(): CharacterCurrencies {
+  return {
+    copper: 0,
+    silver: 0,
+    electrum: 0,
+    gold: 0,
+    platinum: 0
+  };
+}
+
 export function createEmptyCharacter(): CharacterDraft {
+  const preferences = loadPreferences();
+
   return {
     name: "",
     species: "",
@@ -79,17 +93,22 @@ export function createEmptyCharacter(): CharacterDraft {
     xp: 0,
     hitPoints: 8,
     currentHitPoints: 8,
+    maxHitPointsMode: preferences.defaultMaxHitPointsMode,
     hitDiceRemaining: 1,
     attributeMode: "custom",
     abilities: createDefaultAbilities(),
     alignment: "True Neutral",
     background: "",
-    currencies: {
-      gold: 0
-    },
+    backgroundNotes: "",
+    currencies: createDefaultCurrencies(),
     skills: [],
     skillExpertise: [],
     toolProficiencies: [],
+    conditions: [],
+    deathSaves: {
+      successes: 0,
+      failures: 0
+    },
     equipment: [],
     knownSpellIds: [],
     spellSlotsExpended: Array.from({ length: 9 }, () => 0),

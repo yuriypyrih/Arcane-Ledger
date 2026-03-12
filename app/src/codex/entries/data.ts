@@ -434,6 +434,27 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     summary: "Cosmetic and wardrobe tools for changing appearance and mannerisms."
   },
   {
+    id: "item-torch",
+    name: "Torch",
+    category: ENTRY_CATEGORIES.ITEMS,
+    tags: [ITEM_TYPES.ADVENTURING_GEAR],
+    summary: "A handheld light source that keeps dark paths visible and can ignite campfires."
+  },
+  {
+    id: "item-bedroll",
+    name: "Bedroll",
+    category: ENTRY_CATEGORIES.ITEMS,
+    tags: [ITEM_TYPES.ADVENTURING_GEAR],
+    summary: "A compact sleeping roll for resting in the wilderness or rough shelter."
+  },
+  {
+    id: "item-rations-1-day",
+    name: "Rations (1 day)",
+    category: ENTRY_CATEGORIES.ITEMS,
+    tags: [ITEM_TYPES.ADVENTURING_GEAR],
+    summary: "Preserved food supplies that cover one full day of travel and exertion."
+  },
+  {
     id: "background-acolyte",
     name: "Acolyte",
     category: ENTRY_CATEGORIES.BACKGROUNDS,

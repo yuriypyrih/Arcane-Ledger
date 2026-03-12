@@ -1,0 +1,289 @@
+.equipmentGroupStack {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.equipmentGroup {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.equipmentGroupHeader {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.equipmentGroupTitle {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.8rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.equipmentGroupDescription {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.76rem;
+}
+
+.equipmentChoiceList {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.equipmentChoiceItem {
+  width: 100%;
+}
+
+.equipmentItemList {
+  display: grid;
+  gap: 0.42rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.equipmentItemButton {
+  width: 100%;
+  border: none;
+  border-radius: 12px;
+  background: rgba(75, 47, 29, 0.1);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  min-height: 34px;
+  padding: 0 0.72rem;
+  text-align: left;
+}
+
+.equipmentItemButton:hover {
+  background: rgba(75, 47, 29, 0.15);
+}
+
+.currencyPillSummary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.62rem;
+  flex-wrap: wrap;
+}
+
+.currencyPillToken {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  color: var(--color-ink);
+  font-size: 0.92rem;
+  line-height: 1;
+}
+
+.currencyPillTokenIcon {
+  block-size: 18px;
+  inline-size: 18px;
+  object-fit: contain;
+}
+
+.catalogModal {
+  width: min(760px, 100%);
+  height: min(640px, calc(100dvh - 2rem));
+  max-height: min(640px, calc(100dvh - 2rem));
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+.catalogBody {
+  display: grid;
+  min-height: 0;
+}
+
+.catalogEmptyState {
+  align-self: stretch;
+  display: grid;
+  margin: 0;
+  place-items: center;
+  color: var(--color-ink-soft);
+  font-size: 0.92rem;
+  text-align: center;
+}
+
+.catalogTabRow {
+  display: grid;
+  gap: 0.48rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.catalogTabButton {
+  border: 1px solid rgba(75, 47, 29, 0.16);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.9rem;
+  min-height: 40px;
+  padding: 0 0.7rem;
+}
+
+.catalogTabButtonActive {
+  background: rgba(75, 47, 29, 0.14);
+  border-color: rgba(75, 47, 29, 0.26);
+  font-weight: 600;
+}
+
+.catalogItemList {
+  display: grid;
+  gap: 0.52rem;
+  align-content: start;
+  grid-auto-rows: max-content;
+  list-style: none;
+  margin: 0;
+  min-height: 0;
+  max-height: none;
+  height: 100%;
+  overflow: auto;
+  padding: 0.12rem 0;
+}
+
+.catalogItemRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.64rem;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.76);
+  min-height: 44px;
+  padding: 0.45rem 0.65rem;
+}
+
+.catalogItemRowDisabled {
+  opacity: 0.64;
+}
+
+.catalogItemRow span {
+  min-width: 0;
+}
+
+.catalogItemMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.catalogItemName {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.catalogItemAddButton {
+  border: none;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.1);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  flex-shrink: 0;
+  min-height: 32px;
+  padding: 0 0.78rem;
+}
+
+.catalogItemAddButtonDisabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.catalogPaginationRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.catalogPaginationRow span {
+  color: var(--color-ink-soft);
+  font-size: 0.86rem;
+}
+
+.catalogPageButton {
+  border: none;
+  border-radius: 10px;
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  min-height: 34px;
+  min-width: 84px;
+  padding: 0 0.68rem;
+}
+
+.catalogPageButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.currencySelectorRow {
+  display: grid;
+  gap: 0.48rem;
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+}
+
+.currencySelectorButton {
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  gap: 0.12rem;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  min-height: 58px;
+  padding: 0.36rem 0.42rem;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.currencySelectorButton strong {
+  font-size: 0.9rem;
+  line-height: 1.1;
+}
+
+.currencySelectorButton span {
+  color: var(--color-ink-soft);
+  font-size: 0.7rem;
+  letter-spacing: 0.07em;
+  line-height: 1;
+}
+
+.currencySelectorButtonActive {
+  border-color: rgba(143, 91, 56, 0.56);
+  background: rgba(143, 91, 56, 0.18);
+}
+
+.currencySelectorIcon {
+  block-size: 18px;
+  inline-size: 18px;
+  object-fit: contain;
+}
+
+.loadoutDrawerActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.removeItemButton {
+  border: none;
+  border-radius: 12px;
+  background: rgba(197, 57, 43, 0.14);
+  color: #8a2519;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  min-height: 40px;
+  padding: 0 0.88rem;
+}

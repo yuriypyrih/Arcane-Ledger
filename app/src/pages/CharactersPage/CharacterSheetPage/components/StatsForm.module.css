@@ -155,6 +155,18 @@
   text-align: center;
 }
 
+.modifierCardButton {
+  border: none;
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  transition: box-shadow 140ms ease;
+}
+
+.modifierCardButton:hover {
+  box-shadow: 0 2px 8px rgba(54, 34, 21, 0.12);
+}
+
 .modifierLabelRow {
   display: flex;
   align-items: center;

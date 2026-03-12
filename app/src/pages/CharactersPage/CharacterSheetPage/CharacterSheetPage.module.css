@@ -3,6 +3,7 @@
   gap: var(--space-page-gap);
   max-width: 1120px;
   margin: 0 auto;
+  padding-bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(6.8rem, 12vw, 9.2rem));
 }
 
 .backButton,
@@ -611,6 +612,14 @@
 
 .currencyGainButton {
   background: rgba(75, 47, 29, 0.09);
+}
+
+.currencyActionIconSpend {
+  color: #af3022;
+}
+
+.currencyActionIconGain {
+  color: #2a7f45;
 }
 
 .currencySpendButton:disabled,

@@ -1,9 +1,12 @@
 import clsx from "clsx";
 import { Pencil, Save, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import SelectInput from "../../../../components/CharactersPage/FormInputs/SelectInput";
+import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
+import { loadPreferences, updatePreferences } from "../../../../storage/preferences";
 import type { Character, SkillName } from "../../../../types";
+import { getKeywordDescription } from "../../keywordDescriptions";
 import {
   getGrantedProficienciesForCharacter,
   getGrantedSkillProficienciesForCharacter,
@@ -17,12 +20,19 @@ import {
 import { getSkillRowsByAbility } from "../../skills";
 import type { PersistCharacterUpdater, SkillLevel } from "../types";
 import { skillColumnLayout } from "../utils";
+import sheetStyles from "../CharacterSheetPage.module.css";
 import shared from "./CharacterSheetSectionShared.module.css";
+import InlineToggleButton from "./InlineToggleButton";
 import styles from "./SkillsAndProficienciesForm.module.css";
 
 type SkillsAndProficienciesFormProps = {
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
+};
+
+type SelectedKeyword = {
+  name: string;
+  description: string;
 };
 
 function getSkillLevelForSkill(
@@ -53,6 +63,30 @@ function SkillsAndProficienciesForm({ className, onPersistCharacter }: SkillsAnd
   const [toolProficienciesDraft, setToolProficienciesDraft] = useState<ToolProficiency[]>(
     () => normalizeToolProficiencySelections(character.toolProficiencies ?? [])
   );
+  const [isProficienciesVisible, setIsProficienciesVisible] = useState(
+    () => loadPreferences().skillsProficienciesVisible
+  );
+  const [selectedKeyword, setSelectedKeyword] = useState<SelectedKeyword | null>(null);
+
+  useBodyScrollLock(Boolean(selectedKeyword));
+
+  useEffect(() => {
+    if (!selectedKeyword) {
+      return;
+    }
+
+    function handleKeyDown(event: globalThis.KeyboardEvent) {
+      if (event.key === "Escape") {
+        setSelectedKeyword(null);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedKeyword]);
 
   const grantedProficiencies = getGrantedProficienciesForCharacter(
     character.className,
@@ -117,6 +151,7 @@ function SkillsAndProficienciesForm({ className, onPersistCharacter }: SkillsAnd
     ...displayedManualSkills,
     ...displayedManualToolProficiencies.map((toolProficiency) => getToolProficiencyLabel(toolProficiency))
   ];
+  const areProficienciesVisible = isEditing || isProficienciesVisible;
 
   function beginEditing() {
     setSkillsDraft(character.skills ?? []);
@@ -214,6 +249,29 @@ function SkillsAndProficienciesForm({ className, onPersistCharacter }: SkillsAnd
     });
   }
 
+  function openKeywordReference(keyword: string) {
+    const description = getKeywordDescription(keyword);
+
+    if (!description) {
+      return;
+    }
+
+    setSelectedKeyword({
+      name: keyword,
+      description
+    });
+  }
+
+  function toggleProficienciesVisibility() {
+    if (isEditing) {
+      return;
+    }
+
+    const nextVisibility = !isProficienciesVisible;
+    setIsProficienciesVisible(nextVisibility);
+    updatePreferences({ skillsProficienciesVisible: nextVisibility });
+  }
+
   return (
     <article className={clsx(shared.sectionCard, className)}>
       <div className={shared.sectionHeader}>
@@ -270,7 +328,13 @@ function SkillsAndProficienciesForm({ className, onPersistCharacter }: SkillsAnd
                               <strong className={styles.skillRowModifier}>
                                 {row.totalModifier >= 0 ? `+${row.totalModifier}` : row.totalModifier}
                               </strong>
-                              <span>{row.name}</span>
+                              <button
+                                type="button"
+                                className={styles.skillNameButton}
+                                onClick={() => openKeywordReference(row.name)}
+                              >
+                                {row.name}
+                              </button>
                               {isEditing ? (
                                 <SelectInput
                                   className={styles.skillLevelSelect}
@@ -301,56 +365,77 @@ function SkillsAndProficienciesForm({ className, onPersistCharacter }: SkillsAnd
         </div>
 
         <div className={styles.skillGroup}>
-          <p className={styles.skillGroupTitle}>Proficiencies</p>
-          <p className={styles.skillGroupSubtitle}>Granted Proficiencies</p>
-          {grantedProficiencies.length === 0 ? (
-            <p className={shared.emptyText}>None</p>
-          ) : (
-            <ul className={styles.proficiencyPillGrid}>
-              {grantedProficiencies.map((entry) => (
-                <li key={`${entry.kind}:${entry.name}`} className={styles.proficiencyPill}>
-                  <span>{entry.name}</span>
-                  <small>{entry.sources.join(", ")}</small>
-                </li>
-              ))}
-            </ul>
-          )}
-          <p className={styles.skillGroupSubtitle}>Chosen Proficiencies</p>
-          {isEditing ? (
+          <InlineToggleButton
+            label={areProficienciesVisible ? "Hide Proficiencies" : "Show Proficiencies"}
+            expanded={areProficienciesVisible}
+            disabled={isEditing}
+            onClick={toggleProficienciesVisibility}
+          />
+          {areProficienciesVisible ? (
             <>
-              <p className={shared.helperText}>
-                Skill proficiencies are edited in the skill list above. Tools are edited here.
-              </p>
-              <div className={shared.choiceGrid}>
-                {toolProficiencyOptions.map((toolProficiency) => (
-                  <label
-                    key={toolProficiency}
-                    className={clsx(
-                      shared.choiceChip,
-                      displayedManualToolSet.has(toolProficiency) && shared.choiceChipActive
-                    )}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={displayedManualToolSet.has(toolProficiency)}
-                      onChange={() => toggleToolProficiency(toolProficiency)}
-                    />
-                    <span>{getToolProficiencyLabel(toolProficiency)}</span>
-                  </label>
-                ))}
-              </div>
+              <p className={styles.skillGroupSubtitle}>Granted Proficiencies</p>
+              {grantedProficiencies.length === 0 ? (
+                <p className={shared.emptyText}>None</p>
+              ) : (
+                <ul className={styles.proficiencyPillGrid}>
+                  {grantedProficiencies.map((entry) => (
+                    <li key={`${entry.kind}:${entry.name}`} className={styles.proficiencyPill}>
+                      <button
+                        type="button"
+                        className={styles.proficiencyPillButton}
+                        onClick={() => openKeywordReference(entry.name)}
+                      >
+                        <span>{entry.name}</span>
+                        <small>{entry.sources.join(", ")}</small>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+              <p className={styles.skillGroupSubtitle}>Chosen Proficiencies</p>
+              {isEditing ? (
+                <>
+                  <p className={shared.helperText}>
+                    Skill proficiencies are edited in the skill list above. Tools are edited here.
+                  </p>
+                  <div className={shared.choiceGrid}>
+                    {toolProficiencyOptions.map((toolProficiency) => (
+                      <label
+                        key={toolProficiency}
+                        className={clsx(
+                          shared.choiceChip,
+                          displayedManualToolSet.has(toolProficiency) && shared.choiceChipActive
+                        )}
+                      >
+                        <input
+                          type="checkbox"
+                          checked={displayedManualToolSet.has(toolProficiency)}
+                          onChange={() => toggleToolProficiency(toolProficiency)}
+                        />
+                        <span>{getToolProficiencyLabel(toolProficiency)}</span>
+                      </label>
+                    ))}
+                  </div>
+                </>
+              ) : displayedManualProficiencyLabels.length === 0 ? (
+                <p className={shared.emptyText}>None</p>
+              ) : (
+                <ul className={styles.proficiencyPillGrid}>
+                  {displayedManualProficiencyLabels.map((proficiency) => (
+                    <li key={proficiency} className={styles.proficiencyPill}>
+                      <button
+                        type="button"
+                        className={styles.proficiencyPillButton}
+                        onClick={() => openKeywordReference(proficiency)}
+                      >
+                        <span>{proficiency}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </>
-          ) : displayedManualProficiencyLabels.length === 0 ? (
-            <p className={shared.emptyText}>None</p>
-          ) : (
-            <ul className={styles.proficiencyPillGrid}>
-              {displayedManualProficiencyLabels.map((proficiency) => (
-                <li key={proficiency} className={styles.proficiencyPill}>
-                  <span>{proficiency}</span>
-                </li>
-              ))}
-            </ul>
-          )}
+          ) : null}
         </div>
 
         {isEditing ? (
@@ -366,6 +451,41 @@ function SkillsAndProficienciesForm({ className, onPersistCharacter }: SkillsAnd
           </div>
         ) : null}
       </div>
+
+      {selectedKeyword ? (
+        <div
+          className={sheetStyles.spellDrawerBackdrop}
+          role="presentation"
+          onClick={() => setSelectedKeyword(null)}
+        >
+          <section
+            className={sheetStyles.spellDrawer}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="character-skill-reference-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={sheetStyles.spellDrawerHandle} aria-hidden="true" />
+            <div className={sheetStyles.spellDrawerHeader}>
+              <div className={sheetStyles.spellDrawerHeaderContent}>
+                <p className={sheetStyles.spellDrawerBadge}>Reference</p>
+                <div className={sheetStyles.spellDrawerTitleRow}>
+                  <h3 id="character-skill-reference-title">{selectedKeyword.name}</h3>
+                </div>
+                <p className={sheetStyles.spellDrawerSummary}>{selectedKeyword.description}</p>
+              </div>
+              <button
+                type="button"
+                className={sheetStyles.spellDrawerCloseButton}
+                onClick={() => setSelectedKeyword(null)}
+                aria-label="Close skill details"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </article>
   );
 }

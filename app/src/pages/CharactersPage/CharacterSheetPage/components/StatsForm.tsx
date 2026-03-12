@@ -1,14 +1,16 @@
 import clsx from "clsx";
 import { Component, Diamond, Pencil, Save, X } from "lucide-react";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import NumberInput from "../../../../components/CharactersPage/FormInputs/NumberInput";
+import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import {
   loadPreferences,
   updatePreferences,
   type StatsViewMode
 } from "../../../../storage/preferences";
 import type { AbilityKey, Character, CoreStats } from "../../../../types";
+import { getKeywordDescription } from "../../keywordDescriptions";
 import {
   abilityKeys,
   createDefaultCoreStats,
@@ -29,6 +31,7 @@ import {
 } from "../../gameplay";
 import type { AbilitiesDraft, PersistCharacterUpdater } from "../types";
 import { clampNumber, cloneAbilityScores, normalizeCustomAbilityScores } from "../utils";
+import sheetStyles from "../CharacterSheetPage.module.css";
 import shared from "./CharacterSheetSectionShared.module.css";
 import styles from "./StatsForm.module.css";
 
@@ -37,6 +40,11 @@ type StatsTab = "core" | "modifiers" | "savingThrows";
 type CharacterStatsFormProps = {
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
+};
+
+type SelectedStatReference = {
+  keyword: string;
+  description: string;
 };
 
 const coreStatFields: Array<{ key: keyof CoreStats; label: string }> = [
@@ -86,6 +94,29 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
   const [statsViewMode, setStatsViewMode] = useState<StatsViewMode>(
     () => loadPreferences().statsViewMode
   );
+  const [selectedStatReference, setSelectedStatReference] = useState<SelectedStatReference | null>(
+    null
+  );
+
+  useBodyScrollLock(Boolean(selectedStatReference));
+
+  useEffect(() => {
+    if (!selectedStatReference) {
+      return;
+    }
+
+    function handleKeyDown(event: globalThis.KeyboardEvent) {
+      if (event.key === "Escape") {
+        setSelectedStatReference(null);
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedStatReference]);
 
   const mainAbility = getMainAbilityForClass(character.className);
   const pointBuyRemaining =
@@ -228,6 +259,19 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
     });
   }
 
+  function openStatReference(keyword: string) {
+    const description = getKeywordDescription(keyword);
+
+    if (!description) {
+      return;
+    }
+
+    setSelectedStatReference({
+      keyword,
+      description
+    });
+  }
+
   function renderEditActions() {
     return (
       <div className={shared.formActions}>
@@ -251,12 +295,17 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
         </div>
         <div className={styles.modifierGrid}>
           {coreStatFields.map((field) => (
-            <div key={field.key} className={styles.modifierCard}>
+            <button
+              key={field.key}
+              type="button"
+              className={clsx(styles.modifierCard, styles.modifierCardButton)}
+              onClick={() => openStatReference(field.label)}
+            >
               <div className={styles.modifierLabelRow}>
                 <span className={clsx(styles.modifierLabel, styles.coreStatLabel)}>{field.label}</span>
               </div>
               <strong>{displayedCoreStats[field.key]}</strong>
-            </div>
+            </button>
           ))}
         </div>
       </section>
@@ -337,7 +386,12 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
         ) : (
           <div className={styles.modifierGrid}>
             {abilityModifierCards.map((card) => (
-              <div key={card.ability} className={styles.modifierCard}>
+              <button
+                key={card.ability}
+                type="button"
+                className={clsx(styles.modifierCard, styles.modifierCardButton)}
+                onClick={() => openStatReference(card.ability)}
+              >
                 <div className={styles.modifierLabelRow}>
                   <span className={styles.modifierLabel}>
                     {card.ability}: {card.score}
@@ -349,7 +403,7 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
                   ) : null}
                 </div>
                 <strong>{card.modifier}</strong>
-              </div>
+              </button>
             ))}
           </div>
         )}
@@ -414,7 +468,12 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
         ) : (
           <div className={styles.modifierGrid}>
             {savingThrowCards.map((card) => (
-              <div key={card.ability} className={styles.modifierCard}>
+              <button
+                key={card.ability}
+                type="button"
+                className={clsx(styles.modifierCard, styles.modifierCardButton)}
+                onClick={() => openStatReference(`${card.ability} Saving Throw`)}
+              >
                 <div className={styles.modifierLabelRow}>
                   <span className={styles.modifierLabel}>
                     {card.ability}: {card.score}
@@ -425,7 +484,7 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
                 >
                   {card.totalSavingThrow}
                 </strong>
-              </div>
+              </button>
             ))}
           </div>
         )}
@@ -522,6 +581,41 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
           {renderSavingThrowsSection()}
         </div>
       )}
+
+      {selectedStatReference ? (
+        <div
+          className={sheetStyles.spellDrawerBackdrop}
+          role="presentation"
+          onClick={() => setSelectedStatReference(null)}
+        >
+          <section
+            className={sheetStyles.spellDrawer}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="character-stats-reference-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={sheetStyles.spellDrawerHandle} aria-hidden="true" />
+            <div className={sheetStyles.spellDrawerHeader}>
+              <div className={sheetStyles.spellDrawerHeaderContent}>
+                <p className={sheetStyles.spellDrawerBadge}>Reference</p>
+                <div className={sheetStyles.spellDrawerTitleRow}>
+                  <h3 id="character-stats-reference-title">{selectedStatReference.keyword}</h3>
+                </div>
+                <p className={sheetStyles.spellDrawerSummary}>{selectedStatReference.description}</p>
+              </div>
+              <button
+                type="button"
+                className={sheetStyles.spellDrawerCloseButton}
+                onClick={() => setSelectedStatReference(null)}
+                aria-label="Close stats details"
+              >
+                <X size={18} />
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
     </article>
   );
 }

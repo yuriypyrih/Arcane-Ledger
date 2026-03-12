@@ -9,7 +9,8 @@ import {
   EquipmentForm,
   GameplayForm,
   SkillsAndProficienciesForm,
-  SpellCastingForm
+  SpellCastingForm,
+  ThumbDiceButton
 } from "./components";
 import type { PersistCharacterUpdater } from "./types";
 import styles from "./CharacterSheetPage.module.css";
@@ -94,6 +95,7 @@ function CharacterSheetPage() {
           <EquipmentForm className={styles.cascadeFive} onPersistCharacter={persistCharacter} />
           <SpellCastingForm className={styles.cascadeSix} onPersistCharacter={persistCharacter} />
         </div>
+        <ThumbDiceButton />
       </FormProvider>
     </section>
   );

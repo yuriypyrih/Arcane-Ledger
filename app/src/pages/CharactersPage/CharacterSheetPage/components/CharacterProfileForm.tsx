@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import NumberInput from "../../../../components/CharactersPage/FormInputs/NumberInput";
 import SelectInput from "../../../../components/CharactersPage/FormInputs/SelectInput";
+import TextAreaInput from "../../../../components/CharactersPage/FormInputs/TextAreaInput";
 import TextInput from "../../../../components/CharactersPage/FormInputs/TextInput";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import type { Character } from "../../../../types";
@@ -21,6 +22,7 @@ import { alignmentOptions, clampNumber, formatCount } from "../utils";
 import sheetStyles from "../CharacterSheetPage.module.css";
 import shared from "./CharacterSheetSectionShared.module.css";
 import styles from "./CharacterProfileForm.module.css";
+import InlineToggleButton from "./InlineToggleButton";
 
 type CharacterProfileFormProps = {
   className?: string;
@@ -34,7 +36,8 @@ function createIdentityDraft(character: Character): IdentityDraft {
     className: character.className,
     level: character.level,
     alignment: character.alignment,
-    background: character.background
+    background: character.background,
+    backgroundNotes: character.backgroundNotes
   };
 }
 
@@ -69,6 +72,7 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
     character.level,
     character.alignment,
     character.background,
+    character.backgroundNotes,
     isEditing
   ]);
 
@@ -149,6 +153,7 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
           ? identityDraft.alignment
           : "True Neutral",
         background: normalizedBackground,
+        backgroundNotes: identityDraft.backgroundNotes.trim(),
         skills: normalizedSkills,
         skillExpertise: normalizedSkillExpertise,
         equipment: normalizedEquipment
@@ -344,6 +349,21 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
             </SelectInput>
           </label>
 
+          <label className={shared.fieldWide}>
+            <span>Background Notes</span>
+            <TextAreaInput
+              className={styles.backgroundNotesInput}
+              rows={4}
+              value={identityDraft.backgroundNotes}
+              onChange={(event) =>
+                setIdentityDraft((current) => ({
+                  ...current,
+                  backgroundNotes: event.target.value
+                }))
+              }
+            />
+          </label>
+
           <div className={shared.formActions}>
             <button type="button" className={shared.saveButton} onClick={saveIdentity}>
               <Save size={16} />
@@ -374,20 +394,24 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
               </button>
             </li>
           </ul>
-          <button
-            type="button"
-            className={styles.backgroundToggleButton}
+          <InlineToggleButton
+            label={isBackgroundVisible ? "Hide Character background" : "Show Character background"}
+            expanded={isBackgroundVisible}
             onClick={() => setIsBackgroundVisible((current) => !current)}
-          >
-            {isBackgroundVisible ? "Hide Character background" : "Show Character background"}
-          </button>
+          />
           {isBackgroundVisible ? (
             <div className={styles.backgroundPanel}>
-              <p className={styles.backgroundAlignmentRow}>
-                <span>Background</span>
-                <strong>{character.background || "-"}</strong>
-                <span className={styles.backgroundAlignmentLabel}>Alignment</span>
-                <strong>{character.alignment}</strong>
+              <div className={styles.backgroundMetaRow}>
+                <p className={styles.backgroundAlignmentRow}>
+                  <span>Background</span>
+                  <strong>{character.background || "-"}</strong>
+                  <span className={styles.backgroundAlignmentLabel}>Alignment</span>
+                  <strong>{character.alignment}</strong>
+                </p>
+              </div>
+              <p className={styles.backgroundNotesRow}>
+                <span>Background Notes</span>
+                <strong>{character.backgroundNotes || "-"}</strong>
               </p>
             </div>
           ) : null}

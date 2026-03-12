@@ -11,6 +11,7 @@ export type IdentityDraft = {
   level: number;
   alignment: Character["alignment"];
   background: string;
+  backgroundNotes: string;
 };
 
 export type HpDraft = {

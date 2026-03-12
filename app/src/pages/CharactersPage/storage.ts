@@ -1,10 +1,13 @@
 import type { AbilityKey, Character, CharacterDraft, CoreStats } from "../../types";
+import { currencyKeys } from "../../types";
+import { loadPreferences } from "../../storage/preferences";
 import {
   abilityKeys,
   CHARACTERS_STORAGE_KEY,
   alignmentGrid,
   createDefaultCoreStats,
   createDefaultAbilities,
+  createDefaultCurrencies,
   createEmptyCharacter
 } from "./constants";
 import {
@@ -71,6 +74,7 @@ function normalizeCurrencies(
   fallbackCurrencies: Character["currencies"]
 ): Character["currencies"] {
   const normalizedCurrencies: Character["currencies"] = {
+    ...createDefaultCurrencies(),
     ...fallbackCurrencies
   };
 
@@ -87,12 +91,71 @@ function normalizeCurrencies(
     });
   }
 
-  normalizedCurrencies.gold = Math.max(
-    0,
-    Math.floor(clampNumber(normalizedCurrencies.gold, 0, 999999999, fallbackCurrencies.gold))
-  );
+  currencyKeys.forEach((currencyKey) => {
+    normalizedCurrencies[currencyKey] = Math.max(
+      0,
+      Math.floor(
+        clampNumber(
+          normalizedCurrencies[currencyKey],
+          0,
+          999999999,
+          fallbackCurrencies[currencyKey]
+        )
+      )
+    );
+  });
 
   return normalizedCurrencies;
+}
+
+function normalizeConditions(value: unknown): Character["conditions"] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((rawCondition) => {
+      if (!rawCondition || typeof rawCondition !== "object") {
+        return null;
+      }
+
+      const conditionRecord = rawCondition as {
+        name?: unknown;
+        roundsRemaining?: unknown;
+      };
+      const name = typeof conditionRecord.name === "string" ? conditionRecord.name.trim() : "";
+
+      if (!name) {
+        return null;
+      }
+
+      const roundsRemaining = Math.max(
+        1,
+        Math.floor(clampNumber(conditionRecord.roundsRemaining, 1, 999, 1))
+      );
+
+      return {
+        name,
+        roundsRemaining
+      };
+    })
+    .filter((condition): condition is NonNullable<Character["conditions"]>[number] => condition !== null);
+}
+
+function normalizeDeathSaves(value: unknown): NonNullable<Character["deathSaves"]> {
+  if (!value || typeof value !== "object") {
+    return {
+      successes: 0,
+      failures: 0
+    };
+  }
+
+  const record = value as Partial<NonNullable<Character["deathSaves"]>>;
+
+  return {
+    successes: Math.floor(clampNumber(record.successes, 0, 3, 0)),
+    failures: Math.floor(clampNumber(record.failures, 0, 3, 0))
+  };
 }
 
 function normalizeSavingThrowProficiencies(
@@ -126,8 +189,12 @@ function normalizeCharacter(value: unknown): Character | null {
     toolProficiencies?: unknown;
     coreStats?: unknown;
     currencies?: unknown;
+    backgroundNotes?: unknown;
     savingThrowProficiencies?: unknown;
     hitDiceRemaining?: unknown;
+    maxHitPointsMode?: unknown;
+    conditions?: unknown;
+    deathSaves?: unknown;
   };
   const id = Number(record.id);
 
@@ -153,6 +220,10 @@ function normalizeCharacter(value: unknown): Character | null {
           : defaults.className;
   const normalizedBackground =
     typeof record.background === "string" ? record.background.trim() : defaults.background;
+  const normalizedBackgroundNotes =
+    typeof record.backgroundNotes === "string"
+      ? record.backgroundNotes.trim()
+      : defaults.backgroundNotes;
   const resolvedBackground = isBackgroundName(normalizedBackground)
     ? normalizedBackground
     : defaults.background;
@@ -202,6 +273,12 @@ function normalizeCharacter(value: unknown): Character | null {
   );
   const normalizedCoreStats = normalizeCoreStats(record.coreStats);
   const normalizedCurrencies = normalizeCurrencies(record.currencies, defaults.currencies);
+  const normalizedMaxHitPointsMode =
+    record.maxHitPointsMode === "automatic" || record.maxHitPointsMode === "custom"
+      ? record.maxHitPointsMode
+      : loadPreferences().defaultMaxHitPointsMode;
+  const normalizedConditions = normalizeConditions(record.conditions);
+  const normalizedDeathSaves = normalizeDeathSaves(record.deathSaves);
   const normalizedSavingThrowProficiencies = normalizeSavingThrowProficiencies(
     record.savingThrowProficiencies,
     normalizedClassName
@@ -221,6 +298,7 @@ function normalizeCharacter(value: unknown): Character | null {
       normalizedHitPoints,
       normalizedHitPoints
     ),
+    maxHitPointsMode: normalizedMaxHitPointsMode,
     attributeMode:
       record.attributeMode === "pointBuy" || record.attributeMode === "custom"
         ? record.attributeMode
@@ -233,10 +311,13 @@ function normalizeCharacter(value: unknown): Character | null {
       ? (record.alignment as Character["alignment"])
       : defaults.alignment,
     background: resolvedBackground,
+    backgroundNotes: normalizedBackgroundNotes,
     currencies: normalizedCurrencies,
     skills: normalizedSkills,
     skillExpertise: normalizedSkillExpertise,
     toolProficiencies: normalizedToolProficiencies,
+    conditions: normalizedConditions,
+    deathSaves: normalizedDeathSaves,
     equipment: normalizedEquipment,
     knownSpellIds: [...new Set(rawKnownSpellIds)],
     spellSlotsExpended: normalizedSpellSlotsExpended,

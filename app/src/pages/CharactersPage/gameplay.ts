@@ -229,6 +229,33 @@ export function getHitDieFormulaForClass(className: string): string {
   return rawDie.startsWith("d") ? `1${rawDie}` : "1d8";
 }
 
+function getHitDieMaximumForClass(className: string): number {
+  const classEntry = codexClassEntriesByName.get(className);
+  const rawHitDie = classEntry ? String(classEntry.hitPointDie) : "D8";
+  const parsedMaximum = Number(rawHitDie.replace(/\D/g, ""));
+
+  if (!Number.isFinite(parsedMaximum) || parsedMaximum <= 0) {
+    return 8;
+  }
+
+  return parsedMaximum;
+}
+
+export function getAutomaticMaxHitPointsForCharacter(
+  character: Pick<Character, "className" | "level" | "abilities">
+): number {
+  const hitDieMaximum = getHitDieMaximumForClass(character.className);
+  const hitDieAverage = Math.floor(hitDieMaximum / 2) + 1;
+  const constitutionModifier = getAbilityModifier(character.abilities.CON);
+  const normalizedLevel = Math.max(1, Math.floor(character.level));
+  const computedHitPoints =
+    hitDieMaximum +
+    constitutionModifier +
+    (normalizedLevel - 1) * (hitDieAverage + constitutionModifier);
+
+  return Math.max(1, Math.floor(computedHitPoints));
+}
+
 export function getHitDiceRemainingForCharacter(character: Character): number {
   const parsedRemaining = Number(character.hitDiceRemaining);
 

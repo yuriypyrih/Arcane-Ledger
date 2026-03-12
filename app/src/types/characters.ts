@@ -15,9 +15,33 @@ export type CoreStats = {
   hitDice: string;
 };
 
+export type CurrencyKey = "copper" | "silver" | "gold" | "electrum" | "platinum";
+
+export const currencyKeys: CurrencyKey[] = [
+  "copper",
+  "silver",
+  "electrum",
+  "gold",
+  "platinum"
+];
+
 export type CharacterCurrencies = {
+  copper: number;
+  silver: number;
   gold: number;
+  electrum: number;
+  platinum: number;
 } & Record<string, number>;
+
+export type CharacterCondition = {
+  name: string;
+  roundsRemaining: number;
+};
+
+export type CharacterDeathSaves = {
+  successes: number;
+  failures: number;
+};
 
 export type Alignment =
   | "Lawful Good"
@@ -39,16 +63,20 @@ export type Character = {
   xp: number;
   hitPoints: number;
   currentHitPoints: number;
+  maxHitPointsMode?: "automatic" | "custom";
   attributeMode: AttributeMode;
   abilities: AbilityScores;
   alignment: Alignment;
   background: string;
+  backgroundNotes: string;
   currencies: CharacterCurrencies;
   skills: SkillName[];
   skillExpertise?: SkillName[];
   toolProficiencies?: string[];
   savingThrowProficiencies?: AbilityKey[];
   hitDiceRemaining?: number;
+  conditions?: CharacterCondition[];
+  deathSaves?: CharacterDeathSaves;
   equipment: string[];
   knownSpellIds?: string[];
   spellSlotsExpended?: number[];

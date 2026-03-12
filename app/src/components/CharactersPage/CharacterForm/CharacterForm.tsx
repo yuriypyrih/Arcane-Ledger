@@ -10,6 +10,7 @@ import {
   backgroundOptions,
   cloneAbilities,
   createDefaultAbilities,
+  createDefaultCurrencies,
   createEmptyCharacter,
   getAffordablePointBuyMax,
   getPointBuyCost,
@@ -29,6 +30,7 @@ import {
 import { normalizeLevelAndXp } from "../../../pages/CharactersPage/experience";
 import NumberInput from "../FormInputs/NumberInput";
 import SelectInput from "../FormInputs/SelectInput";
+import TextAreaInput from "../FormInputs/TextAreaInput";
 import TextInput from "../FormInputs/TextInput";
 import styles from "./CharacterForm.module.css";
 
@@ -663,7 +665,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const creationDescriptionByStep: Record<CreationStep, string> = {
     1: "Start with identity details, then either create instantly with a recommended build or continue customizing manually.",
     2: "Adjust stats, abilities, skills, and equipment. Going back will reset these custom changes.",
-    3: "Choose a background and alignment, then create the character."
+    3: "Choose a background, alignment, and optional background notes, then create the character."
   };
 
   useEffect(() => {
@@ -795,6 +797,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         ? clampNumber(String(values.currentHitPoints), 0, maxHitPoints, maxHitPoints)
         : maxHitPoints,
       background: resolvedBackground,
+      backgroundNotes: values.backgroundNotes.trim(),
       alignment: alignmentOptions.includes(values.alignment) ? values.alignment : "True Neutral",
       skills: normalizedSelections.skills,
       equipment: normalizedSelections.equipment,
@@ -864,6 +867,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         species: getRandomItem(speciesOptions),
         className: randomClassName,
         background: createRandomBackground(),
+        backgroundNotes: "",
         level: 1
       });
       return;
@@ -892,9 +896,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       abilities: randomizedAbilities,
       alignment: getRandomItem(alignmentGrid.flat()),
       background: createRandomBackground(),
-      currencies: {
-        gold: 0
-      },
+      backgroundNotes: "",
+      currencies: createDefaultCurrencies(),
       skills: pickRandomSubset(
         randomClassSkillOptions,
         randomClassSkillLimit,
@@ -1217,7 +1220,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             <p className={styles.sectionEyebrow}>Character background</p>
             <h3>Choose origin and outlook</h3>
           </div>
-          <span>Choose background + alignment</span>
+          <span>Choose background + alignment + notes</span>
         </div>
 
         <label className={styles.field}>
@@ -1273,6 +1276,19 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         {!hasSelectedBackground ? (
           <small className={styles.helperText}>Choose a background before selecting alignment.</small>
         ) : null}
+
+        <label className={styles.field}>
+          <span>Background Notes</span>
+          <TextAreaInput
+            rows={4}
+            className={clsx(styles.fieldInput, styles.backgroundInput)}
+            placeholder="Optional notes: backstory, motives, bonds, ideals, morals..."
+            {...register("backgroundNotes")}
+          />
+          <small className={styles.helperText}>
+            Optional free text for any character context you want to track.
+          </small>
+        </label>
 
         <input
           type="hidden"

@@ -1,17 +1,34 @@
 export type StatsViewMode = "tabs" | "full";
+export type MaxHitPointsModePreference = "automatic" | "custom";
 
 export type Preferences = {
   statsViewMode: StatsViewMode;
+  skillsProficienciesVisible: boolean;
+  defaultMaxHitPointsMode: MaxHitPointsModePreference;
 };
 
 const PREFERENCES_STORAGE_KEY = "dnd-companion.preferences";
 
 const defaultPreferences: Preferences = {
-  statsViewMode: "tabs"
+  statsViewMode: "tabs",
+  skillsProficienciesVisible: true,
+  defaultMaxHitPointsMode: "automatic"
 };
 
 function normalizeStatsViewMode(value: unknown): StatsViewMode {
   return value === "full" ? "full" : "tabs";
+}
+
+function normalizeMaxHitPointsModePreference(value: unknown): MaxHitPointsModePreference {
+  return value === "custom" ? "custom" : "automatic";
+}
+
+function normalizeBoolean(value: unknown, fallback: boolean): boolean {
+  if (typeof value === "boolean") {
+    return value;
+  }
+
+  return fallback;
 }
 
 function normalizePreferences(value: unknown): Preferences {
@@ -22,7 +39,14 @@ function normalizePreferences(value: unknown): Preferences {
   const record = value as Partial<Preferences>;
 
   return {
-    statsViewMode: normalizeStatsViewMode(record.statsViewMode)
+    statsViewMode: normalizeStatsViewMode(record.statsViewMode),
+    skillsProficienciesVisible: normalizeBoolean(
+      record.skillsProficienciesVisible,
+      defaultPreferences.skillsProficienciesVisible
+    ),
+    defaultMaxHitPointsMode: normalizeMaxHitPointsModePreference(
+      record.defaultMaxHitPointsMode
+    )
   };
 }
 
@@ -39,7 +63,14 @@ export function loadPreferences(): Preferences {
 
   try {
     const parsedPreferences = JSON.parse(serializedPreferences) as unknown;
-    return normalizePreferences(parsedPreferences);
+    const normalizedPreferences = normalizePreferences(parsedPreferences);
+    const normalizedSerializedPreferences = JSON.stringify(normalizedPreferences);
+
+    if (normalizedSerializedPreferences !== serializedPreferences) {
+      window.localStorage.setItem(PREFERENCES_STORAGE_KEY, normalizedSerializedPreferences);
+    }
+
+    return normalizedPreferences;
   } catch {
     return defaultPreferences;
   }

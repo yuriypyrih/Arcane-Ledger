@@ -87,6 +87,18 @@
   text-align: left;
 }
 
+.skillNameButton {
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+}
+
+
+
 .skillRowProficient {
   color: #6f2bc5;
 }
@@ -120,6 +132,28 @@
   font-size: 0.875rem;
   line-height: 1.1;
   padding: 0.46rem 0.5rem;
+}
+
+.proficiencyPillButton {
+  display: grid;
+  gap: 0.18rem;
+  width: 100%;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  line-height: inherit;
+  padding: 0;
+  text-align: left;
+  text-decoration: none;
+}
+
+.proficiencyPillButton:hover,
+.proficiencyPillButton:focus-visible,
+.proficiencyPillButton span,
+.proficiencyPillButton small {
+  text-decoration: none;
 }
 
 .proficiencyPill small {
