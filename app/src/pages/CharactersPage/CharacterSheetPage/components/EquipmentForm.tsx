@@ -1,6 +1,6 @@
 import clsx from "clsx";
-import { Minus, Plus, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Hand, Minus, Plus, Search, SearchX, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useFormContext } from "react-hook-form";
 import coinCopperIcon from "../../../../assets/svg/coin-copper.svg";
 import coinElectrumIcon from "../../../../assets/svg/coin-electrum.svg";
@@ -11,23 +11,46 @@ import NumberInput from "../../../../components/CharactersPage/FormInputs/Number
 import RarityPill from "../../../../components/CodexPage/RarityPill";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import {
+  CURRENCY_TYPE,
   ENTRY_CATEGORIES,
   type ArmorEntry,
   type ItemEntry,
   type WeaponEntry
 } from "../../../../codex/entries";
 import { currencyKeys, type Character, type CurrencyKey } from "../../../../types";
-import { formatCodexLabel, formatCodexList, formatDamageDice } from "../../../../utils/codex";
+import {
+  formatEquipmentWeight,
+  formatCodexLabel,
+  formatCodexList,
+  formatWeaponDamage,
+  formatWeaponProperties,
+  formatWeaponType,
+  formatWeaponWeight
+} from "../../../../utils/codex";
 import {
   getAvailableEquipmentNamesForClass,
   getEquipmentByName,
   getLoadoutCodexEntryByName,
-  normalizeEquipmentSelectionsForClass
+  normalizeCharacterEquipmentSelectionsForClass
 } from "../../proficiency";
+import {
+  findCustomEquipmentById,
+  getResolvedCustomLoadoutEntries,
+  isResolvedCustomLoadoutEntry,
+  type ResolvedCustomLoadoutEntry
+} from "../../customEquipment";
+import {
+  canWeaponBePutOnHand,
+  createHeldWeaponDescriptor,
+  createCharacterEquipmentItem,
+  getCharacterEquipmentItem,
+  type HeldWeaponDescriptor
+} from "../../inventory";
 import type { PersistCharacterUpdater } from "../types";
 import { clampNumber } from "../utils";
 import sheetStyles from "../CharacterSheetPage.module.css";
 import shared from "./CharacterSheetSectionShared.module.css";
+import CustomEquipmentEditor from "./CustomEquipmentEditor";
 import InlineToggleButton from "./InlineToggleButton";
 import styles from "./EquipmentForm.module.css";
 
@@ -36,14 +59,26 @@ type EquipmentFormProps = {
   onPersistCharacter: PersistCharacterUpdater;
 };
 
-type LoadoutDrawerEntry = ArmorEntry | ItemEntry | WeaponEntry;
+type LoadoutDrawerEntry = ArmorEntry | ItemEntry | WeaponEntry | ResolvedCustomLoadoutEntry;
 type EquipmentGroupKey = "weaponsAndStaff" | "armorAndShield" | "generalEquipment";
 type CatalogTab = "weapons" | "armor" | "items";
+type SelectedLoadoutEntryState = {
+  entry: LoadoutDrawerEntry;
+  customEquipmentId?: string;
+  origin: "loadout" | "catalog";
+};
+type LoadoutGroupItem = {
+  key: string;
+  name: string;
+  entry: LoadoutDrawerEntry;
+  customEquipmentId?: string;
+  onHand: boolean;
+};
 type EquipmentGroup = {
   key: EquipmentGroupKey;
   title: string;
   description: string;
-  items: string[];
+  items: LoadoutGroupItem[];
 };
 
 type CatalogTabDefinition = {
@@ -58,7 +93,24 @@ type CurrencyDefinition = {
   icon: string;
 };
 
-const EQUIPMENT_PAGE_SIZE = 20;
+type PurchasableLoadoutEntry = LoadoutDrawerEntry & {
+  cost: { amount: number; currency: CURRENCY_TYPE };
+  weight: number | null;
+};
+
+type UndoableCatalogAction = {
+  refundCost: PurchasableLoadoutEntry["cost"] | null;
+};
+
+const EQUIPMENT_PAGE_SIZE = 24;
+
+function createCatalogPageState(): Record<CatalogTab, number> {
+  return {
+    weapons: 1,
+    armor: 1,
+    items: 1
+  };
+}
 
 const equipmentGroupMeta: Array<Omit<EquipmentGroup, "items">> = [
   {
@@ -92,6 +144,22 @@ const currencyDefinitions: CurrencyDefinition[] = [
   { key: "platinum", label: "Platinum", code: "PP", icon: coinPlatinumIcon }
 ];
 
+const currencyKeyByType: Record<CURRENCY_TYPE, CurrencyKey> = {
+  [CURRENCY_TYPE.CP]: "copper",
+  [CURRENCY_TYPE.SP]: "silver",
+  [CURRENCY_TYPE.EP]: "electrum",
+  [CURRENCY_TYPE.GP]: "gold",
+  [CURRENCY_TYPE.PP]: "platinum"
+};
+
+function getCurrencyDefinitionByType(currencyType: CURRENCY_TYPE): CurrencyDefinition {
+  const currencyKey = currencyKeyByType[currencyType];
+  return (
+    currencyDefinitions.find((currencyDefinition) => currencyDefinition.key === currencyKey) ??
+    currencyDefinitions[0]
+  );
+}
+
 function formatMaxDexModifier(maxDexModifier: number | null): string {
   if (maxDexModifier === null) {
     return "Full modifier";
@@ -104,6 +172,56 @@ function formatMaxDexModifier(maxDexModifier: number | null): string {
   return `Capped at +${maxDexModifier}`;
 }
 
+function formatWeightValue(weight: number): string {
+  if (Number.isInteger(weight)) {
+    return `${weight}`;
+  }
+
+  return `${weight}`.replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
+}
+
+function renderCurrencyDisplay(
+  cost: PurchasableLoadoutEntry["cost"] | WeaponEntry["cost"],
+  options?: {
+    classNames?: {
+      root?: string;
+      icon?: string;
+    };
+    fontSize?: CSSProperties["fontSize"];
+    color?: CSSProperties["color"];
+    fontWeight?: CSSProperties["fontWeight"];
+    iconSize?: CSSProperties["width"];
+  }
+) {
+  const currency = getCurrencyDefinitionByType(cost.currency);
+  const rootStyle: CSSProperties = {
+    fontSize: options?.fontSize,
+    color: options?.color,
+    fontWeight: options?.fontWeight
+  };
+  const iconStyle: CSSProperties = {
+    inlineSize: options?.iconSize,
+    blockSize: options?.iconSize
+  };
+
+  return (
+    <span
+      className={clsx(styles.currencyInlineDisplay, options?.classNames?.root)}
+      style={rootStyle}
+    >
+      <img
+        src={currency.icon}
+        alt=""
+        className={clsx(styles.currencyInlineIcon, options?.classNames?.icon)}
+        style={iconStyle}
+        aria-hidden="true"
+      />
+      <span>{cost.amount}</span>
+      <span>{currency.code}</span>
+    </span>
+  );
+}
+
 function normalizeCurrencyAmountInput(value: string, fallback: number): number {
   const numericOnly = value.replace(/[^\d]/g, "");
 
@@ -113,24 +231,6 @@ function normalizeCurrencyAmountInput(value: string, fallback: number): number {
 
   const withoutLeadingZeros = numericOnly.replace(/^0+(?=\d)/, "");
   return Math.floor(clampNumber(withoutLeadingZeros, 0, 999999999, fallback));
-}
-
-function getEquipmentGroupKey(itemName: string): EquipmentGroupKey {
-  const equipmentDefinition = getEquipmentByName(itemName);
-
-  if (!equipmentDefinition) {
-    return "generalEquipment";
-  }
-
-  if (equipmentDefinition.category === "weapon") {
-    return "weaponsAndStaff";
-  }
-
-  if (equipmentDefinition.category === "armor") {
-    return "armorAndShield";
-  }
-
-  return "generalEquipment";
 }
 
 function getCatalogTabForItem(itemName: string): CatalogTab {
@@ -151,15 +251,27 @@ function getCatalogTabForItem(itemName: string): CatalogTab {
   return "items";
 }
 
-function groupEquipmentItems(itemNames: string[]): EquipmentGroup[] {
-  const groupedItems: Record<EquipmentGroupKey, string[]> = {
+function getEquipmentGroupKeyForEntry(entry: LoadoutDrawerEntry): EquipmentGroupKey {
+  if (entry.category === ENTRY_CATEGORIES.WEAPONS) {
+    return "weaponsAndStaff";
+  }
+
+  if (entry.category === ENTRY_CATEGORIES.ARMOR) {
+    return "armorAndShield";
+  }
+
+  return "generalEquipment";
+}
+
+function groupEquipmentItems(items: LoadoutGroupItem[]): EquipmentGroup[] {
+  const groupedItems: Record<EquipmentGroupKey, LoadoutGroupItem[]> = {
     weaponsAndStaff: [],
     armorAndShield: [],
     generalEquipment: []
   };
 
-  itemNames.forEach((itemName) => {
-    groupedItems[getEquipmentGroupKey(itemName)].push(itemName);
+  items.forEach((item) => {
+    groupedItems[getEquipmentGroupKeyForEntry(item.entry)].push(item);
   });
 
   return equipmentGroupMeta.map((group) => ({
@@ -168,37 +280,97 @@ function groupEquipmentItems(itemNames: string[]): EquipmentGroup[] {
   }));
 }
 
-function groupCatalogItems(itemNames: string[]): Record<CatalogTab, string[]> {
-  const groupedItems: Record<CatalogTab, string[]> = {
+function groupCatalogItems(
+  entries: LoadoutDrawerEntry[]
+): Record<CatalogTab, LoadoutDrawerEntry[]> {
+  const groupedItems: Record<CatalogTab, LoadoutDrawerEntry[]> = {
     weapons: [],
     armor: [],
     items: []
   };
 
-  itemNames.forEach((itemName) => {
-    groupedItems[getCatalogTabForItem(itemName)].push(itemName);
+  entries.forEach((entry) => {
+    groupedItems[getCatalogTabForItem(entry.name)].push(entry);
   });
 
   return groupedItems;
 }
 
+function getCatalogEntryTypeLabel(entry: LoadoutDrawerEntry): string {
+  if (entry.category === ENTRY_CATEGORIES.WEAPONS) {
+    return `${formatWeaponType(entry.type)} weapon`;
+  }
+
+  const primaryTag = entry.tags[0];
+  return primaryTag ? formatCodexLabel(primaryTag) : formatCodexLabel(entry.category);
+}
+
+function isPurchasableLoadoutEntry(entry: LoadoutDrawerEntry): entry is PurchasableLoadoutEntry {
+  return "cost" in entry && "weight" in entry;
+}
+
+function matchesCatalogSearch(entry: LoadoutDrawerEntry, query: string): boolean {
+  const normalizedQuery = query.trim().toLowerCase();
+
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  const searchableParts = [entry.name, "rarity" in entry ? formatCodexLabel(entry.rarity) : ""];
+
+  return searchableParts.join(" ").toLowerCase().includes(normalizedQuery);
+}
+
+function applyEquipmentToCharacter(currentCharacter: Character, itemName: string): Character {
+  if (currentCharacter.equipment.some((item) => item.name === itemName)) {
+    return currentCharacter;
+  }
+
+  return {
+    ...currentCharacter,
+    equipment: normalizeCharacterEquipmentSelectionsForClass(currentCharacter.className, [
+      ...currentCharacter.equipment,
+      createCharacterEquipmentItem(itemName)
+    ])
+  };
+}
+
 function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
   const { watch } = useFormContext<Character>();
   const character = watch() as Character;
-  const [selectedLoadoutEntry, setSelectedLoadoutEntry] = useState<LoadoutDrawerEntry | null>(null);
+  const customEquipment = character.customEquipment ?? [];
+  const catalogSearchInputRef = useRef<HTMLInputElement | null>(null);
+  const catalogListRef = useRef<HTMLUListElement | null>(null);
+  const [selectedLoadoutEntry, setSelectedLoadoutEntry] =
+    useState<SelectedLoadoutEntryState | null>(null);
   const [isCurrencyDrawerOpen, setIsCurrencyDrawerOpen] = useState(false);
   const [activeCurrencyKey, setActiveCurrencyKey] = useState<CurrencyKey>("gold");
   const [currencyAmountDraft, setCurrencyAmountDraft] = useState(0);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isCustomEquipmentModalOpen, setIsCustomEquipmentModalOpen] = useState(false);
+  const [customEditorMode, setCustomEditorMode] = useState<"create" | "edit">("create");
+  const [editingCustomEquipmentId, setEditingCustomEquipmentId] = useState<string | null>(null);
+  const [isCatalogSearchVisible, setIsCatalogSearchVisible] = useState(false);
+  const [catalogSearchDraft, setCatalogSearchDraft] = useState("");
+  const [catalogSearchQuery, setCatalogSearchQuery] = useState("");
   const [activeCatalogTab, setActiveCatalogTab] = useState<CatalogTab>("weapons");
-  const [catalogPageByTab, setCatalogPageByTab] = useState<Record<CatalogTab, number>>({
-    weapons: 1,
-    armor: 1,
-    items: 1
-  });
+  const [catalogPageByTab, setCatalogPageByTab] =
+    useState<Record<CatalogTab, number>>(createCatalogPageState);
+  const [undoableCatalogActions, setUndoableCatalogActions] = useState<
+    Record<string, UndoableCatalogAction>
+  >({});
   const [isGeneralEquipmentExpanded, setIsGeneralEquipmentExpanded] = useState(false);
+  const [pendingDeleteCustomEquipmentId, setPendingDeleteCustomEquipmentId] = useState<
+    string | null
+  >(null);
 
-  const hasBackdrop = Boolean(selectedLoadoutEntry || isCurrencyDrawerOpen || isAddModalOpen);
+  const hasBackdrop = Boolean(
+    selectedLoadoutEntry ||
+    isCurrencyDrawerOpen ||
+    isAddModalOpen ||
+    isCustomEquipmentModalOpen ||
+    pendingDeleteCustomEquipmentId
+  );
   useBodyScrollLock(hasBackdrop);
 
   useEffect(() => {
@@ -208,9 +380,29 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
 
     function handleKeyDown(event: globalThis.KeyboardEvent) {
       if (event.key === "Escape") {
-        setSelectedLoadoutEntry(null);
-        setIsCurrencyDrawerOpen(false);
-        setIsAddModalOpen(false);
+        if (pendingDeleteCustomEquipmentId) {
+          setPendingDeleteCustomEquipmentId(null);
+          return;
+        }
+
+        if (isCustomEquipmentModalOpen) {
+          closeCustomEquipmentModal();
+          return;
+        }
+
+        if (selectedLoadoutEntry) {
+          setSelectedLoadoutEntry(null);
+          return;
+        }
+
+        if (isCurrencyDrawerOpen) {
+          setIsCurrencyDrawerOpen(false);
+          return;
+        }
+
+        if (isAddModalOpen) {
+          closeAddModal();
+        }
       }
     }
 
@@ -219,7 +411,20 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [hasBackdrop]);
+  }, [
+    hasBackdrop,
+    isAddModalOpen,
+    isCurrencyDrawerOpen,
+    isCustomEquipmentModalOpen,
+    pendingDeleteCustomEquipmentId,
+    selectedLoadoutEntry
+  ]);
+
+  useEffect(() => {
+    if (isAddModalOpen && isCatalogSearchVisible) {
+      catalogSearchInputRef.current?.focus();
+    }
+  }, [isAddModalOpen, isCatalogSearchVisible]);
 
   const availableEquipmentOptions = getAvailableEquipmentNamesForClass(character.className);
   const normalizedCurrencies = useMemo(() => {
@@ -241,64 +446,453 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
     return nextCurrencies;
   }, [character.currencies]);
   const activeCurrencyDefinition =
-    currencyDefinitions.find((currency) => currency.key === activeCurrencyKey) ?? currencyDefinitions[2];
+    currencyDefinitions.find((currency) => currency.key === activeCurrencyKey) ??
+    currencyDefinitions[2];
   const activeCurrencyAmount = normalizedCurrencies[activeCurrencyKey];
   const normalizedCurrencyAmount = Math.max(
     0,
     Math.floor(clampNumber(currencyAmountDraft, 0, 999999999, 0))
   );
   const canSpendCurrency = activeCurrencyAmount >= normalizedCurrencyAmount;
-  const selectedEquipmentGroups = groupEquipmentItems(character.equipment);
+  const resolvedCustomEquipmentEntries = useMemo(
+    () => getResolvedCustomLoadoutEntries(customEquipment),
+    [customEquipment]
+  );
+  const ownedEquipmentNames = useMemo(
+    () => new Set(character.equipment.map((item) => item.name)),
+    [character.equipment]
+  );
+  const selectedLoadoutItems = useMemo(
+    () => [
+      ...character.equipment
+        .map((item) => {
+          const entry = getLoadoutCodexEntryByName(item.name);
+
+          if (!entry) {
+            return null;
+          }
+
+          return {
+            key: `codex-${entry.id}`,
+            name: entry.name,
+            entry,
+            onHand: item.onHand
+          } satisfies LoadoutGroupItem;
+        })
+        .filter((item): item is LoadoutGroupItem => item !== null),
+      ...resolvedCustomEquipmentEntries.map(
+        (entry) =>
+          ({
+            key: `custom-${entry.customEquipmentId}`,
+            name: entry.name,
+            entry,
+            customEquipmentId: entry.customEquipmentId,
+            onHand: entry.category === ENTRY_CATEGORIES.WEAPONS ? entry.onHand : false
+          }) satisfies LoadoutGroupItem
+      )
+    ],
+    [character.equipment, resolvedCustomEquipmentEntries]
+  );
+  const selectedEquipmentGroups = useMemo(
+    () => groupEquipmentItems(selectedLoadoutItems),
+    [selectedLoadoutItems]
+  );
+  const carriedWeight = useMemo(
+    () =>
+      Math.round(
+        selectedLoadoutItems.reduce(
+          (totalWeight, item) => totalWeight + (item.entry.weight ?? 0),
+          0
+        ) * 100
+      ) / 100,
+    [selectedLoadoutItems]
+  );
+  const carryingCapacity = Math.max(0, character.abilities.STR * 15);
+  const isOverCarryingCapacity = carriedWeight > carryingCapacity;
+  const editingCustomEquipment = editingCustomEquipmentId
+    ? (findCustomEquipmentById(customEquipment, editingCustomEquipmentId) ?? null)
+    : null;
+  const pendingDeleteCustomEquipment = pendingDeleteCustomEquipmentId
+    ? (findCustomEquipmentById(customEquipment, pendingDeleteCustomEquipmentId) ?? null)
+    : null;
+  const selectedLoadoutEntryData = selectedLoadoutEntry?.entry ?? null;
+  const isSelectedCustomEntry = selectedLoadoutEntryData
+    ? isResolvedCustomLoadoutEntry(selectedLoadoutEntryData)
+    : false;
+  const isCatalogDrawerInspection = selectedLoadoutEntry?.origin === "catalog";
+  const heldWeaponDescriptors = useMemo(
+    () => [
+      ...character.equipment
+        .filter((item) => item.onHand)
+        .map((item) => {
+          const entry = getLoadoutCodexEntryByName(item.name);
+
+          if (!entry || entry.category !== ENTRY_CATEGORIES.WEAPONS) {
+            return null;
+          }
+
+          return createHeldWeaponDescriptor(`codex-${entry.id}`, entry);
+        })
+        .filter((entry): entry is HeldWeaponDescriptor => entry !== null),
+      ...resolvedCustomEquipmentEntries
+        .filter(
+          (
+            entry
+          ): entry is Extract<ResolvedCustomLoadoutEntry, { category: ENTRY_CATEGORIES.WEAPONS }> =>
+            entry.category === ENTRY_CATEGORIES.WEAPONS && entry.onHand
+        )
+        .map((entry) => createHeldWeaponDescriptor(`custom-${entry.customEquipmentId}`, entry))
+    ],
+    [character.equipment, resolvedCustomEquipmentEntries]
+  );
+  const selectedWeaponDescriptor = useMemo(() => {
+    if (
+      !selectedLoadoutEntryData ||
+      selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS
+    ) {
+      return null;
+    }
+
+    const key = selectedLoadoutEntry?.customEquipmentId
+      ? `custom-${selectedLoadoutEntry.customEquipmentId}`
+      : `codex-${selectedLoadoutEntryData.id}`;
+
+    return createHeldWeaponDescriptor(key, selectedLoadoutEntryData);
+  }, [selectedLoadoutEntry, selectedLoadoutEntryData]);
+  const isSelectedWeaponOnHand = useMemo(() => {
+    if (
+      !selectedLoadoutEntryData ||
+      selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS
+    ) {
+      return false;
+    }
+
+    if (selectedLoadoutEntry?.customEquipmentId) {
+      const customWeapon = findCustomEquipmentById(
+        customEquipment,
+        selectedLoadoutEntry.customEquipmentId
+      );
+      return customWeapon?.kind === "weapon" ? customWeapon.onHand : false;
+    }
+
+    return Boolean(
+      getCharacterEquipmentItem(character.equipment, selectedLoadoutEntryData.name)?.onHand
+    );
+  }, [character.equipment, customEquipment, selectedLoadoutEntry, selectedLoadoutEntryData]);
+  const canSelectedWeaponBePutOnHand =
+    selectedWeaponDescriptor && !isSelectedWeaponOnHand
+      ? canWeaponBePutOnHand(selectedWeaponDescriptor, heldWeaponDescriptors)
+      : false;
   const availableCatalogItems = useMemo(
-    () => groupCatalogItems(availableEquipmentOptions),
-    [availableEquipmentOptions]
+    () =>
+      groupCatalogItems(
+        availableEquipmentOptions
+          .map((itemName) => getLoadoutCodexEntryByName(itemName))
+          .filter((entry): entry is LoadoutDrawerEntry => entry !== undefined)
+          .filter((entry) => matchesCatalogSearch(entry, catalogSearchQuery))
+      ),
+    [availableEquipmentOptions, catalogSearchQuery]
   );
 
   const activeCatalogItems = availableCatalogItems[activeCatalogTab] ?? [];
-  const totalCatalogPages = Math.max(
-    1,
-    Math.ceil(activeCatalogItems.length / EQUIPMENT_PAGE_SIZE)
-  );
+  const totalCatalogPages = Math.max(1, Math.ceil(activeCatalogItems.length / EQUIPMENT_PAGE_SIZE));
   const activeCatalogPage = Math.min(catalogPageByTab[activeCatalogTab] ?? 1, totalCatalogPages);
   const paginatedCatalogItems = activeCatalogItems.slice(
     (activeCatalogPage - 1) * EQUIPMENT_PAGE_SIZE,
     activeCatalogPage * EQUIPMENT_PAGE_SIZE
   );
 
-  function openLoadoutEntryDetails(itemName: string) {
-    const entry = getLoadoutCodexEntryByName(itemName);
-
-    if (!entry) {
+  useEffect(() => {
+    if (!isAddModalOpen) {
       return;
     }
 
+    catalogListRef.current?.scrollTo({ top: 0 });
+  }, [isAddModalOpen, activeCatalogPage, activeCatalogTab, catalogSearchQuery]);
+
+  function openLoadoutEntryDetails(item: LoadoutGroupItem) {
     setIsCurrencyDrawerOpen(false);
-    setSelectedLoadoutEntry(entry);
+    setSelectedLoadoutEntry({
+      entry: item.entry,
+      customEquipmentId: item.customEquipmentId,
+      origin: "loadout"
+    });
   }
 
-  function addEquipmentItem(itemName: string) {
+  function resetCatalogSearch() {
+    setIsCatalogSearchVisible(false);
+    setCatalogSearchDraft("");
+    setCatalogSearchQuery("");
+    setCatalogPageByTab(createCatalogPageState());
+  }
+
+  function closeAddModal() {
+    setIsAddModalOpen(false);
+    setUndoableCatalogActions({});
+    resetCatalogSearch();
+  }
+
+  function openCustomEquipmentCreator() {
+    closeAddModal();
+    setIsCustomEquipmentModalOpen(true);
+    setCustomEditorMode("create");
+    setEditingCustomEquipmentId(null);
+  }
+
+  function openCustomEquipmentEditor(customEquipmentId: string) {
+    setSelectedLoadoutEntry(null);
+    setIsCurrencyDrawerOpen(false);
+    setIsCustomEquipmentModalOpen(true);
+    setCustomEditorMode("edit");
+    setEditingCustomEquipmentId(customEquipmentId);
+  }
+
+  function closeCustomEquipmentModal() {
+    setIsCustomEquipmentModalOpen(false);
+    setCustomEditorMode("create");
+    setEditingCustomEquipmentId(null);
+  }
+
+  function saveCustomEquipment(customEquipmentEntry: Character["customEquipment"][number]) {
     onPersistCharacter((currentCharacter) => {
-      if (currentCharacter.equipment.includes(itemName)) {
-        return currentCharacter;
-      }
+      const normalizedCustomEquipmentEntry =
+        customEquipmentEntry.kind === "weapon" && customEquipmentEntry.onHand
+          ? (() => {
+              const otherHeldWeapons: HeldWeaponDescriptor[] = [
+                ...currentCharacter.equipment
+                  .filter((item) => item.onHand)
+                  .map((item) => {
+                    const entry = getLoadoutCodexEntryByName(item.name);
+
+                    if (!entry || entry.category !== ENTRY_CATEGORIES.WEAPONS) {
+                      return null;
+                    }
+
+                    return createHeldWeaponDescriptor(`codex-${entry.id}`, entry);
+                  })
+                  .filter((entry): entry is HeldWeaponDescriptor => entry !== null),
+                ...currentCharacter.customEquipment
+                  .filter(
+                    (
+                      entry
+                    ): entry is Extract<Character["customEquipment"][number], { kind: "weapon" }> =>
+                      entry.kind === "weapon" &&
+                      entry.onHand &&
+                      entry.id !== customEquipmentEntry.id
+                  )
+                  .map((entry) => createHeldWeaponDescriptor(`custom-${entry.id}`, entry))
+              ];
+              const nextDescriptor = createHeldWeaponDescriptor(
+                `custom-${customEquipmentEntry.id}`,
+                customEquipmentEntry
+              );
+
+              return canWeaponBePutOnHand(nextDescriptor, otherHeldWeapons)
+                ? customEquipmentEntry
+                : {
+                    ...customEquipmentEntry,
+                    onHand: false
+                  };
+            })()
+          : customEquipmentEntry;
+      const hasExistingEntry = currentCharacter.customEquipment.some(
+        (entry) => entry.id === normalizedCustomEquipmentEntry.id
+      );
 
       return {
         ...currentCharacter,
-        equipment: normalizeEquipmentSelectionsForClass(currentCharacter.className, [
-          ...currentCharacter.equipment,
-          itemName
-        ])
+        customEquipment: hasExistingEntry
+          ? currentCharacter.customEquipment.map((entry) =>
+              entry.id === normalizedCustomEquipmentEntry.id
+                ? normalizedCustomEquipmentEntry
+                : entry
+            )
+          : [...currentCharacter.customEquipment, normalizedCustomEquipmentEntry]
       };
+    });
+
+    setSelectedLoadoutEntry(null);
+    closeCustomEquipmentModal();
+  }
+
+  function deleteCustomEquipment(customEquipmentId: string) {
+    onPersistCharacter((currentCharacter) => ({
+      ...currentCharacter,
+      customEquipment: currentCharacter.customEquipment.filter(
+        (entry) => entry.id !== customEquipmentId
+      )
+    }));
+
+    setPendingDeleteCustomEquipmentId(null);
+    setSelectedLoadoutEntry(null);
+  }
+
+  function openCurrencyModal() {
+    setSelectedLoadoutEntry(null);
+    setCurrencyAmountDraft(0);
+    setIsCurrencyDrawerOpen(true);
+  }
+
+  function runCatalogSearch() {
+    setCatalogSearchQuery(catalogSearchDraft.trim());
+    setCatalogPageByTab(createCatalogPageState());
+  }
+
+  function addEquipmentItem(itemName: string) {
+    if (ownedEquipmentNames.has(itemName)) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => applyEquipmentToCharacter(currentCharacter, itemName));
+    setUndoableCatalogActions((currentActions) => ({
+      ...currentActions,
+      [itemName]: { refundCost: null }
+    }));
+  }
+
+  function canAffordEntry(entry: PurchasableLoadoutEntry): boolean {
+    const currencyKey = currencyKeyByType[entry.cost.currency];
+    return normalizedCurrencies[currencyKey] >= entry.cost.amount;
+  }
+
+  function buyEquipmentItem(entry: PurchasableLoadoutEntry) {
+    if (ownedEquipmentNames.has(entry.name) || !canAffordEntry(entry)) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      if (currentCharacter.equipment.some((item) => item.name === entry.name)) {
+        return currentCharacter;
+      }
+
+      const currencyKey = currencyKeyByType[entry.cost.currency];
+      const currentCurrencyAmount = Math.max(
+        0,
+        Math.floor(clampNumber(currentCharacter.currencies[currencyKey], 0, 999999999, 0))
+      );
+
+      if (currentCurrencyAmount < entry.cost.amount) {
+        return currentCharacter;
+      }
+
+      return applyEquipmentToCharacter(
+        {
+          ...currentCharacter,
+          currencies: {
+            ...currentCharacter.currencies,
+            [currencyKey]: currentCurrencyAmount - entry.cost.amount
+          }
+        },
+        entry.name
+      );
+    });
+
+    setUndoableCatalogActions((currentActions) => ({
+      ...currentActions,
+      [entry.name]: { refundCost: entry.cost }
+    }));
+  }
+
+  function undoCatalogAction(itemName: string) {
+    const undoableAction = undoableCatalogActions[itemName];
+
+    if (!undoableAction) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      if (!currentCharacter.equipment.some((item) => item.name === itemName)) {
+        return currentCharacter;
+      }
+
+      const nextEquipment = currentCharacter.equipment.filter(
+        (equipmentItem) => equipmentItem.name !== itemName
+      );
+
+      if (!undoableAction.refundCost) {
+        return {
+          ...currentCharacter,
+          equipment: nextEquipment
+        };
+      }
+
+      const currencyKey = currencyKeyByType[undoableAction.refundCost.currency];
+      const currentCurrencyAmount = Math.max(
+        0,
+        Math.floor(clampNumber(currentCharacter.currencies[currencyKey], 0, 999999999, 0))
+      );
+
+      return {
+        ...currentCharacter,
+        equipment: nextEquipment,
+        currencies: {
+          ...currentCharacter.currencies,
+          [currencyKey]: Math.floor(
+            clampNumber(currentCurrencyAmount + undoableAction.refundCost.amount, 0, 999999999, 0)
+          )
+        }
+      };
+    });
+
+    setUndoableCatalogActions((currentActions) => {
+      const nextActions = { ...currentActions };
+      delete nextActions[itemName];
+      return nextActions;
     });
   }
 
   function removeEquipmentItem(itemName: string) {
     onPersistCharacter((currentCharacter) => ({
       ...currentCharacter,
-      equipment: currentCharacter.equipment.filter((equipmentName) => equipmentName !== itemName)
+      equipment: currentCharacter.equipment.filter(
+        (equipmentItem) => equipmentItem.name !== itemName
+      )
     }));
 
     setSelectedLoadoutEntry(null);
+  }
+
+  function toggleWeaponOnHand() {
+    if (
+      !selectedLoadoutEntryData ||
+      selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS
+    ) {
+      return;
+    }
+
+    if (!isSelectedWeaponOnHand && !canSelectedWeaponBePutOnHand) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      if (selectedLoadoutEntry?.customEquipmentId) {
+        return {
+          ...currentCharacter,
+          customEquipment: currentCharacter.customEquipment.map((entry) => {
+            if (entry.id !== selectedLoadoutEntry.customEquipmentId || entry.kind !== "weapon") {
+              return entry;
+            }
+
+            return {
+              ...entry,
+              onHand: !entry.onHand
+            };
+          })
+        };
+      }
+
+      return {
+        ...currentCharacter,
+        equipment: currentCharacter.equipment.map((equipmentItem) =>
+          equipmentItem.name === selectedLoadoutEntryData.name
+            ? {
+                ...equipmentItem,
+                onHand: !equipmentItem.onHand
+              }
+            : equipmentItem
+        )
+      };
+    });
   }
 
   function adjustCurrencyBalance(mode: "spend" | "gain") {
@@ -341,15 +935,26 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
           <h3 className={shared.subtitle}>Current loadout</h3>
         </div>
         <div className={shared.headerActions}>
-          <button
-            type="button"
-            className={shared.currencyPill}
-            onClick={() => {
-              setSelectedLoadoutEntry(null);
-              setCurrencyAmountDraft(0);
-              setIsCurrencyDrawerOpen(true);
-            }}
+          <div
+            className={styles.carryCapacityPill}
+            aria-label={`Carried weight ${formatWeightValue(carriedWeight)} out of ${formatWeightValue(
+              carryingCapacity
+            )} pounds`}
           >
+            <span
+              className={clsx(
+                styles.carryCapacityValue,
+                isOverCarryingCapacity && styles.carryCapacityValueOver
+              )}
+            >
+              {formatWeightValue(carriedWeight)}
+            </span>
+            <span className={styles.carryCapacityDivider}>/</span>
+            <span className={styles.carryCapacityLimit}>
+              {formatWeightValue(carryingCapacity)} lb
+            </span>
+          </div>
+          <button type="button" className={shared.currencyPill} onClick={openCurrencyModal}>
             <span className={styles.currencyPillSummary}>
               {currencyDefinitions.map((currency) => (
                 <span key={currency.key} className={styles.currencyPillToken}>
@@ -359,7 +964,10 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
                     className={styles.currencyPillTokenIcon}
                     aria-hidden="true"
                   />
-                  <span>{normalizedCurrencies[currency.key]}</span>
+                  <span className={styles.currencyPillTokenValue}>
+                    {normalizedCurrencies[currency.key]}
+                  </span>
+                  <span className={styles.currencyPillTokenCode}>{currency.code}</span>
                 </span>
               ))}
             </span>
@@ -375,7 +983,7 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
         </div>
       </div>
 
-      {character.equipment.length === 0 ? (
+      {selectedLoadoutItems.length === 0 ? (
         <p className={shared.emptyText}>No equipment selected.</p>
       ) : (
         <div className={styles.equipmentGroupStack}>
@@ -396,13 +1004,29 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
                   </header>
                   <ul className={styles.equipmentItemList}>
                     {visibleGroupItems.map((item) => (
-                      <li key={item}>
+                      <li key={item.key}>
                         <button
                           type="button"
                           className={styles.equipmentItemButton}
                           onClick={() => openLoadoutEntryDetails(item)}
                         >
-                          {item}
+                          <span className={styles.equipmentItemLabel}>
+                            <span className={styles.equipmentItemName}>{item.name}</span>
+                            {item.onHand ? (
+                              <span className={styles.equipmentItemOnHand}>
+                                <Hand size={13} aria-hidden="true" />
+                                <span>On Hand</span>
+                              </span>
+                            ) : null}
+                          </span>
+                          <span className={styles.equipmentItemMeta}>
+                            <span className={styles.equipmentItemWeight}>
+                              {formatEquipmentWeight(item.entry.weight)}
+                            </span>
+                            {"rarity" in item.entry ? (
+                              <RarityPill rarity={item.entry.rarity} />
+                            ) : null}
+                          </span>
                         </button>
                       </li>
                     ))}
@@ -424,7 +1048,7 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
         <div
           className={sheetStyles.spellManagementBackdrop}
           role="presentation"
-          onClick={() => setIsAddModalOpen(false)}
+          onClick={closeAddModal}
         >
           <section
             className={clsx(sheetStyles.spellManagementModal, styles.catalogModal)}
@@ -438,15 +1062,91 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
                 <p className={sheetStyles.eyebrow}>Equipment</p>
                 <h3 id="character-equipment-add-title">Add equipment</h3>
               </div>
-              <button
-                type="button"
-                className={sheetStyles.spellManagementCloseButton}
-                onClick={() => setIsAddModalOpen(false)}
-                aria-label="Close add equipment popup"
-              >
-                <X size={18} />
-              </button>
+              <div className={styles.catalogHeaderActions}>
+                <button
+                  type="button"
+                  className={styles.catalogIconButton}
+                  onClick={() => {
+                    if (isCatalogSearchVisible) {
+                      resetCatalogSearch();
+                      return;
+                    }
+
+                    setIsCatalogSearchVisible(true);
+                  }}
+                  aria-label={
+                    isCatalogSearchVisible ? "Close equipment search" : "Open equipment search"
+                  }
+                  title={isCatalogSearchVisible ? "Close search" : "Open search"}
+                >
+                  {isCatalogSearchVisible ? (
+                    <SearchX size={16} aria-hidden="true" />
+                  ) : (
+                    <Search size={16} aria-hidden="true" />
+                  )}
+                </button>
+                <button
+                  type="button"
+                  className={clsx(shared.currencyPill, styles.catalogCurrencyPill)}
+                  onClick={openCurrencyModal}
+                >
+                  <span className={styles.currencyPillSummary}>
+                    {currencyDefinitions.map((currency) => (
+                      <span key={currency.key} className={styles.currencyPillToken}>
+                        <img
+                          src={currency.icon}
+                          alt=""
+                          className={styles.currencyPillTokenIcon}
+                          aria-hidden="true"
+                        />
+                        <span className={styles.currencyPillTokenValue}>
+                          {normalizedCurrencies[currency.key]}
+                        </span>
+                        <span className={styles.currencyPillTokenCode}>{currency.code}</span>
+                      </span>
+                    ))}
+                  </span>
+                </button>
+                <button
+                  type="button"
+                  className={styles.catalogCreateCustomButton}
+                  onClick={openCustomEquipmentCreator}
+                >
+                  <Plus size={14} aria-hidden="true" />
+                  <span>Custom</span>
+                </button>
+                <button
+                  type="button"
+                  className={sheetStyles.spellManagementCloseButton}
+                  onClick={closeAddModal}
+                  aria-label="Close add equipment popup"
+                >
+                  <X size={18} />
+                </button>
+              </div>
             </div>
+
+            {isCatalogSearchVisible ? (
+              <div className={styles.catalogSearchRow}>
+                <div className={styles.catalogSearchField}>
+                  <input
+                    ref={catalogSearchInputRef}
+                    type="text"
+                    className={styles.catalogSearchInput}
+                    value={catalogSearchDraft}
+                    onChange={(event) => setCatalogSearchDraft(event.target.value)}
+                    placeholder="Search by name or rarity"
+                  />
+                </div>
+                <button
+                  type="button"
+                  className={styles.catalogSearchButton}
+                  onClick={runCatalogSearch}
+                >
+                  Search
+                </button>
+              </div>
+            ) : null}
 
             <div className={styles.catalogTabRow} role="tablist" aria-label="Equipment categories">
               {catalogTabs.map((tab) => (
@@ -470,36 +1170,97 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
               {paginatedCatalogItems.length === 0 ? (
                 <p className={styles.catalogEmptyState}>No available entries in this category.</p>
               ) : (
-                <ul className={styles.catalogItemList}>
-                  {paginatedCatalogItems.map((itemName) => {
-                    const isAlreadyAdded = character.equipment.includes(itemName);
-                    const catalogEntry = getLoadoutCodexEntryByName(itemName);
-
+                <ul ref={catalogListRef} className={styles.catalogItemList}>
+                  {paginatedCatalogItems.map((catalogEntry) => {
+                    const isAlreadyAdded = ownedEquipmentNames.has(catalogEntry.name);
+                    const isUndoable = Boolean(undoableCatalogActions[catalogEntry.name]);
+                    const isPurchasable = isPurchasableLoadoutEntry(catalogEntry);
+                    const canAffordPurchase = isPurchasable ? canAffordEntry(catalogEntry) : false;
+                    const subtitle = getCatalogEntryTypeLabel(catalogEntry);
                     return (
                       <li
-                        key={itemName}
+                        key={catalogEntry.name}
                         className={clsx(
                           styles.catalogItemRow,
                           isAlreadyAdded && styles.catalogItemRowDisabled
                         )}
                       >
-                        <div className={styles.catalogItemMeta}>
-                          <span className={styles.catalogItemName}>{itemName}</span>
-                          {catalogEntry && "rarity" in catalogEntry ? (
-                            <RarityPill rarity={catalogEntry.rarity} />
-                          ) : null}
-                        </div>
                         <button
                           type="button"
                           className={clsx(
-                            styles.catalogItemAddButton,
-                            isAlreadyAdded && styles.catalogItemAddButtonDisabled
+                            styles.catalogItemMetaButton,
+                            isAlreadyAdded && styles.catalogItemMetaButtonDisabled
                           )}
                           disabled={isAlreadyAdded}
-                          onClick={() => addEquipmentItem(itemName)}
+                          onClick={() =>
+                            setSelectedLoadoutEntry({
+                              entry: catalogEntry,
+                              origin: "catalog"
+                            })
+                          }
                         >
-                          {isAlreadyAdded ? "Added" : "Add"}
+                          <div className={styles.catalogItemMeta}>
+                            <div className={styles.catalogItemHeading}>
+                              <span className={styles.catalogItemName}>{catalogEntry.name}</span>
+                            </div>
+                            <span className={styles.catalogItemType}>{subtitle}</span>
+                          </div>
                         </button>
+                        <div className={styles.catalogItemStats}>
+                          {"rarity" in catalogEntry ? (
+                            <RarityPill rarity={catalogEntry.rarity} />
+                          ) : null}
+                          <div className={styles.catalogItemMetric}>
+                            <span className={styles.catalogItemStat}>
+                              {formatEquipmentWeight(catalogEntry.weight)}
+                            </span>
+                          </div>
+                          <div className={styles.catalogItemMetric}>
+                            <span className={styles.catalogItemStat}>
+                              {renderCurrencyDisplay(catalogEntry.cost)}
+                            </span>
+                          </div>
+                        </div>
+                        <div className={styles.catalogItemActions}>
+                          {isAlreadyAdded ? (
+                            isUndoable ? (
+                              <button
+                                type="button"
+                                className={styles.catalogItemUndoLink}
+                                onClick={() => undoCatalogAction(catalogEntry.name)}
+                              >
+                                Undo
+                              </button>
+                            ) : (
+                              <span className={styles.catalogItemAddedLabel}>Added</span>
+                            )
+                          ) : (
+                            <>
+                              <button
+                                type="button"
+                                className={clsx(
+                                  styles.catalogItemBuyButton,
+                                  !canAffordPurchase && styles.catalogItemBuyButtonDisabled
+                                )}
+                                disabled={!isPurchasable || !canAffordPurchase}
+                                onClick={() => {
+                                  if (isPurchasable) {
+                                    buyEquipmentItem(catalogEntry);
+                                  }
+                                }}
+                              >
+                                <span>Buy</span>
+                              </button>
+                              <button
+                                type="button"
+                                className={styles.catalogItemAddButton}
+                                onClick={() => addEquipmentItem(catalogEntry.name)}
+                              >
+                                <span>Add</span>
+                              </button>
+                            </>
+                          )}
+                        </div>
                       </li>
                     );
                   })}
@@ -542,32 +1303,71 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
         </div>
       ) : null}
 
+      {isCustomEquipmentModalOpen ? (
+        <div
+          className={clsx(sheetStyles.spellManagementBackdrop, styles.customEquipmentModalBackdrop)}
+          role="presentation"
+          onClick={closeCustomEquipmentModal}
+        >
+          <section
+            className={clsx(sheetStyles.spellManagementModal, styles.customEquipmentModal)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="character-custom-equipment-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={sheetStyles.spellManagementHeader}>
+              <div>
+                <p className={sheetStyles.eyebrow}>Equipment</p>
+                <h3 id="character-custom-equipment-title">
+                  {customEditorMode === "edit"
+                    ? "Edit custom equipment"
+                    : "Create custom equipment"}
+                </h3>
+              </div>
+              <button
+                type="button"
+                className={sheetStyles.spellManagementCloseButton}
+                onClick={closeCustomEquipmentModal}
+                aria-label="Close custom equipment modal"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <CustomEquipmentEditor
+              mode={customEditorMode}
+              initialEquipment={editingCustomEquipment}
+              onCancel={closeCustomEquipmentModal}
+              onSave={saveCustomEquipment}
+            />
+          </section>
+        </div>
+      ) : null}
+
       {isCurrencyDrawerOpen ? (
         <div
-          className={sheetStyles.spellDrawerBackdrop}
+          className={clsx(sheetStyles.spellManagementBackdrop, styles.currencyModalBackdrop)}
           role="presentation"
           onClick={() => setIsCurrencyDrawerOpen(false)}
         >
           <section
-            className={sheetStyles.spellDrawer}
+            className={clsx(sheetStyles.spellManagementModal, styles.currencyModal)}
             role="dialog"
             aria-modal="true"
-            aria-labelledby="character-currency-drawer-title"
+            aria-labelledby="character-currency-modal-title"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className={sheetStyles.spellDrawerHandle} aria-hidden="true" />
-            <div className={sheetStyles.spellDrawerHeader}>
-              <div className={sheetStyles.spellDrawerHeaderContent}>
-                <p className={sheetStyles.spellDrawerBadge}>Currency</p>
-                <div className={sheetStyles.spellDrawerTitleRow}>
-                  <h3 id="character-currency-drawer-title">Currency balance</h3>
-                </div>
+            <div className={sheetStyles.spellManagementHeader}>
+              <div>
+                <p className={sheetStyles.eyebrow}>Currency</p>
+                <h3 id="character-currency-modal-title">Currency balance</h3>
               </div>
               <button
                 type="button"
-                className={sheetStyles.spellDrawerCloseButton}
+                className={sheetStyles.spellManagementCloseButton}
                 onClick={() => setIsCurrencyDrawerOpen(false)}
-                aria-label="Close currency drawer"
+                aria-label="Close currency modal"
               >
                 <X size={18} />
               </button>
@@ -596,7 +1396,7 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
               ))}
             </div>
 
-            <div className={sheetStyles.currencyDrawerContent}>
+            <div className={clsx(sheetStyles.currencyDrawerContent, styles.currencyModalActionRow)}>
               <label className={sheetStyles.currencyDrawerField}>
                 <span>Amount ({activeCurrencyDefinition.label})</span>
                 <NumberInput
@@ -615,14 +1415,18 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
                   }
                 />
               </label>
-              <div className={sheetStyles.currencyDrawerActions}>
+              <div className={clsx(sheetStyles.currencyDrawerActions, styles.currencyModalActions)}>
                 <button
                   type="button"
                   className={sheetStyles.currencySpendButton}
                   disabled={!canSpendCurrency}
                   onClick={() => adjustCurrencyBalance("spend")}
                 >
-                  <Minus size={16} aria-hidden="true" className={sheetStyles.currencyActionIconSpend} />
+                  <Minus
+                    size={16}
+                    aria-hidden="true"
+                    className={sheetStyles.currencyActionIconSpend}
+                  />
                   Spend
                 </button>
                 <button
@@ -630,7 +1434,11 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
                   className={sheetStyles.currencyGainButton}
                   onClick={() => adjustCurrencyBalance("gain")}
                 >
-                  <Plus size={16} aria-hidden="true" className={sheetStyles.currencyActionIconGain} />
+                  <Plus
+                    size={16}
+                    aria-hidden="true"
+                    className={sheetStyles.currencyActionIconGain}
+                  />
                   Gain
                 </button>
               </div>
@@ -639,9 +1447,9 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
         </div>
       ) : null}
 
-      {selectedLoadoutEntry ? (
+      {selectedLoadoutEntry && selectedLoadoutEntryData ? (
         <div
-          className={sheetStyles.spellDrawerBackdrop}
+          className={clsx(sheetStyles.spellDrawerBackdrop, styles.equipmentOverlayDrawerBackdrop)}
           role="presentation"
           onClick={() => setSelectedLoadoutEntry(null)}
         >
@@ -656,15 +1464,21 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
             <div className={sheetStyles.spellDrawerHeader}>
               <div className={sheetStyles.spellDrawerHeaderContent}>
                 <p className={sheetStyles.spellDrawerBadge}>
-                  {formatCodexLabel(selectedLoadoutEntry.category)}
+                  {formatCodexLabel(selectedLoadoutEntryData.category)}
                 </p>
                 <div className={sheetStyles.spellDrawerTitleRow}>
-                  <h3 id="character-loadout-drawer-title">{selectedLoadoutEntry.name}</h3>
-                  {"rarity" in selectedLoadoutEntry ? (
-                    <RarityPill rarity={selectedLoadoutEntry.rarity} />
+                  <h3 id="character-loadout-drawer-title">{selectedLoadoutEntryData.name}</h3>
+                  {isSelectedWeaponOnHand ? (
+                    <span className={styles.drawerOnHandBadge}>
+                      <Hand size={13} aria-hidden="true" />
+                      <span>On Hand</span>
+                    </span>
+                  ) : null}
+                  {"rarity" in selectedLoadoutEntryData ? (
+                    <RarityPill rarity={selectedLoadoutEntryData.rarity} />
                   ) : null}
                 </div>
-                <p className={sheetStyles.spellDrawerSummary}>{selectedLoadoutEntry.summary}</p>
+                <p className={sheetStyles.spellDrawerSummary}>{selectedLoadoutEntryData.summary}</p>
               </div>
               <button
                 type="button"
@@ -677,55 +1491,197 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
             </div>
 
             <div className={sheetStyles.spellDrawerDetails}>
-              <div className={sheetStyles.spellDrawerDetailCard}>
-                <span>Types</span>
-                <strong>{formatCodexList(selectedLoadoutEntry.tags)}</strong>
-              </div>
-
-              {selectedLoadoutEntry.category === ENTRY_CATEGORIES.WEAPONS ? (
+              {selectedLoadoutEntryData.category === ENTRY_CATEGORIES.WEAPONS ? (
                 <>
                   <div className={sheetStyles.spellDrawerDetailCard}>
-                    <span>Damage</span>
-                    <strong>{formatDamageDice(selectedLoadoutEntry.damage)}</strong>
+                    <span>Type</span>
+                    <strong>{formatWeaponType(selectedLoadoutEntryData.type)} weapon</strong>
                   </div>
                   <div className={sheetStyles.spellDrawerDetailCard}>
-                    <span>Damage type</span>
+                    <span>Damage</span>
+                    <strong>{formatWeaponDamage(selectedLoadoutEntryData.damage)}</strong>
+                  </div>
+                  <div className={sheetStyles.spellDrawerDetailCard}>
+                    <span>Properties</span>
+                    <strong>{formatWeaponProperties(selectedLoadoutEntryData)}</strong>
+                  </div>
+                  <div className={sheetStyles.spellDrawerDetailCard}>
+                    <span>Mastery</span>
+                    <strong>{formatCodexLabel(selectedLoadoutEntryData.mastery)}</strong>
+                  </div>
+                  <div className={sheetStyles.spellDrawerDetailCard}>
+                    <span>Weight</span>
+                    <strong>{formatWeaponWeight(selectedLoadoutEntryData.weight)}</strong>
+                  </div>
+                  <div className={sheetStyles.spellDrawerDetailCard}>
+                    <span>Cost</span>
                     <strong>
-                      {selectedLoadoutEntry.damageType
-                        ? formatCodexLabel(selectedLoadoutEntry.damageType)
+                      {renderCurrencyDisplay(selectedLoadoutEntryData.cost, {
+                        classNames: {
+                          root: styles.drawerCurrencyDisplay,
+                          icon: styles.drawerCurrencyIcon
+                        },
+                        fontSize: "16px",
+                        color: "rgb(46, 32, 23)",
+                        fontWeight: 700
+                      })}
+                    </strong>
+                  </div>
+                </>
+              ) : (
+                <div className={sheetStyles.spellDrawerDetailCard}>
+                  <span>Type</span>
+                  <strong>
+                    {isSelectedCustomEntry
+                      ? selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR
+                        ? "Custom armor"
+                        : "Custom item"
+                      : formatCodexList(selectedLoadoutEntryData.tags)}
+                  </strong>
+                </div>
+              )}
+
+              {selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR ? (
+                <>
+                  <div className={sheetStyles.spellDrawerDetailCard}>
+                    <span>Armor base</span>
+                    <strong>
+                      {selectedLoadoutEntryData.armorBase > 0
+                        ? selectedLoadoutEntryData.armorBase
+                        : "-"}
+                    </strong>
+                  </div>
+                  <div className={sheetStyles.spellDrawerDetailCard}>
+                    <span>Max DEX modifier</span>
+                    <strong>{formatMaxDexModifier(selectedLoadoutEntryData.maxDexModifier)}</strong>
+                  </div>
+                  <div className={sheetStyles.spellDrawerDetailCard}>
+                    <span>Shield bonus</span>
+                    <strong>
+                      {selectedLoadoutEntryData.shieldBonus > 0
+                        ? `+${selectedLoadoutEntryData.shieldBonus}`
                         : "None"}
                     </strong>
                   </div>
                 </>
               ) : null}
 
-              {selectedLoadoutEntry.category === ENTRY_CATEGORIES.ARMOR ? (
+              {selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS ? (
                 <>
                   <div className={sheetStyles.spellDrawerDetailCard}>
-                    <span>Armor base</span>
-                    <strong>{selectedLoadoutEntry.armorBase > 0 ? selectedLoadoutEntry.armorBase : "-"}</strong>
+                    <span>Weight</span>
+                    <strong>{formatEquipmentWeight(selectedLoadoutEntryData.weight)}</strong>
                   </div>
                   <div className={sheetStyles.spellDrawerDetailCard}>
-                    <span>Max DEX modifier</span>
-                    <strong>{formatMaxDexModifier(selectedLoadoutEntry.maxDexModifier)}</strong>
-                  </div>
-                  <div className={sheetStyles.spellDrawerDetailCard}>
-                    <span>Shield bonus</span>
+                    <span>Cost</span>
                     <strong>
-                      {selectedLoadoutEntry.shieldBonus > 0 ? `+${selectedLoadoutEntry.shieldBonus}` : "None"}
+                      {renderCurrencyDisplay(selectedLoadoutEntryData.cost, {
+                        classNames: {
+                          root: styles.drawerCurrencyDisplay,
+                          icon: styles.drawerCurrencyIcon
+                        },
+                        fontSize: "16px",
+                        color: "rgb(46, 32, 23)",
+                        fontWeight: 700
+                      })}
                     </strong>
                   </div>
                 </>
               ) : null}
             </div>
 
-            <div className={styles.loadoutDrawerActions}>
+            {!isCatalogDrawerInspection ? (
+              <div className={styles.loadoutDrawerActions}>
+                {selectedLoadoutEntryData.category === ENTRY_CATEGORIES.WEAPONS ? (
+                  <button
+                    type="button"
+                    className={clsx(
+                      styles.editItemButton,
+                      !isSelectedWeaponOnHand &&
+                        !canSelectedWeaponBePutOnHand &&
+                        styles.weaponHandToggleDisabled
+                    )}
+                    disabled={!isSelectedWeaponOnHand && !canSelectedWeaponBePutOnHand}
+                    onClick={toggleWeaponOnHand}
+                  >
+                    <Hand size={15} aria-hidden="true" />
+                    {isSelectedWeaponOnHand
+                      ? "Remove From Hand"
+                      : canSelectedWeaponBePutOnHand
+                        ? "Put On Hand"
+                        : "Hands are full"}
+                  </button>
+                ) : null}
+                {selectedLoadoutEntry.customEquipmentId ? (
+                  <>
+                    <button
+                      type="button"
+                      className={styles.editItemButton}
+                      onClick={() =>
+                        openCustomEquipmentEditor(selectedLoadoutEntry.customEquipmentId!)
+                      }
+                    >
+                      Edit
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.removeItemButton}
+                      onClick={() =>
+                        setPendingDeleteCustomEquipmentId(
+                          selectedLoadoutEntry.customEquipmentId ?? null
+                        )
+                      }
+                    >
+                      Delete
+                    </button>
+                  </>
+                ) : (
+                  <button
+                    type="button"
+                    className={styles.removeItemButton}
+                    onClick={() => removeEquipmentItem(selectedLoadoutEntryData.name)}
+                  >
+                    Remove Item
+                  </button>
+                )}
+              </div>
+            ) : null}
+          </section>
+        </div>
+      ) : null}
+
+      {pendingDeleteCustomEquipment ? (
+        <div
+          className={styles.customEquipmentDeleteBackdrop}
+          role="presentation"
+          onClick={() => setPendingDeleteCustomEquipmentId(null)}
+        >
+          <section
+            className={styles.customEquipmentDeleteCard}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="custom-equipment-delete-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h4 id="custom-equipment-delete-title">Delete custom equipment?</h4>
+            <p>
+              This will permanently remove <strong>{pendingDeleteCustomEquipment.name}</strong> from
+              the character&apos;s loadout.
+            </p>
+            <div className={styles.customEquipmentDeleteActions}>
               <button
                 type="button"
-                className={styles.removeItemButton}
-                onClick={() => removeEquipmentItem(selectedLoadoutEntry.name)}
+                className={styles.customEquipmentDeleteCancelButton}
+                onClick={() => setPendingDeleteCustomEquipmentId(null)}
               >
-                Remove Item
+                Cancel
+              </button>
+              <button
+                type="button"
+                className={styles.customEquipmentDeleteConfirmButton}
+                onClick={() => deleteCustomEquipment(pendingDeleteCustomEquipment.id)}
+              >
+                Delete
               </button>
             </div>
           </section>

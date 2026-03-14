@@ -1,0 +1,11 @@
+node_modules/
+app/node_modules/
+server/node_modules/
+dist/
+app/dist/
+server/dist/
+app/dev-dist/
+coverage/
+package-lock.json
+app/package-lock.json
+server/package-lock.json
