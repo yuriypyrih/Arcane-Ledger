@@ -7,8 +7,8 @@ import coinElectrumIcon from "../../../../assets/svg/coin-electrum.svg";
 import coinGoldIcon from "../../../../assets/svg/coin.svg";
 import coinPlatinumIcon from "../../../../assets/svg/coin-platinum.svg";
 import coinSilverIcon from "../../../../assets/svg/coin-silver.svg";
-import NumberInput from "../../../../components/CharactersPage/FormInputs/NumberInput";
-import RarityPill from "../../../../components/CodexPage/RarityPill";
+import NumberInput from "../../FormInputs/NumberInput";
+import RarityPill from "../../../CodexPage/RarityPill";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import {
   CURRENCY_TYPE,
@@ -32,26 +32,26 @@ import {
   getEquipmentByName,
   getLoadoutCodexEntryByName,
   normalizeCharacterEquipmentSelectionsForClass
-} from "../../proficiency";
+} from "../../../../pages/CharactersPage/proficiency";
 import {
   findCustomEquipmentById,
   getResolvedCustomLoadoutEntries,
   isResolvedCustomLoadoutEntry,
   type ResolvedCustomLoadoutEntry
-} from "../../customEquipment";
+} from "../../../../pages/CharactersPage/customEquipment";
 import {
   canWeaponBePutOnHand,
   createHeldWeaponDescriptor,
   createCharacterEquipmentItem,
   getCharacterEquipmentItem,
   type HeldWeaponDescriptor
-} from "../../inventory";
-import type { PersistCharacterUpdater } from "../types";
-import { clampNumber } from "../utils";
-import sheetStyles from "../CharacterSheetPage.module.css";
-import shared from "./CharacterSheetSectionShared.module.css";
-import CustomEquipmentEditor from "./CustomEquipmentEditor";
-import InlineToggleButton from "./InlineToggleButton";
+} from "../../../../pages/CharactersPage/inventory";
+import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
+import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
+import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import CustomEquipmentEditor from "../CustomEquipmentEditor";
+import InlineToggleButton from "../InlineToggleButton";
 import styles from "./EquipmentForm.module.css";
 
 type EquipmentFormProps = {

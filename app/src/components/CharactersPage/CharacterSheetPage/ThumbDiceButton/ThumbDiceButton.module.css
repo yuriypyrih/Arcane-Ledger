@@ -66,7 +66,9 @@
   font-size: clamp(0.95rem, 1.5vw, 1.07rem);
   font-weight: 700;
   padding: 0 0.84rem 0 0.9rem;
-  transition: background-color 160ms ease, color 160ms ease;
+  transition:
+    background-color 160ms ease,
+    color 160ms ease;
 }
 
 .dieButton:disabled {

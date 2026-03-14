@@ -154,14 +154,8 @@
 .hpBarTempFill {
   flex: 0 0 auto;
   height: 14px;
-  background: linear-gradient(
-          90deg,
-          #f2d786 0%,
-          #fff1b8 60%,
-          #f2d786 100%
-  );
+  background: linear-gradient(90deg, #f2d786 0%, #fff1b8 60%, #f2d786 100%);
   transition: width 180ms ease;
-
 }
 .hpBarTempFill.tempOverflow {
   flex: none;

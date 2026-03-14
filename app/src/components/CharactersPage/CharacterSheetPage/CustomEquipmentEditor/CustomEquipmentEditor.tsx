@@ -1,10 +1,10 @@
 import clsx from "clsx";
 import { Plus, Trash2 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import NumberInput from "../../../../components/CharactersPage/FormInputs/NumberInput";
-import SelectInput from "../../../../components/CharactersPage/FormInputs/SelectInput";
-import TextAreaInput from "../../../../components/CharactersPage/FormInputs/TextAreaInput";
-import TextInput from "../../../../components/CharactersPage/FormInputs/TextInput";
+import NumberInput from "../../FormInputs/NumberInput";
+import SelectInput from "../../FormInputs/SelectInput";
+import TextAreaInput from "../../FormInputs/TextAreaInput";
+import TextInput from "../../FormInputs/TextInput";
 import {
   CURRENCY_TYPE,
   DAMAGE_TYPE,
@@ -15,10 +15,14 @@ import {
   WEAPON_TRAINING,
   type WeaponDamageAmount
 } from "../../../../codex/entries";
-import type { CharacterCustomEquipment, CharacterCustomItem, CharacterCustomWeapon } from "../../../../types";
-import { createCustomEquipmentId } from "../../customEquipment";
-import { clampNumber } from "../utils";
-import styles from "./EquipmentForm.module.css";
+import type {
+  CharacterCustomEquipment,
+  CharacterCustomItem,
+  CharacterCustomWeapon
+} from "../../../../types";
+import { createCustomEquipmentId } from "../../../../pages/CharactersPage/customEquipment";
+import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
+import styles from "../EquipmentForm/EquipmentForm.module.css";
 
 type CustomEquipmentEditorProps = {
   mode: "create" | "edit";
@@ -102,10 +106,9 @@ function createWeaponDraft(initialEquipment?: CharacterCustomEquipment | null): 
       rangeNormal: initialEquipment.range?.normal ?? 20,
       rangeLong: initialEquipment.range?.long ?? 60,
       ammunition: initialEquipment.range?.ammunition ?? "",
-      versatileDamage:
-        initialEquipment.versatileDamage?.map(([amount, damageType]) =>
-          createDamageRowDraft(amount, damageType)
-        ) ?? [createDamageRowDraft(DICE.D8, DAMAGE_TYPE.SLASHING)]
+      versatileDamage: initialEquipment.versatileDamage?.map(([amount, damageType]) =>
+        createDamageRowDraft(amount, damageType)
+      ) ?? [createDamageRowDraft(DICE.D8, DAMAGE_TYPE.SLASHING)]
     };
   }
 
@@ -227,8 +230,12 @@ function CustomEquipmentEditor({
   onCancel,
   onSave
 }: CustomEquipmentEditorProps) {
-  const [activeTab, setActiveTab] = useState<CustomEquipmentTab>(() => getInitialTab(initialEquipment));
-  const [weaponDraft, setWeaponDraft] = useState<WeaponDraft>(() => createWeaponDraft(initialEquipment));
+  const [activeTab, setActiveTab] = useState<CustomEquipmentTab>(() =>
+    getInitialTab(initialEquipment)
+  );
+  const [weaponDraft, setWeaponDraft] = useState<WeaponDraft>(() =>
+    createWeaponDraft(initialEquipment)
+  );
   const [itemDraft, setItemDraft] = useState<ItemDraft>(() => createItemDraft(initialEquipment));
   const [formError, setFormError] = useState<string | null>(null);
 
@@ -286,7 +293,9 @@ function CustomEquipmentEditor({
     setWeaponDraft((currentDraft) => ({
       ...currentDraft,
       [target]: currentDraft[target].map((row) =>
-        row.id === rowId ? { ...row, [field]: field === "amount" ? value.toUpperCase() : value } : row
+        row.id === rowId
+          ? { ...row, [field]: field === "amount" ? value.toUpperCase() : value }
+          : row
       )
     }));
   }
@@ -348,9 +357,7 @@ function CustomEquipmentEditor({
         ? {
             normal: Math.floor(clampNumber(weaponDraft.rangeNormal, 1, 9999, 20)),
             long: Math.floor(clampNumber(weaponDraft.rangeLong, weaponDraft.rangeNormal, 9999, 60)),
-            ...(weaponDraft.ammunition.trim()
-              ? { ammunition: weaponDraft.ammunition.trim() }
-              : {})
+            ...(weaponDraft.ammunition.trim() ? { ammunition: weaponDraft.ammunition.trim() } : {})
           }
         : undefined,
       versatileDamage: showsVersatileFields
@@ -440,7 +447,9 @@ function CustomEquipmentEditor({
 
         {activeTab === "armor" ? (
           <div className={styles.customEquipmentDisabledState}>
-            <p>Custom armor is temporarily disabled while the armor refactor is still in progress.</p>
+            <p>
+              Custom armor is temporarily disabled while the armor refactor is still in progress.
+            </p>
           </div>
         ) : null}
 
@@ -890,7 +899,11 @@ function CustomEquipmentEditor({
         {formError ? <p className={styles.customEquipmentError}>{formError}</p> : null}
 
         <div className={styles.customEquipmentActionRow}>
-          <button type="button" className={styles.customEquipmentSecondaryButton} onClick={onCancel}>
+          <button
+            type="button"
+            className={styles.customEquipmentSecondaryButton}
+            onClick={onCancel}
+          >
             Cancel
           </button>
           <button

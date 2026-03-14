@@ -2,11 +2,11 @@ import clsx from "clsx";
 import { Pencil, Save, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import SelectInput from "../../../../components/CharactersPage/FormInputs/SelectInput";
+import SelectInput from "../../FormInputs/SelectInput";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { loadPreferences, updatePreferences } from "../../../../storage/preferences";
 import type { Character, SkillName } from "../../../../types";
-import { getKeywordDescription } from "../../keywordDescriptions";
+import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
 import {
   getGrantedProficienciesForCharacter,
   getGrantedSkillProficienciesForCharacter,
@@ -16,13 +16,16 @@ import {
   normalizeToolProficiencySelections,
   toolProficiencyOptions,
   type ToolProficiency
-} from "../../proficiency";
-import { getSkillRowsByAbility } from "../../skills";
-import type { PersistCharacterUpdater, SkillLevel } from "../types";
-import { skillColumnLayout } from "../utils";
-import sheetStyles from "../CharacterSheetPage.module.css";
-import shared from "./CharacterSheetSectionShared.module.css";
-import InlineToggleButton from "./InlineToggleButton";
+} from "../../../../pages/CharactersPage/proficiency";
+import { getSkillRowsByAbility } from "../../../../pages/CharactersPage/skills";
+import type {
+  PersistCharacterUpdater,
+  SkillLevel
+} from "../../../../pages/CharactersPage/CharacterSheetPage/types";
+import { skillColumnLayout } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
+import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import InlineToggleButton from "../InlineToggleButton";
 import styles from "./SkillsAndProficienciesForm.module.css";
 
 type SkillsAndProficienciesFormProps = {
@@ -52,7 +55,10 @@ function getSkillLevelForSkill(
   return "none";
 }
 
-function SkillsAndProficienciesForm({ className, onPersistCharacter }: SkillsAndProficienciesFormProps) {
+function SkillsAndProficienciesForm({
+  className,
+  onPersistCharacter
+}: SkillsAndProficienciesFormProps) {
   const { watch } = useFormContext<Character>();
   const character = watch() as Character;
   const [isEditing, setIsEditing] = useState(false);
@@ -60,8 +66,8 @@ function SkillsAndProficienciesForm({ className, onPersistCharacter }: SkillsAnd
   const [skillExpertiseDraft, setSkillExpertiseDraft] = useState<SkillName[]>(
     () => character.skillExpertise ?? []
   );
-  const [toolProficienciesDraft, setToolProficienciesDraft] = useState<ToolProficiency[]>(
-    () => normalizeToolProficiencySelections(character.toolProficiencies ?? [])
+  const [toolProficienciesDraft, setToolProficienciesDraft] = useState<ToolProficiency[]>(() =>
+    normalizeToolProficiencySelections(character.toolProficiencies ?? [])
   );
   const [isProficienciesVisible, setIsProficienciesVisible] = useState(
     () => loadPreferences().skillsProficienciesVisible
@@ -118,12 +124,13 @@ function SkillsAndProficienciesForm({ className, onPersistCharacter }: SkillsAnd
   const normalizedManualToolProficiencies = normalizeToolProficiencySelections(
     character.toolProficiencies ?? []
   );
-  const normalizedManualToolProficienciesDraft = normalizeToolProficiencySelections(
-    toolProficienciesDraft
-  );
+  const normalizedManualToolProficienciesDraft =
+    normalizeToolProficiencySelections(toolProficienciesDraft);
 
   const displayedManualSkills = isEditing ? normalizedManualSkillsDraft : normalizedManualSkills;
-  const displayedSkillExpertise = isEditing ? normalizedSkillExpertiseDraft : normalizedSkillExpertise;
+  const displayedSkillExpertise = isEditing
+    ? normalizedSkillExpertiseDraft
+    : normalizedSkillExpertise;
   const displayedManualToolProficiencies = isEditing
     ? normalizedManualToolProficienciesDraft
     : normalizedManualToolProficiencies;
@@ -149,27 +156,34 @@ function SkillsAndProficienciesForm({ className, onPersistCharacter }: SkillsAnd
   );
   const displayedManualProficiencyLabels = [
     ...displayedManualSkills,
-    ...displayedManualToolProficiencies.map((toolProficiency) => getToolProficiencyLabel(toolProficiency))
+    ...displayedManualToolProficiencies.map((toolProficiency) =>
+      getToolProficiencyLabel(toolProficiency)
+    )
   ];
   const areProficienciesVisible = isEditing || isProficienciesVisible;
 
   function beginEditing() {
     setSkillsDraft(character.skills ?? []);
     setSkillExpertiseDraft(character.skillExpertise ?? []);
-    setToolProficienciesDraft(normalizeToolProficiencySelections(character.toolProficiencies ?? []));
+    setToolProficienciesDraft(
+      normalizeToolProficiencySelections(character.toolProficiencies ?? [])
+    );
     setIsEditing(true);
   }
 
   function cancelEditing() {
     setSkillsDraft(character.skills ?? []);
     setSkillExpertiseDraft(character.skillExpertise ?? []);
-    setToolProficienciesDraft(normalizeToolProficiencySelections(character.toolProficiencies ?? []));
+    setToolProficienciesDraft(
+      normalizeToolProficiencySelections(character.toolProficiencies ?? [])
+    );
     setIsEditing(false);
   }
 
   function saveSkillsAndProficiencies() {
     const normalizedManualSkillsToSave = normalizeManualSkillSelections(skillsDraft);
-    const normalizedToolProficienciesToSave = normalizeToolProficiencySelections(toolProficienciesDraft);
+    const normalizedToolProficienciesToSave =
+      normalizeToolProficiencySelections(toolProficienciesDraft);
     const normalizedSkillExpertiseToSave = normalizeSkillExpertiseSelectionsForCharacter(
       character.className,
       character.species,
@@ -326,7 +340,9 @@ function SkillsAndProficienciesForm({ className, onPersistCharacter }: SkillsAnd
                               )}
                             >
                               <strong className={styles.skillRowModifier}>
-                                {row.totalModifier >= 0 ? `+${row.totalModifier}` : row.totalModifier}
+                                {row.totalModifier >= 0
+                                  ? `+${row.totalModifier}`
+                                  : row.totalModifier}
                               </strong>
                               <button
                                 type="button"
@@ -440,7 +456,11 @@ function SkillsAndProficienciesForm({ className, onPersistCharacter }: SkillsAnd
 
         {isEditing ? (
           <div className={shared.formActions}>
-            <button type="button" className={shared.saveButton} onClick={saveSkillsAndProficiencies}>
+            <button
+              type="button"
+              className={shared.saveButton}
+              onClick={saveSkillsAndProficiencies}
+            >
               <Save size={16} />
               Save
             </button>

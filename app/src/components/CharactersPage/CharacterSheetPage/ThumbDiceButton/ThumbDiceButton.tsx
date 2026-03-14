@@ -1,7 +1,7 @@
 import clsx from "clsx";
 import { X } from "lucide-react";
 import { useState } from "react";
-import { useDiceRollerPopup } from "../../../../components/DicePage/DiceRollerPopup";
+import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import d20Icon from "../../../../assets/svg/d20.svg";
 import type { DiceSelection, DiceSides } from "../../../../types";
 import { createEmptySelection, selectableDice } from "../../../../utils/dice";

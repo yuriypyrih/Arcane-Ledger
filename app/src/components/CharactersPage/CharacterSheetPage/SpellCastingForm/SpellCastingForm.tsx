@@ -2,8 +2,8 @@ import clsx from "clsx";
 import { Pencil, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import SelectInput from "../../../../components/CharactersPage/FormInputs/SelectInput";
-import RarityPill from "../../../../components/CodexPage/RarityPill";
+import SelectInput from "../../FormInputs/SelectInput";
+import RarityPill from "../../../CodexPage/RarityPill";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { ENTRY_CATEGORIES, type SpellEntry } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
@@ -15,11 +15,18 @@ import {
   getSpellSlotTotalsForCharacter,
   isSpellcastingClass,
   normalizeSpellSlotsExpended
-} from "../../spellcasting";
-import type { PersistCharacterUpdater, SpellManagementMode } from "../types";
-import { clampNumber, formatSpellGroupTitle, spellSlotLevels } from "../utils";
-import sheetStyles from "../CharacterSheetPage.module.css";
-import shared from "./CharacterSheetSectionShared.module.css";
+} from "../../../../pages/CharactersPage/spellcasting";
+import type {
+  PersistCharacterUpdater,
+  SpellManagementMode
+} from "../../../../pages/CharactersPage/CharacterSheetPage/types";
+import {
+  clampNumber,
+  formatSpellGroupTitle,
+  spellSlotLevels
+} from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
+import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./SpellCastingForm.module.css";
 
 type SpellCastingFormProps = {
@@ -63,7 +70,10 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
 
   const canCastSpells = isSpellcastingClass(character.className);
   const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
   const spellSlotsRemaining = spellSlotTotals.map((total, index) =>
     Math.max(0, total - (spellSlotsExpended[index] ?? 0))
   );
@@ -89,7 +99,8 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
 
   const selectedSpellLevel = selectedSpell ? getSpellLevel(selectedSpell) : null;
   const activeSpellLevel = selectedSpellLevel ?? 0;
-  const minimumSelectedSlotLevel = selectedSpellLevel !== null ? Math.max(1, selectedSpellLevel) : 1;
+  const minimumSelectedSlotLevel =
+    selectedSpellLevel !== null ? Math.max(1, selectedSpellLevel) : 1;
   const normalizedSelectedSpellSlotLevel = clampNumber(
     selectedSpellSlotLevel,
     minimumSelectedSlotLevel,
@@ -188,13 +199,15 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
     const preferredSlotLevel =
       spellLevel === 0
         ? 1
-        : spellSlotLevels.find(
-            (slotLevel) => slotLevel >= minimumSlotLevel && (spellSlotsRemaining[slotLevel - 1] ?? 0) > 0
+        : (spellSlotLevels.find(
+            (slotLevel) =>
+              slotLevel >= minimumSlotLevel && (spellSlotsRemaining[slotLevel - 1] ?? 0) > 0
           ) ??
           spellSlotLevels.find(
-            (slotLevel) => slotLevel >= minimumSlotLevel && (spellSlotTotals[slotLevel - 1] ?? 0) > 0
+            (slotLevel) =>
+              slotLevel >= minimumSlotLevel && (spellSlotTotals[slotLevel - 1] ?? 0) > 0
           ) ??
-          minimumSlotLevel;
+          minimumSlotLevel);
 
     setSelectedSpellSlotLevel(preferredSlotLevel);
     setSelectedSpell(spell);
@@ -243,7 +256,11 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
 
   return (
     <article
-      className={clsx(shared.sectionCard, className, !canCastSpells && styles.spellcastingSectionDisabled)}
+      className={clsx(
+        shared.sectionCard,
+        className,
+        !canCastSpells && styles.spellcastingSectionDisabled
+      )}
     >
       <div className={shared.sectionHeader}>
         <div>
@@ -376,11 +393,15 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
               <>
                 <div className={sheetStyles.spellManagementList}>
                   {editableSpellGroupRows.length === 0 ? (
-                    <p className={shared.emptyText}>No spells available for this class and level yet.</p>
+                    <p className={shared.emptyText}>
+                      No spells available for this class and level yet.
+                    </p>
                   ) : (
                     editableSpellGroupRows.map((group) => (
                       <div key={group.level} className={sheetStyles.spellManagementGroup}>
-                        <p className={sheetStyles.spellGroupTitle}>{formatSpellGroupTitle(group.level)}</p>
+                        <p className={sheetStyles.spellGroupTitle}>
+                          {formatSpellGroupTitle(group.level)}
+                        </p>
                         <ul className={sheetStyles.spellManagementChoiceList}>
                           {group.spells.map((spell) => (
                             <li key={spell.id}>
@@ -407,7 +428,11 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
                   >
                     Back
                   </button>
-                  <button type="button" className={sheetStyles.saveButton} onClick={saveKnownSpells}>
+                  <button
+                    type="button"
+                    className={sheetStyles.saveButton}
+                    onClick={saveKnownSpells}
+                  >
                     Save spells
                   </button>
                 </div>
@@ -433,7 +458,9 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
             <div className={sheetStyles.spellDrawerHandle} aria-hidden="true" />
             <div className={sheetStyles.spellDrawerHeader}>
               <div className={sheetStyles.spellDrawerHeaderContent}>
-                <p className={sheetStyles.spellDrawerBadge}>{formatCodexLabel(ENTRY_CATEGORIES.SPELLS)}</p>
+                <p className={sheetStyles.spellDrawerBadge}>
+                  {formatCodexLabel(ENTRY_CATEGORIES.SPELLS)}
+                </p>
                 <div className={sheetStyles.spellDrawerTitleRow}>
                   <h3 id="character-spell-drawer-title">{selectedSpell.name}</h3>
                   <RarityPill rarity={selectedSpell.rarity} />
@@ -465,7 +492,9 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
               </div>
               <div className={sheetStyles.spellDrawerDetailCard}>
                 <span>Damage type</span>
-                <strong>{selectedSpell.damageType ? formatCodexLabel(selectedSpell.damageType) : "None"}</strong>
+                <strong>
+                  {selectedSpell.damageType ? formatCodexLabel(selectedSpell.damageType) : "None"}
+                </strong>
               </div>
             </div>
 
@@ -484,7 +513,9 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
                     value={normalizedSelectedSpellSlotLevel}
                     disabled={activeSpellLevel === 0}
                     className={sheetStyles.spellSlotSelect}
-                    onChange={(event) => setSelectedSpellSlotLevel(clampNumber(event.target.value, 1, 9, 1))}
+                    onChange={(event) =>
+                      setSelectedSpellSlotLevel(clampNumber(event.target.value, 1, 9, 1))
+                    }
                   >
                     {spellSlotLevels.map((slotLevel) => {
                       const totalSlots = spellSlotTotals[slotLevel - 1] ?? 0;

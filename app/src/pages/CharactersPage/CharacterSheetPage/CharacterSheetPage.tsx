@@ -1,8 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { FormProvider, useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import type { Character } from "../../../types";
-import { findCharacter, upsertCharacter } from "../storage";
 import {
   CharacterProfileForm,
   CharacterStatsForm,
@@ -11,7 +9,9 @@ import {
   SkillsAndProficienciesForm,
   SpellCastingForm,
   ThumbDiceButton
-} from "./components";
+} from "../../../components/CharactersPage/CharacterSheetPage";
+import type { Character } from "../../../types";
+import { findCharacter, upsertCharacter } from "../storage";
 import type { PersistCharacterUpdater } from "./types";
 import styles from "./CharacterSheetPage.module.css";
 
@@ -85,9 +85,15 @@ function CharacterSheetPage() {
 
       <FormProvider {...characterForm}>
         <div className={styles.cascadeStack}>
-          <CharacterProfileForm className={styles.cascadeOne} onPersistCharacter={persistCharacter} />
+          <CharacterProfileForm
+            className={styles.cascadeOne}
+            onPersistCharacter={persistCharacter}
+          />
           <GameplayForm className={styles.cascadeTwo} onPersistCharacter={persistCharacter} />
-          <CharacterStatsForm className={styles.cascadeThree} onPersistCharacter={persistCharacter} />
+          <CharacterStatsForm
+            className={styles.cascadeThree}
+            onPersistCharacter={persistCharacter}
+          />
           <SkillsAndProficienciesForm
             className={styles.cascadeFour}
             onPersistCharacter={persistCharacter}

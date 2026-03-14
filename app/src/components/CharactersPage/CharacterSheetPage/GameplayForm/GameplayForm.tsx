@@ -13,22 +13,25 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import NumberInput from "../../../../components/CharactersPage/FormInputs/NumberInput";
-import SelectInput from "../../../../components/CharactersPage/FormInputs/SelectInput";
-import { useDiceRollerPopup } from "../../../../components/DicePage/DiceRollerPopup";
+import NumberInput from "../../FormInputs/NumberInput";
+import SelectInput from "../../FormInputs/SelectInput";
+import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import type { Character } from "../../../../types";
 import {
   formatAbilityModifier,
   getAutomaticMaxHitPointsForCharacter,
   getWeaponActionsForCharacter
-} from "../../gameplay";
-import type { HpDraft, PersistCharacterUpdater } from "../types";
-import { clampNumber } from "../utils";
-import sheetStyles from "../CharacterSheetPage.module.css";
-import shared from "./CharacterSheetSectionShared.module.css";
+} from "../../../../pages/CharactersPage/gameplay";
+import type {
+  HpDraft,
+  PersistCharacterUpdater
+} from "../../../../pages/CharactersPage/CharacterSheetPage/types";
+import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
+import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./GameplayForm.module.css";
-import TemporaryHitPoints from "./TemporaryHitPoints";
+import TemporaryHitPoints from "../TemporaryHitPoints";
 
 type GameplayFormProps = {
   className?: string;

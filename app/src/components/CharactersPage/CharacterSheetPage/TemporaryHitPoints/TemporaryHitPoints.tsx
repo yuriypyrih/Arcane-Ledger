@@ -1,12 +1,12 @@
 import clsx from "clsx";
 import { Shield, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import NumberInput from "../../../../components/CharactersPage/FormInputs/NumberInput";
+import NumberInput from "../../FormInputs/NumberInput";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
-import type { PersistCharacterUpdater } from "../types";
-import { clampNumber } from "../utils";
-import sheetStyles from "../CharacterSheetPage.module.css";
-import shared from "./CharacterSheetSectionShared.module.css";
+import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
+import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
+import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./TemporaryHitPoints.module.css";
 
 type TemporaryHitPointsProps = {

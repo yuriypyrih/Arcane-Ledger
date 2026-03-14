@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import shared from "./CharacterSheetSectionShared.module.css";
+import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 
 type InlineToggleButtonProps = {
   label: string;

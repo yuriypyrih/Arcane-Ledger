@@ -2,27 +2,40 @@ import clsx from "clsx";
 import { Pencil, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import NumberInput from "../../../../components/CharactersPage/FormInputs/NumberInput";
-import SelectInput from "../../../../components/CharactersPage/FormInputs/SelectInput";
-import TextAreaInput from "../../../../components/CharactersPage/FormInputs/TextAreaInput";
-import TextInput from "../../../../components/CharactersPage/FormInputs/TextInput";
+import NumberInput from "../../FormInputs/NumberInput";
+import SelectInput from "../../FormInputs/SelectInput";
+import TextAreaInput from "../../FormInputs/TextAreaInput";
+import TextInput from "../../FormInputs/TextInput";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import type { Character } from "../../../../types";
-import { MAX_CHARACTER_LEVEL, getMinimumXpForLevel, getNextLevelThreshold, getXpProgressPercent } from "../../experience";
-import { classOptions, speciesOptions } from "../../constants";
+import {
+  MAX_CHARACTER_LEVEL,
+  getMinimumXpForLevel,
+  getNextLevelThreshold,
+  getXpProgressPercent
+} from "../../../../pages/CharactersPage/experience";
+import { classOptions, speciesOptions } from "../../../../pages/CharactersPage/constants";
 import {
   backgroundOptions,
   isBackgroundName,
   normalizeCharacterEquipmentSelectionsForClass,
   normalizeManualSkillSelections,
   normalizeSkillExpertiseSelectionsForCharacter
-} from "../../proficiency";
-import type { IdentityDraft, PersistCharacterUpdater, XpDraft } from "../types";
-import { alignmentOptions, clampNumber, formatCount } from "../utils";
-import sheetStyles from "../CharacterSheetPage.module.css";
-import shared from "./CharacterSheetSectionShared.module.css";
+} from "../../../../pages/CharactersPage/proficiency";
+import type {
+  IdentityDraft,
+  PersistCharacterUpdater,
+  XpDraft
+} from "../../../../pages/CharactersPage/CharacterSheetPage/types";
+import {
+  alignmentOptions,
+  clampNumber,
+  formatCount
+} from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
+import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./CharacterProfileForm.module.css";
-import InlineToggleButton from "./InlineToggleButton";
+import InlineToggleButton from "../InlineToggleButton";
 
 type CharacterProfileFormProps = {
   className?: string;
@@ -53,7 +66,9 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
   const character = watch() as Character;
   const [isEditing, setIsEditing] = useState(false);
   const [isBackgroundVisible, setIsBackgroundVisible] = useState(false);
-  const [identityDraft, setIdentityDraft] = useState<IdentityDraft>(() => createIdentityDraft(character));
+  const [identityDraft, setIdentityDraft] = useState<IdentityDraft>(() =>
+    createIdentityDraft(character)
+  );
   const [xpDraft, setXpDraft] = useState<XpDraft>(() => createXpDraft(character));
   const [xpAddAmount, setXpAddAmount] = useState(300);
   const [isXpPopupOpen, setIsXpPopupOpen] = useState(false);
@@ -450,7 +465,10 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
                 <strong>{formatCount(character.xp)}</strong>
               </div>
               <div
-                className={clsx(sheetStyles.xpProgressMetaItem, sheetStyles.xpProgressMetaItemRight)}
+                className={clsx(
+                  sheetStyles.xpProgressMetaItem,
+                  sheetStyles.xpProgressMetaItemRight
+                )}
               >
                 <span>Next Level XP</span>
                 <strong>{nextLevelXpLabel}</strong>
@@ -458,7 +476,10 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
             </div>
 
             <div className={sheetStyles.xpProgressTrack}>
-              <div className={sheetStyles.xpProgressFill} style={{ width: `${xpProgressPercent}%` }} />
+              <div
+                className={sheetStyles.xpProgressFill}
+                style={{ width: `${xpProgressPercent}%` }}
+              />
             </div>
 
             {isXpManualEditMode ? (
@@ -473,7 +494,12 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
                       onChange={(event) =>
                         setXpDraft((current) => ({
                           ...current,
-                          level: clampNumber(event.target.value, 1, MAX_CHARACTER_LEVEL, current.level)
+                          level: clampNumber(
+                            event.target.value,
+                            1,
+                            MAX_CHARACTER_LEVEL,
+                            current.level
+                          )
                         }))
                       }
                     />
@@ -493,14 +519,22 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
                   </label>
                 </div>
                 <p className={sheetStyles.helperText}>
-                  XP and level auto-correct on save: XP is raised to level minimum, and level increases when XP
-                  reaches a higher threshold.
+                  XP and level auto-correct on save: XP is raised to level minimum, and level
+                  increases when XP reaches a higher threshold.
                 </p>
                 <div className={sheetStyles.formActions}>
-                  <button type="button" className={sheetStyles.saveButton} onClick={saveXpManualEdit}>
+                  <button
+                    type="button"
+                    className={sheetStyles.saveButton}
+                    onClick={saveXpManualEdit}
+                  >
                     Save values
                   </button>
-                  <button type="button" className={sheetStyles.cancelButton} onClick={cancelXpManualEdit}>
+                  <button
+                    type="button"
+                    className={sheetStyles.cancelButton}
+                    onClick={cancelXpManualEdit}
+                  >
                     Cancel
                   </button>
                 </div>
@@ -532,7 +566,11 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
                   >
                     Add 1 level
                   </button>
-                  <button type="button" className={sheetStyles.editButton} onClick={beginXpManualEdit}>
+                  <button
+                    type="button"
+                    className={sheetStyles.editButton}
+                    onClick={beginXpManualEdit}
+                  >
                     <Pencil size={16} />
                     Edit
                   </button>

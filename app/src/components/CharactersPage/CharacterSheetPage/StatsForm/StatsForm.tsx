@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { Component, Diamond, Pencil, Save, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import NumberInput from "../../../../components/CharactersPage/FormInputs/NumberInput";
+import NumberInput from "../../FormInputs/NumberInput";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import {
   loadPreferences,
@@ -10,13 +10,13 @@ import {
   type StatsViewMode
 } from "../../../../storage/preferences";
 import type { AbilityKey, Character, CoreStats } from "../../../../types";
-import { getKeywordDescription } from "../../keywordDescriptions";
+import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
 import {
   abilityKeys,
   createDefaultCoreStats,
   getPointBuyRemaining,
   normalizePointBuyAbilities
-} from "../../constants";
+} from "../../../../pages/CharactersPage/constants";
 import {
   formatAbilityModifier,
   getAbilityModifier,
@@ -28,11 +28,18 @@ import {
   getProficiencyBonus,
   getSavingThrowProficienciesForClass,
   getSpeedForCharacter
-} from "../../gameplay";
-import type { AbilitiesDraft, PersistCharacterUpdater } from "../types";
-import { clampNumber, cloneAbilityScores, normalizeCustomAbilityScores } from "../utils";
-import sheetStyles from "../CharacterSheetPage.module.css";
-import shared from "./CharacterSheetSectionShared.module.css";
+} from "../../../../pages/CharactersPage/gameplay";
+import type {
+  AbilitiesDraft,
+  PersistCharacterUpdater
+} from "../../../../pages/CharactersPage/CharacterSheetPage/types";
+import {
+  clampNumber,
+  cloneAbilityScores,
+  normalizeCustomAbilityScores
+} from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
+import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./StatsForm.module.css";
 
 type StatsTab = "core" | "modifiers" | "savingThrows";
@@ -70,7 +77,9 @@ function createAbilitiesDraft(character: Character): AbilitiesDraft {
 }
 
 function getSavingThrowProficiencies(character: Character): AbilityKey[] {
-  return character.savingThrowProficiencies ?? getSavingThrowProficienciesForClass(character.className);
+  return (
+    character.savingThrowProficiencies ?? getSavingThrowProficienciesForClass(character.className)
+  );
 }
 
 function normalizeSavingThrowSelections(values: AbilityKey[]): AbilityKey[] {
@@ -132,7 +141,8 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
   const proficiencyBonus = getProficiencyBonus(character.level);
   const isTabMode = statsViewMode === "tabs";
   const isAbilityEditorActive = editingTab === "modifiers";
-  const displayedAbilities = isEditing && isAbilityEditorActive ? abilitiesDraft.abilities : character.abilities;
+  const displayedAbilities =
+    isEditing && isAbilityEditorActive ? abilitiesDraft.abilities : character.abilities;
   const staticCoreStats = character.coreStats ?? createDefaultCoreStats();
   const displayedCoreStats: CoreStats = {
     ...staticCoreStats,
@@ -302,7 +312,9 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
               onClick={() => openStatReference(field.label)}
             >
               <div className={styles.modifierLabelRow}>
-                <span className={clsx(styles.modifierLabel, styles.coreStatLabel)}>{field.label}</span>
+                <span className={clsx(styles.modifierLabel, styles.coreStatLabel)}>
+                  {field.label}
+                </span>
               </div>
               <strong>{displayedCoreStats[field.key]}</strong>
             </button>
@@ -397,7 +409,10 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
                     {card.ability}: {card.score}
                   </span>
                   {card.ability === mainAbility ? (
-                    <span className={styles.modifierStar} aria-label="Primary attack or spell ability">
+                    <span
+                      className={styles.modifierStar}
+                      aria-label="Primary attack or spell ability"
+                    >
                       *
                     </span>
                   ) : null}
@@ -432,7 +447,9 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
 
         {isSectionEditing ? (
           <>
-            <p className={shared.helperText}>Select the saving throw proficiencies for this character.</p>
+            <p className={shared.helperText}>
+              Select the saving throw proficiencies for this character.
+            </p>
             <div className={styles.modifierGrid}>
               {savingThrowCards.map((card) => (
                 <label
@@ -449,7 +466,9 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
                     </span>
                   </div>
                   <strong
-                    className={clsx(card.isSavingThrowProficient && styles.savingThrowValueProficient)}
+                    className={clsx(
+                      card.isSavingThrowProficient && styles.savingThrowValueProficient
+                    )}
                   >
                     {card.totalSavingThrow}
                   </strong>
@@ -480,7 +499,9 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
                   </span>
                 </div>
                 <strong
-                  className={clsx(card.isSavingThrowProficient && styles.savingThrowValueProficient)}
+                  className={clsx(
+                    card.isSavingThrowProficient && styles.savingThrowValueProficient
+                  )}
                 >
                   {card.totalSavingThrow}
                 </strong>
@@ -556,7 +577,10 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
             title={isTabMode ? "Switch to full view" : "Switch to tab view"}
           >
             <span
-              className={clsx(styles.viewSwitchIconSlot, isTabMode && styles.viewSwitchIconSlotActive)}
+              className={clsx(
+                styles.viewSwitchIconSlot,
+                isTabMode && styles.viewSwitchIconSlotActive
+              )}
             >
               <Diamond size={16} />
             </span>
@@ -602,7 +626,9 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
                 <div className={sheetStyles.spellDrawerTitleRow}>
                   <h3 id="character-stats-reference-title">{selectedStatReference.keyword}</h3>
                 </div>
-                <p className={sheetStyles.spellDrawerSummary}>{selectedStatReference.description}</p>
+                <p className={sheetStyles.spellDrawerSummary}>
+                  {selectedStatReference.description}
+                </p>
               </div>
               <button
                 type="button"
