@@ -93,6 +93,7 @@ export function createEmptyCharacter(): CharacterDraft {
     xp: 0,
     hitPoints: 8,
     currentHitPoints: 8,
+    temporaryHitPoints: 0,
     maxHitPointsMode: preferences.defaultMaxHitPointsMode,
     hitDiceRemaining: 1,
     attributeMode: "custom",
@@ -110,6 +111,7 @@ export function createEmptyCharacter(): CharacterDraft {
       failures: 0
     },
     equipment: [],
+    customEquipment: [],
     knownSpellIds: [],
     spellSlotsExpended: Array.from({ length: 9 }, () => 0),
     shortRestsUsedToday: 0,

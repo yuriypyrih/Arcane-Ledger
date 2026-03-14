@@ -1,7 +1,12 @@
 import { useNavigate } from "react-router-dom";
-import { ARMOR_TYPES, ENTRY_CATEGORIES, WEAPON_TYPES } from "../../../codex/entries";
+import { ARMOR_TYPES, ENTRY_CATEGORIES } from "../../../codex/entries";
 import type { CodexEntry, CodexStatus } from "../../../types";
-import { formatCodexLabel, formatCodexList, truncateCodexText } from "../../../utils/codex";
+import {
+  formatCodexLabel,
+  formatCodexList,
+  formatWeaponType,
+  truncateCodexText
+} from "../../../utils/codex";
 import type { CodexFilterCategory } from "../../../utils/codex";
 import RarityPill from "../RarityPill";
 import styles from "./CodexResults.module.css";
@@ -11,13 +16,6 @@ type CodexResultsProps = {
   status: CodexStatus;
   category: CodexFilterCategory;
 };
-
-const weaponDisplayTypePriority: WEAPON_TYPES[] = [
-  WEAPON_TYPES.SIMPLE_MELEE,
-  WEAPON_TYPES.SIMPLE_RANGED,
-  WEAPON_TYPES.MARTIAL_MELEE,
-  WEAPON_TYPES.MARTIAL_RANGED
-];
 
 function getItemTypeSubtitle(entry: CodexEntry): string | null {
   if (entry.category === ENTRY_CATEGORIES.ARMOR) {
@@ -34,10 +32,7 @@ function getItemTypeSubtitle(entry: CodexEntry): string | null {
   }
 
   if (entry.category === ENTRY_CATEGORIES.WEAPONS) {
-    const weaponType =
-      weaponDisplayTypePriority.find((type) => entry.tags.includes(type)) ?? entry.tags[0];
-
-    return weaponType ? `${formatCodexLabel(weaponType)} Weapon` : null;
+    return `${formatWeaponType(entry.type)} weapon`;
   }
 
   if (entry.category === ENTRY_CATEGORIES.ITEMS) {

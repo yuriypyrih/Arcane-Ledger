@@ -1,3 +1,11 @@
+import type {
+  EquipmentCost,
+  WeaponDamage,
+  WeaponRange,
+  WeaponType,
+  WEAPON_MASTERY,
+  WEAPON_PROPERTY
+} from "../codex/entries";
 import type { SkillName } from "./skills";
 
 export type AbilityKey = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
@@ -43,6 +51,50 @@ export type CharacterDeathSaves = {
   failures: number;
 };
 
+export type CharacterEquipmentItem = {
+  name: string;
+  onHand: boolean;
+};
+
+export type CustomArmorType = "light" | "medium" | "heavy" | "shield";
+
+export type CharacterCustomEquipmentBase = {
+  id: string;
+  name: string;
+  description: string;
+  cost: EquipmentCost;
+  weight: number | null;
+};
+
+export type CharacterCustomWeapon = CharacterCustomEquipmentBase & {
+  kind: "weapon";
+  onHand: boolean;
+  type: WeaponType;
+  damage: WeaponDamage;
+  properties: WEAPON_PROPERTY[];
+  mastery: WEAPON_MASTERY;
+  range?: WeaponRange;
+  versatileDamage?: WeaponDamage;
+  propertyNotes?: Partial<Record<WEAPON_PROPERTY, string>>;
+};
+
+export type CharacterCustomArmor = CharacterCustomEquipmentBase & {
+  kind: "armor";
+  armorType: CustomArmorType;
+  armorBase: number;
+  maxDexModifier: number | null;
+  shieldBonus: number;
+};
+
+export type CharacterCustomItem = CharacterCustomEquipmentBase & {
+  kind: "item";
+};
+
+export type CharacterCustomEquipment =
+  | CharacterCustomWeapon
+  | CharacterCustomArmor
+  | CharacterCustomItem;
+
 export type Alignment =
   | "Lawful Good"
   | "Neutral Good"
@@ -63,6 +115,7 @@ export type Character = {
   xp: number;
   hitPoints: number;
   currentHitPoints: number;
+  temporaryHitPoints: number;
   maxHitPointsMode?: "automatic" | "custom";
   attributeMode: AttributeMode;
   abilities: AbilityScores;
@@ -77,11 +130,14 @@ export type Character = {
   hitDiceRemaining?: number;
   conditions?: CharacterCondition[];
   deathSaves?: CharacterDeathSaves;
-  equipment: string[];
+  equipment: CharacterEquipmentItem[];
+  customEquipment: CharacterCustomEquipment[];
   knownSpellIds?: string[];
   spellSlotsExpended?: number[];
   shortRestsUsedToday?: number;
   coreStats?: CoreStats;
 };
 
-export type CharacterDraft = Omit<Character, "id">;
+export type CharacterDraft = Omit<Character, "id" | "equipment"> & {
+  equipment: string[];
+};

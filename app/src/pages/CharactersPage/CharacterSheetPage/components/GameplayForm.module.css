@@ -104,13 +104,23 @@
   gap: 0.75rem;
 }
 
+.hpValueRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.38rem;
+}
+
 .hpSummary strong {
+  display: inline-flex;
+  align-items: center;
   font-size: 1.08rem;
+  line-height: 1;
 }
 
 .hpSummary span {
   color: var(--color-ink-soft);
   font-size: 0.85rem;
+  line-height: 1;
 }
 
 .hpActionRow {
@@ -128,10 +138,35 @@
   overflow: hidden;
 }
 
+.hpBarMeter {
+  display: flex;
+  block-size: 100%;
+  position: relative;
+}
+
 .hpBarFill {
+  flex: 0 0 auto;
   block-size: 100%;
   background: linear-gradient(90deg, #953f30, #bc5d49, #d7965f);
   transition: width 180ms ease;
+}
+
+.hpBarTempFill {
+  flex: 0 0 auto;
+  height: 14px;
+  background: linear-gradient(
+          90deg,
+          #f2d786 0%,
+          #fff1b8 60%,
+          #f2d786 100%
+  );
+  transition: width 180ms ease;
+
+}
+.hpBarTempFill.tempOverflow {
+  flex: none;
+  position: absolute;
+  right: 0;
 }
 
 .hpStepControl {
@@ -414,6 +449,14 @@
 }
 
 @media (max-width: 620px) {
+  .hpSummary {
+    gap: 0.6rem;
+  }
+
+  .hpValueRow {
+    gap: 0.3rem;
+  }
+
   .hpActionRow {
     gap: 0.42rem;
   }

@@ -796,6 +796,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       currentHitPoints: isEditing
         ? clampNumber(String(values.currentHitPoints), 0, maxHitPoints, maxHitPoints)
         : maxHitPoints,
+      temporaryHitPoints: clampNumber(String(values.temporaryHitPoints), 0, 999, 0),
       background: resolvedBackground,
       backgroundNotes: values.backgroundNotes.trim(),
       alignment: alignmentOptions.includes(values.alignment) ? values.alignment : "True Neutral",
@@ -885,6 +886,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const randomizedCustomAbilities =
       randomMode === "custom" ? randomizedAbilities : createRandomCustomAbilities();
     const randomizedDraft: CharacterDraft = {
+      ...createEmptyCharacter(),
       name: createRandomName(),
       species: getRandomItem(speciesOptions),
       className: randomClassName,
@@ -1463,6 +1465,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         noValidate
       >
         <input type="hidden" {...register("currentHitPoints", { valueAsNumber: true })} />
+        <input type="hidden" {...register("temporaryHitPoints", { valueAsNumber: true })} />
 
         {isEditing ? (
           <>

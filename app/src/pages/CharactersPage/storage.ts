@@ -12,7 +12,7 @@ import {
 } from "./constants";
 import {
   isBackgroundName,
-  normalizeEquipmentSelectionsForClass,
+  normalizeCharacterEquipmentSelectionsForClass,
   normalizeManualSkillSelections,
   normalizeSkillExpertiseSelectionsForCharacter,
   normalizeToolProficiencySelections
@@ -23,6 +23,7 @@ import {
 } from "./spellcasting";
 import { normalizeLevelAndXp } from "./experience";
 import { getSavingThrowProficienciesForClass } from "./gameplay";
+import { normalizeCustomEquipmentEntries } from "./customEquipment";
 
 function clampNumber(value: unknown, min: number, max: number, fallback: number): number {
   const parsedValue = Number(value);
@@ -193,8 +194,10 @@ function normalizeCharacter(value: unknown): Character | null {
     savingThrowProficiencies?: unknown;
     hitDiceRemaining?: unknown;
     maxHitPointsMode?: unknown;
+    temporaryHitPoints?: unknown;
     conditions?: unknown;
     deathSaves?: unknown;
+    customEquipment?: unknown;
   };
   const id = Number(record.id);
 
@@ -231,7 +234,7 @@ function normalizeCharacter(value: unknown): Character | null {
     ? (record.skills as unknown[]).filter((skill): skill is string => typeof skill === "string")
     : defaults.skills;
   const rawEquipment = Array.isArray(record.equipment)
-    ? record.equipment.filter((item): item is string => typeof item === "string")
+    ? record.equipment
     : defaults.equipment;
   const rawSkillExpertise = Array.isArray(record.skillExpertise)
     ? (record.skillExpertise as unknown[]).filter((skill): skill is string => typeof skill === "string")
@@ -242,8 +245,12 @@ function normalizeCharacter(value: unknown): Character | null {
       )
     : (defaults.toolProficiencies ?? []);
   const normalizedSkills = normalizeManualSkillSelections(rawSkills);
-  const normalizedEquipment = normalizeEquipmentSelectionsForClass(normalizedClassName, rawEquipment);
+  const normalizedEquipment = normalizeCharacterEquipmentSelectionsForClass(
+    normalizedClassName,
+    rawEquipment
+  );
   const normalizedToolProficiencies = normalizeToolProficiencySelections(rawToolProficiencies);
+  const normalizedCustomEquipment = normalizeCustomEquipmentEntries(record.customEquipment);
   const normalizedSkillExpertise = normalizeSkillExpertiseSelectionsForCharacter(
     normalizedClassName,
     normalizedSpecies,
@@ -283,6 +290,9 @@ function normalizeCharacter(value: unknown): Character | null {
     record.savingThrowProficiencies,
     normalizedClassName
   );
+  const normalizedTemporaryHitPoints = Math.floor(
+    clampNumber(record.temporaryHitPoints, 0, 999, defaults.temporaryHitPoints)
+  );
 
   return {
     id,
@@ -298,6 +308,7 @@ function normalizeCharacter(value: unknown): Character | null {
       normalizedHitPoints,
       normalizedHitPoints
     ),
+    temporaryHitPoints: normalizedTemporaryHitPoints,
     maxHitPointsMode: normalizedMaxHitPointsMode,
     attributeMode:
       record.attributeMode === "pointBuy" || record.attributeMode === "custom"
@@ -319,6 +330,7 @@ function normalizeCharacter(value: unknown): Character | null {
     conditions: normalizedConditions,
     deathSaves: normalizedDeathSaves,
     equipment: normalizedEquipment,
+    customEquipment: normalizedCustomEquipment,
     knownSpellIds: [...new Set(rawKnownSpellIds)],
     spellSlotsExpended: normalizedSpellSlotsExpended,
     shortRestsUsedToday: normalizedShortRestsUsedToday,
@@ -376,7 +388,10 @@ export function deleteCharacter(characterId: number): Character[] {
   return nextCharacters;
 }
 
-export function upsertCharacter(draft: CharacterDraft, characterId?: number): Character {
+export function upsertCharacter(
+  draft: CharacterDraft | Omit<Character, "id">,
+  characterId?: number
+): Character {
   const characters = loadCharacters();
   const nextId = characterId ?? Date.now();
   const nextCharacter = normalizeCharacter({

@@ -1,7 +1,16 @@
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import RarityPill from "../../components/CodexPage/RarityPill";
 import { ABILITY_TYPES, ENTRY_CATEGORIES, GENERAL_PROFICIENCIES } from "../../codex/entries";
-import { formatCodexLabel, formatCodexList, formatDamageDice } from "../../utils/codex";
+import {
+  formatCodexLabel,
+  formatCodexList,
+  formatDamageDice,
+  formatWeaponCost,
+  formatWeaponDamage,
+  formatWeaponProperties,
+  formatWeaponType,
+  formatWeaponWeight
+} from "../../utils/codex";
 import { useCodexEntries } from "../CodexPage/useCodexEntries";
 import styles from "./CodexEntryPage.module.css";
 
@@ -120,13 +129,41 @@ function CodexEntryPage() {
           <p>{entry.summary}</p>
 
           <div className={styles.detailsGrid}>
-            <div className={styles.detailItem}>
-              <span>Types</span>
-              <strong>{formatCodexList(entry.tags)}</strong>
-            </div>
+            {entry.category === ENTRY_CATEGORIES.WEAPONS ? (
+              <>
+                <div className={styles.detailItem}>
+                  <span>Type</span>
+                  <strong>{formatWeaponType(entry.type)} weapon</strong>
+                </div>
+                <div className={styles.detailItem}>
+                  <span>Damage</span>
+                  <strong>{formatWeaponDamage(entry.damage)}</strong>
+                </div>
+                <div className={styles.detailItem}>
+                  <span>Properties</span>
+                  <strong>{formatWeaponProperties(entry)}</strong>
+                </div>
+                <div className={styles.detailItem}>
+                  <span>Mastery</span>
+                  <strong>{formatCodexLabel(entry.mastery)}</strong>
+                </div>
+                <div className={styles.detailItem}>
+                  <span>Weight</span>
+                  <strong>{formatWeaponWeight(entry.weight)}</strong>
+                </div>
+                <div className={styles.detailItem}>
+                  <span>Cost</span>
+                  <strong>{formatWeaponCost(entry.cost)}</strong>
+                </div>
+              </>
+            ) : (
+              <div className={styles.detailItem}>
+                <span>Types</span>
+                <strong>{formatCodexList(entry.tags)}</strong>
+              </div>
+            )}
 
-            {entry.category === ENTRY_CATEGORIES.WEAPONS ||
-            entry.category === ENTRY_CATEGORIES.SPELLS ? (
+            {entry.category === ENTRY_CATEGORIES.SPELLS ? (
               <>
                 <div className={styles.detailItem}>
                   <span>Damage</span>

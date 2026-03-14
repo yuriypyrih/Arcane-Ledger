@@ -2,9 +2,12 @@ export {
   ABILITY_TYPES,
   ARMOR_TYPES,
   BACKGROUND_TYPES,
+  CURRENCY_TYPE,
   CLASS_TYPES,
   COLOR_TYPES,
+  DAMAGE_TYPE,
   DAMAGE_TYPES,
+  DICE,
   DICE_TYPES,
   ENTRY_CATEGORIES,
   GENERAL_PROFICIENCIES,
@@ -15,6 +18,10 @@ export {
   SPECIES_TYPES,
   SPELL_TYPES,
   TOOL_PROFICIENCIES,
+  WEAPON_COMBAT_TYPE,
+  WEAPON_MASTERY,
+  WEAPON_PROPERTY,
+  WEAPON_TRAINING,
   WEAPON_TYPES
 } from "../codex/entries";
 export type {
@@ -29,5 +36,9 @@ export type {
   RuleEntry,
   SpeciesEntry,
   SpellEntry,
+  WeaponCost,
+  WeaponDamage,
+  WeaponRange,
+  WeaponType,
   WeaponEntry
 } from "../codex/entries";

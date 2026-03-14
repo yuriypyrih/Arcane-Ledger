@@ -2,6 +2,7 @@ import {
   ABILITY_TYPES,
   ARMOR_TYPES,
   BACKGROUND_TYPES,
+  CURRENCY_TYPE,
   CLASS_TYPES,
   DAMAGE_TYPES,
   DICE_TYPES,
@@ -13,10 +14,10 @@ import {
   RULE_TYPES,
   SPECIES_TYPES,
   SPELL_TYPES,
-  TOOL_PROFICIENCIES,
-  WEAPON_TYPES
+  TOOL_PROFICIENCIES
 } from "./enums";
 import type { CodexEntry } from "./types";
+import { weaponEntries } from "./weaponData";
 
 export const hardcodedCodexEntries: CodexEntry[] = [
   {
@@ -184,136 +185,7 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     damageType: DAMAGE_TYPES.FORCE,
     summary: "Open brief rifts that fire violent force bolts in quick succession."
   },
-  {
-    id: "weapon-longsword",
-    name: "Longsword",
-    category: ENTRY_CATEGORIES.WEAPONS,
-    tags: [WEAPON_TYPES.MARTIAL_MELEE, WEAPON_TYPES.VERSATILE],
-    rarity: RARITY_TYPES.COMMON,
-    damage: [DICE_TYPES.DICE_TYPE_D8],
-    damageType: DAMAGE_TYPES.SLASHING,
-    summary: "A disciplined blade favored by knights and soldiers for one or two-handed fighting."
-  },
-  {
-    id: "weapon-shortbow",
-    name: "Shortbow",
-    category: ENTRY_CATEGORIES.WEAPONS,
-    tags: [WEAPON_TYPES.SIMPLE_RANGED, WEAPON_TYPES.TWO_HANDED],
-    rarity: RARITY_TYPES.COMMON,
-    damage: [DICE_TYPES.DICE_TYPE_D6],
-    damageType: DAMAGE_TYPES.PIERCING,
-    summary: "A compact bow built for scouts and skirmishers."
-  },
-  {
-    id: "weapon-dagger",
-    name: "Dagger",
-    category: ENTRY_CATEGORIES.WEAPONS,
-    tags: [WEAPON_TYPES.SIMPLE_MELEE, WEAPON_TYPES.FINESSE],
-    rarity: RARITY_TYPES.COMMON,
-    damage: [DICE_TYPES.DICE_TYPE_D4],
-    damageType: DAMAGE_TYPES.PIERCING,
-    summary: "A lightweight blade ideal for precise strikes and concealed carry."
-  },
-  {
-    id: "weapon-spear",
-    name: "Spear",
-    category: ENTRY_CATEGORIES.WEAPONS,
-    tags: [WEAPON_TYPES.SIMPLE_MELEE, WEAPON_TYPES.VERSATILE],
-    rarity: RARITY_TYPES.COMMON,
-    damage: [DICE_TYPES.DICE_TYPE_D6],
-    damageType: DAMAGE_TYPES.PIERCING,
-    summary: "A reliable pole weapon effective at close range and with thrown attacks."
-  },
-  {
-    id: "weapon-warhammer",
-    name: "Warhammer",
-    category: ENTRY_CATEGORIES.WEAPONS,
-    tags: [WEAPON_TYPES.MARTIAL_MELEE, WEAPON_TYPES.VERSATILE],
-    rarity: RARITY_TYPES.COMMON,
-    damage: [DICE_TYPES.DICE_TYPE_D8],
-    damageType: DAMAGE_TYPES.BLUDGEONING,
-    summary: "A heavy striking weapon designed to crush armor and shields."
-  },
-  {
-    id: "weapon-greatsword",
-    name: "Greatsword",
-    category: ENTRY_CATEGORIES.WEAPONS,
-    tags: [WEAPON_TYPES.MARTIAL_MELEE, WEAPON_TYPES.TWO_HANDED],
-    rarity: RARITY_TYPES.COMMON,
-    damage: [DICE_TYPES.DICE_TYPE_D6, DICE_TYPES.DICE_TYPE_D6],
-    damageType: DAMAGE_TYPES.SLASHING,
-    summary: "A large two-handed blade that delivers high-impact sweeping blows."
-  },
-  {
-    id: "weapon-rapier",
-    name: "Rapier",
-    category: ENTRY_CATEGORIES.WEAPONS,
-    tags: [WEAPON_TYPES.MARTIAL_MELEE, WEAPON_TYPES.FINESSE],
-    rarity: RARITY_TYPES.COMMON,
-    damage: [DICE_TYPES.DICE_TYPE_D8],
-    damageType: DAMAGE_TYPES.PIERCING,
-    summary: "A precise dueling blade built for speed, balance, and agility."
-  },
-  {
-    id: "weapon-handaxe",
-    name: "Handaxe",
-    category: ENTRY_CATEGORIES.WEAPONS,
-    tags: [WEAPON_TYPES.SIMPLE_MELEE],
-    rarity: RARITY_TYPES.COMMON,
-    damage: [DICE_TYPES.DICE_TYPE_D6],
-    damageType: DAMAGE_TYPES.SLASHING,
-    summary: "A compact axe that performs well in melee and can be thrown when needed."
-  },
-  {
-    id: "weapon-light-crossbow",
-    name: "Light Crossbow",
-    category: ENTRY_CATEGORIES.WEAPONS,
-    tags: [WEAPON_TYPES.SIMPLE_RANGED, WEAPON_TYPES.TWO_HANDED],
-    rarity: RARITY_TYPES.COMMON,
-    damage: [DICE_TYPES.DICE_TYPE_D8],
-    damageType: DAMAGE_TYPES.PIERCING,
-    summary: "A straightforward ranged weapon with steady power and broad accessibility."
-  },
-  {
-    id: "weapon-longbow",
-    name: "Longbow",
-    category: ENTRY_CATEGORIES.WEAPONS,
-    tags: [WEAPON_TYPES.MARTIAL_RANGED, WEAPON_TYPES.TWO_HANDED],
-    rarity: RARITY_TYPES.RARE,
-    damage: [DICE_TYPES.DICE_TYPE_D8],
-    damageType: DAMAGE_TYPES.PIERCING,
-    summary: "A long-range bow with excellent reach in skilled hands."
-  },
-  {
-    id: "weapon-heavy-crossbow",
-    name: "Heavy Crossbow",
-    category: ENTRY_CATEGORIES.WEAPONS,
-    tags: [WEAPON_TYPES.MARTIAL_RANGED, WEAPON_TYPES.TWO_HANDED],
-    rarity: RARITY_TYPES.RARE,
-    damage: [DICE_TYPES.DICE_TYPE_D10],
-    damageType: DAMAGE_TYPES.PIERCING,
-    summary: "A hard-hitting ranged weapon that rewards deliberate, powerful shots."
-  },
-  {
-    id: "weapon-voidcleaver",
-    name: "Voidcleaver",
-    category: ENTRY_CATEGORIES.WEAPONS,
-    tags: [WEAPON_TYPES.MARTIAL_MELEE, WEAPON_TYPES.TWO_HANDED],
-    rarity: RARITY_TYPES.EPIC,
-    damage: [DICE_TYPES.DICE_TYPE_D8, DICE_TYPES.DICE_TYPE_D8],
-    damageType: DAMAGE_TYPES.FORCE,
-    summary: "A star-forged greatblade that tears through armor with crackling arcane force."
-  },
-  {
-    id: "weapon-javelin",
-    name: "Javelin",
-    category: ENTRY_CATEGORIES.WEAPONS,
-    tags: [WEAPON_TYPES.SIMPLE_MELEE, WEAPON_TYPES.SIMPLE_RANGED],
-    rarity: RARITY_TYPES.COMMON,
-    damage: [DICE_TYPES.DICE_TYPE_D6],
-    damageType: DAMAGE_TYPES.PIERCING,
-    summary: "A balanced throwing spear usable in both melee and ranged combat."
-  },
+  ...weaponEntries,
   {
     id: "armor-leather-armor",
     name: "Leather Armor",
@@ -323,6 +195,8 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     armorBase: 11,
     maxDexModifier: null,
     shieldBonus: 0,
+    weight: 10,
+    cost: { amount: 10, currency: CURRENCY_TYPE.GP },
     summary: "Flexible light armor that combines a base AC of 11 with your full DEX modifier."
   },
   {
@@ -334,6 +208,8 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     armorBase: 12,
     maxDexModifier: null,
     shieldBonus: 0,
+    weight: 13,
+    cost: { amount: 45, currency: CURRENCY_TYPE.GP },
     summary: "Reinforced light armor with metal studs that keeps full DEX scaling and improves base AC."
   },
   {
@@ -345,6 +221,8 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     armorBase: 12,
     maxDexModifier: 2,
     shieldBonus: 0,
+    weight: 12,
+    cost: { amount: 10, currency: CURRENCY_TYPE.GP },
     summary: "Practical medium armor with natural materials and a DEX modifier cap of +2."
   },
   {
@@ -356,6 +234,8 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     armorBase: 15,
     maxDexModifier: 2,
     shieldBonus: 0,
+    weight: 40,
+    cost: { amount: 750, currency: CURRENCY_TYPE.GP },
     summary: "Sturdy medium armor that offers high base protection while capping DEX contribution at +2."
   },
   {
@@ -367,6 +247,8 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     armorBase: 16,
     maxDexModifier: 0,
     shieldBonus: 0,
+    weight: 55,
+    cost: { amount: 75, currency: CURRENCY_TYPE.GP },
     summary: "Reliable heavy metal armor with a base AC of 16 and no DEX modifier applied."
   },
   {
@@ -378,6 +260,8 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     armorBase: 18,
     maxDexModifier: 0,
     shieldBonus: 0,
+    weight: 65,
+    cost: { amount: 1500, currency: CURRENCY_TYPE.GP },
     summary: "Full heavy plate for maximum baseline protection with no DEX modifier contribution."
   },
   {
@@ -389,6 +273,8 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     armorBase: 0,
     maxDexModifier: null,
     shieldBonus: 2,
+    weight: 6,
+    cost: { amount: 10, currency: CURRENCY_TYPE.GP },
     summary: "A defensive shield that adds +2 AC when equipped."
   },
   {
@@ -396,6 +282,8 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     name: "Thieve's Toolkit",
     category: ENTRY_CATEGORIES.ITEMS,
     tags: [ITEM_TYPES.TOOLKIT],
+    weight: 1,
+    cost: { amount: 25, currency: CURRENCY_TYPE.GP },
     summary: "Compact lock and trap tools for stealthy infiltration jobs."
   },
   {
@@ -403,6 +291,8 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     name: "Disarm Toolkit",
     category: ENTRY_CATEGORIES.ITEMS,
     tags: [ITEM_TYPES.TOOLKIT],
+    weight: 2,
+    cost: { amount: 25, currency: CURRENCY_TYPE.GP },
     summary: "Specialized picks, probes, and mirrors made for disabling mechanisms safely."
   },
   {
@@ -410,6 +300,8 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     name: "Rope (50ft)",
     category: ENTRY_CATEGORIES.ITEMS,
     tags: [ITEM_TYPES.ADVENTURING_GEAR],
+    weight: 10,
+    cost: { amount: 1, currency: CURRENCY_TYPE.GP },
     summary: "A durable 50-foot rope for climbing, anchoring, and traversal."
   },
   {
@@ -417,6 +309,8 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     name: "Shovel",
     category: ENTRY_CATEGORIES.ITEMS,
     tags: [ITEM_TYPES.ADVENTURING_GEAR],
+    weight: 5,
+    cost: { amount: 2, currency: CURRENCY_TYPE.GP },
     summary: "A field shovel useful for digging cover, graves, and hidden caches."
   },
   {
@@ -424,6 +318,8 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     name: "Mining Pickaxe",
     category: ENTRY_CATEGORIES.ITEMS,
     tags: [ITEM_TYPES.ADVENTURING_GEAR],
+    weight: 10,
+    cost: { amount: 2, currency: CURRENCY_TYPE.GP },
     summary: "A heavy pickaxe suited for stonework, excavation, and forced entry."
   },
   {
@@ -431,6 +327,8 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     name: "Disguise Kit",
     category: ENTRY_CATEGORIES.ITEMS,
     tags: [ITEM_TYPES.TOOLKIT],
+    weight: 3,
+    cost: { amount: 25, currency: CURRENCY_TYPE.GP },
     summary: "Cosmetic and wardrobe tools for changing appearance and mannerisms."
   },
   {
@@ -438,6 +336,8 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     name: "Torch",
     category: ENTRY_CATEGORIES.ITEMS,
     tags: [ITEM_TYPES.ADVENTURING_GEAR],
+    weight: 1,
+    cost: { amount: 1, currency: CURRENCY_TYPE.CP },
     summary: "A handheld light source that keeps dark paths visible and can ignite campfires."
   },
   {
@@ -445,6 +345,8 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     name: "Bedroll",
     category: ENTRY_CATEGORIES.ITEMS,
     tags: [ITEM_TYPES.ADVENTURING_GEAR],
+    weight: 7,
+    cost: { amount: 1, currency: CURRENCY_TYPE.GP },
     summary: "A compact sleeping roll for resting in the wilderness or rough shelter."
   },
   {
@@ -452,6 +354,8 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     name: "Rations (1 day)",
     category: ENTRY_CATEGORIES.ITEMS,
     tags: [ITEM_TYPES.ADVENTURING_GEAR],
+    weight: 2,
+    cost: { amount: 5, currency: CURRENCY_TYPE.SP },
     summary: "Preserved food supplies that cover one full day of travel and exertion."
   },
   {

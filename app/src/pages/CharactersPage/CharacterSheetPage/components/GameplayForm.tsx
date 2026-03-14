@@ -28,6 +28,7 @@ import { clampNumber } from "../utils";
 import sheetStyles from "../CharacterSheetPage.module.css";
 import shared from "./CharacterSheetSectionShared.module.css";
 import styles from "./GameplayForm.module.css";
+import TemporaryHitPoints from "./TemporaryHitPoints";
 
 type GameplayFormProps = {
   className?: string;
@@ -64,8 +65,7 @@ const conditionCatalog: ConditionEntry[] = [
   },
   {
     name: "Deafened",
-    description:
-      "You cannot hear and automatically fail checks that rely on hearing."
+    description: "You cannot hear and automatically fail checks that rely on hearing."
   },
   {
     name: "Frightened",
@@ -74,13 +74,11 @@ const conditionCatalog: ConditionEntry[] = [
   },
   {
     name: "Grappled",
-    description:
-      "Your speed becomes 0, and you cannot benefit from bonuses to speed."
+    description: "Your speed becomes 0, and you cannot benefit from bonuses to speed."
   },
   {
     name: "Incapacitated",
-    description:
-      "You cannot take actions or reactions."
+    description: "You cannot take actions or reactions."
   },
   {
     name: "Invisible",
@@ -99,8 +97,7 @@ const conditionCatalog: ConditionEntry[] = [
   },
   {
     name: "Poisoned",
-    description:
-      "You have disadvantage on attack rolls and ability checks."
+    description: "You have disadvantage on attack rolls and ability checks."
   },
   {
     name: "Prone",
@@ -149,6 +146,10 @@ function normalizeDeathSaves(value: Character["deathSaves"]): DeathSaveState {
   };
 }
 
+function normalizeTemporaryHitPoints(value: unknown): number {
+  return Math.floor(clampNumber(value, 0, 999, 0));
+}
+
 function normalizeConditions(value: Character["conditions"]): AppliedCondition[] {
   if (!Array.isArray(value)) {
     return [];
@@ -183,34 +184,80 @@ function formatProficiencyLabel(label: string): string {
     .join(" ");
 }
 
-function parseDiceFormula(formula: string): { count: number; sides: number } | null {
-  const match = formula.trim().match(/^(\d+)d(\d+)$/i);
+function parseDamageFormulaRange(formula: string): { minimum: number; maximum: number } | null {
+  const normalizedFormula = formula.replace(/\s+/g, "");
 
-  if (!match) {
+  if (!normalizedFormula) {
     return null;
   }
 
-  const count = Number(match[1]);
-  const sides = Number(match[2]);
+  const terms = normalizedFormula.match(/[+-]?[^+-]+/g);
 
-  if (!Number.isFinite(count) || !Number.isFinite(sides) || count <= 0 || sides <= 0) {
+  if (!terms || terms.length === 0) {
     return null;
   }
 
-  return { count, sides };
+  let minimum = 0;
+  let maximum = 0;
+
+  for (const term of terms) {
+    const sign = term.startsWith("-") ? -1 : 1;
+    const rawTerm = term.replace(/^[+-]/, "");
+    const diceMatch = rawTerm.match(/^(\d+)d(\d+)$/i);
+
+    if (diceMatch) {
+      const count = Number(diceMatch[1]);
+      const sides = Number(diceMatch[2]);
+
+      if (!Number.isFinite(count) || !Number.isFinite(sides) || count <= 0 || sides <= 0) {
+        return null;
+      }
+
+      if (sign > 0) {
+        minimum += count;
+        maximum += count * sides;
+      } else {
+        minimum -= count * sides;
+        maximum -= count;
+      }
+
+      continue;
+    }
+
+    const value = Number(rawTerm);
+
+    if (!Number.isFinite(value)) {
+      return null;
+    }
+
+    minimum += sign * value;
+    maximum += sign * value;
+  }
+
+  return { minimum, maximum };
 }
 
-function getDamageRangeLabel(baseFormula: string, modifier: number, fullRollFormula: string): string {
-  const parsedDiceFormula = parseDiceFormula(baseFormula);
-
-  if (!parsedDiceFormula) {
-    return `Damage (${fullRollFormula})`;
+function formatDamageExpression(damageLabel: string, modifier: number): string {
+  if (modifier === 0) {
+    return damageLabel;
   }
 
-  const minimumDamage = parsedDiceFormula.count + modifier;
-  const maximumDamage = parsedDiceFormula.count * parsedDiceFormula.sides + modifier;
+  return `${damageLabel} ${modifier > 0 ? "+" : "-"} ${Math.abs(modifier)}`;
+}
 
-  return `${minimumDamage}~${maximumDamage} Damage (${fullRollFormula})`;
+function getDamageRangeLabel(
+  damageLabel: string,
+  modifier: number,
+  fullRollFormula: string
+): string {
+  const parsedRange = parseDamageFormulaRange(fullRollFormula);
+  const damageExpression = formatDamageExpression(damageLabel, modifier);
+
+  if (!parsedRange) {
+    return `Damage (${damageExpression})`;
+  }
+
+  return `${parsedRange.minimum}~${parsedRange.maximum} Damage (${damageExpression})`;
 }
 
 function getConditionDescription(name: string): string {
@@ -234,17 +281,18 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   const [hitPointStep, setHitPointStep] = useState(1);
   const [isRestPopupOpen, setIsRestPopupOpen] = useState(false);
   const [isConditionModalOpen, setIsConditionModalOpen] = useState(false);
-  const [conditionDraftName, setConditionDraftName] = useState(conditionCatalog[0]?.name ?? "Poisoned");
+  const [conditionDraftName, setConditionDraftName] = useState(
+    conditionCatalog[0]?.name ?? "Poisoned"
+  );
   const [conditionDraftDuration, setConditionDraftDuration] = useState(1);
   const [selectedConditionName, setSelectedConditionName] = useState<string | null>(null);
   const [lastDeathSaveRoll, setLastDeathSaveRoll] = useState<number | null>(null);
-  const [lastProcessedDeathSaveRollToken, setLastProcessedDeathSaveRollToken] = useState<number | null>(null);
+  const [lastProcessedDeathSaveRollToken, setLastProcessedDeathSaveRollToken] = useState<
+    number | null
+  >(null);
   const { popupState, openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
-  const hasOverlayOpen =
-    isRestPopupOpen ||
-    isConditionModalOpen ||
-    selectedConditionName !== null;
+  const hasOverlayOpen = isRestPopupOpen || isConditionModalOpen || selectedConditionName !== null;
 
   useBodyScrollLock(hasOverlayOpen);
 
@@ -284,6 +332,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
 
   const conditions = normalizeConditions(character.conditions);
   const deathSaves = normalizeDeathSaves(character.deathSaves);
+  const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
 
   useEffect(() => {
     if (character.currentHitPoints <= 0) {
@@ -349,8 +398,12 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     onPersistCharacter
   ]);
 
-  const hitPointPercent =
+  const currentHitPointPercent =
     character.hitPoints > 0 ? (character.currentHitPoints / character.hitPoints) * 100 : 0;
+  const temporaryHitPointPercent =
+    character.hitPoints > 0 ? (temporaryHitPoints / character.hitPoints) * 100 : 0;
+  const temporaryHitPointOverflow =
+    character.currentHitPoints + temporaryHitPoints > character.hitPoints;
   const weaponActions = getWeaponActionsForCharacter(character);
   const shortRestsUsedToday = clampNumber(character.shortRestsUsedToday, 0, 2, 0);
   const shortRestsRemaining = Math.max(0, 2 - shortRestsUsedToday);
@@ -358,7 +411,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   const isAtZeroHitPoints = character.currentHitPoints === 0;
   const isDeathSaveResolved = deathSaves.successes >= 3 || deathSaves.failures >= 3;
   const selectedCondition = selectedConditionName
-    ? conditions.find((condition) => condition.name === selectedConditionName) ?? null
+    ? (conditions.find((condition) => condition.name === selectedConditionName) ?? null)
     : null;
 
   function beginEditing() {
@@ -390,7 +443,10 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
       hitPoints: nextMaxHitPoints,
       currentHitPoints: nextCurrentHitPoints,
       maxHitPointsMode: hpModeDraft,
-      deathSaves: nextCurrentHitPoints > 0 ? createDefaultDeathSaves() : normalizeDeathSaves(currentCharacter.deathSaves)
+      deathSaves:
+        nextCurrentHitPoints > 0
+          ? createDefaultDeathSaves()
+          : normalizeDeathSaves(currentCharacter.deathSaves)
     }));
 
     setIsEditing(false);
@@ -425,19 +481,51 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     }
 
     onPersistCharacter((currentCharacter) => {
+      if (direction > 0) {
+        const nextCurrentHitPoints = clampNumber(
+          currentCharacter.currentHitPoints + amount,
+          0,
+          currentCharacter.hitPoints,
+          currentCharacter.currentHitPoints
+        );
+
+        if (nextCurrentHitPoints === currentCharacter.currentHitPoints) {
+          return currentCharacter;
+        }
+
+        return {
+          ...currentCharacter,
+          currentHitPoints: nextCurrentHitPoints,
+          deathSaves:
+            nextCurrentHitPoints > 0
+              ? createDefaultDeathSaves()
+              : normalizeDeathSaves(currentCharacter.deathSaves)
+        };
+      }
+
+      const currentTemporaryHitPoints = normalizeTemporaryHitPoints(
+        currentCharacter.temporaryHitPoints
+      );
+      const absorbedByTemporaryHitPoints = Math.min(amount, currentTemporaryHitPoints);
+      const nextTemporaryHitPoints = currentTemporaryHitPoints - absorbedByTemporaryHitPoints;
+      const remainingDamage = amount - absorbedByTemporaryHitPoints;
       const nextCurrentHitPoints = clampNumber(
-        currentCharacter.currentHitPoints + amount * direction,
+        currentCharacter.currentHitPoints - remainingDamage,
         0,
         currentCharacter.hitPoints,
         currentCharacter.currentHitPoints
       );
 
-      if (nextCurrentHitPoints === currentCharacter.currentHitPoints) {
+      if (
+        nextTemporaryHitPoints === currentTemporaryHitPoints &&
+        nextCurrentHitPoints === currentCharacter.currentHitPoints
+      ) {
         return currentCharacter;
       }
 
       return {
         ...currentCharacter,
+        temporaryHitPoints: nextTemporaryHitPoints,
         currentHitPoints: nextCurrentHitPoints,
         deathSaves:
           nextCurrentHitPoints > 0
@@ -465,8 +553,12 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
       return {
         ...currentCharacter,
         currentHitPoints: nextCurrentHitPoints,
+        temporaryHitPoints: 0,
         shortRestsUsedToday: shortRestsUsedToday + 1,
-        deathSaves: nextCurrentHitPoints > 0 ? createDefaultDeathSaves() : normalizeDeathSaves(currentCharacter.deathSaves)
+        deathSaves:
+          nextCurrentHitPoints > 0
+            ? createDefaultDeathSaves()
+            : normalizeDeathSaves(currentCharacter.deathSaves)
       };
     });
 
@@ -477,6 +569,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     onPersistCharacter((currentCharacter) => ({
       ...currentCharacter,
       currentHitPoints: currentCharacter.hitPoints,
+      temporaryHitPoints: 0,
       shortRestsUsedToday: 0,
       spellSlotsExpended: Array.from({ length: 9 }, () => 0),
       deathSaves: createDefaultDeathSaves()
@@ -496,7 +589,9 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
 
     onPersistCharacter((currentCharacter) => {
       const normalizedConditions = normalizeConditions(currentCharacter.conditions);
-      const existingCondition = normalizedConditions.find((condition) => condition.name === normalizedName);
+      const existingCondition = normalizedConditions.find(
+        (condition) => condition.name === normalizedName
+      );
 
       if (existingCondition) {
         return {
@@ -718,20 +813,45 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
           ) : (
             <>
               <div className={styles.hpSummary}>
-                <strong>
-                  {character.currentHitPoints}/{character.hitPoints} HP
-                </strong>
-                <span>
-                  {character.currentHitPoints === 0
-                    ? "Unconscious"
-                    : character.currentHitPoints <= Math.ceil(character.hitPoints * 0.35)
-                      ? "Critical"
-                      : "Stable"}
-                </span>
+                <div className={styles.hpValueRow}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "0.2rem" }}>
+                    <div style={{ display: "flex", gap: "0.4rem", alignItems: "center" }}>
+                      <strong>
+                        {character.currentHitPoints}/{character.hitPoints} HP
+                      </strong>
+                      <TemporaryHitPoints
+                        temporaryHitPoints={temporaryHitPoints}
+                        onPersistCharacter={onPersistCharacter}
+                      />
+                    </div>
+
+                    <span>
+                      {character.currentHitPoints === 0
+                        ? "Unconscious"
+                        : character.currentHitPoints <= Math.ceil(character.hitPoints * 0.35)
+                          ? "Critical"
+                          : "Stable"}
+                    </span>
+                  </div>
+                </div>
               </div>
               <div className={styles.hpActionRow}>
                 <div className={styles.hpBarTrack}>
-                  <div className={styles.hpBarFill} style={{ width: `${Math.max(0, hitPointPercent)}%` }} />
+                  <div className={styles.hpBarMeter}>
+                    <div
+                      className={styles.hpBarFill}
+                      style={{ width: `${Math.max(0, currentHitPointPercent)}%` }}
+                    />
+                    {temporaryHitPointPercent > 0 ? (
+                      <div
+                        className={clsx(
+                          styles.hpBarTempFill,
+                          temporaryHitPointOverflow && styles.tempOverflow
+                        )}
+                        style={{ width: `${temporaryHitPointPercent}%` }}
+                      />
+                    ) : null}
+                  </div>
                 </div>
                 <div className={styles.hpStepControl}>
                   <NumberInput
@@ -770,29 +890,37 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
             <p className={styles.widgetTitle}>Weapon Actions</p>
           </header>
           {weaponActions.length === 0 ? (
-            <p className={shared.emptyText}>No weapon actions available. Equip a weapon to roll attacks.</p>
+            <p className={shared.emptyText}>
+              No weapon actions available. Equip a weapon to roll attacks.
+            </p>
           ) : (
             <div className={styles.weaponActionGrid}>
               {weaponActions.map((action) => (
                 <button
-                  key={action.name}
+                  key={action.key}
                   type="button"
                   className={styles.weaponActionButton}
                   onClick={() =>
                     openDiceRoller({
                       title: `${action.name} attack`,
                       formula: action.rollFormula,
-                      description: `${action.ability} ${formatAbilityModifier(action.abilityModifier)} | Proficiency (${action.proficiencyLabel}) ${formatAbilityModifier(action.proficiencyBonus)}`
+                      description: `${action.ability} ${formatAbilityModifier(action.abilityModifier)} | Proficiency (${action.proficiencyLabel}) ${formatAbilityModifier(action.proficiencyBonus)}${action.hasVersatileBonus ? " | + Versatile Bonus" : ""}`
                     })
                   }
                 >
                   <strong>{action.name}</strong>
                   <span className={styles.weaponActionDamageRow}>
-                    {getDamageRangeLabel(action.damageFormula, action.totalModifier, action.rollFormula)}
+                    {getDamageRangeLabel(
+                      action.damageLabel,
+                      action.totalModifier,
+                      action.rollFormula
+                    )}
                   </span>
                   <small className={styles.weaponActionBreakdownRow}>
                     {action.ability} {formatSignedValue(action.abilityModifier)} | Prof. (
-                    {formatProficiencyLabel(action.proficiencyLabel)}) {formatSignedValue(action.proficiencyBonus)}
+                    {formatProficiencyLabel(action.proficiencyLabel)}){" "}
+                    {formatSignedValue(action.proficiencyBonus)}
+                    {action.hasVersatileBonus ? " | + Versatile Bonus" : ""}
                   </small>
                 </button>
               ))}
@@ -943,7 +1071,8 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
             </div>
             {lastDeathSaveRoll !== null ? (
               <p className={styles.deathRollResult}>
-                Last roll: d20 = {lastDeathSaveRoll} ({lastDeathSaveRoll >= 10 ? "Success" : "Failure"})
+                Last roll: d20 = {lastDeathSaveRoll} (
+                {lastDeathSaveRoll >= 10 ? "Success" : "Failure"})
               </p>
             ) : null}
           </section>

@@ -1,10 +1,10 @@
-import type { CharacterDraft, SkillName } from "../../types";
+import type { CharacterDraft, CharacterEquipmentItem, SkillName } from "../../types";
 import {
   ARMOR_TYPES,
   ENTRY_CATEGORIES,
   ITEM_TYPES,
   TOOL_PROFICIENCIES,
-  WEAPON_TYPES,
+  WEAPON_TRAINING,
   hardcodedCodexEntries,
   type ArmorEntry,
   type BackgroundEntry,
@@ -12,6 +12,11 @@ import {
   type WeaponEntry
 } from "../../codex/entries";
 import { ALL_SKILLS } from "../../types";
+import {
+  createCharacterEquipmentItem,
+  getCharacterEquipmentNames,
+  normalizeCharacterEquipmentItems
+} from "./inventory";
 
 export const skillsOptions = ALL_SKILLS;
 export type SkillProficiencySource = "class" | "species" | "other";
@@ -35,7 +40,7 @@ export type ResolvedSkillProficiencies = {
   all: SkillName[];
 };
 
-export type WeaponType = "simple" | "martial";
+export type WeaponType = WEAPON_TRAINING;
 export type ArmorType = "light" | "medium" | "heavy" | "shield";
 export type GearType = "adventuring" | "toolkit";
 export type EquipmentCategory = "weapon" | "armor" | "gear";
@@ -45,7 +50,7 @@ export type WeaponEquipmentDefinition = {
   entryId: string;
   name: string;
   category: "weapon";
-  type: WeaponType;
+  training: WeaponType;
 };
 
 export type ArmorEquipmentDefinition = {
@@ -83,18 +88,6 @@ function isLoadoutCodexEntry(entry: unknown): entry is LoadoutCodexEntry {
   );
 }
 
-function getWeaponTypeFromTags(tags: WeaponEntry["tags"]): WeaponType | null {
-  if (tags.includes(WEAPON_TYPES.MARTIAL_MELEE) || tags.includes(WEAPON_TYPES.MARTIAL_RANGED)) {
-    return "martial";
-  }
-
-  if (tags.includes(WEAPON_TYPES.SIMPLE_MELEE) || tags.includes(WEAPON_TYPES.SIMPLE_RANGED)) {
-    return "simple";
-  }
-
-  return null;
-}
-
 function getArmorTypeFromTags(tags: ArmorEntry["tags"]): ArmorType | null {
   if (tags.includes(ARMOR_TYPES.LIGHT_ARMOR)) {
     return "light";
@@ -121,17 +114,11 @@ function getGearTypeFromTags(tags: ItemEntry["tags"]): GearType {
 
 function toEquipmentDefinition(entry: LoadoutCodexEntry): EquipmentDefinition | null {
   if (entry.category === ENTRY_CATEGORIES.WEAPONS) {
-    const type = getWeaponTypeFromTags(entry.tags);
-
-    if (!type) {
-      return null;
-    }
-
     return {
       entryId: entry.id,
       name: entry.name,
       category: "weapon",
-      type
+      training: entry.type.training
     };
   }
 
@@ -199,7 +186,7 @@ export type ClassProficiencyProfile = {
 
 export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile> = {
   Artificer: {
-    weaponProficiencies: ["simple"],
+    weaponProficiencies: [WEAPON_TRAINING.SIMPLE],
     armorProficiencies: ["light", "medium", "shield"],
     skillProficiencyOptions: [
       "Arcana",
@@ -220,7 +207,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     toolProficiencyChoiceCount: 1
   },
   Barbarian: {
-    weaponProficiencies: ["simple", "martial"],
+    weaponProficiencies: [WEAPON_TRAINING.SIMPLE, WEAPON_TRAINING.MARTIAL],
     armorProficiencies: ["light", "medium", "shield"],
     skillProficiencyOptions: [
       "Animal Handling",
@@ -233,7 +220,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     skillProficiencyCount: 2
   },
   Bard: {
-    weaponProficiencies: ["simple", "martial"],
+    weaponProficiencies: [WEAPON_TRAINING.SIMPLE, WEAPON_TRAINING.MARTIAL],
     armorProficiencies: ["light"],
     skillProficiencyOptions: [
       "Acrobatics",
@@ -263,13 +250,13 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     toolProficiencyChoiceCount: 1
   },
   Cleric: {
-    weaponProficiencies: ["simple"],
+    weaponProficiencies: [WEAPON_TRAINING.SIMPLE],
     armorProficiencies: ["light", "medium", "shield"],
     skillProficiencyOptions: ["History", "Insight", "Medicine", "Persuasion", "Religion"],
     skillProficiencyCount: 2
   },
   Druid: {
-    weaponProficiencies: ["simple"],
+    weaponProficiencies: [WEAPON_TRAINING.SIMPLE],
     armorProficiencies: ["light", "medium", "shield"],
     skillProficiencyOptions: [
       "Arcana",
@@ -284,7 +271,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     skillProficiencyCount: 2
   },
   Fighter: {
-    weaponProficiencies: ["simple", "martial"],
+    weaponProficiencies: [WEAPON_TRAINING.SIMPLE, WEAPON_TRAINING.MARTIAL],
     armorProficiencies: ["light", "medium", "heavy", "shield"],
     skillProficiencyOptions: [
       "Acrobatics",
@@ -304,7 +291,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     toolProficiencyChoiceCount: 1
   },
   Monk: {
-    weaponProficiencies: ["simple"],
+    weaponProficiencies: [WEAPON_TRAINING.SIMPLE],
     armorProficiencies: [],
     skillProficiencyOptions: [
       "Acrobatics",
@@ -317,7 +304,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     skillProficiencyCount: 2
   },
   Paladin: {
-    weaponProficiencies: ["simple", "martial"],
+    weaponProficiencies: [WEAPON_TRAINING.SIMPLE, WEAPON_TRAINING.MARTIAL],
     armorProficiencies: ["light", "medium", "heavy", "shield"],
     skillProficiencyOptions: [
       "Athletics",
@@ -332,7 +319,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     toolProficiencyChoiceCount: 1
   },
   Ranger: {
-    weaponProficiencies: ["simple", "martial"],
+    weaponProficiencies: [WEAPON_TRAINING.SIMPLE, WEAPON_TRAINING.MARTIAL],
     armorProficiencies: ["light", "medium", "shield"],
     skillProficiencyOptions: [
       "Animal Handling",
@@ -352,7 +339,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     toolProficiencyChoiceCount: 1
   },
   Rogue: {
-    weaponProficiencies: ["simple", "martial"],
+    weaponProficiencies: [WEAPON_TRAINING.SIMPLE, WEAPON_TRAINING.MARTIAL],
     armorProficiencies: ["light"],
     skillProficiencyOptions: [
       "Acrobatics",
@@ -376,7 +363,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     toolProficiencyChoiceCount: 1
   },
   Sorcerer: {
-    weaponProficiencies: ["simple"],
+    weaponProficiencies: [WEAPON_TRAINING.SIMPLE],
     armorProficiencies: [],
     skillProficiencyOptions: [
       "Arcana",
@@ -389,7 +376,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     skillProficiencyCount: 2
   },
   Warlock: {
-    weaponProficiencies: ["simple"],
+    weaponProficiencies: [WEAPON_TRAINING.SIMPLE],
     armorProficiencies: ["light"],
     skillProficiencyOptions: [
       "Arcana",
@@ -403,7 +390,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     skillProficiencyCount: 2
   },
   Wizard: {
-    weaponProficiencies: ["simple"],
+    weaponProficiencies: [WEAPON_TRAINING.SIMPLE],
     armorProficiencies: [],
     skillProficiencyOptions: ["Arcana", "History", "Insight", "Investigation", "Medicine", "Religion"],
     skillProficiencyCount: 2,
@@ -415,8 +402,8 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
 const classOptionSet = new Set<string>(classOptions);
 const skillOptionSet = new Set<string>(skillsOptions);
 const weaponProficiencyLabelsByType: Record<WeaponType, string> = {
-  simple: "Simple weapons",
-  martial: "Martial weapons"
+  [WEAPON_TRAINING.SIMPLE]: "Simple weapons",
+  [WEAPON_TRAINING.MARTIAL]: "Martial weapons"
 };
 const armorProficiencyLabelsByType: Record<ArmorType, string> = {
   light: "Light armor",
@@ -549,7 +536,7 @@ function isProficientWithEquipmentType(
   }
 
   if (equipment.category === "weapon") {
-    return profile.weaponProficiencies.includes(equipment.type);
+    return profile.weaponProficiencies.includes(equipment.training);
   }
 
   return profile.armorProficiencies.includes(equipment.type);
@@ -791,6 +778,24 @@ export function normalizeEquipmentSelectionsForClass(
   return dedupe(selectedEquipment).filter((item) => allowedEquipmentSet.has(item));
 }
 
+export function normalizeCharacterEquipmentSelectionsForClass(
+  className: string,
+  selectedEquipment: Array<string | CharacterEquipmentItem>
+): CharacterEquipmentItem[] {
+  const allowedEquipmentSet = new Set<string>(getAvailableEquipmentNamesForClass(className));
+
+  return normalizeCharacterEquipmentItems(selectedEquipment)
+    .filter((item) => allowedEquipmentSet.has(item.name))
+    .map((item) => {
+      const equipmentDefinition = getEquipmentByName(item.name);
+
+      return createCharacterEquipmentItem(
+        item.name,
+        equipmentDefinition?.category === "weapon" ? item.onHand : false
+      );
+    });
+}
+
 export function normalizeSelectionsForClass(
   className: string,
   selectedSkills: string[],
@@ -800,7 +805,10 @@ export function normalizeSelectionsForClass(
 ): Pick<CharacterDraft, "skills" | "equipment"> {
   return {
     skills: normalizeSkillSelectionsForClass(className, selectedSkills, species, background),
-    equipment: normalizeEquipmentSelectionsForClass(className, selectedEquipment)
+    equipment: normalizeEquipmentSelectionsForClass(
+      className,
+      getCharacterEquipmentNames(selectedEquipment)
+    )
   };
 }
 

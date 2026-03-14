@@ -13,7 +13,7 @@ import { classOptions, speciesOptions } from "../../constants";
 import {
   backgroundOptions,
   isBackgroundName,
-  normalizeEquipmentSelectionsForClass,
+  normalizeCharacterEquipmentSelectionsForClass,
   normalizeManualSkillSelections,
   normalizeSkillExpertiseSelectionsForCharacter
 } from "../../proficiency";
@@ -131,7 +131,7 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
 
     onPersistCharacter((currentCharacter) => {
       const normalizedSkills = normalizeManualSkillSelections(currentCharacter.skills);
-      const normalizedEquipment = normalizeEquipmentSelectionsForClass(
+      const normalizedEquipment = normalizeCharacterEquipmentSelectionsForClass(
         normalizedClassName,
         currentCharacter.equipment
       );

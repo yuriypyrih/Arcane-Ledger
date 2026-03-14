@@ -2,6 +2,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import CharacterForm from "../../../components/CharactersPage/CharacterForm";
 import type { CharacterDraft } from "../../../types";
 import { createEmptyCharacter } from "../constants";
+import { getCharacterEquipmentNames } from "../inventory";
 import { findCharacter, upsertCharacter } from "../storage";
 import styles from "./CharacterBuilderPage.module.css";
 
@@ -16,9 +17,10 @@ function CharacterBuilderPage() {
   const isEditing = existingCharacter !== undefined;
   const emptyCharacter = createEmptyCharacter();
   const initialValues = existingCharacter
-    ? {
+      ? {
         ...emptyCharacter,
         ...existingCharacter,
+        equipment: getCharacterEquipmentNames(existingCharacter.equipment),
         abilities: {
           ...emptyCharacter.abilities,
           ...existingCharacter.abilities

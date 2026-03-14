@@ -2,8 +2,11 @@ import type {
   ABILITY_TYPES,
   ARMOR_TYPES,
   BACKGROUND_TYPES,
+  CURRENCY_TYPE,
   CLASS_TYPES,
+  DAMAGE_TYPE,
   DAMAGE_TYPES,
+  DICE,
   DICE_TYPES,
   GENERAL_PROFICIENCIES,
   ITEM_TYPES,
@@ -13,7 +16,10 @@ import type {
   SPECIES_TYPES,
   SPELL_TYPES,
   TOOL_PROFICIENCIES,
-  WEAPON_TYPES
+  WEAPON_COMBAT_TYPE,
+  WEAPON_MASTERY,
+  WEAPON_PROPERTY,
+  WEAPON_TRAINING
 } from "./enums";
 import { ENTRY_CATEGORIES } from "./enums";
 
@@ -38,21 +44,52 @@ type EntryWithDamage = {
   damageType: DAMAGE_TYPES | null;
 };
 
+export type WeaponDamageAmount = DICE | number;
+export type WeaponDamage = Array<[WeaponDamageAmount, DAMAGE_TYPE]>;
+export type WeaponType = {
+  combat: WEAPON_COMBAT_TYPE;
+  training: WEAPON_TRAINING;
+};
+export type WeaponRange = {
+  normal: number;
+  long: number;
+  ammunition?: string;
+};
+export type EquipmentCost = {
+  amount: number;
+  currency: CURRENCY_TYPE;
+};
+export type WeaponCost = EquipmentCost;
+
 export type SpellEntry = BaseCodexEntry<ENTRY_CATEGORIES.SPELLS, SPELL_TYPES> &
   EntryWithRarity &
   EntryWithDamage & {
     spellLevel?: number;
   };
-export type WeaponEntry = BaseCodexEntry<ENTRY_CATEGORIES.WEAPONS, WEAPON_TYPES> &
-  EntryWithRarity &
-  EntryWithDamage;
+export type WeaponEntry = Omit<BaseCodexEntry<ENTRY_CATEGORIES.WEAPONS, never>, "tags"> &
+  EntryWithRarity & {
+    type: WeaponType;
+    damage: WeaponDamage;
+    properties: WEAPON_PROPERTY[];
+    mastery: WEAPON_MASTERY;
+    weight: number | null;
+    cost: EquipmentCost;
+    range?: WeaponRange;
+    versatileDamage?: WeaponDamage;
+    propertyNotes?: Partial<Record<WEAPON_PROPERTY, string>>;
+  };
 export type ArmorEntry = BaseCodexEntry<ENTRY_CATEGORIES.ARMOR, ARMOR_TYPES> &
   EntryWithRarity & {
     armorBase: number;
     maxDexModifier: number | null;
     shieldBonus: number;
+    weight: number | null;
+    cost: EquipmentCost;
   };
-export type ItemEntry = BaseCodexEntry<ENTRY_CATEGORIES.ITEMS, ITEM_TYPES>;
+export type ItemEntry = BaseCodexEntry<ENTRY_CATEGORIES.ITEMS, ITEM_TYPES> & {
+  weight: number | null;
+  cost: EquipmentCost;
+};
 export type BackgroundEntry = BaseCodexEntry<ENTRY_CATEGORIES.BACKGROUNDS, BACKGROUND_TYPES> & {
   grantedSkillProficiencies: string[];
   grantedToolProficiencies: TOOL_PROFICIENCIES[];

@@ -1,15 +1,29 @@
-import { ABILITY_TYPES, DICE_TYPES, TOOL_PROFICIENCIES } from "../../codex/entries";
+import {
+  ABILITY_TYPES,
+  DICE,
+  DICE_TYPES,
+  TOOL_PROFICIENCIES,
+  WEAPON_PROPERTY,
+  type EquipmentCost,
+  type WeaponDamage,
+  type WeaponDamageAmount,
+  type WeaponEntry,
+  type WeaponRange,
+  type WeaponType
+} from "../../codex/entries";
 
 const ALWAYS_UPPERCASE_LABELS = new Set<string>([
   ...Object.values(ABILITY_TYPES),
-  ...Object.values(DICE_TYPES)
+  ...Object.values(DICE_TYPES),
+  ...Object.values(DICE)
 ]);
 
 const SPECIAL_LABELS: Record<string, string> = {
   [TOOL_PROFICIENCIES.THIEVES_TOOLKIT]: "Thieve's Toolkit",
   [TOOL_PROFICIENCIES.SMITHS_TOOLKIT]: "Smith's Toolkit",
   [TOOL_PROFICIENCIES.DISGUIDE_KIT]: "Disguide Kit",
-  [TOOL_PROFICIENCIES.DISARM_KIT]: "Disarm Kit"
+  [TOOL_PROFICIENCIES.DISARM_KIT]: "Disarm Kit",
+  [WEAPON_PROPERTY.TWO_HANDED]: "Two-Handed"
 };
 
 export function formatCodexLabel(value: string): string {
@@ -53,6 +67,137 @@ export function formatDamageDice(dice: string[]): string {
     .map((die) => `${countByDie.get(die)}${die.toLowerCase()}`)
     .join(" + ");
 }
+
+function formatWeaponDamageAmount(amount: WeaponDamageAmount): string {
+  if (typeof amount === "number") {
+    return `${amount}`;
+  }
+
+  return `1${String(amount).toLowerCase()}`;
+}
+
+function formatGroupedWeaponDamageAmount(amount: WeaponDamageAmount, count: number): string {
+  if (typeof amount === "number") {
+    return `${amount * count}`;
+  }
+
+  return `${count}${String(amount).toLowerCase()}`;
+}
+
+function collapseWeaponDamage(damage: WeaponDamage) {
+  const countsByKey = new Map<string, number>();
+  const orderedEntries: WeaponDamage = [];
+
+  damage.forEach(([amount, damageType]) => {
+    const key = `${String(amount)}:${damageType}`;
+
+    if (!countsByKey.has(key)) {
+      orderedEntries.push([amount, damageType]);
+      countsByKey.set(key, 0);
+    }
+
+    countsByKey.set(key, (countsByKey.get(key) ?? 0) + 1);
+  });
+
+  return orderedEntries.map(([amount, damageType]) => ({
+    amount,
+    count: countsByKey.get(`${String(amount)}:${damageType}`) ?? 1,
+    damageType
+  }));
+}
+
+function formatRangeLabel(range: WeaponRange): string {
+  const baseRange = `Range ${range.normal}/${range.long}`;
+  return range.ammunition ? `${baseRange}; ${range.ammunition}` : baseRange;
+}
+
+export function formatWeaponDamage(damage: WeaponDamage): string {
+  if (damage.length === 0) {
+    return "None";
+  }
+
+  return collapseWeaponDamage(damage)
+    .map(
+      ({ amount, count, damageType }) =>
+        `${formatGroupedWeaponDamageAmount(amount, count)} ${formatCodexLabel(damageType)}`
+    )
+    .join(" + ");
+}
+
+export function formatWeaponDamageFormula(damage: WeaponDamage): string {
+  if (damage.length === 0) {
+    return "0";
+  }
+
+  return collapseWeaponDamage(damage)
+    .map(({ amount, count }) => formatGroupedWeaponDamageAmount(amount, count))
+    .join(" + ");
+}
+
+export function formatWeaponType(weaponType: WeaponType): string {
+  return `${formatCodexLabel(weaponType.training)} ${formatCodexLabel(weaponType.combat).toLowerCase()}`;
+}
+
+export function formatWeaponProperties(
+  weapon: Pick<WeaponEntry, "properties" | "range" | "versatileDamage" | "propertyNotes">
+): string {
+  const visibleProperties: WEAPON_PROPERTY[] = weapon.properties.filter(
+    (property) => property !== WEAPON_PROPERTY.RANGE
+  );
+
+  if (
+    weapon.properties.includes(WEAPON_PROPERTY.RANGE) &&
+    !weapon.properties.some(
+      (property) => property === WEAPON_PROPERTY.THROWN || property === WEAPON_PROPERTY.AMMUNITION
+    )
+  ) {
+    visibleProperties.push(WEAPON_PROPERTY.RANGE);
+  }
+
+  if (visibleProperties.length === 0) {
+    return "None";
+  }
+
+  return visibleProperties
+    .map((property) => {
+      if (property === WEAPON_PROPERTY.THROWN && weapon.range) {
+        return `Thrown (${formatRangeLabel(weapon.range)})`;
+      }
+
+      if (property === WEAPON_PROPERTY.AMMUNITION && weapon.range) {
+        return `Ammunition (${formatRangeLabel(weapon.range)})`;
+      }
+
+      if (property === WEAPON_PROPERTY.RANGE && weapon.range) {
+        return formatRangeLabel(weapon.range);
+      }
+
+      if (property === WEAPON_PROPERTY.VERSATILE && weapon.versatileDamage) {
+        return `Versatile (${formatWeaponDamageFormula(weapon.versatileDamage)})`;
+      }
+
+      const label = formatCodexLabel(property);
+      const note = weapon.propertyNotes?.[property];
+      return note ? `${label} (${note})` : label;
+    })
+    .join(", ");
+}
+
+export function formatEquipmentWeight(weight: number | null): string {
+  if (weight === null) {
+    return "-";
+  }
+
+  const normalizedWeight = Number.isInteger(weight) ? `${weight}` : `${weight}`.replace(/\.0+$/, "");
+  return `${normalizedWeight} lb.`;
+}
+
+export function formatEquipmentCost(cost: EquipmentCost): string {
+  return `${cost.amount} ${cost.currency}`;
+}
+
+export const formatWeaponWeight = formatEquipmentWeight;
+export const formatWeaponCost = formatEquipmentCost;
 
 export function truncateCodexText(value: string, maxLength: number): string {
   if (value.length <= maxLength) {

@@ -28,7 +28,17 @@ export enum DICE_TYPES {
   DICE_TYPE_D20 = "D20"
 }
 
+export enum DICE {
+  D4 = "D4",
+  D6 = "D6",
+  D8 = "D8",
+  D10 = "D10",
+  D12 = "D12",
+  D20 = "D20"
+}
+
 export enum RARITY_TYPES {
+  CUSTOM = "CUSTOM",
   COMMON = "COMMON",
   RARE = "RARE",
   EPIC = "EPIC",
@@ -48,6 +58,22 @@ export enum DAMAGE_TYPES {
   NECROTIC = "NECROTIC",
   POISON = "POISON",
   ACID = "ACID",
+  PSYCHIC = "PSYCHIC"
+}
+
+export enum DAMAGE_TYPE {
+  PIERCING = "PIERCING",
+  BLUDGEONING = "BLUDGEONING",
+  SLASHING = "SLASHING",
+  COLD = "COLD",
+  FIRE = "FIRE",
+  LIGHTNING = "LIGHTNING",
+  THUNDER = "THUNDER",
+  POISON = "POISON",
+  ACID = "ACID",
+  NECROTIC = "NECROTIC",
+  RADIANT = "RADIANT",
+  FORCE = "FORCE",
   PSYCHIC = "PSYCHIC"
 }
 
@@ -75,6 +101,48 @@ export enum WEAPON_TYPES {
   FINESSE = "FINESSE",
   VERSATILE = "VERSATILE",
   TWO_HANDED = "TWO_HANDED"
+}
+
+export enum WEAPON_TRAINING {
+  SIMPLE = "SIMPLE",
+  MARTIAL = "MARTIAL"
+}
+
+export enum WEAPON_COMBAT_TYPE {
+  MELEE = "MELEE",
+  RANGED = "RANGED"
+}
+
+export enum WEAPON_PROPERTY {
+  AMMUNITION = "AMMUNITION",
+  FINESSE = "FINESSE",
+  HEAVY = "HEAVY",
+  LIGHT = "LIGHT",
+  LOADING = "LOADING",
+  RANGE = "RANGE",
+  REACH = "REACH",
+  THROWN = "THROWN",
+  TWO_HANDED = "TWO_HANDED",
+  VERSATILE = "VERSATILE"
+}
+
+export enum WEAPON_MASTERY {
+  CLEAVE = "CLEAVE",
+  GRAZE = "GRAZE",
+  NICK = "NICK",
+  PUSH = "PUSH",
+  SAP = "SAP",
+  SLOW = "SLOW",
+  TOPPLE = "TOPPLE",
+  VEX = "VEX"
+}
+
+export enum CURRENCY_TYPE {
+  CP = "CP",
+  SP = "SP",
+  EP = "EP",
+  GP = "GP",
+  PP = "PP"
 }
 
 export enum SPELL_TYPES {
