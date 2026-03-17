@@ -1,0 +1,186 @@
+.sectionToggle {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  width: 100%;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+}
+
+.sectionToggleMeta {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-ink-soft);
+  flex-shrink: 0;
+  padding-top: 0.1rem;
+}
+
+.sectionToggleIcon {
+  transition: transform 160ms ease;
+}
+
+.sectionToggleIconCollapsed {
+  transform: rotate(-90deg);
+}
+
+.sectionStack {
+  display: grid;
+  gap: 1.6rem;
+}
+
+.subsection {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.subsectionTitle {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.84rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.featureList {
+  display: grid;
+  gap: 1rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.featureItem {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.featureItem + .featureItem {
+  border-top: 1px solid rgba(75, 47, 29, 0.12);
+  padding-top: 1rem;
+}
+
+.featureHeading {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
+.featureHeadingRow {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+}
+
+.featureToggleButton {
+  display: flex;
+  align-items: baseline;
+  gap: 0.55rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-align: left;
+}
+
+.featureTrackingButton {
+  margin-left: auto;
+  border: none;
+  background: none;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  flex-shrink: 0;
+  font: inherit;
+  font-size: 0.74rem;
+  font-style: italic;
+  letter-spacing: 0.04em;
+  opacity: 0.8;
+  padding: 0;
+}
+
+.featureTrackingButton:hover {
+  color: var(--color-accent);
+  opacity: 1;
+}
+
+.featureToggleIcon {
+  color: var(--color-ink-soft);
+  flex-shrink: 0;
+  transition: transform 160ms ease;
+}
+
+.featureToggleIconCollapsed {
+  transform: rotate(-90deg);
+}
+
+.descriptionList {
+  display: grid;
+  gap: 0.5rem;
+}
+
+.descriptionLine {
+  margin: 0;
+  color: var(--color-ink);
+  line-height: 1.55;
+}
+
+.descriptionLine strong {
+  font-weight: 700;
+}
+
+.keywordButton {
+  border: none;
+  background: none;
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  padding: 0;
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+
+.keywordButton:hover {
+  color: #6f3d1b;
+}
+
+.emptyFeatureText {
+  margin: 0;
+  color: var(--color-ink-soft);
+}
+
+.keywordDrawerBody {
+  display: grid;
+  gap: 0.85rem;
+}
+
+@media (max-width: 720px) {
+  .sectionToggle {
+    gap: 0.8rem;
+  }
+
+  .featureHeadingRow {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .featureToggleButton {
+    width: 100%;
+  }
+
+  .featureTrackingButton {
+    margin-left: 0;
+  }
+}

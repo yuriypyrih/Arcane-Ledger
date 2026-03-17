@@ -64,7 +64,8 @@
 .cascadeThree,
 .cascadeFour,
 .cascadeFive,
-.cascadeSix {
+.cascadeSix,
+.cascadeSeven {
   transform: none;
 }
 

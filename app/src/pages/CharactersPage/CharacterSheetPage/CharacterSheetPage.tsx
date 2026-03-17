@@ -3,6 +3,7 @@ import { FormProvider, useForm } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   CharacterProfileForm,
+  ClassFeaturesAndFeats,
   CharacterStatsForm,
   EquipmentForm,
   GameplayForm,
@@ -94,12 +95,13 @@ function CharacterSheetPage() {
             className={styles.cascadeThree}
             onPersistCharacter={persistCharacter}
           />
+          <ClassFeaturesAndFeats className={styles.cascadeFour} />
           <SkillsAndProficienciesForm
-            className={styles.cascadeFour}
+            className={styles.cascadeFive}
             onPersistCharacter={persistCharacter}
           />
-          <EquipmentForm className={styles.cascadeFive} onPersistCharacter={persistCharacter} />
-          <SpellCastingForm className={styles.cascadeSix} onPersistCharacter={persistCharacter} />
+          <EquipmentForm className={styles.cascadeSix} onPersistCharacter={persistCharacter} />
+          <SpellCastingForm className={styles.cascadeSeven} onPersistCharacter={persistCharacter} />
         </div>
         <ThumbDiceButton />
       </FormProvider>

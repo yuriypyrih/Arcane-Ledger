@@ -1,4 +1,5 @@
 export { default as CharacterProfileForm } from "./CharacterProfileForm";
+export { default as ClassFeaturesAndFeats } from "./ClassFeaturesAndFeats";
 export { default as GameplayForm } from "./GameplayForm";
 export { default as CharacterStatsForm } from "./StatsForm";
 export { default as SkillsAndProficienciesForm } from "./SkillsAndProficienciesForm";
