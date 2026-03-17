@@ -1,0 +1,282 @@
+import { CLASS_FEATURE } from "../entries/enums";
+import type { FeatureClassObj, FeatureMapEntry } from "../entries/types";
+
+export type ClericSpellSlotProgression = [
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number,
+  number
+];
+
+export type ClericFeatureClassObj = FeatureClassObj & {
+  channelDivinity: number;
+  cantrips: number;
+  preparedSpells: number;
+  spellSlots: ClericSpellSlotProgression;
+};
+
+export const clericFeatures: ClericFeatureClassObj[] = [
+  {
+    level: 1,
+    classFeatures: [CLASS_FEATURE.SPELLCASTING, CLASS_FEATURE.DIVINE_ORDER],
+    featureOverrides: {
+      [CLASS_FEATURE.SPELLCASTING]: {
+        description: [
+          "You have learned to cast spells through prayer and meditation. See 'Spells' for the rules on spellcasting. The information below details how you use those rules with Cleric spells, which appear on the Cleric spell list later in the class's description.",
+          "<strong>Cantrips.</strong> You know three cantrips of your choice from the Cleric spell list. Guidance, Sacred Flame, and Thaumaturgy are recommended.",
+          "Whenever you gain a Cleric level, you can replace one of your cantrips with another cantrip of your choice from the Cleric spell list.",
+          "When you reach Cleric levels 4 and 10, you learn another cantrip of your choice from the Cleric spell list, as shown in the Cantrips column of the Cleric Features table.",
+          "<strong>Spell Slots.</strong> The Cleric Features table shows how many spell slots you have to cast your level 1+ spells. You regain all expended slots when you finish a <link:long-rest>Long Rest</link>.",
+          "<strong>Prepared Spells of Level 1+.</strong> You prepare the list of level 1+ spells that are available for you to cast with this feature. To start, choose four level 1 spells from the Cleric spell list. Bless, Cure Wounds, Guiding Bolt, and Shield of Faith are recommended.",
+          "The number of spells on your list increases as you gain Cleric levels, as shown in the Prepared Spells column of the Cleric Features table. Whenever that number increases, choose additional spells from the Cleric spell list until the number of spells on your list matches the number on the table. The chosen spells must be of a level for which you have spell slots.",
+          "If another Cleric feature gives you spells that you always have prepared, those spells don't count against the number of spells you can prepare with this feature, but those spells otherwise count as Cleric spells for you.",
+          "<strong>Changing Your Prepared Spells.</strong> Whenever you finish a <link:long-rest>Long Rest</link>, you can change your list of prepared spells, replacing any of the spells there with other Cleric spells for which you have spell slots.",
+          "<strong>Spellcasting Ability.</strong> Wisdom is your spellcasting ability for your Cleric spells.",
+          "<strong>Spellcasting Focus.</strong> You can use a Holy Symbol as a Spellcasting Focus for your Cleric spells."
+        ],
+        isTracked: false
+      }
+    },
+    channelDivinity: 0,
+    cantrips: 3,
+    preparedSpells: 4,
+    spellSlots: [2, 0, 0, 0, 0, 0, 0, 0, 0]
+  },
+  {
+    level: 2,
+    classFeatures: [CLASS_FEATURE.CHANNEL_DIVINITY],
+    channelDivinity: 2,
+    cantrips: 3,
+    preparedSpells: 5,
+    spellSlots: [3, 0, 0, 0, 0, 0, 0, 0, 0]
+  },
+  {
+    level: 3,
+    classFeatures: [CLASS_FEATURE.CLERIC_SUBCLASS],
+    channelDivinity: 2,
+    cantrips: 3,
+    preparedSpells: 6,
+    spellSlots: [4, 2, 0, 0, 0, 0, 0, 0, 0]
+  },
+  {
+    level: 4,
+    classFeatures: [CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT],
+    channelDivinity: 2,
+    cantrips: 4,
+    preparedSpells: 7,
+    spellSlots: [4, 3, 0, 0, 0, 0, 0, 0, 0]
+  },
+  {
+    level: 5,
+    classFeatures: [CLASS_FEATURE.SEAR_UNDEAD],
+    channelDivinity: 2,
+    cantrips: 4,
+    preparedSpells: 9,
+    spellSlots: [4, 3, 2, 0, 0, 0, 0, 0, 0]
+  },
+  {
+    level: 6,
+    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    channelDivinity: 3,
+    cantrips: 4,
+    preparedSpells: 10,
+    spellSlots: [4, 3, 3, 0, 0, 0, 0, 0, 0]
+  },
+  {
+    level: 7,
+    classFeatures: [CLASS_FEATURE.BLESSED_STRIKES],
+    channelDivinity: 3,
+    cantrips: 4,
+    preparedSpells: 11,
+    spellSlots: [4, 3, 3, 1, 0, 0, 0, 0, 0]
+  },
+  {
+    level: 8,
+    classFeatures: [CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT],
+    channelDivinity: 3,
+    cantrips: 4,
+    preparedSpells: 12,
+    spellSlots: [4, 3, 3, 2, 0, 0, 0, 0, 0]
+  },
+  {
+    level: 9,
+    classFeatures: [],
+    channelDivinity: 3,
+    cantrips: 4,
+    preparedSpells: 14,
+    spellSlots: [4, 3, 3, 3, 1, 0, 0, 0, 0]
+  },
+  {
+    level: 10,
+    classFeatures: [CLASS_FEATURE.DIVINE_INTERVENTION],
+    channelDivinity: 3,
+    cantrips: 5,
+    preparedSpells: 15,
+    spellSlots: [4, 3, 3, 3, 2, 0, 0, 0, 0]
+  },
+  {
+    level: 11,
+    classFeatures: [],
+    channelDivinity: 3,
+    cantrips: 5,
+    preparedSpells: 16,
+    spellSlots: [4, 3, 3, 3, 2, 1, 0, 0, 0]
+  },
+  {
+    level: 12,
+    classFeatures: [CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT],
+    channelDivinity: 3,
+    cantrips: 5,
+    preparedSpells: 16,
+    spellSlots: [4, 3, 3, 3, 2, 1, 0, 0, 0]
+  },
+  {
+    level: 13,
+    classFeatures: [],
+    channelDivinity: 3,
+    cantrips: 5,
+    preparedSpells: 17,
+    spellSlots: [4, 3, 3, 3, 2, 1, 1, 0, 0]
+  },
+  {
+    level: 14,
+    classFeatures: [CLASS_FEATURE.IMPROVED_BLESSED_STRIKES],
+    channelDivinity: 3,
+    cantrips: 5,
+    preparedSpells: 17,
+    spellSlots: [4, 3, 3, 3, 2, 1, 1, 0, 0]
+  },
+  {
+    level: 15,
+    classFeatures: [],
+    channelDivinity: 3,
+    cantrips: 5,
+    preparedSpells: 18,
+    spellSlots: [4, 3, 3, 3, 2, 1, 1, 1, 0]
+  },
+  {
+    level: 16,
+    classFeatures: [CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT],
+    channelDivinity: 3,
+    cantrips: 5,
+    preparedSpells: 18,
+    spellSlots: [4, 3, 3, 3, 2, 1, 1, 1, 0]
+  },
+  {
+    level: 17,
+    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    channelDivinity: 3,
+    cantrips: 5,
+    preparedSpells: 19,
+    spellSlots: [4, 3, 3, 3, 2, 1, 1, 1, 1]
+  },
+  {
+    level: 18,
+    classFeatures: [],
+    channelDivinity: 4,
+    cantrips: 5,
+    preparedSpells: 20,
+    spellSlots: [4, 3, 3, 3, 3, 1, 1, 1, 1]
+  },
+  {
+    level: 19,
+    classFeatures: [CLASS_FEATURE.EPIC_BOON],
+    featureOverrides: {
+      [CLASS_FEATURE.EPIC_BOON]: {
+        description: [
+          "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
+          "Boon of Fate is recommended."
+        ],
+        isTracked: false
+      }
+    },
+    channelDivinity: 4,
+    cantrips: 5,
+    preparedSpells: 21,
+    spellSlots: [4, 3, 3, 3, 3, 2, 1, 1, 1]
+  },
+  {
+    level: 20,
+    classFeatures: [CLASS_FEATURE.GREATER_DIVINE_INTERVENTION],
+    channelDivinity: 4,
+    cantrips: 5,
+    preparedSpells: 22,
+    spellSlots: [4, 3, 3, 3, 3, 2, 2, 1, 1]
+  }
+];
+
+export const clericFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
+  [CLASS_FEATURE.DIVINE_ORDER]: {
+    description: [
+      "You have dedicated yourself to one of the following sacred roles of your choice.",
+      "<strong>Protector.</strong> Trained for battle, you gain proficiency with Martial weapons and training with Heavy armor.",
+      "<strong>Thaumaturge.</strong> You know one extra cantrip from the Cleric spell list. In addition, your mystical connection to the divine gives you a bonus to your Intelligence (Arcana or Religion) checks. The bonus equals your Wisdom modifier, minimum of +1."
+    ],
+    isTracked: false
+  },
+  [CLASS_FEATURE.CHANNEL_DIVINITY]: {
+    description: [
+      "You can channel divine energy directly from the Outer Planes to fuel magical effects. You start with two such effects: Divine Spark and Turn Undead, each of which is described below. Each time you use this class's Channel Divinity, choose which Channel Divinity effect from this class to create. You gain additional effect options at higher Cleric levels.",
+      "You can use this class's Channel Divinity twice. You regain one of its expended uses when you finish a <link:short-rest>Short Rest</link>, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>. You gain additional uses when you reach certain Cleric levels, as shown in the Channel Divinity column of the Cleric Features table.",
+      "If a Channel Divinity effect requires a saving throw, the DC equals the spell save DC from this class's Spellcasting feature.",
+      "<strong>Divine Spark.</strong> As a Magic action, you point your Holy Symbol at another creature you can see within 30 feet of yourself and focus divine energy at it. Roll 1d8 and add your Wisdom modifier. You either restore Hit Points to the creature equal to that total or force the creature to make a Constitution saving throw.",
+      "On a failed save, the creature takes Necrotic or Radiant damage, your choice, equal to that total. On a successful save, the creature takes half as much damage, round down.",
+      "You roll an additional d8 when you reach Cleric levels 7 (2d8), 13 (3d8), and 18 (4d8).",
+      "<strong>Turn Undead.</strong> As a Magic action, you present your Holy Symbol and censure Undead creatures. Each Undead of your choice within 30 feet of you must make a Wisdom saving throw.",
+      "If the creature fails its save, it has the Frightened and Incapacitated conditions for 1 minute. For that duration, it tries to move as far from you as it can on its turns. This effect ends early on the creature if it takes any damage, if you have the Incapacitated condition, or if you die."
+    ],
+    isTracked: false
+  },
+  [CLASS_FEATURE.CLERIC_SUBCLASS]: {
+    description: [
+      "You gain a Cleric subclass of your choice. The Life Domain subclass is detailed after this class's description.",
+      "A subclass is a specialization that grants you features at certain Cleric levels.",
+      "For the rest of your career, you gain each of your subclass's features that are of your Cleric level or lower."
+    ],
+    isTracked: false
+  },
+  [CLASS_FEATURE.SEAR_UNDEAD]: {
+    description: [
+      "Whenever you use Turn Undead, you can roll a number of d8s equal to your Wisdom modifier, minimum of 1d8, and add the rolls together.",
+      "Each Undead that fails its saving throw against that use of Turn Undead takes Radiant damage equal to the roll's total. This damage doesn't end the turn effect."
+    ],
+    isTracked: false
+  },
+  [CLASS_FEATURE.BLESSED_STRIKES]: {
+    description: [
+      "Divine power infuses you in battle. You gain one of the following options of your choice. If you get either option from a Cleric subclass in an older book, use only the option you choose for this feature.",
+      "<strong>Divine Strike.</strong> Once on each of your turns when you hit a creature with an attack roll using a weapon, you can cause the target to take an extra 1d8 Necrotic or Radiant damage, your choice.",
+      "<strong>Potent Spellcasting.</strong> Add your Wisdom modifier to the damage you deal with any Cleric cantrip."
+    ],
+    isTracked: false
+  },
+  [CLASS_FEATURE.DIVINE_INTERVENTION]: {
+    description: [
+      "You can call on your deity or pantheon to intervene on your behalf.",
+      "As a Magic action, choose any Cleric spell of level 5 or lower that doesn't require a Reaction to cast. As part of the same action, you cast that spell without expending a spell slot or needing Material components.",
+      "You can't use this feature again until you finish a <link:long-rest>Long Rest</link>."
+    ],
+    isTracked: false
+  },
+  [CLASS_FEATURE.IMPROVED_BLESSED_STRIKES]: {
+    description: [
+      "The option you chose for Blessed Strikes grows more powerful.",
+      "<strong>Divine Strike.</strong> The extra damage of your Divine Strike increases to 2d8.",
+      "<strong>Potent Spellcasting.</strong> When you cast a Cleric cantrip and deal damage to a creature with it, you can give vitality to yourself or another creature within 60 feet of yourself, granting a number of Temporary Hit Points equal to twice your Wisdom modifier."
+    ],
+    isTracked: false
+  },
+  [CLASS_FEATURE.GREATER_DIVINE_INTERVENTION]: {
+    description: [
+      "You can call on even more powerful divine intervention.",
+      "When you use your Divine Intervention feature, you can choose Wish when you select a spell.",
+      "If you do so, you can't use Divine Intervention again until you finish 2d4 <link:long-rest>Long Rests</link>."
+    ],
+    isTracked: false
+  }
+};

@@ -25,13 +25,7 @@ export type CoreStats = {
 
 export type CurrencyKey = "copper" | "silver" | "gold" | "electrum" | "platinum";
 
-export const currencyKeys: CurrencyKey[] = [
-  "copper",
-  "silver",
-  "electrum",
-  "gold",
-  "platinum"
-];
+export const currencyKeys: CurrencyKey[] = ["copper", "silver", "electrum", "gold", "platinum"];
 
 export type CharacterCurrencies = {
   copper: number;
@@ -132,7 +126,7 @@ export type Character = {
   deathSaves?: CharacterDeathSaves;
   equipment: CharacterEquipmentItem[];
   customEquipment: CharacterCustomEquipment[];
-  knownSpellIds?: string[];
+  preparedSpellIds?: string[];
   spellSlotsExpended?: number[];
   shortRestsUsedToday?: number;
   coreStats?: CoreStats;

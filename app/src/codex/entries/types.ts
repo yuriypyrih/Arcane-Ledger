@@ -2,7 +2,7 @@ import type {
   ABILITY_TYPES,
   ARMOR_TYPES,
   BACKGROUND_TYPES,
-  ClassFeature,
+  CLASS_FEATURE,
   CURRENCY_TYPE,
   CLASS_TYPES,
   DAMAGE_TYPE,
@@ -71,30 +71,10 @@ export type KeywordTooltipEntry = {
 };
 export type FeatureClassObj = {
   level: number;
-  classFeatures: ClassFeature[];
-  featureOverrides?: Partial<Record<ClassFeature, FeatureMapEntry>>;
-};
-export type SpellSlotProgression = [
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number,
-  number
-];
-export type BarbarianFeatureClassObj = FeatureClassObj & {
-  rages: number;
-  rageDamage: number;
-  weaponMastery: number;
-};
-export type BardFeatureClassObj = FeatureClassObj & {
-  bardicDie: DICE;
-  cantrips: number;
-  preparedSpells: number;
-  spellSlots: SpellSlotProgression;
+  classFeatures: CLASS_FEATURE[];
+  preparedSpells?: number;
+  spellSlots?: number[];
+  featureOverrides?: Partial<Record<CLASS_FEATURE, FeatureMapEntry>>;
 };
 
 export type SpellEntry = BaseCodexEntry<ENTRY_CATEGORIES.SPELLS, SPELL_TYPES> &

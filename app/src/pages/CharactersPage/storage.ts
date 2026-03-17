@@ -17,10 +17,7 @@ import {
   normalizeSkillExpertiseSelectionsForCharacter,
   normalizeToolProficiencySelections
 } from "./proficiency";
-import {
-  getSpellSlotTotalsForCharacter,
-  normalizeSpellSlotsExpended
-} from "./spellcasting";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "./spellcasting";
 import { normalizeLevelAndXp } from "./experience";
 import { getSavingThrowProficienciesForClass } from "./gameplay";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
@@ -58,14 +55,8 @@ function normalizeCoreStats(value: unknown): CoreStats {
     armorClass: normalizeCoreStatValue(record.armorClass, defaults.armorClass),
     initiative: normalizeCoreStatValue(record.initiative, defaults.initiative),
     speed: normalizeCoreStatValue(record.speed, defaults.speed),
-    passivePerception: normalizeCoreStatValue(
-      record.passivePerception,
-      defaults.passivePerception
-    ),
-    proficiencyBonus: normalizeCoreStatValue(
-      record.proficiencyBonus,
-      defaults.proficiencyBonus
-    ),
+    passivePerception: normalizeCoreStatValue(record.passivePerception, defaults.passivePerception),
+    proficiencyBonus: normalizeCoreStatValue(record.proficiencyBonus, defaults.proficiencyBonus),
     hitDice: normalizeCoreStatValue(record.hitDice, defaults.hitDice)
   };
 }
@@ -140,7 +131,9 @@ function normalizeConditions(value: unknown): Character["conditions"] {
         roundsRemaining
       };
     })
-    .filter((condition): condition is NonNullable<Character["conditions"]>[number] => condition !== null);
+    .filter(
+      (condition): condition is NonNullable<Character["conditions"]>[number] => condition !== null
+    );
 }
 
 function normalizeDeathSaves(value: unknown): NonNullable<Character["deathSaves"]> {
@@ -186,6 +179,8 @@ function normalizeCharacter(value: unknown): Character | null {
     class?: unknown;
     xp?: unknown;
     experience?: unknown;
+    knownSpellIds?: unknown;
+    preparedSpellIds?: unknown;
     skillExpertise?: unknown;
     toolProficiencies?: unknown;
     coreStats?: unknown;
@@ -233,11 +228,11 @@ function normalizeCharacter(value: unknown): Character | null {
   const rawSkills = Array.isArray(record.skills)
     ? (record.skills as unknown[]).filter((skill): skill is string => typeof skill === "string")
     : defaults.skills;
-  const rawEquipment = Array.isArray(record.equipment)
-    ? record.equipment
-    : defaults.equipment;
+  const rawEquipment = Array.isArray(record.equipment) ? record.equipment : defaults.equipment;
   const rawSkillExpertise = Array.isArray(record.skillExpertise)
-    ? (record.skillExpertise as unknown[]).filter((skill): skill is string => typeof skill === "string")
+    ? (record.skillExpertise as unknown[]).filter(
+        (skill): skill is string => typeof skill === "string"
+      )
     : (defaults.skillExpertise ?? []);
   const rawToolProficiencies = Array.isArray(record.toolProficiencies)
     ? (record.toolProficiencies as unknown[]).filter(
@@ -258,9 +253,11 @@ function normalizeCharacter(value: unknown): Character | null {
     normalizedSkills,
     rawSkillExpertise
   );
-  const rawKnownSpellIds = Array.isArray(record.knownSpellIds)
-    ? record.knownSpellIds.filter((spellId): spellId is string => typeof spellId === "string")
-    : (defaults.knownSpellIds ?? []);
+  const rawPreparedSpellIds = Array.isArray(record.preparedSpellIds)
+    ? record.preparedSpellIds.filter((spellId): spellId is string => typeof spellId === "string")
+    : Array.isArray(record.knownSpellIds)
+      ? record.knownSpellIds.filter((spellId): spellId is string => typeof spellId === "string")
+      : (defaults.preparedSpellIds ?? []);
   const spellSlotTotals = getSpellSlotTotalsForCharacter(normalizedClassName, normalizedLevel);
   const normalizedSpellSlotsExpended = normalizeSpellSlotsExpended(
     record.spellSlotsExpended,
@@ -331,7 +328,7 @@ function normalizeCharacter(value: unknown): Character | null {
     deathSaves: normalizedDeathSaves,
     equipment: normalizedEquipment,
     customEquipment: normalizedCustomEquipment,
-    knownSpellIds: [...new Set(rawKnownSpellIds)],
+    preparedSpellIds: [...new Set(rawPreparedSpellIds)],
     spellSlotsExpended: normalizedSpellSlotsExpended,
     shortRestsUsedToday: normalizedShortRestsUsedToday,
     hitDiceRemaining: normalizedHitDiceRemaining,
@@ -407,9 +404,7 @@ export function upsertCharacter(
     characterId === undefined
       ? [nextCharacter, ...characters]
       : characters.some((character) => character.id === characterId)
-        ? characters.map((character) =>
-            character.id === characterId ? nextCharacter : character
-          )
+        ? characters.map((character) => (character.id === characterId ? nextCharacter : character))
         : [nextCharacter, ...characters];
 
   saveCharacters(nextCharacters);

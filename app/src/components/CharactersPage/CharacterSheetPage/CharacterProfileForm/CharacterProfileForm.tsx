@@ -33,6 +33,7 @@ import {
   formatCount
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import { getClassSignatureStyle } from "../../classSignature";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./CharacterProfileForm.module.css";
 import InlineToggleButton from "../InlineToggleButton";
@@ -241,7 +242,10 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
     nextLevelThreshold === null ? "MAX" : `${formatCount(nextLevelThreshold)} XP`;
 
   return (
-    <article className={clsx(shared.sectionCard, className)}>
+    <article
+      className={clsx(shared.sectionCard, styles.profileCard, className)}
+      style={getClassSignatureStyle(character.className)}
+    >
       <div className={shared.sectionHeader}>
         <div>
           <p className={shared.eyebrow}>Character profile</p>

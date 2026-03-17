@@ -3,12 +3,12 @@ import { ChevronDown, X } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import {
+  CLASS_FEATURE,
   ENTRY_CATEGORIES,
   FeatureMap,
   KeywordTooltip,
   hardcodedCodexEntries,
   type ClassEntry,
-  type ClassFeature,
   type FeatureMapEntry,
   type KeywordTooltipEntry
 } from "../../../../codex/entries";
@@ -27,7 +27,7 @@ type ClassFeaturesAndFeatsProps = {
 type FeatureRow = {
   key: string;
   level: number;
-  feature: ClassFeature;
+  feature: CLASS_FEATURE;
   details: FeatureMapEntry;
 };
 
@@ -153,6 +153,15 @@ function ClassFeaturesAndFeats({ className }: ClassFeaturesAndFeatsProps) {
     );
   }, [allFeatures]);
 
+  useEffect(() => {
+    if (isExpanded) {
+      return;
+    }
+
+    setExpandedFeatureKeys([]);
+    setIsFutureFeaturesVisible(false);
+  }, [isExpanded]);
+
   function openKeyword(keywordKey: string) {
     const tooltip = KeywordTooltip[keywordKey];
 
@@ -172,6 +181,10 @@ function ClassFeaturesAndFeats({ className }: ClassFeaturesAndFeatsProps) {
         ? current.filter((currentKey) => currentKey !== featureKey)
         : [...current, featureKey]
     );
+  }
+
+  function toggleSection() {
+    setIsExpanded((current) => !current);
   }
 
   function renderFeatureList(features: FeatureRow[]) {
@@ -242,7 +255,7 @@ function ClassFeaturesAndFeats({ className }: ClassFeaturesAndFeatsProps) {
       <button
         type="button"
         className={styles.sectionToggle}
-        onClick={() => setIsExpanded((current) => !current)}
+        onClick={toggleSection}
         aria-expanded={isExpanded}
         aria-controls="class-features-and-feats-content"
       >

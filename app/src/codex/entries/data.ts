@@ -1,9 +1,7 @@
 import {
   ABILITY_TYPES,
   ARMOR_TYPES,
-  DICE,
   BACKGROUND_TYPES,
-  ClassFeature,
   CURRENCY_TYPE,
   CLASS_TYPES,
   DAMAGE_TYPES,
@@ -18,341 +16,22 @@ import {
   SPELL_TYPES,
   TOOL_PROFICIENCIES
 } from "./enums";
-import type { BarbarianFeatureClassObj, BardFeatureClassObj, CodexEntry } from "./types";
+import {
+  bardFeatures,
+  barbarianFeatures,
+  clericFeatures,
+  druidFeatures,
+  fighterFeatures,
+  monkFeatures,
+  paladinFeatures,
+  rangerFeatures,
+  rogueFeatures,
+  sorcererFeatures,
+  warlockFeatures,
+  wizardFeatures
+} from "../classes";
+import type { CodexEntry } from "./types";
 import { weaponEntries } from "./weaponData";
-
-const barbarianFeatures: BarbarianFeatureClassObj[] = [
-  {
-    level: 1,
-    classFeatures: [ClassFeature.RAGE, ClassFeature.UNARMORED_DEFENSE, ClassFeature.WEAPON_MASTERY],
-    rages: 2,
-    rageDamage: 2,
-    weaponMastery: 2
-  },
-  {
-    level: 2,
-    classFeatures: [ClassFeature.DANGER_SENSE, ClassFeature.RECKLESS_ATTACK],
-    rages: 2,
-    rageDamage: 2,
-    weaponMastery: 2
-  },
-  {
-    level: 3,
-    classFeatures: [ClassFeature.BARBARIAN_SUBCLASS, ClassFeature.PRIMAL_KNOWLEDGE],
-    rages: 3,
-    rageDamage: 2,
-    weaponMastery: 2
-  },
-  {
-    level: 4,
-    classFeatures: [ClassFeature.ABILITY_SCORE_IMPROVEMENT],
-    rages: 3,
-    rageDamage: 2,
-    weaponMastery: 3
-  },
-  {
-    level: 5,
-    classFeatures: [ClassFeature.EXTRA_ATTACK, ClassFeature.FAST_MOVEMENT],
-    rages: 3,
-    rageDamage: 2,
-    weaponMastery: 3
-  },
-  {
-    level: 6,
-    classFeatures: [ClassFeature.SUBCLASS_FEATURE],
-    rages: 4,
-    rageDamage: 2,
-    weaponMastery: 3
-  },
-  {
-    level: 7,
-    classFeatures: [ClassFeature.FERAL_INSTINCT, ClassFeature.INSTINCTIVE_POUNCE],
-    rages: 4,
-    rageDamage: 2,
-    weaponMastery: 3
-  },
-  {
-    level: 8,
-    classFeatures: [ClassFeature.ABILITY_SCORE_IMPROVEMENT],
-    rages: 4,
-    rageDamage: 2,
-    weaponMastery: 3
-  },
-  {
-    level: 9,
-    classFeatures: [ClassFeature.BRUTAL_STRIKE],
-    rages: 4,
-    rageDamage: 3,
-    weaponMastery: 3
-  },
-  {
-    level: 10,
-    classFeatures: [ClassFeature.SUBCLASS_FEATURE],
-    rages: 4,
-    rageDamage: 3,
-    weaponMastery: 4
-  },
-  {
-    level: 11,
-    classFeatures: [ClassFeature.RELENTLESS_RAGE],
-    rages: 4,
-    rageDamage: 3,
-    weaponMastery: 4
-  },
-  {
-    level: 12,
-    classFeatures: [ClassFeature.ABILITY_SCORE_IMPROVEMENT],
-    rages: 5,
-    rageDamage: 3,
-    weaponMastery: 4
-  },
-  {
-    level: 13,
-    classFeatures: [ClassFeature.IMPROVED_BRUTAL_STRIKE],
-    rages: 5,
-    rageDamage: 3,
-    weaponMastery: 4
-  },
-  {
-    level: 14,
-    classFeatures: [ClassFeature.SUBCLASS_FEATURE],
-    rages: 5,
-    rageDamage: 3,
-    weaponMastery: 4
-  },
-  {
-    level: 15,
-    classFeatures: [ClassFeature.PERSISTENT_RAGE],
-    rages: 5,
-    rageDamage: 3,
-    weaponMastery: 4
-  },
-  {
-    level: 16,
-    classFeatures: [ClassFeature.ABILITY_SCORE_IMPROVEMENT],
-    rages: 5,
-    rageDamage: 4,
-    weaponMastery: 4
-  },
-  {
-    level: 17,
-    classFeatures: [ClassFeature.IMPROVED_BRUTAL_STRIKE],
-    featureOverrides: {
-      [ClassFeature.IMPROVED_BRUTAL_STRIKE]: {
-        description: [
-          "The extra damage of your Brutal Strike increases to 2d10.",
-          "In addition, you can use two different Brutal Strike effects whenever you use your Brutal Strike feature."
-        ],
-        isTracked: false
-      }
-    },
-    rages: 6,
-    rageDamage: 4,
-    weaponMastery: 4
-  },
-  {
-    level: 18,
-    classFeatures: [ClassFeature.INDOMITABLE_MIGHT],
-    rages: 6,
-    rageDamage: 4,
-    weaponMastery: 4
-  },
-  {
-    level: 19,
-    classFeatures: [ClassFeature.EPIC_BOON],
-    featureOverrides: {
-      [ClassFeature.EPIC_BOON]: {
-        description: [
-          "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
-          "Boon of Irresistible Offense is recommended."
-        ],
-        isTracked: false
-      }
-    },
-    rages: 6,
-    rageDamage: 4,
-    weaponMastery: 4
-  },
-  {
-    level: 20,
-    classFeatures: [ClassFeature.PRIMAL_CHAMPION],
-    rages: 6,
-    rageDamage: 4,
-    weaponMastery: 4
-  }
-];
-
-const bardFeatures: BardFeatureClassObj[] = [
-  {
-    level: 1,
-    classFeatures: [ClassFeature.BARDIC_INSPIRATION, ClassFeature.SPELLCASTING],
-    bardicDie: DICE.D6,
-    cantrips: 2,
-    preparedSpells: 4,
-    spellSlots: [2, 0, 0, 0, 0, 0, 0, 0, 0]
-  },
-  {
-    level: 2,
-    classFeatures: [ClassFeature.EXPERTISE, ClassFeature.JACK_OF_ALL_TRADES],
-    bardicDie: DICE.D6,
-    cantrips: 2,
-    preparedSpells: 5,
-    spellSlots: [3, 0, 0, 0, 0, 0, 0, 0, 0]
-  },
-  {
-    level: 3,
-    classFeatures: [ClassFeature.BARD_SUBCLASS],
-    bardicDie: DICE.D6,
-    cantrips: 2,
-    preparedSpells: 6,
-    spellSlots: [4, 2, 0, 0, 0, 0, 0, 0, 0]
-  },
-  {
-    level: 4,
-    classFeatures: [ClassFeature.ABILITY_SCORE_IMPROVEMENT],
-    bardicDie: DICE.D6,
-    cantrips: 3,
-    preparedSpells: 7,
-    spellSlots: [4, 3, 0, 0, 0, 0, 0, 0, 0]
-  },
-  {
-    level: 5,
-    classFeatures: [ClassFeature.FONT_OF_INSPIRATION],
-    bardicDie: DICE.D8,
-    cantrips: 3,
-    preparedSpells: 9,
-    spellSlots: [4, 3, 2, 0, 0, 0, 0, 0, 0]
-  },
-  {
-    level: 6,
-    classFeatures: [ClassFeature.SUBCLASS_FEATURE],
-    bardicDie: DICE.D8,
-    cantrips: 3,
-    preparedSpells: 10,
-    spellSlots: [4, 3, 3, 0, 0, 0, 0, 0, 0]
-  },
-  {
-    level: 7,
-    classFeatures: [ClassFeature.COUNTERCHARM],
-    bardicDie: DICE.D8,
-    cantrips: 3,
-    preparedSpells: 11,
-    spellSlots: [4, 3, 3, 1, 0, 0, 0, 0, 0]
-  },
-  {
-    level: 8,
-    classFeatures: [ClassFeature.ABILITY_SCORE_IMPROVEMENT],
-    bardicDie: DICE.D8,
-    cantrips: 3,
-    preparedSpells: 12,
-    spellSlots: [4, 3, 3, 2, 0, 0, 0, 0, 0]
-  },
-  {
-    level: 9,
-    classFeatures: [ClassFeature.EXPERTISE],
-    bardicDie: DICE.D8,
-    cantrips: 3,
-    preparedSpells: 14,
-    spellSlots: [4, 3, 3, 3, 1, 0, 0, 0, 0]
-  },
-  {
-    level: 10,
-    classFeatures: [ClassFeature.MAGICAL_SECRETS],
-    bardicDie: DICE.D10,
-    cantrips: 4,
-    preparedSpells: 15,
-    spellSlots: [4, 3, 3, 3, 2, 0, 0, 0, 0]
-  },
-  {
-    level: 11,
-    classFeatures: [],
-    bardicDie: DICE.D10,
-    cantrips: 4,
-    preparedSpells: 16,
-    spellSlots: [4, 3, 3, 3, 2, 1, 0, 0, 0]
-  },
-  {
-    level: 12,
-    classFeatures: [ClassFeature.ABILITY_SCORE_IMPROVEMENT],
-    bardicDie: DICE.D10,
-    cantrips: 4,
-    preparedSpells: 16,
-    spellSlots: [4, 3, 3, 3, 2, 1, 0, 0, 0]
-  },
-  {
-    level: 13,
-    classFeatures: [],
-    bardicDie: DICE.D10,
-    cantrips: 4,
-    preparedSpells: 17,
-    spellSlots: [4, 3, 3, 3, 2, 1, 1, 0, 0]
-  },
-  {
-    level: 14,
-    classFeatures: [ClassFeature.SUBCLASS_FEATURE],
-    bardicDie: DICE.D10,
-    cantrips: 4,
-    preparedSpells: 17,
-    spellSlots: [4, 3, 3, 3, 2, 1, 1, 0, 0]
-  },
-  {
-    level: 15,
-    classFeatures: [],
-    bardicDie: DICE.D12,
-    cantrips: 4,
-    preparedSpells: 18,
-    spellSlots: [4, 3, 3, 3, 2, 1, 1, 1, 0]
-  },
-  {
-    level: 16,
-    classFeatures: [ClassFeature.ABILITY_SCORE_IMPROVEMENT],
-    bardicDie: DICE.D12,
-    cantrips: 4,
-    preparedSpells: 18,
-    spellSlots: [4, 3, 3, 3, 2, 1, 1, 1, 0]
-  },
-  {
-    level: 17,
-    classFeatures: [],
-    bardicDie: DICE.D12,
-    cantrips: 4,
-    preparedSpells: 19,
-    spellSlots: [4, 3, 3, 3, 2, 1, 1, 1, 1]
-  },
-  {
-    level: 18,
-    classFeatures: [ClassFeature.SUPERIOR_INSPIRATION],
-    bardicDie: DICE.D12,
-    cantrips: 4,
-    preparedSpells: 20,
-    spellSlots: [4, 3, 3, 3, 3, 1, 1, 1, 1]
-  },
-  {
-    level: 19,
-    classFeatures: [ClassFeature.EPIC_BOON],
-    featureOverrides: {
-      [ClassFeature.EPIC_BOON]: {
-        description: [
-          "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
-          "Boon of Spell Recall is recommended."
-        ],
-        isTracked: false
-      }
-    },
-    bardicDie: DICE.D12,
-    cantrips: 4,
-    preparedSpells: 21,
-    spellSlots: [4, 3, 3, 3, 3, 2, 1, 1, 1]
-  },
-  {
-    level: 20,
-    classFeatures: [ClassFeature.WORDS_OF_CREATION],
-    bardicDie: DICE.D12,
-    cantrips: 4,
-    preparedSpells: 22,
-    spellSlots: [4, 3, 3, 3, 3, 2, 2, 1, 1]
-  }
-];
 
 export const hardcodedCodexEntries: CodexEntry[] = [
   {
@@ -918,7 +597,7 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     ],
     grantedSkillProficiencies: ["Religion"],
     grantedToolProficiencies: [],
-    features: [],
+    features: clericFeatures,
 
     summary: "A divine champion who balances healing, protection, and holy offense."
   },
@@ -938,7 +617,7 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     ],
     grantedSkillProficiencies: ["Nature"],
     grantedToolProficiencies: [],
-    features: [],
+    features: druidFeatures,
 
     summary: "A primal spellcaster who commands nature, shapeshifts, and controls the battlefield."
   },
@@ -960,7 +639,7 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     ],
     grantedSkillProficiencies: ["Athletics"],
     grantedToolProficiencies: [],
-    features: [],
+    features: fighterFeatures,
 
     summary: "A tactical combat specialist with unmatched weapon and armor discipline."
   },
@@ -975,7 +654,7 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     innateProficiencies: [GENERAL_PROFICIENCIES.SIMPLE_WEAPONS],
     grantedSkillProficiencies: ["Acrobatics"],
     grantedToolProficiencies: [],
-    features: [],
+    features: monkFeatures,
 
     summary: "A disciplined martial artist who blends mobility, precision, and ki techniques."
   },
@@ -997,7 +676,7 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     ],
     grantedSkillProficiencies: ["Persuasion"],
     grantedToolProficiencies: [],
-    features: [],
+    features: paladinFeatures,
 
     summary: "A holy knight who combines durable frontline defense with radiant burst damage."
   },
@@ -1018,7 +697,7 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     ],
     grantedSkillProficiencies: ["Survival"],
     grantedToolProficiencies: [],
-    features: [],
+    features: rangerFeatures,
 
     summary: "A wilderness hunter who excels at tracking foes and controlling range."
   },
@@ -1037,7 +716,7 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     ],
     grantedSkillProficiencies: ["Stealth"],
     grantedToolProficiencies: [TOOL_PROFICIENCIES.THIEVES_TOOLKIT],
-    features: [],
+    features: rogueFeatures,
 
     summary: "A precision striker and expert operative built around stealth, timing, and utility."
   },
@@ -1052,7 +731,7 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     innateProficiencies: [GENERAL_PROFICIENCIES.SIMPLE_WEAPONS],
     grantedSkillProficiencies: ["Arcana"],
     grantedToolProficiencies: [],
-    features: [],
+    features: sorcererFeatures,
 
     summary: "An innate arcane caster whose bloodline power fuels explosive spell output."
   },
@@ -1067,7 +746,7 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     innateProficiencies: [GENERAL_PROFICIENCIES.SIMPLE_WEAPONS, GENERAL_PROFICIENCIES.LIGHT_ARMOR],
     grantedSkillProficiencies: ["Deception"],
     grantedToolProficiencies: [],
-    features: [],
+    features: warlockFeatures,
 
     summary: "A pact-bound caster with focused spell slots and potent invocations."
   },
@@ -1082,7 +761,7 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     innateProficiencies: [GENERAL_PROFICIENCIES.SIMPLE_WEAPONS],
     grantedSkillProficiencies: ["Arcana"],
     grantedToolProficiencies: [],
-    features: [],
+    features: wizardFeatures,
 
     summary:
       "A scholar of spellcraft who prepares flexible arcane solutions for almost any challenge."

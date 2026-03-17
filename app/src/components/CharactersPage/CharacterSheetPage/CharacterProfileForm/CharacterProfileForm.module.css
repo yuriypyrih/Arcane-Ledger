@@ -1,3 +1,24 @@
+.profileCard {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+}
+
+.profileCard::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: var(--class-signature-gradient);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.profileCard > * {
+  position: relative;
+  z-index: 1;
+}
+
 .metaList {
   display: grid;
   gap: 0.65rem;

@@ -112,7 +112,7 @@ export function createEmptyCharacter(): CharacterDraft {
     },
     equipment: [],
     customEquipment: [],
-    knownSpellIds: [],
+    preparedSpellIds: [],
     spellSlotsExpended: Array.from({ length: 9 }, () => 0),
     shortRestsUsedToday: 0,
     coreStats: createDefaultCoreStats()

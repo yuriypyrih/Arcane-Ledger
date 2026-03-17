@@ -4,6 +4,7 @@ import { Link } from "react-router-dom";
 import { useBodyScrollLock } from "../../../lib/useBodyScrollLock";
 import { abilityKeys } from "../../../pages/CharactersPage/constants";
 import type { Character } from "../../../types";
+import { getClassSignatureStyle } from "../classSignature";
 import styles from "./CharacterList.module.css";
 
 type CharacterListProps = {
@@ -59,7 +60,11 @@ function CharacterList({ characters, onDeleteCharacter }: CharacterListProps) {
       ) : (
         <ul className={styles.list}>
           {characters.map((character) => (
-            <li key={character.id} className={styles.card}>
+            <li
+              key={character.id}
+              className={styles.card}
+              style={getClassSignatureStyle(character.className)}
+            >
               <div className={styles.cardMain}>
                 <div className={styles.cardContent}>
                   <div className={styles.cardHeader}>
@@ -118,7 +123,8 @@ function CharacterList({ characters, onDeleteCharacter }: CharacterListProps) {
           >
             <h4 id="delete-character-title">Delete character?</h4>
             <p>
-              This will permanently remove <strong>{pendingDeleteCharacter.name}</strong> from your roster.
+              This will permanently remove <strong>{pendingDeleteCharacter.name}</strong> from your
+              roster.
             </p>
             <div className={styles.modalActions}>
               <button

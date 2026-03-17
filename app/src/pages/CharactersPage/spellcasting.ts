@@ -1,108 +1,21 @@
 import {
+  CLASS_FEATURE,
   ENTRY_CATEGORIES,
   SPELL_TYPES,
   hardcodedCodexEntries,
+  type ClassEntry,
+  type FeatureClassObj,
   type SpellEntry
 } from "../../codex/entries";
 import type { Character } from "../../types";
 
-export type SpellcastingProgression = "none" | "full" | "half" | "pact";
-
 const spellSlotLevels = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
-
-const spellcastingProgressionByClass: Record<string, SpellcastingProgression> = {
-  Artificer: "half",
-  Barbarian: "none",
-  Bard: "full",
-  Cleric: "full",
-  Druid: "full",
-  Fighter: "none",
-  Monk: "none",
-  Paladin: "half",
-  Ranger: "half",
-  Rogue: "none",
-  Sorcerer: "full",
-  Warlock: "pact",
-  Wizard: "full"
-};
 
 function createSpellSlotRow(...slots: number[]): number[] {
   return spellSlotLevels.map((_, index) => Math.max(0, Math.floor(slots[index] ?? 0)));
 }
 
 const emptySpellSlotRow = createSpellSlotRow();
-
-const fullCasterSpellSlotsByLevel: number[][] = [
-  emptySpellSlotRow,
-  createSpellSlotRow(2),
-  createSpellSlotRow(3),
-  createSpellSlotRow(4, 2),
-  createSpellSlotRow(4, 3),
-  createSpellSlotRow(4, 3, 2),
-  createSpellSlotRow(4, 3, 3),
-  createSpellSlotRow(4, 3, 3, 1),
-  createSpellSlotRow(4, 3, 3, 2),
-  createSpellSlotRow(4, 3, 3, 3, 1),
-  createSpellSlotRow(4, 3, 3, 3, 2),
-  createSpellSlotRow(4, 3, 3, 3, 2, 1),
-  createSpellSlotRow(4, 3, 3, 3, 2, 1),
-  createSpellSlotRow(4, 3, 3, 3, 2, 1, 1),
-  createSpellSlotRow(4, 3, 3, 3, 2, 1, 1),
-  createSpellSlotRow(4, 3, 3, 3, 2, 1, 1, 1),
-  createSpellSlotRow(4, 3, 3, 3, 2, 1, 1, 1),
-  createSpellSlotRow(4, 3, 3, 3, 2, 1, 1, 1, 1),
-  createSpellSlotRow(4, 3, 3, 3, 3, 1, 1, 1, 1),
-  createSpellSlotRow(4, 3, 3, 3, 3, 2, 1, 1, 1),
-  createSpellSlotRow(4, 3, 3, 3, 3, 2, 2, 1, 1)
-];
-
-const halfCasterSpellSlotsByLevel: number[][] = [
-  emptySpellSlotRow,
-  createSpellSlotRow(2),
-  createSpellSlotRow(2),
-  createSpellSlotRow(3),
-  createSpellSlotRow(3),
-  createSpellSlotRow(4, 2),
-  createSpellSlotRow(4, 2),
-  createSpellSlotRow(4, 3),
-  createSpellSlotRow(4, 3),
-  createSpellSlotRow(4, 3, 2),
-  createSpellSlotRow(4, 3, 2),
-  createSpellSlotRow(4, 3, 3),
-  createSpellSlotRow(4, 3, 3),
-  createSpellSlotRow(4, 3, 3, 1),
-  createSpellSlotRow(4, 3, 3, 1),
-  createSpellSlotRow(4, 3, 3, 2),
-  createSpellSlotRow(4, 3, 3, 2),
-  createSpellSlotRow(4, 3, 3, 3, 1),
-  createSpellSlotRow(4, 3, 3, 3, 1),
-  createSpellSlotRow(4, 3, 3, 3, 2),
-  createSpellSlotRow(4, 3, 3, 3, 2)
-];
-
-const pactCasterSpellSlotsByLevel: number[][] = [
-  emptySpellSlotRow,
-  createSpellSlotRow(1),
-  createSpellSlotRow(2),
-  createSpellSlotRow(0, 2),
-  createSpellSlotRow(0, 2),
-  createSpellSlotRow(0, 0, 2),
-  createSpellSlotRow(0, 0, 2),
-  createSpellSlotRow(0, 0, 0, 2),
-  createSpellSlotRow(0, 0, 0, 2),
-  createSpellSlotRow(0, 0, 0, 0, 2),
-  createSpellSlotRow(0, 0, 0, 0, 2),
-  createSpellSlotRow(0, 0, 0, 0, 3),
-  createSpellSlotRow(0, 0, 0, 0, 3),
-  createSpellSlotRow(0, 0, 0, 0, 3),
-  createSpellSlotRow(0, 0, 0, 0, 3),
-  createSpellSlotRow(0, 0, 0, 0, 3),
-  createSpellSlotRow(0, 0, 0, 0, 3),
-  createSpellSlotRow(0, 0, 0, 0, 4),
-  createSpellSlotRow(0, 0, 0, 0, 4),
-  createSpellSlotRow(0, 0, 0, 0, 4),
-  createSpellSlotRow(0, 0, 0, 0, 4)
-];
 
 const codexSpellEntries = hardcodedCodexEntries
   .filter((entry): entry is SpellEntry => entry.category === ENTRY_CATEGORIES.SPELLS)
@@ -117,26 +30,22 @@ const codexSpellEntries = hardcodedCodexEntries
     return left.name.localeCompare(right.name);
   });
 
+const codexClassEntries = hardcodedCodexEntries.filter(
+  (entry): entry is ClassEntry => entry.category === ENTRY_CATEGORIES.CLASSES
+);
+
+type SpellcastingFeatureClassObj = FeatureClassObj & {
+  preparedSpells?: number;
+  spellSlots?: number[];
+};
+
+const spellcastingClassFeatures = new Set<CLASS_FEATURE>([
+  CLASS_FEATURE.SPELLCASTING,
+  CLASS_FEATURE.PACT_MAGIC
+]);
+
 function clampCharacterLevel(level: number): number {
   return Math.max(1, Math.min(20, Math.floor(level)));
-}
-
-function getSpellSlotTableForClass(className: string): number[][] {
-  const progression = getSpellcastingProgressionForClass(className);
-
-  if (progression === "full") {
-    return fullCasterSpellSlotsByLevel;
-  }
-
-  if (progression === "half") {
-    return halfCasterSpellSlotsByLevel;
-  }
-
-  if (progression === "pact") {
-    return pactCasterSpellSlotsByLevel;
-  }
-
-  return [emptySpellSlotRow];
 }
 
 function sanitizeSpellLevel(value: unknown): number {
@@ -153,6 +62,37 @@ function dedupeSpellIds(spellIds: string[]): string[] {
   return [...new Set(spellIds)];
 }
 
+function getClassEntry(className: string): ClassEntry | undefined {
+  return codexClassEntries.find((entry) => entry.name === className);
+}
+
+function getClassFeatureRowsUpToLevel(
+  className: string,
+  level: number
+): SpellcastingFeatureClassObj[] {
+  const normalizedLevel = clampCharacterLevel(level);
+  const classEntry = getClassEntry(className);
+
+  if (!classEntry) {
+    return [];
+  }
+
+  return classEntry.features
+    .filter(
+      (featureRow): featureRow is SpellcastingFeatureClassObj => featureRow.level <= normalizedLevel
+    )
+    .sort((left, right) => left.level - right.level);
+}
+
+function getClassFeatureRowForLevel(
+  className: string,
+  level: number
+): SpellcastingFeatureClassObj | undefined {
+  const featureRows = getClassFeatureRowsUpToLevel(className, level);
+
+  return featureRows[featureRows.length - 1];
+}
+
 function getHighestSlotLevel(slotTotals: number[]): number {
   for (let index = slotTotals.length - 1; index >= 0; index -= 1) {
     if (slotTotals[index] > 0) {
@@ -163,12 +103,24 @@ function getHighestSlotLevel(slotTotals: number[]): number {
   return 0;
 }
 
-export function getSpellcastingProgressionForClass(className: string): SpellcastingProgression {
-  return spellcastingProgressionByClass[className] ?? "none";
+function getAvailableSpellEntriesForCharacter(className: string, level: number): SpellEntry[] {
+  if (!isSpellcastingClass(className, level)) {
+    return [];
+  }
+
+  const slotTotals = getSpellSlotTotalsForCharacter(className, level);
+  const highestSlotLevel = getHighestSlotLevel(slotTotals);
+
+  return codexSpellEntries.filter((spell) => {
+    const spellLevel = getSpellLevel(spell);
+    return spellLevel === 0 || spellLevel <= highestSlotLevel;
+  });
 }
 
-export function isSpellcastingClass(className: string): boolean {
-  return getSpellcastingProgressionForClass(className) !== "none";
+export function isSpellcastingClass(className: string, level = 20): boolean {
+  return getClassFeatureRowsUpToLevel(className, level).some((featureRow) =>
+    featureRow.classFeatures.some((classFeature) => spellcastingClassFeatures.has(classFeature))
+  );
 }
 
 export function getSpellLevel(spell: Pick<SpellEntry, "spellLevel" | "tags">): number {
@@ -184,11 +136,13 @@ export function getSpellLevel(spell: Pick<SpellEntry, "spellLevel" | "tags">): n
 }
 
 export function getSpellSlotTotalsForCharacter(className: string, level: number): number[] {
-  const slotTable = getSpellSlotTableForClass(className);
-  const normalizedLevel = clampCharacterLevel(level);
-  const row = slotTable[normalizedLevel] ?? emptySpellSlotRow;
+  const featureRow = getClassFeatureRowForLevel(className, level);
 
-  return [...row];
+  if (!Array.isArray(featureRow?.spellSlots)) {
+    return [...emptySpellSlotRow];
+  }
+
+  return createSpellSlotRow(...featureRow.spellSlots);
 }
 
 export function normalizeSpellSlotsExpended(
@@ -209,33 +163,57 @@ export function getAllSpellEntries(): SpellEntry[] {
   return [...codexSpellEntries];
 }
 
-export function getKnownSpellsForCharacter(
-  character: Pick<Character, "className" | "level" | "knownSpellIds">
+export function getPreparedSpellLimitForCharacter(className: string, level: number): number | null {
+  const preparedSpells = getClassFeatureRowForLevel(className, level)?.preparedSpells;
+
+  return typeof preparedSpells === "number" ? Math.max(0, Math.floor(preparedSpells)) : null;
+}
+
+export function usesPreparedSpellsForCharacter(className: string, level: number): boolean {
+  return getPreparedSpellLimitForCharacter(className, level) !== null;
+}
+
+export function getSpellPreparationOptionsForCharacter(
+  className: string,
+  level: number
 ): SpellEntry[] {
-  if (!isSpellcastingClass(character.className)) {
+  return getAvailableSpellEntriesForCharacter(className, level).filter(
+    (spell) => getSpellLevel(spell) > 0
+  );
+}
+
+export function getPreparedSpellsForCharacter(
+  character: Pick<Character, "className" | "level" | "preparedSpellIds">
+): SpellEntry[] {
+  if (!isSpellcastingClass(character.className, character.level)) {
     return [];
   }
 
-  const slotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
-  const highestSlotLevel = getHighestSlotLevel(slotTotals);
-  const availableSpells = codexSpellEntries.filter((spell) => {
-    const spellLevel = getSpellLevel(spell);
-    return spellLevel === 0 || spellLevel <= highestSlotLevel;
-  });
+  const availableSpells = getAvailableSpellEntriesForCharacter(
+    character.className,
+    character.level
+  );
+  const availableById = new Map(availableSpells.map((spell) => [spell.id, spell]));
+  const cantrips = availableSpells.filter((spell) => getSpellLevel(spell) === 0);
+  const preparedSpellLimit = getPreparedSpellLimitForCharacter(
+    character.className,
+    character.level
+  );
 
-  const knownSpellIds = Array.isArray(character.knownSpellIds)
-    ? dedupeSpellIds(character.knownSpellIds.filter((value): value is string => typeof value === "string"))
-    : [];
-
-  if (knownSpellIds.length === 0) {
+  if (!usesPreparedSpellsForCharacter(character.className, character.level)) {
     return availableSpells;
   }
 
-  const availableById = new Map(availableSpells.map((spell) => [spell.id, spell]));
+  const preparedSpellIds = Array.isArray(character.preparedSpellIds)
+    ? dedupeSpellIds(
+        character.preparedSpellIds.filter((value): value is string => typeof value === "string")
+      )
+    : [];
 
-  const resolvedKnownSpells = knownSpellIds
+  const resolvedPreparedSpells = preparedSpellIds
     .map((spellId) => availableById.get(spellId))
-    .filter((spell): spell is SpellEntry => spell !== undefined);
+    .filter((spell): spell is SpellEntry => spell !== undefined && getSpellLevel(spell) > 0)
+    .slice(0, preparedSpellLimit ?? Number.POSITIVE_INFINITY);
 
-  return resolvedKnownSpells.length > 0 ? resolvedKnownSpells : availableSpells;
+  return [...cantrips, ...resolvedPreparedSpells];
 }
