@@ -2,8 +2,10 @@ import {
   ABILITY_TYPES,
   DICE,
   DICE_TYPES,
+  SPELL_COMPONENT,
   TOOL_PROFICIENCIES,
   WEAPON_PROPERTY,
+  type SpellEntry,
   type EquipmentCost,
   type WeaponDamage,
   type WeaponDamageAmount,
@@ -46,34 +48,28 @@ export function formatCodexList(values: string[]): string {
   return values.map((value) => formatCodexLabel(value)).join(", ");
 }
 
-export function formatDamageDice(dice: string[]): string {
-  if (dice.length === 0) {
+export function formatSpellLevelLabel(level: number): string {
+  return level === 0 ? "Cantrip" : `Level ${level}`;
+}
+
+export function formatSpellSubtitle(spell: Pick<SpellEntry, "magicSchool" | "spellLevel">): string {
+  return `${formatCodexLabel(spell.magicSchool)} ${formatSpellLevelLabel(spell.spellLevel).toLowerCase()}`;
+}
+
+export function formatSpellComponents(components: SPELL_COMPONENT[]): string {
+  if (components.length === 0) {
     return "None";
   }
 
-  const countByDie = new Map<string, number>();
-  const diceOrder: string[] = [];
-
-  dice.forEach((die) => {
-    if (!countByDie.has(die)) {
-      diceOrder.push(die);
-      countByDie.set(die, 0);
-    }
-
-    countByDie.set(die, (countByDie.get(die) ?? 0) + 1);
-  });
-
-  return diceOrder
-    .map((die) => `${countByDie.get(die)}${die.toLowerCase()}`)
-    .join(" + ");
+  return components.join(", ");
 }
 
-function formatWeaponDamageAmount(amount: WeaponDamageAmount): string {
-  if (typeof amount === "number") {
-    return `${amount}`;
-  }
+export function getSpellExcerpt(
+  spell: Pick<SpellEntry, "description"> | Pick<SpellEntry, "description">["description"]
+): string {
+  const description = Array.isArray(spell) ? spell : spell.description;
 
-  return `1${String(amount).toLowerCase()}`;
+  return description.find((line) => line.trim().length > 0) ?? "No description available.";
 }
 
 function formatGroupedWeaponDamageAmount(amount: WeaponDamageAmount, count: number): string {
@@ -188,7 +184,9 @@ export function formatEquipmentWeight(weight: number | null): string {
     return "-";
   }
 
-  const normalizedWeight = Number.isInteger(weight) ? `${weight}` : `${weight}`.replace(/\.0+$/, "");
+  const normalizedWeight = Number.isInteger(weight)
+    ? `${weight}`
+    : `${weight}`.replace(/\.0+$/, "");
   return `${normalizedWeight} lb.`;
 }
 

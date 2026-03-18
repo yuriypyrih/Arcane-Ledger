@@ -26,6 +26,10 @@
   padding: var(--space-card-padding);
 }
 
+.drawerCard {
+  display: grid;
+}
+
 .card h2,
 .card p {
   margin: 0;
@@ -63,8 +67,157 @@
   gap: 0.3rem;
 }
 
+.detailButton {
+  border: 0;
+  border-radius: 16px;
+  background: rgba(255, 250, 241, 0.9);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  padding: 0.6rem 0.75rem;
+  text-align: left;
+  transition:
+    border-color 120ms ease,
+    box-shadow 120ms ease,
+    transform 120ms ease;
+}
+
+.detailButton:hover {
+  box-shadow: 0 10px 26px rgba(54, 34, 21, 0.08);
+  transform: translateY(-1px);
+}
+
+.detailButton:focus-visible {
+  outline: 2px solid rgba(117, 76, 36, 0.4);
+  outline-offset: 2px;
+}
+
 .detailItem strong {
   font-size: 0.96rem;
+}
+
+.entryDrawer {
+  display: grid;
+  gap: 0.92rem;
+  border: 1px solid rgba(75, 47, 29, 0.22);
+  border-radius: 24px 24px 18px 18px;
+  background: linear-gradient(160deg, rgba(255, 252, 245, 0.99), rgba(245, 234, 218, 0.99));
+  box-shadow: 0 28px 70px rgba(32, 18, 12, 0.18);
+  overflow: hidden;
+  padding: 0.95rem;
+}
+
+.drawerTitleRow h2 {
+  margin: 0;
+}
+
+.drawerDetailButton {
+  border: 0;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+  transition:
+    box-shadow 120ms ease,
+    transform 120ms ease;
+}
+
+.drawerDetailButton:hover {
+  box-shadow: 0 10px 26px rgba(54, 34, 21, 0.08);
+  transform: translateY(-1px);
+}
+
+.drawerDetailButton:focus-visible {
+  outline: 2px solid rgba(117, 76, 36, 0.4);
+  outline-offset: 2px;
+}
+
+.descriptionSection {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.descriptionLine {
+  margin: 0;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+  display: grid;
+  place-items: center;
+  background: rgba(33, 22, 14, 0.5);
+  padding: 1.5rem;
+}
+
+.modal {
+  display: grid;
+  gap: 1rem;
+  width: min(32rem, 100%);
+  max-height: min(36rem, calc(100vh - 3rem));
+  overflow: auto;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 24px;
+  background: rgba(255, 250, 241, 0.98);
+  box-shadow: 0 24px 60px rgba(33, 22, 14, 0.2);
+  padding: 1.25rem;
+}
+
+.modalHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.modalHeader h3,
+.modalHeader p,
+.componentTooltipItem h4,
+.componentTooltipItem p {
+  margin: 0;
+}
+
+.modalEyebrow {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.closeButton {
+  border: 0;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-accent);
+  cursor: pointer;
+  font-size: 1.4rem;
+  line-height: 1;
+  padding: 0.25rem 0.55rem;
+}
+
+.componentTooltipList {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.componentTooltipItem {
+  display: grid;
+  gap: 0.45rem;
+  border: 1px solid rgba(75, 47, 29, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 252, 245, 0.94);
+  padding: 0.9rem 1rem;
+}
+
+.componentTooltipTitle {
+  color: var(--color-accent);
+  font-size: 0.95rem;
+}
+
+.componentTooltipDescription {
+  display: grid;
+  gap: 0.45rem;
 }
 
 @media (max-width: 900px) {
@@ -74,5 +227,9 @@
 
   .detailsGrid {
     grid-template-columns: 1fr;
+  }
+
+  .entryDrawer {
+    padding: 0.85rem;
   }
 }

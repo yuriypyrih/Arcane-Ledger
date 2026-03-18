@@ -1,5 +1,6 @@
-import { CLASS_FEATURE } from "../entries/enums";
+import { CLASS_FEATURE, SPELL_LIST_CLASS } from "../entries/enums";
 import type { FeatureClassObj, FeatureMapEntry } from "../entries/types";
+import { createUseSpellEntriesForSpellListClass } from "./spellAccess";
 
 export type SorcererSpellSlotProgression = [
   number,
@@ -39,7 +40,7 @@ export const sorcererFeatures: SorcererFeatureClassObj[] = [
           "<strong>Spellcasting Ability.</strong> Charisma is your spellcasting ability for your Sorcerer spells.",
           "<strong>Spellcasting Focus.</strong> You can use an Arcane Focus as a Spellcasting Focus for your Sorcerer spells."
         ],
-        isTracked: false
+        isTracked: true
       }
     },
     sorceryPoints: 0,
@@ -294,3 +295,7 @@ export const sorcererFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>>
     isTracked: false
   }
 };
+
+export const useSorcererSpellEntries = createUseSpellEntriesForSpellListClass(
+  SPELL_LIST_CLASS.SORCERER
+);

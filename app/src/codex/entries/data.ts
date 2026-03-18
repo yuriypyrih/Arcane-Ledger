@@ -4,7 +4,6 @@ import {
   BACKGROUND_TYPES,
   CURRENCY_TYPE,
   CLASS_TYPES,
-  DAMAGE_TYPES,
   DICE_TYPES,
   ENTRY_CATEGORIES,
   GENERAL_PROFICIENCIES,
@@ -13,7 +12,6 @@ import {
   RARITY_TYPES,
   RULE_TYPES,
   SPECIES_TYPES,
-  SPELL_TYPES,
   TOOL_PROFICIENCIES
 } from "./enums";
 import {
@@ -30,176 +28,12 @@ import {
   warlockFeatures,
   wizardFeatures
 } from "../classes";
+import { spellEntries } from "../spells";
 import type { CodexEntry } from "./types";
 import { weaponEntries } from "./weaponData";
 
 export const hardcodedCodexEntries: CodexEntry[] = [
-  {
-    id: "spell-catnip-spark",
-    name: "Catnip Spark",
-    category: ENTRY_CATEGORIES.SPELLS,
-    spellLevel: 0,
-    tags: [SPELL_TYPES.CANTRIP, SPELL_TYPES.BONUS_ACTION],
-    rarity: RARITY_TYPES.COMMON,
-    damage: [],
-    damageType: null,
-    summary:
-      "A teasing mote of magic lures a nearby creature and grants advantage on your next trick."
-  },
-  {
-    id: "spell-cure-wounds",
-    name: "Cure Wounds",
-    category: ENTRY_CATEGORIES.SPELLS,
-    spellLevel: 1,
-    tags: [SPELL_TYPES.FULL_ACTION],
-    rarity: RARITY_TYPES.COMMON,
-    damage: [],
-    damageType: null,
-    summary: "Restore hit points to a creature you can touch."
-  },
-  {
-    id: "spell-ember-snap",
-    name: "Ember Snap",
-    category: ENTRY_CATEGORIES.SPELLS,
-    spellLevel: 0,
-    tags: [SPELL_TYPES.CANTRIP, SPELL_TYPES.FULL_ACTION],
-    rarity: RARITY_TYPES.COMMON,
-    damage: [DICE_TYPES.DICE_TYPE_D6],
-    damageType: DAMAGE_TYPES.FIRE,
-    summary: "You snap your fingers to launch a focused ember burst at a nearby target."
-  },
-  {
-    id: "spell-frost-thread",
-    name: "Frost Thread",
-    category: ENTRY_CATEGORIES.SPELLS,
-    spellLevel: 0,
-    tags: [SPELL_TYPES.CANTRIP, SPELL_TYPES.FULL_ACTION],
-    rarity: RARITY_TYPES.COMMON,
-    damage: [DICE_TYPES.DICE_TYPE_D4],
-    damageType: DAMAGE_TYPES.COLD,
-    summary: "A thin ribbon of winter magic chills a creature and numbs its movement."
-  },
-  {
-    id: "spell-arcane-lance",
-    name: "Arcane Lance",
-    category: ENTRY_CATEGORIES.SPELLS,
-    spellLevel: 1,
-    tags: [SPELL_TYPES.FULL_ACTION],
-    rarity: RARITY_TYPES.COMMON,
-    damage: [DICE_TYPES.DICE_TYPE_D8],
-    damageType: DAMAGE_TYPES.FORCE,
-    summary: "Conjure a sharp spear of force that streaks toward one creature."
-  },
-  {
-    id: "spell-thunder-mark",
-    name: "Thunder Mark",
-    category: ENTRY_CATEGORIES.SPELLS,
-    spellLevel: 1,
-    tags: [SPELL_TYPES.BONUS_ACTION],
-    rarity: RARITY_TYPES.COMMON,
-    damage: [DICE_TYPES.DICE_TYPE_D6],
-    damageType: DAMAGE_TYPES.THUNDER,
-    summary: "Mark a foe with resonant energy that detonates with your next strike."
-  },
-  {
-    id: "spell-veil-of-mending",
-    name: "Veil of Mending",
-    category: ENTRY_CATEGORIES.SPELLS,
-    spellLevel: 1,
-    tags: [SPELL_TYPES.BONUS_ACTION],
-    rarity: RARITY_TYPES.COMMON,
-    damage: [],
-    damageType: null,
-    summary: "A soft arcane veil closes wounds and stabilizes an ally's breathing."
-  },
-  {
-    id: "spell-shatter-halo",
-    name: "Shatter Halo",
-    category: ENTRY_CATEGORIES.SPELLS,
-    spellLevel: 2,
-    tags: [SPELL_TYPES.FULL_ACTION],
-    rarity: RARITY_TYPES.RARE,
-    damage: [DICE_TYPES.DICE_TYPE_D8, DICE_TYPES.DICE_TYPE_D8],
-    damageType: DAMAGE_TYPES.THUNDER,
-    summary: "A crackling ring of sound erupts around a point and batters nearby enemies."
-  },
-  {
-    id: "spell-phantom-chains",
-    name: "Phantom Chains",
-    category: ENTRY_CATEGORIES.SPELLS,
-    spellLevel: 2,
-    tags: [SPELL_TYPES.FULL_ACTION],
-    rarity: RARITY_TYPES.RARE,
-    damage: [DICE_TYPES.DICE_TYPE_D6, DICE_TYPES.DICE_TYPE_D6],
-    damageType: DAMAGE_TYPES.PSYCHIC,
-    summary: "Spectral chains lash a target's mind, dealing pain and pinning its focus."
-  },
-  {
-    id: "spell-mist-ward",
-    name: "Mist Ward",
-    category: ENTRY_CATEGORIES.SPELLS,
-    spellLevel: 2,
-    tags: [SPELL_TYPES.BONUS_ACTION],
-    rarity: RARITY_TYPES.RARE,
-    damage: [],
-    damageType: null,
-    summary: "A protective haze surrounds an ally and blurs incoming attacks."
-  },
-  {
-    id: "spell-searing-rayline",
-    name: "Searing Rayline",
-    category: ENTRY_CATEGORIES.SPELLS,
-    spellLevel: 2,
-    tags: [SPELL_TYPES.FULL_ACTION],
-    rarity: RARITY_TYPES.RARE,
-    damage: [DICE_TYPES.DICE_TYPE_D6, DICE_TYPES.DICE_TYPE_D6],
-    damageType: DAMAGE_TYPES.FIRE,
-    summary: "Draw a burning line through the battlefield that scorches creatures in its path."
-  },
-  {
-    id: "spell-storm-spearfall",
-    name: "Storm Spearfall",
-    category: ENTRY_CATEGORIES.SPELLS,
-    spellLevel: 3,
-    tags: [SPELL_TYPES.FULL_ACTION],
-    rarity: RARITY_TYPES.EPIC,
-    damage: [DICE_TYPES.DICE_TYPE_D8, DICE_TYPES.DICE_TYPE_D8, DICE_TYPES.DICE_TYPE_D8],
-    damageType: DAMAGE_TYPES.LIGHTNING,
-    summary: "Call down spears of lightning that strike multiple enemies from above."
-  },
-  {
-    id: "spell-grave-bloom",
-    name: "Grave Bloom",
-    category: ENTRY_CATEGORIES.SPELLS,
-    spellLevel: 3,
-    tags: [SPELL_TYPES.FULL_ACTION],
-    rarity: RARITY_TYPES.EPIC,
-    damage: [DICE_TYPES.DICE_TYPE_D6, DICE_TYPES.DICE_TYPE_D6, DICE_TYPES.DICE_TYPE_D6],
-    damageType: DAMAGE_TYPES.NECROTIC,
-    summary: "Dark petals burst from the ground, draining vitality from nearby foes."
-  },
-  {
-    id: "spell-radiant-bastion",
-    name: "Radiant Bastion",
-    category: ENTRY_CATEGORIES.SPELLS,
-    spellLevel: 3,
-    tags: [SPELL_TYPES.BONUS_ACTION],
-    rarity: RARITY_TYPES.EPIC,
-    damage: [],
-    damageType: null,
-    summary: "Create a bright protective bastion that shelters your party from harm."
-  },
-  {
-    id: "spell-rift-volley",
-    name: "Rift Volley",
-    category: ENTRY_CATEGORIES.SPELLS,
-    spellLevel: 3,
-    tags: [SPELL_TYPES.FULL_ACTION],
-    rarity: RARITY_TYPES.EPIC,
-    damage: [DICE_TYPES.DICE_TYPE_D10, DICE_TYPES.DICE_TYPE_D10],
-    damageType: DAMAGE_TYPES.FORCE,
-    summary: "Open brief rifts that fire violent force bolts in quick succession."
-  },
+  ...spellEntries,
   ...weaponEntries,
   {
     id: "armor-leather-armor",

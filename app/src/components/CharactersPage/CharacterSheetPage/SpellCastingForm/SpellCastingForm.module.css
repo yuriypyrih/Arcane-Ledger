@@ -108,14 +108,30 @@
   transform: translateY(-1px);
 }
 
-.spellButton span {
+.spellButtonTopRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.spellButtonName {
   font-weight: 600;
 }
 
-.spellButton small {
+.spellButtonMeta,
+.spellButtonSubtitle {
   color: var(--color-ink-soft);
   font-size: 0.74rem;
   letter-spacing: 0.05em;
+}
+
+.spellButtonMeta {
+  flex-shrink: 0;
+  text-align: right;
+}
+
+.spellButtonSubtitle {
   text-transform: uppercase;
 }
 
@@ -129,6 +145,36 @@
   opacity: 0.58;
 }
 
+.spellDetailButton {
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.spellDetailButton:hover {
+  background: rgba(75, 47, 29, 0.11);
+}
+
+.spellDetailButton:focus-visible {
+  outline: 2px solid rgba(143, 91, 56, 0.5);
+  outline-offset: 2px;
+}
+
+.componentsDrawerBackdrop {
+  z-index: 47;
+}
+
+.componentsDrawer {
+  width: min(640px, 100%);
+}
+
+.componentsDrawerBody {
+  display: grid;
+  gap: 0.85rem;
+}
+
 @media (max-width: 860px) {
   .spellSlotGrid {
     grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -138,5 +184,15 @@
 @media (max-width: 620px) {
   .spellSlotGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .spellButtonTopRow {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.2rem;
+  }
+
+  .spellButtonMeta {
+    text-align: left;
   }
 }

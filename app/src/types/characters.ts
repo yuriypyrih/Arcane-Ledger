@@ -126,6 +126,7 @@ export type Character = {
   deathSaves?: CharacterDeathSaves;
   equipment: CharacterEquipmentItem[];
   customEquipment: CharacterCustomEquipment[];
+  cantripIds?: string[];
   preparedSpellIds?: string[];
   spellSlotsExpended?: number[];
   shortRestsUsedToday?: number;

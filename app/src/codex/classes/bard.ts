@@ -1,5 +1,6 @@
-import { CLASS_FEATURE, DICE } from "../entries/enums";
+import { CLASS_FEATURE, DICE, SPELL_LIST_CLASS } from "../entries/enums";
 import type { FeatureClassObj, FeatureMapEntry } from "../entries/types";
+import { createUseSpellEntriesForSpellListClass } from "./spellAccess";
 
 export type BardSpellSlotProgression = [
   number,
@@ -278,3 +279,5 @@ export const bardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
     isTracked: false
   }
 };
+
+export const useBardSpellEntries = createUseSpellEntriesForSpellListClass(SPELL_LIST_CLASS.BARD);

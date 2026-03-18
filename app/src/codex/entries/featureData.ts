@@ -37,6 +37,32 @@ export const KeywordTooltip: Record<string, KeywordTooltipEntry> = {
       "If a rule says otherwise, follow that more specific rule."
     ]
   },
+  components: {
+    title: "Components",
+    description: [
+      "<strong>V (Verbal)</strong>: The caster must be able to speak, as spells require specific incantations.",
+      "<strong>S (Somatic)</strong>: The caster must have at least one hand free to make gestures.",
+      "<strong>M (Material)</strong>: Specific, often magical, items must be produced or used, often held in a component pouch or spellcasting focus."
+    ]
+  },
+  v: {
+    title: "Verbal (V)",
+    description: [
+      "<strong>V (Verbal)</strong>: The caster must be able to speak, as spells require specific incantations."
+    ]
+  },
+  s: {
+    title: "Somatic (S)",
+    description: [
+      "<strong>S (Somatic)</strong>: The caster must have at least one hand free to make gestures."
+    ]
+  },
+  m: {
+    title: "Material (M)",
+    description: [
+      "<strong>M (Material)</strong>: Specific, often magical, items must be produced or used, often held in a component pouch or spellcasting focus."
+    ]
+  },
   tracked: {
     title: "Tracked",
     description: [

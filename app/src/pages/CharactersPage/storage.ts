@@ -17,7 +17,15 @@ import {
   normalizeSkillExpertiseSelectionsForCharacter,
   normalizeToolProficiencySelections
 } from "./proficiency";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "./spellcasting";
+import {
+  getCantripLimitForCharacter,
+  getCantripSelectionOptionsForCharacter,
+  getDefaultCantripIdsForCharacter,
+  getPreparedSpellLimitForCharacter,
+  getPreparedSpellSelectionOptionsForCharacter,
+  getSpellSlotTotalsForCharacter,
+  normalizeSpellSlotsExpended
+} from "./spellcasting";
 import { normalizeLevelAndXp } from "./experience";
 import { getSavingThrowProficienciesForClass } from "./gameplay";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
@@ -180,6 +188,7 @@ function normalizeCharacter(value: unknown): Character | null {
     xp?: unknown;
     experience?: unknown;
     knownSpellIds?: unknown;
+    cantripIds?: unknown;
     preparedSpellIds?: unknown;
     skillExpertise?: unknown;
     toolProficiencies?: unknown;
@@ -258,6 +267,30 @@ function normalizeCharacter(value: unknown): Character | null {
     : Array.isArray(record.knownSpellIds)
       ? record.knownSpellIds.filter((spellId): spellId is string => typeof spellId === "string")
       : (defaults.preparedSpellIds ?? []);
+  const rawCantripIds = Array.isArray(record.cantripIds)
+    ? record.cantripIds.filter((spellId): spellId is string => typeof spellId === "string")
+    : getDefaultCantripIdsForCharacter(normalizedClassName, normalizedLevel);
+  const cantripLimit = getCantripLimitForCharacter(normalizedClassName, normalizedLevel);
+  const cantripSelectionOptionIds = new Set(
+    getCantripSelectionOptionsForCharacter(normalizedClassName, normalizedLevel).map(
+      (spell) => spell.id
+    )
+  );
+  const normalizedCantripIds = [...new Set(rawCantripIds)]
+    .filter((spellId) => cantripSelectionOptionIds.has(spellId))
+    .slice(0, cantripLimit ?? Number.POSITIVE_INFINITY);
+  const preparedSpellLimit = getPreparedSpellLimitForCharacter(
+    normalizedClassName,
+    normalizedLevel
+  );
+  const preparedSpellSelectionOptionIds = new Set(
+    getPreparedSpellSelectionOptionsForCharacter(normalizedClassName, normalizedLevel).map(
+      (spell) => spell.id
+    )
+  );
+  const normalizedPreparedSpellIds = [...new Set(rawPreparedSpellIds)]
+    .filter((spellId) => preparedSpellSelectionOptionIds.has(spellId))
+    .slice(0, preparedSpellLimit ?? Number.POSITIVE_INFINITY);
   const spellSlotTotals = getSpellSlotTotalsForCharacter(normalizedClassName, normalizedLevel);
   const normalizedSpellSlotsExpended = normalizeSpellSlotsExpended(
     record.spellSlotsExpended,
@@ -328,7 +361,8 @@ function normalizeCharacter(value: unknown): Character | null {
     deathSaves: normalizedDeathSaves,
     equipment: normalizedEquipment,
     customEquipment: normalizedCustomEquipment,
-    preparedSpellIds: [...new Set(rawPreparedSpellIds)],
+    cantripIds: normalizedCantripIds,
+    preparedSpellIds: normalizedPreparedSpellIds,
     spellSlotsExpended: normalizedSpellSlotsExpended,
     shortRestsUsedToday: normalizedShortRestsUsedToday,
     hitDiceRemaining: normalizedHitDiceRemaining,

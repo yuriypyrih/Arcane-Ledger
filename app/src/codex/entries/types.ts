@@ -6,16 +6,17 @@ import type {
   CURRENCY_TYPE,
   CLASS_TYPES,
   DAMAGE_TYPE,
-  DAMAGE_TYPES,
   DICE,
   DICE_TYPES,
   GENERAL_PROFICIENCIES,
   ITEM_TYPES,
+  MAGIC_SCHOOL,
   MONSTER_TYPES,
   RARITY_TYPES,
   RULE_TYPES,
   SPECIES_TYPES,
-  SPELL_TYPES,
+  SPELL_COMPONENT,
+  SPELL_LIST_CLASS,
   TOOL_PROFICIENCIES,
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
@@ -38,11 +39,6 @@ type BaseCodexEntry<TCategory extends CodexCategory, TType extends string> = {
 
 type EntryWithRarity = {
   rarity: RARITY_TYPES;
-};
-
-type EntryWithDamage = {
-  damage: DICE_TYPES[];
-  damageType: DAMAGE_TYPES | null;
 };
 
 export type WeaponDamageAmount = DICE | number;
@@ -72,16 +68,26 @@ export type KeywordTooltipEntry = {
 export type FeatureClassObj = {
   level: number;
   classFeatures: CLASS_FEATURE[];
+  cantrips?: number;
   preparedSpells?: number;
   spellSlots?: number[];
   featureOverrides?: Partial<Record<CLASS_FEATURE, FeatureMapEntry>>;
 };
 
-export type SpellEntry = BaseCodexEntry<ENTRY_CATEGORIES.SPELLS, SPELL_TYPES> &
-  EntryWithRarity &
-  EntryWithDamage & {
-    spellLevel?: number;
-  };
+export type SpellEntry = {
+  id: string;
+  name: string;
+  category: ENTRY_CATEGORIES.SPELLS;
+  magicSchool: MAGIC_SCHOOL;
+  castingTime: string;
+  range: string;
+  components: SPELL_COMPONENT[];
+  duration: string;
+  description: string[];
+  damage: WeaponDamage;
+  spellLists: SPELL_LIST_CLASS[];
+  spellLevel: number;
+};
 export type WeaponEntry = Omit<BaseCodexEntry<ENTRY_CATEGORIES.WEAPONS, never>, "tags"> &
   EntryWithRarity & {
     type: WeaponType;

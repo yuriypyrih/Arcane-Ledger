@@ -1,5 +1,6 @@
-import { CLASS_FEATURE } from "../entries/enums";
+import { CLASS_FEATURE, SPELL_LIST_CLASS } from "../entries/enums";
 import type { FeatureClassObj, FeatureMapEntry } from "../entries/types";
+import { createUseSpellEntriesForSpellListClass } from "./spellAccess";
 
 export type WarlockSpellSlotProgression = [
   number,
@@ -328,3 +329,7 @@ export const warlockFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
     isTracked: false
   }
 };
+
+export const useWarlockSpellEntries = createUseSpellEntriesForSpellListClass(
+  SPELL_LIST_CLASS.WARLOCK
+);

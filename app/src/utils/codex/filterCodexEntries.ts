@@ -36,12 +36,17 @@ export function filterCodexEntries(
             ...(entry.range?.ammunition ? [entry.range.ammunition] : [])
           ]
         : [];
+    const spellSearchValues =
+      entry.category === ENTRY_CATEGORIES.SPELLS
+        ? [entry.magicSchool, ...entry.components, ...entry.spellLists, ...entry.description]
+        : [];
     const tagValues = "tags" in entry ? entry.tags : [];
     const matchesQuery =
       normalizedQuery.length === 0 ||
       entry.name.toLowerCase().includes(normalizedQuery) ||
       tagValues.some((entryType) => enumToSearchText(entryType).includes(normalizedQuery)) ||
       weaponSearchValues.some((value) => enumToSearchText(value).includes(normalizedQuery)) ||
+      spellSearchValues.some((value) => enumToSearchText(value).includes(normalizedQuery)) ||
       rarityValues.some((rarity) => enumToSearchText(rarity).includes(normalizedQuery));
 
     return matchesCategory && matchesQuery;

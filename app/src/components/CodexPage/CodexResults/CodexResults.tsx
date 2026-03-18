@@ -4,6 +4,8 @@ import type { CodexEntry, CodexStatus } from "../../../types";
 import {
   formatCodexLabel,
   formatCodexList,
+  formatSpellSubtitle,
+  getSpellExcerpt,
   formatWeaponType,
   truncateCodexText
 } from "../../../utils/codex";
@@ -18,6 +20,10 @@ type CodexResultsProps = {
 };
 
 function getItemTypeSubtitle(entry: CodexEntry): string | null {
+  if (entry.category === ENTRY_CATEGORIES.SPELLS) {
+    return formatSpellSubtitle(entry);
+  }
+
   if (entry.category === ENTRY_CATEGORIES.ARMOR) {
     const armorType = entry.tags.find((type) =>
       [
@@ -106,7 +112,14 @@ function CodexResults({ entries, status, category }: CodexResultsProps) {
                   </div>
                   {"rarity" in entry ? <RarityPill rarity={entry.rarity} /> : null}
                 </div>
-                <p>{truncateCodexText(entry.summary, 120)}</p>
+                <p>
+                  {truncateCodexText(
+                    entry.category === ENTRY_CATEGORIES.SPELLS
+                      ? getSpellExcerpt(entry)
+                      : entry.summary,
+                    120
+                  )}
+                </p>
                 {entry.category === ENTRY_CATEGORIES.CLASSES ? (
                   <small>Primary Ability: {formatCodexList(entry.primaryAbilityModifiers)}</small>
                 ) : null}

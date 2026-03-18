@@ -1,4 +1,5 @@
 export * from "../classes";
+export * from "../spells";
 export * from "./data";
 export * from "./enums";
 export * from "./featureData";

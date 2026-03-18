@@ -1,5 +1,6 @@
-import { CLASS_FEATURE } from "../entries/enums";
+import { CLASS_FEATURE, SPELL_LIST_CLASS } from "../entries/enums";
 import type { FeatureClassObj, FeatureMapEntry } from "../entries/types";
+import { createUseSpellEntriesForSpellListClass } from "./spellAccess";
 
 export type PaladinSpellSlotProgression = [number, number, number, number, number];
 
@@ -276,3 +277,7 @@ export const paladinFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
     isTracked: false
   }
 };
+
+export const usePaladinSpellEntries = createUseSpellEntriesForSpellListClass(
+  SPELL_LIST_CLASS.PALADIN
+);

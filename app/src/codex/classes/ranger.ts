@@ -1,5 +1,6 @@
-import { CLASS_FEATURE } from "../entries/enums";
+import { CLASS_FEATURE, SPELL_LIST_CLASS } from "../entries/enums";
 import type { FeatureClassObj, FeatureMapEntry } from "../entries/types";
+import { createUseSpellEntriesForSpellListClass } from "./spellAccess";
 
 export type RangerSpellSlotProgression = [number, number, number, number, number];
 
@@ -272,3 +273,7 @@ export const rangerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
     isTracked: false
   }
 };
+
+export const useRangerSpellEntries = createUseSpellEntriesForSpellListClass(
+  SPELL_LIST_CLASS.RANGER
+);
