@@ -1,6 +1,7 @@
 import {
   ENTRY_CATEGORIES,
   ENTRY_CATEGORY_VALUES,
+  SPELL_LIST_CLASS,
   type CodexCategory,
   type CodexEntry
 } from "../../codex/entries";
@@ -18,12 +19,22 @@ function enumToSearchText(value: string): string {
 export function filterCodexEntries(
   entries: CodexEntry[],
   query: string,
-  category: CodexFilterCategory
+  category: CodexFilterCategory,
+  spellLevelFilter: number | null = null,
+  spellClassFilter: SPELL_LIST_CLASS | null = null
 ): CodexEntry[] {
   const normalizedQuery = query.trim().toLowerCase();
 
   return entries.filter((entry) => {
     const matchesCategory = entry.category === category;
+    const matchesSpellLevel =
+      entry.category !== ENTRY_CATEGORIES.SPELLS ||
+      spellLevelFilter === null ||
+      entry.spellLevel === spellLevelFilter;
+    const matchesSpellClass =
+      entry.category !== ENTRY_CATEGORIES.SPELLS ||
+      spellClassFilter === null ||
+      entry.spellLists.includes(spellClassFilter);
     const rarityValues = "rarity" in entry ? [entry.rarity] : [];
     const weaponSearchValues =
       entry.category === ENTRY_CATEGORIES.WEAPONS
@@ -49,6 +60,6 @@ export function filterCodexEntries(
       spellSearchValues.some((value) => enumToSearchText(value).includes(normalizedQuery)) ||
       rarityValues.some((rarity) => enumToSearchText(rarity).includes(normalizedQuery));
 
-    return matchesCategory && matchesQuery;
+    return matchesCategory && matchesSpellLevel && matchesSpellClass && matchesQuery;
   });
 }

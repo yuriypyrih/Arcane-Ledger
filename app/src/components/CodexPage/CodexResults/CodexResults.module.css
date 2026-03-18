@@ -22,6 +22,11 @@
   align-items: stretch;
 }
 
+.spellList {
+  display: grid;
+  gap: 0.45rem;
+}
+
 .cardButton {
   border: 0;
   background: transparent;
@@ -78,6 +83,34 @@
   line-height: 1.55;
 }
 
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.9rem;
+}
+
+.paginationButton {
+  border: 1px solid rgba(75, 47, 29, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 250, 241, 0.9);
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  min-height: 42px;
+  padding: 0.45rem 0.95rem;
+}
+
+.paginationButton:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.paginationStatus {
+  color: var(--color-ink-soft);
+  font-size: 0.9rem;
+}
+
 @media (max-width: 1120px) {
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -87,5 +120,9 @@
 @media (max-width: 760px) {
   .grid {
     grid-template-columns: 1fr;
+  }
+
+  .pagination {
+    flex-wrap: wrap;
   }
 }

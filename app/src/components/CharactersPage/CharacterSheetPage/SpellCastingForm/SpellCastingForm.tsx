@@ -3,6 +3,7 @@ import { Pencil, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import SelectInput from "../../FormInputs/SelectInput";
+import SpellListRow from "../../../SpellListRow";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { useClassSpellEntries } from "../../../../codex/classes";
 import { ENTRY_CATEGORIES, KeywordTooltip, type SpellEntry } from "../../../../codex/entries";
@@ -68,18 +69,6 @@ function renderSpellDescriptionLine(line: string): ReactNode {
   }
 
   return nodes.length > 0 ? nodes : line;
-}
-
-function formatSpellSummaryRange(range: string): string {
-  return range.replace(/(\d+)\s*feet\b/gi, "$1ft").replace(/(\d+)-foot\b/gi, "$1ft");
-}
-
-function formatSpellRowMeta(spell: SpellEntry): string {
-  const parts = [spell.castingTime, formatSpellSummaryRange(spell.range)];
-  const componentText =
-    spell.components.length > 0 ? `(${formatSpellComponents(spell.components)})` : null;
-
-  return componentText ? `${parts.join(", ")} ${componentText}` : parts.join(", ");
 }
 
 function groupSpellsByLevel(spells: SpellEntry[]): SpellGroup[] {
@@ -513,21 +502,7 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
               <ul className={styles.spellList}>
                 {group.spells.map((spell) => (
                   <li key={spell.id}>
-                    <button
-                      type="button"
-                      className={styles.spellButton}
-                      onClick={() => openSpellDetails(spell)}
-                    >
-                      <div className={styles.spellButtonTopRow}>
-                        <span className={styles.spellButtonName}>{spell.name}</span>
-                        <small className={styles.spellButtonMeta}>
-                          {formatSpellRowMeta(spell)}
-                        </small>
-                      </div>
-                      <small className={styles.spellButtonSubtitle}>
-                        {formatSpellSubtitle(spell)}
-                      </small>
-                    </button>
+                    <SpellListRow spell={spell} onClick={() => openSpellDetails(spell)} />
                   </li>
                 ))}
               </ul>

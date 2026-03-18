@@ -1,12 +1,16 @@
 .controls {
   display: grid;
   gap: var(--space-section-gap);
-  grid-template-columns: minmax(220px, 0.7fr) minmax(0, 1.3fr);
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
 
 .field {
   display: grid;
   gap: 0.45rem;
+}
+
+.searchField {
+  grid-column: 1 / -1;
 }
 
 .field span {

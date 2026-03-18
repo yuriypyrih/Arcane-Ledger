@@ -1,5 +1,6 @@
 import { useNavigate } from "react-router-dom";
 import { ARMOR_TYPES, ENTRY_CATEGORIES } from "../../../codex/entries";
+import SpellListRow from "../../SpellListRow";
 import type { CodexEntry, CodexStatus } from "../../../types";
 import {
   formatCodexLabel,
@@ -15,8 +16,12 @@ import styles from "./CodexResults.module.css";
 
 type CodexResultsProps = {
   entries: CodexEntry[];
+  totalEntries: number;
   status: CodexStatus;
   category: CodexFilterCategory;
+  currentPage: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 };
 
 function getItemTypeSubtitle(entry: CodexEntry): string | null {
@@ -54,80 +59,150 @@ function getItemTypeSubtitle(entry: CodexEntry): string | null {
   return null;
 }
 
-function CodexResults({ entries, status, category }: CodexResultsProps) {
+function CodexResults({
+  entries,
+  totalEntries,
+  status,
+  category,
+  currentPage,
+  totalPages,
+  onPageChange
+}: CodexResultsProps) {
   const navigate = useNavigate();
   const entriesTitle = `${formatCodexLabel(category)} Entries`;
+  const isSpellCategory = category === ENTRY_CATEGORIES.SPELLS;
+  const shownCountLabel =
+    isSpellCategory && status === "ready"
+      ? `${entries.length} of ${totalEntries} shown`
+      : `${entries.length} shown`;
 
   return (
     <>
       <div className={styles.resultsHeader}>
         <h3>{entriesTitle}</h3>
-        <span>{entries.length} shown</span>
+        <span>{shownCountLabel}</span>
       </div>
 
-      <div className={styles.grid}>
-        {status === "loading" ? (
+      {status === "loading" ? (
+        <div className={styles.grid}>
           <article className={styles.card}>
             <h4>Loading codex...</h4>
             <p>Loading hardcoded starter entries.</p>
           </article>
-        ) : null}
+        </div>
+      ) : null}
 
-        {status === "error" ? (
+      {status === "error" ? (
+        <div className={styles.grid}>
           <article className={styles.card}>
             <h4>Codex unavailable</h4>
             <p>Codex entries could not be loaded.</p>
           </article>
-        ) : null}
+        </div>
+      ) : null}
 
-        {status === "ready" && entries.length === 0 ? (
+      {status === "ready" && entries.length === 0 ? (
+        <div className={styles.grid}>
           <article className={styles.card}>
             <h4>No matches</h4>
             <p>Try a different search or switch the category filter.</p>
           </article>
-        ) : null}
+        </div>
+      ) : null}
 
-        {entries.map((entry) => {
-          const itemTypeSubtitle = getItemTypeSubtitle(entry);
-
-          return (
-            <button
-              key={entry.id}
-              type="button"
-              className={styles.cardButton}
-              onClick={() =>
-                navigate({
-                  pathname: `/codex/${entry.id}`,
-                  search: `?category=${category}`
-                })
+      {status === "ready" && entries.length > 0 && isSpellCategory ? (
+        <>
+          <div className={styles.spellList}>
+            {entries.map((entry) => {
+              if (entry.category !== ENTRY_CATEGORIES.SPELLS) {
+                return null;
               }
-            >
-              <article className={styles.card}>
-                <div className={styles.cardHeader}>
-                  <div className={styles.titleBlock}>
-                    <h4>{entry.name}</h4>
-                    {itemTypeSubtitle ? (
-                      <p className={styles.typeSubtitle}>{itemTypeSubtitle}</p>
-                    ) : null}
+
+              return (
+                <SpellListRow
+                  key={entry.id}
+                  spell={entry}
+                  onClick={() =>
+                    navigate({
+                      pathname: `/codex/${entry.id}`,
+                      search: `?category=${category}`
+                    })
+                  }
+                />
+              );
+            })}
+          </div>
+
+          {totalPages > 1 ? (
+            <div className={styles.pagination}>
+              <button
+                type="button"
+                className={styles.paginationButton}
+                onClick={() => onPageChange(currentPage - 1)}
+                disabled={currentPage <= 1}
+              >
+                Previous
+              </button>
+              <span className={styles.paginationStatus}>
+                Page {currentPage} of {totalPages}
+              </span>
+              <button
+                type="button"
+                className={styles.paginationButton}
+                onClick={() => onPageChange(currentPage + 1)}
+                disabled={currentPage >= totalPages}
+              >
+                Next
+              </button>
+            </div>
+          ) : null}
+        </>
+      ) : null}
+
+      {status === "ready" && entries.length > 0 && !isSpellCategory ? (
+        <div className={styles.grid}>
+          {entries.map((entry) => {
+            const itemTypeSubtitle = getItemTypeSubtitle(entry);
+
+            return (
+              <button
+                key={entry.id}
+                type="button"
+                className={styles.cardButton}
+                onClick={() =>
+                  navigate({
+                    pathname: `/codex/${entry.id}`,
+                    search: `?category=${category}`
+                  })
+                }
+              >
+                <article className={styles.card}>
+                  <div className={styles.cardHeader}>
+                    <div className={styles.titleBlock}>
+                      <h4>{entry.name}</h4>
+                      {itemTypeSubtitle ? (
+                        <p className={styles.typeSubtitle}>{itemTypeSubtitle}</p>
+                      ) : null}
+                    </div>
+                    {"rarity" in entry ? <RarityPill rarity={entry.rarity} /> : null}
                   </div>
-                  {"rarity" in entry ? <RarityPill rarity={entry.rarity} /> : null}
-                </div>
-                <p>
-                  {truncateCodexText(
-                    entry.category === ENTRY_CATEGORIES.SPELLS
-                      ? getSpellExcerpt(entry)
-                      : entry.summary,
-                    120
-                  )}
-                </p>
-                {entry.category === ENTRY_CATEGORIES.CLASSES ? (
-                  <small>Primary Ability: {formatCodexList(entry.primaryAbilityModifiers)}</small>
-                ) : null}
-              </article>
-            </button>
-          );
-        })}
-      </div>
+                  <p>
+                    {truncateCodexText(
+                      entry.category === ENTRY_CATEGORIES.SPELLS
+                        ? getSpellExcerpt(entry)
+                        : entry.summary,
+                      120
+                    )}
+                  </p>
+                  {entry.category === ENTRY_CATEGORIES.CLASSES ? (
+                    <small>Primary Ability: {formatCodexList(entry.primaryAbilityModifiers)}</small>
+                  ) : null}
+                </article>
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
     </>
   );
 }

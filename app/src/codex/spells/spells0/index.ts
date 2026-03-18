@@ -865,6 +865,169 @@ export const swordBurst: SpellEntry = {
   spellLevel: 0
 };
 
+export const thaumaturgy: SpellEntry = {
+  id: "spell-thaumaturgy",
+  name: "Thaumaturgy",
+  category: ENTRY_CATEGORIES.SPELLS,
+  magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
+  castingTime: "1 action",
+  range: "30 feet",
+  components: [SPELL_COMPONENT.V],
+  duration: "Up to 1 minute",
+  description: [
+    "You manifest a minor wonder, a sign of supernatural power, within range. You create one of the following magical effects within range:",
+    "Your voice booms up to three times as loud as normal for 1 minute.",
+    "You cause flames to flicker, brighten, dim, or change color for 1 minute.",
+    "You cause harmless tremors in the ground for 1 minute.",
+    "You create an instantaneous sound that originates from a point of your choice within range, such as a rumble of thunder, the cry of a raven, or ominous whispers.",
+    "You instantaneously cause an unlocked door or window to fly open or slam shut.",
+    "You alter the appearance of your eyes for 1 minute.",
+    "If you cast this spell multiple times, you can have up to three of its 1-minute effects active at a time, and you can dismiss such an effect as an action."
+  ],
+  damage: [],
+  spellLists: [SPELL_LIST_CLASS.CLERIC],
+  spellLevel: 0
+};
+
+export const thornWhip: SpellEntry = {
+  id: "spell-thorn-whip",
+  name: "Thorn Whip",
+  category: ENTRY_CATEGORIES.SPELLS,
+  magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
+  castingTime: "1 action",
+  range: "30 feet",
+  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
+  duration: "Instantaneous",
+  description: [
+    "You create a long, vine-like whip covered in thorns that lashes out at your command toward a creature in range. Make a melee spell attack against the target. If the attack hits, the creature takes 1d6 Piercing damage, and if the creature is Large or smaller, you pull the creature up to 10 feet closer to you.",
+    "<strong>At Higher Levels.</strong> This spell's damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6)."
+  ],
+  damage: [[DICE.D6, DAMAGE_TYPE.PIERCING]],
+  spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.DRUID],
+  spellLevel: 0
+};
+
+export const thunderclap: SpellEntry = {
+  id: "spell-thunderclap",
+  name: "Thunderclap",
+  category: ENTRY_CATEGORIES.SPELLS,
+  magicSchool: MAGIC_SCHOOL.EVOCATION,
+  castingTime: "1 action",
+  range: "Self (5-foot radius)",
+  components: [SPELL_COMPONENT.S],
+  duration: "Instantaneous",
+  description: [
+    "You create a burst of thunderous sound, which can be heard 100 feet away. Each creature other than you within 5 feet of you must make a Constitution saving throw. On a failed save, the creature takes 1d6 Thunder damage.",
+    "<strong>At Higher Levels.</strong> The spell's damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6)."
+  ],
+  damage: [[DICE.D6, DAMAGE_TYPE.THUNDER]],
+  spellLists: [
+    SPELL_LIST_CLASS.ARTIFICER,
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
+  spellLevel: 0
+};
+
+export const tollTheDead: SpellEntry = {
+  id: "spell-toll-the-dead",
+  name: "Toll the Dead",
+  category: ENTRY_CATEGORIES.SPELLS,
+  magicSchool: MAGIC_SCHOOL.NECROMANCY,
+  castingTime: "1 action",
+  range: "60 feet",
+  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
+  duration: "Instantaneous",
+  description: [
+    "You point at one creature you can see within range, and the sound of a dolorous bell fills the air around it for a moment. The target must succeed on a Wisdom saving throw or take 1d8 Necrotic damage. If the target is missing any of its Hit Points, it instead takes 1d12 Necrotic damage.",
+    "<strong>At Higher Levels.</strong> The spell's damage increases by one die when you reach 5th level (2d8 or 2d12), 11th level (3d8 or 3d12), and 17th level (4d8 or 4d12)."
+  ],
+  damage: [
+    [DICE.D8, DAMAGE_TYPE.NECROTIC],
+    [DICE.D12, DAMAGE_TYPE.NECROTIC]
+  ],
+  spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
+  spellLevel: 0
+};
+
+export const trueStrike: SpellEntry = {
+  id: "spell-true-strike",
+  name: "True Strike",
+  category: ENTRY_CATEGORIES.SPELLS,
+  magicSchool: MAGIC_SCHOOL.DIVINATION,
+  castingTime: "1 action",
+  range: "30 feet",
+  components: [SPELL_COMPONENT.S],
+  duration: "Concentration, up to 1 round",
+  description: [
+    "You extend your hand and point a finger at a target in range. Your magic grants you a brief insight into the target's defenses. On your next turn, you gain Advantage on your first attack roll against the target, provided that this spell hasn't ended."
+  ],
+  damage: [],
+  spellLists: [
+    SPELL_LIST_CLASS.BARD,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WARLOCK,
+    SPELL_LIST_CLASS.WIZARD
+  ],
+  spellLevel: 0
+};
+
+export const viciousMockery: SpellEntry = {
+  id: "spell-vicious-mockery",
+  name: "Vicious Mockery",
+  category: ENTRY_CATEGORIES.SPELLS,
+  magicSchool: MAGIC_SCHOOL.ENCHANTMENT,
+  castingTime: "1 action",
+  range: "60 feet",
+  components: [SPELL_COMPONENT.V],
+  duration: "Instantaneous",
+  description: [
+    "You unleash a string of insults laced with subtle enchantments at a creature you can see within range. If the target can hear you, though it need not understand you, it must succeed on a Wisdom saving throw or take 1d4 Psychic damage and have Disadvantage on the next attack roll it makes before the end of its next turn.",
+    "<strong>At Higher Levels.</strong> This spell's damage increases by 1d4 when you reach 5th level (2d4), 11th level (3d4), and 17th level (4d4)."
+  ],
+  damage: [[DICE.D4, DAMAGE_TYPE.PSYCHIC]],
+  spellLists: [SPELL_LIST_CLASS.BARD],
+  spellLevel: 0
+};
+
+export const virtue: SpellEntry = {
+  id: "spell-virtue",
+  name: "Virtue",
+  category: ENTRY_CATEGORIES.SPELLS,
+  magicSchool: MAGIC_SCHOOL.ABJURATION,
+  castingTime: "1 action",
+  range: "Touch",
+  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
+  duration: "1 round",
+  description: [
+    "You touch one creature, imbuing it with vitality. If the target has at least 1 Hit Point, it gains a number of Temporary Hit Points equal to 1d4 + your spellcasting ability modifier. The Temporary Hit Points are lost when the spell ends."
+  ],
+  damage: [],
+  spellLists: [SPELL_LIST_CLASS.CLERIC],
+  spellLevel: 0
+};
+
+export const wordOfRadiance: SpellEntry = {
+  id: "spell-word-of-radiance",
+  name: "Word of Radiance",
+  category: ENTRY_CATEGORIES.SPELLS,
+  magicSchool: MAGIC_SCHOOL.EVOCATION,
+  castingTime: "1 action",
+  range: "5 feet",
+  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.M],
+  duration: "Instantaneous",
+  description: [
+    "You utter a divine word, and burning radiance erupts from you. Each creature of your choice that you can see within range must succeed on a Constitution saving throw or take 1d6 Radiant damage.",
+    "<strong>At Higher Levels.</strong> The spell's damage increases by 1d6 when you reach 5th level (2d6), 11th level (3d6), and 17th level (4d6)."
+  ],
+  damage: [[DICE.D6, DAMAGE_TYPE.RADIANT]],
+  spellLists: [SPELL_LIST_CLASS.CLERIC],
+  spellLevel: 0
+};
+
 export const spellEntries0: SpellEntry[] = [
   acidSplash,
   bladeWard,
@@ -906,5 +1069,13 @@ export const spellEntries0: SpellEntry[] = [
   shillelagh,
   shockingGrasp,
   spareTheDying,
-  swordBurst
+  swordBurst,
+  thaumaturgy,
+  thornWhip,
+  thunderclap,
+  tollTheDead,
+  trueStrike,
+  viciousMockery,
+  virtue,
+  wordOfRadiance
 ];
