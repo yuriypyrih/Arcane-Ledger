@@ -1,9 +1,10 @@
 import clsx from "clsx";
 import { Pencil, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import SelectInput from "../../FormInputs/SelectInput";
 import SpellListRow from "../../../SpellListRow";
+import SpellDescriptionContent from "../../../SpellDescriptionContent";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { useClassSpellEntries } from "../../../../codex/classes";
 import { ENTRY_CATEGORIES, KeywordTooltip, type SpellEntry } from "../../../../codex/entries";
@@ -14,7 +15,8 @@ import {
   formatSpellComponents,
   formatSpellSubtitle,
   getSpellExcerpt,
-  formatWeaponDamage
+  formatWeaponDamage,
+  renderCodexInlineText
 } from "../../../../utils/codex";
 import {
   getCantripLimitForCharacter,
@@ -47,29 +49,6 @@ type SpellGroup = {
   level: number;
   spells: SpellEntry[];
 };
-
-const inlineBoldPattern = /<strong>(.*?)<\/strong>/g;
-function renderSpellDescriptionLine(line: string): ReactNode {
-  const nodes: ReactNode[] = [];
-  let cursor = 0;
-
-  for (const match of line.matchAll(inlineBoldPattern)) {
-    const index = match.index ?? 0;
-
-    if (index > cursor) {
-      nodes.push(line.slice(cursor, index));
-    }
-
-    nodes.push(<strong key={`${match[1]}-${index}`}>{match[1]}</strong>);
-    cursor = index + match[0].length;
-  }
-
-  if (cursor < line.length) {
-    nodes.push(line.slice(cursor));
-  }
-
-  return nodes.length > 0 ? nodes : line;
-}
 
 function groupSpellsByLevel(spells: SpellEntry[]): SpellGroup[] {
   const spellsByLevel = spells.reduce((groups, spell) => {
@@ -776,16 +755,14 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
               </div>
             </div>
 
-            <div className={sheetStyles.spellDrawerDescriptionList}>
-              {selectedSpell.description.map((line, index) => (
-                <p
-                  key={`${selectedSpell.id}-description-${index}`}
-                  className={sheetStyles.spellDrawerDescriptionLine}
-                >
-                  {renderSpellDescriptionLine(line)}
-                </p>
-              ))}
-            </div>
+            <SpellDescriptionContent
+              description={selectedSpell.description}
+              className={clsx(
+                sheetStyles.spellDrawerDescriptionList,
+                sheetStyles.spellDrawerDescriptionSection
+              )}
+              entryClassName={sheetStyles.spellDrawerDescriptionLine}
+            />
 
             <div className={sheetStyles.spellDrawerActions}>
               {activeSpellLevel === 0 ? null : (
@@ -875,7 +852,7 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
                   key={`components-description-${index}`}
                   className={sheetStyles.spellDrawerDescriptionLine}
                 >
-                  {renderSpellDescriptionLine(line)}
+                  {renderCodexInlineText(line)}
                 </p>
               ))}
             </div>

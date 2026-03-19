@@ -65,6 +65,12 @@ export type KeywordTooltipEntry = {
   title: string;
   description: string[];
 };
+export type SpellDescriptionList = {
+  type: "list";
+  style: "bullet" | "number";
+  items: string[];
+};
+export type SpellDescriptionEntry = string | SpellDescriptionList;
 export type FeatureClassObj = {
   level: number;
   classFeatures: CLASS_FEATURE[];
@@ -83,7 +89,7 @@ export type SpellEntry = {
   range: string;
   components: SPELL_COMPONENT[];
   duration: string;
-  description: string[];
+  description: SpellDescriptionEntry[];
   damage: WeaponDamage;
   spellLists: SPELL_LIST_CLASS[];
   spellLevel: number;

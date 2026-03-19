@@ -8,7 +8,6 @@ export {
   formatSpellComponents,
   formatSpellLevelLabel,
   formatSpellSubtitle,
-  getSpellExcerpt,
   formatWeaponCost,
   formatWeaponDamage,
   formatWeaponDamageFormula,
@@ -18,3 +17,5 @@ export {
   truncateCodexText
 } from "./formatCodexLabel";
 export { loadCodexEntries } from "./loadCodexEntries";
+export { renderCodexInlineText } from "./renderCodexInlineText";
+export { flattenSpellDescriptionLines, getSpellExcerpt } from "./spellDescription";

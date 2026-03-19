@@ -2,12 +2,13 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import CodexFilters from "../../components/CodexPage/CodexFilters";
 import CodexResults from "../../components/CodexPage/CodexResults";
+import CodexSpellDrawer from "../../components/CodexPage/CodexSpellDrawer";
 import {
   filterCodexEntries,
   getCodexCategories,
   type CodexFilterCategory
 } from "../../utils/codex";
-import { ENTRY_CATEGORIES, SPELL_LIST_CLASS } from "../../codex/entries";
+import { ENTRY_CATEGORIES, SPELL_LIST_CLASS, type SpellEntry } from "../../codex/entries";
 import { useCodexEntries } from "./useCodexEntries";
 import styles from "./CodexPage.module.css";
 
@@ -54,6 +55,7 @@ function CodexPage() {
   const { entries, status } = useCodexEntries();
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState("");
+  const [selectedSpell, setSelectedSpell] = useState<SpellEntry | null>(null);
   const categories = getCodexCategories();
   const categoryParam = searchParams.get("category");
   const category = categories.includes(categoryParam as CodexFilterCategory)
@@ -98,6 +100,14 @@ function CodexPage() {
     nextSearchParams.delete(PAGE_PARAM);
     setSearchParams(nextSearchParams, { replace: true });
   }, [category, searchParams, setSearchParams]);
+
+  useEffect(() => {
+    if (category === ENTRY_CATEGORIES.SPELLS) {
+      return;
+    }
+
+    setSelectedSpell(null);
+  }, [category]);
 
   const filteredEntries = useMemo(
     () => filterCodexEntries(entries, query, category, spellLevelFilter, spellClassFilter),
@@ -212,6 +222,9 @@ function CodexPage() {
     },
     [searchParams, setSearchParams, totalPages]
   );
+  const handleSpellSelect = useCallback((spell: SpellEntry) => {
+    setSelectedSpell(spell);
+  }, []);
   const codexSearch = searchParams.toString();
 
   return (
@@ -249,7 +262,12 @@ function CodexPage() {
         currentPage={safeCurrentPage}
         totalPages={totalPages}
         onPageChange={handlePageChange}
+        onSpellSelect={handleSpellSelect}
       />
+
+      {selectedSpell ? (
+        <CodexSpellDrawer spell={selectedSpell} onClose={() => setSelectedSpell(null)} />
+      ) : null}
     </section>
   );
 }

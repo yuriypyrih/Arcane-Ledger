@@ -5,6 +5,7 @@ import {
   type CodexCategory,
   type CodexEntry
 } from "../../codex/entries";
+import { flattenSpellDescriptionLines } from "./spellDescription";
 
 export type CodexFilterCategory = CodexCategory;
 
@@ -49,7 +50,12 @@ export function filterCodexEntries(
         : [];
     const spellSearchValues =
       entry.category === ENTRY_CATEGORIES.SPELLS
-        ? [entry.magicSchool, ...entry.components, ...entry.spellLists, ...entry.description]
+        ? [
+            entry.magicSchool,
+            ...entry.components,
+            ...entry.spellLists,
+            ...flattenSpellDescriptionLines(entry.description)
+          ]
         : [];
     const tagValues = "tags" in entry ? entry.tags : [];
     const matchesQuery =

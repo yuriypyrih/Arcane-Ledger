@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { ARMOR_TYPES, ENTRY_CATEGORIES } from "../../../codex/entries";
+import { ARMOR_TYPES, ENTRY_CATEGORIES, type SpellEntry } from "../../../codex/entries";
 import SpellListRow from "../../SpellListRow";
 import type { CodexEntry, CodexStatus } from "../../../types";
 import {
@@ -23,6 +23,7 @@ type CodexResultsProps = {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  onSpellSelect?: (spell: SpellEntry) => void;
 };
 
 function getItemTypeSubtitle(entry: CodexEntry): string | null {
@@ -68,12 +69,20 @@ function CodexResults({
   search,
   currentPage,
   totalPages,
-  onPageChange
+  onPageChange,
+  onSpellSelect
 }: CodexResultsProps) {
   const navigate = useNavigate();
   const entriesTitle = `${formatCodexLabel(category)} Entries`;
   const isSpellCategory = category === ENTRY_CATEGORIES.SPELLS;
   const totalEntriesLabel = `${totalEntries} total ${totalEntries === 1 ? "entry" : "entries"}`;
+
+  function openEntry(entryId: string) {
+    navigate({
+      pathname: `/codex/${entryId}`,
+      search: search.length > 0 ? `?${search}` : ""
+    });
+  }
 
   return (
     <>
@@ -121,12 +130,7 @@ function CodexResults({
                 <SpellListRow
                   key={entry.id}
                   spell={entry}
-                  onClick={() =>
-                    navigate({
-                      pathname: `/codex/${entry.id}`,
-                      search: search.length > 0 ? `?${search}` : ""
-                    })
-                  }
+                  onClick={() => (onSpellSelect ? onSpellSelect(entry) : openEntry(entry.id))}
                 />
               );
             })}
@@ -168,12 +172,7 @@ function CodexResults({
                 key={entry.id}
                 type="button"
                 className={styles.cardButton}
-                onClick={() =>
-                  navigate({
-                    pathname: `/codex/${entry.id}`,
-                    search: search.length > 0 ? `?${search}` : ""
-                  })
-                }
+                onClick={() => openEntry(entry.id)}
               >
                 <article className={styles.card}>
                   <div className={styles.cardHeader}>

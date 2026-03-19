@@ -492,6 +492,10 @@
   gap: 0.55rem;
 }
 
+.spellDrawerDescriptionSection {
+  padding-bottom: 0.65rem;
+}
+
 .spellDrawerDescriptionLine {
   margin: 0;
   color: var(--color-ink-soft);

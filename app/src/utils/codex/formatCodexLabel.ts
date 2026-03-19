@@ -64,14 +64,6 @@ export function formatSpellComponents(components: SPELL_COMPONENT[]): string {
   return components.join(", ");
 }
 
-export function getSpellExcerpt(
-  spell: Pick<SpellEntry, "description"> | Pick<SpellEntry, "description">["description"]
-): string {
-  const description = Array.isArray(spell) ? spell : spell.description;
-
-  return description.find((line) => line.trim().length > 0) ?? "No description available.";
-}
-
 function formatGroupedWeaponDamageAmount(amount: WeaponDamageAmount, count: number): string {
   if (typeof amount === "number") {
     return `${amount * count}`;

@@ -1,6 +1,7 @@
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import RarityPill from "../../components/CodexPage/RarityPill";
+import SpellDescriptionContent from "../../components/SpellDescriptionContent";
 import {
   ABILITY_TYPES,
   ENTRY_CATEGORIES,
@@ -14,6 +15,7 @@ import {
   formatEquipmentWeight,
   formatSpellComponents,
   formatSpellSubtitle,
+  renderCodexInlineText,
   formatWeaponCost,
   formatWeaponDamage,
   formatWeaponProperties,
@@ -42,29 +44,6 @@ const orderedArmorProficiencies = [
   GENERAL_PROFICIENCIES.HEAVY_ARMOR,
   GENERAL_PROFICIENCIES.SHIELDS
 ];
-const inlineBoldPattern = /<strong>(.*?)<\/strong>/g;
-
-function renderSpellDescriptionLine(line: string): ReactNode {
-  const nodes: ReactNode[] = [];
-  let cursor = 0;
-
-  for (const match of line.matchAll(inlineBoldPattern)) {
-    const index = match.index ?? 0;
-
-    if (index > cursor) {
-      nodes.push(line.slice(cursor, index));
-    }
-
-    nodes.push(<strong key={`${match[1]}-${index}`}>{match[1]}</strong>);
-    cursor = index + match[0].length;
-  }
-
-  if (cursor < line.length) {
-    nodes.push(line.slice(cursor));
-  }
-
-  return nodes.length > 0 ? nodes : line;
-}
 
 function formatAbilityBonusList(abilityBonuses: Partial<Record<ABILITY_TYPES, number>>): string {
   const parts = abilityDisplayOrder
@@ -300,16 +279,11 @@ function CodexEntryPage() {
               </div>
 
               {entry.category === ENTRY_CATEGORIES.SPELLS ? (
-                <div className={sheetStyles.spellDrawerDescriptionList}>
-                  {entry.description.map((line, index) => (
-                    <p
-                      key={`${entry.id}-description-${index}`}
-                      className={sheetStyles.spellDrawerDescriptionLine}
-                    >
-                      {renderSpellDescriptionLine(line)}
-                    </p>
-                  ))}
-                </div>
+                <SpellDescriptionContent
+                  description={entry.description}
+                  className={`${sheetStyles.spellDrawerDescriptionList} ${sheetStyles.spellDrawerDescriptionSection}`}
+                  entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                />
               ) : null}
             </div>
           ) : (
@@ -429,7 +403,7 @@ function CodexEntryPage() {
                 <article className={styles.componentTooltipItem}>
                   <div className={styles.componentTooltipDescription}>
                     {componentsTooltipEntry.description.map((line, index) => (
-                      <p key={`components-${index}`}>{renderSpellDescriptionLine(line)}</p>
+                      <p key={`components-${index}`}>{renderCodexInlineText(line)}</p>
                     ))}
                   </div>
                 </article>
