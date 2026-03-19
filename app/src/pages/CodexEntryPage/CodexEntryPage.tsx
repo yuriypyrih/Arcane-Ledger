@@ -120,8 +120,8 @@ function CodexEntryPage() {
   const { entries, status } = useCodexEntries();
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
   const entry = entries.find((item) => item.id === entryId);
-  const categoryParam = searchParams.get("category");
-  const backToCodexPath = categoryParam ? `/codex?category=${categoryParam}` : "/codex";
+  const codexSearch = searchParams.toString();
+  const backToCodexPath = codexSearch.length > 0 ? `/codex?${codexSearch}` : "/codex";
   const componentsTooltipEntry =
     entry && entry.category === ENTRY_CATEGORIES.SPELLS
       ? (KeywordTooltip.components ?? null)

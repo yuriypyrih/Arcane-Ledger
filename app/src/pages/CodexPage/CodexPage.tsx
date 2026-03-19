@@ -12,23 +12,67 @@ import { useCodexEntries } from "./useCodexEntries";
 import styles from "./CodexPage.module.css";
 
 const SPELLS_PER_PAGE = 20;
+const SPELL_LEVEL_PARAM = "spellLevel";
+const SPELL_CLASS_PARAM = "spellClass";
+const PAGE_PARAM = "page";
+
+function parseSpellLevelFilter(value: string | null): number | null {
+  if (value === null) {
+    return null;
+  }
+
+  const parsedValue = Number(value);
+
+  if (!Number.isInteger(parsedValue) || parsedValue < 0 || parsedValue > 9) {
+    return null;
+  }
+
+  return parsedValue;
+}
+
+function parseSpellClassFilter(value: string | null): SPELL_LIST_CLASS | null {
+  if (value === null) {
+    return null;
+  }
+
+  return Object.values(SPELL_LIST_CLASS).includes(value as SPELL_LIST_CLASS)
+    ? (value as SPELL_LIST_CLASS)
+    : null;
+}
+
+function parsePageValue(value: string | null): number {
+  const parsedValue = Number(value);
+
+  if (!Number.isInteger(parsedValue) || parsedValue < 1) {
+    return 1;
+  }
+
+  return parsedValue;
+}
 
 function CodexPage() {
   const { entries, status } = useCodexEntries();
   const [searchParams, setSearchParams] = useSearchParams();
   const [query, setQuery] = useState("");
-  const [spellLevelFilter, setSpellLevelFilter] = useState<number | null>(null);
-  const [spellClassFilter, setSpellClassFilter] = useState<SPELL_LIST_CLASS | null>(null);
-  const [currentPage, setCurrentPage] = useState(1);
   const categories = getCodexCategories();
   const categoryParam = searchParams.get("category");
   const category = categories.includes(categoryParam as CodexFilterCategory)
     ? (categoryParam as CodexFilterCategory)
     : ENTRY_CATEGORIES.CLASSES;
+  const spellLevelFilter = parseSpellLevelFilter(searchParams.get(SPELL_LEVEL_PARAM));
+  const spellClassFilter = parseSpellClassFilter(searchParams.get(SPELL_CLASS_PARAM));
+  const currentPage = parsePageValue(searchParams.get(PAGE_PARAM));
   const updateCategory = useCallback(
     (nextCategory: CodexFilterCategory) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       nextSearchParams.set("category", nextCategory);
+      nextSearchParams.delete(PAGE_PARAM);
+
+      if (nextCategory !== ENTRY_CATEGORIES.SPELLS) {
+        nextSearchParams.delete(SPELL_LEVEL_PARAM);
+        nextSearchParams.delete(SPELL_CLASS_PARAM);
+      }
+
       setSearchParams(nextSearchParams, { replace: true });
     },
     [searchParams, setSearchParams]
@@ -39,13 +83,21 @@ function CodexPage() {
       return;
     }
 
-    setSpellLevelFilter(null);
-    setSpellClassFilter(null);
-  }, [category]);
+    const nextSearchParams = new URLSearchParams(searchParams);
+    const hadSpellParams =
+      nextSearchParams.has(SPELL_LEVEL_PARAM) ||
+      nextSearchParams.has(SPELL_CLASS_PARAM) ||
+      nextSearchParams.has(PAGE_PARAM);
 
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [category, query, spellClassFilter, spellLevelFilter]);
+    if (!hadSpellParams) {
+      return;
+    }
+
+    nextSearchParams.delete(SPELL_LEVEL_PARAM);
+    nextSearchParams.delete(SPELL_CLASS_PARAM);
+    nextSearchParams.delete(PAGE_PARAM);
+    setSearchParams(nextSearchParams, { replace: true });
+  }, [category, searchParams, setSearchParams]);
 
   const filteredEntries = useMemo(
     () => filterCodexEntries(entries, query, category, spellLevelFilter, spellClassFilter),
@@ -75,12 +127,24 @@ function CodexPage() {
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
   useEffect(() => {
-    if (currentPage <= totalPages) {
+    if (
+      status !== "ready" ||
+      category !== ENTRY_CATEGORIES.SPELLS ||
+      currentPage === safeCurrentPage
+    ) {
       return;
     }
 
-    setCurrentPage(totalPages);
-  }, [currentPage, totalPages]);
+    const nextSearchParams = new URLSearchParams(searchParams);
+
+    if (safeCurrentPage <= 1) {
+      nextSearchParams.delete(PAGE_PARAM);
+    } else {
+      nextSearchParams.set(PAGE_PARAM, String(safeCurrentPage));
+    }
+
+    setSearchParams(nextSearchParams, { replace: true });
+  }, [category, currentPage, safeCurrentPage, searchParams, setSearchParams, status]);
 
   const visibleEntries = useMemo(() => {
     if (category !== ENTRY_CATEGORIES.SPELLS) {
@@ -90,21 +154,65 @@ function CodexPage() {
     const startIndex = (safeCurrentPage - 1) * SPELLS_PER_PAGE;
     return sortedEntries.slice(startIndex, startIndex + SPELLS_PER_PAGE);
   }, [category, safeCurrentPage, sortedEntries]);
-  const handleQueryChange = useCallback((value: string) => {
-    setQuery(value);
-  }, []);
-  const handleSpellLevelFilterChange = useCallback((value: number | null) => {
-    setSpellLevelFilter(value);
-  }, []);
-  const handleSpellClassFilterChange = useCallback((value: SPELL_LIST_CLASS | null) => {
-    setSpellClassFilter(value);
-  }, []);
+  const handleQueryChange = useCallback(
+    (value: string) => {
+      setQuery(value);
+      if (category !== ENTRY_CATEGORIES.SPELLS || !searchParams.has(PAGE_PARAM)) {
+        return;
+      }
+
+      const nextSearchParams = new URLSearchParams(searchParams);
+      nextSearchParams.delete(PAGE_PARAM);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [category, searchParams, setSearchParams]
+  );
+  const handleSpellLevelFilterChange = useCallback(
+    (value: number | null) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+
+      if (value === null) {
+        nextSearchParams.delete(SPELL_LEVEL_PARAM);
+      } else {
+        nextSearchParams.set(SPELL_LEVEL_PARAM, String(value));
+      }
+
+      nextSearchParams.delete(PAGE_PARAM);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+  const handleSpellClassFilterChange = useCallback(
+    (value: SPELL_LIST_CLASS | null) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+
+      if (value === null) {
+        nextSearchParams.delete(SPELL_CLASS_PARAM);
+      } else {
+        nextSearchParams.set(SPELL_CLASS_PARAM, value);
+      }
+
+      nextSearchParams.delete(PAGE_PARAM);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
   const handlePageChange = useCallback(
     (page: number) => {
-      setCurrentPage(Math.max(1, Math.min(totalPages, page)));
+      const nextPage = Math.max(1, Math.min(totalPages, page));
+      const nextSearchParams = new URLSearchParams(searchParams);
+
+      if (nextPage <= 1) {
+        nextSearchParams.delete(PAGE_PARAM);
+      } else {
+        nextSearchParams.set(PAGE_PARAM, String(nextPage));
+      }
+
+      setSearchParams(nextSearchParams, { replace: true });
     },
-    [totalPages]
+    [searchParams, setSearchParams, totalPages]
   );
+  const codexSearch = searchParams.toString();
 
   return (
     <section className={styles.page}>
@@ -137,6 +245,7 @@ function CodexPage() {
         totalEntries={sortedEntries.length}
         status={status}
         category={category}
+        search={codexSearch}
         currentPage={safeCurrentPage}
         totalPages={totalPages}
         onPageChange={handlePageChange}

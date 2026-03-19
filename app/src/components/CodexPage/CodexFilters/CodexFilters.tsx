@@ -67,7 +67,7 @@ function CodexFilters({
       {category === ENTRY_CATEGORIES.SPELLS ? (
         <>
           <label className={styles.field}>
-            <span>Spell Type</span>
+            <span>Spell Level</span>
             <select
               className={styles.input}
               value={spellLevelFilter === null ? "ALL" : String(spellLevelFilter)}

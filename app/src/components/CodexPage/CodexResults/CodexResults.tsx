@@ -19,6 +19,7 @@ type CodexResultsProps = {
   totalEntries: number;
   status: CodexStatus;
   category: CodexFilterCategory;
+  search: string;
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
@@ -64,6 +65,7 @@ function CodexResults({
   totalEntries,
   status,
   category,
+  search,
   currentPage,
   totalPages,
   onPageChange
@@ -71,16 +73,13 @@ function CodexResults({
   const navigate = useNavigate();
   const entriesTitle = `${formatCodexLabel(category)} Entries`;
   const isSpellCategory = category === ENTRY_CATEGORIES.SPELLS;
-  const shownCountLabel =
-    isSpellCategory && status === "ready"
-      ? `${entries.length} of ${totalEntries} shown`
-      : `${entries.length} shown`;
+  const totalEntriesLabel = `${totalEntries} total ${totalEntries === 1 ? "entry" : "entries"}`;
 
   return (
     <>
       <div className={styles.resultsHeader}>
         <h3>{entriesTitle}</h3>
-        <span>{shownCountLabel}</span>
+        <span>{totalEntriesLabel}</span>
       </div>
 
       {status === "loading" ? (
@@ -125,7 +124,7 @@ function CodexResults({
                   onClick={() =>
                     navigate({
                       pathname: `/codex/${entry.id}`,
-                      search: `?category=${category}`
+                      search: search.length > 0 ? `?${search}` : ""
                     })
                   }
                 />
@@ -172,7 +171,7 @@ function CodexResults({
                 onClick={() =>
                   navigate({
                     pathname: `/codex/${entry.id}`,
-                    search: `?category=${category}`
+                    search: search.length > 0 ? `?${search}` : ""
                   })
                 }
               >
