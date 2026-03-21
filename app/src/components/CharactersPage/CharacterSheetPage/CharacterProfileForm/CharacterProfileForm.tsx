@@ -15,13 +15,7 @@ import {
   getXpProgressPercent
 } from "../../../../pages/CharactersPage/experience";
 import { classOptions, speciesOptions } from "../../../../pages/CharactersPage/constants";
-import {
-  backgroundOptions,
-  isBackgroundName,
-  normalizeCharacterEquipmentSelectionsForClass,
-  normalizeManualSkillSelections,
-  normalizeSkillExpertiseSelectionsForCharacter
-} from "../../../../pages/CharactersPage/proficiency";
+import { backgroundOptions, isBackgroundName } from "../../../../pages/CharactersPage/proficiency";
 import type {
   IdentityDraft,
   PersistCharacterUpdater,
@@ -146,19 +140,6 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
     }
 
     onPersistCharacter((currentCharacter) => {
-      const normalizedSkills = normalizeManualSkillSelections(currentCharacter.skills);
-      const normalizedEquipment = normalizeCharacterEquipmentSelectionsForClass(
-        normalizedClassName,
-        currentCharacter.equipment
-      );
-      const normalizedSkillExpertise = normalizeSkillExpertiseSelectionsForCharacter(
-        normalizedClassName,
-        normalizedSpecies,
-        normalizedBackground,
-        normalizedSkills,
-        currentCharacter.skillExpertise ?? []
-      );
-
       return {
         ...currentCharacter,
         name: normalizedName,
@@ -169,10 +150,7 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
           ? identityDraft.alignment
           : "True Neutral",
         background: normalizedBackground,
-        backgroundNotes: identityDraft.backgroundNotes.trim(),
-        skills: normalizedSkills,
-        skillExpertise: normalizedSkillExpertise,
-        equipment: normalizedEquipment
+        backgroundNotes: identityDraft.backgroundNotes.trim()
       };
     });
 
@@ -277,6 +255,7 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
           <label className={shared.field}>
             <span>Species</span>
             <SelectInput
+              disabled
               value={identityDraft.species}
               onChange={(event) =>
                 setIdentityDraft((current) => ({
@@ -297,6 +276,7 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
           <label className={shared.field}>
             <span>Class</span>
             <SelectInput
+              disabled
               value={identityDraft.className}
               onChange={(event) =>
                 setIdentityDraft((current) => ({
@@ -351,6 +331,7 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
           <label className={shared.field}>
             <span>Background</span>
             <SelectInput
+              disabled
               value={identityDraft.background}
               onChange={(event) =>
                 setIdentityDraft((current) => ({

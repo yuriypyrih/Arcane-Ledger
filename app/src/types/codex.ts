@@ -1,4 +1,5 @@
 export {
+  ACTION_TYPE,
   ABILITY_TYPES,
   ARMOR_TYPES,
   BACKGROUND_TYPES,
@@ -65,6 +66,7 @@ export type {
   RuleEntry,
   SpeciesEntry,
   SpellEntry,
+  SpellCastingTimePart,
   WeaponCost,
   WeaponDamage,
   WeaponRange,

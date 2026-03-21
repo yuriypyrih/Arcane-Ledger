@@ -6,6 +6,7 @@ import sheetStyles from "../../../pages/CharactersPage/CharacterSheetPage/Charac
 import {
   formatCodexLabel,
   formatCodexList,
+  formatSpellCastingTime,
   formatSpellComponents,
   formatSpellSubtitle,
   formatWeaponDamage,
@@ -76,7 +77,7 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
           <div className={sheetStyles.spellDrawerDetails}>
             <div className={sheetStyles.spellDrawerDetailCard}>
               <span>Casting Time</span>
-              <strong>{spell.castingTime}</strong>
+              <strong>{formatSpellCastingTime(spell.castingTime)}</strong>
             </div>
             <div className={sheetStyles.spellDrawerDetailCard}>
               <span>Range</span>

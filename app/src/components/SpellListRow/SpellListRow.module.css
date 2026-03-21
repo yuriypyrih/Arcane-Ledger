@@ -32,8 +32,78 @@
   gap: 0.75rem;
 }
 
+.selectableCard {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  overflow: hidden;
+  padding: 0;
+}
+
+.selectableCardSelected {
+  border-color: rgba(47, 120, 255, 0.42);
+  background: rgba(47, 120, 255, 0.08);
+}
+
+.selectableToggleButton,
+.selectableDetailButton {
+  border: none;
+  background: none;
+  color: inherit;
+  font: inherit;
+}
+
+.selectableToggleButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 4.25rem;
+  border-right: 1px solid rgba(75, 47, 29, 0.14);
+  cursor: pointer;
+  padding: 0.62rem 1rem;
+}
+
+.selectableToggleButton:disabled {
+  cursor: not-allowed;
+}
+
+.selectableToggleButtonDisabled {
+  background: rgba(75, 47, 29, 0.04);
+  opacity: 0.58;
+}
+
+.selectableDetailButton {
+  flex: 1;
+  cursor: pointer;
+  padding: 0.62rem 1.05rem 0.62rem 1.2rem;
+  text-align: left;
+}
+
+.selectableTextBlock {
+  display: grid;
+  gap: 0.22rem;
+  min-width: 0;
+}
+
+.selectableCheckbox {
+  accent-color: #2f78ff;
+  margin: 0;
+  pointer-events: none;
+}
+
 .name {
   font-weight: 600;
+}
+
+.nameButton {
+  border: none;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  padding: 0;
+  text-align: left;
 }
 
 .meta,
@@ -57,6 +127,19 @@
     align-items: flex-start;
     flex-direction: column;
     gap: 0.2rem;
+  }
+
+  .selectableTextBlock {
+    width: 100%;
+  }
+
+  .selectableToggleButton {
+    flex-basis: 3.7rem;
+    padding-inline: 0.8rem;
+  }
+
+  .selectableDetailButton {
+    padding-left: 1rem;
   }
 
   .meta {

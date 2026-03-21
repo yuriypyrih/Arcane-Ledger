@@ -1,8 +1,7 @@
-import type { AbilityKey, Character, CharacterDraft, CoreStats } from "../../types";
+import type { Character, CharacterDraft, CoreStats } from "../../types";
 import { currencyKeys } from "../../types";
 import { loadPreferences } from "../../storage/preferences";
 import {
-  abilityKeys,
   CHARACTERS_STORAGE_KEY,
   alignmentGrid,
   createDefaultCoreStats,
@@ -10,24 +9,24 @@ import {
   createDefaultCurrencies,
   createEmptyCharacter
 } from "./constants";
+import { normalizeCharacterConditions, normalizeRoundTracker } from "./combat";
 import {
   isBackgroundName,
-  normalizeCharacterEquipmentSelectionsForClass,
-  normalizeManualSkillSelections,
-  normalizeSkillExpertiseSelectionsForCharacter,
-  normalizeToolProficiencySelections
+  normalizeCharacterEquipmentSelections,
+  normalizeCharacterProficiencies
 } from "./proficiency";
 import {
   getCantripLimitForCharacter,
   getCantripSelectionOptionsForCharacter,
   getDefaultCantripIdsForCharacter,
+  getPreparedSpellLevelLimitsForCharacter,
   getPreparedSpellLimitForCharacter,
   getPreparedSpellSelectionOptionsForCharacter,
   getSpellSlotTotalsForCharacter,
+  normalizePreparedSpellIds,
   normalizeSpellSlotsExpended
 } from "./spellcasting";
 import { normalizeLevelAndXp } from "./experience";
-import { getSavingThrowProficienciesForClass } from "./gameplay";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
 
 function clampNumber(value: unknown, min: number, max: number, fallback: number): number {
@@ -108,42 +107,6 @@ function normalizeCurrencies(
   return normalizedCurrencies;
 }
 
-function normalizeConditions(value: unknown): Character["conditions"] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return value
-    .map((rawCondition) => {
-      if (!rawCondition || typeof rawCondition !== "object") {
-        return null;
-      }
-
-      const conditionRecord = rawCondition as {
-        name?: unknown;
-        roundsRemaining?: unknown;
-      };
-      const name = typeof conditionRecord.name === "string" ? conditionRecord.name.trim() : "";
-
-      if (!name) {
-        return null;
-      }
-
-      const roundsRemaining = Math.max(
-        1,
-        Math.floor(clampNumber(conditionRecord.roundsRemaining, 1, 999, 1))
-      );
-
-      return {
-        name,
-        roundsRemaining
-      };
-    })
-    .filter(
-      (condition): condition is NonNullable<Character["conditions"]>[number] => condition !== null
-    );
-}
-
 function normalizeDeathSaves(value: unknown): NonNullable<Character["deathSaves"]> {
   if (!value || typeof value !== "object") {
     return {
@@ -160,23 +123,6 @@ function normalizeDeathSaves(value: unknown): NonNullable<Character["deathSaves"
   };
 }
 
-function normalizeSavingThrowProficiencies(
-  value: unknown,
-  fallbackClassName: string
-): Character["savingThrowProficiencies"] {
-  if (!Array.isArray(value)) {
-    return getSavingThrowProficienciesForClass(fallbackClassName);
-  }
-
-  const validAbilitySet = new Set(abilityKeys);
-  const normalizedSavingThrows = value.filter(
-    (ability): ability is AbilityKey =>
-      typeof ability === "string" && validAbilitySet.has(ability as AbilityKey)
-  );
-
-  return [...new Set(normalizedSavingThrows)];
-}
-
 function normalizeCharacter(value: unknown): Character | null {
   if (!value || typeof value !== "object") {
     return null;
@@ -190,8 +136,13 @@ function normalizeCharacter(value: unknown): Character | null {
     knownSpellIds?: unknown;
     cantripIds?: unknown;
     preparedSpellIds?: unknown;
+    skills?: unknown;
+    skillProficiencies?: unknown;
     skillExpertise?: unknown;
+    weaponProficiencies?: unknown;
+    armorProficiencies?: unknown;
     toolProficiencies?: unknown;
+    languageProficiencies?: unknown;
     coreStats?: unknown;
     currencies?: unknown;
     backgroundNotes?: unknown;
@@ -199,6 +150,7 @@ function normalizeCharacter(value: unknown): Character | null {
     hitDiceRemaining?: unknown;
     maxHitPointsMode?: unknown;
     temporaryHitPoints?: unknown;
+    roundTracker?: unknown;
     conditions?: unknown;
     deathSaves?: unknown;
     customEquipment?: unknown;
@@ -243,25 +195,33 @@ function normalizeCharacter(value: unknown): Character | null {
         (skill): skill is string => typeof skill === "string"
       )
     : (defaults.skillExpertise ?? []);
-  const rawToolProficiencies = Array.isArray(record.toolProficiencies)
+  const rawLegacySavingThrowProficiencies = Array.isArray(record.savingThrowProficiencies)
+    ? (record.savingThrowProficiencies as unknown[]).filter(
+        (ability): ability is string => typeof ability === "string"
+      )
+    : (defaults.savingThrowProficiencies ?? []);
+  const rawLegacyToolProficiencies = Array.isArray(record.toolProficiencies)
     ? (record.toolProficiencies as unknown[]).filter(
         (toolProficiency): toolProficiency is string => typeof toolProficiency === "string"
       )
     : (defaults.toolProficiencies ?? []);
-  const normalizedSkills = normalizeManualSkillSelections(rawSkills);
-  const normalizedEquipment = normalizeCharacterEquipmentSelectionsForClass(
-    normalizedClassName,
-    rawEquipment
-  );
-  const normalizedToolProficiencies = normalizeToolProficiencySelections(rawToolProficiencies);
+  const normalizedEquipment = normalizeCharacterEquipmentSelections(rawEquipment);
   const normalizedCustomEquipment = normalizeCustomEquipmentEntries(record.customEquipment);
-  const normalizedSkillExpertise = normalizeSkillExpertiseSelectionsForCharacter(
-    normalizedClassName,
-    normalizedSpecies,
-    resolvedBackground,
-    normalizedSkills,
-    rawSkillExpertise
-  );
+  const normalizedProficiencies = normalizeCharacterProficiencies({
+    className: normalizedClassName,
+    species: normalizedSpecies,
+    background: resolvedBackground,
+    skillProficiencies: record.skillProficiencies,
+    savingThrowProficiencies: record.savingThrowProficiencies,
+    weaponProficiencies: record.weaponProficiencies,
+    armorProficiencies: record.armorProficiencies,
+    toolProficiencies: record.toolProficiencies,
+    languageProficiencies: record.languageProficiencies,
+    legacySkills: rawSkills,
+    legacySkillExpertise: rawSkillExpertise,
+    legacySavingThrowProficiencies: rawLegacySavingThrowProficiencies,
+    legacyToolProficiencies: rawLegacyToolProficiencies
+  });
   const rawPreparedSpellIds = Array.isArray(record.preparedSpellIds)
     ? record.preparedSpellIds.filter((spellId): spellId is string => typeof spellId === "string")
     : Array.isArray(record.knownSpellIds)
@@ -283,14 +243,23 @@ function normalizeCharacter(value: unknown): Character | null {
     normalizedClassName,
     normalizedLevel
   );
-  const preparedSpellSelectionOptionIds = new Set(
-    getPreparedSpellSelectionOptionsForCharacter(normalizedClassName, normalizedLevel).map(
-      (spell) => spell.id
-    )
+  const preparedSpellLevelLimits = getPreparedSpellLevelLimitsForCharacter(
+    normalizedClassName,
+    normalizedLevel
   );
-  const normalizedPreparedSpellIds = [...new Set(rawPreparedSpellIds)]
-    .filter((spellId) => preparedSpellSelectionOptionIds.has(spellId))
-    .slice(0, preparedSpellLimit ?? Number.POSITIVE_INFINITY);
+  const preparedSpellSelectionOptions = getPreparedSpellSelectionOptionsForCharacter(
+    normalizedClassName,
+    normalizedLevel
+  );
+  const preparedSpellSelectionOptionIds = new Set(
+    preparedSpellSelectionOptions.map((spell) => spell.id)
+  );
+  const normalizedPreparedSpellIds = normalizePreparedSpellIds(
+    rawPreparedSpellIds.filter((spellId) => preparedSpellSelectionOptionIds.has(spellId)),
+    preparedSpellSelectionOptions,
+    preparedSpellLimit,
+    preparedSpellLevelLimits
+  );
   const spellSlotTotals = getSpellSlotTotalsForCharacter(normalizedClassName, normalizedLevel);
   const normalizedSpellSlotsExpended = normalizeSpellSlotsExpended(
     record.spellSlotsExpended,
@@ -314,12 +283,9 @@ function normalizeCharacter(value: unknown): Character | null {
     record.maxHitPointsMode === "automatic" || record.maxHitPointsMode === "custom"
       ? record.maxHitPointsMode
       : loadPreferences().defaultMaxHitPointsMode;
-  const normalizedConditions = normalizeConditions(record.conditions);
+  const normalizedRoundTracker = normalizeRoundTracker(record.roundTracker);
+  const normalizedConditions = normalizeCharacterConditions(record.conditions);
   const normalizedDeathSaves = normalizeDeathSaves(record.deathSaves);
-  const normalizedSavingThrowProficiencies = normalizeSavingThrowProficiencies(
-    record.savingThrowProficiencies,
-    normalizedClassName
-  );
   const normalizedTemporaryHitPoints = Math.floor(
     clampNumber(record.temporaryHitPoints, 0, 999, defaults.temporaryHitPoints)
   );
@@ -354,9 +320,13 @@ function normalizeCharacter(value: unknown): Character | null {
     background: resolvedBackground,
     backgroundNotes: normalizedBackgroundNotes,
     currencies: normalizedCurrencies,
-    skills: normalizedSkills,
-    skillExpertise: normalizedSkillExpertise,
-    toolProficiencies: normalizedToolProficiencies,
+    skillProficiencies: normalizedProficiencies.skillProficiencies,
+    savingThrowProficiencies: normalizedProficiencies.savingThrowProficiencies,
+    weaponProficiencies: normalizedProficiencies.weaponProficiencies,
+    armorProficiencies: normalizedProficiencies.armorProficiencies,
+    toolProficiencies: normalizedProficiencies.toolProficiencies,
+    languageProficiencies: normalizedProficiencies.languageProficiencies,
+    roundTracker: normalizedRoundTracker,
     conditions: normalizedConditions,
     deathSaves: normalizedDeathSaves,
     equipment: normalizedEquipment,
@@ -366,8 +336,7 @@ function normalizeCharacter(value: unknown): Character | null {
     spellSlotsExpended: normalizedSpellSlotsExpended,
     shortRestsUsedToday: normalizedShortRestsUsedToday,
     hitDiceRemaining: normalizedHitDiceRemaining,
-    coreStats: normalizedCoreStats,
-    savingThrowProficiencies: normalizedSavingThrowProficiencies
+    coreStats: normalizedCoreStats
   };
 }
 

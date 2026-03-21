@@ -1,4 +1,5 @@
 import {
+  ACTION_TYPE,
   ABILITY_TYPES,
   DICE,
   DICE_TYPES,
@@ -6,6 +7,7 @@ import {
   TOOL_PROFICIENCIES,
   WEAPON_PROPERTY,
   type SpellEntry,
+  type SpellCastingTimePart,
   type EquipmentCost,
   type WeaponDamage,
   type WeaponDamageAmount,
@@ -21,6 +23,15 @@ const ALWAYS_UPPERCASE_LABELS = new Set<string>([
 ]);
 
 const SPECIAL_LABELS: Record<string, string> = {
+  [ACTION_TYPE.ACTION]: "1 action",
+  [ACTION_TYPE.BONUS_ACTION]: "1 bonus action",
+  [ACTION_TYPE.REACTION]: "1 reaction",
+  [ACTION_TYPE.MINUTE]: "1 minute",
+  [ACTION_TYPE.TEN_MINUTES]: "10 minutes",
+  [ACTION_TYPE.HOUR]: "1 hour",
+  [ACTION_TYPE.EIGHT_HOURS]: "8 hours",
+  [ACTION_TYPE.TWELVE_HOURS]: "12 hours",
+  [ACTION_TYPE.TWENTY_FOUR_HOURS]: "24 hours",
   [TOOL_PROFICIENCIES.THIEVES_TOOLKIT]: "Thieve's Toolkit",
   [TOOL_PROFICIENCIES.SMITHS_TOOLKIT]: "Smith's Toolkit",
   [TOOL_PROFICIENCIES.DISGUIDE_KIT]: "Disguide Kit",
@@ -62,6 +73,59 @@ export function formatSpellComponents(components: SPELL_COMPONENT[]): string {
   }
 
   return components.join(", ");
+}
+
+function isCastingTimeConnector(part: string): boolean {
+  const normalizedPart = part.trim().toLowerCase();
+  return normalizedPart === "or" || normalizedPart === "and";
+}
+
+function formatSpellCastingTimePart(part: SpellCastingTimePart): string {
+  return typeof part === "string" ? part.trim() : formatCodexLabel(part);
+}
+
+function joinSpellCastingTimeParts(parts: string[]): string {
+  return parts.reduce((result, part) => {
+    const normalizedPart = part.trim();
+
+    if (!normalizedPart) {
+      return result;
+    }
+
+    if (!result) {
+      return normalizedPart;
+    }
+
+    if (isCastingTimeConnector(normalizedPart)) {
+      return `${result} ${normalizedPart}`;
+    }
+
+    if (/(?:\sor|\sand)$/i.test(result)) {
+      return `${result} ${normalizedPart}`;
+    }
+
+    if (/^[,;:.]/.test(normalizedPart)) {
+      return `${result}${normalizedPart}`;
+    }
+
+    return `${result}, ${normalizedPart}`;
+  }, "");
+}
+
+export function formatSpellCastingTime(castingTime: SpellCastingTimePart[]): string {
+  return joinSpellCastingTimeParts(castingTime.map((part) => formatSpellCastingTimePart(part)));
+}
+
+export function formatSpellCastingTimeSummary(castingTime: SpellCastingTimePart[]): string {
+  const summaryParts = castingTime.filter((part): part is Exclude<SpellCastingTimePart, string> =>
+    typeof part !== "string"
+  );
+
+  if (summaryParts.length === 0) {
+    return formatSpellCastingTime(castingTime.slice(0, 1));
+  }
+
+  return summaryParts.map((part) => formatSpellCastingTimePart(part)).join(" / ");
 }
 
 function formatGroupedWeaponDamageAmount(amount: WeaponDamageAmount, count: number): string {

@@ -26,9 +26,14 @@ import {
   getMainAbilityForClass,
   getPassivePerceptionForCharacter,
   getProficiencyBonus,
-  getSavingThrowProficienciesForClass,
   getSpeedForCharacter
 } from "../../../../pages/CharactersPage/gameplay";
+import {
+  getSavingThrowLevelFromEntries,
+  getSavingThrowProficiencyForAbilityKey,
+  toggleManualSavingThrowEntry
+} from "../../../../pages/CharactersPage/proficiency";
+import { PROF_LEVEL } from "../../../../types";
 import type {
   AbilitiesDraft,
   PersistCharacterUpdater
@@ -76,18 +81,6 @@ function createAbilitiesDraft(character: Character): AbilitiesDraft {
   };
 }
 
-function getSavingThrowProficiencies(character: Character): AbilityKey[] {
-  return (
-    character.savingThrowProficiencies ?? getSavingThrowProficienciesForClass(character.className)
-  );
-}
-
-function normalizeSavingThrowSelections(values: AbilityKey[]): AbilityKey[] {
-  const validAbilitySet = new Set(abilityKeys);
-  const normalizedSelections = values.filter((ability) => validAbilitySet.has(ability));
-  return [...new Set(normalizedSelections)];
-}
-
 function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFormProps) {
   const { watch } = useFormContext<Character>();
   const character = watch() as Character;
@@ -97,8 +90,8 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
   const [abilitiesDraft, setAbilitiesDraft] = useState<AbilitiesDraft>(() =>
     createAbilitiesDraft(character)
   );
-  const [savingThrowProficienciesDraft, setSavingThrowProficienciesDraft] = useState<AbilityKey[]>(
-    () => getSavingThrowProficiencies(character)
+  const [savingThrowProficienciesDraft, setSavingThrowProficienciesDraft] = useState(
+    () => character.savingThrowProficiencies
   );
   const [statsViewMode, setStatsViewMode] = useState<StatsViewMode>(
     () => loadPreferences().statsViewMode
@@ -136,8 +129,7 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
   const displayedSavingThrowProficiencies =
     isEditing && editingTab === "savingThrows"
       ? savingThrowProficienciesDraft
-      : getSavingThrowProficiencies(character);
-  const savingThrowProficiencySet = new Set<AbilityKey>(displayedSavingThrowProficiencies);
+      : character.savingThrowProficiencies;
   const proficiencyBonus = getProficiencyBonus(character.level);
   const isTabMode = statsViewMode === "tabs";
   const isAbilityEditorActive = editingTab === "modifiers";
@@ -168,7 +160,12 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
     () =>
       abilityKeys.map((ability) => {
         const abilityModifier = getAbilityModifier(displayedAbilities[ability]);
-        const isSavingThrowProficient = savingThrowProficiencySet.has(ability);
+        const savingThrowProficiency = getSavingThrowProficiencyForAbilityKey(ability);
+        const savingThrowLevel = getSavingThrowLevelFromEntries(
+          displayedSavingThrowProficiencies,
+          savingThrowProficiency
+        );
+        const isSavingThrowProficient = savingThrowLevel !== PROF_LEVEL.NONE;
         const totalSavingThrow = abilityModifier + (isSavingThrowProficient ? proficiencyBonus : 0);
 
         return {
@@ -178,12 +175,12 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
           totalSavingThrow: formatAbilityModifier(totalSavingThrow)
         };
       }),
-    [displayedAbilities, proficiencyBonus, savingThrowProficiencySet]
+    [displayedAbilities, displayedSavingThrowProficiencies, proficiencyBonus]
   );
 
   function syncDraftsFromCharacter() {
     setAbilitiesDraft(createAbilitiesDraft(character));
-    setSavingThrowProficienciesDraft(getSavingThrowProficiencies(character));
+    setSavingThrowProficienciesDraft(character.savingThrowProficiencies);
   }
 
   function toggleStatsViewMode() {
@@ -220,13 +217,9 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
   }
 
   function saveSavingThrows() {
-    const nextSavingThrowProficiencies = normalizeSavingThrowSelections(
-      savingThrowProficienciesDraft
-    );
-
     onPersistCharacter((currentCharacter) => ({
       ...currentCharacter,
-      savingThrowProficiencies: nextSavingThrowProficiencies
+      savingThrowProficiencies: savingThrowProficienciesDraft
     }));
 
     setIsEditing(false);
@@ -260,13 +253,12 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
   }
 
   function toggleSavingThrowProficiency(ability: AbilityKey) {
-    setSavingThrowProficienciesDraft((currentSelections) => {
-      if (currentSelections.includes(ability)) {
-        return currentSelections.filter((currentAbility) => currentAbility !== ability);
-      }
-
-      return [...currentSelections, ability];
-    });
+    setSavingThrowProficienciesDraft((currentSelections) =>
+      toggleManualSavingThrowEntry(
+        currentSelections,
+        getSavingThrowProficiencyForAbilityKey(ability)
+      )
+    );
   }
 
   function openStatReference(keyword: string) {
@@ -447,9 +439,7 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
 
         {isSectionEditing ? (
           <>
-            <p className={shared.helperText}>
-              Select the saving throw proficiencies for this character.
-            </p>
+            <p className={shared.helperText}>Changes here are stored as manual overrides.</p>
             <div className={styles.modifierGrid}>
               {savingThrowCards.map((card) => (
                 <label

@@ -28,10 +28,10 @@ import {
   formatWeaponWeight
 } from "../../../../utils/codex";
 import {
-  getAvailableEquipmentNamesForClass,
+  equipmentOptions,
   getEquipmentByName,
   getLoadoutCodexEntryByName,
-  normalizeCharacterEquipmentSelectionsForClass
+  normalizeCharacterEquipmentSelections
 } from "../../../../pages/CharactersPage/proficiency";
 import {
   findCustomEquipmentById,
@@ -328,7 +328,7 @@ function applyEquipmentToCharacter(currentCharacter: Character, itemName: string
 
   return {
     ...currentCharacter,
-    equipment: normalizeCharacterEquipmentSelectionsForClass(currentCharacter.className, [
+    equipment: normalizeCharacterEquipmentSelections([
       ...currentCharacter.equipment,
       createCharacterEquipmentItem(itemName)
     ])
@@ -426,7 +426,7 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
     }
   }, [isAddModalOpen, isCatalogSearchVisible]);
 
-  const availableEquipmentOptions = getAvailableEquipmentNamesForClass(character.className);
+  const availableEquipmentOptions = equipmentOptions;
   const normalizedCurrencies = useMemo(() => {
     const nextCurrencies: Record<CurrencyKey, number> = {
       copper: 0,
@@ -583,6 +583,10 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
     selectedWeaponDescriptor && !isSelectedWeaponOnHand
       ? canWeaponBePutOnHand(selectedWeaponDescriptor, heldWeaponDescriptors)
       : false;
+  const shouldOfferWeaponHandSwap =
+    selectedLoadoutEntryData?.category === ENTRY_CATEGORIES.WEAPONS &&
+    !isSelectedWeaponOnHand &&
+    !canSelectedWeaponBePutOnHand;
   const availableCatalogItems = useMemo(
     () =>
       groupCatalogItems(
@@ -852,6 +856,10 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
     setSelectedLoadoutEntry(null);
   }
 
+  function closeLoadoutDrawer() {
+    setSelectedLoadoutEntry(null);
+  }
+
   function toggleWeaponOnHand() {
     if (
       !selectedLoadoutEntryData ||
@@ -893,6 +901,41 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
         )
       };
     });
+
+    closeLoadoutDrawer();
+  }
+
+  function swapWeaponToHand() {
+    if (
+      !selectedLoadoutEntryData ||
+      selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS ||
+      isSelectedWeaponOnHand
+    ) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const nextEquipment = currentCharacter.equipment.map((equipmentItem) => ({
+        ...equipmentItem,
+        onHand: equipmentItem.name === selectedLoadoutEntryData.name
+      }));
+      const nextCustomEquipment = currentCharacter.customEquipment.map((entry) =>
+        entry.kind !== "weapon"
+          ? entry
+          : {
+              ...entry,
+              onHand: entry.id === selectedLoadoutEntry?.customEquipmentId
+            }
+      );
+
+      return {
+        ...currentCharacter,
+        equipment: nextEquipment,
+        customEquipment: nextCustomEquipment
+      };
+    });
+
+    closeLoadoutDrawer();
   }
 
   function adjustCurrencyBalance(mode: "spend" | "gain") {
@@ -1593,24 +1636,26 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
             {!isCatalogDrawerInspection ? (
               <div className={styles.loadoutDrawerActions}>
                 {selectedLoadoutEntryData.category === ENTRY_CATEGORIES.WEAPONS ? (
-                  <button
-                    type="button"
-                    className={clsx(
-                      styles.editItemButton,
-                      !isSelectedWeaponOnHand &&
-                        !canSelectedWeaponBePutOnHand &&
-                        styles.weaponHandToggleDisabled
-                    )}
-                    disabled={!isSelectedWeaponOnHand && !canSelectedWeaponBePutOnHand}
-                    onClick={toggleWeaponOnHand}
-                  >
-                    <Hand size={15} aria-hidden="true" />
-                    {isSelectedWeaponOnHand
-                      ? "Remove From Hand"
-                      : canSelectedWeaponBePutOnHand
-                        ? "Put On Hand"
-                        : "Hands are full"}
-                  </button>
+                  <>
+                    {shouldOfferWeaponHandSwap ? (
+                      <span className={styles.weaponHandStatusText}>Hands are full</span>
+                    ) : null}
+                    <button
+                      type="button"
+                      className={clsx(
+                        styles.editItemButton,
+                        shouldOfferWeaponHandSwap && styles.weaponHandSwapButton
+                      )}
+                      onClick={shouldOfferWeaponHandSwap ? swapWeaponToHand : toggleWeaponOnHand}
+                    >
+                      <Hand size={15} aria-hidden="true" />
+                      {isSelectedWeaponOnHand
+                        ? "Remove from Hand"
+                        : shouldOfferWeaponHandSwap
+                          ? "Swap to Hand"
+                          : "Put on Hand"}
+                    </button>
+                  </>
                 ) : null}
                 {selectedLoadoutEntry.customEquipmentId ? (
                   <>

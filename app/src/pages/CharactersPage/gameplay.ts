@@ -12,19 +12,21 @@ import {
   type WeaponEntry
 } from "../../codex/entries";
 import type { AbilityKey, AbilityScores, Character, SkillName } from "../../types";
+import { PROF_LEVEL } from "../../types";
 import { formatWeaponDamage, formatWeaponDamageFormula } from "../../utils/codex";
 import {
   createHeldWeaponDescriptor,
+  getHeldWeaponSlotCount,
   getCharacterEquipmentNames,
   hasVersatileHandBonus,
   type HeldWeaponDescriptor
 } from "./inventory";
 import {
   getEquipmentByName,
-  getClassProficiencyProfile,
-  getGrantedSkillProficienciesForCharacter,
-  normalizeManualSkillSelections,
-  normalizeSkillExpertiseSelectionsForCharacter,
+  getSkillLevelFromEntries,
+  getSkillProficiencyForName,
+  getWeaponLevelFromEntries,
+  getWeaponProficiencyForTraining,
   type ArmorType
 } from "./proficiency";
 import {
@@ -413,26 +415,16 @@ export function getSpeedForCharacter(character: Character): number {
 
 function getSkillModifierForCharacter(character: Character, skill: SkillName): number {
   const proficiencyBonus = getProficiencyBonus(character.level);
-  const grantedSkills = getGrantedSkillProficienciesForCharacter(
-    character.className,
-    character.species,
-    character.background
-  ).map((entry) => entry.skill);
-  const normalizedManualSkills = normalizeManualSkillSelections(character.skills);
-  const normalizedExpertSkills = normalizeSkillExpertiseSelectionsForCharacter(
-    character.className,
-    character.species,
-    character.background,
-    normalizedManualSkills,
-    character.skillExpertise ?? []
-  );
-  const proficientSkillSet = new Set<SkillName>([...grantedSkills, ...normalizedManualSkills]);
-  const expertSkillSet = new Set<SkillName>(normalizedExpertSkills);
-  const proficiencyMultiplier = expertSkillSet.has(skill)
-    ? 2
-    : proficientSkillSet.has(skill)
-      ? 1
-      : 0;
+  const skillProficiency = getSkillProficiencyForName(skill);
+  const skillLevel = skillProficiency
+    ? getSkillLevelFromEntries(character.skillProficiencies, skillProficiency)
+    : PROF_LEVEL.NONE;
+  const proficiencyMultiplier =
+    skillLevel === PROF_LEVEL.EXPERT
+      ? 2
+      : skillLevel === PROF_LEVEL.PROFICIENT
+        ? 1
+        : 0;
 
   // Perception currently maps to Wisdom.
   const abilityModifier = getAbilityModifier(character.abilities.WIS);
@@ -444,8 +436,30 @@ export function getPassivePerceptionForCharacter(character: Character): number {
   return 10 + getSkillModifierForCharacter(character, "Perception");
 }
 
+function createUnarmedStrikeAction(
+  character: Pick<Character, "abilities">
+): WeaponAction {
+  const ability: AbilityKey = "STR";
+  const abilityModifier = getAbilityModifier(character.abilities.STR);
+  const damageFormula = "1";
+
+  return {
+    key: "unarmed-strike",
+    name: "Unarmed Strike",
+    damageLabel: "1 Bludgeoning",
+    damageFormula,
+    rollDisplay: createRollDisplay(damageFormula, abilityModifier),
+    ability,
+    abilityModifier,
+    proficiencyLabel: "Unarmed strike",
+    proficiencyBonus: 0,
+    totalModifier: abilityModifier,
+    rollFormula: createRollFormula(damageFormula, abilityModifier),
+    hasVersatileBonus: false
+  };
+}
+
 export function getWeaponActionsForCharacter(character: Character): WeaponAction[] {
-  const proficiencyProfile = getClassProficiencyProfile(character.className);
   const proficiencyBonus = getProficiencyBonus(character.level);
   const heldCustomWeapons = getResolvedCustomLoadoutEntries(character.customEquipment).filter(
     (entry): entry is ResolvedCustomWeaponEntry =>
@@ -471,6 +485,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
     ...heldCodexWeaponDescriptors,
     ...heldCustomWeaponDescriptors
   ];
+  const hasFreeHand = getHeldWeaponSlotCount(heldWeaponDescriptors) < 2;
 
   const codexWeaponActions = heldCodexWeapons.reduce<WeaponAction[]>((actions, equipmentItem) => {
     const equipmentDefinition = getEquipmentByName(equipmentItem.name);
@@ -500,8 +515,10 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
 
     const ability = resolveWeaponAbility(weaponReference.abilityRule, character.abilities);
     const abilityModifier = getAbilityModifier(character.abilities[ability]);
+    const weaponProficiency = getWeaponProficiencyForTraining(equipmentDefinition.training);
     const appliedProficiencyBonus =
-      proficiencyProfile?.weaponProficiencies.includes(equipmentDefinition.training)
+      getWeaponLevelFromEntries(character.weaponProficiencies, weaponProficiency) !==
+      PROF_LEVEL.NONE
         ? proficiencyBonus
         : 0;
     const totalModifier = abilityModifier + appliedProficiencyBonus;
@@ -544,8 +561,10 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
 
     const ability = resolveWeaponAbility(weaponReference.abilityRule, character.abilities);
     const abilityModifier = getAbilityModifier(character.abilities[ability]);
+    const weaponProficiency = getWeaponProficiencyForTraining(weaponEntry.type.training);
     const appliedProficiencyBonus =
-      proficiencyProfile?.weaponProficiencies.includes(weaponEntry.type.training)
+      getWeaponLevelFromEntries(character.weaponProficiencies, weaponProficiency) !==
+      PROF_LEVEL.NONE
         ? proficiencyBonus
         : 0;
     const totalModifier = abilityModifier + appliedProficiencyBonus;
@@ -571,5 +590,9 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
     ];
   }, []);
 
-  return [...codexWeaponActions, ...customWeaponActions];
+  return [
+    ...(hasFreeHand ? [createUnarmedStrikeAction(character)] : []),
+    ...codexWeaponActions,
+    ...customWeaponActions
+  ];
 }

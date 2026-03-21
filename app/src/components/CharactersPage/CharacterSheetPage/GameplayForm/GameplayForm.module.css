@@ -247,6 +247,87 @@
   font-weight: 400;
 }
 
+.utilityStack {
+  display: grid;
+  gap: 0.58rem;
+}
+
+.roundTrackerPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+  align-self: flex-start;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.08);
+  padding: 0.2rem;
+}
+
+.roundTrackerPillButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  min-height: 34px;
+  min-width: 34px;
+  padding: 0;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.roundTrackerPillButton:hover {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--color-accent);
+}
+
+.roundTrackerPillButton:focus-visible {
+  outline: 2px solid rgba(179, 92, 28, 0.34);
+  outline-offset: 2px;
+}
+
+.roundTrackerCircle {
+  block-size: 18px;
+  inline-size: 18px;
+  border: 2px solid #2e8f54;
+  border-radius: 999px;
+  background: transparent;
+  transition: background-color 160ms ease, opacity 160ms ease;
+}
+
+.roundTrackerCircleFilled {
+  background: #40b464;
+}
+
+.roundTrackerTriangle {
+  inline-size: 0;
+  block-size: 0;
+  border-left: 10px solid transparent;
+  border-right: 10px solid transparent;
+  border-bottom: 17px solid rgba(217, 168, 34, 0.28);
+  position: relative;
+  transition: opacity 160ms ease;
+}
+
+.roundTrackerTriangle::after {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 3px;
+  border-left: 8px solid transparent;
+  border-right: 8px solid transparent;
+  border-bottom: 13px solid rgba(255, 255, 255, 0.96);
+}
+
+.roundTrackerTriangleFilled {
+  border-bottom-color: #d8a522;
+}
+
+.roundTrackerTriangleFilled::after {
+  display: none;
+}
+
 .conditionList {
   display: flex;
   flex-wrap: wrap;
@@ -274,28 +355,23 @@
 .conditionButton strong {
   color: var(--color-accent);
   font-size: 0.75rem;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
 }
 
-.advanceRoundButton {
+.conditionDuration {
   display: inline-flex;
   align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 999px;
-  background: rgba(75, 47, 29, 0.13);
-  color: var(--color-ink);
-  cursor: pointer;
-  min-height: 32px;
-  min-width: 32px;
-  padding: 0;
+  gap: 0.12rem;
 }
 
 .utilityButtonRow {
   display: flex;
   flex-wrap: wrap;
   gap: 0.52rem;
+}
+
+.roundTrackerDrawerActions {
+  display: grid;
+  gap: 0.56rem;
 }
 
 .campTriggerButton {
@@ -478,5 +554,10 @@
   .deathSummaryRow {
     min-width: 0;
     width: 100%;
+  }
+
+  .roundTrackerPill {
+    width: 100%;
+    justify-content: space-between;
   }
 }

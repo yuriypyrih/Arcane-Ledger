@@ -1,0 +1,117 @@
+export enum PROFICIENCY_SOURCE {
+  MANUAL = "MANUAL",
+  CLASS = "CLASS",
+  SPECIES = "SPECIES",
+  BACKGROUND = "BACKGROUND",
+  FEAT = "FEAT",
+  ITEM = "ITEM",
+  SPELL = "SPELL",
+  OTHER = "OTHER"
+}
+
+export enum PROF_LEVEL {
+  NONE = "NONE",
+  PROFICIENT = "PROFICIENT",
+  EXPERT = "EXPERT"
+}
+
+export enum SKILL_PROFICIENCY {
+  ACROBATICS = "ACROBATICS",
+  ANIMAL_HANDLING = "ANIMAL_HANDLING",
+  ARCANA = "ARCANA",
+  ATHLETICS = "ATHLETICS",
+  DECEPTION = "DECEPTION",
+  HISTORY = "HISTORY",
+  INSIGHT = "INSIGHT",
+  INTIMIDATION = "INTIMIDATION",
+  INVESTIGATION = "INVESTIGATION",
+  MEDICINE = "MEDICINE",
+  NATURE = "NATURE",
+  PERCEPTION = "PERCEPTION",
+  PERFORMANCE = "PERFORMANCE",
+  PERSUASION = "PERSUASION",
+  RELIGION = "RELIGION",
+  SLEIGHT_OF_HAND = "SLEIGHT_OF_HAND",
+  STEALTH = "STEALTH",
+  SURVIVAL = "SURVIVAL"
+}
+
+export enum SAVING_THROW_PROFICIENCY {
+  STR = "STR",
+  DEX = "DEX",
+  CON = "CON",
+  INT = "INT",
+  WIS = "WIS",
+  CHA = "CHA"
+}
+
+export enum WEAPON_PROFICIENCY {
+  SIMPLE = "SIMPLE",
+  MARTIAL = "MARTIAL"
+}
+
+export enum ARMOR_PROFICIENCY {
+  LIGHT = "LIGHT",
+  MEDIUM = "MEDIUM",
+  HEAVY = "HEAVY",
+  SHIELD = "SHIELD"
+}
+
+export enum TOOL_PROFICIENCY {
+  THIEVES_TOOLKIT = "THIEVES_TOOLKIT",
+  SMITHS_TOOLKIT = "SMITHS_TOOLKIT",
+  DISGUISE_KIT = "DISGUISE_KIT",
+  DISARM_KIT = "DISARM_KIT"
+}
+
+export enum LANGUAGE_PROFICIENCY {
+  COMMON = "COMMON",
+  CELESTIAL = "CELESTIAL",
+  DEEP_SPEECH = "DEEP_SPEECH",
+  DRACONIC = "DRACONIC",
+  DRUIDIC = "DRUIDIC",
+  DWARVISH = "DWARVISH",
+  ELVISH = "ELVISH",
+  GIANT = "GIANT",
+  GNOMISH = "GNOMISH",
+  GOBLIN = "GOBLIN",
+  HALFLING = "HALFLING",
+  INFERNAL = "INFERNAL",
+  ORC = "ORC",
+  PRIMORDIAL = "PRIMORDIAL",
+  SYLVAN = "SYLVAN",
+  THIEVES_CANT = "THIEVES_CANT",
+  UNDERCOMMON = "UNDERCOMMON"
+}
+
+export type CHARACTER_PROFICIENCY =
+  | SKILL_PROFICIENCY
+  | SAVING_THROW_PROFICIENCY
+  | WEAPON_PROFICIENCY
+  | ARMOR_PROFICIENCY
+  | TOOL_PROFICIENCY
+  | LANGUAGE_PROFICIENCY;
+
+type BASE_PROFICIENCY_ENTRY<TProficiency extends CHARACTER_PROFICIENCY> = {
+  source: PROFICIENCY_SOURCE;
+  sourceStr?: string;
+  proficiency: TProficiency;
+  proficiencyLevel: PROF_LEVEL;
+};
+
+export type SkillProficiencyEntry = BASE_PROFICIENCY_ENTRY<SKILL_PROFICIENCY>;
+export type SavingThrowProficiencyEntry =
+  BASE_PROFICIENCY_ENTRY<SAVING_THROW_PROFICIENCY>;
+export type WeaponProficiencyEntry = BASE_PROFICIENCY_ENTRY<WEAPON_PROFICIENCY>;
+export type ArmorProficiencyEntry = BASE_PROFICIENCY_ENTRY<ARMOR_PROFICIENCY>;
+export type ToolProficiencyEntry = BASE_PROFICIENCY_ENTRY<TOOL_PROFICIENCY>;
+export type LanguageProficiencyEntry = BASE_PROFICIENCY_ENTRY<LANGUAGE_PROFICIENCY>;
+
+export type CharacterProficiencyCollections = {
+  skillProficiencies: SkillProficiencyEntry[];
+  savingThrowProficiencies: SavingThrowProficiencyEntry[];
+  weaponProficiencies: WeaponProficiencyEntry[];
+  armorProficiencies: ArmorProficiencyEntry[];
+  toolProficiencies: ToolProficiencyEntry[];
+  languageProficiencies: LanguageProficiencyEntry[];
+};

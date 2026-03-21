@@ -5,6 +5,8 @@ export {
   formatEquipmentWeight,
   formatCodexLabel,
   formatCodexList,
+  formatSpellCastingTime,
+  formatSpellCastingTimeSummary,
   formatSpellComponents,
   formatSpellLevelLabel,
   formatSpellSubtitle,

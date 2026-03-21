@@ -1,31 +1,51 @@
 import clsx from "clsx";
 import { Pencil, Save, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import SelectInput from "../../FormInputs/SelectInput";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
-import { loadPreferences, updatePreferences } from "../../../../storage/preferences";
-import type { Character, SkillName } from "../../../../types";
+import type {
+  ArmorProficiencyEntry,
+  Character,
+  SkillProficiencyEntry,
+  ToolProficiencyEntry,
+  WeaponProficiencyEntry
+} from "../../../../types";
+import {
+  ARMOR_PROFICIENCY,
+  PROF_LEVEL,
+  WEAPON_PROFICIENCY
+} from "../../../../types";
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
 import {
-  getGrantedProficienciesForCharacter,
-  getGrantedSkillProficienciesForCharacter,
-  getToolProficiencyLabel,
-  normalizeManualSkillSelections,
-  normalizeSkillExpertiseSelectionsForCharacter,
-  normalizeToolProficiencySelections,
+  armorProficiencyOptions,
+  getArmorLevelFromEntries,
+  getDisplayArmorProficiencyEntries,
+  getDisplaySkillLevels,
+  getDisplaySkillProficiencyEntries,
+  getDisplayToolProficiencyEntries,
+  getDisplayWeaponProficiencyEntries,
+  getProficiencyKeyword,
+  getProficiencyLabel,
+  getSkillLevelFromEntries,
+  getSkillProficiencyForName,
+  getToolLevelFromEntries,
+  getWeaponLevelFromEntries,
+  setManualArmorEntry,
+  setManualToolEntry,
+  setManualWeaponEntry,
+  skillsOptions,
   toolProficiencyOptions,
+  upsertManualSkillEntry,
+  weaponProficiencyOptions,
+  type ProficiencyDisplayEntry,
   type ToolProficiency
 } from "../../../../pages/CharactersPage/proficiency";
 import { getSkillRowsByAbility } from "../../../../pages/CharactersPage/skills";
-import type {
-  PersistCharacterUpdater,
-  SkillLevel
-} from "../../../../pages/CharactersPage/CharacterSheetPage/types";
+import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { skillColumnLayout } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
-import InlineToggleButton from "../InlineToggleButton";
 import styles from "./SkillsAndProficienciesForm.module.css";
 
 type SkillsAndProficienciesFormProps = {
@@ -38,22 +58,20 @@ type SelectedKeyword = {
   description: string;
 };
 
-function getSkillLevelForSkill(
-  skill: SkillName,
-  isGrantedProficient: boolean,
-  manualSkillSet: Set<SkillName>,
-  expertiseSkillSet: Set<SkillName>
-): SkillLevel {
-  if (expertiseSkillSet.has(skill)) {
-    return "expert";
-  }
+type ProficiencyEditorTab = "skills" | "weapons" | "armor" | "tools" | "languages";
 
-  if (isGrantedProficient || manualSkillSet.has(skill)) {
-    return "proficient";
-  }
+type ProficiencyCategorySection = {
+  title: string;
+  entries: ProficiencyDisplayEntry[];
+};
 
-  return "none";
-}
+const proficiencyEditorTabs: Array<{ id: ProficiencyEditorTab; label: string }> = [
+  { id: "skills", label: "Skills" },
+  { id: "weapons", label: "Weapons" },
+  { id: "armor", label: "Armor" },
+  { id: "tools", label: "Tools" },
+  { id: "languages", label: "Languages" }
+];
 
 function SkillsAndProficienciesForm({
   className,
@@ -61,29 +79,47 @@ function SkillsAndProficienciesForm({
 }: SkillsAndProficienciesFormProps) {
   const { watch } = useFormContext<Character>();
   const character = watch() as Character;
-  const [isEditing, setIsEditing] = useState(false);
-  const [skillsDraft, setSkillsDraft] = useState<SkillName[]>(() => character.skills ?? []);
-  const [skillExpertiseDraft, setSkillExpertiseDraft] = useState<SkillName[]>(
-    () => character.skillExpertise ?? []
+  const [isSkillTableEditing, setIsSkillTableEditing] = useState(false);
+  const [isProficiencyModalOpen, setIsProficiencyModalOpen] = useState(false);
+  const [activeProficiencyTab, setActiveProficiencyTab] =
+    useState<ProficiencyEditorTab>("weapons");
+  const [skillProficienciesDraft, setSkillProficienciesDraft] = useState<SkillProficiencyEntry[]>(
+    () => character.skillProficiencies
   );
-  const [toolProficienciesDraft, setToolProficienciesDraft] = useState<ToolProficiency[]>(() =>
-    normalizeToolProficiencySelections(character.toolProficiencies ?? [])
+  const [weaponProficienciesDraft, setWeaponProficienciesDraft] = useState<
+    WeaponProficiencyEntry[]
+  >(() => character.weaponProficiencies);
+  const [armorProficienciesDraft, setArmorProficienciesDraft] = useState<ArmorProficiencyEntry[]>(
+    () => character.armorProficiencies
   );
-  const [isProficienciesVisible, setIsProficienciesVisible] = useState(
-    () => loadPreferences().skillsProficienciesVisible
+  const [toolProficienciesDraft, setToolProficienciesDraft] = useState<ToolProficiencyEntry[]>(
+    () => character.toolProficiencies
   );
   const [selectedKeyword, setSelectedKeyword] = useState<SelectedKeyword | null>(null);
 
-  useBodyScrollLock(Boolean(selectedKeyword));
+  useBodyScrollLock(Boolean(selectedKeyword) || isProficiencyModalOpen);
 
   useEffect(() => {
-    if (!selectedKeyword) {
+    if (!selectedKeyword && !isProficiencyModalOpen) {
       return;
     }
 
     function handleKeyDown(event: globalThis.KeyboardEvent) {
-      if (event.key === "Escape") {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      if (selectedKeyword) {
         setSelectedKeyword(null);
+        return;
+      }
+
+      if (isProficiencyModalOpen) {
+        setSkillProficienciesDraft(character.skillProficiencies);
+        setWeaponProficienciesDraft(character.weaponProficiencies);
+        setArmorProficienciesDraft(character.armorProficiencies);
+        setToolProficienciesDraft(character.toolProficiencies);
+        setIsProficiencyModalOpen(false);
       }
     }
 
@@ -92,175 +128,149 @@ function SkillsAndProficienciesForm({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [selectedKeyword]);
+  }, [character, isProficiencyModalOpen, selectedKeyword]);
 
-  const grantedProficiencies = getGrantedProficienciesForCharacter(
-    character.className,
-    character.species,
-    character.background
-  );
-  const grantedSkillProficiencies = getGrantedSkillProficienciesForCharacter(
-    character.className,
-    character.species,
-    character.background
-  );
-  const grantedSkillSet = new Set(grantedSkillProficiencies.map((entry) => entry.skill));
-  const normalizedManualSkills = normalizeManualSkillSelections(character.skills);
-  const normalizedManualSkillsDraft = normalizeManualSkillSelections(skillsDraft);
-  const normalizedSkillExpertise = normalizeSkillExpertiseSelectionsForCharacter(
-    character.className,
-    character.species,
-    character.background,
-    normalizedManualSkills,
-    character.skillExpertise ?? []
-  );
-  const normalizedSkillExpertiseDraft = normalizeSkillExpertiseSelectionsForCharacter(
-    character.className,
-    character.species,
-    character.background,
-    normalizedManualSkillsDraft,
-    skillExpertiseDraft
-  );
-  const normalizedManualToolProficiencies = normalizeToolProficiencySelections(
-    character.toolProficiencies ?? []
-  );
-  const normalizedManualToolProficienciesDraft =
-    normalizeToolProficiencySelections(toolProficienciesDraft);
+  const displayedSkillProficiencies =
+    isSkillTableEditing || isProficiencyModalOpen
+      ? skillProficienciesDraft
+      : character.skillProficiencies;
+  const displayedWeaponProficiencies = isProficiencyModalOpen
+    ? weaponProficienciesDraft
+    : character.weaponProficiencies;
+  const displayedArmorProficiencies = isProficiencyModalOpen
+    ? armorProficienciesDraft
+    : character.armorProficiencies;
+  const displayedToolProficiencies = isProficiencyModalOpen
+    ? toolProficienciesDraft
+    : character.toolProficiencies;
 
-  const displayedManualSkills = isEditing ? normalizedManualSkillsDraft : normalizedManualSkills;
-  const displayedSkillExpertise = isEditing
-    ? normalizedSkillExpertiseDraft
-    : normalizedSkillExpertise;
-  const displayedManualToolProficiencies = isEditing
-    ? normalizedManualToolProficienciesDraft
-    : normalizedManualToolProficiencies;
-  const displayedProficientSkills = [...new Set([...grantedSkillSet, ...displayedManualSkills])];
+  const displayedSkillLevels = getDisplaySkillLevels(displayedSkillProficiencies);
   const skillRowsByAbility = getSkillRowsByAbility(
     character,
-    displayedProficientSkills,
-    displayedSkillExpertise
+    displayedSkillLevels.proficient,
+    displayedSkillLevels.expert
   );
   const skillRowsByAbilityMap = new Map(skillRowsByAbility.map((group) => [group.ability, group]));
 
-  const displayedManualSkillSet = useMemo(
-    () => new Set<SkillName>(displayedManualSkills),
-    [displayedManualSkills]
-  );
-  const displayedSkillExpertiseSet = useMemo(
-    () => new Set<SkillName>(displayedSkillExpertise),
-    [displayedSkillExpertise]
-  );
-  const displayedManualToolSet = useMemo(
-    () => new Set<ToolProficiency>(displayedManualToolProficiencies),
-    [displayedManualToolProficiencies]
-  );
-  const displayedManualProficiencyLabels = [
-    ...displayedManualSkills,
-    ...displayedManualToolProficiencies.map((toolProficiency) =>
-      getToolProficiencyLabel(toolProficiency)
-    )
+  const proficiencyCategorySections: ProficiencyCategorySection[] = [
+    {
+      title: "Skill Proficiencies",
+      entries: getDisplaySkillProficiencyEntries(displayedSkillProficiencies)
+    },
+    {
+      title: "Weapon Proficiencies",
+      entries: getDisplayWeaponProficiencyEntries(displayedWeaponProficiencies)
+    },
+    {
+      title: "Armor Proficiencies",
+      entries: getDisplayArmorProficiencyEntries(displayedArmorProficiencies)
+    },
+    {
+      title: "Tool Proficiencies",
+      entries: getDisplayToolProficiencyEntries(displayedToolProficiencies)
+    }
   ];
-  const areProficienciesVisible = isEditing || isProficienciesVisible;
 
-  function beginEditing() {
-    setSkillsDraft(character.skills ?? []);
-    setSkillExpertiseDraft(character.skillExpertise ?? []);
-    setToolProficienciesDraft(
-      normalizeToolProficiencySelections(character.toolProficiencies ?? [])
-    );
-    setIsEditing(true);
+  const visibleProficiencySections = proficiencyCategorySections.filter(
+    (section) => section.entries.length > 0
+  );
+
+  function syncProficiencyDraftsFromCharacter() {
+    setSkillProficienciesDraft(character.skillProficiencies);
+    setWeaponProficienciesDraft(character.weaponProficiencies);
+    setArmorProficienciesDraft(character.armorProficiencies);
+    setToolProficienciesDraft(character.toolProficiencies);
   }
 
-  function cancelEditing() {
-    setSkillsDraft(character.skills ?? []);
-    setSkillExpertiseDraft(character.skillExpertise ?? []);
-    setToolProficienciesDraft(
-      normalizeToolProficiencySelections(character.toolProficiencies ?? [])
-    );
-    setIsEditing(false);
+  function beginSkillTableEditing() {
+    setSkillProficienciesDraft(character.skillProficiencies);
+    setIsSkillTableEditing(true);
   }
 
-  function saveSkillsAndProficiencies() {
-    const normalizedManualSkillsToSave = normalizeManualSkillSelections(skillsDraft);
-    const normalizedToolProficienciesToSave =
-      normalizeToolProficiencySelections(toolProficienciesDraft);
-    const normalizedSkillExpertiseToSave = normalizeSkillExpertiseSelectionsForCharacter(
-      character.className,
-      character.species,
-      character.background,
-      normalizedManualSkillsToSave,
-      skillExpertiseDraft
-    );
+  function cancelSkillTableEditing() {
+    setSkillProficienciesDraft(character.skillProficiencies);
+    setIsSkillTableEditing(false);
+  }
 
+  function saveSkillTableEdits() {
     onPersistCharacter((currentCharacter) => ({
       ...currentCharacter,
-      skills: normalizedManualSkillsToSave,
-      skillExpertise: normalizeSkillExpertiseSelectionsForCharacter(
-        currentCharacter.className,
-        currentCharacter.species,
-        currentCharacter.background,
-        normalizedManualSkillsToSave,
-        normalizedSkillExpertiseToSave
-      ),
-      toolProficiencies: normalizedToolProficienciesToSave
+      skillProficiencies: skillProficienciesDraft
     }));
 
-    setIsEditing(false);
+    setIsSkillTableEditing(false);
   }
 
-  function updateSkillLevel(skill: SkillName, nextLevel: SkillLevel, isGrantedProficient: boolean) {
-    setSkillsDraft((currentSkills) => {
-      const nextManualSkillSet = new Set<SkillName>(normalizeManualSkillSelections(currentSkills));
-
-      if (nextLevel === "none" || isGrantedProficient) {
-        nextManualSkillSet.delete(skill);
-      } else {
-        nextManualSkillSet.add(skill);
-      }
-
-      const nextManualSkills = normalizeManualSkillSelections([...nextManualSkillSet]);
-
-      setSkillExpertiseDraft((currentExpertise) => {
-        const normalizedCurrentExpertise = normalizeSkillExpertiseSelectionsForCharacter(
-          character.className,
-          character.species,
-          character.background,
-          nextManualSkills,
-          currentExpertise
-        );
-        const nextExpertiseSet = new Set<SkillName>(normalizedCurrentExpertise);
-
-        if (nextLevel === "expert") {
-          nextExpertiseSet.add(skill);
-        } else {
-          nextExpertiseSet.delete(skill);
-        }
-
-        return normalizeSkillExpertiseSelectionsForCharacter(
-          character.className,
-          character.species,
-          character.background,
-          nextManualSkills,
-          [...nextExpertiseSet]
-        );
-      });
-
-      return nextManualSkills;
-    });
+  function openProficiencyEditor(tab: ProficiencyEditorTab = "weapons") {
+    syncProficiencyDraftsFromCharacter();
+    setActiveProficiencyTab(tab);
+    setIsProficiencyModalOpen(true);
   }
 
-  function toggleToolProficiency(toolProficiency: ToolProficiency) {
-    setToolProficienciesDraft((currentToolProficiencies) => {
-      const nextToolSet = new Set(normalizeToolProficiencySelections(currentToolProficiencies));
+  function cancelProficiencyEditing() {
+    syncProficiencyDraftsFromCharacter();
+    setIsProficiencyModalOpen(false);
+  }
 
-      if (nextToolSet.has(toolProficiency)) {
-        nextToolSet.delete(toolProficiency);
-      } else {
-        nextToolSet.add(toolProficiency);
-      }
+  function saveProficiencyEditing() {
+    onPersistCharacter((currentCharacter) => ({
+      ...currentCharacter,
+      skillProficiencies: skillProficienciesDraft,
+      weaponProficiencies: weaponProficienciesDraft,
+      armorProficiencies: armorProficienciesDraft,
+      toolProficiencies: toolProficienciesDraft,
+      languageProficiencies: []
+    }));
 
-      return normalizeToolProficiencySelections([...nextToolSet]);
-    });
+    setIsProficiencyModalOpen(false);
+  }
+
+  function updateSkillLevel(skillName: string, nextLevel: PROF_LEVEL) {
+    const skillProficiency = getSkillProficiencyForName(skillName);
+
+    if (!skillProficiency) {
+      return;
+    }
+
+    setSkillProficienciesDraft((currentProficiencies) =>
+      upsertManualSkillEntry(currentProficiencies, skillProficiency, nextLevel)
+    );
+  }
+
+  function updateWeaponProficiency(
+    proficiency: WEAPON_PROFICIENCY,
+    isSelected: boolean
+  ) {
+    setWeaponProficienciesDraft((currentProficiencies) =>
+      setManualWeaponEntry(
+        currentProficiencies,
+        proficiency,
+        isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
+      )
+    );
+  }
+
+  function updateArmorProficiency(
+    proficiency: ARMOR_PROFICIENCY,
+    isSelected: boolean
+  ) {
+    setArmorProficienciesDraft((currentProficiencies) =>
+      setManualArmorEntry(
+        currentProficiencies,
+        proficiency,
+        isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
+      )
+    );
+  }
+
+  function updateToolProficiency(proficiency: ToolProficiency, isSelected: boolean) {
+    setToolProficienciesDraft((currentProficiencies) =>
+      setManualToolEntry(
+        currentProficiencies,
+        proficiency,
+        isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
+      )
+    );
   }
 
   function openKeywordReference(keyword: string) {
@@ -276,14 +286,146 @@ function SkillsAndProficienciesForm({
     });
   }
 
-  function toggleProficienciesVisibility() {
-    if (isEditing) {
-      return;
-    }
+  function renderProficiencyPills(
+    section: ProficiencyCategorySection
+  ) {
+    return (
+      <div key={section.title} className={styles.skillGroup}>
+        <p className={styles.skillGroupSubtitle}>{section.title}</p>
+        <ul className={styles.proficiencyPillGrid}>
+          {section.entries.map((entry) => {
+            const label = getProficiencyLabel(entry.proficiency);
+            const keyword = getProficiencyKeyword(entry.proficiency);
 
-    const nextVisibility = !isProficienciesVisible;
-    setIsProficienciesVisible(nextVisibility);
-    updatePreferences({ skillsProficienciesVisible: nextVisibility });
+            return (
+              <li
+                key={`${section.title}:${entry.proficiency}:${entry.sourceLabels.join("|")}:${entry.proficiencyLevel}`}
+                className={styles.proficiencyPill}
+              >
+                <button
+                  type="button"
+                  className={styles.proficiencyPillButton}
+                  onClick={() => openKeywordReference(keyword)}
+                >
+                  <span>{label}</span>
+                  <small>{entry.sourceLabels.join(", ")}</small>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    );
+  }
+
+  function renderToggleEditor<TProficiency extends Parameters<typeof getProficiencyLabel>[0]>(
+    options: readonly TProficiency[],
+    isSelected: (proficiency: TProficiency) => boolean,
+    onToggle: (proficiency: TProficiency, isSelected: boolean) => void
+  ) {
+    return (
+      <div className={styles.editorGrid}>
+        {options.map((proficiency) => {
+          const label = getProficiencyLabel(proficiency);
+          const selected = isSelected(proficiency);
+
+          return (
+            <label
+              key={proficiency}
+              className={clsx(
+                styles.editorCard,
+                styles.editorToggleCard,
+                selected && styles.editorCardActive
+              )}
+              onClick={(event) => {
+                event.preventDefault();
+                onToggle(proficiency, !selected);
+              }}
+            >
+              <span className={styles.editorLabel}>{label}</span>
+              <span className={styles.editorCheckboxRow}>
+                <input
+                  type="checkbox"
+                  checked={selected}
+                  readOnly
+                  tabIndex={-1}
+                  className={styles.editorCheckbox}
+                  aria-hidden="true"
+                />
+                <span className={styles.editorState}>
+                  {selected ? "Included" : "Not included"}
+                </span>
+              </span>
+            </label>
+          );
+        })}
+      </div>
+    );
+  }
+
+  function renderSkillEditor() {
+    return (
+      <div className={styles.editorGrid}>
+        {skillsOptions.map((skillName) => {
+          const proficiency = getSkillProficiencyForName(skillName);
+
+          if (!proficiency) {
+            return null;
+          }
+
+          const currentSkillLevel = getSkillLevelFromEntries(skillProficienciesDraft, proficiency);
+
+          return (
+            <div key={skillName} className={styles.editorCard}>
+              <span className={styles.editorLabel}>{skillName}</span>
+              <SelectInput
+                className={styles.editorSelect}
+                value={currentSkillLevel}
+                onChange={(event) =>
+                  updateSkillLevel(skillName, event.target.value as PROF_LEVEL)
+                }
+              >
+                <option value={PROF_LEVEL.NONE}>None</option>
+                <option value={PROF_LEVEL.PROFICIENT}>Proficient</option>
+                <option value={PROF_LEVEL.EXPERT}>Expert</option>
+              </SelectInput>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
+  function renderProficiencyEditorContent() {
+    switch (activeProficiencyTab) {
+      case "skills":
+        return renderSkillEditor();
+      case "weapons":
+        return renderToggleEditor(
+          weaponProficiencyOptions,
+          (proficiency) =>
+            getWeaponLevelFromEntries(weaponProficienciesDraft, proficiency) !== PROF_LEVEL.NONE,
+          updateWeaponProficiency
+        );
+      case "armor":
+        return renderToggleEditor(
+          armorProficiencyOptions,
+          (proficiency) =>
+            getArmorLevelFromEntries(armorProficienciesDraft, proficiency) !== PROF_LEVEL.NONE,
+          updateArmorProficiency
+        );
+      case "tools":
+        return renderToggleEditor(
+          toolProficiencyOptions,
+          (proficiency) =>
+            getToolLevelFromEntries(toolProficienciesDraft, proficiency) !== PROF_LEVEL.NONE,
+          updateToolProficiency
+        );
+      case "languages":
+        return <p className={shared.emptyText}>Empty</p>;
+      default:
+        return null;
+    }
   }
 
   return (
@@ -299,12 +441,18 @@ function SkillsAndProficienciesForm({
         <div className={styles.skillGroup}>
           <div className={styles.skillGroupHeader}>
             <p className={styles.skillGroupTitle}>Skills</p>
-            {isEditing ? null : (
-              <button type="button" className={shared.editButton} onClick={beginEditing}>
+            {!isSkillTableEditing ? (
+              <button
+                type="button"
+                className={shared.editButton}
+                disabled={isProficiencyModalOpen}
+                onClick={beginSkillTableEditing}
+                aria-label="Edit skills"
+              >
                 <Pencil size={16} />
                 Edit
               </button>
-            )}
+            ) : null}
           </div>
           <div className={styles.skillColumns}>
             {skillColumnLayout.map((columnAbilities, columnIndex) => (
@@ -321,28 +469,23 @@ function SkillsAndProficienciesForm({
                       <p className={styles.skillAbilityTitle}>{group.abilityLabel}</p>
                       <ul className={styles.skillAbilityList}>
                         {group.rows.map((row) => {
-                          const isGrantedProficient = grantedSkillSet.has(row.name);
-                          const currentSkillLevel = getSkillLevelForSkill(
-                            row.name,
-                            isGrantedProficient,
-                            displayedManualSkillSet,
-                            displayedSkillExpertiseSet
-                          );
+                          const skillProficiency = getSkillProficiencyForName(row.name);
+                          const currentSkillLevel = skillProficiency
+                            ? getSkillLevelFromEntries(displayedSkillProficiencies, skillProficiency)
+                            : PROF_LEVEL.NONE;
 
                           return (
                             <li
                               key={row.name}
                               className={clsx(
                                 styles.skillRow,
-                                isEditing && styles.skillRowEditing,
+                                isSkillTableEditing && styles.skillRowEditing,
                                 row.proficiencyMultiplier === 1 && styles.skillRowProficient,
                                 row.proficiencyMultiplier === 2 && styles.skillRowExpert
                               )}
                             >
                               <strong className={styles.skillRowModifier}>
-                                {row.totalModifier >= 0
-                                  ? `+${row.totalModifier}`
-                                  : row.totalModifier}
+                                {row.totalModifier >= 0 ? `+${row.totalModifier}` : row.totalModifier}
                               </strong>
                               <button
                                 type="button"
@@ -351,21 +494,17 @@ function SkillsAndProficienciesForm({
                               >
                                 {row.name}
                               </button>
-                              {isEditing ? (
+                              {isSkillTableEditing ? (
                                 <SelectInput
                                   className={styles.skillLevelSelect}
                                   value={currentSkillLevel}
                                   onChange={(event) =>
-                                    updateSkillLevel(
-                                      row.name,
-                                      event.target.value as SkillLevel,
-                                      isGrantedProficient
-                                    )
+                                    updateSkillLevel(row.name, event.target.value as PROF_LEVEL)
                                   }
                                 >
-                                  {isGrantedProficient ? null : <option value="none">None</option>}
-                                  <option value="proficient">Proficient</option>
-                                  <option value="expert">Expert</option>
+                                  <option value={PROF_LEVEL.NONE}>None</option>
+                                  <option value={PROF_LEVEL.PROFICIENT}>Proficient</option>
+                                  <option value={PROF_LEVEL.EXPERT}>Expert</option>
                                 </SelectInput>
                               ) : null}
                             </li>
@@ -378,99 +517,131 @@ function SkillsAndProficienciesForm({
               </div>
             ))}
           </div>
-        </div>
-
-        <div className={styles.skillGroup}>
-          <InlineToggleButton
-            label={areProficienciesVisible ? "Hide Proficiencies" : "Show Proficiencies"}
-            expanded={areProficienciesVisible}
-            disabled={isEditing}
-            onClick={toggleProficienciesVisibility}
-          />
-          {areProficienciesVisible ? (
-            <>
-              <p className={styles.skillGroupSubtitle}>Granted Proficiencies</p>
-              {grantedProficiencies.length === 0 ? (
-                <p className={shared.emptyText}>None</p>
-              ) : (
-                <ul className={styles.proficiencyPillGrid}>
-                  {grantedProficiencies.map((entry) => (
-                    <li key={`${entry.kind}:${entry.name}`} className={styles.proficiencyPill}>
-                      <button
-                        type="button"
-                        className={styles.proficiencyPillButton}
-                        onClick={() => openKeywordReference(entry.name)}
-                      >
-                        <span>{entry.name}</span>
-                        <small>{entry.sources.join(", ")}</small>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-              <p className={styles.skillGroupSubtitle}>Chosen Proficiencies</p>
-              {isEditing ? (
-                <>
-                  <p className={shared.helperText}>
-                    Skill proficiencies are edited in the skill list above. Tools are edited here.
-                  </p>
-                  <div className={shared.choiceGrid}>
-                    {toolProficiencyOptions.map((toolProficiency) => (
-                      <label
-                        key={toolProficiency}
-                        className={clsx(
-                          shared.choiceChip,
-                          displayedManualToolSet.has(toolProficiency) && shared.choiceChipActive
-                        )}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={displayedManualToolSet.has(toolProficiency)}
-                          onChange={() => toggleToolProficiency(toolProficiency)}
-                        />
-                        <span>{getToolProficiencyLabel(toolProficiency)}</span>
-                      </label>
-                    ))}
-                  </div>
-                </>
-              ) : displayedManualProficiencyLabels.length === 0 ? (
-                <p className={shared.emptyText}>None</p>
-              ) : (
-                <ul className={styles.proficiencyPillGrid}>
-                  {displayedManualProficiencyLabels.map((proficiency) => (
-                    <li key={proficiency} className={styles.proficiencyPill}>
-                      <button
-                        type="button"
-                        className={styles.proficiencyPillButton}
-                        onClick={() => openKeywordReference(proficiency)}
-                      >
-                        <span>{proficiency}</span>
-                      </button>
-                    </li>
-                  ))}
-                </ul>
-              )}
-            </>
+          {isSkillTableEditing ? (
+            <div className={shared.formActions}>
+              <button
+                type="button"
+                className={shared.saveButton}
+                onClick={saveSkillTableEdits}
+              >
+                <Save size={16} />
+                Save
+              </button>
+              <button
+                type="button"
+                className={shared.cancelButton}
+                onClick={cancelSkillTableEditing}
+              >
+                <X size={16} />
+                Cancel
+              </button>
+            </div>
           ) : null}
         </div>
 
-        {isEditing ? (
-          <div className={shared.formActions}>
+        <div className={styles.skillGroup}>
+          <div className={styles.skillGroupHeader}>
+            <p className={styles.skillGroupTitle}>Proficiencies</p>
             <button
               type="button"
-              className={shared.saveButton}
-              onClick={saveSkillsAndProficiencies}
+              className={shared.editButton}
+              disabled={isSkillTableEditing || isProficiencyModalOpen}
+              onClick={() => openProficiencyEditor("weapons")}
+              aria-label="Edit proficiencies"
             >
-              <Save size={16} />
-              Save
-            </button>
-            <button type="button" className={shared.cancelButton} onClick={cancelEditing}>
-              <X size={16} />
-              Cancel
+              <Pencil size={16} />
+              Edit
             </button>
           </div>
-        ) : null}
+          {visibleProficiencySections.length === 0 ? (
+            <p className={shared.emptyText}>No proficiencies assigned</p>
+          ) : (
+            visibleProficiencySections.map((section) => renderProficiencyPills(section))
+          )}
+        </div>
       </div>
+
+      {isProficiencyModalOpen ? (
+        <div
+          className={sheetStyles.spellManagementBackdrop}
+          role="presentation"
+          onMouseDown={(event) => {
+            event.preventDefault();
+          }}
+          onClick={(event) => {
+            event.preventDefault();
+            event.stopPropagation();
+            cancelProficiencyEditing();
+          }}
+        >
+          <section
+            className={clsx(sheetStyles.spellManagementModal, styles.proficiencyEditorModal)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="character-proficiency-editor-title"
+            onMouseDown={(event) => {
+              event.stopPropagation();
+            }}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={sheetStyles.spellManagementHeader}>
+              <div className={styles.modalHeading}>
+                <h3 id="character-proficiency-editor-title">Edit Proficiencies</h3>
+                <p className={shared.helperText}>
+                  Changes here are stored as manual overrides when you save.
+                </p>
+              </div>
+              <button
+                type="button"
+                className={sheetStyles.spellManagementCloseButton}
+                onClick={cancelProficiencyEditing}
+                aria-label="Close proficiency editor"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className={styles.tabRow} role="tablist" aria-label="Proficiency categories">
+              {proficiencyEditorTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeProficiencyTab === tab.id}
+                  className={clsx(
+                    styles.tabButton,
+                    activeProficiencyTab === tab.id && styles.tabButtonActive
+                  )}
+                  onClick={() => setActiveProficiencyTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
+            <div className={styles.editorScrollArea}>{renderProficiencyEditorContent()}</div>
+
+            <div className={shared.formActions}>
+              <button
+                type="button"
+                className={shared.saveButton}
+                onClick={saveProficiencyEditing}
+              >
+                <Save size={16} />
+                Save
+              </button>
+              <button
+                type="button"
+                className={shared.cancelButton}
+                onClick={cancelProficiencyEditing}
+              >
+                <X size={16} />
+                Cancel
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
 
       {selectedKeyword ? (
         <div

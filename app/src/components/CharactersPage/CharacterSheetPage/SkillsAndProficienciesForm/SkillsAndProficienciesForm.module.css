@@ -1,18 +1,18 @@
 .skillStack {
   display: grid;
-  gap: 0.7rem;
+  gap: 0.9rem;
 }
 
 .skillGroup {
   display: grid;
-  gap: 0.45rem;
+  gap: 0.55rem;
 }
 
 .skillGroupHeader {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 0.6rem;
 }
 
 .skillGroupTitle {
@@ -106,11 +106,15 @@
   font-size: 0.95rem;
 }
 
-.skillLevelSelect {
+.skillLevelSelect,
+.editorSelect {
   min-height: 34px;
-  min-width: 118px;
   border-radius: 10px;
   padding-right: 2rem;
+}
+
+.skillLevelSelect {
+  min-width: 118px;
 }
 
 .proficiencyPillGrid {
@@ -161,18 +165,138 @@
   text-transform: uppercase;
 }
 
+.proficiencyEditorModal {
+  width: min(880px, 100%);
+  height: min(78vh, 720px);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+.modalHeading {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.modalHeading h3 {
+  margin: 0;
+}
+
+.tabRow {
+  display: inline-grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.2rem;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.08);
+  padding: 0.24rem;
+}
+
+.tabButton {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  font: inherit;
+  min-height: 36px;
+  padding: 0 0.86rem;
+  white-space: nowrap;
+}
+
+.tabButtonActive {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-ink);
+  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
+}
+
+.editorScrollArea {
+  min-height: 0;
+  overflow: auto;
+  padding-right: 0.2rem;
+}
+
+.editorGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.editorCard {
+  display: grid;
+  gap: 0.55rem;
+  align-content: start;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  color: var(--color-ink);
+  font: inherit;
+  padding: 0.85rem 0.95rem;
+  transition:
+    background-color 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.editorCardActive {
+  background: rgba(143, 91, 56, 0.14);
+  border-color: rgba(143, 91, 56, 0.34);
+}
+
+.editorToggleCard {
+  cursor: pointer;
+  text-align: left;
+}
+
+.editorCheckboxRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.editorCheckbox {
+  accent-color: #8f5b38;
+  margin: 0;
+  pointer-events: none;
+}
+
+.editorLabel {
+  color: var(--color-ink);
+  font-weight: 600;
+}
+
+.editorState {
+  color: var(--color-ink-soft);
+  font-size: 0.8rem;
+}
+
 @media (max-width: 860px) {
   .proficiencyPillGrid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+
+  .editorGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 700px) {
+  .tabRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 620px) {
-  .proficiencyPillGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
+  .proficiencyPillGrid,
   .skillColumns {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .proficiencyPillGrid,
+  .skillColumns,
+  .tabRow {
+    grid-template-columns: 1fr;
   }
 }

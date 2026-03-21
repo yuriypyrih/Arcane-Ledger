@@ -3,6 +3,7 @@ import {
   Dices,
   FastForward,
   HeartPlus,
+  Infinity as InfinityIcon,
   Moon,
   Pencil,
   Plus,
@@ -19,9 +20,19 @@ import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import type { Character } from "../../../../types";
 import {
+  advanceCharacterConditions,
+  consumeRoundTrackerResource,
+  createDefaultRoundTracker,
+  INDEFINITE_CONDITION_ROUNDS,
+  normalizeCharacterConditions,
+  normalizeRoundTracker,
+  type RoundTrackerResource
+} from "../../../../pages/CharactersPage/combat";
+import {
   formatAbilityModifier,
   getAutomaticMaxHitPointsForCharacter,
-  getWeaponActionsForCharacter
+  getWeaponActionsForCharacter,
+  type WeaponAction
 } from "../../../../pages/CharactersPage/gameplay";
 import type {
   HpDraft,
@@ -41,11 +52,6 @@ type GameplayFormProps = {
 type ConditionEntry = {
   name: string;
   description: string;
-};
-
-type AppliedCondition = {
-  name: string;
-  roundsRemaining: number;
 };
 
 type DeathSaveState = {
@@ -153,29 +159,6 @@ function normalizeTemporaryHitPoints(value: unknown): number {
   return Math.floor(clampNumber(value, 0, 999, 0));
 }
 
-function normalizeConditions(value: Character["conditions"]): AppliedCondition[] {
-  if (!Array.isArray(value)) {
-    return [];
-  }
-
-  return value
-    .filter((condition): condition is AppliedCondition => {
-      if (!condition || typeof condition !== "object") {
-        return false;
-      }
-
-      if (typeof condition.name !== "string") {
-        return false;
-      }
-
-      return Number.isFinite(condition.roundsRemaining);
-    })
-    .map((condition) => ({
-      name: condition.name,
-      roundsRemaining: Math.max(1, Math.floor(condition.roundsRemaining))
-    }));
-}
-
 function formatSignedValue(value: number): string {
   return value >= 0 ? `+ ${value}` : `- ${Math.abs(value)}`;
 }
@@ -260,7 +243,47 @@ function getDamageRangeLabel(
     return `Damage (${damageExpression})`;
   }
 
+  if (parsedRange.minimum === parsedRange.maximum) {
+    return `${parsedRange.minimum} Damage (${damageExpression})`;
+  }
+
   return `${parsedRange.minimum}~${parsedRange.maximum} Damage (${damageExpression})`;
+}
+
+function hasVisibleWeaponProficiency(action: Pick<WeaponAction, "proficiencyLabel" | "proficiencyBonus">) {
+  return action.proficiencyBonus !== 0 && action.proficiencyLabel.trim().length > 0;
+}
+
+function getWeaponActionRollDescription(action: WeaponAction): string {
+  const segments = [`${action.ability} ${formatAbilityModifier(action.abilityModifier)}`];
+
+  if (hasVisibleWeaponProficiency(action)) {
+    segments.push(
+      `Proficiency (${formatProficiencyLabel(action.proficiencyLabel)}) ${formatAbilityModifier(action.proficiencyBonus)}`
+    );
+  }
+
+  if (action.hasVersatileBonus) {
+    segments.push("+ Versatile Bonus");
+  }
+
+  return segments.join(" | ");
+}
+
+function getWeaponActionBreakdown(action: WeaponAction): string {
+  const segments = [`${action.ability} ${formatSignedValue(action.abilityModifier)}`];
+
+  if (hasVisibleWeaponProficiency(action)) {
+    segments.push(
+      `Prof. (${formatProficiencyLabel(action.proficiencyLabel)}) ${formatSignedValue(action.proficiencyBonus)}`
+    );
+  }
+
+  if (action.hasVersatileBonus) {
+    segments.push("+ Versatile Bonus");
+  }
+
+  return segments.join(" | ");
 }
 
 function getConditionDescription(name: string): string {
@@ -271,6 +294,36 @@ function getConditionDescription(name: string): string {
   }
 
   return condition.description;
+}
+
+function getRoundTrackerResourceMeta(
+  resource: RoundTrackerResource,
+  isAvailable: boolean
+): {
+  title: string;
+  description: string;
+  useLabel: string;
+  resetLabel: string;
+} {
+  if (resource === "action") {
+    return {
+      title: "Action",
+      description: isAvailable
+        ? "Your main action is ready for this round. Weapon attacks and most spells will spend it automatically."
+        : "Your main action has already been spent this round. Reset it here if you need to correct the tracker manually.",
+      useLabel: "Use Action",
+      resetLabel: "Reset Action"
+    };
+  }
+
+  return {
+    title: "Bonus Action",
+    description: isAvailable
+      ? "Your bonus action is ready for this round. Bonus-action spells and similar abilities will spend it automatically."
+      : "Your bonus action has already been spent this round. Reset it here if you need to correct the tracker manually.",
+    useLabel: "Use Bonus Action",
+    resetLabel: "Reset Bonus Action"
+  };
 }
 
 function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
@@ -289,13 +342,19 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   );
   const [conditionDraftDuration, setConditionDraftDuration] = useState(1);
   const [selectedConditionName, setSelectedConditionName] = useState<string | null>(null);
+  const [selectedRoundTrackerResource, setSelectedRoundTrackerResource] =
+    useState<RoundTrackerResource | null>(null);
   const [lastDeathSaveRoll, setLastDeathSaveRoll] = useState<number | null>(null);
   const [lastProcessedDeathSaveRollToken, setLastProcessedDeathSaveRollToken] = useState<
     number | null
   >(null);
   const { popupState, openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
-  const hasOverlayOpen = isRestPopupOpen || isConditionModalOpen || selectedConditionName !== null;
+  const hasOverlayOpen =
+    isRestPopupOpen ||
+    isConditionModalOpen ||
+    selectedConditionName !== null ||
+    selectedRoundTrackerResource !== null;
 
   useBodyScrollLock(hasOverlayOpen);
 
@@ -323,6 +382,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
         setIsRestPopupOpen(false);
         setIsConditionModalOpen(false);
         setSelectedConditionName(null);
+        setSelectedRoundTrackerResource(null);
       }
     }
 
@@ -333,7 +393,8 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     };
   }, [hasOverlayOpen]);
 
-  const conditions = normalizeConditions(character.conditions);
+  const roundTracker = normalizeRoundTracker(character.roundTracker);
+  const conditions = normalizeCharacterConditions(character.conditions);
   const deathSaves = normalizeDeathSaves(character.deathSaves);
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
 
@@ -416,6 +477,63 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   const selectedCondition = selectedConditionName
     ? (conditions.find((condition) => condition.name === selectedConditionName) ?? null)
     : null;
+  const selectedRoundTrackerMeta = selectedRoundTrackerResource
+    ? getRoundTrackerResourceMeta(
+        selectedRoundTrackerResource,
+        selectedRoundTrackerResource === "action"
+          ? roundTracker.actionAvailable
+          : roundTracker.bonusActionAvailable
+      )
+    : null;
+
+  useEffect(() => {
+    if (!selectedConditionName) {
+      return;
+    }
+
+    if (selectedCondition) {
+      return;
+    }
+
+    setSelectedConditionName(null);
+  }, [selectedCondition, selectedConditionName]);
+
+  function updateRoundTracker(resource: RoundTrackerResource) {
+    onPersistCharacter((currentCharacter) => ({
+      ...currentCharacter,
+      roundTracker: consumeRoundTrackerResource(currentCharacter.roundTracker, resource)
+    }));
+  }
+
+  function resetRoundTrackerResource(resource: RoundTrackerResource) {
+    onPersistCharacter((currentCharacter) => {
+      const currentRoundTracker = normalizeRoundTracker(currentCharacter.roundTracker);
+
+      return {
+        ...currentCharacter,
+        roundTracker:
+          resource === "action"
+            ? {
+                ...currentRoundTracker,
+                actionAvailable: true
+              }
+            : {
+                ...currentRoundTracker,
+                bonusActionAvailable: true
+              }
+      };
+    });
+  }
+
+  function consumeRoundTrackerFromDrawer(resource: RoundTrackerResource) {
+    updateRoundTracker(resource);
+    setSelectedRoundTrackerResource(null);
+  }
+
+  function handleResetRoundTrackerResource(resource: RoundTrackerResource) {
+    resetRoundTrackerResource(resource);
+    setSelectedRoundTrackerResource(null);
+  }
 
   function beginEditing() {
     setHpDraft(createHpDraft(character));
@@ -558,6 +676,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
         currentHitPoints: nextCurrentHitPoints,
         temporaryHitPoints: 0,
         shortRestsUsedToday: shortRestsUsedToday + 1,
+        roundTracker: createDefaultRoundTracker(),
         deathSaves:
           nextCurrentHitPoints > 0
             ? createDefaultDeathSaves()
@@ -575,6 +694,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
       temporaryHitPoints: 0,
       shortRestsUsedToday: 0,
       spellSlotsExpended: Array.from({ length: 9 }, () => 0),
+      roundTracker: createDefaultRoundTracker(),
       deathSaves: createDefaultDeathSaves()
     }));
 
@@ -588,10 +708,13 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
       return;
     }
 
-    const roundsRemaining = Math.max(1, Math.floor(clampNumber(conditionDraftDuration, 1, 999, 1)));
+    const roundsRemaining =
+      conditionDraftDuration === 0
+        ? INDEFINITE_CONDITION_ROUNDS
+        : Math.max(1, Math.floor(clampNumber(conditionDraftDuration, 1, 999, 1)));
 
     onPersistCharacter((currentCharacter) => {
-      const normalizedConditions = normalizeConditions(currentCharacter.conditions);
+      const normalizedConditions = normalizeCharacterConditions(currentCharacter.conditions);
       const existingCondition = normalizedConditions.find(
         (condition) => condition.name === normalizedName
       );
@@ -623,7 +746,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   function removeCondition(conditionName: string) {
     onPersistCharacter((currentCharacter) => ({
       ...currentCharacter,
-      conditions: normalizeConditions(currentCharacter.conditions).filter(
+      conditions: normalizeCharacterConditions(currentCharacter.conditions).filter(
         (condition) => condition.name !== conditionName
       )
     }));
@@ -631,19 +754,11 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     setSelectedConditionName(null);
   }
 
-  function advanceRoundForConditions() {
-    if (conditions.length === 0) {
-      return;
-    }
-
+  function finishRound() {
     onPersistCharacter((currentCharacter) => ({
       ...currentCharacter,
-      conditions: normalizeConditions(currentCharacter.conditions)
-        .map((condition) => ({
-          ...condition,
-          roundsRemaining: condition.roundsRemaining - 1
-        }))
-        .filter((condition) => condition.roundsRemaining > 0)
+      roundTracker: createDefaultRoundTracker(),
+      conditions: advanceCharacterConditions(currentCharacter.conditions)
     }));
   }
 
@@ -903,13 +1018,14 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
                   key={action.key}
                   type="button"
                   className={styles.weaponActionButton}
-                  onClick={() =>
+                  onClick={() => {
                     openDiceRoller({
                       title: `${action.name} attack`,
                       formula: action.rollFormula,
-                      description: `${action.ability} ${formatAbilityModifier(action.abilityModifier)} | Proficiency (${action.proficiencyLabel}) ${formatAbilityModifier(action.proficiencyBonus)}${action.hasVersatileBonus ? " | + Versatile Bonus" : ""}`
-                    })
-                  }
+                      description: getWeaponActionRollDescription(action)
+                    });
+                    updateRoundTracker("action");
+                  }}
                 >
                   <strong>{action.name}</strong>
                   <span className={styles.weaponActionDamageRow}>
@@ -920,10 +1036,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
                     )}
                   </span>
                   <small className={styles.weaponActionBreakdownRow}>
-                    {action.ability} {formatSignedValue(action.abilityModifier)} | Prof. (
-                    {formatProficiencyLabel(action.proficiencyLabel)}){" "}
-                    {formatSignedValue(action.proficiencyBonus)}
-                    {action.hasVersatileBonus ? " | + Versatile Bonus" : ""}
+                    {getWeaponActionBreakdown(action)}
                   </small>
                 </button>
               ))}
@@ -956,21 +1069,18 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
                     onClick={() => setSelectedConditionName(condition.name)}
                   >
                     <span>{condition.name}</span>
-                    <strong>{condition.roundsRemaining} rnd</strong>
+                    <strong className={styles.conditionDuration}>
+                      <span>(</span>
+                      {condition.roundsRemaining === INDEFINITE_CONDITION_ROUNDS ? (
+                        <InfinityIcon size={13} strokeWidth={2.2} aria-hidden="true" />
+                      ) : (
+                        condition.roundsRemaining
+                      )}
+                      <span>)</span>
+                    </strong>
                   </button>
                 </li>
               ))}
-              <li>
-                <button
-                  type="button"
-                  className={styles.advanceRoundButton}
-                  onClick={advanceRoundForConditions}
-                  title="Advance round"
-                  aria-label="Advance round"
-                >
-                  <FastForward size={16} />
-                </button>
-              </li>
             </ul>
           )}
         </section>
@@ -979,15 +1089,67 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
           <header className={styles.widgetHeader}>
             <p className={styles.widgetTitle}>Utilities</p>
           </header>
-          <div className={styles.utilityButtonRow}>
-            <button
-              type="button"
-              className={clsx(shared.editButton, styles.campTriggerButton)}
-              onClick={() => setIsRestPopupOpen(true)}
-            >
-              <Moon size={16} />
-              Camp
-            </button>
+          <div className={styles.utilityStack}>
+            <div className={styles.roundTrackerPill} aria-label="Round tracker">
+              <button
+                type="button"
+                className={styles.roundTrackerPillButton}
+                onClick={() => setSelectedRoundTrackerResource("action")}
+                aria-label={roundTracker.actionAvailable ? "Action available" : "Action spent"}
+                title={roundTracker.actionAvailable ? "Action available" : "Action spent"}
+              >
+                <span
+                  className={clsx(
+                    styles.roundTrackerCircle,
+                    roundTracker.actionAvailable && styles.roundTrackerCircleFilled
+                  )}
+                  aria-hidden="true"
+                />
+              </button>
+              <button
+                type="button"
+                className={styles.roundTrackerPillButton}
+                onClick={() => setSelectedRoundTrackerResource("bonusAction")}
+                aria-label={
+                  roundTracker.bonusActionAvailable
+                    ? "Bonus action available"
+                    : "Bonus action spent"
+                }
+                title={
+                  roundTracker.bonusActionAvailable
+                    ? "Bonus action available"
+                    : "Bonus action spent"
+                }
+              >
+                <span
+                  className={clsx(
+                    styles.roundTrackerTriangle,
+                    roundTracker.bonusActionAvailable && styles.roundTrackerTriangleFilled
+                  )}
+                  aria-hidden="true"
+                />
+              </button>
+              <button
+                type="button"
+                className={styles.roundTrackerPillButton}
+                onClick={finishRound}
+                aria-label="Finish round"
+                title="Finish round"
+              >
+                <FastForward size={15} aria-hidden="true" />
+              </button>
+            </div>
+
+            <div className={styles.utilityButtonRow}>
+              <button
+                type="button"
+                className={clsx(shared.editButton, styles.campTriggerButton)}
+                onClick={() => setIsRestPopupOpen(true)}
+              >
+                <Moon size={16} />
+                Camp
+              </button>
+            </div>
           </div>
         </section>
 
@@ -1191,11 +1353,11 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
               <label className={shared.field}>
                 <span>Duration (rounds)</span>
                 <NumberInput
-                  min={1}
+                  min={0}
                   value={conditionDraftDuration}
                   onChange={(event) =>
                     setConditionDraftDuration((current) =>
-                      clampNumber(event.target.value, 1, 999, current)
+                      clampNumber(event.target.value, 0, 999, current)
                     )
                   }
                 />
@@ -1261,6 +1423,60 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
                 onClick={() => removeCondition(selectedCondition.name)}
               >
                 Remove Condition
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {selectedRoundTrackerResource && selectedRoundTrackerMeta ? (
+        <div
+          className={sheetStyles.spellDrawerBackdrop}
+          role="presentation"
+          onClick={() => setSelectedRoundTrackerResource(null)}
+        >
+          <section
+            className={sheetStyles.spellDrawer}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="round-tracker-drawer-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={sheetStyles.spellDrawerHandle} aria-hidden="true" />
+            <div className={sheetStyles.spellDrawerHeader}>
+              <div className={sheetStyles.spellDrawerHeaderContent}>
+                <p className={sheetStyles.spellDrawerBadge}>Round Tracker</p>
+                <div className={sheetStyles.spellDrawerTitleRow}>
+                  <h3 id="round-tracker-drawer-title">{selectedRoundTrackerMeta.title}</h3>
+                </div>
+                <p className={sheetStyles.spellDrawerSummary}>
+                  {selectedRoundTrackerMeta.description}
+                </p>
+              </div>
+              <button
+                type="button"
+                className={sheetStyles.spellDrawerCloseButton}
+                onClick={() => setSelectedRoundTrackerResource(null)}
+                aria-label="Close round tracker details"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className={styles.roundTrackerDrawerActions}>
+              <button
+                type="button"
+                className={shared.saveButton}
+                onClick={() => consumeRoundTrackerFromDrawer(selectedRoundTrackerResource)}
+              >
+                {selectedRoundTrackerMeta.useLabel}
+              </button>
+              <button
+                type="button"
+                className={shared.cancelButton}
+                onClick={() => handleResetRoundTrackerResource(selectedRoundTrackerResource)}
+              >
+                {selectedRoundTrackerMeta.resetLabel}
               </button>
             </div>
           </section>

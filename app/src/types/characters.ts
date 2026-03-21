@@ -6,6 +6,14 @@ import type {
   WEAPON_MASTERY,
   WEAPON_PROPERTY
 } from "../codex/entries";
+import type {
+  ArmorProficiencyEntry,
+  LanguageProficiencyEntry,
+  SavingThrowProficiencyEntry,
+  SkillProficiencyEntry,
+  ToolProficiencyEntry,
+  WeaponProficiencyEntry
+} from "./proficiencies";
 import type { SkillName } from "./skills";
 
 export type AbilityKey = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
@@ -38,6 +46,11 @@ export type CharacterCurrencies = {
 export type CharacterCondition = {
   name: string;
   roundsRemaining: number;
+};
+
+export type CharacterRoundTracker = {
+  actionAvailable: boolean;
+  bonusActionAvailable: boolean;
 };
 
 export type CharacterDeathSaves = {
@@ -117,11 +130,14 @@ export type Character = {
   background: string;
   backgroundNotes: string;
   currencies: CharacterCurrencies;
-  skills: SkillName[];
-  skillExpertise?: SkillName[];
-  toolProficiencies?: string[];
-  savingThrowProficiencies?: AbilityKey[];
+  skillProficiencies: SkillProficiencyEntry[];
+  savingThrowProficiencies: SavingThrowProficiencyEntry[];
+  weaponProficiencies: WeaponProficiencyEntry[];
+  armorProficiencies: ArmorProficiencyEntry[];
+  toolProficiencies: ToolProficiencyEntry[];
+  languageProficiencies: LanguageProficiencyEntry[];
   hitDiceRemaining?: number;
+  roundTracker?: CharacterRoundTracker;
   conditions?: CharacterCondition[];
   deathSaves?: CharacterDeathSaves;
   equipment: CharacterEquipmentItem[];
@@ -133,6 +149,35 @@ export type Character = {
   coreStats?: CoreStats;
 };
 
-export type CharacterDraft = Omit<Character, "id" | "equipment"> & {
+export type CharacterDraft = {
+  name: string;
+  species: string;
+  className: string;
+  level: number;
+  xp: number;
+  hitPoints: number;
+  currentHitPoints: number;
+  temporaryHitPoints: number;
+  maxHitPointsMode?: "automatic" | "custom";
+  attributeMode: AttributeMode;
+  abilities: AbilityScores;
+  alignment: Alignment;
+  background: string;
+  backgroundNotes: string;
+  currencies: CharacterCurrencies;
+  skills: SkillName[];
+  skillExpertise?: SkillName[];
+  toolProficiencies?: string[];
+  savingThrowProficiencies?: AbilityKey[];
+  hitDiceRemaining?: number;
+  roundTracker?: CharacterRoundTracker;
+  conditions?: CharacterCondition[];
+  deathSaves?: CharacterDeathSaves;
   equipment: string[];
+  customEquipment: CharacterCustomEquipment[];
+  cantripIds?: string[];
+  preparedSpellIds?: string[];
+  spellSlotsExpended?: number[];
+  shortRestsUsedToday?: number;
+  coreStats?: CoreStats;
 };

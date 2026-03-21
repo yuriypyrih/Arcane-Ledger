@@ -7,11 +7,17 @@ import SpellListRow from "../../../SpellListRow";
 import SpellDescriptionContent from "../../../SpellDescriptionContent";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { useClassSpellEntries } from "../../../../codex/classes";
-import { ENTRY_CATEGORIES, KeywordTooltip, type SpellEntry } from "../../../../codex/entries";
+import {
+  ACTION_TYPE,
+  ENTRY_CATEGORIES,
+  KeywordTooltip,
+  type SpellEntry
+} from "../../../../codex/entries";
 import type { Character } from "../../../../types";
 import {
   formatCodexLabel,
   formatCodexList,
+  formatSpellCastingTime,
   formatSpellComponents,
   formatSpellSubtitle,
   getSpellExcerpt,
@@ -19,11 +25,17 @@ import {
   renderCodexInlineText
 } from "../../../../utils/codex";
 import {
+  consumeRoundTrackerResource,
+  normalizeRoundTracker,
+  type RoundTrackerResource
+} from "../../../../pages/CharactersPage/combat";
+import {
   getCantripLimitForCharacter,
   getPreparedSpellLimitForCharacter,
   getSpellLevel,
   getSpellSlotTotalsForCharacter,
   isSpellcastingClass,
+  normalizePreparedSpellIds,
   normalizeSpellSlotsExpended,
   usesPreparedSpellsForCharacter
 } from "../../../../pages/CharactersPage/spellcasting";
@@ -49,6 +61,9 @@ type SpellGroup = {
   level: number;
   spells: SpellEntry[];
 };
+
+type SpellPreparationLevelGroup = Record<number, SpellEntry[]>;
+type SelectedSpellViewMode = "standard" | "prepare-preview";
 
 function groupSpellsByLevel(spells: SpellEntry[]): SpellGroup[] {
   const spellsByLevel = spells.reduce((groups, spell) => {
@@ -82,6 +97,24 @@ function normalizeTrackedSpellIds(
     .slice(0, limit ?? Number.POSITIVE_INFINITY);
 }
 
+function countTrackedSpellsByLevel(
+  spellIds: string[],
+  spellsById: Map<string, SpellEntry>
+): Record<number, number> {
+  return spellIds.reduce<Record<number, number>>((counts, spellId) => {
+    const spell = spellsById.get(spellId);
+
+    if (!spell) {
+      return counts;
+    }
+
+    const spellLevel = getSpellLevel(spell);
+
+    counts[spellLevel] = (counts[spellLevel] ?? 0) + 1;
+    return counts;
+  }, {});
+}
+
 function getHighestSpellSlotLevel(spellSlotTotals: number[]): number {
   for (let index = spellSlotTotals.length - 1; index >= 0; index -= 1) {
     if ((spellSlotTotals[index] ?? 0) > 0) {
@@ -92,17 +125,48 @@ function getHighestSpellSlotLevel(spellSlotTotals: number[]): number {
   return 0;
 }
 
+function createSpellPreparationLevelGroups(spells: SpellEntry[]): SpellPreparationLevelGroup {
+  return spellSlotLevels.reduce<SpellPreparationLevelGroup>((groups, level) => {
+    groups[level] = spells
+      .filter((spell) => getSpellLevel(spell) === level)
+      .sort((left, right) => left.name.localeCompare(right.name));
+
+    return groups;
+  }, {} as SpellPreparationLevelGroup);
+}
+
+function getRoundTrackerResourceForSpell(spell: SpellEntry): RoundTrackerResource | null {
+  if (spell.castingTime.includes(ACTION_TYPE.BONUS_ACTION)) {
+    return "bonusAction";
+  }
+
+  if (spell.castingTime.includes(ACTION_TYPE.ACTION)) {
+    return "action";
+  }
+
+  return null;
+}
+
 function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormProps) {
   const { watch } = useFormContext<Character>();
   const character = watch() as Character;
   const [selectedSpell, setSelectedSpell] = useState<SpellEntry | null>(null);
+  const [selectedSpellViewMode, setSelectedSpellViewMode] =
+    useState<SelectedSpellViewMode>("standard");
   const [selectedSpellSlotLevel, setSelectedSpellSlotLevel] = useState(1);
   const [spellManagementMode, setSpellManagementMode] = useState<SpellManagementMode | null>(null);
   const [cantripDraftIds, setCantripDraftIds] = useState<string[]>([]);
   const [preparedSpellDraftIds, setPreparedSpellDraftIds] = useState<string[]>([]);
+  const [activePreparedSpellLevel, setActivePreparedSpellLevel] = useState(1);
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
 
   useBodyScrollLock(Boolean(spellManagementMode || selectedSpell || isComponentsTooltipOpen));
+
+  const closeSelectedSpell = useCallback(() => {
+    setSelectedSpell(null);
+    setSelectedSpellViewMode("standard");
+    setIsComponentsTooltipOpen(false);
+  }, []);
 
   useEffect(() => {
     if (!selectedSpell && !spellManagementMode && !isComponentsTooltipOpen) {
@@ -111,9 +175,17 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
 
     function handleKeyDown(event: globalThis.KeyboardEvent) {
       if (event.key === "Escape") {
-        setSelectedSpell(null);
+        if (isComponentsTooltipOpen) {
+          setIsComponentsTooltipOpen(false);
+          return;
+        }
+
+        if (selectedSpell) {
+          closeSelectedSpell();
+          return;
+        }
+
         setSpellManagementMode(null);
-        setIsComponentsTooltipOpen(false);
       }
     }
 
@@ -122,7 +194,7 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [selectedSpell, spellManagementMode, isComponentsTooltipOpen]);
+  }, [closeSelectedSpell, selectedSpell, spellManagementMode, isComponentsTooltipOpen]);
 
   const canCastSpells = isSpellcastingClass(character.className, character.level);
 
@@ -131,10 +203,10 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
       return;
     }
 
-    setSelectedSpell(null);
+    closeSelectedSpell();
     setSpellManagementMode(null);
     setIsComponentsTooltipOpen(false);
-  }, [canCastSpells]);
+  }, [canCastSpells, closeSelectedSpell]);
 
   useEffect(() => {
     if (selectedSpell) {
@@ -181,12 +253,13 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
   );
   const selectedPreparedSpellIds = useMemo(
     () =>
-      normalizeTrackedSpellIds(
+      normalizePreparedSpellIds(
         character.preparedSpellIds,
         spellPreparationOptions,
-        preparedSpellLimit
+        preparedSpellLimit,
+        spellSlotTotals
       ),
-    [character.preparedSpellIds, preparedSpellLimit, spellPreparationOptions]
+    [character.preparedSpellIds, preparedSpellLimit, spellPreparationOptions, spellSlotTotals]
   );
   const cantripOptionsById = useMemo(
     () => new Map(cantripOptions.map((spell) => [spell.id, spell])),
@@ -226,8 +299,8 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
     [visibleSpellEntries]
   );
   const cantripGroups = useMemo(() => groupSpellsByLevel(cantripOptions), [cantripOptions]);
-  const spellPreparationGroups = useMemo(
-    () => groupSpellsByLevel(spellPreparationOptions),
+  const spellPreparationLevelGroups = useMemo(
+    () => createSpellPreparationLevelGroups(spellPreparationOptions),
     [spellPreparationOptions]
   );
   const cantripDraftSet = useMemo(() => new Set(cantripDraftIds), [cantripDraftIds]);
@@ -241,6 +314,28 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
   const preparedSpellCount = preparedSpellDraftIds.length;
   const isPreparedSpellLimitReached =
     preparedSpellLimit !== null && preparedSpellCount >= preparedSpellLimit;
+  const activePreparedSpellOptions = useMemo(
+    () => spellPreparationLevelGroups[activePreparedSpellLevel] ?? [],
+    [activePreparedSpellLevel, spellPreparationLevelGroups]
+  );
+  const firstAvailablePreparedSpellLevel = useMemo(
+    () =>
+      spellSlotLevels.find(
+        (level) => (spellPreparationLevelGroups[level]?.length ?? 0) > 0
+      ) ?? 1,
+    [spellPreparationLevelGroups]
+  );
+  const preparedSpellDraftCountsByLevel = useMemo(
+    () => countTrackedSpellsByLevel(preparedSpellDraftIds, spellPreparationOptionsById),
+    [preparedSpellDraftIds, spellPreparationOptionsById]
+  );
+  const activePreparedSpellCount = preparedSpellDraftCountsByLevel[activePreparedSpellLevel] ?? 0;
+  const activePreparedSpellLevelLimit = Math.max(
+    0,
+    Math.floor(spellSlotTotals[activePreparedSpellLevel - 1] ?? 0)
+  );
+  const isPreparedSpellLevelLimitReached =
+    activePreparedSpellLevelLimit > 0 && activePreparedSpellCount >= activePreparedSpellLevelLimit;
 
   const selectedSpellLevel = selectedSpell ? getSpellLevel(selectedSpell) : null;
   const activeSpellLevel = selectedSpellLevel ?? 0;
@@ -263,6 +358,19 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
         normalizedSelectedSpellSlotLevel >= minimumSelectedSlotLevel &&
         selectedSpellRemainingSlots > 0));
   const componentsTooltipEntry = KeywordTooltip.components ?? null;
+  const roundTracker = useMemo(
+    () => normalizeRoundTracker(character.roundTracker),
+    [character.roundTracker]
+  );
+  const selectedSpellRoundTrackerResource = selectedSpell
+    ? getRoundTrackerResourceForSpell(selectedSpell)
+    : null;
+  const selectedSpellActionWarning =
+    selectedSpellRoundTrackerResource === "action" && !roundTracker.actionAvailable
+      ? `You already used the ${ACTION_TYPE.ACTION} for this turn`
+      : selectedSpellRoundTrackerResource === "bonusAction" && !roundTracker.bonusActionAvailable
+        ? `You already used the ${ACTION_TYPE.BONUS_ACTION} for this turn`
+        : null;
 
   useEffect(() => {
     setCantripDraftIds((current) =>
@@ -272,9 +380,17 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
 
   useEffect(() => {
     setPreparedSpellDraftIds((current) =>
-      normalizeTrackedSpellIds(current, spellPreparationOptions, preparedSpellLimit)
+      normalizePreparedSpellIds(current, spellPreparationOptions, preparedSpellLimit, spellSlotTotals)
     );
-  }, [preparedSpellLimit, spellPreparationOptions]);
+  }, [preparedSpellLimit, spellPreparationOptions, spellSlotTotals]);
+
+  useEffect(() => {
+    if (activePreparedSpellLevel <= highestSpellSlotLevel) {
+      return;
+    }
+
+    setActivePreparedSpellLevel(firstAvailablePreparedSpellLevel);
+  }, [activePreparedSpellLevel, firstAvailablePreparedSpellLevel, highestSpellSlotLevel]);
 
   const openSpellManagementMenu = useCallback(() => {
     setCantripDraftIds(selectedCantripIds);
@@ -287,8 +403,9 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
   }, []);
 
   const beginPreparedSpellManagement = useCallback(() => {
+    setActivePreparedSpellLevel(firstAvailablePreparedSpellLevel);
     setSpellManagementMode("prepared-spells");
-  }, []);
+  }, [firstAvailablePreparedSpellLevel]);
 
   const refreshSpellSlots = useCallback(() => {
     onPersistCharacter((currentCharacter) => ({
@@ -314,15 +431,44 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
 
   const togglePreparedSpellDraft = useCallback(
     (spellId: string) => {
-      setPreparedSpellDraftIds((current) =>
-        current.includes(spellId)
-          ? current.filter((currentSpellId) => currentSpellId !== spellId)
-          : preparedSpellLimit !== null && current.length >= preparedSpellLimit
-            ? current
-            : [...current, spellId]
-      );
+      setPreparedSpellDraftIds((current) => {
+        const normalizedCurrent = normalizePreparedSpellIds(
+          current,
+          spellPreparationOptions,
+          preparedSpellLimit,
+          spellSlotTotals
+        );
+
+        if (normalizedCurrent.includes(spellId)) {
+          return normalizedCurrent.filter((currentSpellId) => currentSpellId !== spellId);
+        }
+
+        const spell = spellPreparationOptionsById.get(spellId);
+
+        if (!spell) {
+          return normalizedCurrent;
+        }
+
+        if (preparedSpellLimit !== null && normalizedCurrent.length >= preparedSpellLimit) {
+          return normalizedCurrent;
+        }
+
+        const spellLevel = getSpellLevel(spell);
+        const spellLevelLimit = Math.max(0, Math.floor(spellSlotTotals[spellLevel - 1] ?? 0));
+        const selectedSpellCountsByLevel = countTrackedSpellsByLevel(
+          normalizedCurrent,
+          spellPreparationOptionsById
+        );
+        const selectedSpellCountAtLevel = selectedSpellCountsByLevel[spellLevel] ?? 0;
+
+        if (spellLevelLimit <= 0 || selectedSpellCountAtLevel >= spellLevelLimit) {
+          return normalizedCurrent;
+        }
+
+        return [...normalizedCurrent, spellId];
+      });
     },
-    [preparedSpellLimit]
+    [preparedSpellLimit, spellPreparationOptions, spellPreparationOptionsById, spellSlotTotals]
   );
 
   const saveCantrips = useCallback(() => {
@@ -337,10 +483,11 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
   }, [cantripDraftIds, cantripLimit, cantripOptions, onPersistCharacter]);
 
   const savePreparedSpells = useCallback(() => {
-    const nextPreparedSpellIds = normalizeTrackedSpellIds(
+    const nextPreparedSpellIds = normalizePreparedSpellIds(
       preparedSpellDraftIds,
       spellPreparationOptions,
-      preparedSpellLimit
+      preparedSpellLimit,
+      spellSlotTotals
     );
 
     onPersistCharacter((currentCharacter) => ({
@@ -349,13 +496,22 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
     }));
 
     setSpellManagementMode(null);
-  }, [onPersistCharacter, preparedSpellDraftIds, preparedSpellLimit, spellPreparationOptions]);
+  }, [
+    onPersistCharacter,
+    preparedSpellDraftIds,
+    preparedSpellLimit,
+    spellPreparationOptions,
+    spellSlotTotals
+  ]);
 
   if (!canCastSpells) {
     return null;
   }
 
-  function openSpellDetails(spell: SpellEntry) {
+  function openSpellDetails(
+    spell: SpellEntry,
+    viewMode: SelectedSpellViewMode = "standard"
+  ) {
     const spellLevel = getSpellLevel(spell);
     const minimumSlotLevel = Math.max(1, spellLevel);
     const preferredSlotLevel =
@@ -371,6 +527,7 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
           ) ??
           minimumSlotLevel);
 
+    setSelectedSpellViewMode(viewMode);
     setSelectedSpellSlotLevel(preferredSlotLevel);
     setSelectedSpell(spell);
   }
@@ -381,9 +538,20 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
     }
 
     const spellLevel = getSpellLevel(selectedSpell);
+    const roundTrackerResource = getRoundTrackerResourceForSpell(selectedSpell);
 
     if (spellLevel === 0) {
-      setSelectedSpell(null);
+      if (roundTrackerResource) {
+        onPersistCharacter((currentCharacter) => ({
+          ...currentCharacter,
+          roundTracker: consumeRoundTrackerResource(
+            currentCharacter.roundTracker,
+            roundTrackerResource
+          )
+        }));
+      }
+
+      closeSelectedSpell();
       return;
     }
 
@@ -409,11 +577,14 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
 
       return {
         ...currentCharacter,
-        spellSlotsExpended: nextSpellSlotsExpended
+        spellSlotsExpended: nextSpellSlotsExpended,
+        roundTracker: roundTrackerResource
+          ? consumeRoundTrackerResource(currentCharacter.roundTracker, roundTrackerResource)
+          : currentCharacter.roundTracker
       };
     });
 
-    setSelectedSpell(null);
+    closeSelectedSpell();
   }
 
   function openComponentsTooltip() {
@@ -423,6 +594,11 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
 
     setIsComponentsTooltipOpen(true);
   }
+
+  const isPreparedSpellPreview = selectedSpellViewMode === "prepare-preview";
+  const isSelectedSpellPreparedInDraft = selectedSpell
+    ? preparedSpellDraftSet.has(selectedSpell.id)
+    : false;
 
   return (
     <article className={clsx(shared.sectionCard, className)}>
@@ -620,50 +796,95 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
               </>
             ) : (
               <>
-                {preparedSpellLimit !== null ? (
-                  <p className={styles.preparedSpellLimitText}>
-                    Prepared spells: {preparedSpellCount}/{preparedSpellLimit}
-                  </p>
-                ) : null}
+                <div className={styles.preparedSpellStatusRow}>
+                  <div>
+                    <p className={styles.preparedSpellStatusLabel}>Prepared spells</p>
+                    {preparedSpellLimit !== null ? (
+                      <p className={styles.preparedSpellLimitText}>
+                        {preparedSpellCount}/{preparedSpellLimit} prepared
+                      </p>
+                    ) : null}
+                  </div>
+                </div>
 
-                <div className={sheetStyles.spellManagementList}>
-                  {spellPreparationGroups.length === 0 ? (
+                <div className={styles.preparedSpellTabRow}>
+                  <span className={styles.preparedSpellTabLabel}>Level</span>
+                  <div
+                    className={styles.preparedSpellTabList}
+                    role="tablist"
+                    aria-label="Spell levels"
+                  >
+                    {spellSlotLevels.map((level) => {
+                      const selectedCount = preparedSpellDraftCountsByLevel[level] ?? 0;
+                      const spellLevelLimit = Math.max(
+                        0,
+                        Math.floor(spellSlotTotals[level - 1] ?? 0)
+                      );
+                      const indicatorCubeCount = spellLevelLimit;
+                      const isDisabled = level > highestSpellSlotLevel;
+
+                      return (
+                        <button
+                          key={`prepared-level-${level}`}
+                          type="button"
+                          role="tab"
+                          aria-selected={activePreparedSpellLevel === level}
+                          aria-label={`Level ${level}, ${selectedCount} of ${spellLevelLimit} spell${spellLevelLimit === 1 ? "" : "s"} selected`}
+                          className={clsx(
+                            styles.preparedSpellTabButton,
+                            activePreparedSpellLevel === level && styles.preparedSpellTabButtonActive
+                          )}
+                          onClick={() => setActivePreparedSpellLevel(level)}
+                          disabled={isDisabled}
+                        >
+                          <span className={styles.preparedSpellTabNumber}>{level}</span>
+                          <span className={styles.preparedSpellTabIndicator} aria-hidden="true">
+                            {Array.from({ length: indicatorCubeCount }, (_, index) => (
+                              <span
+                                key={`prepared-level-${level}-cube-${index}`}
+                                className={clsx(
+                                  styles.preparedSpellTabCube,
+                                  index < selectedCount && styles.preparedSpellTabCubeFilled
+                                )}
+                              />
+                            ))}
+                          </span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className={clsx(sheetStyles.spellManagementList, styles.preparedSpellList)}>
+                  {activePreparedSpellOptions.length === 0 ? (
                     <p className={shared.emptyText}>
-                      No level 1+ spells are available for this class and level yet.
+                      No {formatSpellGroupTitle(activePreparedSpellLevel).toLowerCase()} are
+                      available for this class and level yet.
                     </p>
                   ) : (
-                    spellPreparationGroups.map((group) => (
-                      <div key={group.level} className={sheetStyles.spellManagementGroup}>
-                        <p className={sheetStyles.spellGroupTitle}>
-                          {formatSpellGroupTitle(group.level)}
-                        </p>
-                        <ul className={sheetStyles.spellManagementChoiceList}>
-                          {group.spells.map((spell) => {
-                            const isChecked = preparedSpellDraftSet.has(spell.id);
-                            const isDisabled = !isChecked && isPreparedSpellLimitReached;
+                    <ul className={styles.preparedSpellSelectionList}>
+                      {activePreparedSpellOptions.map((spell) => {
+                        const isChecked = preparedSpellDraftSet.has(spell.id);
+                        const isDisabled =
+                          !isChecked &&
+                          (isPreparedSpellLimitReached ||
+                            activePreparedSpellLevelLimit <= 0 ||
+                            isPreparedSpellLevelLimitReached);
 
-                            return (
-                              <li key={spell.id}>
-                                <label
-                                  className={clsx(
-                                    sheetStyles.spellManagementChoice,
-                                    isDisabled && styles.spellManagementChoiceDisabled
-                                  )}
-                                >
-                                  <input
-                                    type="checkbox"
-                                    checked={isChecked}
-                                    disabled={isDisabled}
-                                    onChange={() => togglePreparedSpellDraft(spell.id)}
-                                  />
-                                  <span>{spell.name}</span>
-                                </label>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                    ))
+                        return (
+                          <li key={spell.id}>
+                            <SpellListRow
+                              spell={spell}
+                              onClick={() => openSpellDetails(spell, "prepare-preview")}
+                              selectable
+                              isSelected={isChecked}
+                              onSelect={() => togglePreparedSpellDraft(spell.id)}
+                              disabled={isDisabled}
+                            />
+                          </li>
+                        );
+                      })}
+                    </ul>
                   )}
                 </div>
                 <div className={sheetStyles.spellManagementActions}>
@@ -690,9 +911,12 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
 
       {selectedSpell ? (
         <div
-          className={sheetStyles.spellDrawerBackdrop}
+          className={clsx(
+            sheetStyles.spellDrawerBackdrop,
+            isPreparedSpellPreview && styles.previewSpellDrawerBackdrop
+          )}
           role="presentation"
-          onClick={() => setSelectedSpell(null)}
+          onClick={closeSelectedSpell}
         >
           <section
             className={sheetStyles.spellDrawer}
@@ -705,7 +929,9 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
             <div className={sheetStyles.spellDrawerHeader}>
               <div className={sheetStyles.spellDrawerHeaderContent}>
                 <p className={sheetStyles.spellDrawerBadge}>
-                  {formatCodexLabel(ENTRY_CATEGORIES.SPELLS)}
+                  {isPreparedSpellPreview
+                    ? "Spell preview"
+                    : formatCodexLabel(ENTRY_CATEGORIES.SPELLS)}
                 </p>
                 <div className={sheetStyles.spellDrawerTitleRow}>
                   <h3 id="character-spell-drawer-title">{selectedSpell.name}</h3>
@@ -717,8 +943,8 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
               <button
                 type="button"
                 className={sheetStyles.spellDrawerCloseButton}
-                onClick={() => setSelectedSpell(null)}
-                aria-label="Close spell details"
+                onClick={closeSelectedSpell}
+                aria-label={isPreparedSpellPreview ? "Close spell preview" : "Close spell details"}
               >
                 <X size={18} />
               </button>
@@ -727,7 +953,7 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
             <div className={sheetStyles.spellDrawerDetails}>
               <div className={sheetStyles.spellDrawerDetailCard}>
                 <span>Casting Time</span>
-                <strong>{selectedSpell.castingTime}</strong>
+                <strong>{formatSpellCastingTime(selectedSpell.castingTime)}</strong>
               </div>
               <div className={sheetStyles.spellDrawerDetailCard}>
                 <span>Range</span>
@@ -764,49 +990,69 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
               entryClassName={sheetStyles.spellDrawerDescriptionLine}
             />
 
-            <div className={sheetStyles.spellDrawerActions}>
-              {activeSpellLevel === 0 ? null : (
-                <div className={sheetStyles.spellDrawerCastControls}>
-                  <p className={sheetStyles.spellDrawerSlotText}>
-                    {`${selectedSpellRemainingSlots ?? 0} slot${
-                      (selectedSpellRemainingSlots ?? 0) === 1 ? "" : "s"
-                    } remaining at level ${normalizedSelectedSpellSlotLevel}. ${getSpellExcerpt(
-                      selectedSpell
-                    )}`}
-                  </p>
-                  <label className={sheetStyles.spellSlotSelectField}>
-                    <span>Cast at slot level</span>
-                    <SelectInput
-                      value={normalizedSelectedSpellSlotLevel}
-                      className={sheetStyles.spellSlotSelect}
-                      onChange={(event) =>
-                        setSelectedSpellSlotLevel(clampNumber(event.target.value, 1, 9, 1))
-                      }
-                    >
-                      {spellSlotLevels.map((slotLevel) => {
-                        const totalSlots = spellSlotTotals[slotLevel - 1] ?? 0;
-                        const remainingSlots = spellSlotsRemaining[slotLevel - 1] ?? 0;
-                        const isDisabled = slotLevel < minimumSelectedSlotLevel || totalSlots === 0;
+            {isPreparedSpellPreview ? (
+              <div className={styles.previewSpellFooter}>
+                <p className={styles.previewSpellStatus}>
+                  {isSelectedSpellPreparedInDraft
+                    ? "Prepared in this draft"
+                    : "Not prepared in this draft"}
+                </p>
+                <p className={styles.previewSpellNote}>
+                  Preview only while choosing prepared spells. Close this drawer to keep editing
+                  your preparation list.
+                </p>
+              </div>
+            ) : (
+              <div className={sheetStyles.spellDrawerActions}>
+                <div className={styles.castActionMeta}>
+                {activeSpellLevel === 0 ? null : (
+                  <div className={sheetStyles.spellDrawerCastControls}>
+                    <p className={sheetStyles.spellDrawerSlotText}>
+                      {`${selectedSpellRemainingSlots ?? 0} slot${
+                        (selectedSpellRemainingSlots ?? 0) === 1 ? "" : "s"
+                      } remaining at level ${normalizedSelectedSpellSlotLevel}. ${getSpellExcerpt(
+                        selectedSpell
+                      )}`}
+                    </p>
+                    <label className={sheetStyles.spellSlotSelectField}>
+                      <span>Cast at slot level</span>
+                      <SelectInput
+                        value={normalizedSelectedSpellSlotLevel}
+                        className={sheetStyles.spellSlotSelect}
+                        onChange={(event) =>
+                          setSelectedSpellSlotLevel(clampNumber(event.target.value, 1, 9, 1))
+                        }
+                      >
+                        {spellSlotLevels.map((slotLevel) => {
+                          const totalSlots = spellSlotTotals[slotLevel - 1] ?? 0;
+                          const remainingSlots = spellSlotsRemaining[slotLevel - 1] ?? 0;
+                          const isDisabled =
+                            slotLevel < minimumSelectedSlotLevel || totalSlots === 0;
 
-                        return (
-                          <option key={slotLevel} value={slotLevel} disabled={isDisabled}>
-                            Level {slotLevel} ({remainingSlots}/{totalSlots})
-                          </option>
-                        );
-                      })}
-                    </SelectInput>
-                  </label>
+                          return (
+                            <option key={slotLevel} value={slotLevel} disabled={isDisabled}>
+                              Level {slotLevel} ({remainingSlots}/{totalSlots})
+                            </option>
+                          );
+                        })}
+                      </SelectInput>
+                    </label>
+                  </div>
+                )}
+                {selectedSpellActionWarning ? (
+                  <p className={styles.castActionWarning}>{selectedSpellActionWarning}</p>
+                ) : null}
                 </div>
-              )}
-              <button
-                type="button"
-                className={sheetStyles.castButton}
-                onClick={castSelectedSpell}
-                disabled={!canCastSelectedSpell}
-              >
-                Cast
-              </button>
-            </div>
+                <button
+                  type="button"
+                  className={sheetStyles.castButton}
+                  onClick={castSelectedSpell}
+                  disabled={!canCastSelectedSpell}
+                >
+                  Cast
+                </button>
+              </div>
+            )}
           </section>
         </div>
       ) : null}

@@ -13,6 +13,7 @@ import {
   formatCodexList,
   formatEquipmentCost,
   formatEquipmentWeight,
+  formatSpellCastingTime,
   formatSpellComponents,
   formatSpellSubtitle,
   renderCodexInlineText,
@@ -244,7 +245,7 @@ function CodexEntryPage() {
                   <>
                     <div className={sheetStyles.spellDrawerDetailCard}>
                       <span>Casting Time</span>
-                      <strong>{entry.castingTime}</strong>
+                      <strong>{formatSpellCastingTime(entry.castingTime)}</strong>
                     </div>
                     <div className={sheetStyles.spellDrawerDetailCard}>
                       <span>Range</span>

@@ -131,6 +131,10 @@ export function getPreparedSpellLimitForCharacter(className: string, level: numb
   return typeof preparedSpells === "number" ? Math.max(0, Math.floor(preparedSpells)) : null;
 }
 
+export function getPreparedSpellLevelLimitsForCharacter(className: string, level: number): number[] {
+  return getSpellSlotTotalsForCharacter(className, level);
+}
+
 export function getCantripLimitForCharacter(className: string, level: number): number | null {
   return getCantripCountForFeatureRow(getClassFeatureRowForLevel(className, level));
 }
@@ -166,6 +170,50 @@ export function getPreparedSpellSelectionOptionsForCharacter(
     const spellLevel = getSpellLevel(spell);
     return spellLevel > 0 && spellLevel <= highestSlotLevel;
   });
+}
+
+export function normalizePreparedSpellIds(
+  spellIds: unknown,
+  availableSpells: SpellEntry[],
+  totalLimit: number | null,
+  spellLevelLimits: number[]
+): string[] {
+  const availableSpellsById = new Map(availableSpells.map((spell) => [spell.id, spell]));
+  const rawSpellIds = Array.isArray(spellIds)
+    ? spellIds.filter((spellId): spellId is string => typeof spellId === "string")
+    : [];
+  const selectedSpellIds: string[] = [];
+  const selectedSpellCountsByLevel = new Map<number, number>();
+
+  for (const spellId of [...new Set(rawSpellIds)]) {
+    if (totalLimit !== null && selectedSpellIds.length >= totalLimit) {
+      break;
+    }
+
+    const spell = availableSpellsById.get(spellId);
+
+    if (!spell) {
+      continue;
+    }
+
+    const spellLevel = getSpellLevel(spell);
+
+    if (spellLevel <= 0) {
+      continue;
+    }
+
+    const spellLevelLimit = Math.max(0, Math.floor(spellLevelLimits[spellLevel - 1] ?? 0));
+    const selectedSpellCountAtLevel = selectedSpellCountsByLevel.get(spellLevel) ?? 0;
+
+    if (spellLevelLimit <= 0 || selectedSpellCountAtLevel >= spellLevelLimit) {
+      continue;
+    }
+
+    selectedSpellIds.push(spellId);
+    selectedSpellCountsByLevel.set(spellLevel, selectedSpellCountAtLevel + 1);
+  }
+
+  return selectedSpellIds;
 }
 
 export function getDefaultCantripIdsForCharacter(className: string, level: number): string[] {

@@ -7,6 +7,7 @@ import type {
   CoreStats
 } from "../../types";
 import { loadPreferences } from "../../storage/preferences";
+import { createDefaultRoundTracker } from "./combat";
 export {
   backgroundOptions,
   classOptions,
@@ -105,6 +106,8 @@ export function createEmptyCharacter(): CharacterDraft {
     skills: [],
     skillExpertise: [],
     toolProficiencies: [],
+    savingThrowProficiencies: [],
+    roundTracker: createDefaultRoundTracker(),
     conditions: [],
     deathSaves: {
       successes: 0,

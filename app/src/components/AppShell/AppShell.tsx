@@ -11,7 +11,7 @@ function AppShell() {
     <div className={styles.shell}>
       <header className={styles.header}>
         <div>
-          <h1 className={styles.title}>D&D App</h1>
+          <h1 className={styles.title}>D&D Companion</h1>
         </div>
         <PrimaryNav links={navigationLinks} />
       </header>

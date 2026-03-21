@@ -599,9 +599,17 @@
 
 .loadoutDrawerActions {
   display: flex;
+  align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
   gap: 0.55rem;
+}
+
+.weaponHandStatusText {
+  margin-right: auto;
+  color: #8a2519;
+  font-size: 0.9rem;
+  font-weight: 600;
 }
 
 .removeItemButton {
@@ -641,11 +649,9 @@
   padding: 0 0.88rem;
 }
 
-.weaponHandToggleDisabled {
+.weaponHandSwapButton {
   background: rgba(169, 55, 41, 0.12);
   color: #8a2519;
-  cursor: not-allowed;
-  opacity: 0.68;
 }
 
 .equipmentOverlayDrawerBackdrop {

@@ -1,4 +1,5 @@
 import type {
+  ACTION_TYPE,
   ABILITY_TYPES,
   ARMOR_TYPES,
   BACKGROUND_TYPES,
@@ -71,6 +72,7 @@ export type SpellDescriptionList = {
   items: string[];
 };
 export type SpellDescriptionEntry = string | SpellDescriptionList;
+export type SpellCastingTimePart = ACTION_TYPE | string;
 export type FeatureClassObj = {
   level: number;
   classFeatures: CLASS_FEATURE[];
@@ -85,7 +87,7 @@ export type SpellEntry = {
   name: string;
   category: ENTRY_CATEGORIES.SPELLS;
   magicSchool: MAGIC_SCHOOL;
-  castingTime: string;
+  castingTime: SpellCastingTimePart[];
   range: string;
   components: SPELL_COMPONENT[];
   duration: string;
