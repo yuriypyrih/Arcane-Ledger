@@ -25,6 +25,7 @@ import {
 } from "../../utils/codex";
 import { useCodexEntries } from "../CodexPage/useCodexEntries";
 import sheetStyles from "../CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import { isShieldArmorEntry } from "../CharactersPage/armor";
 import styles from "./CodexEntryPage.module.css";
 
 const abilityDisplayOrder = [
@@ -79,18 +80,6 @@ function formatInnateProficiencyList({
   ];
 
   return orderedProficiencies.length > 0 ? orderedProficiencies.join(", ") : "None";
-}
-
-function formatMaxDexModifier(maxDexModifier: number | null): string {
-  if (maxDexModifier === null) {
-    return "Full modifier";
-  }
-
-  if (maxDexModifier === 0) {
-    return "No DEX modifier";
-  }
-
-  return `Capped at +${maxDexModifier}`;
 }
 
 function CodexEntryPage() {
@@ -214,22 +203,18 @@ function CodexEntryPage() {
 
                 {entry.category === ENTRY_CATEGORIES.ARMOR ? (
                   <>
-                    <div className={sheetStyles.spellDrawerDetailCard}>
-                      <span>Type</span>
-                      <strong>{formatCodexList(entry.tags)}</strong>
-                    </div>
-                    <div className={sheetStyles.spellDrawerDetailCard}>
-                      <span>Armor Base</span>
-                      <strong>{entry.armorBase > 0 ? entry.armorBase : "-"}</strong>
-                    </div>
-                    <div className={sheetStyles.spellDrawerDetailCard}>
-                      <span>Max DEX Modifier</span>
-                      <strong>{formatMaxDexModifier(entry.maxDexModifier)}</strong>
-                    </div>
-                    <div className={sheetStyles.spellDrawerDetailCard}>
-                      <span>Shield Bonus</span>
-                      <strong>{entry.shieldBonus > 0 ? `+${entry.shieldBonus}` : "None"}</strong>
-                    </div>
+                    {!isShieldArmorEntry(entry) ? (
+                      <div className={sheetStyles.spellDrawerDetailCard}>
+                        <span>Type</span>
+                        <strong>{formatCodexList(entry.tags)}</strong>
+                      </div>
+                    ) : null}
+                    {!isShieldArmorEntry(entry) ? (
+                      <div className={sheetStyles.spellDrawerDetailCard}>
+                        <span>Armor Base</span>
+                        <strong>{entry.armorBase > 0 ? entry.armorBase : "-"}</strong>
+                      </div>
+                    ) : null}
                     <div className={sheetStyles.spellDrawerDetailCard}>
                       <span>Weight</span>
                       <strong>{formatEquipmentWeight(entry.weight)}</strong>

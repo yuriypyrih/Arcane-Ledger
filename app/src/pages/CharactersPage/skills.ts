@@ -1,13 +1,8 @@
 import type { AbilityKey, Character, SkillName } from "../../types";
 import { getAbilityModifier, getProficiencyBonus } from "./gameplay";
+import { skillGroupsByAbility } from "./skillDefinitions";
 
 export type SkillProficiencyMultiplier = 0 | 1 | 2;
-
-export type SkillGroupDefinition = {
-  ability: AbilityKey;
-  abilityLabel: string;
-  skills: SkillName[];
-};
 
 export type SkillRow = {
   name: SkillName;
@@ -24,30 +19,6 @@ export type SkillRowsByAbility = {
   abilityLabel: string;
   rows: SkillRow[];
 };
-
-export const skillGroupsByAbility: SkillGroupDefinition[] = [
-  { ability: "STR", abilityLabel: "Strength", skills: ["Athletics"] },
-  {
-    ability: "DEX",
-    abilityLabel: "Dexterity",
-    skills: ["Acrobatics", "Sleight of Hand", "Stealth"]
-  },
-  {
-    ability: "INT",
-    abilityLabel: "Intelligence",
-    skills: ["Arcana", "History", "Investigation", "Nature", "Religion"]
-  },
-  {
-    ability: "WIS",
-    abilityLabel: "Wisdom",
-    skills: ["Animal Handling", "Insight", "Medicine", "Perception", "Survival"]
-  },
-  {
-    ability: "CHA",
-    abilityLabel: "Charisma",
-    skills: ["Deception", "Intimidation", "Performance", "Persuasion"]
-  }
-];
 
 export function getSkillRowsByAbility(
   character: Character,

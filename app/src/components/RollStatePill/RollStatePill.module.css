@@ -1,0 +1,20 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  padding: 0.14rem 0.38rem;
+  text-transform: uppercase;
+}
+
+.advantage {
+  background: rgba(54, 140, 84, 0.14);
+  color: #2f7a4f;
+}
+
+.disadvantage {
+  background: rgba(185, 71, 60, 0.14);
+  color: #a33f34;
+}

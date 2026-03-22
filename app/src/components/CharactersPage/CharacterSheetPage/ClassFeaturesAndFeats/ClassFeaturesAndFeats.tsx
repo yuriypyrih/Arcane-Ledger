@@ -7,6 +7,7 @@ import {
   ENTRY_CATEGORIES,
   FeatureMap,
   KeywordTooltip,
+  getFeatureTrackingState,
   hardcodedCodexEntries,
   type ClassEntry,
   type FeatureMapEntry,
@@ -192,8 +193,13 @@ function ClassFeaturesAndFeats({ className }: ClassFeaturesAndFeatsProps) {
       <ul className={styles.featureList}>
         {features.map((featureRow) => {
           const featureDetails = featureRow.details;
-          const trackingKeywordKey = featureDetails.isTracked ? "tracked" : "not-tracked";
-          const trackingLabel = featureDetails.isTracked ? "Tracked" : "Not Tracked";
+          const trackingKeywordKey = getFeatureTrackingState(featureDetails);
+          const trackingLabel =
+            trackingKeywordKey === "tracked"
+              ? "Tracked"
+              : trackingKeywordKey === "semi-tracked"
+                ? "Semi Tracked"
+                : "Not Tracked";
           const isFeatureExpanded = expandedFeatureKeys.includes(featureRow.key);
           const featurePanelId = `class-feature-panel-${featureRow.key}`;
 

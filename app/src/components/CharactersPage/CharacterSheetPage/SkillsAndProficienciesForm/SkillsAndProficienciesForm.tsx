@@ -17,6 +17,7 @@ import {
   WEAPON_PROFICIENCY
 } from "../../../../types";
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
+import { getSkillIndicatorsForCharacter } from "../../../../pages/CharactersPage/classFeatures";
 import {
   armorProficiencyOptions,
   getArmorLevelFromEntries,
@@ -45,6 +46,7 @@ import { getSkillRowsByAbility } from "../../../../pages/CharactersPage/skills";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { skillColumnLayout } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import RollStatePill from "../../../RollStatePill/RollStatePill";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./SkillsAndProficienciesForm.module.css";
 
@@ -145,6 +147,7 @@ function SkillsAndProficienciesForm({
     : character.toolProficiencies;
 
   const displayedSkillLevels = getDisplaySkillLevels(displayedSkillProficiencies);
+  const skillIndicators = getSkillIndicatorsForCharacter(character);
   const skillRowsByAbility = getSkillRowsByAbility(
     character,
     displayedSkillLevels.proficient,
@@ -487,13 +490,26 @@ function SkillsAndProficienciesForm({
                               <strong className={styles.skillRowModifier}>
                                 {row.totalModifier >= 0 ? `+${row.totalModifier}` : row.totalModifier}
                               </strong>
-                              <button
-                                type="button"
-                                className={styles.skillNameButton}
-                                onClick={() => openKeywordReference(row.name)}
-                              >
-                                {row.name}
-                              </button>
+                              <div className={styles.skillRowContent}>
+                                <button
+                                  type="button"
+                                  className={styles.skillNameButton}
+                                  onClick={() => openKeywordReference(row.name)}
+                                >
+                                  {row.name}
+                                </button>
+                                {(skillIndicators[row.name]?.length ?? 0) > 0 ? (
+                                  <span className={styles.skillIndicators}>
+                                    {skillIndicators[row.name]?.map((indicator) => (
+                                      <RollStatePill
+                                        key={`${row.name}-${indicator.label}-${indicator.tone}`}
+                                        tone={indicator.tone}
+                                        label={indicator.label}
+                                      />
+                                    ))}
+                                  </span>
+                                ) : null}
+                              </div>
                               {isSkillTableEditing ? (
                                 <SelectInput
                                   className={styles.skillLevelSelect}

@@ -222,6 +222,11 @@
   width: fit-content;
 }
 
+.weaponActionButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
 .weaponActionButton strong {
   font-size: 0.94rem;
 }
@@ -245,6 +250,20 @@
 
 .weaponActionBreakdownRow {
   font-weight: 400;
+}
+
+.featureActionButton {
+  background: rgba(181, 86, 42, 0.1);
+  border-color: rgba(181, 86, 42, 0.22);
+}
+
+.featureActionButtonActive {
+  background: rgba(181, 86, 42, 0.16);
+  border-color: rgba(181, 86, 42, 0.34);
+}
+
+.featureActionMeta {
+  color: #8a4d26;
 }
 
 .utilityStack {

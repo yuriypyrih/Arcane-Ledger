@@ -13,7 +13,7 @@ import {
   wizardFeatureMap
 } from "../classes";
 import { CLASS_FEATURE } from "./enums";
-import type { FeatureMapEntry, KeywordTooltipEntry } from "./types";
+import type { FeatureMapEntry, FeatureTrackingState, KeywordTooltipEntry } from "./types";
 
 export const KeywordTooltip: Record<string, KeywordTooltipEntry> = {
   "short-rest": {
@@ -74,8 +74,22 @@ export const KeywordTooltip: Record<string, KeywordTooltipEntry> = {
     description: [
       "<strong>Not Tracked</strong> means the app is not currently tracking this feature for you, so you need to remember it during play."
     ]
+  },
+  "semi-tracked": {
+    title: "Semi Tracked",
+    description: [
+      "<strong>Semi Tracked</strong> means the app may handle parts of this feature but not all of them, so read the feature for more details."
+    ]
   }
 };
+
+export function getFeatureTrackingState(feature: FeatureMapEntry): FeatureTrackingState {
+  if (feature.trackingState) {
+    return feature.trackingState;
+  }
+
+  return feature.isTracked ? "tracked" : "not-tracked";
+}
 
 const commonFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   [CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT]: {

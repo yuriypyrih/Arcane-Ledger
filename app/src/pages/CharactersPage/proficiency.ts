@@ -2013,7 +2013,13 @@ export function normalizeCharacterEquipmentSelectionsForClass(
 
       return createCharacterEquipmentItem(
         item.name,
-        equipmentDefinition?.category === "weapon" ? item.onHand : false
+        equipmentDefinition?.category === "weapon" ||
+          (equipmentDefinition?.category === "armor" && equipmentDefinition.type === "shield")
+          ? item.onHand || item.worn
+          : false,
+        equipmentDefinition?.category === "armor" && equipmentDefinition.type !== "shield"
+          ? item.worn
+          : false
       );
     });
 }
@@ -2028,7 +2034,13 @@ export function normalizeCharacterEquipmentSelections(
 
       return createCharacterEquipmentItem(
         item.name,
-        equipmentDefinition?.category === "weapon" ? item.onHand : false
+        equipmentDefinition?.category === "weapon" ||
+          (equipmentDefinition?.category === "armor" && equipmentDefinition.type === "shield")
+          ? item.onHand || item.worn
+          : false,
+        equipmentDefinition?.category === "armor" && equipmentDefinition.type !== "shield"
+          ? item.worn
+          : false
       );
     });
 }

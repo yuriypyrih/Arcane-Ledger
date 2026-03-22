@@ -29,6 +29,7 @@ import {
   normalizeRoundTracker,
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
+import { getSpellcastingStateForCharacter } from "../../../../pages/CharactersPage/classFeatures";
 import {
   getCantripLimitForCharacter,
   getPreparedSpellLimitForCharacter,
@@ -197,6 +198,7 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
   }, [closeSelectedSpell, selectedSpell, spellManagementMode, isComponentsTooltipOpen]);
 
   const canCastSpells = isSpellcastingClass(character.className, character.level);
+  const spellcastingState = getSpellcastingStateForCharacter(character);
 
   useEffect(() => {
     if (canCastSpells) {
@@ -215,6 +217,14 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
 
     setIsComponentsTooltipOpen(false);
   }, [selectedSpell]);
+
+  useEffect(() => {
+    if (!spellcastingState.blocked) {
+      return;
+    }
+
+    setSpellManagementMode(null);
+  }, [spellcastingState.blocked]);
 
   const classSpellEntries = useClassSpellEntries(character.className);
   const usesPreparedSpells = usesPreparedSpellsForCharacter(character.className, character.level);
@@ -533,7 +543,7 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
   }
 
   function castSelectedSpell() {
-    if (!selectedSpell) {
+    if (!selectedSpell || spellcastingState.blocked) {
       return;
     }
 
@@ -607,11 +617,20 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
           <p className={shared.eyebrow}>Spellcasting</p>
           <h3 className={shared.subtitle}>Prepared spells and spell slots</h3>
         </div>
-        <button type="button" className={shared.editButton} onClick={openSpellManagementMenu}>
+        <button
+          type="button"
+          className={shared.editButton}
+          onClick={openSpellManagementMenu}
+          disabled={spellcastingState.blocked}
+        >
           <Pencil size={16} />
           Edit
         </button>
       </div>
+
+      {spellcastingState.reason ? (
+        <p className={styles.spellcastingBlockedNotice}>{spellcastingState.reason}</p>
+      ) : null}
 
       <div className={styles.spellSlotHeader}>
         <p className={styles.spellGroupTitle}>Spell slots</p>
@@ -1042,12 +1061,15 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
                 {selectedSpellActionWarning ? (
                   <p className={styles.castActionWarning}>{selectedSpellActionWarning}</p>
                 ) : null}
+                {spellcastingState.reason ? (
+                  <p className={styles.castActionWarning}>{spellcastingState.reason}</p>
+                ) : null}
                 </div>
                 <button
                   type="button"
                   className={sheetStyles.castButton}
                   onClick={castSelectedSpell}
-                  disabled={!canCastSelectedSpell}
+                  disabled={!canCastSelectedSpell || spellcastingState.blocked}
                 >
                   Cast
                 </button>

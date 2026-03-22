@@ -1,6 +1,5 @@
 import {
   ABILITY_TYPES,
-  ARMOR_TYPES,
   BACKGROUND_TYPES,
   CURRENCY_TYPE,
   CLASS_TYPES,
@@ -30,104 +29,13 @@ import {
 } from "../classes";
 import { spellEntries } from "../spells";
 import type { CodexEntry } from "./types";
+import { armorEntries } from "./armorData";
 import { weaponEntries } from "./weaponData";
 
 export const hardcodedCodexEntries: CodexEntry[] = [
   ...spellEntries,
   ...weaponEntries,
-  {
-    id: "armor-leather-armor",
-    name: "Leather Armor",
-    category: ENTRY_CATEGORIES.ARMOR,
-    tags: [ARMOR_TYPES.LIGHT_ARMOR],
-    rarity: RARITY_TYPES.COMMON,
-    armorBase: 11,
-    maxDexModifier: null,
-    shieldBonus: 0,
-    weight: 10,
-    cost: { amount: 10, currency: CURRENCY_TYPE.GP },
-    summary: "Flexible light armor that combines a base AC of 11 with your full DEX modifier."
-  },
-  {
-    id: "armor-studded-leather",
-    name: "Studded Leather Armor",
-    category: ENTRY_CATEGORIES.ARMOR,
-    tags: [ARMOR_TYPES.LIGHT_ARMOR],
-    rarity: RARITY_TYPES.COMMON,
-    armorBase: 12,
-    maxDexModifier: null,
-    shieldBonus: 0,
-    weight: 13,
-    cost: { amount: 45, currency: CURRENCY_TYPE.GP },
-    summary:
-      "Reinforced light armor with metal studs that keeps full DEX scaling and improves base AC."
-  },
-  {
-    id: "armor-hide",
-    name: "Hide Armor",
-    category: ENTRY_CATEGORIES.ARMOR,
-    tags: [ARMOR_TYPES.MEDIUM_ARMOR],
-    rarity: RARITY_TYPES.COMMON,
-    armorBase: 12,
-    maxDexModifier: 2,
-    shieldBonus: 0,
-    weight: 12,
-    cost: { amount: 10, currency: CURRENCY_TYPE.GP },
-    summary: "Practical medium armor with natural materials and a DEX modifier cap of +2."
-  },
-  {
-    id: "armor-half-plate",
-    name: "Half Plate Armor",
-    category: ENTRY_CATEGORIES.ARMOR,
-    tags: [ARMOR_TYPES.MEDIUM_ARMOR],
-    rarity: RARITY_TYPES.RARE,
-    armorBase: 15,
-    maxDexModifier: 2,
-    shieldBonus: 0,
-    weight: 40,
-    cost: { amount: 750, currency: CURRENCY_TYPE.GP },
-    summary:
-      "Sturdy medium armor that offers high base protection while capping DEX contribution at +2."
-  },
-  {
-    id: "armor-chain-mail",
-    name: "Chain Mail",
-    category: ENTRY_CATEGORIES.ARMOR,
-    tags: [ARMOR_TYPES.HEAVY_ARMOR],
-    rarity: RARITY_TYPES.RARE,
-    armorBase: 16,
-    maxDexModifier: 0,
-    shieldBonus: 0,
-    weight: 55,
-    cost: { amount: 75, currency: CURRENCY_TYPE.GP },
-    summary: "Reliable heavy metal armor with a base AC of 16 and no DEX modifier applied."
-  },
-  {
-    id: "armor-plate-armor",
-    name: "Plate Armor",
-    category: ENTRY_CATEGORIES.ARMOR,
-    tags: [ARMOR_TYPES.HEAVY_ARMOR],
-    rarity: RARITY_TYPES.EPIC,
-    armorBase: 18,
-    maxDexModifier: 0,
-    shieldBonus: 0,
-    weight: 65,
-    cost: { amount: 1500, currency: CURRENCY_TYPE.GP },
-    summary: "Full heavy plate for maximum baseline protection with no DEX modifier contribution."
-  },
-  {
-    id: "armor-shield",
-    name: "Shield",
-    category: ENTRY_CATEGORIES.ARMOR,
-    tags: [ARMOR_TYPES.SHIELD],
-    rarity: RARITY_TYPES.COMMON,
-    armorBase: 0,
-    maxDexModifier: null,
-    shieldBonus: 2,
-    weight: 6,
-    cost: { amount: 10, currency: CURRENCY_TYPE.GP },
-    summary: "A defensive shield that adds +2 AC when equipped."
-  },
+  ...armorEntries,
   {
     id: "item-thieves-toolkit",
     name: "Thieve's Toolkit",

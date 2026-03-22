@@ -118,7 +118,8 @@ export function createEmptyCharacter(): CharacterDraft {
     preparedSpellIds: [],
     spellSlotsExpended: Array.from({ length: 9 }, () => 0),
     shortRestsUsedToday: 0,
-    coreStats: createDefaultCoreStats()
+    coreStats: createDefaultCoreStats(),
+    classFeatureState: {}
   };
 }
 

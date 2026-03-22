@@ -14,6 +14,7 @@ import type {
   ToolProficiencyEntry,
   WeaponProficiencyEntry
 } from "./proficiencies";
+import type { CharacterClassFeatureState } from "./classFeatures";
 import type { SkillName } from "./skills";
 
 export type AbilityKey = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
@@ -61,6 +62,7 @@ export type CharacterDeathSaves = {
 export type CharacterEquipmentItem = {
   name: string;
   onHand: boolean;
+  worn: boolean;
 };
 
 export type CustomArmorType = "light" | "medium" | "heavy" | "shield";
@@ -87,6 +89,7 @@ export type CharacterCustomWeapon = CharacterCustomEquipmentBase & {
 
 export type CharacterCustomArmor = CharacterCustomEquipmentBase & {
   kind: "armor";
+  worn: boolean;
   armorType: CustomArmorType;
   armorBase: number;
   maxDexModifier: number | null;
@@ -147,6 +150,7 @@ export type Character = {
   spellSlotsExpended?: number[];
   shortRestsUsedToday?: number;
   coreStats?: CoreStats;
+  classFeatureState?: CharacterClassFeatureState;
 };
 
 export type CharacterDraft = {
@@ -180,4 +184,5 @@ export type CharacterDraft = {
   spellSlotsExpended?: number[];
   shortRestsUsedToday?: number;
   coreStats?: CoreStats;
+  classFeatureState?: CharacterClassFeatureState;
 };

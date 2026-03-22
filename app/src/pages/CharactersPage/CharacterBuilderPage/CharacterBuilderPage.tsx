@@ -60,7 +60,8 @@ function CharacterBuilderPage() {
         preparedSpellIds: existingCharacter.preparedSpellIds,
         spellSlotsExpended: existingCharacter.spellSlotsExpended,
         shortRestsUsedToday: existingCharacter.shortRestsUsedToday,
-        coreStats: existingCharacter.coreStats
+        coreStats: existingCharacter.coreStats,
+        classFeatureState: existingCharacter.classFeatureState
       }
     : emptyCharacter;
 

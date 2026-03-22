@@ -65,6 +65,13 @@
   gap: 0.75rem;
 }
 
+.spellcastingBlockedNotice {
+  margin: 0;
+  color: #a63729;
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
 .spellGroup {
   display: grid;
   gap: 0.45rem;

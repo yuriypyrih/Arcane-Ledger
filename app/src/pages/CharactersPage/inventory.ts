@@ -5,6 +5,7 @@ export type HeldWeaponDescriptor = {
   key: string;
   properties: WEAPON_PROPERTY[];
   versatileDamage?: WeaponDamage;
+  handSlots?: number;
 };
 
 export function createHeldWeaponDescriptor(
@@ -14,17 +15,28 @@ export function createHeldWeaponDescriptor(
   return {
     key,
     properties: weapon.properties,
-    versatileDamage: weapon.versatileDamage
+    versatileDamage: weapon.versatileDamage,
+    handSlots: weapon.properties.includes(WEAPON_PROPERTY.TWO_HANDED) ? 2 : 1
+  };
+}
+
+export function createHeldShieldDescriptor(key: string): HeldWeaponDescriptor {
+  return {
+    key,
+    properties: [],
+    handSlots: 1
   };
 }
 
 export function createCharacterEquipmentItem(
   name: string,
-  onHand = false
+  onHand = false,
+  worn = false
 ): CharacterEquipmentItem {
   return {
     name,
-    onHand
+    onHand,
+    worn
   };
 }
 
@@ -49,7 +61,11 @@ export function normalizeCharacterEquipmentItems(
   selectedEquipment.forEach((item) => {
     const normalizedItem = typeof item === "string"
       ? createCharacterEquipmentItem(normalizeEquipmentName(item))
-      : createCharacterEquipmentItem(normalizeEquipmentName(item.name), Boolean(item.onHand));
+      : createCharacterEquipmentItem(
+          normalizeEquipmentName(item.name),
+          Boolean(item.onHand),
+          Boolean(item.worn)
+        );
 
     if (!normalizedItem.name) {
       return;
@@ -59,7 +75,8 @@ export function normalizeCharacterEquipmentItems(
 
     equipmentByName.set(normalizedItem.name, {
       name: normalizedItem.name,
-      onHand: Boolean(existingItem?.onHand || normalizedItem.onHand)
+      onHand: Boolean(existingItem?.onHand || normalizedItem.onHand),
+      worn: Boolean(existingItem?.worn || normalizedItem.worn)
     });
   });
 
@@ -79,12 +96,20 @@ export function getCharacterEquipmentItem(
   return equipment.find((item) => item.name === itemName);
 }
 
-export function isTwoHandedWeapon(weapon: Pick<WeaponEntry, "properties">): boolean {
-  return weapon.properties.includes(WEAPON_PROPERTY.TWO_HANDED);
+export function isTwoHandedWeapon(
+  weapon: Pick<WeaponEntry, "properties"> | HeldWeaponDescriptor
+): boolean {
+  return getWeaponHandSlots(weapon) === 2;
 }
 
-export function getWeaponHandSlots(weapon: Pick<WeaponEntry, "properties">): number {
-  return isTwoHandedWeapon(weapon) ? 2 : 1;
+export function getWeaponHandSlots(
+  weapon: Pick<WeaponEntry, "properties"> | HeldWeaponDescriptor
+): number {
+  if ("handSlots" in weapon && typeof weapon.handSlots === "number") {
+    return weapon.handSlots;
+  }
+
+  return weapon.properties.includes(WEAPON_PROPERTY.TWO_HANDED) ? 2 : 1;
 }
 
 export function getHeldWeaponSlotCount(heldWeapons: HeldWeaponDescriptor[]): number {

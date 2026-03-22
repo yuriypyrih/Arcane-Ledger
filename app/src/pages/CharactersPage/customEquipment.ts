@@ -36,6 +36,7 @@ export type ResolvedCustomArmorEntry = ArmorEntry & {
   source: "custom";
   customEquipmentId: string;
   rarity: RARITY_TYPES.CUSTOM;
+  worn: boolean;
 };
 
 export type ResolvedCustomItemEntry = ItemEntry & {
@@ -297,6 +298,7 @@ function normalizeCustomArmor(
   return {
     id: normalizeText(value.id, fallbackId),
     kind: "armor",
+    worn: Boolean(value.worn),
     name,
     description: normalizeText(value.description),
     armorType,
@@ -433,8 +435,8 @@ export function resolveCustomEquipmentToLoadoutEntry(
       tags: armorTagsByType[customEquipment.armorType],
       summary,
       rarity: RARITY_TYPES.CUSTOM,
+      worn: customEquipment.worn,
       armorBase: customEquipment.armorBase,
-      maxDexModifier: customEquipment.maxDexModifier,
       shieldBonus: customEquipment.shieldBonus,
       weight: customEquipment.weight,
       cost: customEquipment.cost,

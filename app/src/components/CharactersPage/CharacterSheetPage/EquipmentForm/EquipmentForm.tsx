@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Hand, Minus, Plus, Search, SearchX, X } from "lucide-react";
+import { Hand, Minus, Plus, Search, SearchX, Shield, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { useFormContext } from "react-hook-form";
 import coinCopperIcon from "../../../../assets/svg/coin-copper.svg";
@@ -40,12 +40,18 @@ import {
   type ResolvedCustomLoadoutEntry
 } from "../../../../pages/CharactersPage/customEquipment";
 import {
+  createHeldShieldDescriptor,
   canWeaponBePutOnHand,
   createHeldWeaponDescriptor,
   createCharacterEquipmentItem,
   getCharacterEquipmentItem,
   type HeldWeaponDescriptor
 } from "../../../../pages/CharactersPage/inventory";
+import {
+  isShieldArmorEntry,
+  setCodexArmorWornState,
+  setCustomArmorWornState
+} from "../../../../pages/CharactersPage/armor";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
@@ -73,6 +79,7 @@ type LoadoutGroupItem = {
   entry: LoadoutDrawerEntry;
   customEquipmentId?: string;
   onHand: boolean;
+  worn: boolean;
 };
 type EquipmentGroup = {
   key: EquipmentGroupKey;
@@ -160,16 +167,33 @@ function getCurrencyDefinitionByType(currencyType: CURRENCY_TYPE): CurrencyDefin
   );
 }
 
-function formatMaxDexModifier(maxDexModifier: number | null): string {
-  if (maxDexModifier === null) {
-    return "Full modifier";
+function isHandEquippableEntry(entry: LoadoutDrawerEntry): boolean {
+  return entry.category === ENTRY_CATEGORIES.WEAPONS || (
+    entry.category === ENTRY_CATEGORIES.ARMOR && isShieldArmorEntry(entry)
+  );
+}
+
+function createHeldDescriptorForEntry(
+  key: string,
+  entry: LoadoutDrawerEntry
+): HeldWeaponDescriptor | null {
+  if (entry.category === ENTRY_CATEGORIES.WEAPONS) {
+    return createHeldWeaponDescriptor(key, entry);
   }
 
-  if (maxDexModifier === 0) {
-    return "No DEX modifier";
+  if (entry.category === ENTRY_CATEGORIES.ARMOR && isShieldArmorEntry(entry)) {
+    return createHeldShieldDescriptor(key);
   }
 
-  return `Capped at +${maxDexModifier}`;
+  return null;
+}
+
+function getArmorTypeSummary(entry: ArmorEntry): string {
+  if (isShieldArmorEntry(entry)) {
+    return "Shield";
+  }
+
+  return formatCodexList(entry.tags);
 }
 
 function formatWeightValue(weight: number): string {
@@ -338,7 +362,10 @@ function applyEquipmentToCharacter(currentCharacter: Character, itemName: string
 function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
   const { watch } = useFormContext<Character>();
   const character = watch() as Character;
-  const customEquipment = character.customEquipment ?? [];
+  const customEquipment = useMemo(
+    () => character.customEquipment ?? [],
+    [character.customEquipment]
+  );
   const catalogSearchInputRef = useRef<HTMLInputElement | null>(null);
   const catalogListRef = useRef<HTMLUListElement | null>(null);
   const [selectedLoadoutEntry, setSelectedLoadoutEntry] =
@@ -476,7 +503,8 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
             key: `codex-${entry.id}`,
             name: entry.name,
             entry,
-            onHand: item.onHand
+            onHand: item.onHand,
+            worn: item.worn
           } satisfies LoadoutGroupItem;
         })
         .filter((item): item is LoadoutGroupItem => item !== null),
@@ -487,7 +515,8 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
             name: entry.name,
             entry,
             customEquipmentId: entry.customEquipmentId,
-            onHand: entry.category === ENTRY_CATEGORIES.WEAPONS ? entry.onHand : false
+            onHand: entry.category === ENTRY_CATEGORIES.WEAPONS ? entry.onHand : false,
+            worn: entry.category === ENTRY_CATEGORIES.ARMOR ? entry.worn : false
           }) satisfies LoadoutGroupItem
       )
     ],
@@ -527,11 +556,11 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
         .map((item) => {
           const entry = getLoadoutCodexEntryByName(item.name);
 
-          if (!entry || entry.category !== ENTRY_CATEGORIES.WEAPONS) {
+          if (!entry) {
             return null;
           }
 
-          return createHeldWeaponDescriptor(`codex-${entry.id}`, entry);
+          return createHeldDescriptorForEntry(`codex-${entry.id}`, entry);
         })
         .filter((entry): entry is HeldWeaponDescriptor => entry !== null),
       ...resolvedCustomEquipmentEntries
@@ -545,11 +574,8 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
     ],
     [character.equipment, resolvedCustomEquipmentEntries]
   );
-  const selectedWeaponDescriptor = useMemo(() => {
-    if (
-      !selectedLoadoutEntryData ||
-      selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS
-    ) {
+  const selectedHandDescriptor = useMemo(() => {
+    if (!selectedLoadoutEntryData || !isHandEquippableEntry(selectedLoadoutEntryData)) {
       return null;
     }
 
@@ -557,13 +583,10 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
       ? `custom-${selectedLoadoutEntry.customEquipmentId}`
       : `codex-${selectedLoadoutEntryData.id}`;
 
-    return createHeldWeaponDescriptor(key, selectedLoadoutEntryData);
+    return createHeldDescriptorForEntry(key, selectedLoadoutEntryData);
   }, [selectedLoadoutEntry, selectedLoadoutEntryData]);
-  const isSelectedWeaponOnHand = useMemo(() => {
-    if (
-      !selectedLoadoutEntryData ||
-      selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS
-    ) {
+  const isSelectedEntryOnHand = useMemo(() => {
+    if (!selectedLoadoutEntryData || !isHandEquippableEntry(selectedLoadoutEntryData)) {
       return false;
     }
 
@@ -579,14 +602,36 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
       getCharacterEquipmentItem(character.equipment, selectedLoadoutEntryData.name)?.onHand
     );
   }, [character.equipment, customEquipment, selectedLoadoutEntry, selectedLoadoutEntryData]);
-  const canSelectedWeaponBePutOnHand =
-    selectedWeaponDescriptor && !isSelectedWeaponOnHand
-      ? canWeaponBePutOnHand(selectedWeaponDescriptor, heldWeaponDescriptors)
+  const isSelectedArmorWorn = useMemo(() => {
+    if (
+      !selectedLoadoutEntryData ||
+      selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.ARMOR ||
+      isShieldArmorEntry(selectedLoadoutEntryData)
+    ) {
+      return false;
+    }
+
+    if (selectedLoadoutEntry?.customEquipmentId) {
+      const customArmor = findCustomEquipmentById(
+        customEquipment,
+        selectedLoadoutEntry.customEquipmentId
+      );
+      return customArmor?.kind === "armor" ? customArmor.worn : false;
+    }
+
+    return Boolean(getCharacterEquipmentItem(character.equipment, selectedLoadoutEntryData.name)?.worn);
+  }, [character.equipment, customEquipment, selectedLoadoutEntry, selectedLoadoutEntryData]);
+  const isSelectedShield =
+    selectedLoadoutEntryData?.category === ENTRY_CATEGORIES.ARMOR &&
+    isShieldArmorEntry(selectedLoadoutEntryData);
+  const canSelectedEntryBePutOnHand =
+    selectedHandDescriptor && !isSelectedEntryOnHand
+      ? canWeaponBePutOnHand(selectedHandDescriptor, heldWeaponDescriptors)
       : false;
-  const shouldOfferWeaponHandSwap =
-    selectedLoadoutEntryData?.category === ENTRY_CATEGORIES.WEAPONS &&
-    !isSelectedWeaponOnHand &&
-    !canSelectedWeaponBePutOnHand;
+  const shouldOfferHandSwap =
+    Boolean(selectedHandDescriptor) &&
+    !isSelectedEntryOnHand &&
+    !canSelectedEntryBePutOnHand;
   const availableCatalogItems = useMemo(
     () =>
       groupCatalogItems(
@@ -668,11 +713,11 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
                   .map((item) => {
                     const entry = getLoadoutCodexEntryByName(item.name);
 
-                    if (!entry || entry.category !== ENTRY_CATEGORIES.WEAPONS) {
+                    if (!entry) {
                       return null;
                     }
 
-                    return createHeldWeaponDescriptor(`codex-${entry.id}`, entry);
+                    return createHeldDescriptorForEntry(`codex-${entry.id}`, entry);
                   })
                   .filter((entry): entry is HeldWeaponDescriptor => entry !== null),
                 ...currentCharacter.customEquipment
@@ -860,15 +905,12 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
     setSelectedLoadoutEntry(null);
   }
 
-  function toggleWeaponOnHand() {
-    if (
-      !selectedLoadoutEntryData ||
-      selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS
-    ) {
+  function toggleEntryOnHand() {
+    if (!selectedLoadoutEntryData || !isHandEquippableEntry(selectedLoadoutEntryData)) {
       return;
     }
 
-    if (!isSelectedWeaponOnHand && !canSelectedWeaponBePutOnHand) {
+    if (!isSelectedEntryOnHand && !canSelectedEntryBePutOnHand) {
       return;
     }
 
@@ -905,12 +947,8 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
     closeLoadoutDrawer();
   }
 
-  function swapWeaponToHand() {
-    if (
-      !selectedLoadoutEntryData ||
-      selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS ||
-      isSelectedWeaponOnHand
-    ) {
+  function swapEntryToHand() {
+    if (!selectedLoadoutEntryData || !isHandEquippableEntry(selectedLoadoutEntryData) || isSelectedEntryOnHand) {
       return;
     }
 
@@ -934,6 +972,26 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
         customEquipment: nextCustomEquipment
       };
     });
+
+    closeLoadoutDrawer();
+  }
+
+  function toggleArmorWorn() {
+    if (!selectedLoadoutEntryData || selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.ARMOR) {
+      return;
+    }
+
+    const nextWornState = !isSelectedArmorWorn;
+
+    onPersistCharacter((currentCharacter) =>
+      selectedLoadoutEntry?.customEquipmentId
+        ? setCustomArmorWornState(
+            currentCharacter,
+            selectedLoadoutEntry.customEquipmentId,
+            nextWornState
+          )
+        : setCodexArmorWornState(currentCharacter, selectedLoadoutEntryData.name, nextWornState)
+    );
 
     closeLoadoutDrawer();
   }
@@ -1059,6 +1117,12 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
                               <span className={styles.equipmentItemOnHand}>
                                 <Hand size={13} aria-hidden="true" />
                                 <span>On Hand</span>
+                              </span>
+                            ) : null}
+                            {item.worn ? (
+                              <span className={styles.equipmentItemWorn}>
+                                <Shield size={13} aria-hidden="true" />
+                                <span>Worn</span>
                               </span>
                             ) : null}
                           </span>
@@ -1511,10 +1575,16 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
                 </p>
                 <div className={sheetStyles.spellDrawerTitleRow}>
                   <h3 id="character-loadout-drawer-title">{selectedLoadoutEntryData.name}</h3>
-                  {isSelectedWeaponOnHand ? (
+                  {isSelectedEntryOnHand ? (
                     <span className={styles.drawerOnHandBadge}>
                       <Hand size={13} aria-hidden="true" />
                       <span>On Hand</span>
+                    </span>
+                  ) : null}
+                  {isSelectedArmorWorn ? (
+                    <span className={styles.drawerWornBadge}>
+                      <Shield size={13} aria-hidden="true" />
+                      <span>Worn</span>
                     </span>
                   ) : null}
                   {"rarity" in selectedLoadoutEntryData ? (
@@ -1571,7 +1641,7 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
                     </strong>
                   </div>
                 </>
-              ) : (
+              ) : selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR && isSelectedShield ? null : (
                 <div className={sheetStyles.spellDrawerDetailCard}>
                   <span>Type</span>
                   <strong>
@@ -1579,33 +1649,21 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
                       ? selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR
                         ? "Custom armor"
                         : "Custom item"
-                      : formatCodexList(selectedLoadoutEntryData.tags)}
+                      : selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR
+                        ? getArmorTypeSummary(selectedLoadoutEntryData)
+                        : formatCodexList(selectedLoadoutEntryData.tags)}
                   </strong>
                 </div>
               )}
 
               {selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR ? (
                 <>
-                  <div className={sheetStyles.spellDrawerDetailCard}>
-                    <span>Armor base</span>
-                    <strong>
-                      {selectedLoadoutEntryData.armorBase > 0
-                        ? selectedLoadoutEntryData.armorBase
-                        : "-"}
-                    </strong>
-                  </div>
-                  <div className={sheetStyles.spellDrawerDetailCard}>
-                    <span>Max DEX modifier</span>
-                    <strong>{formatMaxDexModifier(selectedLoadoutEntryData.maxDexModifier)}</strong>
-                  </div>
-                  <div className={sheetStyles.spellDrawerDetailCard}>
-                    <span>Shield bonus</span>
-                    <strong>
-                      {selectedLoadoutEntryData.shieldBonus > 0
-                        ? `+${selectedLoadoutEntryData.shieldBonus}`
-                        : "None"}
-                    </strong>
-                  </div>
+                  {!isSelectedShield ? (
+                    <div className={sheetStyles.spellDrawerDetailCard}>
+                      <span>Armor base</span>
+                      <strong>{selectedLoadoutEntryData.armorBase}</strong>
+                    </div>
+                  ) : null}
                 </>
               ) : null}
 
@@ -1635,27 +1693,37 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
 
             {!isCatalogDrawerInspection ? (
               <div className={styles.loadoutDrawerActions}>
-                {selectedLoadoutEntryData.category === ENTRY_CATEGORIES.WEAPONS ? (
+                {selectedLoadoutEntryData && isHandEquippableEntry(selectedLoadoutEntryData) ? (
                   <>
-                    {shouldOfferWeaponHandSwap ? (
+                    {shouldOfferHandSwap ? (
                       <span className={styles.weaponHandStatusText}>Hands are full</span>
                     ) : null}
                     <button
                       type="button"
                       className={clsx(
                         styles.editItemButton,
-                        shouldOfferWeaponHandSwap && styles.weaponHandSwapButton
+                        shouldOfferHandSwap && styles.weaponHandSwapButton
                       )}
-                      onClick={shouldOfferWeaponHandSwap ? swapWeaponToHand : toggleWeaponOnHand}
+                      onClick={shouldOfferHandSwap ? swapEntryToHand : toggleEntryOnHand}
                     >
                       <Hand size={15} aria-hidden="true" />
-                      {isSelectedWeaponOnHand
+                      {isSelectedEntryOnHand
                         ? "Remove from Hand"
-                        : shouldOfferWeaponHandSwap
+                        : shouldOfferHandSwap
                           ? "Swap to Hand"
                           : "Put on Hand"}
                     </button>
                   </>
+                ) : null}
+                {selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR && !isSelectedShield ? (
+                  <button
+                    type="button"
+                    className={styles.editItemButton}
+                    onClick={toggleArmorWorn}
+                  >
+                    <Shield size={15} aria-hidden="true" />
+                    {isSelectedArmorWorn ? "Remove Armor" : "Wear Armor"}
+                  </button>
                 ) : null}
                 {selectedLoadoutEntry.customEquipmentId ? (
                   <>

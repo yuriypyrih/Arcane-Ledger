@@ -1,4 +1,5 @@
 export * from "./characters";
+export * from "./classFeatures";
 export * from "./codex";
 export * from "./dice";
 export * from "./proficiencies";

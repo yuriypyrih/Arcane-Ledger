@@ -207,6 +207,10 @@
   padding-right: 2rem;
 }
 
+.referenceDetailCardFullWidth {
+  grid-column: 1 / -1;
+}
+
 .savingThrowEditCardActive {
   background: rgba(111, 43, 197, 0.13);
   border-color: rgba(111, 43, 197, 0.4);

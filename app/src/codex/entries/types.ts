@@ -58,9 +58,11 @@ export type EquipmentCost = {
   currency: CURRENCY_TYPE;
 };
 export type WeaponCost = EquipmentCost;
+export type FeatureTrackingState = "tracked" | "semi-tracked" | "not-tracked";
 export type FeatureMapEntry = {
   description: string[];
-  isTracked: boolean;
+  trackingState?: FeatureTrackingState;
+  isTracked?: boolean;
 };
 export type KeywordTooltipEntry = {
   title: string;
@@ -111,7 +113,6 @@ export type WeaponEntry = Omit<BaseCodexEntry<ENTRY_CATEGORIES.WEAPONS, never>, 
 export type ArmorEntry = BaseCodexEntry<ENTRY_CATEGORIES.ARMOR, ARMOR_TYPES> &
   EntryWithRarity & {
     armorBase: number;
-    maxDexModifier: number | null;
     shieldBonus: number;
     weight: number | null;
     cost: EquipmentCost;

@@ -28,10 +28,17 @@ import {
   normalizeRoundTracker,
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
+import { getCombatActionsForCharacter } from "../../../../pages/CharactersPage/combatActions";
+import {
+  activateFeatureActionForCharacter,
+  applyLongRestToFeatureState,
+  applyShortRestToFeatureState,
+  getResolvedConditionsForCharacter,
+  removeFeatureConditionForCharacter
+} from "../../../../pages/CharactersPage/classFeatures";
 import {
   formatAbilityModifier,
   getAutomaticMaxHitPointsForCharacter,
-  getWeaponActionsForCharacter,
   type WeaponAction
 } from "../../../../pages/CharactersPage/gameplay";
 import type {
@@ -267,6 +274,10 @@ function getWeaponActionRollDescription(action: WeaponAction): string {
     segments.push("+ Versatile Bonus");
   }
 
+  action.damageBonusEntries.forEach((entry) => {
+    segments.push(`${entry.label} ${formatAbilityModifier(entry.value)}`);
+  });
+
   return segments.join(" | ");
 }
 
@@ -283,10 +294,18 @@ function getWeaponActionBreakdown(action: WeaponAction): string {
     segments.push("+ Versatile Bonus");
   }
 
+  action.damageBonusEntries.forEach((entry) => {
+    segments.push(`${entry.label} ${formatSignedValue(entry.value)}`);
+  });
+
   return segments.join(" | ");
 }
 
 function getConditionDescription(name: string): string {
+  if (name === "Rage") {
+    return "Primal fury is active. Strength-based weapon and unarmed damage are empowered, Strength saving throws have Advantage, and spellcasting is disabled.";
+  }
+
   const condition = conditionCatalog.find((entry) => entry.name === name);
 
   if (!condition) {
@@ -394,7 +413,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   }, [hasOverlayOpen]);
 
   const roundTracker = normalizeRoundTracker(character.roundTracker);
-  const conditions = normalizeCharacterConditions(character.conditions);
+  const conditions = getResolvedConditionsForCharacter(character);
   const deathSaves = normalizeDeathSaves(character.deathSaves);
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
 
@@ -468,7 +487,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     character.hitPoints > 0 ? (temporaryHitPoints / character.hitPoints) * 100 : 0;
   const temporaryHitPointOverflow =
     character.currentHitPoints + temporaryHitPoints > character.hitPoints;
-  const weaponActions = getWeaponActionsForCharacter(character);
+  const combatActions = getCombatActionsForCharacter(character);
   const shortRestsUsedToday = clampNumber(character.shortRestsUsedToday, 0, 2, 0);
   const shortRestsRemaining = Math.max(0, 2 - shortRestsUsedToday);
   const shortRestHealAmount = Math.ceil(character.hitPoints / 2);
@@ -672,7 +691,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
       );
 
       return {
-        ...currentCharacter,
+        ...applyShortRestToFeatureState(currentCharacter),
         currentHitPoints: nextCurrentHitPoints,
         temporaryHitPoints: 0,
         shortRestsUsedToday: shortRestsUsedToday + 1,
@@ -689,7 +708,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
 
   function takeLongRest() {
     onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
+      ...applyLongRestToFeatureState(currentCharacter),
       currentHitPoints: currentCharacter.hitPoints,
       temporaryHitPoints: 0,
       shortRestsUsedToday: 0,
@@ -744,14 +763,35 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   }
 
   function removeCondition(conditionName: string) {
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      conditions: normalizeCharacterConditions(currentCharacter.conditions).filter(
-        (condition) => condition.name !== conditionName
-      )
-    }));
+    onPersistCharacter((currentCharacter) => {
+      const nextCharacter = removeFeatureConditionForCharacter(currentCharacter, conditionName);
+
+      return {
+        ...nextCharacter,
+        conditions: normalizeCharacterConditions(nextCharacter.conditions).filter(
+          (condition) => condition.name !== conditionName
+        )
+      };
+    });
 
     setSelectedConditionName(null);
+  }
+
+  function activateFeatureAction(actionKey: string, actionCost: RoundTrackerResource | null) {
+    onPersistCharacter((currentCharacter) => {
+      const nextCharacter = activateFeatureActionForCharacter(currentCharacter, actionKey);
+
+      if (nextCharacter === currentCharacter) {
+        return currentCharacter;
+      }
+
+      return actionCost
+        ? {
+            ...nextCharacter,
+            roundTracker: consumeRoundTrackerResource(nextCharacter.roundTracker, actionCost)
+          }
+        : nextCharacter;
+    });
   }
 
   function finishRound() {
@@ -1007,39 +1047,71 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
           <header className={styles.widgetHeader}>
             <p className={styles.widgetTitle}>Weapon Actions</p>
           </header>
-          {weaponActions.length === 0 ? (
+          {combatActions.length === 0 ? (
             <p className={shared.emptyText}>
-              No weapon actions available. Equip a weapon to roll attacks.
+              No combat actions available. Equip a weapon to roll attacks.
             </p>
           ) : (
             <div className={styles.weaponActionGrid}>
-              {weaponActions.map((action) => (
-                <button
-                  key={action.key}
-                  type="button"
-                  className={styles.weaponActionButton}
-                  onClick={() => {
-                    openDiceRoller({
-                      title: `${action.name} attack`,
-                      formula: action.rollFormula,
-                      description: getWeaponActionRollDescription(action)
-                    });
-                    updateRoundTracker("action");
-                  }}
-                >
-                  <strong>{action.name}</strong>
-                  <span className={styles.weaponActionDamageRow}>
-                    {getDamageRangeLabel(
-                      action.damageLabel,
-                      action.totalModifier,
-                      action.rollFormula
+              {combatActions.map((combatAction) =>
+                combatAction.kind === "weapon" ? (
+                  <button
+                    key={combatAction.action.key}
+                    type="button"
+                    className={styles.weaponActionButton}
+                    onClick={() => {
+                      openDiceRoller({
+                        title: `${combatAction.action.name} attack`,
+                        formula: combatAction.action.rollFormula,
+                        description: getWeaponActionRollDescription(combatAction.action)
+                      });
+                      updateRoundTracker("action");
+                    }}
+                  >
+                    <strong>{combatAction.action.name}</strong>
+                    <span className={styles.weaponActionDamageRow}>
+                      {getDamageRangeLabel(
+                        combatAction.action.damageLabel,
+                        combatAction.action.totalModifier,
+                        combatAction.action.rollFormula
+                      )}
+                    </span>
+                    <small className={styles.weaponActionBreakdownRow}>
+                      {getWeaponActionBreakdown(combatAction.action)}
+                    </small>
+                  </button>
+                ) : (
+                  <button
+                    key={combatAction.action.key}
+                    type="button"
+                    className={clsx(
+                      styles.weaponActionButton,
+                      styles.featureActionButton,
+                      combatAction.action.isActive && styles.featureActionButtonActive
                     )}
-                  </span>
-                  <small className={styles.weaponActionBreakdownRow}>
-                    {getWeaponActionBreakdown(action)}
-                  </small>
-                </button>
-              ))}
+                    disabled={combatAction.action.disabled}
+                    onClick={() =>
+                      activateFeatureAction(combatAction.action.key, combatAction.action.actionCost)
+                    }
+                  >
+                    <strong>{combatAction.action.name}</strong>
+                    <span className={clsx(styles.weaponActionDamageRow, styles.featureActionMeta)}>
+                      {combatAction.action.actionCost === "bonusAction"
+                        ? "Bonus Action"
+                        : combatAction.action.actionCost === "action"
+                          ? "Action"
+                          : "Free"}
+                      {combatAction.action.usesLabel ? ` | ${combatAction.action.usesLabel}` : ""}
+                    </span>
+                    <small className={styles.weaponActionBreakdownRow}>
+                      {combatAction.action.disabledReason ??
+                        (combatAction.action.isActive
+                          ? combatAction.action.detail
+                          : combatAction.action.summary)}
+                    </small>
+                  </button>
+                )
+              )}
             </div>
           )}
         </section>

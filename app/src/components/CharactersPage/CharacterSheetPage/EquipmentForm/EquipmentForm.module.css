@@ -80,7 +80,9 @@
 }
 
 .equipmentItemOnHand,
-.drawerOnHandBadge {
+.drawerOnHandBadge,
+.equipmentItemWorn,
+.drawerWornBadge {
   display: inline-flex;
   align-items: center;
   gap: 0.24rem;
@@ -92,6 +94,12 @@
   letter-spacing: 0.03em;
   padding: 0.16rem 0.5rem;
   white-space: nowrap;
+}
+
+.equipmentItemWorn,
+.drawerWornBadge {
+  background: rgba(78, 95, 36, 0.14);
+  color: #51631f;
 }
 
 .equipmentItemMeta {

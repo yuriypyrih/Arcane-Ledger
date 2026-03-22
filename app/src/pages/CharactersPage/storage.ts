@@ -10,6 +10,7 @@ import {
   createEmptyCharacter
 } from "./constants";
 import { normalizeCharacterConditions, normalizeRoundTracker } from "./combat";
+import { normalizeCharacterArmorWearState } from "./armor";
 import {
   isBackgroundName,
   normalizeCharacterEquipmentSelections,
@@ -26,6 +27,7 @@ import {
   normalizePreparedSpellIds,
   normalizeSpellSlotsExpended
 } from "./spellcasting";
+import { normalizeCharacterClassFeatureState } from "./classFeatures";
 import { normalizeLevelAndXp } from "./experience";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
 
@@ -66,6 +68,20 @@ function normalizeCoreStats(value: unknown): CoreStats {
     proficiencyBonus: normalizeCoreStatValue(record.proficiencyBonus, defaults.proficiencyBonus),
     hitDice: normalizeCoreStatValue(record.hitDice, defaults.hitDice)
   };
+}
+
+function hasExplicitArmorWornState(value: unknown): boolean {
+  if (!Array.isArray(value)) {
+    return false;
+  }
+
+  return value.some((entry) => {
+    if (!entry || typeof entry !== "object") {
+      return false;
+    }
+
+    return "worn" in entry && typeof (entry as { worn?: unknown }).worn === "boolean";
+  });
 }
 
 function normalizeCurrencies(
@@ -154,6 +170,7 @@ function normalizeCharacter(value: unknown): Character | null {
     conditions?: unknown;
     deathSaves?: unknown;
     customEquipment?: unknown;
+    classFeatureState?: unknown;
   };
   const id = Number(record.id);
 
@@ -205,8 +222,17 @@ function normalizeCharacter(value: unknown): Character | null {
         (toolProficiency): toolProficiency is string => typeof toolProficiency === "string"
       )
     : (defaults.toolProficiencies ?? []);
+  const hasPersistedArmorWearState =
+    hasExplicitArmorWornState(record.equipment) || hasExplicitArmorWornState(record.customEquipment);
   const normalizedEquipment = normalizeCharacterEquipmentSelections(rawEquipment);
   const normalizedCustomEquipment = normalizeCustomEquipmentEntries(record.customEquipment);
+  const normalizedArmorWearState = normalizeCharacterArmorWearState(
+    normalizedEquipment,
+    normalizedCustomEquipment,
+    {
+      autoEquipLegacyArmor: !hasPersistedArmorWearState
+    }
+  );
   const normalizedProficiencies = normalizeCharacterProficiencies({
     className: normalizedClassName,
     species: normalizedSpecies,
@@ -286,6 +312,10 @@ function normalizeCharacter(value: unknown): Character | null {
   const normalizedRoundTracker = normalizeRoundTracker(record.roundTracker);
   const normalizedConditions = normalizeCharacterConditions(record.conditions);
   const normalizedDeathSaves = normalizeDeathSaves(record.deathSaves);
+  const normalizedClassFeatureState = normalizeCharacterClassFeatureState(record.classFeatureState, {
+    className: normalizedClassName,
+    level: normalizedLevel
+  });
   const normalizedTemporaryHitPoints = Math.floor(
     clampNumber(record.temporaryHitPoints, 0, 999, defaults.temporaryHitPoints)
   );
@@ -329,14 +359,15 @@ function normalizeCharacter(value: unknown): Character | null {
     roundTracker: normalizedRoundTracker,
     conditions: normalizedConditions,
     deathSaves: normalizedDeathSaves,
-    equipment: normalizedEquipment,
-    customEquipment: normalizedCustomEquipment,
+    equipment: normalizedArmorWearState.equipment,
+    customEquipment: normalizedArmorWearState.customEquipment,
     cantripIds: normalizedCantripIds,
     preparedSpellIds: normalizedPreparedSpellIds,
     spellSlotsExpended: normalizedSpellSlotsExpended,
     shortRestsUsedToday: normalizedShortRestsUsedToday,
     hitDiceRemaining: normalizedHitDiceRemaining,
-    coreStats: normalizedCoreStats
+    coreStats: normalizedCoreStats,
+    classFeatureState: normalizedClassFeatureState
   };
 }
 

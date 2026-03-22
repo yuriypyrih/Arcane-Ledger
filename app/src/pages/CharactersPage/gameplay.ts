@@ -1,11 +1,9 @@
 import {
-  ARMOR_TYPES,
   ENTRY_CATEGORIES,
   WEAPON_COMBAT_TYPE,
   WEAPON_PROPERTY,
   WEAPON_TRAINING,
   hardcodedCodexEntries,
-  type ArmorEntry,
   type ClassEntry,
   type CodexEntry,
   type SpeciesEntry,
@@ -15,9 +13,13 @@ import type { AbilityKey, AbilityScores, Character, SkillName } from "../../type
 import { PROF_LEVEL } from "../../types";
 import { formatWeaponDamage, formatWeaponDamageFormula } from "../../utils/codex";
 import {
+  getFeatureDamageBonusesForWeaponAction,
+  type FeatureDamageBonus
+} from "./classFeatures";
+import {
+  createHeldShieldDescriptor,
   createHeldWeaponDescriptor,
   getHeldWeaponSlotCount,
-  getCharacterEquipmentNames,
   hasVersatileHandBonus,
   type HeldWeaponDescriptor
 } from "./inventory";
@@ -26,12 +28,10 @@ import {
   getSkillLevelFromEntries,
   getSkillProficiencyForName,
   getWeaponLevelFromEntries,
-  getWeaponProficiencyForTraining,
-  type ArmorType
+  getWeaponProficiencyForTraining
 } from "./proficiency";
 import {
   getResolvedCustomLoadoutEntries,
-  type ResolvedCustomArmorEntry,
   type ResolvedCustomWeaponEntry
 } from "./customEquipment";
 
@@ -44,15 +44,10 @@ type WeaponReference = {
   hasVersatileBonus: boolean;
 };
 
-type ArmorReference = {
-  armorBase: number;
-  maxDexModifier: number | null;
-  shieldBonus: number;
-};
-
 export type WeaponAction = {
   key: string;
   name: string;
+  attackKind: "weapon" | "unarmed";
   damageLabel: string;
   damageFormula: string;
   rollDisplay: string;
@@ -61,6 +56,7 @@ export type WeaponAction = {
   proficiencyLabel: string;
   proficiencyBonus: number;
   totalModifier: number;
+  damageBonusEntries: FeatureDamageBonus[];
   rollFormula: string;
   hasVersatileBonus: boolean;
 };
@@ -89,15 +85,6 @@ const codexWeaponEntriesByName = new Map<string, WeaponEntry>(
     .map((entry) => [entry.name, entry])
 );
 
-const codexArmorEntriesByName = new Map<string, ArmorEntry>(
-  hardcodedCodexEntries
-    .filter(
-      (entry): entry is ArmorEntry =>
-        isArmorEntry(entry) && entry.category === ENTRY_CATEGORIES.ARMOR
-    )
-    .map((entry) => [entry.name, entry])
-);
-
 const codexClassEntriesByName = new Map<string, ClassEntry>(
   hardcodedCodexEntries
     .filter(
@@ -118,10 +105,6 @@ const codexSpeciesEntriesByName = new Map<string, SpeciesEntry>(
 
 function isWeaponEntry(entry: CodexEntry): entry is WeaponEntry {
   return entry.category === ENTRY_CATEGORIES.WEAPONS;
-}
-
-function isArmorEntry(entry: CodexEntry): entry is ArmorEntry {
-  return entry.category === ENTRY_CATEGORIES.ARMOR;
 }
 
 function isSpeciesEntry(entry: CodexEntry): entry is SpeciesEntry {
@@ -178,49 +161,6 @@ function getWeaponReference(
   return fallbackWeaponReferencesByName.get(name) ?? null;
 }
 
-const fallbackArmorReferencesByType: Record<ArmorType, ArmorReference> = {
-  light: {
-    armorBase: 11,
-    maxDexModifier: null,
-    shieldBonus: 0
-  },
-  medium: {
-    armorBase: 14,
-    maxDexModifier: 2,
-    shieldBonus: 0
-  },
-  heavy: {
-    armorBase: 16,
-    maxDexModifier: 0,
-    shieldBonus: 0
-  },
-  shield: {
-    armorBase: 0,
-    maxDexModifier: null,
-    shieldBonus: 2
-  }
-};
-
-function getArmorReference(name: string): ArmorReference | null {
-  const codexArmor = codexArmorEntriesByName.get(name);
-
-  if (codexArmor) {
-    return {
-      armorBase: codexArmor.armorBase,
-      maxDexModifier: codexArmor.maxDexModifier,
-      shieldBonus: codexArmor.shieldBonus
-    };
-  }
-
-  const equipment = getEquipmentByName(name);
-
-  if (!equipment || equipment.category !== "armor") {
-    return null;
-  }
-
-  return fallbackArmorReferencesByType[equipment.type];
-}
-
 function resolveWeaponAbility(rule: WeaponAbilityRule, abilities: AbilityScores): AbilityKey {
   if (rule === "dexterity") {
     return "DEX";
@@ -255,6 +195,51 @@ export function getAbilityModifier(score: number): number {
 
 export function formatAbilityModifier(modifier: number): string {
   return modifier >= 0 ? `+${modifier}` : `${modifier}`;
+}
+
+function getDamageBonusTotal(damageBonusEntries: FeatureDamageBonus[]): number {
+  return damageBonusEntries.reduce((total, entry) => total + entry.value, 0);
+}
+
+function createWeaponAction(
+  character: Pick<Character, "className" | "level" | "classFeatureState">,
+  options: {
+    key: string;
+    name: string;
+    attackKind: "weapon" | "unarmed";
+    damageLabel: string;
+    damageFormula: string;
+    ability: AbilityKey;
+    abilityModifier: number;
+    proficiencyLabel: string;
+    proficiencyBonus: number;
+    hasVersatileBonus: boolean;
+  }
+): WeaponAction {
+  const damageBonusEntries = getFeatureDamageBonusesForWeaponAction(character, {
+    name: options.name,
+    ability: options.ability,
+    attackKind: options.attackKind
+  });
+  const totalModifier =
+    options.abilityModifier + options.proficiencyBonus + getDamageBonusTotal(damageBonusEntries);
+
+  return {
+    key: options.key,
+    name: options.name,
+    attackKind: options.attackKind,
+    damageLabel: options.damageLabel,
+    damageFormula: options.damageFormula,
+    rollDisplay: createRollDisplay(options.damageFormula, totalModifier),
+    ability: options.ability,
+    abilityModifier: options.abilityModifier,
+    proficiencyLabel: options.proficiencyLabel,
+    proficiencyBonus: options.proficiencyBonus,
+    totalModifier,
+    damageBonusEntries,
+    rollFormula: createRollFormula(options.damageFormula, totalModifier),
+    hasVersatileBonus: options.hasVersatileBonus
+  };
 }
 
 export function getProficiencyBonus(level: number): number {
@@ -338,72 +323,6 @@ export function getSavingThrowProficienciesForClass(className: string): AbilityK
   return classEntry.savingThrowProficiencies as AbilityKey[];
 }
 
-export function getArmorClassForCharacter(character: Character): number {
-  const uniqueEquipment = [...new Set(getCharacterEquipmentNames(character.equipment))];
-  const customArmorEntries = getResolvedCustomLoadoutEntries(character.customEquipment).filter(
-    (entry): entry is ResolvedCustomArmorEntry => entry.category === ENTRY_CATEGORIES.ARMOR
-  );
-  const dexterityModifier = getAbilityModifier(character.abilities.DEX);
-  let selectedArmorReference: ArmorReference | null = null;
-  let shieldBonus = 0;
-
-  for (const equipmentName of uniqueEquipment) {
-    const equipmentDefinition = getEquipmentByName(equipmentName);
-
-    if (!equipmentDefinition || equipmentDefinition.category !== "armor") {
-      continue;
-    }
-
-    const armorReference = getArmorReference(equipmentName);
-
-    if (!armorReference) {
-      continue;
-    }
-
-    if (equipmentDefinition.type === "shield") {
-      shieldBonus += armorReference.shieldBonus;
-      continue;
-    }
-
-    if (!selectedArmorReference || armorReference.armorBase > selectedArmorReference.armorBase) {
-      selectedArmorReference = armorReference;
-    }
-  }
-
-  for (const customArmor of customArmorEntries) {
-    const armorReference: ArmorReference = {
-      armorBase: customArmor.armorBase,
-      maxDexModifier: customArmor.maxDexModifier,
-      shieldBonus: customArmor.shieldBonus
-    };
-
-    if (customArmor.tags.includes(ARMOR_TYPES.SHIELD)) {
-      shieldBonus += armorReference.shieldBonus;
-      continue;
-    }
-
-    if (!selectedArmorReference || armorReference.armorBase > selectedArmorReference.armorBase) {
-      selectedArmorReference = armorReference;
-    }
-  }
-
-  const armorBase = selectedArmorReference ? selectedArmorReference.armorBase : 10;
-  let allowedDexterityModifier = dexterityModifier;
-
-  if (selectedArmorReference) {
-    if (selectedArmorReference.maxDexModifier === 0) {
-      allowedDexterityModifier = 0;
-    } else if (selectedArmorReference.maxDexModifier !== null) {
-      allowedDexterityModifier = Math.min(
-        dexterityModifier,
-        selectedArmorReference.maxDexModifier
-      );
-    }
-  }
-
-  return armorBase + allowedDexterityModifier + shieldBonus;
-}
-
 export function getInitiativeForCharacter(character: Character): number {
   return getAbilityModifier(character.abilities.DEX);
 }
@@ -437,26 +356,24 @@ export function getPassivePerceptionForCharacter(character: Character): number {
 }
 
 function createUnarmedStrikeAction(
-  character: Pick<Character, "abilities">
+  character: Pick<Character, "abilities" | "className" | "level" | "classFeatureState">
 ): WeaponAction {
   const ability: AbilityKey = "STR";
   const abilityModifier = getAbilityModifier(character.abilities.STR);
   const damageFormula = "1";
 
-  return {
+  return createWeaponAction(character, {
     key: "unarmed-strike",
     name: "Unarmed Strike",
+    attackKind: "unarmed",
     damageLabel: "1 Bludgeoning",
     damageFormula,
-    rollDisplay: createRollDisplay(damageFormula, abilityModifier),
     ability,
     abilityModifier,
     proficiencyLabel: "Unarmed strike",
     proficiencyBonus: 0,
-    totalModifier: abilityModifier,
-    rollFormula: createRollFormula(damageFormula, abilityModifier),
     hasVersatileBonus: false
-  };
+  });
 }
 
 export function getWeaponActionsForCharacter(character: Character): WeaponAction[] {
@@ -468,6 +385,16 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
   const heldCodexWeapons = character.equipment.filter((item) => item.onHand);
   const heldCodexWeaponDescriptors = heldCodexWeapons.reduce<HeldWeaponDescriptor[]>(
     (descriptors, item) => {
+      const equipmentDefinition = getEquipmentByName(item.name);
+
+      if (!equipmentDefinition) {
+        return descriptors;
+      }
+
+      if (equipmentDefinition.category === "armor" && equipmentDefinition.type === "shield") {
+        return [...descriptors, createHeldShieldDescriptor(`codex-${item.name}`)];
+      }
+
       const entry = codexWeaponEntriesByName.get(item.name);
 
       if (!entry) {
@@ -521,26 +448,23 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
       PROF_LEVEL.NONE
         ? proficiencyBonus
         : 0;
-    const totalModifier = abilityModifier + appliedProficiencyBonus;
     const proficiencyLabel =
       equipmentDefinition.training === WEAPON_TRAINING.SIMPLE ? "Simple weapon" : "Martial weapon";
 
     return [
       ...actions,
-      {
+      createWeaponAction(character, {
         key: `codex-${equipmentItem.name}`,
         name: equipmentItem.name,
+        attackKind: "weapon",
         damageLabel: weaponReference.damageLabel,
         damageFormula: weaponReference.damageFormula,
-        rollDisplay: createRollDisplay(weaponReference.damageFormula, totalModifier),
         ability,
         abilityModifier,
         proficiencyLabel,
         proficiencyBonus: appliedProficiencyBonus,
-        totalModifier,
-        rollFormula: createRollFormula(weaponReference.damageFormula, totalModifier),
         hasVersatileBonus: weaponReference.hasVersatileBonus
-      }
+      })
     ];
   }, []);
 
@@ -567,26 +491,23 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
       PROF_LEVEL.NONE
         ? proficiencyBonus
         : 0;
-    const totalModifier = abilityModifier + appliedProficiencyBonus;
     const proficiencyLabel =
       weaponEntry.type.training === WEAPON_TRAINING.SIMPLE ? "Simple weapon" : "Martial weapon";
 
     return [
       ...actions,
-      {
+      createWeaponAction(character, {
         key: `custom-${weaponEntry.customEquipmentId}`,
         name: weaponEntry.name,
+        attackKind: "weapon",
         damageLabel: weaponReference.damageLabel,
         damageFormula: weaponReference.damageFormula,
-        rollDisplay: createRollDisplay(weaponReference.damageFormula, totalModifier),
         ability,
         abilityModifier,
         proficiencyLabel,
         proficiencyBonus: appliedProficiencyBonus,
-        totalModifier,
-        rollFormula: createRollFormula(weaponReference.damageFormula, totalModifier),
         hasVersatileBonus: weaponReference.hasVersatileBonus
-      }
+      })
     ];
   }, []);
 
