@@ -1,20 +1,38 @@
 .pill {
   display: inline-flex;
   align-items: center;
+  gap: 0.28rem;
   border-radius: 999px;
-  font-size: 0.64rem;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-  padding: 0.14rem 0.38rem;
-  text-transform: uppercase;
+  padding: 0.18rem 0.44rem;
 }
 
 .advantage {
   background: rgba(54, 140, 84, 0.14);
-  color: #2f7a4f;
 }
 
 .disadvantage {
   background: rgba(185, 71, 60, 0.14);
+}
+
+.label {
+  font-size: 0.64rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.detail {
+  color: var(--color-ink-soft);
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.advantage .label {
+  color: #2f7a4f;
+}
+
+.disadvantage .label {
   color: #a33f34;
 }

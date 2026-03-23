@@ -9,6 +9,7 @@ import {
   CURRENCY_TYPE,
   DAMAGE_TYPE,
   DICE,
+  WEAPON_BASE,
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
   WEAPON_PROPERTY,
@@ -22,6 +23,7 @@ import type {
 } from "../../../../types";
 import { createCustomEquipmentId } from "../../../../pages/CharactersPage/customEquipment";
 import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
+import { formatCodexLabel } from "../../../../utils/codex";
 import styles from "../EquipmentForm/EquipmentForm.module.css";
 
 type CustomEquipmentEditorProps = {
@@ -44,11 +46,12 @@ type WeaponDraft = {
   onHand: boolean;
   name: string;
   description: string;
+  baseWeapon: WEAPON_BASE;
   training: WEAPON_TRAINING;
   combat: WEAPON_COMBAT_TYPE;
   damage: DamageRowDraft[];
   properties: WEAPON_PROPERTY[];
-  mastery: WEAPON_MASTERY;
+  mastery: WEAPON_MASTERY | "";
   costAmount: number;
   costCurrency: CURRENCY_TYPE;
   weight: number;
@@ -68,6 +71,7 @@ type ItemDraft = {
 };
 
 const currencyOptions = Object.values(CURRENCY_TYPE);
+const weaponBaseOptions = Object.values(WEAPON_BASE);
 const weaponTrainingOptions = Object.values(WEAPON_TRAINING);
 const weaponCombatOptions = Object.values(WEAPON_COMBAT_TYPE);
 const weaponMasteryOptions = Object.values(WEAPON_MASTERY);
@@ -93,13 +97,14 @@ function createWeaponDraft(initialEquipment?: CharacterCustomEquipment | null): 
       onHand: initialEquipment.onHand,
       name: initialEquipment.name,
       description: initialEquipment.description,
+      baseWeapon: initialEquipment.baseWeapon,
       training: initialEquipment.type.training,
       combat: initialEquipment.type.combat,
       damage: initialEquipment.damage.map(([amount, damageType]) =>
         createDamageRowDraft(amount, damageType)
       ),
       properties: [...initialEquipment.properties],
-      mastery: initialEquipment.mastery,
+      mastery: initialEquipment.mastery ?? "",
       costAmount: initialEquipment.cost.amount,
       costCurrency: initialEquipment.cost.currency,
       weight: initialEquipment.weight ?? 1,
@@ -117,11 +122,12 @@ function createWeaponDraft(initialEquipment?: CharacterCustomEquipment | null): 
     onHand: false,
     name: "",
     description: "",
+    baseWeapon: WEAPON_BASE.DAGGER,
     training: WEAPON_TRAINING.SIMPLE,
     combat: WEAPON_COMBAT_TYPE.MELEE,
     damage: [createDamageRowDraft(DICE.D6, DAMAGE_TYPE.SLASHING)],
     properties: [],
-    mastery: WEAPON_MASTERY.SAP,
+    mastery: "",
     costAmount: 0,
     costCurrency: CURRENCY_TYPE.GP,
     weight: 1,
@@ -341,13 +347,14 @@ function CustomEquipmentEditor({
       onHand: weaponDraft.onHand,
       name: normalizedName,
       description: weaponDraft.description.trim(),
+      baseWeapon: weaponDraft.baseWeapon,
       type: {
         training: weaponDraft.training,
         combat: weaponDraft.combat
       },
       damage: normalizedDamage,
       properties: [...weaponDraft.properties],
-      mastery: weaponDraft.mastery,
+      mastery: weaponDraft.mastery || undefined,
       cost: {
         amount: Math.floor(clampNumber(weaponDraft.costAmount, 0, 999999999, 0)),
         currency: weaponDraft.costCurrency
@@ -470,6 +477,24 @@ function CustomEquipmentEditor({
 
             <div className={styles.customEquipmentThreeColumnRow}>
               <label className={styles.customEquipmentField}>
+                <span>Base weapon</span>
+                <SelectInput
+                  value={weaponDraft.baseWeapon}
+                  onChange={(event) =>
+                    setWeaponDraft((currentDraft) => ({
+                      ...currentDraft,
+                      baseWeapon: event.target.value as WEAPON_BASE
+                    }))
+                  }
+                >
+                  {weaponBaseOptions.map((baseWeapon) => (
+                    <option key={baseWeapon} value={baseWeapon}>
+                      {formatCodexLabel(baseWeapon)}
+                    </option>
+                  ))}
+                </SelectInput>
+              </label>
+              <label className={styles.customEquipmentField}>
                 <span>Training</span>
                 <SelectInput
                   value={weaponDraft.training}
@@ -512,10 +537,11 @@ function CustomEquipmentEditor({
                   onChange={(event) =>
                     setWeaponDraft((currentDraft) => ({
                       ...currentDraft,
-                      mastery: event.target.value as WEAPON_MASTERY
+                      mastery: event.target.value as WEAPON_MASTERY | ""
                     }))
                   }
                 >
+                  <option value="">None</option>
                   {weaponMasteryOptions.map((mastery) => (
                     <option key={mastery} value={mastery}>
                       {mastery}

@@ -3,6 +3,7 @@ import { normalizeFormula } from "./normalizeFormula";
 type DiceTerm = {
   count: number;
   sides: number;
+  minimum: number;
   sign: 1 | -1;
 };
 
@@ -44,17 +45,18 @@ export function parseFormula(input: string): ParsedFormula {
       throw new Error(`Invalid formula segment: "${token}"`);
     }
 
-    const diceMatch = value.match(/^(\d*)d(\d+)$/);
+    const diceMatch = value.match(/^(\d*)d(\d+)(?:m(\d+))?$/);
 
     if (diceMatch) {
       const count = Number(diceMatch[1] || "1");
       const sides = Number(diceMatch[2]);
+      const minimum = Number(diceMatch[3] || "1");
 
-      if (count < 1 || sides < 2) {
+      if (count < 1 || sides < 2 || minimum < 1 || minimum > sides) {
         throw new Error(`Invalid dice term: "${token}"`);
       }
 
-      parsed.diceTerms.push({ count, sides, sign });
+      parsed.diceTerms.push({ count, sides, minimum, sign });
       continue;
     }
 

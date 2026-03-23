@@ -3,16 +3,15 @@ import {
   Dices,
   FastForward,
   HeartPlus,
-  Infinity as InfinityIcon,
   Moon,
   Pencil,
-  Plus,
   Save,
   Skull,
   Sword,
   X
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import type { CSSProperties } from "react";
 import { useFormContext } from "react-hook-form";
 import NumberInput from "../../FormInputs/NumberInput";
 import SelectInput from "../../FormInputs/SelectInput";
@@ -20,11 +19,8 @@ import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import type { Character } from "../../../../types";
 import {
-  advanceCharacterConditions,
   consumeRoundTrackerResource,
   createDefaultRoundTracker,
-  INDEFINITE_CONDITION_ROUNDS,
-  normalizeCharacterConditions,
   normalizeRoundTracker,
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
@@ -33,19 +29,52 @@ import {
   activateFeatureActionForCharacter,
   applyLongRestToFeatureState,
   applyShortRestToFeatureState,
-  getResolvedConditionsForCharacter,
-  removeFeatureConditionForCharacter
+  getDerivedFeatureStatusEntriesForCharacter,
+  removeFeatureStatusEntryForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
+import { getFeatDerivedStatusEntriesForCharacter } from "../../../../pages/CharactersPage/feats";
 import {
   formatAbilityModifier,
   getAutomaticMaxHitPointsForCharacter,
   type WeaponAction
 } from "../../../../pages/CharactersPage/gameplay";
+import {
+  CONDITION_NAME,
+  STATUS_DURATION_PRESET,
+  STATUS_ENTRY_GROUP,
+  STATUS_ENTRY_SOURCE_TYPE,
+  type CharacterStatusEntry,
+  type CharacterStatusValue
+} from "../../../../types";
 import type {
   HpDraft,
   PersistCharacterUpdater
 } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
+import {
+  advanceCharacterStatusEntries,
+  applyLongRestToCharacterStatusEntries,
+  applyShortRestToCharacterStatusEntries,
+  createStatusDurationFromPreset,
+  durationPresetOptions,
+  getConditionOptions,
+  getDamageTypeOptions,
+  getImmunityOptions,
+  getSenseOptions,
+  getStatusDurationLabel,
+  getStatusDurationPreset,
+  getStatusDurationShortLabel,
+  getStatusEntryDescription,
+  getStatusEntrySourceLabel,
+  getStatusEntryTitle,
+  normalizeCharacterStatusEntries,
+  updateCharacterStatusEntryDuration,
+  resolveCharacterStatusEntries,
+  statusGroupOrder,
+  statusGroupTitles,
+  upsertManualStatusEntry,
+  removeCharacterStatusEntry
+} from "../../../../pages/CharactersPage/traits";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./GameplayForm.module.css";
@@ -56,86 +85,36 @@ type GameplayFormProps = {
   onPersistCharacter: PersistCharacterUpdater;
 };
 
-type ConditionEntry = {
-  name: string;
-  description: string;
-};
-
 type DeathSaveState = {
   successes: number;
   failures: number;
 };
 
 type MaxHitPointsMode = "automatic" | "custom";
+type TraitEditorTab = "conditions" | "senses" | "resistances" | "vulnerabilities" | "immunities";
 
-const conditionCatalog: ConditionEntry[] = [
-  {
-    name: "Blinded",
-    description:
-      "You cannot see and automatically fail checks that require sight. Attack rolls against you have advantage, and your own attack rolls have disadvantage."
-  },
-  {
-    name: "Charmed",
-    description:
-      "You cannot attack the charmer or target them with harmful abilities. The charmer has advantage on social checks against you."
-  },
-  {
-    name: "Deafened",
-    description: "You cannot hear and automatically fail checks that rely on hearing."
-  },
-  {
-    name: "Frightened",
-    description:
-      "You have disadvantage on checks and attacks while the source of fear is in sight, and you cannot willingly move closer to it."
-  },
-  {
-    name: "Grappled",
-    description: "Your speed becomes 0, and you cannot benefit from bonuses to speed."
-  },
-  {
-    name: "Incapacitated",
-    description: "You cannot take actions or reactions."
-  },
-  {
-    name: "Invisible",
-    description:
-      "You cannot be seen without special senses or magic. You have advantage on attacks, and attacks against you have disadvantage."
-  },
-  {
-    name: "Paralyzed",
-    description:
-      "You are incapacitated, cannot move or speak, and automatically fail STR/DEX saves. Attacks against you have advantage, and nearby hits are critical."
-  },
-  {
-    name: "Petrified",
-    description:
-      "You are transformed into inert stone-like substance. You are incapacitated, unaware, and resistant to most damage sources depending on rules context."
-  },
-  {
-    name: "Poisoned",
-    description: "You have disadvantage on attack rolls and ability checks."
-  },
-  {
-    name: "Prone",
-    description:
-      "You are on the ground. Melee attacks against you have advantage, ranged attacks against you have disadvantage, and your own attacks may suffer penalties by context."
-  },
-  {
-    name: "Restrained",
-    description:
-      "Your speed is 0. Attack rolls against you have advantage, your attacks have disadvantage, and you have disadvantage on DEX saves."
-  },
-  {
-    name: "Stunned",
-    description:
-      "You are incapacitated, cannot move, and can only speak falteringly. You automatically fail STR/DEX saves and attacks against you have advantage."
-  },
-  {
-    name: "Unconscious",
-    description:
-      "You are incapacitated, cannot move or speak, and are unaware of surroundings. You drop what you hold, fall prone, and attacks against you have advantage."
-  }
+const traitEditorTabs: Array<{ id: TraitEditorTab; label: string }> = [
+  { id: "conditions", label: "Conditions" },
+  { id: "senses", label: "Senses" },
+  { id: "resistances", label: "Resistances" },
+  { id: "vulnerabilities", label: "Vulnerabilities" },
+  { id: "immunities", label: "Immunities" }
 ];
+
+const senseOptions = getSenseOptions();
+const conditionOptions = getConditionOptions();
+const damageTypeOptions = getDamageTypeOptions();
+const immunityOptions = getImmunityOptions();
+
+function createDefaultStatusDraftValues(): Record<TraitEditorTab, string> {
+  return {
+    conditions: conditionOptions[0] ?? CONDITION_NAME.POISONED,
+    senses: senseOptions[0] ?? "Darkvision",
+    resistances: damageTypeOptions[0] ?? "FIRE",
+    vulnerabilities: damageTypeOptions[0] ?? "FIRE",
+    immunities: immunityOptions[0] ?? "FIRE"
+  };
+}
 
 function createHpDraft(character: Character): HpDraft {
   return {
@@ -196,22 +175,30 @@ function parseDamageFormulaRange(formula: string): { minimum: number; maximum: n
   for (const term of terms) {
     const sign = term.startsWith("-") ? -1 : 1;
     const rawTerm = term.replace(/^[+-]/, "");
-    const diceMatch = rawTerm.match(/^(\d+)d(\d+)$/i);
+    const diceMatch = rawTerm.match(/^(\d+)d(\d+)(?:m(\d+))?$/i);
 
     if (diceMatch) {
       const count = Number(diceMatch[1]);
       const sides = Number(diceMatch[2]);
+      const minimumPerDie = diceMatch[3] ? Number(diceMatch[3]) : 1;
 
-      if (!Number.isFinite(count) || !Number.isFinite(sides) || count <= 0 || sides <= 0) {
+      if (
+        !Number.isFinite(count) ||
+        !Number.isFinite(sides) ||
+        !Number.isFinite(minimumPerDie) ||
+        count <= 0 ||
+        sides <= 0 ||
+        minimumPerDie <= 0
+      ) {
         return null;
       }
 
       if (sign > 0) {
-        minimum += count;
+        minimum += count * Math.min(minimumPerDie, sides);
         maximum += count * sides;
       } else {
         minimum -= count * sides;
-        maximum -= count;
+        maximum -= count * Math.min(minimumPerDie, sides);
       }
 
       continue;
@@ -274,6 +261,10 @@ function getWeaponActionRollDescription(action: WeaponAction): string {
     segments.push("+ Versatile Bonus");
   }
 
+  if (action.hasGreatWeaponFighting) {
+    segments.push("+ Great Weapon Fighting");
+  }
+
   action.damageBonusEntries.forEach((entry) => {
     segments.push(`${entry.label} ${formatAbilityModifier(entry.value)}`);
   });
@@ -294,25 +285,15 @@ function getWeaponActionBreakdown(action: WeaponAction): string {
     segments.push("+ Versatile Bonus");
   }
 
+  if (action.hasGreatWeaponFighting) {
+    segments.push("+ Great Weapon Fighting");
+  }
+
   action.damageBonusEntries.forEach((entry) => {
     segments.push(`${entry.label} ${formatSignedValue(entry.value)}`);
   });
 
   return segments.join(" | ");
-}
-
-function getConditionDescription(name: string): string {
-  if (name === "Rage") {
-    return "Primal fury is active. Strength-based weapon and unarmed damage are empowered, Strength saving throws have Advantage, and spellcasting is disabled.";
-  }
-
-  const condition = conditionCatalog.find((entry) => entry.name === name);
-
-  if (!condition) {
-    return "Temporary state affecting the character until its duration ends or it is removed.";
-  }
-
-  return condition.description;
 }
 
 function getRoundTrackerResourceMeta(
@@ -345,6 +326,79 @@ function getRoundTrackerResourceMeta(
   };
 }
 
+function getTraitEditorGroup(tab: TraitEditorTab): STATUS_ENTRY_GROUP {
+  switch (tab) {
+    case "senses":
+      return STATUS_ENTRY_GROUP.SENSES;
+    case "resistances":
+      return STATUS_ENTRY_GROUP.RESISTANCES;
+    case "vulnerabilities":
+      return STATUS_ENTRY_GROUP.VULNERABILITIES;
+    case "immunities":
+      return STATUS_ENTRY_GROUP.IMMUNITIES;
+    case "conditions":
+    default:
+      return STATUS_ENTRY_GROUP.CONDITIONS;
+  }
+}
+
+function formatTraitEditorOptionLabel(tab: TraitEditorTab, value: string): string {
+  if (tab === "resistances" || tab === "vulnerabilities") {
+    return `${value.charAt(0)}${value.slice(1).toLowerCase()} damage`;
+  }
+
+  if (tab === "immunities") {
+    return conditionOptions.includes(value as CONDITION_NAME)
+      ? `${value} condition`
+      : `${value.charAt(0)}${value.slice(1).toLowerCase()} damage`;
+  }
+
+  return value;
+}
+
+function isStatusEntryRemovable(entry: CharacterStatusEntry): boolean {
+  return entry.sourceType !== STATUS_ENTRY_SOURCE_TYPE.FEAT;
+}
+
+function getStatusDrawerBadgeLabel(group: STATUS_ENTRY_GROUP): string {
+  switch (group) {
+    case STATUS_ENTRY_GROUP.EFFECTS:
+      return "Effect";
+    case STATUS_ENTRY_GROUP.SENSES:
+      return "Sense";
+    case STATUS_ENTRY_GROUP.AURAS:
+      return "Aura";
+    case STATUS_ENTRY_GROUP.RESISTANCES:
+      return "Resistance";
+    case STATUS_ENTRY_GROUP.VULNERABILITIES:
+      return "Vulnerability";
+    case STATUS_ENTRY_GROUP.IMMUNITIES:
+      return "Immunity";
+    case STATUS_ENTRY_GROUP.CONDITIONS:
+    default:
+      return "Condition";
+  }
+}
+
+function getExpiredFeatureOverrideValues(
+  previousEntries: unknown,
+  nextEntries: unknown
+): string[] {
+  const nextOverrideIds = new Set(
+    normalizeCharacterStatusEntries(nextEntries).map((entry) => entry.id)
+  );
+
+  return normalizeCharacterStatusEntries(previousEntries)
+    .filter(
+      (entry) =>
+        entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE &&
+        typeof entry.sourceId === "string" &&
+        entry.sourceId.length > 0 &&
+        !nextOverrideIds.has(entry.id)
+    )
+    .map((entry) => String(entry.value));
+}
+
 function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   const { watch } = useFormContext<Character>();
   const character = watch() as Character;
@@ -355,12 +409,19 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   );
   const [hitPointStep, setHitPointStep] = useState(1);
   const [isRestPopupOpen, setIsRestPopupOpen] = useState(false);
-  const [isConditionModalOpen, setIsConditionModalOpen] = useState(false);
-  const [conditionDraftName, setConditionDraftName] = useState(
-    conditionCatalog[0]?.name ?? "Poisoned"
+  const [isTraitModalOpen, setIsTraitModalOpen] = useState(false);
+  const [activeTraitEditorTab, setActiveTraitEditorTab] = useState<TraitEditorTab>("conditions");
+  const [statusDraftValues, setStatusDraftValues] = useState<Record<TraitEditorTab, string>>(
+    createDefaultStatusDraftValues
   );
-  const [conditionDraftDuration, setConditionDraftDuration] = useState(1);
-  const [selectedConditionName, setSelectedConditionName] = useState<string | null>(null);
+  const [statusDraftDurationPreset, setStatusDraftDurationPreset] = useState(
+    STATUS_DURATION_PRESET.INFINITE
+  );
+  const [selectedStatusEntryId, setSelectedStatusEntryId] = useState<string | null>(null);
+  const [isEditingStatusDuration, setIsEditingStatusDuration] = useState(false);
+  const [statusDrawerDurationPreset, setStatusDrawerDurationPreset] = useState(
+    STATUS_DURATION_PRESET.INFINITE
+  );
   const [selectedRoundTrackerResource, setSelectedRoundTrackerResource] =
     useState<RoundTrackerResource | null>(null);
   const [lastDeathSaveRoll, setLastDeathSaveRoll] = useState<number | null>(null);
@@ -371,8 +432,8 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
 
   const hasOverlayOpen =
     isRestPopupOpen ||
-    isConditionModalOpen ||
-    selectedConditionName !== null ||
+    isTraitModalOpen ||
+    selectedStatusEntryId !== null ||
     selectedRoundTrackerResource !== null;
 
   useBodyScrollLock(hasOverlayOpen);
@@ -399,8 +460,8 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     function handleKeyDown(event: globalThis.KeyboardEvent) {
       if (event.key === "Escape") {
         setIsRestPopupOpen(false);
-        setIsConditionModalOpen(false);
-        setSelectedConditionName(null);
+        setIsTraitModalOpen(false);
+        setSelectedStatusEntryId(null);
         setSelectedRoundTrackerResource(null);
       }
     }
@@ -413,7 +474,10 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   }, [hasOverlayOpen]);
 
   const roundTracker = normalizeRoundTracker(character.roundTracker);
-  const conditions = getResolvedConditionsForCharacter(character);
+  const statusEntries = resolveCharacterStatusEntries(character.statusEntries, [
+    ...getDerivedFeatureStatusEntriesForCharacter(character),
+    ...getFeatDerivedStatusEntriesForCharacter(character)
+  ]);
   const deathSaves = normalizeDeathSaves(character.deathSaves);
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
 
@@ -493,9 +557,16 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   const shortRestHealAmount = Math.ceil(character.hitPoints / 2);
   const isAtZeroHitPoints = character.currentHitPoints === 0;
   const isDeathSaveResolved = deathSaves.successes >= 3 || deathSaves.failures >= 3;
-  const selectedCondition = selectedConditionName
-    ? (conditions.find((condition) => condition.name === selectedConditionName) ?? null)
+  const selectedStatusEntry = selectedStatusEntryId
+    ? (statusEntries.find((entry) => entry.id === selectedStatusEntryId) ?? null)
     : null;
+  const statusSections = statusGroupOrder
+    .map((group) => ({
+      group,
+      title: statusGroupTitles[group],
+      entries: statusEntries.filter((entry) => entry.group === group)
+    }))
+    .filter((section) => section.entries.length > 0);
   const selectedRoundTrackerMeta = selectedRoundTrackerResource
     ? getRoundTrackerResourceMeta(
         selectedRoundTrackerResource,
@@ -506,16 +577,26 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     : null;
 
   useEffect(() => {
-    if (!selectedConditionName) {
+    if (!selectedStatusEntryId) {
       return;
     }
 
-    if (selectedCondition) {
+    if (selectedStatusEntry) {
       return;
     }
 
-    setSelectedConditionName(null);
-  }, [selectedCondition, selectedConditionName]);
+    setSelectedStatusEntryId(null);
+  }, [selectedStatusEntry, selectedStatusEntryId]);
+
+  useEffect(() => {
+    if (!selectedStatusEntry) {
+      setIsEditingStatusDuration(false);
+      return;
+    }
+
+    setStatusDrawerDurationPreset(getStatusDurationPreset(selectedStatusEntry.duration));
+    setIsEditingStatusDuration(false);
+  }, [selectedStatusEntry]);
 
   function updateRoundTracker(resource: RoundTrackerResource) {
     onPersistCharacter((currentCharacter) => ({
@@ -696,6 +777,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
         temporaryHitPoints: 0,
         shortRestsUsedToday: shortRestsUsedToday + 1,
         roundTracker: createDefaultRoundTracker(),
+        statusEntries: applyShortRestToCharacterStatusEntries(currentCharacter.statusEntries),
         deathSaves:
           nextCurrentHitPoints > 0
             ? createDefaultDeathSaves()
@@ -714,67 +796,77 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
       shortRestsUsedToday: 0,
       spellSlotsExpended: Array.from({ length: 9 }, () => 0),
       roundTracker: createDefaultRoundTracker(),
+      statusEntries: applyLongRestToCharacterStatusEntries(currentCharacter.statusEntries),
       deathSaves: createDefaultDeathSaves()
     }));
 
     setIsRestPopupOpen(false);
   }
 
-  function addCondition() {
-    const normalizedName = conditionDraftName.trim();
+  function openTraitEditor() {
+    setActiveTraitEditorTab("conditions");
+    setStatusDraftDurationPreset(STATUS_DURATION_PRESET.INFINITE);
+    setIsTraitModalOpen(true);
+  }
 
-    if (!normalizedName) {
+  function addStatusEntry() {
+    const selectedValue = statusDraftValues[activeTraitEditorTab]?.trim();
+
+    if (!selectedValue) {
       return;
     }
 
-    const roundsRemaining =
-      conditionDraftDuration === 0
-        ? INDEFINITE_CONDITION_ROUNDS
-        : Math.max(1, Math.floor(clampNumber(conditionDraftDuration, 1, 999, 1)));
+    const nextGroup = getTraitEditorGroup(activeTraitEditorTab);
+    const nextDuration = createStatusDurationFromPreset(statusDraftDurationPreset);
 
     onPersistCharacter((currentCharacter) => {
-      const normalizedConditions = normalizeCharacterConditions(currentCharacter.conditions);
-      const existingCondition = normalizedConditions.find(
-        (condition) => condition.name === normalizedName
-      );
+      return {
+        ...currentCharacter,
+        statusEntries: upsertManualStatusEntry(currentCharacter.statusEntries, {
+          group: nextGroup,
+          value: selectedValue as CharacterStatusValue,
+          source: "Manual",
+          duration: nextDuration
+        })
+      };
+    });
 
-      if (existingCondition) {
-        return {
-          ...currentCharacter,
-          conditions: normalizedConditions.map((condition) =>
-            condition.name === normalizedName
-              ? {
-                  ...condition,
-                  roundsRemaining
-                }
-              : condition
-          )
-        };
+    setStatusDraftDurationPreset(STATUS_DURATION_PRESET.INFINITE);
+    setIsTraitModalOpen(false);
+  }
+
+  function removeStatusEntry(entry: CharacterStatusEntry) {
+    onPersistCharacter((currentCharacter) => {
+      if (entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE) {
+        return removeFeatureStatusEntryForCharacter(currentCharacter, String(entry.value));
       }
 
       return {
         ...currentCharacter,
-        conditions: [...normalizedConditions, { name: normalizedName, roundsRemaining }]
+        statusEntries: removeCharacterStatusEntry(currentCharacter.statusEntries, entry.id)
       };
     });
 
-    setConditionDraftDuration(1);
-    setIsConditionModalOpen(false);
+    setSelectedStatusEntryId(null);
   }
 
-  function removeCondition(conditionName: string) {
-    onPersistCharacter((currentCharacter) => {
-      const nextCharacter = removeFeatureConditionForCharacter(currentCharacter, conditionName);
+  function applyStatusEntryDuration() {
+    if (!selectedStatusEntry) {
+      return;
+    }
 
-      return {
-        ...nextCharacter,
-        conditions: normalizeCharacterConditions(nextCharacter.conditions).filter(
-          (condition) => condition.name !== conditionName
-        )
-      };
-    });
+    const nextDuration = createStatusDurationFromPreset(statusDrawerDurationPreset);
 
-    setSelectedConditionName(null);
+    onPersistCharacter((currentCharacter) => ({
+      ...currentCharacter,
+      statusEntries: updateCharacterStatusEntryDuration(
+        currentCharacter.statusEntries,
+        selectedStatusEntry,
+        nextDuration
+      )
+    }));
+
+    setIsEditingStatusDuration(false);
   }
 
   function activateFeatureAction(actionKey: string, actionCost: RoundTrackerResource | null) {
@@ -795,11 +887,24 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   }
 
   function finishRound() {
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      roundTracker: createDefaultRoundTracker(),
-      conditions: advanceCharacterConditions(currentCharacter.conditions)
-    }));
+    onPersistCharacter((currentCharacter) => {
+      const nextStatusEntries = advanceCharacterStatusEntries(currentCharacter.statusEntries);
+      const expiredFeatureOverrideValues = getExpiredFeatureOverrideValues(
+        currentCharacter.statusEntries,
+        nextStatusEntries
+      );
+      let nextCharacter: Character = {
+        ...currentCharacter,
+        roundTracker: createDefaultRoundTracker(),
+        statusEntries: nextStatusEntries
+      };
+
+      expiredFeatureOverrideValues.forEach((statusValue) => {
+        nextCharacter = removeFeatureStatusEntryForCharacter(nextCharacter, statusValue);
+      });
+
+      return nextCharacter;
+    });
   }
 
   function updateDeathSaves(track: "success" | "failure") {
@@ -874,10 +979,69 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
 
   return (
     <article className={clsx(shared.sectionCard, className)}>
-      <div className={shared.sectionHeader}>
+      <div className={clsx(shared.sectionHeader, styles.gameplaySectionHeader)}>
         <div>
           <p className={shared.eyebrow}>Gameplay</p>
-          <h3 className={shared.subtitle}>Combat dashboard</h3>
+        </div>
+        <div className={styles.gameplayHeaderControls}>
+          <div className={styles.roundTrackerPill} aria-label="Round tracker">
+            <button
+              type="button"
+              className={styles.roundTrackerPillButton}
+              onClick={() => setSelectedRoundTrackerResource("action")}
+              aria-label={roundTracker.actionAvailable ? "Action available" : "Action spent"}
+              title={roundTracker.actionAvailable ? "Action available" : "Action spent"}
+            >
+              <span
+                className={clsx(
+                  styles.roundTrackerCircle,
+                  roundTracker.actionAvailable && styles.roundTrackerCircleFilled
+                )}
+                aria-hidden="true"
+              />
+            </button>
+            <button
+              type="button"
+              className={styles.roundTrackerPillButton}
+              onClick={() => setSelectedRoundTrackerResource("bonusAction")}
+              aria-label={
+                roundTracker.bonusActionAvailable
+                  ? "Bonus action available"
+                  : "Bonus action spent"
+              }
+              title={
+                roundTracker.bonusActionAvailable
+                  ? "Bonus action available"
+                  : "Bonus action spent"
+              }
+            >
+              <span
+                className={clsx(
+                  styles.roundTrackerTriangle,
+                  roundTracker.bonusActionAvailable && styles.roundTrackerTriangleFilled
+                )}
+                aria-hidden="true"
+              />
+            </button>
+            <button
+              type="button"
+              className={styles.roundTrackerPillButton}
+              onClick={finishRound}
+              aria-label="Finish round"
+              title="Finish round"
+            >
+              <FastForward size={15} aria-hidden="true" />
+            </button>
+          </div>
+
+          <button
+            type="button"
+            className={clsx(shared.editButton, styles.campTriggerButton)}
+            onClick={() => setIsRestPopupOpen(true)}
+          >
+            <Moon size={16} />
+            Camp
+          </button>
         </div>
       </div>
 
@@ -1063,6 +1227,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
                       openDiceRoller({
                         title: `${combatAction.action.name} attack`,
                         formula: combatAction.action.rollFormula,
+                        formulaDisplay: combatAction.action.rollFormulaDisplay,
                         description: getWeaponActionRollDescription(combatAction.action)
                       });
                       updateRoundTracker("action");
@@ -1116,113 +1281,72 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
           )}
         </section>
 
-        <section className={clsx(styles.widgetCard, styles.conditionsWidget)}>
+        <section className={clsx(styles.widgetCard, styles.traitsWidget)}>
           <header className={styles.widgetHeader}>
-            <p className={styles.widgetTitle}>Conditions</p>
+            <p className={styles.widgetTitle}>Traits &amp; Conditions</p>
             <button
               type="button"
               className={shared.editButton}
-              onClick={() => setIsConditionModalOpen(true)}
+              onClick={openTraitEditor}
             >
-              <Plus size={16} />
-              Add Condition
+              <Pencil size={16} />
+              Edit
             </button>
           </header>
 
-          {conditions.length === 0 ? (
-            <p className={shared.emptyText}>No active conditions.</p>
+          {statusSections.length === 0 ? (
+            <p className={shared.emptyText}>No traits or conditions.</p>
           ) : (
-            <ul className={styles.conditionList}>
-              {conditions.map((condition) => (
-                <li key={condition.name}>
-                  <button
-                    type="button"
-                    className={styles.conditionButton}
-                    onClick={() => setSelectedConditionName(condition.name)}
-                  >
-                    <span>{condition.name}</span>
-                    <strong className={styles.conditionDuration}>
-                      <span>(</span>
-                      {condition.roundsRemaining === INDEFINITE_CONDITION_ROUNDS ? (
-                        <InfinityIcon size={13} strokeWidth={2.2} aria-hidden="true" />
-                      ) : (
-                        condition.roundsRemaining
-                      )}
-                      <span>)</span>
-                    </strong>
-                  </button>
-                </li>
+            <div
+              className={styles.statusSectionStack}
+              style={
+                {
+                  "--status-column-count": String(
+                    Math.max(4, Math.min(6, statusSections.length))
+                  ),
+                  "--status-tablet-column-count": String(
+                    statusSections.length > 4 ? 3 : Math.max(1, statusSections.length)
+                  ),
+                  "--status-mobile-column-count": String(
+                    Math.max(1, Math.min(2, statusSections.length))
+                  )
+                } as CSSProperties
+              }
+            >
+              {statusSections.map((section) => (
+                <div key={section.group} className={styles.statusSection}>
+                  <p className={styles.statusSectionTitle}>{section.title}</p>
+                  <ul className={styles.statusList}>
+                    {section.entries.map((entry) => {
+                      const shortDurationLabel = getStatusDurationShortLabel(entry.duration);
+
+                      return (
+                        <li key={entry.id}>
+                          <button
+                            type="button"
+                            className={styles.statusButton}
+                            onClick={() => setSelectedStatusEntryId(entry.id)}
+                          >
+                            <span className={styles.statusButtonText}>
+                              <span>{getStatusEntryTitle(entry)}</span>
+                              <small>{getStatusEntrySourceLabel(entry)}</small>
+                            </span>
+                            {shortDurationLabel ? (
+                              <strong className={styles.conditionDuration}>
+                                <span>(</span>
+                                {shortDurationLabel}
+                                <span>)</span>
+                              </strong>
+                            ) : null}
+                          </button>
+                        </li>
+                      );
+                    })}
+                  </ul>
+                </div>
               ))}
-            </ul>
+            </div>
           )}
-        </section>
-
-        <section className={clsx(styles.widgetCard, styles.utilitiesWidget)}>
-          <header className={styles.widgetHeader}>
-            <p className={styles.widgetTitle}>Utilities</p>
-          </header>
-          <div className={styles.utilityStack}>
-            <div className={styles.roundTrackerPill} aria-label="Round tracker">
-              <button
-                type="button"
-                className={styles.roundTrackerPillButton}
-                onClick={() => setSelectedRoundTrackerResource("action")}
-                aria-label={roundTracker.actionAvailable ? "Action available" : "Action spent"}
-                title={roundTracker.actionAvailable ? "Action available" : "Action spent"}
-              >
-                <span
-                  className={clsx(
-                    styles.roundTrackerCircle,
-                    roundTracker.actionAvailable && styles.roundTrackerCircleFilled
-                  )}
-                  aria-hidden="true"
-                />
-              </button>
-              <button
-                type="button"
-                className={styles.roundTrackerPillButton}
-                onClick={() => setSelectedRoundTrackerResource("bonusAction")}
-                aria-label={
-                  roundTracker.bonusActionAvailable
-                    ? "Bonus action available"
-                    : "Bonus action spent"
-                }
-                title={
-                  roundTracker.bonusActionAvailable
-                    ? "Bonus action available"
-                    : "Bonus action spent"
-                }
-              >
-                <span
-                  className={clsx(
-                    styles.roundTrackerTriangle,
-                    roundTracker.bonusActionAvailable && styles.roundTrackerTriangleFilled
-                  )}
-                  aria-hidden="true"
-                />
-              </button>
-              <button
-                type="button"
-                className={styles.roundTrackerPillButton}
-                onClick={finishRound}
-                aria-label="Finish round"
-                title="Finish round"
-              >
-                <FastForward size={15} aria-hidden="true" />
-              </button>
-            </div>
-
-            <div className={styles.utilityButtonRow}>
-              <button
-                type="button"
-                className={clsx(shared.editButton, styles.campTriggerButton)}
-                onClick={() => setIsRestPopupOpen(true)}
-              >
-                <Moon size={16} />
-                Camp
-              </button>
-            </div>
-          </div>
         </section>
 
         {isAtZeroHitPoints ? (
@@ -1379,74 +1503,108 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
         </div>
       ) : null}
 
-      {isConditionModalOpen ? (
+      {isTraitModalOpen ? (
         <div
           className={sheetStyles.spellManagementBackdrop}
           role="presentation"
-          onClick={() => setIsConditionModalOpen(false)}
+          onClick={() => setIsTraitModalOpen(false)}
         >
           <section
-            className={sheetStyles.spellManagementModal}
+            className={clsx(sheetStyles.spellManagementModal, styles.traitEditorModal)}
             role="dialog"
             aria-modal="true"
-            aria-labelledby="condition-modal-title"
+            aria-labelledby="trait-modal-title"
             onClick={(event) => event.stopPropagation()}
           >
             <div className={sheetStyles.spellManagementHeader}>
-              <div>
-                <p className={sheetStyles.eyebrow}>Conditions</p>
-                <h3 id="condition-modal-title">Add condition</h3>
+              <div className={styles.modalHeading}>
+                <h3 id="trait-modal-title">Edit Traits &amp; Conditions</h3>
+                <p className={shared.helperText}>
+                  Add passive traits and temporary states so the dashboard reflects what is
+                  currently affecting the character.
+                </p>
               </div>
               <button
                 type="button"
                 className={sheetStyles.spellManagementCloseButton}
-                onClick={() => setIsConditionModalOpen(false)}
-                aria-label="Close add condition"
+                onClick={() => setIsTraitModalOpen(false)}
+                aria-label="Close traits and conditions editor"
               >
                 <X size={18} />
               </button>
             </div>
 
+            <div className={styles.traitTabRow} role="tablist" aria-label="Trait categories">
+              {traitEditorTabs.map((tab) => (
+                <button
+                  key={tab.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={activeTraitEditorTab === tab.id}
+                  className={clsx(
+                    styles.traitTabButton,
+                    activeTraitEditorTab === tab.id && styles.traitTabButtonActive
+                  )}
+                  onClick={() => setActiveTraitEditorTab(tab.id)}
+                >
+                  {tab.label}
+                </button>
+              ))}
+            </div>
+
             <div className={shared.formGrid}>
               <label className={shared.field}>
-                <span>Condition</span>
+                <span>{traitEditorTabs.find((tab) => tab.id === activeTraitEditorTab)?.label}</span>
                 <SelectInput
-                  value={conditionDraftName}
-                  onChange={(event) => setConditionDraftName(event.target.value)}
+                  value={statusDraftValues[activeTraitEditorTab]}
+                  onChange={(event) =>
+                    setStatusDraftValues((current) => ({
+                      ...current,
+                      [activeTraitEditorTab]: event.target.value
+                    }))
+                  }
                 >
-                  {conditionCatalog.map((condition) => (
-                    <option key={condition.name} value={condition.name}>
-                      {condition.name}
+                  {(activeTraitEditorTab === "conditions"
+                    ? conditionOptions
+                    : activeTraitEditorTab === "senses"
+                      ? senseOptions
+                      : activeTraitEditorTab === "immunities"
+                        ? immunityOptions
+                        : damageTypeOptions
+                  ).map((option) => (
+                    <option key={option} value={option}>
+                      {formatTraitEditorOptionLabel(activeTraitEditorTab, option)}
                     </option>
                   ))}
                 </SelectInput>
               </label>
 
               <label className={shared.field}>
-                <span>Duration (rounds)</span>
-                <NumberInput
-                  min={0}
-                  value={conditionDraftDuration}
+                <span>Duration</span>
+                <SelectInput
+                  value={statusDraftDurationPreset}
                   onChange={(event) =>
-                    setConditionDraftDuration((current) =>
-                      clampNumber(event.target.value, 0, 999, current)
-                    )
+                    setStatusDraftDurationPreset(event.target.value as STATUS_DURATION_PRESET)
                   }
-                />
+                >
+                  {durationPresetOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </SelectInput>
               </label>
             </div>
 
             <div className={shared.formActions}>
-              <button type="button" className={shared.saveButton} onClick={addCondition}>
-                <Plus size={16} />
-                Apply condition
+              <button type="button" className={shared.saveButton} onClick={addStatusEntry}>
+                Save
               </button>
               <button
                 type="button"
                 className={shared.cancelButton}
-                onClick={() => setIsConditionModalOpen(false)}
+                onClick={() => setIsTraitModalOpen(false)}
               >
-                <X size={16} />
                 Cancel
               </button>
             </div>
@@ -1454,48 +1612,117 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
         </div>
       ) : null}
 
-      {selectedCondition ? (
+      {selectedStatusEntry ? (
         <div
           className={sheetStyles.spellDrawerBackdrop}
           role="presentation"
-          onClick={() => setSelectedConditionName(null)}
+          onClick={() => setSelectedStatusEntryId(null)}
         >
           <section
             className={sheetStyles.spellDrawer}
             role="dialog"
             aria-modal="true"
-            aria-labelledby="condition-drawer-title"
+            aria-labelledby="status-drawer-title"
             onClick={(event) => event.stopPropagation()}
           >
             <div className={sheetStyles.spellDrawerHandle} aria-hidden="true" />
             <div className={sheetStyles.spellDrawerHeader}>
               <div className={sheetStyles.spellDrawerHeaderContent}>
-                <p className={sheetStyles.spellDrawerBadge}>Condition</p>
+                <p className={sheetStyles.spellDrawerBadge}>
+                  {getStatusDrawerBadgeLabel(selectedStatusEntry.group)}
+                </p>
                 <div className={sheetStyles.spellDrawerTitleRow}>
-                  <h3 id="condition-drawer-title">{selectedCondition.name}</h3>
+                  <h3 id="status-drawer-title">{getStatusEntryTitle(selectedStatusEntry)}</h3>
                 </div>
                 <p className={sheetStyles.spellDrawerSummary}>
-                  {getConditionDescription(selectedCondition.name)}
+                  {getStatusEntryDescription(selectedStatusEntry)}
                 </p>
               </div>
               <button
                 type="button"
                 className={sheetStyles.spellDrawerCloseButton}
-                onClick={() => setSelectedConditionName(null)}
-                aria-label="Close condition details"
+                onClick={() => setSelectedStatusEntryId(null)}
+                aria-label="Close trait details"
               >
                 <X size={18} />
               </button>
             </div>
 
-            <div className={styles.conditionDrawerFooter}>
-              <button
-                type="button"
-                className={styles.conditionRemoveButton}
-                onClick={() => removeCondition(selectedCondition.name)}
-              >
-                Remove Condition
-              </button>
+            <div className={styles.statusDrawerBody}>
+              <div className={styles.statusDrawerFacts}>
+                <div className={styles.statusDrawerFact}>
+                  <span>Duration</span>
+                  <strong>{getStatusDurationLabel(selectedStatusEntry.duration)}</strong>
+                </div>
+                <div className={styles.statusDrawerFact}>
+                  <span>Source</span>
+                  <strong>{getStatusEntrySourceLabel(selectedStatusEntry)}</strong>
+                </div>
+              </div>
+
+              {isEditingStatusDuration ? (
+                <div className={styles.statusDurationEditor}>
+                  <label className={shared.field}>
+                    <span>Duration</span>
+                    <SelectInput
+                      value={statusDrawerDurationPreset}
+                      onChange={(event) =>
+                        setStatusDrawerDurationPreset(event.target.value as STATUS_DURATION_PRESET)
+                      }
+                    >
+                      {durationPresetOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </SelectInput>
+                  </label>
+
+                  <div className={styles.statusDurationEditorActions}>
+                    <button
+                      type="button"
+                      className={shared.saveButton}
+                      onClick={applyStatusEntryDuration}
+                    >
+                      Apply
+                    </button>
+                    <button
+                      type="button"
+                      className={shared.cancelButton}
+                      onClick={() => {
+                        setStatusDrawerDurationPreset(
+                          getStatusDurationPreset(selectedStatusEntry.duration)
+                        );
+                        setIsEditingStatusDuration(false);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              {isEditingStatusDuration || isStatusEntryRemovable(selectedStatusEntry) ? (
+                <div className={styles.conditionDrawerFooter}>
+                  <button
+                    type="button"
+                    className={shared.editButton}
+                    onClick={() => setIsEditingStatusDuration(true)}
+                  >
+                    Edit Duration
+                  </button>
+
+                  {isStatusEntryRemovable(selectedStatusEntry) ? (
+                  <button
+                    type="button"
+                    className={styles.conditionRemoveButton}
+                    onClick={() => removeStatusEntry(selectedStatusEntry)}
+                  >
+                    Remove
+                  </button>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
           </section>
         </div>

@@ -60,7 +60,7 @@ function DiceRollerPopup({ state, onClose, onRollComplete }: DiceRollerPopupProp
 
         <div className={styles.rollMeta}>
           <span>Formula</span>
-          <code>{request.formula}</code>
+          <code>{request.formulaDisplay ?? request.formula}</code>
         </div>
 
         {state.dice.length > 0 ? (

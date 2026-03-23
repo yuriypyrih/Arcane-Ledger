@@ -7,6 +7,7 @@ type RollStatePillProps = {
   tone: RollStateTone;
   label?: string;
   className?: string;
+  detailText?: string;
 };
 
 const defaultLabels: Record<RollStateTone, string> = {
@@ -14,7 +15,9 @@ const defaultLabels: Record<RollStateTone, string> = {
   disadvantage: "Disadvantage"
 };
 
-function RollStatePill({ tone, label, className }: RollStatePillProps) {
+function RollStatePill({ tone, label, className, detailText }: RollStatePillProps) {
+  const labelText = label ?? defaultLabels[tone];
+
   return (
     <span
       className={clsx(
@@ -23,7 +26,8 @@ function RollStatePill({ tone, label, className }: RollStatePillProps) {
         className
       )}
     >
-      {label ?? defaultLabels[tone]}
+      <span className={styles.label}>{detailText ? `${labelText}:` : labelText}</span>
+      {detailText ? <span className={styles.detail}>{detailText}</span> : null}
     </span>
   );
 }

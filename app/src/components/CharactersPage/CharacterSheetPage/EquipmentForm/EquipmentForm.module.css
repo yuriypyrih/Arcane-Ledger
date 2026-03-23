@@ -438,6 +438,14 @@
   inline-size: 18px;
 }
 
+.referenceDetailButton {
+  width: 100%;
+  border: none;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
 .catalogItemActions {
   display: flex;
   align-items: center;
@@ -666,6 +674,10 @@
   z-index: 48;
 }
 
+.masteryReferenceBackdrop {
+  z-index: 49;
+}
+
 .catalogCreateCustomButton {
   background: rgba(75, 47, 29, 0.1);
   color: var(--color-ink);
@@ -780,7 +792,7 @@
 .customEquipmentThreeColumnRow {
   display: grid;
   gap: 0.75rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
 .customEquipmentFormGrid {

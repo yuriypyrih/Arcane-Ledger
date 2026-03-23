@@ -3,6 +3,7 @@ import type {
   WeaponDamage,
   WeaponRange,
   WeaponType,
+  WEAPON_BASE,
   WEAPON_MASTERY,
   WEAPON_PROPERTY
 } from "../codex/entries";
@@ -15,7 +16,9 @@ import type {
   WeaponProficiencyEntry
 } from "./proficiencies";
 import type { CharacterClassFeatureState } from "./classFeatures";
+import type { CharacterFeatEntry } from "./feats";
 import type { SkillName } from "./skills";
+import type { CharacterStatusEntry } from "./traits";
 
 export type AbilityKey = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 
@@ -43,11 +46,6 @@ export type CharacterCurrencies = {
   electrum: number;
   platinum: number;
 } & Record<string, number>;
-
-export type CharacterCondition = {
-  name: string;
-  roundsRemaining: number;
-};
 
 export type CharacterRoundTracker = {
   actionAvailable: boolean;
@@ -78,10 +76,11 @@ export type CharacterCustomEquipmentBase = {
 export type CharacterCustomWeapon = CharacterCustomEquipmentBase & {
   kind: "weapon";
   onHand: boolean;
+  baseWeapon: WEAPON_BASE;
   type: WeaponType;
   damage: WeaponDamage;
   properties: WEAPON_PROPERTY[];
-  mastery: WEAPON_MASTERY;
+  mastery?: WEAPON_MASTERY;
   range?: WeaponRange;
   versatileDamage?: WeaponDamage;
   propertyNotes?: Partial<Record<WEAPON_PROPERTY, string>>;
@@ -141,7 +140,7 @@ export type Character = {
   languageProficiencies: LanguageProficiencyEntry[];
   hitDiceRemaining?: number;
   roundTracker?: CharacterRoundTracker;
-  conditions?: CharacterCondition[];
+  statusEntries?: CharacterStatusEntry[];
   deathSaves?: CharacterDeathSaves;
   equipment: CharacterEquipmentItem[];
   customEquipment: CharacterCustomEquipment[];
@@ -151,6 +150,7 @@ export type Character = {
   shortRestsUsedToday?: number;
   coreStats?: CoreStats;
   classFeatureState?: CharacterClassFeatureState;
+  feats?: CharacterFeatEntry[];
 };
 
 export type CharacterDraft = {
@@ -175,7 +175,7 @@ export type CharacterDraft = {
   savingThrowProficiencies?: AbilityKey[];
   hitDiceRemaining?: number;
   roundTracker?: CharacterRoundTracker;
-  conditions?: CharacterCondition[];
+  statusEntries?: CharacterStatusEntry[];
   deathSaves?: CharacterDeathSaves;
   equipment: string[];
   customEquipment: CharacterCustomEquipment[];
@@ -185,4 +185,5 @@ export type CharacterDraft = {
   shortRestsUsedToday?: number;
   coreStats?: CoreStats;
   classFeatureState?: CharacterClassFeatureState;
+  feats?: CharacterFeatEntry[];
 };

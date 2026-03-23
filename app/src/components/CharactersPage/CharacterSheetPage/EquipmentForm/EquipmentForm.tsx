@@ -17,7 +17,12 @@ import {
   type ItemEntry,
   type WeaponEntry
 } from "../../../../codex/entries";
-import { currencyKeys, type Character, type CurrencyKey } from "../../../../types";
+import {
+  PROF_LEVEL,
+  currencyKeys,
+  type Character,
+  type CurrencyKey
+} from "../../../../types";
 import {
   formatEquipmentWeight,
   formatCodexLabel,
@@ -31,8 +36,16 @@ import {
   equipmentOptions,
   getEquipmentByName,
   getLoadoutCodexEntryByName,
-  normalizeCharacterEquipmentSelections
+  getWeaponLevelFromEntries,
+  getWeaponProficiencyForBaseWeapon,
+  normalizeCharacterEquipmentSelections,
+  type LoadoutCodexEntry
 } from "../../../../pages/CharactersPage/proficiency";
+import { getAbilityScoreForCharacter } from "../../../../pages/CharactersPage/abilities";
+import {
+  getKeywordReferences,
+  type KeywordReference
+} from "../../../../pages/CharactersPage/keywordDescriptions";
 import {
   findCustomEquipmentById,
   getResolvedCustomLoadoutEntries,
@@ -55,6 +68,7 @@ import {
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import CustomEquipmentEditor from "../CustomEquipmentEditor";
 import InlineToggleButton from "../InlineToggleButton";
@@ -72,6 +86,10 @@ type SelectedLoadoutEntryState = {
   entry: LoadoutDrawerEntry;
   customEquipmentId?: string;
   origin: "loadout" | "catalog";
+};
+type SelectedWeaponReference = {
+  name: string;
+  entries: KeywordReference[];
 };
 type LoadoutGroupItem = {
   key: string;
@@ -370,6 +388,8 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
   const catalogListRef = useRef<HTMLUListElement | null>(null);
   const [selectedLoadoutEntry, setSelectedLoadoutEntry] =
     useState<SelectedLoadoutEntryState | null>(null);
+  const [selectedWeaponReference, setSelectedWeaponReference] =
+    useState<SelectedWeaponReference | null>(null);
   const [isCurrencyDrawerOpen, setIsCurrencyDrawerOpen] = useState(false);
   const [activeCurrencyKey, setActiveCurrencyKey] = useState<CurrencyKey>("gold");
   const [currencyAmountDraft, setCurrencyAmountDraft] = useState(0);
@@ -392,6 +412,7 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
   >(null);
 
   const hasBackdrop = Boolean(
+    selectedWeaponReference ||
     selectedLoadoutEntry ||
     isCurrencyDrawerOpen ||
     isAddModalOpen ||
@@ -407,6 +428,11 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
 
     function handleKeyDown(event: globalThis.KeyboardEvent) {
       if (event.key === "Escape") {
+        if (selectedWeaponReference) {
+          setSelectedWeaponReference(null);
+          return;
+        }
+
         if (pendingDeleteCustomEquipmentId) {
           setPendingDeleteCustomEquipmentId(null);
           return;
@@ -418,7 +444,7 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
         }
 
         if (selectedLoadoutEntry) {
-          setSelectedLoadoutEntry(null);
+          closeLoadoutDrawer();
           return;
         }
 
@@ -444,7 +470,8 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
     isCurrencyDrawerOpen,
     isCustomEquipmentModalOpen,
     pendingDeleteCustomEquipmentId,
-    selectedLoadoutEntry
+    selectedLoadoutEntry,
+    selectedWeaponReference
   ]);
 
   useEffect(() => {
@@ -492,22 +519,23 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
   const selectedLoadoutItems = useMemo(
     () => [
       ...character.equipment
-        .map((item) => {
+        .flatMap<LoadoutGroupItem>((item) => {
           const entry = getLoadoutCodexEntryByName(item.name);
 
           if (!entry) {
-            return null;
+            return [];
           }
 
-          return {
-            key: `codex-${entry.id}`,
-            name: entry.name,
-            entry,
-            onHand: item.onHand,
-            worn: item.worn
-          } satisfies LoadoutGroupItem;
-        })
-        .filter((item): item is LoadoutGroupItem => item !== null),
+          return [
+            {
+              key: `codex-${entry.id}`,
+              name: entry.name,
+              entry,
+              onHand: item.onHand,
+              worn: item.worn
+            }
+          ];
+        }),
       ...resolvedCustomEquipmentEntries.map(
         (entry) =>
           ({
@@ -536,7 +564,7 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
       ) / 100,
     [selectedLoadoutItems]
   );
-  const carryingCapacity = Math.max(0, character.abilities.STR * 15);
+  const carryingCapacity = Math.max(0, getAbilityScoreForCharacter(character, "STR") * 15);
   const isOverCarryingCapacity = carriedWeight > carryingCapacity;
   const editingCustomEquipment = editingCustomEquipmentId
     ? (findCustomEquipmentById(customEquipment, editingCustomEquipmentId) ?? null)
@@ -553,16 +581,16 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
     () => [
       ...character.equipment
         .filter((item) => item.onHand)
-        .map((item) => {
+        .flatMap<HeldWeaponDescriptor>((item) => {
           const entry = getLoadoutCodexEntryByName(item.name);
 
           if (!entry) {
-            return null;
+            return [];
           }
 
-          return createHeldDescriptorForEntry(`codex-${entry.id}`, entry);
-        })
-        .filter((entry): entry is HeldWeaponDescriptor => entry !== null),
+          const heldDescriptor = createHeldDescriptorForEntry(`codex-${entry.id}`, entry);
+          return heldDescriptor ? [heldDescriptor] : [];
+        }),
       ...resolvedCustomEquipmentEntries
         .filter(
           (
@@ -624,6 +652,27 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
   const isSelectedShield =
     selectedLoadoutEntryData?.category === ENTRY_CATEGORIES.ARMOR &&
     isShieldArmorEntry(selectedLoadoutEntryData);
+  const selectedWeaponMasteryStatus = useMemo(() => {
+    if (
+      !selectedLoadoutEntryData ||
+      selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS
+    ) {
+      return null;
+    }
+
+    if (!selectedLoadoutEntryData.mastery || !selectedLoadoutEntryData.baseWeapon) {
+      return null;
+    }
+
+    const masteryProficiency = getWeaponProficiencyForBaseWeapon(
+      selectedLoadoutEntryData.baseWeapon
+    );
+    const hasMastery =
+      getWeaponLevelFromEntries(character.weaponProficiencies, masteryProficiency) !==
+      PROF_LEVEL.NONE;
+
+    return hasMastery ? "Active" : "Inactive";
+  }, [character.weaponProficiencies, selectedLoadoutEntryData]);
   const canSelectedEntryBePutOnHand =
     selectedHandDescriptor && !isSelectedEntryOnHand
       ? canWeaponBePutOnHand(selectedHandDescriptor, heldWeaponDescriptors)
@@ -637,7 +686,7 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
       groupCatalogItems(
         availableEquipmentOptions
           .map((itemName) => getLoadoutCodexEntryByName(itemName))
-          .filter((entry): entry is LoadoutDrawerEntry => entry !== undefined)
+          .filter((entry): entry is LoadoutCodexEntry => entry !== undefined)
           .filter((entry) => matchesCatalogSearch(entry, catalogSearchQuery))
       ),
     [availableEquipmentOptions, catalogSearchQuery]
@@ -661,10 +710,24 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
 
   function openLoadoutEntryDetails(item: LoadoutGroupItem) {
     setIsCurrencyDrawerOpen(false);
+    setSelectedWeaponReference(null);
     setSelectedLoadoutEntry({
       entry: item.entry,
       customEquipmentId: item.customEquipmentId,
       origin: "loadout"
+    });
+  }
+
+  function openWeaponReference(title: string, keywords: string[]) {
+    const entries = getKeywordReferences(keywords);
+
+    if (entries.length === 0) {
+      return;
+    }
+
+    setSelectedWeaponReference({
+      name: title,
+      entries
     });
   }
 
@@ -689,6 +752,7 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
   }
 
   function openCustomEquipmentEditor(customEquipmentId: string) {
+    setSelectedWeaponReference(null);
     setSelectedLoadoutEntry(null);
     setIsCurrencyDrawerOpen(false);
     setIsCustomEquipmentModalOpen(true);
@@ -760,7 +824,7 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
       };
     });
 
-    setSelectedLoadoutEntry(null);
+    closeLoadoutDrawer();
     closeCustomEquipmentModal();
   }
 
@@ -773,10 +837,11 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
     }));
 
     setPendingDeleteCustomEquipmentId(null);
-    setSelectedLoadoutEntry(null);
+    closeLoadoutDrawer();
   }
 
   function openCurrencyModal() {
+    setSelectedWeaponReference(null);
     setSelectedLoadoutEntry(null);
     setCurrencyAmountDraft(0);
     setIsCurrencyDrawerOpen(true);
@@ -898,10 +963,11 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
       )
     }));
 
-    setSelectedLoadoutEntry(null);
+    closeLoadoutDrawer();
   }
 
   function closeLoadoutDrawer() {
+    setSelectedWeaponReference(null);
     setSelectedLoadoutEntry(null);
   }
 
@@ -1299,12 +1365,13 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
                             isAlreadyAdded && styles.catalogItemMetaButtonDisabled
                           )}
                           disabled={isAlreadyAdded}
-                          onClick={() =>
+                          onClick={() => {
+    setSelectedWeaponReference(null);
                             setSelectedLoadoutEntry({
                               entry: catalogEntry,
                               origin: "catalog"
-                            })
-                          }
+                            });
+                          }}
                         >
                           <div className={styles.catalogItemMeta}>
                             <div className={styles.catalogItemHeading}>
@@ -1558,7 +1625,7 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
         <div
           className={clsx(sheetStyles.spellDrawerBackdrop, styles.equipmentOverlayDrawerBackdrop)}
           role="presentation"
-          onClick={() => setSelectedLoadoutEntry(null)}
+          onClick={closeLoadoutDrawer}
         >
           <section
             className={sheetStyles.spellDrawer}
@@ -1596,7 +1663,7 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
               <button
                 type="button"
                 className={sheetStyles.spellDrawerCloseButton}
-                onClick={() => setSelectedLoadoutEntry(null)}
+                onClick={closeLoadoutDrawer}
                 aria-label="Close loadout details"
               >
                 <X size={18} />
@@ -1614,14 +1681,50 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
                     <span>Damage</span>
                     <strong>{formatWeaponDamage(selectedLoadoutEntryData.damage)}</strong>
                   </div>
-                  <div className={sheetStyles.spellDrawerDetailCard}>
+                  <button
+                    type="button"
+                    className={clsx(
+                      sheetStyles.spellDrawerDetailCard,
+                      styles.referenceDetailButton
+                    )}
+                    onClick={() =>
+                      openWeaponReference(
+                        "Properties",
+                        selectedLoadoutEntryData.properties.map((property) =>
+                          formatCodexLabel(property)
+                        )
+                      )
+                    }
+                  >
                     <span>Properties</span>
                     <strong>{formatWeaponProperties(selectedLoadoutEntryData)}</strong>
-                  </div>
-                  <div className={sheetStyles.spellDrawerDetailCard}>
-                    <span>Mastery</span>
-                    <strong>{formatCodexLabel(selectedLoadoutEntryData.mastery)}</strong>
-                  </div>
+                  </button>
+                  {selectedLoadoutEntryData.mastery ? (
+                    <button
+                      type="button"
+                      className={clsx(
+                        sheetStyles.spellDrawerDetailCard,
+                        styles.referenceDetailButton
+                      )}
+                      onClick={() =>
+                        openWeaponReference("Mastery", [
+                          formatCodexLabel(selectedLoadoutEntryData.mastery!)
+                        ])
+                      }
+                    >
+                      <span>
+                        {selectedWeaponMasteryStatus
+                          ? `Mastery (${selectedWeaponMasteryStatus})`
+                          : "Mastery"}
+                      </span>
+                      <strong>{formatCodexLabel(selectedLoadoutEntryData.mastery)}</strong>
+                    </button>
+                  ) : (
+                    <div className={sheetStyles.spellDrawerDetailCard}>
+                      <span>Mastery</span>
+                      <strong>None</strong>
+                    </div>
+                  )}
                   <div className={sheetStyles.spellDrawerDetailCard}>
                     <span>Weight</span>
                     <strong>{formatWeaponWeight(selectedLoadoutEntryData.weight)}</strong>
@@ -1761,6 +1864,15 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
             ) : null}
           </section>
         </div>
+      ) : null}
+
+      {selectedWeaponReference ? (
+        <KeywordReferenceDrawer
+          title={selectedWeaponReference.name}
+          entries={selectedWeaponReference.entries}
+          onClose={() => setSelectedWeaponReference(null)}
+          backdropClassName={styles.masteryReferenceBackdrop}
+        />
       ) : null}
 
       {pendingDeleteCustomEquipment ? (

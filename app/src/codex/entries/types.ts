@@ -18,6 +18,7 @@ import type {
   SPECIES_TYPES,
   SPELL_COMPONENT,
   SPELL_LIST_CLASS,
+  WEAPON_BASE,
   TOOL_PROFICIENCIES,
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
@@ -100,6 +101,7 @@ export type SpellEntry = {
 };
 export type WeaponEntry = Omit<BaseCodexEntry<ENTRY_CATEGORIES.WEAPONS, never>, "tags"> &
   EntryWithRarity & {
+    baseWeapon?: WEAPON_BASE;
     type: WeaponType;
     damage: WeaponDamage;
     properties: WEAPON_PROPERTY[];

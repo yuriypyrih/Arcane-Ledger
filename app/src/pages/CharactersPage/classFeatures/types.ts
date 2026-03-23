@@ -1,5 +1,10 @@
 import type { RoundTrackerResource } from "../combat";
-import type { AbilityKey, CharacterCondition, SkillName } from "../../../types";
+import type {
+  AbilityKey,
+  CharacterStatusEntry,
+  CoreStats,
+  SkillName
+} from "../../../types";
 
 export type FeatureActionCard = {
   key: string;
@@ -27,7 +32,10 @@ export type WeaponFeatureContext = {
 export type FeatureIndicator = {
   label: string;
   tone: "advantage" | "disadvantage";
+  source: string;
 };
+
+export type CoreStatIndicatorMap = Partial<Record<keyof CoreStats, FeatureIndicator[]>>;
 
 export type SavingThrowIndicatorMap = Partial<Record<AbilityKey, FeatureIndicator[]>>;
 
@@ -38,9 +46,7 @@ export type FeatureSpellcastingState = {
   reason: string | null;
 };
 
-export type DerivedFeatureCondition = CharacterCondition & {
-  source: "feature";
-};
+export type DerivedFeatureStatusEntry = CharacterStatusEntry;
 
 export type ArmorClassFeatureContext = {
   hasWornBodyArmor: boolean;
@@ -60,4 +66,21 @@ export type FeatureArmorClassMode = {
 export type FeatureArmorClassBonus = {
   label: string;
   value: number;
+};
+
+export type SpeedFeatureContext = {
+  wornBodyArmorType: "light" | "medium" | "heavy" | null;
+};
+
+export type FeatureSpeedBonus = {
+  label: string;
+  value: number;
+};
+
+export type FeatureAbilityScoreBonus = {
+  ability: AbilityKey;
+  label: string;
+  value: number;
+  maxScore?: number | null;
+  order?: number;
 };

@@ -115,6 +115,19 @@
   flex-shrink: 0;
 }
 
+.referenceDrawerHeader {
+  align-items: center;
+}
+
+.referenceIndicatorStack {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
 .skillRowProficient {
   color: #6f2bc5;
 }
@@ -238,6 +251,10 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.editorGridCompact {
+  gap: 0.55rem;
+}
+
 .editorCard {
   display: grid;
   gap: 0.55rem;
@@ -253,6 +270,12 @@
     border-color 140ms ease,
     box-shadow 140ms ease,
     transform 140ms ease;
+}
+
+.editorCardCompact {
+  gap: 0.4rem;
+  border-radius: 15px;
+  padding: 0.62rem 0.72rem;
 }
 
 .editorCardActive {
@@ -277,9 +300,24 @@
   pointer-events: none;
 }
 
+.editorLabelRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.55rem;
+}
+
 .editorLabel {
   color: var(--color-ink);
   font-weight: 600;
+}
+
+.editorMeta {
+  color: var(--color-ink-soft);
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  text-align: right;
+  text-transform: capitalize;
 }
 
 .editorState {

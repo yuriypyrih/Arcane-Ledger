@@ -95,7 +95,10 @@ function CharacterSheetPage() {
             className={styles.cascadeThree}
             onPersistCharacter={persistCharacter}
           />
-          <ClassFeaturesAndFeats className={styles.cascadeFour} />
+          <ClassFeaturesAndFeats
+            className={styles.cascadeFour}
+            onPersistCharacter={persistCharacter}
+          />
           <SkillsAndProficienciesForm
             className={styles.cascadeFive}
             onPersistCharacter={persistCharacter}

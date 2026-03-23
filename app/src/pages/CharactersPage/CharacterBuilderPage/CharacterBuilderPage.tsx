@@ -53,7 +53,7 @@ function CharacterBuilderPage() {
           existingCharacter.savingThrowProficiencies
         ),
         hitDiceRemaining: existingCharacter.hitDiceRemaining,
-        conditions: existingCharacter.conditions,
+        statusEntries: existingCharacter.statusEntries,
         deathSaves: existingCharacter.deathSaves,
         customEquipment: existingCharacter.customEquipment,
         cantripIds: existingCharacter.cantripIds,
@@ -61,7 +61,8 @@ function CharacterBuilderPage() {
         spellSlotsExpended: existingCharacter.spellSlotsExpended,
         shortRestsUsedToday: existingCharacter.shortRestsUsedToday,
         coreStats: existingCharacter.coreStats,
-        classFeatureState: existingCharacter.classFeatureState
+        classFeatureState: existingCharacter.classFeatureState,
+        feats: existingCharacter.feats
       }
     : emptyCharacter;
 

@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
 import RarityPill from "../../components/CodexPage/RarityPill";
+import KeywordReferenceDrawer from "../../components/KeywordReferenceDrawer/KeywordReferenceDrawer";
 import SpellDescriptionContent from "../../components/SpellDescriptionContent";
 import {
   ABILITY_TYPES,
@@ -26,6 +27,7 @@ import {
 import { useCodexEntries } from "../CodexPage/useCodexEntries";
 import sheetStyles from "../CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import { isShieldArmorEntry } from "../CharactersPage/armor";
+import { getKeywordReferences } from "../CharactersPage/keywordDescriptions";
 import styles from "./CodexEntryPage.module.css";
 
 const abilityDisplayOrder = [
@@ -88,6 +90,10 @@ function CodexEntryPage() {
   const [searchParams] = useSearchParams();
   const { entries, status } = useCodexEntries();
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
+  const [selectedWeaponReference, setSelectedWeaponReference] = useState<{
+    title: string;
+    entries: ReturnType<typeof getKeywordReferences>;
+  } | null>(null);
   const entry = entries.find((item) => item.id === entryId);
   const codexSearch = searchParams.toString();
   const backToCodexPath = codexSearch.length > 0 ? `/codex?${codexSearch}` : "/codex";
@@ -107,19 +113,41 @@ function CodexEntryPage() {
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
+        if (selectedWeaponReference) {
+          setSelectedWeaponReference(null);
+          return;
+        }
+
         setIsComponentsTooltipOpen(false);
       }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isComponentsTooltipOpen]);
+  }, [isComponentsTooltipOpen, selectedWeaponReference]);
 
   useEffect(() => {
     if (!entry || entry.category !== ENTRY_CATEGORIES.SPELLS) {
       setIsComponentsTooltipOpen(false);
     }
+
+    if (!entry || entry.category !== ENTRY_CATEGORIES.WEAPONS) {
+      setSelectedWeaponReference(null);
+    }
   }, [entry]);
+
+  function openWeaponReference(title: string, keywords: string[]) {
+    const referenceEntries = getKeywordReferences(keywords);
+
+    if (referenceEntries.length === 0) {
+      return;
+    }
+
+    setSelectedWeaponReference({
+      title,
+      entries: referenceEntries
+    });
+  }
 
   return (
     <section className={styles.page}>
@@ -182,14 +210,29 @@ function CodexEntryPage() {
                       <span>Damage</span>
                       <strong>{formatWeaponDamage(entry.damage)}</strong>
                     </div>
-                    <div className={sheetStyles.spellDrawerDetailCard}>
+                    <button
+                      type="button"
+                      className={`${sheetStyles.spellDrawerDetailCard} ${styles.drawerDetailButton}`}
+                      onClick={() =>
+                        openWeaponReference(
+                          "Properties",
+                          entry.properties.map((property) => formatCodexLabel(property))
+                        )
+                      }
+                    >
                       <span>Properties</span>
                       <strong>{formatWeaponProperties(entry)}</strong>
-                    </div>
-                    <div className={sheetStyles.spellDrawerDetailCard}>
+                    </button>
+                    <button
+                      type="button"
+                      className={`${sheetStyles.spellDrawerDetailCard} ${styles.drawerDetailButton}`}
+                      onClick={() =>
+                        openWeaponReference("Mastery", [formatCodexLabel(entry.mastery)])
+                      }
+                    >
                       <span>Mastery</span>
                       <strong>{formatCodexLabel(entry.mastery)}</strong>
-                    </div>
+                    </button>
                     <div className={sheetStyles.spellDrawerDetailCard}>
                       <span>Weight</span>
                       <strong>{formatWeaponWeight(entry.weight)}</strong>
@@ -355,6 +398,14 @@ function CodexEntryPage() {
             </>
           )}
         </article>
+      ) : null}
+
+      {selectedWeaponReference ? (
+        <KeywordReferenceDrawer
+          title={selectedWeaponReference.title}
+          entries={selectedWeaponReference.entries}
+          onClose={() => setSelectedWeaponReference(null)}
+        />
       ) : null}
 
       {entry && entry.category === ENTRY_CATEGORIES.SPELLS && isComponentsTooltipOpen ? (

@@ -47,10 +47,15 @@ export function rollFormulaWithDice(input: string, mode: RollMode): RollFormulaW
     }
 
     const rolls = Array.from({ length: term.count }, () => rollDie(term.sides));
-    const subtotal = rolls.reduce((sum, value) => sum + value, 0) * term.sign;
+    const adjustedRolls = rolls.map((value) => Math.max(value, term.minimum));
+    const subtotal = adjustedRolls.reduce((sum, value) => sum + value, 0) * term.sign;
     total += subtotal;
     detailParts.push(
-      `${term.sign === -1 ? "-" : ""}${term.count}d${term.sides} [${rolls.join(", ")}]`
+      `${term.sign === -1 ? "-" : ""}${term.count}d${term.sides}${
+        term.minimum > 1 ? `m${term.minimum}` : ""
+      } [${
+        adjustedRolls.join(", ")
+      }]`
     );
 
     const supportedSides = asSupportedDiceSides(term.sides);
@@ -59,7 +64,7 @@ export function rollFormulaWithDice(input: string, mode: RollMode): RollFormulaW
       continue;
     }
 
-    rolls.forEach((value) => {
+    adjustedRolls.forEach((value) => {
       dice.push({
         id: createDiceId(supportedSides, diceIndex),
         sides: supportedSides,

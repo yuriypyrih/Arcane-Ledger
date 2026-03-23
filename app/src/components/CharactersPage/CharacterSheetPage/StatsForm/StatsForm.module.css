@@ -211,6 +211,19 @@
   grid-column: 1 / -1;
 }
 
+.referenceDrawerHeader {
+  align-items: center;
+}
+
+.referenceIndicatorStack {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+  margin-left: auto;
+}
+
 .savingThrowEditCardActive {
   background: rgba(111, 43, 197, 0.13);
   border-color: rgba(111, 43, 197, 0.4);

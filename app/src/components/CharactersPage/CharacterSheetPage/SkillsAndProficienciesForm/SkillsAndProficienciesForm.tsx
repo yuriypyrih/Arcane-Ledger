@@ -18,6 +18,7 @@ import {
 } from "../../../../types";
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
 import { getSkillIndicatorsForCharacter } from "../../../../pages/CharactersPage/classFeatures";
+import type { FeatureIndicator } from "../../../../pages/CharactersPage/classFeatures";
 import {
   armorProficiencyOptions,
   getArmorLevelFromEntries,
@@ -31,7 +32,9 @@ import {
   getSkillLevelFromEntries,
   getSkillProficiencyForName,
   getToolLevelFromEntries,
+  getWeaponProficiencyTypeLabel,
   getWeaponLevelFromEntries,
+  isWeaponMasteryProficiency,
   setManualArmorEntry,
   setManualToolEntry,
   setManualWeaponEntry,
@@ -58,6 +61,7 @@ type SkillsAndProficienciesFormProps = {
 type SelectedKeyword = {
   name: string;
   description: string;
+  indicators?: FeatureIndicator[];
 };
 
 type ProficiencyEditorTab = "skills" | "weapons" | "armor" | "tools" | "languages";
@@ -147,6 +151,9 @@ function SkillsAndProficienciesForm({
     : character.toolProficiencies;
 
   const displayedSkillLevels = getDisplaySkillLevels(displayedSkillProficiencies);
+  const displayedWeaponProficiencyEntries = getDisplayWeaponProficiencyEntries(
+    displayedWeaponProficiencies
+  );
   const skillIndicators = getSkillIndicatorsForCharacter(character);
   const skillRowsByAbility = getSkillRowsByAbility(
     character,
@@ -162,7 +169,15 @@ function SkillsAndProficienciesForm({
     },
     {
       title: "Weapon Proficiencies",
-      entries: getDisplayWeaponProficiencyEntries(displayedWeaponProficiencies)
+      entries: displayedWeaponProficiencyEntries.filter(
+        (entry) => !isWeaponMasteryProficiency(entry.proficiency)
+      )
+    },
+    {
+      title: "Weapon Masteries",
+      entries: displayedWeaponProficiencyEntries.filter((entry) =>
+        isWeaponMasteryProficiency(entry.proficiency)
+      )
     },
     {
       title: "Armor Proficiencies",
@@ -240,6 +255,13 @@ function SkillsAndProficienciesForm({
     );
   }
 
+  function updateSkillProficiency(skillName: string, isSelected: boolean) {
+    updateSkillLevel(
+      skillName,
+      isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
+    );
+  }
+
   function updateWeaponProficiency(
     proficiency: WEAPON_PROFICIENCY,
     isSelected: boolean
@@ -276,7 +298,7 @@ function SkillsAndProficienciesForm({
     );
   }
 
-  function openKeywordReference(keyword: string) {
+  function openKeywordReference(keyword: string, indicators?: FeatureIndicator[]) {
     const description = getKeywordDescription(keyword);
 
     if (!description) {
@@ -285,7 +307,8 @@ function SkillsAndProficienciesForm({
 
     setSelectedKeyword({
       name: keyword,
-      description
+      description,
+      indicators: indicators?.length ? indicators : undefined
     });
   }
 
@@ -321,31 +344,48 @@ function SkillsAndProficienciesForm({
     );
   }
 
-  function renderToggleEditor<TProficiency extends Parameters<typeof getProficiencyLabel>[0]>(
-    options: readonly TProficiency[],
-    isSelected: (proficiency: TProficiency) => boolean,
-    onToggle: (proficiency: TProficiency, isSelected: boolean) => void
+  function renderToggleEditor<TOption extends string>(
+    options: readonly TOption[],
+    isSelected: (option: TOption) => boolean,
+    onToggle: (option: TOption, isSelected: boolean) => void,
+    optionsConfig?: {
+      compact?: boolean;
+      getLabel?: (option: TOption) => string;
+      renderMeta?: (option: TOption) => string | null;
+    }
   ) {
     return (
-      <div className={styles.editorGrid}>
-        {options.map((proficiency) => {
-          const label = getProficiencyLabel(proficiency);
-          const selected = isSelected(proficiency);
+      <div
+        className={clsx(
+          styles.editorGrid,
+          optionsConfig?.compact && styles.editorGridCompact
+        )}
+      >
+        {options.map((option) => {
+          const label =
+            optionsConfig?.getLabel?.(option) ??
+            getProficiencyLabel(option as Parameters<typeof getProficiencyLabel>[0]);
+          const meta = optionsConfig?.renderMeta?.(option) ?? null;
+          const selected = isSelected(option);
 
           return (
             <label
-              key={proficiency}
+              key={option}
               className={clsx(
                 styles.editorCard,
+                optionsConfig?.compact && styles.editorCardCompact,
                 styles.editorToggleCard,
                 selected && styles.editorCardActive
               )}
               onClick={(event) => {
                 event.preventDefault();
-                onToggle(proficiency, !selected);
+                onToggle(option, !selected);
               }}
             >
-              <span className={styles.editorLabel}>{label}</span>
+              <span className={styles.editorLabelRow}>
+                <span className={styles.editorLabel}>{label}</span>
+                {meta ? <span className={styles.editorMeta}>{meta}</span> : null}
+              </span>
               <span className={styles.editorCheckboxRow}>
                 <input
                   type="checkbox"
@@ -367,35 +407,19 @@ function SkillsAndProficienciesForm({
   }
 
   function renderSkillEditor() {
-    return (
-      <div className={styles.editorGrid}>
-        {skillsOptions.map((skillName) => {
-          const proficiency = getSkillProficiencyForName(skillName);
+    return renderToggleEditor(
+      skillsOptions,
+      (skillName) => {
+        const proficiency = getSkillProficiencyForName(skillName);
 
-          if (!proficiency) {
-            return null;
-          }
-
-          const currentSkillLevel = getSkillLevelFromEntries(skillProficienciesDraft, proficiency);
-
-          return (
-            <div key={skillName} className={styles.editorCard}>
-              <span className={styles.editorLabel}>{skillName}</span>
-              <SelectInput
-                className={styles.editorSelect}
-                value={currentSkillLevel}
-                onChange={(event) =>
-                  updateSkillLevel(skillName, event.target.value as PROF_LEVEL)
-                }
-              >
-                <option value={PROF_LEVEL.NONE}>None</option>
-                <option value={PROF_LEVEL.PROFICIENT}>Proficient</option>
-                <option value={PROF_LEVEL.EXPERT}>Expert</option>
-              </SelectInput>
-            </div>
-          );
-        })}
-      </div>
+        return proficiency
+          ? getSkillLevelFromEntries(skillProficienciesDraft, proficiency) !== PROF_LEVEL.NONE
+          : false;
+      },
+      updateSkillProficiency,
+      {
+        getLabel: (skillName) => skillName
+      }
     );
   }
 
@@ -408,7 +432,11 @@ function SkillsAndProficienciesForm({
           weaponProficiencyOptions,
           (proficiency) =>
             getWeaponLevelFromEntries(weaponProficienciesDraft, proficiency) !== PROF_LEVEL.NONE,
-          updateWeaponProficiency
+          updateWeaponProficiency,
+          {
+            compact: true,
+            renderMeta: getWeaponProficiencyTypeLabel
+          }
         );
       case "armor":
         return renderToggleEditor(
@@ -494,7 +522,7 @@ function SkillsAndProficienciesForm({
                                 <button
                                   type="button"
                                   className={styles.skillNameButton}
-                                  onClick={() => openKeywordReference(row.name)}
+                                  onClick={() => openKeywordReference(row.name, skillIndicators[row.name])}
                                 >
                                   {row.name}
                                 </button>
@@ -673,14 +701,25 @@ function SkillsAndProficienciesForm({
             onClick={(event) => event.stopPropagation()}
           >
             <div className={sheetStyles.spellDrawerHandle} aria-hidden="true" />
-            <div className={sheetStyles.spellDrawerHeader}>
+            <div className={clsx(sheetStyles.spellDrawerHeader, styles.referenceDrawerHeader)}>
               <div className={sheetStyles.spellDrawerHeaderContent}>
                 <p className={sheetStyles.spellDrawerBadge}>Reference</p>
                 <div className={sheetStyles.spellDrawerTitleRow}>
                   <h3 id="character-skill-reference-title">{selectedKeyword.name}</h3>
                 </div>
-                <p className={sheetStyles.spellDrawerSummary}>{selectedKeyword.description}</p>
               </div>
+              {selectedKeyword.indicators?.length ? (
+                <div className={styles.referenceIndicatorStack}>
+                  {selectedKeyword.indicators.map((indicator, index) => (
+                    <RollStatePill
+                      key={`${selectedKeyword.name}-${indicator.label}-${indicator.tone}-${indicator.source}-${index}`}
+                      tone={indicator.tone}
+                      label={indicator.label}
+                      detailText={`From ${indicator.source}`}
+                    />
+                  ))}
+                </div>
+              ) : null}
               <button
                 type="button"
                 className={sheetStyles.spellDrawerCloseButton}
@@ -690,6 +729,7 @@ function SkillsAndProficienciesForm({
                 <X size={18} />
               </button>
             </div>
+            <p className={sheetStyles.spellDrawerSummary}>{selectedKeyword.description}</p>
           </section>
         </div>
       ) : null}

@@ -25,7 +25,9 @@ import {
   ARMOR_TYPES,
   ENTRY_CATEGORIES,
   ITEM_TYPES,
+  RARITY_TYPES,
   TOOL_PROFICIENCIES as LEGACY_TOOL_PROFICIENCIES,
+  WEAPON_BASE,
   WEAPON_TRAINING,
   hardcodedCodexEntries,
   type ArmorEntry,
@@ -41,6 +43,7 @@ import {
   getCharacterEquipmentNames,
   normalizeCharacterEquipmentItems
 } from "./inventory";
+import { formatCodexLabel } from "../../utils/codex";
 
 export const skillsOptions = ALL_SKILLS;
 export type GrantedProficiencyKind =
@@ -80,6 +83,7 @@ export type WeaponEquipmentDefinition = {
   name: string;
   category: "weapon";
   training: WeaponType;
+  baseWeapon?: WEAPON_BASE;
 };
 
 export type ArmorEquipmentDefinition = {
@@ -189,7 +193,8 @@ function toEquipmentDefinition(entry: LoadoutCodexEntry): EquipmentDefinition | 
       entryId: entry.id,
       name: entry.name,
       category: "weapon",
-      training: entry.type.training
+      training: entry.type.training,
+      baseWeapon: entry.baseWeapon
     };
   }
 
@@ -469,6 +474,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
 
 const classOptionSet = new Set<string>(classOptions);
 const skillOptionSet = new Set<string>(skillsOptions);
+const sourceStrMetadataSeparator = "::";
 const proficiencyLevelRank: Record<PROF_LEVEL, number> = {
   [PROF_LEVEL.NONE]: 0,
   [PROF_LEVEL.PROFICIENT]: 1,
@@ -540,6 +546,47 @@ const weaponProficiencyByTraining: Record<WeaponType, WEAPON_PROFICIENCY> = {
   [WEAPON_TRAINING.MARTIAL]: WEAPON_PROFICIENCY.MARTIAL
 };
 
+const weaponProficiencyByBaseWeapon: Record<WEAPON_BASE, WEAPON_PROFICIENCY> = {
+  [WEAPON_BASE.CLUB]: WEAPON_PROFICIENCY.CLUB,
+  [WEAPON_BASE.DAGGER]: WEAPON_PROFICIENCY.DAGGER,
+  [WEAPON_BASE.GREATCLUB]: WEAPON_PROFICIENCY.GREATCLUB,
+  [WEAPON_BASE.HANDAXE]: WEAPON_PROFICIENCY.HANDAXE,
+  [WEAPON_BASE.JAVELIN]: WEAPON_PROFICIENCY.JAVELIN,
+  [WEAPON_BASE.LIGHT_HAMMER]: WEAPON_PROFICIENCY.LIGHT_HAMMER,
+  [WEAPON_BASE.MACE]: WEAPON_PROFICIENCY.MACE,
+  [WEAPON_BASE.QUARTERSTAFF]: WEAPON_PROFICIENCY.QUARTERSTAFF,
+  [WEAPON_BASE.SICKLE]: WEAPON_PROFICIENCY.SICKLE,
+  [WEAPON_BASE.SPEAR]: WEAPON_PROFICIENCY.SPEAR,
+  [WEAPON_BASE.DART]: WEAPON_PROFICIENCY.DART,
+  [WEAPON_BASE.LIGHT_CROSSBOW]: WEAPON_PROFICIENCY.LIGHT_CROSSBOW,
+  [WEAPON_BASE.SHORTBOW]: WEAPON_PROFICIENCY.SHORTBOW,
+  [WEAPON_BASE.SLING]: WEAPON_PROFICIENCY.SLING,
+  [WEAPON_BASE.BATTLEAXE]: WEAPON_PROFICIENCY.BATTLEAXE,
+  [WEAPON_BASE.FLAIL]: WEAPON_PROFICIENCY.FLAIL,
+  [WEAPON_BASE.GLAIVE]: WEAPON_PROFICIENCY.GLAIVE,
+  [WEAPON_BASE.GREATAXE]: WEAPON_PROFICIENCY.GREATAXE,
+  [WEAPON_BASE.GREATSWORD]: WEAPON_PROFICIENCY.GREATSWORD,
+  [WEAPON_BASE.HALBERD]: WEAPON_PROFICIENCY.HALBERD,
+  [WEAPON_BASE.LANCE]: WEAPON_PROFICIENCY.LANCE,
+  [WEAPON_BASE.LONGSWORD]: WEAPON_PROFICIENCY.LONGSWORD,
+  [WEAPON_BASE.MAUL]: WEAPON_PROFICIENCY.MAUL,
+  [WEAPON_BASE.MORNINGSTAR]: WEAPON_PROFICIENCY.MORNINGSTAR,
+  [WEAPON_BASE.PIKE]: WEAPON_PROFICIENCY.PIKE,
+  [WEAPON_BASE.RAPIER]: WEAPON_PROFICIENCY.RAPIER,
+  [WEAPON_BASE.SCIMITAR]: WEAPON_PROFICIENCY.SCIMITAR,
+  [WEAPON_BASE.SHORTSWORD]: WEAPON_PROFICIENCY.SHORTSWORD,
+  [WEAPON_BASE.TRIDENT]: WEAPON_PROFICIENCY.TRIDENT,
+  [WEAPON_BASE.WARHAMMER]: WEAPON_PROFICIENCY.WARHAMMER,
+  [WEAPON_BASE.WAR_PICK]: WEAPON_PROFICIENCY.WAR_PICK,
+  [WEAPON_BASE.WHIP]: WEAPON_PROFICIENCY.WHIP,
+  [WEAPON_BASE.BLOWGUN]: WEAPON_PROFICIENCY.BLOWGUN,
+  [WEAPON_BASE.HAND_CROSSBOW]: WEAPON_PROFICIENCY.HAND_CROSSBOW,
+  [WEAPON_BASE.HEAVY_CROSSBOW]: WEAPON_PROFICIENCY.HEAVY_CROSSBOW,
+  [WEAPON_BASE.LONGBOW]: WEAPON_PROFICIENCY.LONGBOW,
+  [WEAPON_BASE.MUSKET]: WEAPON_PROFICIENCY.MUSKET,
+  [WEAPON_BASE.PISTOL]: WEAPON_PROFICIENCY.PISTOL
+};
+
 const armorProficiencyByType: Record<ArmorType, ARMOR_PROFICIENCY> = {
   light: ARMOR_PROFICIENCY.LIGHT,
   medium: ARMOR_PROFICIENCY.MEDIUM,
@@ -566,11 +613,23 @@ const weaponProficiencyLabelsByType: Record<WeaponType, string> = {
   [WEAPON_TRAINING.SIMPLE]: "Simple weapons",
   [WEAPON_TRAINING.MARTIAL]: "Martial weapons"
 };
+const commonWeaponEntriesByBaseWeapon = new Map<WEAPON_BASE, WeaponEntry>(
+  hardcodedCodexEntries
+    .filter(
+      (entry): entry is WeaponEntry =>
+        entry.category === ENTRY_CATEGORIES.WEAPONS &&
+        entry.rarity === RARITY_TYPES.COMMON &&
+        typeof entry.baseWeapon === "string"
+    )
+    .map((entry) => [entry.baseWeapon as WEAPON_BASE, entry])
+);
+const weaponProficiencyLabelsByBaseWeapon = new Map<WEAPON_BASE, string>(
+  [...commonWeaponEntriesByBaseWeapon.entries()].map(([baseWeapon, entry]) => [baseWeapon, entry.name])
+);
 
-const weaponProficiencyLabels: Record<WEAPON_PROFICIENCY, string> = {
-  [WEAPON_PROFICIENCY.SIMPLE]: "Simple weapons",
-  [WEAPON_PROFICIENCY.MARTIAL]: "Martial weapons"
-};
+const weaponSpecificProficiencyOptions = Object.values(WEAPON_BASE)
+  .map((baseWeapon) => weaponProficiencyByBaseWeapon[baseWeapon])
+  .sort((left, right) => getWeaponProficiencyLabel(left).localeCompare(getWeaponProficiencyLabel(right)));
 
 const armorProficiencyLabelsByType: Record<ArmorType, string> = {
   light: "Light armor",
@@ -626,7 +685,11 @@ export const skillProficiencyOptions = Object.values(SKILL_PROFICIENCY) as SKILL
 export const savingThrowProficiencyOptions = Object.values(
   SAVING_THROW_PROFICIENCY
 ) as SAVING_THROW_PROFICIENCY[];
-export const weaponProficiencyOptions = Object.values(WEAPON_PROFICIENCY) as WEAPON_PROFICIENCY[];
+export const weaponProficiencyOptions: WEAPON_PROFICIENCY[] = [
+  WEAPON_PROFICIENCY.SIMPLE,
+  WEAPON_PROFICIENCY.MARTIAL,
+  ...weaponSpecificProficiencyOptions
+];
 export const armorProficiencyOptions = Object.values(ARMOR_PROFICIENCY) as ARMOR_PROFICIENCY[];
 export const toolProficiencyOptions = Object.values(TOOL_PROFICIENCY) as ToolProficiency[];
 export const languageProficiencyOptions: LANGUAGE_PROFICIENCY[] = [];
@@ -719,7 +782,16 @@ function getLegacyToolProficiency(value: string): TOOL_PROFICIENCY | null {
 
 function getSourceLabel(source: PROFICIENCY_SOURCE, sourceStr?: string): string {
   const normalizedSourceStr = sourceStr?.trim();
-  return normalizedSourceStr && normalizedSourceStr.length > 0 ? normalizedSourceStr : source;
+  if (normalizedSourceStr && normalizedSourceStr.length > 0) {
+    const [label] = normalizedSourceStr.split(sourceStrMetadataSeparator);
+    return label;
+  }
+
+  return source;
+}
+
+export function createFeatProficiencySourceStr(sourceLabel: string, sourceKey: string): string {
+  return `${sourceLabel.trim()}${sourceStrMetadataSeparator}${sourceKey.trim()}`;
 }
 
 function createSkillEntry(
@@ -790,6 +862,113 @@ function createToolEntry(
     proficiency,
     proficiencyLevel
   };
+}
+
+export function addFeatGrantedSkillEntries(
+  entries: SkillProficiencyEntry[],
+  skills: SkillName[],
+  featLabel: string,
+  featEntryId: string
+): SkillProficiencyEntry[] {
+  const sourceStr = createFeatProficiencySourceStr(featLabel, featEntryId);
+  const manualProficiencies = new Set(
+    entries
+      .filter(
+        (entry) =>
+          entry.source === PROFICIENCY_SOURCE.MANUAL &&
+          hasPositiveProficiencyLevel(entry.proficiencyLevel)
+      )
+      .map((entry) => entry.proficiency)
+  );
+
+  return mergeProficiencyEntries([
+    ...entries,
+    ...skills
+      .map((skill) => getSkillProficiencyForName(skill))
+      .filter((proficiency): proficiency is SKILL_PROFICIENCY => proficiency !== null)
+      .filter((proficiency) => !manualProficiencies.has(proficiency))
+      .map((proficiency) =>
+        createSkillEntry(
+          proficiency,
+          PROFICIENCY_SOURCE.FEAT,
+          sourceStr,
+          PROF_LEVEL.PROFICIENT
+        )
+      )
+  ]);
+}
+
+export function removeFeatGrantedSkillEntries(
+  entries: SkillProficiencyEntry[],
+  skills: SkillName[],
+  featLabel: string,
+  featEntryId: string
+): SkillProficiencyEntry[] {
+  const sourceStr = createFeatProficiencySourceStr(featLabel, featEntryId);
+  const proficienciesToRemove = new Set(
+    skills
+      .map((skill) => getSkillProficiencyForName(skill))
+      .filter((proficiency): proficiency is SKILL_PROFICIENCY => proficiency !== null)
+  );
+
+  return mergeProficiencyEntries(
+    entries.filter(
+      (entry) =>
+        !(
+          entry.source === PROFICIENCY_SOURCE.FEAT &&
+          entry.sourceStr === sourceStr &&
+          proficienciesToRemove.has(entry.proficiency)
+        )
+    )
+  );
+}
+
+export function addFeatGrantedToolEntries(
+  entries: ToolProficiencyEntry[],
+  tools: ToolProficiency[],
+  featLabel: string,
+  featEntryId: string
+): ToolProficiencyEntry[] {
+  const sourceStr = createFeatProficiencySourceStr(featLabel, featEntryId);
+  const manualProficiencies = new Set(
+    entries
+      .filter(
+        (entry) =>
+          entry.source === PROFICIENCY_SOURCE.MANUAL &&
+          hasPositiveProficiencyLevel(entry.proficiencyLevel)
+      )
+      .map((entry) => entry.proficiency)
+  );
+
+  return mergeProficiencyEntries([
+    ...entries,
+    ...tools
+      .filter((tool) => !manualProficiencies.has(tool))
+      .map((tool) =>
+      createToolEntry(tool, PROFICIENCY_SOURCE.FEAT, sourceStr, PROF_LEVEL.PROFICIENT)
+      )
+  ]);
+}
+
+export function removeFeatGrantedToolEntries(
+  entries: ToolProficiencyEntry[],
+  tools: ToolProficiency[],
+  featLabel: string,
+  featEntryId: string
+): ToolProficiencyEntry[] {
+  const sourceStr = createFeatProficiencySourceStr(featLabel, featEntryId);
+  const toolsToRemove = new Set<ToolProficiency>(tools);
+
+  return mergeProficiencyEntries(
+    entries.filter(
+      (entry) =>
+        !(
+          entry.source === PROFICIENCY_SOURCE.FEAT &&
+          entry.sourceStr === sourceStr &&
+          toolsToRemove.has(entry.proficiency)
+        )
+    )
+  );
 }
 
 function createLanguageEntry(
@@ -1062,8 +1241,8 @@ export function getProficiencyLabel(
     return savingThrowProficiencyLabels[proficiency as SAVING_THROW_PROFICIENCY];
   }
 
-  if (proficiency in weaponProficiencyLabels) {
-    return weaponProficiencyLabels[proficiency as WEAPON_PROFICIENCY];
+  if (weaponProficiencySet.has(proficiency as string)) {
+    return getWeaponProficiencyLabel(proficiency as WEAPON_PROFICIENCY);
   }
 
   if (proficiency in armorProficiencyLabels) {
@@ -1117,6 +1296,49 @@ export function getWeaponProficiencyForTraining(
   training: WeaponType
 ): WEAPON_PROFICIENCY {
   return weaponProficiencyByTraining[training];
+}
+
+export function getWeaponProficiencyForBaseWeapon(
+  baseWeapon: WEAPON_BASE
+): WEAPON_PROFICIENCY {
+  return weaponProficiencyByBaseWeapon[baseWeapon];
+}
+
+export function isWeaponMasteryProficiency(proficiency: WEAPON_PROFICIENCY): boolean {
+  return proficiency !== WEAPON_PROFICIENCY.SIMPLE && proficiency !== WEAPON_PROFICIENCY.MARTIAL;
+}
+
+export function getWeaponProficiencyLabel(proficiency: WEAPON_PROFICIENCY): string {
+  if (proficiency === WEAPON_PROFICIENCY.SIMPLE) {
+    return weaponProficiencyLabelsByType[WEAPON_TRAINING.SIMPLE];
+  }
+
+  if (proficiency === WEAPON_PROFICIENCY.MARTIAL) {
+    return weaponProficiencyLabelsByType[WEAPON_TRAINING.MARTIAL];
+  }
+
+  return (
+    weaponProficiencyLabelsByBaseWeapon.get(
+      proficiency as unknown as WEAPON_BASE
+    ) ??
+    proficiency.replace(/_/g, " ").toLowerCase().replace(/\b\w/g, (character) => character.toUpperCase())
+  );
+}
+
+export function getWeaponProficiencyTypeLabel(
+  proficiency: WEAPON_PROFICIENCY
+): string | null {
+  if (!isWeaponMasteryProficiency(proficiency)) {
+    return null;
+  }
+
+  const weaponEntry = commonWeaponEntriesByBaseWeapon.get(
+    proficiency as unknown as WEAPON_BASE
+  );
+
+  return weaponEntry
+    ? `${formatCodexLabel(weaponEntry.type.training)} ${formatCodexLabel(weaponEntry.type.combat)}`
+    : null;
 }
 
 export function getArmorProficiencyForType(type: ArmorType): ARMOR_PROFICIENCY {
@@ -1804,6 +2026,40 @@ export function getWeaponLevelFromEntries(
   proficiency: WEAPON_PROFICIENCY
 ): PROF_LEVEL {
   return getEffectiveProficiencyLevel(entries, proficiency);
+}
+
+export function getAppliedWeaponProficiency(
+  entries: WeaponProficiencyEntry[],
+  training: WeaponType,
+  baseWeapon?: WEAPON_BASE
+): { proficiency: WEAPON_PROFICIENCY; label: string; level: PROF_LEVEL } | null {
+  const specificProficiency = baseWeapon
+    ? getWeaponProficiencyForBaseWeapon(baseWeapon)
+    : null;
+  const specificLevel = specificProficiency
+    ? getWeaponLevelFromEntries(entries, specificProficiency)
+    : PROF_LEVEL.NONE;
+
+  if (specificProficiency && specificLevel !== PROF_LEVEL.NONE) {
+    return {
+      proficiency: specificProficiency,
+      label: getWeaponProficiencyLabel(specificProficiency),
+      level: specificLevel
+    };
+  }
+
+  const broadProficiency = getWeaponProficiencyForTraining(training);
+  const broadLevel = getWeaponLevelFromEntries(entries, broadProficiency);
+
+  if (broadLevel === PROF_LEVEL.NONE) {
+    return null;
+  }
+
+  return {
+    proficiency: broadProficiency,
+    label: getWeaponProficiencyLabel(broadProficiency),
+    level: broadLevel
+  };
 }
 
 export function getArmorLevelFromEntries(

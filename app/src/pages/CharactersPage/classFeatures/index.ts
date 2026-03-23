@@ -1,41 +1,52 @@
-import type { Character, CharacterClassFeatureState, CharacterCondition } from "../../../types";
+import type { Character, CharacterClassFeatureState } from "../../../types";
 import {
   activateBarbarianRage,
   applyLongRestToBarbarianFeatures,
+  getBarbarianAbilityScoreBonuses,
   getBarbarianArmorClassBonuses,
   getBarbarianArmorClassModes,
+  getBarbarianCoreStatIndicators,
   applyShortRestToBarbarianFeatures,
   deactivateBarbarianRage,
   getBarbarianDerivedConditions,
   getBarbarianFeatureAction,
   getBarbarianSkillIndicators,
   getBarbarianSavingThrowIndicators,
+  getBarbarianSpeedBonuses,
   getBarbarianSpellcastingState,
   getBarbarianWeaponDamageBonuses,
   normalizeBarbarianRageState
 } from "./barbarian";
 import type {
   ArmorClassFeatureContext,
-  DerivedFeatureCondition,
+  CoreStatIndicatorMap,
+  DerivedFeatureStatusEntry,
   FeatureActionCard,
+  FeatureAbilityScoreBonus,
   FeatureIndicator,
   FeatureArmorClassBonus,
   FeatureArmorClassMode,
   FeatureDamageBonus,
+  FeatureSpeedBonus,
   FeatureSpellcastingState,
   SavingThrowIndicatorMap,
+  SpeedFeatureContext,
   SkillIndicatorMap,
   WeaponFeatureContext
 } from "./types";
 
 export type {
   ArmorClassFeatureContext,
+  CoreStatIndicatorMap,
   FeatureActionCard,
+  FeatureAbilityScoreBonus,
   FeatureIndicator,
   FeatureArmorClassBonus,
   FeatureArmorClassMode,
   FeatureDamageBonus,
+  FeatureSpeedBonus,
   SavingThrowIndicatorMap,
+  SpeedFeatureContext,
   SkillIndicatorMap,
   WeaponFeatureContext
 };
@@ -67,9 +78,15 @@ export function getFeatureDamageBonusesForWeaponAction(
 }
 
 export function getSavingThrowIndicatorsForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
 ): SavingThrowIndicatorMap {
   return getBarbarianSavingThrowIndicators(character);
+}
+
+export function getCoreStatIndicatorsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): CoreStatIndicatorMap {
+  return getBarbarianCoreStatIndicators(character);
 }
 
 export function getSkillIndicatorsForCharacter(
@@ -98,30 +115,23 @@ export function getArmorClassBonusesForCharacter(
   return getBarbarianArmorClassBonuses(character, context);
 }
 
-export function getDerivedFeatureConditionsForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
-): DerivedFeatureCondition[] {
-  return getBarbarianDerivedConditions(character);
+export function getSpeedBonusesForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">,
+  context: SpeedFeatureContext
+): FeatureSpeedBonus[] {
+  return getBarbarianSpeedBonuses(character, context);
 }
 
-export function getResolvedConditionsForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "conditions">
-): CharacterCondition[] {
-  const manualConditions = Array.isArray(character.conditions)
-    ? character.conditions.filter(
-        (condition): condition is CharacterCondition =>
-          Boolean(condition) &&
-          typeof condition === "object" &&
-          typeof condition.name === "string" &&
-          typeof condition.roundsRemaining === "number"
-      )
-    : [];
-  const derivedConditions = getDerivedFeatureConditionsForCharacter(character);
-  const manualConditionsWithoutDerived = manualConditions.filter(
-    (condition) => !derivedConditions.some((derivedCondition) => derivedCondition.name === condition.name)
-  );
+export function getAbilityScoreBonusesForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): FeatureAbilityScoreBonus[] {
+  return getBarbarianAbilityScoreBonuses(character);
+}
 
-  return [...manualConditionsWithoutDerived, ...derivedConditions];
+export function getDerivedFeatureStatusEntriesForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): DerivedFeatureStatusEntry[] {
+  return getBarbarianDerivedConditions(character);
 }
 
 export function activateFeatureActionForCharacter(character: Character, actionKey: string): Character {
@@ -132,8 +142,11 @@ export function activateFeatureActionForCharacter(character: Character, actionKe
   return character;
 }
 
-export function removeFeatureConditionForCharacter(character: Character, conditionName: string): Character {
-  if (conditionName.trim() === "Rage") {
+export function removeFeatureStatusEntryForCharacter(
+  character: Character,
+  statusValue: string
+): Character {
+  if (statusValue.trim() === "Rage") {
     return deactivateBarbarianRage(character);
   }
 

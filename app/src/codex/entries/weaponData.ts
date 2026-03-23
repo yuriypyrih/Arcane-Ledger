@@ -4,6 +4,7 @@ import {
   DICE,
   ENTRY_CATEGORIES,
   RARITY_TYPES,
+  WEAPON_BASE,
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
   WEAPON_PROPERTY,
@@ -13,6 +14,47 @@ import type {WeaponDamage, WeaponEntry} from "./types";
 
 type WeaponSeed = Omit<WeaponEntry, "id" | "category" | "rarity" | "summary"> & {
   rarity?: RARITY_TYPES;
+};
+
+const weaponBaseByName: Record<string, WEAPON_BASE> = {
+  Club: WEAPON_BASE.CLUB,
+  Dagger: WEAPON_BASE.DAGGER,
+  Greatclub: WEAPON_BASE.GREATCLUB,
+  Handaxe: WEAPON_BASE.HANDAXE,
+  Javelin: WEAPON_BASE.JAVELIN,
+  "Light Hammer": WEAPON_BASE.LIGHT_HAMMER,
+  Mace: WEAPON_BASE.MACE,
+  Quarterstaff: WEAPON_BASE.QUARTERSTAFF,
+  Sickle: WEAPON_BASE.SICKLE,
+  Spear: WEAPON_BASE.SPEAR,
+  Dart: WEAPON_BASE.DART,
+  "Light Crossbow": WEAPON_BASE.LIGHT_CROSSBOW,
+  Shortbow: WEAPON_BASE.SHORTBOW,
+  Sling: WEAPON_BASE.SLING,
+  Battleaxe: WEAPON_BASE.BATTLEAXE,
+  Flail: WEAPON_BASE.FLAIL,
+  Glaive: WEAPON_BASE.GLAIVE,
+  Greataxe: WEAPON_BASE.GREATAXE,
+  Greatsword: WEAPON_BASE.GREATSWORD,
+  Halberd: WEAPON_BASE.HALBERD,
+  Lance: WEAPON_BASE.LANCE,
+  Longsword: WEAPON_BASE.LONGSWORD,
+  Maul: WEAPON_BASE.MAUL,
+  Morningstar: WEAPON_BASE.MORNINGSTAR,
+  Pike: WEAPON_BASE.PIKE,
+  Rapier: WEAPON_BASE.RAPIER,
+  Scimitar: WEAPON_BASE.SCIMITAR,
+  Shortsword: WEAPON_BASE.SHORTSWORD,
+  Trident: WEAPON_BASE.TRIDENT,
+  Warhammer: WEAPON_BASE.WARHAMMER,
+  "War Pick": WEAPON_BASE.WAR_PICK,
+  Whip: WEAPON_BASE.WHIP,
+  Blowgun: WEAPON_BASE.BLOWGUN,
+  "Hand Crossbow": WEAPON_BASE.HAND_CROSSBOW,
+  "Heavy Crossbow": WEAPON_BASE.HEAVY_CROSSBOW,
+  Longbow: WEAPON_BASE.LONGBOW,
+  Musket: WEAPON_BASE.MUSKET,
+  Pistol: WEAPON_BASE.PISTOL
 };
 
 function formatLabel(value: string): string {
@@ -70,6 +112,7 @@ function createWeaponEntry(weapon: WeaponSeed): WeaponEntry {
   return {
     id: createWeaponId(weaponDefinition.name),
     category: ENTRY_CATEGORIES.WEAPONS,
+    baseWeapon: weaponDefinition.baseWeapon ?? weaponBaseByName[weaponDefinition.name],
     rarity,
     summary: createWeaponSummary(weaponDefinition),
     ...weaponDefinition

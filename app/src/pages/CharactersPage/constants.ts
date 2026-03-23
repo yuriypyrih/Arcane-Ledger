@@ -108,7 +108,7 @@ export function createEmptyCharacter(): CharacterDraft {
     toolProficiencies: [],
     savingThrowProficiencies: [],
     roundTracker: createDefaultRoundTracker(),
-    conditions: [],
+    statusEntries: [],
     deathSaves: {
       successes: 0,
       failures: 0
@@ -119,7 +119,8 @@ export function createEmptyCharacter(): CharacterDraft {
     spellSlotsExpended: Array.from({ length: 9 }, () => 0),
     shortRestsUsedToday: 0,
     coreStats: createDefaultCoreStats(),
-    classFeatureState: {}
+    classFeatureState: {},
+    feats: []
   };
 }
 

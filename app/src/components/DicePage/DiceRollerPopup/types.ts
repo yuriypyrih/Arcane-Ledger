@@ -3,6 +3,7 @@ import type { RollMode, RollResult, RolledDie } from "../../../types";
 export type DiceRollerRequest = {
   title: string;
   formula: string;
+  formulaDisplay?: string;
   description?: string;
   mode?: RollMode;
 };

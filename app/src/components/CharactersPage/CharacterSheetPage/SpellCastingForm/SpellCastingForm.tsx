@@ -136,6 +136,14 @@ function createSpellPreparationLevelGroups(spells: SpellEntry[]): SpellPreparati
   }, {} as SpellPreparationLevelGroup);
 }
 
+function areSpellIdListsEqual(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  return left.every((spellId, index) => spellId === right[index]);
+}
+
 function getRoundTrackerResourceForSpell(spell: SpellEntry): RoundTrackerResource | null {
   if (spell.castingTime.includes(ACTION_TYPE.BONUS_ACTION)) {
     return "bonusAction";
@@ -233,13 +241,18 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
     character.className,
     character.level
   );
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(
-    character.spellSlotsExpended,
-    spellSlotTotals
+  const spellSlotTotals = useMemo(
+    () => getSpellSlotTotalsForCharacter(character.className, character.level),
+    [character.className, character.level]
   );
-  const spellSlotsRemaining = spellSlotTotals.map((total, index) =>
-    Math.max(0, total - (spellSlotsExpended[index] ?? 0))
+  const spellSlotsExpended = useMemo(
+    () => normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals),
+    [character.spellSlotsExpended, spellSlotTotals]
+  );
+  const spellSlotsRemaining = useMemo(
+    () =>
+      spellSlotTotals.map((total, index) => Math.max(0, total - (spellSlotsExpended[index] ?? 0))),
+    [spellSlotTotals, spellSlotsExpended]
   );
   const highestSpellSlotLevel = useMemo(
     () => getHighestSpellSlotLevel(spellSlotTotals),
@@ -383,15 +396,22 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
         : null;
 
   useEffect(() => {
-    setCantripDraftIds((current) =>
-      normalizeTrackedSpellIds(current, cantripOptions, cantripLimit)
-    );
+    setCantripDraftIds((current) => {
+      const normalized = normalizeTrackedSpellIds(current, cantripOptions, cantripLimit);
+      return areSpellIdListsEqual(current, normalized) ? current : normalized;
+    });
   }, [cantripLimit, cantripOptions]);
 
   useEffect(() => {
-    setPreparedSpellDraftIds((current) =>
-      normalizePreparedSpellIds(current, spellPreparationOptions, preparedSpellLimit, spellSlotTotals)
-    );
+    setPreparedSpellDraftIds((current) => {
+      const normalized = normalizePreparedSpellIds(
+        current,
+        spellPreparationOptions,
+        preparedSpellLimit,
+        spellSlotTotals
+      );
+      return areSpellIdListsEqual(current, normalized) ? current : normalized;
+    });
   }, [preparedSpellLimit, spellPreparationOptions, spellSlotTotals]);
 
   useEffect(() => {

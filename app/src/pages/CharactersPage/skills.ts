@@ -1,5 +1,6 @@
 import type { AbilityKey, Character, SkillName } from "../../types";
 import { getAbilityModifier, getProficiencyBonus } from "./gameplay";
+import { getAbilityScoreForCharacter } from "./abilities";
 import { skillGroupsByAbility } from "./skillDefinitions";
 
 export type SkillProficiencyMultiplier = 0 | 1 | 2;
@@ -30,7 +31,9 @@ export function getSkillRowsByAbility(
   const expertSkillSet = new Set<string>(expertSkills.filter((skill) => proficientSkillSet.has(skill)));
 
   return skillGroupsByAbility.map((group) => {
-    const abilityModifier = getAbilityModifier(character.abilities[group.ability]);
+    const abilityModifier = getAbilityModifier(
+      getAbilityScoreForCharacter(character, group.ability)
+    );
 
     return {
       ability: group.ability,

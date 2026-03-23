@@ -10,6 +10,10 @@ import {
   type StatsViewMode
 } from "../../../../storage/preferences";
 import type { AbilityKey, Character, CoreStats } from "../../../../types";
+import {
+  getAbilityScoreBreakdownForCharacter,
+  getAbilityScoresForCharacter
+} from "../../../../pages/CharactersPage/abilities";
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
 import {
   abilityKeys,
@@ -21,17 +25,25 @@ import {
   formatAbilityModifier,
   getAbilityModifier,
   getHitDiceDisplayForCharacter,
+  getInitiativeBreakdownForCharacter,
   getInitiativeForCharacter,
   getMainAbilityForClass,
   getPassivePerceptionForCharacter,
-  getProficiencyBonus,
-  getSpeedForCharacter
+  getProficiencyBonus
 } from "../../../../pages/CharactersPage/gameplay";
 import {
   getArmorClassBreakdownForCharacter,
   getArmorClassForCharacter
 } from "../../../../pages/CharactersPage/armor";
-import { getSavingThrowIndicatorsForCharacter } from "../../../../pages/CharactersPage/classFeatures";
+import {
+  getSpeedBreakdownForCharacter,
+  getSpeedForCharacter
+} from "../../../../pages/CharactersPage/speed";
+import {
+  type FeatureIndicator,
+  getCoreStatIndicatorsForCharacter,
+  getSavingThrowIndicatorsForCharacter
+} from "../../../../pages/CharactersPage/classFeatures";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
 import {
   getSavingThrowLevelFromEntries,
@@ -63,6 +75,7 @@ type SelectedStatReference = {
   keyword: string;
   description: string;
   detailText?: string;
+  indicators?: FeatureIndicator[];
 };
 
 const coreStatFields: Array<{ key: keyof CoreStats; label: string }> = [
@@ -109,6 +122,78 @@ function formatArmorClassFormula(
       `${entry.value >= 0 ? "+" : ""}${entry.value} ${formatArmorClassTermLabel(entry.label, source)}`
   );
   return `${total} AC = ${terms.join(" ")}`;
+}
+
+function formatSpeedTermLabel(label: string, source: string): string {
+  if (label === "Base") {
+    return `Base (${source})`;
+  }
+
+  return label;
+}
+
+function formatSpeedFormula(
+  total: number,
+  entries: Array<{ label: string; value: number }>,
+  source: string
+): string {
+  const terms = entries.map(
+    (entry) =>
+      `${entry.value >= 0 ? "+" : ""}${entry.value} ${formatSpeedTermLabel(entry.label, source)}`
+  );
+
+  return `${total} ft = ${terms.join(" ")}`;
+}
+
+function formatInitiativeFormula(
+  total: number,
+  entries: Array<{ label: string; value: number }>
+): string {
+  const terms = entries.map(
+    (entry) => `${entry.value >= 0 ? "+" : ""}${entry.value} ${entry.label}`
+  );
+
+  return `${formatAbilityModifier(total)} Initiative = ${terms.join(" ")}`;
+}
+
+function formatAbilityScoreFormula(
+  ability: AbilityKey,
+  total: number,
+  entries: Array<{ label: string; value: number }>
+): string {
+  const terms = entries.map(
+    (entry) => `${entry.value >= 0 ? "+" : ""}${entry.value} (${entry.label})`
+  );
+
+  return `${total} ${ability} = ${terms.join(" ")}`;
+}
+
+function getProficiencyMultiplier(level: PROF_LEVEL): 0 | 1 | 2 {
+  if (level === PROF_LEVEL.EXPERT) {
+    return 2;
+  }
+
+  if (level === PROF_LEVEL.PROFICIENT) {
+    return 1;
+  }
+
+  return 0;
+}
+
+function formatSavingThrowFormula(
+  ability: AbilityKey,
+  total: number,
+  abilityModifier: number,
+  proficiencyContribution: number,
+  proficiencyLabel?: string
+): string {
+  const terms = [`${abilityModifier >= 0 ? "+" : ""}${abilityModifier} ${ability}`];
+
+  if (proficiencyContribution !== 0 && proficiencyLabel) {
+    terms.push(`${proficiencyContribution >= 0 ? "+" : ""}${proficiencyContribution} ${proficiencyLabel}`);
+  }
+
+  return `${formatAbilityModifier(total)} ${ability} Save = ${terms.join(" ")}`;
 }
 
 function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFormProps) {
@@ -163,8 +248,9 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
   const proficiencyBonus = getProficiencyBonus(character.level);
   const isTabMode = statsViewMode === "tabs";
   const isAbilityEditorActive = editingTab === "modifiers";
+  const effectiveAbilities = useMemo(() => getAbilityScoresForCharacter(character), [character]);
   const displayedAbilities =
-    isEditing && isAbilityEditorActive ? abilitiesDraft.abilities : character.abilities;
+    isEditing && isAbilityEditorActive ? abilitiesDraft.abilities : effectiveAbilities;
   const staticCoreStats = character.coreStats ?? createDefaultCoreStats();
   const displayedCoreStats: CoreStats = {
     ...staticCoreStats,
@@ -175,11 +261,14 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
     proficiencyBonus: formatAbilityModifier(getProficiencyBonus(character.level)),
     hitDice: getHitDiceDisplayForCharacter(character)
   };
+  const coreStatIndicators = getCoreStatIndicatorsForCharacter(character);
   const savingThrowIndicators = getSavingThrowIndicatorsForCharacter(character);
   const armorClassBreakdown = useMemo(
     () => getArmorClassBreakdownForCharacter(character),
     [character]
   );
+  const speedBreakdown = useMemo(() => getSpeedBreakdownForCharacter(character), [character]);
+  const initiativeBreakdown = useMemo(() => getInitiativeBreakdownForCharacter(character), [character]);
 
   const abilityModifierCards = useMemo(
     () =>
@@ -200,13 +289,25 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
           displayedSavingThrowProficiencies,
           savingThrowProficiency
         );
-        const isSavingThrowProficient = savingThrowLevel !== PROF_LEVEL.NONE;
-        const totalSavingThrow = abilityModifier + (isSavingThrowProficient ? proficiencyBonus : 0);
+        const proficiencyMultiplier = getProficiencyMultiplier(savingThrowLevel);
+        const proficiencyContribution = proficiencyBonus * proficiencyMultiplier;
+        const isSavingThrowProficient = proficiencyMultiplier > 0;
+        const totalSavingThrow = abilityModifier + proficiencyContribution;
+        const proficiencyLabel =
+          proficiencyMultiplier === 2
+            ? "Expertise"
+            : proficiencyMultiplier === 1
+              ? "Proficiency Bonus"
+              : undefined;
 
         return {
           ability,
           score: displayedAbilities[ability],
           isSavingThrowProficient,
+          abilityModifier,
+          proficiencyContribution,
+          proficiencyLabel,
+          totalSavingThrowValue: totalSavingThrow,
           totalSavingThrow: formatAbilityModifier(totalSavingThrow),
           indicators: savingThrowIndicators[ability] ?? []
         };
@@ -297,8 +398,9 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
     );
   }
 
-  function openStatReference(keyword: string) {
+  function openStatReference(keyword: string, indicators?: FeatureIndicator[]) {
     const description = getKeywordDescription(keyword);
+    const savingThrowAbility = keyword.replace(" Saving Throw", "");
 
     if (!description) {
       return;
@@ -307,6 +409,7 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
     setSelectedStatReference({
       keyword,
       description,
+      indicators: indicators?.length ? indicators : undefined,
       detailText:
         keyword === "Armor Class"
           ? formatArmorClassFormula(
@@ -314,6 +417,44 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
               armorClassBreakdown.entries,
               armorClassBreakdown.source
             )
+          : keyword === "Initiative"
+            ? formatInitiativeFormula(initiativeBreakdown.total, initiativeBreakdown.entries)
+          : keyword === "Speed"
+            ? formatSpeedFormula(
+                speedBreakdown.total,
+                speedBreakdown.entries,
+                speedBreakdown.source
+              )
+            : abilityKeys.includes(keyword as AbilityKey)
+              ? (() => {
+                  const abilityBreakdown = getAbilityScoreBreakdownForCharacter(
+                    character,
+                    keyword as AbilityKey
+                  );
+
+                  return formatAbilityScoreFormula(
+                    keyword as AbilityKey,
+                    abilityBreakdown.total,
+                    abilityBreakdown.entries
+                  );
+                })()
+              : abilityKeys.includes(savingThrowAbility as AbilityKey)
+                ? (() => {
+                    const ability = savingThrowAbility as AbilityKey;
+                    const savingThrowCard = savingThrowCards.find((card) => card.ability === ability);
+
+                    if (!savingThrowCard) {
+                      return undefined;
+                    }
+
+                    return formatSavingThrowFormula(
+                      ability,
+                      savingThrowCard.totalSavingThrowValue,
+                      savingThrowCard.abilityModifier,
+                      savingThrowCard.proficiencyContribution,
+                      savingThrowCard.proficiencyLabel
+                    );
+                  })()
           : undefined
     });
   }
@@ -345,12 +486,19 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
               key={field.key}
               type="button"
               className={clsx(styles.modifierCard, styles.modifierCardButton)}
-              onClick={() => openStatReference(field.label)}
+              onClick={() => openStatReference(field.label, coreStatIndicators[field.key])}
             >
               <div className={styles.modifierLabelRow}>
                 <span className={clsx(styles.modifierLabel, styles.coreStatLabel)}>
                   {field.label}
                 </span>
+                {coreStatIndicators[field.key]?.map((indicator) => (
+                  <RollStatePill
+                    key={`${field.key}-${indicator.label}-${indicator.tone}`}
+                    tone={indicator.tone}
+                    label={indicator.label}
+                  />
+                ))}
               </div>
               <strong>{displayedCoreStats[field.key]}</strong>
             </button>
@@ -532,7 +680,7 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
                 key={card.ability}
                 type="button"
                 className={clsx(styles.modifierCard, styles.modifierCardButton)}
-                onClick={() => openStatReference(`${card.ability} Saving Throw`)}
+                onClick={() => openStatReference(`${card.ability} Saving Throw`, card.indicators)}
               >
                 <div className={styles.modifierLabelRow}>
                   <span className={styles.modifierLabel}>
@@ -668,16 +816,25 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
             onClick={(event) => event.stopPropagation()}
           >
             <div className={sheetStyles.spellDrawerHandle} aria-hidden="true" />
-            <div className={sheetStyles.spellDrawerHeader}>
+            <div className={clsx(sheetStyles.spellDrawerHeader, styles.referenceDrawerHeader)}>
               <div className={sheetStyles.spellDrawerHeaderContent}>
                 <p className={sheetStyles.spellDrawerBadge}>Reference</p>
                 <div className={sheetStyles.spellDrawerTitleRow}>
                   <h3 id="character-stats-reference-title">{selectedStatReference.keyword}</h3>
                 </div>
-                <p className={sheetStyles.spellDrawerSummary}>
-                  {selectedStatReference.description}
-                </p>
               </div>
+              {selectedStatReference.indicators?.length ? (
+                <div className={styles.referenceIndicatorStack}>
+                  {selectedStatReference.indicators.map((indicator, index) => (
+                    <RollStatePill
+                      key={`${selectedStatReference.keyword}-${indicator.label}-${indicator.tone}-${indicator.source}-${index}`}
+                      tone={indicator.tone}
+                      label={indicator.label}
+                      detailText={`From ${indicator.source}`}
+                    />
+                  ))}
+                </div>
+              ) : null}
               <button
                 type="button"
                 className={sheetStyles.spellDrawerCloseButton}
@@ -687,6 +844,9 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
                 <X size={18} />
               </button>
             </div>
+            <p className={sheetStyles.spellDrawerSummary}>
+              {selectedStatReference.description}
+            </p>
             {selectedStatReference.detailText ? (
               <div className={sheetStyles.spellDrawerDetails}>
                 <div

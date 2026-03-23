@@ -176,13 +176,13 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
   [CLASS_FEATURE.RAGE]: {
     description: [
       "You can imbue yourself with a primal power called <strong>Rage</strong>, a force that grants you extraordinary might and resilience. You can enter it as a Bonus Action if you aren't wearing Heavy armor.",
-      "You can enter your Rage the number of times shown for your Barbarian level in the Rages column of the Barbarian Features table. You regain one expended use when you finish a <link:short-rest>Short Rest</link>, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>. (<link:tracked>Tracked</link>)",
+      "You can enter your Rage the number of times shown for your Barbarian level in the Rages column of the Barbarian Features table. You regain one expended use when you finish a <link:short-rest>Short Rest</link>, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>. <link:tracked>Tracked</link>",
       "While active, your Rage follows the rules below.",
-      "<strong>Damage Resistance.</strong> You have <link:resistance>Resistance</link> to Bludgeoning, Piercing, and Slashing damage. (<link:not-tracked>Not Tracked</link>)",
-      "<strong>Rage Damage.</strong> When you make an attack using Strength, with either a weapon or an Unarmed Strike, and deal damage to the target, you gain a bonus to the damage that increases as you gain levels as a Barbarian, as shown in the Rage Damage column of the Barbarian Features table. (<link:tracked>Tracked</link>)",
-      "<strong>Strength Advantage.</strong> You have Advantage on Strength checks and Strength saving throws. (<link:tracked>Tracked</link>)",
-      "<strong>No Concentration or Spells.</strong> You can't maintain Concentration, and you can't cast spells. (<link:not-tracked>Not Tracked</link>)",
-      "<strong>Duration.</strong> The Rage lasts until the end of your next turn, and it ends early if you don Heavy armor or have the Incapacitated condition. (<link:not-tracked>Not Tracked</link>)",
+      "<strong>Damage Resistance.</strong> You have <link:resistance>Resistance</link> to Bludgeoning, Piercing, and Slashing damage. <link:not-tracked>Not Tracked</link>",
+      "<strong>Rage Damage.</strong> When you make an attack using Strength, with either a weapon or an Unarmed Strike, and deal damage to the target, you gain a bonus to the damage that increases as you gain levels as a Barbarian, as shown in the Rage Damage column of the Barbarian Features table. <link:tracked>Tracked</link>",
+      "<strong>Strength Advantage.</strong> You have Advantage on Strength checks and Strength saving throws. <link:tracked>Tracked</link>",
+      "<strong>No Concentration or Spells.</strong> You can't maintain Concentration, and you can't cast spells. <link:not-tracked>Not Tracked</link>",
+      "<strong>Duration.</strong> The Rage lasts until the end of your next turn, and it ends early if you don Heavy armor or have the Incapacitated condition. <link:not-tracked>Not Tracked</link>",
       "If your Rage is still active on your next turn, you can extend the Rage for another round by doing one of the following:",
       "Make an attack roll against an enemy.",
       "Force an enemy to make a saving throw.",
@@ -209,7 +209,7 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "You gain an uncanny sense of when things aren't as they should be, giving you an edge when you dodge perils.",
       "You have Advantage on Dexterity saving throws unless you have the Incapacitated condition."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.RECKLESS_ATTACK]: {
     description: [
@@ -242,11 +242,11 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
   },
   [CLASS_FEATURE.FAST_MOVEMENT]: {
     description: ["Your Speed increases by 10 feet while you aren't wearing Heavy armor."],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.FERAL_INSTINCT]: {
     description: ["Your instincts are so honed that you have Advantage on Initiative rolls."],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.INSTINCTIVE_POUNCE]: {
     description: [
@@ -297,6 +297,6 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
     description: [
       "You embody primal power. Your Strength and Constitution scores increase by 4, to a maximum of 25."
     ],
-    isTracked: false
+    isTracked: true
   }
 };

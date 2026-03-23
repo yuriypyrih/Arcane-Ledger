@@ -1,27 +1,52 @@
 import { barbarianFeatures } from "../../../codex/classes";
 import { CLASS_FEATURE } from "../../../codex/entries";
 import type { BarbarianFeatureClassObj } from "../../../types";
-import type { Character, CharacterRageFeatureState } from "../../../types";
-import { INDEFINITE_CONDITION_ROUNDS } from "../combat";
+import {
+  CONDITION_NAME,
+  EFFECT_NAME,
+  STATUS_DURATION_KIND,
+  STATUS_ENTRY_GROUP,
+  STATUS_ENTRY_SOURCE_TYPE,
+  type Character,
+  type CharacterRageFeatureState
+} from "../../../types";
+import { hasStatusCondition } from "../traits";
 import { skillGroupsByAbility } from "../skillDefinitions";
 import type {
   ArmorClassFeatureContext,
-  DerivedFeatureCondition,
+  CoreStatIndicatorMap,
+  DerivedFeatureStatusEntry,
   FeatureActionCard,
+  FeatureAbilityScoreBonus,
   FeatureArmorClassBonus,
   FeatureArmorClassMode,
   FeatureDamageBonus,
   FeatureIndicator,
+  FeatureSpeedBonus,
   FeatureSpellcastingState,
   SavingThrowIndicatorMap,
+  SpeedFeatureContext,
   SkillIndicatorMap,
   WeaponFeatureContext
 } from "./types";
 
-const rageConditionName = "Rage";
-const advantageIndicator: FeatureIndicator = {
+const rageConditionName = EFFECT_NAME.RAGE;
+const rageAdvantageIndicator: FeatureIndicator = {
   label: "Advantage",
-  tone: "advantage"
+  tone: "advantage",
+  source: "Rage"
+};
+
+const dangerSenseAdvantageIndicator: FeatureIndicator = {
+  label: "Advantage",
+  tone: "advantage",
+  source: "Danger Sense"
+};
+
+const feralInstinctAdvantageIndicator: FeatureIndicator = {
+  label: "Advantage",
+  tone: "advantage",
+  source: "Feral Instinct"
 };
 
 function getBarbarianFeatureRow(level: number): BarbarianFeatureClassObj | null {
@@ -34,13 +59,33 @@ function getBarbarianFeatureRow(level: number): BarbarianFeatureClassObj | null 
   return featureRow;
 }
 
+function getUnlockedBarbarianFeatures(level: number): Set<CLASS_FEATURE> {
+  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
+
+  return barbarianFeatures
+    .filter((row) => row.level <= normalizedLevel)
+    .reduce((featureSet, row) => {
+      row.classFeatures.forEach((feature) => {
+        featureSet.add(feature);
+      });
+
+      return featureSet;
+    }, new Set<CLASS_FEATURE>());
+}
+
 function hasBarbarianFeature(character: Pick<Character, "className" | "level">, feature: CLASS_FEATURE) {
   if (character.className !== "Barbarian") {
     return false;
   }
 
-  const featureRow = getBarbarianFeatureRow(character.level);
-  return featureRow?.classFeatures.includes(feature) ?? false;
+  return getUnlockedBarbarianFeatures(character.level).has(feature);
+}
+
+function hasActiveCondition(
+  character: Pick<Character, "statusEntries">,
+  conditionName: CONDITION_NAME
+): boolean {
+  return hasStatusCondition(character.statusEntries, conditionName);
 }
 
 export function normalizeBarbarianRageState(
@@ -50,8 +95,8 @@ export function normalizeBarbarianRageState(
   const featureRow = getBarbarianFeatureRow(character.level);
   const canRage =
     character.className === "Barbarian" &&
-    featureRow?.classFeatures.includes(CLASS_FEATURE.RAGE) &&
-    typeof featureRow.rages === "number" &&
+    getUnlockedBarbarianFeatures(character.level).has(CLASS_FEATURE.RAGE) &&
+    typeof featureRow?.rages === "number" &&
     featureRow.rages > 0;
 
   if (!canRage || !value || typeof value !== "object") {
@@ -168,14 +213,33 @@ export function getBarbarianWeaponDamageBonuses(
 }
 
 export function getBarbarianSavingThrowIndicators(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
 ): SavingThrowIndicatorMap {
-  if (!isBarbarianRaging(character)) {
+  const savingThrowIndicators: SavingThrowIndicatorMap = {};
+
+  if (
+    hasBarbarianFeature(character, CLASS_FEATURE.DANGER_SENSE) &&
+    !hasActiveCondition(character, CONDITION_NAME.INCAPACITATED)
+  ) {
+    savingThrowIndicators.DEX = [dangerSenseAdvantageIndicator];
+  }
+
+  if (isBarbarianRaging(character)) {
+    savingThrowIndicators.STR = [rageAdvantageIndicator];
+  }
+
+  return savingThrowIndicators;
+}
+
+export function getBarbarianCoreStatIndicators(
+  character: Pick<Character, "className" | "level">
+): CoreStatIndicatorMap {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.FERAL_INSTINCT)) {
     return {};
   }
 
   return {
-    STR: [advantageIndicator]
+    initiative: [feralInstinctAdvantageIndicator]
   };
 }
 
@@ -189,7 +253,7 @@ export function getBarbarianSkillIndicators(
   const strengthSkills = skillGroupsByAbility.find((group) => group.ability === "STR")?.skills ?? [];
 
   return Object.fromEntries(
-    strengthSkills.map((skill) => [skill, [advantageIndicator]])
+    strengthSkills.map((skill) => [skill, [rageAdvantageIndicator]])
   ) as SkillIndicatorMap;
 }
 
@@ -232,20 +296,70 @@ export function getBarbarianArmorClassBonuses(
   return [];
 }
 
-export function getBarbarianDerivedConditions(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
-): DerivedFeatureCondition[] {
-  if (!isBarbarianRaging(character)) {
+export function getBarbarianSpeedBonuses(
+  character: Pick<Character, "className" | "level">,
+  context: SpeedFeatureContext
+): FeatureSpeedBonus[] {
+  if (
+    !hasBarbarianFeature(character, CLASS_FEATURE.FAST_MOVEMENT) ||
+    context.wornBodyArmorType === "heavy"
+  ) {
     return [];
   }
 
   return [
     {
-      name: rageConditionName,
-      roundsRemaining: INDEFINITE_CONDITION_ROUNDS,
-      source: "feature"
+      label: "Fast Movement",
+      value: 10
     }
   ];
+}
+
+export function getBarbarianAbilityScoreBonuses(
+  character: Pick<Character, "className" | "level">
+): FeatureAbilityScoreBonus[] {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.PRIMAL_CHAMPION)) {
+    return [];
+  }
+
+  return [
+    {
+      ability: "STR",
+      label: "Primal Champion",
+      value: 4,
+      maxScore: 25,
+      order: 20
+    },
+    {
+      ability: "CON",
+      label: "Primal Champion",
+      value: 4,
+      maxScore: 25,
+      order: 20
+    }
+  ];
+}
+
+export function getBarbarianDerivedConditions(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): DerivedFeatureStatusEntry[] {
+  if (!isBarbarianRaging(character)) {
+    return [];
+  }
+
+    return [
+      {
+        id: "feature-rage",
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: rageConditionName,
+        source: "Barbarian",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+        duration: {
+          kind: STATUS_DURATION_KIND.MINUTES,
+          amount: 10
+        }
+      }
+    ];
 }
 
 export function activateBarbarianRage(character: Character): Character {

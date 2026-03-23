@@ -9,7 +9,7 @@ import {
   createDefaultCurrencies,
   createEmptyCharacter
 } from "./constants";
-import { normalizeCharacterConditions, normalizeRoundTracker } from "./combat";
+import { normalizeRoundTracker } from "./combat";
 import { normalizeCharacterArmorWearState } from "./armor";
 import {
   isBackgroundName,
@@ -30,6 +30,8 @@ import {
 import { normalizeCharacterClassFeatureState } from "./classFeatures";
 import { normalizeLevelAndXp } from "./experience";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
+import { normalizeCharacterFeats } from "./feats";
+import { normalizeCharacterStatusEntries } from "./traits";
 
 function clampNumber(value: unknown, min: number, max: number, fallback: number): number {
   const parsedValue = Number(value);
@@ -168,9 +170,11 @@ function normalizeCharacter(value: unknown): Character | null {
     temporaryHitPoints?: unknown;
     roundTracker?: unknown;
     conditions?: unknown;
+    statusEntries?: unknown;
     deathSaves?: unknown;
     customEquipment?: unknown;
     classFeatureState?: unknown;
+    feats?: unknown;
   };
   const id = Number(record.id);
 
@@ -310,12 +314,16 @@ function normalizeCharacter(value: unknown): Character | null {
       ? record.maxHitPointsMode
       : loadPreferences().defaultMaxHitPointsMode;
   const normalizedRoundTracker = normalizeRoundTracker(record.roundTracker);
-  const normalizedConditions = normalizeCharacterConditions(record.conditions);
+  const normalizedStatusEntries = normalizeCharacterStatusEntries(
+    record.statusEntries,
+    record.conditions
+  );
   const normalizedDeathSaves = normalizeDeathSaves(record.deathSaves);
   const normalizedClassFeatureState = normalizeCharacterClassFeatureState(record.classFeatureState, {
     className: normalizedClassName,
     level: normalizedLevel
   });
+  const normalizedFeats = normalizeCharacterFeats(record.feats, normalizedLevel);
   const normalizedTemporaryHitPoints = Math.floor(
     clampNumber(record.temporaryHitPoints, 0, 999, defaults.temporaryHitPoints)
   );
@@ -357,7 +365,7 @@ function normalizeCharacter(value: unknown): Character | null {
     toolProficiencies: normalizedProficiencies.toolProficiencies,
     languageProficiencies: normalizedProficiencies.languageProficiencies,
     roundTracker: normalizedRoundTracker,
-    conditions: normalizedConditions,
+    statusEntries: normalizedStatusEntries,
     deathSaves: normalizedDeathSaves,
     equipment: normalizedArmorWearState.equipment,
     customEquipment: normalizedArmorWearState.customEquipment,
@@ -367,7 +375,8 @@ function normalizeCharacter(value: unknown): Character | null {
     shortRestsUsedToday: normalizedShortRestsUsedToday,
     hitDiceRemaining: normalizedHitDiceRemaining,
     coreStats: normalizedCoreStats,
-    classFeatureState: normalizedClassFeatureState
+    classFeatureState: normalizedClassFeatureState,
+    feats: normalizedFeats
   };
 }
 

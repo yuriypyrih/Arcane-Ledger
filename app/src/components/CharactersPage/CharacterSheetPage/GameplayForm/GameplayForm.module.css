@@ -6,16 +6,9 @@
 
 .hpWidget,
 .weaponWidget,
-.deathWidget {
+.deathWidget,
+.traitsWidget {
   grid-column: 1 / -1;
-}
-
-.conditionsWidget {
-  grid-column: 1 / span 5;
-}
-
-.utilitiesWidget {
-  grid-column: 6 / span 3;
 }
 
 .widgetCard {
@@ -26,6 +19,18 @@
   border-radius: 18px;
   background: linear-gradient(160deg, rgba(255, 255, 255, 0.78), rgba(255, 250, 242, 0.8));
   padding: 0.72rem;
+}
+
+.gameplaySectionHeader {
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.gameplayHeaderControls {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  margin-left: auto;
 }
 
 .widgetHeader {
@@ -266,16 +271,11 @@
   color: #8a4d26;
 }
 
-.utilityStack {
-  display: grid;
-  gap: 0.58rem;
-}
-
 .roundTrackerPill {
   display: inline-flex;
   align-items: center;
   gap: 0.18rem;
-  align-self: flex-start;
+  flex: 0 0 auto;
   border-radius: 999px;
   background: rgba(75, 47, 29, 0.08);
   padding: 0.2rem;
@@ -347,31 +347,72 @@
   display: none;
 }
 
-.conditionList {
-  display: flex;
-  flex-wrap: wrap;
+.statusSectionStack {
+  display: grid;
+  align-items: start;
+  gap: 0.55rem;
+  grid-template-columns: repeat(var(--status-column-count, 4), minmax(0, 1fr));
+}
+
+.statusSection {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.statusSectionTitle {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.76rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.conditionList,
+.statusList {
+  display: grid;
   gap: 0.44rem;
+  grid-template-columns: 1fr;
   list-style: none;
   margin: 0;
+  min-width: 0;
   padding: 0;
 }
 
-.conditionButton {
+.conditionButton,
+.statusButton {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  justify-content: space-between;
+  gap: 0.65rem;
   border: none;
-  border-radius: 999px;
+  border-radius: 14px;
   background: rgba(75, 47, 29, 0.1);
   color: var(--color-ink);
   cursor: pointer;
   font: inherit;
   font-size: 0.82rem;
   min-height: 32px;
-  padding: 0 0.62rem;
+  padding: 0.46rem 0.5rem;
+  width: 100%;
 }
 
-.conditionButton strong {
+.statusButtonText {
+  display: grid;
+  gap: 0.08rem;
+  min-width: 0;
+  text-align: left;
+}
+
+.statusButtonText small {
+  color: var(--color-ink-soft);
+  font-size: 0.68rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.conditionButton strong,
+.statusButton strong {
   color: var(--color-accent);
   font-size: 0.75rem;
 }
@@ -382,12 +423,6 @@
   gap: 0.12rem;
 }
 
-.utilityButtonRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.52rem;
-}
-
 .roundTrackerDrawerActions {
   display: grid;
   gap: 0.56rem;
@@ -395,6 +430,85 @@
 
 .campTriggerButton {
   min-height: 40px;
+}
+
+.traitEditorModal {
+  width: min(820px, 100%);
+  height: min(72vh, 620px);
+  grid-template-rows: auto auto auto auto;
+}
+
+.modalHeading {
+  display: grid;
+  gap: 0.22rem;
+}
+
+.modalHeading h3 {
+  margin: 0;
+}
+
+.traitTabRow {
+  display: inline-grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.2rem;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.08);
+  padding: 0.24rem;
+}
+
+.traitTabButton {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  font: inherit;
+  min-height: 36px;
+  padding: 0 0.86rem;
+  white-space: nowrap;
+}
+
+.traitTabButtonActive {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-ink);
+  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
+}
+
+.statusDrawerBody {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.statusDrawerFacts {
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.statusDrawerFact {
+  display: grid;
+  gap: 0.16rem;
+  border-radius: 14px;
+  background: rgba(75, 47, 29, 0.08);
+  padding: 0.62rem 0.7rem;
+}
+
+.statusDrawerFact span {
+  color: var(--color-ink-soft);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.statusDurationEditor {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.statusDurationEditorActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
 }
 
 .deathStateRow {
@@ -508,7 +622,9 @@
 
 .conditionDrawerFooter {
   display: flex;
-  justify-content: flex-end;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
 }
 
 .conditionRemoveButton {
@@ -528,16 +644,36 @@
     grid-template-columns: 1fr;
   }
 
-  .conditionsWidget,
-  .utilitiesWidget,
+  .traitsWidget,
   .hpWidget,
   .weaponWidget,
   .deathWidget {
     grid-column: auto;
   }
+
+  .gameplayHeaderControls {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 800px) {
+  .statusSectionStack {
+    grid-template-columns: repeat(var(--status-tablet-column-count, 3), minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 620px) {
+  .gameplaySectionHeader {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .gameplayHeaderControls {
+    margin-left: 0;
+    width: 100%;
+  }
+
   .hpSummary {
     gap: 0.6rem;
   }
@@ -561,6 +697,10 @@
     min-width: 40px;
   }
 
+  .statusSectionStack {
+    grid-template-columns: repeat(var(--status-mobile-column-count, 2), minmax(0, 1fr));
+  }
+
   .deathTrackGrid {
     grid-template-columns: 1fr;
   }
@@ -575,8 +715,17 @@
     width: 100%;
   }
 
+  .traitTabRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .statusDrawerFacts {
+    grid-template-columns: 1fr;
+  }
+
   .roundTrackerPill {
-    width: 100%;
-    justify-content: space-between;
+    width: auto;
+    justify-content: flex-start;
   }
 }

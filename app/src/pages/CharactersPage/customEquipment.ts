@@ -6,6 +6,7 @@ import {
   ENTRY_CATEGORIES,
   ITEM_TYPES,
   RARITY_TYPES,
+  WEAPON_BASE,
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
   WEAPON_PROPERTY,
@@ -26,10 +27,11 @@ import type {
   CustomArmorType
 } from "../../types";
 
-export type ResolvedCustomWeaponEntry = WeaponEntry & {
+export type ResolvedCustomWeaponEntry = Omit<WeaponEntry, "mastery"> & {
   source: "custom";
   customEquipmentId: string;
   onHand: boolean;
+  mastery?: WEAPON_MASTERY;
 };
 
 export type ResolvedCustomArmorEntry = ArmorEntry & {
@@ -54,6 +56,7 @@ const currencyTypeValues = new Set<CURRENCY_TYPE>(Object.values(CURRENCY_TYPE));
 const damageTypeValues = new Set<DAMAGE_TYPE>(Object.values(DAMAGE_TYPE));
 const weaponTrainingValues = new Set<WEAPON_TRAINING>(Object.values(WEAPON_TRAINING));
 const weaponCombatValues = new Set<WEAPON_COMBAT_TYPE>(Object.values(WEAPON_COMBAT_TYPE));
+const weaponBaseValues = new Set<WEAPON_BASE>(Object.values(WEAPON_BASE));
 const weaponMasteryValues = new Set<WEAPON_MASTERY>(Object.values(WEAPON_MASTERY));
 const weaponPropertyValues = new Set<WEAPON_PROPERTY>(Object.values(WEAPON_PROPERTY));
 const diceValues = new Set<DICE>(Object.values(DICE));
@@ -250,9 +253,12 @@ function normalizeCustomWeapon(
   const combat = typeRecord && weaponCombatValues.has(typeRecord.combat as WEAPON_COMBAT_TYPE)
     ? (typeRecord.combat as WEAPON_COMBAT_TYPE)
     : WEAPON_COMBAT_TYPE.MELEE;
+  const baseWeapon = weaponBaseValues.has(value.baseWeapon as WEAPON_BASE)
+    ? (value.baseWeapon as WEAPON_BASE)
+    : WEAPON_BASE.DAGGER;
   const mastery = weaponMasteryValues.has(value.mastery as WEAPON_MASTERY)
     ? (value.mastery as WEAPON_MASTERY)
-    : WEAPON_MASTERY.SAP;
+    : undefined;
 
   return {
     id: normalizeText(value.id, fallbackId),
@@ -260,6 +266,7 @@ function normalizeCustomWeapon(
     onHand: Boolean(value.onHand),
     name,
     description: normalizeText(value.description),
+    baseWeapon,
     type: {
       training,
       combat
@@ -412,6 +419,7 @@ export function resolveCustomEquipmentToLoadoutEntry(
       category: ENTRY_CATEGORIES.WEAPONS,
       summary,
       rarity: RARITY_TYPES.CUSTOM,
+      baseWeapon: customEquipment.baseWeapon,
       type: customEquipment.type,
       damage: customEquipment.damage,
       properties: customEquipment.properties,

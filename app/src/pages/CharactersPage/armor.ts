@@ -6,14 +6,16 @@ import {
   type CodexEntry
 } from "../../codex/entries";
 import type { AbilityKey, Character, CharacterCustomEquipment, CharacterEquipmentItem } from "../../types";
+import { getAbilityScoreForCharacter } from "./abilities";
 import {
   getArmorClassBonusesForCharacter,
   getArmorClassModesForCharacter,
   type FeatureArmorClassBonus,
   type FeatureArmorClassMode
 } from "./classFeatures";
+import { getFeatArmorClassBonusesForCharacter } from "./feats";
 
-type BodyArmorType = "light" | "medium" | "heavy";
+export type BodyArmorType = "light" | "medium" | "heavy";
 
 type BodyArmorCandidate = {
   key: string;
@@ -149,6 +151,10 @@ function getBodyArmorCandidates(character: Character): BodyArmorCandidate[] {
       .map((entry) => getCustomBodyArmorCandidate(entry))
       .filter((candidate): candidate is BodyArmorCandidate => candidate !== null)
   ];
+}
+
+export function getWornBodyArmorTypeForCharacter(character: Character): BodyArmorType | null {
+  return getBodyArmorCandidates(character).find((candidate) => candidate.worn)?.armorType ?? null;
 }
 
 export function normalizeCharacterArmorWearState(
@@ -335,7 +341,7 @@ function getArmorClassModeValue(
 ): number {
   const abilityTotal = mode.abilityModifiers.reduce(
     (total, ability) => {
-      const modifier = getAbilityModifier(character.abilities[ability]);
+      const modifier = getAbilityModifier(getAbilityScoreForCharacter(character, ability));
       const cap = mode.abilityModifierCaps?.[ability];
       const adjustedModifier = cap === null || cap === undefined ? modifier : Math.min(modifier, cap);
 
@@ -364,9 +370,9 @@ function buildArmorClassBreakdownEntries(
       label: ability,
       value:
         mode.abilityModifierCaps?.[ability] === null || mode.abilityModifierCaps?.[ability] === undefined
-          ? getAbilityModifier(character.abilities[ability])
+          ? getAbilityModifier(getAbilityScoreForCharacter(character, ability))
           : Math.min(
-              getAbilityModifier(character.abilities[ability]),
+              getAbilityModifier(getAbilityScoreForCharacter(character, ability)),
               mode.abilityModifierCaps[ability] ?? 0
             )
     }))
@@ -399,7 +405,10 @@ export function getArmorClassBreakdownForCharacter(character: Character): ArmorC
     hasShieldEquipped: shieldBonus > 0
   };
   const featureModes = getArmorClassModesForCharacter(character, featureContext);
-  const featureBonuses = getArmorClassBonusesForCharacter(character, featureContext);
+  const featureBonuses = [
+    ...getArmorClassBonusesForCharacter(character, featureContext),
+    ...getFeatArmorClassBonusesForCharacter(character, featureContext)
+  ];
   const allModes: Array<BaseArmorClassMode | FeatureArmorClassMode> = [...baseModes, ...featureModes];
   const selectedMode =
     [...allModes].sort((left, right) => {
