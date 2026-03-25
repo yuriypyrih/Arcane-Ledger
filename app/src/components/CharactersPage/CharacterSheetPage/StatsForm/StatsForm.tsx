@@ -3,6 +3,7 @@ import { Component, Diamond, Pencil, Save, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import NumberInput from "../../FormInputs/NumberInput";
+import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import {
   loadPreferences,
@@ -41,6 +42,7 @@ import {
 } from "../../../../pages/CharactersPage/speed";
 import {
   type FeatureIndicator,
+  applySuperiorInspirationOnInitiativeForCharacter,
   getCoreStatIndicatorsForCharacter,
   getSavingThrowIndicatorsForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
@@ -156,6 +158,14 @@ function formatInitiativeFormula(
   return `${formatAbilityModifier(total)} Initiative = ${terms.join(" ")}`;
 }
 
+function formatD20Formula(modifier: number): string {
+  if (modifier === 0) {
+    return "1d20";
+  }
+
+  return `1d20 ${modifier > 0 ? "+" : "-"} ${Math.abs(modifier)}`;
+}
+
 function formatAbilityScoreFormula(
   ability: AbilityKey,
   total: number,
@@ -214,6 +224,7 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
   const [selectedStatReference, setSelectedStatReference] = useState<SelectedStatReference | null>(
     null
   );
+  const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   useBodyScrollLock(Boolean(selectedStatReference));
 
@@ -472,6 +483,23 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
         </button>
       </div>
     );
+  }
+
+  function rollInitiative() {
+    const initiativeFormula = formatInitiativeFormula(
+      initiativeBreakdown.total,
+      initiativeBreakdown.entries
+    );
+
+    onPersistCharacter((currentCharacter) =>
+      applySuperiorInspirationOnInitiativeForCharacter(currentCharacter)
+    );
+    setSelectedStatReference(null);
+    openDiceRoller({
+      title: "Initiative",
+      formula: formatD20Formula(initiativeBreakdown.total),
+      description: initiativeFormula
+    });
   }
 
   function renderCoreStatsSection() {
@@ -862,9 +890,22 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
                 </div>
               </div>
             ) : null}
+            {selectedStatReference.keyword === "Initiative" ? (
+              <div className={sheetStyles.spellDrawerActions}>
+                <div />
+                <button
+                  type="button"
+                  className={sheetStyles.castButton}
+                  onClick={rollInitiative}
+                >
+                  Roll Initiative
+                </button>
+              </div>
+            ) : null}
           </section>
         </div>
       ) : null}
+      {diceRollerPopup}
     </article>
   );
 }

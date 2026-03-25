@@ -278,6 +278,12 @@
   width: min(860px, 100%);
 }
 
+.divineInterventionModal {
+  grid-template-rows: auto auto minmax(0, 1fr);
+  height: min(78vh, 760px);
+  overflow: hidden;
+}
+
 .featureActionOptionGrid {
   display: grid;
   gap: 0.6rem;
@@ -342,6 +348,9 @@
 
 .divineInterventionList {
   gap: 0.55rem;
+  min-height: 0;
+  max-height: none;
+  overflow: auto;
 }
 
 .divineInterventionSelectionList {
@@ -430,6 +439,20 @@
 
 .roundTrackerTriangleFilled::after {
   display: none;
+}
+
+.roundTrackerReaction {
+  block-size: 20px;
+  inline-size: 20px;
+  fill: rgba(255, 255, 255, 0.96);
+  stroke: #d4689d;
+  stroke-linejoin: round;
+  stroke-width: 1.75;
+  transition: fill 160ms ease, opacity 160ms ease;
+}
+
+.roundTrackerReactionFilled {
+  fill: #e078af;
 }
 
 .statusSectionStack {

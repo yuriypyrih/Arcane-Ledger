@@ -26,6 +26,7 @@ const statusSourceTypeValues = new Set<STATUS_ENTRY_SOURCE_TYPE>(
 
 export const statusGroupOrder: STATUS_ENTRY_GROUP[] = [
   STATUS_ENTRY_GROUP.EFFECTS,
+  STATUS_ENTRY_GROUP.REACTIONS,
   STATUS_ENTRY_GROUP.SENSES,
   STATUS_ENTRY_GROUP.AURAS,
   STATUS_ENTRY_GROUP.RESISTANCES,
@@ -36,6 +37,7 @@ export const statusGroupOrder: STATUS_ENTRY_GROUP[] = [
 
 export const statusGroupTitles: Record<STATUS_ENTRY_GROUP, string> = {
   [STATUS_ENTRY_GROUP.EFFECTS]: "Features",
+  [STATUS_ENTRY_GROUP.REACTIONS]: "Reactions",
   [STATUS_ENTRY_GROUP.SENSES]: "Senses",
   [STATUS_ENTRY_GROUP.AURAS]: "Auras",
   [STATUS_ENTRY_GROUP.RESISTANCES]: "Resistances",
@@ -250,6 +252,8 @@ function normalizeStatusValue(
         : typeof value === "string" && value.trim().length > 0
           ? value.trim()
           : null;
+    case STATUS_ENTRY_GROUP.REACTIONS:
+      return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
     case STATUS_ENTRY_GROUP.SENSES:
       return isSense(value) ? value : null;
     case STATUS_ENTRY_GROUP.RESISTANCES:
@@ -669,6 +673,8 @@ export function getStatusEntryDescription(entry: CharacterStatusEntry): string {
   const valueLabel = getStatusEntryTitle(entry);
 
   switch (entry.group) {
+    case STATUS_ENTRY_GROUP.REACTIONS:
+      return `A spell, cantrip, or feature you can use as a Reaction. Using ${valueLabel} spends your Reaction for the round.`;
     case STATUS_ENTRY_GROUP.RESISTANCES:
       return `Resistance to ${valueLabel.toLowerCase()} damage. You usually take half damage from that type unless a rule says otherwise.`;
     case STATUS_ENTRY_GROUP.VULNERABILITIES:

@@ -34,6 +34,26 @@ export function getSpellEntriesForSpellListClass(spellListClass: SPELL_LIST_CLAS
   return spellEntriesByListClass.get(spellListClass) ?? [];
 }
 
+export function getSpellEntriesForSpellListClasses(
+  spellListClasses: SPELL_LIST_CLASS[]
+): SpellEntry[] {
+  const mergedEntries = new Map<string, SpellEntry>();
+
+  spellListClasses.forEach((spellListClass) => {
+    getSpellEntriesForSpellListClass(spellListClass).forEach((spell) => {
+      mergedEntries.set(spell.id, spell);
+    });
+  });
+
+  return [...mergedEntries.values()].sort((left, right) => {
+    if (left.spellLevel !== right.spellLevel) {
+      return left.spellLevel - right.spellLevel;
+    }
+
+    return left.name.localeCompare(right.name);
+  });
+}
+
 export function getSpellEntriesForClassName(className: string): SpellEntry[] {
   const spellListClass = spellListClassByClassName[className];
   return spellListClass ? getSpellEntriesForSpellListClass(spellListClass) : [];

@@ -31,6 +31,7 @@ export type CharacterSpellDrawerMode = "standard" | "prepare-preview" | "divine-
 type CharacterSpellDrawerProps = {
   character: Character;
   spell: SpellEntry;
+  alwaysPrepared?: boolean;
   mode: CharacterSpellDrawerMode;
   spellSlotTotals: number[];
   spellSlotsRemaining: number[];
@@ -49,6 +50,7 @@ type CharacterSpellDrawerProps = {
 function CharacterSpellDrawer({
   character,
   spell,
+  alwaysPrepared = false,
   mode,
   spellSlotTotals,
   spellSlotsRemaining,
@@ -138,10 +140,15 @@ function CharacterSpellDrawer({
           <div className={sheetStyles.spellDrawerHandle} aria-hidden="true" />
           <div className={sheetStyles.spellDrawerHeader}>
             <div className={sheetStyles.spellDrawerHeaderContent}>
-              <p className={sheetStyles.spellDrawerBadge}>{badgeLabel}</p>
-              <div className={sheetStyles.spellDrawerTitleRow}>
-                <h3 id="character-spell-drawer-title">{spell.name}</h3>
-              </div>
+                <p className={sheetStyles.spellDrawerBadge}>{badgeLabel}</p>
+                <div className={sheetStyles.spellDrawerTitleRow}>
+                  <h3 id="character-spell-drawer-title">{spell.name}</h3>
+                  {alwaysPrepared ? (
+                    <span className={clsx(styles.alwaysPreparedPill, styles.alwaysPreparedDrawerPill)}>
+                      Always Prepared
+                    </span>
+                  ) : null}
+                </div>
               <p className={sheetStyles.spellDrawerSummary}>{formatSpellSubtitle(spell)}</p>
             </div>
             <button

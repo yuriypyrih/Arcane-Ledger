@@ -1,5 +1,20 @@
 import type { Character, CharacterClassFeatureState } from "../../../types";
 import {
+  activateBardicInspiration,
+  applySuperiorInspirationOnInitiative,
+  applyLongRestToBardFeatures,
+  applyShortRestToBardFeatures,
+  bardicInspirationActionKey,
+  getBardAlwaysPreparedSpellIds,
+  getBardFeatureAction,
+  getBardExpertiseSelections,
+  getBardReactionEntries,
+  getBardSkillBonuses,
+  getBardSkillProficiencyEntries,
+  normalizeBardFeatureState,
+  setBardExpertiseSelections
+} from "./bard";
+import {
   activateBarbarianRage,
   applyLongRestToBarbarianFeatures,
   getBarbarianAbilityScoreBonuses,
@@ -52,6 +67,7 @@ import type {
   FeatureArmorClassMode,
   FeatureDamageBonus,
   FeatureSkillBonus,
+  FeatureSkillProficiencyEntry,
   FeatureSpeedBonus,
   FeatureSpellcastingState,
   FeatureWeaponProficiencyEntry,
@@ -61,6 +77,8 @@ import type {
   WeaponFeatureContext
 } from "./types";
 import type { CharacterStatusEntry } from "../../../types";
+import type { ReactionEntry } from "../../../codex/entries";
+import { PROF_LEVEL } from "../../../types";
 
 export type {
   ArmorClassFeatureContext,
@@ -74,6 +92,7 @@ export type {
   FeatureArmorClassMode,
   FeatureDamageBonus,
   FeatureSkillBonus,
+  FeatureSkillProficiencyEntry,
   FeatureSpeedBonus,
   FeatureWeaponProficiencyEntry,
   SavingThrowIndicatorMap,
@@ -91,16 +110,23 @@ export function normalizeCharacterClassFeatureState(
 
   return {
     rage: normalizeBarbarianRageState(record.rage, character),
+    bard: normalizeBardFeatureState(record.bard, character),
     cleric: normalizeClericFeatureState(record.cleric, character)
   };
 }
 
 export function getFeatureActionsForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<
+    Character,
+    "className" | "level" | "abilities" | "classFeatureState" | "feats" | "spellSlotsExpended"
+  >
 ): FeatureActionCard[] {
   const clericActions = getClericFeatureActions(character);
+  const bardAction = getBardFeatureAction(character);
   const rageAction = getBarbarianFeatureAction(character);
-  return [...clericActions, rageAction].filter((entry): entry is FeatureActionCard => entry !== null);
+  return [...clericActions, bardAction, rageAction].filter(
+    (entry): entry is FeatureActionCard => entry !== null
+  );
 }
 
 export function getFeatureActionOptionsForCharacter(
@@ -144,9 +170,13 @@ export function getSkillIndicatorsForCharacter(
 
 export function getSkillBonusesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "abilities">,
-  skill: Parameters<typeof getClericSkillBonuses>[1]
+  skill: Parameters<typeof getClericSkillBonuses>[1],
+  proficiencyLevel: PROF_LEVEL
 ): FeatureSkillBonus[] {
-  return getClericSkillBonuses(character, skill);
+  return [
+    ...getClericSkillBonuses(character, skill),
+    ...getBardSkillBonuses(character, proficiencyLevel)
+  ];
 }
 
 export function getSpellcastingStateForCharacter(
@@ -200,6 +230,12 @@ export function getFeatureWeaponProficiencyEntriesForCharacter(
   return getClericWeaponProficiencyEntries(character);
 }
 
+export function getFeatureSkillProficiencyEntriesForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): FeatureSkillProficiencyEntry[] {
+  return getBardSkillProficiencyEntries(character);
+}
+
 export function getFeatureArmorProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureArmorProficiencyEntry[] {
@@ -232,13 +268,48 @@ export function setClericBlessedStrikesChoiceForCharacter(
   return setClericBlessedStrikesChoice(character, blessedStrikesChoice);
 }
 
+export function getBardExpertiseSelectionsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">,
+  tier: "level2" | "level9"
+) {
+  return getBardExpertiseSelections(character, tier);
+}
+
+export function getAlwaysPreparedSpellIdsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): string[] {
+  return getBardAlwaysPreparedSpellIds(character);
+}
+
+export function setBardExpertiseSelectionsForCharacter(
+  character: Character,
+  tier: "level2" | "level9",
+  selections: Parameters<typeof setBardExpertiseSelections>[2]
+): Character {
+  return setBardExpertiseSelections(character, tier, selections);
+}
+
+export function applySuperiorInspirationOnInitiativeForCharacter(character: Character): Character {
+  return applySuperiorInspirationOnInitiative(character);
+}
+
 export function getDerivedFeatureStatusEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): DerivedFeatureStatusEntry[] {
   return getBarbarianDerivedConditions(character);
 }
 
+export function getFeatureReactionEntriesForCharacter(
+  character: Pick<Character, "className" | "level">
+): ReactionEntry[] {
+  return getBardReactionEntries(character);
+}
+
 export function activateFeatureActionForCharacter(character: Character, actionKey: string): Character {
+  if (actionKey === bardicInspirationActionKey) {
+    return activateBardicInspiration(character);
+  }
+
   if (actionKey === "barbarian-rage") {
     return activateBarbarianRage(character);
   }
@@ -290,11 +361,15 @@ export function removeFeatureStatusEntryForCharacter(
 }
 
 export function applyShortRestToFeatureState(character: Character): Character {
-  return applyShortRestToClericFeatures(applyShortRestToBarbarianFeatures(character));
+  return applyShortRestToClericFeatures(
+    applyShortRestToBardFeatures(applyShortRestToBarbarianFeatures(character))
+  );
 }
 
 export function applyLongRestToFeatureState(character: Character): Character {
-  return applyLongRestToClericFeatures(applyLongRestToBarbarianFeatures(character));
+  return applyLongRestToClericFeatures(
+    applyLongRestToBardFeatures(applyLongRestToBarbarianFeatures(character))
+  );
 }
 
 export function advanceFeatureStateForNewRound(character: Character): Character {

@@ -37,6 +37,10 @@ export enum FEATS {
   TWO_WEAPON_FIGHTING = "TWO_WEAPON_FIGHTING"
 }
 
+export enum REACTION {
+  COUNTERCHARM = "COUNTERCHARM"
+}
+
 export enum ABILITY_TYPES {
   STR = "STR",
   DEX = "DEX",

@@ -50,6 +50,7 @@ export type CharacterCurrencies = {
 export type CharacterRoundTracker = {
   actionAvailable: boolean;
   bonusActionAvailable: boolean;
+  reactionAvailable: boolean;
 };
 
 export type CharacterDeathSaves = {

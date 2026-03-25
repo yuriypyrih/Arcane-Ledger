@@ -15,6 +15,7 @@ import type {
 import {
   ARMOR_PROFICIENCY,
   LANGUAGE_PROFICIENCY,
+  PROFICIENCY_OVERRIDE_POLICY,
   PROFICIENCY_SOURCE,
   PROF_LEVEL,
   SAVING_THROW_PROFICIENCY,
@@ -45,6 +46,7 @@ import {
   normalizeCharacterEquipmentItems
 } from "./inventory";
 import {
+  getFeatureSkillProficiencyEntriesForCharacter,
   getFeatureArmorProficiencyEntriesForCharacter,
   getFeatureWeaponProficiencyEntriesForCharacter
 } from "./classFeatures";
@@ -139,6 +141,17 @@ export type ProficiencyDisplayEntry<
   proficiency: TProficiency;
   proficiencyLevel: PROF_LEVEL;
   sourceLabels: string[];
+  locked?: boolean;
+};
+
+export type ResolvedProficiencyEntry<
+  TProficiency extends ProficiencyEntry["proficiency"] = ProficiencyEntry["proficiency"]
+> = {
+  proficiency: TProficiency;
+  proficiencyLevel: PROF_LEVEL;
+  sourceLabels: string[];
+  locked: boolean;
+  overridePolicy: PROFICIENCY_OVERRIDE_POLICY;
 };
 
 type NormalizeCharacterProficienciesOptions = {
@@ -487,6 +500,10 @@ const proficiencyLevelRank: Record<PROF_LEVEL, number> = {
   [PROF_LEVEL.PROFICIENT]: 1,
   [PROF_LEVEL.EXPERT]: 2
 };
+const proficiencyOverridePolicyRank: Record<PROFICIENCY_OVERRIDE_POLICY, number> = {
+  [PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE]: 0,
+  [PROFICIENCY_OVERRIDE_POLICY.LOCKED]: 1
+};
 
 const skillProficiencyBySkillName = new Map<SkillName, SKILL_PROFICIENCY>([
   ["Acrobatics", SKILL_PROFICIENCY.ACROBATICS],
@@ -615,6 +632,9 @@ const armorProficiencySet = new Set<string>(Object.values(ARMOR_PROFICIENCY));
 const toolProficiencySet = new Set<string>(Object.values(TOOL_PROFICIENCY));
 const proficiencySourceSet = new Set<string>(Object.values(PROFICIENCY_SOURCE));
 const profLevelSet = new Set<string>(Object.values(PROF_LEVEL));
+const proficiencyOverridePolicySet = new Set<string>(
+  Object.values(PROFICIENCY_OVERRIDE_POLICY)
+);
 
 const weaponProficiencyLabelsByType: Record<WeaponType, string> = {
   [WEAPON_TRAINING.SIMPLE]: "Simple weapons",
@@ -767,6 +787,20 @@ function isProfLevel(value: string): value is PROF_LEVEL {
   return profLevelSet.has(value);
 }
 
+function isProficiencyOverridePolicy(
+  value: string
+): value is PROFICIENCY_OVERRIDE_POLICY {
+  return proficiencyOverridePolicySet.has(value);
+}
+
+function normalizeOverridePolicy(
+  value: PROFICIENCY_OVERRIDE_POLICY | undefined
+): PROFICIENCY_OVERRIDE_POLICY {
+  return value === PROFICIENCY_OVERRIDE_POLICY.LOCKED
+    ? PROFICIENCY_OVERRIDE_POLICY.LOCKED
+    : PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE;
+}
+
 function compareProficiencyLevels(left: PROF_LEVEL, right: PROF_LEVEL): number {
   return proficiencyLevelRank[left] - proficiencyLevelRank[right];
 }
@@ -801,17 +835,26 @@ export function createFeatProficiencySourceStr(sourceLabel: string, sourceKey: s
   return `${sourceLabel.trim()}${sourceStrMetadataSeparator}${sourceKey.trim()}`;
 }
 
+export function createFeatureProficiencySourceStr(
+  sourceLabel: string,
+  sourceKey: string
+): string {
+  return `${sourceLabel.trim()}${sourceStrMetadataSeparator}${sourceKey.trim()}`;
+}
+
 function createSkillEntry(
   proficiency: SKILL_PROFICIENCY,
   source: PROFICIENCY_SOURCE,
   sourceStr: string | undefined,
-  proficiencyLevel: PROF_LEVEL
+  proficiencyLevel: PROF_LEVEL,
+  overridePolicy = PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE
 ): SkillProficiencyEntry {
   return {
     source,
     sourceStr: sourceStr?.trim() || undefined,
     proficiency,
-    proficiencyLevel
+    proficiencyLevel,
+    overridePolicy: normalizeOverridePolicy(overridePolicy)
   };
 }
 
@@ -819,13 +862,15 @@ function createSavingThrowEntry(
   proficiency: SAVING_THROW_PROFICIENCY,
   source: PROFICIENCY_SOURCE,
   sourceStr: string | undefined,
-  proficiencyLevel: PROF_LEVEL
+  proficiencyLevel: PROF_LEVEL,
+  overridePolicy = PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE
 ): SavingThrowProficiencyEntry {
   return {
     source,
     sourceStr: sourceStr?.trim() || undefined,
     proficiency,
-    proficiencyLevel
+    proficiencyLevel,
+    overridePolicy: normalizeOverridePolicy(overridePolicy)
   };
 }
 
@@ -833,13 +878,15 @@ function createWeaponEntry(
   proficiency: WEAPON_PROFICIENCY,
   source: PROFICIENCY_SOURCE,
   sourceStr: string | undefined,
-  proficiencyLevel: PROF_LEVEL
+  proficiencyLevel: PROF_LEVEL,
+  overridePolicy = PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE
 ): WeaponProficiencyEntry {
   return {
     source,
     sourceStr: sourceStr?.trim() || undefined,
     proficiency,
-    proficiencyLevel
+    proficiencyLevel,
+    overridePolicy: normalizeOverridePolicy(overridePolicy)
   };
 }
 
@@ -847,13 +894,15 @@ function createArmorEntry(
   proficiency: ARMOR_PROFICIENCY,
   source: PROFICIENCY_SOURCE,
   sourceStr: string | undefined,
-  proficiencyLevel: PROF_LEVEL
+  proficiencyLevel: PROF_LEVEL,
+  overridePolicy = PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE
 ): ArmorProficiencyEntry {
   return {
     source,
     sourceStr: sourceStr?.trim() || undefined,
     proficiency,
-    proficiencyLevel
+    proficiencyLevel,
+    overridePolicy: normalizeOverridePolicy(overridePolicy)
   };
 }
 
@@ -861,13 +910,15 @@ function createToolEntry(
   proficiency: TOOL_PROFICIENCY,
   source: PROFICIENCY_SOURCE,
   sourceStr: string | undefined,
-  proficiencyLevel: PROF_LEVEL
+  proficiencyLevel: PROF_LEVEL,
+  overridePolicy = PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE
 ): ToolProficiencyEntry {
   return {
     source,
     sourceStr: sourceStr?.trim() || undefined,
     proficiency,
-    proficiencyLevel
+    proficiencyLevel,
+    overridePolicy: normalizeOverridePolicy(overridePolicy)
   };
 }
 
@@ -982,13 +1033,15 @@ function createLanguageEntry(
   proficiency: LANGUAGE_PROFICIENCY,
   source: PROFICIENCY_SOURCE,
   sourceStr: string | undefined,
-  proficiencyLevel: PROF_LEVEL
+  proficiencyLevel: PROF_LEVEL,
+  overridePolicy = PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE
 ): LanguageProficiencyEntry {
   return {
     source,
     sourceStr: sourceStr?.trim() || undefined,
     proficiency,
-    proficiencyLevel
+    proficiencyLevel,
+    overridePolicy: normalizeOverridePolicy(overridePolicy)
   };
 }
 
@@ -1002,12 +1055,21 @@ function mergeProficiencyEntries<T extends ProficiencyEntry>(entries: T[]): T[] 
   entries.forEach((entry) => {
     const key = createEntryIdentityKey(entry);
     const existingEntry = entriesByKey.get(key);
+    const normalizedEntry = {
+      ...entry,
+      overridePolicy: normalizeOverridePolicy(entry.overridePolicy)
+    } as T;
 
     if (
       !existingEntry ||
-      compareProficiencyLevels(existingEntry.proficiencyLevel, entry.proficiencyLevel) < 0
+      compareProficiencyLevels(existingEntry.proficiencyLevel, normalizedEntry.proficiencyLevel) < 0 ||
+      (
+        compareProficiencyLevels(existingEntry.proficiencyLevel, normalizedEntry.proficiencyLevel) === 0 &&
+        proficiencyOverridePolicyRank[normalizeOverridePolicy(existingEntry.overridePolicy)] <
+          proficiencyOverridePolicyRank[normalizeOverridePolicy(normalizedEntry.overridePolicy)]
+      )
     ) {
-      entriesByKey.set(key, entry);
+      entriesByKey.set(key, normalizedEntry);
     }
   });
 
@@ -1024,21 +1086,6 @@ function mergeProficiencyEntries<T extends ProficiencyEntry>(entries: T[]): T[] 
       getSourceLabel(right.source, right.sourceStr)
     );
   });
-}
-
-function getHighestProficiencyLevel<T extends ProficiencyEntry["proficiency"]>(
-  entries: ProficiencyEntry[],
-  proficiency: T
-): PROF_LEVEL {
-  return entries.reduce<PROF_LEVEL>((highestLevel, entry) => {
-    if (entry.proficiency !== proficiency) {
-      return highestLevel;
-    }
-
-    return compareProficiencyLevels(highestLevel, entry.proficiencyLevel) >= 0
-      ? highestLevel
-      : entry.proficiencyLevel;
-  }, PROF_LEVEL.NONE);
 }
 
 function hasPositiveProficiencyLevel(level: PROF_LEVEL): boolean {
@@ -1080,17 +1127,89 @@ function hasNonManualPositiveEntry<TEntry extends ProficiencyEntry>(
   );
 }
 
-function getEffectiveProficiencyLevel<TEntry extends ProficiencyEntry>(
+function getHighestEntryLevel<TEntry extends ProficiencyEntry>(entries: TEntry[]): PROF_LEVEL {
+  return entries.reduce<PROF_LEVEL>(
+    (highestLevel, entry) =>
+      compareProficiencyLevels(highestLevel, entry.proficiencyLevel) >= 0
+        ? highestLevel
+        : entry.proficiencyLevel,
+    PROF_LEVEL.NONE
+  );
+}
+
+function getNonManualPositiveEntries<TEntry extends ProficiencyEntry>(
   entries: TEntry[],
   proficiency: TEntry["proficiency"]
-): PROF_LEVEL {
-  const manualOverride = getStoredManualOverrideEntry(entries, proficiency);
+): TEntry[] {
+  return entries.filter(
+    (entry) =>
+      entry.proficiency === proficiency &&
+      entry.source !== PROFICIENCY_SOURCE.MANUAL &&
+      hasPositiveProficiencyLevel(entry.proficiencyLevel)
+  );
+}
 
-  if (manualOverride) {
-    return manualOverride.proficiencyLevel;
+function hasLockedNonManualPositiveEntry<TEntry extends ProficiencyEntry>(
+  entries: TEntry[],
+  proficiency: TEntry["proficiency"]
+): boolean {
+  return getNonManualPositiveEntries(entries, proficiency).some(
+    (entry) => normalizeOverridePolicy(entry.overridePolicy) === PROFICIENCY_OVERRIDE_POLICY.LOCKED
+  );
+}
+
+function getResolvedProficiencyEntry<TEntry extends ProficiencyEntry>(
+  entries: TEntry[],
+  proficiency: TEntry["proficiency"]
+): ResolvedProficiencyEntry<TEntry["proficiency"]> {
+  const manualOverride = getStoredManualOverrideEntry(entries, proficiency);
+  const automaticEntries = getNonManualPositiveEntries(entries, proficiency);
+  const lockedAutomaticEntries = automaticEntries.filter(
+    (entry) => normalizeOverridePolicy(entry.overridePolicy) === PROFICIENCY_OVERRIDE_POLICY.LOCKED
+  );
+
+  if (lockedAutomaticEntries.length > 0) {
+    return {
+      proficiency,
+      proficiencyLevel: getHighestEntryLevel(automaticEntries),
+      sourceLabels: dedupe(
+        automaticEntries.map((entry) => getSourceLabel(entry.source, entry.sourceStr))
+      ),
+      locked: true,
+      overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
+    };
   }
 
-  return getHighestProficiencyLevel(entries, proficiency);
+  if (manualOverride) {
+    return {
+      proficiency,
+      proficiencyLevel: manualOverride.proficiencyLevel,
+      sourceLabels:
+        manualOverride.proficiencyLevel === PROF_LEVEL.NONE
+          ? []
+          : [getSourceLabel(manualOverride.source, manualOverride.sourceStr)],
+      locked: false,
+      overridePolicy: PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE
+    };
+  }
+
+  if (automaticEntries.length === 0) {
+    return {
+      proficiency,
+      proficiencyLevel: PROF_LEVEL.NONE,
+      sourceLabels: [],
+      locked: false,
+      overridePolicy: PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE
+    };
+  }
+
+  return {
+    proficiency,
+    proficiencyLevel: getHighestEntryLevel(automaticEntries),
+    sourceLabels: dedupe(automaticEntries.map((entry) => getSourceLabel(entry.source, entry.sourceStr))),
+    locked: false,
+    overridePolicy: PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE
+  };
 }
 
 function getDisplayProficiencyEntries<TEntry extends ProficiencyEntry>(
@@ -1098,49 +1217,22 @@ function getDisplayProficiencyEntries<TEntry extends ProficiencyEntry>(
   options: readonly TEntry["proficiency"][]
 ): ProficiencyDisplayEntry<TEntry["proficiency"]>[] {
   return options
-    .map((proficiency) => {
-      const manualOverride = getStoredManualOverrideEntry(entries, proficiency);
+    .reduce<ProficiencyDisplayEntry<TEntry["proficiency"]>[]>((displayEntries, proficiency) => {
+      const resolvedEntry = getResolvedProficiencyEntry(entries, proficiency);
 
-      if (manualOverride) {
-        return manualOverride.proficiencyLevel === PROF_LEVEL.NONE
-          ? null
-          : {
-              proficiency,
-              proficiencyLevel: manualOverride.proficiencyLevel,
-              sourceLabels: [getSourceLabel(manualOverride.source, manualOverride.sourceStr)]
-            };
+      if (resolvedEntry.proficiencyLevel === PROF_LEVEL.NONE) {
+        return displayEntries;
       }
 
-      const automaticEntries = entries.filter(
-        (entry) =>
-          entry.proficiency === proficiency &&
-          entry.source !== PROFICIENCY_SOURCE.MANUAL &&
-          hasPositiveProficiencyLevel(entry.proficiencyLevel)
-      );
-
-      if (automaticEntries.length === 0) {
-        return null;
-      }
-
-      return {
+      displayEntries.push({
         proficiency,
-        proficiencyLevel: automaticEntries.reduce<PROF_LEVEL>(
-          (highestLevel, entry) =>
-            compareProficiencyLevels(highestLevel, entry.proficiencyLevel) >= 0
-              ? highestLevel
-              : entry.proficiencyLevel,
-          PROF_LEVEL.NONE
-        ),
-        sourceLabels: dedupe(
-          automaticEntries.map((entry) => getSourceLabel(entry.source, entry.sourceStr))
-        )
-      };
-    })
-    .filter(
-      (
-        entry
-      ): entry is ProficiencyDisplayEntry<TEntry["proficiency"]> => entry !== null
-    )
+        proficiencyLevel: resolvedEntry.proficiencyLevel,
+        sourceLabels: resolvedEntry.sourceLabels,
+        locked: resolvedEntry.locked
+      });
+
+      return displayEntries;
+    }, [])
     .sort((left, right) =>
       getProficiencyLabel(left.proficiency).localeCompare(getProficiencyLabel(right.proficiency))
     );
@@ -1212,7 +1304,12 @@ function normalizeProficiencyEntries<T extends ProficiencyEntry>(
               ? entry.sourceStr.trim()
               : undefined,
           proficiency: entry.proficiency,
-          proficiencyLevel
+          proficiencyLevel,
+          overridePolicy:
+            typeof entry.overridePolicy === "string" &&
+            isProficiencyOverridePolicy(entry.overridePolicy)
+              ? entry.overridePolicy
+              : PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE
         } as T;
       })
       .filter((entry): entry is T => entry !== null)
@@ -1699,7 +1796,10 @@ export function getAutomaticProficiencyCollectionsForCharacter(
   };
 
   return {
-    skillProficiencies: getAutomaticSkillEntries(className, species, background),
+    skillProficiencies: mergeProficiencyEntries([
+      ...getAutomaticSkillEntries(className, species, background),
+      ...getFeatureSkillProficiencyEntriesForCharacter(featureCharacter)
+    ]),
     savingThrowProficiencies: getAutomaticSavingThrowEntries(className),
     weaponProficiencies: mergeProficiencyEntries([
       ...getAutomaticWeaponEntries(className),
@@ -2038,21 +2138,28 @@ export function getSkillLevelFromEntries(
   entries: SkillProficiencyEntry[],
   proficiency: SKILL_PROFICIENCY
 ): PROF_LEVEL {
-  return getEffectiveProficiencyLevel(entries, proficiency);
+  return getResolvedProficiencyEntry(entries, proficiency).proficiencyLevel;
+}
+
+export function getResolvedSkillProficiencyEntry(
+  entries: SkillProficiencyEntry[],
+  proficiency: SKILL_PROFICIENCY
+): ResolvedProficiencyEntry<SKILL_PROFICIENCY> {
+  return getResolvedProficiencyEntry(entries, proficiency);
 }
 
 export function getSavingThrowLevelFromEntries(
   entries: SavingThrowProficiencyEntry[],
   proficiency: SAVING_THROW_PROFICIENCY
 ): PROF_LEVEL {
-  return getEffectiveProficiencyLevel(entries, proficiency);
+  return getResolvedProficiencyEntry(entries, proficiency).proficiencyLevel;
 }
 
 export function getWeaponLevelFromEntries(
   entries: WeaponProficiencyEntry[],
   proficiency: WEAPON_PROFICIENCY
 ): PROF_LEVEL {
-  return getEffectiveProficiencyLevel(entries, proficiency);
+  return getResolvedProficiencyEntry(entries, proficiency).proficiencyLevel;
 }
 
 export function getAppliedWeaponProficiency(
@@ -2093,21 +2200,28 @@ export function getArmorLevelFromEntries(
   entries: ArmorProficiencyEntry[],
   proficiency: ARMOR_PROFICIENCY
 ): PROF_LEVEL {
-  return getEffectiveProficiencyLevel(entries, proficiency);
+  return getResolvedProficiencyEntry(entries, proficiency).proficiencyLevel;
 }
 
 export function getToolLevelFromEntries(
   entries: ToolProficiencyEntry[],
   proficiency: TOOL_PROFICIENCY
 ): PROF_LEVEL {
-  return getEffectiveProficiencyLevel(entries, proficiency);
+  return getResolvedProficiencyEntry(entries, proficiency).proficiencyLevel;
 }
 
 export function getLanguageLevelFromEntries(
   entries: LanguageProficiencyEntry[],
   proficiency: LANGUAGE_PROFICIENCY
 ): PROF_LEVEL {
-  return getEffectiveProficiencyLevel(entries, proficiency);
+  return getResolvedProficiencyEntry(entries, proficiency).proficiencyLevel;
+}
+
+export function hasLockedSkillEntry(
+  entries: SkillProficiencyEntry[],
+  proficiency: SKILL_PROFICIENCY
+): boolean {
+  return hasLockedNonManualPositiveEntry(entries, proficiency);
 }
 
 export function hasNonManualSkillEntry(

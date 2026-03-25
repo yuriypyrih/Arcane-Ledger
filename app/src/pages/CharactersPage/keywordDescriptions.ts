@@ -256,6 +256,18 @@ export const keywordDescriptions = {
 } as const;
 
 export const classFeatureKeywordAliases = [
+  { matchText: "STR", keyword: "STR" },
+  { matchText: "DEX", keyword: "DEX" },
+  { matchText: "CON", keyword: "CON" },
+  { matchText: "INT", keyword: "INT" },
+  { matchText: "WIS", keyword: "WIS" },
+  { matchText: "CHA", keyword: "CHA" },
+  { matchText: "Strength", keyword: "Strength" },
+  { matchText: "Dexterity", keyword: "Dexterity" },
+  { matchText: "Constitution", keyword: "Constitution" },
+  { matchText: "Intelligence", keyword: "Intelligence" },
+  { matchText: "Wisdom", keyword: "Wisdom" },
+  { matchText: "Charisma", keyword: "Charisma" },
   { matchText: "Senses", keyword: "Senses" },
   { matchText: "Darkvision", keyword: "Darkvision" },
   { matchText: "Blindsight", keyword: "Blindsight" },

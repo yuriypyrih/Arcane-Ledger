@@ -2,13 +2,18 @@ import {
   CLASS_FEATURE,
   ENTRY_CATEGORIES,
   hardcodedCodexEntries,
+  SPELL_LIST_CLASS,
   type ClassEntry,
   type FeatureClassObj,
   type SpellEntry
 } from "../../codex/entries";
 import type { CharacterClassFeatureState } from "../../types";
 import { getSpellEntriesForClassName } from "../../codex/classes";
-import { getCantripLimitBonusForCharacter } from "./classFeatures";
+import { getSpellEntriesForSpellListClasses } from "../../codex/classes/spellAccess";
+import {
+  getAlwaysPreparedSpellIdsForCharacter,
+  getCantripLimitBonusForCharacter
+} from "./classFeatures";
 
 const spellSlotLevels = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
@@ -85,6 +90,44 @@ function getHighestSlotLevel(slotTotals: number[]): number {
   }
 
   return 0;
+}
+
+function getPreparedSpellAccessListClasses(className: string, level: number): SPELL_LIST_CLASS[] {
+  if (className === "Bard" && level >= 10) {
+    return [
+      SPELL_LIST_CLASS.BARD,
+      SPELL_LIST_CLASS.CLERIC,
+      SPELL_LIST_CLASS.DRUID,
+      SPELL_LIST_CLASS.WIZARD
+    ];
+  }
+
+  const baseClassSpellEntries = getSpellEntriesForClassName(className);
+
+  if (baseClassSpellEntries.length === 0) {
+    return [];
+  }
+
+  switch (className) {
+    case "Bard":
+      return [SPELL_LIST_CLASS.BARD];
+    case "Cleric":
+      return [SPELL_LIST_CLASS.CLERIC];
+    case "Druid":
+      return [SPELL_LIST_CLASS.DRUID];
+    case "Paladin":
+      return [SPELL_LIST_CLASS.PALADIN];
+    case "Ranger":
+      return [SPELL_LIST_CLASS.RANGER];
+    case "Sorcerer":
+      return [SPELL_LIST_CLASS.SORCERER];
+    case "Warlock":
+      return [SPELL_LIST_CLASS.WARLOCK];
+    case "Wizard":
+      return [SPELL_LIST_CLASS.WIZARD];
+    default:
+      return [];
+  }
 }
 
 function getCantripCountForFeatureRow(featureRow?: SpellcastingFeatureClassObj): number | null {
@@ -181,8 +224,11 @@ export function getPreparedSpellSelectionOptionsForCharacter(
   }
 
   const highestSlotLevel = getHighestSlotLevel(getSpellSlotTotalsForCharacter(className, level));
+  const preparedSpellEntries = getSpellEntriesForSpellListClasses(
+    getPreparedSpellAccessListClasses(className, level)
+  );
 
-  return getSpellEntriesForClassName(className).filter((spell) => {
+  return preparedSpellEntries.filter((spell) => {
     const spellLevel = getSpellLevel(spell);
     return spellLevel > 0 && spellLevel <= highestSlotLevel;
   });
@@ -191,9 +237,11 @@ export function getPreparedSpellSelectionOptionsForCharacter(
 export function normalizePreparedSpellIds(
   spellIds: unknown,
   availableSpells: SpellEntry[],
-  totalLimit: number | null
+  totalLimit: number | null,
+  excludedSpellIds: string[] = []
 ): string[] {
   const availableSpellsById = new Map(availableSpells.map((spell) => [spell.id, spell]));
+  const excludedSpellIdSet = new Set(excludedSpellIds);
   const rawSpellIds = Array.isArray(spellIds)
     ? spellIds.filter((spellId): spellId is string => typeof spellId === "string")
     : [];
@@ -202,6 +250,10 @@ export function normalizePreparedSpellIds(
   for (const spellId of [...new Set(rawSpellIds)]) {
     if (totalLimit !== null && selectedSpellIds.length >= totalLimit) {
       break;
+    }
+
+    if (excludedSpellIdSet.has(spellId)) {
+      continue;
     }
 
     const spell = availableSpellsById.get(spellId);
@@ -220,6 +272,33 @@ export function normalizePreparedSpellIds(
   }
 
   return selectedSpellIds;
+}
+
+export function normalizeTrackedSpellIds(
+  spellIds: unknown,
+  availableSpells: SpellEntry[],
+  limit: number | null
+): string[] {
+  const availableSpellIds = new Set(availableSpells.map((spell) => spell.id));
+  const rawSpellIds = Array.isArray(spellIds)
+    ? spellIds.filter((spellId): spellId is string => typeof spellId === "string")
+    : [];
+
+  return [...new Set(rawSpellIds)]
+    .filter((spellId) => availableSpellIds.has(spellId))
+    .slice(0, limit ?? Number.POSITIVE_INFINITY);
+}
+
+export function getAlwaysPreparedSpellIds(
+  className: string,
+  level: number,
+  classFeatureState?: CharacterClassFeatureState
+): string[] {
+  return getAlwaysPreparedSpellIdsForCharacter({
+    className,
+    level,
+    classFeatureState
+  });
 }
 
 export function getDefaultCantripIdsForCharacter(

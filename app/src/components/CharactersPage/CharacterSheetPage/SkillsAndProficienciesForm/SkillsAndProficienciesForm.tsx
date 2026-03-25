@@ -23,14 +23,15 @@ import {
   armorProficiencyOptions,
   getArmorLevelFromEntries,
   getDisplayArmorProficiencyEntries,
-  getDisplaySkillLevels,
   getDisplaySkillProficiencyEntries,
   getDisplayToolProficiencyEntries,
   getDisplayWeaponProficiencyEntries,
   getProficiencyKeyword,
   getProficiencyLabel,
+  getResolvedSkillProficiencyEntry,
   getSkillLevelFromEntries,
   getSkillProficiencyForName,
+  hasLockedSkillEntry,
   getToolLevelFromEntries,
   getWeaponProficiencyTypeLabel,
   getWeaponLevelFromEntries,
@@ -64,7 +65,10 @@ type SelectedKeyword = {
   name: string;
   description: string;
   indicators?: FeatureIndicator[];
-  detailText?: string;
+  detailCards?: Array<{
+    label: string;
+    value: string;
+  }>;
 };
 
 type ProficiencyEditorTab = "skills" | "weapons" | "armor" | "tools" | "languages";
@@ -153,16 +157,11 @@ function SkillsAndProficienciesForm({
     ? toolProficienciesDraft
     : character.toolProficiencies;
 
-  const displayedSkillLevels = getDisplaySkillLevels(displayedSkillProficiencies);
   const displayedWeaponProficiencyEntries = getDisplayWeaponProficiencyEntries(
     displayedWeaponProficiencies
   );
   const skillIndicators = getSkillIndicatorsForCharacter(character);
-  const skillRowsByAbility = getSkillRowsByAbility(
-    character,
-    displayedSkillLevels.proficient,
-    displayedSkillLevels.expert
-  );
+  const skillRowsByAbility = getSkillRowsByAbility(character, displayedSkillProficiencies);
   const skillRowsByAbilityMap = new Map(skillRowsByAbility.map((group) => [group.ability, group]));
 
   const proficiencyCategorySections: ProficiencyCategorySection[] = [
@@ -269,6 +268,10 @@ function SkillsAndProficienciesForm({
       return;
     }
 
+    if (hasLockedSkillEntry(skillProficienciesDraft, skillProficiency)) {
+      return;
+    }
+
     setSkillProficienciesDraft((currentProficiencies) =>
       upsertManualSkillEntry(currentProficiencies, skillProficiency, nextLevel)
     );
@@ -320,7 +323,7 @@ function SkillsAndProficienciesForm({
   function openKeywordReference(
     keyword: string,
     indicators?: FeatureIndicator[],
-    detailText?: string
+    detailCards?: Array<{ label: string; value: string }>
   ) {
     const description = getKeywordDescription(keyword);
 
@@ -332,7 +335,7 @@ function SkillsAndProficienciesForm({
       name: keyword,
       description,
       indicators: indicators?.length ? indicators : undefined,
-      detailText
+      detailCards
     });
   }
 
@@ -376,6 +379,7 @@ function SkillsAndProficienciesForm({
       compact?: boolean;
       getLabel?: (option: TOption) => string;
       renderMeta?: (option: TOption) => string | null;
+      isDisabled?: (option: TOption) => boolean;
     }
   ) {
     return (
@@ -391,6 +395,7 @@ function SkillsAndProficienciesForm({
             getProficiencyLabel(option as Parameters<typeof getProficiencyLabel>[0]);
           const meta = optionsConfig?.renderMeta?.(option) ?? null;
           const selected = isSelected(option);
+          const disabled = optionsConfig?.isDisabled?.(option) ?? false;
 
           return (
             <label
@@ -399,10 +404,14 @@ function SkillsAndProficienciesForm({
                 styles.editorCard,
                 optionsConfig?.compact && styles.editorCardCompact,
                 styles.editorToggleCard,
-                selected && styles.editorCardActive
+                selected && styles.editorCardActive,
+                disabled && styles.editorToggleCardDisabled
               )}
               onClick={(event) => {
                 event.preventDefault();
+                if (disabled) {
+                  return;
+                }
                 onToggle(option, !selected);
               }}
             >
@@ -414,6 +423,7 @@ function SkillsAndProficienciesForm({
                 <input
                   type="checkbox"
                   checked={selected}
+                  disabled={disabled}
                   readOnly
                   tabIndex={-1}
                   className={styles.editorCheckbox}
@@ -442,7 +452,12 @@ function SkillsAndProficienciesForm({
       },
       updateSkillProficiency,
       {
-        getLabel: (skillName) => skillName
+        getLabel: (skillName) => skillName,
+        isDisabled: (skillName) => {
+          const proficiency = getSkillProficiencyForName(skillName);
+
+          return proficiency ? hasLockedSkillEntry(skillProficienciesDraft, proficiency) : false;
+        }
       }
     );
   }
@@ -525,9 +540,32 @@ function SkillsAndProficienciesForm({
                       <ul className={styles.skillAbilityList}>
                         {group.rows.map((row) => {
                           const skillProficiency = getSkillProficiencyForName(row.name);
-                          const currentSkillLevel = skillProficiency
-                            ? getSkillLevelFromEntries(displayedSkillProficiencies, skillProficiency)
-                            : PROF_LEVEL.NONE;
+                          const resolvedSkillProficiency = skillProficiency
+                            ? getResolvedSkillProficiencyEntry(
+                                displayedSkillProficiencies,
+                                skillProficiency
+                              )
+                            : null;
+                          const currentSkillLevel =
+                            resolvedSkillProficiency?.proficiencyLevel ?? PROF_LEVEL.NONE;
+                          const skillDetailCards = [
+                            {
+                              label: "Formula",
+                              value: formatSkillFormula(row)
+                            },
+                            ...(row.proficiencySourceLabels.length > 0
+                              ? [
+                                  {
+                                    label: "Source",
+                                    value: row.proficiencySourceLabels.join(", ")
+                                  },
+                                  {
+                                    label: "Override",
+                                    value: row.proficiencyLocked ? "Enforced" : "Overridable"
+                                  }
+                                ]
+                              : [])
+                          ];
 
                           return (
                             <li
@@ -550,7 +588,7 @@ function SkillsAndProficienciesForm({
                                     openKeywordReference(
                                       row.name,
                                       skillIndicators[row.name],
-                                      formatSkillFormula(row)
+                                      skillDetailCards
                                     )
                                   }
                                 >
@@ -572,6 +610,7 @@ function SkillsAndProficienciesForm({
                                 <SelectInput
                                   className={styles.skillLevelSelect}
                                   value={currentSkillLevel}
+                                  disabled={row.proficiencyLocked}
                                   onChange={(event) =>
                                     updateSkillLevel(row.name, event.target.value as PROF_LEVEL)
                                   }
@@ -760,13 +799,18 @@ function SkillsAndProficienciesForm({
                 <X size={18} />
               </button>
             </div>
-            {selectedKeyword.detailText ? (
+            {selectedKeyword.detailCards?.length ? (
               <div className={sheetStyles.spellDrawerBody}>
                 <div className={sheetStyles.spellDrawerDetails}>
-                  <div className={sheetStyles.spellDrawerDetailCard}>
-                    <span>Formula</span>
-                    <strong>{selectedKeyword.detailText}</strong>
-                  </div>
+                  {selectedKeyword.detailCards.map((detailCard) => (
+                    <div
+                      key={`${selectedKeyword.name}-${detailCard.label}`}
+                      className={sheetStyles.spellDrawerDetailCard}
+                    >
+                      <span>{detailCard.label}</span>
+                      <strong>{detailCard.value}</strong>
+                    </div>
+                  ))}
                 </div>
               </div>
             ) : null}

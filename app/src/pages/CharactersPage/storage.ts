@@ -17,6 +17,7 @@ import {
   normalizeCharacterProficiencies
 } from "./proficiency";
 import {
+  getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
   getCantripSelectionOptionsForCharacter,
   getDefaultCantripIdsForCharacter,
@@ -296,7 +297,12 @@ function normalizeCharacter(value: unknown): Character | null {
   const normalizedPreparedSpellIds = normalizePreparedSpellIds(
     rawPreparedSpellIds.filter((spellId) => preparedSpellSelectionOptionIds.has(spellId)),
     preparedSpellSelectionOptions,
-    preparedSpellLimit
+    preparedSpellLimit,
+    getAlwaysPreparedSpellIds(
+      normalizedClassName,
+      normalizedLevel,
+      normalizedClassFeatureState
+    )
   );
   const spellSlotTotals = getSpellSlotTotalsForCharacter(normalizedClassName, normalizedLevel);
   const normalizedSpellSlotsExpended = normalizeSpellSlotsExpended(

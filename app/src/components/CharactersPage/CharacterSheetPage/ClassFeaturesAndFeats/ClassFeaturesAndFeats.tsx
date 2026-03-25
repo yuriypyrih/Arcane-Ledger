@@ -21,10 +21,14 @@ import {
 import CodexDivinityDrawer from "../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import CodexSpellDrawer from "../../../CodexPage/CodexSpellDrawer";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
+import SelectInput from "../../FormInputs/SelectInput";
+import { PROF_LEVEL } from "../../../../types";
 import { abilityKeys } from "../../../../pages/CharactersPage/constants";
 import {
+  getBardExpertiseSelectionsForCharacter,
   getClericBlessedStrikesChoiceForCharacter,
   getClericDivineOrderChoiceForCharacter,
+  setBardExpertiseSelectionsForCharacter,
   setClericBlessedStrikesChoiceForCharacter,
   setClericDivineOrderChoiceForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
@@ -38,16 +42,16 @@ import {
   getFeatCategoryLabel,
   getFeatDefinition,
   getFeatDefinitionsByCategory,
-  featDefinitions,
   getSkilledChoiceSummary
 } from "../../../../pages/CharactersPage/feats";
 import {
-  classFeatureKeywordAliases,
   getKeywordDescription
 } from "../../../../pages/CharactersPage/keywordDescriptions";
 import {
   addFeatGrantedSkillEntries,
   addFeatGrantedToolEntries,
+  getSkillLevelFromEntries,
+  getSkillProficiencyForName,
   getToolProficiencyLabel,
   normalizeCharacterProficiencies,
   removeFeatGrantedSkillEntries,
@@ -174,62 +178,6 @@ const spellEntriesByName = new Map<string, SpellEntry>(
 
 const inlineMarkupPattern =
   /<strong>(.*?)<\/strong>|<link:([^>]+)>(.*?)<\/link>|<spell:([^>]+)>(.*?)<\/spell>|<divinity:([^>]+)>(.*?)<\/divinity>/g;
-type AutoLinkTarget =
-  | {
-      kind: "keyword";
-      keyword: string;
-    }
-  | {
-      kind: "feat";
-      feat: FEATS;
-    };
-
-const tooltipKeywordAliases = [
-  { matchText: "Short Rest", keyword: "short-rest" },
-  { matchText: "Long Rest", keyword: "long-rest" },
-  { matchText: "Resistance", keyword: "resistance" }
-] as const;
-const featReferenceAliases = featDefinitions.map((definition) => ({
-  matchText: definition.label,
-  feat: definition.feat
-}));
-const featureAutoLinkAliases = [
-  ...tooltipKeywordAliases.map(
-    ({ matchText, keyword }): { matchText: string; target: AutoLinkTarget } => ({
-      matchText,
-      target: {
-        kind: "keyword",
-        keyword
-      }
-    })
-  ),
-  ...classFeatureKeywordAliases.map(
-    ({ matchText, keyword }): { matchText: string; target: AutoLinkTarget } => ({
-      matchText,
-      target: {
-        kind: "keyword",
-        keyword
-      }
-    })
-  ),
-  ...featReferenceAliases.map(
-    ({ matchText, feat }): { matchText: string; target: AutoLinkTarget } => ({
-      matchText,
-      target: {
-        kind: "feat",
-        feat
-      }
-    })
-  )
-] as const;
-const featureAutoLinkLookup = new Map(
-  featureAutoLinkAliases.map(({ matchText, target }) => [matchText.toLowerCase(), target])
-);
-const featureAutoLinkPatternSource = [...featureAutoLinkAliases]
-  .sort((left, right) => right.matchText.length - left.matchText.length)
-  .map(({ matchText }) => matchText.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
-  .join("|");
-
 function createDefaultPendingAbilityScoreImprovement(): PendingAbilityScoreImprovement {
   return {
     mode: "single",
@@ -315,6 +263,18 @@ function isFeatChoiceFeature(feature: CLASS_FEATURE): boolean {
   return feature === CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT || feature === CLASS_FEATURE.EPIC_BOON;
 }
 
+function getBardExpertiseTierForLevel(level: number): "level2" | "level9" | null {
+  if (level === 2) {
+    return "level2";
+  }
+
+  if (level === 9) {
+    return "level9";
+  }
+
+  return null;
+}
+
 function createClassFeatureFeatSource(level: number, feature: CLASS_FEATURE): CharacterFeatSource & {
   type: "class-feature";
 } {
@@ -391,70 +351,6 @@ function resolveKeywordReference(
   };
 }
 
-function renderAutoLinkedText(
-  text: string,
-  onOpenKeyword: (keywordKey: string, title?: string) => void,
-  onOpenFeat: (feat: FEATS) => void
-): ReactNode {
-  if (!text || !featureAutoLinkPatternSource) {
-    return text;
-  }
-
-  const nodes: ReactNode[] = [];
-  const keywordPattern = new RegExp(featureAutoLinkPatternSource, "gi");
-  let cursor = 0;
-
-  for (const match of text.matchAll(keywordPattern)) {
-    const index = match.index ?? 0;
-    const matchedText = match[0];
-
-    if (index > cursor) {
-      nodes.push(text.slice(cursor, index));
-    }
-
-    const target = featureAutoLinkLookup.get(matchedText.toLowerCase());
-
-    if (target?.kind === "feat") {
-      nodes.push(
-        <button
-          key={`${target.feat}-${index}`}
-          type="button"
-          className={styles.keywordButton}
-          onClick={() => onOpenFeat(target.feat)}
-        >
-          {matchedText}
-        </button>
-      );
-    } else {
-      const keywordKey = target?.kind === "keyword" ? target.keyword : matchedText;
-      const resolvedKeyword = resolveKeywordReference(keywordKey, matchedText);
-
-      nodes.push(
-        resolvedKeyword ? (
-          <button
-            key={`${keywordKey}-${index}`}
-            type="button"
-            className={styles.keywordButton}
-            onClick={() => onOpenKeyword(keywordKey)}
-          >
-            {matchedText}
-          </button>
-        ) : (
-          matchedText
-        )
-      );
-    }
-
-    cursor = index + matchedText.length;
-  }
-
-  if (cursor < text.length) {
-    nodes.push(text.slice(cursor));
-  }
-
-  return nodes.length > 0 ? nodes : text;
-}
-
 function renderDescriptionLine(
   line: string,
   onOpenKeyword: (keywordKey: string, title?: string) => void,
@@ -469,7 +365,7 @@ function renderDescriptionLine(
     const index = match.index ?? 0;
 
     if (index > cursor) {
-      nodes.push(renderAutoLinkedText(line.slice(cursor, index), onOpenKeyword, onOpenFeat));
+      nodes.push(line.slice(cursor, index));
     }
 
     if (match[1]) {
@@ -541,7 +437,7 @@ function renderDescriptionLine(
   }
 
   if (cursor < line.length) {
-    nodes.push(renderAutoLinkedText(line.slice(cursor), onOpenKeyword, onOpenFeat));
+    nodes.push(line.slice(cursor));
   }
 
   return nodes.length > 0 ? nodes : line;
@@ -647,18 +543,95 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
     return selectedFeats.find((entry) => isFeatFromClassFeatureSource(entry, level, feature)) ?? null;
   }
 
-  const hasUnlockedInputRequiredFeature = useMemo(
-    () =>
-      unlockedFeatures.some(
-        (featureRow) =>
-          (isFeatChoiceFeature(featureRow.feature) &&
-            !selectedFeats.some((entry) =>
-              isFeatFromClassFeatureSource(entry, featureRow.level, featureRow.feature)
-            )) ||
-          (featureRow.feature === CLASS_FEATURE.BLESSED_STRIKES &&
-            getClericBlessedStrikesChoiceForCharacter(character) === null)
-      ),
-    [character, unlockedFeatures, selectedFeats]
+  function getBardExpertiseSelections(level: number): SkillName[] {
+    const tier = getBardExpertiseTierForLevel(level);
+
+    if (!tier) {
+      return [];
+    }
+
+    return getBardExpertiseSelectionsForCharacter(character, tier);
+  }
+
+  function getAvailableBardExpertiseSkills(level: number, slotIndex: number): SkillName[] {
+    const tier = getBardExpertiseTierForLevel(level);
+
+    if (!tier) {
+      return [];
+    }
+
+    const currentSelections = getBardExpertiseSelectionsForCharacter(character, tier);
+    const currentValue = currentSelections[slotIndex];
+    const blockedSelections = new Set(
+      currentSelections.filter((selection, index) => index !== slotIndex)
+    );
+
+    return skillsOptions.filter((skillName) => {
+      if (blockedSelections.has(skillName)) {
+        return false;
+      }
+
+      if (currentValue === skillName) {
+        return true;
+      }
+
+      const proficiency = getSkillProficiencyForName(skillName);
+
+      return (
+        proficiency !== null &&
+        getSkillLevelFromEntries(character.skillProficiencies ?? [], proficiency) ===
+          PROF_LEVEL.PROFICIENT
+      );
+    });
+  }
+
+  function updateBardExpertiseSelection(level: number, slotIndex: number, nextValue: string) {
+    const tier = getBardExpertiseTierForLevel(level);
+
+    if (!tier) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const currentSelections = getBardExpertiseSelectionsForCharacter(currentCharacter, tier);
+      const nextSelections: [string, string] = [
+        currentSelections[0] ?? "",
+        currentSelections[1] ?? ""
+      ];
+
+      nextSelections[slotIndex] = nextValue;
+
+      return setBardExpertiseSelectionsForCharacter(
+        currentCharacter,
+        tier,
+        nextSelections.filter(
+          (selection): selection is SkillName =>
+            skillsOptions.some((skillOption) => skillOption === selection)
+        )
+      );
+    });
+  }
+
+  function isBardExpertiseInputRequired(level: number): boolean {
+    const tier = getBardExpertiseTierForLevel(level);
+
+    if (!tier) {
+      return false;
+    }
+
+    return getBardExpertiseSelectionsForCharacter(character, tier).length < 2;
+  }
+
+  const hasUnlockedInputRequiredFeature = unlockedFeatures.some(
+    (featureRow) =>
+      (isFeatChoiceFeature(featureRow.feature) &&
+        !selectedFeats.some((entry) =>
+          isFeatFromClassFeatureSource(entry, featureRow.level, featureRow.feature)
+        )) ||
+      (featureRow.feature === CLASS_FEATURE.EXPERTISE &&
+        isBardExpertiseInputRequired(featureRow.level)) ||
+      (featureRow.feature === CLASS_FEATURE.BLESSED_STRIKES &&
+        getClericBlessedStrikesChoiceForCharacter(character) === null)
   );
 
   function removeSkilledProficienciesFromCharacter(
@@ -1108,6 +1081,9 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
           const isInputRequired =
             (isUnlocked && isFeatChoiceFeature(featureRow.feature) && linkedFeat === null) ||
             (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.EXPERTISE &&
+              isBardExpertiseInputRequired(featureRow.level)) ||
+            (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.BLESSED_STRIKES &&
               blessedStrikesChoice === null);
           const divineOrderChoice =
@@ -1121,6 +1097,16 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
           const blessedStrikesDescriptionLines =
             featureRow.feature === CLASS_FEATURE.BLESSED_STRIKES
               ? featureDetails.description.slice(1)
+              : [];
+          const bardExpertiseSelections =
+            featureRow.feature === CLASS_FEATURE.EXPERTISE
+              ? getBardExpertiseSelections(featureRow.level)
+              : [];
+          const bardExpertiseDescriptionLines =
+            featureRow.feature === CLASS_FEATURE.EXPERTISE
+              ? featureRow.level >= 9
+                ? featureDetails.description.slice(1, 2)
+                : featureDetails.description.slice(0, 1)
               : [];
 
           return (
@@ -1261,6 +1247,68 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
                             </label>
                           );
                         })}
+                      </>
+                    ) : featureRow.feature === CLASS_FEATURE.EXPERTISE ? (
+                      <>
+                        {bardExpertiseDescriptionLines.map((line, index) => (
+                          <p key={`${featureRow.key}-line-${index}`} className={styles.descriptionLine}>
+                            {renderDescriptionLine(
+                              line,
+                              openKeyword,
+                              (feat) => openFeatReference(feat),
+                              openSpellReference,
+                              openDivinityReference
+                            )}
+                          </p>
+                        ))}
+                        <div className={styles.featureSelectionGrid}>
+                          {[0, 1].map((slotIndex) => {
+                            const currentValue = bardExpertiseSelections[slotIndex] ?? "";
+                            const availableSkills = getAvailableBardExpertiseSkills(
+                              featureRow.level,
+                              slotIndex
+                            );
+
+                            if (
+                              currentValue &&
+                              !availableSkills.includes(currentValue as SkillName)
+                            ) {
+                              availableSkills.unshift(currentValue as SkillName);
+                            }
+
+                            return (
+                              <label
+                                key={`${featureRow.key}-expertise-slot-${slotIndex}`}
+                                className={clsx(
+                                  styles.featureSelectionField,
+                                  !isUnlocked && styles.featureOptionRowDisabled
+                                )}
+                              >
+                                <span className={styles.featureSelectionLabel}>
+                                  Expertise {slotIndex + 1}
+                                </span>
+                                <SelectInput
+                                  value={currentValue}
+                                  disabled={!isUnlocked}
+                                  onChange={(event) =>
+                                    updateBardExpertiseSelection(
+                                      featureRow.level,
+                                      slotIndex,
+                                      event.target.value
+                                    )
+                                  }
+                                >
+                                  <option value="">Select a skill</option>
+                                  {availableSkills.map((skillName) => (
+                                    <option key={`${featureRow.key}-${skillName}`} value={skillName}>
+                                      {skillName}
+                                    </option>
+                                  ))}
+                                </SelectInput>
+                              </label>
+                            );
+                          })}
+                        </div>
                       </>
                     ) : (
                       featureDetails.description.map((line, index) => (

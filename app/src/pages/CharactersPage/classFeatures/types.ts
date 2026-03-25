@@ -5,6 +5,7 @@ import type {
   CharacterStatusEntry,
   CoreStats,
   SkillName,
+  SkillProficiencyEntry,
   WeaponProficiencyEntry
 } from "../../../types";
 
@@ -110,6 +111,7 @@ export type FeatureAbilityScoreBonus = {
   order?: number;
 };
 
+export type FeatureSkillProficiencyEntry = SkillProficiencyEntry;
 export type FeatureWeaponProficiencyEntry = WeaponProficiencyEntry;
 
 export type FeatureArmorProficiencyEntry = ArmorProficiencyEntry;

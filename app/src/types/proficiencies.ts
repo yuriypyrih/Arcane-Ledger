@@ -17,6 +17,11 @@ export enum PROF_LEVEL {
   EXPERT = "EXPERT"
 }
 
+export enum PROFICIENCY_OVERRIDE_POLICY {
+  OVERRIDABLE = "OVERRIDABLE",
+  LOCKED = "LOCKED"
+}
+
 export enum SKILL_PROFICIENCY {
   ACROBATICS = "ACROBATICS",
   ANIMAL_HANDLING = "ANIMAL_HANDLING",
@@ -137,6 +142,7 @@ type BASE_PROFICIENCY_ENTRY<TProficiency extends CHARACTER_PROFICIENCY> = {
   sourceStr?: string;
   proficiency: TProficiency;
   proficiencyLevel: PROF_LEVEL;
+  overridePolicy?: PROFICIENCY_OVERRIDE_POLICY;
 };
 
 export type SkillProficiencyEntry = BASE_PROFICIENCY_ENTRY<SKILL_PROFICIENCY>;

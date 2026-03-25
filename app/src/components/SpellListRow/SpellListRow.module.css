@@ -90,6 +90,14 @@
   min-width: 11rem;
 }
 
+.nameRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
 .selectableCheckbox {
   accent-color: #2f78ff;
   margin: 0;
@@ -98,6 +106,24 @@
 
 .name {
   font-weight: 600;
+}
+
+.namePill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  padding: 0.22rem 0.48rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.alwaysPreparedPill {
+  background: rgba(222, 102, 158, 0.16);
+  color: #c04f86;
 }
 
 .nameButton {

@@ -9,6 +9,7 @@ import type {
   DAMAGE_TYPE,
   DICE,
   DICE_TYPES,
+  REACTION,
   GENERAL_PROFICIENCIES,
   ITEM_TYPES,
   MAGIC_SCHOOL,
@@ -120,6 +121,13 @@ export type DivinityEntry = {
   damage?: DivinityValue;
   healing?: DivinityValue;
   scaling?: DivinityScalingEntry[];
+};
+export type ReactionEntry = {
+  id: string;
+  reaction: REACTION;
+  name: string;
+  sourceFeature: CLASS_FEATURE;
+  description: SpellDescriptionEntry[];
 };
 export type WeaponEntry = Omit<BaseCodexEntry<ENTRY_CATEGORIES.WEAPONS, never>, "tags"> &
   EntryWithRarity & {

@@ -19,12 +19,16 @@ import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import SpellListRow from "../../../SpellListRow";
 import CharacterSpellDrawer from "../SpellCastingForm/CharacterSpellDrawer";
-import { ACTION_TYPE, type SpellEntry } from "../../../../codex/entries";
+import SpellDescriptionContent from "../../../SpellDescriptionContent";
+import { useClassSpellEntries, usePreparedSpellEntries } from "../../../../codex/classes";
+import { ACTION_TYPE, type ReactionEntry, type SpellEntry } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
 import {
   consumeRoundTrackerResource,
   createDefaultRoundTracker,
+  isRoundTrackerResourceAvailable,
   normalizeRoundTracker,
+  setRoundTrackerResourceAvailability,
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
 import { getCombatActionsForCharacter } from "../../../../pages/CharactersPage/combatActions";
@@ -36,6 +40,7 @@ import {
   applyShortRestToFeatureState,
   getDerivedFeatureStatusEntriesForCharacter,
   getFeatureActionOptionsForCharacter,
+  getFeatureReactionEntriesForCharacter,
   markFeatureWeaponBonusUseForCharacter,
   getSpellcastingStateForCharacter,
   removeFeatureStatusEntryForCharacter
@@ -62,6 +67,7 @@ import {
   STATUS_DURATION_PRESET,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
+  type CharacterStatusDuration,
   type CharacterStatusEntry,
   type CharacterStatusValue
 } from "../../../../types";
@@ -98,7 +104,17 @@ import {
   upsertManualStatusEntry,
   removeCharacterStatusEntry
 } from "../../../../pages/CharactersPage/traits";
-import { getSpellLevel } from "../../../../pages/CharactersPage/spellcasting";
+import {
+  getAlwaysPreparedSpellIds,
+  getCantripLimitForCharacter,
+  getPreparedSpellLimitForCharacter,
+  getSpellLevel,
+  getSpellSlotTotalsForCharacter,
+  normalizeSpellSlotsExpended,
+  normalizePreparedSpellIds,
+  normalizeTrackedSpellIds,
+  usesPreparedSpellsForCharacter
+} from "../../../../pages/CharactersPage/spellcasting";
 import { getSpellOutcomeSummaryForCharacter } from "../../../../pages/CharactersPage/spellOutcome";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
@@ -282,6 +298,10 @@ function getWeaponActionBreakdown(action: WeaponAction): string {
 }
 
 function getFeatureActionModeLabel(actionCost: RoundTrackerResource | null): string {
+  if (actionCost === "reaction") {
+    return "Reaction";
+  }
+
   if (actionCost === "bonusAction") {
     return "Bonus Action";
   }
@@ -291,6 +311,29 @@ function getFeatureActionModeLabel(actionCost: RoundTrackerResource | null): str
   }
 
   return "Free";
+}
+
+function getRoundTrackerResourceLabel(resource: RoundTrackerResource): string {
+  switch (resource) {
+    case "bonusAction":
+      return ACTION_TYPE.BONUS_ACTION;
+    case "reaction":
+      return ACTION_TYPE.REACTION;
+    case "action":
+    default:
+      return ACTION_TYPE.ACTION;
+  }
+}
+
+function getRoundTrackerActionWarning(
+  resource: RoundTrackerResource | null,
+  roundTracker: ReturnType<typeof normalizeRoundTracker>
+): string | null {
+  if (!resource || isRoundTrackerResourceAvailable(roundTracker, resource)) {
+    return null;
+  }
+
+  return `You already used the ${getRoundTrackerResourceLabel(resource)} for this turn`;
 }
 
 function getRoundTrackerResourceMeta(
@@ -313,6 +356,17 @@ function getRoundTrackerResourceMeta(
     };
   }
 
+  if (resource === "reaction") {
+    return {
+      title: "Reaction",
+      description: isAvailable
+        ? "Your reaction is ready for this round. Reaction spells and similar responses will spend it automatically."
+        : "Your reaction has already been spent this round. Reset it here if you need to correct the tracker manually.",
+      useLabel: "Use Reaction",
+      resetLabel: "Reset Reaction"
+    };
+  }
+
   return {
     title: "Bonus Action",
     description: isAvailable
@@ -321,6 +375,47 @@ function getRoundTrackerResourceMeta(
     useLabel: "Use Bonus Action",
     resetLabel: "Reset Bonus Action"
   };
+}
+
+function createDerivedReactionStatusDuration(): CharacterStatusDuration {
+  return { kind: STATUS_DURATION_KIND.INFINITE };
+}
+
+function getDerivedReactionStatusEntries(
+  spells: SpellEntry[],
+  reactions: ReactionEntry[]
+): CharacterStatusEntry[] {
+  return [...new Map(spells.map((spell) => [spell.id, spell])).values()]
+    .filter((spell) => spell.castingTime.includes(ACTION_TYPE.REACTION))
+    .sort((left, right) => left.name.localeCompare(right.name))
+    .map((spell) => ({
+      id: `reaction-spell-${spell.id}`,
+      group: STATUS_ENTRY_GROUP.REACTIONS,
+      value: spell.name,
+      source: "Spellcasting",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: createDerivedReactionStatusDuration(),
+      sourceId: `reaction-spell-${spell.id}`,
+      rangeFeet: null
+    }))
+    .concat(
+      reactions
+        .slice()
+        .sort((left, right) => left.name.localeCompare(right.name))
+        .map((reaction) => ({
+          id: `reaction-entry-${reaction.id}`,
+          group: STATUS_ENTRY_GROUP.REACTIONS,
+          value: reaction.name,
+          source:
+            reaction.sourceFeature === "COUNTERCHARM"
+              ? "Bard"
+              : "Feature",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+          duration: createDerivedReactionStatusDuration(),
+          sourceId: `reaction-entry-${reaction.id}`,
+          rangeFeet: null
+        }))
+    );
 }
 
 function getTraitEditorGroup(tab: TraitEditorTab): STATUS_ENTRY_GROUP {
@@ -368,6 +463,8 @@ function getStatusDrawerBadgeLabel(group: STATUS_ENTRY_GROUP): string {
   switch (group) {
     case STATUS_ENTRY_GROUP.EFFECTS:
       return "Effect";
+    case STATUS_ENTRY_GROUP.REACTIONS:
+      return "Reaction";
     case STATUS_ENTRY_GROUP.SENSES:
       return "Sense";
     case STATUS_ENTRY_GROUP.AURAS:
@@ -446,6 +543,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   const [selectedFeatureActionKey, setSelectedFeatureActionKey] = useState<string | null>(null);
   const [selectedDivineInterventionSpell, setSelectedDivineInterventionSpell] =
     useState<SpellEntry | null>(null);
+  const [selectedReactionSpellSlotLevel, setSelectedReactionSpellSlotLevel] = useState(1);
   const [activeDivineInterventionLevel, setActiveDivineInterventionLevel] = useState(0);
   const [lastDeathSaveRoll, setLastDeathSaveRoll] = useState<number | null>(null);
   const [lastProcessedDeathSaveRollToken, setLastProcessedDeathSaveRollToken] = useState<
@@ -504,9 +602,128 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   }, [hasOverlayOpen, selectedDivineInterventionSpell]);
 
   const roundTracker = normalizeRoundTracker(character.roundTracker);
+  const classSpellEntries = useClassSpellEntries(character.className);
+  const preparedSpellPoolEntries = usePreparedSpellEntries(character.className, character.level);
+  const cantripLimit = useMemo(
+    () =>
+      getCantripLimitForCharacter(
+        character.className,
+        character.level,
+        character.classFeatureState
+      ),
+    [character.classFeatureState, character.className, character.level]
+  );
+  const preparedSpellLimit = useMemo(
+    () => getPreparedSpellLimitForCharacter(character.className, character.level),
+    [character.className, character.level]
+  );
+  const spellSlotTotals = useMemo(
+    () => getSpellSlotTotalsForCharacter(character.className, character.level),
+    [character.className, character.level]
+  );
+  const spellSlotsExpended = useMemo(
+    () => normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals),
+    [character.spellSlotsExpended, spellSlotTotals]
+  );
+  const spellSlotsRemaining = useMemo(
+    () =>
+      spellSlotTotals.map((total, index) => Math.max(0, total - (spellSlotsExpended[index] ?? 0))),
+    [spellSlotTotals, spellSlotsExpended]
+  );
+  const usesPreparedSpells = useMemo(
+    () => usesPreparedSpellsForCharacter(character.className, character.level),
+    [character.className, character.level]
+  );
+  const highestSpellSlotLevel = useMemo(() => {
+    const slotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+
+    for (let index = slotTotals.length - 1; index >= 0; index -= 1) {
+      if ((slotTotals[index] ?? 0) > 0) {
+        return index + 1;
+      }
+    }
+
+    return 0;
+  }, [character.className, character.level]);
+  const cantripOptions = useMemo(
+    () => classSpellEntries.filter((spell) => getSpellLevel(spell) === 0),
+    [classSpellEntries]
+  );
+  const spellPreparationOptions = useMemo(
+    () =>
+      preparedSpellPoolEntries.filter((spell) => {
+        const spellLevel = getSpellLevel(spell);
+        return spellLevel > 0 && spellLevel <= highestSpellSlotLevel;
+      }),
+    [highestSpellSlotLevel, preparedSpellPoolEntries]
+  );
+  const alwaysPreparedSpellIds = useMemo(
+    () =>
+      getAlwaysPreparedSpellIds(
+        character.className,
+        character.level,
+        character.classFeatureState
+      ),
+    [character.classFeatureState, character.className, character.level]
+  );
+  const classSpellEntriesById = useMemo(
+    () => new Map([...classSpellEntries, ...preparedSpellPoolEntries].map((spell) => [spell.id, spell])),
+    [classSpellEntries, preparedSpellPoolEntries]
+  );
+  const featureReactionEntries = useMemo(
+    () => getFeatureReactionEntriesForCharacter(character),
+    [character]
+  );
+  const featureReactionEntriesById = useMemo(
+    () =>
+      new Map(
+        featureReactionEntries.map((reaction) => [`reaction-entry-${reaction.id}`, reaction] as const)
+      ),
+    [featureReactionEntries]
+  );
+  const selectedCantrips = useMemo(
+    () =>
+      normalizeTrackedSpellIds(character.cantripIds, cantripOptions, cantripLimit)
+        .map((spellId) => classSpellEntriesById.get(spellId))
+        .filter((spell): spell is SpellEntry => spell !== undefined),
+    [cantripLimit, cantripOptions, character.cantripIds, classSpellEntriesById]
+  );
+  const selectedPreparedSpells = useMemo(
+    () =>
+      usesPreparedSpells
+        ? [
+            ...alwaysPreparedSpellIds,
+            ...normalizePreparedSpellIds(
+              character.preparedSpellIds,
+              spellPreparationOptions,
+              preparedSpellLimit,
+              alwaysPreparedSpellIds
+            )
+          ]
+            .map((spellId) => classSpellEntriesById.get(spellId))
+            .filter((spell): spell is SpellEntry => spell !== undefined)
+        : spellPreparationOptions,
+    [
+      alwaysPreparedSpellIds,
+      character.preparedSpellIds,
+      classSpellEntriesById,
+      preparedSpellLimit,
+      spellPreparationOptions,
+      usesPreparedSpells
+    ]
+  );
+  const reactionStatusEntries = useMemo(
+    () =>
+      getDerivedReactionStatusEntries(
+        [...selectedCantrips, ...selectedPreparedSpells],
+        featureReactionEntries
+      ),
+    [featureReactionEntries, selectedCantrips, selectedPreparedSpells]
+  );
   const statusEntries = resolveCharacterStatusEntries(character.statusEntries, [
     ...getDerivedFeatureStatusEntriesForCharacter(character),
-    ...getFeatDerivedStatusEntriesForCharacter(character)
+    ...getFeatDerivedStatusEntriesForCharacter(character),
+    ...reactionStatusEntries
   ]);
   const deathSaves = normalizeDeathSaves(character.deathSaves);
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
@@ -590,6 +807,19 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   const selectedStatusEntry = selectedStatusEntryId
     ? (statusEntries.find((entry) => entry.id === selectedStatusEntryId) ?? null)
     : null;
+  const selectedReactionSpell =
+    selectedStatusEntry?.group === STATUS_ENTRY_GROUP.REACTIONS &&
+    selectedStatusEntry.sourceId?.startsWith("reaction-spell-")
+      ? (classSpellEntriesById.get(selectedStatusEntry.sourceId.replace(/^reaction-spell-/, "")) ??
+        null)
+      : null;
+  const selectedReactionEntry =
+    selectedStatusEntry?.group === STATUS_ENTRY_GROUP.REACTIONS &&
+    selectedStatusEntry.sourceId?.startsWith("reaction-entry-")
+      ? (featureReactionEntriesById.get(
+          selectedStatusEntry.sourceId as `reaction-entry-${string}`
+        ) ?? null)
+      : null;
   const hasSelectedStatusEntry = selectedStatusEntry !== null;
   const selectedStatusEntryPreset = selectedStatusEntry
     ? getStatusDurationPreset(selectedStatusEntry.duration)
@@ -650,20 +880,18 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     [character, divineInterventionSpellEntries]
   );
   const spellcastingState = getSpellcastingStateForCharacter(character);
+  const selectedReactionActionWarning = getRoundTrackerActionWarning("reaction", roundTracker);
+  const selectedReactionBlockedReason = spellcastingState.blocked ? spellcastingState.reason : null;
   const selectedRoundTrackerMeta = selectedRoundTrackerResource
     ? getRoundTrackerResourceMeta(
         selectedRoundTrackerResource,
-        selectedRoundTrackerResource === "action"
-          ? roundTracker.actionAvailable
-          : roundTracker.bonusActionAvailable
+        isRoundTrackerResourceAvailable(roundTracker, selectedRoundTrackerResource)
       )
     : null;
-  const selectedDivineInterventionActionWarning =
-    selectedFeatureAction?.actionCost === "action" && !roundTracker.actionAvailable
-      ? `You already used the ${ACTION_TYPE.ACTION} for this turn`
-      : selectedFeatureAction?.actionCost === "bonusAction" && !roundTracker.bonusActionAvailable
-        ? `You already used the ${ACTION_TYPE.BONUS_ACTION} for this turn`
-        : null;
+  const selectedDivineInterventionActionWarning = getRoundTrackerActionWarning(
+    selectedFeatureAction?.actionCost ?? null,
+    roundTracker
+  );
   const selectedDivineInterventionBlockedReason =
     selectedDivineInterventionSpell?.castingTime.includes(ACTION_TYPE.REACTION)
       ? "Divine Intervention can't cast Reaction spells."
@@ -718,6 +946,14 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
       return;
     }
 
+    setActiveDivineInterventionLevel(1);
+  }, [isDivineInterventionSelected]);
+
+  useEffect(() => {
+    if (!isDivineInterventionSelected) {
+      return;
+    }
+
     setActiveDivineInterventionLevel((currentLevel) => {
       if (
         divineInterventionEnabledLevels.includes(currentLevel) &&
@@ -735,6 +971,29 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     isDivineInterventionSelected
   ]);
 
+  useEffect(() => {
+    if (!selectedReactionSpell) {
+      return;
+    }
+
+    const spellLevel = getSpellLevel(selectedReactionSpell);
+    const minimumSlotLevel = Math.max(1, spellLevel);
+    const preferredSlotLevel =
+      spellLevel === 0
+        ? 1
+        : (spellSlotLevels.find(
+            (slotLevel) =>
+              slotLevel >= minimumSlotLevel && (spellSlotsRemaining[slotLevel - 1] ?? 0) > 0
+          ) ??
+          spellSlotLevels.find(
+            (slotLevel) =>
+              slotLevel >= minimumSlotLevel && (spellSlotTotals[slotLevel - 1] ?? 0) > 0
+          ) ??
+          minimumSlotLevel);
+
+    setSelectedReactionSpellSlotLevel(preferredSlotLevel);
+  }, [selectedReactionSpell, spellSlotTotals, spellSlotsRemaining]);
+
   function updateRoundTracker(resource: RoundTrackerResource) {
     onPersistCharacter((currentCharacter) => ({
       ...currentCharacter,
@@ -744,20 +1003,13 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
 
   function resetRoundTrackerResource(resource: RoundTrackerResource) {
     onPersistCharacter((currentCharacter) => {
-      const currentRoundTracker = normalizeRoundTracker(currentCharacter.roundTracker);
-
       return {
         ...currentCharacter,
-        roundTracker:
-          resource === "action"
-            ? {
-                ...currentRoundTracker,
-                actionAvailable: true
-              }
-            : {
-                ...currentRoundTracker,
-                bonusActionAvailable: true
-              }
+        roundTracker: setRoundTrackerResourceAvailability(
+          currentCharacter.roundTracker,
+          resource,
+          true
+        )
       };
     });
   }
@@ -1087,6 +1339,10 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     setSelectedFeatureActionKey(null);
   }
 
+  function closeSelectedReaction() {
+    setSelectedStatusEntryId(null);
+  }
+
   function useDivineInterventionSpell() {
     if (!selectedDivineInterventionSpell || !selectedFeatureAction) {
       return;
@@ -1118,6 +1374,70 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     });
 
     closeDivineInterventionModal();
+  }
+
+  function castSelectedReactionSpell() {
+    if (!selectedReactionSpell || selectedReactionBlockedReason || selectedReactionActionWarning) {
+      return;
+    }
+
+    const spellLevel = getSpellLevel(selectedReactionSpell);
+
+    if (spellLevel === 0) {
+      onPersistCharacter((currentCharacter) => ({
+        ...currentCharacter,
+        roundTracker: consumeRoundTrackerResource(currentCharacter.roundTracker, "reaction")
+      }));
+      closeSelectedReaction();
+      return;
+    }
+
+    const minimumSlotLevel = Math.max(1, spellLevel);
+    const slotLevel = clampNumber(
+      selectedReactionSpellSlotLevel,
+      minimumSlotLevel,
+      9,
+      minimumSlotLevel
+    );
+
+    if ((spellSlotsRemaining[slotLevel - 1] ?? 0) <= 0) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const currentSpellSlotTotals = getSpellSlotTotalsForCharacter(
+        currentCharacter.className,
+        currentCharacter.level
+      );
+      const currentSpellSlotsExpended = normalizeSpellSlotsExpended(
+        currentCharacter.spellSlotsExpended,
+        currentSpellSlotTotals
+      );
+      const nextSpellSlotsExpended = [...currentSpellSlotsExpended];
+
+      nextSpellSlotsExpended[slotLevel - 1] = (nextSpellSlotsExpended[slotLevel - 1] ?? 0) + 1;
+
+      return {
+        ...currentCharacter,
+        spellSlotsExpended: nextSpellSlotsExpended,
+        roundTracker: consumeRoundTrackerResource(currentCharacter.roundTracker, "reaction")
+      };
+    });
+
+    closeSelectedReaction();
+  }
+
+  function castSelectedReactionEntry() {
+    if (!selectedReactionEntry || selectedReactionActionWarning) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => ({
+      ...currentCharacter,
+      roundTracker: consumeRoundTrackerResource(currentCharacter.roundTracker, "reaction")
+    }));
+
+    closeSelectedReaction();
   }
 
   function finishRound() {
@@ -1256,6 +1576,24 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
                 )}
                 aria-hidden="true"
               />
+            </button>
+            <button
+              type="button"
+              className={styles.roundTrackerPillButton}
+              onClick={() => setSelectedRoundTrackerResource("reaction")}
+              aria-label={roundTracker.reactionAvailable ? "Reaction available" : "Reaction spent"}
+              title={roundTracker.reactionAvailable ? "Reaction available" : "Reaction spent"}
+            >
+              <svg
+                viewBox="0 0 24 24"
+                className={clsx(
+                  styles.roundTrackerReaction,
+                  roundTracker.reactionAvailable && styles.roundTrackerReactionFilled
+                )}
+                aria-hidden="true"
+              >
+                <path d="M12 1.5 15.6 8.4 22.5 12 15.6 15.6 12 22.5 8.4 15.6 1.5 12 8.4 8.4Z" />
+              </svg>
             </button>
             <button
               type="button"
@@ -1867,7 +2205,11 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
           onClick={closeDivineInterventionModal}
         >
           <section
-            className={clsx(sheetStyles.spellManagementModal, styles.featureActionModal)}
+            className={clsx(
+              sheetStyles.spellManagementModal,
+              styles.featureActionModal,
+              styles.divineInterventionModal
+            )}
             role="dialog"
             aria-modal="true"
             aria-labelledby="feature-action-modal-title"
@@ -2016,13 +2358,92 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
           onAction={useDivineInterventionSpell}
           actionLabel="Divine Intervention"
           actionWarning={selectedDivineInterventionActionWarning}
+          actionDisabled={selectedDivineInterventionActionWarning !== null}
           blockedReason={selectedDivineInterventionBlockedReason}
           actionAvailabilityText={selectedFeatureAction.usesLabel ?? null}
           backdropClassName={styles.divineInterventionDrawerBackdrop}
         />
       ) : null}
 
-      {selectedStatusEntry ? (
+      {selectedReactionSpell ? (
+        <CharacterSpellDrawer
+          character={character}
+          spell={selectedReactionSpell}
+          mode="standard"
+          spellSlotTotals={spellSlotTotals}
+          spellSlotsRemaining={spellSlotsRemaining}
+          selectedSpellSlotLevel={selectedReactionSpellSlotLevel}
+          onSelectedSpellSlotLevelChange={setSelectedReactionSpellSlotLevel}
+          onClose={closeSelectedReaction}
+          onAction={castSelectedReactionSpell}
+          actionWarning={selectedReactionActionWarning}
+          actionDisabled={selectedReactionActionWarning !== null}
+          blockedReason={selectedReactionBlockedReason}
+        />
+      ) : null}
+
+      {selectedReactionEntry && selectedStatusEntry ? (
+        <div
+          className={sheetStyles.spellDrawerBackdrop}
+          role="presentation"
+          onClick={closeSelectedReaction}
+        >
+          <section
+            className={sheetStyles.spellDrawer}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="reaction-drawer-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={sheetStyles.spellDrawerHandle} aria-hidden="true" />
+            <div className={sheetStyles.spellDrawerHeader}>
+              <div className={sheetStyles.spellDrawerHeaderContent}>
+                <p className={sheetStyles.spellDrawerBadge}>Reaction</p>
+                <div className={sheetStyles.spellDrawerTitleRow}>
+                  <h3 id="reaction-drawer-title">{selectedReactionEntry.name}</h3>
+                </div>
+              </div>
+              <button
+                type="button"
+                className={sheetStyles.spellDrawerCloseButton}
+                onClick={closeSelectedReaction}
+                aria-label="Close reaction details"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className={sheetStyles.spellDrawerBody}>
+              <SpellDescriptionContent
+                description={selectedReactionEntry.description}
+                className={clsx(
+                  sheetStyles.spellDrawerDescriptionList,
+                  sheetStyles.spellDrawerDescriptionSection
+                )}
+                entryClassName={sheetStyles.spellDrawerDescriptionLine}
+              />
+            </div>
+
+            <div className={sheetStyles.spellDrawerActions}>
+              <div className={styles.castActionMeta}>
+                {selectedReactionActionWarning ? (
+                  <p className={styles.castActionWarning}>{selectedReactionActionWarning}</p>
+                ) : null}
+              </div>
+              <button
+                type="button"
+                className={sheetStyles.castButton}
+                onClick={castSelectedReactionEntry}
+                disabled={selectedReactionActionWarning !== null}
+              >
+                Cast
+              </button>
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {selectedStatusEntry && !selectedReactionSpell && !selectedReactionEntry ? (
         <div
           className={sheetStyles.spellDrawerBackdrop}
           role="presentation"

@@ -1,11 +1,12 @@
 import type { CharacterRoundTracker } from "../../types";
 
-export type RoundTrackerResource = "action" | "bonusAction";
+export type RoundTrackerResource = "action" | "bonusAction" | "reaction";
 
 export function createDefaultRoundTracker(): CharacterRoundTracker {
   return {
     actionAvailable: true,
-    bonusActionAvailable: true
+    bonusActionAvailable: true,
+    reactionAvailable: true
   };
 }
 
@@ -20,25 +21,61 @@ export function normalizeRoundTracker(value: unknown): CharacterRoundTracker {
     actionAvailable:
       typeof record.actionAvailable === "boolean" ? record.actionAvailable : true,
     bonusActionAvailable:
-      typeof record.bonusActionAvailable === "boolean" ? record.bonusActionAvailable : true
+      typeof record.bonusActionAvailable === "boolean" ? record.bonusActionAvailable : true,
+    reactionAvailable:
+      typeof record.reactionAvailable === "boolean" ? record.reactionAvailable : true
   };
+}
+
+export function isRoundTrackerResourceAvailable(
+  value: unknown,
+  resource: RoundTrackerResource
+): boolean {
+  const tracker = normalizeRoundTracker(value);
+
+  switch (resource) {
+    case "action":
+      return tracker.actionAvailable;
+    case "bonusAction":
+      return tracker.bonusActionAvailable;
+    case "reaction":
+      return tracker.reactionAvailable;
+    default:
+      return false;
+  }
+}
+
+export function setRoundTrackerResourceAvailability(
+  value: unknown,
+  resource: RoundTrackerResource,
+  isAvailable: boolean
+): CharacterRoundTracker {
+  const tracker = normalizeRoundTracker(value);
+
+  switch (resource) {
+    case "action":
+      return {
+        ...tracker,
+        actionAvailable: isAvailable
+      };
+    case "bonusAction":
+      return {
+        ...tracker,
+        bonusActionAvailable: isAvailable
+      };
+    case "reaction":
+      return {
+        ...tracker,
+        reactionAvailable: isAvailable
+      };
+    default:
+      return tracker;
+  }
 }
 
 export function consumeRoundTrackerResource(
   value: unknown,
   resource: RoundTrackerResource
 ): CharacterRoundTracker {
-  const tracker = normalizeRoundTracker(value);
-
-  if (resource === "action") {
-    return {
-      ...tracker,
-      actionAvailable: false
-    };
-  }
-
-  return {
-    ...tracker,
-    bonusActionAvailable: false
-  };
+  return setRoundTrackerResourceAvailability(value, resource, false);
 }

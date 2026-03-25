@@ -44,6 +44,7 @@ export type {
   CodexEntry,
   CodexStatus,
   DivinityEntry,
+  ReactionEntry,
   DruidFeatureClassObj,
   DruidSpellSlotProgression,
   FighterFeatureClassObj,

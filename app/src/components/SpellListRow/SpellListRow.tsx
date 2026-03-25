@@ -11,6 +11,7 @@ type SpellListRowProps = {
   onClick: () => void;
   className?: string;
   valueSummary?: string;
+  alwaysPrepared?: boolean;
   selectable?: boolean;
   isSelected?: boolean;
   onSelect?: () => void;
@@ -36,6 +37,7 @@ function SpellListRow({
   onClick,
   className,
   valueSummary = "",
+  alwaysPrepared = false,
   selectable = false,
   isSelected = false,
   onSelect,
@@ -78,7 +80,14 @@ function SpellListRow({
           <div className={styles.selectableTextBlock}>
             <div className={styles.contentRow}>
               <div className={styles.primaryBlock}>
-                <span className={styles.name}>{spell.name}</span>
+                <div className={styles.nameRow}>
+                  <span className={styles.name}>{spell.name}</span>
+                  {alwaysPrepared ? (
+                    <span className={clsx(styles.namePill, styles.alwaysPreparedPill)}>
+                      Always Prepared
+                    </span>
+                  ) : null}
+                </div>
                 <small className={styles.subtitle}>{formatSpellSubtitle(spell)}</small>
               </div>
               {hasValueSummary ? <small className={styles.outcome}>{valueSummary}</small> : <span />}
@@ -94,7 +103,14 @@ function SpellListRow({
     <button type="button" className={clsx(styles.button, className)} onClick={onClick}>
       <div className={styles.contentRow}>
         <div className={styles.primaryBlock}>
-          <span className={styles.name}>{spell.name}</span>
+          <div className={styles.nameRow}>
+            <span className={styles.name}>{spell.name}</span>
+            {alwaysPrepared ? (
+              <span className={clsx(styles.namePill, styles.alwaysPreparedPill)}>
+                Always Prepared
+              </span>
+            ) : null}
+          </div>
           <small className={styles.subtitle}>{formatSpellSubtitle(spell)}</small>
         </div>
         {hasValueSummary ? <small className={styles.outcome}>{valueSummary}</small> : <span />}

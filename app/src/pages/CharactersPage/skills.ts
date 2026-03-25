@@ -1,7 +1,9 @@
-import type { AbilityKey, Character, SkillName } from "../../types";
+import type { AbilityKey, Character, SkillName, SkillProficiencyEntry } from "../../types";
+import { PROF_LEVEL } from "../../types";
 import { getAbilityModifier, getProficiencyBonus } from "./gameplay";
 import { getAbilityScoreForCharacter } from "./abilities";
 import { getSkillBonusesForCharacter } from "./classFeatures";
+import { getResolvedSkillProficiencyEntry, getSkillProficiencyForName } from "./proficiency";
 import { skillGroupsByAbility } from "./skillDefinitions";
 
 export type SkillProficiencyMultiplier = 0 | 1 | 2;
@@ -14,6 +16,8 @@ export type SkillRow = {
   proficiencyBonus: number;
   proficiencyMultiplier: SkillProficiencyMultiplier;
   proficiencyContribution: number;
+  proficiencySourceLabels: string[];
+  proficiencyLocked: boolean;
   bonusEntries: Array<{
     label: string;
     value: number;
@@ -29,12 +33,9 @@ export type SkillRowsByAbility = {
 
 export function getSkillRowsByAbility(
   character: Character,
-  proficientSkills: string[],
-  expertSkills: string[] = []
+  skillProficiencies: SkillProficiencyEntry[]
 ): SkillRowsByAbility[] {
   const proficiencyBonus = getProficiencyBonus(character.level);
-  const proficientSkillSet = new Set<string>(proficientSkills);
-  const expertSkillSet = new Set<string>(expertSkills.filter((skill) => proficientSkillSet.has(skill)));
 
   return skillGroupsByAbility.map((group) => {
     const abilityModifier = getAbilityModifier(
@@ -45,13 +46,19 @@ export function getSkillRowsByAbility(
       ability: group.ability,
       abilityLabel: group.abilityLabel,
       rows: group.skills.map((skill) => {
-        const proficiencyMultiplier: SkillProficiencyMultiplier = expertSkillSet.has(skill)
-          ? 2
-          : proficientSkillSet.has(skill)
-            ? 1
-            : 0;
+        const resolvedProficiency = getResolvedSkillProficiencyEntry(
+          skillProficiencies,
+          getSkillProficiencyForName(skill)!
+        );
+        const proficiencyLevel = resolvedProficiency.proficiencyLevel;
+        const proficiencyMultiplier: SkillProficiencyMultiplier =
+          proficiencyLevel === PROF_LEVEL.EXPERT
+            ? 2
+            : proficiencyLevel === PROF_LEVEL.PROFICIENT
+              ? 1
+              : 0;
         const proficiencyContribution = proficiencyMultiplier * proficiencyBonus;
-        const bonusEntries = getSkillBonusesForCharacter(character, skill).map((entry) => {
+        const bonusEntries = getSkillBonusesForCharacter(character, skill, proficiencyLevel).map((entry) => {
           if (entry.abilityModifierSource) {
             const sourceValue = getAbilityModifier(
               getAbilityScoreForCharacter(character, entry.abilityModifierSource)
@@ -81,6 +88,8 @@ export function getSkillRowsByAbility(
           proficiencyBonus,
           proficiencyMultiplier,
           proficiencyContribution,
+          proficiencySourceLabels: resolvedProficiency.sourceLabels,
+          proficiencyLocked: resolvedProficiency.locked,
           bonusEntries,
           totalModifier: abilityModifier + proficiencyContribution + bonusTotal
         };

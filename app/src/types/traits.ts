@@ -2,6 +2,7 @@ import type { DAMAGE_TYPE } from "../codex/entries";
 
 export enum STATUS_ENTRY_GROUP {
   EFFECTS = "EFFECTS",
+  REACTIONS = "REACTIONS",
   SENSES = "SENSES",
   AURAS = "AURAS",
   RESISTANCES = "RESISTANCES",

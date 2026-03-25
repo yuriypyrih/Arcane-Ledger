@@ -207,6 +207,25 @@
   opacity: 0.58;
 }
 
+.alwaysPreparedPill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: rgba(222, 102, 158, 0.16);
+  color: #c04f86;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  padding: 0.22rem 0.48rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.alwaysPreparedDrawerPill {
+  align-self: center;
+}
+
 .spellDetailButton {
   border: none;
   color: inherit;
