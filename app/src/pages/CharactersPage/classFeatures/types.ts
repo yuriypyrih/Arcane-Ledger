@@ -4,6 +4,7 @@ import type {
   ArmorProficiencyEntry,
   CharacterStatusEntry,
   CoreStats,
+  LanguageProficiencyEntry,
   SkillName,
   SkillProficiencyEntry,
   WeaponProficiencyEntry
@@ -115,3 +116,4 @@ export type FeatureSkillProficiencyEntry = SkillProficiencyEntry;
 export type FeatureWeaponProficiencyEntry = WeaponProficiencyEntry;
 
 export type FeatureArmorProficiencyEntry = ArmorProficiencyEntry;
+export type FeatureLanguageProficiencyEntry = LanguageProficiencyEntry;

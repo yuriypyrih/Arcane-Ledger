@@ -272,7 +272,7 @@ export const clericFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
     description: [
       "You can call on even more powerful divine intervention.",
       "When you use your Divine Intervention feature, you can choose <spell:Wish>Wish</spell> when you select a spell. <link:tracked>Tracked</link>",
-      "If you do so, you can't use Divine Intervention again until you finish 2d4 <link:long-rest>Long Rests</link>. <link:not-tracked>Not Tracked</link>"
+      "If you do so, you can't use Divine Intervention again until you finish 2d4 <link:long-rest>Long Rests</link>. (This is <link:not-tracked>Not Tracked</link> but you can roll the dice and keep skipping the Divine Intervenation reset during Long Rest)."
     ],
     trackingState: "semi-tracked"
   }

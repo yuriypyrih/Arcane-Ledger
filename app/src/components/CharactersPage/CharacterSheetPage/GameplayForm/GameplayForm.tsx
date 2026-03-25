@@ -1,15 +1,5 @@
 import clsx from "clsx";
-import {
-  Dices,
-  FastForward,
-  HeartPlus,
-  Moon,
-  Pencil,
-  Save,
-  Skull,
-  Sword,
-  X
-} from "lucide-react";
+import { Dices, FastForward, HeartPlus, Moon, Pencil, Save, Skull, Sword, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { useFormContext } from "react-hook-form";
@@ -36,8 +26,6 @@ import {
   activateFeatureActionOptionForCharacter,
   activateFeatureActionForCharacter,
   advanceFeatureStateForNewRound,
-  applyLongRestToFeatureState,
-  applyShortRestToFeatureState,
   getDerivedFeatureStatusEntriesForCharacter,
   getFeatureActionOptionsForCharacter,
   getFeatureReactionEntriesForCharacter,
@@ -49,6 +37,30 @@ import {
   divineInterventionActionKey,
   getClericDivineInterventionEnabledLevels,
   getClericDivineInterventionSpellEntries
+} from "../../../../pages/CharactersPage/classFeatures/cleric";
+import {
+  getBarbarianRageUsesTotal,
+  applyLongRestToBarbarianFeatures,
+  applyShortRestToBarbarianFeatures
+} from "../../../../pages/CharactersPage/classFeatures/barbarian";
+import {
+  getBardicInspirationUsesTotal,
+  applyLongRestToBardFeatures,
+  applyShortRestToBardFeatures
+} from "../../../../pages/CharactersPage/classFeatures/bard";
+import {
+  applyLongRestToFighterFeatures,
+  applyShortRestToFighterFeatures,
+  fighterSecondWindActionKey,
+  getFighterSecondWindHealingFormula,
+  getFighterSecondWindUsesTotal
+} from "../../../../pages/CharactersPage/classFeatures/fighter";
+import {
+  getClericChannelDivinityUsesTotal,
+  hasClericDivineInterventionFeature,
+  restoreClericChannelDivinityOnLongRest,
+  restoreClericChannelDivinityOnShortRest,
+  restoreClericDivineInterventionOnLongRest
 } from "../../../../pages/CharactersPage/classFeatures/cleric";
 import { getFeatDerivedStatusEntriesForCharacter } from "../../../../pages/CharactersPage/feats";
 import {
@@ -116,6 +128,7 @@ import {
   usesPreparedSpellsForCharacter
 } from "../../../../pages/CharactersPage/spellcasting";
 import { getSpellOutcomeSummaryForCharacter } from "../../../../pages/CharactersPage/spellOutcome";
+import { rollFormulaWithDice } from "../../../../utils/dice";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./GameplayForm.module.css";
@@ -133,6 +146,13 @@ type DeathSaveState = {
 
 type MaxHitPointsMode = "automatic" | "custom";
 type TraitEditorTab = "conditions" | "senses" | "resistances" | "vulnerabilities" | "immunities";
+type RestType = "short" | "long";
+type RestOption = {
+  id: string;
+  label: string;
+  detail?: string;
+  apply: (character: Character) => Character;
+};
 
 const traitEditorTabs: Array<{ id: TraitEditorTab; label: string }> = [
   { id: "conditions", label: "Conditions" },
@@ -235,7 +255,9 @@ function getDamageRangeLabel(
   return `${parsedRange.minimum}~${parsedRange.maximum} Damage (${damageExpression})`;
 }
 
-function hasVisibleWeaponProficiency(action: Pick<WeaponAction, "proficiencyLabel" | "proficiencyBonus">) {
+function hasVisibleWeaponProficiency(
+  action: Pick<WeaponAction, "proficiencyLabel" | "proficiencyBonus">
+) {
   return action.proficiencyBonus !== 0 && action.proficiencyLabel.trim().length > 0;
 }
 
@@ -406,10 +428,7 @@ function getDerivedReactionStatusEntries(
           id: `reaction-entry-${reaction.id}`,
           group: STATUS_ENTRY_GROUP.REACTIONS,
           value: reaction.name,
-          source:
-            reaction.sourceFeature === "COUNTERCHARM"
-              ? "Bard"
-              : "Feature",
+          source: reaction.sourceFeature === "COUNTERCHARM" ? "Bard" : "Feature",
           sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
           duration: createDerivedReactionStatusDuration(),
           sourceId: `reaction-entry-${reaction.id}`,
@@ -489,14 +508,13 @@ function getExpiredFeatureOverrideEntries(
     normalizeCharacterStatusEntries(nextEntries).map((entry) => entry.id)
   );
 
-  return normalizeCharacterStatusEntries(previousEntries)
-    .filter(
-      (entry) =>
-        entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE &&
-        typeof entry.sourceId === "string" &&
-        entry.sourceId.length > 0 &&
-        !nextOverrideIds.has(entry.id)
-    );
+  return normalizeCharacterStatusEntries(previousEntries).filter(
+    (entry) =>
+      entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE &&
+      typeof entry.sourceId === "string" &&
+      entry.sourceId.length > 0 &&
+      !nextOverrideIds.has(entry.id)
+  );
 }
 
 function resolveStatusDurationPreset(
@@ -515,6 +533,230 @@ function resolveStatusDurationPreset(
   return createStatusDurationFromPreset(preset);
 }
 
+function createShortRestOptions(character: Character): RestOption[] {
+  const shortRestHealAmount = Math.ceil(character.hitPoints / 2);
+  const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
+  const rageUsesTotal = getBarbarianRageUsesTotal(character);
+  const bardicInspirationUsesTotal = getBardicInspirationUsesTotal(character);
+  const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
+  const channelDivinityUsesTotal = getClericChannelDivinityUsesTotal(character);
+  const hasTimedStatuses = normalizeCharacterStatusEntries(character.statusEntries).length > 0;
+  const bardShortRestRecoveryAvailable = applyShortRestToBardFeatures(character) !== character;
+
+  return [
+    {
+      id: "restore-hit-points",
+      label: `Heal ${shortRestHealAmount} HP`,
+      detail: "Restores half your max HP, up to your hit point maximum.",
+      apply: (currentCharacter) => {
+        const nextCurrentHitPoints = clampNumber(
+          currentCharacter.currentHitPoints + Math.ceil(currentCharacter.hitPoints / 2),
+          0,
+          currentCharacter.hitPoints,
+          currentCharacter.currentHitPoints
+        );
+
+        return {
+          ...currentCharacter,
+          currentHitPoints: nextCurrentHitPoints,
+          deathSaves:
+            nextCurrentHitPoints > 0
+              ? createDefaultDeathSaves()
+              : normalizeDeathSaves(currentCharacter.deathSaves)
+        };
+      }
+    },
+    {
+      id: "reset-round-tracker",
+      label: "Reset round tracker",
+      apply: (currentCharacter) => ({
+        ...currentCharacter,
+        roundTracker: createDefaultRoundTracker()
+      })
+    },
+    ...(temporaryHitPoints > 0
+      ? [
+          {
+            id: "clear-temporary-hit-points",
+            label: "Remove Temporary Hit Points",
+            apply: (currentCharacter: Character) => ({
+              ...currentCharacter,
+              temporaryHitPoints: 0
+            })
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasTimedStatuses
+      ? [
+          {
+            id: "update-statuses",
+            label: "Update Traits & Conditions",
+            detail: "Ends durations below 1 hour and clears Concentration-linked effects.",
+            apply: (currentCharacter: Character) => ({
+              ...currentCharacter,
+              statusEntries: applyShortRestToCharacterStatusEntries(currentCharacter.statusEntries)
+            })
+          } satisfies RestOption
+        ]
+      : []),
+    ...(rageUsesTotal > 0
+      ? [
+          {
+            id: "restore-rage",
+            label: "End Rage and restore 1 Rage use",
+            apply: (currentCharacter: Character) =>
+              applyShortRestToBarbarianFeatures(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(bardShortRestRecoveryAvailable && bardicInspirationUsesTotal > 0
+      ? [
+          {
+            id: "restore-bardic-inspiration",
+            label: "Restore all Bardic dice",
+            apply: (currentCharacter: Character) => applyShortRestToBardFeatures(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(secondWindUsesTotal > 0
+      ? [
+          {
+            id: "restore-second-wind",
+            label: "Restore 1 Second Wind",
+            apply: (currentCharacter: Character) => applyShortRestToFighterFeatures(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(channelDivinityUsesTotal > 0
+      ? [
+          {
+            id: "restore-channel-divinity",
+            label: "Restore 1 Channel Divinity",
+            apply: (currentCharacter: Character) =>
+              restoreClericChannelDivinityOnShortRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : [])
+  ];
+}
+
+function createLongRestOptions(character: Character): RestOption[] {
+  const spellSlotTotal = getSpellSlotTotalsForCharacter(
+    character.className,
+    character.level
+  ).reduce((sum, value) => sum + value, 0);
+  const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
+  const rageUsesTotal = getBarbarianRageUsesTotal(character);
+  const bardicInspirationUsesTotal = getBardicInspirationUsesTotal(character);
+  const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
+  const channelDivinityUsesTotal = getClericChannelDivinityUsesTotal(character);
+  const hasTimedStatuses = normalizeCharacterStatusEntries(character.statusEntries).length > 0;
+
+  return [
+    {
+      id: "restore-hit-points",
+      label: "Restore full HP",
+      apply: (currentCharacter) => ({
+        ...currentCharacter,
+        currentHitPoints: currentCharacter.hitPoints,
+        deathSaves: createDefaultDeathSaves()
+      })
+    },
+    {
+      id: "reset-round-tracker",
+      label: "Reset round tracker",
+      apply: (currentCharacter: Character) => ({
+        ...currentCharacter,
+        roundTracker: createDefaultRoundTracker()
+      })
+    },
+    ...(spellSlotTotal > 0
+      ? [
+          {
+            id: "restore-spell-slots",
+            label: "Restore all spell slots",
+            apply: (currentCharacter: Character) => ({
+              ...currentCharacter,
+              spellSlotsExpended: Array.from({ length: 9 }, () => 0)
+            })
+          } satisfies RestOption
+        ]
+      : []),
+    ...(temporaryHitPoints > 0
+      ? [
+          {
+            id: "clear-temporary-hit-points",
+            label: "Remove Temporary Hit Points",
+            apply: (currentCharacter: Character) => ({
+              ...currentCharacter,
+              temporaryHitPoints: 0
+            })
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasTimedStatuses
+      ? [
+          {
+            id: "update-statuses",
+            label: "Update Traits & Conditions",
+            apply: (currentCharacter: Character) => ({
+              ...currentCharacter,
+              statusEntries: applyLongRestToCharacterStatusEntries(currentCharacter.statusEntries)
+            })
+          } satisfies RestOption
+        ]
+      : []),
+    ...(rageUsesTotal > 0
+      ? [
+          {
+            id: "restore-rage",
+            label: "End Rage and restore all Rage uses",
+            apply: (currentCharacter: Character) =>
+              applyLongRestToBarbarianFeatures(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(bardicInspirationUsesTotal > 0
+      ? [
+          {
+            id: "restore-bardic-inspiration",
+            label: "Restore all Bardic dice",
+            apply: (currentCharacter: Character) => applyLongRestToBardFeatures(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(secondWindUsesTotal > 0
+      ? [
+          {
+            id: "restore-second-wind",
+            label: "Restore all Second Wind uses",
+            apply: (currentCharacter: Character) => applyLongRestToFighterFeatures(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(channelDivinityUsesTotal > 0
+      ? [
+          {
+            id: "restore-channel-divinity",
+            label: "Restore all Channel Divinity",
+            apply: (currentCharacter: Character) =>
+              restoreClericChannelDivinityOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasClericDivineInterventionFeature(character)
+      ? [
+          {
+            id: "restore-divine-intervention",
+            label: "Restore Divine Intervention",
+            apply: (currentCharacter: Character) =>
+              restoreClericDivineInterventionOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : [])
+  ];
+}
+
 function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   const { watch } = useFormContext<Character>();
   const character = watch() as Character;
@@ -525,6 +767,8 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   );
   const [hitPointStep, setHitPointStep] = useState(1);
   const [isRestPopupOpen, setIsRestPopupOpen] = useState(false);
+  const [selectedRestType, setSelectedRestType] = useState<RestType | null>(null);
+  const [selectedRestOptionIds, setSelectedRestOptionIds] = useState<string[]>([]);
   const [isTraitModalOpen, setIsTraitModalOpen] = useState(false);
   const [activeTraitEditorTab, setActiveTraitEditorTab] = useState<TraitEditorTab>("conditions");
   const [statusDraftValues, setStatusDraftValues] = useState<Record<TraitEditorTab, string>>(
@@ -587,6 +831,8 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
         }
 
         setIsRestPopupOpen(false);
+        setSelectedRestType(null);
+        setSelectedRestOptionIds([]);
         setIsTraitModalOpen(false);
         setSelectedStatusEntryId(null);
         setSelectedRoundTrackerResource(null);
@@ -659,15 +905,14 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   );
   const alwaysPreparedSpellIds = useMemo(
     () =>
-      getAlwaysPreparedSpellIds(
-        character.className,
-        character.level,
-        character.classFeatureState
-      ),
+      getAlwaysPreparedSpellIds(character.className, character.level, character.classFeatureState),
     [character.classFeatureState, character.className, character.level]
   );
   const classSpellEntriesById = useMemo(
-    () => new Map([...classSpellEntries, ...preparedSpellPoolEntries].map((spell) => [spell.id, spell])),
+    () =>
+      new Map(
+        [...classSpellEntries, ...preparedSpellPoolEntries].map((spell) => [spell.id, spell])
+      ),
     [classSpellEntries, preparedSpellPoolEntries]
   );
   const featureReactionEntries = useMemo(
@@ -677,7 +922,9 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   const featureReactionEntriesById = useMemo(
     () =>
       new Map(
-        featureReactionEntries.map((reaction) => [`reaction-entry-${reaction.id}`, reaction] as const)
+        featureReactionEntries.map(
+          (reaction) => [`reaction-entry-${reaction.id}`, reaction] as const
+        )
       ),
     [featureReactionEntries]
   );
@@ -802,6 +1049,17 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   const shortRestsUsedToday = clampNumber(character.shortRestsUsedToday, 0, 2, 0);
   const shortRestsRemaining = Math.max(0, 2 - shortRestsUsedToday);
   const shortRestHealAmount = Math.ceil(character.hitPoints / 2);
+  const shortRestOptions = useMemo(() => createShortRestOptions(character), [character]);
+  const longRestOptions = useMemo(() => createLongRestOptions(character), [character]);
+  const selectedRestOptions = useMemo(
+    () =>
+      selectedRestType === "short"
+        ? shortRestOptions
+        : selectedRestType === "long"
+          ? longRestOptions
+          : [],
+    [longRestOptions, selectedRestType, shortRestOptions]
+  );
   const isAtZeroHitPoints = character.currentHitPoints === 0;
   const isDeathSaveResolved = deathSaves.successes >= 3 || deathSaves.failures >= 3;
   const selectedStatusEntry = selectedStatusEntryId
@@ -833,10 +1091,10 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     .filter((section) => section.entries.length > 0);
   const selectedFeatureActionEntry =
     selectedFeatureActionKey !== null
-      ? combatActions.find(
+      ? (combatActions.find(
           (combatAction) =>
             combatAction.kind === "feature" && combatAction.action.key === selectedFeatureActionKey
-        ) ?? null
+        ) ?? null)
       : null;
   const selectedFeatureAction =
     selectedFeatureActionEntry?.kind === "feature" ? selectedFeatureActionEntry.action : null;
@@ -844,8 +1102,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     selectedFeatureActionKey && selectedFeatureAction
       ? getFeatureActionOptionsForCharacter(character, selectedFeatureActionKey)
       : [];
-  const isDivineInterventionSelected =
-    selectedFeatureAction?.key === divineInterventionActionKey;
+  const isDivineInterventionSelected = selectedFeatureAction?.key === divineInterventionActionKey;
   const divineInterventionEnabledLevels = useMemo(
     () => getClericDivineInterventionEnabledLevels(character),
     [character]
@@ -862,7 +1119,9 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     () =>
       divineInterventionEnabledLevels.find(
         (level) => (divineInterventionSpellGroups[level]?.length ?? 0) > 0
-      ) ?? divineInterventionEnabledLevels[0] ?? 0,
+      ) ??
+      divineInterventionEnabledLevels[0] ??
+      0,
     [divineInterventionEnabledLevels, divineInterventionSpellGroups]
   );
   const activeDivineInterventionSpells = useMemo(
@@ -927,7 +1186,10 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
       return;
     }
 
-    if (selectedFeatureAction && (selectedFeatureActionOptions.length > 0 || isDivineInterventionSelected)) {
+    if (
+      selectedFeatureAction &&
+      (selectedFeatureActionOptions.length > 0 || isDivineInterventionSelected)
+    ) {
       return;
     }
 
@@ -1147,49 +1409,69 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     setHitPointStep(1);
   }
 
-  function takeShortRest() {
-    if (shortRestsRemaining <= 0) {
+  function openRestPopup() {
+    setSelectedRestType(null);
+    setSelectedRestOptionIds([]);
+    setIsRestPopupOpen(true);
+  }
+
+  function closeRestPopup() {
+    setIsRestPopupOpen(false);
+    setSelectedRestType(null);
+    setSelectedRestOptionIds([]);
+  }
+
+  function selectRestType(restType: RestType) {
+    if (restType === "short" && shortRestsRemaining <= 0) {
+      return;
+    }
+
+    const nextOptions = restType === "short" ? shortRestOptions : longRestOptions;
+    setSelectedRestType(restType);
+    setSelectedRestOptionIds(nextOptions.map((option) => option.id));
+  }
+
+  function toggleRestOption(optionId: string) {
+    setSelectedRestOptionIds((currentOptionIds) =>
+      currentOptionIds.includes(optionId)
+        ? currentOptionIds.filter((id) => id !== optionId)
+        : [...currentOptionIds, optionId]
+    );
+  }
+
+  function confirmRest() {
+    if (!selectedRestType) {
+      return;
+    }
+
+    if (selectedRestType === "short" && shortRestsRemaining <= 0) {
       return;
     }
 
     onPersistCharacter((currentCharacter) => {
-      const nextCurrentHitPoints = clampNumber(
-        currentCharacter.currentHitPoints + shortRestHealAmount,
-        0,
-        currentCharacter.hitPoints,
-        currentCharacter.currentHitPoints
-      );
+      const availableOptions =
+        selectedRestType === "short"
+          ? createShortRestOptions(currentCharacter)
+          : createLongRestOptions(currentCharacter);
+      const selectedOptionIdSet = new Set(selectedRestOptionIds);
+      const restedCharacter = availableOptions.reduce((nextCharacter, option) => {
+        if (!selectedOptionIdSet.has(option.id)) {
+          return nextCharacter;
+        }
+
+        return option.apply(nextCharacter);
+      }, currentCharacter);
 
       return {
-        ...applyShortRestToFeatureState(currentCharacter),
-        currentHitPoints: nextCurrentHitPoints,
-        temporaryHitPoints: 0,
-        shortRestsUsedToday: shortRestsUsedToday + 1,
-        roundTracker: createDefaultRoundTracker(),
-        statusEntries: applyShortRestToCharacterStatusEntries(currentCharacter.statusEntries),
-        deathSaves:
-          nextCurrentHitPoints > 0
-            ? createDefaultDeathSaves()
-            : normalizeDeathSaves(currentCharacter.deathSaves)
+        ...restedCharacter,
+        shortRestsUsedToday:
+          selectedRestType === "short"
+            ? clampNumber((restedCharacter.shortRestsUsedToday ?? 0) + 1, 0, 2, 0)
+            : 0
       };
     });
 
-    setIsRestPopupOpen(false);
-  }
-
-  function takeLongRest() {
-    onPersistCharacter((currentCharacter) => ({
-      ...applyLongRestToFeatureState(currentCharacter),
-      currentHitPoints: currentCharacter.hitPoints,
-      temporaryHitPoints: 0,
-      shortRestsUsedToday: 0,
-      spellSlotsExpended: Array.from({ length: 9 }, () => 0),
-      roundTracker: createDefaultRoundTracker(),
-      statusEntries: applyLongRestToCharacterStatusEntries(currentCharacter.statusEntries),
-      deathSaves: createDefaultDeathSaves()
-    }));
-
-    setIsRestPopupOpen(false);
+    closeRestPopup();
   }
 
   function openTraitEditor() {
@@ -1293,6 +1575,43 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
       return;
     }
 
+    if (actionKey === fighterSecondWindActionKey) {
+      onPersistCharacter((currentCharacter) => {
+        const nextCharacter = activateFeatureActionForCharacter(currentCharacter, actionKey);
+
+        if (nextCharacter === currentCharacter) {
+          return currentCharacter;
+        }
+
+        const healingResult = rollFormulaWithDice(
+          getFighterSecondWindHealingFormula(currentCharacter),
+          "normal"
+        );
+        const nextCurrentHitPoints = clampNumber(
+          nextCharacter.currentHitPoints + healingResult.total,
+          0,
+          nextCharacter.hitPoints,
+          nextCharacter.currentHitPoints
+        );
+        const healedCharacter = {
+          ...nextCharacter,
+          currentHitPoints: nextCurrentHitPoints,
+          deathSaves:
+            nextCurrentHitPoints > 0
+              ? createDefaultDeathSaves()
+              : normalizeDeathSaves(nextCharacter.deathSaves)
+        };
+
+        return actionCost
+          ? {
+              ...healedCharacter,
+              roundTracker: consumeRoundTrackerResource(healedCharacter.roundTracker, actionCost)
+            }
+          : healedCharacter;
+      });
+      return;
+    }
+
     activateFeatureAction(actionKey, actionCost);
   }
 
@@ -1308,7 +1627,11 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     }
 
     onPersistCharacter((currentCharacter) => {
-      const nextCharacter = activateFeatureActionOptionForCharacter(currentCharacter, actionKey, optionKey);
+      const nextCharacter = activateFeatureActionOptionForCharacter(
+        currentCharacter,
+        actionKey,
+        optionKey
+      );
 
       if (nextCharacter === currentCharacter) {
         return currentCharacter;
@@ -1559,14 +1882,10 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
               className={styles.roundTrackerPillButton}
               onClick={() => setSelectedRoundTrackerResource("bonusAction")}
               aria-label={
-                roundTracker.bonusActionAvailable
-                  ? "Bonus action available"
-                  : "Bonus action spent"
+                roundTracker.bonusActionAvailable ? "Bonus action available" : "Bonus action spent"
               }
               title={
-                roundTracker.bonusActionAvailable
-                  ? "Bonus action available"
-                  : "Bonus action spent"
+                roundTracker.bonusActionAvailable ? "Bonus action available" : "Bonus action spent"
               }
             >
               <span
@@ -1609,7 +1928,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
           <button
             type="button"
             className={clsx(shared.editButton, styles.campTriggerButton)}
-            onClick={() => setIsRestPopupOpen(true)}
+            onClick={openRestPopup}
           >
             <Moon size={16} />
             Camp
@@ -1870,11 +2189,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
         <section className={clsx(styles.widgetCard, styles.traitsWidget)}>
           <header className={styles.widgetHeader}>
             <p className={styles.widgetTitle}>Traits &amp; Conditions</p>
-            <button
-              type="button"
-              className={shared.editButton}
-              onClick={openTraitEditor}
-            >
+            <button type="button" className={shared.editButton} onClick={openTraitEditor}>
               <Pencil size={16} />
               Edit
             </button>
@@ -1887,9 +2202,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
               className={styles.statusSectionStack}
               style={
                 {
-                  "--status-column-count": String(
-                    Math.max(4, Math.min(6, statusSections.length))
-                  ),
+                  "--status-column-count": String(Math.max(4, Math.min(6, statusSections.length))),
                   "--status-tablet-column-count": String(
                     statusSections.length > 4 ? 3 : Math.max(1, statusSections.length)
                   ),
@@ -2027,11 +2340,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
       </div>
 
       {isRestPopupOpen ? (
-        <div
-          className={sheetStyles.restPopupBackdrop}
-          role="presentation"
-          onClick={() => setIsRestPopupOpen(false)}
-        >
+        <div className={sheetStyles.restPopupBackdrop} role="presentation" onClick={closeRestPopup}>
           <section
             className={sheetStyles.restPopupCard}
             role="dialog"
@@ -2047,7 +2356,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
               <button
                 type="button"
                 className={sheetStyles.spellManagementCloseButton}
-                onClick={() => setIsRestPopupOpen(false)}
+                onClick={closeRestPopup}
                 aria-label="Close rest options"
               >
                 <X size={18} />
@@ -2057,8 +2366,11 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
             <div className={sheetStyles.restOptionGrid}>
               <button
                 type="button"
-                className={sheetStyles.restOptionButton}
-                onClick={takeShortRest}
+                className={clsx(
+                  sheetStyles.restOptionButton,
+                  selectedRestType === "short" && sheetStyles.restOptionButtonActive
+                )}
+                onClick={() => selectRestType("short")}
                 disabled={shortRestsRemaining <= 0}
               >
                 <strong>Short rest</strong>
@@ -2079,12 +2391,64 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
                 </div>
               </button>
 
-              <button type="button" className={sheetStyles.restOptionButton} onClick={takeLongRest}>
+              <button
+                type="button"
+                className={clsx(
+                  sheetStyles.restOptionButton,
+                  selectedRestType === "long" && sheetStyles.restOptionButtonActive
+                )}
+                onClick={() => selectRestType("long")}
+              >
                 <strong>Long rest</strong>
                 <small>Restore full HP and refresh all spell slots.</small>
                 <span className={sheetStyles.longRestNote}>Also resets short rests.</span>
               </button>
             </div>
+
+            {selectedRestType ? (
+              <div className={sheetStyles.restChecklistSection}>
+                <p className={sheetStyles.restChecklistHeading}>
+                  {selectedRestType === "short" ? "Short Rest Effects" : "Long Rest Effects"}
+                </p>
+                <div className={sheetStyles.restChecklist}>
+                  {selectedRestOptions.slice(0, 2).map((option) => (
+                    <label key={option.id} className={sheetStyles.restChecklistItem}>
+                      <input
+                        type="checkbox"
+                        checked={selectedRestOptionIds.includes(option.id)}
+                        onChange={() => toggleRestOption(option.id)}
+                      />
+                      <span>{option.label}</span>
+                    </label>
+                  ))}
+                  {selectedRestOptions.length > 2 ? (
+                    <div className={sheetStyles.restChecklistDivider} aria-hidden="true" />
+                  ) : null}
+                  {selectedRestOptions.slice(2).map((option) => (
+                    <label key={option.id} className={sheetStyles.restChecklistItem}>
+                      <input
+                        type="checkbox"
+                        checked={selectedRestOptionIds.includes(option.id)}
+                        onChange={() => toggleRestOption(option.id)}
+                      />
+                      <span>{option.label}</span>
+                    </label>
+                  ))}
+                </div>
+                <div className={sheetStyles.restPopupActions}>
+                  <button
+                    type="button"
+                    className={sheetStyles.cancelButton}
+                    onClick={closeRestPopup}
+                  >
+                    Cancel
+                  </button>
+                  <button type="button" className={sheetStyles.castButton} onClick={confirmRest}>
+                    Rest
+                  </button>
+                </div>
+              </div>
+            ) : null}
           </section>
         </div>
       ) : null}
@@ -2550,13 +2914,13 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
                   )}
 
                   {isStatusEntryRemovable(selectedStatusEntry) ? (
-                  <button
-                    type="button"
-                    className={styles.conditionRemoveButton}
-                    onClick={() => removeStatusEntry(selectedStatusEntry)}
-                  >
-                    Remove
-                  </button>
+                    <button
+                      type="button"
+                      className={styles.conditionRemoveButton}
+                      onClick={() => removeStatusEntry(selectedStatusEntry)}
+                    >
+                      Remove
+                    </button>
                   ) : null}
                 </div>
               ) : null}

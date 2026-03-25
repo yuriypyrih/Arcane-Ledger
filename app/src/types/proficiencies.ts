@@ -111,6 +111,7 @@ export enum TOOL_PROFICIENCY {
 
 export enum LANGUAGE_PROFICIENCY {
   COMMON = "COMMON",
+  ABYSSAL = "ABYSSAL",
   CELESTIAL = "CELESTIAL",
   DEEP_SPEECH = "DEEP_SPEECH",
   DRACONIC = "DRACONIC",
@@ -129,13 +130,17 @@ export enum LANGUAGE_PROFICIENCY {
   UNDERCOMMON = "UNDERCOMMON"
 }
 
+export const CUSTOM_LANGUAGE_PREFIX = "CUSTOM:" as const;
+export type CustomLanguageProficiency = `${typeof CUSTOM_LANGUAGE_PREFIX}${string}`;
+export type LanguageProficiency = LANGUAGE_PROFICIENCY | CustomLanguageProficiency;
+
 export type CHARACTER_PROFICIENCY =
   | SKILL_PROFICIENCY
   | SAVING_THROW_PROFICIENCY
   | WEAPON_PROFICIENCY
   | ARMOR_PROFICIENCY
   | TOOL_PROFICIENCY
-  | LANGUAGE_PROFICIENCY;
+  | LanguageProficiency;
 
 type BASE_PROFICIENCY_ENTRY<TProficiency extends CHARACTER_PROFICIENCY> = {
   source: PROFICIENCY_SOURCE;
@@ -151,7 +156,9 @@ export type SavingThrowProficiencyEntry =
 export type WeaponProficiencyEntry = BASE_PROFICIENCY_ENTRY<WEAPON_PROFICIENCY>;
 export type ArmorProficiencyEntry = BASE_PROFICIENCY_ENTRY<ARMOR_PROFICIENCY>;
 export type ToolProficiencyEntry = BASE_PROFICIENCY_ENTRY<TOOL_PROFICIENCY>;
-export type LanguageProficiencyEntry = BASE_PROFICIENCY_ENTRY<LANGUAGE_PROFICIENCY>;
+export type LanguageProficiencyEntry = BASE_PROFICIENCY_ENTRY<LanguageProficiency> & {
+  customDescription?: string;
+};
 
 export type CharacterProficiencyCollections = {
   skillProficiencies: SkillProficiencyEntry[];

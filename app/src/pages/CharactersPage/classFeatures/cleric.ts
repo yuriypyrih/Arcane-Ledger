@@ -163,6 +163,12 @@ function hasClericGreaterDivineIntervention(
   return hasClericFeature(character, CLASS_FEATURE.GREATER_DIVINE_INTERVENTION);
 }
 
+export function hasClericDivineInterventionFeature(
+  character: Pick<Character, "className" | "level">
+): boolean {
+  return hasClericFeature(character, CLASS_FEATURE.DIVINE_INTERVENTION);
+}
+
 function getDivinityDescriptionLine(
   entry: ReturnType<typeof getDivinityEntryById>,
   index: number
@@ -763,6 +769,14 @@ export function applyShortRestToClericFeatures(character: Character): Character 
     return character;
   }
 
+  return restoreClericChannelDivinityOnShortRest(character);
+}
+
+export function restoreClericChannelDivinityOnShortRest(character: Character): Character {
+  if (!hasClericFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY)) {
+    return character;
+  }
+
   const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
 
   return {
@@ -779,6 +793,12 @@ export function applyShortRestToClericFeatures(character: Character): Character 
 }
 
 export function applyLongRestToClericFeatures(character: Character): Character {
+  return restoreClericDivineInterventionOnLongRest(
+    restoreClericChannelDivinityOnLongRest(character)
+  );
+}
+
+export function restoreClericChannelDivinityOnLongRest(character: Character): Character {
   if (!hasClericFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY)) {
     return character;
   }
@@ -792,7 +812,25 @@ export function applyLongRestToClericFeatures(character: Character): Character {
       cleric: {
         ...clericState,
         blessedStrikeUsedThisTurn: false,
-        channelDivinityUsesExpended: 0,
+        channelDivinityUsesExpended: 0
+      }
+    }
+  };
+}
+
+export function restoreClericDivineInterventionOnLongRest(character: Character): Character {
+  if (!hasClericFeature(character, CLASS_FEATURE.DIVINE_INTERVENTION)) {
+    return character;
+  }
+
+  const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      cleric: {
+        ...clericState,
         divineInterventionUsed: false
       }
     }

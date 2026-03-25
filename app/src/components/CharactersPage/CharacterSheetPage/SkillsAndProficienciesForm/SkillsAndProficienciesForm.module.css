@@ -260,6 +260,31 @@
   gap: 0.55rem;
 }
 
+.editorSectionStack {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.editorDivider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.editorDividerLine {
+  flex: 1 1 auto;
+  height: 1px;
+  background: rgba(75, 47, 29, 0.12);
+}
+
+.editorDividerLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .editorCard {
   display: grid;
   gap: 0.55rem;
@@ -328,6 +353,64 @@
 .editorState {
   color: var(--color-ink-soft);
   font-size: 0.8rem;
+}
+
+.languageEditorStack {
+  display: grid;
+  gap: 1rem;
+}
+
+.languageEditorGroup {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.customLanguageForm {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.customLanguageList {
+  display: grid;
+  gap: 0.42rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.customLanguageItem {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.65rem 0.72rem;
+}
+
+.customLanguageContent {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.customLanguageContent strong {
+  font-size: 0.92rem;
+}
+
+.customLanguageContent small {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+}
+
+.customLanguageRemoveButton {
+  border: none;
+  background: none;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  white-space: nowrap;
 }
 
 @media (max-width: 860px) {

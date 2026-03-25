@@ -28,9 +28,15 @@ import {
   getBardExpertiseSelectionsForCharacter,
   getClericBlessedStrikesChoiceForCharacter,
   getClericDivineOrderChoiceForCharacter,
+  getDruidPrimalOrderChoiceForCharacter,
+  getWeaponMasteryOptionsForCharacter,
+  getWeaponMasterySelectionCountForCharacter,
+  getWeaponMasterySelectionsForCharacter,
   setBardExpertiseSelectionsForCharacter,
   setClericBlessedStrikesChoiceForCharacter,
-  setClericDivineOrderChoiceForCharacter
+  setClericDivineOrderChoiceForCharacter,
+  setDruidPrimalOrderChoiceForCharacter,
+  setWeaponMasterySelectionsForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
 import {
   createCharacterFeatEntry,
@@ -53,6 +59,7 @@ import {
   getSkillLevelFromEntries,
   getSkillProficiencyForName,
   getToolProficiencyLabel,
+  getWeaponProficiencyLabel,
   normalizeCharacterProficiencies,
   removeFeatGrantedSkillEntries,
   removeFeatGrantedToolEntries,
@@ -72,7 +79,8 @@ import type {
   CharacterFeatSource,
   SkillName,
   SkilledChoice,
-  SkilledFeatSelection
+  SkilledFeatSelection,
+  WEAPON_PROFICIENCY
 } from "../../../../types";
 import { formatCodexLabel } from "../../../../utils/codex";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
@@ -260,7 +268,11 @@ function createDefaultPendingSkilledChoice(): PendingSkilledChoice {
 }
 
 function isFeatChoiceFeature(feature: CLASS_FEATURE): boolean {
-  return feature === CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT || feature === CLASS_FEATURE.EPIC_BOON;
+  return (
+    feature === CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT ||
+    feature === CLASS_FEATURE.EPIC_BOON ||
+    feature === CLASS_FEATURE.FIGHTING_STYLE
+  );
 }
 
 function getBardExpertiseTierForLevel(level: number): "level2" | "level9" | null {
@@ -273,6 +285,18 @@ function getBardExpertiseTierForLevel(level: number): "level2" | "level9" | null
   }
 
   return null;
+}
+
+function getDefaultFeatCategoryForFeature(feature: CLASS_FEATURE): FEAT_CATEGORY {
+  if (feature === CLASS_FEATURE.FIGHTING_STYLE) {
+    return FEAT_CATEGORY.FIGHTING_STYLE;
+  }
+
+  if (feature === CLASS_FEATURE.EPIC_BOON) {
+    return FEAT_CATEGORY.EPIC_BOON;
+  }
+
+  return FEAT_CATEGORY.GENERAL;
 }
 
 function createClassFeatureFeatSource(level: number, feature: CLASS_FEATURE): CharacterFeatSource & {
@@ -622,17 +646,74 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
     return getBardExpertiseSelectionsForCharacter(character, tier).length < 2;
   }
 
-  const hasUnlockedInputRequiredFeature = unlockedFeatures.some(
-    (featureRow) =>
-      (isFeatChoiceFeature(featureRow.feature) &&
-        !selectedFeats.some((entry) =>
-          isFeatFromClassFeatureSource(entry, featureRow.level, featureRow.feature)
-        )) ||
-      (featureRow.feature === CLASS_FEATURE.EXPERTISE &&
-        isBardExpertiseInputRequired(featureRow.level)) ||
-      (featureRow.feature === CLASS_FEATURE.BLESSED_STRIKES &&
-        getClericBlessedStrikesChoiceForCharacter(character) === null)
-  );
+  function getWeaponMasterySelections(): WEAPON_PROFICIENCY[] {
+    return getWeaponMasterySelectionsForCharacter(character);
+  }
+
+  function getAvailableWeaponMasteryOptions(slotIndex: number): WEAPON_PROFICIENCY[] {
+    const currentSelections = getWeaponMasterySelectionsForCharacter(character);
+    const blockedSelections = new Set(
+      currentSelections.filter((selection, index) => index !== slotIndex)
+    );
+
+    return getWeaponMasteryOptionsForCharacter(character).filter((proficiency) => {
+      if (blockedSelections.has(proficiency)) {
+        return false;
+      }
+
+      return true;
+    });
+  }
+
+  function updateWeaponMasterySelection(slotIndex: number, nextValue: string) {
+    onPersistCharacter((currentCharacter) => {
+      const currentSelections = getWeaponMasterySelectionsForCharacter(currentCharacter);
+      const nextSelections: string[] = Array.from(
+        { length: getWeaponMasterySelectionCountForCharacter(currentCharacter) },
+        (_, index) => currentSelections[index] ?? ""
+      );
+
+      nextSelections[slotIndex] = nextValue;
+
+      const nextCharacter = setWeaponMasterySelectionsForCharacter(
+        currentCharacter,
+        nextSelections.filter(
+          (selection): selection is WEAPON_PROFICIENCY =>
+            getWeaponMasteryOptionsForCharacter(currentCharacter).includes(
+              selection as WEAPON_PROFICIENCY
+            )
+        )
+      );
+      const nextProficiencies = normalizeCharacterProficiencies({
+        className: nextCharacter.className,
+        level: nextCharacter.level,
+        species: nextCharacter.species,
+        background: nextCharacter.background,
+        classFeatureState: nextCharacter.classFeatureState,
+        skillProficiencies: nextCharacter.skillProficiencies,
+        savingThrowProficiencies: nextCharacter.savingThrowProficiencies,
+        weaponProficiencies: nextCharacter.weaponProficiencies,
+        armorProficiencies: nextCharacter.armorProficiencies,
+        toolProficiencies: nextCharacter.toolProficiencies,
+        languageProficiencies: nextCharacter.languageProficiencies
+      });
+
+      return {
+        ...nextCharacter,
+        ...nextProficiencies
+      };
+    });
+  }
+
+  function isWeaponMasteryInputRequired(): boolean {
+    const totalSelections = getWeaponMasterySelectionCountForCharacter(character);
+
+    if (totalSelections <= 0) {
+      return false;
+    }
+
+    return getWeaponMasterySelectionsForCharacter(character).length < totalSelections;
+  }
 
   function removeSkilledProficienciesFromCharacter(
     currentCharacter: Character,
@@ -789,6 +870,43 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
     });
   }
 
+  function updateDruidPrimalOrderChoice(choice: "magician" | "warden") {
+    onPersistCharacter((currentCharacter) => {
+      const nextCharacter = setDruidPrimalOrderChoiceForCharacter(currentCharacter, choice);
+      const nextProficiencies = normalizeCharacterProficiencies({
+        className: nextCharacter.className,
+        level: nextCharacter.level,
+        species: nextCharacter.species,
+        background: nextCharacter.background,
+        classFeatureState: nextCharacter.classFeatureState,
+        skillProficiencies: nextCharacter.skillProficiencies,
+        savingThrowProficiencies: nextCharacter.savingThrowProficiencies,
+        weaponProficiencies: nextCharacter.weaponProficiencies,
+        armorProficiencies: nextCharacter.armorProficiencies,
+        toolProficiencies: nextCharacter.toolProficiencies,
+        languageProficiencies: nextCharacter.languageProficiencies
+      });
+      const cantripLimit = getCantripLimitForCharacter(
+        nextCharacter.className,
+        nextCharacter.level,
+        nextCharacter.classFeatureState
+      );
+      const cantripSelectionOptionIds = new Set(
+        getCantripSelectionOptionsForCharacter(nextCharacter.className, nextCharacter.level).map(
+          (spell) => spell.id
+        )
+      );
+
+      return {
+        ...nextCharacter,
+        ...nextProficiencies,
+        cantripIds: [...new Set(nextCharacter.cantripIds ?? [])]
+          .filter((spellId) => cantripSelectionOptionIds.has(spellId))
+          .slice(0, cantripLimit ?? Number.POSITIVE_INFINITY)
+      };
+    });
+  }
+
   function updateClericBlessedStrikesChoice(choice: "blessed-strike" | "potent-spellcasting") {
     onPersistCharacter((currentCharacter) =>
       setClericBlessedStrikesChoiceForCharacter(currentCharacter, choice)
@@ -826,7 +944,7 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
       mode: "class-feature",
       source: createClassFeatureFeatSource(level, feature)
     });
-    setActiveFeatCategory(linkedFeatDefinition?.category ?? FEAT_CATEGORY.GENERAL);
+    setActiveFeatCategory(linkedFeatDefinition?.category ?? getDefaultFeatCategoryForFeature(feature));
     setIsFeatModalOpen(true);
   }
 
@@ -1084,6 +1202,12 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
               featureRow.feature === CLASS_FEATURE.EXPERTISE &&
               isBardExpertiseInputRequired(featureRow.level)) ||
             (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.WEAPON_MASTERY &&
+              isWeaponMasteryInputRequired()) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.PRIMAL_ORDER &&
+              getDruidPrimalOrderChoiceForCharacter(character) === null) ||
+            (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.BLESSED_STRIKES &&
               blessedStrikesChoice === null);
           const divineOrderChoice =
@@ -1094,6 +1218,14 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
             featureRow.feature === CLASS_FEATURE.DIVINE_ORDER
               ? featureDetails.description.slice(1)
               : [];
+          const primalOrderChoice =
+            featureRow.feature === CLASS_FEATURE.PRIMAL_ORDER
+              ? getDruidPrimalOrderChoiceForCharacter(character)
+              : null;
+          const primalOrderDescriptionLines =
+            featureRow.feature === CLASS_FEATURE.PRIMAL_ORDER
+              ? featureDetails.description.slice(1)
+              : [];
           const blessedStrikesDescriptionLines =
             featureRow.feature === CLASS_FEATURE.BLESSED_STRIKES
               ? featureDetails.description.slice(1)
@@ -1102,6 +1234,12 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
             featureRow.feature === CLASS_FEATURE.EXPERTISE
               ? getBardExpertiseSelections(featureRow.level)
               : [];
+          const weaponMasterySelections =
+            featureRow.feature === CLASS_FEATURE.WEAPON_MASTERY ? getWeaponMasterySelections() : [];
+          const weaponMasterySelectionCount =
+            featureRow.feature === CLASS_FEATURE.WEAPON_MASTERY
+              ? getWeaponMasterySelectionCountForCharacter(character)
+              : 0;
           const bardExpertiseDescriptionLines =
             featureRow.feature === CLASS_FEATURE.EXPERTISE
               ? featureRow.level >= 9
@@ -1130,14 +1268,14 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
                       !isFeatureExpanded && styles.featureToggleIconCollapsed
                     )}
                   />
-                </button>
-                <div className={styles.featureHeaderActions}>
                   {isInputRequired ? (
                     <span className={styles.featureInputRequired}>
                       <TriangleAlert size={16} aria-hidden="true" />
                       INPUT REQUIRED
                     </span>
                   ) : null}
+                </button>
+                <div className={styles.featureHeaderActions}>
                   <button
                     type="button"
                     className={clsx(
@@ -1248,6 +1386,52 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
                           );
                         })}
                       </>
+                    ) : featureRow.feature === CLASS_FEATURE.PRIMAL_ORDER ? (
+                      <>
+                        {featureDetails.description[0] ? (
+                          <p className={styles.descriptionLine}>
+                            {renderDescriptionLine(
+                              featureDetails.description[0],
+                              openKeyword,
+                              (feat) => openFeatReference(feat),
+                              openSpellReference,
+                              openDivinityReference
+                            )}
+                          </p>
+                        ) : null}
+                        {primalOrderDescriptionLines.map((line, index) => {
+                          const choice = index === 0 ? "magician" : "warden";
+
+                          return (
+                            <label
+                              key={`${featureRow.key}-choice-${choice}`}
+                              className={clsx(
+                                styles.featureOptionRow,
+                                !isUnlocked && styles.featureOptionRowDisabled,
+                                primalOrderChoice === choice && styles.featureOptionRowActive
+                              )}
+                            >
+                              <input
+                                type="radio"
+                                name={`primal-order-${character.id}`}
+                                checked={primalOrderChoice === choice}
+                                disabled={!isUnlocked}
+                                onChange={() => updateDruidPrimalOrderChoice(choice)}
+                                className={styles.featureOptionRadio}
+                              />
+                              <span className={styles.featureOptionText}>
+                                {renderDescriptionLine(
+                                  line,
+                                  openKeyword,
+                                  (feat) => openFeatReference(feat),
+                                  openSpellReference,
+                                  openDivinityReference
+                                )}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </>
                     ) : featureRow.feature === CLASS_FEATURE.EXPERTISE ? (
                       <>
                         {bardExpertiseDescriptionLines.map((line, index) => (
@@ -1302,6 +1486,57 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
                                   {availableSkills.map((skillName) => (
                                     <option key={`${featureRow.key}-${skillName}`} value={skillName}>
                                       {skillName}
+                                    </option>
+                                  ))}
+                                </SelectInput>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </>
+                    ) : featureRow.feature === CLASS_FEATURE.WEAPON_MASTERY ? (
+                      <>
+                        {featureDetails.description.map((line, index) => (
+                          <p key={`${featureRow.key}-line-${index}`} className={styles.descriptionLine}>
+                            {renderDescriptionLine(
+                              line,
+                              openKeyword,
+                              (feat) => openFeatReference(feat),
+                              openSpellReference,
+                              openDivinityReference
+                            )}
+                          </p>
+                        ))}
+                        <div className={styles.featureSelectionGrid}>
+                          {Array.from({ length: weaponMasterySelectionCount }, (_, slotIndex) => {
+                            const currentValue = weaponMasterySelections[slotIndex] ?? "";
+                            const availableOptions = getAvailableWeaponMasteryOptions(slotIndex);
+
+                            return (
+                              <label
+                                key={`${featureRow.key}-weapon-mastery-slot-${slotIndex}`}
+                                className={clsx(
+                                  styles.featureSelectionField,
+                                  !isUnlocked && styles.featureOptionRowDisabled
+                                )}
+                              >
+                                <span className={styles.featureSelectionLabel}>
+                                  Weapon Mastery {slotIndex + 1}
+                                </span>
+                                <SelectInput
+                                  value={currentValue}
+                                  disabled={!isUnlocked}
+                                  onChange={(event) =>
+                                    updateWeaponMasterySelection(slotIndex, event.target.value)
+                                  }
+                                >
+                                  <option value="">Select a weapon</option>
+                                  {availableOptions.map((proficiency) => (
+                                    <option
+                                      key={`${featureRow.key}-weapon-mastery-${proficiency}`}
+                                      value={proficiency}
+                                    >
+                                      {getWeaponProficiencyLabel(proficiency)}
                                     </option>
                                   ))}
                                 </SelectInput>
@@ -1987,12 +2222,6 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
               <h3 id="character-class-features-title" className={styles.subsectionTitle}>
                 Class Features
               </h3>
-              {hasUnlockedInputRequiredFeature ? (
-                <span className={styles.featureInputRequired}>
-                  <TriangleAlert size={16} aria-hidden="true" />
-                  INPUT REQUIRED
-                </span>
-              ) : null}
             </div>
 
             {unlockedFeatures.length > 0 ? (

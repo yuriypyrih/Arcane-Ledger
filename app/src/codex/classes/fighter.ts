@@ -20,7 +20,7 @@ export const fighterFeatures: FighterFeatureClassObj[] = [
           "Your training with weapons allows you to use the mastery properties of three kinds of Simple or Martial weapons of your choice. Whenever you finish a <link:long-rest>Long Rest</link>, you can practice weapon drills and change one of those weapon choices.",
           "When you reach certain Fighter levels, you gain the ability to use the mastery properties of more kinds of weapons, as shown in the Weapon Mastery column of the Fighter Features table."
         ],
-        isTracked: false
+        isTracked: true
       }
     },
     secondWind: 2,
@@ -157,7 +157,7 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "You have honed your martial prowess and gain a Fighting Style feat of your choice. Defense is recommended.",
       "Whenever you gain a Fighter level, you can replace the feat you chose with a different Fighting Style feat."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.SECOND_WIND]: {
     description: [
@@ -165,7 +165,7 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "You can use this feature twice. You regain one expended use when you finish a <link:short-rest>Short Rest</link>, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
       "When you reach certain Fighter levels, you gain more uses of this feature, as shown in the Second Wind column of the Fighter Features table."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.ACTION_SURGE]: {
     description: [

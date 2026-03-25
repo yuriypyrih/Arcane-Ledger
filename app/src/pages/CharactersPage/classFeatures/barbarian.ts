@@ -1,14 +1,27 @@
 import { barbarianFeatures } from "../../../codex/classes";
-import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../codex/entries";
+import {
+  CLASS_FEATURE,
+  DAMAGE_TYPE,
+  ENTRY_CATEGORIES,
+  RARITY_TYPES,
+  WEAPON_COMBAT_TYPE,
+  type WeaponEntry,
+  hardcodedCodexEntries
+} from "../../../codex/entries";
 import type { BarbarianFeatureClassObj } from "../../../types";
 import {
   CONDITION_NAME,
   EFFECT_NAME,
+  PROFICIENCY_OVERRIDE_POLICY,
+  PROFICIENCY_SOURCE,
+  PROF_LEVEL,
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
+  WEAPON_PROFICIENCY,
   type Character,
-  type CharacterRageFeatureState
+  type CharacterRageFeatureState,
+  type WeaponProficiencyEntry
 } from "../../../types";
 import { hasStatusCondition } from "../traits";
 import { skillGroupsByAbility } from "../skillDefinitions";
@@ -24,6 +37,7 @@ import type {
   FeatureIndicator,
   FeatureSpeedBonus,
   FeatureSpellcastingState,
+  FeatureWeaponProficiencyEntry,
   SavingThrowIndicatorMap,
   SpeedFeatureContext,
   SkillIndicatorMap,
@@ -49,6 +63,29 @@ const feralInstinctAdvantageIndicator: FeatureIndicator = {
   tone: "advantage",
   source: "Feral Instinct"
 };
+
+const barbarianWeaponMasteryOptions = hardcodedCodexEntries
+  .filter(
+    (entry): entry is WeaponEntry =>
+      entry.category === ENTRY_CATEGORIES.WEAPONS &&
+      entry.rarity === RARITY_TYPES.COMMON &&
+      typeof entry.baseWeapon === "string" &&
+      entry.type.combat === WEAPON_COMBAT_TYPE.MELEE
+  )
+  .sort((left, right) => left.name.localeCompare(right.name))
+  .reduce<WEAPON_PROFICIENCY[]>((options, entry) => {
+    const proficiency = entry.baseWeapon as unknown as WEAPON_PROFICIENCY;
+
+    if (!options.includes(proficiency)) {
+      options.push(proficiency);
+    }
+
+    return options;
+  }, []);
+
+function dedupe<T>(values: T[]): T[] {
+  return [...new Set(values)];
+}
 
 function getBarbarianFeatureRow(level: number): BarbarianFeatureClassObj | null {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
@@ -89,6 +126,24 @@ function hasActiveCondition(
   return hasStatusCondition(character.statusEntries, conditionName);
 }
 
+function normalizeBarbarianWeaponMasteries(
+  selections: unknown,
+  limit: number
+): WEAPON_PROFICIENCY[] {
+  if (!Array.isArray(selections) || limit <= 0) {
+    return [];
+  }
+
+  const optionSet = new Set<WEAPON_PROFICIENCY>(barbarianWeaponMasteryOptions);
+
+  return dedupe(
+    selections.filter(
+      (selection): selection is WEAPON_PROFICIENCY =>
+        typeof selection === "string" && optionSet.has(selection as WEAPON_PROFICIENCY)
+    )
+  ).slice(0, limit);
+}
+
 export function normalizeBarbarianRageState(
   value: unknown,
   character: Pick<Character, "className" | "level">
@@ -110,12 +165,16 @@ export function normalizeBarbarianRageState(
   const record = value as Partial<CharacterRageFeatureState>;
   const usesExpended = Number(record.usesExpended);
   const totalRages = featureRow?.rages ?? 0;
+  const totalWeaponMasteries = hasBarbarianFeature(character, CLASS_FEATURE.WEAPON_MASTERY)
+    ? (featureRow?.weaponMastery ?? 0)
+    : 0;
 
   return {
     usesExpended: Number.isFinite(usesExpended)
       ? Math.max(0, Math.min(totalRages, Math.floor(usesExpended)))
       : 0,
-    active: Boolean(record.active)
+    active: Boolean(record.active),
+    weaponMasteries: normalizeBarbarianWeaponMasteries(record.weaponMasteries, totalWeaponMasteries)
   };
 }
 
@@ -141,6 +200,66 @@ export function getBarbarianRageUsesRemaining(
   const totalUses = getBarbarianRageUsesTotal(character);
   const rageState = getBarbarianRageState(character);
   return Math.max(0, totalUses - rageState.usesExpended);
+}
+
+export function getBarbarianWeaponMasterySelectionCount(
+  character: Pick<Character, "className" | "level">
+): number {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.WEAPON_MASTERY)) {
+    return 0;
+  }
+
+  return getBarbarianFeatureRow(character.level)?.weaponMastery ?? 0;
+}
+
+export function getBarbarianWeaponMasteryOptions(): WEAPON_PROFICIENCY[] {
+  return barbarianWeaponMasteryOptions;
+}
+
+export function getBarbarianWeaponMasterySelections(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): WEAPON_PROFICIENCY[] {
+  return getBarbarianRageState(character).weaponMasteries ?? [];
+}
+
+export function setBarbarianWeaponMasterySelections(
+  character: Character,
+  selections: WEAPON_PROFICIENCY[]
+): Character {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.WEAPON_MASTERY)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        weaponMasteries: normalizeBarbarianWeaponMasteries(
+          selections,
+          getBarbarianWeaponMasterySelectionCount(character)
+        )
+      }
+    }
+  };
+}
+
+export function getBarbarianWeaponProficiencyEntries(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): FeatureWeaponProficiencyEntry[] {
+  return getBarbarianWeaponMasterySelections(character).map(
+    (proficiency) =>
+      ({
+        source: PROFICIENCY_SOURCE.CLASS,
+        sourceStr: "Weapon Mastery",
+        proficiency,
+        proficiencyLevel: PROF_LEVEL.PROFICIENT,
+        overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
+      }) satisfies WeaponProficiencyEntry
+  );
 }
 
 export function getBarbarianRageDamageBonus(
@@ -425,6 +544,7 @@ export function activateBarbarianRage(character: Character): Character {
     classFeatureState: {
       ...character.classFeatureState,
       rage: {
+        ...rageState,
         usesExpended: rageState.usesExpended + 1,
         active: true
       }
@@ -467,6 +587,7 @@ export function applyShortRestToBarbarianFeatures(character: Character): Charact
     classFeatureState: {
       ...character.classFeatureState,
       rage: {
+        ...rageState,
         usesExpended: Math.max(0, rageState.usesExpended - 1),
         active: false
       }
@@ -484,6 +605,7 @@ export function applyLongRestToBarbarianFeatures(character: Character): Characte
     classFeatureState: {
       ...character.classFeatureState,
       rage: {
+        ...getBarbarianRageState(character),
         usesExpended: 0,
         active: false
       }

@@ -3,17 +3,23 @@ import { Pencil, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
 import SelectInput from "../../FormInputs/SelectInput";
+import TextInput from "../../FormInputs/TextInput";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import type {
   ArmorProficiencyEntry,
   Character,
+  LanguageProficiency,
+  LanguageProficiencyEntry,
   SkillProficiencyEntry,
   ToolProficiencyEntry,
   WeaponProficiencyEntry
 } from "../../../../types";
 import {
   ARMOR_PROFICIENCY,
+  exoticLanguageEntries,
+  LANGUAGE_PROFICIENCY,
   PROF_LEVEL,
+  standardLanguageEntries,
   WEAPON_PROFICIENCY
 } from "../../../../types";
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
@@ -23,20 +29,26 @@ import {
   armorProficiencyOptions,
   getArmorLevelFromEntries,
   getDisplayArmorProficiencyEntries,
+  getDisplayLanguageProficiencyEntries,
   getDisplaySkillProficiencyEntries,
   getDisplayToolProficiencyEntries,
   getDisplayWeaponProficiencyEntries,
+  getLanguageLevelFromEntries,
   getProficiencyKeyword,
   getProficiencyLabel,
   getResolvedSkillProficiencyEntry,
   getSkillLevelFromEntries,
   getSkillProficiencyForName,
   hasLockedSkillEntry,
+  hasLockedWeaponEntry,
+  isCustomLanguageProficiency,
+  addManualCustomLanguageEntry,
   getToolLevelFromEntries,
   getWeaponProficiencyTypeLabel,
   getWeaponLevelFromEntries,
   isWeaponMasteryProficiency,
   setManualArmorEntry,
+  setManualLanguageEntry,
   setManualToolEntry,
   setManualWeaponEntry,
   skillsOptions,
@@ -108,6 +120,11 @@ function SkillsAndProficienciesForm({
   const [toolProficienciesDraft, setToolProficienciesDraft] = useState<ToolProficiencyEntry[]>(
     () => character.toolProficiencies
   );
+  const [languageProficienciesDraft, setLanguageProficienciesDraft] = useState<
+    LanguageProficiencyEntry[]
+  >(() => character.languageProficiencies);
+  const [customLanguageNameDraft, setCustomLanguageNameDraft] = useState("");
+  const [customLanguageDescriptionDraft, setCustomLanguageDescriptionDraft] = useState("");
   const [selectedKeyword, setSelectedKeyword] = useState<SelectedKeyword | null>(null);
 
   useBodyScrollLock(Boolean(selectedKeyword) || isProficiencyModalOpen);
@@ -132,6 +149,7 @@ function SkillsAndProficienciesForm({
         setWeaponProficienciesDraft(character.weaponProficiencies);
         setArmorProficienciesDraft(character.armorProficiencies);
         setToolProficienciesDraft(character.toolProficiencies);
+        setLanguageProficienciesDraft(character.languageProficiencies);
         setIsProficiencyModalOpen(false);
       }
     }
@@ -156,9 +174,15 @@ function SkillsAndProficienciesForm({
   const displayedToolProficiencies = isProficiencyModalOpen
     ? toolProficienciesDraft
     : character.toolProficiencies;
+  const displayedLanguageProficiencies = isProficiencyModalOpen
+    ? languageProficienciesDraft
+    : character.languageProficiencies;
 
   const displayedWeaponProficiencyEntries = getDisplayWeaponProficiencyEntries(
     displayedWeaponProficiencies
+  );
+  const displayedLanguageProficiencyEntries = getDisplayLanguageProficiencyEntries(
+    displayedLanguageProficiencies
   );
   const skillIndicators = getSkillIndicatorsForCharacter(character);
   const skillRowsByAbility = getSkillRowsByAbility(character, displayedSkillProficiencies);
@@ -188,6 +212,10 @@ function SkillsAndProficienciesForm({
     {
       title: "Tool Proficiencies",
       entries: getDisplayToolProficiencyEntries(displayedToolProficiencies)
+    },
+    {
+      title: "Languages",
+      entries: displayedLanguageProficiencyEntries
     }
   ];
 
@@ -216,6 +244,9 @@ function SkillsAndProficienciesForm({
     setWeaponProficienciesDraft(character.weaponProficiencies);
     setArmorProficienciesDraft(character.armorProficiencies);
     setToolProficienciesDraft(character.toolProficiencies);
+    setLanguageProficienciesDraft(character.languageProficiencies);
+    setCustomLanguageNameDraft("");
+    setCustomLanguageDescriptionDraft("");
   }
 
   function beginSkillTableEditing() {
@@ -255,7 +286,7 @@ function SkillsAndProficienciesForm({
       weaponProficiencies: weaponProficienciesDraft,
       armorProficiencies: armorProficienciesDraft,
       toolProficiencies: toolProficienciesDraft,
-      languageProficiencies: []
+      languageProficiencies: languageProficienciesDraft
     }));
 
     setIsProficiencyModalOpen(false);
@@ -288,6 +319,10 @@ function SkillsAndProficienciesForm({
     proficiency: WEAPON_PROFICIENCY,
     isSelected: boolean
   ) {
+    if (hasLockedWeaponEntry(weaponProficienciesDraft, proficiency)) {
+      return;
+    }
+
     setWeaponProficienciesDraft((currentProficiencies) =>
       setManualWeaponEntry(
         currentProficiencies,
@@ -317,6 +352,40 @@ function SkillsAndProficienciesForm({
         proficiency,
         isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
       )
+    );
+  }
+
+  function updateLanguageProficiency(proficiency: LANGUAGE_PROFICIENCY, isSelected: boolean) {
+    setLanguageProficienciesDraft((currentProficiencies) =>
+      setManualLanguageEntry(
+        currentProficiencies,
+        proficiency,
+        isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
+      )
+    );
+  }
+
+  function addCustomLanguage() {
+    const normalizedName = customLanguageNameDraft.trim();
+
+    if (!normalizedName) {
+      return;
+    }
+
+    setLanguageProficienciesDraft((currentProficiencies) =>
+      addManualCustomLanguageEntry(
+        currentProficiencies,
+        normalizedName,
+        customLanguageDescriptionDraft.trim()
+      )
+    );
+    setCustomLanguageNameDraft("");
+    setCustomLanguageDescriptionDraft("");
+  }
+
+  function removeLanguage(proficiency: LanguageProficiency) {
+    setLanguageProficienciesDraft((currentProficiencies) =>
+      setManualLanguageEntry(currentProficiencies, proficiency, PROF_LEVEL.NONE)
     );
   }
 
@@ -462,21 +531,133 @@ function SkillsAndProficienciesForm({
     );
   }
 
+  function renderLanguageToggleEditor(options: readonly LANGUAGE_PROFICIENCY[]) {
+    return renderToggleEditor(
+      options,
+      (proficiency) =>
+        getLanguageLevelFromEntries(languageProficienciesDraft, proficiency) !== PROF_LEVEL.NONE,
+      updateLanguageProficiency
+    );
+  }
+
+  function renderLanguageEditor() {
+    const customLanguageEntries = displayedLanguageProficiencyEntries.filter((entry) =>
+      isCustomLanguageProficiency(entry.proficiency)
+    );
+
+    return (
+      <div className={styles.languageEditorStack}>
+        <div className={styles.languageEditorGroup}>
+          <p className={styles.skillGroupSubtitle}>Standard Languages</p>
+          {renderLanguageToggleEditor(standardLanguageEntries.map((entry) => entry.proficiency))}
+        </div>
+        <div className={styles.languageEditorGroup}>
+          <p className={styles.skillGroupSubtitle}>Exotic Languages</p>
+          {renderLanguageToggleEditor(exoticLanguageEntries.map((entry) => entry.proficiency))}
+        </div>
+        <div className={styles.languageEditorGroup}>
+          <p className={styles.skillGroupSubtitle}>Custom Language</p>
+          <div className={styles.customLanguageForm}>
+            <TextInput
+              value={customLanguageNameDraft}
+              onChange={(event) => setCustomLanguageNameDraft(event.target.value)}
+              placeholder="Language name"
+            />
+            <TextInput
+              value={customLanguageDescriptionDraft}
+              onChange={(event) => setCustomLanguageDescriptionDraft(event.target.value)}
+              placeholder="Optional description"
+            />
+            <button
+              type="button"
+              className={shared.editButton}
+              onClick={addCustomLanguage}
+              disabled={customLanguageNameDraft.trim().length === 0}
+            >
+              Add language
+            </button>
+          </div>
+          {customLanguageEntries.length > 0 ? (
+            <ul className={styles.customLanguageList}>
+              {customLanguageEntries.map((entry) => {
+                const matchingDraftEntry = languageProficienciesDraft.find(
+                  (draftEntry) => draftEntry.proficiency === entry.proficiency
+                );
+
+                return (
+                  <li key={String(entry.proficiency)} className={styles.customLanguageItem}>
+                    <div className={styles.customLanguageContent}>
+                      <strong>{getProficiencyLabel(entry.proficiency)}</strong>
+                      {matchingDraftEntry?.customDescription ? (
+                        <small>{matchingDraftEntry.customDescription}</small>
+                      ) : null}
+                    </div>
+                    <button
+                      type="button"
+                      className={styles.customLanguageRemoveButton}
+                      onClick={() => removeLanguage(entry.proficiency)}
+                    >
+                      Remove
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+          ) : null}
+        </div>
+      </div>
+    );
+  }
+
+  function renderWeaponEditor() {
+    const broadWeaponOptions = weaponProficiencyOptions.filter(
+      (proficiency) => !isWeaponMasteryProficiency(proficiency)
+    );
+    const masteryWeaponOptions = weaponProficiencyOptions.filter((proficiency) =>
+      isWeaponMasteryProficiency(proficiency)
+    );
+    const isWeaponSelected = (proficiency: WEAPON_PROFICIENCY) =>
+      getWeaponLevelFromEntries(weaponProficienciesDraft, proficiency) !== PROF_LEVEL.NONE;
+    const isWeaponDisabled = (proficiency: WEAPON_PROFICIENCY) =>
+      hasLockedWeaponEntry(weaponProficienciesDraft, proficiency);
+
+    return (
+      <div className={styles.editorSectionStack}>
+        {renderToggleEditor(
+          broadWeaponOptions,
+          isWeaponSelected,
+          updateWeaponProficiency,
+          {
+            compact: true,
+            renderMeta: getWeaponProficiencyTypeLabel,
+            isDisabled: isWeaponDisabled
+          }
+        )}
+        <div className={styles.editorDivider} role="presentation">
+          <span className={styles.editorDividerLine} />
+          <span className={styles.editorDividerLabel}>Weapon masteries</span>
+          <span className={styles.editorDividerLine} />
+        </div>
+        {renderToggleEditor(
+          masteryWeaponOptions,
+          isWeaponSelected,
+          updateWeaponProficiency,
+          {
+            compact: true,
+            renderMeta: getWeaponProficiencyTypeLabel,
+            isDisabled: isWeaponDisabled
+          }
+        )}
+      </div>
+    );
+  }
+
   function renderProficiencyEditorContent() {
     switch (activeProficiencyTab) {
       case "skills":
         return renderSkillEditor();
       case "weapons":
-        return renderToggleEditor(
-          weaponProficiencyOptions,
-          (proficiency) =>
-            getWeaponLevelFromEntries(weaponProficienciesDraft, proficiency) !== PROF_LEVEL.NONE,
-          updateWeaponProficiency,
-          {
-            compact: true,
-            renderMeta: getWeaponProficiencyTypeLabel
-          }
-        );
+        return renderWeaponEditor();
       case "armor":
         return renderToggleEditor(
           armorProficiencyOptions,
@@ -492,7 +673,7 @@ function SkillsAndProficienciesForm({
           updateToolProficiency
         );
       case "languages":
-        return <p className={shared.emptyText}>Empty</p>;
+        return renderLanguageEditor();
       default:
         return null;
     }

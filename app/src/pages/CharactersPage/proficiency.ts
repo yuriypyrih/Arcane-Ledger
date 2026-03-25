@@ -5,6 +5,7 @@ import type {
   CharacterDraft,
   CharacterEquipmentItem,
   CharacterProficiencyCollections,
+  LanguageProficiency,
   LanguageProficiencyEntry,
   SavingThrowProficiencyEntry,
   SkillName,
@@ -14,6 +15,7 @@ import type {
 } from "../../types";
 import {
   ARMOR_PROFICIENCY,
+  CUSTOM_LANGUAGE_PREFIX,
   LANGUAGE_PROFICIENCY,
   PROFICIENCY_OVERRIDE_POLICY,
   PROFICIENCY_SOURCE,
@@ -23,6 +25,7 @@ import {
   TOOL_PROFICIENCY,
   WEAPON_PROFICIENCY
 } from "../../types";
+import { exoticLanguageEntries, languageEntries, standardLanguageEntries } from "../../types";
 import {
   ARMOR_TYPES,
   ENTRY_CATEGORIES,
@@ -48,6 +51,7 @@ import {
 import {
   getFeatureSkillProficiencyEntriesForCharacter,
   getFeatureArmorProficiencyEntriesForCharacter,
+  getFeatureLanguageProficiencyEntriesForCharacter,
   getFeatureWeaponProficiencyEntriesForCharacter
 } from "./classFeatures";
 import { formatCodexLabel } from "../../utils/codex";
@@ -61,6 +65,7 @@ export type GrantedProficiencyKind =
   | "tool"
   | "language";
 export type ToolProficiency = TOOL_PROFICIENCY;
+export type LanguageOption = LanguageProficiency;
 
 export type GrantedProficiency = {
   kind: GrantedProficiencyKind;
@@ -690,6 +695,7 @@ const savingThrowProficiencyLabels: Record<SAVING_THROW_PROFICIENCY, string> = {
 
 const languageProficiencyLabels: Record<LANGUAGE_PROFICIENCY, string> = {
   [LANGUAGE_PROFICIENCY.COMMON]: "Common",
+  [LANGUAGE_PROFICIENCY.ABYSSAL]: "Abyssal",
   [LANGUAGE_PROFICIENCY.CELESTIAL]: "Celestial",
   [LANGUAGE_PROFICIENCY.DEEP_SPEECH]: "Deep Speech",
   [LANGUAGE_PROFICIENCY.DRACONIC]: "Draconic",
@@ -708,6 +714,10 @@ const languageProficiencyLabels: Record<LANGUAGE_PROFICIENCY, string> = {
   [LANGUAGE_PROFICIENCY.UNDERCOMMON]: "Undercommon"
 };
 
+const builtInLanguageProficiencySet = new Set<LANGUAGE_PROFICIENCY>(
+  Object.values(LANGUAGE_PROFICIENCY) as LANGUAGE_PROFICIENCY[]
+);
+
 export const skillProficiencyOptions = Object.values(SKILL_PROFICIENCY) as SKILL_PROFICIENCY[];
 export const savingThrowProficiencyOptions = Object.values(
   SAVING_THROW_PROFICIENCY
@@ -719,7 +729,10 @@ export const weaponProficiencyOptions: WEAPON_PROFICIENCY[] = [
 ];
 export const armorProficiencyOptions = Object.values(ARMOR_PROFICIENCY) as ARMOR_PROFICIENCY[];
 export const toolProficiencyOptions = Object.values(TOOL_PROFICIENCY) as ToolProficiency[];
-export const languageProficiencyOptions: LANGUAGE_PROFICIENCY[] = [];
+export const languageProficiencyOptions: LANGUAGE_PROFICIENCY[] = [
+  ...standardLanguageEntries.map((entry) => entry.proficiency),
+  ...exoticLanguageEntries.map((entry) => entry.proficiency)
+];
 
 const equipmentCatalogByName = new Map<string, EquipmentDefinition>(
   equipmentCatalog.map((item) => [item.name, item])
@@ -777,6 +790,36 @@ function isArmorProficiency(value: string): value is ARMOR_PROFICIENCY {
 
 function isToolProficiency(value: string): value is TOOL_PROFICIENCY {
   return toolProficiencySet.has(value);
+}
+
+export function isCustomLanguageProficiency(
+  value: string
+): value is `${typeof CUSTOM_LANGUAGE_PREFIX}${string}` {
+  return value.startsWith(CUSTOM_LANGUAGE_PREFIX) && value.slice(CUSTOM_LANGUAGE_PREFIX.length).trim().length > 0;
+}
+
+function isBuiltInLanguageProficiency(value: string): value is LANGUAGE_PROFICIENCY {
+  return builtInLanguageProficiencySet.has(value as LANGUAGE_PROFICIENCY);
+}
+
+export function isLanguageProficiency(value: string): value is LanguageProficiency {
+  return isBuiltInLanguageProficiency(value) || isCustomLanguageProficiency(value);
+}
+
+export function getCustomLanguageNameFromProficiency(proficiency: LanguageProficiency): string | null {
+  return isCustomLanguageProficiency(proficiency)
+    ? proficiency.slice(CUSTOM_LANGUAGE_PREFIX.length).trim() || null
+    : null;
+}
+
+export function createCustomLanguageProficiency(name: string): `${typeof CUSTOM_LANGUAGE_PREFIX}${string}` | null {
+  const normalizedName = name.trim().replace(/\s+/g, " ");
+
+  if (!normalizedName) {
+    return null;
+  }
+
+  return `${CUSTOM_LANGUAGE_PREFIX}${normalizedName}`;
 }
 
 function isProficiencySource(value: string): value is PROFICIENCY_SOURCE {
@@ -1030,18 +1073,23 @@ export function removeFeatGrantedToolEntries(
 }
 
 function createLanguageEntry(
-  proficiency: LANGUAGE_PROFICIENCY,
+  proficiency: LanguageProficiency,
   source: PROFICIENCY_SOURCE,
   sourceStr: string | undefined,
   proficiencyLevel: PROF_LEVEL,
-  overridePolicy = PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE
+  overridePolicy = PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE,
+  customDescription?: string
 ): LanguageProficiencyEntry {
   return {
     source,
     sourceStr: sourceStr?.trim() || undefined,
     proficiency,
     proficiencyLevel,
-    overridePolicy: normalizeOverridePolicy(overridePolicy)
+    overridePolicy: normalizeOverridePolicy(overridePolicy),
+    customDescription:
+      typeof customDescription === "string" && customDescription.trim().length > 0
+        ? customDescription.trim()
+        : undefined
   };
 }
 
@@ -1335,7 +1383,7 @@ export function getProficiencyLabel(
     | WEAPON_PROFICIENCY
     | ARMOR_PROFICIENCY
     | TOOL_PROFICIENCY
-    | LANGUAGE_PROFICIENCY
+    | LanguageProficiency
 ): string {
   if (proficiency in skillNameByProficiency) {
     return skillNameByProficiency[proficiency as SKILL_PROFICIENCY];
@@ -1357,6 +1405,10 @@ export function getProficiencyLabel(
     return toolProficiencyLabels[proficiency as TOOL_PROFICIENCY];
   }
 
+  if (isCustomLanguageProficiency(proficiency)) {
+    return getCustomLanguageNameFromProficiency(proficiency) ?? "Custom language";
+  }
+
   return languageProficiencyLabels[proficiency as LANGUAGE_PROFICIENCY];
 }
 
@@ -1367,7 +1419,7 @@ export function getProficiencyKeyword(
     | WEAPON_PROFICIENCY
     | ARMOR_PROFICIENCY
     | TOOL_PROFICIENCY
-    | LANGUAGE_PROFICIENCY
+    | LanguageProficiency
 ): string {
   return getProficiencyLabel(proficiency);
 }
@@ -1810,7 +1862,9 @@ export function getAutomaticProficiencyCollectionsForCharacter(
       ...getFeatureArmorProficiencyEntriesForCharacter(featureCharacter)
     ]),
     toolProficiencies: getAutomaticToolEntries(className, species, background),
-    languageProficiencies: []
+    languageProficiencies: mergeProficiencyEntries(
+      getFeatureLanguageProficiencyEntriesForCharacter(featureCharacter)
+    )
   };
 }
 
@@ -2028,6 +2082,50 @@ function normalizeToolProficiencyEntries(value: unknown): ToolProficiencyEntry[]
   return normalizeProficiencyEntries<ToolProficiencyEntry>(value, isToolProficiency);
 }
 
+function normalizeLanguageProficiencyEntries(value: unknown): LanguageProficiencyEntry[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return mergeProficiencyEntries(
+    value
+      .map((rawEntry) => {
+        if (!rawEntry || typeof rawEntry !== "object") {
+          return null;
+        }
+
+        const entry = rawEntry as Partial<LanguageProficiencyEntry>;
+
+        if (
+          typeof entry.proficiency !== "string" ||
+          !isLanguageProficiency(entry.proficiency) ||
+          typeof entry.source !== "string" ||
+          !isProficiencySource(entry.source)
+        ) {
+          return null;
+        }
+
+        const proficiencyLevel =
+          typeof entry.proficiencyLevel === "string" && isProfLevel(entry.proficiencyLevel)
+            ? entry.proficiencyLevel
+            : PROF_LEVEL.PROFICIENT;
+
+        return createLanguageEntry(
+          entry.proficiency,
+          entry.source,
+          typeof entry.sourceStr === "string" ? entry.sourceStr : undefined,
+          proficiencyLevel,
+          typeof entry.overridePolicy === "string" &&
+            isProficiencyOverridePolicy(entry.overridePolicy)
+            ? entry.overridePolicy
+            : PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE,
+          typeof entry.customDescription === "string" ? entry.customDescription : undefined
+        );
+      })
+      .filter((entry): entry is LanguageProficiencyEntry => entry !== null)
+  );
+}
+
 export function normalizeCharacterProficiencies(
   options: NormalizeCharacterProficienciesOptions
 ): CharacterProficiencyCollections {
@@ -2077,7 +2175,10 @@ export function normalizeCharacterProficiencies(
     ...automaticCollections.toolProficiencies
   ]);
 
-  const normalizedLanguageEntries: LanguageProficiencyEntry[] = [];
+  const normalizedLanguageEntries = mergeProficiencyEntries([
+    ...stripAutomaticEntries(normalizeLanguageProficiencyEntries(options.languageProficiencies)),
+    ...automaticCollections.languageProficiencies
+  ]);
 
   return {
     skillProficiencies: normalizedSkillEntries,
@@ -2212,7 +2313,7 @@ export function getToolLevelFromEntries(
 
 export function getLanguageLevelFromEntries(
   entries: LanguageProficiencyEntry[],
-  proficiency: LANGUAGE_PROFICIENCY
+  proficiency: LanguageProficiency
 ): PROF_LEVEL {
   return getResolvedProficiencyEntry(entries, proficiency).proficiencyLevel;
 }
@@ -2220,6 +2321,13 @@ export function getLanguageLevelFromEntries(
 export function hasLockedSkillEntry(
   entries: SkillProficiencyEntry[],
   proficiency: SKILL_PROFICIENCY
+): boolean {
+  return hasLockedNonManualPositiveEntry(entries, proficiency);
+}
+
+export function hasLockedWeaponEntry(
+  entries: WeaponProficiencyEntry[],
+  proficiency: WEAPON_PROFICIENCY
 ): boolean {
   return hasLockedNonManualPositiveEntry(entries, proficiency);
 }
@@ -2290,10 +2398,46 @@ export function setManualSavingThrowEntry(
 
 export function setManualLanguageEntry(
   entries: LanguageProficiencyEntry[],
-  proficiency: LANGUAGE_PROFICIENCY,
+  proficiency: LanguageProficiency,
   proficiencyLevel: PROF_LEVEL
 ): LanguageProficiencyEntry[] {
   return upsertManualEntry(entries, proficiency, proficiencyLevel, createLanguageEntry);
+}
+
+export function addManualCustomLanguageEntry(
+  entries: LanguageProficiencyEntry[],
+  name: string,
+  description?: string
+): LanguageProficiencyEntry[] {
+  const builtInMatch = languageEntries.find(
+    (entry) => entry.name.trim().toLowerCase() === name.trim().toLowerCase()
+  );
+
+  if (builtInMatch) {
+    return setManualLanguageEntry(entries, builtInMatch.proficiency, PROF_LEVEL.PROFICIENT);
+  }
+
+  const proficiency = createCustomLanguageProficiency(name);
+
+  if (!proficiency) {
+    return mergeProficiencyEntries(entries);
+  }
+
+  const nextEntries = entries.filter(
+    (entry) => !(entry.source === PROFICIENCY_SOURCE.MANUAL && entry.proficiency === proficiency)
+  );
+
+  return mergeProficiencyEntries([
+    ...nextEntries,
+    createLanguageEntry(
+      proficiency,
+      PROFICIENCY_SOURCE.MANUAL,
+      undefined,
+      PROF_LEVEL.PROFICIENT,
+      PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE,
+      description
+    )
+  ]);
 }
 
 export function toggleManualToolEntry(
@@ -2378,8 +2522,20 @@ export function getDisplayToolProficiencyEntries(
 
 export function getDisplayLanguageProficiencyEntries(
   entries: LanguageProficiencyEntry[]
-): ProficiencyDisplayEntry<LANGUAGE_PROFICIENCY>[] {
-  return getDisplayProficiencyEntries(entries, languageProficiencyOptions);
+): ProficiencyDisplayEntry<LanguageProficiency>[] {
+  const customLanguageOptions = dedupe(
+    mergeProficiencyEntries(entries)
+      .filter(
+        (entry) =>
+          entry.proficiencyLevel !== PROF_LEVEL.NONE && isCustomLanguageProficiency(entry.proficiency)
+      )
+      .map((entry) => entry.proficiency)
+  );
+
+  return getDisplayProficiencyEntries(entries, [
+    ...languageProficiencyOptions,
+    ...customLanguageOptions
+  ]);
 }
 
 export function normalizeEquipmentSelectionsForClass(

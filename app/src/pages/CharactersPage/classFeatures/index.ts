@@ -1,4 +1,5 @@
 import type { Character, CharacterClassFeatureState } from "../../../types";
+import type { WEAPON_PROFICIENCY } from "../../../types";
 import {
   activateBardicInspiration,
   applySuperiorInspirationOnInitiative,
@@ -26,11 +27,16 @@ import {
   getBarbarianDerivedConditions,
   getBarbarianFeatureAction,
   getBarbarianSkillIndicators,
+  getBarbarianWeaponMasteryOptions,
+  getBarbarianWeaponMasterySelectionCount,
+  getBarbarianWeaponMasterySelections,
+  getBarbarianWeaponProficiencyEntries,
   getBarbarianSavingThrowIndicators,
   getBarbarianSpeedBonuses,
   getBarbarianSpellcastingState,
   getBarbarianWeaponDamageBonuses,
-  normalizeBarbarianRageState
+  normalizeBarbarianRageState,
+  setBarbarianWeaponMasterySelections
 } from "./barbarian";
 import {
   activateClericDivineIntervention,
@@ -54,6 +60,30 @@ import {
   setClericBlessedStrikesChoice,
   setClericDivineOrderChoice
 } from "./cleric";
+import {
+  getDruidAlwaysPreparedSpellIds,
+  getDruidArmorProficiencyEntries,
+  getDruidCantripBonus,
+  getDruidLanguageProficiencyEntries,
+  getDruidPrimalOrderChoice,
+  getDruidSkillBonuses,
+  getDruidWeaponProficiencyEntries,
+  normalizeDruidFeatureState,
+  setDruidPrimalOrderChoice
+} from "./druid";
+import {
+  applyLongRestToFighterFeatures,
+  applyShortRestToFighterFeatures,
+  consumeFighterSecondWindUse,
+  fighterSecondWindActionKey,
+  getFighterFeatureAction,
+  getFighterWeaponMasteryOptions,
+  getFighterWeaponMasterySelectionCount,
+  getFighterWeaponMasterySelections,
+  getFighterWeaponProficiencyEntries,
+  normalizeFighterFeatureState,
+  setFighterWeaponMasterySelections
+} from "./fighter";
 import type {
   ArmorClassFeatureContext,
   CoreStatIndicatorMap,
@@ -65,6 +95,7 @@ import type {
   FeatureIndicator,
   FeatureArmorClassBonus,
   FeatureArmorClassMode,
+  FeatureLanguageProficiencyEntry,
   FeatureDamageBonus,
   FeatureSkillBonus,
   FeatureSkillProficiencyEntry,
@@ -90,6 +121,7 @@ export type {
   FeatureIndicator,
   FeatureArmorClassBonus,
   FeatureArmorClassMode,
+  FeatureLanguageProficiencyEntry,
   FeatureDamageBonus,
   FeatureSkillBonus,
   FeatureSkillProficiencyEntry,
@@ -111,7 +143,9 @@ export function normalizeCharacterClassFeatureState(
   return {
     rage: normalizeBarbarianRageState(record.rage, character),
     bard: normalizeBardFeatureState(record.bard, character),
-    cleric: normalizeClericFeatureState(record.cleric, character)
+    cleric: normalizeClericFeatureState(record.cleric, character),
+    druid: normalizeDruidFeatureState(record.druid, character),
+    fighter: normalizeFighterFeatureState(record.fighter, character)
   };
 }
 
@@ -123,8 +157,9 @@ export function getFeatureActionsForCharacter(
 ): FeatureActionCard[] {
   const clericActions = getClericFeatureActions(character);
   const bardAction = getBardFeatureAction(character);
+  const fighterAction = getFighterFeatureAction(character);
   const rageAction = getBarbarianFeatureAction(character);
-  return [...clericActions, bardAction, rageAction].filter(
+  return [...clericActions, bardAction, fighterAction, rageAction].filter(
     (entry): entry is FeatureActionCard => entry !== null
   );
 }
@@ -175,7 +210,8 @@ export function getSkillBonusesForCharacter(
 ): FeatureSkillBonus[] {
   return [
     ...getClericSkillBonuses(character, skill),
-    ...getBardSkillBonuses(character, proficiencyLevel)
+    ...getBardSkillBonuses(character, proficiencyLevel),
+    ...getDruidSkillBonuses(character, skill)
   ];
 }
 
@@ -215,7 +251,7 @@ export function getAbilityScoreBonusesForCharacter(
 export function getCantripLimitBonusForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): number {
-  return getClericCantripBonus(character);
+  return getClericCantripBonus(character) + getDruidCantripBonus(character);
 }
 
 export function getCantripDamageBonusForCharacter(
@@ -227,7 +263,12 @@ export function getCantripDamageBonusForCharacter(
 export function getFeatureWeaponProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureWeaponProficiencyEntry[] {
-  return getClericWeaponProficiencyEntries(character);
+  return [
+    ...getBarbarianWeaponProficiencyEntries(character),
+    ...getClericWeaponProficiencyEntries(character),
+    ...getDruidWeaponProficiencyEntries(character),
+    ...getFighterWeaponProficiencyEntries(character)
+  ];
 }
 
 export function getFeatureSkillProficiencyEntriesForCharacter(
@@ -239,7 +280,16 @@ export function getFeatureSkillProficiencyEntriesForCharacter(
 export function getFeatureArmorProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureArmorProficiencyEntry[] {
-  return getClericArmorProficiencyEntries(character);
+  return [
+    ...getClericArmorProficiencyEntries(character),
+    ...getDruidArmorProficiencyEntries(character)
+  ];
+}
+
+export function getFeatureLanguageProficiencyEntriesForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): FeatureLanguageProficiencyEntry[] {
+  return getDruidLanguageProficiencyEntries(character);
 }
 
 export function getClericDivineOrderChoiceForCharacter(
@@ -278,7 +328,7 @@ export function getBardExpertiseSelectionsForCharacter(
 export function getAlwaysPreparedSpellIdsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): string[] {
-  return getBardAlwaysPreparedSpellIds(character);
+  return [...new Set([...getBardAlwaysPreparedSpellIds(character), ...getDruidAlwaysPreparedSpellIds(character)])];
 }
 
 export function setBardExpertiseSelectionsForCharacter(
@@ -287,6 +337,76 @@ export function setBardExpertiseSelectionsForCharacter(
   selections: Parameters<typeof setBardExpertiseSelections>[2]
 ): Character {
   return setBardExpertiseSelections(character, tier, selections);
+}
+
+export function getDruidPrimalOrderChoiceForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+) {
+  return getDruidPrimalOrderChoice(character);
+}
+
+export function setDruidPrimalOrderChoiceForCharacter(
+  character: Character,
+  primalOrderChoice: "magician" | "warden"
+): Character {
+  return setDruidPrimalOrderChoice(character, primalOrderChoice);
+}
+
+export function getWeaponMasterySelectionCountForCharacter(
+  character: Pick<Character, "className" | "level">
+): number {
+  if (character.className === "Barbarian") {
+    return getBarbarianWeaponMasterySelectionCount(character);
+  }
+
+  if (character.className === "Fighter") {
+    return getFighterWeaponMasterySelectionCount(character);
+  }
+
+  return 0;
+}
+
+export function getWeaponMasteryOptionsForCharacter(
+  character: Pick<Character, "className" | "level">
+): WEAPON_PROFICIENCY[] {
+  if (character.className === "Barbarian") {
+    return getBarbarianWeaponMasteryOptions();
+  }
+
+  if (character.className === "Fighter") {
+    return getFighterWeaponMasteryOptions();
+  }
+
+  return [];
+}
+
+export function getWeaponMasterySelectionsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): WEAPON_PROFICIENCY[] {
+  if (character.className === "Barbarian") {
+    return getBarbarianWeaponMasterySelections(character);
+  }
+
+  if (character.className === "Fighter") {
+    return getFighterWeaponMasterySelections(character);
+  }
+
+  return [];
+}
+
+export function setWeaponMasterySelectionsForCharacter(
+  character: Character,
+  selections: WEAPON_PROFICIENCY[]
+): Character {
+  if (character.className === "Barbarian") {
+    return setBarbarianWeaponMasterySelections(character, selections);
+  }
+
+  if (character.className === "Fighter") {
+    return setFighterWeaponMasterySelections(character, selections);
+  }
+
+  return character;
 }
 
 export function applySuperiorInspirationOnInitiativeForCharacter(character: Character): Character {
@@ -308,6 +428,10 @@ export function getFeatureReactionEntriesForCharacter(
 export function activateFeatureActionForCharacter(character: Character, actionKey: string): Character {
   if (actionKey === bardicInspirationActionKey) {
     return activateBardicInspiration(character);
+  }
+
+  if (actionKey === fighterSecondWindActionKey) {
+    return consumeFighterSecondWindUse(character);
   }
 
   if (actionKey === "barbarian-rage") {
@@ -362,13 +486,17 @@ export function removeFeatureStatusEntryForCharacter(
 
 export function applyShortRestToFeatureState(character: Character): Character {
   return applyShortRestToClericFeatures(
-    applyShortRestToBardFeatures(applyShortRestToBarbarianFeatures(character))
+    applyShortRestToBardFeatures(
+      applyShortRestToFighterFeatures(applyShortRestToBarbarianFeatures(character))
+    )
   );
 }
 
 export function applyLongRestToFeatureState(character: Character): Character {
   return applyLongRestToClericFeatures(
-    applyLongRestToBardFeatures(applyLongRestToBarbarianFeatures(character))
+    applyLongRestToBardFeatures(
+      applyLongRestToFighterFeatures(applyLongRestToBarbarianFeatures(character))
+    )
   );
 }
 

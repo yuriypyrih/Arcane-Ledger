@@ -202,7 +202,7 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "Your training with weapons allows you to use the mastery properties of two kinds of Simple or Martial Melee weapons of your choice, such as Greataxes and Handaxes. Whenever you finish a <link:long-rest>Long Rest</link>, you can practice weapon drills and change one of those weapon choices.",
       "When you reach certain Barbarian levels, you gain the ability to use the mastery properties of more kinds of weapons, as shown in the Weapon Mastery column of the Barbarian Features table."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.DANGER_SENSE]: {
     description: [

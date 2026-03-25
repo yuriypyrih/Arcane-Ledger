@@ -305,6 +305,11 @@
   color: var(--color-ink-soft);
 }
 
+.restOptionButtonActive {
+  border-color: rgba(47, 120, 255, 0.52);
+  background: rgba(236, 245, 255, 0.92);
+}
+
 .restOptionButton:disabled {
   cursor: not-allowed;
   opacity: 0.52;
@@ -331,6 +336,51 @@
 
 .longRestNote {
   font-size: 0.8rem;
+}
+
+.restChecklistSection {
+  display: grid;
+  gap: 0.55rem;
+  min-height: 0;
+}
+
+.restChecklistHeading {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.restChecklist {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.restChecklistItem {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: 0.94rem;
+  line-height: 1.3;
+}
+
+.restChecklistItem input {
+  accent-color: #2f78ff;
+  margin: 0;
+}
+
+.restChecklistDivider {
+  height: 1px;
+  background: rgba(75, 47, 29, 0.14);
+  margin: 0.15rem 0 0.1rem;
+}
+
+.restPopupActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  padding-top: 2rem;
 }
 
 .xpProgressMetaRow {

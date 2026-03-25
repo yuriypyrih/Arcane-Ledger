@@ -29,18 +29,18 @@ export const druidFeatures: DruidFeatureClassObj[] = [
       [CLASS_FEATURE.SPELLCASTING]: {
         description: [
           "You have learned to cast spells through studying the mystical forces of nature. See 'Spells' for the rules on spellcasting. The information below details how you use those rules with Druid spells, which appear on the Druid spell list later in the class's description.",
-          "<strong>Cantrips.</strong> You know two cantrips of your choice from the Druid spell list. Druidcraft and Produce Flame are recommended.",
+          "<strong>Cantrips.</strong> You know two cantrips of your choice from the Druid spell list. <spell:Druidcraft>Druidcraft</spell> and <spell:Produce Flame>Produce Flame</spell> are recommended.",
           "Whenever you gain a Druid level, you can replace one of your cantrips with another cantrip of your choice from the Druid spell list.",
           "When you reach Druid levels 4 and 10, you learn another cantrip of your choice from the Druid spell list, as shown in the Cantrips column of the Druid Features table.",
           "<strong>Spell Slots.</strong> The Druid Features table shows how many spell slots you have to cast your level 1+ spells. You regain all expended slots when you finish a <link:long-rest>Long Rest</link>.",
-          "<strong>Prepared Spells of Level 1+.</strong> You prepare the list of level 1+ spells that are available for you to cast with this feature. To start, choose four level 1 spells from the Druid spell list. Animal Friendship, Cure Wounds, Faerie Fire, and Thunderwave are recommended.",
+          "<strong>Prepared Spells of Level 1+.</strong> You prepare the list of level 1+ spells that are available for you to cast with this feature. To start, choose four level 1 spells from the Druid spell list. <spell:Animal Friendship>Animal Friendship</spell>, <spell:Cure Wounds>Cure Wounds</spell>, <spell:Faerie Fire>Faerie Fire</spell>, and <spell:Thunderwave>Thunderwave</spell> are recommended.",
           "The number of spells on your list increases as you gain Druid levels, as shown in the Prepared Spells column of the Druid Features table. Whenever that number increases, choose additional spells from the Druid spell list until the number of spells on your list matches the number on the table. The chosen spells must be of a level for which you have spell slots.",
           "If another Druid feature gives you spells that you always have prepared, those spells don't count against the number of spells you can prepare with this feature, but those spells otherwise count as Druid spells for you.",
           "<strong>Changing Your Prepared Spells.</strong> Whenever you finish a <link:long-rest>Long Rest</link>, you can change your list of prepared spells, replacing any of the spells with other Druid spells for which you have spell slots.",
-          "<strong>Spellcasting Ability.</strong> Wisdom is your spellcasting ability for your Druid spells.",
+          "<strong>Spellcasting Ability.</strong> <link:WIS>Wisdom</link> is your spellcasting ability for your Druid spells.",
           "<strong>Spellcasting Focus.</strong> You can use a Druidic Focus as a Spellcasting Focus for your Druid spells."
         ],
-        isTracked: false
+        isTracked: true
       }
     },
     wildShape: 0,
@@ -214,18 +214,18 @@ export const druidFeatures: DruidFeatureClassObj[] = [
 export const druidFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   [CLASS_FEATURE.DRUIDIC]: {
     description: [
-      "You know Druidic, the secret language of Druids. While learning this ancient tongue, you also unlocked the magic of communicating with animals; you always have the Speak with Animals spell prepared.",
+      "You know Druidic, the secret language of Druids. While learning this ancient tongue, you also unlocked the magic of communicating with animals; you always have the <spell:Speak with Animals>Speak with Animals</spell> spell prepared.",
       "You can use Druidic to leave hidden messages. You and others who know Druidic automatically spot such a message. Others spot the message's presence with a successful DC 15 Intelligence (Investigation) check but can't decipher it without magic."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.PRIMAL_ORDER]: {
     description: [
       "You have dedicated yourself to one of the following sacred roles of your choice.",
-      "<strong>Magician.</strong> You know one extra cantrip from the Druid spell list. In addition, your mystical connection to nature gives you a bonus to your Intelligence (Arcana or Nature) checks. The bonus equals your Wisdom modifier, minimum of +1.",
-      "<strong>Warden.</strong> Trained for battle, you gain proficiency with Martial weapons and training with Medium armor."
+      "<strong>Magician.</strong> You know one extra cantrip from the Druid spell list. In addition, your mystical connection to nature gives you a bonus to your Intelligence (<link:Arcana>Arcana</link> or <link:Nature>Nature</link>) checks. The bonus equals your <link:WIS>Wisdom</link> modifier, minimum of +1.",
+      "<strong>Warden.</strong> Trained for battle, you gain proficiency with <link:Martial weapons>Martial weapons</link> and training with <link:Medium armor>Medium armor</link>."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.WILD_SHAPE]: {
     description: [
