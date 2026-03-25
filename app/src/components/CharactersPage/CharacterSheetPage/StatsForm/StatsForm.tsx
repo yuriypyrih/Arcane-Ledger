@@ -822,6 +822,9 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
                 <div className={sheetStyles.spellDrawerTitleRow}>
                   <h3 id="character-stats-reference-title">{selectedStatReference.keyword}</h3>
                 </div>
+                <p className={sheetStyles.spellDrawerSummary}>
+                  {selectedStatReference.description}
+                </p>
               </div>
               {selectedStatReference.indicators?.length ? (
                 <div className={styles.referenceIndicatorStack}>
@@ -844,19 +847,18 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
                 <X size={18} />
               </button>
             </div>
-            <p className={sheetStyles.spellDrawerSummary}>
-              {selectedStatReference.description}
-            </p>
             {selectedStatReference.detailText ? (
-              <div className={sheetStyles.spellDrawerDetails}>
-                <div
-                  className={clsx(
-                    sheetStyles.spellDrawerDetailCard,
-                    styles.referenceDetailCardFullWidth
-                  )}
-                >
-                  <span>Formula</span>
-                  <strong>{selectedStatReference.detailText}</strong>
+              <div className={sheetStyles.spellDrawerBody}>
+                <div className={sheetStyles.spellDrawerDetails}>
+                  <div
+                    className={clsx(
+                      sheetStyles.spellDrawerDetailCard,
+                      styles.referenceDetailCardFullWidth
+                    )}
+                  >
+                    <span>Formula</span>
+                    <strong>{selectedStatReference.detailText}</strong>
+                  </div>
                 </div>
               </div>
             ) : null}

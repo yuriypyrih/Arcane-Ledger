@@ -199,121 +199,123 @@ function CodexEntryPage() {
                 </div>
               </div>
 
-              <div className={sheetStyles.spellDrawerDetails}>
-                {entry.category === ENTRY_CATEGORIES.WEAPONS ? (
-                  <>
-                    <div className={sheetStyles.spellDrawerDetailCard}>
-                      <span>Type</span>
-                      <strong>{formatWeaponType(entry.type)} weapon</strong>
-                    </div>
-                    <div className={sheetStyles.spellDrawerDetailCard}>
-                      <span>Damage</span>
-                      <strong>{formatWeaponDamage(entry.damage)}</strong>
-                    </div>
-                    <button
-                      type="button"
-                      className={`${sheetStyles.spellDrawerDetailCard} ${styles.drawerDetailButton}`}
-                      onClick={() =>
-                        openWeaponReference(
-                          "Properties",
-                          entry.properties.map((property) => formatCodexLabel(property))
-                        )
-                      }
-                    >
-                      <span>Properties</span>
-                      <strong>{formatWeaponProperties(entry)}</strong>
-                    </button>
-                    <button
-                      type="button"
-                      className={`${sheetStyles.spellDrawerDetailCard} ${styles.drawerDetailButton}`}
-                      onClick={() =>
-                        openWeaponReference("Mastery", [formatCodexLabel(entry.mastery)])
-                      }
-                    >
-                      <span>Mastery</span>
-                      <strong>{formatCodexLabel(entry.mastery)}</strong>
-                    </button>
-                    <div className={sheetStyles.spellDrawerDetailCard}>
-                      <span>Weight</span>
-                      <strong>{formatWeaponWeight(entry.weight)}</strong>
-                    </div>
-                    <div className={sheetStyles.spellDrawerDetailCard}>
-                      <span>Cost</span>
-                      <strong>{formatWeaponCost(entry.cost)}</strong>
-                    </div>
-                  </>
-                ) : null}
-
-                {entry.category === ENTRY_CATEGORIES.ARMOR ? (
-                  <>
-                    {!isShieldArmorEntry(entry) ? (
+              <div className={sheetStyles.spellDrawerBody}>
+                <div className={sheetStyles.spellDrawerDetails}>
+                  {entry.category === ENTRY_CATEGORIES.WEAPONS ? (
+                    <>
                       <div className={sheetStyles.spellDrawerDetailCard}>
                         <span>Type</span>
-                        <strong>{formatCodexList(entry.tags)}</strong>
+                        <strong>{formatWeaponType(entry.type)} weapon</strong>
                       </div>
-                    ) : null}
-                    {!isShieldArmorEntry(entry) ? (
                       <div className={sheetStyles.spellDrawerDetailCard}>
-                        <span>Armor Base</span>
-                        <strong>{entry.armorBase > 0 ? entry.armorBase : "-"}</strong>
+                        <span>Damage</span>
+                        <strong>{formatWeaponDamage(entry.damage)}</strong>
                       </div>
-                    ) : null}
-                    <div className={sheetStyles.spellDrawerDetailCard}>
-                      <span>Weight</span>
-                      <strong>{formatEquipmentWeight(entry.weight)}</strong>
-                    </div>
-                    <div className={sheetStyles.spellDrawerDetailCard}>
-                      <span>Cost</span>
-                      <strong>{formatEquipmentCost(entry.cost)}</strong>
-                    </div>
-                  </>
-                ) : null}
+                      <button
+                        type="button"
+                        className={`${sheetStyles.spellDrawerDetailCard} ${styles.drawerDetailButton}`}
+                        onClick={() =>
+                          openWeaponReference(
+                            "Properties",
+                            entry.properties.map((property) => formatCodexLabel(property))
+                          )
+                        }
+                      >
+                        <span>Properties</span>
+                        <strong>{formatWeaponProperties(entry)}</strong>
+                      </button>
+                      <button
+                        type="button"
+                        className={`${sheetStyles.spellDrawerDetailCard} ${styles.drawerDetailButton}`}
+                        onClick={() =>
+                          openWeaponReference("Mastery", [formatCodexLabel(entry.mastery)])
+                        }
+                      >
+                        <span>Mastery</span>
+                        <strong>{formatCodexLabel(entry.mastery)}</strong>
+                      </button>
+                      <div className={sheetStyles.spellDrawerDetailCard}>
+                        <span>Weight</span>
+                        <strong>{formatWeaponWeight(entry.weight)}</strong>
+                      </div>
+                      <div className={sheetStyles.spellDrawerDetailCard}>
+                        <span>Cost</span>
+                        <strong>{formatWeaponCost(entry.cost)}</strong>
+                      </div>
+                    </>
+                  ) : null}
+
+                  {entry.category === ENTRY_CATEGORIES.ARMOR ? (
+                    <>
+                      {!isShieldArmorEntry(entry) ? (
+                        <div className={sheetStyles.spellDrawerDetailCard}>
+                          <span>Type</span>
+                          <strong>{formatCodexList(entry.tags)}</strong>
+                        </div>
+                      ) : null}
+                      {!isShieldArmorEntry(entry) ? (
+                        <div className={sheetStyles.spellDrawerDetailCard}>
+                          <span>Armor Base</span>
+                          <strong>{entry.armorBase > 0 ? entry.armorBase : "-"}</strong>
+                        </div>
+                      ) : null}
+                      <div className={sheetStyles.spellDrawerDetailCard}>
+                        <span>Weight</span>
+                        <strong>{formatEquipmentWeight(entry.weight)}</strong>
+                      </div>
+                      <div className={sheetStyles.spellDrawerDetailCard}>
+                        <span>Cost</span>
+                        <strong>{formatEquipmentCost(entry.cost)}</strong>
+                      </div>
+                    </>
+                  ) : null}
+
+                  {entry.category === ENTRY_CATEGORIES.SPELLS ? (
+                    <>
+                      <div className={sheetStyles.spellDrawerDetailCard}>
+                        <span>Casting Time</span>
+                        <strong>{formatSpellCastingTime(entry.castingTime)}</strong>
+                      </div>
+                      <div className={sheetStyles.spellDrawerDetailCard}>
+                        <span>Range</span>
+                        <strong>{entry.range}</strong>
+                      </div>
+                      <button
+                        type="button"
+                        className={`${sheetStyles.spellDrawerDetailCard} ${styles.drawerDetailButton}`}
+                        onClick={() => {
+                          if (componentsTooltipEntry) {
+                            setIsComponentsTooltipOpen(true);
+                          }
+                        }}
+                      >
+                        <span>Components</span>
+                        <strong>{formatSpellComponents(entry.components)}</strong>
+                      </button>
+                      <div className={sheetStyles.spellDrawerDetailCard}>
+                        <span>Duration</span>
+                        <strong>{entry.duration}</strong>
+                      </div>
+                      <div className={sheetStyles.spellDrawerDetailCard}>
+                        <span>Spell Lists</span>
+                        <strong>{formatCodexList(entry.spellLists)}</strong>
+                      </div>
+                      <div className={sheetStyles.spellDrawerDetailCard}>
+                        <span>Damage</span>
+                        <strong>{formatWeaponDamage(entry.damage)}</strong>
+                      </div>
+                    </>
+                  ) : null}
+                </div>
 
                 {entry.category === ENTRY_CATEGORIES.SPELLS ? (
-                  <>
-                    <div className={sheetStyles.spellDrawerDetailCard}>
-                      <span>Casting Time</span>
-                      <strong>{formatSpellCastingTime(entry.castingTime)}</strong>
-                    </div>
-                    <div className={sheetStyles.spellDrawerDetailCard}>
-                      <span>Range</span>
-                      <strong>{entry.range}</strong>
-                    </div>
-                    <button
-                      type="button"
-                      className={`${sheetStyles.spellDrawerDetailCard} ${styles.drawerDetailButton}`}
-                      onClick={() => {
-                        if (componentsTooltipEntry) {
-                          setIsComponentsTooltipOpen(true);
-                        }
-                      }}
-                    >
-                      <span>Components</span>
-                      <strong>{formatSpellComponents(entry.components)}</strong>
-                    </button>
-                    <div className={sheetStyles.spellDrawerDetailCard}>
-                      <span>Duration</span>
-                      <strong>{entry.duration}</strong>
-                    </div>
-                    <div className={sheetStyles.spellDrawerDetailCard}>
-                      <span>Spell Lists</span>
-                      <strong>{formatCodexList(entry.spellLists)}</strong>
-                    </div>
-                    <div className={sheetStyles.spellDrawerDetailCard}>
-                      <span>Damage</span>
-                      <strong>{formatWeaponDamage(entry.damage)}</strong>
-                    </div>
-                  </>
+                  <SpellDescriptionContent
+                    description={entry.description}
+                    className={`${sheetStyles.spellDrawerDescriptionList} ${sheetStyles.spellDrawerDescriptionSection}`}
+                    entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                  />
                 ) : null}
               </div>
-
-              {entry.category === ENTRY_CATEGORIES.SPELLS ? (
-                <SpellDescriptionContent
-                  description={entry.description}
-                  className={`${sheetStyles.spellDrawerDescriptionList} ${sheetStyles.spellDrawerDescriptionSection}`}
-                  entryClassName={sheetStyles.spellDrawerDescriptionLine}
-                />
-              ) : null}
             </div>
           ) : (
             <>

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { BadgeAlert, BadgeCheck, BadgeX, ChevronDown, Pencil, Plus, X } from "lucide-react";
+import { BadgeAlert, BadgeCheck, BadgeX, ChevronDown, Pencil, Plus, TriangleAlert, X } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useFormContext } from "react-hook-form";
 import {
@@ -9,18 +9,30 @@ import {
   FEATS,
   FeatureMap,
   KeywordTooltip,
+  getDivinityEntryByName,
   getFeatureTrackingState,
   hardcodedCodexEntries,
   type ClassEntry,
+  type DivinityEntry,
   type FeatureMapEntry,
-  type KeywordTooltipEntry
+  type KeywordTooltipEntry,
+  type SpellEntry
 } from "../../../../codex/entries";
+import CodexDivinityDrawer from "../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
+import CodexSpellDrawer from "../../../CodexPage/CodexSpellDrawer";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { abilityKeys } from "../../../../pages/CharactersPage/constants";
+import {
+  getClericBlessedStrikesChoiceForCharacter,
+  getClericDivineOrderChoiceForCharacter,
+  setClericBlessedStrikesChoiceForCharacter,
+  setClericDivineOrderChoiceForCharacter
+} from "../../../../pages/CharactersPage/classFeatures";
 import {
   createCharacterFeatEntry,
   getAbilityScoreImprovementSummary,
   getCharacterFeatSummary,
+  getCharacterFeatSourceLabel,
   getEpicBoonAbilityChoiceSummary,
   getEpicBoonAbilityOptions,
   getFeatCategoryLabel,
@@ -37,17 +49,23 @@ import {
   addFeatGrantedSkillEntries,
   addFeatGrantedToolEntries,
   getToolProficiencyLabel,
+  normalizeCharacterProficiencies,
   removeFeatGrantedSkillEntries,
   removeFeatGrantedToolEntries,
   skillsOptions,
   toolProficiencyOptions,
   type ToolProficiency
 } from "../../../../pages/CharactersPage/proficiency";
+import {
+  getCantripLimitForCharacter,
+  getCantripSelectionOptionsForCharacter
+} from "../../../../pages/CharactersPage/spellcasting";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type {
   AbilityKey,
   Character,
   CharacterFeatEntry,
+  CharacterFeatSource,
   SkillName,
   SkilledChoice,
   SkilledFeatSelection
@@ -81,6 +99,9 @@ type SelectedFeatReference = {
   feat: FEATS;
 };
 
+type SelectedSpellReference = SpellEntry;
+type SelectedDivinityReference = DivinityEntry;
+
 type PendingAbilityScoreImprovement = {
   mode: "single" | "split";
   primaryAbility: AbilityKey;
@@ -99,6 +120,17 @@ type PendingEpicBoonAbilityChoice = {
 type PendingSkilledChoice = {
   selections: [string, string, string];
 };
+
+type FeatEditorContext =
+  | {
+      mode: "general";
+    }
+  | {
+      mode: "class-feature";
+      source: CharacterFeatSource & {
+        type: "class-feature";
+      };
+    };
 
 const trackingBadgeConfig = {
   tracked: {
@@ -134,8 +166,14 @@ const classEntriesByName = new Map<string, ClassEntry>(
     .filter((entry): entry is ClassEntry => entry.category === ENTRY_CATEGORIES.CLASSES)
     .map((entry) => [entry.name, entry])
 );
+const spellEntriesByName = new Map<string, SpellEntry>(
+  hardcodedCodexEntries
+    .filter((entry): entry is SpellEntry => entry.category === ENTRY_CATEGORIES.SPELLS)
+    .map((entry) => [entry.name.toLowerCase(), entry])
+);
 
-const inlineMarkupPattern = /<strong>(.*?)<\/strong>|<link:([^>]+)>(.*?)<\/link>/g;
+const inlineMarkupPattern =
+  /<strong>(.*?)<\/strong>|<link:([^>]+)>(.*?)<\/link>|<spell:([^>]+)>(.*?)<\/spell>|<divinity:([^>]+)>(.*?)<\/divinity>/g;
 type AutoLinkTarget =
   | {
       kind: "keyword";
@@ -273,6 +311,32 @@ function createDefaultPendingSkilledChoice(): PendingSkilledChoice {
   };
 }
 
+function isFeatChoiceFeature(feature: CLASS_FEATURE): boolean {
+  return feature === CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT || feature === CLASS_FEATURE.EPIC_BOON;
+}
+
+function createClassFeatureFeatSource(level: number, feature: CLASS_FEATURE): CharacterFeatSource & {
+  type: "class-feature";
+} {
+  return {
+    type: "class-feature",
+    level,
+    feature
+  };
+}
+
+function isFeatFromClassFeatureSource(
+  entry: CharacterFeatEntry,
+  level: number,
+  feature: CLASS_FEATURE
+): boolean {
+  return (
+    entry.source.type === "class-feature" &&
+    entry.source.level === level &&
+    entry.source.feature === feature
+  );
+}
+
 function isPendingSkilledChoiceValid(choice: PendingSkilledChoice): boolean {
   return new Set(choice.selections).size === choice.selections.length && decodePendingSkilledChoice(choice) !== null;
 }
@@ -394,7 +458,9 @@ function renderAutoLinkedText(
 function renderDescriptionLine(
   line: string,
   onOpenKeyword: (keywordKey: string, title?: string) => void,
-  onOpenFeat: (feat: FEATS) => void
+  onOpenFeat: (feat: FEATS) => void,
+  onOpenSpell: (spell: SpellEntry) => void,
+  onOpenDivinity: (divinity: DivinityEntry) => void
 ): ReactNode {
   const nodes: ReactNode[] = [];
   let cursor = 0;
@@ -431,6 +497,46 @@ function renderDescriptionLine(
       );
     }
 
+    if (match[4]) {
+      const spell = spellEntriesByName.get(match[4].trim().toLowerCase());
+      const label = match[5] ?? match[4];
+
+      nodes.push(
+        spell ? (
+          <button
+            key={`${spell.id}-${index}`}
+            type="button"
+            className={styles.keywordButton}
+            onClick={() => onOpenSpell(spell)}
+          >
+            {label}
+          </button>
+        ) : (
+          label
+        )
+      );
+    }
+
+    if (match[6]) {
+      const divinity = getDivinityEntryByName(match[6]);
+      const label = match[7] ?? match[6];
+
+      nodes.push(
+        divinity ? (
+          <button
+            key={`${divinity.id}-${index}`}
+            type="button"
+            className={styles.keywordButton}
+            onClick={() => onOpenDivinity(divinity)}
+          >
+            {label}
+          </button>
+        ) : (
+          label
+        )
+      );
+    }
+
     cursor = index + match[0].length;
   }
 
@@ -448,6 +554,7 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
   const [isFutureFeaturesVisible, setIsFutureFeaturesVisible] = useState(false);
   const [expandedFeatureKeys, setExpandedFeatureKeys] = useState<string[]>([]);
   const [isFeatModalOpen, setIsFeatModalOpen] = useState(false);
+  const [featEditorContext, setFeatEditorContext] = useState<FeatEditorContext>({ mode: "general" });
   const [activeFeatCategory, setActiveFeatCategory] = useState<FEAT_CATEGORY>(
     FEAT_CATEGORY.GENERAL
   );
@@ -463,6 +570,11 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
   const [selectedFeatReference, setSelectedFeatReference] = useState<SelectedFeatReference | null>(
     null
   );
+  const [selectedSpellReference, setSelectedSpellReference] = useState<SelectedSpellReference | null>(
+    null
+  );
+  const [selectedDivinityReference, setSelectedDivinityReference] =
+    useState<SelectedDivinityReference | null>(null);
   const [selectedKeyword, setSelectedKeyword] = useState<SelectedKeyword | null>(null);
 
   useBodyScrollLock(Boolean(selectedKeyword) || Boolean(selectedFeatReference) || isFeatModalOpen);
@@ -526,10 +638,96 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
     [allFeatures, character.level]
   );
   const featDefinitionsByCategory = useMemo(() => getFeatDefinitionsByCategory(), []);
-  const selectedFeats = character.feats ?? [];
+  const selectedFeats = useMemo(() => character.feats ?? [], [character.feats]);
   const selectedFeatDefinition = selectedFeatReference
     ? getFeatDefinition(selectedFeatReference.feat)
     : null;
+
+  function getLinkedFeatForFeature(level: number, feature: CLASS_FEATURE): CharacterFeatEntry | null {
+    return selectedFeats.find((entry) => isFeatFromClassFeatureSource(entry, level, feature)) ?? null;
+  }
+
+  const hasUnlockedInputRequiredFeature = useMemo(
+    () =>
+      unlockedFeatures.some(
+        (featureRow) =>
+          (isFeatChoiceFeature(featureRow.feature) &&
+            !selectedFeats.some((entry) =>
+              isFeatFromClassFeatureSource(entry, featureRow.level, featureRow.feature)
+            )) ||
+          (featureRow.feature === CLASS_FEATURE.BLESSED_STRIKES &&
+            getClericBlessedStrikesChoiceForCharacter(character) === null)
+      ),
+    [character, unlockedFeatures, selectedFeats]
+  );
+
+  function removeSkilledProficienciesFromCharacter(
+    currentCharacter: Character,
+    entryToRemove: CharacterFeatEntry
+  ): Character {
+    if (entryToRemove.feat !== FEATS.SKILLED || !entryToRemove.skilled) {
+      return currentCharacter;
+    }
+
+    const { skills, tools } = splitSkilledSelections(entryToRemove.skilled);
+
+    return {
+      ...currentCharacter,
+      skillProficiencies: removeFeatGrantedSkillEntries(
+        currentCharacter.skillProficiencies ?? [],
+        skills,
+        "Skilled",
+        entryToRemove.id
+      ),
+      toolProficiencies: removeFeatGrantedToolEntries(
+        currentCharacter.toolProficiencies ?? [],
+        tools,
+        "Skilled",
+        entryToRemove.id
+      )
+    };
+  }
+
+  function upsertFeatForContext(featEntry: CharacterFeatEntry) {
+    if (featEditorContext.mode !== "class-feature") {
+      onPersistCharacter((currentCharacter) => ({
+        ...currentCharacter,
+        feats: [...(currentCharacter.feats ?? []), featEntry]
+      }));
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const existingEntries = (currentCharacter.feats ?? []).filter((entry) =>
+        isFeatFromClassFeatureSource(
+          entry,
+          featEditorContext.source.level,
+          featEditorContext.source.feature
+        )
+      );
+      let nextCharacter = currentCharacter;
+
+      existingEntries.forEach((entry) => {
+        nextCharacter = removeSkilledProficienciesFromCharacter(nextCharacter, entry);
+      });
+
+      return {
+        ...nextCharacter,
+        feats: [
+          ...(nextCharacter.feats ?? []).filter(
+            (entry) =>
+              !isFeatFromClassFeatureSource(
+                entry,
+                featEditorContext.source.level,
+                featEditorContext.source.feature
+              )
+          ),
+          featEntry
+        ]
+      };
+    });
+    closeFeatEditor();
+  }
 
   useEffect(() => {
     const validFeatureKeys = new Set(allFeatures.map((featureRow) => featureRow.key));
@@ -573,11 +771,63 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
     });
   }
 
+  function openSpellReference(spell: SpellEntry) {
+    setSelectedSpellReference(spell);
+  }
+
+  function openDivinityReference(divinity: DivinityEntry) {
+    setSelectedDivinityReference(divinity);
+  }
+
+  function updateClericDivineOrderChoice(choice: "protector" | "thaumaturge") {
+    onPersistCharacter((currentCharacter) => {
+      const nextCharacter = setClericDivineOrderChoiceForCharacter(currentCharacter, choice);
+      const nextProficiencies = normalizeCharacterProficiencies({
+        className: nextCharacter.className,
+        level: nextCharacter.level,
+        species: nextCharacter.species,
+        background: nextCharacter.background,
+        classFeatureState: nextCharacter.classFeatureState,
+        skillProficiencies: nextCharacter.skillProficiencies,
+        savingThrowProficiencies: nextCharacter.savingThrowProficiencies,
+        weaponProficiencies: nextCharacter.weaponProficiencies,
+        armorProficiencies: nextCharacter.armorProficiencies,
+        toolProficiencies: nextCharacter.toolProficiencies,
+        languageProficiencies: nextCharacter.languageProficiencies
+      });
+      const cantripLimit = getCantripLimitForCharacter(
+        nextCharacter.className,
+        nextCharacter.level,
+        nextCharacter.classFeatureState
+      );
+      const cantripSelectionOptionIds = new Set(
+        getCantripSelectionOptionsForCharacter(nextCharacter.className, nextCharacter.level).map(
+          (spell) => spell.id
+        )
+      );
+
+      return {
+        ...nextCharacter,
+        ...nextProficiencies,
+        cantripIds: [...new Set(nextCharacter.cantripIds ?? [])]
+          .filter((spellId) => cantripSelectionOptionIds.has(spellId))
+          .slice(0, cantripLimit ?? Number.POSITIVE_INFINITY)
+      };
+    });
+  }
+
+  function updateClericBlessedStrikesChoice(choice: "blessed-strike" | "potent-spellcasting") {
+    onPersistCharacter((currentCharacter) =>
+      setClericBlessedStrikesChoiceForCharacter(currentCharacter, choice)
+    );
+  }
+
   function closeFeatEditor() {
     setPendingAbilityScoreImprovement(null);
     setPendingBoonOfIrresistibleOffense(null);
     setPendingEpicBoonAbilityChoice(null);
     setPendingSkilledChoice(null);
+    setFeatEditorContext({ mode: "general" });
     setIsFeatModalOpen(false);
   }
 
@@ -586,7 +836,24 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
     setPendingBoonOfIrresistibleOffense(null);
     setPendingEpicBoonAbilityChoice(null);
     setPendingSkilledChoice(null);
+    setFeatEditorContext({ mode: "general" });
     setActiveFeatCategory(FEAT_CATEGORY.GENERAL);
+    setIsFeatModalOpen(true);
+  }
+
+  function openFeatEditorForFeature(level: number, feature: CLASS_FEATURE) {
+    const linkedFeat = getLinkedFeatForFeature(level, feature);
+    const linkedFeatDefinition = linkedFeat ? getFeatDefinition(linkedFeat.feat) : null;
+
+    setPendingAbilityScoreImprovement(null);
+    setPendingBoonOfIrresistibleOffense(null);
+    setPendingEpicBoonAbilityChoice(null);
+    setPendingSkilledChoice(null);
+    setFeatEditorContext({
+      mode: "class-feature",
+      source: createClassFeatureFeatSource(level, feature)
+    });
+    setActiveFeatCategory(linkedFeatDefinition?.category ?? FEAT_CATEGORY.GENERAL);
     setIsFeatModalOpen(true);
   }
 
@@ -632,6 +899,10 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
   }
 
   function addFeat(feat: FEATS) {
+    const featSource = featEditorContext.mode === "class-feature" ? featEditorContext.source : undefined;
+    const featTakenAtLevel =
+      featEditorContext.mode === "class-feature" ? featEditorContext.source.level : character.level;
+
     if (feat === FEATS.ABILITY_SCORE_IMPROVEMENT) {
       setPendingBoonOfIrresistibleOffense(null);
       setPendingEpicBoonAbilityChoice(null);
@@ -670,7 +941,7 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
     setPendingBoonOfIrresistibleOffense(null);
     setPendingEpicBoonAbilityChoice(null);
     setPendingSkilledChoice(null);
-    updateCharacterFeats((current) => [...current, createCharacterFeatEntry(feat, character.level)]);
+    upsertFeatForContext(createCharacterFeatEntry(feat, featTakenAtLevel, { source: featSource }));
   }
 
   function savePendingAbilityScoreImprovement() {
@@ -685,12 +956,16 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
       return;
     }
 
-    updateCharacterFeats((current) => [
-      ...current,
-      createCharacterFeatEntry(FEATS.ABILITY_SCORE_IMPROVEMENT, character.level, {
+    const featSource = featEditorContext.mode === "class-feature" ? featEditorContext.source : undefined;
+    const featTakenAtLevel =
+      featEditorContext.mode === "class-feature" ? featEditorContext.source.level : character.level;
+
+    upsertFeatForContext(
+      createCharacterFeatEntry(FEATS.ABILITY_SCORE_IMPROVEMENT, featTakenAtLevel, {
+        source: featSource,
         abilityScoreImprovement: pendingAbilityScoreImprovement
       })
-    ]);
+    );
     setPendingAbilityScoreImprovement(null);
   }
 
@@ -699,12 +974,16 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
       return;
     }
 
-    updateCharacterFeats((current) => [
-      ...current,
-      createCharacterFeatEntry(FEATS.BOON_OF_IRRESISTIBLE_OFFENSE, character.level, {
+    const featSource = featEditorContext.mode === "class-feature" ? featEditorContext.source : undefined;
+    const featTakenAtLevel =
+      featEditorContext.mode === "class-feature" ? featEditorContext.source.level : character.level;
+
+    upsertFeatForContext(
+      createCharacterFeatEntry(FEATS.BOON_OF_IRRESISTIBLE_OFFENSE, featTakenAtLevel, {
+        source: featSource,
         boonOfIrresistibleOffense: pendingBoonOfIrresistibleOffense
       })
-    ]);
+    );
     setPendingBoonOfIrresistibleOffense(null);
   }
 
@@ -713,14 +992,18 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
       return;
     }
 
-    updateCharacterFeats((current) => [
-      ...current,
-      createCharacterFeatEntry(pendingEpicBoonAbilityChoice.feat, character.level, {
+    const featSource = featEditorContext.mode === "class-feature" ? featEditorContext.source : undefined;
+    const featTakenAtLevel =
+      featEditorContext.mode === "class-feature" ? featEditorContext.source.level : character.level;
+
+    upsertFeatForContext(
+      createCharacterFeatEntry(pendingEpicBoonAbilityChoice.feat, featTakenAtLevel, {
+        source: featSource,
         epicBoonAbilityChoice: {
           ability: pendingEpicBoonAbilityChoice.ability
         }
       })
-    ]);
+    );
     setPendingEpicBoonAbilityChoice(null);
   }
 
@@ -735,29 +1018,60 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
       return;
     }
 
-    const featEntry = createCharacterFeatEntry(FEATS.SKILLED, character.level, {
-      skilled
-    });
+    const featEntry = createCharacterFeatEntry(
+      FEATS.SKILLED,
+      featEditorContext.mode === "class-feature" ? featEditorContext.source.level : character.level,
+      {
+        source: featEditorContext.mode === "class-feature" ? featEditorContext.source : undefined,
+        skilled
+      }
+    );
     const { skills, tools } = splitSkilledSelections(skilled);
 
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      feats: [...(currentCharacter.feats ?? []), featEntry],
-      skillProficiencies: addFeatGrantedSkillEntries(
-        currentCharacter.skillProficiencies ?? [],
-        skills,
-        "Skilled",
-        featEntry.id
-      ),
-      toolProficiencies: addFeatGrantedToolEntries(
-        currentCharacter.toolProficiencies ?? [],
-        tools,
-        "Skilled",
-        featEntry.id
-      )
-    }));
+    onPersistCharacter((currentCharacter) => {
+      const sourceContext =
+        featEditorContext.mode === "class-feature" ? featEditorContext.source : null;
+      const existingEntries =
+        sourceContext
+          ? (currentCharacter.feats ?? []).filter((entry) =>
+              isFeatFromClassFeatureSource(entry, sourceContext.level, sourceContext.feature)
+            )
+          : [];
+      let nextCharacter = currentCharacter;
+
+      existingEntries.forEach((entry) => {
+        nextCharacter = removeSkilledProficienciesFromCharacter(nextCharacter, entry);
+      });
+
+      return {
+        ...nextCharacter,
+        feats: [
+          ...(nextCharacter.feats ?? []).filter(
+            (entry) =>
+              !(
+                sourceContext &&
+                isFeatFromClassFeatureSource(entry, sourceContext.level, sourceContext.feature)
+              )
+          ),
+          featEntry
+        ],
+        skillProficiencies: addFeatGrantedSkillEntries(
+          nextCharacter.skillProficiencies ?? [],
+          skills,
+          "Skilled",
+          featEntry.id
+        ),
+        toolProficiencies: addFeatGrantedToolEntries(
+          nextCharacter.toolProficiencies ?? [],
+          tools,
+          "Skilled",
+          featEntry.id
+        )
+      };
+    });
 
     setPendingSkilledChoice(null);
+    closeFeatEditor();
   }
 
   function toggleFeature(featureKey: string) {
@@ -777,10 +1091,37 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
       <ul className={styles.featureList}>
         {features.map((featureRow) => {
           const featureDetails = featureRow.details;
+          const isUnlocked = featureRow.level <= character.level;
           const trackingKeywordKey = getFeatureTrackingState(featureDetails);
           const trackingBadge = trackingBadgeConfig[trackingKeywordKey];
           const isFeatureExpanded = expandedFeatureKeys.includes(featureRow.key);
           const featurePanelId = `class-feature-panel-${featureRow.key}`;
+          const linkedFeat = isFeatChoiceFeature(featureRow.feature)
+            ? getLinkedFeatForFeature(featureRow.level, featureRow.feature)
+            : null;
+          const linkedFeatDefinition = linkedFeat ? getFeatDefinition(linkedFeat.feat) : null;
+          const linkedFeatSummary = linkedFeat ? getCharacterFeatSummary(linkedFeat) : null;
+          const blessedStrikesChoice =
+            featureRow.feature === CLASS_FEATURE.BLESSED_STRIKES
+              ? getClericBlessedStrikesChoiceForCharacter(character)
+              : null;
+          const isInputRequired =
+            (isUnlocked && isFeatChoiceFeature(featureRow.feature) && linkedFeat === null) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.BLESSED_STRIKES &&
+              blessedStrikesChoice === null);
+          const divineOrderChoice =
+            featureRow.feature === CLASS_FEATURE.DIVINE_ORDER
+              ? getClericDivineOrderChoiceForCharacter(character)
+              : null;
+          const divineOrderDescriptionLines =
+            featureRow.feature === CLASS_FEATURE.DIVINE_ORDER
+              ? featureDetails.description.slice(1)
+              : [];
+          const blessedStrikesDescriptionLines =
+            featureRow.feature === CLASS_FEATURE.BLESSED_STRIKES
+              ? featureDetails.description.slice(1)
+              : [];
 
           return (
             <li key={featureRow.key} className={styles.featureItem}>
@@ -804,27 +1145,175 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
                     )}
                   />
                 </button>
-                <button
-                  type="button"
-                  className={clsx(
-                    styles.featureTrackingButton,
-                    styles[trackingBadge.className]
-                  )}
-                  onClick={() => openKeyword(trackingKeywordKey)}
-                >
-                  <trackingBadge.icon size={18} aria-hidden="true" />
-                  <span>{trackingBadge.label}</span>
-                </button>
+                <div className={styles.featureHeaderActions}>
+                  {isInputRequired ? (
+                    <span className={styles.featureInputRequired}>
+                      <TriangleAlert size={16} aria-hidden="true" />
+                      INPUT REQUIRED
+                    </span>
+                  ) : null}
+                  <button
+                    type="button"
+                    className={clsx(
+                      styles.featureTrackingButton,
+                      styles[trackingBadge.className]
+                    )}
+                    onClick={() => openKeyword(trackingKeywordKey)}
+                  >
+                    <trackingBadge.icon size={18} aria-hidden="true" />
+                    <span>{trackingBadge.label}</span>
+                  </button>
+                </div>
               </div>
 
               {isFeatureExpanded ? (
                 featureDetails.description.length > 0 ? (
                   <div id={featurePanelId} className={styles.descriptionList}>
-                    {featureDetails.description.map((line, index) => (
-                      <p key={`${featureRow.key}-line-${index}`} className={styles.descriptionLine}>
-                        {renderDescriptionLine(line, openKeyword, (feat) => openFeatReference(feat))}
-                      </p>
-                    ))}
+                    {featureRow.feature === CLASS_FEATURE.DIVINE_ORDER ? (
+                      <>
+                        {featureDetails.description[0] ? (
+                          <p className={styles.descriptionLine}>
+                            {renderDescriptionLine(
+                              featureDetails.description[0],
+                              openKeyword,
+                              (feat) => openFeatReference(feat),
+                              openSpellReference,
+                              openDivinityReference
+                            )}
+                          </p>
+                        ) : null}
+                        {divineOrderDescriptionLines.map((line, index) => {
+                          const choice = index === 0 ? "protector" : "thaumaturge";
+
+                          return (
+                            <label
+                              key={`${featureRow.key}-choice-${choice}`}
+                              className={clsx(
+                                styles.featureOptionRow,
+                                !isUnlocked && styles.featureOptionRowDisabled,
+                                divineOrderChoice === choice && styles.featureOptionRowActive
+                              )}
+                            >
+                              <input
+                                type="radio"
+                                name={`divine-order-${character.id}`}
+                                checked={divineOrderChoice === choice}
+                                disabled={!isUnlocked}
+                                onChange={() => updateClericDivineOrderChoice(choice)}
+                                className={styles.featureOptionRadio}
+                              />
+                              <span className={styles.featureOptionText}>
+                                {renderDescriptionLine(
+                                  line,
+                                  openKeyword,
+                                  (feat) => openFeatReference(feat),
+                                  openSpellReference,
+                                  openDivinityReference
+                                )}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </>
+                    ) : featureRow.feature === CLASS_FEATURE.BLESSED_STRIKES ? (
+                      <>
+                        {featureDetails.description[0] ? (
+                          <p className={styles.descriptionLine}>
+                            {renderDescriptionLine(
+                              featureDetails.description[0],
+                              openKeyword,
+                              (feat) => openFeatReference(feat),
+                              openSpellReference,
+                              openDivinityReference
+                            )}
+                          </p>
+                        ) : null}
+                        {blessedStrikesDescriptionLines.map((line, index) => {
+                          const choice =
+                            index === 0 ? "blessed-strike" : "potent-spellcasting";
+
+                          return (
+                            <label
+                              key={`${featureRow.key}-choice-${choice}`}
+                              className={clsx(
+                                styles.featureOptionRow,
+                                !isUnlocked && styles.featureOptionRowDisabled,
+                                blessedStrikesChoice === choice && styles.featureOptionRowActive
+                              )}
+                            >
+                              <input
+                                type="radio"
+                                name={`blessed-strikes-${character.id}`}
+                                checked={blessedStrikesChoice === choice}
+                                disabled={!isUnlocked}
+                                onChange={() => updateClericBlessedStrikesChoice(choice)}
+                                className={styles.featureOptionRadio}
+                              />
+                              <span className={styles.featureOptionText}>
+                                {renderDescriptionLine(
+                                  line,
+                                  openKeyword,
+                                  (feat) => openFeatReference(feat),
+                                  openSpellReference,
+                                  openDivinityReference
+                                )}
+                              </span>
+                            </label>
+                          );
+                        })}
+                      </>
+                    ) : (
+                      featureDetails.description.map((line, index) => (
+                        <p key={`${featureRow.key}-line-${index}`} className={styles.descriptionLine}>
+                          {renderDescriptionLine(
+                            line,
+                            openKeyword,
+                            (feat) => openFeatReference(feat),
+                            openSpellReference,
+                            openDivinityReference
+                          )}
+                        </p>
+                      ))
+                    )}
+
+                    {isFeatChoiceFeature(featureRow.feature) ? (
+                      linkedFeat && linkedFeatDefinition ? (
+                        <div className={styles.featureChoiceRow}>
+                          <div className={styles.featureChoiceSummary}>
+                            <span className={styles.featureChoiceLabel}>Chosen feat</span>
+                            <button
+                              type="button"
+                              className={styles.featureChoiceValue}
+                              onClick={() => openFeatReference(linkedFeat.feat, linkedFeat)}
+                            >
+                              {linkedFeatDefinition.label}
+                              {linkedFeatSummary ? ` · ${linkedFeatSummary}` : ""}
+                            </button>
+                          </div>
+                          <button
+                            type="button"
+                            className={shared.editButton}
+                            disabled={!isUnlocked}
+                            onClick={() => openFeatEditorForFeature(featureRow.level, featureRow.feature)}
+                          >
+                            <Pencil size={16} />
+                            Edit
+                          </button>
+                        </div>
+                      ) : (
+                        <div className={styles.featureChoiceRow}>
+                          <button
+                            type="button"
+                            className={shared.editButton}
+                            disabled={!isUnlocked}
+                            onClick={() => openFeatEditorForFeature(featureRow.level, featureRow.feature)}
+                          >
+                            <Plus size={16} />
+                            Choose Feat
+                          </button>
+                        </div>
+                      )
+                    ) : null}
                   </div>
                 ) : (
                   <p id={featurePanelId} className={styles.emptyFeatureText}>
@@ -898,6 +1387,11 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
           const isRepeatable = Boolean(featDefinition.repeatable);
           const firstEntry = entries[0];
           const featSummary = firstEntry ? getCharacterFeatSummary(firstEntry) : null;
+          const featMetaLabel = firstEntry
+            ? isRepeatable
+              ? getFeatCategoryLabel(featDefinition.category)
+              : `${getFeatCategoryLabel(featDefinition.category)} • ${getCharacterFeatSourceLabel(firstEntry)}`
+            : getFeatCategoryLabel(featDefinition.category);
 
           return (
             <li
@@ -924,7 +1418,7 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
                   {renderTrackingButton(trackingState)}
                 </div>
               </div>
-              <p className={styles.featMeta}>{getFeatCategoryLabel(featDefinition.category)}</p>
+              <p className={styles.featMeta}>{featMetaLabel}</p>
               {isRepeatable ? (
                 <ul className={styles.featSelectedList}>
                   {entries.map((entry) => {
@@ -933,7 +1427,9 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
                     return (
                       <li key={entry.id} className={styles.featSelectedItem}>
                         <span className={styles.featSelectedText}>
-                          {summary ? `Picked: ${summary}` : "Picked"}
+                          {summary
+                            ? `Picked: ${summary} • ${getCharacterFeatSourceLabel(entry)}`
+                            : `Picked • ${getCharacterFeatSourceLabel(entry)}`}
                         </span>
                       </li>
                     );
@@ -1004,7 +1500,9 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
                     return (
                       <li key={entry.id} className={styles.featSelectedItem}>
                         <span className={styles.featSelectedText}>
-                          {summary ? `Picked: ${summary}` : "Picked"}
+                          {summary
+                            ? `Picked: ${summary} • ${getCharacterFeatSourceLabel(entry)}`
+                            : `Picked • ${getCharacterFeatSourceLabel(entry)}`}
                         </span>
                         <button
                           type="button"
@@ -1437,9 +1935,17 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
           </section>
 
           <section className={styles.subsection} aria-labelledby="character-class-features-title">
-            <h3 id="character-class-features-title" className={styles.subsectionTitle}>
-              Class Features
-            </h3>
+            <div className={styles.subsectionHeader}>
+              <h3 id="character-class-features-title" className={styles.subsectionTitle}>
+                Class Features
+              </h3>
+              {hasUnlockedInputRequiredFeature ? (
+                <span className={styles.featureInputRequired}>
+                  <TriangleAlert size={16} aria-hidden="true" />
+                  INPUT REQUIRED
+                </span>
+              ) : null}
+            </div>
 
             {unlockedFeatures.length > 0 ? (
               <>
@@ -1486,10 +1992,13 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
           >
             <div className={sheetStyles.spellManagementHeader}>
               <div className={styles.modalHeading}>
-                <h3 id="character-feat-editor-title">Edit Feats</h3>
+                <h3 id="character-feat-editor-title">
+                  {featEditorContext.mode === "class-feature" ? "Choose Feat" : "Edit Feats"}
+                </h3>
                 <p className={shared.helperText}>
-                  Always choose the appropriate feats based on your class features or your
-                  DM&apos;s instructions.
+                  {featEditorContext.mode === "class-feature"
+                    ? "Choose one feat for this class feature. Your selection will be applied immediately."
+                    : "Always choose the appropriate feats based on your class features or your DM's instructions."}
                 </p>
               </div>
               <button
@@ -1576,7 +2085,13 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
                   key={`${selectedFeatDefinition.feat}-line-${index}`}
                   className={styles.descriptionLine}
                 >
-                  {renderDescriptionLine(line, openKeyword, (feat) => openFeatReference(feat))}
+                  {renderDescriptionLine(
+                    line,
+                    openKeyword,
+                    (feat) => openFeatReference(feat),
+                    openSpellReference,
+                    openDivinityReference
+                  )}
                 </p>
               ))}
             </div>
@@ -1618,12 +2133,31 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
             <div className={styles.keywordDrawerBody}>
               {selectedKeyword.description.map((line, index) => (
                 <p key={`${selectedKeyword.key}-line-${index}`} className={styles.descriptionLine}>
-                  {renderDescriptionLine(line, openKeyword, (feat) => openFeatReference(feat))}
+                  {renderDescriptionLine(
+                    line,
+                    openKeyword,
+                    (feat) => openFeatReference(feat),
+                    openSpellReference,
+                    openDivinityReference
+                  )}
                 </p>
               ))}
             </div>
           </aside>
         </div>
+      ) : null}
+      {selectedSpellReference ? (
+        <CodexSpellDrawer
+          spell={selectedSpellReference}
+          onClose={() => setSelectedSpellReference(null)}
+        />
+      ) : null}
+      {selectedDivinityReference ? (
+        <CodexDivinityDrawer
+          divinity={selectedDivinityReference}
+          character={character}
+          onClose={() => setSelectedDivinityReference(null)}
+        />
       ) : null}
     </article>
   );

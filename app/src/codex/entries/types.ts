@@ -44,7 +44,8 @@ type EntryWithRarity = {
 };
 
 export type WeaponDamageAmount = DICE | number;
-export type WeaponDamage = Array<[WeaponDamageAmount, DAMAGE_TYPE]>;
+export type WeaponDamageType = DAMAGE_TYPE | DAMAGE_TYPE[];
+export type WeaponDamage = Array<[WeaponDamageAmount, WeaponDamageType]>;
 export type WeaponType = {
   combat: WEAPON_COMBAT_TYPE;
   training: WEAPON_TRAINING;
@@ -76,6 +77,15 @@ export type SpellDescriptionList = {
 };
 export type SpellDescriptionEntry = string | SpellDescriptionList;
 export type SpellCastingTimePart = ACTION_TYPE | string;
+export type DivinityValue = {
+  amounts: WeaponDamageAmount[];
+  damageTypes?: DAMAGE_TYPE[];
+};
+export type DivinityScalingEntry = {
+  level: number;
+  damage?: DivinityValue;
+  healing?: DivinityValue;
+};
 export type FeatureClassObj = {
   level: number;
   classFeatures: CLASS_FEATURE[];
@@ -98,6 +108,18 @@ export type SpellEntry = {
   damage: WeaponDamage;
   spellLists: SPELL_LIST_CLASS[];
   spellLevel: number;
+};
+export type DivinityEntry = {
+  id: string;
+  name: string;
+  sourceFeature: CLASS_FEATURE;
+  castingTime: SpellCastingTimePart[];
+  range: string;
+  duration: string;
+  description: SpellDescriptionEntry[];
+  damage?: DivinityValue;
+  healing?: DivinityValue;
+  scaling?: DivinityScalingEntry[];
 };
 export type WeaponEntry = Omit<BaseCodexEntry<ENTRY_CATEGORIES.WEAPONS, never>, "tags"> &
   EntryWithRarity & {

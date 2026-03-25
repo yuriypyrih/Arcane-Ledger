@@ -1,4 +1,5 @@
 import {
+  DAMAGE_TYPE,
   ENTRY_CATEGORIES,
   FEATS,
   WEAPON_COMBAT_TYPE,
@@ -8,6 +9,7 @@ import {
   type CodexEntry,
   type WeaponDamage,
   type WeaponDamageAmount,
+  type WeaponDamageType,
   type WeaponEntry
 } from "../../codex/entries";
 import type { AbilityKey, AbilityScores, Character, SkillName } from "../../types";
@@ -159,12 +161,24 @@ function formatGroupedWeaponDamageAmount(amount: WeaponDamageAmount, count: numb
   return `${count}${String(amount).toLowerCase()}`;
 }
 
+function normalizeWeaponDamageTypes(damageType: WeaponDamageType): DAMAGE_TYPE[] {
+  return Array.isArray(damageType) ? damageType : [damageType];
+}
+
+function getWeaponDamageTypeKey(damageType: WeaponDamageType): string {
+  return normalizeWeaponDamageTypes(damageType).join("/");
+}
+
+function formatWeaponDamageType(damageType: WeaponDamageType): string {
+  return normalizeWeaponDamageTypes(damageType).map((entry) => formatCodexLabel(entry)).join("/");
+}
+
 function collapseWeaponDamage(damage: WeaponDamage) {
   const countsByKey = new Map<string, number>();
   const orderedEntries: WeaponDamage = [];
 
   damage.forEach(([amount, damageType]) => {
-    const key = `${String(amount)}:${damageType}`;
+    const key = `${String(amount)}:${getWeaponDamageTypeKey(damageType)}`;
 
     if (!countsByKey.has(key)) {
       orderedEntries.push([amount, damageType]);
@@ -176,7 +190,7 @@ function collapseWeaponDamage(damage: WeaponDamage) {
 
   return orderedEntries.map(([amount, damageType]) => ({
     amount,
-    count: countsByKey.get(`${String(amount)}:${damageType}`) ?? 1,
+    count: countsByKey.get(`${String(amount)}:${getWeaponDamageTypeKey(damageType)}`) ?? 1,
     damageType
   }));
 }
@@ -191,7 +205,7 @@ function formatWeaponDamageWithMinimum(damage: WeaponDamage, minimumPerDie: numb
       const amountLabel = formatGroupedWeaponDamageAmount(amount, count);
       const minimumLabel = typeof amount === "string" ? ` (min ${minimumPerDie})` : "";
 
-      return `${amountLabel}${minimumLabel} ${formatCodexLabel(damageType)}`;
+      return `${amountLabel}${minimumLabel} ${formatWeaponDamageType(damageType)}`;
     })
     .join(" + ");
 }
@@ -333,7 +347,39 @@ export function formatAbilityModifier(modifier: number): string {
 }
 
 function getDamageBonusTotal(damageBonusEntries: FeatureDamageBonus[]): number {
-  return damageBonusEntries.reduce((total, entry) => total + entry.value, 0);
+  return damageBonusEntries.reduce((total, entry) => total + (entry.value ?? 0), 0);
+}
+
+function appendFeatureDamageBonuses(
+  baseExpression: string,
+  damageBonusEntries: FeatureDamageBonus[],
+  formatter: (entry: FeatureDamageBonus) => string | null
+): string {
+  const formattedBonuses = damageBonusEntries
+    .map((entry) => formatter(entry))
+    .filter((entry): entry is string => Boolean(entry && entry.trim().length > 0));
+
+  if (formattedBonuses.length === 0) {
+    return baseExpression;
+  }
+
+  return [baseExpression, ...formattedBonuses].join(" + ");
+}
+
+function formatFeatureDamageBonusLabel(entry: FeatureDamageBonus): string | null {
+  if (entry.displayLabel) {
+    return entry.displayLabel;
+  }
+
+  if (entry.formula) {
+    return entry.formula;
+  }
+
+  return null;
+}
+
+function formatFeatureDamageBonusFormula(entry: FeatureDamageBonus): string | null {
+  return entry.formula ?? null;
 }
 
 function createWeaponAction(
@@ -358,6 +404,21 @@ function createWeaponAction(
     ability: options.ability,
     attackKind: options.attackKind
   });
+  const damageLabel = appendFeatureDamageBonuses(
+    options.damageLabel,
+    damageBonusEntries,
+    formatFeatureDamageBonusLabel
+  );
+  const damageFormula = appendFeatureDamageBonuses(
+    options.damageFormula,
+    damageBonusEntries,
+    formatFeatureDamageBonusFormula
+  );
+  const rollFormulaBase = appendFeatureDamageBonuses(
+    options.rollFormulaBase,
+    damageBonusEntries,
+    formatFeatureDamageBonusFormula
+  );
   const totalModifier =
     options.abilityModifier + options.proficiencyBonus + getDamageBonusTotal(damageBonusEntries);
 
@@ -365,17 +426,17 @@ function createWeaponAction(
     key: options.key,
     name: options.name,
     attackKind: options.attackKind,
-    damageLabel: options.damageLabel,
-    damageFormula: options.damageFormula,
-    rollDisplay: createRollDisplay(options.damageFormula, totalModifier),
-    rollFormulaDisplay: createRollFormula(options.damageFormula, totalModifier),
+    damageLabel,
+    damageFormula,
+    rollDisplay: createRollDisplay(damageFormula, totalModifier),
+    rollFormulaDisplay: createRollFormula(damageFormula, totalModifier),
     ability: options.ability,
     abilityModifier: options.abilityModifier,
     proficiencyLabel: options.proficiencyLabel,
     proficiencyBonus: options.proficiencyBonus,
     totalModifier,
     damageBonusEntries,
-    rollFormula: createRollFormula(options.rollFormulaBase, totalModifier),
+    rollFormula: createRollFormula(rollFormulaBase, totalModifier),
     hasVersatileBonus: options.hasVersatileBonus,
     hasGreatWeaponFighting: options.hasGreatWeaponFighting
   };

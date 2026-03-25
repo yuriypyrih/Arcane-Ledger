@@ -1670,36 +1670,18 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
               </button>
             </div>
 
-            <div className={sheetStyles.spellDrawerDetails}>
-              {selectedLoadoutEntryData.category === ENTRY_CATEGORIES.WEAPONS ? (
-                <>
-                  <div className={sheetStyles.spellDrawerDetailCard}>
-                    <span>Type</span>
-                    <strong>{formatWeaponType(selectedLoadoutEntryData.type)} weapon</strong>
-                  </div>
-                  <div className={sheetStyles.spellDrawerDetailCard}>
-                    <span>Damage</span>
-                    <strong>{formatWeaponDamage(selectedLoadoutEntryData.damage)}</strong>
-                  </div>
-                  <button
-                    type="button"
-                    className={clsx(
-                      sheetStyles.spellDrawerDetailCard,
-                      styles.referenceDetailButton
-                    )}
-                    onClick={() =>
-                      openWeaponReference(
-                        "Properties",
-                        selectedLoadoutEntryData.properties.map((property) =>
-                          formatCodexLabel(property)
-                        )
-                      )
-                    }
-                  >
-                    <span>Properties</span>
-                    <strong>{formatWeaponProperties(selectedLoadoutEntryData)}</strong>
-                  </button>
-                  {selectedLoadoutEntryData.mastery ? (
+            <div className={sheetStyles.spellDrawerBody}>
+              <div className={sheetStyles.spellDrawerDetails}>
+                {selectedLoadoutEntryData.category === ENTRY_CATEGORIES.WEAPONS ? (
+                  <>
+                    <div className={sheetStyles.spellDrawerDetailCard}>
+                      <span>Type</span>
+                      <strong>{formatWeaponType(selectedLoadoutEntryData.type)} weapon</strong>
+                    </div>
+                    <div className={sheetStyles.spellDrawerDetailCard}>
+                      <span>Damage</span>
+                      <strong>{formatWeaponDamage(selectedLoadoutEntryData.damage)}</strong>
+                    </div>
                     <button
                       type="button"
                       className={clsx(
@@ -1707,91 +1689,111 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
                         styles.referenceDetailButton
                       )}
                       onClick={() =>
-                        openWeaponReference("Mastery", [
-                          formatCodexLabel(selectedLoadoutEntryData.mastery!)
-                        ])
+                        openWeaponReference(
+                          "Properties",
+                          selectedLoadoutEntryData.properties.map((property) =>
+                            formatCodexLabel(property)
+                          )
+                        )
                       }
                     >
-                      <span>
-                        {selectedWeaponMasteryStatus
-                          ? `Mastery (${selectedWeaponMasteryStatus})`
-                          : "Mastery"}
-                      </span>
-                      <strong>{formatCodexLabel(selectedLoadoutEntryData.mastery)}</strong>
+                      <span>Properties</span>
+                      <strong>{formatWeaponProperties(selectedLoadoutEntryData)}</strong>
                     </button>
-                  ) : (
+                    {selectedLoadoutEntryData.mastery ? (
+                      <button
+                        type="button"
+                        className={clsx(
+                          sheetStyles.spellDrawerDetailCard,
+                          styles.referenceDetailButton
+                        )}
+                        onClick={() =>
+                          openWeaponReference("Mastery", [
+                            formatCodexLabel(selectedLoadoutEntryData.mastery!)
+                          ])
+                        }
+                      >
+                        <span>
+                          {selectedWeaponMasteryStatus
+                            ? `Mastery (${selectedWeaponMasteryStatus})`
+                            : "Mastery"}
+                        </span>
+                        <strong>{formatCodexLabel(selectedLoadoutEntryData.mastery)}</strong>
+                      </button>
+                    ) : (
+                      <div className={sheetStyles.spellDrawerDetailCard}>
+                        <span>Mastery</span>
+                        <strong>None</strong>
+                      </div>
+                    )}
                     <div className={sheetStyles.spellDrawerDetailCard}>
-                      <span>Mastery</span>
-                      <strong>None</strong>
+                      <span>Weight</span>
+                      <strong>{formatWeaponWeight(selectedLoadoutEntryData.weight)}</strong>
                     </div>
-                  )}
+                    <div className={sheetStyles.spellDrawerDetailCard}>
+                      <span>Cost</span>
+                      <strong>
+                        {renderCurrencyDisplay(selectedLoadoutEntryData.cost, {
+                          classNames: {
+                            root: styles.drawerCurrencyDisplay,
+                            icon: styles.drawerCurrencyIcon
+                          },
+                          fontSize: "16px",
+                          color: "rgb(46, 32, 23)",
+                          fontWeight: 700
+                        })}
+                      </strong>
+                    </div>
+                  </>
+                ) : selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR && isSelectedShield ? null : (
                   <div className={sheetStyles.spellDrawerDetailCard}>
-                    <span>Weight</span>
-                    <strong>{formatWeaponWeight(selectedLoadoutEntryData.weight)}</strong>
-                  </div>
-                  <div className={sheetStyles.spellDrawerDetailCard}>
-                    <span>Cost</span>
+                    <span>Type</span>
                     <strong>
-                      {renderCurrencyDisplay(selectedLoadoutEntryData.cost, {
-                        classNames: {
-                          root: styles.drawerCurrencyDisplay,
-                          icon: styles.drawerCurrencyIcon
-                        },
-                        fontSize: "16px",
-                        color: "rgb(46, 32, 23)",
-                        fontWeight: 700
-                      })}
+                      {isSelectedCustomEntry
+                        ? selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR
+                          ? "Custom armor"
+                          : "Custom item"
+                        : selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR
+                          ? getArmorTypeSummary(selectedLoadoutEntryData)
+                          : formatCodexList(selectedLoadoutEntryData.tags)}
                     </strong>
                   </div>
-                </>
-              ) : selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR && isSelectedShield ? null : (
-                <div className={sheetStyles.spellDrawerDetailCard}>
-                  <span>Type</span>
-                  <strong>
-                    {isSelectedCustomEntry
-                      ? selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR
-                        ? "Custom armor"
-                        : "Custom item"
-                      : selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR
-                        ? getArmorTypeSummary(selectedLoadoutEntryData)
-                        : formatCodexList(selectedLoadoutEntryData.tags)}
-                  </strong>
-                </div>
-              )}
+                )}
 
-              {selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR ? (
-                <>
-                  {!isSelectedShield ? (
+                {selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR ? (
+                  <>
+                    {!isSelectedShield ? (
+                      <div className={sheetStyles.spellDrawerDetailCard}>
+                        <span>Armor base</span>
+                        <strong>{selectedLoadoutEntryData.armorBase}</strong>
+                      </div>
+                    ) : null}
+                  </>
+                ) : null}
+
+                {selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS ? (
+                  <>
                     <div className={sheetStyles.spellDrawerDetailCard}>
-                      <span>Armor base</span>
-                      <strong>{selectedLoadoutEntryData.armorBase}</strong>
+                      <span>Weight</span>
+                      <strong>{formatEquipmentWeight(selectedLoadoutEntryData.weight)}</strong>
                     </div>
-                  ) : null}
-                </>
-              ) : null}
-
-              {selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS ? (
-                <>
-                  <div className={sheetStyles.spellDrawerDetailCard}>
-                    <span>Weight</span>
-                    <strong>{formatEquipmentWeight(selectedLoadoutEntryData.weight)}</strong>
-                  </div>
-                  <div className={sheetStyles.spellDrawerDetailCard}>
-                    <span>Cost</span>
-                    <strong>
-                      {renderCurrencyDisplay(selectedLoadoutEntryData.cost, {
-                        classNames: {
-                          root: styles.drawerCurrencyDisplay,
-                          icon: styles.drawerCurrencyIcon
-                        },
-                        fontSize: "16px",
-                        color: "rgb(46, 32, 23)",
-                        fontWeight: 700
-                      })}
-                    </strong>
-                  </div>
-                </>
-              ) : null}
+                    <div className={sheetStyles.spellDrawerDetailCard}>
+                      <span>Cost</span>
+                      <strong>
+                        {renderCurrencyDisplay(selectedLoadoutEntryData.cost, {
+                          classNames: {
+                            root: styles.drawerCurrencyDisplay,
+                            icon: styles.drawerCurrencyIcon
+                          },
+                          fontSize: "16px",
+                          color: "rgb(46, 32, 23)",
+                          fontWeight: 700
+                        })}
+                      </strong>
+                    </div>
+                  </>
+                ) : null}
+              </div>
             </div>
 
             {!isCatalogDrawerInspection ? (

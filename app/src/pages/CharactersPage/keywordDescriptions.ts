@@ -75,9 +75,7 @@ export const keywordDescriptions = {
     Immunity:
       "Immunity prevents a damage type or condition from affecting you unless a rule says otherwise.",
     Aura:
-      "An aura is a passive area of influence that affects creatures, objects, or spaces around its source.",
-    Effect:
-      "An effect is an active gameplay state that changes what your character can do or how they perform."
+      "An aura is a passive area of influence that affects creatures, objects, or spaces around its source."
   },
   traits: {
     Senses:
@@ -99,9 +97,7 @@ export const keywordDescriptions = {
     Immunities:
       "Immunity entries show damage types or conditions that have no effect on you.",
     Auras:
-      "Aura entries track passive areas of influence that radiate from your character.",
-    Effects:
-      "Effect entries track active character states such as Rage that change play while they last."
+      "Aura entries track passive areas of influence that radiate from your character."
   },
   damageTypes: {
     Acid: "Corrosive damage from caustic substances, dissolving energy, or similar hazards.",
@@ -270,7 +266,6 @@ export const classFeatureKeywordAliases = [
   { matchText: "Vulnerability", keyword: "Vulnerability" },
   { matchText: "Immunity", keyword: "Immunity" },
   { matchText: "Aura", keyword: "Aura" },
-  { matchText: "Effect", keyword: "Effect" },
   { matchText: "Armor Class", keyword: "Armor Class" },
   { matchText: "Initiative", keyword: "Initiative" },
   { matchText: "Advantage", keyword: "Advantage" },

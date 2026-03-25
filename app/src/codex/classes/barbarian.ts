@@ -178,7 +178,7 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "You can imbue yourself with a primal power called <strong>Rage</strong>, a force that grants you extraordinary might and resilience. You can enter it as a Bonus Action if you aren't wearing Heavy armor.",
       "You can enter your Rage the number of times shown for your Barbarian level in the Rages column of the Barbarian Features table. You regain one expended use when you finish a <link:short-rest>Short Rest</link>, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>. <link:tracked>Tracked</link>",
       "While active, your Rage follows the rules below.",
-      "<strong>Damage Resistance.</strong> You have <link:resistance>Resistance</link> to Bludgeoning, Piercing, and Slashing damage. <link:not-tracked>Not Tracked</link>",
+      "<strong>Damage Resistance.</strong> You have <link:resistance>Resistance</link> to Bludgeoning, Piercing, and Slashing damage. <link:tracked>Tracked</link>",
       "<strong>Rage Damage.</strong> When you make an attack using Strength, with either a weapon or an Unarmed Strike, and deal damage to the target, you gain a bonus to the damage that increases as you gain levels as a Barbarian, as shown in the Rage Damage column of the Barbarian Features table. <link:tracked>Tracked</link>",
       "<strong>Strength Advantage.</strong> You have Advantage on Strength checks and Strength saving throws. <link:tracked>Tracked</link>",
       "<strong>No Concentration or Spells.</strong> You can't maintain Concentration, and you can't cast spells. <link:not-tracked>Not Tracked</link>",

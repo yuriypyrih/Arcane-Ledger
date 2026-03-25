@@ -44,7 +44,9 @@ export function filterCodexEntries(
             entry.type.combat,
             entry.mastery,
             ...entry.properties,
-            ...entry.damage.map(([, damageType]) => damageType),
+            ...entry.damage.flatMap(([, damageType]) =>
+              Array.isArray(damageType) ? damageType : [damageType]
+            ),
             ...(entry.range?.ammunition ? [entry.range.ammunition] : [])
           ]
         : [];

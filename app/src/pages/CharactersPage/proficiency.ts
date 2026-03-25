@@ -1,6 +1,7 @@
 import type {
   AbilityKey,
   ArmorProficiencyEntry,
+  CharacterClassFeatureState,
   CharacterDraft,
   CharacterEquipmentItem,
   CharacterProficiencyCollections,
@@ -43,6 +44,10 @@ import {
   getCharacterEquipmentNames,
   normalizeCharacterEquipmentItems
 } from "./inventory";
+import {
+  getFeatureArmorProficiencyEntriesForCharacter,
+  getFeatureWeaponProficiencyEntriesForCharacter
+} from "./classFeatures";
 import { formatCodexLabel } from "../../utils/codex";
 
 export const skillsOptions = ALL_SKILLS;
@@ -138,8 +143,10 @@ export type ProficiencyDisplayEntry<
 
 type NormalizeCharacterProficienciesOptions = {
   className: string;
+  level: number;
   species: string;
   background: string;
+  classFeatureState?: CharacterClassFeatureState;
   skillProficiencies?: unknown;
   savingThrowProficiencies?: unknown;
   weaponProficiencies?: unknown;
@@ -1679,13 +1686,29 @@ function getAutomaticToolEntries(
 export function getAutomaticProficiencyCollectionsForCharacter(
   className: string,
   species: string,
-  background = ""
+  background = "",
+  options?: {
+    level?: number;
+    classFeatureState?: CharacterClassFeatureState;
+  }
 ): CharacterProficiencyCollections {
+  const featureCharacter = {
+    className,
+    level: options?.level ?? 1,
+    classFeatureState: options?.classFeatureState
+  };
+
   return {
     skillProficiencies: getAutomaticSkillEntries(className, species, background),
     savingThrowProficiencies: getAutomaticSavingThrowEntries(className),
-    weaponProficiencies: getAutomaticWeaponEntries(className),
-    armorProficiencies: getAutomaticArmorEntries(className),
+    weaponProficiencies: mergeProficiencyEntries([
+      ...getAutomaticWeaponEntries(className),
+      ...getFeatureWeaponProficiencyEntriesForCharacter(featureCharacter)
+    ]),
+    armorProficiencies: mergeProficiencyEntries([
+      ...getAutomaticArmorEntries(className),
+      ...getFeatureArmorProficiencyEntriesForCharacter(featureCharacter)
+    ]),
     toolProficiencies: getAutomaticToolEntries(className, species, background),
     languageProficiencies: []
   };
@@ -1911,7 +1934,11 @@ export function normalizeCharacterProficiencies(
   const automaticCollections = getAutomaticProficiencyCollectionsForCharacter(
     options.className,
     options.species,
-    options.background
+    options.background,
+    {
+      level: options.level,
+      classFeatureState: options.classFeatureState
+    }
   );
 
   const normalizedSkillEntries = mergeProficiencyEntries([

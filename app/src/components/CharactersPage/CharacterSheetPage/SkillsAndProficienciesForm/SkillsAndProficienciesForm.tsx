@@ -46,6 +46,8 @@ import {
   type ToolProficiency
 } from "../../../../pages/CharactersPage/proficiency";
 import { getSkillRowsByAbility } from "../../../../pages/CharactersPage/skills";
+import type { SkillRow } from "../../../../pages/CharactersPage/skills";
+import { formatAbilityModifier } from "../../../../pages/CharactersPage/gameplay";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { skillColumnLayout } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
@@ -62,6 +64,7 @@ type SelectedKeyword = {
   name: string;
   description: string;
   indicators?: FeatureIndicator[];
+  detailText?: string;
 };
 
 type ProficiencyEditorTab = "skills" | "weapons" | "armor" | "tools" | "languages";
@@ -193,6 +196,22 @@ function SkillsAndProficienciesForm({
     (section) => section.entries.length > 0
   );
 
+  function formatSkillFormula(row: SkillRow): string {
+    const terms = [`${formatAbilityModifier(row.abilityModifier)} ${row.ability}`];
+
+    if (row.proficiencyMultiplier === 1) {
+      terms.push(`${formatAbilityModifier(row.proficiencyContribution)} Proficiency Bonus`);
+    } else if (row.proficiencyMultiplier === 2) {
+      terms.push(`${formatAbilityModifier(row.proficiencyContribution)} Proficiency Bonus x2`);
+    }
+
+    row.bonusEntries.forEach((entry) => {
+      terms.push(`${formatAbilityModifier(entry.value)} ${entry.label}`);
+    });
+
+    return `${row.name} ${formatAbilityModifier(row.totalModifier)} = ${terms.join(" ")}`;
+  }
+
   function syncProficiencyDraftsFromCharacter() {
     setSkillProficienciesDraft(character.skillProficiencies);
     setWeaponProficienciesDraft(character.weaponProficiencies);
@@ -298,7 +317,11 @@ function SkillsAndProficienciesForm({
     );
   }
 
-  function openKeywordReference(keyword: string, indicators?: FeatureIndicator[]) {
+  function openKeywordReference(
+    keyword: string,
+    indicators?: FeatureIndicator[],
+    detailText?: string
+  ) {
     const description = getKeywordDescription(keyword);
 
     if (!description) {
@@ -308,7 +331,8 @@ function SkillsAndProficienciesForm({
     setSelectedKeyword({
       name: keyword,
       description,
-      indicators: indicators?.length ? indicators : undefined
+      indicators: indicators?.length ? indicators : undefined,
+      detailText
     });
   }
 
@@ -522,7 +546,13 @@ function SkillsAndProficienciesForm({
                                 <button
                                   type="button"
                                   className={styles.skillNameButton}
-                                  onClick={() => openKeywordReference(row.name, skillIndicators[row.name])}
+                                  onClick={() =>
+                                    openKeywordReference(
+                                      row.name,
+                                      skillIndicators[row.name],
+                                      formatSkillFormula(row)
+                                    )
+                                  }
                                 >
                                   {row.name}
                                 </button>
@@ -707,6 +737,7 @@ function SkillsAndProficienciesForm({
                 <div className={sheetStyles.spellDrawerTitleRow}>
                   <h3 id="character-skill-reference-title">{selectedKeyword.name}</h3>
                 </div>
+                <p className={sheetStyles.spellDrawerSummary}>{selectedKeyword.description}</p>
               </div>
               {selectedKeyword.indicators?.length ? (
                 <div className={styles.referenceIndicatorStack}>
@@ -729,7 +760,16 @@ function SkillsAndProficienciesForm({
                 <X size={18} />
               </button>
             </div>
-            <p className={sheetStyles.spellDrawerSummary}>{selectedKeyword.description}</p>
+            {selectedKeyword.detailText ? (
+              <div className={sheetStyles.spellDrawerBody}>
+                <div className={sheetStyles.spellDrawerDetails}>
+                  <div className={sheetStyles.spellDrawerDetailCard}>
+                    <span>Formula</span>
+                    <strong>{selectedKeyword.detailText}</strong>
+                  </div>
+                </div>
+              </div>
+            ) : null}
           </section>
         </div>
       ) : null}

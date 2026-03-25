@@ -1,9 +1,11 @@
 import type { RoundTrackerResource } from "../combat";
 import type {
   AbilityKey,
+  ArmorProficiencyEntry,
   CharacterStatusEntry,
   CoreStats,
-  SkillName
+  SkillName,
+  WeaponProficiencyEntry
 } from "../../../types";
 
 export type FeatureActionCard = {
@@ -12,15 +14,38 @@ export type FeatureActionCard = {
   summary: string;
   detail: string;
   actionCost: RoundTrackerResource | null;
+  interaction?: "activate" | "select";
   usesLabel?: string;
   isActive?: boolean;
   disabled?: boolean;
   disabledReason?: string;
 };
 
+export type FeatureActionOptionCard = {
+  key: string;
+  name: string;
+  summary: string;
+  detail: string;
+  resultLabel?: string;
+  rangeResultLabel?: string;
+  breakdown?: string;
+  rollFormula?: string;
+  rollFormulaDisplay?: string;
+  rollDescription?: string;
+};
+
 export type FeatureDamageBonus = {
   label: string;
-  value: number;
+  value?: number;
+  formula?: string;
+  displayLabel?: string;
+};
+
+export type FeatureSkillBonus = {
+  label: string;
+  value?: number;
+  abilityModifierSource?: AbilityKey;
+  minimumValue?: number;
 };
 
 export type WeaponFeatureContext = {
@@ -84,3 +109,7 @@ export type FeatureAbilityScoreBonus = {
   maxScore?: number | null;
   order?: number;
 };
+
+export type FeatureWeaponProficiencyEntry = WeaponProficiencyEntry;
+
+export type FeatureArmorProficiencyEntry = ArmorProficiencyEntry;

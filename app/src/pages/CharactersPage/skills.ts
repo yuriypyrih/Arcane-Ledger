@@ -1,6 +1,7 @@
 import type { AbilityKey, Character, SkillName } from "../../types";
 import { getAbilityModifier, getProficiencyBonus } from "./gameplay";
 import { getAbilityScoreForCharacter } from "./abilities";
+import { getSkillBonusesForCharacter } from "./classFeatures";
 import { skillGroupsByAbility } from "./skillDefinitions";
 
 export type SkillProficiencyMultiplier = 0 | 1 | 2;
@@ -12,6 +13,11 @@ export type SkillRow = {
   abilityModifier: number;
   proficiencyBonus: number;
   proficiencyMultiplier: SkillProficiencyMultiplier;
+  proficiencyContribution: number;
+  bonusEntries: Array<{
+    label: string;
+    value: number;
+  }>;
   totalModifier: number;
 };
 
@@ -44,6 +50,28 @@ export function getSkillRowsByAbility(
           : proficientSkillSet.has(skill)
             ? 1
             : 0;
+        const proficiencyContribution = proficiencyMultiplier * proficiencyBonus;
+        const bonusEntries = getSkillBonusesForCharacter(character, skill).map((entry) => {
+          if (entry.abilityModifierSource) {
+            const sourceValue = getAbilityModifier(
+              getAbilityScoreForCharacter(character, entry.abilityModifierSource)
+            );
+
+            return {
+              label: entry.label,
+              value:
+                typeof entry.minimumValue === "number"
+                  ? Math.max(entry.minimumValue, sourceValue)
+                  : sourceValue
+            };
+          }
+
+          return {
+            label: entry.label,
+            value: entry.value ?? 0
+          };
+        });
+        const bonusTotal = bonusEntries.reduce((total, entry) => total + entry.value, 0);
 
         return {
           name: skill,
@@ -52,7 +80,9 @@ export function getSkillRowsByAbility(
           abilityModifier,
           proficiencyBonus,
           proficiencyMultiplier,
-          totalModifier: abilityModifier + proficiencyMultiplier * proficiencyBonus
+          proficiencyContribution,
+          bonusEntries,
+          totalModifier: abilityModifier + proficiencyContribution + bonusTotal
         };
       })
     };

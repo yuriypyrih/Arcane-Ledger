@@ -2,7 +2,6 @@ import clsx from "clsx";
 import type { SpellEntry } from "../../codex/entries";
 import {
   formatSpellCastingTimeSummary,
-  formatSpellComponents,
   formatSpellSubtitle
 } from "../../utils/codex";
 import styles from "./SpellListRow.module.css";
@@ -11,6 +10,7 @@ type SpellListRowProps = {
   spell: SpellEntry;
   onClick: () => void;
   className?: string;
+  valueSummary?: string;
   selectable?: boolean;
   isSelected?: boolean;
   onSelect?: () => void;
@@ -22,22 +22,27 @@ function formatSpellSummaryRange(range: string): string {
 }
 
 function formatSpellRowMeta(spell: SpellEntry): string {
-  const parts = [formatSpellCastingTimeSummary(spell.castingTime), formatSpellSummaryRange(spell.range)];
-  const componentText =
-    spell.components.length > 0 ? `(${formatSpellComponents(spell.components)})` : null;
-
-  return componentText ? `${parts.join(", ")} ${componentText}` : parts.join(", ");
+  return [
+    formatSpellCastingTimeSummary(spell.castingTime),
+    spell.duration,
+    formatSpellSummaryRange(spell.range)
+  ]
+    .filter((entry) => entry.trim().length > 0)
+    .join(", ");
 }
 
 function SpellListRow({
   spell,
   onClick,
   className,
+  valueSummary = "",
   selectable = false,
   isSelected = false,
   onSelect,
   disabled = false
 }: SpellListRowProps) {
+  const hasValueSummary = valueSummary.trim().length > 0;
+
   if (selectable) {
     return (
       <article
@@ -71,11 +76,14 @@ function SpellListRow({
         </button>
         <button type="button" className={styles.selectableDetailButton} onClick={onClick}>
           <div className={styles.selectableTextBlock}>
-            <div className={styles.topRow}>
-              <span className={styles.name}>{spell.name}</span>
+            <div className={styles.contentRow}>
+              <div className={styles.primaryBlock}>
+                <span className={styles.name}>{spell.name}</span>
+                <small className={styles.subtitle}>{formatSpellSubtitle(spell)}</small>
+              </div>
+              {hasValueSummary ? <small className={styles.outcome}>{valueSummary}</small> : <span />}
               <small className={styles.meta}>{formatSpellRowMeta(spell)}</small>
             </div>
-            <small className={styles.subtitle}>{formatSpellSubtitle(spell)}</small>
           </div>
         </button>
       </article>
@@ -84,11 +92,14 @@ function SpellListRow({
 
   return (
     <button type="button" className={clsx(styles.button, className)} onClick={onClick}>
-      <div className={styles.topRow}>
-        <span className={styles.name}>{spell.name}</span>
+      <div className={styles.contentRow}>
+        <div className={styles.primaryBlock}>
+          <span className={styles.name}>{spell.name}</span>
+          <small className={styles.subtitle}>{formatSpellSubtitle(spell)}</small>
+        </div>
+        {hasValueSummary ? <small className={styles.outcome}>{valueSummary}</small> : <span />}
         <small className={styles.meta}>{formatSpellRowMeta(spell)}</small>
       </div>
-      <small className={styles.subtitle}>{formatSpellSubtitle(spell)}</small>
     </button>
   );
 }

@@ -74,46 +74,48 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
             </button>
           </div>
 
-          <div className={sheetStyles.spellDrawerDetails}>
-            <div className={sheetStyles.spellDrawerDetailCard}>
-              <span>Casting Time</span>
-              <strong>{formatSpellCastingTime(spell.castingTime)}</strong>
+          <div className={sheetStyles.spellDrawerBody}>
+            <div className={sheetStyles.spellDrawerDetails}>
+              <div className={sheetStyles.spellDrawerDetailCard}>
+                <span>Casting Time</span>
+                <strong>{formatSpellCastingTime(spell.castingTime)}</strong>
+              </div>
+              <div className={sheetStyles.spellDrawerDetailCard}>
+                <span>Range</span>
+                <strong>{spell.range}</strong>
+              </div>
+              <button
+                type="button"
+                className={`${sheetStyles.spellDrawerDetailCard} ${styles.detailButton}`}
+                onClick={() => {
+                  if (componentsTooltipEntry) {
+                    setIsComponentsTooltipOpen(true);
+                  }
+                }}
+              >
+                <span>Components</span>
+                <strong>{formatSpellComponents(spell.components)}</strong>
+              </button>
+              <div className={sheetStyles.spellDrawerDetailCard}>
+                <span>Duration</span>
+                <strong>{spell.duration}</strong>
+              </div>
+              <div className={sheetStyles.spellDrawerDetailCard}>
+                <span>Spell Lists</span>
+                <strong>{formatCodexList(spell.spellLists)}</strong>
+              </div>
+              <div className={sheetStyles.spellDrawerDetailCard}>
+                <span>Damage</span>
+                <strong>{formatWeaponDamage(spell.damage)}</strong>
+              </div>
             </div>
-            <div className={sheetStyles.spellDrawerDetailCard}>
-              <span>Range</span>
-              <strong>{spell.range}</strong>
-            </div>
-            <button
-              type="button"
-              className={`${sheetStyles.spellDrawerDetailCard} ${styles.detailButton}`}
-              onClick={() => {
-                if (componentsTooltipEntry) {
-                  setIsComponentsTooltipOpen(true);
-                }
-              }}
-            >
-              <span>Components</span>
-              <strong>{formatSpellComponents(spell.components)}</strong>
-            </button>
-            <div className={sheetStyles.spellDrawerDetailCard}>
-              <span>Duration</span>
-              <strong>{spell.duration}</strong>
-            </div>
-            <div className={sheetStyles.spellDrawerDetailCard}>
-              <span>Spell Lists</span>
-              <strong>{formatCodexList(spell.spellLists)}</strong>
-            </div>
-            <div className={sheetStyles.spellDrawerDetailCard}>
-              <span>Damage</span>
-              <strong>{formatWeaponDamage(spell.damage)}</strong>
-            </div>
-          </div>
 
-          <SpellDescriptionContent
-            description={spell.description}
-            className={`${sheetStyles.spellDrawerDescriptionList} ${sheetStyles.spellDrawerDescriptionSection}`}
-            entryClassName={sheetStyles.spellDrawerDescriptionLine}
-          />
+            <SpellDescriptionContent
+              description={spell.description}
+              className={`${sheetStyles.spellDrawerDescriptionList} ${sheetStyles.spellDrawerDescriptionSection}`}
+              entryClassName={sheetStyles.spellDrawerDescriptionLine}
+            />
+          </div>
         </section>
       </div>
 

@@ -35,7 +35,7 @@ export const statusGroupOrder: STATUS_ENTRY_GROUP[] = [
 ];
 
 export const statusGroupTitles: Record<STATUS_ENTRY_GROUP, string> = {
-  [STATUS_ENTRY_GROUP.EFFECTS]: "Effects",
+  [STATUS_ENTRY_GROUP.EFFECTS]: "Features",
   [STATUS_ENTRY_GROUP.SENSES]: "Senses",
   [STATUS_ENTRY_GROUP.AURAS]: "Auras",
   [STATUS_ENTRY_GROUP.RESISTANCES]: "Resistances",
@@ -158,7 +158,37 @@ function normalizeStatusDuration(value: unknown): CharacterStatusDuration | null
     case STATUS_DURATION_KIND.INFINITE:
       return { kind: STATUS_DURATION_KIND.INFINITE };
     case STATUS_DURATION_KIND.CONCENTRATION:
-      return { kind: STATUS_DURATION_KIND.CONCENTRATION };
+      return {
+        kind: STATUS_DURATION_KIND.LINKED,
+        linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+        linkedValue: EFFECT_NAME.CONCENTRATION
+      };
+    case STATUS_DURATION_KIND.LINKED: {
+      const rawLinkedGroup = statusGroupValues.has(record.linkedGroup as STATUS_ENTRY_GROUP)
+        ? (record.linkedGroup as STATUS_ENTRY_GROUP)
+        : null;
+      const linkedGroup =
+        rawLinkedGroup === STATUS_ENTRY_GROUP.CONDITIONS &&
+        record.linkedValue === EFFECT_NAME.CONCENTRATION
+          ? STATUS_ENTRY_GROUP.EFFECTS
+          : rawLinkedGroup;
+
+      if (!linkedGroup) {
+        return null;
+      }
+
+      const linkedValue = normalizeStatusValue(linkedGroup, record.linkedValue);
+
+      if (!linkedValue) {
+        return null;
+      }
+
+      return {
+        kind: STATUS_DURATION_KIND.LINKED,
+        linkedGroup,
+        linkedValue
+      };
+    }
     case STATUS_DURATION_KIND.MINUTES:
       return record.amount === 10
         ? {
@@ -242,9 +272,13 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
   const record = value as Partial<CharacterStatusEntry> & {
     roundsRemaining?: unknown;
   };
-  const group = statusGroupValues.has(record.group as STATUS_ENTRY_GROUP)
+  const rawGroup = statusGroupValues.has(record.group as STATUS_ENTRY_GROUP)
     ? (record.group as STATUS_ENTRY_GROUP)
     : null;
+  const group =
+    rawGroup === STATUS_ENTRY_GROUP.CONDITIONS && record.value === EFFECT_NAME.CONCENTRATION
+      ? STATUS_ENTRY_GROUP.EFFECTS
+      : rawGroup;
 
   if (!group) {
     return null;
@@ -323,7 +357,11 @@ export function createStatusDurationFromPreset(
 ): CharacterStatusDuration {
   switch (preset) {
     case STATUS_DURATION_PRESET.CONCENTRATION:
-      return { kind: STATUS_DURATION_KIND.CONCENTRATION };
+      return {
+        kind: STATUS_DURATION_KIND.LINKED,
+        linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+        linkedValue: EFFECT_NAME.CONCENTRATION
+      };
     case STATUS_DURATION_PRESET.TEN_MINUTES:
       return { kind: STATUS_DURATION_KIND.MINUTES, amount: 10 };
     case STATUS_DURATION_PRESET.ONE_HOUR:
@@ -418,26 +456,28 @@ export function resolveCharacterStatusEntries(
     }
   });
 
-  return [
+  return pruneLinkedStatusEntries([
     ...standaloneEntries,
     ...derivedEntries.map((entry) => {
-      const durationOverride = overrideEntriesBySourceId.get(entry.id);
+      const durationOverride = overrideEntriesBySourceId.get(entry.sourceId ?? entry.id);
 
-      return durationOverride
+      return durationOverride && entry.duration.kind !== STATUS_DURATION_KIND.LINKED
         ? {
             ...entry,
             duration: durationOverride.duration
           }
         : entry;
     })
-  ];
+  ]);
 }
 
 export function removeCharacterStatusEntry(
   value: unknown,
   entryId: string
 ): CharacterStatusEntry[] {
-  return normalizeCharacterStatusEntries(value).filter((entry) => entry.id !== entryId);
+  return pruneLinkedStatusEntries(
+    normalizeCharacterStatusEntries(value).filter((entry) => entry.id !== entryId)
+  );
 }
 
 export function upsertManualStatusEntry(
@@ -456,24 +496,26 @@ export function upsertManualStatusEntry(
   );
 
   if (!existingEntry) {
-    return [
+    return ensureLinkedStatusDependencies([
       ...entries,
       createCharacterStatusEntry({
         ...nextEntry,
         sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL
       })
-    ];
+    ]);
   }
 
-  return entries.map((entry) =>
-    entry.id === existingEntry.id
-      ? {
-          ...entry,
-          source: nextEntry.source,
-          duration: nextEntry.duration,
-          rangeFeet: nextEntry.rangeFeet ?? null
-        }
-      : entry
+  return ensureLinkedStatusDependencies(
+    entries.map((entry) =>
+      entry.id === existingEntry.id
+        ? {
+            ...entry,
+            source: nextEntry.source,
+            duration: nextEntry.duration,
+            rangeFeet: nextEntry.rangeFeet ?? null
+          }
+        : entry
+    )
   );
 }
 
@@ -486,36 +528,39 @@ export function updateCharacterStatusEntryDuration(
   const storedEntry = entries.find((entry) => entry.id === entryToUpdate.id);
 
   if (storedEntry) {
-    return entries.map((entry) =>
-      entry.id === entryToUpdate.id
-        ? {
-            ...entry,
-            duration
-          }
-        : entry
+    return ensureLinkedStatusDependencies(
+      entries.map((entry) =>
+        entry.id === entryToUpdate.id
+          ? {
+              ...entry,
+              duration
+            }
+          : entry
+      )
     );
   }
 
   const existingDurationOverride = entries.find(
     (entry) =>
-      entry.sourceId === entryToUpdate.id &&
+      entry.sourceId === (entryToUpdate.sourceId ?? entryToUpdate.id) &&
       entry.sourceType === entryToUpdate.sourceType &&
-      entry.group === entryToUpdate.group &&
-      entry.value === entryToUpdate.value
+      entry.group === entryToUpdate.group
   );
 
   if (existingDurationOverride) {
-    return entries.map((entry) =>
-      entry.id === existingDurationOverride.id
-        ? {
-            ...entry,
-            duration
-          }
-        : entry
+    return ensureLinkedStatusDependencies(
+      entries.map((entry) =>
+        entry.id === existingDurationOverride.id
+          ? {
+              ...entry,
+              duration
+            }
+          : entry
+      )
     );
   }
 
-  return [
+  return ensureLinkedStatusDependencies([
     ...entries,
     createCharacterStatusEntry({
       group: entryToUpdate.group,
@@ -523,10 +568,10 @@ export function updateCharacterStatusEntryDuration(
       source: entryToUpdate.source,
       sourceType: entryToUpdate.sourceType,
       duration,
-      sourceId: entryToUpdate.id,
+      sourceId: entryToUpdate.sourceId ?? entryToUpdate.id,
       rangeFeet: entryToUpdate.rangeFeet ?? null
     })
-  ];
+  ]);
 }
 
 export function hasStatusCondition(
@@ -541,7 +586,7 @@ export function hasStatusCondition(
 }
 
 export function advanceCharacterStatusEntries(value: unknown): CharacterStatusEntry[] {
-  return normalizeCharacterStatusEntries(value).flatMap((entry) => {
+  return pruneLinkedStatusEntries(normalizeCharacterStatusEntries(value).flatMap((entry) => {
     if (entry.duration.kind !== STATUS_DURATION_KIND.ROUNDS) {
       return [entry];
     }
@@ -561,29 +606,37 @@ export function advanceCharacterStatusEntries(value: unknown): CharacterStatusEn
         }
       }
     ];
-  });
+  }));
 }
 
 export function applyShortRestToCharacterStatusEntries(value: unknown): CharacterStatusEntry[] {
-  return normalizeCharacterStatusEntries(value).filter((entry) => {
+  return pruneLinkedStatusEntries(normalizeCharacterStatusEntries(value).filter((entry) => {
     switch (entry.duration.kind) {
       case STATUS_DURATION_KIND.INFINITE:
-        return true;
+        return entry.group !== STATUS_ENTRY_GROUP.EFFECTS || entry.value !== EFFECT_NAME.CONCENTRATION;
       case STATUS_DURATION_KIND.HOURS:
         return entry.duration.amount >= 1;
       case STATUS_DURATION_KIND.MINUTES:
       case STATUS_DURATION_KIND.ROUNDS:
       case STATUS_DURATION_KIND.CONCENTRATION:
         return false;
+      case STATUS_DURATION_KIND.LINKED:
+        return true;
       default:
         return true;
     }
-  });
+  }));
 }
 
 export function applyLongRestToCharacterStatusEntries(value: unknown): CharacterStatusEntry[] {
-  return normalizeCharacterStatusEntries(value).filter(
-    (entry) => entry.duration.kind === STATUS_DURATION_KIND.INFINITE
+  return pruneLinkedStatusEntries(
+    normalizeCharacterStatusEntries(value).filter(
+      (entry) =>
+        (entry.duration.kind === STATUS_DURATION_KIND.INFINITE ||
+          entry.duration.kind === STATUS_DURATION_KIND.LINKED) &&
+        (entry.group !== STATUS_ENTRY_GROUP.EFFECTS ||
+          entry.value !== EFFECT_NAME.CONCENTRATION)
+    )
   );
 }
 
@@ -648,6 +701,8 @@ export function getStatusDurationLabel(duration: CharacterStatusDuration): strin
       return "Infinite";
     case STATUS_DURATION_KIND.CONCENTRATION:
       return "Concentration";
+    case STATUS_DURATION_KIND.LINKED:
+      return formatLinkedStatusDurationLabel(duration);
     case STATUS_DURATION_KIND.MINUTES:
       return `${duration.amount} minutes`;
     case STATUS_DURATION_KIND.HOURS:
@@ -663,6 +718,11 @@ export function getStatusDurationPreset(duration: CharacterStatusDuration): STAT
   switch (duration.kind) {
     case STATUS_DURATION_KIND.CONCENTRATION:
       return STATUS_DURATION_PRESET.CONCENTRATION;
+    case STATUS_DURATION_KIND.LINKED:
+      return duration.linkedGroup === STATUS_ENTRY_GROUP.EFFECTS &&
+        duration.linkedValue === EFFECT_NAME.CONCENTRATION
+        ? STATUS_DURATION_PRESET.CONCENTRATION
+        : STATUS_DURATION_PRESET.INFINITE;
     case STATUS_DURATION_KIND.MINUTES:
       return STATUS_DURATION_PRESET.TEN_MINUTES;
     case STATUS_DURATION_KIND.HOURS:
@@ -692,6 +752,8 @@ export function getStatusDurationShortLabel(duration: CharacterStatusDuration): 
       return null;
     case STATUS_DURATION_KIND.CONCENTRATION:
       return "Conc.";
+    case STATUS_DURATION_KIND.LINKED:
+      return formatLinkedStatusDurationLabel(duration);
     case STATUS_DURATION_KIND.MINUTES:
       return `${duration.amount}m`;
     case STATUS_DURATION_KIND.HOURS:
@@ -721,4 +783,81 @@ export function getDamageTypeOptions(): DAMAGE_TYPE[] {
 
 export function getImmunityOptions(): ImmunityValue[] {
   return [...Object.values(DAMAGE_TYPE), ...Object.values(CONDITION_NAME)];
+}
+
+function formatLinkedStatusDurationLabel(duration: Extract<CharacterStatusDuration, { kind: STATUS_DURATION_KIND.LINKED }>): string {
+  return typeof duration.linkedValue === "string"
+    ? duration.linkedValue
+    : formatCodexLabel(String(duration.linkedValue));
+}
+
+function isLinkedToConcentration(duration: CharacterStatusDuration): boolean {
+  return (
+    duration.kind === STATUS_DURATION_KIND.LINKED &&
+    duration.linkedGroup === STATUS_ENTRY_GROUP.EFFECTS &&
+    duration.linkedValue === EFFECT_NAME.CONCENTRATION
+  );
+}
+
+function isLinkedStatusEntrySatisfied(
+  entry: CharacterStatusEntry,
+  entries: CharacterStatusEntry[]
+): boolean {
+  if (entry.duration.kind !== STATUS_DURATION_KIND.LINKED) {
+    return true;
+  }
+
+  const linkedDuration = entry.duration;
+
+  return entries.some(
+    (candidate) =>
+      candidate.id !== entry.id &&
+      candidate.group === linkedDuration.linkedGroup &&
+      candidate.value === linkedDuration.linkedValue
+  );
+}
+
+function pruneLinkedStatusEntries(entries: CharacterStatusEntry[]): CharacterStatusEntry[] {
+  let currentEntries = entries;
+
+  while (true) {
+    const nextEntries = currentEntries.filter((entry) =>
+      isLinkedStatusEntrySatisfied(entry, currentEntries)
+    );
+
+    if (nextEntries.length === currentEntries.length) {
+      return nextEntries;
+    }
+
+    currentEntries = nextEntries;
+  }
+}
+
+function ensureLinkedStatusDependencies(entries: CharacterStatusEntry[]): CharacterStatusEntry[] {
+  let nextEntries = [...entries];
+  const hasConcentrationLinkedEntry = nextEntries.some((entry) => isLinkedToConcentration(entry.duration));
+  const hasConcentrationAnchor = nextEntries.some(
+    (entry) =>
+      entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+      entry.value === EFFECT_NAME.CONCENTRATION
+  );
+
+  if (hasConcentrationLinkedEntry && !hasConcentrationAnchor) {
+    const concentrationSourceEntry = nextEntries.find((entry) =>
+      isLinkedToConcentration(entry.duration)
+    );
+
+    nextEntries = [
+      ...nextEntries,
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: EFFECT_NAME.CONCENTRATION,
+        source: concentrationSourceEntry?.source ?? "Manual",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+        duration: { kind: STATUS_DURATION_KIND.INFINITE }
+      })
+    ];
+  }
+
+  return pruneLinkedStatusEntries(nextEntries);
 }

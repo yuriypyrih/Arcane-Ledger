@@ -24,6 +24,7 @@ export enum SENSE {
 }
 
 export enum EFFECT_NAME {
+  CONCENTRATION = "Concentration",
   RAGE = "Rage"
 }
 
@@ -47,6 +48,7 @@ export enum CONDITION_NAME {
 export enum STATUS_DURATION_KIND {
   INFINITE = "INFINITE",
   CONCENTRATION = "CONCENTRATION",
+  LINKED = "LINKED",
   MINUTES = "MINUTES",
   HOURS = "HOURS",
   ROUNDS = "ROUNDS"
@@ -82,12 +84,26 @@ export enum STATUS_DURATION_PRESET {
   TWENTY_ROUNDS = "TWENTY_ROUNDS"
 }
 
+export type ImmunityValue = DAMAGE_TYPE | CONDITION_NAME;
+
+export type CharacterStatusValue =
+  | SENSE
+  | EFFECT_NAME
+  | CONDITION_NAME
+  | DAMAGE_TYPE
+  | string;
+
 export type CharacterStatusDuration =
   | {
       kind: STATUS_DURATION_KIND.INFINITE;
     }
   | {
       kind: STATUS_DURATION_KIND.CONCENTRATION;
+    }
+  | {
+      kind: STATUS_DURATION_KIND.LINKED;
+      linkedGroup: STATUS_ENTRY_GROUP;
+      linkedValue: CharacterStatusValue;
     }
   | {
       kind: STATUS_DURATION_KIND.MINUTES;
@@ -101,15 +117,6 @@ export type CharacterStatusDuration =
       kind: STATUS_DURATION_KIND.ROUNDS;
       amount: number;
     };
-
-export type ImmunityValue = DAMAGE_TYPE | CONDITION_NAME;
-
-export type CharacterStatusValue =
-  | SENSE
-  | EFFECT_NAME
-  | CONDITION_NAME
-  | DAMAGE_TYPE
-  | string;
 
 export type CharacterStatusEntry = {
   id: string;

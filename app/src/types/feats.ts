@@ -1,4 +1,4 @@
-import type { FEATS } from "../codex/entries/enums";
+import type { CLASS_FEATURE, FEATS } from "../codex/entries/enums";
 import type { AbilityKey } from "./characters";
 import type { TOOL_PROFICIENCY } from "./proficiencies";
 import type { SkillName } from "./skills";
@@ -36,10 +36,21 @@ export type SkilledChoice = {
   selections: [SkilledFeatSelection, SkilledFeatSelection, SkilledFeatSelection];
 };
 
+export type CharacterFeatSource =
+  | {
+      type: "manual";
+    }
+  | {
+      type: "class-feature";
+      feature: CLASS_FEATURE;
+      level: number;
+    };
+
 export type CharacterFeatEntry = {
   id: string;
   feat: FEATS;
   takenAtLevel: number;
+  source: CharacterFeatSource;
   abilityScoreImprovement?: AbilityScoreImprovementChoice;
   boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
   epicBoonAbilityChoice?: EpicBoonAbilityChoice;

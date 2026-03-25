@@ -101,7 +101,7 @@ function createWeaponDraft(initialEquipment?: CharacterCustomEquipment | null): 
       training: initialEquipment.type.training,
       combat: initialEquipment.type.combat,
       damage: initialEquipment.damage.map(([amount, damageType]) =>
-        createDamageRowDraft(amount, damageType)
+        createDamageRowDraft(amount, Array.isArray(damageType) ? damageType[0] : damageType)
       ),
       properties: [...initialEquipment.properties],
       mastery: initialEquipment.mastery ?? "",
@@ -112,7 +112,7 @@ function createWeaponDraft(initialEquipment?: CharacterCustomEquipment | null): 
       rangeLong: initialEquipment.range?.long ?? 60,
       ammunition: initialEquipment.range?.ammunition ?? "",
       versatileDamage: initialEquipment.versatileDamage?.map(([amount, damageType]) =>
-        createDamageRowDraft(amount, damageType)
+        createDamageRowDraft(amount, Array.isArray(damageType) ? damageType[0] : damageType)
       ) ?? [createDamageRowDraft(DICE.D8, DAMAGE_TYPE.SLASHING)]
     };
   }
@@ -209,19 +209,17 @@ function getDamageAmountOptions(currentValue: string): string[] {
 }
 
 function normalizeDamageRows(rows: DamageRowDraft[]): CharacterCustomWeapon["damage"] | null {
-  const normalizedDamage = rows
-    .map((row) => {
-      const amount = parseDamageAmount(row.amount);
+  const normalizedDamage: CharacterCustomWeapon["damage"] = [];
 
-      if (!amount) {
-        return null;
-      }
+  rows.forEach((row) => {
+    const amount = parseDamageAmount(row.amount);
 
-      return [amount, row.damageType] as const;
-    })
-    .filter(
-      (damageEntry): damageEntry is CharacterCustomWeapon["damage"][number] => damageEntry !== null
-    );
+    if (!amount) {
+      return;
+    }
+
+    normalizedDamage.push([amount, [row.damageType]]);
+  });
 
   return normalizedDamage.length > 0 ? normalizedDamage : null;
 }

@@ -10,13 +10,16 @@ import {
   Sword,
   X
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { CSSProperties } from "react";
 import { useFormContext } from "react-hook-form";
 import NumberInput from "../../FormInputs/NumberInput";
 import SelectInput from "../../FormInputs/SelectInput";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
+import SpellListRow from "../../../SpellListRow";
+import CharacterSpellDrawer from "../SpellCastingForm/CharacterSpellDrawer";
+import { ACTION_TYPE, type SpellEntry } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
 import {
   consumeRoundTrackerResource,
@@ -26,12 +29,22 @@ import {
 } from "../../../../pages/CharactersPage/combat";
 import { getCombatActionsForCharacter } from "../../../../pages/CharactersPage/combatActions";
 import {
+  activateFeatureActionOptionForCharacter,
   activateFeatureActionForCharacter,
+  advanceFeatureStateForNewRound,
   applyLongRestToFeatureState,
   applyShortRestToFeatureState,
   getDerivedFeatureStatusEntriesForCharacter,
+  getFeatureActionOptionsForCharacter,
+  markFeatureWeaponBonusUseForCharacter,
+  getSpellcastingStateForCharacter,
   removeFeatureStatusEntryForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
+import {
+  divineInterventionActionKey,
+  getClericDivineInterventionEnabledLevels,
+  getClericDivineInterventionSpellEntries
+} from "../../../../pages/CharactersPage/classFeatures/cleric";
 import { getFeatDerivedStatusEntriesForCharacter } from "../../../../pages/CharactersPage/feats";
 import {
   formatAbilityModifier,
@@ -39,7 +52,13 @@ import {
   type WeaponAction
 } from "../../../../pages/CharactersPage/gameplay";
 import {
+  formatFeatureActionOptionValueLabel,
+  parseRollFormulaRange
+} from "../../../../pages/CharactersPage/actionOutcome";
+import {
   CONDITION_NAME,
+  EFFECT_NAME,
+  STATUS_DURATION_KIND,
   STATUS_DURATION_PRESET,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
@@ -50,7 +69,11 @@ import type {
   HpDraft,
   PersistCharacterUpdater
 } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
-import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
+import {
+  clampNumber,
+  formatSpellGroupTitle,
+  spellSlotLevels
+} from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import {
   advanceCharacterStatusEntries,
   applyLongRestToCharacterStatusEntries,
@@ -75,6 +98,8 @@ import {
   upsertManualStatusEntry,
   removeCharacterStatusEntry
 } from "../../../../pages/CharactersPage/traits";
+import { getSpellLevel } from "../../../../pages/CharactersPage/spellcasting";
+import { getSpellOutcomeSummaryForCharacter } from "../../../../pages/CharactersPage/spellOutcome";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./GameplayForm.module.css";
@@ -105,6 +130,7 @@ const senseOptions = getSenseOptions();
 const conditionOptions = getConditionOptions();
 const damageTypeOptions = getDamageTypeOptions();
 const immunityOptions = getImmunityOptions();
+const divineInterventionSpellLevels = [0, ...spellSlotLevels] as const;
 
 function createDefaultStatusDraftValues(): Record<TraitEditorTab, string> {
   return {
@@ -156,67 +182,6 @@ function formatProficiencyLabel(label: string): string {
     .join(" ");
 }
 
-function parseDamageFormulaRange(formula: string): { minimum: number; maximum: number } | null {
-  const normalizedFormula = formula.replace(/\s+/g, "");
-
-  if (!normalizedFormula) {
-    return null;
-  }
-
-  const terms = normalizedFormula.match(/[+-]?[^+-]+/g);
-
-  if (!terms || terms.length === 0) {
-    return null;
-  }
-
-  let minimum = 0;
-  let maximum = 0;
-
-  for (const term of terms) {
-    const sign = term.startsWith("-") ? -1 : 1;
-    const rawTerm = term.replace(/^[+-]/, "");
-    const diceMatch = rawTerm.match(/^(\d+)d(\d+)(?:m(\d+))?$/i);
-
-    if (diceMatch) {
-      const count = Number(diceMatch[1]);
-      const sides = Number(diceMatch[2]);
-      const minimumPerDie = diceMatch[3] ? Number(diceMatch[3]) : 1;
-
-      if (
-        !Number.isFinite(count) ||
-        !Number.isFinite(sides) ||
-        !Number.isFinite(minimumPerDie) ||
-        count <= 0 ||
-        sides <= 0 ||
-        minimumPerDie <= 0
-      ) {
-        return null;
-      }
-
-      if (sign > 0) {
-        minimum += count * Math.min(minimumPerDie, sides);
-        maximum += count * sides;
-      } else {
-        minimum -= count * sides;
-        maximum -= count * Math.min(minimumPerDie, sides);
-      }
-
-      continue;
-    }
-
-    const value = Number(rawTerm);
-
-    if (!Number.isFinite(value)) {
-      return null;
-    }
-
-    minimum += sign * value;
-    maximum += sign * value;
-  }
-
-  return { minimum, maximum };
-}
-
 function formatDamageExpression(damageLabel: string, modifier: number): string {
   if (modifier === 0) {
     return damageLabel;
@@ -225,12 +190,22 @@ function formatDamageExpression(damageLabel: string, modifier: number): string {
   return `${damageLabel} ${modifier > 0 ? "+" : "-"} ${Math.abs(modifier)}`;
 }
 
+function getDivineInterventionLevelGroups(spells: SpellEntry[]): Record<number, SpellEntry[]> {
+  return divineInterventionSpellLevels.reduce<Record<number, SpellEntry[]>>((groups, level) => {
+    groups[level] = spells
+      .filter((spell) => getSpellLevel(spell) === level)
+      .sort((left, right) => left.name.localeCompare(right.name));
+
+    return groups;
+  }, {});
+}
+
 function getDamageRangeLabel(
   damageLabel: string,
   modifier: number,
   fullRollFormula: string
 ): string {
-  const parsedRange = parseDamageFormulaRange(fullRollFormula);
+  const parsedRange = parseRollFormulaRange(fullRollFormula);
   const damageExpression = formatDamageExpression(damageLabel, modifier);
 
   if (!parsedRange) {
@@ -266,7 +241,12 @@ function getWeaponActionRollDescription(action: WeaponAction): string {
   }
 
   action.damageBonusEntries.forEach((entry) => {
-    segments.push(`${entry.label} ${formatAbilityModifier(entry.value)}`);
+    if (entry.value !== undefined) {
+      segments.push(`${entry.label} ${formatAbilityModifier(entry.value)}`);
+      return;
+    }
+
+    segments.push(`+ ${entry.label}`);
   });
 
   return segments.join(" | ");
@@ -290,10 +270,27 @@ function getWeaponActionBreakdown(action: WeaponAction): string {
   }
 
   action.damageBonusEntries.forEach((entry) => {
-    segments.push(`${entry.label} ${formatSignedValue(entry.value)}`);
+    if (entry.value !== undefined) {
+      segments.push(`${entry.label} ${formatSignedValue(entry.value)}`);
+      return;
+    }
+
+    segments.push(`+ ${entry.label}`);
   });
 
   return segments.join(" | ");
+}
+
+function getFeatureActionModeLabel(actionCost: RoundTrackerResource | null): string {
+  if (actionCost === "bonusAction") {
+    return "Bonus Action";
+  }
+
+  if (actionCost === "action") {
+    return "Action";
+  }
+
+  return "Free";
 }
 
 function getRoundTrackerResourceMeta(
@@ -357,7 +354,14 @@ function formatTraitEditorOptionLabel(tab: TraitEditorTab, value: string): strin
 }
 
 function isStatusEntryRemovable(entry: CharacterStatusEntry): boolean {
-  return entry.sourceType !== STATUS_ENTRY_SOURCE_TYPE.FEAT;
+  return (
+    entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.MANUAL &&
+    entry.duration.kind !== STATUS_DURATION_KIND.LINKED
+  );
+}
+
+function isStatusEntryDurationEditable(entry: CharacterStatusEntry): boolean {
+  return isStatusEntryRemovable(entry);
 }
 
 function getStatusDrawerBadgeLabel(group: STATUS_ENTRY_GROUP): string {
@@ -380,10 +384,10 @@ function getStatusDrawerBadgeLabel(group: STATUS_ENTRY_GROUP): string {
   }
 }
 
-function getExpiredFeatureOverrideValues(
+function getExpiredFeatureOverrideEntries(
   previousEntries: unknown,
   nextEntries: unknown
-): string[] {
+): CharacterStatusEntry[] {
   const nextOverrideIds = new Set(
     normalizeCharacterStatusEntries(nextEntries).map((entry) => entry.id)
   );
@@ -395,8 +399,23 @@ function getExpiredFeatureOverrideValues(
         typeof entry.sourceId === "string" &&
         entry.sourceId.length > 0 &&
         !nextOverrideIds.has(entry.id)
-    )
-    .map((entry) => String(entry.value));
+    );
+}
+
+function resolveStatusDurationPreset(
+  preset: STATUS_DURATION_PRESET,
+  group: STATUS_ENTRY_GROUP,
+  value: CharacterStatusValue
+) {
+  if (
+    preset === STATUS_DURATION_PRESET.CONCENTRATION &&
+    group === STATUS_ENTRY_GROUP.EFFECTS &&
+    value === EFFECT_NAME.CONCENTRATION
+  ) {
+    return createStatusDurationFromPreset(STATUS_DURATION_PRESET.INFINITE);
+  }
+
+  return createStatusDurationFromPreset(preset);
 }
 
 function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
@@ -424,6 +443,10 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   );
   const [selectedRoundTrackerResource, setSelectedRoundTrackerResource] =
     useState<RoundTrackerResource | null>(null);
+  const [selectedFeatureActionKey, setSelectedFeatureActionKey] = useState<string | null>(null);
+  const [selectedDivineInterventionSpell, setSelectedDivineInterventionSpell] =
+    useState<SpellEntry | null>(null);
+  const [activeDivineInterventionLevel, setActiveDivineInterventionLevel] = useState(0);
   const [lastDeathSaveRoll, setLastDeathSaveRoll] = useState<number | null>(null);
   const [lastProcessedDeathSaveRollToken, setLastProcessedDeathSaveRollToken] = useState<
     number | null
@@ -434,7 +457,8 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     isRestPopupOpen ||
     isTraitModalOpen ||
     selectedStatusEntryId !== null ||
-    selectedRoundTrackerResource !== null;
+    selectedRoundTrackerResource !== null ||
+    selectedFeatureActionKey !== null;
 
   useBodyScrollLock(hasOverlayOpen);
 
@@ -459,10 +483,16 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
 
     function handleKeyDown(event: globalThis.KeyboardEvent) {
       if (event.key === "Escape") {
+        if (selectedDivineInterventionSpell) {
+          setSelectedDivineInterventionSpell(null);
+          return;
+        }
+
         setIsRestPopupOpen(false);
         setIsTraitModalOpen(false);
         setSelectedStatusEntryId(null);
         setSelectedRoundTrackerResource(null);
+        setSelectedFeatureActionKey(null);
       }
     }
 
@@ -471,7 +501,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [hasOverlayOpen]);
+  }, [hasOverlayOpen, selectedDivineInterventionSpell]);
 
   const roundTracker = normalizeRoundTracker(character.roundTracker);
   const statusEntries = resolveCharacterStatusEntries(character.statusEntries, [
@@ -560,6 +590,10 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   const selectedStatusEntry = selectedStatusEntryId
     ? (statusEntries.find((entry) => entry.id === selectedStatusEntryId) ?? null)
     : null;
+  const hasSelectedStatusEntry = selectedStatusEntry !== null;
+  const selectedStatusEntryPreset = selectedStatusEntry
+    ? getStatusDurationPreset(selectedStatusEntry.duration)
+    : STATUS_DURATION_PRESET.INFINITE;
   const statusSections = statusGroupOrder
     .map((group) => ({
       group,
@@ -567,6 +601,55 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
       entries: statusEntries.filter((entry) => entry.group === group)
     }))
     .filter((section) => section.entries.length > 0);
+  const selectedFeatureActionEntry =
+    selectedFeatureActionKey !== null
+      ? combatActions.find(
+          (combatAction) =>
+            combatAction.kind === "feature" && combatAction.action.key === selectedFeatureActionKey
+        ) ?? null
+      : null;
+  const selectedFeatureAction =
+    selectedFeatureActionEntry?.kind === "feature" ? selectedFeatureActionEntry.action : null;
+  const selectedFeatureActionOptions =
+    selectedFeatureActionKey && selectedFeatureAction
+      ? getFeatureActionOptionsForCharacter(character, selectedFeatureActionKey)
+      : [];
+  const isDivineInterventionSelected =
+    selectedFeatureAction?.key === divineInterventionActionKey;
+  const divineInterventionEnabledLevels = useMemo(
+    () => getClericDivineInterventionEnabledLevels(character),
+    [character]
+  );
+  const divineInterventionSpellEntries = useMemo(
+    () => getClericDivineInterventionSpellEntries(character),
+    [character]
+  );
+  const divineInterventionSpellGroups = useMemo(
+    () => getDivineInterventionLevelGroups(divineInterventionSpellEntries),
+    [divineInterventionSpellEntries]
+  );
+  const firstAvailableDivineInterventionLevel = useMemo(
+    () =>
+      divineInterventionEnabledLevels.find(
+        (level) => (divineInterventionSpellGroups[level]?.length ?? 0) > 0
+      ) ?? divineInterventionEnabledLevels[0] ?? 0,
+    [divineInterventionEnabledLevels, divineInterventionSpellGroups]
+  );
+  const activeDivineInterventionSpells = useMemo(
+    () => divineInterventionSpellGroups[activeDivineInterventionLevel] ?? [],
+    [activeDivineInterventionLevel, divineInterventionSpellGroups]
+  );
+  const divineInterventionOutcomeSummariesById = useMemo(
+    () =>
+      new Map(
+        divineInterventionSpellEntries.map((spell) => [
+          spell.id,
+          getSpellOutcomeSummaryForCharacter(character, spell)
+        ])
+      ),
+    [character, divineInterventionSpellEntries]
+  );
+  const spellcastingState = getSpellcastingStateForCharacter(character);
   const selectedRoundTrackerMeta = selectedRoundTrackerResource
     ? getRoundTrackerResourceMeta(
         selectedRoundTrackerResource,
@@ -575,6 +658,18 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
           : roundTracker.bonusActionAvailable
       )
     : null;
+  const selectedDivineInterventionActionWarning =
+    selectedFeatureAction?.actionCost === "action" && !roundTracker.actionAvailable
+      ? `You already used the ${ACTION_TYPE.ACTION} for this turn`
+      : selectedFeatureAction?.actionCost === "bonusAction" && !roundTracker.bonusActionAvailable
+        ? `You already used the ${ACTION_TYPE.BONUS_ACTION} for this turn`
+        : null;
+  const selectedDivineInterventionBlockedReason =
+    selectedDivineInterventionSpell?.castingTime.includes(ACTION_TYPE.REACTION)
+      ? "Divine Intervention can't cast Reaction spells."
+      : spellcastingState.blocked
+        ? spellcastingState.reason
+        : null;
 
   useEffect(() => {
     if (!selectedStatusEntryId) {
@@ -589,14 +684,56 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   }, [selectedStatusEntry, selectedStatusEntryId]);
 
   useEffect(() => {
-    if (!selectedStatusEntry) {
+    if (!hasSelectedStatusEntry) {
       setIsEditingStatusDuration(false);
       return;
     }
 
-    setStatusDrawerDurationPreset(getStatusDurationPreset(selectedStatusEntry.duration));
+    setStatusDrawerDurationPreset(selectedStatusEntryPreset);
     setIsEditingStatusDuration(false);
-  }, [selectedStatusEntry]);
+  }, [hasSelectedStatusEntry, selectedStatusEntryId, selectedStatusEntryPreset]);
+
+  useEffect(() => {
+    if (!selectedFeatureActionKey) {
+      setSelectedDivineInterventionSpell(null);
+      return;
+    }
+
+    if (selectedFeatureAction && (selectedFeatureActionOptions.length > 0 || isDivineInterventionSelected)) {
+      return;
+    }
+
+    setSelectedDivineInterventionSpell(null);
+    setSelectedFeatureActionKey(null);
+  }, [
+    isDivineInterventionSelected,
+    selectedFeatureAction,
+    selectedFeatureActionKey,
+    selectedFeatureActionOptions.length
+  ]);
+
+  useEffect(() => {
+    if (!isDivineInterventionSelected) {
+      setSelectedDivineInterventionSpell(null);
+      return;
+    }
+
+    setActiveDivineInterventionLevel((currentLevel) => {
+      if (
+        divineInterventionEnabledLevels.includes(currentLevel) &&
+        (divineInterventionSpellGroups[currentLevel]?.length ?? 0) > 0
+      ) {
+        return currentLevel;
+      }
+
+      return firstAvailableDivineInterventionLevel;
+    });
+  }, [
+    divineInterventionEnabledLevels,
+    divineInterventionSpellGroups,
+    firstAvailableDivineInterventionLevel,
+    isDivineInterventionSelected
+  ]);
 
   function updateRoundTracker(resource: RoundTrackerResource) {
     onPersistCharacter((currentCharacter) => ({
@@ -817,7 +954,11 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     }
 
     const nextGroup = getTraitEditorGroup(activeTraitEditorTab);
-    const nextDuration = createStatusDurationFromPreset(statusDraftDurationPreset);
+    const nextDuration = resolveStatusDurationPreset(
+      statusDraftDurationPreset,
+      nextGroup,
+      selectedValue as CharacterStatusValue
+    );
 
     onPersistCharacter((currentCharacter) => {
       return {
@@ -838,7 +979,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
   function removeStatusEntry(entry: CharacterStatusEntry) {
     onPersistCharacter((currentCharacter) => {
       if (entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE) {
-        return removeFeatureStatusEntryForCharacter(currentCharacter, String(entry.value));
+        return removeFeatureStatusEntryForCharacter(currentCharacter, entry);
       }
 
       return {
@@ -855,7 +996,11 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
       return;
     }
 
-    const nextDuration = createStatusDurationFromPreset(statusDrawerDurationPreset);
+    const nextDuration = resolveStatusDurationPreset(
+      statusDrawerDurationPreset,
+      selectedStatusEntry.group,
+      selectedStatusEntry.value
+    );
 
     onPersistCharacter((currentCharacter) => ({
       ...currentCharacter,
@@ -886,21 +1031,110 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
     });
   }
 
+  function handleFeatureActionClick(
+    actionKey: string,
+    actionCost: RoundTrackerResource | null,
+    interaction: "activate" | "select" | undefined
+  ) {
+    if (interaction === "select") {
+      setSelectedFeatureActionKey(actionKey);
+      return;
+    }
+
+    activateFeatureAction(actionKey, actionCost);
+  }
+
+  function activateFeatureActionOptionSelection(
+    actionKey: string,
+    optionKey: string,
+    actionCost: RoundTrackerResource | null
+  ) {
+    const option = selectedFeatureActionOptions.find((entry) => entry.key === optionKey);
+
+    if (!option) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const nextCharacter = activateFeatureActionOptionForCharacter(currentCharacter, actionKey, optionKey);
+
+      if (nextCharacter === currentCharacter) {
+        return currentCharacter;
+      }
+
+      return actionCost
+        ? {
+            ...nextCharacter,
+            roundTracker: consumeRoundTrackerResource(nextCharacter.roundTracker, actionCost)
+          }
+        : nextCharacter;
+    });
+
+    if (option.rollFormula) {
+      openDiceRoller({
+        title: option.name,
+        formula: option.rollFormula,
+        formulaDisplay: option.rollFormulaDisplay,
+        description: option.rollDescription ?? option.detail
+      });
+    }
+
+    setSelectedFeatureActionKey(null);
+  }
+
+  function closeDivineInterventionModal() {
+    setSelectedDivineInterventionSpell(null);
+    setSelectedFeatureActionKey(null);
+  }
+
+  function useDivineInterventionSpell() {
+    if (!selectedDivineInterventionSpell || !selectedFeatureAction) {
+      return;
+    }
+
+    if (selectedDivineInterventionBlockedReason) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const nextCharacter = activateFeatureActionForCharacter(
+        currentCharacter,
+        selectedFeatureAction.key
+      );
+
+      if (nextCharacter === currentCharacter) {
+        return currentCharacter;
+      }
+
+      return selectedFeatureAction.actionCost
+        ? {
+            ...nextCharacter,
+            roundTracker: consumeRoundTrackerResource(
+              nextCharacter.roundTracker,
+              selectedFeatureAction.actionCost
+            )
+          }
+        : nextCharacter;
+    });
+
+    closeDivineInterventionModal();
+  }
+
   function finishRound() {
     onPersistCharacter((currentCharacter) => {
       const nextStatusEntries = advanceCharacterStatusEntries(currentCharacter.statusEntries);
-      const expiredFeatureOverrideValues = getExpiredFeatureOverrideValues(
+      const expiredFeatureOverrideEntries = getExpiredFeatureOverrideEntries(
         currentCharacter.statusEntries,
         nextStatusEntries
       );
-      let nextCharacter: Character = {
+      let nextCharacter: Character = advanceFeatureStateForNewRound({
         ...currentCharacter,
         roundTracker: createDefaultRoundTracker(),
         statusEntries: nextStatusEntries
-      };
+      });
 
-      expiredFeatureOverrideValues.forEach((statusValue) => {
-        nextCharacter = removeFeatureStatusEntryForCharacter(nextCharacter, statusValue);
+      expiredFeatureOverrideEntries.forEach((entry) => {
+        nextCharacter = removeFeatureStatusEntryForCharacter(nextCharacter, entry);
       });
 
       return nextCharacter;
@@ -1209,11 +1443,11 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
 
         <section className={clsx(styles.widgetCard, styles.weaponWidget)}>
           <header className={styles.widgetHeader}>
-            <p className={styles.widgetTitle}>Weapon Actions</p>
+            <p className={styles.widgetTitle}>Actions</p>
           </header>
           {combatActions.length === 0 ? (
             <p className={shared.emptyText}>
-              No combat actions available. Equip a weapon to roll attacks.
+              No actions available. Equip a weapon to roll attacks.
             </p>
           ) : (
             <div className={styles.weaponActionGrid}>
@@ -1230,7 +1464,21 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
                         formulaDisplay: combatAction.action.rollFormulaDisplay,
                         description: getWeaponActionRollDescription(combatAction.action)
                       });
-                      updateRoundTracker("action");
+                      onPersistCharacter((currentCharacter) => {
+                        const nextCharacter = combatAction.action.damageBonusEntries.reduce(
+                          (updatedCharacter, entry) =>
+                            markFeatureWeaponBonusUseForCharacter(updatedCharacter, entry.label),
+                          currentCharacter
+                        );
+
+                        return {
+                          ...nextCharacter,
+                          roundTracker: consumeRoundTrackerResource(
+                            nextCharacter.roundTracker,
+                            "action"
+                          )
+                        };
+                      });
                     }}
                   >
                     <strong>{combatAction.action.name}</strong>
@@ -1256,16 +1504,16 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
                     )}
                     disabled={combatAction.action.disabled}
                     onClick={() =>
-                      activateFeatureAction(combatAction.action.key, combatAction.action.actionCost)
+                      handleFeatureActionClick(
+                        combatAction.action.key,
+                        combatAction.action.actionCost,
+                        combatAction.action.interaction
+                      )
                     }
                   >
                     <strong>{combatAction.action.name}</strong>
                     <span className={clsx(styles.weaponActionDamageRow, styles.featureActionMeta)}>
-                      {combatAction.action.actionCost === "bonusAction"
-                        ? "Bonus Action"
-                        : combatAction.action.actionCost === "action"
-                          ? "Action"
-                          : "Free"}
+                      {getFeatureActionModeLabel(combatAction.action.actionCost)}
                       {combatAction.action.usesLabel ? ` | ${combatAction.action.usesLabel}` : ""}
                     </span>
                     <small className={styles.weaponActionBreakdownRow}>
@@ -1612,6 +1860,168 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
         </div>
       ) : null}
 
+      {selectedFeatureAction && isDivineInterventionSelected ? (
+        <div
+          className={sheetStyles.spellManagementBackdrop}
+          role="presentation"
+          onClick={closeDivineInterventionModal}
+        >
+          <section
+            className={clsx(sheetStyles.spellManagementModal, styles.featureActionModal)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="feature-action-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={sheetStyles.spellManagementHeader}>
+              <div className={styles.modalHeading}>
+                <p className={sheetStyles.eyebrow}>Cleric</p>
+                <h3 id="feature-action-modal-title">{selectedFeatureAction.name}</h3>
+                <p className={shared.helperText}>
+                  {selectedFeatureAction.detail} {selectedFeatureAction.usesLabel ?? ""}
+                </p>
+              </div>
+              <button
+                type="button"
+                className={sheetStyles.spellManagementCloseButton}
+                onClick={closeDivineInterventionModal}
+                aria-label="Close Divine Intervention"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className={styles.divineInterventionTabRow}>
+              <span className={styles.divineInterventionTabLabel}>Level</span>
+              <div
+                className={styles.divineInterventionTabList}
+                role="tablist"
+                aria-label="Divine Intervention spell levels"
+              >
+                {divineInterventionSpellLevels.map((level) => {
+                  const isDisabled = !divineInterventionEnabledLevels.includes(level);
+
+                  return (
+                    <button
+                      key={`divine-intervention-level-${level}`}
+                      type="button"
+                      role="tab"
+                      aria-selected={activeDivineInterventionLevel === level}
+                      className={clsx(
+                        styles.divineInterventionTabButton,
+                        activeDivineInterventionLevel === level &&
+                          styles.divineInterventionTabButtonActive
+                      )}
+                      onClick={() => setActiveDivineInterventionLevel(level)}
+                      disabled={isDisabled}
+                    >
+                      {level === 0 ? "C" : level}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className={clsx(sheetStyles.spellManagementList, styles.divineInterventionList)}>
+              {activeDivineInterventionSpells.length === 0 ? (
+                <p className={shared.emptyText}>
+                  No {formatSpellGroupTitle(activeDivineInterventionLevel).toLowerCase()} are
+                  available in the Cleric spell list.
+                </p>
+              ) : (
+                <ul className={styles.divineInterventionSelectionList}>
+                  {activeDivineInterventionSpells.map((spell) => (
+                    <li key={spell.id}>
+                      <SpellListRow
+                        spell={spell}
+                        onClick={() => setSelectedDivineInterventionSpell(spell)}
+                        valueSummary={divineInterventionOutcomeSummariesById.get(spell.id) ?? ""}
+                      />
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </section>
+        </div>
+      ) : selectedFeatureAction && selectedFeatureActionOptions.length > 0 ? (
+        <div
+          className={sheetStyles.spellManagementBackdrop}
+          role="presentation"
+          onClick={() => setSelectedFeatureActionKey(null)}
+        >
+          <section
+            className={clsx(sheetStyles.spellManagementModal, styles.featureActionModal)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="feature-action-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={sheetStyles.spellManagementHeader}>
+              <div className={styles.modalHeading}>
+                <p className={sheetStyles.eyebrow}>Cleric</p>
+                <h3 id="feature-action-modal-title">{selectedFeatureAction.name}</h3>
+                <p className={shared.helperText}>
+                  Choose which divine effect to channel. {selectedFeatureAction.usesLabel ?? ""}
+                </p>
+              </div>
+              <button
+                type="button"
+                className={sheetStyles.spellManagementCloseButton}
+                onClick={() => setSelectedFeatureActionKey(null)}
+                aria-label="Close feature action options"
+              >
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className={styles.featureActionOptionGrid}>
+              {selectedFeatureActionOptions.map((option) => (
+                <button
+                  key={option.key}
+                  type="button"
+                  className={clsx(styles.weaponActionButton, styles.featureActionOptionButton)}
+                  onClick={() =>
+                    activateFeatureActionOptionSelection(
+                      selectedFeatureAction.key,
+                      option.key,
+                      selectedFeatureAction.actionCost
+                    )
+                  }
+                >
+                  <strong>{option.name}</strong>
+                  <span className={styles.weaponActionDamageRow}>
+                    {formatFeatureActionOptionValueLabel(option)}
+                  </span>
+                  <small className={styles.weaponActionBreakdownRow}>
+                    {option.breakdown ?? option.summary}
+                  </small>
+                </button>
+              ))}
+            </div>
+          </section>
+        </div>
+      ) : null}
+
+      {selectedDivineInterventionSpell && selectedFeatureAction && isDivineInterventionSelected ? (
+        <CharacterSpellDrawer
+          character={character}
+          spell={selectedDivineInterventionSpell}
+          mode="divine-intervention"
+          spellSlotTotals={Array.from({ length: 9 }, () => 0)}
+          spellSlotsRemaining={Array.from({ length: 9 }, () => 0)}
+          selectedSpellSlotLevel={1}
+          onSelectedSpellSlotLevelChange={() => {}}
+          onClose={() => setSelectedDivineInterventionSpell(null)}
+          onAction={useDivineInterventionSpell}
+          actionLabel="Divine Intervention"
+          actionWarning={selectedDivineInterventionActionWarning}
+          blockedReason={selectedDivineInterventionBlockedReason}
+          actionAvailabilityText={selectedFeatureAction.usesLabel ?? null}
+          backdropClassName={styles.divineInterventionDrawerBackdrop}
+        />
+      ) : null}
+
       {selectedStatusEntry ? (
         <div
           className={sheetStyles.spellDrawerBackdrop}
@@ -1702,15 +2112,21 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
                 </div>
               ) : null}
 
-              {isEditingStatusDuration || isStatusEntryRemovable(selectedStatusEntry) ? (
+              {isEditingStatusDuration ||
+              isStatusEntryDurationEditable(selectedStatusEntry) ||
+              isStatusEntryRemovable(selectedStatusEntry) ? (
                 <div className={styles.conditionDrawerFooter}>
-                  <button
-                    type="button"
-                    className={shared.editButton}
-                    onClick={() => setIsEditingStatusDuration(true)}
-                  >
-                    Edit Duration
-                  </button>
+                  {isStatusEntryDurationEditable(selectedStatusEntry) ? (
+                    <button
+                      type="button"
+                      className={shared.editButton}
+                      onClick={() => setIsEditingStatusDuration(true)}
+                    >
+                      Edit Duration
+                    </button>
+                  ) : (
+                    <span />
+                  )}
 
                   {isStatusEntryRemovable(selectedStatusEntry) ? (
                   <button

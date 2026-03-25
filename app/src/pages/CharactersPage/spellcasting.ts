@@ -6,7 +6,9 @@ import {
   type FeatureClassObj,
   type SpellEntry
 } from "../../codex/entries";
+import type { CharacterClassFeatureState } from "../../types";
 import { getSpellEntriesForClassName } from "../../codex/classes";
+import { getCantripLimitBonusForCharacter } from "./classFeatures";
 
 const spellSlotLevels = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 
@@ -131,12 +133,26 @@ export function getPreparedSpellLimitForCharacter(className: string, level: numb
   return typeof preparedSpells === "number" ? Math.max(0, Math.floor(preparedSpells)) : null;
 }
 
-export function getPreparedSpellLevelLimitsForCharacter(className: string, level: number): number[] {
-  return getSpellSlotTotalsForCharacter(className, level);
-}
+export function getCantripLimitForCharacter(
+  className: string,
+  level: number,
+  classFeatureState?: CharacterClassFeatureState
+): number | null {
+  const cantripCount = getCantripCountForFeatureRow(getClassFeatureRowForLevel(className, level));
 
-export function getCantripLimitForCharacter(className: string, level: number): number | null {
-  return getCantripCountForFeatureRow(getClassFeatureRowForLevel(className, level));
+  if (cantripCount === null) {
+    return null;
+  }
+
+  return Math.max(
+    0,
+    cantripCount +
+      getCantripLimitBonusForCharacter({
+        className,
+        level,
+        classFeatureState
+      })
+  );
 }
 
 export function usesPreparedSpellsForCharacter(className: string, level: number): boolean {
@@ -175,15 +191,13 @@ export function getPreparedSpellSelectionOptionsForCharacter(
 export function normalizePreparedSpellIds(
   spellIds: unknown,
   availableSpells: SpellEntry[],
-  totalLimit: number | null,
-  spellLevelLimits: number[]
+  totalLimit: number | null
 ): string[] {
   const availableSpellsById = new Map(availableSpells.map((spell) => [spell.id, spell]));
   const rawSpellIds = Array.isArray(spellIds)
     ? spellIds.filter((spellId): spellId is string => typeof spellId === "string")
     : [];
   const selectedSpellIds: string[] = [];
-  const selectedSpellCountsByLevel = new Map<number, number>();
 
   for (const spellId of [...new Set(rawSpellIds)]) {
     if (totalLimit !== null && selectedSpellIds.length >= totalLimit) {
@@ -202,22 +216,18 @@ export function normalizePreparedSpellIds(
       continue;
     }
 
-    const spellLevelLimit = Math.max(0, Math.floor(spellLevelLimits[spellLevel - 1] ?? 0));
-    const selectedSpellCountAtLevel = selectedSpellCountsByLevel.get(spellLevel) ?? 0;
-
-    if (spellLevelLimit <= 0 || selectedSpellCountAtLevel >= spellLevelLimit) {
-      continue;
-    }
-
     selectedSpellIds.push(spellId);
-    selectedSpellCountsByLevel.set(spellLevel, selectedSpellCountAtLevel + 1);
   }
 
   return selectedSpellIds;
 }
 
-export function getDefaultCantripIdsForCharacter(className: string, level: number): string[] {
-  const cantripLimit = getCantripLimitForCharacter(className, level);
+export function getDefaultCantripIdsForCharacter(
+  className: string,
+  level: number,
+  classFeatureState?: CharacterClassFeatureState
+): string[] {
+  const cantripLimit = getCantripLimitForCharacter(className, level, classFeatureState);
 
   if (cantripLimit === null || cantripLimit <= 0) {
     return [];

@@ -51,13 +51,15 @@ function KeywordReferenceDrawer({
             <X size={18} />
           </button>
         </div>
-        <div className={styles.referenceList}>
-          {entries.map((entry) => (
-            <article key={entry.title} className={styles.referenceCard}>
-              <h4 className={styles.referenceTitle}>{entry.title}</h4>
-              <p className={sheetStyles.spellDrawerDescriptionLine}>{entry.description}</p>
-            </article>
-          ))}
+        <div className={sheetStyles.spellDrawerBody}>
+          <div className={styles.referenceList}>
+            {entries.map((entry) => (
+              <article key={entry.title} className={styles.referenceCard}>
+                <h4 className={styles.referenceTitle}>{entry.title}</h4>
+                <p className={sheetStyles.spellDrawerDescriptionLine}>{entry.description}</p>
+              </article>
+            ))}
+          </div>
         </div>
       </section>
     </div>

@@ -205,11 +205,9 @@
 
 .weaponActionGrid {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 0.55rem;
-  align-items: flex-start;
-  overflow-x: auto;
-  padding-bottom: 0.14rem;
+  align-items: stretch;
 }
 
 .weaponActionButton {
@@ -221,10 +219,15 @@
   color: var(--color-ink);
   cursor: pointer;
   font: inherit;
-  max-width: 100%;
   padding: 0.66rem 0.72rem;
   text-align: left;
-  width: fit-content;
+  width: 100%;
+}
+
+.weaponActionGrid > .weaponActionButton {
+  min-width: min(100%, 200px);
+  max-width: 100%;
+  width: auto;
 }
 
 .weaponActionButton:disabled {
@@ -269,6 +272,88 @@
 
 .featureActionMeta {
   color: #8a4d26;
+}
+
+.featureActionModal {
+  width: min(860px, 100%);
+}
+
+.featureActionOptionGrid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.featureActionOptionButton {
+  width: 100%;
+}
+
+.divineInterventionTabRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.divineInterventionTabLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.76rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  min-height: 48px;
+  padding-top: 0.72rem;
+  text-transform: uppercase;
+}
+
+.divineInterventionTabList {
+  display: flex;
+  gap: 0.35rem;
+  overflow-x: auto;
+  padding-bottom: 0.15rem;
+  scrollbar-width: thin;
+}
+
+.divineInterventionTabButton {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  min-height: 48px;
+  min-width: 48px;
+  padding: 0.45rem 0.5rem;
+}
+
+.divineInterventionTabButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.divineInterventionTabButtonActive {
+  background: rgba(47, 120, 255, 0.12);
+  border-color: rgba(47, 120, 255, 0.38);
+  color: var(--color-ink);
+}
+
+.divineInterventionList {
+  gap: 0.55rem;
+}
+
+.divineInterventionSelectionList {
+  display: grid;
+  gap: 0.45rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.divineInterventionDrawerBackdrop {
+  z-index: 48;
 }
 
 .roundTrackerPill {
@@ -476,7 +561,10 @@
 
 .statusDrawerBody {
   display: grid;
+  flex: 1 1 auto;
   gap: 0.8rem;
+  min-height: 0;
+  overflow: auto;
 }
 
 .statusDrawerFacts {
@@ -663,6 +751,12 @@
   }
 }
 
+@media (max-width: 720px) {
+  .featureActionOptionGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
 @media (max-width: 620px) {
   .gameplaySectionHeader {
     align-items: flex-start;
@@ -718,6 +812,15 @@
   .traitTabRow {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .divineInterventionTabRow {
+    gap: 0.5rem;
+  }
+
+  .divineInterventionTabLabel {
+    min-height: 0;
+    padding-top: 0.7rem;
   }
 
   .statusDrawerFacts {

@@ -72,6 +72,16 @@
   font-weight: 600;
 }
 
+.spellInputRequired {
+  align-items: center;
+  color: #a63729;
+  display: inline-flex;
+  font-size: 0.84rem;
+  font-weight: 600;
+  gap: 0.35rem;
+  white-space: nowrap;
+}
+
 .spellGroup {
   display: grid;
   gap: 0.45rem;
@@ -174,24 +184,11 @@
 }
 
 .preparedSpellTabIndicator {
-  display: grid;
-  gap: 0.16rem;
-  grid-template-columns: repeat(2, 0.38rem);
-  justify-content: center;
+  color: var(--color-ink-soft);
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1;
   min-height: 0.92rem;
-}
-
-.preparedSpellTabCube {
-  block-size: 0.38rem;
-  inline-size: 0.38rem;
-  border: 1px solid rgba(75, 47, 29, 0.18);
-  border-radius: 2px;
-  background: rgba(75, 47, 29, 0.06);
-}
-
-.preparedSpellTabCubeFilled {
-  background: #2f78ff;
-  border-color: #2f78ff;
 }
 
 .preparedSpellList {
@@ -245,29 +242,6 @@
   z-index: 48;
 }
 
-.previewSpellFooter {
-  display: grid;
-  gap: 0.35rem;
-  border-top: 1px solid rgba(75, 47, 29, 0.12);
-  padding-top: 0.2rem;
-}
-
-.previewSpellStatus,
-.previewSpellNote {
-  margin: 0;
-}
-
-.previewSpellStatus {
-  color: var(--color-ink);
-  font-size: 0.9rem;
-  font-weight: 600;
-}
-
-.previewSpellNote {
-  color: var(--color-ink-soft);
-  font-size: 0.86rem;
-}
-
 .componentsDrawerBackdrop {
   z-index: 49;
 }
@@ -278,7 +252,10 @@
 
 .componentsDrawerBody {
   display: grid;
+  flex: 1 1 auto;
   gap: 0.85rem;
+  min-height: 0;
+  overflow: auto;
 }
 
 @media (max-width: 860px) {

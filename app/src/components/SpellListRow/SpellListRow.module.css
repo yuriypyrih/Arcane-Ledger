@@ -1,6 +1,5 @@
 .button {
-  display: grid;
-  gap: 0.22rem;
+  display: block;
   width: 100%;
   border: 1px solid rgba(75, 47, 29, 0.16);
   border-radius: 14px;
@@ -25,11 +24,12 @@
   outline-offset: 2px;
 }
 
-.topRow {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.75rem;
+.contentRow {
+  display: grid;
+  grid-template-columns: minmax(12rem, max-content) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.9rem;
+  min-width: 0;
 }
 
 .selectableCard {
@@ -80,9 +80,14 @@
 }
 
 .selectableTextBlock {
-  display: grid;
-  gap: 0.22rem;
   min-width: 0;
+  width: 100%;
+}
+
+.primaryBlock {
+  display: grid;
+  gap: 0.16rem;
+  min-width: 11rem;
 }
 
 .selectableCheckbox {
@@ -107,14 +112,15 @@
 }
 
 .meta,
-.subtitle {
+.subtitle,
+.outcome {
   color: var(--color-ink-soft);
   font-size: 0.74rem;
   letter-spacing: 0.05em;
 }
 
 .meta {
-  flex-shrink: 0;
+  line-height: 1.35;
   text-align: right;
 }
 
@@ -122,11 +128,25 @@
   text-transform: uppercase;
 }
 
+.outcome {
+  align-self: center;
+  color: var(--color-ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  line-height: 1.35;
+  min-width: 0;
+  white-space: normal;
+}
+
 @media (max-width: 620px) {
-  .topRow {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.2rem;
+  .contentRow {
+    grid-template-columns: minmax(8rem, max-content) minmax(0, 1fr) auto;
+    gap: 0.55rem;
+  }
+
+  .primaryBlock {
+    min-width: 8rem;
   }
 
   .selectableTextBlock {
@@ -143,6 +163,11 @@
   }
 
   .meta {
-    text-align: left;
+    max-width: 7.5rem;
+    white-space: normal;
+  }
+
+  .outcome {
+    min-width: 0;
   }
 }

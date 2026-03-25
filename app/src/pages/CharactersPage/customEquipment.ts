@@ -67,7 +67,7 @@ const defaultEquipmentCost: EquipmentCost = {
   currency: CURRENCY_TYPE.GP
 };
 
-const defaultWeaponDamage: WeaponDamage = [[DICE.D6, DAMAGE_TYPE.SLASHING]];
+const defaultWeaponDamage: WeaponDamage = [[DICE.D6, [DAMAGE_TYPE.SLASHING]]];
 
 const armorTagsByType: Record<CustomArmorType, ArmorEntry["tags"]> = {
   light: [ARMOR_TYPES.LIGHT_ARMOR],
@@ -158,17 +158,25 @@ function normalizeWeaponDamage(value: unknown, fallback: WeaponDamage): WeaponDa
       }
 
       const amount = normalizeWeaponDamageAmount(damageEntry[0]);
-      const damageType = damageTypeValues.has(damageEntry[1] as DAMAGE_TYPE)
-        ? (damageEntry[1] as DAMAGE_TYPE)
-        : null;
+      const rawDamageType = damageEntry[1];
+      const damageTypes = Array.isArray(rawDamageType)
+        ? rawDamageType.filter(
+            (entry): entry is DAMAGE_TYPE =>
+              typeof entry === "string" && damageTypeValues.has(entry as DAMAGE_TYPE)
+          )
+        : damageTypeValues.has(rawDamageType as DAMAGE_TYPE)
+          ? [rawDamageType as DAMAGE_TYPE]
+          : [];
 
-      if (!amount || !damageType) {
+      if (!amount || damageTypes.length === 0) {
         return null;
       }
 
-      return [amount, damageType] as [WeaponDamageAmount, DAMAGE_TYPE];
+      return [amount, damageTypes] as [WeaponDamageAmount, DAMAGE_TYPE[]];
     })
-    .filter((damageEntry): damageEntry is [WeaponDamageAmount, DAMAGE_TYPE] => damageEntry !== null);
+    .filter(
+      (damageEntry): damageEntry is [WeaponDamageAmount, DAMAGE_TYPE[]] => damageEntry !== null
+    );
 
   return normalizedDamage.length > 0 ? normalizedDamage : fallback;
 }

@@ -86,6 +86,14 @@
   gap: 0.75rem;
 }
 
+.featureHeaderActions {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
 .featureToggleButton {
   display: flex;
   align-items: baseline;
@@ -109,7 +117,6 @@
 }
 
 .featureTrackingButton {
-  margin-left: auto;
   border: none;
   background: none;
   display: inline-flex;
@@ -142,6 +149,18 @@
   opacity: 1;
 }
 
+.featureInputRequired {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: #b54545;
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .featureToggleIcon {
   color: var(--color-ink-soft);
   flex-shrink: 0;
@@ -155,6 +174,42 @@
 .descriptionList {
   display: grid;
   gap: 0.5rem;
+}
+
+.featureOptionRow {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: start;
+  gap: 0.7rem;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.6);
+  cursor: pointer;
+  padding: 0.72rem 0.82rem;
+  transition: border-color 160ms ease;
+}
+
+.featureOptionRow:hover,
+.featureOptionRow:focus-within {
+  border-color: rgba(75, 47, 29, 0.18);
+}
+
+.featureOptionRowActive {
+  border-color: rgba(143, 91, 56, 0.42);
+}
+
+.featureOptionRowDisabled {
+  cursor: default;
+  opacity: 0.72;
+}
+
+.featureOptionRadio {
+  accent-color: var(--color-accent);
+  margin: 0.16rem 0 0;
+}
+
+.featureOptionText {
+  min-width: 0;
 }
 
 .descriptionLine {
@@ -189,9 +244,52 @@
   color: var(--color-ink-soft);
 }
 
+.featureChoiceRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.8rem;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.75rem 0.85rem;
+}
+
+.featureChoiceSummary {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.featureChoiceLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.featureChoiceValue {
+  border: none;
+  background: none;
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  min-width: 0;
+  padding: 0;
+  text-align: left;
+}
+
+.featureChoiceValue:hover {
+  color: #6f3d1b;
+}
+
 .keywordDrawerBody {
   display: grid;
+  flex: 1 1 auto;
   gap: 0.85rem;
+  min-height: 0;
+  overflow: auto;
 }
 
 .featReferenceSummary {
@@ -596,6 +694,16 @@
 
   .featureTrackingButton {
     margin-left: 0;
+  }
+
+  .featureHeaderActions,
+  .featureChoiceRow {
+    width: 100%;
+  }
+
+  .featureChoiceRow {
+    align-items: flex-start;
+    flex-wrap: wrap;
   }
 
   .subsectionHeader,

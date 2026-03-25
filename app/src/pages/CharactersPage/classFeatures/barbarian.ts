@@ -1,5 +1,5 @@
 import { barbarianFeatures } from "../../../codex/classes";
-import { CLASS_FEATURE } from "../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../codex/entries";
 import type { BarbarianFeatureClassObj } from "../../../types";
 import {
   CONDITION_NAME,
@@ -31,6 +31,7 @@ import type {
 } from "./types";
 
 const rageConditionName = EFFECT_NAME.RAGE;
+const rageStatusSourceId = "feature-rage";
 const rageAdvantageIndicator: FeatureIndicator = {
   label: "Advantage",
   tone: "advantage",
@@ -176,7 +177,7 @@ export function getBarbarianFeatureAction(
     name: "Rage",
     summary: rageState.active ? "Active" : "Enter a primal rage.",
     detail: rageState.active
-      ? "Strength-based weapon and unarmed damage are empowered, and Strength checks and saves show Advantage."
+      ? "Strength-based weapon and unarmed damage are empowered, Strength checks and saves show Advantage, and you gain resistance to bludgeoning, piercing, and slashing damage."
       : "Use a Bonus Action to activate Rage and gain your Barbarian Rage bonuses.",
     actionCost: "bonusAction",
     usesLabel: `${usesRemaining}/${totalUses} uses`,
@@ -347,19 +348,59 @@ export function getBarbarianDerivedConditions(
     return [];
   }
 
-    return [
-      {
-        id: "feature-rage",
-        group: STATUS_ENTRY_GROUP.EFFECTS,
-        value: rageConditionName,
-        source: "Barbarian",
-        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
-        duration: {
-          kind: STATUS_DURATION_KIND.MINUTES,
-          amount: 10
-        }
+  return [
+    {
+      id: "feature-rage-effect",
+      sourceId: rageStatusSourceId,
+      group: STATUS_ENTRY_GROUP.EFFECTS,
+      value: rageConditionName,
+      source: "Barbarian",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.MINUTES,
+        amount: 10
       }
-    ];
+    },
+    {
+      id: "feature-rage-resistance-bludgeoning",
+      sourceId: rageStatusSourceId,
+      group: STATUS_ENTRY_GROUP.RESISTANCES,
+      value: DAMAGE_TYPE.BLUDGEONING,
+      source: "Barbarian",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.LINKED,
+        linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+        linkedValue: EFFECT_NAME.RAGE
+      }
+    },
+    {
+      id: "feature-rage-resistance-piercing",
+      sourceId: rageStatusSourceId,
+      group: STATUS_ENTRY_GROUP.RESISTANCES,
+      value: DAMAGE_TYPE.PIERCING,
+      source: "Barbarian",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.LINKED,
+        linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+        linkedValue: EFFECT_NAME.RAGE
+      }
+    },
+    {
+      id: "feature-rage-resistance-slashing",
+      sourceId: rageStatusSourceId,
+      group: STATUS_ENTRY_GROUP.RESISTANCES,
+      value: DAMAGE_TYPE.SLASHING,
+      source: "Barbarian",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.LINKED,
+        linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+        linkedValue: EFFECT_NAME.RAGE
+      }
+    }
+  ];
 }
 
 export function activateBarbarianRage(character: Character): Character {

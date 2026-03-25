@@ -1,6 +1,7 @@
 import {
   ACTION_TYPE,
   ABILITY_TYPES,
+  DAMAGE_TYPE,
   DICE,
   DICE_TYPES,
   SPELL_COMPONENT,
@@ -9,8 +10,11 @@ import {
   type SpellEntry,
   type SpellCastingTimePart,
   type EquipmentCost,
+  type DivinityEntry,
+  type DivinityValue,
   type WeaponDamage,
   type WeaponDamageAmount,
+  type WeaponDamageType,
   type WeaponEntry,
   type WeaponRange,
   type WeaponType
@@ -136,12 +140,32 @@ function formatGroupedWeaponDamageAmount(amount: WeaponDamageAmount, count: numb
   return `${count}${String(amount).toLowerCase()}`;
 }
 
+function normalizeWeaponDamageTypes(damageType: WeaponDamageType): DAMAGE_TYPE[] {
+  return Array.isArray(damageType) ? damageType : [damageType];
+}
+
+function formatGroupedAmount(amount: WeaponDamageAmount, count: number): string {
+  if (typeof amount === "number") {
+    return `${amount * count}`;
+  }
+
+  return `${count}${String(amount).toLowerCase()}`;
+}
+
+function getWeaponDamageTypeKey(damageType: WeaponDamageType): string {
+  return normalizeWeaponDamageTypes(damageType).join("/");
+}
+
+function formatWeaponDamageType(damageType: WeaponDamageType): string {
+  return normalizeWeaponDamageTypes(damageType).map((entry) => formatCodexLabel(entry)).join("/");
+}
+
 function collapseWeaponDamage(damage: WeaponDamage) {
   const countsByKey = new Map<string, number>();
   const orderedEntries: WeaponDamage = [];
 
   damage.forEach(([amount, damageType]) => {
-    const key = `${String(amount)}:${damageType}`;
+    const key = `${String(amount)}:${getWeaponDamageTypeKey(damageType)}`;
 
     if (!countsByKey.has(key)) {
       orderedEntries.push([amount, damageType]);
@@ -153,7 +177,7 @@ function collapseWeaponDamage(damage: WeaponDamage) {
 
   return orderedEntries.map(([amount, damageType]) => ({
     amount,
-    count: countsByKey.get(`${String(amount)}:${damageType}`) ?? 1,
+    count: countsByKey.get(`${String(amount)}:${getWeaponDamageTypeKey(damageType)}`) ?? 1,
     damageType
   }));
 }
@@ -171,7 +195,7 @@ export function formatWeaponDamage(damage: WeaponDamage): string {
   return collapseWeaponDamage(damage)
     .map(
       ({ amount, count, damageType }) =>
-        `${formatGroupedWeaponDamageAmount(amount, count)} ${formatCodexLabel(damageType)}`
+        `${formatGroupedWeaponDamageAmount(amount, count)} ${formatWeaponDamageType(damageType)}`
     )
     .join(" + ");
 }
@@ -184,6 +208,40 @@ export function formatWeaponDamageFormula(damage: WeaponDamage): string {
   return collapseWeaponDamage(damage)
     .map(({ amount, count }) => formatGroupedWeaponDamageAmount(amount, count))
     .join(" + ");
+}
+
+export function formatDivinityValueFormula(value: DivinityValue): string {
+  const countsByAmount = new Map<string, number>();
+  const orderedAmounts: WeaponDamageAmount[] = [];
+
+  value.amounts.forEach((amount) => {
+    const key = String(amount);
+
+    if (!countsByAmount.has(key)) {
+      orderedAmounts.push(amount);
+      countsByAmount.set(key, 0);
+    }
+
+    countsByAmount.set(key, (countsByAmount.get(key) ?? 0) + 1);
+  });
+
+  return orderedAmounts
+    .map((amount) => formatGroupedAmount(amount, countsByAmount.get(String(amount)) ?? 1))
+    .join(" + ");
+}
+
+export function formatDivinityValue(value: DivinityValue): string {
+  const baseFormula = formatDivinityValueFormula(value);
+
+  if (!value.damageTypes || value.damageTypes.length === 0) {
+    return baseFormula;
+  }
+
+  return `${baseFormula} ${value.damageTypes.map((type) => formatCodexLabel(type)).join("/")}`;
+}
+
+export function formatDivinitySubtitle(divinity: Pick<DivinityEntry, "sourceFeature">): string {
+  return formatCodexLabel(divinity.sourceFeature);
 }
 
 export function formatWeaponType(weaponType: WeaponType): string {

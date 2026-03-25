@@ -408,22 +408,32 @@
 }
 
 .spellDrawer {
-  display: grid;
-  align-content: start;
+  display: flex;
+  flex-direction: column;
   gap: 0.92rem;
   width: min(920px, 100%);
-  max-height: min(88vh, 760px);
+  max-height: min(92vh, 860px);
   border: 1px solid rgba(75, 47, 29, 0.22);
   border-radius: 24px 24px 18px 18px;
   background: linear-gradient(160deg, rgba(255, 252, 245, 0.99), rgba(245, 234, 218, 0.99));
   box-shadow: 0 28px 70px rgba(32, 18, 12, 0.35);
-  overflow: auto;
+  overflow: hidden;
   padding: 0.95rem;
   animation: drawerSlideUp 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
+.spellDrawerBody {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 0.92rem;
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.12rem;
+}
+
 .spellDrawerHandle {
-  justify-self: center;
+  align-self: center;
   border-radius: 999px;
   background: rgba(75, 47, 29, 0.2);
   block-size: 5px;
@@ -435,6 +445,11 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: linear-gradient(160deg, rgba(255, 252, 245, 0.99), rgba(245, 234, 218, 0.99));
+  padding-bottom: 0.2rem;
 }
 
 .spellDrawerHeaderContent {
@@ -526,6 +541,12 @@
   align-items: flex-end;
   justify-content: space-between;
   gap: 0.85rem;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  border-top: 1px solid rgba(75, 47, 29, 0.12);
+  background: linear-gradient(160deg, rgba(255, 252, 245, 0.99), rgba(245, 234, 218, 0.99));
+  padding-top: 0.8rem;
 }
 
 .spellDrawerCastControls {

@@ -1,5 +1,5 @@
 import type { FeatureMapEntry, FeatureTrackingState } from "../../codex/entries";
-import { FEAT_CATEGORY, FEATS } from "../../codex/entries";
+import { CLASS_FEATURE, FEAT_CATEGORY, FEATS } from "../../codex/entries";
 import { ALL_SKILLS, TOOL_PROFICIENCY } from "../../types";
 import type {
   AbilityKey,
@@ -17,6 +17,7 @@ import {
 import type {
   AbilityScoreImprovementChoice,
   BoonOfIrresistibleOffenseChoice,
+  CharacterFeatSource,
   EpicBoonAbilityChoice,
   SkilledChoice,
   SkilledFeatSelection
@@ -246,10 +247,10 @@ export const featDefinitions: FeatDefinition[] = [
     prerequisite: "Level 19+",
     description: [
       "You gain the following benefits.",
-      "<strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30. <link:tracked>Tracked</link>",
-      "<strong>Truesight.</strong> You have Truesight with a range of 60 feet. <link:tracked>Tracked</link>"
+      "<strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30.",
+      "<strong>Truesight.</strong> You have Truesight with a range of 60 feet."
     ],
-    trackingState: "semi-tracked"
+    trackingState: "tracked"
   }
 ];
 
@@ -267,6 +268,34 @@ function clampFeatLevel(value: unknown, fallback: number): number {
   }
 
   return Math.max(1, Math.min(20, Math.floor(parsed)));
+}
+
+function normalizeCharacterFeatSource(value: unknown, takenAtLevel: number): CharacterFeatSource {
+  if (!value || typeof value !== "object") {
+    return {
+      type: "manual"
+    };
+  }
+
+  const record = value as Partial<CharacterFeatSource>;
+
+  if (record.type !== "class-feature") {
+    return {
+      type: "manual"
+    };
+  }
+
+  if (typeof record.feature !== "string") {
+    return {
+      type: "manual"
+    };
+  }
+
+  return {
+    type: "class-feature",
+    feature: record.feature as CLASS_FEATURE,
+    level: clampFeatLevel(record.level, takenAtLevel)
+  };
 }
 
 function normalizeAbilityScoreImprovementChoice(
@@ -444,6 +473,7 @@ export function normalizeCharacterFeats(value: unknown, currentLevel: number): C
             : `${createFeatEntryId(feat)}-${index}`,
         feat,
         takenAtLevel: clampFeatLevel(record.takenAtLevel, currentLevel),
+        source: normalizeCharacterFeatSource(record.source, clampFeatLevel(record.takenAtLevel, currentLevel)),
         abilityScoreImprovement,
         boonOfIrresistibleOffense,
         epicBoonAbilityChoice,
@@ -457,6 +487,7 @@ export function createCharacterFeatEntry(
   feat: FEATS,
   takenAtLevel: number,
   options?: {
+    source?: CharacterFeatSource;
     abilityScoreImprovement?: AbilityScoreImprovementChoice;
     boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
     epicBoonAbilityChoice?: EpicBoonAbilityChoice;
@@ -467,6 +498,7 @@ export function createCharacterFeatEntry(
     id: createFeatEntryId(feat),
     feat,
     takenAtLevel: clampFeatLevel(takenAtLevel, takenAtLevel),
+    source: options?.source ?? { type: "manual" },
     abilityScoreImprovement:
       feat === FEATS.ABILITY_SCORE_IMPROVEMENT ? options?.abilityScoreImprovement : undefined,
     boonOfIrresistibleOffense:
@@ -490,6 +522,18 @@ export function getFeatLabel(feat: FEATS): string {
 
 export function getFeatCategoryLabel(category: FEAT_CATEGORY): string {
   return formatCodexLabel(category);
+}
+
+export function getCharacterFeatSourceLabel(entry: CharacterFeatEntry): string {
+  if (entry.source.type === "manual") {
+    return "MANUAL";
+  }
+
+  if (entry.source.feature === CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT) {
+    return `Level ${entry.source.level}: ASI`;
+  }
+
+  return `Level ${entry.source.level}: ${formatCodexLabel(entry.source.feature)}`;
 }
 
 export function isFeatRepeatable(feat: FEATS): boolean {

@@ -94,7 +94,7 @@ export function getFeatureTrackingState(feature: FeatureMapEntry): FeatureTracki
 const commonFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   [CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT]: {
     description: ["You gain the Ability Score Improvement feat, or another feat of your choice for which you qualify."],
-    isTracked: false
+    trackingState: "tracked"
   },
   [CLASS_FEATURE.SUBCLASS_FEATURE]: {
     description: ["You gain a feature from your chosen subclass."],
