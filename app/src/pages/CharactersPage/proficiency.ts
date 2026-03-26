@@ -52,6 +52,7 @@ import {
 } from "./inventory";
 import {
   getFeatureSkillProficiencyEntriesForCharacter,
+  getFeatureSavingThrowProficiencyEntriesForCharacter,
   getFeatureArmorProficiencyEntriesForCharacter,
   getFeatureLanguageProficiencyEntriesForCharacter,
   getFeatureWeaponProficiencyEntriesForCharacter
@@ -1575,6 +1576,10 @@ export function getWeaponProficiencyOptionsForClass(className?: string): WEAPON_
   return weaponProficiencyOptions.filter((proficiency) => !isMonkOnlyWeaponProficiency(proficiency));
 }
 
+export function getEditableWeaponProficiencyOptions(): WEAPON_PROFICIENCY[] {
+  return weaponProficiencyOptions.filter((proficiency) => !isMonkOnlyWeaponProficiency(proficiency));
+}
+
 export function isWeaponMasteryProficiency(proficiency: WEAPON_PROFICIENCY): boolean {
   return ![
     WEAPON_PROFICIENCY.SIMPLE,
@@ -1979,7 +1984,10 @@ export function getAutomaticProficiencyCollectionsForCharacter(
       ...getAutomaticSkillEntries(className, species, background),
       ...getFeatureSkillProficiencyEntriesForCharacter(featureCharacter)
     ]),
-    savingThrowProficiencies: getAutomaticSavingThrowEntries(className),
+    savingThrowProficiencies: mergeProficiencyEntries([
+      ...getAutomaticSavingThrowEntries(className),
+      ...getFeatureSavingThrowProficiencyEntriesForCharacter(featureCharacter)
+    ]),
     weaponProficiencies: mergeProficiencyEntries([
       ...getAutomaticWeaponEntries(className),
       ...getFeatureWeaponProficiencyEntriesForCharacter(featureCharacter)
@@ -2440,6 +2448,13 @@ export function getLanguageLevelFromEntries(
 export function hasLockedSkillEntry(
   entries: SkillProficiencyEntry[],
   proficiency: SKILL_PROFICIENCY
+): boolean {
+  return hasLockedNonManualPositiveEntry(entries, proficiency);
+}
+
+export function hasLockedSavingThrowEntry(
+  entries: SavingThrowProficiencyEntry[],
+  proficiency: SAVING_THROW_PROFICIENCY
 ): boolean {
   return hasLockedNonManualPositiveEntry(entries, proficiency);
 }

@@ -25,7 +25,9 @@ import {
   canUseMonkMartialArtsForCharacter,
   getWeaponActionEconomyMultiForCharacter,
   getFeatureDamageBonusesForWeaponAction,
+  getMonkFlurryOfBlowsAttackMultiCountForCharacter,
   getMonkMartialArtsDieForCharacter,
+  getMonkUnarmedDamageTypeLabelForCharacter,
   type FeatureDamageBonus
 } from "./classFeatures";
 import {
@@ -658,12 +660,13 @@ function createUnarmedStrikeAction(
   const damageFormula = options?.martialArtsDie
     ? `1${String(options.martialArtsDie).toLowerCase()}`
     : "1";
+  const damageTypeLabel = getMonkUnarmedDamageTypeLabelForCharacter(character);
 
   return createWeaponAction(character, {
     key: "unarmed-strike",
     name: "Unarmed Strike",
     attackKind: "unarmed",
-    damageLabel: `${damageFormula} Bludgeoning`,
+    damageLabel: `${damageFormula} ${damageTypeLabel}`,
     damageFormula,
     rollFormulaBase: damageFormula,
     ability,
@@ -740,6 +743,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
       )
     });
   const weaponEconomyMulti = getWeaponActionEconomyMultiForCharacter(character);
+  const monkUnarmedStrikeMulti = getMonkFlurryOfBlowsAttackMultiCountForCharacter(character);
 
   const codexWeaponActions = heldCodexWeapons.reduce<WeaponAction[]>((actions, equipmentItem) => {
     const equipmentDefinition = getEquipmentByName(equipmentItem.name);
@@ -879,12 +883,14 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
   }, []);
 
   return [
-    ...(hasFreeHand || monkMartialArtsActive
+    ...(hasFreeHand
       ? [
           createUnarmedStrikeAction(character, {
             martialArtsDie: monkMartialArtsActive ? monkMartialArtsDie : null,
             economyType: monkMartialArtsActive ? ECONOMY_TYPE.BONUS_ACTION : ECONOMY_TYPE.ACTION,
-            economyMultiCount: monkMartialArtsActive ? 0 : weaponEconomyMulti
+            economyMultiCount: monkMartialArtsActive
+              ? weaponEconomyMulti + monkUnarmedStrikeMulti
+              : weaponEconomyMulti
           })
         ]
       : []),

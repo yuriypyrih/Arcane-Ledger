@@ -18,6 +18,7 @@ import {
   type KeywordTooltipEntry,
   type SpellEntry
 } from "../../../../codex/entries";
+import { getMonkDeflectAttacksDescription } from "../../../../codex/classes/monk";
 import CodexDivinityDrawer from "../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import CodexSpellDrawer from "../../../CodexPage/CodexSpellDrawer";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
@@ -185,7 +186,7 @@ const spellEntriesByName = new Map<string, SpellEntry>(
 );
 
 const inlineMarkupPattern =
-  /<strong>(.*?)<\/strong>|<link:([^>]+)>(.*?)<\/link>|<spell:([^>]+)>(.*?)<\/spell>|<divinity:([^>]+)>(.*?)<\/divinity>/g;
+  /<strong>(.*?)<\/strong>|<link:([^>]+)>(.*?)<\/link>|<spell:([^>]+)>(.*?)<\/spell>|<divinity:([^>]+)>(.*?)<\/divinity>|<feat:([^>]+)>(.*?)<\/feat>/g;
 function createDefaultPendingAbilityScoreImprovement(): PendingAbilityScoreImprovement {
   return {
     mode: "single",
@@ -457,6 +458,27 @@ function renderDescriptionLine(
       );
     }
 
+    if (match[8]) {
+      const feat = match[8] as FEATS;
+      const featDefinition = getFeatDefinition(feat);
+      const label = match[9] ?? match[8];
+
+      nodes.push(
+        featDefinition ? (
+          <button
+            key={`${featDefinition.feat}-${index}`}
+            type="button"
+            className={styles.keywordButton}
+            onClick={() => onOpenFeat(featDefinition.feat)}
+          >
+            {label}
+          </button>
+        ) : (
+          label
+        )
+      );
+    }
+
     cursor = index + match[0].length;
   }
 
@@ -540,14 +562,27 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
     }
 
     return classEntry.features.flatMap((featureRow) =>
-      featureRow.classFeatures.map((feature, index) => ({
-        key: `${featureRow.level}-${feature}-${index}`,
-        level: featureRow.level,
-        feature,
-        details: featureRow.featureOverrides?.[feature] ?? FeatureMap[feature]
-      }))
+      featureRow.classFeatures.map((feature, index) => {
+        const resolvedDetails = featureRow.featureOverrides?.[feature] ?? FeatureMap[feature];
+        const details =
+          character.className === "Monk" &&
+          feature === CLASS_FEATURE.DEFLECT_ATTACKS &&
+          character.level >= 13
+            ? {
+                ...resolvedDetails,
+                description: getMonkDeflectAttacksDescription(true)
+              }
+            : resolvedDetails;
+
+        return {
+          key: `${featureRow.level}-${feature}-${index}`,
+          level: featureRow.level,
+          feature,
+          details
+        };
+      })
     );
-  }, [classEntry]);
+  }, [character.className, character.level, classEntry]);
 
   const unlockedFeatures = useMemo(
     () => allFeatures.filter((featureRow) => featureRow.level <= character.level),

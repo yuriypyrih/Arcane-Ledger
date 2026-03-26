@@ -438,6 +438,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         ) : (
           <TraitsConditionsSections
             sections={statusSections}
+            reactionAvailable={roundTracker.reactionAvailable}
             onSelectEntry={setSelectedStatusEntryId}
           />
         )}

@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { Brain } from "lucide-react";
 import ActionShape from "../../../../ActionShape";
 import type { Character } from "../../../../../types";
 import type {
@@ -73,6 +74,32 @@ type FeatureActionCardButtonProps = {
   onClick: (action: FeatureActionCard) => void;
 };
 
+function renderFeatureActionUsesIcon(icon: FeatureActionCard["usesIcon"]) {
+  if (icon === "brain") {
+    return <Brain size={14} strokeWidth={2.1} />;
+  }
+
+  return null;
+}
+
+function renderFeatureActionUsesLabel(action: FeatureActionCard) {
+  if (!action.usesLabel) {
+    return null;
+  }
+
+  if (action.usesIcon === "brain") {
+    return (
+      <>
+        <span>Uses</span>
+        <span>{action.usesLabel}</span>
+        {renderFeatureActionUsesIcon(action.usesIcon)}
+      </>
+    );
+  }
+
+  return <span>{action.usesLabel}</span>;
+}
+
 export function FeatureActionCardButton({
   action,
   character,
@@ -137,13 +164,18 @@ export function FeatureActionCardButton({
           </span>
         ) : null
       ) : action.usesLabel ? (
-        <span className={clsx(styles.damageRow, styles.featureMeta)}>{action.usesLabel}</span>
+        <span
+          className={clsx(
+            styles.damageRow,
+            styles.featureMeta,
+            action.usesIcon && styles.featureMetaWithIcon,
+            action.usesTone === "danger" && styles.featureMetaDanger
+          )}
+        >
+          {renderFeatureActionUsesLabel(action)}
+        </span>
       ) : null}
-      <small className={styles.breakdownRow}>
-        {action.disabledReason ??
-          economyShapeState.disabledReason ??
-          (action.isActive ? action.detail : action.summary)}
-      </small>
+      <small className={styles.breakdownRow}>{action.isActive ? action.detail : action.summary}</small>
     </button>
   );
 }

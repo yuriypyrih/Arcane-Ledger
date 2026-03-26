@@ -27,6 +27,11 @@ import {
   restoreFighterSecondWindOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/fighter";
 import {
+  getMonkFocusPointsTotal,
+  restoreMonkFocusPointsOnLongRest,
+  restoreMonkFocusPointsOnShortRest
+} from "../../../../../pages/CharactersPage/classFeatures/monk";
+import {
   getSpellSlotTotalsForCharacter
 } from "../../../../../pages/CharactersPage/spellcasting";
 import {
@@ -56,6 +61,7 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const bardicInspirationUsesTotal = getBardicInspirationUsesTotal(character);
   const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
+  const monkFocusPointsTotal = getMonkFocusPointsTotal(character);
   const channelDivinityUsesTotal = getClericChannelDivinityUsesTotal(character);
   const hasTimedStatuses = normalizeCharacterStatusEntries(character.statusEntries).length > 0;
   const bardShortRestRecoveryAvailable = applyShortRestToBardFeatures(character) !== character;
@@ -156,6 +162,16 @@ export function createShortRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(monkFocusPointsTotal > 0
+      ? [
+          {
+            id: "restore-focus-points",
+            label: "Restore all Focus Points",
+            apply: (currentCharacter: Character) =>
+              restoreMonkFocusPointsOnShortRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(channelDivinityUsesTotal > 0
       ? [
           {
@@ -180,6 +196,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
   const indomitableUsesTotal = getFighterIndomitableUsesTotal(character);
+  const monkFocusPointsTotal = getMonkFocusPointsTotal(character);
   const channelDivinityUsesTotal = getClericChannelDivinityUsesTotal(character);
   const hasTimedStatuses = normalizeCharacterStatusEntries(character.statusEntries).length > 0;
 
@@ -283,6 +300,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore all Indomitable uses",
             apply: (currentCharacter: Character) =>
               restoreFighterIndomitableOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(monkFocusPointsTotal > 0
+      ? [
+          {
+            id: "restore-focus-points",
+            label: "Restore all Focus Points",
+            apply: (currentCharacter: Character) =>
+              restoreMonkFocusPointsOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

@@ -411,7 +411,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       );
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
 
-      return roundTrackerResource ? consumeWeaponAttackActionForCharacter(nextCharacter) : nextCharacter;
+      return roundTrackerResource
+        ? consumeWeaponAttackActionForCharacter(nextCharacter, action)
+        : nextCharacter;
     });
   }
 

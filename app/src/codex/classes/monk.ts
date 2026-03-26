@@ -153,9 +153,9 @@ export const monkFeatures: MonkFeatureClassObj[] = [
       [CLASS_FEATURE.EPIC_BOON]: {
         description: [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
-          "Boon of Irresistible Offense is recommended."
+          "<feat:BOON_OF_IRRESISTIBLE_OFFENSE>Boon of Irresistible Offense</feat> is recommended."
         ],
-        isTracked: false
+        isTracked: true
       }
     },
     martialArts: DICE.D12,
@@ -170,6 +170,22 @@ export const monkFeatures: MonkFeatureClassObj[] = [
     unarmoredMovement: 30
   }
 ];
+
+const monkDeflectAttacksSharedDescription = [
+  "If you reduce the damage to 0, you can expend 1 Focus Point to redirect some of the attack's force.",
+  "If you do so, choose a creature you can see within 5 feet of yourself if the attack was a melee attack or a creature you can see within 60 feet of yourself that isn't behind Total Cover if the attack was a ranged attack.",
+  "That creature must succeed on a Dexterity saving throw or take damage equal to two rolls of your Martial Arts die plus your Dexterity modifier. The damage is the same type dealt by the attack.",
+  "This feature is <link:semi-tracked>Semi Tracked</link>. You can find it in the Reactions list, but you have to do the math yourself."
+];
+
+export function getMonkDeflectAttacksDescription(hasDeflectEnergy: boolean): string[] {
+  return [
+    hasDeflectEnergy
+      ? "When an attack roll hits you and its damage includes <strong>ANY DAMAGE TYPE</strong>, you can take a Reaction to reduce the attack's total damage against you. The reduction equals 1d10 plus your Dexterity modifier and Monk level."
+      : "When an attack roll hits you and its damage includes Bludgeoning, Piercing, or Slashing damage, you can take a Reaction to reduce the attack's total damage against you. The reduction equals 1d10 plus your Dexterity modifier and Monk level.",
+    ...monkDeflectAttacksSharedDescription
+  ];
+}
 
 export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   [CLASS_FEATURE.MARTIAL_ARTS]: {
@@ -190,35 +206,30 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "You can expend these points to enhance or fuel certain Monk features. You start knowing three such features: Flurry of Blows, Patient Defense, and Step of the Wind, each of which is detailed below.",
       "When you expend a Focus Point, it is unavailable until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>, at the end of which you regain all your expended points.",
       "Some features that use Focus Points require your target to make a saving throw. The save DC equals 8 plus your Wisdom modifier and Proficiency Bonus.",
-      "<strong>Flurry of Blows.</strong> You can expend 1 Focus Point to make two Unarmed Strikes as a Bonus Action.",
-      "<strong>Patient Defense.</strong> You can take the Disengage action as a Bonus Action. Alternatively, you can expend 1 Focus Point to take both the Disengage and the Dodge actions as a Bonus Action.",
-      "<strong>Step of the Wind.</strong> You can take the Dash action as a Bonus Action. Alternatively, you can expend 1 Focus Point to take both the Disengage and Dash actions as a Bonus Action, and your jump distance is doubled for the turn."
+      "<strong>Flurry of Blows.</strong> You can expend 1 Focus Point to make two Unarmed Strikes as a Bonus Action. <link:tracked>Tracked</link>",
+      "<strong>Patient Defense.</strong> You can take the Disengage action as a Bonus Action. Alternatively, you can expend 1 Focus Point to take both the Disengage and the Dodge actions as a Bonus Action. <link:not-tracked>Not Tracked</link>",
+      "<strong>Step of the Wind.</strong> You can take the Dash action as a Bonus Action. Alternatively, you can expend 1 Focus Point to take both the Disengage and Dash actions as a Bonus Action, and your jump distance is doubled for the turn. <link:not-tracked>Not Tracked</link>"
     ],
-    isTracked: false
+    trackingState: "semi-tracked"
   },
   [CLASS_FEATURE.UNARMORED_MOVEMENT]: {
     description: [
       "Your speed increases by 10 feet while you aren't wearing armor or wielding a Shield.",
       "This bonus increases when you reach certain Monk levels, as shown on the Monk Features table."
     ],
-    isTracked: false
+    trackingState: "tracked"
   },
   [CLASS_FEATURE.UNCANNY_METABOLISM]: {
     description: [
-      "When you roll Initiative, you can regain all expended Focus Points.",
-      "When you do so, roll your Martial Arts die, and regain a number of Hit Points equal to your Monk level plus the number rolled.",
-      "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link>."
+      "When you roll Initiative, you can regain all expended Focus Points. <link:not-tracked>Not Tracked</link>",
+      "When you do so, roll your Martial Arts die, and regain a number of Hit Points equal to your Monk level plus the number rolled. <link:not-tracked>Not Tracked</link>",
+      "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link>. <link:tracked>Tracked</link>"
     ],
-    isTracked: false
+    trackingState: "semi-tracked"
   },
   [CLASS_FEATURE.DEFLECT_ATTACKS]: {
-    description: [
-      "When an attack roll hits you and its damage includes Bludgeoning, Piercing, or Slashing damage, you can take a Reaction to reduce the attack's total damage against you. The reduction equals 1d10 plus your Dexterity modifier and Monk level.",
-      "If you reduce the damage to 0, you can expend 1 Focus Point to redirect some of the attack's force.",
-      "If you do so, choose a creature you can see within 5 feet of yourself if the attack was a melee attack or a creature you can see within 60 feet of yourself that isn't behind Total Cover if the attack was a ranged attack.",
-      "That creature must succeed on a Dexterity saving throw or take damage equal to two rolls of your Martial Arts die plus your Dexterity modifier. The damage is the same type dealt by the attack."
-    ],
-    isTracked: false
+    description: getMonkDeflectAttacksDescription(false),
+    trackingState: "semi-tracked"
   },
   [CLASS_FEATURE.MONK_SUBCLASS]: {
     description: [
@@ -230,18 +241,20 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   },
   [CLASS_FEATURE.SLOW_FALL]: {
     description: [
-      "You can take a Reaction when you fall to reduce any damage you take from the fall by an amount equal to five times your Monk level."
+      "You can take a Reaction when you fall to reduce any damage you take from the fall by an amount equal to five times your Monk level.",
+      "This feature is <link:semi-tracked>Semi Tracked</link>. You can find it in the Reactions list, but you have to do the math yourself."
     ],
-    isTracked: false
+    trackingState: "semi-tracked"
   },
   [CLASS_FEATURE.STUNNING_STRIKE]: {
     description: [
       "Once per turn when you hit a creature with a Monk weapon or an Unarmed Strike, you can expend 1 Focus Point to attempt a stunning strike.",
       "The target must make a Constitution saving throw.",
       "On a failed save, the target has the Stunned condition until the start of your next turn.",
-      "On a successful save, the target's Speed is halved until the start of your next turn, and the next attack roll made against the target before then has Advantage."
+      "On a successful save, the target's Speed is halved until the start of your next turn, and the next attack roll made against the target before then has Advantage.",
+      "The usage is being tracked but not the mechanic itself."
     ],
-    isTracked: false
+    trackingState: "semi-tracked"
   },
   [CLASS_FEATURE.EMPOWERED_STRIKES]: {
     description: [
@@ -265,11 +278,11 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   [CLASS_FEATURE.HEIGHTENED_FOCUS]: {
     description: [
       "Your Flurry of Blows, Patient Defense, and Step of the Wind gain the following benefits.",
-      "<strong>Flurry of Blows.</strong> You can expend 1 Focus Point to use Flurry of Blows and make three Unarmed Strikes with it instead of two.",
-      "<strong>Patient Defense.</strong> When you expend a Focus Point to use Patient Defense, you gain a number of Temporary Hit Points equal to two rolls of your Martial Arts die.",
-      "<strong>Step of the Wind.</strong> When you expend a Focus Point to use Step of the Wind, you can choose a willing creature within 5 feet of yourself that is Large or smaller. You move the creature with you until the end of your turn. The creature's movement doesn't provoke Opportunity Attacks."
+      "<strong>Flurry of Blows.</strong> You can expend 1 Focus Point to use Flurry of Blows and make three Unarmed Strikes with it instead of two. <link:tracked>Tracked</link>",
+      "<strong>Patient Defense.</strong> When you expend a Focus Point to use Patient Defense, you gain a number of Temporary Hit Points equal to two rolls of your Martial Arts die. <link:not-tracked>Not Tracked</link>",
+      "<strong>Step of the Wind.</strong> When you expend a Focus Point to use Step of the Wind, you can choose a willing creature within 5 feet of yourself that is Large or smaller. You move the creature with you until the end of your turn. The creature's movement doesn't provoke Opportunity Attacks. <link:not-tracked>Not Tracked</link>"
     ],
-    isTracked: false
+    trackingState: "semi-tracked"
   },
   [CLASS_FEATURE.SELF_RESTORATION]: {
     description: [
@@ -280,16 +293,16 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   },
   [CLASS_FEATURE.DEFLECT_ENERGY]: {
     description: [
-      "You can now use your Deflect Attacks feature against attacks that deal any damage type, not just Bludgeoning, Piercing, or Slashing."
+      "Your Deflect Attacks feature now works when an attack's damage includes <strong>ANY DAMAGE TYPE</strong>."
     ],
-    isTracked: false
+    trackingState: "tracked"
   },
   [CLASS_FEATURE.DISCIPLINED_SURVIVOR]: {
     description: [
-      "Your physical and mental discipline grant you proficiency in all saving throws.",
-      "Additionally, whenever you make a saving throw and fail, you can expend 1 Focus Point to reroll it, and you must use the new roll."
+      "Your physical and mental discipline grant you proficiency in all saving throws. <link:tracked>Tracked</link>",
+      "Additionally, whenever you make a saving throw and fail, you can expend 1 Focus Point to reroll it, and you must use the new roll. <link:not-tracked>Not Tracked</link>"
     ],
-    isTracked: false
+    trackingState: "semi-tracked"
   },
   [CLASS_FEATURE.PERFECT_FOCUS]: {
     description: [
@@ -302,13 +315,13 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "At the start of your turn, you can expend 3 Focus Points to bolster yourself against harm for 1 minute or until you have the Incapacitated condition.",
       "During that time, you have <link:resistance>Resistance</link> to all damage except Force damage."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.BODY_AND_MIND]: {
     description: [
       "You have developed your body and mind to new heights.",
       "Your Dexterity and Wisdom scores increase by 4, to a maximum of 25."
     ],
-    isTracked: false
+    isTracked: true
   }
 };

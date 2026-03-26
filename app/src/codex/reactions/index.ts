@@ -1,18 +1,45 @@
 import { CLASS_FEATURE, REACTION } from "../entries/enums";
 import type { ReactionEntry } from "../entries/types";
+import { monkFeatureMap } from "../classes/monk";
 
 export const countercharmReaction: ReactionEntry = {
   id: "reaction-countercharm",
   reaction: REACTION.COUNTERCHARM,
   name: "Countercharm",
+  sourceType: "feature",
   sourceFeature: CLASS_FEATURE.COUNTERCHARM,
+  sourceLabel: "Bard",
   description: [
     "You can use musical notes or words of power to disrupt mind-influencing effects.",
     "If you or a creature within 30 feet of you fails a saving throw against an effect that applies the Charmed or Frightened condition, you can take a Reaction to cause the save to be rerolled, and the new roll has Advantage."
   ]
 };
 
-export const reactionEntries: ReactionEntry[] = [countercharmReaction];
+export const deflectAttacksReaction: ReactionEntry = {
+  id: "reaction-deflect-attacks",
+  reaction: REACTION.DEFLECT_ATTACKS,
+  name: "Deflect Attacks",
+  sourceType: "feature",
+  sourceFeature: CLASS_FEATURE.DEFLECT_ATTACKS,
+  sourceLabel: "Monk",
+  description: monkFeatureMap[CLASS_FEATURE.DEFLECT_ATTACKS]?.description ?? []
+};
+
+export const slowFallReaction: ReactionEntry = {
+  id: "reaction-slow-fall",
+  reaction: REACTION.SLOW_FALL,
+  name: "Slow Fall",
+  sourceType: "feature",
+  sourceFeature: CLASS_FEATURE.SLOW_FALL,
+  sourceLabel: "Monk",
+  description: monkFeatureMap[CLASS_FEATURE.SLOW_FALL]?.description ?? []
+};
+
+export const reactionEntries: ReactionEntry[] = [
+  countercharmReaction,
+  deflectAttacksReaction,
+  slowFallReaction
+];
 
 const reactionEntriesById = new Map(reactionEntries.map((entry) => [entry.id, entry]));
 const reactionEntriesByName = new Map(
@@ -28,5 +55,7 @@ export function getReactionEntryByName(name: string): ReactionEntry | null {
 }
 
 export function getReactionEntriesForSourceFeature(feature: CLASS_FEATURE): ReactionEntry[] {
-  return reactionEntries.filter((entry) => entry.sourceFeature === feature);
+  return reactionEntries.filter(
+    (entry) => entry.sourceType === "feature" && entry.sourceFeature === feature
+  );
 }

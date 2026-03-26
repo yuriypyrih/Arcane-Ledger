@@ -4,6 +4,7 @@ import type { Character } from "../../../../types";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./GameplayForm.module.css";
+import FocusPointsWidget from "./widgets/FocusPointsWidget";
 import RoundTrackerWidget from "./widgets/RoundTrackerWidget";
 import CampButton from "./widgets/CampButton";
 import HitPointsWidget from "./widgets/HitPointsWidget";
@@ -27,6 +28,7 @@ function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
           <p className={shared.eyebrow}>Gameplay</p>
         </div>
         <div className={styles.gameplayHeaderControls}>
+          <FocusPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <RoundTrackerWidget character={character} onPersistCharacter={onPersistCharacter} />
           <CampButton character={character} onPersistCharacter={onPersistCharacter} />
         </div>

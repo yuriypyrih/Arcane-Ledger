@@ -79,7 +79,7 @@ export function getDerivedReactionStatusEntries(
           id: `reaction-entry-${reaction.id}`,
           group: STATUS_ENTRY_GROUP.REACTIONS,
           value: reaction.name,
-          source: reaction.sourceFeature === "COUNTERCHARM" ? "Bard" : "Feature",
+          source: reaction.sourceLabel,
           sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
           duration: createDerivedReactionStatusDuration(),
           sourceId: `reaction-entry-${reaction.id}`,
@@ -135,6 +135,16 @@ export function formatTraitEditorOptionLabel(tab: TraitEditorTab, value: string)
 }
 
 export function isStatusEntryRemovable(entry: CharacterStatusEntry): boolean {
+  const isRageEffect =
+    entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE &&
+    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+    entry.value === EFFECT_NAME.RAGE &&
+    entry.sourceId === "feature-rage";
+
+  if (isRageEffect) {
+    return true;
+  }
+
   return (
     entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.MANUAL &&
     entry.duration.kind !== STATUS_DURATION_KIND.LINKED

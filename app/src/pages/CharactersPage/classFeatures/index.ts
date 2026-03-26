@@ -1,5 +1,6 @@
 import type { Character, CharacterClassFeatureState } from "../../../types";
 import type { WEAPON_PROFICIENCY } from "../../../types";
+import type { EconomyType } from "../actionEconomy";
 import {
   activateBardicInspiration,
   applySuperiorInspirationOnInitiative,
@@ -7,6 +8,7 @@ import {
   applyShortRestToBardFeatures,
   bardicInspirationActionKey,
   getBardAlwaysPreparedSpellIds,
+  getBardicInspirationDie,
   getBardFeatureAction,
   getBardExpertiseSelections,
   getBardReactionEntries,
@@ -72,9 +74,38 @@ import {
   setDruidPrimalOrderChoice
 } from "./druid";
 import {
+  activateMonkFlurryOfBlows,
+  activateMonkUncannyMetabolism,
+  activateMonkSuperiorDefense,
+  activateMonkStunningStrike,
+  advanceMonkFeaturesForNewRound,
+  applyPerfectFocusOnInitiative,
+  applyLongRestToMonkFeatures,
+  applyShortRestToMonkFeatures,
   canUseMonkMartialArts,
+  consumeMonkWeaponAttack,
+  expendMonkFocusPoint,
+  getMonkAbilityScoreBonuses,
   getMonkArmorClassModes,
-  getMonkMartialArtsDie
+  getMonkDerivedStatusEntries,
+  getMonkFeatureActions,
+  getMonkFocusPointsRemaining,
+  getMonkFocusPointsTotal,
+  getMonkExtraAttackMultiCount,
+  getMonkFlurryOfBlowsAttackMultiCount,
+  hasMonkPerfectFocus,
+  getMonkMartialArtsDie,
+  getMonkUnarmedDamageTypeLabel,
+  getMonkReactionEntries,
+  getMonkSavingThrowProficiencyEntries,
+  getMonkSpeedBonuses,
+  monkFlurryOfBlowsActionKey,
+  monkSuperiorDefenseActionKey,
+  monkStunningStrikeActionKey,
+  monkUncannyMetabolismActionKey,
+  normalizeMonkFeatureState,
+  restoreAllMonkFocusPoints,
+  restoreOneMonkFocusPoint
 } from "./monk";
 import {
   activateFighterActionSurge,
@@ -112,6 +143,7 @@ import type {
   FeatureArmorClassMode,
   FeatureLanguageProficiencyEntry,
   FeatureDamageBonus,
+  FeatureSavingThrowProficiencyEntry,
   FeatureSkillBonus,
   FeatureSkillProficiencyEntry,
   FeatureSpeedBonus,
@@ -138,6 +170,7 @@ export type {
   FeatureArmorClassMode,
   FeatureLanguageProficiencyEntry,
   FeatureDamageBonus,
+  FeatureSavingThrowProficiencyEntry,
   FeatureSkillBonus,
   FeatureSkillProficiencyEntry,
   FeatureSpeedBonus,
@@ -160,21 +193,20 @@ export function normalizeCharacterClassFeatureState(
     bard: normalizeBardFeatureState(record.bard, character),
     cleric: normalizeClericFeatureState(record.cleric, character),
     druid: normalizeDruidFeatureState(record.druid, character),
+    monk: normalizeMonkFeatureState(record.monk, character),
     fighter: normalizeFighterFeatureState(record.fighter, character)
   };
 }
 
 export function getFeatureActionsForCharacter(
-  character: Pick<
-    Character,
-    "className" | "level" | "abilities" | "classFeatureState" | "feats" | "spellSlotsExpended"
-  >
+  character: Character
 ): FeatureActionCard[] {
   const clericActions = getClericFeatureActions(character);
   const bardAction = getBardFeatureAction(character);
   const fighterActions = getFighterFeatureActions(character);
+  const monkActions = getMonkFeatureActions(character);
   const rageAction = getBarbarianFeatureAction(character);
-  return [...clericActions, bardAction, ...fighterActions, rageAction].filter(
+  return [...clericActions, bardAction, ...fighterActions, ...monkActions, rageAction].filter(
     (entry): entry is FeatureActionCard => entry !== null
   );
 }
@@ -254,16 +286,19 @@ export function getArmorClassBonusesForCharacter(
 }
 
 export function getSpeedBonusesForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">,
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "equipment" | "customEquipment">,
   context: SpeedFeatureContext
 ): FeatureSpeedBonus[] {
-  return getBarbarianSpeedBonuses(character, context);
+  return [...getBarbarianSpeedBonuses(character, context), ...getMonkSpeedBonuses(character, context)];
 }
 
 export function getAbilityScoreBonusesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureAbilityScoreBonus[] {
-  return getBarbarianAbilityScoreBonuses(character);
+  return [
+    ...getBarbarianAbilityScoreBonuses(character),
+    ...getMonkAbilityScoreBonuses(character)
+  ];
 }
 
 export function getCantripLimitBonusForCharacter(
@@ -276,6 +311,18 @@ export function getMonkMartialArtsDieForCharacter(
   character: Pick<Character, "className" | "level">
 ) {
   return getMonkMartialArtsDie(character);
+}
+
+export function getBardicInspirationDieForCharacter(
+  character: Pick<Character, "className" | "level">
+) {
+  return getBardicInspirationDie(character);
+}
+
+export function getMonkUnarmedDamageTypeLabelForCharacter(
+  character: Pick<Character, "className" | "level">
+) {
+  return getMonkUnarmedDamageTypeLabel(character);
 }
 
 export function canUseMonkMartialArtsForCharacter(
@@ -310,6 +357,12 @@ export function getFeatureSkillProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureSkillProficiencyEntry[] {
   return getBardSkillProficiencyEntries(character);
+}
+
+export function getFeatureSavingThrowProficiencyEntriesForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): FeatureSavingThrowProficiencyEntry[] {
+  return getMonkSavingThrowProficiencyEntries(character);
 }
 
 export function getFeatureArmorProficiencyEntriesForCharacter(
@@ -448,21 +501,50 @@ export function applySuperiorInspirationOnInitiativeForCharacter(character: Char
   return applySuperiorInspirationOnInitiative(character);
 }
 
+export function applyPerfectFocusOnInitiativeForCharacter(character: Character): Character {
+  return applyPerfectFocusOnInitiative(character);
+}
+
+export function hasPerfectFocusForCharacter(
+  character: Pick<Character, "className" | "level">
+): boolean {
+  return hasMonkPerfectFocus(character);
+}
+
 export function getDerivedFeatureStatusEntriesForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
 ): DerivedFeatureStatusEntry[] {
-  return getBarbarianDerivedConditions(character);
+  return [
+    ...getBarbarianDerivedConditions(character),
+    ...getMonkDerivedStatusEntries(character)
+  ];
 }
 
 export function getFeatureReactionEntriesForCharacter(
   character: Pick<Character, "className" | "level">
 ): ReactionEntry[] {
-  return getBardReactionEntries(character);
+  return [...getBardReactionEntries(character), ...getMonkReactionEntries(character)];
 }
 
 export function activateFeatureActionForCharacter(character: Character, actionKey: string): Character {
   if (actionKey === bardicInspirationActionKey) {
     return activateBardicInspiration(character);
+  }
+
+  if (actionKey === monkFlurryOfBlowsActionKey) {
+    return activateMonkFlurryOfBlows(character);
+  }
+
+  if (actionKey === monkUncannyMetabolismActionKey) {
+    return activateMonkUncannyMetabolism(character);
+  }
+
+  if (actionKey === monkStunningStrikeActionKey) {
+    return activateMonkStunningStrike(character);
+  }
+
+  if (actionKey === monkSuperiorDefenseActionKey) {
+    return activateMonkSuperiorDefense(character);
   }
 
   if (actionKey === fighterActionSurgeActionKey) {
@@ -492,6 +574,30 @@ export function activateFeatureActionForCharacter(character: Character, actionKe
   return character;
 }
 
+export function getMonkFocusPointsTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+): number {
+  return getMonkFocusPointsTotal(character);
+}
+
+export function getMonkFocusPointsRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  return getMonkFocusPointsRemaining(character);
+}
+
+export function expendMonkFocusPointForCharacter(character: Character): Character {
+  return expendMonkFocusPoint(character);
+}
+
+export function restoreMonkFocusPointForCharacter(character: Character): Character {
+  return restoreOneMonkFocusPoint(character);
+}
+
+export function restoreAllMonkFocusPointsForCharacter(character: Character): Character {
+  return restoreAllMonkFocusPoints(character);
+}
+
 export function markFeatureWeaponBonusUseForCharacter(character: Character, label: string): Character {
   if (label === "Blessed Strikes") {
     return markClericBlessedStrikeUsed(character);
@@ -507,7 +613,17 @@ export function getWeaponActionEconomyMultiForCharacter(
     return getFighterWeaponAttackMultiCount(character);
   }
 
+  if (character.className === "Monk") {
+    return getMonkExtraAttackMultiCount(character);
+  }
+
   return 0;
+}
+
+export function getMonkFlurryOfBlowsAttackMultiCountForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  return getMonkFlurryOfBlowsAttackMultiCount(character);
 }
 
 export function getNonMagicActionEconomyMultiForCharacter(
@@ -520,7 +636,18 @@ export function getNonMagicActionEconomyMultiForCharacter(
   return 0;
 }
 
-export function consumeWeaponAttackActionForCharacter(character: Character): Character {
+export function consumeWeaponAttackActionForCharacter(
+  character: Character,
+  action: {
+    key: string;
+    economyType: EconomyType;
+    attackKind: "weapon" | "unarmed";
+  }
+): Character {
+  if (character.className === "Monk") {
+    return consumeMonkWeaponAttack(character, action);
+  }
+
   return consumeFighterWeaponAttack(character);
 }
 
@@ -562,7 +689,9 @@ export function removeFeatureStatusEntryForCharacter(
 export function applyShortRestToFeatureState(character: Character): Character {
   return applyShortRestToClericFeatures(
     applyShortRestToBardFeatures(
-      applyShortRestToFighterFeatures(applyShortRestToBarbarianFeatures(character))
+      applyShortRestToFighterFeatures(
+        applyShortRestToMonkFeatures(applyShortRestToBarbarianFeatures(character))
+      )
     )
   );
 }
@@ -570,11 +699,15 @@ export function applyShortRestToFeatureState(character: Character): Character {
 export function applyLongRestToFeatureState(character: Character): Character {
   return applyLongRestToClericFeatures(
     applyLongRestToBardFeatures(
-      applyLongRestToFighterFeatures(applyLongRestToBarbarianFeatures(character))
+      applyLongRestToFighterFeatures(
+        applyLongRestToMonkFeatures(applyLongRestToBarbarianFeatures(character))
+      )
     )
   );
 }
 
 export function advanceFeatureStateForNewRound(character: Character): Character {
-  return advanceFighterFeaturesForNewRound(advanceClericFeaturesForNewRound(character));
+  return advanceMonkFeaturesForNewRound(
+    advanceFighterFeaturesForNewRound(advanceClericFeaturesForNewRound(character))
+  );
 }

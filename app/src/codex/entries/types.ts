@@ -126,7 +126,10 @@ export type ReactionEntry = {
   id: string;
   reaction: REACTION;
   name: string;
-  sourceFeature: CLASS_FEATURE;
+  sourceType: "feature" | "item";
+  sourceFeature?: CLASS_FEATURE;
+  sourceItemName?: string;
+  sourceLabel: string;
   description: SpellDescriptionEntry[];
 };
 export type WeaponEntry = Omit<BaseCodexEntry<ENTRY_CATEGORIES.WEAPONS, never>, "tags"> &

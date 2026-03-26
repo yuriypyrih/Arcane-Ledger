@@ -10,6 +10,7 @@ import type {
   Character,
   LanguageProficiency,
   LanguageProficiencyEntry,
+  SavingThrowProficiencyEntry,
   SkillProficiencyEntry,
   ToolProficiencyEntry,
   WeaponProficiencyEntry
@@ -19,6 +20,7 @@ import {
   exoticLanguageEntries,
   LANGUAGE_PROFICIENCY,
   PROF_LEVEL,
+  SAVING_THROW_PROFICIENCY,
   standardLanguageEntries,
   WEAPON_PROFICIENCY
 } from "../../../../types";
@@ -30,28 +32,33 @@ import {
   getArmorLevelFromEntries,
   getDisplayArmorProficiencyEntries,
   getDisplayLanguageProficiencyEntries,
+  getDisplaySavingThrowProficiencyEntries,
   getDisplaySkillProficiencyEntries,
   getDisplayToolProficiencyEntries,
   getDisplayWeaponProficiencyEntries,
+  getEditableWeaponProficiencyOptions,
   getLanguageLevelFromEntries,
   getProficiencyKeyword,
   getProficiencyLabel,
   getResolvedSkillProficiencyEntry,
+  getSavingThrowLevelFromEntries,
   getSkillLevelFromEntries,
   getSkillProficiencyForName,
+  hasLockedSavingThrowEntry,
   hasLockedSkillEntry,
   hasLockedWeaponEntry,
   isCustomLanguageProficiency,
   addManualCustomLanguageEntry,
   getToolLevelFromEntries,
-  getWeaponProficiencyOptionsForClass,
   getWeaponProficiencyTypeLabel,
   getWeaponLevelFromEntries,
   isWeaponMasteryProficiency,
   setManualArmorEntry,
   setManualLanguageEntry,
+  setManualSavingThrowEntry,
   setManualToolEntry,
   setManualWeaponEntry,
+  savingThrowProficiencyOptions,
   skillsOptions,
   toolProficiencyOptions,
   upsertManualSkillEntry,
@@ -83,7 +90,13 @@ type SelectedKeyword = {
   }>;
 };
 
-type ProficiencyEditorTab = "skills" | "weapons" | "armor" | "tools" | "languages";
+type ProficiencyEditorTab =
+  | "skills"
+  | "savingThrows"
+  | "weapons"
+  | "armor"
+  | "tools"
+  | "languages";
 
 type ProficiencyCategorySection = {
   title: string;
@@ -92,6 +105,7 @@ type ProficiencyCategorySection = {
 
 const proficiencyEditorTabs: Array<{ id: ProficiencyEditorTab; label: string }> = [
   { id: "skills", label: "Skills" },
+  { id: "savingThrows", label: "Saving Throws" },
   { id: "weapons", label: "Weapons" },
   { id: "armor", label: "Armor" },
   { id: "tools", label: "Tools" },
@@ -111,6 +125,9 @@ function SkillsAndProficienciesForm({
   const [skillProficienciesDraft, setSkillProficienciesDraft] = useState<SkillProficiencyEntry[]>(
     () => character.skillProficiencies
   );
+  const [savingThrowProficienciesDraft, setSavingThrowProficienciesDraft] = useState<
+    SavingThrowProficiencyEntry[]
+  >(() => character.savingThrowProficiencies);
   const [weaponProficienciesDraft, setWeaponProficienciesDraft] = useState<
     WeaponProficiencyEntry[]
   >(() => character.weaponProficiencies);
@@ -146,6 +163,7 @@ function SkillsAndProficienciesForm({
 
       if (isProficiencyModalOpen) {
         setSkillProficienciesDraft(character.skillProficiencies);
+        setSavingThrowProficienciesDraft(character.savingThrowProficiencies);
         setWeaponProficienciesDraft(character.weaponProficiencies);
         setArmorProficienciesDraft(character.armorProficiencies);
         setToolProficienciesDraft(character.toolProficiencies);
@@ -165,6 +183,9 @@ function SkillsAndProficienciesForm({
     isSkillTableEditing || isProficiencyModalOpen
       ? skillProficienciesDraft
       : character.skillProficiencies;
+  const displayedSavingThrowProficiencies = isProficiencyModalOpen
+    ? savingThrowProficienciesDraft
+    : character.savingThrowProficiencies;
   const displayedWeaponProficiencies = isProficiencyModalOpen
     ? weaponProficienciesDraft
     : character.weaponProficiencies;
@@ -180,7 +201,7 @@ function SkillsAndProficienciesForm({
 
   const displayedWeaponProficiencyEntries = getDisplayWeaponProficiencyEntries(
     displayedWeaponProficiencies,
-    className
+    character.className
   );
   const displayedLanguageProficiencyEntries = getDisplayLanguageProficiencyEntries(
     displayedLanguageProficiencies
@@ -193,6 +214,10 @@ function SkillsAndProficienciesForm({
     {
       title: "Skill Proficiencies",
       entries: getDisplaySkillProficiencyEntries(displayedSkillProficiencies)
+    },
+    {
+      title: "Saving Throws",
+      entries: getDisplaySavingThrowProficiencyEntries(displayedSavingThrowProficiencies)
     },
     {
       title: "Weapon Proficiencies",
@@ -242,6 +267,7 @@ function SkillsAndProficienciesForm({
 
   function syncProficiencyDraftsFromCharacter() {
     setSkillProficienciesDraft(character.skillProficiencies);
+    setSavingThrowProficienciesDraft(character.savingThrowProficiencies);
     setWeaponProficienciesDraft(character.weaponProficiencies);
     setArmorProficienciesDraft(character.armorProficiencies);
     setToolProficienciesDraft(character.toolProficiencies);
@@ -284,6 +310,7 @@ function SkillsAndProficienciesForm({
     onPersistCharacter((currentCharacter) => ({
       ...currentCharacter,
       skillProficiencies: skillProficienciesDraft,
+      savingThrowProficiencies: savingThrowProficienciesDraft,
       weaponProficiencies: weaponProficienciesDraft,
       armorProficiencies: armorProficienciesDraft,
       toolProficiencies: toolProficienciesDraft,
@@ -326,6 +353,23 @@ function SkillsAndProficienciesForm({
 
     setWeaponProficienciesDraft((currentProficiencies) =>
       setManualWeaponEntry(
+        currentProficiencies,
+        proficiency,
+        isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
+      )
+    );
+  }
+
+  function updateSavingThrowProficiency(
+    proficiency: SAVING_THROW_PROFICIENCY,
+    isSelected: boolean
+  ) {
+    if (hasLockedSavingThrowEntry(savingThrowProficienciesDraft, proficiency)) {
+      return;
+    }
+
+    setSavingThrowProficienciesDraft((currentProficiencies) =>
+      setManualSavingThrowEntry(
         currentProficiencies,
         proficiency,
         isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
@@ -447,6 +491,7 @@ function SkillsAndProficienciesForm({
     onToggle: (option: TOption, isSelected: boolean) => void,
     optionsConfig?: {
       compact?: boolean;
+      twoColumn?: boolean;
       getLabel?: (option: TOption) => string;
       renderMeta?: (option: TOption) => string | null;
       isDisabled?: (option: TOption) => boolean;
@@ -456,7 +501,8 @@ function SkillsAndProficienciesForm({
       <div
         className={clsx(
           styles.editorGrid,
-          optionsConfig?.compact && styles.editorGridCompact
+          optionsConfig?.compact && styles.editorGridCompact,
+          optionsConfig?.twoColumn && styles.editorGridTwoColumn
         )}
       >
         {options.map((option) => {
@@ -541,6 +587,20 @@ function SkillsAndProficienciesForm({
     );
   }
 
+  function renderSavingThrowEditor() {
+    return renderToggleEditor(
+      savingThrowProficiencyOptions,
+      (proficiency) =>
+        getSavingThrowLevelFromEntries(savingThrowProficienciesDraft, proficiency) !==
+        PROF_LEVEL.NONE,
+      updateSavingThrowProficiency,
+      {
+        isDisabled: (proficiency) =>
+          hasLockedSavingThrowEntry(savingThrowProficienciesDraft, proficiency)
+      }
+    );
+  }
+
   function renderLanguageEditor() {
     const customLanguageEntries = displayedLanguageProficiencyEntries.filter((entry) =>
       isCustomLanguageProficiency(entry.proficiency)
@@ -611,7 +671,7 @@ function SkillsAndProficienciesForm({
   }
 
   function renderWeaponEditor() {
-    const availableWeaponProficiencyOptions = getWeaponProficiencyOptionsForClass(className);
+    const availableWeaponProficiencyOptions = getEditableWeaponProficiencyOptions();
     const broadWeaponOptions = availableWeaponProficiencyOptions.filter(
       (proficiency) => !isWeaponMasteryProficiency(proficiency)
     );
@@ -631,6 +691,7 @@ function SkillsAndProficienciesForm({
           updateWeaponProficiency,
           {
             compact: true,
+            twoColumn: true,
             renderMeta: getWeaponProficiencyTypeLabel,
             isDisabled: isWeaponDisabled
           }
@@ -646,6 +707,7 @@ function SkillsAndProficienciesForm({
           updateWeaponProficiency,
           {
             compact: true,
+            twoColumn: true,
             renderMeta: getWeaponProficiencyTypeLabel,
             isDisabled: isWeaponDisabled
           }
@@ -658,6 +720,8 @@ function SkillsAndProficienciesForm({
     switch (activeProficiencyTab) {
       case "skills":
         return renderSkillEditor();
+      case "savingThrows":
+        return renderSavingThrowEditor();
       case "weapons":
         return renderWeaponEditor();
       case "armor":

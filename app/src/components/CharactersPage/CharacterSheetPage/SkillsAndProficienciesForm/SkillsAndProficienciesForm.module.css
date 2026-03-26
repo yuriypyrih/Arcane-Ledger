@@ -142,8 +142,7 @@
   font-size: 0.95rem;
 }
 
-.skillLevelSelect,
-.editorSelect {
+.skillLevelSelect {
   min-height: 34px;
   border-radius: 10px;
   padding-right: 2rem;
@@ -219,7 +218,7 @@
 
 .tabRow {
   display: inline-grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(6, minmax(0, 1fr));
   gap: 0.2rem;
   border-radius: 999px;
   background: rgba(75, 47, 29, 0.08);
@@ -258,6 +257,10 @@
 
 .editorGridCompact {
   gap: 0.55rem;
+}
+
+.editorGridTwoColumn {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .editorSectionStack {
@@ -420,6 +423,10 @@
 
   .editorGrid {
     grid-template-columns: 1fr;
+  }
+
+  .editorGridTwoColumn {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
 

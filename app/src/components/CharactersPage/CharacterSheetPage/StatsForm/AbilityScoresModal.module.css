@@ -1,0 +1,186 @@
+.abilityEditorModal {
+  width: min(640px, 100%);
+  max-height: min(84vh, 760px);
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  overflow: hidden;
+}
+
+.modalHeading {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.modalHeading h3 {
+  margin: 0;
+}
+
+.modalBody {
+  display: grid;
+  gap: 1rem;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 0.2rem;
+}
+
+.modeControl {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-radius: 22px;
+  background: rgba(75, 47, 29, 0.07);
+  padding: 0.25rem;
+}
+
+.modeButton {
+  border: none;
+  border-radius: 18px;
+  background: transparent;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  font: inherit;
+  min-height: 40px;
+  padding: 0 0.9rem;
+}
+
+.modeButtonActive {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--color-ink);
+  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
+}
+
+.pointBuyInfo {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.pointBuySummary {
+  display: grid;
+  gap: 0.24rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  border: 1px solid rgba(143, 91, 56, 0.18);
+  border-radius: 18px;
+  background:
+    linear-gradient(155deg, rgba(255, 255, 255, 0.92), rgba(250, 240, 227, 0.88)),
+    rgba(255, 255, 255, 0.8);
+  padding: 0.9rem 1rem;
+}
+
+.pointBuySummaryOverdraft {
+  border-color: rgba(186, 62, 62, 0.28);
+}
+
+.pointBuyLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pointBuyLabelDivider {
+  color: rgba(75, 47, 29, 0.34);
+}
+
+.pointBuyStatus {
+  font-size: inherit;
+  font-weight: 700;
+  letter-spacing: inherit;
+  text-transform: inherit;
+}
+
+.pointBuyStatusReady {
+  color: #2b62c5;
+}
+
+.pointBuyStatusOverdraft {
+  color: #b53b3b;
+}
+
+.pointBuyValue {
+  grid-column: 1 / -1;
+  color: var(--color-ink);
+  font-size: 1.5rem;
+  line-height: 1;
+}
+
+.pointBuySummaryOverdraft .pointBuyValue {
+  color: #b53b3b;
+}
+
+.pointBuyHint {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.82rem;
+}
+
+.abilityInputGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.abilityInputCard {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.abilityInputCard span {
+  color: var(--color-ink-soft);
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.pointBuyInputShell {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 0.45rem;
+  align-items: stretch;
+}
+
+.pointBuyInput {
+  text-align: center;
+}
+
+.pointBuyStepper {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.pointBuyStepperButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(75, 47, 29, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--color-ink);
+  cursor: pointer;
+  min-width: 2.6rem;
+  min-height: calc((54px - 0.35rem) / 2);
+  padding: 0;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.pointBuyStepperButton:hover {
+  border-color: rgba(143, 91, 56, 0.34);
+  background: rgba(255, 255, 255, 0.96);
+}
+
+.pointBuyStepperButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+@media (max-width: 620px) {
+  .abilityInputGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .abilityInputGrid {
+    grid-template-columns: 1fr;
+  }
+}

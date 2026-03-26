@@ -1,10 +1,12 @@
 import type { CSSProperties } from "react";
+import ActionShape from "../../../../ActionShape";
 import {
   getStatusDurationShortLabel,
   getStatusEntrySourceLabel,
   getStatusEntryTitle
 } from "../../../../../pages/CharactersPage/traits";
 import type { CharacterStatusEntry } from "../../../../../types";
+import { STATUS_ENTRY_GROUP } from "../../../../../types";
 import styles from "./TraitsConditionsWidget.module.css";
 
 type StatusSection = {
@@ -15,11 +17,13 @@ type StatusSection = {
 
 type TraitsConditionsSectionsProps = {
   sections: StatusSection[];
+  reactionAvailable: boolean;
   onSelectEntry: (entryId: string) => void;
 };
 
 function TraitsConditionsSections({
   sections,
+  reactionAvailable,
   onSelectEntry
 }: TraitsConditionsSectionsProps) {
   return (
@@ -41,6 +45,7 @@ function TraitsConditionsSections({
           <ul className={styles.list}>
             {section.entries.map((entry) => {
               const shortDurationLabel = getStatusDurationShortLabel(entry.duration);
+              const isReactionEntry = entry.group === STATUS_ENTRY_GROUP.REACTIONS;
 
               return (
                 <li key={entry.id}>
@@ -53,12 +58,25 @@ function TraitsConditionsSections({
                       <span>{getStatusEntryTitle(entry)}</span>
                       <small>{getStatusEntrySourceLabel(entry)}</small>
                     </span>
-                    {shortDurationLabel ? (
-                      <strong className={styles.duration}>
-                        <span>(</span>
-                        {shortDurationLabel}
-                        <span>)</span>
-                      </strong>
+                    {(shortDurationLabel || isReactionEntry) ? (
+                      <span className={styles.buttonMeta}>
+                        {shortDurationLabel ? (
+                          <strong className={styles.duration}>
+                            <span>(</span>
+                            {shortDurationLabel}
+                            <span>)</span>
+                          </strong>
+                        ) : null}
+                        {isReactionEntry ? (
+                          <span className={styles.reactionBadge} aria-hidden="true">
+                            <ActionShape
+                              shape="reaction"
+                              isSelected={reactionAvailable}
+                              size="small"
+                            />
+                          </span>
+                        ) : null}
+                      </span>
                     ) : null}
                   </button>
                 </li>

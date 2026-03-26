@@ -102,6 +102,32 @@
   color: #8a4d26;
 }
 
+.featureMetaWithIcon {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.featureMetaWithIcon span {
+  color: inherit;
+}
+
+.featureMetaWithIcon svg {
+  color: currentColor;
+  flex: 0 0 auto;
+  stroke: currentColor;
+}
+
+.featureMetaDanger {
+  color: #bc3f4e;
+}
+
+.featureMetaDanger span,
+.featureMetaDanger svg {
+  color: #bc3f4e;
+  stroke: currentColor;
+}
+
 .featureUsesSupplementary {
   color: #8a4d26;
   font-size: 0.8rem;

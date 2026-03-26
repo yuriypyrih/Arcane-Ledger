@@ -1,15 +1,9 @@
 import clsx from "clsx";
-import { Component, Diamond, Pencil, Save, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Pencil, Pentagon, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import { useFormContext } from "react-hook-form";
-import NumberInput from "../../FormInputs/NumberInput";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
-import {
-  loadPreferences,
-  updatePreferences,
-  type StatsViewMode
-} from "../../../../storage/preferences";
 import type { AbilityKey, Character, CoreStats } from "../../../../types";
 import {
   getAbilityScoreBreakdownForCharacter,
@@ -17,7 +11,6 @@ import {
 } from "../../../../pages/CharactersPage/abilities";
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
 import {
-  abilityKeys,
   createDefaultCoreStats,
   getPointBuyRemaining,
   normalizePointBuyAbilities
@@ -41,16 +34,19 @@ import {
   getSpeedForCharacter
 } from "../../../../pages/CharactersPage/speed";
 import {
+  applyPerfectFocusOnInitiativeForCharacter,
   type FeatureIndicator,
   applySuperiorInspirationOnInitiativeForCharacter,
+  getBardicInspirationDieForCharacter,
   getCoreStatIndicatorsForCharacter,
+  hasPerfectFocusForCharacter,
+  getMonkMartialArtsDieForCharacter,
   getSavingThrowIndicatorsForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
 import {
   getSavingThrowLevelFromEntries,
-  getSavingThrowProficiencyForAbilityKey,
-  toggleManualSavingThrowEntry
+  getSavingThrowProficiencyForAbilityKey
 } from "../../../../pages/CharactersPage/proficiency";
 import { PROF_LEVEL } from "../../../../types";
 import type {
@@ -64,9 +60,8 @@ import {
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import AbilityScoresModal from "./AbilityScoresModal";
 import styles from "./StatsForm.module.css";
-
-type StatsTab = "core" | "modifiers" | "savingThrows";
 
 type CharacterStatsFormProps = {
   className?: string;
@@ -75,9 +70,39 @@ type CharacterStatsFormProps = {
 
 type SelectedStatReference = {
   keyword: string;
-  description: string;
-  detailText?: string;
+  summaryText?: string;
+  descriptionItems?: Array<{
+    label: string;
+    text: string;
+  }>;
+  detailCards?: Array<{
+    label: string;
+    value: string;
+  }>;
   indicators?: FeatureIndicator[];
+};
+
+type CoreStatCard = {
+  key: string;
+  label: string;
+  value: string;
+  indicators?: FeatureIndicator[];
+  summaryText?: string;
+  detailCards?: Array<{
+    label: string;
+    value: string;
+  }>;
+};
+
+const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
+
+const abilityDisplayLabels: Record<AbilityKey, string> = {
+  STR: "Strength",
+  DEX: "Dexterity",
+  CON: "Constitution",
+  INT: "Intelligence",
+  WIS: "Wisdom",
+  CHA: "Charisma"
 };
 
 const coreStatFields: Array<{ key: keyof CoreStats; label: string }> = [
@@ -89,15 +114,9 @@ const coreStatFields: Array<{ key: keyof CoreStats; label: string }> = [
   { key: "hitDice", label: "Hit Dice" }
 ];
 
-const statsTabLabels: Record<StatsTab, string> = {
-  core: "Core Stats",
-  modifiers: "Ability Modifiers",
-  savingThrows: "Saving Throws"
-};
-
 function createAbilitiesDraft(character: Character): AbilitiesDraft {
   return {
-    attributeMode: character.attributeMode,
+    attributeMode: "pointBuy",
     abilities: cloneAbilityScores(character.abilities)
   };
 }
@@ -166,16 +185,26 @@ function formatD20Formula(modifier: number): string {
   return `1d20 ${modifier > 0 ? "+" : "-"} ${Math.abs(modifier)}`;
 }
 
+function formatAbilityModifierFormula(ability: AbilityKey, score: number): string {
+  return `${formatAbilityModifier(getAbilityModifier(score))} ${ability} Modifier = floor((${score} ${ability} - 10) / 2)`;
+}
+
 function formatAbilityScoreFormula(
   ability: AbilityKey,
   total: number,
   entries: Array<{ label: string; value: number }>
 ): string {
-  const terms = entries.map(
-    (entry) => `${entry.value >= 0 ? "+" : ""}${entry.value} (${entry.label})`
-  );
+  const [baseEntry, ...bonusEntries] = entries;
+  const formattedEntries = [
+    baseEntry
+      ? `${baseEntry.value} ${ability} (${baseEntry.label})`
+      : `${total} ${ability} (Base)`,
+    ...bonusEntries.map(
+      (entry) => `${entry.value >= 0 ? "+" : ""}${entry.value} (${entry.label})`
+    )
+  ];
 
-  return `${total} ${ability} = ${terms.join(" ")}`;
+  return `${total} ${ability} = ${formattedEntries.join(" ")}`;
 }
 
 function getProficiencyMultiplier(level: PROF_LEVEL): 0 | 1 | 2 {
@@ -206,36 +235,51 @@ function formatSavingThrowFormula(
   return `${formatAbilityModifier(total)} ${ability} Save = ${terms.join(" ")}`;
 }
 
+function stripLeadingLabel(description: string, label: string): string {
+  if (description.startsWith(`${label}:`)) {
+    return description.slice(label.length + 1).trim();
+  }
+
+  return description;
+}
+
+function formatDieValue(die: string | null): string | null {
+  return die ? String(die).toLowerCase() : null;
+}
+
 function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFormProps) {
   const { watch } = useFormContext<Character>();
   const character = watch() as Character;
-  const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState<StatsTab>("modifiers");
-  const [editingTab, setEditingTab] = useState<StatsTab>("modifiers");
+  const [isAbilityModalOpen, setIsAbilityModalOpen] = useState(false);
   const [abilitiesDraft, setAbilitiesDraft] = useState<AbilitiesDraft>(() =>
     createAbilitiesDraft(character)
-  );
-  const [savingThrowProficienciesDraft, setSavingThrowProficienciesDraft] = useState(
-    () => character.savingThrowProficiencies
-  );
-  const [statsViewMode, setStatsViewMode] = useState<StatsViewMode>(
-    () => loadPreferences().statsViewMode
   );
   const [selectedStatReference, setSelectedStatReference] = useState<SelectedStatReference | null>(
     null
   );
+  const [usePerfectFocusOnInitiative, setUsePerfectFocusOnInitiative] = useState(true);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
-  useBodyScrollLock(Boolean(selectedStatReference));
+  useBodyScrollLock(Boolean(selectedStatReference) || isAbilityModalOpen);
 
   useEffect(() => {
-    if (!selectedStatReference) {
+    if (!selectedStatReference && !isAbilityModalOpen) {
       return;
     }
 
     function handleKeyDown(event: globalThis.KeyboardEvent) {
-      if (event.key === "Escape") {
+      if (event.key !== "Escape") {
+        return;
+      }
+
+      if (selectedStatReference) {
         setSelectedStatReference(null);
+        return;
+      }
+
+      if (isAbilityModalOpen) {
+        setAbilitiesDraft(createAbilitiesDraft(character));
+        setIsAbilityModalOpen(false);
       }
     }
 
@@ -244,109 +288,162 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [selectedStatReference]);
+  }, [character, isAbilityModalOpen, selectedStatReference]);
 
   const mainAbility = getMainAbilityForClass(character.className);
+  const hasPerfectFocus = hasPerfectFocusForCharacter(character);
   const pointBuyRemaining =
     abilitiesDraft.attributeMode === "pointBuy"
       ? getPointBuyRemaining(abilitiesDraft.abilities)
       : null;
-
-  const displayedSavingThrowProficiencies =
-    isEditing && editingTab === "savingThrows"
-      ? savingThrowProficienciesDraft
-      : character.savingThrowProficiencies;
   const proficiencyBonus = getProficiencyBonus(character.level);
-  const isTabMode = statsViewMode === "tabs";
-  const isAbilityEditorActive = editingTab === "modifiers";
-  const effectiveAbilities = useMemo(() => getAbilityScoresForCharacter(character), [character]);
-  const displayedAbilities =
-    isEditing && isAbilityEditorActive ? abilitiesDraft.abilities : effectiveAbilities;
-  const staticCoreStats = character.coreStats ?? createDefaultCoreStats();
+  const effectiveAbilities = getAbilityScoresForCharacter(character);
   const displayedCoreStats: CoreStats = {
-    ...staticCoreStats,
+    ...(character.coreStats ?? createDefaultCoreStats()),
     armorClass: String(getArmorClassForCharacter(character)),
     initiative: formatAbilityModifier(getInitiativeForCharacter(character)),
     speed: `${getSpeedForCharacter(character)} ft`,
     passivePerception: String(getPassivePerceptionForCharacter(character)),
-    proficiencyBonus: formatAbilityModifier(getProficiencyBonus(character.level)),
+    proficiencyBonus: formatAbilityModifier(proficiencyBonus),
     hitDice: getHitDiceDisplayForCharacter(character)
   };
   const coreStatIndicators = getCoreStatIndicatorsForCharacter(character);
   const savingThrowIndicators = getSavingThrowIndicatorsForCharacter(character);
-  const armorClassBreakdown = useMemo(
-    () => getArmorClassBreakdownForCharacter(character),
-    [character]
-  );
-  const speedBreakdown = useMemo(() => getSpeedBreakdownForCharacter(character), [character]);
-  const initiativeBreakdown = useMemo(() => getInitiativeBreakdownForCharacter(character), [character]);
+  const armorClassBreakdown = getArmorClassBreakdownForCharacter(character);
+  const speedBreakdown = getSpeedBreakdownForCharacter(character);
+  const initiativeBreakdown = getInitiativeBreakdownForCharacter(character);
+  const monkMartialArtsDie = getMonkMartialArtsDieForCharacter(character);
+  const bardicInspirationDie = getBardicInspirationDieForCharacter(character);
+  const abilitySavingThrowCards = abilityKeys.map((ability) => {
+    const abilityScore = effectiveAbilities[ability];
+    const abilityModifierValue = getAbilityModifier(abilityScore);
+    const savingThrowProficiency = getSavingThrowProficiencyForAbilityKey(ability);
+    const savingThrowLevel = getSavingThrowLevelFromEntries(
+      character.savingThrowProficiencies,
+      savingThrowProficiency
+    );
+    const proficiencyMultiplier = getProficiencyMultiplier(savingThrowLevel);
+    const proficiencyContribution = proficiencyBonus * proficiencyMultiplier;
+    const totalSavingThrowValue = abilityModifierValue + proficiencyContribution;
+    const proficiencyLabel =
+      proficiencyMultiplier === 2
+        ? "Proficiency Bonus x2"
+        : proficiencyMultiplier === 1
+          ? "Proficiency Bonus"
+          : undefined;
 
-  const abilityModifierCards = useMemo(
-    () =>
-      abilityKeys.map((ability) => ({
-        ability,
-        score: displayedAbilities[ability],
-        modifier: formatAbilityModifier(getAbilityModifier(displayedAbilities[ability]))
-      })),
-    [displayedAbilities]
-  );
+    return {
+      ability,
+      score: abilityScore,
+      modifier: formatAbilityModifier(abilityModifierValue),
+      modifierValue: abilityModifierValue,
+      isSavingThrowProficient: proficiencyMultiplier > 0,
+      hasSavingThrowAdvantage: (savingThrowIndicators[ability] ?? []).some(
+        (indicator) => indicator.tone === "advantage"
+      ),
+      hasSavingThrowDisadvantage: (savingThrowIndicators[ability] ?? []).some(
+        (indicator) => indicator.tone === "disadvantage"
+      ),
+      proficiencyContribution,
+      proficiencyLabel,
+      totalSavingThrowValue,
+      totalSavingThrow: formatAbilityModifier(totalSavingThrowValue),
+      indicators: savingThrowIndicators[ability] ?? []
+    };
+  });
 
-  const savingThrowCards = useMemo(
-    () =>
-      abilityKeys.map((ability) => {
-        const abilityModifier = getAbilityModifier(displayedAbilities[ability]);
-        const savingThrowProficiency = getSavingThrowProficiencyForAbilityKey(ability);
-        const savingThrowLevel = getSavingThrowLevelFromEntries(
-          displayedSavingThrowProficiencies,
-          savingThrowProficiency
-        );
-        const proficiencyMultiplier = getProficiencyMultiplier(savingThrowLevel);
-        const proficiencyContribution = proficiencyBonus * proficiencyMultiplier;
-        const isSavingThrowProficient = proficiencyMultiplier > 0;
-        const totalSavingThrow = abilityModifier + proficiencyContribution;
-        const proficiencyLabel =
-          proficiencyMultiplier === 2
-            ? "Expertise"
-            : proficiencyMultiplier === 1
-              ? "Proficiency Bonus"
-              : undefined;
+  const baseCoreStatCards = coreStatFields.map((field) => {
+    let detailValue: string | undefined;
 
-        return {
-          ability,
-          score: displayedAbilities[ability],
-          isSavingThrowProficient,
-          abilityModifier,
-          proficiencyContribution,
-          proficiencyLabel,
-          totalSavingThrowValue: totalSavingThrow,
-          totalSavingThrow: formatAbilityModifier(totalSavingThrow),
-          indicators: savingThrowIndicators[ability] ?? []
-        };
-      }),
-    [displayedAbilities, displayedSavingThrowProficiencies, proficiencyBonus, savingThrowIndicators]
-  );
+    if (field.label === "Armor Class") {
+      detailValue = formatArmorClassFormula(
+        armorClassBreakdown.total,
+        armorClassBreakdown.entries,
+        armorClassBreakdown.source
+      );
+    } else if (field.label === "Initiative") {
+      detailValue = formatInitiativeFormula(initiativeBreakdown.total, initiativeBreakdown.entries);
+    } else if (field.label === "Speed") {
+      detailValue = formatSpeedFormula(
+        speedBreakdown.total,
+        speedBreakdown.entries,
+        speedBreakdown.source
+      );
+    }
 
-  function syncDraftsFromCharacter() {
+    return {
+      key: String(field.key),
+      label: field.label,
+      value: displayedCoreStats[field.key],
+      indicators: coreStatIndicators[field.key],
+      summaryText: getKeywordDescription(field.label) ?? undefined,
+      detailCards: detailValue
+        ? [
+            {
+              label: "Formula",
+              value: detailValue
+            }
+          ]
+        : undefined
+    } satisfies CoreStatCard;
+  });
+
+  const additionalCoreStatCards: CoreStatCard[] = [];
+
+  if (monkMartialArtsDie) {
+    additionalCoreStatCards.push({
+      key: "martial-arts-die",
+      label: "Martial Arts Die",
+      value: formatDieValue(monkMartialArtsDie) ?? "-",
+      summaryText:
+        "Your current Martial Arts die. When Martial Arts applies, your Unarmed Strike and Monk weapons can use this die in place of their normal damage die if it is higher.",
+      detailCards: [
+        {
+          label: "Current Die",
+          value: formatDieValue(monkMartialArtsDie) ?? "-"
+        },
+        {
+          label: "Progression",
+          value: "d6 at 1, d8 at 5, d10 at 11, d12 at 17"
+        }
+      ]
+    });
+  }
+
+  if (bardicInspirationDie) {
+    additionalCoreStatCards.push({
+      key: "bardic-inspiration-die",
+      label: "Bardic Die",
+      value: formatDieValue(bardicInspirationDie) ?? "-",
+      summaryText:
+        "Your current Bardic Inspiration die. Creatures inspired by you roll this die when they spend a Bardic Inspiration use.",
+      detailCards: [
+        {
+          label: "Current Die",
+          value: formatDieValue(bardicInspirationDie) ?? "-"
+        },
+        {
+          label: "Progression",
+          value: "d6 at 1, d8 at 5, d10 at 10, d12 at 15"
+        }
+      ]
+    });
+  }
+
+  const coreStatCards: CoreStatCard[] = [...additionalCoreStatCards, ...baseCoreStatCards];
+
+  function syncAbilityDraftFromCharacter() {
     setAbilitiesDraft(createAbilitiesDraft(character));
-    setSavingThrowProficienciesDraft(character.savingThrowProficiencies);
   }
 
-  function toggleStatsViewMode() {
-    const nextMode: StatsViewMode = isTabMode ? "full" : "tabs";
-    setStatsViewMode(nextMode);
-    updatePreferences({ statsViewMode: nextMode });
+  function openAbilityEditor() {
+    syncAbilityDraftFromCharacter();
+    setIsAbilityModalOpen(true);
   }
 
-  function beginEditingFor(tab: StatsTab) {
-    syncDraftsFromCharacter();
-    setEditingTab(tab);
-    setActiveTab(tab);
-    setIsEditing(true);
-  }
-
-  function cancelEditing() {
-    syncDraftsFromCharacter();
-    setIsEditing(false);
+  function cancelAbilityEditing() {
+    syncAbilityDraftFromCharacter();
+    setIsAbilityModalOpen(false);
   }
 
   function saveAbilities() {
@@ -361,25 +458,7 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
       abilities: nextAbilities
     }));
 
-    setIsEditing(false);
-  }
-
-  function saveSavingThrows() {
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      savingThrowProficiencies: savingThrowProficienciesDraft
-    }));
-
-    setIsEditing(false);
-  }
-
-  function saveCurrentEdit() {
-    if (editingTab === "savingThrows") {
-      saveSavingThrows();
-      return;
-    }
-
-    saveAbilities();
+    setIsAbilityModalOpen(false);
   }
 
   function updateAbilityScore(ability: AbilityKey, value: string) {
@@ -400,89 +479,81 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
     }));
   }
 
-  function toggleSavingThrowProficiency(ability: AbilityKey) {
-    setSavingThrowProficienciesDraft((currentSelections) =>
-      toggleManualSavingThrowEntry(
-        currentSelections,
-        getSavingThrowProficiencyForAbilityKey(ability)
-      )
-    );
-  }
-
-  function openStatReference(keyword: string, indicators?: FeatureIndicator[]) {
-    const description = getKeywordDescription(keyword);
-    const savingThrowAbility = keyword.replace(" Saving Throw", "");
-
-    if (!description) {
-      return;
+  function openCoreStatReference(card: CoreStatCard) {
+    if (card.label === "Initiative" && hasPerfectFocus) {
+      setUsePerfectFocusOnInitiative(true);
     }
 
     setSelectedStatReference({
-      keyword,
-      description,
-      indicators: indicators?.length ? indicators : undefined,
-      detailText:
-        keyword === "Armor Class"
-          ? formatArmorClassFormula(
-              armorClassBreakdown.total,
-              armorClassBreakdown.entries,
-              armorClassBreakdown.source
-            )
-          : keyword === "Initiative"
-            ? formatInitiativeFormula(initiativeBreakdown.total, initiativeBreakdown.entries)
-          : keyword === "Speed"
-            ? formatSpeedFormula(
-                speedBreakdown.total,
-                speedBreakdown.entries,
-                speedBreakdown.source
-              )
-            : abilityKeys.includes(keyword as AbilityKey)
-              ? (() => {
-                  const abilityBreakdown = getAbilityScoreBreakdownForCharacter(
-                    character,
-                    keyword as AbilityKey
-                  );
-
-                  return formatAbilityScoreFormula(
-                    keyword as AbilityKey,
-                    abilityBreakdown.total,
-                    abilityBreakdown.entries
-                  );
-                })()
-              : abilityKeys.includes(savingThrowAbility as AbilityKey)
-                ? (() => {
-                    const ability = savingThrowAbility as AbilityKey;
-                    const savingThrowCard = savingThrowCards.find((card) => card.ability === ability);
-
-                    if (!savingThrowCard) {
-                      return undefined;
-                    }
-
-                    return formatSavingThrowFormula(
-                      ability,
-                      savingThrowCard.totalSavingThrowValue,
-                      savingThrowCard.abilityModifier,
-                      savingThrowCard.proficiencyContribution,
-                      savingThrowCard.proficiencyLabel
-                    );
-                  })()
-          : undefined
+      keyword: card.label,
+      summaryText: card.summaryText,
+      indicators: card.indicators?.length ? card.indicators : undefined,
+      detailCards: card.detailCards
     });
   }
 
-  function renderEditActions() {
-    return (
-      <div className={shared.formActions}>
-        <button type="button" className={shared.saveButton} onClick={saveCurrentEdit}>
-          <Save size={16} />
-          Save
-        </button>
-        <button type="button" className={shared.cancelButton} onClick={cancelEditing}>
-          <X size={16} />
-          Cancel
-        </button>
-      </div>
-    );
+  function openAbilityReference(
+    ability: AbilityKey,
+    indicators?: FeatureIndicator[]
+  ) {
+    const abilityBreakdown = getAbilityScoreBreakdownForCharacter(character, ability);
+    const abilityDescription = getKeywordDescription(ability);
+    const savingThrowKeyword = `${ability} Saving Throw`;
+    const savingThrowDescription = getKeywordDescription(savingThrowKeyword);
+    const selectedCard = abilitySavingThrowCards.find((card) => card.ability === ability);
+
+    if (!selectedCard) {
+      return;
+    }
+
+    const descriptionItems = [
+      ...(abilityDescription
+        ? [
+            {
+              label: abilityDisplayLabels[ability],
+              text: stripLeadingLabel(abilityDescription, abilityDisplayLabels[ability])
+            }
+          ]
+        : []),
+      ...(savingThrowDescription
+        ? [
+            {
+              label: savingThrowKeyword,
+              text: stripLeadingLabel(savingThrowDescription, savingThrowKeyword)
+            }
+          ]
+        : [])
+    ];
+
+    setSelectedStatReference({
+      keyword: ability,
+      indicators: indicators?.length ? indicators : undefined,
+      descriptionItems: descriptionItems.length ? descriptionItems : undefined,
+      detailCards: [
+        {
+          label: "Ability Score Formula",
+          value: formatAbilityScoreFormula(
+            ability,
+            abilityBreakdown.total,
+            abilityBreakdown.entries
+          )
+        },
+        {
+          label: "Ability Modifier Formula",
+          value: formatAbilityModifierFormula(ability, selectedCard.score)
+        },
+        {
+          label: "Saving Throw Formula",
+          value: formatSavingThrowFormula(
+            ability,
+            selectedCard.totalSavingThrowValue,
+            selectedCard.modifierValue,
+            selectedCard.proficiencyContribution,
+            selectedCard.proficiencyLabel
+          )
+        }
+      ]
+    });
   }
 
   function rollInitiative() {
@@ -491,9 +562,15 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
       initiativeBreakdown.entries
     );
 
-    onPersistCharacter((currentCharacter) =>
-      applySuperiorInspirationOnInitiativeForCharacter(currentCharacter)
-    );
+    onPersistCharacter((currentCharacter) => {
+      let nextCharacter = applySuperiorInspirationOnInitiativeForCharacter(currentCharacter);
+
+      if (usePerfectFocusOnInitiative) {
+        nextCharacter = applyPerfectFocusOnInitiativeForCharacter(nextCharacter);
+      }
+
+      return nextCharacter;
+    });
     setSelectedStatReference(null);
     openDiceRoller({
       title: "Initiative",
@@ -506,29 +583,34 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
     return (
       <section className={styles.statsGroup}>
         <div className={styles.statsGroupHeader}>
-          <h3 className={styles.statsGroupTitle}>{statsTabLabels.core}</h3>
+          <h3 className={styles.statsGroupTitle}>Core Stats</h3>
         </div>
-        <div className={styles.modifierGrid}>
-          {coreStatFields.map((field) => (
+        <div
+          className={clsx(
+            styles.modifierGrid,
+            coreStatCards.length >= 7 && styles.coreStatGridWide
+          )}
+        >
+          {coreStatCards.map((card) => (
             <button
-              key={field.key}
+              key={card.key}
               type="button"
               className={clsx(styles.modifierCard, styles.modifierCardButton)}
-              onClick={() => openStatReference(field.label, coreStatIndicators[field.key])}
+              onClick={() => openCoreStatReference(card)}
             >
               <div className={styles.modifierLabelRow}>
                 <span className={clsx(styles.modifierLabel, styles.coreStatLabel)}>
-                  {field.label}
+                  {card.label}
                 </span>
-                {coreStatIndicators[field.key]?.map((indicator) => (
+                {card.indicators?.map((indicator) => (
                   <RollStatePill
-                    key={`${field.key}-${indicator.label}-${indicator.tone}`}
+                    key={`${card.key}-${indicator.label}-${indicator.tone}`}
                     tone={indicator.tone}
                     label={indicator.label}
                   />
                 ))}
               </div>
-              <strong>{displayedCoreStats[field.key]}</strong>
+              <strong>{card.value}</strong>
             </button>
           ))}
         </div>
@@ -536,252 +618,69 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
     );
   }
 
-  function renderAbilityModifiersSection() {
-    const isSectionEditing = isEditing && editingTab === "modifiers";
-
+  function renderAbilitySavingThrowsSection() {
     return (
       <section className={styles.statsGroup}>
         <div className={styles.statsGroupHeader}>
-          <h3 className={styles.statsGroupTitle}>{statsTabLabels.modifiers}</h3>
-          {!isEditing ? (
-            <button
-              type="button"
-              className={shared.editButton}
-              onClick={() => beginEditingFor("modifiers")}
-            >
-              <Pencil size={16} />
-              Edit
-            </button>
-          ) : null}
+          <h3 className={clsx(styles.statsGroupTitle, styles.combinedGroupTitle)}>
+            <span>Ability Modifier</span>
+            <span className={styles.groupTitleDivider} aria-hidden="true" />
+            <span>Saving Throws</span>
+          </h3>
+          <button
+            type="button"
+            className={shared.editButton}
+            onClick={openAbilityEditor}
+          >
+            <Pencil size={16} />
+            Edit
+          </button>
         </div>
 
-        {isSectionEditing ? (
-          <>
-            <div className={styles.modeControl}>
-              <button
-                type="button"
-                className={clsx(
-                  styles.modeButton,
-                  abilitiesDraft.attributeMode === "custom" && styles.modeButtonActive
-                )}
-                onClick={() =>
-                  setAbilitiesDraft((current) => ({
-                    ...current,
-                    attributeMode: "custom"
-                  }))
-                }
-              >
-                Custom
-              </button>
-              <button
-                type="button"
-                className={clsx(
-                  styles.modeButton,
-                  abilitiesDraft.attributeMode === "pointBuy" && styles.modeButtonActive
-                )}
-                onClick={() =>
-                  setAbilitiesDraft((current) => ({
-                    ...current,
-                    attributeMode: "pointBuy"
-                  }))
-                }
-              >
-                Point Buy
-              </button>
-            </div>
-            {abilitiesDraft.attributeMode === "pointBuy" && pointBuyRemaining !== null ? (
-              <p className={shared.helperText}>{pointBuyRemaining} points remaining</p>
-            ) : null}
-            <div className={styles.abilityInputGrid}>
-              {abilityKeys.map((ability) => (
-                <label key={ability} className={styles.abilityInputCard}>
-                  <span>{ability}</span>
-                  <NumberInput
-                    min={abilitiesDraft.attributeMode === "pointBuy" ? 8 : 1}
-                    max={abilitiesDraft.attributeMode === "pointBuy" ? 15 : 99}
-                    value={abilitiesDraft.abilities[ability]}
-                    onChange={(event) => updateAbilityScore(ability, event.target.value)}
-                  />
-                </label>
-              ))}
-            </div>
-            {renderEditActions()}
-          </>
-        ) : (
-          <div className={styles.modifierGrid}>
-            {abilityModifierCards.map((card) => (
-              <button
-                key={card.ability}
-                type="button"
-                className={clsx(styles.modifierCard, styles.modifierCardButton)}
-                onClick={() => openStatReference(card.ability)}
-              >
-                <div className={styles.modifierLabelRow}>
-                  <span className={styles.modifierLabel}>
-                    {card.ability}: {card.score}
-                  </span>
-                  {card.ability === mainAbility ? (
-                    <span
-                      className={styles.modifierStar}
-                      aria-label="Primary attack or spell ability"
-                    >
-                      *
-                    </span>
-                  ) : null}
-                </div>
-                <strong>{card.modifier}</strong>
-              </button>
-            ))}
-          </div>
-        )}
-      </section>
-    );
-  }
-
-  function renderSavingThrowsSection() {
-    const isSectionEditing = isEditing && editingTab === "savingThrows";
-
-    return (
-      <section className={styles.statsGroup}>
-        <div className={styles.statsGroupHeader}>
-          <h3 className={styles.statsGroupTitle}>{statsTabLabels.savingThrows}</h3>
-          {!isEditing ? (
+        <div className={styles.modifierGrid}>
+          {abilitySavingThrowCards.map((card) => (
             <button
+              key={card.ability}
               type="button"
-              className={shared.editButton}
-              onClick={() => beginEditingFor("savingThrows")}
+              className={clsx(styles.modifierCard, styles.modifierCardButton)}
+              onClick={() => openAbilityReference(card.ability, card.indicators)}
             >
-              <Pencil size={16} />
-              Edit
-            </button>
-          ) : null}
-        </div>
-
-        {isSectionEditing ? (
-          <>
-            <p className={shared.helperText}>Changes here are stored as manual overrides.</p>
-            <div className={styles.modifierGrid}>
-              {savingThrowCards.map((card) => (
-                <label
-                  key={card.ability}
+              <div className={styles.modifierLabelRow}>
+                <span className={styles.modifierLabel}>{card.ability}</span>
+                <span
                   className={clsx(
-                    styles.modifierCard,
-                    styles.savingThrowEditCard,
-                    card.isSavingThrowProficient && styles.savingThrowEditCardActive
+                    styles.scoreBadge,
+                    card.ability === mainAbility && styles.scoreBadgePrimary
                   )}
+                  aria-label={`${card.ability} score ${card.score}`}
                 >
-                  <div className={styles.modifierLabelRow}>
-                    <span className={styles.modifierLabel}>
-                      {card.ability}: {card.score}
-                    </span>
-                    {card.indicators.map((indicator) => (
-                      <RollStatePill
-                        key={`${card.ability}-${indicator.label}-${indicator.tone}`}
-                        tone={indicator.tone}
-                        label={indicator.label}
-                      />
-                    ))}
-                  </div>
-                  <strong
-                    className={clsx(
-                      card.isSavingThrowProficient && styles.savingThrowValueProficient
-                    )}
-                  >
-                    {card.totalSavingThrow}
-                  </strong>
-                  <input
-                    type="checkbox"
-                    checked={card.isSavingThrowProficient}
-                    className={styles.savingThrowEditCheckbox}
-                    onChange={() => toggleSavingThrowProficiency(card.ability)}
-                    aria-label={`Toggle ${card.ability} saving throw proficiency`}
+                  <Pentagon size={28} className={styles.scoreBadgeIcon} aria-hidden="true" />
+                  <span className={styles.scoreBadgeValue}>{card.score}</span>
+                </span>
+                {card.indicators.map((indicator) => (
+                  <RollStatePill
+                    key={`${card.ability}-${indicator.label}-${indicator.tone}`}
+                    tone={indicator.tone}
+                    label={indicator.label}
                   />
-                </label>
-              ))}
-            </div>
-            {renderEditActions()}
-          </>
-        ) : (
-          <div className={styles.modifierGrid}>
-            {savingThrowCards.map((card) => (
-              <button
-                key={card.ability}
-                type="button"
-                className={clsx(styles.modifierCard, styles.modifierCardButton)}
-                onClick={() => openStatReference(`${card.ability} Saving Throw`, card.indicators)}
-              >
-                <div className={styles.modifierLabelRow}>
-                  <span className={styles.modifierLabel}>
-                    {card.ability}: {card.score}
-                  </span>
-                  {card.indicators.map((indicator) => (
-                    <RollStatePill
-                      key={`${card.ability}-${indicator.label}-${indicator.tone}`}
-                      tone={indicator.tone}
-                      label={indicator.label}
-                    />
-                  ))}
-                </div>
+                ))}
+              </div>
+              <div className={styles.combinedValueRow}>
+                <strong>{card.modifier}</strong>
+                <span className={styles.combinedValueDivider} aria-hidden="true" />
                 <strong
                   className={clsx(
-                    card.isSavingThrowProficient && styles.savingThrowValueProficient
+                    card.hasSavingThrowAdvantage && styles.savingThrowValueAdvantage,
+                    card.hasSavingThrowDisadvantage && styles.savingThrowValueDisadvantage
                   )}
                 >
                   {card.totalSavingThrow}
                 </strong>
-              </button>
-            ))}
-          </div>
-        )}
-      </section>
-    );
-  }
-
-  function renderTabModeContent() {
-    const currentTab = isEditing ? editingTab : activeTab;
-
-    return (
-      <>
-        <div className={styles.tabRow} role="tablist" aria-label="Stats tabs">
-          <button
-            type="button"
-            role="tab"
-            aria-selected={currentTab === "core"}
-            disabled={isEditing}
-            className={clsx(styles.tabButton, currentTab === "core" && styles.tabButtonActive)}
-            onClick={() => setActiveTab("core")}
-          >
-            Core Stats
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={currentTab === "modifiers"}
-            disabled={isEditing}
-            className={clsx(styles.tabButton, currentTab === "modifiers" && styles.tabButtonActive)}
-            onClick={() => setActiveTab("modifiers")}
-          >
-            Ability Modifiers
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={currentTab === "savingThrows"}
-            disabled={isEditing}
-            className={clsx(
-              styles.tabButton,
-              currentTab === "savingThrows" && styles.tabButtonActive
-            )}
-            onClick={() => setActiveTab("savingThrows")}
-          >
-            Saving Throws
-          </button>
+              </div>
+            </button>
+          ))}
         </div>
-
-        {currentTab === "core" ? renderCoreStatsSection() : null}
-        {currentTab === "modifiers" ? renderAbilityModifiersSection() : null}
-        {currentTab === "savingThrows" ? renderSavingThrowsSection() : null}
-      </>
+      </section>
     );
   }
 
@@ -791,44 +690,27 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
         <div>
           <p className={shared.eyebrow}>Character Stats</p>
         </div>
-        <div className={styles.headerActions}>
-          <button
-            type="button"
-            className={styles.viewSwitch}
-            onClick={toggleStatsViewMode}
-            disabled={isEditing}
-            aria-label={isTabMode ? "Switch to full view" : "Switch to tab view"}
-            title={isTabMode ? "Switch to full view" : "Switch to tab view"}
-          >
-            <span
-              className={clsx(
-                styles.viewSwitchIconSlot,
-                isTabMode && styles.viewSwitchIconSlotActive
-              )}
-            >
-              <Diamond size={16} />
-            </span>
-            <span
-              className={clsx(
-                styles.viewSwitchIconSlot,
-                !isTabMode && styles.viewSwitchIconSlotActive
-              )}
-            >
-              <Component size={16} />
-            </span>
-          </button>
-        </div>
       </div>
 
-      {isTabMode ? (
-        renderTabModeContent()
-      ) : (
-        <div className={styles.fullViewStack}>
-          {renderCoreStatsSection()}
-          {renderAbilityModifiersSection()}
-          {renderSavingThrowsSection()}
-        </div>
-      )}
+      <div className={styles.fullViewStack}>
+        {renderCoreStatsSection()}
+        {renderAbilitySavingThrowsSection()}
+      </div>
+
+      <AbilityScoresModal
+        isOpen={isAbilityModalOpen}
+        draft={abilitiesDraft}
+        pointBuyRemaining={pointBuyRemaining}
+        onClose={cancelAbilityEditing}
+        onSave={saveAbilities}
+        onSetAttributeMode={(attributeMode) =>
+          setAbilitiesDraft((current) => ({
+            ...current,
+            attributeMode
+          }))
+        }
+        onUpdateAbilityScore={updateAbilityScore}
+      />
 
       {selectedStatReference ? (
         <div
@@ -850,9 +732,11 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
                 <div className={sheetStyles.spellDrawerTitleRow}>
                   <h3 id="character-stats-reference-title">{selectedStatReference.keyword}</h3>
                 </div>
-                <p className={sheetStyles.spellDrawerSummary}>
-                  {selectedStatReference.description}
-                </p>
+                {selectedStatReference.summaryText ? (
+                  <p className={sheetStyles.spellDrawerSummary}>
+                    {selectedStatReference.summaryText}
+                  </p>
+                ) : null}
               </div>
               {selectedStatReference.indicators?.length ? (
                 <div className={styles.referenceIndicatorStack}>
@@ -875,24 +759,52 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
                 <X size={18} />
               </button>
             </div>
-            {selectedStatReference.detailText ? (
+            {selectedStatReference.descriptionItems?.length ||
+            selectedStatReference.detailCards?.length ? (
               <div className={sheetStyles.spellDrawerBody}>
-                <div className={sheetStyles.spellDrawerDetails}>
-                  <div
-                    className={clsx(
-                      sheetStyles.spellDrawerDetailCard,
-                      styles.referenceDetailCardFullWidth
-                    )}
-                  >
-                    <span>Formula</span>
-                    <strong>{selectedStatReference.detailText}</strong>
+                {selectedStatReference.descriptionItems?.length ? (
+                  <div className={sheetStyles.spellDrawerDescriptionSection}>
+                    <ul className={styles.referenceDescriptionList}>
+                      {selectedStatReference.descriptionItems.map((item) => (
+                        <li
+                          key={`${selectedStatReference.keyword}-${item.label}`}
+                          className={styles.referenceDescriptionItem}
+                        >
+                          <strong>{item.label}</strong>: {item.text}
+                        </li>
+                      ))}
+                    </ul>
                   </div>
-                </div>
+                ) : null}
+                {selectedStatReference.detailCards?.length ? (
+                  <div className={clsx(sheetStyles.spellDrawerDetails, styles.referenceDetailStack)}>
+                    {selectedStatReference.detailCards.map((detailCard) => (
+                      <div
+                        key={`${selectedStatReference.keyword}-${detailCard.label}`}
+                        className={sheetStyles.spellDrawerDetailCard}
+                      >
+                        <span>{detailCard.label}</span>
+                        <strong>{detailCard.value}</strong>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             ) : null}
             {selectedStatReference.keyword === "Initiative" ? (
-              <div className={sheetStyles.spellDrawerActions}>
-                <div />
+              <div className={clsx(sheetStyles.spellDrawerActions, styles.initiativeActions)}>
+                <div className={styles.initiativeActionsStart}>
+                  {hasPerfectFocus ? (
+                    <label className={styles.initiativeCheckboxLabel}>
+                      <input
+                        type="checkbox"
+                        checked={usePerfectFocusOnInitiative}
+                        onChange={(event) => setUsePerfectFocusOnInitiative(event.target.checked)}
+                      />
+                      <span>Perfect Focus</span>
+                    </label>
+                  ) : null}
+                </div>
                 <button
                   type="button"
                   className={sheetStyles.castButton}

@@ -5,6 +5,7 @@ import type {
   CharacterStatusEntry,
   CoreStats,
   LanguageProficiencyEntry,
+  SavingThrowProficiencyEntry,
   SkillName,
   SkillProficiencyEntry,
   WeaponProficiencyEntry
@@ -20,6 +21,8 @@ export type FeatureActionCard = {
   economyMultiCount?: number;
   interaction?: "activate" | "select";
   usesLabel?: string;
+  usesIcon?: "brain";
+  usesTone?: "default" | "danger";
   usesRemaining?: number;
   usesTotal?: number;
   usesSupplementaryLabel?: string;
@@ -121,6 +124,7 @@ export type FeatureAbilityScoreBonus = {
 };
 
 export type FeatureSkillProficiencyEntry = SkillProficiencyEntry;
+export type FeatureSavingThrowProficiencyEntry = SavingThrowProficiencyEntry;
 export type FeatureWeaponProficiencyEntry = WeaponProficiencyEntry;
 
 export type FeatureArmorProficiencyEntry = ArmorProficiencyEntry;

@@ -24,6 +24,16 @@ export type CharacterDruidFeatureState = {
   primalOrderChoice?: DruidPrimalOrderChoice;
 };
 
+export type CharacterMonkFeatureState = {
+  focusPointsExpended?: number;
+  uncannyMetabolismUsesExpended?: number;
+  flurryOfBlowsAttacksRemainingThisTurn?: number;
+  extraAttacksRemainingThisTurn?: number;
+  stunningStrikeUsedThisTurn?: boolean;
+  superiorDefenseRoundsRemaining?: number;
+  superiorDefenseUsedThisTurn?: boolean;
+};
+
 export type CharacterFighterFeatureState = {
   secondWindUsesExpended?: number;
   actionSurgeUsesExpended?: number;
@@ -50,5 +60,6 @@ export type CharacterClassFeatureState = {
   bard?: CharacterBardFeatureState;
   cleric?: CharacterClericFeatureState;
   druid?: CharacterDruidFeatureState;
+  monk?: CharacterMonkFeatureState;
   fighter?: CharacterFighterFeatureState;
 };

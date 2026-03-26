@@ -57,7 +57,7 @@
 }
 
 .multiGroup {
-  transform-box: fill-box;
+  transform-box: view-box;
   transform-origin: center;
   transform: scale(0.58);
 }

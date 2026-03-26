@@ -64,12 +64,26 @@
   text-transform: uppercase;
 }
 
+.buttonMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  flex-shrink: 0;
+}
+
 .duration {
   display: inline-flex;
   align-items: center;
   gap: 0.12rem;
   color: var(--color-accent);
   font-size: 0.75rem;
+}
+
+.reactionBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1rem;
 }
 
 .traitEditorModal {
@@ -186,6 +200,22 @@
   font-size: 0.84rem;
   font-weight: 600;
   text-align: right;
+}
+
+.inlineLinkButton {
+  border: none;
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  margin: 0;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.inlineLinkButton:hover {
+  color: var(--color-accent-strong, #8f4d1f);
 }
 
 @media (max-width: 800px) {
