@@ -1,4 +1,4 @@
-import type { RoundTrackerResource } from "../combat";
+import type { ActionCategory, EconomyType } from "../actionEconomy";
 import type {
   AbilityKey,
   ArmorProficiencyEntry,
@@ -15,9 +15,14 @@ export type FeatureActionCard = {
   name: string;
   summary: string;
   detail: string;
-  actionCost: RoundTrackerResource | null;
+  economyType: EconomyType;
+  actionCategory: ActionCategory;
+  economyMultiCount?: number;
   interaction?: "activate" | "select";
   usesLabel?: string;
+  usesRemaining?: number;
+  usesTotal?: number;
+  usesSupplementaryLabel?: string;
   isActive?: boolean;
   disabled?: boolean;
   disabledReason?: string;
@@ -28,6 +33,9 @@ export type FeatureActionOptionCard = {
   name: string;
   summary: string;
   detail: string;
+  economyType: EconomyType;
+  actionCategory: ActionCategory;
+  economyMultiCount?: number;
   resultLabel?: string;
   rangeResultLabel?: string;
   breakdown?: string;

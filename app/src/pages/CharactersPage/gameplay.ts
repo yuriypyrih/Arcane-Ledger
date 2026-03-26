@@ -1,4 +1,5 @@
 import {
+  DICE,
   DAMAGE_TYPE,
   ENTRY_CATEGORIES,
   FEATS,
@@ -21,9 +22,18 @@ import {
   getAbilityScoresForCharacter
 } from "./abilities";
 import {
+  canUseMonkMartialArtsForCharacter,
+  getWeaponActionEconomyMultiForCharacter,
   getFeatureDamageBonusesForWeaponAction,
+  getMonkMartialArtsDieForCharacter,
   type FeatureDamageBonus
 } from "./classFeatures";
+import {
+  ACTION_CATEGORY,
+  ECONOMY_TYPE,
+  type ActionCategory,
+  type EconomyType
+} from "./actionEconomy";
 import {
   createHeldShieldDescriptor,
   createHeldWeaponDescriptor,
@@ -31,6 +41,8 @@ import {
   hasVersatileHandBonus,
   type HeldWeaponDescriptor
 } from "./inventory";
+import { getWornBodyArmorTypeForCharacter } from "./armor";
+import { isMonkWeapon } from "./monkWeapons";
 import { normalizeCharacterFeats } from "./feats";
 import {
   getAppliedWeaponProficiency,
@@ -58,6 +70,9 @@ export type WeaponAction = {
   key: string;
   name: string;
   attackKind: "weapon" | "unarmed";
+  economyType: EconomyType;
+  actionCategory: ActionCategory;
+  economyMultiCount?: number;
   damageLabel: string;
   damageFormula: string;
   rollDisplay: string;
@@ -71,6 +86,7 @@ export type WeaponAction = {
   rollFormula: string;
   hasVersatileBonus: boolean;
   hasGreatWeaponFighting: boolean;
+  hasMartialArtsDamageDie: boolean;
 };
 
 export type InitiativeBreakdownEntry = {
@@ -236,6 +252,52 @@ function formatWeaponDamageFormulaWithMinimum(
     .join(" + ");
 }
 
+function getWeaponDamageFaceCount(amount: WeaponDamageAmount): number {
+  if (typeof amount === "number") {
+    return amount;
+  }
+
+  const parsedFaces = Number(String(amount).replace(/\D/g, ""));
+  return Number.isFinite(parsedFaces) ? parsedFaces : 0;
+}
+
+function applyMartialArtsDamageDie(
+  damage: WeaponDamage,
+  martialArtsDie: DICE
+): { damage: WeaponDamage; applied: boolean } {
+  if (damage.length === 0) {
+    return {
+      damage,
+      applied: false
+    };
+  }
+
+  const [primaryAmount, primaryType] = damage[0];
+
+  if (getWeaponDamageFaceCount(primaryAmount) >= getWeaponDamageFaceCount(martialArtsDie)) {
+    return {
+      damage,
+      applied: false
+    };
+  }
+
+  return {
+    damage: [[martialArtsDie, primaryType], ...damage.slice(1)],
+    applied: true
+  };
+}
+
+function getSelectedWeaponDamage(
+  weapon: Pick<WeaponEntry, "damage" | "versatileDamage">,
+  options?: {
+    useVersatileDamage?: boolean;
+  }
+): WeaponDamage {
+  return options?.useVersatileDamage && Array.isArray(weapon.versatileDamage) && weapon.versatileDamage.length > 0
+    ? weapon.versatileDamage
+    : weapon.damage;
+}
+
 function hasGreatWeaponFightingFeat(
   character: Pick<Character, "feats" | "level">
 ): boolean {
@@ -265,12 +327,11 @@ function getWeaponReferenceFromEntry(
   options?: {
     useVersatileDamage?: boolean;
     applyGreatWeaponFighting?: boolean;
+    damageOverride?: WeaponDamage;
+    abilityRuleOverride?: WeaponAbilityRule;
   }
 ): WeaponReference | null {
-  const damage =
-    options?.useVersatileDamage && Array.isArray(weapon.versatileDamage) && weapon.versatileDamage.length > 0
-      ? weapon.versatileDamage
-      : weapon.damage;
+  const damage = options?.damageOverride ?? getSelectedWeaponDamage(weapon, options);
   const applyGreatWeaponFighting =
     Boolean(options?.applyGreatWeaponFighting) && canUseGreatWeaponFighting(weapon, options);
 
@@ -288,7 +349,7 @@ function getWeaponReferenceFromEntry(
     rollFormulaBase: applyGreatWeaponFighting
       ? formatWeaponDamageFormulaWithMinimum(damage, 3, { internal: true })
       : formatWeaponDamageFormula(damage),
-    abilityRule: getWeaponAbilityRule(weapon),
+    abilityRule: options?.abilityRuleOverride ?? getWeaponAbilityRule(weapon),
     hasVersatileBonus: Boolean(options?.useVersatileDamage),
     hasGreatWeaponFighting: applyGreatWeaponFighting
   };
@@ -299,6 +360,8 @@ function getWeaponReference(
   options?: {
     useVersatileDamage?: boolean;
     applyGreatWeaponFighting?: boolean;
+    damageOverride?: WeaponDamage;
+    abilityRuleOverride?: WeaponAbilityRule;
   }
 ): WeaponReference | null {
   const codexWeapon = codexWeaponEntriesByName.get(name);
@@ -395,8 +458,11 @@ function createWeaponAction(
     abilityModifier: number;
     proficiencyLabel: string;
     proficiencyBonus: number;
+    economyType?: EconomyType;
+    economyMultiCount?: number;
     hasVersatileBonus: boolean;
     hasGreatWeaponFighting: boolean;
+    hasMartialArtsDamageDie?: boolean;
   }
 ): WeaponAction {
   const damageBonusEntries = getFeatureDamageBonusesForWeaponAction(character, {
@@ -426,6 +492,9 @@ function createWeaponAction(
     key: options.key,
     name: options.name,
     attackKind: options.attackKind,
+    economyType: options.economyType ?? ECONOMY_TYPE.ACTION,
+    actionCategory: ACTION_CATEGORY.ATTACK,
+    economyMultiCount: options.economyMultiCount,
     damageLabel,
     damageFormula,
     rollDisplay: createRollDisplay(damageFormula, totalModifier),
@@ -438,7 +507,8 @@ function createWeaponAction(
     damageBonusEntries,
     rollFormula: createRollFormula(rollFormulaBase, totalModifier),
     hasVersatileBonus: options.hasVersatileBonus,
-    hasGreatWeaponFighting: options.hasGreatWeaponFighting
+    hasGreatWeaponFighting: options.hasGreatWeaponFighting,
+    hasMartialArtsDamageDie: Boolean(options.hasMartialArtsDamageDie)
   };
 }
 
@@ -526,7 +596,7 @@ export function getSavingThrowProficienciesForClass(className: string): AbilityK
 export function getInitiativeBreakdownForCharacter(character: Character): InitiativeBreakdown {
   const entries: InitiativeBreakdownEntry[] = [
     {
-      label: "Dex",
+      label: "DEX",
       value: getAbilityModifierForCharacter(character, "DEX")
     }
   ];
@@ -573,25 +643,38 @@ export function getPassivePerceptionForCharacter(character: Character): number {
 }
 
 function createUnarmedStrikeAction(
-  character: Pick<Character, "abilities" | "className" | "level" | "classFeatureState">
+  character: Pick<Character, "abilities" | "className" | "level" | "classFeatureState">,
+  options?: {
+    martialArtsDie?: DICE | null;
+    economyType?: EconomyType;
+    economyMultiCount?: number;
+  }
 ): WeaponAction {
-  const ability: AbilityKey = "STR";
-  const abilityModifier = getAbilityModifierForCharacter(character, "STR");
-  const damageFormula = "1";
+  const effectiveAbilityScores = getAbilityScoresForCharacter(character);
+  const ability: AbilityKey = options?.martialArtsDie
+    ? resolveWeaponAbility("finesse", effectiveAbilityScores)
+    : "STR";
+  const abilityModifier = getAbilityModifier(getAbilityScoreForCharacter(character, ability));
+  const damageFormula = options?.martialArtsDie
+    ? `1${String(options.martialArtsDie).toLowerCase()}`
+    : "1";
 
   return createWeaponAction(character, {
     key: "unarmed-strike",
     name: "Unarmed Strike",
     attackKind: "unarmed",
-    damageLabel: "1 Bludgeoning",
+    damageLabel: `${damageFormula} Bludgeoning`,
     damageFormula,
     rollFormulaBase: damageFormula,
     ability,
     abilityModifier,
     proficiencyLabel: "Unarmed strike",
     proficiencyBonus: 0,
+    economyType: options?.economyType,
+    economyMultiCount: options?.economyMultiCount,
     hasVersatileBonus: false,
-    hasGreatWeaponFighting: false
+    hasGreatWeaponFighting: false,
+    hasMartialArtsDamageDie: Boolean(options?.martialArtsDie)
   });
 }
 
@@ -604,6 +687,14 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
       entry.category === ENTRY_CATEGORIES.WEAPONS && entry.onHand
   );
   const heldCodexWeapons = character.equipment.filter((item) => item.onHand);
+  const heldCodexWeaponEntries = heldCodexWeapons.reduce<WeaponEntry[]>(
+    (entries, item) => {
+      const entry = codexWeaponEntriesByName.get(item.name);
+
+      return entry ? [...entries, entry] : entries;
+    },
+    []
+  );
   const heldCodexWeaponDescriptors = heldCodexWeapons.reduce<HeldWeaponDescriptor[]>(
     (descriptors, item) => {
       const equipmentDefinition = getEquipmentByName(item.name);
@@ -634,6 +725,21 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
     ...heldCustomWeaponDescriptors
   ];
   const hasFreeHand = getHeldWeaponSlotCount(heldWeaponDescriptors) < 2;
+  const hasShieldEquipped = heldCodexWeapons.some((item) => {
+    const equipmentDefinition = getEquipmentByName(item.name);
+    return equipmentDefinition?.category === "armor" && equipmentDefinition.type === "shield";
+  });
+  const monkMartialArtsDie = getMonkMartialArtsDieForCharacter(character);
+  const monkMartialArtsActive =
+    monkMartialArtsDie !== null &&
+    canUseMonkMartialArtsForCharacter(character, {
+      hasWornBodyArmor: getWornBodyArmorTypeForCharacter(character) !== null,
+      hasShieldEquipped,
+      wieldsOnlyMonkWeaponsOrUnarmed: [...heldCodexWeaponEntries, ...heldCustomWeapons].every((weapon) =>
+        isMonkWeapon(weapon)
+      )
+    });
+  const weaponEconomyMulti = getWeaponActionEconomyMultiForCharacter(character);
 
   const codexWeaponActions = heldCodexWeapons.reduce<WeaponAction[]>((actions, equipmentItem) => {
     const equipmentDefinition = getEquipmentByName(equipmentItem.name);
@@ -643,6 +749,11 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
     }
 
     const weaponEntry = codexWeaponEntriesByName.get(equipmentItem.name);
+
+    if (!weaponEntry) {
+      return actions;
+    }
+
     const weaponDescriptor = weaponEntry
       ? {
           key: `codex-${equipmentItem.name}`,
@@ -653,9 +764,18 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
     const useVersatileDamage = weaponDescriptor
       ? hasVersatileHandBonus(weaponDescriptor, heldWeaponDescriptors)
       : false;
+    const isEligibleMonkWeapon = monkMartialArtsActive && isMonkWeapon(weaponEntry);
+    const monkDamageAdjustment = isEligibleMonkWeapon && monkMartialArtsDie
+      ? applyMartialArtsDamageDie(
+          getSelectedWeaponDamage(weaponEntry, { useVersatileDamage }),
+          monkMartialArtsDie
+        )
+      : null;
     const weaponReference = getWeaponReference(equipmentItem.name, {
       useVersatileDamage,
-      applyGreatWeaponFighting: hasGreatWeaponFighting
+      applyGreatWeaponFighting: hasGreatWeaponFighting,
+      damageOverride: monkDamageAdjustment?.damage,
+      abilityRuleOverride: isEligibleMonkWeapon ? "finesse" : undefined
     });
 
     if (!weaponReference) {
@@ -667,7 +787,11 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
     const appliedWeaponProficiency = getAppliedWeaponProficiency(
       character.weaponProficiencies,
       equipmentDefinition.training,
-      equipmentDefinition.baseWeapon
+      {
+        baseWeapon: equipmentDefinition.baseWeapon,
+        combatType: weaponEntry.type.combat,
+        properties: weaponEntry.properties
+      }
     );
     const appliedProficiencyBonus = appliedWeaponProficiency ? proficiencyBonus : 0;
     const proficiencyLabel = appliedWeaponProficiency?.label ?? "";
@@ -685,8 +809,10 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
         abilityModifier,
         proficiencyLabel,
         proficiencyBonus: appliedProficiencyBonus,
+        economyMultiCount: weaponEconomyMulti,
         hasVersatileBonus: weaponReference.hasVersatileBonus,
-        hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting
+        hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting,
+        hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied)
       })
     ];
   }, []);
@@ -698,9 +824,19 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
       versatileDamage: weaponEntry.versatileDamage
     } satisfies HeldWeaponDescriptor;
     const useVersatileDamage = hasVersatileHandBonus(weaponDescriptor, heldWeaponDescriptors);
+    const monkDamageAdjustment =
+      monkMartialArtsActive && monkMartialArtsDie && isMonkWeapon(weaponEntry)
+        ? applyMartialArtsDamageDie(
+            getSelectedWeaponDamage(weaponEntry, { useVersatileDamage }),
+            monkMartialArtsDie
+          )
+        : null;
     const weaponReference = getWeaponReferenceFromEntry(weaponEntry, {
       useVersatileDamage,
-      applyGreatWeaponFighting: hasGreatWeaponFighting
+      applyGreatWeaponFighting: hasGreatWeaponFighting,
+      damageOverride: monkDamageAdjustment?.damage,
+      abilityRuleOverride:
+        monkMartialArtsActive && isMonkWeapon(weaponEntry) ? "finesse" : undefined
     });
 
     if (!weaponReference) {
@@ -712,7 +848,11 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
     const appliedWeaponProficiency = getAppliedWeaponProficiency(
       character.weaponProficiencies,
       weaponEntry.type.training,
-      weaponEntry.baseWeapon
+      {
+        baseWeapon: weaponEntry.baseWeapon,
+        combatType: weaponEntry.type.combat,
+        properties: weaponEntry.properties
+      }
     );
     const appliedProficiencyBonus = appliedWeaponProficiency ? proficiencyBonus : 0;
     const proficiencyLabel = appliedWeaponProficiency?.label ?? "";
@@ -730,14 +870,24 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
         abilityModifier,
         proficiencyLabel,
         proficiencyBonus: appliedProficiencyBonus,
+        economyMultiCount: weaponEconomyMulti,
         hasVersatileBonus: weaponReference.hasVersatileBonus,
-        hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting
+        hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting,
+        hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied)
       })
     ];
   }, []);
 
   return [
-    ...(hasFreeHand ? [createUnarmedStrikeAction(character)] : []),
+    ...(hasFreeHand || monkMartialArtsActive
+      ? [
+          createUnarmedStrikeAction(character, {
+            martialArtsDie: monkMartialArtsActive ? monkMartialArtsDie : null,
+            economyType: monkMartialArtsActive ? ECONOMY_TYPE.BONUS_ACTION : ECONOMY_TYPE.ACTION,
+            economyMultiCount: monkMartialArtsActive ? 0 : weaponEconomyMulti
+          })
+        ]
+      : []),
     ...codexWeaponActions,
     ...customWeaponActions
   ];

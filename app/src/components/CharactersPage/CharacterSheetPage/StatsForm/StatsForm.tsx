@@ -108,7 +108,7 @@ function formatArmorClassTermLabel(label: string, source: string): string {
   }
 
   if (["STR", "DEX", "CON", "INT", "WIS", "CHA"].includes(label)) {
-    return `${label.charAt(0)}${label.slice(1).toLowerCase()}`;
+    return label;
   }
 
   return label;

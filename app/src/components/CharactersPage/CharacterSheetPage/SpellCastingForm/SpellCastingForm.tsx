@@ -22,6 +22,7 @@ import {
   normalizeRoundTracker,
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
+import { getRoundTrackerResourceForEconomyType } from "../../../../pages/CharactersPage/actionEconomy";
 import {
   activateFeatureActionOptionForCharacter,
   getFeatureActionsForCharacter,
@@ -196,6 +197,19 @@ function getRoundTrackerActionWarning(
   }
 
   return `You already used the ${getRoundTrackerResourceLabel(resource)} for this turn`;
+}
+
+function getActionShapeStateForRoundTrackerResource(
+  resource: RoundTrackerResource | null,
+  roundTracker: ReturnType<typeof normalizeRoundTracker>
+): {
+  isSelected: boolean;
+  multiCount: number;
+} {
+  return {
+    isSelected: !resource || isRoundTrackerResourceAvailable(roundTracker, resource),
+    multiCount: 0
+  };
 }
 
 function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormProps) {
@@ -514,12 +528,28 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
     roundTracker
   );
   const selectedDivinityActionWarning = getRoundTrackerActionWarning(
-    selectedDivinityRow?.action.actionCost ?? null,
+    selectedDivinityRow
+      ? getRoundTrackerResourceForEconomyType(selectedDivinityRow.option.economyType)
+      : null,
     roundTracker
   );
   const selectedSpellAlwaysPrepared = selectedSpell
     ? alwaysPreparedSpellIdSet.has(selectedSpell.id)
     : false;
+
+  function getSpellRowActionShapeState(spell: SpellEntry) {
+    return getActionShapeStateForRoundTrackerResource(
+      getRoundTrackerResourceForSpell(spell),
+      roundTracker
+    );
+  }
+
+  function getDivinityRowActionShapeState(row: DivinityOptionRow) {
+    return getActionShapeStateForRoundTrackerResource(
+      getRoundTrackerResourceForEconomyType(row.option.economyType),
+      roundTracker
+    );
+  }
 
   useEffect(() => {
     if (!selectedDivinityOptionKey) {
@@ -755,6 +785,9 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
     }
 
     onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedDivinityRow.option.economyType
+      );
       const nextCharacter = activateFeatureActionOptionForCharacter(
         currentCharacter,
         selectedDivinityRow.action.key,
@@ -765,12 +798,12 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
         return currentCharacter;
       }
 
-      return selectedDivinityRow.action.actionCost
+      return roundTrackerResource
         ? {
             ...nextCharacter,
             roundTracker: consumeRoundTrackerResource(
               nextCharacter.roundTracker,
-              selectedDivinityRow.action.actionCost
+              roundTrackerResource
             )
           }
         : nextCharacter;
@@ -854,14 +887,22 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
             <ul className={styles.spellList}>
               {channelDivinityRows.map((row) => (
                 <li key={row.option.key}>
-                  <DivinityListRow
-                    divinity={{
-                      ...row.entry,
-                      name: row.option.name
-                    }}
-                    onClick={() => openDivinityDetails(row.option.key)}
-                    valueSummary={formatFeatureActionOptionRangeLabel(row.option)}
-                  />
+                  {(() => {
+                    const actionShapeState = getDivinityRowActionShapeState(row);
+
+                    return (
+                      <DivinityListRow
+                        divinity={{
+                          ...row.entry,
+                          name: row.option.name
+                        }}
+                        onClick={() => openDivinityDetails(row.option.key)}
+                        valueSummary={formatFeatureActionOptionRangeLabel(row.option)}
+                        actionShapeSelected={actionShapeState.isSelected}
+                        actionShapeMultiCount={actionShapeState.multiCount}
+                      />
+                    );
+                  })()}
                 </li>
               ))}
             </ul>
@@ -877,12 +918,20 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
               <ul className={styles.spellList}>
                 {group.spells.map((spell) => (
                   <li key={spell.id}>
-                    <SpellListRow
-                      spell={spell}
-                      onClick={() => openSpellDetails(spell)}
-                      valueSummary={spellOutcomeSummariesById.get(spell.id) ?? ""}
-                      alwaysPrepared={alwaysPreparedSpellIdSet.has(spell.id)}
-                    />
+                    {(() => {
+                      const actionShapeState = getSpellRowActionShapeState(spell);
+
+                      return (
+                        <SpellListRow
+                          spell={spell}
+                          onClick={() => openSpellDetails(spell)}
+                          valueSummary={spellOutcomeSummariesById.get(spell.id) ?? ""}
+                          alwaysPrepared={alwaysPreparedSpellIdSet.has(spell.id)}
+                          actionShapeSelected={actionShapeState.isSelected}
+                          actionShapeMultiCount={actionShapeState.multiCount}
+                        />
+                      );
+                    })()}
                   </li>
                 ))}
               </ul>
@@ -986,6 +1035,7 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
                           {group.spells.map((spell) => {
                             const isChecked = cantripDraftSet.has(spell.id);
                             const isDisabled = !isChecked && isCantripLimitReached;
+                            const actionShapeState = getSpellRowActionShapeState(spell);
 
                             return (
                               <li key={spell.id}>
@@ -998,6 +1048,8 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
                                   isSelected={isChecked}
                                   onSelect={() => toggleCantripDraft(spell.id)}
                                   disabled={isDisabled}
+                                  actionShapeSelected={actionShapeState.isSelected}
+                                  actionShapeMultiCount={actionShapeState.multiCount}
                                   className={
                                     isDisabled ? styles.spellManagementChoiceDisabled : undefined
                                   }
@@ -1084,6 +1136,7 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
                         const isChecked = isAlwaysPrepared || preparedSpellDraftSet.has(spell.id);
                         const isDisabled =
                           isAlwaysPrepared || (!isChecked && isPreparedSpellLimitReached);
+                        const actionShapeState = getSpellRowActionShapeState(spell);
 
                         return (
                           <li key={spell.id}>
@@ -1096,6 +1149,8 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
                               isSelected={isChecked}
                               onSelect={() => togglePreparedSpellDraft(spell.id)}
                               disabled={isDisabled}
+                              actionShapeSelected={actionShapeState.isSelected}
+                              actionShapeMultiCount={actionShapeState.multiCount}
                               className={
                                 isAlwaysPrepared
                                   ? styles.spellManagementChoiceDisabled

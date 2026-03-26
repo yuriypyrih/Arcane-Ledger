@@ -1,0 +1,116 @@
+.root {
+  grid-column: 1 / -1;
+}
+
+.stateRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-ink);
+}
+
+.headerRow {
+  align-items: center;
+}
+
+.headerMain {
+  display: grid;
+  gap: 0.22rem;
+  min-width: 0;
+}
+
+.summaryRow {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  min-width: 190px;
+}
+
+.summaryRow span {
+  color: var(--color-ink-soft);
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.trackGrid {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.dotsRow {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.dot {
+  block-size: 10px;
+  inline-size: 10px;
+  border: 1px solid rgba(75, 47, 29, 0.25);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.84);
+}
+
+.dotSuccess {
+  border-color: #2f8a4f;
+  background: #40b464;
+}
+
+.dotFailure {
+  border-color: #a63a2a;
+  background: #d24f3a;
+}
+
+.actionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.46rem;
+}
+
+.actionButton {
+  border: none;
+  border-radius: 10px;
+  background: rgba(75, 47, 29, 0.1);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  min-height: 34px;
+  padding: 0 0.68rem;
+}
+
+.rollButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.34rem;
+  background: rgba(47, 120, 255, 0.18);
+  color: #18468f;
+}
+
+.actionButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.52;
+}
+
+.rollResult {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.82rem;
+}
+
+@media (max-width: 620px) {
+  .trackGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .headerRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .summaryRow {
+    min-width: 0;
+    width: 100%;
+  }
+}

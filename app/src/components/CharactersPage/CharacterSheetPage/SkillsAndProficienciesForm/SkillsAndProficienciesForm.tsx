@@ -44,6 +44,7 @@ import {
   isCustomLanguageProficiency,
   addManualCustomLanguageEntry,
   getToolLevelFromEntries,
+  getWeaponProficiencyOptionsForClass,
   getWeaponProficiencyTypeLabel,
   getWeaponLevelFromEntries,
   isWeaponMasteryProficiency,
@@ -54,7 +55,6 @@ import {
   skillsOptions,
   toolProficiencyOptions,
   upsertManualSkillEntry,
-  weaponProficiencyOptions,
   type ProficiencyDisplayEntry,
   type ToolProficiency
 } from "../../../../pages/CharactersPage/proficiency";
@@ -179,7 +179,8 @@ function SkillsAndProficienciesForm({
     : character.languageProficiencies;
 
   const displayedWeaponProficiencyEntries = getDisplayWeaponProficiencyEntries(
-    displayedWeaponProficiencies
+    displayedWeaponProficiencies,
+    className
   );
   const displayedLanguageProficiencyEntries = getDisplayLanguageProficiencyEntries(
     displayedLanguageProficiencies
@@ -610,10 +611,11 @@ function SkillsAndProficienciesForm({
   }
 
   function renderWeaponEditor() {
-    const broadWeaponOptions = weaponProficiencyOptions.filter(
+    const availableWeaponProficiencyOptions = getWeaponProficiencyOptionsForClass(className);
+    const broadWeaponOptions = availableWeaponProficiencyOptions.filter(
       (proficiency) => !isWeaponMasteryProficiency(proficiency)
     );
-    const masteryWeaponOptions = weaponProficiencyOptions.filter((proficiency) =>
+    const masteryWeaponOptions = availableWeaponProficiencyOptions.filter((proficiency) =>
       isWeaponMasteryProficiency(proficiency)
     );
     const isWeaponSelected = (proficiency: WEAPON_PROFICIENCY) =>

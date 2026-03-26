@@ -1,0 +1,97 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  gap: 0;
+  line-height: 0;
+}
+
+.multi {
+  gap: 0.14rem;
+  line-height: 1;
+}
+
+.button {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  padding: 0;
+}
+
+.button:focus-visible {
+  outline: 2px solid rgba(179, 92, 28, 0.34);
+  outline-offset: 2px;
+}
+
+.shapeSvg {
+  block-size: 20px;
+  inline-size: 20px;
+  display: block;
+}
+
+.small .shapeSvg {
+  block-size: 16px;
+  inline-size: 16px;
+}
+
+.backdropElement {
+  fill: rgba(255, 252, 246, 0.98);
+  stroke: none;
+}
+
+.shapeElement {
+  fill: transparent;
+  stroke: var(--shape-stroke);
+  stroke-linejoin: round;
+  stroke-width: 2.2;
+  transition:
+    fill 160ms ease,
+    opacity 160ms ease,
+    stroke 160ms ease;
+}
+
+.selected .shapeElement {
+  fill: var(--shape-fill);
+}
+
+.multiGroup {
+  transform-box: fill-box;
+  transform-origin: center;
+  transform: scale(0.58);
+}
+
+.multiShapeElement {
+  fill: var(--shape-fill);
+  stroke: var(--shape-stroke);
+  stroke-linejoin: round;
+  stroke-width: 2;
+}
+
+.action {
+  --shape-fill: #40b464;
+  --shape-stroke: #2e8f54;
+}
+
+.bonusAction {
+  --shape-fill: #dfb548;
+  --shape-stroke: #b58712;
+}
+
+.reaction {
+  --shape-fill: #e078af;
+  --shape-stroke: #c8588d;
+}
+
+.multiCountLabel {
+  color: var(--color-ink);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  line-height: 1;
+}
+
+.small .multiCountLabel {
+  font-size: 0.66rem;
+}

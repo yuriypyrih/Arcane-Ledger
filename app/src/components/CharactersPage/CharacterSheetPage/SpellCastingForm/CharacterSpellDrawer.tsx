@@ -242,17 +242,19 @@ function CharacterSpellDrawer({
                     <p className={sheetStyles.spellDrawerSlotText}>{actionAvailabilityText}</p>
                   </div>
                 ) : null}
+              </div>
+              <div className={styles.castActionFooter}>
                 {actionWarning ? <p className={styles.castActionWarning}>{actionWarning}</p> : null}
                 {blockedReason ? <p className={styles.castActionWarning}>{blockedReason}</p> : null}
+                <button
+                  type="button"
+                  className={sheetStyles.castButton}
+                  onClick={onAction}
+                  disabled={!isActionEnabled}
+                >
+                  {actionLabel}
+                </button>
               </div>
-              <button
-                type="button"
-                className={sheetStyles.castButton}
-                onClick={onAction}
-                disabled={!isActionEnabled}
-              >
-                {actionLabel}
-              </button>
             </div>
           ) : null}
         </section>

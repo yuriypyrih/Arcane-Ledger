@@ -182,7 +182,7 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "<strong>Martial Arts Die.</strong> You can roll 1d6 in place of the normal damage of your Unarmed Strike or Monk weapons. This die changes as you gain Monk levels, as shown in the Martial Arts column of the Monk Features table.",
       "<strong>Dexterous Attacks.</strong> You can use your Dexterity modifier instead of your Strength modifier for the attack and damage rolls of your Unarmed Strikes and Monk weapons. In addition, when you use the Grapple or Shove option of your Unarmed Strike, you can use your Dexterity modifier instead of your Strength modifier to determine the save DC."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.MONKS_FOCUS]: {
     description: [

@@ -25,6 +25,7 @@ import {
 } from "../../../types";
 import { hasStatusCondition } from "../traits";
 import { skillGroupsByAbility } from "../skillDefinitions";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
 import type {
   ArmorClassFeatureContext,
   CoreStatIndicatorMap,
@@ -298,8 +299,11 @@ export function getBarbarianFeatureAction(
     detail: rageState.active
       ? "Strength-based weapon and unarmed damage are empowered, Strength checks and saves show Advantage, and you gain resistance to bludgeoning, piercing, and slashing damage."
       : "Use a Bonus Action to activate Rage and gain your Barbarian Rage bonuses.",
-    actionCost: "bonusAction",
+    economyType: ECONOMY_TYPE.BONUS_ACTION,
+    actionCategory: ACTION_CATEGORY.FEATURE,
     usesLabel: `${usesRemaining}/${totalUses} uses`,
+    usesRemaining,
+    usesTotal: totalUses,
     isActive: rageState.active,
     disabled: rageState.active || usesRemaining <= 0,
     disabledReason: rageState.active

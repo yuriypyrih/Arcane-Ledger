@@ -26,7 +26,12 @@ export type CharacterDruidFeatureState = {
 
 export type CharacterFighterFeatureState = {
   secondWindUsesExpended?: number;
+  actionSurgeUsesExpended?: number;
+  actionSurgeUsedThisTurn?: boolean;
+  actionSurgeExtraActionsRemainingThisTurn?: number;
+  indomitableUsesExpended?: number;
   weaponMasteries?: WEAPON_PROFICIENCY[];
+  extraAttacksRemainingThisTurn?: number;
 };
 
 export type ClericDivineOrderChoice = "protector" | "thaumaturge";

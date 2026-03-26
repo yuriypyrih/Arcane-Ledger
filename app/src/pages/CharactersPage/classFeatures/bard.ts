@@ -11,6 +11,7 @@ import {
 } from "../../../types";
 import { getFeatAbilityScoreBonusesForCharacter } from "../feats";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../spellcasting";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
 import type { FeatureActionCard, FeatureSkillBonus, FeatureSkillProficiencyEntry } from "./types";
 
 const bardicInspirationActionKey = "bard-bardic-inspiration";
@@ -422,11 +423,14 @@ export function getBardFeatureAction(
   const canSpendSpellSlotForUse =
     fontOfInspirationUnlocked && usesRemaining <= 0 && spellSlotAvailability.remainingCount > 0;
   const usesLabelParts = [`${bardicDieLabel}`, `${usesRemaining}/${totalUses} uses`];
+  const usesSupplementaryLabelParts = [bardicDieLabel];
 
   if (fontOfInspirationUnlocked && usesRemaining <= 0) {
+    const spellSlotLabel = `${spellSlotAvailability.remainingCount}/${spellSlotAvailability.totalCount} spell slots`;
     usesLabelParts.push(
-      `${spellSlotAvailability.remainingCount}/${spellSlotAvailability.totalCount} spell slots`
+      spellSlotLabel
     );
+    usesSupplementaryLabelParts.push(spellSlotLabel);
   }
 
   const disabled = usesRemaining <= 0 && !canSpendSpellSlotForUse;
@@ -443,8 +447,12 @@ export function getBardFeatureAction(
     summary: `Grant a ${bardicDieLabel} inspiration die.`,
     detail:
       "Use a Bonus Action to inspire another creature within 60 feet that can see or hear you.",
-    actionCost: "bonusAction",
+    economyType: ECONOMY_TYPE.BONUS_ACTION,
+    actionCategory: ACTION_CATEGORY.FEATURE,
     usesLabel: usesLabelParts.join(" | "),
+    usesRemaining,
+    usesTotal: totalUses,
+    usesSupplementaryLabel: usesSupplementaryLabelParts.join(" | "),
     disabled,
     disabledReason
   };

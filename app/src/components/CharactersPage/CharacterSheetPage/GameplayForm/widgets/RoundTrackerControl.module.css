@@ -1,0 +1,42 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.18rem;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.08);
+  padding: 0.2rem;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  min-height: 34px;
+  min-width: 34px;
+  padding: 0;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.button:hover {
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--color-accent);
+}
+
+.button:focus-visible {
+  outline: 2px solid rgba(179, 92, 28, 0.34);
+  outline-offset: 2px;
+}
+
+@media (max-width: 620px) {
+  .root {
+    width: auto;
+    justify-content: flex-start;
+  }
+}

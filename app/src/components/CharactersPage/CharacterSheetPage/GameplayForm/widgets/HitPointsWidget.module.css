@@ -1,0 +1,184 @@
+.root {
+  grid-column: 1 / -1;
+}
+
+.editButton {
+  min-height: 34px;
+  min-width: 34px;
+  padding: 0 0.72rem;
+}
+
+.editGrid {
+  display: grid;
+  gap: 0.62rem;
+}
+
+.modeSwitch {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.08);
+  padding: 0.24rem;
+}
+
+.modeSwitchButton {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  font: inherit;
+  min-height: 36px;
+  padding: 0 0.86rem;
+}
+
+.modeSwitchButtonActive {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-ink);
+  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
+}
+
+.editActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.valueRow {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.38rem;
+}
+
+.summaryCopy {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.currentRow {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+
+.summary strong {
+  display: inline-flex;
+  align-items: center;
+  font-size: 1.08rem;
+  line-height: 1;
+}
+
+.summary span {
+  color: var(--color-ink-soft);
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.actionRow {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.barTrack {
+  flex: 1;
+  min-width: 0;
+  block-size: 14px;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.12);
+  overflow: hidden;
+}
+
+.barMeter {
+  display: flex;
+  block-size: 100%;
+  position: relative;
+}
+
+.barFill {
+  flex: 0 0 auto;
+  block-size: 100%;
+  background: linear-gradient(90deg, #953f30, #bc5d49, #d7965f);
+  transition: width 180ms ease;
+}
+
+.barTempFill {
+  flex: 0 0 auto;
+  height: 14px;
+  background: linear-gradient(90deg, #f2d786 0%, #fff1b8 60%, #f2d786 100%);
+  transition: width 180ms ease;
+}
+
+.tempOverflow {
+  flex: none;
+  position: absolute;
+  right: 0;
+}
+
+.stepControl {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+  gap: 0.34rem;
+}
+
+.stepInput {
+  width: 3.5rem;
+  min-width: 3.5rem;
+  min-height: 44px;
+  padding: 0 0.42rem;
+  text-align: center;
+}
+
+.actionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 10px;
+  color: #fff8ee;
+  cursor: pointer;
+  min-height: 44px;
+  min-width: 44px;
+}
+
+.damageButton {
+  background: linear-gradient(135deg, #913023, #b94937);
+}
+
+.healButton {
+  background: linear-gradient(135deg, #2c6d40, #3f9560);
+}
+
+@media (max-width: 620px) {
+  .summary {
+    gap: 0.6rem;
+  }
+
+  .valueRow {
+    gap: 0.3rem;
+  }
+
+  .actionRow {
+    gap: 0.42rem;
+  }
+
+  .stepInput {
+    width: 3.2rem;
+    min-width: 3.2rem;
+    min-height: 40px;
+  }
+
+  .actionButton {
+    min-height: 40px;
+    min-width: 40px;
+  }
+}

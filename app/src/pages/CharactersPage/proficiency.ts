@@ -33,6 +33,8 @@ import {
   RARITY_TYPES,
   TOOL_PROFICIENCIES as LEGACY_TOOL_PROFICIENCIES,
   WEAPON_BASE,
+  WEAPON_COMBAT_TYPE,
+  WEAPON_PROPERTY,
   WEAPON_TRAINING,
   hardcodedCodexEntries,
   type ArmorEntry,
@@ -54,6 +56,7 @@ import {
   getFeatureLanguageProficiencyEntriesForCharacter,
   getFeatureWeaponProficiencyEntriesForCharacter
 } from "./classFeatures";
+import { isMartialMeleeLightWeapon, isSimpleMeleeWeapon } from "./monkWeapons";
 import { formatCodexLabel } from "../../utils/codex";
 
 export const skillsOptions = ALL_SKILLS;
@@ -95,6 +98,8 @@ export type WeaponEquipmentDefinition = {
   name: string;
   category: "weapon";
   training: WeaponType;
+  combatType: WEAPON_COMBAT_TYPE;
+  properties: WEAPON_PROPERTY[];
   baseWeapon?: WEAPON_BASE;
 };
 
@@ -123,7 +128,7 @@ export type EquipmentProficiencyLabels = {
 };
 
 export type ClassProficiencyProfile = {
-  weaponProficiencies: WeaponType[];
+  weaponProficiencies: WEAPON_PROFICIENCY[];
   armorProficiencies: ArmorType[];
   skillProficiencyOptions: SkillName[];
   skillProficiencyCount: number;
@@ -219,6 +224,8 @@ function toEquipmentDefinition(entry: LoadoutCodexEntry): EquipmentDefinition | 
       name: entry.name,
       category: "weapon",
       training: entry.type.training,
+      combatType: entry.type.combat,
+      properties: entry.properties,
       baseWeapon: entry.baseWeapon
     };
   }
@@ -277,7 +284,7 @@ export type ClassName = (typeof classOptions)[number];
 
 export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile> = {
   Artificer: {
-    weaponProficiencies: [WEAPON_TRAINING.SIMPLE],
+    weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE],
     armorProficiencies: ["light", "medium", "shield"],
     skillProficiencyOptions: [
       "Arcana",
@@ -298,7 +305,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     toolProficiencyChoiceCount: 1
   },
   Barbarian: {
-    weaponProficiencies: [WEAPON_TRAINING.SIMPLE, WEAPON_TRAINING.MARTIAL],
+    weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE, WEAPON_PROFICIENCY.MARTIAL],
     armorProficiencies: ["light", "medium", "shield"],
     skillProficiencyOptions: [
       "Animal Handling",
@@ -311,7 +318,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     skillProficiencyCount: 2
   },
   Bard: {
-    weaponProficiencies: [WEAPON_TRAINING.SIMPLE, WEAPON_TRAINING.MARTIAL],
+    weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE, WEAPON_PROFICIENCY.MARTIAL],
     armorProficiencies: ["light"],
     skillProficiencyOptions: [
       "Acrobatics",
@@ -341,13 +348,13 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     toolProficiencyChoiceCount: 1
   },
   Cleric: {
-    weaponProficiencies: [WEAPON_TRAINING.SIMPLE],
+    weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE],
     armorProficiencies: ["light", "medium", "shield"],
     skillProficiencyOptions: ["History", "Insight", "Medicine", "Persuasion", "Religion"],
     skillProficiencyCount: 2
   },
   Druid: {
-    weaponProficiencies: [WEAPON_TRAINING.SIMPLE],
+    weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE],
     armorProficiencies: ["light", "medium", "shield"],
     skillProficiencyOptions: [
       "Arcana",
@@ -362,7 +369,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     skillProficiencyCount: 2
   },
   Fighter: {
-    weaponProficiencies: [WEAPON_TRAINING.SIMPLE, WEAPON_TRAINING.MARTIAL],
+    weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE, WEAPON_PROFICIENCY.MARTIAL],
     armorProficiencies: ["light", "medium", "heavy", "shield"],
     skillProficiencyOptions: [
       "Acrobatics",
@@ -382,7 +389,10 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     toolProficiencyChoiceCount: 1
   },
   Monk: {
-    weaponProficiencies: [WEAPON_TRAINING.SIMPLE],
+    weaponProficiencies: [
+      WEAPON_PROFICIENCY.SIMPLE_MELEE,
+      WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT
+    ],
     armorProficiencies: [],
     skillProficiencyOptions: [
       "Acrobatics",
@@ -395,7 +405,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     skillProficiencyCount: 2
   },
   Paladin: {
-    weaponProficiencies: [WEAPON_TRAINING.SIMPLE, WEAPON_TRAINING.MARTIAL],
+    weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE, WEAPON_PROFICIENCY.MARTIAL],
     armorProficiencies: ["light", "medium", "heavy", "shield"],
     skillProficiencyOptions: [
       "Athletics",
@@ -410,7 +420,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     toolProficiencyChoiceCount: 1
   },
   Ranger: {
-    weaponProficiencies: [WEAPON_TRAINING.SIMPLE, WEAPON_TRAINING.MARTIAL],
+    weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE, WEAPON_PROFICIENCY.MARTIAL],
     armorProficiencies: ["light", "medium", "shield"],
     skillProficiencyOptions: [
       "Animal Handling",
@@ -430,7 +440,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     toolProficiencyChoiceCount: 1
   },
   Rogue: {
-    weaponProficiencies: [WEAPON_TRAINING.SIMPLE, WEAPON_TRAINING.MARTIAL],
+    weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE, WEAPON_PROFICIENCY.MARTIAL],
     armorProficiencies: ["light"],
     skillProficiencyOptions: [
       "Acrobatics",
@@ -454,7 +464,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     toolProficiencyChoiceCount: 1
   },
   Sorcerer: {
-    weaponProficiencies: [WEAPON_TRAINING.SIMPLE],
+    weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE],
     armorProficiencies: [],
     skillProficiencyOptions: [
       "Arcana",
@@ -467,7 +477,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     skillProficiencyCount: 2
   },
   Warlock: {
-    weaponProficiencies: [WEAPON_TRAINING.SIMPLE],
+    weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE],
     armorProficiencies: ["light"],
     skillProficiencyOptions: [
       "Arcana",
@@ -481,7 +491,7 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     skillProficiencyCount: 2
   },
   Wizard: {
-    weaponProficiencies: [WEAPON_TRAINING.SIMPLE],
+    weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE],
     armorProficiencies: [],
     skillProficiencyOptions: [
       "Arcana",
@@ -641,9 +651,11 @@ const proficiencyOverridePolicySet = new Set<string>(
   Object.values(PROFICIENCY_OVERRIDE_POLICY)
 );
 
-const weaponProficiencyLabelsByType: Record<WeaponType, string> = {
-  [WEAPON_TRAINING.SIMPLE]: "Simple weapons",
-  [WEAPON_TRAINING.MARTIAL]: "Martial weapons"
+const weaponProficiencyLabelsByCategory: Partial<Record<WEAPON_PROFICIENCY, string>> = {
+  [WEAPON_PROFICIENCY.SIMPLE]: "Simple weapons",
+  [WEAPON_PROFICIENCY.SIMPLE_MELEE]: "Simple melee weapons",
+  [WEAPON_PROFICIENCY.MARTIAL]: "Martial weapons",
+  [WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT]: "Martial melee weapons with Light property"
 };
 const commonWeaponEntriesByBaseWeapon = new Map<WEAPON_BASE, WeaponEntry>(
   hardcodedCodexEntries
@@ -724,8 +736,14 @@ export const savingThrowProficiencyOptions = Object.values(
 ) as SAVING_THROW_PROFICIENCY[];
 export const weaponProficiencyOptions: WEAPON_PROFICIENCY[] = [
   WEAPON_PROFICIENCY.SIMPLE,
+  WEAPON_PROFICIENCY.SIMPLE_MELEE,
   WEAPON_PROFICIENCY.MARTIAL,
+  WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT,
   ...weaponSpecificProficiencyOptions
+];
+const monkOnlyWeaponProficiencyOptions: WEAPON_PROFICIENCY[] = [
+  WEAPON_PROFICIENCY.SIMPLE_MELEE,
+  WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT
 ];
 export const armorProficiencyOptions = Object.values(ARMOR_PROFICIENCY) as ARMOR_PROFICIENCY[];
 export const toolProficiencyOptions = Object.values(TOOL_PROFICIENCY) as ToolProficiency[];
@@ -1454,23 +1472,123 @@ export function getWeaponProficiencyForTraining(
   return weaponProficiencyByTraining[training];
 }
 
+function doesWeaponProficiencyMatchWeapon(
+  proficiency: WEAPON_PROFICIENCY,
+  training: WeaponType,
+  options?: {
+    baseWeapon?: WEAPON_BASE;
+    combatType?: WEAPON_COMBAT_TYPE;
+    properties?: WEAPON_PROPERTY[];
+  }
+): boolean {
+  if (options?.baseWeapon && proficiency === getWeaponProficiencyForBaseWeapon(options.baseWeapon)) {
+    return true;
+  }
+
+  if (proficiency === getWeaponProficiencyForTraining(training)) {
+    return true;
+  }
+
+  if (
+    options?.combatType === undefined ||
+    options?.properties === undefined
+  ) {
+    return false;
+  }
+
+  const weaponCandidate = {
+    type: {
+      training,
+      combat: options.combatType
+    },
+    properties: options.properties
+  };
+
+  if (proficiency === WEAPON_PROFICIENCY.SIMPLE_MELEE) {
+    return isSimpleMeleeWeapon(weaponCandidate);
+  }
+
+  if (proficiency === WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT) {
+    return isMartialMeleeLightWeapon(weaponCandidate);
+  }
+
+  return false;
+}
+
+function getMatchingWeaponProficiencies(
+  training: WeaponType,
+  options?: {
+    baseWeapon?: WEAPON_BASE;
+    combatType?: WEAPON_COMBAT_TYPE;
+    properties?: WEAPON_PROPERTY[];
+  }
+): WEAPON_PROFICIENCY[] {
+  const candidates: WEAPON_PROFICIENCY[] = [];
+
+  if (options?.baseWeapon) {
+    candidates.push(getWeaponProficiencyForBaseWeapon(options.baseWeapon));
+  }
+
+  if (
+    options?.combatType !== undefined &&
+    options?.properties !== undefined
+  ) {
+    const weaponCandidate = {
+      type: {
+        training,
+        combat: options.combatType
+      },
+      properties: options.properties
+    };
+
+    if (isSimpleMeleeWeapon(weaponCandidate)) {
+      candidates.push(WEAPON_PROFICIENCY.SIMPLE_MELEE);
+    }
+
+    if (isMartialMeleeLightWeapon(weaponCandidate)) {
+      candidates.push(WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT);
+    }
+  }
+
+  candidates.push(getWeaponProficiencyForTraining(training));
+
+  return candidates.filter(
+    (candidate, index) => candidates.indexOf(candidate) === index
+  );
+}
+
 export function getWeaponProficiencyForBaseWeapon(
   baseWeapon: WEAPON_BASE
 ): WEAPON_PROFICIENCY {
   return weaponProficiencyByBaseWeapon[baseWeapon];
 }
 
+export function isMonkOnlyWeaponProficiency(proficiency: WEAPON_PROFICIENCY): boolean {
+  return monkOnlyWeaponProficiencyOptions.includes(proficiency);
+}
+
+export function getWeaponProficiencyOptionsForClass(className?: string): WEAPON_PROFICIENCY[] {
+  if (className === "Monk") {
+    return weaponProficiencyOptions;
+  }
+
+  return weaponProficiencyOptions.filter((proficiency) => !isMonkOnlyWeaponProficiency(proficiency));
+}
+
 export function isWeaponMasteryProficiency(proficiency: WEAPON_PROFICIENCY): boolean {
-  return proficiency !== WEAPON_PROFICIENCY.SIMPLE && proficiency !== WEAPON_PROFICIENCY.MARTIAL;
+  return ![
+    WEAPON_PROFICIENCY.SIMPLE,
+    WEAPON_PROFICIENCY.SIMPLE_MELEE,
+    WEAPON_PROFICIENCY.MARTIAL,
+    WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT
+  ].includes(proficiency);
 }
 
 export function getWeaponProficiencyLabel(proficiency: WEAPON_PROFICIENCY): string {
-  if (proficiency === WEAPON_PROFICIENCY.SIMPLE) {
-    return weaponProficiencyLabelsByType[WEAPON_TRAINING.SIMPLE];
-  }
+  const categoryLabel = weaponProficiencyLabelsByCategory[proficiency];
 
-  if (proficiency === WEAPON_PROFICIENCY.MARTIAL) {
-    return weaponProficiencyLabelsByType[WEAPON_TRAINING.MARTIAL];
+  if (categoryLabel) {
+    return categoryLabel;
   }
 
   return (
@@ -1559,7 +1677,7 @@ export function getEquipmentProficiencyLabelsForClass(
   }
 
   return {
-    weapons: profile.weaponProficiencies.map((type) => weaponProficiencyLabelsByType[type]),
+    weapons: profile.weaponProficiencies.map((proficiency) => getWeaponProficiencyLabel(proficiency)),
     armor: profile.armorProficiencies.map((type) => armorProficiencyLabelsByType[type])
   };
 }
@@ -1573,7 +1691,13 @@ function isProficientWithEquipmentType(
   }
 
   if (equipment.category === "weapon") {
-    return profile.weaponProficiencies.includes(equipment.training);
+    return profile.weaponProficiencies.some((proficiency) =>
+      doesWeaponProficiencyMatchWeapon(proficiency, equipment.training, {
+        baseWeapon: equipment.baseWeapon,
+        combatType: equipment.combatType,
+        properties: equipment.properties
+      })
+    );
   }
 
   return profile.armorProficiencies.includes(equipment.type);
@@ -1764,12 +1888,15 @@ function getAutomaticWeaponEntries(className: string): WeaponProficiencyEntry[] 
   }
 
   return mergeProficiencyEntries(
-    profile.weaponProficiencies.map((training) =>
+    profile.weaponProficiencies.map((proficiency) =>
       createWeaponEntry(
-        weaponProficiencyByTraining[training],
+        proficiency,
         PROFICIENCY_SOURCE.CLASS,
         sourceStr,
-        PROF_LEVEL.PROFICIENT
+        PROF_LEVEL.PROFICIENT,
+        isMonkOnlyWeaponProficiency(proficiency)
+          ? PROFICIENCY_OVERRIDE_POLICY.LOCKED
+          : PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE
       )
     )
   );
@@ -2266,35 +2393,27 @@ export function getWeaponLevelFromEntries(
 export function getAppliedWeaponProficiency(
   entries: WeaponProficiencyEntry[],
   training: WeaponType,
-  baseWeapon?: WEAPON_BASE
+  options?: {
+    baseWeapon?: WEAPON_BASE;
+    combatType?: WEAPON_COMBAT_TYPE;
+    properties?: WEAPON_PROPERTY[];
+  }
 ): { proficiency: WEAPON_PROFICIENCY; label: string; level: PROF_LEVEL } | null {
-  const specificProficiency = baseWeapon
-    ? getWeaponProficiencyForBaseWeapon(baseWeapon)
-    : null;
-  const specificLevel = specificProficiency
-    ? getWeaponLevelFromEntries(entries, specificProficiency)
-    : PROF_LEVEL.NONE;
+  const matchingProficiencies = getMatchingWeaponProficiencies(training, options);
 
-  if (specificProficiency && specificLevel !== PROF_LEVEL.NONE) {
-    return {
-      proficiency: specificProficiency,
-      label: getWeaponProficiencyLabel(specificProficiency),
-      level: specificLevel
-    };
+  for (const proficiency of matchingProficiencies) {
+    const level = getWeaponLevelFromEntries(entries, proficiency);
+
+    if (level !== PROF_LEVEL.NONE) {
+      return {
+        proficiency,
+        label: getWeaponProficiencyLabel(proficiency),
+        level
+      };
+    }
   }
 
-  const broadProficiency = getWeaponProficiencyForTraining(training);
-  const broadLevel = getWeaponLevelFromEntries(entries, broadProficiency);
-
-  if (broadLevel === PROF_LEVEL.NONE) {
-    return null;
-  }
-
-  return {
-    proficiency: broadProficiency,
-    label: getWeaponProficiencyLabel(broadProficiency),
-    level: broadLevel
-  };
+  return null;
 }
 
 export function getArmorLevelFromEntries(
@@ -2503,9 +2622,10 @@ export function getDisplaySavingThrowProficiencyEntries(
 }
 
 export function getDisplayWeaponProficiencyEntries(
-  entries: WeaponProficiencyEntry[]
+  entries: WeaponProficiencyEntry[],
+  className?: string
 ): ProficiencyDisplayEntry<WEAPON_PROFICIENCY>[] {
-  return getDisplayProficiencyEntries(entries, weaponProficiencyOptions);
+  return getDisplayProficiencyEntries(entries, getWeaponProficiencyOptionsForClass(className));
 }
 
 export function getDisplayArmorProficiencyEntries(

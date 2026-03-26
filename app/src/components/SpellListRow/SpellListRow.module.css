@@ -150,6 +150,18 @@
   text-align: right;
 }
 
+.metaGroup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.42rem;
+  min-width: 0;
+}
+
+.metaShape {
+  flex-shrink: 0;
+}
+
 .subtitle {
   text-transform: uppercase;
 }

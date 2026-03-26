@@ -47,6 +47,14 @@ export const fighterFeatures: FighterFeatureClassObj[] = [
   {
     level: 5,
     classFeatures: [CLASS_FEATURE.EXTRA_ATTACK, CLASS_FEATURE.TACTICAL_SHIFT],
+    featureOverrides: {
+      [CLASS_FEATURE.EXTRA_ATTACK]: {
+        description: [
+          "You can attack twice instead of once whenever you take the Attack action on your turn."
+        ],
+        isTracked: true
+      }
+    },
     secondWind: 3,
     weaponMastery: 4
   },
@@ -173,7 +181,7 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "Once you use this feature, you can't do so again until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",
       "Starting at level 17, you can use it twice before a rest but only once on a turn."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.TACTICAL_MIND]: {
     description: [
@@ -181,7 +189,7 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "When you fail an ability check, you can expend a use of your Second Wind to push yourself toward success. Rather than regaining Hit Points, you roll 1d10 and add the number rolled to the ability check, potentially turning it into a success.",
       "If the check still fails, this use of Second Wind isn't expended."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.FIGHTER_SUBCLASS]: {
     description: [
@@ -203,7 +211,7 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "You must use the new roll, and you can't use this feature again until you finish a <link:long-rest>Long Rest</link>.",
       "You can use this feature twice before a Long Rest starting at level 13 and three times before a Long Rest starting at level 17."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.TACTICAL_MASTER]: {
     description: [
@@ -215,7 +223,7 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
     description: [
       "You can attack three times instead of once whenever you take the Attack action on your turn."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.STUDIED_ATTACKS]: {
     description: [
@@ -228,6 +236,6 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
     description: [
       "You can attack four times instead of once whenever you take the Attack action on your turn."
     ],
-    isTracked: false
+    isTracked: true
   }
 };

@@ -1,0 +1,10 @@
+.drawerActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.56rem;
+}
+
+.drawerActions > * {
+  flex: 1 1 180px;
+  min-width: 0;
+}

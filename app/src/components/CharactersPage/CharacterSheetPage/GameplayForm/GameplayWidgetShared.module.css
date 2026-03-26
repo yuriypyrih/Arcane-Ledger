@@ -1,0 +1,36 @@
+.widgetCard {
+  display: grid;
+  align-content: start;
+  gap: 0.58rem;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: 18px;
+  background: linear-gradient(160deg, rgba(255, 255, 255, 0.78), rgba(255, 250, 242, 0.8));
+  padding: 0.72rem;
+}
+
+.widgetHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+.widgetTitle {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.widgetField {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.widgetField span {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}

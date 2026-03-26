@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import type { DivinityEntry } from "../../codex/entries";
+import ActionShape, { getActionShapeForCastingTime } from "../ActionShape";
 import {
   formatDivinitySubtitle,
   formatSpellCastingTimeSummary
@@ -11,15 +12,17 @@ type DivinityListRowProps = {
   onClick: () => void;
   className?: string;
   valueSummary?: string;
+  actionShapeSelected?: boolean;
+  actionShapeMultiCount?: number;
 };
 
 function formatDivinitySummaryRange(range: string): string {
   return range.replace(/(\d+)\s*feet\b/gi, "$1ft").replace(/(\d+)-foot\b/gi, "$1ft");
 }
 
-function formatDivinityRowMeta(divinity: DivinityEntry): string {
+function formatDivinityRowMeta(divinity: DivinityEntry, hasActionShape: boolean): string {
   return [
-    formatSpellCastingTimeSummary(divinity.castingTime),
+    hasActionShape ? "" : formatSpellCastingTimeSummary(divinity.castingTime),
     divinity.duration,
     formatDivinitySummaryRange(divinity.range)
   ]
@@ -31,8 +34,13 @@ function DivinityListRow({
   divinity,
   onClick,
   className,
-  valueSummary = "-"
+  valueSummary = "-",
+  actionShapeSelected = true,
+  actionShapeMultiCount = 0
 }: DivinityListRowProps) {
+  const actionShape = getActionShapeForCastingTime(divinity.castingTime);
+  const metaText = formatDivinityRowMeta(divinity, actionShape !== null);
+
   return (
     <button type="button" className={clsx(styles.button, className)} onClick={onClick}>
       <div className={styles.contentRow}>
@@ -41,7 +49,18 @@ function DivinityListRow({
           <small className={styles.subtitle}>{formatDivinitySubtitle(divinity)}</small>
         </div>
         <small className={styles.outcome}>{valueSummary}</small>
-        <small className={styles.meta}>{formatDivinityRowMeta(divinity)}</small>
+        <span className={styles.metaGroup}>
+          {actionShape ? (
+            <ActionShape
+              shape={actionShape}
+              isSelected={actionShapeSelected}
+              multiCount={actionShapeMultiCount}
+              size="small"
+              className={styles.metaShape}
+            />
+          ) : null}
+          {metaText ? <small className={styles.meta}>{metaText}</small> : null}
+        </span>
       </div>
     </button>
   );

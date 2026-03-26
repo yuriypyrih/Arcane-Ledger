@@ -72,11 +72,26 @@ import {
   setDruidPrimalOrderChoice
 } from "./druid";
 import {
+  canUseMonkMartialArts,
+  getMonkArmorClassModes,
+  getMonkMartialArtsDie
+} from "./monk";
+import {
+  activateFighterActionSurge,
+  advanceFighterFeaturesForNewRound,
   applyLongRestToFighterFeatures,
   applyShortRestToFighterFeatures,
+  consumeFighterNonMagicAction,
+  consumeFighterWeaponAttack,
   consumeFighterSecondWindUse,
+  consumeFighterIndomitableUse,
+  fighterActionSurgeActionKey,
+  fighterIndomitableActionKey,
   fighterSecondWindActionKey,
-  getFighterFeatureAction,
+  fighterTacticalMindActionKey,
+  getFighterFeatureActions,
+  getFighterNonMagicActionMultiCount,
+  getFighterWeaponAttackMultiCount,
   getFighterWeaponMasteryOptions,
   getFighterWeaponMasterySelectionCount,
   getFighterWeaponMasterySelections,
@@ -157,9 +172,9 @@ export function getFeatureActionsForCharacter(
 ): FeatureActionCard[] {
   const clericActions = getClericFeatureActions(character);
   const bardAction = getBardFeatureAction(character);
-  const fighterAction = getFighterFeatureAction(character);
+  const fighterActions = getFighterFeatureActions(character);
   const rageAction = getBarbarianFeatureAction(character);
-  return [...clericActions, bardAction, fighterAction, rageAction].filter(
+  return [...clericActions, bardAction, ...fighterActions, rageAction].filter(
     (entry): entry is FeatureActionCard => entry !== null
   );
 }
@@ -225,7 +240,10 @@ export function getArmorClassModesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">,
   context: ArmorClassFeatureContext
 ): FeatureArmorClassMode[] {
-  return getBarbarianArmorClassModes(character, context);
+  return [
+    ...getBarbarianArmorClassModes(character, context),
+    ...getMonkArmorClassModes(character, context)
+  ];
 }
 
 export function getArmorClassBonusesForCharacter(
@@ -252,6 +270,23 @@ export function getCantripLimitBonusForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): number {
   return getClericCantripBonus(character) + getDruidCantripBonus(character);
+}
+
+export function getMonkMartialArtsDieForCharacter(
+  character: Pick<Character, "className" | "level">
+) {
+  return getMonkMartialArtsDie(character);
+}
+
+export function canUseMonkMartialArtsForCharacter(
+  character: Pick<Character, "className" | "level">,
+  context: {
+    hasWornBodyArmor: boolean;
+    hasShieldEquipped: boolean;
+    wieldsOnlyMonkWeaponsOrUnarmed: boolean;
+  }
+): boolean {
+  return canUseMonkMartialArts(character, context);
 }
 
 export function getCantripDamageBonusForCharacter(
@@ -430,8 +465,20 @@ export function activateFeatureActionForCharacter(character: Character, actionKe
     return activateBardicInspiration(character);
   }
 
+  if (actionKey === fighterActionSurgeActionKey) {
+    return activateFighterActionSurge(character);
+  }
+
   if (actionKey === fighterSecondWindActionKey) {
     return consumeFighterSecondWindUse(character);
+  }
+
+  if (actionKey === fighterTacticalMindActionKey) {
+    return consumeFighterSecondWindUse(character);
+  }
+
+  if (actionKey === fighterIndomitableActionKey) {
+    return consumeFighterIndomitableUse(character);
   }
 
   if (actionKey === "barbarian-rage") {
@@ -451,6 +498,34 @@ export function markFeatureWeaponBonusUseForCharacter(character: Character, labe
   }
 
   return character;
+}
+
+export function getWeaponActionEconomyMultiForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  if (character.className === "Fighter") {
+    return getFighterWeaponAttackMultiCount(character);
+  }
+
+  return 0;
+}
+
+export function getNonMagicActionEconomyMultiForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  if (character.className === "Fighter") {
+    return getFighterNonMagicActionMultiCount(character);
+  }
+
+  return 0;
+}
+
+export function consumeWeaponAttackActionForCharacter(character: Character): Character {
+  return consumeFighterWeaponAttack(character);
+}
+
+export function consumeNonMagicActionForCharacter(character: Character): Character {
+  return consumeFighterNonMagicAction(character);
 }
 
 export function activateFeatureActionOptionForCharacter(
@@ -501,5 +576,5 @@ export function applyLongRestToFeatureState(character: Character): Character {
 }
 
 export function advanceFeatureStateForNewRound(character: Character): Character {
-  return advanceClericFeaturesForNewRound(character);
+  return advanceFighterFeaturesForNewRound(advanceClericFeaturesForNewRound(character));
 }

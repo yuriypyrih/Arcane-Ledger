@@ -31,6 +31,7 @@ import {
 } from "../../../types";
 import { formatDivinityValue, formatDivinityValueFormula } from "../../../utils/codex";
 import { getFeatAbilityScoreBonusesForCharacter } from "../feats";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
 import type {
   FeatureActionCard,
   FeatureActionOptionCard,
@@ -553,9 +554,12 @@ function getClericChannelDivinityAction(
     summary: "Choose a divine effect.",
     detail:
       "Use a Magic action to invoke Divine Spark or Turn Undead. Divine Spark scales at Cleric levels 7, 13, and 18.",
-    actionCost: "action",
+    economyType: ECONOMY_TYPE.FREE,
+    actionCategory: ACTION_CATEGORY.FEATURE,
     interaction: "select",
     usesLabel: `${usesRemaining}/${totalUses} uses`,
+    usesRemaining,
+    usesTotal: totalUses,
     disabled: usesRemaining <= 0,
     disabledReason: usesRemaining <= 0 ? "No Channel Divinity uses remaining." : undefined
   };
@@ -577,9 +581,12 @@ function getClericDivineInterventionAction(
     detail: hasClericGreaterDivineIntervention(character)
       ? "Choose any Cleric spell of level 5 or lower, or Wish, that doesn't require a Reaction to cast."
       : "Choose any Cleric spell of level 5 or lower that doesn't require a Reaction to cast.",
-    actionCost: "action",
+    economyType: ECONOMY_TYPE.ACTION,
+    actionCategory: ACTION_CATEGORY.MAGIC,
     interaction: "select",
     usesLabel: `${usesRemaining}/1 use`,
+    usesRemaining,
+    usesTotal: 1,
     disabled: usesRemaining <= 0,
     disabledReason: usesRemaining <= 0 ? "No Divine Intervention uses remaining." : undefined
   };
@@ -670,6 +677,8 @@ export function getClericFeatureActionOptions(
       detail:
         getDivinityDescriptionLine(divineSparkEntry, 1) ||
         getDivinityDescriptionLine(divineSparkEntry, 0),
+      economyType: ECONOMY_TYPE.ACTION,
+      actionCategory: ACTION_CATEGORY.MAGIC,
       resultLabel: "Heal",
       breakdown: `${wisdomContribution} | Channel Divinity`,
       rollFormula: `${divineSparkDiceLabel}${wisdomModifier >= 0 ? "+" : ""}${wisdomModifier}`,
@@ -683,6 +692,8 @@ export function getClericFeatureActionOptions(
       detail:
         getDivinityDescriptionLine(divineSparkEntry, 2) ||
         getDivinityDescriptionLine(divineSparkEntry, 0),
+      economyType: ECONOMY_TYPE.ACTION,
+      actionCategory: ACTION_CATEGORY.MAGIC,
       resultLabel: "Damage",
       rangeResultLabel: "Necrotic/Radiant Damage",
       breakdown: `${wisdomContribution} | CON save DC ${spellSaveDc} | Half on success`,
@@ -697,6 +708,8 @@ export function getClericFeatureActionOptions(
       detail:
         getDivinityDescriptionLine(turnUndeadEntry, 2) ||
         getDivinityDescriptionLine(turnUndeadEntry, 0),
+      economyType: ECONOMY_TYPE.ACTION,
+      actionCategory: ACTION_CATEGORY.FEATURE,
       resultLabel: hasClericSearUndead(character) ? "Damage" : undefined,
       rangeResultLabel: hasClericSearUndead(character) ? "Radiant Damage" : undefined,
       breakdown: turnUndeadBreakdown,

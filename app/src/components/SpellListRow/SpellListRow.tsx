@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import type { SpellEntry } from "../../codex/entries";
+import ActionShape, { getActionShapeForCastingTime } from "../ActionShape";
 import {
   formatSpellCastingTimeSummary,
   formatSpellSubtitle
@@ -12,6 +13,8 @@ type SpellListRowProps = {
   className?: string;
   valueSummary?: string;
   alwaysPrepared?: boolean;
+  actionShapeSelected?: boolean;
+  actionShapeMultiCount?: number;
   selectable?: boolean;
   isSelected?: boolean;
   onSelect?: () => void;
@@ -22,9 +25,9 @@ function formatSpellSummaryRange(range: string): string {
   return range.replace(/(\d+)\s*feet\b/gi, "$1ft").replace(/(\d+)-foot\b/gi, "$1ft");
 }
 
-function formatSpellRowMeta(spell: SpellEntry): string {
+function formatSpellRowMeta(spell: SpellEntry, hasActionShape: boolean): string {
   return [
-    formatSpellCastingTimeSummary(spell.castingTime),
+    hasActionShape ? "" : formatSpellCastingTimeSummary(spell.castingTime),
     spell.duration,
     formatSpellSummaryRange(spell.range)
   ]
@@ -38,12 +41,33 @@ function SpellListRow({
   className,
   valueSummary = "",
   alwaysPrepared = false,
+  actionShapeSelected = true,
+  actionShapeMultiCount = 0,
   selectable = false,
   isSelected = false,
   onSelect,
   disabled = false
 }: SpellListRowProps) {
   const hasValueSummary = valueSummary.trim().length > 0;
+  const actionShape = getActionShapeForCastingTime(spell.castingTime);
+  const metaText = formatSpellRowMeta(spell, actionShape !== null);
+  const metaNode =
+    actionShape || metaText ? (
+      <span className={styles.metaGroup}>
+        {actionShape ? (
+          <ActionShape
+            shape={actionShape}
+            isSelected={actionShapeSelected}
+            multiCount={actionShapeMultiCount}
+            size="small"
+            className={styles.metaShape}
+          />
+        ) : null}
+        {metaText ? <small className={styles.meta}>{metaText}</small> : null}
+      </span>
+    ) : (
+      <span />
+    );
 
   if (selectable) {
     return (
@@ -91,7 +115,7 @@ function SpellListRow({
                 <small className={styles.subtitle}>{formatSpellSubtitle(spell)}</small>
               </div>
               {hasValueSummary ? <small className={styles.outcome}>{valueSummary}</small> : <span />}
-              <small className={styles.meta}>{formatSpellRowMeta(spell)}</small>
+              {metaNode}
             </div>
           </div>
         </button>
@@ -114,7 +138,7 @@ function SpellListRow({
           <small className={styles.subtitle}>{formatSpellSubtitle(spell)}</small>
         </div>
         {hasValueSummary ? <small className={styles.outcome}>{valueSummary}</small> : <span />}
-        <small className={styles.meta}>{formatSpellRowMeta(spell)}</small>
+        {metaNode}
       </div>
     </button>
   );
