@@ -27,10 +27,17 @@ import {
   restoreFighterSecondWindOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/fighter";
 import {
+  getPaladinHealingPoolTotal,
+  restorePaladinLayOnHandsOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/paladin";
+import {
   getMonkFocusPointsTotal,
+  hasMonkFeature,
   restoreMonkFocusPointsOnLongRest,
-  restoreMonkFocusPointsOnShortRest
+  restoreMonkFocusPointsOnShortRest,
+  restoreMonkUncannyMetabolismOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/monk";
+import { CLASS_FEATURE } from "../../../../../codex/entries";
 import {
   getSpellSlotTotalsForCharacter
 } from "../../../../../pages/CharactersPage/spellcasting";
@@ -196,7 +203,9 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
   const indomitableUsesTotal = getFighterIndomitableUsesTotal(character);
+  const paladinHealingPoolTotal = getPaladinHealingPoolTotal(character);
   const monkFocusPointsTotal = getMonkFocusPointsTotal(character);
+  const hasUncannyMetabolism = hasMonkFeature(character, CLASS_FEATURE.UNCANNY_METABOLISM);
   const channelDivinityUsesTotal = getClericChannelDivinityUsesTotal(character);
   const hasTimedStatuses = normalizeCharacterStatusEntries(character.statusEntries).length > 0;
 
@@ -303,6 +312,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(paladinHealingPoolTotal > 0
+      ? [
+          {
+            id: "restore-pool-of-healing",
+            label: "Restore Pool of Healing",
+            apply: (currentCharacter: Character) =>
+              restorePaladinLayOnHandsOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(monkFocusPointsTotal > 0
       ? [
           {
@@ -310,6 +329,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore all Focus Points",
             apply: (currentCharacter: Character) =>
               restoreMonkFocusPointsOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasUncannyMetabolism
+      ? [
+          {
+            id: "restore-uncanny-metabolism",
+            label: "Restore Uncanny Metabolism",
+            apply: (currentCharacter: Character) =>
+              restoreMonkUncannyMetabolismOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

@@ -1,0 +1,46 @@
+.pill {
+  align-items: center;
+  background: linear-gradient(135deg, rgba(47, 161, 143, 0.18), rgba(66, 137, 155, 0.14));
+  border: 1px solid rgba(58, 112, 112, 0.18);
+  border-radius: 999px;
+  color: #2e2017;
+  display: inline-flex;
+  overflow: hidden;
+  position: relative;
+  min-height: 38px;
+  white-space: nowrap;
+}
+
+.fill {
+  background:
+    linear-gradient(90deg, rgba(50, 212, 162, 0.72), rgba(88, 224, 194, 0.64) 48%, rgba(255, 225, 128, 0.52) 82%, rgba(255, 246, 212, 0.7)),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0));
+  border-radius: inherit;
+  inset: 0 auto 0 0;
+  position: absolute;
+  transition: width 180ms ease;
+}
+
+.content {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.45rem;
+  padding: 0 0.95rem;
+  position: relative;
+  z-index: 1;
+}
+
+.content svg {
+  color: currentColor;
+  flex: 0 0 auto;
+}
+
+.label {
+  align-items: baseline;
+  display: inline-flex;
+  gap: 0.32rem;
+}
+
+.count {
+  font-weight: 700;
+}

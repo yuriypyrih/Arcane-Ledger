@@ -24,6 +24,11 @@ export type CharacterDruidFeatureState = {
   primalOrderChoice?: DruidPrimalOrderChoice;
 };
 
+export type CharacterPaladinFeatureState = {
+  layOnHandsExpended?: number;
+  weaponMasteries?: WEAPON_PROFICIENCY[];
+};
+
 export type CharacterMonkFeatureState = {
   focusPointsExpended?: number;
   uncannyMetabolismUsesExpended?: number;
@@ -60,6 +65,7 @@ export type CharacterClassFeatureState = {
   bard?: CharacterBardFeatureState;
   cleric?: CharacterClericFeatureState;
   druid?: CharacterDruidFeatureState;
+  paladin?: CharacterPaladinFeatureState;
   monk?: CharacterMonkFeatureState;
   fighter?: CharacterFighterFeatureState;
 };

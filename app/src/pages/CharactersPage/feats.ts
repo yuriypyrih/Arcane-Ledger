@@ -3,6 +3,7 @@ import { CLASS_FEATURE, FEAT_CATEGORY, FEATS } from "../../codex/entries";
 import { ALL_SKILLS, TOOL_PROFICIENCY } from "../../types";
 import type {
   AbilityKey,
+  BlessedWarriorChoice,
   Character,
   CharacterFeatEntry,
   CharacterStatusEntry,
@@ -29,6 +30,8 @@ import type {
   FeatureArmorClassBonus
 } from "./classFeatures";
 import { getToolProficiencyLabel } from "./proficiency";
+import { getSpellEntriesForSpellListClass } from "../../codex/classes/spellAccess";
+import { SPELL_LIST_CLASS, type SpellEntry } from "../../codex/entries";
 
 export type FeatDefinition = FeatureMapEntry & {
   feat: FEATS;
@@ -43,6 +46,12 @@ const abilityKeySet = new Set<AbilityKey>(abilityKeys);
 const skillNameSet = new Set<SkillName>(ALL_SKILLS);
 const allEpicBoonAbilityOptions: AbilityKey[] = [...abilityKeys];
 const spellRecallAbilityOptions: AbilityKey[] = ["INT", "WIS", "CHA"];
+const blessedWarriorCantripOptions = getSpellEntriesForSpellListClass(
+  SPELL_LIST_CLASS.CLERIC
+).filter((spell) => spell.spellLevel === 0);
+const blessedWarriorCantripOptionsById = new Map(
+  blessedWarriorCantripOptions.map((spell) => [spell.id, spell] as const)
+);
 const epicBoonAbilityIncreaseFeatOptions = new Map<FEATS, AbilityKey[]>([
   [FEATS.BOON_OF_COMBAT_PROWESS, allEpicBoonAbilityOptions],
   [FEATS.BOON_OF_DIMENSIONAL_TRAVEL, allEpicBoonAbilityOptions],
@@ -124,6 +133,18 @@ export const featDefinitions: FeatDefinition[] = [
       "<strong>Fast Wrestler.</strong> You don't have to spend extra movement to move a creature Grappled by you if the creature is your size or smaller."
     ],
     trackingState: "not-tracked"
+  },
+  {
+    feat: FEATS.BLESSED_WARRIOR,
+    label: "Blessed Warrior",
+    category: FEAT_CATEGORY.GENERAL,
+    prerequisite: "Paladin Fighting Style Feature",
+    description: [
+      "You learn two Cleric cantrips of your choice. <spell:Guidance>Guidance</spell> and <spell:Sacred Flame>Sacred Flame</spell> are recommended.",
+      "The chosen cantrips count as Paladin spells for you, and <link:CHA>Charisma</link> is your spellcasting ability for them.",
+      "Whenever you gain a Paladin level, you can replace one of these cantrips with another Cleric cantrip."
+    ],
+    trackingState: "tracked"
   },
   {
     feat: FEATS.ARCHERY,
@@ -375,6 +396,32 @@ function normalizeEpicBoonAbilityChoice(
   };
 }
 
+function normalizeBlessedWarriorChoice(value: unknown): BlessedWarriorChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<BlessedWarriorChoice>;
+
+  if (!Array.isArray(record.cantripIds) || record.cantripIds.length !== 2) {
+    return undefined;
+  }
+
+  const cantripIds = [...new Set(record.cantripIds.filter((id): id is string => typeof id === "string"))];
+
+  if (cantripIds.length !== 2) {
+    return undefined;
+  }
+
+  if (!cantripIds.every((id) => blessedWarriorCantripOptionsById.has(id))) {
+    return undefined;
+  }
+
+  return {
+    cantripIds: cantripIds as BlessedWarriorChoice["cantripIds"]
+  };
+}
+
 function isSkilledTool(value: unknown): value is TOOL_PROFICIENCY {
   return typeof value === "string" && Object.values(TOOL_PROFICIENCY).includes(value as TOOL_PROFICIENCY);
 }
@@ -460,6 +507,10 @@ export function normalizeCharacterFeats(value: unknown, currentLevel: number): C
       feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE
         ? normalizeBoonOfIrresistibleOffenseChoice(record.boonOfIrresistibleOffense)
         : undefined;
+    const blessedWarrior =
+      feat === FEATS.BLESSED_WARRIOR
+        ? normalizeBlessedWarriorChoice(record.blessedWarrior)
+        : undefined;
     const epicBoonAbilityChoice = epicBoonAbilityIncreaseFeatOptions.has(feat)
       ? normalizeEpicBoonAbilityChoice(feat, record.epicBoonAbilityChoice)
       : undefined;
@@ -475,6 +526,7 @@ export function normalizeCharacterFeats(value: unknown, currentLevel: number): C
         takenAtLevel: clampFeatLevel(record.takenAtLevel, currentLevel),
         source: normalizeCharacterFeatSource(record.source, clampFeatLevel(record.takenAtLevel, currentLevel)),
         abilityScoreImprovement,
+        blessedWarrior,
         boonOfIrresistibleOffense,
         epicBoonAbilityChoice,
         skilled
@@ -489,6 +541,7 @@ export function createCharacterFeatEntry(
   options?: {
     source?: CharacterFeatSource;
     abilityScoreImprovement?: AbilityScoreImprovementChoice;
+    blessedWarrior?: BlessedWarriorChoice;
     boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
     epicBoonAbilityChoice?: EpicBoonAbilityChoice;
     skilled?: SkilledChoice;
@@ -501,6 +554,7 @@ export function createCharacterFeatEntry(
     source: options?.source ?? { type: "manual" },
     abilityScoreImprovement:
       feat === FEATS.ABILITY_SCORE_IMPROVEMENT ? options?.abilityScoreImprovement : undefined,
+    blessedWarrior: feat === FEATS.BLESSED_WARRIOR ? options?.blessedWarrior : undefined,
     boonOfIrresistibleOffense:
       feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE
         ? options?.boonOfIrresistibleOffense
@@ -574,9 +628,25 @@ export function getEpicBoonAbilityChoiceSummary(choice?: EpicBoonAbilityChoice):
   return choice ? `${choice.ability} +1` : null;
 }
 
+export function getBlessedWarriorChoiceSummary(choice?: BlessedWarriorChoice): string | null {
+  if (!choice) {
+    return null;
+  }
+
+  const cantripNames = choice.cantripIds
+    .map((cantripId) => blessedWarriorCantripOptionsById.get(cantripId)?.name)
+    .filter((name): name is string => Boolean(name));
+
+  return cantripNames.length > 0 ? cantripNames.join(", ") : null;
+}
+
 export function getCharacterFeatSummary(entry: CharacterFeatEntry): string | null {
   if (entry.feat === FEATS.ABILITY_SCORE_IMPROVEMENT) {
     return getAbilityScoreImprovementSummary(entry.abilityScoreImprovement);
+  }
+
+  if (entry.feat === FEATS.BLESSED_WARRIOR) {
+    return getBlessedWarriorChoiceSummary(entry.blessedWarrior);
   }
 
   if (entry.feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE) {
@@ -607,6 +677,33 @@ export function getFeatDefinitionsByCategory(): Record<FEAT_CATEGORY, FeatDefini
       [FEAT_CATEGORY.EPIC_BOON]: []
     }
   );
+}
+
+export function getBlessedWarriorCantripOptions(): SpellEntry[] {
+  return blessedWarriorCantripOptions;
+}
+
+export function getFeatGrantedCantripEntriesForCharacter(
+  character: Pick<Character, "feats" | "level">
+): SpellEntry[] {
+  const feats = normalizeCharacterFeats(character.feats, character.level);
+  const featCantrips = new Map<string, SpellEntry>();
+
+  feats.forEach((entry) => {
+    if (entry.feat !== FEATS.BLESSED_WARRIOR || !entry.blessedWarrior) {
+      return;
+    }
+
+    entry.blessedWarrior.cantripIds.forEach((cantripId) => {
+      const cantrip = blessedWarriorCantripOptionsById.get(cantripId);
+
+      if (cantrip) {
+        featCantrips.set(cantrip.id, cantrip);
+      }
+    });
+  });
+
+  return [...featCantrips.values()].sort((left, right) => left.name.localeCompare(right.name));
 }
 
 export function getFeatAbilityScoreBonusesForCharacter(

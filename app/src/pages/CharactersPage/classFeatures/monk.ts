@@ -799,6 +799,29 @@ function deactivateMonkSuperiorDefense(character: Character): Character {
   };
 }
 
+export function restoreMonkUncannyMetabolismOnLongRest(character: Character): Character {
+  if (!hasMonkFeature(character, CLASS_FEATURE.UNCANNY_METABOLISM)) {
+    return character;
+  }
+
+  const monkState = getMonkFeatureState(character);
+
+  if ((monkState.uncannyMetabolismUsesExpended ?? 0) === 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      monk: {
+        ...monkState,
+        uncannyMetabolismUsesExpended: 0
+      }
+    }
+  };
+}
+
 export function consumeMonkWeaponAttack(
   character: Character,
   action: MonkWeaponAttackContext
@@ -869,23 +892,9 @@ export function applyShortRestToMonkFeatures(character: Character): Character {
 }
 
 export function applyLongRestToMonkFeatures(character: Character): Character {
-  const nextCharacter = deactivateMonkSuperiorDefense(restoreAllMonkFocusPoints(character));
-  const monkState = getMonkFeatureState(nextCharacter);
-
-  if ((monkState.uncannyMetabolismUsesExpended ?? 0) === 0) {
-    return nextCharacter;
-  }
-
-  return {
-    ...nextCharacter,
-    classFeatureState: {
-      ...nextCharacter.classFeatureState,
-      monk: {
-        ...monkState,
-        uncannyMetabolismUsesExpended: 0
-      }
-    }
-  };
+  return restoreMonkUncannyMetabolismOnLongRest(
+    deactivateMonkSuperiorDefense(restoreAllMonkFocusPoints(character))
+  );
 }
 
 export function restoreMonkFocusPointsOnShortRest(character: Character): Character {
@@ -893,7 +902,7 @@ export function restoreMonkFocusPointsOnShortRest(character: Character): Charact
 }
 
 export function restoreMonkFocusPointsOnLongRest(character: Character): Character {
-  return applyLongRestToMonkFeatures(character);
+  return deactivateMonkSuperiorDefense(restoreAllMonkFocusPoints(character));
 }
 
 export function advanceMonkFeaturesForNewRound(character: Character): Character {

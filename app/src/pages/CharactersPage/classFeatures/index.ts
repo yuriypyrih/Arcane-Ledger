@@ -74,6 +74,20 @@ import {
   setDruidPrimalOrderChoice
 } from "./druid";
 import {
+  applyLayOnHands,
+  getPaladinFeatureActions,
+  getPaladinHealingPoolRemaining,
+  getPaladinHealingPoolTotal,
+  getPaladinWeaponMasteryOptions,
+  getPaladinWeaponMasterySelectionCount,
+  getPaladinWeaponMasterySelections,
+  getPaladinWeaponProficiencyEntries,
+  normalizePaladinFeatureState,
+  paladinLayOnHandsActionKey,
+  restorePaladinLayOnHandsOnLongRest,
+  setPaladinWeaponMasterySelections
+} from "./paladin";
+import {
   activateMonkFlurryOfBlows,
   activateMonkUncannyMetabolism,
   activateMonkSuperiorDefense,
@@ -105,6 +119,7 @@ import {
   monkUncannyMetabolismActionKey,
   normalizeMonkFeatureState,
   restoreAllMonkFocusPoints,
+  restoreMonkUncannyMetabolismOnLongRest,
   restoreOneMonkFocusPoint
 } from "./monk";
 import {
@@ -193,6 +208,7 @@ export function normalizeCharacterClassFeatureState(
     bard: normalizeBardFeatureState(record.bard, character),
     cleric: normalizeClericFeatureState(record.cleric, character),
     druid: normalizeDruidFeatureState(record.druid, character),
+    paladin: normalizePaladinFeatureState(record.paladin, character),
     monk: normalizeMonkFeatureState(record.monk, character),
     fighter: normalizeFighterFeatureState(record.fighter, character)
   };
@@ -205,10 +221,16 @@ export function getFeatureActionsForCharacter(
   const bardAction = getBardFeatureAction(character);
   const fighterActions = getFighterFeatureActions(character);
   const monkActions = getMonkFeatureActions(character);
+  const paladinActions = getPaladinFeatureActions(character);
   const rageAction = getBarbarianFeatureAction(character);
-  return [...clericActions, bardAction, ...fighterActions, ...monkActions, rageAction].filter(
-    (entry): entry is FeatureActionCard => entry !== null
-  );
+  return [
+    ...clericActions,
+    bardAction,
+    ...fighterActions,
+    ...monkActions,
+    ...paladinActions,
+    rageAction
+  ].filter((entry): entry is FeatureActionCard => entry !== null);
 }
 
 export function getFeatureActionOptionsForCharacter(
@@ -349,7 +371,8 @@ export function getFeatureWeaponProficiencyEntriesForCharacter(
     ...getBarbarianWeaponProficiencyEntries(character),
     ...getClericWeaponProficiencyEntries(character),
     ...getDruidWeaponProficiencyEntries(character),
-    ...getFighterWeaponProficiencyEntries(character)
+    ...getFighterWeaponProficiencyEntries(character),
+    ...getPaladinWeaponProficiencyEntries(character)
   ];
 }
 
@@ -451,6 +474,10 @@ export function getWeaponMasterySelectionCountForCharacter(
     return getFighterWeaponMasterySelectionCount(character);
   }
 
+  if (character.className === "Paladin") {
+    return getPaladinWeaponMasterySelectionCount(character);
+  }
+
   return 0;
 }
 
@@ -463,6 +490,10 @@ export function getWeaponMasteryOptionsForCharacter(
 
   if (character.className === "Fighter") {
     return getFighterWeaponMasteryOptions();
+  }
+
+  if (character.className === "Paladin") {
+    return getPaladinWeaponMasteryOptions();
   }
 
   return [];
@@ -479,6 +510,10 @@ export function getWeaponMasterySelectionsForCharacter(
     return getFighterWeaponMasterySelections(character);
   }
 
+  if (character.className === "Paladin") {
+    return getPaladinWeaponMasterySelections(character);
+  }
+
   return [];
 }
 
@@ -492,6 +527,10 @@ export function setWeaponMasterySelectionsForCharacter(
 
   if (character.className === "Fighter") {
     return setFighterWeaponMasterySelections(character, selections);
+  }
+
+  if (character.className === "Paladin") {
+    return setPaladinWeaponMasterySelections(character, selections);
   }
 
   return character;
@@ -529,6 +568,10 @@ export function getFeatureReactionEntriesForCharacter(
 export function activateFeatureActionForCharacter(character: Character, actionKey: string): Character {
   if (actionKey === bardicInspirationActionKey) {
     return activateBardicInspiration(character);
+  }
+
+  if (actionKey === paladinLayOnHandsActionKey) {
+    return character;
   }
 
   if (actionKey === monkFlurryOfBlowsActionKey) {
@@ -580,6 +623,25 @@ export function getMonkFocusPointsTotalForCharacter(
   return getMonkFocusPointsTotal(character);
 }
 
+export function getPaladinHealingPoolTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+): number {
+  return getPaladinHealingPoolTotal(character);
+}
+
+export function getPaladinHealingPoolRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  return getPaladinHealingPoolRemaining(character);
+}
+
+export function applyLayOnHandsForCharacter(
+  character: Character,
+  options: Parameters<typeof applyLayOnHands>[1]
+): Character {
+  return applyLayOnHands(character, options);
+}
+
 export function getMonkFocusPointsRemainingForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): number {
@@ -596,6 +658,14 @@ export function restoreMonkFocusPointForCharacter(character: Character): Charact
 
 export function restoreAllMonkFocusPointsForCharacter(character: Character): Character {
   return restoreAllMonkFocusPoints(character);
+}
+
+export function restorePaladinLayOnHandsOnLongRestForCharacter(character: Character): Character {
+  return restorePaladinLayOnHandsOnLongRest(character);
+}
+
+export function restoreMonkUncannyMetabolismOnLongRestForCharacter(character: Character): Character {
+  return restoreMonkUncannyMetabolismOnLongRest(character);
 }
 
 export function markFeatureWeaponBonusUseForCharacter(character: Character, label: string): Character {
@@ -700,7 +770,9 @@ export function applyLongRestToFeatureState(character: Character): Character {
   return applyLongRestToClericFeatures(
     applyLongRestToBardFeatures(
       applyLongRestToFighterFeatures(
-        applyLongRestToMonkFeatures(applyLongRestToBarbarianFeatures(character))
+        restorePaladinLayOnHandsOnLongRest(
+          applyLongRestToMonkFeatures(applyLongRestToBarbarianFeatures(character))
+        )
       )
     )
   );

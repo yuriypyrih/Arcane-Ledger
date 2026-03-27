@@ -3,15 +3,17 @@ import { useEffect, useMemo, useState } from "react";
 import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
 import CharacterSpellDrawer from "../../SpellCastingForm/CharacterSpellDrawer";
 import type { Character, AbilityKey } from "../../../../../types";
-import { PROF_LEVEL } from "../../../../../types";
+import { CONDITION_NAME, PROF_LEVEL } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { abilityKeys } from "../../../../../pages/CharactersPage/constants";
 import {
   activateFeatureActionForCharacter,
   activateFeatureActionOptionForCharacter,
+  applyLayOnHandsForCharacter,
   consumeNonMagicActionForCharacter,
   consumeWeaponAttackActionForCharacter,
   getFeatureActionOptionsForCharacter,
+  getPaladinHealingPoolRemainingForCharacter,
   getSpellcastingStateForCharacter,
   markFeatureWeaponBonusUseForCharacter,
   type FeatureActionCard,
@@ -28,6 +30,7 @@ import {
   fighterTacticalMindActionKey,
   getFighterSecondWindHealingFormula
 } from "../../../../../pages/CharactersPage/classFeatures/fighter";
+import { paladinLayOnHandsActionKey } from "../../../../../pages/CharactersPage/classFeatures/paladin";
 import { getCombatActionsForCharacter } from "../../../../../pages/CharactersPage/combatActions";
 import {
   consumeRoundTrackerResource,
@@ -68,6 +71,7 @@ import styles from "./ActionsWidget.module.css";
 import DivineInterventionModal from "./DivineInterventionModal";
 import IndomitableModal from "./IndomitableModal";
 import FeatureActionOptionsModal from "./FeatureActionOptionsModal";
+import LayOnHandsModal from "./LayOnHandsModal";
 import {
   FeatureActionCardButton,
   FeatureActionOptionButton,
@@ -134,6 +138,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       : [];
   const isIndomitableSelected = selectedFeatureAction?.key === fighterIndomitableActionKey;
   const isDivineInterventionSelected = selectedFeatureAction?.key === divineInterventionActionKey;
+  const isLayOnHandsSelected = selectedFeatureAction?.key === paladinLayOnHandsActionKey;
   const indomitableSavingThrowOptions = useMemo(
     () =>
       abilityKeys.map((ability) => {
@@ -212,6 +217,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       : spellcastingState.blocked
         ? spellcastingState.reason
         : null;
+  const selectedLayOnHandsRemainingPool = useMemo(
+    () => getPaladinHealingPoolRemainingForCharacter(character),
+    [character]
+  );
   const hasOverlayOpen =
     selectedFeatureActionKey !== null || selectedDivineInterventionSpell !== null;
 
@@ -249,7 +258,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedFeatureAction &&
       (selectedFeatureActionOptions.length > 0 ||
         isDivineInterventionSelected ||
-        isIndomitableSelected)
+        isIndomitableSelected ||
+        isLayOnHandsSelected)
     ) {
       return;
     }
@@ -258,6 +268,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedIndomitableAbility(null);
     setSelectedFeatureActionKey(null);
   }, [
+    isLayOnHandsSelected,
     isIndomitableSelected,
     isDivineInterventionSelected,
     selectedFeatureAction,
@@ -465,6 +476,43 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedFeatureActionKey(null);
   }
 
+  function closeLayOnHandsModal() {
+    setSelectedFeatureActionKey(null);
+  }
+
+  function submitLayOnHands(options: {
+    target: "self" | "other";
+    poolSpendAmount: number;
+    condition: "none" | CONDITION_NAME.POISONED;
+  }) {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const nextCharacter = applyLayOnHandsForCharacter(currentCharacter, options);
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+
+      if (nextCharacter === currentCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? {
+            ...nextCharacter,
+            roundTracker: consumeRoundTrackerResource(
+              nextCharacter.roundTracker,
+              roundTrackerResource
+            )
+          }
+        : nextCharacter;
+    });
+
+    closeLayOnHandsModal();
+  }
+
   function rollIndomitableSavingThrow() {
     if (!selectedFeatureAction || !selectedIndomitableSavingThrow) {
       return;
@@ -577,6 +625,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onSelectAbility={setSelectedIndomitableAbility}
           onRoll={rollIndomitableSavingThrow}
           onClose={closeIndomitableModal}
+        />
+      ) : selectedFeatureAction && isLayOnHandsSelected ? (
+        <LayOnHandsModal
+          action={selectedFeatureAction}
+          remainingPool={selectedLayOnHandsRemainingPool}
+          onSubmit={submitLayOnHands}
+          onClose={closeLayOnHandsModal}
         />
       ) : selectedFeatureAction && selectedFeatureActionOptions.length > 0 ? (
         <FeatureActionOptionsModal

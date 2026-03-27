@@ -48,6 +48,7 @@ import {
   normalizeSpellSlotsExpended,
   usesPreparedSpellsForCharacter
 } from "../../../../pages/CharactersPage/spellcasting";
+import { getFeatGrantedCantripEntriesForCharacter } from "../../../../pages/CharactersPage/feats";
 import { formatFeatureActionOptionRangeLabel } from "../../../../pages/CharactersPage/actionOutcome";
 import type {
   PersistCharacterUpdater,
@@ -293,6 +294,10 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
   }, [spellcastingState.blocked]);
 
   const classSpellEntries = useClassSpellEntries(character.className);
+  const featGrantedCantripEntries = useMemo(
+    () => getFeatGrantedCantripEntriesForCharacter(character),
+    [character]
+  );
   const preparedSpellPoolEntries = usePreparedSpellEntries(character.className, character.level);
   const featureActions = useMemo(() => getFeatureActionsForCharacter(character), [character]);
   const channelDivinityAction = useMemo(
@@ -380,6 +385,15 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
     () => classSpellEntries.filter((spell) => getSpellLevel(spell) === 0),
     [classSpellEntries]
   );
+  const allKnownCantripEntries = useMemo(() => {
+    const mergedCantrips = new Map<string, SpellEntry>();
+
+    [...cantripOptions, ...featGrantedCantripEntries].forEach((spell) => {
+      mergedCantrips.set(spell.id, spell);
+    });
+
+    return [...mergedCantrips.values()].sort((left, right) => left.name.localeCompare(right.name));
+  }, [cantripOptions, featGrantedCantripEntries]);
   const spellPreparationOptions = useMemo(
     () =>
       preparedSpellPoolEntries.filter((spell) => {
@@ -416,23 +430,43 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
     [alwaysPreparedSpellIds, character.preparedSpellIds, preparedSpellLimit, spellPreparationOptions]
   );
   const cantripOptionsById = useMemo(
-    () => new Map(cantripOptions.map((spell) => [spell.id, spell])),
-    [cantripOptions]
+    () => new Map(allKnownCantripEntries.map((spell) => [spell.id, spell])),
+    [allKnownCantripEntries]
   );
   const classSpellEntriesById = useMemo(
-    () => new Map([...classSpellEntries, ...preparedSpellPoolEntries].map((spell) => [spell.id, spell])),
-    [classSpellEntries, preparedSpellPoolEntries]
+    () =>
+      new Map(
+        [...classSpellEntries, ...featGrantedCantripEntries, ...preparedSpellPoolEntries].map(
+          (spell) => [spell.id, spell]
+        )
+      ),
+    [classSpellEntries, featGrantedCantripEntries, preparedSpellPoolEntries]
   );
   const spellPreparationOptionsById = useMemo(
     () => new Map(spellPreparationOptions.map((spell) => [spell.id, spell])),
     [spellPreparationOptions]
   );
   const selectedCantrips = useMemo(
-    () =>
-      selectedCantripIds
-        .map((spellId) => cantripOptionsById.get(spellId))
-        .filter((spell): spell is SpellEntry => spell !== undefined),
-    [cantripOptionsById, selectedCantripIds]
+    () => {
+      const selectedCantripEntries = new Map<string, SpellEntry>();
+
+      selectedCantripIds.forEach((spellId) => {
+        const spell = cantripOptionsById.get(spellId);
+
+        if (spell) {
+          selectedCantripEntries.set(spell.id, spell);
+        }
+      });
+
+      featGrantedCantripEntries.forEach((spell) => {
+        selectedCantripEntries.set(spell.id, spell);
+      });
+
+      return [...selectedCantripEntries.values()].sort((left, right) =>
+        left.name.localeCompare(right.name)
+      );
+    },
+    [cantripOptionsById, featGrantedCantripEntries, selectedCantripIds]
   );
   const selectedPreparedSpells = useMemo(
     () =>
@@ -508,12 +542,12 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
   const spellOutcomeSummariesById = useMemo(
     () =>
       new Map(
-        [...classSpellEntries, ...preparedSpellPoolEntries].map((spell) => [
+        [...classSpellEntries, ...featGrantedCantripEntries, ...preparedSpellPoolEntries].map((spell) => [
           spell.id,
           getSpellOutcomeSummaryForCharacter(character, spell)
         ])
       ),
-    [character, classSpellEntries, preparedSpellPoolEntries]
+    [character, classSpellEntries, featGrantedCantripEntries, preparedSpellPoolEntries]
   );
 
   const roundTracker = useMemo(

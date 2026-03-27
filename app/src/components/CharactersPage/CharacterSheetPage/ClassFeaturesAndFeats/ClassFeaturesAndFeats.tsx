@@ -40,6 +40,8 @@ import {
   setWeaponMasterySelectionsForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
 import {
+  getBlessedWarriorCantripOptions,
+  getBlessedWarriorChoiceSummary,
   createCharacterFeatEntry,
   getAbilityScoreImprovementSummary,
   getCharacterFeatSummary,
@@ -75,6 +77,7 @@ import {
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type {
   AbilityKey,
+  BlessedWarriorChoice,
   Character,
   CharacterFeatEntry,
   CharacterFeatSource,
@@ -123,6 +126,10 @@ type PendingAbilityScoreImprovement = {
 
 type PendingBoonOfIrresistibleOffense = {
   ability: "STR" | "DEX";
+};
+
+type PendingBlessedWarriorChoice = {
+  cantripIds: [string, string];
 };
 
 type PendingEpicBoonAbilityChoice = {
@@ -201,6 +208,24 @@ function createDefaultPendingBoonOfIrresistibleOffense(): PendingBoonOfIrresisti
   };
 }
 
+function createDefaultPendingBlessedWarriorChoice(): PendingBlessedWarriorChoice {
+  const optionMap = new Map(
+    getBlessedWarriorCantripOptions().map((spell) => [spell.name, spell.id] as const)
+  );
+  const recommendedFirst = optionMap.get("Guidance");
+  const recommendedSecond = optionMap.get("Sacred Flame");
+  const allOptionIds = getBlessedWarriorCantripOptions().map((spell) => spell.id);
+  const firstChoice = recommendedFirst ?? allOptionIds[0] ?? "";
+  const secondChoice =
+    recommendedSecond && recommendedSecond !== firstChoice
+      ? recommendedSecond
+      : allOptionIds.find((spellId) => spellId !== firstChoice) ?? "";
+
+  return {
+    cantripIds: [firstChoice, secondChoice]
+  };
+}
+
 function createDefaultPendingEpicBoonAbilityChoice(
   feat: FEATS
 ): PendingEpicBoonAbilityChoice | null {
@@ -266,6 +291,36 @@ function createDefaultPendingSkilledChoice(): PendingSkilledChoice {
   return {
     selections: [skilledNoneOptionValue, skilledNoneOptionValue, skilledNoneOptionValue]
   };
+}
+
+function decodePendingBlessedWarriorChoice(
+  choice: PendingBlessedWarriorChoice
+): BlessedWarriorChoice | null {
+  const cantripIds = [...new Set(choice.cantripIds.filter((spellId) => spellId.length > 0))];
+
+  if (cantripIds.length !== 2) {
+    return null;
+  }
+
+  const optionIds = new Set(getBlessedWarriorCantripOptions().map((spell) => spell.id));
+
+  if (!cantripIds.every((spellId) => optionIds.has(spellId))) {
+    return null;
+  }
+
+  return {
+    cantripIds: cantripIds as BlessedWarriorChoice["cantripIds"]
+  };
+}
+
+function isPendingBlessedWarriorChoiceValid(choice: PendingBlessedWarriorChoice): boolean {
+  return decodePendingBlessedWarriorChoice(choice) !== null;
+}
+
+function getPendingBlessedWarriorChoiceSummary(
+  choice: PendingBlessedWarriorChoice
+): string | null {
+  return getBlessedWarriorChoiceSummary(decodePendingBlessedWarriorChoice(choice) ?? undefined);
 }
 
 function isFeatChoiceFeature(feature: CLASS_FEATURE): boolean {
@@ -504,6 +559,8 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
     useState<PendingAbilityScoreImprovement | null>(null);
   const [pendingBoonOfIrresistibleOffense, setPendingBoonOfIrresistibleOffense] =
     useState<PendingBoonOfIrresistibleOffense | null>(null);
+  const [pendingBlessedWarriorChoice, setPendingBlessedWarriorChoice] =
+    useState<PendingBlessedWarriorChoice | null>(null);
   const [pendingEpicBoonAbilityChoice, setPendingEpicBoonAbilityChoice] =
     useState<PendingEpicBoonAbilityChoice | null>(null);
   const [pendingSkilledChoice, setPendingSkilledChoice] = useState<PendingSkilledChoice | null>(
@@ -541,6 +598,7 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
         if (isFeatModalOpen) {
           setPendingAbilityScoreImprovement(null);
           setPendingBoonOfIrresistibleOffense(null);
+          setPendingBlessedWarriorChoice(null);
           setPendingEpicBoonAbilityChoice(null);
           setPendingSkilledChoice(null);
           setIsFeatModalOpen(false);
@@ -593,10 +651,60 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
     [allFeatures, character.level]
   );
   const featDefinitionsByCategory = useMemo(() => getFeatDefinitionsByCategory(), []);
+  const blessedWarriorCantripOptions = useMemo(() => getBlessedWarriorCantripOptions(), []);
   const selectedFeats = useMemo(() => character.feats ?? [], [character.feats]);
   const selectedFeatDefinition = selectedFeatReference
     ? getFeatDefinition(selectedFeatReference.feat)
     : null;
+  const fightingStyleExtraFeatOptions = useMemo(() => {
+    if (
+      featEditorContext.mode === "class-feature" &&
+      featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE &&
+      character.className === "Paladin"
+    ) {
+      return [FEATS.BLESSED_WARRIOR];
+    }
+
+    return [];
+  }, [character.className, featEditorContext]);
+  const visibleFeatDefinitionsByCategory = useMemo(() => {
+    const additionalFightingStyleFeatSet = new Set(fightingStyleExtraFeatOptions);
+
+    return featCategoryTabs.reduce<Record<FEAT_CATEGORY, typeof featDefinitionsByCategory[FEAT_CATEGORY.GENERAL]>>(
+      (groups, category) => {
+        groups[category] = featDefinitionsByCategory[category].filter((definition) => {
+          if (definition.feat === FEATS.BLESSED_WARRIOR && character.className !== "Paladin") {
+            return false;
+          }
+
+          if (
+            featEditorContext.mode === "class-feature" &&
+            featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE
+          ) {
+            return (
+              definition.category === FEAT_CATEGORY.FIGHTING_STYLE ||
+              additionalFightingStyleFeatSet.has(definition.feat)
+            );
+          }
+
+          return true;
+        });
+
+        return groups;
+      },
+      {
+        [FEAT_CATEGORY.ORIGIN]: [],
+        [FEAT_CATEGORY.GENERAL]: [],
+        [FEAT_CATEGORY.FIGHTING_STYLE]: [],
+        [FEAT_CATEGORY.EPIC_BOON]: []
+      }
+    );
+  }, [character.className, featDefinitionsByCategory, featEditorContext, fightingStyleExtraFeatOptions]);
+  const visibleFeatCategories = useMemo(
+    () =>
+      featCategoryTabs.filter((category) => visibleFeatDefinitionsByCategory[category].length > 0),
+    [visibleFeatDefinitionsByCategory]
+  );
 
   function getLinkedFeatForFeature(level: number, feature: CLASS_FEATURE): CharacterFeatEntry | null {
     return selectedFeats.find((entry) => isFeatFromClassFeatureSource(entry, level, feature)) ?? null;
@@ -835,6 +943,14 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
     setIsFutureFeaturesVisible(false);
   }, [isExpanded]);
 
+  useEffect(() => {
+    if (visibleFeatCategories.includes(activeFeatCategory)) {
+      return;
+    }
+
+    setActiveFeatCategory(visibleFeatCategories[0] ?? FEAT_CATEGORY.GENERAL);
+  }, [activeFeatCategory, visibleFeatCategories]);
+
   function openKeyword(keywordKey: string, title?: string) {
     const resolvedKeyword = resolveKeywordReference(keywordKey, title);
 
@@ -951,6 +1067,7 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
   function closeFeatEditor() {
     setPendingAbilityScoreImprovement(null);
     setPendingBoonOfIrresistibleOffense(null);
+    setPendingBlessedWarriorChoice(null);
     setPendingEpicBoonAbilityChoice(null);
     setPendingSkilledChoice(null);
     setFeatEditorContext({ mode: "general" });
@@ -960,6 +1077,7 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
   function openFeatEditor() {
     setPendingAbilityScoreImprovement(null);
     setPendingBoonOfIrresistibleOffense(null);
+    setPendingBlessedWarriorChoice(null);
     setPendingEpicBoonAbilityChoice(null);
     setPendingSkilledChoice(null);
     setFeatEditorContext({ mode: "general" });
@@ -973,6 +1091,7 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
 
     setPendingAbilityScoreImprovement(null);
     setPendingBoonOfIrresistibleOffense(null);
+    setPendingBlessedWarriorChoice(null);
     setPendingEpicBoonAbilityChoice(null);
     setPendingSkilledChoice(null);
     setFeatEditorContext({
@@ -1039,9 +1158,19 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
 
     if (feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE) {
       setPendingAbilityScoreImprovement(null);
+      setPendingBlessedWarriorChoice(null);
       setPendingEpicBoonAbilityChoice(null);
       setPendingSkilledChoice(null);
       setPendingBoonOfIrresistibleOffense(createDefaultPendingBoonOfIrresistibleOffense());
+      return;
+    }
+
+    if (feat === FEATS.BLESSED_WARRIOR) {
+      setPendingAbilityScoreImprovement(null);
+      setPendingBoonOfIrresistibleOffense(null);
+      setPendingEpicBoonAbilityChoice(null);
+      setPendingSkilledChoice(null);
+      setPendingBlessedWarriorChoice(createDefaultPendingBlessedWarriorChoice());
       return;
     }
 
@@ -1050,6 +1179,7 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
     if (pendingEpicBoon) {
       setPendingAbilityScoreImprovement(null);
       setPendingBoonOfIrresistibleOffense(null);
+      setPendingBlessedWarriorChoice(null);
       setPendingSkilledChoice(null);
       setPendingEpicBoonAbilityChoice(pendingEpicBoon);
       return;
@@ -1058,6 +1188,7 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
     if (feat === FEATS.SKILLED) {
       setPendingAbilityScoreImprovement(null);
       setPendingBoonOfIrresistibleOffense(null);
+      setPendingBlessedWarriorChoice(null);
       setPendingEpicBoonAbilityChoice(null);
       setPendingSkilledChoice(createDefaultPendingSkilledChoice());
       return;
@@ -1065,6 +1196,7 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
 
     setPendingAbilityScoreImprovement(null);
     setPendingBoonOfIrresistibleOffense(null);
+    setPendingBlessedWarriorChoice(null);
     setPendingEpicBoonAbilityChoice(null);
     setPendingSkilledChoice(null);
     upsertFeatForContext(createCharacterFeatEntry(feat, featTakenAtLevel, { source: featSource }));
@@ -1111,6 +1243,30 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
       })
     );
     setPendingBoonOfIrresistibleOffense(null);
+  }
+
+  function savePendingBlessedWarriorChoice() {
+    if (!pendingBlessedWarriorChoice || !isPendingBlessedWarriorChoiceValid(pendingBlessedWarriorChoice)) {
+      return;
+    }
+
+    const blessedWarrior = decodePendingBlessedWarriorChoice(pendingBlessedWarriorChoice);
+
+    if (!blessedWarrior) {
+      return;
+    }
+
+    const featSource = featEditorContext.mode === "class-feature" ? featEditorContext.source : undefined;
+    const featTakenAtLevel =
+      featEditorContext.mode === "class-feature" ? featEditorContext.source.level : character.level;
+
+    upsertFeatForContext(
+      createCharacterFeatEntry(FEATS.BLESSED_WARRIOR, featTakenAtLevel, {
+        source: featSource,
+        blessedWarrior
+      })
+    );
+    setPendingBlessedWarriorChoice(null);
   }
 
   function savePendingEpicBoonAbilityChoice() {
@@ -1766,7 +1922,7 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
   function renderAvailableFeatList() {
     return (
       <div className={styles.featOptionList}>
-        {featDefinitionsByCategory[activeFeatCategory].map((featDefinition) => {
+        {visibleFeatDefinitionsByCategory[activeFeatCategory].map((featDefinition) => {
           const selectedEntries = selectedFeats.filter((entry) => entry.feat === featDefinition.feat);
           const selectedCount = selectedEntries.length;
           const isRepeatable = Boolean(featDefinition.repeatable);
@@ -1779,6 +1935,8 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
           const isPendingBoonOfIrresistibleOffense =
             featDefinition.feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE &&
             pendingBoonOfIrresistibleOffense !== null;
+          const isPendingBlessedWarrior =
+            featDefinition.feat === FEATS.BLESSED_WARRIOR && pendingBlessedWarriorChoice !== null;
           const isPendingEpicBoonAbilityChoice =
             pendingEpicBoonAbilityChoice?.feat === featDefinition.feat;
           const isPendingSkilled =
@@ -2013,6 +2171,80 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
                       type="button"
                       className={shared.saveButton}
                       onClick={savePendingBoonOfIrresistibleOffense}
+                    >
+                      <Plus size={16} />
+                      Add Feat
+                    </button>
+                  </div>
+                </section>
+              ) : null}
+              {isPendingBlessedWarrior && pendingBlessedWarriorChoice ? (
+                <section
+                  className={clsx(styles.asiEditorCard, styles.featInlineEditor)}
+                  role="presentation"
+                  onClick={(event) => event.stopPropagation()}
+                >
+                  <div className={styles.asiEditorHeader}>
+                    <p className={styles.featSelectionTitle}>Blessed Warrior</p>
+                    <button
+                      type="button"
+                      className={styles.featRemoveButton}
+                      onClick={() => setPendingBlessedWarriorChoice(null)}
+                      aria-label="Cancel blessed warrior selection"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                  <div className={styles.asiAbilityGridSingle}>
+                    {[0, 1].map((selectionIndex) => (
+                      <label
+                        key={`${featDefinition.feat}-cantrip-${selectionIndex}`}
+                        className={styles.asiField}
+                      >
+                        <span>{`Cantrip ${selectionIndex + 1}`}</span>
+                        <select
+                          className={styles.asiSelect}
+                          value={pendingBlessedWarriorChoice.cantripIds[selectionIndex]}
+                          onChange={(event) =>
+                            setPendingBlessedWarriorChoice((current) => {
+                              if (!current) {
+                                return current;
+                              }
+
+                              const nextCantripIds = [...current.cantripIds] as PendingBlessedWarriorChoice["cantripIds"];
+                              nextCantripIds[selectionIndex] = event.target.value;
+
+                              return {
+                                cantripIds: nextCantripIds
+                              };
+                            })
+                          }
+                        >
+                          {blessedWarriorCantripOptions.map((spell) => (
+                            <option key={spell.id} value={spell.id}>
+                              {spell.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    ))}
+                  </div>
+                  {getPendingBlessedWarriorChoiceSummary(pendingBlessedWarriorChoice) ? (
+                    <p className={styles.asiSummary}>
+                      {getPendingBlessedWarriorChoiceSummary(pendingBlessedWarriorChoice)}
+                    </p>
+                  ) : null}
+                  {!isPendingBlessedWarriorChoiceValid(pendingBlessedWarriorChoice) ? (
+                    <p className={styles.featOptionValidation}>
+                      Choose two different Cleric cantrips.
+                    </p>
+                  ) : null}
+                  <div className={styles.asiActions}>
+                    <button
+                      type="button"
+                      className={shared.saveButton}
+                      disabled={!isPendingBlessedWarriorChoiceValid(pendingBlessedWarriorChoice)}
+                      onClick={savePendingBlessedWarriorChoice}
                     >
                       <Plus size={16} />
                       Add Feat
@@ -2324,7 +2556,7 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
             </div>
 
             <div className={styles.tabRow} role="tablist" aria-label="Feat categories">
-              {featCategoryTabs.map((category) => (
+              {visibleFeatCategories.map((category) => (
                 <button
                   key={category}
                   type="button"

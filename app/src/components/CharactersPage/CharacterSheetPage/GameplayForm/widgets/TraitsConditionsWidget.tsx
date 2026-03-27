@@ -10,7 +10,10 @@ import {
   getSpellcastingStateForCharacter,
   removeFeatureStatusEntryForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
-import { getFeatDerivedStatusEntriesForCharacter } from "../../../../../pages/CharactersPage/feats";
+import {
+  getFeatDerivedStatusEntriesForCharacter,
+  getFeatGrantedCantripEntriesForCharacter
+} from "../../../../../pages/CharactersPage/feats";
 import { normalizeRoundTracker } from "../../../../../pages/CharactersPage/combat";
 import {
   getAlwaysPreparedSpellIds,
@@ -84,6 +87,10 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
 
   const roundTracker = normalizeRoundTracker(character.roundTracker);
   const classSpellEntries = useClassSpellEntries(character.className);
+  const featGrantedCantripEntries = useMemo(
+    () => getFeatGrantedCantripEntriesForCharacter(character),
+    [character]
+  );
   const preparedSpellPoolEntries = usePreparedSpellEntries(character.className, character.level);
   const cantripLimit = useMemo(
     () =>
@@ -122,16 +129,37 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   const classSpellEntriesById = useMemo(
     () =>
       new Map(
-        [...classSpellEntries, ...preparedSpellPoolEntries].map((spell) => [spell.id, spell])
+        [...classSpellEntries, ...featGrantedCantripEntries, ...preparedSpellPoolEntries].map(
+          (spell) => [spell.id, spell]
+        )
       ),
-    [classSpellEntries, preparedSpellPoolEntries]
+    [classSpellEntries, featGrantedCantripEntries, preparedSpellPoolEntries]
   );
   const selectedCantrips = useMemo(
-    () =>
-      normalizeTrackedSpellIds(character.cantripIds, classSpellEntries.filter((spell) => getSpellLevel(spell) === 0), cantripLimit)
-        .map((spellId) => classSpellEntriesById.get(spellId))
-        .filter((spell): spell is SpellEntry => spell !== undefined),
-    [cantripLimit, character.cantripIds, classSpellEntries, classSpellEntriesById]
+    () => {
+      const selectedCantripEntries = new Map<string, SpellEntry>();
+
+      normalizeTrackedSpellIds(
+        character.cantripIds,
+        classSpellEntries.filter((spell) => getSpellLevel(spell) === 0),
+        cantripLimit
+      ).forEach((spellId) => {
+        const spell = classSpellEntriesById.get(spellId);
+
+        if (spell) {
+          selectedCantripEntries.set(spell.id, spell);
+        }
+      });
+
+      featGrantedCantripEntries.forEach((spell) => {
+        selectedCantripEntries.set(spell.id, spell);
+      });
+
+      return [...selectedCantripEntries.values()].sort((left, right) =>
+        left.name.localeCompare(right.name)
+      );
+    },
+    [cantripLimit, character.cantripIds, classSpellEntries, classSpellEntriesById, featGrantedCantripEntries]
   );
   const selectedPreparedSpells = useMemo(
     () => {

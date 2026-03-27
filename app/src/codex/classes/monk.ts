@@ -246,6 +246,12 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
     ],
     trackingState: "semi-tracked"
   },
+  [CLASS_FEATURE.EXTRA_ATTACK]: {
+    description: [
+      "You can attack twice instead of once whenever you take the Attack action on your turn."
+    ],
+    isTracked: true
+  },
   [CLASS_FEATURE.STUNNING_STRIKE]: {
     description: [
       "Once per turn when you hit a creature with a Monk weapon or an Unarmed Strike, you can expend 1 Focus Point to attempt a stunning strike.",
@@ -260,7 +266,7 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
     description: [
       "Whenever you deal damage with your Unarmed Strike, it can deal your choice of Force damage or its normal damage type."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.EVASION]: {
     description: [
@@ -308,7 +314,7 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
     description: [
       "When you roll Initiative and don't use Uncanny Metabolism, you regain expended Focus Points until you have 4 if you have 3 or fewer."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.SUPERIOR_DEFENSE]: {
     description: [

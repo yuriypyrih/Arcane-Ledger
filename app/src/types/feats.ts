@@ -22,6 +22,10 @@ export type EpicBoonAbilityChoice = {
   ability: AbilityKey;
 };
 
+export type BlessedWarriorChoice = {
+  cantripIds: [string, string];
+};
+
 export type SkilledFeatSelection =
   | {
       kind: "skill";
@@ -52,6 +56,7 @@ export type CharacterFeatEntry = {
   takenAtLevel: number;
   source: CharacterFeatSource;
   abilityScoreImprovement?: AbilityScoreImprovementChoice;
+  blessedWarrior?: BlessedWarriorChoice;
   boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
   epicBoonAbilityChoice?: EpicBoonAbilityChoice;
   skilled?: SkilledChoice;

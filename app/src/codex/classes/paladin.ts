@@ -21,23 +21,23 @@ export const paladinFeatures: PaladinFeatureClassObj[] = [
     featureOverrides: {
       [CLASS_FEATURE.SPELLCASTING]: {
         description: [
-          "You have learned to cast spells through prayer and meditation. See 'Spells' for the rules on spellcasting. The information below details how you use those rules with Paladin spells, which appear in the Paladin spell list later in the class's description.",
+          "You have learned to cast spells through prayer and meditation.",
           "<strong>Spell Slots.</strong> The Paladin Features table shows how many spell slots you have to cast your level 1+ spells. You regain all expended slots when you finish a <link:long-rest>Long Rest</link>.",
-          "<strong>Prepared Spells of Level 1+.</strong> You prepare the list of level 1+ spells that are available for you to cast with this feature. To start, choose two level 1 Paladin spells. Heroism and Searing Smite are recommended.",
-          "The number of spells on your list increases as you gain Paladin levels, as shown in the Prepared Spells column of the Paladin Features table. Whenever that number increases, choose additional Paladin spells until the number of spells on your list matches the number in the Paladin Features table. The chosen spells must be of a level for which you have spell slots.",
+          "<strong>Prepared Spells of Level 1+.</strong> You prepare the list of level 1+ spells that are available for you to cast with this feature. To start, choose two level 1 Paladin spells. <spell:Heroism>Heroism</spell> and <spell:Searing Smite>Searing Smite</spell> are recommended.",
+          "The number of spells on your list increases as you gain Paladin levels.",
           "If another Paladin feature gives you spells that you always have prepared, those spells don't count against the number of spells you can prepare with this feature, but those spells otherwise count as Paladin spells for you.",
           "<strong>Changing Your Prepared Spells.</strong> Whenever you finish a <link:long-rest>Long Rest</link>, you can replace one spell on your list with another Paladin spell for which you have spell slots.",
           "<strong>Spellcasting Ability.</strong> Charisma is your spellcasting ability for your Paladin spells.",
           "<strong>Spellcasting Focus.</strong> You can use a Holy Symbol as a Spellcasting Focus for your Paladin spells."
         ],
-        isTracked: false
+        isTracked: true
       },
       [CLASS_FEATURE.WEAPON_MASTERY]: {
         description: [
           "Your training with weapons allows you to use the mastery properties of two kinds of weapons of your choice with which you have proficiency, such as Longswords and Javelins.",
           "Whenever you finish a <link:long-rest>Long Rest</link>, you can change the kinds of weapons you chose. For example, you could switch to using the mastery properties of Halberds and Flails."
         ],
-        isTracked: false
+        isTracked: true
       }
     },
     channelDivinity: 0,
@@ -47,6 +47,16 @@ export const paladinFeatures: PaladinFeatureClassObj[] = [
   {
     level: 2,
     classFeatures: [CLASS_FEATURE.FIGHTING_STYLE, CLASS_FEATURE.PALADINS_SMITE],
+    featureOverrides: {
+      [CLASS_FEATURE.FIGHTING_STYLE]: {
+        description: [
+          "You gain a Fighting Style feat of your choice.",
+          "Instead of choosing one of those feats, you can choose <feat:BLESSED_WARRIOR>Blessed Warrior</feat>.",
+          "<strong>Blessed Warrior.</strong> You learn two Cleric cantrips of your choice. <spell:Guidance>Guidance</spell> and <spell:Sacred Flame>Sacred Flame</spell> are recommended. The chosen cantrips count as Paladin spells for you, and <link:CHA>Charisma</link> is your spellcasting ability for them. Whenever you gain a Paladin level, you can replace one of these cantrips with another Cleric cantrip."
+        ],
+        isTracked: true
+      }
+    },
     channelDivinity: 0,
     preparedSpells: 3,
     spellSlots: [2, 0, 0, 0, 0]
@@ -207,7 +217,7 @@ export const paladinFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "As a Bonus Action, you can touch a creature, which could be yourself, and draw power from the pool of healing to restore a number of Hit Points to that creature, up to the maximum amount remaining in the pool.",
       "You can also expend 5 Hit Points from the pool of healing power to remove the Poisoned condition from the creature; those points don't also restore Hit Points to the creature."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.PALADINS_SMITE]: {
     description: [
