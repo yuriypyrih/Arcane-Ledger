@@ -7,6 +7,7 @@ import {
 import type { Character } from "../../types";
 import { getSpeedBonusesForCharacter } from "./classFeatures";
 import { getWornBodyArmorTypeForCharacter } from "./armor";
+import { getExhaustionSpeedAdjustment } from "./traits";
 
 export type SpeedBreakdownEntry = {
   label: string;
@@ -39,6 +40,16 @@ export function getSpeedBreakdownForCharacter(character: Character): SpeedBreakd
   const featureBonuses = getSpeedBonusesForCharacter(character, {
     wornBodyArmorType: getWornBodyArmorTypeForCharacter(character)
   });
+  const totalOverride = featureBonuses.reduce<number | null>(
+    (currentOverride, bonus) => {
+      if (typeof bonus.setTotal !== "number") {
+        return currentOverride;
+      }
+
+      return currentOverride === null ? bonus.setTotal : Math.min(currentOverride, bonus.setTotal);
+    },
+    null
+  );
   const entries: SpeedBreakdownEntry[] = [
     {
       label: "Base",
@@ -51,9 +62,33 @@ export function getSpeedBreakdownForCharacter(character: Character): SpeedBreakd
         value: bonus.value
       }))
   ];
+  const baseTotal = entries.reduce((total, entry) => total + entry.value, 0);
+  const preExhaustionTotal =
+    totalOverride === null ? baseTotal : Math.max(0, Math.min(baseTotal, totalOverride));
+
+  if (totalOverride !== null && preExhaustionTotal !== baseTotal) {
+    const overrideBonus = featureBonuses.find((bonus) => bonus.setTotal === totalOverride);
+
+    entries.push({
+      label: overrideBonus?.label ?? "Speed Override",
+      value: preExhaustionTotal - baseTotal
+    });
+  }
+
+  const exhaustionAdjustment = getExhaustionSpeedAdjustment(
+    preExhaustionTotal,
+    character.statusEntries
+  );
+
+  if (exhaustionAdjustment && exhaustionAdjustment.value !== 0) {
+    entries.push(exhaustionAdjustment);
+  }
 
   return {
-    total: entries.reduce((total, entry) => total + entry.value, 0),
+    total: Math.max(
+      0,
+      entries.reduce((total, entry) => total + entry.value, 0)
+    ),
     source,
     entries
   };

@@ -23,6 +23,19 @@ export const spellEntries: SpellEntry[] = [
   ...spellEntries9
 ];
 
+const spellEntriesById = new Map(spellEntries.map((entry) => [entry.id, entry]));
+const spellEntriesByName = new Map(
+  spellEntries.map((entry) => [entry.name.trim().toLowerCase(), entry])
+);
+
+export function getSpellEntryById(id: string): SpellEntry | null {
+  return spellEntriesById.get(id) ?? null;
+}
+
+export function getSpellEntryByName(name: string): SpellEntry | null {
+  return spellEntriesByName.get(name.trim().toLowerCase()) ?? null;
+}
+
 export * from "./spells0";
 export * from "./spells1";
 export * from "./spells2";

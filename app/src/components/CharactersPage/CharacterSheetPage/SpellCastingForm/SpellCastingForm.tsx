@@ -11,11 +11,16 @@ import { useClassSpellEntries, usePreparedSpellEntries } from "../../../../codex
 import {
   ACTION_TYPE,
   getDivinityEntryById,
+  getSpellEntryById,
   type DivinityEntry,
   type SpellEntry
 } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
-import { formatDivinitySubtitle, formatSpellCastingTime, formatCodexLabel } from "../../../../utils/codex";
+import {
+  formatDivinitySubtitle,
+  formatSpellCastingTime,
+  formatCodexLabel
+} from "../../../../utils/codex";
 import {
   consumeRoundTrackerResource,
   isRoundTrackerResourceAvailable,
@@ -25,17 +30,17 @@ import {
 import { getRoundTrackerResourceForEconomyType } from "../../../../pages/CharactersPage/actionEconomy";
 import {
   activateFeatureActionOptionForCharacter,
+  getChannelDivinityUsesRemainingForCharacter,
+  getChannelDivinityUsesTotalForCharacter,
   getFeatureActionsForCharacter,
   getFeatureActionOptionsForCharacter,
+  getSpellEntryForCharacter,
   getSpellcastingStateForCharacter,
   type FeatureActionCard,
   type FeatureActionOptionCard
 } from "../../../../pages/CharactersPage/classFeatures";
-import {
-  getClericChannelDivinityUsesRemaining,
-  getClericChannelDivinityUsesTotal,
-  getClericResolvedDivinityDisplay
-} from "../../../../pages/CharactersPage/classFeatures/cleric";
+import { getClericResolvedDivinityDisplay } from "../../../../pages/CharactersPage/classFeatures/cleric";
+import { paladinChannelDivinityActionKey } from "../../../../pages/CharactersPage/classFeatures/paladin";
 import {
   getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
@@ -50,6 +55,7 @@ import {
 } from "../../../../pages/CharactersPage/spellcasting";
 import { getFeatGrantedCantripEntriesForCharacter } from "../../../../pages/CharactersPage/feats";
 import { formatFeatureActionOptionRangeLabel } from "../../../../pages/CharactersPage/actionOutcome";
+import { applySpellConcentrationToStatusEntries } from "../../../../pages/CharactersPage/traits";
 import type {
   PersistCharacterUpdater,
   SpellManagementMode
@@ -89,6 +95,10 @@ function getChannelDivinityEntryForOption(optionKey: string): DivinityEntry | nu
 
   if (optionKey === "turn-undead") {
     return getDivinityEntryById("divinity-turn-undead");
+  }
+
+  if (optionKey === "paladin-divine-sense") {
+    return getDivinityEntryById("divinity-divine-sense");
   }
 
   return null;
@@ -226,9 +236,7 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
   const [preparedSpellDraftIds, setPreparedSpellDraftIds] = useState<string[]>([]);
   const [activePreparedSpellLevel, setActivePreparedSpellLevel] = useState(1);
 
-  useBodyScrollLock(
-    Boolean(spellManagementMode || selectedSpell || selectedDivinityOptionKey)
-  );
+  useBodyScrollLock(Boolean(spellManagementMode || selectedSpell || selectedDivinityOptionKey));
 
   const closeSelectedSpell = useCallback(() => {
     setSelectedSpell(null);
@@ -293,15 +301,30 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
     setSpellManagementMode(null);
   }, [spellcastingState.blocked]);
 
-  const classSpellEntries = useClassSpellEntries(character.className);
+  const baseClassSpellEntries = useClassSpellEntries(character.className);
   const featGrantedCantripEntries = useMemo(
     () => getFeatGrantedCantripEntriesForCharacter(character),
     [character]
   );
-  const preparedSpellPoolEntries = usePreparedSpellEntries(character.className, character.level);
+  const basePreparedSpellPoolEntries = usePreparedSpellEntries(
+    character.className,
+    character.level
+  );
+  const classSpellEntries = useMemo(
+    () => baseClassSpellEntries.map((spell) => getSpellEntryForCharacter(character, spell)),
+    [baseClassSpellEntries, character]
+  );
+  const preparedSpellPoolEntries = useMemo(
+    () => basePreparedSpellPoolEntries.map((spell) => getSpellEntryForCharacter(character, spell)),
+    [basePreparedSpellPoolEntries, character]
+  );
   const featureActions = useMemo(() => getFeatureActionsForCharacter(character), [character]);
   const channelDivinityAction = useMemo(
-    () => featureActions.find((action) => action.key === "cleric-channel-divinity") ?? null,
+    () =>
+      featureActions.find(
+        (action) =>
+          action.key === "cleric-channel-divinity" || action.key === paladinChannelDivinityActionKey
+      ) ?? null,
     [featureActions]
   );
   const channelDivinityOptions = useMemo(
@@ -335,23 +358,29 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
   const selectedDivinityRow = useMemo(
     () =>
       selectedDivinityOptionKey
-        ? channelDivinityRows.find((row) => row.option.key === selectedDivinityOptionKey) ?? null
+        ? (channelDivinityRows.find((row) => row.option.key === selectedDivinityOptionKey) ?? null)
         : null,
     [channelDivinityRows, selectedDivinityOptionKey]
   );
   const selectedDivinityDisplay = useMemo(
     () =>
       selectedDivinityRow
-        ? getClericResolvedDivinityDisplay(character, selectedDivinityRow.entry)
+        ? selectedDivinityRow.action.key === "cleric-channel-divinity"
+          ? getClericResolvedDivinityDisplay(character, selectedDivinityRow.entry)
+          : {
+              damage: null,
+              healing: null,
+              description: selectedDivinityRow.entry.description
+            }
         : null,
     [character, selectedDivinityRow]
   );
   const channelDivinityUsesTotal = useMemo(
-    () => getClericChannelDivinityUsesTotal(character),
+    () => getChannelDivinityUsesTotalForCharacter(character),
     [character]
   );
   const channelDivinityUsesRemaining = useMemo(
-    () => getClericChannelDivinityUsesRemaining(character),
+    () => getChannelDivinityUsesRemainingForCharacter(character),
     [character]
   );
   const usesPreparedSpells = usesPreparedSpellsForCharacter(character.className, character.level);
@@ -404,16 +433,20 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
   );
   const alwaysPreparedSpellIds = useMemo(
     () =>
-      getAlwaysPreparedSpellIds(
-        character.className,
-        character.level,
-        character.classFeatureState
-      ),
+      getAlwaysPreparedSpellIds(character.className, character.level, character.classFeatureState),
     [character.classFeatureState, character.className, character.level]
   );
   const alwaysPreparedSpellIdSet = useMemo(
     () => new Set(alwaysPreparedSpellIds),
     [alwaysPreparedSpellIds]
+  );
+  const alwaysPreparedSpellEntries = useMemo(
+    () =>
+      alwaysPreparedSpellIds
+        .map((spellId) => getSpellEntryById(spellId))
+        .filter((spell): spell is SpellEntry => spell !== null)
+        .map((spell) => getSpellEntryForCharacter(character, spell)),
+    [alwaysPreparedSpellIds, character]
   );
   const selectedCantripIds = useMemo(
     () => normalizeTrackedSpellIds(character.cantripIds, cantripOptions, cantripLimit),
@@ -427,57 +460,67 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
         preparedSpellLimit,
         alwaysPreparedSpellIds
       ),
-    [alwaysPreparedSpellIds, character.preparedSpellIds, preparedSpellLimit, spellPreparationOptions]
+    [
+      alwaysPreparedSpellIds,
+      character.preparedSpellIds,
+      preparedSpellLimit,
+      spellPreparationOptions
+    ]
   );
   const cantripOptionsById = useMemo(
     () => new Map(allKnownCantripEntries.map((spell) => [spell.id, spell])),
     [allKnownCantripEntries]
   );
-  const classSpellEntriesById = useMemo(
+  const knownSpellEntriesById = useMemo(
     () =>
       new Map(
-        [...classSpellEntries, ...featGrantedCantripEntries, ...preparedSpellPoolEntries].map(
-          (spell) => [spell.id, spell]
-        )
+        [
+          ...classSpellEntries,
+          ...featGrantedCantripEntries,
+          ...preparedSpellPoolEntries,
+          ...alwaysPreparedSpellEntries
+        ].map((spell) => [spell.id, spell])
       ),
-    [classSpellEntries, featGrantedCantripEntries, preparedSpellPoolEntries]
+    [
+      alwaysPreparedSpellEntries,
+      classSpellEntries,
+      featGrantedCantripEntries,
+      preparedSpellPoolEntries
+    ]
   );
   const spellPreparationOptionsById = useMemo(
     () => new Map(spellPreparationOptions.map((spell) => [spell.id, spell])),
     [spellPreparationOptions]
   );
-  const selectedCantrips = useMemo(
-    () => {
-      const selectedCantripEntries = new Map<string, SpellEntry>();
+  const selectedCantrips = useMemo(() => {
+    const selectedCantripEntries = new Map<string, SpellEntry>();
 
-      selectedCantripIds.forEach((spellId) => {
-        const spell = cantripOptionsById.get(spellId);
+    selectedCantripIds.forEach((spellId) => {
+      const spell = cantripOptionsById.get(spellId);
 
-        if (spell) {
-          selectedCantripEntries.set(spell.id, spell);
-        }
-      });
-
-      featGrantedCantripEntries.forEach((spell) => {
+      if (spell) {
         selectedCantripEntries.set(spell.id, spell);
-      });
+      }
+    });
 
-      return [...selectedCantripEntries.values()].sort((left, right) =>
-        left.name.localeCompare(right.name)
-      );
-    },
-    [cantripOptionsById, featGrantedCantripEntries, selectedCantripIds]
-  );
+    featGrantedCantripEntries.forEach((spell) => {
+      selectedCantripEntries.set(spell.id, spell);
+    });
+
+    return [...selectedCantripEntries.values()].sort((left, right) =>
+      left.name.localeCompare(right.name)
+    );
+  }, [cantripOptionsById, featGrantedCantripEntries, selectedCantripIds]);
   const selectedPreparedSpells = useMemo(
     () =>
       usesPreparedSpells
         ? [...alwaysPreparedSpellIds, ...selectedPreparedSpellIds]
-            .map((spellId) => classSpellEntriesById.get(spellId))
+            .map((spellId) => knownSpellEntriesById.get(spellId))
             .filter((spell): spell is SpellEntry => spell !== undefined)
         : spellPreparationOptions,
     [
       alwaysPreparedSpellIds,
-      classSpellEntriesById,
+      knownSpellEntriesById,
       selectedPreparedSpellIds,
       spellPreparationOptions,
       usesPreparedSpells
@@ -526,28 +569,34 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
   );
   const firstAvailablePreparedSpellLevel = useMemo(
     () =>
-      spellSlotLevels.find(
-        (level) => (spellPreparationLevelGroups[level]?.length ?? 0) > 0
-      ) ?? 1,
+      spellSlotLevels.find((level) => (spellPreparationLevelGroups[level]?.length ?? 0) > 0) ?? 1,
     [spellPreparationLevelGroups]
   );
   const preparedSpellDraftCountsByLevel = useMemo(
     () =>
       countTrackedSpellsByLevel(
         [...alwaysPreparedSpellIds, ...preparedSpellDraftIds],
-        classSpellEntriesById
+        knownSpellEntriesById
       ),
-    [alwaysPreparedSpellIds, classSpellEntriesById, preparedSpellDraftIds]
+    [alwaysPreparedSpellIds, knownSpellEntriesById, preparedSpellDraftIds]
   );
   const spellOutcomeSummariesById = useMemo(
     () =>
       new Map(
-        [...classSpellEntries, ...featGrantedCantripEntries, ...preparedSpellPoolEntries].map((spell) => [
-          spell.id,
-          getSpellOutcomeSummaryForCharacter(character, spell)
-        ])
+        [
+          ...classSpellEntries,
+          ...featGrantedCantripEntries,
+          ...preparedSpellPoolEntries,
+          ...alwaysPreparedSpellEntries
+        ].map((spell) => [spell.id, getSpellOutcomeSummaryForCharacter(character, spell)])
       ),
-    [character, classSpellEntries, featGrantedCantripEntries, preparedSpellPoolEntries]
+    [
+      alwaysPreparedSpellEntries,
+      character,
+      classSpellEntries,
+      featGrantedCantripEntries,
+      preparedSpellPoolEntries
+    ]
   );
 
   const roundTracker = useMemo(
@@ -688,7 +737,12 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
         return [...normalizedCurrent, spellId];
       });
     },
-    [alwaysPreparedSpellIds, preparedSpellLimit, spellPreparationOptions, spellPreparationOptionsById]
+    [
+      alwaysPreparedSpellIds,
+      preparedSpellLimit,
+      spellPreparationOptions,
+      spellPreparationOptionsById
+    ]
   );
 
   const saveCantrips = useCallback(() => {
@@ -728,10 +782,7 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
     return null;
   }
 
-  function openSpellDetails(
-    spell: SpellEntry,
-    viewMode: SelectedSpellViewMode = "standard"
-  ) {
+  function openSpellDetails(spell: SpellEntry, viewMode: SelectedSpellViewMode = "standard") {
     closeSelectedDivinity();
     const spellLevel = getSpellLevel(spell);
     const minimumSlotLevel = Math.max(1, spellLevel);
@@ -770,9 +821,21 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
       if (roundTrackerResource) {
         onPersistCharacter((currentCharacter) => ({
           ...currentCharacter,
+          statusEntries: applySpellConcentrationToStatusEntries(
+            currentCharacter.statusEntries,
+            selectedSpell
+          ),
           roundTracker: consumeRoundTrackerResource(
             currentCharacter.roundTracker,
             roundTrackerResource
+          )
+        }));
+      } else {
+        onPersistCharacter((currentCharacter) => ({
+          ...currentCharacter,
+          statusEntries: applySpellConcentrationToStatusEntries(
+            currentCharacter.statusEntries,
+            selectedSpell
           )
         }));
       }
@@ -804,6 +867,10 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
       return {
         ...currentCharacter,
         spellSlotsExpended: nextSpellSlotsExpended,
+        statusEntries: applySpellConcentrationToStatusEntries(
+          currentCharacter.statusEntries,
+          selectedSpell
+        ),
         roundTracker: roundTrackerResource
           ? consumeRoundTrackerResource(currentCharacter.roundTracker, roundTrackerResource)
           : currentCharacter.roundTracker
@@ -1142,7 +1209,8 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
                           aria-label={`Level ${level}, ${selectedCount} spell${selectedCount === 1 ? "" : "s"} selected`}
                           className={clsx(
                             styles.preparedSpellTabButton,
-                            activePreparedSpellLevel === level && styles.preparedSpellTabButtonActive
+                            activePreparedSpellLevel === level &&
+                              styles.preparedSpellTabButtonActive
                           )}
                           onClick={() => setActivePreparedSpellLevel(level)}
                           disabled={isDisabled}
@@ -1186,9 +1254,7 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
                               actionShapeSelected={actionShapeState.isSelected}
                               actionShapeMultiCount={actionShapeState.multiCount}
                               className={
-                                isAlwaysPrepared
-                                  ? styles.spellManagementChoiceDisabled
-                                  : undefined
+                                isAlwaysPrepared ? styles.spellManagementChoiceDisabled : undefined
                               }
                             />
                           </li>
@@ -1239,7 +1305,11 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
       ) : null}
 
       {selectedDivinityRow ? (
-        <div className={sheetStyles.spellDrawerBackdrop} role="presentation" onClick={closeSelectedDivinity}>
+        <div
+          className={sheetStyles.spellDrawerBackdrop}
+          role="presentation"
+          onClick={closeSelectedDivinity}
+        >
           <section
             className={sheetStyles.spellDrawer}
             role="dialog"
@@ -1289,7 +1359,9 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
               </div>
 
               <SpellDescriptionContent
-                description={selectedDivinityDisplay?.description ?? selectedDivinityRow.entry.description}
+                description={
+                  selectedDivinityDisplay?.description ?? selectedDivinityRow.entry.description
+                }
                 className={clsx(
                   sheetStyles.spellDrawerDescriptionList,
                   sheetStyles.spellDrawerDescriptionSection

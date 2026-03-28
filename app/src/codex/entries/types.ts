@@ -9,6 +9,7 @@ import type {
   DAMAGE_TYPE,
   DICE,
   DICE_TYPES,
+  DURATION,
   REACTION,
   GENERAL_PROFICIENCIES,
   ITEM_TYPES,
@@ -78,6 +79,7 @@ export type SpellDescriptionList = {
 };
 export type SpellDescriptionEntry = string | SpellDescriptionList;
 export type SpellCastingTimePart = ACTION_TYPE | string;
+export type SpellDurationPart = DURATION | string;
 export type DivinityValue = {
   amounts: WeaponDamageAmount[];
   damageTypes?: DAMAGE_TYPE[];
@@ -104,7 +106,7 @@ export type SpellEntry = {
   castingTime: SpellCastingTimePart[];
   range: string;
   components: SPELL_COMPONENT[];
-  duration: string;
+  duration: SpellDurationPart[];
   description: SpellDescriptionEntry[];
   damage: WeaponDamage;
   spellLists: SPELL_LIST_CLASS[];

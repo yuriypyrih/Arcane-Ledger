@@ -10,6 +10,7 @@ import {
   formatCodexList,
   formatSpellCastingTime,
   formatSpellComponents,
+  formatSpellDuration,
   formatSpellSubtitle,
   renderCodexInlineText
 } from "../../../../utils/codex";
@@ -17,12 +18,8 @@ import {
   clampNumber,
   spellSlotLevels
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
-import {
-  getSpellLevel
-} from "../../../../pages/CharactersPage/spellcasting";
-import {
-  getSpellDamageDetailForCharacter
-} from "../../../../pages/CharactersPage/spellOutcome";
+import { getSpellLevel } from "../../../../pages/CharactersPage/spellcasting";
+import { getSpellDamageDetailForCharacter } from "../../../../pages/CharactersPage/spellOutcome";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import styles from "./SpellCastingForm.module.css";
 
@@ -43,7 +40,9 @@ type CharacterSpellDrawerProps = {
   actionWarning?: string | null;
   blockedReason?: string | null;
   actionDisabled?: boolean;
+  actionConsumesSpellSlot?: boolean;
   actionAvailabilityText?: string | null;
+  actionContextText?: string | null;
   backdropClassName?: string;
 };
 
@@ -62,7 +61,9 @@ function CharacterSpellDrawer({
   actionWarning = null,
   blockedReason = null,
   actionDisabled = false,
+  actionConsumesSpellSlot = true,
   actionAvailabilityText = null,
+  actionContextText = null,
   backdropClassName
 }: CharacterSpellDrawerProps) {
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
@@ -82,7 +83,7 @@ function CharacterSpellDrawer({
       normalizedSelectedSpellSlotLevel >= minimumSelectedSlotLevel &&
       selectedSpellRemainingSlots > 0);
   const shouldShowActionFooter = mode !== "prepare-preview";
-  const shouldShowSlotControls = mode === "standard" && spellLevel > 0;
+  const shouldShowSlotControls = mode === "standard" && spellLevel > 0 && actionConsumesSpellSlot;
   const isActionEnabled = shouldShowSlotControls
     ? canCastAtSelectedSlot && !blockedReason && !actionDisabled
     : !blockedReason && !actionDisabled;
@@ -140,22 +141,26 @@ function CharacterSpellDrawer({
           <div className={sheetStyles.spellDrawerHandle} aria-hidden="true" />
           <div className={sheetStyles.spellDrawerHeader}>
             <div className={sheetStyles.spellDrawerHeaderContent}>
-                <p className={sheetStyles.spellDrawerBadge}>{badgeLabel}</p>
-                <div className={sheetStyles.spellDrawerTitleRow}>
-                  <h3 id="character-spell-drawer-title">{spell.name}</h3>
-                  {alwaysPrepared ? (
-                    <span className={clsx(styles.alwaysPreparedPill, styles.alwaysPreparedDrawerPill)}>
-                      Always Prepared
-                    </span>
-                  ) : null}
-                </div>
+              <p className={sheetStyles.spellDrawerBadge}>{badgeLabel}</p>
+              <div className={sheetStyles.spellDrawerTitleRow}>
+                <h3 id="character-spell-drawer-title">{spell.name}</h3>
+                {alwaysPrepared ? (
+                  <span
+                    className={clsx(styles.alwaysPreparedPill, styles.alwaysPreparedDrawerPill)}
+                  >
+                    Always Prepared
+                  </span>
+                ) : null}
+              </div>
               <p className={sheetStyles.spellDrawerSummary}>{formatSpellSubtitle(spell)}</p>
             </div>
             <button
               type="button"
               className={sheetStyles.spellDrawerCloseButton}
               onClick={onClose}
-              aria-label={mode === "prepare-preview" ? "Close spell preview" : "Close spell details"}
+              aria-label={
+                mode === "prepare-preview" ? "Close spell preview" : "Close spell details"
+              }
             >
               <X size={18} />
             </button>
@@ -181,11 +186,11 @@ function CharacterSpellDrawer({
               </button>
               <div className={sheetStyles.spellDrawerDetailCard}>
                 <span>Duration</span>
-                <strong>{spell.duration}</strong>
+                <strong>{formatSpellDuration(spell.duration)}</strong>
               </div>
               <div className={sheetStyles.spellDrawerDetailCard}>
                 <span>Spell Lists</span>
-                <strong>{formatCodexList(spell.spellLists)}</strong>
+                <strong>{formatCodexList(spell.spellLists) || "None"}</strong>
               </div>
               <div className={sheetStyles.spellDrawerDetailCard}>
                 <span>Damage</span>
@@ -246,6 +251,9 @@ function CharacterSpellDrawer({
               <div className={styles.castActionFooter}>
                 {actionWarning ? <p className={styles.castActionWarning}>{actionWarning}</p> : null}
                 {blockedReason ? <p className={styles.castActionWarning}>{blockedReason}</p> : null}
+                {actionContextText ? (
+                  <p className={styles.castActionContext}>{actionContextText}</p>
+                ) : null}
                 <button
                   type="button"
                   className={sheetStyles.castButton}
@@ -293,7 +301,9 @@ function CharacterSpellDrawer({
               </button>
             </div>
 
-            <div className={clsx(sheetStyles.spellDrawerDescriptionList, styles.componentsDrawerBody)}>
+            <div
+              className={clsx(sheetStyles.spellDrawerDescriptionList, styles.componentsDrawerBody)}
+            >
               {componentsTooltipEntry?.description.map((line, index) => (
                 <p
                   key={`components-description-${index}`}

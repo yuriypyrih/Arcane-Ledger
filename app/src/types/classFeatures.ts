@@ -1,4 +1,4 @@
-import type { WEAPON_PROFICIENCY } from "./proficiencies";
+import type { LanguageProficiency, WEAPON_PROFICIENCY } from "./proficiencies";
 import type { SkillName } from "./skills";
 
 export type CharacterRageFeatureState = {
@@ -26,6 +26,35 @@ export type CharacterDruidFeatureState = {
 
 export type CharacterPaladinFeatureState = {
   layOnHandsExpended?: number;
+  paladinsSmiteUsesExpended?: number;
+  faithfulSteedUsesExpended?: number;
+  channelDivinityUsesExpended?: number;
+  extraAttacksRemainingThisTurn?: number;
+  weaponMasteries?: WEAPON_PROFICIENCY[];
+};
+
+export type CharacterRangerFeatureState = {
+  favoredEnemyUsesExpended?: number;
+  tirelessUsesExpended?: number;
+  naturesVeilUsesExpended?: number;
+  deftExplorerExpertise?: SkillName;
+  deftExplorerLanguages?: LanguageProficiency[];
+  expertise?: SkillName[];
+  extraAttacksRemainingThisTurn?: number;
+  weaponMasteries?: WEAPON_PROFICIENCY[];
+};
+
+export type CharacterRogueExpertiseState = {
+  level1?: SkillName[];
+  level6?: SkillName[];
+};
+
+export type CharacterRogueFeatureState = {
+  expertise?: CharacterRogueExpertiseState;
+  sneakAttackUsedThisTurn?: boolean;
+  steadyAimActive?: boolean;
+  strokeOfLuckUsesExpended?: number;
+  thievesCantLanguage?: LanguageProficiency;
   weaponMasteries?: WEAPON_PROFICIENCY[];
 };
 
@@ -66,6 +95,8 @@ export type CharacterClassFeatureState = {
   cleric?: CharacterClericFeatureState;
   druid?: CharacterDruidFeatureState;
   paladin?: CharacterPaladinFeatureState;
+  ranger?: CharacterRangerFeatureState;
+  rogue?: CharacterRogueFeatureState;
   monk?: CharacterMonkFeatureState;
   fighter?: CharacterFighterFeatureState;
 };

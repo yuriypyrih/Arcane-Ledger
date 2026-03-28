@@ -5,10 +5,12 @@ import { useEffect, useState } from "react";
 import NumberInput from "../../../FormInputs/NumberInput";
 import type { Character } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
-import {
-  clampNumber
-} from "../../../../../pages/CharactersPage/CharacterSheetPage/utils";
+import { clampNumber } from "../../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { getAutomaticMaxHitPointsForCharacter } from "../../../../../pages/CharactersPage/gameplay";
+import {
+  getEffectiveHitPointMaximumForCharacter,
+  reconcileCharacterStatusConsequences
+} from "../../../../../pages/CharactersPage/traits";
 import TemporaryHitPoints from "../../TemporaryHitPoints";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import widgetShellStyles from "../GameplayWidgetShared.module.css";
@@ -34,6 +36,7 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
     normalizeMaxHitPointsMode(character.maxHitPointsMode)
   );
   const [hitPointStep, setHitPointStep] = useState(1);
+  const effectiveHitPoints = getEffectiveHitPointMaximumForCharacter(character);
 
   useEffect(() => {
     if (!isEditing) {
@@ -64,14 +67,18 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
         return currentCharacter;
       }
 
+      const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter({
+        hitPoints: nextAutomaticHitPoints,
+        statusEntries: currentCharacter.statusEntries
+      });
       const nextCurrentHitPoints = clampNumber(
         currentCharacter.currentHitPoints,
         0,
-        nextAutomaticHitPoints,
+        nextEffectiveHitPoints,
         currentCharacter.currentHitPoints
       );
 
-      return {
+      return reconcileCharacterStatusConsequences({
         ...currentCharacter,
         hitPoints: nextAutomaticHitPoints,
         currentHitPoints: nextCurrentHitPoints,
@@ -79,7 +86,7 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
           nextCurrentHitPoints > 0
             ? createDefaultDeathSaves()
             : normalizeDeathSaves(currentCharacter.deathSaves)
-      };
+      });
     });
   }, [
     character,
@@ -93,12 +100,13 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
   ]);
 
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
+  const deathSaves = normalizeDeathSaves(character.deathSaves);
   const currentHitPointPercent =
-    character.hitPoints > 0 ? (character.currentHitPoints / character.hitPoints) * 100 : 0;
+    effectiveHitPoints > 0 ? (character.currentHitPoints / effectiveHitPoints) * 100 : 0;
   const temporaryHitPointPercent =
-    character.hitPoints > 0 ? (temporaryHitPoints / character.hitPoints) * 100 : 0;
+    effectiveHitPoints > 0 ? (temporaryHitPoints / effectiveHitPoints) * 100 : 0;
   const temporaryHitPointOverflow =
-    character.currentHitPoints + temporaryHitPoints > character.hitPoints;
+    character.currentHitPoints + temporaryHitPoints > effectiveHitPoints;
 
   function beginEditing() {
     setHpDraft(createHpDraft(character));
@@ -113,27 +121,33 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
   }
 
   function saveHitPoints() {
-    const nextMaxHitPoints =
+    const nextBaseHitPoints =
       hpModeDraft === "automatic"
         ? getAutomaticMaxHitPointsForCharacter(character)
         : clampNumber(hpDraft.hitPoints, 1, 999, character.hitPoints);
+    const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter({
+      hitPoints: nextBaseHitPoints,
+      statusEntries: character.statusEntries
+    });
     const nextCurrentHitPoints = clampNumber(
       hpDraft.currentHitPoints,
       0,
-      nextMaxHitPoints,
+      nextEffectiveHitPoints,
       character.currentHitPoints
     );
 
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      hitPoints: nextMaxHitPoints,
-      currentHitPoints: nextCurrentHitPoints,
-      maxHitPointsMode: hpModeDraft,
-      deathSaves:
-        nextCurrentHitPoints > 0
-          ? createDefaultDeathSaves()
-          : normalizeDeathSaves(currentCharacter.deathSaves)
-    }));
+    onPersistCharacter((currentCharacter) =>
+      reconcileCharacterStatusConsequences({
+        ...currentCharacter,
+        hitPoints: nextBaseHitPoints,
+        currentHitPoints: nextCurrentHitPoints,
+        maxHitPointsMode: hpModeDraft,
+        deathSaves:
+          nextCurrentHitPoints > 0
+            ? createDefaultDeathSaves()
+            : normalizeDeathSaves(currentCharacter.deathSaves)
+      })
+    );
 
     setIsEditing(false);
   }
@@ -146,13 +160,17 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
     }
 
     const automaticHitPoints = getAutomaticMaxHitPointsForCharacter(character);
+    const automaticEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter({
+      hitPoints: automaticHitPoints,
+      statusEntries: character.statusEntries
+    });
 
     setHpDraft((currentDraft) => ({
       hitPoints: automaticHitPoints,
       currentHitPoints: clampNumber(
         currentDraft.currentHitPoints,
         0,
-        automaticHitPoints,
+        automaticEffectiveHitPoints,
         currentDraft.currentHitPoints
       )
     }));
@@ -170,7 +188,15 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
     const value = event.target.value;
     setHpDraft((current) => ({
       ...current,
-      currentHitPoints: clampNumber(value, 0, current.hitPoints, current.currentHitPoints)
+      currentHitPoints: clampNumber(
+        value,
+        0,
+        getEffectiveHitPointMaximumForCharacter({
+          hitPoints: current.hitPoints,
+          statusEntries: character.statusEntries
+        }),
+        current.currentHitPoints
+      )
     }));
   }
 
@@ -189,10 +215,11 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
 
     onPersistCharacter((currentCharacter) => {
       if (direction > 0) {
+        const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter(currentCharacter);
         const nextCurrentHitPoints = clampNumber(
           currentCharacter.currentHitPoints + amount,
           0,
-          currentCharacter.hitPoints,
+          nextEffectiveHitPoints,
           currentCharacter.currentHitPoints
         );
 
@@ -200,17 +227,19 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
           return currentCharacter;
         }
 
-        return {
+        return reconcileCharacterStatusConsequences({
           ...currentCharacter,
           currentHitPoints: nextCurrentHitPoints,
           deathSaves:
             nextCurrentHitPoints > 0
               ? createDefaultDeathSaves()
               : normalizeDeathSaves(currentCharacter.deathSaves)
-        };
+        });
       }
 
-      const currentTemporaryHitPoints = normalizeTemporaryHitPoints(currentCharacter.temporaryHitPoints);
+      const currentTemporaryHitPoints = normalizeTemporaryHitPoints(
+        currentCharacter.temporaryHitPoints
+      );
       const absorbedByTemporaryHitPoints = Math.min(amount, currentTemporaryHitPoints);
       const nextTemporaryHitPoints = currentTemporaryHitPoints - absorbedByTemporaryHitPoints;
       const remainingDamage = amount - absorbedByTemporaryHitPoints;
@@ -228,7 +257,7 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
         return currentCharacter;
       }
 
-      return {
+      return reconcileCharacterStatusConsequences({
         ...currentCharacter,
         temporaryHitPoints: nextTemporaryHitPoints,
         currentHitPoints: nextCurrentHitPoints,
@@ -236,7 +265,7 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
           nextCurrentHitPoints > 0
             ? createDefaultDeathSaves()
             : normalizeDeathSaves(currentCharacter.deathSaves)
-      };
+      });
     });
 
     setHitPointStep(1);
@@ -298,7 +327,10 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
             <span>Current HP</span>
             <NumberInput
               min={0}
-              max={hpDraft.hitPoints}
+              max={getEffectiveHitPointMaximumForCharacter({
+                hitPoints: hpDraft.hitPoints,
+                statusEntries: character.statusEntries
+              })}
               value={hpDraft.currentHitPoints}
               onChange={updateCurrentHitPointDraftValue}
             />
@@ -321,7 +353,7 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
               <div className={styles.summaryCopy}>
                 <div className={styles.currentRow}>
                   <strong>
-                    {character.currentHitPoints}/{character.hitPoints} HP
+                    {character.currentHitPoints}/{effectiveHitPoints} HP
                   </strong>
                   <TemporaryHitPoints
                     temporaryHitPoints={temporaryHitPoints}
@@ -330,11 +362,15 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
                 </div>
 
                 <span>
-                  {character.currentHitPoints === 0
-                    ? "Unconscious"
-                    : character.currentHitPoints <= Math.ceil(character.hitPoints * 0.35)
-                      ? "Critical"
-                      : "Stable"}
+                  {deathSaves.failures >= 3
+                    ? "Dead"
+                    : deathSaves.successes >= 3
+                      ? "Stable"
+                      : character.currentHitPoints === 0
+                        ? "Unconscious"
+                        : character.currentHitPoints <= Math.ceil(effectiveHitPoints * 0.35)
+                          ? "Critical"
+                          : "Stable"}
                 </span>
               </div>
             </div>
@@ -342,10 +378,16 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
           <div className={styles.actionRow}>
             <div className={styles.barTrack}>
               <div className={styles.barMeter}>
-                <div className={styles.barFill} style={{ width: `${Math.max(0, currentHitPointPercent)}%` }} />
+                <div
+                  className={styles.barFill}
+                  style={{ width: `${Math.max(0, currentHitPointPercent)}%` }}
+                />
                 {temporaryHitPointPercent > 0 ? (
                   <div
-                    className={clsx(styles.barTempFill, temporaryHitPointOverflow && styles.tempOverflow)}
+                    className={clsx(
+                      styles.barTempFill,
+                      temporaryHitPointOverflow && styles.tempOverflow
+                    )}
                     style={{ width: `${temporaryHitPointPercent}%` }}
                   />
                 ) : null}

@@ -13,6 +13,10 @@ import {
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
 import { parseRollFormulaRange } from "../../../../pages/CharactersPage/actionOutcome";
+import {
+  formatResolvedRollStateSummary,
+  resolveFeatureIndicators
+} from "../../../RollStatePill/rollState";
 
 function formatSignedValue(value: number): string {
   return value >= 0 ? `+ ${value}` : `- ${Math.abs(value)}`;
@@ -59,7 +63,11 @@ function hasVisibleWeaponProficiency(
 }
 
 export function getWeaponActionRollDescription(action: WeaponAction): string {
-  const segments = [`${action.ability} ${formatAbilityModifier(action.abilityModifier)}`];
+  const resolvedRollState = resolveFeatureIndicators(action.indicators);
+  const segments = [
+    ...(resolvedRollState ? [formatResolvedRollStateSummary(resolvedRollState)] : []),
+    `${action.ability} ${formatAbilityModifier(action.abilityModifier)}`
+  ];
 
   if (hasVisibleWeaponProficiency(action)) {
     segments.push(
@@ -92,7 +100,11 @@ export function getWeaponActionRollDescription(action: WeaponAction): string {
 }
 
 export function getWeaponActionBreakdown(action: WeaponAction): string {
-  const segments = [`${action.ability} ${formatSignedValue(action.abilityModifier)}`];
+  const resolvedRollState = resolveFeatureIndicators(action.indicators);
+  const segments = [
+    ...(resolvedRollState ? [formatResolvedRollStateSummary(resolvedRollState)] : []),
+    `${action.ability} ${formatSignedValue(action.abilityModifier)}`
+  ];
 
   if (hasVisibleWeaponProficiency(action)) {
     segments.push(

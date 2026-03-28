@@ -3,6 +3,7 @@ import type { SpellEntry } from "../../codex/entries";
 import ActionShape, { getActionShapeForCastingTime } from "../ActionShape";
 import {
   formatSpellCastingTimeSummary,
+  formatSpellDuration,
   formatSpellSubtitle
 } from "../../utils/codex";
 import styles from "./SpellListRow.module.css";
@@ -28,7 +29,7 @@ function formatSpellSummaryRange(range: string): string {
 function formatSpellRowMeta(spell: SpellEntry, hasActionShape: boolean): string {
   return [
     hasActionShape ? "" : formatSpellCastingTimeSummary(spell.castingTime),
-    spell.duration,
+    formatSpellDuration(spell.duration),
     formatSpellSummaryRange(spell.range)
   ]
     .filter((entry) => entry.trim().length > 0)
@@ -114,7 +115,11 @@ function SpellListRow({
                 </div>
                 <small className={styles.subtitle}>{formatSpellSubtitle(spell)}</small>
               </div>
-              {hasValueSummary ? <small className={styles.outcome}>{valueSummary}</small> : <span />}
+              {hasValueSummary ? (
+                <small className={styles.outcome}>{valueSummary}</small>
+              ) : (
+                <span />
+              )}
               {metaNode}
             </div>
           </div>

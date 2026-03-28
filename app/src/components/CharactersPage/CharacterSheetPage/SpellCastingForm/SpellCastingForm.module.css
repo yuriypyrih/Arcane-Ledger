@@ -266,6 +266,13 @@
   text-align: right;
 }
 
+.castActionContext {
+  margin: 0;
+  color: #2f78ff;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
 .previewSpellDrawerBackdrop {
   z-index: 48;
 }

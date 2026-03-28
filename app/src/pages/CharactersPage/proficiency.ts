@@ -2658,6 +2658,16 @@ export function getDisplayToolProficiencyEntries(
 export function getDisplayLanguageProficiencyEntries(
   entries: LanguageProficiencyEntry[]
 ): ProficiencyDisplayEntry<LanguageProficiency>[] {
+  const builtInGrantedLanguageOptions = dedupe(
+    mergeProficiencyEntries(entries)
+      .filter(
+        (entry) =>
+          entry.proficiencyLevel !== PROF_LEVEL.NONE &&
+          !isCustomLanguageProficiency(entry.proficiency) &&
+          !languageProficiencyOptions.includes(entry.proficiency as LANGUAGE_PROFICIENCY)
+      )
+      .map((entry) => entry.proficiency)
+  );
   const customLanguageOptions = dedupe(
     mergeProficiencyEntries(entries)
       .filter(
@@ -2669,6 +2679,7 @@ export function getDisplayLanguageProficiencyEntries(
 
   return getDisplayProficiencyEntries(entries, [
     ...languageProficiencyOptions,
+    ...builtInGrantedLanguageOptions,
     ...customLanguageOptions
   ]);
 }

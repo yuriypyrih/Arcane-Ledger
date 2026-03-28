@@ -1,6 +1,13 @@
 import type { Character, CharacterClassFeatureState } from "../../../types";
-import type { WEAPON_PROFICIENCY } from "../../../types";
+import { ALL_SKILLS } from "../../../types";
+import type { AbilityKey, WEAPON_PROFICIENCY } from "../../../types";
 import type { EconomyType } from "../actionEconomy";
+import {
+  hasExhaustionAbilityCheckDisadvantage,
+  hasExhaustionAttackRollDisadvantage,
+  hasExhaustionSavingThrowDisadvantage,
+  removeCharacterStatusEntry
+} from "../traits";
 import {
   activateBardicInspiration,
   applySuperiorInspirationOnInitiative,
@@ -19,6 +26,7 @@ import {
 } from "./bard";
 import {
   activateBarbarianRage,
+  getBarbarianAbilityCheckIndicators,
   applyLongRestToBarbarianFeatures,
   getBarbarianAbilityScoreBonuses,
   getBarbarianArmorClassBonuses,
@@ -51,6 +59,8 @@ import {
   getClericBlessedStrikesChoice,
   getClericCantripBonus,
   getClericCantripDamageBonus,
+  getClericChannelDivinityUsesRemaining,
+  getClericChannelDivinityUsesTotal,
   getClericFeatureActions,
   getClericFeatureActionOptions,
   getClericDivineOrderChoice,
@@ -74,16 +84,110 @@ import {
   setDruidPrimalOrderChoice
 } from "./druid";
 import {
+  activateRangerNaturesVeil,
+  advanceRangerFeaturesForNewRound,
+  applyLongRestToRangerFeatures,
+  applyShortRestToRangerFeatures,
+  consumeRangerFavoredEnemyUse,
+  consumeRangerNaturesVeilUse,
+  consumeRangerTirelessUse,
+  consumeRangerWeaponAttack,
+  getRangerFeatureActions,
+  getRangerAlwaysPreparedSpellIds,
+  getRangerDeftExplorerExpertiseSelection,
+  getRangerDeftExplorerLanguageSelections,
+  getRangerDerivedStatusEntries,
+  getRangerFavoredEnemyUsesRemaining,
+  getRangerFavoredEnemyUsesTotal,
+  getRangerLanguageProficiencyEntries,
+  getRangerLevel9ExpertiseSelections,
+  getRangerNaturesVeilUsesRemaining,
+  getRangerNaturesVeilUsesTotal,
+  getRangerSkillProficiencyEntries,
+  getRangerSpeedBonuses,
+  getRangerSpellDamageFormula,
+  getRangerSpellEntry,
+  getRangerTirelessUsesRemaining,
+  getRangerTirelessUsesTotal,
+  getRangerWeaponAttackMultiCount,
+  getRangerWeaponMasteryOptions,
+  getRangerWeaponMasterySelectionCount,
+  getRangerWeaponMasterySelections,
+  getRangerWeaponProficiencyEntries,
+  normalizeRangerFeatureState,
+  naturesVeilActionKey,
+  restoreRangerNaturesVeilOnLongRest,
+  restoreRangerTirelessOnLongRest,
+  setRangerDeftExplorerExpertiseSelection,
+  setRangerDeftExplorerLanguageSelections,
+  setRangerLevel9ExpertiseSelections,
+  setRangerWeaponMasterySelections,
+  tirelessActionKey
+} from "./ranger";
+import {
+  activateRogueSteadyAim,
+  activateRogueSneakAttack,
+  advanceRogueFeaturesForNewRound,
+  applyLongRestToRogueFeatures,
+  applyShortRestToRogueFeatures,
+  consumeRogueStrokeOfLuckUse,
+  getRogueDerivedStatusEntries,
+  getRogueFeatureActions,
+  getRogueExpertiseSelections,
+  getRogueLanguageProficiencyEntries,
+  getRogueReactionEntries,
+  getRogueSavingThrowProficiencyEntries,
+  getRogueSkillProficiencyEntries,
+  getRogueSneakAttackDiceCount,
+  getRogueSneakAttackFormula,
+  getRogueSpeedBonuses,
+  getRogueStrokeOfLuckUsesRemaining,
+  getRogueStrokeOfLuckUsesTotal,
+  getRogueWeaponMasteryOptions,
+  getRogueWeaponMasterySelectionCount,
+  getRogueWeaponMasterySelections,
+  getRogueWeaponProficiencyEntries,
+  normalizeRogueFeatureState,
+  rogueSteadyAimActionKey,
+  rogueSneakAttackActionKey,
+  rogueStrokeOfLuckActionKey,
+  restoreRogueStrokeOfLuckOnLongRest,
+  restoreRogueStrokeOfLuckOnShortRest,
+  setRogueExpertiseSelections,
+  setRogueThievesCantLanguageSelection,
+  setRogueWeaponMasterySelections,
+  getRogueThievesCantLanguageSelection
+} from "./rogue";
+import {
+  activatePaladinFeatureActionOption,
+  advancePaladinFeaturesForNewRound,
   applyLayOnHands,
+  applyLongRestToPaladinFeatures,
+  applyShortRestToPaladinFeatures,
+  consumeFaithfulSteedUse,
+  consumePaladinWeaponAttack,
+  consumePaladinsSmiteUse,
+  getLayOnHandsCurableConditions,
+  getPaladinDerivedStatusEntries,
+  getPaladinAlwaysPreparedSpellIds,
+  getPaladinChannelDivinityUsesRemaining,
+  getPaladinChannelDivinityUsesTotal,
   getPaladinFeatureActions,
+  getPaladinFeatureActionOptions,
   getPaladinHealingPoolRemaining,
   getPaladinHealingPoolTotal,
+  getPaladinWeaponDamageBonuses,
+  getPaladinWeaponAttackMultiCount,
+  getPaladinsSmiteUsesRemaining,
+  hasActivePaladinAuraOfProtection,
   getPaladinWeaponMasteryOptions,
   getPaladinWeaponMasterySelectionCount,
   getPaladinWeaponMasterySelections,
   getPaladinWeaponProficiencyEntries,
   normalizePaladinFeatureState,
+  paladinChannelDivinityActionKey,
   paladinLayOnHandsActionKey,
+  paladinsSmiteActionKey,
   restorePaladinLayOnHandsOnLongRest,
   setPaladinWeaponMasterySelections
 } from "./paladin";
@@ -146,6 +250,7 @@ import {
   setFighterWeaponMasterySelections
 } from "./fighter";
 import type {
+  AbilityCheckIndicatorMap,
   ArmorClassFeatureContext,
   CoreStatIndicatorMap,
   DerivedFeatureStatusEntry,
@@ -170,10 +275,36 @@ import type {
   WeaponFeatureContext
 } from "./types";
 import type { CharacterStatusEntry } from "../../../types";
-import type { ReactionEntry } from "../../../codex/entries";
+import type { ReactionEntry, SpellEntry } from "../../../codex/entries";
 import { PROF_LEVEL } from "../../../types";
 
+const exhaustionDisadvantageIndicator: FeatureIndicator = {
+  label: "Disadvantage",
+  tone: "disadvantage",
+  source: "Exhaustion"
+};
+const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
+
+function mergeIndicatorMaps<T extends string>(
+  ...maps: Array<Partial<Record<T, FeatureIndicator[]>>>
+): Partial<Record<T, FeatureIndicator[]>> {
+  return maps.reduce<Partial<Record<T, FeatureIndicator[]>>>((result, currentMap) => {
+    (Object.keys(currentMap) as T[]).forEach((key) => {
+      const indicators = currentMap[key];
+
+      if (!indicators || indicators.length === 0) {
+        return;
+      }
+
+      result[key] = [...(result[key] ?? []), ...indicators];
+    });
+
+    return result;
+  }, {});
+}
+
 export type {
+  AbilityCheckIndicatorMap,
   ArmorClassFeatureContext,
   CoreStatIndicatorMap,
   FeatureActionCard,
@@ -198,7 +329,7 @@ export type {
 
 export function normalizeCharacterClassFeatureState(
   value: unknown,
-  character: Pick<Character, "className" | "level">
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "abilities">>
 ): CharacterClassFeatureState {
   const record =
     value && typeof value === "object" ? (value as Partial<CharacterClassFeatureState>) : {};
@@ -208,26 +339,30 @@ export function normalizeCharacterClassFeatureState(
     bard: normalizeBardFeatureState(record.bard, character),
     cleric: normalizeClericFeatureState(record.cleric, character),
     druid: normalizeDruidFeatureState(record.druid, character),
+    ranger: normalizeRangerFeatureState(record.ranger, character),
+    rogue: normalizeRogueFeatureState(record.rogue, character),
     paladin: normalizePaladinFeatureState(record.paladin, character),
     monk: normalizeMonkFeatureState(record.monk, character),
     fighter: normalizeFighterFeatureState(record.fighter, character)
   };
 }
 
-export function getFeatureActionsForCharacter(
-  character: Character
-): FeatureActionCard[] {
+export function getFeatureActionsForCharacter(character: Character): FeatureActionCard[] {
   const clericActions = getClericFeatureActions(character);
   const bardAction = getBardFeatureAction(character);
   const fighterActions = getFighterFeatureActions(character);
   const monkActions = getMonkFeatureActions(character);
   const paladinActions = getPaladinFeatureActions(character);
+  const rangerActions = getRangerFeatureActions(character);
+  const rogueActions = getRogueFeatureActions(character);
   const rageAction = getBarbarianFeatureAction(character);
   return [
     ...clericActions,
     bardAction,
     ...fighterActions,
     ...monkActions,
+    ...rangerActions,
+    ...rogueActions,
     ...paladinActions,
     rageAction
   ].filter((entry): entry is FeatureActionCard => entry !== null);
@@ -241,6 +376,10 @@ export function getFeatureActionOptionsForCharacter(
     return getClericFeatureActionOptions(character);
   }
 
+  if (actionKey === paladinChannelDivinityActionKey) {
+    return getPaladinFeatureActionOptions(character);
+  }
+
   return [];
 }
 
@@ -250,14 +389,33 @@ export function getFeatureDamageBonusesForWeaponAction(
 ): FeatureDamageBonus[] {
   return [
     ...getBarbarianWeaponDamageBonuses(character, context),
-    ...getClericWeaponDamageBonuses(character, context)
+    ...getClericWeaponDamageBonuses(character, context),
+    ...getPaladinWeaponDamageBonuses(character, context)
   ];
 }
 
 export function getSavingThrowIndicatorsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
 ): SavingThrowIndicatorMap {
-  return getBarbarianSavingThrowIndicators(character);
+  const exhaustionIndicators = hasExhaustionSavingThrowDisadvantage(character.statusEntries)
+    ? (Object.fromEntries(
+        abilityKeys.map((ability) => [ability, [exhaustionDisadvantageIndicator]])
+      ) as SavingThrowIndicatorMap)
+    : {};
+
+  return mergeIndicatorMaps(getBarbarianSavingThrowIndicators(character), exhaustionIndicators);
+}
+
+export function getAbilityCheckIndicatorsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
+): AbilityCheckIndicatorMap {
+  const exhaustionIndicators = hasExhaustionAbilityCheckDisadvantage(character.statusEntries)
+    ? (Object.fromEntries(
+        abilityKeys.map((ability) => [ability, [exhaustionDisadvantageIndicator]])
+      ) as AbilityCheckIndicatorMap)
+    : {};
+
+  return mergeIndicatorMaps(getBarbarianAbilityCheckIndicators(character), exhaustionIndicators);
 }
 
 export function getCoreStatIndicatorsForCharacter(
@@ -267,9 +425,23 @@ export function getCoreStatIndicatorsForCharacter(
 }
 
 export function getSkillIndicatorsForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
 ): SkillIndicatorMap {
-  return getBarbarianSkillIndicators(character);
+  const exhaustionIndicators = hasExhaustionAbilityCheckDisadvantage(character.statusEntries)
+    ? (Object.fromEntries(
+        ALL_SKILLS.map((skill) => [skill, [exhaustionDisadvantageIndicator]])
+      ) as SkillIndicatorMap)
+    : {};
+
+  return mergeIndicatorMaps(getBarbarianSkillIndicators(character), exhaustionIndicators);
+}
+
+export function getWeaponAttackIndicatorsForCharacter(
+  character: Pick<Character, "statusEntries">
+): FeatureIndicator[] {
+  return hasExhaustionAttackRollDisadvantage(character.statusEntries)
+    ? [exhaustionDisadvantageIndicator]
+    : [];
 }
 
 export function getSkillBonusesForCharacter(
@@ -308,19 +480,24 @@ export function getArmorClassBonusesForCharacter(
 }
 
 export function getSpeedBonusesForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "equipment" | "customEquipment">,
+  character: Pick<
+    Character,
+    "className" | "level" | "classFeatureState" | "equipment" | "customEquipment"
+  >,
   context: SpeedFeatureContext
 ): FeatureSpeedBonus[] {
-  return [...getBarbarianSpeedBonuses(character, context), ...getMonkSpeedBonuses(character, context)];
+  return [
+    ...getBarbarianSpeedBonuses(character, context),
+    ...getMonkSpeedBonuses(character, context),
+    ...getRangerSpeedBonuses(character, context),
+    ...getRogueSpeedBonuses(character)
+  ];
 }
 
 export function getAbilityScoreBonusesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureAbilityScoreBonus[] {
-  return [
-    ...getBarbarianAbilityScoreBonuses(character),
-    ...getMonkAbilityScoreBonuses(character)
-  ];
+  return [...getBarbarianAbilityScoreBonuses(character), ...getMonkAbilityScoreBonuses(character)];
 }
 
 export function getCantripLimitBonusForCharacter(
@@ -339,6 +516,18 @@ export function getBardicInspirationDieForCharacter(
   character: Pick<Character, "className" | "level">
 ) {
   return getBardicInspirationDie(character);
+}
+
+export function getRogueSneakAttackDiceCountForCharacter(
+  character: Pick<Character, "className" | "level">
+) {
+  return getRogueSneakAttackDiceCount(character);
+}
+
+export function getRogueSneakAttackFormulaForCharacter(
+  character: Pick<Character, "className" | "level">
+) {
+  return getRogueSneakAttackFormula(character);
 }
 
 export function getMonkUnarmedDamageTypeLabelForCharacter(
@@ -372,6 +561,8 @@ export function getFeatureWeaponProficiencyEntriesForCharacter(
     ...getClericWeaponProficiencyEntries(character),
     ...getDruidWeaponProficiencyEntries(character),
     ...getFighterWeaponProficiencyEntries(character),
+    ...getRangerWeaponProficiencyEntries(character),
+    ...getRogueWeaponProficiencyEntries(character),
     ...getPaladinWeaponProficiencyEntries(character)
   ];
 }
@@ -379,13 +570,20 @@ export function getFeatureWeaponProficiencyEntriesForCharacter(
 export function getFeatureSkillProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureSkillProficiencyEntry[] {
-  return getBardSkillProficiencyEntries(character);
+  return [
+    ...getBardSkillProficiencyEntries(character),
+    ...getRangerSkillProficiencyEntries(character),
+    ...getRogueSkillProficiencyEntries(character)
+  ];
 }
 
 export function getFeatureSavingThrowProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureSavingThrowProficiencyEntry[] {
-  return getMonkSavingThrowProficiencyEntries(character);
+  return [
+    ...getMonkSavingThrowProficiencyEntries(character),
+    ...getRogueSavingThrowProficiencyEntries(character)
+  ];
 }
 
 export function getFeatureArmorProficiencyEntriesForCharacter(
@@ -400,7 +598,11 @@ export function getFeatureArmorProficiencyEntriesForCharacter(
 export function getFeatureLanguageProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureLanguageProficiencyEntry[] {
-  return getDruidLanguageProficiencyEntries(character);
+  return [
+    ...getDruidLanguageProficiencyEntries(character),
+    ...getRangerLanguageProficiencyEntries(character),
+    ...getRogueLanguageProficiencyEntries(character)
+  ];
 }
 
 export function getClericDivineOrderChoiceForCharacter(
@@ -436,10 +638,84 @@ export function getBardExpertiseSelectionsForCharacter(
   return getBardExpertiseSelections(character, tier);
 }
 
+export function getRangerDeftExplorerExpertiseSelectionForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+) {
+  return getRangerDeftExplorerExpertiseSelection(character);
+}
+
+export function setRangerDeftExplorerExpertiseSelectionForCharacter(
+  character: Character,
+  selection: Parameters<typeof setRangerDeftExplorerExpertiseSelection>[1]
+): Character {
+  return setRangerDeftExplorerExpertiseSelection(character, selection);
+}
+
+export function getRangerDeftExplorerLanguageSelectionsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+) {
+  return getRangerDeftExplorerLanguageSelections(character);
+}
+
+export function setRangerDeftExplorerLanguageSelectionsForCharacter(
+  character: Character,
+  selections: Parameters<typeof setRangerDeftExplorerLanguageSelections>[1]
+): Character {
+  return setRangerDeftExplorerLanguageSelections(character, selections);
+}
+
+export function getRangerLevel9ExpertiseSelectionsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+) {
+  return getRangerLevel9ExpertiseSelections(character);
+}
+
+export function getRogueExpertiseSelectionsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">,
+  tier: "level1" | "level6"
+) {
+  return getRogueExpertiseSelections(character, tier);
+}
+
+export function setRogueExpertiseSelectionsForCharacter(
+  character: Character,
+  tier: "level1" | "level6",
+  selections: Parameters<typeof setRogueExpertiseSelections>[2]
+): Character {
+  return setRogueExpertiseSelections(character, tier, selections);
+}
+
+export function getRogueThievesCantLanguageSelectionForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+) {
+  return getRogueThievesCantLanguageSelection(character);
+}
+
+export function setRogueThievesCantLanguageSelectionForCharacter(
+  character: Character,
+  selection: Parameters<typeof setRogueThievesCantLanguageSelection>[1]
+): Character {
+  return setRogueThievesCantLanguageSelection(character, selection);
+}
+
+export function setRangerLevel9ExpertiseSelectionsForCharacter(
+  character: Character,
+  selections: Parameters<typeof setRangerLevel9ExpertiseSelections>[1]
+): Character {
+  return setRangerLevel9ExpertiseSelections(character, selections);
+}
+
 export function getAlwaysPreparedSpellIdsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): string[] {
-  return [...new Set([...getBardAlwaysPreparedSpellIds(character), ...getDruidAlwaysPreparedSpellIds(character)])];
+  return [
+    ...new Set([
+      ...getBardAlwaysPreparedSpellIds(character),
+      ...getDruidAlwaysPreparedSpellIds(character),
+      ...getRangerAlwaysPreparedSpellIds(character),
+      ...getPaladinAlwaysPreparedSpellIds(character)
+    ])
+  ];
 }
 
 export function setBardExpertiseSelectionsForCharacter(
@@ -474,6 +750,14 @@ export function getWeaponMasterySelectionCountForCharacter(
     return getFighterWeaponMasterySelectionCount(character);
   }
 
+  if (character.className === "Ranger") {
+    return getRangerWeaponMasterySelectionCount(character);
+  }
+
+  if (character.className === "Rogue") {
+    return getRogueWeaponMasterySelectionCount(character);
+  }
+
   if (character.className === "Paladin") {
     return getPaladinWeaponMasterySelectionCount(character);
   }
@@ -490,6 +774,14 @@ export function getWeaponMasteryOptionsForCharacter(
 
   if (character.className === "Fighter") {
     return getFighterWeaponMasteryOptions();
+  }
+
+  if (character.className === "Ranger") {
+    return getRangerWeaponMasteryOptions();
+  }
+
+  if (character.className === "Rogue") {
+    return getRogueWeaponMasteryOptions();
   }
 
   if (character.className === "Paladin") {
@@ -510,6 +802,14 @@ export function getWeaponMasterySelectionsForCharacter(
     return getFighterWeaponMasterySelections(character);
   }
 
+  if (character.className === "Ranger") {
+    return getRangerWeaponMasterySelections(character);
+  }
+
+  if (character.className === "Rogue") {
+    return getRogueWeaponMasterySelections(character);
+  }
+
   if (character.className === "Paladin") {
     return getPaladinWeaponMasterySelections(character);
   }
@@ -527,6 +827,14 @@ export function setWeaponMasterySelectionsForCharacter(
 
   if (character.className === "Fighter") {
     return setFighterWeaponMasterySelections(character, selections);
+  }
+
+  if (character.className === "Ranger") {
+    return setRangerWeaponMasterySelections(character, selections);
+  }
+
+  if (character.className === "Rogue") {
+    return setRogueWeaponMasterySelections(character, selections);
   }
 
   if (character.className === "Paladin") {
@@ -555,22 +863,50 @@ export function getDerivedFeatureStatusEntriesForCharacter(
 ): DerivedFeatureStatusEntry[] {
   return [
     ...getBarbarianDerivedConditions(character),
-    ...getMonkDerivedStatusEntries(character)
+    ...getMonkDerivedStatusEntries(character),
+    ...getRangerDerivedStatusEntries(character),
+    ...getPaladinDerivedStatusEntries(character),
+    ...getRogueDerivedStatusEntries(character)
   ];
+}
+
+export function getSpellEntryForCharacter(
+  character: Pick<Character, "className" | "level">,
+  spell: SpellEntry
+): SpellEntry {
+  return getRangerSpellEntry(character, spell);
+}
+
+export function getSpellDamageFormulaOverrideForCharacter(
+  character: Pick<Character, "className" | "level">,
+  spell: Pick<SpellEntry, "id">
+): string | null {
+  return getRangerSpellDamageFormula(character, spell);
 }
 
 export function getFeatureReactionEntriesForCharacter(
   character: Pick<Character, "className" | "level">
 ): ReactionEntry[] {
-  return [...getBardReactionEntries(character), ...getMonkReactionEntries(character)];
+  return [
+    ...getBardReactionEntries(character),
+    ...getMonkReactionEntries(character),
+    ...getRogueReactionEntries(character)
+  ];
 }
 
-export function activateFeatureActionForCharacter(character: Character, actionKey: string): Character {
+export function activateFeatureActionForCharacter(
+  character: Character,
+  actionKey: string
+): Character {
   if (actionKey === bardicInspirationActionKey) {
     return activateBardicInspiration(character);
   }
 
   if (actionKey === paladinLayOnHandsActionKey) {
+    return character;
+  }
+
+  if (actionKey === paladinsSmiteActionKey) {
     return character;
   }
 
@@ -614,6 +950,26 @@ export function activateFeatureActionForCharacter(character: Character, actionKe
     return activateClericDivineIntervention(character);
   }
 
+  if (actionKey === tirelessActionKey) {
+    return consumeRangerTirelessUse(character);
+  }
+
+  if (actionKey === naturesVeilActionKey) {
+    return activateRangerNaturesVeil(character);
+  }
+
+  if (actionKey === rogueSneakAttackActionKey) {
+    return activateRogueSneakAttack(character);
+  }
+
+  if (actionKey === rogueSteadyAimActionKey) {
+    return activateRogueSteadyAim(character);
+  }
+
+  if (actionKey === rogueStrokeOfLuckActionKey) {
+    return consumeRogueStrokeOfLuckUse(character);
+  }
+
   return character;
 }
 
@@ -635,11 +991,144 @@ export function getPaladinHealingPoolRemainingForCharacter(
   return getPaladinHealingPoolRemaining(character);
 }
 
+export function getRangerFavoredEnemyUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+): number {
+  return getRangerFavoredEnemyUsesTotal(character);
+}
+
+export function getRangerFavoredEnemyUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "abilities">>
+): number {
+  return getRangerFavoredEnemyUsesRemaining(character);
+}
+
+export function consumeRangerFavoredEnemyUseForCharacter(character: Character): Character {
+  return consumeRangerFavoredEnemyUse(character);
+}
+
+export function getRangerTirelessUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "abilities">>
+): number {
+  return getRangerTirelessUsesTotal(character);
+}
+
+export function getRangerNaturesVeilUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "abilities">>
+): number {
+  return getRangerNaturesVeilUsesTotal(character);
+}
+
+export function getRangerTirelessUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "abilities">>
+): number {
+  return getRangerTirelessUsesRemaining(character);
+}
+
+export function getRogueStrokeOfLuckUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+): number {
+  return getRogueStrokeOfLuckUsesTotal(character);
+}
+
+export function getRogueStrokeOfLuckUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  return getRogueStrokeOfLuckUsesRemaining(character);
+}
+
+export function getRangerNaturesVeilUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "abilities">>
+): number {
+  return getRangerNaturesVeilUsesRemaining(character);
+}
+
+export function consumeRangerTirelessUseForCharacter(character: Character): Character {
+  return consumeRangerTirelessUse(character);
+}
+
+export function consumeRangerNaturesVeilUseForCharacter(character: Character): Character {
+  return consumeRangerNaturesVeilUse(character);
+}
+
+export function restoreRangerTirelessOnLongRestForCharacter(character: Character): Character {
+  return restoreRangerTirelessOnLongRest(character);
+}
+
+export function restoreRangerNaturesVeilOnLongRestForCharacter(character: Character): Character {
+  return restoreRangerNaturesVeilOnLongRest(character);
+}
+
+export function restoreRogueStrokeOfLuckOnShortRestForCharacter(character: Character): Character {
+  return restoreRogueStrokeOfLuckOnShortRest(character);
+}
+
+export function restoreRogueStrokeOfLuckOnLongRestForCharacter(character: Character): Character {
+  return restoreRogueStrokeOfLuckOnLongRest(character);
+}
+
+export function getChannelDivinityUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+): number {
+  if (character.className === "Cleric") {
+    return getClericChannelDivinityUsesTotal(character);
+  }
+
+  if (character.className === "Paladin") {
+    return getPaladinChannelDivinityUsesTotal(character);
+  }
+
+  return 0;
+}
+
+export function getChannelDivinityUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  if (character.className === "Cleric") {
+    return getClericChannelDivinityUsesRemaining(character);
+  }
+
+  if (character.className === "Paladin") {
+    return getPaladinChannelDivinityUsesRemaining(character);
+  }
+
+  return 0;
+}
+
 export function applyLayOnHandsForCharacter(
   character: Character,
   options: Parameters<typeof applyLayOnHands>[1]
 ): Character {
   return applyLayOnHands(character, options);
+}
+
+export function getLayOnHandsCurableConditionsForCharacter(
+  character: Pick<Character, "className" | "level">
+) {
+  return getLayOnHandsCurableConditions(character);
+}
+
+export function getPaladinsSmiteUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  return getPaladinsSmiteUsesRemaining(character);
+}
+
+export function consumePaladinsSmiteUseForCharacter(character: Character): Character {
+  return consumePaladinsSmiteUse(character);
+}
+
+export function consumeFaithfulSteedUseForCharacter(character: Character): Character {
+  return consumeFaithfulSteedUse(character);
+}
+
+export function hasActivePaladinAuraOfProtectionForCharacter(
+  character: Pick<Character, "className" | "level" | "statusEntries">
+): boolean {
+  return hasActivePaladinAuraOfProtection(character);
 }
 
 export function getMonkFocusPointsRemainingForCharacter(
@@ -664,11 +1153,16 @@ export function restorePaladinLayOnHandsOnLongRestForCharacter(character: Charac
   return restorePaladinLayOnHandsOnLongRest(character);
 }
 
-export function restoreMonkUncannyMetabolismOnLongRestForCharacter(character: Character): Character {
+export function restoreMonkUncannyMetabolismOnLongRestForCharacter(
+  character: Character
+): Character {
   return restoreMonkUncannyMetabolismOnLongRest(character);
 }
 
-export function markFeatureWeaponBonusUseForCharacter(character: Character, label: string): Character {
+export function markFeatureWeaponBonusUseForCharacter(
+  character: Character,
+  label: string
+): Character {
   if (label === "Blessed Strikes") {
     return markClericBlessedStrikeUsed(character);
   }
@@ -681,6 +1175,14 @@ export function getWeaponActionEconomyMultiForCharacter(
 ): number {
   if (character.className === "Fighter") {
     return getFighterWeaponAttackMultiCount(character);
+  }
+
+  if (character.className === "Ranger") {
+    return getRangerWeaponAttackMultiCount(character);
+  }
+
+  if (character.className === "Paladin") {
+    return getPaladinWeaponAttackMultiCount(character);
   }
 
   if (character.className === "Monk") {
@@ -718,6 +1220,14 @@ export function consumeWeaponAttackActionForCharacter(
     return consumeMonkWeaponAttack(character, action);
   }
 
+  if (character.className === "Ranger") {
+    return consumeRangerWeaponAttack(character);
+  }
+
+  if (character.className === "Paladin") {
+    return consumePaladinWeaponAttack(character);
+  }
+
   return consumeFighterWeaponAttack(character);
 }
 
@@ -734,12 +1244,16 @@ export function activateFeatureActionOptionForCharacter(
     return activateClericFeatureActionOption(character, optionKey);
   }
 
+  if (actionKey === paladinChannelDivinityActionKey) {
+    return activatePaladinFeatureActionOption(character, optionKey);
+  }
+
   return character;
 }
 
 export function removeFeatureStatusEntryForCharacter(
   character: Character,
-  statusEntry: Pick<CharacterStatusEntry, "value" | "sourceId">
+  statusEntry: Pick<CharacterStatusEntry, "id" | "value" | "sourceId">
 ): Character {
   const normalizedValue = String(statusEntry.value).trim();
 
@@ -753,14 +1267,23 @@ export function removeFeatureStatusEntryForCharacter(
     return deactivateBarbarianRage(character);
   }
 
-  return character;
+  return {
+    ...character,
+    statusEntries: removeCharacterStatusEntry(character.statusEntries, statusEntry.id)
+  };
 }
 
 export function applyShortRestToFeatureState(character: Character): Character {
   return applyShortRestToClericFeatures(
     applyShortRestToBardFeatures(
       applyShortRestToFighterFeatures(
-        applyShortRestToMonkFeatures(applyShortRestToBarbarianFeatures(character))
+        applyShortRestToPaladinFeatures(
+          applyShortRestToRangerFeatures(
+            applyShortRestToRogueFeatures(
+              applyShortRestToMonkFeatures(applyShortRestToBarbarianFeatures(character))
+            )
+          )
+        )
       )
     )
   );
@@ -770,8 +1293,12 @@ export function applyLongRestToFeatureState(character: Character): Character {
   return applyLongRestToClericFeatures(
     applyLongRestToBardFeatures(
       applyLongRestToFighterFeatures(
-        restorePaladinLayOnHandsOnLongRest(
-          applyLongRestToMonkFeatures(applyLongRestToBarbarianFeatures(character))
+        applyLongRestToPaladinFeatures(
+          applyLongRestToRangerFeatures(
+            applyLongRestToRogueFeatures(
+              applyLongRestToMonkFeatures(applyLongRestToBarbarianFeatures(character))
+            )
+          )
         )
       )
     )
@@ -779,7 +1306,13 @@ export function applyLongRestToFeatureState(character: Character): Character {
 }
 
 export function advanceFeatureStateForNewRound(character: Character): Character {
-  return advanceMonkFeaturesForNewRound(
-    advanceFighterFeaturesForNewRound(advanceClericFeaturesForNewRound(character))
+  return advanceRogueFeaturesForNewRound(
+    advanceMonkFeaturesForNewRound(
+      advancePaladinFeaturesForNewRound(
+        advanceRangerFeaturesForNewRound(
+          advanceFighterFeaturesForNewRound(advanceClericFeaturesForNewRound(character))
+        )
+      )
+    )
   );
 }

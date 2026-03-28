@@ -70,8 +70,8 @@ export const paladinFeatures: PaladinFeatureClassObj[] = [
           "You can channel divine energy directly from the Outer Planes, using it to fuel magical effects. You start with one such effect: Divine Sense, which is described below. Other Paladin features give additional Channel Divinity effect options. Each time you use this class's Channel Divinity, you choose which effect from this class to create.",
           "You can use this class's Channel Divinity twice. You regain one of its expended uses when you finish a <link:short-rest>Short Rest</link>, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>. You gain an additional use when you reach Paladin level 11.",
           "If a Channel Divinity effect requires a saving throw, the DC equals the spell save DC from this class's Spellcasting feature.",
-          "<strong>Divine Sense.</strong> As a Bonus Action, you can open your awareness to detect Celestials, Fiends, and Undead. For the next 10 minutes or until you have the Incapacitated condition, you know the location of any creature of those types within 60 feet of yourself, and you know its creature type.",
-          "Within the same radius, you also detect the presence of any place or object that has been consecrated or desecrated, as with the Hallow spell."
+          "<strong>Divine Sense.</strong> As a Bonus Action, you can open your awareness to detect Celestials, Fiends, and Undead. For the next 10 minutes or until you have the <link:Incapacitated>Incapacitated</link> condition, you know the location of any creature of those types within 60 feet of yourself, and you know its creature type.",
+          "Within the same radius, you also detect the presence of any place or object that has been consecrated or desecrated, as with the <spell:Hallow>Hallow</spell> spell."
         ],
         isTracked: false
       }
@@ -192,9 +192,9 @@ export const paladinFeatures: PaladinFeatureClassObj[] = [
       [CLASS_FEATURE.EPIC_BOON]: {
         description: [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
-          "Boon of Truesight is recommended."
+          "<feat:BOON_OF_TRUESIGHT>Boon of Truesight</feat> is recommended."
         ],
-        isTracked: false
+        isTracked: true
       }
     },
     channelDivinity: 3,
@@ -215,16 +215,16 @@ export const paladinFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
     description: [
       "Your blessed touch can heal wounds. You have a pool of healing power that replenishes when you finish a <link:long-rest>Long Rest</link>. With that pool, you can restore a total number of Hit Points equal to five times your Paladin level.",
       "As a Bonus Action, you can touch a creature, which could be yourself, and draw power from the pool of healing to restore a number of Hit Points to that creature, up to the maximum amount remaining in the pool.",
-      "You can also expend 5 Hit Points from the pool of healing power to remove the Poisoned condition from the creature; those points don't also restore Hit Points to the creature."
+      "You can also expend 5 Hit Points from the pool of healing power to remove the <link:Poisoned>Poisoned</link> condition from the creature; those points don't also restore Hit Points to the creature."
     ],
     isTracked: true
   },
   [CLASS_FEATURE.PALADINS_SMITE]: {
     description: [
-      "You always have the Divine Smite spell prepared.",
+      "You always have the <spell:Divine Smite>Divine Smite</spell> spell prepared.",
       "In addition, you can cast it without expending a spell slot, but you must finish a <link:long-rest>Long Rest</link> before you can cast it in this way again."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.PALADIN_SUBCLASS]: {
     description: [
@@ -235,56 +235,56 @@ export const paladinFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "A Paladin who has broken a vow typically seeks absolution, spending an all-night vigil as a sign of penitence or undertaking a fast. After a rite of forgiveness, the Paladin starts fresh.",
       "If your Paladin unrepentantly violates their oath, talk to your DM. Your Paladin should probably take a more appropriate subclass or even abandon the class and adopt another one."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.FAITHFUL_STEED]: {
     description: [
-      "You can call on the aid of an otherworldly steed. You always have the Find Steed spell prepared.",
+      "You can call on the aid of an otherworldly steed. You always have the <spell:Find Steed>Find Steed</spell> spell prepared.",
       "You can also cast the spell once without expending a spell slot, and you regain the ability to do so when you finish a <link:long-rest>Long Rest</link>."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.AURA_OF_PROTECTION]: {
     description: [
-      "You radiate a protective, unseeable aura in a 10-foot Emanation that originates from you. The aura is inactive while you have the Incapacitated condition.",
+      "You radiate a protective, unseeable aura in a 10-foot <link:Emanation>Emanation</link> that originates from you. The aura is inactive while you have the <link:Incapacitated>Incapacitated</link> condition.",
       "You and your allies in the aura gain a bonus to saving throws equal to your Charisma modifier, minimum bonus of +1.",
       "If another Paladin is present, a creature can benefit from only one Aura of Protection at a time; the creature chooses which aura while in them."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.ABJURE_FOES]: {
     description: [
       "As a Magic action, you can expend one use of this class's Channel Divinity to overwhelm foes with awe.",
       "As you present your Holy Symbol or weapon, you can target a number of creatures equal to your Charisma modifier, minimum of one creature, that you can see within 60 feet of yourself.",
-      "Each target must succeed on a Wisdom saving throw or have the Frightened condition for 1 minute or until it takes any damage.",
-      "While Frightened in this way, a target can do only one of the following on its turns: move, take an action, or take a Bonus Action."
+      "Each target must succeed on a Wisdom saving throw or have the <link:Frightened>Frightened</link> condition for 1 minute or until it takes any damage.",
+      "While <link:Frightened>Frightened</link> in this way, a target can do only one of the following on its turns: move, take an action, or take a Bonus Action."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.AURA_OF_COURAGE]: {
     description: [
-      "You and your allies have Immunity to the Frightened condition while in your Aura of Protection.",
-      "If a Frightened ally enters the aura, that condition has no effect on that ally while there."
+      "You and your allies have Immunity to the <link:Frightened>Frightened</link> condition while in your Aura of Protection.",
+      "If a <link:Frightened>Frightened</link> ally enters the aura, that condition has no effect on that ally while there."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.RADIANT_STRIKES]: {
     description: [
       "Your strikes now carry supernatural power.",
       "When you hit a target with an attack roll using a Melee weapon or an Unarmed Strike, the target takes an extra 1d8 Radiant damage."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.RESTORING_TOUCH]: {
     description: [
-      "When you use Lay On Hands on a creature, you can also remove one or more of the following conditions from the creature: Blinded, Charmed, Deafened, Frightened, Paralyzed, or Stunned.",
+      "When you use Lay On Hands on a creature, you can also remove one or more of the following conditions from the creature: <link:Blinded>Blinded</link>, <link:Charmed>Charmed</link>, <link:Deafened>Deafened</link>, <link:Frightened>Frightened</link>, <link:Paralyzed>Paralyzed</link>, or <link:Stunned>Stunned</link>.",
       "You must expend 5 Hit Points from the healing pool of Lay On Hands for each of these conditions you remove; those points don't also restore Hit Points to the creature."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.AURA_EXPANSION]: {
-    description: ["Your Aura of Protection is now a 30-foot Emanation."],
-    isTracked: false
+    description: ["Your Aura of Protection is now a 30-foot <link:Emanation>Emanation</link>."],
+    isTracked: true
   }
 };
 

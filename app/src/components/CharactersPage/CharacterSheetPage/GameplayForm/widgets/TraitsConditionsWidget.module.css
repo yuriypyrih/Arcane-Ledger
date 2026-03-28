@@ -50,6 +50,21 @@
   width: 100%;
 }
 
+.button:disabled {
+  cursor: not-allowed;
+}
+
+.buttonDisabled {
+  background: rgba(108, 128, 145, 0.14);
+  color: rgba(53, 66, 74, 0.82);
+  opacity: 0.68;
+}
+
+.buttonDisabled .buttonText small,
+.buttonDisabled .duration {
+  color: rgba(84, 101, 111, 0.85);
+}
+
 .buttonText {
   display: grid;
   gap: 0.08rem;
@@ -173,6 +188,12 @@
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
+}
+
+.exhaustionActionRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
 }
 
 .removeButton {

@@ -1,5 +1,6 @@
 import {
   ACTION_TYPE,
+  DURATION,
   DAMAGE_TYPE,
   DICE,
   ENTRY_CATEGORIES,
@@ -17,7 +18,7 @@ export const arcaneEye: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 hour",
+  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "You create an invisible, magical eye within range that hovers in the air for the duration. You mentally receive visual information from the eye, which has normal vision and Darkvision out to 30 feet. The eye can look in every direction.",
     "As an action, you can move the eye up to 30 feet in any direction. There is no limit to how far away from you the eye can move, but it can't enter another plane of existence. A solid barrier blocks the eye's movement, but the eye can pass through an opening as small as 1 inch in diameter."
@@ -35,7 +36,7 @@ export const auraOfLife: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self (30-foot radius)",
   components: [SPELL_COMPONENT.V],
-  duration: "Concentration, up to 10 minutes",
+  duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "Life-preserving energy radiates from you in an aura with a 30-foot radius. Until the spell ends, the aura moves with you, centered on you. Each non-hostile creature in the aura, including you, has Resistance to Necrotic damage, and its Hit Point maximum can't be reduced. In addition, a non-hostile, living creature regains 1 Hit Point when it starts its turn in the aura with 0 Hit Points."
   ],
@@ -52,7 +53,7 @@ export const auraOfPurity: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self (30-foot radius)",
   components: [SPELL_COMPONENT.V],
-  duration: "Concentration, up to 10 minutes",
+  duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "Purifying energy radiates from you in an aura with a 30-foot radius. Until the spell ends, the aura moves with you, centered on you. Each non-hostile creature in the aura, including you, can't become diseased, has Resistance to Poison damage, and has Advantage on saving throws against effects that cause any of the following conditions: Blinded, Charmed, Deafened, Frightened, Paralyzed, Poisoned, and Stunned."
   ],
@@ -69,7 +70,7 @@ export const banishment: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You attempt to send one creature that you can see within range to another place of existence. The target must succeed on a Charisma saving throw or be banished.",
     "If the target is native to the plane of existence you're on, you banish the target to a harmless demiplane. While there, the target is Incapacitated. The target remains there until the spell ends, at which point the target reappears in the space it left or in the nearest unoccupied space if that space is occupied.",
@@ -95,7 +96,7 @@ export const blight: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "Necromantic energy washes over a creature of your choice that you can see within range, draining moisture and vitality from it. The target must make a Constitution saving throw. The target takes 8d8 Necrotic damage on a failed save, or half as much damage on a successful one. This spell has no effect on Undead or Constructs.",
     "If you target a plant creature or a magical plant, it makes the saving throw with Disadvantage, and the spell deals maximum damage to it. If you target a nonmagical plant that isn't a creature, such as a tree or shrub, it doesn't make a saving throw; it simply withers and dies.",
@@ -128,7 +129,7 @@ export const charmMonster: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "1 hour",
+  duration: ["1 hour"],
   description: [
     "You attempt to charm a creature you can see within range. It must make a Wisdom saving throw, and it does so with Advantage if you or your companions are fighting it. If it fails the saving throw, it is Charmed by you until the spell ends or until you or your companions do anything harmful to it. The Charmed creature is friendly to you. When the spell ends, the creature knows it was Charmed by you.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, you can target one additional creature for each slot level above 4th. The creatures must be within 30 feet of each other when you target them."
@@ -152,7 +153,7 @@ export const compulsion: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "Creatures of your choice that you can see within range and that can hear you must make a Wisdom saving throw. A target automatically succeeds on this saving throw if it can't be Charmed. On a failed save, a target is affected by this spell. Until the spell ends, you can use a Bonus Action on each of your turns to designate a direction that is horizontal to you. Each affected target must use as much of its movement as possible to move in that direction on its next turn. It can take its action before it moves. After moving in this way, it can make another Wisdom saving throw to try to end the effect.",
     "A target isn't compelled to move into an obviously deadly hazard, such as a fire pit, but it will provoke Opportunity Attacks to move in the designated direction."
@@ -170,7 +171,7 @@ export const confusion: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "This spell assaults and twists creatures' minds, spawning delusions and provoking uncontrolled actions. Each creature in a 10-foot-radius sphere centered on a point you choose within range must succeed on a Wisdom saving throw when you cast this spell or be affected by it.",
     "An affected target can't take Reactions and must roll a d10 at the start of each of its turns to determine its behavior for that turn.",
@@ -199,7 +200,7 @@ export const conjureBarlgura: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Up to 10 minutes",
+  duration: ["Up to 10 minutes"],
   description: [
     "You summon a barlgura that appears in an unoccupied space you can see within range. The barlgura disappears when it drops to 0 Hit Points or when the spell ends.",
     "The barlgura is hostile to all non-demons. Roll Initiative for the barlgura, which has its own turns. At the start of its turn, it moves toward and attacks the nearest non-demon it can perceive. If two or more creatures are equally near, it picks one at random. If it cannot see any potential enemies, the barlgura moves in a random direction in search of foes.",
@@ -218,7 +219,7 @@ export const conjureKnowbot: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "10 minutes",
+  duration: ["10 minutes"],
   description: [
     "You touch a single computerized device or computer system to conjure a knowbot, a partially sentient piece of software imprinted with vestiges of your own skills and computer abilities. For the duration of the spell, you can use a Bonus Action to have the knowbot execute a computer-related task that would normally require an action. The knowbot makes Intelligence ability checks using your ability score and proficiency bonuses including your proficiency with hacking tools, if applicable.",
     "You have a limited telepathic bond with the knowbot, out to a range of 500 feet from the device or system where the knowbot was conjured. If you move beyond this range, the knowbot disappears in 2d4 rounds, as if the duration of the spell had expired. Moving within range again immediately reestablishes the bond.",
@@ -238,7 +239,7 @@ export const conjureMinorElementals: SpellEntry = {
   castingTime: [ACTION_TYPE.MINUTE],
   range: "90 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Concentration, up to 1 hour",
+  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "You summon elementals that appear in unoccupied spaces that you can see within range. You choose one of the following options for what appears:",
     "One elemental of Challenge Rating 2 or lower.",
@@ -262,7 +263,7 @@ export const conjureShadowDemon: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 hour",
+  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "You summon a shadow demon that appears in an unoccupied space you can see within range. The shadow demon disappears when it drops to 0 Hit Points or when the spell ends.",
     "Roll Initiative for the shadow demon, which has its own turns. You can issue orders to the shadow demon, and it obeys you as long as it can attack a creature on each of its turns and does not start its turn in an area of bright light. If either of these conditions is not met, the shadow demon immediately makes a Charisma check contested by your Charisma check. If you fail the check, the spell no longer requires Concentration and the demon is no longer under your control. The demon automatically succeeds on the check if it is more than 100 feet away from you.",
@@ -281,7 +282,7 @@ export const conjureWoodlandBeings: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 hour",
+  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "You summon Fey creatures that appear in unoccupied spaces that you can see within range. Choose one of the following options for what appears:",
     "One Fey creature of Challenge Rating 2 or lower.",
@@ -305,7 +306,7 @@ export const controlWater: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "300 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 10 minutes",
+  duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "Until the spell ends, you control any freestanding water inside an area you choose that is a cube up to 100 feet on a side. You can choose from any of the following effects when you cast this spell. As an action on your turn, you can repeat the same effect or choose a different one.",
     "<strong>Flood.</strong> You cause the water level of all standing water in the area to rise by as much as 20 feet. If the area includes a shore, the flooding water spills over onto dry land. If you choose an area in a large body of water, you instead create a 20-foot-tall wave that travels from one side of the area to the other and then crashes down. Any Huge or smaller vehicles in the wave's path are carried with it to the other side. Any Huge or smaller vehicles struck by the wave have a 25 percent chance of capsizing. The water level remains elevated until the spell ends or you choose a different effect. If this effect produced a wave, the wave repeats at the start of your next turn while the flood effect lasts.",
@@ -328,7 +329,7 @@ export const deathWard: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "8 hours",
+  duration: ["8 hours"],
   description: [
     "You touch a creature and grant it a measure of protection from death. The first time the target would drop to 0 Hit Points as a result of taking damage, the target instead drops to 1 Hit Point, and the spell ends. If the spell is still in effect when the target is subjected to an effect that would kill it instantaneously without dealing damage, that effect is instead negated against the target, and the spell ends."
   ],
@@ -345,7 +346,7 @@ export const dimensionDoor: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "500 feet",
   components: [SPELL_COMPONENT.V],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     'You teleport yourself from your current location to any other spot within range. You arrive at exactly the spot desired. It can be a place you can see, one you can visualize, or one you can describe by stating distance and direction, such as "200 feet straight downward" or "upward to the northwest at a 45-degree angle, 300 feet."',
     "You can bring along objects as long as their weight doesn't exceed what you can carry. You can also bring one willing creature of your size or smaller who is carrying gear up to its carrying capacity. The creature must be within 5 feet of you when you cast this spell.",
@@ -369,7 +370,7 @@ export const divination: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "Your magic and an offering put you in contact with a god or a god's servants. You ask a single question concerning a specific goal, event, or activity to occur within 7 days. The DM offers a truthful reply. The reply might be a short phrase, a cryptic rhyme, or an omen.",
     "The spell doesn't take into account any possible circumstances that might change the outcome, such as the casting of additional spells or the loss or gain of a companion.",
@@ -388,7 +389,7 @@ export const dominateBeast: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You attempt to beguile a Beast that you can see within range. It must succeed on a Wisdom saving throw or be Charmed by you for the duration. If you or creatures that are friendly to you are fighting it, it has Advantage on the saving throw.",
     'While the Beast is Charmed, you have a telepathic link with it as long as the two of you are on the same plane of existence. You can use this telepathic link to issue commands to the creature while you are conscious, no action required, which it does its best to obey. You can specify a simple and general course of action, such as "Attack that creature," "Run over there," or "Fetch that object." If the creature completes the order and doesn\'t receive further direction from you, it defends and preserves itself to the best of its ability.',
@@ -409,7 +410,7 @@ export const egoWhip: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You lash the mind of one creature you can see within range, filling it with despair. The target must succeed on an Intelligence saving throw or suffer Disadvantage on attack rolls, ability checks, and saving throws, and it can't cast spells. At the end of each of its turns, the target can make another Intelligence saving throw. On a success, the spell ends on the target."
   ],
@@ -431,7 +432,7 @@ export const elementalBane: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "Choose one creature you can see within range, and choose one of the following damage types: Acid, Cold, Fire, Lightning, or Thunder. The target must succeed on a Constitution saving throw or be affected by the spell for its duration. The first time each turn the affected target takes damage of the chosen type, the target takes an extra 2d6 damage of that type. Moreover, the target loses any Resistance to that damage type until the spell ends.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, you can target one additional creature for each slot level above 4th. The creatures must be within 30 feet of each other when you target them."
@@ -454,7 +455,7 @@ export const evardsBlackTentacles: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "Squirming, ebony tentacles fill a 20-foot square on ground that you can see within range. For the duration, these tentacles turn the ground in the area into difficult terrain.",
     "When a creature enters the affected area for the first time on a turn or starts its turn there, the creature must succeed on a Dexterity saving throw or take 3d6 Bludgeoning damage and be Restrained by the tentacles until the spell ends. A creature that starts its turn in the area and is already Restrained by the tentacles takes 3d6 Bludgeoning damage.",
@@ -477,7 +478,7 @@ export const fabricate: SpellEntry = {
   castingTime: [ACTION_TYPE.TEN_MINUTES],
   range: "120 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "You convert raw materials into products of the same material. For example, you can fabricate a wooden bridge from a clump of trees, a rope from a patch of hemp, and clothes from flax or wool.",
     "Choose raw materials that you can see within range. You can fabricate a Large or smaller object, contained within a 10-foot cube, or eight connected 5-foot cubes, given a sufficient quantity of raw material. If you are working with metal, stone, or another mineral substance, however, the fabricated object can be no larger than Medium, contained within a single 5-foot cube. The quality of objects made by the spell is commensurate with the quality of the raw materials.",
@@ -496,7 +497,7 @@ export const findGreaterSteed: SpellEntry = {
   castingTime: [ACTION_TYPE.TEN_MINUTES],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "You summon a spirit that assumes the form of a loyal, majestic mount. Appearing in an unoccupied space within range, the spirit takes on a form you choose: a griffon, a pegasus, a peryton, a dire wolf, a rhinoceros, or a saber-toothed tiger. The creature has the statistics provided in the Monster Manual for the chosen form, though it is a Celestial, a Fey, or a Fiend, your choice, instead of its normal creature type. Additionally, if it has an Intelligence score of 5 or lower, its Intelligence becomes 6, and it gains the ability to understand one language of your choice that you speak.",
     "You control the mount in combat. While the mount is within 1 mile of you, you can communicate with it telepathically. While mounted on it, you can make any spell you cast that targets only you also target the mount. The mount disappears temporarily when it drops to 0 Hit Points or when you dismiss it as an action. Casting this spell again re-summons the bonded mount, with all its Hit Points restored and any conditions removed. You can't have more than one mount bonded by this spell or Find Steed at the same time. As an action, you can release a mount from its bond, causing it to disappear permanently. Whenever the mount disappears, it leaves behind any objects it was wearing or carrying."
@@ -514,7 +515,7 @@ export const fireShield: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "10 minutes",
+  duration: ["10 minutes"],
   description: [
     "Thin and wispy flames wreathe your body for the duration, shedding bright light in a 10-foot radius and dim light for an additional 10 feet. You can end the spell early by using an action to dismiss it.",
     "The flames provide you with a warm shield or a chill shield, as you choose. The warm shield grants you Resistance to Cold damage, and the chill shield grants you Resistance to Fire damage.",
@@ -533,7 +534,7 @@ export const freedomOfMovement: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "1 hour",
+  duration: ["1 hour"],
   description: [
     "You touch a willing creature. For the duration, the target's movement is unaffected by difficult terrain, and spells and other magical effects can neither reduce the target's Speed nor cause the target to be Paralyzed or Restrained.",
     "The target can also spend 5 feet of movement to automatically escape from nonmagical restraints, such as manacles or a creature that has it Grappled. Finally, being underwater imposes no penalties on the target's movement or attacks."
@@ -557,7 +558,7 @@ export const galdersSpeedyCourier: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "10 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "10 minutes",
+  duration: ["10 minutes"],
   description: [
     "You summon a Small air elemental to a spot within range. The air elemental is formless, nearly transparent, immune to all damage, and cannot interact with other creatures or objects. It carries an open, empty chest whose interior dimensions are 3 feet on each side. While the spell lasts, you can deposit as many items inside the chest as will fit. You can then name a living creature you have met and seen at least once before, or any creature for which you possess a body part, lock of hair, clipping from a nail, or similar portion of the creature's body.",
     "As soon as the lid of the chest is closed, the elemental and the chest disappear, then reappear adjacent to the target creature. If the target creature is on another plane, or if it is proofed against magical detection or location, the contents of the chest reappear on the ground at your feet.",
@@ -577,7 +578,7 @@ export const gateSeal: SpellEntry = {
   castingTime: [ACTION_TYPE.MINUTE],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "24 hours",
+  duration: ["24 hours"],
   description: [
     "You fortify the fabric of the planes within a 30-foot cube you can see within range. Within that area, portals close and can't be opened for the duration. Spells and other effects that allow planar travel or open portals, such as Gate or Plane Shift, fail if used to enter or leave the area. The cube is stationary.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 6th level or higher, the spell lasts until dispelled."
@@ -595,7 +596,7 @@ export const giantInsect: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Concentration, up to 10 minutes",
+  duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "You transform up to ten centipedes, three spiders, five wasps, or one scorpion within range into giant versions of their natural forms for the duration. A centipede becomes a giant centipede, a spider becomes a giant spider, a wasp becomes a giant wasp, and a scorpion becomes a giant scorpion.",
     "Each creature obeys your verbal commands, and in combat, they act on your turn each round. The DM has the statistics for these creatures and resolves their actions and movement.",
@@ -615,7 +616,7 @@ export const graspingVine: SpellEntry = {
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You conjure a vine that sprouts from the ground in an unoccupied space of your choice that you can see within range. When you cast this spell, you can direct the vine to lash out at a creature within 30 feet of it that you can see. That creature must succeed on a Dexterity saving throw or be pulled 20 feet directly toward the vine.",
     "Until the spell ends, you can direct the vine to lash out at the same creature or another one as a Bonus Action on each of your turns."
@@ -633,7 +634,7 @@ export const gravitySinkhole: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "A 20-foot-radius sphere of crushing force forms at a point you can see within range and tugs at the creatures there. Each creature in the sphere must make a Constitution saving throw. On a failed save, the creature takes 5d10 Force damage, and is pulled in a straight line toward the center of the sphere, ending in an unoccupied space as close to the center as possible, even if that space is in the air. On a successful save, the creature takes half as much damage and isn't pulled.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by 1d10 for each slot level above 4th."
@@ -657,7 +658,7 @@ export const greaterInvisibility: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You or a creature you touch becomes Invisible until the spell ends. Anything the target is wearing or carrying is Invisible as long as it is on the target's person."
   ],
@@ -674,7 +675,7 @@ export const guardianOfFaith: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V],
-  duration: "8 hours",
+  duration: ["8 hours"],
   description: [
     "A Large spectral guardian appears and hovers for the duration in an unoccupied space of your choice that you can see within range. The guardian occupies that space and is indistinct except for a gleaming sword and shield emblazoned with the symbol of your deity.",
     "Any creature hostile to you that moves to a space within 10 feet of the guardian for the first time on a turn must succeed on a Dexterity saving throw. The creature takes 20 Radiant damage on a failed save, or half as much damage on a successful one. The guardian vanishes when it has dealt a total of 60 damage."
@@ -692,7 +693,7 @@ export const guardianOfNature: SpellEntry = {
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "A nature spirit answers your call and transforms you into a powerful guardian. The transformation lasts until the spell ends. You choose one of the following forms to assume: Primal Beast or Great Tree.",
     "<strong>Primal Beast.</strong> Bestial fur covers your body, your facial features become feral, and you gain the following benefits:",
@@ -719,7 +720,7 @@ export const hallucinatoryTerrain: SpellEntry = {
   castingTime: [ACTION_TYPE.TEN_MINUTES],
   range: "300 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "24 hours",
+  duration: ["24 hours"],
   description: [
     "You make natural terrain in a 150-foot cube in range look, sound, and smell like some other sort of natural terrain. Thus, open fields or a road can be made to resemble a swamp, hill, crevasse, or some other difficult or impassable terrain. A pond can be made to seem like a grassy meadow, a precipice like a gentle slope, or a rock-strewn gully like a wide and smooth road. Manufactured structures, equipment, and creatures within the area aren't changed in appearance.",
     "The tactile characteristics of the terrain are unchanged, so creatures entering the area are likely to see through the illusion. If the difference isn't obvious by touch, a creature carefully examining the illusion can attempt an Intelligence (Investigation) check against your spell save DC to disbelieve it. A creature who discerns the illusion for what it is sees it as a vague image superimposed on the terrain."
@@ -742,7 +743,7 @@ export const iceStorm: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "300 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "A hail of rock-hard ice pounds to the ground in a 20-foot-radius, 40-foot-high cylinder centered on a point within range. Each creature in the cylinder must make a Dexterity saving throw. A creature takes 2d8 Bludgeoning damage and 4d6 Cold damage on a failed save, or half as much damage on a successful one.",
     "Hailstones turn the storm's area of effect into difficult terrain until the end of your next turn.",
@@ -768,7 +769,7 @@ export const leomundsSecretChest: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "You hide a chest, and all its contents, on the Ethereal Plane. You must touch the chest and the miniature replica that serves as a material component for the spell. The chest can contain up to 12 cubic feet of nonliving material, 3 feet by 2 feet by 2 feet.",
     "While the chest remains on the Ethereal Plane, you can use an action and touch the replica to recall the chest. It appears in an unoccupied space on the ground within 5 feet of you. You can send the chest back to the Ethereal Plane by using an action and touching both the chest and the replica.",
@@ -787,7 +788,7 @@ export const locateCreature: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 hour",
+  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "Describe or name a creature that is familiar to you. You sense the direction to the creature's location, as long as that creature is within 1,000 feet of you. If the creature is moving, you know the direction of its movement.",
     "The spell can locate a specific creature known to you, or the nearest creature of a specific kind, such as a Human or a unicorn, so long as you have seen such a creature up close, within 30 feet, at least once. If the creature you described or named is in a different form, such as being under the effects of a Polymorph spell, this spell doesn't locate the creature.",
@@ -813,7 +814,7 @@ export const mordenkainensFaithfulHound: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "8 hours",
+  duration: ["8 hours"],
   description: [
     "You conjure a phantom watchdog in an unoccupied space that you can see within range, where it remains for the duration, until you dismiss it as an action, or until you move more than 100 feet away from it.",
     "The hound is Invisible to all creatures except you and can't be harmed. When a Small or larger creature comes within 30 feet of it without first speaking the password that you specify when you cast this spell, the hound starts barking loudly. The hound sees Invisible creatures and can see into the Ethereal Plane. It ignores illusions.",
@@ -837,7 +838,7 @@ export const mordenkainensPrivateSanctum: SpellEntry = {
   castingTime: [ACTION_TYPE.TEN_MINUTES],
   range: "120 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "24 hours",
+  duration: ["24 hours"],
   description: [
     "You make an area within range magically secure. The area is a cube that can be as small as 5 feet to as large as 100 feet on each side. The spell lasts for the duration or until you use an action to dismiss it.",
     "When you cast the spell, you decide what sort of security the spell provides, choosing any or all of the following properties:",
@@ -863,7 +864,7 @@ export const otilukesResilientSphere: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "A sphere of shimmering force encloses a creature or object of Large size or smaller within range. An unwilling creature must make a Dexterity saving throw. On a failed save, the creature is enclosed for the duration.",
     "Nothing, not physical objects, energy, or other spell effects, can pass through the barrier, in or out, though a creature in the sphere can breathe there. The sphere is immune to all damage, and a creature or object inside can't be damaged by attacks or effects originating from outside, nor can a creature inside the sphere damage anything outside it.",
@@ -883,7 +884,7 @@ export const phantasmalKiller: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You tap into the nightmares of a creature you can see within range and create an illusory manifestation of its deepest fears, visible only to that creature.",
     "The target must make a Wisdom saving throw. On a failed save, the target becomes Frightened for the duration. At the end of each of the target's turns before the spell ends, the target must succeed on a Wisdom saving throw or take 4d10 Psychic damage. On a successful save, the spell ends.",
@@ -907,7 +908,7 @@ export const polymorph: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 hour",
+  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "This spell transforms a creature that you can see within range into a new form. An unwilling creature must make a Wisdom saving throw to avoid the effect. A Shapechanger automatically succeeds on this saving throw.",
     "The transformation lasts for the duration, or until the target drops to 0 Hit Points or dies. The new form can be any Beast whose Challenge Rating is equal to or less than the target's, or the target's level, if it doesn't have a Challenge Rating. The target's game statistics, including mental ability scores, are replaced by the statistics of the chosen Beast. It retains its alignment and personality.",
@@ -933,7 +934,7 @@ export const raulothimsPsychicLance: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
   components: [SPELL_COMPONENT.V],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "You unleash a shimmering lance of Psychic power from your forehead at a creature that you can see within range. Alternatively, you can utter a creature's name. If the named target is within range, it becomes the spell's target even if you can't see it. If the named target isn't within range, the lance dissipates without effect.",
     "The target must make an Intelligence saving throw. On a failed save, the target takes 7d6 Psychic damage and is Incapacitated until the start of your next turn. On a successful save, the creature takes half as much damage and isn't Incapacitated.",
@@ -965,7 +966,7 @@ export const shadowOfMoil: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "Flame-like shadows wreathe your body until the spell ends, causing you to become heavily obscured to others. The shadows turn dim light within 10 feet of you into darkness, and bright light in the same area into dim light.",
     "Until the spell ends, you have Resistance to Radiant damage. In addition, whenever a creature within 10 feet of you hits you with an attack, the shadows lash out at that creature, dealing it 2d8 Necrotic damage."
@@ -986,7 +987,7 @@ export const sickeningRadiance: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Concentration, up to 10 minutes",
+  duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "Dim, greenish light spreads within a 30-foot-radius sphere centered on a point you choose within range. The light spreads around corners, and it lasts until the spell ends.",
     "When a creature moves into the spell's area for the first time on a turn or starts its turn there, that creature must succeed on a Constitution saving throw or take 4d10 Radiant damage, and it suffers one level of Exhaustion and emits a dim, greenish light in a 5-foot radius. This light makes it impossible for the creature to benefit from being Invisible. The light and any levels of Exhaustion caused by this spell go away when the spell ends."
@@ -1009,7 +1010,7 @@ export const spiritOfDeath: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 hour",
+  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "You call forth a spirit that embodies death. The spirit manifests in an unoccupied space you can see within range and uses the Reaper Spirit stat block. The spirit disappears when it is reduced to 0 Hit Points or when the spell ends.",
     "The spirit is an ally to you and your companions. In combat, the spirit shares your Initiative count and takes its turn immediately after yours. It obeys your verbal commands, no action required by you. If you don't issue the spirit any commands, it takes the Dodge action and uses its movement to avoid danger.",
@@ -1042,7 +1043,7 @@ export const staggeringSmite: SpellEntry = {
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "The next time you hit a creature with a melee weapon attack during this spell's duration, your weapon pierces both body and mind, and the attack deals an extra 4d6 Psychic damage to the target. The target must make a Wisdom saving throw. On a failed save, it has Disadvantage on attack rolls and ability checks, and can't take Reactions, until the end of its next turn."
   ],
@@ -1064,7 +1065,7 @@ export const stoneShape: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "You touch a stone object of Medium size or smaller or a section of stone no more than 5 feet in any dimension and form it into any shape that suits your purpose. So, for example, you could shape a large rock into a weapon, idol, or coffer, or make a small passage through a wall, as long as the wall is less than 5 feet thick. You could also shape a stone door or its frame to seal the door shut. The object you create can have up to two hinges and a latch, but finer mechanical detail isn't possible."
   ],
@@ -1086,7 +1087,7 @@ export const stoneskin: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 hour",
+  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "This spell turns the flesh of a willing creature you touch as hard as stone. Until the spell ends, the target has Resistance to nonmagical Bludgeoning, Piercing, and Slashing damage."
   ],
@@ -1109,7 +1110,7 @@ export const stormSphere: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "150 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "A 20-foot-radius sphere of whirling air springs into existence centered on a point you choose within range. The sphere remains for the spell's duration. Each creature in the sphere when it appears or that ends its turn there must succeed on a Strength saving throw or take 2d6 Bludgeoning damage. The sphere's space is difficult terrain.",
     "Until the spell ends, you can use a Bonus Action on each of your turns to cause a bolt of Lightning to leap from the center of the sphere toward one creature you choose within 60 feet of the center. Make a ranged spell attack. You have Advantage on the attack roll if the target is in the sphere. On a hit, the target takes 4d6 Lightning damage.",
@@ -1129,7 +1130,7 @@ export const summonAberration: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 hour",
+  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "You call forth an aberrant spirit. It manifests in an unoccupied space that you can see within range. This corporeal form uses the Aberrant Spirit stat block. When you cast the spell, choose Beholderkin, Slaad, or Star Spawn. The creature resembles an aberration of that kind, which determines certain traits in its stat block. The creature disappears when it drops to 0 Hit Points or when the spell ends.",
     "The creature is an ally to you and your companions. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands, no action required by you. If you don't issue any, it takes the Dodge action and uses its move to avoid danger.",
@@ -1148,7 +1149,7 @@ export const summonConstruct: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 hour",
+  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "You call forth the spirit of a Construct. It manifests in an unoccupied space that you can see within range. This corporeal form uses the Construct Spirit stat block. When you cast the spell, choose a material: Clay, Metal, or Stone. The creature resembles a golem or a modron, your choice, made of the chosen material, which determines certain traits in its stat block. The creature disappears when it drops to 0 Hit Points or when the spell ends.",
     "The creature is an ally to you and your companions. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands, no action required by you. If you don't issue any, it takes the Dodge action and uses its move to avoid danger.",
@@ -1167,7 +1168,7 @@ export const summonElemental: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 hour",
+  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "You call forth an elemental spirit. It manifests in an unoccupied space that you can see within range. This corporeal form uses the Elemental Spirit stat block. When you cast the spell, choose an element: Air, Earth, Fire, or Water. The creature resembles a bipedal form wreathed in the chosen element, which determines certain traits in its stat block. The creature disappears when it drops to 0 Hit Points or when the spell ends.",
     "The creature is an ally to you and your companions. In combat, the creature shares your Initiative count, but it takes its turn immediately after yours. It obeys your verbal commands, no action required by you. If you don't issue any, it takes the Dodge action and uses its move to avoid danger.",
@@ -1186,7 +1187,7 @@ export const summonGreaterDemon: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 hour",
+  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "You utter foul words, summoning one demon from the chaos of the Abyss. You choose the demon's type, which must be one of Challenge Rating 5 or lower, such as a shadow demon or a barlgura. The demon appears in an unoccupied space you can see within range, and the demon disappears when it drops to 0 Hit Points or when the spell ends.",
     "Roll Initiative for the demon, which has its own turns. When you summon it and on each of your turns thereafter, you can issue a verbal command to it, requiring no action on your part, telling it what it must do on its next turn. If you issue no command, it spends its turn attacking any creature within reach that has attacked it.",
@@ -1207,7 +1208,7 @@ export const synchronicity: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Concentration, up to 1 hour",
+  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "The creature you touch feels reality subtly shifted to its favor while this spell is in effect. The target isn't inconvenienced by mundane delays of any sort. Traffic lights are always green, there's always a waiting elevator, and a taxi is always around the corner. The target can run at full Speed through dense crowds, and Opportunity Attacks provoked by the target's movement are made with Disadvantage.",
     "Synchronicity grants Advantage to Dexterity (Stealth) checks, since the target always finds a handy piece of cover available. Additionally, the target has Advantage on all ability checks made to drive a vehicle.",
@@ -1226,7 +1227,7 @@ export const systemBackdoor: SpellEntry = {
   castingTime: [ACTION_TYPE.MINUTE],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 hour",
+  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "This spell allows you to bypass system security in order to create a secure login on a foreign system. The login you create allows you administrator-level privileges in any computer system not enhanced through technomagic. The login defeats any technomagic spells of 3rd level or lower.",
     "Once the duration of the spell expires, the login and all privileges are wiped from the system. System logs still show the activity of the user, but the user identification cannot be found or traced.",
@@ -1245,7 +1246,7 @@ export const vitriolicSphere: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "150 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "You point at a place within range, and a glowing 1-foot ball of emerald acid streaks there and explodes in a 20-foot radius. Each creature in that area must make a Dexterity saving throw. On a failed save, a creature takes 10d4 Acid damage and 5d4 Acid damage at the end of its next turn. On a successful save, a creature takes half the initial damage and no damage at the end of its next turn.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the initial damage increases by 2d4 for each slot level above 4th."
@@ -1263,7 +1264,7 @@ export const wallOfFire: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You create a wall of fire on a solid surface within range. You can make the wall up to 60 feet long, 20 feet high, and 1 foot thick, or a ringed wall up to 20 feet in diameter, 20 feet high, and 1 foot thick. The wall is opaque and lasts for the duration.",
     "When the wall appears, each creature within its area must make a Dexterity saving throw. On a failed save, a creature takes 5d8 Fire damage, or half as much damage on a successful save.",
@@ -1289,7 +1290,7 @@ export const waterySphere: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You conjure up a sphere of water with a 5-foot radius on a point you can see within range. The sphere can hover in the air, but no more than 10 feet off the ground. The sphere remains for the spell's duration.",
     "Any creature in the sphere's space must make a Strength saving throw. On a successful save, a creature is ejected from that space to the nearest unoccupied space outside it. A Huge or larger creature succeeds on the saving throw automatically. On a failed save, a creature is Restrained by the sphere and is engulfed by the water. At the end of each of its turns, a Restrained target can repeat the saving throw.",

@@ -11,6 +11,8 @@ export {
   formatSpellCastingTime,
   formatSpellCastingTimeSummary,
   formatSpellComponents,
+  formatSpellDuration,
+  formatSpellDurationPart,
   formatSpellLevelLabel,
   formatSpellSubtitle,
   formatWeaponCost,

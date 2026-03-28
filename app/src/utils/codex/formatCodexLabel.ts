@@ -4,11 +4,13 @@ import {
   DAMAGE_TYPE,
   DICE,
   DICE_TYPES,
+  DURATION,
   SPELL_COMPONENT,
   TOOL_PROFICIENCIES,
   WEAPON_PROPERTY,
   type SpellEntry,
   type SpellCastingTimePart,
+  type SpellDurationPart,
   type EquipmentCost,
   type DivinityEntry,
   type DivinityValue,
@@ -121,8 +123,8 @@ export function formatSpellCastingTime(castingTime: SpellCastingTimePart[]): str
 }
 
 export function formatSpellCastingTimeSummary(castingTime: SpellCastingTimePart[]): string {
-  const summaryParts = castingTime.filter((part): part is Exclude<SpellCastingTimePart, string> =>
-    typeof part !== "string"
+  const summaryParts = castingTime.filter(
+    (part): part is Exclude<SpellCastingTimePart, string> => typeof part !== "string"
   );
 
   if (summaryParts.length === 0) {
@@ -130,6 +132,21 @@ export function formatSpellCastingTimeSummary(castingTime: SpellCastingTimePart[
   }
 
   return summaryParts.map((part) => formatSpellCastingTimePart(part)).join(" / ");
+}
+
+export function formatSpellDurationPart(part: SpellDurationPart): string {
+  if (part === DURATION.CONCENTRATION) {
+    return "Concentration";
+  }
+
+  return part.trim();
+}
+
+export function formatSpellDuration(duration: SpellDurationPart[]): string {
+  return duration
+    .map((part) => formatSpellDurationPart(part))
+    .filter((part) => part.length > 0)
+    .join(", ");
 }
 
 function formatGroupedWeaponDamageAmount(amount: WeaponDamageAmount, count: number): string {
@@ -157,7 +174,9 @@ function getWeaponDamageTypeKey(damageType: WeaponDamageType): string {
 }
 
 function formatWeaponDamageType(damageType: WeaponDamageType): string {
-  return normalizeWeaponDamageTypes(damageType).map((entry) => formatCodexLabel(entry)).join("/");
+  return normalizeWeaponDamageTypes(damageType)
+    .map((entry) => formatCodexLabel(entry))
+    .join("/");
 }
 
 function collapseWeaponDamage(damage: WeaponDamage) {

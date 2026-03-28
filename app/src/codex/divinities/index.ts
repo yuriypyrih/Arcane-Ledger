@@ -72,7 +72,21 @@ export const turnUndead: DivinityEntry = {
   ]
 };
 
-export const divinityEntries: DivinityEntry[] = [divineSpark, turnUndead];
+export const divineSense: DivinityEntry = {
+  id: "divinity-divine-sense",
+  name: "Divine Sense",
+  sourceFeature: CLASS_FEATURE.CHANNEL_DIVINITY,
+  castingTime: [ACTION_TYPE.BONUS_ACTION],
+  range: "Self (60-foot radius)",
+  duration: "10 minutes",
+  description: [
+    "You open your awareness to detect Celestials, Fiends, and Undead.",
+    "For the duration or until you have the Incapacitated condition, you know the location of any creature of those types within 60 feet of yourself, and you know its creature type.",
+    "Within the same radius, you also detect the presence of any place or object that has been consecrated or desecrated, as with the Hallow spell."
+  ]
+};
+
+export const divinityEntries: DivinityEntry[] = [divineSpark, turnUndead, divineSense];
 
 const divinityEntriesById = new Map(divinityEntries.map((entry) => [entry.id, entry]));
 const divinityEntriesByName = new Map(

@@ -7,6 +7,7 @@ import type {
   Character,
   CharacterFeatEntry,
   CharacterStatusEntry,
+  DruidicWarriorChoice,
   SkillName
 } from "../../types";
 import {
@@ -51,6 +52,12 @@ const blessedWarriorCantripOptions = getSpellEntriesForSpellListClass(
 ).filter((spell) => spell.spellLevel === 0);
 const blessedWarriorCantripOptionsById = new Map(
   blessedWarriorCantripOptions.map((spell) => [spell.id, spell] as const)
+);
+const druidicWarriorCantripOptions = getSpellEntriesForSpellListClass(
+  SPELL_LIST_CLASS.DRUID
+).filter((spell) => spell.spellLevel === 0);
+const druidicWarriorCantripOptionsById = new Map(
+  druidicWarriorCantripOptions.map((spell) => [spell.id, spell] as const)
 );
 const epicBoonAbilityIncreaseFeatOptions = new Map<FEATS, AbilityKey[]>([
   [FEATS.BOON_OF_COMBAT_PROWESS, allEpicBoonAbilityOptions],
@@ -147,13 +154,23 @@ export const featDefinitions: FeatDefinition[] = [
     trackingState: "tracked"
   },
   {
+    feat: FEATS.DRUIDIC_WARRIOR,
+    label: "Druidic Warrior",
+    category: FEAT_CATEGORY.GENERAL,
+    prerequisite: "Ranger Fighting Style Feature",
+    description: [
+      "You learn two Druid cantrips of your choice. <spell:Guidance>Guidance</spell> and <spell:Starry Wisp>Starry Wisp</spell> are recommended.",
+      "The chosen cantrips count as Ranger spells for you, and <link:WIS>Wisdom</link> is your spellcasting ability for them.",
+      "Whenever you gain a Ranger level, you can replace one of these cantrips with another Druid cantrip."
+    ],
+    trackingState: "tracked"
+  },
+  {
     feat: FEATS.ARCHERY,
     label: "Archery",
     category: FEAT_CATEGORY.FIGHTING_STYLE,
     prerequisite: "Fighting Style Feature",
-    description: [
-      "You gain a +2 bonus to attack rolls you make with Ranged weapons."
-    ],
+    description: ["You gain a +2 bonus to attack rolls you make with Ranged weapons."],
     trackingState: "not-tracked"
   },
   {
@@ -275,7 +292,9 @@ export const featDefinitions: FeatDefinition[] = [
   }
 ];
 
-const featDefinitionsByFeat = new Map(featDefinitions.map((definition) => [definition.feat, definition]));
+const featDefinitionsByFeat = new Map(
+  featDefinitions.map((definition) => [definition.feat, definition])
+);
 
 function isAbilityKey(value: unknown): value is AbilityKey {
   return typeof value === "string" && abilityKeySet.has(value as AbilityKey);
@@ -407,7 +426,9 @@ function normalizeBlessedWarriorChoice(value: unknown): BlessedWarriorChoice | u
     return undefined;
   }
 
-  const cantripIds = [...new Set(record.cantripIds.filter((id): id is string => typeof id === "string"))];
+  const cantripIds = [
+    ...new Set(record.cantripIds.filter((id): id is string => typeof id === "string"))
+  ];
 
   if (cantripIds.length !== 2) {
     return undefined;
@@ -422,8 +443,38 @@ function normalizeBlessedWarriorChoice(value: unknown): BlessedWarriorChoice | u
   };
 }
 
+function normalizeDruidicWarriorChoice(value: unknown): DruidicWarriorChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const record = value as Partial<DruidicWarriorChoice>;
+
+  if (!Array.isArray(record.cantripIds) || record.cantripIds.length !== 2) {
+    return undefined;
+  }
+
+  const cantripIds = [
+    ...new Set(record.cantripIds.filter((id): id is string => typeof id === "string"))
+  ];
+
+  if (cantripIds.length !== 2) {
+    return undefined;
+  }
+
+  if (!cantripIds.every((id) => druidicWarriorCantripOptionsById.has(id))) {
+    return undefined;
+  }
+
+  return {
+    cantripIds: cantripIds as DruidicWarriorChoice["cantripIds"]
+  };
+}
+
 function isSkilledTool(value: unknown): value is TOOL_PROFICIENCY {
-  return typeof value === "string" && Object.values(TOOL_PROFICIENCY).includes(value as TOOL_PROFICIENCY);
+  return (
+    typeof value === "string" && Object.values(TOOL_PROFICIENCY).includes(value as TOOL_PROFICIENCY)
+  );
 }
 
 function normalizeSkilledSelection(value: unknown): SkilledFeatSelection | null {
@@ -482,7 +533,10 @@ function createFeatEntryId(feat: FEATS): string {
   return `${feat}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
 
-export function normalizeCharacterFeats(value: unknown, currentLevel: number): CharacterFeatEntry[] {
+export function normalizeCharacterFeats(
+  value: unknown,
+  currentLevel: number
+): CharacterFeatEntry[] {
   if (!Array.isArray(value)) {
     return [];
   }
@@ -511,6 +565,10 @@ export function normalizeCharacterFeats(value: unknown, currentLevel: number): C
       feat === FEATS.BLESSED_WARRIOR
         ? normalizeBlessedWarriorChoice(record.blessedWarrior)
         : undefined;
+    const druidicWarrior =
+      feat === FEATS.DRUIDIC_WARRIOR
+        ? normalizeDruidicWarriorChoice(record.druidicWarrior)
+        : undefined;
     const epicBoonAbilityChoice = epicBoonAbilityIncreaseFeatOptions.has(feat)
       ? normalizeEpicBoonAbilityChoice(feat, record.epicBoonAbilityChoice)
       : undefined;
@@ -524,9 +582,13 @@ export function normalizeCharacterFeats(value: unknown, currentLevel: number): C
             : `${createFeatEntryId(feat)}-${index}`,
         feat,
         takenAtLevel: clampFeatLevel(record.takenAtLevel, currentLevel),
-        source: normalizeCharacterFeatSource(record.source, clampFeatLevel(record.takenAtLevel, currentLevel)),
+        source: normalizeCharacterFeatSource(
+          record.source,
+          clampFeatLevel(record.takenAtLevel, currentLevel)
+        ),
         abilityScoreImprovement,
         blessedWarrior,
+        druidicWarrior,
         boonOfIrresistibleOffense,
         epicBoonAbilityChoice,
         skilled
@@ -542,6 +604,7 @@ export function createCharacterFeatEntry(
     source?: CharacterFeatSource;
     abilityScoreImprovement?: AbilityScoreImprovementChoice;
     blessedWarrior?: BlessedWarriorChoice;
+    druidicWarrior?: DruidicWarriorChoice;
     boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
     epicBoonAbilityChoice?: EpicBoonAbilityChoice;
     skilled?: SkilledChoice;
@@ -555,10 +618,9 @@ export function createCharacterFeatEntry(
     abilityScoreImprovement:
       feat === FEATS.ABILITY_SCORE_IMPROVEMENT ? options?.abilityScoreImprovement : undefined,
     blessedWarrior: feat === FEATS.BLESSED_WARRIOR ? options?.blessedWarrior : undefined,
+    druidicWarrior: feat === FEATS.DRUIDIC_WARRIOR ? options?.druidicWarrior : undefined,
     boonOfIrresistibleOffense:
-      feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE
-        ? options?.boonOfIrresistibleOffense
-        : undefined,
+      feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE ? options?.boonOfIrresistibleOffense : undefined,
     epicBoonAbilityChoice: epicBoonAbilityIncreaseFeatOptions.has(feat)
       ? options?.epicBoonAbilityChoice
       : undefined,
@@ -640,6 +702,18 @@ export function getBlessedWarriorChoiceSummary(choice?: BlessedWarriorChoice): s
   return cantripNames.length > 0 ? cantripNames.join(", ") : null;
 }
 
+export function getDruidicWarriorChoiceSummary(choice?: DruidicWarriorChoice): string | null {
+  if (!choice) {
+    return null;
+  }
+
+  const cantripNames = choice.cantripIds
+    .map((cantripId) => druidicWarriorCantripOptionsById.get(cantripId)?.name)
+    .filter((name): name is string => Boolean(name));
+
+  return cantripNames.length > 0 ? cantripNames.join(", ") : null;
+}
+
 export function getCharacterFeatSummary(entry: CharacterFeatEntry): string | null {
   if (entry.feat === FEATS.ABILITY_SCORE_IMPROVEMENT) {
     return getAbilityScoreImprovementSummary(entry.abilityScoreImprovement);
@@ -647,6 +721,10 @@ export function getCharacterFeatSummary(entry: CharacterFeatEntry): string | nul
 
   if (entry.feat === FEATS.BLESSED_WARRIOR) {
     return getBlessedWarriorChoiceSummary(entry.blessedWarrior);
+  }
+
+  if (entry.feat === FEATS.DRUIDIC_WARRIOR) {
+    return getDruidicWarriorChoiceSummary(entry.druidicWarrior);
   }
 
   if (entry.feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE) {
@@ -683,6 +761,10 @@ export function getBlessedWarriorCantripOptions(): SpellEntry[] {
   return blessedWarriorCantripOptions;
 }
 
+export function getDruidicWarriorCantripOptions(): SpellEntry[] {
+  return druidicWarriorCantripOptions;
+}
+
 export function getFeatGrantedCantripEntriesForCharacter(
   character: Pick<Character, "feats" | "level">
 ): SpellEntry[] {
@@ -690,17 +772,26 @@ export function getFeatGrantedCantripEntriesForCharacter(
   const featCantrips = new Map<string, SpellEntry>();
 
   feats.forEach((entry) => {
-    if (entry.feat !== FEATS.BLESSED_WARRIOR || !entry.blessedWarrior) {
+    if (entry.feat === FEATS.BLESSED_WARRIOR && entry.blessedWarrior) {
+      entry.blessedWarrior.cantripIds.forEach((cantripId) => {
+        const cantrip = blessedWarriorCantripOptionsById.get(cantripId);
+
+        if (cantrip) {
+          featCantrips.set(cantrip.id, cantrip);
+        }
+      });
       return;
     }
 
-    entry.blessedWarrior.cantripIds.forEach((cantripId) => {
-      const cantrip = blessedWarriorCantripOptionsById.get(cantripId);
+    if (entry.feat === FEATS.DRUIDIC_WARRIOR && entry.druidicWarrior) {
+      entry.druidicWarrior.cantripIds.forEach((cantripId) => {
+        const cantrip = druidicWarriorCantripOptionsById.get(cantripId);
 
-      if (cantrip) {
-        featCantrips.set(cantrip.id, cantrip);
-      }
-    });
+        if (cantrip) {
+          featCantrips.set(cantrip.id, cantrip);
+        }
+      });
+    }
   });
 
   return [...featCantrips.values()].sort((left, right) => left.name.localeCompare(right.name));

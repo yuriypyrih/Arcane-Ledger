@@ -1,7 +1,6 @@
 import clsx from "clsx";
+import { getRollStateDefaultLabel, type RollStateTone } from "./rollState";
 import styles from "./RollStatePill.module.css";
-
-export type RollStateTone = "advantage" | "disadvantage";
 
 type RollStatePillProps = {
   tone: RollStateTone;
@@ -10,19 +9,18 @@ type RollStatePillProps = {
   detailText?: string;
 };
 
-const defaultLabels: Record<RollStateTone, string> = {
-  advantage: "Advantage",
-  disadvantage: "Disadvantage"
-};
-
 function RollStatePill({ tone, label, className, detailText }: RollStatePillProps) {
-  const labelText = label ?? defaultLabels[tone];
+  const labelText = label ?? getRollStateDefaultLabel(tone);
 
   return (
     <span
       className={clsx(
         styles.pill,
-        tone === "advantage" ? styles.advantage : styles.disadvantage,
+        tone === "advantage"
+          ? styles.advantage
+          : tone === "disadvantage"
+            ? styles.disadvantage
+            : styles.neutralized,
         className
       )}
     >

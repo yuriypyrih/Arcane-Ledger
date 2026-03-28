@@ -1,22 +1,22 @@
 import clsx from "clsx";
 import { X } from "lucide-react";
 import { useState } from "react";
-import { CONDITION_NAME } from "../../../../../types";
 import type { FeatureActionCard } from "../../../../../pages/CharactersPage/classFeatures";
+import type { LayOnHandsCondition } from "../../../../../pages/CharactersPage/classFeatures/paladin";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import styles from "./LayOnHandsModal.module.css";
 
 type LayOnHandsTarget = "self" | "other";
-type LayOnHandsCondition = "none" | CONDITION_NAME.POISONED;
 
 type LayOnHandsModalProps = {
   action: FeatureActionCard;
+  conditionOptions: LayOnHandsCondition[];
   remainingPool: number;
   onSubmit: (options: {
     target: LayOnHandsTarget;
     poolSpendAmount: number;
-    condition: LayOnHandsCondition;
+    conditions: LayOnHandsCondition[];
   }) => void;
   onClose: () => void;
 };
@@ -33,20 +33,27 @@ function normalizePoolSpendAmount(value: string): number {
 
 function LayOnHandsModal({
   action,
+  conditionOptions,
   remainingPool,
   onSubmit,
   onClose
 }: LayOnHandsModalProps) {
   const [target, setTarget] = useState<LayOnHandsTarget>("self");
   const [poolSpendInput, setPoolSpendInput] = useState("0");
-  const [condition, setCondition] = useState<LayOnHandsCondition>("none");
+  const [selectedConditions, setSelectedConditions] = useState<LayOnHandsCondition[]>([]);
   const poolSpendAmount = normalizePoolSpendAmount(poolSpendInput);
-  const conditionCost = condition === CONDITION_NAME.POISONED ? 5 : 0;
-  const totalCost = poolSpendAmount;
-  const healingAmount = Math.max(0, poolSpendAmount - conditionCost);
-  const notEnoughCapacity =
-    totalCost > remainingPool || (conditionCost > 0 && totalCost < conditionCost);
+  const conditionCost = selectedConditions.length * 5;
+  const totalCost = poolSpendAmount + conditionCost;
+  const notEnoughCapacity = totalCost > remainingPool;
   const canSubmit = totalCost > 0 && !notEnoughCapacity;
+
+  function toggleCondition(condition: LayOnHandsCondition) {
+    setSelectedConditions((currentConditions) =>
+      currentConditions.includes(condition)
+        ? currentConditions.filter((entry) => entry !== condition)
+        : [...currentConditions, condition]
+    );
+  }
 
   return (
     <div className={sheetStyles.spellManagementBackdrop} role="presentation" onClick={onClose}>
@@ -96,7 +103,7 @@ function LayOnHandsModal({
           </div>
 
           <label className={styles.field}>
-            <span className={styles.fieldLabel}>Pool Spend</span>
+            <span className={styles.fieldLabel}>Heal Amount</span>
             <input
               className={styles.fieldControl}
               type="number"
@@ -107,22 +114,37 @@ function LayOnHandsModal({
             />
           </label>
 
-          <label className={styles.field}>
-            <span className={styles.fieldLabel}>Condition to Cure</span>
-            <select
-              className={styles.fieldControl}
-              value={condition}
-              onChange={(event) => setCondition(event.target.value as LayOnHandsCondition)}
-            >
-              <option value="none">None</option>
-              <option value={CONDITION_NAME.POISONED}>Poisoned</option>
-            </select>
-          </label>
+          <div className={styles.field}>
+            <span className={styles.fieldLabel}>Conditions to Cure</span>
+            <div className={styles.conditionList}>
+              {conditionOptions.map((condition) => {
+                const isSelected = selectedConditions.includes(condition);
+
+                return (
+                  <label
+                    key={condition}
+                    className={clsx(
+                      styles.conditionOption,
+                      isSelected && styles.conditionOptionSelected
+                    )}
+                  >
+                    <input
+                      type="checkbox"
+                      className={styles.conditionCheckbox}
+                      checked={isSelected}
+                      onChange={() => toggleCondition(condition)}
+                    />
+                    <span>{condition}</span>
+                  </label>
+                );
+              })}
+            </div>
+          </div>
 
           <div className={styles.capacityBlock}>
             <span>Pool of Healing</span>
             <strong>
-              {remainingPool} remaining | {healingAmount} heal | {totalCost} total spend
+              {remainingPool} remaining | {totalCost} total spend
             </strong>
           </div>
         </div>
@@ -141,7 +163,7 @@ function LayOnHandsModal({
                 onSubmit({
                   target,
                   poolSpendAmount,
-                  condition
+                  conditions: selectedConditions
                 })
               }
             >

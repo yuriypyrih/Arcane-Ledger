@@ -1,3 +1,4 @@
+import { WEAPON_COMBAT_TYPE } from "../../../codex/entries";
 import type { ActionCategory, EconomyType } from "../actionEconomy";
 import type {
   AbilityKey,
@@ -16,6 +17,8 @@ export type FeatureActionCard = {
   name: string;
   summary: string;
   detail: string;
+  valueLabel?: string;
+  breakdown?: string;
   economyType: EconomyType;
   actionCategory: ActionCategory;
   economyMultiCount?: number;
@@ -27,6 +30,7 @@ export type FeatureActionCard = {
   usesTotal?: number;
   usesSupplementaryLabel?: string;
   isActive?: boolean;
+  consumesEconomyOnActivate?: boolean;
   disabled?: boolean;
   disabledReason?: string;
 };
@@ -65,15 +69,18 @@ export type WeaponFeatureContext = {
   name: string;
   ability: AbilityKey;
   attackKind: "weapon" | "unarmed";
+  combatType?: WEAPON_COMBAT_TYPE | null;
 };
 
 export type FeatureIndicator = {
   label: string;
   tone: "advantage" | "disadvantage";
-  source: string;
+  source: string | string[];
 };
 
 export type CoreStatIndicatorMap = Partial<Record<keyof CoreStats, FeatureIndicator[]>>;
+
+export type AbilityCheckIndicatorMap = Partial<Record<AbilityKey, FeatureIndicator[]>>;
 
 export type SavingThrowIndicatorMap = Partial<Record<AbilityKey, FeatureIndicator[]>>;
 
@@ -113,6 +120,7 @@ export type SpeedFeatureContext = {
 export type FeatureSpeedBonus = {
   label: string;
   value: number;
+  setTotal?: number | null;
 };
 
 export type FeatureAbilityScoreBonus = {

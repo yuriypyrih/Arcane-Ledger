@@ -8,6 +8,7 @@ import {
   formatCodexList,
   formatSpellCastingTime,
   formatSpellComponents,
+  formatSpellDuration,
   formatSpellSubtitle,
   formatWeaponDamage,
   renderCodexInlineText
@@ -98,11 +99,11 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
               </button>
               <div className={sheetStyles.spellDrawerDetailCard}>
                 <span>Duration</span>
-                <strong>{spell.duration}</strong>
+                <strong>{formatSpellDuration(spell.duration)}</strong>
               </div>
               <div className={sheetStyles.spellDrawerDetailCard}>
                 <span>Spell Lists</span>
-                <strong>{formatCodexList(spell.spellLists)}</strong>
+                <strong>{formatCodexList(spell.spellLists) || "None"}</strong>
               </div>
               <div className={sheetStyles.spellDrawerDetailCard}>
                 <span>Damage</span>

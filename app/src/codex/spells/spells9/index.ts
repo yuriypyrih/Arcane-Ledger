@@ -1,5 +1,6 @@
 import {
   ACTION_TYPE,
+  DURATION,
   DAMAGE_TYPE,
   DICE,
   ENTRY_CATEGORIES,
@@ -17,7 +18,7 @@ export const astralProjection: SpellEntry = {
   castingTime: [ACTION_TYPE.HOUR],
   range: "10 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Special",
+  duration: ["Special"],
   description: [
     "You and up to eight willing creatures within range project your astral bodies into the Astral Plane. The spell fails and the casting is wasted if you are already on that plane. The material body you leave behind is Unconscious and in a state of suspended animation. It doesn't need food or air and doesn't age.",
     "Your astral body resembles your mortal form in almost every way, replicating your game statistics and possessions. The principal difference is the addition of a silvery cord that extends from between your shoulder blades and trails behind you, fading to Invisibility after 1 foot. This cord is your tether to your material body. As long as the tether remains intact, you can find your way home. If the cord is cut, something that can happen only when an effect specifically states that it does, your soul and body are separated, killing you instantly.",
@@ -37,7 +38,7 @@ export const bladeOfDisaster: SpellEntry = {
   castingTime: [ACTION_TYPE.BONUS_ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You create a blade-shaped planar rift about 3 feet long in an unoccupied space you can see within range. The blade lasts for the duration. When you cast this spell, you can make up to two melee spell attacks with the blade, each one against a creature, loose object, or structure within 5 feet of the blade.",
     "On a hit, the target takes 4d12 Force damage. This attack scores a critical hit if the number on the d20 is 18 or higher. On a critical hit, the blade deals an extra 8d12 Force damage, for a total of 12d12 Force damage.",
@@ -62,7 +63,7 @@ export const foresight: SpellEntry = {
   castingTime: [ACTION_TYPE.MINUTE],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "8 hours",
+  duration: ["8 hours"],
   description: [
     "You touch a willing creature and bestow a limited ability to see into the immediate future. For the duration, the target can't be Surprised and has advantage on attack rolls, Ability Checks, and saving throws.",
     "Additionally, other creatures have disadvantage on attack rolls against the target for the duration. This spell immediately ends if you cast it again before its duration ends."
@@ -85,7 +86,7 @@ export const gate: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You conjure a portal linking an unoccupied space you can see within range to a precise location on a different plane of existence. The portal is a circular opening, which you can make 5 to 20 feet in diameter. You can orient the portal in any direction you choose. The portal lasts for the duration.",
     "The portal has a front and a back on each plane where it appears. Travel through the portal is possible only by moving through its front. Anything that does so is instantly transported to the other plane, appearing in the unoccupied space nearest to the portal.",
@@ -110,7 +111,7 @@ export const imprisonment: SpellEntry = {
   castingTime: [ACTION_TYPE.MINUTE],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Until dispelled",
+  duration: ["Until dispelled"],
   description: [
     "You create a magical restraint to hold a creature that you can see within range. The target must succeed on a Wisdom saving throw or be bound by the spell. If it succeeds, it is immune to this spell if you cast it again. While affected by this spell, the creature doesn't need to breathe, eat, or drink, and it doesn't age. Divination spells can't locate or perceive the target.",
     "During the casting of the spell, in any of its versions, you can specify a condition that will cause the spell to end and release the target. The condition can be as specific or as elaborate as you choose, but the DM must agree that the condition is reasonable and has a likelihood of coming to pass. The conditions can be based on a creature's name, identity, or deity but otherwise must be based on observable actions or qualities and not based on intangibles such as level, class, or Hit Points.",
@@ -142,7 +143,7 @@ export const invulnerability: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 10 minutes",
+  duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: ["You are immune to all damage until the spell ends."],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
@@ -157,7 +158,7 @@ export const massHeal: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "A flood of healing energy flows from you into injured creatures around you. You restore up to 700 Hit Points, divided as you choose among any number of creatures that you can see within range.",
     "Creatures healed by this spell are also cured of all diseases and any effect making them Blinded or Deafened. This spell has no effect on Undead or Constructs."
@@ -175,7 +176,7 @@ export const massPolymorph: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 hour",
+  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "You transform up to ten creatures of your choice that you can see within range. An unwilling target must succeed on a Wisdom saving throw to resist the transformation. An unwilling shapechanger automatically succeeds on the save.",
     "Each target assumes a Beast form of your choice, and you can choose the same form or different ones for each target. The new form can be any Beast you have seen whose Challenge Rating is equal to or less than the target's, or half the target's level if the target doesn't have a Challenge Rating. The target's game statistics, including mental ability scores, are replaced by the statistics of the chosen Beast, but the target retains its Hit Points, alignment, and personality.",
@@ -196,7 +197,7 @@ export const meteorSwarm: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "1 mile",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "Blazing orbs of fire plummet to the ground at four different points you can see within range. Each creature in a 40-foot-radius sphere centered on each point you choose must make a Dexterity saving throw. The sphere spreads around corners.",
     "A creature takes 20d6 Fire damage and 20d6 Bludgeoning damage on a failed save, or half as much damage on a successful one. A creature in the area of more than one fiery burst is affected only once.",
@@ -215,7 +216,7 @@ export const powerWordHeal: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "A wave of healing energy washes over a creature you touch. The target regains all its Hit Points. If the creature is Charmed, Frightened, Paralyzed, or Stunned, the condition ends.",
     "If the creature is Prone, it can use its reaction to stand up. This spell has no effect on Undead or Constructs."
@@ -233,7 +234,7 @@ export const powerWordKill: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "You utter a word of power that can compel one creature you can see within range to die instantly. If the creature you chose has 100 Hit Points or fewer, it dies. Otherwise, the spell has no effect."
   ],
@@ -255,7 +256,7 @@ export const prismaticWall: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "60 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "10 minutes",
+  duration: ["10 minutes"],
   description: [
     "A shimmering, multicolored plane of light forms a vertical opaque wall, up to 90 feet long, 30 feet high, and 1 inch thick, centered on a point you can see within range. Alternatively, you can shape the wall into a sphere up to 30 feet in diameter centered on a point you choose within range. The wall remains in place for the duration. If you position the wall so that it passes through a space occupied by a creature, the spell fails, and your action and the spell slot are wasted.",
     "The wall sheds bright light out to a range of 100 feet and dim light for an additional 100 feet. You and creatures you designate at the time you cast the spell can pass through and remain near the wall without harm. If another creature that can see the wall moves to within 20 feet of it or starts its turn there, the creature must succeed on a Constitution saving throw or become Blinded for 1 minute.",
@@ -288,7 +289,7 @@ export const psychicScream: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
   components: [SPELL_COMPONENT.S],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "You unleash the power of your mind to blast the intellect of up to ten creatures of your choice that you can see within range. Creatures that have an Intelligence score of 2 or lower are unaffected.",
     "Each target must make an Intelligence saving throw. On a failed save, a target takes 14d6 Psychic damage and is Stunned. On a successful save, a target takes half as much damage and isn't Stunned. If a target is killed by this damage, its head explodes, assuming it has one.",
@@ -327,7 +328,7 @@ export const ravenousVoid: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "1,000 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You create a 20-foot-radius sphere of destructive gravitation force centered on a point you can see within range. For the spell's duration, the sphere and any space within 100 feet of it are difficult terrain, and nonmagical objects fully inside the sphere are destroyed if they aren't being worn or carried.",
     "When the sphere appears and at the start of each of your turns until the spell ends, unsecured objects within 100 feet of the sphere are pulled toward the sphere's center, ending in an unoccupied space as close to the center as possible.",
@@ -353,7 +354,7 @@ export const shapechange: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 hour",
+  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "You assume the form of a different creature for the duration. The new form can be any creature with a Challenge Rating equal to your level or lower. The creature can't be a Construct or an Undead, and you must have seen the sort of creature at least once. You transform into an average example of that creature, one without any class levels or the Spellcasting trait.",
     "Your game statistics are replaced by the statistics of the chosen creature, though you retain your alignment and Intelligence, Wisdom, and Charisma scores. You also retain all of your skill and saving throw proficiencies, in addition to gaining those of the creature. If the creature has the same proficiency as you, and the bonus listed in its statistics is higher than yours, use the creature's bonus in place of yours. You can't use any legendary actions or lair actions of the new form.",
@@ -375,7 +376,7 @@ export const stormOfVengeance: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Sight",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "A churning storm cloud forms, centered on a point you can see and spreading to a radius of 360 feet. Lightning flashes in the area, thunder booms, and strong winds roar. Each creature under the cloud, no more than 5,000 feet beneath the cloud, when it appears must make a Constitution saving throw. On a failed save, a creature takes 2d6 Thunder damage and becomes Deafened for 5 minutes.",
     "Each round you maintain concentration on this spell, the storm produces different effects on your turn:",
@@ -403,7 +404,7 @@ export const timeRavage: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "90 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "You target a creature you can see within range, putting its physical form through the devastation of rapid aging. The target must make a Constitution saving throw, taking 10d12 Necrotic damage on a failed save, or half as much damage on a successful one.",
     "If the save fails, the target also ages to the point where it has only 30 days left before it dies of old age. In this aged state, the target has disadvantage on attack rolls, Ability Checks, and saving throws, and its walking speed is halved. Only the wish spell or the greater restoration spell cast with a 9th-level spell slot can end these effects and restore the target to its previous age."
@@ -432,7 +433,7 @@ export const timeStop: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "You briefly stop the flow of time for everyone but yourself. No time passes for other creatures, while you take 1d4 + 1 turns in a row, during which you can use actions and move as normal.",
     "This spell ends if one of the actions you use during this period, or any effects that you create during this period, affects a creature other than you or an object being worn or carried by someone other than you. In addition, the spell ends if you move to a place more than 1,000 feet from the location where you cast it."
@@ -450,7 +451,7 @@ export const truePolymorph: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Concentration, up to 1 hour",
+  duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "Choose one creature or nonmagical object that you can see within range. You transform the creature into a different creature, the creature into a nonmagical object, or the object into a creature. The object must be neither worn nor carried by another creature. The transformation lasts for the duration, or until the target drops to 0 Hit Points or dies. If you concentrate on this spell for the full duration, the transformation becomes permanent.",
     "Shapechangers aren't affected by this spell. An unwilling creature can make a Wisdom saving throw, and if it succeeds, it isn't affected by this spell.",
@@ -478,7 +479,7 @@ export const trueResurrection: SpellEntry = {
   castingTime: [ACTION_TYPE.HOUR],
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "You touch a creature that has been dead for no longer than 200 years and that died for any reason except old age. If the creature's soul is free and willing, the creature is restored to life with all its Hit Points.",
     "This spell closes all wounds, neutralizes any poison, cures all diseases, and lifts any curses affecting the creature when it died. The spell replaces damaged or missing organs or limbs. If the creature was Undead, it is restored to its non-Undead form.",
@@ -497,7 +498,7 @@ export const weird: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "120 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
-  duration: "Concentration, up to 1 minute",
+  duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "Drawing on the deepest fears of a group of creatures, you create illusory creatures in their minds, visible only to them.",
     "Each creature in a 30-foot-radius sphere centered on a point of your choice within range must make a Wisdom saving throw. On a failed save, a creature becomes Frightened for the duration.",
@@ -521,7 +522,7 @@ export const wish: SpellEntry = {
   castingTime: [ACTION_TYPE.ACTION],
   range: "Self",
   components: [SPELL_COMPONENT.V],
-  duration: "Instantaneous",
+  duration: ["Instantaneous"],
   description: [
     "Wish is the mightiest spell a mortal creature can cast. By simply speaking aloud, you can alter the very foundations of reality in accord with your desires.",
     "The basic use of this spell is to duplicate any other spell of 8th level or lower. You don't need to meet any requirements in that spell, including costly components. The spell simply takes effect.",

@@ -33,6 +33,7 @@ export enum CONDITION_NAME {
   BLINDED = "Blinded",
   CHARMED = "Charmed",
   DEAFENED = "Deafened",
+  EXHAUSTION = "Exhaustion",
   FRIGHTENED = "Frightened",
   GRAPPLED = "Grappled",
   INCAPACITATED = "Incapacitated",
@@ -58,8 +59,10 @@ export enum STATUS_DURATION_KIND {
 export enum STATUS_DURATION_PRESET {
   INFINITE = "INFINITE",
   CONCENTRATION = "CONCENTRATION",
+  ONE_MINUTE = "ONE_MINUTE",
   TEN_MINUTES = "TEN_MINUTES",
   ONE_HOUR = "ONE_HOUR",
+  TWO_HOURS = "TWO_HOURS",
   EIGHT_HOURS = "EIGHT_HOURS",
   TWELVE_HOURS = "TWELVE_HOURS",
   TWENTY_FOUR_HOURS = "TWENTY_FOUR_HOURS",
@@ -87,12 +90,7 @@ export enum STATUS_DURATION_PRESET {
 
 export type ImmunityValue = DAMAGE_TYPE | CONDITION_NAME;
 
-export type CharacterStatusValue =
-  | SENSE
-  | EFFECT_NAME
-  | CONDITION_NAME
-  | DAMAGE_TYPE
-  | string;
+export type CharacterStatusValue = SENSE | EFFECT_NAME | CONDITION_NAME | DAMAGE_TYPE | string;
 
 export type CharacterStatusDuration =
   | {
@@ -108,11 +106,11 @@ export type CharacterStatusDuration =
     }
   | {
       kind: STATUS_DURATION_KIND.MINUTES;
-      amount: 10;
+      amount: number;
     }
   | {
       kind: STATUS_DURATION_KIND.HOURS;
-      amount: 1 | 8 | 12 | 24;
+      amount: number;
     }
   | {
       kind: STATUS_DURATION_KIND.ROUNDS;
@@ -123,6 +121,9 @@ export type CharacterStatusEntry = {
   id: string;
   group: STATUS_ENTRY_GROUP;
   value: CharacterStatusValue;
+  conditionLevel?: number | null;
+  disabled?: boolean;
+  disabledReason?: string;
   source: string;
   sourceType: STATUS_ENTRY_SOURCE_TYPE;
   duration: CharacterStatusDuration;

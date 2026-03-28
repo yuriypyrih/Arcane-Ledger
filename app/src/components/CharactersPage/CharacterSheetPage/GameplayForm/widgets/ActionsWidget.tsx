@@ -3,18 +3,25 @@ import { useEffect, useMemo, useState } from "react";
 import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
 import CharacterSpellDrawer from "../../SpellCastingForm/CharacterSpellDrawer";
 import type { Character, AbilityKey } from "../../../../../types";
-import { CONDITION_NAME, PROF_LEVEL } from "../../../../../types";
+import { PROF_LEVEL } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { abilityKeys } from "../../../../../pages/CharactersPage/constants";
 import {
   activateFeatureActionForCharacter,
   activateFeatureActionOptionForCharacter,
   applyLayOnHandsForCharacter,
+  consumeFaithfulSteedUseForCharacter,
+  consumePaladinsSmiteUseForCharacter,
+  consumeRangerFavoredEnemyUseForCharacter,
+  consumeRangerTirelessUseForCharacter,
   consumeNonMagicActionForCharacter,
   consumeWeaponAttackActionForCharacter,
   getFeatureActionOptionsForCharacter,
+  getLayOnHandsCurableConditionsForCharacter,
   getPaladinHealingPoolRemainingForCharacter,
+  getSpellEntryForCharacter,
   getSpellcastingStateForCharacter,
+  hasActivePaladinAuraOfProtectionForCharacter,
   markFeatureWeaponBonusUseForCharacter,
   type FeatureActionCard,
   type FeatureActionOptionCard
@@ -30,35 +37,53 @@ import {
   fighterTacticalMindActionKey,
   getFighterSecondWindHealingFormula
 } from "../../../../../pages/CharactersPage/classFeatures/fighter";
-import { paladinLayOnHandsActionKey } from "../../../../../pages/CharactersPage/classFeatures/paladin";
+import {
+  faithfulSteedActionKey,
+  type LayOnHandsCondition,
+  paladinsSmiteActionKey,
+  paladinLayOnHandsActionKey
+} from "../../../../../pages/CharactersPage/classFeatures/paladin";
+import {
+  favoredEnemyActionKey,
+  getRangerTirelessTemporaryHitPointsFormula,
+  tirelessActionKey
+} from "../../../../../pages/CharactersPage/classFeatures/ranger";
+import {
+  getRogueSneakAttackEffectDefinitions,
+  getRogueSneakAttackFormula,
+  rogueSneakAttackActionKey,
+  type RogueSneakAttackEffectKey
+} from "../../../../../pages/CharactersPage/classFeatures/rogue";
 import { getCombatActionsForCharacter } from "../../../../../pages/CharactersPage/combatActions";
 import {
   consumeRoundTrackerResource,
   normalizeRoundTracker
 } from "../../../../../pages/CharactersPage/combat";
-import {
-  getRoundTrackerResourceForEconomyType
-} from "../../../../../pages/CharactersPage/actionEconomy";
+import { getRoundTrackerResourceForEconomyType } from "../../../../../pages/CharactersPage/actionEconomy";
 import { getAbilityScoresForCharacter } from "../../../../../pages/CharactersPage/abilities";
 import {
   getAbilityModifier,
   getProficiencyBonus,
   type WeaponAction
 } from "../../../../../pages/CharactersPage/gameplay";
+import {
+  applySpellConcentrationToStatusEntries,
+  getEffectiveHitPointMaximumForCharacter,
+  reconcileCharacterStatusConsequences
+} from "../../../../../pages/CharactersPage/traits";
 import { rollFormulaWithDice } from "../../../../../utils/dice";
 import {
   createDefaultDeathSaves,
-  normalizeDeathSaves
+  normalizeDeathSaves,
+  normalizeTemporaryHitPoints
 } from "../gameplayStateUtils";
-import {
-  getSpellOutcomeSummaryForCharacter
-} from "../../../../../pages/CharactersPage/spellOutcome";
+import { getSpellOutcomeSummaryForCharacter } from "../../../../../pages/CharactersPage/spellOutcome";
 import { formatFeatureActionOptionValueLabel } from "../../../../../pages/CharactersPage/actionOutcome";
 import {
   getSavingThrowLevelFromEntries,
   getSavingThrowProficiencyForAbilityKey
 } from "../../../../../pages/CharactersPage/proficiency";
-import { ACTION_TYPE, type SpellEntry } from "../../../../../codex/entries";
+import { ACTION_TYPE, getSpellEntryById, type SpellEntry } from "../../../../../codex/entries";
 import { getSpellLevel } from "../../../../../pages/CharactersPage/spellcasting";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import widgetShellStyles from "../GameplayWidgetShared.module.css";
@@ -72,12 +97,12 @@ import DivineInterventionModal from "./DivineInterventionModal";
 import IndomitableModal from "./IndomitableModal";
 import FeatureActionOptionsModal from "./FeatureActionOptionsModal";
 import LayOnHandsModal from "./LayOnHandsModal";
+import SneakAttackModal from "./SneakAttackModal";
 import {
   FeatureActionCardButton,
   FeatureActionOptionButton,
   WeaponActionCard
 } from "./ActionCards";
-
 function getDivineInterventionLevelGroups(spells: SpellEntry[]): Record<number, SpellEntry[]> {
   return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].reduce<Record<number, SpellEntry[]>>((groups, level) => {
     groups[level] = spells
@@ -114,6 +139,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [selectedIndomitableAbility, setSelectedIndomitableAbility] = useState<AbilityKey | null>(
     null
   );
+  const [selectedPaladinsSmiteSpellSlotLevel, setSelectedPaladinsSmiteSpellSlotLevel] = useState(1);
   const [selectedDivineInterventionSpell, setSelectedDivineInterventionSpell] =
     useState<SpellEntry | null>(null);
   const [activeDivineInterventionLevel, setActiveDivineInterventionLevel] = useState(0);
@@ -139,6 +165,19 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const isIndomitableSelected = selectedFeatureAction?.key === fighterIndomitableActionKey;
   const isDivineInterventionSelected = selectedFeatureAction?.key === divineInterventionActionKey;
   const isLayOnHandsSelected = selectedFeatureAction?.key === paladinLayOnHandsActionKey;
+  const isPaladinsSmiteSelected = selectedFeatureAction?.key === paladinsSmiteActionKey;
+  const isFaithfulSteedSelected = selectedFeatureAction?.key === faithfulSteedActionKey;
+  const isFavoredEnemySelected = selectedFeatureAction?.key === favoredEnemyActionKey;
+  const isSneakAttackSelected = selectedFeatureAction?.key === rogueSneakAttackActionKey;
+  const paladinsSmiteSpellEntry = useMemo(() => getSpellEntryById("spell-divine-smite"), []);
+  const faithfulSteedSpellEntry = useMemo(() => getSpellEntryById("spell-find-steed"), []);
+  const favoredEnemySpellEntry = useMemo(() => {
+    const spell = getSpellEntryById("spell-hunters-mark");
+    return spell ? getSpellEntryForCharacter(character, spell) : null;
+  }, [character]);
+  const paladinAuraOfProtectionBonus = hasActivePaladinAuraOfProtectionForCharacter(character)
+    ? Math.max(1, getAbilityModifier(effectiveAbilities.CHA))
+    : 0;
   const indomitableSavingThrowOptions = useMemo(
     () =>
       abilityKeys.map((ability) => {
@@ -150,7 +189,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         );
         const proficiencyContribution =
           getProficiencyBonus(character.level) * getProficiencyMultiplier(savingThrowLevel);
-        const total = abilityModifier + proficiencyContribution;
+        const total = abilityModifier + proficiencyContribution + paladinAuraOfProtectionBonus;
 
         return {
           ability,
@@ -162,7 +201,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           )} Fighter Level`
         };
       }),
-    [character.level, character.savingThrowProficiencies, effectiveAbilities]
+    [
+      character.level,
+      character.savingThrowProficiencies,
+      effectiveAbilities,
+      paladinAuraOfProtectionBonus
+    ]
   );
   const selectedIndomitableSavingThrow =
     selectedIndomitableAbility !== null
@@ -205,7 +249,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       ),
     [character, divineInterventionSpellEntries]
   );
-  const selectedDivineInterventionActionWarning = getRoundTrackerActionWarning(
+  const selectedFeatureActionWarning = getRoundTrackerActionWarning(
     selectedFeatureAction
       ? getRoundTrackerResourceForEconomyType(selectedFeatureAction.economyType)
       : null,
@@ -219,6 +263,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         : null;
   const selectedLayOnHandsRemainingPool = useMemo(
     () => getPaladinHealingPoolRemainingForCharacter(character),
+    [character]
+  );
+  const layOnHandsCurableConditions = useMemo(
+    () => getLayOnHandsCurableConditionsForCharacter(character),
     [character]
   );
   const hasOverlayOpen =
@@ -251,6 +299,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     if (!selectedFeatureActionKey) {
       setSelectedDivineInterventionSpell(null);
       setSelectedIndomitableAbility(null);
+      setSelectedPaladinsSmiteSpellSlotLevel(1);
       return;
     }
 
@@ -259,18 +308,30 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       (selectedFeatureActionOptions.length > 0 ||
         isDivineInterventionSelected ||
         isIndomitableSelected ||
-        isLayOnHandsSelected)
+        isLayOnHandsSelected ||
+        isSneakAttackSelected ||
+        (isPaladinsSmiteSelected && paladinsSmiteSpellEntry) ||
+        (isFavoredEnemySelected && favoredEnemySpellEntry) ||
+        (isFaithfulSteedSelected && faithfulSteedSpellEntry))
     ) {
       return;
     }
 
     setSelectedDivineInterventionSpell(null);
     setSelectedIndomitableAbility(null);
+    setSelectedPaladinsSmiteSpellSlotLevel(1);
     setSelectedFeatureActionKey(null);
   }, [
+    faithfulSteedSpellEntry,
+    favoredEnemySpellEntry,
     isLayOnHandsSelected,
+    isFaithfulSteedSelected,
+    isFavoredEnemySelected,
+    isSneakAttackSelected,
+    isPaladinsSmiteSelected,
     isIndomitableSelected,
     isDivineInterventionSelected,
+    paladinsSmiteSpellEntry,
     selectedFeatureAction,
     selectedFeatureActionKey,
     selectedFeatureActionOptions.length
@@ -313,37 +374,53 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
   }, [isIndomitableSelected]);
 
+  useEffect(() => {
+    if (isPaladinsSmiteSelected) {
+      setSelectedPaladinsSmiteSpellSlotLevel(1);
+    }
+  }, [isPaladinsSmiteSelected]);
+
   function activateFeatureAction(
     actionKey: string,
     economyType: FeatureActionCard["economyType"],
-    actionCategory?: FeatureActionCard["actionCategory"]
+    actionCategory?: FeatureActionCard["actionCategory"],
+    consumesEconomyOnActivate = false
   ) {
     onPersistCharacter((currentCharacter) => {
       const nextCharacter = activateFeatureActionForCharacter(currentCharacter, actionKey);
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(economyType);
+      const characterToUpdate =
+        nextCharacter === currentCharacter && consumesEconomyOnActivate
+          ? currentCharacter
+          : nextCharacter;
 
-      if (nextCharacter === currentCharacter) {
+      if (characterToUpdate === currentCharacter && !consumesEconomyOnActivate) {
         return currentCharacter;
       }
 
       if (economyType === "action" && actionCategory && actionCategory !== "magic") {
-        return consumeNonMagicActionForCharacter(nextCharacter);
+        return consumeNonMagicActionForCharacter(characterToUpdate);
       }
 
       return roundTrackerResource
         ? {
-            ...nextCharacter,
+            ...characterToUpdate,
             roundTracker: consumeRoundTrackerResource(
-              nextCharacter.roundTracker,
+              characterToUpdate.roundTracker,
               roundTrackerResource
             )
           }
-        : nextCharacter;
+        : characterToUpdate;
     });
   }
 
   function handleFeatureActionClick(action: FeatureActionCard) {
     if (action.interaction === "select") {
+      setSelectedFeatureActionKey(action.key);
+      return;
+    }
+
+    if (action.key === rogueSneakAttackActionKey) {
       setSelectedFeatureActionKey(action.key);
       return;
     }
@@ -365,18 +442,19 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           formulaDisplay: healingFormula,
           description: action.detail
         });
+        const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter(nextCharacter);
         const nextCurrentHitPoints = Math.max(
           0,
-          Math.min(nextCharacter.hitPoints, nextCharacter.currentHitPoints + healingResult.total)
+          Math.min(nextEffectiveHitPoints, nextCharacter.currentHitPoints + healingResult.total)
         );
-        const healedCharacter = {
+        const healedCharacter = reconcileCharacterStatusConsequences({
           ...nextCharacter,
           currentHitPoints: nextCurrentHitPoints,
           deathSaves:
             nextCurrentHitPoints > 0
               ? createDefaultDeathSaves()
               : normalizeDeathSaves(nextCharacter.deathSaves)
-        };
+        });
         return roundTrackerResource
           ? {
               ...healedCharacter,
@@ -403,7 +481,55 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return;
     }
 
-    activateFeatureAction(action.key, action.economyType, action.actionCategory);
+    if (action.key === tirelessActionKey) {
+      onPersistCharacter((currentCharacter) => {
+        const nextCharacter = consumeRangerTirelessUseForCharacter(currentCharacter);
+        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+
+        if (nextCharacter === currentCharacter) {
+          return currentCharacter;
+        }
+
+        const temporaryHitPointsFormula =
+          getRangerTirelessTemporaryHitPointsFormula(currentCharacter);
+        const temporaryHitPointsResult = rollFormulaWithDice(temporaryHitPointsFormula, "normal");
+        const grantedTemporaryHitPoints = Math.max(1, temporaryHitPointsResult.total);
+        const nextTemporaryHitPoints = Math.max(
+          normalizeTemporaryHitPoints(nextCharacter.temporaryHitPoints),
+          grantedTemporaryHitPoints
+        );
+
+        openDiceRoller({
+          title: "Tireless",
+          formula: temporaryHitPointsFormula,
+          formulaDisplay: temporaryHitPointsFormula,
+          description: `${action.detail} Minimum 1 Temporary Hit Points.`
+        });
+
+        const updatedCharacter = {
+          ...nextCharacter,
+          temporaryHitPoints: nextTemporaryHitPoints
+        };
+
+        return roundTrackerResource
+          ? {
+              ...updatedCharacter,
+              roundTracker: consumeRoundTrackerResource(
+                updatedCharacter.roundTracker,
+                roundTrackerResource
+              )
+            }
+          : updatedCharacter;
+      });
+      return;
+    }
+
+    activateFeatureAction(
+      action.key,
+      action.economyType,
+      action.actionCategory,
+      action.consumesEconomyOnActivate
+    );
   }
 
   function handleWeaponActionClick(action: WeaponAction) {
@@ -476,14 +602,31 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedFeatureActionKey(null);
   }
 
+  function closeSneakAttackModal() {
+    setSelectedFeatureActionKey(null);
+  }
+
   function closeLayOnHandsModal() {
+    setSelectedFeatureActionKey(null);
+  }
+
+  function closePaladinsSmiteDrawer() {
+    setSelectedPaladinsSmiteSpellSlotLevel(1);
+    setSelectedFeatureActionKey(null);
+  }
+
+  function closeFaithfulSteedDrawer() {
+    setSelectedFeatureActionKey(null);
+  }
+
+  function closeFavoredEnemyDrawer() {
     setSelectedFeatureActionKey(null);
   }
 
   function submitLayOnHands(options: {
     target: "self" | "other";
     poolSpendAmount: number;
-    condition: "none" | CONDITION_NAME.POISONED;
+    conditions: LayOnHandsCondition[];
   }) {
     if (!selectedFeatureAction) {
       return;
@@ -532,6 +675,177 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     closeIndomitableModal();
   }
 
+  function useSneakAttack(effectKeys: RogueSneakAttackEffectKey[]) {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    const sneakAttackFormula = getRogueSneakAttackFormula(character, effectKeys);
+
+    if (!sneakAttackFormula) {
+      return;
+    }
+
+    const selectedEffects = getRogueSneakAttackEffectDefinitions(character).filter((effect) =>
+      effectKeys.includes(effect.key)
+    );
+    const baseDescription = selectedFeatureAction.detail.endsWith(".")
+      ? selectedFeatureAction.detail
+      : `${selectedFeatureAction.detail}.`;
+    const description =
+      selectedEffects.length > 0
+        ? `${baseDescription} Cunning Strike: ${selectedEffects.map((effect) => effect.name).join(", ")}.`
+        : baseDescription;
+
+    onPersistCharacter((currentCharacter) =>
+      activateFeatureActionForCharacter(currentCharacter, selectedFeatureAction.key)
+    );
+
+    openDiceRoller({
+      title: "Sneak Attack",
+      formula: sneakAttackFormula,
+      formulaDisplay: sneakAttackFormula,
+      description
+    });
+
+    closeSneakAttackModal();
+  }
+
+  function usePaladinsSmite() {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    if (spellcastingState.blocked || selectedFeatureActionWarning) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const nextCharacter = consumePaladinsSmiteUseForCharacter(currentCharacter);
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const divineSmiteSpell = paladinsSmiteSpellEntry;
+
+      if (nextCharacter === currentCharacter) {
+        return currentCharacter;
+      }
+
+      const nextCharacterWithConcentration = divineSmiteSpell
+        ? {
+            ...nextCharacter,
+            statusEntries: applySpellConcentrationToStatusEntries(
+              nextCharacter.statusEntries,
+              divineSmiteSpell
+            )
+          }
+        : nextCharacter;
+
+      return roundTrackerResource
+        ? {
+            ...nextCharacterWithConcentration,
+            roundTracker: consumeRoundTrackerResource(
+              nextCharacterWithConcentration.roundTracker,
+              roundTrackerResource
+            )
+          }
+        : nextCharacterWithConcentration;
+    });
+
+    closePaladinsSmiteDrawer();
+  }
+
+  function useFaithfulSteed() {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    if (spellcastingState.blocked || selectedFeatureActionWarning) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const nextCharacter = consumeFaithfulSteedUseForCharacter(currentCharacter);
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const findSteedSpell = faithfulSteedSpellEntry;
+
+      if (nextCharacter === currentCharacter) {
+        return currentCharacter;
+      }
+
+      const nextCharacterWithConcentration = findSteedSpell
+        ? {
+            ...nextCharacter,
+            statusEntries: applySpellConcentrationToStatusEntries(
+              nextCharacter.statusEntries,
+              findSteedSpell
+            )
+          }
+        : nextCharacter;
+
+      return roundTrackerResource
+        ? {
+            ...nextCharacterWithConcentration,
+            roundTracker: consumeRoundTrackerResource(
+              nextCharacterWithConcentration.roundTracker,
+              roundTrackerResource
+            )
+          }
+        : nextCharacterWithConcentration;
+    });
+
+    closeFaithfulSteedDrawer();
+  }
+
+  function useFavoredEnemy() {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    if (spellcastingState.blocked || selectedFeatureActionWarning) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const nextCharacter = consumeRangerFavoredEnemyUseForCharacter(currentCharacter);
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const baseHuntersMarkSpell = getSpellEntryById("spell-hunters-mark");
+      const huntersMarkSpell = baseHuntersMarkSpell
+        ? getSpellEntryForCharacter(currentCharacter, baseHuntersMarkSpell)
+        : null;
+
+      if (nextCharacter === currentCharacter) {
+        return currentCharacter;
+      }
+
+      const nextCharacterWithConcentration = huntersMarkSpell
+        ? {
+            ...nextCharacter,
+            statusEntries: applySpellConcentrationToStatusEntries(
+              nextCharacter.statusEntries,
+              huntersMarkSpell
+            )
+          }
+        : nextCharacter;
+
+      return roundTrackerResource
+        ? {
+            ...nextCharacterWithConcentration,
+            roundTracker: consumeRoundTrackerResource(
+              nextCharacterWithConcentration.roundTracker,
+              roundTrackerResource
+            )
+          }
+        : nextCharacterWithConcentration;
+    });
+
+    closeFavoredEnemyDrawer();
+  }
+
   function closeDivineInterventionModal() {
     setSelectedDivineInterventionSpell(null);
     setSelectedFeatureActionKey(null);
@@ -559,15 +873,23 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         return currentCharacter;
       }
 
+      const nextCharacterWithConcentration = {
+        ...nextCharacter,
+        statusEntries: applySpellConcentrationToStatusEntries(
+          nextCharacter.statusEntries,
+          selectedDivineInterventionSpell
+        )
+      };
+
       return roundTrackerResource
         ? {
-            ...nextCharacter,
+            ...nextCharacterWithConcentration,
             roundTracker: consumeRoundTrackerResource(
-              nextCharacter.roundTracker,
+              nextCharacterWithConcentration.roundTracker,
               roundTrackerResource
             )
           }
-        : nextCharacter;
+        : nextCharacterWithConcentration;
     });
 
     closeDivineInterventionModal();
@@ -626,12 +948,77 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onRoll={rollIndomitableSavingThrow}
           onClose={closeIndomitableModal}
         />
+      ) : selectedFeatureAction && isSneakAttackSelected ? (
+        <SneakAttackModal
+          action={selectedFeatureAction}
+          character={character}
+          onClose={closeSneakAttackModal}
+          onConfirm={useSneakAttack}
+        />
       ) : selectedFeatureAction && isLayOnHandsSelected ? (
         <LayOnHandsModal
           action={selectedFeatureAction}
+          conditionOptions={layOnHandsCurableConditions}
           remainingPool={selectedLayOnHandsRemainingPool}
           onSubmit={submitLayOnHands}
           onClose={closeLayOnHandsModal}
+        />
+      ) : selectedFeatureAction && isPaladinsSmiteSelected && paladinsSmiteSpellEntry ? (
+        <CharacterSpellDrawer
+          character={character}
+          spell={paladinsSmiteSpellEntry}
+          alwaysPrepared
+          mode="standard"
+          spellSlotTotals={Array.from({ length: 9 }, () => 0)}
+          spellSlotsRemaining={Array.from({ length: 9 }, () => 0)}
+          selectedSpellSlotLevel={selectedPaladinsSmiteSpellSlotLevel}
+          onSelectedSpellSlotLevelChange={setSelectedPaladinsSmiteSpellSlotLevel}
+          onClose={closePaladinsSmiteDrawer}
+          onAction={usePaladinsSmite}
+          actionConsumesSpellSlot={false}
+          actionContextText="Using Paladin's Smite"
+          actionAvailabilityText="Cast without expending a spell slot."
+          actionWarning={selectedFeatureActionWarning}
+          actionDisabled={selectedFeatureActionWarning !== null}
+          blockedReason={spellcastingState.blocked ? spellcastingState.reason : null}
+        />
+      ) : selectedFeatureAction && isFaithfulSteedSelected && faithfulSteedSpellEntry ? (
+        <CharacterSpellDrawer
+          character={character}
+          spell={faithfulSteedSpellEntry}
+          alwaysPrepared
+          mode="standard"
+          spellSlotTotals={Array.from({ length: 9 }, () => 0)}
+          spellSlotsRemaining={Array.from({ length: 9 }, () => 0)}
+          selectedSpellSlotLevel={2}
+          onSelectedSpellSlotLevelChange={() => {}}
+          onClose={closeFaithfulSteedDrawer}
+          onAction={useFaithfulSteed}
+          actionConsumesSpellSlot={false}
+          actionContextText="Using Faithful Steed"
+          actionAvailabilityText="Cast without expending a spell slot."
+          actionWarning={selectedFeatureActionWarning}
+          actionDisabled={selectedFeatureActionWarning !== null}
+          blockedReason={spellcastingState.blocked ? spellcastingState.reason : null}
+        />
+      ) : selectedFeatureAction && isFavoredEnemySelected && favoredEnemySpellEntry ? (
+        <CharacterSpellDrawer
+          character={character}
+          spell={favoredEnemySpellEntry}
+          alwaysPrepared
+          mode="standard"
+          spellSlotTotals={Array.from({ length: 9 }, () => 0)}
+          spellSlotsRemaining={Array.from({ length: 9 }, () => 0)}
+          selectedSpellSlotLevel={1}
+          onSelectedSpellSlotLevelChange={() => {}}
+          onClose={closeFavoredEnemyDrawer}
+          onAction={useFavoredEnemy}
+          actionConsumesSpellSlot={false}
+          actionContextText="Using Favored Enemy"
+          actionAvailabilityText="Cast without expending a spell slot."
+          actionWarning={selectedFeatureActionWarning}
+          actionDisabled={selectedFeatureActionWarning !== null}
+          blockedReason={spellcastingState.blocked ? spellcastingState.reason : null}
         />
       ) : selectedFeatureAction && selectedFeatureActionOptions.length > 0 ? (
         <FeatureActionOptionsModal
@@ -644,7 +1031,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               option={option}
               character={character}
               roundTracker={roundTracker}
-              onClick={() => activateFeatureActionOptionSelection(selectedFeatureAction.key, option)}
+              onClick={() =>
+                activateFeatureActionOptionSelection(selectedFeatureAction.key, option)
+              }
               formatValueLabel={formatFeatureActionOptionValueLabel}
             />
           ))}
@@ -663,8 +1052,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onClose={() => setSelectedDivineInterventionSpell(null)}
           onAction={useDivineInterventionSpell}
           actionLabel="Divine Intervention"
-          actionWarning={selectedDivineInterventionActionWarning}
-          actionDisabled={selectedDivineInterventionActionWarning !== null}
+          actionWarning={selectedFeatureActionWarning}
+          actionDisabled={selectedFeatureActionWarning !== null}
           blockedReason={selectedDivineInterventionBlockedReason}
           actionAvailabilityText={selectedFeatureAction.usesLabel ?? null}
           backdropClassName={styles.divineInterventionDrawerBackdrop}

@@ -72,6 +72,10 @@ import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/C
 import { skillColumnLayout } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
+import {
+  formatResolvedRollStateDetailText,
+  resolveFeatureIndicators
+} from "../../../RollStatePill/rollState";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./SkillsAndProficienciesForm.module.css";
 
@@ -90,13 +94,7 @@ type SelectedKeyword = {
   }>;
 };
 
-type ProficiencyEditorTab =
-  | "skills"
-  | "savingThrows"
-  | "weapons"
-  | "armor"
-  | "tools"
-  | "languages";
+type ProficiencyEditorTab = "skills" | "savingThrows" | "weapons" | "armor" | "tools" | "languages";
 
 type ProficiencyCategorySection = {
   title: string;
@@ -120,8 +118,7 @@ function SkillsAndProficienciesForm({
   const character = watch() as Character;
   const [isSkillTableEditing, setIsSkillTableEditing] = useState(false);
   const [isProficiencyModalOpen, setIsProficiencyModalOpen] = useState(false);
-  const [activeProficiencyTab, setActiveProficiencyTab] =
-    useState<ProficiencyEditorTab>("weapons");
+  const [activeProficiencyTab, setActiveProficiencyTab] = useState<ProficiencyEditorTab>("weapons");
   const [skillProficienciesDraft, setSkillProficienciesDraft] = useState<SkillProficiencyEntry[]>(
     () => character.skillProficiencies
   );
@@ -207,6 +204,7 @@ function SkillsAndProficienciesForm({
     displayedLanguageProficiencies
   );
   const skillIndicators = getSkillIndicatorsForCharacter(character);
+  const selectedKeywordRollState = resolveFeatureIndicators(selectedKeyword?.indicators);
   const skillRowsByAbility = getSkillRowsByAbility(character, displayedSkillProficiencies);
   const skillRowsByAbilityMap = new Map(skillRowsByAbility.map((group) => [group.ability, group]));
 
@@ -337,16 +335,10 @@ function SkillsAndProficienciesForm({
   }
 
   function updateSkillProficiency(skillName: string, isSelected: boolean) {
-    updateSkillLevel(
-      skillName,
-      isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
-    );
+    updateSkillLevel(skillName, isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE);
   }
 
-  function updateWeaponProficiency(
-    proficiency: WEAPON_PROFICIENCY,
-    isSelected: boolean
-  ) {
+  function updateWeaponProficiency(proficiency: WEAPON_PROFICIENCY, isSelected: boolean) {
     if (hasLockedWeaponEntry(weaponProficienciesDraft, proficiency)) {
       return;
     }
@@ -377,10 +369,7 @@ function SkillsAndProficienciesForm({
     );
   }
 
-  function updateArmorProficiency(
-    proficiency: ARMOR_PROFICIENCY,
-    isSelected: boolean
-  ) {
+  function updateArmorProficiency(proficiency: ARMOR_PROFICIENCY, isSelected: boolean) {
     setArmorProficienciesDraft((currentProficiencies) =>
       setManualArmorEntry(
         currentProficiencies,
@@ -401,6 +390,14 @@ function SkillsAndProficienciesForm({
   }
 
   function updateLanguageProficiency(proficiency: LANGUAGE_PROFICIENCY, isSelected: boolean) {
+    const isLocked = getDisplayLanguageProficiencyEntries(languageProficienciesDraft).some(
+      (entry) => entry.proficiency === proficiency && entry.locked
+    );
+
+    if (isLocked) {
+      return;
+    }
+
     setLanguageProficienciesDraft((currentProficiencies) =>
       setManualLanguageEntry(
         currentProficiencies,
@@ -453,9 +450,7 @@ function SkillsAndProficienciesForm({
     });
   }
 
-  function renderProficiencyPills(
-    section: ProficiencyCategorySection
-  ) {
+  function renderProficiencyPills(section: ProficiencyCategorySection) {
     return (
       <div key={section.title} className={styles.skillGroup}>
         <p className={styles.skillGroupSubtitle}>{section.title}</p>
@@ -545,9 +540,7 @@ function SkillsAndProficienciesForm({
                   className={styles.editorCheckbox}
                   aria-hidden="true"
                 />
-                <span className={styles.editorState}>
-                  {selected ? "Included" : "Not included"}
-                </span>
+                <span className={styles.editorState}>{selected ? "Included" : "Not included"}</span>
               </span>
             </label>
           );
@@ -583,7 +576,13 @@ function SkillsAndProficienciesForm({
       options,
       (proficiency) =>
         getLanguageLevelFromEntries(languageProficienciesDraft, proficiency) !== PROF_LEVEL.NONE,
-      updateLanguageProficiency
+      updateLanguageProficiency,
+      {
+        isDisabled: (proficiency) =>
+          getDisplayLanguageProficiencyEntries(languageProficienciesDraft).some(
+            (entry) => entry.proficiency === proficiency && entry.locked
+          )
+      }
     );
   }
 
@@ -602,20 +601,51 @@ function SkillsAndProficienciesForm({
   }
 
   function renderLanguageEditor() {
+    const standardLanguageOptions = standardLanguageEntries.map((entry) => entry.proficiency);
+    const exoticLanguageOptions = exoticLanguageEntries.map((entry) => entry.proficiency);
     const customLanguageEntries = displayedLanguageProficiencyEntries.filter((entry) =>
       isCustomLanguageProficiency(entry.proficiency)
+    );
+    const grantedLanguageEntries = displayedLanguageProficiencyEntries.filter(
+      (entry) =>
+        !isCustomLanguageProficiency(entry.proficiency) &&
+        entry.locked &&
+        !standardLanguageOptions.includes(entry.proficiency as LANGUAGE_PROFICIENCY) &&
+        !exoticLanguageOptions.includes(entry.proficiency as LANGUAGE_PROFICIENCY)
     );
 
     return (
       <div className={styles.languageEditorStack}>
         <div className={styles.languageEditorGroup}>
           <p className={styles.skillGroupSubtitle}>Standard Languages</p>
-          {renderLanguageToggleEditor(standardLanguageEntries.map((entry) => entry.proficiency))}
+          {renderLanguageToggleEditor(standardLanguageOptions)}
         </div>
         <div className={styles.languageEditorGroup}>
           <p className={styles.skillGroupSubtitle}>Exotic Languages</p>
-          {renderLanguageToggleEditor(exoticLanguageEntries.map((entry) => entry.proficiency))}
+          {renderLanguageToggleEditor(exoticLanguageOptions)}
         </div>
+        {grantedLanguageEntries.length > 0 ? (
+          <div className={styles.languageEditorGroup}>
+            <p className={styles.skillGroupSubtitle}>Granted Languages</p>
+            {renderToggleEditor(
+              grantedLanguageEntries.map(
+                (entry) => entry.proficiency as LANGUAGE_PROFICIENCY
+              ),
+              (proficiency) =>
+                getLanguageLevelFromEntries(languageProficienciesDraft, proficiency) !==
+                PROF_LEVEL.NONE,
+              updateLanguageProficiency,
+              {
+                compact: true,
+                twoColumn: true,
+                renderMeta: (proficiency) =>
+                  grantedLanguageEntries.find((entry) => entry.proficiency === proficiency)
+                    ?.sourceLabels.join(", ") ?? null,
+                isDisabled: () => true
+              }
+            )}
+          </div>
+        ) : null}
         <div className={styles.languageEditorGroup}>
           <p className={styles.skillGroupSubtitle}>Custom Language</p>
           <div className={styles.customLanguageForm}>
@@ -685,33 +715,23 @@ function SkillsAndProficienciesForm({
 
     return (
       <div className={styles.editorSectionStack}>
-        {renderToggleEditor(
-          broadWeaponOptions,
-          isWeaponSelected,
-          updateWeaponProficiency,
-          {
-            compact: true,
-            twoColumn: true,
-            renderMeta: getWeaponProficiencyTypeLabel,
-            isDisabled: isWeaponDisabled
-          }
-        )}
+        {renderToggleEditor(broadWeaponOptions, isWeaponSelected, updateWeaponProficiency, {
+          compact: true,
+          twoColumn: true,
+          renderMeta: getWeaponProficiencyTypeLabel,
+          isDisabled: isWeaponDisabled
+        })}
         <div className={styles.editorDivider} role="presentation">
           <span className={styles.editorDividerLine} />
           <span className={styles.editorDividerLabel}>Weapon masteries</span>
           <span className={styles.editorDividerLine} />
         </div>
-        {renderToggleEditor(
-          masteryWeaponOptions,
-          isWeaponSelected,
-          updateWeaponProficiency,
-          {
-            compact: true,
-            twoColumn: true,
-            renderMeta: getWeaponProficiencyTypeLabel,
-            isDisabled: isWeaponDisabled
-          }
-        )}
+        {renderToggleEditor(masteryWeaponOptions, isWeaponSelected, updateWeaponProficiency, {
+          compact: true,
+          twoColumn: true,
+          renderMeta: getWeaponProficiencyTypeLabel,
+          isDisabled: isWeaponDisabled
+        })}
       </div>
     );
   }
@@ -795,6 +815,9 @@ function SkillsAndProficienciesForm({
                             : null;
                           const currentSkillLevel =
                             resolvedSkillProficiency?.proficiencyLevel ?? PROF_LEVEL.NONE;
+                          const skillRollState = resolveFeatureIndicators(
+                            skillIndicators[row.name]
+                          );
                           const skillDetailCards = [
                             {
                               label: "Formula",
@@ -825,7 +848,9 @@ function SkillsAndProficienciesForm({
                               )}
                             >
                               <strong className={styles.skillRowModifier}>
-                                {row.totalModifier >= 0 ? `+${row.totalModifier}` : row.totalModifier}
+                                {row.totalModifier >= 0
+                                  ? `+${row.totalModifier}`
+                                  : row.totalModifier}
                               </strong>
                               <div className={styles.skillRowContent}>
                                 <button
@@ -841,15 +866,12 @@ function SkillsAndProficienciesForm({
                                 >
                                   {row.name}
                                 </button>
-                                {(skillIndicators[row.name]?.length ?? 0) > 0 ? (
+                                {skillRollState ? (
                                   <span className={styles.skillIndicators}>
-                                    {skillIndicators[row.name]?.map((indicator) => (
-                                      <RollStatePill
-                                        key={`${row.name}-${indicator.label}-${indicator.tone}`}
-                                        tone={indicator.tone}
-                                        label={indicator.label}
-                                      />
-                                    ))}
+                                    <RollStatePill
+                                      tone={skillRollState.tone}
+                                      label={skillRollState.label}
+                                    />
                                   </span>
                                 ) : null}
                               </div>
@@ -879,11 +901,7 @@ function SkillsAndProficienciesForm({
           </div>
           {isSkillTableEditing ? (
             <div className={shared.formActions}>
-              <button
-                type="button"
-                className={shared.saveButton}
-                onClick={saveSkillTableEdits}
-              >
+              <button type="button" className={shared.saveButton} onClick={saveSkillTableEdits}>
                 <Save size={16} />
                 Save
               </button>
@@ -982,11 +1000,7 @@ function SkillsAndProficienciesForm({
             <div className={styles.editorScrollArea}>{renderProficiencyEditorContent()}</div>
 
             <div className={shared.formActions}>
-              <button
-                type="button"
-                className={shared.saveButton}
-                onClick={saveProficiencyEditing}
-              >
+              <button type="button" className={shared.saveButton} onClick={saveProficiencyEditing}>
                 <Save size={16} />
                 Save
               </button>
@@ -1026,16 +1040,15 @@ function SkillsAndProficienciesForm({
                 <p className={sheetStyles.spellDrawerSummary}>{selectedKeyword.description}</p>
               </div>
               {selectedKeyword.indicators?.length ? (
-                <div className={styles.referenceIndicatorStack}>
-                  {selectedKeyword.indicators.map((indicator, index) => (
+                selectedKeywordRollState ? (
+                  <div className={styles.referenceIndicatorStack}>
                     <RollStatePill
-                      key={`${selectedKeyword.name}-${indicator.label}-${indicator.tone}-${indicator.source}-${index}`}
-                      tone={indicator.tone}
-                      label={indicator.label}
-                      detailText={`From ${indicator.source}`}
+                      tone={selectedKeywordRollState.tone}
+                      label={selectedKeywordRollState.label}
+                      detailText={formatResolvedRollStateDetailText(selectedKeywordRollState)}
                     />
-                  ))}
-                </div>
+                  </div>
+                ) : null
               ) : null}
               <button
                 type="button"

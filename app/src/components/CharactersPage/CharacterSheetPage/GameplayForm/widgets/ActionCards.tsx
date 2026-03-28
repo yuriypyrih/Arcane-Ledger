@@ -15,6 +15,8 @@ import {
   getEconomyShapeState,
   getWeaponActionBreakdown
 } from "../gameplayWidgetUtils";
+import RollStatePill from "../../../../RollStatePill/RollStatePill";
+import { resolveFeatureIndicators } from "../../../../RollStatePill/rollState";
 import styles from "./ActionsWidget.module.css";
 
 type RoundTrackerAvailability = {
@@ -36,6 +38,7 @@ export function WeaponActionCard({ action, roundTracker, onClick }: WeaponAction
     roundTracker,
     action.economyMultiCount ?? 0
   );
+  const resolvedRollState = resolveFeatureIndicators(action.indicators);
 
   return (
     <button
@@ -59,6 +62,11 @@ export function WeaponActionCard({ action, roundTracker, onClick }: WeaponAction
         </span>
       ) : null}
       <strong>{action.name}</strong>
+      {resolvedRollState ? (
+        <span className={styles.actionIndicatorRow}>
+          <RollStatePill tone={resolvedRollState.tone} label={resolvedRollState.label} />
+        </span>
+      ) : null}
       <span className={styles.damageRow}>
         {getDamageRangeLabel(action.damageLabel, action.totalModifier, action.rollFormula)}
       </span>
@@ -175,7 +183,10 @@ export function FeatureActionCardButton({
           {renderFeatureActionUsesLabel(action)}
         </span>
       ) : null}
-      <small className={styles.breakdownRow}>{action.isActive ? action.detail : action.summary}</small>
+      {action.valueLabel ? <span className={styles.damageRow}>{action.valueLabel}</span> : null}
+      <small className={styles.breakdownRow}>
+        {action.breakdown ?? (action.isActive ? action.detail : action.summary)}
+      </small>
     </button>
   );
 }

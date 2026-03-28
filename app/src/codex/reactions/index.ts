@@ -1,5 +1,6 @@
 import { CLASS_FEATURE, REACTION } from "../entries/enums";
 import type { ReactionEntry } from "../entries/types";
+import { rogueFeatureMap } from "../classes/rogue";
 import { monkFeatureMap } from "../classes/monk";
 
 export const countercharmReaction: ReactionEntry = {
@@ -35,10 +36,21 @@ export const slowFallReaction: ReactionEntry = {
   description: monkFeatureMap[CLASS_FEATURE.SLOW_FALL]?.description ?? []
 };
 
+export const uncannyDodgeReaction: ReactionEntry = {
+  id: "reaction-uncanny-dodge",
+  reaction: REACTION.UNCANNY_DODGE,
+  name: "Uncanny Dodge",
+  sourceType: "feature",
+  sourceFeature: CLASS_FEATURE.UNCANNY_DODGE,
+  sourceLabel: "Rogue",
+  description: rogueFeatureMap[CLASS_FEATURE.UNCANNY_DODGE]?.description ?? []
+};
+
 export const reactionEntries: ReactionEntry[] = [
   countercharmReaction,
   deflectAttacksReaction,
-  slowFallReaction
+  slowFallReaction,
+  uncannyDodgeReaction
 ];
 
 const reactionEntriesById = new Map(reactionEntries.map((entry) => [entry.id, entry]));

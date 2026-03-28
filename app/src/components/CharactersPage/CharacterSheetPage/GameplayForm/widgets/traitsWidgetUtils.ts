@@ -1,9 +1,11 @@
 import { ACTION_TYPE, type ReactionEntry, type SpellEntry } from "../../../../../codex/entries";
 import {
   createStatusDurationFromPreset,
+  formatConditionOptionLabel,
   getConditionOptions,
   getDamageTypeOptions,
   getImmunityOptions,
+  isExhaustionStatusEntry,
   getSenseOptions
 } from "../../../../../pages/CharactersPage/traits";
 import type {
@@ -121,12 +123,16 @@ export function getTraitEditorOptions(tab: TraitEditorTab): string[] {
 }
 
 export function formatTraitEditorOptionLabel(tab: TraitEditorTab, value: string): string {
+  if (tab === "conditions") {
+    return formatConditionOptionLabel(value);
+  }
+
   if (tab === "resistances" || tab === "vulnerabilities") {
     return `${value.charAt(0)}${value.slice(1).toLowerCase()} damage`;
   }
 
   if (tab === "immunities") {
-    return conditionOptions.includes(value as CONDITION_NAME)
+    return Object.values(CONDITION_NAME).includes(value as CONDITION_NAME)
       ? `${value} condition`
       : `${value.charAt(0)}${value.slice(1).toLowerCase()} damage`;
   }
@@ -152,7 +158,7 @@ export function isStatusEntryRemovable(entry: CharacterStatusEntry): boolean {
 }
 
 export function isStatusEntryDurationEditable(entry: CharacterStatusEntry): boolean {
-  return isStatusEntryRemovable(entry);
+  return isStatusEntryRemovable(entry) && !isExhaustionStatusEntry(entry);
 }
 
 export function getStatusDrawerBadgeLabel(group: STATUS_ENTRY_GROUP): string {

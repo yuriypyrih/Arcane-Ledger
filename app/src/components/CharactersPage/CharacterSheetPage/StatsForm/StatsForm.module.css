@@ -77,7 +77,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0;
+  gap: 0.38rem;
   flex-wrap: wrap;
 }
 
@@ -144,16 +144,23 @@
   background: rgba(75, 47, 29, 0.3);
 }
 
-.savingThrowValueAdvantage {
+.rollStateValueAdvantage {
   text-decoration: underline;
-  text-decoration-color: rgba(47, 143, 81, 0.4);
+  text-decoration-color: #2f7a4f;
   text-decoration-thickness: 2px;
   text-underline-offset: 0.18rem;
 }
 
-.savingThrowValueDisadvantage {
+.rollStateValueDisadvantage {
   text-decoration: underline;
-  text-decoration-color: rgba(185, 78, 78, 0.08);
+  text-decoration-color: #a33f34;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 0.18rem;
+}
+
+.rollStateValueNeutralized {
+  text-decoration: underline;
+  text-decoration-color: #5f748c;
   text-decoration-thickness: 2px;
   text-underline-offset: 0.18rem;
 }
@@ -163,12 +170,24 @@
 }
 
 .referenceIndicatorStack {
+  display: grid;
+  gap: 0.45rem;
+  justify-items: end;
+  margin-left: auto;
+}
+
+.referenceIndicatorSection {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
   gap: 0.45rem;
   justify-content: flex-end;
-  margin-left: auto;
+  flex-wrap: wrap;
+}
+
+.referenceIndicatorSectionLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  font-weight: 600;
 }
 
 .referenceDescriptionList {

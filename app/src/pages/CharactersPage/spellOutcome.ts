@@ -1,7 +1,10 @@
 import type { SpellEntry, WeaponDamage } from "../../codex/entries";
 import type { Character } from "../../types";
 import { getAbilityModifierForCharacter } from "./abilities";
-import { getCantripDamageBonusForCharacter } from "./classFeatures";
+import {
+  getCantripDamageBonusForCharacter,
+  getSpellDamageFormulaOverrideForCharacter
+} from "./classFeatures";
 import { getMainAbilityForClass } from "./gameplay";
 import { flattenSpellDescriptionLines } from "../../utils/codex/spellDescription";
 import { formatCodexLabel, formatWeaponDamage, formatWeaponDamageFormula } from "../../utils/codex";
@@ -100,7 +103,9 @@ function getSpellHealingFormula(spell: Pick<SpellEntry, "description">): string 
         continue;
       }
 
-      return normalizedTokens.map((token) => (token.toUpperCase() === "MOD" ? "MOD" : token.toLowerCase())).join("+");
+      return normalizedTokens
+        .map((token) => (token.toUpperCase() === "MOD" ? "MOD" : token.toLowerCase()))
+        .join("+");
     }
   }
 
@@ -144,6 +149,18 @@ export function getSpellOutcomeSummaryForCharacter(
   character: Pick<Character, "className" | "abilities" | "level" | "classFeatureState" | "feats">,
   spell: SpellEntry
 ): string {
+  const damageFormulaOverride = getSpellDamageFormulaOverrideForCharacter(character, spell);
+
+  if (damageFormulaOverride) {
+    const range = parseFormulaRange(damageFormulaOverride);
+
+    if (!range) {
+      return "Damage";
+    }
+
+    return `${formatOutcomeRange(range.minimum, range.maximum)} Damage`;
+  }
+
   if (spell.damage.length > 0) {
     const damageBonus = getSpellDamageBonusForCharacter(character, spell);
     const damageFormula = `${formatWeaponDamageFormula(spell.damage)}${
@@ -184,6 +201,12 @@ export function getSpellDamageDetailForCharacter(
   character: Pick<Character, "className" | "abilities" | "level" | "classFeatureState" | "feats">,
   spell: SpellEntry
 ): string {
+  const damageFormulaOverride = getSpellDamageFormulaOverrideForCharacter(character, spell);
+
+  if (damageFormulaOverride) {
+    return damageFormulaOverride;
+  }
+
   if (spell.damage.length === 0) {
     return "None";
   }

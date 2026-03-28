@@ -1,31 +1,21 @@
-import {
-  WEAPON_BASE,
-  WEAPON_MASTERY,
-  WEAPON_PROPERTY
-} from "../../codex/entries/enums";
+import { WEAPON_BASE, WEAPON_MASTERY, WEAPON_PROPERTY } from "../../codex/entries/enums";
 import type { AbilityKey, SkillName } from "../../types";
 
 export type KeywordReference = {
   title: string;
-  description: string;
+  description: string[];
 };
 
 export const keywordDescriptions = {
   abilityModifiers: {
     "Ability Modifier":
       "Derived bonus or penalty from an ability score that affects attacks, checks, and saves.",
-    STR:
-      "Strength: raw physical power for lifting, pushing, grappling, and many melee attacks.",
-    DEX:
-      "Dexterity: agility, reflexes, finesse or ranged accuracy, and initiative.",
-    CON:
-      "Constitution: stamina, durability, and bodily resilience.",
-    INT:
-      "Intelligence: memory, logic, study, and technical arcane knowledge.",
-    WIS:
-      "Wisdom: awareness, intuition, perception, and practical judgment.",
-    CHA:
-      "Charisma: force of personality, social influence, leadership, and presence.",
+    STR: "Strength: raw physical power for lifting, pushing, grappling, and many melee attacks.",
+    DEX: "Dexterity: agility, reflexes, finesse or ranged accuracy, and initiative.",
+    CON: "Constitution: stamina, durability, and bodily resilience.",
+    INT: "Intelligence: memory, logic, study, and technical arcane knowledge.",
+    WIS: "Wisdom: awareness, intuition, perception, and practical judgment.",
+    CHA: "Charisma: force of personality, social influence, leadership, and presence.",
     Strength: "Strength: physical might and forceful actions.",
     Dexterity: "Dexterity: precision, agility, and reaction speed.",
     Constitution: "Constitution: endurance and toughness.",
@@ -54,28 +44,30 @@ export const keywordDescriptions = {
       "How hard you are to hit. AC = armor base + allowed DEX modifier + shield bonus. Base is 10 with no armor.",
     Initiative:
       "Turn order bonus at combat start. Initiative is usually your DEX modifier, plus any feature or feat bonuses.",
-    Speed: "Distance you can move on your turn. Speed is based on species and any active movement bonuses.",
-    "Passive Perception": "Always-on awareness score. Passive Perception = 10 + Perception modifier.",
+    Speed:
+      "Distance you can move on your turn. Speed is based on species and any active movement bonuses.",
+    "Passive Perception":
+      "Always-on awareness score. Passive Perception = 10 + Perception modifier.",
     "Proficiency Bonus":
       "Level progression: levels 1-4 = +2, 5-8 = +3, 9-12 = +4, 13-16 = +5, 17-20 = +6.",
     "Hit Dice":
       "Recovery dice based on class and level. Display shows die type and remaining/total dice."
   },
   combatRules: {
-    Advantage:
-      "Roll two d20s and use the higher result when a rule gives you an edge on a roll.",
-    Disadvantage:
-      "Roll two d20s and use the lower result when a rule makes a roll harder.",
+    Advantage: "Roll two d20s and use the higher result when a rule gives you an edge on a roll.",
+    Disadvantage: "Roll two d20s and use the lower result when a rule makes a roll harder.",
     Concentration:
       "Some spells require Concentration to maintain. You can usually concentrate on only one such spell at a time, and taking damage or certain effects can end it.",
-    Resistance:
-      "Resistance halves damage from a qualifying source unless a rule says otherwise.",
+    "Temporary Hit Points":
+      "A buffer of bonus Hit Points that absorbs damage before your normal Hit Points. Temporary Hit Points don't stack; if you gain them again, you keep only the higher amount.",
+    Resistance: "Resistance halves damage from a qualifying source unless a rule says otherwise.",
     Vulnerability:
       "Vulnerability doubles damage from a qualifying source unless a rule says otherwise.",
     Immunity:
       "Immunity prevents a damage type or condition from affecting you unless a rule says otherwise.",
-    Aura:
-      "An aura is a passive area of influence that affects creatures, objects, or spaces around its source."
+    Aura: "An aura is a passive area of influence that affects creatures, objects, or spaces around its source.",
+    Emanation:
+      "An Emanation is an area of effect that extends in straight lines from a creature or an object in all directions. The effect that creates an Emanation specifies the distance it extends.\n\nAn Emanation moves with the creature or object that is its origin unless it is an instantaneous or a stationary effect.\n\nAn Emanation's origin (creature or object) isn't included in the area of effect unless its creator decides otherwise."
   },
   traits: {
     Senses:
@@ -88,41 +80,26 @@ export const keywordDescriptions = {
       "You can detect vibrations through a surface within range, helping you notice grounded creatures and movement nearby.",
     Truesight:
       "You can perceive things as they really are within range, including many illusions, invisible creatures, and hidden true forms.",
-    Rage:
-      "A Barbarian's primal battle state. While it lasts, it empowers certain Strength-based actions and other Rage-specific benefits.",
-    Resistances:
-      "Resistance entries show damage types that deal reduced damage to you.",
-    Vulnerabilities:
-      "Vulnerability entries show damage types that deal extra damage to you.",
-    Immunities:
-      "Immunity entries show damage types or conditions that have no effect on you.",
-    Auras:
-      "Aura entries track passive areas of influence that radiate from your character."
+    Rage: "A Barbarian's primal battle state. While it lasts, it empowers certain Strength-based actions and other Rage-specific benefits.",
+    Resistances: "Resistance entries show damage types that deal reduced damage to you.",
+    Vulnerabilities: "Vulnerability entries show damage types that deal extra damage to you.",
+    Immunities: "Immunity entries show damage types or conditions that have no effect on you.",
+    Auras: "Aura entries track passive areas of influence that radiate from your character."
   },
   damageTypes: {
     Acid: "Corrosive damage from caustic substances, dissolving energy, or similar hazards.",
-    Bludgeoning:
-      "Impact damage from hammers, clubs, falls, and crushing force.",
+    Bludgeoning: "Impact damage from hammers, clubs, falls, and crushing force.",
     Cold: "Freezing damage from ice, bitter chill, or supernatural frost.",
     Fire: "Burning damage from flames, heat, and explosive combustion.",
-    Force:
-      "Pure magical impact or pressure that strikes with raw arcane energy.",
-    Lightning:
-      "Electrical damage from shocks, storms, and crackling energy.",
-    Necrotic:
-      "Life-draining damage tied to decay, deathly magic, and withering force.",
-    Piercing:
-      "Penetrating damage from arrows, spears, fangs, and pointed weapons.",
-    Poison:
-      "Toxic damage from venom, disease-like toxins, and harmful substances.",
-    Psychic:
-      "Mind-affecting damage that assaults thoughts, will, or consciousness.",
-    Radiant:
-      "Luminous holy or celestial damage often tied to divine power and searing light.",
-    Slashing:
-      "Cutting damage from blades, claws, and sweeping weapon strikes.",
-    Thunder:
-      "Concusive sound-wave damage from booming force and violent shockwaves."
+    Force: "Pure magical impact or pressure that strikes with raw arcane energy.",
+    Lightning: "Electrical damage from shocks, storms, and crackling energy.",
+    Necrotic: "Life-draining damage tied to decay, deathly magic, and withering force.",
+    Piercing: "Penetrating damage from arrows, spears, fangs, and pointed weapons.",
+    Poison: "Toxic damage from venom, disease-like toxins, and harmful substances.",
+    Psychic: "Mind-affecting damage that assaults thoughts, will, or consciousness.",
+    Radiant: "Luminous holy or celestial damage often tied to divine power and searing light.",
+    Slashing: "Cutting damage from blades, claws, and sweeping weapon strikes.",
+    Thunder: "Concusive sound-wave damage from booming force and violent shockwaves."
   },
   savingThrows: {
     "STR Saving Throw": "Resists forced movement, grapples, and brute-force effects.",
@@ -137,6 +114,16 @@ export const keywordDescriptions = {
     "Intelligence Saving Throw": "Resists cognition-targeting effects.",
     "Wisdom Saving Throw": "Resists will-targeting effects.",
     "Charisma Saving Throw": "Resists soul or identity displacement effects."
+  },
+  misc: {
+    Expertise:
+      "Expertise doubles your Proficiency Bonus for qualifying checks with a chosen skill or tool proficiency.",
+    "Thieves' Cant":
+      "Thieves' Cant is the secret mix of slang, coded phrasing, and signs used by rogues to pass hidden messages without drawing attention.",
+    Exhaustion:
+      "Exhaustion represents accumulating strain. Higher levels include all lower-level effects.\n\nLevel 1: You have Disadvantage on ability checks.\n\nLevel 2: Your Speed is halved.\n\nLevel 3: You have Disadvantage on attack rolls and saving throws.\n\nLevel 4: Your Hit Point maximum is halved.\n\nLevel 5: Your Speed is reduced to 0.\n\nLevel 6: You die, bypassing death saving throws.",
+    "Druidic Focus":
+      "A Druidic Focus is a symbolic natural object or tool that can stand in for non-costly Material components when a class feature lets you use it as a Spellcasting Focus."
   },
   skills: {
     Acrobatics: "Balance, tumble, and control your movement in unstable or tight situations.",
@@ -163,8 +150,7 @@ export const keywordDescriptions = {
       "You can't see and automatically fail checks that rely on sight. Attack rolls against you have Advantage, and your own attack rolls have Disadvantage.",
     Charmed:
       "You can't attack the charmer or target them with harmful abilities. The charmer has Advantage on social checks against you.",
-    Deafened:
-      "You can't hear and automatically fail checks that rely on hearing.",
+    Deafened: "You can't hear and automatically fail checks that rely on hearing.",
     Frightened:
       "You have Disadvantage on checks and attacks while the source of fear is in sight. You also can't willingly move closer to it.",
     Grappled:
@@ -177,8 +163,7 @@ export const keywordDescriptions = {
       "You are Incapacitated and can't move or speak. You automatically fail Strength and Dexterity saving throws, and nearby hits become especially dangerous.",
     Petrified:
       "You are transformed into an inert stone-like state. You are Incapacitated and generally become much harder to affect physically.",
-    Poisoned:
-      "You have Disadvantage on attack rolls and ability checks.",
+    Poisoned: "You have Disadvantage on attack rolls and ability checks.",
     Prone:
       "You are lying on the ground. Melee attacks against you become easier, while ranged attacks against you become harder.",
     Restrained:
@@ -191,8 +176,7 @@ export const keywordDescriptions = {
   proficiencies: {
     "Simple weapons":
       "Training with basic, accessible weapons. You can use them effectively without penalties.",
-    "Martial weapons":
-      "Training with advanced weapons designed for dedicated combatants.",
+    "Martial weapons": "Training with advanced weapons designed for dedicated combatants.",
     "Light armor":
       "Armor training with minimal mobility penalty; allows full Dexterity contribution to defense.",
     "Medium armor":
@@ -206,10 +190,8 @@ export const keywordDescriptions = {
       "Tool proficiency for lockpicking, trap manipulation, and covert entry tasks.",
     "Smith's Toolkit":
       "Tool proficiency for metalworking tasks such as repair, shaping, and forging.",
-    "Disguide Kit":
-      "Tool proficiency for building disguises and altering your visible identity.",
-    "Disguise Kit":
-      "Tool proficiency for building disguises and altering your visible identity.",
+    "Disguide Kit": "Tool proficiency for building disguises and altering your visible identity.",
+    "Disguise Kit": "Tool proficiency for building disguises and altering your visible identity.",
     "Disarm Kit":
       "Tool proficiency for handling, disabling, or rendering traps and mechanisms safe."
   },
@@ -248,8 +230,7 @@ export const keywordDescriptions = {
       "A Reach weapon adds 5 feet to your reach when you attack with it, as well as when determining your reach for Opportunity Attacks with it.",
     [WEAPON_PROPERTY.THROWN]:
       "If a weapon has the Thrown property, you can throw the weapon to make a ranged attack, and you can draw that weapon as part of the attack. If the weapon is a Melee weapon, use the same ability modifier for the attack and damage rolls that you use for a melee attack with that weapon.",
-    [WEAPON_PROPERTY.TWO_HANDED]:
-      "A Two-Handed weapon requires two hands when you attack with it.",
+    [WEAPON_PROPERTY.TWO_HANDED]: "A Two-Handed weapon requires two hands when you attack with it.",
     [WEAPON_PROPERTY.VERSATILE]:
       "A Versatile weapon can be used with one or two hands. A damage value in parentheses appears with the property. The weapon deals that damage when used with two hands to make a melee attack."
   }
@@ -278,11 +259,17 @@ export const classFeatureKeywordAliases = [
   { matchText: "Vulnerability", keyword: "Vulnerability" },
   { matchText: "Immunity", keyword: "Immunity" },
   { matchText: "Aura", keyword: "Aura" },
+  { matchText: "Emanation", keyword: "Emanation" },
   { matchText: "Armor Class", keyword: "Armor Class" },
   { matchText: "Initiative", keyword: "Initiative" },
   { matchText: "Advantage", keyword: "Advantage" },
   { matchText: "Disadvantage", keyword: "Disadvantage" },
   { matchText: "Concentration", keyword: "Concentration" },
+  { matchText: "Temporary Hit Points", keyword: "Temporary Hit Points" },
+  { matchText: "Expertise", keyword: "Expertise" },
+  { matchText: "Thieves' Cant", keyword: "Thieves' Cant" },
+  { matchText: "Exhaustion", keyword: "Exhaustion" },
+  { matchText: "Druidic Focus", keyword: "Druidic Focus" },
   { matchText: "Strength saving throw", keyword: "Strength Saving Throw" },
   { matchText: "Strength saving throws", keyword: "Strength Saving Throw" },
   { matchText: "Dexterity saving throw", keyword: "Dexterity Saving Throw" },
@@ -310,7 +297,10 @@ export const classFeatureKeywordAliases = [
 ] as const;
 
 function normalizeKeyword(keyword: string): string {
-  return keyword.trim().toLowerCase().replace(/[\s-]+/g, "_");
+  return keyword
+    .trim()
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
 }
 
 const keywordDescriptionLookup = new Map<string, string>();
@@ -342,6 +332,19 @@ export function getKeywordDescription(keyword: string): string | null {
   return keywordDescriptionLookup.get(normalizeKeyword(keyword)) ?? null;
 }
 
+export function splitKeywordDescription(description: string): string[] {
+  return description
+    .split(/\r?\n+/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+}
+
+export function getKeywordDescriptionLines(keyword: string): string[] | null {
+  const description = getKeywordDescription(keyword);
+
+  return description ? splitKeywordDescription(description) : null;
+}
+
 export function getKeywordReferences(keywords: string[]): KeywordReference[] {
   const seenKeywords = new Set<string>();
 
@@ -364,7 +367,7 @@ export function getKeywordReferences(keywords: string[]): KeywordReference[] {
     return [
       {
         title,
-        description
+        description: splitKeywordDescription(description)
       }
     ];
   });

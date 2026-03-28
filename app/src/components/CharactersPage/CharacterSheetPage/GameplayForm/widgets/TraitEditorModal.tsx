@@ -4,7 +4,8 @@ import SelectInput from "../../../FormInputs/SelectInput";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import {
-  durationPresetOptions
+  durationPresetOptions,
+  isExhaustionConditionOptionValue
 } from "../../../../../pages/CharactersPage/traits";
 import { STATUS_DURATION_PRESET } from "../../../../../types";
 import styles from "./TraitsConditionsWidget.module.css";
@@ -36,6 +37,9 @@ function TraitEditorModal({
   onSave,
   onClose
 }: TraitEditorModalProps) {
+  const isExhaustionSelection =
+    activeTab === "conditions" && isExhaustionConditionOptionValue(values[activeTab]);
+
   return (
     <div className={sheetStyles.spellManagementBackdrop} role="presentation" onClick={onClose}>
       <section
@@ -97,6 +101,7 @@ function TraitEditorModal({
             <span>Duration</span>
             <SelectInput
               value={durationPreset}
+              disabled={isExhaustionSelection}
               onChange={(event) =>
                 onDurationPresetChange(event.target.value as STATUS_DURATION_PRESET)
               }

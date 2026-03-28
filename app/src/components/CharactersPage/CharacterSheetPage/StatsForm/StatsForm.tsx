@@ -35,15 +35,25 @@ import {
 } from "../../../../pages/CharactersPage/speed";
 import {
   applyPerfectFocusOnInitiativeForCharacter,
-  type FeatureIndicator,
   applySuperiorInspirationOnInitiativeForCharacter,
+  getAbilityCheckIndicatorsForCharacter,
   getBardicInspirationDieForCharacter,
   getCoreStatIndicatorsForCharacter,
-  hasPerfectFocusForCharacter,
   getMonkMartialArtsDieForCharacter,
-  getSavingThrowIndicatorsForCharacter
+  getRogueSneakAttackDiceCountForCharacter,
+  getRogueSneakAttackFormulaForCharacter,
+  hasActivePaladinAuraOfProtectionForCharacter,
+  hasPerfectFocusForCharacter,
+  getSavingThrowIndicatorsForCharacter,
+  type FeatureIndicator
 } from "../../../../pages/CharactersPage/classFeatures";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
+import {
+  areResolvedRollStatesEquivalent,
+  formatResolvedRollStateDetailText,
+  resolveFeatureIndicators,
+  type ResolvedRollState
+} from "../../../RollStatePill/rollState";
 import {
   getSavingThrowLevelFromEntries,
   getSavingThrowProficiencyForAbilityKey
@@ -68,6 +78,11 @@ type CharacterStatsFormProps = {
   onPersistCharacter: PersistCharacterUpdater;
 };
 
+type ReferenceIndicatorSection = {
+  label?: string;
+  indicators: FeatureIndicator[];
+};
+
 type SelectedStatReference = {
   keyword: string;
   summaryText?: string;
@@ -79,7 +94,7 @@ type SelectedStatReference = {
     label: string;
     value: string;
   }>;
-  indicators?: FeatureIndicator[];
+  indicatorSections?: ReferenceIndicatorSection[];
 };
 
 type CoreStatCard = {
@@ -196,12 +211,8 @@ function formatAbilityScoreFormula(
 ): string {
   const [baseEntry, ...bonusEntries] = entries;
   const formattedEntries = [
-    baseEntry
-      ? `${baseEntry.value} ${ability} (${baseEntry.label})`
-      : `${total} ${ability} (Base)`,
-    ...bonusEntries.map(
-      (entry) => `${entry.value >= 0 ? "+" : ""}${entry.value} (${entry.label})`
-    )
+    baseEntry ? `${baseEntry.value} ${ability} (${baseEntry.label})` : `${total} ${ability} (Base)`,
+    ...bonusEntries.map((entry) => `${entry.value >= 0 ? "+" : ""}${entry.value} (${entry.label})`)
   ];
 
   return `${total} ${ability} = ${formattedEntries.join(" ")}`;
@@ -224,13 +235,20 @@ function formatSavingThrowFormula(
   total: number,
   abilityModifier: number,
   proficiencyContribution: number,
-  proficiencyLabel?: string
+  proficiencyLabel?: string,
+  bonusEntries: Array<{ label: string; value: number }> = []
 ): string {
   const terms = [`${abilityModifier >= 0 ? "+" : ""}${abilityModifier} ${ability}`];
 
   if (proficiencyContribution !== 0 && proficiencyLabel) {
-    terms.push(`${proficiencyContribution >= 0 ? "+" : ""}${proficiencyContribution} ${proficiencyLabel}`);
+    terms.push(
+      `${proficiencyContribution >= 0 ? "+" : ""}${proficiencyContribution} ${proficiencyLabel}`
+    );
   }
+
+  bonusEntries.forEach((entry) => {
+    terms.push(`${entry.value >= 0 ? "+" : ""}${entry.value} ${entry.label}`);
+  });
 
   return `${formatAbilityModifier(total)} ${ability} Save = ${terms.join(" ")}`;
 }
@@ -241,6 +259,70 @@ function stripLeadingLabel(description: string, label: string): string {
   }
 
   return description;
+}
+
+function buildReferenceIndicatorSections(
+  sections: Array<{
+    label?: string;
+    indicators?: FeatureIndicator[];
+  }>
+): ReferenceIndicatorSection[] | undefined {
+  const normalizedSections = sections.flatMap((section) =>
+    section.indicators && section.indicators.length > 0
+      ? [
+          {
+            label: section.label,
+            indicators: section.indicators
+          }
+        ]
+      : []
+  );
+
+  return normalizedSections.length > 0 ? normalizedSections : undefined;
+}
+
+function getAbilityReferenceIndicatorSections(
+  modifierIndicators: FeatureIndicator[],
+  savingThrowIndicators: FeatureIndicator[]
+): ReferenceIndicatorSection[] | undefined {
+  const modifierRollState = resolveFeatureIndicators(modifierIndicators);
+  const savingThrowRollState = resolveFeatureIndicators(savingThrowIndicators);
+
+  if (!modifierRollState && !savingThrowRollState) {
+    return undefined;
+  }
+
+  if (areResolvedRollStatesEquivalent(modifierRollState, savingThrowRollState)) {
+    return buildReferenceIndicatorSections([
+      {
+        indicators: [...modifierIndicators, ...savingThrowIndicators]
+      }
+    ]);
+  }
+
+  return buildReferenceIndicatorSections([
+    {
+      label: "Ability Modifier",
+      indicators: modifierIndicators
+    },
+    {
+      label: "Saving Throw",
+      indicators: savingThrowIndicators
+    }
+  ]);
+}
+
+function getRollStateValueClassName(rollState: ResolvedRollState | null): string | undefined {
+  switch (rollState?.tone) {
+    case "advantage":
+      return styles.rollStateValueAdvantage;
+    case "disadvantage":
+      return styles.rollStateValueDisadvantage;
+    case "neutralized":
+      return styles.rollStateValueNeutralized;
+    default:
+      return undefined;
+  }
 }
 
 function formatDieValue(die: string | null): string | null {
@@ -298,6 +380,9 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
       : null;
   const proficiencyBonus = getProficiencyBonus(character.level);
   const effectiveAbilities = getAbilityScoresForCharacter(character);
+  const paladinAuraOfProtectionBonus = hasActivePaladinAuraOfProtectionForCharacter(character)
+    ? Math.max(1, getAbilityModifier(effectiveAbilities.CHA))
+    : 0;
   const displayedCoreStats: CoreStats = {
     ...(character.coreStats ?? createDefaultCoreStats()),
     armorClass: String(getArmorClassForCharacter(character)),
@@ -308,12 +393,15 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
     hitDice: getHitDiceDisplayForCharacter(character)
   };
   const coreStatIndicators = getCoreStatIndicatorsForCharacter(character);
+  const abilityCheckIndicators = getAbilityCheckIndicatorsForCharacter(character);
   const savingThrowIndicators = getSavingThrowIndicatorsForCharacter(character);
   const armorClassBreakdown = getArmorClassBreakdownForCharacter(character);
   const speedBreakdown = getSpeedBreakdownForCharacter(character);
   const initiativeBreakdown = getInitiativeBreakdownForCharacter(character);
   const monkMartialArtsDie = getMonkMartialArtsDieForCharacter(character);
   const bardicInspirationDie = getBardicInspirationDieForCharacter(character);
+  const rogueSneakAttackDiceCount = getRogueSneakAttackDiceCountForCharacter(character);
+  const rogueSneakAttackFormula = getRogueSneakAttackFormulaForCharacter(character);
   const abilitySavingThrowCards = abilityKeys.map((ability) => {
     const abilityScore = effectiveAbilities[ability];
     const abilityModifierValue = getAbilityModifier(abilityScore);
@@ -324,13 +412,32 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
     );
     const proficiencyMultiplier = getProficiencyMultiplier(savingThrowLevel);
     const proficiencyContribution = proficiencyBonus * proficiencyMultiplier;
-    const totalSavingThrowValue = abilityModifierValue + proficiencyContribution;
+    const savingThrowBonusEntries =
+      paladinAuraOfProtectionBonus > 0
+        ? [
+            {
+              label: "Aura of Protection",
+              value: paladinAuraOfProtectionBonus
+            }
+          ]
+        : [];
+    const totalSavingThrowValue =
+      abilityModifierValue +
+      proficiencyContribution +
+      savingThrowBonusEntries.reduce((sum, entry) => sum + entry.value, 0);
     const proficiencyLabel =
       proficiencyMultiplier === 2
         ? "Proficiency Bonus x2"
         : proficiencyMultiplier === 1
           ? "Proficiency Bonus"
           : undefined;
+    const modifierIndicators = abilityCheckIndicators[ability] ?? [];
+    const saveIndicators = savingThrowIndicators[ability] ?? [];
+    const modifierRollState = resolveFeatureIndicators(modifierIndicators);
+    const savingThrowRollState = resolveFeatureIndicators(saveIndicators);
+    const sharedRollState = areResolvedRollStatesEquivalent(modifierRollState, savingThrowRollState)
+      ? (modifierRollState ?? savingThrowRollState)
+      : null;
 
     return {
       ability,
@@ -338,17 +445,16 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
       modifier: formatAbilityModifier(abilityModifierValue),
       modifierValue: abilityModifierValue,
       isSavingThrowProficient: proficiencyMultiplier > 0,
-      hasSavingThrowAdvantage: (savingThrowIndicators[ability] ?? []).some(
-        (indicator) => indicator.tone === "advantage"
-      ),
-      hasSavingThrowDisadvantage: (savingThrowIndicators[ability] ?? []).some(
-        (indicator) => indicator.tone === "disadvantage"
-      ),
       proficiencyContribution,
       proficiencyLabel,
+      savingThrowBonusEntries,
       totalSavingThrowValue,
       totalSavingThrow: formatAbilityModifier(totalSavingThrowValue),
-      indicators: savingThrowIndicators[ability] ?? []
+      modifierIndicators,
+      modifierRollState,
+      savingThrowIndicators: saveIndicators,
+      savingThrowRollState,
+      sharedRollState
     };
   });
 
@@ -430,6 +536,27 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
     });
   }
 
+  if (rogueSneakAttackDiceCount > 0 && rogueSneakAttackFormula) {
+    additionalCoreStatCards.push({
+      key: "rogue-sneak-attack",
+      label: "Sneak Attack",
+      value: rogueSneakAttackFormula,
+      summaryText:
+        "Your current Sneak Attack damage. You can apply it once per turn after a hit when Sneak Attack's requirements are met.",
+      detailCards: [
+        {
+          label: "Current Dice",
+          value: rogueSneakAttackFormula
+        },
+        {
+          label: "Progression",
+          value:
+            "1d6 at 1, 2d6 at 3, 3d6 at 5, 4d6 at 7, 5d6 at 9, 6d6 at 11, 7d6 at 13, 8d6 at 15, 9d6 at 17, 10d6 at 19"
+        }
+      ]
+    });
+  }
+
   const coreStatCards: CoreStatCard[] = [...additionalCoreStatCards, ...baseCoreStatCards];
 
   function syncAbilityDraftFromCharacter() {
@@ -487,15 +614,16 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
     setSelectedStatReference({
       keyword: card.label,
       summaryText: card.summaryText,
-      indicators: card.indicators?.length ? card.indicators : undefined,
+      indicatorSections: buildReferenceIndicatorSections([
+        {
+          indicators: card.indicators
+        }
+      ]),
       detailCards: card.detailCards
     });
   }
 
-  function openAbilityReference(
-    ability: AbilityKey,
-    indicators?: FeatureIndicator[]
-  ) {
+  function openAbilityReference(ability: AbilityKey) {
     const abilityBreakdown = getAbilityScoreBreakdownForCharacter(character, ability);
     const abilityDescription = getKeywordDescription(ability);
     const savingThrowKeyword = `${ability} Saving Throw`;
@@ -527,7 +655,10 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
 
     setSelectedStatReference({
       keyword: ability,
-      indicators: indicators?.length ? indicators : undefined,
+      indicatorSections: getAbilityReferenceIndicatorSections(
+        selectedCard.modifierIndicators,
+        selectedCard.savingThrowIndicators
+      ),
       descriptionItems: descriptionItems.length ? descriptionItems : undefined,
       detailCards: [
         {
@@ -549,7 +680,8 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
             selectedCard.totalSavingThrowValue,
             selectedCard.modifierValue,
             selectedCard.proficiencyContribution,
-            selectedCard.proficiencyLabel
+            selectedCard.proficiencyLabel,
+            selectedCard.savingThrowBonusEntries
           )
         }
       ]
@@ -591,28 +723,28 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
             coreStatCards.length >= 7 && styles.coreStatGridWide
           )}
         >
-          {coreStatCards.map((card) => (
-            <button
-              key={card.key}
-              type="button"
-              className={clsx(styles.modifierCard, styles.modifierCardButton)}
-              onClick={() => openCoreStatReference(card)}
-            >
-              <div className={styles.modifierLabelRow}>
-                <span className={clsx(styles.modifierLabel, styles.coreStatLabel)}>
-                  {card.label}
-                </span>
-                {card.indicators?.map((indicator) => (
-                  <RollStatePill
-                    key={`${card.key}-${indicator.label}-${indicator.tone}`}
-                    tone={indicator.tone}
-                    label={indicator.label}
-                  />
-                ))}
-              </div>
-              <strong>{card.value}</strong>
-            </button>
-          ))}
+          {coreStatCards.map((card) => {
+            const rollState = resolveFeatureIndicators(card.indicators);
+
+            return (
+              <button
+                key={card.key}
+                type="button"
+                className={clsx(styles.modifierCard, styles.modifierCardButton)}
+                onClick={() => openCoreStatReference(card)}
+              >
+                <div className={styles.modifierLabelRow}>
+                  <span className={clsx(styles.modifierLabel, styles.coreStatLabel)}>
+                    {card.label}
+                  </span>
+                  {rollState ? (
+                    <RollStatePill tone={rollState.tone} label={rollState.label} />
+                  ) : null}
+                </div>
+                <strong>{card.value}</strong>
+              </button>
+            );
+          })}
         </div>
       </section>
     );
@@ -627,58 +759,60 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
             <span className={styles.groupTitleDivider} aria-hidden="true" />
             <span>Saving Throws</span>
           </h3>
-          <button
-            type="button"
-            className={shared.editButton}
-            onClick={openAbilityEditor}
-          >
+          <button type="button" className={shared.editButton} onClick={openAbilityEditor}>
             <Pencil size={16} />
             Edit
           </button>
         </div>
 
         <div className={styles.modifierGrid}>
-          {abilitySavingThrowCards.map((card) => (
-            <button
-              key={card.ability}
-              type="button"
-              className={clsx(styles.modifierCard, styles.modifierCardButton)}
-              onClick={() => openAbilityReference(card.ability, card.indicators)}
-            >
-              <div className={styles.modifierLabelRow}>
-                <span className={styles.modifierLabel}>{card.ability}</span>
-                <span
-                  className={clsx(
-                    styles.scoreBadge,
-                    card.ability === mainAbility && styles.scoreBadgePrimary
-                  )}
-                  aria-label={`${card.ability} score ${card.score}`}
-                >
-                  <Pentagon size={28} className={styles.scoreBadgeIcon} aria-hidden="true" />
-                  <span className={styles.scoreBadgeValue}>{card.score}</span>
-                </span>
-                {card.indicators.map((indicator) => (
-                  <RollStatePill
-                    key={`${card.ability}-${indicator.label}-${indicator.tone}`}
-                    tone={indicator.tone}
-                    label={indicator.label}
-                  />
-                ))}
-              </div>
-              <div className={styles.combinedValueRow}>
-                <strong>{card.modifier}</strong>
-                <span className={styles.combinedValueDivider} aria-hidden="true" />
-                <strong
-                  className={clsx(
-                    card.hasSavingThrowAdvantage && styles.savingThrowValueAdvantage,
-                    card.hasSavingThrowDisadvantage && styles.savingThrowValueDisadvantage
-                  )}
-                >
-                  {card.totalSavingThrow}
-                </strong>
-              </div>
-            </button>
-          ))}
+          {abilitySavingThrowCards.map((card) => {
+            const hasSplitRollStates =
+              card.sharedRollState === null &&
+              card.modifierRollState !== null &&
+              card.savingThrowRollState !== null;
+            const leftRollState = hasSplitRollStates ? card.modifierRollState : null;
+            const rightRollState =
+              card.sharedRollState ?? card.savingThrowRollState ?? card.modifierRollState;
+
+            return (
+              <button
+                key={card.ability}
+                type="button"
+                className={clsx(styles.modifierCard, styles.modifierCardButton)}
+                onClick={() => openAbilityReference(card.ability)}
+              >
+                <div className={styles.modifierLabelRow}>
+                  {leftRollState ? (
+                    <RollStatePill tone={leftRollState.tone} label={leftRollState.label} />
+                  ) : null}
+                  <span className={styles.modifierLabel}>{card.ability}</span>
+                  <span
+                    className={clsx(
+                      styles.scoreBadge,
+                      card.ability === mainAbility && styles.scoreBadgePrimary
+                    )}
+                    aria-label={`${card.ability} score ${card.score}`}
+                  >
+                    <Pentagon size={28} className={styles.scoreBadgeIcon} aria-hidden="true" />
+                    <span className={styles.scoreBadgeValue}>{card.score}</span>
+                  </span>
+                  {rightRollState ? (
+                    <RollStatePill tone={rightRollState.tone} label={rightRollState.label} />
+                  ) : null}
+                </div>
+                <div className={styles.combinedValueRow}>
+                  <strong className={getRollStateValueClassName(card.modifierRollState)}>
+                    {card.modifier}
+                  </strong>
+                  <span className={styles.combinedValueDivider} aria-hidden="true" />
+                  <strong className={getRollStateValueClassName(card.savingThrowRollState)}>
+                    {card.totalSavingThrow}
+                  </strong>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </section>
     );
@@ -738,16 +872,33 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
                   </p>
                 ) : null}
               </div>
-              {selectedStatReference.indicators?.length ? (
+              {selectedStatReference.indicatorSections?.length ? (
                 <div className={styles.referenceIndicatorStack}>
-                  {selectedStatReference.indicators.map((indicator, index) => (
-                    <RollStatePill
-                      key={`${selectedStatReference.keyword}-${indicator.label}-${indicator.tone}-${indicator.source}-${index}`}
-                      tone={indicator.tone}
-                      label={indicator.label}
-                      detailText={`From ${indicator.source}`}
-                    />
-                  ))}
+                  {selectedStatReference.indicatorSections.map((section, index) => {
+                    const rollState = resolveFeatureIndicators(section.indicators);
+
+                    if (!rollState) {
+                      return null;
+                    }
+
+                    return (
+                      <div
+                        key={`${selectedStatReference.keyword}-${section.label ?? "shared"}-${index}`}
+                        className={styles.referenceIndicatorSection}
+                      >
+                        {section.label ? (
+                          <span className={styles.referenceIndicatorSectionLabel}>
+                            {section.label}
+                          </span>
+                        ) : null}
+                        <RollStatePill
+                          tone={rollState.tone}
+                          label={rollState.label}
+                          detailText={formatResolvedRollStateDetailText(rollState)}
+                        />
+                      </div>
+                    );
+                  })}
                 </div>
               ) : null}
               <button
@@ -777,7 +928,9 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
                   </div>
                 ) : null}
                 {selectedStatReference.detailCards?.length ? (
-                  <div className={clsx(sheetStyles.spellDrawerDetails, styles.referenceDetailStack)}>
+                  <div
+                    className={clsx(sheetStyles.spellDrawerDetails, styles.referenceDetailStack)}
+                  >
                     {selectedStatReference.detailCards.map((detailCard) => (
                       <div
                         key={`${selectedStatReference.keyword}-${detailCard.label}`}
@@ -805,11 +958,7 @@ function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFor
                     </label>
                   ) : null}
                 </div>
-                <button
-                  type="button"
-                  className={sheetStyles.castButton}
-                  onClick={rollInitiative}
-                >
+                <button type="button" className={sheetStyles.castButton} onClick={rollInitiative}>
                   Roll Initiative
                 </button>
               </div>

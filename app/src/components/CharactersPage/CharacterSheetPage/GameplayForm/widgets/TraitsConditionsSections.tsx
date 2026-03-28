@@ -1,3 +1,4 @@
+import clsx from "clsx";
 import type { CSSProperties } from "react";
 import ActionShape from "../../../../ActionShape";
 import {
@@ -51,8 +52,15 @@ function TraitsConditionsSections({
                 <li key={entry.id}>
                   <button
                     type="button"
-                    className={styles.button}
-                    onClick={() => onSelectEntry(entry.id)}
+                    className={clsx(styles.button, entry.disabled && styles.buttonDisabled)}
+                    onClick={() => {
+                      if (entry.disabled) {
+                        return;
+                      }
+
+                      onSelectEntry(entry.id);
+                    }}
+                    disabled={entry.disabled === true}
                   >
                     <span className={styles.buttonText}>
                       <span>{getStatusEntryTitle(entry)}</span>

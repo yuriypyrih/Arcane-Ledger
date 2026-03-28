@@ -31,7 +31,7 @@ import { normalizeCharacterClassFeatureState } from "./classFeatures";
 import { normalizeLevelAndXp } from "./experience";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
 import { normalizeCharacterFeats } from "./feats";
-import { normalizeCharacterStatusEntries } from "./traits";
+import { normalizeCharacterStatusEntries, reconcileCharacterStatusConsequences } from "./traits";
 
 function clampNumber(value: unknown, min: number, max: number, fallback: number): number {
   const parsedValue = Number(value);
@@ -227,7 +227,8 @@ function normalizeCharacter(value: unknown): Character | null {
       )
     : (defaults.toolProficiencies ?? []);
   const hasPersistedArmorWearState =
-    hasExplicitArmorWornState(record.equipment) || hasExplicitArmorWornState(record.customEquipment);
+    hasExplicitArmorWornState(record.equipment) ||
+    hasExplicitArmorWornState(record.customEquipment);
   const normalizedEquipment = normalizeCharacterEquipmentSelections(rawEquipment);
   const normalizedCustomEquipment = normalizeCustomEquipmentEntries(record.customEquipment);
   const normalizedArmorWearState = normalizeCharacterArmorWearState(
@@ -237,10 +238,18 @@ function normalizeCharacter(value: unknown): Character | null {
       autoEquipLegacyArmor: !hasPersistedArmorWearState
     }
   );
-  const normalizedClassFeatureState = normalizeCharacterClassFeatureState(record.classFeatureState, {
-    className: normalizedClassName,
-    level: normalizedLevel
-  });
+  const normalizedAbilities = {
+    ...createDefaultAbilities(),
+    ...(record.abilities ?? {})
+  };
+  const normalizedClassFeatureState = normalizeCharacterClassFeatureState(
+    record.classFeatureState,
+    {
+      className: normalizedClassName,
+      level: normalizedLevel,
+      abilities: normalizedAbilities
+    }
+  );
   const normalizedProficiencies = normalizeCharacterProficiencies({
     className: normalizedClassName,
     level: normalizedLevel,
@@ -298,11 +307,7 @@ function normalizeCharacter(value: unknown): Character | null {
     rawPreparedSpellIds.filter((spellId) => preparedSpellSelectionOptionIds.has(spellId)),
     preparedSpellSelectionOptions,
     preparedSpellLimit,
-    getAlwaysPreparedSpellIds(
-      normalizedClassName,
-      normalizedLevel,
-      normalizedClassFeatureState
-    )
+    getAlwaysPreparedSpellIds(normalizedClassName, normalizedLevel, normalizedClassFeatureState)
   );
   const spellSlotTotals = getSpellSlotTotalsForCharacter(normalizedClassName, normalizedLevel);
   const normalizedSpellSlotsExpended = normalizeSpellSlotsExpended(
@@ -338,7 +343,7 @@ function normalizeCharacter(value: unknown): Character | null {
     clampNumber(record.temporaryHitPoints, 0, 999, defaults.temporaryHitPoints)
   );
 
-  return {
+  return reconcileCharacterStatusConsequences({
     id,
     name: typeof record.name === "string" ? record.name : defaults.name,
     species: normalizedSpecies,
@@ -358,10 +363,7 @@ function normalizeCharacter(value: unknown): Character | null {
       record.attributeMode === "pointBuy" || record.attributeMode === "custom"
         ? record.attributeMode
         : defaults.attributeMode,
-    abilities: {
-      ...createDefaultAbilities(),
-      ...(record.abilities ?? {})
-    },
+    abilities: normalizedAbilities,
     alignment: (alignmentGrid.flat() as string[]).includes(record.alignment ?? "")
       ? (record.alignment as Character["alignment"])
       : defaults.alignment,
@@ -387,7 +389,7 @@ function normalizeCharacter(value: unknown): Character | null {
     coreStats: normalizedCoreStats,
     classFeatureState: normalizedClassFeatureState,
     feats: normalizedFeats
-  };
+  });
 }
 
 export function loadCharacters(): Character[] {

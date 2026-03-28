@@ -5,6 +5,7 @@ import type { Character } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { clampNumber } from "../../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
+import { getEffectiveHitPointMaximumForCharacter } from "../../../../../pages/CharactersPage/traits";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import type { RestType } from "./restOptions";
@@ -22,7 +23,7 @@ function CampButton({ character, onPersistCharacter }: CampButtonProps) {
   const [selectedRestOptionIds, setSelectedRestOptionIds] = useState<string[]>([]);
   const shortRestsUsedToday = clampNumber(character.shortRestsUsedToday, 0, 2, 0);
   const shortRestsRemaining = Math.max(0, 2 - shortRestsUsedToday);
-  const shortRestHealAmount = Math.ceil(character.hitPoints / 2);
+  const shortRestHealAmount = Math.ceil(getEffectiveHitPointMaximumForCharacter(character) / 2);
   const shortRestOptions = useMemo(() => createShortRestOptions(character), [character]);
   const longRestOptions = useMemo(() => createLongRestOptions(character), [character]);
   const selectedRestOptions = useMemo(

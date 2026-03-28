@@ -27,22 +27,32 @@ import {
   usesPreparedSpellsForCharacter
 } from "../../../../../pages/CharactersPage/spellcasting";
 import {
+  applySpellConcentrationToStatusEntries,
+  getExhaustionLevel,
   getStatusDurationPreset,
+  isExhaustionConditionOptionValue,
+  isExhaustionStatusEntry,
+  parseConditionOptionValue,
+  reconcileCharacterStatusConsequences,
   resolveCharacterStatusEntries,
+  setCharacterExhaustionLevel,
   statusGroupOrder,
   statusGroupTitles,
   updateCharacterStatusEntryDuration,
   upsertManualStatusEntry,
   removeCharacterStatusEntry
 } from "../../../../../pages/CharactersPage/traits";
+import type { ExhaustionLevel } from "../../../../../pages/CharactersPage/traits";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type {
   Character,
+  CharacterStatusDuration,
   CharacterStatusEntry,
   CharacterStatusValue
 } from "../../../../../types";
 import {
   STATUS_DURATION_PRESET,
+  STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
@@ -50,6 +60,7 @@ import { consumeRoundTrackerResource } from "../../../../../pages/CharactersPage
 import CharacterSpellDrawer from "../../SpellCastingForm/CharacterSpellDrawer";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import widgetShellStyles from "../GameplayWidgetShared.module.css";
+import { createDefaultDeathSaves } from "../gameplayStateUtils";
 import { getRoundTrackerActionWarning } from "../gameplayWidgetUtils";
 import styles from "./TraitsConditionsWidget.module.css";
 import TraitEditorModal from "./TraitEditorModal";
@@ -114,7 +125,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     [character.spellSlotsExpended, spellSlotTotals]
   );
   const spellSlotsRemaining = useMemo(
-    () => spellSlotTotals.map((total, index) => Math.max(0, total - (spellSlotsExpended[index] ?? 0))),
+    () =>
+      spellSlotTotals.map((total, index) => Math.max(0, total - (spellSlotsExpended[index] ?? 0))),
     [spellSlotTotals, spellSlotsExpended]
   );
   const usesPreparedSpells = useMemo(
@@ -135,64 +147,67 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       ),
     [classSpellEntries, featGrantedCantripEntries, preparedSpellPoolEntries]
   );
-  const selectedCantrips = useMemo(
-    () => {
-      const selectedCantripEntries = new Map<string, SpellEntry>();
+  const selectedCantrips = useMemo(() => {
+    const selectedCantripEntries = new Map<string, SpellEntry>();
 
-      normalizeTrackedSpellIds(
-        character.cantripIds,
-        classSpellEntries.filter((spell) => getSpellLevel(spell) === 0),
-        cantripLimit
-      ).forEach((spellId) => {
-        const spell = classSpellEntriesById.get(spellId);
+    normalizeTrackedSpellIds(
+      character.cantripIds,
+      classSpellEntries.filter((spell) => getSpellLevel(spell) === 0),
+      cantripLimit
+    ).forEach((spellId) => {
+      const spell = classSpellEntriesById.get(spellId);
 
-        if (spell) {
-          selectedCantripEntries.set(spell.id, spell);
-        }
-      });
-
-      featGrantedCantripEntries.forEach((spell) => {
+      if (spell) {
         selectedCantripEntries.set(spell.id, spell);
-      });
+      }
+    });
 
-      return [...selectedCantripEntries.values()].sort((left, right) =>
-        left.name.localeCompare(right.name)
-      );
-    },
-    [cantripLimit, character.cantripIds, classSpellEntries, classSpellEntriesById, featGrantedCantripEntries]
-  );
-  const selectedPreparedSpells = useMemo(
-    () => {
-      const highestSpellSlotLevel = spellSlotTotals.reduce((highest, total, index) => (total > 0 ? index + 1 : highest), 0);
-      const spellPreparationOptions = preparedSpellPoolEntries.filter((spell) => {
-        const spellLevel = getSpellLevel(spell);
-        return spellLevel > 0 && spellLevel <= highestSpellSlotLevel;
-      });
+    featGrantedCantripEntries.forEach((spell) => {
+      selectedCantripEntries.set(spell.id, spell);
+    });
 
-      return usesPreparedSpells
-        ? [
-            ...alwaysPreparedSpellIds,
-            ...normalizePreparedSpellIds(
-              character.preparedSpellIds,
-              spellPreparationOptions,
-              preparedSpellLimit,
-              alwaysPreparedSpellIds
-            )
-          ]
-            .map((spellId) => classSpellEntriesById.get(spellId))
-            .filter((spell): spell is SpellEntry => spell !== undefined)
-        : spellPreparationOptions;
-    },
-    [
-      alwaysPreparedSpellIds,
-      character.preparedSpellIds,
-      classSpellEntriesById,
-      preparedSpellLimit,
-      preparedSpellPoolEntries,
-      spellSlotTotals,
-      usesPreparedSpells
-    ]
-  );
+    return [...selectedCantripEntries.values()].sort((left, right) =>
+      left.name.localeCompare(right.name)
+    );
+  }, [
+    cantripLimit,
+    character.cantripIds,
+    classSpellEntries,
+    classSpellEntriesById,
+    featGrantedCantripEntries
+  ]);
+  const selectedPreparedSpells = useMemo(() => {
+    const highestSpellSlotLevel = spellSlotTotals.reduce(
+      (highest, total, index) => (total > 0 ? index + 1 : highest),
+      0
+    );
+    const spellPreparationOptions = preparedSpellPoolEntries.filter((spell) => {
+      const spellLevel = getSpellLevel(spell);
+      return spellLevel > 0 && spellLevel <= highestSpellSlotLevel;
+    });
+
+    return usesPreparedSpells
+      ? [
+          ...alwaysPreparedSpellIds,
+          ...normalizePreparedSpellIds(
+            character.preparedSpellIds,
+            spellPreparationOptions,
+            preparedSpellLimit,
+            alwaysPreparedSpellIds
+          )
+        ]
+          .map((spellId) => classSpellEntriesById.get(spellId))
+          .filter((spell): spell is SpellEntry => spell !== undefined)
+      : spellPreparationOptions;
+  }, [
+    alwaysPreparedSpellIds,
+    character.preparedSpellIds,
+    classSpellEntriesById,
+    preparedSpellLimit,
+    preparedSpellPoolEntries,
+    spellSlotTotals,
+    usesPreparedSpells
+  ]);
   const featureReactionEntries = useMemo(
     () => getFeatureReactionEntriesForCharacter(character),
     [character]
@@ -240,7 +255,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   const selectedReactionSpell =
     selectedStatusEntry?.group === STATUS_ENTRY_GROUP.REACTIONS &&
     selectedStatusEntry.sourceId?.startsWith("reaction-spell-")
-      ? (classSpellEntriesById.get(selectedStatusEntry.sourceId.replace(/^reaction-spell-/, "")) ?? null)
+      ? (classSpellEntriesById.get(selectedStatusEntry.sourceId.replace(/^reaction-spell-/, "")) ??
+        null)
       : null;
   const selectedReactionEntry =
     selectedStatusEntry?.group === STATUS_ENTRY_GROUP.REACTIONS &&
@@ -312,7 +328,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
               slotLevel >= minimumSlotLevel && (spellSlotsRemaining[slotLevel - 1] ?? 0) > 0
           ) ??
           [1, 2, 3, 4, 5, 6, 7, 8, 9].find(
-            (slotLevel) => slotLevel >= minimumSlotLevel && (spellSlotTotals[slotLevel - 1] ?? 0) > 0
+            (slotLevel) =>
+              slotLevel >= minimumSlotLevel && (spellSlotTotals[slotLevel - 1] ?? 0) > 0
           ) ??
           minimumSlotLevel);
 
@@ -333,27 +350,59 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     }
 
     const nextGroup = getTraitEditorGroup(activeTraitEditorTab);
-    const nextDuration = resolveStatusDurationPreset(
-      statusDraftDurationPreset,
-      nextGroup,
-      selectedValue as CharacterStatusValue
-    );
+    const parsedConditionValue =
+      nextGroup === STATUS_ENTRY_GROUP.CONDITIONS ? parseConditionOptionValue(selectedValue) : null;
+    const nextValue = parsedConditionValue?.value ?? (selectedValue as CharacterStatusValue);
+    const nextDuration: CharacterStatusDuration =
+      parsedConditionValue?.conditionLevel !== undefined
+        ? { kind: STATUS_DURATION_KIND.INFINITE }
+        : resolveStatusDurationPreset(statusDraftDurationPreset, nextGroup, nextValue);
 
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      statusEntries: upsertManualStatusEntry(currentCharacter.statusEntries, {
-        group: nextGroup,
-        value: selectedValue as CharacterStatusValue,
-        source: "Manual",
-        duration: nextDuration
+    onPersistCharacter((currentCharacter) =>
+      reconcileCharacterStatusConsequences({
+        ...currentCharacter,
+        statusEntries: upsertManualStatusEntry(currentCharacter.statusEntries, {
+          group: nextGroup,
+          value: nextValue,
+          conditionLevel: parsedConditionValue?.conditionLevel ?? null,
+          source: "Manual",
+          duration: nextDuration
+        })
       })
-    }));
+    );
 
     setStatusDraftDurationPreset(STATUS_DURATION_PRESET.INFINITE);
     setIsTraitModalOpen(false);
   }
 
+  function updateExhaustionLevel(nextLevel: ExhaustionLevel | null) {
+    onPersistCharacter((currentCharacter) => {
+      const currentExhaustionLevel = getExhaustionLevel(currentCharacter.statusEntries);
+      const isLeavingExhaustionDeathState =
+        currentExhaustionLevel !== null &&
+        currentExhaustionLevel >= 6 &&
+        (nextLevel === null || nextLevel < 6);
+
+      return reconcileCharacterStatusConsequences({
+        ...currentCharacter,
+        statusEntries: setCharacterExhaustionLevel(currentCharacter.statusEntries, nextLevel),
+        deathSaves: isLeavingExhaustionDeathState
+          ? createDefaultDeathSaves()
+          : currentCharacter.deathSaves
+      });
+    });
+
+    if (nextLevel === null) {
+      setSelectedStatusEntryId(null);
+    }
+  }
+
   function removeStatusEntry(entry: CharacterStatusEntry) {
+    if (isExhaustionStatusEntry(entry)) {
+      updateExhaustionLevel(null);
+      return;
+    }
+
     onPersistCharacter((currentCharacter) => {
       if (entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE) {
         return removeFeatureStatusEntryForCharacter(currentCharacter, entry);
@@ -405,6 +454,10 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     if (spellLevel === 0) {
       onPersistCharacter((currentCharacter) => ({
         ...currentCharacter,
+        statusEntries: applySpellConcentrationToStatusEntries(
+          currentCharacter.statusEntries,
+          selectedReactionSpell
+        ),
         roundTracker: consumeRoundTrackerResource(currentCharacter.roundTracker, "reaction")
       }));
       closeSelectedReaction();
@@ -422,14 +475,19 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     }
 
     onPersistCharacter((currentCharacter) => {
-      const nextSpellSlotsExpended = Array.from({ length: 9 }, (_, index) =>
-        (currentCharacter.spellSlotsExpended?.[index] as number | undefined) ?? 0
+      const nextSpellSlotsExpended = Array.from(
+        { length: 9 },
+        (_, index) => (currentCharacter.spellSlotsExpended?.[index] as number | undefined) ?? 0
       );
       nextSpellSlotsExpended[slotLevel - 1] = (nextSpellSlotsExpended[slotLevel - 1] ?? 0) + 1;
 
       return {
         ...currentCharacter,
         spellSlotsExpended: nextSpellSlotsExpended,
+        statusEntries: applySpellConcentrationToStatusEntries(
+          currentCharacter.statusEntries,
+          selectedReactionSpell
+        ),
         roundTracker: consumeRoundTrackerResource(currentCharacter.roundTracker, "reaction")
       };
     });
@@ -449,6 +507,11 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
 
     closeSelectedReaction();
   }
+
+  const selectedExhaustionLevel =
+    selectedStatusEntry && isExhaustionStatusEntry(selectedStatusEntry)
+      ? Math.max(1, Math.min(6, selectedStatusEntry.conditionLevel ?? 1))
+      : null;
 
   return (
     <>
@@ -478,12 +541,16 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           values={statusDraftValues}
           durationPreset={statusDraftDurationPreset}
           onTabChange={setActiveTraitEditorTab}
-          onValueChange={(tab, value) =>
+          onValueChange={(tab, value) => {
             setStatusDraftValues((current) => ({
               ...current,
               [tab]: value
-            }))
-          }
+            }));
+
+            if (tab === "conditions" && isExhaustionConditionOptionValue(value)) {
+              setStatusDraftDurationPreset(STATUS_DURATION_PRESET.INFINITE);
+            }
+          }}
           onDurationPresetChange={setStatusDraftDurationPreset}
           onSave={addStatusEntry}
           onClose={() => setIsTraitModalOpen(false)}
@@ -529,6 +596,20 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           }}
           onApplyDuration={applyStatusEntryDuration}
           onRemove={() => removeStatusEntry(selectedStatusEntry)}
+          onIncreaseExhaustion={() =>
+            updateExhaustionLevel(
+              selectedExhaustionLevel === null
+                ? 1
+                : (Math.min(6, selectedExhaustionLevel + 1) as ExhaustionLevel)
+            )
+          }
+          onDecreaseExhaustion={() =>
+            updateExhaustionLevel(
+              selectedExhaustionLevel === null || selectedExhaustionLevel <= 1
+                ? null
+                : ((selectedExhaustionLevel - 1) as ExhaustionLevel)
+            )
+          }
           onClose={() => setSelectedStatusEntryId(null)}
         />
       ) : null}

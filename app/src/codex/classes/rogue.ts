@@ -7,10 +7,10 @@ export type RogueFeatureClassObj = FeatureClassObj & {
 
 const rogueExpertiseOverride: FeatureMapEntry = {
   description: [
-    "You gain Expertise in two of your skill proficiencies of your choice. Sleight of Hand and Stealth are recommended if you have proficiency in them.",
-    "At Rogue level 6, you gain Expertise in two more of your skill proficiencies of your choice."
+    "You gain <link:Expertise>Expertise</link> in two of your skill proficiencies of your choice. <link:Sleight of Hand>Sleight of Hand</link> and <link:Stealth>Stealth</link> are recommended if you have proficiency in them.",
+    "At Rogue level 6, you gain <link:Expertise>Expertise</link> in two more of your skill proficiencies of your choice."
   ],
-  isTracked: false
+  isTracked: true
 };
 
 const rogueWeaponMasteryOverride: FeatureMapEntry = {
@@ -18,23 +18,23 @@ const rogueWeaponMasteryOverride: FeatureMapEntry = {
     "Your training with weapons allows you to use the mastery properties of two kinds of weapons of your choice with which you have proficiency, such as Daggers and Shortbows.",
     "Whenever you finish a <link:long-rest>Long Rest</link>, you can change the kinds of weapons you chose. For example, you could switch to using the mastery properties of Scimitars and Shortswords."
   ],
-  isTracked: false
+  isTracked: true
 };
 
 const rogueEvasionOverride: FeatureMapEntry = {
   description: [
     "When you're subjected to an effect that allows you to make a Dexterity saving throw to take only half damage, you instead take no damage if you succeed on the saving throw and only half damage if you fail.",
-    "You can't use this feature if you have the Incapacitated condition."
+    "You can't use this feature if you have the <link:Incapacitated>Incapacitated</link> condition."
   ],
-  isTracked: false
+  isTracked: true
 };
 
 const rogueEpicBoonOverride: FeatureMapEntry = {
   description: [
     "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
-    "Boon of the Night Spirit is recommended."
+    "<feat:BOON_OF_THE_NIGHT_SPIRIT>Boon of the Night Spirit</feat> is recommended."
   ],
-  isTracked: false
+  isTracked: true
 };
 
 export const rogueFeatures: RogueFeatureClassObj[] = [
@@ -161,18 +161,18 @@ export const rogueFeatures: RogueFeatureClassObj[] = [
 export const rogueFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   [CLASS_FEATURE.SNEAK_ATTACK]: {
     description: [
-      "You know how to strike subtly and exploit a foe's distraction. Once per turn, you can deal an extra 1d6 damage to one creature you hit with an attack roll if you have Advantage on the roll and the attack uses a Finesse or a Ranged weapon. The extra damage's type is the same as the weapon's type.",
-      "You don't need Advantage on the attack roll if at least one of your allies is within 5 feet of the target, the ally doesn't have the Incapacitated condition, and you don't have Disadvantage on the attack roll.",
+      "You know how to strike subtly and exploit a foe's distraction. Once per turn, you can deal an extra 1d6 damage to one creature you hit with an attack roll if you have <link:Advantage>Advantage</link> on the roll and the attack uses a <link:Finesse>Finesse</link> or a Ranged weapon. The extra damage's type is the same as the weapon's type.",
+      "You don't need <link:Advantage>Advantage</link> on the attack roll if at least one of your allies is within 5 feet of the target, the ally doesn't have the <link:Incapacitated>Incapacitated</link> condition, and you don't have <link:Disadvantage>Disadvantage</link> on the attack roll.",
       "The extra damage increases as you gain Rogue levels, as shown in the Sneak Attack column of the Rogue Features table."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.THIEVES_CANT]: {
     description: [
       "You picked up various languages in the communities where you plied your roguish talents.",
-      "You know Thieves' Cant and one other language of your choice, which you choose from the language tables in 'Creating a Character'."
+      "You know <link:Thieves' Cant>Thieves' Cant</link> and one other language of your choice, which you choose from the language tables in 'Creating a Character'."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.CUNNING_ACTION]: {
     description: [
@@ -191,28 +191,28 @@ export const rogueFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = 
   },
   [CLASS_FEATURE.STEADY_AIM]: {
     description: [
-      "As a Bonus Action, you give yourself Advantage on your next attack roll on the current turn.",
+      "As a Bonus Action, you give yourself <link:Advantage>Advantage</link> on your next attack roll on the current turn.",
       "You can use this feature only if you haven't moved during this turn, and after you use it, your Speed is 0 until the end of the current turn."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.CUNNING_STRIKE]: {
     description: [
       "You've developed cunning ways to use your Sneak Attack. When you deal Sneak Attack damage, you can add one of the following Cunning Strike effects. Each effect has a die cost, which is the number of Sneak Attack damage dice you must forgo to add the effect.",
       "You remove the die before rolling, and the effect occurs immediately after the attack's damage is dealt. For example, if you add the Poison effect, remove 1d6 from the Sneak Attack's damage before rolling.",
       "If a Cunning Strike effect requires a saving throw, the DC equals 8 plus your Dexterity modifier and Proficiency Bonus.",
-      "<strong>Poison (Cost: 1d6).</strong> You add a toxin to your strike, forcing the target to make a Constitution saving throw. On a failed save, the target has the Poisoned condition for 1 minute. At the end of each of its turns, the Poisoned target repeats the save, ending the effect on itself on a success.",
+      "<strong>Poison (Cost: 1d6).</strong> You add a toxin to your strike, forcing the target to make a Constitution saving throw. On a failed save, the target has the <link:Poisoned>Poisoned</link> condition for 1 minute. At the end of each of its turns, the Poisoned target repeats the save, ending the effect on itself on a success.",
       "To use this effect, you must have a Poisoner's Kit on your person.",
-      "<strong>Trip (Cost: 1d6).</strong> If the target is Large or smaller, it must succeed on a Dexterity saving throw or have the Prone condition.",
+      "<strong>Trip (Cost: 1d6).</strong> If the target is Large or smaller, it must succeed on a Dexterity saving throw or have the <link:Prone>Prone</link> condition.",
       "<strong>Withdraw (Cost: 1d6).</strong> Immediately after the attack, you move up to half your Speed without provoking Opportunity Attacks."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.UNCANNY_DODGE]: {
     description: [
       "When an attacker that you can see hits you with an attack roll, you can take a Reaction to halve the attack's damage against you, rounded down."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.RELIABLE_TALENT]: {
     description: [
@@ -224,34 +224,34 @@ export const rogueFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = 
     description: [
       "You can use up to two Cunning Strike effects when you deal Sneak Attack damage, paying the die cost for each effect."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.DEVIOUS_STRIKES]: {
     description: [
       "You've practiced new ways to use your Sneak Attack deviously. The following effects are now among your Cunning Strike options.",
       "<strong>Daze (Cost: 2d6).</strong> The target must succeed on a Constitution saving throw, or on its next turn, it can do only one of the following: move, take an action, or take a Bonus Action.",
-      "<strong>Knock Out (Cost: 6d6).</strong> The target must succeed on a Constitution saving throw, or it has the Unconscious condition for 1 minute or until it takes any damage. The Unconscious target repeats the save at the end of each of its turns, ending the effect on itself on a success.",
-      "<strong>Obscure (Cost: 3d6).</strong> The target must succeed on a Dexterity saving throw, or it has the Blinded condition until the end of its next turn."
+      "<strong>Knock Out (Cost: 6d6).</strong> The target must succeed on a Constitution saving throw, or it has the <link:Unconscious>Unconscious</link> condition for 1 minute or until it takes any damage. The Unconscious target repeats the save at the end of each of its turns, ending the effect on itself on a success.",
+      "<strong>Obscure (Cost: 3d6).</strong> The target must succeed on a Dexterity saving throw, or it has the <link:Blinded>Blinded</link> condition until the end of its next turn."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.SLIPPERY_MIND]: {
     description: [
       "Your cunning mind is exceptionally difficult to control. You gain proficiency in Wisdom and Charisma saving throws."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.ELUSIVE]: {
     description: [
-      "You're so evasive that attackers rarely gain the upper hand against you. No attack roll can have Advantage against you unless you have the Incapacitated condition."
+      "You're so evasive that attackers rarely gain the upper hand against you. No attack roll can have <link:Advantage>Advantage</link> against you unless you have the <link:Incapacitated>Incapacitated</link> condition."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.STROKE_OF_LUCK]: {
     description: [
       "You have a marvelous knack for succeeding when you need to. If you fail a D20 Test, you can turn the roll into a 20.",
       "Once you use this feature, you can't use it again until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>."
     ],
-    isTracked: false
+    isTracked: true
   }
 };

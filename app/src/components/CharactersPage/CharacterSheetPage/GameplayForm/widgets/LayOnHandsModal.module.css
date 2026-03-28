@@ -66,6 +66,37 @@
   outline: none;
 }
 
+.conditionList {
+  display: grid;
+  gap: 0.35rem 0.42rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.conditionOption {
+  align-items: center;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.78);
+  cursor: pointer;
+  display: flex;
+  gap: 0.45rem;
+  min-height: 34px;
+  padding: 0.2rem 0.56rem;
+  font-size: 0.82rem;
+  line-height: 1.2;
+}
+
+.conditionOptionSelected {
+  border-color: rgba(47, 120, 255, 0.26);
+  box-shadow: 0 0 0 3px rgba(47, 120, 255, 0.05);
+}
+
+.conditionCheckbox {
+  accent-color: #2f78ff;
+  height: 14px;
+  width: 14px;
+}
+
 .capacityBlock {
   display: grid;
   gap: 0.2rem;

@@ -27,6 +27,7 @@ import { hasStatusCondition } from "../traits";
 import { skillGroupsByAbility } from "../skillDefinitions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
 import type {
+  AbilityCheckIndicatorMap,
   ArmorClassFeatureContext,
   CoreStatIndicatorMap,
   DerivedFeatureStatusEntry,
@@ -112,7 +113,10 @@ function getUnlockedBarbarianFeatures(level: number): Set<CLASS_FEATURE> {
     }, new Set<CLASS_FEATURE>());
 }
 
-function hasBarbarianFeature(character: Pick<Character, "className" | "level">, feature: CLASS_FEATURE) {
+function hasBarbarianFeature(
+  character: Pick<Character, "className" | "level">,
+  feature: CLASS_FEATURE
+) {
   if (character.className !== "Barbarian") {
     return false;
   }
@@ -367,6 +371,18 @@ export function getBarbarianCoreStatIndicators(
   };
 }
 
+export function getBarbarianAbilityCheckIndicators(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): AbilityCheckIndicatorMap {
+  if (!isBarbarianRaging(character)) {
+    return {};
+  }
+
+  return {
+    STR: [rageAdvantageIndicator]
+  };
+}
+
 export function getBarbarianSkillIndicators(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): SkillIndicatorMap {
@@ -374,7 +390,8 @@ export function getBarbarianSkillIndicators(
     return {};
   }
 
-  const strengthSkills = skillGroupsByAbility.find((group) => group.ability === "STR")?.skills ?? [];
+  const strengthSkills =
+    skillGroupsByAbility.find((group) => group.ability === "STR")?.skills ?? [];
 
   return Object.fromEntries(
     strengthSkills.map((skill) => [skill, [rageAdvantageIndicator]])

@@ -28,8 +28,10 @@ import {
   getMonkFlurryOfBlowsAttackMultiCountForCharacter,
   getMonkMartialArtsDieForCharacter,
   getMonkUnarmedDamageTypeLabelForCharacter,
+  getWeaponAttackIndicatorsForCharacter,
   type FeatureDamageBonus
 } from "./classFeatures";
+import type { FeatureIndicator } from "./classFeatures";
 import {
   ACTION_CATEGORY,
   ECONOMY_TYPE,
@@ -52,10 +54,7 @@ import {
   getSkillLevelFromEntries,
   getSkillProficiencyForName
 } from "./proficiency";
-import {
-  getResolvedCustomLoadoutEntries,
-  type ResolvedCustomWeaponEntry
-} from "./customEquipment";
+import { getResolvedCustomLoadoutEntries, type ResolvedCustomWeaponEntry } from "./customEquipment";
 
 type WeaponAbilityRule = "strength" | "dexterity" | "finesse";
 
@@ -84,6 +83,7 @@ export type WeaponAction = {
   proficiencyLabel: string;
   proficiencyBonus: number;
   totalModifier: number;
+  indicators: FeatureIndicator[];
   damageBonusEntries: FeatureDamageBonus[];
   rollFormula: string;
   hasVersatileBonus: boolean;
@@ -148,10 +148,7 @@ const codexWeaponEntriesByName = new Map<string, WeaponEntry>(
 
 const codexClassEntriesByName = new Map<string, ClassEntry>(
   hardcodedCodexEntries
-    .filter(
-      (entry): entry is ClassEntry =>
-        entry.category === ENTRY_CATEGORIES.CLASSES
-    )
+    .filter((entry): entry is ClassEntry => entry.category === ENTRY_CATEGORIES.CLASSES)
     .map((entry) => [entry.name, entry])
 );
 
@@ -188,7 +185,9 @@ function getWeaponDamageTypeKey(damageType: WeaponDamageType): string {
 }
 
 function formatWeaponDamageType(damageType: WeaponDamageType): string {
-  return normalizeWeaponDamageTypes(damageType).map((entry) => formatCodexLabel(entry)).join("/");
+  return normalizeWeaponDamageTypes(damageType)
+    .map((entry) => formatCodexLabel(entry))
+    .join("/");
 }
 
 function collapseWeaponDamage(damage: WeaponDamage) {
@@ -295,14 +294,14 @@ function getSelectedWeaponDamage(
     useVersatileDamage?: boolean;
   }
 ): WeaponDamage {
-  return options?.useVersatileDamage && Array.isArray(weapon.versatileDamage) && weapon.versatileDamage.length > 0
+  return options?.useVersatileDamage &&
+    Array.isArray(weapon.versatileDamage) &&
+    weapon.versatileDamage.length > 0
     ? weapon.versatileDamage
     : weapon.damage;
 }
 
-function hasGreatWeaponFightingFeat(
-  character: Pick<Character, "feats" | "level">
-): boolean {
+function hasGreatWeaponFightingFeat(character: Pick<Character, "feats" | "level">): boolean {
   return normalizeCharacterFeats(character.feats, character.level).some(
     (entry) => entry.feat === FEATS.GREAT_WEAPON_FIGHTING
   );
@@ -448,11 +447,12 @@ function formatFeatureDamageBonusFormula(entry: FeatureDamageBonus): string | nu
 }
 
 function createWeaponAction(
-  character: Pick<Character, "className" | "level" | "classFeatureState">,
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">,
   options: {
     key: string;
     name: string;
     attackKind: "weapon" | "unarmed";
+    combatType?: WEAPON_COMBAT_TYPE | null;
     damageLabel: string;
     damageFormula: string;
     rollFormulaBase: string;
@@ -470,7 +470,8 @@ function createWeaponAction(
   const damageBonusEntries = getFeatureDamageBonusesForWeaponAction(character, {
     name: options.name,
     ability: options.ability,
-    attackKind: options.attackKind
+    attackKind: options.attackKind,
+    combatType: options.combatType ?? null
   });
   const damageLabel = appendFeatureDamageBonuses(
     options.damageLabel,
@@ -489,6 +490,7 @@ function createWeaponAction(
   );
   const totalModifier =
     options.abilityModifier + options.proficiencyBonus + getDamageBonusTotal(damageBonusEntries);
+  const indicators = getWeaponAttackIndicatorsForCharacter(character);
 
   return {
     key: options.key,
@@ -506,6 +508,7 @@ function createWeaponAction(
     proficiencyLabel: options.proficiencyLabel,
     proficiencyBonus: options.proficiencyBonus,
     totalModifier,
+    indicators,
     damageBonusEntries,
     rollFormula: createRollFormula(rollFormulaBase, totalModifier),
     hasVersatileBonus: options.hasVersatileBonus,
@@ -628,11 +631,7 @@ function getSkillModifierForCharacter(character: Character, skill: SkillName): n
     ? getSkillLevelFromEntries(character.skillProficiencies, skillProficiency)
     : PROF_LEVEL.NONE;
   const proficiencyMultiplier =
-    skillLevel === PROF_LEVEL.EXPERT
-      ? 2
-      : skillLevel === PROF_LEVEL.PROFICIENT
-        ? 1
-        : 0;
+    skillLevel === PROF_LEVEL.EXPERT ? 2 : skillLevel === PROF_LEVEL.PROFICIENT ? 1 : 0;
 
   // Perception currently maps to Wisdom.
   const abilityModifier = getAbilityModifierForCharacter(character, "WIS");
@@ -666,6 +665,7 @@ function createUnarmedStrikeAction(
     key: "unarmed-strike",
     name: "Unarmed Strike",
     attackKind: "unarmed",
+    combatType: null,
     damageLabel: `${damageFormula} ${damageTypeLabel}`,
     damageFormula,
     rollFormulaBase: damageFormula,
@@ -690,14 +690,11 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
       entry.category === ENTRY_CATEGORIES.WEAPONS && entry.onHand
   );
   const heldCodexWeapons = character.equipment.filter((item) => item.onHand);
-  const heldCodexWeaponEntries = heldCodexWeapons.reduce<WeaponEntry[]>(
-    (entries, item) => {
-      const entry = codexWeaponEntriesByName.get(item.name);
+  const heldCodexWeaponEntries = heldCodexWeapons.reduce<WeaponEntry[]>((entries, item) => {
+    const entry = codexWeaponEntriesByName.get(item.name);
 
-      return entry ? [...entries, entry] : entries;
-    },
-    []
-  );
+    return entry ? [...entries, entry] : entries;
+  }, []);
   const heldCodexWeaponDescriptors = heldCodexWeapons.reduce<HeldWeaponDescriptor[]>(
     (descriptors, item) => {
       const equipmentDefinition = getEquipmentByName(item.name);
@@ -738,8 +735,8 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
     canUseMonkMartialArtsForCharacter(character, {
       hasWornBodyArmor: getWornBodyArmorTypeForCharacter(character) !== null,
       hasShieldEquipped,
-      wieldsOnlyMonkWeaponsOrUnarmed: [...heldCodexWeaponEntries, ...heldCustomWeapons].every((weapon) =>
-        isMonkWeapon(weapon)
+      wieldsOnlyMonkWeaponsOrUnarmed: [...heldCodexWeaponEntries, ...heldCustomWeapons].every(
+        (weapon) => isMonkWeapon(weapon)
       )
     });
   const weaponEconomyMulti = getWeaponActionEconomyMultiForCharacter(character);
@@ -769,12 +766,13 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
       ? hasVersatileHandBonus(weaponDescriptor, heldWeaponDescriptors)
       : false;
     const isEligibleMonkWeapon = monkMartialArtsActive && isMonkWeapon(weaponEntry);
-    const monkDamageAdjustment = isEligibleMonkWeapon && monkMartialArtsDie
-      ? applyMartialArtsDamageDie(
-          getSelectedWeaponDamage(weaponEntry, { useVersatileDamage }),
-          monkMartialArtsDie
-        )
-      : null;
+    const monkDamageAdjustment =
+      isEligibleMonkWeapon && monkMartialArtsDie
+        ? applyMartialArtsDamageDie(
+            getSelectedWeaponDamage(weaponEntry, { useVersatileDamage }),
+            monkMartialArtsDie
+          )
+        : null;
     const weaponReference = getWeaponReference(equipmentItem.name, {
       useVersatileDamage,
       applyGreatWeaponFighting: hasGreatWeaponFighting,
@@ -806,6 +804,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
         key: `codex-${equipmentItem.name}`,
         name: equipmentItem.name,
         attackKind: "weapon",
+        combatType: weaponEntry.type.combat,
         damageLabel: weaponReference.damageLabel,
         damageFormula: weaponReference.damageFormula,
         rollFormulaBase: weaponReference.rollFormulaBase,
@@ -867,6 +866,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
         key: `custom-${weaponEntry.customEquipmentId}`,
         name: weaponEntry.name,
         attackKind: "weapon",
+        combatType: weaponEntry.type.combat,
         damageLabel: weaponReference.damageLabel,
         damageFormula: weaponReference.damageFormula,
         rollFormulaBase: weaponReference.rollFormulaBase,

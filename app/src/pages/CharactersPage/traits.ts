@@ -1,4 +1,6 @@
-import { DAMAGE_TYPE } from "../../codex/entries";
+import { paladinFeatureMap, rogueFeatureMap } from "../../codex/classes";
+import type { SpellDescriptionEntry, SpellDurationPart } from "../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE, DURATION } from "../../codex/entries";
 import {
   CONDITION_NAME,
   EFFECT_NAME,
@@ -7,13 +9,14 @@ import {
   STATUS_DURATION_PRESET,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
+  type Character,
   type CharacterStatusDuration,
   type CharacterStatusEntry,
   type CharacterStatusValue,
   type ImmunityValue
 } from "../../types";
 import { formatCodexLabel } from "../../utils/codex";
-import { getKeywordDescription } from "./keywordDescriptions";
+import { getKeywordDescriptionLines } from "./keywordDescriptions";
 
 const senseValues = new Set<SENSE>(Object.values(SENSE));
 const effectValues = new Set<EFFECT_NAME>(Object.values(EFFECT_NAME));
@@ -23,6 +26,24 @@ const statusGroupValues = new Set<STATUS_ENTRY_GROUP>(Object.values(STATUS_ENTRY
 const statusSourceTypeValues = new Set<STATUS_ENTRY_SOURCE_TYPE>(
   Object.values(STATUS_ENTRY_SOURCE_TYPE)
 );
+const exhaustionConditionOptionPrefix = "EXHAUSTION_LEVEL_";
+export const exhaustionLevels = [1, 2, 3, 4, 5, 6] as const;
+export type ExhaustionLevel = (typeof exhaustionLevels)[number];
+export type ExhaustionConditionOptionValue =
+  `${typeof exhaustionConditionOptionPrefix}${ExhaustionLevel}`;
+export type ConditionOptionValue = CONDITION_NAME | ExhaustionConditionOptionValue;
+const exhaustionConditionOptionValues = exhaustionLevels.map(
+  (level) => `${exhaustionConditionOptionPrefix}${level}` as ExhaustionConditionOptionValue
+);
+const exhaustionDescriptionEntries: SpellDescriptionEntry[] = [
+  "Higher Exhaustion levels include all lower-level effects.",
+  "<strong>Level 1.</strong> You have <link:Disadvantage>Disadvantage</link> on ability checks.",
+  "<strong>Level 2.</strong> Your <link:Speed>Speed</link> is halved.",
+  "<strong>Level 3.</strong> You have <link:Disadvantage>Disadvantage</link> on attack rolls and saving throws.",
+  "<strong>Level 4.</strong> Your Hit Point maximum is halved.",
+  "<strong>Level 5.</strong> Your <link:Speed>Speed</link> is reduced to 0.",
+  "<strong>Level 6.</strong> You die. This death bypasses death saving throws."
+];
 
 export const statusGroupOrder: STATUS_ENTRY_GROUP[] = [
   STATUS_ENTRY_GROUP.EFFECTS,
@@ -52,8 +73,10 @@ export const durationPresetOptions: Array<{
 }> = [
   { value: STATUS_DURATION_PRESET.INFINITE, label: "Infinity" },
   { value: STATUS_DURATION_PRESET.CONCENTRATION, label: "Concentration" },
+  { value: STATUS_DURATION_PRESET.ONE_MINUTE, label: "1 minute" },
   { value: STATUS_DURATION_PRESET.TEN_MINUTES, label: "10 minutes" },
   { value: STATUS_DURATION_PRESET.ONE_HOUR, label: "1 hour" },
+  { value: STATUS_DURATION_PRESET.TWO_HOURS, label: "2 hours" },
   { value: STATUS_DURATION_PRESET.EIGHT_HOURS, label: "8 hours" },
   { value: STATUS_DURATION_PRESET.TWELVE_HOURS, label: "12 hours" },
   { value: STATUS_DURATION_PRESET.TWENTY_FOUR_HOURS, label: "24 hours" },
@@ -127,6 +150,71 @@ function isConditionName(value: unknown): value is CONDITION_NAME {
   return typeof value === "string" && conditionValues.has(value as CONDITION_NAME);
 }
 
+function normalizeExhaustionLevel(value: unknown): ExhaustionLevel | null {
+  const normalizedValue = clampInteger(
+    value,
+    exhaustionLevels[0],
+    exhaustionLevels[exhaustionLevels.length - 1] ?? 6,
+    1
+  );
+
+  return exhaustionLevels.includes(normalizedValue as ExhaustionLevel)
+    ? (normalizedValue as ExhaustionLevel)
+    : null;
+}
+
+function getExhaustionLevelFromConditionOption(value: string): ExhaustionLevel | null {
+  if (!value.startsWith(exhaustionConditionOptionPrefix)) {
+    return null;
+  }
+
+  return normalizeExhaustionLevel(value.slice(exhaustionConditionOptionPrefix.length));
+}
+
+export function isExhaustionConditionOptionValue(
+  value: string
+): value is ExhaustionConditionOptionValue {
+  return getExhaustionLevelFromConditionOption(value) !== null;
+}
+
+export function formatConditionOptionLabel(value: string): string {
+  const exhaustionLevel = getExhaustionLevelFromConditionOption(value);
+
+  if (exhaustionLevel !== null) {
+    return `Exhaustion Level ${exhaustionLevel}`;
+  }
+
+  return value;
+}
+
+export function parseConditionOptionValue(value: string): {
+  value: CONDITION_NAME;
+  conditionLevel?: ExhaustionLevel;
+} | null {
+  const exhaustionLevel = getExhaustionLevelFromConditionOption(value);
+
+  if (exhaustionLevel !== null) {
+    return {
+      value: CONDITION_NAME.EXHAUSTION,
+      conditionLevel: exhaustionLevel
+    };
+  }
+
+  return isConditionName(value)
+    ? {
+        value
+      }
+    : null;
+}
+
+export function isExhaustionStatusEntry(
+  entry: Pick<CharacterStatusEntry, "group" | "value"> | null | undefined
+): boolean {
+  return (
+    entry?.group === STATUS_ENTRY_GROUP.CONDITIONS && entry.value === CONDITION_NAME.EXHAUSTION
+  );
+}
+
 function isSense(value: unknown): value is SENSE {
   return typeof value === "string" && senseValues.has(value as SENSE);
 }
@@ -147,6 +235,73 @@ function clampInteger(value: unknown, min: number, max: number, fallback: number
   }
 
   return Math.max(min, Math.min(max, Math.floor(parsed)));
+}
+
+function parseSpellConcentrationDurationLabel(label: string): CharacterStatusDuration | null {
+  const normalizedLabel = label
+    .trim()
+    .toLowerCase()
+    .replace(/^up to\s+/, "");
+
+  if (!normalizedLabel) {
+    return {
+      kind: STATUS_DURATION_KIND.INFINITE
+    };
+  }
+
+  const roundMatch = normalizedLabel.match(/^(\d+)\s+rounds?$/);
+
+  if (roundMatch) {
+    return {
+      kind: STATUS_DURATION_KIND.ROUNDS,
+      amount: clampInteger(roundMatch[1], 1, 999, 1)
+    };
+  }
+
+  const minuteMatch = normalizedLabel.match(/^(\d+)\s+minutes?$/);
+
+  if (minuteMatch) {
+    return {
+      kind: STATUS_DURATION_KIND.MINUTES,
+      amount: clampInteger(minuteMatch[1], 1, 999, 1)
+    };
+  }
+
+  const hourMatch = normalizedLabel.match(/^(\d+)\s+hours?$/);
+
+  if (hourMatch) {
+    return {
+      kind: STATUS_DURATION_KIND.HOURS,
+      amount: clampInteger(hourMatch[1], 1, 999, 1)
+    };
+  }
+
+  const dayMatch = normalizedLabel.match(/^(\d+)\s+days?$/);
+
+  if (dayMatch) {
+    return {
+      kind: STATUS_DURATION_KIND.HOURS,
+      amount: clampInteger(dayMatch[1], 1, 999, 1) * 24
+    };
+  }
+
+  return null;
+}
+
+export function getSpellConcentrationDuration(
+  durationParts: SpellDurationPart[]
+): CharacterStatusDuration | null {
+  if (!durationParts.includes(DURATION.CONCENTRATION)) {
+    return null;
+  }
+
+  const detailText = durationParts
+    .filter((part) => part !== DURATION.CONCENTRATION)
+    .map((part) => String(part).trim())
+    .filter((part) => part.length > 0)
+    .join(", ");
+
+  return parseSpellConcentrationDurationLabel(detailText);
 }
 
 function normalizeStatusDuration(value: unknown): CharacterStatusDuration | null {
@@ -192,20 +347,17 @@ function normalizeStatusDuration(value: unknown): CharacterStatusDuration | null
       };
     }
     case STATUS_DURATION_KIND.MINUTES:
-      return record.amount === 10
+      return Number.isFinite(record.amount)
         ? {
             kind: STATUS_DURATION_KIND.MINUTES,
-            amount: 10
+            amount: clampInteger(record.amount, 1, 999, 1)
           }
         : null;
     case STATUS_DURATION_KIND.HOURS:
-      return record.amount === 1 ||
-        record.amount === 8 ||
-        record.amount === 12 ||
-        record.amount === 24
+      return Number.isFinite(record.amount)
         ? {
             kind: STATUS_DURATION_KIND.HOURS,
-            amount: record.amount
+            amount: clampInteger(record.amount, 1, 999, 1)
           }
         : null;
     case STATUS_DURATION_KIND.ROUNDS:
@@ -301,16 +453,27 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
   const sourceType = statusSourceTypeValues.has(record.sourceType as STATUS_ENTRY_SOURCE_TYPE)
     ? (record.sourceType as STATUS_ENTRY_SOURCE_TYPE)
     : STATUS_ENTRY_SOURCE_TYPE.MANUAL;
-  const duration =
-    normalizeStatusDuration(record.duration) ??
+  const duration = normalizeStatusDuration(record.duration) ??
     normalizeLegacyDuration(record.roundsRemaining) ?? {
       kind: STATUS_DURATION_KIND.INFINITE
     };
 
   return {
-    id: typeof record.id === "string" && record.id.trim().length > 0 ? record.id : createStatusEntryId(),
+    id:
+      typeof record.id === "string" && record.id.trim().length > 0
+        ? record.id
+        : createStatusEntryId(),
     group,
     value: normalizedValue,
+    conditionLevel:
+      group === STATUS_ENTRY_GROUP.CONDITIONS && normalizedValue === CONDITION_NAME.EXHAUSTION
+        ? (normalizeExhaustionLevel(record.conditionLevel) ?? 1)
+        : null,
+    disabled: record.disabled === true,
+    disabledReason:
+      typeof record.disabledReason === "string" && record.disabledReason.trim().length > 0
+        ? record.disabledReason.trim()
+        : undefined,
     source,
     sourceType,
     duration,
@@ -319,7 +482,9 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
         ? record.sourceId
         : undefined,
     rangeFeet:
-      typeof record.rangeFeet === "number" && Number.isFinite(record.rangeFeet) && record.rangeFeet > 0
+      typeof record.rangeFeet === "number" &&
+      Number.isFinite(record.rangeFeet) &&
+      record.rangeFeet > 0
         ? Math.floor(record.rangeFeet)
         : null
   };
@@ -366,10 +531,14 @@ export function createStatusDurationFromPreset(
         linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
         linkedValue: EFFECT_NAME.CONCENTRATION
       };
+    case STATUS_DURATION_PRESET.ONE_MINUTE:
+      return { kind: STATUS_DURATION_KIND.MINUTES, amount: 1 };
     case STATUS_DURATION_PRESET.TEN_MINUTES:
       return { kind: STATUS_DURATION_KIND.MINUTES, amount: 10 };
     case STATUS_DURATION_PRESET.ONE_HOUR:
       return { kind: STATUS_DURATION_KIND.HOURS, amount: 1 };
+    case STATUS_DURATION_PRESET.TWO_HOURS:
+      return { kind: STATUS_DURATION_KIND.HOURS, amount: 2 };
     case STATUS_DURATION_PRESET.EIGHT_HOURS:
       return { kind: STATUS_DURATION_KIND.HOURS, amount: 8 };
     case STATUS_DURATION_PRESET.TWELVE_HOURS:
@@ -415,6 +584,9 @@ export function normalizeCharacterStatusEntries(
 export function createCharacterStatusEntry(options: {
   group: STATUS_ENTRY_GROUP;
   value: CharacterStatusValue;
+  conditionLevel?: number | null;
+  disabled?: boolean;
+  disabledReason?: string;
   source: string;
   sourceType?: STATUS_ENTRY_SOURCE_TYPE;
   duration?: CharacterStatusDuration;
@@ -425,6 +597,15 @@ export function createCharacterStatusEntry(options: {
     id: createStatusEntryId(),
     group: options.group,
     value: options.value,
+    conditionLevel:
+      options.group === STATUS_ENTRY_GROUP.CONDITIONS && options.value === CONDITION_NAME.EXHAUSTION
+        ? (normalizeExhaustionLevel(options.conditionLevel) ?? 1)
+        : null,
+    disabled: options.disabled === true,
+    disabledReason:
+      typeof options.disabledReason === "string" && options.disabledReason.trim().length > 0
+        ? options.disabledReason.trim()
+        : undefined,
     source: options.source.trim() || "Manual",
     sourceType: options.sourceType ?? STATUS_ENTRY_SOURCE_TYPE.MANUAL,
     duration: options.duration ?? {
@@ -514,6 +695,11 @@ export function upsertManualStatusEntry(
       entry.id === existingEntry.id
         ? {
             ...entry,
+            conditionLevel:
+              nextEntry.group === STATUS_ENTRY_GROUP.CONDITIONS &&
+              nextEntry.value === CONDITION_NAME.EXHAUSTION
+                ? (normalizeExhaustionLevel(nextEntry.conditionLevel) ?? 1)
+                : null,
             source: nextEntry.source,
             duration: nextEntry.duration,
             rangeFeet: nextEntry.rangeFeet ?? null
@@ -569,6 +755,7 @@ export function updateCharacterStatusEntryDuration(
     createCharacterStatusEntry({
       group: entryToUpdate.group,
       value: entryToUpdate.value,
+      conditionLevel: entryToUpdate.conditionLevel,
       source: entryToUpdate.source,
       sourceType: entryToUpdate.sourceType,
       duration,
@@ -578,58 +765,231 @@ export function updateCharacterStatusEntryDuration(
   ]);
 }
 
-export function hasStatusCondition(
+export function applySpellConcentrationToStatusEntries(
   value: unknown,
-  condition: CONDITION_NAME
-): boolean {
+  spell: { name: string; duration: SpellDurationPart[] }
+): CharacterStatusEntry[] {
+  const concentrationDuration = getSpellConcentrationDuration(spell.duration);
+  const entries = normalizeCharacterStatusEntries(value);
+
+  if (!concentrationDuration) {
+    return entries;
+  }
+
+  return ensureLinkedStatusDependencies([
+    ...entries.filter(
+      (entry) =>
+        !(
+          (entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+            entry.value === EFFECT_NAME.CONCENTRATION) ||
+          isLinkedToConcentration(entry.duration)
+        )
+    ),
+    createCharacterStatusEntry({
+      group: STATUS_ENTRY_GROUP.EFFECTS,
+      value: EFFECT_NAME.CONCENTRATION,
+      source: spell.name,
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+      duration: concentrationDuration
+    })
+  ]);
+}
+
+export function hasStatusCondition(value: unknown, condition: CONDITION_NAME): boolean {
   return normalizeCharacterStatusEntries(value).some(
-    (entry) =>
-      entry.group === STATUS_ENTRY_GROUP.CONDITIONS &&
-      entry.value === condition
+    (entry) => entry.group === STATUS_ENTRY_GROUP.CONDITIONS && entry.value === condition
   );
 }
 
-export function advanceCharacterStatusEntries(value: unknown): CharacterStatusEntry[] {
-  return pruneLinkedStatusEntries(normalizeCharacterStatusEntries(value).flatMap((entry) => {
-    if (entry.duration.kind !== STATUS_DURATION_KIND.ROUNDS) {
-      return [entry];
-    }
+export function getExhaustionStatusEntry(value: unknown): CharacterStatusEntry | null {
+  return (
+    normalizeCharacterStatusEntries(value).find((entry) => isExhaustionStatusEntry(entry)) ?? null
+  );
+}
 
-    const nextAmount = entry.duration.amount - 1;
+export function getExhaustionLevel(value: unknown): ExhaustionLevel | null {
+  const exhaustionEntry = getExhaustionStatusEntry(value);
 
-    if (nextAmount <= 0) {
-      return [];
-    }
+  if (!exhaustionEntry) {
+    return null;
+  }
 
-    return [
-      {
-        ...entry,
-        duration: {
-          kind: STATUS_DURATION_KIND.ROUNDS,
-          amount: nextAmount
-        }
+  return normalizeExhaustionLevel(exhaustionEntry.conditionLevel) ?? 1;
+}
+
+export function setCharacterExhaustionLevel(
+  value: unknown,
+  nextLevel: ExhaustionLevel | null
+): CharacterStatusEntry[] {
+  const entries = normalizeCharacterStatusEntries(value);
+  const existingEntry = entries.find((entry) => isExhaustionStatusEntry(entry));
+
+  if (nextLevel === null) {
+    return ensureLinkedStatusDependencies(
+      entries.filter((entry) => !isExhaustionStatusEntry(entry))
+    );
+  }
+
+  if (existingEntry) {
+    return ensureLinkedStatusDependencies(
+      entries.map((entry) =>
+        entry.id === existingEntry.id
+          ? {
+              ...entry,
+              conditionLevel: nextLevel,
+              duration: { kind: STATUS_DURATION_KIND.INFINITE }
+            }
+          : entry
+      )
+    );
+  }
+
+  return ensureLinkedStatusDependencies([
+    ...entries,
+    createCharacterStatusEntry({
+      group: STATUS_ENTRY_GROUP.CONDITIONS,
+      value: CONDITION_NAME.EXHAUSTION,
+      conditionLevel: nextLevel,
+      source: "Manual",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+      duration: { kind: STATUS_DURATION_KIND.INFINITE }
+    })
+  ]);
+}
+
+export function hasExhaustionAbilityCheckDisadvantage(value: unknown): boolean {
+  return (getExhaustionLevel(value) ?? 0) >= 1;
+}
+
+export function hasExhaustionAttackRollDisadvantage(value: unknown): boolean {
+  return (getExhaustionLevel(value) ?? 0) >= 3;
+}
+
+export function hasExhaustionSavingThrowDisadvantage(value: unknown): boolean {
+  return (getExhaustionLevel(value) ?? 0) >= 3;
+}
+
+export function getExhaustionSpeedAdjustment(
+  baseSpeed: number,
+  value: unknown
+): {
+  label: string;
+  value: number;
+} | null {
+  const exhaustionLevel = getExhaustionLevel(value);
+
+  if (exhaustionLevel === null || baseSpeed <= 0) {
+    return null;
+  }
+
+  if (exhaustionLevel >= 5) {
+    return {
+      label: "Exhaustion",
+      value: -baseSpeed
+    };
+  }
+
+  if (exhaustionLevel >= 2) {
+    return {
+      label: "Exhaustion",
+      value: Math.floor(baseSpeed / 2) - baseSpeed
+    };
+  }
+
+  return null;
+}
+
+export function getEffectiveHitPointMaximumForCharacter(
+  character: Pick<Character, "hitPoints" | "statusEntries">
+): number {
+  const baseHitPoints = Math.max(1, Math.floor(character.hitPoints));
+  const exhaustionLevel = getExhaustionLevel(character.statusEntries);
+
+  if (exhaustionLevel !== null && exhaustionLevel >= 4) {
+    return Math.max(1, Math.floor(baseHitPoints / 2));
+  }
+
+  return baseHitPoints;
+}
+
+export function reconcileCharacterStatusConsequences(character: Character): Character {
+  const effectiveHitPointMaximum = getEffectiveHitPointMaximumForCharacter(character);
+  const exhaustionLevel = getExhaustionLevel(character.statusEntries);
+  const isDeadFromExhaustion = exhaustionLevel !== null && exhaustionLevel >= 6;
+  const nextCurrentHitPoints = isDeadFromExhaustion
+    ? 0
+    : Math.max(0, Math.min(effectiveHitPointMaximum, character.currentHitPoints));
+  const nextDeathSaves = isDeadFromExhaustion
+    ? {
+        successes: 0,
+        failures: 3
       }
-    ];
-  }));
+    : character.deathSaves;
+  const deathSavesUnchanged = isDeadFromExhaustion
+    ? character.deathSaves?.successes === 0 && character.deathSaves?.failures === 3
+    : true;
+
+  if (
+    nextCurrentHitPoints === character.currentHitPoints &&
+    (!isDeadFromExhaustion || deathSavesUnchanged)
+  ) {
+    return character;
+  }
+
+  return {
+    ...character,
+    currentHitPoints: nextCurrentHitPoints,
+    deathSaves: nextDeathSaves
+  };
+}
+
+export function advanceCharacterStatusEntries(value: unknown): CharacterStatusEntry[] {
+  return pruneLinkedStatusEntries(
+    normalizeCharacterStatusEntries(value).flatMap((entry) => {
+      if (entry.duration.kind !== STATUS_DURATION_KIND.ROUNDS) {
+        return [entry];
+      }
+
+      const nextAmount = entry.duration.amount - 1;
+
+      if (nextAmount <= 0) {
+        return [];
+      }
+
+      return [
+        {
+          ...entry,
+          duration: {
+            kind: STATUS_DURATION_KIND.ROUNDS,
+            amount: nextAmount
+          }
+        }
+      ];
+    })
+  );
 }
 
 export function applyShortRestToCharacterStatusEntries(value: unknown): CharacterStatusEntry[] {
-  return pruneLinkedStatusEntries(normalizeCharacterStatusEntries(value).filter((entry) => {
-    switch (entry.duration.kind) {
-      case STATUS_DURATION_KIND.INFINITE:
-        return entry.group !== STATUS_ENTRY_GROUP.EFFECTS || entry.value !== EFFECT_NAME.CONCENTRATION;
-      case STATUS_DURATION_KIND.HOURS:
-        return entry.duration.amount >= 1;
-      case STATUS_DURATION_KIND.MINUTES:
-      case STATUS_DURATION_KIND.ROUNDS:
-      case STATUS_DURATION_KIND.CONCENTRATION:
-        return false;
-      case STATUS_DURATION_KIND.LINKED:
-        return true;
-      default:
-        return true;
-    }
-  }));
+  return pruneLinkedStatusEntries(
+    normalizeCharacterStatusEntries(value).filter((entry) => {
+      switch (entry.duration.kind) {
+        case STATUS_DURATION_KIND.INFINITE:
+          return (
+            entry.group !== STATUS_ENTRY_GROUP.EFFECTS || entry.value !== EFFECT_NAME.CONCENTRATION
+          );
+        case STATUS_DURATION_KIND.HOURS:
+          return entry.duration.amount >= 1;
+        case STATUS_DURATION_KIND.MINUTES:
+        case STATUS_DURATION_KIND.ROUNDS:
+        case STATUS_DURATION_KIND.CONCENTRATION:
+          return false;
+        case STATUS_DURATION_KIND.LINKED:
+          return true;
+        default:
+          return true;
+      }
+    })
+  );
 }
 
 export function applyLongRestToCharacterStatusEntries(value: unknown): CharacterStatusEntry[] {
@@ -638,17 +998,26 @@ export function applyLongRestToCharacterStatusEntries(value: unknown): Character
       (entry) =>
         (entry.duration.kind === STATUS_DURATION_KIND.INFINITE ||
           entry.duration.kind === STATUS_DURATION_KIND.LINKED) &&
-        (entry.group !== STATUS_ENTRY_GROUP.EFFECTS ||
-          entry.value !== EFFECT_NAME.CONCENTRATION)
+        (entry.group !== STATUS_ENTRY_GROUP.EFFECTS || entry.value !== EFFECT_NAME.CONCENTRATION)
     )
   );
 }
 
 export function getStatusEntryTitle(entry: CharacterStatusEntry): string {
+  if (isExhaustionStatusEntry(entry)) {
+    const exhaustionLevel = normalizeExhaustionLevel(entry.conditionLevel) ?? 1;
+
+    return `Exhaustion ${exhaustionLevel}`;
+  }
+
   return typeof entry.value === "string" ? entry.value : formatCodexLabel(String(entry.value));
 }
 
 export function getStatusEntryKeyword(entry: CharacterStatusEntry): string {
+  if (isExhaustionStatusEntry(entry)) {
+    return CONDITION_NAME.EXHAUSTION;
+  }
+
   if (typeof entry.value === "string") {
     return entry.value;
   }
@@ -656,8 +1025,51 @@ export function getStatusEntryKeyword(entry: CharacterStatusEntry): string {
   return formatCodexLabel(String(entry.value));
 }
 
-export function getStatusEntryDescription(entry: CharacterStatusEntry): string {
-  const keywordDescription = getKeywordDescription(getStatusEntryKeyword(entry));
+export function getStatusEntryDescriptionEntries(
+  entry: CharacterStatusEntry
+): SpellDescriptionEntry[] {
+  if (isExhaustionStatusEntry(entry)) {
+    const exhaustionLevel = normalizeExhaustionLevel(entry.conditionLevel) ?? 1;
+
+    return [
+      `<strong>Current Level.</strong> Level ${exhaustionLevel}. Higher Exhaustion levels include all lower-level effects.`,
+      ...exhaustionDescriptionEntries.slice(1)
+    ];
+  }
+
+  if (entry.sourceId === "feature-paladin-aura-of-protection") {
+    return (
+      paladinFeatureMap[CLASS_FEATURE.AURA_OF_PROTECTION]?.description ?? [
+        "An aura passively affects creatures or spaces around you."
+      ]
+    );
+  }
+
+  if (entry.sourceId === "feature-paladin-aura-of-courage") {
+    return (
+      paladinFeatureMap[CLASS_FEATURE.AURA_OF_COURAGE]?.description ?? [
+        "An aura passively affects creatures or spaces around you."
+      ]
+    );
+  }
+
+  if (entry.sourceId === "feature-rogue-evasion") {
+    return (
+      rogueFeatureMap[CLASS_FEATURE.EVASION]?.description ?? [
+        "A current effect or trait that may change how your character plays."
+      ]
+    );
+  }
+
+  if (entry.sourceId === "feature-rogue-elusive") {
+    return (
+      rogueFeatureMap[CLASS_FEATURE.ELUSIVE]?.description ?? [
+        "A current effect or trait that may change how your character plays."
+      ]
+    );
+  }
+
+  const keywordDescriptionEntries = getKeywordDescriptionLines(getStatusEntryKeyword(entry));
 
   if (
     entry.group === STATUS_ENTRY_GROUP.SENSES ||
@@ -665,8 +1077,9 @@ export function getStatusEntryDescription(entry: CharacterStatusEntry): string {
     entry.group === STATUS_ENTRY_GROUP.EFFECTS
   ) {
     return (
-      keywordDescription ??
-      "A current effect or trait that may change how your character plays."
+      keywordDescriptionEntries ?? [
+        "A current effect or trait that may change how your character plays."
+      ]
     );
   }
 
@@ -674,31 +1087,56 @@ export function getStatusEntryDescription(entry: CharacterStatusEntry): string {
 
   switch (entry.group) {
     case STATUS_ENTRY_GROUP.REACTIONS:
-      return `A spell, cantrip, or feature you can use as a Reaction. Using ${valueLabel} spends your Reaction for the round.`;
+      return [
+        `A spell, cantrip, or feature you can use as a Reaction. Using ${valueLabel} spends your Reaction for the round.`
+      ];
     case STATUS_ENTRY_GROUP.RESISTANCES:
-      return `Resistance to ${valueLabel.toLowerCase()} damage. You usually take half damage from that type unless a rule says otherwise.`;
+      return [
+        `Resistance to ${valueLabel.toLowerCase()} damage. You usually take half damage from that type unless a rule says otherwise.`
+      ];
     case STATUS_ENTRY_GROUP.VULNERABILITIES:
-      return `Vulnerability to ${valueLabel.toLowerCase()} damage. You usually take double damage from that type unless a rule says otherwise.`;
+      return [
+        `Vulnerability to ${valueLabel.toLowerCase()} damage. You usually take double damage from that type unless a rule says otherwise.`
+      ];
     case STATUS_ENTRY_GROUP.IMMUNITIES:
-      return isConditionName(entry.value)
-        ? `Immunity to the ${valueLabel} condition. Effects that would apply it have no effect on you unless a rule says otherwise.`
-        : `Immunity to ${valueLabel.toLowerCase()} damage. You usually take no damage from that type unless a rule says otherwise.`;
+      return [
+        isConditionName(entry.value)
+          ? `Immunity to the ${valueLabel} condition. Effects that would apply it have no effect on you unless a rule says otherwise.`
+          : `Immunity to ${valueLabel.toLowerCase()} damage. You usually take no damage from that type unless a rule says otherwise.`
+      ];
     case STATUS_ENTRY_GROUP.AURAS:
-      return keywordDescription ?? "An aura passively affects creatures or spaces around you.";
+      return (
+        keywordDescriptionEntries ?? ["An aura passively affects creatures or spaces around you."]
+      );
     default:
       return (
-        keywordDescription ??
-        "A current effect or trait that may change how your character plays."
+        keywordDescriptionEntries ?? [
+          "A current effect or trait that may change how your character plays."
+        ]
       );
   }
 }
 
+export function getStatusEntryDescription(entry: CharacterStatusEntry): string {
+  return getStatusEntryDescriptionEntries(entry)
+    .map((descriptionEntry) =>
+      typeof descriptionEntry === "string" ? descriptionEntry : descriptionEntry.items.join(" ")
+    )
+    .join(" ");
+}
+
 export function getStatusEntrySourceLabel(entry: CharacterStatusEntry): string {
+  const sourceLabel = entry.rangeFeet ? `${entry.source} (${entry.rangeFeet} ft.)` : entry.source;
+
+  if (entry.disabled && entry.disabledReason) {
+    return `${sourceLabel} - ${entry.disabledReason}`;
+  }
+
   if (entry.rangeFeet) {
     return `${entry.source} (${entry.rangeFeet} ft.)`;
   }
 
-  return entry.source;
+  return sourceLabel;
 }
 
 export function getStatusDurationLabel(duration: CharacterStatusDuration): string {
@@ -710,7 +1148,7 @@ export function getStatusDurationLabel(duration: CharacterStatusDuration): strin
     case STATUS_DURATION_KIND.LINKED:
       return formatLinkedStatusDurationLabel(duration);
     case STATUS_DURATION_KIND.MINUTES:
-      return `${duration.amount} minutes`;
+      return `${duration.amount} minute${duration.amount === 1 ? "" : "s"}`;
     case STATUS_DURATION_KIND.HOURS:
       return `${duration.amount} hour${duration.amount === 1 ? "" : "s"}`;
     case STATUS_DURATION_KIND.ROUNDS:
@@ -730,11 +1168,20 @@ export function getStatusDurationPreset(duration: CharacterStatusDuration): STAT
         ? STATUS_DURATION_PRESET.CONCENTRATION
         : STATUS_DURATION_PRESET.INFINITE;
     case STATUS_DURATION_KIND.MINUTES:
-      return STATUS_DURATION_PRESET.TEN_MINUTES;
+      switch (duration.amount) {
+        case 1:
+          return STATUS_DURATION_PRESET.ONE_MINUTE;
+        case 10:
+          return STATUS_DURATION_PRESET.TEN_MINUTES;
+        default:
+          return STATUS_DURATION_PRESET.INFINITE;
+      }
     case STATUS_DURATION_KIND.HOURS:
       switch (duration.amount) {
         case 1:
           return STATUS_DURATION_PRESET.ONE_HOUR;
+        case 2:
+          return STATUS_DURATION_PRESET.TWO_HOURS;
         case 8:
           return STATUS_DURATION_PRESET.EIGHT_HOURS;
         case 12:
@@ -742,7 +1189,7 @@ export function getStatusDurationPreset(duration: CharacterStatusDuration): STAT
         case 24:
           return STATUS_DURATION_PRESET.TWENTY_FOUR_HOURS;
         default:
-          return STATUS_DURATION_PRESET.TWENTY_FOUR_HOURS;
+          return STATUS_DURATION_PRESET.INFINITE;
       }
     case STATUS_DURATION_KIND.ROUNDS:
       return roundCountToDurationPreset(duration.amount);
@@ -779,8 +1226,11 @@ export function getSenseOptions(): SENSE[] {
   return [...Object.values(SENSE)];
 }
 
-export function getConditionOptions(): CONDITION_NAME[] {
-  return [...Object.values(CONDITION_NAME)];
+export function getConditionOptions(): ConditionOptionValue[] {
+  return [
+    ...Object.values(CONDITION_NAME).filter((condition) => condition !== CONDITION_NAME.EXHAUSTION),
+    ...exhaustionConditionOptionValues
+  ];
 }
 
 export function getDamageTypeOptions(): DAMAGE_TYPE[] {
@@ -791,7 +1241,9 @@ export function getImmunityOptions(): ImmunityValue[] {
   return [...Object.values(DAMAGE_TYPE), ...Object.values(CONDITION_NAME)];
 }
 
-function formatLinkedStatusDurationLabel(duration: Extract<CharacterStatusDuration, { kind: STATUS_DURATION_KIND.LINKED }>): string {
+function formatLinkedStatusDurationLabel(
+  duration: Extract<CharacterStatusDuration, { kind: STATUS_DURATION_KIND.LINKED }>
+): string {
   return typeof duration.linkedValue === "string"
     ? duration.linkedValue
     : formatCodexLabel(String(duration.linkedValue));
@@ -841,11 +1293,12 @@ function pruneLinkedStatusEntries(entries: CharacterStatusEntry[]): CharacterSta
 
 function ensureLinkedStatusDependencies(entries: CharacterStatusEntry[]): CharacterStatusEntry[] {
   let nextEntries = [...entries];
-  const hasConcentrationLinkedEntry = nextEntries.some((entry) => isLinkedToConcentration(entry.duration));
+  const hasConcentrationLinkedEntry = nextEntries.some((entry) =>
+    isLinkedToConcentration(entry.duration)
+  );
   const hasConcentrationAnchor = nextEntries.some(
     (entry) =>
-      entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
-      entry.value === EFFECT_NAME.CONCENTRATION
+      entry.group === STATUS_ENTRY_GROUP.EFFECTS && entry.value === EFFECT_NAME.CONCENTRATION
   );
 
   if (hasConcentrationLinkedEntry && !hasConcentrationAnchor) {

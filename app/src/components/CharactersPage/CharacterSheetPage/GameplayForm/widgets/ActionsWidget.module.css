@@ -58,7 +58,9 @@
 }
 
 .actionCardMulti {
-  box-shadow: 0 0 0 1px rgba(220, 176, 42, 1), 0 0 4px rgba(220, 176, 42, 1);
+  box-shadow:
+    0 0 0 1px rgba(220, 176, 42, 1),
+    0 0 4px rgba(220, 176, 42, 1);
 }
 
 .actionCardMulti::before {
@@ -82,6 +84,12 @@
 
 .damageRow {
   font-weight: 700;
+}
+
+.actionIndicatorRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28rem;
 }
 
 .breakdownRow {
@@ -222,6 +230,121 @@
 .indomitableFormulaBlock strong {
   font-size: 0.9rem;
   line-height: 1.35;
+}
+
+.sneakAttackPreviewCard {
+  display: grid;
+  gap: 0.22rem;
+  border-radius: 14px;
+  background: rgba(181, 86, 42, 0.08);
+  padding: 0.76rem 0.82rem;
+}
+
+.sneakAttackPreviewLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.sneakAttackPreviewCard strong {
+  font-size: 0.94rem;
+  line-height: 1.4;
+}
+
+.sneakAttackEffectsSection {
+  display: grid;
+  gap: 0.72rem;
+}
+
+.sneakAttackEffectsHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.sneakAttackEffectsHeader h4 {
+  margin: 0 0 0.2rem;
+}
+
+.sneakAttackEffectSpend {
+  border-radius: 999px;
+  background: rgba(181, 86, 42, 0.12);
+  color: #8a4d26;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0.45rem 0.62rem;
+  white-space: nowrap;
+}
+
+.sneakAttackEffectsList {
+  display: grid;
+  gap: 0.55rem;
+  max-height: 340px;
+  overflow: auto;
+  padding-right: 0.2rem;
+}
+
+.sneakAttackEffectRow {
+  align-items: stretch;
+  display: grid;
+  gap: 0.45rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.sneakAttackEffectRowSelected .sneakAttackEffectButton {
+  background: rgba(47, 120, 255, 0.1);
+  border-color: rgba(47, 120, 255, 0.34);
+}
+
+.sneakAttackEffectButton {
+  display: grid;
+  gap: 0.18rem;
+  border: 1px solid rgba(75, 47, 29, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.72rem 0.8rem;
+  text-align: left;
+}
+
+.sneakAttackEffectButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
+.sneakAttackEffectButton strong {
+  font-size: 0.92rem;
+}
+
+.sneakAttackEffectButton small {
+  color: var(--color-ink-soft);
+  font-size: 0.76rem;
+}
+
+.sneakAttackReferenceButton {
+  align-items: center;
+  border: 1px solid rgba(75, 47, 29, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+  color: #8a4d26;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  min-width: 46px;
+  padding: 0.7rem;
+}
+
+.sneakAttackReferenceButton:hover {
+  background: rgba(181, 86, 42, 0.08);
+}
+
+.sneakAttackReferenceDrawerBackdrop {
+  z-index: 48;
 }
 
 .divineInterventionModal {
