@@ -28,6 +28,7 @@ function CharacterBuilderPage() {
         name: existingCharacter.name,
         species: existingCharacter.species,
         className: existingCharacter.className,
+        subclassId: existingCharacter.subclassId ?? "",
         level: existingCharacter.level,
         xp: existingCharacter.xp,
         hitPoints: existingCharacter.hitPoints,

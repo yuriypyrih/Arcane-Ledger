@@ -90,6 +90,7 @@ export function createEmptyCharacter(): CharacterDraft {
     name: "",
     species: "",
     className: "",
+    subclassId: "",
     level: 1,
     xp: 0,
     hitPoints: 8,

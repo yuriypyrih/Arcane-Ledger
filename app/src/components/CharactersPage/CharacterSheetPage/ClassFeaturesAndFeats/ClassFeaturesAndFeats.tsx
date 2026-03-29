@@ -108,6 +108,12 @@ import {
   getSpellLevel,
   normalizeSpellbookSpellIds
 } from "../../../../pages/CharactersPage/spellcasting";
+import {
+  getSelectedSubclassForCharacter,
+  getSubclassFeatureDetails,
+  getSubclassFeatureRowsForCharacter,
+  getSubclassSelectionFeatureForClassName
+} from "../../../../pages/CharactersPage/subclasses";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type {
   AbilityKey,
@@ -607,33 +613,108 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
   }, [isFeatModalOpen, selectedFeatReference, selectedKeyword]);
 
   const classEntry = classEntriesByName.get(character.className) ?? null;
+  const selectedSubclass = useMemo(
+    () =>
+      getSelectedSubclassForCharacter({
+        className: character.className,
+        subclassId: character.subclassId
+      }),
+    [character.className, character.subclassId]
+  );
   const allFeatures = useMemo<FeatureRow[]>(() => {
     if (!classEntry) {
       return [];
     }
 
-    return classEntry.features.flatMap((featureRow) =>
-      featureRow.classFeatures.map((feature, index) => {
-        const resolvedDetails = featureRow.featureOverrides?.[feature] ?? FeatureMap[feature];
-        const details =
-          character.className === "Monk" &&
-          feature === CLASS_FEATURE.DEFLECT_ATTACKS &&
-          character.level >= 13
-            ? {
-                ...resolvedDetails,
-                description: getMonkDeflectAttacksDescription(true)
-              }
-            : resolvedDetails;
+    const subclassSelectionFeature = getSubclassSelectionFeatureForClassName(character.className);
+    const subclassFeatureRows = getSubclassFeatureRowsForCharacter({
+      className: character.className,
+      subclassId: character.subclassId
+    });
+    const subclassFeatureRowsByLevel = new Map<number, (typeof subclassFeatureRows)[number]>(
+      subclassFeatureRows.map((featureRow) => [featureRow.level, featureRow] as const)
+    );
 
+    function createFeatureRow(
+      level: number,
+      feature: CLASS_FEATURE,
+      index: number,
+      details: FeatureMapEntry
+    ): FeatureRow {
+      return {
+        key: `${level}-${feature}-${index}`,
+        level,
+        feature,
+        details
+      };
+    }
+
+    function resolveFeatureDetails(
+      level: number,
+      feature: CLASS_FEATURE,
+      details: FeatureMapEntry
+    ): FeatureMapEntry {
+      if (
+        character.className === "Monk" &&
+        feature === CLASS_FEATURE.DEFLECT_ATTACKS &&
+        character.level >= 13
+      ) {
         return {
-          key: `${featureRow.level}-${feature}-${index}`,
-          level: featureRow.level,
-          feature,
-          details
+          ...details,
+          description: getMonkDeflectAttacksDescription(true)
         };
+      }
+
+      return details;
+    }
+
+    function createSubclassFeatureRows(level: number): FeatureRow[] {
+      const subclassFeatureRow = subclassFeatureRowsByLevel.get(level);
+
+      if (!subclassFeatureRow) {
+        return [];
+      }
+
+      return subclassFeatureRow.classFeatures.map((feature, index) => {
+        const resolvedDetails =
+          getSubclassFeatureDetails(selectedSubclass, level, feature) ??
+          FeatureMap[feature] ?? {
+            description: ["You gain a feature from your chosen subclass."],
+            trackingState: "not-tracked"
+          };
+
+        return createFeatureRow(
+          level,
+          feature,
+          index,
+          resolveFeatureDetails(level, feature, resolvedDetails)
+        );
+      });
+    }
+
+    return classEntry.features.flatMap((featureRow) =>
+      featureRow.classFeatures.flatMap((feature, index) => {
+        const resolvedDetails = featureRow.featureOverrides?.[feature] ?? FeatureMap[feature];
+        const featureDetails = resolveFeatureDetails(featureRow.level, feature, resolvedDetails);
+
+        if (feature === CLASS_FEATURE.SUBCLASS_FEATURE) {
+          const subclassFeatureRowsAtLevel = createSubclassFeatureRows(featureRow.level);
+          return subclassFeatureRowsAtLevel.length > 0
+            ? subclassFeatureRowsAtLevel
+            : [createFeatureRow(featureRow.level, feature, index, featureDetails)];
+        }
+
+        if (subclassSelectionFeature && feature === subclassSelectionFeature) {
+          return [
+            createFeatureRow(featureRow.level, feature, index, featureDetails),
+            ...createSubclassFeatureRows(featureRow.level)
+          ];
+        }
+
+        return [createFeatureRow(featureRow.level, feature, index, featureDetails)];
       })
     );
-  }, [character.className, character.level, classEntry]);
+  }, [character.className, character.level, character.subclassId, classEntry, selectedSubclass]);
 
   const unlockedFeatures = useMemo(
     () => allFeatures.filter((featureRow) => featureRow.level <= character.level),

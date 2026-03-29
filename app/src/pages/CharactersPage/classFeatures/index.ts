@@ -242,6 +242,7 @@ import {
   syncWizardSignatureSpellsToSpellbook,
   syncWizardSpellMasterySelectionsToSpellbook
 } from "./wizard";
+import { getSubclassDerivedFeatureState } from "./subclasses";
 import {
   activatePaladinFeatureActionOption,
   advancePaladinFeaturesForNewRound,
@@ -435,6 +436,7 @@ export function normalizeCharacterClassFeatureState(
 }
 
 export function getFeatureActionsForCharacter(character: Character): FeatureActionCard[] {
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
   const clericActions = getClericFeatureActions(character);
   const bardAction = getBardFeatureAction(character);
   const fighterActions = getFighterFeatureActions(character);
@@ -457,7 +459,8 @@ export function getFeatureActionsForCharacter(character: Character): FeatureActi
     ...rangerActions,
     ...rogueActions,
     ...paladinActions,
-    rageAction
+    rageAction,
+    ...(subclassDerivedState.featureActions ?? [])
   ].filter((entry): entry is FeatureActionCard => entry !== null);
 }
 
@@ -465,19 +468,30 @@ export function getFeatureActionOptionsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "abilities" | "feats">,
   actionKey: string
 ): FeatureActionOptionCard[] {
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+
   if (actionKey === "cleric-channel-divinity") {
-    return getClericFeatureActionOptions(character);
+    return [
+      ...getClericFeatureActionOptions(character),
+      ...(subclassDerivedState.featureActionOptions?.[actionKey] ?? [])
+    ];
   }
 
   if (actionKey === paladinChannelDivinityActionKey) {
-    return getPaladinFeatureActionOptions(character);
+    return [
+      ...getPaladinFeatureActionOptions(character),
+      ...(subclassDerivedState.featureActionOptions?.[actionKey] ?? [])
+    ];
   }
 
   if (actionKey === metamagicActionKey) {
-    return getSorcererMetamagicOptionsForAction(character);
+    return [
+      ...getSorcererMetamagicOptionsForAction(character),
+      ...(subclassDerivedState.featureActionOptions?.[actionKey] ?? [])
+    ];
   }
 
-  return [];
+  return subclassDerivedState.featureActionOptions?.[actionKey] ?? [];
 }
 
 export function getFeatureDamageBonusesForWeaponAction(
@@ -494,51 +508,72 @@ export function getFeatureDamageBonusesForWeaponAction(
 export function getSavingThrowIndicatorsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
 ): SavingThrowIndicatorMap {
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
   const exhaustionIndicators = hasExhaustionSavingThrowDisadvantage(character.statusEntries)
     ? (Object.fromEntries(
         abilityKeys.map((ability) => [ability, [exhaustionDisadvantageIndicator]])
       ) as SavingThrowIndicatorMap)
     : {};
 
-  return mergeIndicatorMaps(getBarbarianSavingThrowIndicators(character), exhaustionIndicators);
+  return mergeIndicatorMaps(
+    getBarbarianSavingThrowIndicators(character),
+    subclassDerivedState.savingThrowIndicators ?? {},
+    exhaustionIndicators
+  );
 }
 
 export function getAbilityCheckIndicatorsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
 ): AbilityCheckIndicatorMap {
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
   const exhaustionIndicators = hasExhaustionAbilityCheckDisadvantage(character.statusEntries)
     ? (Object.fromEntries(
         abilityKeys.map((ability) => [ability, [exhaustionDisadvantageIndicator]])
       ) as AbilityCheckIndicatorMap)
     : {};
 
-  return mergeIndicatorMaps(getBarbarianAbilityCheckIndicators(character), exhaustionIndicators);
+  return mergeIndicatorMaps(
+    getBarbarianAbilityCheckIndicators(character),
+    subclassDerivedState.abilityCheckIndicators ?? {},
+    exhaustionIndicators
+  );
 }
 
 export function getCoreStatIndicatorsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): CoreStatIndicatorMap {
-  return getBarbarianCoreStatIndicators(character);
+  return mergeIndicatorMaps(
+    getBarbarianCoreStatIndicators(character),
+    getSubclassDerivedFeatureState(character).coreStatIndicators ?? {}
+  );
 }
 
 export function getSkillIndicatorsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
 ): SkillIndicatorMap {
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
   const exhaustionIndicators = hasExhaustionAbilityCheckDisadvantage(character.statusEntries)
     ? (Object.fromEntries(
         ALL_SKILLS.map((skill) => [skill, [exhaustionDisadvantageIndicator]])
       ) as SkillIndicatorMap)
     : {};
 
-  return mergeIndicatorMaps(getBarbarianSkillIndicators(character), exhaustionIndicators);
+  return mergeIndicatorMaps(
+    getBarbarianSkillIndicators(character),
+    subclassDerivedState.skillIndicators ?? {},
+    exhaustionIndicators
+  );
 }
 
 export function getWeaponAttackIndicatorsForCharacter(
-  character: Pick<Character, "statusEntries">
+  character: Pick<Character, "className" | "statusEntries"> & Partial<Pick<Character, "subclassId">>
 ): FeatureIndicator[] {
-  return hasExhaustionAttackRollDisadvantage(character.statusEntries)
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  const baseIndicators = hasExhaustionAttackRollDisadvantage(character.statusEntries)
     ? [exhaustionDisadvantageIndicator]
     : [];
+
+  return [...(subclassDerivedState.weaponAttackIndicators ?? []), ...baseIndicators];
 }
 
 export function getSkillBonusesForCharacter(
@@ -583,24 +618,35 @@ export function getSpeedBonusesForCharacter(
   >,
   context: SpeedFeatureContext
 ): FeatureSpeedBonus[] {
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
     ...getBarbarianSpeedBonuses(character, context),
     ...getMonkSpeedBonuses(character, context),
     ...getRangerSpeedBonuses(character, context),
-    ...getRogueSpeedBonuses(character)
+    ...getRogueSpeedBonuses(character),
+    ...(subclassDerivedState.speedBonuses ?? [])
   ];
 }
 
 export function getAbilityScoreBonusesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureAbilityScoreBonus[] {
-  return [...getBarbarianAbilityScoreBonuses(character), ...getMonkAbilityScoreBonuses(character)];
+  return [
+    ...getBarbarianAbilityScoreBonuses(character),
+    ...getMonkAbilityScoreBonuses(character),
+    ...(getSubclassDerivedFeatureState(character).abilityScoreBonuses ?? [])
+  ];
 }
 
 export function getCantripLimitBonusForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): number {
-  return getClericCantripBonus(character) + getDruidCantripBonus(character);
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  return (
+    getClericCantripBonus(character) +
+    getDruidCantripBonus(character) +
+    (subclassDerivedState.cantripLimitBonus ?? 0)
+  );
 }
 
 export function getMonkMartialArtsDieForCharacter(
@@ -647,12 +693,16 @@ export function canUseMonkMartialArtsForCharacter(
 export function getCantripDamageBonusForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "abilities" | "feats">
 ): number {
-  return getClericCantripDamageBonus(character);
+  return (
+    getClericCantripDamageBonus(character) +
+    (getSubclassDerivedFeatureState(character).cantripDamageBonus ?? 0)
+  );
 }
 
 export function getFeatureWeaponProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureWeaponProficiencyEntry[] {
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
     ...getBarbarianWeaponProficiencyEntries(character),
     ...getClericWeaponProficiencyEntries(character),
@@ -660,46 +710,55 @@ export function getFeatureWeaponProficiencyEntriesForCharacter(
     ...getFighterWeaponProficiencyEntries(character),
     ...getRangerWeaponProficiencyEntries(character),
     ...getRogueWeaponProficiencyEntries(character),
-    ...getPaladinWeaponProficiencyEntries(character)
+    ...getPaladinWeaponProficiencyEntries(character),
+    ...(subclassDerivedState.weaponProficiencyEntries ?? [])
   ];
 }
 
 export function getFeatureSkillProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureSkillProficiencyEntry[] {
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
     ...getBardSkillProficiencyEntries(character),
     ...getRangerSkillProficiencyEntries(character),
     ...getRogueSkillProficiencyEntries(character),
-    ...getWizardSkillProficiencyEntries(character)
+    ...getWizardSkillProficiencyEntries(character),
+    ...(subclassDerivedState.skillProficiencyEntries ?? [])
   ];
 }
 
 export function getFeatureSavingThrowProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureSavingThrowProficiencyEntry[] {
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
     ...getMonkSavingThrowProficiencyEntries(character),
-    ...getRogueSavingThrowProficiencyEntries(character)
+    ...getRogueSavingThrowProficiencyEntries(character),
+    ...(subclassDerivedState.savingThrowProficiencyEntries ?? [])
   ];
 }
 
 export function getFeatureArmorProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureArmorProficiencyEntry[] {
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
     ...getClericArmorProficiencyEntries(character),
-    ...getDruidArmorProficiencyEntries(character)
+    ...getDruidArmorProficiencyEntries(character),
+    ...(subclassDerivedState.armorProficiencyEntries ?? [])
   ];
 }
 
 export function getFeatureLanguageProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureLanguageProficiencyEntry[] {
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
     ...getDruidLanguageProficiencyEntries(character),
     ...getRangerLanguageProficiencyEntries(character),
-    ...getRogueLanguageProficiencyEntries(character)
+    ...getRogueLanguageProficiencyEntries(character),
+    ...(subclassDerivedState.languageProficiencyEntries ?? [])
   ];
 }
 
@@ -956,6 +1015,7 @@ export function getInnateSorceryUsesRemainingForCharacter(
 export function getAlwaysPreparedSpellIdsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds">
 ): string[] {
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
     ...new Set([
       ...getBardAlwaysPreparedSpellIds(character),
@@ -963,7 +1023,8 @@ export function getAlwaysPreparedSpellIdsForCharacter(
       ...getRangerAlwaysPreparedSpellIds(character),
       ...getPaladinAlwaysPreparedSpellIds(character),
       ...getWarlockAlwaysPreparedSpellIds(character),
-      ...getWizardAlwaysPreparedSpellIds(character)
+      ...getWizardAlwaysPreparedSpellIds(character),
+      ...(subclassDerivedState.alwaysPreparedSpellIds ?? [])
     ])
   ];
 }
@@ -1202,12 +1263,14 @@ export function hasPerfectFocusForCharacter(
 export function getDerivedFeatureStatusEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
 ): DerivedFeatureStatusEntry[] {
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
     ...getBarbarianDerivedConditions(character),
     ...getMonkDerivedStatusEntries(character),
     ...getRangerDerivedStatusEntries(character),
     ...getPaladinDerivedStatusEntries(character),
-    ...getRogueDerivedStatusEntries(character)
+    ...getRogueDerivedStatusEntries(character),
+    ...(subclassDerivedState.derivedStatusEntries ?? [])
   ];
 }
 
@@ -1215,23 +1278,34 @@ export function getSpellEntryForCharacter(
   character: Pick<Character, "className" | "level">,
   spell: SpellEntry
 ): SpellEntry {
-  return getRangerSpellEntry(character, spell);
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  const baseSpellEntry = getRangerSpellEntry(character, spell);
+
+  return subclassDerivedState.transformSpellEntry
+    ? subclassDerivedState.transformSpellEntry(baseSpellEntry)
+    : baseSpellEntry;
 }
 
 export function getSpellDamageFormulaOverrideForCharacter(
   character: Pick<Character, "className" | "level">,
   spell: Pick<SpellEntry, "id">
 ): string | null {
-  return getRangerSpellDamageFormula(character, spell);
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  return (
+    subclassDerivedState.spellDamageFormulaOverrides?.[spell.id] ??
+    getRangerSpellDamageFormula(character, spell)
+  );
 }
 
 export function getFeatureReactionEntriesForCharacter(
   character: Pick<Character, "className" | "level">
 ): ReactionEntry[] {
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
     ...getBardReactionEntries(character),
     ...getMonkReactionEntries(character),
-    ...getRogueReactionEntries(character)
+    ...getRogueReactionEntries(character),
+    ...(subclassDerivedState.reactionEntries ?? [])
   ];
 }
 

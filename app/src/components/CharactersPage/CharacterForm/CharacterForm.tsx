@@ -28,6 +28,7 @@ import {
   resolveSkillProficienciesForCharacter
 } from "../../../pages/CharactersPage/proficiency";
 import { normalizeLevelAndXp } from "../../../pages/CharactersPage/experience";
+import { getSubclassOptionsForClassName, normalizeSubclassId } from "../../../pages/CharactersPage/subclasses";
 import NumberInput from "../FormInputs/NumberInput";
 import SelectInput from "../FormInputs/SelectInput";
 import TextAreaInput from "../FormInputs/TextAreaInput";
@@ -359,6 +360,7 @@ function createBasicProfileSnapshot(values: CharacterDraft): CharacterDraft {
     name: values.name,
     species: values.species,
     className: values.className,
+    subclassId: values.subclassId,
     level: normalizedProgress.level,
     xp: normalizedProgress.xp
   };
@@ -488,6 +490,7 @@ function createRecommendedCharacterDraft(profile: CharacterDraft): CharacterDraf
     name: profile.name,
     species: profile.species,
     className: profile.className,
+    subclassId: profile.subclassId,
     level: normalizedProgress.level,
     xp: normalizedProgress.xp,
     hitPoints: maxHitPoints,
@@ -551,6 +554,12 @@ function getRandomInt(min: number, max: number): number {
 
 function getRandomItem<T>(items: readonly T[]): T {
   return items[getRandomInt(0, items.length - 1)];
+}
+
+function getRandomSubclassIdForClass(className: string): string {
+  const subclassOptions = getSubclassOptionsForClassName(className);
+
+  return subclassOptions.length > 0 ? getRandomItem(subclassOptions).id : "";
 }
 
 function shuffle<T>(values: T[]): T[] {
@@ -639,6 +648,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     defaultValues: initialValues
   });
   const selectedClassName = watch("className") ?? initialValues.className;
+  const selectedSubclassId = watch("subclassId") ?? initialValues.subclassId ?? "";
   const selectedSpecies = watch("species") ?? initialValues.species;
   const selectedBackground = watch("background") ?? initialValues.background;
   const attributeMode = watch("attributeMode") ?? initialValues.attributeMode;
@@ -647,8 +657,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const selectedSkills = watch("skills") ?? initialValues.skills;
   const selectedEquipment = watch("equipment") ?? initialValues.equipment;
   const availableSkillOptions = getSkillProficiencyOptionsForClass(selectedClassName);
+  const availableSubclassOptions = getSubclassOptionsForClassName(selectedClassName);
   const skillSelectionLimit = getSkillSelectionLimitForClass(selectedClassName);
   const availableEquipmentOptions = getAvailableEquipmentNamesForClass(selectedClassName);
+  const canEditClassIdentity = !isEditing || availableSubclassOptions.length === 0;
   const lastCustomAbilitiesRef = useRef(cloneAbilities(initialValues.abilities));
   const lastPointBuyAbilitiesRef = useRef(
     initialValues.attributeMode === "pointBuy"
@@ -707,6 +719,17 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       });
     }
   }, [getValues, selectedBackground, selectedClassName, selectedSpecies, setValue]);
+
+  useEffect(() => {
+    const normalizedSubclassId = normalizeSubclassId(selectedSubclassId, selectedClassName) ?? "";
+
+    if (selectedSubclassId !== normalizedSubclassId) {
+      setValue("subclassId", normalizedSubclassId, {
+        shouldDirty: selectedSubclassId.length > 0,
+        shouldValidate: true
+      });
+    }
+  }, [selectedClassName, selectedSubclassId, setValue]);
 
   function commitAbilities(nextAbilities: AbilityScores, mode: AttributeMode) {
     setValue("abilities", nextAbilities, {
@@ -790,6 +813,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       name: values.name.trim(),
       species: values.species.trim(),
       className: normalizedClassName,
+      subclassId: normalizeSubclassId(values.subclassId, normalizedClassName) ?? "",
       level: normalizedProgress.level,
       xp: normalizedProgress.xp,
       hitPoints: maxHitPoints,
@@ -814,7 +838,18 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   async function validateWizardStepOne(): Promise<boolean> {
-    return trigger(["name", "species", "className", "level"]);
+    const fields: Array<"name" | "species" | "className" | "subclassId" | "level"> = [
+      "name",
+      "species",
+      "className",
+      "level"
+    ];
+
+    if (availableSubclassOptions.length > 0) {
+      fields.splice(3, 0, "subclassId");
+    }
+
+    return trigger(fields);
   }
 
   async function handleRecommendedCreate() {
@@ -867,6 +902,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         name: createRandomName(),
         species: getRandomItem(speciesOptions),
         className: randomClassName,
+        subclassId: getRandomSubclassIdForClass(randomClassName),
         background: createRandomBackground(),
         backgroundNotes: "",
         level: 1
@@ -890,6 +926,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       name: createRandomName(),
       species: getRandomItem(speciesOptions),
       className: randomClassName,
+      subclassId: getRandomSubclassIdForClass(randomClassName),
       level: 1,
       xp: 0,
       hitPoints: getRandomInt(8, 90),
@@ -930,8 +967,13 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             type="button"
             className={styles.randomizeButton}
             onClick={handleRandomize}
+            disabled={!canEditClassIdentity}
             aria-label="Randomize character"
-            title="Randomize character"
+            title={
+              canEditClassIdentity
+                ? "Randomize character"
+                : "Class identity is locked after character creation"
+            }
           >
             <Dice6 size={20} />
           </button>
@@ -977,6 +1019,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             <SelectInput
               className={styles.fieldInput}
               invalid={Boolean(errors.className)}
+              disabled={!canEditClassIdentity}
               {...register("className", { required: "Choose a class" })}
             >
               <option value="">Select a class</option>
@@ -990,6 +1033,38 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               <small className={styles.errorText}>{errors.className.message}</small>
             ) : null}
           </label>
+
+          {availableSubclassOptions.length > 0 ? (
+            <label className={styles.field}>
+              <span>Subclass</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={Boolean(errors.subclassId)}
+                disabled={isEditing}
+                {...register("subclassId", {
+                  validate: (value) =>
+                    availableSubclassOptions.length === 0 ||
+                    normalizeSubclassId(value, selectedClassName)
+                      ? true
+                      : "Choose a subclass"
+                })}
+              >
+                <option value="">Select a subclass</option>
+                {availableSubclassOptions.map((subclass) => (
+                  <option key={subclass.id} value={subclass.id}>
+                    {subclass.name}
+                  </option>
+                ))}
+              </SelectInput>
+              {errors.subclassId ? (
+                <small className={styles.errorText}>{errors.subclassId.message}</small>
+              ) : (
+                <small className={styles.helperText}>
+                  Subclass choice is locked after character creation.
+                </small>
+              )}
+            </label>
+          ) : null}
 
           <label className={styles.field}>
             <span>Starting level</span>

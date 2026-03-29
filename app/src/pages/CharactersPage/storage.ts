@@ -33,6 +33,7 @@ import { normalizeCharacterClassFeatureState } from "./classFeatures";
 import { normalizeLevelAndXp } from "./experience";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
 import { normalizeCharacterFeats } from "./feats";
+import { normalizeSubclassId } from "./subclasses";
 import { normalizeCharacterStatusEntries, reconcileCharacterStatusConsequences } from "./traits";
 
 function clampNumber(value: unknown, min: number, max: number, fallback: number): number {
@@ -151,6 +152,7 @@ function normalizeCharacter(value: unknown): Character | null {
   const record = value as Partial<Character> & {
     role?: unknown;
     class?: unknown;
+    subclassId?: unknown;
     xp?: unknown;
     experience?: unknown;
     knownSpellIds?: unknown;
@@ -207,6 +209,7 @@ function normalizeCharacter(value: unknown): Character | null {
     typeof record.backgroundNotes === "string"
       ? record.backgroundNotes.trim()
       : defaults.backgroundNotes;
+  const normalizedSubclassId = normalizeSubclassId(record.subclassId, normalizedClassName);
   const resolvedBackground = isBackgroundName(normalizedBackground)
     ? normalizedBackground
     : defaults.background;
@@ -370,6 +373,7 @@ function normalizeCharacter(value: unknown): Character | null {
     name: typeof record.name === "string" ? record.name : defaults.name,
     species: normalizedSpecies,
     className: normalizedClassName,
+    subclassId: normalizedSubclassId,
     level: normalizedLevel,
     xp: normalizedXp,
     hitPoints: normalizedHitPoints,

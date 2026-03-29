@@ -121,6 +121,7 @@ export type Character = {
   name: string;
   species: string;
   className: string;
+  subclassId?: string;
   level: number;
   xp: number;
   hitPoints: number;
@@ -159,6 +160,7 @@ export type CharacterDraft = {
   name: string;
   species: string;
   className: string;
+  subclassId?: string;
   level: number;
   xp: number;
   hitPoints: number;
