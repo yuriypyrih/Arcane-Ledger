@@ -1,7 +1,5 @@
 import {
   CLASS_FEATURE,
-  ENTRY_CATEGORIES,
-  hardcodedCodexEntries,
   SPELL_LIST_CLASS,
   type ClassEntry,
   type FeatureClassObj,
@@ -10,6 +8,7 @@ import {
 import type { CharacterClassFeatureState } from "../../types";
 import { getSpellEntriesForClassName } from "../../codex/classes";
 import { getSpellEntriesForSpellListClasses } from "../../codex/classes/spellAccess";
+import { getClassEntryByName } from "../../codex/selectors";
 import {
   getAlwaysPreparedSpellIdsForCharacter,
   getCantripLimitBonusForCharacter
@@ -22,10 +21,6 @@ function createSpellSlotRow(...slots: number[]): number[] {
 }
 
 const emptySpellSlotRow = createSpellSlotRow();
-
-const codexClassEntries = hardcodedCodexEntries.filter(
-  (entry): entry is ClassEntry => entry.category === ENTRY_CATEGORIES.CLASSES
-);
 
 type SpellcastingFeatureClassObj = FeatureClassObj & {
   preparedSpells?: number;
@@ -52,7 +47,7 @@ function sanitizeSpellLevel(value: unknown): number {
 }
 
 function getClassEntry(className: string): ClassEntry | undefined {
-  return codexClassEntries.find((entry) => entry.name === className);
+  return getClassEntryByName(className) ?? undefined;
 }
 
 function getClassFeatureRowsUpToLevel(
@@ -66,7 +61,7 @@ function getClassFeatureRowsUpToLevel(
     return [];
   }
 
-  return classEntry.features
+  return (classEntry.features ?? [])
     .filter(
       (featureRow): featureRow is SpellcastingFeatureClassObj => featureRow.level <= normalizedLevel
     )

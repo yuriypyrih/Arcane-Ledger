@@ -1,7 +1,6 @@
 import clsx from "clsx";
 import { Pencil, TriangleAlert, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { useFormContext } from "react-hook-form";
 import DivinityListRow from "../../../DivinityListRow/DivinityListRow";
 import EldritchInvocationListRow from "../../../EldritchInvocationListRow";
 import SpellListRow from "../../../SpellListRow";
@@ -85,12 +84,18 @@ import {
   formatSpellGroupTitle,
   spellSlotLevels
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
+import {
+  areSpellIdListsEqual,
+  getRoundTrackerResourceForSpell
+} from "../../../../pages/CharactersPage/shared";
 import { getSpellOutcomeSummaryForCharacter } from "../../../../pages/CharactersPage/spellOutcome";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./SpellCastingForm.module.css";
+import actionStyles from "./SpellActionDrawer.module.css";
 
 type SpellCastingFormProps = {
+  character: Character;
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
 };
@@ -185,30 +190,6 @@ function createSpellPreparationLevelGroups(spells: SpellEntry[]): SpellPreparati
   }, {} as SpellPreparationLevelGroup);
 }
 
-function areSpellIdListsEqual(left: string[], right: string[]): boolean {
-  if (left.length !== right.length) {
-    return false;
-  }
-
-  return left.every((spellId, index) => spellId === right[index]);
-}
-
-function getRoundTrackerResourceForSpell(spell: SpellEntry): RoundTrackerResource | null {
-  if (spell.castingTime.includes(ACTION_TYPE.REACTION)) {
-    return "reaction";
-  }
-
-  if (spell.castingTime.includes(ACTION_TYPE.BONUS_ACTION)) {
-    return "bonusAction";
-  }
-
-  if (spell.castingTime.includes(ACTION_TYPE.ACTION)) {
-    return "action";
-  }
-
-  return null;
-}
-
 function getRoundTrackerResourceLabel(resource: RoundTrackerResource): string {
   switch (resource) {
     case "bonusAction":
@@ -245,9 +226,7 @@ function getActionShapeStateForRoundTrackerResource(
   };
 }
 
-function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormProps) {
-  const { watch } = useFormContext<Character>();
-  const character = watch() as Character;
+function SpellCastingForm({ character, className, onPersistCharacter }: SpellCastingFormProps) {
   const [selectedSpell, setSelectedSpell] = useState<SpellEntry | null>(null);
   const [selectedDivinityOptionKey, setSelectedDivinityOptionKey] = useState<string | null>(null);
   const [selectedInvocation, setSelectedInvocation] =
@@ -2005,14 +1984,16 @@ function SpellCastingForm({ className, onPersistCharacter }: SpellCastingFormPro
             </div>
 
             <div className={sheetStyles.spellDrawerActions}>
-              <div className={styles.castActionMeta}>
+              <div className={actionStyles.castActionMeta}>
                 <div className={sheetStyles.spellDrawerCastControls}>
                   <p className={sheetStyles.spellDrawerSlotText}>
                     {`${channelDivinityUsesRemaining}/${channelDivinityUsesTotal} uses remaining`}
                   </p>
                 </div>
                 {selectedDivinityActionWarning ? (
-                  <p className={styles.castActionWarning}>{selectedDivinityActionWarning}</p>
+                  <p className={actionStyles.castActionWarning}>
+                    {selectedDivinityActionWarning}
+                  </p>
                 ) : null}
               </div>
               <button

@@ -1,7 +1,6 @@
 import clsx from "clsx";
 import { Hand, Minus, Plus, Search, SearchX, Shield, X } from "lucide-react";
-import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
-import { useFormContext } from "react-hook-form";
+import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import coinCopperIcon from "../../../../assets/svg/coin-copper.svg";
 import coinElectrumIcon from "../../../../assets/svg/coin-electrum.svg";
 import coinGoldIcon from "../../../../assets/svg/coin.svg";
@@ -75,6 +74,7 @@ import InlineToggleButton from "../InlineToggleButton";
 import styles from "./EquipmentForm.module.css";
 
 type EquipmentFormProps = {
+  character: Character;
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
 };
@@ -377,9 +377,7 @@ function applyEquipmentToCharacter(currentCharacter: Character, itemName: string
   };
 }
 
-function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
-  const { watch } = useFormContext<Character>();
-  const character = watch() as Character;
+function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFormProps) {
   const customEquipment = useMemo(
     () => character.customEquipment ?? [],
     [character.customEquipment]
@@ -410,6 +408,17 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
   const [pendingDeleteCustomEquipmentId, setPendingDeleteCustomEquipmentId] = useState<
     string | null
   >(null);
+  const resetCatalogSearch = useCallback(() => {
+    setIsCatalogSearchVisible(false);
+    setCatalogSearchDraft("");
+    setCatalogSearchQuery("");
+    setCatalogPageByTab(createCatalogPageState());
+  }, []);
+  const closeAddModal = useCallback(() => {
+    setIsAddModalOpen(false);
+    setUndoableCatalogActions({});
+    resetCatalogSearch();
+  }, [resetCatalogSearch]);
 
   const hasBackdrop = Boolean(
     selectedWeaponReference ||
@@ -465,6 +474,7 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
       window.removeEventListener("keydown", handleKeyDown);
     };
   }, [
+    closeAddModal,
     hasBackdrop,
     isAddModalOpen,
     isCurrencyDrawerOpen,
@@ -729,19 +739,6 @@ function EquipmentForm({ className, onPersistCharacter }: EquipmentFormProps) {
       name: title,
       entries
     });
-  }
-
-  function resetCatalogSearch() {
-    setIsCatalogSearchVisible(false);
-    setCatalogSearchDraft("");
-    setCatalogSearchQuery("");
-    setCatalogPageByTab(createCatalogPageState());
-  }
-
-  function closeAddModal() {
-    setIsAddModalOpen(false);
-    setUndoableCatalogActions({});
-    resetCatalogSearch();
   }
 
   function openCustomEquipmentCreator() {

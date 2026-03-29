@@ -5,14 +5,13 @@ import {
   FEATS,
   WEAPON_COMBAT_TYPE,
   WEAPON_PROPERTY,
-  hardcodedCodexEntries,
   type ClassEntry,
-  type CodexEntry,
   type WeaponDamage,
   type WeaponDamageAmount,
   type WeaponDamageType,
   type WeaponEntry
 } from "../../codex/entries";
+import { getClassEntries, getWeaponEntries } from "../../codex/selectors";
 import type { AbilityKey, AbilityScores, Character, SkillName } from "../../types";
 import { PROF_LEVEL } from "../../types";
 import { formatCodexLabel, formatWeaponDamage, formatWeaponDamageFormula } from "../../utils/codex";
@@ -138,23 +137,12 @@ const fallbackWeaponReferencesByName = new Map<string, WeaponReference>([
 ]);
 
 const codexWeaponEntriesByName = new Map<string, WeaponEntry>(
-  hardcodedCodexEntries
-    .filter(
-      (entry): entry is WeaponEntry =>
-        isWeaponEntry(entry) && entry.category === ENTRY_CATEGORIES.WEAPONS
-    )
-    .map((entry) => [entry.name, entry])
+  getWeaponEntries().map((entry) => [entry.name, entry])
 );
 
 const codexClassEntriesByName = new Map<string, ClassEntry>(
-  hardcodedCodexEntries
-    .filter((entry): entry is ClassEntry => entry.category === ENTRY_CATEGORIES.CLASSES)
-    .map((entry) => [entry.name, entry])
+  getClassEntries().map((entry) => [entry.name, entry])
 );
-
-function isWeaponEntry(entry: CodexEntry): entry is WeaponEntry {
-  return entry.category === ENTRY_CATEGORIES.WEAPONS;
-}
 
 function getWeaponAbilityRule(weapon: Pick<WeaponEntry, "type" | "properties">): WeaponAbilityRule {
   if (weapon.type.combat === WEAPON_COMBAT_TYPE.RANGED) {

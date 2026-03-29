@@ -5,7 +5,8 @@ import type { FeatureActionCard } from "../../../../../pages/CharactersPage/clas
 import SpellListRow from "../../../../SpellListRow";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import styles from "./ActionsWidget.module.css";
+import sharedModalStyles from "./FeatureActionModal.module.css";
+import styles from "./DivineInterventionModal.module.css";
 
 type MysticArcanumModalProps = {
   action: FeatureActionCard;
@@ -29,7 +30,7 @@ function MysticArcanumModal({
       <section
         className={clsx(
           sheetStyles.spellManagementModal,
-          styles.featureActionModal,
+          sharedModalStyles.featureActionModal,
           styles.divineInterventionModal
         )}
         role="dialog"
@@ -38,7 +39,7 @@ function MysticArcanumModal({
         onClick={(event) => event.stopPropagation()}
       >
         <div className={sheetStyles.spellManagementHeader}>
-          <div className={styles.modalHeading}>
+          <div className={sharedModalStyles.modalHeading}>
             <p className={sheetStyles.eyebrow}>Warlock</p>
             <h3 id="mystic-arcanum-modal-title">{action.name}</h3>
             <p className={shared.helperText}>{action.detail}</p>

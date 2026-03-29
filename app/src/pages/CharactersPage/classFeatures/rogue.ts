@@ -1,12 +1,8 @@
 import { rogueFeatureMap, rogueFeatures } from "../../../codex/classes";
 import {
   CLASS_FEATURE,
-  ENTRY_CATEGORIES,
-  RARITY_TYPES,
   getReactionEntryById,
-  type ReactionEntry,
-  type WeaponEntry,
-  hardcodedCodexEntries
+  type ReactionEntry
 } from "../../../codex/entries";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
 import type {
@@ -43,6 +39,10 @@ import type {
   FeatureSpeedBonus,
   FeatureWeaponProficiencyEntry
 } from "./types";
+import {
+  getWeaponMasteryOptions,
+  normalizeWeaponMasterySelections
+} from "./weaponMastery";
 
 export const rogueSneakAttackActionKey = "rogue-sneak-attack";
 export const rogueSteadyAimActionKey = "rogue-steady-aim";
@@ -99,23 +99,7 @@ const rogueSkillProficiencyBySkillName = new Map<SkillName, SKILL_PROFICIENCY>([
 
 const rogueLanguageOptions = languageEntries.map((entry) => entry.proficiency);
 
-const rogueWeaponMasteryOptions = hardcodedCodexEntries
-  .filter(
-    (entry): entry is WeaponEntry =>
-      entry.category === ENTRY_CATEGORIES.WEAPONS &&
-      entry.rarity === RARITY_TYPES.COMMON &&
-      typeof entry.baseWeapon === "string"
-  )
-  .sort((left, right) => left.name.localeCompare(right.name))
-  .reduce<WEAPON_PROFICIENCY[]>((options, entry) => {
-    const proficiency = entry.baseWeapon as unknown as WEAPON_PROFICIENCY;
-
-    if (!options.includes(proficiency)) {
-      options.push(proficiency);
-    }
-
-    return options;
-  }, []);
+const rogueWeaponMasteryOptions = getWeaponMasteryOptions();
 
 function getRogueFeatureDescriptionLines(feature: CLASS_FEATURE): string[] {
   return (rogueFeatureMap[feature]?.description ?? []).filter(
@@ -276,18 +260,11 @@ function normalizeRogueLanguageSelection(value: unknown): LANGUAGE_PROFICIENCY |
 }
 
 function normalizeRogueWeaponMasteries(selections: unknown): WEAPON_PROFICIENCY[] {
-  if (!Array.isArray(selections)) {
-    return [];
-  }
-
-  const optionSet = new Set<WEAPON_PROFICIENCY>(rogueWeaponMasteryOptions);
-
-  return dedupe(
-    selections.filter(
-      (selection): selection is WEAPON_PROFICIENCY =>
-        typeof selection === "string" && optionSet.has(selection as WEAPON_PROFICIENCY)
-    )
-  ).slice(0, rogueWeaponMasterySelectionCount);
+  return normalizeWeaponMasterySelections(
+    selections,
+    rogueWeaponMasteryOptions,
+    rogueWeaponMasterySelectionCount
+  );
 }
 
 function createRogueExpertiseEntry(

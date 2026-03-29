@@ -15,7 +15,8 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/rogue";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import styles from "./ActionsWidget.module.css";
+import sharedModalStyles from "./FeatureActionModal.module.css";
+import styles from "./SneakAttackModal.module.css";
 
 type SneakAttackModalProps = {
   action: FeatureActionCard;
@@ -63,14 +64,14 @@ function SneakAttackModal({
     <>
       <div className={sheetStyles.spellManagementBackdrop} role="presentation" onClick={onClose}>
         <section
-          className={clsx(sheetStyles.spellManagementModal, styles.featureActionModal)}
+          className={clsx(sheetStyles.spellManagementModal, sharedModalStyles.featureActionModal)}
           role="dialog"
           aria-modal="true"
           aria-labelledby="sneak-attack-modal-title"
           onClick={(event) => event.stopPropagation()}
         >
           <div className={sheetStyles.spellManagementHeader}>
-            <div className={styles.modalHeading}>
+            <div className={sharedModalStyles.modalHeading}>
               <p className={sheetStyles.eyebrow}>Rogue</p>
               <h3 id="sneak-attack-modal-title">{action.name}</h3>
               <p className={shared.helperText}>{action.breakdown ?? action.detail}</p>

@@ -250,36 +250,6 @@
   gap: 0.42rem;
 }
 
-.spellManagementChoiceList {
-  display: grid;
-  gap: 0.35rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.spellManagementChoice {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  border: 1px solid rgba(75, 47, 29, 0.14);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.8);
-  font-size: 0.92rem;
-  padding: 0.5rem 0.58rem;
-}
-
-.spellManagementChoice input {
-  accent-color: #2f78ff;
-  margin: 0;
-}
-
-.spellManagementActions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.6rem;
-}
-
 .restOptionGrid {
   display: grid;
   gap: 0.65rem;
@@ -758,10 +728,6 @@
   .xpPopupCard {
     border-radius: 20px;
     padding: 0.9rem;
-  }
-
-  .spellManagementActions {
-    flex-direction: column;
   }
 
   .xpQuickActionRow {

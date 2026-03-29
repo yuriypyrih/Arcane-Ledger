@@ -1,7 +1,6 @@
 import clsx from "clsx";
 import { Pencil, Pentagon, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useFormContext } from "react-hook-form";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import type { AbilityKey, Character, CoreStats } from "../../../../types";
@@ -11,6 +10,7 @@ import {
 } from "../../../../pages/CharactersPage/abilities";
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
 import {
+  abilityKeys,
   createDefaultCoreStats,
   getPointBuyRemaining,
   normalizePointBuyAbilities
@@ -58,7 +58,6 @@ import {
   getSavingThrowLevelFromEntries,
   getSavingThrowProficiencyForAbilityKey
 } from "../../../../pages/CharactersPage/proficiency";
-import { PROF_LEVEL } from "../../../../types";
 import type {
   AbilitiesDraft,
   PersistCharacterUpdater
@@ -68,12 +67,14 @@ import {
   cloneAbilityScores,
   normalizeCustomAbilityScores
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
+import { getProficiencyMultiplier } from "../../../../pages/CharactersPage/shared";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import AbilityScoresModal from "./AbilityScoresModal";
 import styles from "./StatsForm.module.css";
 
 type CharacterStatsFormProps = {
+  character: Character;
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
 };
@@ -108,8 +109,6 @@ type CoreStatCard = {
     value: string;
   }>;
 };
-
-const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
 const abilityDisplayLabels: Record<AbilityKey, string> = {
   STR: "Strength",
@@ -218,18 +217,6 @@ function formatAbilityScoreFormula(
   return `${total} ${ability} = ${formattedEntries.join(" ")}`;
 }
 
-function getProficiencyMultiplier(level: PROF_LEVEL): 0 | 1 | 2 {
-  if (level === PROF_LEVEL.EXPERT) {
-    return 2;
-  }
-
-  if (level === PROF_LEVEL.PROFICIENT) {
-    return 1;
-  }
-
-  return 0;
-}
-
 function formatSavingThrowFormula(
   ability: AbilityKey,
   total: number,
@@ -329,9 +316,11 @@ function formatDieValue(die: string | null): string | null {
   return die ? String(die).toLowerCase() : null;
 }
 
-function CharacterStatsForm({ className, onPersistCharacter }: CharacterStatsFormProps) {
-  const { watch } = useFormContext<Character>();
-  const character = watch() as Character;
+function CharacterStatsForm({
+  character,
+  className,
+  onPersistCharacter
+}: CharacterStatsFormProps) {
   const [isAbilityModalOpen, setIsAbilityModalOpen] = useState(false);
   const [abilitiesDraft, setAbilitiesDraft] = useState<AbilitiesDraft>(() =>
     createAbilitiesDraft(character)

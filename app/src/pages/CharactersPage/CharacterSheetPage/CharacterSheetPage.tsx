@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { FormProvider, useForm } from "react-hook-form";
+import { FormProvider, useForm, useWatch } from "react-hook-form";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   CharacterProfileForm,
@@ -27,6 +27,9 @@ function CharacterSheetPage() {
   );
   const characterForm = useForm<Character>({
     defaultValues: character ?? undefined
+  });
+  const watchedCharacter = useWatch({
+    control: characterForm.control
   });
 
   useEffect(() => {
@@ -78,6 +81,8 @@ function CharacterSheetPage() {
     );
   }
 
+  const liveCharacter = (watchedCharacter ?? character) as Character;
+
   return (
     <section className={styles.page}>
       <button type="button" className={styles.backButton} onClick={() => navigate("/characters")}>
@@ -87,24 +92,40 @@ function CharacterSheetPage() {
       <FormProvider {...characterForm}>
         <div className={styles.cascadeStack}>
           <CharacterProfileForm
+            character={liveCharacter}
             className={styles.cascadeOne}
             onPersistCharacter={persistCharacter}
           />
-          <GameplayForm className={styles.cascadeTwo} onPersistCharacter={persistCharacter} />
+          <GameplayForm
+            character={liveCharacter}
+            className={styles.cascadeTwo}
+            onPersistCharacter={persistCharacter}
+          />
           <CharacterStatsForm
+            character={liveCharacter}
             className={styles.cascadeThree}
             onPersistCharacter={persistCharacter}
           />
           <ClassFeaturesAndFeats
+            character={liveCharacter}
             className={styles.cascadeFour}
             onPersistCharacter={persistCharacter}
           />
           <SkillsAndProficienciesForm
+            character={liveCharacter}
             className={styles.cascadeFive}
             onPersistCharacter={persistCharacter}
           />
-          <EquipmentForm className={styles.cascadeSix} onPersistCharacter={persistCharacter} />
-          <SpellCastingForm className={styles.cascadeSeven} onPersistCharacter={persistCharacter} />
+          <EquipmentForm
+            character={liveCharacter}
+            className={styles.cascadeSix}
+            onPersistCharacter={persistCharacter}
+          />
+          <SpellCastingForm
+            character={liveCharacter}
+            className={styles.cascadeSeven}
+            onPersistCharacter={persistCharacter}
+          />
         </div>
         <ThumbDiceButton />
       </FormProvider>

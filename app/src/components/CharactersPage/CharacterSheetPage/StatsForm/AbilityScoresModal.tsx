@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { ChevronDown, ChevronUp, Save, X } from "lucide-react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
 import NumberInput from "../../FormInputs/NumberInput";
+import { abilityKeys } from "../../../../pages/CharactersPage/constants";
 import type { AbilityKey } from "../../../../types";
 import type { AbilitiesDraft } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
@@ -17,8 +18,6 @@ type AbilityScoresModalProps = {
   onSetAttributeMode: (attributeMode: AbilitiesDraft["attributeMode"]) => void;
   onUpdateAbilityScore: (ability: AbilityKey, value: string) => void;
 };
-
-const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
 function AbilityScoresModal({
   isOpen,

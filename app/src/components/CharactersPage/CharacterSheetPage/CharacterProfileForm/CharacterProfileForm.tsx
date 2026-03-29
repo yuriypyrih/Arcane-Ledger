@@ -1,7 +1,6 @@
 import clsx from "clsx";
 import { Pencil, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useFormContext } from "react-hook-form";
 import NumberInput from "../../FormInputs/NumberInput";
 import SelectInput from "../../FormInputs/SelectInput";
 import TextAreaInput from "../../FormInputs/TextAreaInput";
@@ -14,8 +13,12 @@ import {
   getNextLevelThreshold,
   getXpProgressPercent
 } from "../../../../pages/CharactersPage/experience";
-import { classOptions, speciesOptions } from "../../../../pages/CharactersPage/constants";
-import { backgroundOptions, isBackgroundName } from "../../../../pages/CharactersPage/proficiency";
+import { speciesOptions } from "../../../../pages/CharactersPage/constants";
+import {
+  backgroundOptions,
+  classOptions,
+  isBackgroundName
+} from "../../../../pages/CharactersPage/proficiency";
 import type {
   IdentityDraft,
   PersistCharacterUpdater,
@@ -33,6 +36,7 @@ import styles from "./CharacterProfileForm.module.css";
 import InlineToggleButton from "../InlineToggleButton";
 
 type CharacterProfileFormProps = {
+  character: Character;
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
 };
@@ -56,9 +60,11 @@ function createXpDraft(character: Character): XpDraft {
   };
 }
 
-function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfileFormProps) {
-  const { watch } = useFormContext<Character>();
-  const character = watch() as Character;
+function CharacterProfileForm({
+  character,
+  className,
+  onPersistCharacter
+}: CharacterProfileFormProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [isBackgroundVisible, setIsBackgroundVisible] = useState(false);
   const [identityDraft, setIdentityDraft] = useState<IdentityDraft>(() =>
@@ -75,16 +81,7 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
     if (!isEditing) {
       setIdentityDraft(createIdentityDraft(character));
     }
-  }, [
-    character.name,
-    character.species,
-    character.className,
-    character.level,
-    character.alignment,
-    character.background,
-    character.backgroundNotes,
-    isEditing
-  ]);
+  }, [character, isEditing]);
 
   useEffect(() => {
     if (!isXpPopupOpen || isXpManualEditMode) {
@@ -92,7 +89,7 @@ function CharacterProfileForm({ className, onPersistCharacter }: CharacterProfil
     }
 
     setXpDraft(createXpDraft(character));
-  }, [character.level, character.xp, isXpPopupOpen, isXpManualEditMode]);
+  }, [character, isXpPopupOpen, isXpManualEditMode]);
 
   useEffect(() => {
     if (!isXpPopupOpen) {

@@ -24,10 +24,10 @@ import {
   formatWeaponType,
   formatWeaponWeight
 } from "../../utils/codex";
-import { useCodexEntries } from "../CodexPage/useCodexEntries";
 import sheetStyles from "../CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import { isShieldArmorEntry } from "../CharactersPage/armor";
 import { getKeywordReferences } from "../CharactersPage/keywordDescriptions";
+import { useCodexEntry } from "./useCodexEntry";
 import styles from "./CodexEntryPage.module.css";
 
 const abilityDisplayOrder = [
@@ -88,13 +88,12 @@ function CodexEntryPage() {
   const navigate = useNavigate();
   const { entryId } = useParams();
   const [searchParams] = useSearchParams();
-  const { entries, status } = useCodexEntries();
+  const { entry, status } = useCodexEntry(entryId);
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
   const [selectedWeaponReference, setSelectedWeaponReference] = useState<{
     title: string;
     entries: ReturnType<typeof getKeywordReferences>;
   } | null>(null);
-  const entry = entries.find((item) => item.id === entryId);
   const codexSearch = searchParams.toString();
   const backToCodexPath = codexSearch.length > 0 ? `/codex?${codexSearch}` : "/codex";
   const componentsTooltipEntry =

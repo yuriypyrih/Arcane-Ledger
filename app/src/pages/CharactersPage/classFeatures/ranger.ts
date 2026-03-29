@@ -1,11 +1,7 @@
 import { rangerFeatures } from "../../../codex/classes";
 import {
   CLASS_FEATURE,
-  ENTRY_CATEGORIES,
-  RARITY_TYPES,
-  type SpellEntry,
-  type WeaponEntry,
-  hardcodedCodexEntries
+  type SpellEntry
 } from "../../../codex/entries";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
 import type {
@@ -43,6 +39,10 @@ import type {
   FeatureWeaponProficiencyEntry,
   SpeedFeatureContext
 } from "./types";
+import {
+  getWeaponMasteryOptions,
+  normalizeWeaponMasterySelections
+} from "./weaponMastery";
 
 export const favoredEnemyActionKey = "ranger-favored-enemy";
 export const tirelessActionKey = "ranger-tireless";
@@ -81,23 +81,7 @@ const rangerSkillProficiencyBySkillName = new Map<SkillName, SKILL_PROFICIENCY>(
 ]);
 const rangerLanguageOptions = languageEntries.map((entry) => entry.proficiency);
 
-const rangerWeaponMasteryOptions = hardcodedCodexEntries
-  .filter(
-    (entry): entry is WeaponEntry =>
-      entry.category === ENTRY_CATEGORIES.WEAPONS &&
-      entry.rarity === RARITY_TYPES.COMMON &&
-      typeof entry.baseWeapon === "string"
-  )
-  .sort((left, right) => left.name.localeCompare(right.name))
-  .reduce<WEAPON_PROFICIENCY[]>((options, entry) => {
-    const proficiency = entry.baseWeapon as unknown as WEAPON_PROFICIENCY;
-
-    if (!options.includes(proficiency)) {
-      options.push(proficiency);
-    }
-
-    return options;
-  }, []);
+const rangerWeaponMasteryOptions = getWeaponMasteryOptions();
 
 function dedupe<T>(values: T[]): T[] {
   return [...new Set(values)];
@@ -156,18 +140,11 @@ function getRangerAdditionalAttackCount(character: Pick<Character, "className" |
 }
 
 function normalizeRangerWeaponMasteries(selections: unknown): WEAPON_PROFICIENCY[] {
-  if (!Array.isArray(selections)) {
-    return [];
-  }
-
-  const optionSet = new Set<WEAPON_PROFICIENCY>(rangerWeaponMasteryOptions);
-
-  return dedupe(
-    selections.filter(
-      (selection): selection is WEAPON_PROFICIENCY =>
-        typeof selection === "string" && optionSet.has(selection as WEAPON_PROFICIENCY)
-    )
-  ).slice(0, rangerWeaponMasterySelectionCount);
+  return normalizeWeaponMasterySelections(
+    selections,
+    rangerWeaponMasteryOptions,
+    rangerWeaponMasterySelectionCount
+  );
 }
 
 function normalizeRangerExpertiseSelection(value: unknown): SkillName | undefined {

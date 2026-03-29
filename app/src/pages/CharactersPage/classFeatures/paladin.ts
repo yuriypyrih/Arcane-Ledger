@@ -1,11 +1,7 @@
 import {
   CLASS_FEATURE,
-  ENTRY_CATEGORIES,
-  RARITY_TYPES,
   WEAPON_COMBAT_TYPE,
   getDivinityEntryById,
-  type WeaponEntry,
-  hardcodedCodexEntries
 } from "../../../codex/entries";
 import { paladinFeatures } from "../../../codex/classes";
 import type {
@@ -38,6 +34,10 @@ import type {
   FeatureDamageBonus,
   FeatureWeaponProficiencyEntry
 } from "./types";
+import {
+  getWeaponMasteryOptions,
+  normalizeWeaponMasterySelections
+} from "./weaponMastery";
 
 export const paladinLayOnHandsActionKey = "paladin-lay-on-hands";
 export const paladinChannelDivinityActionKey = "paladin-channel-divinity";
@@ -67,23 +67,7 @@ const layOnHandsRestoringTouchConditions = [
   CONDITION_NAME.PARALYZED,
   CONDITION_NAME.STUNNED
 ] as const;
-const paladinWeaponMasteryOptions = hardcodedCodexEntries
-  .filter(
-    (entry): entry is WeaponEntry =>
-      entry.category === ENTRY_CATEGORIES.WEAPONS &&
-      entry.rarity === RARITY_TYPES.COMMON &&
-      typeof entry.baseWeapon === "string"
-  )
-  .sort((left, right) => left.name.localeCompare(right.name))
-  .reduce<WEAPON_PROFICIENCY[]>((options, entry) => {
-    const proficiency = entry.baseWeapon as unknown as WEAPON_PROFICIENCY;
-
-    if (!options.includes(proficiency)) {
-      options.push(proficiency);
-    }
-
-    return options;
-  }, []);
+const paladinWeaponMasteryOptions = getWeaponMasteryOptions();
 
 export type LayOnHandsTarget = "self" | "other";
 export type LayOnHandsCondition =
@@ -180,8 +164,6 @@ export function normalizePaladinFeatureState(
     ? (getPaladinFeatureRow(character.level)?.channelDivinity ?? 0)
     : 0;
   const totalPool = hasLayOnHands ? getPaladinHealingPoolTotal(character) : 0;
-  const weaponMasteryOptionSet = new Set<WEAPON_PROFICIENCY>(paladinWeaponMasteryOptions);
-
   return {
     layOnHandsExpended: hasLayOnHands
       ? Number.isFinite(layOnHandsExpended)
@@ -221,15 +203,11 @@ export function normalizePaladinFeatureState(
         )
       : undefined,
     weaponMasteries: hasWeaponMastery
-      ? dedupe(
-          Array.isArray(record.weaponMasteries)
-            ? record.weaponMasteries.filter(
-                (selection): selection is WEAPON_PROFICIENCY =>
-                  typeof selection === "string" &&
-                  weaponMasteryOptionSet.has(selection as WEAPON_PROFICIENCY)
-              )
-            : []
-        ).slice(0, paladinWeaponMasterySelectionCount)
+      ? normalizeWeaponMasterySelections(
+          record.weaponMasteries,
+          paladinWeaponMasteryOptions,
+          paladinWeaponMasterySelectionCount
+        )
       : undefined
   };
 }
@@ -876,16 +854,15 @@ export function setPaladinWeaponMasterySelections(
   }
 
   const paladinState = getPaladinFeatureState(character);
-  const optionSet = new Set<WEAPON_PROFICIENCY>(paladinWeaponMasteryOptions);
-
   return {
     ...character,
     classFeatureState: {
       ...character.classFeatureState,
       paladin: {
         ...paladinState,
-        weaponMasteries: dedupe(selections.filter((selection) => optionSet.has(selection))).slice(
-          0,
+        weaponMasteries: normalizeWeaponMasterySelections(
+          selections,
+          paladinWeaponMasteryOptions,
           paladinWeaponMasterySelectionCount
         )
       }

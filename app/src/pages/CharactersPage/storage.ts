@@ -3,7 +3,7 @@ import { currencyKeys } from "../../types";
 import { loadPreferences } from "../../storage/preferences";
 import {
   CHARACTERS_STORAGE_KEY,
-  alignmentGrid,
+  alignmentOptions,
   createDefaultCoreStats,
   createDefaultAbilities,
   createDefaultCurrencies,
@@ -33,18 +33,9 @@ import { normalizeCharacterClassFeatureState } from "./classFeatures";
 import { normalizeLevelAndXp } from "./experience";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
 import { normalizeCharacterFeats } from "./feats";
+import { clampNumber } from "./shared";
 import { normalizeSubclassId } from "./subclasses";
 import { normalizeCharacterStatusEntries, reconcileCharacterStatusConsequences } from "./traits";
-
-function clampNumber(value: unknown, min: number, max: number, fallback: number): number {
-  const parsedValue = Number(value);
-
-  if (!Number.isFinite(parsedValue)) {
-    return fallback;
-  }
-
-  return Math.max(min, Math.min(max, parsedValue));
-}
 
 function normalizeCoreStatValue(value: unknown, fallback: string): string {
   if (typeof value !== "string") {
@@ -144,7 +135,7 @@ function normalizeDeathSaves(value: unknown): NonNullable<Character["deathSaves"
   };
 }
 
-function normalizeCharacter(value: unknown): Character | null {
+export function normalizeCharacter(value: unknown): Character | null {
   if (!value || typeof value !== "object") {
     return null;
   }
@@ -390,7 +381,9 @@ function normalizeCharacter(value: unknown): Character | null {
         ? record.attributeMode
         : defaults.attributeMode,
     abilities: normalizedAbilities,
-    alignment: (alignmentGrid.flat() as string[]).includes(record.alignment ?? "")
+    alignment:
+      typeof record.alignment === "string" &&
+      alignmentOptions.includes(record.alignment as Character["alignment"])
       ? (record.alignment as Character["alignment"])
       : defaults.alignment,
     background: resolvedBackground,

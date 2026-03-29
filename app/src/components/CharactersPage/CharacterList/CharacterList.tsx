@@ -1,7 +1,7 @@
 import { Eye, Trash2 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Link } from "react-router-dom";
-import { useBodyScrollLock } from "../../../lib/useBodyScrollLock";
+import { SheetModal } from "../../Overlay";
 import { abilityKeys } from "../../../pages/CharactersPage/constants";
 import type { Character } from "../../../types";
 import { getClassSignatureStyle } from "../classSignature";
@@ -14,25 +14,6 @@ type CharacterListProps = {
 
 function CharacterList({ characters, onDeleteCharacter }: CharacterListProps) {
   const [pendingDeleteCharacter, setPendingDeleteCharacter] = useState<Character | null>(null);
-  useBodyScrollLock(Boolean(pendingDeleteCharacter));
-
-  useEffect(() => {
-    if (!pendingDeleteCharacter) {
-      return;
-    }
-
-    function handleKeyDown(event: globalThis.KeyboardEvent) {
-      if (event.key === "Escape") {
-        setPendingDeleteCharacter(null);
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [pendingDeleteCharacter]);
 
   function handleDeleteConfirm() {
     if (!pendingDeleteCharacter) {
@@ -109,18 +90,12 @@ function CharacterList({ characters, onDeleteCharacter }: CharacterListProps) {
       )}
 
       {pendingDeleteCharacter ? (
-        <div
-          className={styles.modalBackdrop}
-          role="presentation"
-          onClick={() => setPendingDeleteCharacter(null)}
+        <SheetModal
+          titleId="delete-character-title"
+          onClose={() => setPendingDeleteCharacter(null)}
+          backdropClassName={styles.modalBackdrop}
+          panelClassName={styles.modalCard}
         >
-          <section
-            className={styles.modalCard}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="delete-character-title"
-            onClick={(event) => event.stopPropagation()}
-          >
             <h4 id="delete-character-title">Delete character?</h4>
             <p>
               This will permanently remove <strong>{pendingDeleteCharacter.name}</strong> from your
@@ -142,8 +117,7 @@ function CharacterList({ characters, onDeleteCharacter }: CharacterListProps) {
                 Delete
               </button>
             </div>
-          </section>
-        </div>
+        </SheetModal>
       ) : null}
     </div>
   );

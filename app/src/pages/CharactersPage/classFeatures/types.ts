@@ -1,14 +1,19 @@
+import type { DICE, ReactionEntry, SpellEntry } from "../../../codex/entries";
 import { WEAPON_COMBAT_TYPE } from "../../../codex/entries";
 import type { ActionCategory, EconomyType } from "../actionEconomy";
 import type {
   AbilityKey,
   ArmorProficiencyEntry,
+  Character,
+  CharacterClassFeatureState,
   CharacterStatusEntry,
   CoreStats,
   LanguageProficiencyEntry,
+  PROF_LEVEL,
   SavingThrowProficiencyEntry,
   SkillName,
   SkillProficiencyEntry,
+  WEAPON_PROFICIENCY,
   WeaponProficiencyEntry
 } from "../../../types";
 
@@ -145,3 +150,94 @@ export type FeatureWeaponProficiencyEntry = WeaponProficiencyEntry;
 
 export type FeatureArmorProficiencyEntry = ArmorProficiencyEntry;
 export type FeatureLanguageProficiencyEntry = LanguageProficiencyEntry;
+
+export type ActiveClassFeatureName =
+  | "Barbarian"
+  | "Bard"
+  | "Cleric"
+  | "Druid"
+  | "Fighter"
+  | "Monk"
+  | "Paladin"
+  | "Ranger"
+  | "Rogue"
+  | "Sorcerer"
+  | "Warlock"
+  | "Wizard";
+
+export type ClassFeatureDerivedState = {
+  actions?: FeatureActionCard[];
+  actionOptions?: Partial<Record<string, FeatureActionOptionCard[]>>;
+  getWeaponDamageBonuses?: (context: WeaponFeatureContext) => FeatureDamageBonus[];
+  savingThrowIndicators?: SavingThrowIndicatorMap;
+  abilityCheckIndicators?: AbilityCheckIndicatorMap;
+  coreStatIndicators?: CoreStatIndicatorMap;
+  skillIndicators?: SkillIndicatorMap;
+  getSkillBonuses?: (
+    skill: SkillName,
+    proficiencyLevel: PROF_LEVEL
+  ) => FeatureSkillBonus[];
+  spellcastingState?: FeatureSpellcastingState;
+  getArmorClassModes?: (context: ArmorClassFeatureContext) => FeatureArmorClassMode[];
+  getArmorClassBonuses?: (context: ArmorClassFeatureContext) => FeatureArmorClassBonus[];
+  getSpeedBonuses?: (context: SpeedFeatureContext) => FeatureSpeedBonus[];
+  abilityScoreBonuses?: FeatureAbilityScoreBonus[];
+  cantripLimitBonus?: number;
+  cantripDamageBonus?: number;
+  weaponProficiencyEntries?: FeatureWeaponProficiencyEntry[];
+  skillProficiencyEntries?: FeatureSkillProficiencyEntry[];
+  savingThrowProficiencyEntries?: FeatureSavingThrowProficiencyEntry[];
+  armorProficiencyEntries?: FeatureArmorProficiencyEntry[];
+  languageProficiencyEntries?: FeatureLanguageProficiencyEntry[];
+  alwaysPreparedSpellIds?: string[];
+  weaponMastery?: {
+    selectionCount: number;
+    options: WEAPON_PROFICIENCY[];
+    selections: WEAPON_PROFICIENCY[];
+    setSelections: (character: Character, selections: WEAPON_PROFICIENCY[]) => Character;
+  };
+  derivedStatusEntries?: DerivedFeatureStatusEntry[];
+  reactionEntries?: ReactionEntry[];
+  transformSpellEntry?: (spell: SpellEntry) => SpellEntry;
+  getSpellDamageFormulaOverride?: (spell: Pick<SpellEntry, "id">) => string | null;
+  bardicInspirationDie?: DICE | null;
+  monkMartialArtsDie?: DICE | null;
+  rogueSneakAttackDiceCount?: number;
+  rogueSneakAttackFormula?: string;
+  monkUnarmedDamageTypeLabel?: string;
+  canUseMonkMartialArts?: (context: {
+    hasWornBodyArmor: boolean;
+    hasShieldEquipped: boolean;
+    wieldsOnlyMonkWeaponsOrUnarmed: boolean;
+  }) => boolean;
+};
+
+export type CollectedClassFeatureCharacter = Pick<Character, "className" | "level"> &
+  Pick<
+    Character,
+    | "abilities"
+    | "classFeatureState"
+    | "statusEntries"
+    | "equipment"
+    | "customEquipment"
+    | "spellbookSpellIds"
+    | "cantripIds"
+    | "feats"
+  >;
+
+export type ClassFeatureModule<TStateKey extends keyof CharacterClassFeatureState> = {
+  className: ActiveClassFeatureName;
+  stateKey: TStateKey;
+  normalizeState: (
+    value: unknown,
+    character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "abilities">>
+  ) => CharacterClassFeatureState[TStateKey];
+  collectDerived: (
+    character: CollectedClassFeatureCharacter
+  ) => ClassFeatureDerivedState;
+  handleAction?: (character: Character, actionKey: string) => Character | null;
+  handleActionOption?: (character: Character, actionKey: string, optionKey: string) => Character | null;
+  applyShortRest?: (character: Character) => Character;
+  applyLongRest?: (character: Character) => Character;
+  advanceRound?: (character: Character) => Character;
+};

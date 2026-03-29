@@ -1,7 +1,8 @@
 import type { Character, CharacterClassFeatureState } from "../../../types";
 import { ALL_SKILLS } from "../../../types";
-import type { AbilityKey, SkillName, WEAPON_PROFICIENCY } from "../../../types";
+import type { SkillName, WEAPON_PROFICIENCY } from "../../../types";
 import type { EconomyType } from "../actionEconomy";
+import { abilityKeys } from "../constants";
 import {
   hasExhaustionAbilityCheckDisadvantage,
   hasExhaustionAttackRollDisadvantage,
@@ -9,160 +10,58 @@ import {
   removeCharacterStatusEntry
 } from "../traits";
 import {
-  activateBardicInspiration,
   applySuperiorInspirationOnInitiative,
-  applyLongRestToBardFeatures,
-  applyShortRestToBardFeatures,
-  bardicInspirationActionKey,
-  getBardAlwaysPreparedSpellIds,
-  getBardicInspirationDie,
-  getBardFeatureAction,
   getBardExpertiseSelections,
-  getBardReactionEntries,
-  getBardSkillBonuses,
-  getBardSkillProficiencyEntries,
-  normalizeBardFeatureState,
   setBardExpertiseSelections
 } from "./bard";
 import {
-  activateBarbarianRage,
-  getBarbarianAbilityCheckIndicators,
-  applyLongRestToBarbarianFeatures,
-  getBarbarianAbilityScoreBonuses,
-  getBarbarianArmorClassBonuses,
-  getBarbarianArmorClassModes,
-  getBarbarianCoreStatIndicators,
-  applyShortRestToBarbarianFeatures,
   deactivateBarbarianRage,
-  getBarbarianDerivedConditions,
-  getBarbarianFeatureAction,
-  getBarbarianSkillIndicators,
-  getBarbarianWeaponMasteryOptions,
-  getBarbarianWeaponMasterySelectionCount,
-  getBarbarianWeaponMasterySelections,
-  getBarbarianWeaponProficiencyEntries,
-  getBarbarianSavingThrowIndicators,
-  getBarbarianSpeedBonuses,
-  getBarbarianSpellcastingState,
-  getBarbarianWeaponDamageBonuses,
-  normalizeBarbarianRageState,
-  setBarbarianWeaponMasterySelections
 } from "./barbarian";
 import {
-  activateClericDivineIntervention,
-  activateClericFeatureActionOption,
-  advanceClericFeaturesForNewRound,
-  applyLongRestToClericFeatures,
-  applyShortRestToClericFeatures,
-  divineInterventionActionKey,
-  getClericArmorProficiencyEntries,
   getClericBlessedStrikesChoice,
-  getClericCantripBonus,
-  getClericCantripDamageBonus,
   getClericChannelDivinityUsesRemaining,
   getClericChannelDivinityUsesTotal,
-  getClericFeatureActions,
-  getClericFeatureActionOptions,
   getClericDivineOrderChoice,
-  getClericSkillBonuses,
-  getClericWeaponDamageBonuses,
-  getClericWeaponProficiencyEntries,
   markClericBlessedStrikeUsed,
-  normalizeClericFeatureState,
   setClericBlessedStrikesChoice,
   setClericDivineOrderChoice
 } from "./cleric";
 import {
-  getDruidAlwaysPreparedSpellIds,
-  getDruidArmorProficiencyEntries,
-  getDruidCantripBonus,
-  getDruidLanguageProficiencyEntries,
   getDruidPrimalOrderChoice,
-  getDruidSkillBonuses,
-  getDruidWeaponProficiencyEntries,
-  normalizeDruidFeatureState,
   setDruidPrimalOrderChoice
 } from "./druid";
 import {
-  activateRangerNaturesVeil,
-  advanceRangerFeaturesForNewRound,
-  applyLongRestToRangerFeatures,
-  applyShortRestToRangerFeatures,
   consumeRangerFavoredEnemyUse,
   consumeRangerNaturesVeilUse,
   consumeRangerTirelessUse,
   consumeRangerWeaponAttack,
-  getRangerFeatureActions,
-  getRangerAlwaysPreparedSpellIds,
   getRangerDeftExplorerExpertiseSelection,
   getRangerDeftExplorerLanguageSelections,
-  getRangerDerivedStatusEntries,
   getRangerFavoredEnemyUsesRemaining,
   getRangerFavoredEnemyUsesTotal,
-  getRangerLanguageProficiencyEntries,
   getRangerLevel9ExpertiseSelections,
   getRangerNaturesVeilUsesRemaining,
   getRangerNaturesVeilUsesTotal,
-  getRangerSkillProficiencyEntries,
-  getRangerSpeedBonuses,
-  getRangerSpellDamageFormula,
-  getRangerSpellEntry,
   getRangerTirelessUsesRemaining,
   getRangerTirelessUsesTotal,
   getRangerWeaponAttackMultiCount,
-  getRangerWeaponMasteryOptions,
-  getRangerWeaponMasterySelectionCount,
-  getRangerWeaponMasterySelections,
-  getRangerWeaponProficiencyEntries,
-  normalizeRangerFeatureState,
-  naturesVeilActionKey,
   restoreRangerNaturesVeilOnLongRest,
   restoreRangerTirelessOnLongRest,
   setRangerDeftExplorerExpertiseSelection,
   setRangerDeftExplorerLanguageSelections,
   setRangerLevel9ExpertiseSelections,
-  setRangerWeaponMasterySelections,
-  tirelessActionKey
 } from "./ranger";
 import {
-  activateRogueSteadyAim,
-  activateRogueSneakAttack,
-  advanceRogueFeaturesForNewRound,
-  applyLongRestToRogueFeatures,
-  applyShortRestToRogueFeatures,
-  consumeRogueStrokeOfLuckUse,
-  getRogueDerivedStatusEntries,
-  getRogueFeatureActions,
   getRogueExpertiseSelections,
-  getRogueLanguageProficiencyEntries,
-  getRogueReactionEntries,
-  getRogueSavingThrowProficiencyEntries,
-  getRogueSkillProficiencyEntries,
-  getRogueSneakAttackDiceCount,
-  getRogueSneakAttackFormula,
-  getRogueSpeedBonuses,
   getRogueStrokeOfLuckUsesRemaining,
   getRogueStrokeOfLuckUsesTotal,
-  getRogueWeaponMasteryOptions,
-  getRogueWeaponMasterySelectionCount,
-  getRogueWeaponMasterySelections,
-  getRogueWeaponProficiencyEntries,
-  normalizeRogueFeatureState,
-  rogueSteadyAimActionKey,
-  rogueSneakAttackActionKey,
-  rogueStrokeOfLuckActionKey,
   restoreRogueStrokeOfLuckOnLongRest,
   restoreRogueStrokeOfLuckOnShortRest,
   setRogueExpertiseSelections,
   setRogueThievesCantLanguageSelection,
-  setRogueWeaponMasterySelections,
   getRogueThievesCantLanguageSelection
 } from "./rogue";
 import {
-  activateInnateSorcery,
-  advanceSorcererFeaturesForNewRound,
-  applyLongRestToSorcererFeatures,
-  applyShortRestToSorcererFeatures,
   createSpellSlotFromSorceryPoints,
   convertSpellSlotToSorceryPoints,
   expendOneSorceryPoint,
@@ -170,9 +69,7 @@ import {
   getInnateSorceryUsesTotal,
   getInnateSorceryActivationSorceryPointCost,
   getSorcererMetamagicActionCost,
-  getSorcererFeatureActions,
   getSorcererMetamagicDefinitions,
-  getSorcererMetamagicOptionsForAction,
   getSorcererMetamagicSelectionCount,
   getSorcererMetamagicSelectionLimitForAction,
   getSorcererMetamagicSelections,
@@ -180,25 +77,17 @@ import {
   getSorceryPointsTotal,
   hasActiveInnateSorcery,
   hasArcaneApotheosisFreeMetamagicAvailable,
-  innateSorceryActionKey,
-  metamagicActionKey,
-  normalizeSorcererFeatureState,
   restoreAllSorceryPoints,
   restoreInnateSorceryOnLongRest,
   restoreOneSorceryPoint,
   setSorcererMetamagicSelections,
-  spendMetamagicOption,
   spendMetamagicOptions
 } from "./sorcerer";
 import {
-  activateWarlockMagicalCunning,
   consumeContactPatronUse,
   consumeMysticArcanumUse,
-  contactPatronActionKey,
   getContactPatronUsesRemaining,
   getContactPatronUsesTotal,
-  getWarlockAlwaysPreparedSpellIds,
-  getWarlockFeatureActions,
   getWarlockEldritchInvocationLimit,
   getWarlockMagicalCunningUsesRemaining,
   getWarlockMagicalCunningUsesTotal,
@@ -209,33 +98,22 @@ import {
   getWarlockMysticArcanumSelections,
   getWarlockMysticArcanumSpellId,
   getWarlockMysticArcanumSpellOptions,
-  magicalCunningActionKey,
-  mysticArcanumActionKey,
-  normalizeWarlockFeatureState,
   restoreContactPatronOnLongRest,
-  restoreMysticArcanumOnLongRest,
   restoreWarlockMagicalCunningOnLongRest,
   setWarlockMysticArcanumSpellId,
   setWarlockInvocationSelectionIds
 } from "./warlock";
 import {
   activateArcaneRecovery,
-  arcaneRecoveryActionKey,
-  applyLongRestToWizardFeatures,
-  applyShortRestToWizardFeatures,
   consumeWizardSignatureSpellFreeCast,
   getArcaneRecoveryUsesRemaining,
   getArcaneRecoveryUsesTotal,
-  getWizardAlwaysPreparedSpellIds,
-  getWizardFeatureActions,
   getWizardExpendedSignatureSpellIds,
   getWizardScholarSelection,
   getWizardSignatureSpellIds,
   hasWizardSignatureSpellFreeCastAvailable,
   getWizardSpellMasterySelection,
   getWizardSpellMasterySpellIds,
-  getWizardSkillProficiencyEntries,
-  normalizeWizardFeatureState,
   setWizardScholarSelection,
   setWizardSignatureSpellIds,
   setWizardSpellMasterySelection,
@@ -244,96 +122,44 @@ import {
 } from "./wizard";
 import { getSubclassDerivedFeatureState } from "./subclasses";
 import {
-  activatePaladinFeatureActionOption,
-  advancePaladinFeaturesForNewRound,
   applyLayOnHands,
-  applyLongRestToPaladinFeatures,
-  applyShortRestToPaladinFeatures,
   consumeFaithfulSteedUse,
   consumePaladinWeaponAttack,
   consumePaladinsSmiteUse,
   getLayOnHandsCurableConditions,
-  getPaladinDerivedStatusEntries,
-  getPaladinAlwaysPreparedSpellIds,
   getPaladinChannelDivinityUsesRemaining,
   getPaladinChannelDivinityUsesTotal,
-  getPaladinFeatureActions,
-  getPaladinFeatureActionOptions,
   getPaladinHealingPoolRemaining,
   getPaladinHealingPoolTotal,
-  getPaladinWeaponDamageBonuses,
   getPaladinWeaponAttackMultiCount,
   getPaladinsSmiteUsesRemaining,
   hasActivePaladinAuraOfProtection,
-  getPaladinWeaponMasteryOptions,
-  getPaladinWeaponMasterySelectionCount,
-  getPaladinWeaponMasterySelections,
-  getPaladinWeaponProficiencyEntries,
-  normalizePaladinFeatureState,
-  paladinChannelDivinityActionKey,
-  paladinLayOnHandsActionKey,
-  paladinsSmiteActionKey,
   restorePaladinLayOnHandsOnLongRest,
-  setPaladinWeaponMasterySelections
 } from "./paladin";
 import {
-  activateMonkFlurryOfBlows,
-  activateMonkUncannyMetabolism,
-  activateMonkSuperiorDefense,
-  activateMonkStunningStrike,
-  advanceMonkFeaturesForNewRound,
   applyPerfectFocusOnInitiative,
-  applyLongRestToMonkFeatures,
-  applyShortRestToMonkFeatures,
-  canUseMonkMartialArts,
   consumeMonkWeaponAttack,
   expendMonkFocusPoint,
-  getMonkAbilityScoreBonuses,
-  getMonkArmorClassModes,
-  getMonkDerivedStatusEntries,
-  getMonkFeatureActions,
   getMonkFocusPointsRemaining,
   getMonkFocusPointsTotal,
   getMonkExtraAttackMultiCount,
   getMonkFlurryOfBlowsAttackMultiCount,
   hasMonkPerfectFocus,
-  getMonkMartialArtsDie,
-  getMonkUnarmedDamageTypeLabel,
-  getMonkReactionEntries,
-  getMonkSavingThrowProficiencyEntries,
-  getMonkSpeedBonuses,
-  monkFlurryOfBlowsActionKey,
-  monkSuperiorDefenseActionKey,
-  monkStunningStrikeActionKey,
-  monkUncannyMetabolismActionKey,
-  normalizeMonkFeatureState,
   restoreAllMonkFocusPoints,
   restoreMonkUncannyMetabolismOnLongRest,
   restoreOneMonkFocusPoint
 } from "./monk";
 import {
-  activateFighterActionSurge,
-  advanceFighterFeaturesForNewRound,
-  applyLongRestToFighterFeatures,
-  applyShortRestToFighterFeatures,
   consumeFighterNonMagicAction,
   consumeFighterWeaponAttack,
-  consumeFighterSecondWindUse,
-  consumeFighterIndomitableUse,
-  fighterActionSurgeActionKey,
-  fighterIndomitableActionKey,
-  fighterSecondWindActionKey,
-  fighterTacticalMindActionKey,
-  getFighterFeatureActions,
   getFighterNonMagicActionMultiCount,
   getFighterWeaponAttackMultiCount,
-  getFighterWeaponMasteryOptions,
-  getFighterWeaponMasterySelectionCount,
-  getFighterWeaponMasterySelections,
-  getFighterWeaponProficiencyEntries,
-  normalizeFighterFeatureState,
-  setFighterWeaponMasterySelections
 } from "./fighter";
+import {
+  collectActiveClassFeatureState,
+  getActiveClassFeatureModule,
+  getClassFeatureModules
+} from "./modules";
 import type {
   AbilityCheckIndicatorMap,
   ArmorClassFeatureContext,
@@ -368,7 +194,6 @@ const exhaustionDisadvantageIndicator: FeatureIndicator = {
   tone: "disadvantage",
   source: "Exhaustion"
 };
-const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
 function mergeIndicatorMaps<T extends string>(
   ...maps: Array<Partial<Record<T, FeatureIndicator[]>>>
@@ -418,96 +243,51 @@ export function normalizeCharacterClassFeatureState(
 ): CharacterClassFeatureState {
   const record =
     value && typeof value === "object" ? (value as Partial<CharacterClassFeatureState>) : {};
+  const rawRecord = record as Record<string, unknown>;
+  const normalizedState = {} as CharacterClassFeatureState;
 
-  return {
-    rage: normalizeBarbarianRageState(record.rage, character),
-    bard: normalizeBardFeatureState(record.bard, character),
-    cleric: normalizeClericFeatureState(record.cleric, character),
-    druid: normalizeDruidFeatureState(record.druid, character),
-    wizard: normalizeWizardFeatureState(record.wizard, character),
-    ranger: normalizeRangerFeatureState(record.ranger, character),
-    rogue: normalizeRogueFeatureState(record.rogue, character),
-    sorcerer: normalizeSorcererFeatureState(record.sorcerer, character),
-    warlock: normalizeWarlockFeatureState(record.warlock, character),
-    paladin: normalizePaladinFeatureState(record.paladin, character),
-    monk: normalizeMonkFeatureState(record.monk, character),
-    fighter: normalizeFighterFeatureState(record.fighter, character)
-  };
+  getClassFeatureModules().forEach((module) => {
+    (normalizedState as Record<string, unknown>)[module.stateKey] = module.normalizeState(
+      rawRecord[module.stateKey],
+      character
+    );
+  });
+
+  return normalizedState;
 }
 
 export function getFeatureActionsForCharacter(character: Character): FeatureActionCard[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
-  const clericActions = getClericFeatureActions(character);
-  const bardAction = getBardFeatureAction(character);
-  const fighterActions = getFighterFeatureActions(character);
-  const monkActions = getMonkFeatureActions(character);
-  const paladinActions = getPaladinFeatureActions(character);
-  const rangerActions = getRangerFeatureActions(character);
-  const rogueActions = getRogueFeatureActions(character);
-  const sorcererActions = getSorcererFeatureActions(character);
-  const warlockActions = getWarlockFeatureActions(character);
-  const wizardActions = getWizardFeatureActions(character);
-  const rageAction = getBarbarianFeatureAction(character);
   return [
-    ...clericActions,
-    bardAction,
-    ...fighterActions,
-    ...monkActions,
-    ...sorcererActions,
-    ...warlockActions,
-    ...wizardActions,
-    ...rangerActions,
-    ...rogueActions,
-    ...paladinActions,
-    rageAction,
+    ...(baseFeatureState.actions ?? []),
     ...(subclassDerivedState.featureActions ?? [])
-  ].filter((entry): entry is FeatureActionCard => entry !== null);
+  ];
 }
 
 export function getFeatureActionOptionsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "abilities" | "feats">,
   actionKey: string
 ): FeatureActionOptionCard[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
-
-  if (actionKey === "cleric-channel-divinity") {
-    return [
-      ...getClericFeatureActionOptions(character),
-      ...(subclassDerivedState.featureActionOptions?.[actionKey] ?? [])
-    ];
-  }
-
-  if (actionKey === paladinChannelDivinityActionKey) {
-    return [
-      ...getPaladinFeatureActionOptions(character),
-      ...(subclassDerivedState.featureActionOptions?.[actionKey] ?? [])
-    ];
-  }
-
-  if (actionKey === metamagicActionKey) {
-    return [
-      ...getSorcererMetamagicOptionsForAction(character),
-      ...(subclassDerivedState.featureActionOptions?.[actionKey] ?? [])
-    ];
-  }
-
-  return subclassDerivedState.featureActionOptions?.[actionKey] ?? [];
+  return [
+    ...(baseFeatureState.actionOptions?.[actionKey] ?? []),
+    ...(subclassDerivedState.featureActionOptions?.[actionKey] ?? [])
+  ];
 }
 
 export function getFeatureDamageBonusesForWeaponAction(
   character: Pick<Character, "className" | "level" | "classFeatureState">,
   context: WeaponFeatureContext
 ): FeatureDamageBonus[] {
-  return [
-    ...getBarbarianWeaponDamageBonuses(character, context),
-    ...getClericWeaponDamageBonuses(character, context),
-    ...getPaladinWeaponDamageBonuses(character, context)
-  ];
+  return collectActiveClassFeatureState(character).getWeaponDamageBonuses?.(context) ?? [];
 }
 
 export function getSavingThrowIndicatorsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
 ): SavingThrowIndicatorMap {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   const exhaustionIndicators = hasExhaustionSavingThrowDisadvantage(character.statusEntries)
     ? (Object.fromEntries(
@@ -516,7 +296,7 @@ export function getSavingThrowIndicatorsForCharacter(
     : {};
 
   return mergeIndicatorMaps(
-    getBarbarianSavingThrowIndicators(character),
+    baseFeatureState.savingThrowIndicators ?? {},
     subclassDerivedState.savingThrowIndicators ?? {},
     exhaustionIndicators
   );
@@ -525,6 +305,7 @@ export function getSavingThrowIndicatorsForCharacter(
 export function getAbilityCheckIndicatorsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
 ): AbilityCheckIndicatorMap {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   const exhaustionIndicators = hasExhaustionAbilityCheckDisadvantage(character.statusEntries)
     ? (Object.fromEntries(
@@ -533,7 +314,7 @@ export function getAbilityCheckIndicatorsForCharacter(
     : {};
 
   return mergeIndicatorMaps(
-    getBarbarianAbilityCheckIndicators(character),
+    baseFeatureState.abilityCheckIndicators ?? {},
     subclassDerivedState.abilityCheckIndicators ?? {},
     exhaustionIndicators
   );
@@ -542,8 +323,9 @@ export function getAbilityCheckIndicatorsForCharacter(
 export function getCoreStatIndicatorsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): CoreStatIndicatorMap {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   return mergeIndicatorMaps(
-    getBarbarianCoreStatIndicators(character),
+    baseFeatureState.coreStatIndicators ?? {},
     getSubclassDerivedFeatureState(character).coreStatIndicators ?? {}
   );
 }
@@ -551,6 +333,7 @@ export function getCoreStatIndicatorsForCharacter(
 export function getSkillIndicatorsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
 ): SkillIndicatorMap {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   const exhaustionIndicators = hasExhaustionAbilityCheckDisadvantage(character.statusEntries)
     ? (Object.fromEntries(
@@ -559,7 +342,7 @@ export function getSkillIndicatorsForCharacter(
     : {};
 
   return mergeIndicatorMaps(
-    getBarbarianSkillIndicators(character),
+    baseFeatureState.skillIndicators ?? {},
     subclassDerivedState.skillIndicators ?? {},
     exhaustionIndicators
   );
@@ -578,37 +361,35 @@ export function getWeaponAttackIndicatorsForCharacter(
 
 export function getSkillBonusesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "abilities">,
-  skill: Parameters<typeof getClericSkillBonuses>[1],
+  skill: SkillName,
   proficiencyLevel: PROF_LEVEL
 ): FeatureSkillBonus[] {
-  return [
-    ...getClericSkillBonuses(character, skill),
-    ...getBardSkillBonuses(character, proficiencyLevel),
-    ...getDruidSkillBonuses(character, skill)
-  ];
+  return collectActiveClassFeatureState(character).getSkillBonuses?.(skill, proficiencyLevel) ?? [];
 }
 
 export function getSpellcastingStateForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureSpellcastingState {
-  return getBarbarianSpellcastingState(character);
+  return (
+    collectActiveClassFeatureState(character).spellcastingState ?? {
+      blocked: false,
+      reason: null
+    }
+  );
 }
 
 export function getArmorClassModesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">,
   context: ArmorClassFeatureContext
 ): FeatureArmorClassMode[] {
-  return [
-    ...getBarbarianArmorClassModes(character, context),
-    ...getMonkArmorClassModes(character, context)
-  ];
+  return collectActiveClassFeatureState(character).getArmorClassModes?.(context) ?? [];
 }
 
 export function getArmorClassBonusesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">,
   context: ArmorClassFeatureContext
 ): FeatureArmorClassBonus[] {
-  return getBarbarianArmorClassBonuses(character, context);
+  return collectActiveClassFeatureState(character).getArmorClassBonuses?.(context) ?? [];
 }
 
 export function getSpeedBonusesForCharacter(
@@ -618,12 +399,10 @@ export function getSpeedBonusesForCharacter(
   >,
   context: SpeedFeatureContext
 ): FeatureSpeedBonus[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
-    ...getBarbarianSpeedBonuses(character, context),
-    ...getMonkSpeedBonuses(character, context),
-    ...getRangerSpeedBonuses(character, context),
-    ...getRogueSpeedBonuses(character),
+    ...(baseFeatureState.getSpeedBonuses?.(context) ?? []),
     ...(subclassDerivedState.speedBonuses ?? [])
   ];
 }
@@ -631,9 +410,9 @@ export function getSpeedBonusesForCharacter(
 export function getAbilityScoreBonusesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureAbilityScoreBonus[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   return [
-    ...getBarbarianAbilityScoreBonuses(character),
-    ...getMonkAbilityScoreBonuses(character),
+    ...(baseFeatureState.abilityScoreBonuses ?? []),
     ...(getSubclassDerivedFeatureState(character).abilityScoreBonuses ?? [])
   ];
 }
@@ -642,41 +421,37 @@ export function getCantripLimitBonusForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): number {
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
-  return (
-    getClericCantripBonus(character) +
-    getDruidCantripBonus(character) +
-    (subclassDerivedState.cantripLimitBonus ?? 0)
-  );
+  return (collectActiveClassFeatureState(character).cantripLimitBonus ?? 0) + (subclassDerivedState.cantripLimitBonus ?? 0);
 }
 
 export function getMonkMartialArtsDieForCharacter(
   character: Pick<Character, "className" | "level">
 ) {
-  return getMonkMartialArtsDie(character);
+  return collectActiveClassFeatureState(character).monkMartialArtsDie ?? null;
 }
 
 export function getBardicInspirationDieForCharacter(
   character: Pick<Character, "className" | "level">
 ) {
-  return getBardicInspirationDie(character);
+  return collectActiveClassFeatureState(character).bardicInspirationDie ?? null;
 }
 
 export function getRogueSneakAttackDiceCountForCharacter(
   character: Pick<Character, "className" | "level">
 ) {
-  return getRogueSneakAttackDiceCount(character);
+  return collectActiveClassFeatureState(character).rogueSneakAttackDiceCount ?? 0;
 }
 
 export function getRogueSneakAttackFormulaForCharacter(
   character: Pick<Character, "className" | "level">
 ) {
-  return getRogueSneakAttackFormula(character);
+  return collectActiveClassFeatureState(character).rogueSneakAttackFormula ?? "0";
 }
 
 export function getMonkUnarmedDamageTypeLabelForCharacter(
   character: Pick<Character, "className" | "level">
 ) {
-  return getMonkUnarmedDamageTypeLabel(character);
+  return collectActiveClassFeatureState(character).monkUnarmedDamageTypeLabel ?? "";
 }
 
 export function canUseMonkMartialArtsForCharacter(
@@ -687,14 +462,14 @@ export function canUseMonkMartialArtsForCharacter(
     wieldsOnlyMonkWeaponsOrUnarmed: boolean;
   }
 ): boolean {
-  return canUseMonkMartialArts(character, context);
+  return collectActiveClassFeatureState(character).canUseMonkMartialArts?.(context) ?? false;
 }
 
 export function getCantripDamageBonusForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "abilities" | "feats">
 ): number {
   return (
-    getClericCantripDamageBonus(character) +
+    (collectActiveClassFeatureState(character).cantripDamageBonus ?? 0) +
     (getSubclassDerivedFeatureState(character).cantripDamageBonus ?? 0)
   );
 }
@@ -702,15 +477,10 @@ export function getCantripDamageBonusForCharacter(
 export function getFeatureWeaponProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureWeaponProficiencyEntry[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
-    ...getBarbarianWeaponProficiencyEntries(character),
-    ...getClericWeaponProficiencyEntries(character),
-    ...getDruidWeaponProficiencyEntries(character),
-    ...getFighterWeaponProficiencyEntries(character),
-    ...getRangerWeaponProficiencyEntries(character),
-    ...getRogueWeaponProficiencyEntries(character),
-    ...getPaladinWeaponProficiencyEntries(character),
+    ...(baseFeatureState.weaponProficiencyEntries ?? []),
     ...(subclassDerivedState.weaponProficiencyEntries ?? [])
   ];
 }
@@ -718,12 +488,10 @@ export function getFeatureWeaponProficiencyEntriesForCharacter(
 export function getFeatureSkillProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureSkillProficiencyEntry[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
-    ...getBardSkillProficiencyEntries(character),
-    ...getRangerSkillProficiencyEntries(character),
-    ...getRogueSkillProficiencyEntries(character),
-    ...getWizardSkillProficiencyEntries(character),
+    ...(baseFeatureState.skillProficiencyEntries ?? []),
     ...(subclassDerivedState.skillProficiencyEntries ?? [])
   ];
 }
@@ -731,10 +499,10 @@ export function getFeatureSkillProficiencyEntriesForCharacter(
 export function getFeatureSavingThrowProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureSavingThrowProficiencyEntry[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
-    ...getMonkSavingThrowProficiencyEntries(character),
-    ...getRogueSavingThrowProficiencyEntries(character),
+    ...(baseFeatureState.savingThrowProficiencyEntries ?? []),
     ...(subclassDerivedState.savingThrowProficiencyEntries ?? [])
   ];
 }
@@ -742,10 +510,10 @@ export function getFeatureSavingThrowProficiencyEntriesForCharacter(
 export function getFeatureArmorProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureArmorProficiencyEntry[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
-    ...getClericArmorProficiencyEntries(character),
-    ...getDruidArmorProficiencyEntries(character),
+    ...(baseFeatureState.armorProficiencyEntries ?? []),
     ...(subclassDerivedState.armorProficiencyEntries ?? [])
   ];
 }
@@ -753,11 +521,10 @@ export function getFeatureArmorProficiencyEntriesForCharacter(
 export function getFeatureLanguageProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureLanguageProficiencyEntry[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
-    ...getDruidLanguageProficiencyEntries(character),
-    ...getRangerLanguageProficiencyEntries(character),
-    ...getRogueLanguageProficiencyEntries(character),
+    ...(baseFeatureState.languageProficiencyEntries ?? []),
     ...(subclassDerivedState.languageProficiencyEntries ?? [])
   ];
 }
@@ -1015,15 +782,11 @@ export function getInnateSorceryUsesRemainingForCharacter(
 export function getAlwaysPreparedSpellIdsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds">
 ): string[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
     ...new Set([
-      ...getBardAlwaysPreparedSpellIds(character),
-      ...getDruidAlwaysPreparedSpellIds(character),
-      ...getRangerAlwaysPreparedSpellIds(character),
-      ...getPaladinAlwaysPreparedSpellIds(character),
-      ...getWarlockAlwaysPreparedSpellIds(character),
-      ...getWizardAlwaysPreparedSpellIds(character),
+      ...(baseFeatureState.alwaysPreparedSpellIds ?? []),
       ...(subclassDerivedState.alwaysPreparedSpellIds ?? [])
     ])
   ];
@@ -1144,106 +907,29 @@ export function setDruidPrimalOrderChoiceForCharacter(
 export function getWeaponMasterySelectionCountForCharacter(
   character: Pick<Character, "className" | "level">
 ): number {
-  if (character.className === "Barbarian") {
-    return getBarbarianWeaponMasterySelectionCount(character);
-  }
-
-  if (character.className === "Fighter") {
-    return getFighterWeaponMasterySelectionCount(character);
-  }
-
-  if (character.className === "Ranger") {
-    return getRangerWeaponMasterySelectionCount(character);
-  }
-
-  if (character.className === "Rogue") {
-    return getRogueWeaponMasterySelectionCount(character);
-  }
-
-  if (character.className === "Paladin") {
-    return getPaladinWeaponMasterySelectionCount(character);
-  }
-
-  return 0;
+  return collectActiveClassFeatureState(character).weaponMastery?.selectionCount ?? 0;
 }
 
 export function getWeaponMasteryOptionsForCharacter(
   character: Pick<Character, "className" | "level">
 ): WEAPON_PROFICIENCY[] {
-  if (character.className === "Barbarian") {
-    return getBarbarianWeaponMasteryOptions();
-  }
-
-  if (character.className === "Fighter") {
-    return getFighterWeaponMasteryOptions();
-  }
-
-  if (character.className === "Ranger") {
-    return getRangerWeaponMasteryOptions();
-  }
-
-  if (character.className === "Rogue") {
-    return getRogueWeaponMasteryOptions();
-  }
-
-  if (character.className === "Paladin") {
-    return getPaladinWeaponMasteryOptions();
-  }
-
-  return [];
+  return collectActiveClassFeatureState(character).weaponMastery?.options ?? [];
 }
 
 export function getWeaponMasterySelectionsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): WEAPON_PROFICIENCY[] {
-  if (character.className === "Barbarian") {
-    return getBarbarianWeaponMasterySelections(character);
-  }
-
-  if (character.className === "Fighter") {
-    return getFighterWeaponMasterySelections(character);
-  }
-
-  if (character.className === "Ranger") {
-    return getRangerWeaponMasterySelections(character);
-  }
-
-  if (character.className === "Rogue") {
-    return getRogueWeaponMasterySelections(character);
-  }
-
-  if (character.className === "Paladin") {
-    return getPaladinWeaponMasterySelections(character);
-  }
-
-  return [];
+  return collectActiveClassFeatureState(character).weaponMastery?.selections ?? [];
 }
 
 export function setWeaponMasterySelectionsForCharacter(
   character: Character,
   selections: WEAPON_PROFICIENCY[]
 ): Character {
-  if (character.className === "Barbarian") {
-    return setBarbarianWeaponMasterySelections(character, selections);
-  }
-
-  if (character.className === "Fighter") {
-    return setFighterWeaponMasterySelections(character, selections);
-  }
-
-  if (character.className === "Ranger") {
-    return setRangerWeaponMasterySelections(character, selections);
-  }
-
-  if (character.className === "Rogue") {
-    return setRogueWeaponMasterySelections(character, selections);
-  }
-
-  if (character.className === "Paladin") {
-    return setPaladinWeaponMasterySelections(character, selections);
-  }
-
-  return character;
+  return (
+    collectActiveClassFeatureState(character).weaponMastery?.setSelections(character, selections) ??
+    character
+  );
 }
 
 export function applySuperiorInspirationOnInitiativeForCharacter(character: Character): Character {
@@ -1263,13 +949,10 @@ export function hasPerfectFocusForCharacter(
 export function getDerivedFeatureStatusEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
 ): DerivedFeatureStatusEntry[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
-    ...getBarbarianDerivedConditions(character),
-    ...getMonkDerivedStatusEntries(character),
-    ...getRangerDerivedStatusEntries(character),
-    ...getPaladinDerivedStatusEntries(character),
-    ...getRogueDerivedStatusEntries(character),
+    ...(baseFeatureState.derivedStatusEntries ?? []),
     ...(subclassDerivedState.derivedStatusEntries ?? [])
   ];
 }
@@ -1278,8 +961,11 @@ export function getSpellEntryForCharacter(
   character: Pick<Character, "className" | "level">,
   spell: SpellEntry
 ): SpellEntry {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
-  const baseSpellEntry = getRangerSpellEntry(character, spell);
+  const baseSpellEntry = baseFeatureState.transformSpellEntry
+    ? baseFeatureState.transformSpellEntry(spell)
+    : spell;
 
   return subclassDerivedState.transformSpellEntry
     ? subclassDerivedState.transformSpellEntry(baseSpellEntry)
@@ -1290,21 +976,22 @@ export function getSpellDamageFormulaOverrideForCharacter(
   character: Pick<Character, "className" | "level">,
   spell: Pick<SpellEntry, "id">
 ): string | null {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return (
     subclassDerivedState.spellDamageFormulaOverrides?.[spell.id] ??
-    getRangerSpellDamageFormula(character, spell)
+    baseFeatureState.getSpellDamageFormulaOverride?.(spell) ??
+    null
   );
 }
 
 export function getFeatureReactionEntriesForCharacter(
   character: Pick<Character, "className" | "level">
 ): ReactionEntry[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return [
-    ...getBardReactionEntries(character),
-    ...getMonkReactionEntries(character),
-    ...getRogueReactionEntries(character),
+    ...(baseFeatureState.reactionEntries ?? []),
     ...(subclassDerivedState.reactionEntries ?? [])
   ];
 }
@@ -1313,99 +1000,7 @@ export function activateFeatureActionForCharacter(
   character: Character,
   actionKey: string
 ): Character {
-  if (actionKey === bardicInspirationActionKey) {
-    return activateBardicInspiration(character);
-  }
-
-  if (actionKey === paladinLayOnHandsActionKey) {
-    return character;
-  }
-
-  if (actionKey === paladinsSmiteActionKey) {
-    return character;
-  }
-
-  if (actionKey === monkFlurryOfBlowsActionKey) {
-    return activateMonkFlurryOfBlows(character);
-  }
-
-  if (actionKey === monkUncannyMetabolismActionKey) {
-    return activateMonkUncannyMetabolism(character);
-  }
-
-  if (actionKey === monkStunningStrikeActionKey) {
-    return activateMonkStunningStrike(character);
-  }
-
-  if (actionKey === monkSuperiorDefenseActionKey) {
-    return activateMonkSuperiorDefense(character);
-  }
-
-  if (actionKey === fighterActionSurgeActionKey) {
-    return activateFighterActionSurge(character);
-  }
-
-  if (actionKey === fighterSecondWindActionKey) {
-    return consumeFighterSecondWindUse(character);
-  }
-
-  if (actionKey === fighterTacticalMindActionKey) {
-    return consumeFighterSecondWindUse(character);
-  }
-
-  if (actionKey === fighterIndomitableActionKey) {
-    return consumeFighterIndomitableUse(character);
-  }
-
-  if (actionKey === "barbarian-rage") {
-    return activateBarbarianRage(character);
-  }
-
-  if (actionKey === divineInterventionActionKey) {
-    return activateClericDivineIntervention(character);
-  }
-
-  if (actionKey === innateSorceryActionKey) {
-    return activateInnateSorcery(character);
-  }
-
-  if (actionKey === tirelessActionKey) {
-    return consumeRangerTirelessUse(character);
-  }
-
-  if (actionKey === naturesVeilActionKey) {
-    return activateRangerNaturesVeil(character);
-  }
-
-  if (actionKey === rogueSneakAttackActionKey) {
-    return activateRogueSneakAttack(character);
-  }
-
-  if (actionKey === rogueSteadyAimActionKey) {
-    return activateRogueSteadyAim(character);
-  }
-
-  if (actionKey === rogueStrokeOfLuckActionKey) {
-    return consumeRogueStrokeOfLuckUse(character);
-  }
-
-  if (actionKey === magicalCunningActionKey) {
-    return activateWarlockMagicalCunning(character);
-  }
-
-  if (actionKey === arcaneRecoveryActionKey) {
-    return character;
-  }
-
-  if (actionKey === contactPatronActionKey) {
-    return character;
-  }
-
-  if (actionKey === mysticArcanumActionKey) {
-    return character;
-  }
-
-  return character;
+  return getActiveClassFeatureModule(character.className)?.handleAction?.(character, actionKey) ?? character;
 }
 
 export function getMonkFocusPointsTotalForCharacter(
@@ -1736,19 +1331,13 @@ export function activateFeatureActionOptionForCharacter(
   actionKey: string,
   optionKey: string
 ): Character {
-  if (actionKey === "cleric-channel-divinity") {
-    return activateClericFeatureActionOption(character, optionKey);
-  }
-
-  if (actionKey === paladinChannelDivinityActionKey) {
-    return activatePaladinFeatureActionOption(character, optionKey);
-  }
-
-  if (actionKey === metamagicActionKey) {
-    return spendMetamagicOption(character, optionKey);
-  }
-
-  return character;
+  return (
+    getActiveClassFeatureModule(character.className)?.handleActionOption?.(
+      character,
+      actionKey,
+      optionKey
+    ) ?? character
+  );
 }
 
 export function removeFeatureStatusEntryForCharacter(
@@ -1774,49 +1363,15 @@ export function removeFeatureStatusEntryForCharacter(
 }
 
 export function applyShortRestToFeatureState(character: Character): Character {
-  return applyShortRestToWizardFeatures(
-    applyShortRestToSorcererFeatures(
-      applyShortRestToClericFeatures(
-        applyShortRestToBardFeatures(
-          applyShortRestToFighterFeatures(
-            applyShortRestToPaladinFeatures(
-              applyShortRestToRangerFeatures(
-                applyShortRestToRogueFeatures(
-                  applyShortRestToMonkFeatures(applyShortRestToBarbarianFeatures(character))
-                )
-              )
-            )
-          )
-        )
-      )
-    )
-  );
+  return getClassFeatureModules().reduce((nextCharacter, module) => {
+    return module.applyShortRest ? module.applyShortRest(nextCharacter) : nextCharacter;
+  }, character);
 }
 
 export function applyLongRestToFeatureState(character: Character): Character {
-  return restoreMysticArcanumOnLongRest(
-    restoreContactPatronOnLongRest(
-      restoreWarlockMagicalCunningOnLongRest(
-        applyLongRestToWizardFeatures(
-          applyLongRestToSorcererFeatures(
-            applyLongRestToClericFeatures(
-              applyLongRestToBardFeatures(
-                applyLongRestToFighterFeatures(
-                  applyLongRestToPaladinFeatures(
-                    applyLongRestToRangerFeatures(
-                      applyLongRestToRogueFeatures(
-                        applyLongRestToMonkFeatures(applyLongRestToBarbarianFeatures(character))
-                      )
-                    )
-                  )
-                )
-              )
-            )
-          )
-        )
-      )
-    )
-  );
+  return getClassFeatureModules().reduce((nextCharacter, module) => {
+    return module.applyLongRest ? module.applyLongRest(nextCharacter) : nextCharacter;
+  }, character);
 }
 
 export function getArcaneRecoveryUsesTotalForCharacter(
@@ -1839,15 +1394,7 @@ export function activateArcaneRecoveryForCharacter(
 }
 
 export function advanceFeatureStateForNewRound(character: Character): Character {
-  return advanceRogueFeaturesForNewRound(
-    advanceMonkFeaturesForNewRound(
-      advancePaladinFeaturesForNewRound(
-        advanceRangerFeaturesForNewRound(
-          advanceSorcererFeaturesForNewRound(
-            advanceFighterFeaturesForNewRound(advanceClericFeaturesForNewRound(character))
-          )
-        )
-      )
-    )
-  );
+  return getClassFeatureModules().reduce((nextCharacter, module) => {
+    return module.advanceRound ? module.advanceRound(nextCharacter) : nextCharacter;
+  }, character);
 }

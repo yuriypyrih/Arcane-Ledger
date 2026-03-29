@@ -24,7 +24,7 @@ import type {
 import { createCustomEquipmentId } from "../../../../pages/CharactersPage/customEquipment";
 import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { formatCodexLabel } from "../../../../utils/codex";
-import styles from "../EquipmentForm/EquipmentForm.module.css";
+import styles from "./CustomEquipmentEditor.module.css";
 
 type CustomEquipmentEditorProps = {
   mode: "create" | "edit";

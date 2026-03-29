@@ -21,7 +21,7 @@ import {
 import type { CharacterStatusEntry } from "../../../../../types";
 import { EFFECT_NAME, STATUS_DURATION_PRESET, STATUS_ENTRY_GROUP } from "../../../../../types";
 import type { ResolvedKeywordReference } from "../../../../../utils/codex/renderCodexRichText";
-import styles from "./TraitsConditionsWidget.module.css";
+import styles from "./StatusEntryDrawer.module.css";
 import {
   getStatusDrawerBadgeLabel,
   isStatusEntryDurationEditable,

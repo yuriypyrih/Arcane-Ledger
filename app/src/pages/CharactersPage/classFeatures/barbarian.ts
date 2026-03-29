@@ -1,12 +1,7 @@
 import { barbarianFeatures } from "../../../codex/classes";
 import {
   CLASS_FEATURE,
-  DAMAGE_TYPE,
-  ENTRY_CATEGORIES,
-  RARITY_TYPES,
-  WEAPON_COMBAT_TYPE,
-  type WeaponEntry,
-  hardcodedCodexEntries
+  DAMAGE_TYPE
 } from "../../../codex/entries";
 import type { BarbarianFeatureClassObj } from "../../../types";
 import {
@@ -45,6 +40,10 @@ import type {
   SkillIndicatorMap,
   WeaponFeatureContext
 } from "./types";
+import {
+  getWeaponMasteryOptions,
+  normalizeWeaponMasterySelections
+} from "./weaponMastery";
 
 const rageConditionName = EFFECT_NAME.RAGE;
 const rageStatusSourceId = "feature-rage";
@@ -66,28 +65,7 @@ const feralInstinctAdvantageIndicator: FeatureIndicator = {
   source: "Feral Instinct"
 };
 
-const barbarianWeaponMasteryOptions = hardcodedCodexEntries
-  .filter(
-    (entry): entry is WeaponEntry =>
-      entry.category === ENTRY_CATEGORIES.WEAPONS &&
-      entry.rarity === RARITY_TYPES.COMMON &&
-      typeof entry.baseWeapon === "string" &&
-      entry.type.combat === WEAPON_COMBAT_TYPE.MELEE
-  )
-  .sort((left, right) => left.name.localeCompare(right.name))
-  .reduce<WEAPON_PROFICIENCY[]>((options, entry) => {
-    const proficiency = entry.baseWeapon as unknown as WEAPON_PROFICIENCY;
-
-    if (!options.includes(proficiency)) {
-      options.push(proficiency);
-    }
-
-    return options;
-  }, []);
-
-function dedupe<T>(values: T[]): T[] {
-  return [...new Set(values)];
-}
+const barbarianWeaponMasteryOptions = getWeaponMasteryOptions({ meleeOnly: true });
 
 function getBarbarianFeatureRow(level: number): BarbarianFeatureClassObj | null {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
@@ -131,24 +109,6 @@ function hasActiveCondition(
   return hasStatusCondition(character.statusEntries, conditionName);
 }
 
-function normalizeBarbarianWeaponMasteries(
-  selections: unknown,
-  limit: number
-): WEAPON_PROFICIENCY[] {
-  if (!Array.isArray(selections) || limit <= 0) {
-    return [];
-  }
-
-  const optionSet = new Set<WEAPON_PROFICIENCY>(barbarianWeaponMasteryOptions);
-
-  return dedupe(
-    selections.filter(
-      (selection): selection is WEAPON_PROFICIENCY =>
-        typeof selection === "string" && optionSet.has(selection as WEAPON_PROFICIENCY)
-    )
-  ).slice(0, limit);
-}
-
 export function normalizeBarbarianRageState(
   value: unknown,
   character: Pick<Character, "className" | "level">
@@ -179,7 +139,11 @@ export function normalizeBarbarianRageState(
       ? Math.max(0, Math.min(totalRages, Math.floor(usesExpended)))
       : 0,
     active: Boolean(record.active),
-    weaponMasteries: normalizeBarbarianWeaponMasteries(record.weaponMasteries, totalWeaponMasteries)
+    weaponMasteries: normalizeWeaponMasterySelections(
+      record.weaponMasteries,
+      barbarianWeaponMasteryOptions,
+      totalWeaponMasteries
+    )
   };
 }
 
@@ -243,8 +207,9 @@ export function setBarbarianWeaponMasterySelections(
       ...character.classFeatureState,
       rage: {
         ...rageState,
-        weaponMasteries: normalizeBarbarianWeaponMasteries(
+        weaponMasteries: normalizeWeaponMasterySelections(
           selections,
+          barbarianWeaponMasteryOptions,
           getBarbarianWeaponMasterySelectionCount(character)
         )
       }

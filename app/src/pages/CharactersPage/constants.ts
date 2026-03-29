@@ -8,13 +8,6 @@ import type {
 } from "../../types";
 import { loadPreferences } from "../../storage/preferences";
 import { createDefaultRoundTracker } from "./combat";
-export {
-  backgroundOptions,
-  classOptions,
-  equipmentCatalog,
-  equipmentOptions,
-  skillsOptions
-} from "./proficiency";
 
 export const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
@@ -35,6 +28,7 @@ export const alignmentGrid: Alignment[][] = [
   ["Lawful Neutral", "True Neutral", "Chaotic Neutral"],
   ["Lawful Evil", "Neutral Evil", "Chaotic Evil"]
 ];
+export const alignmentOptions = alignmentGrid.flat();
 
 export const POINT_BUY_BUDGET = 27;
 

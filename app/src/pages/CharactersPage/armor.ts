@@ -1,10 +1,8 @@
 import {
   ARMOR_TYPES,
-  ENTRY_CATEGORIES,
-  hardcodedCodexEntries,
-  type ArmorEntry,
-  type CodexEntry
+  type ArmorEntry
 } from "../../codex/entries";
+import { getArmorEntries } from "../../codex/selectors";
 import type { AbilityKey, Character, CharacterCustomEquipment, CharacterEquipmentItem } from "../../types";
 import { getAbilityScoreForCharacter } from "./abilities";
 import {
@@ -53,14 +51,8 @@ type NormalizeArmorWearStateOptions = {
 };
 
 const codexArmorEntriesByName = new Map<string, ArmorEntry>(
-  hardcodedCodexEntries
-    .filter((entry): entry is ArmorEntry => isArmorEntry(entry))
-    .map((entry) => [entry.name, entry])
+  getArmorEntries().map((entry) => [entry.name, entry])
 );
-
-function isArmorEntry(entry: CodexEntry): entry is ArmorEntry {
-  return entry.category === ENTRY_CATEGORIES.ARMOR;
-}
 
 export function isShieldArmorEntry(entry: Pick<ArmorEntry, "tags">): boolean {
   return entry.tags.includes(ARMOR_TYPES.SHIELD);

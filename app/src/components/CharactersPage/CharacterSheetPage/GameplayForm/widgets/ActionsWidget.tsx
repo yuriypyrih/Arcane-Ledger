@@ -3,7 +3,6 @@ import { useEffect, useMemo, useState } from "react";
 import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
 import CharacterSpellDrawer from "../../SpellCastingForm/CharacterSpellDrawer";
 import type { Character, AbilityKey } from "../../../../../types";
-import { PROF_LEVEL } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { abilityKeys } from "../../../../../pages/CharactersPage/constants";
 import {
@@ -81,8 +80,7 @@ import {
 import { getCombatActionsForCharacter } from "../../../../../pages/CharactersPage/combatActions";
 import {
   consumeRoundTrackerResource,
-  normalizeRoundTracker,
-  type RoundTrackerResource
+  normalizeRoundTracker
 } from "../../../../../pages/CharactersPage/combat";
 import { getRoundTrackerResourceForEconomyType } from "../../../../../pages/CharactersPage/actionEconomy";
 import { getAbilityScoresForCharacter } from "../../../../../pages/CharactersPage/abilities";
@@ -109,6 +107,11 @@ import {
   getSavingThrowProficiencyForAbilityKey
 } from "../../../../../pages/CharactersPage/proficiency";
 import { ACTION_TYPE, getSpellEntryById, type SpellEntry } from "../../../../../codex/entries";
+import {
+  formatSignedLabel,
+  getProficiencyMultiplier,
+  getRoundTrackerResourceForSpell
+} from "../../../../../pages/CharactersPage/shared";
 import { getSpellLevel } from "../../../../../pages/CharactersPage/spellcasting";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
@@ -151,38 +154,6 @@ function getDivineInterventionLevelGroups(spells: SpellEntry[]): Record<number, 
 
     return groups;
   }, {});
-}
-
-function getProficiencyMultiplier(level: PROF_LEVEL): 0 | 1 | 2 {
-  if (level === PROF_LEVEL.EXPERT) {
-    return 2;
-  }
-
-  if (level === PROF_LEVEL.PROFICIENT) {
-    return 1;
-  }
-
-  return 0;
-}
-
-function formatSignedLabel(value: number, label: string): string {
-  return `${value >= 0 ? "+" : "-"} ${Math.abs(value)} ${label}`;
-}
-
-function getRoundTrackerResourceForSpell(spell: SpellEntry): RoundTrackerResource | null {
-  if (spell.castingTime.includes(ACTION_TYPE.REACTION)) {
-    return "reaction";
-  }
-
-  if (spell.castingTime.includes(ACTION_TYPE.BONUS_ACTION)) {
-    return "bonusAction";
-  }
-
-  if (spell.castingTime.includes(ACTION_TYPE.ACTION)) {
-    return "action";
-  }
-
-  return null;
 }
 
 type ActionsWidgetProps = {

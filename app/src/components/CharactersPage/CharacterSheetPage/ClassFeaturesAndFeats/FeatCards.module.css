@@ -1,0 +1,141 @@
+.list {
+  display: grid;
+  gap: 0.7rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.card {
+  display: grid;
+  gap: 0.45rem;
+  border: 1px solid rgba(75, 47, 29, 0.1);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.72rem 0.82rem;
+}
+
+.interactiveCard {
+  cursor: pointer;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease;
+}
+
+.interactiveCard:hover,
+.interactiveCard:focus-visible {
+  background: rgba(255, 255, 255, 0.88);
+  border-color: rgba(75, 47, 29, 0.18);
+}
+
+.interactiveCard:focus-visible {
+  outline: 2px solid rgba(119, 63, 28, 0.24);
+  outline-offset: 2px;
+}
+
+.selectedCard {
+  background: rgba(143, 91, 56, 0.12);
+  border-color: rgba(143, 91, 56, 0.28);
+}
+
+.selectedCard:hover,
+.selectedCard:focus-visible {
+  background: rgba(143, 91, 56, 0.16);
+  border-color: rgba(143, 91, 56, 0.34);
+}
+
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.7rem;
+}
+
+.headerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex: 1 1 auto;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.titleBlock {
+  min-width: 0;
+}
+
+.title {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+
+.meta,
+.summary,
+.repeatable {
+  margin: 0;
+}
+
+.meta {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+}
+
+.summary {
+  color: var(--color-ink);
+  font-size: 0.88rem;
+}
+
+.repeatable {
+  color: var(--color-ink-soft);
+  font-size: 0.8rem;
+}
+
+.selectedList {
+  display: grid;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0;
+  padding: 0 0 0 1rem;
+}
+
+.selectedItem {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+  border-left: 2px solid rgba(75, 47, 29, 0.12);
+  color: var(--color-ink-soft);
+  font-size: 0.82rem;
+  padding-left: 0.65rem;
+}
+
+.selectedText {
+  min-width: 0;
+}
+
+.selectedRemoveButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  flex-shrink: 0;
+  min-height: 24px;
+  min-width: 24px;
+  padding: 0;
+}
+
+@media (max-width: 720px) {
+  .headerRow {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .headerActions {
+    width: 100%;
+  }
+}

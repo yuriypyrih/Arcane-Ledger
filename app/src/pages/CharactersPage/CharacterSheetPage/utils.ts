@@ -1,7 +1,7 @@
 import type { AbilityKey, AbilityScores } from "../../../types";
-import { abilityKeys, alignmentGrid } from "../constants";
+import { abilityKeys, alignmentOptions } from "../constants";
 
-export const alignmentOptions = alignmentGrid.flat();
+export { alignmentOptions };
 export const spellSlotLevels = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 export const skillColumnLayout: AbilityKey[][] = [
   ["STR", "DEX", "INT"],

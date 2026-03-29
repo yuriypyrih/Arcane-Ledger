@@ -1,0 +1,48 @@
+.traitEditorModal {
+  width: min(820px, 100%);
+  height: min(72vh, 620px);
+  grid-template-rows: auto auto auto auto;
+}
+
+.modalHeading {
+  display: grid;
+  gap: 0.22rem;
+}
+
+.modalHeading h3 {
+  margin: 0;
+}
+
+.tabRow {
+  display: inline-grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.2rem;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.08);
+  padding: 0.24rem;
+}
+
+.tabButton {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  font: inherit;
+  min-height: 36px;
+  padding: 0 0.86rem;
+  white-space: nowrap;
+}
+
+.tabButtonActive {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-ink);
+  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
+}
+
+@media (max-width: 620px) {
+  .tabRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

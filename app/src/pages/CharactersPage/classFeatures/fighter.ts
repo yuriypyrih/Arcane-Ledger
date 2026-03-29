@@ -1,11 +1,5 @@
 import { fighterFeatures } from "../../../codex/classes";
-import {
-  CLASS_FEATURE,
-  ENTRY_CATEGORIES,
-  RARITY_TYPES,
-  type WeaponEntry,
-  hardcodedCodexEntries
-} from "../../../codex/entries";
+import { CLASS_FEATURE } from "../../../codex/entries";
 import type {
   Character,
   CharacterFighterFeatureState,
@@ -26,6 +20,10 @@ import type {
   FeatureActionCard,
   FeatureWeaponProficiencyEntry
 } from "./types";
+import {
+  getWeaponMasteryOptions,
+  normalizeWeaponMasterySelections
+} from "./weaponMastery";
 
 export const fighterSecondWindActionKey = "fighter-second-wind";
 export const fighterActionSurgeActionKey = "fighter-action-surge";
@@ -33,27 +31,7 @@ export const fighterTacticalMindActionKey = "fighter-tactical-mind";
 export const fighterIndomitableActionKey = "fighter-indomitable";
 const weaponMasterySource = "Weapon Mastery";
 
-const fighterWeaponMasteryOptions = hardcodedCodexEntries
-  .filter(
-    (entry): entry is WeaponEntry =>
-      entry.category === ENTRY_CATEGORIES.WEAPONS &&
-      entry.rarity === RARITY_TYPES.COMMON &&
-      typeof entry.baseWeapon === "string"
-  )
-  .sort((left, right) => left.name.localeCompare(right.name))
-  .reduce<WEAPON_PROFICIENCY[]>((options, entry) => {
-    const proficiency = entry.baseWeapon as unknown as WEAPON_PROFICIENCY;
-
-    if (!options.includes(proficiency)) {
-      options.push(proficiency);
-    }
-
-    return options;
-  }, []);
-
-function dedupe<T>(values: T[]): T[] {
-  return [...new Set(values)];
-}
+const fighterWeaponMasteryOptions = getWeaponMasteryOptions();
 
 function getFighterFeatureRow(level: number) {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
@@ -105,24 +83,6 @@ function getFighterAdditionalAttackCount(
   }
 
   return 1;
-}
-
-function normalizeFighterWeaponMasteries(
-  selections: unknown,
-  limit: number
-): WEAPON_PROFICIENCY[] {
-  if (!Array.isArray(selections) || limit <= 0) {
-    return [];
-  }
-
-  const optionSet = new Set<WEAPON_PROFICIENCY>(fighterWeaponMasteryOptions);
-
-  return dedupe(
-    selections.filter(
-      (selection): selection is WEAPON_PROFICIENCY =>
-        typeof selection === "string" && optionSet.has(selection as WEAPON_PROFICIENCY)
-    )
-  ).slice(0, limit);
 }
 
 export function normalizeFighterFeatureState(
@@ -194,7 +154,11 @@ export function normalizeFighterFeatureState(
         )
       : undefined,
     weaponMasteries: hasWeaponMastery
-      ? normalizeFighterWeaponMasteries(record.weaponMasteries, weaponMasteryTotal)
+      ? normalizeWeaponMasterySelections(
+          record.weaponMasteries,
+          fighterWeaponMasteryOptions,
+          weaponMasteryTotal
+        )
       : undefined,
     extraAttacksRemainingThisTurn: hasExtraAttack
       ? Math.max(
@@ -722,8 +686,9 @@ export function setFighterWeaponMasterySelections(
       ...character.classFeatureState,
       fighter: {
         ...fighterState,
-        weaponMasteries: normalizeFighterWeaponMasteries(
+        weaponMasteries: normalizeWeaponMasterySelections(
           selections,
+          fighterWeaponMasteryOptions,
           getFighterWeaponMasterySelectionCount(character)
         )
       }

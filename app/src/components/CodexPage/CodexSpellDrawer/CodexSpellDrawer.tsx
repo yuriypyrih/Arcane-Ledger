@@ -1,10 +1,23 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ConcentrationLabel from "../../ConcentrationLabel";
 import SpellSubtitle from "../../SpellSubtitle";
 import SpellDescriptionContent from "../../SpellDescriptionContent";
 import { ENTRY_CATEGORIES, KeywordTooltip, type SpellEntry } from "../../../codex/entries";
-import { useBodyScrollLock } from "../../../lib/useBodyScrollLock";
-import sheetStyles from "../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import {
+  OverlayBadge,
+  OverlayBody,
+  OverlayCloseButton,
+  OverlayDetailCard,
+  OverlayDetailLabel,
+  OverlayDetailsGrid,
+  OverlayHeader,
+  OverlayHeaderContent,
+  OverlaySummary,
+  OverlayTitleRow,
+  SheetDrawer,
+  SheetModal,
+  overlayClassNames
+} from "../../Overlay";
 import {
   formatCodexLabel,
   formatCodexList,
@@ -26,126 +39,94 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
   const componentsTooltipEntry = KeywordTooltip.components ?? null;
   const spellDuration = getSpellDurationDisplayParts(spell.duration);
 
-  useBodyScrollLock(true);
-
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key !== "Escape") {
-        return;
-      }
-
-      if (isComponentsTooltipOpen) {
-        setIsComponentsTooltipOpen(false);
-        return;
-      }
-
-      onClose();
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isComponentsTooltipOpen, onClose]);
-
   return (
     <>
-      <div className={sheetStyles.spellDrawerBackdrop} role="presentation" onClick={onClose}>
-        <section
-          className={sheetStyles.spellDrawer}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="codex-spell-drawer-title"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <div className={sheetStyles.spellDrawerHandle} aria-hidden="true" />
-          <div className={sheetStyles.spellDrawerHeader}>
-            <div className={sheetStyles.spellDrawerHeaderContent}>
-              <p className={sheetStyles.spellDrawerBadge}>
-                {formatCodexLabel(ENTRY_CATEGORIES.SPELLS)}
-              </p>
-              <div className={sheetStyles.spellDrawerTitleRow}>
-                <h3 id="codex-spell-drawer-title">{spell.name}</h3>
-              </div>
-              <p className={sheetStyles.spellDrawerSummary}>
-                <SpellSubtitle spell={spell} />
-              </p>
-            </div>
-            <button
+      <SheetDrawer
+        titleId="codex-spell-drawer-title"
+        onClose={onClose}
+        onEscape={() => {
+          if (isComponentsTooltipOpen) {
+            setIsComponentsTooltipOpen(false);
+            return;
+          }
+
+          onClose();
+        }}
+      >
+        <OverlayHeader>
+          <OverlayHeaderContent>
+            <OverlayBadge>{formatCodexLabel(ENTRY_CATEGORIES.SPELLS)}</OverlayBadge>
+            <OverlayTitleRow>
+              <h3 id="codex-spell-drawer-title">{spell.name}</h3>
+            </OverlayTitleRow>
+            <OverlaySummary>
+              <SpellSubtitle spell={spell} />
+            </OverlaySummary>
+          </OverlayHeaderContent>
+          <OverlayCloseButton label="Close spell details" onClick={onClose} />
+        </OverlayHeader>
+
+        <OverlayBody>
+          <OverlayDetailsGrid>
+            <OverlayDetailCard>
+              <OverlayDetailLabel>Casting Time</OverlayDetailLabel>
+              <strong>{formatSpellCastingTime(spell.castingTime)}</strong>
+            </OverlayDetailCard>
+            <OverlayDetailCard>
+              <OverlayDetailLabel>Range</OverlayDetailLabel>
+              <strong>{spell.range}</strong>
+            </OverlayDetailCard>
+            <OverlayDetailCard
+              as="button"
+              className={styles.detailButton}
+              onClick={() => {
+                if (componentsTooltipEntry) {
+                  setIsComponentsTooltipOpen(true);
+                }
+              }}
               type="button"
-              className={sheetStyles.spellDrawerCloseButton}
-              onClick={onClose}
-              aria-label="Close spell details"
             >
-              ×
-            </button>
-          </div>
+              <OverlayDetailLabel>Components</OverlayDetailLabel>
+              <strong>{formatSpellComponents(spell.components)}</strong>
+            </OverlayDetailCard>
+            <OverlayDetailCard>
+              <OverlayDetailLabel>Duration</OverlayDetailLabel>
+              <strong className={styles.concentrationDetailValue}>
+                {spellDuration.hasConcentration ? (
+                  <>
+                    <ConcentrationLabel iconSize={15} />
+                    {spellDuration.detailText ? <span>, {spellDuration.detailText}</span> : null}
+                  </>
+                ) : (
+                  spellDuration.detailText
+                )}
+              </strong>
+            </OverlayDetailCard>
+            <OverlayDetailCard>
+              <OverlayDetailLabel>Spell Lists</OverlayDetailLabel>
+              <strong>{formatCodexList(spell.spellLists) || "None"}</strong>
+            </OverlayDetailCard>
+            <OverlayDetailCard>
+              <OverlayDetailLabel>Damage</OverlayDetailLabel>
+              <strong>{formatWeaponDamage(spell.damage)}</strong>
+            </OverlayDetailCard>
+          </OverlayDetailsGrid>
 
-          <div className={sheetStyles.spellDrawerBody}>
-            <div className={sheetStyles.spellDrawerDetails}>
-              <div className={sheetStyles.spellDrawerDetailCard}>
-                <span>Casting Time</span>
-                <strong>{formatSpellCastingTime(spell.castingTime)}</strong>
-              </div>
-              <div className={sheetStyles.spellDrawerDetailCard}>
-                <span>Range</span>
-                <strong>{spell.range}</strong>
-              </div>
-              <button
-                type="button"
-                className={`${sheetStyles.spellDrawerDetailCard} ${styles.detailButton}`}
-                onClick={() => {
-                  if (componentsTooltipEntry) {
-                    setIsComponentsTooltipOpen(true);
-                  }
-                }}
-              >
-                <span>Components</span>
-                <strong>{formatSpellComponents(spell.components)}</strong>
-              </button>
-              <div className={sheetStyles.spellDrawerDetailCard}>
-                <span>Duration</span>
-                <strong className={styles.concentrationDetailValue}>
-                  {spellDuration.hasConcentration ? (
-                    <>
-                      <ConcentrationLabel iconSize={15} />
-                      {spellDuration.detailText ? <span>, {spellDuration.detailText}</span> : null}
-                    </>
-                  ) : (
-                    spellDuration.detailText
-                  )}
-                </strong>
-              </div>
-              <div className={sheetStyles.spellDrawerDetailCard}>
-                <span>Spell Lists</span>
-                <strong>{formatCodexList(spell.spellLists) || "None"}</strong>
-              </div>
-              <div className={sheetStyles.spellDrawerDetailCard}>
-                <span>Damage</span>
-                <strong>{formatWeaponDamage(spell.damage)}</strong>
-              </div>
-            </div>
-
-            <SpellDescriptionContent
-              description={spell.description}
-              className={`${sheetStyles.spellDrawerDescriptionList} ${sheetStyles.spellDrawerDescriptionSection}`}
-              entryClassName={sheetStyles.spellDrawerDescriptionLine}
-            />
-          </div>
-        </section>
-      </div>
+          <SpellDescriptionContent
+            description={spell.description}
+            className={`${overlayClassNames.descriptionList} ${overlayClassNames.descriptionSection}`}
+            entryClassName={overlayClassNames.descriptionLine}
+          />
+        </OverlayBody>
+      </SheetDrawer>
 
       {isComponentsTooltipOpen ? (
-        <div
-          className={styles.modalBackdrop}
-          role="presentation"
-          onClick={() => setIsComponentsTooltipOpen(false)}
+        <SheetModal
+          titleId="codex-spell-components-title"
+          onClose={() => setIsComponentsTooltipOpen(false)}
+          backdropClassName={styles.modalBackdrop}
+          panelClassName={styles.modal}
         >
-          <div
-            className={styles.modal}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="codex-spell-components-title"
-            onClick={(event) => event.stopPropagation()}
-          >
             <div className={styles.modalHeader}>
               <div>
                 <p className={styles.modalEyebrow}>Spell Reference</p>
@@ -158,11 +139,11 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
                 className={styles.closeButton}
                 onClick={() => setIsComponentsTooltipOpen(false)}
                 aria-label="Close components tooltip"
-              >
-                ×
-              </button>
-            </div>
-            {componentsTooltipEntry ? (
+                >
+                  ×
+                </button>
+              </div>
+              {componentsTooltipEntry ? (
               <article className={styles.tooltipCard}>
                 <div className={styles.tooltipDescription}>
                   {componentsTooltipEntry.description.map((line, index) => (
@@ -171,8 +152,7 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
                 </div>
               </article>
             ) : null}
-          </div>
-        </div>
+        </SheetModal>
       ) : null}
     </>
   );

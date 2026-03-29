@@ -1,0 +1,40 @@
+.featureActionModal {
+  width: min(860px, 100%);
+}
+
+.modalHeading {
+  display: grid;
+  gap: 0.22rem;
+}
+
+.featureActionOptionGrid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.featureActionOptionButton {
+  width: 100%;
+}
+
+.featureActionOptionButtonSelected {
+  background: rgba(47, 120, 255, 0.1);
+  border-color: rgba(47, 120, 255, 0.34);
+}
+
+.featureActionHelperTextAccent {
+  color: #25508d;
+  font-weight: 700;
+}
+
+.featureActionModalFooter {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.9rem;
+}
+
+@media (max-width: 720px) {
+  .featureActionOptionGrid {
+    grid-template-columns: 1fr;
+  }
+}

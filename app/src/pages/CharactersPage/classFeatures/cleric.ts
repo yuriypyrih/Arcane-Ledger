@@ -10,7 +10,7 @@ import {
   type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../codex/entries";
-import { spellEntries } from "../../../codex/spells";
+import { getSpellEntryById } from "../../../codex/selectors";
 import type { ClericFeatureClassObj } from "../../../types";
 import type {
   AbilityKey,
@@ -523,7 +523,7 @@ export function getClericDivineInterventionSpellEntries(
     return clericSpellEntries;
   }
 
-  const wishSpell = spellEntries.find((spell) => spell.id === greaterDivineInterventionWishSpellId);
+  const wishSpell = getSpellEntryById(greaterDivineInterventionWishSpellId);
 
   if (!wishSpell) {
     return clericSpellEntries;

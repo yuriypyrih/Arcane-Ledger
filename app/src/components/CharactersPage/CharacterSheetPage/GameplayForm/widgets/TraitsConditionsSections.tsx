@@ -9,7 +9,7 @@ import {
 } from "../../../../../pages/CharactersPage/traits";
 import type { CharacterStatusEntry } from "../../../../../types";
 import { EFFECT_NAME, STATUS_ENTRY_GROUP } from "../../../../../types";
-import styles from "./TraitsConditionsWidget.module.css";
+import styles from "./TraitsConditionsSections.module.css";
 
 type StatusSection = {
   group: string;

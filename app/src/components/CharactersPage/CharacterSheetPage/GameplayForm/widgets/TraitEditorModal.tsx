@@ -8,7 +8,7 @@ import {
   isExhaustionConditionOptionValue
 } from "../../../../../pages/CharactersPage/traits";
 import { STATUS_DURATION_PRESET } from "../../../../../types";
-import styles from "./TraitsConditionsWidget.module.css";
+import styles from "./TraitEditorModal.module.css";
 import {
   formatTraitEditorOptionLabel,
   getTraitEditorOptions,

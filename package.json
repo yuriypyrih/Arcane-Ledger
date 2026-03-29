@@ -6,7 +6,8 @@
     "lint": "eslint app/src app/vite.config.ts server/src",
     "lint:fix": "eslint app/src app/vite.config.ts server/src --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "test:app": "npm --prefix app run test:run"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",

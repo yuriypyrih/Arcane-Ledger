@@ -17,6 +17,7 @@ import {
 } from "../../types";
 import { formatCodexLabel } from "../../utils/codex";
 import { getKeywordDescriptionLines } from "./keywordDescriptions";
+import { clampInteger } from "./shared";
 
 const senseValues = new Set<SENSE>(Object.values(SENSE));
 const effectValues = new Set<EFFECT_NAME>(Object.values(EFFECT_NAME));
@@ -225,16 +226,6 @@ function isEffectName(value: unknown): value is EFFECT_NAME {
 
 function isDamageType(value: unknown): value is DAMAGE_TYPE {
   return typeof value === "string" && damageTypeValues.has(value as DAMAGE_TYPE);
-}
-
-function clampInteger(value: unknown, min: number, max: number, fallback: number): number {
-  const parsed = Number(value);
-
-  if (!Number.isFinite(parsed)) {
-    return fallback;
-  }
-
-  return Math.max(min, Math.min(max, Math.floor(parsed)));
 }
 
 function parseSpellConcentrationDurationLabel(label: string): CharacterStatusDuration | null {

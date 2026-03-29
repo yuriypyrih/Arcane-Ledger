@@ -13,7 +13,8 @@ import {
 } from "../../../../../pages/CharactersPage/spellcasting";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import styles from "./ActionsWidget.module.css";
+import sharedModalStyles from "./FeatureActionModal.module.css";
+import styles from "./ArcaneRecoveryModal.module.css";
 
 type ArcaneRecoveryModalProps = {
   action: FeatureActionCard;
@@ -85,14 +86,14 @@ function ArcaneRecoveryModal({
   return (
     <div className={sheetStyles.spellManagementBackdrop} role="presentation" onClick={onClose}>
       <section
-        className={clsx(sheetStyles.spellManagementModal, styles.featureActionModal)}
+        className={clsx(sheetStyles.spellManagementModal, sharedModalStyles.featureActionModal)}
         role="dialog"
         aria-modal="true"
         aria-labelledby="arcane-recovery-modal-title"
         onClick={(event) => event.stopPropagation()}
       >
         <div className={sheetStyles.spellManagementHeader}>
-          <div className={styles.modalHeading}>
+          <div className={sharedModalStyles.modalHeading}>
             <p className={sheetStyles.eyebrow}>Wizard</p>
             <h3 id="arcane-recovery-modal-title">{action.name}</h3>
             <p className={shared.helperText}>
@@ -158,7 +159,7 @@ function ArcaneRecoveryModal({
           <p className={shared.emptyText}>No expended spell slots of level 1-5 can be recovered right now.</p>
         )}
 
-        <div className={styles.featureActionModalFooter}>
+        <div className={sharedModalStyles.featureActionModalFooter}>
           <button
             type="button"
             className={sheetStyles.castButton}

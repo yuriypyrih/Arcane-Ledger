@@ -10,11 +10,11 @@ import {
   DICE,
   ENTRY_CATEGORIES,
   getReactionEntryById,
-  hardcodedCodexEntries,
   type ReactionEntry,
   type ArmorEntry,
   type WeaponEntry
 } from "../../../codex/entries";
+import { getArmorEntries, getWeaponEntries } from "../../../codex/selectors";
 import type { Character, CharacterMonkFeatureState } from "../../../types";
 import {
   CONDITION_NAME,
@@ -81,15 +81,11 @@ type MonkCombatState = MonkMartialArtsContext & {
 };
 
 const codexWeaponEntriesByName = new Map<string, WeaponEntry>(
-  hardcodedCodexEntries
-    .filter((entry): entry is WeaponEntry => entry.category === ENTRY_CATEGORIES.WEAPONS)
-    .map((entry) => [entry.name, entry])
+  getWeaponEntries().map((entry) => [entry.name, entry])
 );
 
 const codexArmorEntriesByName = new Map<string, ArmorEntry>(
-  hardcodedCodexEntries
-    .filter((entry): entry is ArmorEntry => entry.category === ENTRY_CATEGORIES.ARMOR)
-    .map((entry) => [entry.name, entry])
+  getArmorEntries().map((entry) => [entry.name, entry])
 );
 
 const superiorDefenseDurationRounds = 10;

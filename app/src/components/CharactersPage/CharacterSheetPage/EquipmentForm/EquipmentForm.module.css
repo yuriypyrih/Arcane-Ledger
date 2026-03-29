@@ -21,12 +21,6 @@
   text-transform: uppercase;
 }
 
-.equipmentGroupDescription {
-  margin: 0;
-  color: var(--color-ink-soft);
-  font-size: 0.76rem;
-}
-
 .equipmentChoiceList {
   display: grid;
   gap: 0.5rem;
@@ -721,215 +715,6 @@
   opacity: 0.58;
 }
 
-.customEquipmentEditor {
-  display: grid;
-  grid-template-rows: minmax(0, 1fr) auto;
-  gap: 0.9rem;
-  min-height: 0;
-}
-
-.customEquipmentEditorBody {
-  display: grid;
-  gap: 0.9rem;
-  min-height: 0;
-  overflow: auto;
-  padding-right: 0.12rem;
-}
-
-.customEquipmentEditorFooter {
-  display: grid;
-  gap: 0.7rem;
-  border-top: 1px solid rgba(75, 47, 29, 0.12);
-  padding-top: 0.9rem;
-}
-
-.customEquipmentTabRow {
-  display: grid;
-  gap: 0.48rem;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.customEquipmentTabButton {
-  border: 1px solid rgba(75, 47, 29, 0.16);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.78);
-  color: var(--color-ink);
-  cursor: pointer;
-  font: inherit;
-  font-weight: 600;
-  min-height: 40px;
-  padding: 0 0.78rem;
-}
-
-.customEquipmentTabButtonActive {
-  border-color: rgba(75, 47, 29, 0.28);
-  background: rgba(75, 47, 29, 0.14);
-}
-
-.customEquipmentTabButtonDisabled {
-  cursor: not-allowed;
-  opacity: 0.48;
-}
-
-.customEquipmentDisabledState {
-  border: 1px dashed rgba(75, 47, 29, 0.18);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.62);
-  padding: 0.88rem 0.92rem;
-}
-
-.customEquipmentDisabledState p {
-  margin: 0;
-  color: var(--color-ink-soft);
-  font-size: 0.9rem;
-}
-
-.customEquipmentFormStack {
-  display: grid;
-  gap: 0.88rem;
-}
-
-.customEquipmentThreeColumnRow {
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.customEquipmentFormGrid {
-  display: grid;
-  gap: 0.75rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.customEquipmentField {
-  display: grid;
-  gap: 0.38rem;
-}
-
-.customEquipmentField span {
-  color: var(--color-ink-soft);
-  font-size: 0.76rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.customEquipmentCompactTextarea {
-  min-height: 96px;
-}
-
-.customEquipmentSection {
-  display: grid;
-  gap: 0.65rem;
-  border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 18px;
-  background: rgba(255, 255, 255, 0.64);
-  padding: 0.82rem 0.88rem;
-}
-
-.customEquipmentSectionHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.7rem;
-}
-
-.customEquipmentSectionTitle,
-.customEquipmentSectionDescription {
-  margin: 0;
-}
-
-.customEquipmentSectionTitle {
-  font-weight: 700;
-}
-
-.customEquipmentSectionDescription {
-  color: var(--color-ink-soft);
-  font-size: 0.82rem;
-  line-height: 1.45;
-}
-
-.customEquipmentInlineButton {
-  align-self: flex-start;
-  background: rgba(75, 47, 29, 0.1);
-  color: var(--color-ink);
-  font-weight: 600;
-  min-height: 34px;
-  padding: 0 0.78rem;
-}
-
-.customDamageList {
-  display: grid;
-  gap: 0.58rem;
-}
-
-.customDamageRow {
-  display: grid;
-  gap: 0.6rem;
-  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto;
-  align-items: end;
-}
-
-.customDamageRemoveButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 12px;
-  background: rgba(169, 55, 41, 0.12);
-  color: #8a2519;
-  cursor: pointer;
-  min-height: 40px;
-  min-width: 40px;
-  padding: 0;
-}
-
-.customDamageRemoveButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.48;
-}
-
-.customPropertyGrid {
-  display: grid;
-  gap: 0.48rem;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-}
-
-.customPropertyButton {
-  border: 1px solid rgba(75, 47, 29, 0.14);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.76);
-  color: var(--color-ink);
-  cursor: pointer;
-  font: inherit;
-  min-height: 38px;
-  padding: 0 0.7rem;
-}
-
-.customPropertyButtonActive {
-  border-color: rgba(75, 47, 29, 0.28);
-  background: rgba(75, 47, 29, 0.14);
-  font-weight: 600;
-}
-
-.customEquipmentInlineFieldRow {
-  display: grid;
-  gap: 0.58rem;
-  grid-template-columns: minmax(0, 1fr) 104px;
-}
-
-.customEquipmentError {
-  margin: 0;
-  color: #8a2519;
-  font-size: 0.84rem;
-  font-weight: 600;
-}
-
-.customEquipmentActionRow {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.6rem;
-}
-
 .customEquipmentDeleteBackdrop {
   position: fixed;
   inset: 0;
@@ -1030,17 +815,6 @@
     flex-wrap: wrap;
   }
 
-  .customEquipmentThreeColumnRow,
-  .customEquipmentFormGrid,
-  .customDamageRow {
-    grid-template-columns: 1fr;
-  }
-
-  .customEquipmentSectionHeader {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
   .catalogSearchRow {
     grid-template-columns: 1fr;
   }
@@ -1069,17 +843,7 @@
     justify-content: center;
   }
 
-  .catalogCreateCustomButton,
-  .customEquipmentActionRow {
-    width: 100%;
-  }
-
-  .customEquipmentActionRow {
-    flex-direction: column;
-  }
-
-  .customEquipmentSecondaryButton,
-  .customEquipmentPrimaryButton {
+  .catalogCreateCustomButton {
     width: 100%;
   }
 }

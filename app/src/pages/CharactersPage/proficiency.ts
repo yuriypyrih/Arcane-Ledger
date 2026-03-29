@@ -36,7 +36,6 @@ import {
   WEAPON_COMBAT_TYPE,
   WEAPON_PROPERTY,
   WEAPON_TRAINING,
-  hardcodedCodexEntries,
   type ArmorEntry,
   type BackgroundEntry,
   type ClassEntry,
@@ -44,6 +43,13 @@ import {
   type SpeciesEntry,
   type WeaponEntry
 } from "../../codex/entries";
+import {
+  getBackgroundEntries,
+  getClassEntries,
+  getLoadoutEntries,
+  getSpeciesEntries,
+  getWeaponEntries
+} from "../../codex/selectors";
 import { ALL_SKILLS } from "../../types";
 import {
   createCharacterEquipmentItem,
@@ -183,17 +189,6 @@ type NormalizeCharacterProficienciesOptions = {
   legacyToolProficiencies?: string[];
 };
 
-function isLoadoutCodexEntry(entry: unknown): entry is LoadoutCodexEntry {
-  return (
-    typeof entry === "object" &&
-    entry !== null &&
-    "category" in entry &&
-    (entry.category === ENTRY_CATEGORIES.WEAPONS ||
-      entry.category === ENTRY_CATEGORIES.ARMOR ||
-      entry.category === ENTRY_CATEGORIES.ITEMS)
-  );
-}
-
 function getArmorTypeFromTags(tags: ArmorEntry["tags"]): ArmorType | null {
   if (tags.includes(ARMOR_TYPES.LIGHT_ARMOR)) {
     return "light";
@@ -254,9 +249,7 @@ function toEquipmentDefinition(entry: LoadoutCodexEntry): EquipmentDefinition | 
   };
 }
 
-const loadoutCodexEntries: LoadoutCodexEntry[] = hardcodedCodexEntries.filter((entry) =>
-  isLoadoutCodexEntry(entry)
-);
+const loadoutCodexEntries: LoadoutCodexEntry[] = getLoadoutEntries();
 
 export const equipmentCatalog: EquipmentDefinition[] = loadoutCodexEntries
   .map((entry) => toEquipmentDefinition(entry))
@@ -659,12 +652,10 @@ const weaponProficiencyLabelsByCategory: Partial<Record<WEAPON_PROFICIENCY, stri
   [WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT]: "Martial melee weapons with Light property"
 };
 const commonWeaponEntriesByBaseWeapon = new Map<WEAPON_BASE, WeaponEntry>(
-  hardcodedCodexEntries
+  getWeaponEntries()
     .filter(
-      (entry): entry is WeaponEntry =>
-        entry.category === ENTRY_CATEGORIES.WEAPONS &&
-        entry.rarity === RARITY_TYPES.COMMON &&
-        typeof entry.baseWeapon === "string"
+      (entry) =>
+        entry.rarity === RARITY_TYPES.COMMON && typeof entry.baseWeapon === "string"
     )
     .map((entry) => [entry.baseWeapon as WEAPON_BASE, entry])
 );
@@ -762,23 +753,15 @@ const loadoutCodexEntriesByName = new Map<string, LoadoutCodexEntry>(
 );
 
 const backgroundCodexEntriesByName = new Map<string, BackgroundEntry>(
-  hardcodedCodexEntries
-    .filter(
-      (entry): entry is BackgroundEntry => entry.category === ENTRY_CATEGORIES.BACKGROUNDS
-    )
-    .map((entry) => [entry.name, entry])
+  getBackgroundEntries().map((entry) => [entry.name, entry])
 );
 
 const speciesCodexEntriesByName = new Map<string, SpeciesEntry>(
-  hardcodedCodexEntries
-    .filter((entry): entry is SpeciesEntry => entry.category === ENTRY_CATEGORIES.SPECIES)
-    .map((entry) => [entry.name, entry])
+  getSpeciesEntries().map((entry) => [entry.name, entry])
 );
 
 const classCodexEntriesByName = new Map<string, ClassEntry>(
-  hardcodedCodexEntries
-    .filter((entry): entry is ClassEntry => entry.category === ENTRY_CATEGORIES.CLASSES)
-    .map((entry) => [entry.name, entry])
+  getClassEntries().map((entry) => [entry.name, entry])
 );
 
 export const backgroundOptions = [...backgroundCodexEntriesByName.keys()].sort((left, right) =>

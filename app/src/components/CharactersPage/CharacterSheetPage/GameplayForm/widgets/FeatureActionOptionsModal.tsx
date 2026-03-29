@@ -1,10 +1,15 @@
 import clsx from "clsx";
-import { X } from "lucide-react";
 import type { ReactNode } from "react";
 import type { FeatureActionCard } from "../../../../../pages/CharactersPage/classFeatures";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import styles from "./ActionsWidget.module.css";
+import {
+  OverlayCloseButton,
+  OverlayEyebrow,
+  OverlayHeader,
+  OverlayHeaderContent,
+  SheetModal
+} from "../../../../Overlay";
+import styles from "./FeatureActionModal.module.css";
 
 type FeatureActionOptionsModalProps = {
   action: FeatureActionCard;
@@ -26,17 +31,15 @@ function FeatureActionOptionsModal({
   footer
 }: FeatureActionOptionsModalProps) {
   return (
-    <div className={sheetStyles.spellManagementBackdrop} role="presentation" onClick={onClose}>
-      <section
-        className={clsx(sheetStyles.spellManagementModal, styles.featureActionModal)}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="feature-action-modal-title"
-        onClick={(event) => event.stopPropagation()}
-      >
-        <div className={sheetStyles.spellManagementHeader}>
+    <SheetModal
+      titleId="feature-action-modal-title"
+      onClose={onClose}
+      panelClassName={styles.featureActionModal}
+    >
+      <OverlayHeader>
+        <OverlayHeaderContent>
           <div className={styles.modalHeading}>
-            <p className={sheetStyles.eyebrow}>{eyebrow}</p>
+            <OverlayEyebrow>{eyebrow}</OverlayEyebrow>
             <h3 id="feature-action-modal-title">{action.name}</h3>
             <p
               className={clsx(
@@ -47,20 +50,13 @@ function FeatureActionOptionsModal({
               {helperText}
             </p>
           </div>
-          <button
-            type="button"
-            className={sheetStyles.spellManagementCloseButton}
-            onClick={onClose}
-            aria-label="Close feature action options"
-          >
-            <X size={18} />
-          </button>
-        </div>
+        </OverlayHeaderContent>
+        <OverlayCloseButton label="Close feature action options" onClick={onClose} />
+      </OverlayHeader>
 
-        <div className={styles.featureActionOptionGrid}>{children}</div>
-        {footer ? <div className={styles.featureActionModalFooter}>{footer}</div> : null}
-      </section>
-    </div>
+      <div className={styles.featureActionOptionGrid}>{children}</div>
+      {footer ? <div className={styles.featureActionModalFooter}>{footer}</div> : null}
+    </SheetModal>
   );
 }
 

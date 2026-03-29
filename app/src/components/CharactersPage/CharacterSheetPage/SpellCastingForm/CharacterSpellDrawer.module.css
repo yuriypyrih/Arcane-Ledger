@@ -1,0 +1,58 @@
+.alwaysPreparedPill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: rgba(222, 102, 158, 0.16);
+  color: #c04f86;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  padding: 0.22rem 0.48rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.alwaysPreparedDrawerPill {
+  align-self: center;
+}
+
+.concentrationDetailValue {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.18rem;
+}
+
+.spellDetailButton {
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.spellDetailButton:hover {
+  background: rgba(75, 47, 29, 0.11);
+}
+
+.spellDetailButton:focus-visible {
+  outline: 2px solid rgba(143, 91, 56, 0.5);
+  outline-offset: 2px;
+}
+
+.componentsDrawerBackdrop {
+  z-index: 49;
+}
+
+.componentsDrawer {
+  width: min(640px, 100%);
+}
+
+.componentsDrawerBody {
+  display: grid;
+  flex: 1 1 auto;
+  gap: 0.85rem;
+  min-height: 0;
+  overflow: auto;
+}

@@ -1,13 +1,12 @@
 import clsx from "clsx";
 import { Dice6 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
-import { Controller, useForm } from "react-hook-form";
+import { Controller, useForm, useWatch } from "react-hook-form";
 import type { AbilityKey, AbilityScores, AttributeMode, CharacterDraft, SkillName } from "../../../types";
 import {
   POINT_BUY_BUDGET,
   abilityKeys,
-  alignmentGrid,
-  backgroundOptions,
+  alignmentOptions,
   cloneAbilities,
   createDefaultAbilities,
   createDefaultCurrencies,
@@ -16,10 +15,12 @@ import {
   getPointBuyCost,
   getPointBuyRemaining,
   normalizePointBuyAbilities,
-  classOptions,
   speciesOptions
 } from "../../../pages/CharactersPage/constants";
+import { clampNumber } from "../../../pages/CharactersPage/shared";
 import {
+  backgroundOptions,
+  classOptions,
   getAvailableEquipmentNamesForClass,
   getGrantedSkillProficienciesForCharacter,
   getSkillProficiencyOptionsForClass,
@@ -33,6 +34,13 @@ import NumberInput from "../FormInputs/NumberInput";
 import SelectInput from "../FormInputs/SelectInput";
 import TextAreaInput from "../FormInputs/TextAreaInput";
 import TextInput from "../FormInputs/TextInput";
+import {
+  type ClassBuildPlan,
+  getBuildPlan,
+  speciesAbilityBonuses,
+  speciesEquipmentAffinity,
+  speciesSkillAffinity
+} from "./recommendedBuildData";
 import styles from "./CharacterForm.module.css";
 
 type CharacterFormProps = {
@@ -43,293 +51,6 @@ type CharacterFormProps = {
 };
 
 type CreationStep = 1 | 2 | 3;
-
-type ClassBuildPlan = {
-  primary: AbilityKey;
-  secondary: AbilityKey;
-  tertiary: AbilityKey;
-  hitDie: number;
-  preferredSkills: string[];
-  preferredEquipment: string[];
-  background: string;
-  alignment: CharacterDraft["alignment"];
-};
-
-const alignmentOptions = alignmentGrid.flat();
-
-const fallbackBuildPlan: ClassBuildPlan = {
-  primary: "STR",
-  secondary: "CON",
-  tertiary: "DEX",
-  hitDie: 10,
-  preferredSkills: ["Athletics", "Perception", "Survival", "Intimidation"],
-  preferredEquipment: [
-    "Longsword",
-    "Shield",
-    "Chain Mail",
-    "Backpack",
-    "Rations (1 day)",
-    "Torch"
-  ],
-  background: "Soldier",
-  alignment: "True Neutral"
-};
-
-const classBuildPlans: Record<string, ClassBuildPlan> = {
-  Artificer: {
-    primary: "INT",
-    secondary: "CON",
-    tertiary: "DEX",
-    hitDie: 8,
-    preferredSkills: ["Arcana", "Investigation", "History", "Perception", "Insight"],
-    preferredEquipment: [
-      "Spellbook",
-      "Healer's Kit",
-      "Leather Armor",
-      "Dagger",
-      "Backpack",
-      "Explorer's Pack"
-    ],
-    background: "Guild Artisan / Merchant",
-    alignment: "Lawful Neutral"
-  },
-  Barbarian: {
-    primary: "STR",
-    secondary: "CON",
-    tertiary: "DEX",
-    hitDie: 12,
-    preferredSkills: ["Athletics", "Survival", "Intimidation", "Perception", "Animal Handling"],
-    preferredEquipment: [
-      "Longsword",
-      "Shield",
-      "Backpack",
-      "Rations (1 day)",
-      "Torch",
-      "Rope (50 ft.)"
-    ],
-    background: "Outlander",
-    alignment: "Chaotic Neutral"
-  },
-  Bard: {
-    primary: "CHA",
-    secondary: "DEX",
-    tertiary: "CON",
-    hitDie: 8,
-    preferredSkills: ["Performance", "Persuasion", "Deception", "Insight", "History"],
-    preferredEquipment: [
-      "Shortsword",
-      "Leather Armor",
-      "Backpack",
-      "Waterskin",
-      "Torch",
-      "Spellbook"
-    ],
-    background: "Entertainer",
-    alignment: "Neutral Good"
-  },
-  Cleric: {
-    primary: "WIS",
-    secondary: "CON",
-    tertiary: "STR",
-    hitDie: 8,
-    preferredSkills: ["Religion", "Insight", "Medicine", "Persuasion", "History"],
-    preferredEquipment: [
-      "Chain Mail",
-      "Shield",
-      "Longsword",
-      "Healer's Kit",
-      "Backpack",
-      "Torch"
-    ],
-    background: "Acolyte",
-    alignment: "Lawful Good"
-  },
-  Druid: {
-    primary: "WIS",
-    secondary: "CON",
-    tertiary: "DEX",
-    hitDie: 8,
-    preferredSkills: ["Nature", "Animal Handling", "Medicine", "Survival", "Perception"],
-    preferredEquipment: [
-      "Leather Armor",
-      "Shield",
-      "Dagger",
-      "Healer's Kit",
-      "Waterskin",
-      "Rations (1 day)"
-    ],
-    background: "Hermit",
-    alignment: "True Neutral"
-  },
-  Fighter: {
-    primary: "STR",
-    secondary: "CON",
-    tertiary: "DEX",
-    hitDie: 10,
-    preferredSkills: ["Athletics", "Perception", "Survival", "Intimidation", "History"],
-    preferredEquipment: [
-      "Chain Mail",
-      "Shield",
-      "Longsword",
-      "Shortsword",
-      "Backpack",
-      "Rope (50 ft.)"
-    ],
-    background: "Soldier",
-    alignment: "Lawful Neutral"
-  },
-  Monk: {
-    primary: "DEX",
-    secondary: "WIS",
-    tertiary: "CON",
-    hitDie: 8,
-    preferredSkills: ["Acrobatics", "Stealth", "Insight", "Athletics", "Perception"],
-    preferredEquipment: [
-      "Shortsword",
-      "Dagger",
-      "Backpack",
-      "Rations (1 day)",
-      "Waterskin",
-      "Torch"
-    ],
-    background: "Hermit",
-    alignment: "Lawful Good"
-  },
-  Paladin: {
-    primary: "STR",
-    secondary: "CHA",
-    tertiary: "CON",
-    hitDie: 10,
-    preferredSkills: ["Persuasion", "Athletics", "Insight", "Intimidation", "Religion"],
-    preferredEquipment: [
-      "Chain Mail",
-      "Shield",
-      "Longsword",
-      "Backpack",
-      "Torch",
-      "Rations (1 day)"
-    ],
-    background: "Noble",
-    alignment: "Lawful Good"
-  },
-  Ranger: {
-    primary: "DEX",
-    secondary: "WIS",
-    tertiary: "CON",
-    hitDie: 10,
-    preferredSkills: ["Survival", "Perception", "Stealth", "Nature", "Athletics"],
-    preferredEquipment: [
-      "Leather Armor",
-      "Longsword",
-      "Shortsword",
-      "Backpack",
-      "Rope (50 ft.)",
-      "Rations (1 day)"
-    ],
-    background: "Outlander",
-    alignment: "Neutral Good"
-  },
-  Rogue: {
-    primary: "DEX",
-    secondary: "INT",
-    tertiary: "CHA",
-    hitDie: 8,
-    preferredSkills: ["Stealth", "Sleight of Hand", "Deception", "Acrobatics", "Investigation"],
-    preferredEquipment: [
-      "Leather Armor",
-      "Dagger",
-      "Shortsword",
-      "Thieves' Tools",
-      "Backpack",
-      "Torch"
-    ],
-    background: "Criminal / Spy",
-    alignment: "Chaotic Neutral"
-  },
-  Sorcerer: {
-    primary: "CHA",
-    secondary: "CON",
-    tertiary: "DEX",
-    hitDie: 6,
-    preferredSkills: ["Arcana", "Deception", "Persuasion", "Insight", "Intimidation"],
-    preferredEquipment: ["Spellbook", "Dagger", "Backpack", "Waterskin", "Torch", "Rations (1 day)"],
-    background: "Charlatan",
-    alignment: "Chaotic Good"
-  },
-  Warlock: {
-    primary: "CHA",
-    secondary: "CON",
-    tertiary: "INT",
-    hitDie: 8,
-    preferredSkills: ["Arcana", "Deception", "Intimidation", "Investigation", "Religion"],
-    preferredEquipment: [
-      "Spellbook",
-      "Dagger",
-      "Leather Armor",
-      "Backpack",
-      "Torch",
-      "Rations (1 day)"
-    ],
-    background: "Charlatan",
-    alignment: "Neutral Evil"
-  },
-  Wizard: {
-    primary: "INT",
-    secondary: "CON",
-    tertiary: "DEX",
-    hitDie: 6,
-    preferredSkills: ["Arcana", "History", "Investigation", "Insight", "Religion"],
-    preferredEquipment: ["Spellbook", "Dagger", "Backpack", "Waterskin", "Torch", "Rations (1 day)"],
-    background: "Sage",
-    alignment: "Lawful Neutral"
-  }
-};
-
-const speciesAbilityBonuses: Partial<Record<string, Partial<Record<AbilityKey, number>>>> = {
-  Dragonborn: { STR: 2, CHA: 1 },
-  Dwarf: { CON: 2, WIS: 1 },
-  Elf: { DEX: 2, INT: 1 },
-  Gnome: { INT: 2, DEX: 1 },
-  "Half-Elf": { CHA: 2, DEX: 1, CON: 1 },
-  "Half-Orc": { STR: 2, CON: 1 },
-  Halfling: { DEX: 2, CHA: 1 },
-  Human: { STR: 1, DEX: 1, CON: 1, INT: 1, WIS: 1, CHA: 1 },
-  Tiefling: { CHA: 2, INT: 1 }
-};
-
-const speciesSkillAffinity: Partial<Record<string, string[]>> = {
-  Dragonborn: ["Intimidation", "Persuasion", "Athletics"],
-  Dwarf: ["History", "Insight", "Survival"],
-  Elf: ["Perception", "Stealth", "Arcana"],
-  Gnome: ["Arcana", "Investigation", "History"],
-  "Half-Elf": ["Persuasion", "Insight", "Deception"],
-  "Half-Orc": ["Athletics", "Intimidation", "Survival"],
-  Halfling: ["Stealth", "Perception", "Persuasion"],
-  Human: ["Insight", "Perception", "Persuasion"],
-  Tiefling: ["Deception", "Arcana", "Intimidation"]
-};
-
-const speciesEquipmentAffinity: Partial<Record<string, string[]>> = {
-  Dragonborn: ["Shield", "Longsword"],
-  Dwarf: ["Chain Mail", "Shield"],
-  Elf: ["Leather Armor", "Longsword"],
-  Gnome: ["Healer's Kit", "Backpack"],
-  "Half-Elf": ["Leather Armor", "Shortsword"],
-  "Half-Orc": ["Shield", "Longsword"],
-  Halfling: ["Dagger", "Backpack"],
-  Human: ["Backpack", "Rope (50 ft.)"],
-  Tiefling: ["Spellbook", "Dagger"]
-};
-
-function clampNumber(rawValue: string, min: number, max: number, fallback: number): number {
-  const parsedValue = Number(rawValue);
-
-  if (!Number.isFinite(parsedValue)) {
-    return fallback;
-  }
-
-  return Math.max(min, Math.min(max, parsedValue));
-}
 
 function normalizeCustomAbilities(abilities: AbilityScores): AbilityScores {
   return abilityKeys.reduce((next, ability) => {
@@ -364,10 +85,6 @@ function createBasicProfileSnapshot(values: CharacterDraft): CharacterDraft {
     level: normalizedProgress.level,
     xp: normalizedProgress.xp
   };
-}
-
-function getBuildPlan(className: string): ClassBuildPlan {
-  return classBuildPlans[className] ?? fallbackBuildPlan;
 }
 
 function getAbilityPriorityOrder(plan: ClassBuildPlan): AbilityKey[] {
@@ -642,24 +359,47 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     register,
     reset,
     setValue,
-    trigger,
-    watch
+    trigger
   } = useForm<CharacterDraft>({
     defaultValues: initialValues
   });
-  const selectedClassName = watch("className") ?? initialValues.className;
-  const selectedSubclassId = watch("subclassId") ?? initialValues.subclassId ?? "";
-  const selectedSpecies = watch("species") ?? initialValues.species;
-  const selectedBackground = watch("background") ?? initialValues.background;
-  const attributeMode = watch("attributeMode") ?? initialValues.attributeMode;
-  const abilities = watch("abilities") ?? initialValues.abilities;
-  const alignment = watch("alignment") ?? initialValues.alignment;
-  const selectedSkills = watch("skills") ?? initialValues.skills;
-  const selectedEquipment = watch("equipment") ?? initialValues.equipment;
-  const availableSkillOptions = getSkillProficiencyOptionsForClass(selectedClassName);
-  const availableSubclassOptions = getSubclassOptionsForClassName(selectedClassName);
-  const skillSelectionLimit = getSkillSelectionLimitForClass(selectedClassName);
-  const availableEquipmentOptions = getAvailableEquipmentNamesForClass(selectedClassName);
+  const [
+    selectedClassName,
+    selectedSubclassId,
+    selectedSpecies,
+    selectedBackground,
+    attributeMode,
+    abilities,
+    alignment,
+    selectedSkills,
+    selectedEquipment
+  ] = useWatch({
+    control,
+    name: [
+      "className",
+      "subclassId",
+      "species",
+      "background",
+      "attributeMode",
+      "abilities",
+      "alignment",
+      "skills",
+      "equipment"
+    ]
+  });
+  const resolvedClassName = selectedClassName ?? initialValues.className;
+  const resolvedSubclassId = selectedSubclassId ?? initialValues.subclassId ?? "";
+  const resolvedSpecies = selectedSpecies ?? initialValues.species;
+  const resolvedBackground = selectedBackground ?? initialValues.background;
+  const resolvedAttributeMode = attributeMode ?? initialValues.attributeMode;
+  const resolvedAbilities = abilities ?? initialValues.abilities;
+  const resolvedAlignment = alignment ?? initialValues.alignment;
+  const resolvedSkills = selectedSkills ?? initialValues.skills;
+  const resolvedEquipment = selectedEquipment ?? initialValues.equipment;
+  const availableSkillOptions = getSkillProficiencyOptionsForClass(resolvedClassName);
+  const availableSubclassOptions = getSubclassOptionsForClassName(resolvedClassName);
+  const skillSelectionLimit = getSkillSelectionLimitForClass(resolvedClassName);
+  const availableEquipmentOptions = getAvailableEquipmentNamesForClass(resolvedClassName);
   const canEditClassIdentity = !isEditing || availableSubclassOptions.length === 0;
   const lastCustomAbilitiesRef = useRef(cloneAbilities(initialValues.abilities));
   const lastPointBuyAbilitiesRef = useRef(
@@ -667,7 +407,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       ? normalizePointBuyAbilities(initialValues.abilities)
       : createDefaultAbilities()
   );
-  const pointBuyRemaining = getPointBuyRemaining(abilities);
+  const pointBuyRemaining = getPointBuyRemaining(resolvedAbilities);
 
   const creationTitleByStep: Record<CreationStep, string> = {
     1: "Create a new character",
@@ -698,11 +438,11 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const currentSkills = getValues("skills") ?? [];
     const currentEquipment = getValues("equipment") ?? [];
     const normalizedSelections = normalizeSelectionsForClass(
-      selectedClassName,
+      resolvedClassName,
       currentSkills,
       currentEquipment,
-      selectedSpecies,
-      selectedBackground
+      resolvedSpecies,
+      resolvedBackground
     );
 
     if (!areStringArraysEqual(currentSkills, normalizedSelections.skills)) {
@@ -718,18 +458,18 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         shouldValidate: true
       });
     }
-  }, [getValues, selectedBackground, selectedClassName, selectedSpecies, setValue]);
+  }, [getValues, resolvedBackground, resolvedClassName, resolvedSpecies, setValue]);
 
   useEffect(() => {
-    const normalizedSubclassId = normalizeSubclassId(selectedSubclassId, selectedClassName) ?? "";
+    const normalizedSubclassId = normalizeSubclassId(resolvedSubclassId, resolvedClassName) ?? "";
 
-    if (selectedSubclassId !== normalizedSubclassId) {
+    if (resolvedSubclassId !== normalizedSubclassId) {
       setValue("subclassId", normalizedSubclassId, {
-        shouldDirty: selectedSubclassId.length > 0,
+        shouldDirty: resolvedSubclassId.length > 0,
         shouldValidate: true
       });
     }
-  }, [selectedClassName, selectedSubclassId, setValue]);
+  }, [resolvedClassName, resolvedSubclassId, setValue]);
 
   function commitAbilities(nextAbilities: AbilityScores, mode: AttributeMode) {
     setValue("abilities", nextAbilities, {
@@ -746,13 +486,13 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   function handleAttributeModeChange(nextMode: AttributeMode) {
-    if (nextMode === attributeMode) {
+    if (nextMode === resolvedAttributeMode) {
       return;
     }
 
     const currentAbilities = getValues("abilities");
 
-    if (attributeMode === "custom") {
+    if (resolvedAttributeMode === "custom") {
       lastCustomAbilitiesRef.current = cloneAbilities(currentAbilities);
     } else {
       lastPointBuyAbilitiesRef.current = normalizePointBuyAbilities(currentAbilities);
@@ -933,7 +673,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       currentHitPoints: 0,
       attributeMode: randomMode,
       abilities: randomizedAbilities,
-      alignment: getRandomItem(alignmentGrid.flat()),
+      alignment: getRandomItem(alignmentOptions),
       background: createRandomBackground(),
       backgroundNotes: "",
       currencies: createDefaultCurrencies(),
@@ -1044,7 +784,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 {...register("subclassId", {
                   validate: (value) =>
                     availableSubclassOptions.length === 0 ||
-                    normalizeSubclassId(value, selectedClassName)
+                    normalizeSubclassId(value, resolvedClassName)
                       ? true
                       : "Choose a subclass"
                 })}
@@ -1152,7 +892,11 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             <p className={styles.sectionEyebrow}>Ability scores</p>
             <h3>Distribute STR, DEX, CON, INT, WIS, CHA</h3>
           </div>
-          <span>{attributeMode === "custom" ? "1-99 custom range" : `${pointBuyRemaining} points left`}</span>
+          <span>
+            {resolvedAttributeMode === "custom"
+              ? "1-99 custom range"
+              : `${pointBuyRemaining} points left`}
+          </span>
         </div>
 
         <div className={styles.segmentedControl} role="tablist" aria-label="Ability distribution mode">
@@ -1160,7 +904,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             type="button"
             className={clsx(
               styles.segmentButton,
-              attributeMode === "custom" && styles.segmentButtonActive
+              resolvedAttributeMode === "custom" && styles.segmentButtonActive
             )}
             onClick={() => handleAttributeModeChange("custom")}
           >
@@ -1170,7 +914,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             type="button"
             className={clsx(
               styles.segmentButton,
-              attributeMode === "pointBuy" && styles.segmentButtonActive
+              resolvedAttributeMode === "pointBuy" && styles.segmentButtonActive
             )}
             onClick={() => handleAttributeModeChange("pointBuy")}
           >
@@ -1179,12 +923,12 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         </div>
 
         <p className={styles.helperText}>
-          {attributeMode === "custom"
+          {resolvedAttributeMode === "custom"
             ? "Custom mode allows any value from 1 to 99 for each attribute."
             : "Point Buy follows standard DnD rules: scores start at 8, can rise to 15 before species bonuses, and must stay within a 27-point budget."}
         </p>
 
-        {attributeMode === "pointBuy" ? (
+        {resolvedAttributeMode === "pointBuy" ? (
           <div className={styles.pointSummary}>
             <strong>{pointBuyRemaining} points remaining</strong>
             <span>{POINT_BUY_BUDGET - pointBuyRemaining} spent</span>
@@ -1200,8 +944,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               render={({ field }) => {
                 const currentValue = field.value ?? 8;
                 const maxPointBuyScore =
-                  attributeMode === "pointBuy"
-                    ? getAffordablePointBuyMax(ability, abilities)
+                  resolvedAttributeMode === "pointBuy"
+                    ? getAffordablePointBuyMax(ability, resolvedAbilities)
                     : 99;
 
                 return (
@@ -1209,20 +953,20 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     <div className={styles.abilityHeader}>
                       <div>
                         <strong>{ability}</strong>
-                        {attributeMode === "pointBuy" ? (
+                        {resolvedAttributeMode === "pointBuy" ? (
                           <span>{getPointBuyCost(currentValue)} points spent</span>
                         ) : (
                           <span>Custom score</span>
                         )}
                       </div>
-                      {attributeMode === "pointBuy" ? (
+                      {resolvedAttributeMode === "pointBuy" ? (
                         <small>8-15 only</small>
                       ) : (
                         <small>1-99</small>
                       )}
                     </div>
 
-                    {attributeMode === "custom" ? (
+                    {resolvedAttributeMode === "custom" ? (
                       <NumberInput
                         className={styles.abilityInput}
                         min={1}
@@ -1274,7 +1018,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           ))}
         </div>
 
-        {attributeMode === "pointBuy" ? (
+        {resolvedAttributeMode === "pointBuy" ? (
           <div className={styles.legend}>
             {[8, 9, 10, 11, 12, 13, 14, 15].map((score) => (
               <span key={score} className={styles.legendChip}>
@@ -1288,7 +1032,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   function renderBackgroundSection() {
-    const hasSelectedBackground = selectedBackground.trim().length > 0;
+    const hasSelectedBackground = resolvedBackground.trim().length > 0;
 
     return (
       <section className={styles.sectionCard}>
@@ -1326,16 +1070,16 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         </label>
 
         <div className={styles.alignmentGrid} role="radiogroup" aria-label="Character alignment">
-          {alignmentGrid.flat().map((option) => (
+          {alignmentOptions.map((option) => (
             <button
               key={option}
               type="button"
               role="radio"
-              aria-checked={alignment === option}
+              aria-checked={resolvedAlignment === option}
               disabled={!hasSelectedBackground}
               className={clsx(
                 styles.alignmentOption,
-                alignment === option && styles.alignmentOptionActive
+                resolvedAlignment === option && styles.alignmentOptionActive
               )}
               onClick={() =>
                 setValue("alignment", option, {
@@ -1378,18 +1122,18 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   function renderLoadoutSection() {
-    const resolvedSkills = resolveSkillProficienciesForCharacter(
-      selectedClassName,
-      selectedSpecies,
-      selectedBackground,
-      selectedSkills
+    const resolvedSkillSelections = resolveSkillProficienciesForCharacter(
+      resolvedClassName,
+      resolvedSpecies,
+      resolvedBackground,
+      resolvedSkills
     );
-    const grantedSkillProficiencies = resolvedSkills.granted;
+    const grantedSkillProficiencies = resolvedSkillSelections.granted;
     const grantedSkillSet = new Set(grantedSkillProficiencies.map((entry) => entry.skill));
     const availableManualSkillOptions = availableSkillOptions.filter(
       (skill) => !grantedSkillSet.has(skill)
     );
-    const selectedSkillCount = resolvedSkills.manual.length;
+    const selectedSkillCount = resolvedSkillSelections.manual.length;
     const isSkillSelectionLimited = skillSelectionLimit > 0;
     const isSkillSelectionAtLimit = isSkillSelectionLimited && selectedSkillCount >= skillSelectionLimit;
 
@@ -1436,14 +1180,16 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                   key={skill}
                   className={clsx(
                     styles.choiceOption,
-                    resolvedSkills.manual.includes(skill) && styles.choiceOptionActive
+                    resolvedSkillSelections.manual.includes(skill) && styles.choiceOptionActive
                   )}
                 >
                   <input
                     type="checkbox"
                     value={skill}
                     className={styles.choiceCheckbox}
-                    disabled={!resolvedSkills.manual.includes(skill) && isSkillSelectionAtLimit}
+                    disabled={
+                      !resolvedSkillSelections.manual.includes(skill) && isSkillSelectionAtLimit
+                    }
                     {...register("skills")}
                   />
                   <span>{skill}</span>
@@ -1463,7 +1209,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                   key={item}
                   className={clsx(
                     styles.choiceOption,
-                    selectedEquipment.includes(item) && styles.choiceOptionActive
+                    resolvedEquipment.includes(item) && styles.choiceOptionActive
                   )}
                 >
                   <input
@@ -1627,9 +1373,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               <button
                 type="submit"
                 className={styles.primaryButton}
-                disabled={selectedBackground.trim().length === 0}
+                disabled={resolvedBackground.trim().length === 0}
               >
-                {selectedBackground.trim().length === 0
+                {resolvedBackground.trim().length === 0
                   ? "Choose Background First"
                   : "Create Character"}
               </button>

@@ -5,7 +5,8 @@ import type { FeatureActionCard } from "../../../../../pages/CharactersPage/clas
 import SpellListRow from "../../../../SpellListRow";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import styles from "./ActionsWidget.module.css";
+import sharedModalStyles from "./FeatureActionModal.module.css";
+import styles from "./DivineInterventionModal.module.css";
 
 type DivineInterventionModalProps = {
   action: FeatureActionCard;
@@ -33,7 +34,7 @@ function DivineInterventionModal({
       <section
         className={clsx(
           sheetStyles.spellManagementModal,
-          styles.featureActionModal,
+          sharedModalStyles.featureActionModal,
           styles.divineInterventionModal
         )}
         role="dialog"
@@ -42,7 +43,7 @@ function DivineInterventionModal({
         onClick={(event) => event.stopPropagation()}
       >
         <div className={sheetStyles.spellManagementHeader}>
-          <div className={styles.modalHeading}>
+          <div className={sharedModalStyles.modalHeading}>
             <p className={sheetStyles.eyebrow}>Cleric</p>
             <h3 id="feature-action-modal-title">{action.name}</h3>
             <p className={shared.helperText}>

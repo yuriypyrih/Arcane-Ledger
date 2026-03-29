@@ -1,6 +1,7 @@
 import type { FeatureMapEntry, FeatureTrackingState } from "../../codex/entries";
 import { CLASS_FEATURE, FEAT_CATEGORY, FEATS } from "../../codex/entries";
 import { ALL_SKILLS, TOOL_PROFICIENCY } from "../../types";
+import { abilityKeys } from "./constants";
 import type {
   AbilityKey,
   BlessedWarriorChoice,
@@ -42,7 +43,6 @@ export type FeatDefinition = FeatureMapEntry & {
   repeatable?: boolean;
 };
 
-const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 const abilityKeySet = new Set<AbilityKey>(abilityKeys);
 const skillNameSet = new Set<SkillName>(ALL_SKILLS);
 const allEpicBoonAbilityOptions: AbilityKey[] = [...abilityKeys];

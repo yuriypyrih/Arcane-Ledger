@@ -13,7 +13,8 @@ import {
 } from "../../../../../pages/CharactersPage/spellcasting";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import styles from "./ActionsWidget.module.css";
+import sharedModalStyles from "./FeatureActionModal.module.css";
+import styles from "./FontOfMagicModal.module.css";
 
 type FontOfMagicModalProps = {
   action: FeatureActionCard;
@@ -67,14 +68,14 @@ function FontOfMagicModal({
   return (
     <div className={sheetStyles.spellManagementBackdrop} role="presentation" onClick={onClose}>
       <section
-        className={clsx(sheetStyles.spellManagementModal, styles.featureActionModal)}
+        className={clsx(sheetStyles.spellManagementModal, sharedModalStyles.featureActionModal)}
         role="dialog"
         aria-modal="true"
         aria-labelledby="font-of-magic-modal-title"
         onClick={(event) => event.stopPropagation()}
       >
         <div className={sheetStyles.spellManagementHeader}>
-          <div className={styles.modalHeading}>
+          <div className={sharedModalStyles.modalHeading}>
             <p className={sheetStyles.eyebrow}>Sorcerer</p>
             <h3 id="font-of-magic-modal-title">{action.name}</h3>
             <p className={shared.helperText}>

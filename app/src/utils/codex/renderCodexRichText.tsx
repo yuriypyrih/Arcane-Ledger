@@ -1,14 +1,13 @@
 import type { ReactNode } from "react";
 import {
-  ENTRY_CATEGORIES,
   FEATS,
   KeywordTooltip,
   getDivinityEntryByName,
-  hardcodedCodexEntries,
   type DivinityEntry,
   type KeywordTooltipEntry,
   type SpellEntry
 } from "../../codex/entries";
+import { getSpellEntryByName } from "../../codex/selectors";
 import {
   getKeywordDescriptionLines,
   splitKeywordDescription
@@ -27,12 +26,6 @@ export type RenderCodexRichTextOptions = {
   onOpenDivinity?: (divinity: DivinityEntry) => void;
   onOpenFeat?: (feat: FEATS, label: string) => void;
 };
-
-const spellEntriesByName = new Map<string, SpellEntry>(
-  hardcodedCodexEntries
-    .filter((entry): entry is SpellEntry => entry.category === ENTRY_CATEGORIES.SPELLS)
-    .map((entry) => [entry.name.toLowerCase(), entry])
-);
 
 const inlineMarkupPattern =
   /<strong>(.*?)<\/strong>|<link:([^>]+)>(.*?)<\/link>|<spell:([^>]+)>(.*?)<\/spell>|<divinity:([^>]+)>(.*?)<\/divinity>|<feat:([^>]+)>(.*?)<\/feat>/g;
@@ -128,7 +121,7 @@ export function renderCodexRichText(
     }
 
     if (match[4]) {
-      const spell = spellEntriesByName.get(match[4].trim().toLowerCase());
+      const spell = getSpellEntryByName(match[4]);
       const label = match[5] ?? match[4];
 
       nodes.push(

@@ -5,7 +5,8 @@ import type { AbilityKey } from "../../../../../types";
 import type { FeatureActionCard } from "../../../../../pages/CharactersPage/classFeatures";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import styles from "./ActionsWidget.module.css";
+import sharedModalStyles from "./FeatureActionModal.module.css";
+import styles from "./IndomitableModal.module.css";
 
 type IndomitableOption = {
   ability: AbilityKey;
@@ -35,14 +36,14 @@ function IndomitableModal({
   return (
     <div className={sheetStyles.spellManagementBackdrop} role="presentation" onClick={onClose}>
       <section
-        className={clsx(sheetStyles.spellManagementModal, styles.featureActionModal)}
+        className={clsx(sheetStyles.spellManagementModal, sharedModalStyles.featureActionModal)}
         role="dialog"
         aria-modal="true"
         aria-labelledby="indomitable-modal-title"
         onClick={(event) => event.stopPropagation()}
       >
         <div className={sheetStyles.spellManagementHeader}>
-          <div className={styles.modalHeading}>
+          <div className={sharedModalStyles.modalHeading}>
             <p className={sheetStyles.eyebrow}>Fighter</p>
             <h3 id="indomitable-modal-title">{action.name}</h3>
             <p className={shared.helperText}>

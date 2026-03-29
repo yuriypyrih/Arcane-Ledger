@@ -17,7 +17,8 @@ import {
 } from "../gameplayWidgetUtils";
 import RollStatePill from "../../../../RollStatePill/RollStatePill";
 import { resolveFeatureIndicators } from "../../../../RollStatePill/rollState";
-import styles from "./ActionsWidget.module.css";
+import styles from "./ActionCards.module.css";
+import modalStyles from "./FeatureActionModal.module.css";
 
 type RoundTrackerAvailability = {
   actionAvailable: boolean;
@@ -262,8 +263,8 @@ export function FeatureActionOptionButton({
         styles.button,
         styles.actionCard,
         economyShapeState.multiCount > 0 && styles.actionCardMulti,
-        styles.featureActionOptionButton,
-        selected && styles.featureActionOptionButtonSelected
+        modalStyles.featureActionOptionButton,
+        selected && modalStyles.featureActionOptionButtonSelected
       )}
       disabled={isDisabled}
       onClick={onClick}

@@ -12,7 +12,7 @@ import CodexSpellDrawer from "../../../../CodexPage/CodexSpellDrawer/CodexSpellD
 import KeywordReferenceDrawer from "../../../../../components/KeywordReferenceDrawer/KeywordReferenceDrawer";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import type { ResolvedKeywordReference } from "../../../../../utils/codex/renderCodexRichText";
-import styles from "./TraitsConditionsWidget.module.css";
+import styles from "./ReactionEntryDrawer.module.css";
 
 type ReactionEntryDrawerProps = {
   reaction: ReactionEntry;

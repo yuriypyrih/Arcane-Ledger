@@ -1,7 +1,6 @@
 import clsx from "clsx";
 import { Pencil, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import { useFormContext } from "react-hook-form";
 import SelectInput from "../../FormInputs/SelectInput";
 import TextInput from "../../FormInputs/TextInput";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
@@ -80,6 +79,7 @@ import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.m
 import styles from "./SkillsAndProficienciesForm.module.css";
 
 type SkillsAndProficienciesFormProps = {
+  character: Character;
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
 };
@@ -111,11 +111,10 @@ const proficiencyEditorTabs: Array<{ id: ProficiencyEditorTab; label: string }> 
 ];
 
 function SkillsAndProficienciesForm({
+  character,
   className,
   onPersistCharacter
 }: SkillsAndProficienciesFormProps) {
-  const { watch } = useFormContext<Character>();
-  const character = watch() as Character;
   const [isSkillTableEditing, setIsSkillTableEditing] = useState(false);
   const [isProficiencyModalOpen, setIsProficiencyModalOpen] = useState(false);
   const [activeProficiencyTab, setActiveProficiencyTab] = useState<ProficiencyEditorTab>("weapons");

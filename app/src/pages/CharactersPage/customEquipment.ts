@@ -26,6 +26,7 @@ import type {
   CharacterCustomWeapon,
   CustomArmorType
 } from "../../types";
+import { clampNumber } from "./shared";
 
 export type ResolvedCustomWeaponEntry = Omit<WeaponEntry, "mastery"> & {
   source: "custom";
@@ -82,16 +83,6 @@ function isObjectRecord(value: unknown): value is Record<string, unknown> {
 
 function normalizeText(value: unknown, fallback = ""): string {
   return typeof value === "string" ? value.trim() : fallback;
-}
-
-function clampNumber(value: unknown, min: number, max: number, fallback: number): number {
-  const parsedValue = Number(value);
-
-  if (!Number.isFinite(parsedValue)) {
-    return fallback;
-  }
-
-  return Math.max(min, Math.min(max, parsedValue));
 }
 
 function normalizeWeight(value: unknown, fallback = 1): number | null {

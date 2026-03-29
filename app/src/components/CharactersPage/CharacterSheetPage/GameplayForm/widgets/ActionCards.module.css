@@ -1,0 +1,159 @@
+.button {
+  display: grid;
+  gap: 0.3rem;
+  border: 1px solid rgba(75, 47, 29, 0.16);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.66rem 0.72rem;
+  text-align: left;
+  width: auto;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.72;
+}
+
+.button strong {
+  font-size: 0.94rem;
+}
+
+.button span {
+  color: var(--color-ink);
+  font-size: 0.82rem;
+  line-height: 1.35;
+}
+
+.button small {
+  color: var(--color-ink-soft);
+  font-size: 0.77rem;
+  font-weight: 400;
+  line-height: 1.35;
+}
+
+.actionCard {
+  position: relative;
+  overflow: visible;
+  padding-top: 0.92rem;
+}
+
+.actionCardMulti {
+  box-shadow:
+    0 0 0 1px rgba(220, 176, 42, 1),
+    0 0 4px rgba(220, 176, 42, 1);
+}
+
+.actionCardMulti::before {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border: 1px solid rgba(220, 176, 42, 0.72);
+  border-radius: 10px;
+  pointer-events: none;
+}
+
+.shapeBadge {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transform: translate(-50%, -50%);
+}
+
+.damageRow {
+  font-weight: 700;
+}
+
+.actionIndicatorRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.28rem;
+}
+
+.breakdownRow {
+  font-weight: 400;
+}
+
+.featureButton {
+  background: rgba(181, 86, 42, 0.1);
+  border-color: rgba(181, 86, 42, 0.22);
+}
+
+.featureButtonActive {
+  background: rgba(181, 86, 42, 0.16);
+  border-color: rgba(181, 86, 42, 0.34);
+}
+
+.featureMeta {
+  color: #8a4d26;
+}
+
+.featureMetaWithIcon {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.featureMetaWithIcon span {
+  color: inherit;
+}
+
+.featureMetaWithIcon svg {
+  color: currentColor;
+  flex: 0 0 auto;
+  stroke: currentColor;
+}
+
+.featureMetaDanger {
+  color: #bc3f4e;
+}
+
+.featureMetaDanger span,
+.featureMetaDanger svg {
+  color: #bc3f4e;
+  stroke: currentColor;
+}
+
+.featureUsesSupplementary {
+  color: #8a4d26;
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.usesRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+}
+
+.usesLabelText {
+  color: var(--color-ink-soft);
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.usesDots {
+  margin-top: 0;
+}
+
+.usesInlineSupplementary {
+  align-items: center;
+  color: #25508d;
+  display: inline-flex;
+  gap: 0.28rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.usesInlineSupplementaryWithIcon svg {
+  color: currentColor;
+  flex: 0 0 auto;
+  stroke: currentColor;
+}

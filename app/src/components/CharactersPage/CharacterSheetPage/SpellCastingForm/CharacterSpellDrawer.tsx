@@ -22,7 +22,8 @@ import {
 import { getSpellLevel } from "../../../../pages/CharactersPage/spellcasting";
 import { getSpellDamageDetailForCharacter } from "../../../../pages/CharactersPage/spellOutcome";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import styles from "./SpellCastingForm.module.css";
+import styles from "./CharacterSpellDrawer.module.css";
+import actionStyles from "./SpellActionDrawer.module.css";
 
 export type CharacterSpellDrawerMode = "standard" | "prepare-preview" | "divine-intervention";
 export type CharacterSpellDrawerActionOptions = {
@@ -257,7 +258,7 @@ function CharacterSpellDrawer({
 
           {shouldShowActionFooter ? (
             <div className={sheetStyles.spellDrawerActions}>
-              <div className={styles.castActionMeta}>
+              <div className={actionStyles.castActionMeta}>
                 {shouldShowSlotControls ? (
                   <div className={sheetStyles.spellDrawerCastControls}>
                     <p className={sheetStyles.spellDrawerSlotText}>
@@ -297,7 +298,7 @@ function CharacterSpellDrawer({
                   </div>
                 ) : null}
                 {ritualCastingAvailable ? (
-                  <label className={styles.ritualCastToggle}>
+                  <label className={actionStyles.ritualCastToggle}>
                     <input
                       type="checkbox"
                       checked={isRitualCastingSelected}
@@ -307,19 +308,21 @@ function CharacterSpellDrawer({
                   </label>
                 ) : null}
               </div>
-              <div className={styles.castActionFooter}>
-                {actionWarning ? <p className={styles.castActionWarning}>{actionWarning}</p> : null}
+              <div className={actionStyles.castActionFooter}>
+                {actionWarning ? (
+                  <p className={actionStyles.castActionWarning}>{actionWarning}</p>
+                ) : null}
                 {effectiveBlockedReason ? (
-                  <p className={styles.castActionWarning}>{effectiveBlockedReason}</p>
+                  <p className={actionStyles.castActionWarning}>{effectiveBlockedReason}</p>
                 ) : null}
                 {actionContextText ? (
-                  <p className={styles.castActionContext}>{actionContextText}</p>
+                  <p className={actionStyles.castActionContext}>{actionContextText}</p>
                 ) : null}
                 <button
                   type="button"
                   className={clsx(
                     sheetStyles.castButton,
-                    isRitualCastingSelected ? styles.ritualCastButton : null
+                    isRitualCastingSelected ? actionStyles.ritualCastButton : null
                   )}
                   onClick={() => onAction({ castAsRitual: isRitualCastingSelected })}
                   disabled={!isActionEnabled}

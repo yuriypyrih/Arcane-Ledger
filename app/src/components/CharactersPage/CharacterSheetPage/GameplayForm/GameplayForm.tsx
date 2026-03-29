@@ -1,5 +1,4 @@
 import clsx from "clsx";
-import { useFormContext } from "react-hook-form";
 import type { Character } from "../../../../types";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
@@ -15,14 +14,12 @@ import TraitsConditionsWidget from "./widgets/TraitsConditionsWidget";
 import DeathSavesWidget from "./widgets/DeathSavesWidget";
 
 type GameplayFormProps = {
+  character: Character;
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
 };
 
-function GameplayForm({ className, onPersistCharacter }: GameplayFormProps) {
-  const { watch } = useFormContext<Character>();
-  const character = watch() as Character;
-
+function GameplayForm({ character, className, onPersistCharacter }: GameplayFormProps) {
   return (
     <article className={clsx(shared.sectionCard, className)}>
       <div className={clsx(shared.sectionHeader, styles.gameplaySectionHeader)}>
