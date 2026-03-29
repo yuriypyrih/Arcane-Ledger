@@ -123,7 +123,31 @@ export const keywordDescriptions = {
     Exhaustion:
       "Exhaustion represents accumulating strain. Higher levels include all lower-level effects.\n\nLevel 1: You have Disadvantage on ability checks.\n\nLevel 2: Your Speed is halved.\n\nLevel 3: You have Disadvantage on attack rolls and saving throws.\n\nLevel 4: Your Hit Point maximum is halved.\n\nLevel 5: Your Speed is reduced to 0.\n\nLevel 6: You die, bypassing death saving throws.",
     "Druidic Focus":
-      "A Druidic Focus is a symbolic natural object or tool that can stand in for non-costly Material components when a class feature lets you use it as a Spellcasting Focus."
+      "A Druidic Focus is a symbolic natural object or tool that can stand in for non-costly Material components when a class feature lets you use it as a Spellcasting Focus.",
+    "Arcane Focus":
+      "An Arcane Focus is a special item that can stand in for non-costly Material components when a class feature lets you use it as a Spellcasting Focus.",
+    Metamagic:
+      "Metamagic lets a Sorcerer modify spells by spending Sorcery Points. Unless an option says otherwise, you can use only one Metamagic option on a spell.",
+    "Careful Spell":
+      "When you cast a spell that forces other creatures to make a saving throw, you can protect some of those creatures from the spell's full force.\n\nCost: 1 Sorcery Point.",
+    "Distant Spell":
+      "When you cast a spell that has a range of at least 5 feet, you can double the spell's range. Or when you cast a spell that has a range of Touch, you can make the spell's range 30 feet.\n\nCost: 1 Sorcery Point.",
+    "Empowered Spell":
+      "When you roll damage for a spell, you can reroll a number of the damage dice up to your Charisma modifier, minimum of one, and you must use the new rolls. You can use Empowered Spell even if you've already used a different Metamagic option during the casting of the spell.\n\nCost: 1 Sorcery Point.",
+    "Extended Spell":
+      "When you cast a spell that has a duration of 1 minute or longer, you can double its duration to a maximum duration of 24 hours. If the affected spell requires Concentration, you have Advantage on any saving throw you make to maintain that Concentration.\n\nCost: 1 Sorcery Point.",
+    "Heightened Spell":
+      "When you cast a spell that forces a creature to make a saving throw, you can give one target of the spell Disadvantage on saves against the spell.\n\nCost: 2 Sorcery Points.",
+    "Quickened Spell":
+      "When you cast a spell that has a casting time of an action, you can change the casting time to a Bonus Action for this casting.\n\nCost: 2 Sorcery Points.",
+    "Seeking Spell":
+      "If you make an attack roll for a spell and miss, you can reroll the d20, and you must use the new roll. You can use Seeking Spell even if you've already used a different Metamagic option during the casting of the spell.\n\nCost: 1 Sorcery Point.",
+    "Subtle Spell":
+      "When you cast a spell, you can cast it without any Verbal, Somatic, or Material components, except Material components that are consumed by the spell or that have a cost specified in the spell.\n\nCost: 1 Sorcery Point.",
+    "Transmuted Spell":
+      "When you cast a spell that deals Acid, Cold, Fire, Lightning, Poison, or Thunder damage, you can change that damage type to one of the other listed types.\n\nCost: 1 Sorcery Point.",
+    "Twinned Spell":
+      "When you cast a spell that can be cast with a higher-level spell slot to target an additional creature, you can increase the spell's effective level by 1.\n\nCost: 1 Sorcery Point."
   },
   skills: {
     Acrobatics: "Balance, tumble, and control your movement in unstable or tight situations.",

@@ -149,6 +149,20 @@ export function formatSpellDuration(duration: SpellDurationPart[]): string {
     .join(", ");
 }
 
+export function getSpellDurationDisplayParts(duration: SpellDurationPart[]): {
+  hasConcentration: boolean;
+  detailText: string;
+} {
+  return {
+    hasConcentration: duration.includes(DURATION.CONCENTRATION),
+    detailText: duration
+      .filter((part) => part !== DURATION.CONCENTRATION)
+      .map((part) => formatSpellDurationPart(part))
+      .filter((part) => part.length > 0)
+      .join(", ")
+  };
+}
+
 function formatGroupedWeaponDamageAmount(amount: WeaponDamageAmount, count: number): string {
   if (typeof amount === "number") {
     return `${amount * count}`;

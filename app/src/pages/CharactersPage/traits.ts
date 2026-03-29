@@ -1,4 +1,4 @@
-import { paladinFeatureMap, rogueFeatureMap } from "../../codex/classes";
+import { paladinFeatureMap, rogueFeatureMap, sorcererFeatureMap } from "../../codex/classes";
 import type { SpellDescriptionEntry, SpellDurationPart } from "../../codex/entries";
 import { CLASS_FEATURE, DAMAGE_TYPE, DURATION } from "../../codex/entries";
 import {
@@ -1064,6 +1064,14 @@ export function getStatusEntryDescriptionEntries(
   if (entry.sourceId === "feature-rogue-elusive") {
     return (
       rogueFeatureMap[CLASS_FEATURE.ELUSIVE]?.description ?? [
+        "A current effect or trait that may change how your character plays."
+      ]
+    );
+  }
+
+  if (entry.sourceId === "feature-sorcerer-innate-sorcery") {
+    return (
+      sorcererFeatureMap[CLASS_FEATURE.INNATE_SORCERY]?.description ?? [
         "A current effect or trait that may change how your character plays."
       ]
     );

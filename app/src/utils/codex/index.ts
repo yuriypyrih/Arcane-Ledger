@@ -11,6 +11,7 @@ export {
   formatSpellCastingTime,
   formatSpellCastingTimeSummary,
   formatSpellComponents,
+  getSpellDurationDisplayParts,
   formatSpellDuration,
   formatSpellDurationPart,
   formatSpellLevelLabel,

@@ -49,7 +49,7 @@ export const wizardFeatures: WizardFeatureClassObj[] = [
           "<strong>Copying the Book.</strong> You can copy a spell from your spellbook into another book. This is like copying a new spell into your spellbook but faster, since you already know how to cast the spell. You need spend only 1 hour and 10 GP for each level of the copied spell.",
           "If you lose your spellbook, you can use the same procedure to transcribe the Wizard spells that you have prepared into a new spellbook. Filling out the remainder of the new book requires you to find new spells to do so. For this reason, many wizards keep a backup spellbook."
         ],
-        isTracked: false
+        isTracked: true
       }
     },
     cantrips: 3,
@@ -182,9 +182,9 @@ export const wizardFeatures: WizardFeatureClassObj[] = [
       [CLASS_FEATURE.EPIC_BOON]: {
         description: [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
-          "Boon of Spell Recall is recommended."
+          "<feat:BOON_OF_SPELL_RECALL>Boon of Spell Recall</feat> is recommended."
         ],
-        isTracked: false
+        isTracked: true
       }
     },
     cantrips: 5,
@@ -206,7 +206,7 @@ export const wizardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "You can cast any spell as a Ritual if that spell has the Ritual tag and the spell is in your spellbook.",
       "You needn't have the spell prepared, but you must read from the book to cast a spell in this way."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.ARCANE_RECOVERY]: {
     description: [
@@ -215,15 +215,15 @@ export const wizardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "For example, if you're a level 4 Wizard, you can recover up to two levels' worth of spell slots, regaining either one level 2 spell slot or two level 1 spell slots.",
       "Once you use this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link>."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.SCHOLAR]: {
     description: [
       "While studying magic, you also specialized in another field of study.",
-      "Choose one of the following skills in which you have proficiency: Arcana, History, Investigation, Medicine, Nature, or Religion.",
-      "You have Expertise in the chosen skill."
+      "Choose one of the following skills in which you have proficiency: <link:Arcana>Arcana</link>, <link:History>History</link>, <link:Investigation>Investigation</link>, <link:Medicine>Medicine</link>, <link:Nature>Nature</link>, or <link:Religion>Religion</link>.",
+      "You have <link:Expertise>Expertise</link> in the chosen skill."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.WIZARD_SUBCLASS]: {
     description: [
@@ -245,7 +245,7 @@ export const wizardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "You always have those spells prepared, and you can cast them at their lowest level without expending a spell slot. To cast either spell at a higher level, you must expend a spell slot.",
       "Whenever you finish a <link:long-rest>Long Rest</link>, you can study your spellbook and replace one of those spells with an eligible spell of the same level from the book."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.SIGNATURE_SPELLS]: {
     description: [
@@ -254,7 +254,7 @@ export const wizardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "When you do so, you can't cast them in this way again until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",
       "To cast either spell at a higher level, you must expend a spell slot."
     ],
-    isTracked: false
+    isTracked: true
   }
 };
 

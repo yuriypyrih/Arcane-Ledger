@@ -10,6 +10,7 @@ import type {
   DICE,
   DICE_TYPES,
   DURATION,
+  ELDRITCH_INVOCATION,
   REACTION,
   GENERAL_PROFICIENCIES,
   ITEM_TYPES,
@@ -89,6 +90,23 @@ export type DivinityScalingEntry = {
   damage?: DivinityValue;
   healing?: DivinityValue;
 };
+export type EldritchInvocationPrerequisite =
+  | {
+      type: "warlock-level";
+      minimumLevel: number;
+    }
+  | {
+      type: "invocation";
+      invocation: ELDRITCH_INVOCATION;
+    };
+export type EldritchInvocationSelection =
+  | {
+      kind: "warlock-cantrip";
+      rule: "damaging" | "damaging-range-10" | "damaging-attack-roll";
+    }
+  | {
+      kind: "origin-feat";
+    };
 export type FeatureClassObj = {
   level: number;
   classFeatures: CLASS_FEATURE[];
@@ -111,6 +129,7 @@ export type SpellEntry = {
   damage: WeaponDamage;
   spellLists: SPELL_LIST_CLASS[];
   spellLevel: number;
+  ritual?: boolean;
 };
 export type DivinityEntry = {
   id: string;
@@ -133,6 +152,14 @@ export type ReactionEntry = {
   sourceItemName?: string;
   sourceLabel: string;
   description: SpellDescriptionEntry[];
+};
+export type EldritchInvocationEntry = {
+  id: ELDRITCH_INVOCATION;
+  name: string;
+  description: SpellDescriptionEntry[];
+  prerequisites?: EldritchInvocationPrerequisite[];
+  selection?: EldritchInvocationSelection;
+  repeatable?: boolean;
 };
 export type WeaponEntry = Omit<BaseCodexEntry<ENTRY_CATEGORIES.WEAPONS, never>, "tags"> &
   EntryWithRarity & {

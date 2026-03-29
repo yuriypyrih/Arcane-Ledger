@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import ConcentrationLabel from "../../ConcentrationLabel";
+import SpellSubtitle from "../../SpellSubtitle";
 import SpellDescriptionContent from "../../SpellDescriptionContent";
 import { ENTRY_CATEGORIES, KeywordTooltip, type SpellEntry } from "../../../codex/entries";
 import { useBodyScrollLock } from "../../../lib/useBodyScrollLock";
@@ -8,8 +10,7 @@ import {
   formatCodexList,
   formatSpellCastingTime,
   formatSpellComponents,
-  formatSpellDuration,
-  formatSpellSubtitle,
+  getSpellDurationDisplayParts,
   formatWeaponDamage,
   renderCodexInlineText
 } from "../../../utils/codex";
@@ -23,6 +24,7 @@ type CodexSpellDrawerProps = {
 function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
   const componentsTooltipEntry = KeywordTooltip.components ?? null;
+  const spellDuration = getSpellDurationDisplayParts(spell.duration);
 
   useBodyScrollLock(true);
 
@@ -63,7 +65,9 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
               <div className={sheetStyles.spellDrawerTitleRow}>
                 <h3 id="codex-spell-drawer-title">{spell.name}</h3>
               </div>
-              <p className={sheetStyles.spellDrawerSummary}>{formatSpellSubtitle(spell)}</p>
+              <p className={sheetStyles.spellDrawerSummary}>
+                <SpellSubtitle spell={spell} />
+              </p>
             </div>
             <button
               type="button"
@@ -99,7 +103,16 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
               </button>
               <div className={sheetStyles.spellDrawerDetailCard}>
                 <span>Duration</span>
-                <strong>{formatSpellDuration(spell.duration)}</strong>
+                <strong className={styles.concentrationDetailValue}>
+                  {spellDuration.hasConcentration ? (
+                    <>
+                      <ConcentrationLabel iconSize={15} />
+                      {spellDuration.detailText ? <span>, {spellDuration.detailText}</span> : null}
+                    </>
+                  ) : (
+                    spellDuration.detailText
+                  )}
+                </strong>
               </div>
               <div className={sheetStyles.spellDrawerDetailCard}>
                 <span>Spell Lists</span>

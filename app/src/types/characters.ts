@@ -146,6 +146,7 @@ export type Character = {
   equipment: CharacterEquipmentItem[];
   customEquipment: CharacterCustomEquipment[];
   cantripIds?: string[];
+  spellbookSpellIds?: string[];
   preparedSpellIds?: string[];
   spellSlotsExpended?: number[];
   shortRestsUsedToday?: number;
@@ -181,6 +182,7 @@ export type CharacterDraft = {
   equipment: string[];
   customEquipment: CharacterCustomEquipment[];
   cantripIds?: string[];
+  spellbookSpellIds?: string[];
   preparedSpellIds?: string[];
   spellSlotsExpended?: number[];
   shortRestsUsedToday?: number;

@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import type { DivinityEntry, SpellEntry } from "../../../../../codex/entries";
+import ConcentrationLabel from "../../../../../components/ConcentrationLabel";
 import DescriptionContent from "../../../../../components/DescriptionContent/DescriptionContent";
 import KeywordReferenceDrawer from "../../../../../components/KeywordReferenceDrawer/KeywordReferenceDrawer";
 import CodexDivinityDrawer from "../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
@@ -18,7 +19,7 @@ import {
   getStatusEntryTitle
 } from "../../../../../pages/CharactersPage/traits";
 import type { CharacterStatusEntry } from "../../../../../types";
-import { STATUS_DURATION_PRESET } from "../../../../../types";
+import { EFFECT_NAME, STATUS_DURATION_PRESET, STATUS_ENTRY_GROUP } from "../../../../../types";
 import type { ResolvedKeywordReference } from "../../../../../utils/codex/renderCodexRichText";
 import styles from "./TraitsConditionsWidget.module.css";
 import {
@@ -109,7 +110,14 @@ function StatusEntryDrawer({
                 {getStatusDrawerBadgeLabel(entry.group)}
               </p>
               <div className={sheetStyles.spellDrawerTitleRow}>
-                <h3 id="status-drawer-title">{getStatusEntryTitle(entry)}</h3>
+                <h3 id="status-drawer-title">
+                  {entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+                  entry.value === EFFECT_NAME.CONCENTRATION ? (
+                    <ConcentrationLabel iconSize={18} />
+                  ) : (
+                    getStatusEntryTitle(entry)
+                  )}
+                </h3>
               </div>
             </div>
             <button

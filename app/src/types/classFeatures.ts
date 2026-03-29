@@ -58,6 +58,30 @@ export type CharacterRogueFeatureState = {
   weaponMasteries?: WEAPON_PROFICIENCY[];
 };
 
+export type CharacterSorcererFeatureState = {
+  sorceryPointsExpended?: number;
+  innateSorceryUsesExpended?: number;
+  sorcerousRestorationUsesExpended?: number;
+  arcaneApotheosisFreeMetamagicUsedThisTurn?: boolean;
+  metamagicSelections?: string[];
+};
+
+export type CharacterWizardFeatureState = {
+  arcaneRecoveryUsesExpended?: number;
+  scholar?: SkillName;
+  spellMasterySpellIds?: Partial<Record<1 | 2, string>>;
+  signatureSpellIds?: string[];
+  expendedSignatureSpellIds?: string[];
+};
+
+export type CharacterWarlockFeatureState = {
+  eldritchInvocationIds?: string[];
+  magicalCunningUsesExpended?: number;
+  contactPatronUsesExpended?: number;
+  mysticArcanumSpellIds?: Partial<Record<6 | 7 | 8 | 9, string>>;
+  mysticArcanumExpendedLevels?: Array<6 | 7 | 8 | 9>;
+};
+
 export type CharacterMonkFeatureState = {
   focusPointsExpended?: number;
   uncannyMetabolismUsesExpended?: number;
@@ -94,9 +118,12 @@ export type CharacterClassFeatureState = {
   bard?: CharacterBardFeatureState;
   cleric?: CharacterClericFeatureState;
   druid?: CharacterDruidFeatureState;
+  wizard?: CharacterWizardFeatureState;
   paladin?: CharacterPaladinFeatureState;
   ranger?: CharacterRangerFeatureState;
   rogue?: CharacterRogueFeatureState;
+  sorcerer?: CharacterSorcererFeatureState;
+  warlock?: CharacterWarlockFeatureState;
   monk?: CharacterMonkFeatureState;
   fighter?: CharacterFighterFeatureState;
 };

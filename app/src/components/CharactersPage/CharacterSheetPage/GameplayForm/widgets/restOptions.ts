@@ -57,6 +57,32 @@ import {
   restoreRogueStrokeOfLuckOnLongRest,
   restoreRogueStrokeOfLuckOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/rogue";
+import {
+  applySorcerousRestorationOnShortRest,
+  getInnateSorceryUsesTotal,
+  getSorcerousRestorationUsesRemaining,
+  getSorcerousRestorationUsesTotal,
+  getSorceryPointsTotal,
+  restoreInnateSorceryOnLongRest,
+  restoreSorcerousRestorationOnLongRest,
+  restoreSorceryPointsOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/sorcerer";
+import {
+  getContactPatronUsesTotal,
+  getWarlockMagicalCunningUsesTotal,
+  hasWarlockFeature,
+  restoreContactPatronOnLongRest,
+  restoreMysticArcanumOnLongRest,
+  restoreWarlockPactMagicSpellSlots,
+  restoreWarlockMagicalCunningOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/warlock";
+import {
+  getArcaneRecoveryUsesTotal,
+  getWizardSignatureSpellIds,
+  restoreArcaneRecoveryOnLongRest,
+  restoreWizardSignatureSpellsOnLongRest,
+  restoreWizardSignatureSpellsOnShortRest
+} from "../../../../../pages/CharactersPage/classFeatures/wizard";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import { getSpellSlotTotalsForCharacter } from "../../../../../pages/CharactersPage/spellcasting";
 import {
@@ -78,11 +104,19 @@ export type RestOption = {
   id: string;
   label: string;
   detail?: string;
+  defaultSelected?: boolean;
+  disabled?: boolean;
+  emphasis?: "default" | "feature";
   apply: (character: Character) => Character;
 };
 
 export function createShortRestOptions(character: Character): RestOption[] {
   const shortRestHealAmount = Math.ceil(getEffectiveHitPointMaximumForCharacter(character) / 2);
+  const spellSlotTotal = getSpellSlotTotalsForCharacter(
+    character.className,
+    character.level
+  ).reduce((sum, value) => sum + value, 0);
+  const hasWarlockPactMagic = hasWarlockFeature(character, CLASS_FEATURE.PACT_MAGIC);
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
   const rageUsesTotal = getBarbarianRageUsesTotal(character);
   const bardicInspirationUsesTotal = getBardicInspirationUsesTotal(character);
@@ -98,6 +132,9 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const exhaustionLevel = getExhaustionLevel(character.statusEntries);
   const tirelessUsesTotal = getRangerTirelessUsesTotal(character);
   const rogueStrokeOfLuckUsesTotal = getRogueStrokeOfLuckUsesTotal(character);
+  const sorcerousRestorationUsesTotal = getSorcerousRestorationUsesTotal(character);
+  const sorcerousRestorationUsesRemaining = getSorcerousRestorationUsesRemaining(character);
+  const wizardSignatureSpellIds = getWizardSignatureSpellIds(character);
 
   return [
     {
@@ -130,6 +167,16 @@ export function createShortRestOptions(character: Character): RestOption[] {
         roundTracker: createDefaultRoundTracker()
       })
     },
+    ...(hasWarlockPactMagic && spellSlotTotal > 0
+      ? [
+          {
+            id: "restore-pact-magic-spell-slots",
+            label: "Restore all Pact Magic spell slots",
+            apply: (currentCharacter: Character) =>
+              restoreWarlockPactMagicSpellSlots(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(temporaryHitPoints > 0
       ? [
           {
@@ -256,6 +303,30 @@ export function createShortRestOptions(character: Character): RestOption[] {
               restoreRogueStrokeOfLuckOnShortRest(currentCharacter)
           } satisfies RestOption
         ]
+      : []),
+    ...(wizardSignatureSpellIds.length > 0
+      ? [
+          {
+            id: "restore-signature-spells",
+            label: "Restore Signature Spells",
+            apply: (currentCharacter: Character) =>
+              restoreWizardSignatureSpellsOnShortRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(sorcerousRestorationUsesTotal > 0
+      ? [
+          {
+            id: "sorcerous-restoration",
+            label: "Sorcerous Restoration",
+            detail: "Optional Sorcerer feature. Regain Sorcery Points equal to half your Sorcerer level.",
+            defaultSelected: false,
+            disabled: sorcerousRestorationUsesRemaining <= 0,
+            emphasis: "feature",
+            apply: (currentCharacter: Character) =>
+              applySorcerousRestorationOnShortRest(currentCharacter)
+          } satisfies RestOption
+        ]
       : [])
   ];
 }
@@ -265,6 +336,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
     character.className,
     character.level
   ).reduce((sum, value) => sum + value, 0);
+  const hasWarlockPactMagic = hasWarlockFeature(character, CLASS_FEATURE.PACT_MAGIC);
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
   const rageUsesTotal = getBarbarianRageUsesTotal(character);
   const bardicInspirationUsesTotal = getBardicInspirationUsesTotal(character);
@@ -278,6 +350,14 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const rangerNaturesVeilUsesTotal = getRangerNaturesVeilUsesTotal(character);
   const rangerTirelessUsesTotal = getRangerTirelessUsesTotal(character);
   const rogueStrokeOfLuckUsesTotal = getRogueStrokeOfLuckUsesTotal(character);
+  const sorceryPointsTotal = getSorceryPointsTotal(character);
+  const innateSorceryUsesTotal = getInnateSorceryUsesTotal(character);
+  const sorcerousRestorationUsesTotal = getSorcerousRestorationUsesTotal(character);
+  const magicalCunningUsesTotal = getWarlockMagicalCunningUsesTotal(character);
+  const arcaneRecoveryUsesTotal = getArcaneRecoveryUsesTotal(character);
+  const wizardSignatureSpellIds = getWizardSignatureSpellIds(character);
+  const contactPatronUsesTotal = getContactPatronUsesTotal(character);
+  const hasMysticArcanum = hasWarlockFeature(character, CLASS_FEATURE.MYSTIC_ARCANUM);
   const monkFocusPointsTotal = getMonkFocusPointsTotal(character);
   const hasUncannyMetabolism = hasMonkFeature(character, CLASS_FEATURE.UNCANNY_METABOLISM);
   const channelDivinityUsesTotal = Math.max(
@@ -340,7 +420,9 @@ export function createLongRestOptions(character: Character): RestOption[] {
       ? [
           {
             id: "restore-spell-slots",
-            label: "Restore all spell slots",
+            label: hasWarlockPactMagic
+              ? "Restore all Pact Magic spell slots"
+              : "Restore all spell slots",
             apply: (currentCharacter: Character) => ({
               ...currentCharacter,
               spellSlotsExpended: Array.from({ length: 9 }, () => 0)
@@ -476,6 +558,86 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore Tireless",
             apply: (currentCharacter: Character) =>
               restoreRangerTirelessOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(sorceryPointsTotal > 0
+      ? [
+          {
+            id: "restore-sorcery-points",
+            label: "Restore all Sorcery Points",
+            apply: (currentCharacter: Character) =>
+              restoreSorceryPointsOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(innateSorceryUsesTotal > 0
+      ? [
+          {
+            id: "restore-innate-sorcery",
+            label: "Restore Innate Sorcery",
+            apply: (currentCharacter: Character) =>
+              restoreInnateSorceryOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(sorcerousRestorationUsesTotal > 0
+      ? [
+          {
+            id: "restore-sorcerous-restoration",
+            label: "Restore Sorcerous Restoration",
+            apply: (currentCharacter: Character) =>
+              restoreSorcerousRestorationOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(magicalCunningUsesTotal > 0
+      ? [
+          {
+            id: "restore-magical-cunning",
+            label: "Restore Magical Cunning",
+            apply: (currentCharacter: Character) =>
+              restoreWarlockMagicalCunningOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(arcaneRecoveryUsesTotal > 0
+      ? [
+          {
+            id: "restore-arcane-recovery",
+            label: "Restore Arcane Recovery",
+            apply: (currentCharacter: Character) =>
+              restoreArcaneRecoveryOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(wizardSignatureSpellIds.length > 0
+      ? [
+          {
+            id: "restore-signature-spells",
+            label: "Restore Signature Spells",
+            apply: (currentCharacter: Character) =>
+              restoreWizardSignatureSpellsOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(contactPatronUsesTotal > 0
+      ? [
+          {
+            id: "restore-contact-patron",
+            label: "Restore Contact Patron",
+            apply: (currentCharacter: Character) =>
+              restoreContactPatronOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasMysticArcanum
+      ? [
+          {
+            id: "restore-mystic-arcanum",
+            label: "Restore Mystic Arcanum",
+            apply: (currentCharacter: Character) =>
+              restoreMysticArcanumOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

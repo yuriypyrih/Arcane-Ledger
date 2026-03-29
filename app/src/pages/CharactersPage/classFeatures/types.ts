@@ -24,13 +24,17 @@ export type FeatureActionCard = {
   economyMultiCount?: number;
   interaction?: "activate" | "select";
   usesLabel?: string;
-  usesIcon?: "brain";
+  usesIcon?: "brain" | "sparkles";
   usesTone?: "default" | "danger";
   usesRemaining?: number;
   usesTotal?: number;
   usesSupplementaryLabel?: string;
+  usesInlineLabel?: string;
+  usesInlineIcon?: "brain" | "sparkles";
+  usesInlineSuffix?: string;
   isActive?: boolean;
   consumesEconomyOnActivate?: boolean;
+  ignoreEconomyAvailability?: boolean;
   disabled?: boolean;
   disabledReason?: string;
 };
@@ -46,9 +50,13 @@ export type FeatureActionOptionCard = {
   resultLabel?: string;
   rangeResultLabel?: string;
   breakdown?: string;
+  usesLabel?: string;
+  usesIcon?: "brain" | "sparkles";
   rollFormula?: string;
   rollFormulaDisplay?: string;
   rollDescription?: string;
+  disabled?: boolean;
+  disabledReason?: string;
 };
 
 export type FeatureDamageBonus = {

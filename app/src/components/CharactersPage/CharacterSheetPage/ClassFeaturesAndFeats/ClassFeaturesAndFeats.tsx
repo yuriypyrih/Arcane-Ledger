@@ -17,14 +17,11 @@ import {
   FEAT_CATEGORY,
   FEATS,
   FeatureMap,
-  KeywordTooltip,
-  getDivinityEntryByName,
   getFeatureTrackingState,
   hardcodedCodexEntries,
   type ClassEntry,
   type DivinityEntry,
   type FeatureMapEntry,
-  type KeywordTooltipEntry,
   type SpellEntry
 } from "../../../../codex/entries";
 import { getMonkDeflectAttacksDescription } from "../../../../codex/classes/monk";
@@ -44,6 +41,14 @@ import {
   getRangerLevel9ExpertiseSelectionsForCharacter,
   getRogueExpertiseSelectionsForCharacter,
   getRogueThievesCantLanguageSelectionForCharacter,
+  getSorcererMetamagicDefinitionsForCharacter,
+  getSorcererMetamagicSelectionCountForCharacter,
+  getSorcererMetamagicSelectionsForCharacter,
+  getWarlockMysticArcanumSpellIdForCharacter,
+  getWarlockMysticArcanumSpellOptionsForCharacter,
+  getWizardScholarSelectionForCharacter,
+  getWizardSignatureSpellIdsForCharacter,
+  getWizardSpellMasterySelectionForCharacter,
   getWeaponMasteryOptionsForCharacter,
   getWeaponMasterySelectionCountForCharacter,
   getWeaponMasterySelectionsForCharacter,
@@ -56,6 +61,11 @@ import {
   setRangerLevel9ExpertiseSelectionsForCharacter,
   setRogueExpertiseSelectionsForCharacter,
   setRogueThievesCantLanguageSelectionForCharacter,
+  setSorcererMetamagicSelectionsForCharacter,
+  setWarlockMysticArcanumSpellIdForCharacter,
+  setWizardScholarSelectionForCharacter,
+  setWizardSignatureSpellIdsForCharacter,
+  setWizardSpellMasterySelectionForCharacter,
   setWeaponMasterySelectionsForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
 import {
@@ -74,7 +84,6 @@ import {
   getFeatDefinitionsByCategory,
   getSkilledChoiceSummary
 } from "../../../../pages/CharactersPage/feats";
-import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
 import {
   getLanguageLevelFromEntries,
   addFeatGrantedSkillEntries,
@@ -94,7 +103,10 @@ import {
 } from "../../../../pages/CharactersPage/proficiency";
 import {
   getCantripLimitForCharacter,
-  getCantripSelectionOptionsForCharacter
+  getCantripSelectionOptionsForCharacter,
+  getPreparedSpellSelectionOptionsForCharacter,
+  getSpellLevel,
+  normalizeSpellbookSpellIds
 } from "../../../../pages/CharactersPage/spellcasting";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type {
@@ -111,6 +123,10 @@ import type {
   WEAPON_PROFICIENCY
 } from "../../../../types";
 import { formatCodexLabel } from "../../../../utils/codex";
+import {
+  renderCodexRichText,
+  resolveKeywordReference
+} from "../../../../utils/codex/renderCodexRichText";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import InlineToggleButton from "../InlineToggleButton";
@@ -165,6 +181,15 @@ type PendingEpicBoonAbilityChoice = {
   ability: AbilityKey;
 };
 
+const wizardScholarSkillOptions: SkillName[] = [
+  "Arcana",
+  "History",
+  "Investigation",
+  "Medicine",
+  "Nature",
+  "Religion"
+];
+
 type PendingSkilledChoice = {
   selections: [string, string, string];
 };
@@ -214,14 +239,6 @@ const classEntriesByName = new Map<string, ClassEntry>(
     .filter((entry): entry is ClassEntry => entry.category === ENTRY_CATEGORIES.CLASSES)
     .map((entry) => [entry.name, entry])
 );
-const spellEntriesByName = new Map<string, SpellEntry>(
-  hardcodedCodexEntries
-    .filter((entry): entry is SpellEntry => entry.category === ENTRY_CATEGORIES.SPELLS)
-    .map((entry) => [entry.name.toLowerCase(), entry])
-);
-
-const inlineMarkupPattern =
-  /<strong>(.*?)<\/strong>|<link:([^>]+)>(.*?)<\/link>|<spell:([^>]+)>(.*?)<\/spell>|<divinity:([^>]+)>(.*?)<\/divinity>|<feat:([^>]+)>(.*?)<\/feat>/g;
 function createDefaultPendingAbilityScoreImprovement(): PendingAbilityScoreImprovement {
   return {
     mode: "single",
@@ -499,28 +516,6 @@ function splitSkilledSelections(choice?: SkilledChoice): {
   );
 }
 
-function resolveKeywordReference(
-  keywordKey: string,
-  fallbackTitle?: string
-): KeywordTooltipEntry | null {
-  const tooltip = KeywordTooltip[keywordKey];
-
-  if (tooltip) {
-    return tooltip;
-  }
-
-  const description = getKeywordDescription(keywordKey);
-
-  if (!description) {
-    return null;
-  }
-
-  return {
-    title: fallbackTitle ?? keywordKey,
-    description: [description]
-  };
-}
-
 function renderDescriptionLine(
   line: string,
   onOpenKeyword: (keywordKey: string, title?: string) => void,
@@ -528,110 +523,14 @@ function renderDescriptionLine(
   onOpenSpell: (spell: SpellEntry) => void,
   onOpenDivinity: (divinity: DivinityEntry) => void
 ): ReactNode {
-  const nodes: ReactNode[] = [];
-  let cursor = 0;
-
-  for (const match of line.matchAll(inlineMarkupPattern)) {
-    const index = match.index ?? 0;
-
-    if (index > cursor) {
-      nodes.push(line.slice(cursor, index));
-    }
-
-    if (match[1]) {
-      nodes.push(<strong key={`${match[1]}-${index}`}>{match[1]}</strong>);
-    }
-
-    if (match[2]) {
-      const keywordKey = match[2];
-      const label = match[3] ?? keywordKey;
-      const resolvedKeyword = resolveKeywordReference(keywordKey, label);
-
-      nodes.push(
-        resolvedKeyword ? (
-          <button
-            key={`${keywordKey}-${index}`}
-            type="button"
-            className={styles.keywordButton}
-            onClick={() => onOpenKeyword(keywordKey, label)}
-          >
-            {label}
-          </button>
-        ) : (
-          label
-        )
-      );
-    }
-
-    if (match[4]) {
-      const spell = spellEntriesByName.get(match[4].trim().toLowerCase());
-      const label = match[5] ?? match[4];
-
-      nodes.push(
-        spell ? (
-          <button
-            key={`${spell.id}-${index}`}
-            type="button"
-            className={styles.keywordButton}
-            onClick={() => onOpenSpell(spell)}
-          >
-            {label}
-          </button>
-        ) : (
-          label
-        )
-      );
-    }
-
-    if (match[6]) {
-      const divinity = getDivinityEntryByName(match[6]);
-      const label = match[7] ?? match[6];
-
-      nodes.push(
-        divinity ? (
-          <button
-            key={`${divinity.id}-${index}`}
-            type="button"
-            className={styles.keywordButton}
-            onClick={() => onOpenDivinity(divinity)}
-          >
-            {label}
-          </button>
-        ) : (
-          label
-        )
-      );
-    }
-
-    if (match[8]) {
-      const feat = match[8] as FEATS;
-      const featDefinition = getFeatDefinition(feat);
-      const label = match[9] ?? match[8];
-
-      nodes.push(
-        featDefinition ? (
-          <button
-            key={`${featDefinition.feat}-${index}`}
-            type="button"
-            className={styles.keywordButton}
-            onClick={() => onOpenFeat(featDefinition.feat)}
-          >
-            {label}
-          </button>
-        ) : (
-          label
-        )
-      );
-    }
-
-    cursor = index + match[0].length;
-  }
-
-  if (cursor < line.length) {
-    nodes.push(line.slice(cursor));
-  }
-
-  return nodes.length > 0 ? nodes : line;
+  return renderCodexRichText(line, {
+    linkClassName: styles.keywordButton,
+    onOpenKeyword: (resolvedKeyword) =>
+      onOpenKeyword(resolvedKeyword.key, resolvedKeyword.title),
+    onOpenSpell,
+    onOpenDivinity,
+    onOpenFeat: (feat) => onOpenFeat(feat)
+  });
 }
 
 function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesAndFeatsProps) {
@@ -1141,6 +1040,137 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
     return getRangerLevel9ExpertiseSelectionsForCharacter(character);
   }
 
+  function getWizardScholarSelection(): SkillName | null {
+    return getWizardScholarSelectionForCharacter(character);
+  }
+
+  function getAvailableWizardScholarSkills(): SkillName[] {
+    const currentValue = getWizardScholarSelection();
+
+    return wizardScholarSkillOptions.filter((skillName) => {
+      if (currentValue === skillName) {
+        return true;
+      }
+
+      const proficiency = getSkillProficiencyForName(skillName);
+
+      return (
+        proficiency !== null &&
+        getSkillLevelFromEntries(character.skillProficiencies ?? [], proficiency) ===
+          PROF_LEVEL.PROFICIENT
+      );
+    });
+  }
+
+  function updateWizardScholarSelection(nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      recomputeCharacterFeatureProficiencies(
+        setWizardScholarSelectionForCharacter(
+          currentCharacter,
+          wizardScholarSkillOptions.some((skillOption) => skillOption === nextValue)
+            ? (nextValue as SkillName)
+            : null
+        )
+      )
+    );
+  }
+
+  function isWizardScholarInputRequired(): boolean {
+    return getWizardScholarSelectionForCharacter(character) === null;
+  }
+
+  function getWizardSpellMasterySelection(spellLevel: 1 | 2): string {
+    return getWizardSpellMasterySelectionForCharacter(character, spellLevel) ?? "";
+  }
+
+  function getAvailableWizardSpellMasterySpells(spellLevel: 1 | 2): SpellEntry[] {
+    const availablePreparedSpells = getPreparedSpellSelectionOptionsForCharacter(
+      character.className,
+      character.level
+    );
+    const spellbookSpellIdSet = new Set(
+      normalizeSpellbookSpellIds(character.spellbookSpellIds, availablePreparedSpells)
+    );
+
+    return availablePreparedSpells
+      .filter((spell) => getSpellLevel(spell) === spellLevel && spellbookSpellIdSet.has(spell.id))
+      .sort((left, right) => left.name.localeCompare(right.name));
+  }
+
+  function updateWizardSpellMasterySelection(spellLevel: 1 | 2, nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      setWizardSpellMasterySelectionForCharacter(
+        currentCharacter,
+        spellLevel,
+        nextValue.trim().length > 0 ? nextValue : null
+      )
+    );
+  }
+
+  function isWizardSpellMasteryInputRequired(): boolean {
+    return (
+      getWizardSpellMasterySelectionForCharacter(character, 1) === null ||
+      getWizardSpellMasterySelectionForCharacter(character, 2) === null
+    );
+  }
+
+  function getWizardSignatureSpellSelections(): string[] {
+    return getWizardSignatureSpellIdsForCharacter(character);
+  }
+
+  function getAvailableWizardSignatureSpells(slotIndex: number): SpellEntry[] {
+    const currentSelections = getWizardSignatureSpellSelections();
+    const blockedSelections = new Set(
+      currentSelections.filter((selection, index) => index !== slotIndex)
+    );
+    const availablePreparedSpells = getPreparedSpellSelectionOptionsForCharacter(
+      character.className,
+      character.level
+    );
+    const spellbookSpellIdSet = new Set(
+      normalizeSpellbookSpellIds(character.spellbookSpellIds, availablePreparedSpells)
+    );
+
+    return availablePreparedSpells
+      .filter((spell) => {
+        if (getSpellLevel(spell) !== 3) {
+          return false;
+        }
+
+        if (!spellbookSpellIdSet.has(spell.id)) {
+          return false;
+        }
+
+        if (blockedSelections.has(spell.id)) {
+          return false;
+        }
+
+        return true;
+      })
+      .sort((left, right) => left.name.localeCompare(right.name));
+  }
+
+  function updateWizardSignatureSpellSelection(slotIndex: number, nextValue: string) {
+    onPersistCharacter((currentCharacter) => {
+      const currentSelections = getWizardSignatureSpellIdsForCharacter(currentCharacter);
+      const nextSelections: [string, string] = [
+        currentSelections[0] ?? "",
+        currentSelections[1] ?? ""
+      ];
+
+      nextSelections[slotIndex] = nextValue;
+
+      return setWizardSignatureSpellIdsForCharacter(
+        currentCharacter,
+        nextSelections.filter((selection): selection is string => selection.trim().length > 0)
+      );
+    });
+  }
+
+  function isWizardSignatureSpellsInputRequired(): boolean {
+    return getWizardSignatureSpellIdsForCharacter(character).length < 2;
+  }
+
   function getAvailableRangerLevel9ExpertiseSkills(slotIndex: number): SkillName[] {
     const currentSelections = getRangerLevel9ExpertiseSelectionsForCharacter(character);
     const currentValue = currentSelections[slotIndex];
@@ -1192,8 +1222,132 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
     return getRangerLevel9ExpertiseSelectionsForCharacter(character).length < 2;
   }
 
+  function getSorcererMetamagicStartIndex(level: number): number {
+    if (level >= 17) {
+      return 4;
+    }
+
+    if (level >= 10) {
+      return 2;
+    }
+
+    return 0;
+  }
+
+  function getSorcererMetamagicSelections(): string[] {
+    return getSorcererMetamagicSelectionsForCharacter(character);
+  }
+
+  function getAvailableSorcererMetamagicOptions(level: number, slotIndex: number) {
+    const currentSelections = getSorcererMetamagicSelectionsForCharacter(character);
+    const currentIndex = getSorcererMetamagicStartIndex(level) + slotIndex;
+    const currentValue = currentSelections[currentIndex] ?? "";
+    const blockedSelections = new Set(
+      currentSelections.filter((selection, index) => index !== currentIndex)
+    );
+
+    return getSorcererMetamagicDefinitionsForCharacter().filter((definition) => {
+      if (currentValue === definition.key) {
+        return true;
+      }
+
+      return !blockedSelections.has(definition.key);
+    });
+  }
+
+  function updateSorcererMetamagicSelection(level: number, slotIndex: number, nextValue: string) {
+    onPersistCharacter((currentCharacter) => {
+      const currentSelections = getSorcererMetamagicSelectionsForCharacter(currentCharacter);
+      const totalSelectionCount = getSorcererMetamagicSelectionCountForCharacter(currentCharacter);
+      const metamagicDefinitions = getSorcererMetamagicDefinitionsForCharacter();
+      const nextSelections = Array.from(
+        { length: totalSelectionCount },
+        (_, index): string => currentSelections[index] ?? ""
+      );
+      const currentIndex = getSorcererMetamagicStartIndex(level) + slotIndex;
+
+      nextSelections[currentIndex] = nextValue;
+
+      return setSorcererMetamagicSelectionsForCharacter(
+        currentCharacter,
+        nextSelections.flatMap((selection) =>
+          metamagicDefinitions.some((definition) => definition.key === selection)
+            ? [selection as (typeof metamagicDefinitions)[number]["key"]]
+            : []
+        )
+      );
+    });
+  }
+
+  function isSorcererMetamagicInputRequired(level: number): boolean {
+    const currentSelections = getSorcererMetamagicSelectionsForCharacter(character);
+    const startIndex = getSorcererMetamagicStartIndex(level);
+
+    return [0, 1].some((slotIndex) => !currentSelections[startIndex + slotIndex]);
+  }
+
   function getWeaponMasterySelections(): WEAPON_PROFICIENCY[] {
     return getWeaponMasterySelectionsForCharacter(character);
+  }
+
+  function getWarlockMysticArcanumSpellLevel(level: number): 6 | 7 | 8 | 9 | null {
+    if (level === 11) {
+      return 6;
+    }
+
+    if (level === 13) {
+      return 7;
+    }
+
+    if (level === 15) {
+      return 8;
+    }
+
+    if (level === 17) {
+      return 9;
+    }
+
+    return null;
+  }
+
+  function getWarlockMysticArcanumSelection(level: number): string {
+    const spellLevel = getWarlockMysticArcanumSpellLevel(level);
+
+    if (!spellLevel) {
+      return "";
+    }
+
+    return getWarlockMysticArcanumSpellIdForCharacter(character, spellLevel) ?? "";
+  }
+
+  function getAvailableWarlockMysticArcanumSpells(level: number): SpellEntry[] {
+    const spellLevel = getWarlockMysticArcanumSpellLevel(level);
+
+    if (!spellLevel) {
+      return [];
+    }
+
+    return getWarlockMysticArcanumSpellOptionsForCharacter(character, spellLevel);
+  }
+
+  function updateWarlockMysticArcanumSelection(level: number, nextValue: string) {
+    const spellLevel = getWarlockMysticArcanumSpellLevel(level);
+
+    if (!spellLevel) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) =>
+      setWarlockMysticArcanumSpellIdForCharacter(
+        currentCharacter,
+        spellLevel,
+        nextValue.trim().length > 0 ? nextValue : null
+      )
+    );
+  }
+
+  function isWarlockMysticArcanumInputRequired(level: number): boolean {
+    return getWarlockMysticArcanumSelection(level).trim().length <= 0;
   }
 
   function getAvailableWeaponMasteryOptions(slotIndex: number): WEAPON_PROFICIENCY[] {
@@ -1867,11 +2021,41 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
             featureRow.feature === CLASS_FEATURE.THIEVES_CANT &&
             character.className === "Rogue" &&
             isRogueThievesCantInputRequired();
+          const isSorcererMetamagicSelectionRequired =
+            isUnlocked &&
+            featureRow.feature === CLASS_FEATURE.METAMAGIC &&
+            character.className === "Sorcerer" &&
+            isSorcererMetamagicInputRequired(featureRow.level);
+          const isWarlockMysticArcanumSelectionRequired =
+            isUnlocked &&
+            featureRow.feature === CLASS_FEATURE.MYSTIC_ARCANUM &&
+            character.className === "Warlock" &&
+            isWarlockMysticArcanumInputRequired(featureRow.level);
+          const isWizardScholarSelectionRequired =
+            isUnlocked &&
+            featureRow.feature === CLASS_FEATURE.SCHOLAR &&
+            character.className === "Wizard" &&
+            isWizardScholarInputRequired();
+          const isWizardSpellMasterySelectionRequired =
+            isUnlocked &&
+            featureRow.feature === CLASS_FEATURE.SPELL_MASTERY &&
+            character.className === "Wizard" &&
+            isWizardSpellMasteryInputRequired();
+          const isWizardSignatureSpellsSelectionRequired =
+            isUnlocked &&
+            featureRow.feature === CLASS_FEATURE.SIGNATURE_SPELLS &&
+            character.className === "Wizard" &&
+            isWizardSignatureSpellsInputRequired();
           const isInputRequired =
             (isUnlocked && isFeatChoiceFeature(featureRow.feature) && linkedFeat === null) ||
             isExpertiseInputRequired ||
             isDeftExplorerInputRequired ||
             isThievesCantInputRequired ||
+            isSorcererMetamagicSelectionRequired ||
+            isWarlockMysticArcanumSelectionRequired ||
+            isWizardScholarSelectionRequired ||
+            isWizardSpellMasterySelectionRequired ||
+            isWizardSignatureSpellsSelectionRequired ||
             (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.WEAPON_MASTERY &&
               isWeaponMasteryInputRequired()) ||
@@ -1925,6 +2109,24 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
             featureRow.feature === CLASS_FEATURE.THIEVES_CANT
               ? getRogueThievesCantLanguageSelection()
               : null;
+          const wizardScholarSelection =
+            featureRow.feature === CLASS_FEATURE.SCHOLAR ? getWizardScholarSelection() : null;
+          const wizardSpellMasteryLevel1Selection =
+            featureRow.feature === CLASS_FEATURE.SPELL_MASTERY
+              ? getWizardSpellMasterySelection(1)
+              : "";
+          const wizardSpellMasteryLevel2Selection =
+            featureRow.feature === CLASS_FEATURE.SPELL_MASTERY
+              ? getWizardSpellMasterySelection(2)
+              : "";
+          const wizardSignatureSpellSelections =
+            featureRow.feature === CLASS_FEATURE.SIGNATURE_SPELLS
+              ? getWizardSignatureSpellSelections()
+              : [];
+          const sorcererMetamagicSelections =
+            featureRow.feature === CLASS_FEATURE.METAMAGIC && character.className === "Sorcerer"
+              ? getSorcererMetamagicSelections()
+              : [];
           const weaponMasterySelections =
             featureRow.feature === CLASS_FEATURE.WEAPON_MASTERY ? getWeaponMasterySelections() : [];
           const weaponMasterySelectionCount =
@@ -2125,6 +2327,70 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
                           );
                         })}
                       </>
+                    ) : featureRow.feature === CLASS_FEATURE.METAMAGIC &&
+                      character.className === "Sorcerer" ? (
+                      <>
+                        {featureDetails.description.map((line, index) => (
+                          <p
+                            key={`${featureRow.key}-line-${index}`}
+                            className={styles.descriptionLine}
+                          >
+                            {renderDescriptionLine(
+                              line,
+                              openKeyword,
+                              (feat) => openFeatReference(feat),
+                              openSpellReference,
+                              openDivinityReference
+                            )}
+                          </p>
+                        ))}
+                        <div className={styles.featureSelectionGrid}>
+                          {[0, 1].map((slotIndex) => {
+                            const currentIndex =
+                              getSorcererMetamagicStartIndex(featureRow.level) + slotIndex;
+                            const currentValue = sorcererMetamagicSelections[currentIndex] ?? "";
+                            const availableOptions = getAvailableSorcererMetamagicOptions(
+                              featureRow.level,
+                              slotIndex
+                            );
+
+                            return (
+                              <label
+                                key={`${featureRow.key}-metamagic-slot-${slotIndex}`}
+                                className={clsx(
+                                  styles.featureSelectionField,
+                                  !isUnlocked && styles.featureOptionRowDisabled
+                                )}
+                              >
+                                <span className={styles.featureSelectionLabel}>
+                                  Metamagic {currentIndex + 1}
+                                </span>
+                                <SelectInput
+                                  value={currentValue}
+                                  disabled={!isUnlocked}
+                                  onChange={(event) =>
+                                    updateSorcererMetamagicSelection(
+                                      featureRow.level,
+                                      slotIndex,
+                                      event.target.value
+                                    )
+                                  }
+                                >
+                                  <option value="">Select an option</option>
+                                  {availableOptions.map((definition) => (
+                                    <option
+                                      key={`${featureRow.key}-${definition.key}`}
+                                      value={definition.key}
+                                    >
+                                      {definition.name}
+                                    </option>
+                                  ))}
+                                </SelectInput>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </>
                     ) : featureRow.feature === CLASS_FEATURE.DEFT_EXPLORER ? (
                       <>
                         {featureDetails.description.map((line, index) => (
@@ -2205,6 +2471,170 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
                                       value={proficiency}
                                     >
                                       {getProficiencyLabel(proficiency)}
+                                    </option>
+                                  ))}
+                                </SelectInput>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </>
+                    ) : featureRow.feature === CLASS_FEATURE.SCHOLAR &&
+                      character.className === "Wizard" ? (
+                      <>
+                        {featureDetails.description.map((line, index) => (
+                          <p
+                            key={`${featureRow.key}-line-${index}`}
+                            className={styles.descriptionLine}
+                          >
+                            {renderDescriptionLine(
+                              line,
+                              openKeyword,
+                              (feat) => openFeatReference(feat),
+                              openSpellReference,
+                              openDivinityReference
+                            )}
+                          </p>
+                        ))}
+                        <div className={styles.featureSelectionGrid}>
+                          <label
+                            className={clsx(
+                              styles.featureSelectionField,
+                              !isUnlocked && styles.featureOptionRowDisabled
+                            )}
+                          >
+                            <span className={styles.featureSelectionLabel}>Scholar Skill</span>
+                            <SelectInput
+                              value={wizardScholarSelection ?? ""}
+                              disabled={!isUnlocked}
+                              onChange={(event) =>
+                                updateWizardScholarSelection(event.target.value)
+                              }
+                            >
+                              <option value="">Select a skill</option>
+                              {getAvailableWizardScholarSkills().map((skillName) => (
+                                <option key={`${featureRow.key}-${skillName}`} value={skillName}>
+                                  {skillName}
+                                </option>
+                              ))}
+                            </SelectInput>
+                          </label>
+                        </div>
+                      </>
+                    ) : featureRow.feature === CLASS_FEATURE.SPELL_MASTERY &&
+                      character.className === "Wizard" ? (
+                      <>
+                        {featureDetails.description.map((line, index) => (
+                          <p
+                            key={`${featureRow.key}-line-${index}`}
+                            className={styles.descriptionLine}
+                          >
+                            {renderDescriptionLine(
+                              line,
+                              openKeyword,
+                              (feat) => openFeatReference(feat),
+                              openSpellReference,
+                              openDivinityReference
+                            )}
+                          </p>
+                        ))}
+                        <div className={styles.featureSelectionGrid}>
+                          <label
+                            className={clsx(
+                              styles.featureSelectionField,
+                              !isUnlocked && styles.featureOptionRowDisabled
+                            )}
+                          >
+                            <span className={styles.featureSelectionLabel}>Level 1 Spell</span>
+                            <SelectInput
+                              value={wizardSpellMasteryLevel1Selection}
+                              disabled={!isUnlocked}
+                              onChange={(event) =>
+                                updateWizardSpellMasterySelection(1, event.target.value)
+                              }
+                            >
+                              <option value="">Select a spell from your spellbook</option>
+                              {getAvailableWizardSpellMasterySpells(1).map((spell) => (
+                                <option key={`${featureRow.key}-spell-mastery-1-${spell.id}`} value={spell.id}>
+                                  {spell.name}
+                                </option>
+                              ))}
+                            </SelectInput>
+                          </label>
+                          <label
+                            className={clsx(
+                              styles.featureSelectionField,
+                              !isUnlocked && styles.featureOptionRowDisabled
+                            )}
+                          >
+                            <span className={styles.featureSelectionLabel}>Level 2 Spell</span>
+                            <SelectInput
+                              value={wizardSpellMasteryLevel2Selection}
+                              disabled={!isUnlocked}
+                              onChange={(event) =>
+                                updateWizardSpellMasterySelection(2, event.target.value)
+                              }
+                            >
+                              <option value="">Select a spell from your spellbook</option>
+                              {getAvailableWizardSpellMasterySpells(2).map((spell) => (
+                                <option key={`${featureRow.key}-spell-mastery-2-${spell.id}`} value={spell.id}>
+                                  {spell.name}
+                                </option>
+                              ))}
+                            </SelectInput>
+                          </label>
+                        </div>
+                      </>
+                    ) : featureRow.feature === CLASS_FEATURE.SIGNATURE_SPELLS &&
+                      character.className === "Wizard" ? (
+                      <>
+                        {featureDetails.description.map((line, index) => (
+                          <p
+                            key={`${featureRow.key}-line-${index}`}
+                            className={styles.descriptionLine}
+                          >
+                            {renderDescriptionLine(
+                              line,
+                              openKeyword,
+                              (feat) => openFeatReference(feat),
+                              openSpellReference,
+                              openDivinityReference
+                            )}
+                          </p>
+                        ))}
+                        <div className={styles.featureSelectionGrid}>
+                          {[0, 1].map((slotIndex) => {
+                            const currentValue = wizardSignatureSpellSelections[slotIndex] ?? "";
+                            const availableSpells = getAvailableWizardSignatureSpells(slotIndex);
+
+                            return (
+                              <label
+                                key={`${featureRow.key}-signature-slot-${slotIndex}`}
+                                className={clsx(
+                                  styles.featureSelectionField,
+                                  !isUnlocked && styles.featureOptionRowDisabled
+                                )}
+                              >
+                                <span className={styles.featureSelectionLabel}>
+                                  Signature Spell {slotIndex + 1}
+                                </span>
+                                <SelectInput
+                                  value={currentValue}
+                                  disabled={!isUnlocked}
+                                  onChange={(event) =>
+                                    updateWizardSignatureSpellSelection(
+                                      slotIndex,
+                                      event.target.value
+                                    )
+                                  }
+                                >
+                                  <option value="">Select a level 3 spell from your spellbook</option>
+                                  {availableSpells.map((spell) => (
+                                    <option
+                                      key={`${featureRow.key}-signature-${spell.id}`}
+                                      value={spell.id}
+                                    >
+                                      {spell.name}
                                     </option>
                                   ))}
                                 </SelectInput>
@@ -2523,6 +2953,57 @@ function ClassFeaturesAndFeats({ className, onPersistCharacter }: ClassFeaturesA
                             );
                           })}
                         </div>
+                      </>
+                    ) : featureRow.feature === CLASS_FEATURE.MYSTIC_ARCANUM &&
+                      character.className === "Warlock" ? (
+                      <>
+                        {featureDetails.description.map((line, index) => (
+                          <p
+                            key={`${featureRow.key}-line-${index}`}
+                            className={styles.descriptionLine}
+                          >
+                            {renderDescriptionLine(
+                              line,
+                              openKeyword,
+                              (feat) => openFeatReference(feat),
+                              openSpellReference,
+                              openDivinityReference
+                            )}
+                          </p>
+                        ))}
+                        {getWarlockMysticArcanumSpellLevel(featureRow.level) ? (
+                          <div className={styles.featureSelectionGrid}>
+                            <label
+                              className={clsx(
+                                styles.featureSelectionField,
+                                !isUnlocked && styles.featureOptionRowDisabled
+                              )}
+                            >
+                              <span className={styles.featureSelectionLabel}>
+                                {`${getWarlockMysticArcanumSpellLevel(featureRow.level)}th-level Arcanum`}
+                              </span>
+                              <SelectInput
+                                value={getWarlockMysticArcanumSelection(featureRow.level)}
+                                disabled={!isUnlocked}
+                                onChange={(event) =>
+                                  updateWarlockMysticArcanumSelection(
+                                    featureRow.level,
+                                    event.target.value
+                                  )
+                                }
+                              >
+                                <option value="">Select a spell</option>
+                                {getAvailableWarlockMysticArcanumSpells(featureRow.level).map(
+                                  (spell) => (
+                                    <option key={`${featureRow.key}-${spell.id}`} value={spell.id}>
+                                      {spell.name}
+                                    </option>
+                                  )
+                                )}
+                              </SelectInput>
+                            </label>
+                          </div>
+                        ) : null}
                       </>
                     ) : (
                       featureDetails.description.map((line, index) => (

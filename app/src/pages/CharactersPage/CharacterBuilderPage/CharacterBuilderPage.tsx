@@ -57,6 +57,7 @@ function CharacterBuilderPage() {
         deathSaves: existingCharacter.deathSaves,
         customEquipment: existingCharacter.customEquipment,
         cantripIds: existingCharacter.cantripIds,
+        spellbookSpellIds: existingCharacter.spellbookSpellIds,
         preparedSpellIds: existingCharacter.preparedSpellIds,
         spellSlotsExpended: existingCharacter.spellSlotsExpended,
         shortRestsUsedToday: existingCharacter.shortRestsUsedToday,

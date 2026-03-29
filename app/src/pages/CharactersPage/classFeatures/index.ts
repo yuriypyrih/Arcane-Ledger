@@ -1,6 +1,6 @@
 import type { Character, CharacterClassFeatureState } from "../../../types";
 import { ALL_SKILLS } from "../../../types";
-import type { AbilityKey, WEAPON_PROFICIENCY } from "../../../types";
+import type { AbilityKey, SkillName, WEAPON_PROFICIENCY } from "../../../types";
 import type { EconomyType } from "../actionEconomy";
 import {
   hasExhaustionAbilityCheckDisadvantage,
@@ -158,6 +158,90 @@ import {
   setRogueWeaponMasterySelections,
   getRogueThievesCantLanguageSelection
 } from "./rogue";
+import {
+  activateInnateSorcery,
+  advanceSorcererFeaturesForNewRound,
+  applyLongRestToSorcererFeatures,
+  applyShortRestToSorcererFeatures,
+  createSpellSlotFromSorceryPoints,
+  convertSpellSlotToSorceryPoints,
+  expendOneSorceryPoint,
+  getInnateSorceryUsesRemaining,
+  getInnateSorceryUsesTotal,
+  getInnateSorceryActivationSorceryPointCost,
+  getSorcererMetamagicActionCost,
+  getSorcererFeatureActions,
+  getSorcererMetamagicDefinitions,
+  getSorcererMetamagicOptionsForAction,
+  getSorcererMetamagicSelectionCount,
+  getSorcererMetamagicSelectionLimitForAction,
+  getSorcererMetamagicSelections,
+  getSorceryPointsRemaining,
+  getSorceryPointsTotal,
+  hasActiveInnateSorcery,
+  hasArcaneApotheosisFreeMetamagicAvailable,
+  innateSorceryActionKey,
+  metamagicActionKey,
+  normalizeSorcererFeatureState,
+  restoreAllSorceryPoints,
+  restoreInnateSorceryOnLongRest,
+  restoreOneSorceryPoint,
+  setSorcererMetamagicSelections,
+  spendMetamagicOption,
+  spendMetamagicOptions
+} from "./sorcerer";
+import {
+  activateWarlockMagicalCunning,
+  consumeContactPatronUse,
+  consumeMysticArcanumUse,
+  contactPatronActionKey,
+  getContactPatronUsesRemaining,
+  getContactPatronUsesTotal,
+  getWarlockAlwaysPreparedSpellIds,
+  getWarlockFeatureActions,
+  getWarlockEldritchInvocationLimit,
+  getWarlockMagicalCunningUsesRemaining,
+  getWarlockMagicalCunningUsesTotal,
+  getWarlockInvocationBlockingSelectionNames,
+  getWarlockInvocationOptions,
+  getWarlockInvocationSelectionIds,
+  getWarlockLearnedInvocationOptions,
+  getWarlockMysticArcanumSelections,
+  getWarlockMysticArcanumSpellId,
+  getWarlockMysticArcanumSpellOptions,
+  magicalCunningActionKey,
+  mysticArcanumActionKey,
+  normalizeWarlockFeatureState,
+  restoreContactPatronOnLongRest,
+  restoreMysticArcanumOnLongRest,
+  restoreWarlockMagicalCunningOnLongRest,
+  setWarlockMysticArcanumSpellId,
+  setWarlockInvocationSelectionIds
+} from "./warlock";
+import {
+  activateArcaneRecovery,
+  arcaneRecoveryActionKey,
+  applyLongRestToWizardFeatures,
+  applyShortRestToWizardFeatures,
+  consumeWizardSignatureSpellFreeCast,
+  getArcaneRecoveryUsesRemaining,
+  getArcaneRecoveryUsesTotal,
+  getWizardAlwaysPreparedSpellIds,
+  getWizardFeatureActions,
+  getWizardExpendedSignatureSpellIds,
+  getWizardScholarSelection,
+  getWizardSignatureSpellIds,
+  hasWizardSignatureSpellFreeCastAvailable,
+  getWizardSpellMasterySelection,
+  getWizardSpellMasterySpellIds,
+  getWizardSkillProficiencyEntries,
+  normalizeWizardFeatureState,
+  setWizardScholarSelection,
+  setWizardSignatureSpellIds,
+  setWizardSpellMasterySelection,
+  syncWizardSignatureSpellsToSpellbook,
+  syncWizardSpellMasterySelectionsToSpellbook
+} from "./wizard";
 import {
   activatePaladinFeatureActionOption,
   advancePaladinFeaturesForNewRound,
@@ -339,8 +423,11 @@ export function normalizeCharacterClassFeatureState(
     bard: normalizeBardFeatureState(record.bard, character),
     cleric: normalizeClericFeatureState(record.cleric, character),
     druid: normalizeDruidFeatureState(record.druid, character),
+    wizard: normalizeWizardFeatureState(record.wizard, character),
     ranger: normalizeRangerFeatureState(record.ranger, character),
     rogue: normalizeRogueFeatureState(record.rogue, character),
+    sorcerer: normalizeSorcererFeatureState(record.sorcerer, character),
+    warlock: normalizeWarlockFeatureState(record.warlock, character),
     paladin: normalizePaladinFeatureState(record.paladin, character),
     monk: normalizeMonkFeatureState(record.monk, character),
     fighter: normalizeFighterFeatureState(record.fighter, character)
@@ -355,12 +442,18 @@ export function getFeatureActionsForCharacter(character: Character): FeatureActi
   const paladinActions = getPaladinFeatureActions(character);
   const rangerActions = getRangerFeatureActions(character);
   const rogueActions = getRogueFeatureActions(character);
+  const sorcererActions = getSorcererFeatureActions(character);
+  const warlockActions = getWarlockFeatureActions(character);
+  const wizardActions = getWizardFeatureActions(character);
   const rageAction = getBarbarianFeatureAction(character);
   return [
     ...clericActions,
     bardAction,
     ...fighterActions,
     ...monkActions,
+    ...sorcererActions,
+    ...warlockActions,
+    ...wizardActions,
     ...rangerActions,
     ...rogueActions,
     ...paladinActions,
@@ -378,6 +471,10 @@ export function getFeatureActionOptionsForCharacter(
 
   if (actionKey === paladinChannelDivinityActionKey) {
     return getPaladinFeatureActionOptions(character);
+  }
+
+  if (actionKey === metamagicActionKey) {
+    return getSorcererMetamagicOptionsForAction(character);
   }
 
   return [];
@@ -573,7 +670,8 @@ export function getFeatureSkillProficiencyEntriesForCharacter(
   return [
     ...getBardSkillProficiencyEntries(character),
     ...getRangerSkillProficiencyEntries(character),
-    ...getRogueSkillProficiencyEntries(character)
+    ...getRogueSkillProficiencyEntries(character),
+    ...getWizardSkillProficiencyEntries(character)
   ];
 }
 
@@ -705,17 +803,260 @@ export function setRangerLevel9ExpertiseSelectionsForCharacter(
   return setRangerLevel9ExpertiseSelections(character, selections);
 }
 
-export function getAlwaysPreparedSpellIdsForCharacter(
+export function getWizardScholarSelectionForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
+): SkillName | null {
+  return getWizardScholarSelection(character);
+}
+
+export function setWizardScholarSelectionForCharacter(
+  character: Character,
+  selection: Parameters<typeof setWizardScholarSelection>[1]
+): Character {
+  return setWizardScholarSelection(character, selection);
+}
+
+export function getWizardSpellMasterySelectionForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds">,
+  spellLevel: Parameters<typeof getWizardSpellMasterySelection>[1]
+): string | null {
+  return getWizardSpellMasterySelection(character, spellLevel);
+}
+
+export function getWizardSpellMasterySpellIdsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds">
+): string[] {
+  return getWizardSpellMasterySpellIds(character);
+}
+
+export function setWizardSpellMasterySelectionForCharacter(
+  character: Character,
+  spellLevel: Parameters<typeof setWizardSpellMasterySelection>[1],
+  spellId: Parameters<typeof setWizardSpellMasterySelection>[2]
+): Character {
+  return setWizardSpellMasterySelection(character, spellLevel, spellId);
+}
+
+export function syncWizardSpellMasterySelectionsToSpellbookForCharacter(
+  character: Character
+): Character {
+  return syncWizardSpellMasterySelectionsToSpellbook(character);
+}
+
+export function getWizardSignatureSpellIdsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds">
+): string[] {
+  return getWizardSignatureSpellIds(character);
+}
+
+export function getWizardExpendedSignatureSpellIdsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds">
+): string[] {
+  return getWizardExpendedSignatureSpellIds(character);
+}
+
+export function hasWizardSignatureSpellFreeCastAvailableForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds">,
+  spellId: string
+): boolean {
+  return hasWizardSignatureSpellFreeCastAvailable(character, spellId);
+}
+
+export function setWizardSignatureSpellIdsForCharacter(
+  character: Character,
+  spellIds: Parameters<typeof setWizardSignatureSpellIds>[1]
+): Character {
+  return setWizardSignatureSpellIds(character, spellIds);
+}
+
+export function syncWizardSignatureSpellsToSpellbookForCharacter(character: Character): Character {
+  return syncWizardSignatureSpellsToSpellbook(character);
+}
+
+export function consumeWizardSignatureSpellFreeCastForCharacter(
+  character: Character,
+  spellId: string
+): Character {
+  return consumeWizardSignatureSpellFreeCast(character, spellId);
+}
+
+export function getSorcererMetamagicDefinitionsForCharacter() {
+  return getSorcererMetamagicDefinitions();
+}
+
+export function getSorcererMetamagicSelectionCountForCharacter(
+  character: Pick<Character, "className" | "level">
+) {
+  return getSorcererMetamagicSelectionCount(character);
+}
+
+export function getSorcererMetamagicSelectionsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+) {
+  return getSorcererMetamagicSelections(character);
+}
+
+export function setSorcererMetamagicSelectionsForCharacter(
+  character: Character,
+  selections: Parameters<typeof setSorcererMetamagicSelections>[1]
+): Character {
+  return setSorcererMetamagicSelections(character, selections);
+}
+
+export function getSorceryPointsTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+) {
+  return getSorceryPointsTotal(character);
+}
+
+export function getSorceryPointsRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+) {
+  return getSorceryPointsRemaining(character);
+}
+
+export function restoreSorceryPointForCharacter(character: Character): Character {
+  return restoreOneSorceryPoint(character);
+}
+
+export function expendSorceryPointForCharacter(character: Character): Character {
+  return expendOneSorceryPoint(character);
+}
+
+export function restoreAllSorceryPointsForCharacter(character: Character): Character {
+  return restoreAllSorceryPoints(character);
+}
+
+export function convertSpellSlotToSorceryPointsForCharacter(
+  character: Character,
+  spellSlotLevel: number
+): Character {
+  return convertSpellSlotToSorceryPoints(character, spellSlotLevel);
+}
+
+export function createSpellSlotFromSorceryPointsForCharacter(
+  character: Character,
+  spellSlotLevel: number
+): Character {
+  return createSpellSlotFromSorceryPoints(character, spellSlotLevel);
+}
+
+export function getInnateSorceryUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+) {
+  return getInnateSorceryUsesTotal(character);
+}
+
+export function getInnateSorceryUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+) {
+  return getInnateSorceryUsesRemaining(character);
+}
+
+export function getAlwaysPreparedSpellIdsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds">
 ): string[] {
   return [
     ...new Set([
       ...getBardAlwaysPreparedSpellIds(character),
       ...getDruidAlwaysPreparedSpellIds(character),
       ...getRangerAlwaysPreparedSpellIds(character),
-      ...getPaladinAlwaysPreparedSpellIds(character)
+      ...getPaladinAlwaysPreparedSpellIds(character),
+      ...getWarlockAlwaysPreparedSpellIds(character),
+      ...getWizardAlwaysPreparedSpellIds(character)
     ])
   ];
+}
+
+export function getWarlockEldritchInvocationLimitForCharacter(
+  character: Pick<Character, "className" | "level">
+) {
+  return getWarlockEldritchInvocationLimit(character);
+}
+
+export function getWarlockMagicalCunningUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+) {
+  return getWarlockMagicalCunningUsesTotal(character);
+}
+
+export function getWarlockMagicalCunningUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+) {
+  return getWarlockMagicalCunningUsesRemaining(character);
+}
+
+export function getContactPatronUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+) {
+  return getContactPatronUsesTotal(character);
+}
+
+export function getContactPatronUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+) {
+  return getContactPatronUsesRemaining(character);
+}
+
+export function getWarlockMysticArcanumSelectionsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">
+) {
+  return getWarlockMysticArcanumSelections(character);
+}
+
+export function getWarlockMysticArcanumSpellIdForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">,
+  spellLevel: Parameters<typeof getWarlockMysticArcanumSpellId>[1]
+) {
+  return getWarlockMysticArcanumSpellId(character, spellLevel);
+}
+
+export function getWarlockMysticArcanumSpellOptionsForCharacter(
+  character: Pick<Character, "className" | "level">,
+  spellLevel: Parameters<typeof getWarlockMysticArcanumSpellOptions>[1]
+) {
+  return getWarlockMysticArcanumSpellOptions(character, spellLevel);
+}
+
+export function setWarlockMysticArcanumSpellIdForCharacter(
+  character: Character,
+  spellLevel: Parameters<typeof setWarlockMysticArcanumSpellId>[1],
+  spellId: Parameters<typeof setWarlockMysticArcanumSpellId>[2]
+): Character {
+  return setWarlockMysticArcanumSpellId(character, spellLevel, spellId);
+}
+
+export function getWarlockInvocationSelectionIdsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">
+) {
+  return getWarlockInvocationSelectionIds(character);
+}
+
+export function getWarlockInvocationOptionsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">,
+  selectedIds?: string[]
+) {
+  return getWarlockInvocationOptions(character, selectedIds);
+}
+
+export function getWarlockLearnedInvocationOptionsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">
+) {
+  return getWarlockLearnedInvocationOptions(character);
+}
+
+export function getWarlockInvocationBlockingSelectionNamesForCharacter(
+  selectionId: string,
+  selectedIds: string[]
+) {
+  return getWarlockInvocationBlockingSelectionNames(selectionId, selectedIds);
+}
+
+export function setWarlockInvocationSelectionIdsForCharacter(
+  character: Character,
+  selectionIds: string[]
+): Character {
+  return setWarlockInvocationSelectionIds(character, selectionIds);
 }
 
 export function setBardExpertiseSelectionsForCharacter(
@@ -950,6 +1291,10 @@ export function activateFeatureActionForCharacter(
     return activateClericDivineIntervention(character);
   }
 
+  if (actionKey === innateSorceryActionKey) {
+    return activateInnateSorcery(character);
+  }
+
   if (actionKey === tirelessActionKey) {
     return consumeRangerTirelessUse(character);
   }
@@ -968,6 +1313,22 @@ export function activateFeatureActionForCharacter(
 
   if (actionKey === rogueStrokeOfLuckActionKey) {
     return consumeRogueStrokeOfLuckUse(character);
+  }
+
+  if (actionKey === magicalCunningActionKey) {
+    return activateWarlockMagicalCunning(character);
+  }
+
+  if (actionKey === arcaneRecoveryActionKey) {
+    return character;
+  }
+
+  if (actionKey === contactPatronActionKey) {
+    return character;
+  }
+
+  if (actionKey === mysticArcanumActionKey) {
+    return character;
   }
 
   return character;
@@ -1149,6 +1510,67 @@ export function restoreAllMonkFocusPointsForCharacter(character: Character): Cha
   return restoreAllMonkFocusPoints(character);
 }
 
+export function restoreInnateSorceryOnLongRestForCharacter(character: Character): Character {
+  return restoreInnateSorceryOnLongRest(character);
+}
+
+export function restoreWarlockMagicalCunningOnLongRestForCharacter(character: Character): Character {
+  return restoreWarlockMagicalCunningOnLongRest(character);
+}
+
+export function restoreContactPatronOnLongRestForCharacter(character: Character): Character {
+  return restoreContactPatronOnLongRest(character);
+}
+
+export function consumeContactPatronUseForCharacter(character: Character): Character {
+  return consumeContactPatronUse(character);
+}
+
+export function consumeMysticArcanumUseForCharacter(
+  character: Character,
+  spellLevel: Parameters<typeof consumeMysticArcanumUse>[1]
+): Character {
+  return consumeMysticArcanumUse(character, spellLevel);
+}
+
+export function hasActiveInnateSorceryForCharacter(
+  character: Pick<Character, "statusEntries">
+): boolean {
+  return hasActiveInnateSorcery(character);
+}
+
+export function getInnateSorceryActivationSorceryPointCostForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
+): number {
+  return getInnateSorceryActivationSorceryPointCost(character);
+}
+
+export function getSorcererMetamagicSelectionLimitForActionForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
+): number {
+  return getSorcererMetamagicSelectionLimitForAction(character);
+}
+
+export function hasSorcererArcaneApotheosisFreeMetamagicAvailableForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
+): boolean {
+  return hasArcaneApotheosisFreeMetamagicAvailable(character);
+}
+
+export function getSorcererMetamagicActionCostForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">,
+  optionKeys: string[]
+): number {
+  return getSorcererMetamagicActionCost(character, optionKeys);
+}
+
+export function spendSorcererMetamagicOptionsForCharacter(
+  character: Character,
+  optionKeys: string[]
+): Character {
+  return spendMetamagicOptions(character, optionKeys);
+}
+
 export function restorePaladinLayOnHandsOnLongRestForCharacter(character: Character): Character {
   return restorePaladinLayOnHandsOnLongRest(character);
 }
@@ -1248,6 +1670,10 @@ export function activateFeatureActionOptionForCharacter(
     return activatePaladinFeatureActionOption(character, optionKey);
   }
 
+  if (actionKey === metamagicActionKey) {
+    return spendMetamagicOption(character, optionKey);
+  }
+
   return character;
 }
 
@@ -1274,13 +1700,17 @@ export function removeFeatureStatusEntryForCharacter(
 }
 
 export function applyShortRestToFeatureState(character: Character): Character {
-  return applyShortRestToClericFeatures(
-    applyShortRestToBardFeatures(
-      applyShortRestToFighterFeatures(
-        applyShortRestToPaladinFeatures(
-          applyShortRestToRangerFeatures(
-            applyShortRestToRogueFeatures(
-              applyShortRestToMonkFeatures(applyShortRestToBarbarianFeatures(character))
+  return applyShortRestToWizardFeatures(
+    applyShortRestToSorcererFeatures(
+      applyShortRestToClericFeatures(
+        applyShortRestToBardFeatures(
+          applyShortRestToFighterFeatures(
+            applyShortRestToPaladinFeatures(
+              applyShortRestToRangerFeatures(
+                applyShortRestToRogueFeatures(
+                  applyShortRestToMonkFeatures(applyShortRestToBarbarianFeatures(character))
+                )
+              )
             )
           )
         )
@@ -1290,13 +1720,23 @@ export function applyShortRestToFeatureState(character: Character): Character {
 }
 
 export function applyLongRestToFeatureState(character: Character): Character {
-  return applyLongRestToClericFeatures(
-    applyLongRestToBardFeatures(
-      applyLongRestToFighterFeatures(
-        applyLongRestToPaladinFeatures(
-          applyLongRestToRangerFeatures(
-            applyLongRestToRogueFeatures(
-              applyLongRestToMonkFeatures(applyLongRestToBarbarianFeatures(character))
+  return restoreMysticArcanumOnLongRest(
+    restoreContactPatronOnLongRest(
+      restoreWarlockMagicalCunningOnLongRest(
+        applyLongRestToWizardFeatures(
+          applyLongRestToSorcererFeatures(
+            applyLongRestToClericFeatures(
+              applyLongRestToBardFeatures(
+                applyLongRestToFighterFeatures(
+                  applyLongRestToPaladinFeatures(
+                    applyLongRestToRangerFeatures(
+                      applyLongRestToRogueFeatures(
+                        applyLongRestToMonkFeatures(applyLongRestToBarbarianFeatures(character))
+                      )
+                    )
+                  )
+                )
+              )
             )
           )
         )
@@ -1305,12 +1745,33 @@ export function applyLongRestToFeatureState(character: Character): Character {
   );
 }
 
+export function getArcaneRecoveryUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+): number {
+  return getArcaneRecoveryUsesTotal(character);
+}
+
+export function getArcaneRecoveryUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  return getArcaneRecoveryUsesRemaining(character);
+}
+
+export function activateArcaneRecoveryForCharacter(
+  character: Character,
+  selection: Parameters<typeof activateArcaneRecovery>[1]
+): Character {
+  return activateArcaneRecovery(character, selection);
+}
+
 export function advanceFeatureStateForNewRound(character: Character): Character {
   return advanceRogueFeaturesForNewRound(
     advanceMonkFeaturesForNewRound(
       advancePaladinFeaturesForNewRound(
         advanceRangerFeaturesForNewRound(
-          advanceFighterFeaturesForNewRound(advanceClericFeaturesForNewRound(character))
+          advanceSorcererFeaturesForNewRound(
+            advanceFighterFeaturesForNewRound(advanceClericFeaturesForNewRound(character))
+          )
         )
       )
     )

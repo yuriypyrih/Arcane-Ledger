@@ -80,6 +80,16 @@ export function renderCodexRichText(
     onOpenFeat
   }: RenderCodexRichTextOptions = {}
 ): ReactNode {
+  function renderNestedText(content: string): ReactNode {
+    return renderCodexRichText(content, {
+      linkClassName,
+      onOpenKeyword,
+      onOpenSpell,
+      onOpenDivinity,
+      onOpenFeat
+    });
+  }
+
   const nodes: ReactNode[] = [];
   let cursor = 0;
 
@@ -91,7 +101,9 @@ export function renderCodexRichText(
     }
 
     if (match[1]) {
-      nodes.push(<strong key={`${match[1]}-${index}`}>{match[1]}</strong>);
+      nodes.push(
+        <strong key={`${match[1]}-${index}`}>{renderNestedText(match[1])}</strong>
+      );
     }
 
     if (match[2]) {
@@ -107,10 +119,10 @@ export function renderCodexRichText(
             className={linkClassName}
             onClick={() => onOpenKeyword(resolvedKeyword)}
           >
-            {label}
+            {renderNestedText(label)}
           </button>
         ) : (
-          label
+          renderNestedText(label)
         )
       );
     }
@@ -127,10 +139,10 @@ export function renderCodexRichText(
             className={linkClassName}
             onClick={() => onOpenSpell(spell)}
           >
-            {label}
+            {renderNestedText(label)}
           </button>
         ) : (
-          label
+          renderNestedText(label)
         )
       );
     }
@@ -147,10 +159,10 @@ export function renderCodexRichText(
             className={linkClassName}
             onClick={() => onOpenDivinity(divinity)}
           >
-            {label}
+            {renderNestedText(label)}
           </button>
         ) : (
-          label
+          renderNestedText(label)
         )
       );
     }
@@ -167,10 +179,10 @@ export function renderCodexRichText(
             className={linkClassName}
             onClick={() => onOpenFeat(feat, label)}
           >
-            {label}
+            {renderNestedText(label)}
           </button>
         ) : (
-          label
+          renderNestedText(label)
         )
       );
     }

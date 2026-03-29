@@ -138,7 +138,7 @@ export const warlockFeatures: WarlockFeatureClassObj[] = [
     featureOverrides: {
       [CLASS_FEATURE.MYSTIC_ARCANUM]: {
         description: createMysticArcanumDescription(6),
-        isTracked: false
+        isTracked: true
       }
     },
     eldritchInvocations: 7,
@@ -164,7 +164,7 @@ export const warlockFeatures: WarlockFeatureClassObj[] = [
     featureOverrides: {
       [CLASS_FEATURE.MYSTIC_ARCANUM]: {
         description: createMysticArcanumDescription(7),
-        isTracked: false
+        isTracked: true
       }
     },
     eldritchInvocations: 8,
@@ -190,7 +190,7 @@ export const warlockFeatures: WarlockFeatureClassObj[] = [
     featureOverrides: {
       [CLASS_FEATURE.MYSTIC_ARCANUM]: {
         description: createMysticArcanumDescription(8),
-        isTracked: false
+        isTracked: true
       }
     },
     eldritchInvocations: 9,
@@ -216,7 +216,7 @@ export const warlockFeatures: WarlockFeatureClassObj[] = [
     featureOverrides: {
       [CLASS_FEATURE.MYSTIC_ARCANUM]: {
         description: createMysticArcanumDescription(9),
-        isTracked: false
+        isTracked: true
       }
     },
     eldritchInvocations: 9,
@@ -243,9 +243,9 @@ export const warlockFeatures: WarlockFeatureClassObj[] = [
       [CLASS_FEATURE.EPIC_BOON]: {
         description: [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
-          "Boon of Fate is recommended."
+          "<feat:BOON_OF_FATE>Boon of Fate</feat> is recommended."
         ],
-        isTracked: false
+        isTracked: true
       }
     },
     eldritchInvocations: 10,
@@ -276,7 +276,7 @@ export const warlockFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "When you gain certain Warlock levels, you gain more invocations of your choice, as shown in the Invocations column of the Warlock Features table.",
       "You can't pick the same invocation more than once unless its description says otherwise."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.PACT_MAGIC]: {
     description: [
@@ -292,7 +292,7 @@ export const warlockFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "<strong>Spellcasting Ability.</strong> Charisma is the spellcasting ability for your Warlock spells.",
       "<strong>Spellcasting Focus.</strong> You can use an Arcane Focus as a Spellcasting Focus for your Warlock spells."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.MAGICAL_CUNNING]: {
     description: [
@@ -300,7 +300,7 @@ export const warlockFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "At the end of it, you regain expended Pact Magic spell slots but no more than a number equal to half your maximum, rounded up.",
       "Once you use this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link>."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.WARLOCK_SUBCLASS]: {
     description: [
@@ -312,21 +312,21 @@ export const warlockFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
   },
   [CLASS_FEATURE.CONTACT_PATRON]: {
     description: [
-      "In the past, you usually contacted your patron through intermediaries. Now you can communicate directly; you always have the Contact Other Plane spell prepared.",
+      "In the past, you usually contacted your patron through intermediaries. Now you can communicate directly; you always have the <spell:Contact Other Plane>Contact Other Plane</spell> spell prepared.",
       "With this feature, you can cast the spell without expending a spell slot to contact your patron, and you automatically succeed on the spell's saving throw.",
       "Once you cast the spell with this feature, you can't do so in this way again until you finish a <link:long-rest>Long Rest</link>."
     ],
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.MYSTIC_ARCANUM]: {
     description: createMysticArcanumDescription(6),
-    isTracked: false
+    isTracked: true
   },
   [CLASS_FEATURE.ELDRITCH_MASTER]: {
     description: [
       "When you use your Magical Cunning feature, you regain all your expended Pact Magic spell slots."
     ],
-    isTracked: false
+    isTracked: true
   }
 };
 

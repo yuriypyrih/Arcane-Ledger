@@ -444,12 +444,14 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     setSelectedStatusEntryId(null);
   }
 
-  function castSelectedReactionSpell() {
+  function castSelectedReactionSpell(options?: { castAsRitual?: boolean }) {
     if (!selectedReactionSpell || selectedReactionBlockedReason || selectedReactionActionWarning) {
       return;
     }
 
     const spellLevel = getSpellLevel(selectedReactionSpell);
+    const castAsRitual =
+      options?.castAsRitual === true && selectedReactionSpell.ritual === true;
 
     if (spellLevel === 0) {
       onPersistCharacter((currentCharacter) => ({
@@ -460,6 +462,20 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         ),
         roundTracker: consumeRoundTrackerResource(currentCharacter.roundTracker, "reaction")
       }));
+      closeSelectedReaction();
+      return;
+    }
+
+    if (castAsRitual) {
+      onPersistCharacter((currentCharacter) => ({
+        ...currentCharacter,
+        statusEntries: applySpellConcentrationToStatusEntries(
+          currentCharacter.statusEntries,
+          selectedReactionSpell
+        ),
+        roundTracker: consumeRoundTrackerResource(currentCharacter.roundTracker, "reaction")
+      }));
+
       closeSelectedReaction();
       return;
     }

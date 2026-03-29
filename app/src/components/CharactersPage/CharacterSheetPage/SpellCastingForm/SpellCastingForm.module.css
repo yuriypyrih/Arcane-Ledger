@@ -65,6 +65,42 @@
   gap: 0.75rem;
 }
 
+.wizardFilterBar {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.85rem;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.82);
+  overflow: hidden;
+  width: fit-content;
+}
+
+.wizardFilterButton {
+  border: none;
+  border-right: 1px solid rgba(75, 47, 29, 0.12);
+  background: transparent;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  min-height: 38px;
+  padding: 0 0.95rem;
+  text-transform: uppercase;
+}
+
+.wizardFilterButton:last-child {
+  border-right: none;
+}
+
+.wizardFilterButtonActive {
+  background: rgba(47, 120, 255, 0.12);
+  border-color: rgba(47, 120, 255, 0.34);
+  color: #2f78ff;
+}
+
 .spellcastingBlockedNotice {
   margin: 0;
   color: #a63729;
@@ -207,6 +243,49 @@
   opacity: 0.58;
 }
 
+.wizardSelectionControls {
+  display: grid;
+  min-width: 8.7rem;
+}
+
+.wizardSelectionToggle {
+  align-items: center;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  display: grid;
+  gap: 0.18rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 48px;
+  padding: 0.45rem 0.75rem;
+  text-align: left;
+}
+
+.wizardSelectionToggle + .wizardSelectionToggle {
+  border-top: 1px solid rgba(75, 47, 29, 0.12);
+}
+
+.wizardSelectionToggleDisabled {
+  background: rgba(75, 47, 29, 0.04);
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.wizardSelectionLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.selectableCheckbox {
+  accent-color: #2f78ff;
+  margin: 0;
+  pointer-events: none;
+}
+
 .alwaysPreparedPill {
   display: inline-flex;
   align-items: center;
@@ -224,6 +303,13 @@
 
 .alwaysPreparedDrawerPill {
   align-self: center;
+}
+
+.concentrationDetailValue {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.18rem;
 }
 
 .spellDetailButton {
@@ -271,6 +357,24 @@
   color: #2f78ff;
   font-size: 0.84rem;
   font-weight: 700;
+}
+
+.ritualCastToggle {
+  align-items: center;
+  color: #8c4d14;
+  display: inline-flex;
+  font-size: 0.84rem;
+  font-weight: 700;
+  gap: 0.45rem;
+}
+
+.ritualCastToggle input {
+  accent-color: #d17316;
+}
+
+.ritualCastButton {
+  background: linear-gradient(135deg, #c96c14, #ee9432);
+  color: #fffaf3;
 }
 
 .previewSpellDrawerBackdrop {

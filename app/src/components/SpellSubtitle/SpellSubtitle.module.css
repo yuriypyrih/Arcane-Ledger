@@ -1,0 +1,28 @@
+.root {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.38rem;
+  min-width: 0;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.label {
+  min-width: 0;
+}
+
+.ritualPill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: #d37f1e;
+  color: #fff8ef;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  padding: 0.22rem 0.48rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}

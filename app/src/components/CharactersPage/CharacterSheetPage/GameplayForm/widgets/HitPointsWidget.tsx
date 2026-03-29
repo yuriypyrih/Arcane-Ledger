@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { HeartPlus, Pencil, Save, Sword, X } from "lucide-react";
+import { HeartMinus, HeartPlus, Pencil, Save, X } from "lucide-react";
 import type { ChangeEvent } from "react";
 import { useEffect, useState } from "react";
 import NumberInput from "../../../FormInputs/NumberInput";
@@ -406,7 +406,7 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
                 onClick={() => adjustHitPoints(-1)}
                 title={`Deal ${hitPointStep} hit points`}
               >
-                <Sword size={20} />
+                <HeartMinus size={20} />
               </button>
               <button
                 type="button"

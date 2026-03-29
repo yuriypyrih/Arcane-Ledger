@@ -10,12 +10,20 @@ type FeatureActionOptionsModalProps = {
   action: FeatureActionCard;
   onClose: () => void;
   children: ReactNode;
+  eyebrow?: string;
+  helperText?: string;
+  helperTextTone?: "default" | "accent";
+  footer?: ReactNode;
 };
 
 function FeatureActionOptionsModal({
   action,
   onClose,
-  children
+  children,
+  eyebrow = "Cleric",
+  helperText = `Choose which divine effect to channel. ${action.usesLabel ?? ""}`.trim(),
+  helperTextTone = "default",
+  footer
 }: FeatureActionOptionsModalProps) {
   return (
     <div className={sheetStyles.spellManagementBackdrop} role="presentation" onClick={onClose}>
@@ -28,10 +36,15 @@ function FeatureActionOptionsModal({
       >
         <div className={sheetStyles.spellManagementHeader}>
           <div className={styles.modalHeading}>
-            <p className={sheetStyles.eyebrow}>Cleric</p>
+            <p className={sheetStyles.eyebrow}>{eyebrow}</p>
             <h3 id="feature-action-modal-title">{action.name}</h3>
-            <p className={shared.helperText}>
-              Choose which divine effect to channel. {action.usesLabel ?? ""}
+            <p
+              className={clsx(
+                shared.helperText,
+                helperTextTone === "accent" && styles.featureActionHelperTextAccent
+              )}
+            >
+              {helperText}
             </p>
           </div>
           <button
@@ -45,6 +58,7 @@ function FeatureActionOptionsModal({
         </div>
 
         <div className={styles.featureActionOptionGrid}>{children}</div>
+        {footer ? <div className={styles.featureActionModalFooter}>{footer}</div> : null}
       </section>
     </div>
   );

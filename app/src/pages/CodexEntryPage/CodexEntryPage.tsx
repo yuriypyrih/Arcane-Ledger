@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import RarityPill from "../../components/CodexPage/RarityPill";
 import KeywordReferenceDrawer from "../../components/KeywordReferenceDrawer/KeywordReferenceDrawer";
 import SpellDescriptionContent from "../../components/SpellDescriptionContent";
+import SpellSubtitle from "../../components/SpellSubtitle";
 import {
   ABILITY_TYPES,
   ENTRY_CATEGORIES,
@@ -16,7 +17,6 @@ import {
   formatEquipmentWeight,
   formatSpellCastingTime,
   formatSpellComponents,
-  formatSpellSubtitle,
   renderCodexInlineText,
   formatWeaponCost,
   formatWeaponDamage,
@@ -193,7 +193,7 @@ function CodexEntryPage() {
                   </div>
                   <p className={sheetStyles.spellDrawerSummary}>
                     {entry.category === ENTRY_CATEGORIES.SPELLS
-                      ? formatSpellSubtitle(entry)
+                      ? <SpellSubtitle spell={entry} />
                       : entry.summary}
                   </p>
                 </div>

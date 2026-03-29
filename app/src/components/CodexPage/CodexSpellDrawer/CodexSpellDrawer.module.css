@@ -19,6 +19,13 @@
   outline-offset: 2px;
 }
 
+.concentrationDetailValue {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.18rem;
+}
+
 .modalBackdrop {
   position: fixed;
   inset: 0;

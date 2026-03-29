@@ -538,6 +538,7 @@ export const feignDeath: SpellEntry = {
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["1 hour"],
+  ritual: true,
   description: [
     "You touch a willing creature and put it into a cataleptic state that is indistinguishable from death.",
     "For the spell's duration, or until you use an action to touch the target and dismiss the spell, the target appears dead to all outward inspection and to spells used to determine the target's status. The target is Blinded and Incapacitated, and its Speed drops to 0. The target has Resistance to all damage except Psychic damage. If the target is diseased or Poisoned when you cast the spell, or becomes diseased or Poisoned while under the spell's effect, the disease and poison have no effect until the spell ends."
@@ -910,6 +911,7 @@ export const leomundsTinyHut: SpellEntry = {
   range: "Self (10-foot-radius hemisphere)",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["8 hours"],
+  ritual: true,
   description: [
     "A 10-foot-radius immobile dome of force springs into existence around and above you and remains stationary for the duration. The spell ends if you leave its area.",
     "Nine creatures of Medium size or smaller can fit inside the dome with you. The spell fails if its area includes a larger creature or more than nine creatures. Creatures and objects within the dome when you cast the spell can move through it freely. All other creatures and objects are barred from passing through it. Spells and other magical effects can't extend through the dome or be cast through it. The atmosphere inside the space is comfortable and dry, regardless of the weather outside.",
@@ -1076,6 +1078,7 @@ export const meldIntoStone: SpellEntry = {
   range: "Touch",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["8 hours"],
+  ritual: true,
   description: [
     "You step into a stone object or surface large enough to fully contain your body, melding yourself and all the equipment you carry with the stone for the duration. Using your movement, you step into the stone at a point you can touch. Nothing of your presence remains visible or otherwise detectable by nonmagical senses.",
     "While merged with the stone, you can't see what occurs outside it, and any Wisdom (Perception) checks you make to hear sounds outside it are made with Disadvantage. You remain aware of the passage of time and can cast spells on yourself while merged in the stone. You can use your movement to leave the stone where you entered it, which ends the spell. You otherwise can't move.",
@@ -1151,6 +1154,7 @@ export const phantomSteed: SpellEntry = {
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["1 hour"],
+  ritual: true,
   description: [
     "A Large quasi-real, horselike creature appears on the ground in an unoccupied space of your choice within range. You decide the creature's appearance, but it is equipped with a saddle, bit, and bridle. Any of the equipment created by the spell vanishes in a puff of smoke if it is carried more than 10 feet away from the steed.",
     "For the duration, you or a creature you choose can ride the steed. The creature uses the statistics for a riding horse, except it has a Speed of 100 feet and can travel 10 miles in an hour, or 13 miles at a fast pace. When the spell ends, the steed gradually fades, giving the rider 1 minute to dismount. The spell ends if you use an action to dismiss it or if the steed takes any damage."
@@ -1809,6 +1813,7 @@ export const waterBreathing: SpellEntry = {
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["24 hours"],
+  ritual: true,
   description: [
     "This spell grants up to ten willing creatures you can see within range the ability to breathe underwater until the spell ends. Affected creatures also retain their normal mode of respiration."
   ],
@@ -1832,6 +1837,7 @@ export const waterWalk: SpellEntry = {
   range: "30 feet",
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["1 hour"],
+  ritual: true,
   description: [
     "This spell grants the ability to move across any liquid surface, such as water, acid, mud, snow, quicksand, or lava, as if it were harmless solid ground, though creatures crossing molten lava can still take damage from the heat. Up to ten willing creatures you can see within range gain this ability for the duration.",
     "If you target a creature submerged in a liquid, the spell carries the target to the surface of the liquid at a rate of 60 feet per round."

@@ -202,6 +202,20 @@ export function usesPreparedSpellsForCharacter(className: string, level: number)
   return getPreparedSpellLimitForCharacter(className, level) !== null;
 }
 
+export function usesSpellbookForCharacter(className: string): boolean {
+  return className === "Wizard";
+}
+
+export function hasClassFeatureForCharacter(
+  className: string,
+  level: number,
+  classFeature: CLASS_FEATURE
+): boolean {
+  return getClassFeatureRowsUpToLevel(className, level).some((featureRow) =>
+    featureRow.classFeatures.includes(classFeature)
+  );
+}
+
 export function getCantripSelectionOptionsForCharacter(
   className: string,
   level: number
@@ -274,6 +288,33 @@ export function normalizePreparedSpellIds(
   return selectedSpellIds;
 }
 
+export function normalizeSpellbookSpellIds(
+  spellIds: unknown,
+  availableSpells: SpellEntry[]
+): string[] {
+  const availableSpellsById = new Map(availableSpells.map((spell) => [spell.id, spell]));
+  const rawSpellIds = Array.isArray(spellIds)
+    ? spellIds.filter((spellId): spellId is string => typeof spellId === "string")
+    : [];
+  const selectedSpellIds: string[] = [];
+
+  for (const spellId of [...new Set(rawSpellIds)]) {
+    const spell = availableSpellsById.get(spellId);
+
+    if (!spell) {
+      continue;
+    }
+
+    if (getSpellLevel(spell) <= 0) {
+      continue;
+    }
+
+    selectedSpellIds.push(spellId);
+  }
+
+  return selectedSpellIds;
+}
+
 export function normalizeTrackedSpellIds(
   spellIds: unknown,
   availableSpells: SpellEntry[],
@@ -292,12 +333,14 @@ export function normalizeTrackedSpellIds(
 export function getAlwaysPreparedSpellIds(
   className: string,
   level: number,
-  classFeatureState?: CharacterClassFeatureState
+  classFeatureState?: CharacterClassFeatureState,
+  spellbookSpellIds?: string[]
 ): string[] {
   return getAlwaysPreparedSpellIdsForCharacter({
     className,
     level,
-    classFeatureState
+    classFeatureState,
+    spellbookSpellIds
   });
 }
 

@@ -1,13 +1,14 @@
 import clsx from "clsx";
 import type { CSSProperties } from "react";
 import ActionShape from "../../../../ActionShape";
+import ConcentrationLabel from "../../../../ConcentrationLabel";
 import {
   getStatusDurationShortLabel,
   getStatusEntrySourceLabel,
   getStatusEntryTitle
 } from "../../../../../pages/CharactersPage/traits";
 import type { CharacterStatusEntry } from "../../../../../types";
-import { STATUS_ENTRY_GROUP } from "../../../../../types";
+import { EFFECT_NAME, STATUS_ENTRY_GROUP } from "../../../../../types";
 import styles from "./TraitsConditionsWidget.module.css";
 
 type StatusSection = {
@@ -63,7 +64,14 @@ function TraitsConditionsSections({
                     disabled={entry.disabled === true}
                   >
                     <span className={styles.buttonText}>
-                      <span>{getStatusEntryTitle(entry)}</span>
+                      <span>
+                        {entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+                        entry.value === EFFECT_NAME.CONCENTRATION ? (
+                          <ConcentrationLabel iconSize={14} />
+                        ) : (
+                          getStatusEntryTitle(entry)
+                        )}
+                      </span>
                       <small>{getStatusEntrySourceLabel(entry)}</small>
                     </span>
                     {(shortDurationLabel || isReactionEntry) ? (

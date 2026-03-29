@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Brain } from "lucide-react";
+import { Brain, Sparkles } from "lucide-react";
 import ActionShape from "../../../../ActionShape";
 import type { Character } from "../../../../../types";
 import type {
@@ -87,6 +87,10 @@ function renderFeatureActionUsesIcon(icon: FeatureActionCard["usesIcon"]) {
     return <Brain size={14} strokeWidth={2.1} />;
   }
 
+  if (icon === "sparkles") {
+    return <Sparkles size={14} strokeWidth={2.1} />;
+  }
+
   return null;
 }
 
@@ -108,6 +112,24 @@ function renderFeatureActionUsesLabel(action: FeatureActionCard) {
   return <span>{action.usesLabel}</span>;
 }
 
+function renderFeatureActionOptionUsesLabel(option: FeatureActionOptionCard) {
+  if (!option.usesLabel) {
+    return null;
+  }
+
+  if (option.usesIcon) {
+    return (
+      <>
+        <span>Uses</span>
+        <span>{option.usesLabel}</span>
+        {renderFeatureActionUsesIcon(option.usesIcon)}
+      </>
+    );
+  }
+
+  return <span>{option.usesLabel}</span>;
+}
+
 export function FeatureActionCardButton({
   action,
   character,
@@ -123,7 +145,9 @@ export function FeatureActionCardButton({
         ? getNonMagicActionEconomyMultiForCharacter(character)
         : 0)
   );
-  const isDisabled = action.disabled === true || !economyShapeState.isUsable;
+  const isDisabled =
+    action.disabled === true ||
+    (!action.ignoreEconomyAvailability && !economyShapeState.isUsable);
 
   return (
     <button
@@ -163,6 +187,18 @@ export function FeatureActionCardButton({
               />
             ))}
           </span>
+          {action.usesInlineLabel || action.usesInlineIcon || action.usesInlineSuffix ? (
+            <span
+              className={clsx(
+                styles.usesInlineSupplementary,
+                action.usesInlineIcon && styles.usesInlineSupplementaryWithIcon
+              )}
+            >
+              {action.usesInlineLabel ? <span>{action.usesInlineLabel}</span> : null}
+              {action.usesInlineIcon ? renderFeatureActionUsesIcon(action.usesInlineIcon) : null}
+              {action.usesInlineSuffix ? <span>{action.usesInlineSuffix}</span> : null}
+            </span>
+          ) : null}
         </span>
       ) : null}
       {action.usesTotal && action.usesTotal > 0 ? (
@@ -197,6 +233,7 @@ type FeatureActionOptionButtonProps = {
   roundTracker: RoundTrackerAvailability;
   onClick: () => void;
   formatValueLabel: (option: FeatureActionOptionCard) => string;
+  selected?: boolean;
 };
 
 export function FeatureActionOptionButton({
@@ -204,7 +241,8 @@ export function FeatureActionOptionButton({
   character,
   roundTracker,
   onClick,
-  formatValueLabel
+  formatValueLabel,
+  selected = false
 }: FeatureActionOptionButtonProps) {
   const actionShape = getActionShapeForEconomyType(option.economyType);
   const economyShapeState = getEconomyShapeState(
@@ -215,6 +253,7 @@ export function FeatureActionOptionButton({
         ? getNonMagicActionEconomyMultiForCharacter(character)
         : 0)
   );
+  const isDisabled = option.disabled === true || !economyShapeState.isUsable;
 
   return (
     <button
@@ -223,9 +262,10 @@ export function FeatureActionOptionButton({
         styles.button,
         styles.actionCard,
         economyShapeState.multiCount > 0 && styles.actionCardMulti,
-        styles.featureActionOptionButton
+        styles.featureActionOptionButton,
+        selected && styles.featureActionOptionButtonSelected
       )}
-      disabled={!economyShapeState.isUsable}
+      disabled={isDisabled}
       onClick={onClick}
     >
       {actionShape ? (
@@ -239,9 +279,17 @@ export function FeatureActionOptionButton({
         </span>
       ) : null}
       <strong>{option.name}</strong>
-      <span className={styles.damageRow}>{formatValueLabel(option)}</span>
+      <span
+        className={clsx(
+          styles.damageRow,
+          option.usesLabel && styles.featureMeta,
+          option.usesIcon && styles.featureMetaWithIcon
+        )}
+      >
+        {option.usesLabel ? renderFeatureActionOptionUsesLabel(option) : formatValueLabel(option)}
+      </span>
       <small className={styles.breakdownRow}>
-        {economyShapeState.disabledReason ?? option.breakdown ?? option.summary}
+        {option.disabledReason ?? economyShapeState.disabledReason ?? option.breakdown ?? option.summary}
       </small>
     </button>
   );

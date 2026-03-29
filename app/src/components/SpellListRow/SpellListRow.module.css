@@ -19,6 +19,17 @@
   transform: translateY(-1px);
 }
 
+.buttonDisabled,
+.buttonDisabled:hover {
+  cursor: not-allowed;
+  opacity: 0.56;
+  transform: none;
+}
+
+.buttonDisabled:hover {
+  border-color: rgba(75, 47, 29, 0.16);
+}
+
 .button:focus-visible {
   outline: 2px solid rgba(143, 91, 56, 0.5);
   outline-offset: 2px;
@@ -45,6 +56,15 @@
   background: rgba(47, 120, 255, 0.08);
 }
 
+.spellMasteryHighlight {
+  background: rgba(47, 120, 255, 0.11);
+  border-color: rgba(47, 120, 255, 0.36);
+}
+
+.spellMasteryHighlight:hover {
+  border-color: rgba(47, 120, 255, 0.56);
+}
+
 .selectableToggleButton,
 .selectableDetailButton {
   border: none;
@@ -61,6 +81,12 @@
   border-right: 1px solid rgba(75, 47, 29, 0.14);
   cursor: pointer;
   padding: 0.62rem 1rem;
+}
+
+.selectionControls {
+  border-right: 1px solid rgba(75, 47, 29, 0.14);
+  display: grid;
+  flex: 0 0 auto;
 }
 
 .selectableToggleButton:disabled {
@@ -150,6 +176,10 @@
   text-align: right;
 }
 
+.concentrationLabel {
+  vertical-align: middle;
+}
+
 .metaGroup {
   display: inline-flex;
   align-items: center;
@@ -175,6 +205,11 @@
   line-height: 1.35;
   min-width: 0;
   white-space: normal;
+}
+
+.outcomeAccent {
+  color: #2f78ff;
+  font-weight: 700;
 }
 
 @media (max-width: 620px) {

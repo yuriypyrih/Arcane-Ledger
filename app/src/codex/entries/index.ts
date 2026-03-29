@@ -1,5 +1,6 @@
 export * from "../classes";
 export * from "../divinities";
+export * from "../eldritchInvocations";
 export * from "../reactions";
 export * from "../spells";
 export * from "./data";
