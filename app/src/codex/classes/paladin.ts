@@ -63,7 +63,7 @@ export const paladinFeatures: PaladinFeatureClassObj[] = [
   },
   {
     level: 3,
-    classFeatures: [CLASS_FEATURE.CHANNEL_DIVINITY, CLASS_FEATURE.PALADIN_SUBCLASS],
+    classFeatures: [CLASS_FEATURE.CHANNEL_DIVINITY],
     featureOverrides: {
       [CLASS_FEATURE.CHANNEL_DIVINITY]: {
         description: [
@@ -103,7 +103,7 @@ export const paladinFeatures: PaladinFeatureClassObj[] = [
   },
   {
     level: 7,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     channelDivinity: 2,
     preparedSpells: 7,
     spellSlots: [4, 3, 0, 0, 0]
@@ -159,7 +159,7 @@ export const paladinFeatures: PaladinFeatureClassObj[] = [
   },
   {
     level: 15,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     channelDivinity: 3,
     preparedSpells: 12,
     spellSlots: [4, 3, 3, 2, 0]
@@ -203,7 +203,7 @@ export const paladinFeatures: PaladinFeatureClassObj[] = [
   },
   {
     level: 20,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     channelDivinity: 3,
     preparedSpells: 15,
     spellSlots: [4, 3, 3, 3, 2]
@@ -223,17 +223,6 @@ export const paladinFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
     description: [
       "You always have the <spell:Divine Smite>Divine Smite</spell> spell prepared.",
       "In addition, you can cast it without expending a spell slot, but you must finish a <link:long-rest>Long Rest</link> before you can cast it in this way again."
-    ],
-    isTracked: true
-  },
-  [CLASS_FEATURE.PALADIN_SUBCLASS]: {
-    description: [
-      "You gain a Paladin subclass of your choice. The Oath of Devotion subclass is detailed after this class's description.",
-      "A subclass is a specialization that grants you features at certain Paladin levels.",
-      "For the rest of your career, you gain each of your subclass's features that are of your Paladin level or lower.",
-      "<strong>Breaking Your Oath.</strong> A Paladin tries to hold to the highest standards of conduct, but even the most dedicated are fallible. Sometimes a Paladin transgresses their oath.",
-      "A Paladin who has broken a vow typically seeks absolution, spending an all-night vigil as a sign of penitence or undertaking a fast. After a rite of forgiveness, the Paladin starts fresh.",
-      "If your Paladin unrepentantly violates their oath, talk to your DM. Your Paladin should probably take a more appropriate subclass or even abandon the class and adopt another one."
     ],
     isTracked: true
   },

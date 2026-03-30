@@ -5,9 +5,11 @@ import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShare
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import {
   durationPresetOptions,
+  isRoundDurationPreset,
   isExhaustionConditionOptionValue
 } from "../../../../../pages/CharactersPage/traits";
-import { STATUS_DURATION_PRESET } from "../../../../../types";
+import { STATUS_DURATION_PRESET, STATUS_DURATION_ROUND_TICK } from "../../../../../types";
+import { statusRoundTickOptions } from "../../../../../pages/CharactersPage/traits";
 import styles from "./TraitEditorModal.module.css";
 import {
   formatTraitEditorOptionLabel,
@@ -20,9 +22,11 @@ type TraitEditorModalProps = {
   activeTab: TraitEditorTab;
   values: Record<TraitEditorTab, string>;
   durationPreset: STATUS_DURATION_PRESET;
+  roundTickOn: STATUS_DURATION_ROUND_TICK;
   onTabChange: (tab: TraitEditorTab) => void;
   onValueChange: (tab: TraitEditorTab, value: string) => void;
   onDurationPresetChange: (preset: STATUS_DURATION_PRESET) => void;
+  onRoundTickOnChange: (tickOn: STATUS_DURATION_ROUND_TICK) => void;
   onSave: () => void;
   onClose: () => void;
 };
@@ -31,14 +35,17 @@ function TraitEditorModal({
   activeTab,
   values,
   durationPreset,
+  roundTickOn,
   onTabChange,
   onValueChange,
   onDurationPresetChange,
+  onRoundTickOnChange,
   onSave,
   onClose
 }: TraitEditorModalProps) {
   const isExhaustionSelection =
     activeTab === "conditions" && isExhaustionConditionOptionValue(values[activeTab]);
+  const showRoundTickSelector = isRoundDurationPreset(durationPreset) && !isExhaustionSelection;
 
   return (
     <div className={sheetStyles.spellManagementBackdrop} role="presentation" onClick={onClose}>
@@ -113,6 +120,24 @@ function TraitEditorModal({
               ))}
             </SelectInput>
           </label>
+
+          {showRoundTickSelector ? (
+            <label className={shared.field}>
+              <span>Round Tick</span>
+              <SelectInput
+                value={roundTickOn}
+                onChange={(event) =>
+                  onRoundTickOnChange(event.target.value as STATUS_DURATION_ROUND_TICK)
+                }
+              >
+                {statusRoundTickOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {option.label}
+                  </option>
+                ))}
+              </SelectInput>
+            </label>
+          ) : null}
         </div>
 
         <div className={shared.formActions}>

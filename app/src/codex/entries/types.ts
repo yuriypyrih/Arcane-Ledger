@@ -29,6 +29,8 @@ import type {
   WEAPON_TRAINING
 } from "./enums";
 import { ENTRY_CATEGORIES } from "./enums";
+import type { ClassStarterPack } from "../classes/starterPack/type";
+import type { SkillName } from "../../types/skills";
 
 export type CodexCategory = ENTRY_CATEGORIES;
 
@@ -199,24 +201,21 @@ export type ItemEntry = BaseCodexEntry<ENTRY_CATEGORIES.ITEMS, ITEM_TYPES> & {
   cost: EquipmentCost;
 };
 export type BackgroundEntry = BaseCodexEntry<ENTRY_CATEGORIES.BACKGROUNDS, BACKGROUND_TYPES> & {
-  grantedSkillProficiencies: string[];
+  grantedSkillProficiencies: SkillName[];
   grantedToolProficiencies: TOOL_PROFICIENCIES[];
 };
 export type SpeciesEntry = BaseCodexEntry<ENTRY_CATEGORIES.SPECIES, SPECIES_TYPES> & {
   speed: number;
   abilityBonuses: Partial<Record<ABILITY_TYPES, number>>;
   innateProficiencies: GENERAL_PROFICIENCIES[];
-  grantedSkillProficiencies: string[];
+  grantedSkillProficiencies: SkillName[];
   grantedToolProficiencies: TOOL_PROFICIENCIES[];
 };
 export type ClassEntry = BaseCodexEntry<ENTRY_CATEGORIES.CLASSES, CLASS_TYPES> & {
-  primaryAbilityModifiers: ABILITY_TYPES[];
   hitPointDie: DICE_TYPES;
-  savingThrowProficiencies: ABILITY_TYPES[];
   innateProficiencies: GENERAL_PROFICIENCIES[];
-  grantedSkillProficiencies: string[];
-  grantedToolProficiencies: TOOL_PROFICIENCIES[];
   features: FeatureClassObj[];
+  starterPack?: ClassStarterPack | null;
 };
 export type RuleEntry = BaseCodexEntry<ENTRY_CATEGORIES.RULES, RULE_TYPES>;
 export type MonsterEntry = BaseCodexEntry<ENTRY_CATEGORIES.MONSTERS, MONSTER_TYPES> &

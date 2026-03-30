@@ -34,7 +34,7 @@ export const fighterFeatures: FighterFeatureClassObj[] = [
   },
   {
     level: 3,
-    classFeatures: [CLASS_FEATURE.FIGHTER_SUBCLASS],
+    classFeatures: [],
     secondWind: 2,
     weaponMastery: 3
   },
@@ -66,7 +66,7 @@ export const fighterFeatures: FighterFeatureClassObj[] = [
   },
   {
     level: 7,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     secondWind: 3,
     weaponMastery: 4
   },
@@ -84,7 +84,7 @@ export const fighterFeatures: FighterFeatureClassObj[] = [
   },
   {
     level: 10,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     secondWind: 4,
     weaponMastery: 5
   },
@@ -114,7 +114,7 @@ export const fighterFeatures: FighterFeatureClassObj[] = [
   },
   {
     level: 15,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     secondWind: 4,
     weaponMastery: 5
   },
@@ -132,7 +132,7 @@ export const fighterFeatures: FighterFeatureClassObj[] = [
   },
   {
     level: 18,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     secondWind: 4,
     weaponMastery: 6
   },
@@ -190,14 +190,6 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "If the check still fails, this use of Second Wind isn't expended."
     ],
     isTracked: true
-  },
-  [CLASS_FEATURE.FIGHTER_SUBCLASS]: {
-    description: [
-      "You gain a Fighter subclass of your choice. The Champion subclass is detailed after this class's description.",
-      "A subclass is a specialization that grants you features at certain Fighter levels.",
-      "For the rest of your career, you gain each of your subclass's features that are of your Fighter level or lower."
-    ],
-    isTracked: false
   },
   [CLASS_FEATURE.TACTICAL_SHIFT]: {
     description: [

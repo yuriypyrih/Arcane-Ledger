@@ -5,8 +5,8 @@ import { createEmptyCharacter } from "../constants";
 import { getCharacterEquipmentNames } from "../inventory";
 import {
   getManualSkillExpertiseSelectionsFromEntries,
-  getManualSkillSelectionsFromEntries,
-  getManualToolSelectionsFromEntries,
+  getSelectedClassSkillSelectionsFromEntries,
+  getSelectedClassToolSelectionsFromEntries,
   getSavingThrowSelectionsFromEntries
 } from "../proficiency";
 import { findCharacter, upsertCharacter } from "../storage";
@@ -45,11 +45,17 @@ function CharacterBuilderPage() {
         background: existingCharacter.background,
         backgroundNotes: existingCharacter.backgroundNotes,
         currencies: existingCharacter.currencies,
-        skills: getManualSkillSelectionsFromEntries(existingCharacter.skillProficiencies),
+        skills: getSelectedClassSkillSelectionsFromEntries(
+          existingCharacter.skillProficiencies,
+          existingCharacter.className
+        ),
         skillExpertise: getManualSkillExpertiseSelectionsFromEntries(
           existingCharacter.skillProficiencies
         ),
-        toolProficiencies: getManualToolSelectionsFromEntries(existingCharacter.toolProficiencies),
+        toolProficiencies: getSelectedClassToolSelectionsFromEntries(
+          existingCharacter.toolProficiencies,
+          existingCharacter.className
+        ),
         savingThrowProficiencies: getSavingThrowSelectionsFromEntries(
           existingCharacter.savingThrowProficiencies
         ),

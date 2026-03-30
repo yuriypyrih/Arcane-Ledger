@@ -2,9 +2,9 @@ import { useNavigate } from "react-router-dom";
 import { ARMOR_TYPES, ENTRY_CATEGORIES, type SpellEntry } from "../../../codex/entries";
 import SpellListRow from "../../SpellListRow";
 import type { CodexEntry, CodexStatus } from "../../../types";
+import { getPrimaryAbilityForClass } from "../../../pages/CharactersPage/proficiency";
 import {
   formatCodexLabel,
-  formatCodexList,
   formatSpellSubtitle,
   getSpellExcerpt,
   formatWeaponType,
@@ -193,7 +193,12 @@ function CodexResults({
                     )}
                   </p>
                   {entry.category === ENTRY_CATEGORIES.CLASSES ? (
-                    <small>Primary Ability: {formatCodexList(entry.primaryAbilityModifiers)}</small>
+                    <small>
+                      Primary Ability:{" "}
+                      {getPrimaryAbilityForClass(entry.name)
+                        ? formatCodexLabel(getPrimaryAbilityForClass(entry.name) as string)
+                        : "Not configured"}
+                    </small>
                   ) : null}
                 </article>
               </button>

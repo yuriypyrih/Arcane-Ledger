@@ -3,11 +3,11 @@ import { getReactionEntryById, CLASS_FEATURE, type DICE, type ReactionEntry } fr
 import type { BardFeatureClassObj } from "../../../types";
 import type { Character, CharacterBardFeatureState, SkillName, SkillProficiencyEntry } from "../../../types";
 import {
-  ALL_SKILLS,
+  getSkillProficiencyForSkillName,
+  isSkillName,
   PROFICIENCY_OVERRIDE_POLICY,
   PROF_LEVEL,
-  PROFICIENCY_SOURCE,
-  SKILL_PROFICIENCY
+  PROFICIENCY_SOURCE
 } from "../../../types";
 import { getFeatAbilityScoreBonusesForCharacter } from "../feats";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../spellcasting";
@@ -24,27 +24,6 @@ const bardExpertiseLevel9SourceLabel = "Level 9: Expertise";
 const bardExpertiseLevel2SourceKey = "bard-expertise-level-2";
 const bardExpertiseLevel9SourceKey = "bard-expertise-level-9";
 const bardSourceMetadataSeparator = "::";
-const bardSkillProficiencyBySkillName = new Map<SkillName, SKILL_PROFICIENCY>([
-  ["Acrobatics", SKILL_PROFICIENCY.ACROBATICS],
-  ["Animal Handling", SKILL_PROFICIENCY.ANIMAL_HANDLING],
-  ["Arcana", SKILL_PROFICIENCY.ARCANA],
-  ["Athletics", SKILL_PROFICIENCY.ATHLETICS],
-  ["Deception", SKILL_PROFICIENCY.DECEPTION],
-  ["History", SKILL_PROFICIENCY.HISTORY],
-  ["Insight", SKILL_PROFICIENCY.INSIGHT],
-  ["Intimidation", SKILL_PROFICIENCY.INTIMIDATION],
-  ["Investigation", SKILL_PROFICIENCY.INVESTIGATION],
-  ["Medicine", SKILL_PROFICIENCY.MEDICINE],
-  ["Nature", SKILL_PROFICIENCY.NATURE],
-  ["Perception", SKILL_PROFICIENCY.PERCEPTION],
-  ["Performance", SKILL_PROFICIENCY.PERFORMANCE],
-  ["Persuasion", SKILL_PROFICIENCY.PERSUASION],
-  ["Religion", SKILL_PROFICIENCY.RELIGION],
-  ["Sleight of Hand", SKILL_PROFICIENCY.SLEIGHT_OF_HAND],
-  ["Stealth", SKILL_PROFICIENCY.STEALTH],
-  ["Survival", SKILL_PROFICIENCY.SURVIVAL]
-]);
-
 type BardExpertiseTier = "level2" | "level9";
 
 function getBardFeatureRow(level: number): BardFeatureClassObj | null {
@@ -86,10 +65,6 @@ function hasBardLevel9Expertise(character: Pick<Character, "className" | "level"
   return character.className === "Bard" && character.level >= 9;
 }
 
-function isSkillName(value: string): value is SkillName {
-  return (ALL_SKILLS as readonly string[]).includes(value);
-}
-
 function normalizeBardExpertiseSelections(value: unknown): SkillName[] {
   if (!Array.isArray(value)) {
     return [];
@@ -108,16 +83,10 @@ function createBardExpertiseEntry(
   sourceLabel: string,
   sourceKey: string
 ): SkillProficiencyEntry | null {
-  const proficiency = bardSkillProficiencyBySkillName.get(skill);
-
-  if (!proficiency) {
-    return null;
-  }
-
   return {
     source: PROFICIENCY_SOURCE.CLASS,
     sourceStr: createBardExpertiseSourceStr(sourceLabel, sourceKey),
-    proficiency,
+    proficiency: getSkillProficiencyForSkillName(skill),
     proficiencyLevel: PROF_LEVEL.EXPERT,
     overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
   };

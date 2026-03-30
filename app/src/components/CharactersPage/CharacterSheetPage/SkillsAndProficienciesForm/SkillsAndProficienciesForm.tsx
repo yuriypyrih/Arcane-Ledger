@@ -43,8 +43,11 @@ import {
   getSavingThrowLevelFromEntries,
   getSkillLevelFromEntries,
   getSkillProficiencyForName,
+  hasLockedArmorEntry,
+  hasLockedLanguageEntry,
   hasLockedSavingThrowEntry,
   hasLockedSkillEntry,
+  hasLockedToolEntry,
   hasLockedWeaponEntry,
   isCustomLanguageProficiency,
   addManualCustomLanguageEntry,
@@ -247,7 +250,7 @@ function SkillsAndProficienciesForm({
   );
 
   function formatSkillFormula(row: SkillRow): string {
-    const terms = [`${formatAbilityModifier(row.abilityModifier)} ${row.ability}`];
+    const terms = [`${formatAbilityModifier(row.abilityModifier)} ${row.abilityLabel}`];
 
     if (row.proficiencyMultiplier === 1) {
       terms.push(`${formatAbilityModifier(row.proficiencyContribution)} Proficiency Bonus`);
@@ -369,6 +372,10 @@ function SkillsAndProficienciesForm({
   }
 
   function updateArmorProficiency(proficiency: ARMOR_PROFICIENCY, isSelected: boolean) {
+    if (hasLockedArmorEntry(armorProficienciesDraft, proficiency)) {
+      return;
+    }
+
     setArmorProficienciesDraft((currentProficiencies) =>
       setManualArmorEntry(
         currentProficiencies,
@@ -379,6 +386,10 @@ function SkillsAndProficienciesForm({
   }
 
   function updateToolProficiency(proficiency: ToolProficiency, isSelected: boolean) {
+    if (hasLockedToolEntry(toolProficienciesDraft, proficiency)) {
+      return;
+    }
+
     setToolProficienciesDraft((currentProficiencies) =>
       setManualToolEntry(
         currentProficiencies,
@@ -389,11 +400,7 @@ function SkillsAndProficienciesForm({
   }
 
   function updateLanguageProficiency(proficiency: LANGUAGE_PROFICIENCY, isSelected: boolean) {
-    const isLocked = getDisplayLanguageProficiencyEntries(languageProficienciesDraft).some(
-      (entry) => entry.proficiency === proficiency && entry.locked
-    );
-
-    if (isLocked) {
+    if (hasLockedLanguageEntry(languageProficienciesDraft, proficiency)) {
       return;
     }
 
@@ -748,14 +755,21 @@ function SkillsAndProficienciesForm({
           armorProficiencyOptions,
           (proficiency) =>
             getArmorLevelFromEntries(armorProficienciesDraft, proficiency) !== PROF_LEVEL.NONE,
-          updateArmorProficiency
+          updateArmorProficiency,
+          {
+            isDisabled: (proficiency) =>
+              hasLockedArmorEntry(armorProficienciesDraft, proficiency)
+          }
         );
       case "tools":
         return renderToggleEditor(
           toolProficiencyOptions,
           (proficiency) =>
             getToolLevelFromEntries(toolProficienciesDraft, proficiency) !== PROF_LEVEL.NONE,
-          updateToolProficiency
+          updateToolProficiency,
+          {
+            isDisabled: (proficiency) => hasLockedToolEntry(toolProficienciesDraft, proficiency)
+          }
         );
       case "languages":
         return renderLanguageEditor();

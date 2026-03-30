@@ -7,10 +7,11 @@ import type {
   SkillProficiencyEntry
 } from "../../../types";
 import {
+  getSkillProficiencyForSkillName,
   PROFICIENCY_OVERRIDE_POLICY,
   PROFICIENCY_SOURCE,
   PROF_LEVEL,
-  SKILL_PROFICIENCY
+  SKILL
 } from "../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
 import {
@@ -27,21 +28,13 @@ const wizardSpellMasteryLevels = [1, 2] as const;
 const wizardSignatureSpellLevel = 3;
 const wizardSignatureSpellSelectionCount = 2;
 const wizardScholarSkillOptions: SkillName[] = [
-  "Arcana",
-  "History",
-  "Investigation",
-  "Medicine",
-  "Nature",
-  "Religion"
+  SKILL.ARCANA,
+  SKILL.HISTORY,
+  SKILL.INVESTIGATION,
+  SKILL.MEDICINE,
+  SKILL.NATURE,
+  SKILL.RELIGION
 ];
-const wizardSkillProficiencyBySkillName = new Map<SkillName, SKILL_PROFICIENCY>([
-  ["Arcana", SKILL_PROFICIENCY.ARCANA],
-  ["History", SKILL_PROFICIENCY.HISTORY],
-  ["Investigation", SKILL_PROFICIENCY.INVESTIGATION],
-  ["Medicine", SKILL_PROFICIENCY.MEDICINE],
-  ["Nature", SKILL_PROFICIENCY.NATURE],
-  ["Religion", SKILL_PROFICIENCY.RELIGION]
-]);
 
 export const arcaneRecoveryActionKey = "wizard-arcane-recovery";
 
@@ -90,16 +83,10 @@ function normalizeWizardScholarSelection(value: unknown): SkillName | undefined 
 }
 
 function createWizardScholarEntry(skill: SkillName): SkillProficiencyEntry | null {
-  const proficiency = wizardSkillProficiencyBySkillName.get(skill);
-
-  if (!proficiency) {
-    return null;
-  }
-
   return {
     source: PROFICIENCY_SOURCE.CLASS,
     sourceStr: wizardScholarSource,
-    proficiency,
+    proficiency: getSkillProficiencyForSkillName(skill),
     proficiencyLevel: PROF_LEVEL.EXPERT,
     overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
   };

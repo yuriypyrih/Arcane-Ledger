@@ -47,6 +47,12 @@ import {
 import sheetStyles from "../CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import { isShieldArmorEntry } from "../CharactersPage/armor";
 import { getKeywordReferences } from "../CharactersPage/keywordDescriptions";
+import {
+  getClassProficiencyProfile,
+  getEquipmentProficiencyLabelsForClass,
+  getPrimaryAbilityForClass,
+  getSavingThrowAbilityKeysForClass
+} from "../CharactersPage/proficiency";
 import { useCodexEntry } from "./useCodexEntry";
 import styles from "./CodexEntryPage.module.css";
 
@@ -104,6 +110,33 @@ function formatInnateProficiencyList({
   return orderedProficiencies.length > 0 ? orderedProficiencies.join(", ") : "None";
 }
 
+function formatSelectableProficiencyList(values: string[], count: number): string {
+  if (values.length === 0 || count <= 0) {
+    return "None";
+  }
+
+  return `Choose ${count}: ${values.join(", ")}`;
+}
+
+function formatClassToolProficiencyList(className: string): string {
+  const profile = getClassProficiencyProfile(className);
+  const grantedTools = (profile?.grantedToolProficiencies ?? []).map((entry) =>
+    formatCodexLabel(entry)
+  );
+  const selectableTools = (profile?.toolProficiencyChoices ?? []).map((entry) =>
+    formatCodexLabel(entry)
+  );
+  const selectableCount = profile?.toolProficiencyChoiceCount ?? 0;
+  const parts = [
+    ...grantedTools,
+    selectableTools.length > 0 && selectableCount > 0
+      ? `Choose ${selectableCount}: ${selectableTools.join(", ")}`
+      : null
+  ].filter((value): value is string => value !== null);
+
+  return parts.length > 0 ? parts.join(" | ") : "None";
+}
+
 type ResolvedFeatureItem = {
   key: string;
   level: number;
@@ -121,19 +154,10 @@ function createResolvedFeatureItems(
     level: number;
     classFeatures: CLASS_FEATURE[];
     featureOverrides?: Partial<Record<CLASS_FEATURE, FeatureMapEntry>>;
-  }>,
-  {
-    omitSubclassPlaceholder = false
-  }: {
-    omitSubclassPlaceholder?: boolean;
-  } = {}
+  }>
 ): ResolvedFeatureItem[] {
   return rows.flatMap((row) =>
     row.classFeatures.flatMap((feature, index) => {
-      if (omitSubclassPlaceholder && feature === CLASS_FEATURE.SUBCLASS_FEATURE) {
-        return [];
-      }
-
       const details = row.featureOverrides?.[feature] ?? FeatureMap[feature];
 
       if (!details) {
@@ -184,8 +208,20 @@ function CodexEntryPage() {
     entry?.category === ENTRY_CATEGORIES.SPELLS;
   const classFeatureItems =
     entry?.category === ENTRY_CATEGORIES.CLASSES
-      ? createResolvedFeatureItems(entry.features, { omitSubclassPlaceholder: true })
+      ? createResolvedFeatureItems(entry.features)
       : [];
+  const classPrimaryAbility =
+    entry?.category === ENTRY_CATEGORIES.CLASSES ? getPrimaryAbilityForClass(entry.name) : null;
+  const classSavingThrows =
+    entry?.category === ENTRY_CATEGORIES.CLASSES
+      ? getSavingThrowAbilityKeysForClass(entry.name)
+      : [];
+  const classProfile =
+    entry?.category === ENTRY_CATEGORIES.CLASSES ? getClassProficiencyProfile(entry.name) : null;
+  const classEquipmentLabels =
+    entry?.category === ENTRY_CATEGORIES.CLASSES
+      ? getEquipmentProficiencyLabelsForClass(entry.name)
+      : { weapons: [], armor: [] };
   const classSubclassEntries =
     entry?.category === ENTRY_CATEGORIES.CLASSES ? getSubclassEntriesForClass(entry.name) : [];
   const classFeaturesSectionKey =
@@ -479,8 +515,8 @@ function CodexEntryPage() {
                 {entry.category === ENTRY_CATEGORIES.CLASSES ? (
                   <>
                     <div className={styles.detailItem}>
-                      <span>Primary Abilities</span>
-                      <strong>{formatCodexList(entry.primaryAbilityModifiers)}</strong>
+                      <span>Primary Ability</span>
+                      <strong>{classPrimaryAbility ? formatCodexLabel(classPrimaryAbility) : "None"}</strong>
                     </div>
                     <div className={styles.detailItem}>
                       <span>Hit Point Die</span>
@@ -488,17 +524,38 @@ function CodexEntryPage() {
                     </div>
                     <div className={styles.detailItem}>
                       <span>Saving Throws</span>
-                      <strong>{formatCodexList(entry.savingThrowProficiencies)}</strong>
+                      <strong>
+                        {classSavingThrows.length > 0 ? formatCodexList(classSavingThrows) : "None"}
+                      </strong>
                     </div>
                     <div className={styles.detailItem}>
-                      <span>Granted Proficiencies</span>
+                      <span>Weapon Proficiencies</span>
                       <strong>
-                        {formatInnateProficiencyList({
-                          grantedSkillProficiencies: entry.grantedSkillProficiencies,
-                          innateProficiencies: entry.innateProficiencies,
-                          grantedToolProficiencies: entry.grantedToolProficiencies
-                        })}
+                        {classEquipmentLabels.weapons.length > 0
+                          ? classEquipmentLabels.weapons.join(", ")
+                          : "None"}
                       </strong>
+                    </div>
+                    <div className={styles.detailItem}>
+                      <span>Armor Training</span>
+                      <strong>
+                        {classEquipmentLabels.armor.length > 0
+                          ? classEquipmentLabels.armor.join(", ")
+                          : "None"}
+                      </strong>
+                    </div>
+                    <div className={styles.detailItem}>
+                      <span>Possible Skill Proficiencies</span>
+                      <strong>
+                        {formatSelectableProficiencyList(
+                          classProfile?.skillProficiencyOptions ?? [],
+                          classProfile?.skillProficiencyCount ?? 0
+                        )}
+                      </strong>
+                    </div>
+                    <div className={styles.detailItem}>
+                      <span>Tool Proficiencies</span>
+                      <strong>{formatClassToolProficiencyList(entry.name)}</strong>
                     </div>
                   </>
                 ) : null}

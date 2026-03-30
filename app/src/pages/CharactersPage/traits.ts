@@ -11,6 +11,7 @@ import {
   EFFECT_NAME,
   SENSE,
   STATUS_DURATION_KIND,
+  STATUS_DURATION_ROUND_TICK,
   STATUS_DURATION_PRESET,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
@@ -92,6 +93,14 @@ export const durationPresetOptions: Array<{
   }))
 ];
 
+export const statusRoundTickOptions: Array<{
+  value: STATUS_DURATION_ROUND_TICK;
+  label: string;
+}> = [
+  { value: STATUS_DURATION_ROUND_TICK.ROUND_START, label: "Round Start" },
+  { value: STATUS_DURATION_ROUND_TICK.ROUND_END, label: "Round End" }
+];
+
 function roundCountToDurationPreset(rounds: number): STATUS_DURATION_PRESET {
   return [
     STATUS_DURATION_PRESET.ONE_ROUND,
@@ -142,6 +151,18 @@ function durationPresetToRoundCount(preset: STATUS_DURATION_PRESET): number | nu
   ]);
 
   return mapping.get(preset) ?? null;
+}
+
+export function isRoundDurationPreset(preset: STATUS_DURATION_PRESET): boolean {
+  return durationPresetToRoundCount(preset) !== null;
+}
+
+export function normalizeStatusDurationRoundTick(
+  value: unknown
+): STATUS_DURATION_ROUND_TICK {
+  return value === STATUS_DURATION_ROUND_TICK.ROUND_END
+    ? STATUS_DURATION_ROUND_TICK.ROUND_END
+    : STATUS_DURATION_ROUND_TICK.ROUND_START;
 }
 
 function createStatusEntryId(): string {
@@ -250,7 +271,8 @@ function parseSpellConcentrationDurationLabel(label: string): CharacterStatusDur
   if (roundMatch) {
     return {
       kind: STATUS_DURATION_KIND.ROUNDS,
-      amount: clampInteger(roundMatch[1], 1, 999, 1)
+      amount: clampInteger(roundMatch[1], 1, 999, 1),
+      tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
     };
   }
 
@@ -359,7 +381,8 @@ function normalizeStatusDuration(value: unknown): CharacterStatusDuration | null
     case STATUS_DURATION_KIND.ROUNDS:
       return {
         kind: STATUS_DURATION_KIND.ROUNDS,
-        amount: clampInteger(record.amount, 1, 999, 1)
+        amount: clampInteger(record.amount, 1, 999, 1),
+        tickOn: normalizeStatusDurationRoundTick(record.tickOn)
       };
     default:
       return null;
@@ -381,7 +404,8 @@ function normalizeLegacyDuration(roundsRemaining: unknown): CharacterStatusDurat
 
   return {
     kind: STATUS_DURATION_KIND.ROUNDS,
-    amount: clampInteger(parsed, 1, 999, 1)
+    amount: clampInteger(parsed, 1, 999, 1),
+    tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
   };
 }
 
@@ -518,7 +542,8 @@ function normalizeLegacyConditionEntry(value: unknown, index: number): Character
 }
 
 export function createStatusDurationFromPreset(
-  preset: STATUS_DURATION_PRESET
+  preset: STATUS_DURATION_PRESET,
+  roundTickOn: STATUS_DURATION_ROUND_TICK = STATUS_DURATION_ROUND_TICK.ROUND_START
 ): CharacterStatusDuration {
   switch (preset) {
     case STATUS_DURATION_PRESET.CONCENTRATION:
@@ -548,7 +573,8 @@ export function createStatusDurationFromPreset(
 
       return {
         kind: STATUS_DURATION_KIND.ROUNDS,
-        amount: roundCount ?? 1
+        amount: roundCount ?? 1,
+        tickOn: roundTickOn
       };
     }
   }
@@ -938,6 +964,11 @@ export function reconcileCharacterStatusConsequences(character: Character): Char
   const effectiveHitPointMaximum = getEffectiveHitPointMaximumForCharacter(character);
   const exhaustionLevel = getExhaustionLevel(character.statusEntries);
   const isDeadFromExhaustion = exhaustionLevel !== null && exhaustionLevel >= 6;
+  const rageState = character.classFeatureState?.rage;
+  const shouldEndRageFromIncapacitated =
+    character.className === "Barbarian" &&
+    rageState?.active === true &&
+    hasStatusCondition(character.statusEntries, CONDITION_NAME.INCAPACITATED);
   const nextCurrentHitPoints = isDeadFromExhaustion
     ? 0
     : Math.max(0, Math.min(effectiveHitPointMaximum, character.currentHitPoints));
@@ -953,7 +984,8 @@ export function reconcileCharacterStatusConsequences(character: Character): Char
 
   if (
     nextCurrentHitPoints === character.currentHitPoints &&
-    (!isDeadFromExhaustion || deathSavesUnchanged)
+    (!isDeadFromExhaustion || deathSavesUnchanged) &&
+    !shouldEndRageFromIncapacitated
   ) {
     return character;
   }
@@ -961,14 +993,32 @@ export function reconcileCharacterStatusConsequences(character: Character): Char
   return {
     ...character,
     currentHitPoints: nextCurrentHitPoints,
-    deathSaves: nextDeathSaves
+    deathSaves: nextDeathSaves,
+    classFeatureState:
+      shouldEndRageFromIncapacitated && rageState
+        ? {
+            ...character.classFeatureState,
+            rage: {
+              ...rageState,
+              active: false,
+              frenzyPending: false
+            }
+          }
+        : character.classFeatureState
   };
 }
 
-export function advanceCharacterStatusEntries(value: unknown): CharacterStatusEntry[] {
+export function advanceCharacterStatusEntries(
+  value: unknown,
+  tickOn: STATUS_DURATION_ROUND_TICK = STATUS_DURATION_ROUND_TICK.ROUND_START
+): CharacterStatusEntry[] {
   return pruneLinkedStatusEntries(
     normalizeCharacterStatusEntries(value).flatMap((entry) => {
       if (entry.duration.kind !== STATUS_DURATION_KIND.ROUNDS) {
+        return [entry];
+      }
+
+      if (normalizeStatusDurationRoundTick(entry.duration.tickOn) !== tickOn) {
         return [entry];
       }
 
@@ -983,7 +1033,8 @@ export function advanceCharacterStatusEntries(value: unknown): CharacterStatusEn
           ...entry,
           duration: {
             kind: STATUS_DURATION_KIND.ROUNDS,
-            amount: nextAmount
+            amount: nextAmount,
+            tickOn: normalizeStatusDurationRoundTick(entry.duration.tickOn)
           }
         }
       ];
@@ -1190,7 +1241,7 @@ export function getStatusDurationLabel(duration: CharacterStatusDuration): strin
     case STATUS_DURATION_KIND.HOURS:
       return `${duration.amount} hour${duration.amount === 1 ? "" : "s"}`;
     case STATUS_DURATION_KIND.ROUNDS:
-      return `${duration.amount} round${duration.amount === 1 ? "" : "s"}`;
+      return `${duration.amount} round${duration.amount === 1 ? "" : "s"} (${getStatusDurationTickOnLabel(duration)})`;
     default:
       return "Infinite";
   }
@@ -1254,6 +1305,26 @@ export function getStatusDurationShortLabel(duration: CharacterStatusDuration): 
     default:
       return null;
   }
+}
+
+export function getStatusDurationTickOn(
+  duration: CharacterStatusDuration
+): STATUS_DURATION_ROUND_TICK | null {
+  if (duration.kind !== STATUS_DURATION_KIND.ROUNDS) {
+    return null;
+  }
+
+  return normalizeStatusDurationRoundTick(duration.tickOn);
+}
+
+export function getStatusDurationTickOnLabel(duration: CharacterStatusDuration): string | null {
+  const tickOn = getStatusDurationTickOn(duration);
+
+  if (!tickOn) {
+    return null;
+  }
+
+  return tickOn === STATUS_DURATION_ROUND_TICK.ROUND_END ? "Round End" : "Round Start";
 }
 
 export function getStatusEntrySortRank(group: STATUS_ENTRY_GROUP): number {

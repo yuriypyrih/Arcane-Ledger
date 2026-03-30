@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { PROFICIENCY_SOURCE, SKILL_PROFICIENCY } from "../../types";
 import { normalizeCharacter } from "./storage";
 
 describe("normalizeCharacter", () => {
@@ -31,5 +32,46 @@ describe("normalizeCharacter", () => {
     expect(normalizedCharacter?.currencies.silver).toBe(12);
     expect(normalizedCharacter?.preparedSpellIds).toEqual(["spell-healing-word"]);
     expect(normalizedCharacter?.cantripIds).toEqual(["spell-guidance"]);
+  });
+
+  it("bakes legacy builder skill selections into class-sourced proficiency entries", () => {
+    const normalizedCharacter = normalizeCharacter({
+      id: 9,
+      name: "Rok",
+      className: "Barbarian",
+      species: "Elf",
+      background: "Acolyte",
+      level: 1,
+      xp: 0,
+      hitPoints: 12,
+      currentHitPoints: 12,
+      abilities: {
+        STR: 15,
+        DEX: 14,
+        CON: 15,
+        INT: 8,
+        WIS: 10,
+        CHA: 8
+      },
+      skills: ["Athletics", "Intimidation"]
+    });
+
+    expect(normalizedCharacter).not.toBeNull();
+    expect(
+      normalizedCharacter?.skillProficiencies.some(
+        (entry) =>
+          entry.source === PROFICIENCY_SOURCE.CLASS &&
+          entry.sourceStr === "Barbarian" &&
+          entry.proficiency === SKILL_PROFICIENCY.ATHLETICS
+      )
+    ).toBe(true);
+    expect(
+      normalizedCharacter?.skillProficiencies.some(
+        (entry) =>
+          entry.source === PROFICIENCY_SOURCE.SPECIES &&
+          entry.sourceStr === "Elf" &&
+          entry.proficiency === SKILL_PROFICIENCY.PERCEPTION
+      )
+    ).toBe(true);
   });
 });

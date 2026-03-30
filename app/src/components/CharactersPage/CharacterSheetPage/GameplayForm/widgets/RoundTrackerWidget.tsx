@@ -1,20 +1,19 @@
 import { X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { Character, CharacterStatusEntry } from "../../../../../types";
-import { STATUS_ENTRY_SOURCE_TYPE } from "../../../../../types";
+import {
+  STATUS_DURATION_ROUND_TICK,
+  STATUS_ENTRY_SOURCE_TYPE
+} from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
-  consumeRoundTrackerResource,
-  createDefaultRoundTracker,
+  finishRoundTrackerTurn,
   normalizeRoundTracker,
   setRoundTrackerResourceAvailability,
   type RoundTrackerResource
 } from "../../../../../pages/CharactersPage/combat";
 import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
-import {
-  advanceFeatureStateForNewRound,
-  removeFeatureStatusEntryForCharacter
-} from "../../../../../pages/CharactersPage/classFeatures";
+import { removeFeatureStatusEntryForCharacter } from "../../../../../pages/CharactersPage/classFeatures";
 import {
   advanceCharacterStatusEntries,
   normalizeCharacterStatusEntries
@@ -26,6 +25,10 @@ import {
 } from "../gameplayWidgetUtils";
 import RoundTrackerControl from "./RoundTrackerControl";
 import styles from "./RoundTrackerWidget.module.css";
+import {
+  consumeRoundTrackerResourceForCharacter,
+  startCharacterTurn
+} from "../gameplayStateUtils";
 
 type RoundTrackerWidgetProps = {
   character: Character;
@@ -84,32 +87,49 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [selectedResource]);
 
+  function startTurn() {
+    onPersistCharacter((currentCharacter) => startCharacterTurn(currentCharacter));
+  }
+
+  function advanceTimedStatuses(
+    currentCharacter: Character,
+    tickOn: STATUS_DURATION_ROUND_TICK
+  ): Character {
+    const nextStatusEntries = advanceCharacterStatusEntries(currentCharacter.statusEntries, tickOn);
+    const expiredFeatureOverrideEntries = getExpiredFeatureOverrideEntries(
+      currentCharacter.statusEntries,
+      nextStatusEntries
+    );
+    let nextCharacter: Character = {
+      ...currentCharacter,
+      statusEntries: nextStatusEntries
+    };
+
+    expiredFeatureOverrideEntries.forEach((entry) => {
+      nextCharacter = removeFeatureStatusEntryForCharacter(nextCharacter, entry);
+    });
+
+    return nextCharacter;
+  }
+
   function finishRound() {
     onPersistCharacter((currentCharacter) => {
-      const nextStatusEntries = advanceCharacterStatusEntries(currentCharacter.statusEntries);
-      const expiredFeatureOverrideEntries = getExpiredFeatureOverrideEntries(
-        currentCharacter.statusEntries,
-        nextStatusEntries
+      const nextCharacter = advanceTimedStatuses(
+        currentCharacter,
+        STATUS_DURATION_ROUND_TICK.ROUND_END
       );
-      let nextCharacter: Character = advanceFeatureStateForNewRound({
-        ...currentCharacter,
-        roundTracker: createDefaultRoundTracker(),
-        statusEntries: nextStatusEntries
-      });
 
-      expiredFeatureOverrideEntries.forEach((entry) => {
-        nextCharacter = removeFeatureStatusEntryForCharacter(nextCharacter, entry);
-      });
-
-      return nextCharacter;
+      return {
+        ...nextCharacter,
+        roundTracker: finishRoundTrackerTurn(nextCharacter.roundTracker)
+      };
     });
   }
 
   function consumeResource(resource: RoundTrackerResource) {
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      roundTracker: consumeRoundTrackerResource(currentCharacter.roundTracker, resource)
-    }));
+    onPersistCharacter((currentCharacter) =>
+      consumeRoundTrackerResourceForCharacter(currentCharacter, resource)
+    );
   }
 
   function resetResource(resource: RoundTrackerResource) {
@@ -124,6 +144,7 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
       <RoundTrackerControl
         roundTracker={roundTracker}
         onSelectResource={setSelectedResource}
+        onStartTurn={startTurn}
         onFinishRound={finishRound}
       />
 

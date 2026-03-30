@@ -65,7 +65,7 @@ export const wizardFeatures: WizardFeatureClassObj[] = [
   },
   {
     level: 3,
-    classFeatures: [CLASS_FEATURE.WIZARD_SUBCLASS],
+    classFeatures: [],
     cantrips: 3,
     preparedSpells: 6,
     spellSlots: [4, 2, 0, 0, 0, 0, 0, 0, 0]
@@ -86,7 +86,7 @@ export const wizardFeatures: WizardFeatureClassObj[] = [
   },
   {
     level: 6,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     cantrips: 4,
     preparedSpells: 10,
     spellSlots: [4, 3, 3, 0, 0, 0, 0, 0, 0]
@@ -114,7 +114,7 @@ export const wizardFeatures: WizardFeatureClassObj[] = [
   },
   {
     level: 10,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     cantrips: 5,
     preparedSpells: 15,
     spellSlots: [4, 3, 3, 3, 2, 0, 0, 0, 0]
@@ -142,7 +142,7 @@ export const wizardFeatures: WizardFeatureClassObj[] = [
   },
   {
     level: 14,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     cantrips: 5,
     preparedSpells: 18,
     spellSlots: [4, 3, 3, 3, 2, 1, 1, 0, 0]
@@ -224,14 +224,6 @@ export const wizardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "You have <link:Expertise>Expertise</link> in the chosen skill."
     ],
     isTracked: true
-  },
-  [CLASS_FEATURE.WIZARD_SUBCLASS]: {
-    description: [
-      "You gain a Wizard subclass of your choice. The Evoker subclass is detailed after this class's description.",
-      "A subclass is a specialization that grants you features at certain Wizard levels.",
-      "For the rest of your career, you gain each of your subclass's features that are of your Wizard level or lower."
-    ],
-    isTracked: false
   },
   [CLASS_FEATURE.MEMORIZE_SPELL]: {
     description: [

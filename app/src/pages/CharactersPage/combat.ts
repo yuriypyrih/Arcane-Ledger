@@ -4,6 +4,7 @@ export type RoundTrackerResource = "action" | "bonusAction" | "reaction";
 
 export function createDefaultRoundTracker(): CharacterRoundTracker {
   return {
+    turnStarted: false,
     actionAvailable: true,
     bonusActionAvailable: true,
     reactionAvailable: true
@@ -18,6 +19,7 @@ export function normalizeRoundTracker(value: unknown): CharacterRoundTracker {
   const record = value as Partial<CharacterRoundTracker>;
 
   return {
+    turnStarted: typeof record.turnStarted === "boolean" ? record.turnStarted : false,
     actionAvailable:
       typeof record.actionAvailable === "boolean" ? record.actionAvailable : true,
     bonusActionAvailable:
@@ -43,6 +45,22 @@ export function isRoundTrackerResourceAvailable(
     default:
       return false;
   }
+}
+
+export function startRoundTrackerTurn(): CharacterRoundTracker {
+  return {
+    ...createDefaultRoundTracker(),
+    turnStarted: true
+  };
+}
+
+export function finishRoundTrackerTurn(value: unknown): CharacterRoundTracker {
+  const tracker = normalizeRoundTracker(value);
+
+  return {
+    ...tracker,
+    turnStarted: false
+  };
 }
 
 export function setRoundTrackerResourceAvailability(

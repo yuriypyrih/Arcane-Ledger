@@ -1,5 +1,24 @@
-import type { Character } from "../../../../types";
+import type { Character, CharacterStatusEntry } from "../../../../types";
+import {
+  STATUS_DURATION_ROUND_TICK,
+  STATUS_ENTRY_SOURCE_TYPE
+} from "../../../../types";
+import {
+  advanceFeatureStateForNewRound,
+  removeFeatureStatusEntryForCharacter
+} from "../../../../pages/CharactersPage/classFeatures";
+import {
+  advanceCharacterStatusEntries,
+  normalizeCharacterStatusEntries
+} from "../../../../pages/CharactersPage/traits";
 import type { HpDraft } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
+import {
+  consumeRoundTrackerResource,
+  isRoundTrackerResourceAvailable,
+  normalizeRoundTracker,
+  startRoundTrackerTurn,
+  type RoundTrackerResource
+} from "../../../../pages/CharactersPage/combat";
 import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 
 export type DeathSaveState = {
@@ -43,4 +62,81 @@ export function swapTemporaryHitPoints(currentValue: unknown, grantedValue: unkn
     normalizeTemporaryHitPoints(currentValue),
     normalizeTemporaryHitPoints(grantedValue)
   );
+}
+
+function getExpiredFeatureOverrideEntries(
+  previousEntries: unknown,
+  nextEntries: unknown
+): CharacterStatusEntry[] {
+  const nextOverrideIds = new Set(
+    normalizeCharacterStatusEntries(nextEntries).map((entry) => entry.id)
+  );
+
+  return normalizeCharacterStatusEntries(previousEntries).filter(
+    (entry) =>
+      entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE &&
+      typeof entry.sourceId === "string" &&
+      entry.sourceId.length > 0 &&
+      !nextOverrideIds.has(entry.id)
+  );
+}
+
+function advanceTimedStatusesForTurnStart(character: Character): Character {
+  const nextStatusEntries = advanceCharacterStatusEntries(
+    character.statusEntries,
+    STATUS_DURATION_ROUND_TICK.ROUND_START
+  );
+  const expiredFeatureOverrideEntries = getExpiredFeatureOverrideEntries(
+    character.statusEntries,
+    nextStatusEntries
+  );
+  let nextCharacter: Character = {
+    ...character,
+    statusEntries: nextStatusEntries
+  };
+
+  expiredFeatureOverrideEntries.forEach((entry) => {
+    nextCharacter = removeFeatureStatusEntryForCharacter(nextCharacter, entry);
+  });
+
+  return nextCharacter;
+}
+
+export function startCharacterTurn(character: Character): Character {
+  const nextCharacter = advanceFeatureStateForNewRound(
+    advanceTimedStatusesForTurnStart(character)
+  );
+
+  return {
+    ...nextCharacter,
+    roundTracker: startRoundTrackerTurn()
+  };
+}
+
+export function prepareCharacterForRoundTrackerResourceConsumption(
+  character: Character,
+  resource: RoundTrackerResource
+): Character {
+  const roundTracker = normalizeRoundTracker(character.roundTracker);
+  const shouldAutoStartTurn =
+    (resource === "action" || resource === "bonusAction") &&
+    !roundTracker.turnStarted &&
+    isRoundTrackerResourceAvailable(roundTracker, resource);
+
+  return shouldAutoStartTurn ? startCharacterTurn(character) : character;
+}
+
+export function consumeRoundTrackerResourceForCharacter(
+  character: Character,
+  resource: RoundTrackerResource
+): Character {
+  const preparedCharacter = prepareCharacterForRoundTrackerResourceConsumption(
+    character,
+    resource
+  );
+
+  return {
+    ...preparedCharacter,
+    roundTracker: consumeRoundTrackerResource(preparedCharacter.roundTracker, resource)
+  };
 }

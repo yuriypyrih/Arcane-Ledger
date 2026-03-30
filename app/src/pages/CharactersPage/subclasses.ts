@@ -1,22 +1,6 @@
-import { CLASS_FEATURE, type FeatureMapEntry, type SubclassEntry, type SubclassFeatureClassObj } from "../../codex/entries";
+import type { CLASS_FEATURE, FeatureMapEntry, SubclassEntry, SubclassFeatureClassObj } from "../../codex/entries";
 import { getSubclassEntryById, getSubclassEntriesForClass } from "../../codex/subclasses";
 import type { Character } from "../../types";
-
-const subclassSelectionFeatureByClassName: Partial<Record<string, CLASS_FEATURE>> = {
-  Artificer: CLASS_FEATURE.ARTIFICER_SUBCLASS,
-  Barbarian: CLASS_FEATURE.BARBARIAN_SUBCLASS,
-  Bard: CLASS_FEATURE.BARD_SUBCLASS,
-  Cleric: CLASS_FEATURE.CLERIC_SUBCLASS,
-  Druid: CLASS_FEATURE.DRUID_SUBCLASS,
-  Fighter: CLASS_FEATURE.FIGHTER_SUBCLASS,
-  Monk: CLASS_FEATURE.MONK_SUBCLASS,
-  Paladin: CLASS_FEATURE.PALADIN_SUBCLASS,
-  Ranger: CLASS_FEATURE.RANGER_SUBCLASS,
-  Rogue: CLASS_FEATURE.ROGUE_SUBCLASS,
-  Sorcerer: CLASS_FEATURE.SORCERER_SUBCLASS,
-  Warlock: CLASS_FEATURE.WARLOCK_SUBCLASS,
-  Wizard: CLASS_FEATURE.WIZARD_SUBCLASS
-};
 
 export function getSubclassOptionsForClassName(className: string): SubclassEntry[] {
   return getSubclassEntriesForClass(className);
@@ -46,10 +30,6 @@ export function getSelectedSubclassForCharacter(
   return subclassId ? (getSubclassEntryById(subclassId) ?? null) : null;
 }
 
-export function getSubclassSelectionFeatureForClassName(className: string): CLASS_FEATURE | null {
-  return subclassSelectionFeatureByClassName[className] ?? null;
-}
-
 export function getSubclassFeatureRowsForCharacter(
   character: Pick<Character, "className"> & Partial<Pick<Character, "subclassId">>
 ): SubclassFeatureClassObj[] {
@@ -69,7 +49,9 @@ export function getSubclassFeatureDetails(
   level: number,
   feature: CLASS_FEATURE
 ): FeatureMapEntry | null {
-  const matchingRow = subclass?.features.find((featureRow) => featureRow.level === level);
+  const matchingRow = subclass?.features.find(
+    (featureRow) => featureRow.level === level && featureRow.classFeatures.includes(feature)
+  );
 
   if (!matchingRow) {
     return null;

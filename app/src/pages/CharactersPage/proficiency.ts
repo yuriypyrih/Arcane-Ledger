@@ -38,19 +38,24 @@ import {
   WEAPON_TRAINING,
   type ArmorEntry,
   type BackgroundEntry,
-  type ClassEntry,
   type ItemEntry,
   type SpeciesEntry,
   type WeaponEntry
 } from "../../codex/entries";
+import { getClassStarterPack } from "../../codex/classes/starterPack";
 import {
   getBackgroundEntries,
-  getClassEntries,
   getLoadoutEntries,
   getSpeciesEntries,
   getWeaponEntries
 } from "../../codex/selectors";
-import { ALL_SKILLS } from "../../types";
+import {
+  ALL_SKILLS,
+  SKILL,
+  getSkillNameForProficiency as getSharedSkillNameForProficiency,
+  getSkillProficiencyForSkillName,
+  isSkillName
+} from "../../types";
 import {
   createCharacterEquipmentItem,
   getCharacterEquipmentNames,
@@ -135,8 +140,11 @@ export type EquipmentProficiencyLabels = {
 };
 
 export type ClassProficiencyProfile = {
+  primaryAbility: AbilityKey | null;
+  savingThrowProficiencies: SAVING_THROW_PROFICIENCY[];
   weaponProficiencies: WEAPON_PROFICIENCY[];
   armorProficiencies: ArmorType[];
+  grantedSkillProficiencies?: SkillName[];
   skillProficiencyOptions: SkillName[];
   skillProficiencyCount: number;
   grantedToolProficiencies?: ToolProficiency[];
@@ -278,16 +286,18 @@ export type ClassName = (typeof classOptions)[number];
 
 export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile> = {
   Artificer: {
+    primaryAbility: "INT",
+    savingThrowProficiencies: [SAVING_THROW_PROFICIENCY.CON, SAVING_THROW_PROFICIENCY.INT],
     weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE],
     armorProficiencies: ["light", "medium", "shield"],
     skillProficiencyOptions: [
-      "Arcana",
-      "History",
-      "Investigation",
-      "Medicine",
-      "Nature",
-      "Perception",
-      "Sleight of Hand"
+      SKILL.ARCANA,
+      SKILL.HISTORY,
+      SKILL.INVESTIGATION,
+      SKILL.MEDICINE,
+      SKILL.NATURE,
+      SKILL.PERCEPTION,
+      SKILL.SLEIGHT_OF_HAND
     ],
     skillProficiencyCount: 2,
     toolProficiencyChoices: [
@@ -299,40 +309,44 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     toolProficiencyChoiceCount: 1
   },
   Barbarian: {
+    primaryAbility: "STR",
+    savingThrowProficiencies: [SAVING_THROW_PROFICIENCY.STR, SAVING_THROW_PROFICIENCY.CON],
     weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE, WEAPON_PROFICIENCY.MARTIAL],
     armorProficiencies: ["light", "medium", "shield"],
     skillProficiencyOptions: [
-      "Animal Handling",
-      "Athletics",
-      "Intimidation",
-      "Nature",
-      "Perception",
-      "Survival"
+      SKILL.ANIMAL_HANDLING,
+      SKILL.ATHLETICS,
+      SKILL.INTIMIDATION,
+      SKILL.NATURE,
+      SKILL.PERCEPTION,
+      SKILL.SURVIVAL
     ],
     skillProficiencyCount: 2
   },
   Bard: {
+    primaryAbility: "CHA",
+    savingThrowProficiencies: [SAVING_THROW_PROFICIENCY.DEX, SAVING_THROW_PROFICIENCY.CHA],
     weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE, WEAPON_PROFICIENCY.MARTIAL],
     armorProficiencies: ["light"],
     skillProficiencyOptions: [
-      "Acrobatics",
-      "Animal Handling",
-      "Arcana",
-      "Athletics",
-      "Deception",
-      "History",
-      "Insight",
-      "Intimidation",
-      "Investigation",
-      "Medicine",
-      "Nature",
-      "Perception",
-      "Performance",
-      "Persuasion",
-      "Religion",
-      "Sleight of Hand",
-      "Stealth",
-      "Survival"
+      SKILL.ACROBATICS,
+      SKILL.ANIMAL_HANDLING,
+      SKILL.ARCANA,
+      SKILL.ATHLETICS,
+      SKILL.DECEPTION,
+      SKILL.HISTORY,
+      SKILL.INSIGHT,
+      SKILL.INTIMIDATION,
+      SKILL.INVESTIGATION,
+      SKILL.MEDICINE,
+      SKILL.NATURE,
+      SKILL.PERCEPTION,
+      SKILL.PERFORMANCE,
+      SKILL.PERSUASION,
+      SKILL.RELIGION,
+      SKILL.SLEIGHT_OF_HAND,
+      SKILL.STEALTH,
+      SKILL.SURVIVAL
     ],
     skillProficiencyCount: 3,
     toolProficiencyChoices: [
@@ -342,38 +356,50 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     toolProficiencyChoiceCount: 1
   },
   Cleric: {
-    weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE],
-    armorProficiencies: ["light", "medium", "shield"],
-    skillProficiencyOptions: ["History", "Insight", "Medicine", "Persuasion", "Religion"],
-    skillProficiencyCount: 2
-  },
-  Druid: {
+    primaryAbility: "WIS",
+    savingThrowProficiencies: [SAVING_THROW_PROFICIENCY.WIS, SAVING_THROW_PROFICIENCY.CHA],
     weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE],
     armorProficiencies: ["light", "medium", "shield"],
     skillProficiencyOptions: [
-      "Arcana",
-      "Animal Handling",
-      "Insight",
-      "Medicine",
-      "Nature",
-      "Perception",
-      "Religion",
-      "Survival"
+      SKILL.HISTORY,
+      SKILL.INSIGHT,
+      SKILL.MEDICINE,
+      SKILL.PERSUASION,
+      SKILL.RELIGION
+    ],
+    skillProficiencyCount: 2
+  },
+  Druid: {
+    primaryAbility: "WIS",
+    savingThrowProficiencies: [SAVING_THROW_PROFICIENCY.INT, SAVING_THROW_PROFICIENCY.WIS],
+    weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE],
+    armorProficiencies: ["light", "medium", "shield"],
+    skillProficiencyOptions: [
+      SKILL.ARCANA,
+      SKILL.ANIMAL_HANDLING,
+      SKILL.INSIGHT,
+      SKILL.MEDICINE,
+      SKILL.NATURE,
+      SKILL.PERCEPTION,
+      SKILL.RELIGION,
+      SKILL.SURVIVAL
     ],
     skillProficiencyCount: 2
   },
   Fighter: {
+    primaryAbility: "STR",
+    savingThrowProficiencies: [SAVING_THROW_PROFICIENCY.STR, SAVING_THROW_PROFICIENCY.CON],
     weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE, WEAPON_PROFICIENCY.MARTIAL],
     armorProficiencies: ["light", "medium", "heavy", "shield"],
     skillProficiencyOptions: [
-      "Acrobatics",
-      "Animal Handling",
-      "Athletics",
-      "History",
-      "Insight",
-      "Intimidation",
-      "Perception",
-      "Survival"
+      SKILL.ACROBATICS,
+      SKILL.ANIMAL_HANDLING,
+      SKILL.ATHLETICS,
+      SKILL.HISTORY,
+      SKILL.INSIGHT,
+      SKILL.INTIMIDATION,
+      SKILL.PERCEPTION,
+      SKILL.SURVIVAL
     ],
     skillProficiencyCount: 2,
     toolProficiencyChoices: [
@@ -383,48 +409,54 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     toolProficiencyChoiceCount: 1
   },
   Monk: {
+    primaryAbility: "DEX",
+    savingThrowProficiencies: [SAVING_THROW_PROFICIENCY.STR, SAVING_THROW_PROFICIENCY.DEX],
     weaponProficiencies: [
       WEAPON_PROFICIENCY.SIMPLE_MELEE,
       WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT
     ],
     armorProficiencies: [],
     skillProficiencyOptions: [
-      "Acrobatics",
-      "Athletics",
-      "History",
-      "Insight",
-      "Religion",
-      "Stealth"
+      SKILL.ACROBATICS,
+      SKILL.ATHLETICS,
+      SKILL.HISTORY,
+      SKILL.INSIGHT,
+      SKILL.RELIGION,
+      SKILL.STEALTH
     ],
     skillProficiencyCount: 2
   },
   Paladin: {
+    primaryAbility: "STR",
+    savingThrowProficiencies: [SAVING_THROW_PROFICIENCY.WIS, SAVING_THROW_PROFICIENCY.CHA],
     weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE, WEAPON_PROFICIENCY.MARTIAL],
     armorProficiencies: ["light", "medium", "heavy", "shield"],
     skillProficiencyOptions: [
-      "Athletics",
-      "Insight",
-      "Intimidation",
-      "Medicine",
-      "Persuasion",
-      "Religion"
+      SKILL.ATHLETICS,
+      SKILL.INSIGHT,
+      SKILL.INTIMIDATION,
+      SKILL.MEDICINE,
+      SKILL.PERSUASION,
+      SKILL.RELIGION
     ],
     skillProficiencyCount: 2,
     toolProficiencyChoices: [TOOL_PROFICIENCY.SMITHS_TOOLKIT],
     toolProficiencyChoiceCount: 1
   },
   Ranger: {
+    primaryAbility: "DEX",
+    savingThrowProficiencies: [SAVING_THROW_PROFICIENCY.STR, SAVING_THROW_PROFICIENCY.DEX],
     weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE, WEAPON_PROFICIENCY.MARTIAL],
     armorProficiencies: ["light", "medium", "shield"],
     skillProficiencyOptions: [
-      "Animal Handling",
-      "Athletics",
-      "Insight",
-      "Investigation",
-      "Nature",
-      "Perception",
-      "Stealth",
-      "Survival"
+      SKILL.ANIMAL_HANDLING,
+      SKILL.ATHLETICS,
+      SKILL.INSIGHT,
+      SKILL.INVESTIGATION,
+      SKILL.NATURE,
+      SKILL.PERCEPTION,
+      SKILL.STEALTH,
+      SKILL.SURVIVAL
     ],
     skillProficiencyCount: 3,
     toolProficiencyChoices: [
@@ -434,20 +466,22 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     toolProficiencyChoiceCount: 1
   },
   Rogue: {
+    primaryAbility: "DEX",
+    savingThrowProficiencies: [SAVING_THROW_PROFICIENCY.DEX, SAVING_THROW_PROFICIENCY.INT],
     weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE, WEAPON_PROFICIENCY.MARTIAL],
     armorProficiencies: ["light"],
     skillProficiencyOptions: [
-      "Acrobatics",
-      "Athletics",
-      "Deception",
-      "Insight",
-      "Intimidation",
-      "Investigation",
-      "Perception",
-      "Performance",
-      "Persuasion",
-      "Sleight of Hand",
-      "Stealth"
+      SKILL.ACROBATICS,
+      SKILL.ATHLETICS,
+      SKILL.DECEPTION,
+      SKILL.INSIGHT,
+      SKILL.INTIMIDATION,
+      SKILL.INVESTIGATION,
+      SKILL.PERCEPTION,
+      SKILL.PERFORMANCE,
+      SKILL.PERSUASION,
+      SKILL.SLEIGHT_OF_HAND,
+      SKILL.STEALTH
     ],
     skillProficiencyCount: 4,
     grantedToolProficiencies: [TOOL_PROFICIENCY.THIEVES_TOOLKIT],
@@ -458,42 +492,48 @@ export const classProficiencyProfiles: Record<ClassName, ClassProficiencyProfile
     toolProficiencyChoiceCount: 1
   },
   Sorcerer: {
+    primaryAbility: "CHA",
+    savingThrowProficiencies: [SAVING_THROW_PROFICIENCY.CON, SAVING_THROW_PROFICIENCY.CHA],
     weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE],
     armorProficiencies: [],
     skillProficiencyOptions: [
-      "Arcana",
-      "Deception",
-      "Insight",
-      "Intimidation",
-      "Persuasion",
-      "Religion"
+      SKILL.ARCANA,
+      SKILL.DECEPTION,
+      SKILL.INSIGHT,
+      SKILL.INTIMIDATION,
+      SKILL.PERSUASION,
+      SKILL.RELIGION
     ],
     skillProficiencyCount: 2
   },
   Warlock: {
+    primaryAbility: "CHA",
+    savingThrowProficiencies: [SAVING_THROW_PROFICIENCY.WIS, SAVING_THROW_PROFICIENCY.CHA],
     weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE],
     armorProficiencies: ["light"],
     skillProficiencyOptions: [
-      "Arcana",
-      "Deception",
-      "History",
-      "Intimidation",
-      "Investigation",
-      "Nature",
-      "Religion"
+      SKILL.ARCANA,
+      SKILL.DECEPTION,
+      SKILL.HISTORY,
+      SKILL.INTIMIDATION,
+      SKILL.INVESTIGATION,
+      SKILL.NATURE,
+      SKILL.RELIGION
     ],
     skillProficiencyCount: 2
   },
   Wizard: {
+    primaryAbility: "INT",
+    savingThrowProficiencies: [SAVING_THROW_PROFICIENCY.INT, SAVING_THROW_PROFICIENCY.WIS],
     weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE],
     armorProficiencies: [],
     skillProficiencyOptions: [
-      "Arcana",
-      "History",
-      "Insight",
-      "Investigation",
-      "Medicine",
-      "Religion"
+      SKILL.ARCANA,
+      SKILL.HISTORY,
+      SKILL.INSIGHT,
+      SKILL.INVESTIGATION,
+      SKILL.MEDICINE,
+      SKILL.RELIGION
     ],
     skillProficiencyCount: 2,
     toolProficiencyChoices: [TOOL_PROFICIENCY.DISGUISE_KIT],
@@ -512,48 +552,6 @@ const proficiencyLevelRank: Record<PROF_LEVEL, number> = {
 const proficiencyOverridePolicyRank: Record<PROFICIENCY_OVERRIDE_POLICY, number> = {
   [PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE]: 0,
   [PROFICIENCY_OVERRIDE_POLICY.LOCKED]: 1
-};
-
-const skillProficiencyBySkillName = new Map<SkillName, SKILL_PROFICIENCY>([
-  ["Acrobatics", SKILL_PROFICIENCY.ACROBATICS],
-  ["Animal Handling", SKILL_PROFICIENCY.ANIMAL_HANDLING],
-  ["Arcana", SKILL_PROFICIENCY.ARCANA],
-  ["Athletics", SKILL_PROFICIENCY.ATHLETICS],
-  ["Deception", SKILL_PROFICIENCY.DECEPTION],
-  ["History", SKILL_PROFICIENCY.HISTORY],
-  ["Insight", SKILL_PROFICIENCY.INSIGHT],
-  ["Intimidation", SKILL_PROFICIENCY.INTIMIDATION],
-  ["Investigation", SKILL_PROFICIENCY.INVESTIGATION],
-  ["Medicine", SKILL_PROFICIENCY.MEDICINE],
-  ["Nature", SKILL_PROFICIENCY.NATURE],
-  ["Perception", SKILL_PROFICIENCY.PERCEPTION],
-  ["Performance", SKILL_PROFICIENCY.PERFORMANCE],
-  ["Persuasion", SKILL_PROFICIENCY.PERSUASION],
-  ["Religion", SKILL_PROFICIENCY.RELIGION],
-  ["Sleight of Hand", SKILL_PROFICIENCY.SLEIGHT_OF_HAND],
-  ["Stealth", SKILL_PROFICIENCY.STEALTH],
-  ["Survival", SKILL_PROFICIENCY.SURVIVAL]
-]);
-
-const skillNameByProficiency: Record<SKILL_PROFICIENCY, SkillName> = {
-  [SKILL_PROFICIENCY.ACROBATICS]: "Acrobatics",
-  [SKILL_PROFICIENCY.ANIMAL_HANDLING]: "Animal Handling",
-  [SKILL_PROFICIENCY.ARCANA]: "Arcana",
-  [SKILL_PROFICIENCY.ATHLETICS]: "Athletics",
-  [SKILL_PROFICIENCY.DECEPTION]: "Deception",
-  [SKILL_PROFICIENCY.HISTORY]: "History",
-  [SKILL_PROFICIENCY.INSIGHT]: "Insight",
-  [SKILL_PROFICIENCY.INTIMIDATION]: "Intimidation",
-  [SKILL_PROFICIENCY.INVESTIGATION]: "Investigation",
-  [SKILL_PROFICIENCY.MEDICINE]: "Medicine",
-  [SKILL_PROFICIENCY.NATURE]: "Nature",
-  [SKILL_PROFICIENCY.PERCEPTION]: "Perception",
-  [SKILL_PROFICIENCY.PERFORMANCE]: "Performance",
-  [SKILL_PROFICIENCY.PERSUASION]: "Persuasion",
-  [SKILL_PROFICIENCY.RELIGION]: "Religion",
-  [SKILL_PROFICIENCY.SLEIGHT_OF_HAND]: "Sleight of Hand",
-  [SKILL_PROFICIENCY.STEALTH]: "Stealth",
-  [SKILL_PROFICIENCY.SURVIVAL]: "Survival"
 };
 
 const savingThrowProficiencyByAbilityKey: Record<AbilityKey, SAVING_THROW_PROFICIENCY> = {
@@ -625,6 +623,13 @@ const armorProficiencyByType: Record<ArmorType, ARMOR_PROFICIENCY> = {
   medium: ARMOR_PROFICIENCY.MEDIUM,
   heavy: ARMOR_PROFICIENCY.HEAVY,
   shield: ARMOR_PROFICIENCY.SHIELD
+};
+
+const armorTypeByProficiency: Record<ARMOR_PROFICIENCY, ArmorType> = {
+  [ARMOR_PROFICIENCY.LIGHT]: "light",
+  [ARMOR_PROFICIENCY.MEDIUM]: "medium",
+  [ARMOR_PROFICIENCY.HEAVY]: "heavy",
+  [ARMOR_PROFICIENCY.SHIELD]: "shield"
 };
 
 const toolProficiencyByLegacyType: Record<LEGACY_TOOL_PROFICIENCIES, TOOL_PROFICIENCY> = {
@@ -760,10 +765,6 @@ const speciesCodexEntriesByName = new Map<string, SpeciesEntry>(
   getSpeciesEntries().map((entry) => [entry.name, entry])
 );
 
-const classCodexEntriesByName = new Map<string, ClassEntry>(
-  getClassEntries().map((entry) => [entry.name, entry])
-);
-
 export const backgroundOptions = [...backgroundCodexEntriesByName.keys()].sort((left, right) =>
   left.localeCompare(right)
 );
@@ -851,11 +852,11 @@ function compareProficiencyLevels(left: PROF_LEVEL, right: PROF_LEVEL): number {
 }
 
 export function getSkillProficiencyForName(skill: string): SKILL_PROFICIENCY | null {
-  if (!skillOptionSet.has(skill)) {
+  if (!isSkillName(skill) || !skillOptionSet.has(skill)) {
     return null;
   }
 
-  return skillProficiencyBySkillName.get(skill as SkillName) ?? null;
+  return getSkillProficiencyForSkillName(skill);
 }
 
 function getLegacyToolProficiency(value: string): TOOL_PROFICIENCY | null {
@@ -1203,9 +1204,7 @@ function hasLockedNonManualPositiveEntry<TEntry extends ProficiencyEntry>(
   entries: TEntry[],
   proficiency: TEntry["proficiency"]
 ): boolean {
-  return getNonManualPositiveEntries(entries, proficiency).some(
-    (entry) => normalizeOverridePolicy(entry.overridePolicy) === PROFICIENCY_OVERRIDE_POLICY.LOCKED
-  );
+  return hasNonManualPositiveEntry(entries, proficiency);
 }
 
 function getResolvedProficiencyEntry<TEntry extends ProficiencyEntry>(
@@ -1214,11 +1213,8 @@ function getResolvedProficiencyEntry<TEntry extends ProficiencyEntry>(
 ): ResolvedProficiencyEntry<TEntry["proficiency"]> {
   const manualOverride = getStoredManualOverrideEntry(entries, proficiency);
   const automaticEntries = getNonManualPositiveEntries(entries, proficiency);
-  const lockedAutomaticEntries = automaticEntries.filter(
-    (entry) => normalizeOverridePolicy(entry.overridePolicy) === PROFICIENCY_OVERRIDE_POLICY.LOCKED
-  );
 
-  if (lockedAutomaticEntries.length > 0) {
+  if (automaticEntries.length > 0) {
     return {
       proficiency,
       proficiencyLevel: getHighestEntryLevel(automaticEntries),
@@ -1387,8 +1383,8 @@ export function getProficiencyLabel(
     | TOOL_PROFICIENCY
     | LanguageProficiency
 ): string {
-  if (proficiency in skillNameByProficiency) {
-    return skillNameByProficiency[proficiency as SKILL_PROFICIENCY];
+  if (skillProficiencySet.has(proficiency as string)) {
+    return getSharedSkillNameForProficiency(proficiency as SKILL_PROFICIENCY);
   }
 
   if (proficiency in savingThrowProficiencyLabels) {
@@ -1435,7 +1431,7 @@ export function getToolProficiencyLabel(toolProficiency: ToolProficiency): strin
 }
 
 export function getSkillNameFromProficiency(proficiency: SKILL_PROFICIENCY): SkillName {
-  return skillNameByProficiency[proficiency];
+  return getSharedSkillNameForProficiency(proficiency);
 }
 
 export function getSavingThrowAbilityKey(
@@ -1624,7 +1620,38 @@ export function getClassProficiencyProfile(className: string): ClassProficiencyP
     return null;
   }
 
-  return classProficiencyProfiles[className];
+  const baseProfile = classProficiencyProfiles[className];
+  const starterPack = getClassStarterPack(className);
+
+  if (!starterPack) {
+    return baseProfile;
+  }
+
+  return {
+    ...baseProfile,
+    primaryAbility: starterPack.primaryAbility,
+    savingThrowProficiencies: [...starterPack.savingThrowProficiencies],
+    grantedSkillProficiencies: starterPack.grantedSkillProficiencies ?? [],
+    skillProficiencyOptions: [...starterPack.skillProficiencies],
+    skillProficiencyCount: starterPack.skillProficiencySelectionCount,
+    grantedToolProficiencies: starterPack.grantedToolProficiencies ?? [],
+    toolProficiencyChoices: starterPack.toolProficiencyChoices ?? [],
+    toolProficiencyChoiceCount: starterPack.toolProficiencyChoiceCount ?? 0,
+    weaponProficiencies: [...starterPack.weaponProficiencies],
+    armorProficiencies: starterPack.armorTrainingProficiencies.map(
+      (proficiency) => armorTypeByProficiency[proficiency]
+    )
+  };
+}
+
+export function getPrimaryAbilityForClass(className: string): AbilityKey | null {
+  return getClassProficiencyProfile(className)?.primaryAbility ?? null;
+}
+
+export function getSavingThrowAbilityKeysForClass(className: string): AbilityKey[] {
+  return (getClassProficiencyProfile(className)?.savingThrowProficiencies ?? []).map(
+    (proficiency) => abilityKeyBySavingThrowProficiency[proficiency]
+  );
 }
 
 export function getSkillProficiencyOptionsForClass(className: string): SkillName[] {
@@ -1724,7 +1751,7 @@ export function normalizeToolProficiencySelections(selectedToolProficiencies: st
 }
 
 function normalizeSkillName(value: string): SkillName | null {
-  return skillOptionSet.has(value) ? (value as SkillName) : null;
+  return isSkillName(value) ? value : null;
 }
 
 function getBackgroundGrantedSkillProficiencies(background: string): SkillName[] {
@@ -1776,27 +1803,16 @@ function getSpeciesGrantedToolProficiencies(species: string): ToolProficiency[] 
 }
 
 function getClassGrantedSkillProficiencies(className: string): SkillName[] {
-  const entry = classCodexEntriesByName.get(className);
-
-  if (!entry) {
-    return [];
-  }
-
-  return entry.grantedSkillProficiencies
+  return (getClassProficiencyProfile(className)?.grantedSkillProficiencies ?? [])
     .map((skill) => normalizeSkillName(skill))
     .filter((skill): skill is SkillName => skill !== null);
 }
 
 function getClassGrantedToolProficiencies(className: string): ToolProficiency[] {
-  const entry = classCodexEntriesByName.get(className);
   const profile = getClassProficiencyProfile(className);
-  const codexToolProficiencies =
-    entry?.grantedToolProficiencies
-      .map((toolProficiency) => toolProficiencyByLegacyType[toolProficiency])
-      .filter((toolProficiency): toolProficiency is ToolProficiency => toolProficiency !== undefined) ?? [];
 
   return mergeProficiencyEntries(
-    [...dedupe([...(profile?.grantedToolProficiencies ?? []), ...codexToolProficiencies])].map(
+    [...dedupe([...(profile?.grantedToolProficiencies ?? [])])].map(
       (toolProficiency) =>
         createToolEntry(toolProficiency, PROFICIENCY_SOURCE.CLASS, className, PROF_LEVEL.PROFICIENT)
     )
@@ -1806,7 +1822,8 @@ function getClassGrantedToolProficiencies(className: string): ToolProficiency[] 
 function getAutomaticSkillEntries(
   className: string,
   species: string,
-  background = ""
+  background = "",
+  selectedClassSkills: SkillName[] = []
 ): SkillProficiencyEntry[] {
   const classSourceLabel = className.trim() || undefined;
   const speciesSourceLabel = species.trim() || undefined;
@@ -1840,22 +1857,26 @@ function getAutomaticSkillEntries(
           backgroundSourceLabel,
           PROF_LEVEL.PROFICIENT
         )
+      ),
+    ...selectedClassSkills
+      .map((skill) => getSkillProficiencyForName(skill))
+      .filter((skill): skill is SKILL_PROFICIENCY => skill !== null)
+      .map((skill) =>
+        createSkillEntry(skill, PROFICIENCY_SOURCE.CLASS, classSourceLabel, PROF_LEVEL.PROFICIENT)
       )
   ]);
 }
 
 function getAutomaticSavingThrowEntries(className: string): SavingThrowProficiencyEntry[] {
-  const classEntry = classCodexEntriesByName.get(className);
+  const savingThrowProficiencies = getClassProficiencyProfile(className)?.savingThrowProficiencies;
   const sourceStr = className.trim() || undefined;
 
-  if (!classEntry) {
+  if (!savingThrowProficiencies || savingThrowProficiencies.length === 0) {
     return [];
   }
 
   return mergeProficiencyEntries(
-    classEntry.savingThrowProficiencies
-      .map((savingThrow) => savingThrowProficiencyByAbilityKey[savingThrow as AbilityKey])
-      .filter((savingThrow): savingThrow is SAVING_THROW_PROFICIENCY => savingThrow !== undefined)
+    savingThrowProficiencies
       .map((savingThrow) =>
         createSavingThrowEntry(
           savingThrow,
@@ -1913,7 +1934,8 @@ function getAutomaticArmorEntries(className: string): ArmorProficiencyEntry[] {
 function getAutomaticToolEntries(
   className: string,
   species: string,
-  background = ""
+  background = "",
+  selectedClassTools: ToolProficiency[] = []
 ): ToolProficiencyEntry[] {
   const classSourceLabel = className.trim() || undefined;
   const speciesSourceLabel = species.trim() || undefined;
@@ -1943,14 +1965,20 @@ function getAutomaticToolEntries(
         backgroundSourceLabel,
         PROF_LEVEL.PROFICIENT
       )
+    ),
+    ...selectedClassTools.map((toolProficiency) =>
+      createToolEntry(
+        toolProficiency,
+        PROFICIENCY_SOURCE.CLASS,
+        classSourceLabel,
+        PROF_LEVEL.PROFICIENT
+      )
     )
   ]);
 }
 
-export function getAutomaticProficiencyCollectionsForCharacter(
+function getFeatureProficiencyCollectionsForCharacter(
   className: string,
-  species: string,
-  background = "",
   options?: {
     level?: number;
     classFeatureState?: CharacterClassFeatureState;
@@ -1963,26 +1991,70 @@ export function getAutomaticProficiencyCollectionsForCharacter(
   };
 
   return {
-    skillProficiencies: mergeProficiencyEntries([
-      ...getAutomaticSkillEntries(className, species, background),
-      ...getFeatureSkillProficiencyEntriesForCharacter(featureCharacter)
-    ]),
-    savingThrowProficiencies: mergeProficiencyEntries([
-      ...getAutomaticSavingThrowEntries(className),
-      ...getFeatureSavingThrowProficiencyEntriesForCharacter(featureCharacter)
-    ]),
-    weaponProficiencies: mergeProficiencyEntries([
-      ...getAutomaticWeaponEntries(className),
-      ...getFeatureWeaponProficiencyEntriesForCharacter(featureCharacter)
-    ]),
-    armorProficiencies: mergeProficiencyEntries([
-      ...getAutomaticArmorEntries(className),
-      ...getFeatureArmorProficiencyEntriesForCharacter(featureCharacter)
-    ]),
-    toolProficiencies: getAutomaticToolEntries(className, species, background),
+    skillProficiencies: mergeProficiencyEntries(
+      getFeatureSkillProficiencyEntriesForCharacter(featureCharacter)
+    ),
+    savingThrowProficiencies: mergeProficiencyEntries(
+      getFeatureSavingThrowProficiencyEntriesForCharacter(featureCharacter)
+    ),
+    weaponProficiencies: mergeProficiencyEntries(
+      getFeatureWeaponProficiencyEntriesForCharacter(featureCharacter)
+    ),
+    armorProficiencies: mergeProficiencyEntries(
+      getFeatureArmorProficiencyEntriesForCharacter(featureCharacter)
+    ),
+    toolProficiencies: [],
     languageProficiencies: mergeProficiencyEntries(
       getFeatureLanguageProficiencyEntriesForCharacter(featureCharacter)
     )
+  };
+}
+
+export function getAutomaticProficiencyCollectionsForCharacter(
+  className: string,
+  species: string,
+  background = "",
+  options?: {
+    level?: number;
+    classFeatureState?: CharacterClassFeatureState;
+    selectedClassSkills?: string[];
+    selectedClassToolProficiencies?: string[];
+  }
+): CharacterProficiencyCollections {
+  const normalizedSelectedClassSkills = normalizeSkillSelectionsForClass(
+    className,
+    options?.selectedClassSkills ?? [],
+    species,
+    background
+  );
+  const normalizedSelectedClassTools = normalizeToolSelectionsForClass(
+    className,
+    options?.selectedClassToolProficiencies ?? []
+  );
+  const featureCollections = getFeatureProficiencyCollectionsForCharacter(className, options);
+
+  return {
+    skillProficiencies: mergeProficiencyEntries([
+      ...getAutomaticSkillEntries(className, species, background, normalizedSelectedClassSkills),
+      ...featureCollections.skillProficiencies
+    ]),
+    savingThrowProficiencies: mergeProficiencyEntries([
+      ...getAutomaticSavingThrowEntries(className),
+      ...featureCollections.savingThrowProficiencies
+    ]),
+    weaponProficiencies: mergeProficiencyEntries([
+      ...getAutomaticWeaponEntries(className),
+      ...featureCollections.weaponProficiencies
+    ]),
+    armorProficiencies: mergeProficiencyEntries([
+      ...getAutomaticArmorEntries(className),
+      ...featureCollections.armorProficiencies
+    ]),
+    toolProficiencies: mergeProficiencyEntries([
+      ...getAutomaticToolEntries(className, species, background, normalizedSelectedClassTools),
+      ...featureCollections.toolProficiencies
+    ]),
+    languageProficiencies: featureCollections.languageProficiencies
   };
 }
 
@@ -2041,7 +2113,7 @@ export function getGrantedSkillProficienciesForCharacter(
   const grantedBySkill = new Map<SkillName, Set<string>>();
 
   getAutomaticSkillEntries(className, species, background).forEach((entry) => {
-    const skill = skillNameByProficiency[entry.proficiency];
+    const skill = getSharedSkillNameForProficiency(entry.proficiency);
     const sources = grantedBySkill.get(skill) ?? new Set<string>();
     sources.add(getSourceLabel(entry.source, entry.sourceStr));
     grantedBySkill.set(skill, sources);
@@ -2076,6 +2148,54 @@ export function normalizeSkillSelectionsForClass(
     .filter((skill): skill is SkillName => allowedSkillSet.has(skill))
     .filter((skill) => !grantedSkillSet.has(skill))
     .slice(0, profile.skillProficiencyCount);
+}
+
+function splitLegacySkillSelectionsForClass(
+  className: string,
+  selectedSkills: string[],
+  species = "",
+  background = ""
+): { classSelections: SkillName[]; manualSelections: SkillName[] } {
+  const classSelections = normalizeSkillSelectionsForClass(
+    className,
+    selectedSkills,
+    species,
+    background
+  );
+  const classSelectionSet = new Set(classSelections);
+  const manualSelections = normalizeManualSkillSelections(selectedSkills).filter(
+    (skill) => !classSelectionSet.has(skill)
+  );
+
+  return {
+    classSelections,
+    manualSelections
+  };
+}
+
+function normalizeToolSelectionsForClass(className: string, selectedTools: string[]): ToolProficiency[] {
+  const { choices, count } = getToolProficiencyChoicesForClass(className);
+  const allowedToolSet = new Set<ToolProficiency>(choices);
+
+  return dedupe(
+    normalizeToolProficiencySelections(selectedTools).filter((tool) => allowedToolSet.has(tool))
+  ).slice(0, count);
+}
+
+function splitLegacyToolSelectionsForClass(
+  className: string,
+  selectedTools: string[]
+): { classSelections: ToolProficiency[]; manualSelections: ToolProficiency[] } {
+  const classSelections = normalizeToolSelectionsForClass(className, selectedTools);
+  const classSelectionSet = new Set(classSelections);
+  const manualSelections = normalizeToolProficiencySelections(selectedTools).filter(
+    (tool) => !classSelectionSet.has(tool)
+  );
+
+  return {
+    classSelections,
+    manualSelections
+  };
 }
 
 export function normalizeManualSkillSelections(selectedSkills: string[]): SkillName[] {
@@ -2247,29 +2367,58 @@ function normalizeLanguageProficiencyEntries(value: unknown): LanguageProficienc
 export function normalizeCharacterProficiencies(
   options: NormalizeCharacterProficienciesOptions
 ): CharacterProficiencyCollections {
+  const normalizedStoredSkillEntries = normalizeSkillProficiencyEntries(options.skillProficiencies);
+  const normalizedStoredSavingThrowEntries = normalizeSavingThrowProficiencyEntries(
+    options.savingThrowProficiencies
+  );
+  const normalizedStoredWeaponEntries = normalizeWeaponProficiencyEntries(options.weaponProficiencies);
+  const normalizedStoredArmorEntries = normalizeArmorProficiencyEntries(options.armorProficiencies);
+  const normalizedStoredToolEntries = normalizeToolProficiencyEntries(options.toolProficiencies);
+  const normalizedStoredLanguageEntries = normalizeLanguageProficiencyEntries(
+    options.languageProficiencies
+  );
+  const legacySkillSelections = splitLegacySkillSelectionsForClass(
+    options.className,
+    options.legacySkills ?? [],
+    options.species,
+    options.background
+  );
+  const legacyToolSelections = splitLegacyToolSelectionsForClass(
+    options.className,
+    options.legacyToolProficiencies ?? []
+  );
   const automaticCollections = getAutomaticProficiencyCollectionsForCharacter(
     options.className,
     options.species,
     options.background,
     {
       level: options.level,
-      classFeatureState: options.classFeatureState
+      classFeatureState: options.classFeatureState,
+      selectedClassSkills: [
+        ...getSelectedClassSkillSelectionsFromEntries(
+          normalizedStoredSkillEntries,
+          options.className
+        ),
+        ...legacySkillSelections.classSelections
+      ],
+      selectedClassToolProficiencies: [
+        ...getSelectedClassToolSelectionsFromEntries(
+          normalizedStoredToolEntries,
+          options.className
+        ),
+        ...legacyToolSelections.classSelections
+      ]
     }
   );
 
   const normalizedSkillEntries = mergeProficiencyEntries([
-    ...stripAutomaticEntries(normalizeSkillProficiencyEntries(options.skillProficiencies)),
-    ...normalizeLegacyManualSkillEntries(
-      options.legacySkills ?? [],
-      options.legacySkillExpertise ?? []
-    ),
+    ...stripAutomaticEntries(normalizedStoredSkillEntries),
+    ...normalizeLegacyManualSkillEntries(legacySkillSelections.manualSelections, options.legacySkillExpertise ?? []),
     ...automaticCollections.skillProficiencies
   ]);
 
   const normalizedSavingThrowEntries = mergeProficiencyEntries([
-    ...stripAutomaticEntries(
-      normalizeSavingThrowProficiencyEntries(options.savingThrowProficiencies)
-    ),
+    ...stripAutomaticEntries(normalizedStoredSavingThrowEntries),
     ...normalizeLegacyManualSavingThrowEntries(
       options.className,
       options.legacySavingThrowProficiencies ?? []
@@ -2278,23 +2427,23 @@ export function normalizeCharacterProficiencies(
   ]);
 
   const normalizedWeaponEntries = mergeProficiencyEntries([
-    ...stripAutomaticEntries(normalizeWeaponProficiencyEntries(options.weaponProficiencies)),
+    ...stripAutomaticEntries(normalizedStoredWeaponEntries),
     ...automaticCollections.weaponProficiencies
   ]);
 
   const normalizedArmorEntries = mergeProficiencyEntries([
-    ...stripAutomaticEntries(normalizeArmorProficiencyEntries(options.armorProficiencies)),
+    ...stripAutomaticEntries(normalizedStoredArmorEntries),
     ...automaticCollections.armorProficiencies
   ]);
 
   const normalizedToolEntries = mergeProficiencyEntries([
-    ...stripAutomaticEntries(normalizeToolProficiencyEntries(options.toolProficiencies)),
-    ...normalizeLegacyManualToolEntries(options.legacyToolProficiencies ?? []),
+    ...stripAutomaticEntries(normalizedStoredToolEntries),
+    ...normalizeLegacyManualToolEntries(legacyToolSelections.manualSelections),
     ...automaticCollections.toolProficiencies
   ]);
 
   const normalizedLanguageEntries = mergeProficiencyEntries([
-    ...stripAutomaticEntries(normalizeLanguageProficiencyEntries(options.languageProficiencies)),
+    ...stripAutomaticEntries(normalizedStoredLanguageEntries),
     ...automaticCollections.languageProficiencies
   ]);
 
@@ -2315,7 +2464,7 @@ export function getManualSkillSelectionsFromEntries(entries: SkillProficiencyEnt
         entry.source === PROFICIENCY_SOURCE.MANUAL &&
         proficiencyLevelRank[entry.proficiencyLevel] >= proficiencyLevelRank[PROF_LEVEL.PROFICIENT]
     )
-    .map((entry) => skillNameByProficiency[entry.proficiency]);
+    .map((entry) => getSharedSkillNameForProficiency(entry.proficiency));
 }
 
 export function getManualSkillExpertiseSelectionsFromEntries(
@@ -2326,7 +2475,7 @@ export function getManualSkillExpertiseSelectionsFromEntries(
       (entry) =>
         entry.source === PROFICIENCY_SOURCE.MANUAL && entry.proficiencyLevel === PROF_LEVEL.EXPERT
     )
-    .map((entry) => skillNameByProficiency[entry.proficiency]);
+    .map((entry) => getSharedSkillNameForProficiency(entry.proficiency));
 }
 
 export function getManualToolSelectionsFromEntries(entries: ToolProficiencyEntry[]): ToolProficiency[] {
@@ -2351,6 +2500,62 @@ export function getSavingThrowSelectionsFromEntries(
       )
       .map((entry) => abilityKeyBySavingThrowProficiency[entry.proficiency])
   );
+}
+
+export function getSelectedClassSkillSelectionsFromEntries(
+  entries: SkillProficiencyEntry[],
+  className: string
+): SkillName[] {
+  const profile = getClassProficiencyProfile(className);
+
+  if (!profile) {
+    return [];
+  }
+
+  const allowedSkillSet = new Set(profile.skillProficiencyOptions);
+  const grantedSkillSet = new Set(
+    getClassGrantedSkillProficiencies(className)
+  );
+
+  return dedupe(
+    entries
+      .filter(
+        (entry) =>
+          entry.source === PROFICIENCY_SOURCE.CLASS &&
+          entry.sourceStr === className &&
+          proficiencyLevelRank[entry.proficiencyLevel] >= proficiencyLevelRank[PROF_LEVEL.PROFICIENT]
+      )
+      .map((entry) => getSharedSkillNameForProficiency(entry.proficiency))
+      .filter((skill) => allowedSkillSet.has(skill))
+      .filter((skill) => !grantedSkillSet.has(skill))
+  ).slice(0, profile.skillProficiencyCount);
+}
+
+export function getSelectedClassToolSelectionsFromEntries(
+  entries: ToolProficiencyEntry[],
+  className: string
+): ToolProficiency[] {
+  const profile = getClassProficiencyProfile(className);
+
+  if (!profile) {
+    return [];
+  }
+
+  const allowedToolSet = new Set(profile.toolProficiencyChoices ?? []);
+  const grantedToolSet = new Set(profile.grantedToolProficiencies ?? []);
+
+  return dedupe(
+    entries
+      .filter(
+        (entry) =>
+          entry.source === PROFICIENCY_SOURCE.CLASS &&
+          entry.sourceStr === className &&
+          proficiencyLevelRank[entry.proficiencyLevel] >= proficiencyLevelRank[PROF_LEVEL.PROFICIENT]
+      )
+      .map((entry) => entry.proficiency)
+      .filter((tool) => allowedToolSet.has(tool))
+      .filter((tool) => !grantedToolSet.has(tool))
+  ).slice(0, profile.toolProficiencyChoiceCount ?? 0);
 }
 
 export function getSkillLevelFromEntries(
@@ -2445,6 +2650,27 @@ export function hasLockedSavingThrowEntry(
 export function hasLockedWeaponEntry(
   entries: WeaponProficiencyEntry[],
   proficiency: WEAPON_PROFICIENCY
+): boolean {
+  return hasLockedNonManualPositiveEntry(entries, proficiency);
+}
+
+export function hasLockedArmorEntry(
+  entries: ArmorProficiencyEntry[],
+  proficiency: ARMOR_PROFICIENCY
+): boolean {
+  return hasLockedNonManualPositiveEntry(entries, proficiency);
+}
+
+export function hasLockedToolEntry(
+  entries: ToolProficiencyEntry[],
+  proficiency: TOOL_PROFICIENCY
+): boolean {
+  return hasLockedNonManualPositiveEntry(entries, proficiency);
+}
+
+export function hasLockedLanguageEntry(
+  entries: LanguageProficiencyEntry[],
+  proficiency: LanguageProficiency
 ): boolean {
   return hasLockedNonManualPositiveEntry(entries, proficiency);
 }
@@ -2593,11 +2819,11 @@ export function getDisplaySkillLevels(
     const skillLevel = getSkillLevelFromEntries(entries, skillProficiency);
 
     if (proficiencyLevelRank[skillLevel] >= proficiencyLevelRank[PROF_LEVEL.PROFICIENT]) {
-      proficient.push(skillNameByProficiency[skillProficiency]);
+      proficient.push(getSharedSkillNameForProficiency(skillProficiency));
     }
 
     if (skillLevel === PROF_LEVEL.EXPERT) {
-      expert.push(skillNameByProficiency[skillProficiency]);
+      expert.push(getSharedSkillNameForProficiency(skillProficiency));
     }
   });
 

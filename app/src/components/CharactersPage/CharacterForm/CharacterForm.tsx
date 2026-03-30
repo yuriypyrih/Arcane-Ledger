@@ -2,7 +2,13 @@ import clsx from "clsx";
 import { Dice6 } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
-import type { AbilityKey, AbilityScores, AttributeMode, CharacterDraft, SkillName } from "../../../types";
+import type {
+  AbilityKey,
+  AbilityScores,
+  AttributeMode,
+  CharacterDraft,
+  SkillName
+} from "../../../types";
 import {
   POINT_BUY_BUDGET,
   abilityKeys,
@@ -29,11 +35,16 @@ import {
   resolveSkillProficienciesForCharacter
 } from "../../../pages/CharactersPage/proficiency";
 import { normalizeLevelAndXp } from "../../../pages/CharactersPage/experience";
-import { getSubclassOptionsForClassName, normalizeSubclassId } from "../../../pages/CharactersPage/subclasses";
+import { getAutomaticMaxHitPointsForCharacter } from "../../../pages/CharactersPage/gameplay";
+import {
+  getSubclassOptionsForClassName,
+  normalizeSubclassId
+} from "../../../pages/CharactersPage/subclasses";
 import NumberInput from "../FormInputs/NumberInput";
 import SelectInput from "../FormInputs/SelectInput";
 import TextAreaInput from "../FormInputs/TextAreaInput";
 import TextInput from "../FormInputs/TextInput";
+import abilityEditorStyles from "../CharacterSheetPage/StatsForm/AbilityScoresModal.module.css";
 import {
   type ClassBuildPlan,
   getBuildPlan,
@@ -41,6 +52,11 @@ import {
   speciesEquipmentAffinity,
   speciesSkillAffinity
 } from "./recommendedBuildData";
+import {
+  formatStarterPackEquipmentChoice,
+  getResolvedStarterPack,
+  materializeStarterPackEquipmentChoice
+} from "./starterPackUtils";
 import styles from "./CharacterForm.module.css";
 
 type CharacterFormProps = {
@@ -51,6 +67,10 @@ type CharacterFormProps = {
 };
 
 type CreationStep = 1 | 2 | 3;
+
+type CharacterFormValues = CharacterDraft & {
+  startingEquipmentChoiceIndex: string;
+};
 
 function normalizeCustomAbilities(abilities: AbilityScores): AbilityScores {
   return abilityKeys.reduce((next, ability) => {
@@ -72,19 +92,51 @@ function areStringArraysEqual(left: string[], right: string[]): boolean {
   return left.every((value, index) => value === right[index]);
 }
 
-function createBasicProfileSnapshot(values: CharacterDraft): CharacterDraft {
+function areCurrenciesEqual(
+  left: CharacterDraft["currencies"],
+  right: CharacterDraft["currencies"]
+): boolean {
+  return Object.keys({ ...left, ...right }).every(
+    (currencyKey) => (left[currencyKey] ?? 0) === (right[currencyKey] ?? 0)
+  );
+}
+
+function createFormValues(
+  draft: CharacterDraft,
+  options?: {
+    defaultHitPointMode?: CharacterDraft["maxHitPointsMode"];
+    startingEquipmentChoiceIndex?: string;
+  }
+): CharacterFormValues {
+  return {
+    ...draft,
+    maxHitPointsMode: draft.maxHitPointsMode ?? options?.defaultHitPointMode ?? "automatic",
+    startingEquipmentChoiceIndex: options?.startingEquipmentChoiceIndex ?? ""
+  };
+}
+
+function createBasicProfileSnapshot(values: CharacterFormValues): CharacterFormValues {
   const defaults = createEmptyCharacter();
   const normalizedProgress = normalizeLevelAndXp(values.level, values.xp);
 
-  return {
-    ...defaults,
-    name: values.name,
-    species: values.species,
-    className: values.className,
-    subclassId: values.subclassId,
-    level: normalizedProgress.level,
-    xp: normalizedProgress.xp
-  };
+  return createFormValues(
+    {
+      ...defaults,
+      name: values.name,
+      species: values.species,
+      className: values.className,
+      subclassId: values.subclassId,
+      background: values.background,
+      level: normalizedProgress.level,
+      xp: normalizedProgress.xp,
+      attributeMode: "pointBuy",
+      abilities: createDefaultAbilities()
+    },
+    {
+      defaultHitPointMode: "automatic",
+      startingEquipmentChoiceIndex: ""
+    }
+  );
 }
 
 function getAbilityPriorityOrder(plan: ClassBuildPlan): AbilityKey[] {
@@ -96,7 +148,7 @@ function getAbilityPriorityOrder(plan: ClassBuildPlan): AbilityKey[] {
   ];
 }
 
-function createRecommendedAbilities(
+function createFallbackRecommendedAbilities(
   species: string,
   level: number,
   buildPlan: ClassBuildPlan
@@ -125,37 +177,33 @@ function createRecommendedAbilities(
   return normalizeCustomAbilities(abilities);
 }
 
-function calculateRecommendedHitPoints(hitDie: number, level: number, constitutionScore: number): number {
-  const normalizedLevel = clampNumber(String(level), 1, 20, 1);
-  const constitutionModifier = Math.floor((constitutionScore - 10) / 2);
-  const firstLevelHitPoints = Math.max(1, hitDie + constitutionModifier);
-  const averagePerLevel = Math.max(1, Math.floor(hitDie / 2) + 1 + constitutionModifier);
-
-  return Math.max(1, firstLevelHitPoints + (normalizedLevel - 1) * averagePerLevel);
-}
-
-function createRecommendedSkills(
+function createFallbackRecommendedSkills(
   species: string,
   className: string,
+  background: string,
   buildPlan: ClassBuildPlan
 ): SkillName[] {
   const availableClassSkills = getSkillProficiencyOptionsForClass(className);
   const targetCount = getSkillSelectionLimitForClass(className);
   const grantedSkillSet = new Set(
-    getGrantedSkillProficienciesForCharacter(className, species, buildPlan.background).map(
+    getGrantedSkillProficienciesForCharacter(className, species, background).map(
       (entry) => entry.skill
     )
   );
 
   return normalizeSelection(
-    [...buildPlan.preferredSkills, ...(speciesSkillAffinity[species] ?? []), ...availableClassSkills],
+    [
+      ...buildPlan.preferredSkills,
+      ...(speciesSkillAffinity[species] ?? []),
+      ...availableClassSkills
+    ],
     availableClassSkills
   )
     .filter((skill) => !grantedSkillSet.has(skill))
     .slice(0, targetCount);
 }
 
-function createRecommendedEquipment(
+function createFallbackRecommendedEquipment(
   species: string,
   level: number,
   className: string,
@@ -174,56 +222,115 @@ function createRecommendedEquipment(
   ).slice(0, targetCount);
 }
 
-function createRecommendedBackgroundChoice(buildPlan: ClassBuildPlan): string {
-  return backgroundOptions.includes(buildPlan.background)
-    ? buildPlan.background
-    : (backgroundOptions[0] ?? "");
-}
+function createRecommendedCharacterDraft(profile: CharacterFormValues): CharacterFormValues {
+  const normalizedProgress = normalizeLevelAndXp(profile.level, profile.xp);
+  const starterPack = getResolvedStarterPack(profile.className);
 
-function createRecommendedCharacterDraft(profile: CharacterDraft): CharacterDraft {
-  const normalizedLevel = clampNumber(String(profile.level), 1, 20, 1);
-  const normalizedProgress = normalizeLevelAndXp(normalizedLevel, profile.xp);
+  if (starterPack.hasConfiguredStarterPack && starterPack.recommendedAbilityScores) {
+    const abilities = cloneAbilities(starterPack.recommendedAbilityScores);
+    const grantedSkillSet = new Set(
+      getGrantedSkillProficienciesForCharacter(
+        profile.className,
+        profile.species,
+        profile.background
+      ).map((entry) => entry.skill)
+    );
+    const recommendedSkills = normalizeSelection(
+      [...starterPack.recommendedSkillProficiencies, ...starterPack.skillProficiencies],
+      starterPack.skillProficiencies
+    )
+      .filter((skill) => !grantedSkillSet.has(skill))
+      .slice(0, starterPack.skillProficiencySelectionCount);
+    const recommendedChoice =
+      starterPack.recommendedStartingEquipmentIndex !== null
+        ? (starterPack.startingEquipment[starterPack.recommendedStartingEquipmentIndex] ?? null)
+        : null;
+    const recommendedEquipment = materializeStarterPackEquipmentChoice(recommendedChoice);
+    const hitPoints = getAutomaticMaxHitPointsForCharacter({
+      className: profile.className,
+      level: normalizedProgress.level,
+      abilities,
+      classFeatureState: profile.classFeatureState ?? {}
+    });
+
+    return createFormValues(
+      {
+        ...createEmptyCharacter(),
+        name: profile.name,
+        species: profile.species,
+        className: profile.className,
+        subclassId: profile.subclassId,
+        background: profile.background,
+        level: normalizedProgress.level,
+        xp: normalizedProgress.xp,
+        hitPoints,
+        currentHitPoints: hitPoints,
+        maxHitPointsMode: "automatic",
+        attributeMode: "pointBuy",
+        abilities,
+        alignment: "True Neutral",
+        currencies: recommendedEquipment.currencies,
+        skills: recommendedSkills,
+        equipment: recommendedEquipment.equipment
+      },
+      {
+        defaultHitPointMode: "automatic",
+        startingEquipmentChoiceIndex:
+          starterPack.recommendedStartingEquipmentIndex !== null
+            ? String(starterPack.recommendedStartingEquipmentIndex)
+            : ""
+      }
+    );
+  }
+
   const buildPlan = getBuildPlan(profile.className);
-  const recommendedAbilities = createRecommendedAbilities(
+  const abilities = createFallbackRecommendedAbilities(
     profile.species,
     normalizedProgress.level,
     buildPlan
   );
-  const maxHitPoints = clampNumber(
-    String(
-      calculateRecommendedHitPoints(
-        buildPlan.hitDie,
-        normalizedProgress.level,
-        recommendedAbilities.CON
-      )
-    ),
-    1,
-    999,
-    8
-  );
-
-  return {
-    ...createEmptyCharacter(),
-    name: profile.name,
-    species: profile.species,
+  const hitPoints = getAutomaticMaxHitPointsForCharacter({
     className: profile.className,
-    subclassId: profile.subclassId,
     level: normalizedProgress.level,
-    xp: normalizedProgress.xp,
-    hitPoints: maxHitPoints,
-    currentHitPoints: maxHitPoints,
-    attributeMode: "custom",
-    abilities: recommendedAbilities,
-    alignment: buildPlan.alignment,
-    background: createRecommendedBackgroundChoice(buildPlan),
-    skills: createRecommendedSkills(profile.species, profile.className, buildPlan),
-    equipment: createRecommendedEquipment(
-      profile.species,
-      normalizedProgress.level,
-      profile.className,
-      buildPlan
-    )
-  };
+    abilities,
+    classFeatureState: profile.classFeatureState ?? {}
+  });
+
+  return createFormValues(
+    {
+      ...createEmptyCharacter(),
+      name: profile.name,
+      species: profile.species,
+      className: profile.className,
+      subclassId: profile.subclassId,
+      background: profile.background,
+      level: normalizedProgress.level,
+      xp: normalizedProgress.xp,
+      hitPoints,
+      currentHitPoints: hitPoints,
+      maxHitPointsMode: "automatic",
+      attributeMode: "pointBuy",
+      abilities,
+      alignment: "True Neutral",
+      currencies: createDefaultCurrencies(),
+      skills: createFallbackRecommendedSkills(
+        profile.species,
+        profile.className,
+        profile.background,
+        buildPlan
+      ),
+      equipment: createFallbackRecommendedEquipment(
+        profile.species,
+        normalizedProgress.level,
+        profile.className,
+        buildPlan
+      )
+    },
+    {
+      defaultHitPointMode: "automatic",
+      startingEquipmentChoiceIndex: ""
+    }
+  );
 }
 
 const randomNamePrefixes = [
@@ -350,7 +457,12 @@ function createRandomName(): string {
 
 function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: CharacterFormProps) {
   const [wizardStep, setWizardStep] = useState<CreationStep>(1);
-  const [stepOneSnapshot, setStepOneSnapshot] = useState<CharacterDraft | null>(null);
+  const [stepOneSnapshot, setStepOneSnapshot] = useState<CharacterFormValues | null>(null);
+  const [attemptedBuildAdvance, setAttemptedBuildAdvance] = useState(false);
+  const initialFormValues = createFormValues(initialValues, {
+    defaultHitPointMode: isEditing ? (initialValues.maxHitPointsMode ?? "custom") : "automatic",
+    startingEquipmentChoiceIndex: ""
+  });
   const {
     control,
     formState: { errors },
@@ -360,19 +472,23 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     reset,
     setValue,
     trigger
-  } = useForm<CharacterDraft>({
-    defaultValues: initialValues
+  } = useForm<CharacterFormValues>({
+    defaultValues: initialFormValues
   });
   const [
     selectedClassName,
     selectedSubclassId,
     selectedSpecies,
     selectedBackground,
+    selectedLevel,
     attributeMode,
     abilities,
+    selectedMaxHitPointsMode,
     alignment,
     selectedSkills,
-    selectedEquipment
+    selectedEquipment,
+    selectedCurrencies,
+    selectedStartingEquipmentChoiceIndex
   ] = useWatch({
     control,
     name: [
@@ -380,59 +496,102 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       "subclassId",
       "species",
       "background",
+      "level",
       "attributeMode",
       "abilities",
+      "maxHitPointsMode",
       "alignment",
       "skills",
-      "equipment"
+      "equipment",
+      "currencies",
+      "startingEquipmentChoiceIndex"
     ]
   });
-  const resolvedClassName = selectedClassName ?? initialValues.className;
-  const resolvedSubclassId = selectedSubclassId ?? initialValues.subclassId ?? "";
-  const resolvedSpecies = selectedSpecies ?? initialValues.species;
-  const resolvedBackground = selectedBackground ?? initialValues.background;
-  const resolvedAttributeMode = attributeMode ?? initialValues.attributeMode;
-  const resolvedAbilities = abilities ?? initialValues.abilities;
-  const resolvedAlignment = alignment ?? initialValues.alignment;
-  const resolvedSkills = selectedSkills ?? initialValues.skills;
-  const resolvedEquipment = selectedEquipment ?? initialValues.equipment;
-  const availableSkillOptions = getSkillProficiencyOptionsForClass(resolvedClassName);
+  const resolvedClassName = selectedClassName ?? initialFormValues.className;
+  const resolvedSubclassId = selectedSubclassId ?? initialFormValues.subclassId ?? "";
+  const resolvedSpecies = selectedSpecies ?? initialFormValues.species;
+  const resolvedBackground = selectedBackground ?? initialFormValues.background;
+  const resolvedLevel = selectedLevel ?? initialFormValues.level;
+  const resolvedAttributeMode = attributeMode ?? initialFormValues.attributeMode;
+  const resolvedAbilities = abilities ?? initialFormValues.abilities;
+  const resolvedMaxHitPointsMode =
+    selectedMaxHitPointsMode ?? initialFormValues.maxHitPointsMode ?? "automatic";
+  const resolvedAlignment = alignment ?? initialFormValues.alignment;
+  const resolvedSkills = selectedSkills ?? initialFormValues.skills;
+  const resolvedEquipment = selectedEquipment ?? initialFormValues.equipment;
+  const resolvedCurrencies = selectedCurrencies ?? initialFormValues.currencies;
+  const resolvedStartingEquipmentChoiceIndex = selectedStartingEquipmentChoiceIndex ?? "";
   const availableSubclassOptions = getSubclassOptionsForClassName(resolvedClassName);
-  const skillSelectionLimit = getSkillSelectionLimitForClass(resolvedClassName);
-  const availableEquipmentOptions = getAvailableEquipmentNamesForClass(resolvedClassName);
-  const canEditClassIdentity = !isEditing || availableSubclassOptions.length === 0;
-  const lastCustomAbilitiesRef = useRef(cloneAbilities(initialValues.abilities));
+  const starterPack = getResolvedStarterPack(resolvedClassName);
+  const availableSkillOptions = starterPack.skillProficiencies;
+  const skillSelectionLimit = starterPack.skillProficiencySelectionCount;
+  const starterEquipmentChoices = starterPack.startingEquipment;
+  const automaticHitPoints = getAutomaticMaxHitPointsForCharacter({
+    className: resolvedClassName,
+    level: resolvedLevel,
+    abilities: resolvedAbilities,
+    classFeatureState: getValues("classFeatureState") ?? {}
+  });
+  const lastCustomAbilitiesRef = useRef(cloneAbilities(initialFormValues.abilities));
   const lastPointBuyAbilitiesRef = useRef(
-    initialValues.attributeMode === "pointBuy"
-      ? normalizePointBuyAbilities(initialValues.abilities)
+    initialFormValues.attributeMode === "pointBuy"
+      ? normalizePointBuyAbilities(initialFormValues.abilities)
       : createDefaultAbilities()
   );
   const pointBuyRemaining = getPointBuyRemaining(resolvedAbilities);
+  const resolvedSkillSelections = resolveSkillProficienciesForCharacter(
+    resolvedClassName,
+    resolvedSpecies,
+    resolvedBackground,
+    resolvedSkills
+  );
+  const grantedSkillSet = new Set(resolvedSkillSelections.granted.map((entry) => entry.skill));
+  const availableManualSkillOptions = availableSkillOptions.filter(
+    (skill) => !grantedSkillSet.has(skill)
+  );
+  const selectedSkillCount = resolvedSkillSelections.manual.length;
+  const buildRequiresSkillSelection = skillSelectionLimit > 0;
+  const isSkillSelectionReady =
+    !buildRequiresSkillSelection || selectedSkillCount === skillSelectionLimit;
+  const isEquipmentChoiceReady =
+    starterEquipmentChoices.length === 0 || resolvedStartingEquipmentChoiceIndex.length > 0;
+  const isPointBuyReady = resolvedAttributeMode !== "pointBuy" || pointBuyRemaining === 0;
+  const isBuildSetupReady =
+    isSkillSelectionReady &&
+    isEquipmentChoiceReady &&
+    isPointBuyReady &&
+    (resolvedMaxHitPointsMode !== "custom" || automaticHitPoints > 0);
 
   const creationTitleByStep: Record<CreationStep, string> = {
     1: "Create a new character",
     2: "Customize your build",
-    3: "Finalize the background"
+    3: "Finalize your notes"
   };
   const creationDescriptionByStep: Record<CreationStep, string> = {
-    1: "Start with identity details, then either create instantly with a recommended build or continue customizing manually.",
-    2: "Adjust stats, abilities, skills, and equipment. Going back will reset these custom changes.",
-    3: "Choose a background, alignment, and optional background notes, then create the character."
+    1: "Set the essentials first, then either create instantly with the recommended starter pack or continue customizing manually.",
+    2: "Choose your starting HP approach, distribute ability scores, and lock in class starter choices before moving on.",
+    3: "Finish with alignment and optional character notes."
   };
 
   useEffect(() => {
-    reset(initialValues);
+    const nextInitialValues = createFormValues(initialValues, {
+      defaultHitPointMode: isEditing ? (initialValues.maxHitPointsMode ?? "custom") : "automatic",
+      startingEquipmentChoiceIndex: ""
+    });
+
+    reset(nextInitialValues);
     lastCustomAbilitiesRef.current =
-      initialValues.attributeMode === "custom"
-        ? cloneAbilities(initialValues.abilities)
+      nextInitialValues.attributeMode === "custom"
+        ? cloneAbilities(nextInitialValues.abilities)
         : cloneAbilities(createDefaultAbilities());
     lastPointBuyAbilitiesRef.current =
-      initialValues.attributeMode === "pointBuy"
-        ? normalizePointBuyAbilities(initialValues.abilities)
+      nextInitialValues.attributeMode === "pointBuy"
+        ? normalizePointBuyAbilities(nextInitialValues.abilities)
         : createDefaultAbilities();
     setWizardStep(1);
     setStepOneSnapshot(null);
-  }, [initialValues, reset]);
+    setAttemptedBuildAdvance(false);
+  }, [initialValues, isEditing, reset]);
 
   useEffect(() => {
     const currentSkills = getValues("skills") ?? [];
@@ -470,6 +629,69 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       });
     }
   }, [resolvedClassName, resolvedSubclassId, setValue]);
+
+  useEffect(() => {
+    if (
+      resolvedStartingEquipmentChoiceIndex.length > 0 &&
+      starterEquipmentChoices[Number(resolvedStartingEquipmentChoiceIndex)] === undefined
+    ) {
+      setValue("startingEquipmentChoiceIndex", "", {
+        shouldDirty: true,
+        shouldValidate: true
+      });
+    }
+  }, [resolvedStartingEquipmentChoiceIndex, setValue, starterEquipmentChoices]);
+
+  useEffect(() => {
+    const selectedChoice =
+      resolvedStartingEquipmentChoiceIndex.length > 0
+        ? (starterEquipmentChoices[Number(resolvedStartingEquipmentChoiceIndex)] ?? null)
+        : null;
+
+    if (!selectedChoice) {
+      return;
+    }
+
+    const nextEquipment = materializeStarterPackEquipmentChoice(selectedChoice);
+
+    if (!areStringArraysEqual(resolvedEquipment, nextEquipment.equipment)) {
+      setValue("equipment", nextEquipment.equipment, {
+        shouldDirty: true,
+        shouldValidate: true
+      });
+    }
+
+    if (!areCurrenciesEqual(resolvedCurrencies, nextEquipment.currencies)) {
+      setValue("currencies", nextEquipment.currencies, {
+        shouldDirty: true
+      });
+    }
+  }, [
+    resolvedCurrencies,
+    resolvedEquipment,
+    resolvedStartingEquipmentChoiceIndex,
+    setValue,
+    starterEquipmentChoices
+  ]);
+
+  useEffect(() => {
+    if (resolvedMaxHitPointsMode !== "automatic") {
+      return;
+    }
+
+    if (getValues("hitPoints") !== automaticHitPoints) {
+      setValue("hitPoints", automaticHitPoints, {
+        shouldDirty: true,
+        shouldValidate: true
+      });
+    }
+
+    if (!isEditing && getValues("currentHitPoints") !== automaticHitPoints) {
+      setValue("currentHitPoints", automaticHitPoints, {
+        shouldDirty: true
+      });
+    }
+  }, [automaticHitPoints, getValues, isEditing, resolvedMaxHitPointsMode, setValue]);
 
   function commitAbilities(nextAbilities: AbilityScores, mode: AttributeMode) {
     setValue("abilities", nextAbilities, {
@@ -532,58 +754,73 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     );
   }
 
-  function normalizeDraft(values: CharacterDraft): CharacterDraft {
-    const maxHitPoints = clampNumber(String(values.hitPoints), 1, 999, 8);
-    const normalizedProgress = normalizeLevelAndXp(values.level, values.xp);
-    const normalizedClassName = values.className.trim();
-    const normalizedBackground = values.background.trim();
-    const resolvedBackground = backgroundOptions.includes(normalizedBackground)
+  function normalizeDraft(values: CharacterFormValues): CharacterDraft {
+    const { startingEquipmentChoiceIndex: _unusedStartingEquipmentChoiceIndex, ...draftValues } =
+      values;
+    const normalizedProgress = normalizeLevelAndXp(draftValues.level, draftValues.xp);
+    const normalizedClassName = draftValues.className.trim();
+    const normalizedBackground = draftValues.background.trim();
+    const resolvedNormalizedBackground = backgroundOptions.includes(normalizedBackground)
       ? normalizedBackground
       : "";
+    const normalizedAbilities =
+      draftValues.attributeMode === "pointBuy"
+        ? normalizePointBuyAbilities(draftValues.abilities)
+        : normalizeCustomAbilities(draftValues.abilities);
+    const normalizedHitPoints =
+      draftValues.maxHitPointsMode === "automatic"
+        ? getAutomaticMaxHitPointsForCharacter({
+            className: normalizedClassName,
+            level: normalizedProgress.level,
+            abilities: normalizedAbilities,
+            classFeatureState: draftValues.classFeatureState ?? {}
+          })
+        : clampNumber(String(draftValues.hitPoints), 1, 999, automaticHitPoints);
     const normalizedSelections = normalizeSelectionsForClass(
       normalizedClassName,
-      values.skills ?? [],
-      values.equipment ?? [],
-      values.species,
-      resolvedBackground
+      draftValues.skills ?? [],
+      draftValues.equipment ?? [],
+      draftValues.species,
+      resolvedNormalizedBackground
     );
 
     return {
-      ...values,
-      name: values.name.trim(),
-      species: values.species.trim(),
+      ...draftValues,
+      name: draftValues.name.trim(),
+      species: draftValues.species.trim(),
       className: normalizedClassName,
-      subclassId: normalizeSubclassId(values.subclassId, normalizedClassName) ?? "",
+      subclassId: normalizeSubclassId(draftValues.subclassId, normalizedClassName) ?? "",
       level: normalizedProgress.level,
       xp: normalizedProgress.xp,
-      hitPoints: maxHitPoints,
+      hitPoints: normalizedHitPoints,
       currentHitPoints: isEditing
-        ? clampNumber(String(values.currentHitPoints), 0, maxHitPoints, maxHitPoints)
-        : maxHitPoints,
-      temporaryHitPoints: clampNumber(String(values.temporaryHitPoints), 0, 999, 0),
-      background: resolvedBackground,
-      backgroundNotes: values.backgroundNotes.trim(),
-      alignment: alignmentOptions.includes(values.alignment) ? values.alignment : "True Neutral",
+        ? clampNumber(
+            String(draftValues.currentHitPoints),
+            0,
+            normalizedHitPoints,
+            normalizedHitPoints
+          )
+        : normalizedHitPoints,
+      temporaryHitPoints: clampNumber(String(draftValues.temporaryHitPoints), 0, 999, 0),
+      maxHitPointsMode: draftValues.maxHitPointsMode ?? "automatic",
+      background: resolvedNormalizedBackground,
+      backgroundNotes: draftValues.backgroundNotes.trim(),
+      alignment: alignmentOptions.includes(draftValues.alignment)
+        ? draftValues.alignment
+        : "True Neutral",
       skills: normalizedSelections.skills,
       equipment: normalizedSelections.equipment,
-      abilities:
-        values.attributeMode === "pointBuy"
-          ? normalizePointBuyAbilities(values.abilities)
-          : normalizeCustomAbilities(values.abilities)
+      abilities: normalizedAbilities
     };
   }
 
-  function submitForm(values: CharacterDraft) {
+  function submitForm(values: CharacterFormValues) {
     onSubmit(normalizeDraft(values));
   }
 
   async function validateWizardStepOne(): Promise<boolean> {
-    const fields: Array<"name" | "species" | "className" | "subclassId" | "level"> = [
-      "name",
-      "species",
-      "className",
-      "level"
-    ];
+    const fields: Array<"name" | "species" | "className" | "subclassId" | "background" | "level"> =
+      ["name", "species", "className", "background", "level"];
 
     if (availableSubclassOptions.length > 0) {
       fields.splice(3, 0, "subclassId");
@@ -617,12 +854,15 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     setStepOneSnapshot(snapshot);
     reset(snapshot);
     setWizardStep(2);
+    setAttemptedBuildAdvance(false);
   }
 
-  async function handleProceedToBackground() {
-    const isValid = await trigger(["hitPoints"]);
+  async function handleProceedToNotes() {
+    setAttemptedBuildAdvance(true);
 
-    if (!isValid) {
+    const hitPointsValid = resolvedMaxHitPointsMode !== "custom" || (await trigger(["hitPoints"]));
+
+    if (!hitPointsValid || !isBuildSetupReady) {
       return;
     }
 
@@ -632,25 +872,30 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   function handleBackToStepOne() {
     reset(stepOneSnapshot ?? createBasicProfileSnapshot(getValues()));
     setWizardStep(1);
+    setAttemptedBuildAdvance(false);
   }
 
   function handleRandomize() {
+    const randomClassName = getRandomItem(classOptions);
+
     if (!isEditing && wizardStep === 1) {
-      const randomClassName = getRandomItem(classOptions);
-      reset({
-        ...createEmptyCharacter(),
-        name: createRandomName(),
-        species: getRandomItem(speciesOptions),
-        className: randomClassName,
-        subclassId: getRandomSubclassIdForClass(randomClassName),
-        background: createRandomBackground(),
-        backgroundNotes: "",
-        level: 1
-      });
+      reset(
+        createFormValues({
+          ...createEmptyCharacter(),
+          name: createRandomName(),
+          species: getRandomItem(speciesOptions),
+          className: randomClassName,
+          subclassId: getRandomSubclassIdForClass(randomClassName),
+          background: createRandomBackground(),
+          backgroundNotes: "",
+          level: 1,
+          maxHitPointsMode: "automatic",
+          attributeMode: "pointBuy"
+        })
+      );
       return;
     }
 
-    const randomClassName = getRandomItem(classOptions);
     const randomClassSkillOptions = getSkillProficiencyOptionsForClass(randomClassName);
     const randomClassSkillLimit = getSkillSelectionLimitForClass(randomClassName);
     const randomClassEquipmentOptions = getAvailableEquipmentNamesForClass(randomClassName);
@@ -661,7 +906,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       randomMode === "pointBuy" ? randomizedAbilities : createRandomPointBuyAbilities();
     const randomizedCustomAbilities =
       randomMode === "custom" ? randomizedAbilities : createRandomCustomAbilities();
-    const randomizedDraft: CharacterDraft = {
+    const randomizedDraft = createFormValues({
       ...createEmptyCharacter(),
       name: createRandomName(),
       species: getRandomItem(speciesOptions),
@@ -671,6 +916,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       xp: 0,
       hitPoints: getRandomInt(8, 90),
       currentHitPoints: 0,
+      maxHitPointsMode: Math.random() < 0.5 ? "automatic" : "custom",
       attributeMode: randomMode,
       abilities: randomizedAbilities,
       alignment: getRandomItem(alignmentOptions),
@@ -687,7 +933,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         3,
         Math.min(8, randomClassEquipmentOptions.length)
       )
-    };
+    });
     randomizedDraft.currentHitPoints = randomizedDraft.hitPoints;
 
     reset(randomizedDraft);
@@ -695,91 +941,92 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     lastCustomAbilitiesRef.current = cloneAbilities(randomizedCustomAbilities);
   }
 
-  function renderBasicProfileSection(includeHitPoints: boolean) {
+  function renderBasicProfileSection() {
+    const showRandomize = !isEditing && wizardStep === 1;
+
     return (
       <section className={clsx(styles.sectionCard, styles.primarySection)}>
         <div className={styles.sectionHeader}>
           <div>
-            <p className={styles.sectionEyebrow}>Basic profile</p>
-            <h3>Identity and starting stats</h3>
+            <p className={styles.sectionEyebrow}>Core profile</p>
+            <h3>Character identity</h3>
           </div>
-          <button
-            type="button"
-            className={styles.randomizeButton}
-            onClick={handleRandomize}
-            disabled={!canEditClassIdentity}
-            aria-label="Randomize character"
-            title={
-              canEditClassIdentity
-                ? "Randomize character"
-                : "Class identity is locked after character creation"
-            }
-          >
-            <Dice6 size={20} />
-          </button>
+          {showRandomize ? (
+            <button
+              type="button"
+              className={styles.randomizeButton}
+              onClick={handleRandomize}
+              aria-label="Randomize character"
+              title="Randomize character"
+            >
+              <Dice6 size={20} />
+            </button>
+          ) : null}
         </div>
 
-        <div className={styles.fieldGrid}>
-          <label className={styles.field}>
-            <span>Character name</span>
-            <TextInput
-              className={styles.fieldInput}
-              invalid={Boolean(errors.name)}
-              placeholder="Mira Nightbloom"
-              {...register("name", {
-                required: "Enter a character name",
-                validate: (value) =>
-                  value.trim().length > 0 || "Enter a character name"
-              })}
-            />
-            {errors.name ? <small className={styles.errorText}>{errors.name.message}</small> : null}
-          </label>
+        <div className={styles.profileGrid}>
+          <div className={clsx(styles.profileRow, styles.profileRowTop)}>
+            <label className={styles.field}>
+              <span>Character name</span>
+              <TextInput
+                className={styles.fieldInput}
+                invalid={Boolean(errors.name)}
+                placeholder="Mira Nightbloom"
+                {...register("name", {
+                  required: "Enter a character name",
+                  validate: (value) => value.trim().length > 0 || "Enter a character name"
+                })}
+              />
+              {errors.name ? (
+                <small className={styles.errorText}>{errors.name.message}</small>
+              ) : null}
+            </label>
 
-          <label className={styles.field}>
-            <span>Species</span>
-            <SelectInput
-              className={styles.fieldInput}
-              invalid={Boolean(errors.species)}
-              {...register("species", { required: "Choose a species" })}
-            >
-              <option value="">Select a species</option>
-              {speciesOptions.map((species) => (
-                <option key={species} value={species}>
-                  {species}
-                </option>
-              ))}
-            </SelectInput>
-            {errors.species ? (
-              <small className={styles.errorText}>{errors.species.message}</small>
-            ) : null}
-          </label>
+            <label className={clsx(styles.field, styles.compactField)}>
+              <span>Level</span>
+              <NumberInput
+                className={styles.fieldInput}
+                invalid={Boolean(errors.level)}
+                min={1}
+                max={20}
+                {...register("level", {
+                  valueAsNumber: true,
+                  min: { value: 1, message: "Level must be at least 1" },
+                  max: { value: 20, message: "Level cannot exceed 20" }
+                })}
+              />
+              {errors.level ? (
+                <small className={styles.errorText}>{errors.level.message}</small>
+              ) : null}
+            </label>
+          </div>
 
-          <label className={styles.field}>
-            <span>Class</span>
-            <SelectInput
-              className={styles.fieldInput}
-              invalid={Boolean(errors.className)}
-              disabled={!canEditClassIdentity}
-              {...register("className", { required: "Choose a class" })}
-            >
-              <option value="">Select a class</option>
-              {classOptions.map((characterClass) => (
-                <option key={characterClass} value={characterClass}>
-                  {characterClass}
-                </option>
-              ))}
-            </SelectInput>
-            {errors.className ? (
-              <small className={styles.errorText}>{errors.className.message}</small>
-            ) : null}
-          </label>
+          <div className={styles.profileRow}>
+            <label className={styles.field}>
+              <span>Class</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={Boolean(errors.className)}
+                {...register("className", { required: "Choose a class" })}
+              >
+                <option value="">Select a class</option>
+                {classOptions.map((characterClass) => (
+                  <option key={characterClass} value={characterClass}>
+                    {characterClass}
+                  </option>
+                ))}
+              </SelectInput>
+              {errors.className ? (
+                <small className={styles.errorText}>{errors.className.message}</small>
+              ) : null}
+            </label>
 
-          {availableSubclassOptions.length > 0 ? (
             <label className={styles.field}>
               <span>Subclass</span>
               <SelectInput
                 className={styles.fieldInput}
                 invalid={Boolean(errors.subclassId)}
+                disabled={availableSubclassOptions.length === 0}
                 {...register("subclassId", {
                   validate: (value) =>
                     availableSubclassOptions.length === 0 ||
@@ -788,151 +1035,210 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                       : "Choose a subclass"
                 })}
               >
-                <option value="">Select a subclass</option>
+                <option value="">
+                  {availableSubclassOptions.length > 0
+                    ? "Select a subclass"
+                    : "No subclass options"}
+                </option>
                 {availableSubclassOptions.map((subclass) => (
                   <option key={subclass.id} value={subclass.id}>
                     {subclass.name}
                   </option>
                 ))}
               </SelectInput>
-              {errors.subclassId ? (
-                <small className={styles.errorText}>{errors.subclassId.message}</small>
-              ) : (
-                <small className={styles.helperText}>Available options update with the selected class.</small>
-              )}
             </label>
-          ) : null}
+          </div>
 
-          <label className={styles.field}>
-            <span>Starting level</span>
-            <NumberInput
-              className={styles.fieldInput}
-              invalid={Boolean(errors.level)}
-              min={1}
-              max={20}
-              {...register("level", {
-                valueAsNumber: true,
-                min: { value: 1, message: "Level must be at least 1" },
-                max: { value: 20, message: "Level cannot exceed 20" }
-              })}
-            />
-            {errors.level ? <small className={styles.errorText}>{errors.level.message}</small> : null}
-          </label>
-
-          {includeHitPoints ? (
+          <div className={styles.profileRow}>
             <label className={styles.field}>
-              <span>Hit points</span>
-              <NumberInput
+              <span>Species</span>
+              <SelectInput
                 className={styles.fieldInput}
-                invalid={Boolean(errors.hitPoints)}
-                min={1}
-                {...register("hitPoints", {
-                  valueAsNumber: true,
-                  min: { value: 1, message: "Hit points must be at least 1" }
-                })}
-              />
-              {errors.hitPoints ? (
-                <small className={styles.errorText}>{errors.hitPoints.message}</small>
-              ) : (
-                <small className={styles.helperText}>Default starts at 8 and can be adjusted.</small>
-              )}
+                invalid={Boolean(errors.species)}
+                {...register("species", { required: "Choose a species" })}
+              >
+                <option value="">Select a species</option>
+                {speciesOptions.map((species) => (
+                  <option key={species} value={species}>
+                    {species}
+                  </option>
+                ))}
+              </SelectInput>
+              {errors.species ? (
+                <small className={styles.errorText}>{errors.species.message}</small>
+              ) : null}
             </label>
-          ) : null}
+
+            <label className={styles.field}>
+              <span>Background</span>
+              <SelectInput
+                className={styles.fieldInput}
+                invalid={Boolean(errors.background)}
+                {...register("background", {
+                  required: "Choose a background"
+                })}
+              >
+                <option value="">Select a background</option>
+                {backgroundOptions.map((background) => (
+                  <option key={background} value={background}>
+                    {background}
+                  </option>
+                ))}
+              </SelectInput>
+              {errors.background ? (
+                <small className={styles.errorText}>{errors.background.message}</small>
+              ) : null}
+            </label>
+          </div>
         </div>
       </section>
     );
   }
 
-  function renderHitPointsSection() {
+  function renderStartingHitPointsSection() {
     return (
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
           <div>
-            <p className={styles.sectionEyebrow}>Combat stats</p>
-            <h3>Set your starting hit points</h3>
+            <p className={styles.sectionEyebrow}>Starting HP</p>
+            <h3>Choose how to set max hit points</h3>
           </div>
-          <span>Current HP starts at max when created</span>
+          <span>{resolvedMaxHitPointsMode === "automatic" ? "Average" : "Custom"}</span>
         </div>
 
-        <label className={styles.field}>
-          <span>Hit points</span>
-          <NumberInput
-            className={styles.fieldInput}
-            invalid={Boolean(errors.hitPoints)}
-            min={1}
-            {...register("hitPoints", {
-              valueAsNumber: true,
-              min: { value: 1, message: "Hit points must be at least 1" },
-              onChange: (event) => {
-                const nextMaxHitPoints = clampNumber(event.target.value, 1, 999, 8);
-                setValue("currentHitPoints", nextMaxHitPoints, { shouldDirty: true });
-              }
-            })}
-          />
-          {errors.hitPoints ? (
-            <small className={styles.errorText}>{errors.hitPoints.message}</small>
-          ) : (
-            <small className={styles.helperText}>
-              This can be adjusted later from the character presentation view.
-            </small>
-          )}
-        </label>
+        <div
+          className={styles.segmentedControl}
+          role="tablist"
+          aria-label="Starting hit points mode"
+        >
+          <button
+            type="button"
+            className={clsx(
+              styles.segmentButton,
+              resolvedMaxHitPointsMode === "automatic" && styles.segmentButtonActive
+            )}
+            onClick={() =>
+              setValue("maxHitPointsMode", "automatic", {
+                shouldDirty: true,
+                shouldValidate: true
+              })
+            }
+          >
+            Average
+          </button>
+          <button
+            type="button"
+            className={clsx(
+              styles.segmentButton,
+              resolvedMaxHitPointsMode === "custom" && styles.segmentButtonActive
+            )}
+            onClick={() =>
+              setValue("maxHitPointsMode", "custom", {
+                shouldDirty: true,
+                shouldValidate: true
+              })
+            }
+          >
+            Custom
+          </button>
+        </div>
+
+        {resolvedMaxHitPointsMode === "automatic" ? (
+          <div className={styles.infoCard}>
+            <strong>{automaticHitPoints} HP</strong>
+            <small>Average class hit points using your current Constitution score.</small>
+          </div>
+        ) : (
+          <label className={styles.field}>
+            <span>Custom starting HP</span>
+            <NumberInput
+              className={styles.fieldInput}
+              invalid={Boolean(errors.hitPoints)}
+              min={1}
+              {...register("hitPoints", {
+                valueAsNumber: true,
+                min: { value: 1, message: "Hit points must be at least 1" },
+                onChange: (event) => {
+                  const nextHitPoints = clampNumber(event.target.value, 1, 999, 1);
+
+                  if (!isEditing) {
+                    setValue("currentHitPoints", nextHitPoints, { shouldDirty: true });
+                  }
+                }
+              })}
+            />
+            {errors.hitPoints ? (
+              <small className={styles.errorText}>{errors.hitPoints.message}</small>
+            ) : (
+              <small className={styles.helperText}>
+                Manual HP stays independent from the automatic class average.
+              </small>
+            )}
+          </label>
+        )}
       </section>
     );
   }
 
-  function renderAbilitiesSection() {
+  function renderAbilityDistributionSection() {
     return (
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
           <div>
             <p className={styles.sectionEyebrow}>Ability scores</p>
-            <h3>Distribute STR, DEX, CON, INT, WIS, CHA</h3>
           </div>
           <span>
-            {resolvedAttributeMode === "custom"
-              ? "1-99 custom range"
-              : `${pointBuyRemaining} points left`}
+            {resolvedAttributeMode === "pointBuy"
+              ? `${pointBuyRemaining} points left`
+              : "Custom values"}
           </span>
         </div>
 
-        <div className={styles.segmentedControl} role="tablist" aria-label="Ability distribution mode">
+        <div className={abilityEditorStyles.modeControl}>
           <button
             type="button"
             className={clsx(
-              styles.segmentButton,
-              resolvedAttributeMode === "custom" && styles.segmentButtonActive
-            )}
-            onClick={() => handleAttributeModeChange("custom")}
-          >
-            Custom
-          </button>
-          <button
-            type="button"
-            className={clsx(
-              styles.segmentButton,
-              resolvedAttributeMode === "pointBuy" && styles.segmentButtonActive
+              abilityEditorStyles.modeButton,
+              resolvedAttributeMode === "pointBuy" && abilityEditorStyles.modeButtonActive
             )}
             onClick={() => handleAttributeModeChange("pointBuy")}
           >
             Point Buy
           </button>
+          <button
+            type="button"
+            className={clsx(
+              abilityEditorStyles.modeButton,
+              resolvedAttributeMode === "custom" && abilityEditorStyles.modeButtonActive
+            )}
+            onClick={() => handleAttributeModeChange("custom")}
+          >
+            Custom
+          </button>
         </div>
 
-        <p className={styles.helperText}>
-          {resolvedAttributeMode === "custom"
-            ? "Custom mode allows any value from 1 to 99 for each attribute."
-            : "Point Buy follows standard DnD rules: scores start at 8, can rise to 15 before species bonuses, and must stay within a 27-point budget."}
-        </p>
-
         {resolvedAttributeMode === "pointBuy" ? (
-          <div className={styles.pointSummary}>
-            <strong>{pointBuyRemaining} points remaining</strong>
-            <span>{POINT_BUY_BUDGET - pointBuyRemaining} spent</span>
+          <div className={abilityEditorStyles.pointBuyInfo}>
+            <div
+              className={clsx(
+                abilityEditorStyles.pointBuySummary,
+                pointBuyRemaining < 0 && abilityEditorStyles.pointBuySummaryOverdraft
+              )}
+            >
+              <span className={abilityEditorStyles.pointBuyLabel}>POINTS REMAINING</span>
+              <strong className={abilityEditorStyles.pointBuyValue}>{pointBuyRemaining}</strong>
+            </div>
+            <p className={abilityEditorStyles.pointBuyHint}>
+              Scores start at 8 and you must spend the full 27-point budget before proceeding.
+            </p>
           </div>
-        ) : null}
+        ) : (
+          <p className={styles.helperText}>
+            Custom mode lets you enter any scores you want. Point Buy is the default guided path.
+          </p>
+        )}
 
-        <div className={styles.attributesGrid}>
+        <div className={abilityEditorStyles.abilityInputGrid}>
           {abilityKeys.map((ability) => (
             <Controller
               key={ability}
@@ -946,125 +1252,242 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     : 99;
 
                 return (
-                  <div className={styles.abilityCard}>
-                    <div className={styles.abilityHeader}>
-                      <div>
-                        <strong>{ability}</strong>
-                        {resolvedAttributeMode === "pointBuy" ? (
-                          <span>{getPointBuyCost(currentValue)} points spent</span>
-                        ) : (
-                          <span>Custom score</span>
-                        )}
+                  <label className={abilityEditorStyles.abilityInputCard}>
+                    <span>{ability}</span>
+                    {resolvedAttributeMode === "pointBuy" ? (
+                      <div className={abilityEditorStyles.pointBuyInputShell}>
+                        <NumberInput
+                          className={abilityEditorStyles.pointBuyInput}
+                          min={8}
+                          max={15}
+                          readOnly
+                          value={currentValue}
+                          onBeforeInput={(event) => {
+                            event.preventDefault();
+                          }}
+                          onChange={(event) =>
+                            handlePointBuyAbilityChange(ability, event.target.value)
+                          }
+                        />
+                        <div className={abilityEditorStyles.pointBuyStepper}>
+                          <button
+                            type="button"
+                            className={abilityEditorStyles.pointBuyStepperButton}
+                            onClick={() =>
+                              handlePointBuyAbilityChange(ability, String(currentValue + 1))
+                            }
+                            disabled={currentValue >= maxPointBuyScore}
+                            aria-label={`Increase ${ability}`}
+                          >
+                            +
+                          </button>
+                          <button
+                            type="button"
+                            className={abilityEditorStyles.pointBuyStepperButton}
+                            onClick={() =>
+                              handlePointBuyAbilityChange(ability, String(currentValue - 1))
+                            }
+                            disabled={currentValue <= 8}
+                            aria-label={`Decrease ${ability}`}
+                          >
+                            -
+                          </button>
+                        </div>
                       </div>
-                      {resolvedAttributeMode === "pointBuy" ? (
-                        <small>8-15 only</small>
-                      ) : (
-                        <small>1-99</small>
-                      )}
-                    </div>
-
-                    {resolvedAttributeMode === "custom" ? (
+                    ) : (
                       <NumberInput
                         className={styles.abilityInput}
                         min={1}
                         max={99}
                         value={currentValue}
                         onBlur={field.onBlur}
-                        onChange={(event) =>
-                          handleCustomAbilityChange(ability, event.target.value)
-                        }
+                        onChange={(event) => handleCustomAbilityChange(ability, event.target.value)}
                       />
-                    ) : (
-                      <div className={styles.stepper}>
-                        <button
-                          type="button"
-                          className={styles.stepButton}
-                          disabled={currentValue <= 8}
-                          onClick={() => {
-                            handlePointBuyAbilityChange(ability, String(currentValue - 1));
-                          }}
-                        >
-                          -
-                        </button>
-                        <NumberInput
-                          className={styles.abilityInput}
-                          min={8}
-                          max={15}
-                          value={currentValue}
-                          onBlur={field.onBlur}
-                          onChange={(event) =>
-                            handlePointBuyAbilityChange(ability, event.target.value)
-                          }
-                        />
-                        <button
-                          type="button"
-                          className={styles.stepButton}
-                          disabled={currentValue >= maxPointBuyScore}
-                          onClick={() => {
-                            handlePointBuyAbilityChange(ability, String(currentValue + 1));
-                          }}
-                        >
-                          +
-                        </button>
-                      </div>
                     )}
-                  </div>
+                  </label>
                 );
               }}
             />
           ))}
         </div>
 
-        {resolvedAttributeMode === "pointBuy" ? (
-          <div className={styles.legend}>
-            {[8, 9, 10, 11, 12, 13, 14, 15].map((score) => (
-              <span key={score} className={styles.legendChip}>
-                {score} = {getPointBuyCost(score)}
-              </span>
-            ))}
-          </div>
+        {attemptedBuildAdvance && !isPointBuyReady ? (
+          <p className={styles.errorText}>Spend all 27 point-buy points before continuing.</p>
         ) : null}
       </section>
     );
   }
 
-  function renderBackgroundSection() {
-    const hasSelectedBackground = resolvedBackground.trim().length > 0;
-
+  function renderClassSetupSection() {
     return (
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
           <div>
-            <p className={styles.sectionEyebrow}>Character background</p>
-            <h3>Choose origin and outlook</h3>
+            <p className={styles.sectionEyebrow}>Class setup</p>
           </div>
-          <span>Choose background + alignment + notes</span>
+          <span>{resolvedClassName || "Choose a class first"}</span>
         </div>
 
-        <label className={styles.field}>
-          <span>Background</span>
-          <SelectInput
-            className={styles.fieldInput}
-            invalid={Boolean(errors.background)}
-            {...register("background", {
-              required: "Choose a background"
-            })}
-          >
-            <option value="">Select a background</option>
-            {backgroundOptions.map((background) => (
-              <option key={background} value={background}>
-                {background}
-              </option>
-            ))}
-          </SelectInput>
-          {errors.background ? (
-            <small className={styles.errorText}>{errors.background.message}</small>
-          ) : (
-            <small className={styles.helperText}>
-              Background grants innate skill and tool proficiencies.
-            </small>
-          )}
-        </label>
+        <div className={styles.summaryGrid}>
+          <div className={styles.summaryCard}>
+            <strong>Primary Ability</strong>
+            <span>{starterPack.primaryAbility ?? "Not configured yet"}</span>
+          </div>
+          <div className={styles.summaryCard}>
+            <strong>Saving Throws</strong>
+            <span>
+              {starterPack.savingThrowProficiencies.length > 0
+                ? starterPack.savingThrowProficiencies.join(", ")
+                : "Not configured yet"}
+            </span>
+          </div>
+          <div className={styles.summaryCard}>
+            <strong>Weapons</strong>
+            <span>
+              {starterPack.weaponProficiencies.length > 0
+                ? starterPack.weaponProficiencies.join(", ")
+                : "Not configured yet"}
+            </span>
+          </div>
+          <div className={styles.summaryCard}>
+            <strong>Armor</strong>
+            <span>
+              {starterPack.armorTrainingProficiencies.length > 0
+                ? starterPack.armorTrainingProficiencies.join(", ")
+                : "Not configured yet"}
+            </span>
+          </div>
+        </div>
+
+        <div className={styles.classSetupGrid}>
+          <fieldset className={styles.choiceGroup}>
+            <legend>Skill Proficiencies</legend>
+            {buildRequiresSkillSelection ? (
+              <p className={styles.helperText}>
+                Choose exactly {skillSelectionLimit} class skills from the starter pack list.
+              </p>
+            ) : (
+              <p className={styles.helperText}>
+                This class doesn&apos;t have a starter-pack skill choice configured yet.
+              </p>
+            )}
+
+            {resolvedSkillSelections.granted.length > 0 ? (
+              <ul className={styles.grantedSkillList}>
+                {resolvedSkillSelections.granted.map((entry) => (
+                  <li key={entry.skill}>
+                    <span>{entry.skill}</span>
+                    <small>{entry.sources.join(", ")}</small>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
+            <div className={styles.choiceGrid}>
+              {availableManualSkillOptions.map((skill) => (
+                <label
+                  key={skill}
+                  className={clsx(
+                    styles.choiceOption,
+                    resolvedSkillSelections.manual.includes(skill) && styles.choiceOptionActive
+                  )}
+                >
+                  <input
+                    type="checkbox"
+                    value={skill}
+                    className={styles.choiceCheckbox}
+                    disabled={
+                      !resolvedSkillSelections.manual.includes(skill) &&
+                      buildRequiresSkillSelection &&
+                      selectedSkillCount >= skillSelectionLimit
+                    }
+                    {...register("skills")}
+                  />
+                  <span>{skill}</span>
+                </label>
+              ))}
+            </div>
+
+            {attemptedBuildAdvance && !isSkillSelectionReady ? (
+              <p className={styles.errorText}>
+                Choose exactly {skillSelectionLimit} starter-pack skills before continuing.
+              </p>
+            ) : null}
+          </fieldset>
+
+          <fieldset className={styles.choiceGroup}>
+            <legend>Starting Equipment</legend>
+            {starterEquipmentChoices.length === 0 ? (
+              <p className={styles.helperText}>
+                Starter equipment choices haven&apos;t been configured for this class yet.
+              </p>
+            ) : (
+              <div className={styles.radioChoiceGrid}>
+                {starterEquipmentChoices.map((choice, choiceIndex) => {
+                  const isActive = resolvedStartingEquipmentChoiceIndex === String(choiceIndex);
+
+                  return (
+                    <button
+                      key={choiceIndex}
+                      type="button"
+                      className={clsx(
+                        styles.radioChoiceCard,
+                        isActive && styles.radioChoiceCardActive
+                      )}
+                      onClick={() =>
+                        setValue("startingEquipmentChoiceIndex", String(choiceIndex), {
+                          shouldDirty: true,
+                          shouldValidate: true
+                        })
+                      }
+                    >
+                      <strong>Option {String.fromCharCode(65 + choiceIndex)}</strong>
+                      <span>{formatStarterPackEquipmentChoice(choice, choiceIndex)}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+
+            {attemptedBuildAdvance && !isEquipmentChoiceReady ? (
+              <p className={styles.errorText}>
+                Choose a starter equipment option before continuing.
+              </p>
+            ) : null}
+          </fieldset>
+        </div>
+
+        <input type="hidden" {...register("startingEquipmentChoiceIndex")} />
+      </section>
+    );
+  }
+
+  function renderFutureSection(title: string, eyebrow: string, description: string) {
+    return (
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.sectionEyebrow}>{eyebrow}</p>
+            <h3>{title}</h3>
+          </div>
+        </div>
+        <div className={styles.placeholderCard}>
+          <p>{description}</p>
+        </div>
+      </section>
+    );
+  }
+
+  function renderNotesSection() {
+    return (
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.sectionEyebrow}>Notes</p>
+            <h3>Choose alignment and add notes</h3>
+          </div>
+          <span>Everything here is optional except alignment, which defaults to True Neutral.</span>
+        </div>
 
         <div className={styles.alignmentGrid} role="radiogroup" aria-label="Character alignment">
           {alignmentOptions.map((option) => (
@@ -1073,7 +1496,6 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               type="button"
               role="radio"
               aria-checked={resolvedAlignment === option}
-              disabled={!hasSelectedBackground}
               className={clsx(
                 styles.alignmentOption,
                 resolvedAlignment === option && styles.alignmentOptionActive
@@ -1090,13 +1512,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           ))}
         </div>
 
-        {errors.alignment ? <small className={styles.errorText}>{errors.alignment.message}</small> : null}
-        {!hasSelectedBackground ? (
-          <small className={styles.helperText}>Choose a background before selecting alignment.</small>
-        ) : null}
-
         <label className={styles.field}>
-          <span>Background Notes</span>
+          <span>Character Notes</span>
           <TextAreaInput
             rows={4}
             className={clsx(styles.fieldInput, styles.backgroundInput)}
@@ -1119,20 +1536,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   function renderLoadoutSection() {
-    const resolvedSkillSelections = resolveSkillProficienciesForCharacter(
-      resolvedClassName,
-      resolvedSpecies,
-      resolvedBackground,
-      resolvedSkills
-    );
-    const grantedSkillProficiencies = resolvedSkillSelections.granted;
-    const grantedSkillSet = new Set(grantedSkillProficiencies.map((entry) => entry.skill));
-    const availableManualSkillOptions = availableSkillOptions.filter(
-      (skill) => !grantedSkillSet.has(skill)
-    );
-    const selectedSkillCount = resolvedSkillSelections.manual.length;
+    const availableEquipmentOptions = getAvailableEquipmentNamesForClass(resolvedClassName);
     const isSkillSelectionLimited = skillSelectionLimit > 0;
-    const isSkillSelectionAtLimit = isSkillSelectionLimited && selectedSkillCount >= skillSelectionLimit;
+    const isSkillSelectionAtLimit =
+      isSkillSelectionLimited && selectedSkillCount >= skillSelectionLimit;
 
     return (
       <section className={styles.sectionCard}>
@@ -1148,17 +1555,17 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           </span>
         </div>
 
-        <div className={styles.loadoutGrid}>
+        <div className={styles.classSetupGrid}>
           <fieldset className={styles.choiceGroup}>
             <legend>Skills</legend>
             <p className={styles.helperText}>Granted proficiencies (locked):</p>
-            {grantedSkillProficiencies.length === 0 ? (
+            {resolvedSkillSelections.granted.length === 0 ? (
               <p className={styles.helperText}>
                 No granted proficiencies from class, species, or background.
               </p>
             ) : (
               <ul className={styles.grantedSkillList}>
-                {grantedSkillProficiencies.map((entry) => (
+                {resolvedSkillSelections.granted.map((entry) => (
                   <li key={entry.skill}>
                     <span>{entry.skill}</span>
                     <small>{entry.sources.join(", ")}</small>
@@ -1238,7 +1645,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         </h2>
         <p className={styles.description}>
           {isEditing
-            ? `Set the essentials first, then distribute the six core abilities with either freeform numbers or a standard ${POINT_BUY_BUDGET}-point DnD point buy.`
+            ? "Update the essentials, starting stats, proficiencies, and notes in one place."
             : creationDescriptionByStep[wizardStep]}
         </p>
 
@@ -1251,7 +1658,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 wizardStep > 1 && styles.stepBadgeDone
               )}
             >
-              1. Basic profile
+              1. Core profile
             </span>
             <span
               className={clsx(
@@ -1262,10 +1669,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             >
               2. Build setup
             </span>
-            <span
-              className={clsx(styles.stepBadge, wizardStep === 3 && styles.stepBadgeActive)}
-            >
-              3. Background
+            <span className={clsx(styles.stepBadge, wizardStep === 3 && styles.stepBadgeActive)}>
+              3. Notes
             </span>
           </div>
         ) : null}
@@ -1287,24 +1692,35 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
         {isEditing ? (
           <>
-            {renderBasicProfileSection(true)}
-            {renderAbilitiesSection()}
-            {renderBackgroundSection()}
+            {renderBasicProfileSection()}
+            {renderStartingHitPointsSection()}
+            {renderAbilityDistributionSection()}
+            {renderNotesSection()}
             {renderLoadoutSection()}
           </>
         ) : null}
 
-        {!isEditing && wizardStep === 1 ? renderBasicProfileSection(false) : null}
+        {!isEditing && wizardStep === 1 ? renderBasicProfileSection() : null}
 
         {!isEditing && wizardStep === 2 ? (
           <>
-            {renderHitPointsSection()}
-            {renderAbilitiesSection()}
-            {renderLoadoutSection()}
+            {renderStartingHitPointsSection()}
+            {renderAbilityDistributionSection()}
+            {renderClassSetupSection()}
+            {renderFutureSection(
+              "",
+              "Species",
+              "Species-specific builder choices will appear here in a future pass."
+            )}
+            {renderFutureSection(
+              "",
+              "Background",
+              "Background-specific builder choices will appear here in a future pass."
+            )}
           </>
         ) : null}
 
-        {!isEditing && wizardStep === 3 ? renderBackgroundSection() : null}
+        {!isEditing && wizardStep === 3 ? renderNotesSection() : null}
 
         <div className={styles.actions}>
           {isEditing ? (
@@ -1343,14 +1759,18 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
           {!isEditing && wizardStep === 2 ? (
             <>
-              <button type="button" className={styles.secondaryButton} onClick={handleBackToStepOne}>
+              <button
+                type="button"
+                className={styles.secondaryButton}
+                onClick={handleBackToStepOne}
+              >
                 Back (reset changes)
               </button>
               <button
                 type="button"
                 className={styles.primaryButton}
                 onClick={() => {
-                  void handleProceedToBackground();
+                  void handleProceedToNotes();
                 }}
               >
                 Proceed
@@ -1367,14 +1787,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               >
                 Back
               </button>
-              <button
-                type="submit"
-                className={styles.primaryButton}
-                disabled={resolvedBackground.trim().length === 0}
-              >
-                {resolvedBackground.trim().length === 0
-                  ? "Choose Background First"
-                  : "Create Character"}
+              <button type="submit" className={styles.primaryButton}>
+                Create Character
               </button>
             </>
           ) : null}

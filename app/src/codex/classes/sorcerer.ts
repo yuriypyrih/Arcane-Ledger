@@ -58,7 +58,7 @@ export const sorcererFeatures: SorcererFeatureClassObj[] = [
   },
   {
     level: 3,
-    classFeatures: [CLASS_FEATURE.SORCERER_SUBCLASS],
+    classFeatures: [],
     sorceryPoints: 3,
     cantrips: 4,
     preparedSpells: 6,
@@ -82,7 +82,7 @@ export const sorcererFeatures: SorcererFeatureClassObj[] = [
   },
   {
     level: 6,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     sorceryPoints: 6,
     cantrips: 5,
     preparedSpells: 10,
@@ -152,7 +152,7 @@ export const sorcererFeatures: SorcererFeatureClassObj[] = [
   },
   {
     level: 14,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     sorceryPoints: 14,
     cantrips: 6,
     preparedSpells: 17,
@@ -190,7 +190,7 @@ export const sorcererFeatures: SorcererFeatureClassObj[] = [
   },
   {
     level: 18,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     sorceryPoints: 18,
     cantrips: 6,
     preparedSpells: 20,
@@ -266,14 +266,6 @@ export const sorcererFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>>
       "<strong><link:Twinned Spell>Twinned Spell</link>.</strong> Cost: 1 Sorcery Point."
     ],
     isTracked: true
-  },
-  [CLASS_FEATURE.SORCERER_SUBCLASS]: {
-    description: [
-      "You gain a Sorcerer subclass of your choice. The Draconic Sorcery subclass is detailed after this class's description.",
-      "A subclass is a specialization that grants you features at certain Sorcerer levels.",
-      "For the rest of your career, you gain each of your subclass's features that are of your Sorcerer level or lower."
-    ],
-    isTracked: false
   },
   [CLASS_FEATURE.SORCEROUS_RESTORATION]: {
     description: [

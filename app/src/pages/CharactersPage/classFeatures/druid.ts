@@ -10,6 +10,7 @@ import {
   LANGUAGE_PROFICIENCY,
   PROFICIENCY_SOURCE,
   PROF_LEVEL,
+  SKILL,
   WEAPON_PROFICIENCY,
   type ArmorProficiencyEntry,
   type LanguageProficiencyEntry,
@@ -131,7 +132,7 @@ export function getDruidSkillBonuses(
     return [];
   }
 
-  if (skill !== "Arcana" && skill !== "Nature") {
+  if (skill !== SKILL.ARCANA && skill !== SKILL.NATURE) {
     return [];
   }
 

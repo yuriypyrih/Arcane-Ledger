@@ -1,3 +1,41 @@
+.gameplayCard {
+  position: relative;
+  overflow: hidden;
+  border: 2px solid rgba(75, 47, 29, 0.12);
+  transition: box-shadow 1180ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.gameplayCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  box-shadow:
+    inset 0 0 0 0 rgba(88, 151, 255, 0),
+    inset 0 0 0 0 rgba(88, 151, 255, 0);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    opacity 180ms ease,
+    box-shadow 220ms ease;
+}
+
+.gameplayCardActive::after {
+  opacity: 1;
+  box-shadow: inset 0 0 34px rgba(88, 151, 255, 0.18);
+}
+
+.gameplayCardActive {
+  border-color: rgba(88, 151, 255, 0.62);
+  box-shadow:
+    0 18px 50px rgba(54, 34, 21, 0.08),
+    0 0 24px rgba(88, 151, 255, 0.14);
+}
+
+.gameplayCardFlash::after {
+  animation: gameplayTurnStartFlash 1s ease-out;
+}
+
 .dashboardGrid {
   display: grid;
   gap: 0.72rem;
@@ -9,11 +47,63 @@
   gap: 0.75rem;
 }
 
+.gameplayHeading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.gameplayEyebrow {
+  margin: 0;
+}
+
+.helpButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-accent);
+  cursor: pointer;
+  min-height: 30px;
+  min-width: 30px;
+  padding: 0;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.helpButton:hover {
+  background: rgba(75, 47, 29, 0.14);
+  color: var(--color-ink);
+}
+
+.helpButton:focus-visible {
+  outline: 2px solid rgba(179, 92, 28, 0.34);
+  outline-offset: 2px;
+}
+
 .gameplayHeaderControls {
   display: flex;
   align-items: center;
   gap: 0.55rem;
   margin-left: auto;
+}
+
+@keyframes gameplayTurnStartFlash {
+  0% {
+    opacity: 1;
+    box-shadow: inset 0 0 64px rgba(88, 151, 255, 0.4);
+  }
+
+  72% {
+    opacity: 1;
+    box-shadow: inset 0 0 12px rgba(88, 151, 255, 0.24);
+  }
+
+  100% {
+    opacity: 1;
+    box-shadow: inset 0 0 12px rgba(88, 151, 255, 0.18);
+  }
 }
 
 @media (max-width: 920px) {

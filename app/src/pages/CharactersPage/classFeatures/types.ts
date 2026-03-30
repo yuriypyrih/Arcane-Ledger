@@ -24,6 +24,7 @@ export type FeatureActionCard = {
   detail: string;
   valueLabel?: string;
   breakdown?: string;
+  breakdownTone?: "default" | "danger";
   economyType: EconomyType;
   actionCategory: ActionCategory;
   economyMultiCount?: number;
@@ -76,6 +77,7 @@ export type FeatureSkillBonus = {
   value?: number;
   abilityModifierSource?: AbilityKey;
   minimumValue?: number;
+  replacesBaseAbility?: boolean;
 };
 
 export type WeaponFeatureContext = {

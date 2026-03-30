@@ -171,6 +171,8 @@ export function getActionShapeForEconomyType(economyType: EconomyType): ActionSh
       return "bonusAction";
     case "reaction":
       return "reaction";
+    case "non_combat":
+      return "nonCombat";
     case "free":
     default:
       return null;

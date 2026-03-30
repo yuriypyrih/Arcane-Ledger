@@ -59,7 +59,7 @@ export const rogueFeatures: RogueFeatureClassObj[] = [
   },
   {
     level: 3,
-    classFeatures: [CLASS_FEATURE.ROGUE_SUBCLASS, CLASS_FEATURE.STEADY_AIM],
+    classFeatures: [CLASS_FEATURE.STEADY_AIM],
     sneakAttack: 2
   },
   {
@@ -95,7 +95,7 @@ export const rogueFeatures: RogueFeatureClassObj[] = [
   },
   {
     level: 9,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     sneakAttack: 5
   },
   {
@@ -115,7 +115,7 @@ export const rogueFeatures: RogueFeatureClassObj[] = [
   },
   {
     level: 13,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     sneakAttack: 7
   },
   {
@@ -135,7 +135,7 @@ export const rogueFeatures: RogueFeatureClassObj[] = [
   },
   {
     level: 17,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     sneakAttack: 9
   },
   {
@@ -178,14 +178,6 @@ export const rogueFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = 
     description: [
       "Your quick thinking and agility allow you to move and act quickly.",
       "On your turn, you can take one of the following actions as a Bonus Action: Dash, Disengage, or Hide."
-    ],
-    isTracked: false
-  },
-  [CLASS_FEATURE.ROGUE_SUBCLASS]: {
-    description: [
-      "You gain a Rogue subclass of your choice. The Thief subclass is detailed after this class's description.",
-      "A subclass is a specialization that grants you features at certain Rogue levels.",
-      "For the rest of your career, you gain each of your subclass's features that are of your Rogue level or lower."
     ],
     isTracked: false
   },

@@ -58,7 +58,7 @@ export const druidFeatures: DruidFeatureClassObj[] = [
   },
   {
     level: 3,
-    classFeatures: [CLASS_FEATURE.DRUID_SUBCLASS],
+    classFeatures: [],
     wildShape: 2,
     cantrips: 2,
     preparedSpells: 6,
@@ -82,7 +82,7 @@ export const druidFeatures: DruidFeatureClassObj[] = [
   },
   {
     level: 6,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     wildShape: 3,
     cantrips: 3,
     preparedSpells: 10,
@@ -114,7 +114,7 @@ export const druidFeatures: DruidFeatureClassObj[] = [
   },
   {
     level: 10,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     wildShape: 3,
     cantrips: 4,
     preparedSpells: 15,
@@ -146,7 +146,7 @@ export const druidFeatures: DruidFeatureClassObj[] = [
   },
   {
     level: 14,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     wildShape: 3,
     cantrips: 4,
     preparedSpells: 17,
@@ -251,14 +251,6 @@ export const druidFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = 
     description: [
       "You can summon a nature spirit that assumes an animal form to aid you. As a Magic action, you can expend a spell slot or a use of Wild Shape to cast the Find Familiar spell without Material components.",
       "When you cast the spell in this way, the familiar is Fey and disappears when you finish a <link:long-rest>Long Rest</link>."
-    ],
-    isTracked: false
-  },
-  [CLASS_FEATURE.DRUID_SUBCLASS]: {
-    description: [
-      "You gain a Druid subclass of your choice. The Circle of the Land subclass is detailed after this class's description.",
-      "A subclass is a specialization that grants you features at certain Druid levels.",
-      "For the rest of your career, you gain each of your subclass's features that are of your Druid level or lower."
     ],
     isTracked: false
   },

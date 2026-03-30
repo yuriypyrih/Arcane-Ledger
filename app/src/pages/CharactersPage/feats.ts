@@ -67,6 +67,22 @@ const epicBoonAbilityIncreaseFeatOptions = new Map<FEATS, AbilityKey[]>([
   [FEATS.BOON_OF_SPELL_RECALL, spellRecallAbilityOptions],
   [FEATS.BOON_OF_TRUESIGHT, allEpicBoonAbilityOptions]
 ]);
+const deprecatedSubclassPlaceholderFeatures = new Set<CLASS_FEATURE>([
+  CLASS_FEATURE.ARTIFICER_SUBCLASS,
+  CLASS_FEATURE.BARBARIAN_SUBCLASS,
+  CLASS_FEATURE.BARD_SUBCLASS,
+  CLASS_FEATURE.CLERIC_SUBCLASS,
+  CLASS_FEATURE.DRUID_SUBCLASS,
+  CLASS_FEATURE.FIGHTER_SUBCLASS,
+  CLASS_FEATURE.MONK_SUBCLASS,
+  CLASS_FEATURE.PALADIN_SUBCLASS,
+  CLASS_FEATURE.RANGER_SUBCLASS,
+  CLASS_FEATURE.ROGUE_SUBCLASS,
+  CLASS_FEATURE.SORCERER_SUBCLASS,
+  CLASS_FEATURE.WARLOCK_SUBCLASS,
+  CLASS_FEATURE.WIZARD_SUBCLASS,
+  CLASS_FEATURE.SUBCLASS_FEATURE
+]);
 
 export const featDefinitions: FeatDefinition[] = [
   {
@@ -326,6 +342,12 @@ function normalizeCharacterFeatSource(value: unknown, takenAtLevel: number): Cha
   }
 
   if (typeof record.feature !== "string") {
+    return {
+      type: "manual"
+    };
+  }
+
+  if (deprecatedSubclassPlaceholderFeatures.has(record.feature as CLASS_FEATURE)) {
     return {
       type: "manual"
     };

@@ -1,6 +1,6 @@
 import { ACTION_TYPE, type SpellCastingTimePart } from "../../codex/entries";
 
-export type ActionShapeType = "action" | "bonusAction" | "reaction";
+export type ActionShapeType = "action" | "bonusAction" | "reaction" | "nonCombat";
 
 export function getActionShapeForCastingTime(
   castingTime: SpellCastingTimePart[]
@@ -17,5 +17,5 @@ export function getActionShapeForCastingTime(
     return "action";
   }
 
-  return null;
+  return castingTime.length > 0 ? "nonCombat" : null;
 }

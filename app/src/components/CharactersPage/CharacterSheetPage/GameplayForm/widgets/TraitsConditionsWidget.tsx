@@ -30,6 +30,7 @@ import {
   applySpellConcentrationToStatusEntries,
   getExhaustionLevel,
   getStatusDurationPreset,
+  getStatusDurationTickOn,
   isExhaustionConditionOptionValue,
   isExhaustionStatusEntry,
   parseConditionOptionValue,
@@ -53,6 +54,7 @@ import type {
 import {
   STATUS_DURATION_PRESET,
   STATUS_DURATION_KIND,
+  STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
@@ -89,10 +91,16 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   const [statusDraftDurationPreset, setStatusDraftDurationPreset] = useState(
     STATUS_DURATION_PRESET.INFINITE
   );
+  const [statusDraftRoundTickOn, setStatusDraftRoundTickOn] = useState(
+    STATUS_DURATION_ROUND_TICK.ROUND_START
+  );
   const [selectedStatusEntryId, setSelectedStatusEntryId] = useState<string | null>(null);
   const [isEditingStatusDuration, setIsEditingStatusDuration] = useState(false);
   const [statusDrawerDurationPreset, setStatusDrawerDurationPreset] = useState(
     STATUS_DURATION_PRESET.INFINITE
+  );
+  const [statusDrawerRoundTickOn, setStatusDrawerRoundTickOn] = useState(
+    STATUS_DURATION_ROUND_TICK.ROUND_START
   );
   const [selectedReactionSpellSlotLevel, setSelectedReactionSpellSlotLevel] = useState(1);
 
@@ -310,6 +318,9 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     }
 
     setStatusDrawerDurationPreset(selectedStatusEntryPreset);
+    setStatusDrawerRoundTickOn(
+      getStatusDurationTickOn(selectedStatusEntry.duration) ?? STATUS_DURATION_ROUND_TICK.ROUND_START
+    );
     setIsEditingStatusDuration(false);
   }, [selectedStatusEntry, selectedStatusEntryId, selectedStatusEntryPreset]);
 
@@ -339,6 +350,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   function openTraitEditor() {
     setActiveTraitEditorTab("conditions");
     setStatusDraftDurationPreset(STATUS_DURATION_PRESET.INFINITE);
+    setStatusDraftRoundTickOn(STATUS_DURATION_ROUND_TICK.ROUND_START);
     setIsTraitModalOpen(true);
   }
 
@@ -356,7 +368,12 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     const nextDuration: CharacterStatusDuration =
       parsedConditionValue?.conditionLevel !== undefined
         ? { kind: STATUS_DURATION_KIND.INFINITE }
-        : resolveStatusDurationPreset(statusDraftDurationPreset, nextGroup, nextValue);
+        : resolveStatusDurationPreset(
+            statusDraftDurationPreset,
+            nextGroup,
+            nextValue,
+            statusDraftRoundTickOn
+          );
 
     onPersistCharacter((currentCharacter) =>
       reconcileCharacterStatusConsequences({
@@ -372,6 +389,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     );
 
     setStatusDraftDurationPreset(STATUS_DURATION_PRESET.INFINITE);
+    setStatusDraftRoundTickOn(STATUS_DURATION_ROUND_TICK.ROUND_START);
     setIsTraitModalOpen(false);
   }
 
@@ -425,7 +443,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     const nextDuration = resolveStatusDurationPreset(
       statusDrawerDurationPreset,
       selectedStatusEntry.group,
-      selectedStatusEntry.value
+      selectedStatusEntry.value,
+      statusDrawerRoundTickOn
     );
 
     onPersistCharacter((currentCharacter) => ({
@@ -556,6 +575,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           activeTab={activeTraitEditorTab}
           values={statusDraftValues}
           durationPreset={statusDraftDurationPreset}
+          roundTickOn={statusDraftRoundTickOn}
           onTabChange={setActiveTraitEditorTab}
           onValueChange={(tab, value) => {
             setStatusDraftValues((current) => ({
@@ -565,9 +585,11 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
 
             if (tab === "conditions" && isExhaustionConditionOptionValue(value)) {
               setStatusDraftDurationPreset(STATUS_DURATION_PRESET.INFINITE);
+              setStatusDraftRoundTickOn(STATUS_DURATION_ROUND_TICK.ROUND_START);
             }
           }}
           onDurationPresetChange={setStatusDraftDurationPreset}
+          onRoundTickOnChange={setStatusDraftRoundTickOn}
           onSave={addStatusEntry}
           onClose={() => setIsTraitModalOpen(false)}
         />
@@ -604,10 +626,16 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           entry={selectedStatusEntry}
           isEditingDuration={isEditingStatusDuration}
           durationPreset={statusDrawerDurationPreset}
+          roundTickOn={statusDrawerRoundTickOn}
           onDurationPresetChange={setStatusDrawerDurationPreset}
+          onRoundTickOnChange={setStatusDrawerRoundTickOn}
           onStartEditDuration={() => setIsEditingStatusDuration(true)}
           onCancelEditDuration={() => {
             setStatusDrawerDurationPreset(getStatusDurationPreset(selectedStatusEntry.duration));
+            setStatusDrawerRoundTickOn(
+              getStatusDurationTickOn(selectedStatusEntry.duration) ??
+                STATUS_DURATION_ROUND_TICK.ROUND_START
+            );
             setIsEditingStatusDuration(false);
           }}
           onApplyDuration={applyStatusEntryDuration}

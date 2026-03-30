@@ -134,9 +134,28 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
+.profileGrid {
+  display: grid;
+  gap: var(--space-section-gap);
+}
+
+.profileRow {
+  display: grid;
+  gap: var(--space-section-gap);
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.profileRowTop {
+  grid-template-columns: minmax(0, 1fr) 124px;
+}
+
 .field {
   display: grid;
   gap: 0.45rem;
+}
+
+.compactField {
+  min-width: 0;
 }
 
 .field span {
@@ -313,7 +332,57 @@
   width: 100%;
 }
 
+.infoCard,
+.placeholderCard {
+  display: grid;
+  gap: 0.45rem;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 20px;
+  background: rgba(75, 47, 29, 0.04);
+  padding: 1rem 1.1rem;
+}
+
+.infoCard strong,
+.infoCard small,
+.placeholderCard p {
+  margin: 0;
+}
+
+.infoCard small,
+.placeholderCard p {
+  color: var(--color-ink-soft);
+}
+
+.summaryGrid {
+  display: grid;
+  gap: 0.9rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.summaryCard {
+  display: grid;
+  gap: 0.35rem;
+  border-radius: 20px;
+  background: rgba(75, 47, 29, 0.06);
+  padding: 1rem;
+}
+
+.summaryCard strong,
+.summaryCard span {
+  margin: 0;
+}
+
+.summaryCard span {
+  color: var(--color-ink-soft);
+}
+
 .loadoutGrid {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.classSetupGrid {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -341,6 +410,41 @@
   display: grid;
   gap: 0.55rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.radioChoiceGrid {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.radioChoiceCard {
+  display: grid;
+  gap: 0.45rem;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.66);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  min-height: 80px;
+  padding: 0.85rem 0.95rem;
+  text-align: left;
+}
+
+.radioChoiceCard strong,
+.radioChoiceCard span {
+  margin: 0;
+}
+
+.radioChoiceCard span {
+  color: var(--color-ink-soft);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.radioChoiceCardActive {
+  background: rgba(143, 91, 56, 0.18);
+  border-color: rgba(143, 91, 56, 0.42);
 }
 
 .grantedSkillList {
@@ -420,11 +524,13 @@
 
 @media (max-width: 900px) {
   .fieldGrid,
-  .attributesGrid {
+  .attributesGrid,
+  .summaryGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .loadoutGrid {
+  .loadoutGrid,
+  .classSetupGrid {
     grid-template-columns: 1fr;
   }
 }
@@ -437,7 +543,10 @@
   }
 
   .fieldGrid,
-  .attributesGrid {
+  .attributesGrid,
+  .profileRow,
+  .profileRowTop,
+  .summaryGrid {
     grid-template-columns: 1fr;
   }
 

@@ -58,7 +58,7 @@ export const clericFeatures: ClericFeatureClassObj[] = [
   },
   {
     level: 3,
-    classFeatures: [CLASS_FEATURE.CLERIC_SUBCLASS],
+    classFeatures: [],
     channelDivinity: 2,
     cantrips: 3,
     preparedSpells: 6,
@@ -82,7 +82,7 @@ export const clericFeatures: ClericFeatureClassObj[] = [
   },
   {
     level: 6,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     channelDivinity: 3,
     cantrips: 4,
     preparedSpells: 10,
@@ -170,7 +170,7 @@ export const clericFeatures: ClericFeatureClassObj[] = [
   },
   {
     level: 17,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     channelDivinity: 3,
     cantrips: 5,
     preparedSpells: 19,
@@ -228,14 +228,6 @@ export const clericFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "You have the following Channel Divinities: <divinity:Divine Spark>Divine Spark</divinity> and <divinity:Turn Undead>Turn Undead</divinity>."
     ],
     trackingState: "tracked"
-  },
-  [CLASS_FEATURE.CLERIC_SUBCLASS]: {
-    description: [
-      "You gain a Cleric subclass of your choice. The Life Domain subclass is detailed after this class's description.",
-      "A subclass is a specialization that grants you features at certain Cleric levels.",
-      "For the rest of your career, you gain each of your subclass's features that are of your Cleric level or lower."
-    ],
-    isTracked: false
   },
   [CLASS_FEATURE.SEAR_UNDEAD]: {
     description: [

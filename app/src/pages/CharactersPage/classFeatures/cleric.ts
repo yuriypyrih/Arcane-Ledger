@@ -23,6 +23,7 @@ import {
   ARMOR_PROFICIENCY,
   PROFICIENCY_SOURCE,
   PROF_LEVEL,
+  SKILL,
   SKILL_PROFICIENCY,
   WEAPON_PROFICIENCY,
   type ArmorProficiencyEntry,
@@ -407,7 +408,7 @@ export function getClericSkillBonuses(
     return [];
   }
 
-  if (skill !== "Arcana" && skill !== "Religion") {
+  if (skill !== SKILL.ARCANA && skill !== SKILL.RELIGION) {
     return [];
   }
 

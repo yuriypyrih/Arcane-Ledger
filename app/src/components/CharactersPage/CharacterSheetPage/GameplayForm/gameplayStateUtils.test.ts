@@ -1,18 +1,106 @@
 import { describe, expect, it } from "vitest";
-import { swapTemporaryHitPoints } from "./gameplayStateUtils";
+import type { Character } from "../../../../types";
+import {
+  CONDITION_NAME,
+  STATUS_DURATION_KIND,
+  STATUS_DURATION_ROUND_TICK,
+  STATUS_ENTRY_GROUP,
+  STATUS_ENTRY_SOURCE_TYPE
+} from "../../../../types";
+import { createDefaultAbilities, createEmptyCharacter } from "../../../../pages/CharactersPage/constants";
+import { normalizeCharacter } from "../../../../pages/CharactersPage/storage";
+import { createCharacterStatusEntry } from "../../../../pages/CharactersPage/traits";
+import { consumeRoundTrackerResourceForCharacter } from "./gameplayStateUtils";
 
-describe("swapTemporaryHitPoints", () => {
-  it("uses the granted value when it is higher than the current value", () => {
-    expect(swapTemporaryHitPoints(0, 10)).toBe(10);
-    expect(swapTemporaryHitPoints(7, 20)).toBe(20);
+function createCharacter(overrides: Partial<Character>): Character {
+  const normalizedCharacter = normalizeCharacter({
+    id: 1,
+    ...createEmptyCharacter(),
+    name: "Test Hero",
+    species: "Human",
+    className: "Rogue",
+    background: "Criminal / Spy",
+    abilities: createDefaultAbilities(),
+    ...overrides
   });
 
-  it("keeps the current value when the granted value is lower", () => {
-    expect(swapTemporaryHitPoints(5, 4)).toBe(5);
+  if (!normalizedCharacter) {
+    throw new Error("Expected test character to normalize successfully.");
+  }
+
+  return normalizedCharacter;
+}
+
+describe("consumeRoundTrackerResourceForCharacter", () => {
+  it("auto-starts the turn before consuming an available action", () => {
+    const character = createCharacter({
+      roundTracker: {
+        turnStarted: false,
+        actionAvailable: true,
+        bonusActionAvailable: false,
+        reactionAvailable: false
+      },
+      classFeatureState: {
+        rogue: {
+          sneakAttackUsedThisTurn: true,
+          steadyAimActive: true
+        }
+      },
+      statusEntries: [
+        createCharacterStatusEntry({
+          group: STATUS_ENTRY_GROUP.CONDITIONS,
+          value: CONDITION_NAME.INVISIBLE,
+          source: "Test",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+          duration: {
+            kind: STATUS_DURATION_KIND.ROUNDS,
+            amount: 2,
+            tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
+          }
+        })
+      ]
+    });
+
+    const nextCharacter = consumeRoundTrackerResourceForCharacter(character, "action");
+
+    expect(nextCharacter.roundTracker).toEqual({
+      turnStarted: true,
+      actionAvailable: false,
+      bonusActionAvailable: true,
+      reactionAvailable: true
+    });
+    expect(nextCharacter.classFeatureState?.rogue?.sneakAttackUsedThisTurn).toBe(false);
+    expect(nextCharacter.classFeatureState?.rogue?.steadyAimActive).toBe(false);
+    expect(nextCharacter.statusEntries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          value: CONDITION_NAME.INVISIBLE,
+          duration: expect.objectContaining({
+            amount: 1,
+            tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
+          })
+        })
+      ])
+    );
   });
 
-  it("normalizes both values before comparing them", () => {
-    expect(swapTemporaryHitPoints(-3, "12")).toBe(12);
-    expect(swapTemporaryHitPoints(18.9, 18.2)).toBe(18);
+  it("does not auto-start the turn when consuming a reaction", () => {
+    const character = createCharacter({
+      roundTracker: {
+        turnStarted: false,
+        actionAvailable: false,
+        bonusActionAvailable: false,
+        reactionAvailable: true
+      }
+    });
+
+    const nextCharacter = consumeRoundTrackerResourceForCharacter(character, "reaction");
+
+    expect(nextCharacter.roundTracker).toEqual({
+      turnStarted: false,
+      actionAvailable: false,
+      bonusActionAvailable: false,
+      reactionAvailable: false
+    });
   });
 });

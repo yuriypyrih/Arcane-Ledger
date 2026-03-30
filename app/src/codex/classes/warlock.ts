@@ -54,7 +54,7 @@ export const warlockFeatures: WarlockFeatureClassObj[] = [
   },
   {
     level: 3,
-    classFeatures: [CLASS_FEATURE.WARLOCK_SUBCLASS],
+    classFeatures: [],
     eldritchInvocations: 3,
     cantrips: 2,
     preparedSpells: 4,
@@ -84,7 +84,7 @@ export const warlockFeatures: WarlockFeatureClassObj[] = [
   },
   {
     level: 6,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     eldritchInvocations: 5,
     cantrips: 3,
     preparedSpells: 7,
@@ -124,7 +124,7 @@ export const warlockFeatures: WarlockFeatureClassObj[] = [
   },
   {
     level: 10,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     eldritchInvocations: 7,
     cantrips: 4,
     preparedSpells: 10,
@@ -176,7 +176,7 @@ export const warlockFeatures: WarlockFeatureClassObj[] = [
   },
   {
     level: 14,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     eldritchInvocations: 8,
     cantrips: 4,
     preparedSpells: 12,
@@ -301,14 +301,6 @@ export const warlockFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "Once you use this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link>."
     ],
     isTracked: true
-  },
-  [CLASS_FEATURE.WARLOCK_SUBCLASS]: {
-    description: [
-      "You gain a Warlock subclass of your choice. The Fiend Patron subclass is detailed after this class's description.",
-      "A subclass is a specialization that grants you features at certain Warlock levels.",
-      "For the rest of your career, you gain each of your subclass's features that are of your Warlock level or lower."
-    ],
-    isTracked: false
   },
   [CLASS_FEATURE.CONTACT_PATRON]: {
     description: [

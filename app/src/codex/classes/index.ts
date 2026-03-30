@@ -10,6 +10,7 @@ export * from "./ranger";
 export * from "./rogue";
 export * from "./sorcerer";
 export * from "./spellAccess";
+export * from "./starterPack";
 export * from "./useClassSpellEntries";
 export * from "./warlock";
 export * from "./wizard";

@@ -10,14 +10,6 @@ export type ArtificerFeatureClassObj = FeatureClassObj & {
   spellSlots: ArtificerSpellSlotProgression;
 };
 
-const noSubclassSelectedDescription: FeatureMapEntry = {
-  description: [
-    "You gain a feature from your Artificer subclass.",
-    "<strong>No Subclass Selected.</strong> Select a subclass to view its feature or features here."
-  ],
-  isTracked: false
-};
-
 export const artificerFeatures: ArtificerFeatureClassObj[] = [
   {
     level: 1,
@@ -52,7 +44,7 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   },
   {
     level: 3,
-    classFeatures: [CLASS_FEATURE.ARTIFICER_SUBCLASS],
+    classFeatures: [],
     cantrips: 2,
     preparedSpells: 4,
     spellSlots: [3, 0, 0, 0, 0]
@@ -66,10 +58,7 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   },
   {
     level: 5,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
-    featureOverrides: {
-      [CLASS_FEATURE.SUBCLASS_FEATURE]: noSubclassSelectedDescription
-    },
+    classFeatures: [],
     cantrips: 2,
     preparedSpells: 6,
     spellSlots: [4, 2, 0, 0, 0]
@@ -97,10 +86,7 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   },
   {
     level: 9,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
-    featureOverrides: {
-      [CLASS_FEATURE.SUBCLASS_FEATURE]: noSubclassSelectedDescription
-    },
+    classFeatures: [],
     cantrips: 2,
     preparedSpells: 9,
     spellSlots: [4, 3, 2, 0, 0]
@@ -142,10 +128,7 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
   },
   {
     level: 15,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
-    featureOverrides: {
-      [CLASS_FEATURE.SUBCLASS_FEATURE]: noSubclassSelectedDescription
-    },
+    classFeatures: [],
     cantrips: 4,
     preparedSpells: 12,
     spellSlots: [4, 3, 3, 2, 0]
@@ -222,14 +205,6 @@ export const artificerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "<strong>Crafting More Magic Items.</strong> The Dungeon Master's Guide provides rules for crafting magic items with the normal crafting system. Artificers can craft certain items faster through their subclasses, but those crafted items aren't treated as items created by this feature."
     ],
     trackingState: "not-tracked"
-  },
-  [CLASS_FEATURE.ARTIFICER_SUBCLASS]: {
-    description: [
-      "You gain an Artificer subclass of your choice. The Alchemist, Armorer, Artillerist, Battle Smith, and Cartographer subclasses are detailed after this class's description.",
-      "A subclass is a specialization that grants you features at certain Artificer levels.",
-      "For the rest of your career, you gain each of your subclass's features that are of your Artificer level or lower."
-    ],
-    isTracked: false
   },
   [CLASS_FEATURE.MAGIC_ITEM_TINKER]: {
     description: [

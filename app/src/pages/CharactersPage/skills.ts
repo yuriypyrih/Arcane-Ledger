@@ -38,10 +38,6 @@ export function getSkillRowsByAbility(
   const proficiencyBonus = getProficiencyBonus(character.level);
 
   return skillGroupsByAbility.map((group) => {
-    const abilityModifier = getAbilityModifier(
-      getAbilityScoreForCharacter(character, group.ability)
-    );
-
     return {
       ability: group.ability,
       abilityLabel: group.abilityLabel,
@@ -58,40 +54,56 @@ export function getSkillRowsByAbility(
               ? 1
               : 0;
         const proficiencyContribution = proficiencyMultiplier * proficiencyBonus;
-        const bonusEntries = getSkillBonusesForCharacter(character, skill, proficiencyLevel).map((entry) => {
+        const featureBonuses = getSkillBonusesForCharacter(character, skill, proficiencyLevel);
+        const replacementEntry = featureBonuses.find(
+          (entry) => entry.replacesBaseAbility && entry.abilityModifierSource
+        );
+        const effectiveAbility = replacementEntry?.abilityModifierSource ?? group.ability;
+        const effectiveAbilityModifier = getAbilityModifier(
+          getAbilityScoreForCharacter(character, effectiveAbility)
+        );
+        const bonusEntries = featureBonuses.flatMap((entry) => {
+          if (entry.replacesBaseAbility && entry.abilityModifierSource) {
+            return [];
+          }
+
           if (entry.abilityModifierSource) {
             const sourceValue = getAbilityModifier(
               getAbilityScoreForCharacter(character, entry.abilityModifierSource)
             );
 
-            return {
-              label: entry.label,
-              value:
-                typeof entry.minimumValue === "number"
-                  ? Math.max(entry.minimumValue, sourceValue)
-                  : sourceValue
-            };
+            return [
+              {
+                label: entry.label,
+                value:
+                  typeof entry.minimumValue === "number"
+                    ? Math.max(entry.minimumValue, sourceValue)
+                    : sourceValue
+              }
+            ];
           }
 
-          return {
-            label: entry.label,
-            value: entry.value ?? 0
-          };
+          return [
+            {
+              label: entry.label,
+              value: entry.value ?? 0
+            }
+          ];
         });
         const bonusTotal = bonusEntries.reduce((total, entry) => total + entry.value, 0);
 
         return {
           name: skill,
-          ability: group.ability,
-          abilityLabel: group.abilityLabel,
-          abilityModifier,
+          ability: effectiveAbility,
+          abilityLabel: replacementEntry?.label ?? group.ability,
+          abilityModifier: effectiveAbilityModifier,
           proficiencyBonus,
           proficiencyMultiplier,
           proficiencyContribution,
           proficiencySourceLabels: resolvedProficiency.sourceLabels,
           proficiencyLocked: resolvedProficiency.locked,
           bonusEntries,
-          totalModifier: abilityModifier + proficiencyContribution + bonusTotal
+          totalModifier: effectiveAbilityModifier + proficiencyContribution + bonusTotal
         };
       })
     };

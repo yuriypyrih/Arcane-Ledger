@@ -1,11 +1,11 @@
-import type { AbilityKey, CharacterDraft } from "../../../types";
+import { SKILL, type AbilityKey, type CharacterDraft, type SkillName } from "../../../types";
 
 export type ClassBuildPlan = {
   primary: AbilityKey;
   secondary: AbilityKey;
   tertiary: AbilityKey;
   hitDie: number;
-  preferredSkills: string[];
+  preferredSkills: SkillName[];
   preferredEquipment: string[];
   background: string;
   alignment: CharacterDraft["alignment"];
@@ -16,7 +16,7 @@ const fallbackBuildPlan: ClassBuildPlan = {
   secondary: "CON",
   tertiary: "DEX",
   hitDie: 10,
-  preferredSkills: ["Athletics", "Perception", "Survival", "Intimidation"],
+  preferredSkills: [SKILL.ATHLETICS, SKILL.PERCEPTION, SKILL.SURVIVAL, SKILL.INTIMIDATION],
   preferredEquipment: [
     "Longsword",
     "Shield",
@@ -35,7 +35,13 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
     secondary: "CON",
     tertiary: "DEX",
     hitDie: 8,
-    preferredSkills: ["Arcana", "Investigation", "History", "Perception", "Insight"],
+    preferredSkills: [
+      SKILL.ARCANA,
+      SKILL.INVESTIGATION,
+      SKILL.HISTORY,
+      SKILL.PERCEPTION,
+      SKILL.INSIGHT
+    ],
     preferredEquipment: [
       "Spellbook",
       "Healer's Kit",
@@ -52,7 +58,13 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
     secondary: "CON",
     tertiary: "DEX",
     hitDie: 12,
-    preferredSkills: ["Athletics", "Survival", "Intimidation", "Perception", "Animal Handling"],
+    preferredSkills: [
+      SKILL.ATHLETICS,
+      SKILL.SURVIVAL,
+      SKILL.INTIMIDATION,
+      SKILL.PERCEPTION,
+      SKILL.ANIMAL_HANDLING
+    ],
     preferredEquipment: [
       "Longsword",
       "Shield",
@@ -69,7 +81,13 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
     secondary: "DEX",
     tertiary: "CON",
     hitDie: 8,
-    preferredSkills: ["Performance", "Persuasion", "Deception", "Insight", "History"],
+    preferredSkills: [
+      SKILL.PERFORMANCE,
+      SKILL.PERSUASION,
+      SKILL.DECEPTION,
+      SKILL.INSIGHT,
+      SKILL.HISTORY
+    ],
     preferredEquipment: [
       "Shortsword",
       "Leather Armor",
@@ -86,7 +104,13 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
     secondary: "CON",
     tertiary: "STR",
     hitDie: 8,
-    preferredSkills: ["Religion", "Insight", "Medicine", "Persuasion", "History"],
+    preferredSkills: [
+      SKILL.RELIGION,
+      SKILL.INSIGHT,
+      SKILL.MEDICINE,
+      SKILL.PERSUASION,
+      SKILL.HISTORY
+    ],
     preferredEquipment: [
       "Chain Mail",
       "Shield",
@@ -103,7 +127,13 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
     secondary: "CON",
     tertiary: "DEX",
     hitDie: 8,
-    preferredSkills: ["Nature", "Animal Handling", "Medicine", "Survival", "Perception"],
+    preferredSkills: [
+      SKILL.NATURE,
+      SKILL.ANIMAL_HANDLING,
+      SKILL.MEDICINE,
+      SKILL.SURVIVAL,
+      SKILL.PERCEPTION
+    ],
     preferredEquipment: [
       "Leather Armor",
       "Shield",
@@ -120,7 +150,13 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
     secondary: "CON",
     tertiary: "DEX",
     hitDie: 10,
-    preferredSkills: ["Athletics", "Perception", "Survival", "Intimidation", "History"],
+    preferredSkills: [
+      SKILL.ATHLETICS,
+      SKILL.PERCEPTION,
+      SKILL.SURVIVAL,
+      SKILL.INTIMIDATION,
+      SKILL.HISTORY
+    ],
     preferredEquipment: [
       "Chain Mail",
       "Shield",
@@ -137,7 +173,13 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
     secondary: "WIS",
     tertiary: "CON",
     hitDie: 8,
-    preferredSkills: ["Acrobatics", "Stealth", "Insight", "Athletics", "Perception"],
+    preferredSkills: [
+      SKILL.ACROBATICS,
+      SKILL.STEALTH,
+      SKILL.INSIGHT,
+      SKILL.ATHLETICS,
+      SKILL.PERCEPTION
+    ],
     preferredEquipment: [
       "Shortsword",
       "Dagger",
@@ -154,7 +196,13 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
     secondary: "CHA",
     tertiary: "CON",
     hitDie: 10,
-    preferredSkills: ["Persuasion", "Athletics", "Insight", "Intimidation", "Religion"],
+    preferredSkills: [
+      SKILL.PERSUASION,
+      SKILL.ATHLETICS,
+      SKILL.INSIGHT,
+      SKILL.INTIMIDATION,
+      SKILL.RELIGION
+    ],
     preferredEquipment: [
       "Chain Mail",
       "Shield",
@@ -171,7 +219,13 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
     secondary: "WIS",
     tertiary: "CON",
     hitDie: 10,
-    preferredSkills: ["Survival", "Perception", "Stealth", "Nature", "Athletics"],
+    preferredSkills: [
+      SKILL.SURVIVAL,
+      SKILL.PERCEPTION,
+      SKILL.STEALTH,
+      SKILL.NATURE,
+      SKILL.ATHLETICS
+    ],
     preferredEquipment: [
       "Leather Armor",
       "Longsword",
@@ -188,7 +242,13 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
     secondary: "INT",
     tertiary: "CHA",
     hitDie: 8,
-    preferredSkills: ["Stealth", "Sleight of Hand", "Deception", "Acrobatics", "Investigation"],
+    preferredSkills: [
+      SKILL.STEALTH,
+      SKILL.SLEIGHT_OF_HAND,
+      SKILL.DECEPTION,
+      SKILL.ACROBATICS,
+      SKILL.INVESTIGATION
+    ],
     preferredEquipment: [
       "Leather Armor",
       "Dagger",
@@ -205,7 +265,13 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
     secondary: "CON",
     tertiary: "DEX",
     hitDie: 6,
-    preferredSkills: ["Arcana", "Deception", "Persuasion", "Insight", "Intimidation"],
+    preferredSkills: [
+      SKILL.ARCANA,
+      SKILL.DECEPTION,
+      SKILL.PERSUASION,
+      SKILL.INSIGHT,
+      SKILL.INTIMIDATION
+    ],
     preferredEquipment: [
       "Spellbook",
       "Dagger",
@@ -222,7 +288,13 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
     secondary: "CON",
     tertiary: "INT",
     hitDie: 8,
-    preferredSkills: ["Arcana", "Deception", "Intimidation", "Investigation", "Religion"],
+    preferredSkills: [
+      SKILL.ARCANA,
+      SKILL.DECEPTION,
+      SKILL.INTIMIDATION,
+      SKILL.INVESTIGATION,
+      SKILL.RELIGION
+    ],
     preferredEquipment: [
       "Spellbook",
       "Dagger",
@@ -239,7 +311,13 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
     secondary: "CON",
     tertiary: "DEX",
     hitDie: 6,
-    preferredSkills: ["Arcana", "History", "Investigation", "Insight", "Religion"],
+    preferredSkills: [
+      SKILL.ARCANA,
+      SKILL.HISTORY,
+      SKILL.INVESTIGATION,
+      SKILL.INSIGHT,
+      SKILL.RELIGION
+    ],
     preferredEquipment: [
       "Spellbook",
       "Dagger",
@@ -265,16 +343,16 @@ export const speciesAbilityBonuses: Partial<Record<string, Partial<Record<Abilit
   Tiefling: { CHA: 2, INT: 1 }
 };
 
-export const speciesSkillAffinity: Partial<Record<string, string[]>> = {
-  Dragonborn: ["Intimidation", "Persuasion", "Athletics"],
-  Dwarf: ["History", "Insight", "Survival"],
-  Elf: ["Perception", "Stealth", "Arcana"],
-  Gnome: ["Arcana", "Investigation", "History"],
-  "Half-Elf": ["Persuasion", "Insight", "Deception"],
-  "Half-Orc": ["Athletics", "Intimidation", "Survival"],
-  Halfling: ["Stealth", "Perception", "Persuasion"],
-  Human: ["Insight", "Perception", "Persuasion"],
-  Tiefling: ["Deception", "Arcana", "Intimidation"]
+export const speciesSkillAffinity: Partial<Record<string, SkillName[]>> = {
+  Dragonborn: [SKILL.INTIMIDATION, SKILL.PERSUASION, SKILL.ATHLETICS],
+  Dwarf: [SKILL.HISTORY, SKILL.INSIGHT, SKILL.SURVIVAL],
+  Elf: [SKILL.PERCEPTION, SKILL.STEALTH, SKILL.ARCANA],
+  Gnome: [SKILL.ARCANA, SKILL.INVESTIGATION, SKILL.HISTORY],
+  "Half-Elf": [SKILL.PERSUASION, SKILL.INSIGHT, SKILL.DECEPTION],
+  "Half-Orc": [SKILL.ATHLETICS, SKILL.INTIMIDATION, SKILL.SURVIVAL],
+  Halfling: [SKILL.STEALTH, SKILL.PERCEPTION, SKILL.PERSUASION],
+  Human: [SKILL.INSIGHT, SKILL.PERCEPTION, SKILL.PERSUASION],
+  Tiefling: [SKILL.DECEPTION, SKILL.ARCANA, SKILL.INTIMIDATION]
 };
 
 export const speciesEquipmentAffinity: Partial<Record<string, string[]>> = {

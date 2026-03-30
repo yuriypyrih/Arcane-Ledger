@@ -2,15 +2,40 @@ import { describe, expect, it } from "vitest";
 import {
   CONDITION_NAME,
   STATUS_DURATION_KIND,
+  STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../types";
 import {
+  advanceCharacterStatusEntries,
   createCharacterStatusEntry,
   hasStatusCondition,
+  reconcileCharacterStatusConsequences,
   resolveCharacterStatusEntries,
   upsertManualStatusEntry
 } from "./traits";
+import { createDefaultAbilities, createEmptyCharacter } from "./constants";
+import { normalizeCharacter } from "./storage";
+import type { Character } from "../../types";
+
+function createCharacter(overrides: Partial<Character>): Character {
+  const normalizedCharacter = normalizeCharacter({
+    id: 1,
+    ...createEmptyCharacter(),
+    name: "Test Hero",
+    species: "Human",
+    className: "Barbarian",
+    background: "Soldier",
+    abilities: createDefaultAbilities(),
+    ...overrides
+  });
+
+  if (!normalizedCharacter) {
+    throw new Error("Expected test character to normalize successfully.");
+  }
+
+  return normalizedCharacter;
+}
 
 describe("status entry immunities", () => {
   it("removes a matching manual condition when a manual immunity is added", () => {
@@ -53,5 +78,90 @@ describe("status entry immunities", () => {
     ]);
 
     expect(hasStatusCondition(resolvedEntries, CONDITION_NAME.FRIGHTENED)).toBe(false);
+  });
+
+  it("ticks round durations only on their configured turn boundary", () => {
+    const roundStartEntry = createCharacterStatusEntry({
+      group: STATUS_ENTRY_GROUP.CONDITIONS,
+      value: CONDITION_NAME.INVISIBLE,
+      source: "Round Start Test",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+      duration: {
+        kind: STATUS_DURATION_KIND.ROUNDS,
+        amount: 2,
+        tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
+      }
+    });
+    const roundEndEntry = createCharacterStatusEntry({
+      group: STATUS_ENTRY_GROUP.CONDITIONS,
+      value: CONDITION_NAME.POISONED,
+      source: "Round End Test",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+      duration: {
+        kind: STATUS_DURATION_KIND.ROUNDS,
+        amount: 2,
+        tickOn: STATUS_DURATION_ROUND_TICK.ROUND_END
+      }
+    });
+
+    const afterRoundStart = advanceCharacterStatusEntries(
+      [roundStartEntry, roundEndEntry],
+      STATUS_DURATION_ROUND_TICK.ROUND_START
+    );
+    const afterRoundEnd = advanceCharacterStatusEntries(
+      [roundStartEntry, roundEndEntry],
+      STATUS_DURATION_ROUND_TICK.ROUND_END
+    );
+
+    expect(afterRoundStart).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          value: CONDITION_NAME.INVISIBLE,
+          duration: expect.objectContaining({ amount: 1 })
+        }),
+        expect.objectContaining({
+          value: CONDITION_NAME.POISONED,
+          duration: expect.objectContaining({ amount: 2 })
+        })
+      ])
+    );
+    expect(afterRoundEnd).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          value: CONDITION_NAME.INVISIBLE,
+          duration: expect.objectContaining({ amount: 2 })
+        }),
+        expect.objectContaining({
+          value: CONDITION_NAME.POISONED,
+          duration: expect.objectContaining({ amount: 1 })
+        })
+      ])
+    );
+  });
+
+  it("ends barbarian rage when incapacitated is present", () => {
+    const character = createCharacter({
+      level: 6,
+      classFeatureState: {
+        rage: {
+          usesExpended: 1,
+          active: true,
+          frenzyPending: true
+        }
+      },
+      statusEntries: [
+        createCharacterStatusEntry({
+          group: STATUS_ENTRY_GROUP.CONDITIONS,
+          value: CONDITION_NAME.INCAPACITATED,
+          source: "Test",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL
+        })
+      ]
+    });
+
+    const reconciledCharacter = reconcileCharacterStatusConsequences(character);
+
+    expect(reconciledCharacter.classFeatureState?.rage?.active).toBe(false);
+    expect(reconciledCharacter.classFeatureState?.rage?.frenzyPending).toBe(false);
   });
 });

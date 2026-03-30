@@ -5,6 +5,7 @@ import {
   getConditionOptions,
   getDamageTypeOptions,
   getImmunityOptions,
+  normalizeStatusDurationRoundTick,
   isExhaustionStatusEntry,
   getSenseOptions
 } from "../../../../../pages/CharactersPage/traits";
@@ -17,6 +18,7 @@ import {
   CONDITION_NAME,
   EFFECT_NAME,
   STATUS_DURATION_KIND,
+  STATUS_DURATION_ROUND_TICK,
   STATUS_DURATION_PRESET,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
@@ -186,7 +188,8 @@ export function getStatusDrawerBadgeLabel(group: STATUS_ENTRY_GROUP): string {
 export function resolveStatusDurationPreset(
   preset: STATUS_DURATION_PRESET,
   group: STATUS_ENTRY_GROUP,
-  value: CharacterStatusValue
+  value: CharacterStatusValue,
+  roundTickOn: STATUS_DURATION_ROUND_TICK = STATUS_DURATION_ROUND_TICK.ROUND_START
 ) {
   if (
     preset === STATUS_DURATION_PRESET.CONCENTRATION &&
@@ -196,5 +199,5 @@ export function resolveStatusDurationPreset(
     return createStatusDurationFromPreset(STATUS_DURATION_PRESET.INFINITE);
   }
 
-  return createStatusDurationFromPreset(preset);
+  return createStatusDurationFromPreset(preset, normalizeStatusDurationRoundTick(roundTickOn));
 }

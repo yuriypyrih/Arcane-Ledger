@@ -48,6 +48,7 @@ export type CharacterCurrencies = {
 } & Record<string, number>;
 
 export type CharacterRoundTracker = {
+  turnStarted: boolean;
   actionAvailable: boolean;
   bonusActionAvailable: boolean;
   reactionAvailable: boolean;

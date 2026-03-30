@@ -1,43 +1,101 @@
-export enum Skill {
-  Acrobatics = "Acrobatics",
-  AnimalHandling = "Animal Handling",
-  Arcana = "Arcana",
-  Athletics = "Athletics",
-  Deception = "Deception",
-  History = "History",
-  Insight = "Insight",
-  Intimidation = "Intimidation",
-  Investigation = "Investigation",
-  Medicine = "Medicine",
-  Nature = "Nature",
-  Perception = "Perception",
-  Performance = "Performance",
-  Persuasion = "Persuasion",
-  Religion = "Religion",
-  SleightOfHand = "Sleight of Hand",
-  Stealth = "Stealth",
-  Survival = "Survival"
+import { SKILL_PROFICIENCY } from "./proficiencies";
+
+export enum SKILL {
+  ACROBATICS = "Acrobatics",
+  ANIMAL_HANDLING = "Animal Handling",
+  ARCANA = "Arcana",
+  ATHLETICS = "Athletics",
+  DECEPTION = "Deception",
+  HISTORY = "History",
+  INSIGHT = "Insight",
+  INTIMIDATION = "Intimidation",
+  INVESTIGATION = "Investigation",
+  MEDICINE = "Medicine",
+  NATURE = "Nature",
+  PERCEPTION = "Perception",
+  PERFORMANCE = "Performance",
+  PERSUASION = "Persuasion",
+  RELIGION = "Religion",
+  SLEIGHT_OF_HAND = "Sleight of Hand",
+  STEALTH = "Stealth",
+  SURVIVAL = "Survival"
 }
 
-export type SkillName = `${Skill}`;
+export type SkillName = `${SKILL}`;
 
 export const ALL_SKILLS = [
-  Skill.Acrobatics,
-  Skill.AnimalHandling,
-  Skill.Arcana,
-  Skill.Athletics,
-  Skill.Deception,
-  Skill.History,
-  Skill.Insight,
-  Skill.Intimidation,
-  Skill.Investigation,
-  Skill.Medicine,
-  Skill.Nature,
-  Skill.Perception,
-  Skill.Performance,
-  Skill.Persuasion,
-  Skill.Religion,
-  Skill.SleightOfHand,
-  Skill.Stealth,
-  Skill.Survival
+  SKILL.ACROBATICS,
+  SKILL.ANIMAL_HANDLING,
+  SKILL.ARCANA,
+  SKILL.ATHLETICS,
+  SKILL.DECEPTION,
+  SKILL.HISTORY,
+  SKILL.INSIGHT,
+  SKILL.INTIMIDATION,
+  SKILL.INVESTIGATION,
+  SKILL.MEDICINE,
+  SKILL.NATURE,
+  SKILL.PERCEPTION,
+  SKILL.PERFORMANCE,
+  SKILL.PERSUASION,
+  SKILL.RELIGION,
+  SKILL.SLEIGHT_OF_HAND,
+  SKILL.STEALTH,
+  SKILL.SURVIVAL
 ] as const satisfies readonly SkillName[];
+
+export const skillProficiencyByName: Record<SkillName, SKILL_PROFICIENCY> = {
+  [SKILL.ACROBATICS]: SKILL_PROFICIENCY.ACROBATICS,
+  [SKILL.ANIMAL_HANDLING]: SKILL_PROFICIENCY.ANIMAL_HANDLING,
+  [SKILL.ARCANA]: SKILL_PROFICIENCY.ARCANA,
+  [SKILL.ATHLETICS]: SKILL_PROFICIENCY.ATHLETICS,
+  [SKILL.DECEPTION]: SKILL_PROFICIENCY.DECEPTION,
+  [SKILL.HISTORY]: SKILL_PROFICIENCY.HISTORY,
+  [SKILL.INSIGHT]: SKILL_PROFICIENCY.INSIGHT,
+  [SKILL.INTIMIDATION]: SKILL_PROFICIENCY.INTIMIDATION,
+  [SKILL.INVESTIGATION]: SKILL_PROFICIENCY.INVESTIGATION,
+  [SKILL.MEDICINE]: SKILL_PROFICIENCY.MEDICINE,
+  [SKILL.NATURE]: SKILL_PROFICIENCY.NATURE,
+  [SKILL.PERCEPTION]: SKILL_PROFICIENCY.PERCEPTION,
+  [SKILL.PERFORMANCE]: SKILL_PROFICIENCY.PERFORMANCE,
+  [SKILL.PERSUASION]: SKILL_PROFICIENCY.PERSUASION,
+  [SKILL.RELIGION]: SKILL_PROFICIENCY.RELIGION,
+  [SKILL.SLEIGHT_OF_HAND]: SKILL_PROFICIENCY.SLEIGHT_OF_HAND,
+  [SKILL.STEALTH]: SKILL_PROFICIENCY.STEALTH,
+  [SKILL.SURVIVAL]: SKILL_PROFICIENCY.SURVIVAL
+};
+
+export const skillNameByProficiency: Record<SKILL_PROFICIENCY, SkillName> = {
+  [SKILL_PROFICIENCY.ACROBATICS]: SKILL.ACROBATICS,
+  [SKILL_PROFICIENCY.ANIMAL_HANDLING]: SKILL.ANIMAL_HANDLING,
+  [SKILL_PROFICIENCY.ARCANA]: SKILL.ARCANA,
+  [SKILL_PROFICIENCY.ATHLETICS]: SKILL.ATHLETICS,
+  [SKILL_PROFICIENCY.DECEPTION]: SKILL.DECEPTION,
+  [SKILL_PROFICIENCY.HISTORY]: SKILL.HISTORY,
+  [SKILL_PROFICIENCY.INSIGHT]: SKILL.INSIGHT,
+  [SKILL_PROFICIENCY.INTIMIDATION]: SKILL.INTIMIDATION,
+  [SKILL_PROFICIENCY.INVESTIGATION]: SKILL.INVESTIGATION,
+  [SKILL_PROFICIENCY.MEDICINE]: SKILL.MEDICINE,
+  [SKILL_PROFICIENCY.NATURE]: SKILL.NATURE,
+  [SKILL_PROFICIENCY.PERCEPTION]: SKILL.PERCEPTION,
+  [SKILL_PROFICIENCY.PERFORMANCE]: SKILL.PERFORMANCE,
+  [SKILL_PROFICIENCY.PERSUASION]: SKILL.PERSUASION,
+  [SKILL_PROFICIENCY.RELIGION]: SKILL.RELIGION,
+  [SKILL_PROFICIENCY.SLEIGHT_OF_HAND]: SKILL.SLEIGHT_OF_HAND,
+  [SKILL_PROFICIENCY.STEALTH]: SKILL.STEALTH,
+  [SKILL_PROFICIENCY.SURVIVAL]: SKILL.SURVIVAL
+};
+
+const skillNameSet = new Set<SkillName>(ALL_SKILLS);
+
+export function isSkillName(value: unknown): value is SkillName {
+  return typeof value === "string" && skillNameSet.has(value as SkillName);
+}
+
+export function getSkillProficiencyForSkillName(skill: SkillName): SKILL_PROFICIENCY {
+  return skillProficiencyByName[skill];
+}
+
+export function getSkillNameForProficiency(proficiency: SKILL_PROFICIENCY): SkillName {
+  return skillNameByProficiency[proficiency];
+}

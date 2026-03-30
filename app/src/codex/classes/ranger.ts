@@ -62,7 +62,7 @@ export const rangerFeatures: RangerFeatureClassObj[] = [
   },
   {
     level: 3,
-    classFeatures: [CLASS_FEATURE.RANGER_SUBCLASS],
+    classFeatures: [],
     favoredEnemy: 2,
     preparedSpells: 4,
     spellSlots: [3, 0, 0, 0, 0]
@@ -98,7 +98,7 @@ export const rangerFeatures: RangerFeatureClassObj[] = [
   },
   {
     level: 7,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     favoredEnemy: 3,
     preparedSpells: 7,
     spellSlots: [4, 3, 0, 0, 0]
@@ -135,7 +135,7 @@ export const rangerFeatures: RangerFeatureClassObj[] = [
   },
   {
     level: 11,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     favoredEnemy: 4,
     preparedSpells: 10,
     spellSlots: [4, 3, 3, 0, 0]
@@ -163,7 +163,7 @@ export const rangerFeatures: RangerFeatureClassObj[] = [
   },
   {
     level: 15,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     favoredEnemy: 5,
     preparedSpells: 12,
     spellSlots: [4, 3, 3, 2, 0]
@@ -229,14 +229,6 @@ export const rangerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "<strong>Languages.</strong> You know two languages of your choice from the language tables in 'Creating a Character'."
     ],
     isTracked: true
-  },
-  [CLASS_FEATURE.RANGER_SUBCLASS]: {
-    description: [
-      "You gain a Ranger subclass of your choice. The Hunter subclass is detailed after this class's description.",
-      "A subclass is a specialization that grants you features at certain Ranger levels.",
-      "For the rest of your career, you gain each of your subclass's features that are of your Ranger level or lower."
-    ],
-    isTracked: false
   },
   [CLASS_FEATURE.ROVING]: {
     description: [

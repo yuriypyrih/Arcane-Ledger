@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { CLASS_FEATURE } from "../../codex/entries";
+import { getClassEntries } from "../../codex/selectors";
 import {
+  getSubclassFeatureDetails,
   getSelectedSubclassForCharacter,
   getSubclassOptionsForClassName,
   getUnlockedSubclassFeatureRowsForCharacter
@@ -100,6 +102,13 @@ describe("subclass registry", () => {
         expect.stringContaining("<strong>Lion.</strong>"),
         expect.stringContaining("<strong>Ram.</strong>")
       ])
+    );
+    expect(
+      getSubclassFeatureDetails(selectedSubclass ?? null, 3, CLASS_FEATURE.RAGE_OF_THE_WILDS)
+    ).toEqual(
+      expect.objectContaining({
+        description: expect.arrayContaining([expect.stringContaining("<strong>Bear.</strong>")])
+      })
     );
   });
 
@@ -204,5 +213,31 @@ describe("subclass registry", () => {
         expect.stringContaining("<strong>Revivification.</strong>")
       ])
     );
+  });
+
+  it("keeps placeholder subclass features out of class progression tables", () => {
+    const deprecatedSubclassPlaceholderFeatures = new Set([
+      CLASS_FEATURE.ARTIFICER_SUBCLASS,
+      CLASS_FEATURE.BARBARIAN_SUBCLASS,
+      CLASS_FEATURE.BARD_SUBCLASS,
+      CLASS_FEATURE.CLERIC_SUBCLASS,
+      CLASS_FEATURE.DRUID_SUBCLASS,
+      CLASS_FEATURE.FIGHTER_SUBCLASS,
+      CLASS_FEATURE.MONK_SUBCLASS,
+      CLASS_FEATURE.PALADIN_SUBCLASS,
+      CLASS_FEATURE.RANGER_SUBCLASS,
+      CLASS_FEATURE.ROGUE_SUBCLASS,
+      CLASS_FEATURE.SORCERER_SUBCLASS,
+      CLASS_FEATURE.WARLOCK_SUBCLASS,
+      CLASS_FEATURE.WIZARD_SUBCLASS,
+      CLASS_FEATURE.SUBCLASS_FEATURE
+    ]);
+    const classFeatures = getClassEntries().flatMap((entry) =>
+      entry.features.flatMap((featureRow) => featureRow.classFeatures)
+    );
+
+    expect(
+      classFeatures.every((feature) => !deprecatedSubclassPlaceholderFeatures.has(feature))
+    ).toBe(true);
   });
 });

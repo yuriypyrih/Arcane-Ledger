@@ -13,15 +13,16 @@ import type {
   WeaponProficiencyEntry
 } from "../../../types";
 import {
-  ALL_SKILLS,
   CONDITION_NAME,
   LANGUAGE_PROFICIENCY,
   PROFICIENCY_OVERRIDE_POLICY,
   PROFICIENCY_SOURCE,
   PROF_LEVEL,
   SENSE,
-  SKILL_PROFICIENCY,
+  getSkillProficiencyForSkillName,
+  isSkillName,
   STATUS_DURATION_KIND,
+  STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
   WEAPON_PROFICIENCY,
@@ -59,26 +60,6 @@ const rangerNaturesVeilSource = "Nature's Veil";
 const rangerNaturesVeilSourceId = "feature-ranger-natures-veil";
 const rangerNaturesVeilDurationRounds = 2;
 
-const rangerSkillProficiencyBySkillName = new Map<SkillName, SKILL_PROFICIENCY>([
-  ["Acrobatics", SKILL_PROFICIENCY.ACROBATICS],
-  ["Animal Handling", SKILL_PROFICIENCY.ANIMAL_HANDLING],
-  ["Arcana", SKILL_PROFICIENCY.ARCANA],
-  ["Athletics", SKILL_PROFICIENCY.ATHLETICS],
-  ["Deception", SKILL_PROFICIENCY.DECEPTION],
-  ["History", SKILL_PROFICIENCY.HISTORY],
-  ["Insight", SKILL_PROFICIENCY.INSIGHT],
-  ["Intimidation", SKILL_PROFICIENCY.INTIMIDATION],
-  ["Investigation", SKILL_PROFICIENCY.INVESTIGATION],
-  ["Medicine", SKILL_PROFICIENCY.MEDICINE],
-  ["Nature", SKILL_PROFICIENCY.NATURE],
-  ["Perception", SKILL_PROFICIENCY.PERCEPTION],
-  ["Performance", SKILL_PROFICIENCY.PERFORMANCE],
-  ["Persuasion", SKILL_PROFICIENCY.PERSUASION],
-  ["Religion", SKILL_PROFICIENCY.RELIGION],
-  ["Sleight of Hand", SKILL_PROFICIENCY.SLEIGHT_OF_HAND],
-  ["Stealth", SKILL_PROFICIENCY.STEALTH],
-  ["Survival", SKILL_PROFICIENCY.SURVIVAL]
-]);
 const rangerLanguageOptions = languageEntries.map((entry) => entry.proficiency);
 
 const rangerWeaponMasteryOptions = getWeaponMasteryOptions();
@@ -108,10 +89,6 @@ function getUnlockedRangerFeatures(level: number): Set<CLASS_FEATURE> {
 
       return featureSet;
     }, new Set<CLASS_FEATURE>());
-}
-
-function isSkillName(value: string): value is SkillName {
-  return (ALL_SKILLS as readonly string[]).includes(value);
 }
 
 export function hasRangerFeature(
@@ -180,16 +157,10 @@ function createRangerExpertiseEntry(
   skill: SkillName,
   sourceLabel: string
 ): SkillProficiencyEntry | null {
-  const proficiency = rangerSkillProficiencyBySkillName.get(skill);
-
-  if (!proficiency) {
-    return null;
-  }
-
   return {
     source: PROFICIENCY_SOURCE.CLASS,
     sourceStr: sourceLabel,
-    proficiency,
+    proficiency: getSkillProficiencyForSkillName(skill),
     proficiencyLevel: PROF_LEVEL.EXPERT,
     overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
   };
@@ -697,7 +668,8 @@ export function activateRangerNaturesVeil(character: Character): Character {
       sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
       duration: {
         kind: STATUS_DURATION_KIND.ROUNDS,
-        amount: rangerNaturesVeilDurationRounds
+        amount: rangerNaturesVeilDurationRounds,
+        tickOn: STATUS_DURATION_ROUND_TICK.ROUND_END
       },
       sourceId: rangerNaturesVeilSourceId
     })

@@ -56,6 +56,11 @@ export enum STATUS_DURATION_KIND {
   ROUNDS = "ROUNDS"
 }
 
+export enum STATUS_DURATION_ROUND_TICK {
+  ROUND_START = "roundStart",
+  ROUND_END = "roundEnd"
+}
+
 export enum STATUS_DURATION_PRESET {
   INFINITE = "INFINITE",
   CONCENTRATION = "CONCENTRATION",
@@ -115,6 +120,7 @@ export type CharacterStatusDuration =
   | {
       kind: STATUS_DURATION_KIND.ROUNDS;
       amount: number;
+      tickOn?: STATUS_DURATION_ROUND_TICK;
     };
 
 export type CharacterStatusEntry = {

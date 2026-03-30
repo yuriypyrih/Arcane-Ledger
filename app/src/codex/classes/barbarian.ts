@@ -28,7 +28,7 @@ export const barbarianFeatures: BarbarianFeatureClassObj[] = [
   },
   {
     level: 3,
-    classFeatures: [CLASS_FEATURE.BARBARIAN_SUBCLASS, CLASS_FEATURE.PRIMAL_KNOWLEDGE],
+    classFeatures: [CLASS_FEATURE.PRIMAL_KNOWLEDGE],
     rages: 3,
     rageDamage: 2,
     weaponMastery: 2
@@ -49,7 +49,7 @@ export const barbarianFeatures: BarbarianFeatureClassObj[] = [
   },
   {
     level: 6,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     rages: 4,
     rageDamage: 2,
     weaponMastery: 3
@@ -77,7 +77,7 @@ export const barbarianFeatures: BarbarianFeatureClassObj[] = [
   },
   {
     level: 10,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     rages: 4,
     rageDamage: 3,
     weaponMastery: 4
@@ -105,7 +105,7 @@ export const barbarianFeatures: BarbarianFeatureClassObj[] = [
   },
   {
     level: 14,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     rages: 5,
     rageDamage: 3,
     weaponMastery: 4
@@ -176,18 +176,19 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
   [CLASS_FEATURE.RAGE]: {
     description: [
       "You can imbue yourself with a primal power called <strong>Rage</strong>, a force that grants you extraordinary might and resilience. You can enter it as a Bonus Action if you aren't wearing Heavy armor.",
-      "You can enter your Rage the number of times shown for your Barbarian level in the Rages column of the Barbarian Features table. You regain one expended use when you finish a <link:short-rest>Short Rest</link>, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>. <link:tracked>Tracked</link>",
+      "The times you can enter into Rage increases with your Barbarian level. You regain one expended use when you finish a <link:short-rest>Short Rest</link>, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
       "While active, your Rage follows the rules below.",
-      "<strong>Damage Resistance.</strong> You have <link:resistance>Resistance</link> to Bludgeoning, Piercing, and Slashing damage. <link:tracked>Tracked</link>",
-      "<strong>Rage Damage.</strong> When you make an attack using Strength, with either a weapon or an Unarmed Strike, and deal damage to the target, you gain a bonus to the damage that increases as you gain levels as a Barbarian, as shown in the Rage Damage column of the Barbarian Features table. <link:tracked>Tracked</link>",
-      "<strong>Strength Advantage.</strong> You have Advantage on Strength checks and Strength saving throws. <link:tracked>Tracked</link>",
-      "<strong>No Concentration or Spells.</strong> You can't maintain Concentration, and you can't cast spells. <link:not-tracked>Not Tracked</link>",
-      "<strong>Duration.</strong> The Rage lasts until the end of your next turn, and it ends early if you don Heavy armor or have the Incapacitated condition. <link:not-tracked>Not Tracked</link>",
+      "<strong>Damage Resistance.</strong> You have <link:resistance>Resistance</link> to Bludgeoning, Piercing, and Slashing damage.",
+      "<strong>Rage Damage.</strong> When you make an attack using Strength, with either a weapon or an Unarmed Strike, and deal damage to the target, you gain a bonus to the damage that increases as you gain levels as a Barbarian.",
+      "<strong>Strength Advantage.</strong> You have Advantage on Strength checks and Strength saving throws.",
+      "<strong>No Concentration or Spells.</strong> You can't maintain Concentration, and you can't cast spells.",
+      "<strong>Duration.</strong> The Rage lasts until the end of your next turn, and it ends early if you don Heavy armor or have the Incapacitated condition.",
       "If your Rage is still active on your next turn, you can extend the Rage for another round by doing one of the following:",
       "Make an attack roll against an enemy.",
       "Force an enemy to make a saving throw.",
       "Take a Bonus Action to extend your Rage.",
-      "Each time the Rage is extended, it lasts until the end of your next turn. You can maintain a Rage for up to 10 minutes."
+      "Each time the Rage is extended, it lasts until the end of your next turn. You can maintain a Rage for up to 10 minutes.",
+      "(All these rules are <link:tracked>Tracked</link> except prolonging the Rage state. The app simply adds it with 10m duration. You should end it earlier if you cannot fulfill its requirements.)"
     ],
     trackingState: "semi-tracked"
   },
@@ -200,7 +201,7 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
   [CLASS_FEATURE.WEAPON_MASTERY]: {
     description: [
       "Your training with weapons allows you to use the mastery properties of two kinds of Simple or Martial Melee weapons of your choice, such as Greataxes and Handaxes. Whenever you finish a <link:long-rest>Long Rest</link>, you can practice weapon drills and change one of those weapon choices.",
-      "When you reach certain Barbarian levels, you gain the ability to use the mastery properties of more kinds of weapons, as shown in the Weapon Mastery column of the Barbarian Features table."
+      "When you reach certain Barbarian levels, you gain the ability to use the mastery properties of more kinds of weapons [3 masteries at level-4 and 4 masteries at level-10]."
     ],
     isTracked: true
   },
@@ -214,22 +215,15 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
   [CLASS_FEATURE.RECKLESS_ATTACK]: {
     description: [
       "You can throw aside all concern for defense to attack with increased ferocity.",
-      "When you make your first attack roll on your turn, you can decide to attack recklessly. Doing so gives you Advantage on attack rolls using Strength until the start of your next turn, but attack rolls against you have Advantage during that time."
+      "When you make your first attack roll on your turn, you can decide to attack recklessly. Doing so gives you <link:advantage>Advantage</link> on attack rolls using Strength until the start of your next turn, but attack rolls against you have <link:advantage>Advantage</link> during that time.",
+      "(The app is tracking the usage but you have to remember that others have advantage over you.)"
     ],
-    isTracked: false
-  },
-  [CLASS_FEATURE.BARBARIAN_SUBCLASS]: {
-    description: [
-      "You gain a Barbarian subclass of your choice. The Path of the Berserker subclass is detailed after this class's description.",
-      "A subclass is a specialization that grants you features at certain Barbarian levels.",
-      "For the rest of your career, you gain each of your subclass's features that are of your Barbarian level or lower."
-    ],
-    isTracked: false
+    trackingState: "semi-tracked"
   },
   [CLASS_FEATURE.PRIMAL_KNOWLEDGE]: {
     description: [
       "You gain proficiency in another skill of your choice from the skill list available to Barbarians at level 1.",
-      "In addition, while your Rage is active, you can channel primal power when you attempt certain tasks. Whenever you make an ability check using Acrobatics, Intimidation, Perception, Stealth, or Survival, you can make it as a Strength check even if it normally uses a different ability.",
+      "In addition, while your Rage is active, you can channel primal power when you attempt certain tasks. Whenever you make an ability check using <link:Acrobatics>Acrobatics</link>, <link:Intimidation>Intimidation</link>, <link:Perception>Perception</link>, <link:Stealth>Stealth</link>, or <link:Survival>Survival</link>, you can make it as a Strength check even if it normally uses a different ability.",
       "When you use this ability, your Strength represents primal power coursing through you, honing your agility, bearing, and senses."
     ],
     isTracked: false

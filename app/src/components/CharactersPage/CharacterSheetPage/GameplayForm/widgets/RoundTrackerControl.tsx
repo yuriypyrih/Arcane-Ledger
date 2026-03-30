@@ -1,21 +1,24 @@
-import { FastForward } from "lucide-react";
+import { FastForward, Play } from "lucide-react";
 import ActionShape from "../../../../ActionShape";
 import type { RoundTrackerResource } from "../../../../../pages/CharactersPage/combat";
 import styles from "./RoundTrackerControl.module.css";
 
 type RoundTrackerControlProps = {
   roundTracker: {
+    turnStarted: boolean;
     actionAvailable: boolean;
     bonusActionAvailable: boolean;
     reactionAvailable: boolean;
   };
   onSelectResource: (resource: RoundTrackerResource) => void;
+  onStartTurn: () => void;
   onFinishRound: () => void;
 };
 
 function RoundTrackerControl({
   roundTracker,
   onSelectResource,
+  onStartTurn,
   onFinishRound
 }: RoundTrackerControlProps) {
   return (
@@ -47,11 +50,15 @@ function RoundTrackerControl({
       <button
         type="button"
         className={styles.button}
-        onClick={onFinishRound}
-        aria-label="Finish round"
-        title="Finish round"
+        onClick={roundTracker.turnStarted ? onFinishRound : onStartTurn}
+        aria-label={roundTracker.turnStarted ? "Finish turn" : "Start turn"}
+        title={roundTracker.turnStarted ? "Finish turn" : "Start turn"}
       >
-        <FastForward size={15} aria-hidden="true" />
+        {roundTracker.turnStarted ? (
+          <FastForward size={15} aria-hidden="true" />
+        ) : (
+          <Play size={15} aria-hidden="true" />
+        )}
       </button>
     </div>
   );

@@ -8,11 +8,14 @@ import {
   PROFICIENCY_SOURCE,
   PROF_LEVEL,
   STATUS_DURATION_KIND,
+  STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
   WEAPON_PROFICIENCY,
   type Character,
   type CharacterRageFeatureState,
+  SKILL,
+  type SkillName,
   type WeaponProficiencyEntry
 } from "../../../types";
 import {
@@ -32,6 +35,7 @@ import type {
   FeatureArmorClassMode,
   FeatureDamageBonus,
   FeatureIndicator,
+  FeatureSkillBonus,
   FeatureSpeedBonus,
   FeatureSpellcastingState,
   FeatureWeaponProficiencyEntry,
@@ -45,7 +49,7 @@ import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "./wea
 const rageConditionName = EFFECT_NAME.RAGE;
 const rageStatusSourceId = "feature-rage";
 const recklessAttackStatusSourceId = "feature-barbarian-reckless-attack";
-const recklessAttackDurationRounds = 2;
+const recklessAttackDurationRounds = 1;
 const pathOfTheBerserkerSubclassId = "barbarian-path-of-the-berserker";
 const mindlessRageCharmedImmunitySourceId = "feature-barbarian-mindless-rage-charmed-immunity";
 const mindlessRageFrightenedImmunitySourceId =
@@ -66,6 +70,15 @@ const dangerSenseAdvantageIndicator: FeatureIndicator = {
   tone: "advantage",
   source: "Danger Sense"
 };
+
+const primalKnowledgeSkillNames = [
+  SKILL.ACROBATICS,
+  SKILL.INTIMIDATION,
+  SKILL.PERCEPTION,
+  SKILL.STEALTH,
+  SKILL.SURVIVAL
+] as const satisfies readonly SkillName[];
+const primalKnowledgeSkillSet = new Set<SkillName>(primalKnowledgeSkillNames);
 
 const feralInstinctAdvantageIndicator: FeatureIndicator = {
   label: "Advantage",
@@ -362,8 +375,10 @@ export function getBarbarianFeatureAction(
   return {
     key: barbarianRageActionKey,
     name: "Rage",
-    summary: rageState.active ? "Active" : "Enter a primal rage.",
-    detail: "Enter into Rage state.",
+    summary: rageState.active ? "Rage Active" : "Enter Rage",
+    detail: "Enter Rage",
+    breakdown: rageState.active ? "Rage Active" : "Enter Rage",
+    breakdownTone: rageState.active ? "danger" : "default",
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
     usesLabel: `${usesRemaining}/${totalUses} uses`,
@@ -548,15 +563,54 @@ export function getBarbarianSkillIndicators(
 
   const strengthSkills =
     skillGroupsByAbility.find((group) => group.ability === "STR")?.skills ?? [];
+  const primalKnowledgeSkills = hasBarbarianFeature(character, CLASS_FEATURE.PRIMAL_KNOWLEDGE)
+    ? [...primalKnowledgeSkillNames]
+    : [];
+  const trackedSkills = Array.from(new Set([...strengthSkills, ...primalKnowledgeSkills]));
 
   return Object.fromEntries(
-    strengthSkills.map((skill) => [skill, [rageAdvantageIndicator]])
+    trackedSkills.map((skill) => [skill, [rageAdvantageIndicator]])
   ) as SkillIndicatorMap;
 }
 
+export function getBarbarianSkillBonuses(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "abilities">,
+  skill: SkillName
+): FeatureSkillBonus[] {
+  if (
+    !isBarbarianRaging(character) ||
+    !hasBarbarianFeature(character, CLASS_FEATURE.PRIMAL_KNOWLEDGE) ||
+    !primalKnowledgeSkillSet.has(skill)
+  ) {
+    return [];
+  }
+
+  const baseAbility =
+    skillGroupsByAbility.find((group) => group.skills.includes(skill))?.ability ?? null;
+
+  if (!baseAbility || baseAbility === "STR") {
+    return [];
+  }
+
+  return [
+    {
+      label: "STR (Primal Knowledge)",
+      abilityModifierSource: "STR",
+      replacesBaseAbility: true
+    }
+  ];
+}
+
 export function getBarbarianSpellcastingState(
-  _character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureSpellcastingState {
+  if (isBarbarianRaging(character)) {
+    return {
+      blocked: true,
+      reason: "You can't cast spells while Rage is active."
+    };
+  }
+
   return {
     blocked: false,
     reason: null
@@ -662,7 +716,7 @@ export function getBarbarianDerivedConditions(
         sourceId: rageStatusSourceId,
         group: STATUS_ENTRY_GROUP.RESISTANCES,
         value: DAMAGE_TYPE.BLUDGEONING,
-        source: "Barbarian",
+        source: "Rage",
         sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
         duration: {
           kind: STATUS_DURATION_KIND.LINKED,
@@ -675,7 +729,7 @@ export function getBarbarianDerivedConditions(
         sourceId: rageStatusSourceId,
         group: STATUS_ENTRY_GROUP.RESISTANCES,
         value: DAMAGE_TYPE.PIERCING,
-        source: "Barbarian",
+        source: "Rage",
         sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
         duration: {
           kind: STATUS_DURATION_KIND.LINKED,
@@ -688,7 +742,7 @@ export function getBarbarianDerivedConditions(
         sourceId: rageStatusSourceId,
         group: STATUS_ENTRY_GROUP.RESISTANCES,
         value: DAMAGE_TYPE.SLASHING,
-        source: "Barbarian",
+        source: "Rage",
         sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
         duration: {
           kind: STATUS_DURATION_KIND.LINKED,
@@ -715,7 +769,8 @@ export function getBarbarianDerivedConditions(
       sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
       duration: {
         kind: STATUS_DURATION_KIND.ROUNDS,
-        amount: recklessAttackRoundsRemaining
+        amount: recklessAttackRoundsRemaining,
+        tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
       }
     });
   }

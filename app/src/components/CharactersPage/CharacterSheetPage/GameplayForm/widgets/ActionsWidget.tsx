@@ -78,10 +78,7 @@ import {
   type RogueSneakAttackEffectKey
 } from "../../../../../pages/CharactersPage/classFeatures/rogue";
 import { getCombatActionsForCharacter } from "../../../../../pages/CharactersPage/combatActions";
-import {
-  consumeRoundTrackerResource,
-  normalizeRoundTracker
-} from "../../../../../pages/CharactersPage/combat";
+import { normalizeRoundTracker } from "../../../../../pages/CharactersPage/combat";
 import { getRoundTrackerResourceForEconomyType } from "../../../../../pages/CharactersPage/actionEconomy";
 import { getAbilityScoresForCharacter } from "../../../../../pages/CharactersPage/abilities";
 import {
@@ -97,7 +94,9 @@ import {
 import { rollFormulaWithDice } from "../../../../../utils/dice";
 import {
   createDefaultDeathSaves,
+  consumeRoundTrackerResourceForCharacter,
   normalizeDeathSaves,
+  prepareCharacterForRoundTrackerResourceConsumption,
   swapTemporaryHitPoints
 } from "../gameplayStateUtils";
 import { getSpellOutcomeSummaryForCharacter } from "../../../../../pages/CharactersPage/spellOutcome";
@@ -373,6 +372,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedDivineInterventionSpell !== null ||
     selectedMysticArcanumSpell !== null;
 
+  function prepareCharacterForResourceConsumption(
+    currentCharacter: Character,
+    resource: ReturnType<typeof getRoundTrackerResourceForEconomyType> | null
+  ): Character {
+    return resource
+      ? prepareCharacterForRoundTrackerResourceConsumption(currentCharacter, resource)
+      : currentCharacter;
+  }
+
   useBodyScrollLock(hasOverlayOpen);
 
   useEffect(() => {
@@ -516,12 +524,20 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     onPersistCharacter((currentCharacter) => {
       const nextCharacter = activateFeatureActionForCharacter(currentCharacter, actionKey);
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(economyType);
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const preparedNextCharacter =
+        preparedCharacter === currentCharacter
+          ? nextCharacter
+          : activateFeatureActionForCharacter(preparedCharacter, actionKey);
       const characterToUpdate =
-        nextCharacter === currentCharacter && consumesEconomyOnActivate
-          ? currentCharacter
-          : nextCharacter;
+        preparedNextCharacter === preparedCharacter && consumesEconomyOnActivate
+          ? preparedCharacter
+          : preparedNextCharacter;
 
-      if (characterToUpdate === currentCharacter && !consumesEconomyOnActivate) {
+      if (characterToUpdate === preparedCharacter && !consumesEconomyOnActivate) {
         return currentCharacter;
       }
 
@@ -530,13 +546,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       }
 
       return roundTrackerResource
-        ? {
-            ...characterToUpdate,
-            roundTracker: consumeRoundTrackerResource(
-              characterToUpdate.roundTracker,
-              roundTrackerResource
-            )
-          }
+        ? consumeRoundTrackerResourceForCharacter(characterToUpdate, roundTrackerResource)
         : characterToUpdate;
     });
   }
@@ -554,10 +564,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     if (action.key === fighterSecondWindActionKey) {
       onPersistCharacter((currentCharacter) => {
-        const nextCharacter = activateFeatureActionForCharacter(currentCharacter, action.key);
         const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+        const preparedCharacter = prepareCharacterForResourceConsumption(
+          currentCharacter,
+          roundTrackerResource
+        );
+        const nextCharacter = activateFeatureActionForCharacter(preparedCharacter, action.key);
 
-        if (nextCharacter === currentCharacter) {
+        if (nextCharacter === preparedCharacter) {
           return currentCharacter;
         }
 
@@ -583,13 +597,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               : normalizeDeathSaves(nextCharacter.deathSaves)
         });
         return roundTrackerResource
-          ? {
-              ...healedCharacter,
-              roundTracker: consumeRoundTrackerResource(
-                healedCharacter.roundTracker,
-                roundTrackerResource
-              )
-            }
+          ? consumeRoundTrackerResourceForCharacter(healedCharacter, roundTrackerResource)
           : healedCharacter;
       });
       return;
@@ -610,10 +618,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     if (action.key === tirelessActionKey) {
       onPersistCharacter((currentCharacter) => {
-        const nextCharacter = consumeRangerTirelessUseForCharacter(currentCharacter);
         const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+        const preparedCharacter = prepareCharacterForResourceConsumption(
+          currentCharacter,
+          roundTrackerResource
+        );
+        const nextCharacter = consumeRangerTirelessUseForCharacter(preparedCharacter);
 
-        if (nextCharacter === currentCharacter) {
+        if (nextCharacter === preparedCharacter) {
           return currentCharacter;
         }
 
@@ -639,13 +651,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         };
 
         return roundTrackerResource
-          ? {
-              ...updatedCharacter,
-              roundTracker: consumeRoundTrackerResource(
-                updatedCharacter.roundTracker,
-                roundTrackerResource
-              )
-            }
+          ? consumeRoundTrackerResourceForCharacter(updatedCharacter, roundTrackerResource)
           : updatedCharacter;
       });
       return;
@@ -668,12 +674,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     });
 
     onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
       const nextCharacter = action.damageBonusEntries.reduce(
         (updatedCharacter, entry) =>
           markFeatureWeaponBonusUseForCharacter(updatedCharacter, entry.label),
-        currentCharacter
+        preparedCharacter
       );
-      const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
 
       return roundTrackerResource
         ? consumeWeaponAttackActionForCharacter(nextCharacter, action)
@@ -687,13 +697,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   ) {
     onPersistCharacter((currentCharacter) => {
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(option.economyType);
-      const nextCharacter = activateFeatureActionOptionForCharacter(
+      const preparedCharacter = prepareCharacterForResourceConsumption(
         currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateFeatureActionOptionForCharacter(
+        preparedCharacter,
         actionKey,
         option.key
       );
 
-      if (nextCharacter === currentCharacter) {
+      if (nextCharacter === preparedCharacter) {
         return currentCharacter;
       }
 
@@ -702,13 +716,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       }
 
       return roundTrackerResource
-        ? {
-            ...nextCharacter,
-            roundTracker: consumeRoundTrackerResource(
-              nextCharacter.roundTracker,
-              roundTrackerResource
-            )
-          }
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
         : nextCharacter;
     });
 
@@ -813,24 +821,26 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     onPersistCharacter((currentCharacter) => {
-      const nextCharacter = applyLayOnHandsForCharacter(currentCharacter, options);
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(
         selectedFeatureAction.economyType
       );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = applyLayOnHandsForCharacter(currentCharacter, options);
+      const nextPreparedCharacter =
+        preparedCharacter === currentCharacter
+          ? nextCharacter
+          : applyLayOnHandsForCharacter(preparedCharacter, options);
 
-      if (nextCharacter === currentCharacter) {
+      if (nextPreparedCharacter === preparedCharacter) {
         return currentCharacter;
       }
 
       return roundTrackerResource
-        ? {
-            ...nextCharacter,
-            roundTracker: consumeRoundTrackerResource(
-              nextCharacter.roundTracker,
-              roundTrackerResource
-            )
-          }
-        : nextCharacter;
+        ? consumeRoundTrackerResourceForCharacter(nextPreparedCharacter, roundTrackerResource)
+        : nextPreparedCharacter;
     });
 
     closeLayOnHandsModal();
@@ -908,13 +918,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     onPersistCharacter((currentCharacter) => {
-      const nextCharacter = consumePaladinsSmiteUseForCharacter(currentCharacter);
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(
         selectedFeatureAction.economyType
       );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = consumePaladinsSmiteUseForCharacter(preparedCharacter);
       const divineSmiteSpell = paladinsSmiteSpellEntry;
 
-      if (nextCharacter === currentCharacter) {
+      if (nextCharacter === preparedCharacter) {
         return currentCharacter;
       }
 
@@ -929,13 +943,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         : nextCharacter;
 
       return roundTrackerResource
-        ? {
-            ...nextCharacterWithConcentration,
-            roundTracker: consumeRoundTrackerResource(
-              nextCharacterWithConcentration.roundTracker,
-              roundTrackerResource
-            )
-          }
+        ? consumeRoundTrackerResourceForCharacter(
+            nextCharacterWithConcentration,
+            roundTrackerResource
+          )
         : nextCharacterWithConcentration;
     });
 
@@ -952,13 +963,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     onPersistCharacter((currentCharacter) => {
-      const nextCharacter = consumeFaithfulSteedUseForCharacter(currentCharacter);
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(
         selectedFeatureAction.economyType
       );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = consumeFaithfulSteedUseForCharacter(preparedCharacter);
       const findSteedSpell = faithfulSteedSpellEntry;
 
-      if (nextCharacter === currentCharacter) {
+      if (nextCharacter === preparedCharacter) {
         return currentCharacter;
       }
 
@@ -973,13 +988,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         : nextCharacter;
 
       return roundTrackerResource
-        ? {
-            ...nextCharacterWithConcentration,
-            roundTracker: consumeRoundTrackerResource(
-              nextCharacterWithConcentration.roundTracker,
-              roundTrackerResource
-            )
-          }
+        ? consumeRoundTrackerResourceForCharacter(
+            nextCharacterWithConcentration,
+            roundTrackerResource
+          )
         : nextCharacterWithConcentration;
     });
 
@@ -996,16 +1008,20 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     onPersistCharacter((currentCharacter) => {
-      const nextCharacter = consumeRangerFavoredEnemyUseForCharacter(currentCharacter);
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(
         selectedFeatureAction.economyType
       );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = consumeRangerFavoredEnemyUseForCharacter(preparedCharacter);
       const baseHuntersMarkSpell = getSpellEntryById("spell-hunters-mark");
       const huntersMarkSpell = baseHuntersMarkSpell
-        ? getSpellEntryForCharacter(currentCharacter, baseHuntersMarkSpell)
+        ? getSpellEntryForCharacter(preparedCharacter, baseHuntersMarkSpell)
         : null;
 
-      if (nextCharacter === currentCharacter) {
+      if (nextCharacter === preparedCharacter) {
         return currentCharacter;
       }
 
@@ -1020,13 +1036,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         : nextCharacter;
 
       return roundTrackerResource
-        ? {
-            ...nextCharacterWithConcentration,
-            roundTracker: consumeRoundTrackerResource(
-              nextCharacterWithConcentration.roundTracker,
-              roundTrackerResource
-            )
-          }
+        ? consumeRoundTrackerResourceForCharacter(
+            nextCharacterWithConcentration,
+            roundTrackerResource
+          )
         : nextCharacterWithConcentration;
     });
 
@@ -1043,13 +1056,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     onPersistCharacter((currentCharacter) => {
-      const nextCharacter = consumeContactPatronUseForCharacter(currentCharacter);
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(
         selectedFeatureAction.economyType
       );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = consumeContactPatronUseForCharacter(preparedCharacter);
       const contactSpell = contactPatronSpellEntry;
 
-      if (nextCharacter === currentCharacter) {
+      if (nextCharacter === preparedCharacter) {
         return currentCharacter;
       }
 
@@ -1064,13 +1081,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         : nextCharacter;
 
       return roundTrackerResource
-        ? {
-            ...nextCharacterWithConcentration,
-            roundTracker: consumeRoundTrackerResource(
-              nextCharacterWithConcentration.roundTracker,
-              roundTrackerResource
-            )
-          }
+        ? consumeRoundTrackerResourceForCharacter(
+            nextCharacterWithConcentration,
+            roundTrackerResource
+          )
         : nextCharacterWithConcentration;
     });
 
@@ -1105,13 +1119,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForSpell(selectedMysticArcanumSpell);
+      const preparedCharacter = roundTrackerResource
+        ? prepareCharacterForRoundTrackerResourceConsumption(currentCharacter, roundTrackerResource)
+        : currentCharacter;
       const nextCharacter = consumeMysticArcanumUseForCharacter(
-        currentCharacter,
+        preparedCharacter,
         selectedMysticArcanumSpellLevel
       );
-      const roundTrackerResource = getRoundTrackerResourceForSpell(selectedMysticArcanumSpell);
 
-      if (nextCharacter === currentCharacter) {
+      if (nextCharacter === preparedCharacter) {
         return currentCharacter;
       }
 
@@ -1124,13 +1141,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       };
 
       return roundTrackerResource
-        ? {
-            ...nextCharacterWithConcentration,
-            roundTracker: consumeRoundTrackerResource(
-              nextCharacterWithConcentration.roundTracker,
-              roundTrackerResource
-            )
-          }
+        ? consumeRoundTrackerResourceForCharacter(
+            nextCharacterWithConcentration,
+            roundTrackerResource
+          )
         : nextCharacterWithConcentration;
     });
 
@@ -1151,19 +1165,20 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     onPersistCharacter((currentCharacter) => {
-      const nextCharacter = createSpellSlotFromSorceryPointsForCharacter(
+      const preparedCharacter = prepareCharacterForRoundTrackerResourceConsumption(
         currentCharacter,
+        "bonusAction"
+      );
+      const nextCharacter = createSpellSlotFromSorceryPointsForCharacter(
+        preparedCharacter,
         spellSlotLevel
       );
 
-      if (nextCharacter === currentCharacter) {
+      if (nextCharacter === preparedCharacter) {
         return currentCharacter;
       }
 
-      return {
-        ...nextCharacter,
-        roundTracker: consumeRoundTrackerResource(nextCharacter.roundTracker, "bonusAction")
-      };
+      return consumeRoundTrackerResourceForCharacter(nextCharacter, "bonusAction");
     });
 
     closeFontOfMagicModal();
@@ -1184,15 +1199,19 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     onPersistCharacter((currentCharacter) => {
-      const nextCharacter = activateFeatureActionForCharacter(
-        currentCharacter,
-        selectedFeatureAction.key
-      );
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(
         selectedFeatureAction.economyType
       );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateFeatureActionForCharacter(
+        preparedCharacter,
+        selectedFeatureAction.key
+      );
 
-      if (nextCharacter === currentCharacter) {
+      if (nextCharacter === preparedCharacter) {
         return currentCharacter;
       }
 
@@ -1205,13 +1224,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       };
 
       return roundTrackerResource
-        ? {
-            ...nextCharacterWithConcentration,
-            roundTracker: consumeRoundTrackerResource(
-              nextCharacterWithConcentration.roundTracker,
-              roundTrackerResource
-            )
-          }
+        ? consumeRoundTrackerResourceForCharacter(
+            nextCharacterWithConcentration,
+            roundTrackerResource
+          )
         : nextCharacterWithConcentration;
     });
 

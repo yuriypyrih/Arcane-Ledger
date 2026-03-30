@@ -97,10 +97,6 @@ const commonFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
     description: ["You gain the Ability Score Improvement feat, or another feat of your choice for which you qualify."],
     trackingState: "tracked"
   },
-  [CLASS_FEATURE.SUBCLASS_FEATURE]: {
-    description: ["You gain a feature from your chosen subclass."],
-    isTracked: false
-  },
   [CLASS_FEATURE.EPIC_BOON]: {
     description: [
       "You gain an Epic Boon feat, or another feat of your choice for which you qualify."

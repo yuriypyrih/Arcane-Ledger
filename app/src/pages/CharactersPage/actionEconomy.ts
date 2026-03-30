@@ -7,6 +7,7 @@ export const ECONOMY_TYPE = {
   ACTION: "action",
   BONUS_ACTION: "bonus_action",
   REACTION: "reaction",
+  NON_COMBAT: "non_combat",
   FREE: "free"
 } as const;
 
@@ -32,6 +33,7 @@ export function getRoundTrackerResourceForEconomyType(
       return "bonusAction";
     case ECONOMY_TYPE.REACTION:
       return "reaction";
+    case ECONOMY_TYPE.NON_COMBAT:
     case ECONOMY_TYPE.FREE:
     default:
       return null;

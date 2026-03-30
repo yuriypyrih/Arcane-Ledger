@@ -12,14 +12,21 @@ import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShare
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import {
   durationPresetOptions,
+  isRoundDurationPreset,
   getStatusDurationLabel,
   getStatusEntryDescriptionEntries,
   isExhaustionStatusEntry,
   getStatusEntrySourceLabel,
+  statusRoundTickOptions,
   getStatusEntryTitle
 } from "../../../../../pages/CharactersPage/traits";
 import type { CharacterStatusEntry } from "../../../../../types";
-import { EFFECT_NAME, STATUS_DURATION_PRESET, STATUS_ENTRY_GROUP } from "../../../../../types";
+import {
+  EFFECT_NAME,
+  STATUS_DURATION_PRESET,
+  STATUS_DURATION_ROUND_TICK,
+  STATUS_ENTRY_GROUP
+} from "../../../../../types";
 import type { ResolvedKeywordReference } from "../../../../../utils/codex/renderCodexRichText";
 import styles from "./StatusEntryDrawer.module.css";
 import {
@@ -32,7 +39,9 @@ type StatusEntryDrawerProps = {
   entry: CharacterStatusEntry;
   isEditingDuration: boolean;
   durationPreset: STATUS_DURATION_PRESET;
+  roundTickOn: STATUS_DURATION_ROUND_TICK;
   onDurationPresetChange: (preset: STATUS_DURATION_PRESET) => void;
+  onRoundTickOnChange: (tickOn: STATUS_DURATION_ROUND_TICK) => void;
   onStartEditDuration: () => void;
   onCancelEditDuration: () => void;
   onApplyDuration: () => void;
@@ -46,7 +55,9 @@ function StatusEntryDrawer({
   entry,
   isEditingDuration,
   durationPreset,
+  roundTickOn,
   onDurationPresetChange,
+  onRoundTickOnChange,
   onStartEditDuration,
   onCancelEditDuration,
   onApplyDuration,
@@ -58,6 +69,7 @@ function StatusEntryDrawer({
   const canEditDuration = isStatusEntryDurationEditable(entry);
   const canRemove = isStatusEntryRemovable(entry);
   const isExhaustionEntry = isExhaustionStatusEntry(entry);
+  const showRoundTickSelector = isRoundDurationPreset(durationPreset);
   const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
   const [selectedDivinityReference, setSelectedDivinityReference] = useState<DivinityEntry | null>(
     null
@@ -178,6 +190,24 @@ function StatusEntryDrawer({
                     ))}
                   </SelectInput>
                 </label>
+
+                {showRoundTickSelector ? (
+                  <label className={shared.field}>
+                    <span>Round Tick</span>
+                    <SelectInput
+                      value={roundTickOn}
+                      onChange={(event) =>
+                        onRoundTickOnChange(event.target.value as STATUS_DURATION_ROUND_TICK)
+                      }
+                    >
+                      {statusRoundTickOptions.map((option) => (
+                        <option key={option.value} value={option.value}>
+                          {option.label}
+                        </option>
+                      ))}
+                    </SelectInput>
+                  </label>
+                ) : null}
 
                 <div className={styles.durationEditorActions}>
                   <button type="button" className={shared.saveButton} onClick={onApplyDuration}>

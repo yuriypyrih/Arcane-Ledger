@@ -30,8 +30,7 @@ import {
 import {
   getSelectedSubclassForCharacter,
   getSubclassFeatureDetails,
-  getSubclassFeatureRowsForCharacter,
-  getSubclassSelectionFeatureForClassName
+  getSubclassFeatureRowsForCharacter
 } from "../../../../pages/CharactersPage/subclasses";
 import type { Character, CharacterFeatEntry } from "../../../../types";
 import { resolveKeywordReference } from "../../../../utils/codex/renderCodexRichText";
@@ -132,14 +131,17 @@ function ClassFeaturesAndFeats({
       return [];
     }
 
-    const subclassSelectionFeature = getSubclassSelectionFeatureForClassName(character.className);
     const subclassFeatureRows = getSubclassFeatureRowsForCharacter({
       className: character.className,
       subclassId: character.subclassId
     });
-    const subclassFeatureRowsByLevel = new Map<number, (typeof subclassFeatureRows)[number]>(
-      subclassFeatureRows.map((featureRow) => [featureRow.level, featureRow] as const)
-    );
+    const subclassFeatureRowsByLevel = subclassFeatureRows.reduce<
+      Map<number, typeof subclassFeatureRows>
+    >((rowsByLevel, featureRow) => {
+      const rowsAtLevel = rowsByLevel.get(featureRow.level) ?? [];
+      rowsByLevel.set(featureRow.level, [...rowsAtLevel, featureRow]);
+      return rowsByLevel;
+    }, new Map<number, typeof subclassFeatureRows>());
 
     function createFeatureRow(
       level: number,
@@ -175,51 +177,41 @@ function ClassFeaturesAndFeats({
     }
 
     function createSubclassFeatureRows(level: number): FeatureRow[] {
-      const subclassFeatureRow = subclassFeatureRowsByLevel.get(level);
+      const rowsAtLevel = subclassFeatureRowsByLevel.get(level);
 
-      if (!subclassFeatureRow) {
+      if (!rowsAtLevel || rowsAtLevel.length === 0) {
         return [];
       }
 
-      return subclassFeatureRow.classFeatures.map((feature, index) => {
-        const resolvedDetails =
-          getSubclassFeatureDetails(selectedSubclass, level, feature) ??
-          FeatureMap[feature] ?? {
-            description: ["You gain a feature from your chosen subclass."],
-            trackingState: "not-tracked"
-          };
+      return rowsAtLevel.flatMap((subclassFeatureRow, rowIndex) =>
+        subclassFeatureRow.classFeatures.map((feature, index) => {
+          const resolvedDetails =
+            getSubclassFeatureDetails(selectedSubclass, level, feature) ??
+            FeatureMap[feature] ?? {
+              description: ["You gain a feature from your chosen subclass."],
+              trackingState: "not-tracked"
+            };
 
-        return createFeatureRow(
-          level,
-          feature,
-          index,
-          resolveFeatureDetails(level, feature, resolvedDetails)
-        );
-      });
+          return createFeatureRow(
+            level,
+            feature,
+            rowIndex * 100 + index,
+            resolveFeatureDetails(level, feature, resolvedDetails)
+          );
+        })
+      );
     }
 
-    return classEntry.features.flatMap((featureRow) =>
-      featureRow.classFeatures.flatMap((feature, index) => {
+    return classEntry.features.flatMap((featureRow) => {
+      const baseFeatureRows = featureRow.classFeatures.flatMap((feature, index) => {
         const resolvedDetails = featureRow.featureOverrides?.[feature] ?? FeatureMap[feature];
         const featureDetails = resolveFeatureDetails(featureRow.level, feature, resolvedDetails);
 
-        if (feature === CLASS_FEATURE.SUBCLASS_FEATURE) {
-          const subclassFeatureRowsAtLevel = createSubclassFeatureRows(featureRow.level);
-          return subclassFeatureRowsAtLevel.length > 0
-            ? subclassFeatureRowsAtLevel
-            : [createFeatureRow(featureRow.level, feature, index, featureDetails)];
-        }
-
-        if (subclassSelectionFeature && feature === subclassSelectionFeature) {
-          return [
-            createFeatureRow(featureRow.level, feature, index, featureDetails),
-            ...createSubclassFeatureRows(featureRow.level)
-          ];
-        }
-
         return [createFeatureRow(featureRow.level, feature, index, featureDetails)];
-      })
-    );
+      });
+
+      return [...baseFeatureRows, ...createSubclassFeatureRows(featureRow.level)];
+    });
   }, [character.className, character.level, character.subclassId, classEntry, selectedSubclass]);
   const unlockedFeatures = useMemo(
     () => allFeatures.filter((featureRow) => featureRow.level <= character.level),

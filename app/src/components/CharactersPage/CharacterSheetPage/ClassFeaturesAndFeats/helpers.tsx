@@ -13,7 +13,7 @@ import {
   getSkillProficiencyForName,
   languageProficiencyOptions
 } from "../../../../pages/CharactersPage/proficiency";
-import { PROF_LEVEL } from "../../../../types";
+import { PROF_LEVEL, SKILL } from "../../../../types";
 import type {
   Character,
   CharacterFeatEntry,
@@ -25,12 +25,12 @@ import { featureDisclosureStyles } from "../../../FeatureDisclosure";
 import { renderCodexRichText } from "../../../../utils/codex/renderCodexRichText";
 
 export const wizardScholarSkillOptions: SkillName[] = [
-  "Arcana",
-  "History",
-  "Investigation",
-  "Medicine",
-  "Nature",
-  "Religion"
+  SKILL.ARCANA,
+  SKILL.HISTORY,
+  SKILL.INVESTIGATION,
+  SKILL.MEDICINE,
+  SKILL.NATURE,
+  SKILL.RELIGION
 ];
 
 export function isFeatChoiceFeature(feature: CLASS_FEATURE): boolean {

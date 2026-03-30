@@ -13,7 +13,7 @@ import {
 } from "../../codex/entries";
 import { getClassEntries, getWeaponEntries } from "../../codex/selectors";
 import type { AbilityKey, AbilityScores, Character, SkillName } from "../../types";
-import { PROF_LEVEL } from "../../types";
+import { PROF_LEVEL, SKILL } from "../../types";
 import { formatCodexLabel, formatWeaponDamage, formatWeaponDamageFormula } from "../../utils/codex";
 import {
   getAbilityModifierForCharacter,
@@ -27,6 +27,7 @@ import {
   getMonkFlurryOfBlowsAttackMultiCountForCharacter,
   getMonkMartialArtsDieForCharacter,
   getMonkUnarmedDamageTypeLabelForCharacter,
+  getSkillBonusesForCharacter,
   getWeaponAttackIndicatorsForCharacter,
   type FeatureDamageBonus
 } from "./classFeatures";
@@ -50,10 +51,13 @@ import { normalizeCharacterFeats } from "./feats";
 import {
   getAppliedWeaponProficiency,
   getEquipmentByName,
+  getPrimaryAbilityForClass,
+  getSavingThrowAbilityKeysForClass,
   getSkillLevelFromEntries,
   getSkillProficiencyForName
 } from "./proficiency";
 import { getResolvedCustomLoadoutEntries, type ResolvedCustomWeaponEntry } from "./customEquipment";
+import { skillGroupsByAbility } from "./skillDefinitions";
 
 type WeaponAbilityRule = "strength" | "dexterity" | "finesse";
 
@@ -511,13 +515,7 @@ export function getProficiencyBonus(level: number): number {
 }
 
 export function getMainAbilityForClass(className: string): AbilityKey | null {
-  const classEntry = codexClassEntriesByName.get(className);
-
-  if (!classEntry || classEntry.primaryAbilityModifiers.length === 0) {
-    return null;
-  }
-
-  return classEntry.primaryAbilityModifiers[0] as AbilityKey;
+  return getPrimaryAbilityForClass(className);
 }
 
 export function getHitDieFormulaForClass(className: string): string {
@@ -577,13 +575,7 @@ export function getHitDiceDisplayForCharacter(character: Character): string {
 }
 
 export function getSavingThrowProficienciesForClass(className: string): AbilityKey[] {
-  const classEntry = codexClassEntriesByName.get(className);
-
-  if (!classEntry) {
-    return [];
-  }
-
-  return classEntry.savingThrowProficiencies as AbilityKey[];
+  return getSavingThrowAbilityKeysForClass(className);
 }
 
 export function getInitiativeBreakdownForCharacter(character: Character): InitiativeBreakdown {
@@ -620,15 +612,36 @@ function getSkillModifierForCharacter(character: Character, skill: SkillName): n
     : PROF_LEVEL.NONE;
   const proficiencyMultiplier =
     skillLevel === PROF_LEVEL.EXPERT ? 2 : skillLevel === PROF_LEVEL.PROFICIENT ? 1 : 0;
+  const defaultAbility =
+    skillGroupsByAbility.find((group) => group.skills.includes(skill))?.ability ?? "WIS";
+  const skillBonuses = getSkillBonusesForCharacter(character, skill, skillLevel);
+  const replacementEntry = skillBonuses.find(
+    (entry) => entry.replacesBaseAbility && entry.abilityModifierSource
+  );
+  const abilityModifier = getAbilityModifierForCharacter(
+    character,
+    replacementEntry?.abilityModifierSource ?? defaultAbility
+  );
+  const featureBonus = skillBonuses.reduce((total, bonus) => {
+    if (bonus.replacesBaseAbility && bonus.abilityModifierSource) {
+      return total;
+    }
 
-  // Perception currently maps to Wisdom.
-  const abilityModifier = getAbilityModifierForCharacter(character, "WIS");
+    if (bonus.abilityModifierSource) {
+      const sourceValue = getAbilityModifierForCharacter(character, bonus.abilityModifierSource);
+      return total + (typeof bonus.minimumValue === "number"
+        ? Math.max(bonus.minimumValue, sourceValue)
+        : sourceValue);
+    }
 
-  return abilityModifier + proficiencyMultiplier * proficiencyBonus;
+    return total + (bonus.value ?? 0);
+  }, 0);
+
+  return abilityModifier + proficiencyMultiplier * proficiencyBonus + featureBonus;
 }
 
 export function getPassivePerceptionForCharacter(character: Character): number {
-  return 10 + getSkillModifierForCharacter(character, "Perception");
+  return 10 + getSkillModifierForCharacter(character, SKILL.PERCEPTION);
 }
 
 function createUnarmedStrikeAction(

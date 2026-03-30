@@ -24,7 +24,6 @@ import {
   formatCodexLabel
 } from "../../../../utils/codex";
 import {
-  consumeRoundTrackerResource,
   isRoundTrackerResourceAvailable,
   normalizeRoundTracker,
   type RoundTrackerResource
@@ -93,6 +92,10 @@ import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/Cha
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./SpellCastingForm.module.css";
 import actionStyles from "./SpellActionDrawer.module.css";
+import {
+  consumeRoundTrackerResourceForCharacter,
+  prepareCharacterForRoundTrackerResourceConsumption
+} from "../GameplayForm/gameplayStateUtils";
 
 type SpellCastingFormProps = {
   character: Character;
@@ -257,6 +260,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const closeSelectedInvocation = useCallback(() => {
     setSelectedInvocation(null);
   }, []);
+  const prepareCharacterForResourceConsumption = useCallback(
+    (currentCharacter: Character, resource: RoundTrackerResource | null) =>
+      resource
+        ? prepareCharacterForRoundTrackerResourceConsumption(currentCharacter, resource)
+        : currentCharacter,
+    []
+  );
 
   useEffect(() => {
     if (!selectedSpell && !selectedDivinityOptionKey && !selectedInvocation && !spellManagementMode) {
@@ -1230,17 +1240,21 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
     if (spellLevel === 0) {
       if (roundTrackerResource) {
-        onPersistCharacter((currentCharacter) => ({
-          ...currentCharacter,
-          statusEntries: applySpellConcentrationToStatusEntries(
-            currentCharacter.statusEntries,
-            selectedSpell
-          ),
-          roundTracker: consumeRoundTrackerResource(
-            currentCharacter.roundTracker,
+        onPersistCharacter((currentCharacter) => {
+          const preparedCharacter = prepareCharacterForResourceConsumption(
+            currentCharacter,
             roundTrackerResource
-          )
-        }));
+          );
+          const nextCharacter = {
+            ...preparedCharacter,
+            statusEntries: applySpellConcentrationToStatusEntries(
+              preparedCharacter.statusEntries,
+              selectedSpell
+            )
+          };
+
+          return consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource);
+        });
       } else {
         onPersistCharacter((currentCharacter) => ({
           ...currentCharacter,
@@ -1256,16 +1270,23 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     }
 
     if (castAsRitual) {
-      onPersistCharacter((currentCharacter) => ({
-        ...currentCharacter,
-        statusEntries: applySpellConcentrationToStatusEntries(
-          currentCharacter.statusEntries,
-          selectedSpell
-        ),
-        roundTracker: roundTrackerResource
-          ? consumeRoundTrackerResource(currentCharacter.roundTracker, roundTrackerResource)
-          : currentCharacter.roundTracker
-      }));
+      onPersistCharacter((currentCharacter) => {
+        const preparedCharacter = prepareCharacterForResourceConsumption(
+          currentCharacter,
+          roundTrackerResource
+        );
+        const nextCharacter = {
+          ...preparedCharacter,
+          statusEntries: applySpellConcentrationToStatusEntries(
+            preparedCharacter.statusEntries,
+            selectedSpell
+          )
+        };
+
+        return roundTrackerResource
+          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+          : nextCharacter;
+      });
 
       closeSelectedSpell();
       return;
@@ -1286,12 +1307,16 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     }
 
     onPersistCharacter((currentCharacter) => {
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
       const currentSpellSlotTotals = getSpellSlotTotalsForCharacter(
-        currentCharacter.className,
-        currentCharacter.level
+        preparedCharacter.className,
+        preparedCharacter.level
       );
       const currentSpellSlotsExpended = normalizeSpellSlotsExpended(
-        currentCharacter.spellSlotsExpended,
+        preparedCharacter.spellSlotsExpended,
         currentSpellSlotTotals
       );
       const nextSpellSlotsExpended = [...currentSpellSlotsExpended];
@@ -1302,10 +1327,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
       const nextCharacter =
         castsFreeViaSignatureSpells
-          ? consumeWizardSignatureSpellFreeCastForCharacter(currentCharacter, selectedSpell.id)
-          : currentCharacter;
-
-      return {
+          ? consumeWizardSignatureSpellFreeCastForCharacter(preparedCharacter, selectedSpell.id)
+          : preparedCharacter;
+      const nextCharacterWithSpellcast = {
         ...nextCharacter,
         spellSlotsExpended: castsWithoutSpellSlot
           ? nextCharacter.spellSlotsExpended
@@ -1313,11 +1337,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         statusEntries: applySpellConcentrationToStatusEntries(
           nextCharacter.statusEntries,
           selectedSpell
-        ),
-        roundTracker: roundTrackerResource
-          ? consumeRoundTrackerResource(nextCharacter.roundTracker, roundTrackerResource)
-          : nextCharacter.roundTracker
+        )
       };
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacterWithSpellcast, roundTrackerResource)
+        : nextCharacterWithSpellcast;
     });
 
     closeSelectedSpell();
@@ -1332,24 +1357,22 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(
         selectedDivinityRow.option.economyType
       );
-      const nextCharacter = activateFeatureActionOptionForCharacter(
+      const preparedCharacter = prepareCharacterForResourceConsumption(
         currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateFeatureActionOptionForCharacter(
+        preparedCharacter,
         selectedDivinityRow.action.key,
         selectedDivinityRow.option.key
       );
 
-      if (nextCharacter === currentCharacter) {
+      if (nextCharacter === preparedCharacter) {
         return currentCharacter;
       }
 
       return roundTrackerResource
-        ? {
-            ...nextCharacter,
-            roundTracker: consumeRoundTrackerResource(
-              nextCharacter.roundTracker,
-              roundTrackerResource
-            )
-          }
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
         : nextCharacter;
     });
 

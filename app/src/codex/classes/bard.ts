@@ -40,7 +40,7 @@ export const bardFeatures: BardFeatureClassObj[] = [
   },
   {
     level: 3,
-    classFeatures: [CLASS_FEATURE.BARD_SUBCLASS],
+    classFeatures: [],
     bardicDie: DICE.D6,
     cantrips: 2,
     preparedSpells: 6,
@@ -64,7 +64,7 @@ export const bardFeatures: BardFeatureClassObj[] = [
   },
   {
     level: 6,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     bardicDie: DICE.D8,
     cantrips: 3,
     preparedSpells: 10,
@@ -128,7 +128,7 @@ export const bardFeatures: BardFeatureClassObj[] = [
   },
   {
     level: 14,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     bardicDie: DICE.D10,
     cantrips: 4,
     preparedSpells: 17,
@@ -233,14 +233,6 @@ export const bardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "For example, if you make a Strength (Athletics) check and lack Athletics proficiency, you can add half your Proficiency Bonus to the check."
     ],
     isTracked: true
-  },
-  [CLASS_FEATURE.BARD_SUBCLASS]: {
-    description: [
-      "You gain a Bard subclass of your choice. The College of Lore subclass is detailed after this class's description.",
-      "A subclass is a specialization that grants you features at certain Bard levels.",
-      "For the rest of your career, you gain each of your subclass's features that are of your Bard level or lower."
-    ],
-    isTracked: false
   },
   [CLASS_FEATURE.FONT_OF_INSPIRATION]: {
     description: [

@@ -3,12 +3,17 @@ import type { CSSProperties } from "react";
 import ActionShape from "../../../../ActionShape";
 import ConcentrationLabel from "../../../../ConcentrationLabel";
 import {
+  getStatusDurationTickOn,
   getStatusDurationShortLabel,
   getStatusEntrySourceLabel,
   getStatusEntryTitle
 } from "../../../../../pages/CharactersPage/traits";
 import type { CharacterStatusEntry } from "../../../../../types";
-import { EFFECT_NAME, STATUS_ENTRY_GROUP } from "../../../../../types";
+import {
+  EFFECT_NAME,
+  STATUS_DURATION_ROUND_TICK,
+  STATUS_ENTRY_GROUP
+} from "../../../../../types";
 import styles from "./TraitsConditionsSections.module.css";
 
 type StatusSection = {
@@ -48,6 +53,11 @@ function TraitsConditionsSections({
             {section.entries.map((entry) => {
               const shortDurationLabel = getStatusDurationShortLabel(entry.duration);
               const isReactionEntry = entry.group === STATUS_ENTRY_GROUP.REACTIONS;
+              const roundTickOn = getStatusDurationTickOn(entry.duration);
+              const roundPrefix =
+                roundTickOn === STATUS_DURATION_ROUND_TICK.ROUND_START ? "<" : "";
+              const roundSuffix =
+                roundTickOn === STATUS_DURATION_ROUND_TICK.ROUND_END ? ">" : "";
 
               return (
                 <li key={entry.id}>
@@ -78,9 +88,11 @@ function TraitsConditionsSections({
                       <span className={styles.buttonMeta}>
                         {shortDurationLabel ? (
                           <strong className={styles.duration}>
+                            {roundPrefix ? <span>{roundPrefix}</span> : null}
                             <span>(</span>
                             {shortDurationLabel}
                             <span>)</span>
+                            {roundSuffix ? <span>{roundSuffix}</span> : null}
                           </strong>
                         ) : null}
                         {isReactionEntry ? (

@@ -221,7 +221,12 @@ export function FeatureActionCardButton({
         </span>
       ) : null}
       {action.valueLabel ? <span className={styles.damageRow}>{action.valueLabel}</span> : null}
-      <small className={styles.breakdownRow}>
+      <small
+        className={clsx(
+          styles.breakdownRow,
+          action.breakdownTone === "danger" && styles.breakdownRowDanger
+        )}
+      >
         {action.breakdown ?? (action.isActive ? action.detail : action.summary)}
       </small>
     </button>

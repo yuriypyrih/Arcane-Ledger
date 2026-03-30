@@ -36,7 +36,7 @@ export const monkFeatures: MonkFeatureClassObj[] = [
   },
   {
     level: 3,
-    classFeatures: [CLASS_FEATURE.DEFLECT_ATTACKS, CLASS_FEATURE.MONK_SUBCLASS],
+    classFeatures: [CLASS_FEATURE.DEFLECT_ATTACKS],
     martialArts: DICE.D6,
     focusPoints: 3,
     unarmoredMovement: 10
@@ -57,7 +57,7 @@ export const monkFeatures: MonkFeatureClassObj[] = [
   },
   {
     level: 6,
-    classFeatures: [CLASS_FEATURE.EMPOWERED_STRIKES, CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [CLASS_FEATURE.EMPOWERED_STRIKES],
     martialArts: DICE.D8,
     focusPoints: 6,
     unarmoredMovement: 15
@@ -92,7 +92,7 @@ export const monkFeatures: MonkFeatureClassObj[] = [
   },
   {
     level: 11,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     martialArts: DICE.D10,
     focusPoints: 11,
     unarmoredMovement: 20
@@ -134,7 +134,7 @@ export const monkFeatures: MonkFeatureClassObj[] = [
   },
   {
     level: 17,
-    classFeatures: [CLASS_FEATURE.SUBCLASS_FEATURE],
+    classFeatures: [],
     martialArts: DICE.D12,
     focusPoints: 17,
     unarmoredMovement: 25
@@ -230,14 +230,6 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   [CLASS_FEATURE.DEFLECT_ATTACKS]: {
     description: getMonkDeflectAttacksDescription(false),
     trackingState: "semi-tracked"
-  },
-  [CLASS_FEATURE.MONK_SUBCLASS]: {
-    description: [
-      "You gain a Monk subclass of your choice. The Warrior of the Open Hand subclass is detailed after this class's description.",
-      "A subclass is a specialization that grants you features at certain Monk levels.",
-      "For the rest of your career, you gain each of your subclass's features that are of your Monk level or lower."
-    ],
-    isTracked: false
   },
   [CLASS_FEATURE.SLOW_FALL]: {
     description: [
