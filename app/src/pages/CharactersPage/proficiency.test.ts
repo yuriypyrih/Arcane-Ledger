@@ -113,4 +113,44 @@ describe("normalizeCharacterProficiencies", () => {
     expect(athleticsEntries.some((entry) => entry.source === PROFICIENCY_SOURCE.CLASS)).toBe(true);
     expect(athleticsEntries.some((entry) => entry.source === PROFICIENCY_SOURCE.MANUAL)).toBe(false);
   });
+
+  it("adds primal knowledge skill choices as locked feature-granted proficiencies", () => {
+    const normalizedProficiencies = normalizeCharacterProficiencies({
+      className: "Barbarian",
+      level: 3,
+      species: "Human",
+      background: "Acolyte",
+      classFeatureState: {
+        rage: {
+          usesExpended: 0,
+          active: false,
+          primalKnowledgeSkill: SKILL.PERCEPTION
+        }
+      }
+    });
+    const perceptionProficiency = getSkillProficiencyForName(SKILL.PERCEPTION);
+
+    if (!perceptionProficiency) {
+      throw new Error("Expected perception proficiency to exist.");
+    }
+
+    const perceptionEntries = normalizedProficiencies.skillProficiencies.filter(
+      (entry) => entry.proficiency === perceptionProficiency
+    );
+
+    expect(
+      perceptionEntries.some(
+        (entry) =>
+          entry.source === PROFICIENCY_SOURCE.CLASS &&
+          entry.sourceStr === "Primal Knowledge" &&
+          entry.proficiencyLevel === PROF_LEVEL.PROFICIENT
+      )
+    ).toBe(true);
+    expect(
+      getResolvedSkillProficiencyEntry(
+        normalizedProficiencies.skillProficiencies,
+        perceptionProficiency
+      ).locked
+    ).toBe(true);
+  });
 });

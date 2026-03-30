@@ -1150,6 +1150,14 @@ export function getStatusEntryDescriptionEntries(
     );
   }
 
+  if (entry.sourceId === "feature-barbarian-instinctive-pounce") {
+    return (
+      barbarianFeatureMap[CLASS_FEATURE.INSTINCTIVE_POUNCE]?.description ?? [
+        "A current effect or trait that may change how your character plays."
+      ]
+    );
+  }
+
   if (entry.sourceId === "feature-sorcerer-innate-sorcery") {
     return (
       sorcererFeatureMap[CLASS_FEATURE.INNATE_SORCERY]?.description ?? [

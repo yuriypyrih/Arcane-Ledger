@@ -118,6 +118,10 @@
   white-space: nowrap;
 }
 
+.selectionCounterIncomplete {
+  color: #a63729;
+}
+
 .spellGroup {
   display: grid;
   gap: 0.45rem;

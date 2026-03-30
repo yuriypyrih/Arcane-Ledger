@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { barbarianFeatureMap } from "../../codex/classes";
+import { CLASS_FEATURE } from "../../codex/entries";
 import {
   CONDITION_NAME,
   STATUS_DURATION_KIND,
@@ -9,6 +11,7 @@ import {
 import {
   advanceCharacterStatusEntries,
   createCharacterStatusEntry,
+  getStatusEntryDescriptionEntries,
   hasStatusCondition,
   reconcileCharacterStatusConsequences,
   resolveCharacterStatusEntries,
@@ -163,5 +166,24 @@ describe("status entry immunities", () => {
 
     expect(reconciledCharacter.classFeatureState?.rage?.active).toBe(false);
     expect(reconciledCharacter.classFeatureState?.rage?.frenzyPending).toBe(false);
+  });
+
+  it("uses the barbarian feature description for instinctive pounce status entries", () => {
+    const entry = createCharacterStatusEntry({
+      group: STATUS_ENTRY_GROUP.EFFECTS,
+      value: "Instinctive Pounce",
+      source: "Instinctive Pounce",
+      sourceId: "feature-barbarian-instinctive-pounce",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.ROUNDS,
+        amount: 1,
+        tickOn: STATUS_DURATION_ROUND_TICK.ROUND_END
+      }
+    });
+
+    expect(getStatusEntryDescriptionEntries(entry)).toEqual(
+      barbarianFeatureMap[CLASS_FEATURE.INSTINCTIVE_POUNCE]?.description
+    );
   });
 });

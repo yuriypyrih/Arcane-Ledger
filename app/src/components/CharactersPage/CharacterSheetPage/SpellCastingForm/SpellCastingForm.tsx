@@ -70,6 +70,7 @@ import {
   usesSpellbookForCharacter,
   usesPreparedSpellsForCharacter
 } from "../../../../pages/CharactersPage/spellcasting";
+import { getSpellSelectionInputStatusForCharacter } from "../../../../pages/CharactersPage/spellSelection";
 import { getFeatGrantedCantripEntriesForCharacter } from "../../../../pages/CharactersPage/feats";
 import { formatFeatureActionOptionRangeLabel } from "../../../../pages/CharactersPage/actionOutcome";
 import { applySpellConcentrationToStatusEntries } from "../../../../pages/CharactersPage/traits";
@@ -117,6 +118,20 @@ type DivinityOptionRow = {
   option: FeatureActionOptionCard;
   entry: DivinityEntry;
 };
+
+function SelectionCounter({
+  current,
+  total
+}: {
+  current: number;
+  total: number;
+}) {
+  return (
+    <span
+      className={clsx(current < total && styles.selectionCounterIncomplete)}
+    >{`${current}/${total}`}</span>
+  );
+}
 
 function getChannelDivinityEntryForOption(optionKey: string): DivinityEntry | null {
   if (optionKey === "divine-spark-heal" || optionKey === "divine-spark-damage") {
@@ -686,17 +701,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     hasEldritchInvocationManagement && invocationCount >= eldritchInvocationLimit;
   const isPreparedSpellLimitReached =
     preparedSpellLimit !== null && preparedSpellCount >= preparedSpellLimit;
-  const isCantripInputRequired =
-    hasCantripManagement &&
-    cantripLimit !== null &&
-    selectedCantripCount < cantripLimit &&
-    cantripOptions.length > selectedCantripCount;
-  const isPreparedSpellInputRequired =
-    usesPreparedSpells &&
-    preparedSpellLimit !== null &&
-    selectedPreparedSpellCount < preparedSpellLimit &&
-    spellPreparationOptions.length > selectedPreparedSpellCount;
-  const hasSpellSelectionInputRequired = isCantripInputRequired || isPreparedSpellInputRequired;
+  const spellSelectionInputStatus = useMemo(
+    () => getSpellSelectionInputStatusForCharacter(character),
+    [character]
+  );
+  const hasSpellSelectionInputRequired = spellSelectionInputStatus.hasInputRequired;
   const learnedInvocationOptions = useMemo(
     () => getWarlockLearnedInvocationOptionsForCharacter(character),
     [character]
@@ -1398,7 +1407,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           {hasSpellSelectionInputRequired ? (
             <span className={styles.spellInputRequired}>
               <TriangleAlert size={16} aria-hidden="true" />
-              Pick more spells
+              Input required
             </span>
           ) : null}
           <button
@@ -1639,7 +1648,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                     className={sheetStyles.spellManagementOptionButton}
                     onClick={beginCantripManagement}
                   >
-                    <strong>{`Manage cantrips ${selectedCantripCount}/${cantripLimit ?? 0}`}</strong>
+                    <strong>
+                      Manage cantrips{" "}
+                      <SelectionCounter
+                        current={selectedCantripCount}
+                        total={cantripLimit ?? 0}
+                      />
+                    </strong>
                     <small>Choose from the list of cantrips for your class.</small>
                   </button>
                 ) : null}
@@ -1650,7 +1665,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                     onClick={beginInvocationManagement}
                   >
                     <strong>
-                      {`Manage Eldritch Invocations ${selectedInvocationCount}/${eldritchInvocationLimit}`}
+                      Manage Eldritch Invocations{" "}
+                      <SelectionCounter
+                        current={selectedInvocationCount}
+                        total={eldritchInvocationLimit}
+                      />
                     </strong>
                     <small>Choose from the invocations you currently qualify for.</small>
                   </button>
@@ -1663,8 +1682,24 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                   >
                     <strong>
                       {usesSpellbook
-                        ? `Manage spellbook & prepare spells ${selectedPreparedSpellCount}/${preparedSpellLimit ?? 0}`
-                        : `Prepare spells ${selectedPreparedSpellCount}/${preparedSpellLimit ?? 0}`}
+                        ? (
+                            <>
+                              Manage spellbook &amp; prepare spells{" "}
+                              <SelectionCounter
+                                current={selectedPreparedSpellCount}
+                                total={preparedSpellLimit ?? 0}
+                              />
+                            </>
+                          )
+                        : (
+                            <>
+                              Prepare spells{" "}
+                              <SelectionCounter
+                                current={selectedPreparedSpellCount}
+                                total={preparedSpellLimit ?? 0}
+                              />
+                            </>
+                          )}
                     </strong>
                     <small>
                       {usesSpellbook
@@ -1681,7 +1716,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                     <p className={styles.preparedSpellStatusLabel}>Cantrips</p>
                     {cantripLimit !== null ? (
                       <p className={styles.preparedSpellLimitText}>
-                        {cantripCount}/{cantripLimit} selected
+                        <SelectionCounter current={cantripCount} total={cantripLimit} /> selected
                       </p>
                     ) : null}
                   </div>
@@ -1737,7 +1772,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                   <div>
                     <p className={styles.preparedSpellStatusLabel}>Eldritch Invocations</p>
                     <p className={styles.preparedSpellLimitText}>
-                      {invocationCount}/{eldritchInvocationLimit} learned
+                      <SelectionCounter
+                        current={invocationCount}
+                        total={eldritchInvocationLimit}
+                      />{" "}
+                      learned
                     </p>
                   </div>
                 </div>
@@ -1801,13 +1840,21 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                         </p>
                         {preparedSpellLimit !== null ? (
                           <p className={styles.preparedSpellLimitText}>
-                            {preparedSpellCount}/{preparedSpellLimit} prepared
+                            <SelectionCounter
+                              current={preparedSpellCount}
+                              total={preparedSpellLimit}
+                            />{" "}
+                            prepared
                           </p>
                         ) : null}
                       </>
                     ) : preparedSpellLimit !== null ? (
                       <p className={styles.preparedSpellLimitText}>
-                        {preparedSpellCount}/{preparedSpellLimit} prepared
+                        <SelectionCounter
+                          current={preparedSpellCount}
+                          total={preparedSpellLimit}
+                        />{" "}
+                        prepared
                       </p>
                     ) : null}
                   </div>

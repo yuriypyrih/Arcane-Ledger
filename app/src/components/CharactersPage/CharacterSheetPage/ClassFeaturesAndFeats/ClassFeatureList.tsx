@@ -8,6 +8,8 @@ import {
 } from "../../../../codex/entries";
 import SelectInput from "../../FormInputs/SelectInput";
 import {
+  getBarbarianPrimalKnowledgeSkillOptionsForCharacter,
+  getBarbarianPrimalKnowledgeSkillSelectionForCharacter,
   getBardExpertiseSelectionsForCharacter,
   getClericBlessedStrikesChoiceForCharacter,
   getClericDivineOrderChoiceForCharacter,
@@ -29,6 +31,7 @@ import {
   getWeaponMasterySelectionCountForCharacter,
   getWeaponMasterySelectionsForCharacter,
   setBardExpertiseSelectionsForCharacter,
+  setBarbarianPrimalKnowledgeSkillSelectionForCharacter,
   setClericBlessedStrikesChoiceForCharacter,
   setClericDivineOrderChoiceForCharacter,
   setDruidPrimalOrderChoiceForCharacter,
@@ -46,11 +49,20 @@ import {
 } from "../../../../pages/CharactersPage/classFeatures";
 import {
   getProficiencyLabel,
+  getSkillLevelFromEntries,
+  getSkillProficiencyForName,
   getWeaponProficiencyLabel,
   normalizeCharacterProficiencies,
   skillsOptions
 } from "../../../../pages/CharactersPage/proficiency";
-import { getCantripLimitForCharacter, getCantripSelectionOptionsForCharacter, getPreparedSpellSelectionOptionsForCharacter, getSpellLevel, normalizeSpellbookSpellIds } from "../../../../pages/CharactersPage/spellcasting";
+import { getSpellSelectionInputStatusForCharacter } from "../../../../pages/CharactersPage/spellSelection";
+import {
+  getCantripLimitForCharacter,
+  getCantripSelectionOptionsForCharacter,
+  getPreparedSpellSelectionOptionsForCharacter,
+  getSpellLevel,
+  normalizeSpellbookSpellIds
+} from "../../../../pages/CharactersPage/spellcasting";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type {
   Character,
@@ -59,6 +71,7 @@ import type {
   SkillName,
   WEAPON_PROFICIENCY
 } from "../../../../types";
+import { PROF_LEVEL } from "../../../../types";
 import { formatCodexLabel } from "../../../../utils/codex";
 import {
   FeatureDisclosureRow,
@@ -209,6 +222,8 @@ function ClassFeatureList({
   getCharacterFeatSummary,
   getFeatDefinition
 }: ClassFeatureListProps) {
+  const spellSelectionInputStatus = getSpellSelectionInputStatusForCharacter(character);
+
   function recomputeCharacterFeatureProficiencies(nextCharacter: Character): Character {
     return {
       ...nextCharacter,
@@ -770,6 +785,43 @@ function ClassFeatureList({
     );
   }
 
+  function getBarbarianPrimalKnowledgeSelection(): SkillName | null {
+    return getBarbarianPrimalKnowledgeSkillSelectionForCharacter(character);
+  }
+
+  function getBarbarianPrimalKnowledgeOptions(): Array<{
+    skill: SkillName;
+    disabled: boolean;
+    label: string;
+  }> {
+    const currentSelection = getBarbarianPrimalKnowledgeSelection();
+
+    return getBarbarianPrimalKnowledgeSkillOptionsForCharacter(character).map((skillName) => {
+      const proficiency = getSkillProficiencyForName(skillName);
+      const isAlreadyProficient =
+        proficiency !== null &&
+        currentSelection !== skillName &&
+        getSkillLevelFromEntries(character.skillProficiencies, proficiency) !== PROF_LEVEL.NONE;
+
+      return {
+        skill: skillName,
+        disabled: isAlreadyProficient,
+        label: isAlreadyProficient ? `${skillName} (already proficient)` : skillName
+      };
+    });
+  }
+
+  function updateBarbarianPrimalKnowledgeSelection(nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      recomputeCharacterFeatureProficiencies(
+        setBarbarianPrimalKnowledgeSkillSelectionForCharacter(
+          currentCharacter,
+          nextValue.trim().length > 0 ? (nextValue as SkillName) : null
+        )
+      )
+    );
+  }
+
   return (
     <ul className={featureDisclosureStyles.featureList}>
       {features.map((featureRow, index) => {
@@ -786,6 +838,12 @@ function ClassFeatureList({
           featureRow.feature === CLASS_FEATURE.BLESSED_STRIKES
             ? getClericBlessedStrikesChoiceForCharacter(character)
             : null;
+        const isSpellcastingFeatureInputRequired =
+          isUnlocked &&
+          featureRow.level === 1 &&
+          (featureRow.feature === CLASS_FEATURE.SPELLCASTING ||
+            featureRow.feature === CLASS_FEATURE.PACT_MAGIC) &&
+          spellSelectionInputStatus.hasInputRequired;
         const isExpertiseInputRequired =
           isUnlocked && featureRow.feature === CLASS_FEATURE.EXPERTISE
             ? character.className === "Bard"
@@ -798,6 +856,7 @@ function ClassFeatureList({
             : false;
         const isInputRequired =
           (isUnlocked && isFeatChoiceFeature(featureRow.feature) && linkedFeat === null) ||
+          isSpellcastingFeatureInputRequired ||
           isExpertiseInputRequired ||
           (isUnlocked &&
             featureRow.feature === CLASS_FEATURE.DEFT_EXPLORER &&
@@ -830,6 +889,10 @@ function ClassFeatureList({
           (isUnlocked &&
             featureRow.feature === CLASS_FEATURE.WEAPON_MASTERY &&
             isWeaponMasteryInputRequired()) ||
+          (isUnlocked &&
+            featureRow.feature === CLASS_FEATURE.PRIMAL_KNOWLEDGE &&
+            character.className === "Barbarian" &&
+            getBarbarianPrimalKnowledgeSelection() === null) ||
           (isUnlocked &&
             featureRow.feature === CLASS_FEATURE.PRIMAL_ORDER &&
             getDruidPrimalOrderChoiceForCharacter(character) === null) ||
@@ -1130,6 +1193,46 @@ function ClassFeatureList({
                             {getAvailableWizardScholarSkills().map((skillName) => (
                               <option key={`${featureRow.key}-${skillName}`} value={skillName}>
                                 {skillName}
+                              </option>
+                            ))}
+                          </SelectInput>
+                        </label>
+                      </div>
+                    </>
+                  ) : featureRow.feature === CLASS_FEATURE.PRIMAL_KNOWLEDGE &&
+                    character.className === "Barbarian" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <div className={styles.featureSelectionGrid}>
+                        <label
+                          className={clsx(
+                            styles.featureSelectionField,
+                            !isUnlocked && styles.featureOptionRowDisabled
+                          )}
+                        >
+                          <span className={styles.featureSelectionLabel}>New Skill</span>
+                          <SelectInput
+                            value={getBarbarianPrimalKnowledgeSelection() ?? ""}
+                            disabled={!isUnlocked}
+                            onChange={(event) =>
+                              updateBarbarianPrimalKnowledgeSelection(event.target.value)
+                            }
+                          >
+                            <option value="">Select a skill</option>
+                            {getBarbarianPrimalKnowledgeOptions().map((option) => (
+                              <option
+                                key={`${featureRow.key}-${option.skill}`}
+                                value={option.skill}
+                                disabled={option.disabled}
+                              >
+                                {option.label}
                               </option>
                             ))}
                           </SelectInput>
@@ -1575,6 +1678,12 @@ function ClassFeatureList({
                       onOpenDivinityReference={onOpenDivinityReference}
                     />
                   )}
+
+                  {isSpellcastingFeatureInputRequired && spellSelectionInputStatus.message ? (
+                    <p className={styles.featureInputRequiredDescription}>
+                      {spellSelectionInputStatus.message}
+                    </p>
+                  ) : null}
 
                   {isFeatChoiceFeature(featureRow.feature) ? (
                     linkedFeat && linkedFeatDefinition ? (

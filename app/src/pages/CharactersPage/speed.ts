@@ -45,16 +45,17 @@ export function getSpeedBreakdownForCharacter(character: Character): SpeedBreakd
         value: bonus.value
       }))
   ];
-  const baseTotal = entries.reduce((total, entry) => total + entry.value, 0);
-  const preExhaustionTotal =
-    totalOverride === null ? baseTotal : Math.max(0, Math.min(baseTotal, totalOverride));
+  const adjustedTotal = entries.reduce((total, entry) => total + entry.value, 0);
 
-  if (totalOverride !== null && preExhaustionTotal !== baseTotal) {
+  const preExhaustionTotal =
+    totalOverride === null ? adjustedTotal : Math.max(0, Math.min(adjustedTotal, totalOverride));
+
+  if (totalOverride !== null && preExhaustionTotal !== adjustedTotal) {
     const overrideBonus = featureBonuses.find((bonus) => bonus.setTotal === totalOverride);
 
     entries.push({
       label: overrideBonus?.label ?? "Speed Override",
-      value: preExhaustionTotal - baseTotal
+      value: preExhaustionTotal - adjustedTotal
     });
   }
 

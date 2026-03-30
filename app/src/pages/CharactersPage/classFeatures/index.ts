@@ -15,10 +15,19 @@ import {
   setBardExpertiseSelections
 } from "./bard";
 import {
+  applyPersistentRageOnInitiative,
+  consumeBarbarianBrutalStrikeBonus,
   consumeBarbarianFrenzyBonus,
+  consumeBarbarianWeaponAttack,
   deactivateBarbarianRecklessAttack,
   deactivateBarbarianRage,
+  getBarbarianPersistentRageUsesRemaining,
+  getBarbarianPersistentRageUsesTotal,
+  getBarbarianPrimalKnowledgeSkillOptions,
+  getBarbarianPrimalKnowledgeSkillSelection,
   getBarbarianRageDamageBonus,
+  getBarbarianWeaponAttackMultiCount,
+  setBarbarianPrimalKnowledgeSkillSelection,
 } from "./barbarian";
 import {
   getClericBlessedStrikesChoice,
@@ -640,6 +649,29 @@ export function setRangerLevel9ExpertiseSelectionsForCharacter(
   return setRangerLevel9ExpertiseSelections(character, selections);
 }
 
+export function getBarbarianPrimalKnowledgeSkillOptionsForCharacter(
+  character: Pick<Character, "className" | "level">
+): SkillName[] {
+  if (character.className !== "Barbarian" || character.level < 3) {
+    return [];
+  }
+
+  return getBarbarianPrimalKnowledgeSkillOptions();
+}
+
+export function getBarbarianPrimalKnowledgeSkillSelectionForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): SkillName | null {
+  return getBarbarianPrimalKnowledgeSkillSelection(character);
+}
+
+export function setBarbarianPrimalKnowledgeSkillSelectionForCharacter(
+  character: Character,
+  selection: Parameters<typeof setBarbarianPrimalKnowledgeSkillSelection>[1]
+): Character {
+  return setBarbarianPrimalKnowledgeSkillSelection(character, selection);
+}
+
 export function getWizardScholarSelectionForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): SkillName | null {
@@ -949,6 +981,22 @@ export function applySuperiorInspirationOnInitiativeForCharacter(character: Char
 
 export function applyPerfectFocusOnInitiativeForCharacter(character: Character): Character {
   return applyPerfectFocusOnInitiative(character);
+}
+
+export function applyPersistentRageOnInitiativeForCharacter(character: Character): Character {
+  return applyPersistentRageOnInitiative(character);
+}
+
+export function getBarbarianPersistentRageUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+): number {
+  return getBarbarianPersistentRageUsesTotal(character);
+}
+
+export function getBarbarianPersistentRageUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  return getBarbarianPersistentRageUsesRemaining(character);
 }
 
 export function hasPerfectFocusForCharacter(
@@ -1265,6 +1313,10 @@ export function markFeatureWeaponBonusUseForCharacter(
   character: Character,
   label: string
 ): Character {
+  if (label === "Brutal Strike") {
+    return consumeBarbarianBrutalStrikeBonus(character);
+  }
+
   if (label === "Frenzy") {
     return consumeBarbarianFrenzyBonus(character);
   }
@@ -1279,6 +1331,10 @@ export function markFeatureWeaponBonusUseForCharacter(
 export function getWeaponActionEconomyMultiForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): number {
+  if (character.className === "Barbarian") {
+    return getBarbarianWeaponAttackMultiCount(character);
+  }
+
   if (character.className === "Fighter") {
     return getFighterWeaponAttackMultiCount(character);
   }
@@ -1322,6 +1378,10 @@ export function consumeWeaponAttackActionForCharacter(
     attackKind: "weapon" | "unarmed";
   }
 ): Character {
+  if (character.className === "Barbarian") {
+    return consumeBarbarianWeaponAttack(character);
+  }
+
   if (character.className === "Monk") {
     return consumeMonkWeaponAttack(character, action);
   }

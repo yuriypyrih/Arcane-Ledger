@@ -1,4 +1,5 @@
 import { barbarianFeatures } from "../../../codex/classes";
+import { barbarianStarterPack } from "../../../codex/classes/starterPack";
 import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../codex/entries";
 import type { BarbarianFeatureClassObj } from "../../../types";
 import {
@@ -15,27 +16,35 @@ import {
   type Character,
   type CharacterRageFeatureState,
   SKILL,
+  getSkillProficiencyForSkillName,
+  isSkillName,
   type SkillName,
+  type SkillProficiencyEntry,
   type WeaponProficiencyEntry
 } from "../../../types";
 import {
   hasStatusCondition,
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries,
   removeCharacterConditionsForImmunities
 } from "../traits";
 import { skillGroupsByAbility } from "../skillDefinitions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
+import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../combat";
 import type {
   AbilityCheckIndicatorMap,
   ArmorClassFeatureContext,
   CoreStatIndicatorMap,
   DerivedFeatureStatusEntry,
   FeatureActionCard,
+  FeatureActionOptionCard,
   FeatureAbilityScoreBonus,
   FeatureArmorClassBonus,
   FeatureArmorClassMode,
   FeatureDamageBonus,
   FeatureIndicator,
   FeatureSkillBonus,
+  FeatureSkillProficiencyEntry,
   FeatureSpeedBonus,
   FeatureSpellcastingState,
   FeatureWeaponProficiencyEntry,
@@ -55,10 +64,56 @@ const mindlessRageCharmedImmunitySourceId = "feature-barbarian-mindless-rage-cha
 const mindlessRageFrightenedImmunitySourceId =
   "feature-barbarian-mindless-rage-frightened-immunity";
 const frenzyDamageBonusLabel = "Frenzy";
+const brutalStrikeDamageBonusLabel = "Brutal Strike";
+const primalKnowledgeSource = "Primal Knowledge";
+const instinctivePounceSource = "Instinctive Pounce";
+const instinctivePounceStatusSourceId = "feature-barbarian-instinctive-pounce";
+const brutalStrikeActionSummary = "Your weapons do more damage";
+const relentlessRageActionSummary = "While in Rage you can keep fighting";
+const relentlessRageBaseDc = 10;
+const relentlessRageDcIncrement = 5;
+const persistentRageUsesTotal = 1;
 export const barbarianRageActionKey = "barbarian-rage";
 export const barbarianRecklessAttackActionKey = "barbarian-reckless-attack";
+export const barbarianBrutalStrikeActionKey = "barbarian-brutal-strike";
+export const barbarianRelentlessRageActionKey = "barbarian-relentless-rage";
 export const barbarianIntimidatingPresenceActionKey = "barbarian-intimidating-presence";
 const intimidatingPresenceUsesTotal = 1;
+type BrutalStrikeEffectDefinition = {
+  key: string;
+  name: string;
+  description: string;
+};
+
+const brutalStrikeBaseEffectDefinitions = [
+  {
+    key: "forceful-blow",
+    name: "Forceful Blow",
+    description:
+      "The target is pushed 15 feet straight away from you. You can then move up to half your Speed straight toward the target without provoking Opportunity Attacks."
+  },
+  {
+    key: "hamstring-blow",
+    name: "Hamstring Blow",
+    description:
+      "The target's Speed is reduced by 15 feet until the start of your next turn. A target can be affected by only one Hamstring Blow at a time, the most recent one."
+  }
+] as const satisfies readonly BrutalStrikeEffectDefinition[];
+
+const brutalStrikeImprovedEffectDefinitions = [
+  {
+    key: "staggering-blow",
+    name: "Staggering Blow",
+    description:
+      "The target has Disadvantage on the next saving throw it makes, and it can't make Opportunity Attacks until the start of your next turn."
+  },
+  {
+    key: "sundering-blow",
+    name: "Sundering Blow",
+    description:
+      "Before the start of your next turn, the next attack roll made by another creature against the target gains a +5 bonus to the roll. An attack roll can gain only one Sundering Blow bonus."
+  }
+] as const satisfies readonly BrutalStrikeEffectDefinition[];
 const rageAdvantageIndicator: FeatureIndicator = {
   label: "Advantage",
   tone: "advantage",
@@ -79,6 +134,7 @@ const primalKnowledgeSkillNames = [
   SKILL.SURVIVAL
 ] as const satisfies readonly SkillName[];
 const primalKnowledgeSkillSet = new Set<SkillName>(primalKnowledgeSkillNames);
+const barbarianPrimalKnowledgeSkillOptions = barbarianStarterPack.skillProficiencies;
 
 const feralInstinctAdvantageIndicator: FeatureIndicator = {
   label: "Advantage",
@@ -152,6 +208,88 @@ function hasBerserkerMindlessRage(
   return isPathOfTheBerserker(character) && character.level >= 6;
 }
 
+function hasBarbarianInstinctivePounce(character: Pick<Character, "className" | "level">): boolean {
+  return hasBarbarianFeature(character, CLASS_FEATURE.INSTINCTIVE_POUNCE);
+}
+
+function hasBarbarianBrutalStrike(character: Pick<Character, "className" | "level">): boolean {
+  return hasBarbarianFeature(character, CLASS_FEATURE.BRUTAL_STRIKE);
+}
+
+function hasBarbarianExtraAttack(character: Pick<Character, "className" | "level">): boolean {
+  return hasBarbarianFeature(character, CLASS_FEATURE.EXTRA_ATTACK);
+}
+
+function hasBarbarianRelentlessRage(character: Pick<Character, "className" | "level">): boolean {
+  return hasBarbarianFeature(character, CLASS_FEATURE.RELENTLESS_RAGE);
+}
+
+function hasBarbarianImprovedBrutalStrike(
+  character: Pick<Character, "className" | "level">
+): boolean {
+  return hasBarbarianFeature(character, CLASS_FEATURE.IMPROVED_BRUTAL_STRIKE);
+}
+
+function hasBarbarianImprovedBrutalStrikeDamageUpgrade(
+  character: Pick<Character, "className" | "level">
+): boolean {
+  return hasBarbarianImprovedBrutalStrike(character) && character.level >= 17;
+}
+
+export function hasBarbarianRelentlessRageFeature(
+  character: Pick<Character, "className" | "level">
+): boolean {
+  return hasBarbarianRelentlessRage(character);
+}
+
+function getBarbarianAdditionalAttackCount(
+  character: Pick<Character, "className" | "level">
+): number {
+  return hasBarbarianExtraAttack(character) ? 1 : 0;
+}
+
+export function getBarbarianBrutalStrikeEffectDefinitions(
+  character: Pick<Character, "className" | "level">
+): BrutalStrikeEffectDefinition[] {
+  if (!hasBarbarianBrutalStrike(character)) {
+    return [];
+  }
+
+  return hasBarbarianImprovedBrutalStrike(character)
+    ? [...brutalStrikeBaseEffectDefinitions, ...brutalStrikeImprovedEffectDefinitions]
+    : [...brutalStrikeBaseEffectDefinitions];
+}
+
+export function getBarbarianBrutalStrikeSelectionLimit(
+  character: Pick<Character, "className" | "level">
+): number {
+  if (!hasBarbarianBrutalStrike(character)) {
+    return 0;
+  }
+
+  return hasBarbarianImprovedBrutalStrikeDamageUpgrade(character) ? 2 : 1;
+}
+
+export function getBarbarianBrutalStrikeDamageFormula(
+  character: Pick<Character, "className" | "level">
+): string {
+  return hasBarbarianImprovedBrutalStrikeDamageUpgrade(character) ? "2d10" : "1d10";
+}
+
+export function getBarbarianBrutalStrikeOptions(
+  character: Pick<Character, "className" | "level">
+): FeatureActionOptionCard[] {
+  return getBarbarianBrutalStrikeEffectDefinitions(character).map((definition) => ({
+    key: definition.key,
+    name: definition.name,
+    summary: definition.description,
+    detail: definition.description,
+    breakdown: definition.description,
+    economyType: ECONOMY_TYPE.FREE,
+    actionCategory: ACTION_CATEGORY.FEATURE
+  }));
+}
+
 function getMindlessRageImmunityEntries(): DerivedFeatureStatusEntry[] {
   return [
     {
@@ -183,6 +321,14 @@ function getMindlessRageImmunityEntries(): DerivedFeatureStatusEntry[] {
   ];
 }
 
+function normalizeBarbarianPrimalKnowledgeSkill(value: unknown): SkillName | undefined {
+  return typeof value === "string" &&
+    isSkillName(value) &&
+    barbarianPrimalKnowledgeSkillOptions.includes(value)
+    ? value
+    : undefined;
+}
+
 export function normalizeBarbarianRageState(
   value: unknown,
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
@@ -207,8 +353,12 @@ export function normalizeBarbarianRageState(
   const totalWeaponMasteries = hasBarbarianFeature(character, CLASS_FEATURE.WEAPON_MASTERY)
     ? (featureRow?.weaponMastery ?? 0)
     : 0;
+  const additionalAttackCount = getBarbarianAdditionalAttackCount(character);
+  const extraAttacksRemainingThisTurn = Number(record.extraAttacksRemainingThisTurn);
   const recklessAttackRoundsRemaining = Number(record.recklessAttackRoundsRemaining);
   const intimidatingPresenceUsesExpended = Number(record.intimidatingPresenceUsesExpended);
+  const relentlessRageDcBonus = Number(record.relentlessRageDcBonus);
+  const persistentRageUsesExpended = Number(record.persistentRageUsesExpended);
 
   return {
     usesExpended: Number.isFinite(usesExpended)
@@ -220,6 +370,21 @@ export function normalizeBarbarianRageState(
       barbarianWeaponMasteryOptions,
       totalWeaponMasteries
     ),
+    primalKnowledgeSkill: hasBarbarianFeature(character, CLASS_FEATURE.PRIMAL_KNOWLEDGE)
+      ? normalizeBarbarianPrimalKnowledgeSkill(record.primalKnowledgeSkill)
+      : undefined,
+    extraAttacksRemainingThisTurn:
+      additionalAttackCount > 0
+        ? Number.isFinite(extraAttacksRemainingThisTurn)
+          ? Math.max(0, Math.min(additionalAttackCount, Math.floor(extraAttacksRemainingThisTurn)))
+          : 0
+        : 0,
+    brutalStrikePending: hasBarbarianBrutalStrike(character)
+      ? record.brutalStrikePending === true
+      : false,
+    brutalStrikeUsedThisTurn: hasBarbarianBrutalStrike(character)
+      ? record.brutalStrikeUsedThisTurn === true
+      : false,
     recklessAttackRoundsRemaining: hasBarbarianFeature(character, CLASS_FEATURE.RECKLESS_ATTACK)
       ? Number.isFinite(recklessAttackRoundsRemaining)
         ? Math.max(
@@ -243,6 +408,16 @@ export function normalizeBarbarianRageState(
             0,
             Math.min(intimidatingPresenceUsesTotal, Math.floor(intimidatingPresenceUsesExpended))
           )
+        : 0
+      : 0,
+    relentlessRageDcBonus: hasBarbarianRelentlessRage(character)
+      ? Number.isFinite(relentlessRageDcBonus)
+        ? Math.max(0, Math.floor(relentlessRageDcBonus))
+        : 0
+      : 0,
+    persistentRageUsesExpended: hasBarbarianFeature(character, CLASS_FEATURE.PERSISTENT_RAGE)
+      ? Number.isFinite(persistentRageUsesExpended)
+        ? Math.max(0, Math.min(persistentRageUsesTotal, Math.floor(persistentRageUsesExpended)))
         : 0
       : 0
   };
@@ -270,6 +445,41 @@ export function getBarbarianRageUsesRemaining(
   const totalUses = getBarbarianRageUsesTotal(character);
   const rageState = getBarbarianRageState(character);
   return Math.max(0, totalUses - rageState.usesExpended);
+}
+
+export function getBarbarianPersistentRageUsesTotal(
+  character: Pick<Character, "className" | "level">
+): number {
+  return hasBarbarianFeature(character, CLASS_FEATURE.PERSISTENT_RAGE)
+    ? persistentRageUsesTotal
+    : 0;
+}
+
+export function getBarbarianPersistentRageUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  const totalUses = getBarbarianPersistentRageUsesTotal(character);
+  const rageState = getBarbarianRageState(character);
+
+  return Math.max(0, totalUses - (rageState.persistentRageUsesExpended ?? 0));
+}
+
+export function getBarbarianIntimidatingPresenceUsesTotal(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return hasBerserkerIntimidatingPresence(character) ? intimidatingPresenceUsesTotal : 0;
+}
+
+export function getBarbarianIntimidatingPresenceUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  const totalUses = getBarbarianIntimidatingPresenceUsesTotal(character);
+
+  return Math.max(
+    0,
+    totalUses - (getBarbarianRageState(character).intimidatingPresenceUsesExpended ?? 0)
+  );
 }
 
 export function getBarbarianWeaponMasterySelectionCount(
@@ -331,6 +541,74 @@ export function getBarbarianWeaponProficiencyEntries(
         overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
       }) satisfies WeaponProficiencyEntry
   );
+}
+
+export function getBarbarianPrimalKnowledgeSkillOptions(): SkillName[] {
+  return [...barbarianPrimalKnowledgeSkillOptions];
+}
+
+export function getBarbarianPrimalKnowledgeSkillSelection(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): SkillName | null {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.PRIMAL_KNOWLEDGE)) {
+    return null;
+  }
+
+  return getBarbarianRageState(character).primalKnowledgeSkill ?? null;
+}
+
+export function setBarbarianPrimalKnowledgeSkillSelection(
+  character: Character,
+  selection: SkillName | null
+): Character {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.PRIMAL_KNOWLEDGE)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+  const normalizedSelection =
+    selection && barbarianPrimalKnowledgeSkillOptions.includes(selection) ? selection : undefined;
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        primalKnowledgeSkill: normalizedSelection
+      }
+    }
+  };
+}
+
+function createBarbarianPrimalKnowledgeEntry(skill: SkillName): SkillProficiencyEntry | null {
+  const proficiency = getSkillProficiencyForSkillName(skill);
+
+  if (!proficiency) {
+    return null;
+  }
+
+  return {
+    source: PROFICIENCY_SOURCE.CLASS,
+    sourceStr: primalKnowledgeSource,
+    proficiency,
+    proficiencyLevel: PROF_LEVEL.PROFICIENT,
+    overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
+  };
+}
+
+export function getBarbarianSkillProficiencyEntries(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): FeatureSkillProficiencyEntry[] {
+  const selectedSkill = getBarbarianPrimalKnowledgeSkillSelection(character);
+
+  if (!selectedSkill) {
+    return [];
+  }
+
+  const entry = createBarbarianPrimalKnowledgeEntry(selectedSkill);
+
+  return entry ? [entry] : [];
 }
 
 export function getBarbarianRageDamageBonus(
@@ -426,6 +704,69 @@ function getBarbarianRecklessAttackAction(
   };
 }
 
+function getBarbarianBrutalStrikeAction(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): FeatureActionCard | null {
+  if (!hasBarbarianBrutalStrike(character)) {
+    return null;
+  }
+
+  const rageState = getBarbarianRageState(character);
+  const selectionLimit = getBarbarianBrutalStrikeSelectionLimit(character);
+  const isAvailable =
+    rageState.recklessAttackUsedThisTurn === true &&
+    rageState.brutalStrikePending !== true &&
+    rageState.brutalStrikeUsedThisTurn !== true;
+
+  return {
+    key: barbarianBrutalStrikeActionKey,
+    name: "Brutal Strike",
+    summary: brutalStrikeActionSummary,
+    detail: brutalStrikeActionSummary,
+    valueLabel: "Once per Reckless Attack",
+    breakdown:
+      selectionLimit > 1
+        ? `${getBarbarianBrutalStrikeDamageFormula(character)} + up to ${selectionLimit} effects`
+        : `${getBarbarianBrutalStrikeDamageFormula(character)} + optional effect`,
+    economyType: ECONOMY_TYPE.FREE,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    interaction: "select",
+    isActive: rageState.brutalStrikePending === true,
+    disabled: !isAvailable,
+    disabledReason:
+      rageState.brutalStrikePending === true
+        ? "Brutal Strike is armed for your next Strength-based attack."
+        : rageState.brutalStrikeUsedThisTurn === true
+          ? "Brutal Strike is already used for this Reckless Attack."
+          : "Use Reckless Attack first."
+  };
+}
+
+function getBarbarianRelentlessRageAction(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): FeatureActionCard | null {
+  if (!hasBarbarianRelentlessRage(character)) {
+    return null;
+  }
+
+  const rageState = getBarbarianRageState(character);
+  const currentDc = relentlessRageBaseDc + (rageState.relentlessRageDcBonus ?? 0);
+  const isRaging = rageState.active === true;
+
+  return {
+    key: barbarianRelentlessRageActionKey,
+    name: "Relentless Rage",
+    summary: relentlessRageActionSummary,
+    detail: relentlessRageActionSummary,
+    valueLabel: `Current DC ${currentDc}`,
+    breakdown: relentlessRageActionSummary,
+    economyType: ECONOMY_TYPE.FREE,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    disabled: !isRaging,
+    disabledReason: !isRaging ? "Relentless Rage requires Rage to be active." : undefined
+  };
+}
+
 function getBarbarianIntimidatingPresenceAction(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
     Partial<Pick<Character, "subclassId">>
@@ -455,9 +796,7 @@ function getBarbarianIntimidatingPresenceAction(
     usesTotal: intimidatingPresenceUsesTotal,
     usesInlineLabel: isUsingRageCharges ? "| Uses Rage Charges" : undefined,
     disabled,
-    disabledReason: disabled
-      ? "No Intimidating Presence or Rage uses remaining."
-      : undefined
+    disabledReason: disabled ? "No Intimidating Presence or Rage uses remaining." : undefined
   };
 }
 
@@ -468,6 +807,8 @@ export function getBarbarianFeatureActions(
   return [
     getBarbarianFeatureAction(character),
     getBarbarianRecklessAttackAction(character),
+    getBarbarianBrutalStrikeAction(character),
+    getBarbarianRelentlessRageAction(character),
     getBarbarianIntimidatingPresenceAction(character)
   ].filter((entry): entry is FeatureActionCard => entry !== null);
 }
@@ -506,6 +847,19 @@ export function getBarbarianWeaponDamageBonuses(
         displayLabel: `${rageDamage}d6`
       });
     }
+  }
+
+  if (
+    hasBarbarianBrutalStrike(character) &&
+    getBarbarianRageState(character).brutalStrikePending === true &&
+    context.ability === "STR" &&
+    (context.attackKind === "weapon" || context.attackKind === "unarmed")
+  ) {
+    damageBonuses.push({
+      label: brutalStrikeDamageBonusLabel,
+      formula: getBarbarianBrutalStrikeDamageFormula(character),
+      displayLabel: getBarbarianBrutalStrikeDamageFormula(character)
+    });
   }
 
   return damageBonuses;
@@ -651,19 +1005,21 @@ export function getBarbarianSpeedBonuses(
   character: Pick<Character, "className" | "level">,
   context: SpeedFeatureContext
 ): FeatureSpeedBonus[] {
+  const speedBonuses: FeatureSpeedBonus[] = [];
+
   if (
     !hasBarbarianFeature(character, CLASS_FEATURE.FAST_MOVEMENT) ||
     context.wornBodyArmorType === "heavy"
   ) {
-    return [];
+    return speedBonuses;
   }
 
-  return [
-    {
-      label: "Fast Movement",
-      value: 10
-    }
-  ];
+  speedBonuses.push({
+    label: "Fast Movement",
+    value: 10
+  });
+
+  return speedBonuses;
 }
 
 export function getBarbarianAbilityScoreBonuses(
@@ -765,7 +1121,7 @@ export function getBarbarianDerivedConditions(
       sourceId: recklessAttackStatusSourceId,
       group: STATUS_ENTRY_GROUP.EFFECTS,
       value: "Reckless Attack",
-      source: "Reckless Attack",
+      source: "Barbarian",
       sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
       duration: {
         kind: STATUS_DURATION_KIND.ROUNDS,
@@ -801,10 +1157,30 @@ export function activateBarbarianRage(character: Character): Character {
         getMindlessRageImmunityEntries()
       )
     : character.statusEntries;
+  const nextNormalizedStatusEntries = normalizeCharacterStatusEntries(nextStatusEntries).filter(
+    (entry) => entry.sourceId !== instinctivePounceStatusSourceId
+  );
+  const nextRageStatusEntries = hasBarbarianInstinctivePounce(character)
+    ? [
+        ...nextNormalizedStatusEntries,
+        createCharacterStatusEntry({
+          group: STATUS_ENTRY_GROUP.EFFECTS,
+          value: instinctivePounceSource,
+          source: instinctivePounceSource,
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+          duration: {
+            kind: STATUS_DURATION_KIND.ROUNDS,
+            amount: 1,
+            tickOn: STATUS_DURATION_ROUND_TICK.ROUND_END
+          },
+          sourceId: instinctivePounceStatusSourceId
+        })
+      ]
+    : nextNormalizedStatusEntries;
 
   return {
     ...character,
-    statusEntries: nextStatusEntries,
+    statusEntries: nextRageStatusEntries,
     classFeatureState: {
       ...character.classFeatureState,
       rage: {
@@ -835,8 +1211,85 @@ export function activateBarbarianRecklessAttack(character: Character): Character
         ...rageState,
         recklessAttackRoundsRemaining: recklessAttackDurationRounds,
         recklessAttackUsedThisTurn: true,
-        frenzyPending:
-          isPathOfTheBerserker(character) && rageState.active === true ? true : false
+        brutalStrikePending: false,
+        brutalStrikeUsedThisTurn: false,
+        frenzyPending: isPathOfTheBerserker(character) && rageState.active === true ? true : false
+      }
+    }
+  };
+}
+
+export function activateBarbarianBrutalStrike(character: Character): Character {
+  if (!hasBarbarianBrutalStrike(character)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+
+  if (
+    rageState.recklessAttackUsedThisTurn !== true ||
+    rageState.brutalStrikePending === true ||
+    rageState.brutalStrikeUsedThisTurn === true
+  ) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        brutalStrikePending: true,
+        brutalStrikeUsedThisTurn: true
+      }
+    }
+  };
+}
+
+export function activateBarbarianRelentlessRage(character: Character): Character {
+  if (!hasBarbarianRelentlessRage(character)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+
+  if (rageState.active !== true) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        relentlessRageDcBonus: (rageState.relentlessRageDcBonus ?? 0) + relentlessRageDcIncrement
+      }
+    }
+  };
+}
+
+export function applyPersistentRageOnInitiative(character: Character): Character {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.PERSISTENT_RAGE)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+  const usesRemaining = getBarbarianPersistentRageUsesRemaining(character);
+
+  if (usesRemaining <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        usesExpended: 0,
+        persistentRageUsesExpended: (rageState.persistentRageUsesExpended ?? 0) + 1
       }
     }
   };
@@ -930,7 +1383,28 @@ export function deactivateBarbarianRecklessAttack(character: Character): Charact
         ...rageState,
         recklessAttackRoundsRemaining: 0,
         recklessAttackUsedThisTurn: false,
+        brutalStrikePending: false,
+        brutalStrikeUsedThisTurn: false,
         frenzyPending: false
+      }
+    }
+  };
+}
+
+export function consumeBarbarianBrutalStrikeBonus(character: Character): Character {
+  const rageState = getBarbarianRageState(character);
+
+  if (rageState.brutalStrikePending !== true) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        brutalStrikePending: false
       }
     }
   };
@@ -955,7 +1429,57 @@ export function consumeBarbarianFrenzyBonus(character: Character): Character {
   };
 }
 
-export function applyShortRestToBarbarianFeatures(character: Character): Character {
+export function getBarbarianWeaponAttackMultiCount(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  return getBarbarianRageState(character).extraAttacksRemainingThisTurn ?? 0;
+}
+
+export function consumeBarbarianWeaponAttack(character: Character): Character {
+  if (character.className !== "Barbarian") {
+    return isRoundTrackerResourceAvailable(character.roundTracker, "action")
+      ? {
+          ...character,
+          roundTracker: consumeRoundTrackerResource(character.roundTracker, "action")
+        }
+      : character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+  const extraAttacksRemaining = rageState.extraAttacksRemainingThisTurn ?? 0;
+  const actionAvailable = isRoundTrackerResourceAvailable(character.roundTracker, "action");
+
+  if (actionAvailable) {
+    return {
+      ...character,
+      roundTracker: consumeRoundTrackerResource(character.roundTracker, "action"),
+      classFeatureState: {
+        ...character.classFeatureState,
+        rage: {
+          ...rageState,
+          extraAttacksRemainingThisTurn: getBarbarianAdditionalAttackCount(character)
+        }
+      }
+    };
+  }
+
+  if (extraAttacksRemaining <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
+      }
+    }
+  };
+}
+
+export function restoreBarbarianRageOnShortRest(character: Character): Character {
   if (!hasBarbarianFeature(character, CLASS_FEATURE.RAGE)) {
     return character;
   }
@@ -970,17 +1494,49 @@ export function applyShortRestToBarbarianFeatures(character: Character): Charact
         ...rageState,
         usesExpended: Math.max(0, rageState.usesExpended - 1),
         active: false,
+        extraAttacksRemainingThisTurn: 0,
+        brutalStrikePending: false,
+        brutalStrikeUsedThisTurn: false,
         recklessAttackRoundsRemaining: 0,
         recklessAttackUsedThisTurn: false,
-        frenzyPending: false,
-        intimidatingPresenceUsesExpended: rageState.intimidatingPresenceUsesExpended ?? 0
+        frenzyPending: false
       }
     }
   };
 }
 
-export function applyLongRestToBarbarianFeatures(character: Character): Character {
+export function restoreBarbarianRageOnLongRest(character: Character): Character {
   if (!hasBarbarianFeature(character, CLASS_FEATURE.RAGE)) {
+    return character;
+  }
+
+  return {
+    ...deactivateBarbarianRage(character),
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...getBarbarianRageState(character),
+        usesExpended: 0,
+        active: false,
+        extraAttacksRemainingThisTurn: 0,
+        brutalStrikePending: false,
+        brutalStrikeUsedThisTurn: false,
+        recklessAttackRoundsRemaining: 0,
+        recklessAttackUsedThisTurn: false,
+        frenzyPending: false
+      }
+    }
+  };
+}
+
+export function restoreBarbarianRelentlessRageOnShortRest(character: Character): Character {
+  if (!hasBarbarianRelentlessRage(character)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+
+  if ((rageState.relentlessRageDcBonus ?? 0) === 0) {
     return character;
   }
 
@@ -989,16 +1545,81 @@ export function applyLongRestToBarbarianFeatures(character: Character): Characte
     classFeatureState: {
       ...character.classFeatureState,
       rage: {
-        ...getBarbarianRageState(character),
-        usesExpended: 0,
-        active: false,
-        recklessAttackRoundsRemaining: 0,
-        recklessAttackUsedThisTurn: false,
-        frenzyPending: false,
+        ...rageState,
+        relentlessRageDcBonus: 0
+      }
+    }
+  };
+}
+
+export function restoreBarbarianRelentlessRageOnLongRest(character: Character): Character {
+  return restoreBarbarianRelentlessRageOnShortRest(character);
+}
+
+export function restoreBarbarianIntimidatingPresenceOnLongRest(character: Character): Character {
+  if (!hasBerserkerIntimidatingPresence(character)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+
+  if ((rageState.intimidatingPresenceUsesExpended ?? 0) === 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
         intimidatingPresenceUsesExpended: 0
       }
     }
   };
+}
+
+export function restoreBarbarianPersistentRageOnLongRest(character: Character): Character {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.PERSISTENT_RAGE)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+
+  if ((rageState.persistentRageUsesExpended ?? 0) === 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        persistentRageUsesExpended: 0
+      }
+    }
+  };
+}
+
+export function applyShortRestToBarbarianFeatures(character: Character): Character {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.RAGE)) {
+    return character;
+  }
+
+  return restoreBarbarianRelentlessRageOnShortRest(restoreBarbarianRageOnShortRest(character));
+}
+
+export function applyLongRestToBarbarianFeatures(character: Character): Character {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.RAGE)) {
+    return character;
+  }
+
+  return restoreBarbarianPersistentRageOnLongRest(
+    restoreBarbarianIntimidatingPresenceOnLongRest(
+      restoreBarbarianRelentlessRageOnLongRest(restoreBarbarianRageOnLongRest(character))
+    )
+  );
 }
 
 export function advanceBarbarianFeaturesForNewRound(character: Character): Character {
@@ -1012,7 +1633,14 @@ export function advanceBarbarianFeaturesForNewRound(character: Character): Chara
   const rageState = getBarbarianRageState(character);
   const recklessAttackRoundsRemaining = rageState.recklessAttackRoundsRemaining ?? 0;
 
-  if (recklessAttackRoundsRemaining === 0 && rageState.recklessAttackUsedThisTurn !== true && rageState.frenzyPending !== true) {
+  if (
+    (rageState.extraAttacksRemainingThisTurn ?? 0) === 0 &&
+    recklessAttackRoundsRemaining === 0 &&
+    rageState.recklessAttackUsedThisTurn !== true &&
+    rageState.brutalStrikePending !== true &&
+    rageState.brutalStrikeUsedThisTurn !== true &&
+    rageState.frenzyPending !== true
+  ) {
     return character;
   }
 
@@ -1022,8 +1650,11 @@ export function advanceBarbarianFeaturesForNewRound(character: Character): Chara
       ...character.classFeatureState,
       rage: {
         ...rageState,
+        extraAttacksRemainingThisTurn: 0,
         recklessAttackRoundsRemaining: Math.max(0, recklessAttackRoundsRemaining - 1),
         recklessAttackUsedThisTurn: false,
+        brutalStrikePending: false,
+        brutalStrikeUsedThisTurn: false,
         frenzyPending: false
       }
     }

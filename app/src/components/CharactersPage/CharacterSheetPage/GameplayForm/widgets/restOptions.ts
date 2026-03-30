@@ -1,8 +1,15 @@
 import type { Character } from "../../../../../types";
 import {
+  getBarbarianIntimidatingPresenceUsesTotal,
+  getBarbarianPersistentRageUsesTotal,
   getBarbarianRageUsesTotal,
-  applyLongRestToBarbarianFeatures,
-  applyShortRestToBarbarianFeatures
+  hasBarbarianRelentlessRageFeature,
+  restoreBarbarianIntimidatingPresenceOnLongRest,
+  restoreBarbarianPersistentRageOnLongRest,
+  restoreBarbarianRageOnLongRest,
+  restoreBarbarianRageOnShortRest,
+  restoreBarbarianRelentlessRageOnLongRest,
+  restoreBarbarianRelentlessRageOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/barbarian";
 import {
   getBardicInspirationUsesTotal,
@@ -119,6 +126,9 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const hasWarlockPactMagic = hasWarlockFeature(character, CLASS_FEATURE.PACT_MAGIC);
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
   const rageUsesTotal = getBarbarianRageUsesTotal(character);
+  const hasBarbarianRelentlessRage = hasBarbarianRelentlessRageFeature(character);
+  const _barbarianRelentlessRageRecoveryAvailable =
+    restoreBarbarianRelentlessRageOnShortRest(character) !== character;
   const bardicInspirationUsesTotal = getBardicInspirationUsesTotal(character);
   const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
@@ -239,7 +249,17 @@ export function createShortRestOptions(character: Character): RestOption[] {
             id: "restore-rage",
             label: "End Rage and restore 1 Rage use",
             apply: (currentCharacter: Character) =>
-              applyShortRestToBarbarianFeatures(currentCharacter)
+              restoreBarbarianRageOnShortRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasBarbarianRelentlessRage
+      ? [
+          {
+            id: "restore-relentless-rage",
+            label: "Reset Relentless Rage DC",
+            apply: (currentCharacter: Character) =>
+              restoreBarbarianRelentlessRageOnShortRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -319,7 +339,8 @@ export function createShortRestOptions(character: Character): RestOption[] {
           {
             id: "sorcerous-restoration",
             label: "Sorcerous Restoration",
-            detail: "Optional Sorcerer feature. Regain Sorcery Points equal to half your Sorcerer level.",
+            detail:
+              "Optional Sorcerer feature. Regain Sorcery Points equal to half your Sorcerer level.",
             defaultSelected: false,
             disabled: sorcerousRestorationUsesRemaining <= 0,
             emphasis: "feature",
@@ -339,6 +360,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const hasWarlockPactMagic = hasWarlockFeature(character, CLASS_FEATURE.PACT_MAGIC);
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
   const rageUsesTotal = getBarbarianRageUsesTotal(character);
+  const hasBarbarianRelentlessRage = hasBarbarianRelentlessRageFeature(character);
+  const barbarianIntimidatingPresenceUsesTotal =
+    getBarbarianIntimidatingPresenceUsesTotal(character);
+  const barbarianPersistentRageUsesTotal = getBarbarianPersistentRageUsesTotal(character);
+  const _barbarianRelentlessRageRecoveryAvailable =
+    restoreBarbarianRelentlessRageOnLongRest(character) !== character;
+  const barbarianIntimidatingPresenceRecoveryAvailable =
+    restoreBarbarianIntimidatingPresenceOnLongRest(character) !== character;
+  const barbarianPersistentRageRecoveryAvailable =
+    restoreBarbarianPersistentRageOnLongRest(character) !== character;
   const bardicInspirationUsesTotal = getBardicInspirationUsesTotal(character);
   const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
@@ -459,8 +490,39 @@ export function createLongRestOptions(character: Character): RestOption[] {
           {
             id: "restore-rage",
             label: "End Rage and restore all Rage uses",
+            apply: (currentCharacter: Character) => restoreBarbarianRageOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasBarbarianRelentlessRage
+      ? [
+          {
+            id: "restore-relentless-rage",
+            label: "Reset Relentless Rage DC",
             apply: (currentCharacter: Character) =>
-              applyLongRestToBarbarianFeatures(currentCharacter)
+              restoreBarbarianRelentlessRageOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(barbarianIntimidatingPresenceUsesTotal > 0
+      ? [
+          {
+            id: "restore-intimidating-presence",
+            label: "Restore Intimidating Presence",
+            disabled: !barbarianIntimidatingPresenceRecoveryAvailable,
+            apply: (currentCharacter: Character) =>
+              restoreBarbarianIntimidatingPresenceOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(barbarianPersistentRageUsesTotal > 0
+      ? [
+          {
+            id: "restore-persistent-rage",
+            label: "Restore Persistent Rage",
+            disabled: !barbarianPersistentRageRecoveryAvailable,
+            apply: (currentCharacter: Character) =>
+              restoreBarbarianPersistentRageOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -566,8 +628,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
           {
             id: "restore-sorcery-points",
             label: "Restore all Sorcery Points",
-            apply: (currentCharacter: Character) =>
-              restoreSorceryPointsOnLongRest(currentCharacter)
+            apply: (currentCharacter: Character) => restoreSorceryPointsOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -576,8 +637,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
           {
             id: "restore-innate-sorcery",
             label: "Restore Innate Sorcery",
-            apply: (currentCharacter: Character) =>
-              restoreInnateSorceryOnLongRest(currentCharacter)
+            apply: (currentCharacter: Character) => restoreInnateSorceryOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -626,8 +686,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
           {
             id: "restore-contact-patron",
             label: "Restore Contact Patron",
-            apply: (currentCharacter: Character) =>
-              restoreContactPatronOnLongRest(currentCharacter)
+            apply: (currentCharacter: Character) => restoreContactPatronOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -636,8 +695,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
           {
             id: "restore-mystic-arcanum",
             label: "Restore Mystic Arcanum",
-            apply: (currentCharacter: Character) =>
-              restoreMysticArcanumOnLongRest(currentCharacter)
+            apply: (currentCharacter: Character) => restoreMysticArcanumOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

@@ -10,11 +10,14 @@ import {
 import { createDefaultAbilities, createEmptyCharacter } from "../constants";
 import {
   activateFeatureActionForCharacter,
+  applyPersistentRageOnInitiativeForCharacter,
   applyLongRestToFeatureState,
   applyShortRestToFeatureState,
   advanceFeatureStateForNewRound,
+  consumeWeaponAttackActionForCharacter,
   getDerivedFeatureStatusEntriesForCharacter,
   getFeatureActionsForCharacter,
+  getFeatureActionOptionsForCharacter,
   getFeatureDamageBonusesForWeaponAction,
   getFeatureReactionEntriesForCharacter,
   getSpellcastingStateForCharacter,
@@ -147,6 +150,270 @@ describe("class feature state reducers", () => {
     expect(nextRoundCharacter.classFeatureState?.rage?.recklessAttackUsedThisTurn).toBe(false);
     expect(nextRoundCharacter.classFeatureState?.rage?.recklessAttackRoundsRemaining).toBe(0);
     expect(nextRoundCharacter.classFeatureState?.rage?.frenzyPending).toBe(false);
+  });
+
+  it("adds instinctive pounce as a round-end trait when rage starts", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 7,
+      background: "Criminal / Spy"
+    });
+
+    const ragingCharacter = activateFeatureActionForCharacter(character, "barbarian-rage");
+    const derivedStatuses = getDerivedFeatureStatusEntriesForCharacter(ragingCharacter);
+
+    expect(ragingCharacter.statusEntries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceId: "feature-barbarian-instinctive-pounce",
+          value: "Instinctive Pounce",
+          duration: expect.objectContaining({
+            amount: 1,
+            tickOn: STATUS_DURATION_ROUND_TICK.ROUND_END
+          })
+        })
+      ])
+    );
+    expect(derivedStatuses).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceId: "feature-rage",
+          value: "Rage"
+        })
+      ])
+    );
+  });
+
+  it("grants barbarian extra attack from the first attack action each turn", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 5,
+      background: "Criminal / Spy"
+    });
+
+    const firstAttackCharacter = consumeWeaponAttackActionForCharacter(character, {
+      key: "weapon-greataxe",
+      economyType: "action",
+      attackKind: "weapon"
+    });
+    const secondAttackCharacter = consumeWeaponAttackActionForCharacter(firstAttackCharacter, {
+      key: "weapon-greataxe",
+      economyType: "action",
+      attackKind: "weapon"
+    });
+
+    expect(firstAttackCharacter.roundTracker?.actionAvailable).toBe(false);
+    expect(firstAttackCharacter.classFeatureState?.rage?.extraAttacksRemainingThisTurn).toBe(1);
+    expect(secondAttackCharacter.roundTracker?.actionAvailable).toBe(false);
+    expect(secondAttackCharacter.classFeatureState?.rage?.extraAttacksRemainingThisTurn).toBe(0);
+  });
+
+  it("arms and consumes brutal strike once per reckless attack", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 9,
+      background: "Criminal / Spy"
+    });
+
+    const beforeRecklessActions = getFeatureActionsForCharacter(character);
+    const brutalStrikeBeforeReckless = beforeRecklessActions.find(
+      (action) => action.key === "barbarian-brutal-strike"
+    );
+    const recklessCharacter = activateFeatureActionForCharacter(
+      character,
+      "barbarian-reckless-attack"
+    );
+    const afterRecklessActions = getFeatureActionsForCharacter(recklessCharacter);
+    const brutalStrikeAfterReckless = afterRecklessActions.find(
+      (action) => action.key === "barbarian-brutal-strike"
+    );
+    const armedCharacter = activateFeatureActionForCharacter(
+      recklessCharacter,
+      "barbarian-brutal-strike"
+    );
+    const armedDamageBonuses = getFeatureDamageBonusesForWeaponAction(armedCharacter, {
+      name: "Greataxe",
+      ability: "STR",
+      attackKind: "weapon",
+      combatType: WEAPON_COMBAT_TYPE.MELEE
+    });
+    const consumedCharacter = markFeatureWeaponBonusUseForCharacter(
+      armedCharacter,
+      "Brutal Strike"
+    );
+    const afterConsumeActions = getFeatureActionsForCharacter(consumedCharacter);
+    const brutalStrikeAfterConsume = afterConsumeActions.find(
+      (action) => action.key === "barbarian-brutal-strike"
+    );
+
+    expect(brutalStrikeBeforeReckless).toEqual(
+      expect.objectContaining({
+        disabled: true
+      })
+    );
+    expect(brutalStrikeAfterReckless).toEqual(
+      expect.objectContaining({
+        disabled: false,
+        interaction: "select"
+      })
+    );
+    expect(armedCharacter.classFeatureState?.rage?.brutalStrikePending).toBe(true);
+    expect(armedCharacter.classFeatureState?.rage?.brutalStrikeUsedThisTurn).toBe(true);
+    expect(armedDamageBonuses).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Brutal Strike",
+          formula: "1d10"
+        })
+      ])
+    );
+    expect(consumedCharacter.classFeatureState?.rage?.brutalStrikePending).toBe(false);
+    expect(consumedCharacter.classFeatureState?.rage?.brutalStrikeUsedThisTurn).toBe(true);
+    expect(brutalStrikeAfterConsume).toEqual(
+      expect.objectContaining({
+        disabled: true
+      })
+    );
+  });
+
+  it("shows base brutal strike effects at level 9 and improved effects at level 13", () => {
+    const level9Character = createCharacter({
+      className: "Barbarian",
+      level: 9,
+      background: "Criminal / Spy"
+    });
+    const level13Character = createCharacter({
+      className: "Barbarian",
+      level: 13,
+      background: "Criminal / Spy"
+    });
+
+    const level9Options = getFeatureActionOptionsForCharacter(
+      level9Character,
+      "barbarian-brutal-strike"
+    );
+    const level13Options = getFeatureActionOptionsForCharacter(
+      level13Character,
+      "barbarian-brutal-strike"
+    );
+
+    expect(level9Options.map((option) => option.name)).toEqual(["Forceful Blow", "Hamstring Blow"]);
+    expect(level13Options.map((option) => option.name)).toEqual([
+      "Forceful Blow",
+      "Hamstring Blow",
+      "Staggering Blow",
+      "Sundering Blow"
+    ]);
+  });
+
+  it("upgrades brutal strike to 2d10 and up to two effects at level 17", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 17,
+      background: "Criminal / Spy"
+    });
+
+    const recklessCharacter = activateFeatureActionForCharacter(
+      character,
+      "barbarian-reckless-attack"
+    );
+    const brutalStrikeAction = getFeatureActionsForCharacter(recklessCharacter).find(
+      (action) => action.key === "barbarian-brutal-strike"
+    );
+    const armedCharacter = activateFeatureActionForCharacter(
+      recklessCharacter,
+      "barbarian-brutal-strike"
+    );
+    const armedDamageBonuses = getFeatureDamageBonusesForWeaponAction(armedCharacter, {
+      name: "Greataxe",
+      ability: "STR",
+      attackKind: "weapon",
+      combatType: WEAPON_COMBAT_TYPE.MELEE
+    });
+
+    expect(brutalStrikeAction).toEqual(
+      expect.objectContaining({
+        breakdown: "2d10 + up to 2 effects"
+      })
+    );
+    expect(armedDamageBonuses).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Brutal Strike",
+          formula: "2d10"
+        })
+      ])
+    );
+  });
+
+  it("tracks relentless rage dc while raging and resets it on rests", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 11,
+      background: "Criminal / Spy",
+      classFeatureState: {
+        rage: {
+          usesExpended: 1,
+          active: true
+        }
+      }
+    });
+
+    const initialAction = getFeatureActionsForCharacter(character).find(
+      (action) => action.key === "barbarian-relentless-rage"
+    );
+    const firstUseCharacter = activateFeatureActionForCharacter(
+      character,
+      "barbarian-relentless-rage"
+    );
+    const secondUseCharacter = activateFeatureActionForCharacter(
+      firstUseCharacter,
+      "barbarian-relentless-rage"
+    );
+    const updatedAction = getFeatureActionsForCharacter(secondUseCharacter).find(
+      (action) => action.key === "barbarian-relentless-rage"
+    );
+    const afterShortRest = applyShortRestToFeatureState(secondUseCharacter);
+
+    expect(initialAction).toEqual(
+      expect.objectContaining({
+        valueLabel: "Current DC 10",
+        disabled: false
+      })
+    );
+    expect(firstUseCharacter.classFeatureState?.rage?.relentlessRageDcBonus).toBe(5);
+    expect(secondUseCharacter.classFeatureState?.rage?.relentlessRageDcBonus).toBe(10);
+    expect(updatedAction).toEqual(
+      expect.objectContaining({
+        valueLabel: "Current DC 20"
+      })
+    );
+    expect(afterShortRest.classFeatureState?.rage?.relentlessRageDcBonus).toBe(0);
+    expect(
+      applyLongRestToFeatureState(secondUseCharacter).classFeatureState?.rage?.relentlessRageDcBonus
+    ).toBe(0);
+  });
+
+  it("recharges rage on initiative by consuming persistent rage", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 15,
+      background: "Criminal / Spy",
+      classFeatureState: {
+        rage: {
+          usesExpended: 4,
+          active: false,
+          persistentRageUsesExpended: 0
+        }
+      }
+    });
+
+    const refreshedCharacter = applyPersistentRageOnInitiativeForCharacter(character);
+    const afterLongRest = applyLongRestToFeatureState(refreshedCharacter);
+
+    expect(refreshedCharacter.classFeatureState?.rage?.usesExpended).toBe(0);
+    expect(refreshedCharacter.classFeatureState?.rage?.persistentRageUsesExpended).toBe(1);
+    expect(afterLongRest.classFeatureState?.rage?.persistentRageUsesExpended).toBe(0);
   });
 
   it("uses Strength for primal knowledge skills while raging", () => {
@@ -303,7 +570,9 @@ describe("class feature state reducers", () => {
       "barbarian-intimidating-presence"
     );
 
-    expect(featureChargeCharacter.classFeatureState?.rage?.intimidatingPresenceUsesExpended).toBe(1);
+    expect(featureChargeCharacter.classFeatureState?.rage?.intimidatingPresenceUsesExpended).toBe(
+      1
+    );
     expect(featureChargeCharacter.classFeatureState?.rage?.usesExpended).toBe(1);
 
     const rageFallbackAction = getFeatureActionsForCharacter(featureChargeCharacter).find(

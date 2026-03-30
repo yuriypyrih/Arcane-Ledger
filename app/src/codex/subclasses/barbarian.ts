@@ -44,17 +44,17 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.FRENZY, {
         description: [
           "If you use Reckless Attack while your <link:Rage>Rage</link> is active, you deal extra damage to the first target you hit on your turn with a Strength-based attack.",
-          "To determine the extra damage, roll a number of d6s equal to your Rage Damage bonus and add them together.",
+          "To determine the extra damage, roll a number of <strong>d6</strong>s equal to your Rage Damage bonus and add them together.",
           "The damage has the same type as the weapon or Unarmed Strike used for the attack."
         ],
-        isTracked: false
+        isTracked: true
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.MINDLESS_RAGE, {
         description: [
           "You have <link:Immunity>Immunity</link> to the <link:Charmed>Charmed</link> and <link:Frightened>Frightened</link> conditions while your <link:Rage>Rage</link> is active.",
           "If you're Charmed or Frightened when you enter your Rage, the condition ends on you."
         ],
-        isTracked: false
+        isTracked: true
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.RETALIATION, {
         description: berserkerRetaliationDescription,
@@ -200,19 +200,15 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
         ],
         isTracked: false
       }),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
-        CLASS_FEATURE.WARRIOR_OF_THE_GODS,
-        {
-          description: [
-            "A divine entity helps ensure you can continue the fight. You have a pool of four d12s that you can spend to heal yourself.",
-            "As a Bonus Action, you can expend dice from the pool, roll them, and regain a number of Hit Points equal to the roll's total.",
-            "Your pool regains all expended dice when you finish a <link:long-rest>Long Rest</link>.",
-            "The pool's maximum number of dice increases by one when you reach Barbarian levels 6, 12, and 17."
-          ],
-          isTracked: false
-        }
-      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.WARRIOR_OF_THE_GODS, {
+        description: [
+          "A divine entity helps ensure you can continue the fight. You have a pool of four d12s that you can spend to heal yourself.",
+          "As a Bonus Action, you can expend dice from the pool, roll them, and regain a number of Hit Points equal to the roll's total.",
+          "Your pool regains all expended dice when you finish a <link:long-rest>Long Rest</link>.",
+          "The pool's maximum number of dice increases by one when you reach Barbarian levels 6, 12, and 17."
+        ],
+        isTracked: false
+      }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.FANATICAL_FOCUS, {
         description: [
           "Once per active <link:Rage>Rage</link>, if you fail a saving throw, you can reroll it with a bonus equal to your Rage Damage bonus.",
@@ -220,18 +216,14 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
         ],
         isTracked: false
       }),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_10,
-        CLASS_FEATURE.ZEALOUS_PRESENCE,
-        {
-          description: [
-            "As a Bonus Action, you unleash a battle cry infused with divine energy.",
-            "Up to ten other creatures of your choice within 60 feet of you gain <link:Advantage>Advantage</link> on attack rolls and saving throws until the start of your next turn.",
-            "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link> unless you expend a use of your <link:Rage>Rage</link>, no action required, to restore your use of it."
-          ],
-          isTracked: false
-        }
-      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.ZEALOUS_PRESENCE, {
+        description: [
+          "As a Bonus Action, you unleash a battle cry infused with divine energy.",
+          "Up to ten other creatures of your choice within 60 feet of you gain <link:Advantage>Advantage</link> on attack rolls and saving throws until the start of your next turn.",
+          "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link> unless you expend a use of your <link:Rage>Rage</link>, no action required, to restore your use of it."
+        ],
+        isTracked: false
+      }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.RAGE_OF_THE_GODS, {
         description: [
           "When you activate your <link:Rage>Rage</link>, you can assume the form of a divine warrior.",

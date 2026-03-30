@@ -219,6 +219,8 @@
 .initiativeActionsStart {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 0.65rem;
   min-width: 0;
 }
 
@@ -230,8 +232,16 @@
   font-size: 0.92rem;
 }
 
+.initiativeCheckboxLabelDisabled {
+  opacity: 0.58;
+}
+
 .initiativeCheckboxLabel input {
   margin: 0;
+}
+
+.initiativeChargeDots {
+  margin-top: 0;
 }
 
 @media (max-width: 860px) {

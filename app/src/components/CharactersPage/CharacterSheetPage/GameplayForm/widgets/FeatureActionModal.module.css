@@ -33,6 +33,44 @@
   margin-top: 0.9rem;
 }
 
+.brutalStrikeOptionList {
+  grid-template-columns: 1fr;
+}
+
+.brutalStrikeOptionButton {
+  display: grid;
+  gap: 0.38rem;
+  border: 1px solid rgba(75, 47, 29, 0.16);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.9rem 1rem;
+  text-align: left;
+}
+
+.brutalStrikeOptionButton strong {
+  font-size: 0.94rem;
+}
+
+.brutalStrikeOptionButton span {
+  color: var(--color-ink-soft);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.brutalStrikeOptionButtonSelected {
+  background: rgba(47, 120, 255, 0.1);
+  border-color: rgba(47, 120, 255, 0.34);
+  box-shadow: inset 0 0 0 1px rgba(47, 120, 255, 0.18);
+}
+
+.brutalStrikeOptionButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.55;
+}
+
 @media (max-width: 720px) {
   .featureActionOptionGrid {
     grid-template-columns: 1fr;

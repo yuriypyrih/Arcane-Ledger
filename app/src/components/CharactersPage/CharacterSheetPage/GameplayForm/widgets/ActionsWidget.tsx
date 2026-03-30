@@ -42,6 +42,11 @@ import {
   getClericDivineInterventionSpellEntries
 } from "../../../../../pages/CharactersPage/classFeatures/cleric";
 import {
+  barbarianBrutalStrikeActionKey,
+  getBarbarianBrutalStrikeDamageFormula,
+  getBarbarianBrutalStrikeSelectionLimit
+} from "../../../../../pages/CharactersPage/classFeatures/barbarian";
+import {
   fighterIndomitableActionKey,
   fighterSecondWindActionKey,
   fighterTacticalMindActionKey,
@@ -129,6 +134,7 @@ import FeatureActionOptionsModal from "./FeatureActionOptionsModal";
 import LayOnHandsModal from "./LayOnHandsModal";
 import MysticArcanumModal from "./MysticArcanumModal";
 import SneakAttackModal from "./SneakAttackModal";
+import BrutalStrikeModal from "./BrutalStrikeModal";
 import {
   FeatureActionCardButton,
   FeatureActionOptionButton,
@@ -162,6 +168,9 @@ type ActionsWidgetProps = {
 
 function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [selectedFeatureActionKey, setSelectedFeatureActionKey] = useState<string | null>(null);
+  const [selectedBrutalStrikeOptionKeys, setSelectedBrutalStrikeOptionKeys] = useState<string[]>(
+    []
+  );
   const [selectedMetamagicOptionKeys, setSelectedMetamagicOptionKeys] = useState<string[]>([]);
   const [selectedIndomitableAbility, setSelectedIndomitableAbility] = useState<AbilityKey | null>(
     null
@@ -206,6 +215,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const isFontOfMagicSelected = selectedFeatureAction?.key === fontOfMagicActionKey;
   const isMetamagicSelected = selectedFeatureAction?.key === metamagicActionKey;
   const isSneakAttackSelected = selectedFeatureAction?.key === rogueSneakAttackActionKey;
+  const isBrutalStrikeSelected = selectedFeatureAction?.key === barbarianBrutalStrikeActionKey;
+  const brutalStrikeSelectionLimit = useMemo(
+    () =>
+      isBrutalStrikeSelected ? getBarbarianBrutalStrikeSelectionLimit(character) : 0,
+    [character, isBrutalStrikeSelected]
+  );
+  const brutalStrikeDamageFormula = useMemo(
+    () =>
+      isBrutalStrikeSelected ? getBarbarianBrutalStrikeDamageFormula(character) : "1d10",
+    [character, isBrutalStrikeSelected]
+  );
   const remainingSorceryPoints = useMemo(
     () => getSorceryPointsRemainingForCharacter(character),
     [character]
@@ -416,6 +436,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       setSelectedMysticArcanumSpell(null);
       setSelectedMysticArcanumSpellLevel(null);
       setSelectedIndomitableAbility(null);
+      setSelectedBrutalStrikeOptionKeys([]);
       setSelectedMetamagicOptionKeys([]);
       setSelectedPaladinsSmiteSpellSlotLevel(1);
       return;
@@ -430,6 +451,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         isFontOfMagicSelected ||
         isMysticArcanumSelected ||
         isSneakAttackSelected ||
+        isBrutalStrikeSelected ||
         (isPaladinsSmiteSelected && paladinsSmiteSpellEntry) ||
         (isFavoredEnemySelected && favoredEnemySpellEntry) ||
         (isFaithfulSteedSelected && faithfulSteedSpellEntry) ||
@@ -442,6 +464,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedMysticArcanumSpell(null);
     setSelectedMysticArcanumSpellLevel(null);
     setSelectedIndomitableAbility(null);
+    setSelectedBrutalStrikeOptionKeys([]);
     setSelectedMetamagicOptionKeys([]);
     setSelectedPaladinsSmiteSpellSlotLevel(1);
     setSelectedFeatureActionKey(null);
@@ -455,6 +478,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     isFavoredEnemySelected,
     isContactPatronSelected,
     isSneakAttackSelected,
+    isBrutalStrikeSelected,
     isPaladinsSmiteSelected,
     isIndomitableSelected,
     isDivineInterventionSelected,
@@ -741,6 +765,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedFeatureActionKey(null);
   }
 
+  function closeBrutalStrikeModal() {
+    setSelectedBrutalStrikeOptionKeys([]);
+    setSelectedFeatureActionKey(null);
+  }
+
   function closeLayOnHandsModal() {
     setSelectedFeatureActionKey(null);
   }
@@ -779,6 +808,34 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   function closeMetamagicModal() {
     setSelectedMetamagicOptionKeys([]);
     setSelectedFeatureActionKey(null);
+  }
+
+  function toggleBrutalStrikeOptionSelection(optionKey: string) {
+    setSelectedBrutalStrikeOptionKeys((currentOptionKeys) => {
+      if (currentOptionKeys.includes(optionKey)) {
+        return currentOptionKeys.filter((entry) => entry !== optionKey);
+      }
+
+      if (currentOptionKeys.length >= brutalStrikeSelectionLimit) {
+        return currentOptionKeys;
+      }
+
+      return [...currentOptionKeys, optionKey];
+    });
+  }
+
+  function confirmBrutalStrike() {
+    if (!selectedFeatureAction || selectedFeatureAction.key !== barbarianBrutalStrikeActionKey) {
+      return;
+    }
+
+    activateFeatureAction(
+      selectedFeatureAction.key,
+      selectedFeatureAction.economyType,
+      selectedFeatureAction.actionCategory,
+      selectedFeatureAction.consumesEconomyOnActivate
+    );
+    closeBrutalStrikeModal();
   }
 
   function toggleMetamagicOptionSelection(optionKey: string) {
@@ -1400,6 +1457,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onClose={closeFontOfMagicModal}
           onConvertSpellSlot={convertSpellSlotToSorceryPoints}
           onCreateSpellSlot={createSpellSlotFromSorceryPoints}
+        />
+      ) : selectedFeatureAction && isBrutalStrikeSelected && selectedFeatureActionOptions.length > 0 ? (
+        <BrutalStrikeModal
+          action={selectedFeatureAction}
+          options={selectedFeatureActionOptions}
+          selectedOptionKeys={selectedBrutalStrikeOptionKeys}
+          selectionLimit={brutalStrikeSelectionLimit}
+          damageFormula={brutalStrikeDamageFormula}
+          onSelectOption={toggleBrutalStrikeOptionSelection}
+          onConfirm={confirmBrutalStrike}
+          onClose={closeBrutalStrikeModal}
         />
       ) : selectedFeatureAction && selectedFeatureActionOptions.length > 0 ? (
         <FeatureActionOptionsModal

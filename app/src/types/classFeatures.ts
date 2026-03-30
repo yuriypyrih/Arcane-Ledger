@@ -5,10 +5,16 @@ export type CharacterRageFeatureState = {
   usesExpended: number;
   active: boolean;
   weaponMasteries?: WEAPON_PROFICIENCY[];
+  primalKnowledgeSkill?: SkillName;
+  extraAttacksRemainingThisTurn?: number;
+  brutalStrikePending?: boolean;
+  brutalStrikeUsedThisTurn?: boolean;
   recklessAttackRoundsRemaining?: number;
   recklessAttackUsedThisTurn?: boolean;
   frenzyPending?: boolean;
   intimidatingPresenceUsesExpended?: number;
+  relentlessRageDcBonus?: number;
+  persistentRageUsesExpended?: number;
 };
 
 export type CharacterBardExpertiseState = {

@@ -19,6 +19,7 @@ type FeatureActionOptionsModalProps = {
   helperText?: string;
   helperTextTone?: "default" | "accent";
   footer?: ReactNode;
+  bodyClassName?: string;
 };
 
 function FeatureActionOptionsModal({
@@ -28,7 +29,8 @@ function FeatureActionOptionsModal({
   eyebrow = "Cleric",
   helperText = `Choose which divine effect to channel. ${action.usesLabel ?? ""}`.trim(),
   helperTextTone = "default",
-  footer
+  footer,
+  bodyClassName
 }: FeatureActionOptionsModalProps) {
   return (
     <SheetModal
@@ -54,7 +56,7 @@ function FeatureActionOptionsModal({
         <OverlayCloseButton label="Close feature action options" onClick={onClose} />
       </OverlayHeader>
 
-      <div className={styles.featureActionOptionGrid}>{children}</div>
+      <div className={clsx(styles.featureActionOptionGrid, bodyClassName)}>{children}</div>
       {footer ? <div className={styles.featureActionModalFooter}>{footer}</div> : null}
     </SheetModal>
   );

@@ -15,24 +15,30 @@ import {
 } from "./bard";
 import {
   activateBarbarianIntimidatingPresence,
+  activateBarbarianBrutalStrike,
   activateBarbarianRecklessAttack,
+  activateBarbarianRelentlessRage,
   activateBarbarianRage,
   advanceBarbarianFeaturesForNewRound,
   applyLongRestToBarbarianFeatures,
   applyShortRestToBarbarianFeatures,
+  barbarianBrutalStrikeActionKey,
   barbarianIntimidatingPresenceActionKey,
+  barbarianRelentlessRageActionKey,
   barbarianRageActionKey,
   barbarianRecklessAttackActionKey,
   getBarbarianAbilityCheckIndicators,
   getBarbarianAbilityScoreBonuses,
   getBarbarianArmorClassBonuses,
   getBarbarianArmorClassModes,
+  getBarbarianBrutalStrikeOptions,
   getBarbarianCoreStatIndicators,
   getBarbarianDerivedConditions,
   getBarbarianFeatureActions,
   getBarbarianSavingThrowIndicators,
   getBarbarianSkillBonuses,
   getBarbarianSkillIndicators,
+  getBarbarianSkillProficiencyEntries,
   getBarbarianSpeedBonuses,
   getBarbarianSpellcastingState,
   getBarbarianWeaponDamageBonuses,
@@ -246,12 +252,16 @@ const classFeatureModules = {
     collectDerived(character) {
       return {
         actions: getBarbarianFeatureActions(character),
+        actionOptions: {
+          [barbarianBrutalStrikeActionKey]: getBarbarianBrutalStrikeOptions(character)
+        },
         getWeaponDamageBonuses: (context) => getBarbarianWeaponDamageBonuses(character, context),
         savingThrowIndicators: getBarbarianSavingThrowIndicators(character),
         abilityCheckIndicators: getBarbarianAbilityCheckIndicators(character),
         coreStatIndicators: getBarbarianCoreStatIndicators(character),
         skillIndicators: getBarbarianSkillIndicators(character),
         getSkillBonuses: (skill) => getBarbarianSkillBonuses(character, skill),
+        skillProficiencyEntries: getBarbarianSkillProficiencyEntries(character),
         spellcastingState: getBarbarianSpellcastingState(character),
         getArmorClassModes: (context) => getBarbarianArmorClassModes(character, context),
         getArmorClassBonuses: (context) => getBarbarianArmorClassBonuses(character, context),
@@ -274,6 +284,14 @@ const classFeatureModules = {
 
       if (actionKey === barbarianRecklessAttackActionKey) {
         return activateBarbarianRecklessAttack(character);
+      }
+
+      if (actionKey === barbarianBrutalStrikeActionKey) {
+        return activateBarbarianBrutalStrike(character);
+      }
+
+      if (actionKey === barbarianRelentlessRageActionKey) {
+        return activateBarbarianRelentlessRage(character);
       }
 
       if (actionKey === barbarianIntimidatingPresenceActionKey) {

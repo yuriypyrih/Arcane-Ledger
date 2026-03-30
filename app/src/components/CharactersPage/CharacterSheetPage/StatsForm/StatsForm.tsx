@@ -35,8 +35,11 @@ import {
 } from "../../../../pages/CharactersPage/speed";
 import {
   applyPerfectFocusOnInitiativeForCharacter,
+  applyPersistentRageOnInitiativeForCharacter,
   applySuperiorInspirationOnInitiativeForCharacter,
   getAbilityCheckIndicatorsForCharacter,
+  getBarbarianPersistentRageUsesRemainingForCharacter,
+  getBarbarianPersistentRageUsesTotalForCharacter,
   getBarbarianRageDamageBonusForCharacter,
   getBardicInspirationDieForCharacter,
   getCoreStatIndicatorsForCharacter,
@@ -330,6 +333,7 @@ function CharacterStatsForm({
     null
   );
   const [usePerfectFocusOnInitiative, setUsePerfectFocusOnInitiative] = useState(true);
+  const [usePersistentRageOnInitiative, setUsePersistentRageOnInitiative] = useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   useBodyScrollLock(Boolean(selectedStatReference) || isAbilityModalOpen);
@@ -364,6 +368,9 @@ function CharacterStatsForm({
 
   const mainAbility = getMainAbilityForClass(character.className);
   const hasPerfectFocus = hasPerfectFocusForCharacter(character);
+  const persistentRageUsesTotal = getBarbarianPersistentRageUsesTotalForCharacter(character);
+  const persistentRageUsesRemaining = getBarbarianPersistentRageUsesRemainingForCharacter(character);
+  const hasPersistentRage = persistentRageUsesTotal > 0;
   const pointBuyRemaining =
     abilitiesDraft.attributeMode === "pointBuy"
       ? getPointBuyRemaining(abilitiesDraft.abilities)
@@ -618,6 +625,10 @@ function CharacterStatsForm({
       setUsePerfectFocusOnInitiative(true);
     }
 
+    if (card.label === "Initiative" && hasPersistentRage) {
+      setUsePersistentRageOnInitiative(false);
+    }
+
     setSelectedStatReference({
       keyword: card.label,
       summaryText: card.summaryText,
@@ -706,6 +717,10 @@ function CharacterStatsForm({
 
       if (usePerfectFocusOnInitiative) {
         nextCharacter = applyPerfectFocusOnInitiativeForCharacter(nextCharacter);
+      }
+
+      if (usePersistentRageOnInitiative) {
+        nextCharacter = applyPersistentRageOnInitiativeForCharacter(nextCharacter);
       }
 
       return nextCharacter;
@@ -954,6 +969,35 @@ function CharacterStatsForm({
             {selectedStatReference.keyword === "Initiative" ? (
               <div className={clsx(sheetStyles.spellDrawerActions, styles.initiativeActions)}>
                 <div className={styles.initiativeActionsStart}>
+                  {hasPersistentRage ? (
+                    <label
+                      className={clsx(
+                        styles.initiativeCheckboxLabel,
+                        persistentRageUsesRemaining <= 0 && styles.initiativeCheckboxLabelDisabled
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={usePersistentRageOnInitiative}
+                        disabled={persistentRageUsesRemaining <= 0}
+                        onChange={(event) =>
+                          setUsePersistentRageOnInitiative(event.target.checked)
+                        }
+                      />
+                      <span>Persistent Rage</span>
+                      <span className={clsx(sheetStyles.shortRestDots, styles.initiativeChargeDots)}>
+                        {Array.from({ length: persistentRageUsesTotal }, (_, index) => (
+                          <span
+                            key={`persistent-rage-charge-${index}`}
+                            className={clsx(
+                              sheetStyles.shortRestDot,
+                              index < persistentRageUsesRemaining && sheetStyles.shortRestDotActive
+                            )}
+                          />
+                        ))}
+                      </span>
+                    </label>
+                  ) : null}
                   {hasPerfectFocus ? (
                     <label className={styles.initiativeCheckboxLabel}>
                       <input
