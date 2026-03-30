@@ -21,8 +21,8 @@ import type {
   LANGUAGE_PROFICIENCY,
   SkillName
 } from "../../../../types";
+import { featureDisclosureStyles } from "../../../FeatureDisclosure";
 import { renderCodexRichText } from "../../../../utils/codex/renderCodexRichText";
-import styles from "./ClassFeaturesAndFeats.module.css";
 
 export const wizardScholarSkillOptions: SkillName[] = [
   "Arcana",
@@ -110,7 +110,7 @@ export function renderDescriptionLine(
   onOpenDivinity: (divinity: DivinityEntry) => void
 ): ReactNode {
   return renderCodexRichText(line, {
-    linkClassName: styles.keywordButton,
+    linkClassName: featureDisclosureStyles.inlineLinkButton,
     onOpenKeyword: (resolvedKeyword) => onOpenKeyword(resolvedKeyword.key, resolvedKeyword.title),
     onOpenSpell,
     onOpenDivinity,

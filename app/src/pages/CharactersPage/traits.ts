@@ -1,4 +1,9 @@
-import { paladinFeatureMap, rogueFeatureMap, sorcererFeatureMap } from "../../codex/classes";
+import {
+  barbarianFeatureMap,
+  paladinFeatureMap,
+  rogueFeatureMap,
+  sorcererFeatureMap
+} from "../../codex/classes";
 import type { SpellDescriptionEntry, SpellDurationPart } from "../../codex/entries";
 import { CLASS_FEATURE, DAMAGE_TYPE, DURATION } from "../../codex/entries";
 import {
@@ -656,6 +661,32 @@ export function removeCharacterStatusEntry(
   );
 }
 
+export function removeCharacterConditionsForImmunities(
+  value: unknown,
+  immunityEntries: ReadonlyArray<Pick<CharacterStatusEntry, "group" | "value">>
+): CharacterStatusEntry[] {
+  const entries = normalizeCharacterStatusEntries(value);
+  const immuneConditions = getImmuneConditionSet([
+    ...entries,
+    ...immunityEntries
+  ]);
+
+  if (immuneConditions.size === 0) {
+    return entries;
+  }
+
+  return pruneLinkedStatusEntries(
+    entries.filter(
+      (entry) =>
+        !(
+          entry.group === STATUS_ENTRY_GROUP.CONDITIONS &&
+          isConditionName(entry.value) &&
+          immuneConditions.has(entry.value)
+        )
+    )
+  );
+}
+
 export function upsertManualStatusEntry(
   value: unknown,
   nextEntry: Omit<CharacterStatusEntry, "id" | "sourceType"> & {
@@ -1060,6 +1091,14 @@ export function getStatusEntryDescriptionEntries(
     );
   }
 
+  if (entry.sourceId === "feature-barbarian-reckless-attack") {
+    return (
+      barbarianFeatureMap[CLASS_FEATURE.RECKLESS_ATTACK]?.description ?? [
+        "A current effect or trait that may change how your character plays."
+      ]
+    );
+  }
+
   if (entry.sourceId === "feature-sorcerer-innate-sorcery") {
     return (
       sorcererFeatureMap[CLASS_FEATURE.INNATE_SORCERY]?.description ?? [
@@ -1274,12 +1313,43 @@ function isLinkedStatusEntrySatisfied(
   );
 }
 
+function getImmuneConditionSet(
+  entries: ReadonlyArray<Pick<CharacterStatusEntry, "group" | "value">>
+): Set<CONDITION_NAME> {
+  return entries.reduce<Set<CONDITION_NAME>>((immuneConditions, entry) => {
+    if (entry.group === STATUS_ENTRY_GROUP.IMMUNITIES && isConditionName(entry.value)) {
+      immuneConditions.add(entry.value);
+    }
+
+    return immuneConditions;
+  }, new Set<CONDITION_NAME>());
+}
+
+function removeConditionEntriesBlockedByImmunities(
+  entries: CharacterStatusEntry[]
+): CharacterStatusEntry[] {
+  const immuneConditions = getImmuneConditionSet(entries);
+
+  if (immuneConditions.size === 0) {
+    return entries;
+  }
+
+  return entries.filter(
+    (entry) =>
+      !(
+        entry.group === STATUS_ENTRY_GROUP.CONDITIONS &&
+        isConditionName(entry.value) &&
+        immuneConditions.has(entry.value)
+      )
+  );
+}
+
 function pruneLinkedStatusEntries(entries: CharacterStatusEntry[]): CharacterStatusEntry[] {
   let currentEntries = entries;
 
   while (true) {
-    const nextEntries = currentEntries.filter((entry) =>
-      isLinkedStatusEntrySatisfied(entry, currentEntries)
+    const nextEntries = removeConditionEntriesBlockedByImmunities(
+      currentEntries.filter((entry) => isLinkedStatusEntrySatisfied(entry, currentEntries))
     );
 
     if (nextEntries.length === currentEntries.length) {

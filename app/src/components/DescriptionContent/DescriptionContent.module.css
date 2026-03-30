@@ -1,8 +1,0 @@
-.list {
-  margin: 0;
-  padding-left: 1.35rem;
-}
-
-.listItem + .listItem {
-  margin-top: 0.4rem;
-}

@@ -37,6 +37,7 @@ import {
   applyPerfectFocusOnInitiativeForCharacter,
   applySuperiorInspirationOnInitiativeForCharacter,
   getAbilityCheckIndicatorsForCharacter,
+  getBarbarianRageDamageBonusForCharacter,
   getBardicInspirationDieForCharacter,
   getCoreStatIndicatorsForCharacter,
   getMonkMartialArtsDieForCharacter,
@@ -388,6 +389,7 @@ function CharacterStatsForm({
   const speedBreakdown = getSpeedBreakdownForCharacter(character);
   const initiativeBreakdown = getInitiativeBreakdownForCharacter(character);
   const monkMartialArtsDie = getMonkMartialArtsDieForCharacter(character);
+  const barbarianRageDamageBonus = getBarbarianRageDamageBonusForCharacter(character);
   const bardicInspirationDie = getBardicInspirationDieForCharacter(character);
   const rogueSneakAttackDiceCount = getRogueSneakAttackDiceCountForCharacter(character);
   const rogueSneakAttackFormula = getRogueSneakAttackFormulaForCharacter(character);
@@ -484,6 +486,22 @@ function CharacterStatsForm({
   });
 
   const additionalCoreStatCards: CoreStatCard[] = [];
+
+  if (barbarianRageDamageBonus > 0) {
+    additionalCoreStatCards.push({
+      key: "barbarian-rage-damage",
+      label: "Rage Damage",
+      value: formatAbilityModifier(barbarianRageDamageBonus),
+      summaryText:
+        "Your current Rage Damage bonus. While Rage is active, Strength-based weapon and Unarmed Strike damage rolls gain this bonus. Rage Damage progresses from +2 at levels 1-8 to +3 at levels 9-15 and +4 at levels 16-20.",
+      detailCards: [
+        {
+          label: "Current Bonus",
+          value: formatAbilityModifier(barbarianRageDamageBonus)
+        }
+      ]
+    });
+  }
 
   if (monkMartialArtsDie) {
     additionalCoreStatCards.push({

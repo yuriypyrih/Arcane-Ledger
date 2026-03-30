@@ -2,6 +2,7 @@ import { CLASS_FEATURE, REACTION } from "../entries/enums";
 import type { ReactionEntry } from "../entries/types";
 import { rogueFeatureMap } from "../classes/rogue";
 import { monkFeatureMap } from "../classes/monk";
+import { berserkerRetaliationDescription } from "../subclasses/barbarian";
 
 export const countercharmReaction: ReactionEntry = {
   id: "reaction-countercharm",
@@ -36,6 +37,16 @@ export const slowFallReaction: ReactionEntry = {
   description: monkFeatureMap[CLASS_FEATURE.SLOW_FALL]?.description ?? []
 };
 
+export const retaliationReaction: ReactionEntry = {
+  id: "reaction-berserker-retaliation",
+  reaction: REACTION.RETALIATION,
+  name: "Retaliation",
+  sourceType: "feature",
+  sourceFeature: CLASS_FEATURE.RETALIATION,
+  sourceLabel: "Path of the Berserker",
+  description: berserkerRetaliationDescription
+};
+
 export const uncannyDodgeReaction: ReactionEntry = {
   id: "reaction-uncanny-dodge",
   reaction: REACTION.UNCANNY_DODGE,
@@ -49,6 +60,7 @@ export const uncannyDodgeReaction: ReactionEntry = {
 export const reactionEntries: ReactionEntry[] = [
   countercharmReaction,
   deflectAttacksReaction,
+  retaliationReaction,
   slowFallReaction,
   uncannyDodgeReaction
 ];

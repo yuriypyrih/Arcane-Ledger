@@ -47,6 +47,27 @@
   align-items: flex-start;
 }
 
+.sectionHeader {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.sectionHeader h3,
+.sectionHeader p {
+  margin: 0;
+}
+
+.collapsibleBody {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.sectionTagline {
+  color: var(--color-accent);
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
 .badge {
   justify-self: start;
   border-radius: 999px;
@@ -130,15 +151,6 @@
 .drawerDetailButton:focus-visible {
   outline: 2px solid rgba(117, 76, 36, 0.4);
   outline-offset: 2px;
-}
-
-.descriptionSection {
-  display: grid;
-  gap: 0.55rem;
-}
-
-.descriptionLine {
-  margin: 0;
 }
 
 .modalBackdrop {

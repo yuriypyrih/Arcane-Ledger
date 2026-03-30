@@ -216,6 +216,7 @@ export type CollectedClassFeatureCharacter = Pick<Character, "className" | "leve
   Pick<
     Character,
     | "abilities"
+    | "subclassId"
     | "classFeatureState"
     | "statusEntries"
     | "equipment"
@@ -230,7 +231,8 @@ export type ClassFeatureModule<TStateKey extends keyof CharacterClassFeatureStat
   stateKey: TStateKey;
   normalizeState: (
     value: unknown,
-    character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "abilities">>
+    character: Pick<Character, "className" | "level"> &
+      Partial<Pick<Character, "abilities" | "subclassId">>
   ) => CharacterClassFeatureState[TStateKey];
   collectDerived: (
     character: CollectedClassFeatureCharacter

@@ -1,0 +1,144 @@
+.body {
+  gap: 1rem;
+}
+
+.progressMetaRow {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.progressMetaItem {
+  display: grid;
+  gap: 0.18rem;
+  border-radius: 14px;
+  background: rgba(58, 104, 186, 0.09);
+  padding: 0.72rem 0.82rem;
+}
+
+.progressMetaItem span {
+  color: var(--color-ink-soft);
+  font-size: 0.76rem;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.progressMetaItemRight {
+  text-align: right;
+}
+
+.progressTrack {
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(61, 125, 255, 0.18);
+  block-size: 14px;
+}
+
+.progressFill {
+  block-size: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #2f6cff 0%, #4b93ff 46%, #7ad4ff 100%);
+}
+
+.progressRows {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.progressRowCard {
+  display: grid;
+  gap: 0.7rem;
+  border-radius: 18px;
+  background: rgba(75, 47, 29, 0.055);
+  padding: 0.88rem 0.92rem;
+}
+
+.progressRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.9rem;
+}
+
+.progressValueBlock {
+  display: grid;
+  gap: 0.24rem;
+  min-width: 0;
+}
+
+.progressLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.progressValue {
+  font-size: 1rem;
+  line-height: 1.3;
+}
+
+.progressActions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.55rem;
+}
+
+.actionButton {
+  min-height: 36px;
+  padding-inline: 0.82rem;
+}
+
+.inputField {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.inputField span {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.errorText {
+  margin: 0;
+  color: #b03232;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.65rem;
+}
+
+@media (max-width: 640px) {
+  .progressMetaRow {
+    grid-template-columns: 1fr;
+  }
+
+  .progressMetaItemRight {
+    text-align: left;
+  }
+
+  .progressRow {
+    flex-direction: column;
+  }
+
+  .progressActions {
+    justify-content: flex-start;
+  }
+
+  .footer {
+    justify-content: stretch;
+  }
+
+  .footer :global(button) {
+    flex: 1 1 0;
+    justify-content: center;
+  }
+}

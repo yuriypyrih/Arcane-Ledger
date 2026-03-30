@@ -1,15 +1,36 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type Dispatch, type SetStateAction } from "react";
 import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom";
+import CodexDivinityDrawer from "../../components/CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
+import CodexFeatDrawer from "../../components/CodexPage/CodexFeatDrawer/CodexFeatDrawer";
+import CodexSpellDrawer from "../../components/CodexPage/CodexSpellDrawer/CodexSpellDrawer";
+import {
+  FeatureDisclosureRow,
+  FeatureDisclosureSection,
+  FeatureTrackingBadgeButton,
+  featureDisclosureStyles
+} from "../../components/FeatureDisclosure";
 import RarityPill from "../../components/CodexPage/RarityPill";
 import KeywordReferenceDrawer from "../../components/KeywordReferenceDrawer/KeywordReferenceDrawer";
 import SpellDescriptionContent from "../../components/SpellDescriptionContent";
 import SpellSubtitle from "../../components/SpellSubtitle";
 import {
   ABILITY_TYPES,
+  CLASS_FEATURE,
   ENTRY_CATEGORIES,
+  FEATS,
+  FeatureMap,
   GENERAL_PROFICIENCIES,
-  KeywordTooltip
+  KeywordTooltip,
+  getFeatureTrackingState,
+  type DivinityEntry,
+  type FeatureMapEntry,
+  type SpellEntry
 } from "../../codex/entries";
+import { getSubclassEntriesForClass } from "../../codex/subclasses";
+import {
+  resolveKeywordReference,
+  type ResolvedKeywordReference
+} from "../../utils/codex/renderCodexRichText";
 import {
   formatCodexLabel,
   formatCodexList,
@@ -17,7 +38,6 @@ import {
   formatEquipmentWeight,
   formatSpellCastingTime,
   formatSpellComponents,
-  renderCodexInlineText,
   formatWeaponCost,
   formatWeaponDamage,
   formatWeaponProperties,
@@ -84,6 +104,54 @@ function formatInnateProficiencyList({
   return orderedProficiencies.length > 0 ? orderedProficiencies.join(", ") : "None";
 }
 
+type ResolvedFeatureItem = {
+  key: string;
+  level: number;
+  feature: CLASS_FEATURE;
+  details: FeatureMapEntry;
+};
+
+type SelectedFeatReference = {
+  feat: FEATS;
+  label: string;
+};
+
+function createResolvedFeatureItems(
+  rows: Array<{
+    level: number;
+    classFeatures: CLASS_FEATURE[];
+    featureOverrides?: Partial<Record<CLASS_FEATURE, FeatureMapEntry>>;
+  }>,
+  {
+    omitSubclassPlaceholder = false
+  }: {
+    omitSubclassPlaceholder?: boolean;
+  } = {}
+): ResolvedFeatureItem[] {
+  return rows.flatMap((row) =>
+    row.classFeatures.flatMap((feature, index) => {
+      if (omitSubclassPlaceholder && feature === CLASS_FEATURE.SUBCLASS_FEATURE) {
+        return [];
+      }
+
+      const details = row.featureOverrides?.[feature] ?? FeatureMap[feature];
+
+      if (!details) {
+        return [];
+      }
+
+      return [
+        {
+          key: `${row.level}-${feature}-${index}`,
+          level: row.level,
+          feature,
+          details
+        }
+      ];
+    })
+  );
+}
+
 function CodexEntryPage() {
   const navigate = useNavigate();
   const { entryId } = useParams();
@@ -94,6 +162,16 @@ function CodexEntryPage() {
     title: string;
     entries: ReturnType<typeof getKeywordReferences>;
   } | null>(null);
+  const [selectedKeywordReference, setSelectedKeywordReference] =
+    useState<ResolvedKeywordReference | null>(null);
+  const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
+  const [selectedDivinityReference, setSelectedDivinityReference] =
+    useState<DivinityEntry | null>(null);
+  const [selectedFeatReference, setSelectedFeatReference] = useState<SelectedFeatReference | null>(
+    null
+  );
+  const [expandedSectionKeys, setExpandedSectionKeys] = useState<string[]>([]);
+  const [expandedFeatureKeys, setExpandedFeatureKeys] = useState<string[]>([]);
   const codexSearch = searchParams.toString();
   const backToCodexPath = codexSearch.length > 0 ? `/codex?${codexSearch}` : "/codex";
   const componentsTooltipEntry =
@@ -104,6 +182,14 @@ function CodexEntryPage() {
     entry?.category === ENTRY_CATEGORIES.WEAPONS ||
     entry?.category === ENTRY_CATEGORIES.ARMOR ||
     entry?.category === ENTRY_CATEGORIES.SPELLS;
+  const classFeatureItems =
+    entry?.category === ENTRY_CATEGORIES.CLASSES
+      ? createResolvedFeatureItems(entry.features, { omitSubclassPlaceholder: true })
+      : [];
+  const classSubclassEntries =
+    entry?.category === ENTRY_CATEGORIES.CLASSES ? getSubclassEntriesForClass(entry.name) : [];
+  const classFeaturesSectionKey =
+    entry?.category === ENTRY_CATEGORIES.CLASSES ? `class-features-${entry.id}` : null;
 
   useEffect(() => {
     if (!isComponentsTooltipOpen) {
@@ -112,6 +198,26 @@ function CodexEntryPage() {
 
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
+        if (selectedFeatReference) {
+          setSelectedFeatReference(null);
+          return;
+        }
+
+        if (selectedKeywordReference) {
+          setSelectedKeywordReference(null);
+          return;
+        }
+
+        if (selectedDivinityReference) {
+          setSelectedDivinityReference(null);
+          return;
+        }
+
+        if (selectedSpellReference) {
+          setSelectedSpellReference(null);
+          return;
+        }
+
         if (selectedWeaponReference) {
           setSelectedWeaponReference(null);
           return;
@@ -123,7 +229,14 @@ function CodexEntryPage() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isComponentsTooltipOpen, selectedWeaponReference]);
+  }, [
+    isComponentsTooltipOpen,
+    selectedWeaponReference,
+    selectedKeywordReference,
+    selectedSpellReference,
+    selectedDivinityReference,
+    selectedFeatReference
+  ]);
 
   useEffect(() => {
     if (!entry || entry.category !== ENTRY_CATEGORIES.SPELLS) {
@@ -133,6 +246,13 @@ function CodexEntryPage() {
     if (!entry || entry.category !== ENTRY_CATEGORIES.WEAPONS) {
       setSelectedWeaponReference(null);
     }
+
+    setSelectedKeywordReference(null);
+    setSelectedSpellReference(null);
+    setSelectedDivinityReference(null);
+    setSelectedFeatReference(null);
+    setExpandedSectionKeys([]);
+    setExpandedFeatureKeys([]);
   }, [entry]);
 
   function openWeaponReference(title: string, keywords: string[]) {
@@ -146,6 +266,24 @@ function CodexEntryPage() {
       title,
       entries: referenceEntries
     });
+  }
+
+  function toggleExpandedKey(key: string, setExpandedKeys: Dispatch<SetStateAction<string[]>>) {
+    setExpandedKeys((currentKeys) =>
+      currentKeys.includes(key)
+        ? currentKeys.filter((currentKey) => currentKey !== key)
+        : [...currentKeys, key]
+    );
+  }
+
+  function openTrackingReference(trackingState: "tracked" | "semi-tracked" | "not-tracked") {
+    const reference = resolveKeywordReference(trackingState);
+
+    if (!reference) {
+      return;
+    }
+
+    setSelectedKeywordReference(reference);
   }
 
   return (
@@ -312,6 +450,11 @@ function CodexEntryPage() {
                     description={entry.description}
                     className={`${sheetStyles.spellDrawerDescriptionList} ${sheetStyles.spellDrawerDescriptionSection}`}
                     entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                    linkClassName={featureDisclosureStyles.inlineLinkButton}
+                    onOpenKeyword={setSelectedKeywordReference}
+                    onOpenSpell={setSelectedSpellReference}
+                    onOpenDivinity={setSelectedDivinityReference}
+                    onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
                   />
                 ) : null}
               </div>
@@ -401,11 +544,164 @@ function CodexEntryPage() {
         </article>
       ) : null}
 
+      {status === "ready" && entry?.category === ENTRY_CATEGORIES.CLASSES ? (
+        <>
+          {classFeaturesSectionKey ? (
+            <FeatureDisclosureSection
+              className={styles.card}
+              bodyId={`${classFeaturesSectionKey}-content`}
+              bodyClassName={styles.collapsibleBody}
+              isExpanded={expandedSectionKeys.includes(classFeaturesSectionKey)}
+              onToggle={() => toggleExpandedKey(classFeaturesSectionKey, setExpandedSectionKeys)}
+              header={
+                <>
+                  <span className={styles.badge}>Class Features</span>
+                  <div className={styles.sectionHeader}>
+                    <h3>{`${entry.name} Features`}</h3>
+                    <p>Core class progression and default feature unlocks.</p>
+                  </div>
+                </>
+              }
+            >
+              <div className={featureDisclosureStyles.featureList}>
+                {classFeatureItems.map((item, index) => {
+                  const featureKey = `${classFeaturesSectionKey}-${item.key}`;
+
+                  return (
+                    <FeatureDisclosureRow
+                      key={featureKey}
+                      title={`Level: ${item.level} ${formatCodexLabel(item.feature)}`}
+                      isExpanded={expandedFeatureKeys.includes(featureKey)}
+                      onToggle={() => toggleExpandedKey(featureKey, setExpandedFeatureKeys)}
+                      bodyId={`${featureKey}-content`}
+                      bodyClassName={featureDisclosureStyles.descriptionList}
+                      trackingButton={
+                        <FeatureTrackingBadgeButton
+                          trackingState={getFeatureTrackingState(item.details)}
+                          onClick={openTrackingReference}
+                        />
+                      }
+                      showDivider={index > 0}
+                    >
+                      <SpellDescriptionContent
+                        description={item.details.description}
+                        className={featureDisclosureStyles.descriptionList}
+                        entryClassName={featureDisclosureStyles.descriptionLine}
+                        linkClassName={featureDisclosureStyles.inlineLinkButton}
+                        onOpenKeyword={setSelectedKeywordReference}
+                        onOpenSpell={setSelectedSpellReference}
+                        onOpenDivinity={setSelectedDivinityReference}
+                        onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
+                      />
+                    </FeatureDisclosureRow>
+                  );
+                })}
+              </div>
+            </FeatureDisclosureSection>
+          ) : null}
+
+          {classSubclassEntries.map((subclass) => {
+            const subclassFeatureItems = createResolvedFeatureItems(subclass.features);
+            const sectionKey = `subclass-${subclass.id}`;
+
+            return (
+              <FeatureDisclosureSection
+                key={subclass.id}
+                className={styles.card}
+                bodyId={`${sectionKey}-content`}
+                bodyClassName={styles.collapsibleBody}
+                isExpanded={expandedSectionKeys.includes(sectionKey)}
+                onToggle={() => toggleExpandedKey(sectionKey, setExpandedSectionKeys)}
+                header={
+                  <>
+                    <span className={styles.badge}>Subclass</span>
+                    <div className={styles.sectionHeader}>
+                      <h3>{subclass.name}</h3>
+                      {subclass.tagline ? (
+                        <p className={styles.sectionTagline}>{subclass.tagline}</p>
+                      ) : null}
+                      {subclass.summary ? <p>{subclass.summary}</p> : null}
+                    </div>
+                  </>
+                }
+              >
+                <div className={featureDisclosureStyles.featureList}>
+                  {subclassFeatureItems.map((item, index) => {
+                    const featureKey = `${sectionKey}-${item.key}`;
+
+                    return (
+                      <FeatureDisclosureRow
+                        key={featureKey}
+                        title={`Level: ${item.level} ${formatCodexLabel(item.feature)}`}
+                        isExpanded={expandedFeatureKeys.includes(featureKey)}
+                        onToggle={() => toggleExpandedKey(featureKey, setExpandedFeatureKeys)}
+                        bodyId={`${featureKey}-content`}
+                        bodyClassName={featureDisclosureStyles.descriptionList}
+                        trackingButton={
+                          <FeatureTrackingBadgeButton
+                            trackingState={getFeatureTrackingState(item.details)}
+                            onClick={openTrackingReference}
+                          />
+                        }
+                        showDivider={index > 0}
+                      >
+                        <SpellDescriptionContent
+                          description={item.details.description}
+                          className={featureDisclosureStyles.descriptionList}
+                          entryClassName={featureDisclosureStyles.descriptionLine}
+                          linkClassName={featureDisclosureStyles.inlineLinkButton}
+                          onOpenKeyword={setSelectedKeywordReference}
+                          onOpenSpell={setSelectedSpellReference}
+                          onOpenDivinity={setSelectedDivinityReference}
+                          onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
+                        />
+                      </FeatureDisclosureRow>
+                    );
+                  })}
+                </div>
+              </FeatureDisclosureSection>
+            );
+          })}
+        </>
+      ) : null}
+
       {selectedWeaponReference ? (
         <KeywordReferenceDrawer
           title={selectedWeaponReference.title}
           entries={selectedWeaponReference.entries}
           onClose={() => setSelectedWeaponReference(null)}
+        />
+      ) : null}
+      {selectedKeywordReference ? (
+        <KeywordReferenceDrawer
+          title={selectedKeywordReference.title}
+          entries={[
+            {
+              title: selectedKeywordReference.title,
+              description: selectedKeywordReference.description
+            }
+          ]}
+          badgeLabel="Keyword"
+          onClose={() => setSelectedKeywordReference(null)}
+        />
+      ) : null}
+      {selectedSpellReference ? (
+        <CodexSpellDrawer
+          spell={selectedSpellReference}
+          onClose={() => setSelectedSpellReference(null)}
+        />
+      ) : null}
+      {selectedDivinityReference ? (
+        <CodexDivinityDrawer
+          divinity={selectedDivinityReference}
+          onClose={() => setSelectedDivinityReference(null)}
+        />
+      ) : null}
+      {selectedFeatReference ? (
+        <CodexFeatDrawer
+          feat={selectedFeatReference.feat}
+          label={selectedFeatReference.label}
+          onClose={() => setSelectedFeatReference(null)}
         />
       ) : null}
 
@@ -439,11 +735,16 @@ function CodexEntryPage() {
             <div className={styles.componentTooltipList}>
               {componentsTooltipEntry ? (
                 <article className={styles.componentTooltipItem}>
-                  <div className={styles.componentTooltipDescription}>
-                    {componentsTooltipEntry.description.map((line, index) => (
-                      <p key={`components-${index}`}>{renderCodexInlineText(line)}</p>
-                    ))}
-                  </div>
+                  <SpellDescriptionContent
+                    description={componentsTooltipEntry.description}
+                    className={styles.componentTooltipDescription}
+                    entryClassName={featureDisclosureStyles.descriptionLine}
+                    linkClassName={featureDisclosureStyles.inlineLinkButton}
+                    onOpenKeyword={setSelectedKeywordReference}
+                    onOpenSpell={setSelectedSpellReference}
+                    onOpenDivinity={setSelectedDivinityReference}
+                    onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
+                  />
                 </article>
               ) : null}
             </div>

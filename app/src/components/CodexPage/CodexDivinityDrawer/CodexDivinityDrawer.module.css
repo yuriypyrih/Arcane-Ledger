@@ -1,0 +1,15 @@
+.inlineLinkButton {
+  border: none;
+  background: transparent;
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  margin: 0;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+.inlineLinkButton:hover {
+  color: var(--color-accent-strong, #8f4d1f);
+}

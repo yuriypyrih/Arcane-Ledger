@@ -1,6 +1,7 @@
 import { getFeatureTrackingState, type DivinityEntry, type SpellEntry } from "../../../../codex/entries";
 import { getFeatCategoryLabel, type FeatDefinition } from "../../../../pages/CharactersPage/feats";
 import type { CharacterFeatEntry } from "../../../../types";
+import { featureDisclosureStyles } from "../../../FeatureDisclosure";
 import {
   OverlayBadge,
   OverlayBody,
@@ -69,7 +70,10 @@ function FeatReferenceDrawer({
           </p>
         ) : null}
         {featDefinition.description.map((line, index) => (
-          <p key={`${featDefinition.feat}-line-${index}`} className={styles.descriptionLine}>
+          <p
+            key={`${featDefinition.feat}-line-${index}`}
+            className={featureDisclosureStyles.descriptionLine}
+          >
             {renderDescriptionLine(
               line,
               onOpenKeyword,

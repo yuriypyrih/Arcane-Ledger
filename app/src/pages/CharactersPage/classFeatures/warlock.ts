@@ -23,7 +23,6 @@ import type { FeatureActionCard } from "./types";
 
 const invocationSelectionSeparator = "::";
 const placeholderSelectionSuffix = "placeholder";
-const originFeatDefinitions = getFeatDefinitionsByCategory()[FEAT_CATEGORY.ORIGIN];
 const magicalCunningUsesTotal = 1;
 const contactPatronUsesTotal = 1;
 const contactOtherPlaneSpellId = "spell-contact-other-plane";
@@ -298,6 +297,10 @@ function getChoiceLabelForOriginFeat(feat: { label: string }): string {
   return `Origin feat: ${feat.label}`;
 }
 
+function getOriginFeatDefinitions() {
+  return getFeatDefinitionsByCategory()[FEAT_CATEGORY.ORIGIN];
+}
+
 function createPlaceholderOption(
   invocation: EldritchInvocationEntry,
   subtitle: string
@@ -485,7 +488,7 @@ export function getWarlockInvocationOptions(
     }
 
     if (invocation.selection?.kind === "origin-feat") {
-      return originFeatDefinitions
+      return getOriginFeatDefinitions()
         .slice()
         .sort((left, right) => left.label.localeCompare(right.label))
         .map((definition) => ({

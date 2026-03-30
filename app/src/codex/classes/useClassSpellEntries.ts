@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { SPELL_LIST_CLASS } from "../entries/enums";
 import type { SpellEntry } from "../entries/types";
+import { useArtificerSpellEntries } from "./artificer";
 import { useBardSpellEntries } from "./bard";
 import { useClericSpellEntries } from "./cleric";
 import { useDruidSpellEntries } from "./druid";
@@ -23,6 +24,8 @@ function getPreparedSpellAccessListClasses(className: string, level: number): SP
   }
 
   switch (className) {
+    case "Artificer":
+      return [SPELL_LIST_CLASS.ARTIFICER];
     case "Bard":
       return [SPELL_LIST_CLASS.BARD];
     case "Cleric":
@@ -45,6 +48,7 @@ function getPreparedSpellAccessListClasses(className: string, level: number): SP
 }
 
 export function useClassSpellEntries(className: string): SpellEntry[] {
+  const artificerSpellEntries = useArtificerSpellEntries();
   const bardSpellEntries = useBardSpellEntries();
   const clericSpellEntries = useClericSpellEntries();
   const druidSpellEntries = useDruidSpellEntries();
@@ -56,6 +60,8 @@ export function useClassSpellEntries(className: string): SpellEntry[] {
 
   return useMemo(() => {
     switch (className) {
+      case "Artificer":
+        return artificerSpellEntries;
       case "Bard":
         return bardSpellEntries;
       case "Cleric":
@@ -76,6 +82,7 @@ export function useClassSpellEntries(className: string): SpellEntry[] {
         return emptySpellEntries;
     }
   }, [
+    artificerSpellEntries,
     bardSpellEntries,
     className,
     clericSpellEntries,
@@ -89,6 +96,7 @@ export function useClassSpellEntries(className: string): SpellEntry[] {
 }
 
 export function usePreparedSpellEntries(className: string, level: number): SpellEntry[] {
+  const artificerSpellEntries = useArtificerSpellEntries();
   const bardSpellEntries = useBardSpellEntries();
   const clericSpellEntries = useClericSpellEntries();
   const druidSpellEntries = useDruidSpellEntries();
@@ -100,6 +108,7 @@ export function usePreparedSpellEntries(className: string, level: number): Spell
 
   return useMemo(() => {
     const spellEntriesByListClass = new Map<SPELL_LIST_CLASS, SpellEntry[]>([
+      [SPELL_LIST_CLASS.ARTIFICER, artificerSpellEntries],
       [SPELL_LIST_CLASS.BARD, bardSpellEntries],
       [SPELL_LIST_CLASS.CLERIC, clericSpellEntries],
       [SPELL_LIST_CLASS.DRUID, druidSpellEntries],
@@ -125,6 +134,7 @@ export function usePreparedSpellEntries(className: string, level: number): Spell
       return left.name.localeCompare(right.name);
     });
   }, [
+    artificerSpellEntries,
     bardSpellEntries,
     className,
     clericSpellEntries,

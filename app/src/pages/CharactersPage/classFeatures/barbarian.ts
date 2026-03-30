@@ -1,8 +1,5 @@
 import { barbarianFeatures } from "../../../codex/classes";
-import {
-  CLASS_FEATURE,
-  DAMAGE_TYPE
-} from "../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../codex/entries";
 import type { BarbarianFeatureClassObj } from "../../../types";
 import {
   CONDITION_NAME,
@@ -18,7 +15,10 @@ import {
   type CharacterRageFeatureState,
   type WeaponProficiencyEntry
 } from "../../../types";
-import { hasStatusCondition } from "../traits";
+import {
+  hasStatusCondition,
+  removeCharacterConditionsForImmunities
+} from "../traits";
 import { skillGroupsByAbility } from "../skillDefinitions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
 import type {
@@ -40,13 +40,21 @@ import type {
   SkillIndicatorMap,
   WeaponFeatureContext
 } from "./types";
-import {
-  getWeaponMasteryOptions,
-  normalizeWeaponMasterySelections
-} from "./weaponMastery";
+import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "./weaponMastery";
 
 const rageConditionName = EFFECT_NAME.RAGE;
 const rageStatusSourceId = "feature-rage";
+const recklessAttackStatusSourceId = "feature-barbarian-reckless-attack";
+const recklessAttackDurationRounds = 2;
+const pathOfTheBerserkerSubclassId = "barbarian-path-of-the-berserker";
+const mindlessRageCharmedImmunitySourceId = "feature-barbarian-mindless-rage-charmed-immunity";
+const mindlessRageFrightenedImmunitySourceId =
+  "feature-barbarian-mindless-rage-frightened-immunity";
+const frenzyDamageBonusLabel = "Frenzy";
+export const barbarianRageActionKey = "barbarian-rage";
+export const barbarianRecklessAttackActionKey = "barbarian-reckless-attack";
+export const barbarianIntimidatingPresenceActionKey = "barbarian-intimidating-presence";
+const intimidatingPresenceUsesTotal = 1;
 const rageAdvantageIndicator: FeatureIndicator = {
   label: "Advantage",
   tone: "advantage",
@@ -109,9 +117,62 @@ function hasActiveCondition(
   return hasStatusCondition(character.statusEntries, conditionName);
 }
 
+function isPathOfTheBerserker(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Barbarian" &&
+    character.subclassId === pathOfTheBerserkerSubclassId &&
+    character.level >= 3
+  );
+}
+
+function hasBerserkerIntimidatingPresence(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return isPathOfTheBerserker(character) && character.level >= 14;
+}
+
+function hasBerserkerMindlessRage(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return isPathOfTheBerserker(character) && character.level >= 6;
+}
+
+function getMindlessRageImmunityEntries(): DerivedFeatureStatusEntry[] {
+  return [
+    {
+      id: mindlessRageCharmedImmunitySourceId,
+      sourceId: mindlessRageCharmedImmunitySourceId,
+      group: STATUS_ENTRY_GROUP.IMMUNITIES,
+      value: CONDITION_NAME.CHARMED,
+      source: "Mindless Rage",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.LINKED,
+        linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+        linkedValue: EFFECT_NAME.RAGE
+      }
+    },
+    {
+      id: mindlessRageFrightenedImmunitySourceId,
+      sourceId: mindlessRageFrightenedImmunitySourceId,
+      group: STATUS_ENTRY_GROUP.IMMUNITIES,
+      value: CONDITION_NAME.FRIGHTENED,
+      source: "Mindless Rage",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.LINKED,
+        linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+        linkedValue: EFFECT_NAME.RAGE
+      }
+    }
+  ];
+}
+
 export function normalizeBarbarianRageState(
   value: unknown,
-  character: Pick<Character, "className" | "level">
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): CharacterRageFeatureState {
   const featureRow = getBarbarianFeatureRow(character.level);
   const canRage =
@@ -133,6 +194,8 @@ export function normalizeBarbarianRageState(
   const totalWeaponMasteries = hasBarbarianFeature(character, CLASS_FEATURE.WEAPON_MASTERY)
     ? (featureRow?.weaponMastery ?? 0)
     : 0;
+  const recklessAttackRoundsRemaining = Number(record.recklessAttackRoundsRemaining);
+  const intimidatingPresenceUsesExpended = Number(record.intimidatingPresenceUsesExpended);
 
   return {
     usesExpended: Number.isFinite(usesExpended)
@@ -143,7 +206,32 @@ export function normalizeBarbarianRageState(
       record.weaponMasteries,
       barbarianWeaponMasteryOptions,
       totalWeaponMasteries
-    )
+    ),
+    recklessAttackRoundsRemaining: hasBarbarianFeature(character, CLASS_FEATURE.RECKLESS_ATTACK)
+      ? Number.isFinite(recklessAttackRoundsRemaining)
+        ? Math.max(
+            0,
+            Math.min(recklessAttackDurationRounds, Math.floor(recklessAttackRoundsRemaining))
+          )
+        : 0
+      : 0,
+    recklessAttackUsedThisTurn: hasBarbarianFeature(character, CLASS_FEATURE.RECKLESS_ATTACK)
+      ? record.recklessAttackUsedThisTurn === true
+      : false,
+    frenzyPending:
+      hasBarbarianFeature(character, CLASS_FEATURE.RECKLESS_ATTACK) &&
+      isPathOfTheBerserker(character) &&
+      record.frenzyPending === true
+        ? true
+        : false,
+    intimidatingPresenceUsesExpended: hasBerserkerIntimidatingPresence(character)
+      ? Number.isFinite(intimidatingPresenceUsesExpended)
+        ? Math.max(
+            0,
+            Math.min(intimidatingPresenceUsesTotal, Math.floor(intimidatingPresenceUsesExpended))
+          )
+        : 0
+      : 0
   };
 }
 
@@ -242,6 +330,16 @@ export function getBarbarianRageDamageBonus(
   return getBarbarianFeatureRow(character.level)?.rageDamage ?? 0;
 }
 
+export function getBarbarianRecklessAttackRoundsRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.RECKLESS_ATTACK)) {
+    return 0;
+  }
+
+  return getBarbarianRageState(character).recklessAttackRoundsRemaining ?? 0;
+}
+
 export function isBarbarianRaging(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): boolean {
@@ -262,12 +360,10 @@ export function getBarbarianFeatureAction(
   const usesRemaining = Math.max(0, totalUses - rageState.usesExpended);
 
   return {
-    key: "barbarian-rage",
+    key: barbarianRageActionKey,
     name: "Rage",
     summary: rageState.active ? "Active" : "Enter a primal rage.",
-    detail: rageState.active
-      ? "Strength-based weapon and unarmed damage are empowered, Strength checks and saves show Advantage, and you gain resistance to bludgeoning, piercing, and slashing damage."
-      : "Use a Bonus Action to activate Rage and gain your Barbarian Rage bonuses.",
+    detail: "Enter into Rage state.",
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
     usesLabel: `${usesRemaining}/${totalUses} uses`,
@@ -283,26 +379,121 @@ export function getBarbarianFeatureAction(
   };
 }
 
+function getBarbarianRecklessAttackAction(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): FeatureActionCard | null {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.RECKLESS_ATTACK)) {
+    return null;
+  }
+
+  const rageState = getBarbarianRageState(character);
+  const roundsRemaining = rageState.recklessAttackRoundsRemaining ?? 0;
+  const summary =
+    roundsRemaining > 0
+      ? `Active for ${roundsRemaining} round${roundsRemaining === 1 ? "" : "s"}.`
+      : "Attack with ferocity at the cost of defense.";
+
+  return {
+    key: barbarianRecklessAttackActionKey,
+    name: "Reckless Attack",
+    summary,
+    detail: "Gain reckless advantage at a cost.",
+    valueLabel: "Once at start of turn",
+    breakdown: "Gain reckless advantage at a cost.",
+    economyType: ECONOMY_TYPE.FREE,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    isActive: roundsRemaining > 0,
+    disabled: rageState.recklessAttackUsedThisTurn === true,
+    disabledReason:
+      rageState.recklessAttackUsedThisTurn === true
+        ? "Reckless Attack has already been used this turn."
+        : undefined
+  };
+}
+
+function getBarbarianIntimidatingPresenceAction(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): FeatureActionCard | null {
+  if (!hasBerserkerIntimidatingPresence(character)) {
+    return null;
+  }
+
+  const rageState = getBarbarianRageState(character);
+  const usesRemaining = Math.max(
+    0,
+    intimidatingPresenceUsesTotal - (rageState.intimidatingPresenceUsesExpended ?? 0)
+  );
+  const rageUsesRemaining = getBarbarianRageUsesRemaining(character);
+  const isUsingRageCharges = usesRemaining <= 0;
+  const disabled = usesRemaining <= 0 && rageUsesRemaining <= 0;
+
+  return {
+    key: barbarianIntimidatingPresenceActionKey,
+    name: "Intimidating Presence",
+    summary: "Frighten nearby creatures.",
+    detail: "Project fear nearby.",
+    breakdown: "Project fear nearby.",
+    economyType: ECONOMY_TYPE.BONUS_ACTION,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    usesRemaining,
+    usesTotal: intimidatingPresenceUsesTotal,
+    usesInlineLabel: isUsingRageCharges ? "| Uses Rage Charges" : undefined,
+    disabled,
+    disabledReason: disabled
+      ? "No Intimidating Presence or Rage uses remaining."
+      : undefined
+  };
+}
+
+export function getBarbarianFeatureActions(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): FeatureActionCard[] {
+  return [
+    getBarbarianFeatureAction(character),
+    getBarbarianRecklessAttackAction(character),
+    getBarbarianIntimidatingPresenceAction(character)
+  ].filter((entry): entry is FeatureActionCard => entry !== null);
+}
+
 export function getBarbarianWeaponDamageBonuses(
-  character: Pick<Character, "className" | "level" | "classFeatureState">,
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>,
   context: WeaponFeatureContext
 ): FeatureDamageBonus[] {
-  if (!isBarbarianRaging(character) || context.ability !== "STR") {
-    return [];
-  }
+  const damageBonuses: FeatureDamageBonus[] = [];
 
-  const rageDamage = getBarbarianRageDamageBonus(character);
+  if (isBarbarianRaging(character) && context.ability === "STR") {
+    const rageDamage = getBarbarianRageDamageBonus(character);
 
-  if (rageDamage <= 0) {
-    return [];
-  }
-
-  return [
-    {
-      label: "Rage",
-      value: rageDamage
+    if (rageDamage > 0) {
+      damageBonuses.push({
+        label: "Rage",
+        value: rageDamage
+      });
     }
-  ];
+  }
+
+  if (
+    isPathOfTheBerserker(character) &&
+    isBarbarianRaging(character) &&
+    context.ability === "STR" &&
+    (context.attackKind === "weapon" || context.attackKind === "unarmed") &&
+    getBarbarianRageState(character).frenzyPending === true
+  ) {
+    const rageDamage = getBarbarianRageDamageBonus(character);
+
+    if (rageDamage > 0) {
+      damageBonuses.push({
+        label: frenzyDamageBonusLabel,
+        formula: `${rageDamage}d6`,
+        displayLabel: `${rageDamage}d6`
+      });
+    }
+  }
+
+  return damageBonuses;
 }
 
 export function getBarbarianSavingThrowIndicators(
@@ -447,65 +638,89 @@ export function getBarbarianAbilityScoreBonuses(
 }
 
 export function getBarbarianDerivedConditions(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
 ): DerivedFeatureStatusEntry[] {
-  if (!isBarbarianRaging(character)) {
-    return [];
+  const derivedEntries: DerivedFeatureStatusEntry[] = [];
+
+  if (isBarbarianRaging(character)) {
+    derivedEntries.push(
+      {
+        id: "feature-rage-effect",
+        sourceId: rageStatusSourceId,
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: rageConditionName,
+        source: "Barbarian",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+        duration: {
+          kind: STATUS_DURATION_KIND.MINUTES,
+          amount: 10
+        }
+      },
+      {
+        id: "feature-rage-resistance-bludgeoning",
+        sourceId: rageStatusSourceId,
+        group: STATUS_ENTRY_GROUP.RESISTANCES,
+        value: DAMAGE_TYPE.BLUDGEONING,
+        source: "Barbarian",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+        duration: {
+          kind: STATUS_DURATION_KIND.LINKED,
+          linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+          linkedValue: EFFECT_NAME.RAGE
+        }
+      },
+      {
+        id: "feature-rage-resistance-piercing",
+        sourceId: rageStatusSourceId,
+        group: STATUS_ENTRY_GROUP.RESISTANCES,
+        value: DAMAGE_TYPE.PIERCING,
+        source: "Barbarian",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+        duration: {
+          kind: STATUS_DURATION_KIND.LINKED,
+          linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+          linkedValue: EFFECT_NAME.RAGE
+        }
+      },
+      {
+        id: "feature-rage-resistance-slashing",
+        sourceId: rageStatusSourceId,
+        group: STATUS_ENTRY_GROUP.RESISTANCES,
+        value: DAMAGE_TYPE.SLASHING,
+        source: "Barbarian",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+        duration: {
+          kind: STATUS_DURATION_KIND.LINKED,
+          linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+          linkedValue: EFFECT_NAME.RAGE
+        }
+      }
+    );
+
+    if (hasBerserkerMindlessRage(character)) {
+      derivedEntries.push(...getMindlessRageImmunityEntries());
+    }
   }
 
-  return [
-    {
-      id: "feature-rage-effect",
-      sourceId: rageStatusSourceId,
+  const recklessAttackRoundsRemaining = getBarbarianRecklessAttackRoundsRemaining(character);
+
+  if (recklessAttackRoundsRemaining > 0) {
+    derivedEntries.push({
+      id: recklessAttackStatusSourceId,
+      sourceId: recklessAttackStatusSourceId,
       group: STATUS_ENTRY_GROUP.EFFECTS,
-      value: rageConditionName,
-      source: "Barbarian",
+      value: "Reckless Attack",
+      source: "Reckless Attack",
       sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
       duration: {
-        kind: STATUS_DURATION_KIND.MINUTES,
-        amount: 10
+        kind: STATUS_DURATION_KIND.ROUNDS,
+        amount: recklessAttackRoundsRemaining
       }
-    },
-    {
-      id: "feature-rage-resistance-bludgeoning",
-      sourceId: rageStatusSourceId,
-      group: STATUS_ENTRY_GROUP.RESISTANCES,
-      value: DAMAGE_TYPE.BLUDGEONING,
-      source: "Barbarian",
-      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
-      duration: {
-        kind: STATUS_DURATION_KIND.LINKED,
-        linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
-        linkedValue: EFFECT_NAME.RAGE
-      }
-    },
-    {
-      id: "feature-rage-resistance-piercing",
-      sourceId: rageStatusSourceId,
-      group: STATUS_ENTRY_GROUP.RESISTANCES,
-      value: DAMAGE_TYPE.PIERCING,
-      source: "Barbarian",
-      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
-      duration: {
-        kind: STATUS_DURATION_KIND.LINKED,
-        linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
-        linkedValue: EFFECT_NAME.RAGE
-      }
-    },
-    {
-      id: "feature-rage-resistance-slashing",
-      sourceId: rageStatusSourceId,
-      group: STATUS_ENTRY_GROUP.RESISTANCES,
-      value: DAMAGE_TYPE.SLASHING,
-      source: "Barbarian",
-      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
-      duration: {
-        kind: STATUS_DURATION_KIND.LINKED,
-        linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
-        linkedValue: EFFECT_NAME.RAGE
-      }
-    }
-  ];
+    });
+  }
+
+  return derivedEntries;
 }
 
 export function activateBarbarianRage(character: Character): Character {
@@ -525,14 +740,90 @@ export function activateBarbarianRage(character: Character): Character {
     return character;
   }
 
+  const nextStatusEntries = hasBerserkerMindlessRage(character)
+    ? removeCharacterConditionsForImmunities(
+        character.statusEntries,
+        getMindlessRageImmunityEntries()
+      )
+    : character.statusEntries;
+
   return {
     ...character,
+    statusEntries: nextStatusEntries,
     classFeatureState: {
       ...character.classFeatureState,
       rage: {
         ...rageState,
         usesExpended: rageState.usesExpended + 1,
         active: true
+      }
+    }
+  };
+}
+
+export function activateBarbarianRecklessAttack(character: Character): Character {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.RECKLESS_ATTACK)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+
+  if (rageState.recklessAttackUsedThisTurn === true) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        recklessAttackRoundsRemaining: recklessAttackDurationRounds,
+        recklessAttackUsedThisTurn: true,
+        frenzyPending:
+          isPathOfTheBerserker(character) && rageState.active === true ? true : false
+      }
+    }
+  };
+}
+
+export function activateBarbarianIntimidatingPresence(character: Character): Character {
+  if (!hasBerserkerIntimidatingPresence(character)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+  const usesRemaining = Math.max(
+    0,
+    intimidatingPresenceUsesTotal - (rageState.intimidatingPresenceUsesExpended ?? 0)
+  );
+
+  if (usesRemaining > 0) {
+    return {
+      ...character,
+      classFeatureState: {
+        ...character.classFeatureState,
+        rage: {
+          ...rageState,
+          intimidatingPresenceUsesExpended: (rageState.intimidatingPresenceUsesExpended ?? 0) + 1
+        }
+      }
+    };
+  }
+
+  const rageUsesRemaining = getBarbarianRageUsesRemaining(character);
+
+  if (rageUsesRemaining <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        usesExpended: rageState.usesExpended + 1
       }
     }
   };
@@ -555,7 +846,55 @@ export function deactivateBarbarianRage(character: Character): Character {
       ...character.classFeatureState,
       rage: {
         ...rageState,
-        active: false
+        active: false,
+        frenzyPending: false
+      }
+    }
+  };
+}
+
+export function deactivateBarbarianRecklessAttack(character: Character): Character {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.RECKLESS_ATTACK)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+
+  if (
+    (rageState.recklessAttackRoundsRemaining ?? 0) === 0 &&
+    rageState.recklessAttackUsedThisTurn !== true
+  ) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        recklessAttackRoundsRemaining: 0,
+        recklessAttackUsedThisTurn: false,
+        frenzyPending: false
+      }
+    }
+  };
+}
+
+export function consumeBarbarianFrenzyBonus(character: Character): Character {
+  const rageState = getBarbarianRageState(character);
+
+  if (rageState.frenzyPending !== true) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        frenzyPending: false
       }
     }
   };
@@ -575,7 +914,11 @@ export function applyShortRestToBarbarianFeatures(character: Character): Charact
       rage: {
         ...rageState,
         usesExpended: Math.max(0, rageState.usesExpended - 1),
-        active: false
+        active: false,
+        recklessAttackRoundsRemaining: 0,
+        recklessAttackUsedThisTurn: false,
+        frenzyPending: false,
+        intimidatingPresenceUsesExpended: rageState.intimidatingPresenceUsesExpended ?? 0
       }
     }
   };
@@ -593,12 +936,46 @@ export function applyLongRestToBarbarianFeatures(character: Character): Characte
       rage: {
         ...getBarbarianRageState(character),
         usesExpended: 0,
-        active: false
+        active: false,
+        recklessAttackRoundsRemaining: 0,
+        recklessAttackUsedThisTurn: false,
+        frenzyPending: false,
+        intimidatingPresenceUsesExpended: 0
+      }
+    }
+  };
+}
+
+export function advanceBarbarianFeaturesForNewRound(character: Character): Character {
+  if (
+    !hasBarbarianFeature(character, CLASS_FEATURE.RAGE) &&
+    !hasBarbarianFeature(character, CLASS_FEATURE.RECKLESS_ATTACK)
+  ) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+  const recklessAttackRoundsRemaining = rageState.recklessAttackRoundsRemaining ?? 0;
+
+  if (recklessAttackRoundsRemaining === 0 && rageState.recklessAttackUsedThisTurn !== true && rageState.frenzyPending !== true) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        recklessAttackRoundsRemaining: Math.max(0, recklessAttackRoundsRemaining - 1),
+        recklessAttackUsedThisTurn: false,
+        frenzyPending: false
       }
     }
   };
 }
 
 export function isBarbarianFeatureCondition(conditionName: string): boolean {
-  return conditionName.trim() === rageConditionName;
+  const normalizedCondition = conditionName.trim();
+  return normalizedCondition === rageConditionName || normalizedCondition === "Reckless Attack";
 }

@@ -104,6 +104,8 @@ function getPreparedSpellAccessListClasses(className: string, level: number): SP
   }
 
   switch (className) {
+    case "Artificer":
+      return [SPELL_LIST_CLASS.ARTIFICER];
     case "Bard":
       return [SPELL_LIST_CLASS.BARD];
     case "Cleric":

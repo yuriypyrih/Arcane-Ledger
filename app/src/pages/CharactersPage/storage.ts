@@ -244,6 +244,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     {
       className: normalizedClassName,
       level: normalizedLevel,
+      subclassId: normalizedSubclassId,
       abilities: normalizedAbilities
     }
   );

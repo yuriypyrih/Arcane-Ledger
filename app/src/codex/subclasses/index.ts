@@ -1,6 +1,7 @@
 import type { SubclassEntry } from "../entries/types";
+import { barbarianSubclassEntries } from "./barbarian";
 
-export const subclassEntries: SubclassEntry[] = [];
+export const subclassEntries: SubclassEntry[] = [...barbarianSubclassEntries];
 
 const subclassEntriesById = new Map(subclassEntries.map((entry) => [entry.id, entry] as const));
 

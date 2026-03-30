@@ -15,7 +15,10 @@ import {
   setBardExpertiseSelections
 } from "./bard";
 import {
+  consumeBarbarianFrenzyBonus,
+  deactivateBarbarianRecklessAttack,
   deactivateBarbarianRage,
+  getBarbarianRageDamageBonus,
 } from "./barbarian";
 import {
   getClericBlessedStrikesChoice,
@@ -239,7 +242,8 @@ export type {
 
 export function normalizeCharacterClassFeatureState(
   value: unknown,
-  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "abilities">>
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
 ): CharacterClassFeatureState {
   const record =
     value && typeof value === "object" ? (value as Partial<CharacterClassFeatureState>) : {};
@@ -278,7 +282,8 @@ export function getFeatureActionOptionsForCharacter(
 }
 
 export function getFeatureDamageBonusesForWeaponAction(
-  character: Pick<Character, "className" | "level" | "classFeatureState">,
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>,
   context: WeaponFeatureContext
 ): FeatureDamageBonus[] {
   return collectActiveClassFeatureState(character).getWeaponDamageBonuses?.(context) ?? [];
@@ -452,6 +457,12 @@ export function getMonkUnarmedDamageTypeLabelForCharacter(
   character: Pick<Character, "className" | "level">
 ) {
   return collectActiveClassFeatureState(character).monkUnarmedDamageTypeLabel ?? "";
+}
+
+export function getBarbarianRageDamageBonusForCharacter(
+  character: Pick<Character, "className" | "level">
+) {
+  return getBarbarianRageDamageBonus(character);
 }
 
 export function canUseMonkMartialArtsForCharacter(
@@ -1254,6 +1265,10 @@ export function markFeatureWeaponBonusUseForCharacter(
   character: Character,
   label: string
 ): Character {
+  if (label === "Frenzy") {
+    return consumeBarbarianFrenzyBonus(character);
+  }
+
   if (label === "Blessed Strikes") {
     return markClericBlessedStrikeUsed(character);
   }
@@ -1354,6 +1369,10 @@ export function removeFeatureStatusEntryForCharacter(
     normalizedValue === "SLASHING"
   ) {
     return deactivateBarbarianRage(character);
+  }
+
+  if (statusEntry.sourceId === "feature-barbarian-reckless-attack" || normalizedValue === "Reckless Attack") {
+    return deactivateBarbarianRecklessAttack(character);
   }
 
   return {

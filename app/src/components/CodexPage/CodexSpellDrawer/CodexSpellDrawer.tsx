@@ -1,8 +1,15 @@
 import { useState } from "react";
 import ConcentrationLabel from "../../ConcentrationLabel";
+import DescriptionContent from "../../DescriptionContent/DescriptionContent";
 import SpellSubtitle from "../../SpellSubtitle";
 import SpellDescriptionContent from "../../SpellDescriptionContent";
-import { ENTRY_CATEGORIES, KeywordTooltip, type SpellEntry } from "../../../codex/entries";
+import {
+  ENTRY_CATEGORIES,
+  FEATS,
+  KeywordTooltip,
+  type DivinityEntry,
+  type SpellEntry
+} from "../../../codex/entries";
 import {
   OverlayBadge,
   OverlayBody,
@@ -18,16 +25,24 @@ import {
   SheetModal,
   overlayClassNames
 } from "../../Overlay";
+import KeywordReferenceDrawer from "../../KeywordReferenceDrawer/KeywordReferenceDrawer";
+import type { ResolvedKeywordReference } from "../../../utils/codex/renderCodexRichText";
 import {
   formatCodexLabel,
   formatCodexList,
   formatSpellCastingTime,
   formatSpellComponents,
   getSpellDurationDisplayParts,
-  formatWeaponDamage,
-  renderCodexInlineText
+  formatWeaponDamage
 } from "../../../utils/codex";
+import CodexDivinityDrawer from "../CodexDivinityDrawer/CodexDivinityDrawer";
+import CodexFeatDrawer from "../CodexFeatDrawer/CodexFeatDrawer";
 import styles from "./CodexSpellDrawer.module.css";
+
+type SelectedFeatReference = {
+  feat: FEATS;
+  label: string;
+};
 
 type CodexSpellDrawerProps = {
   spell: SpellEntry;
@@ -36,6 +51,14 @@ type CodexSpellDrawerProps = {
 
 function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
+  const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
+  const [selectedDivinityReference, setSelectedDivinityReference] = useState<DivinityEntry | null>(
+    null
+  );
+  const [selectedKeyword, setSelectedKeyword] = useState<ResolvedKeywordReference | null>(null);
+  const [selectedFeatReference, setSelectedFeatReference] = useState<SelectedFeatReference | null>(
+    null
+  );
   const componentsTooltipEntry = KeywordTooltip.components ?? null;
   const spellDuration = getSpellDurationDisplayParts(spell.duration);
 
@@ -45,6 +68,26 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
         titleId="codex-spell-drawer-title"
         onClose={onClose}
         onEscape={() => {
+          if (selectedFeatReference) {
+            setSelectedFeatReference(null);
+            return;
+          }
+
+          if (selectedKeyword) {
+            setSelectedKeyword(null);
+            return;
+          }
+
+          if (selectedDivinityReference) {
+            setSelectedDivinityReference(null);
+            return;
+          }
+
+          if (selectedSpellReference) {
+            setSelectedSpellReference(null);
+            return;
+          }
+
           if (isComponentsTooltipOpen) {
             setIsComponentsTooltipOpen(false);
             return;
@@ -116,6 +159,11 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
             description={spell.description}
             className={`${overlayClassNames.descriptionList} ${overlayClassNames.descriptionSection}`}
             entryClassName={overlayClassNames.descriptionLine}
+            linkClassName={styles.inlineLinkButton}
+            onOpenKeyword={setSelectedKeyword}
+            onOpenSpell={setSelectedSpellReference}
+            onOpenDivinity={setSelectedDivinityReference}
+            onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
           />
         </OverlayBody>
       </SheetDrawer>
@@ -145,14 +193,52 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
               </div>
               {componentsTooltipEntry ? (
               <article className={styles.tooltipCard}>
-                <div className={styles.tooltipDescription}>
-                  {componentsTooltipEntry.description.map((line, index) => (
-                    <p key={`components-${index}`}>{renderCodexInlineText(line)}</p>
-                  ))}
-                </div>
+                <DescriptionContent
+                  description={componentsTooltipEntry.description}
+                  className={styles.tooltipDescription}
+                  entryClassName={overlayClassNames.descriptionLine}
+                  linkClassName={styles.inlineLinkButton}
+                  onOpenKeyword={setSelectedKeyword}
+                  onOpenSpell={setSelectedSpellReference}
+                  onOpenDivinity={setSelectedDivinityReference}
+                  onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
+                />
               </article>
             ) : null}
         </SheetModal>
+      ) : null}
+
+      {selectedSpellReference ? (
+        <CodexSpellDrawer
+          spell={selectedSpellReference}
+          onClose={() => setSelectedSpellReference(null)}
+        />
+      ) : null}
+      {selectedDivinityReference ? (
+        <CodexDivinityDrawer
+          divinity={selectedDivinityReference}
+          onClose={() => setSelectedDivinityReference(null)}
+        />
+      ) : null}
+      {selectedKeyword ? (
+        <KeywordReferenceDrawer
+          title={selectedKeyword.title}
+          entries={[
+            {
+              title: selectedKeyword.title,
+              description: selectedKeyword.description
+            }
+          ]}
+          badgeLabel="Keyword"
+          onClose={() => setSelectedKeyword(null)}
+        />
+      ) : null}
+      {selectedFeatReference ? (
+        <CodexFeatDrawer
+          feat={selectedFeatReference.feat}
+          label={selectedFeatReference.label}
+          onClose={() => setSelectedFeatReference(null)}
+        />
       ) : null}
     </>
   );

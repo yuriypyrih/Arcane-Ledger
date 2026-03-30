@@ -98,7 +98,7 @@ import { rollFormulaWithDice } from "../../../../../utils/dice";
 import {
   createDefaultDeathSaves,
   normalizeDeathSaves,
-  normalizeTemporaryHitPoints
+  swapTemporaryHitPoints
 } from "../gameplayStateUtils";
 import { getSpellOutcomeSummaryForCharacter } from "../../../../../pages/CharactersPage/spellOutcome";
 import { formatFeatureActionOptionValueLabel } from "../../../../../pages/CharactersPage/actionOutcome";
@@ -621,8 +621,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           getRangerTirelessTemporaryHitPointsFormula(currentCharacter);
         const temporaryHitPointsResult = rollFormulaWithDice(temporaryHitPointsFormula, "normal");
         const grantedTemporaryHitPoints = Math.max(1, temporaryHitPointsResult.total);
-        const nextTemporaryHitPoints = Math.max(
-          normalizeTemporaryHitPoints(nextCharacter.temporaryHitPoints),
+        const nextTemporaryHitPoints = swapTemporaryHitPoints(
+          nextCharacter.temporaryHitPoints,
           grantedTemporaryHitPoints
         );
 

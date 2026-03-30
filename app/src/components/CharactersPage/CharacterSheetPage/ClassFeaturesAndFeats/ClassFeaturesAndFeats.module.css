@@ -1,34 +1,3 @@
-.sectionToggle {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1rem;
-  width: 100%;
-  border: none;
-  background: none;
-  color: inherit;
-  cursor: pointer;
-  font: inherit;
-  padding: 0;
-  text-align: left;
-}
-
-.sectionToggleMeta {
-  display: inline-flex;
-  align-items: center;
-  color: var(--color-ink-soft);
-  flex-shrink: 0;
-  padding-top: 0.1rem;
-}
-
-.sectionToggleIcon {
-  transition: transform 160ms ease;
-}
-
-.sectionToggleIconCollapsed {
-  transform: rotate(-90deg);
-}
-
 .sectionStack {
   display: grid;
   gap: 1.6rem;
@@ -52,128 +21,6 @@
   font-size: 0.84rem;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-}
-
-.featureList {
-  display: grid;
-  gap: 1rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.featureItem {
-  display: grid;
-  gap: 0.65rem;
-}
-
-.featureItem + .featureItem {
-  border-top: 1px solid rgba(75, 47, 29, 0.12);
-  padding-top: 1rem;
-}
-
-.featureHeading {
-  margin: 0;
-  color: var(--color-ink);
-  font-size: 1rem;
-  font-weight: 700;
-  line-height: 1.5;
-}
-
-.featureHeadingRow {
-  display: flex;
-  align-items: baseline;
-  gap: 0.75rem;
-}
-
-.featureHeaderActions {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.7rem;
-  flex-shrink: 0;
-  margin-left: auto;
-}
-
-.featureToggleButton {
-  display: flex;
-  align-items: baseline;
-  gap: 0.55rem;
-  flex: 1 1 auto;
-  min-width: 0;
-  border: none;
-  background: none;
-  color: inherit;
-  cursor: pointer;
-  font: inherit;
-  padding: 0.2rem 0.35rem;
-  text-align: left;
-  border-radius: 0.55rem;
-  transition: background-color 160ms ease;
-}
-
-.featureToggleButton:hover,
-.featureToggleButton:focus-visible {
-  background: rgba(75, 47, 29, 0.06);
-}
-
-.featureTrackingButton {
-  border: none;
-  background: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.38rem;
-  color: var(--color-ink-soft);
-  cursor: pointer;
-  flex-shrink: 0;
-  font: inherit;
-  font-size: 0.74rem;
-  font-style: italic;
-  letter-spacing: 0.04em;
-  opacity: 0.8;
-  padding: 0;
-}
-
-.featureTrackingButtonTracked svg {
-  color: #2f7a3f;
-}
-
-.featureTrackingButtonSemiTracked svg {
-  color: #2f6fb5;
-}
-
-.featureTrackingButtonNotTracked svg {
-  color: #b54545;
-}
-
-.featureTrackingButton:hover {
-  opacity: 1;
-}
-
-.featureInputRequired {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  color: #b54545;
-  font-size: 0.74rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-
-.featureToggleIcon {
-  color: var(--color-ink-soft);
-  flex-shrink: 0;
-  transition: transform 160ms ease;
-}
-
-.featureToggleIconCollapsed {
-  transform: rotate(-90deg);
-}
-
-.descriptionList {
-  display: grid;
-  gap: 0.5rem;
 }
 
 .featureOptionRow {
@@ -227,33 +74,6 @@
   font-size: 0.76rem;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-}
-
-.descriptionLine {
-  margin: 0;
-  color: var(--color-ink);
-  line-height: 1.55;
-}
-
-.descriptionLine strong {
-  font-weight: 700;
-}
-
-.keywordButton {
-  border: none;
-  background: none;
-  color: var(--color-accent);
-  cursor: pointer;
-  font: inherit;
-  font-weight: 600;
-  padding: 0;
-  text-decoration: underline;
-  text-decoration-thickness: 1px;
-  text-underline-offset: 3px;
-}
-
-.keywordButton:hover {
-  color: #6f3d1b;
 }
 
 .emptyFeatureText {
@@ -329,24 +149,6 @@
 }
 
 @media (max-width: 720px) {
-  .sectionToggle {
-    gap: 0.8rem;
-  }
-
-  .featureHeadingRow {
-    align-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  .featureToggleButton {
-    width: 100%;
-  }
-
-  .featureTrackingButton {
-    margin-left: 0;
-  }
-
-  .featureHeaderActions,
   .featureChoiceRow {
     width: 100%;
   }

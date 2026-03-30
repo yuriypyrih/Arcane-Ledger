@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { ChevronDown, Pencil, Plus, TriangleAlert } from "lucide-react";
+import { Pencil, Plus, TriangleAlert } from "lucide-react";
 import {
   CLASS_FEATURE,
   getFeatureTrackingState,
@@ -60,6 +60,10 @@ import type {
   WEAPON_PROFICIENCY
 } from "../../../../types";
 import { formatCodexLabel } from "../../../../utils/codex";
+import {
+  FeatureDisclosureRow,
+  featureDisclosureStyles
+} from "../../../FeatureDisclosure";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./ClassFeaturesAndFeats.module.css";
 import {
@@ -115,7 +119,10 @@ function FeatureDescriptionLines({
   return (
     <>
       {lines.map((line, index) => (
-        <p key={`${featureKey}-line-${index}`} className={styles.descriptionLine}>
+        <p
+          key={`${featureKey}-line-${index}`}
+          className={featureDisclosureStyles.descriptionLine}
+        >
           {renderDescriptionLine(
             line,
             onOpenKeyword,
@@ -764,8 +771,8 @@ function ClassFeatureList({
   }
 
   return (
-    <ul className={styles.featureList}>
-      {features.map((featureRow) => {
+    <ul className={featureDisclosureStyles.featureList}>
+      {features.map((featureRow, index) => {
         const featureDetails = featureRow.details;
         const isUnlocked = featureRow.level <= character.level;
         const isFeatureExpanded = expandedFeatureKeys.includes(featureRow.key);
@@ -831,41 +838,27 @@ function ClassFeatureList({
             blessedStrikesChoice === null);
 
         return (
-          <li key={featureRow.key} className={styles.featureItem}>
-            <div className={styles.featureHeadingRow}>
-              <button
-                type="button"
-                className={styles.featureToggleButton}
-                onClick={() => onToggleFeature(featureRow.key)}
-                aria-expanded={isFeatureExpanded}
-                aria-controls={featurePanelId}
-              >
-                <span className={styles.featureHeading}>
-                  {`Level ${featureRow.level}: ${formatCodexLabel(featureRow.feature)}`}
+          <FeatureDisclosureRow
+            key={featureRow.key}
+            as="li"
+            title={`Level ${featureRow.level}: ${formatCodexLabel(featureRow.feature)}`}
+            isExpanded={isFeatureExpanded}
+            onToggle={() => onToggleFeature(featureRow.key)}
+            bodyId={featurePanelId}
+            bodyClassName={featureDisclosureStyles.descriptionList}
+            trackingButton={renderTrackingButton(getFeatureTrackingState(featureDetails))}
+            headerMeta={
+              isInputRequired ? (
+                <span className={featureDisclosureStyles.featureInputRequired}>
+                  <TriangleAlert size={16} aria-hidden="true" />
+                  INPUT REQUIRED
                 </span>
-                <ChevronDown
-                  size={16}
-                  aria-hidden="true"
-                  className={clsx(
-                    styles.featureToggleIcon,
-                    !isFeatureExpanded && styles.featureToggleIconCollapsed
-                  )}
-                />
-                {isInputRequired ? (
-                  <span className={styles.featureInputRequired}>
-                    <TriangleAlert size={16} aria-hidden="true" />
-                    INPUT REQUIRED
-                  </span>
-                ) : null}
-              </button>
-              <div className={styles.featureHeaderActions}>
-                {renderTrackingButton(getFeatureTrackingState(featureDetails))}
-              </div>
-            </div>
-
-            {isFeatureExpanded ? (
-              featureDetails.description.length > 0 ? (
-                <div id={featurePanelId} className={styles.descriptionList}>
+              ) : null
+            }
+            showDivider={index > 0}
+          >
+            {featureDetails.description.length > 0 ? (
+              <div>
                   {featureRow.feature === CLASS_FEATURE.DIVINE_ORDER ? (
                     <>
                       <FeatureDescriptionLines
@@ -1625,14 +1618,13 @@ function ClassFeatureList({
                       </div>
                     )
                   ) : null}
-                </div>
-              ) : (
-                <p id={featurePanelId} className={styles.emptyFeatureText}>
-                  Details coming soon.
-                </p>
-              )
-            ) : null}
-          </li>
+              </div>
+            ) : (
+              <p className={styles.emptyFeatureText}>
+                Details coming soon.
+              </p>
+            )}
+          </FeatureDisclosureRow>
         );
       })}
     </ul>

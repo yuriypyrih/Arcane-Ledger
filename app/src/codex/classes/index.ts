@@ -1,3 +1,4 @@
+export * from "./artificer";
 export * from "./barbarian";
 export * from "./bard";
 export * from "./cleric";

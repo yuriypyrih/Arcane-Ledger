@@ -14,16 +14,22 @@ import {
   normalizeBardFeatureState
 } from "./bard";
 import {
+  activateBarbarianIntimidatingPresence,
+  activateBarbarianRecklessAttack,
   activateBarbarianRage,
+  advanceBarbarianFeaturesForNewRound,
   applyLongRestToBarbarianFeatures,
   applyShortRestToBarbarianFeatures,
+  barbarianIntimidatingPresenceActionKey,
+  barbarianRageActionKey,
+  barbarianRecklessAttackActionKey,
   getBarbarianAbilityCheckIndicators,
   getBarbarianAbilityScoreBonuses,
   getBarbarianArmorClassBonuses,
   getBarbarianArmorClassModes,
   getBarbarianCoreStatIndicators,
   getBarbarianDerivedConditions,
-  getBarbarianFeatureAction,
+  getBarbarianFeatureActions,
   getBarbarianSavingThrowIndicators,
   getBarbarianSkillIndicators,
   getBarbarianSpeedBonuses,
@@ -237,9 +243,8 @@ const classFeatureModules = {
     stateKey: "rage",
     normalizeState: normalizeBarbarianRageState,
     collectDerived(character) {
-      const rageAction = getBarbarianFeatureAction(character);
       return {
-        actions: rageAction ? [rageAction] : [],
+        actions: getBarbarianFeatureActions(character),
         getWeaponDamageBonuses: (context) => getBarbarianWeaponDamageBonuses(character, context),
         savingThrowIndicators: getBarbarianSavingThrowIndicators(character),
         abilityCheckIndicators: getBarbarianAbilityCheckIndicators(character),
@@ -261,10 +266,23 @@ const classFeatureModules = {
       };
     },
     handleAction(character, actionKey) {
-      return actionKey === "barbarian-rage" ? activateBarbarianRage(character) : null;
+      if (actionKey === barbarianRageActionKey) {
+        return activateBarbarianRage(character);
+      }
+
+      if (actionKey === barbarianRecklessAttackActionKey) {
+        return activateBarbarianRecklessAttack(character);
+      }
+
+      if (actionKey === barbarianIntimidatingPresenceActionKey) {
+        return activateBarbarianIntimidatingPresence(character);
+      }
+
+      return null;
     },
     applyShortRest: applyShortRestToBarbarianFeatures,
-    applyLongRest: applyLongRestToBarbarianFeatures
+    applyLongRest: applyLongRestToBarbarianFeatures,
+    advanceRound: advanceBarbarianFeaturesForNewRound
   },
   Bard: {
     className: "Bard",
@@ -620,6 +638,7 @@ export function collectActiveClassFeatureState(
     Partial<
       Pick<
         Character,
+        | "subclassId"
         | "classFeatureState"
         | "abilities"
         | "statusEntries"
@@ -639,6 +658,7 @@ export function collectActiveClassFeatureState(
 
   const safeCharacter: CollectedClassFeatureCharacter = {
     abilities: createDefaultAbilities(),
+    subclassId: undefined,
     classFeatureState: {},
     statusEntries: [],
     equipment: [],

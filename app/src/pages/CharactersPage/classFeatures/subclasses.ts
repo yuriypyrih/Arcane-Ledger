@@ -1,4 +1,4 @@
-import type { ReactionEntry, SpellEntry } from "../../../codex/entries";
+import { getReactionEntryById, type ReactionEntry, type SpellEntry } from "../../../codex/entries";
 import { getSelectedSubclassForCharacter } from "../subclasses";
 import type { Character } from "../../../types";
 import type {
@@ -44,13 +44,35 @@ export type SubclassDerivedFeatureState = {
 };
 
 type SubclassRuntimeResolver = (
-  character: Pick<Character, "className"> & Partial<Pick<Character, "subclassId">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ) => SubclassDerivedFeatureState;
 
-const subclassRuntimeResolvers: Record<string, SubclassRuntimeResolver> = {};
+const pathOfTheBerserkerSubclassId = "barbarian-path-of-the-berserker";
+
+function getBerserkerReactionEntries(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): ReactionEntry[] {
+  if (
+    character.className !== "Barbarian" ||
+    character.subclassId !== pathOfTheBerserkerSubclassId ||
+    (character.level ?? 0) < 10
+  ) {
+    return [];
+  }
+
+  const retaliation = getReactionEntryById("reaction-berserker-retaliation");
+
+  return retaliation ? [retaliation] : [];
+}
+
+const subclassRuntimeResolvers: Record<string, SubclassRuntimeResolver> = {
+  [pathOfTheBerserkerSubclassId]: (character) => ({
+    reactionEntries: getBerserkerReactionEntries(character)
+  })
+};
 
 export function getSubclassDerivedFeatureState(
-  character: Pick<Character, "className"> & Partial<Pick<Character, "subclassId">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): SubclassDerivedFeatureState {
   const subclass = getSelectedSubclassForCharacter(character);
 

@@ -14,6 +14,7 @@ import {
   TOOL_PROFICIENCIES
 } from "./enums";
 import {
+  artificerFeatures,
   bardFeatures,
   barbarianFeatures,
   clericFeatures,
@@ -278,7 +279,7 @@ export const hardcodedCodexEntries: CodexEntry[] = [
     ],
     grantedSkillProficiencies: ["Arcana"],
     grantedToolProficiencies: [],
-    features: [],
+    features: artificerFeatures,
 
     summary:
       "A magical inventor who fuses engineering and spellwork into adaptable battlefield tools."

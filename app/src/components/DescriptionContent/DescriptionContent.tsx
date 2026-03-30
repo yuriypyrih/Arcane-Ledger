@@ -1,10 +1,6 @@
-import clsx from "clsx";
+import SpellDescriptionContent from "../SpellDescriptionContent";
 import type { SpellDescriptionEntry } from "../../codex/entries";
-import {
-  renderCodexRichText,
-  type RenderCodexRichTextOptions
-} from "../../utils/codex/renderCodexRichText";
-import styles from "./DescriptionContent.module.css";
+import type { RenderCodexRichTextOptions } from "../../utils/codex/renderCodexRichText";
 
 type DescriptionContentProps = RenderCodexRichTextOptions & {
   description: SpellDescriptionEntry[];
@@ -23,44 +19,16 @@ function DescriptionContent({
   onOpenFeat
 }: DescriptionContentProps) {
   return (
-    <div className={className}>
-      {description.map((entry, index) => {
-        if (typeof entry === "string") {
-          return (
-            <p key={`description-${index}`} className={entryClassName}>
-              {renderCodexRichText(entry, {
-                linkClassName,
-                onOpenKeyword,
-                onOpenSpell,
-                onOpenDivinity,
-                onOpenFeat
-              })}
-            </p>
-          );
-        }
-
-        const ListTag = entry.style === "number" ? "ol" : "ul";
-
-        return (
-          <ListTag key={`description-list-${index}`} className={clsx(styles.list, entryClassName)}>
-            {entry.items.map((item, itemIndex) => (
-              <li
-                key={`description-list-${index}-item-${itemIndex}`}
-                className={clsx(styles.listItem, entryClassName)}
-              >
-                {renderCodexRichText(item, {
-                  linkClassName,
-                  onOpenKeyword,
-                  onOpenSpell,
-                  onOpenDivinity,
-                  onOpenFeat
-                })}
-              </li>
-            ))}
-          </ListTag>
-        );
-      })}
-    </div>
+    <SpellDescriptionContent
+      description={description}
+      className={className}
+      entryClassName={entryClassName}
+      linkClassName={linkClassName}
+      onOpenKeyword={onOpenKeyword}
+      onOpenSpell={onOpenSpell}
+      onOpenDivinity={onOpenDivinity}
+      onOpenFeat={onOpenFeat}
+    />
   );
 }
 

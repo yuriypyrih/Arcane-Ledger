@@ -25,7 +25,7 @@
   list-style: none;
   margin: 0;
   padding: 0;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 
 .metaList li {
@@ -71,7 +71,7 @@
   text-transform: uppercase;
 }
 
-.backgroundPanel {
+.notesPanel {
   display: grid;
   gap: 0.5rem;
   border-radius: 16px;
@@ -79,60 +79,37 @@
   padding: 0.7rem 0.8rem;
 }
 
-.backgroundNotesInput {
-  min-height: 102px;
-  resize: vertical;
-}
-
-.backgroundMetaRow {
-  display: grid;
-  gap: 0.4rem;
-}
-
-.backgroundAlignmentRow {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  margin: 0;
-}
-
-.backgroundAlignmentRow span {
-  color: var(--color-ink-soft);
-  font-size: 0.78rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-
-.backgroundAlignmentLabel {
-  margin-left: auto;
-}
-
-.backgroundNotesRow {
+.notesRow {
   display: grid;
   gap: 0.25rem;
   margin: 0;
 }
 
-.backgroundNotesRow span {
+.notesRow span {
   color: var(--color-ink-soft);
   font-size: 0.78rem;
   letter-spacing: 0.07em;
   text-transform: uppercase;
 }
 
-.backgroundNotesRow strong {
+.notesRow strong {
   font-weight: 500;
   white-space: pre-wrap;
 }
 
 @media (max-width: 860px) {
   .metaList {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
 
 @media (max-width: 620px) {
+  .metaList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
   .metaList {
     grid-template-columns: 1fr;
   }

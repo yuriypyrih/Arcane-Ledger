@@ -1,9 +1,12 @@
 import clsx from "clsx";
 import type { SpellDescriptionEntry } from "../../codex/entries";
-import { renderCodexInlineText } from "../../utils/codex";
+import {
+  renderCodexRichText,
+  type RenderCodexRichTextOptions
+} from "../../utils/codex/renderCodexRichText";
 import styles from "./SpellDescriptionContent.module.css";
 
-type SpellDescriptionContentProps = {
+type SpellDescriptionContentProps = RenderCodexRichTextOptions & {
   description: SpellDescriptionEntry[];
   className?: string;
   entryClassName?: string;
@@ -12,7 +15,12 @@ type SpellDescriptionContentProps = {
 function SpellDescriptionContent({
   description,
   className,
-  entryClassName
+  entryClassName,
+  linkClassName,
+  onOpenKeyword,
+  onOpenSpell,
+  onOpenDivinity,
+  onOpenFeat
 }: SpellDescriptionContentProps) {
   return (
     <div className={className}>
@@ -20,7 +28,13 @@ function SpellDescriptionContent({
         if (typeof entry === "string") {
           return (
             <p key={`description-${index}`} className={entryClassName}>
-              {renderCodexInlineText(entry)}
+              {renderCodexRichText(entry, {
+                linkClassName,
+                onOpenKeyword,
+                onOpenSpell,
+                onOpenDivinity,
+                onOpenFeat
+              })}
             </p>
           );
         }
@@ -34,7 +48,13 @@ function SpellDescriptionContent({
                 key={`description-list-${index}-item-${itemIndex}`}
                 className={clsx(styles.listItem, entryClassName)}
               >
-                {renderCodexInlineText(item)}
+                {renderCodexRichText(item, {
+                  linkClassName,
+                  onOpenKeyword,
+                  onOpenSpell,
+                  onOpenDivinity,
+                  onOpenFeat
+                })}
               </li>
             ))}
           </ListTag>

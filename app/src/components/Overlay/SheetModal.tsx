@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { createPortal } from "react-dom";
 import styles from "./Overlay.module.css";
 import { useDismissableOverlay } from "./useDismissableOverlay";
 
@@ -25,7 +26,11 @@ function SheetModal({
     onEscape
   });
 
-  return (
+  if (typeof document === "undefined") {
+    return null;
+  }
+
+  return createPortal(
     <div
       className={[styles.modalBackdrop, backdropClassName ?? ""].join(" ").trim()}
       role="presentation"
@@ -40,7 +45,8 @@ function SheetModal({
       >
         {children}
       </section>
-    </div>
+    </div>,
+    document.body
   );
 }
 

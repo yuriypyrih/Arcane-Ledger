@@ -37,3 +37,10 @@ export function normalizeDeathSaves(value: Character["deathSaves"]): DeathSaveSt
 export function normalizeTemporaryHitPoints(value: unknown): number {
   return Math.floor(clampNumber(value, 0, 999, 0));
 }
+
+export function swapTemporaryHitPoints(currentValue: unknown, grantedValue: unknown): number {
+  return Math.max(
+    normalizeTemporaryHitPoints(currentValue),
+    normalizeTemporaryHitPoints(grantedValue)
+  );
+}

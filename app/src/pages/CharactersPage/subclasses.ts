@@ -3,6 +3,7 @@ import { getSubclassEntryById, getSubclassEntriesForClass } from "../../codex/su
 import type { Character } from "../../types";
 
 const subclassSelectionFeatureByClassName: Partial<Record<string, CLASS_FEATURE>> = {
+  Artificer: CLASS_FEATURE.ARTIFICER_SUBCLASS,
   Barbarian: CLASS_FEATURE.BARBARIAN_SUBCLASS,
   Bard: CLASS_FEATURE.BARD_SUBCLASS,
   Cleric: CLASS_FEATURE.CLERIC_SUBCLASS,

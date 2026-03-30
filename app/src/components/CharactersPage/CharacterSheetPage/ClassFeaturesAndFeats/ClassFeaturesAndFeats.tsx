@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { BadgeAlert, BadgeCheck, BadgeX, ChevronDown, Pencil } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   CLASS_FEATURE,
@@ -37,6 +37,10 @@ import type { Character, CharacterFeatEntry } from "../../../../types";
 import { resolveKeywordReference } from "../../../../utils/codex/renderCodexRichText";
 import CodexDivinityDrawer from "../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import CodexSpellDrawer from "../../../CodexPage/CodexSpellDrawer";
+import {
+  FeatureDisclosureSection,
+  FeatureTrackingBadgeButton
+} from "../../../FeatureDisclosure";
 import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import InlineToggleButton from "../InlineToggleButton";
@@ -75,24 +79,6 @@ type ClassFeaturesAndFeatsProps = {
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
 };
-
-const trackingBadgeConfig = {
-  tracked: {
-    label: "Tracked",
-    icon: BadgeCheck,
-    className: "featureTrackingButtonTracked"
-  },
-  "semi-tracked": {
-    label: "Semi Tracked",
-    icon: BadgeAlert,
-    className: "featureTrackingButtonSemiTracked"
-  },
-  "not-tracked": {
-    label: "Not Tracked",
-    icon: BadgeX,
-    className: "featureTrackingButtonNotTracked"
-  }
-} as const;
 
 const featCategoryTabs: FEAT_CATEGORY[] = [
   FEAT_CATEGORY.ORIGIN,
@@ -690,32 +676,18 @@ function ClassFeaturesAndFeats({
   }
 
   const renderTrackingButton: TrackingButtonRenderer = (trackingState) => {
-    const trackingBadge = trackingBadgeConfig[trackingState];
-
-    return (
-      <button
-        type="button"
-        className={clsx(styles.featureTrackingButton, styles[trackingBadge.className])}
-        onClick={(event) => {
-          event.stopPropagation();
-          openKeyword(trackingState);
-        }}
-      >
-        <trackingBadge.icon size={18} aria-hidden="true" />
-        <span>{trackingBadge.label}</span>
-      </button>
-    );
+    return <FeatureTrackingBadgeButton trackingState={trackingState} onClick={openKeyword} />;
   };
 
   return (
-    <article className={clsx(shared.sectionCard, className)}>
-      <button
-        type="button"
-        className={styles.sectionToggle}
-        onClick={toggleSection}
-        aria-expanded={isExpanded}
-        aria-controls="class-features-and-feats-content"
-      >
+    <>
+      <FeatureDisclosureSection
+      className={clsx(shared.sectionCard, className)}
+      bodyId="class-features-and-feats-content"
+      bodyClassName={styles.sectionStack}
+      isExpanded={isExpanded}
+      onToggle={toggleSection}
+      header={
         <div>
           <p className={shared.eyebrow}>Build</p>
           <h2 className={shared.title}>Class Features &amp; Feats</h2>
@@ -723,20 +695,8 @@ function ClassFeaturesAndFeats({
             Review unlocked class features and manage feat selections for your build.
           </p>
         </div>
-        <span className={styles.sectionToggleMeta}>
-          <ChevronDown
-            size={18}
-            aria-hidden="true"
-            className={clsx(
-              styles.sectionToggleIcon,
-              !isExpanded && styles.sectionToggleIconCollapsed
-            )}
-          />
-        </span>
-      </button>
-
-      {isExpanded ? (
-        <div id="class-features-and-feats-content" className={styles.sectionStack}>
+      }
+    >
           <section className={styles.subsection} aria-labelledby="character-feats-title">
             <div className={styles.subsectionHeader}>
               <h3 id="character-feats-title" className={styles.subsectionTitle}>
@@ -828,8 +788,7 @@ function ClassFeaturesAndFeats({
               </p>
             )}
           </section>
-        </div>
-      ) : null}
+      </FeatureDisclosureSection>
 
       {isFeatModalOpen ? (
         <FeatEditorModal
@@ -898,7 +857,7 @@ function ClassFeaturesAndFeats({
           onClose={() => setSelectedDivinityReference(null)}
         />
       ) : null}
-    </article>
+    </>
   );
 }
 

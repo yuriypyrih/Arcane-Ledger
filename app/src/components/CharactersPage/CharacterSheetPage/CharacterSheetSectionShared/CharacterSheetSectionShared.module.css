@@ -126,6 +126,17 @@
   color: #fff8ee;
 }
 
+.saveButton:disabled,
+.cancelButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+.saveButton:disabled {
+  background: linear-gradient(135deg, rgba(94, 58, 36, 0.58), rgba(143, 91, 56, 0.58));
+  color: rgba(255, 248, 238, 0.82);
+}
+
 .cancelButton {
   background: rgba(75, 47, 29, 0.09);
   color: var(--color-ink);

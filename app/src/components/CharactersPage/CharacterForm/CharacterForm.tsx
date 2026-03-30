@@ -780,7 +780,6 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               <SelectInput
                 className={styles.fieldInput}
                 invalid={Boolean(errors.subclassId)}
-                disabled={isEditing}
                 {...register("subclassId", {
                   validate: (value) =>
                     availableSubclassOptions.length === 0 ||
@@ -799,9 +798,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               {errors.subclassId ? (
                 <small className={styles.errorText}>{errors.subclassId.message}</small>
               ) : (
-                <small className={styles.helperText}>
-                  Subclass choice is locked after character creation.
-                </small>
+                <small className={styles.helperText}>Available options update with the selected class.</small>
               )}
             </label>
           ) : null}

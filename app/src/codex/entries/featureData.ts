@@ -1,4 +1,5 @@
 import {
+  artificerFeatureMap,
   bardFeatureMap,
   barbarianFeatureMap,
   clericFeatureMap,
@@ -110,6 +111,7 @@ const commonFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
 
 export const FeatureMap = {
   ...commonFeatureMap,
+  ...artificerFeatureMap,
   ...barbarianFeatureMap,
   ...bardFeatureMap,
   ...clericFeatureMap,

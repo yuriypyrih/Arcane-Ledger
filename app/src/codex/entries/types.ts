@@ -123,6 +123,7 @@ export type SubclassEntry = {
   id: string;
   name: string;
   className: string;
+  tagline?: string;
   summary: string;
   features: SubclassFeatureClassObj[];
   runtimeHookId?: string;
