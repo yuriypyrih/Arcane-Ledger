@@ -17,6 +17,7 @@ import {
   consumePaladinsSmiteUseForCharacter,
   consumeRangerFavoredEnemyUseForCharacter,
   consumeRangerTirelessUseForCharacter,
+  consumeBarbarianWarriorOfTheGodsChargesForCharacter,
   convertSpellSlotToSorceryPointsForCharacter,
   consumeNonMagicActionForCharacter,
   consumeWeaponAttackActionForCharacter,
@@ -42,9 +43,13 @@ import {
   getClericDivineInterventionSpellEntries
 } from "../../../../../pages/CharactersPage/classFeatures/cleric";
 import {
+  activateBarbarianWildHeartRage,
   barbarianBrutalStrikeActionKey,
+  barbarianRageActionKey,
+  barbarianWarriorOfTheGodsActionKey,
   getBarbarianBrutalStrikeDamageFormula,
-  getBarbarianBrutalStrikeSelectionLimit
+  getBarbarianBrutalStrikeSelectionLimit,
+  getBarbarianPowerOfTheWildsOptions
 } from "../../../../../pages/CharactersPage/classFeatures/barbarian";
 import {
   fighterIndomitableActionKey,
@@ -102,7 +107,7 @@ import {
   consumeRoundTrackerResourceForCharacter,
   normalizeDeathSaves,
   prepareCharacterForRoundTrackerResourceConsumption,
-  swapTemporaryHitPoints
+  swapTemporaryHitPointsAssignment
 } from "../gameplayStateUtils";
 import { getSpellOutcomeSummaryForCharacter } from "../../../../../pages/CharactersPage/spellOutcome";
 import { formatFeatureActionOptionValueLabel } from "../../../../../pages/CharactersPage/actionOutcome";
@@ -135,6 +140,8 @@ import LayOnHandsModal from "./LayOnHandsModal";
 import MysticArcanumModal from "./MysticArcanumModal";
 import SneakAttackModal from "./SneakAttackModal";
 import BrutalStrikeModal from "./BrutalStrikeModal";
+import WildHeartRageModal from "./WildHeartRageModal";
+import WarriorOfTheGodsModal from "./WarriorOfTheGodsModal";
 import {
   FeatureActionCardButton,
   FeatureActionOptionButton,
@@ -168,6 +175,12 @@ type ActionsWidgetProps = {
 
 function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [selectedFeatureActionKey, setSelectedFeatureActionKey] = useState<string | null>(null);
+  const [selectedWildHeartRageOptionKey, setSelectedWildHeartRageOptionKey] = useState<
+    string | null
+  >(null);
+  const [selectedWildHeartPowerOptionKey, setSelectedWildHeartPowerOptionKey] = useState<
+    string | null
+  >(null);
   const [selectedBrutalStrikeOptionKeys, setSelectedBrutalStrikeOptionKeys] = useState<string[]>(
     []
   );
@@ -215,7 +228,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const isFontOfMagicSelected = selectedFeatureAction?.key === fontOfMagicActionKey;
   const isMetamagicSelected = selectedFeatureAction?.key === metamagicActionKey;
   const isSneakAttackSelected = selectedFeatureAction?.key === rogueSneakAttackActionKey;
+  const isBarbarianRageSelected = selectedFeatureAction?.key === barbarianRageActionKey;
   const isBrutalStrikeSelected = selectedFeatureAction?.key === barbarianBrutalStrikeActionKey;
+  const isWarriorOfTheGodsSelected =
+    selectedFeatureAction?.key === barbarianWarriorOfTheGodsActionKey;
   const brutalStrikeSelectionLimit = useMemo(
     () =>
       isBrutalStrikeSelected ? getBarbarianBrutalStrikeSelectionLimit(character) : 0,
@@ -225,6 +241,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     () =>
       isBrutalStrikeSelected ? getBarbarianBrutalStrikeDamageFormula(character) : "1d10",
     [character, isBrutalStrikeSelected]
+  );
+  const selectedWildHeartPowerOptions = useMemo(
+    () => (isBarbarianRageSelected ? getBarbarianPowerOfTheWildsOptions(character) : []),
+    [character, isBarbarianRageSelected]
   );
   const remainingSorceryPoints = useMemo(
     () => getSorceryPointsRemainingForCharacter(character),
@@ -448,6 +468,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         isDivineInterventionSelected ||
         isIndomitableSelected ||
         isLayOnHandsSelected ||
+        isWarriorOfTheGodsSelected ||
         isFontOfMagicSelected ||
         isMysticArcanumSelected ||
         isSneakAttackSelected ||
@@ -472,6 +493,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     faithfulSteedSpellEntry,
     favoredEnemySpellEntry,
     isLayOnHandsSelected,
+    isWarriorOfTheGodsSelected,
     isFontOfMagicSelected,
     isMysticArcanumSelected,
     isFaithfulSteedSelected,
@@ -577,6 +599,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
   function handleFeatureActionClick(action: FeatureActionCard) {
     if (action.interaction === "select") {
+      if (action.key === barbarianRageActionKey) {
+        setSelectedWildHeartRageOptionKey(null);
+        setSelectedWildHeartPowerOptionKey(null);
+      }
       setSelectedFeatureActionKey(action.key);
       return;
     }
@@ -657,9 +683,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           getRangerTirelessTemporaryHitPointsFormula(currentCharacter);
         const temporaryHitPointsResult = rollFormulaWithDice(temporaryHitPointsFormula, "normal");
         const grantedTemporaryHitPoints = Math.max(1, temporaryHitPointsResult.total);
-        const nextTemporaryHitPoints = swapTemporaryHitPoints(
+        const nextTemporaryHitPointsAssignment = swapTemporaryHitPointsAssignment(
           nextCharacter.temporaryHitPoints,
-          grantedTemporaryHitPoints
+          nextCharacter.temporaryHitPointsSource,
+          grantedTemporaryHitPoints,
+          "Tireless"
         );
 
         openDiceRoller({
@@ -671,7 +699,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
         const updatedCharacter = {
           ...nextCharacter,
-          temporaryHitPoints: nextTemporaryHitPoints
+          ...nextTemporaryHitPointsAssignment
         };
 
         return roundTrackerResource
@@ -690,27 +718,33 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   }
 
   function handleWeaponActionClick(action: WeaponAction) {
-    openDiceRoller({
-      title: `${action.name} attack`,
-      formula: action.rollFormula,
-      formulaDisplay: action.rollFormulaDisplay,
-      description: getWeaponActionRollDescription(action)
-    });
-
     onPersistCharacter((currentCharacter) => {
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
       const preparedCharacter = prepareCharacterForResourceConsumption(
         currentCharacter,
         roundTrackerResource
       );
-      const nextCharacter = action.damageBonusEntries.reduce(
+      const preparedWeaponActionEntry = getCombatActionsForCharacter(preparedCharacter).find(
+        (combatAction): combatAction is { kind: "weapon"; action: WeaponAction } =>
+          combatAction.kind === "weapon" && combatAction.action.key === action.key
+      );
+      const preparedAction = preparedWeaponActionEntry?.action ?? action;
+
+      openDiceRoller({
+        title: `${preparedAction.name} attack`,
+        formula: preparedAction.rollFormula,
+        formulaDisplay: preparedAction.rollFormulaDisplay,
+        description: getWeaponActionRollDescription(preparedAction)
+      });
+
+      const nextCharacter = preparedAction.damageBonusEntries.reduce(
         (updatedCharacter, entry) =>
           markFeatureWeaponBonusUseForCharacter(updatedCharacter, entry.label),
         preparedCharacter
       );
 
       return roundTrackerResource
-        ? consumeWeaponAttackActionForCharacter(nextCharacter, action)
+        ? consumeWeaponAttackActionForCharacter(nextCharacter, preparedAction)
         : nextCharacter;
     });
   }
@@ -770,7 +804,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedFeatureActionKey(null);
   }
 
+  function closeWildHeartRageModal() {
+    setSelectedWildHeartRageOptionKey(null);
+    setSelectedWildHeartPowerOptionKey(null);
+    setSelectedFeatureActionKey(null);
+  }
+
   function closeLayOnHandsModal() {
+    setSelectedFeatureActionKey(null);
+  }
+
+  function closeWarriorOfTheGodsModal() {
     setSelectedFeatureActionKey(null);
   }
 
@@ -838,6 +882,42 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     closeBrutalStrikeModal();
   }
 
+  function confirmWildHeartRage() {
+    if (
+      !selectedFeatureAction ||
+      selectedFeatureAction.key !== barbarianRageActionKey ||
+      !selectedWildHeartRageOptionKey ||
+      (selectedWildHeartPowerOptions.length > 0 && !selectedWildHeartPowerOptionKey)
+    ) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateBarbarianWildHeartRage(
+        preparedCharacter,
+        selectedWildHeartRageOptionKey,
+        selectedWildHeartPowerOptionKey ?? undefined
+      );
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
+    closeWildHeartRageModal();
+  }
+
   function toggleMetamagicOptionSelection(optionKey: string) {
     setSelectedMetamagicOptionKeys((currentOptionKeys) => {
       if (currentOptionKeys.includes(optionKey)) {
@@ -901,6 +981,36 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     });
 
     closeLayOnHandsModal();
+  }
+
+  function submitWarriorOfTheGods(chargeCount: number) {
+    if (!selectedFeatureAction || chargeCount <= 0) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = consumeBarbarianWarriorOfTheGodsChargesForCharacter(
+        preparedCharacter,
+        chargeCount
+      );
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
+    closeWarriorOfTheGodsModal();
   }
 
   function rollIndomitableSavingThrow() {
@@ -1366,6 +1476,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onSubmit={submitLayOnHands}
           onClose={closeLayOnHandsModal}
         />
+      ) : selectedFeatureAction && isWarriorOfTheGodsSelected ? (
+        <WarriorOfTheGodsModal
+          action={selectedFeatureAction}
+          remainingCharges={selectedFeatureAction.usesRemaining ?? 0}
+          onSubmit={submitWarriorOfTheGods}
+          onClose={closeWarriorOfTheGodsModal}
+        />
       ) : selectedFeatureAction && isPaladinsSmiteSelected && paladinsSmiteSpellEntry ? (
         <CharacterSpellDrawer
           character={character}
@@ -1458,6 +1575,18 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onConvertSpellSlot={convertSpellSlotToSorceryPoints}
           onCreateSpellSlot={createSpellSlotFromSorceryPoints}
         />
+      ) : selectedFeatureAction && isBarbarianRageSelected && selectedFeatureActionOptions.length > 0 ? (
+        <WildHeartRageModal
+          action={selectedFeatureAction}
+          rageOptions={selectedFeatureActionOptions}
+          powerOptions={selectedWildHeartPowerOptions}
+          selectedRageOptionKey={selectedWildHeartRageOptionKey}
+          selectedPowerOptionKey={selectedWildHeartPowerOptionKey}
+          onSelectRageOption={setSelectedWildHeartRageOptionKey}
+          onSelectPowerOption={setSelectedWildHeartPowerOptionKey}
+          onConfirm={confirmWildHeartRage}
+          onClose={closeWildHeartRageModal}
+        />
       ) : selectedFeatureAction && isBrutalStrikeSelected && selectedFeatureActionOptions.length > 0 ? (
         <BrutalStrikeModal
           action={selectedFeatureAction}
@@ -1472,7 +1601,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       ) : selectedFeatureAction && selectedFeatureActionOptions.length > 0 ? (
         <FeatureActionOptionsModal
           action={selectedFeatureAction}
-          eyebrow={isMetamagicSelected ? "Sorcerer" : undefined}
+          eyebrow={
+            isMetamagicSelected ? "Sorcerer" : isBarbarianRageSelected ? "Barbarian" : undefined
+          }
           helperText={
             isMetamagicSelected
               ? metamagicSelectionLimit > 1
@@ -1500,33 +1631,36 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             ) : null
           }
         >
-          {selectedFeatureActionOptions.map((option) => (
-            <FeatureActionOptionButton
-              key={option.key}
-              option={
-                isMetamagicSelected
-                  ? {
-                      ...option,
-                      disabled:
-                        !selectedMetamagicOptionKeys.includes(option.key) &&
-                        (option.disabled === true ||
-                          selectedMetamagicOptionKeys.length >= metamagicSelectionLimit)
-                    }
-                  : option
-              }
-              character={character}
-              roundTracker={roundTracker}
-              selected={
-                isMetamagicSelected && selectedMetamagicOptionKeys.includes(option.key)
-              }
-              onClick={() =>
-                isMetamagicSelected
-                  ? toggleMetamagicOptionSelection(option.key)
-                  : activateFeatureActionOptionSelection(selectedFeatureAction.key, option)
-              }
-              formatValueLabel={formatFeatureActionOptionValueLabel}
-            />
-          ))}
+          {selectedFeatureActionOptions.map((option) => {
+            const resolvedOption =
+              isMetamagicSelected
+                ? {
+                    ...option,
+                    disabled:
+                      !selectedMetamagicOptionKeys.includes(option.key) &&
+                      (option.disabled === true ||
+                        selectedMetamagicOptionKeys.length >= metamagicSelectionLimit)
+                  }
+                : option;
+
+            return (
+              <FeatureActionOptionButton
+                key={option.key}
+                option={resolvedOption}
+                character={character}
+                roundTracker={roundTracker}
+                selected={
+                  isMetamagicSelected && selectedMetamagicOptionKeys.includes(option.key)
+                }
+                onClick={() =>
+                  isMetamagicSelected
+                    ? toggleMetamagicOptionSelection(option.key)
+                    : activateFeatureActionOptionSelection(selectedFeatureAction.key, resolvedOption)
+                }
+                formatValueLabel={formatFeatureActionOptionValueLabel}
+              />
+            );
+          })}
         </FeatureActionOptionsModal>
       ) : null}
 

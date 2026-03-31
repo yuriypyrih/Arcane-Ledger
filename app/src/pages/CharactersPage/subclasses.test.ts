@@ -83,16 +83,32 @@ describe("subclass registry", () => {
     const rageOfTheWildsRow = unlockedFeatureRows.find(
       (row) => row.level === 3 && row.classFeatures.includes(CLASS_FEATURE.RAGE_OF_THE_WILDS)
     );
+    const animalSpeakerRow = unlockedFeatureRows.find(
+      (row) => row.level === 3 && row.classFeatures.includes(CLASS_FEATURE.ANIMAL_SPEAKER)
+    );
     const powerOfTheWildsRow = unlockedFeatureRows.find(
       (row) => row.level === 14 && row.classFeatures.includes(CLASS_FEATURE.POWER_OF_THE_WILDS)
     );
 
+    expect(animalSpeakerRow?.featureOverrides?.[CLASS_FEATURE.ANIMAL_SPEAKER]).toEqual(
+      expect.objectContaining({
+        isTracked: true,
+        description: expect.arrayContaining([
+          expect.stringContaining("<spell:Beast Sense>Beast Sense</spell>"),
+          expect.stringContaining(
+            "<spell:Speak with Animals>Speak with Animals</spell>"
+          )
+        ])
+      })
+    );
     expect(rageOfTheWildsRow?.featureOverrides?.[CLASS_FEATURE.RAGE_OF_THE_WILDS]?.description).toEqual(
       expect.arrayContaining([
-        expect.stringContaining("<strong>Bear.</strong>"),
-        expect.stringContaining("<strong>Eagle.</strong>"),
-        expect.stringContaining("<strong>Wolf.</strong>")
+        expect.stringContaining("<link:tracked>Tracked</link>"),
+        expect.stringContaining("<link:not-tracked>Not Tracked</link>")
       ])
+    );
+    expect(rageOfTheWildsRow?.featureOverrides?.[CLASS_FEATURE.RAGE_OF_THE_WILDS]?.trackingState).toBe(
+      "semi-tracked"
     );
     expect(
       powerOfTheWildsRow?.featureOverrides?.[CLASS_FEATURE.POWER_OF_THE_WILDS]?.description
@@ -152,6 +168,22 @@ describe("subclass registry", () => {
         expect.stringContaining("<strong>Vitality Surge.</strong>"),
         expect.stringContaining("<strong>Life-Giving Force.</strong>")
       ])
+    );
+    expect(vitalityRow?.featureOverrides?.[CLASS_FEATURE.VITALITY_OF_THE_TREE]?.trackingState).toBe(
+      "semi-tracked"
+    );
+    expect(
+      unlockedFeatureRows.find(
+        (row) => row.level === 6 && row.classFeatures.includes(CLASS_FEATURE.BRANCHES_OF_THE_TREE)
+      )?.featureOverrides?.[CLASS_FEATURE.BRANCHES_OF_THE_TREE]
+    ).toEqual(
+      expect.objectContaining({
+        trackingState: "semi-tracked",
+        description: expect.arrayContaining([
+          expect.stringContaining("<link:tracked>Tracked</link>"),
+          expect.stringContaining("<link:not-tracked>Not Tracked</link>")
+        ])
+      })
     );
     expect(
       travelRow?.featureOverrides?.[CLASS_FEATURE.TRAVEL_ALONG_THE_TREE]?.description

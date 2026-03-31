@@ -153,6 +153,15 @@ export function isStatusEntryRemovable(entry: CharacterStatusEntry): boolean {
     return true;
   }
 
+  const isFanaticalFocusEffect =
+    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+    entry.value === "Fanatical Focus" &&
+    entry.sourceId === "feature-barbarian-fanatical-focus";
+
+  if (isFanaticalFocusEffect) {
+    return true;
+  }
+
   return (
     entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.MANUAL &&
     entry.duration.kind !== STATUS_DURATION_KIND.LINKED
@@ -160,7 +169,11 @@ export function isStatusEntryRemovable(entry: CharacterStatusEntry): boolean {
 }
 
 export function isStatusEntryDurationEditable(entry: CharacterStatusEntry): boolean {
-  return isStatusEntryRemovable(entry) && !isExhaustionStatusEntry(entry);
+  return (
+    isStatusEntryRemovable(entry) &&
+    entry.duration.kind !== STATUS_DURATION_KIND.LINKED &&
+    !isExhaustionStatusEntry(entry)
+  );
 }
 
 export function getStatusDrawerBadgeLabel(group: STATUS_ENTRY_GROUP): string {

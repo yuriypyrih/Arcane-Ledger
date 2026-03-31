@@ -8,6 +8,7 @@ import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.m
 import styles from "./GameplayForm.module.css";
 import PoolOfHealingWidget from "./widgets/PoolOfHealingWidget";
 import FocusPointsWidget from "./widgets/FocusPointsWidget";
+import RagePointsWidget from "./widgets/RagePointsWidget";
 import SorceryPointsWidget from "./widgets/SorceryPointsWidget";
 import RoundTrackerWidget from "./widgets/RoundTrackerWidget";
 import CampButton from "./widgets/CampButton";
@@ -76,6 +77,7 @@ function GameplayForm({ character, className, onPersistCharacter }: GameplayForm
         </div>
         <div className={styles.gameplayHeaderControls}>
           <PoolOfHealingWidget character={character} />
+          <RagePointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <FocusPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <SorceryPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <RoundTrackerWidget character={character} onPersistCharacter={onPersistCharacter} />

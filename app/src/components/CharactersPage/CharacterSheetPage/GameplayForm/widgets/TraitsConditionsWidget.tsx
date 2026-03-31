@@ -143,8 +143,14 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   );
   const alwaysPreparedSpellIds = useMemo(
     () =>
-      getAlwaysPreparedSpellIds(character.className, character.level, character.classFeatureState),
-    [character.classFeatureState, character.className, character.level]
+      getAlwaysPreparedSpellIds(
+        character.className,
+        character.level,
+        character.classFeatureState,
+        undefined,
+        character.subclassId
+      ),
+    [character.classFeatureState, character.className, character.level, character.subclassId]
   );
   const classSpellEntriesById = useMemo(
     () =>

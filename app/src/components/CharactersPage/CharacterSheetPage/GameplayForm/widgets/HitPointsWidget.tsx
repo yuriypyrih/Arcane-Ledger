@@ -16,6 +16,7 @@ import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShare
 import widgetShellStyles from "../GameplayWidgetShared.module.css";
 import {
   createDefaultDeathSaves,
+  createTemporaryHitPointsAssignment,
   createHpDraft,
   normalizeDeathSaves,
   normalizeMaxHitPointsMode,
@@ -259,7 +260,10 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
 
       return reconcileCharacterStatusConsequences({
         ...currentCharacter,
-        temporaryHitPoints: nextTemporaryHitPoints,
+        ...createTemporaryHitPointsAssignment(
+          nextTemporaryHitPoints,
+          nextTemporaryHitPoints > 0 ? currentCharacter.temporaryHitPointsSource : undefined
+        ),
         currentHitPoints: nextCurrentHitPoints,
         deathSaves:
           nextCurrentHitPoints > 0
@@ -357,6 +361,7 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
                   </strong>
                   <TemporaryHitPoints
                     temporaryHitPoints={temporaryHitPoints}
+                    temporaryHitPointsSource={character.temporaryHitPointsSource}
                     onPersistCharacter={onPersistCharacter}
                   />
                 </div>

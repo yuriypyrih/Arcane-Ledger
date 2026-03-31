@@ -802,6 +802,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           )
         : normalizedHitPoints,
       temporaryHitPoints: clampNumber(String(draftValues.temporaryHitPoints), 0, 999, 0),
+      temporaryHitPointsSource:
+        clampNumber(String(draftValues.temporaryHitPoints), 0, 999, 0) > 0
+          ? draftValues.temporaryHitPointsSource?.trim() || undefined
+          : undefined,
       maxHitPointsMode: draftValues.maxHitPointsMode ?? "automatic",
       background: resolvedNormalizedBackground,
       backgroundNotes: draftValues.backgroundNotes.trim(),
@@ -1689,6 +1693,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       >
         <input type="hidden" {...register("currentHitPoints", { valueAsNumber: true })} />
         <input type="hidden" {...register("temporaryHitPoints", { valueAsNumber: true })} />
+        <input type="hidden" {...register("temporaryHitPointsSource")} />
 
         {isEditing ? (
           <>

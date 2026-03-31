@@ -19,6 +19,14 @@ import {
   startRoundTrackerTurn,
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
+import {
+  MANUAL_TEMPORARY_HIT_POINTS_SOURCE,
+  createTemporaryHitPointsAssignment,
+  normalizeTemporaryHitPoints,
+  normalizeTemporaryHitPointsSource,
+  swapTemporaryHitPoints,
+  swapTemporaryHitPointsAssignment
+} from "../../../../pages/CharactersPage/shared";
 import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 
 export type DeathSaveState = {
@@ -53,16 +61,14 @@ export function normalizeDeathSaves(value: Character["deathSaves"]): DeathSaveSt
   };
 }
 
-export function normalizeTemporaryHitPoints(value: unknown): number {
-  return Math.floor(clampNumber(value, 0, 999, 0));
-}
-
-export function swapTemporaryHitPoints(currentValue: unknown, grantedValue: unknown): number {
-  return Math.max(
-    normalizeTemporaryHitPoints(currentValue),
-    normalizeTemporaryHitPoints(grantedValue)
-  );
-}
+export {
+  MANUAL_TEMPORARY_HIT_POINTS_SOURCE,
+  createTemporaryHitPointsAssignment,
+  normalizeTemporaryHitPoints,
+  normalizeTemporaryHitPointsSource,
+  swapTemporaryHitPoints,
+  swapTemporaryHitPointsAssignment
+};
 
 function getExpiredFeatureOverrideEntries(
   previousEntries: unknown,

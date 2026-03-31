@@ -1,4 +1,9 @@
-import type { DICE, ReactionEntry, SpellEntry } from "../../../codex/entries";
+import type {
+  DICE,
+  FeatureTrackingState,
+  ReactionEntry,
+  SpellEntry
+} from "../../../codex/entries";
 import { WEAPON_COMBAT_TYPE } from "../../../codex/entries";
 import type { ActionCategory, EconomyType } from "../actionEconomy";
 import type {
@@ -30,13 +35,13 @@ export type FeatureActionCard = {
   economyMultiCount?: number;
   interaction?: "activate" | "select";
   usesLabel?: string;
-  usesIcon?: "brain" | "sparkles";
+  usesIcon?: "brain" | "sparkles" | "flame";
   usesTone?: "default" | "danger";
   usesRemaining?: number;
   usesTotal?: number;
   usesSupplementaryLabel?: string;
   usesInlineLabel?: string;
-  usesInlineIcon?: "brain" | "sparkles";
+  usesInlineIcon?: "brain" | "sparkles" | "flame";
   usesInlineSuffix?: string;
   isActive?: boolean;
   consumesEconomyOnActivate?: boolean;
@@ -50,6 +55,7 @@ export type FeatureActionOptionCard = {
   name: string;
   summary: string;
   detail: string;
+  trackingState?: FeatureTrackingState;
   economyType: EconomyType;
   actionCategory: ActionCategory;
   economyMultiCount?: number;
@@ -57,7 +63,7 @@ export type FeatureActionOptionCard = {
   rangeResultLabel?: string;
   breakdown?: string;
   usesLabel?: string;
-  usesIcon?: "brain" | "sparkles";
+  usesIcon?: "brain" | "sparkles" | "flame";
   rollFormula?: string;
   rollFormulaDisplay?: string;
   rollDescription?: string;
@@ -132,10 +138,14 @@ export type SpeedFeatureContext = {
   wornBodyArmorType: "light" | "medium" | "heavy" | null;
 };
 
+export type MovementSpeedType = "walk" | "climb" | "swim" | "fly";
+
 export type FeatureSpeedBonus = {
   label: string;
   value: number;
+  movementType?: MovementSpeedType;
   setTotal?: number | null;
+  setBaseFromWalkMultiplier?: number | null;
 };
 
 export type FeatureAbilityScoreBonus = {
@@ -221,6 +231,7 @@ export type CollectedClassFeatureCharacter = Pick<Character, "className" | "leve
     | "subclassId"
     | "classFeatureState"
     | "statusEntries"
+    | "roundTracker"
     | "equipment"
     | "customEquipment"
     | "spellbookSpellIds"

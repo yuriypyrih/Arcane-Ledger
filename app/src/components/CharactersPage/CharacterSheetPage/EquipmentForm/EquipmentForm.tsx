@@ -40,6 +40,7 @@ import {
   normalizeCharacterEquipmentSelections,
   type LoadoutCodexEntry
 } from "../../../../pages/CharactersPage/proficiency";
+import { getAdditionalWeaponMasteriesForCharacter } from "../../../../pages/CharactersPage/classFeatures";
 import { getAbilityScoreForCharacter } from "../../../../pages/CharactersPage/abilities";
 import {
   getKeywordReferences,
@@ -683,6 +684,51 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
     return hasMastery ? "Active" : "Inactive";
   }, [character.weaponProficiencies, selectedLoadoutEntryData]);
+  const selectedAdditionalWeaponMasteries = useMemo(() => {
+    if (
+      !selectedLoadoutEntryData ||
+      selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS
+    ) {
+      return [];
+    }
+
+    return getAdditionalWeaponMasteriesForCharacter(character, {
+      attackKind: "weapon",
+      combatType: selectedLoadoutEntryData.type.combat,
+      properties: selectedLoadoutEntryData.properties
+    });
+  }, [character, selectedLoadoutEntryData]);
+  const selectedWeaponMasteryKeywords = useMemo(() => {
+    if (
+      !selectedLoadoutEntryData ||
+      selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS
+    ) {
+      return [];
+    }
+
+    return [
+      ...(selectedLoadoutEntryData.mastery ? [formatCodexLabel(selectedLoadoutEntryData.mastery)] : []),
+      ...selectedAdditionalWeaponMasteries.map((entry) => formatCodexLabel(entry.mastery))
+    ];
+  }, [selectedAdditionalWeaponMasteries, selectedLoadoutEntryData]);
+  const selectedWeaponMasteryLabel = useMemo(() => {
+    if (
+      !selectedLoadoutEntryData ||
+      selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS
+    ) {
+      return "None";
+    }
+
+    const baseLabel = selectedLoadoutEntryData.mastery
+      ? formatCodexLabel(selectedLoadoutEntryData.mastery)
+      : null;
+    const additionalLabels = selectedAdditionalWeaponMasteries.map(
+      (entry) =>
+        `${formatCodexLabel(entry.mastery)}${entry.source ? ` (${entry.source})` : ""}`
+    );
+
+    return [baseLabel, ...additionalLabels].filter((entry): entry is string => Boolean(entry)).join(", ") || "None";
+  }, [selectedAdditionalWeaponMasteries, selectedLoadoutEntryData]);
   const canSelectedEntryBePutOnHand =
     selectedHandDescriptor && !isSelectedEntryOnHand
       ? canWeaponBePutOnHand(selectedHandDescriptor, heldWeaponDescriptors)
@@ -1697,7 +1743,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                       <span>Properties</span>
                       <strong>{formatWeaponProperties(selectedLoadoutEntryData)}</strong>
                     </button>
-                    {selectedLoadoutEntryData.mastery ? (
+                    {selectedLoadoutEntryData.mastery || selectedAdditionalWeaponMasteries.length > 0 ? (
                       <button
                         type="button"
                         className={clsx(
@@ -1705,9 +1751,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                           styles.referenceDetailButton
                         )}
                         onClick={() =>
-                          openWeaponReference("Mastery", [
-                            formatCodexLabel(selectedLoadoutEntryData.mastery!)
-                          ])
+                          openWeaponReference("Mastery", selectedWeaponMasteryKeywords)
                         }
                       >
                         <span>
@@ -1715,7 +1759,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                             ? `Mastery (${selectedWeaponMasteryStatus})`
                             : "Mastery"}
                         </span>
-                        <strong>{formatCodexLabel(selectedLoadoutEntryData.mastery)}</strong>
+                        <strong>{selectedWeaponMasteryLabel}</strong>
                       </button>
                     ) : (
                       <div className={sheetStyles.spellDrawerDetailCard}>

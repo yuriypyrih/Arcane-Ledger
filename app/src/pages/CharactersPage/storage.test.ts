@@ -14,6 +14,7 @@ describe("normalizeCharacter", () => {
       hitPoints: 12,
       currentHitPoints: 99,
       temporaryHitPoints: -4,
+      temporaryHitPointsSource: " Vitality Surge ",
       background: "Unknown Background",
       currencies: {
         gold: -10,
@@ -28,10 +29,29 @@ describe("normalizeCharacter", () => {
     expect(normalizedCharacter?.background).toBe("");
     expect(normalizedCharacter?.currentHitPoints).toBe(12);
     expect(normalizedCharacter?.temporaryHitPoints).toBe(0);
+    expect(normalizedCharacter?.temporaryHitPointsSource).toBeUndefined();
     expect(normalizedCharacter?.currencies.gold).toBe(0);
     expect(normalizedCharacter?.currencies.silver).toBe(12);
     expect(normalizedCharacter?.preparedSpellIds).toEqual(["spell-healing-word"]);
     expect(normalizedCharacter?.cantripIds).toEqual(["spell-guidance"]);
+  });
+
+  it("keeps the temporary hit point source when temporary hit points remain", () => {
+    const normalizedCharacter = normalizeCharacter({
+      id: 8,
+      name: "Mira",
+      className: "Barbarian",
+      species: "Elf",
+      background: "Acolyte",
+      level: 3,
+      hitPoints: 12,
+      currentHitPoints: 12,
+      temporaryHitPoints: 6,
+      temporaryHitPointsSource: " Vitality Surge "
+    });
+
+    expect(normalizedCharacter?.temporaryHitPoints).toBe(6);
+    expect(normalizedCharacter?.temporaryHitPointsSource).toBe("Vitality Surge");
   });
 
   it("bakes legacy builder skill selections into class-sourced proficiency entries", () => {

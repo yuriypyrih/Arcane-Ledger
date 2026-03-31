@@ -8,9 +8,15 @@ import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./TemporaryHitPoints.module.css";
+import {
+  MANUAL_TEMPORARY_HIT_POINTS_SOURCE,
+  createTemporaryHitPointsAssignment,
+  normalizeTemporaryHitPointsSource
+} from "../GameplayForm/gameplayStateUtils";
 
 type TemporaryHitPointsProps = {
   temporaryHitPoints: number;
+  temporaryHitPointsSource?: string;
   onPersistCharacter: PersistCharacterUpdater;
 };
 
@@ -18,12 +24,19 @@ function normalizeTemporaryHitPoints(value: unknown): number {
   return Math.floor(clampNumber(value, 0, 999, 0));
 }
 
-function TemporaryHitPoints({ temporaryHitPoints, onPersistCharacter }: TemporaryHitPointsProps) {
+function TemporaryHitPoints({
+  temporaryHitPoints,
+  temporaryHitPointsSource,
+  onPersistCharacter
+}: TemporaryHitPointsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [temporaryHitPointsDraft, setTemporaryHitPointsDraft] = useState(() =>
     normalizeTemporaryHitPoints(temporaryHitPoints)
   );
   const normalizedTemporaryHitPoints = normalizeTemporaryHitPoints(temporaryHitPoints);
+  const normalizedTemporaryHitPointsSource = normalizeTemporaryHitPointsSource(
+    temporaryHitPointsSource
+  );
   const hasUnsavedChanges = temporaryHitPointsDraft !== normalizedTemporaryHitPoints;
 
   useBodyScrollLock(isModalOpen);
@@ -70,7 +83,10 @@ function TemporaryHitPoints({ temporaryHitPoints, onPersistCharacter }: Temporar
 
     onPersistCharacter((currentCharacter) => ({
       ...currentCharacter,
-      temporaryHitPoints: nextTemporaryHitPoints
+      ...createTemporaryHitPointsAssignment(
+        nextTemporaryHitPoints,
+        nextTemporaryHitPoints > 0 ? MANUAL_TEMPORARY_HIT_POINTS_SOURCE : undefined
+      )
     }));
 
     setTemporaryHitPointsDraft(nextTemporaryHitPoints);
@@ -123,6 +139,11 @@ function TemporaryHitPoints({ temporaryHitPoints, onPersistCharacter }: Temporar
                 When taking damage the temporary hit points are consumed first. They do not stack
                 and they vanish after resting at a camp.
               </p>
+              {normalizedTemporaryHitPoints > 0 && normalizedTemporaryHitPointsSource ? (
+                <p className={styles.tempHpSource}>
+                  Source: <strong>{normalizedTemporaryHitPointsSource}</strong>
+                </p>
+              ) : null}
 
               <div className={styles.tempHpFieldBlock}>
                 <span className={styles.tempHpFieldLabel}>Current Temporary HP</span>

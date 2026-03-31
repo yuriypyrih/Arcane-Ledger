@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Pencil, Pentagon, X } from "lucide-react";
+import { ChevronsUp, Pencil, Pentagon, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
@@ -30,6 +30,8 @@ import {
   getArmorClassForCharacter
 } from "../../../../pages/CharactersPage/armor";
 import {
+  getMovementSpeedBreakdownsForCharacter,
+  hasModifiedSpecialMovementForCharacter,
   getSpeedBreakdownForCharacter,
   getSpeedForCharacter
 } from "../../../../pages/CharactersPage/speed";
@@ -106,6 +108,7 @@ type CoreStatCard = {
   key: string;
   label: string;
   value: string;
+  showBoostIcon?: boolean;
   indicators?: FeatureIndicator[];
   summaryText?: string;
   detailCards?: Array<{
@@ -163,25 +166,49 @@ function formatArmorClassFormula(
   return `${total} AC = ${terms.join(" ")}`;
 }
 
-function formatSpeedTermLabel(label: string, source: string): string {
-  if (label === "Base") {
-    return `Base (${source})`;
+function formatMovementBaseFormula(
+  baseExpression: ReturnType<typeof getMovementSpeedBreakdownsForCharacter>["walk"]["baseExpression"]
+): string {
+  if (baseExpression.kind === "none") {
+    return "-";
   }
 
-  return label;
+  if (baseExpression.kind === "fixed") {
+    return `${baseExpression.value} ${baseExpression.label}`;
+  }
+
+  const sourceSuffix = baseExpression.sourceLabel ? ` (${baseExpression.sourceLabel})` : "";
+
+  if (baseExpression.multiplier === 1) {
+    return `${baseExpression.walkValue} (Walk Speed)${sourceSuffix}`;
+  }
+
+  if (baseExpression.multiplier === 0.5) {
+    const expression = `${baseExpression.walkValue} (Walk Speed) / 2`;
+
+    const formattedExpression =
+      baseExpression.walkValue % 2 === 0 ? expression : `floor(${expression})`;
+
+    return `${formattedExpression}${sourceSuffix}`;
+  }
+
+  return `${baseExpression.walkValue} (Walk Speed) x ${baseExpression.multiplier}${sourceSuffix}`;
 }
 
-function formatSpeedFormula(
-  total: number,
-  entries: Array<{ label: string; value: number }>,
-  source: string
+function formatMovementFormula(
+  movement: ReturnType<typeof getMovementSpeedBreakdownsForCharacter>["walk"]
 ): string {
-  const terms = entries.map(
-    (entry) =>
-      `${entry.value >= 0 ? "+" : ""}${entry.value} ${formatSpeedTermLabel(entry.label, source)}`
-  );
+  if (movement.total === null) {
+    return "-";
+  }
 
-  return `${total} ft = ${terms.join(" ")}`;
+  const terms = [formatMovementBaseFormula(movement.baseExpression)];
+
+  movement.entries.forEach((entry) => {
+    terms.push(`${entry.value >= 0 ? "+" : ""}${entry.value} ${entry.label}`);
+  });
+
+  return `${movement.total} ft = ${terms.join(" ")}`;
 }
 
 function formatInitiativeFormula(
@@ -394,6 +421,8 @@ function CharacterStatsForm({
   const savingThrowIndicators = getSavingThrowIndicatorsForCharacter(character);
   const armorClassBreakdown = getArmorClassBreakdownForCharacter(character);
   const speedBreakdown = getSpeedBreakdownForCharacter(character);
+  const movementSpeedBreakdowns = getMovementSpeedBreakdownsForCharacter(character);
+  const hasModifiedSpecialMovement = hasModifiedSpecialMovementForCharacter(character);
   const initiativeBreakdown = getInitiativeBreakdownForCharacter(character);
   const monkMartialArtsDie = getMonkMartialArtsDieForCharacter(character);
   const barbarianRageDamageBonus = getBarbarianRageDamageBonusForCharacter(character);
@@ -468,27 +497,44 @@ function CharacterStatsForm({
     } else if (field.label === "Initiative") {
       detailValue = formatInitiativeFormula(initiativeBreakdown.total, initiativeBreakdown.entries);
     } else if (field.label === "Speed") {
-      detailValue = formatSpeedFormula(
-        speedBreakdown.total,
-        speedBreakdown.entries,
-        speedBreakdown.source
-      );
+      detailValue = formatMovementFormula(speedBreakdown);
     }
 
     return {
       key: String(field.key),
       label: field.label,
       value: displayedCoreStats[field.key],
+      showBoostIcon: field.label === "Speed" && hasModifiedSpecialMovement,
       indicators: coreStatIndicators[field.key],
       summaryText: getKeywordDescription(field.label) ?? undefined,
-      detailCards: detailValue
-        ? [
-            {
-              label: "Formula",
-              value: detailValue
-            }
-          ]
-        : undefined
+      detailCards:
+        field.label === "Speed"
+          ? [
+              {
+                label: "WALK FORMULA (default)",
+                value: formatMovementFormula(movementSpeedBreakdowns.walk)
+              },
+              {
+                label: "CLIMB FORMULA",
+                value: formatMovementFormula(movementSpeedBreakdowns.climb)
+              },
+              {
+                label: "SWIM FORMULA",
+                value: formatMovementFormula(movementSpeedBreakdowns.swim)
+              },
+              {
+                label: "FLY FORMULA",
+                value: formatMovementFormula(movementSpeedBreakdowns.fly)
+              }
+            ]
+          : detailValue
+            ? [
+                {
+                  label: "Formula",
+                  value: detailValue
+                }
+              ]
+            : undefined
     } satisfies CoreStatCard;
   });
 
@@ -763,7 +809,12 @@ function CharacterStatsForm({
                     <RollStatePill tone={rollState.tone} label={rollState.label} />
                   ) : null}
                 </div>
-                <strong>{card.value}</strong>
+                <strong className={styles.coreStatValueRow}>
+                  <span>{card.value}</span>
+                  {card.showBoostIcon ? (
+                    <ChevronsUp size={18} className={styles.coreStatValueIcon} aria-hidden="true" />
+                  ) : null}
+                </strong>
               </button>
             );
           })}

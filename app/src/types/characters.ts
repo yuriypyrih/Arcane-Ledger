@@ -128,6 +128,7 @@ export type Character = {
   hitPoints: number;
   currentHitPoints: number;
   temporaryHitPoints: number;
+  temporaryHitPointsSource?: string;
   maxHitPointsMode?: "automatic" | "custom";
   attributeMode: AttributeMode;
   abilities: AbilityScores;
@@ -167,6 +168,7 @@ export type CharacterDraft = {
   hitPoints: number;
   currentHitPoints: number;
   temporaryHitPoints: number;
+  temporaryHitPointsSource?: string;
   maxHitPointsMode?: "automatic" | "custom";
   attributeMode: AttributeMode;
   abilities: AbilityScores;

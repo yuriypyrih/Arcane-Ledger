@@ -48,6 +48,10 @@ type SubclassRuntimeResolver = (
 ) => SubclassDerivedFeatureState;
 
 const pathOfTheBerserkerSubclassId = "barbarian-path-of-the-berserker";
+const pathOfTheWildHeartSubclassId = "barbarian-path-of-the-wild-heart";
+const pathOfTheWorldTreeSubclassId = "barbarian-path-of-the-world-tree";
+const wildHeartAnimalSpeakerSpellIds = ["spell-beast-sense", "spell-speak-with-animals"] as const;
+const wildHeartNatureSpeakerSpellId = "spell-commune-with-nature";
 
 function getBerserkerReactionEntries(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
@@ -65,9 +69,39 @@ function getBerserkerReactionEntries(
   return retaliation ? [retaliation] : [];
 }
 
+function getWorldTreeReactionEntries(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): ReactionEntry[] {
+  if (
+    character.className !== "Barbarian" ||
+    character.subclassId !== pathOfTheWorldTreeSubclassId ||
+    (character.level ?? 0) < 6
+  ) {
+    return [];
+  }
+
+  const branchesOfTheTree = getReactionEntryById("reaction-world-tree-branches-of-the-tree");
+
+  return branchesOfTheTree ? [branchesOfTheTree] : [];
+}
+
 const subclassRuntimeResolvers: Record<string, SubclassRuntimeResolver> = {
   [pathOfTheBerserkerSubclassId]: (character) => ({
     reactionEntries: getBerserkerReactionEntries(character)
+  }),
+  [pathOfTheWildHeartSubclassId]: (character) => ({
+    alwaysPreparedSpellIds:
+      character.className === "Barbarian" &&
+      character.subclassId === pathOfTheWildHeartSubclassId &&
+      (character.level ?? 0) >= 3
+        ? [
+            ...wildHeartAnimalSpeakerSpellIds,
+            ...((character.level ?? 0) >= 10 ? [wildHeartNatureSpeakerSpellId] : [])
+          ]
+        : []
+  }),
+  [pathOfTheWorldTreeSubclassId]: (character) => ({
+    reactionEntries: getWorldTreeReactionEntries(character)
   })
 };
 

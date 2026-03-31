@@ -17,6 +17,10 @@ import {
   resolveCharacterStatusEntries,
   upsertManualStatusEntry
 } from "./traits";
+import {
+  isStatusEntryDurationEditable,
+  isStatusEntryRemovable
+} from "../../components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/traitsWidgetUtils";
 import { createDefaultAbilities, createEmptyCharacter } from "./constants";
 import { normalizeCharacter } from "./storage";
 import type { Character } from "../../types";
@@ -185,5 +189,23 @@ describe("status entry immunities", () => {
     expect(getStatusEntryDescriptionEntries(entry)).toEqual(
       barbarianFeatureMap[CLASS_FEATURE.INSTINCTIVE_POUNCE]?.description
     );
+  });
+
+  it("allows fanatical focus to be removed manually but not have its duration edited", () => {
+    const entry = createCharacterStatusEntry({
+      group: STATUS_ENTRY_GROUP.EFFECTS,
+      value: "Fanatical Focus",
+      source: "Path of the Zealot",
+      sourceId: "feature-barbarian-fanatical-focus",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+      duration: {
+        kind: STATUS_DURATION_KIND.LINKED,
+        linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+        linkedValue: "Rage"
+      }
+    });
+
+    expect(isStatusEntryRemovable(entry)).toBe(true);
+    expect(isStatusEntryDurationEditable(entry)).toBe(false);
   });
 });

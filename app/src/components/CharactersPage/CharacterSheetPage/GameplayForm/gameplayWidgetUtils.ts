@@ -87,6 +87,10 @@ export function getWeaponActionRollDescription(action: WeaponAction): string {
     segments.push("+ Martial Arts");
   }
 
+  if (action.hasBatteringRootsBonus) {
+    segments.push("+ Battering Roots");
+  }
+
   action.damageBonusEntries.forEach((entry) => {
     if (entry.value !== undefined) {
       segments.push(`${entry.label} ${formatAbilityModifier(entry.value)}`);
@@ -122,6 +126,10 @@ export function getWeaponActionBreakdown(action: WeaponAction): string {
 
   if (action.hasMartialArtsDamageDie) {
     segments.push("+ Martial Arts");
+  }
+
+  if (action.hasBatteringRootsBonus) {
+    segments.push("+ Battering Roots");
   }
 
   action.damageBonusEntries.forEach((entry) => {

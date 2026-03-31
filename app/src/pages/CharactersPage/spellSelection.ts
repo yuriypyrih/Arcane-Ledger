@@ -42,6 +42,7 @@ export function getSpellSelectionInputStatusForCharacter(
     Character,
     | "className"
     | "level"
+    | "subclassId"
     | "classFeatureState"
     | "cantripIds"
     | "preparedSpellIds"
@@ -76,7 +77,8 @@ export function getSpellSelectionInputStatusForCharacter(
     character.className,
     character.level,
     character.classFeatureState,
-    character.spellbookSpellIds
+    character.spellbookSpellIds,
+    character.subclassId
   );
   const selectedSpellbookSpellIds = usesSpellbook
     ? normalizeSpellbookSpellIds(character.spellbookSpellIds, spellPreparationOptions)

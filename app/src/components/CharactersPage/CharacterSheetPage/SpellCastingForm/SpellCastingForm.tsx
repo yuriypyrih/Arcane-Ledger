@@ -33,6 +33,7 @@ import {
   activateFeatureActionOptionForCharacter,
   getChannelDivinityUsesRemainingForCharacter,
   getChannelDivinityUsesTotalForCharacter,
+  getAlwaysPreparedSpellIdsForCharacter,
   getFeatureActionsForCharacter,
   getFeatureActionOptionsForCharacter,
   getSpellEntryForCharacter,
@@ -324,7 +325,23 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     spellManagementMode
   ]);
 
-  const canCastSpells = isSpellcastingClass(character.className, character.level);
+  const baseClassSpellEntries = useClassSpellEntries(character.className);
+  const featGrantedCantripEntries = useMemo(
+    () => getFeatGrantedCantripEntriesForCharacter(character),
+    [character]
+  );
+  const featureAlwaysPreparedSpellIds = useMemo(
+    () => getAlwaysPreparedSpellIdsForCharacter(character),
+    [character]
+  );
+  const basePreparedSpellPoolEntries = usePreparedSpellEntries(
+    character.className,
+    character.level
+  );
+  const canCastSpells =
+    isSpellcastingClass(character.className, character.level) ||
+    featGrantedCantripEntries.length > 0 ||
+    featureAlwaysPreparedSpellIds.length > 0;
   const spellcastingState = getSpellcastingStateForCharacter(character);
 
   useEffect(() => {
@@ -345,16 +362,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
     setSpellManagementMode(null);
   }, [spellcastingState.blocked]);
-
-  const baseClassSpellEntries = useClassSpellEntries(character.className);
-  const featGrantedCantripEntries = useMemo(
-    () => getFeatGrantedCantripEntriesForCharacter(character),
-    [character]
-  );
-  const basePreparedSpellPoolEntries = usePreparedSpellEntries(
-    character.className,
-    character.level
-  );
   const classSpellEntries = useMemo(
     () => baseClassSpellEntries.map((spell) => getSpellEntryForCharacter(character, spell)),
     [baseClassSpellEntries, character]
@@ -509,9 +516,16 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         character.className,
         character.level,
         character.classFeatureState,
-        character.spellbookSpellIds
+        character.spellbookSpellIds,
+        character.subclassId
       ),
-    [character.classFeatureState, character.className, character.level, character.spellbookSpellIds]
+    [
+      character.classFeatureState,
+      character.className,
+      character.level,
+      character.spellbookSpellIds,
+      character.subclassId
+    ]
   );
   const alwaysPreparedSpellIdSet = useMemo(
     () => new Set(alwaysPreparedSpellIds),
@@ -607,9 +621,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         ? [...alwaysPreparedSpellIds, ...selectedPreparedSpellIds]
             .map((spellId) => knownSpellEntriesById.get(spellId))
             .filter((spell): spell is SpellEntry => spell !== undefined)
-        : spellPreparationOptions,
+        : alwaysPreparedSpellEntries.length > 0
+          ? alwaysPreparedSpellEntries
+          : spellPreparationOptions,
     [
       alwaysPreparedSpellIds,
+      alwaysPreparedSpellEntries,
       knownSpellEntriesById,
       selectedPreparedSpellIds,
       spellPreparationOptions,

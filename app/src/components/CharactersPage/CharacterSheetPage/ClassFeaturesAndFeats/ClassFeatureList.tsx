@@ -10,6 +10,7 @@ import SelectInput from "../../FormInputs/SelectInput";
 import {
   getBarbarianPrimalKnowledgeSkillOptionsForCharacter,
   getBarbarianPrimalKnowledgeSkillSelectionForCharacter,
+  getBarbarianWildHeartAspectChoiceForCharacter,
   getBardExpertiseSelectionsForCharacter,
   getClericBlessedStrikesChoiceForCharacter,
   getClericDivineOrderChoiceForCharacter,
@@ -32,6 +33,7 @@ import {
   getWeaponMasterySelectionsForCharacter,
   setBardExpertiseSelectionsForCharacter,
   setBarbarianPrimalKnowledgeSkillSelectionForCharacter,
+  setBarbarianWildHeartAspectChoiceForCharacter,
   setClericBlessedStrikesChoiceForCharacter,
   setClericDivineOrderChoiceForCharacter,
   setDruidPrimalOrderChoiceForCharacter,
@@ -822,6 +824,12 @@ function ClassFeatureList({
     );
   }
 
+  function updateBarbarianWildHeartAspectChoice(nextValue: "owl" | "panther" | "salmon") {
+    onPersistCharacter((currentCharacter) =>
+      setBarbarianWildHeartAspectChoiceForCharacter(currentCharacter, nextValue)
+    );
+  }
+
   return (
     <ul className={featureDisclosureStyles.featureList}>
       {features.map((featureRow, index) => {
@@ -893,6 +901,10 @@ function ClassFeatureList({
             featureRow.feature === CLASS_FEATURE.PRIMAL_KNOWLEDGE &&
             character.className === "Barbarian" &&
             getBarbarianPrimalKnowledgeSelection() === null) ||
+          (isUnlocked &&
+            featureRow.feature === CLASS_FEATURE.ASPECT_OF_THE_WILDS &&
+            character.className === "Barbarian" &&
+            getBarbarianWildHeartAspectChoiceForCharacter(character) === null) ||
           (isUnlocked &&
             featureRow.feature === CLASS_FEATURE.PRIMAL_ORDER &&
             getDruidPrimalOrderChoiceForCharacter(character) === null) ||
@@ -1238,6 +1250,46 @@ function ClassFeatureList({
                           </SelectInput>
                         </label>
                       </div>
+                    </>
+                  ) : featureRow.feature === CLASS_FEATURE.ASPECT_OF_THE_WILDS &&
+                    character.className === "Barbarian" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description.slice(0, 1)}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <FeatureChoiceOptions
+                        featureKey={featureRow.key}
+                        groupName={`aspect-of-the-wilds-${character.id}`}
+                        isUnlocked={isUnlocked}
+                        selectedValue={getBarbarianWildHeartAspectChoiceForCharacter(character)}
+                        options={[
+                          {
+                            key: "owl",
+                            value: "owl",
+                            content: featureDetails.description[1] ?? ""
+                          },
+                          {
+                            key: "panther",
+                            value: "panther",
+                            content: featureDetails.description[2] ?? ""
+                          },
+                          {
+                            key: "salmon",
+                            value: "salmon",
+                            content: featureDetails.description[3] ?? ""
+                          }
+                        ]}
+                        onChange={updateBarbarianWildHeartAspectChoice}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
                     </>
                   ) : featureRow.feature === CLASS_FEATURE.SPELL_MASTERY &&
                     character.className === "Wizard" ? (

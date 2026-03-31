@@ -34,6 +34,7 @@ function CharacterBuilderPage() {
         hitPoints: existingCharacter.hitPoints,
         currentHitPoints: existingCharacter.currentHitPoints,
         temporaryHitPoints: existingCharacter.temporaryHitPoints,
+        temporaryHitPointsSource: existingCharacter.temporaryHitPointsSource,
         maxHitPointsMode: existingCharacter.maxHitPointsMode,
         attributeMode: existingCharacter.attributeMode,
         equipment: getCharacterEquipmentNames(existingCharacter.equipment),

@@ -16,18 +16,31 @@ import {
 } from "./bard";
 import {
   applyPersistentRageOnInitiative,
+  consumeBarbarianWarriorOfTheGodsCharges,
+  expendBarbarianRageUse,
+  consumeBarbarianDivineFuryBonus,
   consumeBarbarianBrutalStrikeBonus,
   consumeBarbarianFrenzyBonus,
   consumeBarbarianWeaponAttack,
   deactivateBarbarianRecklessAttack,
   deactivateBarbarianRage,
+  getBarbarianAdditionalWeaponMasteries,
+  hasBarbarianBatteringRootsBonus,
   getBarbarianPersistentRageUsesRemaining,
   getBarbarianPersistentRageUsesTotal,
+  getBarbarianRageUsesRemaining,
+  getBarbarianRageUsesTotal,
   getBarbarianPrimalKnowledgeSkillOptions,
   getBarbarianPrimalKnowledgeSkillSelection,
   getBarbarianRageDamageBonus,
+  getBarbarianWarriorOfTheGodsUsesRemaining,
+  getBarbarianWarriorOfTheGodsUsesTotal,
+  restoreAllBarbarianRageUses,
+  restoreBarbarianRageUse,
+  getBarbarianWildHeartAspectChoice,
   getBarbarianWeaponAttackMultiCount,
-  setBarbarianPrimalKnowledgeSkillSelection,
+  setBarbarianWildHeartAspectChoice,
+  setBarbarianPrimalKnowledgeSkillSelection
 } from "./barbarian";
 import {
   getClericBlessedStrikesChoice,
@@ -198,7 +211,13 @@ import type {
   WeaponFeatureContext
 } from "./types";
 import type { CharacterStatusEntry } from "../../../types";
-import type { ReactionEntry, SpellEntry } from "../../../codex/entries";
+import type {
+  ReactionEntry,
+  SpellEntry,
+  WEAPON_COMBAT_TYPE,
+  WEAPON_MASTERY,
+  WEAPON_PROPERTY
+} from "../../../codex/entries";
 import { PROF_LEVEL } from "../../../types";
 
 const exhaustionDisadvantageIndicator: FeatureIndicator = {
@@ -292,10 +311,40 @@ export function getFeatureActionOptionsForCharacter(
 
 export function getFeatureDamageBonusesForWeaponAction(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "subclassId">>,
+    Partial<Pick<Character, "subclassId" | "roundTracker">>,
   context: WeaponFeatureContext
 ): FeatureDamageBonus[] {
   return collectActiveClassFeatureState(character).getWeaponDamageBonuses?.(context) ?? [];
+}
+
+export function hasBatteringRootsBonusForCharacter(
+  character: Pick<Character, "className" | "level" | "roundTracker"> &
+    Partial<Pick<Character, "subclassId">>,
+  context: {
+    attackKind: "weapon" | "unarmed";
+    combatType?: WEAPON_COMBAT_TYPE | null;
+    properties?: WEAPON_PROPERTY[];
+  }
+): boolean {
+  return character.className === "Barbarian"
+    ? hasBarbarianBatteringRootsBonus(character, context)
+    : false;
+}
+
+export function getAdditionalWeaponMasteriesForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  context: {
+    attackKind: "weapon" | "unarmed";
+    combatType?: WEAPON_COMBAT_TYPE | null;
+    properties?: WEAPON_PROPERTY[];
+  }
+): Array<{
+  mastery: WEAPON_MASTERY;
+  source: string;
+}> {
+  return character.className === "Barbarian"
+    ? getBarbarianAdditionalWeaponMasteries(character, context)
+    : [];
 }
 
 export function getSavingThrowIndicatorsForCharacter(
@@ -409,7 +458,12 @@ export function getArmorClassBonusesForCharacter(
 export function getSpeedBonusesForCharacter(
   character: Pick<
     Character,
-    "className" | "level" | "classFeatureState" | "equipment" | "customEquipment"
+    | "className"
+    | "level"
+    | "classFeatureState"
+    | "equipment"
+    | "customEquipment"
+    | "subclassId"
   >,
   context: SpeedFeatureContext
 ): FeatureSpeedBonus[] {
@@ -672,6 +726,20 @@ export function setBarbarianPrimalKnowledgeSkillSelectionForCharacter(
   return setBarbarianPrimalKnowledgeSkillSelection(character, selection);
 }
 
+export function getBarbarianWildHeartAspectChoiceForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+) {
+  return getBarbarianWildHeartAspectChoice(character);
+}
+
+export function setBarbarianWildHeartAspectChoiceForCharacter(
+  character: Character,
+  selection: Parameters<typeof setBarbarianWildHeartAspectChoice>[1]
+): Character {
+  return setBarbarianWildHeartAspectChoice(character, selection);
+}
+
 export function getWizardScholarSelectionForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): SkillName | null {
@@ -823,7 +891,10 @@ export function getInnateSorceryUsesRemainingForCharacter(
 }
 
 export function getAlwaysPreparedSpellIdsForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds">
+  character: Pick<
+    Character,
+    "className" | "level" | "classFeatureState" | "spellbookSpellIds" | "subclassId"
+  >
 ): string[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
@@ -999,6 +1070,43 @@ export function getBarbarianPersistentRageUsesRemainingForCharacter(
   return getBarbarianPersistentRageUsesRemaining(character);
 }
 
+export function getBarbarianRageUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+): number {
+  return getBarbarianRageUsesTotal(character);
+}
+
+export function getBarbarianRageUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  return getBarbarianRageUsesRemaining(character);
+}
+
+export function expendBarbarianRageUseForCharacter(character: Character): Character {
+  return expendBarbarianRageUse(character);
+}
+
+export function restoreBarbarianRageUseForCharacter(character: Character): Character {
+  return restoreBarbarianRageUse(character);
+}
+
+export function restoreAllBarbarianRageUsesForCharacter(character: Character): Character {
+  return restoreAllBarbarianRageUses(character);
+}
+
+export function getBarbarianWarriorOfTheGodsUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return getBarbarianWarriorOfTheGodsUsesTotal(character);
+}
+
+export function getBarbarianWarriorOfTheGodsUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  return getBarbarianWarriorOfTheGodsUsesRemaining(character);
+}
+
 export function hasPerfectFocusForCharacter(
   character: Pick<Character, "className" | "level">
 ): boolean {
@@ -1141,6 +1249,13 @@ export function consumeRangerTirelessUseForCharacter(character: Character): Char
 
 export function consumeRangerNaturesVeilUseForCharacter(character: Character): Character {
   return consumeRangerNaturesVeilUse(character);
+}
+
+export function consumeBarbarianWarriorOfTheGodsChargesForCharacter(
+  character: Character,
+  chargeCount: number
+): Character {
+  return consumeBarbarianWarriorOfTheGodsCharges(character, chargeCount);
 }
 
 export function restoreRangerTirelessOnLongRestForCharacter(character: Character): Character {
@@ -1313,6 +1428,10 @@ export function markFeatureWeaponBonusUseForCharacter(
   character: Character,
   label: string
 ): Character {
+  if (label === "Divine Fury") {
+    return consumeBarbarianDivineFuryBonus(character);
+  }
+
   if (label === "Brutal Strike") {
     return consumeBarbarianBrutalStrikeBonus(character);
   }
@@ -1423,6 +1542,7 @@ export function removeFeatureStatusEntryForCharacter(
 
   if (
     statusEntry.sourceId === "feature-rage" ||
+    statusEntry.sourceId === "feature-barbarian-rage-of-the-wilds-bear" ||
     normalizedValue === "Rage" ||
     normalizedValue === "BLUDGEONING" ||
     normalizedValue === "PIERCING" ||

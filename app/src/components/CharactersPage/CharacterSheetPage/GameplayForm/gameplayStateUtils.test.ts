@@ -10,7 +10,11 @@ import {
 import { createDefaultAbilities, createEmptyCharacter } from "../../../../pages/CharactersPage/constants";
 import { normalizeCharacter } from "../../../../pages/CharactersPage/storage";
 import { createCharacterStatusEntry } from "../../../../pages/CharactersPage/traits";
-import { consumeRoundTrackerResourceForCharacter } from "./gameplayStateUtils";
+import {
+  consumeRoundTrackerResourceForCharacter,
+  createTemporaryHitPointsAssignment,
+  swapTemporaryHitPointsAssignment
+} from "./gameplayStateUtils";
 
 function createCharacter(overrides: Partial<Character>): Character {
   const normalizedCharacter = normalizeCharacter({
@@ -101,6 +105,30 @@ describe("consumeRoundTrackerResourceForCharacter", () => {
       actionAvailable: false,
       bonusActionAvailable: false,
       reactionAvailable: false
+    });
+  });
+});
+
+describe("swapTemporaryHitPointsAssignment", () => {
+  it("replaces temporary hit points and source only when the new amount is higher", () => {
+    expect(swapTemporaryHitPointsAssignment(0, undefined, 10, "Vitality Surge")).toEqual({
+      temporaryHitPoints: 10,
+      temporaryHitPointsSource: "Vitality Surge"
+    });
+    expect(swapTemporaryHitPointsAssignment(5, "Manual", 4, "Vitality Surge")).toEqual({
+      temporaryHitPoints: 5,
+      temporaryHitPointsSource: "Manual"
+    });
+    expect(swapTemporaryHitPointsAssignment(7, "Manual", 20, "Vitality Surge")).toEqual({
+      temporaryHitPoints: 20,
+      temporaryHitPointsSource: "Vitality Surge"
+    });
+  });
+
+  it("clears the source when temporary hit points are reduced to zero", () => {
+    expect(createTemporaryHitPointsAssignment(0, "Manual")).toEqual({
+      temporaryHitPoints: 0,
+      temporaryHitPointsSource: undefined
     });
   });
 });

@@ -331,13 +331,15 @@ export function getAlwaysPreparedSpellIds(
   className: string,
   level: number,
   classFeatureState?: CharacterClassFeatureState,
-  spellbookSpellIds?: string[]
+  spellbookSpellIds?: string[],
+  subclassId?: string
 ): string[] {
   return getAlwaysPreparedSpellIdsForCharacter({
     className,
     level,
     classFeatureState,
-    spellbookSpellIds
+    spellbookSpellIds,
+    subclassId
   });
 }
 

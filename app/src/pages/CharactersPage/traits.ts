@@ -157,9 +157,7 @@ export function isRoundDurationPreset(preset: STATUS_DURATION_PRESET): boolean {
   return durationPresetToRoundCount(preset) !== null;
 }
 
-export function normalizeStatusDurationRoundTick(
-  value: unknown
-): STATUS_DURATION_ROUND_TICK {
+export function normalizeStatusDurationRoundTick(value: unknown): STATUS_DURATION_ROUND_TICK {
   return value === STATUS_DURATION_ROUND_TICK.ROUND_END
     ? STATUS_DURATION_ROUND_TICK.ROUND_END
     : STATUS_DURATION_ROUND_TICK.ROUND_START;
@@ -692,10 +690,7 @@ export function removeCharacterConditionsForImmunities(
   immunityEntries: ReadonlyArray<Pick<CharacterStatusEntry, "group" | "value">>
 ): CharacterStatusEntry[] {
   const entries = normalizeCharacterStatusEntries(value);
-  const immuneConditions = getImmuneConditionSet([
-    ...entries,
-    ...immunityEntries
-  ]);
+  const immuneConditions = getImmuneConditionSet([...entries, ...immunityEntries]);
 
   if (immuneConditions.size === 0) {
     return entries;
@@ -1156,6 +1151,24 @@ export function getStatusEntryDescriptionEntries(
         "A current effect or trait that may change how your character plays."
       ]
     );
+  }
+
+  if (entry.sourceId === "feature-barbarian-fanatical-focus") {
+    return (
+      barbarianFeatureMap[CLASS_FEATURE.FANATICAL_FOCUS]?.description ?? [
+        "A current effect or trait that may change how your character plays."
+      ]
+    );
+  }
+
+  if (entry.sourceId === "feature-barbarian-rage-of-the-gods") {
+    return [
+      "When you activate your Rage, you can assume the form of a divine warrior.",
+      "This form lasts for 1 minute or until you drop to 0 Hit Points.",
+      "<strong>Flight.</strong> You have a Fly Speed equal to your Speed and can hover.",
+      "<strong>Resistance.</strong> You have Resistance to Necrotic, Psychic, and Radiant damage.",
+      "<strong>Revivification.</strong> When a creature within 30 feet of you would drop to 0 Hit Points, you can take a Reaction to expend a use of your Rage to instead change the target's Hit Points to a number equal to your Barbarian level."
+    ];
   }
 
   if (entry.sourceId === "feature-sorcerer-innate-sorcery") {

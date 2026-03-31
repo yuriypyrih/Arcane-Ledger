@@ -22,6 +22,7 @@ import {
 } from "./abilities";
 import {
   canUseMonkMartialArtsForCharacter,
+  hasBatteringRootsBonusForCharacter,
   getWeaponActionEconomyMultiForCharacter,
   getFeatureDamageBonusesForWeaponAction,
   getMonkFlurryOfBlowsAttackMultiCountForCharacter,
@@ -92,6 +93,7 @@ export type WeaponAction = {
   hasVersatileBonus: boolean;
   hasGreatWeaponFighting: boolean;
   hasMartialArtsDamageDie: boolean;
+  hasBatteringRootsBonus: boolean;
 };
 
 export type InitiativeBreakdownEntry = {
@@ -439,12 +441,16 @@ function formatFeatureDamageBonusFormula(entry: FeatureDamageBonus): string | nu
 }
 
 function createWeaponAction(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">,
+  character: Pick<
+    Character,
+    "className" | "level" | "classFeatureState" | "statusEntries" | "subclassId" | "roundTracker"
+  >,
   options: {
     key: string;
     name: string;
     attackKind: "weapon" | "unarmed";
     combatType?: WEAPON_COMBAT_TYPE | null;
+    properties?: WEAPON_PROPERTY[];
     damageLabel: string;
     damageFormula: string;
     rollFormulaBase: string;
@@ -483,6 +489,11 @@ function createWeaponAction(
   const totalModifier =
     options.abilityModifier + options.proficiencyBonus + getDamageBonusTotal(damageBonusEntries);
   const indicators = getWeaponAttackIndicatorsForCharacter(character);
+  const hasBatteringRootsBonus = hasBatteringRootsBonusForCharacter(character, {
+    attackKind: options.attackKind,
+    combatType: options.combatType ?? null,
+    properties: options.properties
+  });
 
   return {
     key: options.key,
@@ -505,7 +516,8 @@ function createWeaponAction(
     rollFormula: createRollFormula(rollFormulaBase, totalModifier),
     hasVersatileBonus: options.hasVersatileBonus,
     hasGreatWeaponFighting: options.hasGreatWeaponFighting,
-    hasMartialArtsDamageDie: Boolean(options.hasMartialArtsDamageDie)
+    hasMartialArtsDamageDie: Boolean(options.hasMartialArtsDamageDie),
+    hasBatteringRootsBonus
   };
 }
 
@@ -645,7 +657,10 @@ export function getPassivePerceptionForCharacter(character: Character): number {
 }
 
 function createUnarmedStrikeAction(
-  character: Pick<Character, "abilities" | "className" | "level" | "classFeatureState">,
+  character: Pick<
+    Character,
+    "abilities" | "className" | "level" | "classFeatureState" | "subclassId" | "roundTracker"
+  >,
   options?: {
     martialArtsDie?: DICE | null;
     economyType?: EconomyType;
@@ -667,6 +682,7 @@ function createUnarmedStrikeAction(
     name: "Unarmed Strike",
     attackKind: "unarmed",
     combatType: null,
+    properties: [],
     damageLabel: `${damageFormula} ${damageTypeLabel}`,
     damageFormula,
     rollFormulaBase: damageFormula,
@@ -806,6 +822,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
         name: equipmentItem.name,
         attackKind: "weapon",
         combatType: weaponEntry.type.combat,
+        properties: weaponEntry.properties,
         damageLabel: weaponReference.damageLabel,
         damageFormula: weaponReference.damageFormula,
         rollFormulaBase: weaponReference.rollFormulaBase,
@@ -868,6 +885,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
         name: weaponEntry.name,
         attackKind: "weapon",
         combatType: weaponEntry.type.combat,
+        properties: weaponEntry.properties,
         damageLabel: weaponReference.damageLabel,
         damageFormula: weaponReference.damageFormula,
         rollFormulaBase: weaponReference.rollFormulaBase,

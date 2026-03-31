@@ -4,6 +4,7 @@ import { createDefaultAbilities, createEmptyCharacter } from "./constants";
 import { normalizeCharacter } from "./storage";
 import { getSpellSelectionInputStatusForCharacter } from "./spellSelection";
 import {
+  getAlwaysPreparedSpellIds,
   getPreparedSpellSelectionOptionsForCharacter,
   normalizePreparedSpellIds
 } from "./spellcasting";
@@ -80,5 +81,17 @@ describe("normalizePreparedSpellIds", () => {
       })
     );
     expect(warlockInputStatus.message).toContain("eldritch invocations");
+  });
+
+  it("includes subclass always-prepared spells in the shared spellcasting helper", () => {
+    expect(
+      getAlwaysPreparedSpellIds(
+        "Barbarian",
+        3,
+        undefined,
+        undefined,
+        "barbarian-path-of-the-wild-heart"
+      )
+    ).toEqual(["spell-beast-sense", "spell-speak-with-animals"]);
   });
 });

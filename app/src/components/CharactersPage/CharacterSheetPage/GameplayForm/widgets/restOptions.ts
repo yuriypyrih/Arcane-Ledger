@@ -1,15 +1,19 @@
 import type { Character } from "../../../../../types";
 import {
   getBarbarianIntimidatingPresenceUsesTotal,
+  getBarbarianZealousPresenceUsesTotal,
   getBarbarianPersistentRageUsesTotal,
   getBarbarianRageUsesTotal,
+  getBarbarianWarriorOfTheGodsUsesTotal,
   hasBarbarianRelentlessRageFeature,
   restoreBarbarianIntimidatingPresenceOnLongRest,
+  restoreBarbarianZealousPresenceOnLongRest,
   restoreBarbarianPersistentRageOnLongRest,
   restoreBarbarianRageOnLongRest,
   restoreBarbarianRageOnShortRest,
   restoreBarbarianRelentlessRageOnLongRest,
-  restoreBarbarianRelentlessRageOnShortRest
+  restoreBarbarianRelentlessRageOnShortRest,
+  restoreBarbarianWarriorOfTheGodsOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/barbarian";
 import {
   getBardicInspirationUsesTotal,
@@ -194,7 +198,8 @@ export function createShortRestOptions(character: Character): RestOption[] {
             label: "Remove Temporary Hit Points",
             apply: (currentCharacter: Character) => ({
               ...currentCharacter,
-              temporaryHitPoints: 0
+              temporaryHitPoints: 0,
+              temporaryHitPointsSource: undefined
             })
           } satisfies RestOption
         ]
@@ -363,13 +368,19 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const hasBarbarianRelentlessRage = hasBarbarianRelentlessRageFeature(character);
   const barbarianIntimidatingPresenceUsesTotal =
     getBarbarianIntimidatingPresenceUsesTotal(character);
+  const barbarianZealousPresenceUsesTotal = getBarbarianZealousPresenceUsesTotal(character);
   const barbarianPersistentRageUsesTotal = getBarbarianPersistentRageUsesTotal(character);
+  const barbarianWarriorOfTheGodsUsesTotal = getBarbarianWarriorOfTheGodsUsesTotal(character);
   const _barbarianRelentlessRageRecoveryAvailable =
     restoreBarbarianRelentlessRageOnLongRest(character) !== character;
   const barbarianIntimidatingPresenceRecoveryAvailable =
     restoreBarbarianIntimidatingPresenceOnLongRest(character) !== character;
+  const barbarianZealousPresenceRecoveryAvailable =
+    restoreBarbarianZealousPresenceOnLongRest(character) !== character;
   const barbarianPersistentRageRecoveryAvailable =
     restoreBarbarianPersistentRageOnLongRest(character) !== character;
+  const barbarianWarriorOfTheGodsRecoveryAvailable =
+    restoreBarbarianWarriorOfTheGodsOnLongRest(character) !== character;
   const bardicInspirationUsesTotal = getBardicInspirationUsesTotal(character);
   const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
@@ -468,7 +479,8 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Remove Temporary Hit Points",
             apply: (currentCharacter: Character) => ({
               ...currentCharacter,
-              temporaryHitPoints: 0
+              temporaryHitPoints: 0,
+              temporaryHitPointsSource: undefined
             })
           } satisfies RestOption
         ]
@@ -515,6 +527,17 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(barbarianZealousPresenceUsesTotal > 0
+      ? [
+          {
+            id: "restore-zealous-presence",
+            label: "Restore Zealous Presence",
+            disabled: !barbarianZealousPresenceRecoveryAvailable,
+            apply: (currentCharacter: Character) =>
+              restoreBarbarianZealousPresenceOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(barbarianPersistentRageUsesTotal > 0
       ? [
           {
@@ -523,6 +546,17 @@ export function createLongRestOptions(character: Character): RestOption[] {
             disabled: !barbarianPersistentRageRecoveryAvailable,
             apply: (currentCharacter: Character) =>
               restoreBarbarianPersistentRageOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(barbarianWarriorOfTheGodsUsesTotal > 0
+      ? [
+          {
+            id: "restore-warrior-of-the-gods",
+            label: "Restore Warrior of the Gods",
+            disabled: !barbarianWarriorOfTheGodsRecoveryAvailable,
+            apply: (currentCharacter: Character) =>
+              restoreBarbarianWarriorOfTheGodsOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

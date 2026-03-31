@@ -1,18 +1,26 @@
 import type { LanguageProficiency, WEAPON_PROFICIENCY } from "./proficiencies";
 import type { SkillName } from "./skills";
 
+export type BarbarianWildHeartAspect = "owl" | "panther" | "salmon";
+
 export type CharacterRageFeatureState = {
   usesExpended: number;
   active: boolean;
+  wildHeartRageOption?: "bear" | "eagle" | "wolf";
+  wildHeartPowerOption?: "falcon" | "lion" | "ram";
+  wildHeartAspect?: BarbarianWildHeartAspect;
   weaponMasteries?: WEAPON_PROFICIENCY[];
   primalKnowledgeSkill?: SkillName;
   extraAttacksRemainingThisTurn?: number;
+  divineFuryUsedThisTurn?: boolean;
+  warriorOfTheGodsUsesExpended?: number;
   brutalStrikePending?: boolean;
   brutalStrikeUsedThisTurn?: boolean;
   recklessAttackRoundsRemaining?: number;
   recklessAttackUsedThisTurn?: boolean;
   frenzyPending?: boolean;
   intimidatingPresenceUsesExpended?: number;
+  zealousPresenceUsesExpended?: number;
   relentlessRageDcBonus?: number;
   persistentRageUsesExpended?: number;
 };

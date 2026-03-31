@@ -1,8 +1,15 @@
 import { barbarianFeatures } from "../../../codex/classes";
 import { barbarianStarterPack } from "../../../codex/classes/starterPack";
-import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../codex/entries";
+import {
+  CLASS_FEATURE,
+  DAMAGE_TYPE,
+  WEAPON_COMBAT_TYPE,
+  WEAPON_MASTERY,
+  WEAPON_PROPERTY
+} from "../../../codex/entries";
 import type { BarbarianFeatureClassObj } from "../../../types";
 import {
+  SENSE,
   CONDITION_NAME,
   EFFECT_NAME,
   PROFICIENCY_OVERRIDE_POLICY,
@@ -13,6 +20,7 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
   WEAPON_PROFICIENCY,
+  type BarbarianWildHeartAspect,
   type Character,
   type CharacterRageFeatureState,
   SKILL,
@@ -30,7 +38,11 @@ import {
 } from "../traits";
 import { skillGroupsByAbility } from "../skillDefinitions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
-import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../combat";
+import {
+  consumeRoundTrackerResource,
+  isRoundTrackerResourceAvailable,
+  normalizeRoundTracker
+} from "../combat";
 import type {
   AbilityCheckIndicatorMap,
   ArmorClassFeatureContext,
@@ -54,36 +66,141 @@ import type {
   WeaponFeatureContext
 } from "./types";
 import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "./weaponMastery";
+import { clampNumber, swapTemporaryHitPointsAssignment } from "../shared";
 
 const rageConditionName = EFFECT_NAME.RAGE;
 const rageStatusSourceId = "feature-rage";
 const recklessAttackStatusSourceId = "feature-barbarian-reckless-attack";
+const fanaticalFocusStatusSourceId = "feature-barbarian-fanatical-focus";
+const rageOfTheGodsStatusSourceId = "feature-barbarian-rage-of-the-gods";
 const recklessAttackDurationRounds = 1;
 const pathOfTheBerserkerSubclassId = "barbarian-path-of-the-berserker";
+const pathOfTheWildHeartSubclassId = "barbarian-path-of-the-wild-heart";
+const pathOfTheWorldTreeSubclassId = "barbarian-path-of-the-world-tree";
+const pathOfTheZealotSubclassId = "barbarian-path-of-the-zealot";
 const mindlessRageCharmedImmunitySourceId = "feature-barbarian-mindless-rage-charmed-immunity";
 const mindlessRageFrightenedImmunitySourceId =
   "feature-barbarian-mindless-rage-frightened-immunity";
 const frenzyDamageBonusLabel = "Frenzy";
+const divineFuryDamageBonusLabel = "Divine Fury";
 const brutalStrikeDamageBonusLabel = "Brutal Strike";
 const primalKnowledgeSource = "Primal Knowledge";
 const instinctivePounceSource = "Instinctive Pounce";
 const instinctivePounceStatusSourceId = "feature-barbarian-instinctive-pounce";
+const rageOfTheWildsBearStatusSourceId = "feature-barbarian-rage-of-the-wilds-bear";
+const rageOfTheWildsEffectSourceId = "feature-barbarian-rage-of-the-wilds-effect";
+const powerOfTheWildsEffectSourceId = "feature-barbarian-power-of-the-wilds-effect";
 const brutalStrikeActionSummary = "Your weapons do more damage";
 const relentlessRageActionSummary = "While in Rage you can keep fighting";
 const relentlessRageBaseDc = 10;
 const relentlessRageDcIncrement = 5;
 const persistentRageUsesTotal = 1;
+const warriorOfTheGodsBaseUses = 4;
 export const barbarianRageActionKey = "barbarian-rage";
 export const barbarianRecklessAttackActionKey = "barbarian-reckless-attack";
 export const barbarianBrutalStrikeActionKey = "barbarian-brutal-strike";
 export const barbarianRelentlessRageActionKey = "barbarian-relentless-rage";
 export const barbarianIntimidatingPresenceActionKey = "barbarian-intimidating-presence";
+export const barbarianZealousPresenceActionKey = "barbarian-zealous-presence";
+export const barbarianWarriorOfTheGodsActionKey = "barbarian-warrior-of-the-gods";
+export const barbarianTravelAlongTheTreeActionKey = "barbarian-travel-along-the-tree";
 const intimidatingPresenceUsesTotal = 1;
+const zealousPresenceUsesTotal = 1;
+type WildHeartRageOption = "bear" | "eagle" | "wolf";
+type WildHeartPowerOption = "falcon" | "lion" | "ram";
+type WildHeartAspect = BarbarianWildHeartAspect;
 type BrutalStrikeEffectDefinition = {
   key: string;
   name: string;
   description: string;
 };
+
+const wildHeartRageOptionDefinitions = [
+  {
+    key: "bear",
+    name: "Bear",
+    summary: "Tracked",
+    trackingState: "tracked",
+    description:
+      "While your Rage is active, you have Resistance to every damage type except Force, Necrotic, Psychic, and Radiant."
+  },
+  {
+    key: "eagle",
+    name: "Eagle",
+    summary: "Not Tracked",
+    trackingState: "not-tracked",
+    description:
+      "When you activate your Rage, you can take the Disengage and Dash actions as part of that Bonus Action. While your Rage is active, you can take a Bonus Action to take both of those actions."
+  },
+  {
+    key: "wolf",
+    name: "Wolf",
+    summary: "Not Tracked",
+    trackingState: "not-tracked",
+    description:
+      "While your Rage is active, your allies have Advantage on attack rolls against any enemy of yours within 5 feet of you."
+  }
+] as const satisfies ReadonlyArray<{
+  key: WildHeartRageOption;
+  name: string;
+  summary: string;
+  trackingState: "tracked" | "not-tracked";
+  description: string;
+}>;
+const wildHeartPowerOptionDefinitions = [
+  {
+    key: "falcon",
+    name: "Falcon",
+    summary: "Tracked",
+    trackingState: "tracked",
+    description:
+      "While your Rage is active, you have a Fly Speed equal to your Speed if you aren't wearing any armor."
+  },
+  {
+    key: "lion",
+    name: "Lion",
+    summary: "Not Tracked",
+    trackingState: "not-tracked",
+    description:
+      "While your Rage is active, any of your enemies within 5 feet of you have Disadvantage on attack rolls against targets other than you or another Barbarian who has this option active."
+  },
+  {
+    key: "ram",
+    name: "Ram",
+    summary: "Not Tracked",
+    trackingState: "not-tracked",
+    description:
+      "While your Rage is active, you can cause a Large or smaller creature to have the Prone condition when you hit it with a melee attack."
+  }
+] as const satisfies ReadonlyArray<{
+  key: WildHeartPowerOption;
+  name: string;
+  summary: string;
+  trackingState: "tracked" | "not-tracked";
+  description: string;
+}>;
+const wildHeartAspectDefinitions = [
+  {
+    key: "owl",
+    name: "Owl",
+    description:
+      "You have <link:Darkvision>Darkvision</link> with a range of 60 feet. If you already have Darkvision, its range increases by 60 feet."
+  },
+  {
+    key: "panther",
+    name: "Panther",
+    description: "You have a Climb Speed equal to your Speed."
+  },
+  {
+    key: "salmon",
+    name: "Salmon",
+    description: "You have a Swim Speed equal to your Speed."
+  }
+] as const satisfies ReadonlyArray<{
+  key: WildHeartAspect;
+  name: string;
+  description: string;
+}>;
 
 const brutalStrikeBaseEffectDefinitions = [
   {
@@ -196,6 +313,36 @@ function isPathOfTheBerserker(
   );
 }
 
+function isPathOfTheWildHeart(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Barbarian" &&
+    character.subclassId === pathOfTheWildHeartSubclassId &&
+    character.level >= 3
+  );
+}
+
+function isPathOfTheWorldTree(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Barbarian" &&
+    character.subclassId === pathOfTheWorldTreeSubclassId &&
+    character.level >= 3
+  );
+}
+
+function isPathOfTheZealot(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Barbarian" &&
+    character.subclassId === pathOfTheZealotSubclassId &&
+    character.level >= 3
+  );
+}
+
 function hasBerserkerIntimidatingPresence(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): boolean {
@@ -210,6 +357,80 @@ function hasBerserkerMindlessRage(
 
 function hasBarbarianInstinctivePounce(character: Pick<Character, "className" | "level">): boolean {
   return hasBarbarianFeature(character, CLASS_FEATURE.INSTINCTIVE_POUNCE);
+}
+
+function hasWildHeartRageOfTheWilds(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return isPathOfTheWildHeart(character);
+}
+
+function hasWildHeartAspectOfTheWilds(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return isPathOfTheWildHeart(character) && character.level >= 6;
+}
+
+function hasWildHeartPowerOfTheWilds(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return isPathOfTheWildHeart(character) && character.level >= 14;
+}
+
+function hasWorldTreeVitalityOfTheTree(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return isPathOfTheWorldTree(character);
+}
+
+function hasWorldTreeBatteringRoots(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return isPathOfTheWorldTree(character) && character.level >= 10;
+}
+
+function hasWorldTreeTravelAlongTheTree(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return isPathOfTheWorldTree(character) && character.level >= 14;
+}
+
+function hasZealotDivineFury(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return isPathOfTheZealot(character);
+}
+
+function hasZealotWarriorOfTheGods(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return isPathOfTheZealot(character);
+}
+
+function hasZealotFanaticalFocus(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return isPathOfTheZealot(character) && character.level >= 6;
+}
+
+function hasZealotRageOfTheGods(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return isPathOfTheZealot(character) && character.level >= 14;
+}
+
+function hasBarbarianRageOfTheGodsTrait(
+  character: Partial<Pick<Character, "statusEntries">>
+): boolean {
+  return normalizeCharacterStatusEntries(character.statusEntries).some(
+    (entry) => entry.sourceId === rageOfTheGodsStatusSourceId
+  );
+}
+
+function hasZealotZealousPresence(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return isPathOfTheZealot(character) && character.level >= 10;
 }
 
 function hasBarbarianBrutalStrike(character: Pick<Character, "className" | "level">): boolean {
@@ -290,6 +511,106 @@ export function getBarbarianBrutalStrikeOptions(
   }));
 }
 
+type BatteringRootsWeaponContext = {
+  attackKind: "weapon" | "unarmed";
+  combatType?: WEAPON_COMBAT_TYPE | null;
+  properties?: WEAPON_PROPERTY[];
+};
+
+function isBatteringRootsEligibleWeapon(context: BatteringRootsWeaponContext): boolean {
+  if (context.attackKind !== "weapon" || context.combatType !== WEAPON_COMBAT_TYPE.MELEE) {
+    return false;
+  }
+
+  const properties = context.properties ?? [];
+
+  return (
+    properties.includes(WEAPON_PROPERTY.HEAVY) ||
+    properties.includes(WEAPON_PROPERTY.VERSATILE)
+  );
+}
+
+export function hasBarbarianBatteringRootsBonus(
+  character: Pick<Character, "className" | "level" | "roundTracker"> &
+    Partial<Pick<Character, "subclassId">>,
+  context: BatteringRootsWeaponContext
+): boolean {
+  return (
+    hasWorldTreeBatteringRoots(character) &&
+    normalizeRoundTracker(character.roundTracker).turnStarted &&
+    isBatteringRootsEligibleWeapon(context)
+  );
+}
+
+export function getBarbarianAdditionalWeaponMasteries(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  context: BatteringRootsWeaponContext
+): Array<{
+  mastery: WEAPON_MASTERY;
+  source: string;
+}> {
+  if (!hasWorldTreeBatteringRoots(character) || !isBatteringRootsEligibleWeapon(context)) {
+    return [];
+  }
+
+  return [
+    {
+      mastery: WEAPON_MASTERY.PUSH,
+      source: "Battering Roots"
+    }
+  ];
+}
+
+function normalizeWildHeartRageOption(value: unknown): WildHeartRageOption | undefined {
+  return value === "bear" || value === "eagle" || value === "wolf" ? value : undefined;
+}
+
+function normalizeWildHeartAspect(value: unknown): WildHeartAspect | undefined {
+  return value === "owl" || value === "panther" || value === "salmon" ? value : undefined;
+}
+
+function normalizeWildHeartPowerOption(value: unknown): WildHeartPowerOption | undefined {
+  return value === "falcon" || value === "lion" || value === "ram" ? value : undefined;
+}
+
+export function getBarbarianRageOfTheWildsOptions(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): FeatureActionOptionCard[] {
+  if (!hasWildHeartRageOfTheWilds(character)) {
+    return [];
+  }
+
+  return wildHeartRageOptionDefinitions.map((definition) => ({
+    key: definition.key,
+    name: definition.name,
+    summary: definition.summary,
+    detail: definition.description,
+    breakdown: definition.description,
+    trackingState: definition.trackingState,
+    economyType: ECONOMY_TYPE.BONUS_ACTION,
+    actionCategory: ACTION_CATEGORY.FEATURE
+  }));
+}
+
+export function getBarbarianPowerOfTheWildsOptions(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): FeatureActionOptionCard[] {
+  if (!hasWildHeartPowerOfTheWilds(character)) {
+    return [];
+  }
+
+  return wildHeartPowerOptionDefinitions.map((definition) => ({
+    key: definition.key,
+    name: definition.name,
+    summary: definition.summary,
+    detail: definition.description,
+    breakdown: definition.description,
+    trackingState: definition.trackingState,
+    economyType: ECONOMY_TYPE.BONUS_ACTION,
+    actionCategory: ACTION_CATEGORY.FEATURE
+  }));
+}
+
 function getMindlessRageImmunityEntries(): DerivedFeatureStatusEntry[] {
   return [
     {
@@ -356,15 +677,27 @@ export function normalizeBarbarianRageState(
   const additionalAttackCount = getBarbarianAdditionalAttackCount(character);
   const extraAttacksRemainingThisTurn = Number(record.extraAttacksRemainingThisTurn);
   const recklessAttackRoundsRemaining = Number(record.recklessAttackRoundsRemaining);
+  const warriorOfTheGodsUsesExpended = Number(record.warriorOfTheGodsUsesExpended);
   const intimidatingPresenceUsesExpended = Number(record.intimidatingPresenceUsesExpended);
+  const zealousPresenceUsesExpended = Number(record.zealousPresenceUsesExpended);
   const relentlessRageDcBonus = Number(record.relentlessRageDcBonus);
   const persistentRageUsesExpended = Number(record.persistentRageUsesExpended);
+  const warriorOfTheGodsUsesTotal = getBarbarianWarriorOfTheGodsUsesTotal(character);
 
   return {
     usesExpended: Number.isFinite(usesExpended)
       ? Math.max(0, Math.min(totalRages, Math.floor(usesExpended)))
       : 0,
     active: Boolean(record.active),
+    wildHeartRageOption: hasWildHeartRageOfTheWilds(character)
+      ? normalizeWildHeartRageOption(record.wildHeartRageOption)
+      : undefined,
+    wildHeartPowerOption: hasWildHeartPowerOfTheWilds(character)
+      ? normalizeWildHeartPowerOption(record.wildHeartPowerOption)
+      : undefined,
+    wildHeartAspect: hasWildHeartAspectOfTheWilds(character)
+      ? normalizeWildHeartAspect(record.wildHeartAspect)
+      : undefined,
     weaponMasteries: normalizeWeaponMasterySelections(
       record.weaponMasteries,
       barbarianWeaponMasteryOptions,
@@ -379,6 +712,17 @@ export function normalizeBarbarianRageState(
           ? Math.max(0, Math.min(additionalAttackCount, Math.floor(extraAttacksRemainingThisTurn)))
           : 0
         : 0,
+    divineFuryUsedThisTurn: hasZealotDivineFury(character)
+      ? record.divineFuryUsedThisTurn === true
+      : false,
+    warriorOfTheGodsUsesExpended: hasZealotWarriorOfTheGods(character)
+      ? Number.isFinite(warriorOfTheGodsUsesExpended)
+        ? Math.max(
+            0,
+            Math.min(warriorOfTheGodsUsesTotal, Math.floor(warriorOfTheGodsUsesExpended))
+          )
+        : 0
+      : 0,
     brutalStrikePending: hasBarbarianBrutalStrike(character)
       ? record.brutalStrikePending === true
       : false,
@@ -408,6 +752,11 @@ export function normalizeBarbarianRageState(
             0,
             Math.min(intimidatingPresenceUsesTotal, Math.floor(intimidatingPresenceUsesExpended))
           )
+        : 0
+      : 0,
+    zealousPresenceUsesExpended: hasZealotZealousPresence(character)
+      ? Number.isFinite(zealousPresenceUsesExpended)
+        ? Math.max(0, Math.min(zealousPresenceUsesTotal, Math.floor(zealousPresenceUsesExpended)))
         : 0
       : 0,
     relentlessRageDcBonus: hasBarbarianRelentlessRage(character)
@@ -464,6 +813,46 @@ export function getBarbarianPersistentRageUsesRemaining(
   return Math.max(0, totalUses - (rageState.persistentRageUsesExpended ?? 0));
 }
 
+export function getBarbarianWarriorOfTheGodsUsesTotal(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  if (!hasZealotWarriorOfTheGods(character)) {
+    return 0;
+  }
+
+  if (character.level >= 17) {
+    return 7;
+  }
+
+  if (character.level >= 12) {
+    return 6;
+  }
+
+  if (character.level >= 6) {
+    return 5;
+  }
+
+  return warriorOfTheGodsBaseUses;
+}
+
+export function getBarbarianWarriorOfTheGodsUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  const totalUses = getBarbarianWarriorOfTheGodsUsesTotal(character);
+  const rageState = getBarbarianRageState(character);
+
+  return Math.max(0, totalUses - (rageState.warriorOfTheGodsUsesExpended ?? 0));
+}
+
+export function getBarbarianWarriorOfTheGodsHealingFormula(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): string {
+  const levelBonus = Math.floor(clampNumber(character.level, 0, 20, 0) / 2);
+
+  return levelBonus > 0 ? `1d6 + ${levelBonus}` : "1d6";
+}
+
 export function getBarbarianIntimidatingPresenceUsesTotal(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): number {
@@ -480,6 +869,21 @@ export function getBarbarianIntimidatingPresenceUsesRemaining(
     0,
     totalUses - (getBarbarianRageState(character).intimidatingPresenceUsesExpended ?? 0)
   );
+}
+
+export function getBarbarianZealousPresenceUsesTotal(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return hasZealotZealousPresence(character) ? zealousPresenceUsesTotal : 0;
+}
+
+export function getBarbarianZealousPresenceUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  const totalUses = getBarbarianZealousPresenceUsesTotal(character);
+
+  return Math.max(0, totalUses - (getBarbarianRageState(character).zealousPresenceUsesExpended ?? 0));
 }
 
 export function getBarbarianWeaponMasterySelectionCount(
@@ -514,6 +918,9 @@ export function setBarbarianWeaponMasterySelections(
 
   return {
     ...character,
+    statusEntries: normalizeCharacterStatusEntries(character.statusEntries).filter(
+      (entry) => entry.sourceId !== fanaticalFocusStatusSourceId
+    ),
     classFeatureState: {
       ...character.classFeatureState,
       rage: {
@@ -581,6 +988,52 @@ export function setBarbarianPrimalKnowledgeSkillSelection(
   };
 }
 
+export function getBarbarianWildHeartAspectChoice(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): WildHeartAspect | null {
+  if (!hasWildHeartAspectOfTheWilds(character)) {
+    return null;
+  }
+
+  return getBarbarianRageState(character).wildHeartAspect ?? null;
+}
+
+export function getBarbarianWildHeartPowerOptionChoice(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): WildHeartPowerOption | null {
+  if (!hasWildHeartPowerOfTheWilds(character)) {
+    return null;
+  }
+
+  return getBarbarianRageState(character).wildHeartPowerOption ?? null;
+}
+
+export function setBarbarianWildHeartAspectChoice(
+  character: Character,
+  selection: WildHeartAspect
+): Character {
+  if (!hasWildHeartAspectOfTheWilds(character)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+  const normalizedSelection =
+    wildHeartAspectDefinitions.find((option) => option.key === selection)?.key ?? undefined;
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        wildHeartAspect: normalizedSelection
+      }
+    }
+  };
+}
+
 function createBarbarianPrimalKnowledgeEntry(skill: SkillName): SkillProficiencyEntry | null {
   const proficiency = getSkillProficiencyForSkillName(skill);
 
@@ -640,7 +1093,8 @@ export function isBarbarianRaging(
 }
 
 export function getBarbarianFeatureAction(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
 ): FeatureActionCard | null {
   if (!hasBarbarianFeature(character, CLASS_FEATURE.RAGE)) {
     return null;
@@ -659,9 +1113,10 @@ export function getBarbarianFeatureAction(
     breakdownTone: rageState.active ? "danger" : "default",
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
-    usesLabel: `${usesRemaining}/${totalUses} uses`,
-    usesRemaining,
-    usesTotal: totalUses,
+    interaction:
+      !rageState.active && hasWildHeartRageOfTheWilds(character) ? "select" : undefined,
+    usesLabel: "Use 1",
+    usesIcon: "flame",
     isActive: rageState.active,
     disabled: rageState.active || usesRemaining <= 0,
     disabledReason: rageState.active
@@ -701,6 +1156,34 @@ function getBarbarianRecklessAttackAction(
       rageState.recklessAttackUsedThisTurn === true
         ? "Reckless Attack has already been used this turn."
         : undefined
+  };
+}
+
+function getBarbarianWarriorOfTheGodsAction(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): FeatureActionCard | null {
+  if (!hasZealotWarriorOfTheGods(character)) {
+    return null;
+  }
+
+  const totalUses = getBarbarianWarriorOfTheGodsUsesTotal(character);
+  const usesRemaining = getBarbarianWarriorOfTheGodsUsesRemaining(character);
+
+  return {
+    key: barbarianWarriorOfTheGodsActionKey,
+    name: "Warrior of the Gods",
+    summary: "Spend divine healing charges.",
+    detail: "Spend divine healing charges.",
+    breakdown: `Use a ${getBarbarianWarriorOfTheGodsHealingFormula(character)} to heal yourself.`,
+    economyType: ECONOMY_TYPE.BONUS_ACTION,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    interaction: "select",
+    usesLabel: `${usesRemaining}/${totalUses} charges`,
+    usesRemaining,
+    usesTotal: totalUses,
+    disabled: usesRemaining <= 0,
+    disabledReason: usesRemaining <= 0 ? "No Warrior of the Gods charges remaining." : undefined
   };
 }
 
@@ -794,9 +1277,73 @@ function getBarbarianIntimidatingPresenceAction(
     actionCategory: ACTION_CATEGORY.FEATURE,
     usesRemaining,
     usesTotal: intimidatingPresenceUsesTotal,
-    usesInlineLabel: isUsingRageCharges ? "| Uses Rage Charges" : undefined,
+    usesInlineLabel: isUsingRageCharges ? "Use 1" : undefined,
+    usesInlineIcon: isUsingRageCharges ? "flame" : undefined,
     disabled,
     disabledReason: disabled ? "No Intimidating Presence or Rage uses remaining." : undefined
+  };
+}
+
+function getBarbarianZealousPresenceAction(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): FeatureActionCard | null {
+  if (!hasZealotZealousPresence(character)) {
+    return null;
+  }
+
+  const usesRemaining = getBarbarianZealousPresenceUsesRemaining(character);
+  const rageUsesRemaining = getBarbarianRageUsesRemaining(character);
+  const isUsingRageCharges = usesRemaining <= 0;
+  const disabled = usesRemaining <= 0 && rageUsesRemaining <= 0;
+
+  return {
+    key: barbarianZealousPresenceActionKey,
+    name: "Zealous Presence",
+    summary: "Divine infused Battle Cry",
+    detail: "Divine infused Battle Cry",
+    breakdown: "Divine infused Battle Cry",
+    economyType: ECONOMY_TYPE.BONUS_ACTION,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    usesLabel: `${usesRemaining}/${zealousPresenceUsesTotal} charge`,
+    usesRemaining,
+    usesTotal: zealousPresenceUsesTotal,
+    usesInlineLabel: isUsingRageCharges ? "Use 1" : undefined,
+    usesInlineIcon: isUsingRageCharges ? "flame" : undefined,
+    disabled,
+    disabledReason: disabled ? "No Zealous Presence or Rage uses remaining." : undefined
+  };
+}
+
+function getBarbarianTravelAlongTheTreeAction(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): FeatureActionCard | null {
+  if (!hasWorldTreeTravelAlongTheTree(character)) {
+    return null;
+  }
+
+  const rageState = getBarbarianRageState(character);
+  const rageUsesRemaining = getBarbarianRageUsesRemaining(character);
+  const disabled = rageState.active !== true || rageUsesRemaining <= 0;
+
+  return {
+    key: barbarianTravelAlongTheTreeActionKey,
+    name: "Travel Along the Tree",
+    summary: "Teleport while in Rage.",
+    detail: "Teleport while in Rage.",
+    usesLabel: "Use 1",
+    usesIcon: "flame",
+    breakdown: "Teleport while in Rage.",
+    economyType: ECONOMY_TYPE.BONUS_ACTION,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    disabled,
+    disabledReason:
+      rageState.active !== true
+        ? "Travel Along the Tree requires Rage to be active."
+        : rageUsesRemaining <= 0
+          ? "No Rage uses remaining."
+          : undefined
   };
 }
 
@@ -807,15 +1354,18 @@ export function getBarbarianFeatureActions(
   return [
     getBarbarianFeatureAction(character),
     getBarbarianRecklessAttackAction(character),
+    getBarbarianWarriorOfTheGodsAction(character),
     getBarbarianBrutalStrikeAction(character),
     getBarbarianRelentlessRageAction(character),
-    getBarbarianIntimidatingPresenceAction(character)
+    getBarbarianIntimidatingPresenceAction(character),
+    getBarbarianZealousPresenceAction(character),
+    getBarbarianTravelAlongTheTreeAction(character)
   ].filter((entry): entry is FeatureActionCard => entry !== null);
 }
 
 export function getBarbarianWeaponDamageBonuses(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "subclassId">>,
+    Partial<Pick<Character, "subclassId" | "roundTracker">>,
   context: WeaponFeatureContext
 ): FeatureDamageBonus[] {
   const damageBonuses: FeatureDamageBonus[] = [];
@@ -829,6 +1379,28 @@ export function getBarbarianWeaponDamageBonuses(
         value: rageDamage
       });
     }
+  }
+
+  if (
+    hasZealotDivineFury(character) &&
+    isBarbarianRaging(character) &&
+    normalizeRoundTracker(character.roundTracker).turnStarted &&
+    (context.attackKind === "weapon" || context.attackKind === "unarmed") &&
+    getBarbarianRageState(character).divineFuryUsedThisTurn !== true
+  ) {
+    const divineFuryLevelBonus = Math.floor(clampNumber(character.level, 0, 20, 0) / 2);
+    const divineFuryFormula =
+      divineFuryLevelBonus > 0 ? `1d6+${divineFuryLevelBonus}` : "1d6";
+    const divineFuryDisplayLabel =
+      divineFuryLevelBonus > 0
+        ? `1d6 + ${divineFuryLevelBonus} Necrotic/Radiant`
+        : "1d6 Necrotic/Radiant";
+
+    damageBonuses.push({
+      label: divineFuryDamageBonusLabel,
+      formula: divineFuryFormula,
+      displayLabel: divineFuryDisplayLabel
+    });
   }
 
   if (
@@ -1002,22 +1574,63 @@ export function getBarbarianArmorClassBonuses(
 }
 
 export function getBarbarianSpeedBonuses(
-  character: Pick<Character, "className" | "level">,
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId" | "statusEntries">>,
   context: SpeedFeatureContext
 ): FeatureSpeedBonus[] {
   const speedBonuses: FeatureSpeedBonus[] = [];
 
   if (
-    !hasBarbarianFeature(character, CLASS_FEATURE.FAST_MOVEMENT) ||
-    context.wornBodyArmorType === "heavy"
+    hasBarbarianFeature(character, CLASS_FEATURE.FAST_MOVEMENT) &&
+    context.wornBodyArmorType !== "heavy"
   ) {
-    return speedBonuses;
+    speedBonuses.push({
+      label: "Fast Movement",
+      value: 10
+    });
   }
 
-  speedBonuses.push({
-    label: "Fast Movement",
-    value: 10
-  });
+  const wildHeartAspect = getBarbarianWildHeartAspectChoice(character);
+
+  if (wildHeartAspect === "panther") {
+    speedBonuses.push({
+      label: "Panther",
+      movementType: "climb",
+      value: 0,
+      setBaseFromWalkMultiplier: 1
+    });
+  }
+
+  if (wildHeartAspect === "salmon") {
+    speedBonuses.push({
+      label: "Salmon",
+      movementType: "swim",
+      value: 0,
+      setBaseFromWalkMultiplier: 1
+    });
+  }
+
+  if (
+    isBarbarianRaging(character) &&
+    getBarbarianWildHeartPowerOptionChoice(character) === "falcon" &&
+    context.wornBodyArmorType === null
+  ) {
+    speedBonuses.push({
+      label: "Falcon",
+      movementType: "fly",
+      value: 0,
+      setBaseFromWalkMultiplier: 1
+    });
+  }
+
+  if (hasBarbarianRageOfTheGodsTrait(character)) {
+    speedBonuses.push({
+      label: "Rage of the Gods",
+      movementType: "fly",
+      value: 0,
+      setBaseFromWalkMultiplier: 1
+    });
+  }
 
   return speedBonuses;
 }
@@ -1049,9 +1662,26 @@ export function getBarbarianAbilityScoreBonuses(
 
 export function getBarbarianDerivedConditions(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "subclassId">>
+    Partial<Pick<Character, "subclassId" | "statusEntries">>
 ): DerivedFeatureStatusEntry[] {
   const derivedEntries: DerivedFeatureStatusEntry[] = [];
+  const rageState = getBarbarianRageState(character);
+  const wildHeartAspect = getBarbarianWildHeartAspectChoice(character);
+
+  if (wildHeartAspect === "owl") {
+    derivedEntries.push({
+      id: "feature-barbarian-aspect-of-the-wilds-owl",
+      sourceId: "feature-barbarian-aspect-of-the-wilds-owl",
+      group: STATUS_ENTRY_GROUP.SENSES,
+      value: SENSE.DARKVISION,
+      source: "Aspect of the Wilds",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.INFINITE
+      },
+      rangeFeet: 60
+    });
+  }
 
   if (isBarbarianRaging(character)) {
     derivedEntries.push(
@@ -1108,8 +1738,131 @@ export function getBarbarianDerivedConditions(
       }
     );
 
+    const selectedRageOption = wildHeartRageOptionDefinitions.find(
+      (definition) => definition.key === rageState.wildHeartRageOption
+    );
+
+    if (selectedRageOption) {
+      derivedEntries.push({
+        id: `${rageOfTheWildsEffectSourceId}-${selectedRageOption.key}`,
+        sourceId: `${rageOfTheWildsEffectSourceId}-${selectedRageOption.key}`,
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: selectedRageOption.name,
+        source: "Rage of the Wilds",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+        duration: {
+          kind: STATUS_DURATION_KIND.LINKED,
+          linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+          linkedValue: EFFECT_NAME.RAGE
+        }
+      });
+    }
+
+    const selectedPowerOption = wildHeartPowerOptionDefinitions.find(
+      (definition) => definition.key === rageState.wildHeartPowerOption
+    );
+
+    if (selectedPowerOption) {
+      derivedEntries.push({
+        id: `${powerOfTheWildsEffectSourceId}-${selectedPowerOption.key}`,
+        sourceId: `${powerOfTheWildsEffectSourceId}-${selectedPowerOption.key}`,
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: selectedPowerOption.name,
+        source: "Power of the Wilds",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+        duration: {
+          kind: STATUS_DURATION_KIND.LINKED,
+          linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+          linkedValue: EFFECT_NAME.RAGE
+        }
+      });
+    }
+
     if (hasBerserkerMindlessRage(character)) {
       derivedEntries.push(...getMindlessRageImmunityEntries());
+    }
+
+    if (hasWildHeartRageOfTheWilds(character) && rageState.wildHeartRageOption === "bear") {
+      derivedEntries.push(
+        {
+          id: "feature-rage-of-the-wilds-bear-acid",
+          sourceId: rageOfTheWildsBearStatusSourceId,
+          group: STATUS_ENTRY_GROUP.RESISTANCES,
+          value: DAMAGE_TYPE.ACID,
+          source: "Rage of the Wilds",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+          duration: {
+            kind: STATUS_DURATION_KIND.LINKED,
+            linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+            linkedValue: EFFECT_NAME.RAGE
+          }
+        },
+        {
+          id: "feature-rage-of-the-wilds-bear-cold",
+          sourceId: rageOfTheWildsBearStatusSourceId,
+          group: STATUS_ENTRY_GROUP.RESISTANCES,
+          value: DAMAGE_TYPE.COLD,
+          source: "Rage of the Wilds",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+          duration: {
+            kind: STATUS_DURATION_KIND.LINKED,
+            linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+            linkedValue: EFFECT_NAME.RAGE
+          }
+        },
+        {
+          id: "feature-rage-of-the-wilds-bear-fire",
+          sourceId: rageOfTheWildsBearStatusSourceId,
+          group: STATUS_ENTRY_GROUP.RESISTANCES,
+          value: DAMAGE_TYPE.FIRE,
+          source: "Rage of the Wilds",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+          duration: {
+            kind: STATUS_DURATION_KIND.LINKED,
+            linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+            linkedValue: EFFECT_NAME.RAGE
+          }
+        },
+        {
+          id: "feature-rage-of-the-wilds-bear-lightning",
+          sourceId: rageOfTheWildsBearStatusSourceId,
+          group: STATUS_ENTRY_GROUP.RESISTANCES,
+          value: DAMAGE_TYPE.LIGHTNING,
+          source: "Rage of the Wilds",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+          duration: {
+            kind: STATUS_DURATION_KIND.LINKED,
+            linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+            linkedValue: EFFECT_NAME.RAGE
+          }
+        },
+        {
+          id: "feature-rage-of-the-wilds-bear-poison",
+          sourceId: rageOfTheWildsBearStatusSourceId,
+          group: STATUS_ENTRY_GROUP.RESISTANCES,
+          value: DAMAGE_TYPE.POISON,
+          source: "Rage of the Wilds",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+          duration: {
+            kind: STATUS_DURATION_KIND.LINKED,
+            linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+            linkedValue: EFFECT_NAME.RAGE
+          }
+        },
+        {
+          id: "feature-rage-of-the-wilds-bear-thunder",
+          sourceId: rageOfTheWildsBearStatusSourceId,
+          group: STATUS_ENTRY_GROUP.RESISTANCES,
+          value: DAMAGE_TYPE.THUNDER,
+          source: "Rage of the Wilds",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+          duration: {
+            kind: STATUS_DURATION_KIND.LINKED,
+            linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+            linkedValue: EFFECT_NAME.RAGE
+          }
+        }
+      );
     }
   }
 
@@ -1129,6 +1882,50 @@ export function getBarbarianDerivedConditions(
         tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
       }
     });
+  }
+
+  if (hasBarbarianRageOfTheGodsTrait(character)) {
+    derivedEntries.push(
+      {
+        id: "feature-barbarian-rage-of-the-gods-necrotic",
+        sourceId: rageOfTheGodsStatusSourceId,
+        group: STATUS_ENTRY_GROUP.RESISTANCES,
+        value: DAMAGE_TYPE.NECROTIC,
+        source: "Rage of the Gods",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+        duration: {
+          kind: STATUS_DURATION_KIND.LINKED,
+          linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+          linkedValue: "Rage of the Gods"
+        }
+      },
+      {
+        id: "feature-barbarian-rage-of-the-gods-psychic",
+        sourceId: rageOfTheGodsStatusSourceId,
+        group: STATUS_ENTRY_GROUP.RESISTANCES,
+        value: DAMAGE_TYPE.PSYCHIC,
+        source: "Rage of the Gods",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+        duration: {
+          kind: STATUS_DURATION_KIND.LINKED,
+          linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+          linkedValue: "Rage of the Gods"
+        }
+      },
+      {
+        id: "feature-barbarian-rage-of-the-gods-radiant",
+        sourceId: rageOfTheGodsStatusSourceId,
+        group: STATUS_ENTRY_GROUP.RESISTANCES,
+        value: DAMAGE_TYPE.RADIANT,
+        source: "Rage of the Gods",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+        duration: {
+          kind: STATUS_DURATION_KIND.LINKED,
+          linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+          linkedValue: "Rage of the Gods"
+        }
+      }
+    );
   }
 
   return derivedEntries;
@@ -1158,7 +1955,10 @@ export function activateBarbarianRage(character: Character): Character {
       )
     : character.statusEntries;
   const nextNormalizedStatusEntries = normalizeCharacterStatusEntries(nextStatusEntries).filter(
-    (entry) => entry.sourceId !== instinctivePounceStatusSourceId
+    (entry) =>
+      entry.sourceId !== instinctivePounceStatusSourceId &&
+      entry.sourceId !== fanaticalFocusStatusSourceId &&
+      entry.sourceId !== rageOfTheGodsStatusSourceId
   );
   const nextRageStatusEntries = hasBarbarianInstinctivePounce(character)
     ? [
@@ -1177,19 +1977,119 @@ export function activateBarbarianRage(character: Character): Character {
         })
       ]
     : nextNormalizedStatusEntries;
+  const nextRageLinkedStatusEntries = hasZealotFanaticalFocus(character)
+    ? [
+        ...nextRageStatusEntries,
+        createCharacterStatusEntry({
+          group: STATUS_ENTRY_GROUP.EFFECTS,
+          value: "Fanatical Focus",
+          source: "Path of the Zealot",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+          duration: {
+            kind: STATUS_DURATION_KIND.LINKED,
+            linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+            linkedValue: EFFECT_NAME.RAGE
+          },
+          sourceId: fanaticalFocusStatusSourceId
+        })
+      ]
+    : nextRageStatusEntries;
+  const nextRageOfTheGodsStatusEntries = hasZealotRageOfTheGods(character)
+    ? [
+        ...nextRageLinkedStatusEntries,
+        createCharacterStatusEntry({
+          group: STATUS_ENTRY_GROUP.EFFECTS,
+          value: "Rage of the Gods",
+          source: "Path of the Zealot",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+          duration: {
+            kind: STATUS_DURATION_KIND.MINUTES,
+            amount: 1
+          },
+          sourceId: rageOfTheGodsStatusSourceId
+        })
+      ]
+    : nextRageLinkedStatusEntries;
+  const vitalityOfTheTreeTemporaryHitPoints = hasWorldTreeVitalityOfTheTree(character)
+    ? Math.floor(clampNumber(character.level, 0, 999, 0))
+    : 0;
+  const nextTemporaryHitPointsAssignment =
+    vitalityOfTheTreeTemporaryHitPoints > 0
+      ? swapTemporaryHitPointsAssignment(
+          character.temporaryHitPoints,
+          character.temporaryHitPointsSource,
+          vitalityOfTheTreeTemporaryHitPoints,
+          "Vitality Surge"
+        )
+      : {
+          temporaryHitPoints: character.temporaryHitPoints,
+          temporaryHitPointsSource: character.temporaryHitPointsSource
+        };
 
   return {
     ...character,
-    statusEntries: nextRageStatusEntries,
+    statusEntries: nextRageOfTheGodsStatusEntries,
+    ...nextTemporaryHitPointsAssignment,
     classFeatureState: {
       ...character.classFeatureState,
       rage: {
         ...rageState,
         usesExpended: rageState.usesExpended + 1,
-        active: true
+        active: true,
+        divineFuryUsedThisTurn: false,
+        wildHeartRageOption: hasWildHeartRageOfTheWilds(character)
+          ? undefined
+          : rageState.wildHeartRageOption,
+        wildHeartPowerOption: hasWildHeartPowerOfTheWilds(character)
+          ? undefined
+          : rageState.wildHeartPowerOption
       }
     }
   };
+}
+
+export function activateBarbarianWildHeartRage(
+  character: Character,
+  rageOptionKey: string,
+  powerOptionKey?: string
+): Character {
+  if (!hasWildHeartRageOfTheWilds(character)) {
+    return character;
+  }
+
+  const wildHeartOption = normalizeWildHeartRageOption(rageOptionKey);
+  const wildHeartPowerOption = hasWildHeartPowerOfTheWilds(character)
+    ? normalizeWildHeartPowerOption(powerOptionKey)
+    : undefined;
+
+  if (!wildHeartOption || (hasWildHeartPowerOfTheWilds(character) && !wildHeartPowerOption)) {
+    return character;
+  }
+
+  const ragingCharacter = activateBarbarianRage(character);
+
+  if (ragingCharacter === character) {
+    return character;
+  }
+
+  return {
+    ...ragingCharacter,
+    classFeatureState: {
+      ...ragingCharacter.classFeatureState,
+      rage: {
+        ...getBarbarianRageState(ragingCharacter),
+        wildHeartRageOption: wildHeartOption,
+        wildHeartPowerOption
+      }
+    }
+  };
+}
+
+export function activateBarbarianRageOfTheWildsOption(
+  character: Character,
+  optionKey: string
+): Character {
+  return activateBarbarianWildHeartRage(character, optionKey);
 }
 
 export function activateBarbarianRecklessAttack(character: Character): Character {
@@ -1270,6 +2170,40 @@ export function activateBarbarianRelentlessRage(character: Character): Character
   };
 }
 
+export function consumeBarbarianWarriorOfTheGodsCharges(
+  character: Character,
+  chargeCount: number
+): Character {
+  if (!hasZealotWarriorOfTheGods(character)) {
+    return character;
+  }
+
+  const normalizedChargeCount = Math.max(0, Math.floor(chargeCount));
+
+  if (normalizedChargeCount <= 0) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+  const usesRemaining = getBarbarianWarriorOfTheGodsUsesRemaining(character);
+  const chargesToSpend = Math.min(usesRemaining, normalizedChargeCount);
+
+  if (chargesToSpend <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        warriorOfTheGodsUsesExpended: (rageState.warriorOfTheGodsUsesExpended ?? 0) + chargesToSpend
+      }
+    }
+  };
+}
+
 export function applyPersistentRageOnInitiative(character: Character): Character {
   if (!hasBarbarianFeature(character, CLASS_FEATURE.PERSISTENT_RAGE)) {
     return character;
@@ -1337,6 +2271,139 @@ export function activateBarbarianIntimidatingPresence(character: Character): Cha
   };
 }
 
+export function activateBarbarianZealousPresence(character: Character): Character {
+  if (!hasZealotZealousPresence(character)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+  const usesRemaining = getBarbarianZealousPresenceUsesRemaining(character);
+
+  if (usesRemaining > 0) {
+    return {
+      ...character,
+      classFeatureState: {
+        ...character.classFeatureState,
+        rage: {
+          ...rageState,
+          zealousPresenceUsesExpended: (rageState.zealousPresenceUsesExpended ?? 0) + 1
+        }
+      }
+    };
+  }
+
+  const rageUsesRemaining = getBarbarianRageUsesRemaining(character);
+
+  if (rageUsesRemaining <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        usesExpended: rageState.usesExpended + 1
+      }
+    }
+  };
+}
+
+export function activateBarbarianTravelAlongTheTree(character: Character): Character {
+  if (!hasWorldTreeTravelAlongTheTree(character)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+  const rageUsesRemaining = getBarbarianRageUsesRemaining(character);
+
+  if (rageState.active !== true || rageUsesRemaining <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        usesExpended: rageState.usesExpended + 1
+      }
+    }
+  };
+}
+
+export function expendBarbarianRageUse(character: Character): Character {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.RAGE)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+  const rageUsesRemaining = getBarbarianRageUsesRemaining(character);
+
+  if (rageUsesRemaining <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        usesExpended: rageState.usesExpended + 1
+      }
+    }
+  };
+}
+
+export function restoreBarbarianRageUse(character: Character): Character {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.RAGE)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+
+  if (rageState.usesExpended <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        usesExpended: rageState.usesExpended - 1
+      }
+    }
+  };
+}
+
+export function restoreAllBarbarianRageUses(character: Character): Character {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.RAGE)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+
+  if (rageState.usesExpended === 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        usesExpended: 0
+      }
+    }
+  };
+}
+
 export function deactivateBarbarianRage(character: Character): Character {
   if (!hasBarbarianFeature(character, CLASS_FEATURE.RAGE)) {
     return character;
@@ -1355,7 +2422,10 @@ export function deactivateBarbarianRage(character: Character): Character {
       rage: {
         ...rageState,
         active: false,
-        frenzyPending: false
+        divineFuryUsedThisTurn: false,
+        frenzyPending: false,
+        wildHeartRageOption: undefined,
+        wildHeartPowerOption: undefined
       }
     }
   };
@@ -1405,6 +2475,29 @@ export function consumeBarbarianBrutalStrikeBonus(character: Character): Charact
       rage: {
         ...rageState,
         brutalStrikePending: false
+      }
+    }
+  };
+}
+
+export function consumeBarbarianDivineFuryBonus(character: Character): Character {
+  if (!hasZealotDivineFury(character)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+
+  if (rageState.divineFuryUsedThisTurn === true) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        divineFuryUsedThisTurn: true
       }
     }
   };
@@ -1495,6 +2588,7 @@ export function restoreBarbarianRageOnShortRest(character: Character): Character
         usesExpended: Math.max(0, rageState.usesExpended - 1),
         active: false,
         extraAttacksRemainingThisTurn: 0,
+        divineFuryUsedThisTurn: false,
         brutalStrikePending: false,
         brutalStrikeUsedThisTurn: false,
         recklessAttackRoundsRemaining: 0,
@@ -1519,6 +2613,7 @@ export function restoreBarbarianRageOnLongRest(character: Character): Character 
         usesExpended: 0,
         active: false,
         extraAttacksRemainingThisTurn: 0,
+        divineFuryUsedThisTurn: false,
         brutalStrikePending: false,
         brutalStrikeUsedThisTurn: false,
         recklessAttackRoundsRemaining: 0,
@@ -1556,6 +2651,29 @@ export function restoreBarbarianRelentlessRageOnLongRest(character: Character): 
   return restoreBarbarianRelentlessRageOnShortRest(character);
 }
 
+export function restoreBarbarianWarriorOfTheGodsOnLongRest(character: Character): Character {
+  if (!hasZealotWarriorOfTheGods(character)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+
+  if ((rageState.warriorOfTheGodsUsesExpended ?? 0) === 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        warriorOfTheGodsUsesExpended: 0
+      }
+    }
+  };
+}
+
 export function restoreBarbarianIntimidatingPresenceOnLongRest(character: Character): Character {
   if (!hasBerserkerIntimidatingPresence(character)) {
     return character;
@@ -1574,6 +2692,29 @@ export function restoreBarbarianIntimidatingPresenceOnLongRest(character: Charac
       rage: {
         ...rageState,
         intimidatingPresenceUsesExpended: 0
+      }
+    }
+  };
+}
+
+export function restoreBarbarianZealousPresenceOnLongRest(character: Character): Character {
+  if (!hasZealotZealousPresence(character)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+
+  if ((rageState.zealousPresenceUsesExpended ?? 0) === 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        zealousPresenceUsesExpended: 0
       }
     }
   };
@@ -1616,8 +2757,12 @@ export function applyLongRestToBarbarianFeatures(character: Character): Characte
   }
 
   return restoreBarbarianPersistentRageOnLongRest(
+    restoreBarbarianZealousPresenceOnLongRest(
     restoreBarbarianIntimidatingPresenceOnLongRest(
-      restoreBarbarianRelentlessRageOnLongRest(restoreBarbarianRageOnLongRest(character))
+      restoreBarbarianWarriorOfTheGodsOnLongRest(
+        restoreBarbarianRelentlessRageOnLongRest(restoreBarbarianRageOnLongRest(character))
+      )
+    )
     )
   );
 }
@@ -1636,6 +2781,7 @@ export function advanceBarbarianFeaturesForNewRound(character: Character): Chara
   if (
     (rageState.extraAttacksRemainingThisTurn ?? 0) === 0 &&
     recklessAttackRoundsRemaining === 0 &&
+    rageState.divineFuryUsedThisTurn !== true &&
     rageState.recklessAttackUsedThisTurn !== true &&
     rageState.brutalStrikePending !== true &&
     rageState.brutalStrikeUsedThisTurn !== true &&
@@ -1652,6 +2798,7 @@ export function advanceBarbarianFeaturesForNewRound(character: Character): Chara
         ...rageState,
         extraAttacksRemainingThisTurn: 0,
         recklessAttackRoundsRemaining: Math.max(0, recklessAttackRoundsRemaining - 1),
+        divineFuryUsedThisTurn: false,
         recklessAttackUsedThisTurn: false,
         brutalStrikePending: false,
         brutalStrikeUsedThisTurn: false,

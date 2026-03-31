@@ -90,6 +90,7 @@ export function createEmptyCharacter(): CharacterDraft {
     hitPoints: 8,
     currentHitPoints: 8,
     temporaryHitPoints: 0,
+    temporaryHitPointsSource: undefined,
     maxHitPointsMode: preferences.defaultMaxHitPointsMode,
     hitDiceRemaining: 1,
     attributeMode: "custom",

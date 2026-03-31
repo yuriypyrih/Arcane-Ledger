@@ -36,6 +36,10 @@ import { normalizeCharacterFeats } from "./feats";
 import { clampNumber } from "./shared";
 import { normalizeSubclassId } from "./subclasses";
 import { normalizeCharacterStatusEntries, reconcileCharacterStatusConsequences } from "./traits";
+import {
+  createTemporaryHitPointsAssignment,
+  normalizeTemporaryHitPointsSource
+} from "./shared";
 
 function normalizeCoreStatValue(value: unknown, fallback: string): string {
   if (typeof value !== "string") {
@@ -164,6 +168,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     hitDiceRemaining?: unknown;
     maxHitPointsMode?: unknown;
     temporaryHitPoints?: unknown;
+    temporaryHitPointsSource?: unknown;
     roundTracker?: unknown;
     conditions?: unknown;
     statusEntries?: unknown;
@@ -324,7 +329,13 @@ export function normalizeCharacter(value: unknown): Character | null {
     ),
     preparedSpellSelectionOptions,
     preparedSpellLimit,
-    getAlwaysPreparedSpellIds(normalizedClassName, normalizedLevel, normalizedClassFeatureState)
+    getAlwaysPreparedSpellIds(
+      normalizedClassName,
+      normalizedLevel,
+      normalizedClassFeatureState,
+      undefined,
+      normalizedSubclassId
+    )
   );
   const spellSlotTotals = getSpellSlotTotalsForCharacter(normalizedClassName, normalizedLevel);
   const normalizedSpellSlotsExpended = normalizeSpellSlotsExpended(
@@ -356,8 +367,9 @@ export function normalizeCharacter(value: unknown): Character | null {
   );
   const normalizedDeathSaves = normalizeDeathSaves(record.deathSaves);
   const normalizedFeats = normalizeCharacterFeats(record.feats, normalizedLevel);
-  const normalizedTemporaryHitPoints = Math.floor(
-    clampNumber(record.temporaryHitPoints, 0, 999, defaults.temporaryHitPoints)
+  const normalizedTemporaryHitPointsAssignment = createTemporaryHitPointsAssignment(
+    clampNumber(record.temporaryHitPoints, 0, 999, defaults.temporaryHitPoints),
+    normalizeTemporaryHitPointsSource(record.temporaryHitPointsSource)
   );
 
   return reconcileCharacterStatusConsequences({
@@ -375,7 +387,8 @@ export function normalizeCharacter(value: unknown): Character | null {
       normalizedHitPoints,
       normalizedHitPoints
     ),
-    temporaryHitPoints: normalizedTemporaryHitPoints,
+    temporaryHitPoints: normalizedTemporaryHitPointsAssignment.temporaryHitPoints,
+    temporaryHitPointsSource: normalizedTemporaryHitPointsAssignment.temporaryHitPointsSource,
     maxHitPointsMode: normalizedMaxHitPointsMode,
     attributeMode:
       record.attributeMode === "pointBuy" || record.attributeMode === "custom"

@@ -32,6 +32,7 @@ describe("barbarian rest options", () => {
         rage: {
           usesExpended: 2,
           active: false,
+          warriorOfTheGodsUsesExpended: 1,
           relentlessRageDcBonus: 10,
           intimidatingPresenceUsesExpended: 1,
           persistentRageUsesExpended: 1
@@ -63,6 +64,56 @@ describe("barbarian rest options", () => {
         expect.objectContaining({
           id: "restore-persistent-rage",
           label: "Restore Persistent Rage"
+        })
+      ])
+    );
+  });
+
+  it("shows warrior of the gods recovery on long rest for zealot barbarians", () => {
+    const character = createCharacter({
+      level: 6,
+      subclassId: "barbarian-path-of-the-zealot",
+      classFeatureState: {
+        rage: {
+          usesExpended: 0,
+          active: false,
+          warriorOfTheGodsUsesExpended: 2
+        }
+      }
+    });
+
+    const longRestOptions = createLongRestOptions(character);
+
+    expect(longRestOptions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "restore-warrior-of-the-gods",
+          label: "Restore Warrior of the Gods"
+        })
+      ])
+    );
+  });
+
+  it("shows zealous presence recovery on long rest for level 10 zealot barbarians", () => {
+    const character = createCharacter({
+      level: 10,
+      subclassId: "barbarian-path-of-the-zealot",
+      classFeatureState: {
+        rage: {
+          usesExpended: 0,
+          active: false,
+          zealousPresenceUsesExpended: 1
+        }
+      }
+    });
+
+    const longRestOptions = createLongRestOptions(character);
+
+    expect(longRestOptions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "restore-zealous-presence",
+          label: "Restore Zealous Presence"
         })
       ])
     );

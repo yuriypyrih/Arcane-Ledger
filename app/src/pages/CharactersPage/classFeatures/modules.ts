@@ -19,6 +19,9 @@ import {
   activateBarbarianRecklessAttack,
   activateBarbarianRelentlessRage,
   activateBarbarianRage,
+  activateBarbarianRageOfTheWildsOption,
+  activateBarbarianTravelAlongTheTree,
+  activateBarbarianZealousPresence,
   advanceBarbarianFeaturesForNewRound,
   applyLongRestToBarbarianFeatures,
   applyShortRestToBarbarianFeatures,
@@ -27,6 +30,9 @@ import {
   barbarianRelentlessRageActionKey,
   barbarianRageActionKey,
   barbarianRecklessAttackActionKey,
+  barbarianWarriorOfTheGodsActionKey,
+  barbarianTravelAlongTheTreeActionKey,
+  barbarianZealousPresenceActionKey,
   getBarbarianAbilityCheckIndicators,
   getBarbarianAbilityScoreBonuses,
   getBarbarianArmorClassBonuses,
@@ -35,6 +41,7 @@ import {
   getBarbarianCoreStatIndicators,
   getBarbarianDerivedConditions,
   getBarbarianFeatureActions,
+  getBarbarianRageOfTheWildsOptions,
   getBarbarianSavingThrowIndicators,
   getBarbarianSkillBonuses,
   getBarbarianSkillIndicators,
@@ -253,6 +260,7 @@ const classFeatureModules = {
       return {
         actions: getBarbarianFeatureActions(character),
         actionOptions: {
+          [barbarianRageActionKey]: getBarbarianRageOfTheWildsOptions(character),
           [barbarianBrutalStrikeActionKey]: getBarbarianBrutalStrikeOptions(character)
         },
         getWeaponDamageBonuses: (context) => getBarbarianWeaponDamageBonuses(character, context),
@@ -294,11 +302,28 @@ const classFeatureModules = {
         return activateBarbarianRelentlessRage(character);
       }
 
+      if (actionKey === barbarianWarriorOfTheGodsActionKey) {
+        return character;
+      }
+
       if (actionKey === barbarianIntimidatingPresenceActionKey) {
         return activateBarbarianIntimidatingPresence(character);
       }
 
+      if (actionKey === barbarianZealousPresenceActionKey) {
+        return activateBarbarianZealousPresence(character);
+      }
+
+      if (actionKey === barbarianTravelAlongTheTreeActionKey) {
+        return activateBarbarianTravelAlongTheTree(character);
+      }
+
       return null;
+    },
+    handleActionOption(character, actionKey, optionKey) {
+      return actionKey === barbarianRageActionKey
+        ? activateBarbarianRageOfTheWildsOption(character, optionKey)
+        : null;
     },
     applyShortRest: applyShortRestToBarbarianFeatures,
     applyLongRest: applyLongRestToBarbarianFeatures,
@@ -662,6 +687,7 @@ export function collectActiveClassFeatureState(
         | "classFeatureState"
         | "abilities"
         | "statusEntries"
+        | "roundTracker"
         | "equipment"
         | "customEquipment"
         | "spellbookSpellIds"
@@ -681,6 +707,7 @@ export function collectActiveClassFeatureState(
     subclassId: undefined,
     classFeatureState: {},
     statusEntries: [],
+    roundTracker: undefined,
     equipment: [],
     customEquipment: [],
     spellbookSpellIds: [],

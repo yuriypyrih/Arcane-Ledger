@@ -1,8 +1,11 @@
 import { describe, expect, it } from "vitest";
-import { WEAPON_COMBAT_TYPE } from "../../../codex/entries";
+import { DAMAGE_TYPE, WEAPON_COMBAT_TYPE, WEAPON_PROPERTY } from "../../../codex/entries";
 import {
   CONDITION_NAME,
+  EFFECT_NAME,
+  SENSE,
   SKILL,
+  STATUS_DURATION_KIND,
   STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
@@ -10,24 +13,37 @@ import {
 import { createDefaultAbilities, createEmptyCharacter } from "../constants";
 import {
   activateFeatureActionForCharacter,
+  activateFeatureActionOptionForCharacter,
   applyPersistentRageOnInitiativeForCharacter,
   applyLongRestToFeatureState,
   applyShortRestToFeatureState,
   advanceFeatureStateForNewRound,
+  consumeBarbarianWarriorOfTheGodsChargesForCharacter,
   consumeWeaponAttackActionForCharacter,
+  getAdditionalWeaponMasteriesForCharacter,
   getDerivedFeatureStatusEntriesForCharacter,
   getFeatureActionsForCharacter,
   getFeatureActionOptionsForCharacter,
   getFeatureDamageBonusesForWeaponAction,
   getFeatureReactionEntriesForCharacter,
+  getAlwaysPreparedSpellIdsForCharacter,
   getSpellcastingStateForCharacter,
   markFeatureWeaponBonusUseForCharacter
 } from "./index";
 import type { Character } from "../../../types";
 import { normalizeCharacter } from "../storage";
-import { createCharacterStatusEntry, hasStatusCondition } from "../traits";
+import {
+  createCharacterStatusEntry,
+  hasStatusCondition,
+  resolveCharacterStatusEntries
+} from "../traits";
 import { getPassivePerceptionForCharacter } from "../gameplay";
+import { getWeaponActionsForCharacter } from "../gameplay";
 import { getSkillRowsByAbility } from "../skills";
+import { activateBarbarianWildHeartRage } from "./barbarian";
+import { createCharacterEquipmentItem } from "../inventory";
+import { getWeaponActionBreakdown } from "../../../components/CharactersPage/CharacterSheetPage/GameplayForm/gameplayWidgetUtils";
+import { getMovementSpeedBreakdownsForCharacter } from "../speed";
 
 function createCharacter(overrides: Partial<Character>): Character {
   const normalizedCharacter = normalizeCharacter({
@@ -150,6 +166,210 @@ describe("class feature state reducers", () => {
     expect(nextRoundCharacter.classFeatureState?.rage?.recklessAttackUsedThisTurn).toBe(false);
     expect(nextRoundCharacter.classFeatureState?.rage?.recklessAttackRoundsRemaining).toBe(0);
     expect(nextRoundCharacter.classFeatureState?.rage?.frenzyPending).toBe(false);
+  });
+
+  it("applies divine fury once per turn while a zealot barbarian is raging", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 3,
+      subclassId: "barbarian-path-of-the-zealot",
+      background: "Criminal / Spy",
+      roundTracker: {
+        turnStarted: true,
+        actionAvailable: true,
+        bonusActionAvailable: true,
+        reactionAvailable: true
+      },
+      classFeatureState: {
+        rage: {
+          usesExpended: 1,
+          active: true
+        }
+      }
+    });
+
+    const damageBonuses = getFeatureDamageBonusesForWeaponAction(character, {
+      name: "Greataxe",
+      ability: "STR",
+      attackKind: "weapon",
+      combatType: WEAPON_COMBAT_TYPE.MELEE
+    });
+
+    expect(damageBonuses).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Divine Fury",
+          formula: "1d6+1",
+          displayLabel: "1d6 + 1 Necrotic/Radiant"
+        })
+      ])
+    );
+
+    const consumedCharacter = markFeatureWeaponBonusUseForCharacter(character, "Divine Fury");
+    const nextRoundCharacter = advanceFeatureStateForNewRound(consumedCharacter);
+
+    expect(consumedCharacter.classFeatureState?.rage?.divineFuryUsedThisTurn).toBe(true);
+    expect(nextRoundCharacter.classFeatureState?.rage?.divineFuryUsedThisTurn).toBe(false);
+  });
+
+  it("adds fanatical focus when a zealot barbarian enters rage", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 6,
+      subclassId: "barbarian-path-of-the-zealot",
+      background: "Criminal / Spy"
+    });
+
+    const ragingCharacter = activateFeatureActionForCharacter(character, "barbarian-rage");
+
+    expect(ragingCharacter.statusEntries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceId: "feature-barbarian-fanatical-focus",
+          value: "Fanatical Focus",
+          source: "Path of the Zealot",
+          duration: expect.objectContaining({
+            kind: STATUS_DURATION_KIND.LINKED,
+            linkedValue: EFFECT_NAME.RAGE
+          })
+        })
+      ])
+    );
+  });
+
+  it("shows warrior of the gods charges for a zealot barbarian and spends them on use", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 6,
+      subclassId: "barbarian-path-of-the-zealot",
+      background: "Criminal / Spy"
+    });
+
+    const warriorOfTheGodsAction = getFeatureActionsForCharacter(character).find(
+      (action) => action.key === "barbarian-warrior-of-the-gods"
+    );
+
+    expect(warriorOfTheGodsAction).toEqual(
+      expect.objectContaining({
+        name: "Warrior of the Gods",
+        usesLabel: "5/5 charges",
+        breakdown: "Use a 1d6 + 3 to heal yourself."
+      })
+    );
+
+    const spentCharacter = consumeBarbarianWarriorOfTheGodsChargesForCharacter(character, 2);
+
+    expect(spentCharacter.classFeatureState?.rage?.warriorOfTheGodsUsesExpended).toBe(2);
+  });
+
+  it("shows zealous presence and falls back to rage charges after its main charge is spent", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 10,
+      subclassId: "barbarian-path-of-the-zealot",
+      background: "Criminal / Spy"
+    });
+
+    const zealousPresenceAction = getFeatureActionsForCharacter(character).find(
+      (action) => action.key === "barbarian-zealous-presence"
+    );
+
+    expect(zealousPresenceAction).toEqual(
+      expect.objectContaining({
+        name: "Zealous Presence",
+        usesLabel: "1/1 charge",
+        breakdown: "Divine infused Battle Cry"
+      })
+    );
+
+    const firstUseCharacter = activateFeatureActionForCharacter(
+      character,
+      "barbarian-zealous-presence"
+    );
+    const fallbackAction = getFeatureActionsForCharacter(firstUseCharacter).find(
+      (action) => action.key === "barbarian-zealous-presence"
+    );
+
+    expect(firstUseCharacter.classFeatureState?.rage?.zealousPresenceUsesExpended).toBe(1);
+    expect(fallbackAction).toEqual(
+      expect.objectContaining({
+        usesInlineLabel: "Use 1",
+        usesInlineIcon: "flame"
+      })
+    );
+
+    const secondUseCharacter = activateFeatureActionForCharacter(
+      firstUseCharacter,
+      "barbarian-zealous-presence"
+    );
+
+    expect(secondUseCharacter.classFeatureState?.rage?.usesExpended).toBe(1);
+  });
+
+  it("adds rage of the gods on rage activation and grants its resistances and fly speed", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 14,
+      subclassId: "barbarian-path-of-the-zealot",
+      background: "Criminal / Spy"
+    });
+
+    const ragingCharacter = activateFeatureActionForCharacter(character, "barbarian-rage");
+    const derivedStatuses = getDerivedFeatureStatusEntriesForCharacter(ragingCharacter);
+    const resolvedStatuses = resolveCharacterStatusEntries(
+      ragingCharacter.statusEntries,
+      derivedStatuses
+    );
+    const movement = getMovementSpeedBreakdownsForCharacter(ragingCharacter);
+
+    expect(ragingCharacter.statusEntries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceId: "feature-barbarian-rage-of-the-gods",
+          value: "Rage of the Gods",
+          source: "Path of the Zealot",
+          duration: expect.objectContaining({
+            kind: STATUS_DURATION_KIND.MINUTES,
+            amount: 1
+          })
+        })
+      ])
+    );
+    expect(resolvedStatuses).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceId: "feature-barbarian-rage-of-the-gods",
+          group: STATUS_ENTRY_GROUP.EFFECTS,
+          value: "Rage of the Gods"
+        })
+      ])
+    );
+    expect(derivedStatuses).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceId: "feature-barbarian-rage-of-the-gods",
+          group: STATUS_ENTRY_GROUP.RESISTANCES,
+          value: DAMAGE_TYPE.NECROTIC
+        }),
+        expect.objectContaining({
+          sourceId: "feature-barbarian-rage-of-the-gods",
+          group: STATUS_ENTRY_GROUP.RESISTANCES,
+          value: DAMAGE_TYPE.PSYCHIC
+        }),
+        expect.objectContaining({
+          sourceId: "feature-barbarian-rage-of-the-gods",
+          group: STATUS_ENTRY_GROUP.RESISTANCES,
+          value: DAMAGE_TYPE.RADIANT
+        })
+      ])
+    );
+    expect(movement.fly.total).toBe(40);
+    expect(movement.fly.baseExpression).toEqual(
+      expect.objectContaining({
+        kind: "walk",
+        sourceLabel: "Rage of the Gods"
+      })
+    );
   });
 
   it("adds instinctive pounce as a round-end trait when rage starts", () => {
@@ -416,6 +636,159 @@ describe("class feature state reducers", () => {
     expect(afterLongRest.classFeatureState?.rage?.persistentRageUsesExpended).toBe(0);
   });
 
+  it("grants wild heart animal speaker spells as always prepared", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 3,
+      subclassId: "barbarian-path-of-the-wild-heart",
+      background: "Criminal / Spy"
+    });
+
+    expect(getAlwaysPreparedSpellIdsForCharacter(character)).toEqual([
+      "spell-beast-sense",
+      "spell-speak-with-animals"
+    ]);
+  });
+
+  it("adds nature speaker to wild heart always prepared spells at level 10", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 10,
+      subclassId: "barbarian-path-of-the-wild-heart",
+      background: "Criminal / Spy"
+    });
+
+    expect(getAlwaysPreparedSpellIdsForCharacter(character)).toEqual([
+      "spell-beast-sense",
+      "spell-speak-with-animals",
+      "spell-commune-with-nature"
+    ]);
+  });
+
+  it("grants owl darkvision from aspect of the wilds", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 6,
+      subclassId: "barbarian-path-of-the-wild-heart",
+      background: "Criminal / Spy",
+      classFeatureState: {
+        rage: {
+          usesExpended: 0,
+          active: false,
+          wildHeartAspect: "owl"
+        }
+      }
+    });
+
+    expect(getDerivedFeatureStatusEntriesForCharacter(character)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          group: STATUS_ENTRY_GROUP.SENSES,
+          value: SENSE.DARKVISION,
+          source: "Aspect of the Wilds",
+          rangeFeet: 60
+        })
+      ])
+    );
+  });
+
+  it("requires a rage of the wilds choice and applies bear resistances during rage", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 3,
+      subclassId: "barbarian-path-of-the-wild-heart",
+      background: "Criminal / Spy"
+    });
+
+    const rageAction = getFeatureActionsForCharacter(character).find(
+      (action) => action.key === "barbarian-rage"
+    );
+    const rageOptions = getFeatureActionOptionsForCharacter(character, "barbarian-rage");
+    const ragingCharacter = activateFeatureActionOptionForCharacter(
+      character,
+      "barbarian-rage",
+      "bear"
+    );
+    const resistanceEntries = getDerivedFeatureStatusEntriesForCharacter(ragingCharacter).filter(
+      (entry) => entry.group === STATUS_ENTRY_GROUP.RESISTANCES
+    );
+
+    expect(rageAction).toEqual(
+      expect.objectContaining({
+        interaction: "select"
+      })
+    );
+    expect(rageOptions.map((option) => option.name)).toEqual(["Bear", "Eagle", "Wolf"]);
+    expect(ragingCharacter.classFeatureState?.rage?.active).toBe(true);
+    expect(ragingCharacter.classFeatureState?.rage?.wildHeartRageOption).toBe("bear");
+    expect(resistanceEntries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ value: DAMAGE_TYPE.ACID, source: "Rage of the Wilds" }),
+        expect.objectContaining({ value: DAMAGE_TYPE.COLD, source: "Rage of the Wilds" }),
+        expect.objectContaining({ value: DAMAGE_TYPE.FIRE, source: "Rage of the Wilds" }),
+        expect.objectContaining({ value: DAMAGE_TYPE.LIGHTNING, source: "Rage of the Wilds" }),
+        expect.objectContaining({ value: DAMAGE_TYPE.POISON, source: "Rage of the Wilds" }),
+        expect.objectContaining({ value: DAMAGE_TYPE.THUNDER, source: "Rage of the Wilds" })
+      ])
+    );
+  });
+
+  it("stores both wild heart rage choices and exposes them as active feature traits", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 14,
+      subclassId: "barbarian-path-of-the-wild-heart",
+      background: "Criminal / Spy"
+    });
+
+    const ragingCharacter = activateBarbarianWildHeartRage(character, "bear", "falcon");
+    const effectEntries = getDerivedFeatureStatusEntriesForCharacter(ragingCharacter).filter(
+      (entry) => entry.group === STATUS_ENTRY_GROUP.EFFECTS
+    );
+
+    expect(ragingCharacter.classFeatureState?.rage?.active).toBe(true);
+    expect(ragingCharacter.classFeatureState?.rage?.wildHeartRageOption).toBe("bear");
+    expect(ragingCharacter.classFeatureState?.rage?.wildHeartPowerOption).toBe("falcon");
+    expect(effectEntries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ value: "Bear", source: "Rage of the Wilds" }),
+        expect.objectContaining({ value: "Falcon", source: "Power of the Wilds" })
+      ])
+    );
+  });
+
+  it("grants vitality of the tree temporary hit points when a world tree barbarian enters rage", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 3,
+      subclassId: "barbarian-path-of-the-world-tree",
+      background: "Criminal / Spy",
+      temporaryHitPoints: 0
+    });
+
+    const ragingCharacter = activateFeatureActionForCharacter(character, "barbarian-rage");
+
+    expect(ragingCharacter.classFeatureState?.rage?.active).toBe(true);
+    expect(ragingCharacter.temporaryHitPoints).toBe(3);
+    expect(ragingCharacter.temporaryHitPointsSource).toBe("Vitality Surge");
+  });
+
+  it("does not replace a higher temporary hit point total with vitality of the tree", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 3,
+      subclassId: "barbarian-path-of-the-world-tree",
+      background: "Criminal / Spy",
+      temporaryHitPoints: 7,
+      temporaryHitPointsSource: "Tireless"
+    });
+
+    const ragingCharacter = activateFeatureActionForCharacter(character, "barbarian-rage");
+
+    expect(ragingCharacter.temporaryHitPoints).toBe(7);
+    expect(ragingCharacter.temporaryHitPointsSource).toBe("Tireless");
+  });
+
   it("uses Strength for primal knowledge skills while raging", () => {
     const character = createCharacter({
       className: "Barbarian",
@@ -540,6 +913,151 @@ describe("class feature state reducers", () => {
     );
   });
 
+  it("adds branches of the tree to the reactions list at level 6", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 6,
+      subclassId: "barbarian-path-of-the-world-tree",
+      background: "Criminal / Spy"
+    });
+
+    const reactionEntries = getFeatureReactionEntriesForCharacter(character);
+
+    expect(reactionEntries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "reaction-world-tree-branches-of-the-tree",
+          name: "Branches of the Tree",
+          sourceLabel: "Path of the World Tree"
+        })
+      ])
+    );
+  });
+
+  it("adds battering roots to eligible melee weapon actions during the turn and exposes push mastery", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 10,
+      subclassId: "barbarian-path-of-the-world-tree",
+      background: "Criminal / Spy",
+      roundTracker: {
+        turnStarted: true,
+        actionAvailable: true,
+        bonusActionAvailable: true,
+        reactionAvailable: true
+      },
+      equipment: [createCharacterEquipmentItem("Greataxe", true)]
+    });
+
+    const greataxeAction = getWeaponActionsForCharacter(character).find(
+      (action) => action.name === "Greataxe"
+    );
+    const additionalMasteries = getAdditionalWeaponMasteriesForCharacter(character, {
+      attackKind: "weapon",
+      combatType: WEAPON_COMBAT_TYPE.MELEE,
+      properties: [WEAPON_PROPERTY.HEAVY, WEAPON_PROPERTY.TWO_HANDED]
+    });
+
+    expect(greataxeAction).toEqual(
+      expect.objectContaining({
+        hasBatteringRootsBonus: true
+      })
+    );
+    expect(getWeaponActionBreakdown(greataxeAction!)).toContain("+ Battering Roots");
+    expect(additionalMasteries).toEqual([
+      expect.objectContaining({
+        mastery: "PUSH",
+        source: "Battering Roots"
+      })
+    ]);
+  });
+
+  it("does not add battering roots to weapon actions outside your turn", () => {
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 10,
+      subclassId: "barbarian-path-of-the-world-tree",
+      background: "Criminal / Spy",
+      roundTracker: {
+        turnStarted: false,
+        actionAvailable: true,
+        bonusActionAvailable: true,
+        reactionAvailable: true
+      },
+      equipment: [createCharacterEquipmentItem("Greataxe", true)]
+    });
+
+    const greataxeAction = getWeaponActionsForCharacter(character).find(
+      (action) => action.name === "Greataxe"
+    );
+
+    expect(greataxeAction).toEqual(
+      expect.objectContaining({
+        hasBatteringRootsBonus: false
+      })
+    );
+    expect(getWeaponActionBreakdown(greataxeAction!)).not.toContain("+ Battering Roots");
+  });
+
+  it("adds travel along the tree as a rage-only bonus action that spends rage charges", () => {
+    const inactiveCharacter = createCharacter({
+      className: "Barbarian",
+      level: 14,
+      subclassId: "barbarian-path-of-the-world-tree",
+      background: "Criminal / Spy",
+      classFeatureState: {
+        rage: {
+          usesExpended: 1,
+          active: false
+        }
+      }
+    });
+
+    const inactiveAction = getFeatureActionsForCharacter(inactiveCharacter).find(
+      (action) => action.key === "barbarian-travel-along-the-tree"
+    );
+
+    expect(inactiveAction).toEqual(
+      expect.objectContaining({
+        name: "Travel Along the Tree",
+        usesLabel: "Use 1",
+        usesIcon: "flame",
+        breakdown: "Teleport while in Rage.",
+        economyType: "bonus_action",
+        disabled: true
+      })
+    );
+
+    const ragingCharacter = createCharacter({
+      className: "Barbarian",
+      level: 14,
+      subclassId: "barbarian-path-of-the-world-tree",
+      background: "Criminal / Spy",
+      classFeatureState: {
+        rage: {
+          usesExpended: 1,
+          active: true
+        }
+      }
+    });
+
+    const activeAction = getFeatureActionsForCharacter(ragingCharacter).find(
+      (action) => action.key === "barbarian-travel-along-the-tree"
+    );
+    const teleportedCharacter = activateFeatureActionForCharacter(
+      ragingCharacter,
+      "barbarian-travel-along-the-tree"
+    );
+
+    expect(activeAction).toEqual(
+      expect.objectContaining({
+        disabled: false
+      })
+    );
+    expect(teleportedCharacter.classFeatureState?.rage?.usesExpended).toBe(2);
+    expect(teleportedCharacter.classFeatureState?.rage?.active).toBe(true);
+  });
+
   it("spends intimidating presence first, then falls back to rage charges", () => {
     const character = createCharacter({
       className: "Barbarian",
@@ -581,7 +1099,8 @@ describe("class feature state reducers", () => {
     expect(rageFallbackAction).toEqual(
       expect.objectContaining({
         usesRemaining: 0,
-        usesInlineLabel: "| Uses Rage Charges"
+        usesInlineLabel: "Use 1",
+        usesInlineIcon: "flame"
       })
     );
 

@@ -1,6 +1,7 @@
 import clsx from "clsx";
-import { Brain, Sparkles } from "lucide-react";
+import { Brain, Flame, Sparkles } from "lucide-react";
 import ActionShape from "../../../../ActionShape";
+import FeatureTrackingBadgeButton from "../../../../FeatureDisclosure/FeatureTrackingBadgeButton";
 import type { Character } from "../../../../../types";
 import type {
   FeatureActionCard,
@@ -92,6 +93,10 @@ function renderFeatureActionUsesIcon(icon: FeatureActionCard["usesIcon"]) {
     return <Sparkles size={14} strokeWidth={2.1} />;
   }
 
+  if (icon === "flame") {
+    return <Flame size={14} strokeWidth={2.1} />;
+  }
+
   return null;
 }
 
@@ -110,6 +115,18 @@ function renderFeatureActionUsesLabel(action: FeatureActionCard) {
     );
   }
 
+  if (action.usesIcon) {
+    const shouldPrefixUses = !/\s/.test(action.usesLabel);
+
+    return (
+      <>
+        {shouldPrefixUses ? <span>Uses</span> : null}
+        <span>{action.usesLabel}</span>
+        {renderFeatureActionUsesIcon(action.usesIcon)}
+      </>
+    );
+  }
+
   return <span>{action.usesLabel}</span>;
 }
 
@@ -119,9 +136,11 @@ function renderFeatureActionOptionUsesLabel(option: FeatureActionOptionCard) {
   }
 
   if (option.usesIcon) {
+    const shouldPrefixUses = !/\s/.test(option.usesLabel);
+
     return (
       <>
-        <span>Uses</span>
+        {shouldPrefixUses ? <span>Uses</span> : null}
         <span>{option.usesLabel}</span>
         {renderFeatureActionUsesIcon(option.usesIcon)}
       </>
@@ -298,5 +317,51 @@ export function FeatureActionOptionButton({
         {option.disabledReason ?? economyShapeState.disabledReason ?? option.breakdown ?? option.summary}
       </small>
     </button>
+  );
+}
+
+type FeatureActionChoiceRowProps = {
+  option: FeatureActionOptionCard;
+  selected: boolean;
+  onClick: () => void;
+  groupName: string;
+};
+
+export function FeatureActionChoiceRow({
+  option,
+  selected,
+  onClick,
+  groupName
+}: FeatureActionChoiceRowProps) {
+  const isDisabled = option.disabled === true;
+
+  return (
+    <div
+      className={clsx(
+        modalStyles.featureChoiceRow,
+        selected && modalStyles.featureChoiceRowSelected,
+        isDisabled && modalStyles.featureChoiceRowDisabled
+      )}
+    >
+      <label className={modalStyles.featureChoiceLabel}>
+        <input
+          type="radio"
+          name={groupName}
+          checked={selected}
+          disabled={isDisabled}
+          onChange={onClick}
+          className={modalStyles.featureChoiceRadio}
+        />
+        <span className={modalStyles.featureChoiceContent}>
+          <span className={modalStyles.featureChoiceTitle}>{option.name}</span>
+          <span className={modalStyles.featureChoiceDescription}>
+            {option.disabledReason ?? option.detail}
+          </span>
+        </span>
+      </label>
+      {option.trackingState ? (
+        <FeatureTrackingBadgeButton trackingState={option.trackingState} />
+      ) : null}
+    </div>
   );
 }
