@@ -73,7 +73,7 @@ function RagePointsWidget({ character, onPersistCharacter }: RagePointsWidgetPro
             <div className={sheetStyles.restPopupHeader}>
               <div>
                 <p className={sheetStyles.eyebrow}>Barbarian</p>
-                <h3 id="rage-points-modal-title">
+                <h3 id="rage-points-modal-title" className={sheetStyles.sheetPanelTitle}>
                   Rage {remainingRageUses}/{totalRageUses}
                 </h3>
               </div>

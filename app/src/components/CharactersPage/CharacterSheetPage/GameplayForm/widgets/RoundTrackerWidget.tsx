@@ -166,7 +166,9 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
               <div className={sheetStyles.spellDrawerHeaderContent}>
                 <p className={sheetStyles.spellDrawerBadge}>Round Tracker</p>
                 <div className={sheetStyles.spellDrawerTitleRow}>
-                  <h3 id="round-tracker-drawer-title">{selectedMeta.title}</h3>
+                  <h3 id="round-tracker-drawer-title" className={sheetStyles.spellDrawerTitle}>
+                    {selectedMeta.title}
+                  </h3>
                 </div>
                 <p className={sheetStyles.spellDrawerSummary}>{selectedMeta.description}</p>
               </div>

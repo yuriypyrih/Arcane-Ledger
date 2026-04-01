@@ -34,19 +34,19 @@
   margin-bottom: 0.5rem;
 }
 
-.historyTop span,
-.historyItem p,
+.historyDiceCount,
+.historyBreakdown,
 .empty {
   color: rgba(255, 239, 214, 0.82);
 }
 
-.historyTop strong {
+.historyTotal {
   margin: 0;
   font-size: 1.5rem;
   color: #fff8ee;
 }
 
-.historyItem p,
+.historyBreakdown,
 .empty {
   margin: 0;
   line-height: 1.5;

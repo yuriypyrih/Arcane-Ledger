@@ -18,11 +18,11 @@
   text-align: left;
 }
 
-.indomitableAbilityButton strong {
+.indomitableAbilityName {
   font-size: 0.94rem;
 }
 
-.indomitableAbilityButton small {
+.indomitableAbilityMeta {
   color: var(--color-ink-soft);
   font-size: 0.76rem;
 }
@@ -30,24 +30,4 @@
 .indomitableAbilityButtonActive {
   background: rgba(47, 120, 255, 0.1);
   border-color: rgba(47, 120, 255, 0.34);
-}
-
-.indomitableFormulaBlock {
-  display: grid;
-  gap: 0.22rem;
-  border-radius: 14px;
-  background: rgba(75, 47, 29, 0.08);
-  padding: 0.7rem 0.78rem;
-}
-
-.indomitableFormulaBlock span {
-  color: var(--color-ink-soft);
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.indomitableFormulaBlock strong {
-  font-size: 0.9rem;
-  line-height: 1.35;
 }

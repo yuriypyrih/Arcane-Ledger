@@ -41,7 +41,9 @@ function MysticArcanumModal({
         <div className={sheetStyles.spellManagementHeader}>
           <div className={sharedModalStyles.modalHeading}>
             <p className={sheetStyles.eyebrow}>Warlock</p>
-            <h3 id="mystic-arcanum-modal-title">{action.name}</h3>
+            <h3 id="mystic-arcanum-modal-title" className={sheetStyles.sheetPanelTitle}>
+              {action.name}
+            </h3>
             <p className={shared.helperText}>{action.detail}</p>
           </div>
           <button

@@ -1,0 +1,18 @@
+.body {
+  display: grid;
+  gap: 0.85rem;
+  min-height: 180px;
+  place-items: center;
+}
+
+.placeholder {
+  margin: 0;
+  border: 1px dashed rgba(75, 47, 29, 0.28);
+  border-radius: 18px;
+  color: var(--color-ink-soft);
+  font-size: 0.94rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  padding: 1rem 1.2rem;
+  text-transform: uppercase;
+}

@@ -56,9 +56,9 @@
   align-items: flex-start;
 }
 
-.modalHeader h3,
-.modalHeader p,
-.tooltipCard p {
+.modalTitle,
+.modalEyebrow,
+.tooltipDescriptionLine {
   margin: 0;
 }
 

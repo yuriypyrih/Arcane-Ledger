@@ -89,8 +89,7 @@
   gap: 0.4rem;
 }
 
-.field span,
-.fieldWide span {
+.fieldLabel {
   color: var(--color-ink-soft);
   font-size: 0.82rem;
   letter-spacing: 0.06em;

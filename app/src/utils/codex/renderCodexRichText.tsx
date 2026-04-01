@@ -21,6 +21,7 @@ export type ResolvedKeywordReference = {
 
 export type RenderCodexRichTextOptions = {
   linkClassName?: string;
+  strongClassName?: string;
   onOpenKeyword?: (keyword: ResolvedKeywordReference) => void;
   onOpenSpell?: (spell: SpellEntry) => void;
   onOpenDivinity?: (divinity: DivinityEntry) => void;
@@ -67,6 +68,7 @@ export function renderCodexRichText(
   text: string,
   {
     linkClassName,
+    strongClassName,
     onOpenKeyword,
     onOpenSpell,
     onOpenDivinity,
@@ -76,6 +78,7 @@ export function renderCodexRichText(
   function renderNestedText(content: string): ReactNode {
     return renderCodexRichText(content, {
       linkClassName,
+      strongClassName,
       onOpenKeyword,
       onOpenSpell,
       onOpenDivinity,
@@ -95,7 +98,9 @@ export function renderCodexRichText(
 
     if (match[1]) {
       nodes.push(
-        <strong key={`${match[1]}-${index}`}>{renderNestedText(match[1])}</strong>
+        <strong key={`${match[1]}-${index}`} className={strongClassName}>
+          {renderNestedText(match[1])}
+        </strong>
       );
     }
 

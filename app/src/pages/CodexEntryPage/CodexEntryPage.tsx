@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import CodexDivinityDrawer from "../../components/CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import CodexFeatDrawer from "../../components/CodexPage/CodexFeatDrawer/CodexFeatDrawer";
 import CodexSpellDrawer from "../../components/CodexPage/CodexSpellDrawer/CodexSpellDrawer";
+import CellContainer from "../../components/CellContainer/CellContainer";
 import {
   FeatureDisclosureRow,
   FeatureDisclosureSection,
@@ -361,7 +362,7 @@ function CodexEntryPage() {
                 <div className={sheetStyles.spellDrawerHeaderContent}>
                   <p className={sheetStyles.spellDrawerBadge}>{formatCodexLabel(entry.category)}</p>
                   <div className={`${sheetStyles.spellDrawerTitleRow} ${styles.drawerTitleRow}`}>
-                    <h2>{entry.name}</h2>
+                    <h2 className={sheetStyles.spellDrawerTitle}>{entry.name}</h2>
                     {"rarity" in entry ? <RarityPill rarity={entry.rarity} /> : null}
                   </div>
                   <p className={sheetStyles.spellDrawerSummary}>
@@ -372,120 +373,97 @@ function CodexEntryPage() {
                 </div>
               </div>
 
-              <div className={sheetStyles.spellDrawerBody}>
-                <div className={sheetStyles.spellDrawerDetails}>
-                  {entry.category === ENTRY_CATEGORIES.WEAPONS ? (
-                    <>
-                      <div className={sheetStyles.spellDrawerDetailCard}>
-                        <span>Type</span>
-                        <strong>{formatWeaponType(entry.type)} weapon</strong>
-                      </div>
-                      <div className={sheetStyles.spellDrawerDetailCard}>
-                        <span>Damage</span>
-                        <strong>{formatWeaponDamage(entry.damage)}</strong>
-                      </div>
-                      <button
-                        type="button"
-                        className={`${sheetStyles.spellDrawerDetailCard} ${styles.drawerDetailButton}`}
-                        onClick={() =>
-                          openWeaponReference(
-                            "Properties",
-                            entry.properties.map((property) => formatCodexLabel(property))
-                          )
-                        }
-                      >
-                        <span>Properties</span>
-                        <strong>{formatWeaponProperties(entry)}</strong>
-                      </button>
-                      <button
-                        type="button"
-                        className={`${sheetStyles.spellDrawerDetailCard} ${styles.drawerDetailButton}`}
-                        onClick={() =>
-                          openWeaponReference("Mastery", [formatCodexLabel(entry.mastery)])
-                        }
-                      >
-                        <span>Mastery</span>
-                        <strong>{formatCodexLabel(entry.mastery)}</strong>
-                      </button>
-                      <div className={sheetStyles.spellDrawerDetailCard}>
-                        <span>Weight</span>
-                        <strong>{formatWeaponWeight(entry.weight)}</strong>
-                      </div>
-                      <div className={sheetStyles.spellDrawerDetailCard}>
-                        <span>Cost</span>
-                        <strong>{formatWeaponCost(entry.cost)}</strong>
-                      </div>
-                    </>
-                  ) : null}
-
-                  {entry.category === ENTRY_CATEGORIES.ARMOR ? (
-                    <>
-                      {!isShieldArmorEntry(entry) ? (
-                        <div className={sheetStyles.spellDrawerDetailCard}>
-                          <span>Type</span>
-                          <strong>{formatCodexList(entry.tags)}</strong>
-                        </div>
-                      ) : null}
-                      {!isShieldArmorEntry(entry) ? (
-                        <div className={sheetStyles.spellDrawerDetailCard}>
-                          <span>Armor Base</span>
-                          <strong>{entry.armorBase > 0 ? entry.armorBase : "-"}</strong>
-                        </div>
-                      ) : null}
-                      <div className={sheetStyles.spellDrawerDetailCard}>
-                        <span>Weight</span>
-                        <strong>{formatEquipmentWeight(entry.weight)}</strong>
-                      </div>
-                      <div className={sheetStyles.spellDrawerDetailCard}>
-                        <span>Cost</span>
-                        <strong>{formatEquipmentCost(entry.cost)}</strong>
-                      </div>
-                    </>
-                  ) : null}
-
-                  {entry.category === ENTRY_CATEGORIES.SPELLS ? (
-                    <>
-                      <div className={sheetStyles.spellDrawerDetailCard}>
-                        <span>Casting Time</span>
-                        <strong>{formatSpellCastingTime(entry.castingTime)}</strong>
-                      </div>
-                      <div className={sheetStyles.spellDrawerDetailCard}>
-                        <span>Range</span>
-                        <strong>{entry.range}</strong>
-                      </div>
-                      <button
-                        type="button"
-                        className={`${sheetStyles.spellDrawerDetailCard} ${styles.drawerDetailButton}`}
-                        onClick={() => {
-                          if (componentsTooltipEntry) {
-                            setIsComponentsTooltipOpen(true);
+                <div className={sheetStyles.spellDrawerBody}>
+                  <div className={sheetStyles.spellDrawerDetails}>
+                    {entry.category === ENTRY_CATEGORIES.WEAPONS ? (
+                      <>
+                        <CellContainer
+                          label="Type"
+                          content={`${formatWeaponType(entry.type)} weapon`}
+                        />
+                        <CellContainer label="Damage" content={formatWeaponDamage(entry.damage)} />
+                        <CellContainer
+                          type="button"
+                          as="button"
+                          className={styles.drawerDetailButton}
+                          label="Properties"
+                          content={formatWeaponProperties(entry)}
+                          onClick={() =>
+                            openWeaponReference(
+                              "Properties",
+                              entry.properties.map((property) => formatCodexLabel(property))
+                            )
                           }
-                        }}
-                      >
-                        <span>Components</span>
-                        <strong>{formatSpellComponents(entry.components)}</strong>
-                      </button>
-                      <div className={sheetStyles.spellDrawerDetailCard}>
-                        <span>Duration</span>
-                        <strong>{entry.duration}</strong>
-                      </div>
-                      <div className={sheetStyles.spellDrawerDetailCard}>
-                        <span>Spell Lists</span>
-                        <strong>{formatCodexList(entry.spellLists)}</strong>
-                      </div>
-                      <div className={sheetStyles.spellDrawerDetailCard}>
-                        <span>Damage</span>
-                        <strong>{formatWeaponDamage(entry.damage)}</strong>
-                      </div>
-                    </>
-                  ) : null}
-                </div>
+                        />
+                        <CellContainer
+                          type="button"
+                          as="button"
+                          className={styles.drawerDetailButton}
+                          label="Mastery"
+                          content={formatCodexLabel(entry.mastery)}
+                          onClick={() =>
+                            openWeaponReference("Mastery", [formatCodexLabel(entry.mastery)])
+                          }
+                        />
+                        <CellContainer label="Weight" content={formatWeaponWeight(entry.weight)} />
+                        <CellContainer label="Cost" content={formatWeaponCost(entry.cost)} />
+                      </>
+                    ) : null}
+
+                    {entry.category === ENTRY_CATEGORIES.ARMOR ? (
+                      <>
+                        {!isShieldArmorEntry(entry) ? (
+                          <CellContainer label="Type" content={formatCodexList(entry.tags)} />
+                        ) : null}
+                        {!isShieldArmorEntry(entry) ? (
+                          <CellContainer
+                            label="Armor Base"
+                            content={entry.armorBase > 0 ? entry.armorBase : "-"}
+                          />
+                        ) : null}
+                        <CellContainer
+                          label="Weight"
+                          content={formatEquipmentWeight(entry.weight)}
+                        />
+                        <CellContainer label="Cost" content={formatEquipmentCost(entry.cost)} />
+                      </>
+                    ) : null}
+
+                    {entry.category === ENTRY_CATEGORIES.SPELLS ? (
+                      <>
+                        <CellContainer
+                          label="Casting Time"
+                          content={formatSpellCastingTime(entry.castingTime)}
+                        />
+                        <CellContainer label="Range" content={entry.range} />
+                        <CellContainer
+                          type="button"
+                          as="button"
+                          className={styles.drawerDetailButton}
+                          label="Components"
+                          content={formatSpellComponents(entry.components)}
+                          onClick={() => {
+                            if (componentsTooltipEntry) {
+                              setIsComponentsTooltipOpen(true);
+                            }
+                          }}
+                        />
+                        <CellContainer label="Duration" content={entry.duration} />
+                        <CellContainer
+                          label="Spell Lists"
+                          content={formatCodexList(entry.spellLists)}
+                        />
+                        <CellContainer label="Damage" content={formatWeaponDamage(entry.damage)} />
+                      </>
+                    ) : null}
+                  </div>
 
                 {entry.category === ENTRY_CATEGORIES.SPELLS ? (
                   <SpellDescriptionContent
                     description={entry.description}
                     className={`${sheetStyles.spellDrawerDescriptionList} ${sheetStyles.spellDrawerDescriptionSection}`}
                     entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                    strongClassName={sheetStyles.spellDrawerDescriptionStrong}
                     linkClassName={featureDisclosureStyles.inlineLinkButton}
                     onOpenKeyword={setSelectedKeywordReference}
                     onOpenSpell={setSelectedSpellReference}

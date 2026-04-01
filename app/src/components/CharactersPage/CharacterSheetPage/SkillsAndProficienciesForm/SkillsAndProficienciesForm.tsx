@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { Pencil, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import CellContainer from "../../../CellContainer/CellContainer";
 import SelectInput from "../../FormInputs/SelectInput";
 import TextInput from "../../FormInputs/TextInput";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
@@ -977,7 +978,12 @@ function SkillsAndProficienciesForm({
           >
             <div className={sheetStyles.spellManagementHeader}>
               <div className={styles.modalHeading}>
-                <h3 id="character-proficiency-editor-title">Edit Proficiencies</h3>
+                <h3
+                  id="character-proficiency-editor-title"
+                  className={sheetStyles.sheetPanelTitle}
+                >
+                  Edit Proficiencies
+                </h3>
                 <p className={shared.helperText}>
                   Changes here are stored as manual overrides when you save.
                 </p>
@@ -1048,7 +1054,12 @@ function SkillsAndProficienciesForm({
               <div className={sheetStyles.spellDrawerHeaderContent}>
                 <p className={sheetStyles.spellDrawerBadge}>Reference</p>
                 <div className={sheetStyles.spellDrawerTitleRow}>
-                  <h3 id="character-skill-reference-title">{selectedKeyword.name}</h3>
+                  <h3
+                    id="character-skill-reference-title"
+                    className={sheetStyles.spellDrawerTitle}
+                  >
+                    {selectedKeyword.name}
+                  </h3>
                 </div>
                 <p className={sheetStyles.spellDrawerSummary}>{selectedKeyword.description}</p>
               </div>
@@ -1076,13 +1087,11 @@ function SkillsAndProficienciesForm({
               <div className={sheetStyles.spellDrawerBody}>
                 <div className={sheetStyles.spellDrawerDetails}>
                   {selectedKeyword.detailCards.map((detailCard) => (
-                    <div
+                    <CellContainer
                       key={`${selectedKeyword.name}-${detailCard.label}`}
-                      className={sheetStyles.spellDrawerDetailCard}
-                    >
-                      <span>{detailCard.label}</span>
-                      <strong>{detailCard.value}</strong>
-                    </div>
+                      label={detailCard.label}
+                      content={detailCard.value}
+                    />
                   ))}
                 </div>
               </div>

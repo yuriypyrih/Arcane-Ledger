@@ -15,6 +15,152 @@
   width: auto;
 }
 
+.actionDrawerHeaderMeta {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.55rem;
+  justify-content: flex-end;
+}
+
+.actionDrawerEconomyPill,
+.actionDrawerMetaTag {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  min-height: 42px;
+}
+
+.actionDrawerEconomyPill {
+  gap: 0.55rem;
+  background: linear-gradient(135deg, rgba(63, 133, 88, 0.15), rgba(82, 166, 108, 0.24));
+  color: #255c39;
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  padding: 0.45rem 0.78rem 0.45rem 0.58rem;
+  text-transform: uppercase;
+}
+
+.actionDrawerMetaTag {
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-ink-soft);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  padding: 0.45rem 0.72rem;
+  text-transform: uppercase;
+}
+
+.weaponDrawerBody {
+  display: grid;
+  gap: 1rem;
+}
+
+.weaponFormulaList {
+  grid-template-columns: 1fr;
+}
+
+.weaponFormulaValue {
+  color: #2e2017;
+  font-size: 1rem;
+  line-height: 1.55;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.weaponFormulaBreakdown {
+  color: rgba(102, 75, 56, 0.72);
+  font-size: 0.94rem;
+  font-weight: 600;
+}
+
+.weaponFooterActions {
+  display: flex;
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.weaponFooterButton,
+.weaponFooterIconButton {
+  margin-left: 0;
+}
+
+.weaponFooterButton {
+  gap: 0.5rem;
+  flex: 1 1 0;
+}
+
+.footerActionButton {
+  gap: 0.55rem;
+  margin-left: 0;
+}
+
+.footerActionShape {
+  --shape-fill: rgba(255, 255, 255, 0.22);
+  --shape-stroke: #ffffff;
+}
+
+.weaponFooterIconButton {
+  min-width: 48px;
+  padding: 0;
+}
+
+.weaponFooterIcon {
+  width: 18px;
+  height: 18px;
+  filter: brightness(0) invert(1);
+}
+
+.rageEnhancementTitleRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.55rem;
+}
+
+.rageEnhancementMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  color: #8a4d26;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.rageEnhancementMeta svg {
+  color: currentColor;
+  flex: 0 0 auto;
+  stroke: currentColor;
+}
+
+.rageEnhancementModeBadge {
+  border-radius: 999px;
+  background: rgba(181, 86, 42, 0.12);
+  color: #8a4d26;
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  padding: 0.22rem 0.42rem;
+  text-transform: uppercase;
+}
+
 .divineInterventionDrawerBackdrop {
   z-index: 48;
+}
+
+@media (max-width: 720px) {
+  .actionDrawerHeaderMeta,
+  .weaponFooterActions {
+    width: 100%;
+  }
+
+  .weaponFooterActions {
+    flex-wrap: wrap;
+  }
+
+  .weaponFooterButton {
+    min-width: calc(50% - 0.3rem);
+  }
 }

@@ -323,6 +323,22 @@ export function getRangerFeatureActions(
       interaction: "select",
       usesRemaining,
       usesTotal: totalUses,
+      drawer: {
+        kind: "confirm",
+        eyebrow: "Ranger",
+        confirmLabel: "Open Hunter's Mark"
+      },
+      execute: {
+        kind: "spell",
+        spellSource: "fixed",
+        effectKind: "favored-enemy",
+        spellId: huntersMarkSpellId,
+        spellLevel: 1,
+        label: "Open Hunter's Mark",
+        actionContextText: "Using Favored Enemy",
+        actionAvailabilityText: "Cast without expending a spell slot.",
+        actionConsumesSpellSlot: false
+      },
       disabled: usesRemaining <= 0,
       disabledReason: usesRemaining <= 0 ? "Favored Enemy recharges on a Long Rest." : undefined
     });
@@ -345,6 +361,16 @@ export function getRangerFeatureActions(
       actionCategory: ACTION_CATEGORY.MAGIC,
       usesRemaining,
       usesTotal: totalUses,
+      drawer: {
+        kind: "confirm",
+        eyebrow: "Ranger",
+        confirmLabel: "Use Tireless"
+      },
+      execute: {
+        kind: "activate",
+        label: "Use Tireless",
+        effectKind: "tireless"
+      },
       disabled: usesRemaining <= 0,
       disabledReason: usesRemaining <= 0 ? "Tireless recharges on a Long Rest." : undefined
     });

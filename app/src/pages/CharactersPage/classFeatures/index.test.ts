@@ -40,7 +40,7 @@ import {
 import { getPassivePerceptionForCharacter } from "../gameplay";
 import { getWeaponActionsForCharacter } from "../gameplay";
 import { getSkillRowsByAbility } from "../skills";
-import { activateBarbarianWildHeartRage } from "./barbarian";
+import { activateBarbarianRage, activateBarbarianWildHeartRage } from "./barbarian";
 import { createCharacterEquipmentItem } from "../inventory";
 import { getWeaponActionBreakdown } from "../../../components/CharactersPage/CharacterSheetPage/GameplayForm/gameplayWidgetUtils";
 import { getMovementSpeedBreakdownsForCharacter } from "../speed";
@@ -306,7 +306,7 @@ describe("class feature state reducers", () => {
     expect(secondUseCharacter.classFeatureState?.rage?.usesExpended).toBe(1);
   });
 
-  it("adds rage of the gods on rage activation and grants its resistances and fly speed", () => {
+  it("only adds rage of the gods when the zealot barbarian opts into it", () => {
     const character = createCharacter({
       className: "Barbarian",
       level: 14,
@@ -314,7 +314,10 @@ describe("class feature state reducers", () => {
       background: "Criminal / Spy"
     });
 
-    const ragingCharacter = activateFeatureActionForCharacter(character, "barbarian-rage");
+    const regularRagingCharacter = activateFeatureActionForCharacter(character, "barbarian-rage");
+    const ragingCharacter = activateBarbarianRage(character, {
+      useRageOfTheGods: true
+    });
     const derivedStatuses = getDerivedFeatureStatusEntriesForCharacter(ragingCharacter);
     const resolvedStatuses = resolveCharacterStatusEntries(
       ragingCharacter.statusEntries,
@@ -322,6 +325,13 @@ describe("class feature state reducers", () => {
     );
     const movement = getMovementSpeedBreakdownsForCharacter(ragingCharacter);
 
+    expect(regularRagingCharacter.statusEntries).not.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceId: "feature-barbarian-rage-of-the-gods"
+        })
+      ])
+    );
     expect(ragingCharacter.statusEntries).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
@@ -363,6 +373,7 @@ describe("class feature state reducers", () => {
         })
       ])
     );
+    expect(ragingCharacter.classFeatureState?.rage?.rageOfTheGodsUsesExpended).toBe(1);
     expect(movement.fly.total).toBe(40);
     expect(movement.fly.baseExpression).toEqual(
       expect.objectContaining({

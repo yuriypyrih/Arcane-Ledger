@@ -1,16 +1,16 @@
 import { useState } from "react";
+import CellContainer from "../../CellContainer/CellContainer";
 import SpellDescriptionContent from "../../SpellDescriptionContent";
 import { FEATS, type DivinityEntry, type SpellEntry } from "../../../codex/entries";
 import {
   OverlayBadge,
   OverlayBody,
   OverlayCloseButton,
-  OverlayDetailCard,
-  OverlayDetailLabel,
   OverlayDetailsGrid,
   OverlayHeader,
   OverlayHeaderContent,
   OverlaySummary,
+  OverlayTitle,
   OverlayTitleRow,
   SheetDrawer,
   overlayClassNames
@@ -83,7 +83,7 @@ function CodexDivinityDrawer({ divinity, character, onClose }: CodexDivinityDraw
           <OverlayHeaderContent>
             <OverlayBadge>{formatCodexLabel("DIVINITY")}</OverlayBadge>
             <OverlayTitleRow>
-              <h3 id="codex-divinity-drawer-title">{divinity.name}</h3>
+              <OverlayTitle id="codex-divinity-drawer-title">{divinity.name}</OverlayTitle>
             </OverlayTitleRow>
             <OverlaySummary>{formatDivinitySubtitle(divinity)}</OverlaySummary>
           </OverlayHeaderContent>
@@ -92,28 +92,23 @@ function CodexDivinityDrawer({ divinity, character, onClose }: CodexDivinityDraw
 
         <OverlayBody>
           <OverlayDetailsGrid>
-            <OverlayDetailCard>
-              <OverlayDetailLabel>Casting Time</OverlayDetailLabel>
-              <strong>{formatSpellCastingTime(divinity.castingTime)}</strong>
-            </OverlayDetailCard>
-            <OverlayDetailCard>
-              <OverlayDetailLabel>Range</OverlayDetailLabel>
-              <strong>{divinity.range}</strong>
-            </OverlayDetailCard>
-            <OverlayDetailCard>
-              <OverlayDetailLabel>Duration</OverlayDetailLabel>
-              <strong>{divinity.duration}</strong>
-            </OverlayDetailCard>
-            <OverlayDetailCard>
-              <OverlayDetailLabel>Damage</OverlayDetailLabel>
-              <strong>{primaryValue ? formatDivinityValue(primaryValue) : "-"}</strong>
-            </OverlayDetailCard>
+            <CellContainer
+              label="Casting Time"
+              content={formatSpellCastingTime(divinity.castingTime)}
+            />
+            <CellContainer label="Range" content={divinity.range} />
+            <CellContainer label="Duration" content={divinity.duration} />
+            <CellContainer
+              label="Damage"
+              content={primaryValue ? formatDivinityValue(primaryValue) : "-"}
+            />
           </OverlayDetailsGrid>
 
           <SpellDescriptionContent
             description={resolvedDisplay.description}
             className={`${overlayClassNames.descriptionList} ${overlayClassNames.descriptionSection}`}
             entryClassName={overlayClassNames.descriptionLine}
+            strongClassName={overlayClassNames.descriptionStrong}
             linkClassName={styles.inlineLinkButton}
             onOpenKeyword={setSelectedKeyword}
             onOpenSpell={setSelectedSpellReference}

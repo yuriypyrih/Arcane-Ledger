@@ -45,7 +45,9 @@ function DivineInterventionModal({
         <div className={sheetStyles.spellManagementHeader}>
           <div className={sharedModalStyles.modalHeading}>
             <p className={sheetStyles.eyebrow}>Cleric</p>
-            <h3 id="feature-action-modal-title">{action.name}</h3>
+            <h3 id="feature-action-modal-title" className={sheetStyles.sheetPanelTitle}>
+              {action.name}
+            </h3>
             <p className={shared.helperText}>
               {action.detail} {action.usesLabel ?? ""}
             </p>

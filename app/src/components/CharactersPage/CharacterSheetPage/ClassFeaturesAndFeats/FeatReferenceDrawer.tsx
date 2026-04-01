@@ -9,6 +9,7 @@ import {
   OverlayHeader,
   OverlayHeaderContent,
   OverlaySummary,
+  OverlayTitle,
   OverlayTitleRow,
   SheetDrawer
 } from "../../../Overlay";
@@ -49,7 +50,7 @@ function FeatReferenceDrawer({
         <OverlayHeaderContent>
           <OverlayBadge>Feat</OverlayBadge>
           <OverlayTitleRow className={styles.featDrawerTitleRow}>
-            <h3 id="feat-reference-drawer-title">{featDefinition.label}</h3>
+            <OverlayTitle id="feat-reference-drawer-title">{featDefinition.label}</OverlayTitle>
             {renderTrackingButton(getFeatureTrackingState(featDefinition))}
           </OverlayTitleRow>
           <OverlaySummary>

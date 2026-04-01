@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import type { DivinityEntry, SpellEntry } from "../../../../../codex/entries";
+import CellContainer from "../../../../../components/CellContainer/CellContainer";
 import ConcentrationLabel from "../../../../../components/ConcentrationLabel";
 import DescriptionContent from "../../../../../components/DescriptionContent/DescriptionContent";
 import KeywordReferenceDrawer from "../../../../../components/KeywordReferenceDrawer/KeywordReferenceDrawer";
@@ -122,7 +123,7 @@ function StatusEntryDrawer({
                 {getStatusDrawerBadgeLabel(entry.group)}
               </p>
               <div className={sheetStyles.spellDrawerTitleRow}>
-                <h3 id="status-drawer-title">
+                <h3 id="status-drawer-title" className={sheetStyles.spellDrawerTitle}>
                   {entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
                   entry.value === EFFECT_NAME.CONCENTRATION ? (
                     <ConcentrationLabel iconSize={18} />
@@ -150,6 +151,7 @@ function StatusEntryDrawer({
                 sheetStyles.spellDrawerDescriptionSection
               )}
               entryClassName={sheetStyles.spellDrawerDescriptionLine}
+              strongClassName={sheetStyles.spellDrawerDescriptionStrong}
               linkClassName={styles.inlineLinkButton}
               onOpenKeyword={setSelectedKeyword}
               onOpenSpell={setSelectedSpellReference}
@@ -157,26 +159,20 @@ function StatusEntryDrawer({
             />
 
             <div className={styles.drawerFacts}>
-              <div className={styles.drawerFact}>
-                <span>Duration</span>
-                <strong>{getStatusDurationLabel(entry.duration)}</strong>
-              </div>
-              <div className={styles.drawerFact}>
-                <span>Source</span>
-                <strong>{getStatusEntrySourceLabel(entry)}</strong>
-              </div>
+              <CellContainer label="Duration" content={getStatusDurationLabel(entry.duration)} />
+              <CellContainer label="Source" content={getStatusEntrySourceLabel(entry)} />
               {isExhaustionEntry ? (
-                <div className={styles.drawerFact}>
-                  <span>Current Level</span>
-                  <strong>{`Level ${entry.conditionLevel ?? 1}`}</strong>
-                </div>
+                <CellContainer
+                  label="Current Level"
+                  content={`Level ${entry.conditionLevel ?? 1}`}
+                />
               ) : null}
             </div>
 
             {isEditingDuration ? (
               <div className={styles.durationEditor}>
                 <label className={shared.field}>
-                  <span>Duration</span>
+                  <span className={shared.fieldLabel}>Duration</span>
                   <SelectInput
                     value={durationPreset}
                     onChange={(event) =>
@@ -193,7 +189,7 @@ function StatusEntryDrawer({
 
                 {showRoundTickSelector ? (
                   <label className={shared.field}>
-                    <span>Round Tick</span>
+                    <span className={shared.fieldLabel}>Round Tick</span>
                     <SelectInput
                       value={roundTickOn}
                       onChange={(event) =>

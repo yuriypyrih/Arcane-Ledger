@@ -112,7 +112,9 @@ function AbilityScoresModal({
       >
         <div className={sheetStyles.spellManagementHeader}>
           <div className={styles.modalHeading}>
-            <h3 id="ability-scores-modal-title">Edit Ability Modifiers</h3>
+            <h3 id="ability-scores-modal-title" className={styles.modalTitle}>
+              Edit Ability Modifiers
+            </h3>
             <p className={shared.helperText}>
               Update your base ability scores using Point Buy or Custom values.
             </p>
@@ -189,7 +191,7 @@ function AbilityScoresModal({
           <div className={styles.abilityInputGrid}>
             {abilityKeys.map((ability) => (
               <label key={ability} className={styles.abilityInputCard}>
-                <span>{ability}</span>
+                <span className={styles.abilityInputLabel}>{ability}</span>
                 {draft.attributeMode === "pointBuy" ? (
                   <div className={styles.pointBuyInputShell}>
                     <NumberInput

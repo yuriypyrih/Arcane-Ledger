@@ -93,7 +93,7 @@
   gap: 0.55rem;
 }
 
-.titleRow h3,
+.title,
 .summary {
   margin: 0;
 }
@@ -132,21 +132,6 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.detailCard {
-  display: grid;
-  gap: 0.22rem;
-  border-radius: 14px;
-  background: rgba(75, 47, 29, 0.07);
-  padding: 0.62rem 0.72rem;
-}
-
-.detailCardLabel {
-  color: var(--color-ink-soft);
-  font-size: 0.74rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
-}
-
 .descriptionList {
   display: grid;
   gap: 0.55rem;
@@ -161,7 +146,7 @@
   color: var(--color-ink-soft);
 }
 
-.descriptionLine strong {
+.descriptionStrong {
   color: var(--color-ink);
   font-weight: 700;
 }

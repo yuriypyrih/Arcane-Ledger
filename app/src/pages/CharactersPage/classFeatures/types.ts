@@ -2,6 +2,7 @@ import type {
   DICE,
   FeatureTrackingState,
   ReactionEntry,
+  SpellDescriptionEntry,
   SpellEntry
 } from "../../../codex/entries";
 import { WEAPON_COMBAT_TYPE } from "../../../codex/entries";
@@ -21,6 +22,116 @@ import type {
   WEAPON_PROFICIENCY,
   WeaponProficiencyEntry
 } from "../../../types";
+
+export type FeatureActionTone = "default" | "accent" | "danger";
+
+export type FeatureActionFact = {
+  label: string;
+  value: string;
+  tone?: FeatureActionTone;
+};
+
+export type FeatureActionResource =
+  | {
+      kind: "tracker";
+      label: string;
+      current: number;
+      total: number;
+      value?: string;
+      tone?: FeatureActionTone;
+      supplementary?: string;
+      icon?: "brain" | "sparkles" | "flame";
+      cost?: number;
+    }
+  | {
+      kind: "text";
+      label: string;
+      value: string;
+      tone?: FeatureActionTone;
+      icon?: "brain" | "sparkles" | "flame";
+    };
+
+export type FeatureActionDrawerKind =
+  | "confirm"
+  | "options"
+  | "custom-form"
+  | "spell-list";
+
+export type FeatureActionExecuteKind = "activate" | "option" | "custom-form" | "spell";
+
+export type FeatureActionExecuteEffectKind =
+  | "default"
+  | "second-wind"
+  | "tactical-mind"
+  | "tireless";
+
+export type FeatureActionFormKind =
+  | "arcane-recovery"
+  | "brutal-strike"
+  | "font-of-magic"
+  | "indomitable"
+  | "lay-on-hands"
+  | "sneak-attack"
+  | "warrior-of-the-gods"
+  | "wild-heart-rage";
+
+export type FeatureActionOptionSelection =
+  | "single-immediate"
+  | "single-confirm"
+  | "multi-confirm";
+
+export type FeatureActionSpellSource = "fixed" | "divine-intervention" | "mystic-arcanum";
+
+export type FeatureActionSpellEffectKind =
+  | "contact-patron"
+  | "divine-intervention"
+  | "faithful-steed"
+  | "favored-enemy"
+  | "mystic-arcanum"
+  | "paladins-smite";
+
+export type FeatureActionDrawerConfig = {
+  kind: FeatureActionDrawerKind;
+  eyebrow?: string;
+  description?: SpellDescriptionEntry[];
+  helperText?: string;
+  helperTextTone?: FeatureActionTone;
+  facts?: FeatureActionFact[];
+  resources?: FeatureActionResource[];
+  confirmLabel?: string;
+  optionSelection?: FeatureActionOptionSelection;
+  formKind?: FeatureActionFormKind;
+};
+
+export type FeatureActionExecuteConfig =
+  | {
+      kind: "activate";
+      label?: string;
+      effectKind?: FeatureActionExecuteEffectKind;
+    }
+  | {
+      kind: "option";
+      label?: string;
+    }
+  | {
+      kind: "custom-form";
+      formKind: FeatureActionFormKind;
+      label?: string;
+    }
+  | {
+      kind: "spell";
+      label?: string;
+      spellSource: FeatureActionSpellSource;
+      effectKind?: FeatureActionSpellEffectKind;
+      spellId?: string;
+      spellLevel?: number;
+      actionLabel?: string;
+      actionContextText?: string;
+      actionAvailabilityText?: string;
+      actionConsumesSpellSlot?: boolean;
+      allowRitualCasting?: boolean;
+      freeCastSlotLevel?: number | null;
+    };
 
 export type FeatureActionCard = {
   key: string;
@@ -48,6 +159,11 @@ export type FeatureActionCard = {
   ignoreEconomyAvailability?: boolean;
   disabled?: boolean;
   disabledReason?: string;
+  description?: SpellDescriptionEntry[];
+  facts?: FeatureActionFact[];
+  resources?: FeatureActionResource[];
+  drawer?: FeatureActionDrawerConfig;
+  execute?: FeatureActionExecuteConfig;
 };
 
 export type FeatureActionOptionCard = {
@@ -69,6 +185,9 @@ export type FeatureActionOptionCard = {
   rollDescription?: string;
   disabled?: boolean;
   disabledReason?: string;
+  description?: SpellDescriptionEntry[];
+  facts?: FeatureActionFact[];
+  resources?: FeatureActionResource[];
 };
 
 export type FeatureDamageBonus = {

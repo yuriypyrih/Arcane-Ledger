@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { Pencil, TriangleAlert, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import CellContainer from "../../../CellContainer/CellContainer";
 import DivinityListRow from "../../../DivinityListRow/DivinityListRow";
 import EldritchInvocationListRow from "../../../EldritchInvocationListRow";
 import SpellListRow from "../../../SpellListRow";
@@ -1621,7 +1622,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             <div className={sheetStyles.spellManagementHeader}>
               <div>
                 <p className={sheetStyles.eyebrow}>Spellcasting</p>
-                <h3 id="spell-management-title">
+                <h3 id="spell-management-title" className={sheetStyles.sheetPanelTitle}>
                   {spellManagementMode === "menu"
                     ? "Spell options"
                     : spellManagementMode === "cantrips"
@@ -2022,7 +2023,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               <div className={sheetStyles.spellDrawerHeaderContent}>
                 <p className={sheetStyles.spellDrawerBadge}>{formatCodexLabel("DIVINITY")}</p>
                 <div className={sheetStyles.spellDrawerTitleRow}>
-                  <h3 id="character-divinity-drawer-title">{selectedDivinityRow.option.name}</h3>
+                  <h3
+                    id="character-divinity-drawer-title"
+                    className={sheetStyles.spellDrawerTitle}
+                  >
+                    {selectedDivinityRow.option.name}
+                  </h3>
                 </div>
                 <p className={sheetStyles.spellDrawerSummary}>
                   {formatDivinitySubtitle(selectedDivinityRow.entry)}
@@ -2040,22 +2046,16 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
             <div className={sheetStyles.spellDrawerBody}>
               <div className={sheetStyles.spellDrawerDetails}>
-                <div className={sheetStyles.spellDrawerDetailCard}>
-                  <span>Casting Time</span>
-                  <strong>{formatSpellCastingTime(selectedDivinityRow.entry.castingTime)}</strong>
-                </div>
-                <div className={sheetStyles.spellDrawerDetailCard}>
-                  <span>Range</span>
-                  <strong>{selectedDivinityRow.entry.range}</strong>
-                </div>
-                <div className={sheetStyles.spellDrawerDetailCard}>
-                  <span>Duration</span>
-                  <strong>{selectedDivinityRow.entry.duration}</strong>
-                </div>
-                <div className={sheetStyles.spellDrawerDetailCard}>
-                  <span>{selectedDivinityRow.option.resultLabel ?? "Damage"}</span>
-                  <strong>{getDivinityDrawerValueLabel(selectedDivinityRow.option)}</strong>
-                </div>
+                <CellContainer
+                  label="Casting Time"
+                  content={formatSpellCastingTime(selectedDivinityRow.entry.castingTime)}
+                />
+                <CellContainer label="Range" content={selectedDivinityRow.entry.range} />
+                <CellContainer label="Duration" content={selectedDivinityRow.entry.duration} />
+                <CellContainer
+                  label={selectedDivinityRow.option.resultLabel ?? "Damage"}
+                  content={getDivinityDrawerValueLabel(selectedDivinityRow.option)}
+                />
               </div>
 
               <SpellDescriptionContent
@@ -2065,9 +2065,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                 className={clsx(
                   sheetStyles.spellDrawerDescriptionList,
                   sheetStyles.spellDrawerDescriptionSection
-                )}
-                entryClassName={sheetStyles.spellDrawerDescriptionLine}
-              />
+              )}
+              entryClassName={sheetStyles.spellDrawerDescriptionLine}
+              strongClassName={sheetStyles.spellDrawerDescriptionStrong}
+            />
             </div>
 
             <div className={sheetStyles.spellDrawerActions}>

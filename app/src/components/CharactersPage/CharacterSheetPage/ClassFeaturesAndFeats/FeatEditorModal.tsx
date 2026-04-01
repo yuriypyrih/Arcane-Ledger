@@ -81,7 +81,7 @@ function FeatEditorModal({
         <OverlayHeaderContent>
           <OverlayEyebrow>{context.mode === "class-feature" ? "Class Feature" : "Build"}</OverlayEyebrow>
           <div className={styles.heading}>
-            <h3 id="character-feat-editor-title">
+            <h3 id="character-feat-editor-title" className={styles.headingTitle}>
               {context.mode === "class-feature" ? "Choose Feat" : "Edit Feats"}
             </h3>
             <OverlaySummary className={shared.helperText}>

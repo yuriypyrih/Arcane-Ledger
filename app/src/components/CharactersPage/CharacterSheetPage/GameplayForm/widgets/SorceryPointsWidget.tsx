@@ -73,7 +73,7 @@ function SorceryPointsWidget({ character, onPersistCharacter }: SorceryPointsWid
             <div className={sheetStyles.restPopupHeader}>
               <div>
                 <p className={sheetStyles.eyebrow}>Sorcerer</p>
-                <h3 id="sorcery-points-modal-title">
+                <h3 id="sorcery-points-modal-title" className={sheetStyles.sheetPanelTitle}>
                   Sorcery Points {remainingSorceryPoints}/{totalSorceryPoints}
                 </h3>
               </div>

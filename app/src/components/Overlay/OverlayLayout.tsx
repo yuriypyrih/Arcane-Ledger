@@ -1,11 +1,16 @@
 import clsx from "clsx";
 import { X } from "lucide-react";
-import { createElement, type ButtonHTMLAttributes, type HTMLAttributes, type ReactNode } from "react";
+import { createElement, type ButtonHTMLAttributes, type ReactNode } from "react";
 import styles from "./Overlay.module.css";
 
 type OverlayContainerProps = {
   children: ReactNode;
   className?: string;
+};
+
+type OverlayTitleProps = OverlayContainerProps & {
+  as?: "h2" | "h3" | "h4";
+  id?: string;
 };
 
 type OverlayCloseButtonProps = Omit<
@@ -14,18 +19,6 @@ type OverlayCloseButtonProps = Omit<
 > & {
   label: string;
 };
-
-type OverlayDetailCardProps =
-  | ({
-      as?: "div";
-      children: ReactNode;
-      className?: string;
-    } & HTMLAttributes<HTMLDivElement>)
-  | ({
-      as: "button";
-      children: ReactNode;
-      className?: string;
-    } & ButtonHTMLAttributes<HTMLButtonElement>);
 
 export function OverlayHeader({ children, className }: OverlayContainerProps) {
   return <div className={clsx(styles.header, className)}>{children}</div>;
@@ -45,6 +38,22 @@ export function OverlayEyebrow({ children, className }: OverlayContainerProps) {
 
 export function OverlayTitleRow({ children, className }: OverlayContainerProps) {
   return <div className={clsx(styles.titleRow, className)}>{children}</div>;
+}
+
+export function OverlayTitle({
+  as = "h3",
+  children,
+  className,
+  ...headingProps
+}: OverlayTitleProps) {
+  return createElement(
+    as,
+    {
+      className: clsx(styles.title, className),
+      ...headingProps
+    },
+    children
+  );
 }
 
 export function OverlaySummary({ children, className }: OverlayContainerProps) {
@@ -74,23 +83,4 @@ export function OverlayBody({ children, className }: OverlayContainerProps) {
 
 export function OverlayDetailsGrid({ children, className }: OverlayContainerProps) {
   return <div className={clsx(styles.detailsGrid, className)}>{children}</div>;
-}
-
-export function OverlayDetailCard(props: OverlayDetailCardProps) {
-  const { as = "div", children, className, ...elementProps } = props as OverlayDetailCardProps & {
-    as: "div" | "button";
-  };
-
-  return createElement(
-    as,
-    {
-      className: clsx(styles.detailCard, className),
-      ...elementProps
-    },
-    children
-  );
-}
-
-export function OverlayDetailLabel({ children, className }: OverlayContainerProps) {
-  return <span className={clsx(styles.detailCardLabel, className)}>{children}</span>;
 }

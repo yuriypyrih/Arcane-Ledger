@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import CellContainer from "../../../CellContainer/CellContainer";
 import ConcentrationLabel from "../../../ConcentrationLabel";
 import SpellSubtitle from "../../../SpellSubtitle";
 import SelectInput from "../../FormInputs/SelectInput";
@@ -180,7 +181,9 @@ function CharacterSpellDrawer({
             <div className={sheetStyles.spellDrawerHeaderContent}>
               <p className={sheetStyles.spellDrawerBadge}>{badgeLabel}</p>
               <div className={sheetStyles.spellDrawerTitleRow}>
-                <h3 id="character-spell-drawer-title">{spell.name}</h3>
+                <h3 id="character-spell-drawer-title" className={sheetStyles.spellDrawerTitle}>
+                  {spell.name}
+                </h3>
                 {alwaysPrepared ? (
                   <span
                     className={clsx(styles.alwaysPreparedPill, styles.alwaysPreparedDrawerPill)}
@@ -207,43 +210,40 @@ function CharacterSpellDrawer({
 
           <div className={sheetStyles.spellDrawerBody}>
             <div className={sheetStyles.spellDrawerDetails}>
-              <div className={sheetStyles.spellDrawerDetailCard}>
-                <span>Casting Time</span>
-                <strong>{formatSpellCastingTime(spell.castingTime)}</strong>
-              </div>
-              <div className={sheetStyles.spellDrawerDetailCard}>
-                <span>Range</span>
-                <strong>{spell.range}</strong>
-              </div>
-              <button
+              <CellContainer
+                label="Casting Time"
+                content={formatSpellCastingTime(spell.castingTime)}
+              />
+              <CellContainer label="Range" content={spell.range} />
+              <CellContainer
                 type="button"
-                className={clsx(sheetStyles.spellDrawerDetailCard, styles.spellDetailButton)}
+                as="button"
+                className={styles.spellDetailButton}
+                label="Components"
+                content={formatSpellComponents(spell.components)}
                 onClick={() => setIsComponentsTooltipOpen(true)}
-              >
-                <span>Components</span>
-                <strong>{formatSpellComponents(spell.components)}</strong>
-              </button>
-              <div className={sheetStyles.spellDrawerDetailCard}>
-                <span>Duration</span>
-                <strong>
-                  {spellDuration.hasConcentration ? (
+              />
+              <CellContainer
+                label="Duration"
+                content={
+                  spellDuration.hasConcentration ? (
                     <span className={styles.concentrationDetailValue}>
                       <ConcentrationLabel iconSize={15} />
                       {spellDuration.detailText ? <span>, {spellDuration.detailText}</span> : null}
                     </span>
                   ) : (
                     spellDuration.detailText
-                  )}
-                </strong>
-              </div>
-              <div className={sheetStyles.spellDrawerDetailCard}>
-                <span>Spell Lists</span>
-                <strong>{formatCodexList(spell.spellLists) || "None"}</strong>
-              </div>
-              <div className={sheetStyles.spellDrawerDetailCard}>
-                <span>Damage</span>
-                <strong>{getSpellDamageDetailForCharacter(character, spell)}</strong>
-              </div>
+                  )
+                }
+              />
+              <CellContainer
+                label="Spell Lists"
+                content={formatCodexList(spell.spellLists) || "None"}
+              />
+              <CellContainer
+                label="Damage"
+                content={getSpellDamageDetailForCharacter(character, spell)}
+              />
             </div>
 
             <SpellDescriptionContent
@@ -253,6 +253,7 @@ function CharacterSpellDrawer({
                 sheetStyles.spellDrawerDescriptionSection
               )}
               entryClassName={sheetStyles.spellDrawerDescriptionLine}
+              strongClassName={sheetStyles.spellDrawerDescriptionStrong}
             />
           </div>
 
@@ -269,7 +270,7 @@ function CharacterSpellDrawer({
                           } remaining at level ${normalizedSelectedSpellSlotLevel}.`}
                     </p>
                     <label className={sheetStyles.spellSlotSelectField}>
-                      <span>Cast at slot level</span>
+                      <span className={sheetStyles.spellSlotSelectLabel}>Cast at slot level</span>
                       <SelectInput
                         value={normalizedSelectedSpellSlotLevel}
                         className={sheetStyles.spellSlotSelect}
@@ -353,7 +354,7 @@ function CharacterSpellDrawer({
               <div className={sheetStyles.spellDrawerHeaderContent}>
                 <p className={sheetStyles.spellDrawerBadge}>Keyword</p>
                 <div className={sheetStyles.spellDrawerTitleRow}>
-                  <h3 id="spell-components-title">
+                  <h3 id="spell-components-title" className={sheetStyles.spellDrawerTitle}>
                     {componentsTooltipEntry?.title ?? "Components"}
                   </h3>
                 </div>
@@ -376,7 +377,7 @@ function CharacterSpellDrawer({
                   key={`components-description-${index}`}
                   className={sheetStyles.spellDrawerDescriptionLine}
                 >
-                  {renderCodexInlineText(line)}
+                  {renderCodexInlineText(line, sheetStyles.spellDrawerDescriptionStrong)}
                 </p>
               ))}
             </div>

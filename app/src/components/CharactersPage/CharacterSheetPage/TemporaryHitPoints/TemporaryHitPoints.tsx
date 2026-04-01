@@ -122,7 +122,9 @@ function TemporaryHitPoints({
           >
             <div className={sheetStyles.restPopupHeader}>
               <div>
-                <h3 id="temp-hp-modal-title">Temporary Hit Points</h3>
+                <h3 id="temp-hp-modal-title" className={sheetStyles.sheetPanelTitle}>
+                  Temporary Hit Points
+                </h3>
               </div>
               <button
                 type="button"

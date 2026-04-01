@@ -12,21 +12,6 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.drawerFact {
-  display: grid;
-  gap: 0.16rem;
-  border-radius: 14px;
-  background: rgba(75, 47, 29, 0.08);
-  padding: 0.62rem 0.7rem;
-}
-
-.drawerFact span {
-  color: var(--color-ink-soft);
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
 .durationEditor {
   display: grid;
   gap: 0.65rem;

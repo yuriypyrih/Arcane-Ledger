@@ -73,7 +73,7 @@ function FocusPointsWidget({ character, onPersistCharacter }: FocusPointsWidgetP
             <div className={sheetStyles.restPopupHeader}>
               <div>
                 <p className={sheetStyles.eyebrow}>Monk</p>
-                <h3 id="focus-points-modal-title">
+                <h3 id="focus-points-modal-title" className={sheetStyles.sheetPanelTitle}>
                   Focus Points {remainingFocusPoints}/{totalFocusPoints}
                 </h3>
               </div>

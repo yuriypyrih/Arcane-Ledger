@@ -360,6 +360,16 @@ export function getRogueFeatureActions(
         breakdown: "Once per turn after a hit",
         economyType: ECONOMY_TYPE.FREE,
         actionCategory: ACTION_CATEGORY.FEATURE,
+        drawer: {
+          kind: "custom-form",
+          eyebrow: "Rogue",
+          formKind: "sneak-attack"
+        },
+        execute: {
+          kind: "custom-form",
+          formKind: "sneak-attack",
+          label: "Sneak Attack"
+        },
         disabled: Boolean(disabledReason),
         disabledReason
       });

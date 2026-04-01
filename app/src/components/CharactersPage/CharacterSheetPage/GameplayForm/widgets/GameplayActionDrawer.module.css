@@ -1,0 +1,222 @@
+.drawerPanel {
+  animation: drawerSlideUp 220ms cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.shell {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: 0.92rem;
+  min-height: 0;
+}
+
+.header {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: linear-gradient(160deg, rgba(255, 252, 245, 0.99), rgba(245, 234, 218, 0.99));
+  padding-bottom: 0.25rem;
+}
+
+.headerContent {
+  gap: 0.32rem;
+}
+
+.headerAside {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.55rem;
+  justify-content: flex-end;
+  flex-shrink: 0;
+}
+
+.resourceBadgeRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
+.badgeRow {
+  display: flex;
+  flex-wrap: nowrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+}
+
+.resourceBadge,
+.badgePill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  min-height: 38px;
+}
+
+.resourceBadge {
+  gap: 0.38rem;
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-ink);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.28rem 0.62rem;
+}
+
+.resourceBadgeLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.resourceBadgeValue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+}
+
+.resourceBadgeValue svg {
+  color: currentColor;
+  flex: 0 0 auto;
+  stroke: currentColor;
+}
+
+.resourceBadgeSupplementary {
+  color: var(--color-ink-soft);
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.resourceBadgeValueDanger {
+  color: #8b3321;
+}
+
+.resourceBadgeValueAccent {
+  color: #25508d;
+}
+
+.badgePill {
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-ink-soft);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  padding: 0.28rem 0.62rem;
+  text-transform: uppercase;
+}
+
+.section {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.factGrid {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.factCard {
+  display: grid;
+  gap: 0.32rem;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.8rem 0.88rem;
+}
+
+.factLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.76rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.factValue {
+  color: var(--color-ink);
+  font-weight: 700;
+}
+.factValueDanger {
+  color: #8b3321;
+}
+
+.factValueAccent {
+  color: #25508d;
+}
+
+.warningBlock {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.warningCard {
+  border-radius: 16px;
+  background: rgba(139, 51, 33, 0.1);
+  color: #6d2417;
+  margin: 0;
+  padding: 0.8rem 0.9rem;
+}
+
+.body {
+  flex: 0 1 auto;
+  gap: 0.92rem;
+  max-height: min(70vh, 700px);
+  min-height: 0;
+  overflow: auto;
+  overscroll-behavior: contain;
+  padding-right: 0.12rem;
+}
+
+.footer {
+  display: grid;
+  gap: 0.8rem;
+  border-top: 1px solid rgba(75, 47, 29, 0.1);
+  padding-top: 0.9rem;
+}
+
+.inlineLinkButton {
+  border: none;
+  background: none;
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  text-decoration: underline;
+  text-underline-offset: 0.12em;
+}
+
+@keyframes drawerSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 720px) {
+  .header {
+    align-items: flex-start;
+  }
+
+  .headerAside {
+    gap: 0.45rem;
+  }
+
+  .factGrid {
+    grid-template-columns: 1fr;
+  }
+}

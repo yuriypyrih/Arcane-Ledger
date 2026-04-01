@@ -76,7 +76,9 @@ function ReactionEntryDrawer({
             <div className={sheetStyles.spellDrawerHeaderContent}>
               <p className={sheetStyles.spellDrawerBadge}>Reaction</p>
               <div className={sheetStyles.spellDrawerTitleRow}>
-                <h3 id="reaction-drawer-title">{reaction.name}</h3>
+                <h3 id="reaction-drawer-title" className={sheetStyles.spellDrawerTitle}>
+                  {reaction.name}
+                </h3>
               </div>
             </div>
             <button
@@ -99,6 +101,7 @@ function ReactionEntryDrawer({
               <DescriptionContent
                 description={reaction.description}
                 entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                strongClassName={sheetStyles.spellDrawerDescriptionStrong}
                 linkClassName={styles.inlineLinkButton}
                 onOpenKeyword={setSelectedKeyword}
                 onOpenSpell={setSelectedSpellReference}

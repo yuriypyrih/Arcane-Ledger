@@ -59,22 +59,6 @@
   padding: 0.72rem 0.82rem;
 }
 
-.chargeSpendSummary {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 0.8rem;
-  border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--color-ink-soft);
-  padding: 0.8rem 0.9rem;
-}
-
-.chargeSpendSummary strong {
-  color: var(--color-ink);
-}
-
 .brutalStrikeOptionList {
   grid-template-columns: 1fr;
 }
@@ -184,11 +168,11 @@
   text-align: left;
 }
 
-.brutalStrikeOptionButton strong {
+.brutalStrikeOptionName {
   font-size: 0.94rem;
 }
 
-.brutalStrikeOptionButton span {
+.brutalStrikeOptionDescription {
   color: var(--color-ink-soft);
   font-size: 0.84rem;
   line-height: 1.45;

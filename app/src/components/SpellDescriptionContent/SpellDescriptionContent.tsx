@@ -10,6 +10,7 @@ type SpellDescriptionContentProps = RenderCodexRichTextOptions & {
   description: SpellDescriptionEntry[];
   className?: string;
   entryClassName?: string;
+  strongClassName?: string;
 };
 
 function SpellDescriptionContent({
@@ -17,6 +18,7 @@ function SpellDescriptionContent({
   className,
   entryClassName,
   linkClassName,
+  strongClassName,
   onOpenKeyword,
   onOpenSpell,
   onOpenDivinity,
@@ -30,6 +32,7 @@ function SpellDescriptionContent({
             <p key={`description-${index}`} className={entryClassName}>
               {renderCodexRichText(entry, {
                 linkClassName,
+                strongClassName,
                 onOpenKeyword,
                 onOpenSpell,
                 onOpenDivinity,
@@ -50,6 +53,7 @@ function SpellDescriptionContent({
               >
                 {renderCodexRichText(item, {
                   linkClassName,
+                  strongClassName,
                   onOpenKeyword,
                   onOpenSpell,
                   onOpenDivinity,

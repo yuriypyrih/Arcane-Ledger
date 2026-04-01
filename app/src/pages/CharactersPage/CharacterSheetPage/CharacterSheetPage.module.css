@@ -105,7 +105,7 @@
   gap: 0.4rem;
 }
 
-.field span {
+.fieldLabel {
   color: var(--color-ink-soft);
   font-size: 0.82rem;
   letter-spacing: 0.06em;
@@ -195,8 +195,7 @@
   gap: 0.75rem;
 }
 
-.spellManagementHeader h3,
-.restPopupHeader h3 {
+.sheetPanelTitle {
   margin: 0;
 }
 
@@ -365,7 +364,7 @@
   gap: 0.2rem;
 }
 
-.xpProgressMetaItem span {
+.xpProgressMetaLabel {
   color: var(--color-ink-soft);
   font-size: 0.72rem;
   letter-spacing: 0.07em;
@@ -399,7 +398,7 @@
   gap: 0.4rem;
 }
 
-.xpAddField span {
+.xpAddLabel {
   color: var(--color-ink-soft);
   font-size: 0.78rem;
   letter-spacing: 0.07em;
@@ -493,7 +492,7 @@
   gap: 0.55rem;
 }
 
-.spellDrawerTitleRow h3,
+.spellDrawerTitle,
 .spellDrawerSummary {
   margin: 0;
 }
@@ -536,24 +535,9 @@
   color: var(--color-ink-soft);
 }
 
-.spellDrawerDescriptionLine strong {
+.spellDrawerDescriptionStrong {
   color: var(--color-ink);
   font-weight: 700;
-}
-
-.spellDrawerDetailCard {
-  display: grid;
-  gap: 0.22rem;
-  border-radius: 14px;
-  background: rgba(75, 47, 29, 0.07);
-  padding: 0.62rem 0.72rem;
-}
-
-.spellDrawerDetailCard span {
-  color: var(--color-ink-soft);
-  font-size: 0.74rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
 }
 
 .spellDrawerActions {
@@ -587,7 +571,7 @@
   gap: 0.3rem;
 }
 
-.spellSlotSelectField span {
+.spellSlotSelectLabel {
   color: var(--color-ink-soft);
   font-size: 0.72rem;
   letter-spacing: 0.07em;
@@ -632,7 +616,7 @@
   min-width: 0;
 }
 
-.currencyDrawerField span {
+.currencyDrawerLabel {
   color: var(--color-ink-soft);
   font-size: 0.78rem;
   letter-spacing: 0.07em;

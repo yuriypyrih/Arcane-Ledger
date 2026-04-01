@@ -1,21 +1,5 @@
 .sneakAttackPreviewCard {
-  display: grid;
-  gap: 0.22rem;
-  border-radius: 14px;
   background: rgba(181, 86, 42, 0.08);
-  padding: 0.76rem 0.82rem;
-}
-
-.sneakAttackPreviewLabel {
-  color: var(--color-ink-soft);
-  font-size: 0.72rem;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-
-.sneakAttackPreviewCard strong {
-  font-size: 0.94rem;
-  line-height: 1.4;
 }
 
 .sneakAttackEffectsSection {
@@ -30,7 +14,7 @@
   gap: 0.75rem;
 }
 
-.sneakAttackEffectsHeader h4 {
+.sneakAttackEffectsTitle {
   margin: 0 0 0.2rem;
 }
 
@@ -83,11 +67,11 @@
   opacity: 0.55;
 }
 
-.sneakAttackEffectButton strong {
+.sneakAttackEffectName {
   font-size: 0.92rem;
 }
 
-.sneakAttackEffectButton small {
+.sneakAttackEffectMeta {
   color: var(--color-ink-soft);
   font-size: 0.76rem;
 }

@@ -77,7 +77,9 @@ function FontOfMagicModal({
         <div className={sheetStyles.spellManagementHeader}>
           <div className={sharedModalStyles.modalHeading}>
             <p className={sheetStyles.eyebrow}>Sorcerer</p>
-            <h3 id="font-of-magic-modal-title">{action.name}</h3>
+            <h3 id="font-of-magic-modal-title" className={sheetStyles.sheetPanelTitle}>
+              {action.name}
+            </h3>
             <p className={shared.helperText}>
               {action.detail} {sorceryPointsRemaining}/{sorceryPointsTotal} Sorcery Points.
             </p>
@@ -96,7 +98,7 @@ function FontOfMagicModal({
           <section className={styles.fontOfMagicSection}>
             <div className={styles.fontOfMagicSectionHeader}>
               <div>
-                <h4>Spell Slot to Sorcery Points</h4>
+                <h4 className={styles.fontOfMagicSectionTitle}>Spell Slot to Sorcery Points</h4>
                 <p className={shared.helperText}>No action required.</p>
               </div>
             </div>
@@ -116,7 +118,7 @@ function FontOfMagicModal({
                       <span aria-hidden="true">-&gt;</span>
                       <span className={styles.fontOfMagicSparkleValue}>
                         <span>{option.spellSlotLevel}</span>
-                        <Sparkles size={14} />
+                        <Sparkles size={14} className={styles.fontOfMagicSparkleIcon} />
                       </span>
                     </strong>
                   </button>
@@ -130,7 +132,7 @@ function FontOfMagicModal({
           <section className={styles.fontOfMagicSection}>
             <div className={styles.fontOfMagicSectionHeader}>
               <div>
-                <h4>Sorcery Points to Spell Slot</h4>
+                <h4 className={styles.fontOfMagicSectionTitle}>Sorcery Points to Spell Slot</h4>
                 <p className={shared.helperText}>Uses your Bonus Action.</p>
               </div>
               {actionWarning ? <span className={styles.fontOfMagicWarning}>{actionWarning}</span> : null}
@@ -159,7 +161,7 @@ function FontOfMagicModal({
                     <strong className={styles.fontOfMagicCompactLabel}>
                       <span className={styles.fontOfMagicSparkleValue}>
                         <span>{rule.sorceryPointCost}</span>
-                        <Sparkles size={14} />
+                        <Sparkles size={14} className={styles.fontOfMagicSparkleIcon} />
                       </span>
                       <span aria-hidden="true">-&gt;</span>
                       <span>Level {rule.spellSlotLevel} Slot</span>

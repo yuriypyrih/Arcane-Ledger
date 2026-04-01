@@ -6,6 +6,7 @@ type DescriptionContentProps = RenderCodexRichTextOptions & {
   description: SpellDescriptionEntry[];
   className?: string;
   entryClassName?: string;
+  strongClassName?: string;
 };
 
 function DescriptionContent({
@@ -13,6 +14,7 @@ function DescriptionContent({
   className,
   entryClassName,
   linkClassName,
+  strongClassName,
   onOpenKeyword,
   onOpenSpell,
   onOpenDivinity,
@@ -24,6 +26,7 @@ function DescriptionContent({
       className={className}
       entryClassName={entryClassName}
       linkClassName={linkClassName}
+      strongClassName={strongClassName}
       onOpenKeyword={onOpenKeyword}
       onOpenSpell={onOpenSpell}
       onOpenDivinity={onOpenDivinity}

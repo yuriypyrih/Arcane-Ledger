@@ -95,7 +95,9 @@ function ArcaneRecoveryModal({
         <div className={sheetStyles.spellManagementHeader}>
           <div className={sharedModalStyles.modalHeading}>
             <p className={sheetStyles.eyebrow}>Wizard</p>
-            <h3 id="arcane-recovery-modal-title">{action.name}</h3>
+            <h3 id="arcane-recovery-modal-title" className={sheetStyles.sheetPanelTitle}>
+              {action.name}
+            </h3>
             <p className={shared.helperText}>
               Recover expended spell slots with a combined level up to {recoveryLimit}. Slots
               recovered this way must be level 5 or lower.
@@ -113,7 +115,9 @@ function ArcaneRecoveryModal({
 
         <div className={styles.arcaneRecoverySummary}>
           <span className={styles.arcaneRecoverySummaryLabel}>Recovery Budget</span>
-          <strong>{`${selectedLevelTotal}/${recoveryLimit} slot levels selected`}</strong>
+          <strong className={styles.arcaneRecoverySummaryValue}>
+            {`${selectedLevelTotal}/${recoveryLimit} slot levels selected`}
+          </strong>
         </div>
 
         {availableOptions.length > 0 ? (
@@ -127,8 +131,12 @@ function ArcaneRecoveryModal({
               return (
                 <div key={`arcane-recovery-level-${option.slotLevel}`} className={styles.arcaneRecoveryCard}>
                   <div className={styles.arcaneRecoveryCardHeader}>
-                    <strong>{`Level ${option.slotLevel} Slot`}</strong>
-                    <small>{`${option.expendedSlots} expended`}</small>
+                    <strong className={styles.arcaneRecoveryCardTitle}>
+                      {`Level ${option.slotLevel} Slot`}
+                    </strong>
+                    <small className={styles.arcaneRecoveryCardMeta}>
+                      {`${option.expendedSlots} expended`}
+                    </small>
                   </div>
                   <div className={styles.arcaneRecoveryControlRow}>
                     <button

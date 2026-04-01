@@ -791,6 +791,23 @@ export function getWarlockFeatureActions(
       interaction: "select",
       usesRemaining,
       usesTotal: contactPatronUsesTotal,
+      drawer: {
+        kind: "confirm",
+        eyebrow: "Warlock",
+        confirmLabel: "Open Contact Other Plane"
+      },
+      execute: {
+        kind: "spell",
+        spellSource: "fixed",
+        effectKind: "contact-patron",
+        spellId: contactOtherPlaneSpellId,
+        spellLevel: 5,
+        label: "Open Contact Other Plane",
+        actionContextText: "Using Contact Patron",
+        actionAvailabilityText:
+          "Cast without expending a spell slot.",
+        actionConsumesSpellSlot: false
+      },
       disabled: usesRemaining <= 0,
       disabledReason: usesRemaining <= 0 ? "Contact Patron recharges on a Long Rest." : undefined
     });
@@ -816,6 +833,16 @@ export function getWarlockFeatureActions(
       interaction: "select",
       usesRemaining: remainingArcanumCount,
       usesTotal: selectedArcanumCount,
+      drawer: {
+        kind: "spell-list",
+        eyebrow: "Warlock"
+      },
+      execute: {
+        kind: "spell",
+        spellSource: "mystic-arcanum",
+        effectKind: "mystic-arcanum",
+        label: "Open Arcanum"
+      },
       disabled: selectedArcanumCount <= 0,
       disabledReason:
         selectedArcanumCount <= 0

@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useEffect, useState } from "react";
+import CellContainer from "../../../CellContainer/CellContainer";
 import NumberInput from "../../FormInputs/NumberInput";
 import {
   OverlayBody,
@@ -8,6 +9,7 @@ import {
   OverlayHeader,
   OverlayHeaderContent,
   OverlaySummary,
+  OverlayTitle,
   OverlayTitleRow,
   SheetModal
 } from "../../../Overlay";
@@ -191,7 +193,7 @@ function CharacterProgressModal({
         <OverlayHeaderContent>
           <OverlayEyebrow>Character Progress</OverlayEyebrow>
           <OverlayTitleRow>
-            <h3 id="character-progress-modal-title">Experience</h3>
+            <OverlayTitle id="character-progress-modal-title">Experience</OverlayTitle>
           </OverlayTitleRow>
           <OverlaySummary className={shared.helperText}>
             Review XP and level changes before saving them to the sheet.
@@ -202,18 +204,22 @@ function CharacterProgressModal({
 
       <OverlayBody className={styles.body}>
         <div className={styles.progressMetaRow}>
-          <div className={styles.progressMetaItem}>
-            <span>Current XP</span>
-            <strong>{formatCount(character.xp)}</strong>
-          </div>
-          <div className={clsx(styles.progressMetaItem, styles.progressMetaItemRight)}>
-            <span>Next Level XP</span>
-            <strong>
-              {currentNextLevelThreshold === null
+          <CellContainer
+            className={styles.progressMetaItem}
+            label="Current XP"
+            content={formatCount(character.xp)}
+          />
+          <CellContainer
+            className={clsx(styles.progressMetaItem, styles.progressMetaItemRight)}
+            labelClassName={styles.progressMetaLabelRight}
+            contentClassName={styles.progressMetaContentRight}
+            label="Next Level XP"
+            content={
+              currentNextLevelThreshold === null
                 ? "MAX"
-                : `${formatCount(currentNextLevelThreshold)} XP`}
-            </strong>
-          </div>
+                : `${formatCount(currentNextLevelThreshold)} XP`
+            }
+          />
         </div>
 
         <div className={styles.progressTrack} aria-hidden="true">
@@ -272,7 +278,7 @@ function CharacterProgressModal({
 
             {isXpMode ? (
               <label className={styles.inputField}>
-                <span>{modeFieldLabel}</span>
+                <span className={styles.inputLabel}>{modeFieldLabel}</span>
                 <NumberInput
                   min={0}
                   value={activeModeValue}
@@ -333,7 +339,7 @@ function CharacterProgressModal({
 
             {isLevelMode ? (
               <label className={styles.inputField}>
-                <span>{modeFieldLabel}</span>
+                <span className={styles.inputLabel}>{modeFieldLabel}</span>
                 <NumberInput
                   min={1}
                   max={MAX_CHARACTER_LEVEL}

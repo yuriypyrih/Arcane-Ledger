@@ -1,4 +1,5 @@
 import { useState } from "react";
+import CellContainer from "../../CellContainer/CellContainer";
 import ConcentrationLabel from "../../ConcentrationLabel";
 import DescriptionContent from "../../DescriptionContent/DescriptionContent";
 import SpellSubtitle from "../../SpellSubtitle";
@@ -14,12 +15,11 @@ import {
   OverlayBadge,
   OverlayBody,
   OverlayCloseButton,
-  OverlayDetailCard,
-  OverlayDetailLabel,
   OverlayDetailsGrid,
   OverlayHeader,
   OverlayHeaderContent,
   OverlaySummary,
+  OverlayTitle,
   OverlayTitleRow,
   SheetDrawer,
   SheetModal,
@@ -100,7 +100,7 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
           <OverlayHeaderContent>
             <OverlayBadge>{formatCodexLabel(ENTRY_CATEGORIES.SPELLS)}</OverlayBadge>
             <OverlayTitleRow>
-              <h3 id="codex-spell-drawer-title">{spell.name}</h3>
+              <OverlayTitle id="codex-spell-drawer-title">{spell.name}</OverlayTitle>
             </OverlayTitleRow>
             <OverlaySummary>
               <SpellSubtitle spell={spell} />
@@ -111,16 +111,15 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
 
         <OverlayBody>
           <OverlayDetailsGrid>
-            <OverlayDetailCard>
-              <OverlayDetailLabel>Casting Time</OverlayDetailLabel>
-              <strong>{formatSpellCastingTime(spell.castingTime)}</strong>
-            </OverlayDetailCard>
-            <OverlayDetailCard>
-              <OverlayDetailLabel>Range</OverlayDetailLabel>
-              <strong>{spell.range}</strong>
-            </OverlayDetailCard>
-            <OverlayDetailCard
+            <CellContainer
+              label="Casting Time"
+              content={formatSpellCastingTime(spell.castingTime)}
+            />
+            <CellContainer label="Range" content={spell.range} />
+            <CellContainer
               as="button"
+              label="Components"
+              content={formatSpellComponents(spell.components)}
               className={styles.detailButton}
               onClick={() => {
                 if (componentsTooltipEntry) {
@@ -128,37 +127,32 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
                 }
               }}
               type="button"
-            >
-              <OverlayDetailLabel>Components</OverlayDetailLabel>
-              <strong>{formatSpellComponents(spell.components)}</strong>
-            </OverlayDetailCard>
-            <OverlayDetailCard>
-              <OverlayDetailLabel>Duration</OverlayDetailLabel>
-              <strong className={styles.concentrationDetailValue}>
-                {spellDuration.hasConcentration ? (
-                  <>
+            />
+            <CellContainer
+              label="Duration"
+              content={
+                spellDuration.hasConcentration ? (
+                  <span className={styles.concentrationDetailValue}>
                     <ConcentrationLabel iconSize={15} />
                     {spellDuration.detailText ? <span>, {spellDuration.detailText}</span> : null}
-                  </>
+                  </span>
                 ) : (
                   spellDuration.detailText
-                )}
-              </strong>
-            </OverlayDetailCard>
-            <OverlayDetailCard>
-              <OverlayDetailLabel>Spell Lists</OverlayDetailLabel>
-              <strong>{formatCodexList(spell.spellLists) || "None"}</strong>
-            </OverlayDetailCard>
-            <OverlayDetailCard>
-              <OverlayDetailLabel>Damage</OverlayDetailLabel>
-              <strong>{formatWeaponDamage(spell.damage)}</strong>
-            </OverlayDetailCard>
+                )
+              }
+            />
+            <CellContainer
+              label="Spell Lists"
+              content={formatCodexList(spell.spellLists) || "None"}
+            />
+            <CellContainer label="Damage" content={formatWeaponDamage(spell.damage)} />
           </OverlayDetailsGrid>
 
           <SpellDescriptionContent
             description={spell.description}
             className={`${overlayClassNames.descriptionList} ${overlayClassNames.descriptionSection}`}
             entryClassName={overlayClassNames.descriptionLine}
+            strongClassName={overlayClassNames.descriptionStrong}
             linkClassName={styles.inlineLinkButton}
             onOpenKeyword={setSelectedKeyword}
             onOpenSpell={setSelectedSpellReference}
@@ -178,7 +172,7 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
             <div className={styles.modalHeader}>
               <div>
                 <p className={styles.modalEyebrow}>Spell Reference</p>
-                <h3 id="codex-spell-components-title">
+                <h3 id="codex-spell-components-title" className={styles.modalTitle}>
                   {componentsTooltipEntry?.title ?? "Components"}
                 </h3>
               </div>
@@ -196,7 +190,8 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
                 <DescriptionContent
                   description={componentsTooltipEntry.description}
                   className={styles.tooltipDescription}
-                  entryClassName={overlayClassNames.descriptionLine}
+                  entryClassName={`${overlayClassNames.descriptionLine} ${styles.tooltipDescriptionLine}`}
+                  strongClassName={overlayClassNames.descriptionStrong}
                   linkClassName={styles.inlineLinkButton}
                   onOpenKeyword={setSelectedKeyword}
                   onOpenSpell={setSelectedSpellReference}

@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { X } from "lucide-react";
 import { useState } from "react";
+import CellContainer from "../../../../CellContainer/CellContainer";
 import type { FeatureActionCard } from "../../../../../pages/CharactersPage/classFeatures";
 import type { LayOnHandsCondition } from "../../../../../pages/CharactersPage/classFeatures/paladin";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
@@ -67,7 +68,9 @@ function LayOnHandsModal({
         <div className={sheetStyles.spellManagementHeader}>
           <div className={styles.heading}>
             <p className={sheetStyles.eyebrow}>Paladin</p>
-            <h3 id="lay-on-hands-modal-title">{action.name}</h3>
+            <h3 id="lay-on-hands-modal-title" className={sheetStyles.sheetPanelTitle}>
+              {action.name}
+            </h3>
             <p className={shared.helperText}>{action.detail}</p>
           </div>
           <button
@@ -141,12 +144,13 @@ function LayOnHandsModal({
             </div>
           </div>
 
-          <div className={styles.capacityBlock}>
-            <span>Pool of Healing</span>
-            <strong>
-              {remainingPool} remaining | {totalCost} total spend
-            </strong>
-          </div>
+          <CellContainer
+            className={styles.capacityBlock}
+            labelClassName={styles.capacityLabel}
+            contentClassName={styles.capacityValue}
+            label="Pool of Healing"
+            content={`${remainingPool} remaining | ${totalCost} total spend`}
+          />
         </div>
 
         <div className={shared.formActions}>

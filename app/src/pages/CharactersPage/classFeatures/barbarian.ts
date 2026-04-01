@@ -95,6 +95,7 @@ const relentlessRageActionSummary = "While in Rage you can keep fighting";
 const relentlessRageBaseDc = 10;
 const relentlessRageDcIncrement = 5;
 const persistentRageUsesTotal = 1;
+const rageOfTheGodsUsesTotal = 1;
 const warriorOfTheGodsBaseUses = 4;
 export const barbarianRageActionKey = "barbarian-rage";
 export const barbarianRecklessAttackActionKey = "barbarian-reckless-attack";
@@ -680,6 +681,7 @@ export function normalizeBarbarianRageState(
   const warriorOfTheGodsUsesExpended = Number(record.warriorOfTheGodsUsesExpended);
   const intimidatingPresenceUsesExpended = Number(record.intimidatingPresenceUsesExpended);
   const zealousPresenceUsesExpended = Number(record.zealousPresenceUsesExpended);
+  const rageOfTheGodsUsesExpended = Number(record.rageOfTheGodsUsesExpended);
   const relentlessRageDcBonus = Number(record.relentlessRageDcBonus);
   const persistentRageUsesExpended = Number(record.persistentRageUsesExpended);
   const warriorOfTheGodsUsesTotal = getBarbarianWarriorOfTheGodsUsesTotal(character);
@@ -759,6 +761,11 @@ export function normalizeBarbarianRageState(
         ? Math.max(0, Math.min(zealousPresenceUsesTotal, Math.floor(zealousPresenceUsesExpended)))
         : 0
       : 0,
+    rageOfTheGodsUsesExpended: hasZealotRageOfTheGods(character)
+      ? Number.isFinite(rageOfTheGodsUsesExpended)
+        ? Math.max(0, Math.min(rageOfTheGodsUsesTotal, Math.floor(rageOfTheGodsUsesExpended)))
+        : 0
+      : 0,
     relentlessRageDcBonus: hasBarbarianRelentlessRage(character)
       ? Number.isFinite(relentlessRageDcBonus)
         ? Math.max(0, Math.floor(relentlessRageDcBonus))
@@ -811,6 +818,22 @@ export function getBarbarianPersistentRageUsesRemaining(
   const rageState = getBarbarianRageState(character);
 
   return Math.max(0, totalUses - (rageState.persistentRageUsesExpended ?? 0));
+}
+
+export function getBarbarianRageOfTheGodsUsesTotal(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return hasZealotRageOfTheGods(character) ? rageOfTheGodsUsesTotal : 0;
+}
+
+export function getBarbarianRageOfTheGodsUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  const totalUses = getBarbarianRageOfTheGodsUsesTotal(character);
+  const rageState = getBarbarianRageState(character);
+
+  return Math.max(0, totalUses - (rageState.rageOfTheGodsUsesExpended ?? 0));
 }
 
 export function getBarbarianWarriorOfTheGodsUsesTotal(
@@ -1103,6 +1126,18 @@ export function getBarbarianFeatureAction(
   const rageState = getBarbarianRageState(character);
   const totalUses = getBarbarianRageUsesTotal(character);
   const usesRemaining = Math.max(0, totalUses - rageState.usesExpended);
+  const rageDescription =
+    "You can imbue yourself with a primal power called Rage, a force that grants you extraordinary might and resilience.";
+  const rageDrawerResources = [
+    {
+      kind: "tracker" as const,
+      label: "Uses",
+      current: usesRemaining,
+      total: totalUses,
+      icon: "flame" as const,
+      cost: 1
+    }
+  ];
 
   return {
     key: barbarianRageActionKey,
@@ -1111,12 +1146,38 @@ export function getBarbarianFeatureAction(
     detail: "Enter Rage",
     breakdown: rageState.active ? "Rage Active" : "Enter Rage",
     breakdownTone: rageState.active ? "danger" : "default",
+    description: [rageDescription],
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
     interaction:
       !rageState.active && hasWildHeartRageOfTheWilds(character) ? "select" : undefined,
     usesLabel: "Use 1",
     usesIcon: "flame",
+    drawer:
+      !rageState.active && hasWildHeartRageOfTheWilds(character)
+        ? {
+            kind: "custom-form",
+            eyebrow: "Barbarian",
+            formKind: "wild-heart-rage",
+            resources: rageDrawerResources
+          }
+        : {
+            kind: "confirm",
+            eyebrow: "Barbarian",
+            confirmLabel: "Enter Rage",
+            resources: rageDrawerResources
+          },
+    execute:
+      !rageState.active && hasWildHeartRageOfTheWilds(character)
+        ? {
+            kind: "custom-form",
+            formKind: "wild-heart-rage",
+            label: "Enter Rage"
+          }
+        : {
+            kind: "activate",
+            label: "Enter Rage"
+          },
     isActive: rageState.active,
     disabled: rageState.active || usesRemaining <= 0,
     disabledReason: rageState.active
@@ -1182,6 +1243,16 @@ function getBarbarianWarriorOfTheGodsAction(
     usesLabel: `${usesRemaining}/${totalUses} charges`,
     usesRemaining,
     usesTotal: totalUses,
+    drawer: {
+      kind: "custom-form",
+      eyebrow: "Barbarian",
+      formKind: "warrior-of-the-gods"
+    },
+    execute: {
+      kind: "custom-form",
+      formKind: "warrior-of-the-gods",
+      label: "Heal"
+    },
     disabled: usesRemaining <= 0,
     disabledReason: usesRemaining <= 0 ? "No Warrior of the Gods charges remaining." : undefined
   };
@@ -1214,6 +1285,16 @@ function getBarbarianBrutalStrikeAction(
     economyType: ECONOMY_TYPE.FREE,
     actionCategory: ACTION_CATEGORY.FEATURE,
     interaction: "select",
+    drawer: {
+      kind: "custom-form",
+      eyebrow: "Barbarian",
+      formKind: "brutal-strike"
+    },
+    execute: {
+      kind: "custom-form",
+      formKind: "brutal-strike",
+      label: "Apply Brutal Strike"
+    },
     isActive: rageState.brutalStrikePending === true,
     disabled: !isAvailable,
     disabledReason:
@@ -1931,7 +2012,12 @@ export function getBarbarianDerivedConditions(
   return derivedEntries;
 }
 
-export function activateBarbarianRage(character: Character): Character {
+export function activateBarbarianRage(
+  character: Character,
+  options?: {
+    useRageOfTheGods?: boolean;
+  }
+): Character {
   if (!hasBarbarianFeature(character, CLASS_FEATURE.RAGE)) {
     return character;
   }
@@ -1943,6 +2029,8 @@ export function activateBarbarianRage(character: Character): Character {
   }
 
   const totalUses = getBarbarianRageUsesTotal(character);
+  const canUseRageOfTheGods =
+    options?.useRageOfTheGods === true && getBarbarianRageOfTheGodsUsesRemaining(character) > 0;
 
   if (rageState.usesExpended >= totalUses) {
     return character;
@@ -1994,7 +2082,7 @@ export function activateBarbarianRage(character: Character): Character {
         })
       ]
     : nextRageStatusEntries;
-  const nextRageOfTheGodsStatusEntries = hasZealotRageOfTheGods(character)
+  const nextRageOfTheGodsStatusEntries = canUseRageOfTheGods
     ? [
         ...nextRageLinkedStatusEntries,
         createCharacterStatusEntry({
@@ -2037,6 +2125,9 @@ export function activateBarbarianRage(character: Character): Character {
         usesExpended: rageState.usesExpended + 1,
         active: true,
         divineFuryUsedThisTurn: false,
+        rageOfTheGodsUsesExpended: canUseRageOfTheGods
+          ? (rageState.rageOfTheGodsUsesExpended ?? 0) + 1
+          : rageState.rageOfTheGodsUsesExpended,
         wildHeartRageOption: hasWildHeartRageOfTheWilds(character)
           ? undefined
           : rageState.wildHeartRageOption,
@@ -2051,7 +2142,10 @@ export function activateBarbarianRage(character: Character): Character {
 export function activateBarbarianWildHeartRage(
   character: Character,
   rageOptionKey: string,
-  powerOptionKey?: string
+  powerOptionKey?: string,
+  options?: {
+    useRageOfTheGods?: boolean;
+  }
 ): Character {
   if (!hasWildHeartRageOfTheWilds(character)) {
     return character;
@@ -2066,7 +2160,7 @@ export function activateBarbarianWildHeartRage(
     return character;
   }
 
-  const ragingCharacter = activateBarbarianRage(character);
+  const ragingCharacter = activateBarbarianRage(character, options);
 
   if (ragingCharacter === character) {
     return character;
@@ -2743,6 +2837,29 @@ export function restoreBarbarianPersistentRageOnLongRest(character: Character): 
   };
 }
 
+export function restoreBarbarianRageOfTheGodsOnLongRest(character: Character): Character {
+  if (!hasZealotRageOfTheGods(character)) {
+    return character;
+  }
+
+  const rageState = getBarbarianRageState(character);
+
+  if ((rageState.rageOfTheGodsUsesExpended ?? 0) === 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        rageOfTheGodsUsesExpended: 0
+      }
+    }
+  };
+}
+
 export function applyShortRestToBarbarianFeatures(character: Character): Character {
   if (!hasBarbarianFeature(character, CLASS_FEATURE.RAGE)) {
     return character;
@@ -2760,7 +2877,9 @@ export function applyLongRestToBarbarianFeatures(character: Character): Characte
     restoreBarbarianZealousPresenceOnLongRest(
     restoreBarbarianIntimidatingPresenceOnLongRest(
       restoreBarbarianWarriorOfTheGodsOnLongRest(
-        restoreBarbarianRelentlessRageOnLongRest(restoreBarbarianRageOnLongRest(character))
+        restoreBarbarianRageOfTheGodsOnLongRest(
+          restoreBarbarianRelentlessRageOnLongRest(restoreBarbarianRageOnLongRest(character))
+        )
       )
     )
     )

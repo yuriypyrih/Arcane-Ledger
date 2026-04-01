@@ -11,6 +11,7 @@ import {
   OverlayCloseButton,
   OverlayHeader,
   OverlayHeaderContent,
+  OverlayTitle,
   OverlayTitleRow,
   SheetDrawer,
   overlayClassNames
@@ -86,7 +87,7 @@ function KeywordReferenceDrawer({
           <OverlayHeaderContent>
             <OverlayBadge>{badgeLabel}</OverlayBadge>
             <OverlayTitleRow>
-              <h3 id="reference-drawer-title">{title}</h3>
+              <OverlayTitle id="reference-drawer-title">{title}</OverlayTitle>
             </OverlayTitleRow>
           </OverlayHeaderContent>
           <OverlayCloseButton label="Close reference" onClick={onClose} />
@@ -104,6 +105,7 @@ function KeywordReferenceDrawer({
                   description={entry.description}
                   className={overlayClassNames.descriptionList}
                   entryClassName={overlayClassNames.descriptionLine}
+                  strongClassName={overlayClassNames.descriptionStrong}
                   linkClassName={styles.inlineLinkButton}
                   onOpenKeyword={setSelectedKeyword}
                   onOpenSpell={setSelectedSpellReference}

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import CellContainer from "../../../../CellContainer/CellContainer";
 import type { FeatureActionCard } from "../../../../../pages/CharactersPage/classFeatures";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import FeatureActionOptionsModal from "./FeatureActionOptionsModal";
@@ -64,12 +65,10 @@ function WarriorOfTheGodsModal({
         />
       </label>
 
-      <div className={styles.chargeSpendSummary}>
-        <span>Charges Remaining</span>
-        <strong>
-          {remainingCharges} available | {selectedChargeCount} selected
-        </strong>
-      </div>
+      <CellContainer
+        label="Charges Remaining"
+        content={`${remainingCharges} available | ${selectedChargeCount} selected`}
+      />
     </FeatureActionOptionsModal>
   );
 }

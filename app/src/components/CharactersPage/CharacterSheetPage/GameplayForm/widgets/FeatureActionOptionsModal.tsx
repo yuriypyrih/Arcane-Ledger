@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
 import type { FeatureActionCard } from "../../../../../pages/CharactersPage/classFeatures";
+import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import {
   OverlayCloseButton,
@@ -42,7 +43,9 @@ function FeatureActionOptionsModal({
         <OverlayHeaderContent>
           <div className={styles.modalHeading}>
             <OverlayEyebrow>{eyebrow}</OverlayEyebrow>
-            <h3 id="feature-action-modal-title">{action.name}</h3>
+            <h3 id="feature-action-modal-title" className={sheetStyles.sheetPanelTitle}>
+              {action.name}
+            </h3>
             <p
               className={clsx(
                 shared.helperText,

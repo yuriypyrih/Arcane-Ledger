@@ -64,8 +64,8 @@ function BrutalStrikeModal({
             disabled={isSelectionLimitReached}
             onClick={() => onSelectOption(option.key)}
           >
-            <strong>{option.name}</strong>
-            <span>{option.detail}</span>
+            <strong className={styles.brutalStrikeOptionName}>{option.name}</strong>
+            <span className={styles.brutalStrikeOptionDescription}>{option.detail}</span>
           </button>
         );
       })}

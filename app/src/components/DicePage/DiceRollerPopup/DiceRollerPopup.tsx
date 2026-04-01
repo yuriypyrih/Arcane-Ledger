@@ -44,24 +44,12 @@ function DiceRollerPopup({ state, onClose, onRollComplete }: DiceRollerPopupProp
         className={styles.modalCard}
         role="dialog"
         aria-modal="true"
-        aria-labelledby="dice-roller-title"
+        aria-label={request.title}
         onClick={(event) => event.stopPropagation()}
       >
-        <div className={styles.modalHeader}>
-          <div className={styles.modalHeaderContent}>
-            <p className={styles.eyebrow}>Dice roll</p>
-            <h3 id="dice-roller-title">{request.title}</h3>
-            {request.description ? <p className={styles.description}>{request.description}</p> : null}
-          </div>
-          <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close dice roller">
-            <X size={18} />
-          </button>
-        </div>
-
-        <div className={styles.rollMeta}>
-          <span>Formula</span>
-          <code>{request.formulaDisplay ?? request.formula}</code>
-        </div>
+        <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close dice roller">
+          <X size={18} />
+        </button>
 
         {state.dice.length > 0 ? (
           <div className={styles.viewportStage}>

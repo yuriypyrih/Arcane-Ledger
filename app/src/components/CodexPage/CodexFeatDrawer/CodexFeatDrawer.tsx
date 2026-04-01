@@ -11,6 +11,7 @@ import {
   OverlayHeader,
   OverlayHeaderContent,
   OverlaySummary,
+  OverlayTitle,
   OverlayTitleRow,
   SheetDrawer,
   overlayClassNames
@@ -78,7 +79,9 @@ function CodexFeatDrawer({ feat, label, onClose }: CodexFeatDrawerProps) {
           <OverlayHeaderContent>
             <OverlayBadge>Feat</OverlayBadge>
             <OverlayTitleRow>
-              <h3 id="codex-feat-drawer-title">{label ?? featDefinition.label}</h3>
+              <OverlayTitle id="codex-feat-drawer-title">
+                {label ?? featDefinition.label}
+              </OverlayTitle>
             </OverlayTitleRow>
             <OverlaySummary>
               {getFeatCategoryLabel(featDefinition.category)} Feat
@@ -93,6 +96,7 @@ function CodexFeatDrawer({ feat, label, onClose }: CodexFeatDrawerProps) {
             description={featDefinition.description}
             className={`${overlayClassNames.descriptionList} ${overlayClassNames.descriptionSection}`}
             entryClassName={overlayClassNames.descriptionLine}
+            strongClassName={overlayClassNames.descriptionStrong}
             linkClassName={styles.inlineLinkButton}
             onOpenKeyword={setSelectedKeyword}
             onOpenSpell={setSelectedSpellReference}

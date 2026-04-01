@@ -58,7 +58,9 @@ function TraitEditorModal({
       >
         <div className={sheetStyles.spellManagementHeader}>
           <div className={styles.modalHeading}>
-            <h3 id="trait-modal-title">Edit Traits &amp; Conditions</h3>
+            <h3 id="trait-modal-title" className={styles.modalTitle}>
+              Edit Traits &amp; Conditions
+            </h3>
             <p className={shared.helperText}>
               Add passive traits and temporary states so the dashboard reflects what is currently
               affecting the character.
@@ -91,7 +93,9 @@ function TraitEditorModal({
 
         <div className={shared.formGrid}>
           <label className={shared.field}>
-            <span>{traitEditorTabs.find((tab) => tab.id === activeTab)?.label}</span>
+            <span className={shared.fieldLabel}>
+              {traitEditorTabs.find((tab) => tab.id === activeTab)?.label}
+            </span>
             <SelectInput
               value={values[activeTab]}
               onChange={(event) => onValueChange(activeTab, event.target.value)}
@@ -105,7 +109,7 @@ function TraitEditorModal({
           </label>
 
           <label className={shared.field}>
-            <span>Duration</span>
+            <span className={shared.fieldLabel}>Duration</span>
             <SelectInput
               value={durationPreset}
               disabled={isExhaustionSelection}
@@ -123,7 +127,7 @@ function TraitEditorModal({
 
           {showRoundTickSelector ? (
             <label className={shared.field}>
-              <span>Round Tick</span>
+              <span className={shared.fieldLabel}>Round Tick</span>
               <SelectInput
                 value={roundTickOn}
                 onChange={(event) =>

@@ -118,4 +118,29 @@ describe("barbarian rest options", () => {
       ])
     );
   });
+
+  it("shows rage of the gods recovery on long rest for level 14 zealot barbarians", () => {
+    const character = createCharacter({
+      level: 14,
+      subclassId: "barbarian-path-of-the-zealot",
+      classFeatureState: {
+        rage: {
+          usesExpended: 0,
+          active: false,
+          rageOfTheGodsUsesExpended: 1
+        }
+      }
+    });
+
+    const longRestOptions = createLongRestOptions(character);
+
+    expect(longRestOptions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "restore-rage-of-the-gods",
+          label: "Restore Rage of the Gods"
+        })
+      ])
+    );
+  });
 });

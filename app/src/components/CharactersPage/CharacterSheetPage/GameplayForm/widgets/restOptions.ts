@@ -3,10 +3,12 @@ import {
   getBarbarianIntimidatingPresenceUsesTotal,
   getBarbarianZealousPresenceUsesTotal,
   getBarbarianPersistentRageUsesTotal,
+  getBarbarianRageOfTheGodsUsesTotal,
   getBarbarianRageUsesTotal,
   getBarbarianWarriorOfTheGodsUsesTotal,
   hasBarbarianRelentlessRageFeature,
   restoreBarbarianIntimidatingPresenceOnLongRest,
+  restoreBarbarianRageOfTheGodsOnLongRest,
   restoreBarbarianZealousPresenceOnLongRest,
   restoreBarbarianPersistentRageOnLongRest,
   restoreBarbarianRageOnLongRest,
@@ -370,6 +372,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
     getBarbarianIntimidatingPresenceUsesTotal(character);
   const barbarianZealousPresenceUsesTotal = getBarbarianZealousPresenceUsesTotal(character);
   const barbarianPersistentRageUsesTotal = getBarbarianPersistentRageUsesTotal(character);
+  const barbarianRageOfTheGodsUsesTotal = getBarbarianRageOfTheGodsUsesTotal(character);
   const barbarianWarriorOfTheGodsUsesTotal = getBarbarianWarriorOfTheGodsUsesTotal(character);
   const _barbarianRelentlessRageRecoveryAvailable =
     restoreBarbarianRelentlessRageOnLongRest(character) !== character;
@@ -379,6 +382,8 @@ export function createLongRestOptions(character: Character): RestOption[] {
     restoreBarbarianZealousPresenceOnLongRest(character) !== character;
   const barbarianPersistentRageRecoveryAvailable =
     restoreBarbarianPersistentRageOnLongRest(character) !== character;
+  const barbarianRageOfTheGodsRecoveryAvailable =
+    restoreBarbarianRageOfTheGodsOnLongRest(character) !== character;
   const barbarianWarriorOfTheGodsRecoveryAvailable =
     restoreBarbarianWarriorOfTheGodsOnLongRest(character) !== character;
   const bardicInspirationUsesTotal = getBardicInspirationUsesTotal(character);
@@ -546,6 +551,17 @@ export function createLongRestOptions(character: Character): RestOption[] {
             disabled: !barbarianPersistentRageRecoveryAvailable,
             apply: (currentCharacter: Character) =>
               restoreBarbarianPersistentRageOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(barbarianRageOfTheGodsUsesTotal > 0
+      ? [
+          {
+            id: "restore-rage-of-the-gods",
+            label: "Restore Rage of the Gods",
+            disabled: !barbarianRageOfTheGodsRecoveryAvailable,
+            apply: (currentCharacter: Character) =>
+              restoreBarbarianRageOfTheGodsOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

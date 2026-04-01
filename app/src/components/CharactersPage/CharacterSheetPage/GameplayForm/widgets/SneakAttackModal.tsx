@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { BookOpen, X } from "lucide-react";
 import { useState } from "react";
+import CellContainer from "../../../../CellContainer/CellContainer";
 import KeywordReferenceDrawer from "../../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import type { Character } from "../../../../../types";
 import type { FeatureActionCard } from "../../../../../pages/CharactersPage/classFeatures";
@@ -73,7 +74,9 @@ function SneakAttackModal({
           <div className={sheetStyles.spellManagementHeader}>
             <div className={sharedModalStyles.modalHeading}>
               <p className={sheetStyles.eyebrow}>Rogue</p>
-              <h3 id="sneak-attack-modal-title">{action.name}</h3>
+              <h3 id="sneak-attack-modal-title" className={sheetStyles.sheetPanelTitle}>
+                {action.name}
+              </h3>
               <p className={shared.helperText}>{action.breakdown ?? action.detail}</p>
             </div>
             <button
@@ -86,16 +89,17 @@ function SneakAttackModal({
             </button>
           </div>
 
-          <div className={styles.sneakAttackPreviewCard}>
-            <span className={styles.sneakAttackPreviewLabel}>Damage</span>
-            <strong>{previewValueLabel}</strong>
-          </div>
+          <CellContainer
+            className={styles.sneakAttackPreviewCard}
+            label="Damage"
+            content={previewValueLabel}
+          />
 
           {effectDefinitions.length > 0 ? (
             <div className={styles.sneakAttackEffectsSection}>
               <div className={styles.sneakAttackEffectsHeader}>
                 <div>
-                  <h4>Cunning Strike</h4>
+                  <h4 className={styles.sneakAttackEffectsTitle}>Cunning Strike</h4>
                   <p className={shared.helperText}>
                     Choose up to {maxEffects} effect{maxEffects === 1 ? "" : "s"}. Each effect
                     reduces the Sneak Attack dice you roll.
@@ -129,8 +133,10 @@ function SneakAttackModal({
                         disabled={isDisabled}
                         aria-pressed={isSelected}
                       >
-                        <strong>{effect.name}</strong>
-                        <small>Cost: {effect.costDice}d6</small>
+                        <strong className={styles.sneakAttackEffectName}>{effect.name}</strong>
+                        <small className={styles.sneakAttackEffectMeta}>
+                          {`Cost: ${effect.costDice}d6`}
+                        </small>
                       </button>
                       <button
                         type="button"

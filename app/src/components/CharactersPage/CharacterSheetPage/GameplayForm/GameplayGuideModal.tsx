@@ -7,6 +7,7 @@ import {
   OverlayHeader,
   OverlayHeaderContent,
   OverlaySummary,
+  OverlayTitle,
   OverlayTitleRow,
   SheetModal
 } from "../../../Overlay";
@@ -24,7 +25,7 @@ function GameplayGuideModal({ onClose }: GameplayGuideModalProps) {
         <OverlayHeaderContent>
           <OverlayEyebrow>Gameplay</OverlayEyebrow>
           <OverlayTitleRow>
-            <h3 id="gameplay-guide-modal-title">Gameplay Guide</h3>
+            <OverlayTitle id="gameplay-guide-modal-title">Gameplay Guide</OverlayTitle>
           </OverlayTitleRow>
           <OverlaySummary className={shared.helperText}>
             The gameplay dashboard helps you track your available actions in and out of combat,

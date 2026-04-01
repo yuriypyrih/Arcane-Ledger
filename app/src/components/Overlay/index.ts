@@ -4,13 +4,12 @@ export {
   OverlayBadge,
   OverlayBody,
   OverlayCloseButton,
-  OverlayDetailCard,
-  OverlayDetailLabel,
   OverlayDetailsGrid,
   OverlayEyebrow,
   OverlayHeader,
   OverlayHeaderContent,
   OverlaySummary,
+  OverlayTitle,
   OverlayTitleRow
 } from "./OverlayLayout";
 export { overlayClassNames } from "./overlayClassNames";

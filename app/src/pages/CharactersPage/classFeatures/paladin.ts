@@ -332,6 +332,22 @@ export function getPaladinFeatureActions(
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
       interaction: "select",
+      facts: [
+        {
+          label: "Pool Remaining",
+          value: `${remainingPool}`
+        }
+      ],
+      drawer: {
+        kind: "custom-form",
+        eyebrow: "Paladin",
+        formKind: "lay-on-hands"
+      },
+      execute: {
+        kind: "custom-form",
+        formKind: "lay-on-hands",
+        label: "Heal"
+      },
       disabled: remainingPool <= 0,
       disabledReason: remainingPool <= 0 ? "Pool of Healing is empty." : undefined
     });
@@ -353,6 +369,15 @@ export function getPaladinFeatureActions(
       usesLabel: `${usesRemaining}/${totalUses} uses`,
       usesRemaining,
       usesTotal: totalUses,
+      drawer: {
+        kind: "options",
+        eyebrow: "Paladin",
+        optionSelection: "single-immediate"
+      },
+      execute: {
+        kind: "option",
+        label: "Use Channel Divinity"
+      },
       disabled: usesRemaining <= 0,
       disabledReason: usesRemaining <= 0 ? "No Channel Divinity uses remaining." : undefined
     });
@@ -371,6 +396,22 @@ export function getPaladinFeatureActions(
       interaction: "select",
       usesRemaining,
       usesTotal: paladinsSmiteUsesTotal,
+      drawer: {
+        kind: "confirm",
+        eyebrow: "Paladin",
+        confirmLabel: "Open Divine Smite"
+      },
+      execute: {
+        kind: "spell",
+        spellSource: "fixed",
+        effectKind: "paladins-smite",
+        spellId: divineSmiteSpellId,
+        spellLevel: 1,
+        label: "Open Divine Smite",
+        actionContextText: "Using Paladin's Smite",
+        actionAvailabilityText: "Cast without expending a spell slot.",
+        actionConsumesSpellSlot: false
+      },
       disabled: usesRemaining <= 0,
       disabledReason: usesRemaining <= 0 ? "Paladin's Smite recharges on a Long Rest." : undefined
     });
@@ -389,6 +430,22 @@ export function getPaladinFeatureActions(
       interaction: "select",
       usesRemaining,
       usesTotal: faithfulSteedUsesTotal,
+      drawer: {
+        kind: "confirm",
+        eyebrow: "Paladin",
+        confirmLabel: "Open Find Steed"
+      },
+      execute: {
+        kind: "spell",
+        spellSource: "fixed",
+        effectKind: "faithful-steed",
+        spellId: findSteedSpellId,
+        spellLevel: 2,
+        label: "Open Find Steed",
+        actionContextText: "Using Faithful Steed",
+        actionAvailabilityText: "Cast without expending a spell slot.",
+        actionConsumesSpellSlot: false
+      },
       disabled: usesRemaining <= 0,
       disabledReason: usesRemaining <= 0 ? "Faithful Steed recharges on a Long Rest." : undefined
     });

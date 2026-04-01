@@ -561,6 +561,15 @@ function getClericChannelDivinityAction(
     usesLabel: `${usesRemaining}/${totalUses} uses`,
     usesRemaining,
     usesTotal: totalUses,
+    drawer: {
+      kind: "options",
+      eyebrow: "Cleric",
+      optionSelection: "single-immediate"
+    },
+    execute: {
+      kind: "option",
+      label: "Use Channel Divinity"
+    },
     disabled: usesRemaining <= 0,
     disabledReason: usesRemaining <= 0 ? "No Channel Divinity uses remaining." : undefined
   };
@@ -588,6 +597,16 @@ function getClericDivineInterventionAction(
     usesLabel: `${usesRemaining}/1 use`,
     usesRemaining,
     usesTotal: 1,
+    drawer: {
+      kind: "spell-list",
+      eyebrow: "Cleric"
+    },
+    execute: {
+      kind: "spell",
+      spellSource: "divine-intervention",
+      effectKind: "divine-intervention",
+      label: "Open Spell"
+    },
     disabled: usesRemaining <= 0,
     disabledReason: usesRemaining <= 0 ? "No Divine Intervention uses remaining." : undefined
   };

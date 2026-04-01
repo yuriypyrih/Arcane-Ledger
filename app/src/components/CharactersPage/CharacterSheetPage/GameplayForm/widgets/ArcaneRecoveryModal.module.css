@@ -15,7 +15,7 @@
   text-transform: uppercase;
 }
 
-.arcaneRecoverySummary strong {
+.arcaneRecoverySummaryValue {
   font-size: 0.94rem;
   line-height: 1.35;
 }
@@ -40,11 +40,11 @@
   gap: 0.14rem;
 }
 
-.arcaneRecoveryCardHeader strong {
+.arcaneRecoveryCardTitle {
   font-size: 0.94rem;
 }
 
-.arcaneRecoveryCardHeader small {
+.arcaneRecoveryCardMeta {
   color: var(--color-ink-soft);
   font-size: 0.76rem;
 }

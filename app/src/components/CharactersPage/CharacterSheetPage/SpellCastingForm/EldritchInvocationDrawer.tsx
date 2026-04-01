@@ -87,7 +87,12 @@ function EldritchInvocationDrawer({
             <div className={sheetStyles.spellDrawerHeaderContent}>
               <p className={sheetStyles.spellDrawerBadge}>Eldritch Invocation</p>
               <div className={sheetStyles.spellDrawerTitleRow}>
-                <h3 id="eldritch-invocation-drawer-title">{option.invocation.name}</h3>
+                <h3
+                  id="eldritch-invocation-drawer-title"
+                  className={sheetStyles.spellDrawerTitle}
+                >
+                  {option.invocation.name}
+                </h3>
               </div>
             </div>
             <button
@@ -108,6 +113,7 @@ function EldritchInvocationDrawer({
               description={option.invocation.description}
               className={sheetStyles.spellDrawerDescriptionList}
               entryClassName={sheetStyles.spellDrawerDescriptionLine}
+              strongClassName={sheetStyles.spellDrawerDescriptionStrong}
               linkClassName={styles.inlineLinkButton}
               onOpenKeyword={setSelectedKeyword}
               onOpenSpell={setSelectedSpellReference}

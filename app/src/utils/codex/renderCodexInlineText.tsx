@@ -2,7 +2,7 @@ import type { ReactNode } from "react";
 
 const inlineBoldPattern = /<strong>(.*?)<\/strong>/g;
 
-export function renderCodexInlineText(text: string): ReactNode {
+export function renderCodexInlineText(text: string, strongClassName?: string): ReactNode {
   const nodes: ReactNode[] = [];
   let cursor = 0;
 
@@ -13,7 +13,11 @@ export function renderCodexInlineText(text: string): ReactNode {
       nodes.push(text.slice(cursor, index));
     }
 
-    nodes.push(<strong key={`${match[1]}-${index}`}>{match[1]}</strong>);
+    nodes.push(
+      <strong key={`${match[1]}-${index}`} className={strongClassName}>
+        {match[1]}
+      </strong>
+    );
     cursor = index + match[0].length;
   }
 

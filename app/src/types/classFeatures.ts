@@ -21,6 +21,7 @@ export type CharacterRageFeatureState = {
   frenzyPending?: boolean;
   intimidatingPresenceUsesExpended?: number;
   zealousPresenceUsesExpended?: number;
+  rageOfTheGodsUsesExpended?: number;
   relentlessRageDcBonus?: number;
   persistentRageUsesExpended?: number;
 };

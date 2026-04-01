@@ -613,6 +613,16 @@ export function getWizardFeatureActions(
       interaction: "select",
       usesRemaining,
       usesTotal,
+      drawer: {
+        kind: "custom-form",
+        eyebrow: "Wizard",
+        formKind: "arcane-recovery"
+      },
+      execute: {
+        kind: "custom-form",
+        formKind: "arcane-recovery",
+        label: "Recover Spell Slots"
+      },
       disabled: Boolean(disabledReason),
       disabledReason
     }

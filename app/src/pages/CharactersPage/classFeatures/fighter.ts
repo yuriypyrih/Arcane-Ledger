@@ -338,6 +338,16 @@ export function getFighterFeatureActions(
       usesLabel: `${usesRemaining}/${totalUses} uses`,
       usesRemaining,
       usesTotal: totalUses,
+      drawer: {
+        kind: "confirm",
+        eyebrow: "Fighter",
+        confirmLabel: "Use Second Wind"
+      },
+      execute: {
+        kind: "activate",
+        label: "Use Second Wind",
+        effectKind: "second-wind"
+      },
       disabled: usesRemaining <= 0,
       disabledReason: usesRemaining <= 0 ? "No Second Wind uses remaining." : undefined
     });
@@ -355,6 +365,16 @@ export function getFighterFeatureActions(
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.FEATURE,
       usesLabel: "Uses Second Wind charges",
+      drawer: {
+        kind: "confirm",
+        eyebrow: "Fighter",
+        confirmLabel: "Use Tactical Mind"
+      },
+      execute: {
+        kind: "activate",
+        label: "Use Tactical Mind",
+        effectKind: "tactical-mind"
+      },
       disabled: usesRemaining <= 0,
       disabledReason: usesRemaining <= 0 ? "No Second Wind uses remaining." : undefined
     });
@@ -376,6 +396,16 @@ export function getFighterFeatureActions(
       usesLabel: `${usesRemaining}/${totalUses} uses`,
       usesRemaining,
       usesTotal: totalUses,
+      drawer: {
+        kind: "custom-form",
+        eyebrow: "Fighter",
+        formKind: "indomitable"
+      },
+      execute: {
+        kind: "custom-form",
+        formKind: "indomitable",
+        label: "Roll Saving Throw"
+      },
       disabled: usesRemaining <= 0,
       disabledReason: usesRemaining <= 0 ? "No Indomitable uses remaining." : undefined
     });

@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { X } from "lucide-react";
+import CellContainer from "../../../../CellContainer/CellContainer";
 import { formatAbilityModifier } from "../../../../../pages/CharactersPage/gameplay";
 import type { AbilityKey } from "../../../../../types";
 import type { FeatureActionCard } from "../../../../../pages/CharactersPage/classFeatures";
@@ -45,7 +46,9 @@ function IndomitableModal({
         <div className={sheetStyles.spellManagementHeader}>
           <div className={sharedModalStyles.modalHeading}>
             <p className={sheetStyles.eyebrow}>Fighter</p>
-            <h3 id="indomitable-modal-title">{action.name}</h3>
+            <h3 id="indomitable-modal-title" className={sheetStyles.sheetPanelTitle}>
+              {action.name}
+            </h3>
             <p className={shared.helperText}>
               Choose a saving throw to reroll. {action.usesLabel ?? ""}
             </p>
@@ -71,18 +74,20 @@ function IndomitableModal({
               )}
               onClick={() => onSelectAbility(option.ability)}
             >
-              <strong>{option.ability}</strong>
-              <small>{formatAbilityModifier(option.total)} Save</small>
+              <strong className={styles.indomitableAbilityName}>{option.ability}</strong>
+              <small className={styles.indomitableAbilityMeta}>
+                {formatAbilityModifier(option.total)} Save
+              </small>
             </button>
           ))}
         </div>
 
-        <div className={styles.indomitableFormulaBlock}>
-          <span>Formula</span>
-          <strong>
-            {selectedOption?.formulaDisplay ?? "Choose a saving throw to see the roll formula."}
-          </strong>
-        </div>
+        <CellContainer
+          label="Formula"
+          content={
+            selectedOption?.formulaDisplay ?? "Choose a saving throw to see the roll formula."
+          }
+        />
 
         <div className={shared.formActions}>
           <button type="button" className={shared.cancelButton} onClick={onClose}>

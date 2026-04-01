@@ -617,6 +617,16 @@ export function getSorcererFeatureActions(
       actionCategory: ACTION_CATEGORY.MAGIC,
       interaction: "select",
       valueLabel: "Uses Sorcery Points",
+      drawer: {
+        kind: "custom-form",
+        eyebrow: "Sorcerer",
+        formKind: "font-of-magic"
+      },
+      execute: {
+        kind: "custom-form",
+        formKind: "font-of-magic",
+        label: "Convert Resources"
+      },
       ignoreEconomyAvailability: true
     });
   }
@@ -642,6 +652,15 @@ export function getSorcererFeatureActions(
       actionCategory: ACTION_CATEGORY.MAGIC,
       interaction: "select",
       valueLabel: "Uses Sorcery Points",
+      drawer: {
+        kind: "options",
+        eyebrow: "Sorcerer",
+        optionSelection: "multi-confirm"
+      },
+      execute: {
+        kind: "option",
+        label: "Infuse Next Spell"
+      },
       disabled: Boolean(disabledReason),
       disabledReason
     });

@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { ChevronsUp, Pencil, Pentagon, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import CellContainer from "../../../CellContainer/CellContainer";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import type { AbilityKey, Character, CoreStats } from "../../../../types";
@@ -937,7 +938,12 @@ function CharacterStatsForm({
               <div className={sheetStyles.spellDrawerHeaderContent}>
                 <p className={sheetStyles.spellDrawerBadge}>Reference</p>
                 <div className={sheetStyles.spellDrawerTitleRow}>
-                  <h3 id="character-stats-reference-title">{selectedStatReference.keyword}</h3>
+                  <h3
+                    id="character-stats-reference-title"
+                    className={sheetStyles.spellDrawerTitle}
+                  >
+                    {selectedStatReference.keyword}
+                  </h3>
                 </div>
                 {selectedStatReference.summaryText ? (
                   <p className={sheetStyles.spellDrawerSummary}>
@@ -1005,13 +1011,11 @@ function CharacterStatsForm({
                     className={clsx(sheetStyles.spellDrawerDetails, styles.referenceDetailStack)}
                   >
                     {selectedStatReference.detailCards.map((detailCard) => (
-                      <div
+                      <CellContainer
                         key={`${selectedStatReference.keyword}-${detailCard.label}`}
-                        className={sheetStyles.spellDrawerDetailCard}
-                      >
-                        <span>{detailCard.label}</span>
-                        <strong>{detailCard.value}</strong>
-                      </div>
+                        label={detailCard.label}
+                        content={detailCard.value}
+                      />
                     ))}
                   </div>
                 ) : null}

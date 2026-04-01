@@ -9,21 +9,19 @@
 }
 
 .progressMetaItem {
-  display: grid;
-  gap: 0.18rem;
-  border-radius: 14px;
   background: rgba(58, 104, 186, 0.09);
-  padding: 0.72rem 0.82rem;
-}
-
-.progressMetaItem span {
-  color: var(--color-ink-soft);
-  font-size: 0.76rem;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
 }
 
 .progressMetaItemRight {
+  text-align: right;
+}
+
+.progressMetaLabelRight {
+  text-align: right;
+}
+
+.progressMetaContentRight {
+  justify-content: flex-end;
   text-align: right;
 }
 
@@ -95,7 +93,7 @@
   gap: 0.42rem;
 }
 
-.inputField span {
+.inputLabel {
   color: var(--color-ink-soft);
   font-size: 0.78rem;
   letter-spacing: 0.08em;
@@ -123,6 +121,15 @@
 
   .progressMetaItemRight {
     text-align: left;
+  }
+
+  .progressMetaLabelRight,
+  .progressMetaContentRight {
+    text-align: left;
+  }
+
+  .progressMetaContentRight {
+    justify-content: flex-start;
   }
 
   .progressRow {

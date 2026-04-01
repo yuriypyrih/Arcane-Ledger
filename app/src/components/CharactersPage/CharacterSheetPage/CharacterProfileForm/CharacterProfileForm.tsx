@@ -109,7 +109,7 @@ function CharacterProfileForm({
       {isEditing ? (
         <div className={shared.formGrid}>
           <label className={shared.field}>
-            <span>Species</span>
+            <span className={shared.fieldLabel}>Species</span>
             <SelectInput
               value={profileDraft.species}
               onChange={(event) =>
@@ -129,7 +129,7 @@ function CharacterProfileForm({
           </label>
 
           <label className={shared.field}>
-            <span>Subclass</span>
+            <span className={shared.fieldLabel}>Subclass</span>
             <SelectInput
               value={profileDraft.subclassId}
               disabled={subclassOptions.length === 0}

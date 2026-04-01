@@ -15,10 +15,10 @@ function RollHistoryDrawer({ history }: RollHistoryDrawerProps) {
           {history.map((entry) => (
             <li key={entry.id} className={styles.historyItem}>
               <div className={styles.historyTop}>
-                <strong>{entry.total}</strong>
-                <span>{entry.dice.length} dice</span>
+                <strong className={styles.historyTotal}>{entry.total}</strong>
+                <span className={styles.historyDiceCount}>{`${entry.dice.length} dice`}</span>
               </div>
-              <p>{entry.breakdown}</p>
+              <p className={styles.historyBreakdown}>{entry.breakdown}</p>
             </li>
           ))}
         </ul>
