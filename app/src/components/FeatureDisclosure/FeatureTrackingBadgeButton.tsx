@@ -1,41 +1,55 @@
 import clsx from "clsx";
 import { BadgeAlert, BadgeCheck, BadgeX } from "lucide-react";
-import type { FeatureTrackingState } from "../../codex/entries";
+import { TRACKER } from "../../codex/entries";
 import styles from "./FeatureDisclosure.module.css";
 
-const trackingBadgeConfig = {
-  tracked: {
+const trackingBadgeConfig: Record<
+  TRACKER,
+  {
+    label: string;
+    icon: typeof BadgeCheck;
+    className: string;
+  }
+> = {
+  [TRACKER.TRACKED]: {
     label: "Tracked",
     icon: BadgeCheck,
     className: styles.featureTrackingButtonTracked
   },
-  "semi-tracked": {
+  [TRACKER.SEMI_TRACKED]: {
     label: "Semi Tracked",
     icon: BadgeAlert,
     className: styles.featureTrackingButtonSemiTracked
   },
-  "not-tracked": {
+  [TRACKER.NOT_TRACKED]: {
     label: "Not Tracked",
     icon: BadgeX,
     className: styles.featureTrackingButtonNotTracked
   }
-} as const;
+};
 
 type FeatureTrackingBadgeButtonProps = {
-  trackingState: FeatureTrackingState;
-  onClick?: (trackingState: FeatureTrackingState) => void;
+  trackingState: TRACKER;
+  onClick?: (trackingState: TRACKER) => void;
+  disabled?: boolean;
 };
 
 function FeatureTrackingBadgeButton({
   trackingState,
-  onClick
+  onClick,
+  disabled = false
 }: FeatureTrackingBadgeButtonProps) {
   const trackingBadge = trackingBadgeConfig[trackingState];
 
   return (
     <button
       type="button"
-      className={clsx(styles.featureTrackingButton, trackingBadge.className)}
+      className={clsx(
+        styles.featureTrackingButton,
+        trackingBadge.className,
+        disabled && styles.featureTrackingButtonDisabled
+      )}
+      disabled={disabled}
       onClick={(event) => {
         event.stopPropagation();
         onClick?.(trackingState);

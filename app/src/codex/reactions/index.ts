@@ -6,6 +6,7 @@ import {
   berserkerRetaliationDescription,
   worldTreeBranchesOfTheTreeDescription
 } from "../subclasses/barbarian";
+import { inspiringMovementDescription } from "../subclasses/bard";
 
 export const countercharmReaction: ReactionEntry = {
   id: "reaction-countercharm",
@@ -60,6 +61,16 @@ export const retaliationReaction: ReactionEntry = {
   description: berserkerRetaliationDescription
 };
 
+export const inspiringMovementReaction: ReactionEntry = {
+  id: "reaction-inspiring-movement",
+  reaction: REACTION.INSPIRING_MOVEMENT,
+  name: "Inspiring Movement",
+  sourceType: "feature",
+  sourceFeature: CLASS_FEATURE.INSPIRING_MOVEMENT,
+  sourceLabel: "College of Dance",
+  description: [...inspiringMovementDescription]
+};
+
 export const uncannyDodgeReaction: ReactionEntry = {
   id: "reaction-uncanny-dodge",
   reaction: REACTION.UNCANNY_DODGE,
@@ -74,6 +85,7 @@ export const reactionEntries: ReactionEntry[] = [
   branchesOfTheTreeReaction,
   countercharmReaction,
   deflectAttacksReaction,
+  inspiringMovementReaction,
   retaliationReaction,
   slowFallReaction,
   uncannyDodgeReaction

@@ -64,10 +64,16 @@ function hasVisibleWeaponProficiency(
 
 export function getWeaponActionRollDescription(action: WeaponAction): string {
   const resolvedRollState = resolveFeatureIndicators(action.indicators);
+  const damageAbility = action.damageAbility ?? action.ability;
+  const damageAbilityModifier = action.damageAbilityModifier ?? action.abilityModifier;
   const segments = [
     ...(resolvedRollState ? [formatResolvedRollStateSummary(resolvedRollState)] : []),
     `${action.ability} ${formatAbilityModifier(action.abilityModifier)}`
   ];
+
+  if (damageAbility !== action.ability || damageAbilityModifier !== action.abilityModifier) {
+    segments.push(`Damage ${damageAbility} ${formatAbilityModifier(damageAbilityModifier)}`);
+  }
 
   if (hasVisibleWeaponProficiency(action)) {
     segments.push(
@@ -105,10 +111,16 @@ export function getWeaponActionRollDescription(action: WeaponAction): string {
 
 export function getWeaponActionBreakdown(action: WeaponAction): string {
   const resolvedRollState = resolveFeatureIndicators(action.indicators);
+  const damageAbility = action.damageAbility ?? action.ability;
+  const damageAbilityModifier = action.damageAbilityModifier ?? action.abilityModifier;
   const segments = [
     ...(resolvedRollState ? [formatResolvedRollStateSummary(resolvedRollState)] : []),
     `${action.ability} ${formatSignedValue(action.abilityModifier)}`
   ];
+
+  if (damageAbility !== action.ability || damageAbilityModifier !== action.abilityModifier) {
+    segments.push(`Damage ${damageAbility} ${formatSignedValue(damageAbilityModifier)}`);
+  }
 
   if (hasVisibleWeaponProficiency(action)) {
     segments.push(

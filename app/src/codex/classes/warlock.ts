@@ -1,4 +1,4 @@
-import { CLASS_FEATURE, SPELL_LIST_CLASS } from "../entries/enums";
+import { CLASS_FEATURE, SPELL_LIST_CLASS, TRACKER } from "../entries/enums";
 import type { FeatureClassObj, FeatureMapEntry } from "../entries/types";
 import { createUseSpellEntriesForSpellListClass } from "./spellAccess";
 
@@ -138,7 +138,7 @@ export const warlockFeatures: WarlockFeatureClassObj[] = [
     featureOverrides: {
       [CLASS_FEATURE.MYSTIC_ARCANUM]: {
         description: createMysticArcanumDescription(6),
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     eldritchInvocations: 7,
@@ -164,7 +164,7 @@ export const warlockFeatures: WarlockFeatureClassObj[] = [
     featureOverrides: {
       [CLASS_FEATURE.MYSTIC_ARCANUM]: {
         description: createMysticArcanumDescription(7),
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     eldritchInvocations: 8,
@@ -190,7 +190,7 @@ export const warlockFeatures: WarlockFeatureClassObj[] = [
     featureOverrides: {
       [CLASS_FEATURE.MYSTIC_ARCANUM]: {
         description: createMysticArcanumDescription(8),
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     eldritchInvocations: 9,
@@ -216,7 +216,7 @@ export const warlockFeatures: WarlockFeatureClassObj[] = [
     featureOverrides: {
       [CLASS_FEATURE.MYSTIC_ARCANUM]: {
         description: createMysticArcanumDescription(9),
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     eldritchInvocations: 9,
@@ -245,7 +245,7 @@ export const warlockFeatures: WarlockFeatureClassObj[] = [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
           "<feat:BOON_OF_FATE>Boon of Fate</feat> is recommended."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     eldritchInvocations: 10,
@@ -276,7 +276,7 @@ export const warlockFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "When you gain certain Warlock levels, you gain more invocations of your choice, as shown in the Invocations column of the Warlock Features table.",
       "You can't pick the same invocation more than once unless its description says otherwise."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.PACT_MAGIC]: {
     description: [
@@ -292,7 +292,7 @@ export const warlockFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "<strong>Spellcasting Ability.</strong> Charisma is the spellcasting ability for your Warlock spells.",
       "<strong>Spellcasting Focus.</strong> You can use an Arcane Focus as a Spellcasting Focus for your Warlock spells."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.MAGICAL_CUNNING]: {
     description: [
@@ -300,7 +300,7 @@ export const warlockFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "At the end of it, you regain expended Pact Magic spell slots but no more than a number equal to half your maximum, rounded up.",
       "Once you use this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link>."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.CONTACT_PATRON]: {
     description: [
@@ -308,17 +308,17 @@ export const warlockFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "With this feature, you can cast the spell without expending a spell slot to contact your patron, and you automatically succeed on the spell's saving throw.",
       "Once you cast the spell with this feature, you can't do so in this way again until you finish a <link:long-rest>Long Rest</link>."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.MYSTIC_ARCANUM]: {
     description: createMysticArcanumDescription(6),
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.ELDRITCH_MASTER]: {
     description: [
       "When you use your Magical Cunning feature, you regain all your expended Pact Magic spell slots."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   }
 };
 

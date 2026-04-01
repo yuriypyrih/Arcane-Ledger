@@ -1,4 +1,4 @@
-import { CLASS_FEATURE, SPELL_LIST_CLASS } from "../entries/enums";
+import { CLASS_FEATURE, SPELL_LIST_CLASS, TRACKER } from "../entries/enums";
 import type { FeatureClassObj, FeatureMapEntry } from "../entries/types";
 import { createUseSpellEntriesForSpellListClass } from "./spellAccess";
 
@@ -49,7 +49,7 @@ export const wizardFeatures: WizardFeatureClassObj[] = [
           "<strong>Copying the Book.</strong> You can copy a spell from your spellbook into another book. This is like copying a new spell into your spellbook but faster, since you already know how to cast the spell. You need spend only 1 hour and 10 GP for each level of the copied spell.",
           "If you lose your spellbook, you can use the same procedure to transcribe the Wizard spells that you have prepared into a new spellbook. Filling out the remainder of the new book requires you to find new spells to do so. For this reason, many wizards keep a backup spellbook."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     cantrips: 3,
@@ -184,7 +184,7 @@ export const wizardFeatures: WizardFeatureClassObj[] = [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
           "<feat:BOON_OF_SPELL_RECALL>Boon of Spell Recall</feat> is recommended."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     cantrips: 5,
@@ -206,7 +206,7 @@ export const wizardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "You can cast any spell as a Ritual if that spell has the Ritual tag and the spell is in your spellbook.",
       "You needn't have the spell prepared, but you must read from the book to cast a spell in this way."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.ARCANE_RECOVERY]: {
     description: [
@@ -215,7 +215,7 @@ export const wizardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "For example, if you're a level 4 Wizard, you can recover up to two levels' worth of spell slots, regaining either one level 2 spell slot or two level 1 spell slots.",
       "Once you use this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link>."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.SCHOLAR]: {
     description: [
@@ -223,13 +223,13 @@ export const wizardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "Choose one of the following skills in which you have proficiency: <link:Arcana>Arcana</link>, <link:History>History</link>, <link:Investigation>Investigation</link>, <link:Medicine>Medicine</link>, <link:Nature>Nature</link>, or <link:Religion>Religion</link>.",
       "You have <link:Expertise>Expertise</link> in the chosen skill."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.MEMORIZE_SPELL]: {
     description: [
       "Whenever you finish a <link:short-rest>Short Rest</link>, you can study your spellbook and replace one of the level 1+ Wizard spells you have prepared for your Spellcasting feature with another level 1+ spell from the book."
     ],
-    isTracked: false
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.SPELL_MASTERY]: {
     description: [
@@ -237,7 +237,7 @@ export const wizardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "You always have those spells prepared, and you can cast them at their lowest level without expending a spell slot. To cast either spell at a higher level, you must expend a spell slot.",
       "Whenever you finish a <link:long-rest>Long Rest</link>, you can study your spellbook and replace one of those spells with an eligible spell of the same level from the book."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.SIGNATURE_SPELLS]: {
     description: [
@@ -246,7 +246,7 @@ export const wizardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "When you do so, you can't cast them in this way again until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",
       "To cast either spell at a higher level, you must expend a spell slot."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   }
 };
 

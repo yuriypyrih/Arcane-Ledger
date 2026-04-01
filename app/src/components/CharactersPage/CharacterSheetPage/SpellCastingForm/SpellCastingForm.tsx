@@ -8,11 +8,13 @@ import SpellListRow from "../../../SpellListRow";
 import SpellDescriptionContent from "../../../SpellDescriptionContent";
 import CharacterSpellDrawer, { type CharacterSpellDrawerMode } from "./CharacterSpellDrawer";
 import EldritchInvocationDrawer from "./EldritchInvocationDrawer";
+import SpellSlotEditorModal from "./SpellSlotEditorModal";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { useClassSpellEntries, usePreparedSpellEntries } from "../../../../codex/classes";
 import {
   ACTION_TYPE,
   CLASS_FEATURE,
+  MAGIC_SCHOOL,
   getDivinityEntryById,
   getSpellEntryById,
   type DivinityEntry,
@@ -32,11 +34,16 @@ import {
 import { getRoundTrackerResourceForEconomyType } from "../../../../pages/CharactersPage/actionEconomy";
 import {
   activateFeatureActionOptionForCharacter,
+  consumeBeguilingMagicOrBardicInspirationForCharacter,
   getChannelDivinityUsesRemainingForCharacter,
   getChannelDivinityUsesTotalForCharacter,
   getAlwaysPreparedSpellIdsForCharacter,
+  getBardicInspirationUsesRemainingForCharacter,
+  getBeguilingMagicUsesRemainingForCharacter,
+  getBeguilingMagicUsesTotalForCharacter,
   getFeatureActionsForCharacter,
   getFeatureActionOptionsForCharacter,
+  hasActiveMantleOfMajestyForCharacter,
   getSpellEntryForCharacter,
   getSpellcastingStateForCharacter,
   getWarlockEldritchInvocationLimitForCharacter,
@@ -56,7 +63,6 @@ import {
 } from "../../../../pages/CharactersPage/classFeatures";
 import { getClericResolvedDivinityDisplay } from "../../../../pages/CharactersPage/classFeatures/cleric";
 import { paladinChannelDivinityActionKey } from "../../../../pages/CharactersPage/classFeatures/paladin";
-import { restoreWarlockPactMagicSpellSlots } from "../../../../pages/CharactersPage/classFeatures/warlock";
 import {
   getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
@@ -254,6 +260,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const [selectedSpellViewMode, setSelectedSpellViewMode] =
     useState<SelectedSpellViewMode>("standard");
   const [selectedSpellSlotLevel, setSelectedSpellSlotLevel] = useState(1);
+  const [useBeguilingMagicOnSelectedSpell, setUseBeguilingMagicOnSelectedSpell] = useState(false);
   const [spellManagementMode, setSpellManagementMode] = useState<SpellManagementMode | null>(null);
   const [cantripDraftIds, setCantripDraftIds] = useState<string[]>([]);
   const [spellbookDraftIds, setSpellbookDraftIds] = useState<string[]>([]);
@@ -270,6 +277,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const closeSelectedSpell = useCallback(() => {
     setSelectedSpell(null);
     setSelectedSpellViewMode("standard");
+    setUseBeguilingMagicOnSelectedSpell(false);
   }, []);
   const closeSelectedDivinity = useCallback(() => {
     setSelectedDivinityOptionKey(null);
@@ -465,6 +473,24 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     () =>
       spellSlotTotals.map((total, index) => Math.max(0, total - (spellSlotsExpended[index] ?? 0))),
     [spellSlotTotals, spellSlotsExpended]
+  );
+  const beguilingMagicUsesTotal = useMemo(
+    () => getBeguilingMagicUsesTotalForCharacter(character),
+    [character.className, character.level, character.subclassId]
+  );
+  const beguilingMagicUsesRemaining = useMemo(
+    () => getBeguilingMagicUsesRemainingForCharacter(character),
+    [character.classFeatureState, character.className, character.level, character.subclassId]
+  );
+  const bardicInspirationUsesRemaining = useMemo(
+    () => getBardicInspirationUsesRemainingForCharacter(character),
+    [
+      character.abilities,
+      character.classFeatureState,
+      character.className,
+      character.feats,
+      character.level
+    ]
   );
   const highestSpellSlotLevel = useMemo(
     () => getHighestSpellSlotLevel(spellSlotTotals),
@@ -772,7 +798,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     () => normalizeRoundTracker(character.roundTracker),
     [character.roundTracker]
   );
-  const usesPactMagicLabel = character.className === "Warlock";
   const selectedSpellRoundTrackerResource = selectedSpell
     ? getRoundTrackerResourceForSpell(selectedSpell)
     : null;
@@ -782,6 +807,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   );
   const selectedSpellCastWarning =
     spellcastingState.blocked ? spellcastingState.reason : selectedSpellActionWarning;
+  const selectedSpellActionShapeState = getActionShapeStateForRoundTrackerResource(
+    selectedSpellRoundTrackerResource,
+    roundTracker
+  );
   const selectedDivinityActionWarning = getRoundTrackerActionWarning(
     selectedDivinityRow
       ? getRoundTrackerResourceForEconomyType(selectedDivinityRow.option.economyType)
@@ -814,14 +843,27 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellHasSignatureSpellFreeCastAvailable =
     selectedSpell !== null &&
     hasWizardSignatureSpellFreeCastAvailableForCharacter(character, selectedSpell.id);
+  const selectedSpellUnderMantleOfMajesty =
+    selectedSpell?.id === "spell-command" && hasActiveMantleOfMajestyForCharacter(character);
   const selectedSpellFreeCastSlotLevel =
-    selectedSpell && selectedSpellIsWizardSpellMastery
+    selectedSpellUnderMantleOfMajesty
+      ? 1
+      : selectedSpell && selectedSpellIsWizardSpellMastery
       ? Math.max(1, getSpellLevel(selectedSpell))
       : selectedSpell && selectedSpellIsWizardSignatureSpell && selectedSpellHasSignatureSpellFreeCastAvailable
         ? 3
         : null;
   const selectedSpellBlockedReason =
     selectedSpellIsSpellbookOnly ? "This spell is in your spellbook but not prepared." : null;
+  const selectedSpellSupportsBeguilingMagic =
+    selectedSpell !== null &&
+    beguilingMagicUsesTotal > 0 &&
+    (selectedSpell.magicSchool === MAGIC_SCHOOL.ENCHANTMENT ||
+      selectedSpell.magicSchool === MAGIC_SCHOOL.ILLUSION);
+
+  useEffect(() => {
+    setUseBeguilingMagicOnSelectedSpell(false);
+  }, [selectedSpell?.id]);
 
   function getSpellRowActionShapeState(spell: SpellEntry) {
     return getActionShapeStateForRoundTrackerResource(
@@ -1045,18 +1087,68 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setSpellManagementMode("eldritch-invocations");
   }, []);
 
-  const refreshSpellSlots = useCallback(() => {
-    onPersistCharacter((currentCharacter) =>
-      usesPactMagicLabel
-        ? restoreWarlockPactMagicSpellSlots(currentCharacter)
-        : {
-            ...currentCharacter,
-            spellSlotsExpended: Array.from({ length: 9 }, () => 0)
-          }
-    );
+  const beginSpellSlotManagement = useCallback(() => {
+    setSpellManagementMode("spell-slots");
+  }, []);
 
-    setSpellManagementMode(null);
-  }, [onPersistCharacter, usesPactMagicLabel]);
+  const updateSpellSlotsExpended = useCallback(
+    (slotLevel: number, delta: number) => {
+      onPersistCharacter((currentCharacter) => {
+        const currentSpellSlotTotals = getSpellSlotTotalsForCharacter(
+          currentCharacter.className,
+          currentCharacter.level
+        );
+        const currentSpellSlotsExpended = normalizeSpellSlotsExpended(
+          currentCharacter.spellSlotsExpended,
+          currentSpellSlotTotals
+        );
+        const slotIndex = slotLevel - 1;
+        const totalSlots = currentSpellSlotTotals[slotIndex] ?? 0;
+
+        if (totalSlots <= 0) {
+          return currentCharacter;
+        }
+
+        const currentValue = currentSpellSlotsExpended[slotIndex] ?? 0;
+        const nextValue = clampNumber(currentValue + delta, 0, totalSlots, currentValue);
+
+        if (nextValue === currentValue) {
+          return currentCharacter;
+        }
+
+        const nextSpellSlotsExpended = [...currentSpellSlotsExpended];
+        nextSpellSlotsExpended[slotIndex] = nextValue;
+
+        return {
+          ...currentCharacter,
+          spellSlotsExpended: nextSpellSlotsExpended
+        };
+      });
+    },
+    [onPersistCharacter]
+  );
+
+  const resetAllSpellSlots = useCallback(() => {
+    onPersistCharacter((currentCharacter) => {
+      const currentSpellSlotTotals = getSpellSlotTotalsForCharacter(
+        currentCharacter.className,
+        currentCharacter.level
+      );
+      const currentSpellSlotsExpended = normalizeSpellSlotsExpended(
+        currentCharacter.spellSlotsExpended,
+        currentSpellSlotTotals
+      );
+
+      if (currentSpellSlotsExpended.every((value) => value === 0)) {
+        return currentCharacter;
+      }
+
+      return {
+        ...currentCharacter,
+        spellSlotsExpended: Array.from({ length: 9 }, () => 0)
+      };
+    });
+  }, [onPersistCharacter]);
 
   const toggleCantripDraft = useCallback(
     (spellId: string) => {
@@ -1250,7 +1342,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setSelectedInvocation(option);
   }
 
-  function castSelectedSpell(options?: { castAsRitual?: boolean }) {
+  function castSelectedSpell(options?: { castAsRitual?: boolean; useBeguilingMagic?: boolean }) {
     if (!selectedSpell || spellcastingState.blocked) {
       return;
     }
@@ -1258,6 +1350,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     const spellLevel = getSpellLevel(selectedSpell);
     const roundTrackerResource = getRoundTrackerResourceForSpell(selectedSpell);
     const castAsRitual = options?.castAsRitual === true && selectedSpell.ritual === true;
+    const useBeguilingMagic = options?.useBeguilingMagic === true;
     const canCastSpellbookRitual =
       selectedSpellIsSpellbookOnly && hasWizardRitualAdept && castAsRitual;
 
@@ -1279,17 +1372,29 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               selectedSpell
             )
           };
+          const nextCharacterWithBeguilingMagic = useBeguilingMagic
+            ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacter)
+            : nextCharacter;
 
-          return consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource);
+          return consumeRoundTrackerResourceForCharacter(
+            nextCharacterWithBeguilingMagic,
+            roundTrackerResource
+          );
         });
       } else {
-        onPersistCharacter((currentCharacter) => ({
-          ...currentCharacter,
-          statusEntries: applySpellConcentrationToStatusEntries(
-            currentCharacter.statusEntries,
-            selectedSpell
-          )
-        }));
+        onPersistCharacter((currentCharacter) => {
+          const nextCharacter = useBeguilingMagic
+            ? consumeBeguilingMagicOrBardicInspirationForCharacter(currentCharacter)
+            : currentCharacter;
+
+          return {
+            ...nextCharacter,
+            statusEntries: applySpellConcentrationToStatusEntries(
+              nextCharacter.statusEntries,
+              selectedSpell
+            )
+          };
+        });
       }
 
       closeSelectedSpell();
@@ -1309,10 +1414,16 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             selectedSpell
           )
         };
+        const nextCharacterWithBeguilingMagic = useBeguilingMagic
+          ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacter)
+          : nextCharacter;
 
         return roundTrackerResource
-          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
-          : nextCharacter;
+          ? consumeRoundTrackerResourceForCharacter(
+              nextCharacterWithBeguilingMagic,
+              roundTrackerResource
+            )
+          : nextCharacterWithBeguilingMagic;
       });
 
       closeSelectedSpell();
@@ -1366,10 +1477,16 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           selectedSpell
         )
       };
+      const nextCharacterWithBeguilingMagic = useBeguilingMagic
+        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellcast)
+        : nextCharacterWithSpellcast;
 
       return roundTrackerResource
-        ? consumeRoundTrackerResourceForCharacter(nextCharacterWithSpellcast, roundTrackerResource)
-        : nextCharacterWithSpellcast;
+        ? consumeRoundTrackerResourceForCharacter(
+            nextCharacterWithBeguilingMagic,
+            roundTrackerResource
+          )
+        : nextCharacterWithBeguilingMagic;
     });
 
     closeSelectedSpell();
@@ -1625,6 +1742,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                 <h3 id="spell-management-title" className={sheetStyles.sheetPanelTitle}>
                   {spellManagementMode === "menu"
                     ? "Spell options"
+                    : spellManagementMode === "spell-slots"
+                      ? "Edit your Spell Slots Manually"
                     : spellManagementMode === "cantrips"
                       ? "Manage cantrips"
                       : spellManagementMode === "eldritch-invocations"
@@ -1647,18 +1766,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                 <button
                   type="button"
                   className={sheetStyles.spellManagementOptionButton}
-                  onClick={refreshSpellSlots}
+                  onClick={beginSpellSlotManagement}
                 >
-                  <strong>
-                    {usesPactMagicLabel
-                      ? "Refresh Pact Magic spell slots"
-                      : "Refresh spell slots"}
-                  </strong>
-                  <small>
-                    {usesPactMagicLabel
-                      ? "Restore all available Pact Magic spell slots."
-                      : "Restore all available spell slots."}
-                  </small>
+                  <strong>Edit your Spell Slots Manually</strong>
+                  <small>Use or reset your spell slots up to their current limit.</small>
                 </button>
                 {hasCantripManagement ? (
                   <button
@@ -1727,6 +1838,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                   </button>
                 ) : null}
               </div>
+            ) : spellManagementMode === "spell-slots" ? (
+              <SpellSlotEditorModal
+                spellSlotTotals={spellSlotTotals}
+                spellSlotsExpended={spellSlotsExpended}
+                onResetSlot={(slotLevel) => updateSpellSlotsExpended(slotLevel, -1)}
+                onUseSlot={(slotLevel) => updateSpellSlotsExpended(slotLevel, 1)}
+                onResetAll={resetAllSpellSlots}
+              />
             ) : spellManagementMode === "cantrips" ? (
               <>
                 <div className={styles.preparedSpellStatusRow}>
@@ -1982,13 +2101,53 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           selectedSpellSlotLevel={selectedSpellSlotLevel}
           onSelectedSpellSlotLevelChange={setSelectedSpellSlotLevel}
           onClose={closeSelectedSpell}
-          onAction={castSelectedSpell}
+          onAction={(options) =>
+            castSelectedSpell({
+              ...options,
+              useBeguilingMagic: useBeguilingMagicOnSelectedSpell
+            })
+          }
           actionConsumesSpellSlot={!selectedSpellIsSpellbookOnly}
           freeCastSlotLevel={selectedSpellFreeCastSlotLevel}
           allowRitualCasting={selectedSpellCanCastAsRitualFromSpellbook}
+          actionAvailabilityText={
+            selectedSpellUnderMantleOfMajesty
+              ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
+              : null
+          }
+          actionContextText={
+            selectedSpellUnderMantleOfMajesty ? "Under the effect of Mantle of Majesty." : null
+          }
           actionWarning={selectedSpellCastWarning}
           actionDisabled={selectedSpellCastWarning !== null}
           blockedReason={selectedSpellBlockedReason}
+          actionShapeAvailable={selectedSpellActionShapeState.isSelected}
+          actionShapeMultiCount={selectedSpellActionShapeState.multiCount}
+          actionOptions={
+            selectedSpellSupportsBeguilingMagic
+              ? [
+                  {
+                    id: "beguiling-magic",
+                    label: "Beguiling Magic",
+                    checked: useBeguilingMagicOnSelectedSpell,
+                    onCheckedChange: setUseBeguilingMagicOnSelectedSpell,
+                    disabled:
+                      beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
+                    tracker: {
+                      current: beguilingMagicUsesRemaining,
+                      total: beguilingMagicUsesTotal
+                    },
+                    fallbackCost:
+                      beguilingMagicUsesRemaining <= 0
+                        ? {
+                            label: "Use 1",
+                            icon: "music"
+                          }
+                        : undefined
+                  }
+                ]
+              : undefined
+          }
           backdropClassName={isPreparedSpellPreview ? styles.previewSpellDrawerBackdrop : undefined}
         />
       ) : null}

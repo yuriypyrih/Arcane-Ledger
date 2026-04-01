@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { CLASS_FEATURE } from "../../codex/entries";
+import { CLASS_FEATURE, TRACKER } from "../../codex/entries";
 import { getClassEntries } from "../../codex/selectors";
 import {
   getSubclassFeatureDetails,
@@ -9,6 +9,111 @@ import {
 } from "./subclasses";
 
 describe("subclass registry", () => {
+  it("exposes bard subclass options and bard subclass feature rows by level", () => {
+    const subclassOptions = getSubclassOptionsForClassName("Bard");
+
+    expect(subclassOptions.map((entry) => entry.id)).toEqual([
+      "bard-college-of-dance",
+      "bard-college-of-glamour",
+      "bard-college-of-lore",
+      "bard-college-of-the-moon",
+      "bard-college-of-valor"
+    ]);
+
+    const glamourSubclass = getSelectedSubclassForCharacter({
+      className: "Bard",
+      subclassId: "bard-college-of-glamour"
+    });
+
+    expect(glamourSubclass?.name).toBe("College of Glamour");
+    expect(glamourSubclass?.tagline).toBe("Weave Beguiling Fey Magic");
+
+    const glamourFeatureRows = getUnlockedSubclassFeatureRowsForCharacter({
+      className: "Bard",
+      level: 14,
+      subclassId: "bard-college-of-glamour"
+    });
+
+    expect(
+      glamourFeatureRows.flatMap((row) =>
+        row.classFeatures.map((feature) => `${row.level}:${feature}`)
+      )
+    ).toEqual([
+      `3:${CLASS_FEATURE.BEGUILING_MAGIC}`,
+      `3:${CLASS_FEATURE.MANTLE_OF_INSPIRATION}`,
+      `6:${CLASS_FEATURE.MANTLE_OF_MAJESTY}`,
+      `14:${CLASS_FEATURE.UNBREAKABLE_MAJESTY}`
+    ]);
+
+    const beguilingMagic =
+      glamourFeatureRows.find(
+        (row) => row.level === 3 && row.classFeatures.includes(CLASS_FEATURE.BEGUILING_MAGIC)
+      )?.featureOverrides?.[CLASS_FEATURE.BEGUILING_MAGIC];
+
+    expect(beguilingMagic).toEqual(
+      expect.objectContaining({
+        trackingState: TRACKER.NOT_TRACKED,
+        description: expect.arrayContaining([
+          expect.stringContaining("<spell:Charm Person>Charm Person</spell>"),
+          expect.stringContaining("<spell:Mirror Image>Mirror Image</spell>"),
+          expect.stringContaining("<link:Charmed>Charmed</link>"),
+          expect.stringContaining("<link:Frightened>Frightened</link>")
+        ])
+      })
+    );
+
+    const moonSubclass = getSelectedSubclassForCharacter({
+      className: "Bard",
+      subclassId: "bard-college-of-the-moon"
+    });
+
+    expect(moonSubclass?.name).toBe("College of the Moon");
+    expect(moonSubclass?.tagline).toBe("Inspire Allies with Primal Tales");
+
+    const moonFeatureRows = getUnlockedSubclassFeatureRowsForCharacter({
+      className: "Bard",
+      level: 14,
+      subclassId: "bard-college-of-the-moon"
+    });
+
+    expect(
+      moonFeatureRows.flatMap((row) =>
+        row.classFeatures.map((feature) => `${row.level}:${feature}`)
+      )
+    ).toEqual([
+      `3:${CLASS_FEATURE.MOONS_INSPIRATION}`,
+      `3:${CLASS_FEATURE.PRIMAL_LORE}`,
+      `6:${CLASS_FEATURE.BLESSING_OF_MOONLIGHT}`,
+      `14:${CLASS_FEATURE.EVENTIDES_SPLENDOR}`
+    ]);
+
+    expect(
+      moonFeatureRows.find(
+        (row) => row.level === 6 && row.classFeatures.includes(CLASS_FEATURE.BLESSING_OF_MOONLIGHT)
+      )?.featureOverrides?.[CLASS_FEATURE.BLESSING_OF_MOONLIGHT]
+    ).toEqual(
+      expect.objectContaining({
+        trackingState: TRACKER.NOT_TRACKED,
+        description: expect.arrayContaining([
+          expect.stringContaining("<spell:Moonbeam>Moonbeam</spell>"),
+          expect.stringContaining("<link:long-rest>Long Rest</link>")
+        ])
+      })
+    );
+
+    expect(
+      getSubclassFeatureDetails(moonSubclass, 3, CLASS_FEATURE.PRIMAL_LORE)
+    ).toEqual(
+      expect.objectContaining({
+        trackingState: TRACKER.NOT_TRACKED,
+        description: expect.arrayContaining([
+          expect.stringContaining("<link:Animal Handling>Animal Handling</link>"),
+          expect.stringContaining("<link:Perception>Perception</link>")
+        ])
+      })
+    );
+  });
+
   it("exposes barbarian subclass options and unlocked berserker features by level", () => {
     const subclassOptions = getSubclassOptionsForClassName("Barbarian");
 
@@ -92,7 +197,7 @@ describe("subclass registry", () => {
 
     expect(animalSpeakerRow?.featureOverrides?.[CLASS_FEATURE.ANIMAL_SPEAKER]).toEqual(
       expect.objectContaining({
-        isTracked: true,
+        trackingState: TRACKER.TRACKED,
         description: expect.arrayContaining([
           expect.stringContaining("<spell:Beast Sense>Beast Sense</spell>"),
           expect.stringContaining(
@@ -170,7 +275,7 @@ describe("subclass registry", () => {
       ])
     );
     expect(vitalityRow?.featureOverrides?.[CLASS_FEATURE.VITALITY_OF_THE_TREE]?.trackingState).toBe(
-      "semi-tracked"
+      TRACKER.SEMI_TRACKED
     );
     expect(
       unlockedFeatureRows.find(
@@ -178,7 +283,7 @@ describe("subclass registry", () => {
       )?.featureOverrides?.[CLASS_FEATURE.BRANCHES_OF_THE_TREE]
     ).toEqual(
       expect.objectContaining({
-        trackingState: "semi-tracked",
+        trackingState: TRACKER.SEMI_TRACKED,
         description: expect.arrayContaining([
           expect.stringContaining("<link:tracked>Tracked</link>"),
           expect.stringContaining("<link:not-tracked>Not Tracked</link>")

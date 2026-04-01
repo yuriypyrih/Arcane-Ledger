@@ -3,6 +3,68 @@
   gap: 1.6rem;
 }
 
+.buildSectionHeader {
+  align-items: flex-start;
+}
+
+.buildHeaderContent {
+  display: grid;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.buildHeading {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.helpButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-accent);
+  cursor: pointer;
+  min-height: 30px;
+  min-width: 30px;
+  padding: 0;
+  transition: background-color 160ms ease, color 160ms ease;
+}
+
+.helpButton:hover {
+  background: rgba(75, 47, 29, 0.14);
+  color: var(--color-ink);
+}
+
+.helpButton:focus-visible {
+  outline: 2px solid rgba(179, 92, 28, 0.34);
+  outline-offset: 2px;
+}
+
+.sectionCollapseButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: flex-start;
+  border: none;
+  background: none;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  flex-shrink: 0;
+  padding: 0.1rem;
+}
+
+.sectionCollapseIcon {
+  transition: transform 160ms ease;
+}
+
+.sectionCollapseIconCollapsed {
+  transform: rotate(-90deg);
+}
+
 .subsection {
   display: grid;
   gap: 0.9rem;
@@ -77,7 +139,7 @@
 }
 
 .featureInputRequiredDescription {
-  margin: 0;
+  margin: 8px 0 0 0;
   color: #a63729;
   font-weight: 600;
   line-height: 1.5;
@@ -156,6 +218,10 @@
 }
 
 @media (max-width: 720px) {
+  .buildSectionHeader {
+    gap: 0.8rem;
+  }
+
   .featureChoiceRow {
     width: 100%;
   }

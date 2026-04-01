@@ -19,8 +19,12 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/barbarian";
 import {
   getBardicInspirationUsesTotal,
-  applyLongRestToBardFeatures,
-  applyShortRestToBardFeatures
+  getBeguilingMagicUsesTotal,
+  getMantleOfMajestyUsesTotal,
+  applyShortRestToBardFeatures,
+  restoreBeguilingMagicOnLongRest,
+  restoreMantleOfMajestyOnLongRest,
+  restoreBardicInspirationOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/bard";
 import {
   getClericChannelDivinityUsesTotal,
@@ -387,6 +391,8 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const barbarianWarriorOfTheGodsRecoveryAvailable =
     restoreBarbarianWarriorOfTheGodsOnLongRest(character) !== character;
   const bardicInspirationUsesTotal = getBardicInspirationUsesTotal(character);
+  const beguilingMagicUsesTotal = getBeguilingMagicUsesTotal(character);
+  const mantleOfMajestyUsesTotal = getMantleOfMajestyUsesTotal(character);
   const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
   const indomitableUsesTotal = getFighterIndomitableUsesTotal(character);
@@ -581,7 +587,28 @@ export function createLongRestOptions(character: Character): RestOption[] {
           {
             id: "restore-bardic-inspiration",
             label: "Restore all Bardic dice",
-            apply: (currentCharacter: Character) => applyLongRestToBardFeatures(currentCharacter)
+            apply: (currentCharacter: Character) =>
+              restoreBardicInspirationOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(beguilingMagicUsesTotal > 0
+      ? [
+          {
+            id: "restore-beguiling-magic",
+            label: "Restore Beguiling Magic",
+            apply: (currentCharacter: Character) =>
+              restoreBeguilingMagicOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(mantleOfMajestyUsesTotal > 0
+      ? [
+          {
+            id: "restore-mantle-of-majesty",
+            label: "Restore Mantle of Majesty",
+            apply: (currentCharacter: Character) =>
+              restoreMantleOfMajestyOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

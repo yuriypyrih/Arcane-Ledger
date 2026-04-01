@@ -1,5 +1,5 @@
-import type { FeatureMapEntry, FeatureTrackingState } from "../../codex/entries";
-import { CLASS_FEATURE, FEAT_CATEGORY, FEATS } from "../../codex/entries";
+import type { FeatureMapEntry } from "../../codex/entries";
+import { CLASS_FEATURE, FEAT_CATEGORY, FEATS, TRACKER } from "../../codex/entries";
 import { ALL_SKILLS, TOOL_PROFICIENCY } from "../../types";
 import { abilityKeys } from "./constants";
 import type {
@@ -94,7 +94,7 @@ export const featDefinitions: FeatDefinition[] = [
       "<strong>Initiative Proficiency.</strong> When you roll Initiative, you can add your Proficiency Bonus to the roll. <link:tracked>Tracked</link>",
       "<strong>Initiative Swap.</strong> Immediately after you roll Initiative, you can swap your Initiative with the Initiative of one willing ally in the same combat. You can't make this swap if you or the ally has the Incapacitated condition. <link:not-tracked>Not Tracked</link>"
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.MAGIC_INITIATE,
@@ -108,7 +108,7 @@ export const featDefinitions: FeatDefinition[] = [
       "<strong>Spell Change.</strong> Whenever you gain a new level, you can replace one of the spells you chose for this feat with a different spell of the same level from the chosen spell list.",
       "<strong>Repeatable.</strong> You can take this feat more than once, but you must choose a different spell list each time."
     ],
-    trackingState: "not-tracked"
+    trackingState: TRACKER.NOT_TRACKED
   },
   {
     feat: FEATS.SAVAGE_ATTACKER,
@@ -117,7 +117,7 @@ export const featDefinitions: FeatDefinition[] = [
     description: [
       "You've trained to deal particularly damaging strikes. Once per turn when you hit a target with a weapon, you can roll the weapon's damage dice twice and use either roll against the target."
     ],
-    trackingState: "not-tracked"
+    trackingState: TRACKER.NOT_TRACKED
   },
   {
     feat: FEATS.SKILLED,
@@ -128,7 +128,7 @@ export const featDefinitions: FeatDefinition[] = [
       "You gain proficiency in any combination of three skills or tools of your choice.",
       "<strong>Repeatable.</strong> You can take this feat more than once."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   {
     feat: FEATS.ABILITY_SCORE_IMPROVEMENT,
@@ -141,7 +141,7 @@ export const featDefinitions: FeatDefinition[] = [
       "This feat can't increase an ability score above 20.",
       "<strong>Repeatable.</strong> You can take this feat more than once."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   {
     feat: FEATS.GRAPPLER,
@@ -155,7 +155,7 @@ export const featDefinitions: FeatDefinition[] = [
       "<strong>Attack Advantage.</strong> You have Advantage on attack rolls against a creature Grappled by you.",
       "<strong>Fast Wrestler.</strong> You don't have to spend extra movement to move a creature Grappled by you if the creature is your size or smaller."
     ],
-    trackingState: "not-tracked"
+    trackingState: TRACKER.NOT_TRACKED
   },
   {
     feat: FEATS.BLESSED_WARRIOR,
@@ -167,7 +167,7 @@ export const featDefinitions: FeatDefinition[] = [
       "The chosen cantrips count as Paladin spells for you, and <link:CHA>Charisma</link> is your spellcasting ability for them.",
       "Whenever you gain a Paladin level, you can replace one of these cantrips with another Cleric cantrip."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   {
     feat: FEATS.DRUIDIC_WARRIOR,
@@ -179,7 +179,7 @@ export const featDefinitions: FeatDefinition[] = [
       "The chosen cantrips count as Ranger spells for you, and <link:WIS>Wisdom</link> is your spellcasting ability for them.",
       "Whenever you gain a Ranger level, you can replace one of these cantrips with another Druid cantrip."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   {
     feat: FEATS.ARCHERY,
@@ -187,7 +187,7 @@ export const featDefinitions: FeatDefinition[] = [
     category: FEAT_CATEGORY.FIGHTING_STYLE,
     prerequisite: "Fighting Style Feature",
     description: ["You gain a +2 bonus to attack rolls you make with Ranged weapons."],
-    trackingState: "not-tracked"
+    trackingState: TRACKER.NOT_TRACKED
   },
   {
     feat: FEATS.DEFENSE,
@@ -197,7 +197,7 @@ export const featDefinitions: FeatDefinition[] = [
     description: [
       "While you're wearing Light, Medium, or Heavy armor, you gain a +1 bonus to Armor Class."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   {
     feat: FEATS.GREAT_WEAPON_FIGHTING,
@@ -208,7 +208,7 @@ export const featDefinitions: FeatDefinition[] = [
       "When you roll damage for an attack you make with a Melee weapon that you are holding with two hands, you can treat any 1 or 2 on a damage die as a 3.",
       "The weapon must have the <link:Two-Handed>Two-Handed</link> or <link:Versatile>Versatile</link> property to gain this benefit."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   {
     feat: FEATS.TWO_WEAPON_FIGHTING,
@@ -218,7 +218,7 @@ export const featDefinitions: FeatDefinition[] = [
     description: [
       "When you make an extra attack as a result of using a weapon that has the <link:Light>Light</link> property, you can add your ability modifier to the damage of that attack if you aren't already adding it to the damage."
     ],
-    trackingState: "not-tracked"
+    trackingState: TRACKER.NOT_TRACKED
   },
   {
     feat: FEATS.BOON_OF_COMBAT_PROWESS,
@@ -230,7 +230,7 @@ export const featDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30. <link:tracked>Tracked</link>",
       "<strong>Peerless Aim.</strong> When you miss with an attack roll, you can hit instead. Once you use this benefit, you can't use it again until the start of your next turn. <link:not-tracked>Not Tracked</link>"
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.BOON_OF_DIMENSIONAL_TRAVEL,
@@ -242,7 +242,7 @@ export const featDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30. <link:tracked>Tracked</link>",
       "<strong>Blink Steps.</strong> Immediately after you take the Attack action or the Magic action, you can teleport up to 30 feet to an unoccupied space you can see. <link:not-tracked>Not Tracked</link>"
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.BOON_OF_FATE,
@@ -254,7 +254,7 @@ export const featDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30. <link:tracked>Tracked</link>",
       "<strong>Improve Fate.</strong> When you or another creature within 60 feet of you succeeds on or fails a D20 Test, you can roll 2d4 and apply the total rolled as a bonus or penalty to the d20 roll. Once you use this benefit, you can't use it again until you roll Initiative or finish a Short Rest or Long Rest. <link:not-tracked>Not Tracked</link>"
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.BOON_OF_IRRESISTIBLE_OFFENSE,
@@ -267,7 +267,7 @@ export const featDefinitions: FeatDefinition[] = [
       "<strong>Overcome Defenses.</strong> The Bludgeoning, Piercing, and Slashing damage you deal always ignores Resistance. <link:not-tracked>Not Tracked</link>",
       "<strong>Overwhelming Strike.</strong> When you roll a 20 on the d20 for an attack roll, you can deal extra damage to the target equal to the ability score increased by this feat. The extra damage's type is the same as the attack's type. <link:not-tracked>Not Tracked</link>"
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.BOON_OF_THE_NIGHT_SPIRIT,
@@ -280,7 +280,7 @@ export const featDefinitions: FeatDefinition[] = [
       "<strong>Merge with Shadows.</strong> While within Dim Light or Darkness, you can give yourself the Invisible condition as a Bonus Action. The condition ends on you immediately after you take an action, a Bonus Action, or a Reaction. <link:not-tracked>Not Tracked</link>",
       "<strong>Shadowy Form.</strong> While within Dim Light or Darkness, you have Resistance to all damage except Psychic and Radiant. <link:not-tracked>Not Tracked</link>"
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.BOON_OF_SPELL_RECALL,
@@ -292,7 +292,7 @@ export const featDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 30. <link:tracked>Tracked</link>",
       "<strong>Free Casting.</strong> Whenever you cast a spell with a level 1-4 spell slot, roll 1d4. If the number you roll is the same as the slot's level, the slot isn't expended. <link:not-tracked>Not Tracked</link>"
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.BOON_OF_TRUESIGHT,
@@ -304,7 +304,7 @@ export const featDefinitions: FeatDefinition[] = [
       "<strong>Ability Score Increase.</strong> Increase one ability score of your choice by 1, to a maximum of 30.",
       "<strong>Truesight.</strong> You have Truesight with a range of 60 feet."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   }
 ];
 
@@ -678,8 +678,8 @@ export function isFeatRepeatable(feat: FEATS): boolean {
   return Boolean(getFeatDefinition(feat)?.repeatable);
 }
 
-export function getFeatTrackingState(feat: FEATS): FeatureTrackingState {
-  return getFeatDefinition(feat)?.trackingState ?? "not-tracked";
+export function getFeatTrackingState(feat: FEATS): TRACKER {
+  return getFeatDefinition(feat)?.trackingState ?? TRACKER.NOT_TRACKED;
 }
 
 export function getAbilityScoreImprovementSummary(

@@ -1,4 +1,4 @@
-import { CLASS_FEATURE, SPELL_LIST_CLASS } from "../entries/enums";
+import { CLASS_FEATURE, SPELL_LIST_CLASS, TRACKER } from "../entries/enums";
 import type { FeatureClassObj, FeatureMapEntry } from "../entries/types";
 import { createUseSpellEntriesForSpellListClass } from "./spellAccess";
 
@@ -40,7 +40,7 @@ export const clericFeatures: ClericFeatureClassObj[] = [
           "<strong>Spellcasting Ability.</strong> Wisdom is your spellcasting ability for your Cleric spells.",
           "<strong>Spellcasting Focus.</strong> You can use a Holy Symbol as a Spellcasting Focus for your Cleric spells."
         ],
-        trackingState: "tracked"
+        trackingState: TRACKER.TRACKED
       }
     },
     channelDivinity: 0,
@@ -193,7 +193,7 @@ export const clericFeatures: ClericFeatureClassObj[] = [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
           "Boon of Fate is recommended."
         ],
-        trackingState: "tracked"
+        trackingState: TRACKER.TRACKED
       }
     },
     channelDivinity: 4,
@@ -218,7 +218,7 @@ export const clericFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "<strong>Protector.</strong> Trained for battle, you gain proficiency with Martial weapons and training with Heavy armor.",
       "<strong>Thaumaturge.</strong> You know one extra cantrip from the Cleric spell list. In addition, your mystical connection to the divine gives you a bonus to your Intelligence (Arcana or Religion) checks. The bonus equals your Wisdom modifier, minimum of +1."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.CHANNEL_DIVINITY]: {
     description: [
@@ -227,14 +227,14 @@ export const clericFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "If a Channel Divinity effect requires a saving throw, the DC equals the spell save DC from this class's Spellcasting feature.",
       "You have the following Channel Divinities: <divinity:Divine Spark>Divine Spark</divinity> and <divinity:Turn Undead>Turn Undead</divinity>."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.SEAR_UNDEAD]: {
     description: [
       "Whenever you use Turn Undead, you can roll a number of d8s equal to your Wisdom modifier, minimum of 1d8, and add the rolls together.",
       "Each Undead that fails its saving throw against that use of Turn Undead takes Radiant damage equal to the roll's total. This damage doesn't end the turn effect."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.BLESSED_STRIKES]: {
     description: [
@@ -242,7 +242,7 @@ export const clericFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "<strong>Blessed Strike.</strong> Once on each of your turns when you hit a creature with an attack roll using a weapon, you can cause the target to take an extra 1d8 Necrotic or Radiant damage, your choice.",
       "<strong>Potent Spellcasting.</strong> Add your Wisdom modifier to the damage you deal with any Cleric cantrip."
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.DIVINE_INTERVENTION]: {
     description: [
@@ -250,7 +250,7 @@ export const clericFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "As a Magic action, choose any Cleric spell of level 5 or lower that doesn't require a Reaction to cast. As part of the same action, you cast that spell without expending a spell slot or needing Material components.",
       "You can't use this feature again until you finish a <link:long-rest>Long Rest</link>."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.IMPROVED_BLESSED_STRIKES]: {
     description: [
@@ -258,7 +258,7 @@ export const clericFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "<strong>Divine Strike.</strong> The extra damage of your Divine Strike increases to 2d8. <link:tracked>Tracked</link>",
       "<strong>Potent Spellcasting.</strong> When you cast a Cleric cantrip and deal damage to a creature with it, you can give vitality to yourself or another creature within 60 feet of yourself, granting a number of Temporary Hit Points equal to twice your Wisdom modifier. <link:not-tracked>Not Tracked</link>"
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.GREATER_DIVINE_INTERVENTION]: {
     description: [
@@ -266,7 +266,7 @@ export const clericFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
       "When you use your Divine Intervention feature, you can choose <spell:Wish>Wish</spell> when you select a spell. <link:tracked>Tracked</link>",
       "If you do so, you can't use Divine Intervention again until you finish 2d4 <link:long-rest>Long Rests</link>. (This is <link:not-tracked>Not Tracked</link> but you can roll the dice and keep skipping the Divine Intervenation reset during Long Rest)."
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   }
 };
 

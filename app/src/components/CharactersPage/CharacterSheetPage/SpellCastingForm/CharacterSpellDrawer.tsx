@@ -1,6 +1,10 @@
 import clsx from "clsx";
-import { X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Music, X } from "lucide-react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import ActionShape, {
+  getActionShapeForCastingTime,
+  type ActionShapeType
+} from "../../../ActionShape";
 import CellContainer from "../../../CellContainer/CellContainer";
 import ConcentrationLabel from "../../../ConcentrationLabel";
 import SpellSubtitle from "../../../SpellSubtitle";
@@ -29,6 +33,23 @@ import actionStyles from "./SpellActionDrawer.module.css";
 export type CharacterSpellDrawerMode = "standard" | "prepare-preview" | "divine-intervention";
 export type CharacterSpellDrawerActionOptions = {
   castAsRitual?: boolean;
+  useBeguilingMagic?: boolean;
+};
+
+export type CharacterSpellDrawerActionOption = {
+  id: string;
+  label: string;
+  checked: boolean;
+  onCheckedChange: (checked: boolean) => void;
+  disabled?: boolean;
+  tracker?: {
+    current: number;
+    total: number;
+  };
+  fallbackCost?: {
+    label: string;
+    icon?: "music";
+  };
 };
 
 type CharacterSpellDrawerProps = {
@@ -47,12 +68,43 @@ type CharacterSpellDrawerProps = {
   blockedReason?: string | null;
   actionDisabled?: boolean;
   actionConsumesSpellSlot?: boolean;
+  minimumActionSpellSlotLevel?: number;
   freeCastSlotLevel?: number | null;
   allowRitualCasting?: boolean;
   actionAvailabilityText?: string | null;
   actionContextText?: string | null;
+  actionShape?: ActionShapeType | null;
+  actionShapeAvailable?: boolean;
+  actionShapeMultiCount?: number;
+  actionOptions?: CharacterSpellDrawerActionOption[];
   backdropClassName?: string;
 };
+
+function renderActionOptionIcon(icon?: "music"): ReactNode {
+  if (icon === "music") {
+    return <Music size={14} aria-hidden="true" />;
+  }
+
+  return null;
+}
+
+function getActionShapeTitle(shape: ActionShapeType): string {
+  switch (shape) {
+    case "bonusAction":
+      return "Bonus action timing badge";
+    case "reaction":
+      return "Reaction timing badge";
+    case "nonCombat":
+      return "Non-combat timing badge";
+    case "action":
+    default:
+      return "Action timing badge";
+  }
+}
+
+function isSpentActionWarning(value: string | null): boolean {
+  return value !== null && /^You already used the .+ for this turn$/.test(value);
+}
 
 function CharacterSpellDrawer({
   character,
@@ -70,16 +122,21 @@ function CharacterSpellDrawer({
   blockedReason = null,
   actionDisabled = false,
   actionConsumesSpellSlot = true,
+  minimumActionSpellSlotLevel = 1,
   freeCastSlotLevel = null,
   allowRitualCasting = false,
   actionAvailabilityText = null,
   actionContextText = null,
+  actionShape = null,
+  actionShapeAvailable = true,
+  actionShapeMultiCount = 0,
+  actionOptions = [],
   backdropClassName
 }: CharacterSpellDrawerProps) {
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
   const [isRitualCastingSelected, setIsRitualCastingSelected] = useState(false);
   const spellLevel = getSpellLevel(spell);
-  const minimumSelectedSlotLevel = Math.max(1, spellLevel);
+  const minimumSelectedSlotLevel = Math.max(1, spellLevel, minimumActionSpellSlotLevel);
   const ritualCastingAvailable =
     mode === "standard" &&
     spellLevel > 0 &&
@@ -122,6 +179,13 @@ function CharacterSpellDrawer({
         : formatCodexLabel(ENTRY_CATEGORIES.SPELLS);
   const closeComponentsTooltip = () => setIsComponentsTooltipOpen(false);
   const spellDuration = getSpellDurationDisplayParts(spell.duration);
+  const castingTimeActionShape = getActionShapeForCastingTime(spell.castingTime);
+  const footerActionShape =
+    actionShape ?? (isRitualCastingSelected ? "nonCombat" : castingTimeActionShape);
+  const castingTimeActionShapeTitle = castingTimeActionShape
+    ? getActionShapeTitle(castingTimeActionShape)
+    : null;
+  const footerActionShapeTitle = footerActionShape ? getActionShapeTitle(footerActionShape) : null;
 
   useEffect(() => {
     if (!isComponentsTooltipOpen) {
@@ -161,6 +225,24 @@ function CharacterSpellDrawer({
   const availabilityText = isRitualCastingSelected
     ? "Cast as a Ritual without expending a spell slot. Ritual casting can't be upcast."
     : actionAvailabilityText;
+  const slotText =
+    availabilityText ??
+    (selectedSlotIsFreeCast
+      ? `You can cast this spell at level ${normalizedSelectedSpellSlotLevel} without expending a spell slot.`
+      : `${selectedSpellRemainingSlots ?? 0} slot${
+          (selectedSpellRemainingSlots ?? 0) === 1 ? "" : "s"
+        } remaining at level ${normalizedSelectedSpellSlotLevel}.`);
+  const relativeDescription = shouldShowSlotControls
+    ? (availabilityText ?? (selectedSlotIsFreeCast ? slotText : null))
+    : availabilityText;
+  const visibleActionWarning = isSpentActionWarning(actionWarning) ? null : actionWarning;
+  const shouldShowTopRow =
+    relativeDescription !== null ||
+    ritualCastingAvailable ||
+    actionOptions.length > 0 ||
+    visibleActionWarning !== null ||
+    effectiveBlockedReason !== null ||
+    actionContextText !== null;
 
   return (
     <>
@@ -212,7 +294,20 @@ function CharacterSpellDrawer({
             <div className={sheetStyles.spellDrawerDetails}>
               <CellContainer
                 label="Casting Time"
-                content={formatSpellCastingTime(spell.castingTime)}
+                content={
+                  <span className={styles.castingTimeContent}>
+                    <span>{formatSpellCastingTime(spell.castingTime)}</span>
+                    {castingTimeActionShape ? (
+                      <ActionShape
+                        shape={castingTimeActionShape}
+                        isSelected
+                        size="small"
+                        className={styles.castingTimeShape}
+                        title={castingTimeActionShapeTitle ?? undefined}
+                      />
+                    ) : null}
+                  </span>
+                }
               />
               <CellContainer label="Range" content={spell.range} />
               <CellContainer
@@ -259,21 +354,95 @@ function CharacterSpellDrawer({
 
           {shouldShowActionFooter ? (
             <div className={sheetStyles.spellDrawerActions}>
-              <div className={actionStyles.castActionMeta}>
-                {shouldShowSlotControls ? (
-                  <div className={sheetStyles.spellDrawerCastControls}>
-                    <p className={sheetStyles.spellDrawerSlotText}>
-                      {selectedSlotIsFreeCast
-                        ? `You can cast this spell at level ${normalizedSelectedSpellSlotLevel} without expending a spell slot.`
-                        : `${selectedSpellRemainingSlots ?? 0} slot${
-                            (selectedSpellRemainingSlots ?? 0) === 1 ? "" : "s"
-                          } remaining at level ${normalizedSelectedSpellSlotLevel}.`}
-                    </p>
-                    <label className={sheetStyles.spellSlotSelectField}>
-                      <span className={sheetStyles.spellSlotSelectLabel}>Cast at slot level</span>
+              <div className={actionStyles.castActionLayout}>
+                {shouldShowTopRow ? (
+                  <div className={actionStyles.castActionTopRow}>
+                    <div className={actionStyles.castActionTopLeft}>
+                      {relativeDescription ? (
+                        <p className={actionStyles.castActionDescription}>{relativeDescription}</p>
+                      ) : null}
+                      {ritualCastingAvailable ? (
+                        <label className={actionStyles.ritualCastToggle}>
+                          <input
+                            type="checkbox"
+                            checked={isRitualCastingSelected}
+                            onChange={(event) => setIsRitualCastingSelected(event.target.checked)}
+                          />
+                          <span>Cast as Ritual</span>
+                        </label>
+                      ) : null}
+                      {actionOptions.map((option) => {
+                        const tracker = option.tracker;
+
+                        return (
+                          <label
+                            key={option.id}
+                            className={clsx(
+                              actionStyles.featureActionToggle,
+                              option.disabled ? actionStyles.featureActionToggleDisabled : null
+                            )}
+                          >
+                            <span className={actionStyles.featureActionToggleStart}>
+                              <input
+                                type="checkbox"
+                                checked={option.checked}
+                                disabled={option.disabled}
+                                onChange={(event) => option.onCheckedChange(event.target.checked)}
+                              />
+                              <span>{option.label}</span>
+                              {tracker ? (
+                                <span className={actionStyles.featureActionTracker}>
+                                  <span className={actionStyles.featureActionTrackerLabel}>
+                                    Charges
+                                  </span>
+                                  <span className={sheetStyles.shortRestDots}>
+                                    {Array.from({ length: tracker.total }, (_, index) => (
+                                      <span
+                                        key={`${option.id}-charge-${index}`}
+                                        className={clsx(
+                                          sheetStyles.shortRestDot,
+                                          index < tracker.current && sheetStyles.shortRestDotActive
+                                        )}
+                                      />
+                                    ))}
+                                  </span>
+                                </span>
+                              ) : null}
+                              {option.fallbackCost ? (
+                                <span className={actionStyles.featureActionCost}>
+                                  <span className={actionStyles.featureActionCostDivider}>|</span>
+                                  <span>{option.fallbackCost.label}</span>
+                                  {renderActionOptionIcon(option.fallbackCost.icon)}
+                                </span>
+                              ) : null}
+                            </span>
+                          </label>
+                        );
+                      })}
+                    </div>
+                    <div className={actionStyles.castActionTopRight}>
+                      {visibleActionWarning ? (
+                        <p className={actionStyles.castActionWarning}>{visibleActionWarning}</p>
+                      ) : null}
+                      {effectiveBlockedReason ? (
+                        <p className={actionStyles.castActionWarning}>{effectiveBlockedReason}</p>
+                      ) : null}
+                      {actionContextText ? (
+                        <p className={actionStyles.castActionContext}>{actionContextText}</p>
+                      ) : null}
+                    </div>
+                  </div>
+                ) : null}
+                <div className={actionStyles.castActionBottomRow}>
+                  {shouldShowSlotControls ? (
+                    <div className={actionStyles.compactSlotSelectField}>
                       <SelectInput
+                        aria-label="Cast at slot level"
                         value={normalizedSelectedSpellSlotLevel}
-                        className={sheetStyles.spellSlotSelect}
+                        className={clsx(
+                          sheetStyles.spellSlotSelect,
+                          actionStyles.compactSlotSelect
+                        )}
                         onChange={(event) =>
                           onSelectedSpellSlotLevelChange(clampNumber(event.target.value, 1, 9, 1))
                         }
@@ -291,45 +460,30 @@ function CharacterSpellDrawer({
                           );
                         })}
                       </SelectInput>
-                    </label>
-                  </div>
-                ) : availabilityText ? (
-                  <div className={sheetStyles.spellDrawerCastControls}>
-                    <p className={sheetStyles.spellDrawerSlotText}>{availabilityText}</p>
-                  </div>
-                ) : null}
-                {ritualCastingAvailable ? (
-                  <label className={actionStyles.ritualCastToggle}>
-                    <input
-                      type="checkbox"
-                      checked={isRitualCastingSelected}
-                      onChange={(event) => setIsRitualCastingSelected(event.target.checked)}
-                    />
-                    <span>Cast as Ritual</span>
-                  </label>
-                ) : null}
-              </div>
-              <div className={actionStyles.castActionFooter}>
-                {actionWarning ? (
-                  <p className={actionStyles.castActionWarning}>{actionWarning}</p>
-                ) : null}
-                {effectiveBlockedReason ? (
-                  <p className={actionStyles.castActionWarning}>{effectiveBlockedReason}</p>
-                ) : null}
-                {actionContextText ? (
-                  <p className={actionStyles.castActionContext}>{actionContextText}</p>
-                ) : null}
-                <button
-                  type="button"
-                  className={clsx(
-                    sheetStyles.castButton,
-                    isRitualCastingSelected ? actionStyles.ritualCastButton : null
-                  )}
-                  onClick={() => onAction({ castAsRitual: isRitualCastingSelected })}
-                  disabled={!isActionEnabled}
-                >
-                  {actionLabel}
-                </button>
+                    </div>
+                  ) : null}
+                  <button
+                    type="button"
+                    className={clsx(
+                      sheetStyles.castButton,
+                      actionStyles.castActionButton,
+                      isRitualCastingSelected ? actionStyles.ritualCastButton : null
+                    )}
+                    onClick={() => onAction({ castAsRitual: isRitualCastingSelected })}
+                    disabled={!isActionEnabled}
+                  >
+                    <span>{actionLabel}</span>
+                    {footerActionShape ? (
+                      <ActionShape
+                        shape={footerActionShape}
+                        isSelected={actionShapeAvailable}
+                        multiCount={actionShapeMultiCount}
+                        className={actionStyles.footerActionShape}
+                        title={footerActionShapeTitle ?? undefined}
+                      />
+                    ) : null}
+                  </button>
+                </div>
               </div>
             </div>
           ) : null}

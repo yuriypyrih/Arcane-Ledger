@@ -1,6 +1,7 @@
 import clsx from "clsx";
-import { ChevronsUp, Pencil, Pentagon, X } from "lucide-react";
+import { ChevronsUp, Music, Pencil, Pentagon, X } from "lucide-react";
 import { useEffect, useState } from "react";
+import d20Icon from "../../../../assets/svg/d20.svg";
 import CellContainer from "../../../CellContainer/CellContainer";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
@@ -40,11 +41,14 @@ import {
   applyPerfectFocusOnInitiativeForCharacter,
   applyPersistentRageOnInitiativeForCharacter,
   applySuperiorInspirationOnInitiativeForCharacter,
+  expendBardicInspirationUseForCharacter,
   getAbilityCheckIndicatorsForCharacter,
   getBarbarianPersistentRageUsesRemainingForCharacter,
   getBarbarianPersistentRageUsesTotalForCharacter,
   getBarbarianRageDamageBonusForCharacter,
   getBardicInspirationDieForCharacter,
+  getBardicInspirationUsesRemainingForCharacter,
+  getBardicInspirationUsesTotalForCharacter,
   getCoreStatIndicatorsForCharacter,
   getMonkMartialArtsDieForCharacter,
   getRogueSneakAttackDiceCountForCharacter,
@@ -78,6 +82,7 @@ import { getProficiencyMultiplier } from "../../../../pages/CharactersPage/share
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import AbilityScoresModal from "./AbilityScoresModal";
+import DiceRollerSettingsButton from "../GameplayForm/widgets/DiceRollerSettingsButton";
 import styles from "./StatsForm.module.css";
 
 type CharacterStatsFormProps = {
@@ -116,6 +121,12 @@ type CoreStatCard = {
     label: string;
     value: string;
   }>;
+};
+
+type SavingThrowBonusEntry = {
+  label: string;
+  value: number;
+  formulaLabel?: string;
 };
 
 const abilityDisplayLabels: Record<AbilityKey, string> = {
@@ -255,7 +266,7 @@ function formatSavingThrowFormula(
   abilityModifier: number,
   proficiencyContribution: number,
   proficiencyLabel?: string,
-  bonusEntries: Array<{ label: string; value: number }> = []
+  bonusEntries: SavingThrowBonusEntry[] = []
 ): string {
   const terms = [`${abilityModifier >= 0 ? "+" : ""}${abilityModifier} ${ability}`];
 
@@ -266,6 +277,11 @@ function formatSavingThrowFormula(
   }
 
   bonusEntries.forEach((entry) => {
+    if (entry.formulaLabel) {
+      terms.push(entry.formulaLabel);
+      return;
+    }
+
     terms.push(`${entry.value >= 0 ? "+" : ""}${entry.value} ${entry.label}`);
   });
 
@@ -362,12 +378,14 @@ function CharacterStatsForm({
   );
   const [usePerfectFocusOnInitiative, setUsePerfectFocusOnInitiative] = useState(true);
   const [usePersistentRageOnInitiative, setUsePersistentRageOnInitiative] = useState(false);
+  const [useTandemFootworkOnInitiative, setUseTandemFootworkOnInitiative] = useState(false);
+  const [isDiceRollerSettingsOpen, setIsDiceRollerSettingsOpen] = useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
-  useBodyScrollLock(Boolean(selectedStatReference) || isAbilityModalOpen);
+  useBodyScrollLock(Boolean(selectedStatReference) || isAbilityModalOpen || isDiceRollerSettingsOpen);
 
   useEffect(() => {
-    if (!selectedStatReference && !isAbilityModalOpen) {
+    if (!selectedStatReference && !isAbilityModalOpen && !isDiceRollerSettingsOpen) {
       return;
     }
 
@@ -376,8 +394,12 @@ function CharacterStatsForm({
         return;
       }
 
+      if (isDiceRollerSettingsOpen) {
+        return;
+      }
+
       if (selectedStatReference) {
-        setSelectedStatReference(null);
+        closeSelectedStatReference();
         return;
       }
 
@@ -392,13 +414,25 @@ function CharacterStatsForm({
     return () => {
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [character, isAbilityModalOpen, selectedStatReference]);
+  }, [character, isAbilityModalOpen, isDiceRollerSettingsOpen, selectedStatReference]);
 
   const mainAbility = getMainAbilityForClass(character.className);
   const hasPerfectFocus = hasPerfectFocusForCharacter(character);
   const persistentRageUsesTotal = getBarbarianPersistentRageUsesTotalForCharacter(character);
   const persistentRageUsesRemaining = getBarbarianPersistentRageUsesRemainingForCharacter(character);
   const hasPersistentRage = persistentRageUsesTotal > 0;
+  const hasLeadingEvasion =
+    character.className === "Bard" &&
+    character.subclassId === "bard-college-of-dance" &&
+    character.level >= 14;
+  const hasTandemFootwork =
+    character.className === "Bard" &&
+    character.subclassId === "bard-college-of-dance" &&
+    character.level >= 6;
+  const bardicInspirationDie = getBardicInspirationDieForCharacter(character);
+  const bardicInspirationUsesRemaining = getBardicInspirationUsesRemainingForCharacter(character);
+  const tandemFootworkAvailable =
+    hasTandemFootwork && bardicInspirationDie !== null && bardicInspirationUsesRemaining > 0;
   const pointBuyRemaining =
     abilitiesDraft.attributeMode === "pointBuy"
       ? getPointBuyRemaining(abilitiesDraft.abilities)
@@ -427,7 +461,6 @@ function CharacterStatsForm({
   const initiativeBreakdown = getInitiativeBreakdownForCharacter(character);
   const monkMartialArtsDie = getMonkMartialArtsDieForCharacter(character);
   const barbarianRageDamageBonus = getBarbarianRageDamageBonusForCharacter(character);
-  const bardicInspirationDie = getBardicInspirationDieForCharacter(character);
   const rogueSneakAttackDiceCount = getRogueSneakAttackDiceCountForCharacter(character);
   const rogueSneakAttackFormula = getRogueSneakAttackFormulaForCharacter(character);
   const abilitySavingThrowCards = abilityKeys.map((ability) => {
@@ -440,15 +473,25 @@ function CharacterStatsForm({
     );
     const proficiencyMultiplier = getProficiencyMultiplier(savingThrowLevel);
     const proficiencyContribution = proficiencyBonus * proficiencyMultiplier;
-    const savingThrowBonusEntries =
-      paladinAuraOfProtectionBonus > 0
+    const savingThrowBonusEntries: SavingThrowBonusEntry[] = [
+      ...(paladinAuraOfProtectionBonus > 0
         ? [
             {
               label: "Aura of Protection",
               value: paladinAuraOfProtectionBonus
             }
           ]
-        : [];
+        : []),
+      ...(ability === "DEX" && hasLeadingEvasion
+        ? [
+            {
+              label: "Leading Evasion",
+              value: 0,
+              formulaLabel: "+ Leading Evasion"
+            }
+          ]
+        : [])
+    ];
     const totalSavingThrowValue =
       abilityModifierValue +
       proficiencyContribution +
@@ -478,6 +521,7 @@ function CharacterStatsForm({
       savingThrowBonusEntries,
       totalSavingThrowValue,
       totalSavingThrow: formatAbilityModifier(totalSavingThrowValue),
+      showSavingThrowBoostIcon: ability === "DEX" && hasLeadingEvasion,
       modifierIndicators,
       modifierRollState,
       savingThrowIndicators: saveIndicators,
@@ -667,6 +711,11 @@ function CharacterStatsForm({
     }));
   }
 
+  function closeSelectedStatReference() {
+    setIsDiceRollerSettingsOpen(false);
+    setSelectedStatReference(null);
+  }
+
   function openCoreStatReference(card: CoreStatCard) {
     if (card.label === "Initiative" && hasPerfectFocus) {
       setUsePerfectFocusOnInitiative(true);
@@ -675,6 +724,12 @@ function CharacterStatsForm({
     if (card.label === "Initiative" && hasPersistentRage) {
       setUsePersistentRageOnInitiative(false);
     }
+
+    if (card.label === "Initiative" && hasTandemFootwork) {
+      setUseTandemFootworkOnInitiative(false);
+    }
+
+    setIsDiceRollerSettingsOpen(false);
 
     setSelectedStatReference({
       keyword: card.label,
@@ -758,6 +813,16 @@ function CharacterStatsForm({
       initiativeBreakdown.total,
       initiativeBreakdown.entries
     );
+    const tandemFootworkFormula =
+      useTandemFootworkOnInitiative && bardicInspirationDie
+        ? `1${String(bardicInspirationDie).toLowerCase()}`
+        : null;
+    const rollFormula = tandemFootworkFormula
+      ? `${formatD20Formula(initiativeBreakdown.total)} + ${tandemFootworkFormula}`
+      : formatD20Formula(initiativeBreakdown.total);
+    const rollDescription = tandemFootworkFormula
+      ? `${initiativeFormula}. Tandem Footwork adds ${tandemFootworkFormula}.`
+      : initiativeFormula;
 
     onPersistCharacter((currentCharacter) => {
       let nextCharacter = applySuperiorInspirationOnInitiativeForCharacter(currentCharacter);
@@ -770,13 +835,18 @@ function CharacterStatsForm({
         nextCharacter = applyPersistentRageOnInitiativeForCharacter(nextCharacter);
       }
 
+      if (useTandemFootworkOnInitiative && tandemFootworkAvailable) {
+        nextCharacter = expendBardicInspirationUseForCharacter(nextCharacter);
+      }
+
       return nextCharacter;
     });
-    setSelectedStatReference(null);
+    closeSelectedStatReference();
     openDiceRoller({
       title: "Initiative",
-      formula: formatD20Formula(initiativeBreakdown.total),
-      description: initiativeFormula
+      formula: rollFormula,
+      formulaDisplay: rollFormula,
+      description: rollDescription
     });
   }
 
@@ -880,9 +950,18 @@ function CharacterStatsForm({
                     {card.modifier}
                   </strong>
                   <span className={styles.combinedValueDivider} aria-hidden="true" />
-                  <strong className={getRollStateValueClassName(card.savingThrowRollState)}>
-                    {card.totalSavingThrow}
-                  </strong>
+                  <span className={styles.savingThrowValueGroup}>
+                    <strong className={getRollStateValueClassName(card.savingThrowRollState)}>
+                      {card.totalSavingThrow}
+                    </strong>
+                    {card.showSavingThrowBoostIcon ? (
+                      <ChevronsUp
+                        size={18}
+                        className={styles.savingThrowBoostIcon}
+                        aria-label="Leading Evasion active"
+                      />
+                    ) : null}
+                  </span>
                 </div>
               </button>
             );
@@ -924,7 +1003,7 @@ function CharacterStatsForm({
         <div
           className={sheetStyles.spellDrawerBackdrop}
           role="presentation"
-          onClick={() => setSelectedStatReference(null)}
+          onClick={closeSelectedStatReference}
         >
           <section
             className={sheetStyles.spellDrawer}
@@ -983,7 +1062,7 @@ function CharacterStatsForm({
               <button
                 type="button"
                 className={sheetStyles.spellDrawerCloseButton}
-                onClick={() => setSelectedStatReference(null)}
+                onClick={closeSelectedStatReference}
                 aria-label="Close stats details"
               >
                 <X size={18} />
@@ -1063,10 +1142,44 @@ function CharacterStatsForm({
                       <span>Perfect Focus</span>
                     </label>
                   ) : null}
+                  {hasTandemFootwork ? (
+                    <label
+                      className={clsx(
+                        styles.initiativeCheckboxLabel,
+                        !tandemFootworkAvailable && styles.initiativeCheckboxLabelDisabled
+                      )}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={useTandemFootworkOnInitiative}
+                        disabled={!tandemFootworkAvailable}
+                        onChange={(event) => setUseTandemFootworkOnInitiative(event.target.checked)}
+                      />
+                      <span>Tandem Footwork</span>
+                      <span className={styles.initiativeUsageMeta}>
+                        <span aria-hidden="true">|</span>
+                        <span>Use 1</span>
+                        <Music size={14} strokeWidth={2.1} aria-hidden="true" />
+                      </span>
+                    </label>
+                  ) : null}
                 </div>
-                <button type="button" className={sheetStyles.castButton} onClick={rollInitiative}>
-                  Roll Initiative
-                </button>
+                <div className={styles.initiativeActionButtons}>
+                  <button
+                    type="button"
+                    className={clsx(sheetStyles.castButton, styles.initiativeRollButton)}
+                    onClick={rollInitiative}
+                  >
+                    <img src={d20Icon} alt="" className={styles.initiativeRollIcon} />
+                    <span>Roll Initiative</span>
+                  </button>
+                  <DiceRollerSettingsButton
+                    actionName="Initiative"
+                    className={clsx(sheetStyles.castButton, styles.initiativeSettingsButton)}
+                    isOpen={isDiceRollerSettingsOpen}
+                    onOpenChange={setIsDiceRollerSettingsOpen}
+                  />
+                </div>
               </div>
             ) : null}
           </section>

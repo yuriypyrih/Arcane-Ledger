@@ -1,4 +1,4 @@
-import { CLASS_FEATURE, DICE, SPELL_LIST_CLASS } from "../entries/enums";
+import { CLASS_FEATURE, DICE, SPELL_LIST_CLASS, TRACKER } from "../entries/enums";
 import type { FeatureClassObj, FeatureMapEntry } from "../entries/types";
 import { createUseSpellEntriesForSpellListClass } from "./spellAccess";
 
@@ -175,7 +175,7 @@ export const bardFeatures: BardFeatureClassObj[] = [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
           "Boon of Spell Recall is recommended."
         ],
-        trackingState: "tracked"
+        trackingState: TRACKER.TRACKED
       }
     },
     bardicDie: DICE.D12,
@@ -202,7 +202,7 @@ export const bardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "<strong>Number of Uses.</strong> You can confer a Bardic Inspiration die a number of times equal to your <link:CHA>Charisma</link> modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
       "<strong>At Higher Levels.</strong> Your Bardic Inspiration die changes when you reach certain Bard levels. The die becomes a d8 at level 5, a d10 at level 10, and a d12 at level 15."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.SPELLCASTING]: {
     description: [
@@ -218,35 +218,35 @@ export const bardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "<strong>Spellcasting Ability.</strong> <link:CHA>Charisma</link> is your spellcasting ability for your Bard spells.",
       "<strong>Spellcasting Focus.</strong> You can use a Musical Instrument as a Spellcasting Focus for your Bard spells."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.EXPERTISE]: {
     description: [
       "You gain Expertise in two of your skill proficiencies of your choice. Performance and Persuasion are recommended if you have proficiency in them.",
       "At Bard level 9, you gain Expertise in two more of your skill proficiencies of your choice."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.JACK_OF_ALL_TRADES]: {
     description: [
       "You can add half your Proficiency Bonus, round down, to any ability check you make that uses a skill proficiency you lack and that does not otherwise use your Proficiency Bonus.",
       "For example, if you make a Strength (Athletics) check and lack Athletics proficiency, you can add half your Proficiency Bonus to the check."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.FONT_OF_INSPIRATION]: {
     description: [
       "You now regain all your expended uses of Bardic Inspiration when you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",
       "In addition, you can expend a spell slot, no action required, to regain one expended use of Bardic Inspiration."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.COUNTERCHARM]: {
     description: [
       "You can use musical notes or words of power to disrupt mind-influencing effects.",
       "If you or a creature within 30 feet of you fails a saving throw against an effect that applies the Charmed or Frightened condition, you can take a Reaction to cause the save to be rerolled, and the new roll has Advantage."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.MAGICAL_SECRETS]: {
     description: [
@@ -254,13 +254,13 @@ export const bardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "Whenever you reach a Bard level, including this level, and the Prepared Spells number in the Bard Features table increases, you can choose any of your new prepared spells from the Bard, Cleric, Druid, and Wizard spell lists, and the chosen spells count as Bard spells for you.",
       "In addition, whenever you replace a spell prepared for this class, you can replace it with a spell from those lists."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.SUPERIOR_INSPIRATION]: {
     description: [
       "When you roll Initiative, you regain expended uses of Bardic Inspiration until you have two if you have fewer than that."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.WORDS_OF_CREATION]: {
     description: [
@@ -268,7 +268,7 @@ export const bardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "You therefore always have the <spell:Power Word: Heal>Power Word Heal</spell> and <spell:Power Word: Kill>Power Word Kill</spell> spells prepared.",
       "When you cast either spell, you can target a second creature with it if that creature is within 10 feet of the first target."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   }
 };
 

@@ -1,4 +1,4 @@
-import { CLASS_FEATURE } from "../entries/enums";
+import { CLASS_FEATURE, TRACKER } from "../entries/enums";
 import type { FeatureClassObj, FeatureMapEntry } from "../entries/types";
 
 export type BarbarianFeatureClassObj = FeatureClassObj & {
@@ -133,7 +133,7 @@ export const barbarianFeatures: BarbarianFeatureClassObj[] = [
           "The extra damage of your Brutal Strike increases to <strong>2d10</strong>.",
           "In addition, you can use two different Brutal Strike effects whenever you use your Brutal Strike feature."
         ],
-        isTracked: false
+        trackingState: TRACKER.NOT_TRACKED
       }
     },
     rages: 6,
@@ -156,7 +156,7 @@ export const barbarianFeatures: BarbarianFeatureClassObj[] = [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
           "Boon of Irresistible Offense is recommended."
         ],
-        isTracked: false
+        trackingState: TRACKER.NOT_TRACKED
       }
     },
     rages: 6,
@@ -190,27 +190,27 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "Each time the Rage is extended, it lasts until the end of your next turn. You can maintain a Rage for up to 10 minutes.",
       "(All these rules are <link:tracked>Tracked</link> except prolonging the Rage state. The app simply adds it with 10m duration. You should end it earlier if you cannot fulfill its requirements.)"
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.UNARMORED_DEFENSE]: {
     description: [
       "While you aren't wearing any armor, your base Armor Class equals 10 plus your Dexterity and Constitution modifiers. You can use a Shield and still gain this benefit."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.WEAPON_MASTERY]: {
     description: [
       "Your training with weapons allows you to use the mastery properties of two kinds of Simple or Martial Melee weapons of your choice, such as Greataxes and Handaxes. Whenever you finish a <link:long-rest>Long Rest</link>, you can practice weapon drills and change one of those weapon choices.",
       "When you reach certain Barbarian levels, you gain the ability to use the mastery properties of more kinds of weapons [3 masteries at level-4 and 4 masteries at level-10]."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.DANGER_SENSE]: {
     description: [
       "You gain an uncanny sense of when things aren't as they should be, giving you an edge when you dodge perils.",
       "You have Advantage on Dexterity saving throws unless you have the Incapacitated condition."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.RECKLESS_ATTACK]: {
     description: [
@@ -218,7 +218,7 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "When you make your first attack roll on your turn, you can decide to attack recklessly. Doing so gives you <link:advantage>Advantage</link> on attack rolls using Strength until the start of your next turn, but attack rolls against you have <link:advantage>Advantage</link> during that time.",
       "(The app is tracking the usage but you have to remember that others have advantage over you.)"
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.PRIMAL_KNOWLEDGE]: {
     description: [
@@ -226,27 +226,27 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "In addition, while your Rage is active, you can channel primal power when you attempt certain tasks. Whenever you make an ability check using <link:Acrobatics>Acrobatics</link>, <link:Intimidation>Intimidation</link>, <link:Perception>Perception</link>, <link:Stealth>Stealth</link>, or <link:Survival>Survival</link>, you can make it as a Strength check even if it normally uses a different ability.",
       "When you use this ability, your Strength represents primal power coursing through you, honing your agility, bearing, and senses."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.EXTRA_ATTACK]: {
     description: [
       "You can attack twice instead of once whenever you take the Attack action on your turn."
     ],
-    isTracked: false
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.FAST_MOVEMENT]: {
     description: ["Your Speed increases by 10 feet while you aren't wearing Heavy armor."],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.FERAL_INSTINCT]: {
     description: ["Your instincts are so honed that you have Advantage on Initiative rolls."],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.INSTINCTIVE_POUNCE]: {
     description: [
       "As part of the Bonus Action you take to enter your Rage, you can move up to half your Speed."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.BRUTAL_STRIKE]: {
     description: [
@@ -255,7 +255,7 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "<strong>Forceful Blow.</strong> The target is pushed 15 feet straight away from you. You can then move up to half your Speed straight toward the target without provoking Opportunity Attacks. <link:not-tracked>Not Tracked</link>",
       "<strong>Hamstring Blow.</strong> The target's Speed is reduced by 15 feet until the start of your next turn. A target can be affected by only one Hamstring Blow at a time, the most recent one. <link:not-tracked>Not Tracked</link>"
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.RELENTLESS_RAGE]: {
     description: [
@@ -264,7 +264,7 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "Each time you use this feature after the first, the DC increases by 5. When you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>, the DC resets to 10.",
       "(The app tracks the current DC of this feature, but you still need to resolve the saving throw and resulting Hit Points.)"
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.IMPROVED_BRUTAL_STRIKE]: {
     description: [
@@ -272,7 +272,7 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "<strong>Staggering Blow.</strong> The target has Disadvantage on the next saving throw it makes, and it can't make Opportunity Attacks until the start of your next turn. <link:not-tracked>Not Tracked</link>",
       "<strong>Sundering Blow.</strong> Before the start of your next turn, the next attack roll made by another creature against the target gains a +5 bonus to the roll. An attack roll can gain only one Sundering Blow bonus. <link:not-tracked>Not Tracked</link>"
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.PERSISTENT_RAGE]: {
     description: [
@@ -280,18 +280,18 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "In addition, your Rage is so fierce that it now lasts for 10 minutes without you needing to do anything to extend it from round to round.",
       "Your Rage ends early if you have the Unconscious condition, not just the Incapacitated condition, or don Heavy armor."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.INDOMITABLE_MIGHT]: {
     description: [
       "If your total for a Strength check or Strength saving throw is less than your Strength score, you can use that score in place of the total."
     ],
-    isTracked: false
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.PRIMAL_CHAMPION]: {
     description: [
       "You embody primal power. Your Strength and Constitution scores increase by 4, to a maximum of 25."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   }
 };

@@ -8,6 +8,7 @@ import {
   type FeatureActionDrawerConfig,
   type FeatureActionExecuteConfig,
   type FeatureActionFact,
+  type FeatureActionIcon,
   type FeatureActionOptionCard,
   type FeatureActionOptionSelection,
   type FeatureActionResource,
@@ -83,12 +84,11 @@ export type GameplayActionDefinition =
 function createDefaultDescription(
   summary: string,
   detail: string,
-  breakdown?: string
+  _breakdown?: string
 ): SpellDescriptionEntry[] {
   const description: SpellDescriptionEntry[] = [];
   const normalizedDetail = detail.trim();
   const normalizedSummary = summary.trim();
-  const normalizedBreakdown = breakdown?.trim() ?? "";
 
   if (normalizedDetail) {
     description.push(normalizedDetail);
@@ -98,14 +98,6 @@ function createDefaultDescription(
     description.push(`<strong>${normalizedSummary}</strong>`);
   }
 
-  if (
-    normalizedBreakdown &&
-    normalizedBreakdown !== normalizedDetail &&
-    normalizedBreakdown !== normalizedSummary
-  ) {
-    description.push(normalizedBreakdown);
-  }
-
   return description;
 }
 
@@ -113,7 +105,7 @@ function createTextResource(
   label: string,
   value: string,
   tone: FeatureActionTone = "default",
-  icon?: "brain" | "sparkles" | "flame"
+  icon?: FeatureActionIcon
 ): FeatureActionResource {
   return {
     kind: "text",

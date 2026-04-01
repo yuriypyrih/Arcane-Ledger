@@ -2,9 +2,13 @@ import clsx from "clsx";
 import { Pencil } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useClassSpellEntries, usePreparedSpellEntries } from "../../../../../codex/classes";
-import type { SpellEntry } from "../../../../../codex/entries";
+import { MAGIC_SCHOOL, type SpellEntry } from "../../../../../codex/entries";
 import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
 import {
+  consumeBeguilingMagicOrBardicInspirationForCharacter,
+  getBardicInspirationUsesRemainingForCharacter,
+  getBeguilingMagicUsesRemainingForCharacter,
+  getBeguilingMagicUsesTotalForCharacter,
   getDerivedFeatureStatusEntriesForCharacter,
   getFeatureReactionEntriesForCharacter,
   getSpellcastingStateForCharacter,
@@ -103,6 +107,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     STATUS_DURATION_ROUND_TICK.ROUND_START
   );
   const [selectedReactionSpellSlotLevel, setSelectedReactionSpellSlotLevel] = useState(1);
+  const [useBeguilingMagicOnReactionSpell, setUseBeguilingMagicOnReactionSpell] = useState(false);
 
   const roundTracker = normalizeRoundTracker(character.roundTracker);
   const classSpellEntries = useClassSpellEntries(character.className);
@@ -136,6 +141,24 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     () =>
       spellSlotTotals.map((total, index) => Math.max(0, total - (spellSlotsExpended[index] ?? 0))),
     [spellSlotTotals, spellSlotsExpended]
+  );
+  const beguilingMagicUsesTotal = useMemo(
+    () => getBeguilingMagicUsesTotalForCharacter(character),
+    [character.className, character.level, character.subclassId]
+  );
+  const beguilingMagicUsesRemaining = useMemo(
+    () => getBeguilingMagicUsesRemainingForCharacter(character),
+    [character.classFeatureState, character.className, character.level, character.subclassId]
+  );
+  const bardicInspirationUsesRemaining = useMemo(
+    () => getBardicInspirationUsesRemainingForCharacter(character),
+    [
+      character.abilities,
+      character.classFeatureState,
+      character.className,
+      character.feats,
+      character.level
+    ]
   );
   const usesPreparedSpells = useMemo(
     () => usesPreparedSpellsForCharacter(character.className, character.level),
@@ -272,6 +295,11 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       ? (classSpellEntriesById.get(selectedStatusEntry.sourceId.replace(/^reaction-spell-/, "")) ??
         null)
       : null;
+  const selectedReactionSpellSupportsBeguilingMagic =
+    selectedReactionSpell !== null &&
+    beguilingMagicUsesTotal > 0 &&
+    (selectedReactionSpell.magicSchool === MAGIC_SCHOOL.ENCHANTMENT ||
+      selectedReactionSpell.magicSchool === MAGIC_SCHOOL.ILLUSION);
   const selectedReactionEntry =
     selectedStatusEntry?.group === STATUS_ENTRY_GROUP.REACTIONS &&
     selectedStatusEntry.sourceId?.startsWith("reaction-entry-")
@@ -280,6 +308,10 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         ) ?? null)
       : null;
   const spellcastingState = getSpellcastingStateForCharacter(character);
+
+  useEffect(() => {
+    setUseBeguilingMagicOnReactionSpell(false);
+  }, [selectedReactionSpell?.id]);
   const selectedReactionActionWarning = getRoundTrackerActionWarning("reaction", roundTracker);
   const selectedReactionBlockedReason = spellcastingState.blocked ? spellcastingState.reason : null;
   const selectedStatusEntryPreset = selectedStatusEntry
@@ -466,10 +498,14 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   }
 
   function closeSelectedReaction() {
+    setUseBeguilingMagicOnReactionSpell(false);
     setSelectedStatusEntryId(null);
   }
 
-  function castSelectedReactionSpell(options?: { castAsRitual?: boolean }) {
+  function castSelectedReactionSpell(options?: {
+    castAsRitual?: boolean;
+    useBeguilingMagic?: boolean;
+  }) {
     if (!selectedReactionSpell || selectedReactionBlockedReason || selectedReactionActionWarning) {
       return;
     }
@@ -477,29 +513,42 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     const spellLevel = getSpellLevel(selectedReactionSpell);
     const castAsRitual =
       options?.castAsRitual === true && selectedReactionSpell.ritual === true;
+    const useBeguilingMagic = options?.useBeguilingMagic === true;
 
     if (spellLevel === 0) {
-      onPersistCharacter((currentCharacter) => ({
-        ...currentCharacter,
-        statusEntries: applySpellConcentrationToStatusEntries(
-          currentCharacter.statusEntries,
-          selectedReactionSpell
-        ),
-        roundTracker: consumeRoundTrackerResource(currentCharacter.roundTracker, "reaction")
-      }));
+      onPersistCharacter((currentCharacter) => {
+        const nextCharacter = useBeguilingMagic
+          ? consumeBeguilingMagicOrBardicInspirationForCharacter(currentCharacter)
+          : currentCharacter;
+
+        return {
+          ...nextCharacter,
+          statusEntries: applySpellConcentrationToStatusEntries(
+            nextCharacter.statusEntries,
+            selectedReactionSpell
+          ),
+          roundTracker: consumeRoundTrackerResource(nextCharacter.roundTracker, "reaction")
+        };
+      });
       closeSelectedReaction();
       return;
     }
 
     if (castAsRitual) {
-      onPersistCharacter((currentCharacter) => ({
-        ...currentCharacter,
-        statusEntries: applySpellConcentrationToStatusEntries(
-          currentCharacter.statusEntries,
-          selectedReactionSpell
-        ),
-        roundTracker: consumeRoundTrackerResource(currentCharacter.roundTracker, "reaction")
-      }));
+      onPersistCharacter((currentCharacter) => {
+        const nextCharacter = useBeguilingMagic
+          ? consumeBeguilingMagicOrBardicInspirationForCharacter(currentCharacter)
+          : currentCharacter;
+
+        return {
+          ...nextCharacter,
+          statusEntries: applySpellConcentrationToStatusEntries(
+            nextCharacter.statusEntries,
+            selectedReactionSpell
+          ),
+          roundTracker: consumeRoundTrackerResource(nextCharacter.roundTracker, "reaction")
+        };
+      });
 
       closeSelectedReaction();
       return;
@@ -516,20 +565,23 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     }
 
     onPersistCharacter((currentCharacter) => {
+      const preparedCharacter = useBeguilingMagic
+        ? consumeBeguilingMagicOrBardicInspirationForCharacter(currentCharacter)
+        : currentCharacter;
       const nextSpellSlotsExpended = Array.from(
         { length: 9 },
-        (_, index) => (currentCharacter.spellSlotsExpended?.[index] as number | undefined) ?? 0
+        (_, index) => (preparedCharacter.spellSlotsExpended?.[index] as number | undefined) ?? 0
       );
       nextSpellSlotsExpended[slotLevel - 1] = (nextSpellSlotsExpended[slotLevel - 1] ?? 0) + 1;
 
       return {
-        ...currentCharacter,
+        ...preparedCharacter,
         spellSlotsExpended: nextSpellSlotsExpended,
         statusEntries: applySpellConcentrationToStatusEntries(
-          currentCharacter.statusEntries,
+          preparedCharacter.statusEntries,
           selectedReactionSpell
         ),
-        roundTracker: consumeRoundTrackerResource(currentCharacter.roundTracker, "reaction")
+        roundTracker: consumeRoundTrackerResource(preparedCharacter.roundTracker, "reaction")
       };
     });
 
@@ -611,10 +663,42 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           selectedSpellSlotLevel={selectedReactionSpellSlotLevel}
           onSelectedSpellSlotLevelChange={setSelectedReactionSpellSlotLevel}
           onClose={closeSelectedReaction}
-          onAction={castSelectedReactionSpell}
+          onAction={(options) =>
+            castSelectedReactionSpell({
+              ...options,
+              useBeguilingMagic: useBeguilingMagicOnReactionSpell
+            })
+          }
           actionWarning={selectedReactionActionWarning}
           actionDisabled={selectedReactionActionWarning !== null}
           blockedReason={selectedReactionBlockedReason}
+          actionShape="reaction"
+          actionShapeAvailable={selectedReactionActionWarning === null}
+          actionOptions={
+            selectedReactionSpellSupportsBeguilingMagic
+              ? [
+                  {
+                    id: "beguiling-magic",
+                    label: "Beguiling Magic",
+                    checked: useBeguilingMagicOnReactionSpell,
+                    onCheckedChange: setUseBeguilingMagicOnReactionSpell,
+                    disabled:
+                      beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
+                    tracker: {
+                      current: beguilingMagicUsesRemaining,
+                      total: beguilingMagicUsesTotal
+                    },
+                    fallbackCost:
+                      beguilingMagicUsesRemaining <= 0
+                        ? {
+                            label: "Use 1",
+                            icon: "music"
+                          }
+                        : undefined
+                  }
+                ]
+              : undefined
+          }
         />
       ) : null}
 

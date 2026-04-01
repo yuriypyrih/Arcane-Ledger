@@ -10,8 +10,22 @@ import {
   removeCharacterStatusEntry
 } from "../traits";
 import {
+  applyMantleOfMajestyStatus,
   applySuperiorInspirationOnInitiative,
+  consumeBeguilingMagicOrBardicInspiration,
+  consumeMantleOfMajestyUse,
+  expendBardicInspirationUse,
   getBardExpertiseSelections,
+  getBeguilingMagicUsesRemaining,
+  getBeguilingMagicUsesTotal,
+  getBardicInspirationUsesRemaining,
+  getBardicInspirationUsesTotal,
+  getMantleOfMajestyFallbackSlotLevel,
+  getMantleOfMajestyUsesRemaining,
+  getMantleOfMajestyUsesTotal,
+  hasActiveMantleOfMajesty,
+  restoreAllBardicInspirationUses,
+  restoreBardicInspirationUse,
   setBardExpertiseSelections
 } from "./bard";
 import {
@@ -194,6 +208,7 @@ import type {
   FeatureActionDrawerConfig,
   FeatureActionExecuteConfig,
   FeatureActionFact,
+  FeatureActionIcon,
   FeatureActionOptionCard,
   FeatureActionOptionSelection,
   FeatureActionResource,
@@ -205,6 +220,7 @@ import type {
   FeatureArmorClassMode,
   FeatureLanguageProficiencyEntry,
   FeatureDamageBonus,
+  FeatureUnarmedStrikeConfig,
   FeatureSavingThrowProficiencyEntry,
   FeatureSkillBonus,
   FeatureSkillProficiencyEntry,
@@ -258,6 +274,7 @@ export type {
   FeatureActionDrawerConfig,
   FeatureActionExecuteConfig,
   FeatureActionFact,
+  FeatureActionIcon,
   FeatureActionOptionCard,
   FeatureActionOptionSelection,
   FeatureActionResource,
@@ -269,6 +286,7 @@ export type {
   FeatureArmorClassMode,
   FeatureLanguageProficiencyEntry,
   FeatureDamageBonus,
+  FeatureUnarmedStrikeConfig,
   FeatureSavingThrowProficiencyEntry,
   FeatureSkillBonus,
   FeatureSkillProficiencyEntry,
@@ -303,10 +321,14 @@ export function normalizeCharacterClassFeatureState(
 export function getFeatureActionsForCharacter(character: Character): FeatureActionCard[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
-  return [
+  const actions = [
     ...(baseFeatureState.actions ?? []),
     ...(subclassDerivedState.featureActions ?? [])
   ];
+
+  return subclassDerivedState.transformFeatureAction
+    ? actions.map(subclassDerivedState.transformFeatureAction)
+    : actions;
 }
 
 export function getFeatureActionOptionsForCharacter(
@@ -323,10 +345,16 @@ export function getFeatureActionOptionsForCharacter(
 
 export function getFeatureDamageBonusesForWeaponAction(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "subclassId" | "roundTracker">>,
+    Partial<Pick<Character, "subclassId" | "roundTracker" | "equipment" | "customEquipment">>,
   context: WeaponFeatureContext
 ): FeatureDamageBonus[] {
-  return collectActiveClassFeatureState(character).getWeaponDamageBonuses?.(context) ?? [];
+  const baseFeatureState = collectActiveClassFeatureState(character);
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+
+  return [
+    ...(baseFeatureState.getWeaponDamageBonuses?.(context) ?? []),
+    ...(subclassDerivedState.getWeaponDamageBonuses?.(context) ?? [])
+  ];
 }
 
 export function hasBatteringRootsBonusForCharacter(
@@ -454,17 +482,31 @@ export function getSpellcastingStateForCharacter(
 }
 
 export function getArmorClassModesForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">,
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId" | "equipment" | "customEquipment">>,
   context: ArmorClassFeatureContext
 ): FeatureArmorClassMode[] {
-  return collectActiveClassFeatureState(character).getArmorClassModes?.(context) ?? [];
+  const baseFeatureState = collectActiveClassFeatureState(character);
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+
+  return [
+    ...(baseFeatureState.getArmorClassModes?.(context) ?? []),
+    ...(subclassDerivedState.getArmorClassModes?.(context) ?? [])
+  ];
 }
 
 export function getArmorClassBonusesForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">,
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId" | "equipment" | "customEquipment">>,
   context: ArmorClassFeatureContext
 ): FeatureArmorClassBonus[] {
-  return collectActiveClassFeatureState(character).getArmorClassBonuses?.(context) ?? [];
+  const baseFeatureState = collectActiveClassFeatureState(character);
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+
+  return [
+    ...(baseFeatureState.getArmorClassBonuses?.(context) ?? []),
+    ...(subclassDerivedState.getArmorClassBonuses?.(context) ?? [])
+  ];
 }
 
 export function getSpeedBonusesForCharacter(
@@ -516,6 +558,57 @@ export function getBardicInspirationDieForCharacter(
   return collectActiveClassFeatureState(character).bardicInspirationDie ?? null;
 }
 
+export function getBardicInspirationUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level" | "abilities" | "classFeatureState" | "feats">
+) {
+  return getBardicInspirationUsesTotal(character);
+}
+
+export function getBardicInspirationUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "abilities" | "classFeatureState" | "feats">
+) {
+  return getBardicInspirationUsesRemaining(character);
+}
+
+export function getBeguilingMagicUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+) {
+  return getBeguilingMagicUsesTotal(character);
+}
+
+export function getBeguilingMagicUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+) {
+  return getBeguilingMagicUsesRemaining(character);
+}
+
+export function getMantleOfMajestyUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+) {
+  return getMantleOfMajestyUsesTotal(character);
+}
+
+export function getMantleOfMajestyUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+) {
+  return getMantleOfMajestyUsesRemaining(character);
+}
+
+export function getMantleOfMajestyFallbackSlotLevelForCharacter(
+  character: Pick<Character, "className" | "level" | "spellSlotsExpended">
+) {
+  return getMantleOfMajestyFallbackSlotLevel(character);
+}
+
+export function hasActiveMantleOfMajestyForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "subclassId" | "statusEntries">>
+) {
+  return hasActiveMantleOfMajesty(character);
+}
+
 export function getRogueSneakAttackDiceCountForCharacter(
   character: Pick<Character, "className" | "level">
 ) {
@@ -531,7 +624,31 @@ export function getRogueSneakAttackFormulaForCharacter(
 export function getMonkUnarmedDamageTypeLabelForCharacter(
   character: Pick<Character, "className" | "level">
 ) {
-  return collectActiveClassFeatureState(character).monkUnarmedDamageTypeLabel ?? "";
+  return collectActiveClassFeatureState(character).monkUnarmedDamageTypeLabel ?? "Bludgeoning";
+}
+
+export function getUnarmedStrikeConfigForCharacter(
+  character: Pick<Character, "className" | "level"> &
+    Partial<
+      Pick<
+        Character,
+        "subclassId" | "equipment" | "customEquipment" | "abilities" | "classFeatureState"
+      >
+    >
+): FeatureUnarmedStrikeConfig | null {
+  const baseFeatureState = collectActiveClassFeatureState(character);
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  const baseConfig = baseFeatureState.getUnarmedStrikeConfig?.() ?? null;
+  const subclassConfig = subclassDerivedState.getUnarmedStrikeConfig?.() ?? null;
+
+  if (!baseConfig && !subclassConfig) {
+    return null;
+  }
+
+  return {
+    ...(baseConfig ?? {}),
+    ...(subclassConfig ?? {})
+  };
 }
 
 export function getBarbarianRageDamageBonusForCharacter(
@@ -1062,6 +1179,32 @@ export function applySuperiorInspirationOnInitiativeForCharacter(character: Char
   return applySuperiorInspirationOnInitiative(character);
 }
 
+export function expendBardicInspirationUseForCharacter(character: Character): Character {
+  return expendBardicInspirationUse(character);
+}
+
+export function restoreBardicInspirationUseForCharacter(character: Character): Character {
+  return restoreBardicInspirationUse(character);
+}
+
+export function restoreAllBardicInspirationUsesForCharacter(character: Character): Character {
+  return restoreAllBardicInspirationUses(character);
+}
+
+export function consumeBeguilingMagicOrBardicInspirationForCharacter(
+  character: Character
+): Character {
+  return consumeBeguilingMagicOrBardicInspiration(character);
+}
+
+export function consumeMantleOfMajestyUseForCharacter(character: Character): Character {
+  return consumeMantleOfMajestyUse(character);
+}
+
+export function applyMantleOfMajestyStatusForCharacter(character: Character): Character {
+  return applyMantleOfMajestyStatus(character);
+}
+
 export function applyPerfectFocusOnInitiativeForCharacter(character: Character): Character {
   return applyPerfectFocusOnInitiative(character);
 }
@@ -1137,7 +1280,8 @@ export function getDerivedFeatureStatusEntriesForCharacter(
 }
 
 export function getSpellEntryForCharacter(
-  character: Pick<Character, "className" | "level">,
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "subclassId" | "statusEntries" | "classFeatureState" | "feats">>,
   spell: SpellEntry
 ): SpellEntry {
   const baseFeatureState = collectActiveClassFeatureState(character);

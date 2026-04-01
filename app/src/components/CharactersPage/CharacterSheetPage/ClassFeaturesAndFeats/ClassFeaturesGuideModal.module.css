@@ -1,0 +1,30 @@
+.body {
+  gap: 1rem;
+}
+
+.section {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: 0.96rem;
+}
+
+.badgeRow {
+  display: flex;
+  /*justify-content: space-evenly;*/
+  flex-wrap: wrap;
+  gap: 0.65rem;
+  border-radius: 16px;
+  background: rgba(75, 47, 29, 0.05);
+  padding: 0.8rem;
+}
+
+.sectionText {
+  margin: 0;
+  color: var(--color-ink-soft);
+  line-height: 1.5;
+}

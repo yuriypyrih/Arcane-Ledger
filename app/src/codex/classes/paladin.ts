@@ -1,4 +1,4 @@
-import { CLASS_FEATURE, SPELL_LIST_CLASS } from "../entries/enums";
+import { CLASS_FEATURE, SPELL_LIST_CLASS, TRACKER } from "../entries/enums";
 import type { FeatureClassObj, FeatureMapEntry } from "../entries/types";
 import { createUseSpellEntriesForSpellListClass } from "./spellAccess";
 
@@ -30,14 +30,14 @@ export const paladinFeatures: PaladinFeatureClassObj[] = [
           "<strong>Spellcasting Ability.</strong> Charisma is your spellcasting ability for your Paladin spells.",
           "<strong>Spellcasting Focus.</strong> You can use a Holy Symbol as a Spellcasting Focus for your Paladin spells."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       },
       [CLASS_FEATURE.WEAPON_MASTERY]: {
         description: [
           "Your training with weapons allows you to use the mastery properties of two kinds of weapons of your choice with which you have proficiency, such as Longswords and Javelins.",
           "Whenever you finish a <link:long-rest>Long Rest</link>, you can change the kinds of weapons you chose. For example, you could switch to using the mastery properties of Halberds and Flails."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     channelDivinity: 0,
@@ -54,7 +54,7 @@ export const paladinFeatures: PaladinFeatureClassObj[] = [
           "Instead of choosing one of those feats, you can choose <feat:BLESSED_WARRIOR>Blessed Warrior</feat>.",
           "<strong>Blessed Warrior.</strong> You learn two Cleric cantrips of your choice. <spell:Guidance>Guidance</spell> and <spell:Sacred Flame>Sacred Flame</spell> are recommended. The chosen cantrips count as Paladin spells for you, and <link:CHA>Charisma</link> is your spellcasting ability for them. Whenever you gain a Paladin level, you can replace one of these cantrips with another Cleric cantrip."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     channelDivinity: 0,
@@ -73,7 +73,7 @@ export const paladinFeatures: PaladinFeatureClassObj[] = [
           "<strong>Divine Sense.</strong> As a Bonus Action, you can open your awareness to detect Celestials, Fiends, and Undead. For the next 10 minutes or until you have the <link:Incapacitated>Incapacitated</link> condition, you know the location of any creature of those types within 60 feet of yourself, and you know its creature type.",
           "Within the same radius, you also detect the presence of any place or object that has been consecrated or desecrated, as with the <spell:Hallow>Hallow</spell> spell."
         ],
-        isTracked: false
+        trackingState: TRACKER.NOT_TRACKED
       }
     },
     channelDivinity: 2,
@@ -194,7 +194,7 @@ export const paladinFeatures: PaladinFeatureClassObj[] = [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
           "<feat:BOON_OF_TRUESIGHT>Boon of Truesight</feat> is recommended."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     channelDivinity: 3,
@@ -217,21 +217,21 @@ export const paladinFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "As a Bonus Action, you can touch a creature, which could be yourself, and draw power from the pool of healing to restore a number of Hit Points to that creature, up to the maximum amount remaining in the pool.",
       "You can also expend 5 Hit Points from the pool of healing power to remove the <link:Poisoned>Poisoned</link> condition from the creature; those points don't also restore Hit Points to the creature."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.PALADINS_SMITE]: {
     description: [
       "You always have the <spell:Divine Smite>Divine Smite</spell> spell prepared.",
       "In addition, you can cast it without expending a spell slot, but you must finish a <link:long-rest>Long Rest</link> before you can cast it in this way again."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.FAITHFUL_STEED]: {
     description: [
       "You can call on the aid of an otherworldly steed. You always have the <spell:Find Steed>Find Steed</spell> spell prepared.",
       "You can also cast the spell once without expending a spell slot, and you regain the ability to do so when you finish a <link:long-rest>Long Rest</link>."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.AURA_OF_PROTECTION]: {
     description: [
@@ -239,7 +239,7 @@ export const paladinFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "You and your allies in the aura gain a bonus to saving throws equal to your Charisma modifier, minimum bonus of +1.",
       "If another Paladin is present, a creature can benefit from only one Aura of Protection at a time; the creature chooses which aura while in them."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.ABJURE_FOES]: {
     description: [
@@ -248,32 +248,32 @@ export const paladinFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "Each target must succeed on a Wisdom saving throw or have the <link:Frightened>Frightened</link> condition for 1 minute or until it takes any damage.",
       "While <link:Frightened>Frightened</link> in this way, a target can do only one of the following on its turns: move, take an action, or take a Bonus Action."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.AURA_OF_COURAGE]: {
     description: [
       "You and your allies have Immunity to the <link:Frightened>Frightened</link> condition while in your Aura of Protection.",
       "If a <link:Frightened>Frightened</link> ally enters the aura, that condition has no effect on that ally while there."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.RADIANT_STRIKES]: {
     description: [
       "Your strikes now carry supernatural power.",
       "When you hit a target with an attack roll using a Melee weapon or an Unarmed Strike, the target takes an extra 1d8 Radiant damage."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.RESTORING_TOUCH]: {
     description: [
       "When you use Lay On Hands on a creature, you can also remove one or more of the following conditions from the creature: <link:Blinded>Blinded</link>, <link:Charmed>Charmed</link>, <link:Deafened>Deafened</link>, <link:Frightened>Frightened</link>, <link:Paralyzed>Paralyzed</link>, or <link:Stunned>Stunned</link>.",
       "You must expend 5 Hit Points from the healing pool of Lay On Hands for each of these conditions you remove; those points don't also restore Hit Points to the creature."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.AURA_EXPANSION]: {
     description: ["Your Aura of Protection is now a 30-foot <link:Emanation>Emanation</link>."],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   }
 };
 

@@ -1,6 +1,6 @@
 import type {
   DICE,
-  FeatureTrackingState,
+  TRACKER,
   ReactionEntry,
   SpellDescriptionEntry,
   SpellEntry
@@ -24,6 +24,7 @@ import type {
 } from "../../../types";
 
 export type FeatureActionTone = "default" | "accent" | "danger";
+export type FeatureActionIcon = "brain" | "music" | "sparkles" | "flame";
 
 export type FeatureActionFact = {
   label: string;
@@ -40,7 +41,7 @@ export type FeatureActionResource =
       value?: string;
       tone?: FeatureActionTone;
       supplementary?: string;
-      icon?: "brain" | "sparkles" | "flame";
+      icon?: FeatureActionIcon;
       cost?: number;
     }
   | {
@@ -48,7 +49,7 @@ export type FeatureActionResource =
       label: string;
       value: string;
       tone?: FeatureActionTone;
-      icon?: "brain" | "sparkles" | "flame";
+      icon?: FeatureActionIcon;
     };
 
 export type FeatureActionDrawerKind =
@@ -61,6 +62,7 @@ export type FeatureActionExecuteKind = "activate" | "option" | "custom-form" | "
 
 export type FeatureActionExecuteEffectKind =
   | "default"
+  | "bardic-inspiration-roll"
   | "second-wind"
   | "tactical-mind"
   | "tireless";
@@ -87,6 +89,7 @@ export type FeatureActionSpellEffectKind =
   | "divine-intervention"
   | "faithful-steed"
   | "favored-enemy"
+  | "mantle-of-majesty"
   | "mystic-arcanum"
   | "paladins-smite";
 
@@ -146,13 +149,14 @@ export type FeatureActionCard = {
   economyMultiCount?: number;
   interaction?: "activate" | "select";
   usesLabel?: string;
-  usesIcon?: "brain" | "sparkles" | "flame";
+  usesIcon?: FeatureActionIcon;
   usesTone?: "default" | "danger";
   usesRemaining?: number;
   usesTotal?: number;
+  hideUsesTrackerOnCard?: boolean;
   usesSupplementaryLabel?: string;
   usesInlineLabel?: string;
-  usesInlineIcon?: "brain" | "sparkles" | "flame";
+  usesInlineIcon?: FeatureActionIcon;
   usesInlineSuffix?: string;
   isActive?: boolean;
   consumesEconomyOnActivate?: boolean;
@@ -171,7 +175,7 @@ export type FeatureActionOptionCard = {
   name: string;
   summary: string;
   detail: string;
-  trackingState?: FeatureTrackingState;
+  trackingState?: TRACKER;
   economyType: EconomyType;
   actionCategory: ActionCategory;
   economyMultiCount?: number;
@@ -179,7 +183,7 @@ export type FeatureActionOptionCard = {
   rangeResultLabel?: string;
   breakdown?: string;
   usesLabel?: string;
-  usesIcon?: "brain" | "sparkles" | "flame";
+  usesIcon?: FeatureActionIcon;
   rollFormula?: string;
   rollFormulaDisplay?: string;
   rollDescription?: string;
@@ -210,6 +214,13 @@ export type WeaponFeatureContext = {
   ability: AbilityKey;
   attackKind: "weapon" | "unarmed";
   combatType?: WEAPON_COMBAT_TYPE | null;
+};
+
+export type FeatureUnarmedStrikeConfig = {
+  attackAbility?: AbilityKey | "finesse";
+  damageAbility?: AbilityKey;
+  damageFormula?: string;
+  damageTypeLabel?: string;
 };
 
 export type FeatureIndicator = {
@@ -330,12 +341,14 @@ export type ClassFeatureDerivedState = {
   derivedStatusEntries?: DerivedFeatureStatusEntry[];
   reactionEntries?: ReactionEntry[];
   transformSpellEntry?: (spell: SpellEntry) => SpellEntry;
+  transformFeatureAction?: (action: FeatureActionCard) => FeatureActionCard;
   getSpellDamageFormulaOverride?: (spell: Pick<SpellEntry, "id">) => string | null;
   bardicInspirationDie?: DICE | null;
   monkMartialArtsDie?: DICE | null;
   rogueSneakAttackDiceCount?: number;
   rogueSneakAttackFormula?: string;
   monkUnarmedDamageTypeLabel?: string;
+  getUnarmedStrikeConfig?: () => FeatureUnarmedStrikeConfig | null;
   canUseMonkMartialArts?: (context: {
     hasWornBodyArmor: boolean;
     hasShieldEquipped: boolean;
@@ -349,6 +362,7 @@ export type CollectedClassFeatureCharacter = Pick<Character, "className" | "leve
     | "abilities"
     | "subclassId"
     | "classFeatureState"
+    | "spellSlotsExpended"
     | "statusEntries"
     | "roundTracker"
     | "equipment"

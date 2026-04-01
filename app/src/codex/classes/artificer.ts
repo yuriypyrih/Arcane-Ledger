@@ -1,4 +1,4 @@
-import { CLASS_FEATURE, SPELL_LIST_CLASS } from "../entries/enums";
+import { CLASS_FEATURE, SPELL_LIST_CLASS, TRACKER } from "../entries/enums";
 import type { FeatureClassObj, FeatureMapEntry } from "../entries/types";
 import { createUseSpellEntriesForSpellListClass } from "./spellAccess";
 
@@ -28,7 +28,7 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
           "<strong>Changing Your Prepared Spells.</strong> Whenever you finish a <link:long-rest>Long Rest</link>, you can change your list of prepared spells, replacing any of the spells there with other Artificer spells for which you have spell slots.",
           "<strong>Spellcasting Ability.</strong> <link:Intelligence>Intelligence</link> is your spellcasting ability for your Artificer spells."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     cantrips: 2,
@@ -163,7 +163,7 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
           "Boon of Energy Resistance is recommended."
         ],
-        isTracked: false
+        trackingState: TRACKER.NOT_TRACKED
       }
     },
     cantrips: 4,
@@ -188,7 +188,7 @@ export const artificerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "See the item's rules in the Player's Handbook. The item lasts until you finish a <link:long-rest>Long Rest</link>, at which point it vanishes.",
       "You can use this feature a number of times equal to your <link:Intelligence>Intelligence</link> modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
     ],
-    trackingState: "not-tracked"
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.REPLICATE_MAGIC_ITEM]: {
     description: [
@@ -204,7 +204,7 @@ export const artificerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "<strong>Spellcasting Focus.</strong> You can use any Wand or Weapon created by this feature as a Spellcasting Focus in place of Artisan's Tools.",
       "<strong>Crafting More Magic Items.</strong> The Dungeon Master's Guide provides rules for crafting magic items with the normal crafting system. Artificers can craft certain items faster through their subclasses, but those crafted items aren't treated as items created by this feature."
     ],
-    trackingState: "not-tracked"
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.MAGIC_ITEM_TINKER]: {
     description: [
@@ -213,7 +213,7 @@ export const artificerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "<strong>Drain Magic Item.</strong> As a Bonus Action, you can touch a magic item within 5 feet of yourself that you created with Replicate Magic Item and cause it to vanish, converting its magical energy into a spell slot. The slot is level 1 if the item is Common or level 2 if the item is Uncommon or Rare. Once you use this option, you can't do so again until you finish a <link:long-rest>Long Rest</link>. Any spell slot you create with this feature vanishes when you finish a <link:long-rest>Long Rest</link>.",
       "<strong>Transmute Magic Item.</strong> As a Magic action, you can touch one magic item within 5 feet of yourself that you created with Replicate Magic Item and transform it into a different magic item. The resulting item must be based on a magic item plan you know. Once you use this option, you can't do so again until you finish a <link:long-rest>Long Rest</link>."
     ],
-    trackingState: "not-tracked"
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.FLASH_OF_GENIUS]: {
     description: [
@@ -221,11 +221,11 @@ export const artificerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "The bonus equals your <link:Intelligence>Intelligence</link> modifier, minimum of +1.",
       "You can use this Reaction a number of times equal to your Intelligence modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
     ],
-    trackingState: "not-tracked"
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.MAGIC_ITEM_ADEPT]: {
     description: ["You can now attune to up to four magic items at once."],
-    isTracked: false
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.SPELL_STORING_ITEM]: {
     description: [
@@ -234,7 +234,7 @@ export const artificerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "If the spell requires <link:Concentration>Concentration</link>, the creature must concentrate. Once a creature has used the object to produce the spell's effect, the object can't be used this way again until the start of that creature's next turn.",
       "The spell stays in the object until it has been used a number of times equal to twice your Intelligence modifier, minimum of twice, or until you use this feature again to store a spell in an object."
     ],
-    trackingState: "not-tracked"
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.ADVANCED_ARTIFICE]: {
     description: [
@@ -242,11 +242,11 @@ export const artificerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "<strong>Magic Item Savant.</strong> You can now attune to up to five magic items at once.",
       "<strong>Refreshed Genius.</strong> When you finish a <link:short-rest>Short Rest</link>, you regain one expended use of your Flash of Genius feature."
     ],
-    trackingState: "not-tracked"
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.MAGIC_ITEM_MASTER]: {
     description: ["You can now attune to up to six magic items at once."],
-    isTracked: false
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.SOUL_OF_ARTIFICE]: {
     description: [
@@ -254,7 +254,7 @@ export const artificerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
       "<strong>Cheat Death.</strong> If you're reduced to 0 Hit Points but not killed outright, you can disintegrate any number of Uncommon or Rare magic items created by your Replicate Magic Item feature. If you do so, your Hit Points instead change to 20 times the number of magic items disintegrated.",
       "<strong>Magical Guidance.</strong> When you finish a <link:short-rest>Short Rest</link>, you regain all expended uses of Flash of Genius if you have Attunement to at least one magic item."
     ],
-    trackingState: "not-tracked"
+    trackingState: TRACKER.NOT_TRACKED
   }
 };
 

@@ -177,6 +177,14 @@
   opacity: 1;
 }
 
+.featureTrackingButtonDisabled {
+  cursor: default;
+}
+
+.featureTrackingButtonDisabled:hover {
+  opacity: 0.8;
+}
+
 .featureInputRequired {
   display: inline-flex;
   align-items: center;

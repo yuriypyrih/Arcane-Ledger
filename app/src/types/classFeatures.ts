@@ -34,6 +34,8 @@ export type CharacterBardExpertiseState = {
 export type CharacterBardFeatureState = {
   bardicInspirationUsesExpended?: number;
   bardicInspirationTemporaryTotal?: number;
+  beguilingMagicUsesExpended?: number;
+  mantleOfMajestyUsesExpended?: number;
   expertise?: CharacterBardExpertiseState;
 };
 

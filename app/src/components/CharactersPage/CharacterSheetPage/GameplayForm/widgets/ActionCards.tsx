@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Brain, Flame, Sparkles } from "lucide-react";
+import { Brain, Flame, Music, Sparkles } from "lucide-react";
 import ActionShape from "../../../../ActionShape";
 import FeatureTrackingBadgeButton from "../../../../FeatureDisclosure/FeatureTrackingBadgeButton";
 import type { Character } from "../../../../../types";
@@ -93,6 +93,10 @@ function renderFeatureActionUsesIcon(icon: FeatureActionCard["usesIcon"]) {
     return <Sparkles size={14} strokeWidth={2.1} />;
   }
 
+  if (icon === "music") {
+    return <Music size={14} strokeWidth={2.1} />;
+  }
+
   if (icon === "flame") {
     return <Flame size={14} strokeWidth={2.1} />;
   }
@@ -128,6 +132,20 @@ function renderFeatureActionUsesLabel(action: FeatureActionCard) {
   }
 
   return <span>{action.usesLabel}</span>;
+}
+
+function renderFeatureActionInlineUses(action: FeatureActionCard) {
+  if (!action.usesInlineLabel && !action.usesInlineIcon && !action.usesInlineSuffix) {
+    return null;
+  }
+
+  return (
+    <>
+      {action.usesInlineLabel ? <span>{action.usesInlineLabel}</span> : null}
+      {action.usesInlineIcon ? renderFeatureActionUsesIcon(action.usesInlineIcon) : null}
+      {action.usesInlineSuffix ? <span>{action.usesInlineSuffix}</span> : null}
+    </>
+  );
 }
 
 function renderFeatureActionOptionUsesLabel(option: FeatureActionOptionCard) {
@@ -168,6 +186,10 @@ export function FeatureActionCardButton({
   const isDisabled =
     action.disabled === true ||
     (!action.ignoreEconomyAvailability && !economyShapeState.isUsable);
+  const showsUsesTracker =
+    Boolean(action.usesTotal && action.usesTotal > 0) && !action.hideUsesTrackerOnCard;
+  const usesTotal = action.usesTotal ?? 0;
+  const inlineUses = renderFeatureActionInlineUses(action);
 
   return (
     <button
@@ -193,11 +215,11 @@ export function FeatureActionCardButton({
         </span>
       ) : null}
       <strong>{action.name}</strong>
-      {action.usesTotal && action.usesTotal > 0 ? (
+      {showsUsesTracker ? (
         <span className={styles.usesRow}>
           <span className={styles.usesLabelText}>Charges</span>
           <span className={clsx(sheetStyles.shortRestDots, styles.usesDots)}>
-            {Array.from({ length: action.usesTotal }, (_, index) => (
+            {Array.from({ length: usesTotal }, (_, index) => (
               <span
                 key={`${action.key}-use-${index}`}
                 className={clsx(
@@ -214,29 +236,27 @@ export function FeatureActionCardButton({
                 action.usesInlineIcon && styles.usesInlineSupplementaryWithIcon
               )}
             >
-              {action.usesInlineLabel ? <span>{action.usesInlineLabel}</span> : null}
-              {action.usesInlineIcon ? renderFeatureActionUsesIcon(action.usesInlineIcon) : null}
-              {action.usesInlineSuffix ? <span>{action.usesInlineSuffix}</span> : null}
+              {inlineUses}
             </span>
           ) : null}
         </span>
       ) : null}
-      {action.usesTotal && action.usesTotal > 0 ? (
+      {showsUsesTracker ? (
         action.usesSupplementaryLabel ? (
           <span className={clsx(styles.damageRow, styles.featureUsesSupplementary)}>
             {action.usesSupplementaryLabel}
           </span>
         ) : null
-      ) : action.usesLabel ? (
+      ) : action.usesLabel || inlineUses ? (
         <span
           className={clsx(
             styles.damageRow,
             styles.featureMeta,
-            action.usesIcon && styles.featureMetaWithIcon,
+            (action.usesIcon || action.usesInlineIcon) && styles.featureMetaWithIcon,
             action.usesTone === "danger" && styles.featureMetaDanger
           )}
         >
-          {renderFeatureActionUsesLabel(action)}
+          {action.usesLabel ? renderFeatureActionUsesLabel(action) : inlineUses}
         </span>
       ) : null}
       {action.valueLabel ? <span className={styles.damageRow}>{action.valueLabel}</span> : null}

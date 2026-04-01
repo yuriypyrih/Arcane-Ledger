@@ -1,4 +1,4 @@
-import { CLASS_FEATURE, DICE } from "../entries/enums";
+import { CLASS_FEATURE, DICE, TRACKER } from "../entries/enums";
 import type { FeatureClassObj, FeatureMapEntry } from "../entries/types";
 
 export type MonkFeatureClassObj = FeatureClassObj & {
@@ -16,7 +16,7 @@ export const monkFeatures: MonkFeatureClassObj[] = [
         description: [
           "While you aren't wearing armor or wielding a Shield, your base Armor Class equals 10 plus your Dexterity and Wisdom modifiers."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     martialArts: DICE.D6,
@@ -155,7 +155,7 @@ export const monkFeatures: MonkFeatureClassObj[] = [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
           "<feat:BOON_OF_IRRESISTIBLE_OFFENSE>Boon of Irresistible Offense</feat> is recommended."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     martialArts: DICE.D12,
@@ -198,7 +198,7 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "<strong>Martial Arts Die.</strong> You can roll 1d6 in place of the normal damage of your Unarmed Strike or Monk weapons. This die changes as you gain Monk levels, as shown in the Martial Arts column of the Monk Features table.",
       "<strong>Dexterous Attacks.</strong> You can use your Dexterity modifier instead of your Strength modifier for the attack and damage rolls of your Unarmed Strikes and Monk weapons. In addition, when you use the Grapple or Shove option of your Unarmed Strike, you can use your Dexterity modifier instead of your Strength modifier to determine the save DC."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.MONKS_FOCUS]: {
     description: [
@@ -210,14 +210,14 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "<strong>Patient Defense.</strong> You can take the Disengage action as a Bonus Action. Alternatively, you can expend 1 Focus Point to take both the Disengage and the Dodge actions as a Bonus Action. <link:not-tracked>Not Tracked</link>",
       "<strong>Step of the Wind.</strong> You can take the Dash action as a Bonus Action. Alternatively, you can expend 1 Focus Point to take both the Disengage and Dash actions as a Bonus Action, and your jump distance is doubled for the turn. <link:not-tracked>Not Tracked</link>"
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.UNARMORED_MOVEMENT]: {
     description: [
       "Your speed increases by 10 feet while you aren't wearing armor or wielding a Shield.",
       "This bonus increases when you reach certain Monk levels, as shown on the Monk Features table."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.UNCANNY_METABOLISM]: {
     description: [
@@ -225,24 +225,24 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "When you do so, roll your Martial Arts die, and regain a number of Hit Points equal to your Monk level plus the number rolled. <link:not-tracked>Not Tracked</link>",
       "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link>. <link:tracked>Tracked</link>"
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.DEFLECT_ATTACKS]: {
     description: getMonkDeflectAttacksDescription(false),
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.SLOW_FALL]: {
     description: [
       "You can take a Reaction when you fall to reduce any damage you take from the fall by an amount equal to five times your Monk level.",
       "This feature is <link:semi-tracked>Semi Tracked</link>. You can find it in the Reactions list, but you have to do the math yourself."
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.EXTRA_ATTACK]: {
     description: [
       "You can attack twice instead of once whenever you take the Attack action on your turn."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.STUNNING_STRIKE]: {
     description: [
@@ -252,26 +252,26 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "On a successful save, the target's Speed is halved until the start of your next turn, and the next attack roll made against the target before then has Advantage.",
       "The usage is being tracked but not the mechanic itself."
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.EMPOWERED_STRIKES]: {
     description: [
       "Whenever you deal damage with your Unarmed Strike, it can deal your choice of Force damage or its normal damage type."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.EVASION]: {
     description: [
       "When you're subjected to an effect that allows you to make a Dexterity saving throw to take only half damage, you instead take no damage if you succeed on the saving throw and only half damage if you fail.",
       "You don't benefit from this feature if you have the Incapacitated condition."
     ],
-    isTracked: false
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.ACROBATIC_MOVEMENT]: {
     description: [
       "While you aren't wearing armor or wielding a Shield, you gain the ability to move along vertical surfaces and across liquids on your turn without falling during the movement."
     ],
-    isTracked: false
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.HEIGHTENED_FOCUS]: {
     description: [
@@ -280,46 +280,46 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "<strong>Patient Defense.</strong> When you expend a Focus Point to use Patient Defense, you gain a number of Temporary Hit Points equal to two rolls of your Martial Arts die. <link:not-tracked>Not Tracked</link>",
       "<strong>Step of the Wind.</strong> When you expend a Focus Point to use Step of the Wind, you can choose a willing creature within 5 feet of yourself that is Large or smaller. You move the creature with you until the end of your turn. The creature's movement doesn't provoke Opportunity Attacks. <link:not-tracked>Not Tracked</link>"
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.SELF_RESTORATION]: {
     description: [
       "Through sheer force of will, you can remove one of the following conditions from yourself at the end of each of your turns: Charmed, Frightened, or Poisoned.",
       "In addition, forgoing food and drink doesn't give you levels of Exhaustion."
     ],
-    isTracked: false
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.DEFLECT_ENERGY]: {
     description: [
       "Your Deflect Attacks feature now works when an attack's damage includes <strong>ANY DAMAGE TYPE</strong>."
     ],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.DISCIPLINED_SURVIVOR]: {
     description: [
       "Your physical and mental discipline grant you proficiency in all saving throws. <link:tracked>Tracked</link>",
       "Additionally, whenever you make a saving throw and fail, you can expend 1 Focus Point to reroll it, and you must use the new roll. <link:not-tracked>Not Tracked</link>"
     ],
-    trackingState: "semi-tracked"
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.PERFECT_FOCUS]: {
     description: [
       "When you roll Initiative and don't use Uncanny Metabolism, you regain expended Focus Points until you have 4 if you have 3 or fewer."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.SUPERIOR_DEFENSE]: {
     description: [
       "At the start of your turn, you can expend 3 Focus Points to bolster yourself against harm for 1 minute or until you have the Incapacitated condition.",
       "During that time, you have <link:resistance>Resistance</link> to all damage except Force damage."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.BODY_AND_MIND]: {
     description: [
       "You have developed your body and mind to new heights.",
       "Your Dexterity and Wisdom scores increase by 4, to a maximum of 25."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   }
 };

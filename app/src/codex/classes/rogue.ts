@@ -1,4 +1,4 @@
-import { CLASS_FEATURE } from "../entries/enums";
+import { CLASS_FEATURE, TRACKER } from "../entries/enums";
 import type { FeatureClassObj, FeatureMapEntry } from "../entries/types";
 
 export type RogueFeatureClassObj = FeatureClassObj & {
@@ -10,7 +10,7 @@ const rogueExpertiseOverride: FeatureMapEntry = {
     "You gain <link:Expertise>Expertise</link> in two of your skill proficiencies of your choice. <link:Sleight of Hand>Sleight of Hand</link> and <link:Stealth>Stealth</link> are recommended if you have proficiency in them.",
     "At Rogue level 6, you gain <link:Expertise>Expertise</link> in two more of your skill proficiencies of your choice."
   ],
-  isTracked: true
+  trackingState: TRACKER.TRACKED
 };
 
 const rogueWeaponMasteryOverride: FeatureMapEntry = {
@@ -18,7 +18,7 @@ const rogueWeaponMasteryOverride: FeatureMapEntry = {
     "Your training with weapons allows you to use the mastery properties of two kinds of weapons of your choice with which you have proficiency, such as Daggers and Shortbows.",
     "Whenever you finish a <link:long-rest>Long Rest</link>, you can change the kinds of weapons you chose. For example, you could switch to using the mastery properties of Scimitars and Shortswords."
   ],
-  isTracked: true
+  trackingState: TRACKER.TRACKED
 };
 
 const rogueEvasionOverride: FeatureMapEntry = {
@@ -26,7 +26,7 @@ const rogueEvasionOverride: FeatureMapEntry = {
     "When you're subjected to an effect that allows you to make a Dexterity saving throw to take only half damage, you instead take no damage if you succeed on the saving throw and only half damage if you fail.",
     "You can't use this feature if you have the <link:Incapacitated>Incapacitated</link> condition."
   ],
-  isTracked: true
+  trackingState: TRACKER.TRACKED
 };
 
 const rogueEpicBoonOverride: FeatureMapEntry = {
@@ -34,7 +34,7 @@ const rogueEpicBoonOverride: FeatureMapEntry = {
     "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
     "<feat:BOON_OF_THE_NIGHT_SPIRIT>Boon of the Night Spirit</feat> is recommended."
   ],
-  isTracked: true
+  trackingState: TRACKER.TRACKED
 };
 
 export const rogueFeatures: RogueFeatureClassObj[] = [
@@ -165,28 +165,28 @@ export const rogueFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = 
       "You don't need <link:Advantage>Advantage</link> on the attack roll if at least one of your allies is within 5 feet of the target, the ally doesn't have the <link:Incapacitated>Incapacitated</link> condition, and you don't have <link:Disadvantage>Disadvantage</link> on the attack roll.",
       "The extra damage increases as you gain Rogue levels, as shown in the Sneak Attack column of the Rogue Features table."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.THIEVES_CANT]: {
     description: [
       "You picked up various languages in the communities where you plied your roguish talents.",
       "You know <link:Thieves' Cant>Thieves' Cant</link> and one other language of your choice, which you choose from the language tables in 'Creating a Character'."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.CUNNING_ACTION]: {
     description: [
       "Your quick thinking and agility allow you to move and act quickly.",
       "On your turn, you can take one of the following actions as a Bonus Action: Dash, Disengage, or Hide."
     ],
-    isTracked: false
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.STEADY_AIM]: {
     description: [
       "As a Bonus Action, you give yourself <link:Advantage>Advantage</link> on your next attack roll on the current turn.",
       "You can use this feature only if you haven't moved during this turn, and after you use it, your Speed is 0 until the end of the current turn."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.CUNNING_STRIKE]: {
     description: [
@@ -198,25 +198,25 @@ export const rogueFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = 
       "<strong>Trip (Cost: 1d6).</strong> If the target is Large or smaller, it must succeed on a Dexterity saving throw or have the <link:Prone>Prone</link> condition.",
       "<strong>Withdraw (Cost: 1d6).</strong> Immediately after the attack, you move up to half your Speed without provoking Opportunity Attacks."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.UNCANNY_DODGE]: {
     description: [
       "When an attacker that you can see hits you with an attack roll, you can take a Reaction to halve the attack's damage against you, rounded down."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.RELIABLE_TALENT]: {
     description: [
       "Whenever you make an ability check that uses one of your skill or tool proficiencies, you can treat a d20 roll of 9 or lower as a 10."
     ],
-    isTracked: false
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.IMPROVED_CUNNING_STRIKE]: {
     description: [
       "You can use up to two Cunning Strike effects when you deal Sneak Attack damage, paying the die cost for each effect."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.DEVIOUS_STRIKES]: {
     description: [
@@ -225,25 +225,25 @@ export const rogueFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = 
       "<strong>Knock Out (Cost: 6d6).</strong> The target must succeed on a Constitution saving throw, or it has the <link:Unconscious>Unconscious</link> condition for 1 minute or until it takes any damage. The Unconscious target repeats the save at the end of each of its turns, ending the effect on itself on a success.",
       "<strong>Obscure (Cost: 3d6).</strong> The target must succeed on a Dexterity saving throw, or it has the <link:Blinded>Blinded</link> condition until the end of its next turn."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.SLIPPERY_MIND]: {
     description: [
       "Your cunning mind is exceptionally difficult to control. You gain proficiency in Wisdom and Charisma saving throws."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.ELUSIVE]: {
     description: [
       "You're so evasive that attackers rarely gain the upper hand against you. No attack roll can have <link:Advantage>Advantage</link> against you unless you have the <link:Incapacitated>Incapacitated</link> condition."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.STROKE_OF_LUCK]: {
     description: [
       "You have a marvelous knack for succeeding when you need to. If you fail a D20 Test, you can turn the roll into a 20.",
       "Once you use this feature, you can't use it again until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   }
 };

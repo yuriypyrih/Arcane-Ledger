@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DAMAGE_TYPE, WEAPON_COMBAT_TYPE, WEAPON_PROPERTY } from "../../../codex/entries";
+import { ACTION_TYPE, DAMAGE_TYPE, WEAPON_COMBAT_TYPE, WEAPON_PROPERTY, getSpellEntryById } from "../../../codex/entries";
 import {
   CONDITION_NAME,
   EFFECT_NAME,
@@ -18,14 +18,18 @@ import {
   applyLongRestToFeatureState,
   applyShortRestToFeatureState,
   advanceFeatureStateForNewRound,
+  consumeBeguilingMagicOrBardicInspirationForCharacter,
   consumeBarbarianWarriorOfTheGodsChargesForCharacter,
   consumeWeaponAttackActionForCharacter,
   getAdditionalWeaponMasteriesForCharacter,
+  getBeguilingMagicUsesRemainingForCharacter,
   getDerivedFeatureStatusEntriesForCharacter,
   getFeatureActionsForCharacter,
   getFeatureActionOptionsForCharacter,
   getFeatureDamageBonusesForWeaponAction,
   getFeatureReactionEntriesForCharacter,
+  getSpellEntryForCharacter,
+  getSkillIndicatorsForCharacter,
   getAlwaysPreparedSpellIdsForCharacter,
   getSpellcastingStateForCharacter,
   markFeatureWeaponBonusUseForCharacter
@@ -42,8 +46,12 @@ import { getWeaponActionsForCharacter } from "../gameplay";
 import { getSkillRowsByAbility } from "../skills";
 import { activateBarbarianRage, activateBarbarianWildHeartRage } from "./barbarian";
 import { createCharacterEquipmentItem } from "../inventory";
-import { getWeaponActionBreakdown } from "../../../components/CharactersPage/CharacterSheetPage/GameplayForm/gameplayWidgetUtils";
+import {
+  getDamageRangeLabel,
+  getWeaponActionBreakdown
+} from "../../../components/CharactersPage/CharacterSheetPage/GameplayForm/gameplayWidgetUtils";
 import { getMovementSpeedBreakdownsForCharacter } from "../speed";
+import { getArmorClassBreakdownForCharacter } from "../armor";
 
 function createCharacter(overrides: Partial<Character>): Character {
   const normalizedCharacter = normalizeCharacter({
@@ -82,6 +90,136 @@ describe("class feature state reducers", () => {
     const restedCharacter = applyShortRestToFeatureState(character);
 
     expect(restedCharacter.classFeatureState?.bard?.bardicInspirationUsesExpended).toBe(0);
+  });
+
+  it("formats bardic inspiration as a music-backed tracked action", () => {
+    const character = createCharacter({
+      className: "Bard",
+      level: 15,
+      classFeatureState: {
+        bard: {
+          bardicInspirationUsesExpended: 1
+        }
+      }
+    });
+
+    const bardicInspirationAction = getFeatureActionsForCharacter(character).find(
+      (action) => action.name === "Bardic Inspiration"
+    );
+
+    expect(bardicInspirationAction).toEqual(
+      expect.objectContaining({
+        usesRemaining: 2,
+        usesTotal: 3,
+        hideUsesTrackerOnCard: true,
+        usesInlineLabel: "Use 1",
+        usesInlineIcon: "music",
+        usesSupplementaryLabel: undefined,
+        drawer: expect.objectContaining({
+          resources: expect.arrayContaining([
+            expect.objectContaining({
+              kind: "tracker",
+              label: "Uses",
+              icon: "music",
+              cost: 1
+            })
+          ])
+        })
+      })
+    );
+  });
+
+  it("labels the default unarmed strike damage as bludgeoning", () => {
+    const character = createCharacter({
+      className: "Fighter",
+      level: 1,
+      background: "Soldier"
+    });
+
+    const unarmedStrike = getWeaponActionsForCharacter(character).find(
+      (action) => action.name === "Unarmed Strike"
+    );
+
+    expect(unarmedStrike?.damageLabel).toContain("Bludgeoning");
+    expect(
+      getDamageRangeLabel(
+        unarmedStrike?.damageLabel ?? "",
+        unarmedStrike?.totalModifier ?? 0,
+        unarmedStrike?.rollFormula ?? "0"
+      )
+    ).toContain("Bludgeoning");
+  });
+
+  it("applies college of dance dazzling footwork to performance, armor class, bardic inspiration, and unarmed strike", () => {
+    const character = createCharacter({
+      className: "Bard",
+      level: 3,
+      subclassId: "bard-college-of-dance",
+      abilities: {
+        ...createDefaultAbilities(),
+        STR: 12,
+        DEX: 16,
+        CHA: 18
+      }
+    });
+
+    const skillIndicators = getSkillIndicatorsForCharacter(character);
+    const armorClassBreakdown = getArmorClassBreakdownForCharacter(character);
+    const bardicInspirationAction = getFeatureActionsForCharacter(character).find(
+      (action) => action.name === "Bardic Inspiration"
+    );
+    const unarmedStrike = getWeaponActionsForCharacter(character).find(
+      (action) => action.name === "Unarmed Strike"
+    );
+
+    expect(skillIndicators[SKILL.PERFORMANCE]).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Advantage",
+          source: "Dazzling Footwork"
+        })
+      ])
+    );
+    expect(armorClassBreakdown.total).toBe(17);
+    expect(armorClassBreakdown.source).toBe("Unarmored Defense");
+    expect(bardicInspirationAction?.description).toContain(
+      "Agile Strikes: You can make one Unarmed Strike as part of this action."
+    );
+    expect(unarmedStrike).toEqual(
+      expect.objectContaining({
+        ability: "DEX",
+        damageAbility: "DEX",
+        damageAbilityModifier: 3,
+        damageFormula: "1d6",
+        damageLabel: "1d6 Bludgeoning",
+        rollFormula: "1d6+3"
+      })
+    );
+    expect(
+      getDamageRangeLabel(
+        unarmedStrike?.damageLabel ?? "",
+        unarmedStrike?.totalModifier ?? 0,
+        unarmedStrike?.rollFormula ?? "0"
+      )
+    ).toContain("1d6 Bludgeoning + 3");
+  });
+
+  it("adds inspiring movement to bard college of dance reactions at level 6", () => {
+    const character = createCharacter({
+      className: "Bard",
+      level: 6,
+      subclassId: "bard-college-of-dance"
+    });
+
+    expect(getFeatureReactionEntriesForCharacter(character)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "reaction-inspiring-movement",
+          name: "Inspiring Movement",
+          sourceLabel: "College of Dance"
+        })
+      ])
+    );
   });
 
   it("resets rogue turn flags when a new round starts", () => {
@@ -674,6 +812,138 @@ describe("class feature state reducers", () => {
       "spell-speak-with-animals",
       "spell-commune-with-nature"
     ]);
+  });
+
+  it("grants glamour bard beguiling magic spells as always prepared", () => {
+    const character = createCharacter({
+      className: "Bard",
+      level: 3,
+      subclassId: "bard-college-of-glamour"
+    });
+
+    expect(getAlwaysPreparedSpellIdsForCharacter(character)).toEqual(
+      expect.arrayContaining(["spell-charm-person", "spell-mirror-image"])
+    );
+  });
+
+  it("adds mantle of inspiration as a glamour bard bonus action that spends bardic inspiration", () => {
+    const character = createCharacter({
+      className: "Bard",
+      level: 3,
+      subclassId: "bard-college-of-glamour",
+      classFeatureState: {
+        bard: {
+          bardicInspirationUsesExpended: 0
+        }
+      }
+    });
+
+    const mantleOfInspiration = getFeatureActionsForCharacter(character).find(
+      (action) => action.name === "Mantle of Inspiration"
+    );
+    const activatedCharacter = activateFeatureActionForCharacter(
+      character,
+      "bard-mantle-of-inspiration"
+    );
+
+    expect(mantleOfInspiration).toEqual(
+      expect.objectContaining({
+        economyType: "bonus_action",
+        usesInlineLabel: "Use 1",
+        usesInlineIcon: "music",
+        breakdown: "Grant TempHP to creatures",
+        drawer: expect.objectContaining({
+          confirmLabel: "Roll Bardic Dice"
+        }),
+        execute: expect.objectContaining({
+          kind: "activate",
+          effectKind: "bardic-inspiration-roll"
+        })
+      })
+    );
+    expect(activatedCharacter.classFeatureState?.bard?.bardicInspirationUsesExpended).toBe(1);
+  });
+
+  it("spends beguiling magic first, then bardic inspiration, and restores the free use on long rest", () => {
+    const glamourBard = createCharacter({
+      className: "Bard",
+      level: 3,
+      subclassId: "bard-college-of-glamour",
+      classFeatureState: {
+        bard: {
+          bardicInspirationUsesExpended: 0,
+          beguilingMagicUsesExpended: 0
+        }
+      }
+    });
+
+    const afterFirstUse = consumeBeguilingMagicOrBardicInspirationForCharacter(glamourBard);
+    const afterSecondUse = consumeBeguilingMagicOrBardicInspirationForCharacter(afterFirstUse);
+    const afterLongRest = applyLongRestToFeatureState(afterSecondUse);
+
+    expect(getBeguilingMagicUsesRemainingForCharacter(afterFirstUse)).toBe(0);
+    expect(afterFirstUse.classFeatureState?.bard?.bardicInspirationUsesExpended).toBe(0);
+    expect(afterSecondUse.classFeatureState?.bard?.bardicInspirationUsesExpended).toBe(1);
+    expect(getBeguilingMagicUsesRemainingForCharacter(afterLongRest)).toBe(1);
+  });
+
+  it("adds mantle of majesty, prepares command, and transforms command while the mantle is active", () => {
+    const glamourBard = createCharacter({
+      className: "Bard",
+      level: 6,
+      subclassId: "bard-college-of-glamour",
+      statusEntries: [
+        createCharacterStatusEntry({
+          group: STATUS_ENTRY_GROUP.EFFECTS,
+          value: EFFECT_NAME.CONCENTRATION,
+          source: "Mantle of Majesty",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+          duration: {
+            kind: STATUS_DURATION_KIND.MINUTES,
+            amount: 1
+          },
+          sourceId: "feature-bard-mantle-of-majesty-concentration"
+        }),
+        createCharacterStatusEntry({
+          group: STATUS_ENTRY_GROUP.EFFECTS,
+          value: "Mantle of Majesty",
+          source: "College of Glamour",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+          duration: {
+            kind: STATUS_DURATION_KIND.LINKED,
+            linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+            linkedValue: EFFECT_NAME.CONCENTRATION
+          },
+          sourceId: "feature-bard-mantle-of-majesty"
+        })
+      ]
+    });
+    const mantleOfMajesty = getFeatureActionsForCharacter(glamourBard).find(
+      (action) => action.name === "Mantle of Majesty"
+    );
+    const command = getSpellEntryById("spell-command");
+
+    if (!command) {
+      throw new Error("Expected Command to exist.");
+    }
+
+    const transformedCommand = getSpellEntryForCharacter(glamourBard, command);
+
+    expect(getAlwaysPreparedSpellIdsForCharacter(glamourBard)).toEqual(
+      expect.arrayContaining(["spell-command"])
+    );
+    expect(mantleOfMajesty).toEqual(
+      expect.objectContaining({
+        breakdown: "Command as the Majesty you are.",
+        execute: expect.objectContaining({
+          kind: "spell",
+          effectKind: "mantle-of-majesty",
+          spellId: "spell-command"
+        }),
+        isActive: true
+      })
+    );
+    expect(transformedCommand.castingTime).toEqual([ACTION_TYPE.BONUS_ACTION]);
   });
 
   it("grants owl darkvision from aspect of the wilds", () => {

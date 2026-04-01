@@ -1,11 +1,12 @@
 import clsx from "clsx";
-import { Pencil } from "lucide-react";
+import { ChevronDown, CircleHelp, Pencil } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import {
   CLASS_FEATURE,
   FEAT_CATEGORY,
   FEATS,
   FeatureMap,
+  TRACKER,
   type ClassEntry,
   type DivinityEntry,
   type FeatureMapEntry,
@@ -36,14 +37,12 @@ import type { Character, CharacterFeatEntry } from "../../../../types";
 import { resolveKeywordReference } from "../../../../utils/codex/renderCodexRichText";
 import CodexDivinityDrawer from "../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import CodexSpellDrawer from "../../../CodexPage/CodexSpellDrawer";
-import {
-  FeatureDisclosureSection,
-  FeatureTrackingBadgeButton
-} from "../../../FeatureDisclosure";
+import { FeatureTrackingBadgeButton } from "../../../FeatureDisclosure";
 import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import InlineToggleButton from "../InlineToggleButton";
 import ClassFeatureList from "./ClassFeatureList";
+import ClassFeaturesGuideModal from "./ClassFeaturesGuideModal";
 import FeatEditorModal from "./FeatEditorModal";
 import FeatList from "./FeatList";
 import FeatReferenceDrawer from "./FeatReferenceDrawer";
@@ -116,6 +115,7 @@ function ClassFeaturesAndFeats({
   const [selectedDivinityReference, setSelectedDivinityReference] =
     useState<SelectedDivinityReference | null>(null);
   const [selectedKeyword, setSelectedKeyword] = useState<SelectedKeyword | null>(null);
+  const [isGuideOpen, setIsGuideOpen] = useState(false);
 
   const classEntry = classEntriesByName.get(character.className) ?? null;
   const selectedSubclass = useMemo(
@@ -189,7 +189,7 @@ function ClassFeaturesAndFeats({
             getSubclassFeatureDetails(selectedSubclass, level, feature) ??
             FeatureMap[feature] ?? {
               description: ["You gain a feature from your chosen subclass."],
-              trackingState: "not-tracked"
+              trackingState: TRACKER.NOT_TRACKED
             };
 
           return createFeatureRow(
@@ -673,22 +673,47 @@ function ClassFeaturesAndFeats({
 
   return (
     <>
-      <FeatureDisclosureSection
-      className={clsx(shared.sectionCard, className)}
-      bodyId="class-features-and-feats-content"
-      bodyClassName={styles.sectionStack}
-      isExpanded={isExpanded}
-      onToggle={toggleSection}
-      header={
-        <div>
-          <p className={shared.eyebrow}>Build</p>
-          <h2 className={shared.title}>Class Features &amp; Feats</h2>
-          <p className={shared.helperText}>
-            Review unlocked class features and manage feat selections for your build.
-          </p>
+      <article className={clsx(shared.sectionCard, className)}>
+        <div className={clsx(shared.sectionHeader, styles.buildSectionHeader)}>
+          <div className={styles.buildHeaderContent}>
+            <div className={styles.buildHeading}>
+              <p className={shared.eyebrow}>Build</p>
+              <button
+                type="button"
+                className={styles.helpButton}
+                onClick={() => setIsGuideOpen(true)}
+                aria-label="Open class features guide"
+                title="Open class features guide"
+              >
+                <CircleHelp size={16} />
+              </button>
+            </div>
+            <h2 className={shared.title}>Class Features &amp; Feats</h2>
+            <p className={shared.helperText}>
+              Review unlocked class features and manage feat selections for your build.
+            </p>
+          </div>
+          <button
+            type="button"
+            className={styles.sectionCollapseButton}
+            onClick={toggleSection}
+            aria-expanded={isExpanded}
+            aria-controls="class-features-and-feats-content"
+            aria-label={isExpanded ? "Collapse build section" : "Expand build section"}
+          >
+            <ChevronDown
+              size={18}
+              aria-hidden="true"
+              className={clsx(
+                styles.sectionCollapseIcon,
+                !isExpanded && styles.sectionCollapseIconCollapsed
+              )}
+            />
+          </button>
         </div>
-      }
-    >
+
+        {isExpanded ? (
+          <div id="class-features-and-feats-content" className={styles.sectionStack}>
           <section className={styles.subsection} aria-labelledby="character-feats-title">
             <div className={styles.subsectionHeader}>
               <h3 id="character-feats-title" className={styles.subsectionTitle}>
@@ -780,7 +805,11 @@ function ClassFeaturesAndFeats({
               </p>
             )}
           </section>
-      </FeatureDisclosureSection>
+          </div>
+        ) : null}
+      </article>
+
+      {isGuideOpen ? <ClassFeaturesGuideModal onClose={() => setIsGuideOpen(false)} /> : null}
 
       {isFeatModalOpen ? (
         <FeatEditorModal

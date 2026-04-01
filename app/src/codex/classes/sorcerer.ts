@@ -1,4 +1,4 @@
-import { CLASS_FEATURE, SPELL_LIST_CLASS } from "../entries/enums";
+import { CLASS_FEATURE, SPELL_LIST_CLASS, TRACKER } from "../entries/enums";
 import type { FeatureClassObj, FeatureMapEntry } from "../entries/types";
 import { createUseSpellEntriesForSpellListClass } from "./spellAccess";
 
@@ -40,7 +40,7 @@ export const sorcererFeatures: SorcererFeatureClassObj[] = [
           "<strong>Spellcasting Ability.</strong> <link:CHA>Charisma</link> is your spellcasting ability for your Sorcerer spells.",
           "<strong>Spellcasting Focus.</strong> You can use an <link:Arcane Focus>Arcane Focus</link> as a Spellcasting Focus for your Sorcerer spells."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     sorceryPoints: 0,
@@ -118,7 +118,7 @@ export const sorcererFeatures: SorcererFeatureClassObj[] = [
     featureOverrides: {
       [CLASS_FEATURE.METAMAGIC]: {
         description: ["You gain 2 more Metamagic options."],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     sorceryPoints: 10,
@@ -180,7 +180,7 @@ export const sorcererFeatures: SorcererFeatureClassObj[] = [
     featureOverrides: {
       [CLASS_FEATURE.METAMAGIC]: {
         description: ["You gain 2 more Metamagic options."],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     sorceryPoints: 17,
@@ -205,7 +205,7 @@ export const sorcererFeatures: SorcererFeatureClassObj[] = [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
           "Boon of Dimensional Travel is recommended."
         ],
-        isTracked: false
+        trackingState: TRACKER.NOT_TRACKED
       }
     },
     sorceryPoints: 19,
@@ -231,7 +231,7 @@ export const sorcererFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>>
       "You have <link:Advantage>Advantage</link> on the attack rolls of Sorcerer spells you cast.",
       "You can use this feature twice, and you regain all expended uses of it when you finish a <link:long-rest>Long Rest</link>."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.FONT_OF_MAGIC]: {
     description: [
@@ -247,7 +247,7 @@ export const sorcererFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>>
       "<strong>Creating Spell Slots.</strong> Level 4 slot: 6 Sorcery Points, minimum Sorcerer level 7.",
       "<strong>Creating Spell Slots.</strong> Level 5 slot: 7 Sorcery Points, minimum Sorcerer level 9."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.METAMAGIC]: {
     description: [
@@ -265,27 +265,27 @@ export const sorcererFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>>
       "<strong><link:Transmuted Spell>Transmuted Spell</link>.</strong> Cost: 1 Sorcery Point.",
       "<strong><link:Twinned Spell>Twinned Spell</link>.</strong> Cost: 1 Sorcery Point."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.SORCEROUS_RESTORATION]: {
     description: [
       "When you finish a <link:short-rest>Short Rest</link>, you can regain expended Sorcery Points, but no more than a number equal to half your Sorcerer level, rounded down.",
       "Once you use this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link>."
     ],
-    isTracked: false
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.SORCERY_INCARNATE]: {
     description: [
       "If you have no uses of <link:Innate Sorcery>Innate Sorcery</link> left, you can use it if you spend 2 Sorcery Points when you take the Bonus Action to activate it.",
       "In addition, while your <link:Innate Sorcery>Innate Sorcery</link> feature is active, you can use up to two of your <link:Metamagic>Metamagic</link> options on each spell you cast."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.ARCANE_APOTHEOSIS]: {
     description: [
       "While your <link:Innate Sorcery>Innate Sorcery</link> feature is active, you can use one <link:Metamagic>Metamagic</link> option on each of your turns without spending Sorcery Points."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   }
 };
 

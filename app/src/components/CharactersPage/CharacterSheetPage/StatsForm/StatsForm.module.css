@@ -149,6 +149,21 @@
   gap: 0.68rem;
 }
 
+.savingThrowValueGroup {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.savingThrowBoostIcon {
+  position: absolute;
+  top: 50%;
+  left: calc(100% + 0.22rem);
+  transform: translateY(-50%);
+  color: #2f7fd8;
+}
+
 .combinedValueDivider {
   width: 1px;
   height: 1.2rem;
@@ -251,8 +266,41 @@
   margin: 0;
 }
 
-.initiativeChargeDots {
-  margin-top: 0;
+.initiativeUsageMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  color: #2f6de0;
+  font-size: 0.84rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.initiativeActionButtons {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
+.initiativeRollButton,
+.initiativeSettingsButton {
+  margin-left: 0;
+}
+
+.initiativeRollButton {
+  gap: 0.5rem;
+}
+
+.initiativeSettingsButton {
+  min-width: 48px;
+  padding: 0;
+}
+
+.initiativeRollIcon {
+  width: 18px;
+  height: 18px;
+  filter: brightness(0) invert(1);
 }
 
 @media (max-width: 860px) {
@@ -274,6 +322,10 @@
 
   .statsGroupHeader {
     flex-wrap: wrap;
+  }
+
+  .initiativeActionButtons {
+    width: 100%;
   }
 }
 

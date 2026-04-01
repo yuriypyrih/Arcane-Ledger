@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { BookOpen, Cog, Flame, Minus, Plus, Sparkles } from "lucide-react";
+import { BookOpen, Flame, Minus, Plus, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import CellContainer from "../../../../CellContainer/CellContainer";
 import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
@@ -15,7 +15,10 @@ import {
   activateFeatureActionForCharacter,
   activateFeatureActionOptionForCharacter,
   activateArcaneRecoveryForCharacter,
+  applyMantleOfMajestyStatusForCharacter,
   applyLayOnHandsForCharacter,
+  consumeBeguilingMagicOrBardicInspirationForCharacter,
+  consumeMantleOfMajestyUseForCharacter,
   consumeContactPatronUseForCharacter,
   consumeMysticArcanumUseForCharacter,
   createSpellSlotFromSorceryPointsForCharacter,
@@ -27,6 +30,12 @@ import {
   convertSpellSlotToSorceryPointsForCharacter,
   consumeNonMagicActionForCharacter,
   consumeWeaponAttackActionForCharacter,
+  getBardicInspirationDieForCharacter,
+  getBardicInspirationUsesRemainingForCharacter,
+  getBeguilingMagicUsesRemainingForCharacter,
+  getBeguilingMagicUsesTotalForCharacter,
+  getMantleOfMajestyFallbackSlotLevelForCharacter,
+  getMantleOfMajestyUsesRemainingForCharacter,
   getSorcererMetamagicActionCostForCharacter,
   getSorcererMetamagicSelectionLimitForActionForCharacter,
   getSorceryPointsRemainingForCharacter,
@@ -124,6 +133,7 @@ import {
 import {
   ACTION_TYPE,
   ENTRY_CATEGORIES,
+  MAGIC_SCHOOL,
   getSpellEntryById,
   type SpellEntry,
   type WeaponEntry
@@ -168,7 +178,7 @@ import fontOfMagicStyles from "./FontOfMagicModal.module.css";
 import sneakAttackStyles from "./SneakAttackModal.module.css";
 import divineStyles from "./DivineInterventionModal.module.css";
 import GameplayActionDrawer from "./GameplayActionDrawer";
-import DiceRollerSettingsModal from "./DiceRollerSettingsModal";
+import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
 import {
   FeatureActionCardButton,
   FeatureActionChoiceRow,
@@ -457,6 +467,8 @@ function getWeaponAttackFormulaPresentation(action: WeaponAction): WeaponFormula
 }
 
 function getWeaponDamageFormulaPresentation(action: WeaponAction): WeaponFormulaPresentation {
+  const damageAbility = action.damageAbility ?? action.ability;
+  const damageAbilityModifier = action.damageAbilityModifier ?? action.abilityModifier;
   const baseDamageLabel = stripAppendedWeaponBonusExpression(
     action.damageLabel,
     action,
@@ -475,9 +487,9 @@ function getWeaponDamageFormulaPresentation(action: WeaponAction): WeaponFormula
   mainDamageGroup.preferNumericFirst =
     mainDamageGroup.diceTerms.length === 0 && mainDamageGroup.numericTotal !== 0;
 
-  if (action.abilityModifier !== 0) {
-    mainDamageGroup.numericTotal += action.abilityModifier;
-    breakdownEntries.push(`${formatAbilityModifier(action.abilityModifier)} ${action.ability}`);
+  if (damageAbilityModifier !== 0) {
+    mainDamageGroup.numericTotal += damageAbilityModifier;
+    breakdownEntries.push(`${formatAbilityModifier(damageAbilityModifier)} ${damageAbility}`);
   }
 
   action.damageBonusEntries.forEach((entry) => {
@@ -515,7 +527,7 @@ function getWeaponDamageFormulaPresentation(action: WeaponAction): WeaponFormula
     typedBonusGroups.set(parsedBonusDamage.damageType, existingGroup);
   });
 
-  const damageFormula = appendRollModifier(action.damageFormula, action.abilityModifier);
+  const damageFormula = appendRollModifier(action.damageFormula, damageAbilityModifier);
   const { leadingTerms: mainLeadingTerms, trailingNumericTerm: mainTrailingNumericTerm } =
     formatMainDamageTerms(mainDamageGroup);
   const visibleTerms = [
@@ -659,15 +671,20 @@ function getFixedSpellEntryForExecute(
     return null;
   }
 
-  if (execute.effectKind === "favored-enemy") {
-    return getSpellEntryForCharacter(character, spell);
-  }
+  const transformedSpell = getSpellEntryForCharacter(character, spell);
 
   if (execute.effectKind === "contact-patron") {
-    return createContactPatronSpellEntry(spell);
+    return createContactPatronSpellEntry(transformedSpell);
   }
 
-  return spell;
+  if (execute.effectKind === "mantle-of-majesty") {
+    return {
+      ...transformedSpell,
+      castingTime: [ACTION_TYPE.BONUS_ACTION]
+    };
+  }
+
+  return transformedSpell;
 }
 
 function FeatureOptionsActionBody({
@@ -1712,6 +1729,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   );
   const [isRageOfTheGodsSelected, setIsRageOfTheGodsSelected] = useState(false);
   const [isFixedSpellDrawerOpen, setIsFixedSpellDrawerOpen] = useState(false);
+  const [selectedFixedSpellSlotLevel, setSelectedFixedSpellSlotLevel] = useState(1);
   const [isDiceRollerSettingsOpen, setIsDiceRollerSettingsOpen] = useState(false);
   const [selectedDivineInterventionSpell, setSelectedDivineInterventionSpell] =
     useState<SpellEntry | null>(null);
@@ -1720,6 +1738,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   );
   const [selectedMysticArcanumSpellLevel, setSelectedMysticArcanumSpellLevel] =
     useState<MysticArcanumLevel | null>(null);
+  const [useBeguilingMagicOnActionSpell, setUseBeguilingMagicOnActionSpell] = useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   const roundTracker = normalizeRoundTracker(character.roundTracker);
@@ -1737,6 +1756,43 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     [character.customEquipment]
   );
   const spellcastingState = getSpellcastingStateForCharacter(character);
+  const beguilingMagicUsesTotal = useMemo(
+    () => getBeguilingMagicUsesTotalForCharacter(character),
+    [character.className, character.level, character.subclassId]
+  );
+  const beguilingMagicUsesRemaining = useMemo(
+    () => getBeguilingMagicUsesRemainingForCharacter(character),
+    [character.classFeatureState, character.className, character.level, character.subclassId]
+  );
+  const bardicInspirationUsesRemaining = useMemo(
+    () => getBardicInspirationUsesRemainingForCharacter(character),
+    [
+      character.abilities,
+      character.classFeatureState,
+      character.className,
+      character.feats,
+      character.level
+    ]
+  );
+  const mantleOfMajestyUsesRemaining = useMemo(
+    () => getMantleOfMajestyUsesRemainingForCharacter(character),
+    [character.classFeatureState, character.className, character.level, character.subclassId]
+  );
+  const fixedSpellSlotTotals = useMemo(
+    () => getSpellSlotTotalsForCharacter(character.className, character.level),
+    [character.className, character.level]
+  );
+  const fixedSpellSlotsExpended = useMemo(
+    () => normalizeSpellSlotsExpended(character.spellSlotsExpended, fixedSpellSlotTotals),
+    [character.spellSlotsExpended, fixedSpellSlotTotals]
+  );
+  const fixedSpellSlotsRemaining = useMemo(
+    () =>
+      fixedSpellSlotTotals.map((total, index) =>
+        Math.max(0, total - (fixedSpellSlotsExpended[index] ?? 0))
+      ),
+    [fixedSpellSlotTotals, fixedSpellSlotsExpended]
+  );
   const effectiveAbilities = useMemo(() => getAbilityScoresForCharacter(character), [character]);
   const selectedAction =
     selectedActionKey !== null
@@ -1861,6 +1917,42 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     () => (fixedSpellExecute ? getFixedSpellEntryForExecute(character, fixedSpellExecute) : null),
     [character, fixedSpellExecute]
   );
+  const fixedSpellMinimumActionSlotLevel = useMemo(() => {
+    if (fixedSpellExecute?.effectKind !== "mantle-of-majesty" || mantleOfMajestyUsesRemaining > 0) {
+      return null;
+    }
+
+    return getMantleOfMajestyFallbackSlotLevelForCharacter(character);
+  }, [character, fixedSpellExecute?.effectKind, mantleOfMajestyUsesRemaining]);
+  const fixedSpellFreeCastSlotLevel =
+    fixedSpellExecute?.effectKind === "mantle-of-majesty"
+      ? mantleOfMajestyUsesRemaining > 0
+        ? 1
+        : null
+      : (fixedSpellExecute?.freeCastSlotLevel ?? null);
+  const fixedSpellConsumesSpellSlot =
+    fixedSpellExecute?.effectKind === "mantle-of-majesty"
+      ? true
+      : (fixedSpellExecute?.actionConsumesSpellSlot ?? false);
+  const fixedSpellActionAvailabilityText =
+    fixedSpellExecute?.effectKind === "mantle-of-majesty"
+      ? mantleOfMajestyUsesRemaining > 0
+        ? "Cast Command at level 1 without expending a spell slot. Upcasting expends the selected spell slot."
+        : fixedSpellMinimumActionSlotLevel !== null
+          ? `Expend a level ${fixedSpellMinimumActionSlotLevel}+ spell slot to assume Mantle of Majesty.`
+          : "No level 3+ spell slots remain to fuel Mantle of Majesty."
+      : (fixedSpellExecute?.actionAvailabilityText ?? null);
+  const fixedSpellActionContextText =
+    fixedSpellExecute?.effectKind === "mantle-of-majesty"
+      ? "Using Mantle of Majesty"
+      : (fixedSpellExecute?.actionContextText ?? null);
+  const selectedActionSpellEntry =
+    fixedSpellEntry ?? selectedDivineInterventionSpell ?? selectedMysticArcanumSpell;
+  const selectedActionSpellSupportsBeguilingMagic =
+    selectedActionSpellEntry !== null &&
+    beguilingMagicUsesTotal > 0 &&
+    (selectedActionSpellEntry.magicSchool === MAGIC_SCHOOL.ENCHANTMENT ||
+      selectedActionSpellEntry.magicSchool === MAGIC_SCHOOL.ILLUSION);
   const paladinAuraOfProtectionBonus = hasActivePaladinAuraOfProtectionForCharacter(character)
     ? Math.max(1, getAbilityModifier(effectiveAbilities.CHA))
     : 0;
@@ -1926,8 +2018,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedRageOptionKey(null);
     setSelectedRagePowerOptionKey(null);
     setIsRageOfTheGodsSelected(false);
+    setUseBeguilingMagicOnActionSpell(false);
     setIsDiceRollerSettingsOpen(false);
     setIsFixedSpellDrawerOpen(false);
+    setSelectedFixedSpellSlotLevel(1);
     setSelectedDivineInterventionSpell(null);
     setSelectedMysticArcanumSpell(null);
     setSelectedMysticArcanumSpellLevel(null);
@@ -1962,6 +2056,28 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedRagePowerOptionKey(null);
     setIsRageOfTheGodsSelected(false);
   }, [selectedActionKey]);
+
+  useEffect(() => {
+    setUseBeguilingMagicOnActionSpell(false);
+  }, [selectedActionSpellEntry?.id]);
+
+  useEffect(() => {
+    if (!fixedSpellEntry || !fixedSpellExecute) {
+      return;
+    }
+
+    setSelectedFixedSpellSlotLevel(
+      fixedSpellFreeCastSlotLevel ??
+        fixedSpellMinimumActionSlotLevel ??
+        fixedSpellExecute.spellLevel ??
+        getSpellLevel(fixedSpellEntry)
+    );
+  }, [
+    fixedSpellEntry,
+    fixedSpellExecute,
+    fixedSpellFreeCastSlotLevel,
+    fixedSpellMinimumActionSlotLevel
+  ]);
 
   useEffect(() => {
     if (!hasOverlayOpen) {
@@ -2041,6 +2157,20 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   function executeFeatureActivate(action: FeatureActionCard) {
     const effectKind =
       action.execute?.kind === "activate" ? (action.execute.effectKind ?? "default") : "default";
+
+    if (effectKind === "bardic-inspiration-roll") {
+      const bardicDie = getBardicInspirationDieForCharacter(character);
+      const bardicDieFormula = bardicDie ? `1${String(bardicDie).toLowerCase()}` : "1d6";
+
+      activateFeatureAction(action);
+      openDiceRoller({
+        title: action.name,
+        formula: bardicDieFormula,
+        formulaDisplay: bardicDieFormula,
+        description: action.detail
+      });
+      return;
+    }
 
     if (effectKind === "second-wind") {
       onPersistCharacter((currentCharacter) => {
@@ -2191,7 +2321,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   }
 
   function handleWeaponDamageRoll(action: WeaponAction) {
-    const damageFormula = appendRollModifier(action.damageFormula, action.abilityModifier);
+    const damageFormula = appendRollModifier(
+      action.damageFormula,
+      action.damageAbilityModifier ?? action.abilityModifier
+    );
     const damageFormulaDisplay = getWeaponDamageFormulaPresentation(action).value;
 
     openDiceRoller({
@@ -2523,10 +2656,19 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     createSpellSlotFromSorceryPoints(selectedFontOfMagicSelection.spellSlotLevel);
   }
 
-  function useFixedSpellAction() {
+  function useFixedSpellAction(options?: { useBeguilingMagic?: boolean }) {
     if (!fixedSpellExecute || !fixedSpellEntry || !selectedFeatureAction) {
       return;
     }
+
+    const useBeguilingMagic = options?.useBeguilingMagic === true;
+    const minimumSlotLevel = Math.max(
+      getSpellLevel(fixedSpellEntry),
+      fixedSpellMinimumActionSlotLevel ?? 1
+    );
+    const slotLevel = Math.max(minimumSlotLevel, selectedFixedSpellSlotLevel);
+    const castsWithoutSpellSlot =
+      fixedSpellFreeCastSlotLevel !== null && slotLevel === fixedSpellFreeCastSlotLevel;
 
     onPersistCharacter((currentCharacter) => {
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(
@@ -2537,6 +2679,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         roundTrackerResource
       );
       let nextCharacter = preparedCharacter;
+      const spellSlotTotals = getSpellSlotTotalsForCharacter(
+        preparedCharacter.className,
+        preparedCharacter.level
+      );
+      const spellSlotsExpended = normalizeSpellSlotsExpended(
+        preparedCharacter.spellSlotsExpended,
+        spellSlotTotals
+      );
+      const spellSlotsRemaining = spellSlotTotals.map((total, index) =>
+        Math.max(0, total - (spellSlotsExpended[index] ?? 0))
+      );
 
       if (fixedSpellExecute.effectKind === "paladins-smite") {
         nextCharacter = consumePaladinsSmiteUseForCharacter(preparedCharacter);
@@ -2546,35 +2699,66 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         nextCharacter = consumeRangerFavoredEnemyUseForCharacter(preparedCharacter);
       } else if (fixedSpellExecute.effectKind === "contact-patron") {
         nextCharacter = consumeContactPatronUseForCharacter(preparedCharacter);
+      } else if (fixedSpellExecute.effectKind === "mantle-of-majesty") {
+        nextCharacter =
+          getMantleOfMajestyUsesRemainingForCharacter(preparedCharacter) > 0
+            ? consumeMantleOfMajestyUseForCharacter(preparedCharacter)
+            : preparedCharacter;
       }
 
-      if (nextCharacter === preparedCharacter) {
+      if (
+        nextCharacter === preparedCharacter &&
+        fixedSpellExecute.effectKind !== "mantle-of-majesty"
+      ) {
         return currentCharacter;
       }
 
-      const nextCharacterWithConcentration = {
-        ...nextCharacter,
-        statusEntries: applySpellConcentrationToStatusEntries(
-          nextCharacter.statusEntries,
-          fixedSpellEntry
-        )
-      };
+      let nextCharacterWithSpellSlot = nextCharacter;
+
+      if (fixedSpellConsumesSpellSlot && !castsWithoutSpellSlot) {
+        if ((spellSlotsRemaining[slotLevel - 1] ?? 0) <= 0) {
+          return currentCharacter;
+        }
+
+        const nextSpellSlotsExpended = [...spellSlotsExpended];
+        nextSpellSlotsExpended[slotLevel - 1] = (nextSpellSlotsExpended[slotLevel - 1] ?? 0) + 1;
+        nextCharacterWithSpellSlot = {
+          ...nextCharacter,
+          spellSlotsExpended: nextSpellSlotsExpended
+        };
+      }
+
+      const nextCharacterWithConcentration =
+        fixedSpellExecute.effectKind === "mantle-of-majesty"
+          ? applyMantleOfMajestyStatusForCharacter(nextCharacterWithSpellSlot)
+          : {
+              ...nextCharacterWithSpellSlot,
+              statusEntries: applySpellConcentrationToStatusEntries(
+                nextCharacterWithSpellSlot.statusEntries,
+                fixedSpellEntry
+              )
+            };
+      const nextCharacterWithBeguilingMagic = useBeguilingMagic
+        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithConcentration)
+        : nextCharacterWithConcentration;
 
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithConcentration,
+            nextCharacterWithBeguilingMagic,
             roundTrackerResource
           )
-        : nextCharacterWithConcentration;
+        : nextCharacterWithBeguilingMagic;
     });
 
     closeActionDrawer();
   }
 
-  function useDivineInterventionSpell() {
+  function useDivineInterventionSpell(options?: { useBeguilingMagic?: boolean }) {
     if (!selectedDivineInterventionSpell || !selectedFeatureAction) {
       return;
     }
+
+    const useBeguilingMagic = options?.useBeguilingMagic === true;
 
     onPersistCharacter((currentCharacter) => {
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(
@@ -2600,13 +2784,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           selectedDivineInterventionSpell
         )
       };
+      const nextCharacterWithBeguilingMagic = useBeguilingMagic
+        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithConcentration)
+        : nextCharacterWithConcentration;
 
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithConcentration,
+            nextCharacterWithBeguilingMagic,
             roundTrackerResource
           )
-        : nextCharacterWithConcentration;
+        : nextCharacterWithBeguilingMagic;
     });
 
     closeActionDrawer();
@@ -2621,10 +2808,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedMysticArcanumSpellLevel(spellLevel);
   }
 
-  function useMysticArcanumSpell() {
+  function useMysticArcanumSpell(options?: { useBeguilingMagic?: boolean }) {
     if (!selectedMysticArcanumSpell || selectedMysticArcanumSpellLevel === null) {
       return;
     }
+
+    const useBeguilingMagic = options?.useBeguilingMagic === true;
 
     onPersistCharacter((currentCharacter) => {
       const roundTrackerResource = getRoundTrackerResourceForSpell(selectedMysticArcanumSpell);
@@ -2647,13 +2836,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           selectedMysticArcanumSpell
         )
       };
+      const nextCharacterWithBeguilingMagic = useBeguilingMagic
+        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithConcentration)
+        : nextCharacterWithConcentration;
 
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithConcentration,
+            nextCharacterWithBeguilingMagic,
             roundTrackerResource
           )
-        : nextCharacterWithConcentration;
+        : nextCharacterWithBeguilingMagic;
     });
 
     closeActionDrawer();
@@ -2895,7 +3087,6 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                 shape={getActionShapeForEconomyType(selectedAction.economyType) ?? "action"}
                 isSelected={selectedActionEconomyShapeState.isAvailable}
                 multiCount={selectedActionEconomyShapeState.multiCount}
-                size="small"
                 className={styles.footerActionShape}
               />
             ) : null}
@@ -2908,14 +3099,51 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
             <span>Damage</span>
           </button>
+          <DiceRollerSettingsButton
+            actionName={selectedAction.name}
+            className={clsx(sheetStyles.castButton, styles.weaponFooterIconButton)}
+            isOpen={isDiceRollerSettingsOpen}
+            aria-label="Open dice roller settings"
+            onOpenChange={setIsDiceRollerSettingsOpen}
+          />
+        </div>
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
+      selectedAction.execute.effectKind === "bardic-inspiration-roll"
+    ) {
+      const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
+
+      return (
+        <div className={styles.weaponFooterActions}>
           <button
             type="button"
-            className={clsx(sheetStyles.castButton, styles.weaponFooterIconButton)}
-            onClick={() => setIsDiceRollerSettingsOpen(true)}
-            aria-label="Open dice roller settings"
+            className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
+            onClick={() => executeFeatureActivate(selectedAction.action)}
+            disabled={selectedActionWarning !== null}
           >
-            <Cog size={18} />
+            <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
+            <span>{selectedAction.drawer.confirmLabel}</span>
+            {actionShape ? (
+              <ActionShape
+                shape={actionShape}
+                isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+                multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+                className={styles.footerActionShape}
+              />
+            ) : null}
           </button>
+          <DiceRollerSettingsButton
+            actionName={selectedAction.name}
+            className={clsx(sheetStyles.castButton, styles.weaponFooterIconButton)}
+            isOpen={isDiceRollerSettingsOpen}
+            aria-label="Open dice roller settings"
+            onOpenChange={setIsDiceRollerSettingsOpen}
+          />
         </div>
       );
     }
@@ -2951,7 +3179,6 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                     ) === null
                   : true
               }
-              size="small"
               className={styles.footerActionShape}
             />
           ) : null}
@@ -2980,7 +3207,6 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             <ActionShape
               shape="bonusAction"
               isSelected={selectedFontOfMagicWarning === null}
-              size="small"
               className={styles.footerActionShape}
             />
           ) : null}
@@ -3006,7 +3232,6 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           <ActionShape
             shape="bonusAction"
             isSelected={selectedActionWarning === null}
-            size="small"
             className={styles.footerActionShape}
           />
         </button>
@@ -3018,26 +3243,46 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     if (selectedAction.execute.kind === "activate") {
+      const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
+
       return (
         <button
           type="button"
-          className={sheetStyles.castButton}
+          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
           onClick={() => executeFeatureActivate(selectedAction.action)}
           disabled={selectedActionWarning !== null}
         >
-          {selectedAction.drawer.confirmLabel}
+          <span>{selectedAction.drawer.confirmLabel}</span>
+          {actionShape ? (
+            <ActionShape
+              shape={actionShape}
+              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+              className={styles.footerActionShape}
+            />
+          ) : null}
         </button>
       );
     }
 
     if (selectedAction.execute.kind === "spell") {
+      const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
+
       return (
         <button
           type="button"
-          className={sheetStyles.castButton}
+          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
           onClick={() => setIsFixedSpellDrawerOpen(true)}
         >
-          {selectedAction.drawer.confirmLabel}
+          <span>{selectedAction.drawer.confirmLabel}</span>
+          {actionShape ? (
+            <ActionShape
+              shape={actionShape}
+              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+              className={styles.footerActionShape}
+            />
+          ) : null}
         </button>
       );
     }
@@ -3105,21 +3350,55 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           spell={fixedSpellEntry}
           alwaysPrepared
           mode="standard"
-          spellSlotTotals={Array.from({ length: 9 }, () => 0)}
-          spellSlotsRemaining={Array.from({ length: 9 }, () => 0)}
-          selectedSpellSlotLevel={fixedSpellExecute.spellLevel ?? fixedSpellEntry.spellLevel}
-          onSelectedSpellSlotLevelChange={() => {}}
-          onClose={() => setIsFixedSpellDrawerOpen(false)}
-          onAction={useFixedSpellAction}
+          spellSlotTotals={fixedSpellSlotTotals}
+          spellSlotsRemaining={fixedSpellSlotsRemaining}
+          selectedSpellSlotLevel={selectedFixedSpellSlotLevel}
+          onSelectedSpellSlotLevelChange={setSelectedFixedSpellSlotLevel}
+          onClose={() => {
+            setUseBeguilingMagicOnActionSpell(false);
+            setIsFixedSpellDrawerOpen(false);
+          }}
+          onAction={(options) =>
+            useFixedSpellAction({
+              ...options,
+              useBeguilingMagic: useBeguilingMagicOnActionSpell
+            })
+          }
           actionLabel={fixedSpellExecute.actionLabel}
-          actionConsumesSpellSlot={fixedSpellExecute.actionConsumesSpellSlot ?? false}
-          actionContextText={fixedSpellExecute.actionContextText}
-          actionAvailabilityText={fixedSpellExecute.actionAvailabilityText}
+          actionConsumesSpellSlot={fixedSpellConsumesSpellSlot}
+          minimumActionSpellSlotLevel={fixedSpellMinimumActionSlotLevel ?? undefined}
+          freeCastSlotLevel={fixedSpellFreeCastSlotLevel}
+          actionContextText={fixedSpellActionContextText}
+          actionAvailabilityText={fixedSpellActionAvailabilityText}
           actionWarning={selectedActionWarning}
           actionDisabled={selectedActionWarning !== null}
           blockedReason={spellcastingState.blocked ? spellcastingState.reason : null}
           allowRitualCasting={fixedSpellExecute.allowRitualCasting}
-          freeCastSlotLevel={fixedSpellExecute.freeCastSlotLevel}
+          actionOptions={
+            selectedActionSpellSupportsBeguilingMagic
+              ? [
+                  {
+                    id: "beguiling-magic",
+                    label: "Beguiling Magic",
+                    checked: useBeguilingMagicOnActionSpell,
+                    onCheckedChange: setUseBeguilingMagicOnActionSpell,
+                    disabled:
+                      beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
+                    tracker: {
+                      current: beguilingMagicUsesRemaining,
+                      total: beguilingMagicUsesTotal
+                    },
+                    fallbackCost:
+                      beguilingMagicUsesRemaining <= 0
+                        ? {
+                            label: "Use 1",
+                            icon: "music"
+                          }
+                        : undefined
+                  }
+                ]
+              : undefined
+          }
           backdropClassName={styles.divineInterventionDrawerBackdrop}
         />
       ) : null}
@@ -3133,13 +3412,46 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           spellSlotsRemaining={Array.from({ length: 9 }, () => 0)}
           selectedSpellSlotLevel={1}
           onSelectedSpellSlotLevelChange={() => {}}
-          onClose={() => setSelectedDivineInterventionSpell(null)}
-          onAction={useDivineInterventionSpell}
+          onClose={() => {
+            setUseBeguilingMagicOnActionSpell(false);
+            setSelectedDivineInterventionSpell(null);
+          }}
+          onAction={(options) =>
+            useDivineInterventionSpell({
+              ...options,
+              useBeguilingMagic: useBeguilingMagicOnActionSpell
+            })
+          }
           actionLabel="Divine Intervention"
           actionWarning={selectedActionWarning}
           actionDisabled={selectedActionWarning !== null}
           blockedReason={selectedDivineInterventionBlockedReason}
           actionAvailabilityText={selectedFeatureAction.usesLabel ?? null}
+          actionOptions={
+            selectedActionSpellSupportsBeguilingMagic
+              ? [
+                  {
+                    id: "beguiling-magic",
+                    label: "Beguiling Magic",
+                    checked: useBeguilingMagicOnActionSpell,
+                    onCheckedChange: setUseBeguilingMagicOnActionSpell,
+                    disabled:
+                      beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
+                    tracker: {
+                      current: beguilingMagicUsesRemaining,
+                      total: beguilingMagicUsesTotal
+                    },
+                    fallbackCost:
+                      beguilingMagicUsesRemaining <= 0
+                        ? {
+                            label: "Use 1",
+                            icon: "music"
+                          }
+                        : undefined
+                  }
+                ]
+              : undefined
+          }
           backdropClassName={styles.divineInterventionDrawerBackdrop}
         />
       ) : null}
@@ -3157,10 +3469,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           }
           onSelectedSpellSlotLevelChange={() => {}}
           onClose={() => {
+            setUseBeguilingMagicOnActionSpell(false);
             setSelectedMysticArcanumSpell(null);
             setSelectedMysticArcanumSpellLevel(null);
           }}
-          onAction={useMysticArcanumSpell}
+          onAction={(options) =>
+            useMysticArcanumSpell({
+              ...options,
+              useBeguilingMagic: useBeguilingMagicOnActionSpell
+            })
+          }
           actionConsumesSpellSlot={false}
           actionContextText="Using Mystic Arcanum"
           actionAvailabilityText="Cast without expending a spell slot. Mystic Arcanum spells can't be upcast."
@@ -3173,14 +3491,32 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             selectedMysticArcanumExpended || selectedMysticArcanumActionWarning !== null
           }
           blockedReason={selectedMysticArcanumBlockedReason}
+          actionOptions={
+            selectedActionSpellSupportsBeguilingMagic
+              ? [
+                  {
+                    id: "beguiling-magic",
+                    label: "Beguiling Magic",
+                    checked: useBeguilingMagicOnActionSpell,
+                    onCheckedChange: setUseBeguilingMagicOnActionSpell,
+                    disabled:
+                      beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
+                    tracker: {
+                      current: beguilingMagicUsesRemaining,
+                      total: beguilingMagicUsesTotal
+                    },
+                    fallbackCost:
+                      beguilingMagicUsesRemaining <= 0
+                        ? {
+                            label: "Use 1",
+                            icon: "music"
+                          }
+                        : undefined
+                  }
+                ]
+              : undefined
+          }
           backdropClassName={styles.divineInterventionDrawerBackdrop}
-        />
-      ) : null}
-
-      {isDiceRollerSettingsOpen && selectedAction ? (
-        <DiceRollerSettingsModal
-          actionName={selectedAction.name}
-          onClose={() => setIsDiceRollerSettingsOpen(false)}
         />
       ) : null}
 

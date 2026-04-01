@@ -13,8 +13,8 @@ import {
   warlockFeatureMap,
   wizardFeatureMap
 } from "../classes";
-import { CLASS_FEATURE } from "./enums";
-import type { FeatureMapEntry, FeatureTrackingState, KeywordTooltipEntry } from "./types";
+import { CLASS_FEATURE, TRACKER } from "./enums";
+import type { FeatureMapEntry, KeywordTooltipEntry } from "./types";
 
 export const KeywordTooltip: Record<string, KeywordTooltipEntry> = {
   "short-rest": {
@@ -64,19 +64,19 @@ export const KeywordTooltip: Record<string, KeywordTooltipEntry> = {
       "<strong>M (Material)</strong>: Specific, often magical, items must be produced or used, often held in a component pouch or spellcasting focus."
     ]
   },
-  tracked: {
+  [TRACKER.TRACKED]: {
     title: "Tracked",
     description: [
       "<strong>Tracked</strong> means the app is keeping track of this feature or rule interaction for you."
     ]
   },
-  "not-tracked": {
+  [TRACKER.NOT_TRACKED]: {
     title: "Not Tracked",
     description: [
       "<strong>Not Tracked</strong> means the app is not currently tracking this feature for you, so you need to remember it during play."
     ]
   },
-  "semi-tracked": {
+  [TRACKER.SEMI_TRACKED]: {
     title: "Semi Tracked",
     description: [
       "<strong>Semi Tracked</strong> means the app may handle parts of this feature but not all of them, so read the feature for more details."
@@ -84,24 +84,20 @@ export const KeywordTooltip: Record<string, KeywordTooltipEntry> = {
   }
 };
 
-export function getFeatureTrackingState(feature: FeatureMapEntry): FeatureTrackingState {
-  if (feature.trackingState) {
-    return feature.trackingState;
-  }
-
-  return feature.isTracked ? "tracked" : "not-tracked";
+export function getFeatureTrackingState(feature: FeatureMapEntry): TRACKER {
+  return feature.trackingState ?? TRACKER.NOT_TRACKED;
 }
 
 const commonFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   [CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT]: {
     description: ["You gain the Ability Score Improvement feat, or another feat of your choice for which you qualify."],
-    trackingState: "tracked"
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.EPIC_BOON]: {
     description: [
       "You gain an Epic Boon feat, or another feat of your choice for which you qualify."
     ],
-    isTracked: false
+    trackingState: TRACKER.NOT_TRACKED
   }
 };
 

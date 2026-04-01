@@ -68,12 +68,13 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
         return currentCharacter;
       }
 
+      const hitPointDelta = nextAutomaticHitPoints - currentCharacter.hitPoints;
       const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter({
         hitPoints: nextAutomaticHitPoints,
         statusEntries: currentCharacter.statusEntries
       });
       const nextCurrentHitPoints = clampNumber(
-        currentCharacter.currentHitPoints,
+        currentCharacter.currentHitPoints + hitPointDelta,
         0,
         nextEffectiveHitPoints,
         currentCharacter.currentHitPoints

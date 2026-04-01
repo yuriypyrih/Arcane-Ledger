@@ -1,4 +1,4 @@
-import { CLASS_FEATURE } from "../entries/enums";
+import { CLASS_FEATURE, TRACKER } from "../entries/enums";
 import type { FeatureClassObj, FeatureMapEntry } from "../entries/types";
 
 export type FighterFeatureClassObj = FeatureClassObj & {
@@ -20,7 +20,7 @@ export const fighterFeatures: FighterFeatureClassObj[] = [
           "Your training with weapons allows you to use the mastery properties of three kinds of Simple or Martial weapons of your choice. Whenever you finish a <link:long-rest>Long Rest</link>, you can practice weapon drills and change one of those weapon choices.",
           "When you reach certain Fighter levels, you gain the ability to use the mastery properties of more kinds of weapons, as shown in the Weapon Mastery column of the Fighter Features table."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     secondWind: 2,
@@ -52,7 +52,7 @@ export const fighterFeatures: FighterFeatureClassObj[] = [
         description: [
           "You can attack twice instead of once whenever you take the Attack action on your turn."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }
     },
     secondWind: 3,
@@ -145,7 +145,7 @@ export const fighterFeatures: FighterFeatureClassObj[] = [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
           "Boon of Combat Prowess is recommended."
         ],
-        isTracked: false
+        trackingState: TRACKER.NOT_TRACKED
       }
     },
     secondWind: 4,
@@ -165,7 +165,7 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "You have honed your martial prowess and gain a Fighting Style feat of your choice. Defense is recommended.",
       "Whenever you gain a Fighter level, you can replace the feat you chose with a different Fighting Style feat."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.SECOND_WIND]: {
     description: [
@@ -173,7 +173,7 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "You can use this feature twice. You regain one expended use when you finish a <link:short-rest>Short Rest</link>, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
       "When you reach certain Fighter levels, you gain more uses of this feature, as shown in the Second Wind column of the Fighter Features table."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.ACTION_SURGE]: {
     description: [
@@ -181,7 +181,7 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "Once you use this feature, you can't do so again until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",
       "Starting at level 17, you can use it twice before a rest but only once on a turn."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.TACTICAL_MIND]: {
     description: [
@@ -189,13 +189,13 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "When you fail an ability check, you can expend a use of your Second Wind to push yourself toward success. Rather than regaining Hit Points, you roll 1d10 and add the number rolled to the ability check, potentially turning it into a success.",
       "If the check still fails, this use of Second Wind isn't expended."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.TACTICAL_SHIFT]: {
     description: [
       "Whenever you activate your Second Wind with a Bonus Action, you can move up to half your Speed without provoking Opportunity Attacks."
     ],
-    isTracked: false
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.INDOMITABLE]: {
     description: [
@@ -203,31 +203,31 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "You must use the new roll, and you can't use this feature again until you finish a <link:long-rest>Long Rest</link>.",
       "You can use this feature twice before a Long Rest starting at level 13 and three times before a Long Rest starting at level 17."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.TACTICAL_MASTER]: {
     description: [
       "When you attack with a weapon whose mastery property you can use, you can replace that property with the Push, Sap, or Slow property for that attack."
     ],
-    isTracked: false
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.TWO_EXTRA_ATTACKS]: {
     description: [
       "You can attack three times instead of once whenever you take the Attack action on your turn."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.STUDIED_ATTACKS]: {
     description: [
       "You study your opponents and learn from each attack you make.",
       "If you make an attack roll against a creature and miss, you have Advantage on your next attack roll against that creature before the end of your next turn."
     ],
-    isTracked: false
+    trackingState: TRACKER.NOT_TRACKED
   },
   [CLASS_FEATURE.THREE_EXTRA_ATTACKS]: {
     description: [
       "You can attack four times instead of once whenever you take the Attack action on your turn."
     ],
-    isTracked: true
+    trackingState: TRACKER.TRACKED
   }
 };

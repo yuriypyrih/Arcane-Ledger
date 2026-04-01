@@ -97,8 +97,12 @@
 }
 
 .footerActionShape {
-  --shape-fill: rgba(255, 255, 255, 0.22);
-  --shape-stroke: #ffffff;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.76);
+  border-radius: 999px;
+  flex-shrink: 0;
+  justify-content: center;
+  padding: 0.18rem;
 }
 
 .weaponFooterIconButton {

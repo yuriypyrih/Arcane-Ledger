@@ -23,6 +23,7 @@ import {
 import {
   canUseMonkMartialArtsForCharacter,
   hasBatteringRootsBonusForCharacter,
+  getUnarmedStrikeConfigForCharacter,
   getWeaponActionEconomyMultiForCharacter,
   getFeatureDamageBonusesForWeaponAction,
   getMonkFlurryOfBlowsAttackMultiCountForCharacter,
@@ -84,6 +85,8 @@ export type WeaponAction = {
   rollFormulaDisplay: string;
   ability: AbilityKey;
   abilityModifier: number;
+  damageAbility?: AbilityKey;
+  damageAbilityModifier?: number;
   proficiencyLabel: string;
   proficiencyBonus: number;
   totalModifier: number;
@@ -456,6 +459,8 @@ function createWeaponAction(
     rollFormulaBase: string;
     ability: AbilityKey;
     abilityModifier: number;
+    damageAbility?: AbilityKey;
+    damageAbilityModifier?: number;
     proficiencyLabel: string;
     proficiencyBonus: number;
     economyType?: EconomyType;
@@ -486,8 +491,9 @@ function createWeaponAction(
     damageBonusEntries,
     formatFeatureDamageBonusFormula
   );
-  const totalModifier =
-    options.abilityModifier + options.proficiencyBonus + getDamageBonusTotal(damageBonusEntries);
+  const damageAbilityModifier = options.damageAbilityModifier ?? options.abilityModifier;
+  const damageAbility = options.damageAbility ?? options.ability;
+  const totalModifier = damageAbilityModifier + getDamageBonusTotal(damageBonusEntries);
   const indicators = getWeaponAttackIndicatorsForCharacter(character);
   const hasBatteringRootsBonus = hasBatteringRootsBonusForCharacter(character, {
     attackKind: options.attackKind,
@@ -508,6 +514,8 @@ function createWeaponAction(
     rollFormulaDisplay: createRollFormula(damageFormula, totalModifier),
     ability: options.ability,
     abilityModifier: options.abilityModifier,
+    damageAbility,
+    damageAbilityModifier,
     proficiencyLabel: options.proficiencyLabel,
     proficiencyBonus: options.proficiencyBonus,
     totalModifier,
@@ -659,7 +667,14 @@ export function getPassivePerceptionForCharacter(character: Character): number {
 function createUnarmedStrikeAction(
   character: Pick<
     Character,
-    "abilities" | "className" | "level" | "classFeatureState" | "subclassId" | "roundTracker"
+    | "abilities"
+    | "className"
+    | "level"
+    | "classFeatureState"
+    | "subclassId"
+    | "roundTracker"
+    | "equipment"
+    | "customEquipment"
   >,
   options?: {
     martialArtsDie?: DICE | null;
@@ -668,14 +683,28 @@ function createUnarmedStrikeAction(
   }
 ): WeaponAction {
   const effectiveAbilityScores = getAbilityScoresForCharacter(character);
-  const ability: AbilityKey = options?.martialArtsDie
-    ? resolveWeaponAbility("finesse", effectiveAbilityScores)
-    : "STR";
+  const unarmedStrikeConfig = getUnarmedStrikeConfigForCharacter(character);
+  const attackAbilityRule: WeaponAbilityRule =
+    unarmedStrikeConfig?.attackAbility === "finesse"
+      ? "finesse"
+      : unarmedStrikeConfig?.attackAbility === "DEX"
+        ? "dexterity"
+        : unarmedStrikeConfig?.attackAbility === "STR"
+          ? "strength"
+          : options?.martialArtsDie
+            ? "finesse"
+            : "strength";
+  const ability = resolveWeaponAbility(attackAbilityRule, effectiveAbilityScores);
   const abilityModifier = getAbilityModifier(getAbilityScoreForCharacter(character, ability));
-  const damageFormula = options?.martialArtsDie
-    ? `1${String(options.martialArtsDie).toLowerCase()}`
-    : "1";
-  const damageTypeLabel = getMonkUnarmedDamageTypeLabelForCharacter(character);
+  const damageAbility = unarmedStrikeConfig?.damageAbility ?? ability;
+  const damageAbilityModifier = getAbilityModifier(
+    getAbilityScoreForCharacter(character, damageAbility)
+  );
+  const damageFormula =
+    unarmedStrikeConfig?.damageFormula ??
+    (options?.martialArtsDie ? `1${String(options.martialArtsDie).toLowerCase()}` : "1");
+  const damageTypeLabel =
+    unarmedStrikeConfig?.damageTypeLabel ?? getMonkUnarmedDamageTypeLabelForCharacter(character);
 
   return createWeaponAction(character, {
     key: "unarmed-strike",
@@ -688,6 +717,8 @@ function createUnarmedStrikeAction(
     rollFormulaBase: damageFormula,
     ability,
     abilityModifier,
+    damageAbility,
+    damageAbilityModifier,
     proficiencyLabel: "Unarmed strike",
     proficiencyBonus: 0,
     economyType: options?.economyType,

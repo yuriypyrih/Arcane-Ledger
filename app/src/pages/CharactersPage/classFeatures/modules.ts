@@ -2,6 +2,7 @@ import type { Character, CharacterClassFeatureState, WEAPON_PROFICIENCY } from "
 import { createDefaultAbilities } from "../constants";
 import {
   activateBardicInspiration,
+  activateMantleOfInspiration,
   applyLongRestToBardFeatures,
   applyShortRestToBardFeatures,
   bardicInspirationActionKey,
@@ -11,6 +12,7 @@ import {
   getBardSkillBonuses,
   getBardSkillProficiencyEntries,
   getBardicInspirationDie,
+  mantleOfInspirationActionKey,
   normalizeBardFeatureState
 } from "./bard";
 import {
@@ -346,7 +348,15 @@ const classFeatureModules = {
       };
     },
     handleAction(character, actionKey) {
-      return actionKey === bardicInspirationActionKey ? activateBardicInspiration(character) : null;
+      if (actionKey === bardicInspirationActionKey) {
+        return activateBardicInspiration(character);
+      }
+
+      if (actionKey === mantleOfInspirationActionKey) {
+        return activateMantleOfInspiration(character);
+      }
+
+      return null;
     },
     applyShortRest: applyShortRestToBardFeatures,
     applyLongRest: applyLongRestToBardFeatures
@@ -685,6 +695,7 @@ export function collectActiveClassFeatureState(
         Character,
         | "subclassId"
         | "classFeatureState"
+        | "spellSlotsExpended"
         | "abilities"
         | "statusEntries"
         | "roundTracker"
@@ -706,6 +717,7 @@ export function collectActiveClassFeatureState(
     abilities: createDefaultAbilities(),
     subclassId: undefined,
     classFeatureState: {},
+    spellSlotsExpended: [],
     statusEntries: [],
     roundTracker: undefined,
     equipment: [],

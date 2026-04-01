@@ -3,6 +3,7 @@ import { barbarianStarterPack } from "../../../codex/classes/starterPack";
 import {
   CLASS_FEATURE,
   DAMAGE_TYPE,
+  TRACKER,
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
   WEAPON_PROPERTY
@@ -121,7 +122,7 @@ const wildHeartRageOptionDefinitions = [
     key: "bear",
     name: "Bear",
     summary: "Tracked",
-    trackingState: "tracked",
+    trackingState: TRACKER.TRACKED,
     description:
       "While your Rage is active, you have Resistance to every damage type except Force, Necrotic, Psychic, and Radiant."
   },
@@ -129,7 +130,7 @@ const wildHeartRageOptionDefinitions = [
     key: "eagle",
     name: "Eagle",
     summary: "Not Tracked",
-    trackingState: "not-tracked",
+    trackingState: TRACKER.NOT_TRACKED,
     description:
       "When you activate your Rage, you can take the Disengage and Dash actions as part of that Bonus Action. While your Rage is active, you can take a Bonus Action to take both of those actions."
   },
@@ -137,7 +138,7 @@ const wildHeartRageOptionDefinitions = [
     key: "wolf",
     name: "Wolf",
     summary: "Not Tracked",
-    trackingState: "not-tracked",
+    trackingState: TRACKER.NOT_TRACKED,
     description:
       "While your Rage is active, your allies have Advantage on attack rolls against any enemy of yours within 5 feet of you."
   }
@@ -145,7 +146,7 @@ const wildHeartRageOptionDefinitions = [
   key: WildHeartRageOption;
   name: string;
   summary: string;
-  trackingState: "tracked" | "not-tracked";
+  trackingState: TRACKER.TRACKED | TRACKER.NOT_TRACKED;
   description: string;
 }>;
 const wildHeartPowerOptionDefinitions = [
@@ -153,7 +154,7 @@ const wildHeartPowerOptionDefinitions = [
     key: "falcon",
     name: "Falcon",
     summary: "Tracked",
-    trackingState: "tracked",
+    trackingState: TRACKER.TRACKED,
     description:
       "While your Rage is active, you have a Fly Speed equal to your Speed if you aren't wearing any armor."
   },
@@ -161,7 +162,7 @@ const wildHeartPowerOptionDefinitions = [
     key: "lion",
     name: "Lion",
     summary: "Not Tracked",
-    trackingState: "not-tracked",
+    trackingState: TRACKER.NOT_TRACKED,
     description:
       "While your Rage is active, any of your enemies within 5 feet of you have Disadvantage on attack rolls against targets other than you or another Barbarian who has this option active."
   },
@@ -169,7 +170,7 @@ const wildHeartPowerOptionDefinitions = [
     key: "ram",
     name: "Ram",
     summary: "Not Tracked",
-    trackingState: "not-tracked",
+    trackingState: TRACKER.NOT_TRACKED,
     description:
       "While your Rage is active, you can cause a Large or smaller creature to have the Prone condition when you hit it with a melee attack."
   }
@@ -177,7 +178,7 @@ const wildHeartPowerOptionDefinitions = [
   key: WildHeartPowerOption;
   name: string;
   summary: string;
-  trackingState: "tracked" | "not-tracked";
+  trackingState: TRACKER.TRACKED | TRACKER.NOT_TRACKED;
   description: string;
 }>;
 const wildHeartAspectDefinitions = [

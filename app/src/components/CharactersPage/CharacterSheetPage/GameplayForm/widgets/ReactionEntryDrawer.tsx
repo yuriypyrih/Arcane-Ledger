@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
+import ActionShape from "../../../../ActionShape";
 import {
   type DivinityEntry,
   type ReactionEntry,
@@ -116,11 +117,17 @@ function ReactionEntryDrawer({
             </div>
             <button
               type="button"
-              className={sheetStyles.castButton}
+              className={clsx(sheetStyles.castButton, styles.castActionButton)}
               onClick={onCast}
               disabled={actionWarning !== null}
             >
               Take Reaction
+              <ActionShape
+                shape="reaction"
+                isSelected={actionWarning === null}
+                className={styles.castActionShape}
+                aria-label="Reaction action state"
+              />
             </button>
           </div>
         </section>

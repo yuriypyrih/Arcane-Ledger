@@ -1,4 +1,4 @@
-import { Brain, Flame, Sparkles } from "lucide-react";
+import { Brain, Flame, Music, Sparkles } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type {
   DivinityEntry,
@@ -25,6 +25,7 @@ import {
 } from "../../../../Overlay";
 import type {
   FeatureActionFact,
+  FeatureActionIcon,
   FeatureActionResource
 } from "../../../../../pages/CharactersPage/classFeatures";
 import type { ResolvedKeywordReference } from "../../../../../utils/codex/renderCodexRichText";
@@ -49,13 +50,17 @@ type GameplayActionDrawerProps = {
   drawerClassName?: string;
 };
 
-function renderUsesIcon(icon?: "brain" | "sparkles" | "flame") {
+function renderUsesIcon(icon?: FeatureActionIcon) {
   if (icon === "brain") {
     return <Brain size={14} strokeWidth={2.1} />;
   }
 
   if (icon === "sparkles") {
     return <Sparkles size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "music") {
+    return <Music size={14} strokeWidth={2.1} />;
   }
 
   if (icon === "flame") {

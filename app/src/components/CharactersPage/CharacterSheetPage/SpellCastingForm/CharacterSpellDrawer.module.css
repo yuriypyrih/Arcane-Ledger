@@ -24,6 +24,17 @@
   gap: 0.18rem;
 }
 
+.castingTimeContent {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+}
+
+.castingTimeShape {
+  flex-shrink: 0;
+}
+
 .spellDetailButton {
   border: none;
   color: inherit;

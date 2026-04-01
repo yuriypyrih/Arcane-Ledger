@@ -3,18 +3,33 @@ import { getReactionEntryById, CLASS_FEATURE, type DICE, type ReactionEntry } fr
 import type { BardFeatureClassObj } from "../../../types";
 import type { Character, CharacterBardFeatureState, SkillName, SkillProficiencyEntry } from "../../../types";
 import {
+  EFFECT_NAME,
   getSkillProficiencyForSkillName,
   isSkillName,
   PROFICIENCY_OVERRIDE_POLICY,
   PROF_LEVEL,
-  PROFICIENCY_SOURCE
+  PROFICIENCY_SOURCE,
+  STATUS_DURATION_KIND,
+  STATUS_ENTRY_GROUP,
+  STATUS_ENTRY_SOURCE_TYPE
 } from "../../../types";
 import { getFeatAbilityScoreBonusesForCharacter } from "../feats";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../spellcasting";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
-import type { FeatureActionCard, FeatureSkillBonus, FeatureSkillProficiencyEntry } from "./types";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../traits";
+import type {
+  FeatureActionCard,
+  FeatureActionResource,
+  FeatureSkillBonus,
+  FeatureSkillProficiencyEntry
+} from "./types";
 
 const bardicInspirationActionKey = "bard-bardic-inspiration";
+const mantleOfInspirationActionKey = "bard-mantle-of-inspiration";
+const mantleOfMajestyActionKey = "bard-mantle-of-majesty";
+const collegeOfGlamourSubclassId = "bard-college-of-glamour";
+const mantleOfMajestyStatusSourceId = "feature-bard-mantle-of-majesty";
+const mantleOfMajestyConcentrationSourceId = "feature-bard-mantle-of-majesty-concentration";
 const wordsOfCreationAlwaysPreparedSpellIds = [
   "spell-power-word-heal",
   "spell-power-word-kill"
@@ -63,6 +78,36 @@ function hasBardLevel2Expertise(character: Pick<Character, "className" | "level"
 
 function hasBardLevel9Expertise(character: Pick<Character, "className" | "level">): boolean {
   return character.className === "Bard" && character.level >= 9;
+}
+
+function hasBeguilingMagicFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Bard" &&
+    character.subclassId === collegeOfGlamourSubclassId &&
+    (character.level ?? 0) >= 3
+  );
+}
+
+function hasMantleOfInspirationFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Bard" &&
+    character.subclassId === collegeOfGlamourSubclassId &&
+    (character.level ?? 0) >= 3
+  );
+}
+
+function hasMantleOfMajestyFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Bard" &&
+    character.subclassId === collegeOfGlamourSubclassId &&
+    (character.level ?? 0) >= 6
+  );
 }
 
 function normalizeBardExpertiseSelections(value: unknown): SkillName[] {
@@ -169,19 +214,29 @@ function getBardicInspirationBaseUsesTotal(
 
 export function normalizeBardFeatureState(
   value: unknown,
-  character: Pick<Character, "className" | "level">
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): CharacterBardFeatureState {
   const hasBardicInspiration = hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION);
   const hasLevel2Expertise = hasBardLevel2Expertise(character);
   const hasLevel9Expertise = hasBardLevel9Expertise(character);
+  const hasBeguilingMagic = hasBeguilingMagicFeature(character);
+  const hasMantleOfMajesty = hasMantleOfMajestyFeature(character);
 
-  if (!hasBardicInspiration && !hasLevel2Expertise && !hasLevel9Expertise) {
+  if (
+    !hasBardicInspiration &&
+    !hasLevel2Expertise &&
+    !hasLevel9Expertise &&
+    !hasBeguilingMagic &&
+    !hasMantleOfMajesty
+  ) {
     return {};
   }
 
   const record = value && typeof value === "object" ? (value as Partial<CharacterBardFeatureState>) : {};
   const usesExpended = Number(record.bardicInspirationUsesExpended);
   const temporaryTotal = Number(record.bardicInspirationTemporaryTotal);
+  const beguilingMagicUsesExpended = Number(record.beguilingMagicUsesExpended);
+  const mantleOfMajestyUsesExpended = Number(record.mantleOfMajestyUsesExpended);
   const expertiseRecord =
     record.expertise && typeof record.expertise === "object" ? record.expertise : undefined;
 
@@ -194,6 +249,18 @@ export function normalizeBardFeatureState(
     bardicInspirationTemporaryTotal: hasBardicInspiration && Number.isFinite(temporaryTotal)
       ? Math.max(0, Math.floor(temporaryTotal))
       : undefined,
+    beguilingMagicUsesExpended:
+      hasBeguilingMagic && Number.isFinite(beguilingMagicUsesExpended)
+        ? Math.max(0, Math.floor(beguilingMagicUsesExpended))
+        : hasBeguilingMagic
+          ? 0
+          : undefined,
+    mantleOfMajestyUsesExpended:
+      hasMantleOfMajesty && Number.isFinite(mantleOfMajestyUsesExpended)
+        ? Math.max(0, Math.floor(mantleOfMajestyUsesExpended))
+        : hasMantleOfMajesty
+          ? 0
+          : undefined,
     expertise:
       hasLevel2Expertise || hasLevel9Expertise
         ? {
@@ -209,7 +276,8 @@ export function normalizeBardFeatureState(
 }
 
 export function getBardFeatureState(
-  character: Pick<Character, "className" | "level" | "abilities" | "classFeatureState" | "feats">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "abilities" | "feats" | "subclassId">>
 ): CharacterBardFeatureState {
   return normalizeBardFeatureState(character.classFeatureState?.bard, character);
 }
@@ -287,6 +355,245 @@ export function getBardAlwaysPreparedSpellIds(
   return [...wordsOfCreationAlwaysPreparedSpellIds];
 }
 
+export function getBeguilingMagicUsesTotal(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return hasBeguilingMagicFeature(character) ? 1 : 0;
+}
+
+export function getBeguilingMagicUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  const totalUses = getBeguilingMagicUsesTotal(character);
+  const bardState = getBardFeatureState(character);
+
+  return Math.max(0, totalUses - (bardState.beguilingMagicUsesExpended ?? 0));
+}
+
+export function consumeBeguilingMagicUse(character: Character): Character {
+  const totalUses = getBeguilingMagicUsesTotal(character);
+
+  if (totalUses <= 0) {
+    return character;
+  }
+
+  const bardState = getBardFeatureState(character);
+  const currentExpended = Math.max(0, bardState.beguilingMagicUsesExpended ?? 0);
+
+  if (currentExpended >= totalUses) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        beguilingMagicUsesExpended: currentExpended + 1
+      }
+    }
+  };
+}
+
+export function restoreBeguilingMagicOnLongRest(character: Character): Character {
+  const totalUses = getBeguilingMagicUsesTotal(character);
+
+  if (totalUses <= 0) {
+    return character;
+  }
+
+  const bardState = getBardFeatureState(character);
+
+  if ((bardState.beguilingMagicUsesExpended ?? 0) <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        beguilingMagicUsesExpended: 0
+      }
+    }
+  };
+}
+
+export function consumeBeguilingMagicOrBardicInspiration(character: Character): Character {
+  if (getBeguilingMagicUsesTotal(character) <= 0) {
+    return character;
+  }
+
+  if (getBeguilingMagicUsesRemaining(character) > 0) {
+    return consumeBeguilingMagicUse(character);
+  }
+
+  return expendBardicInspirationUse(character);
+}
+
+export function getMantleOfMajestyUsesTotal(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return hasMantleOfMajestyFeature(character) ? 1 : 0;
+}
+
+export function getMantleOfMajestyUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  const totalUses = getMantleOfMajestyUsesTotal(character);
+  const bardState = getBardFeatureState(character);
+
+  return Math.max(0, totalUses - (bardState.mantleOfMajestyUsesExpended ?? 0));
+}
+
+export function getMantleOfMajestyFallbackSlotLevel(
+  character: Pick<Character, "className" | "level" | "spellSlotsExpended">
+): number | null {
+  const totals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const expended = normalizeSpellSlotsExpended(character.spellSlotsExpended, totals);
+
+  for (let slotLevel = 3; slotLevel <= 9; slotLevel += 1) {
+    const remainingSlots = Math.max(
+      0,
+      (totals[slotLevel - 1] ?? 0) - (expended[slotLevel - 1] ?? 0)
+    );
+
+    if (remainingSlots > 0) {
+      return slotLevel;
+    }
+  }
+
+  return null;
+}
+
+export function getMantleOfMajestyFallbackSlotSummary(
+  character: Pick<Character, "className" | "level" | "spellSlotsExpended">
+): { total: number; remaining: number } {
+  const totals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const expended = normalizeSpellSlotsExpended(character.spellSlotsExpended, totals);
+
+  return totals.reduce(
+    (summary, total, index) => {
+      const slotLevel = index + 1;
+
+      if (slotLevel < 3) {
+        return summary;
+      }
+
+      return {
+        total: summary.total + total,
+        remaining: summary.remaining + Math.max(0, total - (expended[index] ?? 0))
+      };
+    },
+    { total: 0, remaining: 0 }
+  );
+}
+
+export function consumeMantleOfMajestyUse(character: Character): Character {
+  if (!hasMantleOfMajestyFeature(character) || getMantleOfMajestyUsesRemaining(character) <= 0) {
+    return character;
+  }
+
+  const bardState = getBardFeatureState(character);
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        mantleOfMajestyUsesExpended: (bardState.mantleOfMajestyUsesExpended ?? 0) + 1
+      }
+    }
+  };
+}
+
+export function restoreMantleOfMajestyOnLongRest(character: Character): Character {
+  if (getMantleOfMajestyUsesTotal(character) <= 0) {
+    return character;
+  }
+
+  const bardState = getBardFeatureState(character);
+
+  if ((bardState.mantleOfMajestyUsesExpended ?? 0) <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        mantleOfMajestyUsesExpended: 0
+      }
+    }
+  };
+}
+
+export function hasActiveMantleOfMajesty(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "subclassId" | "statusEntries">>
+): boolean {
+  if (character.className !== "Bard" || character.subclassId !== collegeOfGlamourSubclassId) {
+    return false;
+  }
+
+  return normalizeCharacterStatusEntries(character.statusEntries).some(
+    (entry) =>
+      entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+      entry.value === "Mantle of Majesty" &&
+      entry.sourceId === mantleOfMajestyStatusSourceId
+  );
+}
+
+export function applyMantleOfMajestyStatus(character: Character): Character {
+  const nextStatusEntries = normalizeCharacterStatusEntries(character.statusEntries).filter(
+    (entry) =>
+      !(
+        (entry.group === STATUS_ENTRY_GROUP.EFFECTS && entry.value === EFFECT_NAME.CONCENTRATION) ||
+        (entry.duration.kind === STATUS_DURATION_KIND.LINKED &&
+          entry.duration.linkedGroup === STATUS_ENTRY_GROUP.EFFECTS &&
+          entry.duration.linkedValue === EFFECT_NAME.CONCENTRATION) ||
+        entry.sourceId === mantleOfMajestyStatusSourceId ||
+        entry.sourceId === mantleOfMajestyConcentrationSourceId
+      )
+  );
+
+  return {
+    ...character,
+    statusEntries: [
+      ...nextStatusEntries,
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: EFFECT_NAME.CONCENTRATION,
+        source: "Mantle of Majesty",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+        duration: {
+          kind: STATUS_DURATION_KIND.MINUTES,
+          amount: 1
+        },
+        sourceId: mantleOfMajestyConcentrationSourceId
+      }),
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: "Mantle of Majesty",
+        source: "College of Glamour",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+        duration: {
+          kind: STATUS_DURATION_KIND.LINKED,
+          linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+          linkedValue: EFFECT_NAME.CONCENTRATION
+        },
+        sourceId: mantleOfMajestyStatusSourceId
+      })
+    ]
+  };
+}
+
 export function getBardReactionEntries(
   character: Pick<Character, "className" | "level">
 ): ReactionEntry[] {
@@ -346,6 +653,78 @@ export function getBardicInspirationUsesRemaining(
   return Math.max(0, totalUses - (bardState.bardicInspirationUsesExpended ?? 0));
 }
 
+export function expendBardicInspirationUse(character: Character): Character {
+  if (!hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION)) {
+    return character;
+  }
+
+  const bardState = getBardFeatureState(character);
+  const totalUses = getBardicInspirationUsesTotal(character);
+  const currentExpended = Math.max(0, bardState.bardicInspirationUsesExpended ?? 0);
+
+  if (currentExpended >= totalUses) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        bardicInspirationUsesExpended: currentExpended + 1
+      }
+    }
+  };
+}
+
+export function restoreBardicInspirationUse(character: Character): Character {
+  if (!hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION)) {
+    return character;
+  }
+
+  const bardState = getBardFeatureState(character);
+  const currentExpended = Math.max(0, bardState.bardicInspirationUsesExpended ?? 0);
+
+  if (currentExpended <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        bardicInspirationUsesExpended: currentExpended - 1
+      }
+    }
+  };
+}
+
+export function restoreAllBardicInspirationUses(character: Character): Character {
+  if (!hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION)) {
+    return character;
+  }
+
+  const bardState = getBardFeatureState(character);
+
+  if ((bardState.bardicInspirationUsesExpended ?? 0) <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        bardicInspirationUsesExpended: 0
+      }
+    }
+  };
+}
+
 function getBardSpellSlotAvailability(
   character: Pick<Character, "className" | "level" | "spellSlotsExpended">
 ): {
@@ -391,16 +770,29 @@ export function getBardFeatureAction(
   const spellSlotAvailability = getBardSpellSlotAvailability(character);
   const canSpendSpellSlotForUse =
     fontOfInspirationUnlocked && usesRemaining <= 0 && spellSlotAvailability.remainingCount > 0;
-  const usesLabelParts = [`${bardicDieLabel}`, `${usesRemaining}/${totalUses} uses`];
-  const usesSupplementaryLabelParts = [bardicDieLabel];
-
-  if (fontOfInspirationUnlocked && usesRemaining <= 0) {
-    const spellSlotLabel = `${spellSlotAvailability.remainingCount}/${spellSlotAvailability.totalCount} spell slots`;
-    usesLabelParts.push(
-      spellSlotLabel
-    );
-    usesSupplementaryLabelParts.push(spellSlotLabel);
-  }
+  const spellSlotLabel =
+    fontOfInspirationUnlocked && usesRemaining <= 0
+      ? `${spellSlotAvailability.remainingCount}/${spellSlotAvailability.totalCount} spell slots`
+      : undefined;
+  const drawerResources: FeatureActionResource[] = [
+    {
+      kind: "tracker",
+      label: "Uses",
+      current: usesRemaining,
+      total: totalUses,
+      icon: "music",
+      cost: 1
+    },
+    ...(spellSlotLabel
+      ? [
+          {
+            kind: "text" as const,
+            label: "Spell Slots",
+            value: spellSlotLabel
+          }
+        ]
+      : [])
+  ];
 
   const disabled = usesRemaining <= 0 && !canSpendSpellSlotForUse;
   const disabledReason =
@@ -418,10 +810,25 @@ export function getBardFeatureAction(
       "Use a Bonus Action to inspire another creature within 60 feet that can see or hear you.",
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
-    usesLabel: usesLabelParts.join(" | "),
     usesRemaining,
     usesTotal: totalUses,
-    usesSupplementaryLabel: usesSupplementaryLabelParts.join(" | "),
+    hideUsesTrackerOnCard: true,
+    usesSupplementaryLabel: spellSlotLabel,
+    usesInlineLabel: "Use 1",
+    usesInlineIcon: "music",
+    description: [
+      "Use a Bonus Action to inspire another creature within 60 feet that can see or hear you."
+    ],
+    drawer: {
+      kind: "confirm",
+      eyebrow: "Bard",
+      confirmLabel: "Use Bardic Inspiration",
+      resources: drawerResources
+    },
+    execute: {
+      kind: "activate",
+      label: "Use Bardic Inspiration"
+    },
     disabled,
     disabledReason
   };
@@ -437,16 +844,7 @@ export function activateBardicInspiration(character: Character): Character {
   const totalUses = getBardicInspirationUsesTotal(character);
 
   if (usesExpended < totalUses) {
-    return {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        bard: {
-          ...bardState,
-          bardicInspirationUsesExpended: usesExpended + 1
-        }
-      }
-    };
+    return expendBardicInspirationUse(character);
   }
 
   if (!hasFontOfInspiration(character)) {
@@ -467,6 +865,18 @@ export function activateBardicInspiration(character: Character): Character {
     ...character,
     spellSlotsExpended: nextSpellSlotsExpended
   };
+}
+
+export function activateMantleOfInspiration(character: Character): Character {
+  if (!hasMantleOfInspirationFeature(character)) {
+    return character;
+  }
+
+  if (getBardicInspirationUsesRemaining(character) <= 0) {
+    return character;
+  }
+
+  return expendBardicInspirationUse(character);
 }
 
 export function applySuperiorInspirationOnInitiative(character: Character): Character {
@@ -524,6 +934,26 @@ export function applyShortRestToBardFeatures(character: Character): Character {
 
 export function applyLongRestToBardFeatures(character: Character): Character {
   if (!hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION)) {
+    return restoreMantleOfMajestyOnLongRest(restoreBeguilingMagicOnLongRest(character));
+  }
+
+  const nextCharacter = {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...getBardFeatureState(character),
+        bardicInspirationUsesExpended: 0,
+        bardicInspirationTemporaryTotal: undefined
+      }
+    }
+  };
+
+  return restoreMantleOfMajestyOnLongRest(restoreBeguilingMagicOnLongRest(nextCharacter));
+}
+
+export function restoreBardicInspirationOnLongRest(character: Character): Character {
+  if (!hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION)) {
     return character;
   }
 
@@ -540,4 +970,9 @@ export function applyLongRestToBardFeatures(character: Character): Character {
   };
 }
 
-export { bardicInspirationActionKey };
+export {
+  bardicInspirationActionKey,
+  mantleOfInspirationActionKey,
+  mantleOfMajestyActionKey,
+  mantleOfMajestyStatusSourceId
+};

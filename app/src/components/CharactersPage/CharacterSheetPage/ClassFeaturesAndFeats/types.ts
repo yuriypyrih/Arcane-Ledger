@@ -5,6 +5,7 @@ import type {
   FEATS,
   DivinityEntry,
   FeatureMapEntry,
+  TRACKER,
   SpellEntry
 } from "../../../../codex/entries";
 import type {
@@ -23,8 +24,7 @@ export type FeatureRow = {
   details: FeatureMapEntry;
 };
 
-export type TrackingState = "tracked" | "semi-tracked" | "not-tracked";
-export type TrackingButtonRenderer = (trackingState: TrackingState) => ReactNode;
+export type TrackingButtonRenderer = (trackingState: TRACKER) => ReactNode;
 
 export type SelectedKeyword = {
   key: string;

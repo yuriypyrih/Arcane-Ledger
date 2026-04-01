@@ -22,6 +22,7 @@ import {
   FeatureMap,
   GENERAL_PROFICIENCIES,
   KeywordTooltip,
+  TRACKER,
   getFeatureTrackingState,
   type DivinityEntry,
   type FeatureMapEntry,
@@ -313,7 +314,7 @@ function CodexEntryPage() {
     );
   }
 
-  function openTrackingReference(trackingState: "tracked" | "semi-tracked" | "not-tracked") {
+  function openTrackingReference(trackingState: TRACKER) {
     const reference = resolveKeywordReference(trackingState);
 
     if (!reference) {

@@ -1,4 +1,4 @@
-import { CLASS_FEATURE } from "../entries/enums";
+import { CLASS_FEATURE, TRACKER } from "../entries/enums";
 import type {
   FeatureMapEntry,
   SubclassEntry,
@@ -53,18 +53,18 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
           "To determine the extra damage, roll a number of <strong>d6</strong>s equal to your Rage Damage bonus and add them together.",
           "The damage has the same type as the weapon or Unarmed Strike used for the attack."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.MINDLESS_RAGE, {
         description: [
           "You have <link:Immunity>Immunity</link> to the <link:Charmed>Charmed</link> and <link:Frightened>Frightened</link> conditions while your <link:Rage>Rage</link> is active.",
           "If you're Charmed or Frightened when you enter your Rage, the condition ends on you."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.RETALIATION, {
         description: berserkerRetaliationDescription,
-        trackingState: "semi-tracked"
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_14,
@@ -78,7 +78,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
             "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link> unless you expend a use of your <link:Rage>Rage</link>, no action required, to restore your use of it.",
             "This feature is <link:semi-tracked>Semi Tracked</link>. The usage is tracked but not the effect of the feature."
           ],
-          trackingState: "semi-tracked"
+          trackingState: TRACKER.SEMI_TRACKED
         }
       )
     ]
@@ -96,7 +96,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
           "You can cast <spell:Beast Sense>Beast Sense</spell> and <spell:Speak with Animals>Speak with Animals</spell>, but only as Rituals.",
           "Wisdom is your spellcasting ability for them."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.RAGE_OF_THE_WILDS, {
         description: [
@@ -105,7 +105,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
           "<strong>Eagle.</strong> When you activate your Rage, you can take the Disengage and Dash actions as part of that Bonus Action. While your Rage is active, you can take a Bonus Action to take both of those actions. <link:not-tracked>Not Tracked</link>",
           "<strong>Wolf.</strong> While your Rage is active, your allies have <link:Advantage>Advantage</link> on attack rolls against any enemy of yours within 5 feet of you. <link:not-tracked>Not Tracked</link>"
         ],
-        trackingState: "semi-tracked"
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.ASPECT_OF_THE_WILDS, {
         description: [
@@ -114,14 +114,14 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
           "<strong>Panther.</strong> You have a Climb Speed equal to your Speed.",
           "<strong>Salmon.</strong> You have a Swim Speed equal to your Speed."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.NATURE_SPEAKER, {
         description: [
           "You can cast <spell:Commune with Nature>Commune with Nature</spell>, but only as a Ritual.",
           "Wisdom is your spellcasting ability for it."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.POWER_OF_THE_WILDS, {
         description: [
@@ -130,7 +130,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
           "<strong>Lion.</strong> While your Rage is active, any of your enemies within 5 feet of you have <link:Disadvantage>Disadvantage</link> on attack rolls against targets other than you or another Barbarian who has this option active. <link:not-tracked>Not Tracked</link>",
           "<strong>Ram.</strong> While your Rage is active, you can cause a Large or smaller creature to have the <link:Prone>Prone</link> condition when you hit it with a melee attack. <link:not-tracked>Not Tracked</link>"
         ],
-        trackingState: "semi-tracked"
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   },
@@ -153,7 +153,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
             "To determine the number of Temporary Hit Points, roll a number of d6s equal to your Rage Damage bonus and add them together.",
             "If any of these Temporary Hit Points remain when your Rage ends, they vanish. <link:not-tracked>Not Tracked</link>"
           ],
-          trackingState: "semi-tracked"
+          trackingState: TRACKER.SEMI_TRACKED
         }
       ),
       createSubclassFeatureRow(
@@ -161,7 +161,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
         CLASS_FEATURE.BRANCHES_OF_THE_TREE,
         {
           description: worldTreeBranchesOfTheTreeDescription,
-          trackingState: "semi-tracked"
+          trackingState: TRACKER.SEMI_TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.BATTERING_ROOTS, {
@@ -169,7 +169,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
           "During your turn, your reach is 10 feet greater with any Melee weapon that has the <link:Heavy>Heavy</link> or <link:Versatile>Versatile</link> property, as tendrils of the World Tree extend from you.",
           "When you hit with such a weapon on your turn, you can activate the <link:Push>Push</link> or <link:Topple>Topple</link> mastery property in addition to a different mastery property you're using with that weapon."
         ],
-        isTracked: false
+        trackingState: TRACKER.NOT_TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_14,
@@ -181,7 +181,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
             "When you do so, you can also bring up to six willing creatures who are within 10 feet of you. <link:not-tracked>Not Tracked</link>",
             "Each creature teleports to an unoccupied space of your choice within 10 feet of your destination space. <link:not-tracked>Not Tracked</link>"
           ],
-          trackingState: "semi-tracked"
+          trackingState: TRACKER.SEMI_TRACKED
         }
       )
     ]
@@ -200,7 +200,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
           "On each of your turns while your <link:Rage>Rage</link> is active, the first creature you hit with a weapon or an Unarmed Strike takes extra damage equal to 1d6 plus half your Barbarian level, round down.",
           "The extra damage is <link:Necrotic>Necrotic</link> or <link:Radiant>Radiant</link>; you choose the type each time you deal the damage."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.WARRIOR_OF_THE_GODS, {
         description: [
@@ -209,14 +209,14 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
           "Your pool regains all expended dice when you finish a <link:long-rest>Long Rest</link>.",
           "The pool's maximum number of dice increases by one when you reach Barbarian levels 6, 12, and 17."
         ],
-        isTracked: true
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.FANATICAL_FOCUS, {
         description: [
           "Once per active <link:Rage>Rage</link>, if you fail a saving throw, you can reroll it with a bonus equal to your Rage Damage bonus.",
           "You must use the new roll."
         ],
-        isTracked: false
+        trackingState: TRACKER.NOT_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.ZEALOUS_PRESENCE, {
         description: [
@@ -224,7 +224,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
           "Up to ten other creatures of your choice within 60 feet of you gain <link:Advantage>Advantage</link> on attack rolls and saving throws until the start of your next turn.",
           "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link> unless you expend a use of your <link:Rage>Rage</link>, no action required, to restore your use of it."
         ],
-        trackingState: "semi-tracked"
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.RAGE_OF_THE_GODS, {
         description: [
@@ -235,7 +235,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
           "<strong>Resistance.</strong> You have <link:Resistance>Resistance</link> to <link:Necrotic>Necrotic</link>, <link:Psychic>Psychic</link>, and <link:Radiant>Radiant</link> damage.",
           "<strong>Revivification.</strong> When a creature within 30 feet of you would drop to 0 Hit Points, you can take a Reaction to expend a use of your <link:Rage>Rage</link> to instead change the target's Hit Points to a number equal to your Barbarian level."
         ],
-        isTracked: false
+        trackingState: TRACKER.NOT_TRACKED
       })
     ]
   }

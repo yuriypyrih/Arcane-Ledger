@@ -21,6 +21,7 @@ import type {
   SPECIES_TYPES,
   SPELL_COMPONENT,
   SPELL_LIST_CLASS,
+  TRACKER,
   WEAPON_BASE,
   TOOL_PROFICIENCIES,
   WEAPON_COMBAT_TYPE,
@@ -65,11 +66,9 @@ export type EquipmentCost = {
   currency: CURRENCY_TYPE;
 };
 export type WeaponCost = EquipmentCost;
-export type FeatureTrackingState = "tracked" | "semi-tracked" | "not-tracked";
 export type FeatureMapEntry = {
   description: string[];
-  trackingState?: FeatureTrackingState;
-  isTracked?: boolean;
+  trackingState?: TRACKER;
 };
 export type KeywordTooltipEntry = {
   title: string;
