@@ -2,17 +2,23 @@ import type { Character, CharacterClassFeatureState, WEAPON_PROFICIENCY } from "
 import { createDefaultAbilities } from "../constants";
 import {
   activateBardicInspiration,
+  advanceBardFeaturesForNewRound,
   activateMantleOfInspiration,
+  activateUnbreakableMajesty,
   applyLongRestToBardFeatures,
   applyShortRestToBardFeatures,
+  getBardArmorProficiencyEntries,
   bardicInspirationActionKey,
   getBardAlwaysPreparedSpellIds,
   getBardFeatureAction,
+  getBardLanguageProficiencyEntries,
   getBardReactionEntries,
   getBardSkillBonuses,
   getBardSkillProficiencyEntries,
   getBardicInspirationDie,
+  getBardWeaponProficiencyEntries,
   mantleOfInspirationActionKey,
+  unbreakableMajestyActionKey,
   normalizeBardFeatureState
 } from "./bard";
 import {
@@ -59,12 +65,18 @@ import {
   setBarbarianWeaponMasterySelections
 } from "./barbarian";
 import {
+  activateClericDivineForeknowledge,
   activateClericDivineIntervention,
   activateClericFeatureActionOption,
+  activateClericPreserveLife,
   advanceClericFeaturesForNewRound,
   applyLongRestToClericFeatures,
   applyShortRestToClericFeatures,
+  divineForeknowledgeActionKey,
   divineInterventionActionKey,
+  getKnowledgeDomainAbilityCheckIndicators,
+  getKnowledgeDomainCoreStatIndicators,
+  getKnowledgeDomainSavingThrowIndicators,
   getClericArmorProficiencyEntries,
   getClericCantripBonus,
   getClericCantripDamageBonus,
@@ -73,6 +85,7 @@ import {
   getClericSkillBonuses,
   getClericWeaponDamageBonuses,
   getClericWeaponProficiencyEntries,
+  preserveLifeActionKey,
   normalizeClericFeatureState
 } from "./cleric";
 import {
@@ -342,6 +355,9 @@ const classFeatureModules = {
         getSkillBonuses: (skill, proficiencyLevel) =>
           skill ? getBardSkillBonuses(character, proficiencyLevel) : [],
         skillProficiencyEntries: getBardSkillProficiencyEntries(character),
+        weaponProficiencyEntries: getBardWeaponProficiencyEntries(character),
+        armorProficiencyEntries: getBardArmorProficiencyEntries(character),
+        languageProficiencyEntries: getBardLanguageProficiencyEntries(character),
         alwaysPreparedSpellIds: getBardAlwaysPreparedSpellIds(character),
         reactionEntries: getBardReactionEntries(character),
         bardicInspirationDie: getBardicInspirationDie(character)
@@ -356,10 +372,15 @@ const classFeatureModules = {
         return activateMantleOfInspiration(character);
       }
 
+      if (actionKey === unbreakableMajestyActionKey) {
+        return activateUnbreakableMajesty(character);
+      }
+
       return null;
     },
     applyShortRest: applyShortRestToBardFeatures,
-    applyLongRest: applyLongRestToBardFeatures
+    applyLongRest: applyLongRestToBardFeatures,
+    advanceRound: advanceBardFeaturesForNewRound
   },
   Cleric: {
     className: "Cleric",
@@ -373,6 +394,9 @@ const classFeatureModules = {
         },
         getWeaponDamageBonuses: (context) => getClericWeaponDamageBonuses(character, context),
         getSkillBonuses: (skill) => getClericSkillBonuses(character, skill),
+        savingThrowIndicators: getKnowledgeDomainSavingThrowIndicators(character),
+        abilityCheckIndicators: getKnowledgeDomainAbilityCheckIndicators(character),
+        coreStatIndicators: getKnowledgeDomainCoreStatIndicators(character),
         cantripLimitBonus: getClericCantripBonus(character),
         cantripDamageBonus: getClericCantripDamageBonus(character),
         weaponProficiencyEntries: getClericWeaponProficiencyEntries(character),
@@ -380,6 +404,14 @@ const classFeatureModules = {
       };
     },
     handleAction(character, actionKey) {
+      if (actionKey === divineForeknowledgeActionKey) {
+        return activateClericDivineForeknowledge(character);
+      }
+
+      if (actionKey === preserveLifeActionKey) {
+        return activateClericPreserveLife(character);
+      }
+
       return actionKey === divineInterventionActionKey
         ? activateClericDivineIntervention(character)
         : null;
@@ -717,6 +749,8 @@ export function collectActiveClassFeatureState(
     abilities: createDefaultAbilities(),
     subclassId: undefined,
     classFeatureState: {},
+    skillProficiencies: [],
+    savingThrowProficiencies: [],
     spellSlotsExpended: [],
     statusEntries: [],
     roundTracker: undefined,

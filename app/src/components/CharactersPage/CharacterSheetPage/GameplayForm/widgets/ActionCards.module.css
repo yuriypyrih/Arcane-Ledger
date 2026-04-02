@@ -55,14 +55,37 @@
   pointer-events: none;
 }
 
-.shapeBadge {
+.shapeBadgeRow {
   position: absolute;
   left: 50%;
   top: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  gap: 0.22rem;
   transform: translate(-50%, -50%);
+}
+
+.shapeBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.actionCard > .shapeBadge {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  transform: translate(-50%, -50%);
+}
+
+.shapeBadgeSecondary {
+  margin-left: -0.05rem;
+}
+
+.shapeBadgeRow > .shapeBadge {
+  position: static;
+  transform: none;
 }
 
 .damageRow {
@@ -113,6 +136,10 @@
   stroke: currentColor;
 }
 
+.featureMetaWithIcon img {
+  flex: 0 0 auto;
+}
+
 .featureMetaDanger {
   color: #bc3f4e;
 }
@@ -121,6 +148,32 @@
 .featureMetaDanger svg {
   color: #bc3f4e;
   stroke: currentColor;
+}
+
+.optionChoiceDetails {
+  display: grid;
+  gap: 0.24rem;
+}
+
+.optionChoiceValue {
+  color: #8a4d26;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  align-items: center;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
+}
+
+.optionChoiceValue img {
+  flex: 0 0 auto;
+}
+
+.optionChoiceBreakdown {
+  color: var(--color-ink-soft);
+  font-size: 0.8rem;
+  line-height: 1.42;
 }
 
 .featureUsesSupplementary {
@@ -160,4 +213,15 @@
   color: currentColor;
   flex: 0 0 auto;
   stroke: currentColor;
+}
+
+.usesInlineSupplementaryWithIcon img {
+  flex: 0 0 auto;
+}
+
+.usesAssetIcon {
+  display: block;
+  height: 14px;
+  object-fit: contain;
+  width: 14px;
 }

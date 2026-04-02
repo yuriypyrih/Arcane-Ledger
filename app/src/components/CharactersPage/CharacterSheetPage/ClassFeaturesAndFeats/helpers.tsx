@@ -8,12 +8,13 @@ import {
 } from "../../../../codex/entries";
 import { createCharacterFeatEntry } from "../../../../pages/CharactersPage/feats";
 import {
+  getSavingThrowLevelFromEntries,
   getLanguageLevelFromEntries,
   getSkillLevelFromEntries,
   getSkillProficiencyForName,
   languageProficiencyOptions
 } from "../../../../pages/CharactersPage/proficiency";
-import { PROF_LEVEL, SKILL } from "../../../../types";
+import { PROF_LEVEL, SAVING_THROW_PROFICIENCY, SKILL } from "../../../../types";
 import type {
   Character,
   CharacterFeatEntry,
@@ -173,6 +174,47 @@ export function getSelectableProficientSkillOptions(
   });
 }
 
+export function getSelectableUnproficientSkillOptions(
+  character: Pick<Character, "skillProficiencies">,
+  options: readonly SkillName[],
+  currentValue: SkillName | null | undefined,
+  blockedSelections: readonly SkillName[] = []
+): SkillName[] {
+  return filterAvailableChoices(options, currentValue, blockedSelections).filter((skillName) => {
+    if (currentValue === skillName) {
+      return true;
+    }
+
+    const proficiency = getSkillProficiencyForName(skillName);
+
+    return (
+      proficiency !== null &&
+      getSkillLevelFromEntries(character.skillProficiencies ?? [], proficiency) === PROF_LEVEL.NONE
+    );
+  });
+}
+
+export function getSelectableNonExpertSkillOptions(
+  character: Pick<Character, "skillProficiencies">,
+  options: readonly SkillName[],
+  currentValue: SkillName | null | undefined,
+  blockedSelections: readonly SkillName[] = []
+): SkillName[] {
+  return filterAvailableChoices(options, currentValue, blockedSelections).filter((skillName) => {
+    if (currentValue === skillName) {
+      return true;
+    }
+
+    const proficiency = getSkillProficiencyForName(skillName);
+
+    return (
+      proficiency !== null &&
+      getSkillLevelFromEntries(character.skillProficiencies ?? [], proficiency) !==
+        PROF_LEVEL.EXPERT
+    );
+  });
+}
+
 export function getSelectableLanguageOptions(
   character: Pick<Character, "languageProficiencies">,
   currentValue: LANGUAGE_PROFICIENCY | null | undefined,
@@ -190,6 +232,24 @@ export function getSelectableLanguageOptions(
       );
     }
   );
+}
+
+export function getSelectableUnproficientSavingThrowOptions(
+  character: Pick<Character, "savingThrowProficiencies">,
+  options: readonly SAVING_THROW_PROFICIENCY[],
+  currentValue: SAVING_THROW_PROFICIENCY | null | undefined,
+  blockedSelections: readonly SAVING_THROW_PROFICIENCY[] = []
+): SAVING_THROW_PROFICIENCY[] {
+  return filterAvailableChoices(options, currentValue, blockedSelections).filter((proficiency) => {
+    if (currentValue === proficiency) {
+      return true;
+    }
+
+    return (
+      getSavingThrowLevelFromEntries(character.savingThrowProficiencies ?? [], proficiency) ===
+      PROF_LEVEL.NONE
+    );
+  });
 }
 
 export function createFeatEntryForContext(

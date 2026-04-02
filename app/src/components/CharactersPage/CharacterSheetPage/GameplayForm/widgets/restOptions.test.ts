@@ -144,3 +144,89 @@ describe("barbarian rest options", () => {
     );
   });
 });
+
+describe("bard rest options", () => {
+  it("shows unbreakable majesty recovery on both short and long rests", () => {
+    const character = createCharacter({
+      className: "Bard",
+      level: 14,
+      subclassId: "bard-college-of-glamour",
+      classFeatureState: {
+        bard: {
+          bardicInspirationUsesExpended: 2,
+          unbreakableMajestyUsesExpended: 1
+        }
+      }
+    });
+
+    const shortRestOptions = createShortRestOptions(character);
+    const longRestOptions = createLongRestOptions(character);
+
+    expect(shortRestOptions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "restore-unbreakable-majesty",
+          label: "Restore Unbreakable Majesty"
+        })
+      ])
+    );
+    expect(longRestOptions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "restore-unbreakable-majesty",
+          label: "Restore Unbreakable Majesty"
+        })
+      ])
+    );
+  });
+
+  it("shows blessing of moonlight recovery on long rest for moon bards", () => {
+    const character = createCharacter({
+      className: "Bard",
+      level: 6,
+      subclassId: "bard-college-of-the-moon",
+      classFeatureState: {
+        bard: {
+          blessingOfMoonlightUsesExpended: 1
+        }
+      }
+    });
+
+    const longRestOptions = createLongRestOptions(character);
+
+    expect(longRestOptions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "restore-blessing-of-moonlight",
+          label: "Restore Blessing of Moonlight"
+        })
+      ])
+    );
+  });
+});
+
+describe("cleric rest options", () => {
+  it("shows Divine Foreknowledge recovery on long rest for Knowledge Domain clerics", () => {
+    const character = createCharacter({
+      className: "Cleric",
+      level: 17,
+      subclassId: "cleric-knowledge-domain",
+      classFeatureState: {
+        cleric: {
+          divineForeknowledgeUsesExpended: 1
+        }
+      }
+    });
+
+    const longRestOptions = createLongRestOptions(character);
+
+    expect(longRestOptions).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "restore-divine-foreknowledge",
+          label: "Restore Divine Foreknowledge"
+        })
+      ])
+    );
+  });
+});

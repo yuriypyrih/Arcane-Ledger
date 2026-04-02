@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Pencil, Save, X } from "lucide-react";
+import { ChevronsUp, Pencil, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import CellContainer from "../../../CellContainer/CellContainer";
 import SelectInput from "../../FormInputs/SelectInput";
@@ -50,6 +50,7 @@ import {
   hasLockedSkillEntry,
   hasLockedToolEntry,
   hasLockedWeaponEntry,
+  isManualSkillLevelSelectable,
   isCustomLanguageProficiency,
   addManualCustomLanguageEntry,
   getToolLevelFromEntries,
@@ -325,10 +326,6 @@ function SkillsAndProficienciesForm({
     const skillProficiency = getSkillProficiencyForName(skillName);
 
     if (!skillProficiency) {
-      return;
-    }
-
-    if (hasLockedSkillEntry(skillProficienciesDraft, skillProficiency)) {
       return;
     }
 
@@ -832,6 +829,7 @@ function SkillsAndProficienciesForm({
                           const skillRollState = resolveFeatureIndicators(
                             skillIndicators[row.name]
                           );
+                          const isExpertSkill = currentSkillLevel === PROF_LEVEL.EXPERT;
                           const skillDetailCards = [
                             {
                               label: "Formula",
@@ -878,7 +876,14 @@ function SkillsAndProficienciesForm({
                                     )
                                   }
                                 >
-                                  {row.name}
+                                  <span className={styles.skillNameContent}>
+                                    <span>{row.name}</span>
+                                    {isExpertSkill ? (
+                                      <span title="Expertise" className={styles.skillExpertiseIcon}>
+                                        <ChevronsUp size={16} aria-hidden="true" />
+                                      </span>
+                                    ) : null}
+                                  </span>
                                 </button>
                                 {skillRollState ? (
                                   <span className={styles.skillIndicators}>
@@ -893,14 +898,52 @@ function SkillsAndProficienciesForm({
                                 <SelectInput
                                   className={styles.skillLevelSelect}
                                   value={currentSkillLevel}
-                                  disabled={row.proficiencyLocked}
                                   onChange={(event) =>
                                     updateSkillLevel(row.name, event.target.value as PROF_LEVEL)
                                   }
                                 >
-                                  <option value={PROF_LEVEL.NONE}>None</option>
-                                  <option value={PROF_LEVEL.PROFICIENT}>Proficient</option>
-                                  <option value={PROF_LEVEL.EXPERT}>Expert</option>
+                                  <option
+                                    value={PROF_LEVEL.NONE}
+                                    disabled={
+                                      skillProficiency
+                                        ? !isManualSkillLevelSelectable(
+                                            displayedSkillProficiencies,
+                                            skillProficiency,
+                                            PROF_LEVEL.NONE
+                                          )
+                                        : false
+                                    }
+                                  >
+                                    None
+                                  </option>
+                                  <option
+                                    value={PROF_LEVEL.PROFICIENT}
+                                    disabled={
+                                      skillProficiency
+                                        ? !isManualSkillLevelSelectable(
+                                            displayedSkillProficiencies,
+                                            skillProficiency,
+                                            PROF_LEVEL.PROFICIENT
+                                          )
+                                        : false
+                                    }
+                                  >
+                                    Proficient
+                                  </option>
+                                  <option
+                                    value={PROF_LEVEL.EXPERT}
+                                    disabled={
+                                      skillProficiency
+                                        ? !isManualSkillLevelSelectable(
+                                            displayedSkillProficiencies,
+                                            skillProficiency,
+                                            PROF_LEVEL.EXPERT
+                                          )
+                                        : false
+                                    }
+                                  >
+                                    Expert
+                                  </option>
                                 </SelectInput>
                               ) : null}
                             </li>

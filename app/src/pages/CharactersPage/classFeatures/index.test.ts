@@ -1,36 +1,58 @@
 import { describe, expect, it } from "vitest";
 import { ACTION_TYPE, DAMAGE_TYPE, WEAPON_COMBAT_TYPE, WEAPON_PROPERTY, getSpellEntryById } from "../../../codex/entries";
 import {
+  ARMOR_PROFICIENCY,
   CONDITION_NAME,
   EFFECT_NAME,
+  PROF_LEVEL,
+  PROFICIENCY_OVERRIDE_POLICY,
+  PROFICIENCY_SOURCE,
+  SAVING_THROW_PROFICIENCY,
   SENSE,
   SKILL,
+  SKILL_PROFICIENCY,
   STATUS_DURATION_KIND,
   STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP,
-  STATUS_ENTRY_SOURCE_TYPE
+  STATUS_ENTRY_SOURCE_TYPE,
+  WEAPON_PROFICIENCY
 } from "../../../types";
 import { createDefaultAbilities, createEmptyCharacter } from "../constants";
 import {
   activateFeatureActionForCharacter,
   activateFeatureActionOptionForCharacter,
+  applyBardBattleMagicAfterSpellCastForCharacter,
   applyPersistentRageOnInitiativeForCharacter,
+  applyInspiredEclipseStatusForCharacter,
   applyLongRestToFeatureState,
   applyShortRestToFeatureState,
   advanceFeatureStateForNewRound,
+  canUseBardValorActionCantripForCharacter,
   consumeBeguilingMagicOrBardicInspirationForCharacter,
+  consumeBardValorActionCantripForCharacter,
   consumeBarbarianWarriorOfTheGodsChargesForCharacter,
   consumeWeaponAttackActionForCharacter,
+  getBardPrimalLoreCantripOptionsForCharacter,
   getAdditionalWeaponMasteriesForCharacter,
+  getBardMagicalDiscoveriesSpellOptionsForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
   getDerivedFeatureStatusEntriesForCharacter,
   getFeatureActionsForCharacter,
   getFeatureActionOptionsForCharacter,
+  getFeatureArmorProficiencyEntriesForCharacter,
   getFeatureDamageBonusesForWeaponAction,
+  getFeatureLanguageProficiencyEntriesForCharacter,
   getFeatureReactionEntriesForCharacter,
+  getFeatureSavingThrowProficiencyEntriesForCharacter,
+  getFeatureSkillProficiencyEntriesForCharacter,
+  getFeatureWeaponProficiencyEntriesForCharacter,
+  hasBattleMagicBonusWeaponAttackForCharacter,
   getSpellEntryForCharacter,
+  getSavingThrowIndicatorsForCharacter,
   getSkillIndicatorsForCharacter,
   getAlwaysPreparedSpellIdsForCharacter,
+  getAbilityCheckIndicatorsForCharacter,
+  getCoreStatIndicatorsForCharacter,
   getSpellcastingStateForCharacter,
   markFeatureWeaponBonusUseForCharacter
 } from "./index";
@@ -129,6 +151,116 @@ describe("class feature state reducers", () => {
     );
   });
 
+  it("formats channel divinity as a pyromancy-backed tracked action", () => {
+    const character = createCharacter({
+      className: "Cleric",
+      level: 3
+    });
+
+    const channelDivinityAction = getFeatureActionsForCharacter(character).find(
+      (action) => action.name === "Channel Divinity"
+    );
+
+    expect(channelDivinityAction?.hideUsesTrackerOnCard).toBe(true);
+    expect(channelDivinityAction?.usesInlineLabel).toBe("Use 1");
+    expect(channelDivinityAction?.usesInlineIcon).toBe("pyromancy");
+    expect(channelDivinityAction?.resources).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "tracker",
+          label: "Uses",
+          icon: "pyromancy",
+          cost: 1
+        })
+      ])
+    );
+  });
+
+  it("adds Preserve Life as a life domain action that spends Channel Divinity", () => {
+    const lifeCleric = createCharacter({
+      className: "Cleric",
+      level: 3,
+      subclassId: "cleric-life-domain"
+    });
+
+    const preserveLifeAction = getFeatureActionsForCharacter(lifeCleric).find(
+      (action) => action.name === "Preserve Life"
+    );
+    const activatedCharacter = activateFeatureActionForCharacter(lifeCleric, "cleric-preserve-life");
+
+    expect(preserveLifeAction).toEqual(
+      expect.objectContaining({
+        usesInlineLabel: "Use 1",
+        usesInlineIcon: "pyromancy",
+        description: expect.arrayContaining([
+          expect.stringContaining("evoke healing energy")
+        ]),
+        drawer: expect.objectContaining({
+          confirmLabel: "Use Preserve Life"
+        })
+      })
+    );
+    expect(activatedCharacter.classFeatureState?.cleric?.channelDivinityUsesExpended).toBe(1);
+  });
+
+  it("adds inspired eclipse details to bardic inspiration and applies the linked invisibility status", () => {
+    const moonBard = createCharacter({
+      className: "Bard",
+      level: 3,
+      subclassId: "bard-college-of-the-moon"
+    });
+    const bardicInspirationAction = getFeatureActionsForCharacter(moonBard).find(
+      (action) => action.name === "Bardic Inspiration"
+    );
+    const characterWithInspiredEclipse = applyInspiredEclipseStatusForCharacter(moonBard);
+
+    expect(bardicInspirationAction?.description).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("<strong>Inspired Eclipse.</strong>")
+      ])
+    );
+    expect(characterWithInspiredEclipse.statusEntries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          value: "Inspired Eclipse",
+          sourceId: "feature-bard-inspired-eclipse",
+          duration: {
+            kind: STATUS_DURATION_KIND.ROUNDS,
+            amount: 1,
+            tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
+          }
+        }),
+        expect.objectContaining({
+          value: CONDITION_NAME.INVISIBLE,
+          sourceId: "feature-bard-inspired-eclipse-invisible",
+          duration: {
+            kind: STATUS_DURATION_KIND.LINKED,
+            linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+            linkedValue: "Inspired Eclipse"
+          }
+        })
+      ])
+    );
+  });
+
+  it("adds shadow of the new moon to bardic inspiration at level 14", () => {
+    const moonBard = createCharacter({
+      className: "Bard",
+      level: 14,
+      subclassId: "bard-college-of-the-moon"
+    });
+    const bardicInspirationAction = getFeatureActionsForCharacter(moonBard).find(
+      (action) => action.name === "Bardic Inspiration"
+    );
+
+    expect(bardicInspirationAction?.description).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("<strong>Inspired Eclipse.</strong>"),
+        expect.stringContaining("<strong>Shadow of the New Moon.</strong>")
+      ])
+    );
+  });
+
   it("labels the default unarmed strike damage as bludgeoning", () => {
     const character = createCharacter({
       className: "Fighter",
@@ -220,6 +352,87 @@ describe("class feature state reducers", () => {
         })
       ])
     );
+  });
+
+  it("adds cutting words to bard college of lore reactions at level 3", () => {
+    const character = createCharacter({
+      className: "Bard",
+      level: 3,
+      subclassId: "bard-college-of-lore"
+    });
+
+    expect(getFeatureReactionEntriesForCharacter(character)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "reaction-cutting-words",
+          name: "Cutting Words",
+          sourceLabel: "College of Lore"
+        })
+      ])
+    );
+  });
+
+  it("grants bard college of lore bonus proficiencies from the selected skills", () => {
+    const character = createCharacter({
+      className: "Bard",
+      level: 3,
+      subclassId: "bard-college-of-lore",
+      classFeatureState: {
+        bard: {
+          loreBonusProficiencies: [SKILL.ARCANA, SKILL.HISTORY, SKILL.INSIGHT]
+        }
+      }
+    });
+
+    expect(getFeatureSkillProficiencyEntriesForCharacter(character)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceStr: "College of Lore: Bonus Proficiencies",
+          proficiencyLevel: "PROFICIENT"
+        })
+      ])
+    );
+    expect(
+      getFeatureSkillProficiencyEntriesForCharacter(character).filter(
+        (entry) => entry.sourceStr === "College of Lore: Bonus Proficiencies"
+      )
+    ).toHaveLength(3);
+  });
+
+  it("adds moon bard primal lore language, skill, and cantrip benefits", () => {
+    const character = createCharacter({
+      className: "Bard",
+      level: 3,
+      subclassId: "bard-college-of-the-moon",
+      classFeatureState: {
+        bard: {
+          primalLoreCantripId: "spell-guidance",
+          primalLoreSkill: SKILL.NATURE
+        }
+      }
+    });
+
+    expect(getBardPrimalLoreCantripOptionsForCharacter(character).map((spell) => spell.id)).toContain(
+      "spell-guidance"
+    );
+    expect(
+      getBardPrimalLoreCantripOptionsForCharacter(character).map((spell) => spell.id)
+    ).not.toContain("spell-fireball");
+    expect(getAlwaysPreparedSpellIdsForCharacter(character)).toContain("spell-guidance");
+    expect(
+      getFeatureSkillProficiencyEntriesForCharacter(character).some(
+        (entry) =>
+          entry.sourceStr === "College of the Moon: Primal Lore" &&
+          entry.proficiencyLevel === "PROFICIENT"
+      )
+    ).toBe(true);
+    expect(
+      getFeatureLanguageProficiencyEntriesForCharacter(character).some(
+        (entry) =>
+          entry.sourceStr === "College of the Moon: Primal Lore" &&
+          entry.proficiencyLevel === "PROFICIENT"
+      )
+    ).toBe(true);
   });
 
   it("resets rogue turn flags when a new round starts", () => {
@@ -623,6 +836,7 @@ describe("class feature state reducers", () => {
     expect(brutalStrikeAfterReckless).toEqual(
       expect.objectContaining({
         disabled: false,
+        disabledReason: undefined,
         interaction: "select"
       })
     );
@@ -899,8 +1113,9 @@ describe("class feature state reducers", () => {
           source: "Mantle of Majesty",
           sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
           duration: {
-            kind: STATUS_DURATION_KIND.MINUTES,
-            amount: 1
+            kind: STATUS_DURATION_KIND.ROUNDS,
+            amount: 10,
+            tickOn: STATUS_DURATION_ROUND_TICK.ROUND_END
           },
           sourceId: "feature-bard-mantle-of-majesty-concentration"
         }),
@@ -944,6 +1159,421 @@ describe("class feature state reducers", () => {
       })
     );
     expect(transformedCommand.castingTime).toEqual([ACTION_TYPE.BONUS_ACTION]);
+  });
+
+  it("grants valor bard martial training proficiencies", () => {
+    const valorBard = createCharacter({
+      className: "Bard",
+      level: 3,
+      subclassId: "bard-college-of-valor"
+    });
+
+    expect(getFeatureWeaponProficiencyEntriesForCharacter(valorBard)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceStr: "College of Valor: Martial Training",
+          proficiency: WEAPON_PROFICIENCY.MARTIAL
+        })
+      ])
+    );
+    expect(getFeatureArmorProficiencyEntriesForCharacter(valorBard)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceStr: "College of Valor: Martial Training",
+          proficiency: ARMOR_PROFICIENCY.MEDIUM
+        }),
+        expect.objectContaining({
+          sourceStr: "College of Valor: Martial Training",
+          proficiency: ARMOR_PROFICIENCY.SHIELD
+        })
+      ])
+    );
+  });
+
+  it("lets valor bard replace one extra attack with an action cantrip", () => {
+    const viciousMockery = getSpellEntryById("spell-vicious-mockery");
+
+    if (!viciousMockery) {
+      throw new Error("Expected Vicious Mockery to exist.");
+    }
+
+    const valorBard = createCharacter({
+      className: "Bard",
+      level: 6,
+      subclassId: "bard-college-of-valor"
+    });
+    const afterFirstAttack = consumeWeaponAttackActionForCharacter(valorBard, {
+      key: "weapon-rapier",
+      economyType: "action",
+      attackKind: "weapon"
+    });
+    const afterCantrip = consumeBardValorActionCantripForCharacter(afterFirstAttack);
+    const nextRoundCharacter = advanceFeatureStateForNewRound(afterCantrip);
+
+    expect(afterFirstAttack.roundTracker?.actionAvailable).toBe(false);
+    expect(afterFirstAttack.classFeatureState?.bard?.extraAttacksRemainingThisTurn).toBe(1);
+    expect(canUseBardValorActionCantripForCharacter(afterFirstAttack, viciousMockery)).toBe(true);
+    expect(afterCantrip.classFeatureState?.bard?.extraAttacksRemainingThisTurn).toBe(0);
+    expect(afterCantrip.classFeatureState?.bard?.valorCantripReplacementUsedThisTurn).toBe(true);
+    expect(canUseBardValorActionCantripForCharacter(afterCantrip, viciousMockery)).toBe(false);
+    expect(nextRoundCharacter.classFeatureState?.bard?.extraAttacksRemainingThisTurn).toBe(0);
+    expect(nextRoundCharacter.classFeatureState?.bard?.valorCantripReplacementUsedThisTurn).toBe(false);
+  });
+
+  it("grants and consumes battle magic bonus attacks for valor bards", () => {
+    const viciousMockery = getSpellEntryById("spell-vicious-mockery");
+
+    if (!viciousMockery) {
+      throw new Error("Expected Vicious Mockery to exist.");
+    }
+
+    const valorBard = createCharacter({
+      className: "Bard",
+      level: 14,
+      subclassId: "bard-college-of-valor",
+      roundTracker: {
+        turnStarted: true,
+        actionAvailable: false,
+        bonusActionAvailable: true,
+        reactionAvailable: true
+      },
+      classFeatureState: {
+        bard: {
+          extraAttacksRemainingThisTurn: 1
+        }
+      }
+    });
+    const afterSpellCast = applyBardBattleMagicAfterSpellCastForCharacter(valorBard, viciousMockery);
+    const afterFirstAttack = consumeWeaponAttackActionForCharacter(afterSpellCast, {
+      key: "weapon-rapier",
+      economyType: "action",
+      attackKind: "weapon"
+    });
+    const afterSecondAttack = consumeWeaponAttackActionForCharacter(afterFirstAttack, {
+      key: "weapon-rapier",
+      economyType: "action",
+      attackKind: "weapon"
+    });
+
+    expect(hasBattleMagicBonusWeaponAttackForCharacter(afterSpellCast, "weapon")).toBe(true);
+    expect(afterFirstAttack.classFeatureState?.bard?.extraAttacksRemainingThisTurn).toBe(0);
+    expect(afterFirstAttack.classFeatureState?.bard?.battleMagicBonusAttackAvailable).toBe(true);
+    expect(afterFirstAttack.roundTracker?.bonusActionAvailable).toBe(true);
+    expect(afterSecondAttack.classFeatureState?.bard?.battleMagicBonusAttackAvailable).toBe(false);
+    expect(afterSecondAttack.roundTracker?.bonusActionAvailable).toBe(false);
+  });
+
+  it("adds lore magical discoveries as always-prepared spells and limits options to current spell access", () => {
+    const loreBard = createCharacter({
+      className: "Bard",
+      level: 6,
+      subclassId: "bard-college-of-lore",
+      classFeatureState: {
+        bard: {
+          magicalDiscoveriesSpellIds: ["spell-guidance", "spell-fireball", "spell-stoneskin"]
+        }
+      }
+    });
+
+    const magicalDiscoveryOptions = getBardMagicalDiscoveriesSpellOptionsForCharacter(loreBard);
+
+    expect(magicalDiscoveryOptions.map((spell) => spell.id)).toContain("spell-guidance");
+    expect(magicalDiscoveryOptions.map((spell) => spell.id)).toContain("spell-fireball");
+    expect(magicalDiscoveryOptions.map((spell) => spell.id)).not.toContain("spell-stoneskin");
+    expect(getAlwaysPreparedSpellIdsForCharacter(loreBard)).toEqual(
+      expect.arrayContaining(["spell-guidance", "spell-fireball"])
+    );
+    expect(getAlwaysPreparedSpellIdsForCharacter(loreBard)).not.toContain("spell-stoneskin");
+  });
+
+  it("adds moonbeam as always prepared and appends blessing of moonlight to moonbeam", () => {
+    const moonBard = createCharacter({
+      className: "Bard",
+      level: 6,
+      subclassId: "bard-college-of-the-moon"
+    });
+    const moonbeam = getSpellEntryById("spell-moonbeam");
+
+    if (!moonbeam) {
+      throw new Error("Expected Moonbeam to exist.");
+    }
+
+    const transformedMoonbeam = getSpellEntryForCharacter(moonBard, moonbeam);
+
+    expect(getAlwaysPreparedSpellIdsForCharacter(moonBard)).toContain("spell-moonbeam");
+    expect(
+      transformedMoonbeam.description.some(
+        (entry) =>
+          typeof entry === "string" &&
+          entry.includes("<strong>Blessing of Moonlight.</strong>")
+      )
+    ).toBe(true);
+    expect(
+      transformedMoonbeam.description.some(
+        (entry) =>
+          typeof entry === "string" &&
+          entry.includes("you can't use it again until you finish a <link:long-rest>Long Rest</link>")
+      )
+    ).toBe(true);
+  });
+
+  it("grants cleric domain spells as always prepared based on subclass and cleric level", () => {
+    const knowledgeCleric = createCharacter({
+      className: "Cleric",
+      level: 9,
+      subclassId: "cleric-knowledge-domain"
+    });
+    const lifeCleric = createCharacter({
+      className: "Cleric",
+      level: 9,
+      subclassId: "cleric-life-domain"
+    });
+    const lightCleric = createCharacter({
+      className: "Cleric",
+      level: 9,
+      subclassId: "cleric-light-domain"
+    });
+    const trickeryCleric = createCharacter({
+      className: "Cleric",
+      level: 9,
+      subclassId: "cleric-trickery-domain"
+    });
+    const warCleric = createCharacter({
+      className: "Cleric",
+      level: 9,
+      subclassId: "cleric-war-domain"
+    });
+
+    expect(getAlwaysPreparedSpellIdsForCharacter(knowledgeCleric)).toEqual([
+      "spell-command",
+      "spell-comprehend-languages",
+      "spell-detect-magic",
+      "spell-detect-thoughts",
+      "spell-identify",
+      "spell-mind-spike",
+      "spell-dispel-magic",
+      "spell-nondetection",
+      "spell-tongues",
+      "spell-arcane-eye",
+      "spell-banishment",
+      "spell-confusion",
+      "spell-legend-lore",
+      "spell-scrying",
+      "spell-synaptic-static"
+    ]);
+    expect(getAlwaysPreparedSpellIdsForCharacter(lifeCleric)).toEqual([
+      "spell-aid",
+      "spell-bless",
+      "spell-cure-wounds",
+      "spell-lesser-restoration",
+      "spell-mass-healing-word",
+      "spell-revivify",
+      "spell-aura-of-life",
+      "spell-death-ward",
+      "spell-greater-restoration",
+      "spell-mass-cure-wounds"
+    ]);
+    expect(getAlwaysPreparedSpellIdsForCharacter(lightCleric)).toEqual([
+      "spell-burning-hands",
+      "spell-faerie-fire",
+      "spell-scorching-ray",
+      "spell-see-invisibility",
+      "spell-daylight",
+      "spell-fireball",
+      "spell-arcane-eye",
+      "spell-wall-of-fire",
+      "spell-flame-strike",
+      "spell-scrying"
+    ]);
+    expect(getAlwaysPreparedSpellIdsForCharacter(trickeryCleric)).toEqual([
+      "spell-charm-person",
+      "spell-disguise-self",
+      "spell-invisibility",
+      "spell-pass-without-trace",
+      "spell-hypnotic-pattern",
+      "spell-nondetection",
+      "spell-confusion",
+      "spell-dimension-door",
+      "spell-dominate-person",
+      "spell-modify-memory"
+    ]);
+    expect(getAlwaysPreparedSpellIdsForCharacter(warCleric)).toEqual([
+      "spell-guiding-bolt",
+      "spell-magic-weapon",
+      "spell-shield-of-faith",
+      "spell-spiritual-weapon",
+      "spell-crusaders-mantle",
+      "spell-spirit-guardians",
+      "spell-fire-shield",
+      "spell-freedom-of-movement",
+      "spell-hold-monster",
+      "spell-steel-wind-strike"
+    ]);
+  });
+
+  it("grants Knowledge Domain expertise picks and locks Unfettered Mind to INT when needed", () => {
+    const knowledgeCleric = createCharacter({
+      className: "Cleric",
+      level: 6,
+      subclassId: "cleric-knowledge-domain",
+      classFeatureState: {
+        cleric: {
+          knowledgeBlessingsSkills: [SKILL.ARCANA, SKILL.HISTORY]
+        }
+      }
+    });
+
+    expect(getFeatureSkillProficiencyEntriesForCharacter(knowledgeCleric)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceStr: "Blessings of Knowledge",
+          proficiency: SKILL_PROFICIENCY.ARCANA,
+          proficiencyLevel: PROF_LEVEL.PROFICIENT
+        }),
+        expect.objectContaining({
+          sourceStr: "Blessings of Knowledge",
+          proficiency: SKILL_PROFICIENCY.ARCANA,
+          proficiencyLevel: PROF_LEVEL.EXPERT
+        }),
+        expect.objectContaining({
+          sourceStr: "Blessings of Knowledge",
+          proficiency: SKILL_PROFICIENCY.HISTORY,
+          proficiencyLevel: PROF_LEVEL.PROFICIENT
+        }),
+        expect.objectContaining({
+          sourceStr: "Blessings of Knowledge",
+          proficiency: SKILL_PROFICIENCY.HISTORY,
+          proficiencyLevel: PROF_LEVEL.EXPERT
+        })
+      ])
+    );
+    expect(getFeatureSavingThrowProficiencyEntriesForCharacter(knowledgeCleric)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceStr: "Unfettered Mind",
+          proficiency: "INT",
+          proficiencyLevel: PROF_LEVEL.PROFICIENT
+        })
+      ])
+    );
+  });
+
+  it("lets Knowledge Domain choose a different save when INT is already proficient and applies Divine Foreknowledge", () => {
+    const knowledgeCleric = createCharacter({
+      className: "Cleric",
+      level: 17,
+      subclassId: "cleric-knowledge-domain",
+      savingThrowProficiencies: [
+        {
+          source: PROFICIENCY_SOURCE.MANUAL,
+          proficiency: SAVING_THROW_PROFICIENCY.INT,
+          proficiencyLevel: PROF_LEVEL.PROFICIENT,
+          overridePolicy: PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE
+        }
+      ],
+      classFeatureState: {
+        cleric: {
+          knowledgeBlessingsSkills: [SKILL.NATURE, SKILL.RELIGION],
+          unfetteredMindSavingThrow: SAVING_THROW_PROFICIENCY.DEX
+        }
+      }
+    });
+
+    const divineForeknowledgeAction = getFeatureActionsForCharacter(knowledgeCleric).find(
+      (action) => action.name === "Divine Foreknowledge"
+    );
+    const activatedCharacter = activateFeatureActionForCharacter(
+      knowledgeCleric,
+      "cleric-divine-foreknowledge"
+    );
+
+    expect(getFeatureSavingThrowProficiencyEntriesForCharacter(knowledgeCleric)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceStr: "Unfettered Mind",
+          proficiency: "DEX",
+          proficiencyLevel: PROF_LEVEL.PROFICIENT
+        })
+      ])
+    );
+    expect(getAbilityCheckIndicatorsForCharacter(activatedCharacter)).toEqual({
+      STR: [{ label: "Advantage", tone: "advantage", source: "Divine Foreknowledge" }],
+      DEX: [{ label: "Advantage", tone: "advantage", source: "Divine Foreknowledge" }],
+      CON: [{ label: "Advantage", tone: "advantage", source: "Divine Foreknowledge" }],
+      INT: [{ label: "Advantage", tone: "advantage", source: "Divine Foreknowledge" }],
+      WIS: [{ label: "Advantage", tone: "advantage", source: "Divine Foreknowledge" }],
+      CHA: [{ label: "Advantage", tone: "advantage", source: "Divine Foreknowledge" }]
+    });
+    expect(getCoreStatIndicatorsForCharacter(activatedCharacter)).toEqual({
+      initiative: [{ label: "Advantage", tone: "advantage", source: "Divine Foreknowledge" }]
+    });
+    expect(divineForeknowledgeAction).toEqual(
+      expect.objectContaining({
+        usesLabel: "1/1 use",
+        usesInlineLabel: "| Use 6+ Spell Slot",
+        description: expect.arrayContaining([
+          expect.stringContaining("magically expand your mind to the future")
+        ])
+      })
+    );
+    expect(activatedCharacter.statusEntries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          value: "Divine Foreknowledge",
+          sourceId: "feature-cleric-divine-foreknowledge",
+          duration: {
+            kind: STATUS_DURATION_KIND.HOURS,
+            amount: 1
+          }
+        })
+      ])
+    );
+    expect(getSkillIndicatorsForCharacter(activatedCharacter)[SKILL.ARCANA]).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Advantage",
+          source: "Divine Foreknowledge"
+        })
+      ])
+    );
+    expect(getSavingThrowIndicatorsForCharacter(activatedCharacter).DEX).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          label: "Advantage",
+          source: "Divine Foreknowledge"
+        })
+      ])
+    );
+  });
+
+  it("adds unbreakable majesty at level 14 and restores its use on short rest", () => {
+    const glamourBard = createCharacter({
+      className: "Bard",
+      level: 14,
+      subclassId: "bard-college-of-glamour",
+      classFeatureState: {
+        bard: {
+          unbreakableMajestyUsesExpended: 1
+        }
+      }
+    });
+
+    const unbreakableMajesty = getFeatureActionsForCharacter(glamourBard).find(
+      (action) => action.name === "Unbreakable Majesty"
+    );
+    const afterShortRest = applyShortRestToFeatureState(glamourBard);
+
+    expect(unbreakableMajesty).toEqual(
+      expect.objectContaining({
+        breakdown: "Assume magically majestic presense",
+        execute: expect.objectContaining({
+          kind: "activate"
+        }),
+        usesRemaining: 0,
+        usesTotal: 1
+      })
+    );
+    expect(afterShortRest.classFeatureState?.bard?.unbreakableMajestyUsesExpended).toBe(0);
   });
 
   it("grants owl darkvision from aspect of the wilds", () => {

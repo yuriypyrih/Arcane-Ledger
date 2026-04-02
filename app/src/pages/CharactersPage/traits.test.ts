@@ -172,6 +172,70 @@ describe("status entry immunities", () => {
     expect(reconciledCharacter.classFeatureState?.rage?.frenzyPending).toBe(false);
   });
 
+  it("drops concentration and unbreakable majesty when incapacitated is present", () => {
+    const character = createCharacter({
+      className: "Bard",
+      level: 14,
+      subclassId: "bard-college-of-glamour",
+      statusEntries: [
+        createCharacterStatusEntry({
+          group: STATUS_ENTRY_GROUP.EFFECTS,
+          value: "Concentration",
+          source: "Mantle of Majesty",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+          duration: {
+            kind: STATUS_DURATION_KIND.ROUNDS,
+            amount: 10,
+            tickOn: STATUS_DURATION_ROUND_TICK.ROUND_END
+          },
+          sourceId: "feature-bard-mantle-of-majesty-concentration"
+        }),
+        createCharacterStatusEntry({
+          group: STATUS_ENTRY_GROUP.EFFECTS,
+          value: "Mantle of Majesty",
+          source: "College of Glamour",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+          duration: {
+            kind: STATUS_DURATION_KIND.LINKED,
+            linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+            linkedValue: "Concentration"
+          },
+          sourceId: "feature-bard-mantle-of-majesty"
+        }),
+        createCharacterStatusEntry({
+          group: STATUS_ENTRY_GROUP.EFFECTS,
+          value: "Unbreakable Majesty",
+          source: "College of Glamour",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+          duration: {
+            kind: STATUS_DURATION_KIND.ROUNDS,
+            amount: 10,
+            tickOn: STATUS_DURATION_ROUND_TICK.ROUND_END
+          },
+          sourceId: "feature-bard-unbreakable-majesty"
+        }),
+        createCharacterStatusEntry({
+          group: STATUS_ENTRY_GROUP.CONDITIONS,
+          value: CONDITION_NAME.INCAPACITATED,
+          source: "Test",
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL
+        })
+      ]
+    });
+
+    const reconciledCharacter = reconcileCharacterStatusConsequences(character);
+
+    expect(
+      reconciledCharacter.statusEntries?.some((entry) => entry.value === "Concentration")
+    ).toBe(false);
+    expect(
+      reconciledCharacter.statusEntries?.some((entry) => entry.value === "Mantle of Majesty")
+    ).toBe(false);
+    expect(
+      reconciledCharacter.statusEntries?.some((entry) => entry.value === "Unbreakable Majesty")
+    ).toBe(false);
+  });
+
   it("uses the barbarian feature description for instinctive pounce status entries", () => {
     const entry = createCharacterStatusEntry({
       group: STATUS_ENTRY_GROUP.EFFECTS,
@@ -207,5 +271,26 @@ describe("status entry immunities", () => {
 
     expect(isStatusEntryRemovable(entry)).toBe(true);
     expect(isStatusEntryDurationEditable(entry)).toBe(false);
+  });
+
+  it("uses the class feature description for Divine Foreknowledge status entries", () => {
+    const entry = createCharacterStatusEntry({
+      group: STATUS_ENTRY_GROUP.EFFECTS,
+      value: "Divine Foreknowledge",
+      source: "Knowledge Domain",
+      sourceId: "feature-cleric-divine-foreknowledge",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.HOURS,
+        amount: 1
+      }
+    });
+
+    expect(getStatusEntryDescriptionEntries(entry)).toEqual(
+      expect.arrayContaining([
+        expect.stringContaining("magically expand your mind to the future"),
+        expect.stringContaining("level 6+ spell slot")
+      ])
+    );
   });
 });

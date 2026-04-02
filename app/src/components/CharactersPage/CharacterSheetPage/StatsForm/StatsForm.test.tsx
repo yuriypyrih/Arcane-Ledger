@@ -5,6 +5,7 @@ import type { Character } from "../../../../types";
 import { createDefaultAbilities, createEmptyCharacter } from "../../../../pages/CharactersPage/constants";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { normalizeCharacter } from "../../../../pages/CharactersPage/storage";
+import { activateFeatureActionForCharacter } from "../../../../pages/CharactersPage/classFeatures";
 import StatsForm from "./StatsForm";
 
 const openDiceRollerMock = vi.fn();
@@ -133,5 +134,36 @@ describe("StatsForm", () => {
 
     expect(within(dexterityDrawer).getByText("Saving Throw Formula")).toBeInTheDocument();
     expect(within(dexterityDrawer).getByText(/\+ Leading Evasion/)).toBeInTheDocument();
+  });
+
+  it("shows Divine Foreknowledge advantage on ability modifiers and initiative", () => {
+    const character = activateFeatureActionForCharacter(
+      createCharacter({
+        className: "Cleric",
+        level: 17,
+        subclassId: "cleric-knowledge-domain",
+        abilities: {
+          ...createDefaultAbilities(),
+          DEX: 12
+        },
+        classFeatureState: {
+          cleric: {
+            knowledgeBlessingsSkills: []
+          }
+        }
+      }),
+      "cleric-divine-foreknowledge"
+    );
+
+    render(<StatsForm character={character} onPersistCharacter={vi.fn()} />);
+
+    const initiativeButton = screen.getByRole("button", { name: /Initiative/i });
+    expect(within(initiativeButton).getByText("Advantage")).toBeInTheDocument();
+
+    const dexterityBadge = screen.getByLabelText("DEX score 12");
+    const dexterityButton = dexterityBadge.closest("button");
+
+    expect(dexterityButton).not.toBeNull();
+    expect(within(dexterityButton!).getByText("Advantage")).toBeInTheDocument();
   });
 });

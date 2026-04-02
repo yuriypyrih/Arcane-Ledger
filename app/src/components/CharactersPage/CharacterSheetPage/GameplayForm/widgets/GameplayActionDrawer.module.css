@@ -83,6 +83,13 @@
   stroke: currentColor;
 }
 
+.resourceAssetIcon {
+  display: block;
+  height: 14px;
+  object-fit: contain;
+  width: 14px;
+}
+
 .resourceBadgeSupplementary {
   color: var(--color-ink-soft);
   font-size: 0.72rem;
@@ -126,26 +133,6 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.factCard {
-  display: grid;
-  gap: 0.32rem;
-  border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.72);
-  padding: 0.8rem 0.88rem;
-}
-
-.factLabel {
-  color: var(--color-ink-soft);
-  font-size: 0.76rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.factValue {
-  color: var(--color-ink);
-  font-weight: 700;
-}
 .factValueDanger {
   color: #8b3321;
 }

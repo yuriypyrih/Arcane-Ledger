@@ -18,19 +18,27 @@ import {
   restoreBarbarianWarriorOfTheGodsOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/barbarian";
 import {
+  restoreBardicInspirationOnShortRest,
   getBardicInspirationUsesTotal,
+  getBlessingOfMoonlightUsesTotal,
   getBeguilingMagicUsesTotal,
   getMantleOfMajestyUsesTotal,
+  getUnbreakableMajestyUsesTotal,
   applyShortRestToBardFeatures,
+  restoreBlessingOfMoonlightOnLongRest,
   restoreBeguilingMagicOnLongRest,
   restoreMantleOfMajestyOnLongRest,
+  restoreUnbreakableMajestyOnLongRest,
+  restoreUnbreakableMajestyOnShortRest,
   restoreBardicInspirationOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/bard";
 import {
   getClericChannelDivinityUsesTotal,
+  getDivineForeknowledgeUsesTotal,
   hasClericDivineInterventionFeature,
   restoreClericChannelDivinityOnLongRest,
   restoreClericChannelDivinityOnShortRest,
+  restoreClericDivineForeknowledgeOnLongRest,
   restoreClericDivineInterventionOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/cleric";
 import {
@@ -140,6 +148,10 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const _barbarianRelentlessRageRecoveryAvailable =
     restoreBarbarianRelentlessRageOnShortRest(character) !== character;
   const bardicInspirationUsesTotal = getBardicInspirationUsesTotal(character);
+  const bardicInspirationShortRestRecoveryAvailable =
+    restoreBardicInspirationOnShortRest(character) !== character;
+  const unbreakableMajestyUsesTotal = getUnbreakableMajestyUsesTotal(character);
+  const divineForeknowledgeUsesTotal = getDivineForeknowledgeUsesTotal(character);
   const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
   const monkFocusPointsTotal = getMonkFocusPointsTotal(character);
@@ -148,7 +160,6 @@ export function createShortRestOptions(character: Character): RestOption[] {
     getPaladinChannelDivinityUsesTotal(character)
   );
   const hasTimedStatuses = normalizeCharacterStatusEntries(character.statusEntries).length > 0;
-  const bardShortRestRecoveryAvailable = applyShortRestToBardFeatures(character) !== character;
   const exhaustionLevel = getExhaustionLevel(character.statusEntries);
   const tirelessUsesTotal = getRangerTirelessUsesTotal(character);
   const rogueStrokeOfLuckUsesTotal = getRogueStrokeOfLuckUsesTotal(character);
@@ -274,12 +285,22 @@ export function createShortRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
-    ...(bardShortRestRecoveryAvailable && bardicInspirationUsesTotal > 0
+    ...(bardicInspirationShortRestRecoveryAvailable && bardicInspirationUsesTotal > 0
       ? [
           {
             id: "restore-bardic-inspiration",
             label: "Restore all Bardic dice",
             apply: (currentCharacter: Character) => applyShortRestToBardFeatures(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(unbreakableMajestyUsesTotal > 0
+      ? [
+          {
+            id: "restore-unbreakable-majesty",
+            label: "Restore Unbreakable Majesty",
+            apply: (currentCharacter: Character) =>
+              restoreUnbreakableMajestyOnShortRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -391,8 +412,11 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const barbarianWarriorOfTheGodsRecoveryAvailable =
     restoreBarbarianWarriorOfTheGodsOnLongRest(character) !== character;
   const bardicInspirationUsesTotal = getBardicInspirationUsesTotal(character);
+  const blessingOfMoonlightUsesTotal = getBlessingOfMoonlightUsesTotal(character);
   const beguilingMagicUsesTotal = getBeguilingMagicUsesTotal(character);
   const mantleOfMajestyUsesTotal = getMantleOfMajestyUsesTotal(character);
+  const unbreakableMajestyUsesTotal = getUnbreakableMajestyUsesTotal(character);
+  const divineForeknowledgeUsesTotal = getDivineForeknowledgeUsesTotal(character);
   const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
   const indomitableUsesTotal = getFighterIndomitableUsesTotal(character);
@@ -602,6 +626,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(blessingOfMoonlightUsesTotal > 0
+      ? [
+          {
+            id: "restore-blessing-of-moonlight",
+            label: "Restore Blessing of Moonlight",
+            apply: (currentCharacter: Character) =>
+              restoreBlessingOfMoonlightOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(mantleOfMajestyUsesTotal > 0
       ? [
           {
@@ -609,6 +643,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore Mantle of Majesty",
             apply: (currentCharacter: Character) =>
               restoreMantleOfMajestyOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(unbreakableMajestyUsesTotal > 0
+      ? [
+          {
+            id: "restore-unbreakable-majesty",
+            label: "Restore Unbreakable Majesty",
+            apply: (currentCharacter: Character) =>
+              restoreUnbreakableMajestyOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -825,6 +869,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore Divine Intervention",
             apply: (currentCharacter: Character) =>
               restoreClericDivineInterventionOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(divineForeknowledgeUsesTotal > 0
+      ? [
+          {
+            id: "restore-divine-foreknowledge",
+            label: "Restore Divine Foreknowledge",
+            apply: (currentCharacter: Character) =>
+              restoreClericDivineForeknowledgeOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : [])

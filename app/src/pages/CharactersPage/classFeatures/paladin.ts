@@ -264,6 +264,31 @@ export function getPaladinChannelDivinityUsesRemaining(
   return Math.max(0, totalUses - usesExpended);
 }
 
+export function expendPaladinChannelDivinityUse(character: Character): Character {
+  if (!hasPaladinFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY)) {
+    return character;
+  }
+
+  const paladinState = getPaladinFeatureState(character);
+  const totalUses = getPaladinChannelDivinityUsesTotal(character);
+  const usesExpended = paladinState.channelDivinityUsesExpended ?? 0;
+
+  if (usesExpended >= totalUses) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      paladin: {
+        ...paladinState,
+        channelDivinityUsesExpended: usesExpended + 1
+      }
+    }
+  };
+}
+
 export function getPaladinsSmiteUsesTotal(
   character: Pick<Character, "className" | "level">
 ): number {
@@ -366,9 +391,21 @@ export function getPaladinFeatureActions(
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.FEATURE,
       interaction: "select",
-      usesLabel: `${usesRemaining}/${totalUses} uses`,
+      hideUsesTrackerOnCard: true,
+      usesInlineLabel: "Use 1",
+      usesInlineIcon: "pyromancy",
       usesRemaining,
       usesTotal: totalUses,
+      resources: [
+        {
+          kind: "tracker",
+          label: "Uses",
+          current: usesRemaining,
+          total: totalUses,
+          icon: "pyromancy",
+          cost: 1
+        }
+      ],
       drawer: {
         kind: "options",
         eyebrow: "Paladin",

@@ -1,4 +1,8 @@
-import type { LanguageProficiency, WEAPON_PROFICIENCY } from "./proficiencies";
+import type {
+  LanguageProficiency,
+  SAVING_THROW_PROFICIENCY,
+  WEAPON_PROFICIENCY
+} from "./proficiencies";
 import type { SkillName } from "./skills";
 
 export type BarbarianWildHeartAspect = "owl" | "panther" | "salmon";
@@ -35,8 +39,17 @@ export type CharacterBardFeatureState = {
   bardicInspirationUsesExpended?: number;
   bardicInspirationTemporaryTotal?: number;
   beguilingMagicUsesExpended?: number;
+  blessingOfMoonlightUsesExpended?: number;
   mantleOfMajestyUsesExpended?: number;
+  unbreakableMajestyUsesExpended?: number;
+  loreBonusProficiencies?: SkillName[];
+  magicalDiscoveriesSpellIds?: string[];
+  primalLoreCantripId?: string;
+  primalLoreSkill?: SkillName;
   expertise?: CharacterBardExpertiseState;
+  extraAttacksRemainingThisTurn?: number;
+  valorCantripReplacementUsedThisTurn?: boolean;
+  battleMagicBonusAttackAvailable?: boolean;
 };
 
 export type DruidPrimalOrderChoice = "magician" | "warden";
@@ -132,6 +145,9 @@ export type CharacterClericFeatureState = {
   blessedStrikeUsedThisTurn?: boolean;
   channelDivinityUsesExpended?: number;
   divineInterventionUsed?: boolean;
+  knowledgeBlessingsSkills?: SkillName[];
+  unfetteredMindSavingThrow?: SAVING_THROW_PROFICIENCY;
+  divineForeknowledgeUsesExpended?: number;
 };
 
 export type CharacterClassFeatureState = {

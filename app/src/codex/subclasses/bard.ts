@@ -19,13 +19,37 @@ export const mantleOfInspirationDescription = [
   "Each of those creatures gains a number of <link:Temporary Hit Points>Temporary Hit Points</link> equal to two times the number rolled on the Bardic Inspiration die, and then each can use its Reaction to move up to its Speed without provoking Opportunity Attacks."
 ] as const;
 
+export const cuttingWordsDescription = [
+  "You learn to use your wit to supernaturally distract, confuse, and otherwise sap the confidence and competence of others.",
+  "When a creature that you can see within 60 feet of yourself makes a damage roll or succeeds on an ability check or attack roll, you can take a Reaction to expend one use of your Bardic Inspiration; roll your Bardic Inspiration die, and subtract the number rolled from the creature's roll, reducing the damage or potentially turning the success into a failure."
+] as const;
+
+export const inspiredEclipseDescription = [
+  "<strong>Inspired Eclipse.</strong> When you take a Bonus Action to give a creature a Bardic Inspiration die, you can have the <link:Invisible>Invisible</link> condition and teleport up to 30 feet to an unoccupied space you can see as part of that Bonus Action. This invisibility lasts until the start of your next turn and ends early immediately after you make an attack roll, deal damage, or cast a spell."
+] as const;
+
+export const shadowOfTheNewMoonDescription = [
+  "<strong>Shadow of the New Moon.</strong> When you use Inspired Eclipse, the creature who received the Bardic Inspiration die can also have the <link:Invisible>Invisible</link> condition and immediately take a Reaction to teleport up to 30 feet to an unoccupied space it can see. The creature remains Invisible until the start of its next turn."
+] as const;
+
+export const blessingOfMoonlightDescription = [
+  "<strong>Blessing of Moonlight.</strong> When you cast Moonbeam, you can modify the spell so that you glow faintly while the spell is active. While glowing, you shed Dim Light out to 5 feet, and whenever a creature fails its saving throw against the effects of this Moonbeam, another creature of your choice that you can see within 60 feet of yourself regains 2d4 Hit Points.",
+  "Once you use this feature to modify a casting of Moonbeam, you can't use it again until you finish a <link:long-rest>Long Rest</link>."
+] as const;
+
 export const mantleOfMajestyDescription = [
   "You always have the <spell:Command>Command</spell> spell prepared.",
-  "As a Bonus Action, you cast Command without expending a spell slot, and you take on an unearthly appearance for 1 minute or until your <link:Concentration>Concentration</link> ends.",
+  "As a Bonus Action, you cast Command without expending a spell slot, and you take on an unearthly appearance for 10 turns or until your <link:Concentration>Concentration</link> ends.",
   "During this time, you can cast Command as a Bonus Action without expending a spell slot.",
   "Any creature <link:Charmed>Charmed</link> by you automatically fails its saving throw against the Command you cast with this feature.",
   "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link>.",
   "You can also restore your use of it by expending a level 3+ spell slot (no action required)."
+] as const;
+
+export const unbreakableMajestyDescription = [
+  "As a Bonus Action, you can assume a magically majestic presence for 10 turns or until you have the <link:Incapacitated>Incapacitated</link> condition.",
+  "For the duration, whenever any creature hits you with an attack roll for the first time on a turn, the attacker must succeed on a <link:Charisma saving throw>Charisma saving throw</link> against your spell save DC, or the attack misses instead, as the creature recoils from your majesty.",
+  "Once you assume this majestic presence, you can't do so again until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>."
 ] as const;
 
 function createSubclassFeatureRow(
@@ -124,11 +148,7 @@ export const bardSubclassEntries: SubclassEntry[] = [
         SUBCLASS_FEATURE_LEVELS.LEVEL_14,
         CLASS_FEATURE.UNBREAKABLE_MAJESTY,
         {
-          description: [
-            "As a Bonus Action, you can assume a magically majestic presence for 1 minute or until you have the <link:Incapacitated>Incapacitated</link> condition.",
-            "For the duration, whenever any creature hits you with an attack roll for the first time on a turn, the attacker must succeed on a <link:Charisma saving throw>Charisma saving throw</link> against your spell save DC, or the attack misses instead, as the creature recoils from your majesty.",
-            "Once you assume this majestic presence, you can't do so again until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>."
-          ],
+          description: [...unbreakableMajestyDescription],
           ...notTracked
         }
       )
@@ -147,10 +167,7 @@ export const bardSubclassEntries: SubclassEntry[] = [
         ...notTracked
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.CUTTING_WORDS, {
-        description: [
-          "You learn to use your wit to supernaturally distract, confuse, and otherwise sap the confidence and competence of others.",
-          "When a creature that you can see within 60 feet of yourself makes a damage roll or succeeds on an ability check or attack roll, you can take a Reaction to expend one use of your Bardic Inspiration; roll your Bardic Inspiration die, and subtract the number rolled from the creature's roll, reducing the damage or potentially turning the success into a failure."
-        ],
+        description: [...cuttingWordsDescription],
         ...notTracked
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.MAGICAL_DISCOVERIES, {
@@ -205,9 +222,7 @@ export const bardSubclassEntries: SubclassEntry[] = [
         {
           description: [
             "You always have the <spell:Moonbeam>Moonbeam</spell> spell prepared.",
-            "When you cast Moonbeam, you can modify the spell so that you glow faintly while the spell is active.",
-            "While glowing, you shed Dim Light out to 5 feet, and whenever a creature fails its saving throw against the effects of this Moonbeam, another creature of your choice that you can see within 60 feet of yourself regains 2d4 Hit Points.",
-            "Once you use this feature to modify a casting of Moonbeam, you can't use it again until you finish a <link:long-rest>Long Rest</link>."
+            ...blessingOfMoonlightDescription
           ],
           ...notTracked
         }

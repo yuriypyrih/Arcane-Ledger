@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { Minus, Plus, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import CellContainer from "../../../../CellContainer/CellContainer";
 import type { Character } from "../../../../../types";
 import type { FeatureActionCard } from "../../../../../pages/CharactersPage/classFeatures";
 import {
@@ -113,12 +114,13 @@ function ArcaneRecoveryModal({
           </button>
         </div>
 
-        <div className={styles.arcaneRecoverySummary}>
-          <span className={styles.arcaneRecoverySummaryLabel}>Recovery Budget</span>
-          <strong className={styles.arcaneRecoverySummaryValue}>
-            {`${selectedLevelTotal}/${recoveryLimit} slot levels selected`}
-          </strong>
-        </div>
+        <CellContainer
+          label="Recovery Budget"
+          content={`${selectedLevelTotal}/${recoveryLimit} slot levels selected`}
+          className={styles.arcaneRecoverySummary}
+          labelClassName={styles.arcaneRecoverySummaryLabel}
+          contentClassName={styles.arcaneRecoverySummaryValue}
+        />
 
         {availableOptions.length > 0 ? (
           <div className={styles.arcaneRecoveryGrid}>

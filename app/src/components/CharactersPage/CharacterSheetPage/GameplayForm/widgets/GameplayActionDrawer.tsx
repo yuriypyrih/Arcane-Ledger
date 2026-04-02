@@ -7,6 +7,7 @@ import type {
   SpellEntry
 } from "../../../../../codex/entries";
 import DescriptionContent from "../../../../DescriptionContent/DescriptionContent";
+import CellContainer from "../../../../CellContainer/CellContainer";
 import KeywordReferenceDrawer from "../../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import CodexDivinityDrawer from "../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import CodexFeatDrawer from "../../../../CodexPage/CodexFeatDrawer/CodexFeatDrawer";
@@ -29,6 +30,7 @@ import type {
   FeatureActionResource
 } from "../../../../../pages/CharactersPage/classFeatures";
 import type { ResolvedKeywordReference } from "../../../../../utils/codex/renderCodexRichText";
+import pyromancyIcon from "../../../../../assets/svg/pyromancy.svg";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import styles from "./GameplayActionDrawer.module.css";
 
@@ -65,6 +67,10 @@ function renderUsesIcon(icon?: FeatureActionIcon) {
 
   if (icon === "flame") {
     return <Flame size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "pyromancy") {
+    return <img src={pyromancyIcon} alt="" className={styles.resourceAssetIcon} />;
   }
 
   return null;
@@ -252,22 +258,15 @@ function GameplayActionDrawer({
                 <h4 className={styles.sectionTitle}>Details</h4>
                 <div className={styles.factGrid}>
                   {facts.map((fact, index) => (
-                    <div key={`${title}-fact-${index}`} className={styles.factCard}>
-                      <span className={styles.factLabel}>{fact.label}</span>
-                      <span
-                        className={[
-                          styles.factValue,
-                          getToneClassName(fact.tone, {
-                            danger: styles.factValueDanger,
-                            accent: styles.factValueAccent
-                          })
-                        ]
-                          .filter(Boolean)
-                          .join(" ")}
-                      >
-                        {fact.value}
-                      </span>
-                    </div>
+                    <CellContainer
+                      key={`${title}-fact-${index}`}
+                      label={fact.label}
+                      content={fact.value}
+                      contentClassName={getToneClassName(fact.tone, {
+                        danger: styles.factValueDanger,
+                        accent: styles.factValueAccent
+                      })}
+                    />
                   ))}
                 </div>
               </section>

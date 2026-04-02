@@ -7,6 +7,7 @@ import { normalizeRoundTracker } from "../../../../pages/CharactersPage/combat";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./GameplayForm.module.css";
 import BardicInspirationWidget from "./widgets/BardicInspirationWidget";
+import DivinityPointsWidget from "./widgets/DivinityPointsWidget";
 import PoolOfHealingWidget from "./widgets/PoolOfHealingWidget";
 import FocusPointsWidget from "./widgets/FocusPointsWidget";
 import RagePointsWidget from "./widgets/RagePointsWidget";
@@ -85,6 +86,7 @@ function GameplayForm({ character, className, onPersistCharacter }: GameplayForm
             onPersistCharacter={onPersistCharacter}
           />
           <SorceryPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
+          <DivinityPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <RoundTrackerWidget character={character} onPersistCharacter={onPersistCharacter} />
           <CampButton character={character} onPersistCharacter={onPersistCharacter} />
         </div>

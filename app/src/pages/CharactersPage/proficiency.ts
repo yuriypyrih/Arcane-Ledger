@@ -184,6 +184,7 @@ type NormalizeCharacterProficienciesOptions = {
   level: number;
   species: string;
   background: string;
+  subclassId?: string;
   classFeatureState?: CharacterClassFeatureState;
   skillProficiencies?: unknown;
   savingThrowProficiencies?: unknown;
@@ -1207,6 +1208,48 @@ function hasLockedNonManualPositiveEntry<TEntry extends ProficiencyEntry>(
   return hasNonManualPositiveEntry(entries, proficiency);
 }
 
+function getSourceIdentityKey(entry: Pick<ProficiencyEntry, "source" | "sourceStr">): string {
+  return `${entry.source}:${entry.sourceStr ?? ""}`;
+}
+
+function getResolvedSkillSourceLabels(
+  entries: SkillProficiencyEntry[],
+  proficiency: SKILL_PROFICIENCY
+): string[] {
+  const positiveEntries = entries.filter(
+    (entry) => entry.proficiency === proficiency && hasPositiveProficiencyLevel(entry.proficiencyLevel)
+  );
+  const sourceLevels = new Map<string, { label: string; proficiencyLevel: PROF_LEVEL }>();
+
+  positiveEntries.forEach((entry) => {
+    const key = getSourceIdentityKey(entry);
+    const existingEntry = sourceLevels.get(key);
+    const nextLevel =
+      existingEntry &&
+      compareProficiencyLevels(existingEntry.proficiencyLevel, entry.proficiencyLevel) >= 0
+        ? existingEntry.proficiencyLevel
+        : entry.proficiencyLevel;
+
+    sourceLevels.set(key, {
+      label: getSourceLabel(entry.source, entry.sourceStr),
+      proficiencyLevel: nextLevel
+    });
+  });
+
+  return [...sourceLevels.values()]
+    .sort((left, right) => {
+      const proficiencyComparison =
+        proficiencyLevelRank[left.proficiencyLevel] - proficiencyLevelRank[right.proficiencyLevel];
+
+      if (proficiencyComparison !== 0) {
+        return proficiencyComparison;
+      }
+
+      return left.label.localeCompare(right.label);
+    })
+    .map((entry) => entry.label);
+}
+
 function getResolvedProficiencyEntry<TEntry extends ProficiencyEntry>(
   entries: TEntry[],
   proficiency: TEntry["proficiency"]
@@ -1981,13 +2024,19 @@ function getFeatureProficiencyCollectionsForCharacter(
   className: string,
   options?: {
     level?: number;
+    subclassId?: string;
     classFeatureState?: CharacterClassFeatureState;
+    skillProficiencies?: SkillProficiencyEntry[];
+    savingThrowProficiencies?: SavingThrowProficiencyEntry[];
   }
 ): CharacterProficiencyCollections {
   const featureCharacter = {
     className,
     level: options?.level ?? 1,
-    classFeatureState: options?.classFeatureState
+    subclassId: options?.subclassId,
+    classFeatureState: options?.classFeatureState,
+    skillProficiencies: options?.skillProficiencies ?? [],
+    savingThrowProficiencies: options?.savingThrowProficiencies ?? []
   };
 
   return {
@@ -2016,7 +2065,10 @@ export function getAutomaticProficiencyCollectionsForCharacter(
   background = "",
   options?: {
     level?: number;
+    subclassId?: string;
     classFeatureState?: CharacterClassFeatureState;
+    skillProficiencies?: SkillProficiencyEntry[];
+    savingThrowProficiencies?: SavingThrowProficiencyEntry[];
     selectedClassSkills?: string[];
     selectedClassToolProficiencies?: string[];
   }
@@ -2393,7 +2445,10 @@ export function normalizeCharacterProficiencies(
     options.background,
     {
       level: options.level,
+      subclassId: options.subclassId,
       classFeatureState: options.classFeatureState,
+      skillProficiencies: normalizedStoredSkillEntries,
+      savingThrowProficiencies: normalizedStoredSavingThrowEntries,
       selectedClassSkills: [
         ...getSelectedClassSkillSelectionsFromEntries(
           normalizedStoredSkillEntries,
@@ -2569,7 +2624,35 @@ export function getResolvedSkillProficiencyEntry(
   entries: SkillProficiencyEntry[],
   proficiency: SKILL_PROFICIENCY
 ): ResolvedProficiencyEntry<SKILL_PROFICIENCY> {
-  return getResolvedProficiencyEntry(entries, proficiency);
+  const manualOverride = getStoredManualOverrideEntry(entries, proficiency);
+  const automaticEntries = getNonManualPositiveEntries(entries, proficiency);
+  const positiveEntries = manualOverride
+    ? [...automaticEntries, manualOverride].filter((entry) =>
+        hasPositiveProficiencyLevel(entry.proficiencyLevel)
+      )
+    : automaticEntries;
+
+  if (positiveEntries.length === 0) {
+    return {
+      proficiency,
+      proficiencyLevel: PROF_LEVEL.NONE,
+      sourceLabels: [],
+      locked: false,
+      overridePolicy: PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE
+    };
+  }
+
+  const hasAutomaticEntries = automaticEntries.length > 0;
+
+  return {
+    proficiency,
+    proficiencyLevel: getHighestEntryLevel(positiveEntries),
+    sourceLabels: getResolvedSkillSourceLabels(entries, proficiency),
+    locked: hasAutomaticEntries,
+    overridePolicy: hasAutomaticEntries
+      ? PROFICIENCY_OVERRIDE_POLICY.LOCKED
+      : PROFICIENCY_OVERRIDE_POLICY.OVERRIDABLE
+  };
 }
 
 export function getSavingThrowLevelFromEntries(
@@ -2640,6 +2723,16 @@ export function hasLockedSkillEntry(
   return hasLockedNonManualPositiveEntry(entries, proficiency);
 }
 
+export function isManualSkillLevelSelectable(
+  entries: SkillProficiencyEntry[],
+  proficiency: SKILL_PROFICIENCY,
+  nextLevel: PROF_LEVEL
+): boolean {
+  const nonManualFloor = getHighestEntryLevel(getNonManualPositiveEntries(entries, proficiency));
+
+  return compareProficiencyLevels(nextLevel, nonManualFloor) >= 0;
+}
+
 export function hasLockedSavingThrowEntry(
   entries: SavingThrowProficiencyEntry[],
   proficiency: SAVING_THROW_PROFICIENCY
@@ -2704,7 +2797,61 @@ export function upsertManualSkillEntry(
   proficiency: SKILL_PROFICIENCY,
   proficiencyLevel: PROF_LEVEL
 ): SkillProficiencyEntry[] {
-  return upsertManualEntry(entries, proficiency, proficiencyLevel, createSkillEntry);
+  const existingManualOverride = getStoredManualOverrideEntry(entries, proficiency);
+  const automaticEntries = getNonManualPositiveEntries(entries, proficiency);
+  const automaticHighestLevel = getHighestEntryLevel(automaticEntries);
+  const hasAutomaticProficiencyFloor = automaticEntries.some(
+    (entry) => entry.proficiencyLevel === PROF_LEVEL.PROFICIENT
+  );
+  const nextEntries = entries.filter(
+    (entry) =>
+      !(entry.source === PROFICIENCY_SOURCE.MANUAL && entry.proficiency === proficiency)
+  );
+
+  if (proficiencyLevel === PROF_LEVEL.NONE) {
+    if (
+      automaticHighestLevel === PROF_LEVEL.EXPERT &&
+      !hasAutomaticProficiencyFloor &&
+      existingManualOverride &&
+      hasPositiveProficiencyLevel(existingManualOverride.proficiencyLevel)
+    ) {
+      return mergeProficiencyEntries([
+        ...nextEntries,
+        createSkillEntry(
+          proficiency,
+          PROFICIENCY_SOURCE.MANUAL,
+          undefined,
+          PROF_LEVEL.PROFICIENT
+        )
+      ]);
+    }
+
+    if (automaticHighestLevel === PROF_LEVEL.NONE) {
+      return mergeProficiencyEntries(nextEntries);
+    }
+
+    return mergeProficiencyEntries(nextEntries);
+  }
+
+  if (
+    automaticHighestLevel === PROF_LEVEL.EXPERT &&
+    proficiencyLevel === PROF_LEVEL.PROFICIENT &&
+    !hasAutomaticProficiencyFloor
+  ) {
+    return mergeProficiencyEntries([
+      ...nextEntries,
+      createSkillEntry(proficiency, PROFICIENCY_SOURCE.MANUAL, undefined, PROF_LEVEL.PROFICIENT)
+    ]);
+  }
+
+  if (compareProficiencyLevels(proficiencyLevel, automaticHighestLevel) <= 0) {
+    return mergeProficiencyEntries(nextEntries);
+  }
+
+  return mergeProficiencyEntries([
+    ...nextEntries,
+    createSkillEntry(proficiency, PROFICIENCY_SOURCE.MANUAL, undefined, proficiencyLevel)
+  ]);
 }
 
 export function setManualWeaponEntry(
@@ -2836,7 +2983,26 @@ export function getDisplaySkillLevels(
 export function getDisplaySkillProficiencyEntries(
   entries: SkillProficiencyEntry[]
 ): ProficiencyDisplayEntry<SKILL_PROFICIENCY>[] {
-  return getDisplayProficiencyEntries(entries, skillProficiencyOptions);
+  return skillProficiencyOptions
+    .reduce<ProficiencyDisplayEntry<SKILL_PROFICIENCY>[]>((displayEntries, proficiency) => {
+      const resolvedEntry = getResolvedSkillProficiencyEntry(entries, proficiency);
+
+      if (resolvedEntry.proficiencyLevel === PROF_LEVEL.NONE) {
+        return displayEntries;
+      }
+
+      displayEntries.push({
+        proficiency,
+        proficiencyLevel: resolvedEntry.proficiencyLevel,
+        sourceLabels: resolvedEntry.sourceLabels,
+        locked: resolvedEntry.locked
+      });
+
+      return displayEntries;
+    }, [])
+    .sort((left, right) =>
+      getProficiencyLabel(left.proficiency).localeCompare(getProficiencyLabel(right.proficiency))
+    );
 }
 
 export function getDisplaySavingThrowProficiencyEntries(

@@ -11,11 +11,29 @@ import {
 } from "../traits";
 import {
   applyMantleOfMajestyStatus,
+  applyInspiredEclipseStatus,
   applySuperiorInspirationOnInitiative,
+  applyBardBattleMagicAfterSpellCast,
+  canUseBardValorActionCantripReplacement,
+  consumeBlessingOfMoonlightUse,
+  consumeBardValorActionCantrip,
+  consumeBardWeaponAttack,
   consumeBeguilingMagicOrBardicInspiration,
   consumeMantleOfMajestyUse,
   expendBardicInspirationUse,
+  getBlessingOfMoonlightUsesRemaining,
+  getBlessingOfMoonlightUsesTotal,
   getBardExpertiseSelections,
+  getBardLanguageProficiencyEntries,
+  getBardLoreBonusProficiencySelections,
+  getBardMagicalDiscoveriesSpellIds,
+  getBardMagicalDiscoveriesSpellOptions,
+  getBardPrimalLoreCantripId,
+  getBardPrimalLoreCantripOptions,
+  getBardPrimalLoreSkillOptions,
+  getBardPrimalLoreSkillSelection,
+  hasBardBattleMagicBonusAttackAvailable,
+  getBardWeaponAttackMultiCount,
   getBeguilingMagicUsesRemaining,
   getBeguilingMagicUsesTotal,
   getBardicInspirationUsesRemaining,
@@ -26,6 +44,10 @@ import {
   hasActiveMantleOfMajesty,
   restoreAllBardicInspirationUses,
   restoreBardicInspirationUse,
+  setBardLoreBonusProficiencySelections,
+  setBardMagicalDiscoveriesSpellIds,
+  setBardPrimalLoreCantripId,
+  setBardPrimalLoreSkillSelection,
   setBardExpertiseSelections
 } from "./bard";
 import {
@@ -57,13 +79,22 @@ import {
   setBarbarianPrimalKnowledgeSkillSelection
 } from "./barbarian";
 import {
+  expendClericChannelDivinityUse,
   getClericBlessedStrikesChoice,
   getClericChannelDivinityUsesRemaining,
   getClericChannelDivinityUsesTotal,
   getClericDivineOrderChoice,
+  getKnowledgeDomainBlessingsSkillSelections,
+  getKnowledgeDomainUnfetteredMindSavingThrowOptions,
+  getKnowledgeDomainUnfetteredMindSavingThrowSelection,
+  isKnowledgeDomainUnfetteredMindLockedToInt,
   markClericBlessedStrikeUsed,
+  restoreClericChannelDivinityOnLongRest,
+  restoreClericChannelDivinityOnShortRest,
   setClericBlessedStrikesChoice,
-  setClericDivineOrderChoice
+  setClericDivineOrderChoice,
+  setKnowledgeDomainBlessingsSkillSelections,
+  setKnowledgeDomainUnfetteredMindSavingThrowSelection
 } from "./cleric";
 import {
   getDruidPrimalOrderChoice,
@@ -162,6 +193,7 @@ import {
 import { getSubclassDerivedFeatureState } from "./subclasses";
 import {
   applyLayOnHands,
+  expendPaladinChannelDivinityUse,
   consumeFaithfulSteedUse,
   consumePaladinWeaponAttack,
   consumePaladinsSmiteUse,
@@ -173,6 +205,8 @@ import {
   getPaladinWeaponAttackMultiCount,
   getPaladinsSmiteUsesRemaining,
   hasActivePaladinAuraOfProtection,
+  restorePaladinChannelDivinityOnLongRest,
+  restorePaladinChannelDivinityOnShortRest,
   restorePaladinLayOnHandsOnLongRest,
 } from "./paladin";
 import {
@@ -583,6 +617,19 @@ export function getBeguilingMagicUsesRemainingForCharacter(
   return getBeguilingMagicUsesRemaining(character);
 }
 
+export function getBlessingOfMoonlightUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+) {
+  return getBlessingOfMoonlightUsesTotal(character);
+}
+
+export function getBlessingOfMoonlightUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+) {
+  return getBlessingOfMoonlightUsesRemaining(character);
+}
+
 export function getMantleOfMajestyUsesTotalForCharacter(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ) {
@@ -678,7 +725,8 @@ export function getCantripDamageBonusForCharacter(
 }
 
 export function getFeatureWeaponProficiencyEntriesForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
 ): FeatureWeaponProficiencyEntry[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
@@ -689,7 +737,8 @@ export function getFeatureWeaponProficiencyEntriesForCharacter(
 }
 
 export function getFeatureSkillProficiencyEntriesForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId" | "skillProficiencies">>
 ): FeatureSkillProficiencyEntry[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
@@ -700,7 +749,8 @@ export function getFeatureSkillProficiencyEntriesForCharacter(
 }
 
 export function getFeatureSavingThrowProficiencyEntriesForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId" | "savingThrowProficiencies">>
 ): FeatureSavingThrowProficiencyEntry[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
@@ -711,7 +761,8 @@ export function getFeatureSavingThrowProficiencyEntriesForCharacter(
 }
 
 export function getFeatureArmorProficiencyEntriesForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
 ): FeatureArmorProficiencyEntry[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
@@ -722,7 +773,8 @@ export function getFeatureArmorProficiencyEntriesForCharacter(
 }
 
 export function getFeatureLanguageProficiencyEntriesForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
 ): FeatureLanguageProficiencyEntry[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
@@ -730,6 +782,33 @@ export function getFeatureLanguageProficiencyEntriesForCharacter(
     ...(baseFeatureState.languageProficiencyEntries ?? []),
     ...(subclassDerivedState.languageProficiencyEntries ?? [])
   ];
+}
+
+export function canUseBardValorActionCantripForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "roundTracker"> &
+    Partial<Pick<Character, "subclassId">>,
+  spell: Pick<SpellEntry, "castingTime" | "spellLevel">
+) {
+  return canUseBardValorActionCantripReplacement(character, spell);
+}
+
+export function consumeBardValorActionCantripForCharacter(character: Character): Character {
+  return consumeBardValorActionCantrip(character);
+}
+
+export function applyBardBattleMagicAfterSpellCastForCharacter(
+  character: Character,
+  spell: Pick<SpellEntry, "castingTime">
+): Character {
+  return applyBardBattleMagicAfterSpellCast(character, spell);
+}
+
+export function hasBattleMagicBonusWeaponAttackForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>,
+  attackKind: "weapon" | "unarmed"
+): boolean {
+  return attackKind === "weapon" && hasBardBattleMagicBonusAttackAvailable(character);
 }
 
 export function getClericDivineOrderChoiceForCharacter(
@@ -758,11 +837,100 @@ export function setClericBlessedStrikesChoiceForCharacter(
   return setClericBlessedStrikesChoice(character, blessedStrikesChoice);
 }
 
+export function getKnowledgeDomainBlessingsSkillSelectionsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+) {
+  return getKnowledgeDomainBlessingsSkillSelections(character);
+}
+
+export function setKnowledgeDomainBlessingsSkillSelectionsForCharacter(
+  character: Character,
+  selections: Parameters<typeof setKnowledgeDomainBlessingsSkillSelections>[1]
+): Character {
+  return setKnowledgeDomainBlessingsSkillSelections(character, selections);
+}
+
+export function getKnowledgeDomainUnfetteredMindSavingThrowSelectionForCharacter(
+  character: Pick<
+    Character,
+    "className" | "level" | "classFeatureState" | "savingThrowProficiencies"
+  > &
+    Partial<Pick<Character, "subclassId">>
+) {
+  return getKnowledgeDomainUnfetteredMindSavingThrowSelection(character);
+}
+
+export function getKnowledgeDomainUnfetteredMindSavingThrowOptionsForCharacter(
+  character: Pick<Character, "className" | "level" | "savingThrowProficiencies"> &
+    Partial<Pick<Character, "subclassId" | "classFeatureState">>
+) {
+  return getKnowledgeDomainUnfetteredMindSavingThrowOptions(character);
+}
+
+export function isKnowledgeDomainUnfetteredMindLockedToIntForCharacter(
+  character: Pick<Character, "className" | "level" | "savingThrowProficiencies"> &
+    Partial<Pick<Character, "subclassId" | "classFeatureState">>
+) {
+  return isKnowledgeDomainUnfetteredMindLockedToInt(character);
+}
+
+export function setKnowledgeDomainUnfetteredMindSavingThrowSelectionForCharacter(
+  character: Character,
+  proficiency: Parameters<typeof setKnowledgeDomainUnfetteredMindSavingThrowSelection>[1]
+): Character {
+  return setKnowledgeDomainUnfetteredMindSavingThrowSelection(character, proficiency);
+}
+
 export function getBardExpertiseSelectionsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">,
   tier: "level2" | "level9"
 ) {
   return getBardExpertiseSelections(character, tier);
+}
+
+export function getBardLoreBonusProficiencySelectionsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+) {
+  return getBardLoreBonusProficiencySelections(character);
+}
+
+export function getBardMagicalDiscoveriesSpellIdsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+) {
+  return getBardMagicalDiscoveriesSpellIds(character);
+}
+
+export function getBardMagicalDiscoveriesSpellOptionsForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+) {
+  return getBardMagicalDiscoveriesSpellOptions(character);
+}
+
+export function getBardPrimalLoreCantripIdForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+) {
+  return getBardPrimalLoreCantripId(character);
+}
+
+export function getBardPrimalLoreCantripOptionsForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+) {
+  return getBardPrimalLoreCantripOptions(character);
+}
+
+export function getBardPrimalLoreSkillOptionsForCharacter() {
+  return getBardPrimalLoreSkillOptions();
+}
+
+export function getBardPrimalLoreSkillSelectionForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+) {
+  return getBardPrimalLoreSkillSelection(character);
 }
 
 export function getRangerDeftExplorerExpertiseSelectionForCharacter(
@@ -776,6 +944,34 @@ export function setRangerDeftExplorerExpertiseSelectionForCharacter(
   selection: Parameters<typeof setRangerDeftExplorerExpertiseSelection>[1]
 ): Character {
   return setRangerDeftExplorerExpertiseSelection(character, selection);
+}
+
+export function setBardLoreBonusProficiencySelectionsForCharacter(
+  character: Character,
+  selections: Parameters<typeof setBardLoreBonusProficiencySelections>[1]
+): Character {
+  return setBardLoreBonusProficiencySelections(character, selections);
+}
+
+export function setBardMagicalDiscoveriesSpellIdsForCharacter(
+  character: Character,
+  spellIds: Parameters<typeof setBardMagicalDiscoveriesSpellIds>[1]
+): Character {
+  return setBardMagicalDiscoveriesSpellIds(character, spellIds);
+}
+
+export function setBardPrimalLoreCantripIdForCharacter(
+  character: Character,
+  spellId: Parameters<typeof setBardPrimalLoreCantripId>[1]
+): Character {
+  return setBardPrimalLoreCantripId(character, spellId);
+}
+
+export function setBardPrimalLoreSkillSelectionForCharacter(
+  character: Character,
+  skill: Parameters<typeof setBardPrimalLoreSkillSelection>[1]
+): Character {
+  return setBardPrimalLoreSkillSelection(character, skill);
 }
 
 export function getRangerDeftExplorerLanguageSelectionsForCharacter(
@@ -1197,12 +1393,20 @@ export function consumeBeguilingMagicOrBardicInspirationForCharacter(
   return consumeBeguilingMagicOrBardicInspiration(character);
 }
 
+export function consumeBlessingOfMoonlightUseForCharacter(character: Character): Character {
+  return consumeBlessingOfMoonlightUse(character);
+}
+
 export function consumeMantleOfMajestyUseForCharacter(character: Character): Character {
   return consumeMantleOfMajestyUse(character);
 }
 
 export function applyMantleOfMajestyStatusForCharacter(character: Character): Character {
   return applyMantleOfMajestyStatus(character);
+}
+
+export function applyInspiredEclipseStatusForCharacter(character: Character): Character {
+  return applyInspiredEclipseStatus(character);
 }
 
 export function applyPerfectFocusOnInitiativeForCharacter(character: Character): Character {
@@ -1458,6 +1662,42 @@ export function getChannelDivinityUsesRemainingForCharacter(
   return 0;
 }
 
+export function expendChannelDivinityUseForCharacter(character: Character): Character {
+  if (character.className === "Cleric") {
+    return expendClericChannelDivinityUse(character);
+  }
+
+  if (character.className === "Paladin") {
+    return expendPaladinChannelDivinityUse(character);
+  }
+
+  return character;
+}
+
+export function restoreChannelDivinityUseForCharacter(character: Character): Character {
+  if (character.className === "Cleric") {
+    return restoreClericChannelDivinityOnShortRest(character);
+  }
+
+  if (character.className === "Paladin") {
+    return restorePaladinChannelDivinityOnShortRest(character);
+  }
+
+  return character;
+}
+
+export function restoreAllChannelDivinityUsesForCharacter(character: Character): Character {
+  if (character.className === "Cleric") {
+    return restoreClericChannelDivinityOnLongRest(character);
+  }
+
+  if (character.className === "Paladin") {
+    return restorePaladinChannelDivinityOnLongRest(character);
+  }
+
+  return character;
+}
+
 export function applyLayOnHandsForCharacter(
   character: Character,
   options: Parameters<typeof applyLayOnHands>[1]
@@ -1610,6 +1850,10 @@ export function getWeaponActionEconomyMultiForCharacter(
     return getBarbarianWeaponAttackMultiCount(character);
   }
 
+  if (character.className === "Bard") {
+    return getBardWeaponAttackMultiCount(character);
+  }
+
   if (character.className === "Fighter") {
     return getFighterWeaponAttackMultiCount(character);
   }
@@ -1655,6 +1899,10 @@ export function consumeWeaponAttackActionForCharacter(
 ): Character {
   if (character.className === "Barbarian") {
     return consumeBarbarianWeaponAttack(character);
+  }
+
+  if (character.className === "Bard") {
+    return consumeBardWeaponAttack(character, action);
   }
 
   if (character.className === "Monk") {

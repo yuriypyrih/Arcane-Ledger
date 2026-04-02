@@ -4,6 +4,7 @@ import {
   rogueFeatureMap,
   sorcererFeatureMap
 } from "../../codex/classes";
+import { divineForeknowledgeDescription } from "../../codex/subclasses/cleric";
 import type { SpellDescriptionEntry, SpellDurationPart } from "../../codex/entries";
 import { CLASS_FEATURE, DAMAGE_TYPE, DURATION } from "../../codex/entries";
 import {
@@ -34,6 +35,8 @@ const statusSourceTypeValues = new Set<STATUS_ENTRY_SOURCE_TYPE>(
   Object.values(STATUS_ENTRY_SOURCE_TYPE)
 );
 const exhaustionConditionOptionPrefix = "EXHAUSTION_LEVEL_";
+const unbreakableMajestyStatusSourceId = "feature-bard-unbreakable-majesty";
+const divineForeknowledgeStatusSourceId = "feature-cleric-divine-foreknowledge";
 export const exhaustionLevels = [1, 2, 3, 4, 5, 6] as const;
 export type ExhaustionLevel = (typeof exhaustionLevels)[number];
 export type ExhaustionConditionOptionValue =
@@ -956,14 +959,31 @@ export function getEffectiveHitPointMaximumForCharacter(
 }
 
 export function reconcileCharacterStatusConsequences(character: Character): Character {
+  const normalizedStatusEntries = normalizeCharacterStatusEntries(character.statusEntries);
   const effectiveHitPointMaximum = getEffectiveHitPointMaximumForCharacter(character);
-  const exhaustionLevel = getExhaustionLevel(character.statusEntries);
+  const exhaustionLevel = getExhaustionLevel(normalizedStatusEntries);
   const isDeadFromExhaustion = exhaustionLevel !== null && exhaustionLevel >= 6;
   const rageState = character.classFeatureState?.rage;
+  const hasIncapacitated = hasStatusCondition(normalizedStatusEntries, CONDITION_NAME.INCAPACITATED);
   const shouldEndRageFromIncapacitated =
     character.className === "Barbarian" &&
     rageState?.active === true &&
-    hasStatusCondition(character.statusEntries, CONDITION_NAME.INCAPACITATED);
+    hasIncapacitated;
+  const nextStatusEntries = hasIncapacitated
+    ? pruneLinkedStatusEntries(
+        normalizedStatusEntries.filter(
+          (entry) =>
+            !(
+              (entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+                entry.value === EFFECT_NAME.CONCENTRATION) ||
+              entry.sourceId === unbreakableMajestyStatusSourceId
+            )
+        )
+      )
+    : normalizedStatusEntries;
+  const statusEntriesChanged =
+    nextStatusEntries.length !== normalizedStatusEntries.length ||
+    nextStatusEntries.some((entry, index) => entry.id !== normalizedStatusEntries[index]?.id);
   const nextCurrentHitPoints = isDeadFromExhaustion
     ? 0
     : Math.max(0, Math.min(effectiveHitPointMaximum, character.currentHitPoints));
@@ -980,7 +1000,8 @@ export function reconcileCharacterStatusConsequences(character: Character): Char
   if (
     nextCurrentHitPoints === character.currentHitPoints &&
     (!isDeadFromExhaustion || deathSavesUnchanged) &&
-    !shouldEndRageFromIncapacitated
+    !shouldEndRageFromIncapacitated &&
+    !statusEntriesChanged
   ) {
     return character;
   }
@@ -989,6 +1010,7 @@ export function reconcileCharacterStatusConsequences(character: Character): Char
     ...character,
     currentHitPoints: nextCurrentHitPoints,
     deathSaves: nextDeathSaves,
+    statusEntries: nextStatusEntries,
     classFeatureState:
       shouldEndRageFromIncapacitated && rageState
         ? {
@@ -1177,6 +1199,17 @@ export function getStatusEntryDescriptionEntries(
         "A current effect or trait that may change how your character plays."
       ]
     );
+  }
+
+  if (entry.sourceId === unbreakableMajestyStatusSourceId) {
+    return [
+      "As a Bonus Action, you can assume a magically majestic presence for 10 turns or until you have the Incapacitated condition.",
+      "For the duration, whenever any creature hits you with an attack roll for the first time on a turn, the attacker must succeed on a Charisma saving throw against your spell save DC, or the attack misses instead, as the creature recoils from your majesty."
+    ];
+  }
+
+  if (entry.sourceId === divineForeknowledgeStatusSourceId) {
+    return [...divineForeknowledgeDescription];
   }
 
   const keywordDescriptionEntries = getKeywordDescriptionLines(getStatusEntryKeyword(entry));

@@ -1,0 +1,44 @@
+.button {
+  background: rgba(83, 141, 230, 0.16);
+  color: #25508d;
+}
+
+.modal {
+  width: min(420px, 100%);
+}
+
+.description {
+  margin: 0;
+  color: rgba(37, 80, 141, 0.78);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.actions button {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.45rem;
+  justify-content: center;
+}
+
+.icon,
+.actionIcon {
+  display: block;
+  object-fit: contain;
+}
+
+.icon {
+  height: 16px;
+  width: 16px;
+}
+
+.actionIcon {
+  height: 14px;
+  width: 14px;
+}

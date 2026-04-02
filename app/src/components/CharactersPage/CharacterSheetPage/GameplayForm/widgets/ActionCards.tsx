@@ -9,6 +9,7 @@ import type {
 } from "../../../../../pages/CharactersPage/classFeatures";
 import { getNonMagicActionEconomyMultiForCharacter } from "../../../../../pages/CharactersPage/classFeatures";
 import type { WeaponAction } from "../../../../../pages/CharactersPage/gameplay";
+import type { EconomyType } from "../../../../../pages/CharactersPage/actionEconomy";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import {
   getActionShapeForEconomyType,
@@ -17,9 +18,11 @@ import {
   getWeaponActionBreakdown
 } from "../gameplayWidgetUtils";
 import RollStatePill from "../../../../RollStatePill/RollStatePill";
+import pyromancyIcon from "../../../../../assets/svg/pyromancy.svg";
 import { resolveFeatureIndicators } from "../../../../RollStatePill/rollState";
 import styles from "./ActionCards.module.css";
 import modalStyles from "./FeatureActionModal.module.css";
+import RadioOption from "./RadioOption";
 
 type RoundTrackerAvailability = {
   actionAvailable: boolean;
@@ -29,18 +32,31 @@ type RoundTrackerAvailability = {
 
 type WeaponActionCardProps = {
   action: WeaponAction;
+  secondaryEconomyType?: EconomyType | null;
   roundTracker: RoundTrackerAvailability;
   onClick: (action: WeaponAction) => void;
 };
 
-export function WeaponActionCard({ action, roundTracker, onClick }: WeaponActionCardProps) {
+export function WeaponActionCard({
+  action,
+  secondaryEconomyType = null,
+  roundTracker,
+  onClick
+}: WeaponActionCardProps) {
   const actionShape = getActionShapeForEconomyType(action.economyType);
   const economyShapeState = getEconomyShapeState(
     action.economyType,
     roundTracker,
     action.economyMultiCount ?? 0
   );
+  const secondaryActionShape = secondaryEconomyType
+    ? getActionShapeForEconomyType(secondaryEconomyType)
+    : null;
+  const secondaryEconomyShapeState = secondaryEconomyType
+    ? getEconomyShapeState(secondaryEconomyType, roundTracker)
+    : null;
   const resolvedRollState = resolveFeatureIndicators(action.indicators);
+  const isUsable = economyShapeState.isUsable || (secondaryEconomyShapeState?.isUsable ?? false);
 
   return (
     <button
@@ -50,17 +66,31 @@ export function WeaponActionCard({ action, roundTracker, onClick }: WeaponAction
         styles.actionCard,
         economyShapeState.multiCount > 0 && styles.actionCardMulti
       )}
-      disabled={!economyShapeState.isUsable}
+      disabled={!isUsable}
       onClick={() => onClick(action)}
     >
-      {actionShape ? (
-        <span className={styles.shapeBadge} aria-hidden="true">
-          <ActionShape
-            shape={actionShape}
-            isSelected={economyShapeState.isAvailable}
-            multiCount={economyShapeState.multiCount}
-            size="small"
-          />
+      {actionShape || secondaryActionShape ? (
+        <span className={styles.shapeBadgeRow} aria-hidden="true">
+          {actionShape ? (
+            <span className={styles.shapeBadge}>
+              <ActionShape
+                shape={actionShape}
+                isSelected={economyShapeState.isAvailable}
+                multiCount={economyShapeState.multiCount}
+                size="small"
+              />
+            </span>
+          ) : null}
+          {secondaryActionShape && secondaryEconomyShapeState ? (
+            <span className={clsx(styles.shapeBadge, styles.shapeBadgeSecondary)}>
+              <ActionShape
+                shape={secondaryActionShape}
+                isSelected={secondaryEconomyShapeState.isAvailable}
+                multiCount={secondaryEconomyShapeState.multiCount}
+                size="small"
+              />
+            </span>
+          ) : null}
         </span>
       ) : null}
       <strong>{action.name}</strong>
@@ -99,6 +129,10 @@ function renderFeatureActionUsesIcon(icon: FeatureActionCard["usesIcon"]) {
 
   if (icon === "flame") {
     return <Flame size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "pyromancy") {
+    return <img src={pyromancyIcon} alt="" className={styles.usesAssetIcon} />;
   }
 
   return null;
@@ -279,6 +313,8 @@ type FeatureActionOptionButtonProps = {
   onClick: () => void;
   formatValueLabel: (option: FeatureActionOptionCard) => string;
   selected?: boolean;
+  selectionIndicatorType?: "radio" | null;
+  selectionName?: string;
 };
 
 export function FeatureActionOptionButton({
@@ -287,7 +323,9 @@ export function FeatureActionOptionButton({
   roundTracker,
   onClick,
   formatValueLabel,
-  selected = false
+  selected = false,
+  selectionIndicatorType = null,
+  selectionName
 }: FeatureActionOptionButtonProps) {
   const actionShape = getActionShapeForEconomyType(option.economyType);
   const economyShapeState = getEconomyShapeState(
@@ -299,6 +337,51 @@ export function FeatureActionOptionButton({
         : 0)
   );
   const isDisabled = option.disabled === true || !economyShapeState.isUsable;
+  const valueLabel = option.usesLabel
+    ? renderFeatureActionOptionUsesLabel(option)
+    : formatValueLabel(option);
+  const breakdownLabel =
+    option.disabledReason ?? economyShapeState.disabledReason ?? option.breakdown ?? option.summary;
+
+  if (selectionIndicatorType === "radio") {
+    return (
+      <RadioOption
+        header={option.name}
+        description={
+          <>
+            <span className={styles.optionChoiceDetails}>
+              <span
+                className={clsx(
+                  styles.optionChoiceValue,
+                  option.usesLabel && styles.featureMeta,
+                  option.usesIcon && styles.featureMetaWithIcon
+                )}
+              >
+                {valueLabel}
+              </span>
+              {breakdownLabel ? (
+                <span className={styles.optionChoiceBreakdown}>{breakdownLabel}</span>
+              ) : null}
+            </span>
+          </>
+        }
+        isSelected={selected}
+        onSelect={onClick}
+        name={selectionName}
+        disabled={isDisabled}
+        aside={
+          actionShape ? (
+            <ActionShape
+              shape={actionShape}
+              isSelected={economyShapeState.isAvailable}
+              multiCount={economyShapeState.multiCount}
+              size="small"
+            />
+          ) : undefined
+        }
+      />
+    );
+  }
 
   return (
     <button
@@ -331,11 +414,9 @@ export function FeatureActionOptionButton({
           option.usesIcon && styles.featureMetaWithIcon
         )}
       >
-        {option.usesLabel ? renderFeatureActionOptionUsesLabel(option) : formatValueLabel(option)}
+        {valueLabel}
       </span>
-      <small className={styles.breakdownRow}>
-        {option.disabledReason ?? economyShapeState.disabledReason ?? option.breakdown ?? option.summary}
-      </small>
+      <small className={styles.breakdownRow}>{breakdownLabel}</small>
     </button>
   );
 }
@@ -356,32 +437,18 @@ export function FeatureActionChoiceRow({
   const isDisabled = option.disabled === true;
 
   return (
-    <div
-      className={clsx(
-        modalStyles.featureChoiceRow,
-        selected && modalStyles.featureChoiceRowSelected,
-        isDisabled && modalStyles.featureChoiceRowDisabled
-      )}
-    >
-      <label className={modalStyles.featureChoiceLabel}>
-        <input
-          type="radio"
-          name={groupName}
-          checked={selected}
-          disabled={isDisabled}
-          onChange={onClick}
-          className={modalStyles.featureChoiceRadio}
-        />
-        <span className={modalStyles.featureChoiceContent}>
-          <span className={modalStyles.featureChoiceTitle}>{option.name}</span>
-          <span className={modalStyles.featureChoiceDescription}>
-            {option.disabledReason ?? option.detail}
-          </span>
-        </span>
-      </label>
-      {option.trackingState ? (
-        <FeatureTrackingBadgeButton trackingState={option.trackingState} />
-      ) : null}
-    </div>
+    <RadioOption
+      header={option.name}
+      description={option.disabledReason ?? option.detail}
+      isSelected={selected}
+      onSelect={onClick}
+      name={groupName}
+      disabled={isDisabled}
+      aside={
+        option.trackingState ? (
+          <FeatureTrackingBadgeButton trackingState={option.trackingState} />
+        ) : undefined
+      }
+    />
   );
 }

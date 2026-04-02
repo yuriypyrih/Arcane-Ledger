@@ -33,8 +33,14 @@ import {
 } from "../../../../pages/CharactersPage/combat";
 import { getRoundTrackerResourceForEconomyType } from "../../../../pages/CharactersPage/actionEconomy";
 import {
+  applyBardBattleMagicAfterSpellCastForCharacter,
+  consumeBlessingOfMoonlightUseForCharacter,
   activateFeatureActionOptionForCharacter,
+  canUseBardValorActionCantripForCharacter,
   consumeBeguilingMagicOrBardicInspirationForCharacter,
+  consumeBardValorActionCantripForCharacter,
+  getBlessingOfMoonlightUsesRemainingForCharacter,
+  getBlessingOfMoonlightUsesTotalForCharacter,
   getChannelDivinityUsesRemainingForCharacter,
   getChannelDivinityUsesTotalForCharacter,
   getAlwaysPreparedSpellIdsForCharacter,
@@ -43,6 +49,7 @@ import {
   getBeguilingMagicUsesTotalForCharacter,
   getFeatureActionsForCharacter,
   getFeatureActionOptionsForCharacter,
+  getWeaponActionEconomyMultiForCharacter,
   hasActiveMantleOfMajestyForCharacter,
   getSpellEntryForCharacter,
   getSpellcastingStateForCharacter,
@@ -261,6 +268,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useState<SelectedSpellViewMode>("standard");
   const [selectedSpellSlotLevel, setSelectedSpellSlotLevel] = useState(1);
   const [useBeguilingMagicOnSelectedSpell, setUseBeguilingMagicOnSelectedSpell] = useState(false);
+  const [useBlessingOfMoonlightOnSelectedSpell, setUseBlessingOfMoonlightOnSelectedSpell] =
+    useState(false);
   const [spellManagementMode, setSpellManagementMode] = useState<SpellManagementMode | null>(null);
   const [cantripDraftIds, setCantripDraftIds] = useState<string[]>([]);
   const [spellbookDraftIds, setSpellbookDraftIds] = useState<string[]>([]);
@@ -278,6 +287,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setSelectedSpell(null);
     setSelectedSpellViewMode("standard");
     setUseBeguilingMagicOnSelectedSpell(false);
+    setUseBlessingOfMoonlightOnSelectedSpell(false);
   }, []);
   const closeSelectedDivinity = useCallback(() => {
     setSelectedDivinityOptionKey(null);
@@ -480,6 +490,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   );
   const beguilingMagicUsesRemaining = useMemo(
     () => getBeguilingMagicUsesRemainingForCharacter(character),
+    [character.classFeatureState, character.className, character.level, character.subclassId]
+  );
+  const blessingOfMoonlightUsesTotal = useMemo(
+    () => getBlessingOfMoonlightUsesTotalForCharacter(character),
+    [character.className, character.level, character.subclassId]
+  );
+  const blessingOfMoonlightUsesRemaining = useMemo(
+    () => getBlessingOfMoonlightUsesRemainingForCharacter(character),
     [character.classFeatureState, character.className, character.level, character.subclassId]
   );
   const bardicInspirationUsesRemaining = useMemo(
@@ -801,16 +819,25 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellRoundTrackerResource = selectedSpell
     ? getRoundTrackerResourceForSpell(selectedSpell)
     : null;
-  const selectedSpellActionWarning = getRoundTrackerActionWarning(
-    selectedSpellRoundTrackerResource,
-    roundTracker
-  );
+  const selectedSpellActionWarning =
+    selectedSpellRoundTrackerResource === "action" &&
+    selectedSpell !== null &&
+    !isRoundTrackerResourceAvailable(roundTracker, "action") &&
+    canUseBardValorActionCantripForCharacter(character, selectedSpell)
+      ? null
+      : getRoundTrackerActionWarning(selectedSpellRoundTrackerResource, roundTracker);
   const selectedSpellCastWarning =
     spellcastingState.blocked ? spellcastingState.reason : selectedSpellActionWarning;
-  const selectedSpellActionShapeState = getActionShapeStateForRoundTrackerResource(
-    selectedSpellRoundTrackerResource,
-    roundTracker
-  );
+  const selectedSpellActionShapeState =
+    selectedSpellRoundTrackerResource === "action" &&
+    selectedSpell !== null &&
+    !isRoundTrackerResourceAvailable(roundTracker, "action") &&
+    canUseBardValorActionCantripForCharacter(character, selectedSpell)
+      ? {
+          isSelected: false,
+          multiCount: getWeaponActionEconomyMultiForCharacter(character)
+        }
+      : getActionShapeStateForRoundTrackerResource(selectedSpellRoundTrackerResource, roundTracker);
   const selectedDivinityActionWarning = getRoundTrackerActionWarning(
     selectedDivinityRow
       ? getRoundTrackerResourceForEconomyType(selectedDivinityRow.option.economyType)
@@ -860,16 +887,29 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     beguilingMagicUsesTotal > 0 &&
     (selectedSpell.magicSchool === MAGIC_SCHOOL.ENCHANTMENT ||
       selectedSpell.magicSchool === MAGIC_SCHOOL.ILLUSION);
+  const selectedSpellSupportsBlessingOfMoonlight =
+    selectedSpell?.id === "spell-moonbeam" && blessingOfMoonlightUsesTotal > 0;
 
   useEffect(() => {
     setUseBeguilingMagicOnSelectedSpell(false);
+    setUseBlessingOfMoonlightOnSelectedSpell(false);
   }, [selectedSpell?.id]);
 
   function getSpellRowActionShapeState(spell: SpellEntry) {
-    return getActionShapeStateForRoundTrackerResource(
-      getRoundTrackerResourceForSpell(spell),
-      roundTracker
-    );
+    const roundTrackerResource = getRoundTrackerResourceForSpell(spell);
+
+    if (
+      roundTrackerResource === "action" &&
+      !isRoundTrackerResourceAvailable(roundTracker, "action") &&
+      canUseBardValorActionCantripForCharacter(character, spell)
+    ) {
+      return {
+        isSelected: false,
+        multiCount: getWeaponActionEconomyMultiForCharacter(character)
+      };
+    }
+
+    return getActionShapeStateForRoundTrackerResource(roundTrackerResource, roundTracker);
   }
 
   function getDivinityRowActionShapeState(row: DivinityOptionRow) {
@@ -1342,7 +1382,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setSelectedInvocation(option);
   }
 
-  function castSelectedSpell(options?: { castAsRitual?: boolean; useBeguilingMagic?: boolean }) {
+  function castSelectedSpell(options?: {
+    castAsRitual?: boolean;
+    useBeguilingMagic?: boolean;
+    useBlessingOfMoonlight?: boolean;
+  }) {
     if (!selectedSpell || spellcastingState.blocked) {
       return;
     }
@@ -1351,6 +1395,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     const roundTrackerResource = getRoundTrackerResourceForSpell(selectedSpell);
     const castAsRitual = options?.castAsRitual === true && selectedSpell.ritual === true;
     const useBeguilingMagic = options?.useBeguilingMagic === true;
+    const useBlessingOfMoonlight = options?.useBlessingOfMoonlight === true;
     const canCastSpellbookRitual =
       selectedSpellIsSpellbookOnly && hasWizardRitualAdept && castAsRitual;
 
@@ -1375,9 +1420,24 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           const nextCharacterWithBeguilingMagic = useBeguilingMagic
             ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacter)
             : nextCharacter;
+          const nextCharacterWithSpellOptions = useBlessingOfMoonlight
+            ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithBeguilingMagic)
+            : nextCharacterWithBeguilingMagic;
+
+          if (canUseBardValorActionCantripForCharacter(nextCharacterWithSpellOptions, selectedSpell)) {
+            return applyBardBattleMagicAfterSpellCastForCharacter(
+              consumeBardValorActionCantripForCharacter(nextCharacterWithSpellOptions),
+              selectedSpell
+            );
+          }
+
+          const nextCharacterWithBattleMagic = applyBardBattleMagicAfterSpellCastForCharacter(
+            nextCharacterWithSpellOptions,
+            selectedSpell
+          );
 
           return consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithBeguilingMagic,
+            nextCharacterWithBattleMagic,
             roundTrackerResource
           );
         });
@@ -1386,11 +1446,19 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           const nextCharacter = useBeguilingMagic
             ? consumeBeguilingMagicOrBardicInspirationForCharacter(currentCharacter)
             : currentCharacter;
+          const nextCharacterWithSpellOptions = useBlessingOfMoonlight
+            ? consumeBlessingOfMoonlightUseForCharacter(nextCharacter)
+            : nextCharacter;
+
+          const nextCharacterWithBattleMagic = applyBardBattleMagicAfterSpellCastForCharacter(
+            nextCharacterWithSpellOptions,
+            selectedSpell
+          );
 
           return {
-            ...nextCharacter,
+            ...nextCharacterWithBattleMagic,
             statusEntries: applySpellConcentrationToStatusEntries(
-              nextCharacter.statusEntries,
+              nextCharacterWithBattleMagic.statusEntries,
               selectedSpell
             )
           };
@@ -1417,13 +1485,16 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         const nextCharacterWithBeguilingMagic = useBeguilingMagic
           ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacter)
           : nextCharacter;
+        const nextCharacterWithSpellOptions = useBlessingOfMoonlight
+          ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithBeguilingMagic)
+          : nextCharacterWithBeguilingMagic;
 
         return roundTrackerResource
           ? consumeRoundTrackerResourceForCharacter(
-              nextCharacterWithBeguilingMagic,
+              nextCharacterWithSpellOptions,
               roundTrackerResource
             )
-          : nextCharacterWithBeguilingMagic;
+          : nextCharacterWithSpellOptions;
       });
 
       closeSelectedSpell();
@@ -1480,13 +1551,20 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellcast)
         : nextCharacterWithSpellcast;
+      const nextCharacterWithSpellOptions = useBlessingOfMoonlight
+        ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithBeguilingMagic)
+        : nextCharacterWithBeguilingMagic;
+      const nextCharacterWithBattleMagic = applyBardBattleMagicAfterSpellCastForCharacter(
+        nextCharacterWithSpellOptions,
+        selectedSpell
+      );
 
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithBeguilingMagic,
+            nextCharacterWithBattleMagic,
             roundTrackerResource
           )
-        : nextCharacterWithBeguilingMagic;
+        : nextCharacterWithBattleMagic;
     });
 
     closeSelectedSpell();
@@ -2104,7 +2182,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           onAction={(options) =>
             castSelectedSpell({
               ...options,
-              useBeguilingMagic: useBeguilingMagicOnSelectedSpell
+              useBeguilingMagic: useBeguilingMagicOnSelectedSpell,
+              useBlessingOfMoonlight: useBlessingOfMoonlightOnSelectedSpell
             })
           }
           actionConsumesSpellSlot={!selectedSpellIsSpellbookOnly}
@@ -2124,27 +2203,47 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           actionShapeAvailable={selectedSpellActionShapeState.isSelected}
           actionShapeMultiCount={selectedSpellActionShapeState.multiCount}
           actionOptions={
-            selectedSpellSupportsBeguilingMagic
+            selectedSpellSupportsBeguilingMagic || selectedSpellSupportsBlessingOfMoonlight
               ? [
-                  {
-                    id: "beguiling-magic",
-                    label: "Beguiling Magic",
-                    checked: useBeguilingMagicOnSelectedSpell,
-                    onCheckedChange: setUseBeguilingMagicOnSelectedSpell,
-                    disabled:
-                      beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
-                    tracker: {
-                      current: beguilingMagicUsesRemaining,
-                      total: beguilingMagicUsesTotal
-                    },
-                    fallbackCost:
-                      beguilingMagicUsesRemaining <= 0
-                        ? {
-                            label: "Use 1",
-                            icon: "music"
+                  ...(selectedSpellSupportsBeguilingMagic
+                    ? [
+                        {
+                          id: "beguiling-magic",
+                          label: "Beguiling Magic",
+                          checked: useBeguilingMagicOnSelectedSpell,
+                          onCheckedChange: setUseBeguilingMagicOnSelectedSpell,
+                          disabled:
+                            beguilingMagicUsesRemaining <= 0 &&
+                            bardicInspirationUsesRemaining <= 0,
+                          tracker: {
+                            current: beguilingMagicUsesRemaining,
+                            total: beguilingMagicUsesTotal
+                          },
+                          fallbackCost:
+                            beguilingMagicUsesRemaining <= 0
+                              ? {
+                                  label: "Use 1",
+                                  icon: "music" as const
+                                }
+                              : undefined
+                        }
+                      ]
+                    : []),
+                  ...(selectedSpellSupportsBlessingOfMoonlight
+                    ? [
+                        {
+                          id: "blessing-of-moonlight",
+                          label: "Blessing of Moonlight",
+                          checked: useBlessingOfMoonlightOnSelectedSpell,
+                          onCheckedChange: setUseBlessingOfMoonlightOnSelectedSpell,
+                          disabled: blessingOfMoonlightUsesRemaining <= 0,
+                          tracker: {
+                            current: blessingOfMoonlightUsesRemaining,
+                            total: blessingOfMoonlightUsesTotal
                           }
-                        : undefined
-                  }
+                        }
+                      ]
+                    : [])
                 ]
               : undefined
           }

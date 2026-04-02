@@ -1,4 +1,3 @@
-import clsx from "clsx";
 import type {
   FeatureActionCard,
   FeatureActionOptionCard
@@ -6,6 +5,7 @@ import type {
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import FeatureActionOptionsModal from "./FeatureActionOptionsModal";
 import styles from "./FeatureActionModal.module.css";
+import RadioOption from "./RadioOption";
 
 type BrutalStrikeModalProps = {
   action: FeatureActionCard;
@@ -54,19 +54,15 @@ function BrutalStrikeModal({
           selectedOptionKeys.length >= selectionLimit;
 
         return (
-          <button
+          <RadioOption
             key={option.key}
-            type="button"
-            className={clsx(
-              styles.brutalStrikeOptionButton,
-              isSelected && styles.brutalStrikeOptionButtonSelected
-            )}
+            header={option.name}
+            description={option.detail}
+            isSelected={isSelected}
+            indicatorType={allowsMultipleSelections ? "checkbox" : "radio"}
             disabled={isSelectionLimitReached}
-            onClick={() => onSelectOption(option.key)}
-          >
-            <strong className={styles.brutalStrikeOptionName}>{option.name}</strong>
-            <span className={styles.brutalStrikeOptionDescription}>{option.detail}</span>
-          </button>
+            onSelect={() => onSelectOption(option.key)}
+          />
         );
       })}
     </FeatureActionOptionsModal>

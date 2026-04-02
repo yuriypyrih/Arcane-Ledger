@@ -12,14 +12,25 @@ import {
   getBarbarianPrimalKnowledgeSkillSelectionForCharacter,
   getBarbarianWildHeartAspectChoiceForCharacter,
   getBardExpertiseSelectionsForCharacter,
+  getBardLoreBonusProficiencySelectionsForCharacter,
+  getBardMagicalDiscoveriesSpellIdsForCharacter,
+  getBardMagicalDiscoveriesSpellOptionsForCharacter,
+  getBardPrimalLoreCantripIdForCharacter,
+  getBardPrimalLoreCantripOptionsForCharacter,
+  getBardPrimalLoreSkillOptionsForCharacter,
+  getBardPrimalLoreSkillSelectionForCharacter,
   getClericBlessedStrikesChoiceForCharacter,
   getClericDivineOrderChoiceForCharacter,
+  getKnowledgeDomainBlessingsSkillSelectionsForCharacter,
+  getKnowledgeDomainUnfetteredMindSavingThrowOptionsForCharacter,
+  getKnowledgeDomainUnfetteredMindSavingThrowSelectionForCharacter,
   getDruidPrimalOrderChoiceForCharacter,
   getRangerDeftExplorerExpertiseSelectionForCharacter,
   getRangerDeftExplorerLanguageSelectionsForCharacter,
   getRangerLevel9ExpertiseSelectionsForCharacter,
   getRogueExpertiseSelectionsForCharacter,
   getRogueThievesCantLanguageSelectionForCharacter,
+  isKnowledgeDomainUnfetteredMindLockedToIntForCharacter,
   getSorcererMetamagicDefinitionsForCharacter,
   getSorcererMetamagicSelectionCountForCharacter,
   getSorcererMetamagicSelectionsForCharacter,
@@ -32,10 +43,16 @@ import {
   getWeaponMasterySelectionCountForCharacter,
   getWeaponMasterySelectionsForCharacter,
   setBardExpertiseSelectionsForCharacter,
+  setBardLoreBonusProficiencySelectionsForCharacter,
+  setBardMagicalDiscoveriesSpellIdsForCharacter,
+  setBardPrimalLoreCantripIdForCharacter,
+  setBardPrimalLoreSkillSelectionForCharacter,
   setBarbarianPrimalKnowledgeSkillSelectionForCharacter,
   setBarbarianWildHeartAspectChoiceForCharacter,
   setClericBlessedStrikesChoiceForCharacter,
   setClericDivineOrderChoiceForCharacter,
+  setKnowledgeDomainBlessingsSkillSelectionsForCharacter,
+  setKnowledgeDomainUnfetteredMindSavingThrowSelectionForCharacter,
   setDruidPrimalOrderChoiceForCharacter,
   setRangerDeftExplorerExpertiseSelectionForCharacter,
   setRangerDeftExplorerLanguageSelectionsForCharacter,
@@ -73,7 +90,7 @@ import type {
   SkillName,
   WEAPON_PROFICIENCY
 } from "../../../../types";
-import { PROF_LEVEL } from "../../../../types";
+import { PROF_LEVEL, SAVING_THROW_PROFICIENCY, SKILL } from "../../../../types";
 import { formatCodexLabel } from "../../../../utils/codex";
 import {
   FeatureDisclosureRow,
@@ -85,7 +102,10 @@ import {
   getBardExpertiseTierForLevel,
   getRogueExpertiseTierForLevel,
   getSelectableLanguageOptions,
+  getSelectableNonExpertSkillOptions,
   getSelectableProficientSkillOptions,
+  getSelectableUnproficientSavingThrowOptions,
+  getSelectableUnproficientSkillOptions,
   isFeatChoiceFeature,
   renderDescriptionLine,
   updateSelectionAtIndex,
@@ -234,6 +254,7 @@ function ClassFeatureList({
         level: nextCharacter.level,
         species: nextCharacter.species,
         background: nextCharacter.background,
+        subclassId: nextCharacter.subclassId,
         classFeatureState: nextCharacter.classFeatureState,
         skillProficiencies: nextCharacter.skillProficiencies,
         savingThrowProficiencies: nextCharacter.savingThrowProficiencies,
@@ -288,6 +309,203 @@ function ClassFeatureList({
 
   function isBardExpertiseInputRequired(level: number): boolean {
     return getBardExpertiseSelections(level).length < 2;
+  }
+
+  function getBardLoreBonusProficiencySelections(): SkillName[] {
+    return getBardLoreBonusProficiencySelectionsForCharacter(character);
+  }
+
+  function getAvailableBardLoreBonusProficiencySkills(slotIndex: number): SkillName[] {
+    const currentSelections = getBardLoreBonusProficiencySelections();
+    const currentValue = currentSelections[slotIndex] ?? null;
+    const blockedSelections = currentSelections.filter((_, index) => index !== slotIndex);
+
+    return getSelectableUnproficientSkillOptions(
+      character,
+      skillsOptions,
+      currentValue,
+      blockedSelections
+    );
+  }
+
+  function updateBardLoreBonusProficiencySelection(slotIndex: number, nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      recomputeCharacterFeatureProficiencies(
+        setBardLoreBonusProficiencySelectionsForCharacter(
+          currentCharacter,
+          updateSelectionAtIndex(
+            getBardLoreBonusProficiencySelectionsForCharacter(currentCharacter),
+            3,
+            slotIndex,
+            nextValue
+          ).filter((selection): selection is SkillName =>
+            skillsOptions.some((skillOption) => skillOption === selection)
+          )
+        )
+      )
+    );
+  }
+
+  function isBardLoreBonusProficienciesInputRequired(): boolean {
+    return getBardLoreBonusProficiencySelections().length < 3;
+  }
+
+  function getBardMagicalDiscoveriesSpellSelections(): string[] {
+    return getBardMagicalDiscoveriesSpellIdsForCharacter(character);
+  }
+
+  function getAvailableBardMagicalDiscoveriesSpells(slotIndex: number): SpellEntry[] {
+    const currentSelections = getBardMagicalDiscoveriesSpellSelections();
+    const blockedSelections = new Set(
+      currentSelections.filter((selection, index) => index !== slotIndex)
+    );
+
+    return getBardMagicalDiscoveriesSpellOptionsForCharacter(character).filter(
+      (spell) => !blockedSelections.has(spell.id)
+    );
+  }
+
+  function updateBardMagicalDiscoveriesSpellSelection(slotIndex: number, nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      setBardMagicalDiscoveriesSpellIdsForCharacter(
+        currentCharacter,
+        updateSelectionAtIndex(
+          getBardMagicalDiscoveriesSpellIdsForCharacter(currentCharacter),
+          2,
+          slotIndex,
+          nextValue
+        ).filter((selection): selection is string => selection.trim().length > 0)
+      )
+    );
+  }
+
+  function isBardMagicalDiscoveriesInputRequired(): boolean {
+    return getBardMagicalDiscoveriesSpellSelections().length < 2;
+  }
+
+  function getBardPrimalLoreCantripSelection(): string {
+    return getBardPrimalLoreCantripIdForCharacter(character) ?? "";
+  }
+
+  function getAvailableBardPrimalLoreCantrips(): SpellEntry[] {
+    return getBardPrimalLoreCantripOptionsForCharacter(character);
+  }
+
+  function updateBardPrimalLoreCantripSelection(nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      setBardPrimalLoreCantripIdForCharacter(currentCharacter, nextValue || null)
+    );
+  }
+
+  function isBardPrimalLoreCantripInputRequired(): boolean {
+    return getBardPrimalLoreCantripSelection().length === 0;
+  }
+
+  function getBardPrimalLoreSkillSelection(): SkillName | null {
+    return getBardPrimalLoreSkillSelectionForCharacter(character);
+  }
+
+  function getAvailableBardPrimalLoreSkills(): SkillName[] {
+    return getSelectableUnproficientSkillOptions(
+      character,
+      getBardPrimalLoreSkillOptionsForCharacter(),
+      getBardPrimalLoreSkillSelection()
+    );
+  }
+
+  function updateBardPrimalLoreSkillSelection(nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      recomputeCharacterFeatureProficiencies(
+        setBardPrimalLoreSkillSelectionForCharacter(
+          currentCharacter,
+          skillsOptions.some((skillOption) => skillOption === nextValue)
+            ? (nextValue as SkillName)
+            : null
+        )
+      )
+    );
+  }
+
+  function isBardPrimalLoreSkillInputRequired(): boolean {
+    return getBardPrimalLoreSkillSelection() === null;
+  }
+
+  function getKnowledgeDomainBlessingsSkillSelections(): SkillName[] {
+    return getKnowledgeDomainBlessingsSkillSelectionsForCharacter(character);
+  }
+
+  function getAvailableKnowledgeDomainBlessingsSkills(slotIndex: number): SkillName[] {
+    const currentSelections = getKnowledgeDomainBlessingsSkillSelections();
+    const currentValue = currentSelections[slotIndex] ?? null;
+    const blockedSelections = currentSelections.filter((_, index) => index !== slotIndex);
+
+    return getSelectableNonExpertSkillOptions(
+      character,
+      [SKILL.ARCANA, SKILL.HISTORY, SKILL.NATURE, SKILL.RELIGION],
+      currentValue,
+      blockedSelections
+    );
+  }
+
+  function updateKnowledgeDomainBlessingsSkillSelection(slotIndex: number, nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      recomputeCharacterFeatureProficiencies(
+        setKnowledgeDomainBlessingsSkillSelectionsForCharacter(
+          currentCharacter,
+          updateSelectionAtIndex(
+            getKnowledgeDomainBlessingsSkillSelectionsForCharacter(currentCharacter),
+            2,
+            slotIndex,
+            nextValue
+          ).filter((selection): selection is SkillName =>
+            [SKILL.ARCANA, SKILL.HISTORY, SKILL.NATURE, SKILL.RELIGION].some(
+              (option) => option === selection
+            )
+          )
+        )
+      )
+    );
+  }
+
+  function isKnowledgeDomainBlessingsInputRequired(): boolean {
+    return getKnowledgeDomainBlessingsSkillSelections().length < 2;
+  }
+
+  function getKnowledgeDomainUnfetteredMindSavingThrowSelection():
+    | SAVING_THROW_PROFICIENCY
+    | null {
+    return getKnowledgeDomainUnfetteredMindSavingThrowSelectionForCharacter(character);
+  }
+
+  function getAvailableKnowledgeDomainUnfetteredMindSavingThrows(): SAVING_THROW_PROFICIENCY[] {
+    const currentValue = getKnowledgeDomainUnfetteredMindSavingThrowSelection();
+
+    return getSelectableUnproficientSavingThrowOptions(
+      character,
+      getKnowledgeDomainUnfetteredMindSavingThrowOptionsForCharacter(character),
+      currentValue
+    );
+  }
+
+  function isKnowledgeDomainUnfetteredMindLocked(): boolean {
+    return isKnowledgeDomainUnfetteredMindLockedToIntForCharacter(character);
+  }
+
+  function updateKnowledgeDomainUnfetteredMindSavingThrowSelection(nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      recomputeCharacterFeatureProficiencies(
+        setKnowledgeDomainUnfetteredMindSavingThrowSelectionForCharacter(
+          currentCharacter,
+          Object.values(SAVING_THROW_PROFICIENCY).some((option) => option === nextValue)
+            ? (nextValue as SAVING_THROW_PROFICIENCY)
+            : null
+        )
+      )
+    );
+  }
+
+  function isKnowledgeDomainUnfetteredMindInputRequired(): boolean {
+    return getKnowledgeDomainUnfetteredMindSavingThrowSelection() === null;
   }
 
   function getRogueExpertiseSelections(level: number): SkillName[] {
@@ -862,10 +1080,40 @@ function ClassFeatureList({
                   ? isRogueExpertiseInputRequired(featureRow.level)
                   : false
             : false;
+        const isBardLoreBonusProficienciesRequired =
+          isUnlocked &&
+          featureRow.feature === CLASS_FEATURE.BONUS_PROFICIENCIES &&
+          character.className === "Bard" &&
+          isBardLoreBonusProficienciesInputRequired();
+        const isBardMagicalDiscoveriesRequired =
+          isUnlocked &&
+          featureRow.feature === CLASS_FEATURE.MAGICAL_DISCOVERIES &&
+          character.className === "Bard" &&
+          isBardMagicalDiscoveriesInputRequired();
+        const isBardPrimalLoreRequired =
+          isUnlocked &&
+          featureRow.feature === CLASS_FEATURE.PRIMAL_LORE &&
+          character.className === "Bard" &&
+          (isBardPrimalLoreCantripInputRequired() || isBardPrimalLoreSkillInputRequired());
+        const isKnowledgeDomainBlessingsRequired =
+          isUnlocked &&
+          featureRow.feature === CLASS_FEATURE.BLESSINGS_OF_KNOWLEDGE &&
+          character.className === "Cleric" &&
+          isKnowledgeDomainBlessingsInputRequired();
+        const isKnowledgeDomainUnfetteredMindRequired =
+          isUnlocked &&
+          featureRow.feature === CLASS_FEATURE.UNFETTERED_MIND &&
+          character.className === "Cleric" &&
+          isKnowledgeDomainUnfetteredMindInputRequired();
         const isInputRequired =
           (isUnlocked && isFeatChoiceFeature(featureRow.feature) && linkedFeat === null) ||
           isSpellcastingFeatureInputRequired ||
           isExpertiseInputRequired ||
+          isBardLoreBonusProficienciesRequired ||
+          isBardMagicalDiscoveriesRequired ||
+          isBardPrimalLoreRequired ||
+          isKnowledgeDomainBlessingsRequired ||
+          isKnowledgeDomainUnfetteredMindRequired ||
           (isUnlocked &&
             featureRow.feature === CLASS_FEATURE.DEFT_EXPLORER &&
             character.className === "Ranger" &&
@@ -1402,6 +1650,283 @@ function ClassFeatureList({
                             </label>
                           );
                         })}
+                      </div>
+                    </>
+                  ) : featureRow.feature === CLASS_FEATURE.BONUS_PROFICIENCIES &&
+                    character.className === "Bard" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <div className={styles.featureSelectionGrid}>
+                        {[0, 1, 2].map((slotIndex) => {
+                          const currentValue =
+                            getBardLoreBonusProficiencySelections()[slotIndex] ?? "";
+                          const availableSkills =
+                            getAvailableBardLoreBonusProficiencySkills(slotIndex);
+
+                          if (currentValue && !availableSkills.includes(currentValue as SkillName)) {
+                            availableSkills.unshift(currentValue as SkillName);
+                          }
+
+                          return (
+                            <label
+                              key={`${featureRow.key}-bonus-proficiency-slot-${slotIndex}`}
+                              className={clsx(
+                                styles.featureSelectionField,
+                                !isUnlocked && styles.featureOptionRowDisabled
+                              )}
+                            >
+                              <span className={styles.featureSelectionLabel}>
+                                Bonus Proficiency {slotIndex + 1}
+                              </span>
+                              <SelectInput
+                                value={currentValue}
+                                disabled={!isUnlocked}
+                                onChange={(event) =>
+                                  updateBardLoreBonusProficiencySelection(
+                                    slotIndex,
+                                    event.target.value
+                                  )
+                                }
+                              >
+                                <option value="">Select a skill</option>
+                                {availableSkills.map((skillName) => (
+                                  <option
+                                    key={`${featureRow.key}-bonus-proficiency-${skillName}`}
+                                    value={skillName}
+                                  >
+                                    {skillName}
+                                  </option>
+                                ))}
+                              </SelectInput>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : featureRow.feature === CLASS_FEATURE.MAGICAL_DISCOVERIES &&
+                    character.className === "Bard" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <div className={styles.featureSelectionGrid}>
+                        {[0, 1].map((slotIndex) => {
+                          const currentValue =
+                            getBardMagicalDiscoveriesSpellSelections()[slotIndex] ?? "";
+                          const availableSpells =
+                            getAvailableBardMagicalDiscoveriesSpells(slotIndex);
+
+                          return (
+                            <label
+                              key={`${featureRow.key}-magical-discovery-slot-${slotIndex}`}
+                              className={clsx(
+                                styles.featureSelectionField,
+                                !isUnlocked && styles.featureOptionRowDisabled
+                              )}
+                            >
+                              <span className={styles.featureSelectionLabel}>
+                                Magical Discovery {slotIndex + 1}
+                              </span>
+                              <SelectInput
+                                value={currentValue}
+                                disabled={!isUnlocked}
+                                onChange={(event) =>
+                                  updateBardMagicalDiscoveriesSpellSelection(
+                                    slotIndex,
+                                    event.target.value
+                                  )
+                                }
+                              >
+                                <option value="">
+                                  Select a Cleric, Druid, or Wizard spell
+                                </option>
+                                {availableSpells.map((spell) => (
+                                  <option
+                                    key={`${featureRow.key}-magical-discovery-${spell.id}`}
+                                    value={spell.id}
+                                  >
+                                    {spell.name}
+                                  </option>
+                                ))}
+                              </SelectInput>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : featureRow.feature === CLASS_FEATURE.PRIMAL_LORE &&
+                    character.className === "Bard" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <div className={styles.featureSelectionGrid}>
+                        <label
+                          className={clsx(
+                            styles.featureSelectionField,
+                            !isUnlocked && styles.featureOptionRowDisabled
+                          )}
+                        >
+                          <span className={styles.featureSelectionLabel}>Primal Lore Cantrip</span>
+                          <SelectInput
+                            value={getBardPrimalLoreCantripSelection()}
+                            disabled={!isUnlocked}
+                            onChange={(event) =>
+                              updateBardPrimalLoreCantripSelection(event.target.value)
+                            }
+                          >
+                            <option value="">Select a Druid cantrip</option>
+                            {getAvailableBardPrimalLoreCantrips().map((spell) => (
+                              <option
+                                key={`${featureRow.key}-primal-lore-cantrip-${spell.id}`}
+                                value={spell.id}
+                              >
+                                {spell.name}
+                              </option>
+                            ))}
+                          </SelectInput>
+                        </label>
+                        <label
+                          className={clsx(
+                            styles.featureSelectionField,
+                            !isUnlocked && styles.featureOptionRowDisabled
+                          )}
+                        >
+                          <span className={styles.featureSelectionLabel}>Primal Lore Skill</span>
+                          <SelectInput
+                            value={getBardPrimalLoreSkillSelection() ?? ""}
+                            disabled={!isUnlocked}
+                            onChange={(event) =>
+                              updateBardPrimalLoreSkillSelection(event.target.value)
+                            }
+                          >
+                            <option value="">Select a skill</option>
+                            {getAvailableBardPrimalLoreSkills().map((skillName) => (
+                              <option
+                                key={`${featureRow.key}-primal-lore-skill-${skillName}`}
+                                value={skillName}
+                              >
+                                {skillName}
+                              </option>
+                            ))}
+                          </SelectInput>
+                        </label>
+                      </div>
+                    </>
+                  ) : featureRow.feature === CLASS_FEATURE.BLESSINGS_OF_KNOWLEDGE &&
+                    character.className === "Cleric" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <div className={styles.featureSelectionGrid}>
+                        {[0, 1].map((slotIndex) => {
+                          const currentValue =
+                            getKnowledgeDomainBlessingsSkillSelections()[slotIndex] ?? "";
+                          const availableSkills =
+                            getAvailableKnowledgeDomainBlessingsSkills(slotIndex);
+
+                          return (
+                            <label
+                              key={`${featureRow.key}-knowledge-blessing-${slotIndex}`}
+                              className={clsx(
+                                styles.featureSelectionField,
+                                !isUnlocked && styles.featureOptionRowDisabled
+                              )}
+                            >
+                              <span className={styles.featureSelectionLabel}>
+                                Blessing Skill {slotIndex + 1}
+                              </span>
+                              <SelectInput
+                                value={currentValue}
+                                disabled={!isUnlocked}
+                                onChange={(event) =>
+                                  updateKnowledgeDomainBlessingsSkillSelection(
+                                    slotIndex,
+                                    event.target.value
+                                  )
+                                }
+                              >
+                                <option value="">Select a skill</option>
+                                {availableSkills.map((skillName) => (
+                                  <option
+                                    key={`${featureRow.key}-knowledge-skill-${skillName}`}
+                                    value={skillName}
+                                  >
+                                    {skillName}
+                                  </option>
+                                ))}
+                              </SelectInput>
+                            </label>
+                          );
+                        })}
+                      </div>
+                    </>
+                  ) : featureRow.feature === CLASS_FEATURE.UNFETTERED_MIND &&
+                    character.className === "Cleric" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <div className={styles.featureSelectionGrid}>
+                        <label
+                          className={clsx(
+                            styles.featureSelectionField,
+                            !isUnlocked && styles.featureOptionRowDisabled
+                          )}
+                        >
+                          <span className={styles.featureSelectionLabel}>
+                            Unfettered Mind Save
+                          </span>
+                          <SelectInput
+                            value={getKnowledgeDomainUnfetteredMindSavingThrowSelection() ?? ""}
+                            disabled={!isUnlocked || isKnowledgeDomainUnfetteredMindLocked()}
+                            onChange={(event) =>
+                              updateKnowledgeDomainUnfetteredMindSavingThrowSelection(
+                                event.target.value
+                              )
+                            }
+                          >
+                            <option value="">Select a saving throw</option>
+                            {getAvailableKnowledgeDomainUnfetteredMindSavingThrows().map(
+                              (proficiency) => (
+                                <option
+                                  key={`${featureRow.key}-unfettered-mind-${proficiency}`}
+                                  value={proficiency}
+                                >
+                                  {getProficiencyLabel(proficiency)}
+                                </option>
+                              )
+                            )}
+                          </SelectInput>
+                        </label>
                       </div>
                     </>
                   ) : featureRow.feature === CLASS_FEATURE.EXPERTISE ? (

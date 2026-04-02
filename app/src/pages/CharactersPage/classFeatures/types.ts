@@ -24,7 +24,7 @@ import type {
 } from "../../../types";
 
 export type FeatureActionTone = "default" | "accent" | "danger";
-export type FeatureActionIcon = "brain" | "music" | "sparkles" | "flame";
+export type FeatureActionIcon = "brain" | "music" | "sparkles" | "flame" | "pyromancy";
 
 export type FeatureActionFact = {
   label: string;
@@ -362,6 +362,8 @@ export type CollectedClassFeatureCharacter = Pick<Character, "className" | "leve
     | "abilities"
     | "subclassId"
     | "classFeatureState"
+    | "skillProficiencies"
+    | "savingThrowProficiencies"
     | "spellSlotsExpended"
     | "statusEntries"
     | "roundTracker"

@@ -6,6 +6,7 @@ import { MAGIC_SCHOOL, type SpellEntry } from "../../../../../codex/entries";
 import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
 import {
   consumeBeguilingMagicOrBardicInspirationForCharacter,
+  expendBardicInspirationUseForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
   getBeguilingMagicUsesTotalForCharacter,
@@ -312,7 +313,12 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   useEffect(() => {
     setUseBeguilingMagicOnReactionSpell(false);
   }, [selectedReactionSpell?.id]);
-  const selectedReactionActionWarning = getRoundTrackerActionWarning("reaction", roundTracker);
+  const selectedReactionResourceWarning =
+    selectedReactionEntry?.id === "reaction-cutting-words" && bardicInspirationUsesRemaining <= 0
+      ? "No Bardic Inspiration uses remaining."
+      : null;
+  const selectedReactionActionWarning =
+    getRoundTrackerActionWarning("reaction", roundTracker) ?? selectedReactionResourceWarning;
   const selectedReactionBlockedReason = spellcastingState.blocked ? spellcastingState.reason : null;
   const selectedStatusEntryPreset = selectedStatusEntry
     ? getStatusDurationPreset(selectedStatusEntry.duration)
@@ -593,10 +599,21 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       return;
     }
 
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      roundTracker: consumeRoundTrackerResource(currentCharacter.roundTracker, "reaction")
-    }));
+    onPersistCharacter((currentCharacter) => {
+      const nextCharacter =
+        selectedReactionEntry.id === "reaction-cutting-words"
+          ? expendBardicInspirationUseForCharacter(currentCharacter)
+          : currentCharacter;
+
+      if (selectedReactionEntry.id === "reaction-cutting-words" && nextCharacter === currentCharacter) {
+        return currentCharacter;
+      }
+
+      return {
+        ...nextCharacter,
+        roundTracker: consumeRoundTrackerResource(nextCharacter.roundTracker, "reaction")
+      };
+    });
 
     closeSelectedReaction();
   }

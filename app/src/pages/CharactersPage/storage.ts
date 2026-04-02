@@ -258,6 +258,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     level: normalizedLevel,
     species: normalizedSpecies,
     background: resolvedBackground,
+    subclassId: normalizedSubclassId,
     classFeatureState: normalizedClassFeatureState,
     skillProficiencies: record.skillProficiencies,
     savingThrowProficiencies: record.savingThrowProficiencies,

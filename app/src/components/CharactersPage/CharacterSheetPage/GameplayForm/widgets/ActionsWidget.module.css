@@ -15,43 +15,6 @@
   width: auto;
 }
 
-.actionDrawerHeaderMeta {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 0.55rem;
-  justify-content: flex-end;
-}
-
-.actionDrawerEconomyPill,
-.actionDrawerMetaTag {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  min-height: 42px;
-}
-
-.actionDrawerEconomyPill {
-  gap: 0.55rem;
-  background: linear-gradient(135deg, rgba(63, 133, 88, 0.15), rgba(82, 166, 108, 0.24));
-  color: #255c39;
-  font-size: 0.78rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  padding: 0.45rem 0.78rem 0.45rem 0.58rem;
-  text-transform: uppercase;
-}
-
-.actionDrawerMetaTag {
-  background: rgba(75, 47, 29, 0.08);
-  color: var(--color-ink-soft);
-  font-size: 0.72rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  padding: 0.45rem 0.72rem;
-  text-transform: uppercase;
-}
-
 .weaponDrawerBody {
   display: grid;
   gap: 1rem;
@@ -81,6 +44,33 @@
   width: 100%;
 }
 
+.footerActionStack {
+  display: grid;
+  gap: 0.7rem;
+  width: 100%;
+}
+
+.footerActionToggle {
+  color: #25508d;
+  display: flex;
+  min-width: 0;
+}
+
+.footerActionToggleLabel {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  font-size: 0.84rem;
+  font-weight: 700;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.footerActionToggleLabel input {
+  accent-color: #2f78ff;
+  margin: 0;
+}
+
 .weaponFooterButton,
 .weaponFooterIconButton {
   margin-left: 0;
@@ -103,6 +93,13 @@
   flex-shrink: 0;
   justify-content: center;
   padding: 0.18rem;
+}
+
+.footerActionShapeGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  margin-left: auto;
 }
 
 .weaponFooterIconButton {
@@ -155,7 +152,6 @@
 }
 
 @media (max-width: 720px) {
-  .actionDrawerHeaderMeta,
   .weaponFooterActions {
     width: 100%;
   }

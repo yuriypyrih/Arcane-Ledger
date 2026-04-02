@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { PROF_LEVEL, PROFICIENCY_SOURCE, SAVING_THROW_PROFICIENCY, SKILL } from "../../types";
 import {
+  getDisplaySkillProficiencyEntries,
+  isManualSkillLevelSelectable,
   getSelectedClassSkillSelectionsFromEntries,
   getSavingThrowLevelFromEntries,
   getResolvedSkillProficiencyEntry,
@@ -151,6 +153,166 @@ describe("normalizeCharacterProficiencies", () => {
         normalizedProficiencies.skillProficiencies,
         perceptionProficiency
       ).locked
+    ).toBe(true);
+  });
+
+  it("lets manual skill edits boost a granted proficiency without dropping below the granted floor", () => {
+    const athleticsProficiency = getSkillProficiencyForName(SKILL.ATHLETICS);
+
+    if (!athleticsProficiency) {
+      throw new Error("Expected athletics proficiency to exist.");
+    }
+
+    const grantedEntries = [
+      {
+        source: PROFICIENCY_SOURCE.CLASS,
+        sourceStr: "Primal Knowledge",
+        proficiency: athleticsProficiency,
+        proficiencyLevel: PROF_LEVEL.PROFICIENT
+      }
+    ];
+    const expertOverride = upsertManualSkillEntry(
+      grantedEntries,
+      athleticsProficiency,
+      PROF_LEVEL.EXPERT
+    );
+    const removedOverride = upsertManualSkillEntry(
+      expertOverride,
+      athleticsProficiency,
+      PROF_LEVEL.NONE
+    );
+
+    expect(getResolvedSkillProficiencyEntry(expertOverride, athleticsProficiency)).toEqual(
+      expect.objectContaining({
+        proficiencyLevel: PROF_LEVEL.EXPERT,
+        sourceLabels: ["Primal Knowledge", "MANUAL"]
+      })
+    );
+    expect(getResolvedSkillProficiencyEntry(removedOverride, athleticsProficiency)).toEqual(
+      expect.objectContaining({
+        proficiencyLevel: PROF_LEVEL.PROFICIENT,
+        sourceLabels: ["Primal Knowledge"]
+      })
+    );
+  });
+
+  it("keeps a manual proficiency floor in place while a different source grants expertise", () => {
+    const arcanaProficiency = getSkillProficiencyForName(SKILL.ARCANA);
+
+    if (!arcanaProficiency) {
+      throw new Error("Expected arcana proficiency to exist.");
+    }
+
+    const entries = [
+      {
+        source: PROFICIENCY_SOURCE.MANUAL,
+        proficiency: arcanaProficiency,
+        proficiencyLevel: PROF_LEVEL.PROFICIENT
+      },
+      {
+        source: PROFICIENCY_SOURCE.CLASS,
+        sourceStr: "Blessings of Knowledge",
+        proficiency: arcanaProficiency,
+        proficiencyLevel: PROF_LEVEL.EXPERT
+      }
+    ];
+    const attemptedRemoval = upsertManualSkillEntry(entries, arcanaProficiency, PROF_LEVEL.NONE);
+
+    expect(
+      attemptedRemoval.some(
+        (entry) =>
+          entry.source === PROFICIENCY_SOURCE.MANUAL &&
+          entry.proficiency === arcanaProficiency &&
+          entry.proficiencyLevel === PROF_LEVEL.PROFICIENT
+      )
+    ).toBe(true);
+    expect(getResolvedSkillProficiencyEntry(attemptedRemoval, arcanaProficiency)).toEqual(
+      expect.objectContaining({
+        proficiencyLevel: PROF_LEVEL.EXPERT,
+        sourceLabels: ["MANUAL", "Blessings of Knowledge"]
+      })
+    );
+  });
+
+  it("shows a shared source only once when it grants both proficiency and expertise", () => {
+    const religionProficiency = getSkillProficiencyForName(SKILL.RELIGION);
+
+    if (!religionProficiency) {
+      throw new Error("Expected religion proficiency to exist.");
+    }
+
+    const displayEntries = getDisplaySkillProficiencyEntries([
+      {
+        source: PROFICIENCY_SOURCE.CLASS,
+        sourceStr: "Blessings of Knowledge",
+        proficiency: religionProficiency,
+        proficiencyLevel: PROF_LEVEL.PROFICIENT
+      },
+      {
+        source: PROFICIENCY_SOURCE.CLASS,
+        sourceStr: "Blessings of Knowledge",
+        proficiency: religionProficiency,
+        proficiencyLevel: PROF_LEVEL.EXPERT
+      }
+    ]);
+
+    expect(displayEntries).toEqual([
+      expect.objectContaining({
+        proficiency: religionProficiency,
+        proficiencyLevel: PROF_LEVEL.EXPERT,
+        sourceLabels: ["Blessings of Knowledge"]
+      })
+    ]);
+  });
+
+  it("reports lower manual dropdown levels as unavailable when a non-manual floor exists", () => {
+    const historyProficiency = getSkillProficiencyForName(SKILL.HISTORY);
+
+    if (!historyProficiency) {
+      throw new Error("Expected history proficiency to exist.");
+    }
+
+    expect(
+      isManualSkillLevelSelectable(
+        [
+          {
+            source: PROFICIENCY_SOURCE.CLASS,
+            sourceStr: "Blessings of Knowledge",
+            proficiency: historyProficiency,
+            proficiencyLevel: PROF_LEVEL.EXPERT
+          }
+        ],
+        historyProficiency,
+        PROF_LEVEL.NONE
+      )
+    ).toBe(false);
+    expect(
+      isManualSkillLevelSelectable(
+        [
+          {
+            source: PROFICIENCY_SOURCE.CLASS,
+            sourceStr: "Blessings of Knowledge",
+            proficiency: historyProficiency,
+            proficiencyLevel: PROF_LEVEL.EXPERT
+          }
+        ],
+        historyProficiency,
+        PROF_LEVEL.PROFICIENT
+      )
+    ).toBe(false);
+    expect(
+      isManualSkillLevelSelectable(
+        [
+          {
+            source: PROFICIENCY_SOURCE.CLASS,
+            sourceStr: "Blessings of Knowledge",
+            proficiency: historyProficiency,
+            proficiencyLevel: PROF_LEVEL.EXPERT
+          }
+        ],
+        historyProficiency,
+        PROF_LEVEL.EXPERT
+      )
     ).toBe(true);
   });
 });

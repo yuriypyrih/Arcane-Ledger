@@ -3,6 +3,8 @@ import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi, beforeEach } from "vitest";
 import type { Character } from "../../../../../types";
 import {
+  STATUS_DURATION_KIND,
+  STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
@@ -103,6 +105,65 @@ describe("ActionsWidget", () => {
     expect(persistHarness.onPersistCharacter).toHaveBeenCalledTimes(1);
     expect(openDiceRollerMock).toHaveBeenCalledTimes(2);
     expect(screen.getByRole("dialog", { name: "Longsword" })).toBeInTheDocument();
+  });
+
+  it("shows battle magic as a second weapon badge and spends it after extra attacks are exhausted", async () => {
+    const user = userEvent.setup();
+    const character = createCharacter({
+      className: "Bard",
+      level: 14,
+      subclassId: "bard-college-of-valor",
+      equipment: [createCharacterEquipmentItem("Longsword", true, false)],
+      roundTracker: {
+        turnStarted: true,
+        actionAvailable: false,
+        bonusActionAvailable: true,
+        reactionAvailable: true
+      },
+      classFeatureState: {
+        bard: {
+          extraAttacksRemainingThisTurn: 1,
+          battleMagicBonusAttackAvailable: true
+        }
+      }
+    });
+    const persistHarness = createPersistHarness(character);
+
+    render(
+      <ActionsWidget
+        character={character}
+        onPersistCharacter={persistHarness.onPersistCharacter}
+      />
+    );
+
+    const longswordButton = screen.getByRole("button", { name: /Longsword/i });
+
+    expect(longswordButton).toBeEnabled();
+    expect(longswordButton.querySelectorAll("svg")).toHaveLength(2);
+
+    await user.click(longswordButton);
+
+    const longswordDrawer = screen.getByRole("dialog", { name: "Longsword" });
+    const attackButton = within(longswordDrawer).getByRole("button", { name: "Attack" });
+
+    expect(attackButton.querySelectorAll("svg")).toHaveLength(2);
+
+    await user.click(attackButton);
+
+    expect(persistHarness.getCharacter().classFeatureState?.bard?.extraAttacksRemainingThisTurn).toBe(
+      0
+    );
+    expect(persistHarness.getCharacter().classFeatureState?.bard?.battleMagicBonusAttackAvailable).toBe(
+      true
+    );
+    expect(persistHarness.getCharacter().roundTracker?.bonusActionAvailable).toBe(true);
+
+    await user.click(attackButton);
+
+    expect(persistHarness.getCharacter().classFeatureState?.bard?.battleMagicBonusAttackAvailable).toBe(
+      false
+    );
+    expect(persistHarness.getCharacter().roundTracker?.bonusActionAvailable).toBe(false);
   });
 
   it("opens dice roller settings without closing the weapon drawer", async () => {
@@ -219,6 +280,90 @@ describe("ActionsWidget", () => {
     const confirmButton = drawerScope.getByRole("button", { name: "Use Bardic Inspiration" });
     expect(confirmButton).toBeInTheDocument();
     expect(confirmButton.querySelector("svg")).not.toBeNull();
+  });
+
+  it("adds inspired eclipse to the bardic inspiration drawer and applies the linked statuses when selected", async () => {
+    const user = userEvent.setup();
+    const character = createCharacter({
+      className: "Bard",
+      level: 3,
+      subclassId: "bard-college-of-the-moon",
+      abilities: {
+        ...createDefaultAbilities(),
+        CHA: 16
+      },
+      roundTracker: {
+        turnStarted: true,
+        actionAvailable: true,
+        bonusActionAvailable: true,
+        reactionAvailable: true
+      }
+    });
+    const persistHarness = createPersistHarness(character);
+
+    render(
+      <ActionsWidget
+        character={character}
+        onPersistCharacter={persistHarness.onPersistCharacter}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /Bardic Inspiration/i }));
+
+    const bardicInspirationDrawer = screen.getByRole("dialog", { name: "Bardic Inspiration" });
+    const drawerScope = within(bardicInspirationDrawer);
+
+    expect(
+      drawerScope.getByText(/Inspired Eclipse\./i)
+    ).toBeInTheDocument();
+
+    await user.click(drawerScope.getByLabelText("Inspired Eclipse"));
+    await user.click(drawerScope.getByRole("button", { name: "Use Bardic Inspiration" }));
+
+    expect(persistHarness.getCharacter().classFeatureState?.bard?.bardicInspirationUsesExpended).toBe(1);
+    expect(persistHarness.getCharacter().roundTracker?.bonusActionAvailable).toBe(false);
+    expect(persistHarness.getCharacter().statusEntries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          value: "Inspired Eclipse",
+          sourceId: "feature-bard-inspired-eclipse",
+          duration: {
+            kind: STATUS_DURATION_KIND.ROUNDS,
+            amount: 1,
+            tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
+          }
+        }),
+        expect.objectContaining({
+          value: "Invisible",
+          sourceId: "feature-bard-inspired-eclipse-invisible",
+          duration: {
+            kind: STATUS_DURATION_KIND.LINKED,
+            linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+            linkedValue: "Inspired Eclipse"
+          }
+        })
+      ])
+    );
+    expect(openDiceRollerMock).toHaveBeenCalledTimes(1);
+    expect(screen.getByRole("dialog", { name: "Bardic Inspiration" })).toBeInTheDocument();
+  });
+
+  it("shows shadow of the new moon under inspired eclipse for level 14 moon bards", async () => {
+    const user = userEvent.setup();
+    const character = createCharacter({
+      className: "Bard",
+      level: 14,
+      subclassId: "bard-college-of-the-moon"
+    });
+
+    render(<ActionsWidget character={character} onPersistCharacter={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /Bardic Inspiration/i }));
+
+    const bardicInspirationDrawer = screen.getByRole("dialog", { name: "Bardic Inspiration" });
+    const drawerScope = within(bardicInspirationDrawer);
+
+    expect(drawerScope.getByText(/Shadow of the New Moon\./i)).toBeInTheDocument();
   });
 
   it("applies college of dance details to bardic inspiration and unarmed strike", async () => {
@@ -393,10 +538,137 @@ describe("ActionsWidget", () => {
         }),
         expect.objectContaining({
           value: "Concentration",
-          sourceId: "feature-bard-mantle-of-majesty-concentration"
+          sourceId: "feature-bard-mantle-of-majesty-concentration",
+          duration: {
+            kind: STATUS_DURATION_KIND.ROUNDS,
+            amount: 10,
+            tickOn: STATUS_DURATION_ROUND_TICK.ROUND_END
+          }
         })
       ])
     );
+  });
+
+  it("activates unbreakable majesty and keeps it for 10 turns without concentration", async () => {
+    const user = userEvent.setup();
+    const character = createCharacter({
+      className: "Bard",
+      level: 14,
+      subclassId: "bard-college-of-glamour",
+      abilities: {
+        ...createDefaultAbilities(),
+        CHA: 18
+      },
+      roundTracker: {
+        turnStarted: true,
+        actionAvailable: true,
+        bonusActionAvailable: true,
+        reactionAvailable: true
+      }
+    });
+    const persistHarness = createPersistHarness(character);
+
+    render(
+      <ActionsWidget
+        character={character}
+        onPersistCharacter={persistHarness.onPersistCharacter}
+      />
+    );
+
+    await user.click(screen.getByRole("button", { name: /Unbreakable Majesty/i }));
+
+    const drawer = screen.getByRole("dialog", { name: "Unbreakable Majesty" });
+    const drawerScope = within(drawer);
+
+    expect(
+      drawerScope.getByText(/assume a magically majestic presence for 10 turns/i)
+    ).toBeInTheDocument();
+
+    await user.click(drawerScope.getByRole("button", { name: "Assume Majesty" }));
+
+    expect(persistHarness.getCharacter().classFeatureState?.bard?.unbreakableMajestyUsesExpended).toBe(1);
+    expect(persistHarness.getCharacter().roundTracker?.bonusActionAvailable).toBe(false);
+    expect(persistHarness.getCharacter().statusEntries).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          value: "Unbreakable Majesty",
+          sourceId: "feature-bard-unbreakable-majesty",
+          duration: {
+            kind: STATUS_DURATION_KIND.ROUNDS,
+            amount: 10,
+            tickOn: STATUS_DURATION_ROUND_TICK.ROUND_END
+          }
+        })
+      ])
+    );
+    expect(
+      persistHarness.getCharacter().statusEntries?.some((entry) => entry.value === "Concentration")
+    ).toBe(false);
+  });
+
+  it("opens brutal strike without leftover details or disabled warning text", async () => {
+    const user = userEvent.setup();
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 9,
+      background: "Criminal / Spy",
+      classFeatureState: {
+        rage: {
+          usesExpended: 0,
+          active: false,
+          recklessAttackUsedThisTurn: true
+        }
+      },
+      roundTracker: {
+        turnStarted: true,
+        actionAvailable: true,
+        bonusActionAvailable: true,
+        reactionAvailable: true
+      }
+    });
+
+    render(<ActionsWidget character={character} onPersistCharacter={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /Brutal Strike/i }));
+
+    const drawer = screen.getByRole("dialog", { name: "Brutal Strike" });
+    const drawerScope = within(drawer);
+
+    expect(drawerScope.queryByText("Details")).not.toBeInTheDocument();
+    expect(drawerScope.queryByText("Use Reckless Attack first.")).not.toBeInTheDocument();
+  });
+
+  it("shows the class feature description in the relentless rage drawer", async () => {
+    const user = userEvent.setup();
+    const character = createCharacter({
+      className: "Barbarian",
+      level: 11,
+      background: "Criminal / Spy",
+      classFeatureState: {
+        rage: {
+          usesExpended: 0,
+          active: true
+        }
+      },
+      roundTracker: {
+        turnStarted: true,
+        actionAvailable: true,
+        bonusActionAvailable: true,
+        reactionAvailable: true
+      }
+    });
+
+    render(<ActionsWidget character={character} onPersistCharacter={vi.fn()} />);
+
+    await user.click(screen.getByRole("button", { name: /Relentless Rage/i }));
+
+    const drawer = screen.getByRole("dialog", { name: "Relentless Rage" });
+    const drawerScope = within(drawer);
+
+    expect(
+      drawerScope.getByText("Your Rage can keep you fighting despite grievous wounds.")
+    ).toBeInTheDocument();
+    expect(drawerScope.getAllByText("Current DC 10").length).toBeGreaterThan(0);
   });
 
   it("executes single-select feature options from inside the drawer", async () => {
@@ -425,7 +697,13 @@ describe("ActionsWidget", () => {
     expect(persistHarness.onPersistCharacter).not.toHaveBeenCalled();
     expect(screen.getByRole("dialog", { name: "Channel Divinity" })).toBeInTheDocument();
 
-    await user.click(screen.getByRole("button", { name: /Divine Sense/i }));
+    const divineSenseOption = screen.getByRole("radio", { name: /Divine Sense/i });
+
+    expect(divineSenseOption).not.toBeChecked();
+
+    await user.click(divineSenseOption);
+
+    expect(divineSenseOption).toBeChecked();
 
     expect(persistHarness.onPersistCharacter).not.toHaveBeenCalled();
 
@@ -435,6 +713,47 @@ describe("ActionsWidget", () => {
     expect(
       persistHarness.getCharacter().classFeatureState?.paladin?.channelDivinityUsesExpended
     ).toBe(1);
+  });
+
+  it("opens Preserve Life in a drawer and spends Channel Divinity from the footer", async () => {
+    const user = userEvent.setup();
+    const character = createCharacter({
+      className: "Cleric",
+      level: 3,
+      subclassId: "cleric-life-domain",
+      roundTracker: {
+        turnStarted: true,
+        actionAvailable: true,
+        bonusActionAvailable: true,
+        reactionAvailable: true
+      }
+    });
+    const persistHarness = createPersistHarness(character);
+
+    render(
+      <ActionsWidget
+        character={character}
+        onPersistCharacter={persistHarness.onPersistCharacter}
+      />
+    );
+
+    const preserveLifeButton = screen.getByRole("button", { name: /Preserve Life/i });
+    expect(preserveLifeButton.textContent).toContain("Use 1");
+
+    await user.click(preserveLifeButton);
+
+    const preserveLifeDrawer = screen.getByRole("dialog", { name: "Preserve Life" });
+    const preserveLifeScope = within(preserveLifeDrawer);
+
+    expect(
+      preserveLifeScope.getByText(/evoke healing energy that can restore a number of Hit Points equal to five times your Cleric level/i)
+    ).toBeInTheDocument();
+
+    await user.click(preserveLifeScope.getByRole("button", { name: "Use Preserve Life" }));
+
+    expect(persistHarness.getCharacter().classFeatureState?.cleric?.channelDivinityUsesExpended).toBe(
+      1
+    );
   });
 
   it("waits for the footer before converting font of magic resources", async () => {

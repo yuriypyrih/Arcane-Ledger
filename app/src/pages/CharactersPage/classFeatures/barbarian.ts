@@ -1,4 +1,4 @@
-import { barbarianFeatures } from "../../../codex/classes";
+import { barbarianFeatureMap, barbarianFeatures } from "../../../codex/classes";
 import { barbarianStarterPack } from "../../../codex/classes/starterPack";
 import {
   CLASS_FEATURE,
@@ -93,6 +93,8 @@ const rageOfTheWildsEffectSourceId = "feature-barbarian-rage-of-the-wilds-effect
 const powerOfTheWildsEffectSourceId = "feature-barbarian-power-of-the-wilds-effect";
 const brutalStrikeActionSummary = "Your weapons do more damage";
 const relentlessRageActionSummary = "While in Rage you can keep fighting";
+const relentlessRageDescription =
+  barbarianFeatureMap[CLASS_FEATURE.RELENTLESS_RAGE]?.description ?? [relentlessRageActionSummary];
 const relentlessRageBaseDc = 10;
 const relentlessRageDcIncrement = 5;
 const persistentRageUsesTotal = 1;
@@ -1289,7 +1291,8 @@ function getBarbarianBrutalStrikeAction(
     drawer: {
       kind: "custom-form",
       eyebrow: "Barbarian",
-      formKind: "brutal-strike"
+      formKind: "brutal-strike",
+      facts: []
     },
     execute: {
       kind: "custom-form",
@@ -1298,12 +1301,13 @@ function getBarbarianBrutalStrikeAction(
     },
     isActive: rageState.brutalStrikePending === true,
     disabled: !isAvailable,
-    disabledReason:
-      rageState.brutalStrikePending === true
+    disabledReason: !isAvailable
+      ? rageState.brutalStrikePending === true
         ? "Brutal Strike is armed for your next Strength-based attack."
         : rageState.brutalStrikeUsedThisTurn === true
           ? "Brutal Strike is already used for this Reckless Attack."
           : "Use Reckless Attack first."
+      : undefined
   };
 }
 
@@ -1323,6 +1327,7 @@ function getBarbarianRelentlessRageAction(
     name: "Relentless Rage",
     summary: relentlessRageActionSummary,
     detail: relentlessRageActionSummary,
+    description: [...relentlessRageDescription],
     valueLabel: `Current DC ${currentDc}`,
     breakdown: relentlessRageActionSummary,
     economyType: ECONOMY_TYPE.FREE,

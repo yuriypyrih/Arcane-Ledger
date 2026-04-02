@@ -15,6 +15,8 @@ import {
   activateFeatureActionForCharacter,
   activateFeatureActionOptionForCharacter,
   activateArcaneRecoveryForCharacter,
+  applyBardBattleMagicAfterSpellCastForCharacter,
+  applyInspiredEclipseStatusForCharacter,
   applyMantleOfMajestyStatusForCharacter,
   applyLayOnHandsForCharacter,
   consumeBeguilingMagicOrBardicInspirationForCharacter,
@@ -43,6 +45,7 @@ import {
   getPaladinHealingPoolRemainingForCharacter,
   getSpellEntryForCharacter,
   getSpellcastingStateForCharacter,
+  hasBattleMagicBonusWeaponAttackForCharacter,
   getWarlockMysticArcanumSelectionsForCharacter,
   hasActivePaladinAuraOfProtectionForCharacter,
   hasSorcererArcaneApotheosisFreeMetamagicAvailableForCharacter,
@@ -53,6 +56,7 @@ import {
   type FeatureActionExecuteConfig,
   type FeatureActionOptionCard
 } from "../../../../../pages/CharactersPage/classFeatures";
+import { bardicInspirationActionKey } from "../../../../../pages/CharactersPage/classFeatures/bard";
 import {
   divineInterventionActionKey,
   getClericDivineInterventionEnabledLevels,
@@ -179,6 +183,7 @@ import sneakAttackStyles from "./SneakAttackModal.module.css";
 import divineStyles from "./DivineInterventionModal.module.css";
 import GameplayActionDrawer from "./GameplayActionDrawer";
 import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
+import RadioOption from "./RadioOption";
 import {
   FeatureActionCardButton,
   FeatureActionChoiceRow,
@@ -607,38 +612,6 @@ function getDivineInterventionLevelGroups(spells: SpellEntry[]): Record<number, 
   }, {});
 }
 
-function getEconomyLabel(economyType: GameplayActionDefinition["economyType"]) {
-  switch (economyType) {
-    case "action":
-      return ACTION_TYPE.ACTION;
-    case "bonus_action":
-      return ACTION_TYPE.BONUS_ACTION;
-    case "reaction":
-      return ACTION_TYPE.REACTION;
-    case "non_combat":
-      return "Non-Combat";
-    case "free":
-    default:
-      return "Free";
-  }
-}
-
-function getActionCategoryLabel(category: GameplayActionDefinition["actionCategory"]) {
-  switch (category) {
-    case "attack":
-      return "Attack";
-    case "magic":
-      return "Magic";
-    case "interaction":
-      return "Interaction";
-    case "utility":
-      return "Utility";
-    case "feature":
-    default:
-      return "Feature";
-  }
-}
-
 function getSelectedActionRoundTrackerWarning(
   action: GameplayActionDefinition | null,
   roundTracker: RoundTrackerAvailability
@@ -653,6 +626,21 @@ function getSelectedActionRoundTrackerWarning(
 
   return getRoundTrackerActionWarning(
     getRoundTrackerResourceForEconomyType(action.economyType),
+    roundTracker
+  );
+}
+
+function getWeaponBattleMagicWarning(
+  action: WeaponAction,
+  character: Character,
+  roundTracker: RoundTrackerAvailability
+): string | null {
+  if (!hasBattleMagicBonusWeaponAttackForCharacter(character, action.attackKind)) {
+    return null;
+  }
+
+  return getRoundTrackerActionWarning(
+    getRoundTrackerResourceForEconomyType("bonus_action"),
     roundTracker
   );
 }
@@ -723,6 +711,8 @@ function FeatureOptionsActionBody({
               character={character}
               roundTracker={roundTracker}
               selected={isSelected}
+              selectionIndicatorType={selection === "single-immediate" ? "radio" : null}
+              selectionName={selection === "single-immediate" ? action.action.key : undefined}
               onClick={() => onToggleOption(option)}
               formatValueLabel={formatFeatureActionOptionValueLabel}
             />
@@ -1470,36 +1460,21 @@ function RageActionBody({
               Choose whether to empower this Rage with your divine warrior form.
             </p>
           </div>
-          <label
-            className={clsx(
-              sharedModalStyles.featureChoiceRow,
-              isRageOfTheGodsSelected && sharedModalStyles.featureChoiceRowSelected,
-              rageOfTheGodsUsesRemaining <= 0 && sharedModalStyles.featureChoiceRowDisabled
-            )}
-          >
-            <span className={sharedModalStyles.featureChoiceLabel}>
-              <input
-                type="checkbox"
-                className={sharedModalStyles.featureChoiceRadio}
-                checked={isRageOfTheGodsSelected}
-                disabled={rageOfTheGodsUsesRemaining <= 0}
-                onChange={(event) => onToggleRageOfTheGods(event.target.checked)}
-              />
-              <span className={sharedModalStyles.featureChoiceContent}>
-                <span className={styles.rageEnhancementTitleRow}>
-                  <span className={sharedModalStyles.featureChoiceTitle}>Use Rage of the Gods</span>
-                  <span className={styles.rageEnhancementMeta}>
-                    <span className={styles.rageEnhancementModeBadge}>Opt-in</span>
-                    <span>{`${rageOfTheGodsUsesRemaining}/${rageOfTheGodsUsesTotal}`}</span>
-                    <Flame size={14} />
-                  </span>
-                </span>
-                <span className={sharedModalStyles.featureChoiceDescription}>
-                  You can assume the form of a divine Warrior for a minute.
-                </span>
+          <RadioOption
+            header="Use Rage of the Gods"
+            description="You can assume the form of a divine Warrior for a minute."
+            isSelected={isRageOfTheGodsSelected}
+            onSelect={() => onToggleRageOfTheGods(!isRageOfTheGodsSelected)}
+            disabled={rageOfTheGodsUsesRemaining <= 0}
+            indicatorType="checkbox"
+            aside={
+              <span className={styles.rageEnhancementMeta}>
+                <span className={styles.rageEnhancementModeBadge}>Opt-in</span>
+                <span>{`${rageOfTheGodsUsesRemaining}/${rageOfTheGodsUsesTotal}`}</span>
+                <Flame size={14} />
               </span>
-            </span>
-          </label>
+            }
+          />
         </section>
       ) : null}
     </>
@@ -1533,27 +1508,21 @@ function BrutalStrikeActionBody({
             !isSelected && selectionLimit > 0 && selectedOptionKeys.length >= selectionLimit;
 
           return (
-            <button
+            <RadioOption
               key={option.key}
-              type="button"
-              className={clsx(
-                sharedModalStyles.brutalStrikeOptionButton,
-                isSelected && sharedModalStyles.brutalStrikeOptionButtonSelected
-              )}
+              header={option.name}
+              description={option.detail}
+              isSelected={isSelected}
+              indicatorType={allowsMultipleSelections ? "checkbox" : "radio"}
               disabled={isSelectionLimitReached}
-              onClick={() =>
+              onSelect={() =>
                 setSelectedOptionKeys((currentKeys) =>
                   currentKeys.includes(option.key)
                     ? currentKeys.filter((entry) => entry !== option.key)
                     : [...currentKeys, option.key]
                 )
               }
-            >
-              <strong className={sharedModalStyles.brutalStrikeOptionName}>{option.name}</strong>
-              <span className={sharedModalStyles.brutalStrikeOptionDescription}>
-                {option.detail}
-              </span>
-            </button>
+            />
           );
         })}
       </div>
@@ -1739,6 +1708,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [selectedMysticArcanumSpellLevel, setSelectedMysticArcanumSpellLevel] =
     useState<MysticArcanumLevel | null>(null);
   const [useBeguilingMagicOnActionSpell, setUseBeguilingMagicOnActionSpell] = useState(false);
+  const [isInspiredEclipseSelected, setIsInspiredEclipseSelected] = useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   const roundTracker = normalizeRoundTracker(character.roundTracker);
@@ -1894,11 +1864,32 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         (selectedAction.kind === "feature" &&
         selectedAction.action.economyType === "action" &&
         selectedAction.action.actionCategory !== "magic"
-          ? getNonMagicActionEconomyMultiForCharacter(character)
-          : 0)
+        ? getNonMagicActionEconomyMultiForCharacter(character)
+        : 0)
     );
   }, [character, roundTracker, selectedAction]);
-  const selectedActionWarning = getSelectedActionRoundTrackerWarning(selectedAction, roundTracker);
+  const selectedActionSecondaryEconomyShapeState = useMemo(() => {
+    if (
+      !selectedAction ||
+      selectedAction.kind !== "weapon" ||
+      !hasBattleMagicBonusWeaponAttackForCharacter(character, selectedAction.action.attackKind)
+    ) {
+      return null;
+    }
+
+    return getEconomyShapeState("bonus_action", roundTracker);
+  }, [character, roundTracker, selectedAction]);
+  const selectedActionPrimaryWarning = getSelectedActionRoundTrackerWarning(selectedAction, roundTracker);
+  const selectedActionSecondaryWarning =
+    selectedAction?.kind === "weapon"
+      ? getWeaponBattleMagicWarning(selectedAction.action, character, roundTracker)
+      : null;
+  const selectedActionWarning =
+    selectedAction?.kind === "weapon" &&
+    selectedActionSecondaryEconomyShapeState &&
+    (selectedActionEconomyShapeState?.isUsable || selectedActionSecondaryEconomyShapeState.isUsable)
+      ? null
+      : selectedActionPrimaryWarning ?? selectedActionSecondaryWarning;
   const selectedDrawerWarning =
     selectedOptionWarning ??
     (selectedAction?.kind === "feature" &&
@@ -2011,6 +2002,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     isFixedSpellDrawerOpen ||
     selectedDivineInterventionSpell !== null ||
     selectedMysticArcanumSpell !== null;
+  const canUseInspiredEclipse =
+    selectedAction?.kind === "feature" &&
+    selectedAction.action.key === bardicInspirationActionKey &&
+    character.className === "Bard" &&
+    character.subclassId === "bard-college-of-the-moon" &&
+    character.level >= 3;
 
   function closeActionDrawer() {
     setSelectedActionOptionKeys([]);
@@ -2025,6 +2022,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedDivineInterventionSpell(null);
     setSelectedMysticArcanumSpell(null);
     setSelectedMysticArcanumSpellLevel(null);
+    setIsInspiredEclipseSelected(false);
     setSelectedActionKey(null);
   }
 
@@ -2161,8 +2159,34 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     if (effectKind === "bardic-inspiration-roll") {
       const bardicDie = getBardicInspirationDieForCharacter(character);
       const bardicDieFormula = bardicDie ? `1${String(bardicDie).toLowerCase()}` : "1d6";
+      onPersistCharacter((currentCharacter) => {
+        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+        const preparedCharacter = prepareCharacterForResourceConsumption(
+          currentCharacter,
+          roundTrackerResource
+        );
+        const nextCharacter = activateFeatureActionForCharacter(preparedCharacter, action.key);
 
-      activateFeatureAction(action);
+        if (nextCharacter === preparedCharacter) {
+          return currentCharacter;
+        }
+
+        const nextCharacterWithInspiredEclipse =
+          action.key === bardicInspirationActionKey && isInspiredEclipseSelected
+            ? applyInspiredEclipseStatusForCharacter(nextCharacter)
+            : nextCharacter;
+
+        if (action.economyType === "action" && action.actionCategory !== "magic") {
+          return consumeNonMagicActionForCharacter(nextCharacterWithInspiredEclipse);
+        }
+
+        return roundTrackerResource
+          ? consumeRoundTrackerResourceForCharacter(
+              nextCharacterWithInspiredEclipse,
+              roundTrackerResource
+            )
+          : nextCharacterWithInspiredEclipse;
+      });
       openDiceRoller({
         title: action.name,
         formula: bardicDieFormula,
@@ -2656,12 +2680,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     createSpellSlotFromSorceryPoints(selectedFontOfMagicSelection.spellSlotLevel);
   }
 
-  function useFixedSpellAction(options?: { useBeguilingMagic?: boolean }) {
+  function useFixedSpellAction(options?: { useBeguilingMagic?: boolean; castAsRitual?: boolean }) {
     if (!fixedSpellExecute || !fixedSpellEntry || !selectedFeatureAction) {
       return;
     }
 
     const useBeguilingMagic = options?.useBeguilingMagic === true;
+    const castAsRitual = options?.castAsRitual === true;
     const minimumSlotLevel = Math.max(
       getSpellLevel(fixedSpellEntry),
       fixedSpellMinimumActionSlotLevel ?? 1
@@ -2741,13 +2766,20 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithConcentration)
         : nextCharacterWithConcentration;
+      const nextCharacterWithBattleMagic =
+        castAsRitual
+          ? nextCharacterWithBeguilingMagic
+          : applyBardBattleMagicAfterSpellCastForCharacter(
+              nextCharacterWithBeguilingMagic,
+              fixedSpellEntry
+            );
 
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithBeguilingMagic,
+            nextCharacterWithBattleMagic,
             roundTrackerResource
           )
-        : nextCharacterWithBeguilingMagic;
+        : nextCharacterWithBattleMagic;
     });
 
     closeActionDrawer();
@@ -2787,13 +2819,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithConcentration)
         : nextCharacterWithConcentration;
+      const nextCharacterWithBattleMagic = applyBardBattleMagicAfterSpellCastForCharacter(
+        nextCharacterWithBeguilingMagic,
+        selectedDivineInterventionSpell
+      );
 
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithBeguilingMagic,
+            nextCharacterWithBattleMagic,
             roundTrackerResource
           )
-        : nextCharacterWithBeguilingMagic;
+        : nextCharacterWithBattleMagic;
     });
 
     closeActionDrawer();
@@ -2839,13 +2875,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithConcentration)
         : nextCharacterWithConcentration;
+      const nextCharacterWithBattleMagic = applyBardBattleMagicAfterSpellCastForCharacter(
+        nextCharacterWithBeguilingMagic,
+        selectedMysticArcanumSpell
+      );
 
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithBeguilingMagic,
+            nextCharacterWithBattleMagic,
             roundTrackerResource
           )
-        : nextCharacterWithBeguilingMagic;
+        : nextCharacterWithBattleMagic;
     });
 
     closeActionDrawer();
@@ -3030,39 +3070,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   }
 
   function renderActionHeaderAside() {
-    if (!selectedAction) {
+    if (!selectedAction || !selectedWeaponRollState) {
       return null;
     }
 
-    const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
-
     return (
-      <div className={styles.actionDrawerHeaderMeta}>
-        <span className={styles.actionDrawerMetaTag}>
-          {getActionCategoryLabel(selectedAction.actionCategory)}
-        </span>
-        {selectedWeaponRollState ? (
-          <RollStatePill
-            tone={selectedWeaponRollState.tone}
-            label={selectedWeaponRollState.label}
-          />
-        ) : null}
-        {actionShape && selectedActionEconomyShapeState ? (
-          <div className={styles.actionDrawerEconomyPill}>
-            <ActionShape
-              shape={actionShape}
-              isSelected={selectedActionEconomyShapeState.isAvailable}
-              multiCount={selectedActionEconomyShapeState.multiCount}
-              aria-label={getEconomyLabel(selectedAction.economyType)}
-            />
-            <span>{getEconomyLabel(selectedAction.economyType)}</span>
-          </div>
-        ) : (
-          <span className={styles.actionDrawerMetaTag}>
-            {getEconomyLabel(selectedAction.economyType)}
-          </span>
-        )}
-      </div>
+      <RollStatePill
+        tone={selectedWeaponRollState.tone}
+        label={selectedWeaponRollState.label}
+      />
     );
   }
 
@@ -3082,14 +3098,24 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           >
             <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
             <span>Attack</span>
-            {selectedActionEconomyShapeState ? (
-              <ActionShape
-                shape={getActionShapeForEconomyType(selectedAction.economyType) ?? "action"}
-                isSelected={selectedActionEconomyShapeState.isAvailable}
-                multiCount={selectedActionEconomyShapeState.multiCount}
-                className={styles.footerActionShape}
-              />
-            ) : null}
+            <span className={styles.footerActionShapeGroup}>
+              {selectedActionEconomyShapeState ? (
+                <ActionShape
+                  shape={getActionShapeForEconomyType(selectedAction.economyType) ?? "action"}
+                  isSelected={selectedActionEconomyShapeState.isAvailable}
+                  multiCount={selectedActionEconomyShapeState.multiCount}
+                  className={styles.footerActionShape}
+                />
+              ) : null}
+              {selectedActionSecondaryEconomyShapeState ? (
+                <ActionShape
+                  shape="bonusAction"
+                  isSelected={selectedActionSecondaryEconomyShapeState.isAvailable}
+                  multiCount={selectedActionSecondaryEconomyShapeState.multiCount}
+                  className={styles.footerActionShape}
+                />
+              ) : null}
+            </span>
           </button>
           <button
             type="button"
@@ -3119,31 +3145,45 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
 
       return (
-        <div className={styles.weaponFooterActions}>
-          <button
-            type="button"
-            className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
-            onClick={() => executeFeatureActivate(selectedAction.action)}
-            disabled={selectedActionWarning !== null}
-          >
-            <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
-            <span>{selectedAction.drawer.confirmLabel}</span>
-            {actionShape ? (
-              <ActionShape
-                shape={actionShape}
-                isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-                multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-                className={styles.footerActionShape}
-              />
-            ) : null}
-          </button>
-          <DiceRollerSettingsButton
-            actionName={selectedAction.name}
-            className={clsx(sheetStyles.castButton, styles.weaponFooterIconButton)}
-            isOpen={isDiceRollerSettingsOpen}
-            aria-label="Open dice roller settings"
-            onOpenChange={setIsDiceRollerSettingsOpen}
-          />
+        <div className={styles.footerActionStack}>
+          {canUseInspiredEclipse ? (
+            <label className={styles.footerActionToggle}>
+              <span className={styles.footerActionToggleLabel}>
+                <input
+                  type="checkbox"
+                  checked={isInspiredEclipseSelected}
+                  onChange={(event) => setIsInspiredEclipseSelected(event.target.checked)}
+                />
+                <span>Inspired Eclipse</span>
+              </span>
+            </label>
+          ) : null}
+          <div className={styles.weaponFooterActions}>
+            <button
+              type="button"
+              className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
+              onClick={() => executeFeatureActivate(selectedAction.action)}
+              disabled={selectedActionWarning !== null}
+            >
+              <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
+              <span>{selectedAction.drawer.confirmLabel}</span>
+              {actionShape ? (
+                <ActionShape
+                  shape={actionShape}
+                  isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+                  multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+                  className={styles.footerActionShape}
+                />
+              ) : null}
+            </button>
+            <DiceRollerSettingsButton
+              actionName={selectedAction.name}
+              className={clsx(sheetStyles.castButton, styles.weaponFooterIconButton)}
+              isOpen={isDiceRollerSettingsOpen}
+              aria-label="Open dice roller settings"
+              onOpenChange={setIsDiceRollerSettingsOpen}
+            />
+          </div>
         </div>
       );
     }
@@ -3305,6 +3345,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                 <WeaponActionCard
                   key={combatAction.key}
                   action={combatAction.action}
+                  secondaryEconomyType={
+                    hasBattleMagicBonusWeaponAttackForCharacter(
+                      character,
+                      combatAction.action.attackKind
+                    )
+                      ? "bonus_action"
+                      : null
+                  }
                   roundTracker={roundTracker}
                   onClick={() => setSelectedActionKey(combatAction.key)}
                 />

@@ -1,45 +1,98 @@
-import { bardFeatures } from "../../../codex/classes";
-import { getReactionEntryById, CLASS_FEATURE, type DICE, type ReactionEntry } from "../../../codex/entries";
-import type { BardFeatureClassObj } from "../../../types";
-import type { Character, CharacterBardFeatureState, SkillName, SkillProficiencyEntry } from "../../../types";
+import { bardFeatures, getSpellEntriesForSpellListClasses } from "../../../codex/classes";
 import {
+  getReactionEntryById,
+  ACTION_TYPE,
+  CLASS_FEATURE,
+  SPELL_LIST_CLASS,
+  type DICE,
+  type ReactionEntry,
+  type SpellEntry
+} from "../../../codex/entries";
+import type { BardFeatureClassObj } from "../../../types";
+import type {
+  ArmorProficiencyEntry,
+  Character,
+  CharacterBardFeatureState,
+  LanguageProficiencyEntry,
+  SkillName,
+  SkillProficiencyEntry,
+  WeaponProficiencyEntry
+} from "../../../types";
+import {
+  ARMOR_PROFICIENCY,
+  CONDITION_NAME,
   EFFECT_NAME,
+  LANGUAGE_PROFICIENCY,
   getSkillProficiencyForSkillName,
   isSkillName,
   PROFICIENCY_OVERRIDE_POLICY,
   PROF_LEVEL,
   PROFICIENCY_SOURCE,
   STATUS_DURATION_KIND,
+  STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP,
-  STATUS_ENTRY_SOURCE_TYPE
+  STATUS_ENTRY_SOURCE_TYPE,
+  WEAPON_PROFICIENCY
 } from "../../../types";
 import { getFeatAbilityScoreBonusesForCharacter } from "../feats";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../spellcasting";
+import {
+  getSpellLevel,
+  getSpellSlotTotalsForCharacter,
+  normalizeSpellSlotsExpended
+} from "../spellcasting";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
+import {
+  consumeRoundTrackerResource,
+  isRoundTrackerResourceAvailable
+} from "../combat";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../traits";
 import type {
+  FeatureArmorProficiencyEntry,
   FeatureActionCard,
   FeatureActionResource,
+  FeatureLanguageProficiencyEntry,
   FeatureSkillBonus,
-  FeatureSkillProficiencyEntry
+  FeatureSkillProficiencyEntry,
+  FeatureWeaponProficiencyEntry
 } from "./types";
 
 const bardicInspirationActionKey = "bard-bardic-inspiration";
 const mantleOfInspirationActionKey = "bard-mantle-of-inspiration";
 const mantleOfMajestyActionKey = "bard-mantle-of-majesty";
+const unbreakableMajestyActionKey = "bard-unbreakable-majesty";
 const collegeOfGlamourSubclassId = "bard-college-of-glamour";
+const collegeOfTheMoonSubclassId = "bard-college-of-the-moon";
+const collegeOfValorSubclassId = "bard-college-of-valor";
 const mantleOfMajestyStatusSourceId = "feature-bard-mantle-of-majesty";
 const mantleOfMajestyConcentrationSourceId = "feature-bard-mantle-of-majesty-concentration";
+const unbreakableMajestyStatusSourceId = "feature-bard-unbreakable-majesty";
+const inspiredEclipseStatusSourceId = "feature-bard-inspired-eclipse";
+const inspiredEclipseInvisibleStatusSourceId = "feature-bard-inspired-eclipse-invisible";
 const wordsOfCreationAlwaysPreparedSpellIds = [
   "spell-power-word-heal",
   "spell-power-word-kill"
 ] as const;
 const bardExpertiseLevel2SourceLabel = "Level 2: Expertise";
 const bardExpertiseLevel9SourceLabel = "Level 9: Expertise";
+const bardLoreBonusProficienciesSourceLabel = "College of Lore: Bonus Proficiencies";
+const bardPrimalLoreSourceLabel = "College of the Moon: Primal Lore";
+const bardValorMartialTrainingSourceLabel = "College of Valor: Martial Training";
 const bardExpertiseLevel2SourceKey = "bard-expertise-level-2";
 const bardExpertiseLevel9SourceKey = "bard-expertise-level-9";
 const bardSourceMetadataSeparator = "::";
+const primalLoreSkillOptions = [
+  "Animal Handling",
+  "Insight",
+  "Medicine",
+  "Nature",
+  "Perception",
+  "Survival"
+] as const satisfies readonly SkillName[];
 type BardExpertiseTier = "level2" | "level9";
+
+function isPrimalLoreSkill(value: unknown): value is (typeof primalLoreSkillOptions)[number] {
+  return primalLoreSkillOptions.some((skill) => skill === value);
+}
 
 function getBardFeatureRow(level: number): BardFeatureClassObj | null {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
@@ -90,6 +143,36 @@ function hasBeguilingMagicFeature(
   );
 }
 
+function hasCollegeOfValorMartialTrainingFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Bard" &&
+    character.subclassId === collegeOfValorSubclassId &&
+    (character.level ?? 0) >= 3
+  );
+}
+
+function hasCollegeOfValorExtraAttackFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Bard" &&
+    character.subclassId === collegeOfValorSubclassId &&
+    (character.level ?? 0) >= 6
+  );
+}
+
+function hasCollegeOfValorBattleMagicFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Bard" &&
+    character.subclassId === collegeOfValorSubclassId &&
+    (character.level ?? 0) >= 14
+  );
+}
+
 function hasMantleOfInspirationFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
@@ -110,6 +193,66 @@ function hasMantleOfMajestyFeature(
   );
 }
 
+function hasLoreBonusProficienciesFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Bard" &&
+    character.subclassId === "bard-college-of-lore" &&
+    (character.level ?? 0) >= 3
+  );
+}
+
+function hasMoonsInspirationFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Bard" &&
+    character.subclassId === collegeOfTheMoonSubclassId &&
+    (character.level ?? 0) >= 3
+  );
+}
+
+function hasMagicalDiscoveriesFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Bard" &&
+    character.subclassId === "bard-college-of-lore" &&
+    (character.level ?? 0) >= 6
+  );
+}
+
+function hasPrimalLoreFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Bard" &&
+    character.subclassId === collegeOfTheMoonSubclassId &&
+    (character.level ?? 0) >= 3
+  );
+}
+
+function hasBlessingOfMoonlightFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Bard" &&
+    character.subclassId === collegeOfTheMoonSubclassId &&
+    (character.level ?? 0) >= 6
+  );
+}
+
+function hasUnbreakableMajestyFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Bard" &&
+    character.subclassId === collegeOfGlamourSubclassId &&
+    (character.level ?? 0) >= 14
+  );
+}
+
 function normalizeBardExpertiseSelections(value: unknown): SkillName[] {
   if (!Array.isArray(value)) {
     return [];
@@ -117,6 +260,34 @@ function normalizeBardExpertiseSelections(value: unknown): SkillName[] {
 
   return [...new Set(value.filter((entry): entry is SkillName => typeof entry === "string" && isSkillName(entry)))]
     .slice(0, 2);
+}
+
+function normalizeBardLoreBonusProficienciesSelections(value: unknown): SkillName[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return [...new Set(value.filter((entry): entry is SkillName => typeof entry === "string" && isSkillName(entry)))]
+    .slice(0, 3);
+}
+
+function normalizeBardMagicalDiscoveriesSpellIds(value: unknown): string[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return [...new Set(value.filter((entry): entry is string => typeof entry === "string" && entry.trim().length > 0))]
+    .slice(0, 2);
+}
+
+function normalizeBardPrimalLoreCantripId(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim().length > 0 ? value : undefined;
+}
+
+function normalizeBardPrimalLoreSkill(value: unknown): SkillName | undefined {
+  return typeof value === "string" && isPrimalLoreSkill(value)
+    ? (value as SkillName)
+    : undefined;
 }
 
 function createBardExpertiseSourceStr(sourceLabel: string, sourceKey: string): string {
@@ -133,6 +304,26 @@ function createBardExpertiseEntry(
     sourceStr: createBardExpertiseSourceStr(sourceLabel, sourceKey),
     proficiency: getSkillProficiencyForSkillName(skill),
     proficiencyLevel: PROF_LEVEL.EXPERT,
+    overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
+  };
+}
+
+function createBardLoreBonusProficiencyEntry(skill: SkillName): SkillProficiencyEntry | null {
+  return {
+    source: PROFICIENCY_SOURCE.CLASS,
+    sourceStr: bardLoreBonusProficienciesSourceLabel,
+    proficiency: getSkillProficiencyForSkillName(skill),
+    proficiencyLevel: PROF_LEVEL.PROFICIENT,
+    overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
+  };
+}
+
+function createBardPrimalLoreSkillEntry(skill: SkillName): SkillProficiencyEntry | null {
+  return {
+    source: PROFICIENCY_SOURCE.CLASS,
+    sourceStr: bardPrimalLoreSourceLabel,
+    proficiency: getSkillProficiencyForSkillName(skill),
+    proficiencyLevel: PROF_LEVEL.PROFICIENT,
     overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
   };
 }
@@ -220,14 +411,30 @@ export function normalizeBardFeatureState(
   const hasLevel2Expertise = hasBardLevel2Expertise(character);
   const hasLevel9Expertise = hasBardLevel9Expertise(character);
   const hasBeguilingMagic = hasBeguilingMagicFeature(character);
+  const hasBlessingOfMoonlight = hasBlessingOfMoonlightFeature(character);
   const hasMantleOfMajesty = hasMantleOfMajestyFeature(character);
+  const hasUnbreakableMajesty = hasUnbreakableMajestyFeature(character);
+  const hasLoreBonusProficiencies = hasLoreBonusProficienciesFeature(character);
+  const hasMagicalDiscoveries = hasMagicalDiscoveriesFeature(character);
+  const hasPrimalLore = hasPrimalLoreFeature(character);
+  const hasValorMartialTraining = hasCollegeOfValorMartialTrainingFeature(character);
+  const hasValorExtraAttack = hasCollegeOfValorExtraAttackFeature(character);
+  const hasValorBattleMagic = hasCollegeOfValorBattleMagicFeature(character);
 
   if (
     !hasBardicInspiration &&
     !hasLevel2Expertise &&
     !hasLevel9Expertise &&
     !hasBeguilingMagic &&
-    !hasMantleOfMajesty
+    !hasBlessingOfMoonlight &&
+    !hasMantleOfMajesty &&
+    !hasUnbreakableMajesty &&
+    !hasLoreBonusProficiencies &&
+    !hasMagicalDiscoveries &&
+    !hasPrimalLore &&
+    !hasValorMartialTraining &&
+    !hasValorExtraAttack &&
+    !hasValorBattleMagic
   ) {
     return {};
   }
@@ -236,7 +443,18 @@ export function normalizeBardFeatureState(
   const usesExpended = Number(record.bardicInspirationUsesExpended);
   const temporaryTotal = Number(record.bardicInspirationTemporaryTotal);
   const beguilingMagicUsesExpended = Number(record.beguilingMagicUsesExpended);
+  const blessingOfMoonlightUsesExpended = Number(record.blessingOfMoonlightUsesExpended);
   const mantleOfMajestyUsesExpended = Number(record.mantleOfMajestyUsesExpended);
+  const unbreakableMajestyUsesExpended = Number(record.unbreakableMajestyUsesExpended);
+  const loreBonusProficienciesSelections = normalizeBardLoreBonusProficienciesSelections(
+    record.loreBonusProficiencies
+  );
+  const magicalDiscoveriesSpellIds = normalizeBardMagicalDiscoveriesSpellIds(
+    record.magicalDiscoveriesSpellIds
+  );
+  const primalLoreCantripId = normalizeBardPrimalLoreCantripId(record.primalLoreCantripId);
+  const primalLoreSkill = normalizeBardPrimalLoreSkill(record.primalLoreSkill);
+  const extraAttacksRemainingThisTurn = Number(record.extraAttacksRemainingThisTurn);
   const expertiseRecord =
     record.expertise && typeof record.expertise === "object" ? record.expertise : undefined;
 
@@ -255,12 +473,41 @@ export function normalizeBardFeatureState(
         : hasBeguilingMagic
           ? 0
           : undefined,
+    blessingOfMoonlightUsesExpended:
+      hasBlessingOfMoonlight && Number.isFinite(blessingOfMoonlightUsesExpended)
+        ? Math.max(0, Math.floor(blessingOfMoonlightUsesExpended))
+        : hasBlessingOfMoonlight
+          ? 0
+          : undefined,
     mantleOfMajestyUsesExpended:
       hasMantleOfMajesty && Number.isFinite(mantleOfMajestyUsesExpended)
         ? Math.max(0, Math.floor(mantleOfMajestyUsesExpended))
         : hasMantleOfMajesty
           ? 0
           : undefined,
+    unbreakableMajestyUsesExpended:
+      hasUnbreakableMajesty && Number.isFinite(unbreakableMajestyUsesExpended)
+        ? Math.max(0, Math.floor(unbreakableMajestyUsesExpended))
+        : hasUnbreakableMajesty
+          ? 0
+          : undefined,
+    loreBonusProficiencies: hasLoreBonusProficiencies
+      ? loreBonusProficienciesSelections
+      : undefined,
+    magicalDiscoveriesSpellIds: hasMagicalDiscoveries ? magicalDiscoveriesSpellIds : undefined,
+    primalLoreCantripId: hasPrimalLore ? primalLoreCantripId : undefined,
+    primalLoreSkill: hasPrimalLore ? primalLoreSkill : undefined,
+    extraAttacksRemainingThisTurn: hasValorExtraAttack
+      ? Number.isFinite(extraAttacksRemainingThisTurn)
+        ? Math.max(0, Math.min(1, Math.floor(extraAttacksRemainingThisTurn)))
+        : 0
+      : undefined,
+    valorCantripReplacementUsedThisTurn: hasValorExtraAttack
+      ? Boolean(record.valorCantripReplacementUsedThisTurn)
+      : undefined,
+    battleMagicBonusAttackAvailable: hasValorBattleMagic
+      ? Boolean(record.battleMagicBonusAttackAvailable)
+      : undefined,
     expertise:
       hasLevel2Expertise || hasLevel9Expertise
         ? {
@@ -295,6 +542,93 @@ export function getBardExpertiseSelections(
   return bardState.expertise?.level2 ?? [];
 }
 
+export function getBardLoreBonusProficiencySelections(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): SkillName[] {
+  return getBardFeatureState(character).loreBonusProficiencies ?? [];
+}
+
+export function getBardMagicalDiscoveriesSpellOptions(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): SpellEntry[] {
+  if (!hasMagicalDiscoveriesFeature(character)) {
+    return [];
+  }
+
+  const highestSlotLevel = getSpellSlotTotalsForCharacter(character.className, character.level).reduce(
+    (highestLevel, totalSlots, index) => (totalSlots > 0 ? index + 1 : highestLevel),
+    0
+  );
+
+  return getSpellEntriesForSpellListClasses([
+    SPELL_LIST_CLASS.CLERIC,
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.WIZARD
+  ]).filter((spell) => {
+    const spellLevel = getSpellLevel(spell);
+    return spellLevel === 0 || spellLevel <= highestSlotLevel;
+  });
+}
+
+export function getBardMagicalDiscoveriesSpellIds(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): string[] {
+  if (!hasMagicalDiscoveriesFeature(character)) {
+    return [];
+  }
+
+  const availableSpellIds = new Set(
+    getBardMagicalDiscoveriesSpellOptions(character).map((spell) => spell.id)
+  );
+
+  return (getBardFeatureState(character).magicalDiscoveriesSpellIds ?? []).filter((spellId) =>
+    availableSpellIds.has(spellId)
+  );
+}
+
+export function getBardPrimalLoreCantripOptions(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): SpellEntry[] {
+  if (!hasPrimalLoreFeature(character)) {
+    return [];
+  }
+
+  return getSpellEntriesForSpellListClasses([SPELL_LIST_CLASS.DRUID]).filter(
+    (spell) => getSpellLevel(spell) === 0
+  );
+}
+
+export function getBardPrimalLoreCantripId(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): string | null {
+  if (!hasPrimalLoreFeature(character)) {
+    return null;
+  }
+
+  const availableSpellIds = new Set(getBardPrimalLoreCantripOptions(character).map((spell) => spell.id));
+  const selectedSpellId = getBardFeatureState(character).primalLoreCantripId;
+
+  return selectedSpellId && availableSpellIds.has(selectedSpellId) ? selectedSpellId : null;
+}
+
+export function getBardPrimalLoreSkillOptions(): SkillName[] {
+  return [...primalLoreSkillOptions];
+}
+
+export function getBardPrimalLoreSkillSelection(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): SkillName | null {
+  if (!hasPrimalLoreFeature(character)) {
+    return null;
+  }
+
+  return getBardFeatureState(character).primalLoreSkill ?? null;
+}
+
 export function setBardExpertiseSelections(
   character: Character,
   tier: BardExpertiseTier,
@@ -318,11 +652,111 @@ export function setBardExpertiseSelections(
   };
 }
 
+export function setBardLoreBonusProficiencySelections(
+  character: Character,
+  selections: SkillName[]
+): Character {
+  const bardState = getBardFeatureState(character);
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        loreBonusProficiencies: normalizeBardLoreBonusProficienciesSelections(selections)
+      }
+    }
+  };
+}
+
+export function setBardMagicalDiscoveriesSpellIds(
+  character: Character,
+  spellIds: string[]
+): Character {
+  if (!hasMagicalDiscoveriesFeature(character)) {
+    return character;
+  }
+
+  const bardState = getBardFeatureState(character);
+  const availableSpellIds = new Set(
+    getBardMagicalDiscoveriesSpellOptions(character).map((spell) => spell.id)
+  );
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        magicalDiscoveriesSpellIds: normalizeBardMagicalDiscoveriesSpellIds(spellIds).filter(
+          (spellId) => availableSpellIds.has(spellId)
+        )
+      }
+    }
+  };
+}
+
+export function setBardPrimalLoreCantripId(
+  character: Character,
+  spellId: string | null
+): Character {
+  if (!hasPrimalLoreFeature(character)) {
+    return character;
+  }
+
+  const bardState = getBardFeatureState(character);
+  const availableSpellIds = new Set(getBardPrimalLoreCantripOptions(character).map((spell) => spell.id));
+  const nextSpellId =
+    typeof spellId === "string" && availableSpellIds.has(spellId) ? spellId : undefined;
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        primalLoreCantripId: nextSpellId
+      }
+    }
+  };
+}
+
+export function setBardPrimalLoreSkillSelection(
+  character: Character,
+  skill: SkillName | null
+): Character {
+  if (!hasPrimalLoreFeature(character)) {
+    return character;
+  }
+
+  const bardState = getBardFeatureState(character);
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        primalLoreSkill:
+          skill && isPrimalLoreSkill(skill)
+            ? skill
+            : undefined
+      }
+    }
+  };
+}
+
 export function getBardSkillProficiencyEntries(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
 ): FeatureSkillProficiencyEntry[] {
   if (!hasBardLevel2Expertise(character)) {
-    return [];
+    return hasLoreBonusProficienciesFeature(character)
+      ? getBardLoreBonusProficiencySelections(character)
+          .map((skill) => createBardLoreBonusProficiencyEntry(skill))
+          .filter((entry): entry is SkillProficiencyEntry => entry !== null)
+      : [];
   }
 
   const level2Entries = getBardExpertiseSelections(character, "level2")
@@ -342,17 +776,298 @@ export function getBardSkillProficiencyEntries(
         .filter((entry): entry is SkillProficiencyEntry => entry !== null)
     : [];
 
-  return [...level2Entries, ...level9Entries];
+  const loreEntries = hasLoreBonusProficienciesFeature(character)
+    ? getBardLoreBonusProficiencySelections(character)
+        .map((skill) => createBardLoreBonusProficiencyEntry(skill))
+        .filter((entry): entry is SkillProficiencyEntry => entry !== null)
+    : [];
+  const primalLoreEntries = hasPrimalLoreFeature(character)
+    ? [getBardPrimalLoreSkillSelection(character)]
+        .filter((skill): skill is SkillName => skill !== null)
+        .map((skill) => createBardPrimalLoreSkillEntry(skill))
+        .filter((entry): entry is SkillProficiencyEntry => entry !== null)
+    : [];
+
+  return [...level2Entries, ...level9Entries, ...loreEntries, ...primalLoreEntries];
 }
 
-export function getBardAlwaysPreparedSpellIds(
-  character: Pick<Character, "className" | "level">
-): string[] {
-  if (!hasBardFeature(character, CLASS_FEATURE.WORDS_OF_CREATION)) {
+export function getBardLanguageProficiencyEntries(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): FeatureLanguageProficiencyEntry[] {
+  if (!hasPrimalLoreFeature(character)) {
     return [];
   }
 
-  return [...wordsOfCreationAlwaysPreparedSpellIds];
+  return [
+    {
+      source: PROFICIENCY_SOURCE.CLASS,
+      sourceStr: bardPrimalLoreSourceLabel,
+      proficiency: LANGUAGE_PROFICIENCY.DRUIDIC,
+      proficiencyLevel: PROF_LEVEL.PROFICIENT
+    } satisfies LanguageProficiencyEntry
+  ];
+}
+
+export function getBardWeaponProficiencyEntries(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): FeatureWeaponProficiencyEntry[] {
+  if (!hasCollegeOfValorMartialTrainingFeature(character)) {
+    return [];
+  }
+
+  return [
+    {
+      source: PROFICIENCY_SOURCE.CLASS,
+      sourceStr: bardValorMartialTrainingSourceLabel,
+      proficiency: WEAPON_PROFICIENCY.MARTIAL,
+      proficiencyLevel: PROF_LEVEL.PROFICIENT,
+      overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
+    } satisfies WeaponProficiencyEntry
+  ];
+}
+
+export function getBardArmorProficiencyEntries(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): FeatureArmorProficiencyEntry[] {
+  if (!hasCollegeOfValorMartialTrainingFeature(character)) {
+    return [];
+  }
+
+  return [
+    {
+      source: PROFICIENCY_SOURCE.CLASS,
+      sourceStr: bardValorMartialTrainingSourceLabel,
+      proficiency: ARMOR_PROFICIENCY.MEDIUM,
+      proficiencyLevel: PROF_LEVEL.PROFICIENT,
+      overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
+    } satisfies ArmorProficiencyEntry,
+    {
+      source: PROFICIENCY_SOURCE.CLASS,
+      sourceStr: bardValorMartialTrainingSourceLabel,
+      proficiency: ARMOR_PROFICIENCY.SHIELD,
+      proficiencyLevel: PROF_LEVEL.PROFICIENT,
+      overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
+    } satisfies ArmorProficiencyEntry
+  ];
+}
+
+function getBardAdditionalAttackCount(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return hasCollegeOfValorExtraAttackFeature(character) ? 1 : 0;
+}
+
+export function getBardWeaponAttackMultiCount(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  if (getBardAdditionalAttackCount(character) <= 0) {
+    return 0;
+  }
+
+  return getBardFeatureState(character).extraAttacksRemainingThisTurn ?? 0;
+}
+
+export function hasBardBattleMagicBonusAttackAvailable(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    hasCollegeOfValorBattleMagicFeature(character) &&
+    getBardFeatureState(character).battleMagicBonusAttackAvailable === true
+  );
+}
+
+function canGainBardBattleMagicFromSpell(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  spell: Pick<SpellEntry, "castingTime">
+): boolean {
+  return hasCollegeOfValorBattleMagicFeature(character) && spell.castingTime.includes(ACTION_TYPE.ACTION);
+}
+
+export function applyBardBattleMagicAfterSpellCast(
+  character: Character,
+  spell: Pick<SpellEntry, "castingTime">
+): Character {
+  if (!canGainBardBattleMagicFromSpell(character, spell)) {
+    return character;
+  }
+
+  const bardState = getBardFeatureState(character);
+
+  if (bardState.battleMagicBonusAttackAvailable) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        battleMagicBonusAttackAvailable: true
+      }
+    }
+  };
+}
+
+function isValorActionCantrip(
+  spell: Pick<SpellEntry, "castingTime" | "spellLevel">
+): boolean {
+  return spell.spellLevel === 0 && spell.castingTime.includes(ACTION_TYPE.ACTION);
+}
+
+export function canUseBardValorActionCantripReplacement(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "roundTracker"> &
+    Partial<Pick<Character, "subclassId">>,
+  spell: Pick<SpellEntry, "castingTime" | "spellLevel">
+): boolean {
+  if (!hasCollegeOfValorExtraAttackFeature(character) || !isValorActionCantrip(spell)) {
+    return false;
+  }
+
+  const bardState = getBardFeatureState(character);
+
+  if (bardState.valorCantripReplacementUsedThisTurn) {
+    return false;
+  }
+
+  return (
+    isRoundTrackerResourceAvailable(character.roundTracker, "action") ||
+    (bardState.extraAttacksRemainingThisTurn ?? 0) > 0
+  );
+}
+
+export function consumeBardWeaponAttack(
+  character: Character,
+  action?: {
+    attackKind: "weapon" | "unarmed";
+  }
+): Character {
+  if (character.className !== "Bard") {
+    return isRoundTrackerResourceAvailable(character.roundTracker, "action")
+      ? {
+          ...character,
+          roundTracker: consumeRoundTrackerResource(character.roundTracker, "action")
+        }
+      : character;
+  }
+
+  const bardState = getBardFeatureState(character);
+  const extraAttacksRemaining = bardState.extraAttacksRemainingThisTurn ?? 0;
+  const actionAvailable = isRoundTrackerResourceAvailable(character.roundTracker, "action");
+  const canUseBattleMagicBonusAttack =
+    action?.attackKind === "weapon" &&
+    bardState.battleMagicBonusAttackAvailable === true &&
+    isRoundTrackerResourceAvailable(character.roundTracker, "bonusAction");
+
+  if (actionAvailable) {
+    return {
+      ...character,
+      roundTracker: consumeRoundTrackerResource(character.roundTracker, "action"),
+      classFeatureState: {
+        ...character.classFeatureState,
+        bard: {
+          ...bardState,
+          extraAttacksRemainingThisTurn: getBardAdditionalAttackCount(character)
+        }
+      }
+    };
+  }
+
+  if (extraAttacksRemaining <= 0) {
+    if (!canUseBattleMagicBonusAttack) {
+      return character;
+    }
+
+    return {
+      ...character,
+      roundTracker: consumeRoundTrackerResource(character.roundTracker, "bonusAction"),
+      classFeatureState: {
+        ...character.classFeatureState,
+        bard: {
+          ...bardState,
+          battleMagicBonusAttackAvailable: false
+        }
+      }
+    };
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
+      }
+    }
+  };
+}
+
+export function consumeBardValorActionCantrip(character: Character): Character {
+  if (!hasCollegeOfValorExtraAttackFeature(character)) {
+    return character;
+  }
+
+  const bardState = getBardFeatureState(character);
+
+  if (bardState.valorCantripReplacementUsedThisTurn) {
+    return character;
+  }
+
+  const extraAttacksRemaining = bardState.extraAttacksRemainingThisTurn ?? 0;
+  const actionAvailable = isRoundTrackerResourceAvailable(character.roundTracker, "action");
+
+  if (actionAvailable) {
+    return {
+      ...character,
+      roundTracker: consumeRoundTrackerResource(character.roundTracker, "action"),
+      classFeatureState: {
+        ...character.classFeatureState,
+        bard: {
+          ...bardState,
+          extraAttacksRemainingThisTurn: getBardAdditionalAttackCount(character),
+          valorCantripReplacementUsedThisTurn: true
+        }
+      }
+    };
+  }
+
+  if (extraAttacksRemaining <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        extraAttacksRemainingThisTurn: extraAttacksRemaining - 1,
+        valorCantripReplacementUsedThisTurn: true
+      }
+    }
+  };
+}
+
+export function getBardAlwaysPreparedSpellIds(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): string[] {
+  const primalLoreCantripId = getBardPrimalLoreCantripId(character);
+
+  return [
+    ...new Set([
+      ...(hasBardFeature(character, CLASS_FEATURE.WORDS_OF_CREATION)
+        ? [...wordsOfCreationAlwaysPreparedSpellIds]
+        : []),
+      ...getBardMagicalDiscoveriesSpellIds(character),
+      ...(primalLoreCantripId ? [primalLoreCantripId] : [])
+    ])
+  ];
 }
 
 export function getBeguilingMagicUsesTotal(
@@ -369,6 +1084,73 @@ export function getBeguilingMagicUsesRemaining(
   const bardState = getBardFeatureState(character);
 
   return Math.max(0, totalUses - (bardState.beguilingMagicUsesExpended ?? 0));
+}
+
+export function getBlessingOfMoonlightUsesTotal(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return hasBlessingOfMoonlightFeature(character) ? 1 : 0;
+}
+
+export function getBlessingOfMoonlightUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  const totalUses = getBlessingOfMoonlightUsesTotal(character);
+  const bardState = getBardFeatureState(character);
+
+  return Math.max(0, totalUses - (bardState.blessingOfMoonlightUsesExpended ?? 0));
+}
+
+export function consumeBlessingOfMoonlightUse(character: Character): Character {
+  const totalUses = getBlessingOfMoonlightUsesTotal(character);
+
+  if (totalUses <= 0) {
+    return character;
+  }
+
+  const bardState = getBardFeatureState(character);
+  const currentExpended = Math.max(0, bardState.blessingOfMoonlightUsesExpended ?? 0);
+
+  if (currentExpended >= totalUses) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        blessingOfMoonlightUsesExpended: currentExpended + 1
+      }
+    }
+  };
+}
+
+export function restoreBlessingOfMoonlightOnLongRest(character: Character): Character {
+  const totalUses = getBlessingOfMoonlightUsesTotal(character);
+
+  if (totalUses <= 0) {
+    return character;
+  }
+
+  const bardState = getBardFeatureState(character);
+
+  if ((bardState.blessingOfMoonlightUsesExpended ?? 0) <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        blessingOfMoonlightUsesExpended: 0
+      }
+    }
+  };
 }
 
 export function consumeBeguilingMagicUse(character: Character): Character {
@@ -535,6 +1317,68 @@ export function restoreMantleOfMajestyOnLongRest(character: Character): Characte
   };
 }
 
+export function getUnbreakableMajestyUsesTotal(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return hasUnbreakableMajestyFeature(character) ? 1 : 0;
+}
+
+export function getUnbreakableMajestyUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  const totalUses = getUnbreakableMajestyUsesTotal(character);
+  const bardState = getBardFeatureState(character);
+
+  return Math.max(0, totalUses - (bardState.unbreakableMajestyUsesExpended ?? 0));
+}
+
+export function consumeUnbreakableMajestyUse(character: Character): Character {
+  if (!hasUnbreakableMajestyFeature(character) || getUnbreakableMajestyUsesRemaining(character) <= 0) {
+    return character;
+  }
+
+  const bardState = getBardFeatureState(character);
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        unbreakableMajestyUsesExpended: (bardState.unbreakableMajestyUsesExpended ?? 0) + 1
+      }
+    }
+  };
+}
+
+export function restoreUnbreakableMajestyOnShortRest(character: Character): Character {
+  if (getUnbreakableMajestyUsesTotal(character) <= 0) {
+    return character;
+  }
+
+  const bardState = getBardFeatureState(character);
+
+  if ((bardState.unbreakableMajestyUsesExpended ?? 0) <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        unbreakableMajestyUsesExpended: 0
+      }
+    }
+  };
+}
+
+export function restoreUnbreakableMajestyOnLongRest(character: Character): Character {
+  return restoreUnbreakableMajestyOnShortRest(character);
+}
+
 export function hasActiveMantleOfMajesty(
   character: Pick<Character, "className"> & Partial<Pick<Character, "subclassId" | "statusEntries">>
 ): boolean {
@@ -547,6 +1391,21 @@ export function hasActiveMantleOfMajesty(
       entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
       entry.value === "Mantle of Majesty" &&
       entry.sourceId === mantleOfMajestyStatusSourceId
+  );
+}
+
+export function hasActiveUnbreakableMajesty(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "subclassId" | "statusEntries">>
+): boolean {
+  if (character.className !== "Bard" || character.subclassId !== collegeOfGlamourSubclassId) {
+    return false;
+  }
+
+  return normalizeCharacterStatusEntries(character.statusEntries).some(
+    (entry) =>
+      entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+      entry.value === "Unbreakable Majesty" &&
+      entry.sourceId === unbreakableMajestyStatusSourceId
   );
 }
 
@@ -573,8 +1432,9 @@ export function applyMantleOfMajestyStatus(character: Character): Character {
         source: "Mantle of Majesty",
         sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
         duration: {
-          kind: STATUS_DURATION_KIND.MINUTES,
-          amount: 1
+          kind: STATUS_DURATION_KIND.ROUNDS,
+          amount: 10,
+          tickOn: STATUS_DURATION_ROUND_TICK.ROUND_END
         },
         sourceId: mantleOfMajestyConcentrationSourceId
       }),
@@ -589,6 +1449,82 @@ export function applyMantleOfMajestyStatus(character: Character): Character {
           linkedValue: EFFECT_NAME.CONCENTRATION
         },
         sourceId: mantleOfMajestyStatusSourceId
+      })
+    ]
+  };
+}
+
+export function applyUnbreakableMajestyStatus(character: Character): Character {
+  const nextStatusEntries = normalizeCharacterStatusEntries(character.statusEntries).filter(
+    (entry) => entry.sourceId !== unbreakableMajestyStatusSourceId
+  );
+
+  return {
+    ...character,
+    statusEntries: [
+      ...nextStatusEntries,
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: "Unbreakable Majesty",
+        source: "College of Glamour",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+        duration: {
+          kind: STATUS_DURATION_KIND.ROUNDS,
+          amount: 10,
+          tickOn: STATUS_DURATION_ROUND_TICK.ROUND_END
+        },
+        sourceId: unbreakableMajestyStatusSourceId
+      })
+    ]
+  };
+}
+
+export function activateUnbreakableMajesty(character: Character): Character {
+  if (getUnbreakableMajestyUsesRemaining(character) <= 0 || hasActiveUnbreakableMajesty(character)) {
+    return character;
+  }
+
+  return applyUnbreakableMajestyStatus(consumeUnbreakableMajestyUse(character));
+}
+
+export function applyInspiredEclipseStatus(character: Character): Character {
+  if (!hasMoonsInspirationFeature(character)) {
+    return character;
+  }
+
+  const nextStatusEntries = normalizeCharacterStatusEntries(character.statusEntries).filter(
+    (entry) =>
+      entry.sourceId !== inspiredEclipseStatusSourceId &&
+      entry.sourceId !== inspiredEclipseInvisibleStatusSourceId
+  );
+
+  return {
+    ...character,
+    statusEntries: [
+      ...nextStatusEntries,
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: "Inspired Eclipse",
+        source: "College of the Moon",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+        duration: {
+          kind: STATUS_DURATION_KIND.ROUNDS,
+          amount: 1,
+          tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
+        },
+        sourceId: inspiredEclipseStatusSourceId
+      }),
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.CONDITIONS,
+        value: CONDITION_NAME.INVISIBLE,
+        source: "Inspired Eclipse",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+        duration: {
+          kind: STATUS_DURATION_KIND.LINKED,
+          linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+          linkedValue: "Inspired Eclipse"
+        },
+        sourceId: inspiredEclipseInvisibleStatusSourceId
       })
     ]
   };
@@ -725,6 +1661,63 @@ export function restoreAllBardicInspirationUses(character: Character): Character
   };
 }
 
+export function advanceBardFeaturesForNewRound(character: Character): Character {
+  if (
+    getBardAdditionalAttackCount(character) <= 0 &&
+    !hasCollegeOfValorBattleMagicFeature(character)
+  ) {
+    return character;
+  }
+
+  const bardState = getBardFeatureState(character);
+
+  if (
+    (bardState.extraAttacksRemainingThisTurn ?? 0) === 0 &&
+    !bardState.valorCantripReplacementUsedThisTurn &&
+    !bardState.battleMagicBonusAttackAvailable
+  ) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        extraAttacksRemainingThisTurn: 0,
+        valorCantripReplacementUsedThisTurn: false,
+        battleMagicBonusAttackAvailable: false
+      }
+    }
+  };
+}
+
+function clearBardTurnState(character: Character): Character {
+  const bardState = getBardFeatureState(character);
+
+  if (
+    (bardState.extraAttacksRemainingThisTurn ?? 0) === 0 &&
+    !bardState.valorCantripReplacementUsedThisTurn &&
+    !bardState.battleMagicBonusAttackAvailable
+  ) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        extraAttacksRemainingThisTurn: 0,
+        valorCantripReplacementUsedThisTurn: false,
+        battleMagicBonusAttackAvailable: false
+      }
+    }
+  };
+}
+
 function getBardSpellSlotAvailability(
   character: Pick<Character, "className" | "level" | "spellSlotsExpended">
 ): {
@@ -827,7 +1820,8 @@ export function getBardFeatureAction(
     },
     execute: {
       kind: "activate",
-      label: "Use Bardic Inspiration"
+      label: "Use Bardic Inspiration",
+      effectKind: "bardic-inspiration-roll"
     },
     disabled,
     disabledReason
@@ -910,12 +1904,17 @@ export function applySuperiorInspirationOnInitiative(character: Character): Char
   };
 }
 
-export function applyShortRestToBardFeatures(character: Character): Character {
-  if (!hasFontOfInspiration(character)) {
+export function restoreBardicInspirationOnShortRest(character: Character): Character {
+  if (!hasFontOfInspiration(character) || !hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION)) {
     return character;
   }
 
-  if (!hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION)) {
+  const bardState = getBardFeatureState(character);
+
+  if (
+    (bardState.bardicInspirationUsesExpended ?? 0) <= 0 &&
+    bardState.bardicInspirationTemporaryTotal === undefined
+  ) {
     return character;
   }
 
@@ -924,7 +1923,7 @@ export function applyShortRestToBardFeatures(character: Character): Character {
     classFeatureState: {
       ...character.classFeatureState,
       bard: {
-        ...getBardFeatureState(character),
+        ...bardState,
         bardicInspirationUsesExpended: 0,
         bardicInspirationTemporaryTotal: undefined
       }
@@ -932,9 +1931,21 @@ export function applyShortRestToBardFeatures(character: Character): Character {
   };
 }
 
+export function applyShortRestToBardFeatures(character: Character): Character {
+  const restoredBardicInspiration = restoreBardicInspirationOnShortRest(character);
+
+  return clearBardTurnState(restoreUnbreakableMajestyOnShortRest(restoredBardicInspiration));
+}
+
 export function applyLongRestToBardFeatures(character: Character): Character {
   if (!hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION)) {
-    return restoreMantleOfMajestyOnLongRest(restoreBeguilingMagicOnLongRest(character));
+    return clearBardTurnState(
+      restoreUnbreakableMajestyOnLongRest(
+        restoreMantleOfMajestyOnLongRest(
+          restoreBlessingOfMoonlightOnLongRest(restoreBeguilingMagicOnLongRest(character))
+        )
+      )
+    );
   }
 
   const nextCharacter = {
@@ -949,7 +1960,13 @@ export function applyLongRestToBardFeatures(character: Character): Character {
     }
   };
 
-  return restoreMantleOfMajestyOnLongRest(restoreBeguilingMagicOnLongRest(nextCharacter));
+  return restoreUnbreakableMajestyOnLongRest(
+    restoreMantleOfMajestyOnLongRest(
+      clearBardTurnState(
+        restoreBlessingOfMoonlightOnLongRest(restoreBeguilingMagicOnLongRest(nextCharacter))
+      )
+    )
+  );
 }
 
 export function restoreBardicInspirationOnLongRest(character: Character): Character {
@@ -974,5 +1991,7 @@ export {
   bardicInspirationActionKey,
   mantleOfInspirationActionKey,
   mantleOfMajestyActionKey,
-  mantleOfMajestyStatusSourceId
+  unbreakableMajestyActionKey,
+  mantleOfMajestyStatusSourceId,
+  unbreakableMajestyStatusSourceId
 };
