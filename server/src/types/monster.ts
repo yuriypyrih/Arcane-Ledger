@@ -1,4 +1,12 @@
-export type MonsterOrdering = "name" | "-name" | "challenge_rating" | "-challenge_rating" | "cr" | "-cr";
+export type MonsterOrdering =
+  | "name"
+  | "-name"
+  | "type"
+  | "-type"
+  | "challenge_rating"
+  | "-challenge_rating"
+  | "cr"
+  | "-cr";
 
 export type MonsterSpeedValue = boolean | number | string;
 

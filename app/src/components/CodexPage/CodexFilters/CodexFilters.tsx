@@ -8,10 +8,16 @@ type CodexFiltersProps = {
   categories: CodexFilterCategory[];
   spellLevelFilter: number | null;
   spellClassFilter: SPELL_LIST_CLASS | null;
+  monsterTypeFilter: string | null;
+  monsterTypeOptions: readonly string[];
+  monsterSourceFilter: string | null;
+  monsterSourceOptions: readonly string[];
   onQueryChange: (value: string) => void;
   onCategoryChange: (value: CodexFilterCategory) => void;
   onSpellLevelFilterChange: (value: number | null) => void;
   onSpellClassFilterChange: (value: SPELL_LIST_CLASS | null) => void;
+  onMonsterTypeFilterChange: (value: string | null) => void;
+  onMonsterSourceFilterChange: (value: string | null) => void;
 };
 
 function formatEnumLabel(value: string): string {
@@ -42,10 +48,16 @@ function CodexFilters({
   categories,
   spellLevelFilter,
   spellClassFilter,
+  monsterTypeFilter,
+  monsterTypeOptions,
+  monsterSourceFilter,
+  monsterSourceOptions,
   onQueryChange,
   onCategoryChange,
   onSpellLevelFilterChange,
-  onSpellClassFilterChange
+  onSpellClassFilterChange,
+  onMonsterTypeFilterChange,
+  onMonsterSourceFilterChange
 }: CodexFiltersProps) {
   return (
     <div className={styles.controls}>
@@ -100,6 +112,46 @@ function CodexFilters({
               {spellClassOptions.map((spellClass) => (
                 <option key={spellClass} value={spellClass}>
                   {formatEnumLabel(spellClass)}
+                </option>
+              ))}
+            </select>
+          </label>
+        </>
+      ) : null}
+
+      {category === ENTRY_CATEGORIES.MONSTERS ? (
+        <>
+          <label className={styles.field}>
+            <span>Type</span>
+            <select
+              className={styles.input}
+              value={monsterTypeFilter ?? "ALL"}
+              onChange={(event) =>
+                onMonsterTypeFilterChange(event.target.value === "ALL" ? null : event.target.value)
+              }
+            >
+              <option value="ALL">All</option>
+              {monsterTypeOptions.map((monsterType) => (
+                <option key={monsterType} value={monsterType}>
+                  {monsterType}
+                </option>
+              ))}
+            </select>
+          </label>
+
+          <label className={styles.field}>
+            <span>Source</span>
+            <select
+              className={styles.input}
+              value={monsterSourceFilter ?? "ALL"}
+              onChange={(event) =>
+                onMonsterSourceFilterChange(event.target.value === "ALL" ? null : event.target.value)
+              }
+            >
+              <option value="ALL">All</option>
+              {monsterSourceOptions.map((monsterSource) => (
+                <option key={monsterSource} value={monsterSource}>
+                  {monsterSource}
                 </option>
               ))}
             </select>

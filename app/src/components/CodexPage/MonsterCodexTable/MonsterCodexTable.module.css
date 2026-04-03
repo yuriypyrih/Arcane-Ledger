@@ -1,0 +1,180 @@
+.resultsHeader {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-section-gap);
+  align-items: center;
+}
+
+.resultsHeader h3,
+.card h4,
+.card p {
+  margin: 0;
+}
+
+.resultsHeader h3 {
+  font-size: 1rem;
+}
+
+.resultsHeader span,
+.card p,
+.paginationStatus {
+  color: var(--color-ink-soft);
+}
+
+.grid {
+  display: grid;
+  gap: var(--space-page-gap);
+}
+
+.card {
+  display: grid;
+  gap: var(--space-section-gap);
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 20px;
+  background: rgba(255, 250, 241, 0.92);
+  box-shadow: 0 14px 38px rgba(54, 34, 21, 0.06);
+  padding: var(--space-card-padding);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 250, 241, 0.95);
+  box-shadow: 0 14px 38px rgba(54, 34, 21, 0.05);
+}
+
+.table {
+  width: 100%;
+  min-width: 38rem;
+  border-collapse: collapse;
+}
+
+.table thead {
+  background: rgba(143, 91, 56, 0.08);
+}
+
+.table th,
+.table td {
+  padding: 0.62rem 0.8rem;
+  text-align: left;
+}
+
+.table th {
+  border-bottom: 1px solid rgba(75, 47, 29, 0.12);
+  color: var(--color-accent);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.table th[data-active="true"] {
+  background: rgba(143, 91, 56, 0.06);
+}
+
+.sortHeader {
+  padding: 0;
+}
+
+.crHeader {
+  width: 5.4rem;
+}
+
+.table tbody tr + tr td {
+  border-top: 1px solid rgba(75, 47, 29, 0.08);
+}
+
+.tableRow {
+  cursor: pointer;
+  transition: background-color 120ms ease;
+}
+
+.tableRow:hover,
+.tableRow:focus-visible {
+  background: rgba(244, 233, 214, 0.72);
+}
+
+.nameCell strong {
+  font-size: 0.94rem;
+}
+
+.typeCell,
+.sourceCell,
+.crCell {
+  font-size: 0.89rem;
+}
+
+.crCell {
+  width: 5.4rem;
+  white-space: nowrap;
+}
+
+.numericCell {
+  font-size: 0.84rem;
+}
+
+.sourceCell {
+  color: var(--color-ink-soft);
+}
+
+.sortButton {
+  display: flex;
+  width: 100%;
+  gap: 0.45rem;
+  align-items: center;
+  justify-content: space-between;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  font-weight: inherit;
+  letter-spacing: inherit;
+  padding: 0.62rem 0.8rem;
+  text-transform: inherit;
+}
+
+.sortButtonLabel {
+  line-height: 1;
+}
+
+.sortIcon {
+  color: var(--color-ink-soft);
+  flex: 0 0 auto;
+  width: 0.88rem;
+  height: 0.88rem;
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.85rem;
+}
+
+.paginationButton {
+  border: 1px solid rgba(75, 47, 29, 0.18);
+  border-radius: 999px;
+  background: rgba(255, 250, 241, 0.9);
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  min-height: 40px;
+  padding: 0.4rem 0.85rem;
+}
+
+.paginationButton:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.paginationStatus {
+  font-size: 0.88rem;
+}
+
+@media (max-width: 760px) {
+  .pagination {
+    flex-wrap: wrap;
+  }
+}

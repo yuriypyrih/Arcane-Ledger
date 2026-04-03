@@ -1,3 +1,5 @@
+export type MonsterOrdering = "name" | "-name" | "type" | "-type" | "cr" | "-cr";
+
 export type MonsterSpeedValue = boolean | number | string;
 
 export type MonsterFeatureRecord = {

@@ -36,6 +36,16 @@ function buildMonsterFilter(query: MonsterListQuery): FilterQuery<MonsterRecord>
 
 function buildMonsterSort(ordering: MonsterOrdering | undefined) {
   switch (ordering) {
+    case "type":
+      return [
+        ["type", 1],
+        ["name", 1]
+      ] as [string, SortOrder][];
+    case "-type":
+      return [
+        ["type", -1],
+        ["name", 1]
+      ] as [string, SortOrder][];
     case "challenge_rating":
     case "cr":
       return [

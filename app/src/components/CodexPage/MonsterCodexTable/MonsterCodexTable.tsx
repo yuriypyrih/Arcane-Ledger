@@ -1,6 +1,7 @@
+import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import type { CodexStatus, MonsterListItem } from "../../../types";
-import styles from "../CodexResults/CodexResults.module.css";
+import type { CodexStatus, MonsterListItem, MonsterOrdering } from "../../../types";
+import styles from "./MonsterCodexTable.module.css";
 
 type MonsterCodexTableProps = {
   monsters: MonsterListItem[];
@@ -10,14 +11,59 @@ type MonsterCodexTableProps = {
   currentPage: number;
   totalPages: number;
   onPageChange: (page: number) => void;
+  ordering: MonsterOrdering;
+  onOrderingChange: (ordering: MonsterOrdering) => void;
 };
-
-function formatMonsterType(value: string) {
-  return value || "Unknown";
-}
 
 function formatChallengeRating(monster: MonsterListItem) {
   return monster.challengeRating || String(monster.cr);
+}
+
+function getOrderingState(ordering: MonsterOrdering) {
+  switch (ordering) {
+    case "-name":
+      return { field: "name", direction: "desc" } as const;
+    case "type":
+      return { field: "type", direction: "asc" } as const;
+    case "-type":
+      return { field: "type", direction: "desc" } as const;
+    case "cr":
+      return { field: "cr", direction: "asc" } as const;
+    case "-cr":
+      return { field: "cr", direction: "desc" } as const;
+    case "name":
+    default:
+      return { field: "name", direction: "asc" } as const;
+  }
+}
+
+function getAriaSortValue(
+  isActive: boolean,
+  direction: "asc" | "desc"
+): "ascending" | "descending" | "none" {
+  if (!isActive) {
+    return "none";
+  }
+
+  return direction === "asc" ? "ascending" : "descending";
+}
+
+function SortIcon({
+  isActive,
+  direction
+}: {
+  isActive: boolean;
+  direction: "asc" | "desc";
+}) {
+  if (!isActive) {
+    return <ArrowUpDown className={styles.sortIcon} aria-hidden="true" />;
+  }
+
+  return direction === "asc" ? (
+    <ArrowUp className={styles.sortIcon} aria-hidden="true" />
+  ) : (
+    <ArrowDown className={styles.sortIcon} aria-hidden="true" />
+  );
 }
 
 function MonsterCodexTable({
@@ -27,16 +73,28 @@ function MonsterCodexTable({
   search,
   currentPage,
   totalPages,
-  onPageChange
+  onPageChange,
+  ordering,
+  onOrderingChange
 }: MonsterCodexTableProps) {
   const navigate = useNavigate();
   const totalEntriesLabel = `${totalEntries} total ${totalEntries === 1 ? "monster" : "monsters"}`;
+  const orderingState = getOrderingState(ordering);
 
   function openMonster(slug: string) {
     navigate({
       pathname: `/codex/monsters/${slug}`,
       search: search.length > 0 ? `?${search}` : ""
     });
+  }
+
+  function handleOrderingToggle(field: "name" | "type" | "cr") {
+    const isCurrentField = orderingState.field === field;
+    const nextDirection = isCurrentField && orderingState.direction === "asc" ? "desc" : "asc";
+    const nextOrdering =
+      nextDirection === "asc" ? field : (`-${field}` as MonsterOrdering);
+
+    onOrderingChange(nextOrdering);
   }
 
   return (
@@ -79,9 +137,31 @@ function MonsterCodexTable({
             <table className={styles.table}>
               <thead>
                 <tr>
-                  <th>Name</th>
-                  <th>Type</th>
-                  <th>CR</th>
+                  {(["name", "type", "cr"] as const).map((field) => {
+                    const isActive = orderingState.field === field;
+                    const direction = isActive ? orderingState.direction : "asc";
+                    const label = field === "cr" ? "CR" : field === "name" ? "Name" : "Type";
+                    const headerClassName =
+                      field === "cr" ? `${styles.sortHeader} ${styles.crHeader}` : styles.sortHeader;
+
+                    return (
+                      <th
+                        key={field}
+                        className={headerClassName}
+                        data-active={isActive}
+                        aria-sort={getAriaSortValue(isActive, direction)}
+                      >
+                        <button
+                          type="button"
+                          className={styles.sortButton}
+                          onClick={() => handleOrderingToggle(field)}
+                        >
+                          <span className={styles.sortButtonLabel}>{label}</span>
+                          <SortIcon isActive={isActive} direction={direction} />
+                        </button>
+                      </th>
+                    );
+                  })}
                   <th>Source</th>
                 </tr>
               </thead>
@@ -99,15 +179,12 @@ function MonsterCodexTable({
                     }}
                     tabIndex={0}
                   >
-                    <td>
-                      <div className={styles.tableNameCell}>
-                        <strong>{monster.name}</strong>
-                        <span>{monster.slug}</span>
-                      </div>
+                    <td className={styles.nameCell}>
+                      <strong>{monster.name}</strong>
                     </td>
-                    <td>{formatMonsterType(monster.type)}</td>
-                    <td>{formatChallengeRating(monster)}</td>
-                    <td>{monster.sourceTitle || "Unknown Source"}</td>
+                    <td className={styles.typeCell}>{monster.type || "Unknown"}</td>
+                    <td className={`${styles.crCell} ${styles.numericCell}`}>{formatChallengeRating(monster)}</td>
+                    <td className={styles.sourceCell}>{monster.sourceSlug || "Unknown Source"}</td>
                   </tr>
                 ))}
               </tbody>

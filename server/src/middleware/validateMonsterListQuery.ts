@@ -5,6 +5,8 @@ import type { MonsterListQuery, MonsterListQueryLocals, MonsterOrdering } from "
 const ALLOWED_ORDERINGS = new Set<MonsterOrdering>([
   "name",
   "-name",
+  "type",
+  "-type",
   "challenge_rating",
   "-challenge_rating",
   "cr",

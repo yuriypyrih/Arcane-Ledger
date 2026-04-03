@@ -1,0 +1,287 @@
+.entry {
+  display: grid;
+  gap: 0.72rem;
+}
+
+.section {
+  display: grid;
+  gap: 0.68rem;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 250, 241, 0.95);
+  box-shadow: 0 10px 28px rgba(54, 34, 21, 0.05);
+  padding: var(--space-card-padding-tight);
+}
+
+.heroHeader {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  align-items: flex-start;
+}
+
+.titleBlock {
+  display: grid;
+  gap: 0.22rem;
+}
+
+.eyebrow,
+.subtitle,
+.description,
+.sourceLine,
+.coreStat span,
+.coreStat small,
+.abilityCell span,
+.abilityCell small,
+.detailItem span,
+.groupDescription,
+.featureMeta,
+.emptyText {
+  color: var(--color-ink-soft);
+}
+
+.eyebrow {
+  margin: 0;
+  color: var(--color-accent);
+  font-size: 0.72rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.titleBlock h2,
+.subtitle,
+.description,
+.sourceLine,
+.sectionHeader h3,
+.groupHeader h4,
+.groupDescription,
+.featureCard p,
+.emptyText {
+  margin: 0;
+}
+
+.titleBlock h2 {
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  line-height: 1.04;
+}
+
+.subtitle {
+  font-size: 0.92rem;
+}
+
+.challengeBadge {
+  display: grid;
+  gap: 0.18rem;
+  min-width: 9rem;
+  border: 1px solid rgba(143, 91, 56, 0.26);
+  border-radius: 14px;
+  background:
+    linear-gradient(180deg, rgba(143, 91, 56, 0.14), rgba(143, 91, 56, 0.06)),
+    rgba(255, 249, 240, 0.98);
+  padding: 0.55rem 0.75rem;
+  text-align: right;
+}
+
+.challengeBadge span {
+  color: var(--color-accent);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.challengeBadge strong {
+  color: var(--color-ink);
+  font-size: clamp(1.35rem, 2.5vw, 1.85rem);
+  line-height: 1;
+}
+
+.subtleDivider {
+  height: 1px;
+  background: rgba(75, 47, 29, 0.08);
+}
+
+.description {
+  width: 100%;
+  font-size: 0.94rem;
+  line-height: 1.56;
+}
+
+.metaBlock {
+  display: grid;
+  gap: 0.28rem;
+}
+
+.sourceLine {
+  font-size: 0.79rem;
+  line-height: 1.4;
+}
+
+.sectionHeader {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.sectionHeader h3 {
+  font-size: 0.98rem;
+}
+
+.coreStatGrid {
+  display: grid;
+  gap: 0.34rem;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.coreStat,
+.abilityCell {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+  border: 1px solid rgba(75, 47, 29, 0.08);
+  border-radius: 10px;
+  background: rgba(255, 252, 245, 0.96);
+}
+
+.coreStat {
+  padding: 0.38rem 0.44rem;
+}
+
+.abilityCell {
+  padding: 0.42rem 0.48rem;
+}
+
+.coreStat span,
+.abilityCell span,
+.detailItem span {
+  font-size: 0.63rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.coreStat strong,
+.abilityCell strong,
+.detailItem strong {
+  font-size: 0.82rem;
+  line-height: 1.3;
+}
+
+.coreStat small,
+.abilityCell small {
+  font-size: 0.69rem;
+  line-height: 1.32;
+}
+
+.abilityGrid {
+  display: grid;
+  gap: 0.34rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.detailGrid {
+  display: grid;
+  gap: 0.36rem 0.95rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.detailItem {
+  display: grid;
+  gap: 0.12rem;
+  min-width: 0;
+}
+
+.featureGroups {
+  display: grid;
+  gap: 0.78rem;
+}
+
+.featureGroup {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.featureGroup + .featureGroup {
+  border-top: 1px solid rgba(75, 47, 29, 0.08);
+  padding-top: 0.72rem;
+}
+
+.groupHeader {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.groupHeader h4 {
+  color: var(--color-accent);
+  font-size: 0.92rem;
+}
+
+.groupDescription {
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.featureList {
+  display: grid;
+  gap: 0.48rem;
+}
+
+.featureCard {
+  display: grid;
+  gap: 0.2rem;
+  border-left: 2px solid rgba(143, 91, 56, 0.24);
+  padding-left: 0.65rem;
+}
+
+.featureTitleRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.22rem 0.65rem;
+  align-items: baseline;
+}
+
+.featureTitleRow strong {
+  font-size: 0.9rem;
+}
+
+.featureMeta {
+  font-size: 0.73rem;
+  line-height: 1.35;
+}
+
+.featureCard p,
+.emptyText {
+  font-size: 0.84rem;
+  line-height: 1.48;
+}
+
+@media (max-width: 1120px) {
+  .coreStatGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+}
+
+@media (max-width: 760px) {
+  .coreStatGrid,
+  .detailGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .challengeBadge {
+    min-width: 0;
+    text-align: left;
+  }
+}
+
+@media (max-width: 560px) {
+  .coreStatGrid,
+  .detailGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .featureTitleRow {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

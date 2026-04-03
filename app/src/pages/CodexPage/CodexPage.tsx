@@ -4,22 +4,58 @@ import CodexFilters from "../../components/CodexPage/CodexFilters";
 import CodexResults from "../../components/CodexPage/CodexResults";
 import MonsterCodexTable from "../../components/CodexPage/MonsterCodexTable";
 import CodexSpellDrawer from "../../components/CodexPage/CodexSpellDrawer";
-import {
-  filterCodexEntries,
-  getCodexCategories,
-  type CodexFilterCategory
-} from "../../utils/codex";
+import { filterCodexEntries, getCodexCategories, type CodexFilterCategory } from "../../utils/codex";
 import { ENTRY_CATEGORIES, SPELL_LIST_CLASS, type SpellEntry } from "../../codex/entries";
 import { useCodexEntries } from "./useCodexEntries";
 import { useMonsterEntries } from "./useMonsterEntries";
+import type { MonsterOrdering } from "../../types";
 import styles from "./CodexPage.module.css";
 
 const SPELLS_PER_PAGE = 20;
 const MONSTERS_PER_PAGE = 50;
 const SPELL_LEVEL_PARAM = "spellLevel";
 const SPELL_CLASS_PARAM = "spellClass";
+const MONSTER_TYPE_PARAM = "monsterType";
+const MONSTER_SOURCE_PARAM = "monsterSource";
+const MONSTER_ORDER_PARAM = "monsterOrder";
 const PAGE_PARAM = "page";
 const QUERY_PARAM = "q";
+const MONSTER_TYPE_OPTIONS = [
+  "Aberration",
+  "Beast",
+  "Celestial",
+  "Construct",
+  "Dragon",
+  "Elemental",
+  "Fey",
+  "Fiend",
+  "Giant",
+  "Humanoid",
+  "Monstrosity",
+  "Ooze",
+  "Plant"
+] as const;
+const MONSTER_ORDERINGS = new Set<string>([
+  "name",
+  "-name",
+  "type",
+  "-type",
+  "cr",
+  "-cr",
+  "challenge_rating",
+  "-challenge_rating"
+]);
+const MONSTER_SOURCE_OPTIONS = [
+  "blackflag",
+  "cc",
+  "menagerie",
+  "taldorei",
+  "tob",
+  "tob-2023",
+  "tob2",
+  "tob3",
+  "wotc-srd"
+] as const;
 
 function parseSpellLevelFilter(value: string | null): number | null {
   if (value === null) {
@@ -55,6 +91,40 @@ function parsePageValue(value: string | null): number {
   return parsedValue;
 }
 
+function parseMonsterOrdering(value: string | null): MonsterOrdering {
+  if (!value || !MONSTER_ORDERINGS.has(value)) {
+    return "name";
+  }
+
+  if (value === "challenge_rating") {
+    return "cr";
+  }
+
+  if (value === "-challenge_rating") {
+    return "-cr";
+  }
+
+  return value as MonsterOrdering;
+}
+
+function parseMonsterTypeFilter(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+
+  return MONSTER_TYPE_OPTIONS.includes(value as (typeof MONSTER_TYPE_OPTIONS)[number]) ? value : null;
+}
+
+function parseMonsterSourceFilter(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+
+  return MONSTER_SOURCE_OPTIONS.includes(value as (typeof MONSTER_SOURCE_OPTIONS)[number])
+    ? value
+    : null;
+}
+
 function CodexPage() {
   const { entries, status } = useCodexEntries();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -67,6 +137,9 @@ function CodexPage() {
   const query = searchParams.get(QUERY_PARAM) ?? "";
   const spellLevelFilter = parseSpellLevelFilter(searchParams.get(SPELL_LEVEL_PARAM));
   const spellClassFilter = parseSpellClassFilter(searchParams.get(SPELL_CLASS_PARAM));
+  const monsterTypeFilter = parseMonsterTypeFilter(searchParams.get(MONSTER_TYPE_PARAM));
+  const monsterSourceFilter = parseMonsterSourceFilter(searchParams.get(MONSTER_SOURCE_PARAM));
+  const monsterOrdering = parseMonsterOrdering(searchParams.get(MONSTER_ORDER_PARAM));
   const currentPage = parsePageValue(searchParams.get(PAGE_PARAM));
   const {
     payload: monsterPayload,
@@ -75,7 +148,10 @@ function CodexPage() {
     enabled: category === ENTRY_CATEGORIES.MONSTERS,
     page: currentPage,
     limit: MONSTERS_PER_PAGE,
-    search: query
+    search: query,
+    type: monsterTypeFilter,
+    source: monsterSourceFilter,
+    ordering: monsterOrdering
   });
   const updateCategory = useCallback(
     (nextCategory: CodexFilterCategory) => {
@@ -86,6 +162,12 @@ function CodexPage() {
       if (nextCategory !== ENTRY_CATEGORIES.SPELLS) {
         nextSearchParams.delete(SPELL_LEVEL_PARAM);
         nextSearchParams.delete(SPELL_CLASS_PARAM);
+      }
+
+      if (nextCategory !== ENTRY_CATEGORIES.MONSTERS) {
+        nextSearchParams.delete(MONSTER_TYPE_PARAM);
+        nextSearchParams.delete(MONSTER_SOURCE_PARAM);
+        nextSearchParams.delete(MONSTER_ORDER_PARAM);
       }
 
       setSearchParams(nextSearchParams, { replace: true });
@@ -102,6 +184,9 @@ function CodexPage() {
     const hadSpellParams =
       nextSearchParams.has(SPELL_LEVEL_PARAM) ||
       nextSearchParams.has(SPELL_CLASS_PARAM) ||
+      nextSearchParams.has(MONSTER_TYPE_PARAM) ||
+      nextSearchParams.has(MONSTER_SOURCE_PARAM) ||
+      nextSearchParams.has(MONSTER_ORDER_PARAM) ||
       nextSearchParams.has(PAGE_PARAM);
 
     if (!hadSpellParams) {
@@ -110,6 +195,9 @@ function CodexPage() {
 
     nextSearchParams.delete(SPELL_LEVEL_PARAM);
     nextSearchParams.delete(SPELL_CLASS_PARAM);
+    nextSearchParams.delete(MONSTER_TYPE_PARAM);
+    nextSearchParams.delete(MONSTER_SOURCE_PARAM);
+    nextSearchParams.delete(MONSTER_ORDER_PARAM);
     nextSearchParams.delete(PAGE_PARAM);
     setSearchParams(nextSearchParams, { replace: true });
   }, [category, searchParams, setSearchParams]);
@@ -228,6 +316,51 @@ function CodexPage() {
     },
     [searchParams, setSearchParams]
   );
+  const handleMonsterTypeFilterChange = useCallback(
+    (value: string | null) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+
+      if (value === null) {
+        nextSearchParams.delete(MONSTER_TYPE_PARAM);
+      } else {
+        nextSearchParams.set(MONSTER_TYPE_PARAM, value);
+      }
+
+      nextSearchParams.delete(PAGE_PARAM);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+  const handleMonsterSourceFilterChange = useCallback(
+    (value: string | null) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+
+      if (value === null) {
+        nextSearchParams.delete(MONSTER_SOURCE_PARAM);
+      } else {
+        nextSearchParams.set(MONSTER_SOURCE_PARAM, value);
+      }
+
+      nextSearchParams.delete(PAGE_PARAM);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+  const handleMonsterOrderingChange = useCallback(
+    (value: MonsterOrdering) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+
+      if (value === "name") {
+        nextSearchParams.delete(MONSTER_ORDER_PARAM);
+      } else {
+        nextSearchParams.set(MONSTER_ORDER_PARAM, value);
+      }
+
+      nextSearchParams.delete(PAGE_PARAM);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
   const handlePageChange = useCallback(
     (page: number) => {
       const nextPage = Math.max(1, Math.min(totalPages, page));
@@ -269,10 +402,16 @@ function CodexPage() {
           categories={categories}
           spellLevelFilter={spellLevelFilter}
           spellClassFilter={spellClassFilter}
+          monsterTypeFilter={monsterTypeFilter}
+          monsterTypeOptions={MONSTER_TYPE_OPTIONS}
+          monsterSourceFilter={monsterSourceFilter}
+          monsterSourceOptions={MONSTER_SOURCE_OPTIONS}
           onQueryChange={handleQueryChange}
           onCategoryChange={updateCategory}
           onSpellLevelFilterChange={handleSpellLevelFilterChange}
           onSpellClassFilterChange={handleSpellClassFilterChange}
+          onMonsterTypeFilterChange={handleMonsterTypeFilterChange}
+          onMonsterSourceFilterChange={handleMonsterSourceFilterChange}
         />
       </div>
 
@@ -285,6 +424,8 @@ function CodexPage() {
           currentPage={safeCurrentPage}
           totalPages={totalPages}
           onPageChange={handlePageChange}
+          ordering={monsterOrdering}
+          onOrderingChange={handleMonsterOrderingChange}
         />
       ) : (
         <CodexResults

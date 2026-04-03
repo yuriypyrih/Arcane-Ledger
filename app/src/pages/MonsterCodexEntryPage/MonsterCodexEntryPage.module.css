@@ -6,204 +6,23 @@
 .backButton,
 .linkButton {
   justify-self: start;
-  border: 1px solid rgba(75, 47, 29, 0.18);
+  border: 1px solid rgba(75, 47, 29, 0.16);
   border-radius: 999px;
   background: rgba(255, 250, 241, 0.9);
   color: var(--color-accent);
   cursor: pointer;
   font: inherit;
-  padding: 0.45rem 0.95rem;
+  font-size: 0.92rem;
+  padding: 0.38rem 0.8rem;
   text-decoration: none;
 }
 
-.card,
-.hero,
-.section {
+.card {
   display: grid;
-  gap: var(--space-section-gap);
+  gap: 0.72rem;
   border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 24px;
-  background: rgba(255, 250, 241, 0.94);
-  box-shadow: 0 18px 50px rgba(54, 34, 21, 0.06);
-  padding: var(--space-card-padding);
-}
-
-.heroHeader {
-  display: grid;
-  gap: var(--space-section-gap);
-  grid-template-columns: minmax(0, 1.7fr) minmax(220px, 0.9fr);
-  align-items: start;
-}
-
-.heroCopy {
-  display: grid;
-  gap: 0.6rem;
-}
-
-.eyebrow {
-  margin: 0;
-  color: var(--color-accent);
-  font-size: 0.8rem;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.heroCopy h2,
-.heroCopy p,
-.sectionHeader h3,
-.featureCard p {
-  margin: 0;
-}
-
-.heroMeta,
-.heroSummary,
-.featureMeta,
-.statCell small,
-.stackItem span,
-.infoCard span,
-.infoCard small {
-  color: var(--color-ink-soft);
-}
-
-.imagePanel {
-  min-height: 15rem;
-}
-
-.image,
-.imagePlaceholder {
-  width: 100%;
-  height: 100%;
-  min-height: 15rem;
-  border-radius: 20px;
-  object-fit: cover;
-}
-
-.imagePlaceholder {
-  display: grid;
-  place-items: center;
-  gap: 0.5rem;
-  background:
-    radial-gradient(circle at top, rgba(173, 126, 71, 0.24), transparent 40%),
-    linear-gradient(160deg, rgba(245, 234, 218, 0.98), rgba(226, 208, 181, 0.98));
-  color: var(--color-accent);
-  text-align: center;
-}
-
-.imagePlaceholder strong {
-  display: inline-grid;
-  place-items: center;
-  width: 4rem;
-  height: 4rem;
-  border-radius: 999px;
-  background: rgba(75, 47, 29, 0.1);
-  font-size: 1.6rem;
-}
-
-.pillRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-}
-
-.pill {
-  border-radius: 999px;
-  background: rgba(75, 47, 29, 0.08);
-  color: var(--color-accent);
-  padding: 0.35rem 0.7rem;
-}
-
-.sectionGrid {
-  display: grid;
-  gap: var(--space-page-gap);
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.sectionStack {
-  display: grid;
-  gap: var(--space-page-gap);
-}
-
-.sectionHeader {
-  display: grid;
-  gap: 0.25rem;
-}
-
-.infoGrid,
-.statsGrid {
-  display: grid;
-  gap: 0.75rem;
-}
-
-.infoGrid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.statsGrid {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.infoCard,
-.statCell,
-.stackItem,
-.featureCard {
-  display: grid;
-  gap: 0.32rem;
-  border: 1px solid rgba(75, 47, 29, 0.08);
   border-radius: 18px;
-  background: rgba(255, 252, 245, 0.95);
-  padding: 0.85rem 0.95rem;
-}
-
-.infoCard strong,
-.statCell strong,
-.stackItem strong {
-  font-size: 1rem;
-}
-
-.stackList,
-.featureList {
-  display: grid;
-  gap: 0.7rem;
-}
-
-.featureTitleRow {
-  display: flex;
-  justify-content: space-between;
-  gap: 0.75rem;
-  align-items: baseline;
-}
-
-.featureMeta {
-  font-size: 0.86rem;
-}
-
-.sectionText {
-  margin: 0;
-  color: var(--color-ink-soft);
-  line-height: 1.6;
-}
-
-@media (max-width: 980px) {
-  .heroHeader,
-  .sectionGrid,
-  .infoGrid {
-    grid-template-columns: 1fr;
-  }
-}
-
-@media (max-width: 760px) {
-  .statsGrid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .featureTitleRow {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-}
-
-@media (max-width: 520px) {
-  .statsGrid {
-    grid-template-columns: 1fr;
-  }
+  background: rgba(255, 250, 241, 0.95);
+  box-shadow: 0 10px 30px rgba(54, 34, 21, 0.05);
+  padding: var(--space-card-padding-tight);
 }

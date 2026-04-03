@@ -1,4 +1,4 @@
-import type { MonsterListItem, MonsterRecord, PaginatedApiResponse } from "../types";
+import type { MonsterListItem, MonsterOrdering, MonsterRecord, PaginatedApiResponse } from "../types";
 import { apiGet } from "./client";
 
 export type FetchMonsterListParams = {
@@ -8,6 +8,7 @@ export type FetchMonsterListParams = {
   type?: string;
   cr?: number;
   source?: string;
+  ordering?: MonsterOrdering;
 };
 
 export async function fetchMonsterList({
@@ -16,12 +17,13 @@ export async function fetchMonsterList({
   search,
   type,
   cr,
-  source
+  source,
+  ordering = "name"
 }: FetchMonsterListParams = {}) {
   const searchParams = new URLSearchParams();
   searchParams.set("page", String(page));
   searchParams.set("limit", String(limit));
-  searchParams.set("ordering", "name");
+  searchParams.set("ordering", ordering);
 
   if (search) {
     searchParams.set("search", search);
@@ -31,12 +33,12 @@ export async function fetchMonsterList({
     searchParams.set("type", type);
   }
 
-  if (cr !== undefined) {
-    searchParams.set("cr", String(cr));
-  }
-
   if (source) {
     searchParams.set("source", source);
+  }
+
+  if (cr !== undefined) {
+    searchParams.set("cr", String(cr));
   }
 
   return apiGet<PaginatedApiResponse<MonsterListItem>>(`monsters?${searchParams.toString()}`);

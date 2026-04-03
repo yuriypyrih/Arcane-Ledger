@@ -1,15 +1,26 @@
 import { useEffect, useState } from "react";
 import { fetchMonsterList } from "../../api";
-import type { CodexStatus, MonsterListItem, PaginatedApiResponse } from "../../types";
+import type { CodexStatus, MonsterListItem, MonsterOrdering, PaginatedApiResponse } from "../../types";
 
 type UseMonsterEntriesOptions = {
   enabled: boolean;
   page: number;
   limit: number;
   search: string;
+  type: string | null;
+  source: string | null;
+  ordering: MonsterOrdering;
 };
 
-export function useMonsterEntries({ enabled, page, limit, search }: UseMonsterEntriesOptions) {
+export function useMonsterEntries({
+  enabled,
+  page,
+  limit,
+  search,
+  type,
+  source,
+  ordering
+}: UseMonsterEntriesOptions) {
   const [payload, setPayload] = useState<PaginatedApiResponse<MonsterListItem> | null>(null);
   const [status, setStatus] = useState<CodexStatus>(enabled ? "loading" : "ready");
 
@@ -28,7 +39,10 @@ export function useMonsterEntries({ enabled, page, limit, search }: UseMonsterEn
         const nextPayload = await fetchMonsterList({
           page,
           limit,
-          search: search.trim() || undefined
+          search: search.trim() || undefined,
+          type: type ?? undefined,
+          source: source ?? undefined,
+          ordering
         });
 
         if (!active) {
@@ -51,7 +65,7 @@ export function useMonsterEntries({ enabled, page, limit, search }: UseMonsterEn
     return () => {
       active = false;
     };
-  }, [enabled, limit, page, search]);
+  }, [enabled, limit, ordering, page, search, source, type]);
 
   return {
     payload,
