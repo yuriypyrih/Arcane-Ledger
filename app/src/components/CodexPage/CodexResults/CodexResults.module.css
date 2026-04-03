@@ -111,6 +111,59 @@
   font-size: 0.9rem;
 }
 
+.tableWrapper {
+  overflow-x: auto;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 24px;
+  background: rgba(255, 250, 241, 0.94);
+  box-shadow: 0 18px 50px rgba(54, 34, 21, 0.06);
+}
+
+.table {
+  width: 100%;
+  min-width: 42rem;
+  border-collapse: collapse;
+}
+
+.table th,
+.table td {
+  padding: 0.95rem 1rem;
+  text-align: left;
+}
+
+.table th {
+  color: var(--color-accent);
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.table tbody tr + tr td {
+  border-top: 1px solid rgba(75, 47, 29, 0.08);
+}
+
+.tableRow {
+  cursor: pointer;
+  transition:
+    background-color 120ms ease,
+    transform 120ms ease;
+}
+
+.tableRow:hover,
+.tableRow:focus-visible {
+  background: rgba(244, 233, 214, 0.72);
+}
+
+.tableNameCell {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.tableNameCell span {
+  color: var(--color-ink-soft);
+  font-size: 0.82rem;
+}
+
 @media (max-width: 1120px) {
   .grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

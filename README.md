@@ -9,7 +9,7 @@ Lightweight DnD companion app with three core features:
 The workspace is a monorepo shell with two independent npm projects:
 
 - `app`: Vite + React + TypeScript PWA.
-- `server`: Node.js + Express + TypeScript boilerplate.
+- `server`: Node.js + Express + TypeScript backend with MongoDB import/read tooling.
 
 ## Getting Started
 
@@ -33,6 +33,13 @@ Build each project from its own directory:
 cd app && npm run build
 cd server && npm run build
 ```
+
+## Backend Notes
+
+- The backend exposes its API under `server` at `/api/v1`.
+- Monster fetch snapshots are stored under `server/data/open5e/monsters/fetch-MM-DD-YYYY/`.
+- Fetch Open5e monsters with `npm --prefix server run db:monsters:fetch`.
+- Import the latest monster snapshot with `npm --prefix server run db:monsters:import`.
 
 ## Frontend Notes
 

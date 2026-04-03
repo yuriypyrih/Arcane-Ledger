@@ -4,6 +4,7 @@ export * from "./codex";
 export * from "./dice";
 export * from "./feats";
 export * from "./languages";
+export * from "./monsters";
 export * from "./proficiencies";
 export * from "./skills";
 export * from "./traits";

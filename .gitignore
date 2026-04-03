@@ -23,3 +23,5 @@ coverage/
 
 app/dist/
 server/dist/
+server/data/
+server/backups/
