@@ -1273,6 +1273,297 @@ describe("subclass registry", () => {
     );
   });
 
+  it("exposes wizard subclass options and wizard subclass feature rows by level", () => {
+    const subclassOptions = getSubclassOptionsForClassName("Wizard");
+
+    expect(subclassOptions.map((entry) => entry.id)).toEqual([
+      "wizard-abjurer",
+      "wizard-bladesinger",
+      "wizard-diviner",
+      "wizard-evoker",
+      "wizard-illusionist"
+    ]);
+
+    const abjurerSubclass = getSelectedSubclassForCharacter({
+      className: "Wizard",
+      subclassId: "wizard-abjurer"
+    });
+
+    expect(abjurerSubclass?.name).toBe("Abjurer");
+    expect(abjurerSubclass?.tagline).toBe("Shield Companions and Banish Foes");
+
+    const abjurerFeatureRows = getUnlockedSubclassFeatureRowsForCharacter({
+      className: "Wizard",
+      level: 14,
+      subclassId: "wizard-abjurer"
+    });
+
+    expect(
+      abjurerFeatureRows.flatMap((row) =>
+        row.classFeatures.map((feature) => `${row.level}:${feature}`)
+      )
+    ).toEqual([
+      `3:${CLASS_FEATURE.ABJURATION_SAVANT}`,
+      `3:${CLASS_FEATURE.ARCANE_WARD}`,
+      `6:${CLASS_FEATURE.PROJECTED_WARD}`,
+      `10:${CLASS_FEATURE.SPELL_BREAKER}`,
+      `14:${CLASS_FEATURE.SPELL_RESISTANCE}`
+    ]);
+
+    expect(getSubclassFeatureDetails(abjurerSubclass, 10, CLASS_FEATURE.SPELL_BREAKER)).toEqual(
+      expect.objectContaining({
+        trackingState: TRACKER.NOT_TRACKED,
+        description: expect.arrayContaining([
+          expect.stringContaining("<spell:Counterspell>Counterspell</spell>"),
+          expect.stringContaining("<spell:Dispel Magic>Dispel Magic</spell>"),
+          expect.stringContaining("<link:Proficiency Bonus>Proficiency Bonus</link>")
+        ])
+      })
+    );
+
+    const bladesingerSubclass = getSelectedSubclassForCharacter({
+      className: "Wizard",
+      subclassId: "wizard-bladesinger"
+    });
+
+    expect(bladesingerSubclass?.name).toBe("Bladesinger");
+    expect(bladesingerSubclass?.tagline).toBe("Wield Weapon and Wizardry in Elegant Tandem");
+
+    const bladesingerFeatureRows = getUnlockedSubclassFeatureRowsForCharacter({
+      className: "Wizard",
+      level: 14,
+      subclassId: "wizard-bladesinger"
+    });
+
+    expect(
+      bladesingerFeatureRows.flatMap((row) =>
+        row.classFeatures.map((feature) => `${row.level}:${feature}`)
+      )
+    ).toEqual([
+      `3:${CLASS_FEATURE.BLADESONG}`,
+      `3:${CLASS_FEATURE.TRAINING_IN_WAR_AND_SONG}`,
+      `6:${CLASS_FEATURE.EXTRA_ATTACK}`,
+      `10:${CLASS_FEATURE.SONG_OF_DEFENSE}`,
+      `14:${CLASS_FEATURE.SONG_OF_VICTORY}`
+    ]);
+
+    expect(getSubclassFeatureDetails(bladesingerSubclass, 3, CLASS_FEATURE.BLADESONG)).toEqual(
+      expect.objectContaining({
+        trackingState: TRACKER.NOT_TRACKED,
+        description: expect.arrayContaining([
+          expect.stringContaining("<link:Shield>Shield</link>"),
+          expect.stringContaining("<link:Armor Class>AC</link>"),
+          expect.stringContaining(
+            "<link:Constitution Saving Throw>Constitution saving throw</link>"
+          ),
+          expect.stringContaining("<link:Concentration>Concentration</link>")
+        ])
+      })
+    );
+
+    const illusionistSubclass = getSelectedSubclassForCharacter({
+      className: "Wizard",
+      subclassId: "wizard-illusionist"
+    });
+
+    expect(illusionistSubclass?.name).toBe("Illusionist");
+    expect(illusionistSubclass?.tagline).toBe("Weave Subtle Spells of Deception");
+
+    const illusionistFeatureRows = getUnlockedSubclassFeatureRowsForCharacter({
+      className: "Wizard",
+      level: 14,
+      subclassId: "wizard-illusionist"
+    });
+
+    expect(
+      illusionistFeatureRows.flatMap((row) =>
+        row.classFeatures.map((feature) => `${row.level}:${feature}`)
+      )
+    ).toEqual([
+      `3:${CLASS_FEATURE.ILLUSION_SAVANT}`,
+      `3:${CLASS_FEATURE.IMPROVED_ILLUSIONS}`,
+      `6:${CLASS_FEATURE.PHANTASMAL_CREATURES}`,
+      `10:${CLASS_FEATURE.ILLUSORY_SELF}`,
+      `14:${CLASS_FEATURE.ILLUSORY_REALITY}`
+    ]);
+
+    expect(
+      getSubclassFeatureDetails(illusionistSubclass, 6, CLASS_FEATURE.PHANTASMAL_CREATURES)
+    ).toEqual(
+      expect.objectContaining({
+        trackingState: TRACKER.NOT_TRACKED,
+        description: expect.arrayContaining([
+          expect.stringContaining("<spell:Summon Beast>Summon Beast</spell>"),
+          expect.stringContaining("<spell:Summon Fey>Summon Fey</spell>"),
+          expect.stringContaining("<link:long-rest>Long Rest</link>")
+        ])
+      })
+    );
+  });
+
+  it("exposes warlock patron options and warlock subclass feature rows by level", () => {
+    const subclassOptions = getSubclassOptionsForClassName("Warlock");
+
+    expect(subclassOptions.map((entry) => entry.id)).toEqual([
+      "warlock-archfey-patron",
+      "warlock-celestial-patron",
+      "warlock-fiend-patron",
+      "warlock-great-old-one-patron"
+    ]);
+
+    const archfeySubclass = getSelectedSubclassForCharacter({
+      className: "Warlock",
+      subclassId: "warlock-archfey-patron"
+    });
+
+    expect(archfeySubclass?.name).toBe("Archfey Patron");
+    expect(archfeySubclass?.tagline).toBe("Bargain with Whimsical Fey");
+
+    const archfeyFeatureRows = getUnlockedSubclassFeatureRowsForCharacter({
+      className: "Warlock",
+      level: 14,
+      subclassId: "warlock-archfey-patron"
+    });
+
+    expect(
+      archfeyFeatureRows.flatMap((row) =>
+        row.classFeatures.map((feature) => `${row.level}:${feature}`)
+      )
+    ).toEqual([
+      `3:${CLASS_FEATURE.ARCHFEY_SPELLS}`,
+      `3:${CLASS_FEATURE.STEPS_OF_THE_FEY}`,
+      `6:${CLASS_FEATURE.MISTY_ESCAPE}`,
+      `10:${CLASS_FEATURE.BEGUILING_DEFENSES}`,
+      `14:${CLASS_FEATURE.BEWITCHING_MAGIC}`
+    ]);
+
+    expect(getSubclassFeatureDetails(archfeySubclass, 3, CLASS_FEATURE.STEPS_OF_THE_FEY)).toEqual(
+      expect.objectContaining({
+        trackingState: TRACKER.NOT_TRACKED,
+        description: expect.arrayContaining([
+          expect.stringContaining("<spell:Misty Step>Misty Step</spell>"),
+          expect.stringContaining("<link:Temporary Hit Points>Temporary Hit Points</link>"),
+          expect.stringContaining("<link:Wisdom Saving Throw>Wisdom saving throw</link>")
+        ])
+      })
+    );
+
+    const celestialSubclass = getSelectedSubclassForCharacter({
+      className: "Warlock",
+      subclassId: "warlock-celestial-patron"
+    });
+
+    expect(celestialSubclass?.name).toBe("Celestial Patron");
+    expect(celestialSubclass?.tagline).toBe("Call on the Power of the Heavens");
+
+    const celestialFeatureRows = getUnlockedSubclassFeatureRowsForCharacter({
+      className: "Warlock",
+      level: 14,
+      subclassId: "warlock-celestial-patron"
+    });
+
+    expect(
+      celestialFeatureRows.flatMap((row) =>
+        row.classFeatures.map((feature) => `${row.level}:${feature}`)
+      )
+    ).toEqual([
+      `3:${CLASS_FEATURE.CELESTIAL_SPELLS}`,
+      `3:${CLASS_FEATURE.HEALING_LIGHT}`,
+      `6:${CLASS_FEATURE.RADIANT_SOUL}`,
+      `10:${CLASS_FEATURE.CELESTIAL_RESILIENCE}`,
+      `14:${CLASS_FEATURE.SEARING_VENGEANCE}`
+    ]);
+
+    expect(
+      getSubclassFeatureDetails(celestialSubclass, 10, CLASS_FEATURE.CELESTIAL_RESILIENCE)
+    ).toEqual(
+      expect.objectContaining({
+        trackingState: TRACKER.NOT_TRACKED,
+        description: expect.arrayContaining([
+          expect.stringContaining("<link:Temporary Hit Points>Temporary Hit Points</link>"),
+          expect.stringContaining("<link:short-rest>Short Rest</link>"),
+          expect.stringContaining("<link:long-rest>Long Rest</link>")
+        ])
+      })
+    );
+
+    const fiendSubclass = getSelectedSubclassForCharacter({
+      className: "Warlock",
+      subclassId: "warlock-fiend-patron"
+    });
+
+    expect(fiendSubclass?.name).toBe("Fiend Patron");
+    expect(fiendSubclass?.tagline).toBe("Make a Deal with the Lower Planes");
+
+    const fiendFeatureRows = getUnlockedSubclassFeatureRowsForCharacter({
+      className: "Warlock",
+      level: 14,
+      subclassId: "warlock-fiend-patron"
+    });
+
+    expect(
+      fiendFeatureRows.flatMap((row) =>
+        row.classFeatures.map((feature) => `${row.level}:${feature}`)
+      )
+    ).toEqual([
+      `3:${CLASS_FEATURE.FIEND_SPELLS}`,
+      `3:${CLASS_FEATURE.DARK_ONES_BLESSING}`,
+      `6:${CLASS_FEATURE.DARK_ONES_OWN_LUCK}`,
+      `10:${CLASS_FEATURE.FIENDISH_RESILIENCE}`,
+      `14:${CLASS_FEATURE.HURL_THROUGH_HELL}`
+    ]);
+
+    expect(getSubclassFeatureDetails(fiendSubclass, 14, CLASS_FEATURE.HURL_THROUGH_HELL)).toEqual(
+      expect.objectContaining({
+        trackingState: TRACKER.NOT_TRACKED,
+        description: expect.arrayContaining([
+          expect.stringContaining("<link:Charisma Saving Throw>Charisma saving throw</link>"),
+          expect.stringContaining("<link:Psychic>Psychic</link>"),
+          expect.stringContaining("<link:Incapacitated>Incapacitated</link>")
+        ])
+      })
+    );
+
+    const greatOldOneSubclass = getSelectedSubclassForCharacter({
+      className: "Warlock",
+      subclassId: "warlock-great-old-one-patron"
+    });
+
+    expect(greatOldOneSubclass?.name).toBe("Great Old One Patron");
+    expect(greatOldOneSubclass?.tagline).toBe("Unearth Forbidden Lore of Ineffable Beings");
+
+    const greatOldOneFeatureRows = getUnlockedSubclassFeatureRowsForCharacter({
+      className: "Warlock",
+      level: 14,
+      subclassId: "warlock-great-old-one-patron"
+    });
+
+    expect(
+      greatOldOneFeatureRows.flatMap((row) =>
+        row.classFeatures.map((feature) => `${row.level}:${feature}`)
+      )
+    ).toEqual([
+      `3:${CLASS_FEATURE.GREAT_OLD_ONE_SPELLS}`,
+      `3:${CLASS_FEATURE.AWAKENED_MIND}`,
+      `3:${CLASS_FEATURE.PSYCHIC_SPELLS}`,
+      `6:${CLASS_FEATURE.CLAIRVOYANT_COMBATANT}`,
+      `10:${CLASS_FEATURE.ELDRITCH_HEX}`,
+      `10:${CLASS_FEATURE.THOUGHT_SHIELD}`,
+      `14:${CLASS_FEATURE.CREATE_THRALL}`
+    ]);
+
+    expect(getSubclassFeatureDetails(greatOldOneSubclass, 14, CLASS_FEATURE.CREATE_THRALL)).toEqual(
+      expect.objectContaining({
+        trackingState: TRACKER.NOT_TRACKED,
+        description: expect.arrayContaining([
+          expect.stringContaining("<spell:Summon Aberration>Summon Aberration</spell>"),
+          expect.stringContaining("<link:Concentration>Concentration</link>"),
+          expect.stringContaining("<spell:Hex>Hex</spell>")
+        ])
+      })
+    );
+  });
+
   it("keeps placeholder subclass features out of class progression tables", () => {
     const deprecatedSubclassPlaceholderFeatures = new Set([
       CLASS_FEATURE.ARTIFICER_SUBCLASS,

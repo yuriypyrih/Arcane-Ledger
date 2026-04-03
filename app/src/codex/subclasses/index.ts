@@ -9,6 +9,8 @@ import { paladinSubclassEntries } from "./paladin";
 import { rangerSubclassEntries } from "./ranger";
 import { rogueSubclassEntries } from "./rogue";
 import { sorcererSubclassEntries } from "./sorcerer";
+import { warlockSubclassEntries } from "./warlock";
+import { wizardSubclassEntries } from "./wizard";
 
 export const subclassEntries: SubclassEntry[] = [
   ...barbarianSubclassEntries,
@@ -20,7 +22,9 @@ export const subclassEntries: SubclassEntry[] = [
   ...paladinSubclassEntries,
   ...rangerSubclassEntries,
   ...rogueSubclassEntries,
-  ...sorcererSubclassEntries
+  ...sorcererSubclassEntries,
+  ...warlockSubclassEntries,
+  ...wizardSubclassEntries
 ];
 
 const subclassEntriesById = new Map(subclassEntries.map((entry) => [entry.id, entry] as const));
