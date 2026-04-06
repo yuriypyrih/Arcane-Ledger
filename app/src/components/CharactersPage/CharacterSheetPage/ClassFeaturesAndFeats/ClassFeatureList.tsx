@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { Pencil, Plus, TriangleAlert } from "lucide-react";
+import { useState } from "react";
 import {
   CLASS_FEATURE,
   getFeatureTrackingState,
@@ -24,7 +25,11 @@ import {
   getKnowledgeDomainBlessingsSkillSelectionsForCharacter,
   getKnowledgeDomainUnfetteredMindSavingThrowOptionsForCharacter,
   getKnowledgeDomainUnfetteredMindSavingThrowSelectionForCharacter,
+  getDruidCircleOfTheLandChoiceForCharacter,
+  getDruidElementalFuryChoiceForCharacter,
   getDruidPrimalOrderChoiceForCharacter,
+  getDruidWildShapeKnownFormsForCharacter,
+  getDruidWildShapeRulesForCharacter,
   getRangerDeftExplorerExpertiseSelectionForCharacter,
   getRangerDeftExplorerLanguageSelectionsForCharacter,
   getRangerLevel9ExpertiseSelectionsForCharacter,
@@ -53,7 +58,10 @@ import {
   setClericDivineOrderChoiceForCharacter,
   setKnowledgeDomainBlessingsSkillSelectionsForCharacter,
   setKnowledgeDomainUnfetteredMindSavingThrowSelectionForCharacter,
+  setDruidCircleOfTheLandChoiceForCharacter,
+  setDruidElementalFuryChoiceForCharacter,
   setDruidPrimalOrderChoiceForCharacter,
+  setDruidWildShapeKnownFormsForCharacter,
   setRangerDeftExplorerExpertiseSelectionForCharacter,
   setRangerDeftExplorerLanguageSelectionsForCharacter,
   setRangerLevel9ExpertiseSelectionsForCharacter,
@@ -87,17 +95,17 @@ import type {
   Character,
   CharacterFeatEntry,
   LANGUAGE_PROFICIENCY,
+  MonsterRecord,
   SkillName,
   WEAPON_PROFICIENCY
 } from "../../../../types";
 import { PROF_LEVEL, SAVING_THROW_PROFICIENCY, SKILL } from "../../../../types";
 import { formatCodexLabel } from "../../../../utils/codex";
-import {
-  FeatureDisclosureRow,
-  featureDisclosureStyles
-} from "../../../FeatureDisclosure";
+import { FeatureDisclosureRow, featureDisclosureStyles } from "../../../FeatureDisclosure";
+import { MonsterEntryDrawer } from "../../../MonsterEntryRenderer";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./ClassFeaturesAndFeats.module.css";
+import DruidWildShapeMonsterModal from "./DruidWildShapeMonsterModal";
 import {
   getBardExpertiseTierForLevel,
   getRogueExpertiseTierForLevel,
@@ -154,10 +162,7 @@ function FeatureDescriptionLines({
   return (
     <>
       {lines.map((line, index) => (
-        <p
-          key={`${featureKey}-line-${index}`}
-          className={featureDisclosureStyles.descriptionLine}
-        >
+        <p key={`${featureKey}-line-${index}`} className={featureDisclosureStyles.descriptionLine}>
           {renderDescriptionLine(
             line,
             onOpenKeyword,
@@ -195,7 +200,7 @@ function FeatureChoiceOptions<TChoice extends string>({
   onOpenDivinityReference: (divinity: DivinityEntry) => void;
 }) {
   return (
-    <>
+    <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
       {options.map((option) => (
         <label
           key={`${featureKey}-choice-${option.key}`}
@@ -224,7 +229,7 @@ function FeatureChoiceOptions<TChoice extends string>({
           </span>
         </label>
       ))}
-    </>
+    </div>
   );
 }
 
@@ -244,6 +249,10 @@ function ClassFeatureList({
   getCharacterFeatSummary,
   getFeatDefinition
 }: ClassFeatureListProps) {
+  const [isWildShapeModalOpen, setIsWildShapeModalOpen] = useState(false);
+  const [selectedWildShapeMonster, setSelectedWildShapeMonster] = useState<MonsterRecord | null>(
+    null
+  );
   const spellSelectionInputStatus = getSpellSelectionInputStatusForCharacter(character);
 
   function recomputeCharacterFeatureProficiencies(nextCharacter: Character): Character {
@@ -471,9 +480,7 @@ function ClassFeatureList({
     return getKnowledgeDomainBlessingsSkillSelections().length < 2;
   }
 
-  function getKnowledgeDomainUnfetteredMindSavingThrowSelection():
-    | SAVING_THROW_PROFICIENCY
-    | null {
+  function getKnowledgeDomainUnfetteredMindSavingThrowSelection(): SAVING_THROW_PROFICIENCY | null {
     return getKnowledgeDomainUnfetteredMindSavingThrowSelectionForCharacter(character);
   }
 
@@ -568,7 +575,9 @@ function ClassFeatureList({
       recomputeCharacterFeatureProficiencies(
         setRogueThievesCantLanguageSelectionForCharacter(
           currentCharacter,
-          getSelectableLanguageOptions(currentCharacter, null).includes(nextValue as LANGUAGE_PROFICIENCY)
+          getSelectableLanguageOptions(currentCharacter, null).includes(
+            nextValue as LANGUAGE_PROFICIENCY
+          )
             ? (nextValue as LANGUAGE_PROFICIENCY)
             : null
         )
@@ -883,7 +892,9 @@ function ClassFeatureList({
 
   function getWarlockMysticArcanumSelection(level: number): string {
     const spellLevel = getWarlockMysticArcanumSpellLevel(level);
-    return spellLevel ? getWarlockMysticArcanumSpellIdForCharacter(character, spellLevel) ?? "" : "";
+    return spellLevel
+      ? (getWarlockMysticArcanumSpellIdForCharacter(character, spellLevel) ?? "")
+      : "";
   }
 
   function getAvailableWarlockMysticArcanumSpells(level: number): SpellEntry[] {
@@ -999,6 +1010,34 @@ function ClassFeatureList({
     });
   }
 
+  function updateDruidCircleOfTheLandChoice(
+    choice: "arid" | "polar" | "temperate" | "tropical"
+  ) {
+    onPersistCharacter((currentCharacter) =>
+      setDruidCircleOfTheLandChoiceForCharacter(currentCharacter, choice)
+    );
+  }
+
+  function updateDruidElementalFuryChoice(choice: "potent-spellcasting" | "primal-strike") {
+    onPersistCharacter((currentCharacter) =>
+      setDruidElementalFuryChoiceForCharacter(currentCharacter, choice)
+    );
+  }
+
+  function getDruidWildShapeKnownForms(): MonsterRecord[] {
+    return getDruidWildShapeKnownFormsForCharacter(character);
+  }
+
+  function getDruidWildShapeRules() {
+    return getDruidWildShapeRulesForCharacter(character);
+  }
+
+  function updateDruidWildShapeKnownForms(monsters: MonsterRecord[]) {
+    onPersistCharacter((currentCharacter) =>
+      setDruidWildShapeKnownFormsForCharacter(currentCharacter, monsters)
+    );
+  }
+
   function updateClericBlessedStrikesChoice(choice: "blessed-strike" | "potent-spellcasting") {
     onPersistCharacter((currentCharacter) =>
       setClericBlessedStrikesChoiceForCharacter(currentCharacter, choice)
@@ -1049,139 +1088,164 @@ function ClassFeatureList({
   }
 
   return (
-    <ul className={featureDisclosureStyles.featureList}>
-      {features.map((featureRow, index) => {
-        const featureDetails = featureRow.details;
-        const isUnlocked = featureRow.level <= character.level;
-        const isFeatureExpanded = expandedFeatureKeys.includes(featureRow.key);
-        const featurePanelId = `class-feature-panel-${featureRow.key}`;
-        const linkedFeat = isFeatChoiceFeature(featureRow.feature)
-          ? getLinkedFeatForFeature(featureRow.level, featureRow.feature)
-          : null;
-        const linkedFeatDefinition = linkedFeat ? getFeatDefinition(linkedFeat.feat) : null;
-        const linkedFeatSummary = linkedFeat ? getCharacterFeatSummary(linkedFeat) : null;
-        const blessedStrikesChoice =
-          featureRow.feature === CLASS_FEATURE.BLESSED_STRIKES
-            ? getClericBlessedStrikesChoiceForCharacter(character)
+    <>
+      <ul className={featureDisclosureStyles.featureList}>
+        {features.map((featureRow, index) => {
+          const featureDetails = featureRow.details;
+          const isUnlocked = featureRow.level <= character.level;
+          const isFeatureExpanded = expandedFeatureKeys.includes(featureRow.key);
+          const featurePanelId = `class-feature-panel-${featureRow.key}`;
+          const linkedFeat = isFeatChoiceFeature(featureRow.feature)
+            ? getLinkedFeatForFeature(featureRow.level, featureRow.feature)
             : null;
-        const isSpellcastingFeatureInputRequired =
-          isUnlocked &&
-          featureRow.level === 1 &&
-          (featureRow.feature === CLASS_FEATURE.SPELLCASTING ||
-            featureRow.feature === CLASS_FEATURE.PACT_MAGIC) &&
-          spellSelectionInputStatus.hasInputRequired;
-        const isExpertiseInputRequired =
-          isUnlocked && featureRow.feature === CLASS_FEATURE.EXPERTISE
-            ? character.className === "Bard"
-              ? isBardExpertiseInputRequired(featureRow.level)
-              : character.className === "Ranger"
-                ? isRangerLevel9ExpertiseInputRequired()
-                : character.className === "Rogue"
-                  ? isRogueExpertiseInputRequired(featureRow.level)
-                  : false
-            : false;
-        const isBardLoreBonusProficienciesRequired =
-          isUnlocked &&
-          featureRow.feature === CLASS_FEATURE.BONUS_PROFICIENCIES &&
-          character.className === "Bard" &&
-          isBardLoreBonusProficienciesInputRequired();
-        const isBardMagicalDiscoveriesRequired =
-          isUnlocked &&
-          featureRow.feature === CLASS_FEATURE.MAGICAL_DISCOVERIES &&
-          character.className === "Bard" &&
-          isBardMagicalDiscoveriesInputRequired();
-        const isBardPrimalLoreRequired =
-          isUnlocked &&
-          featureRow.feature === CLASS_FEATURE.PRIMAL_LORE &&
-          character.className === "Bard" &&
-          (isBardPrimalLoreCantripInputRequired() || isBardPrimalLoreSkillInputRequired());
-        const isKnowledgeDomainBlessingsRequired =
-          isUnlocked &&
-          featureRow.feature === CLASS_FEATURE.BLESSINGS_OF_KNOWLEDGE &&
-          character.className === "Cleric" &&
-          isKnowledgeDomainBlessingsInputRequired();
-        const isKnowledgeDomainUnfetteredMindRequired =
-          isUnlocked &&
-          featureRow.feature === CLASS_FEATURE.UNFETTERED_MIND &&
-          character.className === "Cleric" &&
-          isKnowledgeDomainUnfetteredMindInputRequired();
-        const isInputRequired =
-          (isUnlocked && isFeatChoiceFeature(featureRow.feature) && linkedFeat === null) ||
-          isSpellcastingFeatureInputRequired ||
-          isExpertiseInputRequired ||
-          isBardLoreBonusProficienciesRequired ||
-          isBardMagicalDiscoveriesRequired ||
-          isBardPrimalLoreRequired ||
-          isKnowledgeDomainBlessingsRequired ||
-          isKnowledgeDomainUnfetteredMindRequired ||
-          (isUnlocked &&
-            featureRow.feature === CLASS_FEATURE.DEFT_EXPLORER &&
-            character.className === "Ranger" &&
-            isRangerDeftExplorerInputRequired()) ||
-          (isUnlocked &&
-            featureRow.feature === CLASS_FEATURE.THIEVES_CANT &&
-            character.className === "Rogue" &&
-            isRogueThievesCantInputRequired()) ||
-          (isUnlocked &&
-            featureRow.feature === CLASS_FEATURE.METAMAGIC &&
-            character.className === "Sorcerer" &&
-            isSorcererMetamagicInputRequired(featureRow.level)) ||
-          (isUnlocked &&
-            featureRow.feature === CLASS_FEATURE.MYSTIC_ARCANUM &&
-            character.className === "Warlock" &&
-            isWarlockMysticArcanumInputRequired(featureRow.level)) ||
-          (isUnlocked &&
-            featureRow.feature === CLASS_FEATURE.SCHOLAR &&
-            character.className === "Wizard" &&
-            isWizardScholarInputRequired()) ||
-          (isUnlocked &&
-            featureRow.feature === CLASS_FEATURE.SPELL_MASTERY &&
-            character.className === "Wizard" &&
-            isWizardSpellMasteryInputRequired()) ||
-          (isUnlocked &&
-            featureRow.feature === CLASS_FEATURE.SIGNATURE_SPELLS &&
-            character.className === "Wizard" &&
-            isWizardSignatureSpellsInputRequired()) ||
-          (isUnlocked &&
-            featureRow.feature === CLASS_FEATURE.WEAPON_MASTERY &&
-            isWeaponMasteryInputRequired()) ||
-          (isUnlocked &&
-            featureRow.feature === CLASS_FEATURE.PRIMAL_KNOWLEDGE &&
-            character.className === "Barbarian" &&
-            getBarbarianPrimalKnowledgeSelection() === null) ||
-          (isUnlocked &&
-            featureRow.feature === CLASS_FEATURE.ASPECT_OF_THE_WILDS &&
-            character.className === "Barbarian" &&
-            getBarbarianWildHeartAspectChoiceForCharacter(character) === null) ||
-          (isUnlocked &&
-            featureRow.feature === CLASS_FEATURE.PRIMAL_ORDER &&
-            getDruidPrimalOrderChoiceForCharacter(character) === null) ||
-          (isUnlocked &&
-            featureRow.feature === CLASS_FEATURE.BLESSED_STRIKES &&
-            blessedStrikesChoice === null);
+          const linkedFeatDefinition = linkedFeat ? getFeatDefinition(linkedFeat.feat) : null;
+          const linkedFeatSummary = linkedFeat ? getCharacterFeatSummary(linkedFeat) : null;
+          const blessedStrikesChoice =
+            featureRow.feature === CLASS_FEATURE.BLESSED_STRIKES
+              ? getClericBlessedStrikesChoiceForCharacter(character)
+              : null;
+          const druidElementalFuryChoice =
+            featureRow.feature === CLASS_FEATURE.ELEMENTAL_FURY && character.className === "Druid"
+              ? getDruidElementalFuryChoiceForCharacter(character)
+              : null;
+          const druidWildShapeRules =
+            featureRow.feature === CLASS_FEATURE.WILD_SHAPE && character.className === "Druid"
+              ? getDruidWildShapeRules()
+              : null;
+          const druidWildShapeKnownForms =
+            featureRow.feature === CLASS_FEATURE.WILD_SHAPE && character.className === "Druid"
+              ? getDruidWildShapeKnownForms()
+              : [];
+          const isSpellcastingFeatureInputRequired =
+            isUnlocked &&
+            featureRow.level === 1 &&
+            (featureRow.feature === CLASS_FEATURE.SPELLCASTING ||
+              featureRow.feature === CLASS_FEATURE.PACT_MAGIC) &&
+            spellSelectionInputStatus.hasInputRequired;
+          const isExpertiseInputRequired =
+            isUnlocked && featureRow.feature === CLASS_FEATURE.EXPERTISE
+              ? character.className === "Bard"
+                ? isBardExpertiseInputRequired(featureRow.level)
+                : character.className === "Ranger"
+                  ? isRangerLevel9ExpertiseInputRequired()
+                  : character.className === "Rogue"
+                    ? isRogueExpertiseInputRequired(featureRow.level)
+                    : false
+              : false;
+          const isBardLoreBonusProficienciesRequired =
+            isUnlocked &&
+            featureRow.feature === CLASS_FEATURE.BONUS_PROFICIENCIES &&
+            character.className === "Bard" &&
+            isBardLoreBonusProficienciesInputRequired();
+          const isBardMagicalDiscoveriesRequired =
+            isUnlocked &&
+            featureRow.feature === CLASS_FEATURE.MAGICAL_DISCOVERIES &&
+            character.className === "Bard" &&
+            isBardMagicalDiscoveriesInputRequired();
+          const isBardPrimalLoreRequired =
+            isUnlocked &&
+            featureRow.feature === CLASS_FEATURE.PRIMAL_LORE &&
+            character.className === "Bard" &&
+            (isBardPrimalLoreCantripInputRequired() || isBardPrimalLoreSkillInputRequired());
+          const isKnowledgeDomainBlessingsRequired =
+            isUnlocked &&
+            featureRow.feature === CLASS_FEATURE.BLESSINGS_OF_KNOWLEDGE &&
+            character.className === "Cleric" &&
+            isKnowledgeDomainBlessingsInputRequired();
+          const isKnowledgeDomainUnfetteredMindRequired =
+            isUnlocked &&
+            featureRow.feature === CLASS_FEATURE.UNFETTERED_MIND &&
+            character.className === "Cleric" &&
+            isKnowledgeDomainUnfetteredMindInputRequired();
+          const isInputRequired =
+            (isUnlocked && isFeatChoiceFeature(featureRow.feature) && linkedFeat === null) ||
+            isSpellcastingFeatureInputRequired ||
+            isExpertiseInputRequired ||
+            isBardLoreBonusProficienciesRequired ||
+            isBardMagicalDiscoveriesRequired ||
+            isBardPrimalLoreRequired ||
+            isKnowledgeDomainBlessingsRequired ||
+            isKnowledgeDomainUnfetteredMindRequired ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.DEFT_EXPLORER &&
+              character.className === "Ranger" &&
+              isRangerDeftExplorerInputRequired()) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.THIEVES_CANT &&
+              character.className === "Rogue" &&
+              isRogueThievesCantInputRequired()) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.METAMAGIC &&
+              character.className === "Sorcerer" &&
+              isSorcererMetamagicInputRequired(featureRow.level)) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.MYSTIC_ARCANUM &&
+              character.className === "Warlock" &&
+              isWarlockMysticArcanumInputRequired(featureRow.level)) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.SCHOLAR &&
+              character.className === "Wizard" &&
+              isWizardScholarInputRequired()) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.SPELL_MASTERY &&
+              character.className === "Wizard" &&
+              isWizardSpellMasteryInputRequired()) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.SIGNATURE_SPELLS &&
+              character.className === "Wizard" &&
+              isWizardSignatureSpellsInputRequired()) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.WEAPON_MASTERY &&
+              isWeaponMasteryInputRequired()) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.PRIMAL_KNOWLEDGE &&
+              character.className === "Barbarian" &&
+              getBarbarianPrimalKnowledgeSelection() === null) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.ASPECT_OF_THE_WILDS &&
+              character.className === "Barbarian" &&
+              getBarbarianWildHeartAspectChoiceForCharacter(character) === null) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.PRIMAL_ORDER &&
+              getDruidPrimalOrderChoiceForCharacter(character) === null) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.CIRCLE_OF_THE_LAND_SPELLS &&
+              character.className === "Druid" &&
+              getDruidCircleOfTheLandChoiceForCharacter(character) === null) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.WILD_SHAPE &&
+              druidWildShapeRules !== null &&
+              druidWildShapeKnownForms.length < druidWildShapeRules.knownForms) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.BLESSED_STRIKES &&
+              blessedStrikesChoice === null) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.ELEMENTAL_FURY &&
+              character.className === "Druid" &&
+              druidElementalFuryChoice === null);
 
-        return (
-          <FeatureDisclosureRow
-            key={featureRow.key}
-            as="li"
-            title={`Level ${featureRow.level}: ${formatCodexLabel(featureRow.feature)}`}
-            isExpanded={isFeatureExpanded}
-            onToggle={() => onToggleFeature(featureRow.key)}
-            bodyId={featurePanelId}
-            bodyClassName={featureDisclosureStyles.descriptionList}
-            trackingButton={renderTrackingButton(getFeatureTrackingState(featureDetails))}
-            headerMeta={
-              isInputRequired ? (
-                <span className={featureDisclosureStyles.featureInputRequired}>
-                  <TriangleAlert size={16} aria-hidden="true" />
-                  INPUT REQUIRED
-                </span>
-              ) : null
-            }
-            showDivider={index > 0}
-          >
-            {featureDetails.description.length > 0 ? (
-              <div>
+          return (
+            <FeatureDisclosureRow
+              key={featureRow.key}
+              as="li"
+              title={`Level ${featureRow.level}: ${formatCodexLabel(featureRow.feature)}`}
+              isExpanded={isFeatureExpanded}
+              onToggle={() => onToggleFeature(featureRow.key)}
+              bodyId={featurePanelId}
+              bodyClassName={featureDisclosureStyles.descriptionList}
+              trackingButton={renderTrackingButton(getFeatureTrackingState(featureDetails))}
+              headerMeta={
+                isInputRequired ? (
+                  <span className={featureDisclosureStyles.featureInputRequired}>
+                    <TriangleAlert size={16} aria-hidden="true" />
+                    INPUT REQUIRED
+                  </span>
+                ) : null
+              }
+              showDivider={index > 0}
+            >
+              {featureDetails.description.length > 0 ? (
+                <div>
                   {featureRow.feature === CLASS_FEATURE.DIVINE_ORDER ? (
                     <>
                       <FeatureDescriptionLines
@@ -1250,6 +1314,86 @@ function ClassFeatureList({
                         onOpenDivinityReference={onOpenDivinityReference}
                       />
                     </>
+                  ) : featureRow.feature === CLASS_FEATURE.CIRCLE_OF_THE_LAND_SPELLS &&
+                    character.className === "Druid" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description.slice(0, 1)}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <FeatureChoiceOptions
+                        featureKey={featureRow.key}
+                        groupName={`circle-of-the-land-${character.id}`}
+                        isUnlocked={isUnlocked}
+                        selectedValue={getDruidCircleOfTheLandChoiceForCharacter(character)}
+                        options={[
+                          {
+                            key: "arid",
+                            value: "arid",
+                            content: featureDetails.description[1] ?? ""
+                          },
+                          {
+                            key: "polar",
+                            value: "polar",
+                            content: featureDetails.description[2] ?? ""
+                          },
+                          {
+                            key: "temperate",
+                            value: "temperate",
+                            content: featureDetails.description[3] ?? ""
+                          },
+                          {
+                            key: "tropical",
+                            value: "tropical",
+                            content: featureDetails.description[4] ?? ""
+                          }
+                        ]}
+                        onChange={updateDruidCircleOfTheLandChoice}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                    </>
+                  ) : featureRow.feature === CLASS_FEATURE.ELEMENTAL_FURY &&
+                    character.className === "Druid" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description.slice(0, 1)}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <FeatureChoiceOptions
+                        featureKey={featureRow.key}
+                        groupName={`elemental-fury-${character.id}`}
+                        isUnlocked={isUnlocked}
+                        selectedValue={druidElementalFuryChoice}
+                        options={[
+                          {
+                            key: "potent-spellcasting",
+                            value: "potent-spellcasting",
+                            content: featureDetails.description[1] ?? ""
+                          },
+                          {
+                            key: "primal-strike",
+                            value: "primal-strike",
+                            content: featureDetails.description[2] ?? ""
+                          }
+                        ]}
+                        onChange={updateDruidElementalFuryChoice}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                    </>
                   ) : featureRow.feature === CLASS_FEATURE.PRIMAL_ORDER ? (
                     <>
                       <FeatureDescriptionLines
@@ -1284,6 +1428,60 @@ function ClassFeatureList({
                         onOpenDivinityReference={onOpenDivinityReference}
                       />
                     </>
+                  ) : featureRow.feature === CLASS_FEATURE.WILD_SHAPE &&
+                    character.className === "Druid" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <div className={styles.featureChoiceRow}>
+                        <div className={styles.featureChoiceSummary}>
+                          <span className={styles.featureChoiceLabel}>Beast shapes</span>
+                          <span className={styles.featureChoiceValueText}>
+                            {druidWildShapeRules
+                              ? `${druidWildShapeKnownForms.length} / ${druidWildShapeRules.knownForms} selected`
+                              : "Unavailable"}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          className={shared.editButton}
+                          disabled={!isUnlocked}
+                          onClick={() => setIsWildShapeModalOpen(true)}
+                        >
+                          {druidWildShapeKnownForms.length > 0 ? (
+                            <Pencil size={16} />
+                          ) : (
+                            <Plus size={16} />
+                          )}
+                          {druidWildShapeKnownForms.length > 0 ? "Edit" : "Choose"}
+                        </button>
+                      </div>
+                      {druidWildShapeKnownForms.length > 0 ? (
+                        <div className={styles.wildShapeMonsterList}>
+                          {druidWildShapeKnownForms.map((monster) => (
+                            <button
+                              key={`${featureRow.key}-${monster.slug}`}
+                              type="button"
+                              className={styles.wildShapeMonsterRow}
+                              onClick={() => setSelectedWildShapeMonster(monster)}
+                            >
+                              <span className={styles.wildShapeMonsterName}>{monster.name}</span>
+                              <span className={styles.wildShapeMonsterMeta}>
+                                {[monster.type, monster.document__slug].filter(Boolean).join(", ")}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className={styles.emptyFeatureText}>No beast shapes selected yet.</p>
+                      )}
+                    </>
                   ) : featureRow.feature === CLASS_FEATURE.METAMAGIC &&
                     character.className === "Sorcerer" ? (
                     <>
@@ -1299,8 +1497,7 @@ function ClassFeatureList({
                         {[0, 1].map((slotIndex) => {
                           const currentIndex =
                             getSorcererMetamagicStartIndex(featureRow.level) + slotIndex;
-                          const currentValue =
-                            getSorcererMetamagicSelections()[currentIndex] ?? "";
+                          const currentValue = getSorcererMetamagicSelections()[currentIndex] ?? "";
                           const availableOptions = getAvailableSorcererMetamagicOptions(
                             featureRow.level,
                             slotIndex
@@ -1670,7 +1867,10 @@ function ClassFeatureList({
                           const availableSkills =
                             getAvailableBardLoreBonusProficiencySkills(slotIndex);
 
-                          if (currentValue && !availableSkills.includes(currentValue as SkillName)) {
+                          if (
+                            currentValue &&
+                            !availableSkills.includes(currentValue as SkillName)
+                          ) {
                             availableSkills.unshift(currentValue as SkillName);
                           }
 
@@ -1749,9 +1949,7 @@ function ClassFeatureList({
                                   )
                                 }
                               >
-                                <option value="">
-                                  Select a Cleric, Druid, or Wizard spell
-                                </option>
+                                <option value="">Select a Cleric, Druid, or Wizard spell</option>
                                 {availableSpells.map((spell) => (
                                   <option
                                     key={`${featureRow.key}-magical-discovery-${spell.id}`}
@@ -1902,9 +2100,7 @@ function ClassFeatureList({
                             !isUnlocked && styles.featureOptionRowDisabled
                           )}
                         >
-                          <span className={styles.featureSelectionLabel}>
-                            Unfettered Mind Save
-                          </span>
+                          <span className={styles.featureSelectionLabel}>Unfettered Mind Save</span>
                           <SelectInput
                             value={getKnowledgeDomainUnfetteredMindSavingThrowSelection() ?? ""}
                             disabled={!isUnlocked || isKnowledgeDomainUnfetteredMindLocked()}
@@ -1942,11 +2138,15 @@ function ClassFeatureList({
                         />
                         <div className={styles.featureSelectionGrid}>
                           {[0, 1].map((slotIndex) => {
-                            const currentValue = getRangerLevel9ExpertiseSelections()[slotIndex] ?? "";
+                            const currentValue =
+                              getRangerLevel9ExpertiseSelections()[slotIndex] ?? "";
                             const availableSkills =
                               getAvailableRangerLevel9ExpertiseSkills(slotIndex);
 
-                            if (currentValue && !availableSkills.includes(currentValue as SkillName)) {
+                            if (
+                              currentValue &&
+                              !availableSkills.includes(currentValue as SkillName)
+                            ) {
                               availableSkills.unshift(currentValue as SkillName);
                             }
 
@@ -1973,7 +2173,10 @@ function ClassFeatureList({
                                 >
                                   <option value="">Select a skill</option>
                                   {availableSkills.map((skillName) => (
-                                    <option key={`${featureRow.key}-${skillName}`} value={skillName}>
+                                    <option
+                                      key={`${featureRow.key}-${skillName}`}
+                                      value={skillName}
+                                    >
                                       {skillName}
                                     </option>
                                   ))}
@@ -1999,13 +2202,17 @@ function ClassFeatureList({
                         />
                         <div className={styles.featureSelectionGrid}>
                           {[0, 1].map((slotIndex) => {
-                            const currentValue = getRogueExpertiseSelections(featureRow.level)[slotIndex] ?? "";
+                            const currentValue =
+                              getRogueExpertiseSelections(featureRow.level)[slotIndex] ?? "";
                             const availableSkills = getAvailableRogueExpertiseSkills(
                               featureRow.level,
                               slotIndex
                             );
 
-                            if (currentValue && !availableSkills.includes(currentValue as SkillName)) {
+                            if (
+                              currentValue &&
+                              !availableSkills.includes(currentValue as SkillName)
+                            ) {
                               availableSkills.unshift(currentValue as SkillName);
                             }
 
@@ -2033,7 +2240,10 @@ function ClassFeatureList({
                                 >
                                   <option value="">Select a skill</option>
                                   {availableSkills.map((skillName) => (
-                                    <option key={`${featureRow.key}-${skillName}`} value={skillName}>
+                                    <option
+                                      key={`${featureRow.key}-${skillName}`}
+                                      value={skillName}
+                                    >
                                       {skillName}
                                     </option>
                                   ))}
@@ -2059,13 +2269,17 @@ function ClassFeatureList({
                         />
                         <div className={styles.featureSelectionGrid}>
                           {[0, 1].map((slotIndex) => {
-                            const currentValue = getBardExpertiseSelections(featureRow.level)[slotIndex] ?? "";
+                            const currentValue =
+                              getBardExpertiseSelections(featureRow.level)[slotIndex] ?? "";
                             const availableSkills = getAvailableBardExpertiseSkills(
                               featureRow.level,
                               slotIndex
                             );
 
-                            if (currentValue && !availableSkills.includes(currentValue as SkillName)) {
+                            if (
+                              currentValue &&
+                              !availableSkills.includes(currentValue as SkillName)
+                            ) {
                               availableSkills.unshift(currentValue as SkillName);
                             }
 
@@ -2093,7 +2307,10 @@ function ClassFeatureList({
                                 >
                                   <option value="">Select a skill</option>
                                   {availableSkills.map((skillName) => (
-                                    <option key={`${featureRow.key}-${skillName}`} value={skillName}>
+                                    <option
+                                      key={`${featureRow.key}-${skillName}`}
+                                      value={skillName}
+                                    >
                                       {skillName}
                                     </option>
                                   ))}
@@ -2304,16 +2521,33 @@ function ClassFeatureList({
                       </div>
                     )
                   ) : null}
-              </div>
-            ) : (
-              <p className={styles.emptyFeatureText}>
-                Details coming soon.
-              </p>
-            )}
-          </FeatureDisclosureRow>
-        );
-      })}
-    </ul>
+                </div>
+              ) : (
+                <p className={styles.emptyFeatureText}>Details coming soon.</p>
+              )}
+            </FeatureDisclosureRow>
+          );
+        })}
+      </ul>
+
+      {isWildShapeModalOpen ? (
+        <DruidWildShapeMonsterModal
+          character={character}
+          selectedMonsters={getDruidWildShapeKnownForms()}
+          onSelectedMonstersChange={updateDruidWildShapeKnownForms}
+          onClose={() => setIsWildShapeModalOpen(false)}
+        />
+      ) : null}
+
+      {selectedWildShapeMonster ? (
+        <MonsterEntryDrawer
+          monster={selectedWildShapeMonster}
+          status="ready"
+          onClose={() => setSelectedWildShapeMonster(null)}
+          badgeLabel="Wild Shape"
+        />
+      ) : null}
+    </>
   );
 }
 

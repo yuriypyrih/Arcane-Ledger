@@ -39,19 +39,27 @@ export type MovementSpeedBreakdown = {
 
 export type MovementSpeedBreakdownMap = Record<MovementSpeedType, MovementSpeedBreakdown>;
 
-const movementSpeedTypes = ["walk", "climb", "swim", "fly"] as const satisfies readonly MovementSpeedType[];
+const movementSpeedTypes = [
+  "walk",
+  "climb",
+  "swim",
+  "fly",
+  "burrow"
+] as const satisfies readonly MovementSpeedType[];
 
 const movementLabels: Record<MovementSpeedType, string> = {
   walk: "Walk",
   climb: "Climb",
   swim: "Swim",
-  fly: "Fly"
+  fly: "Fly",
+  burrow: "Burrow"
 };
 
 const defaultMovementMultipliers: Record<Exclude<MovementSpeedType, "walk">, number | null> = {
   climb: 0.5,
   swim: 0.5,
-  fly: null
+  fly: null,
+  burrow: null
 };
 
 function getMovementSpeedBonuses(
@@ -221,7 +229,8 @@ export function getMovementSpeedBreakdownsForCharacter(
     walk,
     climb: createDerivedMovementSpeedBreakdown(character, "climb", walk.total ?? 0),
     swim: createDerivedMovementSpeedBreakdown(character, "swim", walk.total ?? 0),
-    fly: createDerivedMovementSpeedBreakdown(character, "fly", walk.total ?? 0)
+    fly: createDerivedMovementSpeedBreakdown(character, "fly", walk.total ?? 0),
+    burrow: createDerivedMovementSpeedBreakdown(character, "burrow", walk.total ?? 0)
   };
 }
 
@@ -239,4 +248,14 @@ export function hasModifiedSpecialMovementForCharacter(character: Character): bo
   return movementSpeedTypes
     .filter((movementType) => movementType !== "walk")
     .some((movementType) => speedBreakdowns[movementType].isModified);
+}
+
+export function canCharacterHover(character: Character): boolean {
+  if (character.hover === true) {
+    return true;
+  }
+
+  return getSpeedBonusesForCharacter(character, {
+    wornBodyArmorType: getWornBodyArmorTypeForCharacter(character)
+  }).some((bonus) => bonus.hover === true);
 }

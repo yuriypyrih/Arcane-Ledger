@@ -12,6 +12,7 @@ import PoolOfHealingWidget from "./widgets/PoolOfHealingWidget";
 import FocusPointsWidget from "./widgets/FocusPointsWidget";
 import RagePointsWidget from "./widgets/RagePointsWidget";
 import SorceryPointsWidget from "./widgets/SorceryPointsWidget";
+import WildShapeWidget from "./widgets/WildShapeWidget";
 import RoundTrackerWidget from "./widgets/RoundTrackerWidget";
 import CampButton from "./widgets/CampButton";
 import HitPointsWidget from "./widgets/HitPointsWidget";
@@ -81,6 +82,7 @@ function GameplayForm({ character, className, onPersistCharacter }: GameplayForm
           <PoolOfHealingWidget character={character} />
           <RagePointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <FocusPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
+          <WildShapeWidget character={character} onPersistCharacter={onPersistCharacter} />
           <BardicInspirationWidget
             character={character}
             onPersistCharacter={onPersistCharacter}

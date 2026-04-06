@@ -52,6 +52,19 @@ import {
   restoreFighterSecondWindOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/fighter";
 import {
+  getDruidMoonlightStepUsesTotal,
+  getDruidNaturalRecoveryUsesTotal,
+  getDruidNatureMagicianUsesTotal,
+  getDruidWildResurgenceSpellSlotRecoveryUsesTotal,
+  getDruidWildShapeUsesTotal,
+  restoreDruidMoonlightStepOnLongRest,
+  restoreDruidNaturalRecoveryOnLongRest,
+  restoreDruidNatureMagicianOnLongRest,
+  restoreDruidWildResurgenceOnLongRest,
+  restoreAllDruidWildShapeUses,
+  restoreOneDruidWildShapeUse
+} from "../../../../../pages/CharactersPage/classFeatures/druid";
+import {
   getFaithfulSteedUsesTotal,
   getPaladinHealingPoolTotal,
   getPaladinChannelDivinityUsesTotal,
@@ -154,6 +167,7 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const divineForeknowledgeUsesTotal = getDivineForeknowledgeUsesTotal(character);
   const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
+  const druidWildShapeUsesTotal = getDruidWildShapeUsesTotal(character);
   const monkFocusPointsTotal = getMonkFocusPointsTotal(character);
   const channelDivinityUsesTotal = Math.max(
     getClericChannelDivinityUsesTotal(character),
@@ -324,6 +338,15 @@ export function createShortRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(druidWildShapeUsesTotal > 0
+      ? [
+          {
+            id: "restore-wild-shape",
+            label: "Restore 1 Wild Shape use",
+            apply: (currentCharacter: Character) => restoreOneDruidWildShapeUse(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(monkFocusPointsTotal > 0
       ? [
           {
@@ -420,6 +443,11 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
   const indomitableUsesTotal = getFighterIndomitableUsesTotal(character);
+  const druidWildShapeUsesTotal = getDruidWildShapeUsesTotal(character);
+  const druidMoonlightStepUsesTotal = getDruidMoonlightStepUsesTotal(character);
+  const druidNaturalRecoveryUsesTotal = getDruidNaturalRecoveryUsesTotal(character);
+  const druidWildResurgenceUsesTotal = getDruidWildResurgenceSpellSlotRecoveryUsesTotal(character);
+  const druidNatureMagicianUsesTotal = getDruidNatureMagicianUsesTotal(character);
   const paladinHealingPoolTotal = getPaladinHealingPoolTotal(character);
   const paladinsSmiteUsesTotal = getPaladinsSmiteUsesTotal(character);
   const faithfulSteedUsesTotal = getFaithfulSteedUsesTotal(character);
@@ -673,6 +701,55 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore all Action Surge uses",
             apply: (currentCharacter: Character) =>
               restoreFighterActionSurgeOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(druidWildShapeUsesTotal > 0
+      ? [
+          {
+            id: "restore-wild-shape",
+            label: "Restore all Wild Shape uses",
+            apply: (currentCharacter: Character) => restoreAllDruidWildShapeUses(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(druidMoonlightStepUsesTotal > 0
+      ? [
+          {
+            id: "restore-moonlight-step",
+            label: "Restore Moonlight Step",
+            apply: (currentCharacter: Character) =>
+              restoreDruidMoonlightStepOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(druidNatureMagicianUsesTotal > 0
+      ? [
+          {
+            id: "restore-nature-magician",
+            label: "Restore Nature Magician",
+            apply: (currentCharacter: Character) =>
+              restoreDruidNatureMagicianOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(druidNaturalRecoveryUsesTotal > 0
+      ? [
+          {
+            id: "restore-natural-recovery",
+            label: "Restore Natural Recovery",
+            apply: (currentCharacter: Character) =>
+              restoreDruidNaturalRecoveryOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(druidWildResurgenceUsesTotal > 0
+      ? [
+          {
+            id: "restore-wild-resurgence",
+            label: "Restore Wild Resurgence",
+            apply: (currentCharacter: Character) =>
+              restoreDruidWildResurgenceOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

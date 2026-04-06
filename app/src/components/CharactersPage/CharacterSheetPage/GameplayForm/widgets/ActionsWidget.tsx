@@ -1,17 +1,25 @@
 import clsx from "clsx";
 import { BookOpen, Flame, Minus, Plus, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import { fetchMonsterBySlug } from "../../../../../api";
 import CellContainer from "../../../../CellContainer/CellContainer";
 import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
 import SpellListRow from "../../../../SpellListRow";
 import KeywordReferenceDrawer from "../../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
+import { MonsterEntryDrawer } from "../../../../MonsterEntryRenderer";
 import CharacterSpellDrawer from "../../SpellCastingForm/CharacterSpellDrawer";
+import SelectInput from "../../../FormInputs/SelectInput";
 import ActionShape from "../../../../ActionShape";
 import RollStatePill from "../../../../RollStatePill/RollStatePill";
-import type { Character, AbilityKey } from "../../../../../types";
+import type { Character, AbilityKey, CodexStatus, MonsterRecord } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { abilityKeys } from "../../../../../pages/CharactersPage/constants";
 import {
+  activateDruidNatureMagicianForCharacter,
+  activateDruidWildResurgenceLevelOneSpellSlotRecoveryForCharacter,
+  activateDruidWildResurgenceWildShapeRecoveryForCharacter,
+  activateDruidWildShapeForCharacter,
+  activateDruidWildCompanionForCharacter,
   activateFeatureActionForCharacter,
   activateFeatureActionOptionForCharacter,
   activateArcaneRecoveryForCharacter,
@@ -26,6 +34,12 @@ import {
   createSpellSlotFromSorceryPointsForCharacter,
   consumeFaithfulSteedUseForCharacter,
   consumePaladinsSmiteUseForCharacter,
+  getDruidNatureMagicianOptionsForCharacter,
+  getDruidWildResurgenceAvailableSpellSlotLevelsForCharacter,
+  getDruidWildResurgenceSpellSlotRecoveryUsesRemainingForCharacter,
+  getDruidWildShapeKnownFormsForCharacter,
+  getDruidWildShapeUsesRemainingForCharacter,
+  getDruidWildShapeUsesTotalForCharacter,
   consumeRangerFavoredEnemyUseForCharacter,
   consumeRangerTirelessUseForCharacter,
   consumeBarbarianWarriorOfTheGodsChargesForCharacter,
@@ -43,6 +57,7 @@ import {
   getSorceryPointsRemainingForCharacter,
   getLayOnHandsCurableConditionsForCharacter,
   getPaladinHealingPoolRemainingForCharacter,
+  getSavingThrowBonusesForCharacter,
   getSpellEntryForCharacter,
   getSpellcastingStateForCharacter,
   hasBattleMagicBonusWeaponAttackForCharacter,
@@ -62,6 +77,12 @@ import {
   getClericDivineInterventionEnabledLevels,
   getClericDivineInterventionSpellEntries
 } from "../../../../../pages/CharactersPage/classFeatures/cleric";
+import {
+  druidNatureMagicianActionKey,
+  druidWildResurgenceActionKey,
+  druidWildCompanionActionKey,
+  druidWildShapeActionKey
+} from "../../../../../pages/CharactersPage/classFeatures/druid";
 import {
   activateBarbarianRage,
   activateBarbarianWildHeartRage,
@@ -230,9 +251,29 @@ type FontOfMagicSelection =
       spellSlotLevel: number;
     };
 
+type WildCompanionResourceKind = "wild-shape" | "spell-slot";
+type WildResurgenceMode = "spell-slot-to-wild-shape" | "wild-shape-to-slot";
+
 const codexWeaponEntriesByName = new Map<string, WeaponEntry>(
   getWeaponEntries().map((entry) => [entry.name, entry])
 );
+
+function resolveFeatureSavingThrowBonusTotal(
+  character: Character,
+  ability: AbilityKey,
+  effectiveAbilities: Character["abilities"]
+): number {
+  return getSavingThrowBonusesForCharacter(character, ability).reduce((total, bonus) => {
+    if (bonus.abilityModifierSource) {
+      const sourceValue = getAbilityModifier(effectiveAbilities[bonus.abilityModifierSource]);
+      return total + (typeof bonus.minimumValue === "number"
+        ? Math.max(bonus.minimumValue, sourceValue)
+        : sourceValue);
+    }
+
+    return total + (bonus.value ?? 0);
+  }, 0);
+}
 
 function appendRollModifier(baseFormula: string, modifier: number) {
   if (modifier === 0) {
@@ -1687,11 +1728,265 @@ function MysticArcanumActionBody({
   );
 }
 
+function formatWildShapeMonsterMeta(monster: MonsterRecord): string {
+  return [
+    monster.size?.trim(),
+    monster.type?.trim() ? formatCodexLabel(monster.type) : null,
+    monster.document__slug?.trim() || null,
+    monster.challenge_rating?.trim() ? `CR ${monster.challenge_rating.trim()}` : null
+  ]
+    .filter((value): value is string => Boolean(value))
+    .join(", ");
+}
+
+function WildShapeActionBody({
+  monsters,
+  selectedMonsterSlug,
+  onSelectMonster,
+  onPreviewMonster
+}: {
+  monsters: MonsterRecord[];
+  selectedMonsterSlug: string | null;
+  onSelectMonster: (monsterSlug: string) => void;
+  onPreviewMonster: (monsterSlug: string) => void;
+}) {
+  if (monsters.length === 0) {
+    return <p className={shared.emptyText}>No Beast Shapes are selected yet.</p>;
+  }
+
+  return (
+    <div className={styles.wildShapeBody}>
+      {monsters.map((monster) => (
+        <RadioOption
+          key={monster.slug}
+          name="wild-shape-monster"
+          header={monster.name}
+          description={formatWildShapeMonsterMeta(monster)}
+          isSelected={selectedMonsterSlug === monster.slug}
+          onSelect={() => onSelectMonster(monster.slug)}
+          className={styles.wildShapeOption}
+          descriptionClassName={styles.wildShapeOptionDescription}
+          aside={
+            <button
+              type="button"
+              className={styles.wildShapeReferenceButton}
+              onClick={() => onPreviewMonster(monster.slug)}
+              aria-label={`Open ${monster.name} details`}
+            >
+              <BookOpen size={16} aria-hidden="true" />
+            </button>
+          }
+        />
+      ))}
+    </div>
+  );
+}
+
+function WildCompanionActionBody({
+  wildShapeUsesRemaining,
+  wildShapeUsesTotal,
+  spellSlotOptions,
+  selectedResource,
+  selectedSpellSlotLevel,
+  onSelectResource,
+  onSelectSpellSlotLevel
+}: {
+  wildShapeUsesRemaining: number;
+  wildShapeUsesTotal: number;
+  spellSlotOptions: Array<{
+    level: number;
+    remaining: number;
+    total: number;
+  }>;
+  selectedResource: WildCompanionResourceKind;
+  selectedSpellSlotLevel: number;
+  onSelectResource: (resource: WildCompanionResourceKind) => void;
+  onSelectSpellSlotLevel: (slotLevel: number) => void;
+}) {
+  const availableSpellSlotOptions = spellSlotOptions.filter((slot) => slot.remaining > 0);
+  const hasAvailableSpellSlots = availableSpellSlotOptions.length > 0;
+
+  return (
+    <div className={styles.wildCompanionBody}>
+      <RadioOption
+        name="wild-companion-resource"
+        header="Use 1 Wild Shape"
+        description={`${wildShapeUsesRemaining}/${wildShapeUsesTotal} uses remaining`}
+        isSelected={selectedResource === "wild-shape"}
+        onSelect={() => onSelectResource("wild-shape")}
+        disabled={wildShapeUsesRemaining <= 0}
+      />
+      <RadioOption
+        name="wild-companion-resource"
+        header="Use Spell Slot"
+        description={
+          hasAvailableSpellSlots
+            ? `${availableSpellSlotOptions.reduce((sum, slot) => sum + slot.remaining, 0)} spell slots available`
+            : "No spell slots available"
+        }
+        isSelected={selectedResource === "spell-slot"}
+        onSelect={() => onSelectResource("spell-slot")}
+        disabled={!hasAvailableSpellSlots}
+      />
+      {selectedResource === "spell-slot" && hasAvailableSpellSlots ? (
+        <label className={styles.wildCompanionSelectField}>
+          <span className={styles.wildCompanionSelectLabel}>Spell Slot</span>
+          <SelectInput
+            aria-label="Wild Companion spell slot"
+            value={selectedSpellSlotLevel}
+            className={styles.wildCompanionSelect}
+            onChange={(event) => onSelectSpellSlotLevel(Number(event.target.value))}
+          >
+            {availableSpellSlotOptions.map((slot) => (
+              <option key={`wild-companion-slot-${slot.level}`} value={slot.level}>
+                Level {slot.level} ({slot.remaining}/{slot.total})
+              </option>
+            ))}
+          </SelectInput>
+        </label>
+      ) : null}
+    </div>
+  );
+}
+
+function NatureMagicianActionBody({
+  options,
+  selectedWildShapeCost,
+  onSelectWildShapeCost
+}: {
+  options: Array<{
+    wildShapeCost: number;
+    spellSlotLevel: number;
+  }>;
+  selectedWildShapeCost: number | null;
+  onSelectWildShapeCost: (wildShapeCost: number) => void;
+}) {
+  if (options.length <= 0) {
+    return <p className={shared.emptyText}>No matching expended spell slots can be restored right now.</p>;
+  }
+
+  return (
+    <div className={styles.natureMagicianBody}>
+      {options.map((option) => (
+        <RadioOption
+          key={`nature-magician-${option.wildShapeCost}`}
+          name="nature-magician-option"
+          header={`Use ${option.wildShapeCost} Wild Shape`}
+          description={`Recover 1 level ${option.spellSlotLevel} spell slot`}
+          isSelected={selectedWildShapeCost === option.wildShapeCost}
+          onSelect={() => onSelectWildShapeCost(option.wildShapeCost)}
+        />
+      ))}
+    </div>
+  );
+}
+
+function WildResurgenceActionBody({
+  spellSlotOptions,
+  selectedMode,
+  selectedSpellSlotLevel,
+  wildShapeUsesRemaining,
+  wildShapeUsesTotal,
+  levelOneSpellSlotRemaining,
+  levelOneSpellSlotTotal,
+  spellSlotRecoveryUsesRemaining,
+  onSelectMode,
+  onSelectSpellSlotLevel
+}: {
+  spellSlotOptions: Array<{
+    level: number;
+    remaining: number;
+    total: number;
+  }>;
+  selectedMode: WildResurgenceMode | null;
+  selectedSpellSlotLevel: number;
+  wildShapeUsesRemaining: number;
+  wildShapeUsesTotal: number;
+  levelOneSpellSlotRemaining: number;
+  levelOneSpellSlotTotal: number;
+  spellSlotRecoveryUsesRemaining: number;
+  onSelectMode: (mode: WildResurgenceMode) => void;
+  onSelectSpellSlotLevel: (slotLevel: number) => void;
+}) {
+  const availableSpellSlotOptions = spellSlotOptions.filter((slot) => slot.remaining > 0);
+  const canRecoverWildShape = availableSpellSlotOptions.length > 0;
+  const canRecoverLevelOneSpellSlot =
+    spellSlotRecoveryUsesRemaining > 0 &&
+    wildShapeUsesRemaining > 0 &&
+    levelOneSpellSlotRemaining < levelOneSpellSlotTotal;
+
+  return (
+    <div className={styles.wildCompanionBody}>
+      <RadioOption
+        name="wild-resurgence-mode"
+        header="Recover 1 Wild Shape"
+        description={
+          canRecoverWildShape
+            ? "Expend an available spell slot. This can be done only once on each of your turns."
+            : "Requires 0 Wild Shape remaining and an available spell slot"
+        }
+        isSelected={selectedMode === "spell-slot-to-wild-shape"}
+        onSelect={() => onSelectMode("spell-slot-to-wild-shape")}
+        disabled={!canRecoverWildShape}
+      />
+      {selectedMode === "spell-slot-to-wild-shape" && canRecoverWildShape ? (
+        <label className={styles.wildCompanionSelectField}>
+          <span className={styles.wildCompanionSelectLabel}>Spell Slot</span>
+          <SelectInput
+            aria-label="Wild Resurgence spell slot"
+            value={selectedSpellSlotLevel}
+            className={styles.wildCompanionSelect}
+            onChange={(event) => onSelectSpellSlotLevel(Number(event.target.value))}
+          >
+            {availableSpellSlotOptions.map((slot) => (
+              <option key={`wild-resurgence-slot-${slot.level}`} value={slot.level}>
+                Level {slot.level} ({slot.remaining}/{slot.total})
+              </option>
+            ))}
+          </SelectInput>
+        </label>
+      ) : null}
+      <RadioOption
+        name="wild-resurgence-mode"
+        header="Recover 1 Level 1 Spell Slot"
+        description={
+          canRecoverLevelOneSpellSlot
+            ? `${wildShapeUsesRemaining}/${wildShapeUsesTotal} Wild Shape uses remaining, ${spellSlotRecoveryUsesRemaining}/1 charge available`
+            : "Requires 1 Wild Shape, an expended level 1 slot, and an unused charge"
+        }
+        isSelected={selectedMode === "wild-shape-to-slot"}
+        onSelect={() => onSelectMode("wild-shape-to-slot")}
+        disabled={!canRecoverLevelOneSpellSlot}
+      />
+    </div>
+  );
+}
+
 function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [selectedActionKey, setSelectedActionKey] = useState<string | null>(null);
   const [selectedActionOptionKeys, setSelectedActionOptionKeys] = useState<string[]>([]);
   const [selectedFontOfMagicSelection, setSelectedFontOfMagicSelection] =
     useState<FontOfMagicSelection | null>(null);
+  const [selectedWildShapeMonsterSlug, setSelectedWildShapeMonsterSlug] = useState<string | null>(
+    null
+  );
+  const [selectedWildCompanionResource, setSelectedWildCompanionResource] =
+    useState<WildCompanionResourceKind>("wild-shape");
+  const [selectedWildCompanionSpellSlotLevel, setSelectedWildCompanionSpellSlotLevel] =
+    useState(1);
+  const [selectedWildResurgenceMode, setSelectedWildResurgenceMode] =
+    useState<WildResurgenceMode | null>(null);
+  const [selectedWildResurgenceSpellSlotLevel, setSelectedWildResurgenceSpellSlotLevel] =
+    useState(1);
+  const [selectedNatureMagicianWildShapeCost, setSelectedNatureMagicianWildShapeCost] =
+    useState<number | null>(null);
+  const [selectedWildShapePreviewSlug, setSelectedWildShapePreviewSlug] = useState<string | null>(
+    null
+  );
+  const [selectedWildShapePreviewMonster, setSelectedWildShapePreviewMonster] =
+    useState<MonsterRecord | null>(null);
+  const [selectedWildShapePreviewStatus, setSelectedWildShapePreviewStatus] =
+    useState<CodexStatus>("ready");
   const [selectedRageOptionKey, setSelectedRageOptionKey] = useState<string | null>(null);
   const [selectedRagePowerOptionKey, setSelectedRagePowerOptionKey] = useState<string | null>(
     null
@@ -1763,12 +2058,78 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       ),
     [fixedSpellSlotTotals, fixedSpellSlotsExpended]
   );
+  const wildCompanionSpellSlotOptions = useMemo(
+    () =>
+      fixedSpellSlotTotals.flatMap((total, index) =>
+        total > 0
+          ? [
+              {
+                level: index + 1,
+                remaining: fixedSpellSlotsRemaining[index] ?? 0,
+                total
+              }
+            ]
+          : []
+      ),
+    [fixedSpellSlotTotals, fixedSpellSlotsRemaining]
+  );
+  const firstAvailableWildCompanionSpellSlotLevel =
+    wildCompanionSpellSlotOptions.find((slot) => slot.remaining > 0)?.level ?? null;
+  const wildResurgenceAvailableSpellSlotLevels = useMemo(
+    () => getDruidWildResurgenceAvailableSpellSlotLevelsForCharacter(character),
+    [character.classFeatureState, character.className, character.level, character.spellSlotsExpended]
+  );
+  const wildResurgenceSpellSlotOptions = useMemo(
+    () =>
+      fixedSpellSlotTotals.flatMap((total, index) =>
+        total > 0 && wildResurgenceAvailableSpellSlotLevels.includes(index + 1)
+          ? [
+              {
+                level: index + 1,
+                remaining: fixedSpellSlotsRemaining[index] ?? 0,
+                total
+              }
+            ]
+          : []
+      ),
+    [fixedSpellSlotTotals, fixedSpellSlotsRemaining, wildResurgenceAvailableSpellSlotLevels]
+  );
+  const firstAvailableWildResurgenceSpellSlotLevel =
+    wildResurgenceSpellSlotOptions.find((slot) => slot.remaining > 0)?.level ?? null;
+  const natureMagicianOptions = useMemo(
+    () => getDruidNatureMagicianOptionsForCharacter(character),
+    [character.classFeatureState, character.className, character.level, character.spellSlotsExpended]
+  );
   const effectiveAbilities = useMemo(() => getAbilityScoresForCharacter(character), [character]);
   const selectedAction =
     selectedActionKey !== null
       ? (combatActions.find((combatAction) => combatAction.key === selectedActionKey) ?? null)
       : null;
   const selectedFeatureAction = selectedAction?.kind === "feature" ? selectedAction.action : null;
+  const wildShapeKnownForms = useMemo(
+    () => getDruidWildShapeKnownFormsForCharacter(character),
+    [character.classFeatureState, character.className, character.level]
+  );
+  const wildShapeMonsterCache = useMemo(
+    () =>
+      wildShapeKnownForms.reduce<Record<string, MonsterRecord>>((cache, monster) => {
+        cache[monster.slug] = monster;
+        return cache;
+      }, {}),
+    [wildShapeKnownForms]
+  );
+  const wildShapeUsesTotal = useMemo(
+    () => getDruidWildShapeUsesTotalForCharacter(character),
+    [character.className, character.level]
+  );
+  const wildShapeUsesRemaining = useMemo(
+    () => getDruidWildShapeUsesRemainingForCharacter(character),
+    [character.classFeatureState, character.className, character.level]
+  );
+  const wildResurgenceSpellSlotRecoveryUsesRemaining = useMemo(
+    () => getDruidWildResurgenceSpellSlotRecoveryUsesRemainingForCharacter(character),
+    [character.classFeatureState, character.className, character.level]
+  );
   const selectedWeaponAction = selectedAction?.kind === "weapon" ? selectedAction.action : null;
   const selectedWeaponEntry = useMemo(() => {
     if (!selectedWeaponAction) {
@@ -1806,6 +2167,42 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedAction?.kind === "feature" && selectedAction.drawer.kind === "options"
       ? selectedAction.drawer.options
       : [];
+  const selectedWildShapeMonster = useMemo(
+    () =>
+      selectedFeatureAction?.key === druidWildShapeActionKey
+        ? (wildShapeKnownForms.find((monster) => monster.slug === selectedWildShapeMonsterSlug) ??
+          null)
+        : null,
+    [selectedFeatureAction?.key, selectedWildShapeMonsterSlug, wildShapeKnownForms]
+  );
+  const selectedWildCompanionSpellSlotRemaining =
+    fixedSpellSlotsRemaining[selectedWildCompanionSpellSlotLevel - 1] ?? 0;
+  const canUseSelectedWildCompanionResource =
+    selectedWildCompanionResource === "wild-shape"
+      ? wildShapeUsesRemaining > 0
+      : selectedWildCompanionSpellSlotRemaining > 0;
+  const selectedWildResurgenceSpellSlotRemaining =
+    fixedSpellSlotsRemaining[selectedWildResurgenceSpellSlotLevel - 1] ?? 0;
+  const canRecoverWildShapeWithWildResurgence =
+    wildResurgenceAvailableSpellSlotLevels.length > 0 &&
+    selectedWildResurgenceSpellSlotRemaining > 0;
+  const canRecoverLevelOneSpellSlotWithWildResurgence =
+    wildResurgenceSpellSlotRecoveryUsesRemaining > 0 &&
+    wildShapeUsesRemaining > 0 &&
+    (fixedSpellSlotTotals[0] ?? 0) > 0 &&
+    (fixedSpellSlotsExpended[0] ?? 0) > 0;
+  const canUseSelectedWildResurgenceMode =
+    selectedWildResurgenceMode === "spell-slot-to-wild-shape"
+      ? canRecoverWildShapeWithWildResurgence
+      : selectedWildResurgenceMode === "wild-shape-to-slot"
+        ? canRecoverLevelOneSpellSlotWithWildResurgence
+        : false;
+  const selectedNatureMagicianOption =
+    selectedFeatureAction?.key === druidNatureMagicianActionKey
+      ? (natureMagicianOptions.find(
+          (option) => option.wildShapeCost === selectedNatureMagicianWildShapeCost
+        ) ?? null)
+      : null;
   const selectedRageOptions =
     selectedFeatureAction?.key === barbarianRageActionKey &&
     selectedAction?.drawer.kind === "custom-form"
@@ -1958,7 +2355,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         );
         const proficiencyContribution =
           getProficiencyBonus(character.level) * getProficiencyMultiplier(savingThrowLevel);
-        const total = abilityModifier + proficiencyContribution + paladinAuraOfProtectionBonus;
+        const total =
+          abilityModifier +
+          proficiencyContribution +
+          paladinAuraOfProtectionBonus +
+          resolveFeatureSavingThrowBonusTotal(character, ability, effectiveAbilities);
 
         return {
           ability,
@@ -2012,6 +2413,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   function closeActionDrawer() {
     setSelectedActionOptionKeys([]);
     setSelectedFontOfMagicSelection(null);
+    setSelectedWildShapeMonsterSlug(null);
+    setSelectedWildShapePreviewSlug(null);
+    setSelectedWildShapePreviewMonster(null);
+    setSelectedWildShapePreviewStatus("ready");
+    setSelectedWildCompanionResource("wild-shape");
+    setSelectedWildCompanionSpellSlotLevel(1);
+    setSelectedWildResurgenceMode(null);
+    setSelectedWildResurgenceSpellSlotLevel(1);
+    setSelectedNatureMagicianWildShapeCost(null);
     setSelectedRageOptionKey(null);
     setSelectedRagePowerOptionKey(null);
     setIsRageOfTheGodsSelected(false);
@@ -2050,10 +2460,185 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   useEffect(() => {
     setSelectedActionOptionKeys([]);
     setSelectedFontOfMagicSelection(null);
+    setSelectedWildShapeMonsterSlug(null);
+    setSelectedWildShapePreviewSlug(null);
+    setSelectedWildShapePreviewMonster(null);
+    setSelectedWildShapePreviewStatus("ready");
+    setSelectedWildCompanionResource("wild-shape");
+    setSelectedWildCompanionSpellSlotLevel(1);
+    setSelectedWildResurgenceMode(null);
+    setSelectedWildResurgenceSpellSlotLevel(1);
+    setSelectedNatureMagicianWildShapeCost(null);
     setSelectedRageOptionKey(null);
     setSelectedRagePowerOptionKey(null);
     setIsRageOfTheGodsSelected(false);
   }, [selectedActionKey]);
+
+  useEffect(() => {
+    let active = true;
+
+    async function loadWildShapePreview() {
+      if (!selectedWildShapePreviewSlug) {
+        setSelectedWildShapePreviewMonster(null);
+        setSelectedWildShapePreviewStatus("ready");
+        return;
+      }
+
+      const cachedMonster = wildShapeMonsterCache[selectedWildShapePreviewSlug];
+
+      if (cachedMonster?.document__slug?.trim()) {
+        setSelectedWildShapePreviewMonster(cachedMonster);
+        setSelectedWildShapePreviewStatus("ready");
+        return;
+      }
+
+      setSelectedWildShapePreviewStatus("loading");
+
+      try {
+        const monster = await fetchMonsterBySlug(selectedWildShapePreviewSlug);
+
+        if (!active) {
+          return;
+        }
+
+        setSelectedWildShapePreviewMonster(monster);
+        setSelectedWildShapePreviewStatus("ready");
+      } catch {
+        if (!active) {
+          return;
+        }
+
+        setSelectedWildShapePreviewMonster(null);
+        setSelectedWildShapePreviewStatus("error");
+      }
+    }
+
+    void loadWildShapePreview();
+
+    return () => {
+      active = false;
+    };
+  }, [selectedWildShapePreviewSlug, wildShapeMonsterCache]);
+
+  useEffect(() => {
+    if (selectedFeatureAction?.key !== druidWildShapeActionKey) {
+      return;
+    }
+
+    setSelectedWildShapeMonsterSlug((currentValue) => {
+      if (
+        currentValue &&
+        wildShapeKnownForms.some((monster) => monster.slug === currentValue)
+      ) {
+        return currentValue;
+      }
+
+      return null;
+    });
+  }, [selectedFeatureAction?.key, wildShapeKnownForms]);
+
+  useEffect(() => {
+    if (selectedFeatureAction?.key !== druidWildCompanionActionKey) {
+      return;
+    }
+
+    setSelectedWildCompanionResource((currentValue) => {
+      if (currentValue === "wild-shape" && wildShapeUsesRemaining > 0) {
+        return currentValue;
+      }
+
+      if (currentValue === "spell-slot" && firstAvailableWildCompanionSpellSlotLevel !== null) {
+        return currentValue;
+      }
+
+      return wildShapeUsesRemaining > 0 ? "wild-shape" : "spell-slot";
+    });
+  }, [
+    firstAvailableWildCompanionSpellSlotLevel,
+    selectedFeatureAction?.key,
+    wildShapeUsesRemaining
+  ]);
+
+  useEffect(() => {
+    if (
+      selectedFeatureAction?.key !== druidWildCompanionActionKey ||
+      firstAvailableWildCompanionSpellSlotLevel === null
+    ) {
+      return;
+    }
+
+    setSelectedWildCompanionSpellSlotLevel((currentValue) =>
+      (fixedSpellSlotsRemaining[currentValue - 1] ?? 0) > 0
+        ? currentValue
+        : firstAvailableWildCompanionSpellSlotLevel
+    );
+  }, [
+    firstAvailableWildCompanionSpellSlotLevel,
+    fixedSpellSlotsRemaining,
+    selectedFeatureAction?.key
+  ]);
+
+  useEffect(() => {
+    if (selectedFeatureAction?.key !== druidNatureMagicianActionKey) {
+      return;
+    }
+
+    setSelectedNatureMagicianWildShapeCost((currentValue) =>
+      currentValue !== null &&
+      natureMagicianOptions.some((option) => option.wildShapeCost === currentValue)
+        ? currentValue
+      : null
+    );
+  }, [natureMagicianOptions, selectedFeatureAction?.key]);
+
+  useEffect(() => {
+    if (selectedFeatureAction?.key !== druidWildResurgenceActionKey) {
+      return;
+    }
+
+    setSelectedWildResurgenceMode((currentValue) => {
+      if (currentValue === "spell-slot-to-wild-shape" && canRecoverWildShapeWithWildResurgence) {
+        return currentValue;
+      }
+
+      if (currentValue === "wild-shape-to-slot" && canRecoverLevelOneSpellSlotWithWildResurgence) {
+        return currentValue;
+      }
+
+      if (canRecoverWildShapeWithWildResurgence) {
+        return "spell-slot-to-wild-shape";
+      }
+
+      if (canRecoverLevelOneSpellSlotWithWildResurgence) {
+        return "wild-shape-to-slot";
+      }
+
+      return null;
+    });
+  }, [
+    canRecoverLevelOneSpellSlotWithWildResurgence,
+    canRecoverWildShapeWithWildResurgence,
+    selectedFeatureAction?.key
+  ]);
+
+  useEffect(() => {
+    if (
+      selectedFeatureAction?.key !== druidWildResurgenceActionKey ||
+      firstAvailableWildResurgenceSpellSlotLevel === null
+    ) {
+      return;
+    }
+
+    setSelectedWildResurgenceSpellSlotLevel((currentValue) =>
+      wildResurgenceAvailableSpellSlotLevels.includes(currentValue)
+        ? currentValue
+        : firstAvailableWildResurgenceSpellSlotLevel
+    );
+  }, [
+    firstAvailableWildResurgenceSpellSlotLevel,
+    selectedFeatureAction?.key,
+    wildResurgenceAvailableSpellSlotLevels
+  ]);
 
   useEffect(() => {
     setUseBeguilingMagicOnActionSpell(false);
@@ -2334,7 +2919,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
       const nextCharacter = preparedAction.damageBonusEntries.reduce(
         (updatedCharacter, entry) =>
-          markFeatureWeaponBonusUseForCharacter(updatedCharacter, entry.label),
+          entry.label === "Primal Strike"
+            ? updatedCharacter
+            : markFeatureWeaponBonusUseForCharacter(updatedCharacter, entry.label),
         preparedCharacter
       );
 
@@ -2357,6 +2944,18 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       formulaDisplay: damageFormulaDisplay,
       description: `${action.name} damage roll`
     });
+
+    if (action.damageBonusEntries.length <= 0) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) =>
+      action.damageBonusEntries.reduce(
+        (updatedCharacter, entry) =>
+          markFeatureWeaponBonusUseForCharacter(updatedCharacter, entry.label),
+        currentCharacter
+      )
+    );
   }
 
   function toggleFeatureOptionSelection(option: FeatureActionOptionCard) {
@@ -2570,6 +3169,115 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     onPersistCharacter((currentCharacter) =>
       activateArcaneRecoveryForCharacter(currentCharacter, selection)
     );
+    closeActionDrawer();
+  }
+
+  function submitWildShape() {
+    if (!selectedFeatureAction || !selectedWildShapeMonsterSlug) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateDruidWildShapeForCharacter(
+        preparedCharacter,
+        selectedWildShapeMonsterSlug
+      );
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
+    closeActionDrawer();
+  }
+
+  function submitWildCompanion() {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    if (selectedWildCompanionResource === "spell-slot" && selectedWildCompanionSpellSlotRemaining <= 0) {
+      return;
+    }
+
+    if (selectedWildCompanionResource === "wild-shape" && wildShapeUsesRemaining <= 0) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateDruidWildCompanionForCharacter(
+        preparedCharacter,
+        selectedWildCompanionResource === "spell-slot"
+          ? {
+              kind: "spell-slot",
+              spellSlotLevel: selectedWildCompanionSpellSlotLevel
+            }
+          : {
+              kind: "wild-shape"
+            }
+      );
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
+    closeActionDrawer();
+  }
+
+  function submitNatureMagician() {
+    if (!selectedNatureMagicianOption) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) =>
+      activateDruidNatureMagicianForCharacter(
+        currentCharacter,
+        selectedNatureMagicianOption.wildShapeCost
+      )
+    );
+
+    closeActionDrawer();
+  }
+
+  function submitWildResurgence() {
+    if (!selectedWildResurgenceMode) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      if (selectedWildResurgenceMode === "spell-slot-to-wild-shape") {
+        return activateDruidWildResurgenceWildShapeRecoveryForCharacter(
+          currentCharacter,
+          selectedWildResurgenceSpellSlotLevel
+        );
+      }
+
+      return activateDruidWildResurgenceLevelOneSpellSlotRecoveryForCharacter(currentCharacter);
+    });
+
     closeActionDrawer();
   }
 
@@ -3007,6 +3715,58 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         );
       }
 
+      if (selectedAction.drawer.formKind === "wild-shape") {
+        return (
+          <WildShapeActionBody
+            monsters={wildShapeKnownForms}
+            selectedMonsterSlug={selectedWildShapeMonsterSlug}
+            onSelectMonster={setSelectedWildShapeMonsterSlug}
+            onPreviewMonster={setSelectedWildShapePreviewSlug}
+          />
+        );
+      }
+
+      if (selectedAction.drawer.formKind === "wild-companion") {
+        return (
+          <WildCompanionActionBody
+            wildShapeUsesRemaining={wildShapeUsesRemaining}
+            wildShapeUsesTotal={wildShapeUsesTotal}
+            spellSlotOptions={wildCompanionSpellSlotOptions}
+            selectedResource={selectedWildCompanionResource}
+            selectedSpellSlotLevel={selectedWildCompanionSpellSlotLevel}
+            onSelectResource={setSelectedWildCompanionResource}
+            onSelectSpellSlotLevel={setSelectedWildCompanionSpellSlotLevel}
+          />
+        );
+      }
+
+      if (selectedAction.drawer.formKind === "nature-magician") {
+        return (
+          <NatureMagicianActionBody
+            options={natureMagicianOptions}
+            selectedWildShapeCost={selectedNatureMagicianWildShapeCost}
+            onSelectWildShapeCost={setSelectedNatureMagicianWildShapeCost}
+          />
+        );
+      }
+
+      if (selectedAction.drawer.formKind === "wild-resurgence") {
+        return (
+          <WildResurgenceActionBody
+            spellSlotOptions={wildResurgenceSpellSlotOptions}
+            selectedMode={selectedWildResurgenceMode}
+            selectedSpellSlotLevel={selectedWildResurgenceSpellSlotLevel}
+            wildShapeUsesRemaining={wildShapeUsesRemaining}
+            wildShapeUsesTotal={wildShapeUsesTotal}
+            levelOneSpellSlotRemaining={fixedSpellSlotsRemaining[0] ?? 0}
+            levelOneSpellSlotTotal={fixedSpellSlotTotals[0] ?? 0}
+            spellSlotRecoveryUsesRemaining={wildResurgenceSpellSlotRecoveryUsesRemaining}
+            onSelectMode={setSelectedWildResurgenceMode}
+            onSelectSpellSlotLevel={setSelectedWildResurgenceSpellSlotLevel}
+          />
+        );
+      }
+
       if (selectedAction.drawer.formKind === "font-of-magic") {
         return (
           <FontOfMagicActionBody
@@ -3222,6 +3982,85 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               className={styles.footerActionShape}
             />
           ) : null}
+        </button>
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "custom-form" &&
+      selectedAction.drawer.formKind === "wild-shape"
+    ) {
+      return (
+        <button
+          type="button"
+          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+          onClick={submitWildShape}
+          disabled={!selectedWildShapeMonster || selectedActionWarning !== null}
+        >
+          <span>Shape Shift</span>
+          <ActionShape
+            shape="bonusAction"
+            isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+            className={styles.footerActionShape}
+          />
+        </button>
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "custom-form" &&
+      selectedAction.drawer.formKind === "wild-companion"
+    ) {
+      return (
+        <button
+          type="button"
+          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+          onClick={submitWildCompanion}
+          disabled={selectedActionWarning !== null || !canUseSelectedWildCompanionResource}
+        >
+          <span>Cast</span>
+          <ActionShape
+            shape="action"
+            isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+            multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+            className={styles.footerActionShape}
+          />
+        </button>
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "custom-form" &&
+      selectedAction.drawer.formKind === "nature-magician"
+    ) {
+      return (
+        <button
+          type="button"
+          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+          onClick={submitNatureMagician}
+          disabled={selectedActionWarning !== null || !selectedNatureMagicianOption}
+        >
+          <span>Convert</span>
+        </button>
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "custom-form" &&
+      selectedAction.drawer.formKind === "wild-resurgence"
+    ) {
+      return (
+        <button
+          type="button"
+          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+          onClick={submitWildResurgence}
+          disabled={!canUseSelectedWildResurgenceMode}
+        >
+          <span>Use</span>
         </button>
       );
     }
@@ -3565,6 +4404,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               : undefined
           }
           backdropClassName={styles.divineInterventionDrawerBackdrop}
+        />
+      ) : null}
+
+      {selectedWildShapePreviewSlug ? (
+        <MonsterEntryDrawer
+          monster={selectedWildShapePreviewMonster}
+          status={selectedWildShapePreviewStatus}
+          badgeLabel="Wild Shape Preview"
+          backdropClassName={styles.wildShapePreviewDrawerBackdrop}
+          onClose={() => setSelectedWildShapePreviewSlug(null)}
         />
       ) : null}
 

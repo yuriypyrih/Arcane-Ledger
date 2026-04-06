@@ -23,8 +23,17 @@ function buildMonsterFilter(query: MonsterListQuery): FilterQuery<MonsterRecord>
     filter.type = createCaseInsensitiveExactMatch(query.type);
   }
 
-  if (query.cr !== undefined) {
+  if (query.cr !== undefined && query.maxCr !== undefined) {
+    filter.cr = {
+      $eq: query.cr,
+      $lte: query.maxCr
+    };
+  } else if (query.cr !== undefined) {
     filter.cr = query.cr;
+  } else if (query.maxCr !== undefined) {
+    filter.cr = {
+      $lte: query.maxCr
+    };
   }
 
   if (query.source) {

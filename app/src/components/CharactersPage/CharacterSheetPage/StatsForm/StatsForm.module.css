@@ -38,6 +38,12 @@
   grid-template-columns: repeat(3, minmax(0, 1fr));
 }
 
+.abilitySavingThrowGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
 .coreStatGridWide {
   grid-template-columns: repeat(12, minmax(0, 1fr));
 }
@@ -149,11 +155,28 @@
   gap: 0.68rem;
 }
 
+.combinedValueColumn {
+  display: grid;
+  gap: 0.02rem;
+  justify-items: center;
+}
+
+.combinedValueLabel {
+  color: rgba(102, 75, 56, 0.58);
+  font-size: 0.52rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 0.9;
+  text-transform: uppercase;
+}
+
 .savingThrowValueGroup {
   position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  display: grid;
+}
+
+.savingThrowValueProficient {
+  color: #6f2bc5;
 }
 
 .savingThrowBoostIcon {
@@ -234,6 +257,19 @@
 
 .referenceDetailStack {
   grid-template-columns: 1fr;
+}
+
+.referenceFormulaCard {
+  grid-column: 1 / -1;
+}
+
+.referenceFormulaContentRow {
+  display: block;
+}
+
+.referenceFormulaValue {
+  line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .initiativeActions {
@@ -318,6 +354,10 @@
   .modifierGrid,
   .coreStatGridWide {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .abilitySavingThrowGrid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .statsGroupHeader {

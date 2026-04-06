@@ -3,6 +3,7 @@ import type {
   SAVING_THROW_PROFICIENCY,
   WEAPON_PROFICIENCY
 } from "./proficiencies";
+import type { MonsterRecord } from "./monsters";
 import type { SkillName } from "./skills";
 
 export type BarbarianWildHeartAspect = "owl" | "panther" | "salmon";
@@ -53,9 +54,22 @@ export type CharacterBardFeatureState = {
 };
 
 export type DruidPrimalOrderChoice = "magician" | "warden";
+export type DruidCircleOfTheLandChoice = "arid" | "polar" | "temperate" | "tropical";
+export type DruidElementalFuryChoice = "potent-spellcasting" | "primal-strike";
 
 export type CharacterDruidFeatureState = {
   primalOrderChoice?: DruidPrimalOrderChoice;
+  circleOfTheLandChoice?: DruidCircleOfTheLandChoice;
+  elementalFuryChoice?: DruidElementalFuryChoice;
+  wildShapeKnownForms?: MonsterRecord[];
+  wildShapeUsesExpended?: number;
+  moonlightStepUsesExpended?: number;
+  naturalRecoveryUsesExpended?: number;
+  primalStrikeUsedThisTurn?: boolean;
+  wildResurgenceSpellSlotRecoveryUsesExpended?: number;
+  wildResurgenceWildShapeRecoveryUsedThisTurn?: boolean;
+  natureMagicianUsesExpended?: number;
+  wildShapeActiveForm?: MonsterRecord;
 };
 
 export type CharacterPaladinFeatureState = {

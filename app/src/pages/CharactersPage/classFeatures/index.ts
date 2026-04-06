@@ -1,4 +1,4 @@
-import type { Character, CharacterClassFeatureState } from "../../../types";
+import type { AbilityKey, Character, CharacterClassFeatureState } from "../../../types";
 import { ALL_SKILLS } from "../../../types";
 import type { SkillName, WEAPON_PROFICIENCY } from "../../../types";
 import type { EconomyType } from "../actionEconomy";
@@ -24,7 +24,6 @@ import {
   getBlessingOfMoonlightUsesRemaining,
   getBlessingOfMoonlightUsesTotal,
   getBardExpertiseSelections,
-  getBardLanguageProficiencyEntries,
   getBardLoreBonusProficiencySelections,
   getBardMagicalDiscoveriesSpellIds,
   getBardMagicalDiscoveriesSpellOptions,
@@ -97,8 +96,40 @@ import {
   setKnowledgeDomainUnfetteredMindSavingThrowSelection
 } from "./cleric";
 import {
+  activateDruidNatureMagician,
+  applyArchdruidOnInitiative,
+  consumeDruidNaturalRecoveryUse,
+  activateDruidWildResurgenceLevelOneSpellSlotRecovery,
+  activateDruidWildResurgenceWildShapeRecovery,
+  activateDruidWildCompanion,
+  getDruidCircleOfTheLandChoice,
+  getDruidNaturalRecoveryUsesRemaining,
+  getDruidNaturalRecoveryUsesTotal,
+  getDruidElementalFuryChoice,
+  activateDruidWildShape,
+  deactivateDruidWildShape,
+  expendOneDruidWildShapeUse,
+  getDruidNatureMagicianOptions,
+  getDruidNatureMagicianUsesRemaining,
+  getDruidNatureMagicianUsesTotal,
+  getDruidWildResurgenceAvailableSpellSlotLevels,
+  getDruidWildResurgenceSpellSlotRecoveryUsesRemaining,
+  getDruidWildResurgenceSpellSlotRecoveryUsesTotal,
+  getDruidWildShapeActiveForm,
+  getDruidWildShapeIneligibilityReason,
+  getDruidWildShapeKnownForms,
+  getDruidWildShapeRules,
+  getDruidWildShapeUsesRemaining,
+  getDruidWildShapeUsesTotal,
   getDruidPrimalOrderChoice,
-  setDruidPrimalOrderChoice
+  isDruidWildShapeStatusSourceId,
+  markDruidPrimalStrikeUsed,
+  restoreAllDruidWildShapeUses,
+  restoreOneDruidWildShapeUse,
+  setDruidCircleOfTheLandChoice,
+  setDruidElementalFuryChoice,
+  setDruidPrimalOrderChoice,
+  setDruidWildShapeKnownForms
 } from "./druid";
 import {
   consumeRangerFavoredEnemyUse,
@@ -254,6 +285,7 @@ import type {
   FeatureArmorClassMode,
   FeatureLanguageProficiencyEntry,
   FeatureDamageBonus,
+  FeatureSavingThrowBonus,
   FeatureUnarmedStrikeConfig,
   FeatureSavingThrowProficiencyEntry,
   FeatureSkillBonus,
@@ -320,6 +352,7 @@ export type {
   FeatureArmorClassMode,
   FeatureLanguageProficiencyEntry,
   FeatureDamageBonus,
+  FeatureSavingThrowBonus,
   FeatureUnarmedStrikeConfig,
   FeatureSavingThrowProficiencyEntry,
   FeatureSkillBonus,
@@ -502,6 +535,20 @@ export function getSkillBonusesForCharacter(
   proficiencyLevel: PROF_LEVEL
 ): FeatureSkillBonus[] {
   return collectActiveClassFeatureState(character).getSkillBonuses?.(skill, proficiencyLevel) ?? [];
+}
+
+export function getSavingThrowBonusesForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>,
+  ability: AbilityKey
+): FeatureSavingThrowBonus[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+
+  return [
+    ...(baseFeatureState.getSavingThrowBonuses?.(ability) ?? []),
+    ...(subclassDerivedState.getSavingThrowBonuses?.(ability) ?? [])
+  ];
 }
 
 export function getSpellcastingStateForCharacter(
@@ -1336,11 +1383,183 @@ export function getDruidPrimalOrderChoiceForCharacter(
   return getDruidPrimalOrderChoice(character);
 }
 
+export function getDruidCircleOfTheLandChoiceForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "subclassId">
+) {
+  return getDruidCircleOfTheLandChoice(character);
+}
+
+export function getDruidElementalFuryChoiceForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+) {
+  return getDruidElementalFuryChoice(character);
+}
+
 export function setDruidPrimalOrderChoiceForCharacter(
   character: Character,
   primalOrderChoice: "magician" | "warden"
 ): Character {
   return setDruidPrimalOrderChoice(character, primalOrderChoice);
+}
+
+export function setDruidCircleOfTheLandChoiceForCharacter(
+  character: Character,
+  circleOfTheLandChoice: "arid" | "polar" | "temperate" | "tropical"
+): Character {
+  return setDruidCircleOfTheLandChoice(character, circleOfTheLandChoice);
+}
+
+export function setDruidElementalFuryChoiceForCharacter(
+  character: Character,
+  elementalFuryChoice: "potent-spellcasting" | "primal-strike"
+): Character {
+  return setDruidElementalFuryChoice(character, elementalFuryChoice);
+}
+
+export function getDruidWildShapeRulesForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+) {
+  return getDruidWildShapeRules(character);
+}
+
+export function getDruidWildShapeKnownFormsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+) {
+  return getDruidWildShapeKnownForms(character);
+}
+
+export function getDruidWildShapeActiveFormForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+) {
+  return getDruidWildShapeActiveForm(character);
+}
+
+export function getDruidWildShapeUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+) {
+  return getDruidWildShapeUsesTotal(character);
+}
+
+export function getDruidWildShapeUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+) {
+  return getDruidWildShapeUsesRemaining(character);
+}
+
+export function getDruidNaturalRecoveryUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level" | "subclassId">
+) {
+  return getDruidNaturalRecoveryUsesTotal(character);
+}
+
+export function getDruidNaturalRecoveryUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "subclassId">
+) {
+  return getDruidNaturalRecoveryUsesRemaining(character);
+}
+
+export function getDruidNatureMagicianUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+) {
+  return getDruidNatureMagicianUsesTotal(character);
+}
+
+export function getDruidNatureMagicianUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+) {
+  return getDruidNatureMagicianUsesRemaining(character);
+}
+
+export function getDruidNatureMagicianOptionsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended">
+) {
+  return getDruidNatureMagicianOptions(character);
+}
+
+export function getDruidWildResurgenceSpellSlotRecoveryUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+) {
+  return getDruidWildResurgenceSpellSlotRecoveryUsesTotal(character);
+}
+
+export function getDruidWildResurgenceSpellSlotRecoveryUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+) {
+  return getDruidWildResurgenceSpellSlotRecoveryUsesRemaining(character);
+}
+
+export function getDruidWildResurgenceAvailableSpellSlotLevelsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended">
+) {
+  return getDruidWildResurgenceAvailableSpellSlotLevels(character);
+}
+
+export function setDruidWildShapeKnownFormsForCharacter(
+  character: Character,
+  monsters: Parameters<typeof setDruidWildShapeKnownForms>[1]
+): Character {
+  return setDruidWildShapeKnownForms(character, monsters);
+}
+
+export function activateDruidWildShapeForCharacter(
+  character: Character,
+  monsterSlug: string
+): Character {
+  return activateDruidWildShape(character, monsterSlug);
+}
+
+export function activateDruidWildCompanionForCharacter(
+  character: Character,
+  activation: Parameters<typeof activateDruidWildCompanion>[1]
+): Character {
+  return activateDruidWildCompanion(character, activation);
+}
+
+export function activateDruidNatureMagicianForCharacter(
+  character: Character,
+  wildShapeCost: number
+): Character {
+  return activateDruidNatureMagician(character, wildShapeCost);
+}
+
+export function consumeDruidNaturalRecoveryUseForCharacter(character: Character): Character {
+  return consumeDruidNaturalRecoveryUse(character);
+}
+
+export function activateDruidWildResurgenceWildShapeRecoveryForCharacter(
+  character: Character,
+  spellSlotLevel: number
+): Character {
+  return activateDruidWildResurgenceWildShapeRecovery(character, spellSlotLevel);
+}
+
+export function activateDruidWildResurgenceLevelOneSpellSlotRecoveryForCharacter(
+  character: Character
+): Character {
+  return activateDruidWildResurgenceLevelOneSpellSlotRecovery(character);
+}
+
+export function restoreDruidWildShapeUseForCharacter(character: Character): Character {
+  return restoreOneDruidWildShapeUse(character);
+}
+
+export function restoreAllDruidWildShapeUsesForCharacter(character: Character): Character {
+  return restoreAllDruidWildShapeUses(character);
+}
+
+export function expendDruidWildShapeUseForCharacter(character: Character): Character {
+  return expendOneDruidWildShapeUse(character);
+}
+
+export function applyArchdruidOnInitiativeForCharacter(character: Character): Character {
+  return applyArchdruidOnInitiative(character);
+}
+
+export function getDruidWildShapeIneligibilityReasonForCharacter(
+  monster: Parameters<typeof getDruidWildShapeIneligibilityReason>[0],
+  character: Pick<Character, "className" | "level">
+) {
+  return getDruidWildShapeIneligibilityReason(monster, character);
 }
 
 export function getWeaponMasterySelectionCountForCharacter(
@@ -1840,6 +2059,10 @@ export function markFeatureWeaponBonusUseForCharacter(
     return markClericBlessedStrikeUsed(character);
   }
 
+  if (label === "Primal Strike") {
+    return markDruidPrimalStrikeUsed(character);
+  }
+
   return character;
 }
 
@@ -1957,6 +2180,10 @@ export function removeFeatureStatusEntryForCharacter(
 
   if (statusEntry.sourceId === "feature-barbarian-reckless-attack" || normalizedValue === "Reckless Attack") {
     return deactivateBarbarianRecklessAttack(character);
+  }
+
+  if (isDruidWildShapeStatusSourceId(statusEntry.sourceId)) {
+    return deactivateDruidWildShape(character);
   }
 
   return {

@@ -7,6 +7,7 @@ export type FetchMonsterListParams = {
   search?: string;
   type?: string;
   cr?: number;
+  maxCr?: number;
   source?: string;
   ordering?: MonsterOrdering;
 };
@@ -17,6 +18,7 @@ export async function fetchMonsterList({
   search,
   type,
   cr,
+  maxCr,
   source,
   ordering = "name"
 }: FetchMonsterListParams = {}) {
@@ -39,6 +41,10 @@ export async function fetchMonsterList({
 
   if (cr !== undefined) {
     searchParams.set("cr", String(cr));
+  }
+
+  if (maxCr !== undefined) {
+    searchParams.set("max_cr", String(maxCr));
   }
 
   return apiGet<PaginatedApiResponse<MonsterListItem>>(`monsters?${searchParams.toString()}`);

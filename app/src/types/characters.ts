@@ -17,6 +17,7 @@ import type {
 } from "./proficiencies";
 import type { CharacterClassFeatureState } from "./classFeatures";
 import type { CharacterFeatEntry } from "./feats";
+import type { MonsterRecord } from "./monsters";
 import type { SkillName } from "./skills";
 import type { CharacterStatusEntry } from "./traits";
 
@@ -106,6 +107,14 @@ export type CharacterCustomEquipment =
   | CharacterCustomArmor
   | CharacterCustomItem;
 
+export type CharacterCompanion = {
+  id: string;
+  name: string;
+  description: string;
+  type: string;
+  inheritedCreatureEntry?: MonsterRecord;
+};
+
 export type Alignment =
   | "Lawful Good"
   | "Neutral Good"
@@ -129,6 +138,7 @@ export type Character = {
   currentHitPoints: number;
   temporaryHitPoints: number;
   temporaryHitPointsSource?: string;
+  hover?: boolean;
   maxHitPointsMode?: "automatic" | "custom";
   attributeMode: AttributeMode;
   abilities: AbilityScores;
@@ -148,6 +158,7 @@ export type Character = {
   deathSaves?: CharacterDeathSaves;
   equipment: CharacterEquipmentItem[];
   customEquipment: CharacterCustomEquipment[];
+  companions: CharacterCompanion[];
   cantripIds?: string[];
   spellbookSpellIds?: string[];
   preparedSpellIds?: string[];
@@ -169,6 +180,7 @@ export type CharacterDraft = {
   currentHitPoints: number;
   temporaryHitPoints: number;
   temporaryHitPointsSource?: string;
+  hover?: boolean;
   maxHitPointsMode?: "automatic" | "custom";
   attributeMode: AttributeMode;
   abilities: AbilityScores;
@@ -186,6 +198,7 @@ export type CharacterDraft = {
   deathSaves?: CharacterDeathSaves;
   equipment: string[];
   customEquipment: CharacterCustomEquipment[];
+  companions: CharacterCompanion[];
   cantripIds?: string[];
   spellbookSpellIds?: string[];
   preparedSpellIds?: string[];

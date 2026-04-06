@@ -28,6 +28,19 @@ function createSubclassFeatureRow(
 }
 
 const notTracked = { trackingState: TRACKER.NOT_TRACKED } as const;
+export const naturesSanctuaryDescription = [
+  "As a Magic action, you can expend a use of your Wild Shape and cause spectral trees and vines to appear in a 15-foot Cube on the ground within 120 feet of yourself.",
+  "They last there for 1 minute or until you have the <link:Incapacitated>Incapacitated</link> condition or die.",
+  "You and your allies have Half Cover while in that area, and your allies gain the current Resistance of your Nature's Ward while there.",
+  "As a Bonus Action, you can move the Cube up to 60 feet to ground within 120 feet of yourself."
+] as const;
+export const wrathOfTheSeaDescription = [
+  "As a Bonus Action, you can expend a use of your Wild Shape to manifest a 5-foot <link:Emanation>Emanation</link> that takes the form of ocean spray that surrounds you for 10 minutes.",
+  "It ends early if you dismiss it (no action required), manifest it again, or have the <link:Incapacitated>Incapacitated</link> condition.",
+  "When you manifest the Emanation and as a Bonus Action on your subsequent turns, you can choose another creature you can see in the Emanation.",
+  "The target must succeed on a <link:Constitution Saving Throw>Constitution saving throw</link> against your spell save DC or take Cold damage and, if the creature is Large or smaller, be pushed up to 15 feet away from you.",
+  "To determine this damage, roll a number of d6s equal to your <link:WIS>Wisdom</link> modifier (minimum of one die)."
+] as const;
 
 export const druidSubclassEntries: SubclassEntry[] = [
   {
@@ -43,30 +56,13 @@ export const druidSubclassEntries: SubclassEntry[] = [
         CLASS_FEATURE.CIRCLE_OF_THE_LAND_SPELLS,
         {
           description: [
-            "Whenever you finish a <link:long-rest>Long Rest</link>, choose one type of land: arid, polar, temperate, or tropical.",
-            "You have the spells listed for your Druid level and lower prepared from the land you chose.",
-            "<strong>Arid Land.</strong>",
-            "<strong>Level 3.</strong> <spell:Blur>Blur</spell>, <spell:Burning Hands>Burning Hands</spell>, <spell:Fire Bolt>Fire Bolt</spell>",
-            "<strong>Level 5.</strong> <spell:Fireball>Fireball</spell>",
-            "<strong>Level 7.</strong> <spell:Blight>Blight</spell>",
-            "<strong>Level 9.</strong> <spell:Wall of Stone>Wall of Stone</spell>",
-            "<strong>Polar Land.</strong>",
-            "<strong>Level 3.</strong> <spell:Fog Cloud>Fog Cloud</spell>, <spell:Hold Person>Hold Person</spell>, <spell:Ray of Frost>Ray of Frost</spell>",
-            "<strong>Level 5.</strong> <spell:Sleet Storm>Sleet Storm</spell>",
-            "<strong>Level 7.</strong> <spell:Ice Storm>Ice Storm</spell>",
-            "<strong>Level 9.</strong> <spell:Cone of Cold>Cone of Cold</spell>",
-            "<strong>Temperate Land.</strong>",
-            "<strong>Level 3.</strong> <spell:Misty Step>Misty Step</spell>, <spell:Shocking Grasp>Shocking Grasp</spell>, <spell:Sleep>Sleep</spell>",
-            "<strong>Level 5.</strong> <spell:Lightning Bolt>Lightning Bolt</spell>",
-            "<strong>Level 7.</strong> <spell:Freedom of Movement>Freedom of Movement</spell>",
-            "<strong>Level 9.</strong> <spell:Tree Stride>Tree Stride</spell>",
-            "<strong>Tropical Land.</strong>",
-            "<strong>Level 3.</strong> <spell:Acid Splash>Acid Splash</spell>, <spell:Ray of Sickness>Ray of Sickness</spell>, <spell:Web>Web</spell>",
-            "<strong>Level 5.</strong> <spell:Stinking Cloud>Stinking Cloud</spell>",
-            "<strong>Level 7.</strong> <spell:Polymorph>Polymorph</spell>",
-            "<strong>Level 9.</strong> <spell:Insect Plague>Insect Plague</spell>"
+            "Choose one type of land: Arid Land, Polar Land, Temperate Land, or Tropical Land. You always have the listed spells for your chosen land and Druid level prepared.",
+            "<strong>Arid Land.</strong> <strong>Level 3.</strong> <spell:Blur>Blur</spell>, <spell:Burning Hands>Burning Hands</spell>, <spell:Fire Bolt>Fire Bolt</spell> <strong>Level 5.</strong> <spell:Fireball>Fireball</spell> <strong>Level 7.</strong> <spell:Blight>Blight</spell> <strong>Level 9.</strong> <spell:Wall of Stone>Wall of Stone</spell>",
+            "<strong>Polar Land.</strong> <strong>Level 3.</strong> <spell:Fog Cloud>Fog Cloud</spell>, <spell:Hold Person>Hold Person</spell>, <spell:Ray of Frost>Ray of Frost</spell> <strong>Level 5.</strong> <spell:Sleet Storm>Sleet Storm</spell> <strong>Level 7.</strong> <spell:Ice Storm>Ice Storm</spell> <strong>Level 9.</strong> <spell:Cone of Cold>Cone of Cold</spell>",
+            "<strong>Temperate Land.</strong> <strong>Level 3.</strong> <spell:Misty Step>Misty Step</spell>, <spell:Shocking Grasp>Shocking Grasp</spell>, <spell:Sleep>Sleep</spell> <strong>Level 5.</strong> <spell:Lightning Bolt>Lightning Bolt</spell> <strong>Level 7.</strong> <spell:Freedom of Movement>Freedom of Movement</spell> <strong>Level 9.</strong> <spell:Tree Stride>Tree Stride</spell>",
+            "<strong>Tropical Land.</strong> <strong>Level 3.</strong> <spell:Acid Splash>Acid Splash</spell>, <spell:Ray of Sickness>Ray of Sickness</spell>, <spell:Web>Web</spell> <strong>Level 5.</strong> <spell:Stinking Cloud>Stinking Cloud</spell> <strong>Level 7.</strong> <spell:Polymorph>Polymorph</spell> <strong>Level 9.</strong> <spell:Insect Plague>Insect Plague</spell>"
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.LANDS_AID, {
@@ -79,19 +75,15 @@ export const druidSubclassEntries: SubclassEntry[] = [
         ],
         ...notTracked
       }),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_6,
-        CLASS_FEATURE.NATURAL_RECOVERY,
-        {
-          description: [
-            "You can cast one of the level 1+ spells that you have prepared from your Circle Spells feature without expending a spell slot, and you must finish a <link:long-rest>Long Rest</link> before you do so again.",
-            "In addition, when you finish a <link:short-rest>Short Rest</link>, you can choose expended spell slots to recover.",
-            "The spell slots can have a combined level that is equal to or less than half your Druid level (round up), and none of them can be level 6+.",
-            "Once you recover spell slots with this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link>."
-          ],
-          ...notTracked
-        }
-      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.NATURAL_RECOVERY, {
+        description: [
+          "You can cast one of the level 1+ spells that you have prepared from your Circle Spells feature without expending a spell slot, and you must finish a <link:long-rest>Long Rest</link> before you do so again.",
+          "In addition, when you finish a <link:short-rest>Short Rest</link>, you can choose expended spell slots to recover.",
+          "The spell slots can have a combined level that is equal to or less than half your Druid level (round up), and none of them can be level 6+.",
+          "Once you recover spell slots with this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link>."
+        ],
+        ...notTracked
+      }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.NATURES_WARD, {
         description: [
           "You are immune to the <link:Poisoned>Poisoned</link> condition, and you have <link:Resistance>Resistance</link> to a damage type associated with your current land choice in Circle of the Land Spells.",
@@ -102,19 +94,10 @@ export const druidSubclassEntries: SubclassEntry[] = [
         ],
         ...notTracked
       }),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_14,
-        CLASS_FEATURE.NATURES_SANCTUARY,
-        {
-          description: [
-            "As a Magic action, you can expend a use of your Wild Shape and cause spectral trees and vines to appear in a 15-foot Cube on the ground within 120 feet of yourself.",
-            "They last there for 1 minute or until you have the <link:Incapacitated>Incapacitated</link> condition or die.",
-            "You and your allies have Half Cover while in that area, and your allies gain the current Resistance of your Nature's Ward while there.",
-            "As a Bonus Action, you can move the Cube up to 60 feet to ground within 120 feet of yourself."
-          ],
-          ...notTracked
-        }
-      )
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.NATURES_SANCTUARY, {
+        description: [...naturesSanctuaryDescription],
+        ...notTracked
+      })
     ]
   },
   {
@@ -199,30 +182,20 @@ export const druidSubclassEntries: SubclassEntry[] = [
             "<strong>Level 7.</strong> <spell:Control Water>Control Water</spell>, <spell:Ice Storm>Ice Storm</spell>",
             "<strong>Level 9.</strong> <spell:Conjure Elemental>Conjure Elemental</spell>, <spell:Hold Monster>Hold Monster</spell>"
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.WRATH_OF_THE_SEA, {
+        description: [...wrathOfTheSeaDescription],
+        ...notTracked
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.AQUATIC_AFFINITY, {
         description: [
-          "As a Bonus Action, you can expend a use of your Wild Shape to manifest a 5-foot <link:Emanation>Emanation</link> that takes the form of ocean spray that surrounds you for 10 minutes.",
-          "It ends early if you dismiss it (no action required), manifest it again, or have the <link:Incapacitated>Incapacitated</link> condition.",
-          "When you manifest the Emanation and as a Bonus Action on your subsequent turns, you can choose another creature you can see in the Emanation.",
-          "The target must succeed on a <link:Constitution Saving Throw>Constitution saving throw</link> against your spell save DC or take Cold damage and, if the creature is Large or smaller, be pushed up to 15 feet away from you.",
-          "To determine this damage, roll a number of d6s equal to your <link:WIS>Wisdom</link> modifier (minimum of one die)."
+          "The size of the Emanation created by your Wrath of the Sea increases to 10 feet.",
+          "In addition, you gain a Swim Speed equal to your <link:Speed>Speed</link>."
         ],
         ...notTracked
       }),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_6,
-        CLASS_FEATURE.AQUATIC_AFFINITY,
-        {
-          description: [
-            "The size of the Emanation created by your Wrath of the Sea increases to 10 feet.",
-            "In addition, you gain a Swim Speed equal to your <link:Speed>Speed</link>."
-          ],
-          ...notTracked
-        }
-      ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.STORMBORN, {
         description: [
           "Your Wrath of the Sea confers two more benefits while active.",

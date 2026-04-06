@@ -53,6 +53,14 @@ function KeywordReferenceDrawer({
     return null;
   }
 
+  function shouldShowEntryTitle(entryTitle: string | undefined) {
+    if (!entryTitle) {
+      return false;
+    }
+
+    return !(entries.length === 1 && entryTitle.trim() === title.trim());
+  }
+
   return (
     <>
       <SheetDrawer
@@ -96,11 +104,13 @@ function KeywordReferenceDrawer({
         <OverlayBody>
           <div className={styles.referenceList}>
             {entries.map((entry, index) => (
-              <article
+              <section
                 key={`${entry.title || "reference"}-${index}`}
-                className={styles.referenceCard}
+                className={styles.referenceEntry}
               >
-                {entry.title ? <h4 className={styles.referenceTitle}>{entry.title}</h4> : null}
+                {shouldShowEntryTitle(entry.title) ? (
+                  <h4 className={styles.referenceTitle}>{entry.title}</h4>
+                ) : null}
                 <DescriptionContent
                   description={entry.description}
                   className={overlayClassNames.descriptionList}
@@ -112,7 +122,7 @@ function KeywordReferenceDrawer({
                   onOpenDivinity={setSelectedDivinityReference}
                   onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
                 />
-              </article>
+              </section>
             ))}
           </div>
         </OverlayBody>

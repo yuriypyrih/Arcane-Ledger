@@ -24,7 +24,14 @@ import type {
 } from "../../../types";
 
 export type FeatureActionTone = "default" | "accent" | "danger";
-export type FeatureActionIcon = "brain" | "music" | "sparkles" | "flame" | "pyromancy";
+export type FeatureActionIcon =
+  | "anima"
+  | "brain"
+  | "music"
+  | "sparkles"
+  | "flame"
+  | "paw"
+  | "pyromancy";
 
 export type FeatureActionFact = {
   label: string;
@@ -73,7 +80,11 @@ export type FeatureActionFormKind =
   | "font-of-magic"
   | "indomitable"
   | "lay-on-hands"
+  | "nature-magician"
   | "sneak-attack"
+  | "wild-companion"
+  | "wild-resurgence"
+  | "wild-shape"
   | "warrior-of-the-gods"
   | "wild-heart-rage";
 
@@ -209,6 +220,13 @@ export type FeatureSkillBonus = {
   replacesBaseAbility?: boolean;
 };
 
+export type FeatureSavingThrowBonus = {
+  label: string;
+  value?: number;
+  abilityModifierSource?: AbilityKey;
+  minimumValue?: number;
+};
+
 export type WeaponFeatureContext = {
   name: string;
   ability: AbilityKey;
@@ -268,7 +286,7 @@ export type SpeedFeatureContext = {
   wornBodyArmorType: "light" | "medium" | "heavy" | null;
 };
 
-export type MovementSpeedType = "walk" | "climb" | "swim" | "fly";
+export type MovementSpeedType = "walk" | "climb" | "swim" | "fly" | "burrow";
 
 export type FeatureSpeedBonus = {
   label: string;
@@ -276,6 +294,7 @@ export type FeatureSpeedBonus = {
   movementType?: MovementSpeedType;
   setTotal?: number | null;
   setBaseFromWalkMultiplier?: number | null;
+  hover?: boolean;
 };
 
 export type FeatureAbilityScoreBonus = {
@@ -311,6 +330,7 @@ export type ClassFeatureDerivedState = {
   actions?: FeatureActionCard[];
   actionOptions?: Partial<Record<string, FeatureActionOptionCard[]>>;
   getWeaponDamageBonuses?: (context: WeaponFeatureContext) => FeatureDamageBonus[];
+  getSavingThrowBonuses?: (ability: AbilityKey) => FeatureSavingThrowBonus[];
   savingThrowIndicators?: SavingThrowIndicatorMap;
   abilityCheckIndicators?: AbilityCheckIndicatorMap;
   coreStatIndicators?: CoreStatIndicatorMap;

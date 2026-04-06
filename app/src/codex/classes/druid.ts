@@ -249,7 +249,7 @@ export const druidFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = 
   },
   [CLASS_FEATURE.WILD_COMPANION]: {
     description: [
-      "You can summon a nature spirit that assumes an animal form to aid you. As a Magic action, you can expend a spell slot or a use of Wild Shape to cast the Find Familiar spell without Material components.",
+      "You can summon a nature spirit that assumes an animal form to aid you. As a Magic action, you can expend a spell slot or a use of Wild Shape to cast the <spell:Find Familiar>Find Familiar</spell> spell without Material components.",
       "When you cast the spell in this way, the familiar is Fey and disappears when you finish a <link:long-rest>Long Rest</link>."
     ],
     trackingState: TRACKER.NOT_TRACKED
@@ -290,7 +290,7 @@ export const druidFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = 
       "<strong>Nature Magician.</strong> You can convert uses of Wild Shape into a spell slot, no action required. Choose a number of your unexpended uses of Wild Shape and convert them into a single spell slot, with each use contributing 2 spell levels. For example, if you convert two uses of Wild Shape, you produce a level 4 spell slot. Once you use this benefit, you can't do so again until you finish a <link:long-rest>Long Rest</link>.",
       "<strong>Longevity.</strong> The primal magic that you wield causes you to age more slowly. For every ten years that pass, your body ages only one year."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.TRACKED
   }
 };
 

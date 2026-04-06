@@ -93,6 +93,7 @@ export type MonsterListQuery = {
   limit: number;
   ordering?: MonsterOrdering;
   cr?: number;
+  maxCr?: number;
   type?: string;
   source?: string;
 };

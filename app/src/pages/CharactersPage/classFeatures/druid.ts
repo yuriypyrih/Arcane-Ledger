@@ -1,9 +1,13 @@
-import { druidFeatures } from "../../../codex/classes";
+import { druidFeatureMap, druidFeatures } from "../../../codex/classes";
 import { CLASS_FEATURE } from "../../../codex/entries";
 import type {
+  AbilityKey,
   Character,
+  DruidCircleOfTheLandChoice,
   CharacterDruidFeatureState,
-  DruidPrimalOrderChoice
+  DruidElementalFuryChoice,
+  DruidPrimalOrderChoice,
+  MonsterRecord
 } from "../../../types";
 import {
   ARMOR_PROFICIENCY,
@@ -11,22 +15,74 @@ import {
   PROFICIENCY_SOURCE,
   PROF_LEVEL,
   SKILL,
+  STATUS_DURATION_KIND,
+  STATUS_DURATION_ROUND_TICK,
+  STATUS_ENTRY_GROUP,
+  STATUS_ENTRY_SOURCE_TYPE,
   WEAPON_PROFICIENCY,
   type ArmorProficiencyEntry,
   type LanguageProficiencyEntry,
   type SkillName,
   type WeaponProficiencyEntry
 } from "../../../types";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../traits";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../spellcasting";
+import { clampNumber, swapTemporaryHitPointsAssignment } from "../shared";
 import type {
+  DerivedFeatureStatusEntry,
+  FeatureActionCard,
   FeatureArmorProficiencyEntry,
+  FeatureDamageBonus,
   FeatureLanguageProficiencyEntry,
+  FeatureSavingThrowBonus,
+  FeatureSpellcastingState,
   FeatureSkillBonus,
+  WeaponFeatureContext,
   FeatureWeaponProficiencyEntry
 } from "./types";
 
 const primalOrderWardenSource = "Primal Order";
 const druidicSource = "Druidic";
+const primalStrikeSource = "Primal Strike";
 const speakWithAnimalsSpellId = "spell-speak-with-animals";
+const druidWildShapeSource = "Wild Shape";
+const druidWildShapeStatusSourceIdPrefix = "feature-druid-wild-shape:";
+const circleOfTheLandSubclassId = "druid-circle-of-the-land";
+const circleOfTheMoonSubclassId = "druid-circle-of-the-moon";
+const circleOfTheSeaSubclassId = "druid-circle-of-the-sea";
+
+export const druidWildShapeActionKey = "druid-wild-shape";
+export const druidWildCompanionActionKey = "druid-wild-companion";
+export const druidLandsAidActionKey = "druid-lands-aid";
+export const druidNaturesSanctuaryActionKey = "druid-natures-sanctuary";
+export const druidWrathOfTheSeaActionKey = "druid-wrath-of-the-sea";
+export const druidWildResurgenceActionKey = "druid-wild-resurgence";
+export const druidNatureMagicianActionKey = "druid-nature-magician";
+export const druidMoonlightStepActionKey = "druid-moonlight-step";
+export const druidNaturesSanctuaryStatusSourceId = "feature-druid-natures-sanctuary";
+export const druidWrathOfTheSeaStatusSourceId = "feature-druid-wrath-of-the-sea";
+
+export type DruidWildCompanionActivation =
+  | {
+      kind: "wild-shape";
+    }
+  | {
+      kind: "spell-slot";
+      spellSlotLevel: number;
+    };
+
+export type DruidWildShapeRules = {
+  knownForms: number;
+  maxCr: number;
+  maxCrLabel: string;
+  allowFlySpeed: boolean;
+};
+
+export type DruidNatureMagicianOption = {
+  wildShapeCost: number;
+  spellSlotLevel: number;
+};
 
 function getDruidFeatureRow(level: number) {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
@@ -62,28 +118,362 @@ function hasDruidFeature(
   return getUnlockedDruidFeatures(character.level).has(feature);
 }
 
-function getDruidWisdomModifier(
-  character: Pick<Character, "abilities">
+function hasCircleOfTheLandSpellsFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheLandSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level))) >= 3
+  );
+}
+
+function hasDruidNaturalRecoveryFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheLandSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level))) >= 6
+  );
+}
+
+function hasCircleOfTheMoonSpellsFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheMoonSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level))) >= 3
+  );
+}
+
+function hasCircleOfTheSeaSpellsFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheSeaSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level))) >= 3
+  );
+}
+
+function hasWrathOfTheSeaFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return hasCircleOfTheSeaSpellsFeature(character);
+}
+
+function hasCircleFormsFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheMoonSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level))) >= 3
+  );
+}
+
+function hasImprovedCircleFormsFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheMoonSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level))) >= 6
+  );
+}
+
+function hasDruidNaturesSanctuaryFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheLandSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level))) >= 14
+  );
+}
+
+function hasMoonlightStepFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheMoonSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level))) >= 10
+  );
+}
+
+function getDruidWisdomModifier(character: Partial<Pick<Character, "abilities">>): number {
+  return Math.floor((Math.max(1, Math.floor(character.abilities?.WIS ?? 10)) - 10) / 2);
+}
+
+function getWildShapeRulesForLevel(level: number): DruidWildShapeRules | null {
+  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
+
+  if (normalizedLevel < 2) {
+    return null;
+  }
+
+  if (normalizedLevel >= 8) {
+    return {
+      knownForms: 8,
+      maxCr: 1,
+      maxCrLabel: "1",
+      allowFlySpeed: true
+    };
+  }
+
+  if (normalizedLevel >= 4) {
+    return {
+      knownForms: 6,
+      maxCr: 0.5,
+      maxCrLabel: "1/2",
+      allowFlySpeed: false
+    };
+  }
+
+  return {
+    knownForms: 4,
+    maxCr: 0.25,
+    maxCrLabel: "1/4",
+    allowFlySpeed: false
+  };
+}
+
+function getWildShapeRulesForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): DruidWildShapeRules | null {
+  if (!hasDruidFeature(character, CLASS_FEATURE.WILD_SHAPE)) {
+    return null;
+  }
+
+  const baseRules = getWildShapeRulesForLevel(character.level);
+
+  if (!baseRules) {
+    return null;
+  }
+
+  if (!hasCircleFormsFeature(character)) {
+    return baseRules;
+  }
+
+  const maxCr = Math.max(1, Math.floor(character.level / 3));
+
+  return {
+    ...baseRules,
+    maxCr,
+    maxCrLabel: String(maxCr)
+  };
+}
+
+function getDruidWildShapeTemporaryHitPoints(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): number {
-  return Math.floor((Math.max(1, Math.floor(character.abilities.WIS)) - 10) / 2);
+  const normalizedLevel = Math.max(1, Math.floor(character.level));
+
+  return hasCircleFormsFeature(character) ? normalizedLevel * 3 : normalizedLevel;
+}
+
+function getDruidWrathOfTheSeaAuraRangeFeet(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  if (!hasWrathOfTheSeaFeature(character)) {
+    return 0;
+  }
+
+  return character.level >= 6 ? 10 : 5;
+}
+
+function hasFlySpeed(speed: MonsterRecord["speed"] | null | undefined): boolean {
+  if (!speed || typeof speed !== "object") {
+    return false;
+  }
+
+  return Object.entries(speed).some(([key, value]) => {
+    if (key.trim().toLowerCase() !== "fly") {
+      return false;
+    }
+
+    if (typeof value === "boolean") {
+      return value;
+    }
+
+    if (typeof value === "number") {
+      return value > 0;
+    }
+
+    return value.trim().length > 0;
+  });
+}
+
+function isMonsterRecordCandidate(value: unknown): value is MonsterRecord {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const record = value as Partial<MonsterRecord>;
+  return (
+    typeof record.slug === "string" &&
+    record.slug.trim().length > 0 &&
+    typeof record.name === "string" &&
+    record.name.trim().length > 0
+  );
+}
+
+function getMonsterType(value: MonsterRecord): string {
+  return typeof value.type === "string" ? value.type.trim().toLowerCase() : "";
+}
+
+function createDruidWildShapeStatusSourceId(monsterSlug: string): string {
+  return `${druidWildShapeStatusSourceIdPrefix}${monsterSlug}`;
+}
+
+function pruneDruidWildShapeStatusOverrides(
+  statusEntries: Character["statusEntries"]
+): ReturnType<typeof normalizeCharacterStatusEntries> {
+  return normalizeCharacterStatusEntries(statusEntries).filter(
+    (entry) => !isDruidWildShapeStatusSourceId(entry.sourceId)
+  );
+}
+
+function getDruidWildShapeState(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): CharacterDruidFeatureState {
+  return normalizeDruidFeatureState(character.classFeatureState?.druid, character);
+}
+
+function getDruidWildCompanionDescription() {
+  return druidFeatureMap[CLASS_FEATURE.WILD_COMPANION]?.description ?? [];
+}
+
+function getDruidWildResurgenceDescription() {
+  return druidFeatureMap[CLASS_FEATURE.WILD_RESURGENCE]?.description ?? [];
+}
+
+function getDruidSpellSlotsRemaining(
+  character: Pick<Character, "className" | "level" | "spellSlotsExpended">
+): number[] {
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
+
+  return spellSlotTotals.map((total, index) =>
+    Math.max(0, total - (spellSlotsExpended[index] ?? 0))
+  );
+}
+
+function getWildShapeKnownFormsForState(
+  record: Partial<CharacterDruidFeatureState>,
+  knownFormLimit: number
+): MonsterRecord[] | undefined {
+  return Array.isArray(record.wildShapeKnownForms)
+    ? record.wildShapeKnownForms
+        .filter(isMonsterRecordCandidate)
+        .filter(
+          (monster, index, monsters) =>
+            monsters.findIndex(({ slug }) => slug === monster.slug) === index
+        )
+        .slice(0, knownFormLimit)
+    : undefined;
+}
+
+function getWildShapeActiveFormForState(
+  record: Partial<CharacterDruidFeatureState>
+): MonsterRecord | undefined {
+  return isMonsterRecordCandidate(record.wildShapeActiveForm)
+    ? record.wildShapeActiveForm
+    : undefined;
 }
 
 export function normalizeDruidFeatureState(
   value: unknown,
-  character: Pick<Character, "className" | "level">
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
 ): CharacterDruidFeatureState {
-  if (!hasDruidFeature(character, CLASS_FEATURE.PRIMAL_ORDER)) {
+  const hasPrimalOrder = hasDruidFeature(character, CLASS_FEATURE.PRIMAL_ORDER);
+  const hasCircleOfTheLandSpells = hasCircleOfTheLandSpellsFeature(character);
+  const wildShapeRules = getWildShapeRulesForCharacter(character);
+  const hasMoonlightStep = hasMoonlightStepFeature(character);
+  const hasNaturalRecovery = hasDruidNaturalRecoveryFeature(character);
+  const hasElementalFury = hasDruidFeature(character, CLASS_FEATURE.ELEMENTAL_FURY);
+  const hasWildResurgence = hasDruidFeature(character, CLASS_FEATURE.WILD_RESURGENCE);
+  const hasArchdruid = hasDruidFeature(character, CLASS_FEATURE.ARCHDRUID);
+
+  if (
+    !hasPrimalOrder &&
+    !wildShapeRules &&
+    !hasCircleOfTheLandSpells &&
+    !hasMoonlightStep &&
+    !hasNaturalRecovery &&
+    !hasElementalFury &&
+    !hasWildResurgence &&
+    !hasArchdruid
+  ) {
     return {};
   }
 
   const record =
     value && typeof value === "object" ? (value as Partial<CharacterDruidFeatureState>) : {};
+  const wildShapeUsesTotal = wildShapeRules
+    ? Math.max(0, Math.floor(getDruidFeatureRow(character.level)?.wildShape ?? 0))
+    : 0;
+  const moonlightStepUsesTotal = hasMoonlightStep
+    ? Math.max(1, getDruidWisdomModifier(character))
+    : 0;
+  const normalizedWildShapeKnownForms = wildShapeRules
+    ? getWildShapeKnownFormsForState(record, wildShapeRules.knownForms)
+    : undefined;
+  const normalizedWildShapeActiveForm = wildShapeRules
+    ? getWildShapeActiveFormForState(record)
+    : undefined;
 
   return {
     primalOrderChoice:
-      record.primalOrderChoice === "magician" || record.primalOrderChoice === "warden"
+      hasPrimalOrder &&
+      (record.primalOrderChoice === "magician" || record.primalOrderChoice === "warden")
         ? record.primalOrderChoice
-        : undefined
+        : undefined,
+    circleOfTheLandChoice:
+      hasCircleOfTheLandSpells &&
+      (record.circleOfTheLandChoice === "arid" ||
+        record.circleOfTheLandChoice === "polar" ||
+        record.circleOfTheLandChoice === "temperate" ||
+        record.circleOfTheLandChoice === "tropical")
+        ? record.circleOfTheLandChoice
+        : undefined,
+    elementalFuryChoice:
+      hasElementalFury &&
+      (record.elementalFuryChoice === "potent-spellcasting" ||
+        record.elementalFuryChoice === "primal-strike")
+        ? record.elementalFuryChoice
+        : undefined,
+    wildShapeKnownForms: wildShapeRules ? normalizedWildShapeKnownForms : undefined,
+    wildShapeUsesExpended: wildShapeRules
+      ? Math.floor(clampNumber(record.wildShapeUsesExpended, 0, wildShapeUsesTotal, 0))
+      : undefined,
+    moonlightStepUsesExpended: hasMoonlightStep
+      ? Math.floor(clampNumber(record.moonlightStepUsesExpended, 0, moonlightStepUsesTotal, 0))
+      : undefined,
+    naturalRecoveryUsesExpended: hasNaturalRecovery
+      ? Math.floor(clampNumber(record.naturalRecoveryUsesExpended, 0, 1, 0))
+      : undefined,
+    primalStrikeUsedThisTurn: hasElementalFury
+      ? record.primalStrikeUsedThisTurn === true
+      : undefined,
+    wildResurgenceSpellSlotRecoveryUsesExpended: hasWildResurgence
+      ? Math.floor(clampNumber(record.wildResurgenceSpellSlotRecoveryUsesExpended, 0, 1, 0))
+      : undefined,
+    wildResurgenceWildShapeRecoveryUsedThisTurn: hasWildResurgence
+      ? record.wildResurgenceWildShapeRecoveryUsedThisTurn === true
+      : undefined,
+    natureMagicianUsesExpended: hasArchdruid
+      ? Math.floor(clampNumber(record.natureMagicianUsesExpended, 0, 1, 0))
+      : undefined,
+    wildShapeActiveForm: wildShapeRules ? normalizedWildShapeActiveForm : undefined
   };
 }
 
@@ -94,8 +484,37 @@ export function getDruidPrimalOrderChoice(
     return null;
   }
 
-  return normalizeDruidFeatureState(character.classFeatureState?.druid, character)
-    .primalOrderChoice ?? null;
+  return (
+    normalizeDruidFeatureState(character.classFeatureState?.druid, character).primalOrderChoice ??
+    null
+  );
+}
+
+export function getDruidCircleOfTheLandChoice(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): DruidCircleOfTheLandChoice | null {
+  if (!hasCircleOfTheLandSpellsFeature(character)) {
+    return null;
+  }
+
+  return (
+    normalizeDruidFeatureState(character.classFeatureState?.druid, character)
+      .circleOfTheLandChoice ?? null
+  );
+}
+
+export function getDruidElementalFuryChoice(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): DruidElementalFuryChoice | null {
+  if (!hasDruidFeature(character, CLASS_FEATURE.ELEMENTAL_FURY)) {
+    return null;
+  }
+
+  return (
+    normalizeDruidFeatureState(character.classFeatureState?.druid, character).elementalFuryChoice ??
+    null
+  );
 }
 
 export function setDruidPrimalOrderChoice(
@@ -118,10 +537,1372 @@ export function setDruidPrimalOrderChoice(
   };
 }
 
+export function setDruidCircleOfTheLandChoice(
+  character: Character,
+  circleOfTheLandChoice: DruidCircleOfTheLandChoice
+): Character {
+  if (!hasCircleOfTheLandSpellsFeature(character)) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...normalizeDruidFeatureState(character.classFeatureState?.druid, character),
+        circleOfTheLandChoice
+      }
+    }
+  };
+}
+
+export function setDruidElementalFuryChoice(
+  character: Character,
+  elementalFuryChoice: DruidElementalFuryChoice
+): Character {
+  if (!hasDruidFeature(character, CLASS_FEATURE.ELEMENTAL_FURY)) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...normalizeDruidFeatureState(character.classFeatureState?.druid, character),
+        elementalFuryChoice
+      }
+    }
+  };
+}
+
+export function getDruidWildShapeRules(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): DruidWildShapeRules | null {
+  return getWildShapeRulesForCharacter(character);
+}
+
+export function getDruidWildShapeUsesTotal(
+  character: Pick<Character, "className" | "level">
+): number {
+  if (!hasDruidFeature(character, CLASS_FEATURE.WILD_SHAPE)) {
+    return 0;
+  }
+
+  return Math.max(0, Math.floor(getDruidFeatureRow(character.level)?.wildShape ?? 0));
+}
+
+export function getDruidWildShapeUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  const totalUses = getDruidWildShapeUsesTotal(character);
+
+  if (totalUses <= 0) {
+    return 0;
+  }
+
+  return Math.max(0, totalUses - (getDruidWildShapeState(character).wildShapeUsesExpended ?? 0));
+}
+
+export function getDruidMoonlightStepUsesTotal(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
+): number {
+  return hasMoonlightStepFeature(character) ? Math.max(1, getDruidWisdomModifier(character)) : 0;
+}
+
+export function getDruidMoonlightStepUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
+): number {
+  const totalUses = getDruidMoonlightStepUsesTotal(character);
+
+  if (totalUses <= 0) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    totalUses - (getDruidWildShapeState(character).moonlightStepUsesExpended ?? 0)
+  );
+}
+
+export function getDruidMoonlightStepFallbackSlotLevel(
+  character: Pick<Character, "className" | "level" | "spellSlotsExpended">
+): number | null {
+  const spellSlotsRemaining = getDruidSpellSlotsRemaining(character);
+
+  for (let slotLevel = 2; slotLevel <= 9; slotLevel += 1) {
+    if ((spellSlotsRemaining[slotLevel - 1] ?? 0) > 0) {
+      return slotLevel;
+    }
+  }
+
+  return null;
+}
+
+export function getDruidMoonlightStepFallbackSlotSummary(
+  character: Pick<Character, "className" | "level" | "spellSlotsExpended">
+): { remaining: number; total: number } {
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotsRemaining = getDruidSpellSlotsRemaining(character);
+
+  return spellSlotTotals.reduce(
+    (summary, total, index) => {
+      const slotLevel = index + 1;
+
+      if (slotLevel < 2) {
+        return summary;
+      }
+
+      return {
+        remaining: summary.remaining + (spellSlotsRemaining[index] ?? 0),
+        total: summary.total + total
+      };
+    },
+    { remaining: 0, total: 0 }
+  );
+}
+
+export function getDruidNatureMagicianUsesTotal(
+  character: Pick<Character, "className" | "level">
+): number {
+  return hasDruidFeature(character, CLASS_FEATURE.ARCHDRUID) ? 1 : 0;
+}
+
+export function getDruidNaturalRecoveryUsesTotal(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return hasDruidNaturalRecoveryFeature(character) ? 1 : 0;
+}
+
+export function getDruidNaturalRecoveryUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  const totalUses = getDruidNaturalRecoveryUsesTotal(character);
+
+  if (totalUses <= 0) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    totalUses - (getDruidWildShapeState(character).naturalRecoveryUsesExpended ?? 0)
+  );
+}
+
+export function getDruidNatureMagicianUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  const totalUses = getDruidNatureMagicianUsesTotal(character);
+
+  if (totalUses <= 0) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    totalUses - (getDruidWildShapeState(character).natureMagicianUsesExpended ?? 0)
+  );
+}
+
+export function getDruidWildResurgenceSpellSlotRecoveryUsesTotal(
+  character: Pick<Character, "className" | "level">
+): number {
+  return hasDruidFeature(character, CLASS_FEATURE.WILD_RESURGENCE) ? 1 : 0;
+}
+
+export function getDruidWildResurgenceSpellSlotRecoveryUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  const totalUses = getDruidWildResurgenceSpellSlotRecoveryUsesTotal(character);
+
+  if (totalUses <= 0) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    totalUses - (getDruidWildShapeState(character).wildResurgenceSpellSlotRecoveryUsesExpended ?? 0)
+  );
+}
+
+export function getDruidWildResurgenceAvailableSpellSlotLevels(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended">
+): number[] {
+  if (
+    !hasDruidFeature(character, CLASS_FEATURE.WILD_RESURGENCE) ||
+    getDruidWildShapeUsesRemaining(character) > 0 ||
+    getDruidWildShapeState(character).wildResurgenceWildShapeRecoveryUsedThisTurn === true
+  ) {
+    return [];
+  }
+
+  return getDruidSpellSlotsRemaining(character).flatMap((remainingSlots, index) =>
+    remainingSlots > 0 ? [index + 1] : []
+  );
+}
+
+export function getDruidWildCompanionAvailableSpellSlotLevels(
+  character: Pick<Character, "className" | "level" | "spellSlotsExpended">
+): number[] {
+  if (!hasDruidFeature(character, CLASS_FEATURE.WILD_COMPANION)) {
+    return [];
+  }
+
+  return getDruidSpellSlotsRemaining(character).flatMap((remainingSlots, index) =>
+    remainingSlots > 0 ? [index + 1] : []
+  );
+}
+
+export function getDruidWildShapeKnownForms(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): MonsterRecord[] {
+  return getDruidWildShapeState(character).wildShapeKnownForms ?? [];
+}
+
+export function getDruidWildShapeActiveForm(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): MonsterRecord | null {
+  return getDruidWildShapeState(character).wildShapeActiveForm ?? null;
+}
+
+export function getDruidSavingThrowBonuses(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>,
+  ability: AbilityKey
+): FeatureSavingThrowBonus[] {
+  if (
+    ability !== "CON" ||
+    !hasImprovedCircleFormsFeature(character) ||
+    !getDruidWildShapeActiveForm(character)
+  ) {
+    return [];
+  }
+
+  return [
+    {
+      label: "WIS Modifier (Improved Circle Forms)",
+      abilityModifierSource: "WIS"
+    }
+  ];
+}
+
+export function getDruidNatureMagicianOptions(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended">
+): DruidNatureMagicianOption[] {
+  if (!hasDruidFeature(character, CLASS_FEATURE.ARCHDRUID)) {
+    return [];
+  }
+
+  const wildShapeUsesRemaining = getDruidWildShapeUsesRemaining(character);
+
+  if (wildShapeUsesRemaining <= 0) {
+    return [];
+  }
+
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
+
+  return Array.from({ length: wildShapeUsesRemaining }, (_, index) => index + 1)
+    .map((wildShapeCost) => ({
+      wildShapeCost,
+      spellSlotLevel: wildShapeCost * 2
+    }))
+    .filter(({ spellSlotLevel }) => {
+      const totalSlots = spellSlotTotals[spellSlotLevel - 1] ?? 0;
+      const expendedSlots = spellSlotsExpended[spellSlotLevel - 1] ?? 0;
+
+      return totalSlots > 0 && expendedSlots > 0;
+    });
+}
+
+export function setDruidWildShapeKnownForms(
+  character: Character,
+  wildShapeKnownForms: MonsterRecord[]
+): Character {
+  const wildShapeRules = getDruidWildShapeRules(character);
+
+  if (!wildShapeRules) {
+    return character;
+  }
+
+  const normalizedKnownForms = wildShapeKnownForms
+    .filter(
+      (monster, index, monsters) =>
+        monsters.findIndex(({ slug }) => slug === monster.slug) === index
+    )
+    .slice(0, wildShapeRules.knownForms);
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...getDruidWildShapeState(character),
+        wildShapeKnownForms: normalizedKnownForms
+      }
+    }
+  };
+}
+
+export function restoreOneDruidWildShapeUse(character: Character): Character {
+  const wildShapeState = getDruidWildShapeState(character);
+  const wildShapeUsesExpended = wildShapeState.wildShapeUsesExpended ?? 0;
+
+  if (getDruidWildShapeUsesTotal(character) <= 0 || wildShapeUsesExpended <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...wildShapeState,
+        wildShapeUsesExpended: wildShapeUsesExpended - 1
+      }
+    }
+  };
+}
+
+export function restoreAllDruidWildShapeUses(character: Character): Character {
+  const wildShapeState = getDruidWildShapeState(character);
+
+  if (
+    getDruidWildShapeUsesTotal(character) <= 0 ||
+    (wildShapeState.wildShapeUsesExpended ?? 0) <= 0
+  ) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...wildShapeState,
+        wildShapeUsesExpended: 0
+      }
+    }
+  };
+}
+
+export function restoreDruidMoonlightStepOnLongRest(character: Character): Character {
+  const druidState = getDruidWildShapeState(character);
+
+  if (
+    getDruidMoonlightStepUsesTotal(character) <= 0 ||
+    (druidState.moonlightStepUsesExpended ?? 0) <= 0
+  ) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...druidState,
+        moonlightStepUsesExpended: 0
+      }
+    }
+  };
+}
+
+export function restoreDruidNatureMagicianOnLongRest(character: Character): Character {
+  const druidState = getDruidWildShapeState(character);
+
+  if (
+    getDruidNatureMagicianUsesTotal(character) <= 0 ||
+    (druidState.natureMagicianUsesExpended ?? 0) <= 0
+  ) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...druidState,
+        natureMagicianUsesExpended: 0
+      }
+    }
+  };
+}
+
+export function restoreDruidNaturalRecoveryOnLongRest(character: Character): Character {
+  const druidState = getDruidWildShapeState(character);
+
+  if (
+    getDruidNaturalRecoveryUsesTotal(character) <= 0 ||
+    (druidState.naturalRecoveryUsesExpended ?? 0) <= 0
+  ) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...druidState,
+        naturalRecoveryUsesExpended: 0
+      }
+    }
+  };
+}
+
+export function restoreDruidWildResurgenceOnLongRest(character: Character): Character {
+  const druidState = getDruidWildShapeState(character);
+
+  if (
+    getDruidWildResurgenceSpellSlotRecoveryUsesTotal(character) <= 0 &&
+    druidState.wildResurgenceWildShapeRecoveryUsedThisTurn !== true
+  ) {
+    return character;
+  }
+
+  if (
+    (druidState.wildResurgenceSpellSlotRecoveryUsesExpended ?? 0) <= 0 &&
+    druidState.wildResurgenceWildShapeRecoveryUsedThisTurn !== true
+  ) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...druidState,
+        wildResurgenceSpellSlotRecoveryUsesExpended: 0,
+        wildResurgenceWildShapeRecoveryUsedThisTurn: false
+      }
+    }
+  };
+}
+
+export function markDruidPrimalStrikeUsed(character: Character): Character {
+  if (
+    getDruidElementalFuryChoice(character) !== "primal-strike" ||
+    getDruidWildShapeState(character).primalStrikeUsedThisTurn === true
+  ) {
+    return character;
+  }
+
+  const druidState = getDruidWildShapeState(character);
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...druidState,
+        primalStrikeUsedThisTurn: true
+      }
+    }
+  };
+}
+
+export function consumeDruidNaturalRecoveryUse(character: Character): Character {
+  const usesRemaining = getDruidNaturalRecoveryUsesRemaining(character);
+
+  if (usesRemaining <= 0) {
+    return character;
+  }
+
+  const druidState = getDruidWildShapeState(character);
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...druidState,
+        naturalRecoveryUsesExpended: Math.min(
+          getDruidNaturalRecoveryUsesTotal(character),
+          (druidState.naturalRecoveryUsesExpended ?? 0) + 1
+        )
+      }
+    }
+  };
+}
+
+export function expendOneDruidWildShapeUse(character: Character): Character {
+  const totalUses = getDruidWildShapeUsesTotal(character);
+  const wildShapeState = getDruidWildShapeState(character);
+  const wildShapeUsesExpended = wildShapeState.wildShapeUsesExpended ?? 0;
+
+  if (totalUses <= 0 || wildShapeUsesExpended >= totalUses) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...wildShapeState,
+        wildShapeUsesExpended: wildShapeUsesExpended + 1
+      }
+    }
+  };
+}
+
+export function applyArchdruidOnInitiative(character: Character): Character {
+  if (
+    !hasDruidFeature(character, CLASS_FEATURE.ARCHDRUID) ||
+    getDruidWildShapeUsesRemaining(character) > 0
+  ) {
+    return character;
+  }
+
+  return restoreOneDruidWildShapeUse(character);
+}
+
+export function activateDruidWildResurgenceWildShapeRecovery(
+  character: Character,
+  spellSlotLevel: number
+): Character {
+  const normalizedSpellSlotLevel = Math.max(1, Math.floor(spellSlotLevel));
+  const availableSpellSlotLevels = getDruidWildResurgenceAvailableSpellSlotLevels(character);
+
+  if (!availableSpellSlotLevels.includes(normalizedSpellSlotLevel)) {
+    return character;
+  }
+
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
+  const nextSpellSlotsExpended = [...spellSlotsExpended];
+  nextSpellSlotsExpended[normalizedSpellSlotLevel - 1] =
+    (nextSpellSlotsExpended[normalizedSpellSlotLevel - 1] ?? 0) + 1;
+  const nextCharacter = restoreOneDruidWildShapeUse({
+    ...character,
+    spellSlotsExpended: nextSpellSlotsExpended
+  });
+  const nextDruidState = getDruidWildShapeState(nextCharacter);
+
+  return {
+    ...nextCharacter,
+    classFeatureState: {
+      ...nextCharacter.classFeatureState,
+      druid: {
+        ...nextDruidState,
+        wildResurgenceWildShapeRecoveryUsedThisTurn: true
+      }
+    }
+  };
+}
+
+export function activateDruidWildResurgenceLevelOneSpellSlotRecovery(
+  character: Character
+): Character {
+  const usesRemaining = getDruidWildResurgenceSpellSlotRecoveryUsesRemaining(character);
+  const wildShapeUsesRemaining = getDruidWildShapeUsesRemaining(character);
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
+
+  if (
+    usesRemaining <= 0 ||
+    wildShapeUsesRemaining <= 0 ||
+    (spellSlotTotals[0] ?? 0) <= 0 ||
+    (spellSlotsExpended[0] ?? 0) <= 0
+  ) {
+    return character;
+  }
+
+  const nextCharacter = expendOneDruidWildShapeUse(character);
+  const nextDruidState = getDruidWildShapeState(nextCharacter);
+  const nextSpellSlotsExpended = normalizeSpellSlotsExpended(
+    nextCharacter.spellSlotsExpended,
+    spellSlotTotals
+  );
+  nextSpellSlotsExpended[0] = Math.max(0, (nextSpellSlotsExpended[0] ?? 0) - 1);
+
+  return {
+    ...nextCharacter,
+    spellSlotsExpended: nextSpellSlotsExpended,
+    classFeatureState: {
+      ...nextCharacter.classFeatureState,
+      druid: {
+        ...nextDruidState,
+        wildResurgenceSpellSlotRecoveryUsesExpended: Math.min(
+          getDruidWildResurgenceSpellSlotRecoveryUsesTotal(nextCharacter),
+          (nextDruidState.wildResurgenceSpellSlotRecoveryUsesExpended ?? 0) + 1
+        )
+      }
+    }
+  };
+}
+
+export function activateDruidWildCompanion(
+  character: Character,
+  activation: DruidWildCompanionActivation
+): Character {
+  if (activation.kind === "wild-shape") {
+    if (getDruidWildShapeUsesRemaining(character) <= 0) {
+      return character;
+    }
+
+    return expendOneDruidWildShapeUse(character);
+  }
+
+  const availableSpellSlotLevels = getDruidWildCompanionAvailableSpellSlotLevels(character);
+
+  if (!availableSpellSlotLevels.includes(activation.spellSlotLevel)) {
+    return character;
+  }
+
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
+  const nextSpellSlotsExpended = [...spellSlotsExpended];
+  nextSpellSlotsExpended[activation.spellSlotLevel - 1] =
+    (nextSpellSlotsExpended[activation.spellSlotLevel - 1] ?? 0) + 1;
+
+  return {
+    ...character,
+    spellSlotsExpended: nextSpellSlotsExpended
+  };
+}
+
+export function activateDruidLandsAid(character: Character): Character {
+  if (!hasCircleOfTheLandSpellsFeature(character)) {
+    return character;
+  }
+
+  return expendOneDruidWildShapeUse(character);
+}
+
+export function activateDruidMoonlightStep(character: Character): Character {
+  if (!hasMoonlightStepFeature(character)) {
+    return character;
+  }
+
+  const usesRemaining = getDruidMoonlightStepUsesRemaining(character);
+
+  if (usesRemaining > 0) {
+    const druidState = getDruidWildShapeState(character);
+
+    return {
+      ...character,
+      classFeatureState: {
+        ...character.classFeatureState,
+        druid: {
+          ...druidState,
+          moonlightStepUsesExpended: Math.min(
+            getDruidMoonlightStepUsesTotal(character),
+            (druidState.moonlightStepUsesExpended ?? 0) + 1
+          )
+        }
+      }
+    };
+  }
+
+  const fallbackSlotLevel = getDruidMoonlightStepFallbackSlotLevel(character);
+
+  if (fallbackSlotLevel === null) {
+    return character;
+  }
+
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
+  const nextSpellSlotsExpended = [...spellSlotsExpended];
+  nextSpellSlotsExpended[fallbackSlotLevel - 1] =
+    (nextSpellSlotsExpended[fallbackSlotLevel - 1] ?? 0) + 1;
+
+  return {
+    ...character,
+    spellSlotsExpended: nextSpellSlotsExpended
+  };
+}
+
+export function activateDruidNaturesSanctuary(character: Character): Character {
+  if (
+    !hasDruidNaturesSanctuaryFeature(character) ||
+    getDruidWildShapeUsesRemaining(character) <= 0
+  ) {
+    return character;
+  }
+
+  const nextCharacter = expendOneDruidWildShapeUse(character);
+  const nextStatusEntries = normalizeCharacterStatusEntries(nextCharacter.statusEntries).filter(
+    (entry) => entry.sourceId !== druidNaturesSanctuaryStatusSourceId
+  );
+
+  return {
+    ...nextCharacter,
+    statusEntries: [
+      ...nextStatusEntries,
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: "Nature's Sanctuary",
+        source: "Circle of the Land",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+        duration: {
+          kind: STATUS_DURATION_KIND.ROUNDS,
+          amount: 10,
+          tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
+        },
+        sourceId: druidNaturesSanctuaryStatusSourceId
+      })
+    ]
+  };
+}
+
+export function activateDruidWrathOfTheSea(character: Character): Character {
+  if (!hasWrathOfTheSeaFeature(character) || getDruidWildShapeUsesRemaining(character) <= 0) {
+    return character;
+  }
+
+  const nextCharacter = expendOneDruidWildShapeUse(character);
+  const nextStatusEntries = normalizeCharacterStatusEntries(nextCharacter.statusEntries).filter(
+    (entry) => entry.sourceId !== druidWrathOfTheSeaStatusSourceId
+  );
+
+  return {
+    ...nextCharacter,
+    statusEntries: [
+      ...nextStatusEntries,
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.AURAS,
+        value: "Wrath of the Sea",
+        source: "Wrath of the Sea",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+        duration: {
+          kind: STATUS_DURATION_KIND.MINUTES,
+          amount: 10
+        },
+        sourceId: druidWrathOfTheSeaStatusSourceId,
+        rangeFeet: getDruidWrathOfTheSeaAuraRangeFeet(nextCharacter)
+      })
+    ]
+  };
+}
+
+export function activateDruidNatureMagician(
+  character: Character,
+  wildShapeCost: number
+): Character {
+  const natureMagicianUsesRemaining = getDruidNatureMagicianUsesRemaining(character);
+  const normalizedWildShapeCost = Math.max(0, Math.floor(wildShapeCost));
+
+  if (natureMagicianUsesRemaining <= 0 || normalizedWildShapeCost <= 0) {
+    return character;
+  }
+
+  const option = getDruidNatureMagicianOptions(character).find(
+    (candidate) => candidate.wildShapeCost === normalizedWildShapeCost
+  );
+
+  if (!option || getDruidWildShapeUsesRemaining(character) < normalizedWildShapeCost) {
+    return character;
+  }
+
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
+  const targetIndex = option.spellSlotLevel - 1;
+
+  if ((spellSlotsExpended[targetIndex] ?? 0) <= 0) {
+    return character;
+  }
+
+  let nextCharacter = character;
+
+  for (let spendCount = 0; spendCount < normalizedWildShapeCost; spendCount += 1) {
+    nextCharacter = expendOneDruidWildShapeUse(nextCharacter);
+  }
+
+  const nextDruidState = getDruidWildShapeState(nextCharacter);
+  const nextSpellSlotsExpended = normalizeSpellSlotsExpended(
+    nextCharacter.spellSlotsExpended,
+    spellSlotTotals
+  );
+  nextSpellSlotsExpended[targetIndex] = Math.max(0, (nextSpellSlotsExpended[targetIndex] ?? 0) - 1);
+
+  return {
+    ...nextCharacter,
+    spellSlotsExpended: nextSpellSlotsExpended,
+    classFeatureState: {
+      ...nextCharacter.classFeatureState,
+      druid: {
+        ...nextDruidState,
+        natureMagicianUsesExpended: Math.min(
+          getDruidNatureMagicianUsesTotal(nextCharacter),
+          (nextDruidState.natureMagicianUsesExpended ?? 0) + 1
+        )
+      }
+    }
+  };
+}
+
+export function activateDruidWildShape(character: Character, monsterSlug: string): Character {
+  const wildShapeState = getDruidWildShapeState(character);
+  const selectedMonster =
+    wildShapeState.wildShapeKnownForms?.find((monster) => monster.slug === monsterSlug) ??
+    (wildShapeState.wildShapeActiveForm?.slug === monsterSlug
+      ? wildShapeState.wildShapeActiveForm
+      : null);
+  const totalUses = getDruidWildShapeUsesTotal(character);
+  const usesRemaining = getDruidWildShapeUsesRemaining(character);
+
+  if (!selectedMonster || totalUses <= 0 || usesRemaining <= 0) {
+    return character;
+  }
+
+  const nextTemporaryHitPointsAssignment = swapTemporaryHitPointsAssignment(
+    character.temporaryHitPoints,
+    character.temporaryHitPointsSource,
+    getDruidWildShapeTemporaryHitPoints(character),
+    druidWildShapeSource
+  );
+
+  return {
+    ...character,
+    ...nextTemporaryHitPointsAssignment,
+    statusEntries: pruneDruidWildShapeStatusOverrides(character.statusEntries),
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...wildShapeState,
+        wildShapeUsesExpended: Math.min(totalUses, (wildShapeState.wildShapeUsesExpended ?? 0) + 1),
+        wildShapeActiveForm: selectedMonster
+      }
+    }
+  };
+}
+
+export function deactivateDruidWildShape(character: Character): Character {
+  const wildShapeState = getDruidWildShapeState(character);
+  const nextStatusEntries = pruneDruidWildShapeStatusOverrides(character.statusEntries);
+  const removedOverrideEntries =
+    nextStatusEntries.length !== normalizeCharacterStatusEntries(character.statusEntries).length;
+
+  if (!wildShapeState.wildShapeActiveForm && !removedOverrideEntries) {
+    return character;
+  }
+
+  return {
+    ...character,
+    statusEntries: nextStatusEntries,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...wildShapeState,
+        wildShapeActiveForm: undefined
+      }
+    }
+  };
+}
+
+export function isDruidWildShapeStatusSourceId(value: unknown): value is string {
+  return typeof value === "string" && value.startsWith(druidWildShapeStatusSourceIdPrefix);
+}
+
+export function getDruidDerivedStatusEntries(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): DerivedFeatureStatusEntry[] {
+  const activeForm = getDruidWildShapeActiveForm(character);
+
+  if (!activeForm) {
+    return [];
+  }
+
+  const sourceId = createDruidWildShapeStatusSourceId(activeForm.slug);
+
+  return [
+    {
+      id: sourceId,
+      group: STATUS_ENTRY_GROUP.EFFECTS,
+      value: activeForm.name,
+      source: druidWildShapeSource,
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.HOURS,
+        amount: Math.max(1, Math.floor(character.level / 2))
+      },
+      sourceId,
+      rangeFeet: null
+    }
+  ];
+}
+
+function getDruidWildShapeAction(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): FeatureActionCard | null {
+  if (!hasDruidFeature(character, CLASS_FEATURE.WILD_SHAPE)) {
+    return null;
+  }
+
+  const totalUses = getDruidWildShapeUsesTotal(character);
+  const usesRemaining = getDruidWildShapeUsesRemaining(character);
+  const knownForms = getDruidWildShapeKnownForms(character);
+  const activeForm = getDruidWildShapeActiveForm(character);
+
+  return {
+    key: druidWildShapeActionKey,
+    name: "Wild Shape",
+    summary:
+      knownForms.length > 0
+        ? "Shape-shift into one of your learned beast forms."
+        : "Choose beast forms in Class Features.",
+    detail:
+      knownForms.length > 0
+        ? "Choose one of your learned beast forms and shape-shift as a Bonus Action."
+        : "Choose beast forms in Class Features before you shape-shift.",
+    breakdown: activeForm ? `Current form: ${activeForm.name}` : undefined,
+    description: [],
+    economyType: ECONOMY_TYPE.BONUS_ACTION,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    usesRemaining,
+    usesTotal: totalUses,
+    hideUsesTrackerOnCard: true,
+    usesInlineLabel: "Use 1",
+    usesInlineIcon: "paw",
+    resources: [
+      {
+        kind: "tracker",
+        label: "Uses",
+        current: usesRemaining,
+        total: totalUses,
+        icon: "paw",
+        cost: 1
+      }
+    ],
+    drawer: {
+      kind: "custom-form",
+      eyebrow: "Druid",
+      formKind: "wild-shape"
+    },
+    execute: {
+      kind: "custom-form",
+      formKind: "wild-shape",
+      label: "Shape Shift"
+    },
+    disabled: usesRemaining <= 0,
+    disabledReason: usesRemaining <= 0 ? "No Wild Shape uses remaining." : undefined
+  };
+}
+
+function getDruidWildCompanionAction(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended">
+): FeatureActionCard | null {
+  if (!hasDruidFeature(character, CLASS_FEATURE.WILD_COMPANION)) {
+    return null;
+  }
+
+  const wildShapeUsesRemaining = getDruidWildShapeUsesRemaining(character);
+  const wildShapeUsesTotal = getDruidWildShapeUsesTotal(character);
+  const availableSpellSlotLevels = getDruidWildCompanionAvailableSpellSlotLevels(character);
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotCount = spellSlotTotals.reduce((sum, value) => sum + value, 0);
+  const remainingSpellSlotCount = getDruidSpellSlotsRemaining(character).reduce(
+    (sum, value) => sum + value,
+    0
+  );
+  const hasValidResource = wildShapeUsesRemaining > 0 || availableSpellSlotLevels.length > 0;
+
+  return {
+    key: druidWildCompanionActionKey,
+    name: "Wild Companion",
+    summary: "Cast Find Familiar with Wild Shape or a spell slot.",
+    detail: "Summon a fey familiar using Wild Shape or a spell slot.",
+    description: getDruidWildCompanionDescription(),
+    economyType: ECONOMY_TYPE.ACTION,
+    actionCategory: ACTION_CATEGORY.MAGIC,
+    hideUsesTrackerOnCard: true,
+    usesInlineLabel: "Use 1",
+    usesInlineIcon: "paw",
+    resources: [
+      {
+        kind: "text",
+        label: "Wild Shape",
+        value: `${wildShapeUsesRemaining}/${wildShapeUsesTotal}`,
+        icon: "paw"
+      },
+      ...(spellSlotCount > 0
+        ? [
+            {
+              kind: "text" as const,
+              label: "Spell Slots",
+              value: `${remainingSpellSlotCount}/${spellSlotCount}`
+            }
+          ]
+        : [])
+    ],
+    drawer: {
+      kind: "custom-form",
+      eyebrow: "Druid",
+      description: getDruidWildCompanionDescription(),
+      formKind: "wild-companion",
+      confirmLabel: "Cast",
+      resources: [
+        {
+          kind: "text",
+          label: "Wild Shape",
+          value: `${wildShapeUsesRemaining}/${wildShapeUsesTotal}`,
+          icon: "paw"
+        },
+        ...(spellSlotCount > 0
+          ? [
+              {
+                kind: "text" as const,
+                label: "Spell Slots",
+                value: `${remainingSpellSlotCount}/${spellSlotCount}`
+              }
+            ]
+          : [])
+      ]
+    },
+    execute: {
+      kind: "custom-form",
+      formKind: "wild-companion",
+      label: "Cast"
+    },
+    disabled: !hasValidResource,
+    disabledReason: !hasValidResource ? "No Wild Shape uses or spell slots available." : undefined
+  };
+}
+
+function getDruidNatureMagicianDescription() {
+  return (druidFeatureMap[CLASS_FEATURE.ARCHDRUID]?.description ?? []).filter((entry) =>
+    entry.includes("Nature Magician")
+  );
+}
+
+function getDruidWildResurgenceAction(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended">
+): FeatureActionCard | null {
+  if (!hasDruidFeature(character, CLASS_FEATURE.WILD_RESURGENCE)) {
+    return null;
+  }
+
+  const wildShapeUsesRemaining = getDruidWildShapeUsesRemaining(character);
+  const wildShapeUsesTotal = getDruidWildShapeUsesTotal(character);
+  const spellSlotRecoveryUsesRemaining =
+    getDruidWildResurgenceSpellSlotRecoveryUsesRemaining(character);
+  const spellSlotRecoveryUsesTotal = getDruidWildResurgenceSpellSlotRecoveryUsesTotal(character);
+  const availableSpellSlotLevels = getDruidWildResurgenceAvailableSpellSlotLevels(character);
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
+  const spellSlotsRemaining = getDruidSpellSlotsRemaining(character);
+  const levelOneSlotTotal = spellSlotTotals[0] ?? 0;
+  const levelOneSlotRemaining = spellSlotsRemaining[0] ?? 0;
+  const canRecoverWildShape = availableSpellSlotLevels.length > 0;
+  const canRecoverLevelOneSpellSlot =
+    spellSlotRecoveryUsesRemaining > 0 &&
+    wildShapeUsesRemaining > 0 &&
+    levelOneSlotRemaining < levelOneSlotTotal;
+  const wildResurgenceState = getDruidWildShapeState(character);
+  const disabledReason =
+    canRecoverWildShape || canRecoverLevelOneSpellSlot
+      ? undefined
+      : wildShapeUsesRemaining <= 0
+        ? wildResurgenceState.wildResurgenceWildShapeRecoveryUsedThisTurn === true
+          ? "Wild Resurgence can restore Wild Shape only once on each of your turns."
+          : "No spell slots available to convert into Wild Shape."
+        : spellSlotRecoveryUsesRemaining <= 0
+          ? "Wild Resurgence's level 1 spell slot recovery recharges on a Long Rest."
+          : levelOneSlotTotal <= 0 || levelOneSlotRemaining >= levelOneSlotTotal
+            ? "No expended level 1 spell slot to restore."
+            : "Wild Shape must be depleted before you can recover it with a spell slot.";
+
+  return {
+    key: druidWildResurgenceActionKey,
+    name: "Wild Resurgence",
+    summary: "Recover Wild Shape or a level 1 spell slot without using an action.",
+    detail: "Recover Wild Shape or a level 1 spell slot without using an action.",
+    economyType: ECONOMY_TYPE.FREE,
+    actionCategory: ACTION_CATEGORY.MAGIC,
+    usesRemaining: spellSlotRecoveryUsesRemaining,
+    usesTotal: spellSlotRecoveryUsesTotal,
+    drawer: {
+      kind: "custom-form",
+      eyebrow: "Druid",
+      description: getDruidWildResurgenceDescription(),
+      formKind: "wild-resurgence",
+      confirmLabel: "Use"
+    },
+    execute: {
+      kind: "custom-form",
+      formKind: "wild-resurgence",
+      label: "Use"
+    },
+    resources: [
+      {
+        kind: "text",
+        label: "Wild Shape",
+        value: `${wildShapeUsesRemaining}/${wildShapeUsesTotal}`,
+        icon: "paw"
+      },
+      ...(levelOneSlotTotal > 0
+        ? [
+            {
+              kind: "text" as const,
+              label: "Level 1 Slots",
+              value: `${levelOneSlotRemaining}/${levelOneSlotTotal}`
+            }
+          ]
+        : [])
+    ],
+    disabled: disabledReason !== undefined,
+    disabledReason
+  };
+}
+
+function getDruidNatureMagicianAction(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended">
+): FeatureActionCard | null {
+  if (!hasDruidFeature(character, CLASS_FEATURE.ARCHDRUID)) {
+    return null;
+  }
+
+  const usesRemaining = getDruidNatureMagicianUsesRemaining(character);
+  const usesTotal = getDruidNatureMagicianUsesTotal(character);
+  const wildShapeUsesRemaining = getDruidWildShapeUsesRemaining(character);
+  const wildShapeUsesTotal = getDruidWildShapeUsesTotal(character);
+  const natureMagicianOptions = getDruidNatureMagicianOptions(character);
+  const disabledReason =
+    usesRemaining <= 0
+      ? "Nature Magician recharges on a Long Rest."
+      : wildShapeUsesRemaining <= 0
+        ? "No Wild Shape uses remaining."
+        : natureMagicianOptions.length <= 0
+          ? "No matching expended spell slots can be restored."
+          : undefined;
+
+  return {
+    key: druidNatureMagicianActionKey,
+    name: "Nature Magician",
+    summary: "Convert Wild Shape into an expended spell slot.",
+    detail: "Convert Wild Shape into an expended spell slot.",
+    economyType: ECONOMY_TYPE.FREE,
+    actionCategory: ACTION_CATEGORY.MAGIC,
+    interaction: "select",
+    usesRemaining,
+    usesTotal,
+    drawer: {
+      kind: "custom-form",
+      eyebrow: "Druid",
+      description: getDruidNatureMagicianDescription(),
+      formKind: "nature-magician",
+      confirmLabel: "Convert"
+    },
+    execute: {
+      kind: "custom-form",
+      formKind: "nature-magician",
+      label: "Convert"
+    },
+    resources: [
+      {
+        kind: "text",
+        label: "Wild Shape",
+        value: `${wildShapeUsesRemaining}/${wildShapeUsesTotal}`,
+        icon: "paw"
+      }
+    ],
+    disabled: disabledReason !== undefined,
+    disabledReason
+  };
+}
+
+export function getDruidFeatureActions(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended">
+): FeatureActionCard[] {
+  return [
+    getDruidWildShapeAction(character),
+    getDruidWildCompanionAction(character),
+    getDruidWildResurgenceAction(character),
+    getDruidNatureMagicianAction(character)
+  ].filter((action): action is FeatureActionCard => action !== null);
+}
+
+export function applyShortRestToDruidFeatures(character: Character): Character {
+  const nextCharacter = restoreOneDruidWildShapeUse(character);
+  const druidState = getDruidWildShapeState(nextCharacter);
+
+  if (druidState.primalStrikeUsedThisTurn !== true) {
+    return nextCharacter;
+  }
+
+  return {
+    ...nextCharacter,
+    classFeatureState: {
+      ...nextCharacter.classFeatureState,
+      druid: {
+        ...druidState,
+        primalStrikeUsedThisTurn: false
+      }
+    }
+  };
+}
+
+export function applyLongRestToDruidFeatures(character: Character): Character {
+  const nextCharacter = restoreDruidNaturalRecoveryOnLongRest(
+    restoreDruidNatureMagicianOnLongRest(
+      restoreDruidMoonlightStepOnLongRest(
+        restoreDruidWildResurgenceOnLongRest(restoreAllDruidWildShapeUses(character))
+      )
+    )
+  );
+  const druidState = getDruidWildShapeState(nextCharacter);
+
+  if (druidState.primalStrikeUsedThisTurn !== true) {
+    return nextCharacter;
+  }
+
+  return {
+    ...nextCharacter,
+    classFeatureState: {
+      ...nextCharacter.classFeatureState,
+      druid: {
+        ...druidState,
+        primalStrikeUsedThisTurn: false
+      }
+    }
+  };
+}
+
+export function advanceDruidFeaturesForNewRound(character: Character): Character {
+  const druidState = getDruidWildShapeState(character);
+
+  if (
+    druidState.wildResurgenceWildShapeRecoveryUsedThisTurn !== true &&
+    druidState.primalStrikeUsedThisTurn !== true
+  ) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...druidState,
+        primalStrikeUsedThisTurn: false,
+        wildResurgenceWildShapeRecoveryUsedThisTurn: false
+      }
+    }
+  };
+}
+
+export function getDruidWildShapeIneligibilityReason(
+  monster: MonsterRecord,
+  character: Pick<Character, "className" | "level">
+): string | null {
+  const rules = getDruidWildShapeRules(character);
+
+  if (!rules) {
+    return "Wild Shape is not unlocked yet.";
+  }
+
+  if (getMonsterType(monster) !== "beast") {
+    return "Wild Shape forms must be Beasts.";
+  }
+
+  if (monster.cr > rules.maxCr) {
+    return `This form exceeds the current CR ${rules.maxCrLabel} limit.`;
+  }
+
+  if (!rules.allowFlySpeed && hasFlySpeed(monster.speed)) {
+    return "Fly Speed forms are not available yet.";
+  }
+
+  return null;
+}
+
+export function getDruidSpellcastingState(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): FeatureSpellcastingState {
+  if (!getDruidWildShapeActiveForm(character)) {
+    return {
+      blocked: false,
+      reason: null
+    };
+  }
+
+  if (hasDruidFeature(character, CLASS_FEATURE.BEAST_SPELLS)) {
+    return {
+      blocked: false,
+      reason: null
+    };
+  }
+
+  if (hasCircleOfTheMoonSpellsFeature(character)) {
+    return {
+      blocked: true,
+      reason: "Only Circle of the Moon spells can be cast while in Wild Shape."
+    };
+  }
+
+  return {
+    blocked: true,
+    reason: "Cannot use it while in Wild Shape."
+  };
+}
+
 export function getDruidCantripBonus(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): number {
   return getDruidPrimalOrderChoice(character) === "magician" ? 1 : 0;
+}
+
+export function getDruidCantripDamageBonus(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "abilities">
+): number {
+  if (getDruidElementalFuryChoice(character) !== "potent-spellcasting") {
+    return 0;
+  }
+
+  return getDruidWisdomModifier(character);
+}
+
+export function getDruidWeaponDamageBonuses(
+  character: Pick<Character, "className" | "level" | "classFeatureState">,
+  context: WeaponFeatureContext
+): FeatureDamageBonus[] {
+  const druidState = getDruidWildShapeState(character);
+
+  if (
+    getDruidElementalFuryChoice(character) !== "primal-strike" ||
+    druidState.primalStrikeUsedThisTurn === true ||
+    (context.attackKind !== "weapon" && context.attackKind !== "unarmed")
+  ) {
+    return [];
+  }
+
+  const primalStrikeFormula = hasDruidFeature(character, CLASS_FEATURE.IMPROVED_ELEMENTAL_FURY)
+    ? "2d8"
+    : "1d8";
+
+  return [
+    {
+      label: primalStrikeSource,
+      formula: primalStrikeFormula,
+      displayLabel: `${primalStrikeFormula} Cold/Fire/Lightning/Thunder`
+    }
+  ];
 }
 
 export function getDruidSkillBonuses(
@@ -222,8 +2003,6 @@ export function getDruidSpellPreparationCountForLevel(level: number): number | n
   return typeof preparedSpells === "number" ? Math.max(0, Math.floor(preparedSpells)) : null;
 }
 
-export function getDruidPrimalOrderWisdomModifier(
-  character: Pick<Character, "abilities">
-): number {
+export function getDruidPrimalOrderWisdomModifier(character: Pick<Character, "abilities">): number {
   return getDruidWisdomModifier(character);
 }

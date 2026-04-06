@@ -1,6 +1,6 @@
 .abilityEditorModal {
   width: min(640px, 100%);
-  max-height: min(84vh, 760px);
+  max-height: 100%;
   grid-template-rows: auto minmax(0, 1fr) auto;
   overflow: hidden;
 }

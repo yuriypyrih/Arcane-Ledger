@@ -4,6 +4,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   CharacterProfileForm,
   ClassFeaturesAndFeats,
+  CompanionsSection,
   CharacterStatsForm,
   EquipmentForm,
   GameplayForm,
@@ -106,24 +107,29 @@ function CharacterSheetPage() {
             className={styles.cascadeThree}
             onPersistCharacter={persistCharacter}
           />
-          <ClassFeaturesAndFeats
-            character={liveCharacter}
-            className={styles.cascadeFour}
-            onPersistCharacter={persistCharacter}
-          />
           <SkillsAndProficienciesForm
             character={liveCharacter}
             className={styles.cascadeFive}
             onPersistCharacter={persistCharacter}
           />
-          <EquipmentForm
+          <ClassFeaturesAndFeats
+            character={liveCharacter}
+            className={styles.cascadeFour}
+            onPersistCharacter={persistCharacter}
+          />
+          <CompanionsSection
             character={liveCharacter}
             className={styles.cascadeSix}
             onPersistCharacter={persistCharacter}
           />
-          <SpellCastingForm
+          <EquipmentForm
             character={liveCharacter}
             className={styles.cascadeSeven}
+            onPersistCharacter={persistCharacter}
+          />
+          <SpellCastingForm
+            character={liveCharacter}
+            className={styles.cascadeEight}
             onPersistCharacter={persistCharacter}
           />
         </div>

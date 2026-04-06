@@ -32,12 +32,14 @@ import {
   getArmorClassForCharacter
 } from "../../../../pages/CharactersPage/armor";
 import {
+  canCharacterHover,
   getMovementSpeedBreakdownsForCharacter,
   hasModifiedSpecialMovementForCharacter,
   getSpeedBreakdownForCharacter,
   getSpeedForCharacter
 } from "../../../../pages/CharactersPage/speed";
 import {
+  applyArchdruidOnInitiativeForCharacter,
   applyPerfectFocusOnInitiativeForCharacter,
   applyPersistentRageOnInitiativeForCharacter,
   applySuperiorInspirationOnInitiativeForCharacter,
@@ -53,10 +55,12 @@ import {
   getMonkMartialArtsDieForCharacter,
   getRogueSneakAttackDiceCountForCharacter,
   getRogueSneakAttackFormulaForCharacter,
+  getSavingThrowBonusesForCharacter,
   hasActivePaladinAuraOfProtectionForCharacter,
   hasPerfectFocusForCharacter,
   getSavingThrowIndicatorsForCharacter,
-  type FeatureIndicator
+  type FeatureIndicator,
+  type FeatureSavingThrowBonus
 } from "../../../../pages/CharactersPage/classFeatures";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
 import {
@@ -96,6 +100,12 @@ type ReferenceIndicatorSection = {
   indicators: FeatureIndicator[];
 };
 
+type ReferenceDetailCard = {
+  label: string;
+  value: string;
+  variant?: "default" | "formula";
+};
+
 type SelectedStatReference = {
   keyword: string;
   summaryText?: string;
@@ -103,10 +113,7 @@ type SelectedStatReference = {
     label: string;
     text: string;
   }>;
-  detailCards?: Array<{
-    label: string;
-    value: string;
-  }>;
+  detailCards?: ReferenceDetailCard[];
   indicatorSections?: ReferenceIndicatorSection[];
 };
 
@@ -117,10 +124,7 @@ type CoreStatCard = {
   showBoostIcon?: boolean;
   indicators?: FeatureIndicator[];
   summaryText?: string;
-  detailCards?: Array<{
-    label: string;
-    value: string;
-  }>;
+  detailCards?: ReferenceDetailCard[];
 };
 
 type SavingThrowBonusEntry = {
@@ -286,6 +290,20 @@ function formatSavingThrowFormula(
   });
 
   return `${formatAbilityModifier(total)} ${ability} Save = ${terms.join(" ")}`;
+}
+
+function resolveFeatureSavingThrowBonusValue(
+  bonus: FeatureSavingThrowBonus,
+  effectiveAbilities: Character["abilities"]
+): number {
+  if (bonus.abilityModifierSource) {
+    const sourceValue = getAbilityModifier(effectiveAbilities[bonus.abilityModifierSource]);
+    return typeof bonus.minimumValue === "number"
+      ? Math.max(bonus.minimumValue, sourceValue)
+      : sourceValue;
+  }
+
+  return bonus.value ?? 0;
 }
 
 function stripLeadingLabel(description: string, label: string): string {
@@ -458,6 +476,7 @@ function CharacterStatsForm({
   const speedBreakdown = getSpeedBreakdownForCharacter(character);
   const movementSpeedBreakdowns = getMovementSpeedBreakdownsForCharacter(character);
   const hasModifiedSpecialMovement = hasModifiedSpecialMovementForCharacter(character);
+  const characterCanHover = canCharacterHover(character);
   const initiativeBreakdown = getInitiativeBreakdownForCharacter(character);
   const monkMartialArtsDie = getMonkMartialArtsDieForCharacter(character);
   const barbarianRageDamageBonus = getBarbarianRageDamageBonusForCharacter(character);
@@ -473,6 +492,13 @@ function CharacterStatsForm({
     );
     const proficiencyMultiplier = getProficiencyMultiplier(savingThrowLevel);
     const proficiencyContribution = proficiencyBonus * proficiencyMultiplier;
+    const featureSavingThrowBonusEntries: SavingThrowBonusEntry[] = getSavingThrowBonusesForCharacter(
+      character,
+      ability
+    ).map((bonus) => ({
+      label: bonus.label,
+      value: resolveFeatureSavingThrowBonusValue(bonus, effectiveAbilities)
+    }));
     const savingThrowBonusEntries: SavingThrowBonusEntry[] = [
       ...(paladinAuraOfProtectionBonus > 0
         ? [
@@ -482,6 +508,7 @@ function CharacterStatsForm({
             }
           ]
         : []),
+      ...featureSavingThrowBonusEntries,
       ...(ability === "DEX" && hasLeadingEvasion
         ? [
             {
@@ -557,26 +584,40 @@ function CharacterStatsForm({
           ? [
               {
                 label: "WALK FORMULA (default)",
-                value: formatMovementFormula(movementSpeedBreakdowns.walk)
+                value: formatMovementFormula(movementSpeedBreakdowns.walk),
+                variant: "formula"
               },
               {
                 label: "CLIMB FORMULA",
-                value: formatMovementFormula(movementSpeedBreakdowns.climb)
+                value: formatMovementFormula(movementSpeedBreakdowns.climb),
+                variant: "formula"
               },
               {
                 label: "SWIM FORMULA",
-                value: formatMovementFormula(movementSpeedBreakdowns.swim)
+                value: formatMovementFormula(movementSpeedBreakdowns.swim),
+                variant: "formula"
               },
               {
                 label: "FLY FORMULA",
-                value: formatMovementFormula(movementSpeedBreakdowns.fly)
+                value: formatMovementFormula(movementSpeedBreakdowns.fly),
+                variant: "formula"
+              },
+              {
+                label: "BURROW FORMULA",
+                value: formatMovementFormula(movementSpeedBreakdowns.burrow),
+                variant: "formula"
+              },
+              {
+                label: "Hover",
+                value: characterCanHover ? "Yes" : "No"
               }
             ]
           : detailValue
             ? [
                 {
                   label: "Formula",
-                  value: detailValue
+                  value: detailValue,
+                  variant: "formula"
                 }
               ]
             : undefined
@@ -787,11 +828,13 @@ function CharacterStatsForm({
             ability,
             abilityBreakdown.total,
             abilityBreakdown.entries
-          )
+          ),
+          variant: "formula"
         },
         {
           label: "Ability Modifier Formula",
-          value: formatAbilityModifierFormula(ability, selectedCard.score)
+          value: formatAbilityModifierFormula(ability, selectedCard.score),
+          variant: "formula"
         },
         {
           label: "Saving Throw Formula",
@@ -802,7 +845,8 @@ function CharacterStatsForm({
             selectedCard.proficiencyContribution,
             selectedCard.proficiencyLabel,
             selectedCard.savingThrowBonusEntries
-          )
+          ),
+          variant: "formula"
         }
       ]
     });
@@ -826,6 +870,7 @@ function CharacterStatsForm({
 
     onPersistCharacter((currentCharacter) => {
       let nextCharacter = applySuperiorInspirationOnInitiativeForCharacter(currentCharacter);
+      nextCharacter = applyArchdruidOnInitiativeForCharacter(nextCharacter);
 
       if (usePerfectFocusOnInitiative) {
         nextCharacter = applyPerfectFocusOnInitiativeForCharacter(nextCharacter);
@@ -909,7 +954,7 @@ function CharacterStatsForm({
           </button>
         </div>
 
-        <div className={styles.modifierGrid}>
+        <div className={styles.abilitySavingThrowGrid}>
           {abilitySavingThrowCards.map((card) => {
             const hasSplitRollStates =
               card.sharedRollState === null &&
@@ -946,12 +991,21 @@ function CharacterStatsForm({
                   ) : null}
                 </div>
                 <div className={styles.combinedValueRow}>
-                  <strong className={getRollStateValueClassName(card.modifierRollState)}>
-                    {card.modifier}
-                  </strong>
+                  <div className={styles.combinedValueColumn}>
+                    <span className={styles.combinedValueLabel}>MOD</span>
+                    <strong className={getRollStateValueClassName(card.modifierRollState)}>
+                      {card.modifier}
+                    </strong>
+                  </div>
                   <span className={styles.combinedValueDivider} aria-hidden="true" />
-                  <span className={styles.savingThrowValueGroup}>
-                    <strong className={getRollStateValueClassName(card.savingThrowRollState)}>
+                  <span className={clsx(styles.savingThrowValueGroup, styles.combinedValueColumn)}>
+                    <span className={styles.combinedValueLabel}>SAVE</span>
+                    <strong
+                      className={clsx(
+                        getRollStateValueClassName(card.savingThrowRollState),
+                        card.isSavingThrowProficient && styles.savingThrowValueProficient
+                      )}
+                    >
                       {card.totalSavingThrow}
                     </strong>
                     {card.showSavingThrowBoostIcon ? (
@@ -1094,6 +1148,19 @@ function CharacterStatsForm({
                         key={`${selectedStatReference.keyword}-${detailCard.label}`}
                         label={detailCard.label}
                         content={detailCard.value}
+                        className={
+                          detailCard.variant === "formula" ? styles.referenceFormulaCard : undefined
+                        }
+                        contentRowClassName={
+                          detailCard.variant === "formula"
+                            ? styles.referenceFormulaContentRow
+                            : undefined
+                        }
+                        contentClassName={
+                          detailCard.variant === "formula"
+                            ? styles.referenceFormulaValue
+                            : undefined
+                        }
                       />
                     ))}
                   </div>

@@ -165,12 +165,13 @@
 }
 
 .modalBackdrop {
+  --overlay-backdrop-padding: 1rem;
   position: fixed;
   inset: 0;
   display: grid;
   place-items: center;
   background: rgba(34, 20, 13, 0.42);
-  padding: 1rem;
+  padding: var(--overlay-backdrop-padding);
   z-index: 20;
 }
 
@@ -234,6 +235,10 @@
 }
 
 @media (max-width: 520px) {
+  .modalBackdrop {
+    --overlay-backdrop-padding: 0.55rem;
+  }
+
   .card {
     padding: 0.68rem;
   }

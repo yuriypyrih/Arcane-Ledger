@@ -4,6 +4,7 @@ import type { FeatureActionCard } from "../../../../../pages/CharactersPage/clas
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import {
+  OverlayBody,
   OverlayCloseButton,
   OverlayEyebrow,
   OverlayHeader,
@@ -59,7 +60,9 @@ function FeatureActionOptionsModal({
         <OverlayCloseButton label="Close feature action options" onClick={onClose} />
       </OverlayHeader>
 
-      <div className={clsx(styles.featureActionOptionGrid, bodyClassName)}>{children}</div>
+      <OverlayBody className={clsx(styles.featureActionOptionGrid, bodyClassName)}>
+        {children}
+      </OverlayBody>
       {footer ? <div className={styles.featureActionModalFooter}>{footer}</div> : null}
     </SheetModal>
   );

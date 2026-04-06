@@ -89,11 +89,30 @@ import {
   normalizeClericFeatureState
 } from "./cleric";
 import {
+  activateDruidLandsAid,
+  activateDruidMoonlightStep,
+  activateDruidNaturesSanctuary,
+  activateDruidWrathOfTheSea,
+  advanceDruidFeaturesForNewRound,
+  applyLongRestToDruidFeatures,
+  applyShortRestToDruidFeatures,
+  druidLandsAidActionKey,
+  druidMoonlightStepActionKey,
+  druidNaturesSanctuaryActionKey,
+  druidWrathOfTheSeaActionKey,
   getDruidAlwaysPreparedSpellIds,
   getDruidArmorProficiencyEntries,
   getDruidCantripBonus,
+  getDruidCantripDamageBonus,
+  getDruidDerivedStatusEntries,
+  getDruidFeatureActions,
   getDruidLanguageProficiencyEntries,
+  getDruidSavingThrowBonuses,
+  druidNatureMagicianActionKey,
+  druidWildResurgenceActionKey,
+  getDruidSpellcastingState,
   getDruidSkillBonuses,
+  getDruidWeaponDamageBonuses,
   getDruidWeaponProficiencyEntries,
   normalizeDruidFeatureState
 } from "./druid";
@@ -431,14 +450,50 @@ const classFeatureModules = {
     normalizeState: normalizeDruidFeatureState,
     collectDerived(character) {
       return {
+        actions: getDruidFeatureActions(character),
         getSkillBonuses: (skill) => getDruidSkillBonuses(character, skill),
+        getSavingThrowBonuses: (ability) => getDruidSavingThrowBonuses(character, ability),
         cantripLimitBonus: getDruidCantripBonus(character),
+        cantripDamageBonus: getDruidCantripDamageBonus(character),
+        getWeaponDamageBonuses: (context) => getDruidWeaponDamageBonuses(character, context),
         weaponProficiencyEntries: getDruidWeaponProficiencyEntries(character),
         armorProficiencyEntries: getDruidArmorProficiencyEntries(character),
         languageProficiencyEntries: getDruidLanguageProficiencyEntries(character),
-        alwaysPreparedSpellIds: getDruidAlwaysPreparedSpellIds(character)
+        alwaysPreparedSpellIds: getDruidAlwaysPreparedSpellIds(character),
+        spellcastingState: getDruidSpellcastingState(character),
+        derivedStatusEntries: getDruidDerivedStatusEntries(character)
       };
-    }
+    },
+    handleAction(character, actionKey) {
+      if (actionKey === druidLandsAidActionKey) {
+        return activateDruidLandsAid(character);
+      }
+
+      if (actionKey === druidMoonlightStepActionKey) {
+        return activateDruidMoonlightStep(character);
+      }
+
+      if (actionKey === druidNaturesSanctuaryActionKey) {
+        return activateDruidNaturesSanctuary(character);
+      }
+
+      if (actionKey === druidWrathOfTheSeaActionKey) {
+        return activateDruidWrathOfTheSea(character);
+      }
+
+      if (actionKey === druidNatureMagicianActionKey) {
+        return character;
+      }
+
+      if (actionKey === druidWildResurgenceActionKey) {
+        return character;
+      }
+
+      return null;
+    },
+    applyShortRest: applyShortRestToDruidFeatures,
+    applyLongRest: applyLongRestToDruidFeatures,
+    advanceRound: advanceDruidFeaturesForNewRound
   },
   Fighter: {
     className: "Fighter",
@@ -705,14 +760,9 @@ const classFeatureModules = {
     applyShortRest: applyShortRestToWizardFeatures,
     applyLongRest: applyLongRestToWizardFeatures
   }
-} as Record<
-  ActiveClassFeatureName,
-  ClassFeatureModule<keyof CharacterClassFeatureState>
->;
+} as Record<ActiveClassFeatureName, ClassFeatureModule<keyof CharacterClassFeatureState>>;
 
-export function getClassFeatureModules(): ClassFeatureModule<
-  keyof CharacterClassFeatureState
->[] {
+export function getClassFeatureModules(): ClassFeatureModule<keyof CharacterClassFeatureState>[] {
   return Object.values(classFeatureModules);
 }
 

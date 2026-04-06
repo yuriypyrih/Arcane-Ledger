@@ -4,6 +4,7 @@ import CodexFilters from "../../components/CodexPage/CodexFilters";
 import CodexResults from "../../components/CodexPage/CodexResults";
 import MonsterCodexTable from "../../components/CodexPage/MonsterCodexTable";
 import CodexSpellDrawer from "../../components/CodexPage/CodexSpellDrawer";
+import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../constants/monsters";
 import { filterCodexEntries, getCodexCategories, type CodexFilterCategory } from "../../utils/codex";
 import { ENTRY_CATEGORIES, SPELL_LIST_CLASS, type SpellEntry } from "../../codex/entries";
 import { useCodexEntries } from "./useCodexEntries";
@@ -20,43 +21,14 @@ const MONSTER_SOURCE_PARAM = "monsterSource";
 const MONSTER_ORDER_PARAM = "monsterOrder";
 const PAGE_PARAM = "page";
 const QUERY_PARAM = "q";
-const MONSTER_TYPE_OPTIONS = [
-  "Aberration",
-  "Beast",
-  "Celestial",
-  "Construct",
-  "Dragon",
-  "Elemental",
-  "Fey",
-  "Fiend",
-  "Giant",
-  "Humanoid",
-  "Monstrosity",
-  "Ooze",
-  "Plant"
-] as const;
 const MONSTER_ORDERINGS = new Set<string>([
   "name",
   "-name",
-  "type",
-  "-type",
   "cr",
   "-cr",
   "challenge_rating",
   "-challenge_rating"
 ]);
-const MONSTER_SOURCE_OPTIONS = [
-  "blackflag",
-  "cc",
-  "menagerie",
-  "taldorei",
-  "tob",
-  "tob-2023",
-  "tob2",
-  "tob3",
-  "wotc-srd"
-] as const;
-
 function parseSpellLevelFilter(value: string | null): number | null {
   if (value === null) {
     return null;

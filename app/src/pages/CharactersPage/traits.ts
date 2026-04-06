@@ -5,6 +5,10 @@ import {
   sorcererFeatureMap
 } from "../../codex/classes";
 import { divineForeknowledgeDescription } from "../../codex/subclasses/cleric";
+import {
+  naturesSanctuaryDescription,
+  wrathOfTheSeaDescription
+} from "../../codex/subclasses/druid";
 import type { SpellDescriptionEntry, SpellDurationPart } from "../../codex/entries";
 import { CLASS_FEATURE, DAMAGE_TYPE, DURATION } from "../../codex/entries";
 import {
@@ -37,6 +41,8 @@ const statusSourceTypeValues = new Set<STATUS_ENTRY_SOURCE_TYPE>(
 const exhaustionConditionOptionPrefix = "EXHAUSTION_LEVEL_";
 const unbreakableMajestyStatusSourceId = "feature-bard-unbreakable-majesty";
 const divineForeknowledgeStatusSourceId = "feature-cleric-divine-foreknowledge";
+const druidNaturesSanctuaryStatusSourceId = "feature-druid-natures-sanctuary";
+const druidWrathOfTheSeaStatusSourceId = "feature-druid-wrath-of-the-sea";
 export const exhaustionLevels = [1, 2, 3, 4, 5, 6] as const;
 export type ExhaustionLevel = (typeof exhaustionLevels)[number];
 export type ExhaustionConditionOptionValue =
@@ -964,11 +970,12 @@ export function reconcileCharacterStatusConsequences(character: Character): Char
   const exhaustionLevel = getExhaustionLevel(normalizedStatusEntries);
   const isDeadFromExhaustion = exhaustionLevel !== null && exhaustionLevel >= 6;
   const rageState = character.classFeatureState?.rage;
-  const hasIncapacitated = hasStatusCondition(normalizedStatusEntries, CONDITION_NAME.INCAPACITATED);
+  const hasIncapacitated = hasStatusCondition(
+    normalizedStatusEntries,
+    CONDITION_NAME.INCAPACITATED
+  );
   const shouldEndRageFromIncapacitated =
-    character.className === "Barbarian" &&
-    rageState?.active === true &&
-    hasIncapacitated;
+    character.className === "Barbarian" && rageState?.active === true && hasIncapacitated;
   const nextStatusEntries = hasIncapacitated
     ? pruneLinkedStatusEntries(
         normalizedStatusEntries.filter(
@@ -1212,6 +1219,14 @@ export function getStatusEntryDescriptionEntries(
     return [...divineForeknowledgeDescription];
   }
 
+  if (entry.sourceId === druidNaturesSanctuaryStatusSourceId) {
+    return [...naturesSanctuaryDescription];
+  }
+
+  if (entry.sourceId === druidWrathOfTheSeaStatusSourceId) {
+    return [...wrathOfTheSeaDescription];
+  }
+
   const keywordDescriptionEntries = getKeywordDescriptionLines(getStatusEntryKeyword(entry));
 
   if (
@@ -1424,7 +1439,7 @@ function isLinkedStatusEntrySatisfied(
   entry: CharacterStatusEntry,
   entries: CharacterStatusEntry[]
 ): boolean {
-  if (entry.duration.kind !== STATUS_DURATION_KIND.LINKED) {
+  if (!entry.duration || entry.duration.kind !== STATUS_DURATION_KIND.LINKED) {
     return true;
   }
 

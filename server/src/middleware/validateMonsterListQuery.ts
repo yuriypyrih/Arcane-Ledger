@@ -90,6 +90,9 @@ function buildMonsterListQuery(request: Request): MonsterListQuery {
   const sourceValue =
     normalizeOptionalString(readSingleQueryValue(request.query.source, "source")) ??
     normalizeOptionalString(readSingleQueryValue(request.query.document__slug, "document__slug"));
+  const maxCrValue =
+    readSingleQueryValue(request.query.max_cr, "max_cr") ??
+    readSingleQueryValue(request.query.maxCr, "maxCr");
 
   return {
     search: normalizeOptionalString(readSingleQueryValue(request.query.search, "search")),
@@ -97,6 +100,7 @@ function buildMonsterListQuery(request: Request): MonsterListQuery {
     limit: parsePositiveInteger(readSingleQueryValue(request.query.limit, "limit"), "limit", 20, 100),
     ordering: parseOrdering(readSingleQueryValue(request.query.ordering, "ordering")),
     cr: parseCrValue(readSingleQueryValue(request.query.cr, "cr")),
+    maxCr: parseCrValue(maxCrValue),
     type: normalizeOptionalString(readSingleQueryValue(request.query.type, "type")),
     source: sourceValue
   };

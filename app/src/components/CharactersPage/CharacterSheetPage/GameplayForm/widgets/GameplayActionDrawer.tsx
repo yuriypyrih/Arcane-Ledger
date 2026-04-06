@@ -1,4 +1,4 @@
-import { Brain, Flame, Music, Sparkles } from "lucide-react";
+import { Brain, Flame, Music, PawPrint, Sparkles } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type {
   DivinityEntry,
@@ -30,6 +30,7 @@ import type {
   FeatureActionResource
 } from "../../../../../pages/CharactersPage/classFeatures";
 import type { ResolvedKeywordReference } from "../../../../../utils/codex/renderCodexRichText";
+import animaIcon from "../../../../../assets/svg/anima.svg";
 import pyromancyIcon from "../../../../../assets/svg/pyromancy.svg";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import styles from "./GameplayActionDrawer.module.css";
@@ -53,6 +54,10 @@ type GameplayActionDrawerProps = {
 };
 
 function renderUsesIcon(icon?: FeatureActionIcon) {
+  if (icon === "anima") {
+    return <img src={animaIcon} alt="" className={styles.resourceAssetIcon} />;
+  }
+
   if (icon === "brain") {
     return <Brain size={14} strokeWidth={2.1} />;
   }
@@ -67,6 +72,10 @@ function renderUsesIcon(icon?: FeatureActionIcon) {
 
   if (icon === "flame") {
     return <Flame size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "paw") {
+    return <PawPrint size={14} strokeWidth={2.1} />;
   }
 
   if (icon === "pyromancy") {

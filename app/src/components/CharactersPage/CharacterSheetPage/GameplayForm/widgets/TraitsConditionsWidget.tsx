@@ -11,6 +11,7 @@ import {
   getBeguilingMagicUsesRemainingForCharacter,
   getBeguilingMagicUsesTotalForCharacter,
   getDerivedFeatureStatusEntriesForCharacter,
+  getDruidWildShapeActiveFormForCharacter,
   getFeatureReactionEntriesForCharacter,
   getSpellcastingStateForCharacter,
   removeFeatureStatusEntryForCharacter
@@ -65,6 +66,7 @@ import {
 } from "../../../../../types";
 import { consumeRoundTrackerResource } from "../../../../../pages/CharactersPage/combat";
 import CharacterSpellDrawer from "../../SpellCastingForm/CharacterSpellDrawer";
+import { MonsterEntryDrawer } from "../../../../MonsterEntryRenderer";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import widgetShellStyles from "../GameplayWidgetShared.module.css";
 import { createDefaultDeathSaves } from "../gameplayStateUtils";
@@ -308,6 +310,10 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           selectedStatusEntry.sourceId as `reaction-entry-${string}`
         ) ?? null)
       : null;
+  const selectedWildShapeMonster =
+    selectedStatusEntry?.sourceId?.startsWith("feature-druid-wild-shape:")
+      ? getDruidWildShapeActiveFormForCharacter(character)
+      : null;
   const spellcastingState = getSpellcastingStateForCharacter(character);
 
   useEffect(() => {
@@ -477,6 +483,14 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     });
 
     setSelectedStatusEntryId(null);
+  }
+
+  function endSelectedWildShape() {
+    if (!selectedStatusEntry) {
+      return;
+    }
+
+    removeStatusEntry(selectedStatusEntry);
   }
 
   function applyStatusEntryDuration() {
@@ -728,7 +742,27 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         />
       ) : null}
 
-      {selectedStatusEntry && !selectedReactionSpell && !selectedReactionEntry ? (
+      {selectedStatusEntry &&
+      !selectedReactionSpell &&
+      !selectedReactionEntry &&
+      selectedWildShapeMonster ? (
+        <MonsterEntryDrawer
+          monster={selectedWildShapeMonster}
+          status="ready"
+          badgeLabel="Wild Shape"
+          onClose={() => setSelectedStatusEntryId(null)}
+          footer={
+            <button type="button" className={shared.cancelButton} onClick={endSelectedWildShape}>
+              End Wild Shape
+            </button>
+          }
+        />
+      ) : null}
+
+      {selectedStatusEntry &&
+      !selectedReactionSpell &&
+      !selectedReactionEntry &&
+      !selectedWildShapeMonster ? (
         <StatusEntryDrawer
           entry={selectedStatusEntry}
           isEditingDuration={isEditingStatusDuration}

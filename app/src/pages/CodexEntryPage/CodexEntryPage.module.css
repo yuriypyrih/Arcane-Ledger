@@ -245,3 +245,9 @@
     padding: 0.85rem;
   }
 }
+
+@media (max-width: 620px) {
+  .modalBackdrop {
+    padding: 0.65rem;
+  }
+}

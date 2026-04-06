@@ -1,9 +1,12 @@
-import type { MonsterFeatureRecord, MonsterRecord } from "../../types";
+import { Pentagon } from "lucide-react";
+import type { MonsterFeatureRecord, MonsterRecord, MonsterSpeedValue } from "../../types";
+import statsStyles from "../CharactersPage/CharacterSheetPage/StatsForm/StatsForm.module.css";
 import styles from "./MonsterEntryRenderer.module.css";
 
 type MonsterEntryRendererProps = {
   monster: MonsterRecord;
   className?: string;
+  headingId?: string;
 };
 
 type ActionGroupConfig = {
@@ -12,68 +15,53 @@ type ActionGroupConfig = {
   description?: string | null;
 };
 
-function formatText(value: string | null | undefined, fallback = "Unknown") {
+const CR_XP_BY_VALUE = new Map<number, number>([
+  [0, 10],
+  [0.125, 25],
+  [0.25, 50],
+  [0.5, 100],
+  [1, 200],
+  [2, 450],
+  [3, 700],
+  [4, 1100],
+  [5, 1800],
+  [6, 2300],
+  [7, 2900],
+  [8, 3900],
+  [9, 5000],
+  [10, 5900],
+  [11, 7200],
+  [12, 8400],
+  [13, 10000],
+  [14, 11500],
+  [15, 13000],
+  [16, 15000],
+  [17, 18000],
+  [18, 20000],
+  [19, 22000],
+  [20, 25000],
+  [21, 33000],
+  [22, 41000],
+  [23, 50000],
+  [24, 62000],
+  [25, 75000],
+  [26, 90000],
+  [27, 105000],
+  [28, 120000],
+  [29, 135000],
+  [30, 155000]
+]);
+
+const xpFormatter = new Intl.NumberFormat("en-US");
+
+function getKnownText(value: string | null | undefined) {
   const normalizedValue = value?.trim();
-  return normalizedValue ? normalizedValue : fallback;
-}
 
-function formatNullableNumber(value: number | null | undefined, fallback = "—") {
-  return value ?? fallback;
-}
-
-function formatDelimitedText(value: string | null | undefined, fallback = "None") {
-  const normalizedValue = value?.trim();
-  return normalizedValue ? normalizedValue : fallback;
-}
-
-function formatList(values: string[] | null | undefined, fallback = "None listed") {
-  if (!values || values.length === 0) {
-    return fallback;
+  if (!normalizedValue) {
+    return null;
   }
 
-  return values.join(", ");
-}
-
-function formatSpeed(speed: MonsterRecord["speed"] | null | undefined) {
-  if (!speed || Object.keys(speed).length === 0) {
-    return "Unknown";
-  }
-
-  return Object.entries(speed)
-    .map(([key, value]) => {
-      if (typeof value === "boolean") {
-        return value ? key : `${key}: false`;
-      }
-
-      return `${key}: ${value}`;
-    })
-    .join(", ");
-}
-
-function formatSkillMap(skills: MonsterRecord["skills"] | null | undefined) {
-  if (!skills || Object.keys(skills).length === 0) {
-    return "None";
-  }
-
-  return Object.entries(skills)
-    .sort(([left], [right]) => left.localeCompare(right))
-    .map(([key, value]) => `${key}: ${value >= 0 ? "+" : ""}${value}`)
-    .join(", ");
-}
-
-function formatSpellList(spellList: string[] | null | undefined) {
-  if (!spellList || spellList.length === 0) {
-    return [];
-  }
-
-  return spellList.map((spellUrl) => {
-    const urlParts = spellUrl.split("/").filter(Boolean);
-    const slug = urlParts[urlParts.length - 1] ?? spellUrl;
-    return slug
-      .split("-")
-      .map((part: string) => `${part.charAt(0).toUpperCase()}${part.slice(1)}`)
-      .join(" ");
-  });
+  return normalizedValue.toLowerCase() === "unknown" ? null : normalizedValue;
 }
 
 function formatFeatureStat(value: number | null | undefined) {
@@ -86,11 +74,69 @@ function formatFeatureStat(value: number | null | undefined) {
 
 function formatAbilityScore(value: number | null | undefined) {
   if (value === null || value === undefined) {
-    return "—";
+    return {
+      score: "—",
+      modifier: "—"
+    };
   }
 
   const modifier = Math.floor((value - 10) / 2);
-  return `${value} (${formatFeatureStat(modifier)})`;
+  return {
+    score: String(value),
+    modifier: formatFeatureStat(modifier)
+  };
+}
+
+function formatMovementValue(value: MonsterSpeedValue) {
+  if (typeof value === "boolean") {
+    return value ? "" : null;
+  }
+
+  if (typeof value === "number") {
+    return `${value} ft.`;
+  }
+
+  const normalizedValue = value.trim();
+  return normalizedValue.length > 0 ? normalizedValue : null;
+}
+
+function formatSpeed(speed: MonsterRecord["speed"] | null | undefined) {
+  if (!speed || Object.keys(speed).length === 0) {
+    return null;
+  }
+
+  return Object.entries(speed)
+    .flatMap(([key, value]) => {
+      const formattedValue = formatMovementValue(value);
+
+      if (formattedValue === null) {
+        return [];
+      }
+
+      const normalizedKey = key.trim().toLowerCase();
+
+      if (normalizedKey === "walk" || normalizedKey === "speed") {
+        return [formattedValue];
+      }
+
+      if (formattedValue.length === 0) {
+        return [normalizedKey];
+      }
+
+      return [`${normalizedKey} ${formattedValue}`];
+    })
+    .join(", ");
+}
+
+function formatSkillMap(skills: MonsterRecord["skills"] | null | undefined) {
+  if (!skills || Object.keys(skills).length === 0) {
+    return null;
+  }
+
+  return Object.entries(skills)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([key, value]) => `${key} ${value >= 0 ? "+" : ""}${value}`)
+    .join(", ");
 }
 
 function formatFeatureMeta(feature: MonsterFeatureRecord) {
@@ -111,18 +157,77 @@ function formatFeatureMeta(feature: MonsterFeatureRecord) {
   return details.join(" · ");
 }
 
-function hasText(value: string | null | undefined) {
-  return Boolean(value?.trim());
+function formatSourceMeta(monster: MonsterRecord) {
+  const sourceSlug = getKnownText(monster.document__slug);
+  const sourceTitle = getKnownText(monster.document__title);
+  const sourceLabel =
+    sourceSlug && sourceTitle
+      ? `${sourceSlug}: ${sourceTitle}`
+      : sourceSlug ?? sourceTitle;
+
+  if (!sourceLabel) {
+    return null;
+  }
+
+  return monster.page_no !== null && monster.page_no !== undefined
+    ? `${sourceLabel}, page: ${monster.page_no}`
+    : sourceLabel;
 }
 
-function formatSourceLine(monster: MonsterRecord) {
-  return `Source: ${monster.document__slug} (${monster.document__title}, Page: ${
-    monster.page_no ?? "Unknown"
-  })`;
+function formatTitleMeta(monster: MonsterRecord) {
+  const size = getKnownText(monster.size);
+  const type = getKnownText(monster.type);
+  const subtype = getKnownText(monster.subtype);
+  const alignment = getKnownText(monster.alignment);
+  const sourceMeta = formatSourceMeta(monster);
+  const creatureType = [size, type].filter(Boolean).join(" ");
+  const creatureLabel = subtype && creatureType ? `${creatureType} (${subtype})` : creatureType || subtype;
+  const mainLabel = [creatureLabel || null, alignment].filter(Boolean).join(", ");
+
+  if (sourceMeta && mainLabel) {
+    return `${mainLabel} (${sourceMeta})`;
+  }
+
+  return mainLabel || sourceMeta || "";
+}
+
+function formatValueWithNote(
+  value: string | number | null | undefined,
+  note?: string | null
+) {
+  if (value === null || value === undefined || value === "") {
+    return null;
+  }
+
+  const formattedValue = String(value);
+  const formattedNote = getKnownText(note);
+
+  return formattedNote ? `${formattedValue} (${formattedNote})` : formattedValue;
+}
+
+function formatSenses(monster: MonsterRecord) {
+  const senses = getKnownText(monster.senses);
+  const passivePerception =
+    monster.perception !== null && monster.perception !== undefined
+      ? `passive Perception ${10 + monster.perception}`
+      : null;
+
+  if (senses && passivePerception && senses.toLowerCase().includes("passive perception")) {
+    return senses;
+  }
+
+  return [senses, passivePerception].filter(Boolean).join(", ");
+}
+
+function formatChallengeRating(monster: MonsterRecord) {
+  const challengeRating = getKnownText(monster.challenge_rating) ?? String(monster.cr);
+  const xp = CR_XP_BY_VALUE.get(monster.cr);
+
+  return xp ? `${challengeRating} (${xpFormatter.format(xp)} XP)` : challengeRating;
 }
 
 function FeatureGroup({ title, description, features }: ActionGroupConfig) {
-  const groupDescription = description?.trim();
+  const groupDescription = getKnownText(description);
 
   if ((!features || features.length === 0) && !groupDescription) {
     return null;
@@ -131,21 +236,22 @@ function FeatureGroup({ title, description, features }: ActionGroupConfig) {
   return (
     <section className={styles.featureGroup}>
       <div className={styles.groupHeader}>
-        <h4>{title}</h4>
+        <h3>{title}</h3>
         {groupDescription ? <p className={styles.groupDescription}>{groupDescription}</p> : null}
       </div>
       {features?.length ? (
         <div className={styles.featureList}>
           {features.map((feature, index) => {
             const featureMeta = formatFeatureMeta(feature);
+            const descriptionText = getKnownText(feature.desc);
 
             return (
               <article key={`${title}-${feature.name}-${index}`} className={styles.featureCard}>
                 <div className={styles.featureTitleRow}>
-                  <strong>{feature.name || "Unnamed Feature"}</strong>
+                  <strong>{getKnownText(feature.name) ?? "Unnamed Feature"}</strong>
                   {featureMeta ? <span className={styles.featureMeta}>{featureMeta}</span> : null}
                 </div>
-                <p>{formatText(feature.desc, "No description available.")}</p>
+                {descriptionText ? <p>{descriptionText}</p> : null}
               </article>
             );
           })}
@@ -155,21 +261,16 @@ function FeatureGroup({ title, description, features }: ActionGroupConfig) {
   );
 }
 
-function CoreStat({
-  label,
-  value,
-  note
-}: {
-  label: string;
-  value: string | number;
-  note?: string | null;
-}) {
+function InlineRow({ label, value }: { label: string; value: string | null }) {
+  if (!value) {
+    return null;
+  }
+
   return (
-    <div className={styles.coreStat}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-      {note ? <small>{note}</small> : null}
-    </div>
+    <p className={styles.inlineRow}>
+      <strong>{label}:</strong>
+      <span>{value}</span>
+    </p>
   );
 }
 
@@ -182,72 +283,91 @@ function AbilityCell({
   value: number | null | undefined;
   save: number | null;
 }) {
+  const ability = formatAbilityScore(value);
+  const hasSavingThrowProficiency = save !== null && save !== undefined;
+  const resolvedSavingThrow = hasSavingThrowProficiency
+    ? formatFeatureStat(save)
+    : ability.modifier;
+
   return (
-    <div className={styles.abilityCell}>
-      <span>{label}</span>
-      <strong>{formatAbilityScore(value)}</strong>
-      <small>Save {formatFeatureStat(save)}</small>
+    <div className={`${statsStyles.modifierCard} ${styles.abilityCard}`}>
+      <div className={statsStyles.modifierLabelRow}>
+        <span className={statsStyles.modifierLabel}>{label}</span>
+        <span className={statsStyles.scoreBadge} aria-label={`${label} score ${ability.score}`}>
+          <Pentagon size={28} className={statsStyles.scoreBadgeIcon} aria-hidden="true" />
+          <span className={statsStyles.scoreBadgeValue}>{ability.score}</span>
+        </span>
+      </div>
+      <div className={`${statsStyles.combinedValueRow} ${styles.abilityValuesRow}`}>
+        <div className={styles.abilityValueStack}>
+          <span className={styles.abilityValueLabel}>MOD</span>
+          <strong>{ability.modifier}</strong>
+        </div>
+        <span className={statsStyles.combinedValueDivider} aria-hidden="true" />
+        <div className={styles.abilityValueStack}>
+          <span className={styles.abilityValueLabel}>SAVE</span>
+          <strong
+            className={hasSavingThrowProficiency ? styles.abilityValueProficient : undefined}
+          >
+            {resolvedSavingThrow}
+          </strong>
+        </div>
+      </div>
     </div>
   );
 }
 
-function DetailItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className={styles.detailItem}>
-      <span>{label}</span>
-      <strong>{value}</strong>
-    </div>
-  );
-}
-
-function MonsterEntryRenderer({ monster, className }: MonsterEntryRendererProps) {
-  const spellList = formatSpellList(monster.spell_list);
-  const detailItems = [
-    {
-      label: "Group",
-      value: monster.group,
-      show: hasText(monster.group)
-    },
-    {
-      label: "Environments",
-      value: formatList(monster.environments),
-      show: monster.environments.length > 0
-    },
+function MonsterEntryRenderer({ monster, className, headingId }: MonsterEntryRendererProps) {
+  const titleMeta = formatTitleMeta(monster);
+  const description = getKnownText(monster.desc);
+  const speed = formatSpeed(monster.speed);
+  const detailRows = [
     {
       label: "Skills",
-      value: formatSkillMap(monster.skills),
-      show: Object.keys(monster.skills).length > 0
+      value: formatSkillMap(monster.skills)
     },
     {
       label: "Damage Vulnerabilities",
-      value: formatDelimitedText(monster.damage_vulnerabilities),
-      show: hasText(monster.damage_vulnerabilities)
+      value: getKnownText(monster.damage_vulnerabilities)
     },
     {
       label: "Damage Resistances",
-      value: formatDelimitedText(monster.damage_resistances),
-      show: hasText(monster.damage_resistances)
+      value: getKnownText(monster.damage_resistances)
     },
     {
       label: "Damage Immunities",
-      value: formatDelimitedText(monster.damage_immunities),
-      show: hasText(monster.damage_immunities)
+      value: getKnownText(monster.damage_immunities)
     },
     {
       label: "Condition Immunities",
-      value: formatDelimitedText(monster.condition_immunities),
-      show: hasText(monster.condition_immunities)
+      value: getKnownText(monster.condition_immunities)
     },
     {
-      label: "Spell List",
-      value: spellList.join(", "),
-      show: spellList.length > 0
+      label: "Senses",
+      value: formatSenses(monster) || null
+    },
+    {
+      label: "Languages",
+      value: getKnownText(monster.languages) ?? "None"
+    },
+    {
+      label: "CR",
+      value: formatChallengeRating(monster)
     }
-  ].filter((item): item is { label: string; value: string; show: true } => item.show);
+  ].filter((row) => Boolean(row.value));
   const actionGroups: ActionGroupConfig[] = [
+    {
+      title: "Special Abilities",
+      features: monster.special_abilities
+    },
     {
       title: "Actions",
       features: monster.actions
+    },
+    {
+      title: "Legendary Actions",
+      features: monster.legendary_actions,
+      description: monster.legendary_desc
     },
     {
       title: "Bonus Actions",
@@ -256,76 +376,35 @@ function MonsterEntryRenderer({ monster, className }: MonsterEntryRendererProps)
     {
       title: "Reactions",
       features: monster.reactions
-    },
-    {
-      title: "Special Abilities",
-      features: monster.special_abilities
-    },
-    {
-      title: "Legendary Actions",
-      features: monster.legendary_actions,
-      description: monster.legendary_desc
     }
-  ].filter((group) => (group.features && group.features.length > 0) || hasText(group.description));
+  ].filter(
+    (group) =>
+      Boolean(group.features && group.features.length > 0) || Boolean(getKnownText(group.description))
+  );
 
   return (
-    <div className={`${styles.entry}${className ? ` ${className}` : ""}`}>
+    <article className={`${styles.entry}${className ? ` ${className}` : ""}`}>
       <section className={styles.section}>
-        <div className={styles.heroHeader}>
-          <div className={styles.titleBlock}>
-            <p className={styles.eyebrow}>Monster Codex</p>
-            <h2>{monster.name || "Unknown Monster"}</h2>
-            <p className={styles.subtitle}>
-              {formatText(monster.size)} {formatText(monster.type)}
-              {monster.subtype ? ` (${monster.subtype})` : ""}
-              {" · "}
-              {formatText(monster.alignment)}
-            </p>
-          </div>
-          <div className={styles.challengeBadge}>
-            <span>CR</span>
-            <strong>{monster.challenge_rating || monster.cr}</strong>
-          </div>
-        </div>
+        <h2 id={headingId}>{getKnownText(monster.name) ?? "Unknown Monster"}</h2>
+        {titleMeta ? <p className={styles.subtitle}>{titleMeta}</p> : null}
+        {description ? <p className={styles.description}>{description}</p> : null}
+      </section>
 
-        <div className={styles.subtleDivider} />
-
-        <p className={styles.description}>{formatText(monster.desc, "No description available.")}</p>
-
-        <div className={styles.subtleDivider} />
-
-        <div className={styles.metaBlock}>
-          <p className={styles.sourceLine}>{formatSourceLine(monster)}</p>
+      <section className={styles.section}>
+        <div className={styles.inlineRows}>
+          <InlineRow
+            label="Armor Class"
+            value={formatValueWithNote(monster.armor_class, monster.armor_desc)}
+          />
+          <InlineRow
+            label="Hit Points"
+            value={formatValueWithNote(monster.hit_points, monster.hit_dice)}
+          />
+          <InlineRow label="Speed" value={speed} />
         </div>
       </section>
 
       <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h3>Core Stats</h3>
-        </div>
-
-        <div className={styles.coreStatGrid}>
-          <CoreStat
-            label="Armor Class"
-            value={formatNullableNumber(monster.armor_class)}
-            note={hasText(monster.armor_desc) ? monster.armor_desc : null}
-          />
-          <CoreStat
-            label="Hit Points"
-            value={formatNullableNumber(monster.hit_points)}
-            note={hasText(monster.hit_dice) ? monster.hit_dice : null}
-          />
-          <CoreStat label="Speed" value={formatSpeed(monster.speed)} />
-          <CoreStat
-            label="Senses"
-            value={formatText(monster.senses)}
-            note={monster.perception !== null ? `Perception ${formatFeatureStat(monster.perception)}` : null}
-          />
-          <CoreStat label="Languages" value={formatText(monster.languages, "None")} />
-        </div>
-
-        <div className={styles.subtleDivider} />
-
         <div className={styles.abilityGrid}>
           <AbilityCell label="STR" value={monster.strength} save={monster.strength_save} />
           <AbilityCell label="DEX" value={monster.dexterity} save={monster.dexterity_save} />
@@ -334,25 +413,20 @@ function MonsterEntryRenderer({ monster, className }: MonsterEntryRendererProps)
           <AbilityCell label="WIS" value={monster.wisdom} save={monster.wisdom_save} />
           <AbilityCell label="CHA" value={monster.charisma} save={monster.charisma_save} />
         </div>
-
-        {detailItems.length > 0 ? (
-          <>
-            <div className={styles.subtleDivider} />
-            <div className={styles.detailGrid}>
-              {detailItems.map((item) => (
-                <DetailItem key={item.label} label={item.label} value={item.value} />
-              ))}
-            </div>
-          </>
-        ) : null}
       </section>
 
-      <section className={styles.section}>
-        <div className={styles.sectionHeader}>
-          <h3>Abilities & Actions</h3>
-        </div>
+      {detailRows.length > 0 ? (
+        <section className={styles.section}>
+          <div className={styles.inlineRows}>
+            {detailRows.map((row) => (
+              <InlineRow key={row.label} label={row.label} value={row.value} />
+            ))}
+          </div>
+        </section>
+      ) : null}
 
-        {actionGroups.length > 0 ? (
+      {actionGroups.length > 0 ? (
+        <section className={styles.section}>
           <div className={styles.featureGroups}>
             {actionGroups.map((group) => (
               <FeatureGroup
@@ -363,11 +437,9 @@ function MonsterEntryRenderer({ monster, className }: MonsterEntryRendererProps)
               />
             ))}
           </div>
-        ) : (
-          <p className={styles.emptyText}>No actions listed.</p>
-        )}
-      </section>
-    </div>
+        </section>
+      ) : null}
+    </article>
   );
 }
 

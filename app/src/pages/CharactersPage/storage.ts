@@ -32,6 +32,7 @@ import {
 import { normalizeCharacterClassFeatureState } from "./classFeatures";
 import { normalizeLevelAndXp } from "./experience";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
+import { normalizeCharacterCompanions } from "./companions";
 import { normalizeCharacterFeats } from "./feats";
 import { clampNumber } from "./shared";
 import { normalizeSubclassId } from "./subclasses";
@@ -169,11 +170,13 @@ export function normalizeCharacter(value: unknown): Character | null {
     maxHitPointsMode?: unknown;
     temporaryHitPoints?: unknown;
     temporaryHitPointsSource?: unknown;
+    hover?: unknown;
     roundTracker?: unknown;
     conditions?: unknown;
     statusEntries?: unknown;
     deathSaves?: unknown;
     customEquipment?: unknown;
+    companions?: unknown;
     classFeatureState?: unknown;
     feats?: unknown;
   };
@@ -367,6 +370,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     record.conditions
   );
   const normalizedDeathSaves = normalizeDeathSaves(record.deathSaves);
+  const normalizedCompanions = normalizeCharacterCompanions(record.companions);
   const normalizedFeats = normalizeCharacterFeats(record.feats, normalizedLevel);
   const normalizedTemporaryHitPointsAssignment = createTemporaryHitPointsAssignment(
     clampNumber(record.temporaryHitPoints, 0, 999, defaults.temporaryHitPoints),
@@ -390,6 +394,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     ),
     temporaryHitPoints: normalizedTemporaryHitPointsAssignment.temporaryHitPoints,
     temporaryHitPointsSource: normalizedTemporaryHitPointsAssignment.temporaryHitPointsSource,
+    hover: record.hover === true,
     maxHitPointsMode: normalizedMaxHitPointsMode,
     attributeMode:
       record.attributeMode === "pointBuy" || record.attributeMode === "custom"
@@ -415,6 +420,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     deathSaves: normalizedDeathSaves,
     equipment: normalizedArmorWearState.equipment,
     customEquipment: normalizedArmorWearState.customEquipment,
+    companions: normalizedCompanions,
     cantripIds: normalizedCantripIds,
     spellbookSpellIds: normalizedSpellbookSpellIds,
     preparedSpellIds: normalizedPreparedSpellIds,

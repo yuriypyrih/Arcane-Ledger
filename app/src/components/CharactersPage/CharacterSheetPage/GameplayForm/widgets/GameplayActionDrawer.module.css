@@ -155,9 +155,9 @@
 }
 
 .body {
-  flex: 0 1 auto;
+  flex: 1 1 auto;
   gap: 0.92rem;
-  max-height: min(70vh, 700px);
+  max-height: none;
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;

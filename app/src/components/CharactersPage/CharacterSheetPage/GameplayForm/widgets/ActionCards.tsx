@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Brain, Flame, Music, Sparkles } from "lucide-react";
+import { Brain, Flame, Music, PawPrint, Sparkles } from "lucide-react";
 import ActionShape from "../../../../ActionShape";
 import FeatureTrackingBadgeButton from "../../../../FeatureDisclosure/FeatureTrackingBadgeButton";
 import type { Character } from "../../../../../types";
@@ -18,6 +18,7 @@ import {
   getWeaponActionBreakdown
 } from "../gameplayWidgetUtils";
 import RollStatePill from "../../../../RollStatePill/RollStatePill";
+import animaIcon from "../../../../../assets/svg/anima.svg";
 import pyromancyIcon from "../../../../../assets/svg/pyromancy.svg";
 import { resolveFeatureIndicators } from "../../../../RollStatePill/rollState";
 import styles from "./ActionCards.module.css";
@@ -115,6 +116,10 @@ type FeatureActionCardButtonProps = {
 };
 
 function renderFeatureActionUsesIcon(icon: FeatureActionCard["usesIcon"]) {
+  if (icon === "anima") {
+    return <img src={animaIcon} alt="" className={styles.usesAssetIcon} />;
+  }
+
   if (icon === "brain") {
     return <Brain size={14} strokeWidth={2.1} />;
   }
@@ -129,6 +134,10 @@ function renderFeatureActionUsesIcon(icon: FeatureActionCard["usesIcon"]) {
 
   if (icon === "flame") {
     return <Flame size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "paw") {
+    return <PawPrint size={14} strokeWidth={2.1} />;
   }
 
   if (icon === "pyromancy") {

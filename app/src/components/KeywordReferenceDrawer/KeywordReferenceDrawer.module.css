@@ -3,12 +3,14 @@
   gap: 0.8rem;
 }
 
-.referenceCard {
+.referenceEntry {
   display: grid;
   gap: 0.45rem;
-  border-radius: 16px;
-  background: rgba(75, 47, 29, 0.07);
-  padding: 0.85rem 0.9rem;
+}
+
+.referenceEntry + .referenceEntry {
+  border-top: 1px solid rgba(75, 47, 29, 0.08);
+  padding-top: 0.8rem;
 }
 
 .referenceTitle {

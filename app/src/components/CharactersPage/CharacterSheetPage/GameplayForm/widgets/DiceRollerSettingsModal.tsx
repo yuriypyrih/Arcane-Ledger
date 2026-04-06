@@ -1,5 +1,6 @@
 import { useId } from "react";
 import {
+  OverlayBody,
   OverlayCloseButton,
   OverlayEyebrow,
   OverlayHeader,
@@ -35,9 +36,9 @@ function DiceRollerSettingsModal({
         <OverlayCloseButton label="Close dice roller settings" onClick={onClose} />
       </OverlayHeader>
 
-      <div className={styles.body}>
+      <OverlayBody className={styles.body}>
         <p className={styles.placeholder}>WIP</p>
-      </div>
+      </OverlayBody>
     </SheetModal>
   );
 }

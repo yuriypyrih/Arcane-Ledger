@@ -1,0 +1,21 @@
+.body {
+  padding-right: 0.12rem;
+}
+
+.statusState {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.statusState p,
+.statusState h3 {
+  margin: 0;
+}
+
+.statusState p {
+  color: var(--color-ink-soft);
+}
+
+.footer {
+  justify-content: flex-end;
+}

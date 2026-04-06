@@ -34,6 +34,7 @@ import {
 import { getRoundTrackerResourceForEconomyType } from "../../../../pages/CharactersPage/actionEconomy";
 import {
   applyBardBattleMagicAfterSpellCastForCharacter,
+  consumeDruidNaturalRecoveryUseForCharacter,
   consumeBlessingOfMoonlightUseForCharacter,
   activateFeatureActionOptionForCharacter,
   canUseBardValorActionCantripForCharacter,
@@ -47,6 +48,7 @@ import {
   getBardicInspirationUsesRemainingForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
   getBeguilingMagicUsesTotalForCharacter,
+  getDruidNaturalRecoveryUsesRemainingForCharacter,
   getFeatureActionsForCharacter,
   getFeatureActionOptionsForCharacter,
   getWeaponActionEconomyMultiForCharacter,
@@ -68,6 +70,12 @@ import {
   type FeatureActionCard,
   type FeatureActionOptionCard
 } from "../../../../pages/CharactersPage/classFeatures";
+import {
+  circleOfTheMoonSpellIdsByLevel,
+  circleOfTheLandSpellIdsByLand,
+  getDruidCircleOfTheMoonSpellIdsForCharacter,
+  getDruidCircleOfTheLandSpellIdsForCharacter
+} from "../../../../pages/CharactersPage/classFeatures/subclasses";
 import { getClericResolvedDivinityDisplay } from "../../../../pages/CharactersPage/classFeatures/cleric";
 import { paladinChannelDivinityActionKey } from "../../../../pages/CharactersPage/classFeatures/paladin";
 import {
@@ -134,13 +142,7 @@ type DivinityOptionRow = {
   entry: DivinityEntry;
 };
 
-function SelectionCounter({
-  current,
-  total
-}: {
-  current: number;
-  total: number;
-}) {
+function SelectionCounter({ current, total }: { current: number; total: number }) {
   return (
     <span
       className={clsx(current < total && styles.selectionCounterIncomplete)}
@@ -270,6 +272,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const [useBeguilingMagicOnSelectedSpell, setUseBeguilingMagicOnSelectedSpell] = useState(false);
   const [useBlessingOfMoonlightOnSelectedSpell, setUseBlessingOfMoonlightOnSelectedSpell] =
     useState(false);
+  const [useNaturalRecoveryOnSelectedSpell, setUseNaturalRecoveryOnSelectedSpell] =
+    useState(false);
   const [spellManagementMode, setSpellManagementMode] = useState<SpellManagementMode | null>(null);
   const [cantripDraftIds, setCantripDraftIds] = useState<string[]>([]);
   const [spellbookDraftIds, setSpellbookDraftIds] = useState<string[]>([]);
@@ -304,7 +308,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   );
 
   useEffect(() => {
-    if (!selectedSpell && !selectedDivinityOptionKey && !selectedInvocation && !spellManagementMode) {
+    if (
+      !selectedSpell &&
+      !selectedDivinityOptionKey &&
+      !selectedInvocation &&
+      !spellManagementMode
+    ) {
       return;
     }
 
@@ -498,6 +507,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   );
   const blessingOfMoonlightUsesRemaining = useMemo(
     () => getBlessingOfMoonlightUsesRemainingForCharacter(character),
+    [character.classFeatureState, character.className, character.level, character.subclassId]
+  );
+  const druidNaturalRecoveryUsesRemaining = useMemo(
+    () => getDruidNaturalRecoveryUsesRemainingForCharacter(character),
     [character.classFeatureState, character.className, character.level, character.subclassId]
   );
   const bardicInspirationUsesRemaining = useMemo(
@@ -718,12 +731,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
       return left.name.localeCompare(right.name);
     });
-  }, [
-    activeWizardSpellFilter,
-    selectedPreparedSpells,
-    selectedSpellbookSpells,
-    usesSpellbook
-  ]);
+  }, [activeWizardSpellFilter, selectedPreparedSpells, selectedSpellbookSpells, usesSpellbook]);
   const visibleSpellEntries = useMemo(
     () => [...selectedCantrips, ...visibleWizardLevelledSpells],
     [selectedCantrips, visibleWizardLevelledSpells]
@@ -826,8 +834,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     canUseBardValorActionCantripForCharacter(character, selectedSpell)
       ? null
       : getRoundTrackerActionWarning(selectedSpellRoundTrackerResource, roundTracker);
-  const selectedSpellCastWarning =
-    spellcastingState.blocked ? spellcastingState.reason : selectedSpellActionWarning;
   const selectedSpellActionShapeState =
     selectedSpellRoundTrackerResource === "action" &&
     selectedSpell !== null &&
@@ -872,16 +878,40 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     hasWizardSignatureSpellFreeCastAvailableForCharacter(character, selectedSpell.id);
   const selectedSpellUnderMantleOfMajesty =
     selectedSpell?.id === "spell-command" && hasActiveMantleOfMajestyForCharacter(character);
-  const selectedSpellFreeCastSlotLevel =
-    selectedSpellUnderMantleOfMajesty
-      ? 1
-      : selectedSpell && selectedSpellIsWizardSpellMastery
+  const druidCircleOfTheLandSpellIds = useMemo(
+    () => getDruidCircleOfTheLandSpellIdsForCharacter(character, circleOfTheLandSpellIdsByLand),
+    [character]
+  );
+  const druidCircleOfTheMoonSpellIds = useMemo(
+    () => getDruidCircleOfTheMoonSpellIdsForCharacter(character, circleOfTheMoonSpellIdsByLevel),
+    [character]
+  );
+  const selectedSpellSupportsNaturalRecovery =
+    selectedSpell !== null &&
+    getSpellLevel(selectedSpell) > 0 &&
+    druidCircleOfTheLandSpellIds.includes(selectedSpell.id);
+  const selectedSpellCanIgnoreSpellcastingBlock =
+    selectedSpell !== null && druidCircleOfTheMoonSpellIds.includes(selectedSpell.id);
+  const selectedSpellCastWarning =
+    spellcastingState.blocked && !selectedSpellCanIgnoreSpellcastingBlock
+      ? spellcastingState.reason
+      : selectedSpellActionWarning;
+  const selectedSpellFreeCastSlotLevel = selectedSpellUnderMantleOfMajesty
+    ? 1
+    : selectedSpellSupportsNaturalRecovery &&
+        useNaturalRecoveryOnSelectedSpell &&
+        druidNaturalRecoveryUsesRemaining > 0
       ? Math.max(1, getSpellLevel(selectedSpell))
-      : selectedSpell && selectedSpellIsWizardSignatureSpell && selectedSpellHasSignatureSpellFreeCastAvailable
-        ? 3
-        : null;
-  const selectedSpellBlockedReason =
-    selectedSpellIsSpellbookOnly ? "This spell is in your spellbook but not prepared." : null;
+      : selectedSpell && selectedSpellIsWizardSpellMastery
+        ? Math.max(1, getSpellLevel(selectedSpell))
+        : selectedSpell &&
+            selectedSpellIsWizardSignatureSpell &&
+            selectedSpellHasSignatureSpellFreeCastAvailable
+          ? 3
+          : null;
+  const selectedSpellBlockedReason = selectedSpellIsSpellbookOnly
+    ? "This spell is in your spellbook but not prepared."
+    : null;
   const selectedSpellSupportsBeguilingMagic =
     selectedSpell !== null &&
     beguilingMagicUsesTotal > 0 &&
@@ -893,6 +923,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   useEffect(() => {
     setUseBeguilingMagicOnSelectedSpell(false);
     setUseBlessingOfMoonlightOnSelectedSpell(false);
+    setUseNaturalRecoveryOnSelectedSpell(false);
   }, [selectedSpell?.id]);
 
   function getSpellRowActionShapeState(spell: SpellEntry) {
@@ -951,9 +982,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   useEffect(() => {
     setPreparedSpellDraftIds((current) => {
       const normalized = normalizePreparedSpellIds(
-        usesSpellbook
-          ? current.filter((spellId) => spellbookDraftSet.has(spellId))
-          : current,
+        usesSpellbook ? current.filter((spellId) => spellbookDraftSet.has(spellId)) : current,
         spellPreparationOptions,
         preparedSpellLimit,
         alwaysPreparedSpellIds
@@ -1001,7 +1030,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     }
 
     setSelectedInvocation(null);
-  }, [invocationSelectionOptions, learnedInvocationOptions, selectedInvocation, spellManagementMode]);
+  }, [
+    invocationSelectionOptions,
+    learnedInvocationOptions,
+    selectedInvocation,
+    spellManagementMode
+  ]);
 
   useEffect(() => {
     if (spellManagementMode !== "cantrips") {
@@ -1207,7 +1241,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     (spellId: string) => {
       setPreparedSpellDraftIds((current) => {
         const normalizedCurrent = normalizePreparedSpellIds(
-          usesSpellbook ? current.filter((currentSpellId) => spellbookDraftSet.has(currentSpellId)) : current,
+          usesSpellbook
+            ? current.filter((currentSpellId) => spellbookDraftSet.has(currentSpellId))
+            : current,
           spellPreparationOptions,
           preparedSpellLimit,
           alwaysPreparedSpellIds
@@ -1240,22 +1276,19 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     ]
   );
 
-  const toggleSpellbookDraft = useCallback(
-    (spellId: string) => {
-      setSpellbookDraftIds((current) => {
-        if (current.includes(spellId)) {
-          setPreparedSpellDraftIds((preparedCurrent) =>
-            preparedCurrent.filter((currentSpellId) => currentSpellId !== spellId)
-          );
+  const toggleSpellbookDraft = useCallback((spellId: string) => {
+    setSpellbookDraftIds((current) => {
+      if (current.includes(spellId)) {
+        setPreparedSpellDraftIds((preparedCurrent) =>
+          preparedCurrent.filter((currentSpellId) => currentSpellId !== spellId)
+        );
 
-          return current.filter((currentSpellId) => currentSpellId !== spellId);
-        }
+        return current.filter((currentSpellId) => currentSpellId !== spellId);
+      }
 
-        return [...current, spellId];
-      });
-    },
-    []
-  );
+      return [...current, spellId];
+    });
+  }, []);
 
   const toggleInvocationDraft = useCallback(
     (selectionId: string) => {
@@ -1355,15 +1388,15 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           ? minimumSlotLevel
           : hasWizardSignatureSpellFreeCast
             ? wizardSignatureSpellLevel
-          : (spellSlotLevels.find(
-              (slotLevel) =>
-                slotLevel >= minimumSlotLevel && (spellSlotsRemaining[slotLevel - 1] ?? 0) > 0
-            ) ??
-            spellSlotLevels.find(
-              (slotLevel) =>
-                slotLevel >= minimumSlotLevel && (spellSlotTotals[slotLevel - 1] ?? 0) > 0
-            ) ??
-            minimumSlotLevel);
+            : (spellSlotLevels.find(
+                (slotLevel) =>
+                  slotLevel >= minimumSlotLevel && (spellSlotsRemaining[slotLevel - 1] ?? 0) > 0
+              ) ??
+              spellSlotLevels.find(
+                (slotLevel) =>
+                  slotLevel >= minimumSlotLevel && (spellSlotTotals[slotLevel - 1] ?? 0) > 0
+              ) ??
+              minimumSlotLevel);
 
     setSelectedSpellViewMode(viewMode);
     setSelectedSpellSlotLevel(preferredSlotLevel);
@@ -1386,8 +1419,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     castAsRitual?: boolean;
     useBeguilingMagic?: boolean;
     useBlessingOfMoonlight?: boolean;
+    useNaturalRecovery?: boolean;
   }) {
-    if (!selectedSpell || spellcastingState.blocked) {
+    if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpellcastingBlock)) {
       return;
     }
 
@@ -1396,6 +1430,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     const castAsRitual = options?.castAsRitual === true && selectedSpell.ritual === true;
     const useBeguilingMagic = options?.useBeguilingMagic === true;
     const useBlessingOfMoonlight = options?.useBlessingOfMoonlight === true;
+    const useNaturalRecovery = options?.useNaturalRecovery === true;
     const canCastSpellbookRitual =
       selectedSpellIsSpellbookOnly && hasWizardRitualAdept && castAsRitual;
 
@@ -1424,7 +1459,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithBeguilingMagic)
             : nextCharacterWithBeguilingMagic;
 
-          if (canUseBardValorActionCantripForCharacter(nextCharacterWithSpellOptions, selectedSpell)) {
+          if (
+            canUseBardValorActionCantripForCharacter(nextCharacterWithSpellOptions, selectedSpell)
+          ) {
             return applyBardBattleMagicAfterSpellCastForCharacter(
               consumeBardValorActionCantripForCharacter(nextCharacterWithSpellOptions),
               selectedSpell
@@ -1509,7 +1546,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       selectedSpellIsWizardSignatureSpell &&
       slotLevel === wizardSignatureSpellLevel &&
       hasWizardSignatureSpellFreeCastAvailableForCharacter(character, selectedSpell.id);
-    const castsWithoutSpellSlot = castsFreeViaSpellMastery || castsFreeViaSignatureSpells;
+    const castsFreeViaNaturalRecovery =
+      useNaturalRecovery &&
+      selectedSpellSupportsNaturalRecovery &&
+      druidNaturalRecoveryUsesRemaining > 0 &&
+      slotLevel === spellLevel;
+    const castsWithoutSpellSlot =
+      castsFreeViaSpellMastery || castsFreeViaSignatureSpells || castsFreeViaNaturalRecovery;
 
     if (!castsWithoutSpellSlot && (spellSlotsRemaining[slotLevel - 1] ?? 0) <= 0) {
       return;
@@ -1534,10 +1577,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         nextSpellSlotsExpended[slotLevel - 1] = (nextSpellSlotsExpended[slotLevel - 1] ?? 0) + 1;
       }
 
-      const nextCharacter =
-        castsFreeViaSignatureSpells
-          ? consumeWizardSignatureSpellFreeCastForCharacter(preparedCharacter, selectedSpell.id)
-          : preparedCharacter;
+      const nextCharacter = castsFreeViaSignatureSpells
+        ? consumeWizardSignatureSpellFreeCastForCharacter(preparedCharacter, selectedSpell.id)
+        : preparedCharacter;
       const nextCharacterWithSpellcast = {
         ...nextCharacter,
         spellSlotsExpended: castsWithoutSpellSlot
@@ -1554,8 +1596,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       const nextCharacterWithSpellOptions = useBlessingOfMoonlight
         ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithBeguilingMagic)
         : nextCharacterWithBeguilingMagic;
+      const nextCharacterWithNaturalRecovery = castsFreeViaNaturalRecovery
+        ? consumeDruidNaturalRecoveryUseForCharacter(nextCharacterWithSpellOptions)
+        : nextCharacterWithSpellOptions;
       const nextCharacterWithBattleMagic = applyBardBattleMagicAfterSpellCastForCharacter(
-        nextCharacterWithSpellOptions,
+        nextCharacterWithNaturalRecovery,
         selectedSpell
       );
 
@@ -1613,14 +1658,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               ? "Invocations, prepared spells, and spell slots"
               : usesSpellbook
                 ? "Spellbook, prepared spells, and spell slots"
-              : "Prepared spells and spell slots"}
+                : "Prepared spells and spell slots"}
           </h3>
         </div>
         <div className={shared.headerActions}>
           {hasSpellSelectionInputRequired ? (
             <span className={styles.spellInputRequired}>
               <TriangleAlert size={16} aria-hidden="true" />
-              Input required
+              INPUT REQUIRED
             </span>
           ) : null}
           <button
@@ -1675,10 +1720,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
       {usesSpellbook ? (
         <div className={styles.wizardFilterBar} role="tablist" aria-label="Wizard spell view">
-          {([
-            ["all", "All Spellbook"],
-            ["prepared", "Prepared"]
-          ] as const).map(([filterKey, label]) => (
+          {(
+            [
+              ["all", "All Spellbook"],
+              ["prepared", "Prepared"]
+            ] as const
+          ).map(([filterKey, label]) => (
             <button
               key={filterKey}
               type="button"
@@ -1822,11 +1869,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                     ? "Spell options"
                     : spellManagementMode === "spell-slots"
                       ? "Edit your Spell Slots Manually"
-                    : spellManagementMode === "cantrips"
-                      ? "Manage cantrips"
-                      : spellManagementMode === "eldritch-invocations"
-                        ? "Manage eldritch invocations"
-                        : "Prepare spells"}
+                      : spellManagementMode === "cantrips"
+                        ? "Manage cantrips"
+                        : spellManagementMode === "eldritch-invocations"
+                          ? "Manage eldritch invocations"
+                          : "Prepare spells"}
                 </h3>
               </div>
               <button
@@ -1857,10 +1904,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                   >
                     <strong>
                       Manage cantrips{" "}
-                      <SelectionCounter
-                        current={selectedCantripCount}
-                        total={cantripLimit ?? 0}
-                      />
+                      <SelectionCounter current={selectedCantripCount} total={cantripLimit ?? 0} />
                     </strong>
                     <small>Choose from the list of cantrips for your class.</small>
                   </button>
@@ -1888,25 +1932,23 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                     onClick={beginPreparedSpellManagement}
                   >
                     <strong>
-                      {usesSpellbook
-                        ? (
-                            <>
-                              Manage spellbook &amp; prepare spells{" "}
-                              <SelectionCounter
-                                current={selectedPreparedSpellCount}
-                                total={preparedSpellLimit ?? 0}
-                              />
-                            </>
-                          )
-                        : (
-                            <>
-                              Prepare spells{" "}
-                              <SelectionCounter
-                                current={selectedPreparedSpellCount}
-                                total={preparedSpellLimit ?? 0}
-                              />
-                            </>
-                          )}
+                      {usesSpellbook ? (
+                        <>
+                          Manage spellbook &amp; prepare spells{" "}
+                          <SelectionCounter
+                            current={selectedPreparedSpellCount}
+                            total={preparedSpellLimit ?? 0}
+                          />
+                        </>
+                      ) : (
+                        <>
+                          Prepare spells{" "}
+                          <SelectionCounter
+                            current={selectedPreparedSpellCount}
+                            total={preparedSpellLimit ?? 0}
+                          />
+                        </>
+                      )}
                     </strong>
                     <small>
                       {usesSpellbook
@@ -1987,10 +2029,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                   <div>
                     <p className={styles.preparedSpellStatusLabel}>Eldritch Invocations</p>
                     <p className={styles.preparedSpellLimitText}>
-                      <SelectionCounter
-                        current={invocationCount}
-                        total={eldritchInvocationLimit}
-                      />{" "}
+                      <SelectionCounter current={invocationCount} total={eldritchInvocationLimit} />{" "}
                       learned
                     </p>
                   </div>
@@ -2065,10 +2104,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                       </>
                     ) : preparedSpellLimit !== null ? (
                       <p className={styles.preparedSpellLimitText}>
-                        <SelectionCounter
-                          current={preparedSpellCount}
-                          total={preparedSpellLimit}
-                        />{" "}
+                        <SelectionCounter current={preparedSpellCount} total={preparedSpellLimit} />{" "}
                         prepared
                       </p>
                     ) : null}
@@ -2183,7 +2219,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             castSelectedSpell({
               ...options,
               useBeguilingMagic: useBeguilingMagicOnSelectedSpell,
-              useBlessingOfMoonlight: useBlessingOfMoonlightOnSelectedSpell
+              useBlessingOfMoonlight: useBlessingOfMoonlightOnSelectedSpell,
+              useNaturalRecovery: useNaturalRecoveryOnSelectedSpell
             })
           }
           actionConsumesSpellSlot={!selectedSpellIsSpellbookOnly}
@@ -2203,7 +2240,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           actionShapeAvailable={selectedSpellActionShapeState.isSelected}
           actionShapeMultiCount={selectedSpellActionShapeState.multiCount}
           actionOptions={
-            selectedSpellSupportsBeguilingMagic || selectedSpellSupportsBlessingOfMoonlight
+            selectedSpellSupportsBeguilingMagic ||
+            selectedSpellSupportsBlessingOfMoonlight ||
+            selectedSpellSupportsNaturalRecovery
               ? [
                   ...(selectedSpellSupportsBeguilingMagic
                     ? [
@@ -2213,8 +2252,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           checked: useBeguilingMagicOnSelectedSpell,
                           onCheckedChange: setUseBeguilingMagicOnSelectedSpell,
                           disabled:
-                            beguilingMagicUsesRemaining <= 0 &&
-                            bardicInspirationUsesRemaining <= 0,
+                            beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
                           tracker: {
                             current: beguilingMagicUsesRemaining,
                             total: beguilingMagicUsesTotal
@@ -2240,6 +2278,21 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           tracker: {
                             current: blessingOfMoonlightUsesRemaining,
                             total: blessingOfMoonlightUsesTotal
+                          }
+                        }
+                      ]
+                    : []),
+                  ...(selectedSpellSupportsNaturalRecovery
+                    ? [
+                        {
+                          id: "natural-recovery",
+                          label: "Natural Recovery",
+                          checked: useNaturalRecoveryOnSelectedSpell,
+                          onCheckedChange: setUseNaturalRecoveryOnSelectedSpell,
+                          disabled: druidNaturalRecoveryUsesRemaining <= 0,
+                          tracker: {
+                            current: druidNaturalRecoveryUsesRemaining,
+                            total: 1
                           }
                         }
                       ]
@@ -2281,10 +2334,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               <div className={sheetStyles.spellDrawerHeaderContent}>
                 <p className={sheetStyles.spellDrawerBadge}>{formatCodexLabel("DIVINITY")}</p>
                 <div className={sheetStyles.spellDrawerTitleRow}>
-                  <h3
-                    id="character-divinity-drawer-title"
-                    className={sheetStyles.spellDrawerTitle}
-                  >
+                  <h3 id="character-divinity-drawer-title" className={sheetStyles.spellDrawerTitle}>
                     {selectedDivinityRow.option.name}
                   </h3>
                 </div>
@@ -2323,10 +2373,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                 className={clsx(
                   sheetStyles.spellDrawerDescriptionList,
                   sheetStyles.spellDrawerDescriptionSection
-              )}
-              entryClassName={sheetStyles.spellDrawerDescriptionLine}
-              strongClassName={sheetStyles.spellDrawerDescriptionStrong}
-            />
+                )}
+                entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                strongClassName={sheetStyles.spellDrawerDescriptionStrong}
+              />
             </div>
 
             <div className={sheetStyles.spellDrawerActions}>
@@ -2337,9 +2387,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                   </p>
                 </div>
                 {selectedDivinityActionWarning ? (
-                  <p className={actionStyles.castActionWarning}>
-                    {selectedDivinityActionWarning}
-                  </p>
+                  <p className={actionStyles.castActionWarning}>{selectedDivinityActionWarning}</p>
                 ) : null}
               </div>
               <button

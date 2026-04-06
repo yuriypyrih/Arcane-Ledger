@@ -27,21 +27,19 @@
 }
 
 .modalBackdrop {
+  --overlay-backdrop-padding: 1.5rem;
   position: fixed;
   inset: 0;
   z-index: 70;
   display: grid;
   place-items: center;
   background: rgba(33, 22, 14, 0.5);
-  padding: 1.5rem;
+  padding: var(--overlay-backdrop-padding);
 }
 
 .modal {
-  display: grid;
-  gap: 1rem;
   width: min(32rem, 100%);
-  max-height: min(36rem, calc(100vh - 3rem));
-  overflow: auto;
+  min-height: 0;
   border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: 24px;
   background: rgba(255, 250, 241, 0.98);
@@ -54,6 +52,11 @@
   justify-content: space-between;
   gap: 1rem;
   align-items: flex-start;
+  flex-shrink: 0;
+}
+
+.modalBody {
+  gap: 1rem;
 }
 
 .modalTitle,

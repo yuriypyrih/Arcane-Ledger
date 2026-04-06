@@ -169,23 +169,24 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
           backdropClassName={styles.modalBackdrop}
           panelClassName={styles.modal}
         >
-            <div className={styles.modalHeader}>
-              <div>
-                <p className={styles.modalEyebrow}>Spell Reference</p>
-                <h3 id="codex-spell-components-title" className={styles.modalTitle}>
-                  {componentsTooltipEntry?.title ?? "Components"}
-                </h3>
-              </div>
-              <button
-                type="button"
-                className={styles.closeButton}
-                onClick={() => setIsComponentsTooltipOpen(false)}
-                aria-label="Close components tooltip"
-                >
-                  ×
-                </button>
-              </div>
-              {componentsTooltipEntry ? (
+          <div className={styles.modalHeader}>
+            <div>
+              <p className={styles.modalEyebrow}>Spell Reference</p>
+              <h3 id="codex-spell-components-title" className={styles.modalTitle}>
+                {componentsTooltipEntry?.title ?? "Components"}
+              </h3>
+            </div>
+            <button
+              type="button"
+              className={styles.closeButton}
+              onClick={() => setIsComponentsTooltipOpen(false)}
+              aria-label="Close components tooltip"
+            >
+              ×
+            </button>
+          </div>
+          <OverlayBody className={styles.modalBody}>
+            {componentsTooltipEntry ? (
               <article className={styles.tooltipCard}>
                 <DescriptionContent
                   description={componentsTooltipEntry.description}
@@ -200,6 +201,7 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
                 />
               </article>
             ) : null}
+          </OverlayBody>
         </SheetModal>
       ) : null}
 

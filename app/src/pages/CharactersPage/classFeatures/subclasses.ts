@@ -1,5 +1,7 @@
 import {
   ACTION_TYPE,
+  CLASS_FEATURE,
+  DAMAGE_TYPE,
   getSpellEntryByName,
   getReactionEntryById,
   type ReactionEntry,
@@ -13,8 +15,16 @@ import {
   shadowOfTheNewMoonDescription,
   unbreakableMajestyDescription
 } from "../../../codex/subclasses/bard";
-import { getSelectedSubclassForCharacter } from "../subclasses";
-import { SKILL, type Character } from "../../../types";
+import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../subclasses";
+import {
+  type AbilityKey,
+  CONDITION_NAME,
+  SKILL,
+  STATUS_DURATION_KIND,
+  STATUS_ENTRY_GROUP,
+  STATUS_ENTRY_SOURCE_TYPE,
+  type Character
+} from "../../../types";
 import { getEquipmentByName } from "../proficiency";
 import {
   getBardicInspirationDie,
@@ -39,6 +49,20 @@ import {
   getKnowledgeDomainSkillIndicators,
   getKnowledgeDomainSkillProficiencyEntries
 } from "./cleric";
+import {
+  druidLandsAidActionKey,
+  druidMoonlightStepActionKey,
+  druidNaturesSanctuaryActionKey,
+  druidWrathOfTheSeaActionKey,
+  druidWrathOfTheSeaStatusSourceId,
+  getDruidCircleOfTheLandChoice,
+  getDruidMoonlightStepFallbackSlotLevel,
+  getDruidMoonlightStepFallbackSlotSummary,
+  getDruidMoonlightStepUsesRemaining,
+  getDruidMoonlightStepUsesTotal,
+  getDruidWildShapeUsesRemaining,
+  getDruidWildShapeUsesTotal
+} from "./druid";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
 import type {
   AbilityCheckIndicatorMap,
@@ -53,6 +77,7 @@ import type {
   FeatureDamageBonus,
   FeatureIndicator,
   FeatureLanguageProficiencyEntry,
+  FeatureSavingThrowBonus,
   FeatureUnarmedStrikeConfig,
   FeatureSavingThrowProficiencyEntry,
   FeatureSkillProficiencyEntry,
@@ -67,6 +92,7 @@ export type SubclassDerivedFeatureState = {
   featureActions?: FeatureActionCard[];
   featureActionOptions?: Partial<Record<string, FeatureActionOptionCard[]>>;
   transformFeatureAction?: (action: FeatureActionCard) => FeatureActionCard;
+  getSavingThrowBonuses?: (ability: AbilityKey) => FeatureSavingThrowBonus[];
   savingThrowIndicators?: SavingThrowIndicatorMap;
   abilityCheckIndicators?: AbilityCheckIndicatorMap;
   coreStatIndicators?: CoreStatIndicatorMap;
@@ -125,6 +151,9 @@ const collegeOfDanceSubclassId = "bard-college-of-dance";
 const collegeOfGlamourSubclassId = "bard-college-of-glamour";
 const collegeOfLoreSubclassId = "bard-college-of-lore";
 const collegeOfTheMoonSubclassId = "bard-college-of-the-moon";
+const circleOfTheLandSubclassId = "druid-circle-of-the-land";
+const circleOfTheMoonSubclassId = "druid-circle-of-the-moon";
+const circleOfTheSeaSubclassId = "druid-circle-of-the-sea";
 const knowledgeDomainSubclassId = "cleric-knowledge-domain";
 const lifeDomainSubclassId = "cleric-life-domain";
 const lightDomainSubclassId = "cleric-light-domain";
@@ -145,6 +174,46 @@ const wildHeartNatureSpeakerSpellId = "spell-commune-with-nature";
 const glamourBeguilingMagicSpellIds = ["spell-charm-person", "spell-mirror-image"] as const;
 const glamourCommandSpellId = "spell-command";
 const moonbeamSpellId = "spell-moonbeam";
+const naturesWardPoisonedImmunitySourceId = "feature-druid-natures-ward-immunity-poisoned";
+const naturesWardResistanceSourceIdPrefix = "feature-druid-natures-ward-resistance-";
+export const circleOfTheLandSpellIdsByLand = {
+  arid: {
+    3: resolveSpellIdsByName(["Blur", "Burning Hands", "Fire Bolt"]),
+    5: resolveSpellIdsByName(["Fireball"]),
+    7: resolveSpellIdsByName(["Blight"]),
+    9: resolveSpellIdsByName(["Wall of Stone"])
+  },
+  polar: {
+    3: resolveSpellIdsByName(["Fog Cloud", "Hold Person", "Ray of Frost"]),
+    5: resolveSpellIdsByName(["Sleet Storm"]),
+    7: resolveSpellIdsByName(["Ice Storm"]),
+    9: resolveSpellIdsByName(["Cone of Cold"])
+  },
+  temperate: {
+    3: resolveSpellIdsByName(["Misty Step", "Shocking Grasp", "Sleep"]),
+    5: resolveSpellIdsByName(["Lightning Bolt"]),
+    7: resolveSpellIdsByName(["Freedom of Movement"]),
+    9: resolveSpellIdsByName(["Tree Stride"])
+  },
+  tropical: {
+    3: resolveSpellIdsByName(["Acid Splash", "Ray of Sickness", "Web"]),
+    5: resolveSpellIdsByName(["Stinking Cloud"]),
+    7: resolveSpellIdsByName(["Polymorph"]),
+    9: resolveSpellIdsByName(["Insect Plague"])
+  }
+} as const;
+export const circleOfTheMoonSpellIdsByLevel = {
+  3: resolveSpellIdsByName(["Cure Wounds", "Moonbeam", "Starry Wisp"]),
+  5: resolveSpellIdsByName(["Conjure Animals"]),
+  7: resolveSpellIdsByName(["Fount of Moonlight"]),
+  9: resolveSpellIdsByName(["Mass Cure Wounds"])
+} as const;
+export const circleOfTheSeaSpellIdsByLevel = {
+  3: resolveSpellIdsByName(["Fog Cloud", "Gust of Wind", "Ray of Frost", "Shatter", "Thunderwave"]),
+  5: resolveSpellIdsByName(["Lightning Bolt", "Water Breathing"]),
+  7: resolveSpellIdsByName(["Control Water", "Ice Storm"]),
+  9: resolveSpellIdsByName(["Conjure Elemental", "Hold Monster"])
+} as const;
 const knowledgeDomainSpellIdsByLevel = {
   3: [
     "spell-command",
@@ -240,12 +309,7 @@ const aberrantSorcerySpellIdsByLevel = {
   9: resolveSpellIdsByName(["Rary's Telepathic Bond", "Telekinesis"])
 } as const;
 const clockworkSorcerySpellIdsByLevel = {
-  3: resolveSpellIdsByName([
-    "Aid",
-    "Alarm",
-    "Lesser Restoration",
-    "Protection from Evil and Good"
-  ]),
+  3: resolveSpellIdsByName(["Aid", "Alarm", "Lesser Restoration", "Protection from Evil and Good"]),
   5: resolveSpellIdsByName(["Dispel Magic", "Protection from Energy"]),
   7: resolveSpellIdsByName(["Freedom of Movement", "Summon Construct"]),
   9: resolveSpellIdsByName(["Greater Restoration", "Wall of Force"])
@@ -257,12 +321,7 @@ const draconicSorcerySpellIdsByLevel = {
   9: resolveSpellIdsByName(["Legend Lore", "Summon Dragon"])
 } as const;
 const spellfireSorcerySpellIdsByLevel = {
-  3: resolveSpellIdsByName([
-    "Cure Wounds",
-    "Guiding Bolt",
-    "Lesser Restoration",
-    "Scorching Ray"
-  ]),
+  3: resolveSpellIdsByName(["Cure Wounds", "Guiding Bolt", "Lesser Restoration", "Scorching Ray"]),
   5: resolveSpellIdsByName(["Aura of Vitality", "Dispel Magic"]),
   7: resolveSpellIdsByName(["Fire Shield", "Wall of Fire"]),
   9: resolveSpellIdsByName(["Greater Restoration", "Flame Strike"])
@@ -356,6 +415,337 @@ function createDefaultFeatureActionDescription(action: FeatureActionCard): strin
   }
 
   return description;
+}
+
+function getCircleOfTheLandFeatureActions(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): FeatureActionCard[] {
+  if (character.className !== "Druid" || character.subclassId !== circleOfTheLandSubclassId) {
+    return [];
+  }
+
+  const level = character.level ?? 0;
+
+  if (level < 3) {
+    return [];
+  }
+
+  const druidResourceCharacter = {
+    className: character.className,
+    level,
+    classFeatureState: character.classFeatureState
+  };
+  const usesRemaining = getDruidWildShapeUsesRemaining(druidResourceCharacter);
+  const usesTotal = getDruidWildShapeUsesTotal(druidResourceCharacter);
+  const description =
+    getSubclassFeatureDetails(
+      getSelectedSubclassForCharacter(character),
+      3,
+      CLASS_FEATURE.LANDS_AID
+    )?.description ?? [];
+  const naturesSanctuaryDescription =
+    getSubclassFeatureDetails(
+      getSelectedSubclassForCharacter(character),
+      14,
+      CLASS_FEATURE.NATURES_SANCTUARY
+    )?.description ?? [];
+  const resources = [
+    {
+      kind: "tracker" as const,
+      label: "Wild Shape",
+      current: usesRemaining,
+      total: usesTotal,
+      icon: "paw" as const,
+      cost: 1
+    }
+  ];
+
+  return [
+    {
+      key: druidLandsAidActionKey,
+      name: "Lands Aid",
+      summary: "Call life-draining thorns and healing flowers.",
+      detail: "Expend a Wild Shape use to damage foes and restore an ally.",
+      description,
+      economyType: ECONOMY_TYPE.ACTION,
+      actionCategory: ACTION_CATEGORY.MAGIC,
+      usesRemaining,
+      usesTotal,
+      hideUsesTrackerOnCard: true,
+      usesInlineLabel: "Use 1",
+      usesInlineIcon: "paw",
+      resources,
+      drawer: {
+        kind: "confirm",
+        eyebrow: "Circle of the Land",
+        description,
+        confirmLabel: "Use Lands Aid",
+        resources
+      },
+      execute: {
+        kind: "activate"
+      },
+      disabled: usesRemaining <= 0,
+      disabledReason: usesRemaining <= 0 ? "No Wild Shape uses remaining." : undefined
+    },
+    ...(level >= 14
+      ? [
+          {
+            key: druidNaturesSanctuaryActionKey,
+            name: "Nature's Sanctuary",
+            summary: "Summon spectral trees and vines that shelter your allies.",
+            detail: "Expend a Wild Shape use to create your sanctuary.",
+            description: naturesSanctuaryDescription,
+            economyType: ECONOMY_TYPE.ACTION,
+            actionCategory: ACTION_CATEGORY.MAGIC,
+            usesRemaining,
+            usesTotal,
+            hideUsesTrackerOnCard: true,
+            usesInlineLabel: "Use 1",
+            usesInlineIcon: "paw",
+            resources,
+            drawer: {
+              kind: "confirm" as const,
+              eyebrow: "Circle of the Land",
+              description: naturesSanctuaryDescription,
+              confirmLabel: "Cast",
+              resources
+            },
+            execute: {
+              kind: "activate" as const,
+              label: "Cast"
+            },
+            disabled: usesRemaining <= 0,
+            disabledReason: usesRemaining <= 0 ? "No Wild Shape uses remaining." : undefined
+          }
+        ]
+      : [])
+  ];
+}
+
+function getCircleOfTheMoonFeatureActions(
+  character: Pick<Character, "className"> &
+    Partial<
+      Pick<
+        Character,
+        "level" | "subclassId" | "classFeatureState" | "spellSlotsExpended" | "abilities"
+      >
+    >
+): FeatureActionCard[] {
+  if (character.className !== "Druid" || character.subclassId !== circleOfTheMoonSubclassId) {
+    return [];
+  }
+
+  const level = character.level ?? 0;
+
+  if (level < 10) {
+    return [];
+  }
+
+  const druidResourceCharacter = {
+    className: character.className,
+    level,
+    subclassId: character.subclassId,
+    classFeatureState: character.classFeatureState,
+    spellSlotsExpended: character.spellSlotsExpended ?? [],
+    abilities: character.abilities
+  };
+  const usesRemaining = getDruidMoonlightStepUsesRemaining(druidResourceCharacter);
+  const usesTotal = getDruidMoonlightStepUsesTotal(druidResourceCharacter);
+  const fallbackSlotLevel = getDruidMoonlightStepFallbackSlotLevel(druidResourceCharacter);
+  const fallbackSlotSummary = getDruidMoonlightStepFallbackSlotSummary(druidResourceCharacter);
+  const description =
+    getSubclassFeatureDetails(
+      getSelectedSubclassForCharacter(character),
+      10,
+      CLASS_FEATURE.MOONLIGHT_STEP
+    )?.description ?? [];
+  const resources = [
+    {
+      kind: "tracker" as const,
+      label: "Uses",
+      current: usesRemaining,
+      total: usesTotal,
+      cost: 1
+    },
+    ...(fallbackSlotSummary.total > 0
+      ? [
+          {
+            kind: "text" as const,
+            label: "2+ Spell Slots",
+            value: `${fallbackSlotSummary.remaining}/${fallbackSlotSummary.total}`
+          }
+        ]
+      : [])
+  ];
+  const disabled = usesRemaining <= 0 && fallbackSlotLevel === null;
+
+  return [
+    {
+      key: druidMoonlightStepActionKey,
+      name: "Moonlight Step",
+      summary: "Teleport up to 30 feet and empower your next attack.",
+      detail: "Teleport up to 30 feet and gain Advantage on your next attack roll this turn.",
+      description,
+      economyType: ECONOMY_TYPE.BONUS_ACTION,
+      actionCategory: ACTION_CATEGORY.MAGIC,
+      usesRemaining,
+      usesTotal,
+      usesInlineLabel:
+        usesRemaining <= 0 && fallbackSlotLevel !== null ? "| Use 2+ Spell Slot" : undefined,
+      resources,
+      drawer: {
+        kind: "confirm",
+        eyebrow: "Circle of the Moon",
+        description,
+        confirmLabel: "Step",
+        helperText:
+          fallbackSlotSummary.total > 0
+            ? "When your uses are gone, Moonlight Step spends your lowest available 2+ spell slot."
+            : undefined,
+        resources
+      },
+      execute: {
+        kind: "activate",
+        label: "Step"
+      },
+      disabled,
+      disabledReason: disabled ? "No Moonlight Step uses or 2+ spell slots available." : undefined
+    }
+  ];
+}
+
+function getCircleOfTheSeaFeatureActions(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState" | "statusEntries">>
+): FeatureActionCard[] {
+  if (character.className !== "Druid" || character.subclassId !== circleOfTheSeaSubclassId) {
+    return [];
+  }
+
+  const level = character.level ?? 0;
+
+  if (level < 3) {
+    return [];
+  }
+
+  const druidResourceCharacter = {
+    className: character.className,
+    level,
+    classFeatureState: character.classFeatureState
+  };
+  const usesRemaining = getDruidWildShapeUsesRemaining(druidResourceCharacter);
+  const usesTotal = getDruidWildShapeUsesTotal(druidResourceCharacter);
+  const wrathActive =
+    character.statusEntries?.some((entry) => entry.sourceId === druidWrathOfTheSeaStatusSourceId) ??
+    false;
+  const description =
+    getSubclassFeatureDetails(
+      getSelectedSubclassForCharacter(character),
+      3,
+      CLASS_FEATURE.WRATH_OF_THE_SEA
+    )?.description ?? [];
+  const resources = [
+    {
+      kind: "tracker" as const,
+      label: "Wild Shape",
+      current: usesRemaining,
+      total: usesTotal,
+      icon: "paw" as const,
+      cost: 1
+    }
+  ];
+
+  return [
+    {
+      key: druidWrathOfTheSeaActionKey,
+      name: "Wrath of the Sea",
+      summary: "Manifest an ocean-spray aura that damages and pushes nearby creatures.",
+      detail: "Expend a Wild Shape use to manifest your sea wrath for 10 minutes.",
+      description,
+      economyType: ECONOMY_TYPE.BONUS_ACTION,
+      actionCategory: ACTION_CATEGORY.MAGIC,
+      usesRemaining,
+      usesTotal,
+      hideUsesTrackerOnCard: true,
+      usesInlineLabel: "Use 1",
+      usesInlineIcon: "paw",
+      isActive: wrathActive,
+      resources,
+      drawer: {
+        kind: "confirm",
+        eyebrow: "Circle of the Sea",
+        description,
+        confirmLabel: "Manifest",
+        resources
+      },
+      execute: {
+        kind: "activate"
+      },
+      disabled: usesRemaining <= 0,
+      disabledReason: usesRemaining <= 0 ? "No Wild Shape uses remaining." : undefined
+    }
+  ];
+}
+
+function getCircleOfTheLandNaturesWardEntries(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): DerivedFeatureStatusEntry[] {
+  if (character.className !== "Druid" || character.subclassId !== circleOfTheLandSubclassId) {
+    return [];
+  }
+
+  const level = character.level ?? 0;
+
+  if (level < 10) {
+    return [];
+  }
+
+  const landChoice = getDruidCircleOfTheLandChoice({
+    className: character.className,
+    level,
+    subclassId: character.subclassId,
+    classFeatureState: character.classFeatureState
+  });
+
+  const landResistanceByChoice: Partial<Record<NonNullable<typeof landChoice>, DAMAGE_TYPE>> = {
+    arid: DAMAGE_TYPE.FIRE,
+    polar: DAMAGE_TYPE.COLD,
+    temperate: DAMAGE_TYPE.LIGHTNING,
+    tropical: DAMAGE_TYPE.POISON
+  };
+  const resistance = landChoice ? landResistanceByChoice[landChoice] : null;
+  const entries: DerivedFeatureStatusEntry[] = [
+    {
+      id: naturesWardPoisonedImmunitySourceId,
+      sourceId: naturesWardPoisonedImmunitySourceId,
+      group: STATUS_ENTRY_GROUP.IMMUNITIES,
+      value: CONDITION_NAME.POISONED,
+      source: "Nature's Ward",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.INFINITE
+      }
+    }
+  ];
+
+  if (resistance) {
+    entries.push({
+      id: `${naturesWardResistanceSourceIdPrefix}${resistance.toLowerCase()}`,
+      sourceId: `${naturesWardResistanceSourceIdPrefix}${resistance.toLowerCase()}`,
+      group: STATUS_ENTRY_GROUP.RESISTANCES,
+      value: resistance,
+      source: "Nature's Ward",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.INFINITE
+      }
+    });
+  }
+
+  return entries;
 }
 
 function shouldAppendAgileStrikesDescription(action: FeatureActionCard): boolean {
@@ -531,12 +921,106 @@ type SorcererSubclassSpellIdsByLevel = {
   9: readonly string[];
 };
 
+type DruidCircleOfTheLandSpellIdsByLevel = {
+  3: readonly string[];
+  5: readonly string[];
+  7: readonly string[];
+  9: readonly string[];
+};
+
+type DruidCircleOfTheMoonSpellIdsByLevel = {
+  3: readonly string[];
+  5: readonly string[];
+  7: readonly string[];
+  9: readonly string[];
+};
+
 function getClericDomainSpellIds(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
   subclassId: string,
   spellIdsByLevel: DomainSpellIdsByLevel
 ): string[] {
   if (character.className !== "Cleric" || character.subclassId !== subclassId) {
+    return [];
+  }
+
+  const level = character.level ?? 0;
+
+  if (level < 3) {
+    return [];
+  }
+
+  return [
+    ...spellIdsByLevel[3],
+    ...(level >= 5 ? spellIdsByLevel[5] : []),
+    ...(level >= 7 ? spellIdsByLevel[7] : []),
+    ...(level >= 9 ? spellIdsByLevel[9] : [])
+  ];
+}
+
+export function getDruidCircleOfTheLandSpellIdsForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>,
+  spellIdsByLand: Record<string, DruidCircleOfTheLandSpellIdsByLevel>
+): string[] {
+  if (character.className !== "Druid" || character.subclassId !== circleOfTheLandSubclassId) {
+    return [];
+  }
+
+  const level = character.level ?? 0;
+
+  if (level < 3) {
+    return [];
+  }
+
+  const landChoice = getDruidCircleOfTheLandChoice({
+    className: character.className,
+    level,
+    subclassId: character.subclassId,
+    classFeatureState: character.classFeatureState
+  });
+
+  if (!landChoice) {
+    return [];
+  }
+
+  const spellIdsByLevel = spellIdsByLand[landChoice];
+
+  return [
+    ...spellIdsByLevel[3],
+    ...(level >= 5 ? spellIdsByLevel[5] : []),
+    ...(level >= 7 ? spellIdsByLevel[7] : []),
+    ...(level >= 9 ? spellIdsByLevel[9] : [])
+  ];
+}
+
+export function getDruidCircleOfTheMoonSpellIdsForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  spellIdsByLevel: DruidCircleOfTheMoonSpellIdsByLevel
+): string[] {
+  if (character.className !== "Druid" || character.subclassId !== circleOfTheMoonSubclassId) {
+    return [];
+  }
+
+  const level = character.level ?? 0;
+
+  if (level < 3) {
+    return [];
+  }
+
+  return [
+    ...spellIdsByLevel[3],
+    ...(level >= 5 ? spellIdsByLevel[5] : []),
+    ...(level >= 7 ? spellIdsByLevel[7] : []),
+    ...(level >= 9 ? spellIdsByLevel[9] : [])
+  ];
+}
+
+export function getDruidCircleOfTheSeaSpellIdsForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  spellIdsByLevel: DruidCircleOfTheMoonSpellIdsByLevel
+): string[] {
+  if (character.className !== "Druid" || character.subclassId !== circleOfTheSeaSubclassId) {
     return [];
   }
 
@@ -918,6 +1402,28 @@ const subclassRuntimeResolvers: Record<string, SubclassRuntimeResolver> = {
   }),
   [collegeOfLoreSubclassId]: (character) => ({
     reactionEntries: getCollegeOfLoreReactionEntries(character)
+  }),
+  [circleOfTheLandSubclassId]: (character) => ({
+    featureActions: getCircleOfTheLandFeatureActions(character),
+    alwaysPreparedSpellIds: getDruidCircleOfTheLandSpellIdsForCharacter(
+      character,
+      circleOfTheLandSpellIdsByLand
+    ),
+    derivedStatusEntries: getCircleOfTheLandNaturesWardEntries(character)
+  }),
+  [circleOfTheMoonSubclassId]: (character) => ({
+    featureActions: getCircleOfTheMoonFeatureActions(character),
+    alwaysPreparedSpellIds: getDruidCircleOfTheMoonSpellIdsForCharacter(
+      character,
+      circleOfTheMoonSpellIdsByLevel
+    )
+  }),
+  [circleOfTheSeaSubclassId]: (character) => ({
+    featureActions: getCircleOfTheSeaFeatureActions(character),
+    alwaysPreparedSpellIds: getDruidCircleOfTheSeaSpellIdsForCharacter(
+      character,
+      circleOfTheSeaSpellIdsByLevel
+    )
   }),
   [collegeOfTheMoonSubclassId]: (character) => ({
     transformFeatureAction: hasCollegeOfTheMoonMoonsInspiration(character)

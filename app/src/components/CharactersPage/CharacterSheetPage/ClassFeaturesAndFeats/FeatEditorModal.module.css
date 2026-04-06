@@ -1,7 +1,6 @@
 .modalPanel {
   width: min(920px, 100%);
-  height: min(82vh, 860px);
-  grid-template-rows: auto auto minmax(0, 1fr);
+  min-height: 0;
   overflow: hidden;
 }
 

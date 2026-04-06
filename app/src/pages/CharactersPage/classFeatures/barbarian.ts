@@ -1706,7 +1706,8 @@ export function getBarbarianSpeedBonuses(
       label: "Falcon",
       movementType: "fly",
       value: 0,
-      setBaseFromWalkMultiplier: 1
+      setBaseFromWalkMultiplier: 1,
+      hover: true
     });
   }
 
@@ -1715,7 +1716,8 @@ export function getBarbarianSpeedBonuses(
       label: "Rage of the Gods",
       movementType: "fly",
       value: 0,
-      setBaseFromWalkMultiplier: 1
+      setBaseFromWalkMultiplier: 1,
+      hover: true
     });
   }
 

@@ -8,6 +8,7 @@ type UseMonsterEntriesOptions = {
   limit: number;
   search: string;
   type: string | null;
+  maxCr?: number | null;
   source: string | null;
   ordering: MonsterOrdering;
 };
@@ -18,6 +19,7 @@ export function useMonsterEntries({
   limit,
   search,
   type,
+  maxCr,
   source,
   ordering
 }: UseMonsterEntriesOptions) {
@@ -41,6 +43,7 @@ export function useMonsterEntries({
           limit,
           search: search.trim() || undefined,
           type: type ?? undefined,
+          maxCr: maxCr ?? undefined,
           source: source ?? undefined,
           ordering
         });
@@ -65,7 +68,7 @@ export function useMonsterEntries({
     return () => {
       active = false;
     };
-  }, [enabled, limit, ordering, page, search, source, type]);
+  }, [enabled, limit, maxCr, ordering, page, search, source, type]);
 
   return {
     payload,
