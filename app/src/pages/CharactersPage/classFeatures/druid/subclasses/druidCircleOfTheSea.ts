@@ -12,12 +12,14 @@ import {
 } from "../../../../../codex/subclasses/druid";
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
 import type { DerivedFeatureStatusEntry, FeatureActionCard } from "../../types";
 import {
   druidWrathOfTheSeaActionKey,
   druidWrathOfTheSeaStatusSourceId,
+  expendOneDruidWildShapeUse,
   getDruidWildShapeUsesRemaining,
   getDruidWildShapeUsesTotal
 } from "../druid";
@@ -31,6 +33,48 @@ export const circleOfTheSeaSpellIdsByLevel = {
   9: resolveSpellIdsByName(["Conjure Elemental", "Hold Monster"])
 } as const;
 
+export function hasDruidCircleOfTheSeaSpellsFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheSeaSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level))) >= 3
+  );
+}
+
+export function hasDruidWrathOfTheSeaFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return hasDruidCircleOfTheSeaSpellsFeature(character);
+}
+
+export function hasDruidAquaticAffinityFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheSeaSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level))) >= 6
+  );
+}
+
+export function getDruidWrathOfTheSeaAuraRangeFeet(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  if (!hasDruidWrathOfTheSeaFeature(character)) {
+    return 0;
+  }
+
+  return hasDruidAquaticAffinityFeature(character) ? 10 : 5;
+}
+
+export function getDruidWrathOfTheSeaTraitValue(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): string {
+  return `Wrath of the Sea (${getDruidWrathOfTheSeaAuraRangeFeet(character)} FT.)`;
+}
+
 function getActiveWrathOfTheSeaStatusValue(
   statusEntries: Character["statusEntries"] | undefined
 ): string | null {
@@ -42,9 +86,36 @@ function getActiveWrathOfTheSeaStatusValue(
   return typeof activeEntry?.value === "string" ? activeEntry.value : null;
 }
 
-function getCircleOfTheSeaFeatureActions(
-  character: Parameters<SubclassRuntimeResolver>[0]
-) {
+export function activateDruidWrathOfTheSea(character: Character): Character {
+  if (!hasDruidWrathOfTheSeaFeature(character) || getDruidWildShapeUsesRemaining(character) <= 0) {
+    return character;
+  }
+
+  const nextCharacter = expendOneDruidWildShapeUse(character);
+  const nextStatusEntries = normalizeCharacterStatusEntries(nextCharacter.statusEntries).filter(
+    (entry) => entry.sourceId !== druidWrathOfTheSeaStatusSourceId
+  );
+
+  return {
+    ...nextCharacter,
+    statusEntries: [
+      ...nextStatusEntries,
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.AURAS,
+        value: getDruidWrathOfTheSeaTraitValue(nextCharacter),
+        source: "Circle of the Sea",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+        duration: {
+          kind: STATUS_DURATION_KIND.MINUTES,
+          amount: 10
+        },
+        sourceId: druidWrathOfTheSeaStatusSourceId
+      })
+    ]
+  };
+}
+
+function getCircleOfTheSeaFeatureActions(character: Parameters<SubclassRuntimeResolver>[0]) {
   if (
     character.className !== "Druid" ||
     character.subclassId !== circleOfTheSeaSubclassId ||
@@ -119,9 +190,7 @@ function getCircleOfTheSeaFeatureActions(
   return featureActions;
 }
 
-function getCircleOfTheSeaSpeedBonuses(
-  character: Parameters<SubclassRuntimeResolver>[0]
-) {
+function getCircleOfTheSeaSpeedBonuses(character: Parameters<SubclassRuntimeResolver>[0]) {
   if (
     character.className !== "Druid" ||
     character.subclassId !== circleOfTheSeaSubclassId ||
@@ -151,9 +220,7 @@ function getCircleOfTheSeaSpeedBonuses(
   ];
 }
 
-function getCircleOfTheSeaStormbornEntries(
-  character: Parameters<SubclassRuntimeResolver>[0]
-) {
+function getCircleOfTheSeaStormbornEntries(character: Parameters<SubclassRuntimeResolver>[0]) {
   if (
     character.className !== "Druid" ||
     character.subclassId !== circleOfTheSeaSubclassId ||

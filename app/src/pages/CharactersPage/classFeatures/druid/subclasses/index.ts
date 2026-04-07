@@ -17,20 +17,14 @@ import {
 } from "./druidCircleOfTheSea";
 import {
   circleOfTheStarsSubclassId,
-  getCircleOfTheStarsAlwaysPreparedSpellIds,
-  getCircleOfTheStarsFeatureActions,
-  getCircleOfTheStarsWeaponActions
+  getDruidCircleOfTheStarsDerivedFeatureState
 } from "./druidCircleOfTheStars";
 
 const druidSubclassRuntimeRegistry: SubclassRuntimeRegistry = {
   [circleOfTheLandSubclassId]: getDruidCircleOfTheLandDerivedFeatureState,
   [circleOfTheMoonSubclassId]: getDruidCircleOfTheMoonDerivedFeatureState,
   [circleOfTheSeaSubclassId]: getDruidCircleOfTheSeaDerivedFeatureState,
-  [circleOfTheStarsSubclassId]: (character) => ({
-    featureActions: getCircleOfTheStarsFeatureActions(character),
-    weaponActions: getCircleOfTheStarsWeaponActions(character),
-    alwaysPreparedSpellIds: getCircleOfTheStarsAlwaysPreparedSpellIds(character)
-  })
+  [circleOfTheStarsSubclassId]: getDruidCircleOfTheStarsDerivedFeatureState
 };
 
 export function getDruidSubclassDerivedFeatureState(

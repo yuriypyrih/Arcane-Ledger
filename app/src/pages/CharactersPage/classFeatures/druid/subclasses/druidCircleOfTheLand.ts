@@ -1,21 +1,30 @@
 import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries";
+import type {
+  Character,
+  CharacterDruidFeatureState,
+  DruidCircleOfTheLandChoice
+} from "../../../../../types";
 import {
   CONDITION_NAME,
   STATUS_DURATION_KIND,
+  STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
 import type { DerivedFeatureStatusEntry, FeatureActionCard } from "../../types";
 import {
   druidLandsAidActionKey,
   druidNaturesSanctuaryActionKey,
-  getDruidCircleOfTheLandChoice,
+  druidNaturesSanctuaryStatusSourceId,
+  expendOneDruidWildShapeUse,
   getDruidWildShapeUsesRemaining,
-  getDruidWildShapeUsesTotal
+  getDruidWildShapeUsesTotal,
+  normalizeDruidFeatureState
 } from "../druid";
 
 export const circleOfTheLandSubclassId = "druid-circle-of-the-land";
@@ -50,15 +59,218 @@ export const circleOfTheLandSpellIdsByLand = {
   }
 } as const;
 
+export function hasDruidCircleOfTheLandSpellsFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheLandSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level))) >= 3
+  );
+}
+
+export function hasDruidNaturalRecoveryFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheLandSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level))) >= 6
+  );
+}
+
+export function hasDruidNaturesSanctuaryFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheLandSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level))) >= 14
+  );
+}
+
+function normalizeDruidCircleOfTheLandChoice(
+  value: unknown
+): DruidCircleOfTheLandChoice | undefined {
+  return value === "arid" || value === "polar" || value === "temperate" || value === "tropical"
+    ? value
+    : undefined;
+}
+
+export function normalizeDruidCircleOfTheLandFeatureState(
+  value: Partial<CharacterDruidFeatureState>,
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): Pick<CharacterDruidFeatureState, "circleOfTheLandChoice" | "naturalRecoveryUsesExpended"> {
+  const hasCircleOfTheLandSpells = hasDruidCircleOfTheLandSpellsFeature(character);
+  const hasNaturalRecovery = hasDruidNaturalRecoveryFeature(character);
+
+  return {
+    circleOfTheLandChoice: hasCircleOfTheLandSpells
+      ? normalizeDruidCircleOfTheLandChoice(value.circleOfTheLandChoice)
+      : undefined,
+    naturalRecoveryUsesExpended: hasNaturalRecovery
+      ? Math.max(0, Math.min(1, Number.isFinite(Number(value.naturalRecoveryUsesExpended))
+          ? Math.floor(Number(value.naturalRecoveryUsesExpended))
+          : 0))
+      : undefined
+  };
+}
+
+export function getDruidCircleOfTheLandChoice(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): DruidCircleOfTheLandChoice | null {
+  if (!hasDruidCircleOfTheLandSpellsFeature(character)) {
+    return null;
+  }
+
+  return normalizeDruidCircleOfTheLandFeatureState(
+    character.classFeatureState?.druid ?? {},
+    character
+  ).circleOfTheLandChoice ?? null;
+}
+
+export function setDruidCircleOfTheLandChoice(
+  character: Character,
+  druidState: CharacterDruidFeatureState,
+  circleOfTheLandChoice: DruidCircleOfTheLandChoice
+): Character {
+  if (!hasDruidCircleOfTheLandSpellsFeature(character)) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...druidState,
+        circleOfTheLandChoice
+      }
+    }
+  };
+}
+
+export function getDruidNaturalRecoveryUsesTotal(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return hasDruidNaturalRecoveryFeature(character) ? 1 : 0;
+}
+
+export function getDruidNaturalRecoveryUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  const totalUses = getDruidNaturalRecoveryUsesTotal(character);
+
+  if (totalUses <= 0) {
+    return 0;
+  }
+
+  const druidState = normalizeDruidCircleOfTheLandFeatureState(
+    character.classFeatureState?.druid ?? {},
+    character
+  );
+
+  return Math.max(0, totalUses - (druidState.naturalRecoveryUsesExpended ?? 0));
+}
+
+export function consumeDruidNaturalRecoveryUse(
+  character: Character,
+  druidState: CharacterDruidFeatureState
+): Character {
+  const usesRemaining = getDruidNaturalRecoveryUsesRemaining(character);
+
+  if (usesRemaining <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...druidState,
+        naturalRecoveryUsesExpended: Math.min(
+          getDruidNaturalRecoveryUsesTotal(character),
+          (druidState.naturalRecoveryUsesExpended ?? 0) + 1
+        )
+      }
+    }
+  };
+}
+
+export function restoreDruidNaturalRecoveryOnLongRest(
+  character: Character,
+  druidState = normalizeDruidFeatureState(character.classFeatureState?.druid, character)
+): Character {
+  if (
+    getDruidNaturalRecoveryUsesTotal(character) <= 0 ||
+    (druidState.naturalRecoveryUsesExpended ?? 0) <= 0
+  ) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...druidState,
+        naturalRecoveryUsesExpended: 0
+      }
+    }
+  };
+}
+
+export function activateDruidLandsAid(character: Character): Character {
+  return hasDruidCircleOfTheLandSpellsFeature(character)
+    ? expendOneDruidWildShapeUse(character)
+    : character;
+}
+
+export function activateDruidNaturesSanctuary(character: Character): Character {
+  if (
+    !hasDruidNaturesSanctuaryFeature(character) ||
+    getDruidWildShapeUsesRemaining(character) <= 0
+  ) {
+    return character;
+  }
+
+  const nextCharacter = expendOneDruidWildShapeUse(character);
+  const nextStatusEntries = normalizeCharacterStatusEntries(nextCharacter.statusEntries).filter(
+    (entry) => entry.sourceId !== druidNaturesSanctuaryStatusSourceId
+  );
+
+  return {
+    ...nextCharacter,
+    statusEntries: [
+      ...nextStatusEntries,
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: "Nature's Sanctuary",
+        source: "Circle of the Land",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+        duration: {
+          kind: STATUS_DURATION_KIND.ROUNDS,
+          amount: 10,
+          tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
+        },
+        sourceId: druidNaturesSanctuaryStatusSourceId
+      })
+    ]
+  };
+}
+
 export function getDruidCircleOfTheLandSpellIdsForCharacter(
   character: Parameters<SubclassRuntimeResolver>[0],
   spellIdsByLand = circleOfTheLandSpellIdsByLand
 ): string[] {
-  if (
-    character.className !== "Druid" ||
-    character.subclassId !== circleOfTheLandSubclassId ||
-    (character.level ?? 0) < 3
-  ) {
+  if (!hasDruidCircleOfTheLandSpellsFeature({
+    className: character.className,
+    level: character.level ?? 0,
+    subclassId: character.subclassId
+  })) {
     return [];
   }
 
@@ -76,9 +288,7 @@ export function getDruidCircleOfTheLandSpellIdsForCharacter(
   return getPreparedSpellIdsByLevel(character.level ?? 0, spellIdsByLand[landChoice]);
 }
 
-function getCircleOfTheLandFeatureActions(
-  character: Parameters<SubclassRuntimeResolver>[0]
-) {
+function getCircleOfTheLandFeatureActions(character: Parameters<SubclassRuntimeResolver>[0]) {
   if (
     character.className !== "Druid" ||
     character.subclassId !== circleOfTheLandSubclassId ||
@@ -185,9 +395,7 @@ function getCircleOfTheLandFeatureActions(
   return featureActions;
 }
 
-function getCircleOfTheLandNaturesWardEntries(
-  character: Parameters<SubclassRuntimeResolver>[0]
-) {
+function getCircleOfTheLandNaturesWardEntries(character: Parameters<SubclassRuntimeResolver>[0]) {
   if (
     character.className !== "Druid" ||
     character.subclassId !== circleOfTheLandSubclassId ||

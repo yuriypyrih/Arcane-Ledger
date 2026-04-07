@@ -1,9 +1,5 @@
 import { clericFeatures, getSpellEntriesForClassName } from "../../../../codex/classes";
 import {
-  divineForeknowledgeDescription,
-  preserveLifeDescription
-} from "../../../../codex/subclasses/cleric";
-import {
   CLASS_FEATURE,
   DAMAGE_TYPE,
   DICE,
@@ -21,20 +17,15 @@ import type {
   Character,
   ClericBlessedStrikesChoice,
   CharacterClericFeatureState,
-  ClericDivineOrderChoice,
-  SavingThrowProficiencyEntry,
-  SkillProficiencyEntry
+  ClericDivineOrderChoice
 } from "../../../../types";
 import {
   ARMOR_PROFICIENCY,
-  PROFICIENCY_OVERRIDE_POLICY,
   PROFICIENCY_SOURCE,
   PROF_LEVEL,
   SAVING_THROW_PROFICIENCY,
   SKILL,
   SKILL_PROFICIENCY,
-  STATUS_DURATION_KIND,
-  STATUS_ENTRY_GROUP,
   WEAPON_PROFICIENCY,
   type ArmorProficiencyEntry,
   type SkillName,
@@ -43,12 +34,6 @@ import {
 import { formatDivinityValue, formatDivinityValueFormula } from "../../../../utils/codex";
 import { getFeatAbilityScoreBonusesForCharacter } from "../../feats";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
-import {
-  getSavingThrowLevelFromEntries,
-  getSkillProficiencyForName
-} from "../../proficiencyResolvers";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../traits";
 import type {
   AbilityCheckIndicatorMap,
   CoreStatIndicatorMap,
@@ -64,39 +49,16 @@ import type {
   SkillIndicatorMap,
   WeaponFeatureContext
 } from "../types";
+import * as knowledgeDomainSubclass from "./subclasses/clericKnowledgeDomain";
+import * as lifeDomainSubclass from "./subclasses/clericLifeDomain";
 
 const divineOrderProtectorSource = "Divine Order";
 const blessedStrikesSource = "Blessed Strikes";
 const channelDivinityActionKey = "cleric-channel-divinity";
 export const divineInterventionActionKey = "cleric-divine-intervention";
-export const divineForeknowledgeActionKey = "cleric-divine-foreknowledge";
-export const preserveLifeActionKey = "cleric-preserve-life";
+export const divineForeknowledgeActionKey = knowledgeDomainSubclass.divineForeknowledgeActionKey;
+export const preserveLifeActionKey = lifeDomainSubclass.preserveLifeActionKey;
 const greaterDivineInterventionWishSpellId = "spell-wish";
-const knowledgeDomainSubclassId = "cleric-knowledge-domain";
-const lifeDomainSubclassId = "cleric-life-domain";
-const blessingsOfKnowledgeSource = "Blessings of Knowledge";
-const unfetteredMindSource = "Unfettered Mind";
-const divineForeknowledgeSource = "Divine Foreknowledge";
-const divineForeknowledgeStatusSourceId = "feature-cleric-divine-foreknowledge";
-const knowledgeDomainBlessingsSkillOptions = [
-  SKILL.ARCANA,
-  SKILL.HISTORY,
-  SKILL.NATURE,
-  SKILL.RELIGION
-] as const;
-const divineForeknowledgeAdvantageIndicator = {
-  label: "Advantage",
-  tone: "advantage" as const,
-  source: divineForeknowledgeSource
-};
-const abilitySavingThrowProficiencies = [
-  SAVING_THROW_PROFICIENCY.STR,
-  SAVING_THROW_PROFICIENCY.DEX,
-  SAVING_THROW_PROFICIENCY.CON,
-  SAVING_THROW_PROFICIENCY.INT,
-  SAVING_THROW_PROFICIENCY.WIS,
-  SAVING_THROW_PROFICIENCY.CHA
-] as const;
 
 function getClericFeatureRow(level: number): ClericFeatureClassObj | null {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
@@ -130,28 +92,6 @@ function hasClericFeature(
   }
 
   return getUnlockedClericFeatures(character.level).has(feature);
-}
-
-function hasKnowledgeDomainFeature(
-  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
-  minimumLevel: number
-): boolean {
-  return (
-    character.className === "Cleric" &&
-    character.subclassId === knowledgeDomainSubclassId &&
-    (character.level ?? 0) >= minimumLevel
-  );
-}
-
-function hasLifeDomainFeature(
-  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
-  minimumLevel: number
-): boolean {
-  return (
-    character.className === "Cleric" &&
-    character.subclassId === lifeDomainSubclassId &&
-    (character.level ?? 0) >= minimumLevel
-  );
 }
 
 function getAppliedAbilityScoreBonus(
@@ -302,18 +242,17 @@ export function normalizeClericFeatureState(
     normalizedCharacter,
     CLASS_FEATURE.DIVINE_INTERVENTION
   );
-  const hasBlessingsOfKnowledge = hasKnowledgeDomainFeature(normalizedCharacter, 3);
-  const hasUnfetteredMind = hasKnowledgeDomainFeature(normalizedCharacter, 6);
-  const hasDivineForeknowledge = hasKnowledgeDomainFeature(normalizedCharacter, 17);
+  const hasKnowledgeDomainState = knowledgeDomainSubclass.hasClericKnowledgeDomainFeature(
+    normalizedCharacter,
+    3
+  );
 
   if (
     !hasDivineOrder &&
     !hasBlessedStrikes &&
     !hasChannelDivinity &&
     !hasDivineIntervention &&
-    !hasBlessingsOfKnowledge &&
-    !hasUnfetteredMind &&
-    !hasDivineForeknowledge
+    !hasKnowledgeDomainState
   ) {
     return {};
   }
@@ -355,38 +294,7 @@ export function normalizeClericFeatureState(
     divineInterventionUsed: hasDivineIntervention
       ? Boolean(record.divineInterventionUsed)
       : undefined,
-    knowledgeBlessingsSkills: hasBlessingsOfKnowledge
-      ? Array.from(
-          new Set(
-            (Array.isArray(record.knowledgeBlessingsSkills)
-              ? record.knowledgeBlessingsSkills
-              : []
-            ).filter(
-              (skill): skill is SkillName =>
-                typeof skill === "string" &&
-                knowledgeDomainBlessingsSkillOptions.some((option) => option === skill)
-            )
-          )
-        ).slice(0, 2)
-      : undefined,
-    unfetteredMindSavingThrow:
-      hasUnfetteredMind &&
-      abilitySavingThrowProficiencies.some(
-        (proficiency) => proficiency === record.unfetteredMindSavingThrow
-      )
-        ? record.unfetteredMindSavingThrow
-        : undefined,
-    divineForeknowledgeUsesExpended: hasDivineForeknowledge
-      ? Math.max(
-          0,
-          Math.min(
-            1,
-            Number.isFinite(Number(record.divineForeknowledgeUsesExpended))
-              ? Math.floor(Number(record.divineForeknowledgeUsesExpended))
-              : 0
-          )
-        )
-      : undefined
+    ...knowledgeDomainSubclass.normalizeClericKnowledgeDomainFeatureState(record, normalizedCharacter)
   };
 }
 
@@ -543,129 +451,25 @@ export function getClericSkillBonuses(
   ];
 }
 
-function isKnowledgeDomainBlessingsSkill(skill: SkillName): boolean {
-  return knowledgeDomainBlessingsSkillOptions.some((option) => option === skill);
-}
-
-function createKnowledgeDomainSkillEntries(skill: SkillName): SkillProficiencyEntry[] {
-  const proficiency = getSkillProficiencyForName(skill);
-
-  if (!proficiency) {
-    return [];
-  }
-
-  return [
-    {
-      source: PROFICIENCY_SOURCE.CLASS,
-      sourceStr: blessingsOfKnowledgeSource,
-      proficiency,
-      proficiencyLevel: PROF_LEVEL.PROFICIENT,
-      overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
-    } satisfies SkillProficiencyEntry,
-    {
-      source: PROFICIENCY_SOURCE.CLASS,
-      sourceStr: blessingsOfKnowledgeSource,
-      proficiency,
-      proficiencyLevel: PROF_LEVEL.EXPERT,
-      overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
-    } satisfies SkillProficiencyEntry
-  ];
-}
-
-function getSavingThrowEntriesExcludingUnfetteredMind(
-  character: Partial<Pick<Character, "savingThrowProficiencies">>
-): SavingThrowProficiencyEntry[] {
-  return (character.savingThrowProficiencies ?? []).filter(
-    (entry) => entry.sourceStr !== unfetteredMindSource
-  );
-}
-
-function hasUnfetteredMindFeature(
-  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
-): boolean {
-  return hasKnowledgeDomainFeature(character, 6);
-}
-
-function hasDivineForeknowledgeFeature(
-  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
-): boolean {
-  return hasKnowledgeDomainFeature(character, 17);
-}
-
 export function getKnowledgeDomainBlessingsSkillSelections(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "classFeatureState" | "subclassId">>
 ): SkillName[] {
-  if (!hasKnowledgeDomainFeature(character, 3)) {
-    return [];
-  }
-
-  return (
-    normalizeClericFeatureState(character.classFeatureState?.cleric, character)
-      .knowledgeBlessingsSkills ?? []
-  );
+  return knowledgeDomainSubclass.getKnowledgeDomainBlessingsSkillSelections(character);
 }
 
 export function setKnowledgeDomainBlessingsSkillSelections(
   character: Character,
   selections: SkillName[]
 ): Character {
-  if (!hasKnowledgeDomainFeature(character, 3)) {
-    return character;
-  }
-
-  const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
-  const nextSelections = Array.from(
-    new Set(selections.filter(isKnowledgeDomainBlessingsSkill))
-  ).slice(0, 2);
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        knowledgeBlessingsSkills: nextSelections
-      }
-    }
-  };
+  return knowledgeDomainSubclass.setKnowledgeDomainBlessingsSkillSelections(character, selections);
 }
 
 export function getKnowledgeDomainSkillProficiencyEntries(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "classFeatureState" | "subclassId">>
 ): FeatureSkillProficiencyEntry[] {
-  if (!hasKnowledgeDomainFeature(character, 3)) {
-    return [];
-  }
-
-  return getKnowledgeDomainBlessingsSkillSelections(character).flatMap((skill) =>
-    createKnowledgeDomainSkillEntries(skill)
-  );
-}
-
-function getUnfetteredMindAvailableSavingThrows(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">> &
-    Partial<Pick<Character, "savingThrowProficiencies">>
-): SAVING_THROW_PROFICIENCY[] {
-  if (!hasUnfetteredMindFeature(character)) {
-    return [];
-  }
-
-  const baseSavingThrowEntries = getSavingThrowEntriesExcludingUnfetteredMind(character);
-  const hasExistingIntSavingThrow =
-    getSavingThrowLevelFromEntries(baseSavingThrowEntries, SAVING_THROW_PROFICIENCY.INT) !==
-    PROF_LEVEL.NONE;
-
-  if (!hasExistingIntSavingThrow) {
-    return [SAVING_THROW_PROFICIENCY.INT];
-  }
-
-  return abilitySavingThrowProficiencies.filter(
-    (proficiency) =>
-      getSavingThrowLevelFromEntries(baseSavingThrowEntries, proficiency) === PROF_LEVEL.NONE
-  );
+  return knowledgeDomainSubclass.getKnowledgeDomainSkillProficiencyEntries(character);
 }
 
 export function isKnowledgeDomainUnfetteredMindLockedToInt(
@@ -674,11 +478,7 @@ export function isKnowledgeDomainUnfetteredMindLockedToInt(
       Pick<Character, "level" | "savingThrowProficiencies" | "subclassId" | "classFeatureState">
     >
 ): boolean {
-  return (
-    hasUnfetteredMindFeature(character) &&
-    getUnfetteredMindAvailableSavingThrows(character)[0] === SAVING_THROW_PROFICIENCY.INT &&
-    getUnfetteredMindAvailableSavingThrows(character).length === 1
-  );
+  return knowledgeDomainSubclass.isKnowledgeDomainUnfetteredMindLockedToInt(character);
 }
 
 export function getKnowledgeDomainUnfetteredMindSavingThrowSelection(
@@ -687,28 +487,7 @@ export function getKnowledgeDomainUnfetteredMindSavingThrowSelection(
       Pick<Character, "level" | "classFeatureState" | "savingThrowProficiencies" | "subclassId">
     >
 ): SAVING_THROW_PROFICIENCY | null {
-  if (!hasUnfetteredMindFeature(character)) {
-    return null;
-  }
-
-  const availableSavingThrows = getUnfetteredMindAvailableSavingThrows(character);
-
-  if (availableSavingThrows.length === 0) {
-    return null;
-  }
-
-  if (isKnowledgeDomainUnfetteredMindLockedToInt(character)) {
-    return SAVING_THROW_PROFICIENCY.INT;
-  }
-
-  const savedSelection = normalizeClericFeatureState(
-    character.classFeatureState?.cleric,
-    character
-  ).unfetteredMindSavingThrow;
-
-  return savedSelection && availableSavingThrows.includes(savedSelection)
-    ? savedSelection
-    : availableSavingThrows[0];
+  return knowledgeDomainSubclass.getKnowledgeDomainUnfetteredMindSavingThrowSelection(character);
 }
 
 export function getKnowledgeDomainUnfetteredMindSavingThrowOptions(
@@ -717,36 +496,17 @@ export function getKnowledgeDomainUnfetteredMindSavingThrowOptions(
       Pick<Character, "level" | "savingThrowProficiencies" | "subclassId" | "classFeatureState">
     >
 ): SAVING_THROW_PROFICIENCY[] {
-  return getUnfetteredMindAvailableSavingThrows(character);
+  return knowledgeDomainSubclass.getKnowledgeDomainUnfetteredMindSavingThrowOptions(character);
 }
 
 export function setKnowledgeDomainUnfetteredMindSavingThrowSelection(
   character: Character,
   proficiency: SAVING_THROW_PROFICIENCY | null
 ): Character {
-  if (!hasUnfetteredMindFeature(character)) {
-    return character;
-  }
-
-  const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
-  const availableSavingThrows = getUnfetteredMindAvailableSavingThrows(character);
-  const lockedToInt = isKnowledgeDomainUnfetteredMindLockedToInt(character);
-  const nextSelection = lockedToInt
-    ? undefined
-    : proficiency && availableSavingThrows.includes(proficiency)
-      ? proficiency
-      : undefined;
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        unfetteredMindSavingThrow: nextSelection
-      }
-    }
-  };
+  return knowledgeDomainSubclass.setKnowledgeDomainUnfetteredMindSavingThrowSelection(
+    character,
+    proficiency
+  );
 }
 
 export function getKnowledgeDomainSavingThrowProficiencyEntries(
@@ -755,21 +515,7 @@ export function getKnowledgeDomainSavingThrowProficiencyEntries(
       Pick<Character, "level" | "classFeatureState" | "savingThrowProficiencies" | "subclassId">
     >
 ): FeatureSavingThrowProficiencyEntry[] {
-  const proficiency = getKnowledgeDomainUnfetteredMindSavingThrowSelection(character);
-
-  if (!proficiency) {
-    return [];
-  }
-
-  return [
-    {
-      source: PROFICIENCY_SOURCE.CLASS,
-      sourceStr: unfetteredMindSource,
-      proficiency,
-      proficiencyLevel: PROF_LEVEL.PROFICIENT,
-      overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
-    } satisfies SavingThrowProficiencyEntry
-  ];
+  return knowledgeDomainSubclass.getKnowledgeDomainSavingThrowProficiencyEntries(character);
 }
 
 export function getClericWeaponProficiencyEntries(
@@ -1003,81 +749,32 @@ function getClericDivineInterventionAction(
 export function getDivineForeknowledgeUsesTotal(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
-  return hasDivineForeknowledgeFeature(character) ? 1 : 0;
+  return knowledgeDomainSubclass.getDivineForeknowledgeUsesTotal(character);
 }
 
 export function getDivineForeknowledgeUsesRemaining(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "classFeatureState" | "subclassId">>
 ): number {
-  const totalUses = getDivineForeknowledgeUsesTotal(character);
-  const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
-
-  return Math.max(0, totalUses - (clericState.divineForeknowledgeUsesExpended ?? 0));
+  return knowledgeDomainSubclass.getDivineForeknowledgeUsesRemaining(character);
 }
 
 export function getDivineForeknowledgeFallbackSlotLevel(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "spellSlotsExpended">>
 ): number | null {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level ?? 1);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(
-    character.spellSlotsExpended,
-    spellSlotTotals
-  );
-
-  for (let slotLevel = 6; slotLevel <= 9; slotLevel += 1) {
-    const remainingSlots = Math.max(
-      0,
-      (spellSlotTotals[slotLevel - 1] ?? 0) - (spellSlotsExpended[slotLevel - 1] ?? 0)
-    );
-
-    if (remainingSlots > 0) {
-      return slotLevel;
-    }
-  }
-
-  return null;
+  return knowledgeDomainSubclass.getDivineForeknowledgeFallbackSlotLevel(character);
 }
 
 export function getDivineForeknowledgeFallbackSlotSummary(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "spellSlotsExpended">>
 ): { total: number; remaining: number } {
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level ?? 1);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(
-    character.spellSlotsExpended,
-    spellSlotTotals
-  );
-
-  return spellSlotTotals.reduce(
-    (summary, total, index) => {
-      const slotLevel = index + 1;
-
-      if (slotLevel < 6) {
-        return summary;
-      }
-
-      return {
-        total: summary.total + total,
-        remaining: summary.remaining + Math.max(0, total - (spellSlotsExpended[index] ?? 0))
-      };
-    },
-    { total: 0, remaining: 0 }
-  );
+  return knowledgeDomainSubclass.getDivineForeknowledgeFallbackSlotSummary(character);
 }
 
 export function hasActiveDivineForeknowledge(
   character: Pick<Character, "className"> & Partial<Pick<Character, "subclassId" | "statusEntries">>
 ): boolean {
-  if (!hasDivineForeknowledgeFeature(character)) {
-    return false;
-  }
-
-  return normalizeCharacterStatusEntries(character.statusEntries).some(
-    (entry) =>
-      entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
-      entry.value === divineForeknowledgeSource &&
-      entry.sourceId === divineForeknowledgeStatusSourceId
-  );
+  return knowledgeDomainSubclass.hasActiveDivineForeknowledge(character);
 }
 
 export function getKnowledgeDomainFeatureActions(
@@ -1089,137 +786,15 @@ export function getKnowledgeDomainFeatureActions(
       >
     >
 ): FeatureActionCard[] {
-  if (!hasDivineForeknowledgeFeature(character)) {
-    return [];
-  }
-
-  const usesRemaining = getDivineForeknowledgeUsesRemaining(character);
-  const usesTotal = getDivineForeknowledgeUsesTotal(character);
-  const fallbackSlotLevel = getDivineForeknowledgeFallbackSlotLevel(character);
-  const fallbackSlotSummary = getDivineForeknowledgeFallbackSlotSummary(character);
-  const hasFallbackSlot = fallbackSlotLevel !== null;
-  const isActive = hasActiveDivineForeknowledge(character);
-
-  return [
-    {
-      key: divineForeknowledgeActionKey,
-      name: "Divine Foreknowledge",
-      summary: "Gain advantage on skills and saving throws.",
-      detail: "Expand your mind to the future for 1 hour.",
-      breakdown: "Expand your mind to the future.",
-      economyType: ECONOMY_TYPE.BONUS_ACTION,
-      actionCategory: ACTION_CATEGORY.FEATURE,
-      usesRemaining,
-      usesTotal,
-      hideUsesTrackerOnCard: true,
-      usesLabel: `${usesRemaining}/${usesTotal} use`,
-      usesInlineLabel: fallbackSlotSummary.total > 0 ? "| Use 6+ Spell Slot" : undefined,
-      description: [...divineForeknowledgeDescription],
-      drawer: {
-        kind: "confirm",
-        eyebrow: "Knowledge Domain",
-        confirmLabel: "Activate Divine Foreknowledge",
-        resources: [
-          {
-            kind: "tracker",
-            label: "Uses",
-            current: usesRemaining,
-            total: usesTotal,
-            cost: 1
-          },
-          ...(fallbackSlotSummary.total > 0
-            ? [
-                {
-                  kind: "text" as const,
-                  label: "Level 6+ Slots",
-                  value: `${fallbackSlotSummary.remaining}/${fallbackSlotSummary.total}`
-                }
-              ]
-            : [])
-        ]
-      },
-      execute: {
-        kind: "activate",
-        label: "Activate Divine Foreknowledge"
-      },
-      isActive,
-      disabled: isActive || (usesRemaining <= 0 && !hasFallbackSlot),
-      disabledReason: isActive
-        ? "Divine Foreknowledge is already active."
-        : usesRemaining <= 0 && !hasFallbackSlot
-          ? "No Divine Foreknowledge use or level 6+ spell slots remaining."
-          : undefined
-    }
-  ];
+  return knowledgeDomainSubclass.getKnowledgeDomainFeatureActions(character);
 }
 
 export function applyDivineForeknowledgeStatus(character: Character): Character {
-  const nextStatusEntries = normalizeCharacterStatusEntries(character.statusEntries).filter(
-    (entry) => entry.sourceId !== divineForeknowledgeStatusSourceId
-  );
-
-  return {
-    ...character,
-    statusEntries: [
-      ...nextStatusEntries,
-      createCharacterStatusEntry({
-        group: STATUS_ENTRY_GROUP.EFFECTS,
-        value: divineForeknowledgeSource,
-        source: "Knowledge Domain",
-        duration: {
-          kind: STATUS_DURATION_KIND.HOURS,
-          amount: 1
-        },
-        sourceId: divineForeknowledgeStatusSourceId
-      })
-    ]
-  };
+  return knowledgeDomainSubclass.applyDivineForeknowledgeStatus(character);
 }
 
 export function activateClericDivineForeknowledge(character: Character): Character {
-  if (!hasDivineForeknowledgeFeature(character) || hasActiveDivineForeknowledge(character)) {
-    return character;
-  }
-
-  const usesRemaining = getDivineForeknowledgeUsesRemaining(character);
-  let nextCharacter = character;
-
-  if (usesRemaining > 0) {
-    const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
-
-    nextCharacter = {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        cleric: {
-          ...clericState,
-          divineForeknowledgeUsesExpended: (clericState.divineForeknowledgeUsesExpended ?? 0) + 1
-        }
-      }
-    };
-  } else {
-    const fallbackSlotLevel = getDivineForeknowledgeFallbackSlotLevel(character);
-
-    if (fallbackSlotLevel === null) {
-      return character;
-    }
-
-    const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
-    const spellSlotsExpended = normalizeSpellSlotsExpended(
-      character.spellSlotsExpended,
-      spellSlotTotals
-    );
-    const nextSpellSlotsExpended = [...spellSlotsExpended];
-    nextSpellSlotsExpended[fallbackSlotLevel - 1] =
-      (nextSpellSlotsExpended[fallbackSlotLevel - 1] ?? 0) + 1;
-
-    nextCharacter = {
-      ...character,
-      spellSlotsExpended: nextSpellSlotsExpended
-    };
-  }
-
-  return applyDivineForeknowledgeStatus(nextCharacter);
+  return knowledgeDomainSubclass.activateClericDivineForeknowledge(character);
 }
 
 export function getClericFeatureActions(
@@ -1227,123 +802,36 @@ export function getClericFeatureActions(
 ): FeatureActionCard[] {
   return [
     getClericChannelDivinityAction(character),
-    getClericPreserveLifeAction(character),
     getClericDivineInterventionAction(character)
   ].filter((entry): entry is FeatureActionCard => entry !== null);
-}
-
-function getClericPreserveLifeAction(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "subclassId">
-): FeatureActionCard | null {
-  if (
-    !hasLifeDomainFeature(character, 3) ||
-    !hasClericFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY)
-  ) {
-    return null;
-  }
-
-  const totalUses = getClericChannelDivinityUsesTotal(character);
-  const usesRemaining = getClericChannelDivinityUsesRemaining(character);
-
-  return {
-    key: preserveLifeActionKey,
-    name: "Preserve Life",
-    summary: "Restore divided healing.",
-    detail:
-      "Restore a pool of healing equal to five times your Cleric level among Bloodied creatures.",
-    economyType: ECONOMY_TYPE.ACTION,
-    actionCategory: ACTION_CATEGORY.MAGIC,
-    hideUsesTrackerOnCard: true,
-    usesInlineLabel: "Use 1",
-    usesInlineIcon: "pyromancy",
-    usesRemaining,
-    usesTotal: totalUses,
-    description: [...preserveLifeDescription],
-    resources: [
-      {
-        kind: "tracker",
-        label: "Uses",
-        current: usesRemaining,
-        total: totalUses,
-        icon: "pyromancy",
-        cost: 1
-      }
-    ],
-    drawer: {
-      kind: "confirm",
-      eyebrow: "Life Domain",
-      description: [...preserveLifeDescription],
-      confirmLabel: "Use Preserve Life"
-    },
-    execute: {
-      kind: "activate",
-      label: "Use Preserve Life"
-    },
-    disabled: usesRemaining <= 0,
-    disabledReason: usesRemaining <= 0 ? "No Channel Divinity uses remaining." : undefined
-  };
 }
 
 export function getKnowledgeDomainSkillIndicators(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "statusEntries" | "subclassId">>
 ): SkillIndicatorMap {
-  if (!hasActiveDivineForeknowledge(character)) {
-    return {};
-  }
-
-  return Object.fromEntries(
-    Object.values(SKILL).map((skill) => [skill, [divineForeknowledgeAdvantageIndicator]])
-  ) as SkillIndicatorMap;
+  return knowledgeDomainSubclass.getKnowledgeDomainSkillIndicators(character);
 }
 
 export function getKnowledgeDomainSavingThrowIndicators(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "statusEntries" | "subclassId">>
 ): SavingThrowIndicatorMap {
-  if (!hasActiveDivineForeknowledge(character)) {
-    return {};
-  }
-
-  return {
-    STR: [divineForeknowledgeAdvantageIndicator],
-    DEX: [divineForeknowledgeAdvantageIndicator],
-    CON: [divineForeknowledgeAdvantageIndicator],
-    INT: [divineForeknowledgeAdvantageIndicator],
-    WIS: [divineForeknowledgeAdvantageIndicator],
-    CHA: [divineForeknowledgeAdvantageIndicator]
-  };
+  return knowledgeDomainSubclass.getKnowledgeDomainSavingThrowIndicators(character);
 }
 
 export function getKnowledgeDomainAbilityCheckIndicators(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "statusEntries" | "subclassId">>
 ): AbilityCheckIndicatorMap {
-  if (!hasActiveDivineForeknowledge(character)) {
-    return {};
-  }
-
-  return {
-    STR: [divineForeknowledgeAdvantageIndicator],
-    DEX: [divineForeknowledgeAdvantageIndicator],
-    CON: [divineForeknowledgeAdvantageIndicator],
-    INT: [divineForeknowledgeAdvantageIndicator],
-    WIS: [divineForeknowledgeAdvantageIndicator],
-    CHA: [divineForeknowledgeAdvantageIndicator]
-  };
+  return knowledgeDomainSubclass.getKnowledgeDomainAbilityCheckIndicators(character);
 }
 
 export function getKnowledgeDomainCoreStatIndicators(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "statusEntries" | "subclassId">>
 ): CoreStatIndicatorMap {
-  if (!hasActiveDivineForeknowledge(character)) {
-    return {};
-  }
-
-  return {
-    initiative: [divineForeknowledgeAdvantageIndicator]
-  };
+  return knowledgeDomainSubclass.getKnowledgeDomainCoreStatIndicators(character);
 }
 
 export function getClericWeaponDamageBonuses(
@@ -1479,7 +967,7 @@ export function activateClericFeatureActionOption(
     return character;
   }
 
-  return spendClericChannelDivinityUse(character);
+  return expendClericChannelDivinityUse(character);
 }
 
 export function activateClericDivineIntervention(character: Character): Character {
@@ -1506,36 +994,7 @@ export function activateClericDivineIntervention(character: Character): Characte
 }
 
 export function activateClericPreserveLife(character: Character): Character {
-  if (!hasLifeDomainFeature(character, 3)) {
-    return character;
-  }
-
-  return spendClericChannelDivinityUse(character);
-}
-
-function spendClericChannelDivinityUse(character: Character): Character {
-  if (!hasClericFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY)) {
-    return character;
-  }
-
-  const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
-  const totalUses = getClericChannelDivinityUsesTotal(character);
-  const usesExpended = clericState.channelDivinityUsesExpended ?? 0;
-
-  if (usesExpended >= totalUses) {
-    return character;
-  }
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        channelDivinityUsesExpended: usesExpended + 1
-      }
-    }
-  };
+  return lifeDomainSubclass.activateClericPreserveLife(character);
 }
 
 export function applyShortRestToClericFeatures(character: Character): Character {
@@ -1612,26 +1071,7 @@ export function restoreClericDivineInterventionOnLongRest(character: Character):
 }
 
 export function restoreClericDivineForeknowledgeOnLongRest(character: Character): Character {
-  if (!hasDivineForeknowledgeFeature(character)) {
-    return character;
-  }
-
-  const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
-
-  if ((clericState.divineForeknowledgeUsesExpended ?? 0) <= 0) {
-    return character;
-  }
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        divineForeknowledgeUsesExpended: 0
-      }
-    }
-  };
+  return knowledgeDomainSubclass.restoreClericDivineForeknowledgeOnLongRest(character);
 }
 
 export const clericDivineOrderSkillKeywords = new Set<SKILL_PROFICIENCY>([
