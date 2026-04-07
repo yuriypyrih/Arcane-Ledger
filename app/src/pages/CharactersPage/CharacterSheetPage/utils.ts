@@ -1,22 +1,13 @@
 import type { AbilityKey, AbilityScores } from "../../../types";
 import { abilityKeys, alignmentOptions } from "../constants";
+import { clampNumber } from "../shared";
 
-export { alignmentOptions };
+export { alignmentOptions, clampNumber };
 export const spellSlotLevels = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 export const skillColumnLayout: AbilityKey[][] = [
   ["STR", "DEX", "INT"],
   ["WIS", "CHA"]
 ];
-
-export function clampNumber(value: unknown, min: number, max: number, fallback: number): number {
-  const parsedValue = Number(value);
-
-  if (!Number.isFinite(parsedValue)) {
-    return fallback;
-  }
-
-  return Math.max(min, Math.min(max, parsedValue));
-}
 
 export function cloneAbilityScores(abilities: AbilityScores): AbilityScores {
   return abilityKeys.reduce((next, ability) => {

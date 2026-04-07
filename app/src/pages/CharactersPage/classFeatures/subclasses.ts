@@ -25,7 +25,7 @@ import {
   STATUS_ENTRY_SOURCE_TYPE,
   type Character
 } from "../../../types";
-import { getEquipmentByName } from "../proficiency";
+import { getEquipmentByName } from "../proficiencyCodexData";
 import {
   getBardicInspirationDie,
   getBardicInspirationUsesRemaining,

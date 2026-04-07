@@ -27,6 +27,7 @@ import type {
   CustomArmorType
 } from "../../types";
 import { clampNumber } from "./shared";
+import { isObjectRecord, normalizeText } from "../../utils/normalize";
 
 export type ResolvedCustomWeaponEntry = Omit<WeaponEntry, "mastery"> & {
   source: "custom";
@@ -76,14 +77,6 @@ const armorTagsByType: Record<CustomArmorType, ArmorEntry["tags"]> = {
   heavy: [ARMOR_TYPES.HEAVY_ARMOR],
   shield: [ARMOR_TYPES.SHIELD]
 };
-
-function isObjectRecord(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function normalizeText(value: unknown, fallback = ""): string {
-  return typeof value === "string" ? value.trim() : fallback;
-}
 
 function normalizeWeight(value: unknown, fallback = 1): number | null {
   if (value === null) {

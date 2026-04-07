@@ -2,7 +2,7 @@ import { useNavigate } from "react-router-dom";
 import { ARMOR_TYPES, ENTRY_CATEGORIES, type SpellEntry } from "../../../codex/entries";
 import SpellListRow from "../../SpellListRow";
 import type { CodexEntry, CodexStatus } from "../../../types";
-import { getPrimaryAbilityForClass } from "../../../pages/CharactersPage/proficiency";
+import { getPrimaryAbilityForClass } from "../../../pages/CharactersPage/proficiencyClassData";
 import {
   formatCodexLabel,
   formatSpellSubtitle,

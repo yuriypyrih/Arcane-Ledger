@@ -14,7 +14,7 @@ import {
   getSavingThrowAbilityKeysForClass,
   getSkillProficiencyOptionsForClass,
   getSkillSelectionLimitForClass
-} from "../../../pages/CharactersPage/proficiency";
+} from "../../../pages/CharactersPage/proficiencyClassData";
 import { formatCodexLabel } from "../../../utils/codex";
 const currencyKeyByCurrencyType = {
   CP: "copper",

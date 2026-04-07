@@ -11,9 +11,9 @@ import {
   getSavingThrowLevelFromEntries,
   getLanguageLevelFromEntries,
   getSkillLevelFromEntries,
-  getSkillProficiencyForName,
-  languageProficiencyOptions
+  getSkillProficiencyForName
 } from "../../../../pages/CharactersPage/proficiency";
+import { languageProficiencyOptions } from "../../../../pages/CharactersPage/proficiencyOptions";
 import { PROF_LEVEL, SAVING_THROW_PROFICIENCY, SKILL } from "../../../../types";
 import type {
   Character,

@@ -1,3 +1,5 @@
+import { isObjectRecord, normalizeBoolean } from "../utils/normalize";
+
 export type StatsViewMode = "tabs" | "full";
 export type MaxHitPointsModePreference = "automatic" | "custom";
 
@@ -23,16 +25,8 @@ function normalizeMaxHitPointsModePreference(value: unknown): MaxHitPointsModePr
   return value === "custom" ? "custom" : "automatic";
 }
 
-function normalizeBoolean(value: unknown, fallback: boolean): boolean {
-  if (typeof value === "boolean") {
-    return value;
-  }
-
-  return fallback;
-}
-
 function normalizePreferences(value: unknown): Preferences {
-  if (!value || typeof value !== "object") {
+  if (!isObjectRecord(value)) {
     return defaultPreferences;
   }
 

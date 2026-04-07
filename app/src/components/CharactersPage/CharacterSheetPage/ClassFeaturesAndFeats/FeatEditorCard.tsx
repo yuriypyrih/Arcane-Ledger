@@ -13,7 +13,7 @@ import {
   getToolProficiencyLabel,
   skillsOptions,
   toolProficiencyOptions
-} from "../../../../pages/CharactersPage/proficiency";
+} from "../../../../pages/CharactersPage/proficiencyOptions";
 import type { AbilityKey, CharacterFeatEntry } from "../../../../types";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import cardStyles from "./FeatCards.module.css";

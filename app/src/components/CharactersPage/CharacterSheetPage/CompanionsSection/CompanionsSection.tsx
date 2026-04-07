@@ -22,10 +22,8 @@ import SelectInput from "../../FormInputs/SelectInput";
 import TextAreaInput from "../../FormInputs/TextAreaInput";
 import TextInput from "../../FormInputs/TextInput";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
-import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../../../constants/monsters";
-import { getSpeciesEntries } from "../../../../codex/selectors";
+import { MONSTER_SOURCE_OPTIONS } from "../../../../constants/monsters";
 import { createCharacterCompanionId } from "../../../../pages/CharactersPage/companions";
-import { speciesOptions } from "../../../../pages/CharactersPage/constants";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { useMonsterEntries } from "../../../../pages/CodexPage/useMonsterEntries";
 import type {
@@ -37,6 +35,18 @@ import type {
   MonsterRecord
 } from "../../../../types";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import {
+  companionMonsterTypeOptions,
+  companionOrderingOptions,
+  companionSpeciesTypeOptions,
+  COMPANION_MONSTERS_PER_PAGE,
+  createDraftFromCompanion,
+  createEmptyCompanionDraft,
+  getExtraTypeOptions,
+  getInheritedEntryLabel,
+  getMonsterSourceLabel,
+  type CompanionDraft
+} from "./companionUtils";
 import styles from "./CompanionsSection.module.css";
 
 type CompanionsSectionProps = {
@@ -44,91 +54,6 @@ type CompanionsSectionProps = {
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
 };
-
-type CompanionDraft = {
-  id: string | null;
-  name: string;
-  description: string;
-  type: string;
-  inheritedCreatureEntry: MonsterRecord | null;
-};
-
-const MONSTERS_PER_PAGE = 8;
-const orderingOptions: Array<{ value: MonsterOrdering; label: string }> = [
-  { value: "name", label: "Name (A-Z)" },
-  { value: "-name", label: "Name (Z-A)" },
-  { value: "cr", label: "CR (Low-High)" },
-  { value: "-cr", label: "CR (High-Low)" }
-];
-
-const baseMonsterTypeOptions = Array.from(new Set([...MONSTER_TYPE_OPTIONS, "Undead"])).sort(
-  (left, right) => left.localeCompare(right)
-);
-const baseSpeciesTypeOptions = Array.from(
-  new Set([
-    ...speciesOptions,
-    ...getSpeciesEntries().map((entry) => entry.name.trim()).filter((entry) => entry.length > 0)
-  ])
-).sort((left, right) => left.localeCompare(right));
-
-function createEmptyDraft(): CompanionDraft {
-  return {
-    id: null,
-    name: "",
-    description: "",
-    type: "",
-    inheritedCreatureEntry: null
-  };
-}
-
-function createDraftFromCompanion(companion: CharacterCompanion): CompanionDraft {
-  return {
-    id: companion.id,
-    name: companion.name,
-    description: companion.description,
-    type: companion.type,
-    inheritedCreatureEntry: companion.inheritedCreatureEntry ?? null
-  };
-}
-
-function getInheritedEntryLabel(companion: Pick<CharacterCompanion, "inheritedCreatureEntry">) {
-  if (!companion.inheritedCreatureEntry) {
-    return "Custom";
-  }
-
-  const sourceLabel = [
-    companion.inheritedCreatureEntry.document__slug,
-    companion.inheritedCreatureEntry.document__title
-  ]
-    .map((entry) => entry.trim())
-    .filter(Boolean)
-    .join(" - ");
-
-  return sourceLabel.length > 0 ? sourceLabel : "Monster";
-}
-
-function getMonsterSourceLabel(monster: MonsterRecord) {
-  const slugLabel = monster.document__slug.trim();
-  const titleLabel = monster.document__title.trim();
-
-  if (slugLabel && titleLabel) {
-    return `${slugLabel} - ${titleLabel}`;
-  }
-
-  return slugLabel || titleLabel || "Monster entry";
-}
-
-function getExtraTypeOptions(values: string[]) {
-  const reservedOptions = new Set([...baseMonsterTypeOptions, ...baseSpeciesTypeOptions]);
-
-  return Array.from(
-    new Set(
-      values
-        .map((value) => value.trim())
-        .filter((value) => value.length > 0 && !reservedOptions.has(value))
-    )
-  ).sort((left, right) => left.localeCompare(right));
-}
 
 function CompanionsSection({ character, className, onPersistCharacter }: CompanionsSectionProps) {
   const companions = character.companions ?? [];
@@ -257,7 +182,7 @@ function CompanionEditorModal({
   onClose
 }: CompanionEditorModalProps) {
   const titleId = useId();
-  const [draft, setDraft] = useState<CompanionDraft>(createEmptyDraft);
+  const [draft, setDraft] = useState<CompanionDraft>(createEmptyCompanionDraft);
   const [showValidation, setShowValidation] = useState(false);
   const [isMonsterBrowserOpen, setIsMonsterBrowserOpen] = useState(false);
   const [monsterQuery, setMonsterQuery] = useState("");
@@ -294,14 +219,17 @@ function CompanionEditorModal({
   const { payload, status } = useMonsterEntries({
     enabled: isMonsterBrowserOpen,
     page: currentPage,
-    limit: MONSTERS_PER_PAGE,
+    limit: COMPANION_MONSTERS_PER_PAGE,
     search: monsterQuery,
     type: monsterTypeFilter === "all" ? null : monsterTypeFilter,
     source: monsterSourceFilter === "all" ? null : monsterSourceFilter,
     ordering: monsterOrdering
   });
   const monsters = payload?.results ?? [];
-  const totalPages = Math.max(1, Math.ceil((payload?.count ?? 0) / MONSTERS_PER_PAGE));
+  const totalPages = Math.max(
+    1,
+    Math.ceil((payload?.count ?? 0) / COMPANION_MONSTERS_PER_PAGE)
+  );
 
   useEffect(() => {
     setMonsterCache((currentCache) => {
@@ -384,7 +312,7 @@ function CompanionEditorModal({
   }, [monsterCache, previewSlug]);
 
   function startNewDraft() {
-    setDraft(createEmptyDraft());
+    setDraft(createEmptyCompanionDraft());
     setShowValidation(false);
     setMonsterNotice(null);
   }
@@ -561,14 +489,14 @@ function CompanionEditorModal({
                 >
                   <option value="">Choose a type</option>
                   <optgroup label="Monster Types">
-                    {baseMonsterTypeOptions.map((typeOption) => (
+                    {companionMonsterTypeOptions.map((typeOption) => (
                       <option key={typeOption} value={typeOption}>
                         {typeOption}
                       </option>
                     ))}
                   </optgroup>
                   <optgroup label="Character Species">
-                    {baseSpeciesTypeOptions.map((typeOption) => (
+                    {companionSpeciesTypeOptions.map((typeOption) => (
                       <option key={typeOption} value={typeOption}>
                         {typeOption}
                       </option>
@@ -788,7 +716,7 @@ function MonsterBrowserModal({
               onChange={(event) => onMonsterTypeFilterChange(event.target.value)}
             >
               <option value="all">All monster types</option>
-              {baseMonsterTypeOptions.map((typeOption) => (
+              {companionMonsterTypeOptions.map((typeOption) => (
                 <option key={typeOption} value={typeOption}>
                   {typeOption}
                 </option>
@@ -817,7 +745,7 @@ function MonsterBrowserModal({
               value={ordering}
               onChange={(event) => onOrderingChange(event.target.value as MonsterOrdering)}
             >
-              {orderingOptions.map((option) => (
+              {companionOrderingOptions.map((option) => (
                 <option key={option.value} value={option.value}>
                   {option.label}
                 </option>

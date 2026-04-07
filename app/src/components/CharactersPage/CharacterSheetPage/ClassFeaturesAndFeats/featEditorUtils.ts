@@ -14,7 +14,7 @@ import {
   skillsOptions,
   toolProficiencyOptions,
   type ToolProficiency
-} from "../../../../pages/CharactersPage/proficiency";
+} from "../../../../pages/CharactersPage/proficiencyOptions";
 import type {
   BlessedWarriorChoice,
   CharacterFeatEntry,

@@ -31,7 +31,7 @@ import type {
   FeatureAbilityScoreBonus,
   FeatureArmorClassBonus
 } from "./classFeatures";
-import { getToolProficiencyLabel } from "./proficiency";
+import { getToolProficiencyLabel } from "./proficiencyOptions";
 import { getSpellEntriesForSpellListClass } from "../../codex/classes/spellAccess";
 import { SPELL_LIST_CLASS, type SpellEntry } from "../../codex/entries";
 

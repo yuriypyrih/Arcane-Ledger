@@ -54,7 +54,7 @@ import {
   getEquipmentProficiencyLabelsForClass,
   getPrimaryAbilityForClass,
   getSavingThrowAbilityKeysForClass
-} from "../CharactersPage/proficiency";
+} from "../CharactersPage/proficiencyClassData";
 import { useCodexEntry } from "./useCodexEntry";
 import styles from "./CodexEntryPage.module.css";
 

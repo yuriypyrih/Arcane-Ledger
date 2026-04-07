@@ -43,7 +43,7 @@ import {
 import { formatDivinityValue, formatDivinityValueFormula } from "../../../utils/codex";
 import { getFeatAbilityScoreBonusesForCharacter } from "../feats";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
-import { getSavingThrowLevelFromEntries, getSkillProficiencyForName } from "../proficiency";
+import { getSavingThrowLevelFromEntries, getSkillProficiencyForName } from "../proficiencyResolvers";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../spellcasting";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../traits";
 import type {

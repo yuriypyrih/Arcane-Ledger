@@ -1,5 +1,5 @@
 import type { CSSProperties } from "react";
-import type { ClassName } from "../../pages/CharactersPage/proficiency";
+import type { ClassName } from "../../pages/CharactersPage/proficiencyClassData";
 
 type ClassSignatureStyle = CSSProperties & {
   "--class-signature-gradient": string;
