@@ -53,6 +53,32 @@ The second layer is the runtime derivation layer in `app/src/pages/CharactersPag
 
 `app/src/pages/CharactersPage/classFeatures/index.ts` is the aggregator that merges those per-class outputs into one unified feature system that the rest of the sheet consumes. This is inheritance by derivation, not by class-component subclassing: the sheet asks the class-feature runtime what the current character gains, rather than hardcoding each class directly into each UI section.
 
+### Subclass Runtime Pattern
+
+When a class gains subclass-specific runtime behavior, split that behavior into one file per codex subclass instead of growing the main class runtime file.
+
+Preferred layout:
+- `app/src/pages/CharactersPage/classFeatures/<class>/<class>.ts`: class-wide runtime only. This file should own the base class behavior and delegate subclass work out.
+- `app/src/pages/CharactersPage/classFeatures/<class>/subclasses/index.ts`: class-local subclass registry and delegation helpers such as `get<Class>SubclassDerivedFeatureState`, subclass state normalizers, or subclass action handlers.
+- `app/src/pages/CharactersPage/classFeatures/<class>/subclasses/<class><SubclassName>.ts`: one runtime file per codex subclass.
+
+Implementation expectations:
+- Keep `app/src/pages/CharactersPage/classFeatures/subclasses.ts` thin. It should expose shared subclass runtime types/helpers and the public dispatcher, not a giant cross-class map of concrete subclass logic.
+- Move subclass-only logic out of `<class>.ts` and into subclass files. That includes prepared spells, actions, action options, indicators, statuses, derived bonuses, transform hooks, recovery hooks, state normalization, and resource-specific behavior.
+- If subclass behavior still needs to be exposed through the main class module for compatibility with the rest of the sheet, keep thin wrapper exports in `<class>.ts` that delegate to the subclass registry instead of reimplementing the logic there.
+- Keep shared subclass helpers in the parent `classFeatures` directory only when they are reused across multiple classes. If the helper only serves one class or one subclass family, keep it local to that class directory.
+- Every codex subclass should have a matching runtime file, even if its initial implementation is only a small prepared-spell or empty derived-state module. This keeps ownership explicit and prevents future subclass logic from drifting back into mixed files.
+
+### Runtime Mechanics Reference
+
+- `Always-prepared spells`: class and subclass runtimes contribute `alwaysPreparedSpellIds`, and the spell-preparation flow excludes those ids from `normalizePreparedSpellIds`. They do not consume prepared-spell selection capacity, but they still spend spell slots when cast unless another feature explicitly grants a free cast or ritual cast.
+- `Ritual spells`: ritual support is driven by `spell.ritual`. `CharacterSpellDrawer` exposes a ritual toggle when the current spell can be cast that way, and the ritual cast path applies the spell's normal action/concentration behavior without incrementing `spellSlotsExpended`. Wizard spellbook-only rituals also flow through this path when Ritual Adept allows them.
+- `Concentration`: concentration is modeled as a status entry, not a loose boolean. `applySpellConcentrationToStatusEntries` removes the old concentration anchor and any concentration-linked effects before adding the new one, and rest/status update flows prune linked entries when concentration ends or durations expire.
+- `Action cards and modals`: classes and subclasses create `FeatureActionCard[]` and optional `FeatureActionOptionCard[]` through their derived runtime state. `combatActions.ts` converts those cards into `GameplayActionDefinition` drawer/execute configs, and `ActionsWidget.tsx` opens `GameplayActionDrawer` or `CharacterSpellDrawer` from the selected card. Any actionable feature card needs both display data and execution wiring.
+- `Multi actions`: extra action or bonus-action capacity is represented with `economyMultiCount`. `getEconomyShapeState` keeps a card usable after the normal round-tracker action is spent when extra counts remain, and the action shape shows that overflow capacity. The owning class runtime must also decrement its own extra-action state when the card is used.
+- `Generic charges vs class resources`: the blue-dot tracker UI is the generic action/resource presentation for `usesRemaining` and `usesTotal` or `FeatureActionResource` tracker badges. Class-specific pools like Rage, Focus Points, Sorcery Points, Channel Divinity, Wild Shape, Lay On Hands, and similar resources should remain in `classFeatureState` with dedicated total, remaining, spend, and restore helpers. Action cards can display those pools, but they should not invent duplicate counters outside the class runtime.
+- `Rest modal contract`: `app/src/components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/restOptions.ts` is the source of truth for Short Rest and Long Rest recovery checkboxes. If a generic blue-dot charge tracker or a named class/subclass resource recharges on a rest, it needs an explicit `RestOption` entry there with the correct label and `apply` function, even when the class module already has restore helpers. Recoverable resources should always be visible in the camp modal instead of being restored silently.
+
 ## Companions and Monster-backed Flows
 
 Companions are now a first-class part of character state.
