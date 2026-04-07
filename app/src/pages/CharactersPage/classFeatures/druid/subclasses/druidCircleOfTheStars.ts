@@ -1,10 +1,10 @@
-import { CLASS_FEATURE, getSpellEntryByName } from "../../../../codex/entries";
-import type { Character } from "../../../../types";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
-import type { FeatureActionCard, FeatureIndicator } from "../types";
-import type { WeaponAction } from "../../gameplay";
-import { hasExhaustionAttackRollDisadvantage } from "../../traits";
-import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../subclasses";
+import { CLASS_FEATURE, getSpellEntryByName } from "../../../../../codex/entries";
+import type { Character } from "../../../../../types";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import type { FeatureActionCard, FeatureIndicator } from "../../types";
+import type { WeaponAction } from "../../../gameplay";
+import { hasExhaustionAttackRollDisadvantage } from "../../../traits";
+import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
 import {
   circleOfTheStarsSubclassId,
   druidStarryFormActionKey,
@@ -14,7 +14,9 @@ import {
   getDruidStarMapGuidingBoltUsesTotal,
   getDruidWildShapeUsesRemaining,
   getDruidWildShapeUsesTotal
-} from "./druid";
+} from "../druid";
+
+export { circleOfTheStarsSubclassId };
 
 const guidanceSpellId = getSpellEntryByName("Guidance")?.id ?? null;
 const guidingBoltSpellId = getSpellEntryByName("Guiding Bolt")?.id ?? null;
