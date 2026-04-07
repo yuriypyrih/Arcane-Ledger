@@ -15,6 +15,11 @@ import {
   shadowOfTheNewMoonDescription,
   unbreakableMajestyDescription
 } from "../../../codex/subclasses/bard";
+import {
+  aquaticAffinityWrathOfTheSeaDescription,
+  stormbornWrathOfTheSeaDescription,
+  wrathOfTheSeaDescription
+} from "../../../codex/subclasses/druid";
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../subclasses";
 import {
   type AbilityKey,
@@ -41,20 +46,21 @@ import {
   mantleOfInspirationActionKey,
   mantleOfMajestyActionKey,
   unbreakableMajestyActionKey
-} from "./bard";
+} from "./bard/bard";
 import {
   getKnowledgeDomainFeatureActions,
   getKnowledgeDomainSavingThrowIndicators,
   getKnowledgeDomainSavingThrowProficiencyEntries,
   getKnowledgeDomainSkillIndicators,
   getKnowledgeDomainSkillProficiencyEntries
-} from "./cleric";
+} from "./cleric/cleric";
 import {
   druidLandsAidActionKey,
   druidMoonlightStepActionKey,
   druidNaturesSanctuaryActionKey,
   druidWrathOfTheSeaActionKey,
   druidWrathOfTheSeaStatusSourceId,
+  circleOfTheStarsSubclassId,
   getDruidCircleOfTheLandChoice,
   getDruidMoonlightStepFallbackSlotLevel,
   getDruidMoonlightStepFallbackSlotSummary,
@@ -62,7 +68,12 @@ import {
   getDruidMoonlightStepUsesTotal,
   getDruidWildShapeUsesRemaining,
   getDruidWildShapeUsesTotal
-} from "./druid";
+} from "./druid/druid";
+import {
+  getCircleOfTheStarsAlwaysPreparedSpellIds,
+  getCircleOfTheStarsFeatureActions,
+  getCircleOfTheStarsWeaponActions
+} from "./druid/druidStars";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
 import type {
   AbilityCheckIndicatorMap,
@@ -87,10 +98,12 @@ import type {
   SavingThrowIndicatorMap,
   SkillIndicatorMap
 } from "./types";
+import type { WeaponAction } from "../gameplay";
 
 export type SubclassDerivedFeatureState = {
   featureActions?: FeatureActionCard[];
   featureActionOptions?: Partial<Record<string, FeatureActionOptionCard[]>>;
+  weaponActions?: WeaponAction[];
   transformFeatureAction?: (action: FeatureActionCard) => FeatureActionCard;
   getSavingThrowBonuses?: (ability: AbilityKey) => FeatureSavingThrowBonus[];
   savingThrowIndicators?: SavingThrowIndicatorMap;
@@ -503,7 +516,7 @@ function getCircleOfTheLandFeatureActions(
             usesTotal,
             hideUsesTrackerOnCard: true,
             usesInlineLabel: "Use 1",
-            usesInlineIcon: "paw",
+            usesInlineIcon: "paw" as const,
             resources,
             drawer: {
               kind: "confirm" as const,
@@ -637,15 +650,18 @@ function getCircleOfTheSeaFeatureActions(
   };
   const usesRemaining = getDruidWildShapeUsesRemaining(druidResourceCharacter);
   const usesTotal = getDruidWildShapeUsesTotal(druidResourceCharacter);
-  const wrathActive =
-    character.statusEntries?.some((entry) => entry.sourceId === druidWrathOfTheSeaStatusSourceId) ??
-    false;
+  const wrathActive = getActiveWrathOfTheSeaStatusValue(character.statusEntries) !== null;
   const description =
     getSubclassFeatureDetails(
       getSelectedSubclassForCharacter(character),
-      3,
+      level,
       CLASS_FEATURE.WRATH_OF_THE_SEA
-    )?.description ?? [];
+    )?.description ??
+    (level >= 10
+      ? [...stormbornWrathOfTheSeaDescription]
+      : level >= 6
+        ? [...aquaticAffinityWrathOfTheSeaDescription]
+        : [...wrathOfTheSeaDescription]);
   const resources = [
     {
       kind: "tracker" as const,
@@ -687,6 +703,83 @@ function getCircleOfTheSeaFeatureActions(
       disabledReason: usesRemaining <= 0 ? "No Wild Shape uses remaining." : undefined
     }
   ];
+}
+
+function getActiveWrathOfTheSeaStatusValue(
+  statusEntries: Character["statusEntries"] | undefined
+): string | null {
+  const activeEntry = statusEntries?.find(
+    (entry) =>
+      entry.sourceId === druidWrathOfTheSeaStatusSourceId && typeof entry.value === "string"
+  );
+
+  return typeof activeEntry?.value === "string" ? activeEntry.value : null;
+}
+
+function getCircleOfTheSeaSpeedBonuses(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "statusEntries">>
+): FeatureSpeedBonus[] {
+  if (character.className !== "Druid" || character.subclassId !== circleOfTheSeaSubclassId) {
+    return [];
+  }
+
+  if ((character.level ?? 0) < 6) {
+    return [];
+  }
+
+  return [
+    {
+      label: "Aquatic Affinity",
+      movementType: "swim",
+      value: 0,
+      setBaseFromWalkMultiplier: 1
+    },
+    ...((character.level ?? 0) >= 10 &&
+    getActiveWrathOfTheSeaStatusValue(character.statusEntries) !== null
+      ? [
+          {
+            label: "Stormborn",
+            movementType: "fly" as const,
+            value: 0,
+            setBaseFromWalkMultiplier: 1
+          }
+        ]
+      : [])
+  ];
+}
+
+function getCircleOfTheSeaStormbornEntries(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "statusEntries">>
+): DerivedFeatureStatusEntry[] {
+  if (
+    character.className !== "Druid" ||
+    character.subclassId !== circleOfTheSeaSubclassId ||
+    (character.level ?? 0) < 10
+  ) {
+    return [];
+  }
+
+  const wrathValue = getActiveWrathOfTheSeaStatusValue(character.statusEntries);
+
+  if (!wrathValue) {
+    return [];
+  }
+
+  return [DAMAGE_TYPE.COLD, DAMAGE_TYPE.LIGHTNING, DAMAGE_TYPE.THUNDER].map((damageType) => ({
+    id: `feature-druid-stormborn-resistance-${damageType.toLowerCase()}`,
+    sourceId: `feature-druid-stormborn-resistance-${damageType.toLowerCase()}`,
+    group: STATUS_ENTRY_GROUP.RESISTANCES,
+    value: damageType,
+    source: "Stormborn",
+    sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+    duration: {
+      kind: STATUS_DURATION_KIND.LINKED,
+      linkedGroup: STATUS_ENTRY_GROUP.AURAS,
+      linkedValue: wrathValue
+    }
+  }));
 }
 
 function getCircleOfTheLandNaturesWardEntries(
@@ -1423,7 +1516,14 @@ const subclassRuntimeResolvers: Record<string, SubclassRuntimeResolver> = {
     alwaysPreparedSpellIds: getDruidCircleOfTheSeaSpellIdsForCharacter(
       character,
       circleOfTheSeaSpellIdsByLevel
-    )
+    ),
+    speedBonuses: getCircleOfTheSeaSpeedBonuses(character),
+    derivedStatusEntries: getCircleOfTheSeaStormbornEntries(character)
+  }),
+  [circleOfTheStarsSubclassId]: (character) => ({
+    featureActions: getCircleOfTheStarsFeatureActions(character),
+    weaponActions: getCircleOfTheStarsWeaponActions(character),
+    alwaysPreparedSpellIds: getCircleOfTheStarsAlwaysPreparedSpellIds(character)
   }),
   [collegeOfTheMoonSubclassId]: (character) => ({
     transformFeatureAction: hasCollegeOfTheMoonMoonsInspiration(character)

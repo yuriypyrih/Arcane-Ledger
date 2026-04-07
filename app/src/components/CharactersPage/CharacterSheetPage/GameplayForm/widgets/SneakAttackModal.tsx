@@ -13,7 +13,7 @@ import {
   getRogueSneakAttackValueLabel,
   type RogueSneakAttackEffectDefinition,
   type RogueSneakAttackEffectKey
-} from "../../../../../pages/CharactersPage/classFeatures/rogue";
+} from "../../../../../pages/CharactersPage/classFeatures/rogue/rogue";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import sharedModalStyles from "./FeatureActionModal.module.css";
@@ -26,12 +26,7 @@ type SneakAttackModalProps = {
   onConfirm: (effectKeys: RogueSneakAttackEffectKey[]) => void;
 };
 
-function SneakAttackModal({
-  action,
-  character,
-  onClose,
-  onConfirm
-}: SneakAttackModalProps) {
+function SneakAttackModal({ action, character, onClose, onConfirm }: SneakAttackModalProps) {
   const [selectedEffectKeys, setSelectedEffectKeys] = useState<RogueSneakAttackEffectKey[]>([]);
   const [selectedReferenceEffect, setSelectedReferenceEffect] =
     useState<RogueSneakAttackEffectDefinition | null>(null);
@@ -105,9 +100,7 @@ function SneakAttackModal({
                     reduces the Sneak Attack dice you roll.
                   </p>
                 </div>
-                <span className={styles.sneakAttackEffectSpend}>
-                  {selectedEffectCost}d6 spent
-                </span>
+                <span className={styles.sneakAttackEffectSpend}>{selectedEffectCost}d6 spent</span>
               </div>
 
               <div className={styles.sneakAttackEffectsList}>

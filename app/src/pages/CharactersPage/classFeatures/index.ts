@@ -2,7 +2,9 @@ import type { AbilityKey, Character, CharacterClassFeatureState } from "../../..
 import { ALL_SKILLS } from "../../../types";
 import type { SkillName, WEAPON_PROFICIENCY } from "../../../types";
 import type { EconomyType } from "../actionEconomy";
+import { getRoundTrackerResourceForEconomyType } from "../actionEconomy";
 import { abilityKeys } from "../constants";
+import { consumeRoundTrackerResource } from "../combat";
 import {
   hasExhaustionAbilityCheckDisadvantage,
   hasExhaustionAttackRollDisadvantage,
@@ -48,7 +50,7 @@ import {
   setBardPrimalLoreCantripId,
   setBardPrimalLoreSkillSelection,
   setBardExpertiseSelections
-} from "./bard";
+} from "./bard/bard";
 import {
   applyPersistentRageOnInitiative,
   consumeBarbarianWarriorOfTheGodsCharges,
@@ -76,7 +78,7 @@ import {
   getBarbarianWeaponAttackMultiCount,
   setBarbarianWildHeartAspectChoice,
   setBarbarianPrimalKnowledgeSkillSelection
-} from "./barbarian";
+} from "./barbarian/barbarian";
 import {
   expendClericChannelDivinityUse,
   getClericBlessedStrikesChoice,
@@ -94,11 +96,13 @@ import {
   setClericDivineOrderChoice,
   setKnowledgeDomainBlessingsSkillSelections,
   setKnowledgeDomainUnfetteredMindSavingThrowSelection
-} from "./cleric";
+} from "./cleric/cleric";
 import {
   activateDruidNatureMagician,
   applyArchdruidOnInitiative,
+  activateDruidStarryForm,
   consumeDruidNaturalRecoveryUse,
+  consumeDruidStarMapGuidingBoltUse,
   activateDruidWildResurgenceLevelOneSpellSlotRecovery,
   activateDruidWildResurgenceWildShapeRecovery,
   activateDruidWildCompanion,
@@ -112,6 +116,8 @@ import {
   getDruidNatureMagicianOptions,
   getDruidNatureMagicianUsesRemaining,
   getDruidNatureMagicianUsesTotal,
+  getDruidStarMapGuidingBoltUsesRemaining,
+  getDruidStarMapGuidingBoltUsesTotal,
   getDruidWildResurgenceAvailableSpellSlotLevels,
   getDruidWildResurgenceSpellSlotRecoveryUsesRemaining,
   getDruidWildResurgenceSpellSlotRecoveryUsesTotal,
@@ -130,7 +136,7 @@ import {
   setDruidElementalFuryChoice,
   setDruidPrimalOrderChoice,
   setDruidWildShapeKnownForms
-} from "./druid";
+} from "./druid/druid";
 import {
   consumeRangerFavoredEnemyUse,
   consumeRangerNaturesVeilUse,
@@ -150,8 +156,8 @@ import {
   restoreRangerTirelessOnLongRest,
   setRangerDeftExplorerExpertiseSelection,
   setRangerDeftExplorerLanguageSelections,
-  setRangerLevel9ExpertiseSelections,
-} from "./ranger";
+  setRangerLevel9ExpertiseSelections
+} from "./ranger/ranger";
 import {
   getRogueExpertiseSelections,
   getRogueStrokeOfLuckUsesRemaining,
@@ -161,7 +167,7 @@ import {
   setRogueExpertiseSelections,
   setRogueThievesCantLanguageSelection,
   getRogueThievesCantLanguageSelection
-} from "./rogue";
+} from "./rogue/rogue";
 import {
   createSpellSlotFromSorceryPoints,
   convertSpellSlotToSorceryPoints,
@@ -183,7 +189,7 @@ import {
   restoreOneSorceryPoint,
   setSorcererMetamagicSelections,
   spendMetamagicOptions
-} from "./sorcerer";
+} from "./sorcerer/sorcerer";
 import {
   consumeContactPatronUse,
   consumeMysticArcanumUse,
@@ -203,7 +209,7 @@ import {
   restoreWarlockMagicalCunningOnLongRest,
   setWarlockMysticArcanumSpellId,
   setWarlockInvocationSelectionIds
-} from "./warlock";
+} from "./warlock/warlock";
 import {
   activateArcaneRecovery,
   consumeWizardSignatureSpellFreeCast,
@@ -220,7 +226,7 @@ import {
   setWizardSpellMasterySelection,
   syncWizardSignatureSpellsToSpellbook,
   syncWizardSpellMasterySelectionsToSpellbook
-} from "./wizard";
+} from "./wizard/wizard";
 import { getSubclassDerivedFeatureState } from "./subclasses";
 import {
   applyLayOnHands,
@@ -238,8 +244,8 @@ import {
   hasActivePaladinAuraOfProtection,
   restorePaladinChannelDivinityOnLongRest,
   restorePaladinChannelDivinityOnShortRest,
-  restorePaladinLayOnHandsOnLongRest,
-} from "./paladin";
+  restorePaladinLayOnHandsOnLongRest
+} from "./paladin/paladin";
 import {
   applyPerfectFocusOnInitiative,
   consumeMonkWeaponAttack,
@@ -252,13 +258,13 @@ import {
   restoreAllMonkFocusPoints,
   restoreMonkUncannyMetabolismOnLongRest,
   restoreOneMonkFocusPoint
-} from "./monk";
+} from "./monk/monk";
 import {
   consumeFighterNonMagicAction,
   consumeFighterWeaponAttack,
   getFighterNonMagicActionMultiCount,
-  getFighterWeaponAttackMultiCount,
-} from "./fighter";
+  getFighterWeaponAttackMultiCount
+} from "./fighter/fighter";
 import {
   collectActiveClassFeatureState,
   getActiveClassFeatureModule,
@@ -396,6 +402,13 @@ export function getFeatureActionsForCharacter(character: Character): FeatureActi
   return subclassDerivedState.transformFeatureAction
     ? actions.map(subclassDerivedState.transformFeatureAction)
     : actions;
+}
+
+export function getFeatureWeaponActionsForCharacter(character: Character) {
+  const baseFeatureState = collectActiveClassFeatureState(character);
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+
+  return [...(baseFeatureState.weaponActions ?? []), ...(subclassDerivedState.weaponActions ?? [])];
 }
 
 export function getFeatureActionOptionsForCharacter(
@@ -593,12 +606,7 @@ export function getArmorClassBonusesForCharacter(
 export function getSpeedBonusesForCharacter(
   character: Pick<
     Character,
-    | "className"
-    | "level"
-    | "classFeatureState"
-    | "equipment"
-    | "customEquipment"
-    | "subclassId"
+    "className" | "level" | "classFeatureState" | "equipment" | "customEquipment" | "subclassId"
   >,
   context: SpeedFeatureContext
 ): FeatureSpeedBonus[] {
@@ -624,7 +632,10 @@ export function getCantripLimitBonusForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): number {
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
-  return (collectActiveClassFeatureState(character).cantripLimitBonus ?? 0) + (subclassDerivedState.cantripLimitBonus ?? 0);
+  return (
+    (collectActiveClassFeatureState(character).cantripLimitBonus ?? 0) +
+    (subclassDerivedState.cantripLimitBonus ?? 0)
+  );
 }
 
 export function getMonkMartialArtsDieForCharacter(
@@ -697,8 +708,7 @@ export function getMantleOfMajestyFallbackSlotLevelForCharacter(
 }
 
 export function hasActiveMantleOfMajestyForCharacter(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "subclassId" | "statusEntries">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "subclassId" | "statusEntries">>
 ) {
   return hasActiveMantleOfMajesty(character);
 }
@@ -1446,6 +1456,20 @@ export function getDruidWildShapeUsesRemainingForCharacter(
   return getDruidWildShapeUsesRemaining(character);
 }
 
+export function getDruidStarMapGuidingBoltUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
+) {
+  return getDruidStarMapGuidingBoltUsesTotal(character);
+}
+
+export function getDruidStarMapGuidingBoltUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
+) {
+  return getDruidStarMapGuidingBoltUsesRemaining(character);
+}
+
 export function getDruidNaturalRecoveryUsesTotalForCharacter(
   character: Pick<Character, "className" | "level" | "subclassId">
 ) {
@@ -1520,6 +1544,17 @@ export function activateDruidNatureMagicianForCharacter(
   wildShapeCost: number
 ): Character {
   return activateDruidNatureMagician(character, wildShapeCost);
+}
+
+export function activateDruidStarryFormForCharacter(
+  character: Character,
+  constellation: Parameters<typeof activateDruidStarryForm>[1]
+): Character {
+  return activateDruidStarryForm(character, constellation);
+}
+
+export function consumeDruidStarMapGuidingBoltUseForCharacter(character: Character): Character {
+  return consumeDruidStarMapGuidingBoltUse(character);
 }
 
 export function consumeDruidNaturalRecoveryUseForCharacter(character: Character): Character {
@@ -1746,7 +1781,10 @@ export function activateFeatureActionForCharacter(
   character: Character,
   actionKey: string
 ): Character {
-  return getActiveClassFeatureModule(character.className)?.handleAction?.(character, actionKey) ?? character;
+  return (
+    getActiveClassFeatureModule(character.className)?.handleAction?.(character, actionKey) ??
+    character
+  );
 }
 
 export function getMonkFocusPointsTotalForCharacter(
@@ -1972,7 +2010,9 @@ export function restoreInnateSorceryOnLongRestForCharacter(character: Character)
   return restoreInnateSorceryOnLongRest(character);
 }
 
-export function restoreWarlockMagicalCunningOnLongRestForCharacter(character: Character): Character {
+export function restoreWarlockMagicalCunningOnLongRestForCharacter(
+  character: Character
+): Character {
   return restoreWarlockMagicalCunningOnLongRest(character);
 }
 
@@ -2140,7 +2180,18 @@ export function consumeWeaponAttackActionForCharacter(
     return consumePaladinWeaponAttack(character);
   }
 
-  return consumeFighterWeaponAttack(character);
+  if (character.className === "Fighter") {
+    return consumeFighterWeaponAttack(character);
+  }
+
+  const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+
+  return roundTrackerResource
+    ? {
+        ...character,
+        roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)
+      }
+    : character;
 }
 
 export function consumeNonMagicActionForCharacter(character: Character): Character {
@@ -2178,7 +2229,10 @@ export function removeFeatureStatusEntryForCharacter(
     return deactivateBarbarianRage(character);
   }
 
-  if (statusEntry.sourceId === "feature-barbarian-reckless-attack" || normalizedValue === "Reckless Attack") {
+  if (
+    statusEntry.sourceId === "feature-barbarian-reckless-attack" ||
+    normalizedValue === "Reckless Attack"
+  ) {
     return deactivateBarbarianRecklessAttack(character);
   }
 

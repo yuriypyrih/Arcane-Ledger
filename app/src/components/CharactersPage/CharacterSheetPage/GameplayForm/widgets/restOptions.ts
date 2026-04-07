@@ -16,7 +16,7 @@ import {
   restoreBarbarianRelentlessRageOnLongRest,
   restoreBarbarianRelentlessRageOnShortRest,
   restoreBarbarianWarriorOfTheGodsOnLongRest
-} from "../../../../../pages/CharactersPage/classFeatures/barbarian";
+} from "../../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
 import {
   restoreBardicInspirationOnShortRest,
   getBardicInspirationUsesTotal,
@@ -31,7 +31,7 @@ import {
   restoreUnbreakableMajestyOnLongRest,
   restoreUnbreakableMajestyOnShortRest,
   restoreBardicInspirationOnLongRest
-} from "../../../../../pages/CharactersPage/classFeatures/bard";
+} from "../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
   getClericChannelDivinityUsesTotal,
   getDivineForeknowledgeUsesTotal,
@@ -40,7 +40,7 @@ import {
   restoreClericChannelDivinityOnShortRest,
   restoreClericDivineForeknowledgeOnLongRest,
   restoreClericDivineInterventionOnLongRest
-} from "../../../../../pages/CharactersPage/classFeatures/cleric";
+} from "../../../../../pages/CharactersPage/classFeatures/cleric/cleric";
 import {
   getFighterActionSurgeUsesTotal,
   getFighterIndomitableUsesTotal,
@@ -50,8 +50,9 @@ import {
   restoreFighterIndomitableOnLongRest,
   restoreFighterSecondWindOnLongRest,
   restoreFighterSecondWindOnShortRest
-} from "../../../../../pages/CharactersPage/classFeatures/fighter";
+} from "../../../../../pages/CharactersPage/classFeatures/fighter/fighter";
 import {
+  getDruidStarMapGuidingBoltUsesTotal,
   getDruidMoonlightStepUsesTotal,
   getDruidNaturalRecoveryUsesTotal,
   getDruidNatureMagicianUsesTotal,
@@ -60,10 +61,11 @@ import {
   restoreDruidMoonlightStepOnLongRest,
   restoreDruidNaturalRecoveryOnLongRest,
   restoreDruidNatureMagicianOnLongRest,
+  restoreDruidStarMapGuidingBoltOnLongRest,
   restoreDruidWildResurgenceOnLongRest,
   restoreAllDruidWildShapeUses,
   restoreOneDruidWildShapeUse
-} from "../../../../../pages/CharactersPage/classFeatures/druid";
+} from "../../../../../pages/CharactersPage/classFeatures/druid/druid";
 import {
   getFaithfulSteedUsesTotal,
   getPaladinHealingPoolTotal,
@@ -74,14 +76,14 @@ import {
   restoreFaithfulSteedOnLongRest,
   restorePaladinLayOnHandsOnLongRest,
   restorePaladinsSmiteOnLongRest
-} from "../../../../../pages/CharactersPage/classFeatures/paladin";
+} from "../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
 import {
   getMonkFocusPointsTotal,
   hasMonkFeature,
   restoreMonkFocusPointsOnLongRest,
   restoreMonkFocusPointsOnShortRest,
   restoreMonkUncannyMetabolismOnLongRest
-} from "../../../../../pages/CharactersPage/classFeatures/monk";
+} from "../../../../../pages/CharactersPage/classFeatures/monk/monk";
 import {
   getRangerFavoredEnemyUsesTotal,
   getRangerNaturesVeilUsesTotal,
@@ -89,12 +91,12 @@ import {
   restoreRangerFavoredEnemyOnLongRest,
   restoreRangerNaturesVeilOnLongRest,
   restoreRangerTirelessOnLongRest
-} from "../../../../../pages/CharactersPage/classFeatures/ranger";
+} from "../../../../../pages/CharactersPage/classFeatures/ranger/ranger";
 import {
   getRogueStrokeOfLuckUsesTotal,
   restoreRogueStrokeOfLuckOnLongRest,
   restoreRogueStrokeOfLuckOnShortRest
-} from "../../../../../pages/CharactersPage/classFeatures/rogue";
+} from "../../../../../pages/CharactersPage/classFeatures/rogue/rogue";
 import {
   applySorcerousRestorationOnShortRest,
   getInnateSorceryUsesTotal,
@@ -104,7 +106,7 @@ import {
   restoreInnateSorceryOnLongRest,
   restoreSorcerousRestorationOnLongRest,
   restoreSorceryPointsOnLongRest
-} from "../../../../../pages/CharactersPage/classFeatures/sorcerer";
+} from "../../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
 import {
   getContactPatronUsesTotal,
   getWarlockMagicalCunningUsesTotal,
@@ -113,14 +115,14 @@ import {
   restoreMysticArcanumOnLongRest,
   restoreWarlockPactMagicSpellSlots,
   restoreWarlockMagicalCunningOnLongRest
-} from "../../../../../pages/CharactersPage/classFeatures/warlock";
+} from "../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import {
   getArcaneRecoveryUsesTotal,
   getWizardSignatureSpellIds,
   restoreArcaneRecoveryOnLongRest,
   restoreWizardSignatureSpellsOnLongRest,
   restoreWizardSignatureSpellsOnShortRest
-} from "../../../../../pages/CharactersPage/classFeatures/wizard";
+} from "../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import { getSpellSlotTotalsForCharacter } from "../../../../../pages/CharactersPage/spellcasting";
 import {
@@ -444,6 +446,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
   const indomitableUsesTotal = getFighterIndomitableUsesTotal(character);
   const druidWildShapeUsesTotal = getDruidWildShapeUsesTotal(character);
+  const druidStarMapGuidingBoltUsesTotal = getDruidStarMapGuidingBoltUsesTotal(character);
   const druidMoonlightStepUsesTotal = getDruidMoonlightStepUsesTotal(character);
   const druidNaturalRecoveryUsesTotal = getDruidNaturalRecoveryUsesTotal(character);
   const druidWildResurgenceUsesTotal = getDruidWildResurgenceSpellSlotRecoveryUsesTotal(character);
@@ -710,6 +713,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
             id: "restore-wild-shape",
             label: "Restore all Wild Shape uses",
             apply: (currentCharacter: Character) => restoreAllDruidWildShapeUses(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(druidStarMapGuidingBoltUsesTotal > 0
+      ? [
+          {
+            id: "restore-druids-guiding-bolt",
+            label: "Restore Druid's Guiding Bolt charges",
+            apply: (currentCharacter: Character) =>
+              restoreDruidStarMapGuidingBoltOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

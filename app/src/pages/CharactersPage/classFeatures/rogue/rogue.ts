@@ -1,10 +1,6 @@
-import { rogueFeatureMap, rogueFeatures } from "../../../codex/classes";
-import {
-  CLASS_FEATURE,
-  getReactionEntryById,
-  type ReactionEntry
-} from "../../../codex/entries";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
+import { rogueFeatureMap, rogueFeatures } from "../../../../codex/classes";
+import { CLASS_FEATURE, getReactionEntryById, type ReactionEntry } from "../../../../codex/entries";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import type {
   Character,
   CharacterRogueFeatureState,
@@ -12,7 +8,7 @@ import type {
   SkillName,
   SkillProficiencyEntry,
   WeaponProficiencyEntry
-} from "../../../types";
+} from "../../../../types";
 import {
   CONDITION_NAME,
   LANGUAGE_PROFICIENCY,
@@ -27,9 +23,9 @@ import {
   STATUS_ENTRY_SOURCE_TYPE,
   WEAPON_PROFICIENCY,
   languageEntries
-} from "../../../types";
-import { normalizeRoundTracker } from "../combat";
-import { hasStatusCondition } from "../traits";
+} from "../../../../types";
+import { normalizeRoundTracker } from "../../combat";
+import { hasStatusCondition } from "../../traits";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
@@ -38,11 +34,8 @@ import type {
   FeatureSkillProficiencyEntry,
   FeatureSpeedBonus,
   FeatureWeaponProficiencyEntry
-} from "./types";
-import {
-  getWeaponMasteryOptions,
-  normalizeWeaponMasterySelections
-} from "./weaponMastery";
+} from "../types";
+import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
 
 export const rogueSneakAttackActionKey = "rogue-sneak-attack";
 export const rogueSteadyAimActionKey = "rogue-steady-aim";
@@ -128,8 +121,8 @@ const rogueSneakAttackEffectDefinitions: Array<
     costDice: 1,
     requiredFeature: CLASS_FEATURE.CUNNING_STRIKE,
     referenceTitle: "Withdraw",
-    referenceDescription: [rogueCunningStrikeDescriptionLines[6]].filter(
-      (entry): entry is string => Boolean(entry)
+    referenceDescription: [rogueCunningStrikeDescriptionLines[6]].filter((entry): entry is string =>
+      Boolean(entry)
     )
   },
   {
@@ -205,15 +198,11 @@ export function hasRogueFeature(
   return getUnlockedRogueFeatures(character.level).has(feature);
 }
 
-function hasRogueLevel1Expertise(
-  character: Pick<Character, "className" | "level">
-): boolean {
+function hasRogueLevel1Expertise(character: Pick<Character, "className" | "level">): boolean {
   return character.className === "Rogue" && character.level >= 1;
 }
 
-function hasRogueLevel6Expertise(
-  character: Pick<Character, "className" | "level">
-): boolean {
+function hasRogueLevel6Expertise(character: Pick<Character, "className" | "level">): boolean {
   return character.className === "Rogue" && character.level >= 6;
 }
 
@@ -228,8 +217,7 @@ function normalizeRogueExpertiseSelections(value: unknown): SkillName[] {
 }
 
 function normalizeRogueLanguageSelection(value: unknown): LANGUAGE_PROFICIENCY | undefined {
-  return typeof value === "string" &&
-    rogueLanguageOptions.includes(value as LANGUAGE_PROFICIENCY)
+  return typeof value === "string" && rogueLanguageOptions.includes(value as LANGUAGE_PROFICIENCY)
     ? (value as LANGUAGE_PROFICIENCY)
     : undefined;
 }
@@ -328,7 +316,9 @@ export function normalizeRogueFeatureState(
     thievesCantLanguage: hasThievesCant
       ? normalizeRogueLanguageSelection(record.thievesCantLanguage)
       : undefined,
-    weaponMasteries: hasWeaponMastery ? normalizeRogueWeaponMasteries(record.weaponMasteries) : undefined
+    weaponMasteries: hasWeaponMastery
+      ? normalizeRogueWeaponMasteries(record.weaponMasteries)
+      : undefined
   };
 }
 
@@ -409,7 +399,8 @@ export function getRogueFeatureActions(
       usesRemaining,
       usesTotal: totalUses,
       disabled: usesRemaining <= 0,
-      disabledReason: usesRemaining <= 0 ? "Stroke of Luck recharges on a Short or Long Rest." : undefined
+      disabledReason:
+        usesRemaining <= 0 ? "Stroke of Luck recharges on a Short or Long Rest." : undefined
     });
   }
 
@@ -546,9 +537,7 @@ export function getRogueSneakAttackMaxEffects(
   return hasRogueFeature(character, CLASS_FEATURE.IMPROVED_CUNNING_STRIKE) ? 2 : 1;
 }
 
-export function getRogueSneakAttackEffectDiceCost(
-  effectKeys: RogueSneakAttackEffectKey[]
-): number {
+export function getRogueSneakAttackEffectDiceCost(effectKeys: RogueSneakAttackEffectKey[]): number {
   const selectedEffects = new Set(effectKeys);
 
   return rogueSneakAttackEffectDefinitions.reduce(
@@ -593,9 +582,7 @@ export function getRogueSneakAttackValueLabel(
 
   const diceCount = getRogueSneakAttackRemainingDiceCount(character, effectKeys);
 
-  return diceCount > 0
-    ? `${diceCount}~${diceCount * 6} Damage (${formula})`
-    : "0 Damage (0)";
+  return diceCount > 0 ? `${diceCount}~${diceCount * 6} Damage (${formula})` : "0 Damage (0)";
 }
 
 export function getRogueExpertiseSelections(
@@ -604,7 +591,9 @@ export function getRogueExpertiseSelections(
 ): SkillName[] {
   const rogueState = getRogueFeatureState(character);
 
-  return tier === "level6" ? rogueState.expertise?.level6 ?? [] : rogueState.expertise?.level1 ?? [];
+  return tier === "level6"
+    ? (rogueState.expertise?.level6 ?? [])
+    : (rogueState.expertise?.level1 ?? []);
 }
 
 export function setRogueExpertiseSelections(
@@ -612,7 +601,8 @@ export function setRogueExpertiseSelections(
   tier: RogueExpertiseTier,
   selections: SkillName[]
 ): Character {
-  const hasTier = tier === "level6" ? hasRogueLevel6Expertise(character) : hasRogueLevel1Expertise(character);
+  const hasTier =
+    tier === "level6" ? hasRogueLevel6Expertise(character) : hasRogueLevel1Expertise(character);
 
   if (!hasTier) {
     return character;
@@ -869,10 +859,7 @@ export function advanceRogueFeaturesForNewRound(character: Character): Character
 
   const rogueState = getRogueFeatureState(character);
 
-  if (
-    rogueState.sneakAttackUsedThisTurn !== true &&
-    rogueState.steadyAimActive !== true
-  ) {
+  if (rogueState.sneakAttackUsedThisTurn !== true && rogueState.steadyAimActive !== true) {
     return character;
   }
 
@@ -936,7 +923,9 @@ export function applyShortRestToRogueFeatures(character: Character): Character {
 }
 
 export function applyLongRestToRogueFeatures(character: Character): Character {
-  const restoredCharacter = applyShortRestToRogueFeatures(restoreRogueStrokeOfLuckOnLongRest(character));
+  const restoredCharacter = applyShortRestToRogueFeatures(
+    restoreRogueStrokeOfLuckOnLongRest(character)
+  );
 
   if (!hasRogueFeature(restoredCharacter, CLASS_FEATURE.SNEAK_ATTACK)) {
     return restoredCharacter;

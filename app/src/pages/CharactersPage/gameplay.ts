@@ -5,6 +5,7 @@ import {
   FEATS,
   WEAPON_COMBAT_TYPE,
   WEAPON_PROPERTY,
+  type SpellDescriptionEntry,
   type ClassEntry,
   type WeaponDamage,
   type WeaponDamageAmount,
@@ -22,6 +23,7 @@ import {
 } from "./abilities";
 import {
   canUseMonkMartialArtsForCharacter,
+  getFeatureWeaponActionsForCharacter,
   hasBatteringRootsBonusForCharacter,
   getUnarmedStrikeConfigForCharacter,
   getWeaponActionEconomyMultiForCharacter,
@@ -97,6 +99,12 @@ export type WeaponAction = {
   hasGreatWeaponFighting: boolean;
   hasMartialArtsDamageDie: boolean;
   hasBatteringRootsBonus: boolean;
+  drawerEyebrow?: string;
+  description?: SpellDescriptionEntry[];
+  details?: Array<{
+    label: string;
+    value: string;
+  }>;
 };
 
 export type InitiativeBreakdownEntry = {
@@ -931,8 +939,10 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
       })
     ];
   }, []);
+  const featureWeaponActions = getFeatureWeaponActionsForCharacter(character);
 
   return [
+    ...featureWeaponActions,
     ...(hasFreeHand
       ? [
           createUnarmedStrikeAction(character, {

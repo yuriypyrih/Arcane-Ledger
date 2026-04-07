@@ -2,7 +2,7 @@ import {
   getMonkDeflectAttacksDescription,
   monkFeatures,
   type MonkFeatureClassObj
-} from "../../../codex/classes";
+} from "../../../../codex/classes";
 import {
   ARMOR_TYPES,
   CLASS_FEATURE,
@@ -13,40 +13,44 @@ import {
   type ReactionEntry,
   type ArmorEntry,
   type WeaponEntry
-} from "../../../codex/entries";
-import { getArmorEntries, getWeaponEntries } from "../../../codex/selectors";
-import type { Character, CharacterMonkFeatureState } from "../../../types";
+} from "../../../../codex/entries";
+import { getArmorEntries, getWeaponEntries } from "../../../../codex/selectors";
+import type { Character, CharacterMonkFeatureState } from "../../../../types";
 import {
   CONDITION_NAME,
   PROFICIENCY_OVERRIDE_POLICY,
   PROFICIENCY_SOURCE,
   PROF_LEVEL,
   SAVING_THROW_PROFICIENCY
-} from "../../../types";
-import { STATUS_DURATION_KIND, STATUS_ENTRY_GROUP, STATUS_ENTRY_SOURCE_TYPE } from "../../../types";
+} from "../../../../types";
+import {
+  STATUS_DURATION_KIND,
+  STATUS_ENTRY_GROUP,
+  STATUS_ENTRY_SOURCE_TYPE
+} from "../../../../types";
 import {
   ACTION_CATEGORY,
   ECONOMY_TYPE,
   getRoundTrackerResourceForEconomyType,
   type EconomyType
-} from "../actionEconomy";
+} from "../../actionEconomy";
 import {
   consumeRoundTrackerResource,
   isRoundTrackerResourceAvailable,
   normalizeRoundTracker
-} from "../combat";
+} from "../../combat";
 import {
   getResolvedCustomLoadoutEntries,
   type ResolvedCustomArmorEntry,
   type ResolvedCustomWeaponEntry
-} from "../customEquipment";
+} from "../../customEquipment";
 import {
   createHeldShieldDescriptor,
   createHeldWeaponDescriptor,
   getHeldWeaponSlotCount
-} from "../inventory";
-import { isMonkWeapon } from "../monkWeapons";
-import { hasStatusCondition } from "../traits";
+} from "../../inventory";
+import { isMonkWeapon } from "../../monkWeapons";
+import { hasStatusCondition } from "../../traits";
 import type {
   ArmorClassFeatureContext,
   DerivedFeatureStatusEntry,
@@ -56,7 +60,7 @@ import type {
   FeatureSavingThrowProficiencyEntry,
   FeatureSpeedBonus,
   SpeedFeatureContext
-} from "./types";
+} from "../types";
 
 export const monkFlurryOfBlowsActionKey = "monk-flurry-of-blows";
 export const monkUncannyMetabolismActionKey = "monk-uncanny-metabolism";

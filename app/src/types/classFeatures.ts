@@ -63,6 +63,7 @@ export type CharacterDruidFeatureState = {
   elementalFuryChoice?: DruidElementalFuryChoice;
   wildShapeKnownForms?: MonsterRecord[];
   wildShapeUsesExpended?: number;
+  starMapGuidingBoltUsesExpended?: number;
   moonlightStepUsesExpended?: number;
   naturalRecoveryUsesExpended?: number;
   primalStrikeUsedThisTurn?: boolean;

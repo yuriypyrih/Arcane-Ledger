@@ -6,7 +6,7 @@ import {
   getSorceryPointsRemainingForCharacter,
   getSorceryPointsTotalForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
-import { getSorcererSpellSlotCreationRules } from "../../../../../pages/CharactersPage/classFeatures/sorcerer";
+import { getSorcererSpellSlotCreationRules } from "../../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
 import {
   getSpellSlotTotalsForCharacter,
   normalizeSpellSlotsExpended
@@ -36,7 +36,10 @@ function FontOfMagicModal({
   const sorceryPointsRemaining = getSorceryPointsRemainingForCharacter(character);
   const sorceryPointsTotal = getSorceryPointsTotalForCharacter(character);
   const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
   const spellSlotsRemaining = spellSlotTotals.map((total, index) =>
     Math.max(0, total - (spellSlotsExpended[index] ?? 0))
   );
@@ -135,7 +138,9 @@ function FontOfMagicModal({
                 <h4 className={styles.fontOfMagicSectionTitle}>Sorcery Points to Spell Slot</h4>
                 <p className={shared.helperText}>Uses your Bonus Action.</p>
               </div>
-              {actionWarning ? <span className={styles.fontOfMagicWarning}>{actionWarning}</span> : null}
+              {actionWarning ? (
+                <span className={styles.fontOfMagicWarning}>{actionWarning}</span>
+              ) : null}
             </div>
 
             <div className={styles.fontOfMagicOptionGrid}>

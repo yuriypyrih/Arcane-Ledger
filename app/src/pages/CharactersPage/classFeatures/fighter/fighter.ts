@@ -1,29 +1,20 @@
-import { fighterFeatures } from "../../../codex/classes";
-import { CLASS_FEATURE } from "../../../codex/entries";
+import { fighterFeatures } from "../../../../codex/classes";
+import { CLASS_FEATURE } from "../../../../codex/entries";
 import type {
   Character,
   CharacterFighterFeatureState,
   WeaponProficiencyEntry
-} from "../../../types";
+} from "../../../../types";
 import {
   PROFICIENCY_OVERRIDE_POLICY,
   PROFICIENCY_SOURCE,
   PROF_LEVEL,
   WEAPON_PROFICIENCY
-} from "../../../types";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
-import {
-  consumeRoundTrackerResource,
-  isRoundTrackerResourceAvailable
-} from "../combat";
-import type {
-  FeatureActionCard,
-  FeatureWeaponProficiencyEntry
-} from "./types";
-import {
-  getWeaponMasteryOptions,
-  normalizeWeaponMasterySelections
-} from "./weaponMastery";
+} from "../../../../types";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
+import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
+import type { FeatureActionCard, FeatureWeaponProficiencyEntry } from "../types";
+import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
 
 export const fighterSecondWindActionKey = "fighter-second-wind";
 export const fighterActionSurgeActionKey = "fighter-action-surge";
@@ -96,13 +87,21 @@ export function normalizeFighterFeatureState(
   const additionalAttackCount = getFighterAdditionalAttackCount(character);
   const hasExtraAttack = additionalAttackCount > 0;
 
-  if (!hasSecondWind && !hasActionSurge && !hasIndomitable && !hasWeaponMastery && !hasExtraAttack) {
+  if (
+    !hasSecondWind &&
+    !hasActionSurge &&
+    !hasIndomitable &&
+    !hasWeaponMastery &&
+    !hasExtraAttack
+  ) {
     return {};
   }
 
   const record =
     value && typeof value === "object" ? (value as Partial<CharacterFighterFeatureState>) : {};
-  const secondWindTotal = hasSecondWind ? (getFighterFeatureRow(character.level)?.secondWind ?? 0) : 0;
+  const secondWindTotal = hasSecondWind
+    ? (getFighterFeatureRow(character.level)?.secondWind ?? 0)
+    : 0;
   const weaponMasteryTotal = hasWeaponMastery
     ? (getFighterFeatureRow(character.level)?.weaponMastery ?? 0)
     : 0;
@@ -217,7 +216,10 @@ export function getFighterWeaponAttackMulti(
 export function getFighterWeaponAttackMultiCount(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): number {
-  const fighterState = normalizeFighterFeatureState(character.classFeatureState?.fighter, character);
+  const fighterState = normalizeFighterFeatureState(
+    character.classFeatureState?.fighter,
+    character
+  );
 
   return (
     (fighterState.extraAttacksRemainingThisTurn ?? 0) +
@@ -298,7 +300,10 @@ export function getFighterFeatureActions(
   if (hasFighterFeature(character, CLASS_FEATURE.ACTION_SURGE)) {
     const totalUses = getFighterActionSurgeUsesTotal(character);
     const usesRemaining = getFighterActionSurgeUsesRemaining(character);
-    const fighterState = normalizeFighterFeatureState(character.classFeatureState?.fighter, character);
+    const fighterState = normalizeFighterFeatureState(
+      character.classFeatureState?.fighter,
+      character
+    );
     const usedThisTurn = fighterState.actionSurgeUsedThisTurn === true;
 
     actions.push({
@@ -419,7 +424,10 @@ export function consumeFighterSecondWindUse(character: Character): Character {
     return character;
   }
 
-  const fighterState = normalizeFighterFeatureState(character.classFeatureState?.fighter, character);
+  const fighterState = normalizeFighterFeatureState(
+    character.classFeatureState?.fighter,
+    character
+  );
   const totalUses = getFighterSecondWindUsesTotal(character);
   const usesExpended = fighterState.secondWindUsesExpended ?? 0;
 
@@ -444,7 +452,10 @@ export function consumeFighterIndomitableUse(character: Character): Character {
     return character;
   }
 
-  const fighterState = normalizeFighterFeatureState(character.classFeatureState?.fighter, character);
+  const fighterState = normalizeFighterFeatureState(
+    character.classFeatureState?.fighter,
+    character
+  );
   const totalUses = getFighterIndomitableUsesTotal(character);
   const usesExpended = fighterState.indomitableUsesExpended ?? 0;
 
@@ -472,7 +483,10 @@ export function applyShortRestToFighterFeatures(character: Character): Character
     return character;
   }
 
-  const fighterState = normalizeFighterFeatureState(character.classFeatureState?.fighter, character);
+  const fighterState = normalizeFighterFeatureState(
+    character.classFeatureState?.fighter,
+    character
+  );
   const usesExpended = fighterState.secondWindUsesExpended ?? 0;
 
   return {
@@ -496,7 +510,10 @@ export function restoreFighterSecondWindOnShortRest(character: Character): Chara
     return character;
   }
 
-  const fighterState = normalizeFighterFeatureState(character.classFeatureState?.fighter, character);
+  const fighterState = normalizeFighterFeatureState(
+    character.classFeatureState?.fighter,
+    character
+  );
   const usesExpended = fighterState.secondWindUsesExpended ?? 0;
 
   if (usesExpended <= 0) {
@@ -520,7 +537,10 @@ export function restoreFighterActionSurgeOnShortRest(character: Character): Char
     return character;
   }
 
-  const fighterState = normalizeFighterFeatureState(character.classFeatureState?.fighter, character);
+  const fighterState = normalizeFighterFeatureState(
+    character.classFeatureState?.fighter,
+    character
+  );
 
   if (
     (fighterState.actionSurgeUsesExpended ?? 0) === 0 &&
@@ -553,7 +573,10 @@ export function applyLongRestToFighterFeatures(character: Character): Character 
     return character;
   }
 
-  const fighterState = normalizeFighterFeatureState(character.classFeatureState?.fighter, character);
+  const fighterState = normalizeFighterFeatureState(
+    character.classFeatureState?.fighter,
+    character
+  );
 
   return {
     ...character,
@@ -577,7 +600,10 @@ export function restoreFighterSecondWindOnLongRest(character: Character): Charac
     return character;
   }
 
-  const fighterState = normalizeFighterFeatureState(character.classFeatureState?.fighter, character);
+  const fighterState = normalizeFighterFeatureState(
+    character.classFeatureState?.fighter,
+    character
+  );
 
   if ((fighterState.secondWindUsesExpended ?? 0) === 0) {
     return character;
@@ -600,7 +626,10 @@ export function restoreFighterActionSurgeOnLongRest(character: Character): Chara
     return character;
   }
 
-  const fighterState = normalizeFighterFeatureState(character.classFeatureState?.fighter, character);
+  const fighterState = normalizeFighterFeatureState(
+    character.classFeatureState?.fighter,
+    character
+  );
 
   if (
     (fighterState.actionSurgeUsesExpended ?? 0) === 0 &&
@@ -629,7 +658,10 @@ export function restoreFighterIndomitableOnLongRest(character: Character): Chara
     return character;
   }
 
-  const fighterState = normalizeFighterFeatureState(character.classFeatureState?.fighter, character);
+  const fighterState = normalizeFighterFeatureState(
+    character.classFeatureState?.fighter,
+    character
+  );
 
   if ((fighterState.indomitableUsesExpended ?? 0) === 0) {
     return character;
@@ -655,7 +687,10 @@ export function advanceFighterFeaturesForNewRound(character: Character): Charact
     return character;
   }
 
-  const fighterState = normalizeFighterFeatureState(character.classFeatureState?.fighter, character);
+  const fighterState = normalizeFighterFeatureState(
+    character.classFeatureState?.fighter,
+    character
+  );
 
   if (
     (fighterState.extraAttacksRemainingThisTurn ?? 0) === 0 &&
@@ -696,8 +731,10 @@ export function getFighterWeaponMasteryOptions(): WEAPON_PROFICIENCY[] {
 export function getFighterWeaponMasterySelections(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): WEAPON_PROFICIENCY[] {
-  return normalizeFighterFeatureState(character.classFeatureState?.fighter, character)
-    .weaponMasteries ?? [];
+  return (
+    normalizeFighterFeatureState(character.classFeatureState?.fighter, character).weaponMasteries ??
+    []
+  );
 }
 
 export function setFighterWeaponMasterySelections(
@@ -708,7 +745,10 @@ export function setFighterWeaponMasterySelections(
     return character;
   }
 
-  const fighterState = normalizeFighterFeatureState(character.classFeatureState?.fighter, character);
+  const fighterState = normalizeFighterFeatureState(
+    character.classFeatureState?.fighter,
+    character
+  );
 
   return {
     ...character,
@@ -751,7 +791,10 @@ export function consumeFighterWeaponAttack(character: Character): Character {
       : character;
   }
 
-  const fighterState = normalizeFighterFeatureState(character.classFeatureState?.fighter, character);
+  const fighterState = normalizeFighterFeatureState(
+    character.classFeatureState?.fighter,
+    character
+  );
   const extraAttacksRemaining = fighterState.extraAttacksRemainingThisTurn ?? 0;
   const surgedActionsRemaining = fighterState.actionSurgeExtraActionsRemainingThisTurn ?? 0;
   const actionAvailable = isRoundTrackerResourceAvailable(character.roundTracker, "action");
@@ -811,7 +854,10 @@ export function consumeFighterNonMagicAction(character: Character): Character {
       : character;
   }
 
-  const fighterState = normalizeFighterFeatureState(character.classFeatureState?.fighter, character);
+  const fighterState = normalizeFighterFeatureState(
+    character.classFeatureState?.fighter,
+    character
+  );
   const surgedActionsRemaining = fighterState.actionSurgeExtraActionsRemainingThisTurn ?? 0;
   const actionAvailable = isRoundTrackerResourceAvailable(character.roundTracker, "action");
 
@@ -843,7 +889,10 @@ export function activateFighterActionSurge(character: Character): Character {
     return character;
   }
 
-  const fighterState = normalizeFighterFeatureState(character.classFeatureState?.fighter, character);
+  const fighterState = normalizeFighterFeatureState(
+    character.classFeatureState?.fighter,
+    character
+  );
   const usesRemaining = getFighterActionSurgeUsesRemaining(character);
 
   if (usesRemaining <= 0 || fighterState.actionSurgeUsedThisTurn) {

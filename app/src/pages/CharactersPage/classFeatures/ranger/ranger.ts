@@ -1,9 +1,6 @@
-import { rangerFeatures } from "../../../codex/classes";
-import {
-  CLASS_FEATURE,
-  type SpellEntry
-} from "../../../codex/entries";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
+import { rangerFeatures } from "../../../../codex/classes";
+import { CLASS_FEATURE, type SpellEntry } from "../../../../codex/entries";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import type {
   Character,
   CharacterRangerFeatureState,
@@ -11,7 +8,7 @@ import type {
   SkillName,
   SkillProficiencyEntry,
   WeaponProficiencyEntry
-} from "../../../types";
+} from "../../../../types";
 import {
   CONDITION_NAME,
   LANGUAGE_PROFICIENCY,
@@ -27,10 +24,10 @@ import {
   STATUS_ENTRY_SOURCE_TYPE,
   WEAPON_PROFICIENCY,
   languageEntries
-} from "../../../types";
-import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../combat";
-import { getAbilityModifier } from "../gameplay";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../traits";
+} from "../../../../types";
+import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
+import { getAbilityModifier } from "../../gameplay";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../traits";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
@@ -39,11 +36,8 @@ import type {
   FeatureSpeedBonus,
   FeatureWeaponProficiencyEntry,
   SpeedFeatureContext
-} from "./types";
-import {
-  getWeaponMasteryOptions,
-  normalizeWeaponMasterySelections
-} from "./weaponMastery";
+} from "../types";
+import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
 
 export const favoredEnemyActionKey = "ranger-favored-enemy";
 export const tirelessActionKey = "ranger-tireless";

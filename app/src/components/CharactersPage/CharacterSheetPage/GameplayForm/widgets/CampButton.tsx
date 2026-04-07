@@ -6,7 +6,7 @@ import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPag
 import { clampNumber } from "../../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../../../pages/CharactersPage/traits";
-import { hasWarlockFeature } from "../../../../../pages/CharactersPage/classFeatures/warlock";
+import { hasWarlockFeature } from "../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";

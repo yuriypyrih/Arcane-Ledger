@@ -1,14 +1,10 @@
-import {
-  CLASS_FEATURE,
-  WEAPON_COMBAT_TYPE,
-  getDivinityEntryById,
-} from "../../../codex/entries";
-import { paladinFeatures } from "../../../codex/classes";
+import { CLASS_FEATURE, WEAPON_COMBAT_TYPE, getDivinityEntryById } from "../../../../codex/entries";
+import { paladinFeatures } from "../../../../codex/classes";
 import type {
   Character,
   CharacterPaladinFeatureState,
   WeaponProficiencyEntry
-} from "../../../types";
+} from "../../../../types";
 import {
   CONDITION_NAME,
   PROFICIENCY_OVERRIDE_POLICY,
@@ -18,26 +14,23 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
   WEAPON_PROFICIENCY
-} from "../../../types";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
-import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../combat";
+} from "../../../../types";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
+import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
 import {
   getEffectiveHitPointMaximumForCharacter,
   hasStatusCondition,
   normalizeCharacterStatusEntries,
   reconcileCharacterStatusConsequences
-} from "../traits";
+} from "../../traits";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
   FeatureActionOptionCard,
   FeatureDamageBonus,
   FeatureWeaponProficiencyEntry
-} from "./types";
-import {
-  getWeaponMasteryOptions,
-  normalizeWeaponMasterySelections
-} from "./weaponMastery";
+} from "../types";
+import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
 
 export const paladinLayOnHandsActionKey = "paladin-lay-on-hands";
 export const paladinChannelDivinityActionKey = "paladin-channel-divinity";

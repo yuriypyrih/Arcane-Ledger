@@ -6,7 +6,9 @@ import {
 } from "../../codex/classes";
 import { divineForeknowledgeDescription } from "../../codex/subclasses/cleric";
 import {
+  aquaticAffinityWrathOfTheSeaDescription,
   naturesSanctuaryDescription,
+  starryFormDescription,
   wrathOfTheSeaDescription
 } from "../../codex/subclasses/druid";
 import type { SpellDescriptionEntry, SpellDurationPart } from "../../codex/entries";
@@ -42,6 +44,7 @@ const exhaustionConditionOptionPrefix = "EXHAUSTION_LEVEL_";
 const unbreakableMajestyStatusSourceId = "feature-bard-unbreakable-majesty";
 const divineForeknowledgeStatusSourceId = "feature-cleric-divine-foreknowledge";
 const druidNaturesSanctuaryStatusSourceId = "feature-druid-natures-sanctuary";
+const druidStarryFormStatusSourceId = "feature-druid-starry-form";
 const druidWrathOfTheSeaStatusSourceId = "feature-druid-wrath-of-the-sea";
 export const exhaustionLevels = [1, 2, 3, 4, 5, 6] as const;
 export type ExhaustionLevel = (typeof exhaustionLevels)[number];
@@ -1223,8 +1226,14 @@ export function getStatusEntryDescriptionEntries(
     return [...naturesSanctuaryDescription];
   }
 
+  if (entry.sourceId === druidStarryFormStatusSourceId) {
+    return [...starryFormDescription];
+  }
+
   if (entry.sourceId === druidWrathOfTheSeaStatusSourceId) {
-    return [...wrathOfTheSeaDescription];
+    return getStatusEntryTitle(entry).includes("(10 FT.)")
+      ? [...aquaticAffinityWrathOfTheSeaDescription]
+      : [...wrathOfTheSeaDescription];
   }
 
   const keywordDescriptionEntries = getKeywordDescriptionLines(getStatusEntryKeyword(entry));

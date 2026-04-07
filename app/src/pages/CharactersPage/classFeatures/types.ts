@@ -22,6 +22,7 @@ import type {
   WEAPON_PROFICIENCY,
   WeaponProficiencyEntry
 } from "../../../types";
+import type { WeaponAction } from "../gameplay";
 
 export type FeatureActionTone = "default" | "accent" | "danger";
 export type FeatureActionIcon =
@@ -81,6 +82,7 @@ export type FeatureActionFormKind =
   | "indomitable"
   | "lay-on-hands"
   | "nature-magician"
+  | "starry-form"
   | "sneak-attack"
   | "wild-companion"
   | "wild-resurgence"
@@ -97,6 +99,7 @@ export type FeatureActionSpellSource = "fixed" | "divine-intervention" | "mystic
 
 export type FeatureActionSpellEffectKind =
   | "contact-patron"
+  | "druids-guiding-bolt"
   | "divine-intervention"
   | "faithful-steed"
   | "favored-enemy"
@@ -329,6 +332,7 @@ export type ActiveClassFeatureName =
 export type ClassFeatureDerivedState = {
   actions?: FeatureActionCard[];
   actionOptions?: Partial<Record<string, FeatureActionOptionCard[]>>;
+  weaponActions?: WeaponAction[];
   getWeaponDamageBonuses?: (context: WeaponFeatureContext) => FeatureDamageBonus[];
   getSavingThrowBonuses?: (ability: AbilityKey) => FeatureSavingThrowBonus[];
   savingThrowIndicators?: SavingThrowIndicatorMap;

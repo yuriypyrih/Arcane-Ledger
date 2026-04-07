@@ -2,7 +2,7 @@ import clsx from "clsx";
 import { useEffect, useMemo, useState } from "react";
 import { X } from "lucide-react";
 import type { DivinityEntry, FEATS, SpellEntry } from "../../../../codex/entries";
-import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock";
+import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import { getFeatDefinition } from "../../../../pages/CharactersPage/feats";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import DescriptionContent from "../../../DescriptionContent/DescriptionContent";
@@ -87,10 +87,7 @@ function EldritchInvocationDrawer({
             <div className={sheetStyles.spellDrawerHeaderContent}>
               <p className={sheetStyles.spellDrawerBadge}>Eldritch Invocation</p>
               <div className={sheetStyles.spellDrawerTitleRow}>
-                <h3
-                  id="eldritch-invocation-drawer-title"
-                  className={sheetStyles.spellDrawerTitle}
-                >
+                <h3 id="eldritch-invocation-drawer-title" className={sheetStyles.spellDrawerTitle}>
                   {option.invocation.name}
                 </h3>
               </div>

@@ -9,17 +9,17 @@ import {
   type EldritchInvocationEntry,
   type FEATS,
   type SpellEntry
-} from "../../../codex/entries";
+} from "../../../../codex/entries";
 import {
   getSpellEntriesForClassName,
   warlockFeatures,
   type WarlockFeatureClassObj
-} from "../../../codex/classes";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
-import { getFeatDefinitionsByCategory } from "../feats";
-import type { Character, CharacterWarlockFeatureState } from "../../../types";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../spellcasting";
-import type { FeatureActionCard } from "./types";
+} from "../../../../codex/classes";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
+import { getFeatDefinitionsByCategory } from "../../feats";
+import type { Character, CharacterWarlockFeatureState } from "../../../../types";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
+import type { FeatureActionCard } from "../types";
 
 const invocationSelectionSeparator = "::";
 const placeholderSelectionSuffix = "placeholder";
@@ -93,11 +93,10 @@ function getUnlockedWarlockFeatures(level: number): Set<CLASS_FEATURE> {
     }, new Set<CLASS_FEATURE>());
 }
 
-function createSelectionId(
-  invocationId: ELDRITCH_INVOCATION,
-  choiceValue?: string
-): string {
-  return choiceValue ? `${invocationId}${invocationSelectionSeparator}${choiceValue}` : invocationId;
+function createSelectionId(invocationId: ELDRITCH_INVOCATION, choiceValue?: string): string {
+  return choiceValue
+    ? `${invocationId}${invocationSelectionSeparator}${choiceValue}`
+    : invocationId;
 }
 
 function parseSelectionId(selectionId: string): {
@@ -120,10 +119,7 @@ function parseSelectionId(selectionId: string): {
 }
 
 function getWarlockFeatureState(
-  character: Pick<
-    Character,
-    "className" | "level" | "classFeatureState" | "cantripIds" | "feats"
-  >
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">
 ): CharacterWarlockFeatureState {
   return normalizeWarlockFeatureState(character.classFeatureState?.warlock, character);
 }
@@ -140,9 +136,7 @@ function getUnlockedMysticArcanumLevels(
     .map((definition) => definition.spellLevel);
 }
 
-function getWarlockPactMagicSlotLevel(
-  character: Pick<Character, "className" | "level">
-): number {
+function getWarlockPactMagicSlotLevel(character: Pick<Character, "className" | "level">): number {
   if (!hasWarlockFeature(character, CLASS_FEATURE.PACT_MAGIC)) {
     return 0;
   }
@@ -172,14 +166,15 @@ export function getWarlockPactMagicSlotsExpended(
   }
 
   const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
 
   return spellSlotsExpended[slotLevel - 1] ?? 0;
 }
 
-function getWarlockKnownCantripEntries(
-  character: Pick<Character, "cantripIds">
-): SpellEntry[] {
+function getWarlockKnownCantripEntries(character: Pick<Character, "cantripIds">): SpellEntry[] {
   const rawIds = Array.isArray(character.cantripIds)
     ? character.cantripIds.filter((entry): entry is string => typeof entry === "string")
     : [];
@@ -391,7 +386,9 @@ export function getWarlockMysticArcanumSelections(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">
 ): WarlockMysticArcanumSelection[] {
   const unlockedLevels = getUnlockedMysticArcanumLevels(character);
-  const expendedLevels = new Set(getWarlockFeatureState(character).mysticArcanumExpendedLevels ?? []);
+  const expendedLevels = new Set(
+    getWarlockFeatureState(character).mysticArcanumExpendedLevels ?? []
+  );
 
   return unlockedLevels.map((spellLevel) => {
     const spellId = getWarlockMysticArcanumSpellId(character, spellLevel);
@@ -459,19 +456,21 @@ export function getWarlockInvocationOptions(
   );
 
   return getEldritchInvocationEntries().flatMap((invocation) => {
-    const baseQualified = meetsInvocationPrerequisites(invocation, character, selectedBaseInvocations);
+    const baseQualified = meetsInvocationPrerequisites(
+      invocation,
+      character,
+      selectedBaseInvocations
+    );
     const requirementLabel = getRequirementLabels(invocation).join(" • ");
 
     if (invocation.selection?.kind === "warlock-cantrip") {
-      const eligibleCantrips = getEligibleWarlockCantripEntries(character, invocation.selection.rule);
+      const eligibleCantrips = getEligibleWarlockCantripEntries(
+        character,
+        invocation.selection.rule
+      );
 
       if (eligibleCantrips.length === 0) {
-        return [
-          createPlaceholderOption(
-            invocation,
-            "No eligible Warlock cantrip known"
-          )
-        ];
+        return [createPlaceholderOption(invocation, "No eligible Warlock cantrip known")];
       }
 
       return eligibleCantrips
@@ -521,7 +520,10 @@ export function getWarlockLearnedInvocationOptions(
 ): WarlockEldritchInvocationOption[] {
   const selectedIds = getWarlockInvocationSelectionIds(character);
   const optionMap = new Map(
-    getWarlockInvocationOptions(character, selectedIds).map((option) => [option.selectionId, option])
+    getWarlockInvocationOptions(character, selectedIds).map((option) => [
+      option.selectionId,
+      option
+    ])
   );
 
   return selectedIds
@@ -548,7 +550,9 @@ export function getWarlockInvocationBlockingSelectionNames(
   const blockedByNames = selectedIds
     .filter((currentSelectionId) => currentSelectionId !== selectionId)
     .map((currentSelectionId) => parseSelectionId(currentSelectionId).invocationId)
-    .filter((currentInvocationId): currentInvocationId is ELDRITCH_INVOCATION => Boolean(currentInvocationId))
+    .filter((currentInvocationId): currentInvocationId is ELDRITCH_INVOCATION =>
+      Boolean(currentInvocationId)
+    )
     .flatMap((currentInvocationId) => {
       const invocation = getEldritchInvocationEntryById(currentInvocationId);
 
@@ -729,10 +733,7 @@ export function setWarlockInvocationSelectionIds(
 export function getWarlockInvocationFeatChoice(selectionId: string): FEATS | null {
   const { invocationId, choiceValue } = parseSelectionId(selectionId);
 
-  if (
-    invocationId !== ELDRITCH_INVOCATION.LESSONS_OF_THE_FIRST_ONES ||
-    !choiceValue
-  ) {
+  if (invocationId !== ELDRITCH_INVOCATION.LESSONS_OF_THE_FIRST_ONES || !choiceValue) {
     return null;
   }
 
@@ -804,8 +805,7 @@ export function getWarlockFeatureActions(
         spellLevel: 5,
         label: "Open Contact Other Plane",
         actionContextText: "Using Contact Patron",
-        actionAvailabilityText:
-          "Cast without expending a spell slot.",
+        actionAvailabilityText: "Cast without expending a spell slot.",
         actionConsumesSpellSlot: false
       },
       disabled: usesRemaining <= 0,
@@ -863,8 +863,12 @@ export function activateWarlockMagicalCunning(character: Character): Character {
   const pactMagicSlotLevel = getWarlockPactMagicSlotLevel(character);
   const pactMagicSlotTotal = getWarlockPactMagicSlotTotal(character);
   const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals);
-  const expendedSlots = pactMagicSlotLevel > 0 ? (spellSlotsExpended[pactMagicSlotLevel - 1] ?? 0) : 0;
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
+  const expendedSlots =
+    pactMagicSlotLevel > 0 ? (spellSlotsExpended[pactMagicSlotLevel - 1] ?? 0) : 0;
 
   if (usesRemaining <= 0 || pactMagicSlotLevel <= 0 || expendedSlots <= 0) {
     return character;
@@ -880,10 +884,7 @@ export function activateWarlockMagicalCunning(character: Character): Character {
   }
 
   const nextSpellSlotsExpended = [...spellSlotsExpended];
-  nextSpellSlotsExpended[pactMagicSlotLevel - 1] = Math.max(
-    0,
-    expendedSlots - slotsToRestore
-  );
+  nextSpellSlotsExpended[pactMagicSlotLevel - 1] = Math.max(0, expendedSlots - slotsToRestore);
   const warlockState = getWarlockFeatureState(character);
 
   return {
@@ -911,7 +912,10 @@ export function restoreWarlockPactMagicSpellSlots(character: Character): Charact
   }
 
   const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
 
   if ((spellSlotsExpended[pactMagicSlotLevel - 1] ?? 0) <= 0) {
     return character;
@@ -978,7 +982,9 @@ export function consumeMysticArcanumUse(
       ...character.classFeatureState,
       warlock: {
         ...warlockState,
-        mysticArcanumExpendedLevels: [...expendedLevels, spellLevel].sort((left, right) => left - right)
+        mysticArcanumExpendedLevels: [...expendedLevels, spellLevel].sort(
+          (left, right) => left - right
+        )
       }
     }
   };

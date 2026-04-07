@@ -15,7 +15,7 @@ import {
   SheetDrawer,
   overlayClassNames
 } from "../../Overlay";
-import { getClericResolvedDivinityDisplay } from "../../../pages/CharactersPage/classFeatures/cleric";
+import { getClericResolvedDivinityDisplay } from "../../../pages/CharactersPage/classFeatures/cleric/cleric";
 import type { ResolvedKeywordReference } from "../../../utils/codex/renderCodexRichText";
 import type { Character } from "../../../types";
 import {

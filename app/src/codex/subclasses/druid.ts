@@ -34,12 +34,49 @@ export const naturesSanctuaryDescription = [
   "You and your allies have Half Cover while in that area, and your allies gain the current Resistance of your Nature's Ward while there.",
   "As a Bonus Action, you can move the Cube up to 60 feet to ground within 120 feet of yourself."
 ] as const;
-export const wrathOfTheSeaDescription = [
-  "As a Bonus Action, you can expend a use of your Wild Shape to manifest a 5-foot <link:Emanation>Emanation</link> that takes the form of ocean spray that surrounds you for 10 minutes.",
-  "It ends early if you dismiss it (no action required), manifest it again, or have the <link:Incapacitated>Incapacitated</link> condition.",
-  "When you manifest the Emanation and as a Bonus Action on your subsequent turns, you can choose another creature you can see in the Emanation.",
-  "The target must succeed on a <link:Constitution Saving Throw>Constitution saving throw</link> against your spell save DC or take Cold damage and, if the creature is Large or smaller, be pushed up to 15 feet away from you.",
-  "To determine this damage, roll a number of d6s equal to your <link:WIS>Wisdom</link> modifier (minimum of one die)."
+
+function createWrathOfTheSeaDescription(emanationLabel: string) {
+  return [
+    `As a Bonus Action, you can expend a use of your Wild Shape to manifest a ${emanationLabel} <link:Emanation>Emanation</link> that takes the form of ocean spray that surrounds you for 10 minutes.`,
+    "It ends early if you dismiss it (no action required), manifest it again, or have the <link:Incapacitated>Incapacitated</link> condition.",
+    "When you manifest the Emanation and as a Bonus Action on your subsequent turns, you can choose another creature you can see in the Emanation.",
+    "The target must succeed on a <link:Constitution Saving Throw>Constitution saving throw</link> against your spell save DC or take Cold damage and, if the creature is Large or smaller, be pushed up to 15 feet away from you.",
+    "To determine this damage, roll a number of d6s equal to your <link:WIS>Wisdom</link> modifier (minimum of one die)."
+  ] as const;
+}
+
+export const wrathOfTheSeaDescription = createWrathOfTheSeaDescription("5-foot");
+export const aquaticAffinityWrathOfTheSeaDescription = createWrathOfTheSeaDescription(
+  "<strong>10-foot</strong>"
+);
+export const stormbornWrathOfTheSeaDescription = [
+  ...aquaticAffinityWrathOfTheSeaDescription,
+  "<strong>Flight.</strong> While Wrath of the Sea is active, you gain a Fly Speed equal to your <link:Speed>Speed</link>.",
+  "<strong>Resistance.</strong> While Wrath of the Sea is active, you have <link:Resistance>Resistance</link> to Cold, Lightning, and Thunder damage."
+] as const;
+export const starMapDescription = [
+  "You've created a star chart as part of your heavenly studies. It is a Tiny object, and you can use it as a Spellcasting Focus for your Druid spells.",
+  "You determine its form by rolling on the Star Map table or by choosing one.",
+  "While holding the map, you have the <spell:Guidance>Guidance</spell> and <spell:Guiding Bolt>Guiding Bolt</spell> spells prepared, and you can cast Guiding Bolt without expending a spell slot.",
+  "You can cast it in that way a number of times equal to your <link:WIS>Wisdom</link> modifier (minimum of once), and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
+  "If you lose the map, you can perform a 1-hour ceremony to magically create a replacement. This ceremony can be performed during a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>, and it destroys the previous map.",
+  "<strong>Star Map Forms.</strong>",
+  "1. A scroll bearing depictions of constellations.",
+  "2. A stone tablet with fine holes drilled through it.",
+  "3. An owlbear hide tooled with stellar symbols.",
+  "4. A collection of maps bound in an ebony cover.",
+  "5. A crystal engraved with starry patterns.",
+  "6. A glass disk etched with constellations."
+] as const;
+export const starryFormDescription = [
+  "As a Bonus Action, you can expend a use of your Wild Shape feature to take on a starry form rather than shape-shifting.",
+  "While in your starry form, you retain your game statistics, but your body becomes luminous, your joints glimmer like stars, and glowing lines connect them as on a star chart.",
+  "This form sheds Bright Light in a 10-foot radius and Dim Light for an additional 10 feet.",
+  "The form lasts for 10 minutes. It ends early if you dismiss it (no action required), have the <link:Incapacitated>Incapacitated</link> condition, or use this feature again.",
+  "Whenever you assume your starry form, choose which of the following constellations glimmers on your body.",
+  "<strong>Archer.</strong> When you activate this form and as a Bonus Action on your subsequent turns while it lasts, you can make a ranged spell attack, hurling a luminous arrow that targets one creature within 60 feet of yourself. On a hit, the attack deals <link:Radiant>Radiant</link> damage equal to 1d8 plus your <link:WIS>Wisdom</link> modifier.",
+  "<strong>Chalice.</strong> Whenever you cast a spell using a spell slot that restores Hit Points to a creature, you or another creature within 30 feet of you can regain Hit Points equal to 1d8 plus your Wisdom modifier.",
+  "<strong>Dragon.</strong> When you make an Intelligence or a Wisdom check or a <link:Constitution Saving Throw>Constitution saving throw</link> to maintain <link:Concentration>Concentration</link>, you can treat a roll of 9 or lower on the d20 as a 10."
 ] as const;
 
 export const druidSubclassEntries: SubclassEntry[] = [
@@ -189,21 +226,41 @@ export const druidSubclassEntries: SubclassEntry[] = [
         description: [...wrathOfTheSeaDescription],
         ...notTracked
       }),
-      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.AQUATIC_AFFINITY, {
-        description: [
-          "The size of the Emanation created by your Wrath of the Sea increases to 10 feet.",
-          "In addition, you gain a Swim Speed equal to your <link:Speed>Speed</link>."
-        ],
-        ...notTracked
-      }),
-      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.STORMBORN, {
-        description: [
-          "Your Wrath of the Sea confers two more benefits while active.",
-          "<strong>Flight.</strong> You gain a Fly Speed equal to your <link:Speed>Speed</link>.",
-          "<strong>Resistance.</strong> You have <link:Resistance>Resistance</link> to Cold, Lightning, and Thunder damage."
-        ],
-        ...notTracked
-      }),
+      {
+        level: SUBCLASS_FEATURE_LEVELS.LEVEL_6,
+        classFeatures: [CLASS_FEATURE.AQUATIC_AFFINITY],
+        featureOverrides: {
+          [CLASS_FEATURE.AQUATIC_AFFINITY]: {
+            description: [
+              "The size of the Emanation created by your Wrath of the Sea increases to 10 feet.",
+              "In addition, you gain a Swim Speed equal to your <link:Speed>Speed</link>."
+            ],
+            ...notTracked
+          },
+          [CLASS_FEATURE.WRATH_OF_THE_SEA]: {
+            description: [...aquaticAffinityWrathOfTheSeaDescription],
+            ...notTracked
+          }
+        }
+      },
+      {
+        level: SUBCLASS_FEATURE_LEVELS.LEVEL_10,
+        classFeatures: [CLASS_FEATURE.STORMBORN],
+        featureOverrides: {
+          [CLASS_FEATURE.STORMBORN]: {
+            description: [
+              "Your Wrath of the Sea confers two more benefits while active.",
+              "<strong>Flight.</strong> You gain a Fly Speed equal to your <link:Speed>Speed</link>.",
+              "<strong>Resistance.</strong> You have <link:Resistance>Resistance</link> to Cold, Lightning, and Thunder damage."
+            ],
+            ...notTracked
+          },
+          [CLASS_FEATURE.WRATH_OF_THE_SEA]: {
+            description: [...stormbornWrathOfTheSeaDescription],
+            ...notTracked
+          }
+        }
+      },
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.OCEANIC_GIFT, {
         description: [
           "Instead of manifesting the Emanation of Wrath of the Sea around yourself, you can manifest it around one willing creature within 60 feet of yourself.",
@@ -223,33 +280,11 @@ export const druidSubclassEntries: SubclassEntry[] = [
       "The Circle of the Stars has tracked heavenly patterns since time immemorial, discovering secrets hidden amid the constellations. By understanding these secrets, the Druids of this circle seek to harness the powers of the cosmos.",
     features: [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.STAR_MAP, {
-        description: [
-          "You've created a star chart as part of your heavenly studies. It is a Tiny object, and you can use it as a Spellcasting Focus for your Druid spells.",
-          "You determine its form by rolling on the Star Map table or by choosing one.",
-          "While holding the map, you have the <spell:Guidance>Guidance</spell> and <spell:Guiding Bolt>Guiding Bolt</spell> spells prepared, and you can cast Guiding Bolt without expending a spell slot.",
-          "You can cast it in that way a number of times equal to your <link:WIS>Wisdom</link> modifier (minimum of once), and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
-          "If you lose the map, you can perform a 1-hour ceremony to magically create a replacement. This ceremony can be performed during a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>, and it destroys the previous map.",
-          "<strong>Star Map Forms.</strong>",
-          "1. A scroll bearing depictions of constellations.",
-          "2. A stone tablet with fine holes drilled through it.",
-          "3. An owlbear hide tooled with stellar symbols.",
-          "4. A collection of maps bound in an ebony cover.",
-          "5. A crystal engraved with starry patterns.",
-          "6. A glass disk etched with constellations."
-        ],
+        description: [...starMapDescription],
         ...notTracked
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.STARRY_FORM, {
-        description: [
-          "As a Bonus Action, you can expend a use of your Wild Shape feature to take on a starry form rather than shape-shifting.",
-          "While in your starry form, you retain your game statistics, but your body becomes luminous, your joints glimmer like stars, and glowing lines connect them as on a star chart.",
-          "This form sheds Bright Light in a 10-foot radius and Dim Light for an additional 10 feet.",
-          "The form lasts for 10 minutes. It ends early if you dismiss it (no action required), have the <link:Incapacitated>Incapacitated</link> condition, or use this feature again.",
-          "Whenever you assume your starry form, choose which of the following constellations glimmers on your body.",
-          "<strong>Archer.</strong> When you activate this form and as a Bonus Action on your subsequent turns while it lasts, you can make a ranged spell attack, hurling a luminous arrow that targets one creature within 60 feet of yourself. On a hit, the attack deals <link:Radiant>Radiant</link> damage equal to 1d8 plus your <link:WIS>Wisdom</link> modifier.",
-          "<strong>Chalice.</strong> Whenever you cast a spell using a spell slot that restores Hit Points to a creature, you or another creature within 30 feet of you can regain Hit Points equal to 1d8 plus your Wisdom modifier.",
-          "<strong>Dragon.</strong> When you make an Intelligence or a Wisdom check or a <link:Constitution Saving Throw>Constitution saving throw</link> to maintain <link:Concentration>Concentration</link>, you can treat a roll of 9 or lower on the d20 as a 10."
-        ],
+        description: [...starryFormDescription],
         ...notTracked
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.COSMIC_OMEN, {

@@ -185,8 +185,11 @@ function ClassFeaturesAndFeats({
 
       return rowsAtLevel.flatMap((subclassFeatureRow, rowIndex) =>
         subclassFeatureRow.classFeatures.map((feature, index) => {
-          const resolvedDetails =
-            getSubclassFeatureDetails(selectedSubclass, level, feature) ??
+          const resolvedDetails = getSubclassFeatureDetails(
+            selectedSubclass,
+            Math.max(level, character.level),
+            feature
+          ) ??
             FeatureMap[feature] ?? {
               description: ["You gain a feature from your chosen subclass."],
               trackingState: TRACKER.NOT_TRACKED

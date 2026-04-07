@@ -1,5 +1,5 @@
-import { druidFeatureMap, druidFeatures } from "../../../codex/classes";
-import { CLASS_FEATURE } from "../../../codex/entries";
+import { druidFeatureMap, druidFeatures } from "../../../../codex/classes";
+import { CLASS_FEATURE } from "../../../../codex/entries";
 import type {
   AbilityKey,
   Character,
@@ -8,7 +8,7 @@ import type {
   DruidElementalFuryChoice,
   DruidPrimalOrderChoice,
   MonsterRecord
-} from "../../../types";
+} from "../../../../types";
 import {
   ARMOR_PROFICIENCY,
   LANGUAGE_PROFICIENCY,
@@ -24,11 +24,11 @@ import {
   type LanguageProficiencyEntry,
   type SkillName,
   type WeaponProficiencyEntry
-} from "../../../types";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../traits";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../spellcasting";
-import { clampNumber, swapTemporaryHitPointsAssignment } from "../shared";
+} from "../../../../types";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../traits";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
+import { clampNumber, swapTemporaryHitPointsAssignment } from "../../shared";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
@@ -40,7 +40,7 @@ import type {
   FeatureSkillBonus,
   WeaponFeatureContext,
   FeatureWeaponProficiencyEntry
-} from "./types";
+} from "../types";
 
 const primalOrderWardenSource = "Primal Order";
 const druidicSource = "Druidic";
@@ -51,17 +51,30 @@ const druidWildShapeStatusSourceIdPrefix = "feature-druid-wild-shape:";
 const circleOfTheLandSubclassId = "druid-circle-of-the-land";
 const circleOfTheMoonSubclassId = "druid-circle-of-the-moon";
 const circleOfTheSeaSubclassId = "druid-circle-of-the-sea";
+export const circleOfTheStarsSubclassId = "druid-circle-of-the-stars";
 
 export const druidWildShapeActionKey = "druid-wild-shape";
 export const druidWildCompanionActionKey = "druid-wild-companion";
 export const druidLandsAidActionKey = "druid-lands-aid";
 export const druidNaturesSanctuaryActionKey = "druid-natures-sanctuary";
 export const druidWrathOfTheSeaActionKey = "druid-wrath-of-the-sea";
+export const druidStarsGuidingBoltActionKey = "druid-stars-guiding-bolt";
+export const druidStarryFormActionKey = "druid-starry-form";
 export const druidWildResurgenceActionKey = "druid-wild-resurgence";
 export const druidNatureMagicianActionKey = "druid-nature-magician";
 export const druidMoonlightStepActionKey = "druid-moonlight-step";
 export const druidNaturesSanctuaryStatusSourceId = "feature-druid-natures-sanctuary";
 export const druidWrathOfTheSeaStatusSourceId = "feature-druid-wrath-of-the-sea";
+export const druidStarryFormStatusSourceId = "feature-druid-starry-form";
+
+export const druidStarryFormConstellations = ["archer", "chalice", "dragon"] as const;
+export type DruidStarryFormConstellation = (typeof druidStarryFormConstellations)[number];
+
+const druidStarryFormLabels: Record<DruidStarryFormConstellation, string> = {
+  archer: "Archer",
+  chalice: "Chalice",
+  dragon: "Dragon"
+};
 
 export type DruidWildCompanionActivation =
   | {
@@ -158,10 +171,37 @@ function hasCircleOfTheSeaSpellsFeature(
   );
 }
 
+function hasStarMapFeature(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheStarsSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level))) >= 3
+  );
+}
+
+function hasStarryFormFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return hasStarMapFeature(character);
+}
+
 function hasWrathOfTheSeaFeature(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): boolean {
   return hasCircleOfTheSeaSpellsFeature(character);
+}
+
+function hasAquaticAffinityFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheSeaSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level))) >= 6
+  );
 }
 
 function hasCircleFormsFeature(
@@ -282,7 +322,56 @@ function getDruidWrathOfTheSeaAuraRangeFeet(
     return 0;
   }
 
-  return character.level >= 6 ? 10 : 5;
+  return hasAquaticAffinityFeature(character) ? 10 : 5;
+}
+
+function getDruidWrathOfTheSeaTraitValue(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): string {
+  return `Wrath of the Sea (${getDruidWrathOfTheSeaAuraRangeFeet(character)} FT.)`;
+}
+
+export function getDruidStarryFormConstellationLabel(
+  constellation: DruidStarryFormConstellation
+): string {
+  return druidStarryFormLabels[constellation];
+}
+
+function isDruidStarryFormConstellation(value: unknown): value is DruidStarryFormConstellation {
+  return (
+    typeof value === "string" &&
+    (druidStarryFormConstellations as readonly string[]).includes(value)
+  );
+}
+
+function createDruidStarryFormValue(constellation: DruidStarryFormConstellation): string {
+  return `Starry Form (${getDruidStarryFormConstellationLabel(constellation)})`;
+}
+
+function parseDruidStarryFormConstellation(value: unknown): DruidStarryFormConstellation | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const normalizedValue = value.trim().toLowerCase();
+
+  if (normalizedValue === "starry form") {
+    return null;
+  }
+
+  if (normalizedValue === "starry form (archer)") {
+    return "archer";
+  }
+
+  if (normalizedValue === "starry form (chalice)") {
+    return "chalice";
+  }
+
+  if (normalizedValue === "starry form (dragon)") {
+    return "dragon";
+  }
+
+  return null;
 }
 
 function hasFlySpeed(speed: MonsterRecord["speed"] | null | undefined): boolean {
@@ -334,6 +423,14 @@ function pruneDruidWildShapeStatusOverrides(
 ): ReturnType<typeof normalizeCharacterStatusEntries> {
   return normalizeCharacterStatusEntries(statusEntries).filter(
     (entry) => !isDruidWildShapeStatusSourceId(entry.sourceId)
+  );
+}
+
+function pruneDruidStarryFormStatusEntries(
+  statusEntries: Character["statusEntries"]
+): ReturnType<typeof normalizeCharacterStatusEntries> {
+  return normalizeCharacterStatusEntries(statusEntries).filter(
+    (entry) => entry.sourceId !== druidStarryFormStatusSourceId
   );
 }
 
@@ -395,6 +492,7 @@ export function normalizeDruidFeatureState(
     Partial<Pick<Character, "subclassId" | "abilities">>
 ): CharacterDruidFeatureState {
   const hasPrimalOrder = hasDruidFeature(character, CLASS_FEATURE.PRIMAL_ORDER);
+  const hasStarMap = hasStarMapFeature(character);
   const hasCircleOfTheLandSpells = hasCircleOfTheLandSpellsFeature(character);
   const wildShapeRules = getWildShapeRulesForCharacter(character);
   const hasMoonlightStep = hasMoonlightStepFeature(character);
@@ -405,6 +503,7 @@ export function normalizeDruidFeatureState(
 
   if (
     !hasPrimalOrder &&
+    !hasStarMap &&
     !wildShapeRules &&
     !hasCircleOfTheLandSpells &&
     !hasMoonlightStep &&
@@ -420,6 +519,9 @@ export function normalizeDruidFeatureState(
     value && typeof value === "object" ? (value as Partial<CharacterDruidFeatureState>) : {};
   const wildShapeUsesTotal = wildShapeRules
     ? Math.max(0, Math.floor(getDruidFeatureRow(character.level)?.wildShape ?? 0))
+    : 0;
+  const starMapGuidingBoltUsesTotal = hasStarMap
+    ? Math.max(1, getDruidWisdomModifier(character))
     : 0;
   const moonlightStepUsesTotal = hasMoonlightStep
     ? Math.max(1, getDruidWisdomModifier(character))
@@ -454,6 +556,11 @@ export function normalizeDruidFeatureState(
     wildShapeKnownForms: wildShapeRules ? normalizedWildShapeKnownForms : undefined,
     wildShapeUsesExpended: wildShapeRules
       ? Math.floor(clampNumber(record.wildShapeUsesExpended, 0, wildShapeUsesTotal, 0))
+      : undefined,
+    starMapGuidingBoltUsesExpended: hasStarMap
+      ? Math.floor(
+          clampNumber(record.starMapGuidingBoltUsesExpended, 0, starMapGuidingBoltUsesTotal, 0)
+        )
       : undefined,
     moonlightStepUsesExpended: hasMoonlightStep
       ? Math.floor(clampNumber(record.moonlightStepUsesExpended, 0, moonlightStepUsesTotal, 0))
@@ -603,6 +710,29 @@ export function getDruidWildShapeUsesRemaining(
   }
 
   return Math.max(0, totalUses - (getDruidWildShapeState(character).wildShapeUsesExpended ?? 0));
+}
+
+export function getDruidStarMapGuidingBoltUsesTotal(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
+): number {
+  return hasStarMapFeature(character) ? Math.max(1, getDruidWisdomModifier(character)) : 0;
+}
+
+export function getDruidStarMapGuidingBoltUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
+): number {
+  const totalUses = getDruidStarMapGuidingBoltUsesTotal(character);
+
+  if (totalUses <= 0) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    totalUses - (getDruidWildShapeState(character).starMapGuidingBoltUsesExpended ?? 0)
+  );
 }
 
 export function getDruidMoonlightStepUsesTotal(
@@ -769,6 +899,16 @@ export function getDruidWildShapeActiveForm(
   return getDruidWildShapeState(character).wildShapeActiveForm ?? null;
 }
 
+export function getDruidActiveStarryFormConstellation(
+  character: Pick<Character, "statusEntries">
+): DruidStarryFormConstellation | null {
+  const activeEntry = normalizeCharacterStatusEntries(character.statusEntries).find(
+    (entry) => entry.sourceId === druidStarryFormStatusSourceId
+  );
+
+  return activeEntry ? parseDruidStarryFormConstellation(activeEntry.value) : null;
+}
+
 export function getDruidSavingThrowBonuses(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
     Partial<Pick<Character, "subclassId">>,
@@ -893,6 +1033,28 @@ export function restoreAllDruidWildShapeUses(character: Character): Character {
   };
 }
 
+export function restoreDruidStarMapGuidingBoltOnLongRest(character: Character): Character {
+  const druidState = getDruidWildShapeState(character);
+
+  if (
+    getDruidStarMapGuidingBoltUsesTotal(character) <= 0 ||
+    (druidState.starMapGuidingBoltUsesExpended ?? 0) <= 0
+  ) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...druidState,
+        starMapGuidingBoltUsesExpended: 0
+      }
+    }
+  };
+}
+
 export function restoreDruidMoonlightStepOnLongRest(character: Character): Character {
   const druidState = getDruidWildShapeState(character);
 
@@ -984,6 +1146,30 @@ export function restoreDruidWildResurgenceOnLongRest(character: Character): Char
         ...druidState,
         wildResurgenceSpellSlotRecoveryUsesExpended: 0,
         wildResurgenceWildShapeRecoveryUsedThisTurn: false
+      }
+    }
+  };
+}
+
+export function consumeDruidStarMapGuidingBoltUse(character: Character): Character {
+  const usesRemaining = getDruidStarMapGuidingBoltUsesRemaining(character);
+
+  if (usesRemaining <= 0) {
+    return character;
+  }
+
+  const druidState = getDruidWildShapeState(character);
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...druidState,
+        starMapGuidingBoltUsesExpended: Math.min(
+          getDruidStarMapGuidingBoltUsesTotal(character),
+          (druidState.starMapGuidingBoltUsesExpended ?? 0) + 1
+        )
       }
     }
   };
@@ -1284,15 +1470,14 @@ export function activateDruidWrathOfTheSea(character: Character): Character {
       ...nextStatusEntries,
       createCharacterStatusEntry({
         group: STATUS_ENTRY_GROUP.AURAS,
-        value: "Wrath of the Sea",
-        source: "Wrath of the Sea",
+        value: getDruidWrathOfTheSeaTraitValue(nextCharacter),
+        source: "Circle of the Sea",
         sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
         duration: {
           kind: STATUS_DURATION_KIND.MINUTES,
           amount: 10
         },
-        sourceId: druidWrathOfTheSeaStatusSourceId,
-        rangeFeet: getDruidWrathOfTheSeaAuraRangeFeet(nextCharacter)
+        sourceId: druidWrathOfTheSeaStatusSourceId
       })
     ]
   };
@@ -1357,6 +1542,41 @@ export function activateDruidNatureMagician(
   };
 }
 
+export function activateDruidStarryForm(
+  character: Character,
+  constellation: DruidStarryFormConstellation
+): Character {
+  if (
+    !hasStarryFormFeature(character) ||
+    !isDruidStarryFormConstellation(constellation) ||
+    getDruidWildShapeUsesRemaining(character) <= 0
+  ) {
+    return character;
+  }
+
+  const baseCharacter = deactivateDruidWildShape(character);
+  const nextCharacter = expendOneDruidWildShapeUse(baseCharacter);
+  const nextStatusEntries = pruneDruidStarryFormStatusEntries(nextCharacter.statusEntries);
+
+  return {
+    ...nextCharacter,
+    statusEntries: [
+      ...nextStatusEntries,
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: createDruidStarryFormValue(constellation),
+        source: "Circle of the Stars",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+        duration: {
+          kind: STATUS_DURATION_KIND.MINUTES,
+          amount: 10
+        },
+        sourceId: druidStarryFormStatusSourceId
+      })
+    ]
+  };
+}
+
 export function activateDruidWildShape(character: Character, monsterSlug: string): Character {
   const wildShapeState = getDruidWildShapeState(character);
   const selectedMonster =
@@ -1381,7 +1601,9 @@ export function activateDruidWildShape(character: Character, monsterSlug: string
   return {
     ...character,
     ...nextTemporaryHitPointsAssignment,
-    statusEntries: pruneDruidWildShapeStatusOverrides(character.statusEntries),
+    statusEntries: pruneDruidStarryFormStatusEntries(
+      pruneDruidWildShapeStatusOverrides(character.statusEntries)
+    ),
     classFeatureState: {
       ...character.classFeatureState,
       druid: {
@@ -1761,7 +1983,9 @@ export function applyLongRestToDruidFeatures(character: Character): Character {
   const nextCharacter = restoreDruidNaturalRecoveryOnLongRest(
     restoreDruidNatureMagicianOnLongRest(
       restoreDruidMoonlightStepOnLongRest(
-        restoreDruidWildResurgenceOnLongRest(restoreAllDruidWildShapeUses(character))
+        restoreDruidStarMapGuidingBoltOnLongRest(
+          restoreDruidWildResurgenceOnLongRest(restoreAllDruidWildShapeUses(character))
+        )
       )
     )
   );

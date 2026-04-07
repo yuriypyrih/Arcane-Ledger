@@ -393,8 +393,8 @@ function createWeaponActionDefinition(action: WeaponAction): GameplayActionDefin
     },
     drawer: {
       kind: "weapon-roll",
-      eyebrow: "Weapon Attack",
-      description: [],
+      eyebrow: action.drawerEyebrow ?? "Weapon Attack",
+      description: action.description ?? [],
       facts: createWeaponActionFacts(action),
       resources: [],
       confirmLabel: "Roll Attack"

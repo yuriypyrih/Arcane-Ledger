@@ -76,8 +76,8 @@ import {
   getDruidCircleOfTheMoonSpellIdsForCharacter,
   getDruidCircleOfTheLandSpellIdsForCharacter
 } from "../../../../pages/CharactersPage/classFeatures/subclasses";
-import { getClericResolvedDivinityDisplay } from "../../../../pages/CharactersPage/classFeatures/cleric";
-import { paladinChannelDivinityActionKey } from "../../../../pages/CharactersPage/classFeatures/paladin";
+import { getClericResolvedDivinityDisplay } from "../../../../pages/CharactersPage/classFeatures/cleric/cleric";
+import { paladinChannelDivinityActionKey } from "../../../../pages/CharactersPage/classFeatures/paladin/paladin";
 import {
   getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
@@ -101,7 +101,7 @@ import type {
   PersistCharacterUpdater,
   SpellManagementMode
 } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
-import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock";
+import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import {
   clampNumber,
   formatSpellGroupTitle,
@@ -272,8 +272,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const [useBeguilingMagicOnSelectedSpell, setUseBeguilingMagicOnSelectedSpell] = useState(false);
   const [useBlessingOfMoonlightOnSelectedSpell, setUseBlessingOfMoonlightOnSelectedSpell] =
     useState(false);
-  const [useNaturalRecoveryOnSelectedSpell, setUseNaturalRecoveryOnSelectedSpell] =
-    useState(false);
+  const [useNaturalRecoveryOnSelectedSpell, setUseNaturalRecoveryOnSelectedSpell] = useState(false);
   const [spellManagementMode, setSpellManagementMode] = useState<SpellManagementMode | null>(null);
   const [cantripDraftIds, setCantripDraftIds] = useState<string[]>([]);
   const [spellbookDraftIds, setSpellbookDraftIds] = useState<string[]>([]);

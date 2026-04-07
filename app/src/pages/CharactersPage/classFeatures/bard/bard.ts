@@ -1,4 +1,4 @@
-import { bardFeatures, getSpellEntriesForSpellListClasses } from "../../../codex/classes";
+import { bardFeatures, getSpellEntriesForSpellListClasses } from "../../../../codex/classes";
 import {
   getReactionEntryById,
   ACTION_TYPE,
@@ -7,8 +7,8 @@ import {
   type DICE,
   type ReactionEntry,
   type SpellEntry
-} from "../../../codex/entries";
-import type { BardFeatureClassObj } from "../../../types";
+} from "../../../../codex/entries";
+import type { BardFeatureClassObj } from "../../../../types";
 import type {
   ArmorProficiencyEntry,
   Character,
@@ -17,7 +17,7 @@ import type {
   SkillName,
   SkillProficiencyEntry,
   WeaponProficiencyEntry
-} from "../../../types";
+} from "../../../../types";
 import {
   ARMOR_PROFICIENCY,
   CONDITION_NAME,
@@ -33,19 +33,16 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
   WEAPON_PROFICIENCY
-} from "../../../types";
-import { getFeatAbilityScoreBonusesForCharacter } from "../feats";
+} from "../../../../types";
+import { getFeatAbilityScoreBonusesForCharacter } from "../../feats";
 import {
   getSpellLevel,
   getSpellSlotTotalsForCharacter,
   normalizeSpellSlotsExpended
-} from "../spellcasting";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
-import {
-  consumeRoundTrackerResource,
-  isRoundTrackerResourceAvailable
-} from "../combat";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../traits";
+} from "../../spellcasting";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
+import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../traits";
 import type {
   FeatureArmorProficiencyEntry,
   FeatureActionCard,
@@ -54,7 +51,7 @@ import type {
   FeatureSkillBonus,
   FeatureSkillProficiencyEntry,
   FeatureWeaponProficiencyEntry
-} from "./types";
+} from "../types";
 
 const bardicInspirationActionKey = "bard-bardic-inspiration";
 const mantleOfInspirationActionKey = "bard-mantle-of-inspiration";
@@ -258,8 +255,11 @@ function normalizeBardExpertiseSelections(value: unknown): SkillName[] {
     return [];
   }
 
-  return [...new Set(value.filter((entry): entry is SkillName => typeof entry === "string" && isSkillName(entry)))]
-    .slice(0, 2);
+  return [
+    ...new Set(
+      value.filter((entry): entry is SkillName => typeof entry === "string" && isSkillName(entry))
+    )
+  ].slice(0, 2);
 }
 
 function normalizeBardLoreBonusProficienciesSelections(value: unknown): SkillName[] {
@@ -267,8 +267,11 @@ function normalizeBardLoreBonusProficienciesSelections(value: unknown): SkillNam
     return [];
   }
 
-  return [...new Set(value.filter((entry): entry is SkillName => typeof entry === "string" && isSkillName(entry)))]
-    .slice(0, 3);
+  return [
+    ...new Set(
+      value.filter((entry): entry is SkillName => typeof entry === "string" && isSkillName(entry))
+    )
+  ].slice(0, 3);
 }
 
 function normalizeBardMagicalDiscoveriesSpellIds(value: unknown): string[] {
@@ -276,8 +279,11 @@ function normalizeBardMagicalDiscoveriesSpellIds(value: unknown): string[] {
     return [];
   }
 
-  return [...new Set(value.filter((entry): entry is string => typeof entry === "string" && entry.trim().length > 0))]
-    .slice(0, 2);
+  return [
+    ...new Set(
+      value.filter((entry): entry is string => typeof entry === "string" && entry.trim().length > 0)
+    )
+  ].slice(0, 2);
 }
 
 function normalizeBardPrimalLoreCantripId(value: unknown): string | undefined {
@@ -285,9 +291,7 @@ function normalizeBardPrimalLoreCantripId(value: unknown): string | undefined {
 }
 
 function normalizeBardPrimalLoreSkill(value: unknown): SkillName | undefined {
-  return typeof value === "string" && isPrimalLoreSkill(value)
-    ? (value as SkillName)
-    : undefined;
+  return typeof value === "string" && isPrimalLoreSkill(value) ? (value as SkillName) : undefined;
 }
 
 function createBardExpertiseSourceStr(sourceLabel: string, sourceKey: string): string {
@@ -367,8 +371,7 @@ function getBardCharismaModifier(
 
       if (leftHasCap && rightHasCap && left.maxScore !== right.maxScore) {
         return (
-          (left.maxScore ?? Number.POSITIVE_INFINITY) -
-          (right.maxScore ?? Number.POSITIVE_INFINITY)
+          (left.maxScore ?? Number.POSITIVE_INFINITY) - (right.maxScore ?? Number.POSITIVE_INFINITY)
         );
       }
 
@@ -381,15 +384,11 @@ function getBardCharismaModifier(
   return Math.floor((total - 10) / 2);
 }
 
-function hasSuperiorInspiration(
-  character: Pick<Character, "className" | "level">
-): boolean {
+function hasSuperiorInspiration(character: Pick<Character, "className" | "level">): boolean {
   return hasBardFeature(character, CLASS_FEATURE.SUPERIOR_INSPIRATION);
 }
 
-function hasFontOfInspiration(
-  character: Pick<Character, "className" | "level">
-): boolean {
+function hasFontOfInspiration(character: Pick<Character, "className" | "level">): boolean {
   return hasBardFeature(character, CLASS_FEATURE.FONT_OF_INSPIRATION);
 }
 
@@ -439,7 +438,8 @@ export function normalizeBardFeatureState(
     return {};
   }
 
-  const record = value && typeof value === "object" ? (value as Partial<CharacterBardFeatureState>) : {};
+  const record =
+    value && typeof value === "object" ? (value as Partial<CharacterBardFeatureState>) : {};
   const usesExpended = Number(record.bardicInspirationUsesExpended);
   const temporaryTotal = Number(record.bardicInspirationTemporaryTotal);
   const beguilingMagicUsesExpended = Number(record.beguilingMagicUsesExpended);
@@ -464,9 +464,10 @@ export function normalizeBardFeatureState(
         ? Math.max(0, Math.floor(usesExpended))
         : 0
       : undefined,
-    bardicInspirationTemporaryTotal: hasBardicInspiration && Number.isFinite(temporaryTotal)
-      ? Math.max(0, Math.floor(temporaryTotal))
-      : undefined,
+    bardicInspirationTemporaryTotal:
+      hasBardicInspiration && Number.isFinite(temporaryTotal)
+        ? Math.max(0, Math.floor(temporaryTotal))
+        : undefined,
     beguilingMagicUsesExpended:
       hasBeguilingMagic && Number.isFinite(beguilingMagicUsesExpended)
         ? Math.max(0, Math.floor(beguilingMagicUsesExpended))
@@ -556,10 +557,10 @@ export function getBardMagicalDiscoveriesSpellOptions(
     return [];
   }
 
-  const highestSlotLevel = getSpellSlotTotalsForCharacter(character.className, character.level).reduce(
-    (highestLevel, totalSlots, index) => (totalSlots > 0 ? index + 1 : highestLevel),
-    0
-  );
+  const highestSlotLevel = getSpellSlotTotalsForCharacter(
+    character.className,
+    character.level
+  ).reduce((highestLevel, totalSlots, index) => (totalSlots > 0 ? index + 1 : highestLevel), 0);
 
   return getSpellEntriesForSpellListClasses([
     SPELL_LIST_CLASS.CLERIC,
@@ -608,7 +609,9 @@ export function getBardPrimalLoreCantripId(
     return null;
   }
 
-  const availableSpellIds = new Set(getBardPrimalLoreCantripOptions(character).map((spell) => spell.id));
+  const availableSpellIds = new Set(
+    getBardPrimalLoreCantripOptions(character).map((spell) => spell.id)
+  );
   const selectedSpellId = getBardFeatureState(character).primalLoreCantripId;
 
   return selectedSpellId && availableSpellIds.has(selectedSpellId) ? selectedSpellId : null;
@@ -706,7 +709,9 @@ export function setBardPrimalLoreCantripId(
   }
 
   const bardState = getBardFeatureState(character);
-  const availableSpellIds = new Set(getBardPrimalLoreCantripOptions(character).map((spell) => spell.id));
+  const availableSpellIds = new Set(
+    getBardPrimalLoreCantripOptions(character).map((spell) => spell.id)
+  );
   const nextSpellId =
     typeof spellId === "string" && availableSpellIds.has(spellId) ? spellId : undefined;
 
@@ -738,10 +743,7 @@ export function setBardPrimalLoreSkillSelection(
       ...character.classFeatureState,
       bard: {
         ...bardState,
-        primalLoreSkill:
-          skill && isPrimalLoreSkill(skill)
-            ? skill
-            : undefined
+        primalLoreSkill: skill && isPrimalLoreSkill(skill) ? skill : undefined
       }
     }
   };
@@ -884,7 +886,9 @@ function canGainBardBattleMagicFromSpell(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
   spell: Pick<SpellEntry, "castingTime">
 ): boolean {
-  return hasCollegeOfValorBattleMagicFeature(character) && spell.castingTime.includes(ACTION_TYPE.ACTION);
+  return (
+    hasCollegeOfValorBattleMagicFeature(character) && spell.castingTime.includes(ACTION_TYPE.ACTION)
+  );
 }
 
 export function applyBardBattleMagicAfterSpellCast(
@@ -913,9 +917,7 @@ export function applyBardBattleMagicAfterSpellCast(
   };
 }
 
-function isValorActionCantrip(
-  spell: Pick<SpellEntry, "castingTime" | "spellLevel">
-): boolean {
+function isValorActionCantrip(spell: Pick<SpellEntry, "castingTime" | "spellLevel">): boolean {
   return spell.spellLevel === 0 && spell.castingTime.includes(ACTION_TYPE.ACTION);
 }
 
@@ -1334,7 +1336,10 @@ export function getUnbreakableMajestyUsesRemaining(
 }
 
 export function consumeUnbreakableMajestyUse(character: Character): Character {
-  if (!hasUnbreakableMajestyFeature(character) || getUnbreakableMajestyUsesRemaining(character) <= 0) {
+  if (
+    !hasUnbreakableMajestyFeature(character) ||
+    getUnbreakableMajestyUsesRemaining(character) <= 0
+  ) {
     return character;
   }
 
@@ -1480,7 +1485,10 @@ export function applyUnbreakableMajestyStatus(character: Character): Character {
 }
 
 export function activateUnbreakableMajesty(character: Character): Character {
-  if (getUnbreakableMajestyUsesRemaining(character) <= 0 || hasActiveUnbreakableMajesty(character)) {
+  if (
+    getUnbreakableMajestyUsesRemaining(character) <= 0 ||
+    hasActiveUnbreakableMajesty(character)
+  ) {
     return character;
   }
 
@@ -1886,7 +1894,10 @@ export function applySuperiorInspirationOnInitiative(character: Character): Char
   const currentExpended = Math.max(0, bardState.bardicInspirationUsesExpended ?? 0);
   const currentRemaining = Math.max(0, getBardicInspirationUsesTotal(character) - currentExpended);
 
-  if (currentRemaining >= 2 && (bardState.bardicInspirationTemporaryTotal ?? 0) === effectiveTotal) {
+  if (
+    currentRemaining >= 2 &&
+    (bardState.bardicInspirationTemporaryTotal ?? 0) === effectiveTotal
+  ) {
     return character;
   }
 
@@ -1905,7 +1916,10 @@ export function applySuperiorInspirationOnInitiative(character: Character): Char
 }
 
 export function restoreBardicInspirationOnShortRest(character: Character): Character {
-  if (!hasFontOfInspiration(character) || !hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION)) {
+  if (
+    !hasFontOfInspiration(character) ||
+    !hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION)
+  ) {
     return character;
   }
 

@@ -351,6 +351,10 @@ export function getWeaponDrawerDetails(
       })
     | null
 ): WeaponDrawerDetail[] {
+  if (action.details && action.details.length > 0) {
+    return action.details;
+  }
+
   if (!weaponEntry) {
     return [
       {

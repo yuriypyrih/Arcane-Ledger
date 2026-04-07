@@ -1,27 +1,15 @@
-import {
-  sorcererFeatures,
-  type SorcererFeatureClassObj
-} from "../../../codex/classes";
-import { CLASS_FEATURE } from "../../../codex/entries";
-import type { Character, CharacterSorcererFeatureState } from "../../../types";
+import { sorcererFeatures, type SorcererFeatureClassObj } from "../../../../codex/classes";
+import { CLASS_FEATURE } from "../../../../codex/entries";
+import type { Character, CharacterSorcererFeatureState } from "../../../../types";
 import {
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
-} from "../../../types";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
-import {
-  createCharacterStatusEntry,
-  normalizeCharacterStatusEntries
-} from "../traits";
-import {
-  getSpellSlotTotalsForCharacter,
-  normalizeSpellSlotsExpended
-} from "../spellcasting";
-import type {
-  FeatureActionCard,
-  FeatureActionOptionCard
-} from "./types";
+} from "../../../../types";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../traits";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
+import type { FeatureActionCard, FeatureActionOptionCard } from "../types";
 
 export const innateSorceryActionKey = "sorcerer-innate-sorcery";
 export const fontOfMagicActionKey = "sorcerer-font-of-magic";
@@ -225,9 +213,7 @@ function getSorcererFeatureState(
   return normalizeSorcererFeatureState(character.classFeatureState?.sorcerer, character);
 }
 
-export function hasActiveInnateSorcery(
-  character: Pick<Character, "statusEntries">
-): boolean {
+export function hasActiveInnateSorcery(character: Pick<Character, "statusEntries">): boolean {
   return normalizeCharacterStatusEntries(character.statusEntries).some(
     (entry) => entry.sourceId === sorcererInnateSorcerySourceId
   );
@@ -283,7 +269,10 @@ function updateSorceryPointsExpended(
 
   const sorcererState = getSorcererFeatureState(character);
   const currentExpended = sorcererState.sorceryPointsExpended ?? 0;
-  const nextExpended = Math.max(0, Math.min(totalPoints, Math.floor(updater(currentExpended, totalPoints))));
+  const nextExpended = Math.max(
+    0,
+    Math.min(totalPoints, Math.floor(updater(currentExpended, totalPoints)))
+  );
 
   if (nextExpended === currentExpended) {
     return character;
@@ -364,10 +353,7 @@ export function normalizeSorcererFeatureState(
       hasSorcerousRestoration && Number.isFinite(sorcerousRestorationUsesExpended)
         ? Math.max(
             0,
-            Math.min(
-              sorcerousRestorationUsesTotal,
-              Math.floor(sorcerousRestorationUsesExpended)
-            )
+            Math.min(sorcerousRestorationUsesTotal, Math.floor(sorcerousRestorationUsesExpended))
           )
         : 0,
     arcaneApotheosisFreeMetamagicUsedThisTurn: hasArcaneApotheosis
@@ -380,9 +366,7 @@ export function normalizeSorcererFeatureState(
   };
 }
 
-export function getSorceryPointsTotal(
-  character: Pick<Character, "className" | "level">
-): number {
+export function getSorceryPointsTotal(character: Pick<Character, "className" | "level">): number {
   if (!hasSorcererFeature(character, CLASS_FEATURE.FONT_OF_MAGIC)) {
     return 0;
   }
@@ -557,10 +541,7 @@ export function setSorcererMetamagicSelections(
 }
 
 export function getSorcererFeatureActions(
-  character: Pick<
-    Character,
-    "className" | "level" | "classFeatureState" | "statusEntries"
-  >
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
 ): FeatureActionCard[] {
   const actions: FeatureActionCard[] = [];
 
@@ -569,19 +550,17 @@ export function getSorcererFeatureActions(
     const remainingUses = getInnateSorceryUsesRemaining(character);
     const fallbackSorceryPointCost = getInnateSorceryActivationSorceryPointCost(character);
     const fallbackAvailable =
-      fallbackSorceryPointCost > 0 && getSorceryPointsRemaining(character) >= fallbackSorceryPointCost;
-    const disabledReason =
-      isActive
-          ? "Innate Sorcery is already active."
-        : remainingUses > 0
-          ? undefined
-          : fallbackSorceryPointCost > 0
-            ? fallbackAvailable
-              ? undefined
-              : `You need ${fallbackSorceryPointCost} Sorcery Points.`
-            : "No charges remaining."
-      ;
-
+      fallbackSorceryPointCost > 0 &&
+      getSorceryPointsRemaining(character) >= fallbackSorceryPointCost;
+    const disabledReason = isActive
+      ? "Innate Sorcery is already active."
+      : remainingUses > 0
+        ? undefined
+        : fallbackSorceryPointCost > 0
+          ? fallbackAvailable
+            ? undefined
+            : `You need ${fallbackSorceryPointCost} Sorcery Points.`
+          : "No charges remaining.";
     actions.push({
       key: innateSorceryActionKey,
       name: "Innate Sorcery",
@@ -596,10 +575,8 @@ export function getSorcererFeatureActions(
         remainingUses <= 0 && fallbackSorceryPointCost > 0
           ? `| Use ${fallbackSorceryPointCost}`
           : undefined,
-      usesInlineIcon:
-        remainingUses <= 0 && fallbackSorceryPointCost > 0 ? "sparkles" : undefined,
-      usesInlineSuffix:
-        remainingUses <= 0 && fallbackSorceryPointCost > 0 ? "instead" : undefined,
+      usesInlineIcon: remainingUses <= 0 && fallbackSorceryPointCost > 0 ? "sparkles" : undefined,
+      usesInlineSuffix: remainingUses <= 0 && fallbackSorceryPointCost > 0 ? "instead" : undefined,
       isActive,
       disabled: Boolean(disabledReason),
       disabledReason
@@ -637,9 +614,9 @@ export function getSorcererFeatureActions(
     const freeMetamagicAvailable = hasArcaneApotheosisFreeMetamagicAvailable(character);
     const disabledReason =
       selectedOptions.length <= 0
-          ? "Choose Metamagic options in Class Features & Feats."
-          : remainingPoints <= 0 && !freeMetamagicAvailable
-            ? "No Sorcery Points remaining."
+        ? "Choose Metamagic options in Class Features & Feats."
+        : remainingPoints <= 0 && !freeMetamagicAvailable
+          ? "No Sorcery Points remaining."
           : undefined;
 
     actions.push({
@@ -722,7 +699,10 @@ export function spendSorceryPoints(character: Character, cost: number): Characte
 }
 
 export function activateInnateSorcery(character: Character): Character {
-  if (!hasSorcererFeature(character, CLASS_FEATURE.INNATE_SORCERY) || hasActiveInnateSorcery(character)) {
+  if (
+    !hasSorcererFeature(character, CLASS_FEATURE.INNATE_SORCERY) ||
+    hasActiveInnateSorcery(character)
+  ) {
     return character;
   }
 
@@ -744,7 +724,10 @@ export function activateInnateSorcery(character: Character): Character {
   } else {
     const fallbackSorceryPointCost = getInnateSorceryActivationSorceryPointCost(character);
 
-    if (fallbackSorceryPointCost <= 0 || getSorceryPointsRemaining(character) < fallbackSorceryPointCost) {
+    if (
+      fallbackSorceryPointCost <= 0 ||
+      getSorceryPointsRemaining(character) < fallbackSorceryPointCost
+    ) {
       return character;
     }
 
@@ -776,17 +759,11 @@ export function activateInnateSorcery(character: Character): Character {
   };
 }
 
-export function spendMetamagicOption(
-  character: Character,
-  optionKey: string
-): Character {
+export function spendMetamagicOption(character: Character, optionKey: string): Character {
   return spendMetamagicOptions(character, [optionKey]);
 }
 
-export function spendMetamagicOptions(
-  character: Character,
-  optionKeys: string[]
-): Character {
+export function spendMetamagicOptions(character: Character, optionKeys: string[]): Character {
   const validSelections = normalizeActionMetamagicSelections(
     optionKeys,
     character,
@@ -839,9 +816,15 @@ export function convertSpellSlotToSorceryPoints(
 
   const normalizedSpellSlotLevel = Math.max(1, Math.min(9, Math.floor(spellSlotLevel)));
   const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
   const slotIndex = normalizedSpellSlotLevel - 1;
-  const remainingSpellSlots = Math.max(0, (spellSlotTotals[slotIndex] ?? 0) - (spellSlotsExpended[slotIndex] ?? 0));
+  const remainingSpellSlots = Math.max(
+    0,
+    (spellSlotTotals[slotIndex] ?? 0) - (spellSlotsExpended[slotIndex] ?? 0)
+  );
   const remainingSorceryPoints = getSorceryPointsRemaining(character);
   const totalSorceryPoints = getSorceryPointsTotal(character);
 
@@ -854,7 +837,10 @@ export function convertSpellSlotToSorceryPoints(
 
   const nextSpellSlotsExpended = [...spellSlotsExpended];
   nextSpellSlotsExpended[slotIndex] += 1;
-  const nextCharacter = updateSorceryPointsExpended(character, (currentExpended) => currentExpended - normalizedSpellSlotLevel);
+  const nextCharacter = updateSorceryPointsExpended(
+    character,
+    (currentExpended) => currentExpended - normalizedSpellSlotLevel
+  );
 
   if (nextCharacter === character) {
     return character;
@@ -882,10 +868,16 @@ export function createSpellSlotFromSorceryPoints(
   }
 
   const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
   const slotIndex = spellSlotLevel - 1;
 
-  if ((spellSlotsExpended[slotIndex] ?? 0) <= 0 || getSorceryPointsRemaining(character) < rule.sorceryPointCost) {
+  if (
+    (spellSlotsExpended[slotIndex] ?? 0) <= 0 ||
+    getSorceryPointsRemaining(character) < rule.sorceryPointCost
+  ) {
     return character;
   }
 
@@ -974,11 +966,10 @@ export function applySorcerousRestorationOnShortRest(character: Character): Char
       ...nextCharacter.classFeatureState,
       sorcerer: {
         ...sorcererState,
-        sorcerousRestorationUsesExpended:
-          Math.min(
-            sorcerousRestorationUsesTotal,
-            (sorcererState.sorcerousRestorationUsesExpended ?? 0) + 1
-          )
+        sorcerousRestorationUsesExpended: Math.min(
+          sorcerousRestorationUsesTotal,
+          (sorcererState.sorcerousRestorationUsesExpended ?? 0) + 1
+        )
       }
     }
   };

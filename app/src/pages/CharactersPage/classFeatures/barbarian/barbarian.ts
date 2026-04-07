@@ -1,5 +1,5 @@
-import { barbarianFeatureMap, barbarianFeatures } from "../../../codex/classes";
-import { barbarianStarterPack } from "../../../codex/classes/starterPack";
+import { barbarianFeatureMap, barbarianFeatures } from "../../../../codex/classes";
+import { barbarianStarterPack } from "../../../../codex/classes/starterPack";
 import {
   CLASS_FEATURE,
   DAMAGE_TYPE,
@@ -7,8 +7,8 @@ import {
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
   WEAPON_PROPERTY
-} from "../../../codex/entries";
-import type { BarbarianFeatureClassObj } from "../../../types";
+} from "../../../../codex/entries";
+import type { BarbarianFeatureClassObj } from "../../../../types";
 import {
   SENSE,
   CONDITION_NAME,
@@ -30,20 +30,20 @@ import {
   type SkillName,
   type SkillProficiencyEntry,
   type WeaponProficiencyEntry
-} from "../../../types";
+} from "../../../../types";
 import {
   hasStatusCondition,
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries,
   removeCharacterConditionsForImmunities
-} from "../traits";
-import { skillGroupsByAbility } from "../skillDefinitions";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
+} from "../../traits";
+import { skillGroupsByAbility } from "../../skillDefinitions";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import {
   consumeRoundTrackerResource,
   isRoundTrackerResourceAvailable,
   normalizeRoundTracker
-} from "../combat";
+} from "../../combat";
 import type {
   AbilityCheckIndicatorMap,
   ArmorClassFeatureContext,
@@ -65,9 +65,9 @@ import type {
   SpeedFeatureContext,
   SkillIndicatorMap,
   WeaponFeatureContext
-} from "./types";
-import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "./weaponMastery";
-import { clampNumber, swapTemporaryHitPointsAssignment } from "../shared";
+} from "../types";
+import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
+import { clampNumber, swapTemporaryHitPointsAssignment } from "../../shared";
 
 const rageConditionName = EFFECT_NAME.RAGE;
 const rageStatusSourceId = "feature-rage";
@@ -93,8 +93,8 @@ const rageOfTheWildsEffectSourceId = "feature-barbarian-rage-of-the-wilds-effect
 const powerOfTheWildsEffectSourceId = "feature-barbarian-power-of-the-wilds-effect";
 const brutalStrikeActionSummary = "Your weapons do more damage";
 const relentlessRageActionSummary = "While in Rage you can keep fighting";
-const relentlessRageDescription =
-  barbarianFeatureMap[CLASS_FEATURE.RELENTLESS_RAGE]?.description ?? [relentlessRageActionSummary];
+const relentlessRageDescription = barbarianFeatureMap[CLASS_FEATURE.RELENTLESS_RAGE]
+  ?.description ?? [relentlessRageActionSummary];
 const relentlessRageBaseDc = 10;
 const relentlessRageDcIncrement = 5;
 const persistentRageUsesTotal = 1;
@@ -529,8 +529,7 @@ function isBatteringRootsEligibleWeapon(context: BatteringRootsWeaponContext): b
   const properties = context.properties ?? [];
 
   return (
-    properties.includes(WEAPON_PROPERTY.HEAVY) ||
-    properties.includes(WEAPON_PROPERTY.VERSATILE)
+    properties.includes(WEAPON_PROPERTY.HEAVY) || properties.includes(WEAPON_PROPERTY.VERSATILE)
   );
 }
 
@@ -722,10 +721,7 @@ export function normalizeBarbarianRageState(
       : false,
     warriorOfTheGodsUsesExpended: hasZealotWarriorOfTheGods(character)
       ? Number.isFinite(warriorOfTheGodsUsesExpended)
-        ? Math.max(
-            0,
-            Math.min(warriorOfTheGodsUsesTotal, Math.floor(warriorOfTheGodsUsesExpended))
-          )
+        ? Math.max(0, Math.min(warriorOfTheGodsUsesTotal, Math.floor(warriorOfTheGodsUsesExpended)))
         : 0
       : 0,
     brutalStrikePending: hasBarbarianBrutalStrike(character)
@@ -909,7 +905,10 @@ export function getBarbarianZealousPresenceUsesRemaining(
 ): number {
   const totalUses = getBarbarianZealousPresenceUsesTotal(character);
 
-  return Math.max(0, totalUses - (getBarbarianRageState(character).zealousPresenceUsesExpended ?? 0));
+  return Math.max(
+    0,
+    totalUses - (getBarbarianRageState(character).zealousPresenceUsesExpended ?? 0)
+  );
 }
 
 export function getBarbarianWeaponMasterySelectionCount(
@@ -1152,8 +1151,7 @@ export function getBarbarianFeatureAction(
     description: [rageDescription],
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
-    interaction:
-      !rageState.active && hasWildHeartRageOfTheWilds(character) ? "select" : undefined,
+    interaction: !rageState.active && hasWildHeartRageOfTheWilds(character) ? "select" : undefined,
     usesLabel: "Use 1",
     usesIcon: "flame",
     drawer:
@@ -1476,8 +1474,7 @@ export function getBarbarianWeaponDamageBonuses(
     getBarbarianRageState(character).divineFuryUsedThisTurn !== true
   ) {
     const divineFuryLevelBonus = Math.floor(clampNumber(character.level, 0, 20, 0) / 2);
-    const divineFuryFormula =
-      divineFuryLevelBonus > 0 ? `1d6+${divineFuryLevelBonus}` : "1d6";
+    const divineFuryFormula = divineFuryLevelBonus > 0 ? `1d6+${divineFuryLevelBonus}` : "1d6";
     const divineFuryDisplayLabel =
       divineFuryLevelBonus > 0
         ? `1d6 + ${divineFuryLevelBonus} Necrotic/Radiant`
@@ -2883,13 +2880,13 @@ export function applyLongRestToBarbarianFeatures(character: Character): Characte
 
   return restoreBarbarianPersistentRageOnLongRest(
     restoreBarbarianZealousPresenceOnLongRest(
-    restoreBarbarianIntimidatingPresenceOnLongRest(
-      restoreBarbarianWarriorOfTheGodsOnLongRest(
-        restoreBarbarianRageOfTheGodsOnLongRest(
-          restoreBarbarianRelentlessRageOnLongRest(restoreBarbarianRageOnLongRest(character))
+      restoreBarbarianIntimidatingPresenceOnLongRest(
+        restoreBarbarianWarriorOfTheGodsOnLongRest(
+          restoreBarbarianRageOfTheGodsOnLongRest(
+            restoreBarbarianRelentlessRageOnLongRest(restoreBarbarianRageOnLongRest(character))
+          )
         )
       )
-    )
     )
   );
 }

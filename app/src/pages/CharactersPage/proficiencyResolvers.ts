@@ -44,7 +44,7 @@ export function getSavingThrowLevelFromEntries(
   );
 
   if (automaticEntries.length > 0) {
-    return automaticEntries.reduce(
+    return automaticEntries.reduce<PROF_LEVEL>(
       (highestLevel, entry) =>
         compareProficiencyLevels(highestLevel, entry.proficiencyLevel) >= 0
           ? highestLevel

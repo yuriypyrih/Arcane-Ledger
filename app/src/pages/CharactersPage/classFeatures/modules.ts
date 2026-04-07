@@ -20,7 +20,7 @@ import {
   mantleOfInspirationActionKey,
   unbreakableMajestyActionKey,
   normalizeBardFeatureState
-} from "./bard";
+} from "./bard/bard";
 import {
   activateBarbarianIntimidatingPresence,
   activateBarbarianBrutalStrike,
@@ -63,7 +63,7 @@ import {
   getBarbarianWeaponProficiencyEntries,
   normalizeBarbarianRageState,
   setBarbarianWeaponMasterySelections
-} from "./barbarian";
+} from "./barbarian/barbarian";
 import {
   activateClericDivineForeknowledge,
   activateClericDivineIntervention,
@@ -87,7 +87,7 @@ import {
   getClericWeaponProficiencyEntries,
   preserveLifeActionKey,
   normalizeClericFeatureState
-} from "./cleric";
+} from "./cleric/cleric";
 import {
   activateDruidLandsAid,
   activateDruidMoonlightStep,
@@ -115,7 +115,7 @@ import {
   getDruidWeaponDamageBonuses,
   getDruidWeaponProficiencyEntries,
   normalizeDruidFeatureState
-} from "./druid";
+} from "./druid/druid";
 import {
   activateFighterActionSurge,
   advanceFighterFeaturesForNewRound,
@@ -134,7 +134,7 @@ import {
   getFighterWeaponProficiencyEntries,
   normalizeFighterFeatureState,
   setFighterWeaponMasterySelections
-} from "./fighter";
+} from "./fighter/fighter";
 import {
   activateMonkFlurryOfBlows,
   activateMonkSuperiorDefense,
@@ -158,7 +158,7 @@ import {
   monkStunningStrikeActionKey,
   monkUncannyMetabolismActionKey,
   normalizeMonkFeatureState
-} from "./monk";
+} from "./monk/monk";
 import {
   activatePaladinFeatureActionOption,
   advancePaladinFeaturesForNewRound,
@@ -179,7 +179,7 @@ import {
   paladinLayOnHandsActionKey,
   paladinsSmiteActionKey,
   setPaladinWeaponMasterySelections
-} from "./paladin";
+} from "./paladin/paladin";
 import {
   activateRangerNaturesVeil,
   advanceRangerFeaturesForNewRound,
@@ -202,7 +202,7 @@ import {
   setRangerWeaponMasterySelections,
   tirelessActionKey,
   consumeRangerTirelessUse
-} from "./ranger";
+} from "./ranger/ranger";
 import {
   activateRogueSneakAttack,
   activateRogueSteadyAim,
@@ -228,7 +228,7 @@ import {
   rogueSteadyAimActionKey,
   rogueStrokeOfLuckActionKey,
   setRogueWeaponMasterySelections
-} from "./rogue";
+} from "./rogue/rogue";
 import {
   activateInnateSorcery,
   advanceSorcererFeaturesForNewRound,
@@ -240,7 +240,7 @@ import {
   innateSorceryActionKey,
   normalizeSorcererFeatureState,
   spendMetamagicOption
-} from "./sorcerer";
+} from "./sorcerer/sorcerer";
 import {
   activateWarlockMagicalCunning,
   contactPatronActionKey,
@@ -252,7 +252,7 @@ import {
   restoreContactPatronOnLongRest,
   restoreMysticArcanumOnLongRest,
   restoreWarlockMagicalCunningOnLongRest
-} from "./warlock";
+} from "./warlock/warlock";
 import {
   arcaneRecoveryActionKey,
   applyLongRestToWizardFeatures,
@@ -261,7 +261,7 @@ import {
   getWizardFeatureActions,
   getWizardSkillProficiencyEntries,
   normalizeWizardFeatureState
-} from "./wizard";
+} from "./wizard/wizard";
 import type {
   ActiveClassFeatureName,
   CollectedClassFeatureCharacter,

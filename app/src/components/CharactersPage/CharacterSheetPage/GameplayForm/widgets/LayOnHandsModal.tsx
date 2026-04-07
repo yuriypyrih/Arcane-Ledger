@@ -3,7 +3,7 @@ import { X } from "lucide-react";
 import { useState } from "react";
 import CellContainer from "../../../../CellContainer/CellContainer";
 import type { FeatureActionCard } from "../../../../../pages/CharactersPage/classFeatures";
-import type { LayOnHandsCondition } from "../../../../../pages/CharactersPage/classFeatures/paladin";
+import type { LayOnHandsCondition } from "../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import styles from "./LayOnHandsModal.module.css";

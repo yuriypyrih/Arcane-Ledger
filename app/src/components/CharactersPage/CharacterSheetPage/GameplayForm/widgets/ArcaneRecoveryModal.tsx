@@ -7,7 +7,7 @@ import type { FeatureActionCard } from "../../../../../pages/CharactersPage/clas
 import {
   getArcaneRecoveryRecoveryLevelLimit,
   type ArcaneRecoverySelection
-} from "../../../../../pages/CharactersPage/classFeatures/wizard";
+} from "../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
 import {
   getSpellSlotTotalsForCharacter,
   normalizeSpellSlotsExpended
@@ -24,16 +24,14 @@ type ArcaneRecoveryModalProps = {
   onClose: () => void;
 };
 
-function ArcaneRecoveryModal({
-  action,
-  character,
-  onRecover,
-  onClose
-}: ArcaneRecoveryModalProps) {
+function ArcaneRecoveryModal({ action, character, onRecover, onClose }: ArcaneRecoveryModalProps) {
   const [selection, setSelection] = useState<ArcaneRecoverySelection>({});
   const recoveryLimit = getArcaneRecoveryRecoveryLevelLimit(character);
   const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
   const selectedLevelTotal = ([1, 2, 3, 4, 5] as const).reduce(
     (total, slotLevel) => total + (selection[slotLevel] ?? 0) * slotLevel,
     0
@@ -131,7 +129,10 @@ function ArcaneRecoveryModal({
                 option.selectedCount < option.expendedSlots && remainingBudget >= option.slotLevel;
 
               return (
-                <div key={`arcane-recovery-level-${option.slotLevel}`} className={styles.arcaneRecoveryCard}>
+                <div
+                  key={`arcane-recovery-level-${option.slotLevel}`}
+                  className={styles.arcaneRecoveryCard}
+                >
                   <div className={styles.arcaneRecoveryCardHeader}>
                     <strong className={styles.arcaneRecoveryCardTitle}>
                       {`Level ${option.slotLevel} Slot`}
@@ -166,7 +167,9 @@ function ArcaneRecoveryModal({
             })}
           </div>
         ) : (
-          <p className={shared.emptyText}>No expended spell slots of level 1-5 can be recovered right now.</p>
+          <p className={shared.emptyText}>
+            No expended spell slots of level 1-5 can be recovered right now.
+          </p>
         )}
 
         <div className={sharedModalStyles.featureActionModalFooter}>

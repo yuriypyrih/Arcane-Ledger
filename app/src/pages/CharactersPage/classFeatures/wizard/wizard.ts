@@ -1,26 +1,26 @@
-import { wizardFeatures, type WizardFeatureClassObj } from "../../../codex/classes";
-import { CLASS_FEATURE, getSpellEntryById } from "../../../codex/entries";
+import { wizardFeatures, type WizardFeatureClassObj } from "../../../../codex/classes";
+import { CLASS_FEATURE, getSpellEntryById } from "../../../../codex/entries";
 import type {
   Character,
   CharacterWizardFeatureState,
   SkillName,
   SkillProficiencyEntry
-} from "../../../types";
+} from "../../../../types";
 import {
   getSkillProficiencyForSkillName,
   PROFICIENCY_OVERRIDE_POLICY,
   PROFICIENCY_SOURCE,
   PROF_LEVEL,
   SKILL
-} from "../../../types";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
+} from "../../../../types";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import {
   getPreparedSpellSelectionOptionsForCharacter,
   getSpellLevel,
   getSpellSlotTotalsForCharacter,
   normalizeSpellSlotsExpended
-} from "../spellcasting";
-import type { FeatureActionCard, FeatureSkillProficiencyEntry } from "./types";
+} from "../../spellcasting";
+import type { FeatureActionCard, FeatureSkillProficiencyEntry } from "../types";
 
 const arcaneRecoveryUsesTotal = 1;
 const wizardScholarSource = "Scholar";
@@ -124,9 +124,7 @@ function normalizeWizardSignatureSpellIds(value: unknown): string[] {
   );
 }
 
-function getWizardPreparedSpellSelectionOptions(
-  character: Pick<Character, "className" | "level">
-) {
+function getWizardPreparedSpellSelectionOptions(character: Pick<Character, "className" | "level">) {
   return getPreparedSpellSelectionOptionsForCharacter(character.className, character.level);
 }
 
@@ -193,7 +191,10 @@ function getArcaneRecoveryEligibleExpendedSlotCount(
   character: Pick<Character, "className" | "level" | "spellSlotsExpended">
 ): number {
   const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
 
   return spellSlotsExpended
     .slice(0, 5)
@@ -205,7 +206,10 @@ function normalizeArcaneRecoverySelection(
   character: Pick<Character, "className" | "level" | "spellSlotsExpended">
 ): ArcaneRecoverySelection {
   const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
   const normalizedSelection: ArcaneRecoverySelection = {};
 
   ([1, 2, 3, 4, 5] as const).forEach((slotLevel) => {
@@ -249,10 +253,7 @@ export function normalizeWizardFeatureState(
   return {
     arcaneRecoveryUsesExpended:
       hasArcaneRecovery && Number.isFinite(rawArcaneRecoveryUsesExpended)
-        ? Math.max(
-            0,
-            Math.min(arcaneRecoveryUsesTotal, Math.floor(rawArcaneRecoveryUsesExpended))
-          )
+        ? Math.max(0, Math.min(arcaneRecoveryUsesTotal, Math.floor(rawArcaneRecoveryUsesExpended)))
         : 0,
     scholar: hasScholar ? normalizeWizardScholarSelection(record?.scholar) : undefined,
     spellMasterySpellIds: hasSpellMastery
@@ -417,9 +418,9 @@ export function getWizardSignatureSpellIds(
     return [];
   }
 
-  return normalizeWizardSignatureSpellIds(getWizardFeatureState(character).signatureSpellIds).filter(
-    (spellId): spellId is string => isWizardSignatureSpellIdValid(character, spellId)
-  );
+  return normalizeWizardSignatureSpellIds(
+    getWizardFeatureState(character).signatureSpellIds
+  ).filter((spellId): spellId is string => isWizardSignatureSpellIdValid(character, spellId));
 }
 
 export function setWizardSignatureSpellIds(character: Character, spellIds: string[]): Character {
@@ -450,9 +451,9 @@ export function getWizardExpendedSignatureSpellIds(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds">
 ): string[] {
   const signatureSpellIdSet = new Set(getWizardSignatureSpellIds(character));
-  return normalizeWizardSignatureSpellIds(getWizardFeatureState(character).expendedSignatureSpellIds).filter(
-    (spellId) => signatureSpellIdSet.has(spellId)
-  );
+  return normalizeWizardSignatureSpellIds(
+    getWizardFeatureState(character).expendedSignatureSpellIds
+  ).filter((spellId) => signatureSpellIdSet.has(spellId));
 }
 
 export function hasWizardSignatureSpellFreeCastAvailable(
@@ -468,7 +469,10 @@ export function hasWizardSignatureSpellFreeCastAvailable(
   return !getWizardExpendedSignatureSpellIds(character).includes(spellId);
 }
 
-export function consumeWizardSignatureSpellFreeCast(character: Character, spellId: string): Character {
+export function consumeWizardSignatureSpellFreeCast(
+  character: Character,
+  spellId: string
+): Character {
   if (!hasWizardSignatureSpellFreeCastAvailable(character, spellId)) {
     return character;
   }
@@ -524,7 +528,9 @@ export function syncWizardSignatureSpellsToSpellbook(character: Character): Char
   const validExpendedIds = getWizardExpendedSignatureSpellIds(character);
   const wizardState = getWizardFeatureState(character);
   const currentSelectionIds = normalizeWizardSignatureSpellIds(wizardState.signatureSpellIds);
-  const currentExpendedIds = normalizeWizardSignatureSpellIds(wizardState.expendedSignatureSpellIds);
+  const currentExpendedIds = normalizeWizardSignatureSpellIds(
+    wizardState.expendedSignatureSpellIds
+  );
 
   if (
     currentSelectionIds.length === validSelectionIds.length &&
@@ -571,7 +577,10 @@ export function getArcaneRecoveryUsesRemaining(
     return 0;
   }
 
-  return Math.max(0, totalUses - (getWizardFeatureState(character).arcaneRecoveryUsesExpended ?? 0));
+  return Math.max(
+    0,
+    totalUses - (getWizardFeatureState(character).arcaneRecoveryUsesExpended ?? 0)
+  );
 }
 
 export function getArcaneRecoveryRecoveryLevelLimit(
@@ -655,7 +664,10 @@ export function activateArcaneRecovery(
   }
 
   const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
-  const spellSlotsExpended = normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
   const nextSpellSlotsExpended = [...spellSlotsExpended];
 
   for (const slotLevel of [1, 2, 3, 4, 5] as const) {

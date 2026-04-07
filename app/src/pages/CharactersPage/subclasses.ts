@@ -1,4 +1,9 @@
-import type { CLASS_FEATURE, FeatureMapEntry, SubclassEntry, SubclassFeatureClassObj } from "../../codex/entries";
+import type {
+  CLASS_FEATURE,
+  FeatureMapEntry,
+  SubclassEntry,
+  SubclassFeatureClassObj
+} from "../../codex/entries";
 import { getSubclassEntryById, getSubclassEntriesForClass } from "../../codex/subclasses";
 import type { Character } from "../../types";
 
@@ -41,7 +46,9 @@ export function getSubclassFeatureRowsForCharacter(
 export function getUnlockedSubclassFeatureRowsForCharacter(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): SubclassFeatureClassObj[] {
-  return getSubclassFeatureRowsForCharacter(character).filter((featureRow) => featureRow.level <= character.level);
+  return getSubclassFeatureRowsForCharacter(character).filter(
+    (featureRow) => featureRow.level <= character.level
+  );
 }
 
 export function getSubclassFeatureDetails(
@@ -49,9 +56,14 @@ export function getSubclassFeatureDetails(
   level: number,
   feature: CLASS_FEATURE
 ): FeatureMapEntry | null {
-  const matchingRow = subclass?.features.find(
-    (featureRow) => featureRow.level === level && featureRow.classFeatures.includes(feature)
-  );
+  const matchingRow = [...(subclass?.features ?? [])]
+    .filter(
+      (featureRow) =>
+        featureRow.level <= level &&
+        (featureRow.classFeatures.includes(feature) ||
+          featureRow.featureOverrides?.[feature] !== undefined)
+    )
+    .sort((left, right) => right.level - left.level)[0];
 
   if (!matchingRow) {
     return null;

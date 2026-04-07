@@ -1,8 +1,8 @@
-import { clericFeatures, getSpellEntriesForClassName } from "../../../codex/classes";
+import { clericFeatures, getSpellEntriesForClassName } from "../../../../codex/classes";
 import {
   divineForeknowledgeDescription,
   preserveLifeDescription
-} from "../../../codex/subclasses/cleric";
+} from "../../../../codex/subclasses/cleric";
 import {
   CLASS_FEATURE,
   DAMAGE_TYPE,
@@ -13,9 +13,9 @@ import {
   type DivinityValue,
   type SpellDescriptionEntry,
   type SpellEntry
-} from "../../../codex/entries";
-import { getSpellEntryById } from "../../../codex/selectors";
-import type { ClericFeatureClassObj } from "../../../types";
+} from "../../../../codex/entries";
+import { getSpellEntryById } from "../../../../codex/selectors";
+import type { ClericFeatureClassObj } from "../../../../types";
 import type {
   AbilityKey,
   Character,
@@ -24,7 +24,7 @@ import type {
   ClericDivineOrderChoice,
   SavingThrowProficiencyEntry,
   SkillProficiencyEntry
-} from "../../../types";
+} from "../../../../types";
 import {
   ARMOR_PROFICIENCY,
   PROFICIENCY_OVERRIDE_POLICY,
@@ -39,13 +39,16 @@ import {
   type ArmorProficiencyEntry,
   type SkillName,
   type WeaponProficiencyEntry
-} from "../../../types";
-import { formatDivinityValue, formatDivinityValueFormula } from "../../../utils/codex";
-import { getFeatAbilityScoreBonusesForCharacter } from "../feats";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../actionEconomy";
-import { getSavingThrowLevelFromEntries, getSkillProficiencyForName } from "../proficiencyResolvers";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../spellcasting";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../traits";
+} from "../../../../types";
+import { formatDivinityValue, formatDivinityValueFormula } from "../../../../utils/codex";
+import { getFeatAbilityScoreBonusesForCharacter } from "../../feats";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
+import {
+  getSavingThrowLevelFromEntries,
+  getSkillProficiencyForName
+} from "../../proficiencyResolvers";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../traits";
 import type {
   AbilityCheckIndicatorMap,
   CoreStatIndicatorMap,
@@ -60,7 +63,7 @@ import type {
   SavingThrowIndicatorMap,
   SkillIndicatorMap,
   WeaponFeatureContext
-} from "./types";
+} from "../types";
 
 const divineOrderProtectorSource = "Divine Order";
 const blessedStrikesSource = "Blessed Strikes";
@@ -612,10 +615,9 @@ export function setKnowledgeDomainBlessingsSkillSelections(
   }
 
   const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
-  const nextSelections = Array.from(new Set(selections.filter(isKnowledgeDomainBlessingsSkill))).slice(
-    0,
-    2
-  );
+  const nextSelections = Array.from(
+    new Set(selections.filter(isKnowledgeDomainBlessingsSkill))
+  ).slice(0, 2);
 
   return {
     ...character,
@@ -644,8 +646,7 @@ export function getKnowledgeDomainSkillProficiencyEntries(
 
 function getUnfetteredMindAvailableSavingThrows(
   character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
-    &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">> &
     Partial<Pick<Character, "savingThrowProficiencies">>
 ): SAVING_THROW_PROFICIENCY[] {
   if (!hasUnfetteredMindFeature(character)) {
@@ -700,8 +701,10 @@ export function getKnowledgeDomainUnfetteredMindSavingThrowSelection(
     return SAVING_THROW_PROFICIENCY.INT;
   }
 
-  const savedSelection = normalizeClericFeatureState(character.classFeatureState?.cleric, character)
-    .unfetteredMindSavingThrow;
+  const savedSelection = normalizeClericFeatureState(
+    character.classFeatureState?.cleric,
+    character
+  ).unfetteredMindSavingThrow;
 
   return savedSelection && availableSavingThrows.includes(savedSelection)
     ? savedSelection
@@ -728,12 +731,11 @@ export function setKnowledgeDomainUnfetteredMindSavingThrowSelection(
   const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
   const availableSavingThrows = getUnfetteredMindAvailableSavingThrows(character);
   const lockedToInt = isKnowledgeDomainUnfetteredMindLockedToInt(character);
-  const nextSelection =
-    lockedToInt
-      ? undefined
-      : proficiency && availableSavingThrows.includes(proficiency)
-        ? proficiency
-        : undefined;
+  const nextSelection = lockedToInt
+    ? undefined
+    : proficiency && availableSavingThrows.includes(proficiency)
+      ? proficiency
+      : undefined;
 
   return {
     ...character,
@@ -1015,8 +1017,7 @@ export function getDivineForeknowledgeUsesRemaining(
 }
 
 export function getDivineForeknowledgeFallbackSlotLevel(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "spellSlotsExpended">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "spellSlotsExpended">>
 ): number | null {
   const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level ?? 1);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
@@ -1039,8 +1040,7 @@ export function getDivineForeknowledgeFallbackSlotLevel(
 }
 
 export function getDivineForeknowledgeFallbackSlotSummary(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "spellSlotsExpended">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "spellSlotsExpended">>
 ): { total: number; remaining: number } {
   const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level ?? 1);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
@@ -1235,7 +1235,10 @@ export function getClericFeatureActions(
 function getClericPreserveLifeAction(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "subclassId">
 ): FeatureActionCard | null {
-  if (!hasLifeDomainFeature(character, 3) || !hasClericFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY)) {
+  if (
+    !hasLifeDomainFeature(character, 3) ||
+    !hasClericFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY)
+  ) {
     return null;
   }
 
@@ -1246,7 +1249,8 @@ function getClericPreserveLifeAction(
     key: preserveLifeActionKey,
     name: "Preserve Life",
     summary: "Restore divided healing.",
-    detail: "Restore a pool of healing equal to five times your Cleric level among Bloodied creatures.",
+    detail:
+      "Restore a pool of healing equal to five times your Cleric level among Bloodied creatures.",
     economyType: ECONOMY_TYPE.ACTION,
     actionCategory: ACTION_CATEGORY.MAGIC,
     hideUsesTrackerOnCard: true,
@@ -1564,9 +1568,7 @@ export function restoreClericChannelDivinityOnShortRest(character: Character): C
 
 export function applyLongRestToClericFeatures(character: Character): Character {
   return restoreClericDivineForeknowledgeOnLongRest(
-    restoreClericDivineInterventionOnLongRest(
-      restoreClericChannelDivinityOnLongRest(character)
-    )
+    restoreClericDivineInterventionOnLongRest(restoreClericChannelDivinityOnLongRest(character))
   );
 }
 
