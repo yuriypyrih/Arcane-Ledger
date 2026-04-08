@@ -38,7 +38,8 @@ export function isFeatChoiceFeature(feature: CLASS_FEATURE): boolean {
   return (
     feature === CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT ||
     feature === CLASS_FEATURE.EPIC_BOON ||
-    feature === CLASS_FEATURE.FIGHTING_STYLE
+    feature === CLASS_FEATURE.FIGHTING_STYLE ||
+    feature === CLASS_FEATURE.ADDITIONAL_FIGHTING_STYLE
   );
 }
 
@@ -67,7 +68,10 @@ export function getRogueExpertiseTierForLevel(level: number): "level1" | "level6
 }
 
 export function getDefaultFeatCategoryForFeature(feature: CLASS_FEATURE): FEAT_CATEGORY {
-  if (feature === CLASS_FEATURE.FIGHTING_STYLE) {
+  if (
+    feature === CLASS_FEATURE.FIGHTING_STYLE ||
+    feature === CLASS_FEATURE.ADDITIONAL_FIGHTING_STYLE
+  ) {
     return FEAT_CATEGORY.FIGHTING_STYLE;
   }
 

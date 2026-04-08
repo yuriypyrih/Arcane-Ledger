@@ -1,5 +1,5 @@
-import { fighterFeatures } from "../../../../codex/classes";
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { fighterFeatureMap, fighterFeatures } from "../../../../codex/classes";
+import { CLASS_FEATURE, type SpellEntry } from "../../../../codex/entries";
 import type {
   Character,
   CharacterFighterFeatureState,
@@ -15,6 +15,52 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
 import type { FeatureActionCard, FeatureWeaponProficiencyEntry } from "../types";
 import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
+import {
+  advanceFighterSubclassFeaturesForNewRound,
+  normalizeFighterSubclassFeatureState
+} from "./subclasses";
+import {
+  applyFighterBanneretTeamTacticsStatus,
+  consumeFighterBanneretGroupRecoveryUse,
+  fighterBanneretKnightlyEnvoySkillOptions,
+  getFighterBanneretGroupRecoveryHealingFormula,
+  getFighterBanneretGroupRecoveryUsesRemaining,
+  getFighterBanneretGroupRecoveryUsesTotal,
+  getFighterBanneretKnightlyEnvoyLanguageSelection,
+  getFighterBanneretKnightlyEnvoySkillSelection,
+  restoreFighterBanneretGroupRecoveryOnLongRest,
+  restoreFighterBanneretGroupRecoveryOnShortRest,
+  setFighterBanneretKnightlyEnvoyLanguageSelection,
+  setFighterBanneretKnightlyEnvoySkillSelection
+} from "./subclasses/fighterBanneret";
+import {
+  expendFighterBattleMasterSuperiorityDie,
+  getFighterBattleMasterManeuverSelectionCount,
+  getFighterBattleMasterManeuverSelections,
+  getFighterBattleMasterSuperiorityDiceRemaining,
+  getFighterBattleMasterSuperiorityDiceTotal,
+  getFighterBattleMasterSuperiorityDie,
+  restoreAllFighterBattleMasterSuperiorityDice,
+  restoreFighterBattleMasterSuperiorityDiceOnLongRest as restoreFighterBattleMasterSuperiorityDiceOnLongRestInternal,
+  restoreFighterBattleMasterSuperiorityDiceOnShortRest as restoreFighterBattleMasterSuperiorityDiceOnShortRestInternal,
+  restoreOneFighterBattleMasterSuperiorityDie,
+  setFighterBattleMasterManeuverSelections
+} from "./subclasses/fighterBattleMaster";
+import {
+  canUseFighterEldritchKnightActionCantripReplacement,
+  consumeFighterEldritchKnightActionCantrip,
+  getFighterEldritchKnightWarMagicMultiCount
+} from "./subclasses/fighterEldritchKnight";
+import {
+  expendFighterPsiWarriorEnergyDie,
+  getFighterPsiWarriorEnergyDiceRemaining,
+  getFighterPsiWarriorEnergyDiceTotal,
+  getFighterPsiWarriorEnergyDie,
+  restoreAllFighterPsiWarriorEnergyDice,
+  restoreFighterPsiWarriorEnergyDiceOnLongRest as restoreFighterPsiWarriorEnergyDiceOnLongRestInternal,
+  restoreFighterPsiWarriorEnergyDiceOnShortRest as restoreFighterPsiWarriorEnergyDiceOnShortRestInternal,
+  restoreFighterPsiWarriorEnergyDie
+} from "./subclasses/fighterPsiWarrior";
 
 export const fighterSecondWindActionKey = "fighter-second-wind";
 export const fighterActionSurgeActionKey = "fighter-action-surge";
@@ -23,6 +69,10 @@ export const fighterIndomitableActionKey = "fighter-indomitable";
 const weaponMasterySource = "Weapon Mastery";
 
 const fighterWeaponMasteryOptions = getWeaponMasteryOptions();
+
+function getFighterFeatureDescription(feature: CLASS_FEATURE): string[] {
+  return [...(fighterFeatureMap[feature]?.description ?? [])];
+}
 
 function getFighterFeatureRow(level: number) {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
@@ -78,7 +128,7 @@ function getFighterAdditionalAttackCount(
 
 export function normalizeFighterFeatureState(
   value: unknown,
-  character: Pick<Character, "className" | "level">
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): CharacterFighterFeatureState {
   const hasSecondWind = hasFighterFeature(character, CLASS_FEATURE.SECOND_WIND);
   const hasActionSurge = hasFighterFeature(character, CLASS_FEATURE.ACTION_SURGE);
@@ -169,9 +219,12 @@ export function normalizeFighterFeatureState(
               : 0
           )
         )
-      : undefined
+      : undefined,
+    ...normalizeFighterSubclassFeatureState(record, character)
   };
 }
+
+export { fighterBanneretKnightlyEnvoySkillOptions };
 
 export function getFighterActionSurgeUsesTotal(
   character: Pick<Character, "className" | "level">
@@ -227,6 +280,25 @@ export function getFighterWeaponAttackMultiCount(
   );
 }
 
+export function getFighterActionCantripReplacementMultiCount(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  return getFighterEldritchKnightWarMagicMultiCount(character);
+}
+
+export function canUseFighterActionCantripReplacement(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "roundTracker"> &
+    Partial<Pick<Character, "subclassId">>,
+  spell: Pick<SpellEntry, "castingTime" | "spellLevel">
+): boolean {
+  return canUseFighterEldritchKnightActionCantripReplacement(character, spell);
+}
+
+export function consumeFighterActionCantrip(character: Character): Character {
+  return consumeFighterEldritchKnightActionCantrip(character);
+}
+
 export function getFighterNonMagicActionMultiCount(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): number {
@@ -261,6 +333,145 @@ export function getFighterSecondWindHealingFormula(
   character: Pick<Character, "className" | "level">
 ): string {
   return `1d10+${Math.max(1, Math.floor(character.level))}`;
+}
+
+export function getFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+) {
+  return getFighterBanneretKnightlyEnvoyLanguageSelection(character);
+}
+
+export function setFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter(
+  character: Character,
+  selection: Parameters<typeof setFighterBanneretKnightlyEnvoyLanguageSelection>[1]
+): Character {
+  return setFighterBanneretKnightlyEnvoyLanguageSelection(character, selection);
+}
+
+export function getFighterBanneretKnightlyEnvoySkillSelectionForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+) {
+  return getFighterBanneretKnightlyEnvoySkillSelection(character);
+}
+
+export function setFighterBanneretKnightlyEnvoySkillSelectionForCharacter(
+  character: Character,
+  selection: Parameters<typeof setFighterBanneretKnightlyEnvoySkillSelection>[1]
+): Character {
+  return setFighterBanneretKnightlyEnvoySkillSelection(character, selection);
+}
+
+export function getFighterGroupRecoveryUsesTotal(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return getFighterBanneretGroupRecoveryUsesTotal(character);
+}
+
+export function getFighterGroupRecoveryUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): number {
+  return getFighterBanneretGroupRecoveryUsesRemaining(character);
+}
+
+export function getFighterGroupRecoveryHealingFormula(
+  character: Pick<Character, "level">
+): string {
+  return getFighterBanneretGroupRecoveryHealingFormula(character);
+}
+
+export function consumeFighterGroupRecoveryUse(character: Character): Character {
+  return consumeFighterBanneretGroupRecoveryUse(character);
+}
+
+export function applyFighterTeamTacticsStatus(character: Character): Character {
+  return applyFighterBanneretTeamTacticsStatus(character);
+}
+
+export function getFighterBattleMasterSuperiorityDiceTotalForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return getFighterBattleMasterSuperiorityDiceTotal(character);
+}
+
+export function getFighterBattleMasterManeuverSelectionCountForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return getFighterBattleMasterManeuverSelectionCount(character);
+}
+
+export function getFighterBattleMasterManeuverSelectionsForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): string[] {
+  return getFighterBattleMasterManeuverSelections(character);
+}
+
+export function getFighterBattleMasterSuperiorityDiceRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): number {
+  return getFighterBattleMasterSuperiorityDiceRemaining(character);
+}
+
+export function getFighterBattleMasterSuperiorityDieForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): "d8" | "d10" | "d12" | null {
+  return getFighterBattleMasterSuperiorityDie(character);
+}
+
+export function getFighterPsiWarriorEnergyDiceTotalForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return getFighterPsiWarriorEnergyDiceTotal(character);
+}
+
+export function getFighterPsiWarriorEnergyDiceRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): number {
+  return getFighterPsiWarriorEnergyDiceRemaining(character);
+}
+
+export function getFighterPsiWarriorEnergyDieForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): "d6" | "d8" | "d10" | "d12" | null {
+  return getFighterPsiWarriorEnergyDie(character);
+}
+
+export function expendFighterBattleMasterSuperiorityDieForCharacter(character: Character): Character {
+  return expendFighterBattleMasterSuperiorityDie(character);
+}
+
+export function restoreFighterBattleMasterSuperiorityDieForCharacter(character: Character): Character {
+  return restoreOneFighterBattleMasterSuperiorityDie(character);
+}
+
+export function expendFighterPsiWarriorEnergyDieForCharacter(character: Character): Character {
+  return expendFighterPsiWarriorEnergyDie(character);
+}
+
+export function restoreFighterPsiWarriorEnergyDieForCharacter(character: Character): Character {
+  return restoreFighterPsiWarriorEnergyDie(character);
+}
+
+export function restoreAllFighterPsiWarriorEnergyDiceForCharacter(character: Character): Character {
+  return restoreAllFighterPsiWarriorEnergyDice(character);
+}
+
+export function restoreAllFighterBattleMasterSuperiorityDiceForCharacter(
+  character: Character
+): Character {
+  return restoreAllFighterBattleMasterSuperiorityDice(character);
+}
+
+export function setFighterBattleMasterManeuverSelectionsForCharacter(
+  character: Character,
+  selections: string[]
+): Character {
+  return setFighterBattleMasterManeuverSelections(character, selections);
 }
 
 export function getFighterIndomitableUsesTotal(
@@ -312,6 +523,7 @@ export function getFighterFeatureActions(
       summary: "Gain one additional non-Magic action.",
       detail:
         "Use Action Surge to gain one additional non-Magic action this turn. Starting at level 17, you can use it twice before resting, but only once per turn.",
+      description: getFighterFeatureDescription(CLASS_FEATURE.ACTION_SURGE),
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.FEATURE,
       usesLabel: `${usesRemaining}/${totalUses} uses`,
@@ -338,6 +550,7 @@ export function getFighterFeatureActions(
       name: "Second Wind",
       summary: `${minimumHealing}~${maximumHealing} Heal`,
       detail: "Use a Bonus Action to regain Hit Points equal to 1d10 plus your Fighter level.",
+      description: getFighterFeatureDescription(CLASS_FEATURE.SECOND_WIND),
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
       usesLabel: `${usesRemaining}/${totalUses} uses`,
@@ -478,7 +691,9 @@ export function consumeFighterIndomitableUse(character: Character): Character {
 export function applyShortRestToFighterFeatures(character: Character): Character {
   if (
     !hasFighterFeature(character, CLASS_FEATURE.SECOND_WIND) &&
-    !hasFighterFeature(character, CLASS_FEATURE.ACTION_SURGE)
+    !hasFighterFeature(character, CLASS_FEATURE.ACTION_SURGE) &&
+    getFighterBattleMasterSuperiorityDiceTotal(character) <= 0 &&
+    getFighterPsiWarriorEnergyDiceTotal(character) <= 0
   ) {
     return character;
   }
@@ -499,6 +714,14 @@ export function applyShortRestToFighterFeatures(character: Character): Character
         actionSurgeUsesExpended: 0,
         actionSurgeUsedThisTurn: false,
         actionSurgeExtraActionsRemainingThisTurn: 0,
+        battleMasterSuperiorityDiceExpended:
+          fighterState.battleMasterSuperiorityDiceExpended !== undefined ? 0 : undefined,
+        psiWarriorEnergyDiceExpended:
+          fighterState.psiWarriorEnergyDiceExpended !== undefined
+            ? Math.max(0, (fighterState.psiWarriorEnergyDiceExpended ?? 0) - 1)
+            : undefined,
+        banneretGroupRecoveryUsesExpended:
+          fighterState.banneretGroupRecoveryUsesExpended !== undefined ? 0 : undefined,
         extraAttacksRemainingThisTurn: 0
       }
     }
@@ -568,7 +791,9 @@ export function applyLongRestToFighterFeatures(character: Character): Character 
   if (
     !hasFighterFeature(character, CLASS_FEATURE.SECOND_WIND) &&
     !hasFighterFeature(character, CLASS_FEATURE.ACTION_SURGE) &&
-    !hasFighterFeature(character, CLASS_FEATURE.INDOMITABLE)
+    !hasFighterFeature(character, CLASS_FEATURE.INDOMITABLE) &&
+    getFighterBattleMasterSuperiorityDiceTotal(character) <= 0 &&
+    getFighterPsiWarriorEnergyDiceTotal(character) <= 0
   ) {
     return character;
   }
@@ -589,6 +814,12 @@ export function applyLongRestToFighterFeatures(character: Character): Character 
         actionSurgeUsedThisTurn: false,
         actionSurgeExtraActionsRemainingThisTurn: 0,
         indomitableUsesExpended: 0,
+        battleMasterSuperiorityDiceExpended:
+          fighterState.battleMasterSuperiorityDiceExpended !== undefined ? 0 : undefined,
+        psiWarriorEnergyDiceExpended:
+          fighterState.psiWarriorEnergyDiceExpended !== undefined ? 0 : undefined,
+        banneretGroupRecoveryUsesExpended:
+          fighterState.banneretGroupRecoveryUsesExpended !== undefined ? 0 : undefined,
         extraAttacksRemainingThisTurn: 0
       }
     }
@@ -679,39 +910,62 @@ export function restoreFighterIndomitableOnLongRest(character: Character): Chara
   };
 }
 
+export function restoreFighterGroupRecoveryOnShortRest(character: Character): Character {
+  return restoreFighterBanneretGroupRecoveryOnShortRest(character);
+}
+
+export function restoreFighterGroupRecoveryOnLongRest(character: Character): Character {
+  return restoreFighterBanneretGroupRecoveryOnLongRest(character);
+}
+
+export function restoreFighterBattleMasterSuperiorityDiceOnShortRest(character: Character): Character {
+  return restoreFighterBattleMasterSuperiorityDiceOnShortRestInternal(character);
+}
+
+export function restoreFighterBattleMasterSuperiorityDiceOnLongRest(character: Character): Character {
+  return restoreFighterBattleMasterSuperiorityDiceOnLongRestInternal(character);
+}
+
+export function restoreFighterPsiWarriorEnergyDiceOnShortRest(character: Character): Character {
+  return restoreFighterPsiWarriorEnergyDiceOnShortRestInternal(character);
+}
+
+export function restoreFighterPsiWarriorEnergyDiceOnLongRest(character: Character): Character {
+  return restoreFighterPsiWarriorEnergyDiceOnLongRestInternal(character);
+}
+
 export function advanceFighterFeaturesForNewRound(character: Character): Character {
+  let nextCharacter = character;
   const hasExtraAttack = getFighterAdditionalAttackCount(character) > 0;
   const hasActionSurge = hasFighterFeature(character, CLASS_FEATURE.ACTION_SURGE);
 
-  if (!hasExtraAttack && !hasActionSurge) {
-    return character;
-  }
+  if (hasExtraAttack || hasActionSurge) {
+    const fighterState = normalizeFighterFeatureState(
+      character.classFeatureState?.fighter,
+      character
+    );
 
-  const fighterState = normalizeFighterFeatureState(
-    character.classFeatureState?.fighter,
-    character
-  );
-
-  if (
-    (fighterState.extraAttacksRemainingThisTurn ?? 0) === 0 &&
-    (fighterState.actionSurgeExtraActionsRemainingThisTurn ?? 0) === 0 &&
-    fighterState.actionSurgeUsedThisTurn !== true
-  ) {
-    return character;
-  }
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      fighter: {
-        ...fighterState,
-        actionSurgeUsedThisTurn: false,
-        actionSurgeExtraActionsRemainingThisTurn: 0,
-        extraAttacksRemainingThisTurn: 0
-      }
+    if (
+      (fighterState.extraAttacksRemainingThisTurn ?? 0) !== 0 ||
+      (fighterState.actionSurgeExtraActionsRemainingThisTurn ?? 0) !== 0 ||
+      fighterState.actionSurgeUsedThisTurn === true
+    ) {
+      nextCharacter = {
+        ...character,
+        classFeatureState: {
+          ...character.classFeatureState,
+          fighter: {
+            ...fighterState,
+            actionSurgeUsedThisTurn: false,
+            actionSurgeExtraActionsRemainingThisTurn: 0,
+            extraAttacksRemainingThisTurn: 0
+          }
+        }
+      };
     }
-  };
+  }
+
+  return advanceFighterSubclassFeaturesForNewRound(nextCharacter);
 }
 
 export function getFighterWeaponMasterySelectionCount(

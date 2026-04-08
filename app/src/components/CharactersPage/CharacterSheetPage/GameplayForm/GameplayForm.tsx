@@ -8,10 +8,13 @@ import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.m
 import styles from "./GameplayForm.module.css";
 import BardicInspirationWidget from "./widgets/BardicInspirationWidget";
 import DivinityPointsWidget from "./widgets/DivinityPointsWidget";
+import HeroicInspirationWidget from "./widgets/HeroicInspirationWidget";
 import PoolOfHealingWidget from "./widgets/PoolOfHealingWidget";
 import FocusPointsWidget from "./widgets/FocusPointsWidget";
+import PsiEnergyDiceWidget from "./widgets/PsiEnergyDiceWidget";
 import RagePointsWidget from "./widgets/RagePointsWidget";
 import SorceryPointsWidget from "./widgets/SorceryPointsWidget";
+import SuperiorityDiceWidget from "./widgets/SuperiorityDiceWidget";
 import WildShapeWidget from "./widgets/WildShapeWidget";
 import RoundTrackerWidget from "./widgets/RoundTrackerWidget";
 import CampButton from "./widgets/CampButton";
@@ -80,8 +83,11 @@ function GameplayForm({ character, className, onPersistCharacter }: GameplayForm
         </div>
         <div className={styles.gameplayHeaderControls}>
           <PoolOfHealingWidget character={character} />
+          <HeroicInspirationWidget character={character} onPersistCharacter={onPersistCharacter} />
           <RagePointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <FocusPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
+          <PsiEnergyDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
+          <SuperiorityDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
           <WildShapeWidget character={character} onPersistCharacter={onPersistCharacter} />
           <BardicInspirationWidget
             character={character}

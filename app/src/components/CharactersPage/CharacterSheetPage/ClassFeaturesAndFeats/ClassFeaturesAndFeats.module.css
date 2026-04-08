@@ -122,6 +122,19 @@
   min-width: 0;
 }
 
+.featureOptionDescriptionList {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.35rem;
+}
+
+.featureOptionTitle {
+  display: block;
+  color: var(--color-ink);
+  font-weight: 700;
+  line-height: 1.5;
+}
+
 .featureSelectionGrid {
   display: grid;
   gap: 0.65rem;

@@ -21,6 +21,7 @@ import {
   getNextLevelThreshold,
   getXpProgressPercent
 } from "../../../../pages/CharactersPage/experience";
+import { restoreHeroicInspirationForCharacter } from "../../../../pages/CharactersPage/heroicInspiration";
 import { clampNumber, formatCount } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
@@ -178,11 +179,17 @@ function CharacterProgressModal({
       return;
     }
 
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      level: draft.level,
-      xp: draft.xp
-    }));
+    onPersistCharacter((currentCharacter) => {
+      const nextCharacter = {
+        ...currentCharacter,
+        level: draft.level,
+        xp: draft.xp
+      };
+
+      return draft.level > currentCharacter.level
+        ? restoreHeroicInspirationForCharacter(nextCharacter)
+        : nextCharacter;
+    });
 
     onClose();
   }

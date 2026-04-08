@@ -208,6 +208,30 @@ export type FeatureActionOptionCard = {
   resources?: FeatureActionResource[];
 };
 
+export type EconomyMultiAttackKind = "weapon" | "unarmed";
+
+export type EconomyMultiActionContext = {
+  economyType: EconomyType;
+  actionCategory: ActionCategory;
+  attackKind?: EconomyMultiAttackKind;
+  spellLevel?: number;
+};
+
+export type FeatureEconomyMultiAccessRule = {
+  economyTypes?: EconomyType[];
+  actionCategories?: ActionCategory[];
+  attackKinds?: EconomyMultiAttackKind[];
+  spellLevels?: number[];
+  maxAccessible: number | "all";
+};
+
+export type FeatureEconomyMultiPool = {
+  id: string;
+  remaining: number;
+  priority: number;
+  accessRules: FeatureEconomyMultiAccessRule[];
+};
+
 export type FeatureDamageBonus = {
   label: string;
   value?: number;
@@ -356,6 +380,7 @@ export type ClassFeatureDerivedState = {
   armorProficiencyEntries?: FeatureArmorProficiencyEntry[];
   languageProficiencyEntries?: FeatureLanguageProficiencyEntry[];
   alwaysPreparedSpellIds?: string[];
+  ritualOnlySpellIds?: string[];
   weaponMastery?: {
     selectionCount: number;
     options: WEAPON_PROFICIENCY[];

@@ -1,0 +1,28 @@
+.button {
+  background: rgba(56, 148, 130, 0.16);
+  color: #1d6f62;
+}
+
+.modal {
+  width: min(420px, 100%);
+}
+
+.description {
+  margin: 0;
+  color: rgba(29, 111, 98, 0.82);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.actions button {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.45rem;
+  justify-content: center;
+}

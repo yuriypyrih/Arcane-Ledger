@@ -117,6 +117,7 @@ export function createEmptyCharacter(): CharacterDraft {
     preparedSpellIds: [],
     spellSlotsExpended: Array.from({ length: 9 }, () => 0),
     shortRestsUsedToday: 0,
+    heroicInspiration: true,
     coreStats: createDefaultCoreStats(),
     classFeatureState: {},
     feats: []

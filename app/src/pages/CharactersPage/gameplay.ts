@@ -26,7 +26,7 @@ import {
   getFeatureWeaponActionsForCharacter,
   hasBatteringRootsBonusForCharacter,
   getUnarmedStrikeConfigForCharacter,
-  getWeaponActionEconomyMultiForCharacter,
+  transformWeaponActionForCharacter,
   getFeatureDamageBonusesForWeaponAction,
   getMonkFlurryOfBlowsAttackMultiCountForCharacter,
   getMonkMartialArtsDieForCharacter,
@@ -795,7 +795,6 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
         (weapon) => isMonkWeapon(weapon)
       )
     });
-  const weaponEconomyMulti = getWeaponActionEconomyMultiForCharacter(character);
   const monkUnarmedStrikeMulti = getMonkFlurryOfBlowsAttackMultiCountForCharacter(character);
 
   const codexWeaponActions = heldCodexWeapons.reduce<WeaponAction[]>((actions, equipmentItem) => {
@@ -869,7 +868,6 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
         abilityModifier,
         proficiencyLabel,
         proficiencyBonus: appliedProficiencyBonus,
-        economyMultiCount: weaponEconomyMulti,
         hasVersatileBonus: weaponReference.hasVersatileBonus,
         hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting,
         hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied)
@@ -932,7 +930,6 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
         abilityModifier,
         proficiencyLabel,
         proficiencyBonus: appliedProficiencyBonus,
-        economyMultiCount: weaponEconomyMulti,
         hasVersatileBonus: weaponReference.hasVersatileBonus,
         hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting,
         hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied)
@@ -940,21 +937,20 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
     ];
   }, []);
   const featureWeaponActions = getFeatureWeaponActionsForCharacter(character);
-
-  return [
+  const resolvedWeaponActions = [
     ...featureWeaponActions,
     ...(hasFreeHand
       ? [
           createUnarmedStrikeAction(character, {
             martialArtsDie: monkMartialArtsActive ? monkMartialArtsDie : null,
             economyType: monkMartialArtsActive ? ECONOMY_TYPE.BONUS_ACTION : ECONOMY_TYPE.ACTION,
-            economyMultiCount: monkMartialArtsActive
-              ? weaponEconomyMulti + monkUnarmedStrikeMulti
-              : weaponEconomyMulti
+            economyMultiCount: monkMartialArtsActive ? monkUnarmedStrikeMulti : undefined
           })
         ]
       : []),
     ...codexWeaponActions,
     ...customWeaponActions
   ];
+
+  return resolvedWeaponActions.map((action) => transformWeaponActionForCharacter(character, action));
 }

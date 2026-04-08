@@ -52,6 +52,12 @@ import {
   getBardicInspirationUsesRemainingForCharacter,
   getBardicInspirationUsesTotalForCharacter,
   getCoreStatIndicatorsForCharacter,
+  getFighterBattleMasterSuperiorityDiceRemainingForCharacter,
+  getFighterBattleMasterSuperiorityDiceTotalForCharacter,
+  getFighterBattleMasterSuperiorityDieForCharacter,
+  getFighterPsiWarriorEnergyDiceTotalForCharacter,
+  getFighterPsiWarriorEnergyDiceRemainingForCharacter,
+  getFighterPsiWarriorEnergyDieForCharacter,
   getMonkMartialArtsDieForCharacter,
   getRogueSneakAttackDiceCountForCharacter,
   getRogueSneakAttackFormulaForCharacter,
@@ -480,6 +486,18 @@ function CharacterStatsForm({
   const initiativeBreakdown = getInitiativeBreakdownForCharacter(character);
   const monkMartialArtsDie = getMonkMartialArtsDieForCharacter(character);
   const barbarianRageDamageBonus = getBarbarianRageDamageBonusForCharacter(character);
+  const fighterBattleMasterSuperiorityDie = getFighterBattleMasterSuperiorityDieForCharacter(
+    character
+  );
+  const fighterBattleMasterSuperiorityDiceTotal =
+    getFighterBattleMasterSuperiorityDiceTotalForCharacter(character);
+  const fighterBattleMasterSuperiorityDiceRemaining =
+    getFighterBattleMasterSuperiorityDiceRemainingForCharacter(character);
+  const fighterPsiWarriorEnergyDie = getFighterPsiWarriorEnergyDieForCharacter(character);
+  const fighterPsiWarriorEnergyDiceTotal =
+    getFighterPsiWarriorEnergyDiceTotalForCharacter(character);
+  const fighterPsiWarriorEnergyDiceRemaining =
+    getFighterPsiWarriorEnergyDiceRemainingForCharacter(character);
   const rogueSneakAttackDiceCount = getRogueSneakAttackDiceCountForCharacter(character);
   const rogueSneakAttackFormula = getRogueSneakAttackFormulaForCharacter(character);
   const abilitySavingThrowCards = abilityKeys.map((ability) => {
@@ -677,6 +695,62 @@ function CharacterStatsForm({
         {
           label: "Progression",
           value: "d6 at 1, d8 at 5, d10 at 10, d12 at 15"
+        }
+      ]
+    });
+  }
+
+  if (fighterBattleMasterSuperiorityDie && fighterBattleMasterSuperiorityDiceTotal > 0) {
+    additionalCoreStatCards.push({
+      key: "fighter-battle-master-superiority-dice",
+      label: "Superiority Dice",
+      value: `${fighterBattleMasterSuperiorityDiceRemaining}/${fighterBattleMasterSuperiorityDiceTotal} ${formatDieValue(fighterBattleMasterSuperiorityDie) ?? "-"}`,
+      summaryText:
+        "Your current Battle Master Superiority Dice pool. Maneuvers expend these dice, and you regain all expended Superiority Dice when you finish a Short Rest or Long Rest.",
+      detailCards: [
+        {
+          label: "Current Die",
+          value: formatDieValue(fighterBattleMasterSuperiorityDie) ?? "-"
+        },
+        {
+          label: "Current Dice",
+          value: `${fighterBattleMasterSuperiorityDiceRemaining}/${fighterBattleMasterSuperiorityDiceTotal}`
+        },
+        {
+          label: "Recovery",
+          value: "Restore all expended dice on Short Rest or Long Rest"
+        },
+        {
+          label: "Progression",
+          value: "4 dice at 3, 5 dice at 7, 6 dice at 15 | d8 at 3, d10 at 10, d12 at 18"
+        }
+      ]
+    });
+  }
+
+  if (fighterPsiWarriorEnergyDie && fighterPsiWarriorEnergyDiceTotal > 0) {
+    additionalCoreStatCards.push({
+      key: "fighter-psi-warrior-energy-dice",
+      label: "Psi Energy Dice",
+      value: formatDieValue(fighterPsiWarriorEnergyDie) ?? "-",
+      summaryText:
+        "Your current Psi Warrior Energy Die. Psionic powers expend these dice, and you regain one expended die on a Short Rest and all expended dice on a Long Rest.",
+      detailCards: [
+        {
+          label: "Current Die",
+          value: formatDieValue(fighterPsiWarriorEnergyDie) ?? "-"
+        },
+        {
+          label: "Current Dice",
+          value: `${fighterPsiWarriorEnergyDiceRemaining}/${fighterPsiWarriorEnergyDiceTotal}`
+        },
+        {
+          label: "Recovery",
+          value: "Restore 1 die on Short Rest | Restore all dice on Long Rest"
+        },
+        {
+          label: "Progression",
+          value: "4d6 at 3, 6d8 at 5, 8d8 at 9, 8d10 at 11, 10d10 at 13, 12d12 at 17"
         }
       ]
     });

@@ -1,0 +1,80 @@
+.formulaGrid {
+  grid-template-columns: 1fr;
+}
+
+.fullWidthCell {
+  grid-column: 1 / -1;
+}
+
+.formulaValue {
+  color: #2e2017;
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.formulaBreakdown {
+  color: rgba(102, 75, 56, 0.72);
+  font-size: 0.94rem;
+  font-weight: 600;
+}
+
+.footerStack {
+  display: grid;
+  gap: 0.7rem;
+  width: 100%;
+}
+
+.groupRecoveryToggle {
+  align-items: center;
+  color: #25508d;
+  display: flex;
+  min-width: 0;
+}
+
+.groupRecoveryToggleDisabled {
+  opacity: 0.72;
+}
+
+.groupRecoveryToggleLabel {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  font-size: 0.84rem;
+  font-weight: 700;
+  gap: 0.55rem;
+  min-width: 0;
+}
+
+.groupRecoveryToggleLabel input {
+  accent-color: #2f78ff;
+  margin: 0;
+}
+
+.groupRecoveryTracker {
+  align-items: center;
+  color: #5274a6;
+  display: inline-flex;
+  font-size: 0.76rem;
+  font-weight: 700;
+  gap: 0.45rem;
+}
+
+.groupRecoveryTrackerLabel {
+  line-height: 1;
+}
+
+.confirmButton {
+  gap: 0.55rem;
+  margin-left: 0;
+}
+
+.footerActionShape {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.76);
+  border-radius: 999px;
+  flex-shrink: 0;
+  justify-content: center;
+  padding: 0.18rem;
+}

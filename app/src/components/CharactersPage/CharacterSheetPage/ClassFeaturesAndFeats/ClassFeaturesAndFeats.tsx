@@ -259,14 +259,23 @@ function ClassFeaturesAndFeats({
           groups[category] = featDefinitionsByCategory[category].filter((definition) => {
             const isFightingStyleContext =
               featEditorContext.mode === "class-feature" &&
-              featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE;
+              (featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE ||
+                featEditorContext.source.feature === CLASS_FEATURE.ADDITIONAL_FIGHTING_STYLE);
 
             if (definition.feat === FEATS.BLESSED_WARRIOR) {
-              return isFightingStyleContext && character.className === "Paladin";
+              return (
+                featEditorContext.mode === "class-feature" &&
+                featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE &&
+                character.className === "Paladin"
+              );
             }
 
             if (definition.feat === FEATS.DRUIDIC_WARRIOR) {
-              return isFightingStyleContext && character.className === "Ranger";
+              return (
+                featEditorContext.mode === "class-feature" &&
+                featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE &&
+                character.className === "Ranger"
+              );
             }
 
             if (isFightingStyleContext) {

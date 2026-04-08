@@ -1,14 +1,18 @@
 import {
   CLASS_FEATURE,
-  SPELL_LIST_CLASS,
   type ClassEntry,
   type FeatureClassObj,
   type SpellEntry
 } from "../../codex/entries";
 import type { CharacterClassFeatureState } from "../../types";
-import { getSpellEntriesForClassName } from "../../codex/classes";
 import { getSpellEntriesForSpellListClasses } from "../../codex/classes/spellAccess";
 import { getClassEntryByName } from "../../codex/selectors";
+import {
+  getClassSpellListClassesForCharacter,
+  getPreparedSpellListClassesForCharacter,
+  getSpellbookUsageForCharacter,
+  getSubclassSpellcastingProgressionRow
+} from "../../codex/classes/subclassSpellcasting";
 import {
   getAlwaysPreparedSpellIdsForCharacter,
   getCantripLimitBonusForCharacter
@@ -87,53 +91,17 @@ function getHighestSlotLevel(slotTotals: number[]): number {
   return 0;
 }
 
-function getPreparedSpellAccessListClasses(className: string, level: number): SPELL_LIST_CLASS[] {
-  if (className === "Bard" && level >= 10) {
-    return [
-      SPELL_LIST_CLASS.BARD,
-      SPELL_LIST_CLASS.CLERIC,
-      SPELL_LIST_CLASS.DRUID,
-      SPELL_LIST_CLASS.WIZARD
-    ];
-  }
-
-  const baseClassSpellEntries = getSpellEntriesForClassName(className);
-
-  if (baseClassSpellEntries.length === 0) {
-    return [];
-  }
-
-  switch (className) {
-    case "Artificer":
-      return [SPELL_LIST_CLASS.ARTIFICER];
-    case "Bard":
-      return [SPELL_LIST_CLASS.BARD];
-    case "Cleric":
-      return [SPELL_LIST_CLASS.CLERIC];
-    case "Druid":
-      return [SPELL_LIST_CLASS.DRUID];
-    case "Paladin":
-      return [SPELL_LIST_CLASS.PALADIN];
-    case "Ranger":
-      return [SPELL_LIST_CLASS.RANGER];
-    case "Sorcerer":
-      return [SPELL_LIST_CLASS.SORCERER];
-    case "Warlock":
-      return [SPELL_LIST_CLASS.WARLOCK];
-    case "Wizard":
-      return [SPELL_LIST_CLASS.WIZARD];
-    default:
-      return [];
-  }
-}
-
 function getCantripCountForFeatureRow(featureRow?: SpellcastingFeatureClassObj): number | null {
   const cantripCount = featureRow?.cantrips;
 
   return typeof cantripCount === "number" ? Math.max(0, Math.floor(cantripCount)) : null;
 }
 
-export function isSpellcastingClass(className: string, level = 20): boolean {
+export function isSpellcastingClass(className: string, level = 20, subclassId?: string): boolean {
+  if (getSubclassSpellcastingProgressionRow(className, level, subclassId)) {
+    return true;
+  }
+
   return getClassFeatureRowsUpToLevel(className, level).some((featureRow) =>
     featureRow.classFeatures.some((classFeature) => spellcastingClassFeatures.has(classFeature))
   );
@@ -143,7 +111,17 @@ export function getSpellLevel(spell: Pick<SpellEntry, "spellLevel">): number {
   return sanitizeSpellLevel(spell.spellLevel);
 }
 
-export function getSpellSlotTotalsForCharacter(className: string, level: number): number[] {
+export function getSpellSlotTotalsForCharacter(
+  className: string,
+  level: number,
+  subclassId?: string
+): number[] {
+  const subclassFeatureRow = getSubclassSpellcastingProgressionRow(className, level, subclassId);
+
+  if (subclassFeatureRow) {
+    return createSpellSlotRow(...subclassFeatureRow.spellSlots);
+  }
+
   const featureRow = getClassFeatureRowForLevel(className, level);
 
   if (!Array.isArray(featureRow?.spellSlots)) {
@@ -167,7 +145,17 @@ export function normalizeSpellSlotsExpended(
   });
 }
 
-export function getPreparedSpellLimitForCharacter(className: string, level: number): number | null {
+export function getPreparedSpellLimitForCharacter(
+  className: string,
+  level: number,
+  subclassId?: string
+): number | null {
+  const subclassFeatureRow = getSubclassSpellcastingProgressionRow(className, level, subclassId);
+
+  if (subclassFeatureRow) {
+    return Math.max(0, Math.floor(subclassFeatureRow.preparedSpells));
+  }
+
   const preparedSpells = getClassFeatureRowForLevel(className, level)?.preparedSpells;
 
   return typeof preparedSpells === "number" ? Math.max(0, Math.floor(preparedSpells)) : null;
@@ -176,9 +164,14 @@ export function getPreparedSpellLimitForCharacter(className: string, level: numb
 export function getCantripLimitForCharacter(
   className: string,
   level: number,
-  classFeatureState?: CharacterClassFeatureState
+  classFeatureState?: CharacterClassFeatureState,
+  subclassId?: string
 ): number | null {
-  const cantripCount = getCantripCountForFeatureRow(getClassFeatureRowForLevel(className, level));
+  const subclassFeatureRow = getSubclassSpellcastingProgressionRow(className, level, subclassId);
+  const cantripCount =
+    subclassFeatureRow !== null
+      ? Math.max(0, Math.floor(subclassFeatureRow.cantrips))
+      : getCantripCountForFeatureRow(getClassFeatureRowForLevel(className, level));
 
   if (cantripCount === null) {
     return null;
@@ -190,17 +183,22 @@ export function getCantripLimitForCharacter(
       getCantripLimitBonusForCharacter({
         className,
         level,
-        classFeatureState
+        classFeatureState,
+        subclassId
       })
   );
 }
 
-export function usesPreparedSpellsForCharacter(className: string, level: number): boolean {
-  return getPreparedSpellLimitForCharacter(className, level) !== null;
+export function usesPreparedSpellsForCharacter(
+  className: string,
+  level: number,
+  subclassId?: string
+): boolean {
+  return getPreparedSpellLimitForCharacter(className, level, subclassId) !== null;
 }
 
-export function usesSpellbookForCharacter(className: string): boolean {
-  return className === "Wizard";
+export function usesSpellbookForCharacter(className: string, subclassId?: string): boolean {
+  return getSpellbookUsageForCharacter(className, subclassId);
 }
 
 export function hasClassFeatureForCharacter(
@@ -215,28 +213,38 @@ export function hasClassFeatureForCharacter(
 
 export function getCantripSelectionOptionsForCharacter(
   className: string,
-  level: number
+  level: number,
+  subclassId?: string
 ): SpellEntry[] {
-  const cantripLimit = getCantripLimitForCharacter(className, level);
+  const cantripLimit = getCantripLimitForCharacter(className, level, undefined, subclassId);
 
-  if (!isSpellcastingClass(className, level) || cantripLimit === null || cantripLimit <= 0) {
+  if (
+    !isSpellcastingClass(className, level, subclassId) ||
+    cantripLimit === null ||
+    cantripLimit <= 0
+  ) {
     return [];
   }
 
-  return getSpellEntriesForClassName(className).filter((spell) => getSpellLevel(spell) === 0);
+  return getSpellEntriesForSpellListClasses(
+    getClassSpellListClassesForCharacter(className, subclassId)
+  ).filter((spell) => getSpellLevel(spell) === 0);
 }
 
 export function getPreparedSpellSelectionOptionsForCharacter(
   className: string,
-  level: number
+  level: number,
+  subclassId?: string
 ): SpellEntry[] {
-  if (!usesPreparedSpellsForCharacter(className, level)) {
+  if (!usesPreparedSpellsForCharacter(className, level, subclassId)) {
     return [];
   }
 
-  const highestSlotLevel = getHighestSlotLevel(getSpellSlotTotalsForCharacter(className, level));
+  const highestSlotLevel = getHighestSlotLevel(
+    getSpellSlotTotalsForCharacter(className, level, subclassId)
+  );
   const preparedSpellEntries = getSpellEntriesForSpellListClasses(
-    getPreparedSpellAccessListClasses(className, level)
+    getPreparedSpellListClassesForCharacter(className, level, subclassId)
   );
 
   return preparedSpellEntries.filter((spell) => {
@@ -346,15 +354,21 @@ export function getAlwaysPreparedSpellIds(
 export function getDefaultCantripIdsForCharacter(
   className: string,
   level: number,
-  classFeatureState?: CharacterClassFeatureState
+  classFeatureState?: CharacterClassFeatureState,
+  subclassId?: string
 ): string[] {
-  const cantripLimit = getCantripLimitForCharacter(className, level, classFeatureState);
+  const cantripLimit = getCantripLimitForCharacter(
+    className,
+    level,
+    classFeatureState,
+    subclassId
+  );
 
   if (cantripLimit === null || cantripLimit <= 0) {
     return [];
   }
 
-  return getCantripSelectionOptionsForCharacter(className, level)
+  return getCantripSelectionOptionsForCharacter(className, level, subclassId)
     .slice(0, cantripLimit)
     .map((spell) => spell.id);
 }

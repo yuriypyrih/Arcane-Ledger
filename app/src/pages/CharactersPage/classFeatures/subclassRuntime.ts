@@ -35,6 +35,7 @@ export type SubclassDerivedFeatureState = {
   featureActionOptions?: Partial<Record<string, FeatureActionOptionCard[]>>;
   weaponActions?: WeaponAction[];
   transformFeatureAction?: (action: FeatureActionCard) => FeatureActionCard;
+  transformWeaponAction?: (action: WeaponAction) => WeaponAction;
   getSavingThrowBonuses?: (ability: AbilityKey) => FeatureSavingThrowBonus[];
   savingThrowIndicators?: SavingThrowIndicatorMap;
   abilityCheckIndicators?: AbilityCheckIndicatorMap;
@@ -60,6 +61,7 @@ export type SubclassDerivedFeatureState = {
   armorProficiencyEntries?: FeatureArmorProficiencyEntry[];
   languageProficiencyEntries?: FeatureLanguageProficiencyEntry[];
   alwaysPreparedSpellIds?: string[];
+  ritualOnlySpellIds?: string[];
   derivedStatusEntries?: DerivedFeatureStatusEntry[];
   reactionEntries?: ReactionEntry[];
   spellDamageFormulaOverrides?: Record<string, string>;

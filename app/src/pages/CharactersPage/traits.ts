@@ -5,6 +5,7 @@ import {
   sorcererFeatureMap
 } from "../../codex/classes";
 import { divineForeknowledgeDescription } from "../../codex/subclasses/cleric";
+import { banneretTeamTacticsDescription } from "../../codex/subclasses/fighterBanneret";
 import {
   aquaticAffinityWrathOfTheSeaDescription,
   naturesSanctuaryDescription,
@@ -29,6 +30,7 @@ import {
   type ImmunityValue
 } from "../../types";
 import { formatCodexLabel } from "../../utils/codex";
+import { fighterBanneretTeamTacticsStatusSourceId } from "./classFeatures/fighter/subclasses/fighterBanneretShared";
 import { getKeywordDescriptionLines } from "./keywordDescriptions";
 import { clampInteger } from "./shared";
 
@@ -1209,6 +1211,10 @@ export function getStatusEntryDescriptionEntries(
         "A current effect or trait that may change how your character plays."
       ]
     );
+  }
+
+  if (entry.sourceId === fighterBanneretTeamTacticsStatusSourceId) {
+    return [...banneretTeamTacticsDescription];
   }
 
   if (entry.sourceId === unbreakableMajestyStatusSourceId) {

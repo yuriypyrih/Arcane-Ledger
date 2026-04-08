@@ -164,6 +164,7 @@ export type Character = {
   preparedSpellIds?: string[];
   spellSlotsExpended?: number[];
   shortRestsUsedToday?: number;
+  heroicInspiration: boolean;
   coreStats?: CoreStats;
   classFeatureState?: CharacterClassFeatureState;
   feats?: CharacterFeatEntry[];
@@ -204,6 +205,7 @@ export type CharacterDraft = {
   preparedSpellIds?: string[];
   spellSlotsExpended?: number[];
   shortRestsUsedToday?: number;
+  heroicInspiration: boolean;
   coreStats?: CoreStats;
   classFeatureState?: CharacterClassFeatureState;
   feats?: CharacterFeatEntry[];

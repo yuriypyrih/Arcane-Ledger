@@ -48,6 +48,8 @@ import {
   convertSpellSlotToSorceryPointsForCharacter,
   consumeNonMagicActionForCharacter,
   consumeWeaponAttackActionForCharacter,
+  createEconomyMultiContextForFeatureAction,
+  createEconomyMultiContextForFeatureActionOption,
   getBardicInspirationDieForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
@@ -60,6 +62,7 @@ import {
   getLayOnHandsCurableConditionsForCharacter,
   getPaladinHealingPoolRemainingForCharacter,
   getSavingThrowBonusesForCharacter,
+  getSharedEconomyMultiCountForCharacterAction,
   getSpellEntryForCharacter,
   getSpellcastingStateForCharacter,
   hasBattleMagicBonusWeaponAttackForCharacter,
@@ -68,7 +71,6 @@ import {
   hasSorcererArcaneApotheosisFreeMetamagicAvailableForCharacter,
   markFeatureWeaponBonusUseForCharacter,
   spendSorcererMetamagicOptionsForCharacter,
-  getNonMagicActionEconomyMultiForCharacter,
   type FeatureActionCard,
   type FeatureActionExecuteConfig,
   type FeatureActionOptionCard
@@ -99,6 +101,11 @@ import {
   getBarbarianPowerOfTheWildsOptions
 } from "../../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
 import {
+  applyFighterTeamTacticsStatus,
+  consumeFighterGroupRecoveryUse,
+  getFighterGroupRecoveryHealingFormula,
+  getFighterGroupRecoveryUsesRemaining,
+  getFighterGroupRecoveryUsesTotal,
   fighterIndomitableActionKey,
   fighterSecondWindActionKey,
   fighterTacticalMindActionKey,
@@ -198,12 +205,17 @@ import divineStyles from "./DivineInterventionModal.module.css";
 import GameplayActionDrawer from "./GameplayActionDrawer";
 import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
 import DruidStarryFormActionBody from "./DruidStarryFormActionBody";
+import {
+  FighterSecondWindActionBody,
+  FighterSecondWindActionFooter
+} from "./FighterSecondWindAction";
 import RadioOption from "./RadioOption";
 import {
   appendRollModifier,
   formatWildShapeMonsterMeta,
   getWeaponAttackFormulaPresentation,
   getWeaponDamageFormulaPresentation,
+  getWeaponDrawerDescription,
   getWeaponDrawerDetails
 } from "./actionsWidgetPresentation";
 import {
@@ -286,24 +298,6 @@ function getDivineInterventionLevelGroups(spells: SpellEntry[]): Record<number, 
 
     return groups;
   }, {});
-}
-
-function getSelectedActionRoundTrackerWarning(
-  action: GameplayActionDefinition | null,
-  roundTracker: RoundTrackerAvailability
-) {
-  if (!action) {
-    return null;
-  }
-
-  if (action.kind === "feature" && action.action.ignoreEconomyAvailability) {
-    return null;
-  }
-
-  return getRoundTrackerActionWarning(
-    getRoundTrackerResourceForEconomyType(action.economyType),
-    roundTracker
-  );
 }
 
 function getWeaponBattleMagicWarning(
@@ -1630,6 +1624,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     useState<MysticArcanumLevel | null>(null);
   const [useBeguilingMagicOnActionSpell, setUseBeguilingMagicOnActionSpell] = useState(false);
   const [isInspiredEclipseSelected, setIsInspiredEclipseSelected] = useState(false);
+  const [isGroupRecoverySelected, setIsGroupRecoverySelected] = useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   const roundTracker = normalizeRoundTracker(character.roundTracker);
@@ -1792,8 +1787,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     [selectedWeaponAction]
   );
   const selectedWeaponDescription = useMemo(
-    () => (selectedWeaponEntry?.summary?.trim() ? [selectedWeaponEntry.summary.trim()] : []),
-    [selectedWeaponEntry]
+    () =>
+      selectedWeaponAction
+        ? getWeaponDrawerDescription(selectedWeaponAction, selectedWeaponEntry?.summary)
+        : [],
+    [selectedWeaponAction, selectedWeaponEntry]
   );
   const selectedWeaponRollState = useMemo(
     () => (selectedWeaponAction ? resolveFeatureIndicators(selectedWeaponAction.indicators) : null),
@@ -1859,20 +1857,54 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedFeatureAction?.key === barbarianRageActionKey
       ? getBarbarianRageOfTheGodsUsesRemaining(character)
       : 0;
+  const selectedSecondWindHealingFormula =
+    selectedFeatureAction?.key === fighterSecondWindActionKey
+      ? getFighterSecondWindHealingFormula(character)
+      : null;
+  const selectedSecondWindGroupRecoveryUsesTotal =
+    selectedFeatureAction?.key === fighterSecondWindActionKey
+      ? getFighterGroupRecoveryUsesTotal(character)
+      : 0;
+  const selectedSecondWindGroupRecoveryUsesRemaining =
+    selectedFeatureAction?.key === fighterSecondWindActionKey
+      ? getFighterGroupRecoveryUsesRemaining(character)
+      : 0;
+  const selectedSecondWindGroupRecoveryFormula =
+    selectedSecondWindGroupRecoveryUsesTotal > 0
+      ? getFighterGroupRecoveryHealingFormula(character)
+      : null;
   const selectedDrawerOption = useMemo(
     () =>
       selectedDrawerOptions.find((option) => selectedActionOptionKeys.includes(option.key)) ?? null,
     [selectedActionOptionKeys, selectedDrawerOptions]
   );
+  const selectedOptionEconomyShapeState = useMemo(() => {
+    if (!selectedDrawerOption) {
+      return null;
+    }
+
+    const sharedEconomyMultiCount = getSharedEconomyMultiCountForCharacterAction(
+      character,
+      createEconomyMultiContextForFeatureActionOption(selectedDrawerOption)
+    );
+
+    return getEconomyShapeState(
+      selectedDrawerOption.economyType,
+      roundTracker,
+      (selectedDrawerOption.economyMultiCount ?? 0) + sharedEconomyMultiCount
+    );
+  }, [character, roundTracker, selectedDrawerOption]);
   const selectedOptionWarning = useMemo(
     () =>
       selectedDrawerOption
-        ? getRoundTrackerActionWarning(
-            getRoundTrackerResourceForEconomyType(selectedDrawerOption.economyType),
-            roundTracker
-          )
+        ? selectedOptionEconomyShapeState
+          ? selectedOptionEconomyShapeState.disabledReason
+          : getRoundTrackerActionWarning(
+              getRoundTrackerResourceForEconomyType(selectedDrawerOption.economyType),
+              roundTracker
+            )
         : null,
-    [roundTracker, selectedDrawerOption]
+    [roundTracker, selectedDrawerOption, selectedOptionEconomyShapeState]
   );
   const selectedMetamagicCost = useMemo(
     () =>
@@ -1890,15 +1922,22 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return null;
     }
 
+    const sharedEconomyMultiCount =
+      selectedAction.kind === "feature"
+        ? getSharedEconomyMultiCountForCharacterAction(
+            character,
+            createEconomyMultiContextForFeatureAction(selectedAction.action)
+          )
+        : getSharedEconomyMultiCountForCharacterAction(character, {
+            economyType: selectedAction.action.economyType,
+            actionCategory: selectedAction.action.actionCategory,
+            attackKind: selectedAction.action.attackKind
+          });
+
     return getEconomyShapeState(
       selectedAction.economyType,
       roundTracker,
-      (selectedAction.economyMultiCount ?? 0) +
-        (selectedAction.kind === "feature" &&
-        selectedAction.action.economyType === "action" &&
-        selectedAction.action.actionCategory !== "magic"
-          ? getNonMagicActionEconomyMultiForCharacter(character)
-          : 0)
+      (selectedAction.economyMultiCount ?? 0) + sharedEconomyMultiCount
     );
   }, [character, roundTracker, selectedAction]);
   const selectedActionSecondaryEconomyShapeState = useMemo(() => {
@@ -1912,10 +1951,22 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     return getEconomyShapeState("bonus_action", roundTracker);
   }, [character, roundTracker, selectedAction]);
-  const selectedActionPrimaryWarning = getSelectedActionRoundTrackerWarning(
-    selectedAction,
-    roundTracker
-  );
+  const selectedActionPrimaryWarning = useMemo(() => {
+    if (!selectedAction) {
+      return null;
+    }
+
+    if (selectedAction.kind === "feature" && selectedAction.action.ignoreEconomyAvailability) {
+      return null;
+    }
+
+    return selectedActionEconomyShapeState
+      ? selectedActionEconomyShapeState.disabledReason
+      : getRoundTrackerActionWarning(
+          getRoundTrackerResourceForEconomyType(selectedAction.economyType),
+          roundTracker
+        );
+  }, [roundTracker, selectedAction, selectedActionEconomyShapeState]);
   const selectedActionSecondaryWarning =
     selectedAction?.kind === "weapon"
       ? getWeaponBattleMagicWarning(selectedAction.action, character, roundTracker)
@@ -2073,6 +2124,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedMysticArcanumSpell(null);
     setSelectedMysticArcanumSpellLevel(null);
     setIsInspiredEclipseSelected(false);
+    setIsGroupRecoverySelected(false);
     setSelectedActionKey(null);
   }
 
@@ -2113,6 +2165,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedRageOptionKey(null);
     setSelectedRagePowerOptionKey(null);
     setIsRageOfTheGodsSelected(false);
+    setIsGroupRecoverySelected(false);
   }, [selectedActionKey]);
 
   useEffect(() => {
@@ -2366,7 +2419,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       }
 
       if (action.economyType === "action" && action.actionCategory !== "magic") {
-        return consumeNonMagicActionForCharacter(characterToUpdate);
+        return consumeNonMagicActionForCharacter(characterToUpdate, action);
       }
 
       return roundTrackerResource
@@ -2400,7 +2453,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             : nextCharacter;
 
         if (action.economyType === "action" && action.actionCategory !== "magic") {
-          return consumeNonMagicActionForCharacter(nextCharacterWithInspiredEclipse);
+          return consumeNonMagicActionForCharacter(nextCharacterWithInspiredEclipse, action);
         }
 
         return roundTrackerResource
@@ -2433,25 +2486,41 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         }
 
         const healingFormula = getFighterSecondWindHealingFormula(currentCharacter);
+        const groupRecoveryFormula = getFighterGroupRecoveryHealingFormula(currentCharacter);
         const healingResult = rollFormulaWithDice(healingFormula, "normal");
+        const usesGroupRecovery =
+          isGroupRecoverySelected && getFighterGroupRecoveryUsesRemaining(currentCharacter) > 0;
+        const nextCharacterWithGroupRecovery = usesGroupRecovery
+          ? consumeFighterGroupRecoveryUse(nextCharacter)
+          : nextCharacter;
+        const nextCharacterWithBanneretEffects = usesGroupRecovery
+          ? applyFighterTeamTacticsStatus(nextCharacterWithGroupRecovery)
+          : nextCharacterWithGroupRecovery;
         openDiceRoller({
           title: "Second Wind",
           formula: healingFormula,
           formulaDisplay: healingFormula,
-          description: action.detail
+          description: usesGroupRecovery
+            ? `${action.detail} Group Recovery: each chosen ally regains Hit Points equal to ${groupRecoveryFormula}.`
+            : action.detail
         });
-        const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter(nextCharacter);
+        const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter(
+          nextCharacterWithBanneretEffects
+        );
         const nextCurrentHitPoints = Math.max(
           0,
-          Math.min(nextEffectiveHitPoints, nextCharacter.currentHitPoints + healingResult.total)
+          Math.min(
+            nextEffectiveHitPoints,
+            nextCharacterWithBanneretEffects.currentHitPoints + healingResult.total
+          )
         );
         const healedCharacter = reconcileCharacterStatusConsequences({
-          ...nextCharacter,
+          ...nextCharacterWithBanneretEffects,
           currentHitPoints: nextCurrentHitPoints,
           deathSaves:
             nextCurrentHitPoints > 0
               ? createDefaultDeathSaves()
-              : normalizeDeathSaves(nextCharacter.deathSaves)
+              : normalizeDeathSaves(nextCharacterWithBanneretEffects.deathSaves)
         });
         return roundTrackerResource
           ? consumeRoundTrackerResourceForCharacter(healedCharacter, roundTrackerResource)
@@ -2648,7 +2717,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       }
 
       if (option.economyType === "action" && option.actionCategory !== "magic") {
-        return consumeNonMagicActionForCharacter(nextCharacter);
+        return consumeNonMagicActionForCharacter(nextCharacter, option);
       }
 
       return roundTrackerResource
@@ -3338,6 +3407,20 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       );
     }
 
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.action.key === fighterSecondWindActionKey
+    ) {
+      return (
+        <FighterSecondWindActionBody
+          healingFormula={
+            selectedSecondWindHealingFormula ?? getFighterSecondWindHealingFormula(character)
+          }
+          groupRecoveryFormula={selectedSecondWindGroupRecoveryFormula}
+        />
+      );
+    }
+
     if (selectedAction.drawer.kind === "options") {
       return (
         <FeatureOptionsActionBody
@@ -3584,6 +3667,32 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedAction.kind === "feature" &&
       selectedAction.drawer.kind === "confirm" &&
       selectedAction.execute.kind === "activate" &&
+      selectedAction.action.key === fighterSecondWindActionKey
+    ) {
+      return (
+        <FighterSecondWindActionFooter
+          confirmLabel={selectedAction.drawer.confirmLabel ?? "Use Second Wind"}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={
+            selectedActionWarning !== null ||
+            (isGroupRecoverySelected && selectedSecondWindGroupRecoveryUsesRemaining <= 0)
+          }
+          groupRecoveryUnlocked={selectedSecondWindGroupRecoveryUsesTotal > 0}
+          groupRecoveryUsesRemaining={selectedSecondWindGroupRecoveryUsesRemaining}
+          groupRecoveryUsesTotal={selectedSecondWindGroupRecoveryUsesTotal}
+          isGroupRecoverySelected={isGroupRecoverySelected}
+          onConfirm={() => executeFeatureActivate(selectedAction.action)}
+          onGroupRecoverySelectedChange={setIsGroupRecoverySelected}
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
       selectedAction.execute.effectKind === "bardic-inspiration-roll"
     ) {
       const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
@@ -3652,17 +3761,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           }
         >
           <span>{selectedAction.drawer.confirmLabel ?? "Confirm"}</span>
-          {selectedOptionShape ? (
+          {selectedOptionShape && selectedOptionEconomyShapeState ? (
             <ActionShape
               shape={selectedOptionShape}
-              isSelected={
-                selectedOption
-                  ? getRoundTrackerActionWarning(
-                      getRoundTrackerResourceForEconomyType(selectedOption.economyType),
-                      roundTracker
-                    ) === null
-                  : true
-              }
+              isSelected={selectedOptionEconomyShapeState.isAvailable}
+              multiCount={selectedOptionEconomyShapeState.multiCount}
               className={styles.footerActionShape}
             />
           ) : null}
@@ -3890,6 +3993,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                 <WeaponActionCard
                   key={combatAction.key}
                   action={combatAction.action}
+                  character={character}
                   secondaryEconomyType={
                     hasBattleMagicBonusWeaponAttackForCharacter(
                       character,

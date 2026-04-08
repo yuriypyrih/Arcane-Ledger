@@ -53,9 +53,14 @@ export function getSpellSelectionInputStatusForCharacter(
   const cantripLimit = getCantripLimitForCharacter(
     character.className,
     character.level,
-    character.classFeatureState
+    character.classFeatureState,
+    character.subclassId
   );
-  const cantripOptions = getCantripSelectionOptionsForCharacter(character.className, character.level);
+  const cantripOptions = getCantripSelectionOptionsForCharacter(
+    character.className,
+    character.level,
+    character.subclassId
+  );
   const selectedCantripIds = normalizeTrackedSpellIds(
     character.cantripIds,
     cantripOptions,
@@ -66,12 +71,21 @@ export function getSpellSelectionInputStatusForCharacter(
     selectedCantripIds.length < cantripLimit &&
     cantripOptions.length > selectedCantripIds.length;
 
-  const preparedSpellLimit = getPreparedSpellLimitForCharacter(character.className, character.level);
-  const usesPreparedSpells = usesPreparedSpellsForCharacter(character.className, character.level);
-  const usesSpellbook = usesSpellbookForCharacter(character.className);
+  const preparedSpellLimit = getPreparedSpellLimitForCharacter(
+    character.className,
+    character.level,
+    character.subclassId
+  );
+  const usesPreparedSpells = usesPreparedSpellsForCharacter(
+    character.className,
+    character.level,
+    character.subclassId
+  );
+  const usesSpellbook = usesSpellbookForCharacter(character.className, character.subclassId);
   const spellPreparationOptions = getPreparedSpellSelectionOptionsForCharacter(
     character.className,
-    character.level
+    character.level,
+    character.subclassId
   );
   const alwaysPreparedSpellIds = getAlwaysPreparedSpellIds(
     character.className,

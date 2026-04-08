@@ -6,12 +6,14 @@ import { MAGIC_SCHOOL, type SpellEntry } from "../../../../../codex/entries";
 import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
 import {
   consumeBeguilingMagicOrBardicInspirationForCharacter,
+  consumeFighterIndomitableUseForCharacter,
   expendBardicInspirationUseForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
   getBeguilingMagicUsesTotalForCharacter,
   getDerivedFeatureStatusEntriesForCharacter,
   getDruidWildShapeActiveFormForCharacter,
+  getFighterIndomitableUsesRemainingForCharacter,
   getFeatureReactionEntriesForCharacter,
   getSpellcastingStateForCharacter,
   removeFeatureStatusEntryForCharacter
@@ -113,28 +115,33 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   const [useBeguilingMagicOnReactionSpell, setUseBeguilingMagicOnReactionSpell] = useState(false);
 
   const roundTracker = normalizeRoundTracker(character.roundTracker);
-  const classSpellEntries = useClassSpellEntries(character.className);
+  const classSpellEntries = useClassSpellEntries(character.className, character.subclassId);
   const featGrantedCantripEntries = useMemo(
     () => getFeatGrantedCantripEntriesForCharacter(character),
     [character]
   );
-  const preparedSpellPoolEntries = usePreparedSpellEntries(character.className, character.level);
+  const preparedSpellPoolEntries = usePreparedSpellEntries(
+    character.className,
+    character.level,
+    character.subclassId
+  );
   const cantripLimit = useMemo(
     () =>
       getCantripLimitForCharacter(
         character.className,
         character.level,
-        character.classFeatureState
+        character.classFeatureState,
+        character.subclassId
       ),
-    [character.classFeatureState, character.className, character.level]
+    [character.classFeatureState, character.className, character.level, character.subclassId]
   );
   const preparedSpellLimit = useMemo(
-    () => getPreparedSpellLimitForCharacter(character.className, character.level),
-    [character.className, character.level]
+    () => getPreparedSpellLimitForCharacter(character.className, character.level, character.subclassId),
+    [character.className, character.level, character.subclassId]
   );
   const spellSlotTotals = useMemo(
-    () => getSpellSlotTotalsForCharacter(character.className, character.level),
-    [character.className, character.level]
+    () => getSpellSlotTotalsForCharacter(character.className, character.level, character.subclassId),
+    [character.className, character.level, character.subclassId]
   );
   const spellSlotsExpended = useMemo(
     () => normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals),
@@ -164,8 +171,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     ]
   );
   const usesPreparedSpells = useMemo(
-    () => usesPreparedSpellsForCharacter(character.className, character.level),
-    [character.className, character.level]
+    () => usesPreparedSpellsForCharacter(character.className, character.level, character.subclassId),
+    [character.className, character.level, character.subclassId]
   );
   const alwaysPreparedSpellIds = useMemo(
     () =>
@@ -320,9 +327,15 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     setUseBeguilingMagicOnReactionSpell(false);
   }, [selectedReactionSpell?.id]);
   const selectedReactionResourceWarning =
-    selectedReactionEntry?.id === "reaction-cutting-words" && bardicInspirationUsesRemaining <= 0
-      ? "No Bardic Inspiration uses remaining."
-      : null;
+    selectedReactionEntry?.id === "reaction-cutting-words"
+      ? bardicInspirationUsesRemaining <= 0
+        ? "No Bardic Inspiration uses remaining."
+        : null
+      : selectedReactionEntry?.id === "reaction-banneret-shared-resilience"
+        ? getFighterIndomitableUsesRemainingForCharacter(character) <= 0
+          ? "No Indomitable uses remaining."
+          : null
+        : null;
   const selectedReactionActionWarning =
     getRoundTrackerActionWarning("reaction", roundTracker) ?? selectedReactionResourceWarning;
   const selectedReactionBlockedReason = spellcastingState.blocked ? spellcastingState.reason : null;
@@ -617,9 +630,15 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       const nextCharacter =
         selectedReactionEntry.id === "reaction-cutting-words"
           ? expendBardicInspirationUseForCharacter(currentCharacter)
+          : selectedReactionEntry.id === "reaction-banneret-shared-resilience"
+            ? consumeFighterIndomitableUseForCharacter(currentCharacter)
           : currentCharacter;
 
-      if (selectedReactionEntry.id === "reaction-cutting-words" && nextCharacter === currentCharacter) {
+      if (
+        (selectedReactionEntry.id === "reaction-cutting-words" ||
+          selectedReactionEntry.id === "reaction-banneret-shared-resilience") &&
+        nextCharacter === currentCharacter
+      ) {
         return currentCharacter;
       }
 

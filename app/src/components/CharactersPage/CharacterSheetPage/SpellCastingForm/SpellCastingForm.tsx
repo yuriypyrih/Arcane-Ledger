@@ -37,9 +37,8 @@ import {
   consumeDruidNaturalRecoveryUseForCharacter,
   consumeBlessingOfMoonlightUseForCharacter,
   activateFeatureActionOptionForCharacter,
-  canUseBardValorActionCantripForCharacter,
   consumeBeguilingMagicOrBardicInspirationForCharacter,
-  consumeBardValorActionCantripForCharacter,
+  consumeSharedEconomyMultiForCharacterAction,
   getBlessingOfMoonlightUsesRemainingForCharacter,
   getBlessingOfMoonlightUsesTotalForCharacter,
   getChannelDivinityUsesRemainingForCharacter,
@@ -51,8 +50,10 @@ import {
   getDruidNaturalRecoveryUsesRemainingForCharacter,
   getFeatureActionsForCharacter,
   getFeatureActionOptionsForCharacter,
-  getWeaponActionEconomyMultiForCharacter,
   hasActiveMantleOfMajestyForCharacter,
+  getRitualOnlySpellIdsForCharacter,
+  createEconomyMultiContextForSpell,
+  getSharedEconomyMultiCountForCharacterAction,
   getSpellEntryForCharacter,
   getSpellcastingStateForCharacter,
   getWarlockEldritchInvocationLimitForCharacter,
@@ -250,14 +251,17 @@ function getRoundTrackerActionWarning(
 
 function getActionShapeStateForRoundTrackerResource(
   resource: RoundTrackerResource | null,
-  roundTracker: ReturnType<typeof normalizeRoundTracker>
+  roundTracker: ReturnType<typeof normalizeRoundTracker>,
+  multiCount = 0
 ): {
   isSelected: boolean;
   multiCount: number;
 } {
+  const isSelected = !resource || isRoundTrackerResourceAvailable(roundTracker, resource);
+
   return {
-    isSelected: !resource || isRoundTrackerResourceAvailable(roundTracker, resource),
-    multiCount: 0
+    isSelected,
+    multiCount: isSelected ? 0 : Math.max(0, Math.floor(multiCount))
   };
 }
 
@@ -352,7 +356,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     spellManagementMode
   ]);
 
-  const baseClassSpellEntries = useClassSpellEntries(character.className);
+  const baseClassSpellEntries = useClassSpellEntries(character.className, character.subclassId);
   const featGrantedCantripEntries = useMemo(
     () => getFeatGrantedCantripEntriesForCharacter(character),
     [character]
@@ -361,12 +365,17 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     () => getAlwaysPreparedSpellIdsForCharacter(character),
     [character]
   );
+  const featureRitualOnlySpellIds = useMemo(
+    () => getRitualOnlySpellIdsForCharacter(character),
+    [character]
+  );
   const basePreparedSpellPoolEntries = usePreparedSpellEntries(
     character.className,
-    character.level
+    character.level,
+    character.subclassId
   );
   const canCastSpells =
-    isSpellcastingClass(character.className, character.level) ||
+    isSpellcastingClass(character.className, character.level, character.subclassId) ||
     featGrantedCantripEntries.length > 0 ||
     featureAlwaysPreparedSpellIds.length > 0;
   const spellcastingState = getSpellcastingStateForCharacter(character);
@@ -469,19 +478,25 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     () => getChannelDivinityUsesRemainingForCharacter(character),
     [character]
   );
-  const usesPreparedSpells = usesPreparedSpellsForCharacter(character.className, character.level);
+  const usesPreparedSpells = usesPreparedSpellsForCharacter(
+    character.className,
+    character.level,
+    character.subclassId
+  );
   const cantripLimit = getCantripLimitForCharacter(
     character.className,
     character.level,
-    character.classFeatureState
+    character.classFeatureState,
+    character.subclassId
   );
   const preparedSpellLimit = getPreparedSpellLimitForCharacter(
     character.className,
-    character.level
+    character.level,
+    character.subclassId
   );
   const spellSlotTotals = useMemo(
-    () => getSpellSlotTotalsForCharacter(character.className, character.level),
-    [character.className, character.level]
+    () => getSpellSlotTotalsForCharacter(character.className, character.level, character.subclassId),
+    [character.className, character.level, character.subclassId]
   );
   const spellSlotsExpended = useMemo(
     () => normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals),
@@ -547,7 +562,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       }),
     [highestSpellSlotLevel, preparedSpellPoolEntries]
   );
-  const usesSpellbook = usesSpellbookForCharacter(character.className);
+  const usesSpellbook = usesSpellbookForCharacter(character.className, character.subclassId);
   const hasWizardRitualAdept =
     usesSpellbook &&
     hasClassFeatureForCharacter(character.className, character.level, CLASS_FEATURE.RITUAL_ADEPT);
@@ -826,23 +841,25 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellRoundTrackerResource = selectedSpell
     ? getRoundTrackerResourceForSpell(selectedSpell)
     : null;
+  const selectedSpellSharedMultiCount =
+    selectedSpell !== null
+      ? getSharedEconomyMultiCountForCharacterAction(
+          character,
+          createEconomyMultiContextForSpell(selectedSpell)
+        )
+      : 0;
   const selectedSpellActionWarning =
     selectedSpellRoundTrackerResource === "action" &&
     selectedSpell !== null &&
     !isRoundTrackerResourceAvailable(roundTracker, "action") &&
-    canUseBardValorActionCantripForCharacter(character, selectedSpell)
+    selectedSpellSharedMultiCount > 0
       ? null
       : getRoundTrackerActionWarning(selectedSpellRoundTrackerResource, roundTracker);
-  const selectedSpellActionShapeState =
-    selectedSpellRoundTrackerResource === "action" &&
-    selectedSpell !== null &&
-    !isRoundTrackerResourceAvailable(roundTracker, "action") &&
-    canUseBardValorActionCantripForCharacter(character, selectedSpell)
-      ? {
-          isSelected: false,
-          multiCount: getWeaponActionEconomyMultiForCharacter(character)
-        }
-      : getActionShapeStateForRoundTrackerResource(selectedSpellRoundTrackerResource, roundTracker);
+  const selectedSpellActionShapeState = getActionShapeStateForRoundTrackerResource(
+    selectedSpellRoundTrackerResource,
+    roundTracker,
+    selectedSpellSharedMultiCount
+  );
   const selectedDivinityActionWarning = getRoundTrackerActionWarning(
     selectedDivinityRow
       ? getRoundTrackerResourceForEconomyType(selectedDivinityRow.option.economyType)
@@ -852,6 +869,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellAlwaysPrepared = selectedSpell
     ? alwaysPreparedSpellIdSet.has(selectedSpell.id)
     : false;
+  const ritualOnlySpellIdSet = useMemo(
+    () => new Set(featureRitualOnlySpellIds),
+    [featureRitualOnlySpellIds]
+  );
   const selectedSpellIsWizardSpellMastery = selectedSpell
     ? wizardSpellMasterySpellIdSet.has(selectedSpell.id)
     : false;
@@ -870,6 +891,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellInSpellbook &&
     !selectedSpellAlwaysPrepared &&
     !selectedSpellPreparedNormally;
+  const selectedSpellCanOnlyBeCastAsRitual =
+    selectedSpell !== null && ritualOnlySpellIdSet.has(selectedSpell.id);
   const selectedSpellCanCastAsRitualFromSpellbook =
     selectedSpellIsSpellbookOnly && hasWizardRitualAdept && selectedSpell?.ritual === true;
   const selectedSpellHasSignatureSpellFreeCastAvailable =
@@ -927,19 +950,16 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
   function getSpellRowActionShapeState(spell: SpellEntry) {
     const roundTrackerResource = getRoundTrackerResourceForSpell(spell);
+    const sharedEconomyMultiCount = getSharedEconomyMultiCountForCharacterAction(
+      character,
+      createEconomyMultiContextForSpell(spell)
+    );
 
-    if (
-      roundTrackerResource === "action" &&
-      !isRoundTrackerResourceAvailable(roundTracker, "action") &&
-      canUseBardValorActionCantripForCharacter(character, spell)
-    ) {
-      return {
-        isSelected: false,
-        multiCount: getWeaponActionEconomyMultiForCharacter(character)
-      };
-    }
-
-    return getActionShapeStateForRoundTrackerResource(roundTrackerResource, roundTracker);
+    return getActionShapeStateForRoundTrackerResource(
+      roundTrackerResource,
+      roundTracker,
+      sharedEconomyMultiCount
+    );
   }
 
   function getDivinityRowActionShapeState(row: DivinityOptionRow) {
@@ -1169,7 +1189,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       onPersistCharacter((currentCharacter) => {
         const currentSpellSlotTotals = getSpellSlotTotalsForCharacter(
           currentCharacter.className,
-          currentCharacter.level
+          currentCharacter.level,
+          currentCharacter.subclassId
         );
         const currentSpellSlotsExpended = normalizeSpellSlotsExpended(
           currentCharacter.spellSlotsExpended,
@@ -1205,7 +1226,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     onPersistCharacter((currentCharacter) => {
       const currentSpellSlotTotals = getSpellSlotTotalsForCharacter(
         currentCharacter.className,
-        currentCharacter.level
+        currentCharacter.level,
+        currentCharacter.subclassId
       );
       const currentSpellSlotsExpended = normalizeSpellSlotsExpended(
         currentCharacter.spellSlotsExpended,
@@ -1458,11 +1480,15 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithBeguilingMagic)
             : nextCharacterWithBeguilingMagic;
 
-          if (
-            canUseBardValorActionCantripForCharacter(nextCharacterWithSpellOptions, selectedSpell)
-          ) {
+          const sharedEconomyContext = createEconomyMultiContextForSpell(selectedSpell);
+          const nextCharacterWithSharedMulti = consumeSharedEconomyMultiForCharacterAction(
+            nextCharacterWithSpellOptions,
+            sharedEconomyContext
+          );
+
+          if (nextCharacterWithSharedMulti !== nextCharacterWithSpellOptions) {
             return applyBardBattleMagicAfterSpellCastForCharacter(
-              consumeBardValorActionCantripForCharacter(nextCharacterWithSpellOptions),
+              nextCharacterWithSharedMulti,
               selectedSpell
             );
           }
@@ -1564,7 +1590,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       );
       const currentSpellSlotTotals = getSpellSlotTotalsForCharacter(
         preparedCharacter.className,
-        preparedCharacter.level
+        preparedCharacter.level,
+        preparedCharacter.subclassId
       );
       const currentSpellSlotsExpended = normalizeSpellSlotsExpended(
         preparedCharacter.spellSlotsExpended,
@@ -1602,11 +1629,23 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         nextCharacterWithNaturalRecovery,
         selectedSpell
       );
+      const sharedEconomyContext = createEconomyMultiContextForSpell(selectedSpell);
+      const nextCharacterWithSharedMulti =
+        roundTrackerResource === "action"
+          ? consumeSharedEconomyMultiForCharacterAction(
+              nextCharacterWithBattleMagic,
+              sharedEconomyContext
+            )
+          : nextCharacterWithBattleMagic;
+
+      if (nextCharacterWithSharedMulti !== nextCharacterWithBattleMagic) {
+        return nextCharacterWithSharedMulti;
+      }
 
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithBattleMagic,
-            roundTrackerResource
+          nextCharacterWithBattleMagic,
+          roundTrackerResource
           )
         : nextCharacterWithBattleMagic;
     });
@@ -2222,11 +2261,18 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               useNaturalRecovery: useNaturalRecoveryOnSelectedSpell
             })
           }
-          actionConsumesSpellSlot={!selectedSpellIsSpellbookOnly}
+          actionConsumesSpellSlot={
+            !selectedSpellIsSpellbookOnly && !selectedSpellCanOnlyBeCastAsRitual
+          }
           freeCastSlotLevel={selectedSpellFreeCastSlotLevel}
-          allowRitualCasting={selectedSpellCanCastAsRitualFromSpellbook}
+          allowRitualCasting={
+            selectedSpellCanCastAsRitualFromSpellbook || selectedSpellCanOnlyBeCastAsRitual
+          }
+          ritualCastingRequired={selectedSpellCanOnlyBeCastAsRitual}
           actionAvailabilityText={
-            selectedSpellUnderMantleOfMajesty
+            selectedSpellCanOnlyBeCastAsRitual
+              ? "Knightly Envoy lets you cast this spell only as a Ritual without expending a spell slot."
+              : selectedSpellUnderMantleOfMajesty
               ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
               : null
           }

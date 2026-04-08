@@ -1,5 +1,6 @@
 import type {
   LanguageProficiency,
+  LANGUAGE_PROFICIENCY,
   SAVING_THROW_PROFICIENCY,
   WEAPON_PROFICIENCY
 } from "./proficiencies";
@@ -147,8 +148,15 @@ export type CharacterFighterFeatureState = {
   actionSurgeUsedThisTurn?: boolean;
   actionSurgeExtraActionsRemainingThisTurn?: number;
   indomitableUsesExpended?: number;
+  battleMasterSuperiorityDiceExpended?: number;
+  battleMasterManeuverIds?: string[];
+  psiWarriorEnergyDiceExpended?: number;
   weaponMasteries?: WEAPON_PROFICIENCY[];
   extraAttacksRemainingThisTurn?: number;
+  eldritchKnightWarMagicUsesThisTurn?: number;
+  banneretKnightlyEnvoyLanguage?: LANGUAGE_PROFICIENCY;
+  banneretKnightlyEnvoySkill?: SkillName;
+  banneretGroupRecoveryUsesExpended?: number;
 };
 
 export type ClericDivineOrderChoice = "protector" | "thaumaturge";

@@ -126,7 +126,7 @@ export const fighterFeatures: FighterFeatureClassObj[] = [
   },
   {
     level: 17,
-    classFeatures: [CLASS_FEATURE.ACTION_SURGE, CLASS_FEATURE.INDOMITABLE],
+    classFeatures: [CLASS_FEATURE.INDOMITABLE],
     secondWind: 4,
     weaponMastery: 6
   },

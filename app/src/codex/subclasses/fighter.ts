@@ -5,6 +5,19 @@ import type {
   SubclassFeatureClassObj,
   SubclassFeatureLevel
 } from "../entries/types";
+import {
+  banneretBolsteredGroupRecoveryDescription,
+  banneretBolsteredRallyingSurgeDescription,
+  banneretGroupRecoveryDescription,
+  banneretRallyingSurgeDescription,
+  banneretSharedResilienceDescription,
+  banneretTeamTacticsDescription
+} from "./fighterBanneret";
+import { fighterBattleMasterManeuverOptionsDescription } from "./fighterBattleMaster";
+import {
+  fighterChampionImprovedCriticalDescription,
+  fighterChampionSuperiorCriticalDescription
+} from "./fighterChampion";
 
 const SUBCLASS_FEATURE_LEVELS = {
   LEVEL_3: 3,
@@ -49,48 +62,43 @@ export const fighterSubclassEntries: SubclassEntry[] = [
         ...notTracked
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.GROUP_RECOVERY, {
-        description: [
-          "When you use your Second Wind to regain Hit Points, you can choose a number of allies within a 30-foot <link:Emanation>Emanation</link> originating from yourself, up to a number of allies equal to your <link:CHA>Charisma</link> modifier (minimum of one).",
-          "Each of those allies regains Hit Points equal to 1d4 plus your Fighter level.",
-          "Once you use this ability, you can't use it again until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>."
-        ],
+        description: [...banneretGroupRecoveryDescription],
         ...notTracked
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.TEAM_TACTICS, {
-        description: [
-          "When you use Group Recovery, each chosen ally has <link:Advantage>Advantage</link> on D20 Tests until the start of your next turn."
-        ],
+        description: [...banneretTeamTacticsDescription],
         ...notTracked
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.RALLYING_SURGE, {
-        description: [
-          "When you use your Action Surge, you can choose allies within a 30-foot <link:Emanation>Emanation</link> originating from yourself, up to a number of allies equal to your <link:CHA>Charisma</link> modifier (minimum of one).",
-          "Each of those allies can immediately take a Reaction to use one of the following options.",
-          "<strong>Attack.</strong> The ally makes one attack with a weapon or an Unarmed Strike.",
-          "<strong>Move.</strong> The ally moves up to half its <link:Speed>Speed</link> without provoking an Opportunity Attack."
-        ],
+        description: [...banneretRallyingSurgeDescription],
         ...notTracked
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_15, CLASS_FEATURE.SHARED_RESILIENCE, {
-        description: [
-          "When an ally you can see within 60 feet of yourself fails a saving throw, you can take a Reaction to expend a use of your Indomitable feature.",
-          "The ally can immediately reroll the saving throw with a bonus equal to your Fighter level.",
-          "The ally must use the new roll."
-        ],
+        description: [...banneretSharedResilienceDescription],
         ...notTracked
       }),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_18,
-        CLASS_FEATURE.INSPIRING_COMMANDER,
-        {
-          description: [
-            "You gain the following benefits.",
-            "<strong>Bolstered Rally.</strong> The area of effect for both Group Recovery and Rallying Surge is now a 60-foot <link:Emanation>Emanation</link>.",
-            "<strong>Unshakable Bravery.</strong> You have <link:Immunity>Immunity</link> to the <link:Charmed>Charmed</link> and <link:Frightened>Frightened</link> conditions."
-          ],
-          ...notTracked
+      {
+        level: SUBCLASS_FEATURE_LEVELS.LEVEL_18,
+        classFeatures: [CLASS_FEATURE.INSPIRING_COMMANDER],
+        featureOverrides: {
+          [CLASS_FEATURE.INSPIRING_COMMANDER]: {
+            description: [
+              "You gain the following benefits.",
+              "<strong>Bolstered Rally.</strong> The area of effect for both Group Recovery and Rallying Surge is now a <strong>60-foot</strong> <link:Emanation>Emanation</link>.",
+              "<strong>Unshakable Bravery.</strong> You have <link:Immunity>Immunity</link> to the <link:Charmed>Charmed</link> and <link:Frightened>Frightened</link> conditions."
+            ],
+            ...notTracked
+          },
+          [CLASS_FEATURE.GROUP_RECOVERY]: {
+            description: [...banneretBolsteredGroupRecoveryDescription],
+            ...notTracked
+          },
+          [CLASS_FEATURE.RALLYING_SURGE]: {
+            description: [...banneretBolsteredRallyingSurgeDescription],
+            ...notTracked
+          }
         }
-      )
+      }
     ]
   },
   {
@@ -119,30 +127,7 @@ export const fighterSubclassEntries: SubclassEntry[] = [
         ...notTracked
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.MANEUVER_OPTIONS, {
-        description: [
-          "The maneuvers are presented here in alphabetical order.",
-          "<strong>Ambush.</strong> When you make a Dexterity (<link:Stealth>Stealth</link>) check or an <link:Initiative>Initiative</link> roll, you can expend one Superiority Die and add the die to the roll, unless you have the <link:Incapacitated>Incapacitated</link> condition.",
-          "<strong>Bait and Switch.</strong> When you're within 5 feet of a creature on your turn, you can expend one Superiority Die and switch places with that creature, provided you spend at least 5 feet of movement and the creature is willing and doesn't have the <link:Incapacitated>Incapacitated</link> condition. This movement doesn't provoke Opportunity Attacks.",
-          "Roll the Superiority Die. Until the start of your next turn, you or the other creature (your choice) gains a bonus to <link:Armor Class>AC</link> equal to the number rolled.",
-          "<strong>Commander's Strike.</strong> When you take the Attack action on your turn, you can replace one of your attacks to direct one of your companions to strike. When you do so, choose a willing creature who can see or hear you and expend one Superiority Die. That creature can immediately use its Reaction to make one attack with a weapon or an Unarmed Strike, adding the Superiority Die to the attack's damage roll on a hit.",
-          "<strong>Commanding Presence.</strong> When you make a Charisma (<link:Intimidation>Intimidation</link>, <link:Performance>Performance</link>, or <link:Persuasion>Persuasion</link>) check, you can expend one Superiority Die and add that die to the roll.",
-          "<strong>Disarming Attack.</strong> When you hit a creature with an attack roll, you can expend one Superiority Die to attempt to disarm the target. Add the Superiority Die roll to the attack's damage roll. The target must succeed on a <link:Strength Saving Throw>Strength saving throw</link> or drop one object of your choice that it's holding, with the object landing in its space.",
-          "<strong>Distracting Strike.</strong> When you hit a creature with an attack roll, you can expend one Superiority Die to distract the target. Add the Superiority Die roll to the attack's damage roll. The next attack roll against the target by an attacker other than you has <link:Advantage>Advantage</link> if the attack is made before the start of your next turn.",
-          "<strong>Evasive Footwork.</strong> As a Bonus Action, you can expend one Superiority Die and take the Disengage action. You also roll the die and add the number rolled to your <link:Armor Class>AC</link> until the start of your next turn.",
-          "<strong>Feinting Attack.</strong> As a Bonus Action, you can expend one Superiority Die to feint, choosing one creature within 5 feet of yourself as your target. You have <link:Advantage>Advantage</link> on your next attack roll against that target this turn. If that attack hits, add the Superiority Die to the attack's damage roll.",
-          "<strong>Goading Attack.</strong> When you hit a creature with an attack roll, you can expend one Superiority Die to attempt to goad the target into attacking you. Add the Superiority Die to the attack's damage roll. The target must succeed on a <link:Wisdom Saving Throw>Wisdom saving throw</link> or have <link:Disadvantage>Disadvantage</link> on attack rolls against targets other than you until the end of your next turn.",
-          "<strong>Lunging Attack.</strong> As a Bonus Action, you can expend one Superiority Die and take the Dash action. If you move at least 5 feet in a straight line immediately before hitting with a melee attack as part of the Attack action on this turn, you can add the Superiority Die to the attack's damage roll.",
-          "<strong>Maneuvering Attack.</strong> When you hit a creature with an attack roll, you can expend one Superiority Die to maneuver one of your comrades into another position. Add the Superiority Die roll to the attack's damage roll, and choose a willing creature who can see or hear you. That creature can use its Reaction to move up to half its Speed without provoking an Opportunity Attack from the target of your attack.",
-          "<strong>Menacing Attack.</strong> When you hit a creature with an attack roll, you can expend one Superiority Die to attempt to frighten the target. Add the Superiority Die to the attack's damage roll. The target must succeed on a <link:Wisdom Saving Throw>Wisdom saving throw</link> or have the <link:Frightened>Frightened</link> condition until the end of your next turn.",
-          "<strong>Parry.</strong> When another creature damages you with a melee attack roll, you can take a Reaction and expend one Superiority Die to reduce the damage by the number you roll on your Superiority Die plus your <link:STR>Strength</link> or <link:DEX>Dexterity</link> modifier (your choice).",
-          "<strong>Precision Attack.</strong> When you miss with an attack roll, you can expend one Superiority Die, roll that die, and add it to the attack roll, potentially causing the attack to hit.",
-          "<strong>Pushing Attack.</strong> When you hit a creature with an attack roll using a weapon or an Unarmed Strike, you can expend one Superiority Die to attempt to drive the target back. Add the Superiority Die to the attack's damage roll. If the target is Large or smaller, it must succeed on a <link:Strength Saving Throw>Strength saving throw</link> or be pushed up to 15 feet directly away from you.",
-          "<strong>Rally.</strong> As a Bonus Action, you can expend one Superiority Die to bolster the resolve of a companion. Choose an ally of yours within 30 feet of yourself who can see or hear you. That creature gains <link:Temporary Hit Points>Temporary Hit Points</link> equal to the Superiority Die roll plus half your Fighter level (round down).",
-          "<strong>Riposte.</strong> When a creature misses you with a melee attack roll, you can take a Reaction and expend one Superiority Die to make a melee attack roll with a weapon or an Unarmed Strike against the creature. If you hit, add the Superiority Die to the attack's damage.",
-          "<strong>Sweeping Attack.</strong> When you hit a creature with a melee attack roll using a weapon or an Unarmed Strike, you can expend one Superiority Die to attempt to damage another creature. Choose another creature within 5 feet of the original target and within your reach. If the original attack roll would hit the second creature, it takes damage equal to the number you roll on your Superiority Die. The damage is of the same type dealt by the original attack.",
-          "<strong>Tactical Assessment.</strong> When you make an Intelligence (<link:History>History</link> or <link:Investigation>Investigation</link>) check or a Wisdom (<link:Insight>Insight</link>) check, you can expend one Superiority Die and add that die to the ability check.",
-          "<strong>Trip Attack.</strong> When you hit a creature with an attack roll using a weapon or an Unarmed Strike, you can expend one Superiority Die and add the die to the attack's damage roll. If the target is Large or smaller, it must succeed on a <link:Strength Saving Throw>Strength saving throw</link> or have the <link:Prone>Prone</link> condition."
-        ],
+        description: [...fighterBattleMasterManeuverOptionsDescription],
         ...notTracked
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.KNOW_YOUR_ENEMY, {
@@ -186,9 +171,7 @@ export const fighterSubclassEntries: SubclassEntry[] = [
       "A Champion focuses on the development of martial prowess in a relentless pursuit of victory. Champions combine rigorous training with physical excellence to deal devastating blows, withstand peril, and garner glory. Whether in athletic contests or bloody battle, Champions strive for the crown of the victor.",
     features: [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.IMPROVED_CRITICAL, {
-        description: [
-          "Your attack rolls with weapons and Unarmed Strikes can score a Critical Hit on a roll of 19 or 20 on the d20."
-        ],
+        description: [...fighterChampionImprovedCriticalDescription],
         ...notTracked
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.REMARKABLE_ATHLETE, {
@@ -213,9 +196,7 @@ export const fighterSubclassEntries: SubclassEntry[] = [
         ...notTracked
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_15, CLASS_FEATURE.SUPERIOR_CRITICAL, {
-        description: [
-          "Your attack rolls with weapons and Unarmed Strikes can now score a Critical Hit on a roll of 18-20 on the d20."
-        ],
+        description: [...fighterChampionSuperiorCriticalDescription],
         ...notTracked
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_18, CLASS_FEATURE.SURVIVOR, {

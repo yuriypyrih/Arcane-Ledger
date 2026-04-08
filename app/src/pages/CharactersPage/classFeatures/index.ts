@@ -1,7 +1,8 @@
 import type { AbilityKey, Character, CharacterClassFeatureState } from "../../../types";
 import { ALL_SKILLS } from "../../../types";
 import type { SkillName, WEAPON_PROFICIENCY } from "../../../types";
-import type { EconomyType } from "../actionEconomy";
+import type { ActionCategory, EconomyType } from "../actionEconomy";
+import type { WeaponAction } from "../gameplay";
 import { getRoundTrackerResourceForEconomyType } from "../actionEconomy";
 import { abilityKeys } from "../constants";
 import { consumeRoundTrackerResource } from "../combat";
@@ -16,9 +17,7 @@ import {
   applyInspiredEclipseStatus,
   applySuperiorInspirationOnInitiative,
   applyBardBattleMagicAfterSpellCast,
-  canUseBardValorActionCantripReplacement,
   consumeBlessingOfMoonlightUse,
-  consumeBardValorActionCantrip,
   consumeBardWeaponAttack,
   consumeBeguilingMagicOrBardicInspiration,
   consumeMantleOfMajestyUse,
@@ -34,7 +33,6 @@ import {
   getBardPrimalLoreSkillOptions,
   getBardPrimalLoreSkillSelection,
   hasBardBattleMagicBonusAttackAvailable,
-  getBardWeaponAttackMultiCount,
   getBeguilingMagicUsesRemaining,
   getBeguilingMagicUsesTotal,
   getBardicInspirationUsesRemaining,
@@ -75,7 +73,6 @@ import {
   restoreAllBarbarianRageUses,
   restoreBarbarianRageUse,
   getBarbarianWildHeartAspectChoice,
-  getBarbarianWeaponAttackMultiCount,
   setBarbarianWildHeartAspectChoice,
   setBarbarianPrimalKnowledgeSkillSelection
 } from "./barbarian/barbarian";
@@ -151,7 +148,6 @@ import {
   getRangerNaturesVeilUsesTotal,
   getRangerTirelessUsesRemaining,
   getRangerTirelessUsesTotal,
-  getRangerWeaponAttackMultiCount,
   restoreRangerNaturesVeilOnLongRest,
   restoreRangerTirelessOnLongRest,
   setRangerDeftExplorerExpertiseSelection,
@@ -239,7 +235,6 @@ import {
   getPaladinChannelDivinityUsesTotal,
   getPaladinHealingPoolRemaining,
   getPaladinHealingPoolTotal,
-  getPaladinWeaponAttackMultiCount,
   getPaladinsSmiteUsesRemaining,
   hasActivePaladinAuraOfProtection,
   restorePaladinChannelDivinityOnLongRest,
@@ -252,7 +247,6 @@ import {
   expendMonkFocusPoint,
   getMonkFocusPointsRemaining,
   getMonkFocusPointsTotal,
-  getMonkExtraAttackMultiCount,
   getMonkFlurryOfBlowsAttackMultiCount,
   hasMonkPerfectFocus,
   restoreAllMonkFocusPoints,
@@ -260,11 +254,39 @@ import {
   restoreOneMonkFocusPoint
 } from "./monk/monk";
 import {
-  consumeFighterNonMagicAction,
+  consumeFighterIndomitableUse,
+  expendFighterBattleMasterSuperiorityDieForCharacter as expendFighterBattleMasterSuperiorityDie,
+  expendFighterPsiWarriorEnergyDieForCharacter as expendFighterPsiWarriorEnergyDie,
   consumeFighterWeaponAttack,
-  getFighterNonMagicActionMultiCount,
-  getFighterWeaponAttackMultiCount
+  fighterBanneretKnightlyEnvoySkillOptions,
+  getFighterBattleMasterManeuverSelectionCountForCharacter as getFighterBattleMasterManeuverSelectionCount,
+  getFighterBattleMasterManeuverSelectionsForCharacter as getFighterBattleMasterManeuverSelections,
+  getFighterBattleMasterSuperiorityDiceRemainingForCharacter as getFighterBattleMasterSuperiorityDiceRemaining,
+  getFighterBattleMasterSuperiorityDiceTotalForCharacter as getFighterBattleMasterSuperiorityDiceTotal,
+  getFighterBattleMasterSuperiorityDieForCharacter as getFighterBattleMasterSuperiorityDie,
+  getFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter as getFighterBanneretKnightlyEnvoyLanguageSelection,
+  getFighterBanneretKnightlyEnvoySkillSelectionForCharacter as getFighterBanneretKnightlyEnvoySkillSelection,
+  getFighterIndomitableUsesRemaining,
+  getFighterIndomitableUsesTotal,
+  getFighterPsiWarriorEnergyDiceRemainingForCharacter as getFighterPsiWarriorEnergyDiceRemaining,
+  getFighterPsiWarriorEnergyDiceTotalForCharacter as getFighterPsiWarriorEnergyDiceTotal,
+  getFighterPsiWarriorEnergyDieForCharacter as getFighterPsiWarriorEnergyDie,
+  restoreAllFighterBattleMasterSuperiorityDiceForCharacter as restoreAllFighterBattleMasterSuperiorityDice,
+  restoreAllFighterPsiWarriorEnergyDiceForCharacter as restoreAllFighterPsiWarriorEnergyDice,
+  restoreFighterBattleMasterSuperiorityDieForCharacter as restoreFighterBattleMasterSuperiorityDie,
+  restoreFighterPsiWarriorEnergyDieForCharacter as restoreFighterPsiWarriorEnergyDie,
+  setFighterBattleMasterManeuverSelectionsForCharacter as setFighterBattleMasterManeuverSelections,
+  setFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter as setFighterBanneretKnightlyEnvoyLanguageSelection,
+  setFighterBanneretKnightlyEnvoySkillSelectionForCharacter as setFighterBanneretKnightlyEnvoySkillSelection
 } from "./fighter/fighter";
+import {
+  consumeSharedEconomyMultiForCharacterAction,
+  createEconomyMultiContextForFeatureAction,
+  createEconomyMultiContextForFeatureActionOption,
+  createEconomyMultiContextForSpell,
+  createEconomyMultiContextForWeaponAction,
+  getSharedEconomyMultiCountForCharacterAction
+} from "./economyMulti";
 import {
   collectActiveClassFeatureState,
   getActiveClassFeatureModule,
@@ -289,8 +311,11 @@ import type {
   FeatureIndicator,
   FeatureArmorClassBonus,
   FeatureArmorClassMode,
+  EconomyMultiActionContext,
   FeatureLanguageProficiencyEntry,
   FeatureDamageBonus,
+  FeatureEconomyMultiAccessRule,
+  FeatureEconomyMultiPool,
   FeatureSavingThrowBonus,
   FeatureUnarmedStrikeConfig,
   FeatureSavingThrowProficiencyEntry,
@@ -342,6 +367,7 @@ export type {
   AbilityCheckIndicatorMap,
   ArmorClassFeatureContext,
   CoreStatIndicatorMap,
+  EconomyMultiActionContext,
   FeatureActionCard,
   FeatureActionDrawerConfig,
   FeatureActionExecuteConfig,
@@ -358,6 +384,8 @@ export type {
   FeatureArmorClassMode,
   FeatureLanguageProficiencyEntry,
   FeatureDamageBonus,
+  FeatureEconomyMultiAccessRule,
+  FeatureEconomyMultiPool,
   FeatureSavingThrowBonus,
   FeatureUnarmedStrikeConfig,
   FeatureSavingThrowProficiencyEntry,
@@ -369,6 +397,15 @@ export type {
   SpeedFeatureContext,
   SkillIndicatorMap,
   WeaponFeatureContext
+};
+
+export {
+  consumeSharedEconomyMultiForCharacterAction,
+  createEconomyMultiContextForFeatureAction,
+  createEconomyMultiContextForFeatureActionOption,
+  createEconomyMultiContextForSpell,
+  createEconomyMultiContextForWeaponAction,
+  getSharedEconomyMultiCountForCharacterAction
 };
 
 export function normalizeCharacterClassFeatureState(
@@ -409,6 +446,20 @@ export function getFeatureWeaponActionsForCharacter(character: Character) {
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
 
   return [...(baseFeatureState.weaponActions ?? []), ...(subclassDerivedState.weaponActions ?? [])];
+}
+
+export function transformWeaponActionForCharacter(
+  character: Pick<
+    Character,
+    "className" | "level" | "subclassId" | "classFeatureState" | "equipment" | "customEquipment"
+  >,
+  action: WeaponAction
+): WeaponAction {
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+
+  return subclassDerivedState.transformWeaponAction
+    ? subclassDerivedState.transformWeaponAction(action)
+    : action;
 }
 
 export function getFeatureActionOptionsForCharacter(
@@ -629,7 +680,8 @@ export function getAbilityScoreBonusesForCharacter(
 }
 
 export function getCantripLimitBonusForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
 ): number {
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return (
@@ -839,18 +891,6 @@ export function getFeatureLanguageProficiencyEntriesForCharacter(
     ...(baseFeatureState.languageProficiencyEntries ?? []),
     ...(subclassDerivedState.languageProficiencyEntries ?? [])
   ];
-}
-
-export function canUseBardValorActionCantripForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "roundTracker"> &
-    Partial<Pick<Character, "subclassId">>,
-  spell: Pick<SpellEntry, "castingTime" | "spellLevel">
-) {
-  return canUseBardValorActionCantripReplacement(character, spell);
-}
-
-export function consumeBardValorActionCantripForCharacter(character: Character): Character {
-  return consumeBardValorActionCantrip(character);
 }
 
 export function applyBardBattleMagicAfterSpellCastForCharacter(
@@ -1101,6 +1141,136 @@ export function getBarbarianPrimalKnowledgeSkillSelectionForCharacter(
   return getBarbarianPrimalKnowledgeSkillSelection(character);
 }
 
+export { fighterBanneretKnightlyEnvoySkillOptions };
+
+export function getFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+) {
+  return getFighterBanneretKnightlyEnvoyLanguageSelection(character);
+}
+
+export function setFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter(
+  character: Character,
+  selection: Parameters<typeof setFighterBanneretKnightlyEnvoyLanguageSelection>[1]
+): Character {
+  return setFighterBanneretKnightlyEnvoyLanguageSelection(character, selection);
+}
+
+export function getFighterBanneretKnightlyEnvoySkillSelectionForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+) {
+  return getFighterBanneretKnightlyEnvoySkillSelection(character);
+}
+
+export function getFighterIndomitableUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+): number {
+  return getFighterIndomitableUsesTotal(character);
+}
+
+export function getFighterBattleMasterSuperiorityDiceTotalForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return getFighterBattleMasterSuperiorityDiceTotal(character);
+}
+
+export function getFighterBattleMasterManeuverSelectionCountForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return getFighterBattleMasterManeuverSelectionCount(character);
+}
+
+export function getFighterBattleMasterManeuverSelectionsForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): string[] {
+  return getFighterBattleMasterManeuverSelections(character);
+}
+
+export function getFighterBattleMasterSuperiorityDiceRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): number {
+  return getFighterBattleMasterSuperiorityDiceRemaining(character);
+}
+
+export function getFighterBattleMasterSuperiorityDieForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): "d8" | "d10" | "d12" | null {
+  return getFighterBattleMasterSuperiorityDie(character);
+}
+
+export function getFighterPsiWarriorEnergyDiceTotalForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return getFighterPsiWarriorEnergyDiceTotal(character);
+}
+
+export function getFighterPsiWarriorEnergyDiceRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): number {
+  return getFighterPsiWarriorEnergyDiceRemaining(character);
+}
+
+export function getFighterPsiWarriorEnergyDieForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): "d6" | "d8" | "d10" | "d12" | null {
+  return getFighterPsiWarriorEnergyDie(character);
+}
+
+export function getFighterIndomitableUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  return getFighterIndomitableUsesRemaining(character);
+}
+
+export function consumeFighterIndomitableUseForCharacter(character: Character): Character {
+  return consumeFighterIndomitableUse(character);
+}
+
+export function expendFighterBattleMasterSuperiorityDieForCharacter(character: Character): Character {
+  return expendFighterBattleMasterSuperiorityDie(character);
+}
+
+export function restoreFighterBattleMasterSuperiorityDieForCharacter(character: Character): Character {
+  return restoreFighterBattleMasterSuperiorityDie(character);
+}
+
+export function restoreAllFighterBattleMasterSuperiorityDiceForCharacter(
+  character: Character
+): Character {
+  return restoreAllFighterBattleMasterSuperiorityDice(character);
+}
+
+export function expendFighterPsiWarriorEnergyDieForCharacter(character: Character): Character {
+  return expendFighterPsiWarriorEnergyDie(character);
+}
+
+export function restoreFighterPsiWarriorEnergyDieForCharacter(character: Character): Character {
+  return restoreFighterPsiWarriorEnergyDie(character);
+}
+
+export function restoreAllFighterPsiWarriorEnergyDiceForCharacter(character: Character): Character {
+  return restoreAllFighterPsiWarriorEnergyDice(character);
+}
+
+export function setFighterBattleMasterManeuverSelectionsForCharacter(
+  character: Character,
+  selections: string[]
+): Character {
+  return setFighterBattleMasterManeuverSelections(character, selections);
+}
+
+export function setFighterBanneretKnightlyEnvoySkillSelectionForCharacter(
+  character: Character,
+  selection: Parameters<typeof setFighterBanneretKnightlyEnvoySkillSelection>[1]
+): Character {
+  return setFighterBanneretKnightlyEnvoySkillSelection(character, selection);
+}
+
 export function setBarbarianPrimalKnowledgeSkillSelectionForCharacter(
   character: Character,
   selection: Parameters<typeof setBarbarianPrimalKnowledgeSkillSelection>[1]
@@ -1284,6 +1454,22 @@ export function getAlwaysPreparedSpellIdsForCharacter(
     ...new Set([
       ...(baseFeatureState.alwaysPreparedSpellIds ?? []),
       ...(subclassDerivedState.alwaysPreparedSpellIds ?? [])
+    ])
+  ];
+}
+
+export function getRitualOnlySpellIdsForCharacter(
+  character: Pick<
+    Character,
+    "className" | "level" | "classFeatureState" | "spellbookSpellIds" | "subclassId"
+  >
+): string[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  return [
+    ...new Set([
+      ...(baseFeatureState.ritualOnlySpellIds ?? []),
+      ...(subclassDerivedState.ritualOnlySpellIds ?? [])
     ])
   ];
 }
@@ -2106,56 +2292,17 @@ export function markFeatureWeaponBonusUseForCharacter(
   return character;
 }
 
-export function getWeaponActionEconomyMultiForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
-): number {
-  if (character.className === "Barbarian") {
-    return getBarbarianWeaponAttackMultiCount(character);
-  }
-
-  if (character.className === "Bard") {
-    return getBardWeaponAttackMultiCount(character);
-  }
-
-  if (character.className === "Fighter") {
-    return getFighterWeaponAttackMultiCount(character);
-  }
-
-  if (character.className === "Ranger") {
-    return getRangerWeaponAttackMultiCount(character);
-  }
-
-  if (character.className === "Paladin") {
-    return getPaladinWeaponAttackMultiCount(character);
-  }
-
-  if (character.className === "Monk") {
-    return getMonkExtraAttackMultiCount(character);
-  }
-
-  return 0;
-}
-
 export function getMonkFlurryOfBlowsAttackMultiCountForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): number {
   return getMonkFlurryOfBlowsAttackMultiCount(character);
 }
 
-export function getNonMagicActionEconomyMultiForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
-): number {
-  if (character.className === "Fighter") {
-    return getFighterNonMagicActionMultiCount(character);
-  }
-
-  return 0;
-}
-
 export function consumeWeaponAttackActionForCharacter(
   character: Character,
   action: {
     key: string;
+    actionCategory: ActionCategory;
     economyType: EconomyType;
     attackKind: "weapon" | "unarmed";
   }
@@ -2194,8 +2341,27 @@ export function consumeWeaponAttackActionForCharacter(
     : character;
 }
 
-export function consumeNonMagicActionForCharacter(character: Character): Character {
-  return consumeFighterNonMagicAction(character);
+export function consumeNonMagicActionForCharacter(
+  character: Character,
+  action: Pick<FeatureActionCard, "economyType" | "actionCategory">
+): Character {
+  const nextCharacter = consumeSharedEconomyMultiForCharacterAction(
+    character,
+    createEconomyMultiContextForFeatureAction(action)
+  );
+
+  if (nextCharacter !== character) {
+    return nextCharacter;
+  }
+
+  const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+
+  return roundTrackerResource
+    ? {
+        ...character,
+        roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)
+      }
+    : character;
 }
 
 export function activateFeatureActionOptionForCharacter(

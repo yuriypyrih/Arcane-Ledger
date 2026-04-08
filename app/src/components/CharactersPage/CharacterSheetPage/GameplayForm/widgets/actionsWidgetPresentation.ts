@@ -1,3 +1,4 @@
+import type { SpellDescriptionEntry } from "../../../../../codex/entries";
 import type { MonsterRecord } from "../../../../../types";
 import { parseRollFormulaRange } from "../../../../../pages/CharactersPage/actionOutcome";
 import {
@@ -21,6 +22,8 @@ type WeaponDrawerDetail = {
   label: string;
   value: string;
 };
+
+const descriptionSectionDivider = "--------------------";
 
 function formatWeaponProficiencyLabel(label: string) {
   return label
@@ -385,6 +388,29 @@ export function getWeaponDrawerDetails(
       label: "Mastery",
       value: weaponEntry.mastery ? formatCodexLabel(weaponEntry.mastery) : "None"
     }
+  ];
+}
+
+export function getWeaponDrawerDescription(
+  action: WeaponAction,
+  summary?: string | null
+): SpellDescriptionEntry[] {
+  const normalizedSummary = typeof summary === "string" ? summary.trim() : "";
+  const actionDescription = action.description?.length ? [...action.description] : [];
+
+  if (!normalizedSummary) {
+    return actionDescription;
+  }
+
+  if (actionDescription.length === 0) {
+    return [normalizedSummary];
+  }
+
+  return [
+    normalizedSummary,
+    ...(actionDescription[0] === descriptionSectionDivider
+      ? actionDescription
+      : [descriptionSectionDivider, ...actionDescription])
   ];
 }
 

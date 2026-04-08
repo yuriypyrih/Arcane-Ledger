@@ -22,6 +22,7 @@ import {
   getBardPrimalLoreSkillSelectionForCharacter,
   getClericBlessedStrikesChoiceForCharacter,
   getClericDivineOrderChoiceForCharacter,
+  fighterBanneretKnightlyEnvoySkillOptions,
   getKnowledgeDomainBlessingsSkillSelectionsForCharacter,
   getKnowledgeDomainUnfetteredMindSavingThrowOptionsForCharacter,
   getKnowledgeDomainUnfetteredMindSavingThrowSelectionForCharacter,
@@ -30,6 +31,10 @@ import {
   getDruidPrimalOrderChoiceForCharacter,
   getDruidWildShapeKnownFormsForCharacter,
   getDruidWildShapeRulesForCharacter,
+  getFighterBattleMasterManeuverSelectionCountForCharacter,
+  getFighterBattleMasterManeuverSelectionsForCharacter,
+  getFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter,
+  getFighterBanneretKnightlyEnvoySkillSelectionForCharacter,
   getRangerDeftExplorerExpertiseSelectionForCharacter,
   getRangerDeftExplorerLanguageSelectionsForCharacter,
   getRangerLevel9ExpertiseSelectionsForCharacter,
@@ -62,6 +67,8 @@ import {
   setDruidElementalFuryChoiceForCharacter,
   setDruidPrimalOrderChoiceForCharacter,
   setDruidWildShapeKnownFormsForCharacter,
+  setFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter,
+  setFighterBanneretKnightlyEnvoySkillSelectionForCharacter,
   setRangerDeftExplorerExpertiseSelectionForCharacter,
   setRangerDeftExplorerLanguageSelectionsForCharacter,
   setRangerLevel9ExpertiseSelectionsForCharacter,
@@ -105,6 +112,7 @@ import { FeatureDisclosureRow, featureDisclosureStyles } from "../../../FeatureD
 import { MonsterEntryDrawer } from "../../../MonsterEntryRenderer";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./ClassFeaturesAndFeats.module.css";
+import BattleMasterManeuverSelection from "./BattleMasterManeuverSelection";
 import DruidWildShapeMonsterModal from "./DruidWildShapeMonsterModal";
 import {
   getBardExpertiseTierForLevel,
@@ -960,6 +968,15 @@ function ClassFeatureList({
     return totalSelections > 0 && getWeaponMasterySelections().length < totalSelections;
   }
 
+  function isFighterBattleMasterManeuverOptionsInputRequired(): boolean {
+    const totalSelections = getFighterBattleMasterManeuverSelectionCountForCharacter(character);
+
+    return (
+      totalSelections > 0 &&
+      getFighterBattleMasterManeuverSelectionsForCharacter(character).length < totalSelections
+    );
+  }
+
   function updateClericDivineOrderChoice(choice: "protector" | "thaumaturge") {
     onPersistCharacter((currentCharacter) => {
       const nextCharacter = setClericDivineOrderChoiceForCharacter(currentCharacter, choice);
@@ -1046,6 +1063,58 @@ function ClassFeatureList({
 
   function getBarbarianPrimalKnowledgeSelection(): SkillName | null {
     return getBarbarianPrimalKnowledgeSkillSelectionForCharacter(character);
+  }
+
+  function getFighterBanneretKnightlyEnvoyLanguageSelection(): LANGUAGE_PROFICIENCY | null {
+    return getFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter(character);
+  }
+
+  function getAvailableFighterBanneretKnightlyEnvoyLanguages(): LANGUAGE_PROFICIENCY[] {
+    return getSelectableLanguageOptions(
+      character,
+      getFighterBanneretKnightlyEnvoyLanguageSelection()
+    );
+  }
+
+  function updateFighterBanneretKnightlyEnvoyLanguageSelection(nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      recomputeCharacterFeatureProficiencies(
+        setFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter(
+          currentCharacter,
+          nextValue.trim().length > 0 ? (nextValue as LANGUAGE_PROFICIENCY) : null
+        )
+      )
+    );
+  }
+
+  function getFighterBanneretKnightlyEnvoySkillSelection(): SkillName | null {
+    return getFighterBanneretKnightlyEnvoySkillSelectionForCharacter(character);
+  }
+
+  function getAvailableFighterBanneretKnightlyEnvoySkills(): SkillName[] {
+    return getSelectableUnproficientSkillOptions(
+      character,
+      fighterBanneretKnightlyEnvoySkillOptions,
+      getFighterBanneretKnightlyEnvoySkillSelection()
+    );
+  }
+
+  function updateFighterBanneretKnightlyEnvoySkillSelection(nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      recomputeCharacterFeatureProficiencies(
+        setFighterBanneretKnightlyEnvoySkillSelectionForCharacter(
+          currentCharacter,
+          nextValue.trim().length > 0 ? (nextValue as SkillName) : null
+        )
+      )
+    );
+  }
+
+  function isFighterBanneretKnightlyEnvoyInputRequired(): boolean {
+    return (
+      getFighterBanneretKnightlyEnvoyLanguageSelection() === null ||
+      getFighterBanneretKnightlyEnvoySkillSelection() === null
+    );
   }
 
   function getBarbarianPrimalKnowledgeOptions(): Array<{
@@ -1167,6 +1236,10 @@ function ClassFeatureList({
             isKnowledgeDomainBlessingsRequired ||
             isKnowledgeDomainUnfetteredMindRequired ||
             (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.KNIGHTLY_ENVOY &&
+              character.className === "Fighter" &&
+              isFighterBanneretKnightlyEnvoyInputRequired()) ||
+            (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.DEFT_EXPLORER &&
               character.className === "Ranger" &&
               isRangerDeftExplorerInputRequired()) ||
@@ -1197,6 +1270,10 @@ function ClassFeatureList({
             (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.WEAPON_MASTERY &&
               isWeaponMasteryInputRequired()) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.MANEUVER_OPTIONS &&
+              character.className === "Fighter" &&
+              isFighterBattleMasterManeuverOptionsInputRequired()) ||
             (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.PRIMAL_KNOWLEDGE &&
               character.className === "Barbarian" &&
@@ -1482,6 +1559,28 @@ function ClassFeatureList({
                         <p className={styles.emptyFeatureText}>No beast shapes selected yet.</p>
                       )}
                     </>
+                  ) : featureRow.feature === CLASS_FEATURE.MANEUVER_OPTIONS &&
+                    character.className === "Fighter" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description.slice(0, 1)}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <BattleMasterManeuverSelection
+                        character={character}
+                        featureKey={featureRow.key}
+                        isUnlocked={isUnlocked}
+                        onPersistCharacter={onPersistCharacter}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                    </>
                   ) : featureRow.feature === CLASS_FEATURE.METAMAGIC &&
                     character.className === "Sorcerer" ? (
                     <>
@@ -1649,6 +1748,76 @@ function ClassFeatureList({
                             <option value="">Select a skill</option>
                             {getAvailableWizardScholarSkills().map((skillName) => (
                               <option key={`${featureRow.key}-${skillName}`} value={skillName}>
+                                {skillName}
+                              </option>
+                            ))}
+                          </SelectInput>
+                        </label>
+                      </div>
+                    </>
+                  ) : featureRow.feature === CLASS_FEATURE.KNIGHTLY_ENVOY &&
+                    character.className === "Fighter" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <div className={styles.featureSelectionGrid}>
+                        <label
+                          className={clsx(
+                            styles.featureSelectionField,
+                            !isUnlocked && styles.featureOptionRowDisabled
+                          )}
+                        >
+                          <span className={styles.featureSelectionLabel}>Bonus Language</span>
+                          <SelectInput
+                            value={getFighterBanneretKnightlyEnvoyLanguageSelection() ?? ""}
+                            disabled={!isUnlocked}
+                            onChange={(event) =>
+                              updateFighterBanneretKnightlyEnvoyLanguageSelection(
+                                event.target.value
+                              )
+                            }
+                          >
+                            <option value="">Select a language</option>
+                            {getAvailableFighterBanneretKnightlyEnvoyLanguages().map(
+                              (proficiency) => (
+                                <option
+                                  key={`${featureRow.key}-banneret-language-${proficiency}`}
+                                  value={proficiency}
+                                >
+                                  {getProficiencyLabel(proficiency)}
+                                </option>
+                              )
+                            )}
+                          </SelectInput>
+                        </label>
+                        <label
+                          className={clsx(
+                            styles.featureSelectionField,
+                            !isUnlocked && styles.featureOptionRowDisabled
+                          )}
+                        >
+                          <span className={styles.featureSelectionLabel}>Bonus Skill</span>
+                          <SelectInput
+                            value={getFighterBanneretKnightlyEnvoySkillSelection() ?? ""}
+                            disabled={!isUnlocked}
+                            onChange={(event) =>
+                              updateFighterBanneretKnightlyEnvoySkillSelection(
+                                event.target.value
+                              )
+                            }
+                          >
+                            <option value="">Select a skill</option>
+                            {getAvailableFighterBanneretKnightlyEnvoySkills().map((skillName) => (
+                              <option
+                                key={`${featureRow.key}-banneret-skill-${skillName}`}
+                                value={skillName}
+                              >
                                 {skillName}
                               </option>
                             ))}

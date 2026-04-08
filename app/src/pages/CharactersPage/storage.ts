@@ -34,6 +34,10 @@ import { normalizeLevelAndXp } from "./experience";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
 import { normalizeCharacterCompanions } from "./companions";
 import { normalizeCharacterFeats } from "./feats";
+import {
+  normalizeHeroicInspiration,
+  restoreHeroicInspirationForCharacter
+} from "./heroicInspiration";
 import { clampNumber } from "./shared";
 import { normalizeSubclassId } from "./subclasses";
 import { normalizeCharacterStatusEntries, reconcileCharacterStatusConsequences } from "./traits";
@@ -179,6 +183,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     companions?: unknown;
     classFeatureState?: unknown;
     feats?: unknown;
+    heroicInspiration?: unknown;
   };
   const id = Number(record.id);
 
@@ -287,15 +292,21 @@ export function normalizeCharacter(value: unknown): Character | null {
     : getDefaultCantripIdsForCharacter(
         normalizedClassName,
         normalizedLevel,
-        normalizedClassFeatureState
+        normalizedClassFeatureState,
+        normalizedSubclassId
       );
   const cantripLimit = getCantripLimitForCharacter(
     normalizedClassName,
     normalizedLevel,
-    normalizedClassFeatureState
+    normalizedClassFeatureState,
+    normalizedSubclassId
   );
   const cantripSelectionOptionIds = new Set(
-    getCantripSelectionOptionsForCharacter(normalizedClassName, normalizedLevel).map(
+    getCantripSelectionOptionsForCharacter(
+      normalizedClassName,
+      normalizedLevel,
+      normalizedSubclassId
+    ).map(
       (spell) => spell.id
     )
   );
@@ -304,21 +315,26 @@ export function normalizeCharacter(value: unknown): Character | null {
     .slice(0, cantripLimit ?? Number.POSITIVE_INFINITY);
   const preparedSpellLimit = getPreparedSpellLimitForCharacter(
     normalizedClassName,
-    normalizedLevel
+    normalizedLevel,
+    normalizedSubclassId
   );
   const preparedSpellSelectionOptions = getPreparedSpellSelectionOptionsForCharacter(
     normalizedClassName,
-    normalizedLevel
+    normalizedLevel,
+    normalizedSubclassId
   );
   const preparedSpellSelectionOptionIds = new Set(
     preparedSpellSelectionOptions.map((spell) => spell.id)
   );
   const rawSpellbookSpellIds = Array.isArray(record.spellbookSpellIds)
     ? record.spellbookSpellIds.filter((spellId): spellId is string => typeof spellId === "string")
-    : usesSpellbookForCharacter(normalizedClassName)
+    : usesSpellbookForCharacter(normalizedClassName, normalizedSubclassId)
       ? [...rawKnownSpellIds, ...rawPreparedSpellIds]
       : [];
-  const normalizedSpellbookSpellIds = usesSpellbookForCharacter(normalizedClassName)
+  const normalizedSpellbookSpellIds = usesSpellbookForCharacter(
+    normalizedClassName,
+    normalizedSubclassId
+  )
     ? normalizeSpellbookSpellIds(
         rawSpellbookSpellIds.filter((spellId) => preparedSpellSelectionOptionIds.has(spellId)),
         preparedSpellSelectionOptions
@@ -329,7 +345,8 @@ export function normalizeCharacter(value: unknown): Character | null {
     rawPreparedSpellIds.filter(
       (spellId) =>
         preparedSpellSelectionOptionIds.has(spellId) &&
-        (!usesSpellbookForCharacter(normalizedClassName) || normalizedSpellbookSpellIdSet.has(spellId))
+        (!usesSpellbookForCharacter(normalizedClassName, normalizedSubclassId) ||
+          normalizedSpellbookSpellIdSet.has(spellId))
     ),
     preparedSpellSelectionOptions,
     preparedSpellLimit,
@@ -341,7 +358,11 @@ export function normalizeCharacter(value: unknown): Character | null {
       normalizedSubclassId
     )
   );
-  const spellSlotTotals = getSpellSlotTotalsForCharacter(normalizedClassName, normalizedLevel);
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(
+    normalizedClassName,
+    normalizedLevel,
+    normalizedSubclassId
+  );
   const normalizedSpellSlotsExpended = normalizeSpellSlotsExpended(
     record.spellSlotsExpended,
     spellSlotTotals
@@ -351,6 +372,10 @@ export function normalizeCharacter(value: unknown): Character | null {
     0,
     2,
     defaults.shortRestsUsedToday ?? 0
+  );
+  const normalizedHeroicInspiration = normalizeHeroicInspiration(
+    record.heroicInspiration,
+    defaults.heroicInspiration
   );
   const normalizedHitDiceRemaining = clampNumber(
     record.hitDiceRemaining,
@@ -426,6 +451,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     preparedSpellIds: normalizedPreparedSpellIds,
     spellSlotsExpended: normalizedSpellSlotsExpended,
     shortRestsUsedToday: normalizedShortRestsUsedToday,
+    heroicInspiration: normalizedHeroicInspiration,
     hitDiceRemaining: normalizedHitDiceRemaining,
     coreStats: normalizedCoreStats,
     classFeatureState: normalizedClassFeatureState,
@@ -487,13 +513,25 @@ export function upsertCharacter(
 ): Character {
   const characters = loadCharacters();
   const nextId = characterId ?? Date.now();
-  const nextCharacter = normalizeCharacter({
+  const previousCharacter =
+    characterId === undefined
+      ? null
+      : characters.find((character) => character.id === characterId) ?? null;
+  let nextCharacter = normalizeCharacter({
     id: nextId,
     ...draft
   });
 
   if (!nextCharacter) {
     throw new Error("Unable to save character: invalid character data.");
+  }
+
+  if (
+    previousCharacter &&
+    nextCharacter.level > previousCharacter.level &&
+    !nextCharacter.heroicInspiration
+  ) {
+    nextCharacter = restoreHeroicInspirationForCharacter(nextCharacter);
   }
 
   const nextCharacters =

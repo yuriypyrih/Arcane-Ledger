@@ -7,7 +7,12 @@ import type {
   FeatureActionCard,
   FeatureActionOptionCard
 } from "../../../../../pages/CharactersPage/classFeatures";
-import { getNonMagicActionEconomyMultiForCharacter } from "../../../../../pages/CharactersPage/classFeatures";
+import {
+  createEconomyMultiContextForFeatureAction,
+  createEconomyMultiContextForFeatureActionOption,
+  createEconomyMultiContextForWeaponAction,
+  getSharedEconomyMultiCountForCharacterAction
+} from "../../../../../pages/CharactersPage/classFeatures";
 import type { WeaponAction } from "../../../../../pages/CharactersPage/gameplay";
 import type { EconomyType } from "../../../../../pages/CharactersPage/actionEconomy";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
@@ -33,6 +38,7 @@ type RoundTrackerAvailability = {
 
 type WeaponActionCardProps = {
   action: WeaponAction;
+  character: Character;
   secondaryEconomyType?: EconomyType | null;
   roundTracker: RoundTrackerAvailability;
   onClick: (action: WeaponAction) => void;
@@ -40,15 +46,20 @@ type WeaponActionCardProps = {
 
 export function WeaponActionCard({
   action,
+  character,
   secondaryEconomyType = null,
   roundTracker,
   onClick
 }: WeaponActionCardProps) {
   const actionShape = getActionShapeForEconomyType(action.economyType);
+  const sharedEconomyMultiCount = getSharedEconomyMultiCountForCharacterAction(
+    character,
+    createEconomyMultiContextForWeaponAction(action)
+  );
   const economyShapeState = getEconomyShapeState(
     action.economyType,
     roundTracker,
-    action.economyMultiCount ?? 0
+    (action.economyMultiCount ?? 0) + sharedEconomyMultiCount
   );
   const secondaryActionShape = secondaryEconomyType
     ? getActionShapeForEconomyType(secondaryEconomyType)
@@ -218,13 +229,14 @@ export function FeatureActionCardButton({
   onClick
 }: FeatureActionCardButtonProps) {
   const actionShape = getActionShapeForEconomyType(action.economyType);
+  const sharedEconomyMultiCount = getSharedEconomyMultiCountForCharacterAction(
+    character,
+    createEconomyMultiContextForFeatureAction(action)
+  );
   const economyShapeState = getEconomyShapeState(
     action.economyType,
     roundTracker,
-    (action.economyMultiCount ?? 0) +
-      (action.economyType === "action" && action.actionCategory !== "magic"
-        ? getNonMagicActionEconomyMultiForCharacter(character)
-        : 0)
+    (action.economyMultiCount ?? 0) + sharedEconomyMultiCount
   );
   const isDisabled =
     action.disabled === true ||
@@ -337,13 +349,14 @@ export function FeatureActionOptionButton({
   selectionName
 }: FeatureActionOptionButtonProps) {
   const actionShape = getActionShapeForEconomyType(option.economyType);
+  const sharedEconomyMultiCount = getSharedEconomyMultiCountForCharacterAction(
+    character,
+    createEconomyMultiContextForFeatureActionOption(option)
+  );
   const economyShapeState = getEconomyShapeState(
     option.economyType,
     roundTracker,
-    (option.economyMultiCount ?? 0) +
-      (option.economyType === "action" && option.actionCategory !== "magic"
-        ? getNonMagicActionEconomyMultiForCharacter(character)
-        : 0)
+    (option.economyMultiCount ?? 0) + sharedEconomyMultiCount
   );
   const isDisabled = option.disabled === true || !economyShapeState.isUsable;
   const valueLabel = option.usesLabel

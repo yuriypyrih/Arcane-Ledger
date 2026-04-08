@@ -7,6 +7,7 @@ import {
   worldTreeBranchesOfTheTreeDescription
 } from "../subclasses/barbarian";
 import { cuttingWordsDescription, inspiringMovementDescription } from "../subclasses/bard";
+import { banneretSharedResilienceDescription } from "../subclasses/fighterBanneret";
 
 export const countercharmReaction: ReactionEntry = {
   id: "reaction-countercharm",
@@ -91,6 +92,16 @@ export const uncannyDodgeReaction: ReactionEntry = {
   description: rogueFeatureMap[CLASS_FEATURE.UNCANNY_DODGE]?.description ?? []
 };
 
+export const sharedResilienceReaction: ReactionEntry = {
+  id: "reaction-banneret-shared-resilience",
+  reaction: REACTION.SHARED_RESILIENCE,
+  name: "Shared Resilience",
+  sourceType: "feature",
+  sourceFeature: CLASS_FEATURE.SHARED_RESILIENCE,
+  sourceLabel: "Banneret",
+  description: [...banneretSharedResilienceDescription]
+};
+
 export const reactionEntries: ReactionEntry[] = [
   branchesOfTheTreeReaction,
   countercharmReaction,
@@ -98,6 +109,7 @@ export const reactionEntries: ReactionEntry[] = [
   deflectAttacksReaction,
   inspiringMovementReaction,
   retaliationReaction,
+  sharedResilienceReaction,
   slowFallReaction,
   uncannyDodgeReaction
 ];

@@ -71,6 +71,7 @@ type CharacterSpellDrawerProps = {
   minimumActionSpellSlotLevel?: number;
   freeCastSlotLevel?: number | null;
   allowRitualCasting?: boolean;
+  ritualCastingRequired?: boolean;
   actionAvailabilityText?: string | null;
   actionContextText?: string | null;
   actionShape?: ActionShapeType | null;
@@ -125,6 +126,7 @@ function CharacterSpellDrawer({
   minimumActionSpellSlotLevel = 1,
   freeCastSlotLevel = null,
   allowRitualCasting = false,
+  ritualCastingRequired = false,
   actionAvailabilityText = null,
   actionContextText = null,
   actionShape = null,
@@ -134,7 +136,7 @@ function CharacterSpellDrawer({
   backdropClassName
 }: CharacterSpellDrawerProps) {
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
-  const [isRitualCastingSelected, setIsRitualCastingSelected] = useState(false);
+  const [isRitualCastingSelected, setIsRitualCastingSelected] = useState(ritualCastingRequired);
   const spellLevel = getSpellLevel(spell);
   const minimumSelectedSlotLevel = Math.max(1, spellLevel, minimumActionSpellSlotLevel);
   const ritualCastingAvailable =
@@ -166,7 +168,8 @@ function CharacterSpellDrawer({
     spellLevel > 0 &&
     (actionConsumesSpellSlot || freeCastSlotLevel !== null) &&
     !isRitualCastingSelected;
-  const effectiveBlockedReason = isRitualCastingSelected ? null : blockedReason;
+  const effectiveBlockedReason =
+    isRitualCastingSelected || ritualCastingRequired ? null : blockedReason;
   const isActionEnabled = shouldShowSlotControls
     ? canCastAtSelectedSlot && !effectiveBlockedReason && !actionDisabled
     : !effectiveBlockedReason && !actionDisabled;
@@ -181,7 +184,8 @@ function CharacterSpellDrawer({
   const spellDuration = getSpellDurationDisplayParts(spell.duration);
   const castingTimeActionShape = getActionShapeForCastingTime(spell.castingTime);
   const footerActionShape =
-    actionShape ?? (isRitualCastingSelected ? "nonCombat" : castingTimeActionShape);
+    actionShape ??
+    (isRitualCastingSelected || ritualCastingRequired ? "nonCombat" : castingTimeActionShape);
   const castingTimeActionShapeTitle = castingTimeActionShape
     ? getActionShapeTitle(castingTimeActionShape)
     : null;
@@ -221,9 +225,16 @@ function CharacterSpellDrawer({
     setIsRitualCastingSelected(false);
   }, [ritualCastingAvailable, spell.id]);
 
+  useEffect(() => {
+    if (ritualCastingRequired) {
+      setIsRitualCastingSelected(true);
+    }
+  }, [ritualCastingRequired, spell.id]);
+
   const spellDescription = useMemo(() => spell.description, [spell.description]);
-  const availabilityText = isRitualCastingSelected
-    ? "Cast as a Ritual without expending a spell slot. Ritual casting can't be upcast."
+  const availabilityText = isRitualCastingSelected || ritualCastingRequired
+    ? (actionAvailabilityText ??
+      "Cast as a Ritual without expending a spell slot. Ritual casting can't be upcast.")
     : actionAvailabilityText;
   const slotText =
     availabilityText ??
@@ -366,9 +377,10 @@ function CharacterSpellDrawer({
                           <input
                             type="checkbox"
                             checked={isRitualCastingSelected}
+                            disabled={ritualCastingRequired}
                             onChange={(event) => setIsRitualCastingSelected(event.target.checked)}
                           />
-                          <span>Cast as Ritual</span>
+                          <span>{ritualCastingRequired ? "Ritual Casting Only" : "Cast as Ritual"}</span>
                         </label>
                       ) : null}
                       {actionOptions.map((option) => {
@@ -467,9 +479,13 @@ function CharacterSpellDrawer({
                     className={clsx(
                       sheetStyles.castButton,
                       actionStyles.castActionButton,
-                      isRitualCastingSelected ? actionStyles.ritualCastButton : null
+                      isRitualCastingSelected || ritualCastingRequired
+                        ? actionStyles.ritualCastButton
+                        : null
                     )}
-                    onClick={() => onAction({ castAsRitual: isRitualCastingSelected })}
+                    onClick={() =>
+                      onAction({ castAsRitual: ritualCastingRequired || isRitualCastingSelected })
+                    }
                     disabled={!isActionEnabled}
                   >
                     <span>{actionLabel}</span>

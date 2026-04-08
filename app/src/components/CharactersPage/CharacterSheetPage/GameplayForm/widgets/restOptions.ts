@@ -43,11 +43,20 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/cleric/cleric";
 import {
   getFighterActionSurgeUsesTotal,
+  getFighterBattleMasterSuperiorityDiceTotalForCharacter as getFighterBattleMasterSuperiorityDiceTotal,
+  getFighterGroupRecoveryUsesTotal,
   getFighterIndomitableUsesTotal,
+  getFighterPsiWarriorEnergyDiceTotalForCharacter as getFighterPsiWarriorEnergyDiceTotal,
   getFighterSecondWindUsesTotal,
   restoreFighterActionSurgeOnLongRest,
   restoreFighterActionSurgeOnShortRest,
+  restoreFighterBattleMasterSuperiorityDiceOnLongRest,
+  restoreFighterBattleMasterSuperiorityDiceOnShortRest,
+  restoreFighterGroupRecoveryOnLongRest,
+  restoreFighterGroupRecoveryOnShortRest,
   restoreFighterIndomitableOnLongRest,
+  restoreFighterPsiWarriorEnergyDiceOnLongRest,
+  restoreFighterPsiWarriorEnergyDiceOnShortRest,
   restoreFighterSecondWindOnLongRest,
   restoreFighterSecondWindOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/fighter/fighter";
@@ -154,7 +163,8 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const shortRestHealAmount = Math.ceil(getEffectiveHitPointMaximumForCharacter(character) / 2);
   const spellSlotTotal = getSpellSlotTotalsForCharacter(
     character.className,
-    character.level
+    character.level,
+    character.subclassId
   ).reduce((sum, value) => sum + value, 0);
   const hasWarlockPactMagic = hasWarlockFeature(character, CLASS_FEATURE.PACT_MAGIC);
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
@@ -168,7 +178,10 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const unbreakableMajestyUsesTotal = getUnbreakableMajestyUsesTotal(character);
   const divineForeknowledgeUsesTotal = getDivineForeknowledgeUsesTotal(character);
   const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
+  const groupRecoveryUsesTotal = getFighterGroupRecoveryUsesTotal(character);
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
+  const superiorityDiceTotal = getFighterBattleMasterSuperiorityDiceTotal(character);
+  const psiEnergyDiceTotal = getFighterPsiWarriorEnergyDiceTotal(character);
   const druidWildShapeUsesTotal = getDruidWildShapeUsesTotal(character);
   const monkFocusPointsTotal = getMonkFocusPointsTotal(character);
   const channelDivinityUsesTotal = Math.max(
@@ -330,6 +343,16 @@ export function createShortRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(groupRecoveryUsesTotal > 0
+      ? [
+          {
+            id: "restore-group-recovery",
+            label: "Restore Group Recovery",
+            apply: (currentCharacter: Character) =>
+              restoreFighterGroupRecoveryOnShortRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(actionSurgeUsesTotal > 0
       ? [
           {
@@ -337,6 +360,26 @@ export function createShortRestOptions(character: Character): RestOption[] {
             label: "Restore all Action Surge uses",
             apply: (currentCharacter: Character) =>
               restoreFighterActionSurgeOnShortRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(superiorityDiceTotal > 0
+      ? [
+          {
+            id: "restore-superiority-dice",
+            label: "Restore all Superiority Dice",
+            apply: (currentCharacter: Character) =>
+              restoreFighterBattleMasterSuperiorityDiceOnShortRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(psiEnergyDiceTotal > 0
+      ? [
+          {
+            id: "restore-psi-energy-die",
+            label: "Restore 1 Psi Energy Die",
+            apply: (currentCharacter: Character) =>
+              restoreFighterPsiWarriorEnergyDiceOnShortRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -412,7 +455,8 @@ export function createShortRestOptions(character: Character): RestOption[] {
 export function createLongRestOptions(character: Character): RestOption[] {
   const spellSlotTotal = getSpellSlotTotalsForCharacter(
     character.className,
-    character.level
+    character.level,
+    character.subclassId
   ).reduce((sum, value) => sum + value, 0);
   const hasWarlockPactMagic = hasWarlockFeature(character, CLASS_FEATURE.PACT_MAGIC);
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
@@ -443,8 +487,11 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const unbreakableMajestyUsesTotal = getUnbreakableMajestyUsesTotal(character);
   const divineForeknowledgeUsesTotal = getDivineForeknowledgeUsesTotal(character);
   const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
+  const groupRecoveryUsesTotal = getFighterGroupRecoveryUsesTotal(character);
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
   const indomitableUsesTotal = getFighterIndomitableUsesTotal(character);
+  const superiorityDiceTotal = getFighterBattleMasterSuperiorityDiceTotal(character);
+  const psiEnergyDiceTotal = getFighterPsiWarriorEnergyDiceTotal(character);
   const druidWildShapeUsesTotal = getDruidWildShapeUsesTotal(character);
   const druidStarMapGuidingBoltUsesTotal = getDruidStarMapGuidingBoltUsesTotal(character);
   const druidMoonlightStepUsesTotal = getDruidMoonlightStepUsesTotal(character);
@@ -697,6 +744,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(groupRecoveryUsesTotal > 0
+      ? [
+          {
+            id: "restore-group-recovery",
+            label: "Restore Group Recovery",
+            apply: (currentCharacter: Character) =>
+              restoreFighterGroupRecoveryOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(actionSurgeUsesTotal > 0
       ? [
           {
@@ -704,6 +761,26 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore all Action Surge uses",
             apply: (currentCharacter: Character) =>
               restoreFighterActionSurgeOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(superiorityDiceTotal > 0
+      ? [
+          {
+            id: "restore-superiority-dice",
+            label: "Restore all Superiority Dice",
+            apply: (currentCharacter: Character) =>
+              restoreFighterBattleMasterSuperiorityDiceOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(psiEnergyDiceTotal > 0
+      ? [
+          {
+            id: "restore-psi-energy-dice",
+            label: "Restore all Psi Energy Dice",
+            apply: (currentCharacter: Character) =>
+              restoreFighterPsiWarriorEnergyDiceOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

@@ -69,6 +69,7 @@ function CharacterBuilderPage() {
         preparedSpellIds: existingCharacter.preparedSpellIds,
         spellSlotsExpended: existingCharacter.spellSlotsExpended,
         shortRestsUsedToday: existingCharacter.shortRestsUsedToday,
+        heroicInspiration: existingCharacter.heroicInspiration,
         coreStats: existingCharacter.coreStats,
         classFeatureState: existingCharacter.classFeatureState,
         feats: existingCharacter.feats
