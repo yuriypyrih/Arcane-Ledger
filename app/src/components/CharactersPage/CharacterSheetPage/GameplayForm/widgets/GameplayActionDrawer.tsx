@@ -41,6 +41,7 @@ type GameplayActionDrawerProps = {
   badges?: string[];
   headerAside?: ReactNode;
   description: SpellDescriptionEntry[];
+  descriptionAdditions?: SpellDescriptionEntry[][];
   facts?: FeatureActionFact[];
   resources?: FeatureActionResource[];
   helperText?: string;
@@ -168,6 +169,7 @@ function GameplayActionDrawer({
   badges = [],
   headerAside,
   description,
+  descriptionAdditions = [],
   facts = [],
   resources = [],
   helperText,
@@ -188,6 +190,8 @@ function GameplayActionDrawer({
     feat: FEATS;
     label: string;
   } | null>(null);
+  const hasBaseDescription = description.length > 0;
+  const descriptionSections = descriptionAdditions.filter((section) => section.length > 0);
 
   return (
     <>
@@ -252,18 +256,43 @@ function GameplayActionDrawer({
           </OverlayHeader>
 
           <OverlayBody className={styles.body}>
-            {description.length > 0 ? (
-              <DescriptionContent
-                description={description}
-                className={`${overlayClassNames.descriptionList} ${overlayClassNames.descriptionSection}`}
-                entryClassName={overlayClassNames.descriptionLine}
-                strongClassName={overlayClassNames.descriptionStrong}
-                linkClassName={styles.inlineLinkButton}
-                onOpenKeyword={setSelectedKeyword}
-                onOpenSpell={setSelectedSpellReference}
-                onOpenDivinity={setSelectedDivinityReference}
-                onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
-              />
+            {hasBaseDescription || descriptionSections.length > 0 ? (
+              <div className={styles.descriptionStack}>
+                {hasBaseDescription ? (
+                  <DescriptionContent
+                    description={description}
+                    className={`${overlayClassNames.descriptionList} ${overlayClassNames.descriptionSection}`}
+                    entryClassName={overlayClassNames.descriptionLine}
+                    strongClassName={overlayClassNames.descriptionStrong}
+                    linkClassName={styles.inlineLinkButton}
+                    onOpenKeyword={setSelectedKeyword}
+                    onOpenSpell={setSelectedSpellReference}
+                    onOpenDivinity={setSelectedDivinityReference}
+                    onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
+                  />
+                ) : null}
+                {descriptionSections.map((section, index) => (
+                  <div
+                    key={`${title}-description-section-${index}`}
+                    className={styles.descriptionSection}
+                  >
+                    {hasBaseDescription || index > 0 ? (
+                      <hr className={styles.descriptionDivider} aria-hidden="true" />
+                    ) : null}
+                    <DescriptionContent
+                      description={section}
+                      className={`${overlayClassNames.descriptionList} ${overlayClassNames.descriptionSection}`}
+                      entryClassName={overlayClassNames.descriptionLine}
+                      strongClassName={overlayClassNames.descriptionStrong}
+                      linkClassName={styles.inlineLinkButton}
+                      onOpenKeyword={setSelectedKeyword}
+                      onOpenSpell={setSelectedSpellReference}
+                      onOpenDivinity={setSelectedDivinityReference}
+                      onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
+                    />
+                  </div>
+                ))}
+              </div>
             ) : null}
 
             {facts.length > 0 ? (

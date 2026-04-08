@@ -23,7 +23,10 @@ type WeaponDrawerDetail = {
   value: string;
 };
 
-const descriptionSectionDivider = "--------------------";
+type WeaponDrawerDescription = {
+  description: SpellDescriptionEntry[];
+  descriptionAdditions: SpellDescriptionEntry[][];
+};
 
 function formatWeaponProficiencyLabel(label: string) {
   return label
@@ -149,7 +152,9 @@ function formatDamageGroup(
       ? [`${group.numericTotal}`, ...group.diceTerms]
       : [
           ...group.diceTerms,
-          ...(group.numericTotal !== 0 || group.diceTerms.length === 0 ? [`${group.numericTotal}`] : [])
+          ...(group.numericTotal !== 0 || group.diceTerms.length === 0
+            ? [`${group.numericTotal}`]
+            : [])
         ];
 
   if (!group.damageType) {
@@ -342,7 +347,9 @@ export function getWeaponDamageFormulaPresentation(
     label: "Damage Roll Formula",
     value: `${formatWeaponRangePrefix(damageFormula)} = ${joinWeaponFormulaTerms(visibleTerms)}`,
     breakdown:
-      breakdownEntries.length > 0 ? `[= ${joinWeaponBreakdownEntries(breakdownEntries)}]` : undefined
+      breakdownEntries.length > 0
+        ? `[= ${joinWeaponBreakdownEntries(breakdownEntries)}]`
+        : undefined
   };
 }
 
@@ -394,24 +401,30 @@ export function getWeaponDrawerDetails(
 export function getWeaponDrawerDescription(
   action: WeaponAction,
   summary?: string | null
-): SpellDescriptionEntry[] {
+): WeaponDrawerDescription {
   const normalizedSummary = typeof summary === "string" ? summary.trim() : "";
   const actionDescription = action.description?.length ? [...action.description] : [];
+  const actionDescriptionAdditions =
+    action.descriptionAdditions?.map((section) => [...section]) ?? [];
 
   if (!normalizedSummary) {
-    return actionDescription;
+    return {
+      description: actionDescription,
+      descriptionAdditions: actionDescriptionAdditions
+    };
   }
 
   if (actionDescription.length === 0) {
-    return [normalizedSummary];
+    return {
+      description: [normalizedSummary],
+      descriptionAdditions: actionDescriptionAdditions
+    };
   }
 
-  return [
-    normalizedSummary,
-    ...(actionDescription[0] === descriptionSectionDivider
-      ? actionDescription
-      : [descriptionSectionDivider, ...actionDescription])
-  ];
+  return {
+    description: [normalizedSummary],
+    descriptionAdditions: [actionDescription, ...actionDescriptionAdditions]
+  };
 }
 
 export function formatWildShapeMonsterMeta(monster: MonsterRecord): string {

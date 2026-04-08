@@ -164,6 +164,18 @@
   padding-right: 0.12rem;
 }
 
+.descriptionStack,
+.descriptionSection {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.descriptionDivider {
+  border: none;
+  border-top: 1px solid rgba(75, 47, 29, 0.14);
+  margin: 0;
+}
+
 .footer {
   display: grid;
   gap: 0.8rem;

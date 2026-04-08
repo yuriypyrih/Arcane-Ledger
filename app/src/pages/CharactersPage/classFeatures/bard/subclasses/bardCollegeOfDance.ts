@@ -1,5 +1,6 @@
 import { getReactionEntryById } from "../../../../../codex/entries";
 import { SKILL } from "../../../../../types";
+import { appendUniqueDescriptionAddition } from "../../../actionModalDescriptions";
 import { getEquipmentByName } from "../../../proficiencyCodexData";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { createDefaultFeatureActionDescription } from "../../subclassRuntime";
@@ -89,18 +90,15 @@ function appendAgileStrikesDescription(action: FeatureActionCard): FeatureAction
     return action;
   }
 
-  const description = action.description?.length
-    ? [...action.description]
-    : createDefaultFeatureActionDescription(action);
-
-  if (description.includes(agileStrikesDescription)) {
-    return action;
-  }
-
-  return {
-    ...action,
-    description: [...description, agileStrikesDescription]
-  };
+  return appendUniqueDescriptionAddition(
+    {
+      ...action,
+      description: action.description?.length
+        ? [...action.description]
+        : createDefaultFeatureActionDescription(action)
+    },
+    [agileStrikesDescription]
+  );
 }
 
 export const getBardCollegeOfDanceDerivedFeatureState: SubclassRuntimeResolver = (character) => {

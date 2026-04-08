@@ -36,6 +36,7 @@ export type GameplayActionExecuteDefinition =
 type GameplayActionDrawerBase = {
   eyebrow?: string;
   description: SpellDescriptionEntry[];
+  descriptionAdditions: SpellDescriptionEntry[][];
   helperText?: string;
   helperTextTone?: FeatureActionTone;
   facts: FeatureActionFact[];
@@ -131,10 +132,7 @@ function createFeatureActionResources(action: FeatureActionCard): FeatureActionR
         value: action.usesLabel,
         tone: action.usesTone ?? "default",
         icon: action.usesIcon,
-        supplementary: [
-          action.usesInlineLabel,
-          action.usesInlineSuffix
-        ]
+        supplementary: [action.usesInlineLabel, action.usesInlineSuffix]
           .filter((entry): entry is string => Boolean(entry))
           .join(" ")
       }
@@ -143,12 +141,7 @@ function createFeatureActionResources(action: FeatureActionCard): FeatureActionR
 
   if (action.usesLabel) {
     return [
-      createTextResource(
-        "Usage",
-        action.usesLabel,
-        action.usesTone ?? "default",
-        action.usesIcon
-      )
+      createTextResource("Usage", action.usesLabel, action.usesTone ?? "default", action.usesIcon)
     ];
   }
 
@@ -214,9 +207,7 @@ function createOptionResources(option: FeatureActionOptionCard): FeatureActionRe
   }
 
   if (option.usesLabel) {
-    return [
-      createTextResource("Usage", option.usesLabel, "default", option.usesIcon)
-    ];
+    return [createTextResource("Usage", option.usesLabel, "default", option.usesIcon)];
   }
 
   return [];
@@ -266,6 +257,10 @@ function createFeatureActionDrawer(
     action.drawer?.description ??
     action.description ??
     createDefaultDescription(action.summary, action.detail, action.breakdown);
+  const descriptionAdditions = [
+    ...(action.descriptionAdditions ?? []),
+    ...(action.drawer?.descriptionAdditions ?? [])
+  ];
   const helperText = action.drawer?.helperText;
   const helperTextTone = action.drawer?.helperTextTone;
   const facts = action.drawer?.facts ?? createFeatureActionFacts(action);
@@ -278,6 +273,7 @@ function createFeatureActionDrawer(
       kind: "options",
       eyebrow,
       description,
+      descriptionAdditions,
       helperText,
       helperTextTone,
       facts,
@@ -298,6 +294,7 @@ function createFeatureActionDrawer(
       kind: "custom-form",
       eyebrow,
       description,
+      descriptionAdditions,
       helperText,
       helperTextTone,
       facts,
@@ -319,6 +316,7 @@ function createFeatureActionDrawer(
       kind: "spell-list",
       eyebrow,
       description,
+      descriptionAdditions,
       helperText,
       helperTextTone,
       facts,
@@ -331,6 +329,7 @@ function createFeatureActionDrawer(
     kind: "confirm",
     eyebrow,
     description,
+    descriptionAdditions,
     helperText,
     helperTextTone,
     facts,
@@ -395,6 +394,7 @@ function createWeaponActionDefinition(action: WeaponAction): GameplayActionDefin
       kind: "weapon-roll",
       eyebrow: action.drawerEyebrow ?? "Weapon Attack",
       description: action.description ?? [],
+      descriptionAdditions: action.descriptionAdditions ?? [],
       facts: createWeaponActionFacts(action),
       resources: [],
       confirmLabel: "Roll Attack"

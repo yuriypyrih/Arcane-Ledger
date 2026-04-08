@@ -3,6 +3,7 @@ import {
   fighterChampionSuperiorCriticalDescription
 } from "../../../../../codex/subclasses/fighterChampion";
 import { SKILL, type Character } from "../../../../../types";
+import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { restoreHeroicInspirationForCharacter } from "../../../heroicInspiration";
 import type { WeaponAction } from "../../../gameplay";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
@@ -12,7 +13,6 @@ export const championSubclassId = "fighter-champion";
 
 const improvedCriticalSource = "Improved Critical";
 const superiorCriticalSource = "Superior Critical";
-const featureDescriptionDivider = "--------------------";
 const remarkableAthleteAdvantageIndicator = {
   label: "Advantage",
   tone: "advantage" as const,
@@ -83,44 +83,12 @@ function getFighterChampionSkillIndicators(
   };
 }
 
-function createDescriptionSection(sourceName: string, descriptionEntries: string[]) {
-  const [firstEntry, ...remainingEntries] = descriptionEntries;
-
-  if (!firstEntry) {
-    return [];
-  }
-
-  return [`<strong>${sourceName}.</strong> ${firstEntry}`, ...remainingEntries];
-}
-
 function appendWeaponDescriptionSection(
   action: WeaponAction,
   sourceName: string,
   descriptionEntries: string[]
 ): WeaponAction {
-  const marker = `<strong>${sourceName}.<\/strong>`;
-  const existingDescription = action.description?.length ? [...action.description] : [];
-  const hasSection = existingDescription.some(
-    (entry) => typeof entry === "string" && entry.includes(marker)
-  );
-
-  if (hasSection) {
-    return action;
-  }
-
-  const section = createDescriptionSection(sourceName, descriptionEntries);
-
-  if (section.length === 0) {
-    return action;
-  }
-
-  return {
-    ...action,
-    description:
-      existingDescription.length > 0
-        ? [...existingDescription, featureDescriptionDivider, ...section]
-        : section
-  };
+  return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
 }
 
 export const getFighterChampionDerivedFeatureState: SubclassRuntimeResolver = (character) => {
@@ -139,11 +107,7 @@ export const getFighterChampionDerivedFeatureState: SubclassRuntimeResolver = (c
     coreStatIndicators: getFighterChampionCoreStatIndicators(character),
     skillIndicators: getFighterChampionSkillIndicators(character),
     transformWeaponAction: (action) =>
-      appendWeaponDescriptionSection(
-        action,
-        criticalFeatureSource,
-        criticalFeatureDescription
-      )
+      appendWeaponDescriptionSection(action, criticalFeatureSource, criticalFeatureDescription)
   };
 };
 

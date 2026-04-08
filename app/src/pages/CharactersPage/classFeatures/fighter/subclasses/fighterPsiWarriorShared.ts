@@ -8,4 +8,3 @@ export const fighterPsiWarriorBulwarkOfForceStatusSourceId =
   "feature-fighter-psi-warrior-bulwark-of-force";
 export const fighterPsiWarriorTelekineticMasterStatusSourceId =
   "feature-fighter-psi-warrior-telekinetic-master";
-export const fighterPsiWarriorFeatureDescriptionDivider = "--------------------";

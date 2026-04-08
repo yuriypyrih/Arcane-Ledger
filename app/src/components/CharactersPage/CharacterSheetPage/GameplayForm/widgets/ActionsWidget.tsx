@@ -1853,11 +1853,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         : null,
     [selectedWeaponEffectiveAction]
   );
-  const selectedWeaponDescription = useMemo(
+  const selectedWeaponDrawerDescription = useMemo(
     () =>
       selectedWeaponAction
         ? getWeaponDrawerDescription(selectedWeaponAction, selectedWeaponEntry?.summary)
-        : [],
+        : {
+            description: [],
+            descriptionAdditions: []
+          },
     [selectedWeaponAction, selectedWeaponEntry]
   );
   const selectedWeaponRollState = useMemo(
@@ -3724,7 +3727,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     if (selectedAction.kind === "weapon") {
       const showPsionicStrikeToggle =
-        selectedAction.action.attackKind === "weapon" && selectedWeaponPsionicStrikeFormula !== null;
+        selectedAction.action.attackKind === "weapon" &&
+        selectedWeaponPsionicStrikeFormula !== null;
 
       return (
         <div className={styles.footerActionStack}>
@@ -4176,8 +4180,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           headerAside={renderActionHeaderAside()}
           description={
             selectedAction.kind === "weapon"
-              ? selectedWeaponDescription
+              ? selectedWeaponDrawerDescription.description
               : selectedAction.drawer.description
+          }
+          descriptionAdditions={
+            selectedAction.kind === "weapon"
+              ? selectedWeaponDrawerDescription.descriptionAdditions
+              : selectedAction.drawer.descriptionAdditions
           }
           facts={selectedAction.kind === "weapon" ? [] : selectedAction.drawer.facts}
           resources={selectedAction.kind === "weapon" ? [] : selectedAction.drawer.resources}

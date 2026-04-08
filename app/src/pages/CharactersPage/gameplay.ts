@@ -101,6 +101,7 @@ export type WeaponAction = {
   hasBatteringRootsBonus: boolean;
   drawerEyebrow?: string;
   description?: SpellDescriptionEntry[];
+  descriptionAdditions?: SpellDescriptionEntry[][];
   details?: Array<{
     label: string;
     value: string;
@@ -657,9 +658,12 @@ function getSkillModifierForCharacter(character: Character, skill: SkillName): n
 
     if (bonus.abilityModifierSource) {
       const sourceValue = getAbilityModifierForCharacter(character, bonus.abilityModifierSource);
-      return total + (typeof bonus.minimumValue === "number"
-        ? Math.max(bonus.minimumValue, sourceValue)
-        : sourceValue);
+      return (
+        total +
+        (typeof bonus.minimumValue === "number"
+          ? Math.max(bonus.minimumValue, sourceValue)
+          : sourceValue)
+      );
     }
 
     return total + (bonus.value ?? 0);
@@ -952,5 +956,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
     ...customWeaponActions
   ];
 
-  return resolvedWeaponActions.map((action) => transformWeaponActionForCharacter(character, action));
+  return resolvedWeaponActions.map((action) =>
+    transformWeaponActionForCharacter(character, action)
+  );
 }

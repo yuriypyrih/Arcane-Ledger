@@ -24,6 +24,7 @@ import {
   STATUS_ENTRY_SOURCE_TYPE,
   getSkillProficiencyForSkillName
 } from "../../../../../types";
+import { appendUniqueDescriptionAddition } from "../../../actionModalDescriptions";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import { createDefaultFeatureActionDescription } from "../../subclassRuntime";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
@@ -400,37 +401,19 @@ function appendInspiredEclipseDescription(
     return action;
   }
 
-  const description = action.description?.length
-    ? [...action.description]
-    : createDefaultFeatureActionDescription(action);
   const extraDescriptionEntries = includeShadowOfTheNewMoon
     ? [...inspiredEclipseDescription, ...shadowOfTheNewMoonDescription]
     : [...inspiredEclipseDescription];
 
-  if (
-    description.some(
-      (entry) =>
-        typeof entry === "string" &&
-        extraDescriptionEntries.some((descriptionEntry) => descriptionEntry === entry)
-    )
-  ) {
-    const missingEntries = extraDescriptionEntries.filter(
-      (descriptionEntry) =>
-        !description.some((entry) => typeof entry === "string" && entry === descriptionEntry)
-    );
-
-    return missingEntries.length > 0
-      ? {
-          ...action,
-          description: [...description, ...missingEntries]
-        }
-      : action;
-  }
-
-  return {
-    ...action,
-    description: [...description, ...extraDescriptionEntries]
-  };
+  return appendUniqueDescriptionAddition(
+    {
+      ...action,
+      description: action.description?.length
+        ? [...action.description]
+        : createDefaultFeatureActionDescription(action)
+    },
+    extraDescriptionEntries
+  );
 }
 
 function appendBlessingOfMoonlightDescription(spell: SpellEntry): SpellEntry {

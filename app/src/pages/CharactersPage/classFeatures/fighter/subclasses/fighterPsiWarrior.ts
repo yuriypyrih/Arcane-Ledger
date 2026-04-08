@@ -1,4 +1,8 @@
-import { DAMAGE_TYPE, getReactionEntryById, getSpellEntryByName } from "../../../../../codex/entries";
+import {
+  DAMAGE_TYPE,
+  getReactionEntryById,
+  getSpellEntryByName
+} from "../../../../../codex/entries";
 import {
   psiWarriorBulwarkOfForceDescription,
   psiWarriorPsiPoweredLeapDescription,
@@ -14,19 +18,15 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { getAbilityModifier } from "../../../gameplay";
 import type { WeaponAction } from "../../../gameplay";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
-import type {
-  DerivedFeatureStatusEntry,
-  FeatureActionCard,
-  FeatureSpeedBonus
-} from "../../types";
+import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureSpeedBonus } from "../../types";
 import {
   fighterPsiWarriorBulwarkOfForceEffectName,
   fighterPsiWarriorBulwarkOfForceStatusSourceId,
-  fighterPsiWarriorFeatureDescriptionDivider,
   fighterPsiWarriorPsiPoweredLeapEffectName,
   fighterPsiWarriorPsiPoweredLeapStatusSourceId,
   fighterPsiWarriorTelekineticMasterEffectName,
@@ -53,8 +53,7 @@ const fighterPsiWarriorGuardedMindPsychicResistanceSourceId =
   "feature-fighter-psi-warrior-guarded-mind-psychic";
 
 export function hasFighterPsiWarriorPsionicPower(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "subclassId">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
     character.className === "Fighter" &&
@@ -64,8 +63,7 @@ export function hasFighterPsiWarriorPsionicPower(
 }
 
 function hasFighterPsiWarriorTelekineticAdept(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "subclassId">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
     character.className === "Fighter" &&
@@ -75,8 +73,7 @@ function hasFighterPsiWarriorTelekineticAdept(
 }
 
 function hasFighterPsiWarriorGuardedMind(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "subclassId">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
     character.className === "Fighter" &&
@@ -86,8 +83,7 @@ function hasFighterPsiWarriorGuardedMind(
 }
 
 function hasFighterPsiWarriorBulwarkOfForce(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "subclassId">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
     character.className === "Fighter" &&
@@ -97,8 +93,7 @@ function hasFighterPsiWarriorBulwarkOfForce(
 }
 
 function hasFighterPsiWarriorTelekineticMaster(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "subclassId">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
     character.className === "Fighter" &&
@@ -131,44 +126,12 @@ function buildPsiWarriorFormula(die: PsiWarriorDie | null, modifier: number): st
   return `${die}${modifier > 0 ? `+${modifier}` : modifier}`;
 }
 
-function createDescriptionSection(sourceName: string, descriptionEntries: readonly string[]) {
-  const [firstEntry, ...remainingEntries] = descriptionEntries;
-
-  if (!firstEntry) {
-    return [];
-  }
-
-  return [`<strong>${sourceName}.</strong> ${firstEntry}`, ...remainingEntries];
-}
-
 function appendWeaponDescriptionSection(
   action: WeaponAction,
   sourceName: string,
   descriptionEntries: readonly string[]
 ): WeaponAction {
-  const marker = `<strong>${sourceName}.<\/strong>`;
-  const existingDescription = action.description?.length ? [...action.description] : [];
-  const hasSection = existingDescription.some(
-    (entry) => typeof entry === "string" && entry.includes(marker)
-  );
-
-  if (hasSection) {
-    return action;
-  }
-
-  const section = createDescriptionSection(sourceName, descriptionEntries);
-
-  if (section.length === 0) {
-    return action;
-  }
-
-  return {
-    ...action,
-    description:
-      existingDescription.length > 0
-        ? [...existingDescription, fighterPsiWarriorFeatureDescriptionDivider, ...section]
-        : section
-  };
+  return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
 }
 
 function hasFighterPsiWarriorPsiPoweredLeapStatus(
@@ -423,7 +386,9 @@ export function getFighterPsiWarriorPsionicStrikeFormula(
   );
 }
 
-export function hasFighterPsiWarriorPsionicStrikeAvailable(character: PsiWarriorCharacter): boolean {
+export function hasFighterPsiWarriorPsionicStrikeAvailable(
+  character: PsiWarriorCharacter
+): boolean {
   if (!hasFighterPsiWarriorPsionicPower(character)) {
     return false;
   }
@@ -751,12 +716,12 @@ export function activateFighterPsiWarriorBulwarkOfForce(character: Character): C
     return character;
   }
 
-  return applyFighterPsiWarriorBulwarkOfForceStatus(
-    expendFighterPsiWarriorEnergyDie(character)
-  );
+  return applyFighterPsiWarriorBulwarkOfForceStatus(expendFighterPsiWarriorEnergyDie(character));
 }
 
-export function activateFighterPsiWarriorTelekineticMasterSpellCast(character: Character): Character {
+export function activateFighterPsiWarriorTelekineticMasterSpellCast(
+  character: Character
+): Character {
   if (!hasFighterPsiWarriorTelekineticMaster(character)) {
     return character;
   }
@@ -786,7 +751,10 @@ export function activateFighterPsiWarriorTelekineticMasterSpellCast(character: C
 
   const nextCharacter = expendFighterPsiWarriorEnergyDie(character);
   const nextFighterState = getPsiWarriorStateRecord(nextCharacter.classFeatureState?.fighter);
-  const nextNormalizedState = normalizeFighterPsiWarriorFeatureState(nextFighterState, nextCharacter);
+  const nextNormalizedState = normalizeFighterPsiWarriorFeatureState(
+    nextFighterState,
+    nextCharacter
+  );
 
   return applyFighterPsiWarriorTelekineticMasterStatus({
     ...nextCharacter,
@@ -824,7 +792,9 @@ export function consumeFighterPsiWarriorTelekineticMasterBonusAttack(
   };
 }
 
-export function restoreFighterPsiWarriorTelekineticMasterOnLongRest(character: Character): Character {
+export function restoreFighterPsiWarriorTelekineticMasterOnLongRest(
+  character: Character
+): Character {
   const totalUses = getFighterPsiWarriorTelekineticMasterUsesTotal(character);
 
   if (totalUses <= 0) {
@@ -1225,16 +1195,15 @@ export const getFighterPsiWarriorDerivedFeatureState: SubclassRuntimeResolver = 
     reactionEntries: protectiveFieldReaction ? [protectiveFieldReaction] : [],
     derivedStatusEntries: getFighterPsiWarriorDerivedStatusEntries(character),
     speedBonuses,
-    transformWeaponAction:
-      hasFighterPsiWarriorTelekineticAdept(character)
-        ? (action) =>
-            action.attackKind === "weapon"
-              ? appendWeaponDescriptionSection(
-                  action,
-                  psiWarriorTelekineticThrustSource,
-                  psiWarriorTelekineticThrustDescription
-                )
-              : action
-        : undefined
+    transformWeaponAction: hasFighterPsiWarriorTelekineticAdept(character)
+      ? (action) =>
+          action.attackKind === "weapon"
+            ? appendWeaponDescriptionSection(
+                action,
+                psiWarriorTelekineticThrustSource,
+                psiWarriorTelekineticThrustDescription
+              )
+            : action
+      : undefined
   };
 };

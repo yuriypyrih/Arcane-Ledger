@@ -10,6 +10,10 @@ import {
   getSkillProficiencyForSkillName
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import {
+  appendSourcedDescriptionAddition,
+  appendUniqueDescriptionAddition
+} from "../../../actionModalDescriptions";
 import type {
   FeatureActionCard,
   FeatureDamageBonus,
@@ -22,7 +26,6 @@ export const warriorOfMercySubclassId = "monk-warrior-of-mercy";
 export const monkWarriorOfMercyHandOfHarmBonusLabel = "Hand of Harm";
 export const monkHandOfHealingActionKey = "monk-warrior-of-mercy-hand-of-healing";
 
-const featureDescriptionDivider = "--------------------";
 const implementsOfMercySource = "Implements of Mercy";
 const warriorOfMercySubclassEntry = getSubclassEntryById(warriorOfMercySubclassId);
 
@@ -47,7 +50,9 @@ function getWarriorOfMercyFeatureDescriptionEntries(feature: CLASS_FEATURE): str
   );
 }
 
-const handOfHarmDescription = getWarriorOfMercyFeatureDescriptionEntries(CLASS_FEATURE.HAND_OF_HARM);
+const handOfHarmDescription = getWarriorOfMercyFeatureDescriptionEntries(
+  CLASS_FEATURE.HAND_OF_HARM
+);
 const handOfHealingDescription = getWarriorOfMercyFeatureDescriptionEntries(
   CLASS_FEATURE.HAND_OF_HEALING
 );
@@ -71,70 +76,12 @@ function getMonkFeatureRow(level: number | undefined): MonkFeatureClassObj | nul
   return matchingRows.length > 0 ? (matchingRows[matchingRows.length - 1] ?? null) : null;
 }
 
-function createDescriptionSection(
-  sourceName: string,
-  descriptionEntries: readonly string[]
-): SpellDescriptionEntry[] {
-  const [firstEntry, ...remainingEntries] = descriptionEntries;
-
-  if (!firstEntry) {
-    return [];
-  }
-
-  return [`<strong>${sourceName}.</strong> ${firstEntry}`, ...remainingEntries];
-}
-
 function appendWeaponDescriptionSection<T extends { description?: SpellDescriptionEntry[] }>(
   action: T,
   sourceName: string,
   descriptionEntries: readonly string[]
 ): T {
-  const marker = `<strong>${sourceName}.</strong>`;
-  const existingDescription = action.description?.length ? [...action.description] : [];
-  const hasSection = existingDescription.some(
-    (entry) => typeof entry === "string" && entry.includes(marker)
-  );
-
-  if (hasSection) {
-    return action;
-  }
-
-  const section = createDescriptionSection(sourceName, descriptionEntries);
-
-  if (section.length === 0) {
-    return action;
-  }
-
-  return {
-    ...action,
-    description:
-      existingDescription.length > 0
-        ? [...existingDescription, featureDescriptionDivider, ...section]
-        : section
-  } as T;
-}
-
-function appendUniqueDescriptionEntries<T extends { description?: SpellDescriptionEntry[] }>(
-  value: T,
-  descriptionEntries: readonly string[]
-): T {
-  if (descriptionEntries.length === 0) {
-    return value;
-  }
-
-  const existingDescription = value.description?.length ? [...value.description] : [];
-  const missingEntries = descriptionEntries.filter(
-    (entry) => !existingDescription.some((existingEntry) => existingEntry === entry)
-  );
-
-  if (missingEntries.length === 0) {
-    return value;
-  }
-
-  return {
-    ...value,
-    description: [...existingDescription, ...missingEntries]
-  } as T;
+  return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries) as T;
 }
 
 function appendFeatureActionDescriptionEntries(
@@ -146,17 +93,7 @@ function appendFeatureActionDescriptionEntries(
     return action;
   }
 
-  const nextAction = appendUniqueDescriptionEntries(action, descriptionEntries);
-  const nextDrawer = action.drawer
-    ? appendUniqueDescriptionEntries(action.drawer, descriptionEntries)
-    : action.drawer;
-
-  return nextAction !== action || nextDrawer !== action.drawer
-    ? {
-        ...nextAction,
-        drawer: nextDrawer
-      }
-    : action;
+  return appendUniqueDescriptionAddition(action, descriptionEntries);
 }
 
 function getRawWisdomModifier(character: Partial<Pick<Character, "abilities">>): number | null {
@@ -173,9 +110,7 @@ function getMonkFocusPointsTotal(character: Partial<Pick<Character, "level">>): 
   return getMonkFeatureRow(character.level)?.focusPoints ?? 0;
 }
 
-function getMonkMartialArtsDieLabel(
-  character: Partial<Pick<Character, "level">>
-): string | null {
+function getMonkMartialArtsDieLabel(character: Partial<Pick<Character, "level">>): string | null {
   const martialArtsDie = getMonkFeatureRow(character.level)?.martialArts;
 
   return martialArtsDie ? `1${String(martialArtsDie).toLowerCase()}` : null;
@@ -205,9 +140,7 @@ export function isMonkWarriorOfMercy(character: MonkWarriorOfMercyCharacter): bo
   );
 }
 
-export function hasMonkWarriorOfMercyHandOfHarm(
-  character: MonkWarriorOfMercyCharacter
-): boolean {
+export function hasMonkWarriorOfMercyHandOfHarm(character: MonkWarriorOfMercyCharacter): boolean {
   return isMonkWarriorOfMercy(character);
 }
 
@@ -477,7 +410,10 @@ export const getMonkWarriorOfMercyDerivedFeatureState: SubclassRuntimeResolver =
       );
 
       return hasMonkWarriorOfMercyPhysiciansTouch(character)
-        ? appendUniqueDescriptionEntries(actionWithHandOfHarm, physiciansTouchHandOfHarmDescription)
+        ? appendUniqueDescriptionAddition(
+            actionWithHandOfHarm,
+            physiciansTouchHandOfHarmDescription
+          )
         : actionWithHandOfHarm;
     }
   };

@@ -41,6 +41,10 @@ import type {
   FeatureSkillProficiencyEntry
 } from "../../types";
 import {
+  appendSourcedDescriptionAddition,
+  descriptionValueSomeText
+} from "../../../actionModalDescriptions";
+import {
   fighterBanneretInspiringCommanderCharmedImmunitySourceId,
   fighterBanneretInspiringCommanderFrightenedImmunitySourceId,
   fighterBanneretInspiringCommanderSource,
@@ -56,7 +60,6 @@ const fighterSecondWindActionKey = "fighter-second-wind";
 const knightlyEnvoySource = "Knightly Envoy";
 const comprehendLanguagesSpellId = "spell-comprehend-languages";
 const fighterBanneretLanguageOptions = languageEntries.map((entry) => entry.proficiency);
-const featureDescriptionDivider = "--------------------";
 
 export const fighterBanneretKnightlyEnvoySkillOptions = [
   SKILL.INSIGHT,
@@ -197,20 +200,6 @@ function createKnightlyEnvoySkillEntry(skill: SkillName): SkillProficiencyEntry 
   } satisfies SkillProficiencyEntry;
 }
 
-function createFeatureDescriptionSection(sourceName: string, descriptionEntries: string[]) {
-  const [firstEntry, ...remainingEntries] = descriptionEntries;
-
-  if (!firstEntry) {
-    return [];
-  }
-
-  return [
-    featureDescriptionDivider,
-    `<strong>${sourceName}.</strong> ${firstEntry}`,
-    ...remainingEntries
-  ];
-}
-
 function appendFeatureDescriptionSections(
   action: FeatureActionCard,
   actionKey: string,
@@ -223,31 +212,29 @@ function appendFeatureDescriptionSections(
     return action;
   }
 
-  let description = action.description?.length
+  const description = action.description?.length
     ? [...action.description]
     : createDefaultFeatureActionDescription(action);
+  let nextAction: FeatureActionCard = {
+    ...action,
+    description
+  };
   let hasChanges = false;
 
   sections.forEach(({ sourceName, descriptionEntries }) => {
-    const marker = `<strong>${sourceName}.<\/strong>`;
-    const hasSection = description.some(
-      (entry) => typeof entry === "string" && entry.includes(marker)
-    );
-
-    if (hasSection) {
+    if (
+      descriptionValueSomeText(nextAction, (entry) =>
+        entry.includes(`<strong>${sourceName}.</strong>`)
+      )
+    ) {
       return;
     }
 
-    description = [...description, ...createFeatureDescriptionSection(sourceName, descriptionEntries)];
+    nextAction = appendSourcedDescriptionAddition(nextAction, sourceName, descriptionEntries);
     hasChanges = true;
   });
 
-  return hasChanges
-    ? {
-        ...action,
-        description
-      }
-    : action;
+  return hasChanges ? nextAction : action;
 }
 
 export function normalizeFighterBanneretFeatureState(
@@ -520,20 +507,24 @@ export const getFighterBanneretDerivedFeatureState: SubclassRuntimeResolver = (c
     skillProficiencyEntries: getFighterBanneretSkillProficiencyEntries(character),
     derivedStatusEntries: getFighterBanneretDerivedStatusEntries(character),
     transformFeatureAction: (action) => {
-      const secondWindAction = appendFeatureDescriptionSections(action, fighterSecondWindActionKey, [
-        {
-          sourceName: "Group Recovery",
-          descriptionEntries: getFighterBanneretGroupRecoveryDescriptionEntries(character)
-        },
-        ...(hasFighterBanneretTeamTactics(character)
-          ? [
-              {
-                sourceName: "Team Tactics",
-                descriptionEntries: teamTacticsDescriptionEntries
-              }
-            ]
-          : [])
-      ]);
+      const secondWindAction = appendFeatureDescriptionSections(
+        action,
+        fighterSecondWindActionKey,
+        [
+          {
+            sourceName: "Group Recovery",
+            descriptionEntries: getFighterBanneretGroupRecoveryDescriptionEntries(character)
+          },
+          ...(hasFighterBanneretTeamTactics(character)
+            ? [
+                {
+                  sourceName: "Team Tactics",
+                  descriptionEntries: teamTacticsDescriptionEntries
+                }
+              ]
+            : [])
+        ]
+      );
 
       return appendFeatureDescriptionSections(secondWindAction, fighterActionSurgeActionKey, [
         ...(hasFighterBanneretFeature(character, 10)
@@ -549,7 +540,9 @@ export const getFighterBanneretDerivedFeatureState: SubclassRuntimeResolver = (c
     reactionEntries: hasFighterBanneretSharedResilience(character)
       ? (() => {
           const sharedResilience = getReactionEntryById("reaction-banneret-shared-resilience");
-          return sharedResilience ? [{ ...sharedResilience, description: sharedResilienceDescriptionEntries }] : [];
+          return sharedResilience
+            ? [{ ...sharedResilience, description: sharedResilienceDescriptionEntries }]
+            : [];
         })()
       : undefined
   };

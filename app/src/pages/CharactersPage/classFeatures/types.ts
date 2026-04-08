@@ -61,11 +61,7 @@ export type FeatureActionResource =
       icon?: FeatureActionIcon;
     };
 
-export type FeatureActionDrawerKind =
-  | "confirm"
-  | "options"
-  | "custom-form"
-  | "spell-list";
+export type FeatureActionDrawerKind = "confirm" | "options" | "custom-form" | "spell-list";
 
 export type FeatureActionExecuteKind = "activate" | "option" | "custom-form" | "spell";
 
@@ -91,10 +87,7 @@ export type FeatureActionFormKind =
   | "warrior-of-the-gods"
   | "wild-heart-rage";
 
-export type FeatureActionOptionSelection =
-  | "single-immediate"
-  | "single-confirm"
-  | "multi-confirm";
+export type FeatureActionOptionSelection = "single-immediate" | "single-confirm" | "multi-confirm";
 
 export type FeatureActionSpellSource = "fixed" | "divine-intervention" | "mystic-arcanum";
 
@@ -112,6 +105,7 @@ export type FeatureActionDrawerConfig = {
   kind: FeatureActionDrawerKind;
   eyebrow?: string;
   description?: SpellDescriptionEntry[];
+  descriptionAdditions?: SpellDescriptionEntry[][];
   helperText?: string;
   helperTextTone?: FeatureActionTone;
   facts?: FeatureActionFact[];
@@ -179,6 +173,7 @@ export type FeatureActionCard = {
   disabled?: boolean;
   disabledReason?: string;
   description?: SpellDescriptionEntry[];
+  descriptionAdditions?: SpellDescriptionEntry[][];
   facts?: FeatureActionFact[];
   resources?: FeatureActionResource[];
   drawer?: FeatureActionDrawerConfig;
@@ -364,10 +359,7 @@ export type ClassFeatureDerivedState = {
   abilityCheckIndicators?: AbilityCheckIndicatorMap;
   coreStatIndicators?: CoreStatIndicatorMap;
   skillIndicators?: SkillIndicatorMap;
-  getSkillBonuses?: (
-    skill: SkillName,
-    proficiencyLevel: PROF_LEVEL
-  ) => FeatureSkillBonus[];
+  getSkillBonuses?: (skill: SkillName, proficiencyLevel: PROF_LEVEL) => FeatureSkillBonus[];
   spellcastingState?: FeatureSpellcastingState;
   getArmorClassModes?: (context: ArmorClassFeatureContext) => FeatureArmorClassMode[];
   getArmorClassBonuses?: (context: ArmorClassFeatureContext) => FeatureArmorClassBonus[];
@@ -432,11 +424,13 @@ export type ClassFeatureModule<TStateKey extends keyof CharacterClassFeatureStat
     character: Pick<Character, "className" | "level"> &
       Partial<Pick<Character, "abilities" | "subclassId">>
   ) => CharacterClassFeatureState[TStateKey];
-  collectDerived: (
-    character: CollectedClassFeatureCharacter
-  ) => ClassFeatureDerivedState;
+  collectDerived: (character: CollectedClassFeatureCharacter) => ClassFeatureDerivedState;
   handleAction?: (character: Character, actionKey: string) => Character | null;
-  handleActionOption?: (character: Character, actionKey: string, optionKey: string) => Character | null;
+  handleActionOption?: (
+    character: Character,
+    actionKey: string,
+    optionKey: string
+  ) => Character | null;
   applyShortRest?: (character: Character) => Character;
   applyLongRest?: (character: Character) => Character;
   advanceRound?: (character: Character) => Character;
