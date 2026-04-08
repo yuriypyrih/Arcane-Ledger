@@ -7,6 +7,11 @@ import {
 import { divineForeknowledgeDescription } from "../../codex/subclasses/cleric";
 import { banneretTeamTacticsDescription } from "../../codex/subclasses/fighterBanneret";
 import {
+  psiWarriorBulwarkOfForceDescription,
+  psiWarriorPsiPoweredLeapDescription
+} from "../../codex/subclasses/fighterPsiWarrior";
+import { psiWarriorTelekineticMasterDescription } from "../../codex/subclasses/fighterPsiWarrior";
+import {
   aquaticAffinityWrathOfTheSeaDescription,
   naturesSanctuaryDescription,
   starryFormDescription,
@@ -31,6 +36,11 @@ import {
 } from "../../types";
 import { formatCodexLabel } from "../../utils/codex";
 import { fighterBanneretTeamTacticsStatusSourceId } from "./classFeatures/fighter/subclasses/fighterBanneretShared";
+import {
+  fighterPsiWarriorBulwarkOfForceStatusSourceId,
+  fighterPsiWarriorPsiPoweredLeapStatusSourceId,
+  fighterPsiWarriorTelekineticMasterStatusSourceId
+} from "./classFeatures/fighter/subclasses/fighterPsiWarriorShared";
 import { getKeywordDescriptionLines } from "./keywordDescriptions";
 import { clampInteger } from "./shared";
 
@@ -1215,6 +1225,18 @@ export function getStatusEntryDescriptionEntries(
 
   if (entry.sourceId === fighterBanneretTeamTacticsStatusSourceId) {
     return [...banneretTeamTacticsDescription];
+  }
+
+  if (entry.sourceId === fighterPsiWarriorBulwarkOfForceStatusSourceId) {
+    return [...psiWarriorBulwarkOfForceDescription];
+  }
+
+  if (entry.sourceId === fighterPsiWarriorPsiPoweredLeapStatusSourceId) {
+    return [...psiWarriorPsiPoweredLeapDescription];
+  }
+
+  if (entry.sourceId === fighterPsiWarriorTelekineticMasterStatusSourceId) {
+    return [...psiWarriorTelekineticMasterDescription];
   }
 
   if (entry.sourceId === unbreakableMajestyStatusSourceId) {

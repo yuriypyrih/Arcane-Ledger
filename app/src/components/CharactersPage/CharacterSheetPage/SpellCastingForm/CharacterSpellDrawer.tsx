@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Music, X } from "lucide-react";
+import { Hexagon, Music, X } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import ActionShape, {
   getActionShapeForCastingTime,
@@ -34,6 +34,7 @@ export type CharacterSpellDrawerMode = "standard" | "prepare-preview" | "divine-
 export type CharacterSpellDrawerActionOptions = {
   castAsRitual?: boolean;
   useBeguilingMagic?: boolean;
+  useTelekineticMaster?: boolean;
 };
 
 export type CharacterSpellDrawerActionOption = {
@@ -48,7 +49,7 @@ export type CharacterSpellDrawerActionOption = {
   };
   fallbackCost?: {
     label: string;
-    icon?: "music";
+    icon?: "music" | "psi";
   };
 };
 
@@ -81,9 +82,13 @@ type CharacterSpellDrawerProps = {
   backdropClassName?: string;
 };
 
-function renderActionOptionIcon(icon?: "music"): ReactNode {
+function renderActionOptionIcon(icon?: "music" | "psi"): ReactNode {
   if (icon === "music") {
     return <Music size={14} aria-hidden="true" />;
+  }
+
+  if (icon === "psi") {
+    return <Hexagon size={14} aria-hidden="true" />;
   }
 
   return null;
@@ -484,7 +489,12 @@ function CharacterSpellDrawer({
                         : null
                     )}
                     onClick={() =>
-                      onAction({ castAsRitual: ritualCastingRequired || isRitualCastingSelected })
+                      onAction({
+                        castAsRitual: ritualCastingRequired || isRitualCastingSelected,
+                        useTelekineticMaster: actionOptions.some(
+                          (option) => option.id === "telekinetic-master" && option.checked
+                        )
+                      })
                     }
                     disabled={!isActionEnabled}
                   >

@@ -46,7 +46,11 @@ import {
   getFighterBattleMasterSuperiorityDiceTotalForCharacter as getFighterBattleMasterSuperiorityDiceTotal,
   getFighterGroupRecoveryUsesTotal,
   getFighterIndomitableUsesTotal,
+  getFighterPsiWarriorBulwarkOfForceUsesTotalForCharacter as getFighterPsiWarriorBulwarkOfForceUsesTotal,
   getFighterPsiWarriorEnergyDiceTotalForCharacter as getFighterPsiWarriorEnergyDiceTotal,
+  getFighterPsiWarriorTelekineticMasterUsesTotalForCharacter as getFighterPsiWarriorTelekineticMasterUsesTotal,
+  getFighterPsiWarriorPsiPoweredLeapUsesTotalForCharacter as getFighterPsiWarriorPsiPoweredLeapUsesTotal,
+  getFighterPsiWarriorTelekineticMovementUsesTotalForCharacter as getFighterPsiWarriorTelekineticMovementUsesTotal,
   getFighterSecondWindUsesTotal,
   restoreFighterActionSurgeOnLongRest,
   restoreFighterActionSurgeOnShortRest,
@@ -55,8 +59,14 @@ import {
   restoreFighterGroupRecoveryOnLongRest,
   restoreFighterGroupRecoveryOnShortRest,
   restoreFighterIndomitableOnLongRest,
+  restoreFighterPsiWarriorBulwarkOfForceOnLongRest,
   restoreFighterPsiWarriorEnergyDiceOnLongRest,
   restoreFighterPsiWarriorEnergyDiceOnShortRest,
+  restoreFighterPsiWarriorTelekineticMasterOnLongRest,
+  restoreFighterPsiWarriorPsiPoweredLeapOnLongRest,
+  restoreFighterPsiWarriorPsiPoweredLeapOnShortRest,
+  restoreFighterPsiWarriorTelekineticMovementOnLongRest,
+  restoreFighterPsiWarriorTelekineticMovementOnShortRest,
   restoreFighterSecondWindOnLongRest,
   restoreFighterSecondWindOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/fighter/fighter";
@@ -182,6 +192,8 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
   const superiorityDiceTotal = getFighterBattleMasterSuperiorityDiceTotal(character);
   const psiEnergyDiceTotal = getFighterPsiWarriorEnergyDiceTotal(character);
+  const psiPoweredLeapUsesTotal = getFighterPsiWarriorPsiPoweredLeapUsesTotal(character);
+  const telekineticMovementUsesTotal = getFighterPsiWarriorTelekineticMovementUsesTotal(character);
   const druidWildShapeUsesTotal = getDruidWildShapeUsesTotal(character);
   const monkFocusPointsTotal = getMonkFocusPointsTotal(character);
   const channelDivinityUsesTotal = Math.max(
@@ -383,6 +395,26 @@ export function createShortRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(psiPoweredLeapUsesTotal > 0
+      ? [
+          {
+            id: "restore-psi-powered-leap",
+            label: "Restore Psi-Powered Leap",
+            apply: (currentCharacter: Character) =>
+              restoreFighterPsiWarriorPsiPoweredLeapOnShortRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(telekineticMovementUsesTotal > 0
+      ? [
+          {
+            id: "restore-telekinetic-movement",
+            label: "Restore Telekinetic Movement",
+            apply: (currentCharacter: Character) =>
+              restoreFighterPsiWarriorTelekineticMovementOnShortRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(druidWildShapeUsesTotal > 0
       ? [
           {
@@ -492,6 +524,10 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const indomitableUsesTotal = getFighterIndomitableUsesTotal(character);
   const superiorityDiceTotal = getFighterBattleMasterSuperiorityDiceTotal(character);
   const psiEnergyDiceTotal = getFighterPsiWarriorEnergyDiceTotal(character);
+  const psiPoweredLeapUsesTotal = getFighterPsiWarriorPsiPoweredLeapUsesTotal(character);
+  const telekineticMovementUsesTotal = getFighterPsiWarriorTelekineticMovementUsesTotal(character);
+  const bulwarkOfForceUsesTotal = getFighterPsiWarriorBulwarkOfForceUsesTotal(character);
+  const telekineticMasterUsesTotal = getFighterPsiWarriorTelekineticMasterUsesTotal(character);
   const druidWildShapeUsesTotal = getDruidWildShapeUsesTotal(character);
   const druidStarMapGuidingBoltUsesTotal = getDruidStarMapGuidingBoltUsesTotal(character);
   const druidMoonlightStepUsesTotal = getDruidMoonlightStepUsesTotal(character);
@@ -781,6 +817,46 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore all Psi Energy Dice",
             apply: (currentCharacter: Character) =>
               restoreFighterPsiWarriorEnergyDiceOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(psiPoweredLeapUsesTotal > 0
+      ? [
+          {
+            id: "restore-psi-powered-leap",
+            label: "Restore Psi-Powered Leap",
+            apply: (currentCharacter: Character) =>
+              restoreFighterPsiWarriorPsiPoweredLeapOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(telekineticMovementUsesTotal > 0
+      ? [
+          {
+            id: "restore-telekinetic-movement",
+            label: "Restore Telekinetic Movement",
+            apply: (currentCharacter: Character) =>
+              restoreFighterPsiWarriorTelekineticMovementOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(bulwarkOfForceUsesTotal > 0
+      ? [
+          {
+            id: "restore-bulwark-of-force",
+            label: "Restore Bulwark of Force",
+            apply: (currentCharacter: Character) =>
+              restoreFighterPsiWarriorBulwarkOfForceOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(telekineticMasterUsesTotal > 0
+      ? [
+          {
+            id: "restore-telekinetic-master",
+            label: "Restore Telekinetic Master",
+            apply: (currentCharacter: Character) =>
+              restoreFighterPsiWarriorTelekineticMasterOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

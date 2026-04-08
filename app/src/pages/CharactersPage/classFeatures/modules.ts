@@ -113,6 +113,9 @@ import {
   normalizeDruidFeatureState
 } from "./druid/druid";
 import {
+  activateFighterPsiWarriorBulwarkOfForceForCharacter,
+  activateFighterPsiWarriorTelekineticMovementForCharacter,
+  activateFighterPsiWarriorPsiPoweredLeapForCharacter,
   activateFighterActionSurge,
   advanceFighterFeaturesForNewRound,
   applyLongRestToFighterFeatures,
@@ -121,6 +124,9 @@ import {
   consumeFighterSecondWindUse,
   fighterActionSurgeActionKey,
   fighterIndomitableActionKey,
+  fighterPsiWarriorBulwarkOfForceActionKey,
+  fighterPsiPoweredLeapActionKey,
+  fighterPsiWarriorTelekineticMovementActionKey,
   fighterSecondWindActionKey,
   fighterTacticalMindActionKey,
   getFighterFeatureActions,
@@ -133,6 +139,7 @@ import {
 } from "./fighter/fighter";
 import {
   activateMonkFlurryOfBlows,
+  activateMonkHandOfHealing,
   activateMonkSuperiorDefense,
   activateMonkStunningStrike,
   activateMonkUncannyMetabolism,
@@ -148,6 +155,7 @@ import {
   getMonkReactionEntries,
   getMonkSavingThrowProficiencyEntries,
   getMonkSpeedBonuses,
+  monkHandOfHealingActionKey,
   getMonkUnarmedDamageTypeLabel,
   monkFlurryOfBlowsActionKey,
   monkSuperiorDefenseActionKey,
@@ -516,6 +524,18 @@ const classFeatureModules = {
         return consumeFighterIndomitableUse(character);
       }
 
+      if (actionKey === fighterPsiWarriorTelekineticMovementActionKey) {
+        return activateFighterPsiWarriorTelekineticMovementForCharacter(character);
+      }
+
+      if (actionKey === fighterPsiPoweredLeapActionKey) {
+        return activateFighterPsiWarriorPsiPoweredLeapForCharacter(character);
+      }
+
+      if (actionKey === fighterPsiWarriorBulwarkOfForceActionKey) {
+        return activateFighterPsiWarriorBulwarkOfForceForCharacter(character);
+      }
+
       return null;
     },
     applyShortRest: applyShortRestToFighterFeatures,
@@ -555,6 +575,10 @@ const classFeatureModules = {
 
       if (actionKey === monkSuperiorDefenseActionKey) {
         return activateMonkSuperiorDefense(character);
+      }
+
+      if (actionKey === monkHandOfHealingActionKey) {
+        return activateMonkHandOfHealing(character);
       }
 
       return null;

@@ -254,6 +254,13 @@ import {
   restoreOneMonkFocusPoint
 } from "./monk/monk";
 import {
+  consumeMonkWarriorOfMercyHandOfHarm,
+  monkWarriorOfMercyHandOfHarmBonusLabel
+} from "./monk/subclasses/monkWarriorOfMercy";
+import {
+  activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter as activateFighterPsiWarriorTelekineticMasterSpellCast,
+  activateFighterPsiWarriorTelekineticMovementForCharacter as activateFighterPsiWarriorTelekineticMovement,
+  consumeFighterPsiWarriorPsionicStrikeForCharacter as consumeFighterPsiWarriorPsionicStrike,
   consumeFighterIndomitableUse,
   expendFighterBattleMasterSuperiorityDieForCharacter as expendFighterBattleMasterSuperiorityDie,
   expendFighterPsiWarriorEnergyDieForCharacter as expendFighterPsiWarriorEnergyDie,
@@ -271,10 +278,19 @@ import {
   getFighterPsiWarriorEnergyDiceRemainingForCharacter as getFighterPsiWarriorEnergyDiceRemaining,
   getFighterPsiWarriorEnergyDiceTotalForCharacter as getFighterPsiWarriorEnergyDiceTotal,
   getFighterPsiWarriorEnergyDieForCharacter as getFighterPsiWarriorEnergyDie,
+  getFighterPsiWarriorProtectiveFieldFormulaForCharacter as getFighterPsiWarriorProtectiveFieldFormula,
+  getFighterPsiWarriorPsionicStrikeFormulaForCharacter as getFighterPsiWarriorPsionicStrikeFormula,
+  getFighterPsiWarriorTelekineticMasterUsesRemainingForCharacter as getFighterPsiWarriorTelekineticMasterUsesRemaining,
+  getFighterPsiWarriorTelekineticMasterUsesTotalForCharacter as getFighterPsiWarriorTelekineticMasterUsesTotal,
+  getFighterPsiWarriorTelekineticMovementUsesRemainingForCharacter as getFighterPsiWarriorTelekineticMovementUsesRemaining,
+  getFighterPsiWarriorTelekineticMovementUsesTotalForCharacter as getFighterPsiWarriorTelekineticMovementUsesTotal,
+  hasFighterPsiWarriorTelekineticMasterBonusAttackAvailableForCharacter as hasFighterPsiWarriorTelekineticMasterBonusAttackAvailable,
+  hasFighterPsiWarriorPsionicStrikeAvailableForCharacter as hasFighterPsiWarriorPsionicStrikeAvailable,
   restoreAllFighterBattleMasterSuperiorityDiceForCharacter as restoreAllFighterBattleMasterSuperiorityDice,
   restoreAllFighterPsiWarriorEnergyDiceForCharacter as restoreAllFighterPsiWarriorEnergyDice,
   restoreFighterBattleMasterSuperiorityDieForCharacter as restoreFighterBattleMasterSuperiorityDie,
   restoreFighterPsiWarriorEnergyDieForCharacter as restoreFighterPsiWarriorEnergyDie,
+  restoreFighterPsiWarriorTelekineticMasterOnLongRest,
   setFighterBattleMasterManeuverSelectionsForCharacter as setFighterBattleMasterManeuverSelections,
   setFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter as setFighterBanneretKnightlyEnvoyLanguageSelection,
   setFighterBanneretKnightlyEnvoySkillSelectionForCharacter as setFighterBanneretKnightlyEnvoySkillSelection
@@ -902,10 +918,14 @@ export function applyBardBattleMagicAfterSpellCastForCharacter(
 
 export function hasBattleMagicBonusWeaponAttackForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "subclassId">>,
+    Partial<Pick<Character, "subclassId" | "statusEntries">>,
   attackKind: "weapon" | "unarmed"
 ): boolean {
-  return attackKind === "weapon" && hasBardBattleMagicBonusAttackAvailable(character);
+  return (
+    attackKind === "weapon" &&
+    (hasBardBattleMagicBonusAttackAvailable(character) ||
+      hasFighterPsiWarriorTelekineticMasterBonusAttackAvailable(character))
+  );
 }
 
 export function getClericDivineOrderChoiceForCharacter(
@@ -1221,6 +1241,53 @@ export function getFighterPsiWarriorEnergyDieForCharacter(
   return getFighterPsiWarriorEnergyDie(character);
 }
 
+export function getFighterPsiWarriorProtectiveFieldFormulaForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): string | null {
+  return getFighterPsiWarriorProtectiveFieldFormula(character);
+}
+
+export function getFighterPsiWarriorPsionicStrikeFormulaForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): string | null {
+  return getFighterPsiWarriorPsionicStrikeFormula(character);
+}
+
+export function hasFighterPsiWarriorPsionicStrikeAvailableForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId" | "classFeatureState">>
+): boolean {
+  return hasFighterPsiWarriorPsionicStrikeAvailable(character);
+}
+
+export function getFighterPsiWarriorTelekineticMovementUsesTotalForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return getFighterPsiWarriorTelekineticMovementUsesTotal(character);
+}
+
+export function getFighterPsiWarriorTelekineticMovementUsesRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): number {
+  return getFighterPsiWarriorTelekineticMovementUsesRemaining(character);
+}
+
+export function getFighterPsiWarriorTelekineticMasterUsesTotalForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return getFighterPsiWarriorTelekineticMasterUsesTotal(character);
+}
+
+export function getFighterPsiWarriorTelekineticMasterUsesRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): number {
+  return getFighterPsiWarriorTelekineticMasterUsesRemaining(character);
+}
+
 export function getFighterIndomitableUsesRemainingForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): number {
@@ -1249,12 +1316,34 @@ export function expendFighterPsiWarriorEnergyDieForCharacter(character: Characte
   return expendFighterPsiWarriorEnergyDie(character);
 }
 
+export function consumeFighterPsiWarriorPsionicStrikeForCharacter(character: Character): Character {
+  return consumeFighterPsiWarriorPsionicStrike(character);
+}
+
 export function restoreFighterPsiWarriorEnergyDieForCharacter(character: Character): Character {
   return restoreFighterPsiWarriorEnergyDie(character);
 }
 
 export function restoreAllFighterPsiWarriorEnergyDiceForCharacter(character: Character): Character {
   return restoreAllFighterPsiWarriorEnergyDice(character);
+}
+
+export function activateFighterPsiWarriorTelekineticMovementForCharacter(
+  character: Character
+): Character {
+  return activateFighterPsiWarriorTelekineticMovement(character);
+}
+
+export function activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter(
+  character: Character
+): Character {
+  return activateFighterPsiWarriorTelekineticMasterSpellCast(character);
+}
+
+export function restoreFighterPsiWarriorTelekineticMasterOnLongRestForCharacter(
+  character: Character
+): Character {
+  return restoreFighterPsiWarriorTelekineticMasterOnLongRest(character);
 }
 
 export function setFighterBattleMasterManeuverSelectionsForCharacter(
@@ -2289,6 +2378,10 @@ export function markFeatureWeaponBonusUseForCharacter(
     return markDruidPrimalStrikeUsed(character);
   }
 
+  if (label === monkWarriorOfMercyHandOfHarmBonusLabel) {
+    return consumeMonkWarriorOfMercyHandOfHarm(character);
+  }
+
   return character;
 }
 
@@ -2328,7 +2421,7 @@ export function consumeWeaponAttackActionForCharacter(
   }
 
   if (character.className === "Fighter") {
-    return consumeFighterWeaponAttack(character);
+    return consumeFighterWeaponAttack(character, action);
   }
 
   const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);

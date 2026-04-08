@@ -34,6 +34,7 @@ import {
 import { getRoundTrackerResourceForEconomyType } from "../../../../pages/CharactersPage/actionEconomy";
 import {
   applyBardBattleMagicAfterSpellCastForCharacter,
+  activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter,
   consumeDruidNaturalRecoveryUseForCharacter,
   consumeBlessingOfMoonlightUseForCharacter,
   activateFeatureActionOptionForCharacter,
@@ -50,6 +51,9 @@ import {
   getDruidNaturalRecoveryUsesRemainingForCharacter,
   getFeatureActionsForCharacter,
   getFeatureActionOptionsForCharacter,
+  getFighterPsiWarriorEnergyDiceRemainingForCharacter,
+  getFighterPsiWarriorTelekineticMasterUsesRemainingForCharacter,
+  getFighterPsiWarriorTelekineticMasterUsesTotalForCharacter,
   hasActiveMantleOfMajestyForCharacter,
   getRitualOnlySpellIdsForCharacter,
   createEconomyMultiContextForSpell,
@@ -137,6 +141,7 @@ type SpellPreparationLevelGroup = Record<number, SpellEntry[]>;
 type SelectedSpellViewMode = CharacterSpellDrawerMode;
 type WizardSpellViewFilter = "all" | "prepared";
 const wizardSignatureSpellLevel = 3;
+const telekinesisSpellId = "spell-telekinesis";
 type DivinityOptionRow = {
   action: FeatureActionCard;
   option: FeatureActionOptionCard;
@@ -277,6 +282,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const [useBlessingOfMoonlightOnSelectedSpell, setUseBlessingOfMoonlightOnSelectedSpell] =
     useState(false);
   const [useNaturalRecoveryOnSelectedSpell, setUseNaturalRecoveryOnSelectedSpell] = useState(false);
+  const [useTelekineticMasterOnSelectedSpell, setUseTelekineticMasterOnSelectedSpell] =
+    useState(false);
   const [spellManagementMode, setSpellManagementMode] = useState<SpellManagementMode | null>(null);
   const [cantripDraftIds, setCantripDraftIds] = useState<string[]>([]);
   const [spellbookDraftIds, setSpellbookDraftIds] = useState<string[]>([]);
@@ -295,6 +302,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setSelectedSpellViewMode("standard");
     setUseBeguilingMagicOnSelectedSpell(false);
     setUseBlessingOfMoonlightOnSelectedSpell(false);
+    setUseNaturalRecoveryOnSelectedSpell(false);
+    setUseTelekineticMasterOnSelectedSpell(false);
   }, []);
   const closeSelectedDivinity = useCallback(() => {
     setSelectedDivinityOptionKey(null);
@@ -525,6 +534,18 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   );
   const druidNaturalRecoveryUsesRemaining = useMemo(
     () => getDruidNaturalRecoveryUsesRemainingForCharacter(character),
+    [character.classFeatureState, character.className, character.level, character.subclassId]
+  );
+  const fighterPsiWarriorTelekineticMasterUsesTotal = useMemo(
+    () => getFighterPsiWarriorTelekineticMasterUsesTotalForCharacter(character),
+    [character.className, character.level, character.subclassId]
+  );
+  const fighterPsiWarriorTelekineticMasterUsesRemaining = useMemo(
+    () => getFighterPsiWarriorTelekineticMasterUsesRemainingForCharacter(character),
+    [character.classFeatureState, character.className, character.level, character.subclassId]
+  );
+  const fighterPsiWarriorEnergyDiceRemaining = useMemo(
+    () => getFighterPsiWarriorEnergyDiceRemainingForCharacter(character),
     [character.classFeatureState, character.className, character.level, character.subclassId]
   );
   const bardicInspirationUsesRemaining = useMemo(
@@ -941,12 +962,31 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       selectedSpell.magicSchool === MAGIC_SCHOOL.ILLUSION);
   const selectedSpellSupportsBlessingOfMoonlight =
     selectedSpell?.id === "spell-moonbeam" && blessingOfMoonlightUsesTotal > 0;
+  const selectedSpellSupportsTelekineticMaster =
+    selectedSpell?.id === telekinesisSpellId && fighterPsiWarriorTelekineticMasterUsesTotal > 0;
+  const selectedSpellCanUseTelekineticMasterFallback =
+    selectedSpellSupportsTelekineticMaster &&
+    fighterPsiWarriorTelekineticMasterUsesRemaining <= 0 &&
+    fighterPsiWarriorEnergyDiceRemaining > 0;
+  const selectedSpellTelekineticMasterDisabled =
+    selectedSpellSupportsTelekineticMaster &&
+    fighterPsiWarriorTelekineticMasterUsesRemaining <= 0 &&
+    fighterPsiWarriorEnergyDiceRemaining <= 0;
 
   useEffect(() => {
     setUseBeguilingMagicOnSelectedSpell(false);
     setUseBlessingOfMoonlightOnSelectedSpell(false);
     setUseNaturalRecoveryOnSelectedSpell(false);
+    setUseTelekineticMasterOnSelectedSpell(false);
   }, [selectedSpell?.id]);
+
+  useEffect(() => {
+    if (!selectedSpellSupportsTelekineticMaster || !selectedSpellTelekineticMasterDisabled) {
+      return;
+    }
+
+    setUseTelekineticMasterOnSelectedSpell(false);
+  }, [selectedSpellSupportsTelekineticMaster, selectedSpellTelekineticMasterDisabled]);
 
   function getSpellRowActionShapeState(spell: SpellEntry) {
     const roundTrackerResource = getRoundTrackerResourceForSpell(spell);
@@ -1441,6 +1481,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useBeguilingMagic?: boolean;
     useBlessingOfMoonlight?: boolean;
     useNaturalRecovery?: boolean;
+    useTelekineticMaster?: boolean;
   }) {
     if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpellcastingBlock)) {
       return;
@@ -1452,6 +1493,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     const useBeguilingMagic = options?.useBeguilingMagic === true;
     const useBlessingOfMoonlight = options?.useBlessingOfMoonlight === true;
     const useNaturalRecovery = options?.useNaturalRecovery === true;
+    const useTelekineticMaster =
+      options?.useTelekineticMaster === true &&
+      selectedSpellSupportsTelekineticMaster &&
+      (fighterPsiWarriorTelekineticMasterUsesRemaining > 0 ||
+        fighterPsiWarriorEnergyDiceRemaining > 0);
     const canCastSpellbookRitual =
       selectedSpellIsSpellbookOnly && hasWizardRitualAdept && castAsRitual;
 
@@ -1576,8 +1622,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       selectedSpellSupportsNaturalRecovery &&
       druidNaturalRecoveryUsesRemaining > 0 &&
       slotLevel === spellLevel;
+    const castsFreeViaTelekineticMaster = useTelekineticMaster;
     const castsWithoutSpellSlot =
-      castsFreeViaSpellMastery || castsFreeViaSignatureSpells || castsFreeViaNaturalRecovery;
+      castsFreeViaSpellMastery ||
+      castsFreeViaSignatureSpells ||
+      castsFreeViaNaturalRecovery ||
+      castsFreeViaTelekineticMaster;
 
     if (!castsWithoutSpellSlot && (spellSlotsRemaining[slotLevel - 1] ?? 0) <= 0) {
       return;
@@ -1616,9 +1666,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           selectedSpell
         )
       };
-      const nextCharacterWithBeguilingMagic = useBeguilingMagic
-        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithSpellcast)
+      const nextCharacterWithTelekineticMaster = castsFreeViaTelekineticMaster
+        ? activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter(
+            nextCharacterWithSpellcast
+          )
         : nextCharacterWithSpellcast;
+      const nextCharacterWithBeguilingMagic = useBeguilingMagic
+        ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithTelekineticMaster)
+        : nextCharacterWithTelekineticMaster;
       const nextCharacterWithSpellOptions = useBlessingOfMoonlight
         ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithBeguilingMagic)
         : nextCharacterWithBeguilingMagic;
@@ -1629,6 +1684,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         nextCharacterWithNaturalRecovery,
         selectedSpell
       );
+
+      if (castsFreeViaTelekineticMaster && roundTrackerResource) {
+        return consumeRoundTrackerResourceForCharacter(
+          nextCharacterWithBattleMagic,
+          roundTrackerResource
+        );
+      }
+
       const sharedEconomyContext = createEconomyMultiContextForSpell(selectedSpell);
       const nextCharacterWithSharedMulti =
         roundTrackerResource === "action"
@@ -2258,11 +2321,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               ...options,
               useBeguilingMagic: useBeguilingMagicOnSelectedSpell,
               useBlessingOfMoonlight: useBlessingOfMoonlightOnSelectedSpell,
-              useNaturalRecovery: useNaturalRecoveryOnSelectedSpell
+              useNaturalRecovery: useNaturalRecoveryOnSelectedSpell,
+              useTelekineticMaster: useTelekineticMasterOnSelectedSpell
             })
           }
           actionConsumesSpellSlot={
-            !selectedSpellIsSpellbookOnly && !selectedSpellCanOnlyBeCastAsRitual
+            !selectedSpellIsSpellbookOnly &&
+            !selectedSpellCanOnlyBeCastAsRitual &&
+            !(selectedSpellSupportsTelekineticMaster && useTelekineticMasterOnSelectedSpell)
           }
           freeCastSlotLevel={selectedSpellFreeCastSlotLevel}
           allowRitualCasting={
@@ -2272,9 +2338,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           actionAvailabilityText={
             selectedSpellCanOnlyBeCastAsRitual
               ? "Knightly Envoy lets you cast this spell only as a Ritual without expending a spell slot."
+              : selectedSpellSupportsTelekineticMaster && useTelekineticMasterOnSelectedSpell
+                ? fighterPsiWarriorTelekineticMasterUsesRemaining > 0
+                  ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                  : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
               : selectedSpellUnderMantleOfMajesty
-              ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
-              : null
+                ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
+                : null
           }
           actionContextText={
             selectedSpellUnderMantleOfMajesty ? "Under the effect of Mantle of Majesty." : null
@@ -2287,7 +2357,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           actionOptions={
             selectedSpellSupportsBeguilingMagic ||
             selectedSpellSupportsBlessingOfMoonlight ||
-            selectedSpellSupportsNaturalRecovery
+            selectedSpellSupportsNaturalRecovery ||
+            selectedSpellSupportsTelekineticMaster
               ? [
                   ...(selectedSpellSupportsBeguilingMagic
                     ? [
@@ -2307,6 +2378,28 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                               ? {
                                   label: "Use 1",
                                   icon: "music" as const
+                                }
+                              : undefined
+                        }
+                      ]
+                    : []),
+                  ...(selectedSpellSupportsTelekineticMaster
+                    ? [
+                        {
+                          id: "telekinetic-master",
+                          label: "Telekinetic Master",
+                          checked: useTelekineticMasterOnSelectedSpell,
+                          onCheckedChange: setUseTelekineticMasterOnSelectedSpell,
+                          disabled: selectedSpellTelekineticMasterDisabled,
+                          tracker: {
+                            current: fighterPsiWarriorTelekineticMasterUsesRemaining,
+                            total: fighterPsiWarriorTelekineticMasterUsesTotal
+                          },
+                          fallbackCost:
+                            selectedSpellCanUseTelekineticMasterFallback
+                              ? {
+                                  label: "Use 1",
+                                  icon: "psi" as const
                                 }
                               : undefined
                         }

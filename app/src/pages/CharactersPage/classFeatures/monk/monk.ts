@@ -51,6 +51,12 @@ import {
 } from "../../inventory";
 import { isMonkWeapon } from "../../monkWeapons";
 import { hasStatusCondition } from "../../traits";
+import {
+  activateMonkWarriorOfMercyHandOfHealing,
+  getMonkWarriorOfMercyHandOfHarmUsedThisTurn,
+  monkHandOfHealingActionKey as warriorOfMercyHandOfHealingActionKey,
+  normalizeMonkWarriorOfMercyFeatureState
+} from "./subclasses/monkWarriorOfMercy";
 import type {
   ArmorClassFeatureContext,
   DerivedFeatureStatusEntry,
@@ -66,6 +72,7 @@ export const monkFlurryOfBlowsActionKey = "monk-flurry-of-blows";
 export const monkUncannyMetabolismActionKey = "monk-uncanny-metabolism";
 export const monkStunningStrikeActionKey = "monk-stunning-strike";
 export const monkSuperiorDefenseActionKey = "monk-superior-defense";
+export const monkHandOfHealingActionKey = warriorOfMercyHandOfHealingActionKey;
 
 type MonkMartialArtsContext = {
   hasWornBodyArmor: boolean;
@@ -253,6 +260,7 @@ export function normalizeMonkFeatureState(
   );
   const extraAttacksRemainingThisTurn = Number(record.extraAttacksRemainingThisTurn);
   const stunningStrikeUsedThisTurn = record.stunningStrikeUsedThisTurn === true;
+  const warriorOfMercyHandOfHarmState = normalizeMonkWarriorOfMercyFeatureState(record, character);
   const superiorDefenseRoundsRemaining = Number(record.superiorDefenseRoundsRemaining);
   const superiorDefenseUsedThisTurn = record.superiorDefenseUsedThisTurn === true;
 
@@ -276,6 +284,7 @@ export function normalizeMonkFeatureState(
     stunningStrikeUsedThisTurn: hasMonkFeature(character, CLASS_FEATURE.STUNNING_STRIKE)
       ? stunningStrikeUsedThisTurn
       : false,
+    ...warriorOfMercyHandOfHarmState,
     superiorDefenseRoundsRemaining:
       hasMonkFeature(character, CLASS_FEATURE.SUPERIOR_DEFENSE) &&
       Number.isFinite(superiorDefenseRoundsRemaining)
@@ -696,6 +705,10 @@ export function activateMonkSuperiorDefense(character: Character): Character {
   };
 }
 
+export function activateMonkHandOfHealing(character: Character): Character {
+  return activateMonkWarriorOfMercyHandOfHealing(character);
+}
+
 export function expendMonkFocusPoint(character: Character): Character {
   if (!hasMonkFeature(character, CLASS_FEATURE.MONKS_FOCUS)) {
     return character;
@@ -755,7 +768,8 @@ export function restoreAllMonkFocusPoints(character: Character): Character {
     (monkState.focusPointsExpended ?? 0) === 0 &&
     (monkState.flurryOfBlowsAttacksRemainingThisTurn ?? 0) === 0 &&
     (monkState.extraAttacksRemainingThisTurn ?? 0) === 0 &&
-    monkState.stunningStrikeUsedThisTurn !== true
+    monkState.stunningStrikeUsedThisTurn !== true &&
+    !getMonkWarriorOfMercyHandOfHarmUsedThisTurn(character)
   ) {
     return character;
   }
@@ -769,7 +783,8 @@ export function restoreAllMonkFocusPoints(character: Character): Character {
         focusPointsExpended: 0,
         flurryOfBlowsAttacksRemainingThisTurn: 0,
         extraAttacksRemainingThisTurn: 0,
-        stunningStrikeUsedThisTurn: false
+        stunningStrikeUsedThisTurn: false,
+        warriorOfMercyHandOfHarmUsedThisTurn: false
       }
     }
   };
@@ -917,6 +932,7 @@ export function advanceMonkFeaturesForNewRound(character: Character): Character 
     (monkState.flurryOfBlowsAttacksRemainingThisTurn ?? 0) === 0 &&
     (monkState.extraAttacksRemainingThisTurn ?? 0) === 0 &&
     monkState.stunningStrikeUsedThisTurn !== true &&
+    !getMonkWarriorOfMercyHandOfHarmUsedThisTurn(character) &&
     superiorDefenseRoundsRemaining === 0 &&
     monkState.superiorDefenseUsedThisTurn !== true
   ) {
@@ -932,6 +948,7 @@ export function advanceMonkFeaturesForNewRound(character: Character): Character 
         flurryOfBlowsAttacksRemainingThisTurn: 0,
         extraAttacksRemainingThisTurn: 0,
         stunningStrikeUsedThisTurn: false,
+        warriorOfMercyHandOfHarmUsedThisTurn: false,
         superiorDefenseRoundsRemaining: Math.max(0, superiorDefenseRoundsRemaining - 1),
         superiorDefenseUsedThisTurn: false
       }

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { BookOpen, Flame, Minus, Plus, Sparkles } from "lucide-react";
+import { BookOpen, Brain, Flame, Hexagon, Minus, Plus, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { fetchMonsterBySlug } from "../../../../../api";
 import CellContainer from "../../../../CellContainer/CellContainer";
@@ -32,6 +32,7 @@ import {
   consumeMantleOfMajestyUseForCharacter,
   consumeContactPatronUseForCharacter,
   consumeDruidStarMapGuidingBoltUseForCharacter,
+  consumeFighterPsiWarriorPsionicStrikeForCharacter,
   consumeMysticArcanumUseForCharacter,
   createSpellSlotFromSorceryPointsForCharacter,
   consumeFaithfulSteedUseForCharacter,
@@ -106,9 +107,11 @@ import {
   getFighterGroupRecoveryHealingFormula,
   getFighterGroupRecoveryUsesRemaining,
   getFighterGroupRecoveryUsesTotal,
+  getFighterPsiWarriorPsionicStrikeFormulaForCharacter,
   fighterIndomitableActionKey,
   fighterSecondWindActionKey,
   fighterTacticalMindActionKey,
+  hasFighterPsiWarriorPsionicStrikeAvailableForCharacter,
   getFighterSecondWindHealingFormula
 } from "../../../../../pages/CharactersPage/classFeatures/fighter/fighter";
 import { type LayOnHandsCondition } from "../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
@@ -218,6 +221,11 @@ import {
   getWeaponDrawerDescription,
   getWeaponDrawerDetails
 } from "./actionsWidgetPresentation";
+import {
+  applyWeaponDamageBonusPreview,
+  createPsiWarriorPsionicStrikeDamageBonus
+} from "./fighterPsiWarriorWeapon";
+import { getMonkWarriorOfMercyHandOfHarmOptionState } from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfMercy";
 import {
   FeatureActionCardButton,
   FeatureActionChoiceRow,
@@ -1625,6 +1633,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [useBeguilingMagicOnActionSpell, setUseBeguilingMagicOnActionSpell] = useState(false);
   const [isInspiredEclipseSelected, setIsInspiredEclipseSelected] = useState(false);
   const [isGroupRecoverySelected, setIsGroupRecoverySelected] = useState(false);
+  const [isPsionicStrikeSelected, setIsPsionicStrikeSelected] = useState(false);
+  const [isHandOfHarmSelected, setIsHandOfHarmSelected] = useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   const roundTracker = normalizeRoundTracker(character.roundTracker);
@@ -1782,9 +1792,66 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     () => (selectedWeaponAction ? getWeaponAttackFormulaPresentation(selectedWeaponAction) : null),
     [selectedWeaponAction]
   );
+  const selectedWeaponPsionicStrikeFormula = useMemo(
+    () =>
+      selectedWeaponAction?.attackKind === "weapon"
+        ? getFighterPsiWarriorPsionicStrikeFormulaForCharacter(character)
+        : null,
+    [character, selectedWeaponAction?.attackKind]
+  );
+  const selectedWeaponPsionicStrikeAvailable =
+    selectedWeaponAction?.attackKind === "weapon"
+      ? hasFighterPsiWarriorPsionicStrikeAvailableForCharacter(character)
+      : false;
+  const selectedWeaponHandOfHarmState = useMemo(
+    () => getMonkWarriorOfMercyHandOfHarmOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponEffectiveAction = useMemo(() => {
+    if (!selectedWeaponAction) {
+      return null;
+    }
+
+    let nextAction = selectedWeaponAction;
+
+    if (
+      isHandOfHarmSelected &&
+      selectedWeaponHandOfHarmState &&
+      !selectedWeaponHandOfHarmState.disabled
+    ) {
+      nextAction = applyWeaponDamageBonusPreview(
+        nextAction,
+        selectedWeaponHandOfHarmState.damageBonus
+      );
+    }
+
+    if (
+      nextAction.attackKind === "weapon" &&
+      isPsionicStrikeSelected &&
+      selectedWeaponPsionicStrikeAvailable &&
+      selectedWeaponPsionicStrikeFormula
+    ) {
+      nextAction = applyWeaponDamageBonusPreview(
+        nextAction,
+        createPsiWarriorPsionicStrikeDamageBonus(selectedWeaponPsionicStrikeFormula)
+      );
+    }
+
+    return nextAction;
+  }, [
+    isHandOfHarmSelected,
+    isPsionicStrikeSelected,
+    selectedWeaponAction,
+    selectedWeaponHandOfHarmState,
+    selectedWeaponPsionicStrikeAvailable,
+    selectedWeaponPsionicStrikeFormula
+  ]);
   const selectedWeaponDamageFormula = useMemo(
-    () => (selectedWeaponAction ? getWeaponDamageFormulaPresentation(selectedWeaponAction) : null),
-    [selectedWeaponAction]
+    () =>
+      selectedWeaponEffectiveAction
+        ? getWeaponDamageFormulaPresentation(selectedWeaponEffectiveAction)
+        : null,
+    [selectedWeaponEffectiveAction]
   );
   const selectedWeaponDescription = useMemo(
     () =>
@@ -2125,6 +2192,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedMysticArcanumSpellLevel(null);
     setIsInspiredEclipseSelected(false);
     setIsGroupRecoverySelected(false);
+    setIsPsionicStrikeSelected(false);
+    setIsHandOfHarmSelected(false);
     setSelectedActionKey(null);
   }
 
@@ -2166,7 +2235,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedRagePowerOptionKey(null);
     setIsRageOfTheGodsSelected(false);
     setIsGroupRecoverySelected(false);
+    setIsPsionicStrikeSelected(false);
+    setIsHandOfHarmSelected(false);
   }, [selectedActionKey]);
+
+  useEffect(() => {
+    if (!selectedWeaponHandOfHarmState || selectedWeaponHandOfHarmState.disabled) {
+      setIsHandOfHarmSelected(false);
+    }
+  }, [selectedWeaponHandOfHarmState]);
 
   useEffect(() => {
     let active = true;
@@ -2334,6 +2411,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   useEffect(() => {
     setUseBeguilingMagicOnActionSpell(false);
   }, [selectedActionSpellEntry?.id]);
+
+  useEffect(() => {
+    if (selectedWeaponPsionicStrikeAvailable) {
+      return;
+    }
+
+    setIsPsionicStrikeSelected(false);
+  }, [selectedWeaponPsionicStrikeAvailable]);
 
   useEffect(() => {
     if (!fixedSpellEntry || !fixedSpellExecute) {
@@ -2639,30 +2724,53 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   }
 
   function handleWeaponDamageRoll(action: WeaponAction) {
+    const useHandOfHarm =
+      action.attackKind === "unarmed" &&
+      isHandOfHarmSelected &&
+      selectedWeaponHandOfHarmState !== null &&
+      !selectedWeaponHandOfHarmState.disabled;
+    const usePsionicStrike =
+      action.attackKind === "weapon" &&
+      isPsionicStrikeSelected &&
+      selectedWeaponPsionicStrikeAvailable &&
+      selectedWeaponPsionicStrikeFormula !== null;
+    const effectiveAction =
+      (useHandOfHarm || usePsionicStrike) && selectedWeaponEffectiveAction
+        ? selectedWeaponEffectiveAction
+        : action;
     const damageFormula = appendRollModifier(
-      action.damageFormula,
-      action.damageAbilityModifier ?? action.abilityModifier
+      effectiveAction.damageFormula,
+      effectiveAction.damageAbilityModifier ?? effectiveAction.abilityModifier
     );
-    const damageFormulaDisplay = getWeaponDamageFormulaPresentation(action).value;
+    const damageFormulaDisplay = getWeaponDamageFormulaPresentation(effectiveAction).value;
 
     openDiceRoller({
-      title: `${action.name} damage`,
+      title: `${effectiveAction.name} damage`,
       formula: damageFormula,
       formulaDisplay: damageFormulaDisplay,
-      description: `${action.name} damage roll`
+      description: `${effectiveAction.name} damage roll`
     });
 
-    if (action.damageBonusEntries.length <= 0) {
+    if (effectiveAction.damageBonusEntries.length <= 0 && !usePsionicStrike && !useHandOfHarm) {
+      setIsHandOfHarmSelected(false);
+      setIsPsionicStrikeSelected(false);
       return;
     }
 
-    onPersistCharacter((currentCharacter) =>
-      action.damageBonusEntries.reduce(
+    onPersistCharacter((currentCharacter) => {
+      const nextCharacter = effectiveAction.damageBonusEntries.reduce(
         (updatedCharacter, entry) =>
           markFeatureWeaponBonusUseForCharacter(updatedCharacter, entry.label),
         currentCharacter
-      )
-    );
+      );
+
+      return usePsionicStrike
+        ? consumeFighterPsiWarriorPsionicStrikeForCharacter(nextCharacter)
+        : nextCharacter;
+    });
+
+    setIsHandOfHarmSelected(false);
+    setIsPsionicStrikeSelected(false);
   }
 
   function toggleFeatureOptionSelection(option: FeatureActionOptionCard) {
@@ -3615,50 +3723,92 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     if (selectedAction.kind === "weapon") {
+      const showPsionicStrikeToggle =
+        selectedAction.action.attackKind === "weapon" && selectedWeaponPsionicStrikeFormula !== null;
+
       return (
-        <div className={styles.weaponFooterActions}>
-          <button
-            type="button"
-            className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
-            onClick={() => handleWeaponAttackRoll(selectedAction.action)}
-            disabled={selectedActionWarning !== null}
-          >
-            <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
-            <span>Attack</span>
-            <span className={styles.footerActionShapeGroup}>
-              {selectedActionEconomyShapeState ? (
-                <ActionShape
-                  shape={getActionShapeForEconomyType(selectedAction.economyType) ?? "action"}
-                  isSelected={selectedActionEconomyShapeState.isAvailable}
-                  multiCount={selectedActionEconomyShapeState.multiCount}
-                  className={styles.footerActionShape}
+        <div className={styles.footerActionStack}>
+          {selectedWeaponHandOfHarmState ? (
+            <label
+              className={styles.footerActionToggle}
+              title={selectedWeaponHandOfHarmState.disabledReason ?? undefined}
+            >
+              <span className={styles.footerActionToggleLabel}>
+                <input
+                  type="checkbox"
+                  checked={isHandOfHarmSelected}
+                  onChange={(event) => setIsHandOfHarmSelected(event.target.checked)}
+                  disabled={selectedWeaponHandOfHarmState.disabled}
                 />
-              ) : null}
-              {selectedActionSecondaryEconomyShapeState ? (
-                <ActionShape
-                  shape="bonusAction"
-                  isSelected={selectedActionSecondaryEconomyShapeState.isAvailable}
-                  multiCount={selectedActionSecondaryEconomyShapeState.multiCount}
-                  className={styles.footerActionShape}
+                <span>Hand of Harm</span>
+                <span className={styles.psiStrikeCostLabel}>
+                  <span>| Use 1</span>
+                  <Brain size={14} strokeWidth={2.1} />
+                </span>
+              </span>
+            </label>
+          ) : null}
+          {showPsionicStrikeToggle ? (
+            <label className={styles.footerActionToggle}>
+              <span className={styles.footerActionToggleLabel}>
+                <input
+                  type="checkbox"
+                  checked={isPsionicStrikeSelected}
+                  onChange={(event) => setIsPsionicStrikeSelected(event.target.checked)}
+                  disabled={!selectedWeaponPsionicStrikeAvailable}
                 />
-              ) : null}
-            </span>
-          </button>
-          <button
-            type="button"
-            className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
-            onClick={() => handleWeaponDamageRoll(selectedAction.action)}
-          >
-            <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
-            <span>Damage</span>
-          </button>
-          <DiceRollerSettingsButton
-            actionName={selectedAction.name}
-            className={clsx(sheetStyles.castButton, styles.weaponFooterIconButton)}
-            isOpen={isDiceRollerSettingsOpen}
-            aria-label="Open dice roller settings"
-            onOpenChange={setIsDiceRollerSettingsOpen}
-          />
+                <span>Psionic Strike</span>
+                <span className={styles.psiStrikeCostLabel}>
+                  <span>| Use 1</span>
+                  <Hexagon size={14} strokeWidth={2.1} />
+                </span>
+              </span>
+            </label>
+          ) : null}
+          <div className={styles.weaponFooterActions}>
+            <button
+              type="button"
+              className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
+              onClick={() => handleWeaponAttackRoll(selectedAction.action)}
+              disabled={selectedActionWarning !== null}
+            >
+              <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
+              <span>Attack</span>
+              <span className={styles.footerActionShapeGroup}>
+                {selectedActionEconomyShapeState ? (
+                  <ActionShape
+                    shape={getActionShapeForEconomyType(selectedAction.economyType) ?? "action"}
+                    isSelected={selectedActionEconomyShapeState.isAvailable}
+                    multiCount={selectedActionEconomyShapeState.multiCount}
+                    className={styles.footerActionShape}
+                  />
+                ) : null}
+                {selectedActionSecondaryEconomyShapeState ? (
+                  <ActionShape
+                    shape="bonusAction"
+                    isSelected={selectedActionSecondaryEconomyShapeState.isAvailable}
+                    multiCount={selectedActionSecondaryEconomyShapeState.multiCount}
+                    className={styles.footerActionShape}
+                  />
+                ) : null}
+              </span>
+            </button>
+            <button
+              type="button"
+              className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
+              onClick={() => handleWeaponDamageRoll(selectedAction.action)}
+            >
+              <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
+              <span>Damage</span>
+            </button>
+            <DiceRollerSettingsButton
+              actionName={selectedAction.name}
+              className={clsx(sheetStyles.castButton, styles.weaponFooterIconButton)}
+              isOpen={isDiceRollerSettingsOpen}
+              aria-label="Open dice roller settings"
+              onOpenChange={setIsDiceRollerSettingsOpen}
+            />
+          </div>
         </div>
       );
     }

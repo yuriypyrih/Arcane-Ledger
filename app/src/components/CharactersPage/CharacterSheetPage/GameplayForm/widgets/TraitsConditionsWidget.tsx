@@ -7,6 +7,7 @@ import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
 import {
   consumeBeguilingMagicOrBardicInspirationForCharacter,
   consumeFighterIndomitableUseForCharacter,
+  expendFighterPsiWarriorEnergyDieForCharacter,
   expendBardicInspirationUseForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
@@ -14,6 +15,7 @@ import {
   getDerivedFeatureStatusEntriesForCharacter,
   getDruidWildShapeActiveFormForCharacter,
   getFighterIndomitableUsesRemainingForCharacter,
+  getFighterPsiWarriorEnergyDiceRemainingForCharacter,
   getFeatureReactionEntriesForCharacter,
   getSpellcastingStateForCharacter,
   removeFeatureStatusEntryForCharacter
@@ -335,6 +337,10 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         ? getFighterIndomitableUsesRemainingForCharacter(character) <= 0
           ? "No Indomitable uses remaining."
           : null
+        : selectedReactionEntry?.id === "reaction-psi-warrior-protective-field"
+          ? getFighterPsiWarriorEnergyDiceRemainingForCharacter(character) <= 0
+            ? "No Psi Energy Dice remaining."
+            : null
         : null;
   const selectedReactionActionWarning =
     getRoundTrackerActionWarning("reaction", roundTracker) ?? selectedReactionResourceWarning;
@@ -632,11 +638,14 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           ? expendBardicInspirationUseForCharacter(currentCharacter)
           : selectedReactionEntry.id === "reaction-banneret-shared-resilience"
             ? consumeFighterIndomitableUseForCharacter(currentCharacter)
+            : selectedReactionEntry.id === "reaction-psi-warrior-protective-field"
+              ? expendFighterPsiWarriorEnergyDieForCharacter(currentCharacter)
           : currentCharacter;
 
       if (
         (selectedReactionEntry.id === "reaction-cutting-words" ||
-          selectedReactionEntry.id === "reaction-banneret-shared-resilience") &&
+          selectedReactionEntry.id === "reaction-banneret-shared-resilience" ||
+          selectedReactionEntry.id === "reaction-psi-warrior-protective-field") &&
         nextCharacter === currentCharacter
       ) {
         return currentCharacter;

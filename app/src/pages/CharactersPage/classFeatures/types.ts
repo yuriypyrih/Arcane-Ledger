@@ -32,6 +32,7 @@ export type FeatureActionIcon =
   | "sparkles"
   | "flame"
   | "paw"
+  | "psi"
   | "pyromancy";
 
 export type FeatureActionFact = {

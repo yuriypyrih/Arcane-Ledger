@@ -1,4 +1,4 @@
-import { Brain, Flame, Music, PawPrint, Sparkles } from "lucide-react";
+import { Brain, Flame, Hexagon, Music, PawPrint, Sparkles } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type {
   DivinityEntry,
@@ -76,6 +76,10 @@ function renderUsesIcon(icon?: FeatureActionIcon) {
 
   if (icon === "paw") {
     return <PawPrint size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "psi") {
+    return <Hexagon size={14} strokeWidth={2.1} />;
   }
 
   if (icon === "pyromancy") {

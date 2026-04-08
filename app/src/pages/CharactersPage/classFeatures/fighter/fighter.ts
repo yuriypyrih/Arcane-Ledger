@@ -52,20 +52,50 @@ import {
   getFighterEldritchKnightWarMagicMultiCount
 } from "./subclasses/fighterEldritchKnight";
 import {
+  activateFighterPsiWarriorBulwarkOfForce,
+  activateFighterPsiWarriorPsiPoweredLeap,
+  activateFighterPsiWarriorTelekineticMasterSpellCast,
+  activateFighterPsiWarriorTelekineticMovement,
+  consumeFighterPsiWarriorPsionicStrike,
+  consumeFighterPsiWarriorTelekineticMasterBonusAttack,
   expendFighterPsiWarriorEnergyDie,
+  fighterPsiWarriorBulwarkOfForceActionKey,
+  fighterPsiPoweredLeapActionKey,
+  fighterPsiWarriorTelekineticMovementActionKey,
+  getFighterPsiWarriorBulwarkOfForceUsesRemaining,
+  getFighterPsiWarriorBulwarkOfForceUsesTotal,
   getFighterPsiWarriorEnergyDiceRemaining,
   getFighterPsiWarriorEnergyDiceTotal,
   getFighterPsiWarriorEnergyDie,
+  getFighterPsiWarriorProtectiveFieldFormula,
+  getFighterPsiWarriorPsionicStrikeFormula,
+  getFighterPsiWarriorPsiPoweredLeapUsesRemaining,
+  getFighterPsiWarriorPsiPoweredLeapUsesTotal,
+  getFighterPsiWarriorTelekineticMasterUsesRemaining,
+  getFighterPsiWarriorTelekineticMasterUsesTotal,
+  getFighterPsiWarriorTelekineticMovementUsesRemaining,
+  getFighterPsiWarriorTelekineticMovementUsesTotal,
+  hasFighterPsiWarriorTelekineticMasterBonusAttackAvailable,
+  hasFighterPsiWarriorPsionicStrikeAvailable,
   restoreAllFighterPsiWarriorEnergyDice,
   restoreFighterPsiWarriorEnergyDiceOnLongRest as restoreFighterPsiWarriorEnergyDiceOnLongRestInternal,
   restoreFighterPsiWarriorEnergyDiceOnShortRest as restoreFighterPsiWarriorEnergyDiceOnShortRestInternal,
-  restoreFighterPsiWarriorEnergyDie
+  restoreFighterPsiWarriorEnergyDie,
+  restoreFighterPsiWarriorBulwarkOfForceOnLongRest as restoreFighterPsiWarriorBulwarkOfForceOnLongRestInternal,
+  restoreFighterPsiWarriorTelekineticMasterOnLongRest as restoreFighterPsiWarriorTelekineticMasterOnLongRestInternal,
+  restoreFighterPsiWarriorPsiPoweredLeapOnLongRest as restoreFighterPsiWarriorPsiPoweredLeapOnLongRestInternal,
+  restoreFighterPsiWarriorPsiPoweredLeapOnShortRest as restoreFighterPsiWarriorPsiPoweredLeapOnShortRestInternal,
+  restoreFighterPsiWarriorTelekineticMovementOnLongRest as restoreFighterPsiWarriorTelekineticMovementOnLongRestInternal,
+  restoreFighterPsiWarriorTelekineticMovementOnShortRest as restoreFighterPsiWarriorTelekineticMovementOnShortRestInternal
 } from "./subclasses/fighterPsiWarrior";
 
 export const fighterSecondWindActionKey = "fighter-second-wind";
 export const fighterActionSurgeActionKey = "fighter-action-surge";
 export const fighterTacticalMindActionKey = "fighter-tactical-mind";
 export const fighterIndomitableActionKey = "fighter-indomitable";
+export { fighterPsiWarriorBulwarkOfForceActionKey };
+export { fighterPsiPoweredLeapActionKey };
+export { fighterPsiWarriorTelekineticMovementActionKey };
 const weaponMasterySource = "Weapon Mastery";
 
 const fighterWeaponMasteryOptions = getWeaponMasteryOptions();
@@ -441,6 +471,79 @@ export function getFighterPsiWarriorEnergyDieForCharacter(
   return getFighterPsiWarriorEnergyDie(character);
 }
 
+export function getFighterPsiWarriorProtectiveFieldFormulaForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): string | null {
+  return getFighterPsiWarriorProtectiveFieldFormula(character);
+}
+
+export function getFighterPsiWarriorPsionicStrikeFormulaForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): string | null {
+  return getFighterPsiWarriorPsionicStrikeFormula(character);
+}
+
+export function getFighterPsiWarriorPsiPoweredLeapUsesTotalForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return getFighterPsiWarriorPsiPoweredLeapUsesTotal(character);
+}
+
+export function getFighterPsiWarriorBulwarkOfForceUsesTotalForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return getFighterPsiWarriorBulwarkOfForceUsesTotal(character);
+}
+
+export function getFighterPsiWarriorPsiPoweredLeapUsesRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): number {
+  return getFighterPsiWarriorPsiPoweredLeapUsesRemaining(character);
+}
+
+export function getFighterPsiWarriorBulwarkOfForceUsesRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): number {
+  return getFighterPsiWarriorBulwarkOfForceUsesRemaining(character);
+}
+
+export function getFighterPsiWarriorTelekineticMasterUsesTotalForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return getFighterPsiWarriorTelekineticMasterUsesTotal(character);
+}
+
+export function getFighterPsiWarriorTelekineticMasterUsesRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): number {
+  return getFighterPsiWarriorTelekineticMasterUsesRemaining(character);
+}
+
+export function hasFighterPsiWarriorPsionicStrikeAvailableForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId" | "classFeatureState">>
+): boolean {
+  return hasFighterPsiWarriorPsionicStrikeAvailable(character);
+}
+
+export function getFighterPsiWarriorTelekineticMovementUsesTotalForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return getFighterPsiWarriorTelekineticMovementUsesTotal(character);
+}
+
+export function getFighterPsiWarriorTelekineticMovementUsesRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): number {
+  return getFighterPsiWarriorTelekineticMovementUsesRemaining(character);
+}
+
 export function expendFighterBattleMasterSuperiorityDieForCharacter(character: Character): Character {
   return expendFighterBattleMasterSuperiorityDie(character);
 }
@@ -453,12 +556,47 @@ export function expendFighterPsiWarriorEnergyDieForCharacter(character: Characte
   return expendFighterPsiWarriorEnergyDie(character);
 }
 
+export function consumeFighterPsiWarriorPsionicStrikeForCharacter(character: Character): Character {
+  return consumeFighterPsiWarriorPsionicStrike(character);
+}
+
 export function restoreFighterPsiWarriorEnergyDieForCharacter(character: Character): Character {
   return restoreFighterPsiWarriorEnergyDie(character);
 }
 
 export function restoreAllFighterPsiWarriorEnergyDiceForCharacter(character: Character): Character {
   return restoreAllFighterPsiWarriorEnergyDice(character);
+}
+
+export function activateFighterPsiWarriorTelekineticMovementForCharacter(
+  character: Character
+): Character {
+  return activateFighterPsiWarriorTelekineticMovement(character);
+}
+
+export function activateFighterPsiWarriorPsiPoweredLeapForCharacter(
+  character: Character
+): Character {
+  return activateFighterPsiWarriorPsiPoweredLeap(character);
+}
+
+export function activateFighterPsiWarriorBulwarkOfForceForCharacter(
+  character: Character
+): Character {
+  return activateFighterPsiWarriorBulwarkOfForce(character);
+}
+
+export function activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter(
+  character: Character
+): Character {
+  return activateFighterPsiWarriorTelekineticMasterSpellCast(character);
+}
+
+export function hasFighterPsiWarriorTelekineticMasterBonusAttackAvailableForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState" | "statusEntries">>
+): boolean {
+  return hasFighterPsiWarriorTelekineticMasterBonusAttackAvailable(character);
 }
 
 export function restoreAllFighterBattleMasterSuperiorityDiceForCharacter(
@@ -693,7 +831,9 @@ export function applyShortRestToFighterFeatures(character: Character): Character
     !hasFighterFeature(character, CLASS_FEATURE.SECOND_WIND) &&
     !hasFighterFeature(character, CLASS_FEATURE.ACTION_SURGE) &&
     getFighterBattleMasterSuperiorityDiceTotal(character) <= 0 &&
-    getFighterPsiWarriorEnergyDiceTotal(character) <= 0
+    getFighterPsiWarriorPsiPoweredLeapUsesTotal(character) <= 0 &&
+    getFighterPsiWarriorEnergyDiceTotal(character) <= 0 &&
+    getFighterPsiWarriorTelekineticMovementUsesTotal(character) <= 0
   ) {
     return character;
   }
@@ -719,6 +859,16 @@ export function applyShortRestToFighterFeatures(character: Character): Character
         psiWarriorEnergyDiceExpended:
           fighterState.psiWarriorEnergyDiceExpended !== undefined
             ? Math.max(0, (fighterState.psiWarriorEnergyDiceExpended ?? 0) - 1)
+            : undefined,
+        psiWarriorPsionicStrikeUsedThisTurn:
+          fighterState.psiWarriorPsionicStrikeUsedThisTurn !== undefined ? false : undefined,
+        psiWarriorPsiPoweredLeapUsesExpended:
+          fighterState.psiWarriorPsiPoweredLeapUsesExpended !== undefined ? 0 : undefined,
+        psiWarriorTelekineticMovementUsesExpended:
+          fighterState.psiWarriorTelekineticMovementUsesExpended !== undefined ? 0 : undefined,
+        psiWarriorTelekineticMasterBonusAttackAvailable:
+          fighterState.psiWarriorTelekineticMasterBonusAttackAvailable !== undefined
+            ? false
             : undefined,
         banneretGroupRecoveryUsesExpended:
           fighterState.banneretGroupRecoveryUsesExpended !== undefined ? 0 : undefined,
@@ -793,7 +943,11 @@ export function applyLongRestToFighterFeatures(character: Character): Character 
     !hasFighterFeature(character, CLASS_FEATURE.ACTION_SURGE) &&
     !hasFighterFeature(character, CLASS_FEATURE.INDOMITABLE) &&
     getFighterBattleMasterSuperiorityDiceTotal(character) <= 0 &&
-    getFighterPsiWarriorEnergyDiceTotal(character) <= 0
+    getFighterPsiWarriorPsiPoweredLeapUsesTotal(character) <= 0 &&
+    getFighterPsiWarriorEnergyDiceTotal(character) <= 0 &&
+    getFighterPsiWarriorTelekineticMovementUsesTotal(character) <= 0 &&
+    getFighterPsiWarriorBulwarkOfForceUsesTotal(character) <= 0 &&
+    getFighterPsiWarriorTelekineticMasterUsesTotal(character) <= 0
   ) {
     return character;
   }
@@ -818,6 +972,20 @@ export function applyLongRestToFighterFeatures(character: Character): Character 
           fighterState.battleMasterSuperiorityDiceExpended !== undefined ? 0 : undefined,
         psiWarriorEnergyDiceExpended:
           fighterState.psiWarriorEnergyDiceExpended !== undefined ? 0 : undefined,
+        psiWarriorPsionicStrikeUsedThisTurn:
+          fighterState.psiWarriorPsionicStrikeUsedThisTurn !== undefined ? false : undefined,
+        psiWarriorPsiPoweredLeapUsesExpended:
+          fighterState.psiWarriorPsiPoweredLeapUsesExpended !== undefined ? 0 : undefined,
+        psiWarriorTelekineticMovementUsesExpended:
+          fighterState.psiWarriorTelekineticMovementUsesExpended !== undefined ? 0 : undefined,
+        psiWarriorBulwarkOfForceUsesExpended:
+          fighterState.psiWarriorBulwarkOfForceUsesExpended !== undefined ? 0 : undefined,
+        psiWarriorTelekineticMasterUsesExpended:
+          fighterState.psiWarriorTelekineticMasterUsesExpended !== undefined ? 0 : undefined,
+        psiWarriorTelekineticMasterBonusAttackAvailable:
+          fighterState.psiWarriorTelekineticMasterBonusAttackAvailable !== undefined
+            ? false
+            : undefined,
         banneretGroupRecoveryUsesExpended:
           fighterState.banneretGroupRecoveryUsesExpended !== undefined ? 0 : undefined,
         extraAttacksRemainingThisTurn: 0
@@ -934,6 +1102,36 @@ export function restoreFighterPsiWarriorEnergyDiceOnLongRest(character: Characte
   return restoreFighterPsiWarriorEnergyDiceOnLongRestInternal(character);
 }
 
+export function restoreFighterPsiWarriorPsiPoweredLeapOnShortRest(character: Character): Character {
+  return restoreFighterPsiWarriorPsiPoweredLeapOnShortRestInternal(character);
+}
+
+export function restoreFighterPsiWarriorPsiPoweredLeapOnLongRest(character: Character): Character {
+  return restoreFighterPsiWarriorPsiPoweredLeapOnLongRestInternal(character);
+}
+
+export function restoreFighterPsiWarriorBulwarkOfForceOnLongRest(character: Character): Character {
+  return restoreFighterPsiWarriorBulwarkOfForceOnLongRestInternal(character);
+}
+
+export function restoreFighterPsiWarriorTelekineticMasterOnLongRest(
+  character: Character
+): Character {
+  return restoreFighterPsiWarriorTelekineticMasterOnLongRestInternal(character);
+}
+
+export function restoreFighterPsiWarriorTelekineticMovementOnShortRest(
+  character: Character
+): Character {
+  return restoreFighterPsiWarriorTelekineticMovementOnShortRestInternal(character);
+}
+
+export function restoreFighterPsiWarriorTelekineticMovementOnLongRest(
+  character: Character
+): Character {
+  return restoreFighterPsiWarriorTelekineticMovementOnLongRestInternal(character);
+}
+
 export function advanceFighterFeaturesForNewRound(character: Character): Character {
   let nextCharacter = character;
   const hasExtraAttack = getFighterAdditionalAttackCount(character) > 0;
@@ -1035,7 +1233,12 @@ export function getFighterWeaponProficiencyEntries(
   );
 }
 
-export function consumeFighterWeaponAttack(character: Character): Character {
+export function consumeFighterWeaponAttack(
+  character: Character,
+  action?: {
+    attackKind: "weapon" | "unarmed";
+  }
+): Character {
   if (character.className !== "Fighter") {
     return isRoundTrackerResourceAvailable(character.roundTracker, "action")
       ? {
@@ -1049,13 +1252,33 @@ export function consumeFighterWeaponAttack(character: Character): Character {
     character.classFeatureState?.fighter,
     character
   );
+  const additionalAttackCount = getFighterAdditionalAttackCount(character);
   const extraAttacksRemaining = fighterState.extraAttacksRemainingThisTurn ?? 0;
   const surgedActionsRemaining = fighterState.actionSurgeExtraActionsRemainingThisTurn ?? 0;
   const actionAvailable = isRoundTrackerResourceAvailable(character.roundTracker, "action");
+  const canUseTelekineticMasterBonusAttack =
+    action?.attackKind === "weapon" &&
+    hasFighterPsiWarriorTelekineticMasterBonusAttackAvailable(character) &&
+    isRoundTrackerResourceAvailable(character.roundTracker, "bonusAction");
+
+  if (canUseTelekineticMasterBonusAttack) {
+    const nextCharacter = consumeFighterPsiWarriorTelekineticMasterBonusAttack(character);
+
+    return {
+      ...nextCharacter,
+      roundTracker: consumeRoundTrackerResource(character.roundTracker, "bonusAction"),
+      classFeatureState: {
+        ...nextCharacter.classFeatureState,
+        fighter: {
+          ...fighterState,
+          ...nextCharacter.classFeatureState?.fighter,
+          extraAttacksRemainingThisTurn: extraAttacksRemaining + additionalAttackCount
+        }
+      }
+    };
+  }
 
   if (actionAvailable) {
-    const additionalAttackCount = getFighterAdditionalAttackCount(character);
-
     return {
       ...character,
       roundTracker: consumeRoundTrackerResource(character.roundTracker, "action"),
@@ -1063,7 +1286,7 @@ export function consumeFighterWeaponAttack(character: Character): Character {
         ...character.classFeatureState,
         fighter: {
           ...fighterState,
-          extraAttacksRemainingThisTurn: additionalAttackCount
+          extraAttacksRemainingThisTurn: extraAttacksRemaining + additionalAttackCount
         }
       }
     };
@@ -1080,7 +1303,8 @@ export function consumeFighterWeaponAttack(character: Character): Character {
         ...character.classFeatureState,
         fighter: {
           ...fighterState,
-          actionSurgeExtraActionsRemainingThisTurn: surgedActionsRemaining - 1
+          actionSurgeExtraActionsRemainingThisTurn: surgedActionsRemaining - 1,
+          extraAttacksRemainingThisTurn: extraAttacksRemaining + additionalAttackCount
         }
       }
     };

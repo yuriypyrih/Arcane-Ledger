@@ -138,6 +138,7 @@ export type CharacterMonkFeatureState = {
   flurryOfBlowsAttacksRemainingThisTurn?: number;
   extraAttacksRemainingThisTurn?: number;
   stunningStrikeUsedThisTurn?: boolean;
+  warriorOfMercyHandOfHarmUsedThisTurn?: boolean;
   superiorDefenseRoundsRemaining?: number;
   superiorDefenseUsedThisTurn?: boolean;
 };
@@ -151,6 +152,12 @@ export type CharacterFighterFeatureState = {
   battleMasterSuperiorityDiceExpended?: number;
   battleMasterManeuverIds?: string[];
   psiWarriorEnergyDiceExpended?: number;
+  psiWarriorPsionicStrikeUsedThisTurn?: boolean;
+  psiWarriorPsiPoweredLeapUsesExpended?: number;
+  psiWarriorTelekineticMovementUsesExpended?: number;
+  psiWarriorBulwarkOfForceUsesExpended?: number;
+  psiWarriorTelekineticMasterUsesExpended?: number;
+  psiWarriorTelekineticMasterBonusAttackAvailable?: boolean;
   weaponMasteries?: WEAPON_PROFICIENCY[];
   extraAttacksRemainingThisTurn?: number;
   eldritchKnightWarMagicUsesThisTurn?: number;

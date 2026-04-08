@@ -71,6 +71,20 @@
   margin: 0;
 }
 
+.psiStrikeCostLabel {
+  align-items: center;
+  color: #5a3a8c;
+  display: inline-flex;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+
+.psiStrikeCostLabel svg {
+  color: currentColor;
+  flex: 0 0 auto;
+  stroke: currentColor;
+}
+
 .weaponFooterButton,
 .weaponFooterIconButton {
   margin-left: 0;

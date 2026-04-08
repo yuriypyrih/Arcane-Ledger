@@ -8,6 +8,7 @@ import {
 } from "../subclasses/barbarian";
 import { cuttingWordsDescription, inspiringMovementDescription } from "../subclasses/bard";
 import { banneretSharedResilienceDescription } from "../subclasses/fighterBanneret";
+import { psiWarriorProtectiveFieldDescription } from "../subclasses/fighterPsiWarrior";
 
 export const countercharmReaction: ReactionEntry = {
   id: "reaction-countercharm",
@@ -72,6 +73,16 @@ export const inspiringMovementReaction: ReactionEntry = {
   description: [...inspiringMovementDescription]
 };
 
+export const protectiveFieldReaction: ReactionEntry = {
+  id: "reaction-psi-warrior-protective-field",
+  reaction: REACTION.PROTECTIVE_FIELD,
+  name: "Protective Field",
+  sourceType: "feature",
+  sourceFeature: CLASS_FEATURE.PSIONIC_POWER,
+  sourceLabel: "Psi Warrior",
+  description: [...psiWarriorProtectiveFieldDescription]
+};
+
 export const cuttingWordsReaction: ReactionEntry = {
   id: "reaction-cutting-words",
   reaction: REACTION.CUTTING_WORDS,
@@ -108,6 +119,7 @@ export const reactionEntries: ReactionEntry[] = [
   cuttingWordsReaction,
   deflectAttacksReaction,
   inspiringMovementReaction,
+  protectiveFieldReaction,
   retaliationReaction,
   sharedResilienceReaction,
   slowFallReaction,

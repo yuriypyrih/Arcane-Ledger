@@ -26,6 +26,7 @@ import {
   normalizeFighterEldritchKnightFeatureState
 } from "./fighterEldritchKnight";
 import {
+  advanceFighterPsiWarriorFeaturesForNewRound,
   getFighterPsiWarriorDerivedFeatureState,
   normalizeFighterPsiWarriorFeatureState,
   psiWarriorSubclassId
@@ -83,6 +84,8 @@ export function advanceFighterSubclassFeaturesForNewRound(character: Character):
       return advanceFighterChampionFeaturesForNewRound(character);
     case eldritchKnightSubclassId:
       return advanceFighterEldritchKnightFeaturesForNewRound(character);
+    case psiWarriorSubclassId:
+      return advanceFighterPsiWarriorFeaturesForNewRound(character);
     default:
       return character;
   }
