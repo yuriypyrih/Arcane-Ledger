@@ -99,7 +99,8 @@ export type FeatureActionSpellEffectKind =
   | "favored-enemy"
   | "mantle-of-majesty"
   | "mystic-arcanum"
-  | "paladins-smite";
+  | "paladins-smite"
+  | "shadow-arts-darkness";
 
 export type FeatureActionDrawerConfig = {
   kind: FeatureActionDrawerKind;

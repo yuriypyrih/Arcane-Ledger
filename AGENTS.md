@@ -53,6 +53,30 @@ The second layer is the runtime derivation layer in `app/src/pages/CharactersPag
 
 `app/src/pages/CharactersPage/classFeatures/index.ts` is the aggregator that merges those per-class outputs into one unified feature system that the rest of the sheet consumes. This is inheritance by derivation, not by class-component subclassing: the sheet asks the class-feature runtime what the current character gains, rather than hardcoding each class directly into each UI section.
 
+### Runtime Lookup Guide
+
+When adding or changing class behavior, check these layers in order:
+- codex progression tables for level-based unlocks, counts, and base feature metadata
+- `app/src/pages/CharactersPage/classFeatures/<class>/<class>.ts` for normalized state, core actions, stat effects, and rest/round reset behavior
+- `app/src/pages/CharactersPage/classFeatures/<class>/subclasses/*.ts` for additive subclass actions, reactions, granted spells, decorators, and derived statuses
+- `app/src/codex/classes/subclassSpellcasting.ts` only when subclass spellcasting progression, spell lists, or spellbook usage changes
+
+Composition rules:
+- base class outputs are collected first, then subclass outputs are layered on top
+- use transform hooks when a subclass should modify an existing action, spell, or weapon entry instead of creating a parallel one
+
+Reusable mechanics:
+- tracked resources belong in `classFeatureState`, not page-local UI state
+- rest and round cleanup belongs in runtime reset helpers and module wiring
+- persistent gameplay effects should usually become derived status entries or status-backed effects
+- granted spells should usually flow through `alwaysPreparedSpellIds`; use subclass spellcasting data only for real progression changes
+- action cards need both card creation and execution wiring
+
+Warnings:
+- an empty subclass derived-state object does not mean the subclass has no runtime behavior
+- do not hardcode class behavior in page components
+- do not duplicate resource counters outside runtime state
+
 ### Subclass Runtime Pattern
 
 When a class gains subclass-specific runtime behavior, split that behavior into one file per codex subclass instead of growing the main class runtime file.

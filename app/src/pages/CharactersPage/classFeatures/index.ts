@@ -249,6 +249,7 @@ import {
   getMonkFocusPointsTotal,
   getMonkFlurryOfBlowsAttackMultiCount,
   hasMonkPerfectFocus,
+  getMonkUnarmedStrikeMultiCount,
   restoreAllMonkFocusPoints,
   restoreMonkUncannyMetabolismOnLongRest,
   restoreOneMonkFocusPoint
@@ -2389,6 +2390,12 @@ export function getMonkFlurryOfBlowsAttackMultiCountForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): number {
   return getMonkFlurryOfBlowsAttackMultiCount(character);
+}
+
+export function getMonkUnarmedStrikeMultiCountForCharacter(
+  character: Pick<Character, "className" | "level" | "subclassId" | "classFeatureState">
+): number {
+  return getMonkUnarmedStrikeMultiCount(character);
 }
 
 export function consumeWeaponAttackActionForCharacter(

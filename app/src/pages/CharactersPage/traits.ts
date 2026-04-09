@@ -17,6 +17,7 @@ import {
   starryFormDescription,
   wrathOfTheSeaDescription
 } from "../../codex/subclasses/druid";
+import { getSubclassEntryById } from "../../codex/subclasses";
 import type { SpellDescriptionEntry, SpellDurationPart } from "../../codex/entries";
 import { CLASS_FEATURE, DAMAGE_TYPE, DURATION } from "../../codex/entries";
 import {
@@ -58,6 +59,14 @@ const divineForeknowledgeStatusSourceId = "feature-cleric-divine-foreknowledge";
 const druidNaturesSanctuaryStatusSourceId = "feature-druid-natures-sanctuary";
 const druidStarryFormStatusSourceId = "feature-druid-starry-form";
 const druidWrathOfTheSeaStatusSourceId = "feature-druid-wrath-of-the-sea";
+const monkCloakOfShadowStatusSourceId = "feature-monk-warrior-of-shadow-cloak-of-shadow";
+const monkWarriorOfShadowSubclassEntry = getSubclassEntryById("monk-warrior-of-shadow");
+const monkCloakOfShadowsDescription =
+  monkWarriorOfShadowSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.CLOAK_OF_SHADOWS))
+    ?.featureOverrides?.[CLASS_FEATURE.CLOAK_OF_SHADOWS]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
 export const exhaustionLevels = [1, 2, 3, 4, 5, 6] as const;
 export type ExhaustionLevel = (typeof exhaustionLevels)[number];
 export type ExhaustionConditionOptionValue =
@@ -1262,6 +1271,10 @@ export function getStatusEntryDescriptionEntries(
     return getStatusEntryTitle(entry).includes("(10 FT.)")
       ? [...aquaticAffinityWrathOfTheSeaDescription]
       : [...wrathOfTheSeaDescription];
+  }
+
+  if (entry.sourceId === monkCloakOfShadowStatusSourceId) {
+    return [...monkCloakOfShadowsDescription];
   }
 
   const keywordDescriptionEntries = getKeywordDescriptionLines(getStatusEntryKeyword(entry));

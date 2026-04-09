@@ -28,8 +28,8 @@ import {
   getUnarmedStrikeConfigForCharacter,
   transformWeaponActionForCharacter,
   getFeatureDamageBonusesForWeaponAction,
-  getMonkFlurryOfBlowsAttackMultiCountForCharacter,
   getMonkMartialArtsDieForCharacter,
+  getMonkUnarmedStrikeMultiCountForCharacter,
   getMonkUnarmedDamageTypeLabelForCharacter,
   getSkillBonusesForCharacter,
   getWeaponAttackIndicatorsForCharacter,
@@ -799,7 +799,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
         (weapon) => isMonkWeapon(weapon)
       )
     });
-  const monkUnarmedStrikeMulti = getMonkFlurryOfBlowsAttackMultiCountForCharacter(character);
+  const monkUnarmedStrikeMulti = getMonkUnarmedStrikeMultiCountForCharacter(character);
 
   const codexWeaponActions = heldCodexWeapons.reduce<WeaponAction[]>((actions, equipmentItem) => {
     const equipmentDefinition = getEquipmentByName(equipmentItem.name);

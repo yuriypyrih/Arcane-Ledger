@@ -138,8 +138,10 @@ import {
   setFighterWeaponMasterySelections
 } from "./fighter/fighter";
 import {
+  activateMonkCloakOfShadow,
   activateMonkFlurryOfBlows,
   activateMonkHandOfHealing,
+  activateMonkHandOfUltimateJustice,
   activateMonkSuperiorDefense,
   activateMonkStunningStrike,
   activateMonkUncannyMetabolism,
@@ -156,8 +158,10 @@ import {
   getMonkSavingThrowProficiencyEntries,
   getMonkSpeedBonuses,
   monkHandOfHealingActionKey,
+  monkHandOfUltimateJusticeActionKey,
   getMonkUnarmedDamageTypeLabel,
   monkFlurryOfBlowsActionKey,
+  monkCloakOfShadowActionKey,
   monkSuperiorDefenseActionKey,
   monkStunningStrikeActionKey,
   monkUncannyMetabolismActionKey,
@@ -579,6 +583,14 @@ const classFeatureModules = {
 
       if (actionKey === monkHandOfHealingActionKey) {
         return activateMonkHandOfHealing(character);
+      }
+
+      if (actionKey === monkHandOfUltimateJusticeActionKey) {
+        return activateMonkHandOfUltimateJustice(character);
+      }
+
+      if (actionKey === monkCloakOfShadowActionKey) {
+        return activateMonkCloakOfShadow(character);
       }
 
       return null;

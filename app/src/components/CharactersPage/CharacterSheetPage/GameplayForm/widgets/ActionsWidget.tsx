@@ -51,6 +51,7 @@ import {
   consumeWeaponAttackActionForCharacter,
   createEconomyMultiContextForFeatureAction,
   createEconomyMultiContextForFeatureActionOption,
+  expendMonkFocusPointForCharacter,
   getBardicInspirationDieForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
@@ -227,6 +228,11 @@ import {
 } from "./fighterPsiWarriorWeapon";
 import { getMonkWarriorOfMercyHandOfHarmOptionState } from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfMercy";
 import {
+  activateMonkWarriorOfShadowImprovedShadowStep,
+  getMonkWarriorOfShadowImprovedShadowStepOptionState,
+  monkShadowStepActionKey
+} from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfShadow";
+import {
   FeatureActionCardButton,
   FeatureActionChoiceRow,
   FeatureActionOptionButton,
@@ -298,6 +304,17 @@ function createContactPatronSpellEntry(spell: SpellEntry): SpellEntry {
   };
 }
 
+function createShadowArtsDarknessSpellEntry(spell: SpellEntry): SpellEntry {
+  return {
+    ...spell,
+    components: [],
+    description: [
+      "<strong>Shadow Arts.</strong> This casting doesn't expend a spell slot or spell components. You can see within the spell's area when you cast it with this feature, and while the spell persists, you can move its area to a space within 60 feet of yourself at the start of each of your turns.",
+      ...spell.description
+    ]
+  };
+}
+
 function getDivineInterventionLevelGroups(spells: SpellEntry[]): Record<number, SpellEntry[]> {
   return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9].reduce<Record<number, SpellEntry[]>>((groups, level) => {
     groups[level] = spells
@@ -341,6 +358,10 @@ function getFixedSpellEntryForExecute(
 
   if (execute.effectKind === "contact-patron") {
     return createContactPatronSpellEntry(transformedSpell);
+  }
+
+  if (execute.effectKind === "shadow-arts-darkness") {
+    return createShadowArtsDarknessSpellEntry(transformedSpell);
   }
 
   if (execute.effectKind === "mantle-of-majesty") {
@@ -1635,6 +1656,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [isGroupRecoverySelected, setIsGroupRecoverySelected] = useState(false);
   const [isPsionicStrikeSelected, setIsPsionicStrikeSelected] = useState(false);
   const [isHandOfHarmSelected, setIsHandOfHarmSelected] = useState(false);
+  const [isImprovedShadowStepSelected, setIsImprovedShadowStepSelected] = useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   const roundTracker = normalizeRoundTracker(character.roundTracker);
@@ -1806,6 +1828,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const selectedWeaponHandOfHarmState = useMemo(
     () => getMonkWarriorOfMercyHandOfHarmOptionState(character, selectedWeaponAction),
     [character, selectedWeaponAction]
+  );
+  const selectedImprovedShadowStepState = useMemo(
+    () => getMonkWarriorOfShadowImprovedShadowStepOptionState(character, selectedFeatureAction),
+    [character, selectedFeatureAction]
   );
   const selectedWeaponEffectiveAction = useMemo(() => {
     if (!selectedWeaponAction) {
@@ -2197,6 +2223,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsGroupRecoverySelected(false);
     setIsPsionicStrikeSelected(false);
     setIsHandOfHarmSelected(false);
+    setIsImprovedShadowStepSelected(false);
     setSelectedActionKey(null);
   }
 
@@ -2240,6 +2267,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsGroupRecoverySelected(false);
     setIsPsionicStrikeSelected(false);
     setIsHandOfHarmSelected(false);
+    setIsImprovedShadowStepSelected(false);
   }, [selectedActionKey]);
 
   useEffect(() => {
@@ -2247,6 +2275,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       setIsHandOfHarmSelected(false);
     }
   }, [selectedWeaponHandOfHarmState]);
+
+  useEffect(() => {
+    if (!selectedImprovedShadowStepState || selectedImprovedShadowStepState.disabled) {
+      setIsImprovedShadowStepSelected(false);
+    }
+  }, [selectedImprovedShadowStepState]);
 
   useEffect(() => {
     let active = true;
@@ -2671,6 +2705,43 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         return roundTrackerResource
           ? consumeRoundTrackerResourceForCharacter(updatedCharacter, roundTrackerResource)
           : updatedCharacter;
+      });
+      closeActionDrawer();
+      return;
+    }
+
+    if (action.key === monkShadowStepActionKey) {
+      const useImprovedShadowStep =
+        isImprovedShadowStepSelected &&
+        selectedImprovedShadowStepState !== null &&
+        !selectedImprovedShadowStepState.disabled;
+
+      onPersistCharacter((currentCharacter) => {
+        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+        const preparedCharacter = prepareCharacterForResourceConsumption(
+          currentCharacter,
+          roundTrackerResource
+        );
+        const nextCharacter = activateFeatureActionForCharacter(preparedCharacter, action.key);
+        const nextCharacterWithImprovedShadowStep = useImprovedShadowStep
+          ? activateMonkWarriorOfShadowImprovedShadowStep(nextCharacter)
+          : nextCharacter;
+        const characterToUpdate =
+          nextCharacterWithImprovedShadowStep === preparedCharacter && action.consumesEconomyOnActivate
+            ? preparedCharacter
+            : nextCharacterWithImprovedShadowStep;
+
+        if (characterToUpdate === preparedCharacter && !action.consumesEconomyOnActivate) {
+          return currentCharacter;
+        }
+
+        if (useImprovedShadowStep && nextCharacterWithImprovedShadowStep === nextCharacter) {
+          return currentCharacter;
+        }
+
+        return roundTrackerResource
+          ? consumeRoundTrackerResourceForCharacter(characterToUpdate, roundTrackerResource)
+          : characterToUpdate;
       });
       closeActionDrawer();
       return;
@@ -3287,6 +3358,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         nextCharacter = consumeFaithfulSteedUseForCharacter(preparedCharacter);
       } else if (fixedSpellExecute.effectKind === "favored-enemy") {
         nextCharacter = consumeRangerFavoredEnemyUseForCharacter(preparedCharacter);
+      } else if (fixedSpellExecute.effectKind === "shadow-arts-darkness") {
+        nextCharacter = expendMonkFocusPointForCharacter(preparedCharacter);
       } else if (fixedSpellExecute.effectKind === "contact-patron") {
         nextCharacter = consumeContactPatronUseForCharacter(preparedCharacter);
       } else if (fixedSpellExecute.effectKind === "druids-guiding-bolt") {
@@ -3891,6 +3964,56 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               onOpenChange={setIsDiceRollerSettingsOpen}
             />
           </div>
+        </div>
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.action.key === monkShadowStepActionKey &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate"
+    ) {
+      const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
+
+      return (
+        <div className={styles.footerActionStack}>
+          {selectedImprovedShadowStepState ? (
+            <label
+              className={styles.footerActionToggle}
+              title={selectedImprovedShadowStepState.disabledReason ?? undefined}
+            >
+              <span className={styles.footerActionToggleLabel}>
+                <input
+                  type="checkbox"
+                  checked={isImprovedShadowStepSelected}
+                  onChange={(event) => setIsImprovedShadowStepSelected(event.target.checked)}
+                  disabled={selectedImprovedShadowStepState.disabled}
+                />
+                <span>Improved Shadow Step</span>
+                <span className={styles.psiStrikeCostLabel}>
+                  <span>| Use 1</span>
+                  <Brain size={14} strokeWidth={2.1} />
+                </span>
+              </span>
+            </label>
+          ) : null}
+          <button
+            type="button"
+            className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+            onClick={() => executeFeatureActivate(selectedAction.action)}
+            disabled={selectedActionWarning !== null}
+          >
+            <span>{selectedAction.drawer.confirmLabel}</span>
+            {actionShape ? (
+              <ActionShape
+                shape={actionShape}
+                isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+                multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+                className={styles.footerActionShape}
+              />
+            ) : null}
+          </button>
         </div>
       );
     }

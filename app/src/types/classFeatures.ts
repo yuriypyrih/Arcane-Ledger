@@ -139,6 +139,8 @@ export type CharacterMonkFeatureState = {
   extraAttacksRemainingThisTurn?: number;
   stunningStrikeUsedThisTurn?: boolean;
   warriorOfMercyHandOfHarmUsedThisTurn?: boolean;
+  warriorOfMercyHandOfUltimateMercyUsesExpended?: number;
+  warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn?: number;
   superiorDefenseRoundsRemaining?: number;
   superiorDefenseUsedThisTurn?: boolean;
 };
