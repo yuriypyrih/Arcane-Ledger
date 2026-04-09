@@ -186,6 +186,33 @@ export const druidcraft: SpellEntry = {
   spellLevel: 0
 };
 
+export const elementalism: SpellEntry = {
+  id: "spell-elementalism",
+  name: "Elementalism",
+  category: ENTRY_CATEGORIES.SPELLS,
+  magicSchool: MAGIC_SCHOOL.TRANSMUTATION,
+  castingTime: [ACTION_TYPE.ACTION],
+  range: "30 feet",
+  components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
+  duration: ["Instantaneous"],
+  description: [
+    "You exert control over the elements, creating one of the following effects within range.",
+    "<strong>Beckon Air.</strong> You create a breeze strong enough to ripple cloth, stir dust, rustle leaves, and close open doors and shutters, all in a 5-foot Cube. Doors and shutters being held open by someone or something aren't affected.",
+    "<strong>Beckon Earth.</strong> You create a thin shroud of dust or sand that covers surfaces in a 5-foot-square area, or you cause a single word to appear in your handwriting in a patch of dirt or sand.",
+    "<strong>Beckon Fire.</strong> You create a thin cloud of harmless embers and colored, scented smoke in a 5-foot Cube. You choose the color and scent, and the embers can light candles, torches, or lamps in that area. The smoke's scent lingers for 1 minute.",
+    "<strong>Beckon Water.</strong> You create a spray of cool mist that lightly dampens creatures and objects in a 5-foot Cube. Alternatively, you create 1 cup of clean water either in an open container or on a surface, and the water evaporates in 1 minute.",
+    "<strong>Sculpt Element.</strong> You cause dirt, sand, fire, smoke, mist, or water that can fit in a 1-foot Cube to assume a crude shape (such as that of a creature) for 1 hour."
+  ],
+  damage: [],
+  spellLists: [
+    SPELL_LIST_CLASS.ARTIFICER,
+    SPELL_LIST_CLASS.DRUID,
+    SPELL_LIST_CLASS.SORCERER,
+    SPELL_LIST_CLASS.WIZARD
+  ],
+  spellLevel: 0
+};
+
 export const eldritchBlast: SpellEntry = {
   id: "spell-eldritch-blast",
   name: "Eldritch Blast",
@@ -1057,6 +1084,7 @@ export const spellEntries0: SpellEntry[] = [
   createBonfire,
   dancingLights,
   druidcraft,
+  elementalism,
   eldritchBlast,
   encodeThoughts,
   fireBolt,

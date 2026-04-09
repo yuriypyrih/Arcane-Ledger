@@ -139,12 +139,16 @@ import {
 } from "./fighter/fighter";
 import {
   activateMonkCloakOfShadow,
+  activateMonkElementalBurst,
+  activateMonkElementalAttunement,
   activateMonkFlurryOfBlows,
   activateMonkHandOfHealing,
   activateMonkHandOfUltimateJustice,
+  activateMonkQuiveringPalm,
   activateMonkSuperiorDefense,
   activateMonkStunningStrike,
   activateMonkUncannyMetabolism,
+  activateMonkWholenessOfBody,
   advanceMonkFeaturesForNewRound,
   applyLongRestToMonkFeatures,
   applyShortRestToMonkFeatures,
@@ -162,9 +166,13 @@ import {
   getMonkUnarmedDamageTypeLabel,
   monkFlurryOfBlowsActionKey,
   monkCloakOfShadowActionKey,
+  monkElementalBurstActionKey,
+  monkElementalAttunementActionKey,
+  monkQuiveringPalmActionKey,
   monkSuperiorDefenseActionKey,
   monkStunningStrikeActionKey,
   monkUncannyMetabolismActionKey,
+  monkWholenessOfBodyActionKey,
   normalizeMonkFeatureState
 } from "./monk/monk";
 import {
@@ -589,8 +597,24 @@ const classFeatureModules = {
         return activateMonkHandOfUltimateJustice(character);
       }
 
+      if (actionKey === monkWholenessOfBodyActionKey) {
+        return activateMonkWholenessOfBody(character);
+      }
+
+      if (actionKey === monkQuiveringPalmActionKey) {
+        return activateMonkQuiveringPalm(character);
+      }
+
       if (actionKey === monkCloakOfShadowActionKey) {
         return activateMonkCloakOfShadow(character);
+      }
+
+      if (actionKey === monkElementalAttunementActionKey) {
+        return activateMonkElementalAttunement(character);
+      }
+
+      if (actionKey === monkElementalBurstActionKey) {
+        return activateMonkElementalBurst(character);
       }
 
       return null;

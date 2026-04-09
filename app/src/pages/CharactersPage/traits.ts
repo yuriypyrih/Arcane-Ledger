@@ -60,13 +60,45 @@ const druidNaturesSanctuaryStatusSourceId = "feature-druid-natures-sanctuary";
 const druidStarryFormStatusSourceId = "feature-druid-starry-form";
 const druidWrathOfTheSeaStatusSourceId = "feature-druid-wrath-of-the-sea";
 const monkCloakOfShadowStatusSourceId = "feature-monk-warrior-of-shadow-cloak-of-shadow";
+const monkQuiveringPalmStatusSourceId = "feature-monk-warrior-of-the-open-hand-quivering-palm";
+const monkElementalAttunementStatusSourceId =
+  "feature-monk-warrior-of-the-elements-elemental-attunement";
+const monkElementalAttunementStrideStatusSourceId =
+  "feature-monk-warrior-of-the-elements-elemental-attunement-stride";
+const monkElementalAttunementEpitomeStatusSourceId =
+  "feature-monk-warrior-of-the-elements-elemental-attunement-epitome";
 const monkWarriorOfShadowSubclassEntry = getSubclassEntryById("monk-warrior-of-shadow");
+const monkWarriorOfTheElementsSubclassEntry = getSubclassEntryById(
+  "monk-warrior-of-the-elements"
+);
 const monkCloakOfShadowsDescription =
   monkWarriorOfShadowSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.CLOAK_OF_SHADOWS))
     ?.featureOverrides?.[CLASS_FEATURE.CLOAK_OF_SHADOWS]?.description?.filter(
       (entry): entry is string => typeof entry === "string"
     ) ?? [];
+const monkElementalAttunementTraitDescription =
+  monkWarriorOfTheElementsSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.ELEMENTAL_ATTUNEMENT))
+    ?.featureOverrides?.[CLASS_FEATURE.ELEMENTAL_ATTUNEMENT]?.description?.filter(
+      (entry): entry is string =>
+        typeof entry === "string" &&
+        (entry.startsWith("<strong>Reach.</strong>") ||
+          entry.startsWith("<strong>Elemental Strikes.</strong>"))
+    ) ?? [];
+const monkStrideOfTheElementsDescription =
+  monkWarriorOfTheElementsSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.STRIDE_OF_THE_ELEMENTS))
+    ?.featureOverrides?.[CLASS_FEATURE.STRIDE_OF_THE_ELEMENTS]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const monkElementalEpitomeDescription =
+  monkWarriorOfTheElementsSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.ELEMENTAL_EPITOME))
+    ?.featureOverrides?.[CLASS_FEATURE.ELEMENTAL_EPITOME]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const monkQuiveringPalmTraitDescription = ["You have marked a creature with Quivering Palm."];
 export const exhaustionLevels = [1, 2, 3, 4, 5, 6] as const;
 export type ExhaustionLevel = (typeof exhaustionLevels)[number];
 export type ExhaustionConditionOptionValue =
@@ -329,8 +361,8 @@ function parseSpellConcentrationDurationLabel(label: string): CharacterStatusDur
 
   if (dayMatch) {
     return {
-      kind: STATUS_DURATION_KIND.HOURS,
-      amount: clampInteger(dayMatch[1], 1, 999, 1) * 24
+      kind: STATUS_DURATION_KIND.DAYS,
+      amount: clampInteger(dayMatch[1], 1, 999, 1)
     };
   }
 
@@ -406,6 +438,13 @@ function normalizeStatusDuration(value: unknown): CharacterStatusDuration | null
       return Number.isFinite(record.amount)
         ? {
             kind: STATUS_DURATION_KIND.HOURS,
+            amount: clampInteger(record.amount, 1, 999, 1)
+          }
+        : null;
+    case STATUS_DURATION_KIND.DAYS:
+      return Number.isFinite(record.amount)
+        ? {
+            kind: STATUS_DURATION_KIND.DAYS,
             amount: clampInteger(record.amount, 1, 999, 1)
           }
         : null;
@@ -1099,6 +1138,7 @@ export function applyShortRestToCharacterStatusEntries(value: unknown): Characte
             entry.group !== STATUS_ENTRY_GROUP.EFFECTS || entry.value !== EFFECT_NAME.CONCENTRATION
           );
         case STATUS_DURATION_KIND.HOURS:
+        case STATUS_DURATION_KIND.DAYS:
           return entry.duration.amount >= 1;
         case STATUS_DURATION_KIND.MINUTES:
         case STATUS_DURATION_KIND.ROUNDS:
@@ -1118,7 +1158,8 @@ export function applyLongRestToCharacterStatusEntries(value: unknown): Character
     normalizeCharacterStatusEntries(value).filter(
       (entry) =>
         (entry.duration.kind === STATUS_DURATION_KIND.INFINITE ||
-          entry.duration.kind === STATUS_DURATION_KIND.LINKED) &&
+          entry.duration.kind === STATUS_DURATION_KIND.LINKED ||
+          entry.duration.kind === STATUS_DURATION_KIND.DAYS) &&
         (entry.group !== STATUS_ENTRY_GROUP.EFFECTS || entry.value !== EFFECT_NAME.CONCENTRATION)
     )
   );
@@ -1277,6 +1318,26 @@ export function getStatusEntryDescriptionEntries(
     return [...monkCloakOfShadowsDescription];
   }
 
+  if (entry.sourceId === monkQuiveringPalmStatusSourceId) {
+    return [...monkQuiveringPalmTraitDescription];
+  }
+
+  if (entry.sourceId === monkElementalAttunementStatusSourceId) {
+    return [...monkElementalAttunementTraitDescription];
+  }
+
+  if (entry.sourceId === monkElementalAttunementStrideStatusSourceId) {
+    return [...monkElementalAttunementTraitDescription, ...monkStrideOfTheElementsDescription];
+  }
+
+  if (entry.sourceId === monkElementalAttunementEpitomeStatusSourceId) {
+    return [
+      ...monkElementalAttunementTraitDescription,
+      ...monkStrideOfTheElementsDescription,
+      ...monkElementalEpitomeDescription
+    ];
+  }
+
   const keywordDescriptionEntries = getKeywordDescriptionLines(getStatusEntryKeyword(entry));
 
   if (
@@ -1359,6 +1420,8 @@ export function getStatusDurationLabel(duration: CharacterStatusDuration): strin
       return `${duration.amount} minute${duration.amount === 1 ? "" : "s"}`;
     case STATUS_DURATION_KIND.HOURS:
       return `${duration.amount} hour${duration.amount === 1 ? "" : "s"}`;
+    case STATUS_DURATION_KIND.DAYS:
+      return `${duration.amount} day${duration.amount === 1 ? "" : "s"}`;
     case STATUS_DURATION_KIND.ROUNDS:
       return `${duration.amount} round${duration.amount === 1 ? "" : "s"} (${getStatusDurationTickOnLabel(duration)})`;
     default:
@@ -1399,6 +1462,8 @@ export function getStatusDurationPreset(duration: CharacterStatusDuration): STAT
         default:
           return STATUS_DURATION_PRESET.INFINITE;
       }
+    case STATUS_DURATION_KIND.DAYS:
+      return STATUS_DURATION_PRESET.INFINITE;
     case STATUS_DURATION_KIND.ROUNDS:
       return roundCountToDurationPreset(duration.amount);
     case STATUS_DURATION_KIND.INFINITE:
@@ -1419,6 +1484,8 @@ export function getStatusDurationShortLabel(duration: CharacterStatusDuration): 
       return `${duration.amount}m`;
     case STATUS_DURATION_KIND.HOURS:
       return `${duration.amount}h`;
+    case STATUS_DURATION_KIND.DAYS:
+      return `${duration.amount}d`;
     case STATUS_DURATION_KIND.ROUNDS:
       return String(duration.amount);
     default:

@@ -99,11 +99,13 @@ import {
 import {
   getMonkFocusPointsTotal,
   getMonkHandOfUltimateJusticeUsesTotal,
+  getMonkWholenessOfBodyUsesTotal,
   hasMonkFeature,
   restoreMonkHandOfUltimateJusticeOnLongRest,
   restoreMonkFocusPointsOnLongRest,
   restoreMonkFocusPointsOnShortRest,
-  restoreMonkUncannyMetabolismOnLongRest
+  restoreMonkUncannyMetabolismOnLongRest,
+  restoreMonkWholenessOfBodyOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/monk/monk";
 import {
   getRangerFavoredEnemyUsesTotal,
@@ -553,6 +555,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const hasMysticArcanum = hasWarlockFeature(character, CLASS_FEATURE.MYSTIC_ARCANUM);
   const monkFocusPointsTotal = getMonkFocusPointsTotal(character);
   const monkHandOfUltimateJusticeUsesTotal = getMonkHandOfUltimateJusticeUsesTotal(character);
+  const monkWholenessOfBodyUsesTotal = getMonkWholenessOfBodyUsesTotal(character);
   const hasUncannyMetabolism = hasMonkFeature(character, CLASS_FEATURE.UNCANNY_METABOLISM);
   const channelDivinityUsesTotal = Math.max(
     getClericChannelDivinityUsesTotal(character),
@@ -1103,6 +1106,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore Hand of Ultimate Justice",
             apply: (currentCharacter: Character) =>
               restoreMonkHandOfUltimateJusticeOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(monkWholenessOfBodyUsesTotal > 0
+      ? [
+          {
+            id: "restore-wholeness-of-body",
+            label: "Restore Wholeness of Body",
+            apply: (currentCharacter: Character) =>
+              restoreMonkWholenessOfBodyOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

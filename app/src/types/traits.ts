@@ -53,6 +53,7 @@ export enum STATUS_DURATION_KIND {
   LINKED = "LINKED",
   MINUTES = "MINUTES",
   HOURS = "HOURS",
+  DAYS = "DAYS",
   ROUNDS = "ROUNDS"
 }
 
@@ -115,6 +116,10 @@ export type CharacterStatusDuration =
     }
   | {
       kind: STATUS_DURATION_KIND.HOURS;
+      amount: number;
+    }
+  | {
+      kind: STATUS_DURATION_KIND.DAYS;
       amount: number;
     }
   | {

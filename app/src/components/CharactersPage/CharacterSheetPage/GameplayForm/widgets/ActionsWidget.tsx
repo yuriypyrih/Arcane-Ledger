@@ -56,6 +56,7 @@ import {
   getBardicInspirationUsesRemainingForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
   getBeguilingMagicUsesTotalForCharacter,
+  getMonkFocusPointsRemainingForCharacter,
   getMantleOfMajestyFallbackSlotLevelForCharacter,
   getMantleOfMajestyUsesRemainingForCharacter,
   getSorcererMetamagicActionCostForCharacter,
@@ -227,6 +228,12 @@ import {
   createPsiWarriorPsionicStrikeDamageBonus
 } from "./fighterPsiWarriorWeapon";
 import { getMonkWarriorOfMercyHandOfHarmOptionState } from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfMercy";
+import {
+  activateMonkWarriorOfTheOpenHandQuiveringPalmMark,
+  getMonkWarriorOfTheOpenHandQuiveringPalmOptionState,
+  getMonkWarriorOfTheOpenHandWholenessOfBodyHealingFormula,
+  monkWholenessOfBodyActionKey
+} from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheOpenHand";
 import {
   activateMonkWarriorOfShadowImprovedShadowStep,
   getMonkWarriorOfShadowImprovedShadowStepOptionState,
@@ -1656,6 +1663,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [isGroupRecoverySelected, setIsGroupRecoverySelected] = useState(false);
   const [isPsionicStrikeSelected, setIsPsionicStrikeSelected] = useState(false);
   const [isHandOfHarmSelected, setIsHandOfHarmSelected] = useState(false);
+  const [isQuiveringPalmSelected, setIsQuiveringPalmSelected] = useState(false);
   const [isImprovedShadowStepSelected, setIsImprovedShadowStepSelected] = useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
@@ -1825,10 +1833,47 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedWeaponAction?.attackKind === "weapon"
       ? hasFighterPsiWarriorPsionicStrikeAvailableForCharacter(character)
       : false;
+  const selectedWeaponFocusPointsRemaining = useMemo(
+    () => getMonkFocusPointsRemainingForCharacter(character),
+    [character.classFeatureState, character.className, character.level]
+  );
   const selectedWeaponHandOfHarmState = useMemo(
     () => getMonkWarriorOfMercyHandOfHarmOptionState(character, selectedWeaponAction),
     [character, selectedWeaponAction]
   );
+  const selectedWeaponQuiveringPalmState = useMemo(
+    () => getMonkWarriorOfTheOpenHandQuiveringPalmOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponHandOfHarmDisabledReason = useMemo(() => {
+    if (!selectedWeaponHandOfHarmState) {
+      return null;
+    }
+
+    if (selectedWeaponHandOfHarmState.disabledReason) {
+      return selectedWeaponHandOfHarmState.disabledReason;
+    }
+
+    return isQuiveringPalmSelected && selectedWeaponFocusPointsRemaining < 4
+      ? "You need 4 Focus Points to use Hand of Harm and Quivering Palm together."
+      : null;
+  }, [isQuiveringPalmSelected, selectedWeaponFocusPointsRemaining, selectedWeaponHandOfHarmState]);
+  const selectedWeaponQuiveringPalmDisabledReason = useMemo(() => {
+    if (!selectedWeaponQuiveringPalmState) {
+      return null;
+    }
+
+    if (selectedWeaponQuiveringPalmState.disabledReason) {
+      return selectedWeaponQuiveringPalmState.disabledReason;
+    }
+
+    return isHandOfHarmSelected && selectedWeaponFocusPointsRemaining < 4
+      ? "You need 4 Focus Points to use Hand of Harm and Quivering Palm together."
+      : null;
+  }, [isHandOfHarmSelected, selectedWeaponFocusPointsRemaining, selectedWeaponQuiveringPalmState]);
+  const selectedWeaponHandOfHarmToggleDisabled = selectedWeaponHandOfHarmDisabledReason !== null;
+  const selectedWeaponQuiveringPalmToggleDisabled =
+    selectedWeaponQuiveringPalmDisabledReason !== null;
   const selectedImprovedShadowStepState = useMemo(
     () => getMonkWarriorOfShadowImprovedShadowStepOptionState(character, selectedFeatureAction),
     [character, selectedFeatureAction]
@@ -1843,7 +1888,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     if (
       isHandOfHarmSelected &&
       selectedWeaponHandOfHarmState &&
-      !selectedWeaponHandOfHarmState.disabled
+      !selectedWeaponHandOfHarmToggleDisabled
     ) {
       nextAction = applyWeaponDamageBonusPreview(
         nextAction,
@@ -1868,6 +1913,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     isHandOfHarmSelected,
     isPsionicStrikeSelected,
     selectedWeaponAction,
+    selectedWeaponHandOfHarmToggleDisabled,
     selectedWeaponHandOfHarmState,
     selectedWeaponPsionicStrikeAvailable,
     selectedWeaponPsionicStrikeFormula
@@ -2223,6 +2269,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsGroupRecoverySelected(false);
     setIsPsionicStrikeSelected(false);
     setIsHandOfHarmSelected(false);
+    setIsQuiveringPalmSelected(false);
     setIsImprovedShadowStepSelected(false);
     setSelectedActionKey(null);
   }
@@ -2267,14 +2314,21 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsGroupRecoverySelected(false);
     setIsPsionicStrikeSelected(false);
     setIsHandOfHarmSelected(false);
+    setIsQuiveringPalmSelected(false);
     setIsImprovedShadowStepSelected(false);
   }, [selectedActionKey]);
 
   useEffect(() => {
-    if (!selectedWeaponHandOfHarmState || selectedWeaponHandOfHarmState.disabled) {
+    if (!selectedWeaponHandOfHarmState || selectedWeaponHandOfHarmToggleDisabled) {
       setIsHandOfHarmSelected(false);
     }
-  }, [selectedWeaponHandOfHarmState]);
+  }, [selectedWeaponHandOfHarmState, selectedWeaponHandOfHarmToggleDisabled]);
+
+  useEffect(() => {
+    if (!selectedWeaponQuiveringPalmState || selectedWeaponQuiveringPalmToggleDisabled) {
+      setIsQuiveringPalmSelected(false);
+    }
+  }, [selectedWeaponQuiveringPalmState, selectedWeaponQuiveringPalmToggleDisabled]);
 
   useEffect(() => {
     if (!selectedImprovedShadowStepState || selectedImprovedShadowStepState.disabled) {
@@ -2554,6 +2608,58 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     const effectKind =
       action.execute?.kind === "activate" ? (action.execute.effectKind ?? "default") : "default";
 
+    if (action.key === monkWholenessOfBodyActionKey) {
+      onPersistCharacter((currentCharacter) => {
+        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+        const preparedCharacter = prepareCharacterForResourceConsumption(
+          currentCharacter,
+          roundTrackerResource
+        );
+        const nextCharacter = activateFeatureActionForCharacter(preparedCharacter, action.key);
+
+        if (nextCharacter === preparedCharacter) {
+          return currentCharacter;
+        }
+
+        const healingFormula =
+          getMonkWarriorOfTheOpenHandWholenessOfBodyHealingFormula(preparedCharacter);
+
+        if (!healingFormula) {
+          return currentCharacter;
+        }
+
+        const healingResult = rollFormulaWithDice(healingFormula, "normal");
+        const healedAmount = Math.max(1, healingResult.total);
+        const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter(nextCharacter);
+        const nextCurrentHitPoints = Math.max(
+          0,
+          Math.min(nextEffectiveHitPoints, nextCharacter.currentHitPoints + healedAmount)
+        );
+
+        openDiceRoller({
+          title: action.name,
+          formula: healingFormula,
+          formulaDisplay: healingFormula,
+          description: `${action.detail} Minimum 1 Hit Point regained.`
+        });
+
+        const healedCharacter = reconcileCharacterStatusConsequences({
+          ...nextCharacter,
+          currentHitPoints: nextCurrentHitPoints,
+          deathSaves:
+            nextCurrentHitPoints > 0
+              ? createDefaultDeathSaves()
+              : normalizeDeathSaves(nextCharacter.deathSaves)
+        });
+
+        return roundTrackerResource
+          ? consumeRoundTrackerResourceForCharacter(healedCharacter, roundTrackerResource)
+          : healedCharacter;
+      });
+      closeActionDrawer();
+      return;
+    }
+
     if (effectKind === "bardic-inspiration-roll") {
       const bardicDie = getBardicInspirationDieForCharacter(character);
       const bardicDieFormula = bardicDie ? `1${String(bardicDie).toLowerCase()}` : "1d6";
@@ -2802,7 +2908,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       action.attackKind === "unarmed" &&
       isHandOfHarmSelected &&
       selectedWeaponHandOfHarmState !== null &&
-      !selectedWeaponHandOfHarmState.disabled;
+      !selectedWeaponHandOfHarmToggleDisabled;
+    const useQuiveringPalm =
+      action.attackKind === "unarmed" &&
+      isQuiveringPalmSelected &&
+      selectedWeaponQuiveringPalmState !== null &&
+      !selectedWeaponQuiveringPalmToggleDisabled;
     const usePsionicStrike =
       action.attackKind === "weapon" &&
       isPsionicStrikeSelected &&
@@ -2825,25 +2936,38 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       description: `${effectiveAction.name} damage roll`
     });
 
-    if (effectiveAction.damageBonusEntries.length <= 0 && !usePsionicStrike && !useHandOfHarm) {
+    if (
+      effectiveAction.damageBonusEntries.length <= 0 &&
+      !usePsionicStrike &&
+      !useHandOfHarm &&
+      !useQuiveringPalm
+    ) {
       setIsHandOfHarmSelected(false);
+      setIsQuiveringPalmSelected(false);
       setIsPsionicStrikeSelected(false);
       return;
     }
 
     onPersistCharacter((currentCharacter) => {
-      const nextCharacter = effectiveAction.damageBonusEntries.reduce(
+      let nextCharacter = effectiveAction.damageBonusEntries.reduce(
         (updatedCharacter, entry) =>
           markFeatureWeaponBonusUseForCharacter(updatedCharacter, entry.label),
         currentCharacter
       );
 
-      return usePsionicStrike
-        ? consumeFighterPsiWarriorPsionicStrikeForCharacter(nextCharacter)
-        : nextCharacter;
+      if (usePsionicStrike) {
+        nextCharacter = consumeFighterPsiWarriorPsionicStrikeForCharacter(nextCharacter);
+      }
+
+      if (useQuiveringPalm) {
+        nextCharacter = activateMonkWarriorOfTheOpenHandQuiveringPalmMark(nextCharacter);
+      }
+
+      return nextCharacter;
     });
 
     setIsHandOfHarmSelected(false);
+    setIsQuiveringPalmSelected(false);
     setIsPsionicStrikeSelected(false);
   }
 
@@ -3808,18 +3932,38 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           {selectedWeaponHandOfHarmState ? (
             <label
               className={styles.footerActionToggle}
-              title={selectedWeaponHandOfHarmState.disabledReason ?? undefined}
+              title={selectedWeaponHandOfHarmDisabledReason ?? undefined}
             >
               <span className={styles.footerActionToggleLabel}>
                 <input
                   type="checkbox"
                   checked={isHandOfHarmSelected}
                   onChange={(event) => setIsHandOfHarmSelected(event.target.checked)}
-                  disabled={selectedWeaponHandOfHarmState.disabled}
+                  disabled={selectedWeaponHandOfHarmToggleDisabled}
                 />
                 <span>Hand of Harm</span>
                 <span className={styles.psiStrikeCostLabel}>
                   <span>| Use 1</span>
+                  <Brain size={14} strokeWidth={2.1} />
+                </span>
+              </span>
+            </label>
+          ) : null}
+          {selectedWeaponQuiveringPalmState ? (
+            <label
+              className={styles.footerActionToggle}
+              title={selectedWeaponQuiveringPalmDisabledReason ?? undefined}
+            >
+              <span className={styles.footerActionToggleLabel}>
+                <input
+                  type="checkbox"
+                  checked={isQuiveringPalmSelected}
+                  onChange={(event) => setIsQuiveringPalmSelected(event.target.checked)}
+                  disabled={selectedWeaponQuiveringPalmToggleDisabled}
+                />
+                <span>Quivering Palm</span>
+                <span className={styles.psiStrikeCostLabel}>
+                  <span>| Use 3</span>
                   <Brain size={14} strokeWidth={2.1} />
                 </span>
               </span>

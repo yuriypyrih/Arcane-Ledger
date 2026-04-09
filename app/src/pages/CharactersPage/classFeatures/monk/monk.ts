@@ -68,6 +68,21 @@ import {
   monkCloakOfShadowActionKey,
   normalizeMonkWarriorOfShadowFeatureState
 } from "./subclasses/monkWarriorOfShadow";
+import {
+  activateMonkWarriorOfTheOpenHandQuiveringPalm,
+  activateMonkWarriorOfTheOpenHandWholenessOfBody,
+  getMonkWarriorOfTheOpenHandWholenessOfBodyUsesTotal,
+  monkQuiveringPalmActionKey,
+  monkWholenessOfBodyActionKey,
+  normalizeMonkWarriorOfTheOpenHandFeatureState,
+  restoreMonkWarriorOfTheOpenHandWholenessOfBodyOnLongRest
+} from "./subclasses/monkWarriorOfTheOpenHand";
+import {
+  activateMonkWarriorOfTheElementsElementalAttunement,
+  activateMonkWarriorOfTheElementsElementalBurst,
+  monkElementalBurstActionKey,
+  monkElementalAttunementActionKey
+} from "./subclasses/monkWarriorOfTheElements";
 import type {
   ArmorClassFeatureContext,
   DerivedFeatureStatusEntry,
@@ -86,6 +101,10 @@ export const monkSuperiorDefenseActionKey = "monk-superior-defense";
 export const monkHandOfHealingActionKey = warriorOfMercyHandOfHealingActionKey;
 export const monkHandOfUltimateJusticeActionKey = warriorOfMercyHandOfUltimateJusticeActionKey;
 export { monkCloakOfShadowActionKey };
+export { monkWholenessOfBodyActionKey };
+export { monkQuiveringPalmActionKey };
+export { monkElementalAttunementActionKey };
+export { monkElementalBurstActionKey };
 
 type MonkMartialArtsContext = {
   hasWornBodyArmor: boolean;
@@ -275,6 +294,10 @@ export function normalizeMonkFeatureState(
   const stunningStrikeUsedThisTurn = record.stunningStrikeUsedThisTurn === true;
   const warriorOfMercyHandOfHarmState = normalizeMonkWarriorOfMercyFeatureState(record, character);
   const warriorOfShadowFeatureState = normalizeMonkWarriorOfShadowFeatureState(record, character);
+  const warriorOfTheOpenHandFeatureState = normalizeMonkWarriorOfTheOpenHandFeatureState(
+    record,
+    character
+  );
   const superiorDefenseRoundsRemaining = Number(record.superiorDefenseRoundsRemaining);
   const superiorDefenseUsedThisTurn = record.superiorDefenseUsedThisTurn === true;
 
@@ -300,6 +323,7 @@ export function normalizeMonkFeatureState(
       : false,
     ...warriorOfMercyHandOfHarmState,
     ...warriorOfShadowFeatureState,
+    ...warriorOfTheOpenHandFeatureState,
     superiorDefenseRoundsRemaining:
       hasMonkFeature(character, CLASS_FEATURE.SUPERIOR_DEFENSE) &&
       Number.isFinite(superiorDefenseRoundsRemaining)
@@ -750,6 +774,22 @@ export function activateMonkCloakOfShadow(character: Character): Character {
   return activateMonkWarriorOfShadowCloakOfShadow(character);
 }
 
+export function activateMonkElementalAttunement(character: Character): Character {
+  return activateMonkWarriorOfTheElementsElementalAttunement(character);
+}
+
+export function activateMonkElementalBurst(character: Character): Character {
+  return activateMonkWarriorOfTheElementsElementalBurst(character);
+}
+
+export function activateMonkWholenessOfBody(character: Character): Character {
+  return activateMonkWarriorOfTheOpenHandWholenessOfBody(character);
+}
+
+export function activateMonkQuiveringPalm(character: Character): Character {
+  return activateMonkWarriorOfTheOpenHandQuiveringPalm(character);
+}
+
 export function expendMonkFocusPoint(character: Character): Character {
   if (!hasMonkFeature(character, CLASS_FEATURE.MONKS_FOCUS)) {
     return character;
@@ -884,10 +924,21 @@ export function restoreMonkHandOfUltimateJusticeOnLongRest(character: Character)
   return restoreMonkWarriorOfMercyHandOfUltimateMercyOnLongRest(character);
 }
 
+export function restoreMonkWholenessOfBodyOnLongRest(character: Character): Character {
+  return restoreMonkWarriorOfTheOpenHandWholenessOfBodyOnLongRest(character);
+}
+
 export function getMonkHandOfUltimateJusticeUsesTotal(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): number {
   return getMonkWarriorOfMercyHandOfUltimateMercyUsesTotal(character);
+}
+
+export function getMonkWholenessOfBodyUsesTotal(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
+): number {
+  return getMonkWarriorOfTheOpenHandWholenessOfBodyUsesTotal(character);
 }
 
 export function consumeMonkWeaponAttack(
@@ -978,8 +1029,10 @@ export function applyShortRestToMonkFeatures(character: Character): Character {
 
 export function applyLongRestToMonkFeatures(character: Character): Character {
   return restoreMonkHandOfUltimateJusticeOnLongRest(
-    restoreMonkUncannyMetabolismOnLongRest(
-      deactivateMonkSuperiorDefense(restoreAllMonkFocusPoints(character))
+    restoreMonkWholenessOfBodyOnLongRest(
+      restoreMonkUncannyMetabolismOnLongRest(
+        deactivateMonkSuperiorDefense(restoreAllMonkFocusPoints(character))
+      )
     )
   );
 }
