@@ -87,12 +87,18 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/druid/druid";
 import {
   getFaithfulSteedUsesTotal,
+  getGloriousDefenseUsesTotal,
+  getHolyNimbusUsesTotal,
+  getLivingLegendUsesTotal,
   getPaladinHealingPoolTotal,
   getPaladinChannelDivinityUsesTotal,
   getPaladinsSmiteUsesTotal,
   restorePaladinChannelDivinityOnLongRest,
   restorePaladinChannelDivinityOnShortRest,
   restoreFaithfulSteedOnLongRest,
+  restoreGloriousDefenseOnLongRest,
+  restoreHolyNimbusOnLongRest,
+  restoreLivingLegendOnLongRest,
   restorePaladinLayOnHandsOnLongRest,
   restorePaladinsSmiteOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
@@ -541,6 +547,9 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const paladinHealingPoolTotal = getPaladinHealingPoolTotal(character);
   const paladinsSmiteUsesTotal = getPaladinsSmiteUsesTotal(character);
   const faithfulSteedUsesTotal = getFaithfulSteedUsesTotal(character);
+  const holyNimbusUsesTotal = getHolyNimbusUsesTotal(character);
+  const gloriousDefenseUsesTotal = getGloriousDefenseUsesTotal(character);
+  const livingLegendUsesTotal = getLivingLegendUsesTotal(character);
   const rangerFavoredEnemyUsesTotal = getRangerFavoredEnemyUsesTotal(character);
   const rangerNaturesVeilUsesTotal = getRangerNaturesVeilUsesTotal(character);
   const rangerTirelessUsesTotal = getRangerTirelessUsesTotal(character);
@@ -960,6 +969,35 @@ export function createLongRestOptions(character: Character): RestOption[] {
             id: "restore-faithful-steed",
             label: "Restore Faithful Steed",
             apply: (currentCharacter: Character) => restoreFaithfulSteedOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(holyNimbusUsesTotal > 0
+      ? [
+          {
+            id: "restore-holy-nimbus",
+            label: "Restore Holy Nimbus",
+            apply: (currentCharacter: Character) => restoreHolyNimbusOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(gloriousDefenseUsesTotal > 0
+      ? [
+          {
+            id: "restore-glorious-defense",
+            label: "Restore Glorious Defense",
+            apply: (currentCharacter: Character) =>
+              restoreGloriousDefenseOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(livingLegendUsesTotal > 0
+      ? [
+          {
+            id: "restore-living-legend",
+            label: "Restore Living Legend",
+            apply: (currentCharacter: Character) =>
+              restoreLivingLegendOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

@@ -1,7 +1,43 @@
+import { CLASS_FEATURE, WEAPON_COMBAT_TYPE } from "../../../../../codex/entries";
+import { getSubclassEntryById } from "../../../../../codex/subclasses";
+import type { Character } from "../../../../../types";
+import {
+  CONDITION_NAME,
+  STATUS_DURATION_KIND,
+  STATUS_ENTRY_GROUP,
+  STATUS_ENTRY_SOURCE_TYPE
+} from "../../../../../types";
+import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import type { WeaponAction } from "../../../gameplay";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import { createDefaultFeatureActionDescription } from "../../subclassRuntime";
+import type {
+  DerivedFeatureStatusEntry,
+  FeatureActionCard,
+  FeatureDamageBonus
+} from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
+import {
+  expendPaladinChannelDivinityUse,
+  hasActivePaladinAuraOfProtection,
+  hasPaladinFeature,
+  getPaladinChannelDivinityUsesRemaining,
+  paladinsSmiteActionKey
+} from "../paladin";
 
 export const oathOfDevotionSubclassId = "paladin-oath-of-devotion";
+export const paladinOathOfDevotionSacredWeaponStatusSourceId =
+  "feature-paladin-oath-of-devotion-sacred-weapon";
+export const paladinOathOfDevotionAuraOfDevotionStatusSourceId =
+  "feature-paladin-oath-of-devotion-aura-of-devotion";
+export const paladinOathOfDevotionAuraOfDevotionImmunitySourceId =
+  "feature-paladin-oath-of-devotion-aura-of-devotion-immunity";
+export const holyNimbusActionKey = "paladin-holy-nimbus";
+export const paladinOathOfDevotionHolyNimbusStatusSourceId =
+  "feature-paladin-oath-of-devotion-holy-nimbus";
 
 const oathOfDevotionSpellIdsByLevel = {
   3: resolveSpellIdsByName(["Protection from Evil and Good", "Shield of Faith"]),
@@ -10,6 +46,614 @@ const oathOfDevotionSpellIdsByLevel = {
   13: resolveSpellIdsByName(["Freedom of Movement", "Guardian of Faith"]),
   17: resolveSpellIdsByName(["Commune", "Flame Strike"])
 } as const;
+const sacredWeaponEffectName = "Sacred Weapon";
+const sacredWeaponActiveDescription = [
+  "While this trait lasts, your melee weapon hits gain bonus damage equal to your WIS modifier.",
+  "Each hit can deal its normal main damage type or Radiant damage."
+] as const;
+const auraOfDevotionName = "Aura of Devotion";
+const holyNimbusName = "Holy Nimbus";
+const holyNimbusUsesTotal = 1;
+const holyNimbusFallbackSpellSlotLevel = 5;
+const oathOfDevotionSubclassEntry = getSubclassEntryById(oathOfDevotionSubclassId);
+
+type PaladinOathOfDevotionCharacter = Pick<Character, "className"> &
+  Partial<
+    Pick<
+      Character,
+      "abilities" | "classFeatureState" | "level" | "spellSlotsExpended" | "statusEntries" | "subclassId"
+    >
+  >;
+
+type SacredWeaponAction = Pick<WeaponAction, "attackKind" | "combatType">;
+
+export type PaladinOathOfDevotionSacredWeaponOptionState = {
+  disabled: boolean;
+  disabledReason?: string;
+};
+
+function getOathOfDevotionFeatureDescriptionEntries(feature: CLASS_FEATURE): string[] {
+  const featureRow = oathOfDevotionSubclassEntry?.features.find((row) =>
+    row.classFeatures.includes(feature)
+  );
+
+  return (featureRow?.featureOverrides?.[feature]?.description ?? []).filter(
+    (entry): entry is string => typeof entry === "string"
+  );
+}
+
+const smiteOfProtectionDescription = getOathOfDevotionFeatureDescriptionEntries(
+  CLASS_FEATURE.SMITE_OF_PROTECTION
+);
+const holyNimbusDescription = getOathOfDevotionFeatureDescriptionEntries(CLASS_FEATURE.HOLY_NIMBUS);
+
+function getWisdomModifier(character: Partial<Pick<Character, "abilities">>): number {
+  const wisdomScore = character.abilities?.WIS;
+
+  if (typeof wisdomScore !== "number" || !Number.isFinite(wisdomScore)) {
+    return 0;
+  }
+
+  return Math.floor((wisdomScore - 10) / 2);
+}
+
+function getChannelDivinityUsesRemaining(character: PaladinOathOfDevotionCharacter): number {
+  return getPaladinChannelDivinityUsesRemaining({
+    className: character.className,
+    level: character.level ?? 0,
+    classFeatureState: character.classFeatureState ?? {}
+  });
+}
+
+function isPaladinOathOfDevotion(character: PaladinOathOfDevotionCharacter): boolean {
+  return (
+    character.className === "Paladin" &&
+    character.subclassId === oathOfDevotionSubclassId &&
+    (character.level ?? 0) >= 3
+  );
+}
+
+function hasPaladinOathOfDevotionAuraOfDevotion(
+  character: PaladinOathOfDevotionCharacter
+): boolean {
+  return isPaladinOathOfDevotion(character) && (character.level ?? 0) >= 7;
+}
+
+export function hasPaladinOathOfDevotionHolyNimbusFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Paladin" &&
+    character.subclassId === oathOfDevotionSubclassId &&
+    (character.level ?? 0) >= 20
+  );
+}
+
+function getPaladinAuraRangeFeet(character: PaladinOathOfDevotionCharacter): number {
+  return hasPaladinFeature(
+    {
+      className: character.className,
+      level: character.level ?? 0
+    },
+    CLASS_FEATURE.AURA_EXPANSION
+  )
+    ? 30
+    : 10;
+}
+
+export function getPaladinOathOfDevotionHolyNimbusUsesTotal(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return hasPaladinOathOfDevotionHolyNimbusFeature(character) ? holyNimbusUsesTotal : 0;
+}
+
+export function getPaladinOathOfDevotionHolyNimbusUsesRemaining(
+  character: PaladinOathOfDevotionCharacter
+): number {
+  const totalUses = getPaladinOathOfDevotionHolyNimbusUsesTotal(character);
+  const usesExpended = character.classFeatureState?.paladin?.holyNimbusUsesExpended ?? 0;
+
+  return Math.max(0, totalUses - usesExpended);
+}
+
+function getPaladinOathOfDevotionHolyNimbusFallbackSlotSummary(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "spellSlotsExpended" | "subclassId">>
+): { total: number; remaining: number } {
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(
+    character.className,
+    character.level ?? 1,
+    character.subclassId
+  );
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
+  const slotIndex = holyNimbusFallbackSpellSlotLevel - 1;
+  const total = spellSlotTotals[slotIndex] ?? 0;
+
+  return {
+    total,
+    remaining: Math.max(0, total - (spellSlotsExpended[slotIndex] ?? 0))
+  };
+}
+
+function getPaladinOathOfDevotionHolyNimbusFallbackSlotLevel(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "spellSlotsExpended" | "subclassId">>
+): number | null {
+  return getPaladinOathOfDevotionHolyNimbusFallbackSlotSummary(character).remaining > 0
+    ? holyNimbusFallbackSpellSlotLevel
+    : null;
+}
+
+export function hasActivePaladinOathOfDevotionHolyNimbus(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "statusEntries" | "subclassId">>
+): boolean {
+  if (!hasPaladinOathOfDevotionHolyNimbusFeature(character)) {
+    return false;
+  }
+
+  return normalizeCharacterStatusEntries(character.statusEntries).some(
+    (entry) =>
+      entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+      entry.sourceId === paladinOathOfDevotionHolyNimbusStatusSourceId
+  );
+}
+
+export function hasPaladinOathOfDevotionSacredWeapon(
+  character: PaladinOathOfDevotionCharacter
+): boolean {
+  return isPaladinOathOfDevotion(character);
+}
+
+export function isPaladinOathOfDevotionSacredWeaponActive(
+  character: PaladinOathOfDevotionCharacter
+): boolean {
+  if (!hasPaladinOathOfDevotionSacredWeapon(character)) {
+    return false;
+  }
+
+  return normalizeCharacterStatusEntries(character.statusEntries).some(
+    (entry) =>
+      entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+      entry.sourceId === paladinOathOfDevotionSacredWeaponStatusSourceId
+  );
+}
+
+function isSacredWeaponMeleeWeaponAction(action: SacredWeaponAction | null): boolean {
+  return (
+    action?.attackKind === "weapon" &&
+    action.combatType === WEAPON_COMBAT_TYPE.MELEE
+  );
+}
+
+export function getPaladinOathOfDevotionSacredWeaponOptionState(
+  character: PaladinOathOfDevotionCharacter,
+  action: SacredWeaponAction | null
+): PaladinOathOfDevotionSacredWeaponOptionState | null {
+  if (
+    !hasPaladinOathOfDevotionSacredWeapon(character) ||
+    !isSacredWeaponMeleeWeaponAction(action)
+  ) {
+    return null;
+  }
+
+  let disabledReason: string | undefined;
+
+  if (isPaladinOathOfDevotionSacredWeaponActive(character)) {
+    disabledReason = "Sacred Weapon is already active.";
+  } else if (getChannelDivinityUsesRemaining(character) <= 0) {
+    disabledReason = "No Channel Divinity uses remaining.";
+  }
+
+  return {
+    disabled: Boolean(disabledReason),
+    disabledReason
+  };
+}
+
+export function activatePaladinOathOfDevotionSacredWeapon(character: Character): Character {
+  if (
+    !hasPaladinOathOfDevotionSacredWeapon(character) ||
+    isPaladinOathOfDevotionSacredWeaponActive(character) ||
+    getChannelDivinityUsesRemaining(character) <= 0
+  ) {
+    return character;
+  }
+
+  const nextCharacter = expendPaladinChannelDivinityUse(character);
+
+  if (nextCharacter === character) {
+    return character;
+  }
+
+  const nextStatusEntries = normalizeCharacterStatusEntries(nextCharacter.statusEntries).filter(
+    (entry) => entry.sourceId !== paladinOathOfDevotionSacredWeaponStatusSourceId
+  );
+
+  return {
+    ...nextCharacter,
+    statusEntries: [
+      ...nextStatusEntries,
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: sacredWeaponEffectName,
+        source: sacredWeaponEffectName,
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+        duration: {
+          kind: STATUS_DURATION_KIND.MINUTES,
+          amount: 10
+        },
+        sourceId: paladinOathOfDevotionSacredWeaponStatusSourceId
+      })
+    ]
+  };
+}
+
+export function applyPaladinOathOfDevotionHolyNimbusStatus(character: Character): Character {
+  const nextStatusEntries = normalizeCharacterStatusEntries(character.statusEntries).filter(
+    (entry) => entry.sourceId !== paladinOathOfDevotionHolyNimbusStatusSourceId
+  );
+
+  return {
+    ...character,
+    statusEntries: [
+      ...nextStatusEntries,
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: holyNimbusName,
+        source: holyNimbusName,
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+        duration: {
+          kind: STATUS_DURATION_KIND.MINUTES,
+          amount: 10
+        },
+        sourceId: paladinOathOfDevotionHolyNimbusStatusSourceId
+      })
+    ]
+  };
+}
+
+export function activatePaladinOathOfDevotionHolyNimbus(character: Character): Character {
+  if (
+    !hasPaladinOathOfDevotionHolyNimbusFeature(character) ||
+    hasActivePaladinOathOfDevotionHolyNimbus(character)
+  ) {
+    return character;
+  }
+
+  const usesRemaining = getPaladinOathOfDevotionHolyNimbusUsesRemaining(character);
+  let nextCharacter = character;
+
+  if (usesRemaining > 0) {
+    const paladinState = character.classFeatureState?.paladin ?? {};
+
+    nextCharacter = {
+      ...character,
+      classFeatureState: {
+        ...character.classFeatureState,
+        paladin: {
+          ...paladinState,
+          holyNimbusUsesExpended: (paladinState.holyNimbusUsesExpended ?? 0) + 1
+        }
+      }
+    };
+  } else {
+    const fallbackSlotLevel = getPaladinOathOfDevotionHolyNimbusFallbackSlotLevel(character);
+
+    if (fallbackSlotLevel === null) {
+      return character;
+    }
+
+    const spellSlotTotals = getSpellSlotTotalsForCharacter(
+      character.className,
+      character.level,
+      character.subclassId
+    );
+    const spellSlotsExpended = normalizeSpellSlotsExpended(
+      character.spellSlotsExpended,
+      spellSlotTotals
+    );
+    const nextSpellSlotsExpended = [...spellSlotsExpended];
+    nextSpellSlotsExpended[fallbackSlotLevel - 1] =
+      (nextSpellSlotsExpended[fallbackSlotLevel - 1] ?? 0) + 1;
+
+    nextCharacter = {
+      ...character,
+      spellSlotsExpended: nextSpellSlotsExpended
+    };
+  }
+
+  return applyPaladinOathOfDevotionHolyNimbusStatus(nextCharacter);
+}
+
+export function restorePaladinOathOfDevotionHolyNimbusOnLongRest(character: Character): Character {
+  if (!hasPaladinOathOfDevotionHolyNimbusFeature(character)) {
+    return character;
+  }
+
+  const paladinState = character.classFeatureState?.paladin ?? {};
+
+  if ((paladinState.holyNimbusUsesExpended ?? 0) <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      paladin: {
+        ...paladinState,
+        holyNimbusUsesExpended: 0
+      }
+    }
+  };
+}
+
+function getDamageBonusLabel(entry: FeatureDamageBonus): string | null {
+  if (entry.displayLabel) {
+    return entry.displayLabel;
+  }
+
+  if (entry.formula) {
+    return entry.formula;
+  }
+
+  return null;
+}
+
+function stripWeaponDamageBonusLabels(
+  damageLabel: string,
+  damageBonuses: readonly FeatureDamageBonus[]
+): string {
+  return [...damageBonuses].reverse().reduce((currentLabel, entry) => {
+    const bonusLabel = getDamageBonusLabel(entry);
+
+    if (!bonusLabel) {
+      return currentLabel;
+    }
+
+    const suffix = ` + ${bonusLabel}`;
+    return currentLabel.endsWith(suffix)
+      ? currentLabel.slice(0, -suffix.length)
+      : currentLabel;
+  }, damageLabel);
+}
+
+function buildWeaponDamageLabel(
+  baseDamageLabel: string,
+  damageBonuses: readonly FeatureDamageBonus[]
+): string {
+  const bonusLabels = damageBonuses
+    .map(getDamageBonusLabel)
+    .filter((label): label is string => Boolean(label));
+
+  return bonusLabels.length > 0 ? [baseDamageLabel, ...bonusLabels].join(" + ") : baseDamageLabel;
+}
+
+function addRadiantDamageTypeOption(baseDamageLabel: string): string {
+  const match = baseDamageLabel.trim().match(/^(.*?)(\s+([A-Za-z]+(?:\/[A-Za-z]+)*))$/);
+
+  if (!match) {
+    return baseDamageLabel;
+  }
+
+  const damageTypes = match[3]
+    .split("/")
+    .map((entry) => entry.trim())
+    .filter(Boolean);
+
+  if (damageTypes.some((entry) => entry.toLowerCase() === "radiant")) {
+    return baseDamageLabel;
+  }
+
+  return `${match[1].trim()} ${[...damageTypes, "Radiant"].join("/")}`;
+}
+
+function transformSacredWeaponAction(
+  character: PaladinOathOfDevotionCharacter,
+  action: WeaponAction
+): WeaponAction {
+  if (
+    !isPaladinOathOfDevotionSacredWeaponActive(character) ||
+    !isSacredWeaponMeleeWeaponAction(action)
+  ) {
+    return action;
+  }
+
+  const baseDamageLabel = stripWeaponDamageBonusLabels(action.damageLabel, action.damageBonusEntries);
+  const nextBaseDamageLabel = addRadiantDamageTypeOption(baseDamageLabel);
+  const nextAction =
+    nextBaseDamageLabel === baseDamageLabel
+      ? action
+      : {
+          ...action,
+          damageLabel: buildWeaponDamageLabel(nextBaseDamageLabel, action.damageBonusEntries)
+        };
+
+  return appendSourcedDescriptionAddition(
+    nextAction,
+    sacredWeaponEffectName,
+    sacredWeaponActiveDescription
+  );
+}
+
+function getSacredWeaponDamageBonuses(
+  character: PaladinOathOfDevotionCharacter,
+  context: {
+    attackKind: "weapon" | "unarmed";
+    combatType?: WEAPON_COMBAT_TYPE | null;
+  }
+): FeatureDamageBonus[] {
+  if (
+    !isPaladinOathOfDevotionSacredWeaponActive(character) ||
+    context.attackKind !== "weapon" ||
+    context.combatType !== WEAPON_COMBAT_TYPE.MELEE
+  ) {
+    return [];
+  }
+
+  const wisdomModifier = getWisdomModifier(character);
+
+  return wisdomModifier !== 0
+    ? [
+        {
+          label: sacredWeaponEffectName,
+          value: wisdomModifier
+        }
+      ]
+    : [];
+}
+
+function getPaladinOathOfDevotionDerivedStatusEntries(
+  character: PaladinOathOfDevotionCharacter
+): DerivedFeatureStatusEntry[] {
+  if (
+    !hasPaladinOathOfDevotionAuraOfDevotion(character) ||
+    !hasActivePaladinAuraOfProtection({
+      className: character.className,
+      level: character.level ?? 0,
+      statusEntries: character.statusEntries ?? []
+    })
+  ) {
+    return [];
+  }
+
+  return [
+    {
+      id: paladinOathOfDevotionAuraOfDevotionStatusSourceId,
+      sourceId: paladinOathOfDevotionAuraOfDevotionStatusSourceId,
+      group: STATUS_ENTRY_GROUP.AURAS,
+      value: auraOfDevotionName,
+      source: auraOfDevotionName,
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.INFINITE
+      },
+      rangeFeet: getPaladinAuraRangeFeet(character)
+    },
+    {
+      id: paladinOathOfDevotionAuraOfDevotionImmunitySourceId,
+      sourceId: paladinOathOfDevotionAuraOfDevotionImmunitySourceId,
+      group: STATUS_ENTRY_GROUP.IMMUNITIES,
+      value: CONDITION_NAME.CHARMED,
+      source: auraOfDevotionName,
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.INFINITE
+      }
+    }
+  ];
+}
+
+function hasPaladinOathOfDevotionSmiteOfProtection(
+  character: PaladinOathOfDevotionCharacter
+): boolean {
+  return isPaladinOathOfDevotion(character) && (character.level ?? 0) >= 15;
+}
+
+function getPaladinOathOfDevotionFeatureActions(
+  character: PaladinOathOfDevotionCharacter
+): FeatureActionCard[] {
+  if (!hasPaladinOathOfDevotionHolyNimbusFeature(character)) {
+    return [];
+  }
+
+  const usesRemaining = getPaladinOathOfDevotionHolyNimbusUsesRemaining(character);
+  const fallbackSlotSummary = getPaladinOathOfDevotionHolyNimbusFallbackSlotSummary(character);
+  const showFallbackSlotInfo = usesRemaining <= 0 && fallbackSlotSummary.total > 0;
+  const hasFallbackSlot = showFallbackSlotInfo && fallbackSlotSummary.remaining > 0;
+  const isActive = hasActivePaladinOathOfDevotionHolyNimbus(character);
+
+  return [
+    {
+      key: holyNimbusActionKey,
+      name: holyNimbusName,
+      summary: "Imbue your aura with holy power.",
+      detail: "Empower your Aura of Protection for 10 minutes.",
+      economyType: ECONOMY_TYPE.BONUS_ACTION,
+      actionCategory: ACTION_CATEGORY.FEATURE,
+      usesRemaining,
+      usesTotal: holyNimbusUsesTotal,
+      usesInlineLabel: showFallbackSlotInfo ? "| Use 5th Spell Slot" : undefined,
+      description: [...holyNimbusDescription],
+      resources: [
+        {
+          kind: "tracker",
+          label: "Uses",
+          current: usesRemaining,
+          total: holyNimbusUsesTotal,
+          cost: 1
+        },
+        ...(showFallbackSlotInfo
+          ? [
+              {
+                kind: "text" as const,
+                label: "Level 5 Slots",
+                value: `${fallbackSlotSummary.remaining}/${fallbackSlotSummary.total}`
+              }
+            ]
+          : [])
+      ],
+      drawer: {
+        kind: "confirm",
+        eyebrow: "Oath of Devotion",
+        confirmLabel: "Activate Holy Nimbus",
+        resources: [
+          {
+            kind: "tracker" as const,
+            label: "Uses",
+            current: usesRemaining,
+            total: holyNimbusUsesTotal,
+            cost: 1
+          },
+          ...(showFallbackSlotInfo
+            ? [
+                {
+                  kind: "text" as const,
+                  label: "Level 5 Slots",
+                  value: `${fallbackSlotSummary.remaining}/${fallbackSlotSummary.total}`
+                }
+              ]
+            : [])
+        ]
+      },
+      execute: {
+        kind: "activate",
+        label: "Activate Holy Nimbus"
+      },
+      isActive,
+      disabled: isActive || (usesRemaining <= 0 && !hasFallbackSlot),
+      disabledReason: isActive
+        ? "Holy Nimbus is already active."
+        : usesRemaining <= 0 && !hasFallbackSlot
+          ? "No Holy Nimbus use or level 5 spell slots remaining."
+          : undefined
+    }
+  ];
+}
+
+function appendSmiteOfProtectionDescription(action: FeatureActionCard): FeatureActionCard {
+  if (action.key !== paladinsSmiteActionKey) {
+    return action;
+  }
+
+  const nextAction =
+    action.description?.length && action.description.length > 0
+      ? action
+      : {
+          ...action,
+          description: createDefaultFeatureActionDescription(action)
+        };
+
+  return appendSourcedDescriptionAddition(
+    nextAction,
+    "Smite of Protection",
+    smiteOfProtectionDescription
+  );
+}
 
 export const getPaladinOathOfDevotionDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   character.className === "Paladin" &&
@@ -19,6 +663,13 @@ export const getPaladinOathOfDevotionDerivedFeatureState: SubclassRuntimeResolve
         alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
           character.level ?? 0,
           oathOfDevotionSpellIdsByLevel
-        )
+        ),
+        featureActions: getPaladinOathOfDevotionFeatureActions(character),
+        derivedStatusEntries: getPaladinOathOfDevotionDerivedStatusEntries(character),
+        transformFeatureAction: hasPaladinOathOfDevotionSmiteOfProtection(character)
+          ? appendSmiteOfProtectionDescription
+          : undefined,
+        transformWeaponAction: (action) => transformSacredWeaponAction(character, action),
+        getWeaponDamageBonuses: (context) => getSacredWeaponDamageBonuses(character, context)
       }
     : {};

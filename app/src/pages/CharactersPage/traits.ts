@@ -67,10 +67,20 @@ const monkElementalAttunementStrideStatusSourceId =
   "feature-monk-warrior-of-the-elements-elemental-attunement-stride";
 const monkElementalAttunementEpitomeStatusSourceId =
   "feature-monk-warrior-of-the-elements-elemental-attunement-epitome";
+const paladinAuraOfDevotionStatusSourceId = "feature-paladin-oath-of-devotion-aura-of-devotion";
+const paladinAuraOfDevotionImmunitySourceId =
+  "feature-paladin-oath-of-devotion-aura-of-devotion-immunity";
+const paladinHolyNimbusStatusSourceId = "feature-paladin-oath-of-devotion-holy-nimbus";
+const paladinPeerlessAthleteStatusSourceId = "feature-paladin-oath-of-glory-peerless-athlete";
+const paladinAuraOfAlacrityProtectionStatusSourceId =
+  "feature-paladin-aura-of-protection-oath-of-glory-aura-of-alacrity";
+const paladinLivingLegendStatusSourceId = "feature-paladin-oath-of-glory-living-legend";
 const monkWarriorOfShadowSubclassEntry = getSubclassEntryById("monk-warrior-of-shadow");
 const monkWarriorOfTheElementsSubclassEntry = getSubclassEntryById(
   "monk-warrior-of-the-elements"
 );
+const paladinOathOfDevotionSubclassEntry = getSubclassEntryById("paladin-oath-of-devotion");
+const paladinOathOfGlorySubclassEntry = getSubclassEntryById("paladin-oath-of-glory");
 const monkCloakOfShadowsDescription =
   monkWarriorOfShadowSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.CLOAK_OF_SHADOWS))
@@ -96,6 +106,36 @@ const monkElementalEpitomeDescription =
   monkWarriorOfTheElementsSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.ELEMENTAL_EPITOME))
     ?.featureOverrides?.[CLASS_FEATURE.ELEMENTAL_EPITOME]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const paladinAuraOfDevotionDescription =
+  paladinOathOfDevotionSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.AURA_OF_DEVOTION))
+    ?.featureOverrides?.[CLASS_FEATURE.AURA_OF_DEVOTION]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const paladinHolyNimbusDescription =
+  paladinOathOfDevotionSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.HOLY_NIMBUS))
+    ?.featureOverrides?.[CLASS_FEATURE.HOLY_NIMBUS]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const paladinPeerlessAthleteDescription =
+  paladinOathOfGlorySubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.PEERLESS_ATHLETE))
+    ?.featureOverrides?.[CLASS_FEATURE.PEERLESS_ATHLETE]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const paladinAuraOfAlacrityDescription =
+  paladinOathOfGlorySubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.AURA_OF_ALACRITY))
+    ?.featureOverrides?.[CLASS_FEATURE.AURA_OF_ALACRITY]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const paladinLivingLegendDescription =
+  paladinOathOfGlorySubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.LIVING_LEGEND))
+    ?.featureOverrides?.[CLASS_FEATURE.LIVING_LEGEND]?.description?.filter(
       (entry): entry is string => typeof entry === "string"
     ) ?? [];
 const monkQuiveringPalmTraitDescription = ["You have marked a creature with Quivering Palm."];
@@ -1207,12 +1247,48 @@ export function getStatusEntryDescriptionEntries(
     );
   }
 
+  if (entry.sourceId === paladinAuraOfAlacrityProtectionStatusSourceId) {
+    return [
+      ...(paladinFeatureMap[CLASS_FEATURE.AURA_OF_PROTECTION]?.description ?? [
+        "An aura passively affects creatures or spaces around you."
+      ]),
+      ...paladinAuraOfAlacrityDescription
+    ];
+  }
+
   if (entry.sourceId === "feature-paladin-aura-of-courage") {
     return (
       paladinFeatureMap[CLASS_FEATURE.AURA_OF_COURAGE]?.description ?? [
         "An aura passively affects creatures or spaces around you."
       ]
     );
+  }
+
+  if (
+    entry.sourceId === paladinAuraOfDevotionStatusSourceId ||
+    entry.sourceId === paladinAuraOfDevotionImmunitySourceId
+  ) {
+    return paladinAuraOfDevotionDescription.length > 0
+      ? paladinAuraOfDevotionDescription
+      : ["An aura passively affects creatures or spaces around you."];
+  }
+
+  if (entry.sourceId === paladinHolyNimbusStatusSourceId) {
+    return paladinHolyNimbusDescription.length > 0
+      ? paladinHolyNimbusDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === paladinPeerlessAthleteStatusSourceId) {
+    return paladinPeerlessAthleteDescription.length > 0
+      ? paladinPeerlessAthleteDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === paladinLivingLegendStatusSourceId) {
+    return paladinLivingLegendDescription.length > 0
+      ? paladinLivingLegendDescription
+      : ["A current effect or trait that may change how your character plays."];
   }
 
   if (entry.sourceId === "feature-rogue-evasion") {

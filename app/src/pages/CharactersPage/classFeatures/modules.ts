@@ -176,6 +176,9 @@ import {
   normalizeMonkFeatureState
 } from "./monk/monk";
 import {
+  activateHolyNimbus,
+  activateLivingLegend,
+  activatePeerlessAthlete,
   activatePaladinFeatureActionOption,
   advancePaladinFeaturesForNewRound,
   applyLongRestToPaladinFeatures,
@@ -190,10 +193,13 @@ import {
   getPaladinWeaponMasterySelectionCount,
   getPaladinWeaponMasterySelections,
   getPaladinWeaponProficiencyEntries,
+  holyNimbusActionKey,
+  livingLegendActionKey,
   normalizePaladinFeatureState,
   paladinChannelDivinityActionKey,
   paladinLayOnHandsActionKey,
   paladinsSmiteActionKey,
+  peerlessAthleteActionKey,
   setPaladinWeaponMasterySelections
 } from "./paladin/paladin";
 import {
@@ -652,6 +658,18 @@ const classFeatureModules = {
         actionKey === faithfulSteedActionKey
       ) {
         return character;
+      }
+
+      if (actionKey === holyNimbusActionKey) {
+        return activateHolyNimbus(character);
+      }
+
+      if (actionKey === livingLegendActionKey) {
+        return activateLivingLegend(character);
+      }
+
+      if (actionKey === peerlessAthleteActionKey) {
+        return activatePeerlessAthlete(character);
       }
 
       return null;

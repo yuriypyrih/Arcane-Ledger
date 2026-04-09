@@ -1,5 +1,5 @@
 import { CLASS_FEATURE, WEAPON_COMBAT_TYPE, getDivinityEntryById } from "../../../../codex/entries";
-import { paladinFeatures } from "../../../../codex/classes";
+import { paladinFeatureMap, paladinFeatures } from "../../../../codex/classes";
 import type {
   Character,
   CharacterPaladinFeatureState,
@@ -31,12 +31,18 @@ import type {
   FeatureWeaponProficiencyEntry
 } from "../types";
 import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
+import * as devotionSubclass from "./subclasses/paladinOathOfDevotion";
+import * as glorySubclass from "./subclasses/paladinOathOfGlory";
 
 export const paladinLayOnHandsActionKey = "paladin-lay-on-hands";
 export const paladinChannelDivinityActionKey = "paladin-channel-divinity";
 export const paladinsSmiteActionKey = "paladin-paladins-smite";
 export const faithfulSteedActionKey = "paladin-faithful-steed";
 export const abjureFoesActionKey = "paladin-abjure-foes";
+export const holyNimbusActionKey = "paladin-holy-nimbus";
+export const peerlessAthleteActionKey = "paladin-peerless-athlete";
+export const livingLegendActionKey = "paladin-living-legend";
+export const gloriousDefenseReactionId = "reaction-paladin-glorious-defense";
 const paladinWeaponMasterySource = "Weapon Mastery";
 const paladinWeaponMasterySelectionCount = 2;
 const divineSmiteSpellId = "spell-divine-smite";
@@ -84,6 +90,12 @@ function getDivinityDescriptionLine(index: number): string {
   return typeof line === "string" ? line : "";
 }
 
+function getPaladinsSmiteDescription(): string[] {
+  return (paladinFeatureMap[CLASS_FEATURE.PALADINS_SMITE]?.description ?? []).filter(
+    (entry): entry is string => typeof entry === "string"
+  );
+}
+
 function getPaladinFeatureRow(level: number) {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
   const matchingRows = paladinFeatures
@@ -126,12 +138,20 @@ function getPaladinAdditionalAttackCount(
 
 export function normalizePaladinFeatureState(
   value: unknown,
-  character: Pick<Character, "className" | "level">
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
 ): CharacterPaladinFeatureState {
   const hasLayOnHands = hasPaladinFeature(character, CLASS_FEATURE.LAY_ON_HANDS);
   const hasChannelDivinity = hasPaladinFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY);
   const hasPaladinsSmite = hasPaladinFeature(character, CLASS_FEATURE.PALADINS_SMITE);
   const hasFaithfulSteed = hasPaladinFeature(character, CLASS_FEATURE.FAITHFUL_STEED);
+  const hasHolyNimbus =
+    devotionSubclass.hasPaladinOathOfDevotionHolyNimbusFeature(character) ||
+    (character.className === "Paladin" &&
+      (character.level ?? 0) >= 20 &&
+      character.subclassId === undefined);
+  const hasGloriousDefense = glorySubclass.hasPaladinOathOfGloryGloriousDefenseFeature(character);
+  const hasLivingLegend = glorySubclass.hasPaladinOathOfGloryLivingLegendFeature(character);
   const hasWeaponMastery = hasPaladinFeature(character, CLASS_FEATURE.WEAPON_MASTERY);
   const additionalAttackCount = getPaladinAdditionalAttackCount(character);
   const hasExtraAttack = additionalAttackCount > 0;
@@ -141,6 +161,9 @@ export function normalizePaladinFeatureState(
     !hasChannelDivinity &&
     !hasPaladinsSmite &&
     !hasFaithfulSteed &&
+    !hasHolyNimbus &&
+    !hasGloriousDefense &&
+    !hasLivingLegend &&
     !hasWeaponMastery &&
     !hasExtraAttack
   ) {
@@ -153,6 +176,9 @@ export function normalizePaladinFeatureState(
   const channelDivinityUsesExpended = Number(record.channelDivinityUsesExpended);
   const paladinsSmiteUsesExpended = Number(record.paladinsSmiteUsesExpended);
   const faithfulSteedUsesExpended = Number(record.faithfulSteedUsesExpended);
+  const holyNimbusUsesExpended = Number(record.holyNimbusUsesExpended);
+  const gloriousDefenseUsesExpended = Number(record.gloriousDefenseUsesExpended);
+  const livingLegendUsesExpended = Number(record.livingLegendUsesExpended);
   const channelDivinityTotal = hasChannelDivinity
     ? (getPaladinFeatureRow(character.level)?.channelDivinity ?? 0)
     : 0;
@@ -184,6 +210,39 @@ export function normalizePaladinFeatureState(
         ? Math.max(0, Math.min(faithfulSteedUsesTotal, Math.floor(faithfulSteedUsesExpended)))
         : 0
       : undefined,
+    holyNimbusUsesExpended: hasHolyNimbus
+      ? Number.isFinite(holyNimbusUsesExpended)
+        ? Math.max(
+            0,
+            Math.min(
+              devotionSubclass.getPaladinOathOfDevotionHolyNimbusUsesTotal(character),
+              Math.floor(holyNimbusUsesExpended)
+            )
+          )
+        : 0
+      : undefined,
+    gloriousDefenseUsesExpended: hasGloriousDefense
+      ? Number.isFinite(gloriousDefenseUsesExpended)
+        ? Math.max(
+            0,
+            Math.min(
+              glorySubclass.getPaladinOathOfGloryGloriousDefenseUsesTotal(character),
+              Math.floor(gloriousDefenseUsesExpended)
+            )
+          )
+        : 0
+      : undefined,
+    livingLegendUsesExpended: hasLivingLegend
+      ? Number.isFinite(livingLegendUsesExpended)
+        ? Math.max(
+            0,
+            Math.min(
+              glorySubclass.getPaladinOathOfGloryLivingLegendUsesTotal(character),
+              Math.floor(livingLegendUsesExpended)
+            )
+          )
+        : 0
+      : undefined,
     extraAttacksRemainingThisTurn: hasExtraAttack
       ? Math.max(
           0,
@@ -206,7 +265,8 @@ export function normalizePaladinFeatureState(
 }
 
 function getPaladinFeatureState(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
 ): CharacterPaladinFeatureState {
   return normalizePaladinFeatureState(character.classFeatureState?.paladin, character);
 }
@@ -310,6 +370,39 @@ export function getFaithfulSteedUsesRemaining(
   const usesExpended = getPaladinFeatureState(character).faithfulSteedUsesExpended ?? 0;
 
   return Math.max(0, totalUses - usesExpended);
+}
+
+export function getHolyNimbusUsesTotal(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return devotionSubclass.getPaladinOathOfDevotionHolyNimbusUsesTotal(character);
+}
+
+export function getGloriousDefenseUsesTotal(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): number {
+  return glorySubclass.getPaladinOathOfGloryGloriousDefenseUsesTotal(character);
+}
+
+export function getGloriousDefenseUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId" | "classFeatureState">>
+): number {
+  return glorySubclass.getPaladinOathOfGloryGloriousDefenseUsesRemaining(character);
+}
+
+export function getLivingLegendUsesTotal(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return glorySubclass.getPaladinOathOfGloryLivingLegendUsesTotal(character);
+}
+
+export function getLivingLegendUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): number {
+  return glorySubclass.getPaladinOathOfGloryLivingLegendUsesRemaining(character);
 }
 
 export function getPaladinAlwaysPreparedSpellIds(
@@ -426,6 +519,7 @@ export function getPaladinFeatureActions(
       interaction: "select",
       usesRemaining,
       usesTotal: paladinsSmiteUsesTotal,
+      description: getPaladinsSmiteDescription(),
       drawer: {
         kind: "confirm",
         eyebrow: "Paladin",
@@ -746,6 +840,34 @@ export function restoreFaithfulSteedOnLongRest(character: Character): Character 
   };
 }
 
+export function activateHolyNimbus(character: Character): Character {
+  return devotionSubclass.activatePaladinOathOfDevotionHolyNimbus(character);
+}
+
+export function restoreHolyNimbusOnLongRest(character: Character): Character {
+  return devotionSubclass.restorePaladinOathOfDevotionHolyNimbusOnLongRest(character);
+}
+
+export function activatePeerlessAthlete(character: Character): Character {
+  return glorySubclass.activatePaladinOathOfGloryPeerlessAthlete(character);
+}
+
+export function activateLivingLegend(character: Character): Character {
+  return glorySubclass.activatePaladinOathOfGloryLivingLegend(character);
+}
+
+export function consumeGloriousDefenseUse(character: Character): Character {
+  return glorySubclass.consumePaladinOathOfGloryGloriousDefenseUse(character);
+}
+
+export function restoreGloriousDefenseOnLongRest(character: Character): Character {
+  return glorySubclass.restorePaladinOathOfGloryGloriousDefenseOnLongRest(character);
+}
+
+export function restoreLivingLegendOnLongRest(character: Character): Character {
+  return glorySubclass.restorePaladinOathOfGloryLivingLegendOnLongRest(character);
+}
+
 export function restorePaladinChannelDivinityOnShortRest(character: Character): Character {
   if (!hasPaladinFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY)) {
     return character;
@@ -821,9 +943,15 @@ export function applyShortRestToPaladinFeatures(character: Character): Character
 }
 
 export function applyLongRestToPaladinFeatures(character: Character): Character {
-  const restoredCharacter = restoreFaithfulSteedOnLongRest(
-    restorePaladinsSmiteOnLongRest(
-      restorePaladinLayOnHandsOnLongRest(restorePaladinChannelDivinityOnLongRest(character))
+  const restoredCharacter = restoreLivingLegendOnLongRest(
+    restoreGloriousDefenseOnLongRest(
+      restoreHolyNimbusOnLongRest(
+        restoreFaithfulSteedOnLongRest(
+          restorePaladinsSmiteOnLongRest(
+            restorePaladinLayOnHandsOnLongRest(restorePaladinChannelDivinityOnLongRest(character))
+          )
+        )
+      )
     )
   );
   const paladinState = getPaladinFeatureState(restoredCharacter);
@@ -1010,16 +1138,20 @@ export function hasActivePaladinAuraOfProtection(
 }
 
 export function getPaladinDerivedStatusEntries(
-  character: Pick<Character, "className" | "level" | "statusEntries">
+  character: Pick<Character, "className" | "level" | "statusEntries"> &
+    Partial<Pick<Character, "subclassId">>
 ): DerivedFeatureStatusEntry[] {
   if (!hasActivePaladinAuraOfProtection(character)) {
     return [];
   }
 
+  const auraOfProtectionSourceId = glorySubclass.hasPaladinOathOfGloryAuraOfAlacrity(character)
+    ? glorySubclass.paladinOathOfGloryAuraOfAlacrityProtectionStatusSourceId
+    : auraOfProtectionStatusSourceId;
   const derivedStatusEntries: DerivedFeatureStatusEntry[] = [
     {
-      id: auraOfProtectionStatusSourceId,
-      sourceId: auraOfProtectionStatusSourceId,
+      id: auraOfProtectionSourceId,
+      sourceId: auraOfProtectionSourceId,
       group: STATUS_ENTRY_GROUP.AURAS,
       value: "Aura of Protection",
       source: "Aura of Protection",

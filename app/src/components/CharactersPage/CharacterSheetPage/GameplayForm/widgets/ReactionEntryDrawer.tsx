@@ -18,6 +18,7 @@ import styles from "./ReactionEntryDrawer.module.css";
 type ReactionEntryDrawerProps = {
   reaction: ReactionEntry;
   actionWarning: string | null;
+  resourceSummary?: string | null;
   onCast: () => void;
   onClose: () => void;
 };
@@ -25,6 +26,7 @@ type ReactionEntryDrawerProps = {
 function ReactionEntryDrawer({
   reaction,
   actionWarning,
+  resourceSummary = null,
   onCast,
   onClose
 }: ReactionEntryDrawerProps) {
@@ -113,6 +115,7 @@ function ReactionEntryDrawer({
 
           <div className={sheetStyles.spellDrawerActions}>
             <div className={styles.castActionMeta}>
+              {resourceSummary ? <p className={styles.castActionResource}>{resourceSummary}</p> : null}
               {actionWarning ? <p className={styles.castActionWarning}>{actionWarning}</p> : null}
             </div>
             <button

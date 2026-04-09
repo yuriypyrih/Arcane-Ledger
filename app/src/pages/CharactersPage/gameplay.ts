@@ -78,6 +78,7 @@ export type WeaponAction = {
   key: string;
   name: string;
   attackKind: "weapon" | "unarmed";
+  combatType?: WEAPON_COMBAT_TYPE | null;
   economyType: EconomyType;
   actionCategory: ActionCategory;
   economyMultiCount?: number;
@@ -514,6 +515,7 @@ function createWeaponAction(
     key: options.key,
     name: options.name,
     attackKind: options.attackKind,
+    combatType: options.combatType ?? null,
     economyType: options.economyType ?? ECONOMY_TYPE.ACTION,
     actionCategory: ACTION_CATEGORY.ATTACK,
     economyMultiCount: options.economyMultiCount,

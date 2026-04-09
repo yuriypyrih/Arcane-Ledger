@@ -7,6 +7,7 @@ import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
 import {
   consumeBeguilingMagicOrBardicInspirationForCharacter,
   consumeFighterIndomitableUseForCharacter,
+  consumeGloriousDefenseUseForCharacter,
   expendFighterPsiWarriorEnergyDieForCharacter,
   expendBardicInspirationUseForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
@@ -17,6 +18,9 @@ import {
   getFighterIndomitableUsesRemainingForCharacter,
   getFighterPsiWarriorEnergyDiceRemainingForCharacter,
   getFeatureReactionEntriesForCharacter,
+  getGloriousDefenseUsesRemainingForCharacter,
+  getGloriousDefenseUsesTotalForCharacter,
+  paladinGloriousDefenseReactionEntryId,
   getSpellcastingStateForCharacter,
   removeFeatureStatusEntryForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
@@ -319,6 +323,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           selectedStatusEntry.sourceId as `reaction-entry-${string}`
         ) ?? null)
       : null;
+  const gloriousDefenseUsesRemaining = getGloriousDefenseUsesRemainingForCharacter(character);
+  const gloriousDefenseUsesTotal = getGloriousDefenseUsesTotalForCharacter(character);
   const selectedWildShapeMonster =
     selectedStatusEntry?.sourceId?.startsWith("feature-druid-wild-shape:")
       ? getDruidWildShapeActiveFormForCharacter(character)
@@ -341,7 +347,15 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           ? getFighterPsiWarriorEnergyDiceRemainingForCharacter(character) <= 0
             ? "No Psi Energy Dice remaining."
             : null
-        : null;
+          : selectedReactionEntry?.id === paladinGloriousDefenseReactionEntryId
+            ? gloriousDefenseUsesRemaining <= 0
+              ? "No Glorious Defense charges remaining."
+              : null
+          : null;
+  const selectedReactionResourceSummary =
+    selectedReactionEntry?.id === paladinGloriousDefenseReactionEntryId
+      ? `${gloriousDefenseUsesRemaining}/${gloriousDefenseUsesTotal} charges | Long Rest`
+      : null;
   const selectedReactionActionWarning =
     getRoundTrackerActionWarning("reaction", roundTracker) ?? selectedReactionResourceWarning;
   const selectedReactionBlockedReason = spellcastingState.blocked ? spellcastingState.reason : null;
@@ -640,12 +654,15 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
             ? consumeFighterIndomitableUseForCharacter(currentCharacter)
             : selectedReactionEntry.id === "reaction-psi-warrior-protective-field"
               ? expendFighterPsiWarriorEnergyDieForCharacter(currentCharacter)
-          : currentCharacter;
+              : selectedReactionEntry.id === paladinGloriousDefenseReactionEntryId
+                ? consumeGloriousDefenseUseForCharacter(currentCharacter)
+                : currentCharacter;
 
       if (
         (selectedReactionEntry.id === "reaction-cutting-words" ||
           selectedReactionEntry.id === "reaction-banneret-shared-resilience" ||
-          selectedReactionEntry.id === "reaction-psi-warrior-protective-field") &&
+          selectedReactionEntry.id === "reaction-psi-warrior-protective-field" ||
+          selectedReactionEntry.id === paladinGloriousDefenseReactionEntryId) &&
         nextCharacter === currentCharacter
       ) {
         return currentCharacter;
@@ -765,6 +782,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         <ReactionEntryDrawer
           reaction={selectedReactionEntry}
           actionWarning={selectedReactionActionWarning}
+          resourceSummary={selectedReactionResourceSummary}
           onCast={castSelectedReactionEntry}
           onClose={closeSelectedReaction}
         />

@@ -2,6 +2,7 @@ import clsx from "clsx";
 import { BookOpen, Brain, Flame, Hexagon, Minus, Plus, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { fetchMonsterBySlug } from "../../../../../api";
+import pyromancyIcon from "../../../../../assets/svg/pyromancy.svg";
 import CellContainer from "../../../../CellContainer/CellContainer";
 import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
 import SpellListRow from "../../../../SpellListRow";
@@ -117,6 +118,10 @@ import {
   getFighterSecondWindHealingFormula
 } from "../../../../../pages/CharactersPage/classFeatures/fighter/fighter";
 import { type LayOnHandsCondition } from "../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
+import {
+  activatePaladinOathOfDevotionSacredWeapon,
+  getPaladinOathOfDevotionSacredWeaponOptionState
+} from "../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfDevotion";
 import { getRangerTirelessTemporaryHitPointsFormula } from "../../../../../pages/CharactersPage/classFeatures/ranger/ranger";
 import { metamagicActionKey } from "../../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
 import { type MysticArcanumLevel } from "../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
@@ -1662,6 +1667,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [isInspiredEclipseSelected, setIsInspiredEclipseSelected] = useState(false);
   const [isGroupRecoverySelected, setIsGroupRecoverySelected] = useState(false);
   const [isPsionicStrikeSelected, setIsPsionicStrikeSelected] = useState(false);
+  const [isSacredWeaponSelected, setIsSacredWeaponSelected] = useState(false);
   const [isHandOfHarmSelected, setIsHandOfHarmSelected] = useState(false);
   const [isQuiveringPalmSelected, setIsQuiveringPalmSelected] = useState(false);
   const [isImprovedShadowStepSelected, setIsImprovedShadowStepSelected] = useState(false);
@@ -1833,6 +1839,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedWeaponAction?.attackKind === "weapon"
       ? hasFighterPsiWarriorPsionicStrikeAvailableForCharacter(character)
       : false;
+  const selectedWeaponSacredWeaponState = useMemo(
+    () => getPaladinOathOfDevotionSacredWeaponOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
   const selectedWeaponFocusPointsRemaining = useMemo(
     () => getMonkFocusPointsRemainingForCharacter(character),
     [character.classFeatureState, character.className, character.level]
@@ -1871,6 +1881,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       ? "You need 4 Focus Points to use Hand of Harm and Quivering Palm together."
       : null;
   }, [isHandOfHarmSelected, selectedWeaponFocusPointsRemaining, selectedWeaponQuiveringPalmState]);
+  const selectedWeaponSacredWeaponToggleDisabled =
+    selectedWeaponSacredWeaponState?.disabled ?? false;
   const selectedWeaponHandOfHarmToggleDisabled = selectedWeaponHandOfHarmDisabledReason !== null;
   const selectedWeaponQuiveringPalmToggleDisabled =
     selectedWeaponQuiveringPalmDisabledReason !== null;
@@ -2268,6 +2280,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsInspiredEclipseSelected(false);
     setIsGroupRecoverySelected(false);
     setIsPsionicStrikeSelected(false);
+    setIsSacredWeaponSelected(false);
     setIsHandOfHarmSelected(false);
     setIsQuiveringPalmSelected(false);
     setIsImprovedShadowStepSelected(false);
@@ -2313,10 +2326,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsRageOfTheGodsSelected(false);
     setIsGroupRecoverySelected(false);
     setIsPsionicStrikeSelected(false);
+    setIsSacredWeaponSelected(false);
     setIsHandOfHarmSelected(false);
     setIsQuiveringPalmSelected(false);
     setIsImprovedShadowStepSelected(false);
   }, [selectedActionKey]);
+
+  useEffect(() => {
+    if (!selectedWeaponSacredWeaponState || selectedWeaponSacredWeaponToggleDisabled) {
+      setIsSacredWeaponSelected(false);
+    }
+  }, [selectedWeaponSacredWeaponState, selectedWeaponSacredWeaponToggleDisabled]);
 
   useEffect(() => {
     if (!selectedWeaponHandOfHarmState || selectedWeaponHandOfHarmToggleDisabled) {
@@ -2877,6 +2897,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   }
 
   function handleWeaponAttackRoll(action: WeaponAction) {
+    const useSacredWeapon =
+      isSacredWeaponSelected &&
+      selectedWeaponSacredWeaponState !== null &&
+      !selectedWeaponSacredWeaponToggleDisabled;
+
     onPersistCharacter((currentCharacter) => {
       const { preparedCharacter, preparedAction, roundTrackerResource } =
         resolvePreparedWeaponAction(currentCharacter, action);
@@ -2889,7 +2914,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         description: `${preparedAction.name} attack roll`
       });
 
-      const nextCharacter = preparedAction.damageBonusEntries.reduce(
+      let nextCharacter = preparedAction.damageBonusEntries.reduce(
         (updatedCharacter, entry) =>
           entry.label === "Primal Strike"
             ? updatedCharacter
@@ -2897,10 +2922,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         preparedCharacter
       );
 
+      if (useSacredWeapon) {
+        nextCharacter = activatePaladinOathOfDevotionSacredWeapon(nextCharacter);
+      }
+
       return roundTrackerResource
         ? consumeWeaponAttackActionForCharacter(nextCharacter, preparedAction)
         : nextCharacter;
     });
+
+    setIsSacredWeaponSelected(false);
   }
 
   function handleWeaponDamageRoll(action: WeaponAction) {
@@ -3929,6 +3960,26 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
       return (
         <div className={styles.footerActionStack}>
+          {selectedWeaponSacredWeaponState ? (
+            <label
+              className={styles.footerActionToggle}
+              title={selectedWeaponSacredWeaponState.disabledReason ?? undefined}
+            >
+              <span className={styles.footerActionToggleLabel}>
+                <input
+                  type="checkbox"
+                  checked={isSacredWeaponSelected}
+                  onChange={(event) => setIsSacredWeaponSelected(event.target.checked)}
+                  disabled={selectedWeaponSacredWeaponToggleDisabled}
+                />
+                <span>Sacred Weapon</span>
+                <span className={styles.psiStrikeCostLabel}>
+                  <span>| Use 1</span>
+                  <img src={pyromancyIcon} alt="" className={styles.footerResourceIcon} />
+                </span>
+              </span>
+            </label>
+          ) : null}
           {selectedWeaponHandOfHarmState ? (
             <label
               className={styles.footerActionToggle}

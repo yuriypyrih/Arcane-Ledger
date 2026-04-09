@@ -5,6 +5,14 @@
   min-width: 0;
 }
 
+.castActionResource {
+  margin: 0;
+  color: rgba(94, 67, 37, 0.82);
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: right;
+}
+
 .castActionWarning {
   margin: 0;
   color: #a63729;

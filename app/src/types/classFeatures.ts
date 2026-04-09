@@ -78,6 +78,9 @@ export type CharacterPaladinFeatureState = {
   layOnHandsExpended?: number;
   paladinsSmiteUsesExpended?: number;
   faithfulSteedUsesExpended?: number;
+  holyNimbusUsesExpended?: number;
+  gloriousDefenseUsesExpended?: number;
+  livingLegendUsesExpended?: number;
   channelDivinityUsesExpended?: number;
   extraAttacksRemainingThisTurn?: number;
   weaponMasteries?: WEAPON_PROFICIENCY[];

@@ -226,16 +226,20 @@ import {
 import { getSubclassDerivedFeatureState } from "./subclasses";
 import {
   applyLayOnHands,
+  consumeGloriousDefenseUse,
   expendPaladinChannelDivinityUse,
   consumeFaithfulSteedUse,
   consumePaladinWeaponAttack,
   consumePaladinsSmiteUse,
+  getGloriousDefenseUsesRemaining,
+  getGloriousDefenseUsesTotal,
   getLayOnHandsCurableConditions,
   getPaladinChannelDivinityUsesRemaining,
   getPaladinChannelDivinityUsesTotal,
   getPaladinHealingPoolRemaining,
   getPaladinHealingPoolTotal,
   getPaladinsSmiteUsesRemaining,
+  gloriousDefenseReactionId,
   hasActivePaladinAuraOfProtection,
   restorePaladinChannelDivinityOnLongRest,
   restorePaladinChannelDivinityOnShortRest,
@@ -468,7 +472,13 @@ export function getFeatureWeaponActionsForCharacter(character: Character) {
 export function transformWeaponActionForCharacter(
   character: Pick<
     Character,
-    "className" | "level" | "subclassId" | "classFeatureState" | "equipment" | "customEquipment"
+    | "className"
+    | "level"
+    | "subclassId"
+    | "classFeatureState"
+    | "equipment"
+    | "customEquipment"
+    | "statusEntries"
   >,
   action: WeaponAction
 ): WeaponAction {
@@ -493,7 +503,9 @@ export function getFeatureActionOptionsForCharacter(
 
 export function getFeatureDamageBonusesForWeaponAction(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "subclassId" | "roundTracker" | "equipment" | "customEquipment">>,
+    Partial<
+      Pick<Character, "subclassId" | "roundTracker" | "equipment" | "customEquipment" | "statusEntries">
+    >,
   context: WeaponFeatureContext
 ): FeatureDamageBonus[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
@@ -2256,6 +2268,26 @@ export function consumePaladinsSmiteUseForCharacter(character: Character): Chara
 
 export function consumeFaithfulSteedUseForCharacter(character: Character): Character {
   return consumeFaithfulSteedUse(character);
+}
+
+export const paladinGloriousDefenseReactionEntryId = gloriousDefenseReactionId;
+
+export function getGloriousDefenseUsesTotalForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): number {
+  return getGloriousDefenseUsesTotal(character);
+}
+
+export function getGloriousDefenseUsesRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId" | "classFeatureState">>
+): number {
+  return getGloriousDefenseUsesRemaining(character);
+}
+
+export function consumeGloriousDefenseUseForCharacter(character: Character): Character {
+  return consumeGloriousDefenseUse(character);
 }
 
 export function hasActivePaladinAuraOfProtectionForCharacter(
