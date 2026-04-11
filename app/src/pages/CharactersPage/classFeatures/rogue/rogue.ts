@@ -35,6 +35,29 @@ import type {
   FeatureSpeedBonus,
   FeatureWeaponProficiencyEntry
 } from "../types";
+import { arcaneTricksterSubclassId } from "./subclasses/rogueArcaneTrickster";
+import {
+  getRogueScionOfTheThreeBloodthirstUsesTotal,
+  hasRogueScionOfTheThreeDreadAllegianceFeature,
+  normalizeRogueScionOfTheThreeDreadAllegianceChoice,
+  restoreRogueScionOfTheThreeBloodthirstOnShortRest,
+  restoreRogueScionOfTheThreeBloodthirstOnLongRest
+} from "./subclasses/rogueScionOfTheThree";
+import {
+  getRogueSoulknifePsionicDiceTotal,
+  getRogueSoulknifePsychicVeilUsesTotal,
+  getRogueSoulknifeRendMindUsesTotal,
+  restoreAllRogueSoulknifePsionicDice,
+  restoreRogueSoulknifePsychicVeilOnLongRest,
+  restoreRogueSoulknifeRendMindOnLongRest,
+  restoreRogueSoulknifePsionicDie
+} from "./subclasses/rogueSoulknife";
+import {
+  getRogueSubclassSneakAttackEffectDefinitions,
+  getRogueSneakAttackEffectReferenceDescriptionAdditions,
+  suppressesRogueSteadyAimSpeedReduction
+} from "./subclasses";
+import type { RogueSneakAttackEffectDefinition, RogueSneakAttackEffectKey } from "./types";
 import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
 
 export const rogueSneakAttackActionKey = "rogue-sneak-attack";
@@ -50,22 +73,7 @@ const rogueSteadyAimSource = "Steady Aim";
 const rogueEvasionSourceId = "feature-rogue-evasion";
 const rogueElusiveSourceId = "feature-rogue-elusive";
 const rogueDisabledByIncapacitatedReason = "Disabled by Incapacitated";
-
-export type RogueSneakAttackEffectKey =
-  | "poison"
-  | "trip"
-  | "withdraw"
-  | "daze"
-  | "knock-out"
-  | "obscure";
-
-export type RogueSneakAttackEffectDefinition = {
-  key: RogueSneakAttackEffectKey;
-  name: string;
-  costDice: number;
-  referenceTitle: string;
-  referenceDescription: string[];
-};
+export type { RogueSneakAttackEffectDefinition, RogueSneakAttackEffectKey } from "./types";
 
 type RogueExpertiseTier = "level1" | "level6";
 
@@ -85,9 +93,10 @@ const rogueCunningStrikeDescriptionLines = getRogueFeatureDescriptionLines(
 const rogueDeviousStrikesDescriptionLines = getRogueFeatureDescriptionLines(
   CLASS_FEATURE.DEVIOUS_STRIKES
 );
+const rogueSteadyAimDescriptionLines = getRogueFeatureDescriptionLines(CLASS_FEATURE.STEADY_AIM);
 const rogueCunningStrikeSavingThrowDescription = rogueCunningStrikeDescriptionLines[2];
 
-const rogueSneakAttackEffectDefinitions: Array<
+const baseRogueSneakAttackEffectDefinitions: Array<
   RogueSneakAttackEffectDefinition & {
     requiredFeature: CLASS_FEATURE;
   }
@@ -244,7 +253,8 @@ function createRogueExpertiseEntry(
 }
 
 function getRogueFeatureState(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
 ): CharacterRogueFeatureState {
   return normalizeRogueFeatureState(character.classFeatureState?.rogue, character);
 }
@@ -257,7 +267,8 @@ function hasRogueSneakAttackTriggerWindow(character: Pick<Character, "roundTrack
 
 export function normalizeRogueFeatureState(
   value: unknown,
-  character: Pick<Character, "className" | "level">
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
 ): CharacterRogueFeatureState {
   const hasLevel1Expertise = hasRogueLevel1Expertise(character);
   const hasLevel6Expertise = hasRogueLevel6Expertise(character);
@@ -265,6 +276,15 @@ export function normalizeRogueFeatureState(
   const hasWeaponMastery = hasRogueFeature(character, CLASS_FEATURE.WEAPON_MASTERY);
   const hasSneakAttack = hasRogueFeature(character, CLASS_FEATURE.SNEAK_ATTACK);
   const hasSteadyAim = hasRogueFeature(character, CLASS_FEATURE.STEADY_AIM);
+  const hasDreadAllegiance = hasRogueScionOfTheThreeDreadAllegianceFeature(character);
+  const bloodthirstUsesTotal = getRogueScionOfTheThreeBloodthirstUsesTotal(character);
+  const soulknifePsionicDiceTotal = getRogueSoulknifePsionicDiceTotal(character);
+  const soulknifePsychicVeilUsesTotal = getRogueSoulknifePsychicVeilUsesTotal(character);
+  const soulknifeRendMindUsesTotal = getRogueSoulknifeRendMindUsesTotal(character);
+  const hasSpellThief =
+    character.className === "Rogue" &&
+    character.subclassId === arcaneTricksterSubclassId &&
+    character.level >= 17;
   const hasStrokeOfLuck = hasRogueFeature(character, CLASS_FEATURE.STROKE_OF_LUCK);
 
   if (
@@ -274,6 +294,12 @@ export function normalizeRogueFeatureState(
     !hasWeaponMastery &&
     !hasSneakAttack &&
     !hasSteadyAim &&
+    !hasDreadAllegiance &&
+    bloodthirstUsesTotal <= 0 &&
+    soulknifePsionicDiceTotal <= 0 &&
+    soulknifePsychicVeilUsesTotal <= 0 &&
+    soulknifeRendMindUsesTotal <= 0 &&
+    !hasSpellThief &&
     !hasStrokeOfLuck
   ) {
     return {};
@@ -293,6 +319,57 @@ export function normalizeRogueFeatureState(
     : [];
 
   return {
+    bloodthirstUsesExpended:
+      bloodthirstUsesTotal > 0
+        ? Math.max(
+            0,
+            Math.min(
+              bloodthirstUsesTotal,
+              Number.isFinite(Number(record.bloodthirstUsesExpended))
+                ? Math.floor(Number(record.bloodthirstUsesExpended))
+                : 0
+            )
+          )
+        : undefined,
+    dreadAllegianceChoice: hasDreadAllegiance
+      ? normalizeRogueScionOfTheThreeDreadAllegianceChoice(record.dreadAllegianceChoice)
+      : undefined,
+    soulknifePsionicDiceExpended:
+      soulknifePsionicDiceTotal > 0
+        ? Math.max(
+            0,
+            Math.min(
+              soulknifePsionicDiceTotal,
+              Number.isFinite(Number(record.soulknifePsionicDiceExpended))
+                ? Math.floor(Number(record.soulknifePsionicDiceExpended))
+                : 0
+            )
+          )
+        : undefined,
+    soulknifePsychicVeilUsesExpended:
+      soulknifePsychicVeilUsesTotal > 0
+        ? Math.max(
+            0,
+            Math.min(
+              soulknifePsychicVeilUsesTotal,
+              Number.isFinite(Number(record.soulknifePsychicVeilUsesExpended))
+                ? Math.floor(Number(record.soulknifePsychicVeilUsesExpended))
+                : 0
+            )
+          )
+        : undefined,
+    soulknifeRendMindUsesExpended:
+      soulknifeRendMindUsesTotal > 0
+        ? Math.max(
+            0,
+            Math.min(
+              soulknifeRendMindUsesTotal,
+              Number.isFinite(Number(record.soulknifeRendMindUsesExpended))
+                ? Math.floor(Number(record.soulknifeRendMindUsesExpended))
+                : 0
+            )
+          )
+        : undefined,
     expertise:
       hasLevel1Expertise || hasLevel6Expertise
         ? {
@@ -302,6 +379,17 @@ export function normalizeRogueFeatureState(
         : undefined,
     sneakAttackUsedThisTurn: hasSneakAttack ? Boolean(record.sneakAttackUsedThisTurn) : undefined,
     steadyAimActive: hasSteadyAim ? Boolean(record.steadyAimActive) : undefined,
+    spellThiefUsesExpended: hasSpellThief
+      ? Math.max(
+          0,
+          Math.min(
+            1,
+            Number.isFinite(Number(record.spellThiefUsesExpended))
+              ? Math.floor(Number(record.spellThiefUsesExpended))
+              : 0
+          )
+        )
+      : undefined,
     strokeOfLuckUsesExpended: hasStrokeOfLuck
       ? Math.max(
           0,
@@ -373,14 +461,15 @@ export function getRogueFeatureActions(
     actions.push({
       key: rogueSteadyAimActionKey,
       name: "Steady Aim",
-      summary: "Set your Speed to 0 until the next round.",
-      detail: "Set your Speed to 0 until the next round.",
-      breakdown: "Set your Speed to 0 until the next round.",
+      summary: "Gain advantage on your next attack roll this turn.",
+      detail: "Gain advantage on your next attack roll this turn.",
+      breakdown: "Gain advantage on your next attack roll this turn.",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
       isActive: steadyAimActive,
       disabled: steadyAimActive,
-      disabledReason: steadyAimActive ? "Steady Aim is already active this turn." : undefined
+      disabledReason: steadyAimActive ? "Steady Aim is already active this turn." : undefined,
+      description: rogueSteadyAimDescriptionLines
     });
   }
 
@@ -408,7 +497,7 @@ export function getRogueFeatureActions(
 }
 
 export function getRogueReactionEntries(
-  character: Pick<Character, "className" | "level">
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): ReactionEntry[] {
   if (!hasRogueFeature(character, CLASS_FEATURE.UNCANNY_DODGE)) {
     return [];
@@ -417,6 +506,26 @@ export function getRogueReactionEntries(
   const uncannyDodge = getReactionEntryById("reaction-uncanny-dodge");
 
   return uncannyDodge ? [uncannyDodge] : [];
+}
+
+export function getRogueSpellThiefUsesTotal(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return character.className === "Rogue" &&
+    character.subclassId === arcaneTricksterSubclassId &&
+    character.level >= 17
+    ? 1
+    : 0;
+}
+
+export function getRogueSpellThiefUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  const totalUses = getRogueSpellThiefUsesTotal(character);
+  const usesExpended = getRogueFeatureState(character).spellThiefUsesExpended ?? 0;
+
+  return Math.max(0, totalUses - usesExpended);
 }
 
 export function getRogueStrokeOfLuckUsesTotal(
@@ -492,21 +601,27 @@ export function getRogueSavingThrowProficiencyEntries(
 }
 
 export function getRogueSpeedBonuses(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "subclassId">
 ): FeatureSpeedBonus[] {
   if (!hasRogueFeature(character, CLASS_FEATURE.STEADY_AIM)) {
     return [];
   }
 
-  return getRogueFeatureState(character).steadyAimActive === true
-    ? [
-        {
-          label: rogueSteadyAimSource,
-          value: 0,
-          setTotal: 0
-        }
-      ]
-    : [];
+  if (getRogueFeatureState(character).steadyAimActive !== true) {
+    return [];
+  }
+
+  if (suppressesRogueSteadyAimSpeedReduction(character)) {
+    return [];
+  }
+
+  return [
+    {
+      label: rogueSteadyAimSource,
+      value: 0,
+      setTotal: 0
+    }
+  ];
 }
 
 export function getRogueSneakAttackDiceCount(
@@ -520,11 +635,20 @@ export function getRogueSneakAttackDiceCount(
 }
 
 export function getRogueSneakAttackEffectDefinitions(
-  character: Pick<Character, "className" | "level">
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): RogueSneakAttackEffectDefinition[] {
-  return rogueSneakAttackEffectDefinitions
+  const unlockedBaseEffects = baseRogueSneakAttackEffectDefinitions
     .filter((definition) => hasRogueFeature(character, definition.requiredFeature))
     .map(({ requiredFeature: _requiredFeature, ...definition }) => definition);
+  const subclassEffects = getRogueSubclassSneakAttackEffectDefinitions(character);
+
+  return [...unlockedBaseEffects, ...subclassEffects].map((definition) => ({
+    ...definition,
+    referenceDescription: [
+      ...definition.referenceDescription,
+      ...getRogueSneakAttackEffectReferenceDescriptionAdditions(character, definition.key)
+    ]
+  }));
 }
 
 export function getRogueSneakAttackMaxEffects(
@@ -537,10 +661,13 @@ export function getRogueSneakAttackMaxEffects(
   return hasRogueFeature(character, CLASS_FEATURE.IMPROVED_CUNNING_STRIKE) ? 2 : 1;
 }
 
-export function getRogueSneakAttackEffectDiceCost(effectKeys: RogueSneakAttackEffectKey[]): number {
+export function getRogueSneakAttackEffectDiceCost(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  effectKeys: RogueSneakAttackEffectKey[]
+): number {
   const selectedEffects = new Set(effectKeys);
 
-  return rogueSneakAttackEffectDefinitions.reduce(
+  return getRogueSneakAttackEffectDefinitions(character).reduce(
     (totalCost, definition) =>
       totalCost + (selectedEffects.has(definition.key) ? definition.costDice : 0),
     0
@@ -548,17 +675,18 @@ export function getRogueSneakAttackEffectDiceCost(effectKeys: RogueSneakAttackEf
 }
 
 export function getRogueSneakAttackRemainingDiceCount(
-  character: Pick<Character, "className" | "level">,
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
   effectKeys: RogueSneakAttackEffectKey[] = []
 ): number {
   return Math.max(
     0,
-    getRogueSneakAttackDiceCount(character) - getRogueSneakAttackEffectDiceCost(effectKeys)
+    getRogueSneakAttackDiceCount(character) -
+      getRogueSneakAttackEffectDiceCost(character, effectKeys)
   );
 }
 
 export function getRogueSneakAttackFormula(
-  character: Pick<Character, "className" | "level">,
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
   effectKeys: RogueSneakAttackEffectKey[] = []
 ): string | null {
   if (!hasRogueFeature(character, CLASS_FEATURE.SNEAK_ATTACK)) {
@@ -571,7 +699,7 @@ export function getRogueSneakAttackFormula(
 }
 
 export function getRogueSneakAttackValueLabel(
-  character: Pick<Character, "className" | "level">,
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
   effectKeys: RogueSneakAttackEffectKey[] = []
 ): string | null {
   const formula = getRogueSneakAttackFormula(character, effectKeys);
@@ -849,6 +977,30 @@ export function consumeRogueStrokeOfLuckUse(character: Character): Character {
   };
 }
 
+export function consumeRogueSpellThiefUse(character: Character): Character {
+  if (getRogueSpellThiefUsesTotal(character) <= 0) {
+    return character;
+  }
+
+  const rogueState = getRogueFeatureState(character);
+  const usesExpended = rogueState.spellThiefUsesExpended ?? 0;
+
+  if (usesExpended >= 1) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rogue: {
+        ...rogueState,
+        spellThiefUsesExpended: usesExpended + 1
+      }
+    }
+  };
+}
+
 export function advanceRogueFeaturesForNewRound(character: Character): Character {
   if (
     !hasRogueFeature(character, CLASS_FEATURE.SNEAK_ATTACK) &&
@@ -903,8 +1055,35 @@ export function restoreRogueStrokeOfLuckOnLongRest(character: Character): Charac
   return restoreRogueStrokeOfLuckOnShortRest(character);
 }
 
+export function restoreRogueSpellThiefOnLongRest(character: Character): Character {
+  if (getRogueSpellThiefUsesTotal(character) <= 0) {
+    return character;
+  }
+
+  const rogueState = getRogueFeatureState(character);
+
+  if ((rogueState.spellThiefUsesExpended ?? 0) === 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rogue: {
+        ...rogueState,
+        spellThiefUsesExpended: 0
+      }
+    }
+  };
+}
+
 export function applyShortRestToRogueFeatures(character: Character): Character {
-  const restoredCharacter = restoreRogueStrokeOfLuckOnShortRest(character);
+  const restoredCharacter = restoreRogueSoulknifePsionicDie(
+    restoreRogueScionOfTheThreeBloodthirstOnShortRest(
+      restoreRogueStrokeOfLuckOnShortRest(character)
+    )
+  );
 
   if (getRogueFeatureState(restoredCharacter).steadyAimActive !== true) {
     return restoredCharacter;
@@ -924,7 +1103,15 @@ export function applyShortRestToRogueFeatures(character: Character): Character {
 
 export function applyLongRestToRogueFeatures(character: Character): Character {
   const restoredCharacter = applyShortRestToRogueFeatures(
-    restoreRogueStrokeOfLuckOnLongRest(character)
+    restoreRogueScionOfTheThreeBloodthirstOnLongRest(
+      restoreRogueSpellThiefOnLongRest(
+        restoreRogueSoulknifeRendMindOnLongRest(
+          restoreRogueSoulknifePsychicVeilOnLongRest(
+            restoreAllRogueSoulknifePsionicDice(restoreRogueStrokeOfLuckOnLongRest(character))
+          )
+        )
+      )
+    )
   );
 
   if (!hasRogueFeature(restoredCharacter, CLASS_FEATURE.SNEAK_ATTACK)) {

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { X } from "lucide-react";
 import ActionShape from "../../../../ActionShape";
 import {
@@ -19,6 +19,7 @@ type ReactionEntryDrawerProps = {
   reaction: ReactionEntry;
   actionWarning: string | null;
   resourceSummary?: string | null;
+  customContent?: ReactNode;
   onCast: () => void;
   onClose: () => void;
 };
@@ -27,6 +28,7 @@ function ReactionEntryDrawer({
   reaction,
   actionWarning,
   resourceSummary = null,
+  customContent = null,
   onCast,
   onClose
 }: ReactionEntryDrawerProps) {
@@ -111,6 +113,8 @@ function ReactionEntryDrawer({
                 onOpenDivinity={setSelectedDivinityReference}
               />
             </div>
+
+            {customContent}
           </div>
 
           <div className={sheetStyles.spellDrawerActions}>

@@ -3,8 +3,11 @@ import { CLASS_FEATURE, type SpellEntry } from "../../../../codex/entries";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import type {
   Character,
+  RangerHunterDefensiveTacticsChoice,
+  RangerHunterPreyChoice,
   CharacterRangerFeatureState,
   LanguageProficiencyEntry,
+  SAVING_THROW_PROFICIENCY,
   SkillName,
   SkillProficiencyEntry,
   WeaponProficiencyEntry
@@ -31,17 +34,25 @@ import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
+  FeatureInitiativeBonus,
   FeatureLanguageProficiencyEntry,
+  FeatureSkillBonus,
   FeatureSkillProficiencyEntry,
   FeatureSpeedBonus,
   FeatureWeaponProficiencyEntry,
   SpeedFeatureContext
 } from "../types";
 import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
+import * as feyWandererSubclass from "./subclasses/rangerFeyWanderer";
+import * as gloomStalkerSubclass from "./subclasses/rangerGloomStalker";
+import * as hunterSubclass from "./subclasses/rangerHunter";
+import * as winterWalkerSubclass from "./subclasses/rangerWinterWalker";
 
 export const favoredEnemyActionKey = "ranger-favored-enemy";
 export const tirelessActionKey = "ranger-tireless";
 export const naturesVeilActionKey = "ranger-natures-veil";
+export const fortifyingSoulActionKey = winterWalkerSubclass.fortifyingSoulActionKey;
+export const chillingRetributionReactionId = winterWalkerSubclass.chillingRetributionReactionId;
 const rangerWeaponMasterySource = "Weapon Mastery";
 const rangerWeaponMasterySelectionCount = 2;
 const huntersMarkSpellId = "spell-hunters-mark";
@@ -53,6 +64,12 @@ const rangerFeralSensesSource = "Feral Senses";
 const rangerNaturesVeilSource = "Nature's Veil";
 const rangerNaturesVeilSourceId = "feature-ranger-natures-veil";
 const rangerNaturesVeilDurationRounds = 2;
+
+export const rangerFeyWandererGiftOptions = feyWandererSubclass.rangerFeyWandererGiftOptions;
+export const rangerOtherworldlyGlamourSkillOptions =
+  feyWandererSubclass.rangerOtherworldlyGlamourSkillOptions;
+export const rangerHunterSuperiorHuntersDefenseDamageTypeOptions =
+  hunterSubclass.rangerHunterSuperiorHuntersDefenseDamageTypeOptions;
 
 const rangerLanguageOptions = languageEntries.map((entry) => entry.proficiency);
 
@@ -104,6 +121,56 @@ function hasRangerLevel9ExpertiseFeature(
   character: Pick<Character, "className" | "level">
 ): boolean {
   return hasRangerFeature(character, CLASS_FEATURE.EXPERTISE);
+}
+
+function hasRangerFeyWandererDreadfulStrikesFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return feyWandererSubclass.hasRangerFeyWandererDreadfulStrikesFeature(character);
+}
+
+function hasRangerFeyWandererFeyReinforcementsFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return feyWandererSubclass.hasRangerFeyWandererFeyReinforcementsFeature(character);
+}
+
+function hasRangerFeyWandererMistyWandererFeature(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
+): boolean {
+  return feyWandererSubclass.hasRangerFeyWandererMistyWandererFeature(character);
+}
+
+function hasRangerGloomStalkerDreadAmbusherFeature(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "subclassId">>
+): boolean {
+  return gloomStalkerSubclass.hasRangerGloomStalkerDreadAmbusherFeature(character);
+}
+
+function hasRangerWinterWalkerFrigidExplorerFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return winterWalkerSubclass.hasRangerWinterWalkerFrigidExplorerFeature(character);
+}
+
+function hasRangerWinterWalkerFortifyingSoulFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return winterWalkerSubclass.hasRangerWinterWalkerFortifyingSoulFeature(character);
+}
+
+function hasRangerWinterWalkerChillingRetributionFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return winterWalkerSubclass.hasRangerWinterWalkerChillingRetributionFeature(character);
+}
+
+function hasRangerWinterWalkerFrozenHauntFeature(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return winterWalkerSubclass.hasRangerWinterWalkerFrozenHauntFeature(character);
 }
 
 function getRangerAdditionalAttackCount(character: Pick<Character, "className" | "level">): number {
@@ -162,18 +229,37 @@ function createRangerExpertiseEntry(
 
 function getRangerFeatureState(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "abilities">>
+    Partial<Pick<Character, "abilities" | "subclassId">>
 ): CharacterRangerFeatureState {
   return normalizeRangerFeatureState(character.classFeatureState?.ranger, character);
 }
 
 export function normalizeRangerFeatureState(
   value: unknown,
-  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "abilities">>
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "abilities" | "savingThrowProficiencies" | "subclassId">>
 ): CharacterRangerFeatureState {
   const hasFavoredEnemy = hasRangerFeature(character, CLASS_FEATURE.FAVORED_ENEMY);
   const hasTireless = hasRangerFeature(character, CLASS_FEATURE.TIRELESS);
   const hasNaturesVeil = hasRangerFeature(character, CLASS_FEATURE.NATURES_VEIL);
+  const hasFortifyingSoul = hasRangerWinterWalkerFortifyingSoulFeature(character);
+  const hasChillingRetribution = hasRangerWinterWalkerChillingRetributionFeature(character);
+  const hasFrozenHaunt = hasRangerWinterWalkerFrozenHauntFeature(character);
+  const hasDreadfulStrikes = hasRangerFeyWandererDreadfulStrikesFeature(character);
+  const hasWinterWalkerPolarStrikes = hasRangerWinterWalkerFrigidExplorerFeature(character);
+  const hasDreadAmbusher = hasRangerGloomStalkerDreadAmbusherFeature(character);
+  const hasIronMind = gloomStalkerSubclass.getRangerGloomStalkerIronMindSavingThrowOptions(
+    character
+  ).length > 0;
+  const hasHuntersPrey = hunterSubclass.hasRangerHunterHuntersPreyFeature(character);
+  const hasDefensiveTactics = hunterSubclass.hasRangerHunterDefensiveTacticsFeature(character);
+  const hasSuperiorHuntersDefense =
+    hunterSubclass.hasRangerHunterSuperiorHuntersDefenseFeature(character);
+  const hasFeyReinforcements = hasRangerFeyWandererFeyReinforcementsFeature(character);
+  const hasMistyWanderer = hasRangerFeyWandererMistyWandererFeature(character);
+  const hasFeyWandererSpells = feyWandererSubclass.hasRangerFeyWandererSpellsFeature(character);
+  const hasOtherworldlyGlamour =
+    feyWandererSubclass.hasRangerFeyWandererOtherworldlyGlamourFeature(character);
   const hasWeaponMastery = hasRangerFeature(character, CLASS_FEATURE.WEAPON_MASTERY);
   const hasDeftExplorer = hasRangerDeftExplorerFeature(character);
   const hasLevel9Expertise = hasRangerLevel9ExpertiseFeature(character);
@@ -183,6 +269,20 @@ export function normalizeRangerFeatureState(
     !hasFavoredEnemy &&
     !hasTireless &&
     !hasNaturesVeil &&
+    !hasFortifyingSoul &&
+    !hasChillingRetribution &&
+    !hasFrozenHaunt &&
+    !hasDreadfulStrikes &&
+    !hasWinterWalkerPolarStrikes &&
+    !hasDreadAmbusher &&
+    !hasIronMind &&
+    !hasHuntersPrey &&
+    !hasDefensiveTactics &&
+    !hasSuperiorHuntersDefense &&
+    !hasFeyReinforcements &&
+    !hasMistyWanderer &&
+    !hasFeyWandererSpells &&
+    !hasOtherworldlyGlamour &&
     !hasWeaponMastery &&
     !hasDeftExplorer &&
     !hasLevel9Expertise &&
@@ -198,6 +298,20 @@ export function normalizeRangerFeatureState(
     : 0;
   const tirelessTotal = hasTireless ? getRangerTirelessUsesTotal(character) : 0;
   const naturesVeilTotal = hasNaturesVeil ? getRangerNaturesVeilUsesTotal(character) : 0;
+  const fortifyingSoulTotal = hasFortifyingSoul
+    ? getRangerWinterWalkerFortifyingSoulUsesTotal(character)
+    : 0;
+  const chillingRetributionTotal = hasChillingRetribution
+    ? getRangerWinterWalkerChillingRetributionUsesTotal(character)
+    : 0;
+  const frozenHauntTotal = hasFrozenHaunt ? getRangerWinterWalkerFrozenHauntUsesTotal(character) : 0;
+  const dreadAmbusherTotal = hasDreadAmbusher
+    ? getRangerGloomStalkerDreadAmbusherUsesTotal(character)
+    : 0;
+  const feyReinforcementsTotal = hasFeyReinforcements
+    ? getRangerFeyReinforcementsUsesTotal(character)
+    : 0;
+  const mistyWandererTotal = hasMistyWanderer ? getRangerMistyWandererUsesTotal(character) : 0;
   const deftExplorerExpertise = hasDeftExplorer
     ? normalizeRangerExpertiseSelection(record.deftExplorerExpertise)
     : undefined;
@@ -241,6 +355,105 @@ export function normalizeRangerFeatureState(
           )
         )
       : undefined,
+    fortifyingSoulUsesExpended: hasFortifyingSoul
+      ? Math.max(
+          0,
+          Math.min(
+            fortifyingSoulTotal,
+            Number.isFinite(Number(record.fortifyingSoulUsesExpended))
+              ? Math.floor(Number(record.fortifyingSoulUsesExpended))
+              : 0
+          )
+        )
+      : undefined,
+    chillingRetributionUsesExpended: hasChillingRetribution
+      ? Math.max(
+          0,
+          Math.min(
+            chillingRetributionTotal,
+            Number.isFinite(Number(record.chillingRetributionUsesExpended))
+              ? Math.floor(Number(record.chillingRetributionUsesExpended))
+              : 0
+          )
+        )
+      : undefined,
+    frozenHauntUsesExpended: hasFrozenHaunt
+      ? Math.max(
+          0,
+          Math.min(
+            frozenHauntTotal,
+            Number.isFinite(Number(record.frozenHauntUsesExpended))
+              ? Math.floor(Number(record.frozenHauntUsesExpended))
+              : 0
+          )
+        )
+      : undefined,
+    dreadfulStrikesUsedThisTurn: hasDreadfulStrikes
+      ? record.dreadfulStrikesUsedThisTurn === true
+      : undefined,
+    winterWalkerPolarStrikesUsedThisTurn: hasWinterWalkerPolarStrikes
+      ? record.winterWalkerPolarStrikesUsedThisTurn === true
+      : undefined,
+    dreadAmbusherUsesExpended: hasDreadAmbusher
+      ? Math.max(
+          0,
+          Math.min(
+            dreadAmbusherTotal,
+            Number.isFinite(Number(record.dreadAmbusherUsesExpended))
+              ? Math.floor(Number(record.dreadAmbusherUsesExpended))
+              : 0
+          )
+        )
+      : undefined,
+    dreadAmbusherUsedThisTurn: hasDreadAmbusher
+      ? record.dreadAmbusherUsedThisTurn === true
+      : undefined,
+    ironMindSavingThrow: hasIronMind
+      ? gloomStalkerSubclass.normalizeRangerGloomStalkerIronMindSavingThrowSelection(
+          record.ironMindSavingThrow
+        )
+      : undefined,
+    huntersPreyChoice: hasHuntersPrey
+      ? hunterSubclass.normalizeRangerHunterPreyChoice(record.huntersPreyChoice)
+      : undefined,
+    defensiveTacticsChoice: hasDefensiveTactics
+      ? hunterSubclass.normalizeRangerHunterDefensiveTacticsChoice(record.defensiveTacticsChoice)
+      : undefined,
+    superiorHuntersDefenseDamageType: hasSuperiorHuntersDefense
+      ? hunterSubclass.normalizeRangerHunterSuperiorHuntersDefenseDamageType(
+          record.superiorHuntersDefenseDamageType
+        )
+      : undefined,
+    feyReinforcementsUsesExpended: hasFeyReinforcements
+      ? Math.max(
+          0,
+          Math.min(
+            feyReinforcementsTotal,
+            Number.isFinite(Number(record.feyReinforcementsUsesExpended))
+              ? Math.floor(Number(record.feyReinforcementsUsesExpended))
+              : 0
+          )
+        )
+      : undefined,
+    mistyWandererUsesExpended: hasMistyWanderer
+      ? Math.max(
+          0,
+          Math.min(
+            mistyWandererTotal,
+            Number.isFinite(Number(record.mistyWandererUsesExpended))
+              ? Math.floor(Number(record.mistyWandererUsesExpended))
+              : 0
+          )
+        )
+      : undefined,
+    feyWandererGift: hasFeyWandererSpells
+      ? feyWandererSubclass.normalizeRangerFeyWandererGiftSelection(record.feyWandererGift)
+      : undefined,
+    otherworldlyGlamourSkill: hasOtherworldlyGlamour
+      ? feyWandererSubclass.normalizeRangerOtherworldlyGlamourSkillSelection(
+          record.otherworldlyGlamourSkill
+        )
+      : undefined,
     deftExplorerExpertise,
     deftExplorerLanguages: hasDeftExplorer
       ? normalizeRangerLanguageSelections(record.deftExplorerLanguages)
@@ -272,6 +485,41 @@ export function getRangerAlwaysPreparedSpellIds(
   }
 
   return [huntersMarkSpellId];
+}
+
+export function getRangerFeyWandererGiftSelection(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+) {
+  return feyWandererSubclass.getRangerFeyWandererGiftSelection(character);
+}
+
+export function setRangerFeyWandererGiftSelection(
+  character: Character,
+  selection: Parameters<typeof feyWandererSubclass.setRangerFeyWandererGiftSelection>[1]
+): Character {
+  return feyWandererSubclass.setRangerFeyWandererGiftSelection(character, selection);
+}
+
+export function getRangerOtherworldlyGlamourSkillSelection(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+) {
+  return feyWandererSubclass.getRangerOtherworldlyGlamourSkillSelection(character);
+}
+
+export function setRangerOtherworldlyGlamourSkillSelection(
+  character: Character,
+  selection: Parameters<typeof feyWandererSubclass.setRangerOtherworldlyGlamourSkillSelection>[1]
+): Character {
+  return feyWandererSubclass.setRangerOtherworldlyGlamourSkillSelection(character, selection);
+}
+
+export function getRangerSkillBonuses(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  skill: SkillName
+): FeatureSkillBonus[] {
+  return feyWandererSubclass.getRangerFeyWandererOtherworldlyGlamourSkillBonuses(character, skill);
 }
 
 export function getRangerDerivedStatusEntries(
@@ -527,6 +775,25 @@ export function getRangerNaturesVeilUsesTotal(
   return Math.max(1, getRangerTirelessWisdomModifier(character));
 }
 
+export function getRangerWinterWalkerFortifyingSoulUsesTotal(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return winterWalkerSubclass.getRangerWinterWalkerFortifyingSoulUsesTotal(character);
+}
+
+export function getRangerWinterWalkerChillingRetributionUsesTotal(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
+): number {
+  return winterWalkerSubclass.getRangerWinterWalkerChillingRetributionUsesTotal(character);
+}
+
+export function getRangerWinterWalkerFrozenHauntUsesTotal(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return winterWalkerSubclass.getRangerWinterWalkerFrozenHauntUsesTotal(character);
+}
+
 export function getRangerTirelessTemporaryHitPointsFormula(
   character: Partial<Pick<Character, "abilities">>
 ): string {
@@ -593,6 +860,170 @@ export function getRangerNaturesVeilUsesRemaining(
       .naturesVeilUsesExpended ?? 0;
 
   return Math.max(0, totalUses - usesExpended);
+}
+
+export function getRangerWinterWalkerFortifyingSoulUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  return winterWalkerSubclass.getRangerWinterWalkerFortifyingSoulUsesRemaining(character);
+}
+
+export function getRangerWinterWalkerChillingRetributionUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
+): number {
+  return winterWalkerSubclass.getRangerWinterWalkerChillingRetributionUsesRemaining(character);
+}
+
+export function getRangerWinterWalkerFrozenHauntUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  return winterWalkerSubclass.getRangerWinterWalkerFrozenHauntUsesRemaining(character);
+}
+
+export function getRangerWinterWalkerFrozenHauntSpellOptionState(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>,
+  spell: Pick<SpellEntry, "id"> | null,
+  spellSlotTotals: readonly number[],
+  spellSlotsExpended: readonly number[]
+) {
+  return winterWalkerSubclass.getRangerWinterWalkerFrozenHauntSpellOptionState(
+    character,
+    spell,
+    spellSlotTotals,
+    spellSlotsExpended
+  );
+}
+
+export function applyRangerWinterWalkerFrozenHauntStatusEntries(value: unknown) {
+  return winterWalkerSubclass.applyRangerWinterWalkerFrozenHauntStatusEntries(value);
+}
+
+export function getRangerFeyReinforcementsUsesTotal(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return feyWandererSubclass.getRangerFeyWandererFeyReinforcementsUsesTotal(character);
+}
+
+export function getRangerFeyReinforcementsUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  return feyWandererSubclass.getRangerFeyWandererFeyReinforcementsUsesRemaining(character);
+}
+
+export function getRangerMistyWandererUsesTotal(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
+): number {
+  return feyWandererSubclass.getRangerFeyWandererMistyWandererUsesTotal(character);
+}
+
+export function getRangerMistyWandererUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
+): number {
+  return feyWandererSubclass.getRangerFeyWandererMistyWandererUsesRemaining(character);
+}
+
+export function getRangerGloomStalkerDreadAmbusherUsesTotal(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
+): number {
+  return gloomStalkerSubclass.getRangerGloomStalkerDreadAmbusherUsesTotal(character);
+}
+
+export function getRangerGloomStalkerDreadAmbusherUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
+): number {
+  return gloomStalkerSubclass.getRangerGloomStalkerDreadAmbusherUsesRemaining(character);
+}
+
+export function getRangerGloomStalkerIronMindSavingThrowSelection(
+  character: Pick<
+    Character,
+    "className" | "classFeatureState" | "level" | "savingThrowProficiencies"
+  > &
+    Partial<Pick<Character, "subclassId">>
+): SAVING_THROW_PROFICIENCY | null {
+  return gloomStalkerSubclass.getRangerGloomStalkerIronMindSavingThrowSelection(character);
+}
+
+export function getRangerGloomStalkerIronMindSavingThrowOptions(
+  character: Pick<Character, "className" | "level" | "savingThrowProficiencies"> &
+    Partial<Pick<Character, "classFeatureState" | "subclassId">>
+): SAVING_THROW_PROFICIENCY[] {
+  return gloomStalkerSubclass.getRangerGloomStalkerIronMindSavingThrowOptions(character);
+}
+
+export function getRangerHunterPreyChoice(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+): RangerHunterPreyChoice | null {
+  return hunterSubclass.getRangerHunterPreyChoice(character);
+}
+
+export function setRangerHunterPreyChoice(
+  character: Character,
+  choice: RangerHunterPreyChoice | null
+): Character {
+  return hunterSubclass.setRangerHunterPreyChoice(character, choice);
+}
+
+export function getRangerHunterDefensiveTacticsChoice(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+): RangerHunterDefensiveTacticsChoice | null {
+  return hunterSubclass.getRangerHunterDefensiveTacticsChoice(character);
+}
+
+export function setRangerHunterDefensiveTacticsChoice(
+  character: Character,
+  choice: RangerHunterDefensiveTacticsChoice | null
+): Character {
+  return hunterSubclass.setRangerHunterDefensiveTacticsChoice(character, choice);
+}
+
+export function getRangerHunterSuperiorHuntersDefenseDamageTypeSelection(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+) {
+  return hunterSubclass.getRangerHunterSuperiorHuntersDefenseDamageTypeSelection(character);
+}
+
+export function setRangerHunterSuperiorHuntersDefenseDamageTypeSelection(
+  character: Character,
+  selection: Parameters<typeof hunterSubclass.setRangerHunterSuperiorHuntersDefenseDamageTypeSelection>[1]
+): Character {
+  return hunterSubclass.setRangerHunterSuperiorHuntersDefenseDamageTypeSelection(
+    character,
+    selection
+  );
+}
+
+export function activateRangerHunterSuperiorHuntersDefense(character: Character): Character {
+  return hunterSubclass.activateRangerHunterSuperiorHuntersDefense(character);
+}
+
+export function isRangerGloomStalkerIronMindLockedToWis(
+  character: Pick<Character, "className" | "level" | "savingThrowProficiencies"> &
+    Partial<Pick<Character, "classFeatureState" | "subclassId">>
+): boolean {
+  return gloomStalkerSubclass.isRangerGloomStalkerIronMindLockedToWis(character);
+}
+
+export function setRangerGloomStalkerIronMindSavingThrowSelection(
+  character: Character,
+  proficiency: SAVING_THROW_PROFICIENCY | null
+): Character {
+  return gloomStalkerSubclass.setRangerGloomStalkerIronMindSavingThrowSelection(
+    character,
+    proficiency
+  );
 }
 
 export function consumeRangerFavoredEnemyUse(character: Character): Character {
@@ -668,6 +1099,18 @@ export function consumeRangerNaturesVeilUse(character: Character): Character {
       }
     }
   };
+}
+
+export function consumeRangerFeyReinforcementsUse(character: Character): Character {
+  return feyWandererSubclass.consumeRangerFeyWandererFeyReinforcementsUse(character);
+}
+
+export function consumeRangerMistyWandererUse(character: Character): Character {
+  return feyWandererSubclass.consumeRangerFeyWandererMistyWandererUse(character);
+}
+
+export function consumeRangerGloomStalkerDreadAmbusherUse(character: Character): Character {
+  return gloomStalkerSubclass.consumeRangerGloomStalkerDreadAmbusherUse(character);
 }
 
 export function activateRangerNaturesVeil(character: Character): Character {
@@ -770,13 +1213,72 @@ export function restoreRangerNaturesVeilOnLongRest(character: Character): Charac
   };
 }
 
+export function restoreRangerWinterWalkerFortifyingSoulOnLongRest(character: Character): Character {
+  return winterWalkerSubclass.restoreRangerWinterWalkerFortifyingSoulOnLongRest(character);
+}
+
+export function restoreRangerWinterWalkerChillingRetributionOnLongRest(
+  character: Character
+): Character {
+  return winterWalkerSubclass.restoreRangerWinterWalkerChillingRetributionOnLongRest(character);
+}
+
+export function restoreRangerWinterWalkerFrozenHauntOnLongRest(character: Character): Character {
+  return winterWalkerSubclass.restoreRangerWinterWalkerFrozenHauntOnLongRest(character);
+}
+
+export function restoreRangerFeyReinforcementsOnLongRest(character: Character): Character {
+  return feyWandererSubclass.restoreRangerFeyWandererFeyReinforcementsOnLongRest(character);
+}
+
+export function restoreRangerMistyWandererOnLongRest(character: Character): Character {
+  return feyWandererSubclass.restoreRangerFeyWandererMistyWandererOnLongRest(character);
+}
+
+export function restoreRangerGloomStalkerDreadAmbusherOnLongRest(character: Character): Character {
+  return gloomStalkerSubclass.restoreRangerGloomStalkerDreadAmbusherOnLongRest(character);
+}
+
+export function consumeRangerWinterWalkerPolarStrikesUse(character: Character): Character {
+  return winterWalkerSubclass.consumeRangerWinterWalkerPolarStrikesUse(character);
+}
+
+export function consumeRangerWinterWalkerFortifyingSoulUse(character: Character): Character {
+  return winterWalkerSubclass.consumeRangerWinterWalkerFortifyingSoulUse(character);
+}
+
+export function consumeRangerWinterWalkerChillingRetributionUse(character: Character): Character {
+  return winterWalkerSubclass.consumeRangerWinterWalkerChillingRetributionUse(character);
+}
+
+export function consumeRangerWinterWalkerFrozenHauntUse(character: Character): Character {
+  return winterWalkerSubclass.consumeRangerWinterWalkerFrozenHauntUse(character);
+}
+
 export function applyLongRestToRangerFeatures(character: Character): Character {
-  const restoredCharacter = restoreRangerNaturesVeilOnLongRest(
-    restoreRangerTirelessOnLongRest(restoreRangerFavoredEnemyOnLongRest(character))
+  const restoredCharacter = restoreRangerGloomStalkerDreadAmbusherOnLongRest(
+    restoreRangerMistyWandererOnLongRest(
+      restoreRangerFeyReinforcementsOnLongRest(
+        restoreRangerWinterWalkerFortifyingSoulOnLongRest(
+          restoreRangerWinterWalkerChillingRetributionOnLongRest(
+            restoreRangerWinterWalkerFrozenHauntOnLongRest(
+              restoreRangerNaturesVeilOnLongRest(
+                restoreRangerTirelessOnLongRest(restoreRangerFavoredEnemyOnLongRest(character))
+              )
+            )
+          )
+        )
+      )
+    )
   );
   const rangerState = getRangerFeatureState(restoredCharacter);
 
-  if ((rangerState.extraAttacksRemainingThisTurn ?? 0) === 0) {
+  if (
+    (rangerState.extraAttacksRemainingThisTurn ?? 0) === 0 &&
+    rangerState.dreadfulStrikesUsedThisTurn !== true &&
+    rangerState.winterWalkerPolarStrikesUsedThisTurn !== true &&
+    rangerState.dreadAmbusherUsedThisTurn !== true
+  ) {
     return restoredCharacter;
   }
 
@@ -786,7 +1288,10 @@ export function applyLongRestToRangerFeatures(character: Character): Character {
       ...restoredCharacter.classFeatureState,
       ranger: {
         ...rangerState,
-        extraAttacksRemainingThisTurn: 0
+        extraAttacksRemainingThisTurn: 0,
+        dreadfulStrikesUsedThisTurn: false,
+        winterWalkerPolarStrikesUsedThisTurn: false,
+        dreadAmbusherUsedThisTurn: false
       }
     }
   };
@@ -795,7 +1300,12 @@ export function applyLongRestToRangerFeatures(character: Character): Character {
 export function applyShortRestToRangerFeatures(character: Character): Character {
   const rangerState = getRangerFeatureState(character);
 
-  if ((rangerState.extraAttacksRemainingThisTurn ?? 0) === 0) {
+  if (
+    (rangerState.extraAttacksRemainingThisTurn ?? 0) === 0 &&
+    rangerState.dreadfulStrikesUsedThisTurn !== true &&
+    rangerState.winterWalkerPolarStrikesUsedThisTurn !== true &&
+    rangerState.dreadAmbusherUsedThisTurn !== true
+  ) {
     return character;
   }
 
@@ -805,20 +1315,33 @@ export function applyShortRestToRangerFeatures(character: Character): Character 
       ...character.classFeatureState,
       ranger: {
         ...rangerState,
-        extraAttacksRemainingThisTurn: 0
+        extraAttacksRemainingThisTurn: 0,
+        dreadfulStrikesUsedThisTurn: false,
+        winterWalkerPolarStrikesUsedThisTurn: false,
+        dreadAmbusherUsedThisTurn: false
       }
     }
   };
 }
 
 export function advanceRangerFeaturesForNewRound(character: Character): Character {
-  if (getRangerAdditionalAttackCount(character) <= 0) {
+  if (
+    getRangerAdditionalAttackCount(character) <= 0 &&
+    !hasRangerFeyWandererDreadfulStrikesFeature(character) &&
+    !hasRangerWinterWalkerFrigidExplorerFeature(character) &&
+    !hasRangerGloomStalkerDreadAmbusherFeature(character)
+  ) {
     return character;
   }
 
   const rangerState = getRangerFeatureState(character);
 
-  if ((rangerState.extraAttacksRemainingThisTurn ?? 0) === 0) {
+  if (
+    (rangerState.extraAttacksRemainingThisTurn ?? 0) === 0 &&
+    rangerState.dreadfulStrikesUsedThisTurn !== true &&
+    rangerState.winterWalkerPolarStrikesUsedThisTurn !== true &&
+    rangerState.dreadAmbusherUsedThisTurn !== true
+  ) {
     return character;
   }
 
@@ -828,10 +1351,52 @@ export function advanceRangerFeaturesForNewRound(character: Character): Characte
       ...character.classFeatureState,
       ranger: {
         ...rangerState,
-        extraAttacksRemainingThisTurn: 0
+        extraAttacksRemainingThisTurn: 0,
+        dreadfulStrikesUsedThisTurn: false,
+        winterWalkerPolarStrikesUsedThisTurn: false,
+        dreadAmbusherUsedThisTurn: false
       }
     }
   };
+}
+
+export function markRangerDreadfulStrikesUsed(character: Character): Character {
+  if (!hasRangerFeyWandererDreadfulStrikesFeature(character)) {
+    return character;
+  }
+
+  const rangerState = getRangerFeatureState(character);
+
+  if (rangerState.dreadfulStrikesUsedThisTurn === true) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      ranger: {
+        ...rangerState,
+        dreadfulStrikesUsedThisTurn: true
+      }
+    }
+  };
+}
+
+export function getRangerInitiativeBonuses(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
+): FeatureInitiativeBonus[] {
+  if (hasRangerGloomStalkerDreadAmbusherFeature(character)) {
+    return [
+      {
+        label: "Dread Ambusher",
+        abilityModifierSource: "WIS"
+      }
+    ];
+  }
+
+  return [];
 }
 
 export function getRangerWeaponMasterySelectionCount(
@@ -919,6 +1484,12 @@ export function getRangerSkillProficiencyEntries(
       entries.push(entry);
     }
   });
+
+  entries.push(
+    ...feyWandererSubclass.getRangerFeyWandererOtherworldlyGlamourSkillProficiencyEntries(
+      character
+    )
+  );
 
   return entries;
 }

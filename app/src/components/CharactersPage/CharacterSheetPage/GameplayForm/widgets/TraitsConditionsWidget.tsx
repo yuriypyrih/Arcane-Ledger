@@ -2,12 +2,22 @@ import clsx from "clsx";
 import { Pencil } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useClassSpellEntries, usePreparedSpellEntries } from "../../../../../codex/classes";
-import { MAGIC_SCHOOL, type SpellEntry } from "../../../../../codex/entries";
+import {
+  MAGIC_SCHOOL,
+  getSpellEntries,
+  getSpellEntryById,
+  type SpellEntry
+} from "../../../../../codex/entries";
 import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
 import {
+  activateRangerHunterSuperiorHuntersDefenseForCharacter,
+  consumeElementalRebukeUseForCharacter,
   consumeBeguilingMagicOrBardicInspirationForCharacter,
+  consumeRogueScionOfTheThreeBloodthirstUseForCharacter,
+  consumeRogueSpellThiefUseForCharacter,
   consumeFighterIndomitableUseForCharacter,
   consumeGloriousDefenseUseForCharacter,
+  consumeRangerWinterWalkerChillingRetributionUseForCharacter,
   expendFighterPsiWarriorEnergyDieForCharacter,
   expendBardicInspirationUseForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
@@ -15,14 +25,32 @@ import {
   getBeguilingMagicUsesTotalForCharacter,
   getDerivedFeatureStatusEntriesForCharacter,
   getDruidWildShapeActiveFormForCharacter,
+  getElementalRebukeUsesRemainingForCharacter,
+  getElementalRebukeUsesTotalForCharacter,
   getFighterIndomitableUsesRemainingForCharacter,
   getFighterPsiWarriorEnergyDiceRemainingForCharacter,
   getFeatureReactionEntriesForCharacter,
   getGloriousDefenseUsesRemainingForCharacter,
   getGloriousDefenseUsesTotalForCharacter,
+  getPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter,
+  getRangerHunterSuperiorHuntersDefenseDamageTypeSelectionForCharacter,
+  getRogueScionOfTheThreeBloodthirstUsesRemainingForCharacter,
+  getRogueScionOfTheThreeBloodthirstUsesTotalForCharacter,
+  getRogueSpellThiefUsesRemainingForCharacter,
+  getRogueSpellThiefUsesTotalForCharacter,
+  getSpellEntryForCharacter,
+  getRangerWinterWalkerChillingRetributionUsesRemainingForCharacter,
+  getRangerWinterWalkerChillingRetributionUsesTotalForCharacter,
+  paladinElementalRebukeReactionEntryId,
+  paladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeOptions,
   paladinGloriousDefenseReactionEntryId,
+  rogueScionOfTheThreeBloodthirstReactionEntryId,
+  rangerWinterWalkerChillingRetributionReactionEntryId,
+  rangerHunterSuperiorHuntersDefenseDamageTypeOptions,
+  setRangerHunterSuperiorHuntersDefenseDamageTypeSelectionForCharacter,
   getSpellcastingStateForCharacter,
-  removeFeatureStatusEntryForCharacter
+  removeFeatureStatusEntryForCharacter,
+  setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
 import {
   getFeatDerivedStatusEntriesForCharacter,
@@ -42,6 +70,7 @@ import {
 } from "../../../../../pages/CharactersPage/spellcasting";
 import {
   applySpellConcentrationToStatusEntries,
+  createCharacterStatusEntry,
   getExhaustionLevel,
   getStatusDurationPreset,
   getStatusDurationTickOn,
@@ -74,6 +103,7 @@ import {
 } from "../../../../../types";
 import { consumeRoundTrackerResource } from "../../../../../pages/CharactersPage/combat";
 import CharacterSpellDrawer from "../../SpellCastingForm/CharacterSpellDrawer";
+import SelectInput from "../../../FormInputs/SelectInput";
 import { MonsterEntryDrawer } from "../../../../MonsterEntryRenderer";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import widgetShellStyles from "../GameplayWidgetShared.module.css";
@@ -91,11 +121,25 @@ import {
   resolveStatusDurationPreset,
   type TraitEditorTab
 } from "./traitsWidgetUtils";
+import { formatCodexLabel } from "../../../../../utils/codex";
+import { paladinOathOfTheNobleGeniesAuraOfElementalShieldingStatusSourceId } from "../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
+import { superiorHuntersDefenseReactionId } from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerHunter";
+import {
+  getRogueArcaneTricksterSpellThiefStatusSourceId,
+  isRogueArcaneTricksterSpellThiefStatusSourceId,
+  rogueArcaneTricksterSpellThiefReactionId
+} from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 
 type TraitsConditionsWidgetProps = {
   character: Character;
   onPersistCharacter: PersistCharacterUpdater;
 };
+
+const spellThiefSearchResultLimit = 50;
+
+function formatSpellThiefSpellOptionLabel(spell: SpellEntry): string {
+  return `${spell.name} (${spell.spellLevel === 0 ? "Cantrip" : `Level ${spell.spellLevel}`})`;
+}
 
 function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditionsWidgetProps) {
   const [isTraitModalOpen, setIsTraitModalOpen] = useState(false);
@@ -119,6 +163,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   );
   const [selectedReactionSpellSlotLevel, setSelectedReactionSpellSlotLevel] = useState(1);
   const [useBeguilingMagicOnReactionSpell, setUseBeguilingMagicOnReactionSpell] = useState(false);
+  const [spellThiefSearchQuery, setSpellThiefSearchQuery] = useState("");
+  const [selectedSpellThiefSpellId, setSelectedSpellThiefSpellId] = useState("");
 
   const roundTracker = normalizeRoundTracker(character.roundTracker);
   const classSpellEntries = useClassSpellEntries(character.className, character.subclassId);
@@ -158,6 +204,10 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       spellSlotTotals.map((total, index) => Math.max(0, total - (spellSlotsExpended[index] ?? 0))),
     [spellSlotTotals, spellSlotsExpended]
   );
+  const allSpellEntries = useMemo(
+    () => getSpellEntries().slice().sort((left, right) => left.name.localeCompare(right.name)),
+    []
+  );
   const beguilingMagicUsesTotal = useMemo(
     () => getBeguilingMagicUsesTotalForCharacter(character),
     [character.className, character.level, character.subclassId]
@@ -187,18 +237,41 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         character.level,
         character.classFeatureState,
         undefined,
-        character.subclassId
+        character.subclassId,
+        character.statusEntries
       ),
-    [character.classFeatureState, character.className, character.level, character.subclassId]
+    [
+      character.classFeatureState,
+      character.className,
+      character.level,
+      character.statusEntries,
+      character.subclassId
+    ]
+  );
+  const alwaysPreparedSpellEntries = useMemo(
+    () =>
+      alwaysPreparedSpellIds
+        .map((spellId) => getSpellEntryById(spellId))
+        .filter((spell): spell is SpellEntry => spell !== null)
+        .map((spell) => getSpellEntryForCharacter(character, spell)),
+    [alwaysPreparedSpellIds, character]
   );
   const classSpellEntriesById = useMemo(
     () =>
       new Map(
-        [...classSpellEntries, ...featGrantedCantripEntries, ...preparedSpellPoolEntries].map(
-          (spell) => [spell.id, spell]
-        )
+        [
+          ...classSpellEntries,
+          ...featGrantedCantripEntries,
+          ...preparedSpellPoolEntries,
+          ...alwaysPreparedSpellEntries
+        ].map((spell) => [spell.id, spell])
       ),
-    [classSpellEntries, featGrantedCantripEntries, preparedSpellPoolEntries]
+    [
+      alwaysPreparedSpellEntries,
+      classSpellEntries,
+      featGrantedCantripEntries,
+      preparedSpellPoolEntries
+    ]
   );
   const selectedCantrips = useMemo(() => {
     const selectedCantripEntries = new Map<string, SpellEntry>();
@@ -323,17 +396,72 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           selectedStatusEntry.sourceId as `reaction-entry-${string}`
         ) ?? null)
       : null;
+  const spellThiefUsesRemaining = getRogueSpellThiefUsesRemainingForCharacter(character);
+  const spellThiefUsesTotal = getRogueSpellThiefUsesTotalForCharacter(character);
   const gloriousDefenseUsesRemaining = getGloriousDefenseUsesRemainingForCharacter(character);
   const gloriousDefenseUsesTotal = getGloriousDefenseUsesTotalForCharacter(character);
+  const elementalRebukeUsesRemaining = getElementalRebukeUsesRemainingForCharacter(character);
+  const elementalRebukeUsesTotal = getElementalRebukeUsesTotalForCharacter(character);
+  const chillingRetributionUsesRemaining =
+    getRangerWinterWalkerChillingRetributionUsesRemainingForCharacter(character);
+  const chillingRetributionUsesTotal =
+    getRangerWinterWalkerChillingRetributionUsesTotalForCharacter(character);
+  const bloodthirstUsesRemaining =
+    getRogueScionOfTheThreeBloodthirstUsesRemainingForCharacter(character);
+  const bloodthirstUsesTotal = getRogueScionOfTheThreeBloodthirstUsesTotalForCharacter(character);
   const selectedWildShapeMonster =
     selectedStatusEntry?.sourceId?.startsWith("feature-druid-wild-shape:")
       ? getDruidWildShapeActiveFormForCharacter(character)
       : null;
+  const selectedNobleGeniesAuraOfElementalShieldingDamageType =
+    selectedStatusEntry?.sourceId === paladinOathOfTheNobleGeniesAuraOfElementalShieldingStatusSourceId
+      ? getPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter(
+          character
+        )
+      : null;
+  const selectedRangerHunterSuperiorHuntersDefenseDamageType =
+    selectedReactionEntry?.id === superiorHuntersDefenseReactionId
+      ? getRangerHunterSuperiorHuntersDefenseDamageTypeSelectionForCharacter(character)
+      : null;
+  const selectedSpellThiefSpell =
+    selectedSpellThiefSpellId.length > 0
+      ? (allSpellEntries.find((spell) => spell.id === selectedSpellThiefSpellId) ?? null)
+      : null;
+  const normalizedSpellThiefSearchQuery = spellThiefSearchQuery.trim().toLowerCase();
+  const spellThiefFilteredSpellOptions = useMemo(
+    () =>
+      normalizedSpellThiefSearchQuery.length > 0
+        ? allSpellEntries.filter((spell) =>
+            spell.name.toLowerCase().includes(normalizedSpellThiefSearchQuery)
+          )
+        : allSpellEntries,
+    [allSpellEntries, normalizedSpellThiefSearchQuery]
+  );
+  const spellThiefVisibleSpellOptions = useMemo(() => {
+    const limitedOptions = spellThiefFilteredSpellOptions.slice(0, spellThiefSearchResultLimit);
+
+    if (
+      !selectedSpellThiefSpell ||
+      limitedOptions.some((spell) => spell.id === selectedSpellThiefSpell.id)
+    ) {
+      return limitedOptions;
+    }
+
+    return [selectedSpellThiefSpell, ...limitedOptions].slice(0, spellThiefSearchResultLimit);
+  }, [selectedSpellThiefSpell, spellThiefFilteredSpellOptions]);
   const spellcastingState = getSpellcastingStateForCharacter(character);
 
   useEffect(() => {
     setUseBeguilingMagicOnReactionSpell(false);
   }, [selectedReactionSpell?.id]);
+  useEffect(() => {
+    if (selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId) {
+      return;
+    }
+
+    setSpellThiefSearchQuery("");
+    setSelectedSpellThiefSpellId("");
+  }, [selectedReactionEntry?.id]);
   const selectedReactionResourceWarning =
     selectedReactionEntry?.id === "reaction-cutting-words"
       ? bardicInspirationUsesRemaining <= 0
@@ -351,13 +479,47 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
             ? gloriousDefenseUsesRemaining <= 0
               ? "No Glorious Defense charges remaining."
               : null
+          : selectedReactionEntry?.id === paladinElementalRebukeReactionEntryId
+            ? elementalRebukeUsesRemaining <= 0
+              ? "No Elemental Rebuke charges remaining."
+              : null
+            : selectedReactionEntry?.id === rogueScionOfTheThreeBloodthirstReactionEntryId
+              ? bloodthirstUsesRemaining <= 0
+                ? "No Bloodthirst uses remaining."
+                : null
+            : selectedReactionEntry?.id === rangerWinterWalkerChillingRetributionReactionEntryId
+              ? chillingRetributionUsesRemaining <= 0
+                ? "No Chilling Retribution charges remaining."
+                : null
+              : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId
+                ? spellThiefUsesRemaining <= 0
+                  ? "No Spell Thief charges remaining."
+                  : null
           : null;
   const selectedReactionResourceSummary =
     selectedReactionEntry?.id === paladinGloriousDefenseReactionEntryId
       ? `${gloriousDefenseUsesRemaining}/${gloriousDefenseUsesTotal} charges | Long Rest`
+      : selectedReactionEntry?.id === paladinElementalRebukeReactionEntryId
+        ? `${elementalRebukeUsesRemaining}/${elementalRebukeUsesTotal} charges | Long Rest`
+        : selectedReactionEntry?.id === rogueScionOfTheThreeBloodthirstReactionEntryId
+          ? `${bloodthirstUsesRemaining}/${bloodthirstUsesTotal} uses | Long Rest`
+        : selectedReactionEntry?.id === rangerWinterWalkerChillingRetributionReactionEntryId
+          ? `${chillingRetributionUsesRemaining}/${chillingRetributionUsesTotal} charges | Long Rest`
+          : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId
+            ? `${spellThiefUsesRemaining}/${spellThiefUsesTotal} charges | Long Rest`
+      : null;
+  const selectedReactionSelectionWarning =
+    selectedReactionEntry?.id === superiorHuntersDefenseReactionId &&
+    selectedRangerHunterSuperiorHuntersDefenseDamageType === null
+      ? "Select a damage type."
+      : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId &&
+          selectedSpellThiefSpell === null
+        ? "Select a spell."
       : null;
   const selectedReactionActionWarning =
-    getRoundTrackerActionWarning("reaction", roundTracker) ?? selectedReactionResourceWarning;
+    getRoundTrackerActionWarning("reaction", roundTracker) ??
+    selectedReactionSelectionWarning ??
+    selectedReactionResourceWarning;
   const selectedReactionBlockedReason = spellcastingState.blocked ? spellcastingState.reason : null;
   const selectedStatusEntryPreset = selectedStatusEntry
     ? getStatusDurationPreset(selectedStatusEntry.duration)
@@ -552,6 +714,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
 
   function closeSelectedReaction() {
     setUseBeguilingMagicOnReactionSpell(false);
+    setSpellThiefSearchQuery("");
+    setSelectedSpellThiefSpellId("");
     setSelectedStatusEntryId(null);
   }
 
@@ -647,22 +811,66 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     }
 
     onPersistCharacter((currentCharacter) => {
-      const nextCharacter =
-        selectedReactionEntry.id === "reaction-cutting-words"
-          ? expendBardicInspirationUseForCharacter(currentCharacter)
-          : selectedReactionEntry.id === "reaction-banneret-shared-resilience"
-            ? consumeFighterIndomitableUseForCharacter(currentCharacter)
-            : selectedReactionEntry.id === "reaction-psi-warrior-protective-field"
-              ? expendFighterPsiWarriorEnergyDieForCharacter(currentCharacter)
-              : selectedReactionEntry.id === paladinGloriousDefenseReactionEntryId
-                ? consumeGloriousDefenseUseForCharacter(currentCharacter)
-                : currentCharacter;
+      let nextCharacter = currentCharacter;
+
+      if (selectedReactionEntry.id === "reaction-cutting-words") {
+        nextCharacter = expendBardicInspirationUseForCharacter(currentCharacter);
+      } else if (selectedReactionEntry.id === "reaction-banneret-shared-resilience") {
+        nextCharacter = consumeFighterIndomitableUseForCharacter(currentCharacter);
+      } else if (selectedReactionEntry.id === "reaction-psi-warrior-protective-field") {
+        nextCharacter = expendFighterPsiWarriorEnergyDieForCharacter(currentCharacter);
+      } else if (selectedReactionEntry.id === paladinGloriousDefenseReactionEntryId) {
+        nextCharacter = consumeGloriousDefenseUseForCharacter(currentCharacter);
+      } else if (selectedReactionEntry.id === paladinElementalRebukeReactionEntryId) {
+        nextCharacter = consumeElementalRebukeUseForCharacter(currentCharacter);
+      } else if (selectedReactionEntry.id === rogueScionOfTheThreeBloodthirstReactionEntryId) {
+        nextCharacter = consumeRogueScionOfTheThreeBloodthirstUseForCharacter(currentCharacter);
+      } else if (selectedReactionEntry.id === rangerWinterWalkerChillingRetributionReactionEntryId) {
+        nextCharacter = consumeRangerWinterWalkerChillingRetributionUseForCharacter(currentCharacter);
+      } else if (selectedReactionEntry.id === superiorHuntersDefenseReactionId) {
+        nextCharacter = activateRangerHunterSuperiorHuntersDefenseForCharacter(currentCharacter);
+      } else if (
+        selectedReactionEntry.id === rogueArcaneTricksterSpellThiefReactionId &&
+        selectedSpellThiefSpell
+      ) {
+        const consumedCharacter = consumeRogueSpellThiefUseForCharacter(currentCharacter);
+
+        nextCharacter =
+          consumedCharacter === currentCharacter
+            ? currentCharacter
+            : {
+                ...consumedCharacter,
+                statusEntries: [
+                  ...(consumedCharacter.statusEntries ?? []).filter(
+                    (entry) => !isRogueArcaneTricksterSpellThiefStatusSourceId(entry.sourceId)
+                  ),
+                  createCharacterStatusEntry({
+                    group: STATUS_ENTRY_GROUP.EFFECTS,
+                    value: selectedSpellThiefSpell.name,
+                    source: "Spell Thief",
+                    sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+                    duration: {
+                      kind: STATUS_DURATION_KIND.HOURS,
+                      amount: 8
+                    },
+                    sourceId: getRogueArcaneTricksterSpellThiefStatusSourceId(
+                      selectedSpellThiefSpell.id
+                    )
+                  })
+                ]
+              };
+      }
 
       if (
         (selectedReactionEntry.id === "reaction-cutting-words" ||
           selectedReactionEntry.id === "reaction-banneret-shared-resilience" ||
           selectedReactionEntry.id === "reaction-psi-warrior-protective-field" ||
-          selectedReactionEntry.id === paladinGloriousDefenseReactionEntryId) &&
+          selectedReactionEntry.id === paladinGloriousDefenseReactionEntryId ||
+          selectedReactionEntry.id === paladinElementalRebukeReactionEntryId ||
+          selectedReactionEntry.id === rogueScionOfTheThreeBloodthirstReactionEntryId ||
+          selectedReactionEntry.id === rangerWinterWalkerChillingRetributionReactionEntryId ||
+          selectedReactionEntry.id === superiorHuntersDefenseReactionId ||
+          selectedReactionEntry.id === rogueArcaneTricksterSpellThiefReactionId) &&
         nextCharacter === currentCharacter
       ) {
         return currentCharacter;
@@ -675,6 +883,26 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     });
 
     closeSelectedReaction();
+  }
+
+  function updatePaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageType(nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter(
+        currentCharacter,
+        nextValue as (typeof paladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeOptions)[number]
+      )
+    );
+  }
+
+  function updateRangerHunterSuperiorHuntersDefenseDamageType(nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      setRangerHunterSuperiorHuntersDefenseDamageTypeSelectionForCharacter(
+        currentCharacter,
+        rangerHunterSuperiorHuntersDefenseDamageTypeOptions.some((option) => option === nextValue)
+          ? (nextValue as (typeof rangerHunterSuperiorHuntersDefenseDamageTypeOptions)[number])
+          : null
+      )
+    );
   }
 
   const selectedExhaustionLevel =
@@ -783,6 +1011,63 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           reaction={selectedReactionEntry}
           actionWarning={selectedReactionActionWarning}
           resourceSummary={selectedReactionResourceSummary}
+          customContent={
+            selectedReactionEntry.id === superiorHuntersDefenseReactionId ? (
+              <label className={shared.field}>
+                <span className={shared.fieldLabel}>Damage Type</span>
+                <SelectInput
+                  value={selectedRangerHunterSuperiorHuntersDefenseDamageType ?? ""}
+                  onChange={(event) =>
+                    updateRangerHunterSuperiorHuntersDefenseDamageType(event.target.value)
+                  }
+                >
+                  <option value="">Select a damage type</option>
+                  {rangerHunterSuperiorHuntersDefenseDamageTypeOptions.map((damageType) => (
+                    <option key={damageType} value={damageType}>
+                      {formatCodexLabel(damageType)}
+                    </option>
+                  ))}
+                </SelectInput>
+              </label>
+            ) : selectedReactionEntry.id === rogueArcaneTricksterSpellThiefReactionId ? (
+              <div className={styles.spellThiefFieldGroup}>
+                <label className={shared.field}>
+                  <span className={shared.fieldLabel}>Spell Search</span>
+                  <input
+                    type="search"
+                    value={spellThiefSearchQuery}
+                    onChange={(event) => setSpellThiefSearchQuery(event.target.value)}
+                    placeholder="Search all spells"
+                    className={styles.spellThiefSearchInput}
+                  />
+                </label>
+                <label className={shared.field}>
+                  <span className={shared.fieldLabel}>Spell</span>
+                  <SelectInput
+                    value={selectedSpellThiefSpellId}
+                    onChange={(event) => setSelectedSpellThiefSpellId(event.target.value)}
+                  >
+                    <option value="">Select a spell</option>
+                    {spellThiefVisibleSpellOptions.map((spell) => (
+                      <option key={spell.id} value={spell.id}>
+                        {formatSpellThiefSpellOptionLabel(spell)}
+                      </option>
+                    ))}
+                  </SelectInput>
+                </label>
+                <p className={shared.helperText}>
+                  {spellThiefFilteredSpellOptions.length > spellThiefSearchResultLimit
+                    ? `Showing ${spellThiefSearchResultLimit} of ${spellThiefFilteredSpellOptions.length} matching spells. Refine the search to narrow the list.`
+                    : `${spellThiefFilteredSpellOptions.length} spell${spellThiefFilteredSpellOptions.length === 1 ? "" : "s"} found.`}
+                </p>
+                {selectedSpellThiefSpell ? (
+                  <p className={styles.spellThiefSelectionSummary}>
+                    Selected: {formatSpellThiefSpellOptionLabel(selectedSpellThiefSpell)}
+                  </p>
+                ) : null}
+              </div>
+            ) : null
+          }
           onCast={castSelectedReactionEntry}
           onClose={closeSelectedReaction}
         />
@@ -811,6 +1096,33 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       !selectedWildShapeMonster ? (
         <StatusEntryDrawer
           entry={selectedStatusEntry}
+          customContent={
+            selectedStatusEntry.sourceId ===
+            paladinOathOfTheNobleGeniesAuraOfElementalShieldingStatusSourceId ? (
+              <label className={shared.field}>
+                <span className={shared.fieldLabel}>Shielded Element</span>
+                <SelectInput
+                  value={
+                    selectedNobleGeniesAuraOfElementalShieldingDamageType ??
+                    paladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeOptions[0]
+                  }
+                  onChange={(event) =>
+                    updatePaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageType(
+                      event.target.value
+                    )
+                  }
+                >
+                  {paladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeOptions.map(
+                    (damageType) => (
+                      <option key={damageType} value={damageType}>
+                        {formatCodexLabel(damageType)}
+                      </option>
+                    )
+                  )}
+                </SelectInput>
+              </label>
+            ) : null
+          }
           isEditingDuration={isEditingStatusDuration}
           durationPreset={statusDrawerDurationPreset}
           roundTickOn={statusDrawerRoundTickOn}

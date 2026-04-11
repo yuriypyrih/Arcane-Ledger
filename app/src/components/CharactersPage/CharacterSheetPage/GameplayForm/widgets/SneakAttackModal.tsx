@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { BookOpen, X } from "lucide-react";
+import { BookOpen } from "lucide-react";
 import { useState } from "react";
 import CellContainer from "../../../../CellContainer/CellContainer";
 import KeywordReferenceDrawer from "../../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
@@ -14,30 +14,54 @@ import {
   type RogueSneakAttackEffectDefinition,
   type RogueSneakAttackEffectKey
 } from "../../../../../pages/CharactersPage/classFeatures/rogue/rogue";
+import {
+  getRogueSoulknifePsionicDiceRemaining,
+  getRogueSoulknifeRendMindUsesRemaining,
+  hasRogueSoulknifeRendMindFeature
+} from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueSoulknife";
+import {
+  getAbilityModifier,
+  getProficiencyBonus
+} from "../../../../../pages/CharactersPage/gameplay";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import sharedModalStyles from "./FeatureActionModal.module.css";
 import styles from "./SneakAttackModal.module.css";
 
-type SneakAttackModalProps = {
-  action: FeatureActionCard;
-  character: Character;
-  onClose: () => void;
-  onConfirm: (effectKeys: RogueSneakAttackEffectKey[]) => void;
+export type SneakAttackActionSelection = {
+  effectKeys: RogueSneakAttackEffectKey[];
+  useRendMind: boolean;
 };
 
-function SneakAttackModal({ action, character, onClose, onConfirm }: SneakAttackModalProps) {
+type SneakAttackActionBodyProps = {
+  action: FeatureActionCard;
+  character: Character;
+  onConfirm: (selection: SneakAttackActionSelection) => void;
+};
+
+function SneakAttackActionBody({ action, character, onConfirm }: SneakAttackActionBodyProps) {
   const [selectedEffectKeys, setSelectedEffectKeys] = useState<RogueSneakAttackEffectKey[]>([]);
   const [selectedReferenceEffect, setSelectedReferenceEffect] =
     useState<RogueSneakAttackEffectDefinition | null>(null);
+  const [selectedRendMind, setSelectedRendMind] = useState(false);
   const effectDefinitions = getRogueSneakAttackEffectDefinitions(character);
   const maxEffects = getRogueSneakAttackMaxEffects(character);
-  const baseDiceCount = getRogueSneakAttackDiceCount(character);
-  const selectedEffectCost = getRogueSneakAttackEffectDiceCost(selectedEffectKeys);
+  const totalDiceCount = getRogueSneakAttackDiceCount(character);
+  const selectedEffectCost = getRogueSneakAttackEffectDiceCost(character, selectedEffectKeys);
   const previewValueLabel =
     getRogueSneakAttackValueLabel(character, selectedEffectKeys) ??
     action.valueLabel ??
     action.summary;
+  const hasRendMind = hasRogueSoulknifeRendMindFeature(character);
+  const rendMindUsesRemaining = getRogueSoulknifeRendMindUsesRemaining(character);
+  const psionicDiceRemaining = getRogueSoulknifePsionicDiceRemaining(character);
+  const canUseRendMind = rendMindUsesRemaining > 0 || psionicDiceRemaining > 0;
+  const rendMindSaveDc =
+    8 + getAbilityModifier(character.abilities?.DEX ?? 10) + getProficiencyBonus(character.level);
+  const rendMindUsageLabel =
+    rendMindUsesRemaining > 0
+      ? "1 charge available"
+      : psionicDiceRemaining > 0
+        ? "Use 1 Psionic Die"
+        : "No charge or Psionic Die remaining";
 
   function toggleEffect(effect: RogueSneakAttackEffectDefinition) {
     setSelectedEffectKeys((currentKeys) => {
@@ -47,7 +71,7 @@ function SneakAttackModal({ action, character, onClose, onConfirm }: SneakAttack
 
       if (
         currentKeys.length >= maxEffects ||
-        getRogueSneakAttackEffectDiceCost(currentKeys) + effect.costDice > baseDiceCount
+        getRogueSneakAttackEffectDiceCost(character, currentKeys) + effect.costDice > totalDiceCount
       ) {
         return currentKeys;
       }
@@ -58,107 +82,121 @@ function SneakAttackModal({ action, character, onClose, onConfirm }: SneakAttack
 
   return (
     <>
-      <div className={sheetStyles.spellManagementBackdrop} role="presentation" onClick={onClose}>
-        <section
-          className={clsx(sheetStyles.spellManagementModal, sharedModalStyles.featureActionModal)}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="sneak-attack-modal-title"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <div className={sheetStyles.spellManagementHeader}>
-            <div className={sharedModalStyles.modalHeading}>
-              <p className={sheetStyles.eyebrow}>Rogue</p>
-              <h3 id="sneak-attack-modal-title" className={sheetStyles.sheetPanelTitle}>
-                {action.name}
-              </h3>
-              <p className={shared.helperText}>{action.breakdown ?? action.detail}</p>
+      <CellContainer
+        className={styles.sneakAttackPreviewCard}
+        label="Damage"
+        content={previewValueLabel}
+      />
+
+      {effectDefinitions.length > 0 ? (
+        <div className={styles.sneakAttackEffectsSection}>
+          <div className={styles.sneakAttackEffectsHeader}>
+            <div>
+              <h4 className={styles.sneakAttackEffectsTitle}>Cunning Strike</h4>
+              <p className={shared.helperText}>
+                Choose up to {maxEffects} effect{maxEffects === 1 ? "" : "s"}. Each effect reduces
+                the Sneak Attack dice you roll.
+              </p>
             </div>
-            <button
-              type="button"
-              className={sheetStyles.spellManagementCloseButton}
-              onClick={onClose}
-              aria-label="Close Sneak Attack"
-            >
-              <X size={18} />
-            </button>
+            <span className={styles.sneakAttackEffectSpend}>{selectedEffectCost}d6 spent</span>
           </div>
 
-          <CellContainer
-            className={styles.sneakAttackPreviewCard}
-            label="Damage"
-            content={previewValueLabel}
-          />
+          <div className={styles.sneakAttackEffectsList}>
+            {effectDefinitions.map((effect) => {
+              const isSelected = selectedEffectKeys.includes(effect.key);
+              const isDisabled =
+                !isSelected &&
+                (selectedEffectKeys.length >= maxEffects ||
+                  selectedEffectCost + effect.costDice > totalDiceCount);
 
-          {effectDefinitions.length > 0 ? (
-            <div className={styles.sneakAttackEffectsSection}>
-              <div className={styles.sneakAttackEffectsHeader}>
-                <div>
-                  <h4 className={styles.sneakAttackEffectsTitle}>Cunning Strike</h4>
-                  <p className={shared.helperText}>
-                    Choose up to {maxEffects} effect{maxEffects === 1 ? "" : "s"}. Each effect
-                    reduces the Sneak Attack dice you roll.
-                  </p>
+              return (
+                <div
+                  key={effect.key}
+                  className={clsx(
+                    styles.sneakAttackEffectRow,
+                    isSelected && styles.sneakAttackEffectRowSelected
+                  )}
+                >
+                  <button
+                    type="button"
+                    className={styles.sneakAttackEffectButton}
+                    onClick={() => toggleEffect(effect)}
+                    disabled={isDisabled}
+                    aria-pressed={isSelected}
+                  >
+                    <strong className={styles.sneakAttackEffectName}>{effect.name}</strong>
+                    <small className={styles.sneakAttackEffectMeta}>
+                      {`Cost: ${effect.costDice}d6`}
+                    </small>
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.sneakAttackReferenceButton}
+                    onClick={() => setSelectedReferenceEffect(effect)}
+                    aria-label={`Open ${effect.name} reference`}
+                  >
+                    <BookOpen size={16} />
+                  </button>
                 </div>
-                <span className={styles.sneakAttackEffectSpend}>{selectedEffectCost}d6 spent</span>
-              </div>
-
-              <div className={styles.sneakAttackEffectsList}>
-                {effectDefinitions.map((effect) => {
-                  const isSelected = selectedEffectKeys.includes(effect.key);
-                  const isDisabled =
-                    !isSelected &&
-                    (selectedEffectKeys.length >= maxEffects ||
-                      selectedEffectCost + effect.costDice > baseDiceCount);
-
-                  return (
-                    <div
-                      key={effect.key}
-                      className={clsx(
-                        styles.sneakAttackEffectRow,
-                        isSelected && styles.sneakAttackEffectRowSelected
-                      )}
-                    >
-                      <button
-                        type="button"
-                        className={styles.sneakAttackEffectButton}
-                        onClick={() => toggleEffect(effect)}
-                        disabled={isDisabled}
-                        aria-pressed={isSelected}
-                      >
-                        <strong className={styles.sneakAttackEffectName}>{effect.name}</strong>
-                        <small className={styles.sneakAttackEffectMeta}>
-                          {`Cost: ${effect.costDice}d6`}
-                        </small>
-                      </button>
-                      <button
-                        type="button"
-                        className={styles.sneakAttackReferenceButton}
-                        onClick={() => setSelectedReferenceEffect(effect)}
-                        aria-label={`Open ${effect.name} reference`}
-                      >
-                        <BookOpen size={16} />
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-          ) : null}
-
-          <div className={shared.formActions}>
-            <button type="button" className={shared.cancelButton} onClick={onClose}>
-              Cancel
-            </button>
-            <button
-              type="button"
-              className={shared.saveButton}
-              onClick={() => onConfirm(selectedEffectKeys)}
-            >
-              Sneak Attack
-            </button>
+              );
+            })}
           </div>
-        </section>
+        </div>
+      ) : null}
+
+      {hasRendMind ? (
+        <div className={styles.rendMindSection}>
+          <div className={styles.rendMindHeader}>
+            <div>
+              <h4 className={styles.sneakAttackEffectsTitle}>Rend Mind</h4>
+              <p className={shared.helperText}>
+                Opt in when the triggering Sneak Attack used your Psychic Blade.
+              </p>
+            </div>
+            <span className={styles.rendMindTag}>{rendMindUsageLabel}</span>
+          </div>
+
+          <label
+            className={clsx(
+              styles.rendMindOption,
+              selectedRendMind && styles.rendMindOptionSelected,
+              !canUseRendMind && styles.rendMindOptionDisabled
+            )}
+          >
+            <input
+              type="checkbox"
+              className={styles.rendMindCheckbox}
+              checked={selectedRendMind}
+              disabled={!canUseRendMind}
+              onChange={(event) => setSelectedRendMind(event.target.checked)}
+            />
+            <div className={styles.rendMindBody}>
+              <strong>Rend Mind</strong>
+              <small className={styles.rendMindMeta}>
+                {`Wis Save DC ${rendMindSaveDc} | ${rendMindUsesRemaining > 0 ? "Long Rest charge" : "Use 1 Psionic Die"}`}
+              </small>
+            </div>
+          </label>
+
+          {!canUseRendMind ? (
+            <p className={styles.rendMindWarning}>Rend Mind needs a charge or 1 Psionic Die.</p>
+          ) : null}
+        </div>
+      ) : null}
+
+      <div className={shared.formActions}>
+        <button
+          type="button"
+          className={shared.saveButton}
+          onClick={() =>
+            onConfirm({
+              effectKeys: selectedEffectKeys,
+              useRendMind: selectedRendMind && canUseRendMind
+            })
+          }
+        >
+          Sneak Attack
+        </button>
       </div>
 
       {selectedReferenceEffect ? (
@@ -179,4 +217,4 @@ function SneakAttackModal({ action, character, onClose, onConfirm }: SneakAttack
   );
 }
 
-export default SneakAttackModal;
+export default SneakAttackActionBody;

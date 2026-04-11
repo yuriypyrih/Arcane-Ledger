@@ -4,7 +4,7 @@ import {
   type FeatureClassObj,
   type SpellEntry
 } from "../../codex/entries";
-import type { CharacterClassFeatureState } from "../../types";
+import type { CharacterClassFeatureState, CharacterStatusEntry } from "../../types";
 import { getSpellEntriesForSpellListClasses } from "../../codex/classes/spellAccess";
 import { getClassEntryByName } from "../../codex/selectors";
 import {
@@ -19,6 +19,7 @@ import {
 } from "./classFeatures";
 
 const spellSlotLevels = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
+const arcaneTricksterRequiredCantripId = "spell-mage-hand";
 
 function createSpellSlotRow(...slots: number[]): number[] {
   return spellSlotLevels.map((_, index) => Math.max(0, Math.floor(slots[index] ?? 0)));
@@ -226,9 +227,15 @@ export function getCantripSelectionOptionsForCharacter(
     return [];
   }
 
-  return getSpellEntriesForSpellListClasses(
+  const cantripOptions = getSpellEntriesForSpellListClasses(
     getClassSpellListClassesForCharacter(className, subclassId)
   ).filter((spell) => getSpellLevel(spell) === 0);
+
+  if (className === "Rogue" && subclassId === "rogue-arcane-trickster") {
+    return cantripOptions.filter((spell) => spell.id !== arcaneTricksterRequiredCantripId);
+  }
+
+  return cantripOptions;
 }
 
 export function getPreparedSpellSelectionOptionsForCharacter(
@@ -340,14 +347,16 @@ export function getAlwaysPreparedSpellIds(
   level: number,
   classFeatureState?: CharacterClassFeatureState,
   spellbookSpellIds?: string[],
-  subclassId?: string
+  subclassId?: string,
+  statusEntries?: CharacterStatusEntry[]
 ): string[] {
   return getAlwaysPreparedSpellIdsForCharacter({
     className,
     level,
     classFeatureState,
     spellbookSpellIds,
-    subclassId
+    subclassId,
+    statusEntries
   });
 }
 

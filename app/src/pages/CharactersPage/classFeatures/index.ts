@@ -1,6 +1,11 @@
 import type { AbilityKey, Character, CharacterClassFeatureState } from "../../../types";
 import { ALL_SKILLS } from "../../../types";
-import type { SkillName, WEAPON_PROFICIENCY } from "../../../types";
+import type {
+  RangerHunterDefensiveTacticsChoice,
+  RangerHunterPreyChoice,
+  SkillName,
+  WEAPON_PROFICIENCY
+} from "../../../types";
 import type { ActionCategory, EconomyType } from "../actionEconomy";
 import type { WeaponAction } from "../gameplay";
 import { getRoundTrackerResourceForEconomyType } from "../actionEconomy";
@@ -135,35 +140,96 @@ import {
   setDruidWildShapeKnownForms
 } from "./druid/druid";
 import {
+  applyRangerWinterWalkerFrozenHauntStatusEntries,
   consumeRangerFavoredEnemyUse,
+  consumeRangerGloomStalkerDreadAmbusherUse,
+  consumeRangerWinterWalkerChillingRetributionUse,
+  consumeRangerWinterWalkerFrozenHauntUse,
+  consumeRangerFeyReinforcementsUse,
+  consumeRangerMistyWandererUse,
+  consumeRangerWinterWalkerPolarStrikesUse,
+  chillingRetributionReactionId,
+  markRangerDreadfulStrikesUsed,
   consumeRangerNaturesVeilUse,
   consumeRangerTirelessUse,
   consumeRangerWeaponAttack,
   getRangerDeftExplorerExpertiseSelection,
   getRangerDeftExplorerLanguageSelections,
+  getRangerFeyReinforcementsUsesRemaining,
+  getRangerFeyReinforcementsUsesTotal,
+  getRangerFeyWandererGiftSelection,
+  getRangerHunterDefensiveTacticsChoice,
+  getRangerHunterPreyChoice,
+  getRangerHunterSuperiorHuntersDefenseDamageTypeSelection,
+  getRangerGloomStalkerIronMindSavingThrowOptions,
+  getRangerGloomStalkerIronMindSavingThrowSelection,
+  getRangerGloomStalkerDreadAmbusherUsesRemaining,
+  getRangerGloomStalkerDreadAmbusherUsesTotal,
+  getRangerMistyWandererUsesRemaining,
+  getRangerMistyWandererUsesTotal,
+  getRangerWinterWalkerFrozenHauntSpellOptionState,
+  getRangerWinterWalkerChillingRetributionUsesRemaining,
+  getRangerWinterWalkerChillingRetributionUsesTotal,
+  getRangerWinterWalkerFrozenHauntUsesRemaining,
+  getRangerWinterWalkerFrozenHauntUsesTotal,
+  getRangerOtherworldlyGlamourSkillSelection,
   getRangerFavoredEnemyUsesRemaining,
   getRangerFavoredEnemyUsesTotal,
   getRangerLevel9ExpertiseSelections,
   getRangerNaturesVeilUsesRemaining,
   getRangerNaturesVeilUsesTotal,
+  rangerHunterSuperiorHuntersDefenseDamageTypeOptions,
+  rangerOtherworldlyGlamourSkillOptions,
   getRangerTirelessUsesRemaining,
   getRangerTirelessUsesTotal,
+  rangerFeyWandererGiftOptions,
+  isRangerGloomStalkerIronMindLockedToWis,
+  activateRangerHunterSuperiorHuntersDefense,
+  restoreRangerFeyReinforcementsOnLongRest,
+  restoreRangerGloomStalkerDreadAmbusherOnLongRest,
+  restoreRangerMistyWandererOnLongRest,
   restoreRangerNaturesVeilOnLongRest,
   restoreRangerTirelessOnLongRest,
   setRangerDeftExplorerExpertiseSelection,
   setRangerDeftExplorerLanguageSelections,
+  setRangerFeyWandererGiftSelection,
+  setRangerHunterDefensiveTacticsChoice,
+  setRangerHunterPreyChoice,
+  setRangerHunterSuperiorHuntersDefenseDamageTypeSelection,
+  setRangerGloomStalkerIronMindSavingThrowSelection,
+  setRangerOtherworldlyGlamourSkillSelection,
   setRangerLevel9ExpertiseSelections
 } from "./ranger/ranger";
 import {
   getRogueExpertiseSelections,
+  getRogueSpellThiefUsesRemaining,
+  getRogueSpellThiefUsesTotal,
   getRogueStrokeOfLuckUsesRemaining,
   getRogueStrokeOfLuckUsesTotal,
+  consumeRogueSpellThiefUse,
   restoreRogueStrokeOfLuckOnLongRest,
+  restoreRogueSpellThiefOnLongRest,
   restoreRogueStrokeOfLuckOnShortRest,
   setRogueExpertiseSelections,
   setRogueThievesCantLanguageSelection,
   getRogueThievesCantLanguageSelection
 } from "./rogue/rogue";
+import {
+  consumeRogueScionOfTheThreeBloodthirstUse,
+  getRogueScionOfTheThreeDreadAllegianceChoice,
+  getRogueScionOfTheThreeBloodthirstUsesRemaining,
+  getRogueScionOfTheThreeBloodthirstUsesTotal,
+  rogueScionOfTheThreeBloodthirstReactionId,
+  setRogueScionOfTheThreeDreadAllegianceChoice
+} from "./rogue/subclasses/rogueScionOfTheThree";
+import {
+  expendRogueSoulknifePsionicDie,
+  getRogueSoulknifePsionicDiceRemaining,
+  getRogueSoulknifePsionicDiceTotal,
+  getRogueSoulknifePsionicDie,
+  restoreAllRogueSoulknifePsionicDice,
+  restoreRogueSoulknifePsionicDie
+} from "./rogue/subclasses/rogueSoulknife";
 import {
   createSpellSlotFromSorceryPoints,
   convertSpellSlotToSorceryPoints,
@@ -226,11 +292,15 @@ import {
 import { getSubclassDerivedFeatureState } from "./subclasses";
 import {
   applyLayOnHands,
+  consumeElementalRebukeUse,
   consumeGloriousDefenseUse,
   expendPaladinChannelDivinityUse,
   consumeFaithfulSteedUse,
   consumePaladinWeaponAttack,
   consumePaladinsSmiteUse,
+  elementalRebukeReactionId,
+  getElementalRebukeUsesRemaining,
+  getElementalRebukeUsesTotal,
   getGloriousDefenseUsesRemaining,
   getGloriousDefenseUsesTotal,
   getLayOnHandsCurableConditions,
@@ -238,12 +308,18 @@ import {
   getPaladinChannelDivinityUsesTotal,
   getPaladinHealingPoolRemaining,
   getPaladinHealingPoolTotal,
+  getPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter as getPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelection,
+  getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter as getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection,
   getPaladinsSmiteUsesRemaining,
   gloriousDefenseReactionId,
   hasActivePaladinAuraOfProtection,
+  paladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeOptions,
+  paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions,
   restorePaladinChannelDivinityOnLongRest,
   restorePaladinChannelDivinityOnShortRest,
-  restorePaladinLayOnHandsOnLongRest
+  restorePaladinLayOnHandsOnLongRest,
+  setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter as setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelection,
+  setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter as setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection
 } from "./paladin/paladin";
 import {
   applyPerfectFocusOnInitiative,
@@ -333,8 +409,10 @@ import type {
   FeatureArmorClassBonus,
   FeatureArmorClassMode,
   EconomyMultiActionContext,
+  FeatureEquipmentEntry,
   FeatureLanguageProficiencyEntry,
   FeatureDamageBonus,
+  FeatureInitiativeBonus,
   FeatureEconomyMultiAccessRule,
   FeatureEconomyMultiPool,
   FeatureSavingThrowBonus,
@@ -462,6 +540,19 @@ export function getFeatureActionsForCharacter(character: Character): FeatureActi
     : actions;
 }
 
+export function getFeatureEquipmentEntriesForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId" | "equipment" | "customEquipment">>
+): FeatureEquipmentEntry[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+
+  return [
+    ...(baseFeatureState.equipmentEntries ?? []),
+    ...(subclassDerivedState.equipmentEntries ?? [])
+  ];
+}
+
 export function getFeatureWeaponActionsForCharacter(character: Character) {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
@@ -504,7 +595,10 @@ export function getFeatureActionOptionsForCharacter(
 export function getFeatureDamageBonusesForWeaponAction(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
     Partial<
-      Pick<Character, "subclassId" | "roundTracker" | "equipment" | "customEquipment" | "statusEntries">
+      Pick<
+        Character,
+        "subclassId" | "roundTracker" | "equipment" | "customEquipment" | "statusEntries"
+      >
     >,
   context: WeaponFeatureContext
 ): FeatureDamageBonus[] {
@@ -591,6 +685,19 @@ export function getCoreStatIndicatorsForCharacter(
     baseFeatureState.coreStatIndicators ?? {},
     getSubclassDerivedFeatureState(character).coreStatIndicators ?? {}
   );
+}
+
+export function getInitiativeBonusesForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "abilities"> &
+    Partial<Pick<Character, "subclassId">>
+): FeatureInitiativeBonus[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+
+  return [
+    ...(baseFeatureState.getInitiativeBonuses?.() ?? []),
+    ...(subclassDerivedState.getInitiativeBonuses?.() ?? [])
+  ];
 }
 
 export function getSkillIndicatorsForCharacter(
@@ -1069,11 +1176,112 @@ export function getRangerDeftExplorerExpertiseSelectionForCharacter(
   return getRangerDeftExplorerExpertiseSelection(character);
 }
 
+export function getRangerFeyWandererGiftSelectionForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+) {
+  return getRangerFeyWandererGiftSelection(character);
+}
+
+export function getRangerHunterPreyChoiceForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+) {
+  return getRangerHunterPreyChoice(character);
+}
+
+export function getRangerHunterDefensiveTacticsChoiceForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+) {
+  return getRangerHunterDefensiveTacticsChoice(character);
+}
+
+export function getRangerHunterSuperiorHuntersDefenseDamageTypeSelectionForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+) {
+  return getRangerHunterSuperiorHuntersDefenseDamageTypeSelection(character);
+}
+
+export function getRangerOtherworldlyGlamourSkillSelectionForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+) {
+  return getRangerOtherworldlyGlamourSkillSelection(character);
+}
+
+export function getRangerGloomStalkerIronMindSavingThrowSelectionForCharacter(
+  character: Pick<
+    Character,
+    "className" | "classFeatureState" | "level" | "savingThrowProficiencies"
+  > &
+    Partial<Pick<Character, "subclassId">>
+) {
+  return getRangerGloomStalkerIronMindSavingThrowSelection(character);
+}
+
+export function getRangerGloomStalkerIronMindSavingThrowOptionsForCharacter(
+  character: Pick<Character, "className" | "level" | "savingThrowProficiencies"> &
+    Partial<Pick<Character, "classFeatureState" | "subclassId">>
+) {
+  return getRangerGloomStalkerIronMindSavingThrowOptions(character);
+}
+
+export function isRangerGloomStalkerIronMindLockedToWisForCharacter(
+  character: Pick<Character, "className" | "level" | "savingThrowProficiencies"> &
+    Partial<Pick<Character, "classFeatureState" | "subclassId">>
+) {
+  return isRangerGloomStalkerIronMindLockedToWis(character);
+}
+
 export function setRangerDeftExplorerExpertiseSelectionForCharacter(
   character: Character,
   selection: Parameters<typeof setRangerDeftExplorerExpertiseSelection>[1]
 ): Character {
   return setRangerDeftExplorerExpertiseSelection(character, selection);
+}
+
+export function setRangerFeyWandererGiftSelectionForCharacter(
+  character: Character,
+  selection: Parameters<typeof setRangerFeyWandererGiftSelection>[1]
+): Character {
+  return setRangerFeyWandererGiftSelection(character, selection);
+}
+
+export function setRangerHunterPreyChoiceForCharacter(
+  character: Character,
+  choice: RangerHunterPreyChoice | null
+): Character {
+  return setRangerHunterPreyChoice(character, choice);
+}
+
+export function setRangerHunterDefensiveTacticsChoiceForCharacter(
+  character: Character,
+  choice: RangerHunterDefensiveTacticsChoice | null
+): Character {
+  return setRangerHunterDefensiveTacticsChoice(character, choice);
+}
+
+export function setRangerHunterSuperiorHuntersDefenseDamageTypeSelectionForCharacter(
+  character: Character,
+  selection: Parameters<typeof setRangerHunterSuperiorHuntersDefenseDamageTypeSelection>[1]
+): Character {
+  return setRangerHunterSuperiorHuntersDefenseDamageTypeSelection(character, selection);
+}
+
+export function setRangerOtherworldlyGlamourSkillSelectionForCharacter(
+  character: Character,
+  selection: Parameters<typeof setRangerOtherworldlyGlamourSkillSelection>[1]
+): Character {
+  return setRangerOtherworldlyGlamourSkillSelection(character, selection);
+}
+
+export function setRangerGloomStalkerIronMindSavingThrowSelectionForCharacter(
+  character: Character,
+  proficiency: Parameters<typeof setRangerGloomStalkerIronMindSavingThrowSelection>[1]
+): Character {
+  return setRangerGloomStalkerIronMindSavingThrowSelection(character, proficiency);
 }
 
 export function setBardLoreBonusProficiencySelectionsForCharacter(
@@ -1151,6 +1359,20 @@ export function setRogueThievesCantLanguageSelectionForCharacter(
   return setRogueThievesCantLanguageSelection(character, selection);
 }
 
+export function getRogueScionOfTheThreeDreadAllegianceChoiceForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+) {
+  return getRogueScionOfTheThreeDreadAllegianceChoice(character);
+}
+
+export function setRogueScionOfTheThreeDreadAllegianceChoiceForCharacter(
+  character: Character,
+  choice: Parameters<typeof setRogueScionOfTheThreeDreadAllegianceChoice>[1]
+): Character {
+  return setRogueScionOfTheThreeDreadAllegianceChoice(character, choice);
+}
+
 export function setRangerLevel9ExpertiseSelectionsForCharacter(
   character: Character,
   selections: Parameters<typeof setRangerLevel9ExpertiseSelections>[1]
@@ -1174,6 +1396,13 @@ export function getBarbarianPrimalKnowledgeSkillSelectionForCharacter(
   return getBarbarianPrimalKnowledgeSkillSelection(character);
 }
 
+export { paladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeOptions };
+export { rangerHunterSuperiorHuntersDefenseDamageTypeOptions };
+export {
+  paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions,
+  rangerFeyWandererGiftOptions,
+  rangerOtherworldlyGlamourSkillOptions
+};
 export { fighterBanneretKnightlyEnvoySkillOptions };
 
 export function getFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter(
@@ -1195,6 +1424,20 @@ export function getFighterBanneretKnightlyEnvoySkillSelectionForCharacter(
     Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
 ) {
   return getFighterBanneretKnightlyEnvoySkillSelection(character);
+}
+
+export function getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+) {
+  return getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection(character);
+}
+
+export function getPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState" | "statusEntries">>
+) {
+  return getPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelection(character);
 }
 
 export function getFighterIndomitableUsesTotalForCharacter(
@@ -1311,11 +1554,15 @@ export function consumeFighterIndomitableUseForCharacter(character: Character): 
   return consumeFighterIndomitableUse(character);
 }
 
-export function expendFighterBattleMasterSuperiorityDieForCharacter(character: Character): Character {
+export function expendFighterBattleMasterSuperiorityDieForCharacter(
+  character: Character
+): Character {
   return expendFighterBattleMasterSuperiorityDie(character);
 }
 
-export function restoreFighterBattleMasterSuperiorityDieForCharacter(character: Character): Character {
+export function restoreFighterBattleMasterSuperiorityDieForCharacter(
+  character: Character
+): Character {
   return restoreFighterBattleMasterSuperiorityDie(character);
 }
 
@@ -1371,6 +1618,25 @@ export function setFighterBanneretKnightlyEnvoySkillSelectionForCharacter(
   selection: Parameters<typeof setFighterBanneretKnightlyEnvoySkillSelection>[1]
 ): Character {
   return setFighterBanneretKnightlyEnvoySkillSelection(character, selection);
+}
+
+export function setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter(
+  character: Character,
+  selection: Parameters<typeof setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection>[1]
+): Character {
+  return setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection(character, selection);
+}
+
+export function setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter(
+  character: Character,
+  selection: Parameters<
+    typeof setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelection
+  >[1]
+): Character {
+  return setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelection(
+    character,
+    selection
+  );
 }
 
 export function setBarbarianPrimalKnowledgeSkillSelectionForCharacter(
@@ -1548,7 +1814,8 @@ export function getAlwaysPreparedSpellIdsForCharacter(
   character: Pick<
     Character,
     "className" | "level" | "classFeatureState" | "spellbookSpellIds" | "subclassId"
-  >
+  > &
+    Partial<Pick<Character, "statusEntries">>
 ): string[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
@@ -2122,6 +2389,39 @@ export function getRangerNaturesVeilUsesTotalForCharacter(
   return getRangerNaturesVeilUsesTotal(character);
 }
 
+export function getRangerFeyReinforcementsUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return getRangerFeyReinforcementsUsesTotal(character);
+}
+
+export function getRangerMistyWandererUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
+): number {
+  return getRangerMistyWandererUsesTotal(character);
+}
+
+export function getRangerGloomStalkerDreadAmbusherUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
+): number {
+  return getRangerGloomStalkerDreadAmbusherUsesTotal(character);
+}
+
+export function getRangerWinterWalkerChillingRetributionUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
+): number {
+  return getRangerWinterWalkerChillingRetributionUsesTotal(character);
+}
+
+export function getRangerWinterWalkerFrozenHauntUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return getRangerWinterWalkerFrozenHauntUsesTotal(character);
+}
+
 export function getRangerTirelessUsesRemainingForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
     Partial<Pick<Character, "abilities">>
@@ -2135,10 +2435,73 @@ export function getRogueStrokeOfLuckUsesTotalForCharacter(
   return getRogueStrokeOfLuckUsesTotal(character);
 }
 
+export function getRogueSpellThiefUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return getRogueSpellThiefUsesTotal(character);
+}
+
+export function getRogueSpellThiefUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  return getRogueSpellThiefUsesRemaining(character);
+}
+
+export function getRogueSoulknifePsionicDiceTotalForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return getRogueSoulknifePsionicDiceTotal(character);
+}
+
+export function getRogueSoulknifePsionicDiceRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  return getRogueSoulknifePsionicDiceRemaining(character);
+}
+
+export function getRogueSoulknifePsionicDieForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): "d6" | "d8" | "d10" | "d12" | null {
+  return getRogueSoulknifePsionicDie(character);
+}
+
+export const rogueScionOfTheThreeBloodthirstReactionEntryId =
+  rogueScionOfTheThreeBloodthirstReactionId;
+
 export function getRogueStrokeOfLuckUsesRemainingForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): number {
   return getRogueStrokeOfLuckUsesRemaining(character);
+}
+
+export function getRogueScionOfTheThreeBloodthirstUsesTotalForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): number {
+  return getRogueScionOfTheThreeBloodthirstUsesTotal(character);
+}
+
+export function getRogueScionOfTheThreeBloodthirstUsesRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "subclassId">>
+): number {
+  return getRogueScionOfTheThreeBloodthirstUsesRemaining(character);
+}
+
+export function consumeRogueSpellThiefUseForCharacter(character: Character): Character {
+  return consumeRogueSpellThiefUse(character);
+}
+
+export function consumeRogueScionOfTheThreeBloodthirstUseForCharacter(
+  character: Character
+): Character {
+  return consumeRogueScionOfTheThreeBloodthirstUse(character);
+}
+
+export function expendRogueSoulknifePsionicDieForCharacter(character: Character): Character {
+  return expendRogueSoulknifePsionicDie(character);
 }
 
 export function getRangerNaturesVeilUsesRemainingForCharacter(
@@ -2148,12 +2511,98 @@ export function getRangerNaturesVeilUsesRemainingForCharacter(
   return getRangerNaturesVeilUsesRemaining(character);
 }
 
+export function getRangerFeyReinforcementsUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  return getRangerFeyReinforcementsUsesRemaining(character);
+}
+
+export function getRangerMistyWandererUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
+): number {
+  return getRangerMistyWandererUsesRemaining(character);
+}
+
+export function getRangerGloomStalkerDreadAmbusherUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
+): number {
+  return getRangerGloomStalkerDreadAmbusherUsesRemaining(character);
+}
+
+export function getRangerWinterWalkerChillingRetributionUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
+): number {
+  return getRangerWinterWalkerChillingRetributionUsesRemaining(character);
+}
+
+export function getRangerWinterWalkerFrozenHauntUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  return getRangerWinterWalkerFrozenHauntUsesRemaining(character);
+}
+
+export function getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>,
+  spell: Pick<SpellEntry, "id"> | null,
+  spellSlotTotals: readonly number[],
+  spellSlotsExpended: readonly number[]
+) {
+  return getRangerWinterWalkerFrozenHauntSpellOptionState(
+    character,
+    spell,
+    spellSlotTotals,
+    spellSlotsExpended
+  );
+}
+
 export function consumeRangerTirelessUseForCharacter(character: Character): Character {
   return consumeRangerTirelessUse(character);
 }
 
 export function consumeRangerNaturesVeilUseForCharacter(character: Character): Character {
   return consumeRangerNaturesVeilUse(character);
+}
+
+export function consumeRangerFeyReinforcementsUseForCharacter(character: Character): Character {
+  return consumeRangerFeyReinforcementsUse(character);
+}
+
+export function consumeRangerMistyWandererUseForCharacter(character: Character): Character {
+  return consumeRangerMistyWandererUse(character);
+}
+
+export function consumeRangerGloomStalkerDreadAmbusherUseForCharacter(
+  character: Character
+): Character {
+  return consumeRangerGloomStalkerDreadAmbusherUse(character);
+}
+
+export function consumeRangerWinterWalkerPolarStrikesUseForCharacter(
+  character: Character
+): Character {
+  return consumeRangerWinterWalkerPolarStrikesUse(character);
+}
+
+export function consumeRangerWinterWalkerChillingRetributionUseForCharacter(
+  character: Character
+): Character {
+  return consumeRangerWinterWalkerChillingRetributionUse(character);
+}
+
+export function consumeRangerWinterWalkerFrozenHauntUseForCharacter(
+  character: Character
+): Character {
+  return consumeRangerWinterWalkerFrozenHauntUse(character);
+}
+
+export function applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter(value: unknown) {
+  return applyRangerWinterWalkerFrozenHauntStatusEntries(value);
 }
 
 export function consumeBarbarianWarriorOfTheGodsChargesForCharacter(
@@ -2171,12 +2620,40 @@ export function restoreRangerNaturesVeilOnLongRestForCharacter(character: Charac
   return restoreRangerNaturesVeilOnLongRest(character);
 }
 
+export function restoreRangerFeyReinforcementsOnLongRestForCharacter(
+  character: Character
+): Character {
+  return restoreRangerFeyReinforcementsOnLongRest(character);
+}
+
+export function restoreRangerMistyWandererOnLongRestForCharacter(character: Character): Character {
+  return restoreRangerMistyWandererOnLongRest(character);
+}
+
+export function restoreRangerGloomStalkerDreadAmbusherOnLongRestForCharacter(
+  character: Character
+): Character {
+  return restoreRangerGloomStalkerDreadAmbusherOnLongRest(character);
+}
+
 export function restoreRogueStrokeOfLuckOnShortRestForCharacter(character: Character): Character {
   return restoreRogueStrokeOfLuckOnShortRest(character);
 }
 
 export function restoreRogueStrokeOfLuckOnLongRestForCharacter(character: Character): Character {
   return restoreRogueStrokeOfLuckOnLongRest(character);
+}
+
+export function restoreRogueSpellThiefOnLongRestForCharacter(character: Character): Character {
+  return restoreRogueSpellThiefOnLongRest(character);
+}
+
+export function restoreRogueSoulknifePsionicDieForCharacter(character: Character): Character {
+  return restoreRogueSoulknifePsionicDie(character);
+}
+
+export function restoreAllRogueSoulknifePsionicDiceForCharacter(character: Character): Character {
+  return restoreAllRogueSoulknifePsionicDice(character);
 }
 
 export function getChannelDivinityUsesTotalForCharacter(
@@ -2271,6 +2748,8 @@ export function consumeFaithfulSteedUseForCharacter(character: Character): Chara
 }
 
 export const paladinGloriousDefenseReactionEntryId = gloriousDefenseReactionId;
+export const paladinElementalRebukeReactionEntryId = elementalRebukeReactionId;
+export const rangerWinterWalkerChillingRetributionReactionEntryId = chillingRetributionReactionId;
 
 export function getGloriousDefenseUsesTotalForCharacter(
   character: Pick<Character, "className"> &
@@ -2288,6 +2767,30 @@ export function getGloriousDefenseUsesRemainingForCharacter(
 
 export function consumeGloriousDefenseUseForCharacter(character: Character): Character {
   return consumeGloriousDefenseUse(character);
+}
+
+export function getElementalRebukeUsesTotalForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): number {
+  return getElementalRebukeUsesTotal(character);
+}
+
+export function getElementalRebukeUsesRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId" | "classFeatureState">>
+): number {
+  return getElementalRebukeUsesRemaining(character);
+}
+
+export function consumeElementalRebukeUseForCharacter(character: Character): Character {
+  return consumeElementalRebukeUse(character);
+}
+
+export function activateRangerHunterSuperiorHuntersDefenseForCharacter(
+  character: Character
+): Character {
+  return activateRangerHunterSuperiorHuntersDefense(character);
 }
 
 export function hasActivePaladinAuraOfProtectionForCharacter(
@@ -2409,6 +2912,10 @@ export function markFeatureWeaponBonusUseForCharacter(
 
   if (label === "Primal Strike") {
     return markDruidPrimalStrikeUsed(character);
+  }
+
+  if (label === "Dreadful Strikes") {
+    return markRangerDreadfulStrikesUsed(character);
   }
 
   if (label === monkWarriorOfMercyHandOfHarmBonusLabel) {

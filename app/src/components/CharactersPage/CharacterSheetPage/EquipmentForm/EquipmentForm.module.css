@@ -622,6 +622,14 @@
   font-weight: 600;
 }
 
+.featureManagedItemNote {
+  margin: 0;
+  margin-right: auto;
+  color: var(--color-ink-soft);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
 .removeItemButton {
   border: none;
   border-radius: 12px;

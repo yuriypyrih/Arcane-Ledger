@@ -11,11 +11,8 @@ import {
   type SpeciesEntry,
   type WeaponEntry
 } from "../../codex/entries";
-import {
-  getBackgroundEntries,
-  getLoadoutEntries,
-  getSpeciesEntries
-} from "../../codex/selectors";
+import { getBackgroundEntries, getLoadoutEntries, getSpeciesEntries } from "../../codex/selectors";
+import { psychicBladeWeaponName } from "../../codex/entries/featureWeapons";
 import type { ArmorType } from "./proficiencyClassData";
 import type { WeaponType } from "./proficiencyWeaponLabels";
 
@@ -113,8 +110,10 @@ function toEquipmentDefinition(entry: LoadoutCodexEntry): EquipmentDefinition | 
 }
 
 const loadoutCodexEntries: LoadoutCodexEntry[] = getLoadoutEntries();
+const excludedEquipmentCatalogNames = new Set<string>([psychicBladeWeaponName]);
 
 export const equipmentCatalog: EquipmentDefinition[] = loadoutCodexEntries
+  .filter((entry) => !excludedEquipmentCatalogNames.has(entry.name))
   .map((entry) => toEquipmentDefinition(entry))
   .filter((entry): entry is EquipmentDefinition => entry !== null)
   .sort((left, right) => left.name.localeCompare(right.name));

@@ -111,6 +111,27 @@
   margin: 0;
 }
 
+.featureActionSelectField {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.45rem;
+  margin-left: 1.4rem;
+  min-width: 0;
+}
+
+.featureActionSelectLabel {
+  color: #8c4d14;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.featureActionSelect {
+  min-height: 36px;
+  min-width: 168px;
+  width: auto;
+}
+
 .featureActionTracker {
   align-items: center;
   color: #8c4d14;
@@ -131,6 +152,12 @@
   font-size: 0.8rem;
   font-weight: 700;
   gap: 0.28rem;
+}
+
+.featureActionCostIcon {
+  flex: 0 0 auto;
+  height: 14px;
+  width: 14px;
 }
 
 .featureActionCostDivider {

@@ -6,7 +6,6 @@ import pyromancyIcon from "../../../../../assets/svg/pyromancy.svg";
 import CellContainer from "../../../../CellContainer/CellContainer";
 import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
 import SpellListRow from "../../../../SpellListRow";
-import KeywordReferenceDrawer from "../../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import { MonsterEntryDrawer } from "../../../../MonsterEntryRenderer";
 import CharacterSpellDrawer from "../../SpellCastingForm/CharacterSpellDrawer";
 import SelectInput from "../../../FormInputs/SelectInput";
@@ -28,13 +27,18 @@ import {
   applyBardBattleMagicAfterSpellCastForCharacter,
   applyInspiredEclipseStatusForCharacter,
   applyMantleOfMajestyStatusForCharacter,
+  applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter,
   applyLayOnHandsForCharacter,
   consumeBeguilingMagicOrBardicInspirationForCharacter,
   consumeMantleOfMajestyUseForCharacter,
   consumeContactPatronUseForCharacter,
   consumeDruidStarMapGuidingBoltUseForCharacter,
+  expendChannelDivinityUseForCharacter,
   consumeFighterPsiWarriorPsionicStrikeForCharacter,
   consumeMysticArcanumUseForCharacter,
+  consumeRangerGloomStalkerDreadAmbusherUseForCharacter,
+  consumeRangerWinterWalkerFrozenHauntUseForCharacter,
+  consumeRangerWinterWalkerPolarStrikesUseForCharacter,
   createSpellSlotFromSorceryPointsForCharacter,
   consumeFaithfulSteedUseForCharacter,
   consumePaladinsSmiteUseForCharacter,
@@ -57,6 +61,7 @@ import {
   getBardicInspirationUsesRemainingForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
   getBeguilingMagicUsesTotalForCharacter,
+  getChannelDivinityUsesRemainingForCharacter,
   getMonkFocusPointsRemainingForCharacter,
   getMantleOfMajestyFallbackSlotLevelForCharacter,
   getMantleOfMajestyUsesRemainingForCharacter,
@@ -69,6 +74,7 @@ import {
   getSharedEconomyMultiCountForCharacterAction,
   getSpellEntryForCharacter,
   getSpellcastingStateForCharacter,
+  getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter,
   hasBattleMagicBonusWeaponAttackForCharacter,
   getWarlockMysticArcanumSelectionsForCharacter,
   hasActivePaladinAuraOfProtectionForCharacter,
@@ -122,7 +128,10 @@ import {
   activatePaladinOathOfDevotionSacredWeapon,
   getPaladinOathOfDevotionSacredWeaponOptionState
 } from "../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfDevotion";
+import { hasPaladinOathOfTheNobleGeniesElementalSmite } from "../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
 import { getRangerTirelessTemporaryHitPointsFormula } from "../../../../../pages/CharactersPage/classFeatures/ranger/ranger";
+import { getRangerGloomStalkerDreadAmbusherOptionState } from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerGloomStalker";
+import { getRangerWinterWalkerPolarStrikesOptionState } from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerWinterWalker";
 import { metamagicActionKey } from "../../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
 import { type MysticArcanumLevel } from "../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import {
@@ -131,13 +140,13 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
 import {
   getRogueSneakAttackEffectDefinitions,
-  getRogueSneakAttackEffectDiceCost,
-  getRogueSneakAttackFormula,
-  getRogueSneakAttackMaxEffects,
-  getRogueSneakAttackValueLabel,
-  type RogueSneakAttackEffectDefinition,
-  type RogueSneakAttackEffectKey
+  getRogueSneakAttackFormula
 } from "../../../../../pages/CharactersPage/classFeatures/rogue/rogue";
+import {
+  consumeRogueSoulknifeRendMindUse,
+  getRogueSoulknifePsionicDiceRemaining,
+  getRogueSoulknifeRendMindUsesRemaining
+} from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueSoulknife";
 import {
   getCombatActionsForCharacter,
   type GameplayActionDefinition
@@ -210,7 +219,7 @@ import arcaneRecoveryStyles from "./ArcaneRecoveryModal.module.css";
 import indomitableStyles from "./IndomitableModal.module.css";
 import layOnHandsStyles from "./LayOnHandsModal.module.css";
 import fontOfMagicStyles from "./FontOfMagicModal.module.css";
-import sneakAttackStyles from "./SneakAttackModal.module.css";
+import SneakAttackActionBody, { type SneakAttackActionSelection } from "./SneakAttackModal";
 import divineStyles from "./DivineInterventionModal.module.css";
 import GameplayActionDrawer from "./GameplayActionDrawer";
 import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
@@ -278,6 +287,8 @@ type FontOfMagicSelection =
       kind: "points-to-slot";
       spellSlotLevel: number;
     };
+
+const frozenHauntFallbackSpellSlotMinimumLevel = 4;
 
 type WildCompanionResourceKind = "wild-shape" | "spell-slot";
 type WildResurgenceMode = "spell-slot-to-wild-shape" | "wild-shape-to-slot";
@@ -799,140 +810,6 @@ function WarriorOfTheGodsActionBody({
           Heal
         </button>
       </div>
-    </>
-  );
-}
-
-function SneakAttackActionBody({
-  action,
-  character,
-  onConfirm
-}: {
-  action: FeatureActionCard;
-  character: Character;
-  onConfirm: (effectKeys: RogueSneakAttackEffectKey[]) => void;
-}) {
-  const [selectedEffectKeys, setSelectedEffectKeys] = useState<RogueSneakAttackEffectKey[]>([]);
-  const [selectedReferenceEffect, setSelectedReferenceEffect] =
-    useState<RogueSneakAttackEffectDefinition | null>(null);
-  const effectDefinitions = getRogueSneakAttackEffectDefinitions(character);
-  const maxEffects = getRogueSneakAttackMaxEffects(character);
-  const baseDiceCount = action.valueLabel ? getRogueSneakAttackEffectDiceCost([]) + Number.NaN : 0;
-  const totalDiceCount =
-    getRogueSneakAttackEffectDefinitions(character).length >= 0
-      ? Number(getRogueSneakAttackValueLabel(character)?.match(/(\d+)d6/)?.[1] ?? "0")
-      : baseDiceCount;
-  const selectedEffectCost = getRogueSneakAttackEffectDiceCost(selectedEffectKeys);
-  const previewValueLabel =
-    getRogueSneakAttackValueLabel(character, selectedEffectKeys) ??
-    action.valueLabel ??
-    action.summary;
-
-  function toggleEffect(effect: RogueSneakAttackEffectDefinition) {
-    setSelectedEffectKeys((currentKeys) => {
-      if (currentKeys.includes(effect.key)) {
-        return currentKeys.filter((key) => key !== effect.key);
-      }
-
-      if (
-        currentKeys.length >= maxEffects ||
-        getRogueSneakAttackEffectDiceCost(currentKeys) + effect.costDice > totalDiceCount
-      ) {
-        return currentKeys;
-      }
-
-      return [...currentKeys, effect.key];
-    });
-  }
-
-  return (
-    <>
-      <CellContainer
-        className={sneakAttackStyles.sneakAttackPreviewCard}
-        label="Damage"
-        content={previewValueLabel}
-      />
-
-      {effectDefinitions.length > 0 ? (
-        <div className={sneakAttackStyles.sneakAttackEffectsSection}>
-          <div className={sneakAttackStyles.sneakAttackEffectsHeader}>
-            <div>
-              <h4>Cunning Strike</h4>
-              <p className={shared.helperText}>
-                Choose up to {maxEffects} effect{maxEffects === 1 ? "" : "s"}. Each effect reduces
-                the Sneak Attack dice you roll.
-              </p>
-            </div>
-            <span className={sneakAttackStyles.sneakAttackEffectSpend}>
-              {selectedEffectCost}d6 spent
-            </span>
-          </div>
-
-          <div className={sneakAttackStyles.sneakAttackEffectsList}>
-            {effectDefinitions.map((effect) => {
-              const isSelected = selectedEffectKeys.includes(effect.key);
-              const isDisabled =
-                !isSelected &&
-                (selectedEffectKeys.length >= maxEffects ||
-                  selectedEffectCost + effect.costDice > totalDiceCount);
-
-              return (
-                <div
-                  key={effect.key}
-                  className={clsx(
-                    sneakAttackStyles.sneakAttackEffectRow,
-                    isSelected && sneakAttackStyles.sneakAttackEffectRowSelected
-                  )}
-                >
-                  <button
-                    type="button"
-                    className={sneakAttackStyles.sneakAttackEffectButton}
-                    onClick={() => toggleEffect(effect)}
-                    disabled={isDisabled}
-                    aria-pressed={isSelected}
-                  >
-                    <strong>{effect.name}</strong>
-                    <small>Cost: {effect.costDice}d6</small>
-                  </button>
-                  <button
-                    type="button"
-                    className={sneakAttackStyles.sneakAttackReferenceButton}
-                    onClick={() => setSelectedReferenceEffect(effect)}
-                    aria-label={`Open ${effect.name} reference`}
-                  >
-                    <BookOpen size={16} />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      ) : null}
-
-      <div className={shared.formActions}>
-        <button
-          type="button"
-          className={shared.saveButton}
-          onClick={() => onConfirm(selectedEffectKeys)}
-        >
-          Sneak Attack
-        </button>
-      </div>
-
-      {selectedReferenceEffect ? (
-        <KeywordReferenceDrawer
-          title={selectedReferenceEffect.referenceTitle}
-          badgeLabel="Keyword"
-          backdropClassName={sneakAttackStyles.sneakAttackReferenceDrawerBackdrop}
-          entries={[
-            {
-              title: "",
-              description: selectedReferenceEffect.referenceDescription
-            }
-          ]}
-          onClose={() => setSelectedReferenceEffect(null)}
-        />
-      ) : null}
     </>
   );
 }
@@ -1664,9 +1541,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [selectedMysticArcanumSpellLevel, setSelectedMysticArcanumSpellLevel] =
     useState<MysticArcanumLevel | null>(null);
   const [useBeguilingMagicOnActionSpell, setUseBeguilingMagicOnActionSpell] = useState(false);
+  const [useElementalSmiteOnActionSpell, setUseElementalSmiteOnActionSpell] = useState(false);
+  const [useFrozenHauntOnActionSpell, setUseFrozenHauntOnActionSpell] = useState(false);
+  const [selectedFrozenHauntFallbackSlotLevel, setSelectedFrozenHauntFallbackSlotLevel] = useState(
+    frozenHauntFallbackSpellSlotMinimumLevel
+  );
   const [isInspiredEclipseSelected, setIsInspiredEclipseSelected] = useState(false);
   const [isGroupRecoverySelected, setIsGroupRecoverySelected] = useState(false);
   const [isPsionicStrikeSelected, setIsPsionicStrikeSelected] = useState(false);
+  const [isDreadfulStrikeSelected, setIsDreadfulStrikeSelected] = useState(false);
+  const [isPolarStrikesSelected, setIsPolarStrikesSelected] = useState(false);
   const [isSacredWeaponSelected, setIsSacredWeaponSelected] = useState(false);
   const [isHandOfHarmSelected, setIsHandOfHarmSelected] = useState(false);
   const [isQuiveringPalmSelected, setIsQuiveringPalmSelected] = useState(false);
@@ -1843,6 +1727,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     () => getPaladinOathOfDevotionSacredWeaponOptionState(character, selectedWeaponAction),
     [character, selectedWeaponAction]
   );
+  const selectedWeaponDreadAmbusherState = useMemo(
+    () => getRangerGloomStalkerDreadAmbusherOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponPolarStrikesState = useMemo(
+    () => getRangerWinterWalkerPolarStrikesOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
   const selectedWeaponFocusPointsRemaining = useMemo(
     () => getMonkFocusPointsRemainingForCharacter(character),
     [character.classFeatureState, character.className, character.level]
@@ -1883,6 +1775,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   }, [isHandOfHarmSelected, selectedWeaponFocusPointsRemaining, selectedWeaponQuiveringPalmState]);
   const selectedWeaponSacredWeaponToggleDisabled =
     selectedWeaponSacredWeaponState?.disabled ?? false;
+  const selectedWeaponDreadfulStrikeToggleDisabled =
+    selectedWeaponDreadAmbusherState?.disabled ?? false;
+  const selectedWeaponPolarStrikesToggleDisabled =
+    selectedWeaponPolarStrikesState?.disabled ?? false;
   const selectedWeaponHandOfHarmToggleDisabled = selectedWeaponHandOfHarmDisabledReason !== null;
   const selectedWeaponQuiveringPalmToggleDisabled =
     selectedWeaponQuiveringPalmDisabledReason !== null;
@@ -1896,6 +1792,28 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     let nextAction = selectedWeaponAction;
+
+    if (
+      isDreadfulStrikeSelected &&
+      selectedWeaponDreadAmbusherState &&
+      !selectedWeaponDreadfulStrikeToggleDisabled
+    ) {
+      nextAction = applyWeaponDamageBonusPreview(
+        nextAction,
+        selectedWeaponDreadAmbusherState.damageBonus
+      );
+    }
+
+    if (
+      isPolarStrikesSelected &&
+      selectedWeaponPolarStrikesState &&
+      !selectedWeaponPolarStrikesToggleDisabled
+    ) {
+      nextAction = applyWeaponDamageBonusPreview(
+        nextAction,
+        selectedWeaponPolarStrikesState.damageBonus
+      );
+    }
 
     if (
       isHandOfHarmSelected &&
@@ -1922,11 +1840,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     return nextAction;
   }, [
+    isDreadfulStrikeSelected,
     isHandOfHarmSelected,
+    isPolarStrikesSelected,
     isPsionicStrikeSelected,
     selectedWeaponAction,
+    selectedWeaponDreadAmbusherState,
+    selectedWeaponDreadfulStrikeToggleDisabled,
     selectedWeaponHandOfHarmToggleDisabled,
     selectedWeaponHandOfHarmState,
+    selectedWeaponPolarStrikesState,
+    selectedWeaponPolarStrikesToggleDisabled,
     selectedWeaponPsionicStrikeAvailable,
     selectedWeaponPsionicStrikeFormula
   ]);
@@ -2131,6 +2055,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     (selectedActionEconomyShapeState?.isUsable || selectedActionSecondaryEconomyShapeState.isUsable)
       ? null
       : (selectedActionPrimaryWarning ?? selectedActionSecondaryWarning);
+  const selectedActionBlockedReason =
+    selectedAction?.kind === "feature" ? (selectedAction.drawer.blockedReason ?? null) : null;
   const selectedDrawerWarning =
     selectedOptionWarning ??
     (selectedAction?.kind === "feature" &&
@@ -2180,11 +2106,55 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       : (fixedSpellExecute?.actionContextText ?? null);
   const selectedActionSpellEntry =
     fixedSpellEntry ?? selectedDivineInterventionSpell ?? selectedMysticArcanumSpell;
+  const channelDivinityUsesRemaining = getChannelDivinityUsesRemainingForCharacter(character);
   const selectedActionSpellSupportsBeguilingMagic =
     selectedActionSpellEntry !== null &&
     beguilingMagicUsesTotal > 0 &&
     (selectedActionSpellEntry.magicSchool === MAGIC_SCHOOL.ENCHANTMENT ||
       selectedActionSpellEntry.magicSchool === MAGIC_SCHOOL.ILLUSION);
+  const selectedActionSpellSupportsElementalSmite =
+    selectedActionSpellEntry?.id === "spell-divine-smite" &&
+    hasPaladinOathOfTheNobleGeniesElementalSmite(character);
+  const selectedActionSpellElementalSmiteDisabled =
+    selectedActionSpellSupportsElementalSmite && channelDivinityUsesRemaining <= 0;
+  const selectedActionSpellFrozenHauntOptionState = useMemo(
+    () =>
+      getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter(
+        character,
+        fixedSpellEntry,
+        fixedSpellSlotTotals,
+        fixedSpellSlotsExpended
+      ),
+    [character, fixedSpellEntry, fixedSpellSlotTotals, fixedSpellSlotsExpended]
+  );
+  const selectedActionSpellFrozenHauntFallbackSlotOptions = useMemo(
+    () =>
+      (selectedActionSpellFrozenHauntOptionState?.fallbackSpellSlotLevels ?? []).map(
+        (slotLevel) => ({
+          value: slotLevel,
+          label: `Level ${slotLevel} (${fixedSpellSlotsRemaining[slotLevel - 1] ?? 0}/${fixedSpellSlotTotals[slotLevel - 1] ?? 0})`
+        })
+      ),
+    [
+      fixedSpellSlotTotals,
+      fixedSpellSlotsRemaining,
+      selectedActionSpellFrozenHauntOptionState?.fallbackSpellSlotLevels
+    ]
+  );
+  const selectedActionSpellFrozenHauntFallbackSlotLevelIsValid =
+    selectedActionSpellFrozenHauntOptionState?.fallbackSpellSlotLevels.includes(
+      selectedFrozenHauntFallbackSlotLevel
+    ) ?? false;
+  const fixedSpellFrozenHauntWarning =
+    useFrozenHauntOnActionSpell && selectedActionSpellFrozenHauntOptionState
+      ? selectedActionSpellFrozenHauntOptionState.usesRemaining > 0
+        ? null
+        : (selectedActionSpellFrozenHauntOptionState.disabledReason ??
+          (!selectedActionSpellFrozenHauntFallbackSlotLevelIsValid
+            ? `Select a level ${frozenHauntFallbackSpellSlotMinimumLevel}+ spell slot for Frozen Haunt.`
+            : null))
+      : null;
+  const fixedSpellCastWarning = selectedActionWarning ?? fixedSpellFrozenHauntWarning;
   const paladinAuraOfProtectionBonus = hasActivePaladinAuraOfProtectionForCharacter(character)
     ? Math.max(1, getAbilityModifier(effectiveAbilities.CHA))
     : 0;
@@ -2271,6 +2241,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedRagePowerOptionKey(null);
     setIsRageOfTheGodsSelected(false);
     setUseBeguilingMagicOnActionSpell(false);
+    setUseElementalSmiteOnActionSpell(false);
     setIsDiceRollerSettingsOpen(false);
     setIsFixedSpellDrawerOpen(false);
     setSelectedFixedSpellSlotLevel(1);
@@ -2280,6 +2251,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsInspiredEclipseSelected(false);
     setIsGroupRecoverySelected(false);
     setIsPsionicStrikeSelected(false);
+    setIsDreadfulStrikeSelected(false);
+    setIsPolarStrikesSelected(false);
     setIsSacredWeaponSelected(false);
     setIsHandOfHarmSelected(false);
     setIsQuiveringPalmSelected(false);
@@ -2521,7 +2494,39 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
   useEffect(() => {
     setUseBeguilingMagicOnActionSpell(false);
+    setUseElementalSmiteOnActionSpell(false);
+    setUseFrozenHauntOnActionSpell(false);
+    setSelectedFrozenHauntFallbackSlotLevel(frozenHauntFallbackSpellSlotMinimumLevel);
   }, [selectedActionSpellEntry?.id]);
+
+  useEffect(() => {
+    if (!selectedActionSpellSupportsElementalSmite || !selectedActionSpellElementalSmiteDisabled) {
+      return;
+    }
+
+    setUseElementalSmiteOnActionSpell(false);
+  }, [selectedActionSpellElementalSmiteDisabled, selectedActionSpellSupportsElementalSmite]);
+
+  useEffect(() => {
+    if (!selectedActionSpellFrozenHauntOptionState) {
+      setUseFrozenHauntOnActionSpell(false);
+      return;
+    }
+
+    if (!selectedActionSpellFrozenHauntFallbackSlotLevelIsValid) {
+      setSelectedFrozenHauntFallbackSlotLevel(
+        selectedActionSpellFrozenHauntOptionState.fallbackSpellSlotLevels[0] ??
+          frozenHauntFallbackSpellSlotMinimumLevel
+      );
+    }
+
+    if (selectedActionSpellFrozenHauntOptionState.disabled) {
+      setUseFrozenHauntOnActionSpell(false);
+    }
+  }, [
+    selectedActionSpellFrozenHauntFallbackSlotLevelIsValid,
+    selectedActionSpellFrozenHauntOptionState
+  ]);
 
   useEffect(() => {
     if (selectedWeaponPsionicStrikeAvailable) {
@@ -2853,7 +2858,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           ? activateMonkWarriorOfShadowImprovedShadowStep(nextCharacter)
           : nextCharacter;
         const characterToUpdate =
-          nextCharacterWithImprovedShadowStep === preparedCharacter && action.consumesEconomyOnActivate
+          nextCharacterWithImprovedShadowStep === preparedCharacter &&
+          action.consumesEconomyOnActivate
             ? preparedCharacter
             : nextCharacterWithImprovedShadowStep;
 
@@ -2935,6 +2941,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   }
 
   function handleWeaponDamageRoll(action: WeaponAction) {
+    const useDreadfulStrike =
+      action.attackKind === "weapon" &&
+      isDreadfulStrikeSelected &&
+      selectedWeaponDreadAmbusherState !== null &&
+      !selectedWeaponDreadfulStrikeToggleDisabled;
+    const usePolarStrikes =
+      action.attackKind === "weapon" &&
+      isPolarStrikesSelected &&
+      selectedWeaponPolarStrikesState !== null &&
+      !selectedWeaponPolarStrikesToggleDisabled;
     const useHandOfHarm =
       action.attackKind === "unarmed" &&
       isHandOfHarmSelected &&
@@ -2951,7 +2967,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedWeaponPsionicStrikeAvailable &&
       selectedWeaponPsionicStrikeFormula !== null;
     const effectiveAction =
-      (useHandOfHarm || usePsionicStrike) && selectedWeaponEffectiveAction
+      (useDreadfulStrike || usePolarStrikes || useHandOfHarm || usePsionicStrike) &&
+      selectedWeaponEffectiveAction
         ? selectedWeaponEffectiveAction
         : action;
     const damageFormula = appendRollModifier(
@@ -2969,10 +2986,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     if (
       effectiveAction.damageBonusEntries.length <= 0 &&
+      !useDreadfulStrike &&
+      !usePolarStrikes &&
       !usePsionicStrike &&
       !useHandOfHarm &&
       !useQuiveringPalm
     ) {
+      setIsDreadfulStrikeSelected(false);
+      setIsPolarStrikesSelected(false);
       setIsHandOfHarmSelected(false);
       setIsQuiveringPalmSelected(false);
       setIsPsionicStrikeSelected(false);
@@ -2990,6 +3011,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         nextCharacter = consumeFighterPsiWarriorPsionicStrikeForCharacter(nextCharacter);
       }
 
+      if (useDreadfulStrike) {
+        nextCharacter = consumeRangerGloomStalkerDreadAmbusherUseForCharacter(nextCharacter);
+      }
+
+      if (usePolarStrikes) {
+        nextCharacter = consumeRangerWinterWalkerPolarStrikesUseForCharacter(nextCharacter);
+      }
+
       if (useQuiveringPalm) {
         nextCharacter = activateMonkWarriorOfTheOpenHandQuiveringPalmMark(nextCharacter);
       }
@@ -2997,6 +3026,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return nextCharacter;
     });
 
+    setIsDreadfulStrikeSelected(false);
+    setIsPolarStrikesSelected(false);
     setIsHandOfHarmSelected(false);
     setIsQuiveringPalmSelected(false);
     setIsPsionicStrikeSelected(false);
@@ -3179,7 +3210,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     closeActionDrawer();
   }
 
-  function submitSneakAttack(effectKeys: RogueSneakAttackEffectKey[]) {
+  function submitSneakAttack({ effectKeys, useRendMind }: SneakAttackActionSelection) {
     if (!selectedFeatureAction) {
       return;
     }
@@ -3193,17 +3224,39 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     const selectedEffects = getRogueSneakAttackEffectDefinitions(character).filter((effect) =>
       effectKeys.includes(effect.key)
     );
+    const canUseRendMind =
+      useRendMind &&
+      (getRogueSoulknifeRendMindUsesRemaining(character) > 0 ||
+        getRogueSoulknifePsionicDiceRemaining(character) > 0);
+    const rendMindSaveDc =
+      8 + getAbilityModifier(character.abilities?.DEX ?? 10) + getProficiencyBonus(character.level);
     const baseDescription = selectedFeatureAction.detail.endsWith(".")
       ? selectedFeatureAction.detail
       : `${selectedFeatureAction.detail}.`;
-    const description =
+    const description = [
+      baseDescription,
       selectedEffects.length > 0
-        ? `${baseDescription} Cunning Strike: ${selectedEffects.map((effect) => effect.name).join(", ")}.`
-        : baseDescription;
+        ? `Cunning Strike: ${selectedEffects.map((effect) => effect.name).join(", ")}.`
+        : null,
+      canUseRendMind ? `Rend Mind: Wisdom save DC ${rendMindSaveDc} or Stunned for 1 minute.` : null
+    ]
+      .filter((entry): entry is string => Boolean(entry))
+      .join(" ");
 
-    onPersistCharacter((currentCharacter) =>
-      activateFeatureActionForCharacter(currentCharacter, selectedFeatureAction.key)
-    );
+    onPersistCharacter((currentCharacter) => {
+      const activatedCharacter = activateFeatureActionForCharacter(
+        currentCharacter,
+        selectedFeatureAction.key
+      );
+
+      if (activatedCharacter === currentCharacter) {
+        return currentCharacter;
+      }
+
+      return canUseRendMind
+        ? consumeRogueSoulknifeRendMindUse(activatedCharacter)
+        : activatedCharacter;
+    });
 
     openDiceRoller({
       title: "Sneak Attack",
@@ -3471,12 +3524,27 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     createSpellSlotFromSorceryPoints(selectedFontOfMagicSelection.spellSlotLevel);
   }
 
-  function castFixedSpellAction(options?: { useBeguilingMagic?: boolean; castAsRitual?: boolean }) {
+  function castFixedSpellAction(options?: {
+    useBeguilingMagic?: boolean;
+    useElementalSmite?: boolean;
+    useFrozenHaunt?: boolean;
+    frozenHauntFallbackSlotLevel?: number;
+    castAsRitual?: boolean;
+  }) {
     if (!fixedSpellExecute || !fixedSpellEntry || !selectedFeatureAction) {
       return;
     }
 
     const useBeguilingMagic = options?.useBeguilingMagic === true;
+    const useElementalSmite =
+      options?.useElementalSmite === true &&
+      selectedActionSpellSupportsElementalSmite &&
+      channelDivinityUsesRemaining > 0;
+    const useFrozenHaunt =
+      options?.useFrozenHaunt === true && selectedActionSpellFrozenHauntOptionState !== null;
+    const frozenHauntFallbackSlotLevel = useFrozenHaunt
+      ? (options?.frozenHauntFallbackSlotLevel ?? null)
+      : null;
     const castAsRitual = options?.castAsRitual === true;
     const minimumSlotLevel = Math.max(
       getSpellLevel(fixedSpellEntry),
@@ -3502,9 +3570,6 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       const spellSlotsExpended = normalizeSpellSlotsExpended(
         preparedCharacter.spellSlotsExpended,
         spellSlotTotals
-      );
-      const spellSlotsRemaining = spellSlotTotals.map((total, index) =>
-        Math.max(0, total - (spellSlotsExpended[index] ?? 0))
       );
 
       if (fixedSpellExecute.effectKind === "paladins-smite") {
@@ -3534,16 +3599,54 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       }
 
       let nextCharacterWithSpellSlot = nextCharacter;
+      const nextSpellSlotsExpended = [...spellSlotsExpended];
 
       if (fixedSpellConsumesSpellSlot && !castsWithoutSpellSlot) {
-        if ((spellSlotsRemaining[slotLevel - 1] ?? 0) <= 0) {
+        if (
+          (spellSlotTotals[slotLevel - 1] ?? 0) - (nextSpellSlotsExpended[slotLevel - 1] ?? 0) <=
+          0
+        ) {
           return currentCharacter;
         }
 
-        const nextSpellSlotsExpended = [...spellSlotsExpended];
         nextSpellSlotsExpended[slotLevel - 1] = (nextSpellSlotsExpended[slotLevel - 1] ?? 0) + 1;
         nextCharacterWithSpellSlot = {
           ...nextCharacter,
+          spellSlotsExpended: nextSpellSlotsExpended
+        };
+      }
+
+      const currentFrozenHauntOptionState =
+        getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter(
+          preparedCharacter,
+          fixedSpellEntry,
+          spellSlotTotals,
+          nextSpellSlotsExpended
+        );
+      const usesFrozenHauntCharge =
+        useFrozenHaunt && (currentFrozenHauntOptionState?.usesRemaining ?? 0) > 0;
+      const shouldSpendFrozenHauntFallbackSlot = useFrozenHaunt && !usesFrozenHauntCharge;
+
+      if (shouldSpendFrozenHauntFallbackSlot) {
+        const availableFrozenHauntFallbackSlotLevels =
+          getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter(
+            preparedCharacter,
+            fixedSpellEntry,
+            spellSlotTotals,
+            nextSpellSlotsExpended
+          )?.fallbackSpellSlotLevels ?? [];
+
+        if (
+          frozenHauntFallbackSlotLevel === null ||
+          !availableFrozenHauntFallbackSlotLevels.includes(frozenHauntFallbackSlotLevel)
+        ) {
+          return currentCharacter;
+        }
+
+        nextSpellSlotsExpended[frozenHauntFallbackSlotLevel - 1] =
+          (nextSpellSlotsExpended[frozenHauntFallbackSlotLevel - 1] ?? 0) + 1;
+        nextCharacterWithSpellSlot = {
+          ...nextCharacterWithSpellSlot,
           spellSlotsExpended: nextSpellSlotsExpended
         };
       }
@@ -3553,18 +3656,31 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           ? applyMantleOfMajestyStatusForCharacter(nextCharacterWithSpellSlot)
           : {
               ...nextCharacterWithSpellSlot,
-              statusEntries: applySpellConcentrationToStatusEntries(
-                nextCharacterWithSpellSlot.statusEntries,
-                fixedSpellEntry
-              )
+              statusEntries: useFrozenHaunt
+                ? applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter(
+                    applySpellConcentrationToStatusEntries(
+                      nextCharacterWithSpellSlot.statusEntries,
+                      fixedSpellEntry
+                    )
+                  )
+                : applySpellConcentrationToStatusEntries(
+                    nextCharacterWithSpellSlot.statusEntries,
+                    fixedSpellEntry
+                  )
             };
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithConcentration)
         : nextCharacterWithConcentration;
+      const nextCharacterWithElementalSmite = useElementalSmite
+        ? expendChannelDivinityUseForCharacter(nextCharacterWithBeguilingMagic)
+        : nextCharacterWithBeguilingMagic;
+      const nextCharacterWithFrozenHaunt = usesFrozenHauntCharge
+        ? consumeRangerWinterWalkerFrozenHauntUseForCharacter(nextCharacterWithElementalSmite)
+        : nextCharacterWithElementalSmite;
       const nextCharacterWithBattleMagic = castAsRitual
-        ? nextCharacterWithBeguilingMagic
+        ? nextCharacterWithFrozenHaunt
         : applyBardBattleMagicAfterSpellCastForCharacter(
-            nextCharacterWithBeguilingMagic,
+            nextCharacterWithFrozenHaunt,
             fixedSpellEntry
           );
 
@@ -3960,6 +4076,47 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
       return (
         <div className={styles.footerActionStack}>
+          {selectedWeaponDreadAmbusherState ? (
+            <label
+              className={styles.footerActionToggle}
+              title={selectedWeaponDreadAmbusherState.disabledReason ?? undefined}
+            >
+              <span className={styles.footerActionToggleLabel}>
+                <input
+                  type="checkbox"
+                  checked={isDreadfulStrikeSelected}
+                  onChange={(event) => setIsDreadfulStrikeSelected(event.target.checked)}
+                  disabled={selectedWeaponDreadfulStrikeToggleDisabled}
+                />
+                <span>Dreadful Strike</span>
+                <span className={styles.psiStrikeCostLabel}>
+                  <span>
+                    | {selectedWeaponDreadAmbusherState.usesRemaining}/
+                    {selectedWeaponDreadAmbusherState.usesTotal}
+                  </span>
+                </span>
+              </span>
+            </label>
+          ) : null}
+          {selectedWeaponPolarStrikesState ? (
+            <label
+              className={styles.footerActionToggle}
+              title={selectedWeaponPolarStrikesState.disabledReason ?? undefined}
+            >
+              <span className={styles.footerActionToggleLabel}>
+                <input
+                  type="checkbox"
+                  checked={isPolarStrikesSelected}
+                  onChange={(event) => setIsPolarStrikesSelected(event.target.checked)}
+                  disabled={selectedWeaponPolarStrikesToggleDisabled}
+                />
+                <span>Polar Strikes</span>
+                <span className={styles.psiStrikeCostLabel}>
+                  <span>| {selectedWeaponPolarStrikesState.damageBonus.displayLabel}</span>
+                </span>
+              </span>
+            </label>
+          ) : null}
           {selectedWeaponSacredWeaponState ? (
             <label
               className={styles.footerActionToggle}
@@ -4410,7 +4567,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           type="button"
           className={clsx(sheetStyles.castButton, styles.footerActionButton)}
           onClick={() => executeFeatureActivate(selectedAction.action)}
-          disabled={selectedActionWarning !== null}
+          disabled={selectedActionWarning !== null || selectedActionBlockedReason !== null}
         >
           <span>{selectedAction.drawer.confirmLabel}</span>
           {actionShape ? (
@@ -4433,6 +4590,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           type="button"
           className={clsx(sheetStyles.castButton, styles.footerActionButton)}
           onClick={() => setIsFixedSpellDrawerOpen(true)}
+          disabled={selectedActionBlockedReason !== null}
         >
           <span>{selectedAction.drawer.confirmLabel}</span>
           {actionShape ? (
@@ -4510,7 +4668,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           resources={selectedAction.kind === "weapon" ? [] : selectedAction.drawer.resources}
           helperText={selectedAction.drawer.helperText}
           warning={selectedDrawerWarning}
-          blockedReason={selectedAction.disabledReason ?? null}
+          blockedReason={
+            selectedAction.kind === "feature"
+              ? (selectedAction.drawer.blockedReason ?? selectedAction.disabledReason ?? null)
+              : (selectedAction.disabledReason ?? null)
+          }
           onClose={closeActionDrawer}
           footer={renderActionDrawerFooter()}
         >
@@ -4530,12 +4692,18 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onSelectedSpellSlotLevelChange={setSelectedFixedSpellSlotLevel}
           onClose={() => {
             setUseBeguilingMagicOnActionSpell(false);
+            setUseElementalSmiteOnActionSpell(false);
+            setUseFrozenHauntOnActionSpell(false);
+            setSelectedFrozenHauntFallbackSlotLevel(frozenHauntFallbackSpellSlotMinimumLevel);
             setIsFixedSpellDrawerOpen(false);
           }}
           onAction={(options) =>
             castFixedSpellAction({
               ...options,
-              useBeguilingMagic: useBeguilingMagicOnActionSpell
+              useBeguilingMagic: useBeguilingMagicOnActionSpell,
+              useElementalSmite: useElementalSmiteOnActionSpell,
+              useFrozenHaunt: useFrozenHauntOnActionSpell,
+              frozenHauntFallbackSlotLevel: selectedFrozenHauntFallbackSlotLevel
             })
           }
           actionLabel={fixedSpellExecute.actionLabel}
@@ -4544,32 +4712,85 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           freeCastSlotLevel={fixedSpellFreeCastSlotLevel}
           actionContextText={fixedSpellActionContextText}
           actionAvailabilityText={fixedSpellActionAvailabilityText}
-          actionWarning={selectedActionWarning}
-          actionDisabled={selectedActionWarning !== null}
+          actionWarning={fixedSpellCastWarning}
+          actionDisabled={fixedSpellCastWarning !== null}
           blockedReason={spellcastingState.blocked ? spellcastingState.reason : null}
           allowRitualCasting={fixedSpellExecute.allowRitualCasting}
           actionOptions={
-            selectedActionSpellSupportsBeguilingMagic
+            selectedActionSpellSupportsBeguilingMagic ||
+            selectedActionSpellSupportsElementalSmite ||
+            selectedActionSpellFrozenHauntOptionState !== null
               ? [
-                  {
-                    id: "beguiling-magic",
-                    label: "Beguiling Magic",
-                    checked: useBeguilingMagicOnActionSpell,
-                    onCheckedChange: setUseBeguilingMagicOnActionSpell,
-                    disabled:
-                      beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
-                    tracker: {
-                      current: beguilingMagicUsesRemaining,
-                      total: beguilingMagicUsesTotal
-                    },
-                    fallbackCost:
-                      beguilingMagicUsesRemaining <= 0
-                        ? {
+                  ...(selectedActionSpellSupportsBeguilingMagic
+                    ? [
+                        {
+                          id: "beguiling-magic",
+                          label: "Beguiling Magic",
+                          checked: useBeguilingMagicOnActionSpell,
+                          onCheckedChange: setUseBeguilingMagicOnActionSpell,
+                          disabled:
+                            beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
+                          tracker: {
+                            current: beguilingMagicUsesRemaining,
+                            total: beguilingMagicUsesTotal
+                          },
+                          fallbackCost:
+                            beguilingMagicUsesRemaining <= 0
+                              ? {
+                                  label: "Use 1",
+                                  icon: "music" as const
+                                }
+                              : undefined
+                        }
+                      ]
+                    : []),
+                  ...(selectedActionSpellFrozenHauntOptionState
+                    ? [
+                        {
+                          id: "frozen-haunt",
+                          label: "Frozen Haunt",
+                          checked: useFrozenHauntOnActionSpell,
+                          onCheckedChange: setUseFrozenHauntOnActionSpell,
+                          disabled: selectedActionSpellFrozenHauntOptionState.disabled,
+                          tracker: {
+                            current: selectedActionSpellFrozenHauntOptionState.usesRemaining,
+                            total: selectedActionSpellFrozenHauntOptionState.usesTotal
+                          },
+                          fallbackCost:
+                            selectedActionSpellFrozenHauntOptionState.usesRemaining <= 0
+                              ? {
+                                  label: `Use 1 level ${frozenHauntFallbackSpellSlotMinimumLevel}+ slot`
+                                }
+                              : undefined,
+                          select:
+                            useFrozenHauntOnActionSpell &&
+                            selectedActionSpellFrozenHauntOptionState.usesRemaining <= 0 &&
+                            selectedActionSpellFrozenHauntFallbackSlotOptions.length > 0
+                              ? {
+                                  label: "Frozen Haunt Slot",
+                                  value: selectedFrozenHauntFallbackSlotLevel,
+                                  onValueChange: setSelectedFrozenHauntFallbackSlotLevel,
+                                  options: selectedActionSpellFrozenHauntFallbackSlotOptions
+                                }
+                              : undefined
+                        }
+                      ]
+                    : []),
+                  ...(selectedActionSpellSupportsElementalSmite
+                    ? [
+                        {
+                          id: "elemental-smite",
+                          label: "Elemental Smite",
+                          checked: useElementalSmiteOnActionSpell,
+                          onCheckedChange: setUseElementalSmiteOnActionSpell,
+                          disabled: selectedActionSpellElementalSmiteDisabled,
+                          fallbackCost: {
                             label: "Use 1",
-                            icon: "music"
+                            icon: "divinity" as const
                           }
-                        : undefined
-                  }
+                        }
+                      ]
+                    : [])
                 ]
               : undefined
           }

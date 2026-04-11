@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { Hexagon, Music, X } from "lucide-react";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
+import pyromancyIcon from "../../../../assets/svg/pyromancy.svg";
 import ActionShape, {
   getActionShapeForCastingTime,
   type ActionShapeType
@@ -34,6 +35,7 @@ export type CharacterSpellDrawerMode = "standard" | "prepare-preview" | "divine-
 export type CharacterSpellDrawerActionOptions = {
   castAsRitual?: boolean;
   useBeguilingMagic?: boolean;
+  useElementalSmite?: boolean;
   useTelekineticMaster?: boolean;
 };
 
@@ -49,7 +51,17 @@ export type CharacterSpellDrawerActionOption = {
   };
   fallbackCost?: {
     label: string;
-    icon?: "music" | "psi";
+    icon?: "divinity" | "music" | "psi";
+  };
+  select?: {
+    label: string;
+    value: number;
+    onValueChange: (value: number) => void;
+    options: Array<{
+      value: number;
+      label: string;
+      disabled?: boolean;
+    }>;
   };
 };
 
@@ -82,7 +94,11 @@ type CharacterSpellDrawerProps = {
   backdropClassName?: string;
 };
 
-function renderActionOptionIcon(icon?: "music" | "psi"): ReactNode {
+function renderActionOptionIcon(icon?: "divinity" | "music" | "psi"): ReactNode {
+  if (icon === "divinity") {
+    return <img src={pyromancyIcon} alt="" className={actionStyles.featureActionCostIcon} />;
+  }
+
   if (icon === "music") {
     return <Music size={14} aria-hidden="true" />;
   }
@@ -390,16 +406,17 @@ function CharacterSpellDrawer({
                       ) : null}
                       {actionOptions.map((option) => {
                         const tracker = option.tracker;
+                        const select = option.select;
 
                         return (
-                          <label
+                          <div
                             key={option.id}
                             className={clsx(
                               actionStyles.featureActionToggle,
                               option.disabled ? actionStyles.featureActionToggleDisabled : null
                             )}
                           >
-                            <span className={actionStyles.featureActionToggleStart}>
+                            <label className={actionStyles.featureActionToggleStart}>
                               <input
                                 type="checkbox"
                                 checked={option.checked}
@@ -432,8 +449,33 @@ function CharacterSpellDrawer({
                                   {renderActionOptionIcon(option.fallbackCost.icon)}
                                 </span>
                               ) : null}
-                            </span>
-                          </label>
+                            </label>
+                            {option.checked && select ? (
+                              <div className={actionStyles.featureActionSelectField}>
+                                <span className={actionStyles.featureActionSelectLabel}>
+                                  {select.label}
+                                </span>
+                                <SelectInput
+                                  aria-label={select.label}
+                                  value={select.value}
+                                  className={actionStyles.featureActionSelect}
+                                  onChange={(event) =>
+                                    select.onValueChange(clampNumber(event.target.value, 1, 9, 1))
+                                  }
+                                >
+                                  {select.options.map((selectOption) => (
+                                    <option
+                                      key={`${option.id}-select-${selectOption.value}`}
+                                      value={selectOption.value}
+                                      disabled={selectOption.disabled}
+                                    >
+                                      {selectOption.label}
+                                    </option>
+                                  ))}
+                                </SelectInput>
+                              </div>
+                            ) : null}
+                          </div>
                         );
                       })}
                     </div>

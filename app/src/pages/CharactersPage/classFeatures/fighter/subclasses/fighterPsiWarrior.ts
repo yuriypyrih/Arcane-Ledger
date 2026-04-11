@@ -21,6 +21,11 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { getAbilityModifier } from "../../../gameplay";
 import type { WeaponAction } from "../../../gameplay";
+import {
+  getPsionicDiceTotalForLevel,
+  getPsionicDieForLevel,
+  type PsionicDie
+} from "../../psionicDice";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureSpeedBonus } from "../../types";
@@ -42,8 +47,6 @@ const telekinesisSpellId = getSpellEntryByName("Telekinesis")?.id ?? null;
 
 type PsiWarriorCharacter = Pick<Character, "className"> &
   Partial<Pick<Character, "abilities" | "level" | "subclassId" | "classFeatureState">>;
-
-type PsiWarriorDie = "d6" | "d8" | "d10" | "d12";
 
 const psiWarriorProtectiveFieldReactionId = "reaction-psi-warrior-protective-field";
 export const fighterPsiPoweredLeapActionKey = "fighter-psi-warrior-psi-powered-leap";
@@ -114,7 +117,7 @@ function getPsiWarriorIntelligenceModifier(
   return getAbilityModifier(character.abilities?.INT ?? 10);
 }
 
-function buildPsiWarriorFormula(die: PsiWarriorDie | null, modifier: number): string | null {
+function buildPsiWarriorFormula(die: PsionicDie | null, modifier: number): string | null {
   if (!die) {
     return null;
   }
@@ -145,49 +148,17 @@ function hasFighterPsiWarriorPsiPoweredLeapStatus(
 export function getFighterPsiWarriorEnergyDiceTotal(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
-  if (!hasFighterPsiWarriorPsionicPower(character)) {
-    return 0;
-  }
-
-  if ((character.level ?? 0) >= 17) {
-    return 12;
-  }
-
-  if ((character.level ?? 0) >= 13) {
-    return 10;
-  }
-
-  if ((character.level ?? 0) >= 9) {
-    return 8;
-  }
-
-  if ((character.level ?? 0) >= 5) {
-    return 6;
-  }
-
-  return 4;
+  return hasFighterPsiWarriorPsionicPower(character)
+    ? getPsionicDiceTotalForLevel(character.level)
+    : 0;
 }
 
 export function getFighterPsiWarriorEnergyDie(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
-): PsiWarriorDie | null {
-  if (!hasFighterPsiWarriorPsionicPower(character)) {
-    return null;
-  }
-
-  if ((character.level ?? 0) >= 17) {
-    return "d12";
-  }
-
-  if ((character.level ?? 0) >= 11) {
-    return "d10";
-  }
-
-  if ((character.level ?? 0) >= 5) {
-    return "d8";
-  }
-
-  return "d6";
+): PsionicDie | null {
+  return hasFighterPsiWarriorPsionicPower(character)
+    ? getPsionicDieForLevel(character.level)
+    : null;
 }
 
 export function getFighterPsiWarriorTelekineticMovementUsesTotal(

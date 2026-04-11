@@ -31,8 +31,11 @@ import type {
   FeatureWeaponProficiencyEntry
 } from "../types";
 import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
+import * as ancientsSubclass from "./subclasses/paladinOathOfTheAncients";
 import * as devotionSubclass from "./subclasses/paladinOathOfDevotion";
 import * as glorySubclass from "./subclasses/paladinOathOfGlory";
+import * as nobleGeniesSubclass from "./subclasses/paladinOathOfTheNobleGenies";
+import * as vengeanceSubclass from "./subclasses/paladinOathOfVengeance";
 
 export const paladinLayOnHandsActionKey = "paladin-lay-on-hands";
 export const paladinChannelDivinityActionKey = "paladin-channel-divinity";
@@ -42,7 +45,17 @@ export const abjureFoesActionKey = "paladin-abjure-foes";
 export const holyNimbusActionKey = "paladin-holy-nimbus";
 export const peerlessAthleteActionKey = "paladin-peerless-athlete";
 export const livingLegendActionKey = "paladin-living-legend";
+export const nobleScionActionKey = "paladin-noble-scion";
+export const avengingAngelActionKey = "paladin-avenging-angel";
+export const naturesWrathActionKey = "paladin-natures-wrath";
+export const undyingSentinelActionKey = "paladin-undying-sentinel";
+export const elderChampionActionKey = "paladin-elder-champion";
 export const gloriousDefenseReactionId = "reaction-paladin-glorious-defense";
+export const elementalRebukeReactionId = "reaction-paladin-elemental-rebuke";
+export const paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions =
+  nobleGeniesSubclass.paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions;
+export const paladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeOptions =
+  nobleGeniesSubclass.paladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeOptions;
 const paladinWeaponMasterySource = "Weapon Mastery";
 const paladinWeaponMasterySelectionCount = 2;
 const divineSmiteSpellId = "spell-divine-smite";
@@ -145,6 +158,8 @@ export function normalizePaladinFeatureState(
   const hasChannelDivinity = hasPaladinFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY);
   const hasPaladinsSmite = hasPaladinFeature(character, CLASS_FEATURE.PALADINS_SMITE);
   const hasFaithfulSteed = hasPaladinFeature(character, CLASS_FEATURE.FAITHFUL_STEED);
+  const hasUndyingSentinel =
+    ancientsSubclass.hasPaladinOathOfTheAncientsUndyingSentinelFeature(character);
   const hasHolyNimbus =
     devotionSubclass.hasPaladinOathOfDevotionHolyNimbusFeature(character) ||
     (character.className === "Paladin" &&
@@ -152,6 +167,18 @@ export function normalizePaladinFeatureState(
       character.subclassId === undefined);
   const hasGloriousDefense = glorySubclass.hasPaladinOathOfGloryGloriousDefenseFeature(character);
   const hasLivingLegend = glorySubclass.hasPaladinOathOfGloryLivingLegendFeature(character);
+  const hasElderChampion =
+    ancientsSubclass.hasPaladinOathOfTheAncientsElderChampionFeature(character);
+  const hasGeniesSplendor =
+    nobleGeniesSubclass.hasPaladinOathOfTheNobleGeniesGeniesSplendor(character);
+  const hasAuraOfElementalShielding =
+    nobleGeniesSubclass.hasPaladinOathOfTheNobleGeniesAuraOfElementalShielding(character);
+  const hasElementalRebuke =
+    nobleGeniesSubclass.hasPaladinOathOfTheNobleGeniesElementalRebukeFeature(character);
+  const hasNobleScion =
+    nobleGeniesSubclass.hasPaladinOathOfTheNobleGeniesNobleScionFeature(character);
+  const hasAvengingAngel =
+    vengeanceSubclass.hasPaladinOathOfVengeanceAvengingAngelFeature(character);
   const hasWeaponMastery = hasPaladinFeature(character, CLASS_FEATURE.WEAPON_MASTERY);
   const additionalAttackCount = getPaladinAdditionalAttackCount(character);
   const hasExtraAttack = additionalAttackCount > 0;
@@ -161,9 +188,16 @@ export function normalizePaladinFeatureState(
     !hasChannelDivinity &&
     !hasPaladinsSmite &&
     !hasFaithfulSteed &&
+    !hasUndyingSentinel &&
     !hasHolyNimbus &&
     !hasGloriousDefense &&
     !hasLivingLegend &&
+    !hasElderChampion &&
+    !hasGeniesSplendor &&
+    !hasAuraOfElementalShielding &&
+    !hasElementalRebuke &&
+    !hasNobleScion &&
+    !hasAvengingAngel &&
     !hasWeaponMastery &&
     !hasExtraAttack
   ) {
@@ -176,9 +210,14 @@ export function normalizePaladinFeatureState(
   const channelDivinityUsesExpended = Number(record.channelDivinityUsesExpended);
   const paladinsSmiteUsesExpended = Number(record.paladinsSmiteUsesExpended);
   const faithfulSteedUsesExpended = Number(record.faithfulSteedUsesExpended);
+  const undyingSentinelUsesExpended = Number(record.undyingSentinelUsesExpended);
   const holyNimbusUsesExpended = Number(record.holyNimbusUsesExpended);
   const gloriousDefenseUsesExpended = Number(record.gloriousDefenseUsesExpended);
   const livingLegendUsesExpended = Number(record.livingLegendUsesExpended);
+  const elderChampionUsesExpended = Number(record.elderChampionUsesExpended);
+  const elementalRebukeUsesExpended = Number(record.elementalRebukeUsesExpended);
+  const nobleScionUsesExpended = Number(record.nobleScionUsesExpended);
+  const avengingAngelUsesExpended = Number(record.avengingAngelUsesExpended);
   const channelDivinityTotal = hasChannelDivinity
     ? (getPaladinFeatureRow(character.level)?.channelDivinity ?? 0)
     : 0;
@@ -208,6 +247,17 @@ export function normalizePaladinFeatureState(
     faithfulSteedUsesExpended: hasFaithfulSteed
       ? Number.isFinite(faithfulSteedUsesExpended)
         ? Math.max(0, Math.min(faithfulSteedUsesTotal, Math.floor(faithfulSteedUsesExpended)))
+        : 0
+      : undefined,
+    undyingSentinelUsesExpended: hasUndyingSentinel
+      ? Number.isFinite(undyingSentinelUsesExpended)
+        ? Math.max(
+            0,
+            Math.min(
+              ancientsSubclass.getPaladinOathOfTheAncientsUndyingSentinelUsesTotal(character),
+              Math.floor(undyingSentinelUsesExpended)
+            )
+          )
         : 0
       : undefined,
     holyNimbusUsesExpended: hasHolyNimbus
@@ -242,6 +292,60 @@ export function normalizePaladinFeatureState(
             )
           )
         : 0
+      : undefined,
+    elderChampionUsesExpended: hasElderChampion
+      ? Number.isFinite(elderChampionUsesExpended)
+        ? Math.max(
+            0,
+            Math.min(
+              ancientsSubclass.getPaladinOathOfTheAncientsElderChampionUsesTotal(character),
+              Math.floor(elderChampionUsesExpended)
+            )
+          )
+        : 0
+      : undefined,
+    elementalRebukeUsesExpended: hasElementalRebuke
+      ? Number.isFinite(elementalRebukeUsesExpended)
+        ? Math.max(
+            0,
+            Math.min(
+              nobleGeniesSubclass.getPaladinOathOfTheNobleGeniesElementalRebukeUsesTotal(character),
+              Math.floor(elementalRebukeUsesExpended)
+            )
+          )
+        : 0
+      : undefined,
+    nobleScionUsesExpended: hasNobleScion
+      ? Number.isFinite(nobleScionUsesExpended)
+        ? Math.max(
+            0,
+            Math.min(
+              nobleGeniesSubclass.getPaladinOathOfTheNobleGeniesNobleScionUsesTotal(character),
+              Math.floor(nobleScionUsesExpended)
+            )
+          )
+        : 0
+      : undefined,
+    avengingAngelUsesExpended: hasAvengingAngel
+      ? Number.isFinite(avengingAngelUsesExpended)
+        ? Math.max(
+            0,
+            Math.min(
+              vengeanceSubclass.getPaladinOathOfVengeanceAvengingAngelUsesTotal(character),
+              Math.floor(avengingAngelUsesExpended)
+            )
+          )
+        : 0
+      : undefined,
+    nobleGeniesGeniesSplendorSkill: hasGeniesSplendor
+      ? nobleGeniesSubclass.normalizePaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection(
+          record.nobleGeniesGeniesSplendorSkill
+        )
+      : undefined,
+    nobleGeniesAuraOfElementalShieldingDamageType: hasAuraOfElementalShielding
+      ? nobleGeniesSubclass.normalizePaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageType(
+          record.nobleGeniesAuraOfElementalShieldingDamageType
+        )
       : undefined,
     extraAttacksRemainingThisTurn: hasExtraAttack
       ? Math.max(
@@ -403,6 +507,46 @@ export function getLivingLegendUsesRemaining(
     Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
 ): number {
   return glorySubclass.getPaladinOathOfGloryLivingLegendUsesRemaining(character);
+}
+
+export function getElementalRebukeUsesTotal(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): number {
+  return nobleGeniesSubclass.getPaladinOathOfTheNobleGeniesElementalRebukeUsesTotal(character);
+}
+
+export function getElementalRebukeUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId" | "classFeatureState">>
+): number {
+  return nobleGeniesSubclass.getPaladinOathOfTheNobleGeniesElementalRebukeUsesRemaining(character);
+}
+
+export function getNobleScionUsesTotal(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return nobleGeniesSubclass.getPaladinOathOfTheNobleGeniesNobleScionUsesTotal(character);
+}
+
+export function getNobleScionUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): number {
+  return nobleGeniesSubclass.getPaladinOathOfTheNobleGeniesNobleScionUsesRemaining(character);
+}
+
+export function getAvengingAngelUsesTotal(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return vengeanceSubclass.getPaladinOathOfVengeanceAvengingAngelUsesTotal(character);
+}
+
+export function getAvengingAngelUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): number {
+  return vengeanceSubclass.getPaladinOathOfVengeanceAvengingAngelUsesRemaining(character);
 }
 
 export function getPaladinAlwaysPreparedSpellIds(
@@ -840,8 +984,40 @@ export function restoreFaithfulSteedOnLongRest(character: Character): Character 
   };
 }
 
+export function getUndyingSentinelUsesTotal(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return ancientsSubclass.getPaladinOathOfTheAncientsUndyingSentinelUsesTotal(character);
+}
+
+export function activateUndyingSentinel(character: Character): Character {
+  return ancientsSubclass.activatePaladinOathOfTheAncientsUndyingSentinel(character);
+}
+
+export function restoreUndyingSentinelOnLongRest(character: Character): Character {
+  return ancientsSubclass.restorePaladinOathOfTheAncientsUndyingSentinelOnLongRest(character);
+}
+
 export function activateHolyNimbus(character: Character): Character {
   return devotionSubclass.activatePaladinOathOfDevotionHolyNimbus(character);
+}
+
+export function activateNaturesWrath(character: Character): Character {
+  return ancientsSubclass.activatePaladinOathOfTheAncientsNaturesWrath(character);
+}
+
+export function getElderChampionUsesTotal(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return ancientsSubclass.getPaladinOathOfTheAncientsElderChampionUsesTotal(character);
+}
+
+export function activateElderChampion(character: Character): Character {
+  return ancientsSubclass.activatePaladinOathOfTheAncientsElderChampion(character);
+}
+
+export function restoreElderChampionOnLongRest(character: Character): Character {
+  return ancientsSubclass.restorePaladinOathOfTheAncientsElderChampionOnLongRest(character);
 }
 
 export function restoreHolyNimbusOnLongRest(character: Character): Character {
@@ -856,12 +1032,36 @@ export function activateLivingLegend(character: Character): Character {
   return glorySubclass.activatePaladinOathOfGloryLivingLegend(character);
 }
 
+export function activateNobleScion(character: Character): Character {
+  return nobleGeniesSubclass.activatePaladinOathOfTheNobleGeniesNobleScion(character);
+}
+
+export function activateAvengingAngel(character: Character): Character {
+  return vengeanceSubclass.activatePaladinOathOfVengeanceAvengingAngel(character);
+}
+
 export function consumeGloriousDefenseUse(character: Character): Character {
   return glorySubclass.consumePaladinOathOfGloryGloriousDefenseUse(character);
 }
 
 export function restoreGloriousDefenseOnLongRest(character: Character): Character {
   return glorySubclass.restorePaladinOathOfGloryGloriousDefenseOnLongRest(character);
+}
+
+export function consumeElementalRebukeUse(character: Character): Character {
+  return nobleGeniesSubclass.consumePaladinOathOfTheNobleGeniesElementalRebukeUse(character);
+}
+
+export function restoreElementalRebukeOnLongRest(character: Character): Character {
+  return nobleGeniesSubclass.restorePaladinOathOfTheNobleGeniesElementalRebukeOnLongRest(character);
+}
+
+export function restoreNobleScionOnLongRest(character: Character): Character {
+  return nobleGeniesSubclass.restorePaladinOathOfTheNobleGeniesNobleScionOnLongRest(character);
+}
+
+export function restoreAvengingAngelOnLongRest(character: Character): Character {
+  return vengeanceSubclass.restorePaladinOathOfVengeanceAvengingAngelOnLongRest(character);
 }
 
 export function restoreLivingLegendOnLongRest(character: Character): Character {
@@ -943,12 +1143,24 @@ export function applyShortRestToPaladinFeatures(character: Character): Character
 }
 
 export function applyLongRestToPaladinFeatures(character: Character): Character {
-  const restoredCharacter = restoreLivingLegendOnLongRest(
-    restoreGloriousDefenseOnLongRest(
-      restoreHolyNimbusOnLongRest(
-        restoreFaithfulSteedOnLongRest(
-          restorePaladinsSmiteOnLongRest(
-            restorePaladinLayOnHandsOnLongRest(restorePaladinChannelDivinityOnLongRest(character))
+  const restoredCharacter = restoreElderChampionOnLongRest(
+    restoreLivingLegendOnLongRest(
+      restoreAvengingAngelOnLongRest(
+        restoreNobleScionOnLongRest(
+          restoreElementalRebukeOnLongRest(
+            restoreGloriousDefenseOnLongRest(
+              restoreHolyNimbusOnLongRest(
+                restoreUndyingSentinelOnLongRest(
+                  restoreFaithfulSteedOnLongRest(
+                    restorePaladinsSmiteOnLongRest(
+                      restorePaladinLayOnHandsOnLongRest(
+                        restorePaladinChannelDivinityOnLongRest(character)
+                      )
+                    )
+                  )
+                )
+              )
+            )
           )
         )
       )
@@ -973,26 +1185,26 @@ export function applyLongRestToPaladinFeatures(character: Character): Character 
 }
 
 export function advancePaladinFeaturesForNewRound(character: Character): Character {
-  if (getPaladinAdditionalAttackCount(character) <= 0) {
-    return character;
-  }
+  let nextCharacter = character;
 
-  const paladinState = getPaladinFeatureState(character);
+  if (getPaladinAdditionalAttackCount(character) > 0) {
+    const paladinState = getPaladinFeatureState(character);
 
-  if ((paladinState.extraAttacksRemainingThisTurn ?? 0) === 0) {
-    return character;
-  }
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      paladin: {
-        ...paladinState,
-        extraAttacksRemainingThisTurn: 0
-      }
+    if ((paladinState.extraAttacksRemainingThisTurn ?? 0) > 0) {
+      nextCharacter = {
+        ...character,
+        classFeatureState: {
+          ...character.classFeatureState,
+          paladin: {
+            ...paladinState,
+            extraAttacksRemainingThisTurn: 0
+          }
+        }
+      };
     }
-  };
+  }
+
+  return ancientsSubclass.advancePaladinOathOfTheAncientsFeaturesForNewRound(nextCharacter);
 }
 
 export function consumePaladinWeaponAttack(character: Character): Character {
@@ -1057,6 +1269,46 @@ export function getPaladinWeaponMasterySelections(
   return (
     normalizePaladinFeatureState(character.classFeatureState?.paladin, character).weaponMasteries ??
     []
+  );
+}
+
+export function getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+) {
+  return nobleGeniesSubclass.getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection(character);
+}
+
+export function getPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState" | "statusEntries">>
+) {
+  return nobleGeniesSubclass.getPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelection(
+    character
+  );
+}
+
+export function setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter(
+  character: Character,
+  selection: Parameters<
+    typeof nobleGeniesSubclass.setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection
+  >[1]
+): Character {
+  return nobleGeniesSubclass.setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection(
+    character,
+    selection
+  );
+}
+
+export function setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter(
+  character: Character,
+  selection: Parameters<
+    typeof nobleGeniesSubclass.setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelection
+  >[1]
+): Character {
+  return nobleGeniesSubclass.setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelection(
+    character,
+    selection
   );
 }
 

@@ -13,6 +13,7 @@ import PoolOfHealingWidget from "./widgets/PoolOfHealingWidget";
 import FocusPointsWidget from "./widgets/FocusPointsWidget";
 import PsiEnergyDiceWidget from "./widgets/PsiEnergyDiceWidget";
 import RagePointsWidget from "./widgets/RagePointsWidget";
+import SoulknifePsionicDiceWidget from "./widgets/SoulknifePsionicDiceWidget";
 import SorceryPointsWidget from "./widgets/SorceryPointsWidget";
 import SuperiorityDiceWidget from "./widgets/SuperiorityDiceWidget";
 import WildShapeWidget from "./widgets/WildShapeWidget";
@@ -87,12 +88,13 @@ function GameplayForm({ character, className, onPersistCharacter }: GameplayForm
           <RagePointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <FocusPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <PsiEnergyDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
-          <SuperiorityDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
-          <WildShapeWidget character={character} onPersistCharacter={onPersistCharacter} />
-          <BardicInspirationWidget
+          <SoulknifePsionicDiceWidget
             character={character}
             onPersistCharacter={onPersistCharacter}
           />
+          <SuperiorityDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
+          <WildShapeWidget character={character} onPersistCharacter={onPersistCharacter} />
+          <BardicInspirationWidget character={character} onPersistCharacter={onPersistCharacter} />
           <SorceryPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <DivinityPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <RoundTrackerWidget character={character} onPersistCharacter={onPersistCharacter} />

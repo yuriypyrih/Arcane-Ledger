@@ -42,6 +42,23 @@ import {
   fighterPsiWarriorPsiPoweredLeapStatusSourceId,
   fighterPsiWarriorTelekineticMasterStatusSourceId
 } from "./classFeatures/fighter/subclasses/fighterPsiWarriorShared";
+import {
+  rangerHunterEscapeTheHordeStatusSourceId,
+  rangerHunterMultiattackDefenseStatusSourceId,
+  rangerHunterSuperiorHuntersDefenseStatusSourceId
+} from "./classFeatures/ranger/subclasses/rangerHunter";
+import {
+  rangerGloomStalkerUmbralSightSenseSourceId,
+  rangerGloomStalkerUmbralSightStatusSourceId
+} from "./classFeatures/ranger/subclasses/rangerGloomStalker";
+import {
+  rangerWinterWalkerBitingColdStatusSourceId,
+  rangerWinterWalkerFrozenHauntStatusSourceId
+} from "./classFeatures/ranger/subclasses/rangerWinterWalker";
+import {
+  isRogueArcaneTricksterSpellThiefStatusSourceId,
+  rogueArcaneTricksterMagicalAmbushStatusSourceId
+} from "./classFeatures/rogue/subclasses/rogueArcaneTrickster";
 import { getKeywordDescriptionLines } from "./keywordDescriptions";
 import { clampInteger } from "./shared";
 
@@ -70,17 +87,61 @@ const monkElementalAttunementEpitomeStatusSourceId =
 const paladinAuraOfDevotionStatusSourceId = "feature-paladin-oath-of-devotion-aura-of-devotion";
 const paladinAuraOfDevotionImmunitySourceId =
   "feature-paladin-oath-of-devotion-aura-of-devotion-immunity";
+const paladinAuraOfWardingStatusSourceId = "feature-paladin-oath-of-the-ancients-aura-of-warding";
+const paladinAuraOfElementalShieldingStatusSourceId =
+  "feature-paladin-oath-of-the-noble-genies-aura-of-elemental-shielding";
+const paladinElderChampionStatusSourceId = "feature-paladin-oath-of-the-ancients-elder-champion";
+const paladinDiminishDefianceStatusSourceId =
+  "feature-paladin-oath-of-the-ancients-diminish-defiance";
 const paladinHolyNimbusStatusSourceId = "feature-paladin-oath-of-devotion-holy-nimbus";
 const paladinPeerlessAthleteStatusSourceId = "feature-paladin-oath-of-glory-peerless-athlete";
 const paladinAuraOfAlacrityProtectionStatusSourceId =
   "feature-paladin-aura-of-protection-oath-of-glory-aura-of-alacrity";
 const paladinLivingLegendStatusSourceId = "feature-paladin-oath-of-glory-living-legend";
+const paladinNobleScionStatusSourceId = "feature-paladin-oath-of-the-noble-genies-noble-scion";
+const paladinMinorWishStatusSourceId = "feature-paladin-oath-of-the-noble-genies-minor-wish";
+const paladinAvengingAngelStatusSourceId = "feature-paladin-oath-of-vengeance-avenging-angel";
+const paladinFrightfulAuraStatusSourceId = "feature-paladin-oath-of-vengeance-frightful-aura";
 const monkWarriorOfShadowSubclassEntry = getSubclassEntryById("monk-warrior-of-shadow");
 const monkWarriorOfTheElementsSubclassEntry = getSubclassEntryById(
   "monk-warrior-of-the-elements"
 );
+const paladinOathOfTheAncientsSubclassEntry = getSubclassEntryById("paladin-oath-of-the-ancients");
 const paladinOathOfDevotionSubclassEntry = getSubclassEntryById("paladin-oath-of-devotion");
 const paladinOathOfGlorySubclassEntry = getSubclassEntryById("paladin-oath-of-glory");
+const paladinOathOfTheNobleGeniesSubclassEntry = getSubclassEntryById(
+  "paladin-oath-of-the-noble-genies"
+);
+const paladinOathOfVengeanceSubclassEntry = getSubclassEntryById("paladin-oath-of-vengeance");
+const rangerHunterSubclassEntry = getSubclassEntryById("ranger-hunter");
+const rangerGloomStalkerSubclassEntry = getSubclassEntryById("ranger-gloom-stalker");
+const rangerWinterWalkerSubclassEntry = getSubclassEntryById("ranger-winter-walker");
+const rogueArcaneTricksterSubclassEntry = getSubclassEntryById("rogue-arcane-trickster");
+
+function extractSubclassFeatureDescriptionSection(
+  description: readonly string[],
+  heading: string
+): string[] {
+  const startIndex = description.findIndex((entry) => entry.includes(heading));
+
+  if (startIndex < 0) {
+    return [];
+  }
+
+  const section: string[] = [];
+
+  for (let index = startIndex; index < description.length; index += 1) {
+    const entry = description[index]!;
+
+    if (index > startIndex && entry.startsWith("<strong>")) {
+      break;
+    }
+
+    section.push(entry);
+  }
+
+  return section;
+}
 const monkCloakOfShadowsDescription =
   monkWarriorOfShadowSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.CLOAK_OF_SHADOWS))
@@ -114,6 +175,27 @@ const paladinAuraOfDevotionDescription =
     ?.featureOverrides?.[CLASS_FEATURE.AURA_OF_DEVOTION]?.description?.filter(
       (entry): entry is string => typeof entry === "string"
     ) ?? [];
+const paladinAuraOfWardingDescription =
+  paladinOathOfTheAncientsSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.AURA_OF_WARDING))
+    ?.featureOverrides?.[CLASS_FEATURE.AURA_OF_WARDING]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const paladinAuraOfElementalShieldingDescription =
+  paladinOathOfTheNobleGeniesSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.AURA_OF_ELEMENTAL_SHIELDING))
+    ?.featureOverrides?.[CLASS_FEATURE.AURA_OF_ELEMENTAL_SHIELDING]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const paladinElderChampionDescription =
+  paladinOathOfTheAncientsSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.ELDER_CHAMPION))
+    ?.featureOverrides?.[CLASS_FEATURE.ELDER_CHAMPION]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const paladinDiminishDefianceDescription = [
+  "Enemies in the aura have Disadvantage on saving throws against your spells and Channel Divinity options."
+];
 const paladinHolyNimbusDescription =
   paladinOathOfDevotionSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.HOLY_NIMBUS))
@@ -136,6 +218,79 @@ const paladinLivingLegendDescription =
   paladinOathOfGlorySubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.LIVING_LEGEND))
     ?.featureOverrides?.[CLASS_FEATURE.LIVING_LEGEND]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const paladinNobleScionDescription =
+  paladinOathOfTheNobleGeniesSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.NOBLE_SCION))
+    ?.featureOverrides?.[CLASS_FEATURE.NOBLE_SCION]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const paladinMinorWishDescription = [
+  "When you or an ally in your Aura of Protection fails a D20 Test, you can take a Reaction to make the D20 Test succeed instead."
+];
+const paladinAvengingAngelDescription =
+  paladinOathOfVengeanceSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.AVENGING_ANGEL))
+    ?.featureOverrides?.[CLASS_FEATURE.AVENGING_ANGEL]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const paladinFrightfulAuraDescription = [
+  "Whenever an enemy starts its turn in your Aura of Protection, that creature must succeed on a Wisdom saving throw or have the Frightened condition for 1 minute or until it takes any damage.",
+  "Attack rolls against the Frightened creature have Advantage."
+];
+const rangerDefensiveTacticsDescription =
+  rangerHunterSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.DEFENSIVE_TACTICS))
+    ?.featureOverrides?.[CLASS_FEATURE.DEFENSIVE_TACTICS]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const rangerEscapeTheHordeDescription = extractSubclassFeatureDescriptionSection(
+  rangerDefensiveTacticsDescription,
+  "<strong>Escape the Horde.</strong>"
+);
+const rangerMultiattackDefenseDescription = extractSubclassFeatureDescriptionSection(
+  rangerDefensiveTacticsDescription,
+  "<strong>Multiattack Defense.</strong>"
+);
+const rangerSuperiorHuntersDefenseDescription =
+  rangerHunterSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.SUPERIOR_HUNTERS_DEFENSE))
+    ?.featureOverrides?.[CLASS_FEATURE.SUPERIOR_HUNTERS_DEFENSE]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const rangerUmbralSightDescription =
+  rangerGloomStalkerSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.UMBRAL_SIGHT))
+    ?.featureOverrides?.[CLASS_FEATURE.UMBRAL_SIGHT]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const rangerFrigidExplorerDescription =
+  rangerWinterWalkerSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.FRIGID_EXPLORER))
+    ?.featureOverrides?.[CLASS_FEATURE.FRIGID_EXPLORER]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const rangerBitingColdDescription = extractSubclassFeatureDescriptionSection(
+  rangerFrigidExplorerDescription,
+  "<strong>Biting Cold.</strong>"
+);
+const rangerFrozenHauntDescription =
+  rangerWinterWalkerSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.FROZEN_HAUNT))
+    ?.featureOverrides?.[CLASS_FEATURE.FROZEN_HAUNT]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const rogueArcaneTricksterMagicalAmbushDescription =
+  rogueArcaneTricksterSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.MAGICAL_AMBUSH))
+    ?.featureOverrides?.[CLASS_FEATURE.MAGICAL_AMBUSH]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const rogueArcaneTricksterSpellThiefDescription =
+  rogueArcaneTricksterSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.SPELL_THIEF))
+    ?.featureOverrides?.[CLASS_FEATURE.SPELL_THIEF]?.description?.filter(
       (entry): entry is string => typeof entry === "string"
     ) ?? [];
 const monkQuiveringPalmTraitDescription = ["You have marked a creature with Quivering Palm."];
@@ -1273,6 +1428,28 @@ export function getStatusEntryDescriptionEntries(
       : ["An aura passively affects creatures or spaces around you."];
   }
 
+  if (entry.sourceId === paladinAuraOfWardingStatusSourceId) {
+    return paladinAuraOfWardingDescription.length > 0
+      ? paladinAuraOfWardingDescription
+      : ["An aura passively affects creatures or spaces around you."];
+  }
+
+  if (entry.sourceId === paladinAuraOfElementalShieldingStatusSourceId) {
+    return paladinAuraOfElementalShieldingDescription.length > 0
+      ? paladinAuraOfElementalShieldingDescription
+      : ["An aura passively affects creatures or spaces around you."];
+  }
+
+  if (entry.sourceId === paladinElderChampionStatusSourceId) {
+    return paladinElderChampionDescription.length > 0
+      ? paladinElderChampionDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === paladinDiminishDefianceStatusSourceId) {
+    return paladinDiminishDefianceDescription;
+  }
+
   if (entry.sourceId === paladinHolyNimbusStatusSourceId) {
     return paladinHolyNimbusDescription.length > 0
       ? paladinHolyNimbusDescription
@@ -1288,6 +1465,80 @@ export function getStatusEntryDescriptionEntries(
   if (entry.sourceId === paladinLivingLegendStatusSourceId) {
     return paladinLivingLegendDescription.length > 0
       ? paladinLivingLegendDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === paladinNobleScionStatusSourceId) {
+    return paladinNobleScionDescription.length > 0
+      ? paladinNobleScionDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === paladinMinorWishStatusSourceId) {
+    return paladinMinorWishDescription;
+  }
+
+  if (entry.sourceId === paladinAvengingAngelStatusSourceId) {
+    return paladinAvengingAngelDescription.length > 0
+      ? paladinAvengingAngelDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === paladinFrightfulAuraStatusSourceId) {
+    return paladinFrightfulAuraDescription;
+  }
+
+  if (
+    entry.sourceId === rangerGloomStalkerUmbralSightSenseSourceId ||
+    entry.sourceId === rangerGloomStalkerUmbralSightStatusSourceId
+  ) {
+    return rangerUmbralSightDescription.length > 0
+      ? rangerUmbralSightDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === rangerHunterEscapeTheHordeStatusSourceId) {
+    return rangerEscapeTheHordeDescription.length > 0
+      ? rangerEscapeTheHordeDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === rangerHunterMultiattackDefenseStatusSourceId) {
+    return rangerMultiattackDefenseDescription.length > 0
+      ? rangerMultiattackDefenseDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === rangerHunterSuperiorHuntersDefenseStatusSourceId) {
+    return rangerSuperiorHuntersDefenseDescription.length > 0
+      ? rangerSuperiorHuntersDefenseDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === rangerWinterWalkerBitingColdStatusSourceId) {
+    return rangerBitingColdDescription.length > 0
+      ? rangerBitingColdDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === rogueArcaneTricksterMagicalAmbushStatusSourceId) {
+    return rogueArcaneTricksterMagicalAmbushDescription.length > 0
+      ? rogueArcaneTricksterMagicalAmbushDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (isRogueArcaneTricksterSpellThiefStatusSourceId(entry.sourceId)) {
+    return rogueArcaneTricksterSpellThiefDescription.length > 0
+      ? rogueArcaneTricksterSpellThiefDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (
+    entry.sourceId === rangerWinterWalkerFrozenHauntStatusSourceId &&
+    entry.group === STATUS_ENTRY_GROUP.EFFECTS
+  ) {
+    return rangerFrozenHauntDescription.length > 0
+      ? rangerFrozenHauntDescription
       : ["A current effect or trait that may change how your character plays."];
   }
 

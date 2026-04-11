@@ -1,9 +1,12 @@
 import type {
+  ArmorEntry,
   DICE,
+  ItemEntry,
   TRACKER,
   ReactionEntry,
   SpellDescriptionEntry,
-  SpellEntry
+  SpellEntry,
+  WeaponEntry
 } from "../../../codex/entries";
 import { WEAPON_COMBAT_TYPE } from "../../../codex/entries";
 import type { ActionCategory, EconomyType } from "../actionEconomy";
@@ -109,6 +112,7 @@ export type FeatureActionDrawerConfig = {
   descriptionAdditions?: SpellDescriptionEntry[][];
   helperText?: string;
   helperTextTone?: FeatureActionTone;
+  blockedReason?: string;
   facts?: FeatureActionFact[];
   resources?: FeatureActionResource[];
   confirmLabel?: string;
@@ -251,6 +255,13 @@ export type FeatureSavingThrowBonus = {
   minimumValue?: number;
 };
 
+export type FeatureInitiativeBonus = {
+  label: string;
+  value?: number;
+  abilityModifierSource?: AbilityKey;
+  minimumValue?: number;
+};
+
 export type WeaponFeatureContext = {
   name: string;
   ability: AbilityKey;
@@ -335,6 +346,12 @@ export type FeatureWeaponProficiencyEntry = WeaponProficiencyEntry;
 
 export type FeatureArmorProficiencyEntry = ArmorProficiencyEntry;
 export type FeatureLanguageProficiencyEntry = LanguageProficiencyEntry;
+export type FeatureEquipmentEntry = {
+  key: string;
+  entry: WeaponEntry | ArmorEntry | ItemEntry;
+  sourceLabel: string;
+  summaryOverride?: string;
+};
 
 export type ActiveClassFeatureName =
   | "Barbarian"
@@ -353,8 +370,10 @@ export type ActiveClassFeatureName =
 export type ClassFeatureDerivedState = {
   actions?: FeatureActionCard[];
   actionOptions?: Partial<Record<string, FeatureActionOptionCard[]>>;
+  equipmentEntries?: FeatureEquipmentEntry[];
   weaponActions?: WeaponAction[];
   getWeaponDamageBonuses?: (context: WeaponFeatureContext) => FeatureDamageBonus[];
+  getInitiativeBonuses?: () => FeatureInitiativeBonus[];
   getSavingThrowBonuses?: (ability: AbilityKey) => FeatureSavingThrowBonus[];
   savingThrowIndicators?: SavingThrowIndicatorMap;
   abilityCheckIndicators?: AbilityCheckIndicatorMap;

@@ -35,11 +35,20 @@ import {
   getFighterBattleMasterManeuverSelectionsForCharacter,
   getFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter,
   getFighterBanneretKnightlyEnvoySkillSelectionForCharacter,
+  getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter,
   getRangerDeftExplorerExpertiseSelectionForCharacter,
   getRangerDeftExplorerLanguageSelectionsForCharacter,
+  getRangerFeyWandererGiftSelectionForCharacter,
+  getRangerHunterDefensiveTacticsChoiceForCharacter,
+  getRangerHunterPreyChoiceForCharacter,
+  getRangerGloomStalkerIronMindSavingThrowOptionsForCharacter,
+  getRangerGloomStalkerIronMindSavingThrowSelectionForCharacter,
   getRangerLevel9ExpertiseSelectionsForCharacter,
+  getRangerOtherworldlyGlamourSkillSelectionForCharacter,
   getRogueExpertiseSelectionsForCharacter,
+  getRogueScionOfTheThreeDreadAllegianceChoiceForCharacter,
   getRogueThievesCantLanguageSelectionForCharacter,
+  isRangerGloomStalkerIronMindLockedToWisForCharacter,
   isKnowledgeDomainUnfetteredMindLockedToIntForCharacter,
   getSorcererMetamagicDefinitionsForCharacter,
   getSorcererMetamagicSelectionCountForCharacter,
@@ -52,6 +61,9 @@ import {
   getWeaponMasteryOptionsForCharacter,
   getWeaponMasterySelectionCountForCharacter,
   getWeaponMasterySelectionsForCharacter,
+  paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions,
+  rangerFeyWandererGiftOptions,
+  rangerOtherworldlyGlamourSkillOptions,
   setBardExpertiseSelectionsForCharacter,
   setBardLoreBonusProficiencySelectionsForCharacter,
   setBardMagicalDiscoveriesSpellIdsForCharacter,
@@ -69,10 +81,17 @@ import {
   setDruidWildShapeKnownFormsForCharacter,
   setFighterBanneretKnightlyEnvoyLanguageSelectionForCharacter,
   setFighterBanneretKnightlyEnvoySkillSelectionForCharacter,
+  setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter,
   setRangerDeftExplorerExpertiseSelectionForCharacter,
   setRangerDeftExplorerLanguageSelectionsForCharacter,
+  setRangerFeyWandererGiftSelectionForCharacter,
+  setRangerHunterDefensiveTacticsChoiceForCharacter,
+  setRangerHunterPreyChoiceForCharacter,
+  setRangerGloomStalkerIronMindSavingThrowSelectionForCharacter,
   setRangerLevel9ExpertiseSelectionsForCharacter,
+  setRangerOtherworldlyGlamourSkillSelectionForCharacter,
   setRogueExpertiseSelectionsForCharacter,
+  setRogueScionOfTheThreeDreadAllegianceChoiceForCharacter,
   setRogueThievesCantLanguageSelectionForCharacter,
   setSorcererMetamagicSelectionsForCharacter,
   setWarlockMysticArcanumSpellIdForCharacter,
@@ -103,6 +122,9 @@ import type {
   CharacterFeatEntry,
   LANGUAGE_PROFICIENCY,
   MonsterRecord,
+  RangerHunterDefensiveTacticsChoice,
+  RangerHunterPreyChoice,
+  RogueScionOfTheThreeDreadAllegianceChoice,
   SkillName,
   WEAPON_PROFICIENCY
 } from "../../../../types";
@@ -200,7 +222,7 @@ function FeatureChoiceOptions<TChoice extends string>({
   groupName: string;
   isUnlocked: boolean;
   selectedValue: TChoice | null;
-  options: FeatureChoiceOption<TChoice>[];
+  options: readonly FeatureChoiceOption<TChoice>[];
   onChange: (choice: TChoice) => void;
   onOpenKeyword: (keywordKey: string, title?: string) => void;
   onOpenFeatReference: (feat: CharacterFeatEntry["feat"], entry?: CharacterFeatEntry) => void;
@@ -523,6 +545,46 @@ function ClassFeatureList({
     return getKnowledgeDomainUnfetteredMindSavingThrowSelection() === null;
   }
 
+  function getRangerGloomStalkerIronMindSavingThrowSelection():
+    | SAVING_THROW_PROFICIENCY
+    | null {
+    return getRangerGloomStalkerIronMindSavingThrowSelectionForCharacter(character);
+  }
+
+  function getAvailableRangerGloomStalkerIronMindSavingThrows(): SAVING_THROW_PROFICIENCY[] {
+    const currentValue = getRangerGloomStalkerIronMindSavingThrowSelection();
+
+    return getSelectableUnproficientSavingThrowOptions(
+      character,
+      getRangerGloomStalkerIronMindSavingThrowOptionsForCharacter(character),
+      currentValue
+    );
+  }
+
+  function isRangerGloomStalkerIronMindLocked(): boolean {
+    return isRangerGloomStalkerIronMindLockedToWisForCharacter(character);
+  }
+
+  function updateRangerGloomStalkerIronMindSavingThrowSelection(nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      recomputeCharacterFeatureProficiencies(
+        setRangerGloomStalkerIronMindSavingThrowSelectionForCharacter(
+          currentCharacter,
+          Object.values(SAVING_THROW_PROFICIENCY).some((option) => option === nextValue)
+            ? (nextValue as SAVING_THROW_PROFICIENCY)
+            : null
+        )
+      )
+    );
+  }
+
+  function isRangerGloomStalkerIronMindInputRequired(): boolean {
+    return (
+      getAvailableRangerGloomStalkerIronMindSavingThrows().length > 0 &&
+      getRangerGloomStalkerIronMindSavingThrowSelection() === null
+    );
+  }
+
   function getRogueExpertiseSelections(level: number): SkillName[] {
     const tier = getRogueExpertiseTierForLevel(level);
     return tier ? getRogueExpertiseSelectionsForCharacter(character, tier) : [];
@@ -595,6 +657,24 @@ function ClassFeatureList({
 
   function isRogueThievesCantInputRequired(): boolean {
     return getRogueThievesCantLanguageSelection() === null;
+  }
+
+  function getRogueScionOfTheThreeDreadAllegianceChoice():
+    | RogueScionOfTheThreeDreadAllegianceChoice
+    | null {
+    return getRogueScionOfTheThreeDreadAllegianceChoiceForCharacter(character);
+  }
+
+  function updateRogueScionOfTheThreeDreadAllegianceChoice(
+    choice: RogueScionOfTheThreeDreadAllegianceChoice
+  ) {
+    onPersistCharacter((currentCharacter) =>
+      setRogueScionOfTheThreeDreadAllegianceChoiceForCharacter(currentCharacter, choice)
+    );
+  }
+
+  function isRogueScionOfTheThreeDreadAllegianceInputRequired(): boolean {
+    return getRogueScionOfTheThreeDreadAllegianceChoice() === null;
   }
 
   function getRangerDeftExplorerExpertiseSelection(): SkillName | null {
@@ -698,6 +778,89 @@ function ClassFeatureList({
 
   function isRangerLevel9ExpertiseInputRequired(): boolean {
     return getRangerLevel9ExpertiseSelections().length < 2;
+  }
+
+  function getRangerFeyWandererGiftSelection() {
+    return getRangerFeyWandererGiftSelectionForCharacter(character);
+  }
+
+  function getRangerHunterPreyChoice(): RangerHunterPreyChoice | null {
+    return getRangerHunterPreyChoiceForCharacter(character);
+  }
+
+  function updateRangerHunterPreyChoice(choice: RangerHunterPreyChoice) {
+    onPersistCharacter((currentCharacter) =>
+      setRangerHunterPreyChoiceForCharacter(currentCharacter, choice)
+    );
+  }
+
+  function isRangerHunterPreyInputRequired(): boolean {
+    return getRangerHunterPreyChoice() === null;
+  }
+
+  function getRangerHunterDefensiveTacticsChoice():
+    | RangerHunterDefensiveTacticsChoice
+    | null {
+    return getRangerHunterDefensiveTacticsChoiceForCharacter(character);
+  }
+
+  function updateRangerHunterDefensiveTacticsChoice(
+    choice: RangerHunterDefensiveTacticsChoice
+  ) {
+    onPersistCharacter((currentCharacter) =>
+      setRangerHunterDefensiveTacticsChoiceForCharacter(currentCharacter, choice)
+    );
+  }
+
+  function isRangerHunterDefensiveTacticsInputRequired(): boolean {
+    return getRangerHunterDefensiveTacticsChoice() === null;
+  }
+
+  function updateRangerFeyWandererGiftSelection(nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      setRangerFeyWandererGiftSelectionForCharacter(
+        currentCharacter,
+        rangerFeyWandererGiftOptions.some((option) => option.value === nextValue)
+          ? (nextValue as (typeof rangerFeyWandererGiftOptions)[number]["value"])
+          : null
+      )
+    );
+  }
+
+  function isRangerFeyWandererGiftInputRequired(): boolean {
+    return getRangerFeyWandererGiftSelection() === null;
+  }
+
+  function getRangerOtherworldlyGlamourSkillSelection() {
+    return getRangerOtherworldlyGlamourSkillSelectionForCharacter(character);
+  }
+
+  function getAvailableRangerOtherworldlyGlamourSkills(): SkillName[] {
+    return getSelectableUnproficientSkillOptions(
+      character,
+      rangerOtherworldlyGlamourSkillOptions.map((option) => option.value),
+      getRangerOtherworldlyGlamourSkillSelection()
+    );
+  }
+
+  function updateRangerOtherworldlyGlamourSkillSelection(nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      recomputeCharacterFeatureProficiencies(
+        setRangerOtherworldlyGlamourSkillSelectionForCharacter(
+          currentCharacter,
+          rangerOtherworldlyGlamourSkillOptions.some((option) => option.value === nextValue)
+            ? (nextValue as (typeof rangerOtherworldlyGlamourSkillOptions)[number]["value"])
+            : null
+        )
+      )
+    );
+  }
+
+  function isRangerOtherworldlyGlamourInputRequired(): boolean {
+    return (
+      getAvailableRangerOtherworldlyGlamourSkills().length > 0 &&
+      getRangerOtherworldlyGlamourSkillSelection() === null
+    );
   }
 
   function getWizardScholarSelection(): SkillName | null {
@@ -1117,6 +1280,36 @@ function ClassFeatureList({
     );
   }
 
+  function getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection(): SkillName | null {
+    return getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter(character);
+  }
+
+  function getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills(): SkillName[] {
+    return getSelectableUnproficientSkillOptions(
+      character,
+      paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions,
+      getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection()
+    );
+  }
+
+  function updatePaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection(nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      recomputeCharacterFeatureProficiencies(
+        setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter(
+          currentCharacter,
+          nextValue.trim().length > 0 ? (nextValue as SkillName) : null
+        )
+      )
+    );
+  }
+
+  function isPaladinOathOfTheNobleGeniesGeniesSplendorInputRequired(): boolean {
+    return (
+      getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection() === null &&
+      getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills().length > 0
+    );
+  }
+
   function getBarbarianPrimalKnowledgeOptions(): Array<{
     skill: SkillName;
     disabled: boolean;
@@ -1226,6 +1419,11 @@ function ClassFeatureList({
             featureRow.feature === CLASS_FEATURE.UNFETTERED_MIND &&
             character.className === "Cleric" &&
             isKnowledgeDomainUnfetteredMindInputRequired();
+          const isRangerGloomStalkerIronMindRequired =
+            isUnlocked &&
+            featureRow.feature === CLASS_FEATURE.IRON_MIND &&
+            character.className === "Ranger" &&
+            isRangerGloomStalkerIronMindInputRequired();
           const isInputRequired =
             (isUnlocked && isFeatChoiceFeature(featureRow.feature) && linkedFeat === null) ||
             isSpellcastingFeatureInputRequired ||
@@ -1235,6 +1433,7 @@ function ClassFeatureList({
             isBardPrimalLoreRequired ||
             isKnowledgeDomainBlessingsRequired ||
             isKnowledgeDomainUnfetteredMindRequired ||
+            isRangerGloomStalkerIronMindRequired ||
             (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.KNIGHTLY_ENVOY &&
               character.className === "Fighter" &&
@@ -1244,9 +1443,29 @@ function ClassFeatureList({
               character.className === "Ranger" &&
               isRangerDeftExplorerInputRequired()) ||
             (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.HUNTERS_PREY &&
+              character.className === "Ranger" &&
+              isRangerHunterPreyInputRequired()) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.DEFENSIVE_TACTICS &&
+              character.className === "Ranger" &&
+              isRangerHunterDefensiveTacticsInputRequired()) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.FEY_WANDERER_SPELLS &&
+              character.className === "Ranger" &&
+              isRangerFeyWandererGiftInputRequired()) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.OTHERWORLDLY_GLAMOUR &&
+              character.className === "Ranger" &&
+              isRangerOtherworldlyGlamourInputRequired()) ||
+            (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.THIEVES_CANT &&
               character.className === "Rogue" &&
               isRogueThievesCantInputRequired()) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.DREAD_ALLEGIANCE &&
+              character.className === "Rogue" &&
+              isRogueScionOfTheThreeDreadAllegianceInputRequired()) ||
             (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.METAMAGIC &&
               character.className === "Sorcerer" &&
@@ -1278,6 +1497,10 @@ function ClassFeatureList({
               featureRow.feature === CLASS_FEATURE.PRIMAL_KNOWLEDGE &&
               character.className === "Barbarian" &&
               getBarbarianPrimalKnowledgeSelection() === null) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.GENIES_SPLENDOR &&
+              character.className === "Paladin" &&
+              isPaladinOathOfTheNobleGeniesGeniesSplendorInputRequired()) ||
             (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.ASPECT_OF_THE_WILDS &&
               character.className === "Barbarian" &&
@@ -1721,6 +1944,128 @@ function ClassFeatureList({
                         })}
                       </div>
                     </>
+                  ) : featureRow.feature === CLASS_FEATURE.HUNTERS_PREY &&
+                    character.className === "Ranger" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description.slice(0, 1)}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <FeatureChoiceOptions
+                        featureKey={featureRow.key}
+                        groupName={`hunters-prey-${character.id}`}
+                        isUnlocked={isUnlocked}
+                        selectedValue={getRangerHunterPreyChoice()}
+                        options={[
+                          {
+                            key: "colossus-slayer",
+                            value: "colossus-slayer",
+                            content: featureDetails.description[1] ?? ""
+                          },
+                          {
+                            key: "horde-breaker",
+                            value: "horde-breaker",
+                            content: featureDetails.description[2] ?? ""
+                          }
+                        ]}
+                        onChange={updateRangerHunterPreyChoice}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                    </>
+                  ) : featureRow.feature === CLASS_FEATURE.DEFENSIVE_TACTICS &&
+                    character.className === "Ranger" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description.slice(0, 1)}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <FeatureChoiceOptions
+                        featureKey={featureRow.key}
+                        groupName={`defensive-tactics-${character.id}`}
+                        isUnlocked={isUnlocked}
+                        selectedValue={getRangerHunterDefensiveTacticsChoice()}
+                        options={[
+                          {
+                            key: "escape-the-horde",
+                            value: "escape-the-horde",
+                            content: featureDetails.description[1] ?? ""
+                          },
+                          {
+                            key: "multiattack-defense",
+                            value: "multiattack-defense",
+                            content: featureDetails.description[2] ?? ""
+                          }
+                        ]}
+                        onChange={updateRangerHunterDefensiveTacticsChoice}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                    </>
+                  ) : featureRow.feature === CLASS_FEATURE.FEY_WANDERER_SPELLS &&
+                    character.className === "Ranger" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description.slice(0, 8)}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <FeatureChoiceOptions
+                        featureKey={featureRow.key}
+                        groupName={`fey-wanderer-gift-${character.id}`}
+                        isUnlocked={isUnlocked}
+                        selectedValue={getRangerFeyWandererGiftSelection()}
+                        options={rangerFeyWandererGiftOptions}
+                        onChange={updateRangerFeyWandererGiftSelection}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                    </>
+                  ) : featureRow.feature === CLASS_FEATURE.OTHERWORLDLY_GLAMOUR &&
+                    character.className === "Ranger" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      {getAvailableRangerOtherworldlyGlamourSkills().length > 0 ? (
+                        <FeatureChoiceOptions
+                          featureKey={featureRow.key}
+                          groupName={`otherworldly-glamour-${character.id}`}
+                          isUnlocked={isUnlocked}
+                          selectedValue={getRangerOtherworldlyGlamourSkillSelection()}
+                          options={rangerOtherworldlyGlamourSkillOptions.filter((option) =>
+                            getAvailableRangerOtherworldlyGlamourSkills().includes(option.value)
+                          )}
+                          onChange={updateRangerOtherworldlyGlamourSkillSelection}
+                          onOpenKeyword={onOpenKeyword}
+                          onOpenFeatReference={onOpenFeatReference}
+                          onOpenSpellReference={onOpenSpellReference}
+                          onOpenDivinityReference={onOpenDivinityReference}
+                        />
+                      ) : null}
+                    </>
                   ) : featureRow.feature === CLASS_FEATURE.SCHOLAR &&
                     character.className === "Wizard" ? (
                     <>
@@ -1823,6 +2168,57 @@ function ClassFeatureList({
                             ))}
                           </SelectInput>
                         </label>
+                      </div>
+                    </>
+                  ) : featureRow.feature === CLASS_FEATURE.GENIES_SPLENDOR &&
+                    character.className === "Paladin" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <div className={styles.featureSelectionGrid}>
+                        {getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills().length > 0 ? (
+                          <label
+                            className={clsx(
+                              styles.featureSelectionField,
+                              !isUnlocked && styles.featureOptionRowDisabled
+                            )}
+                          >
+                            <span className={styles.featureSelectionLabel}>Bonus Skill</span>
+                            <SelectInput
+                              value={
+                                getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection() ?? ""
+                              }
+                              disabled={!isUnlocked}
+                              onChange={(event) =>
+                                updatePaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection(
+                                  event.target.value
+                                )
+                              }
+                            >
+                              <option value="">Select a skill</option>
+                              {getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills().map(
+                                (skillName) => (
+                                  <option
+                                    key={`${featureRow.key}-noble-genies-skill-${skillName}`}
+                                    value={skillName}
+                                  >
+                                    {skillName}
+                                  </option>
+                                )
+                              )}
+                            </SelectInput>
+                          </label>
+                        ) : (
+                          <p className={styles.emptyFeatureText}>
+                            No eligible bonus skills are available.
+                          </p>
+                        )}
                       </div>
                     </>
                   ) : featureRow.feature === CLASS_FEATURE.PRIMAL_KNOWLEDGE &&
@@ -2294,6 +2690,49 @@ function ClassFeatureList({
                         </label>
                       </div>
                     </>
+                  ) : featureRow.feature === CLASS_FEATURE.IRON_MIND &&
+                    character.className === "Ranger" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <div className={styles.featureSelectionGrid}>
+                        <label
+                          className={clsx(
+                            styles.featureSelectionField,
+                            !isUnlocked && styles.featureOptionRowDisabled
+                          )}
+                        >
+                          <span className={styles.featureSelectionLabel}>Iron Mind Save</span>
+                          <SelectInput
+                            value={getRangerGloomStalkerIronMindSavingThrowSelection() ?? ""}
+                            disabled={!isUnlocked || isRangerGloomStalkerIronMindLocked()}
+                            onChange={(event) =>
+                              updateRangerGloomStalkerIronMindSavingThrowSelection(
+                                event.target.value
+                              )
+                            }
+                          >
+                            <option value="">Select a saving throw</option>
+                            {getAvailableRangerGloomStalkerIronMindSavingThrows().map(
+                              (proficiency) => (
+                                <option
+                                  key={`${featureRow.key}-iron-mind-${proficiency}`}
+                                  value={proficiency}
+                                >
+                                  {getProficiencyLabel(proficiency)}
+                                </option>
+                              )
+                            )}
+                          </SelectInput>
+                        </label>
+                      </div>
+                    </>
                   ) : featureRow.feature === CLASS_FEATURE.EXPERTISE ? (
                     character.className === "Ranger" ? (
                       <>
@@ -2499,6 +2938,46 @@ function ClassFeatureList({
                         onOpenDivinityReference={onOpenDivinityReference}
                       />
                     )
+                  ) : featureRow.feature === CLASS_FEATURE.DREAD_ALLEGIANCE &&
+                    character.className === "Rogue" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description.slice(0, 1)}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <FeatureChoiceOptions
+                        featureKey={featureRow.key}
+                        groupName={`dread-allegiance-${character.id}`}
+                        isUnlocked={isUnlocked}
+                        selectedValue={getRogueScionOfTheThreeDreadAllegianceChoice()}
+                        options={[
+                          {
+                            key: "bane",
+                            value: "bane",
+                            content: featureDetails.description[1] ?? ""
+                          },
+                          {
+                            key: "bhaal",
+                            value: "bhaal",
+                            content: featureDetails.description[2] ?? ""
+                          },
+                          {
+                            key: "myrkul",
+                            value: "myrkul",
+                            content: featureDetails.description[3] ?? ""
+                          }
+                        ]}
+                        onChange={updateRogueScionOfTheThreeDreadAllegianceChoice}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                    </>
                   ) : featureRow.feature === CLASS_FEATURE.THIEVES_CANT &&
                     character.className === "Rogue" ? (
                     <>

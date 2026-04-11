@@ -10,10 +10,12 @@ import {
   WEAPON_PROPERTY,
   WEAPON_TRAINING
 } from "./enums";
-import type {WeaponDamage, WeaponEntry} from "./types";
+import type { WeaponDamage, WeaponEntry } from "./types";
+import { psychicBladeWeaponName, psychicBladeWeaponSummary } from "./featureWeapons";
 
 type WeaponSeed = Omit<WeaponEntry, "id" | "category" | "rarity" | "summary"> & {
   rarity?: RARITY_TYPES;
+  summary?: string;
 };
 
 const weaponBaseByName: Record<string, WEAPON_BASE> = {
@@ -103,18 +105,21 @@ function createWeaponSummary(weapon: WeaponSeed): string {
 }
 
 function createWeaponId(name: string): string {
-  return `weapon-${name.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "")}`;
+  return `weapon-${name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "")}`;
 }
 
 function createWeaponEntry(weapon: WeaponSeed): WeaponEntry {
-  const { rarity = RARITY_TYPES.COMMON, ...weaponDefinition } = weapon;
+  const { rarity = RARITY_TYPES.COMMON, summary, ...weaponDefinition } = weapon;
 
   return {
     id: createWeaponId(weaponDefinition.name),
     category: ENTRY_CATEGORIES.WEAPONS,
     baseWeapon: weaponDefinition.baseWeapon ?? weaponBaseByName[weaponDefinition.name],
     rarity,
-    summary: createWeaponSummary(weaponDefinition),
+    summary: summary?.trim() ? summary : createWeaponSummary(weaponDefinition),
     ...weaponDefinition
   };
 }
@@ -122,10 +127,25 @@ function createWeaponEntry(weapon: WeaponSeed): WeaponEntry {
 const bludgeoning = (amount: WeaponDamage[number][0]): WeaponDamage => [
   [amount, DAMAGE_TYPE.BLUDGEONING]
 ];
-const piercing = (amount: WeaponDamage[number][0]): WeaponDamage => [[amount, DAMAGE_TYPE.PIERCING]];
-const slashing = (amount: WeaponDamage[number][0]): WeaponDamage => [[amount, DAMAGE_TYPE.SLASHING]];
+const piercing = (amount: WeaponDamage[number][0]): WeaponDamage => [
+  [amount, DAMAGE_TYPE.PIERCING]
+];
+const slashing = (amount: WeaponDamage[number][0]): WeaponDamage => [
+  [amount, DAMAGE_TYPE.SLASHING]
+];
 
 export const weaponEntries: WeaponEntry[] = [
+  createWeaponEntry({
+    name: psychicBladeWeaponName,
+    summary: psychicBladeWeaponSummary,
+    type: { combat: WEAPON_COMBAT_TYPE.MELEE, training: WEAPON_TRAINING.SIMPLE },
+    damage: [[DICE.D6, DAMAGE_TYPE.PSYCHIC]],
+    properties: [WEAPON_PROPERTY.FINESSE, WEAPON_PROPERTY.THROWN, WEAPON_PROPERTY.RANGE],
+    mastery: WEAPON_MASTERY.VEX,
+    weight: 0,
+    cost: { amount: 0, currency: CURRENCY_TYPE.GP },
+    range: { normal: 60, long: 120 }
+  }),
   createWeaponEntry({
     name: "Club",
     type: { combat: WEAPON_COMBAT_TYPE.MELEE, training: WEAPON_TRAINING.SIMPLE },

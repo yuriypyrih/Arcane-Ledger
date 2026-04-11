@@ -10,11 +10,13 @@ import type {
   AbilityCheckIndicatorMap,
   CoreStatIndicatorMap,
   DerivedFeatureStatusEntry,
+  FeatureEquipmentEntry,
   FeatureAbilityScoreBonus,
   FeatureActionCard,
   FeatureActionOptionCard,
   FeatureArmorClassBonus,
   FeatureArmorClassMode,
+  FeatureInitiativeBonus,
   FeatureArmorProficiencyEntry,
   FeatureDamageBonus,
   FeatureIndicator,
@@ -33,9 +35,11 @@ import type {
 export type SubclassDerivedFeatureState = {
   featureActions?: FeatureActionCard[];
   featureActionOptions?: Partial<Record<string, FeatureActionOptionCard[]>>;
+  equipmentEntries?: FeatureEquipmentEntry[];
   weaponActions?: WeaponAction[];
   transformFeatureAction?: (action: FeatureActionCard) => FeatureActionCard;
   transformWeaponAction?: (action: WeaponAction) => WeaponAction;
+  getInitiativeBonuses?: () => FeatureInitiativeBonus[];
   getSavingThrowBonuses?: (ability: AbilityKey) => FeatureSavingThrowBonus[];
   savingThrowIndicators?: SavingThrowIndicatorMap;
   abilityCheckIndicators?: AbilityCheckIndicatorMap;

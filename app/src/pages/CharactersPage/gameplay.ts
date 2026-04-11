@@ -25,6 +25,7 @@ import {
   canUseMonkMartialArtsForCharacter,
   getFeatureWeaponActionsForCharacter,
   hasBatteringRootsBonusForCharacter,
+  getInitiativeBonusesForCharacter,
   getUnarmedStrikeConfigForCharacter,
   transformWeaponActionForCharacter,
   getFeatureDamageBonusesForWeaponAction,
@@ -453,11 +454,12 @@ function formatFeatureDamageBonusFormula(entry: FeatureDamageBonus): string | nu
   return entry.formula ?? null;
 }
 
-function createWeaponAction(
+export function createWeaponAction(
   character: Pick<
     Character,
-    "className" | "level" | "classFeatureState" | "statusEntries" | "subclassId" | "roundTracker"
-  >,
+    "className" | "level" | "classFeatureState" | "statusEntries" | "subclassId"
+  > &
+    Partial<Pick<Character, "roundTracker">>,
   options: {
     key: string;
     name: string;
@@ -478,14 +480,17 @@ function createWeaponAction(
     hasVersatileBonus: boolean;
     hasGreatWeaponFighting: boolean;
     hasMartialArtsDamageDie?: boolean;
+    skipFeatureDerivedLookups?: boolean;
   }
 ): WeaponAction {
-  const damageBonusEntries = getFeatureDamageBonusesForWeaponAction(character, {
-    name: options.name,
-    ability: options.ability,
-    attackKind: options.attackKind,
-    combatType: options.combatType ?? null
-  });
+  const damageBonusEntries = options.skipFeatureDerivedLookups
+    ? []
+    : getFeatureDamageBonusesForWeaponAction(character, {
+        name: options.name,
+        ability: options.ability,
+        attackKind: options.attackKind,
+        combatType: options.combatType ?? null
+      });
   const damageLabel = appendFeatureDamageBonuses(
     options.damageLabel,
     damageBonusEntries,
@@ -504,12 +509,16 @@ function createWeaponAction(
   const damageAbilityModifier = options.damageAbilityModifier ?? options.abilityModifier;
   const damageAbility = options.damageAbility ?? options.ability;
   const totalModifier = damageAbilityModifier + getDamageBonusTotal(damageBonusEntries);
-  const indicators = getWeaponAttackIndicatorsForCharacter(character);
-  const hasBatteringRootsBonus = hasBatteringRootsBonusForCharacter(character, {
-    attackKind: options.attackKind,
-    combatType: options.combatType ?? null,
-    properties: options.properties
-  });
+  const indicators = options.skipFeatureDerivedLookups
+    ? []
+    : getWeaponAttackIndicatorsForCharacter(character);
+  const hasBatteringRootsBonus = options.skipFeatureDerivedLookups
+    ? false
+    : hasBatteringRootsBonusForCharacter(character, {
+        attackKind: options.attackKind,
+        combatType: options.combatType ?? null,
+        properties: options.properties
+      });
 
   return {
     key: options.key,
@@ -616,7 +625,31 @@ export function getInitiativeBreakdownForCharacter(character: Character): Initia
       value: getAbilityModifierForCharacter(character, "DEX")
     }
   ];
+  const initiativeBonuses = getInitiativeBonusesForCharacter(character);
   const normalizedFeats = normalizeCharacterFeats(character.feats, character.level);
+
+  initiativeBonuses.forEach((bonus) => {
+    const value = bonus.abilityModifierSource
+      ? (() => {
+          const sourceValue = getAbilityModifierForCharacter(
+            character,
+            bonus.abilityModifierSource
+          );
+          return typeof bonus.minimumValue === "number"
+            ? Math.max(bonus.minimumValue, sourceValue)
+            : sourceValue;
+        })()
+      : (bonus.value ?? 0);
+
+    if (value === 0) {
+      return;
+    }
+
+    entries.push({
+      label: bonus.label,
+      value
+    });
+  });
 
   if (normalizedFeats.some((entry) => entry.feat === FEATS.ALERT)) {
     entries.push({

@@ -834,19 +834,7 @@ function SkillsAndProficienciesForm({
                             {
                               label: "Formula",
                               value: formatSkillFormula(row)
-                            },
-                            ...(row.proficiencySourceLabels.length > 0
-                              ? [
-                                  {
-                                    label: "Source",
-                                    value: row.proficiencySourceLabels.join(", ")
-                                  },
-                                  {
-                                    label: "Override",
-                                    value: row.proficiencyLocked ? "Enforced" : "Overridable"
-                                  }
-                                ]
-                              : [])
+                            }
                           ];
 
                           return (

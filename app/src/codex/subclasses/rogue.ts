@@ -251,7 +251,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "When you use your Psychic Blades to deal Sneak Attack damage to a creature, you can force that target to make a <link:Wisdom Saving Throw>Wisdom saving throw</link> (DC 8 plus your <link:DEX>Dexterity</link> modifier and <link:Proficiency Bonus>Proficiency Bonus</link>).",
           "If the save fails, the target has the <link:Stunned>Stunned</link> condition for 1 minute.",
           "The Stunned target repeats the save at the end of each of its turns, ending the effect on itself on a success.",
-          "Once you use this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link> unless you expend three Psionic Energy Dice, no action required, to restore your use of it."
+          "Once you use this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link> unless you expend one Psionic Energy Die, no action required, to restore your use of it."
         ],
         ...notTracked
       })

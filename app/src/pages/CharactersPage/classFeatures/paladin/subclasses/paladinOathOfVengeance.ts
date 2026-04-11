@@ -1,7 +1,33 @@
-import type { SubclassRuntimeResolver } from "../../subclassRuntime";
-import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
+import { CLASS_FEATURE, REACTION, type ReactionEntry } from "../../../../../codex/entries";
+import { getSubclassEntryById } from "../../../../../codex/subclasses";
+import type { Character } from "../../../../../types";
+import {
+  STATUS_DURATION_KIND,
+  STATUS_ENTRY_GROUP,
+  STATUS_ENTRY_SOURCE_TYPE
+} from "../../../../../types";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import {
+  getPreparedSpellIdsByLevel,
+  resolveSpellIdsByName,
+  type SubclassRuntimeResolver
+} from "../../subclassRuntime";
+import type {
+  DerivedFeatureStatusEntry,
+  FeatureActionCard,
+  FeatureSpeedBonus
+} from "../../types";
+import { hasActivePaladinAuraOfProtection, hasPaladinFeature } from "../paladin";
 
 export const oathOfVengeanceSubclassId = "paladin-oath-of-vengeance";
+export const avengingAngelActionKey = "paladin-avenging-angel";
+export const frightfulAuraReactionId = "reaction-paladin-frightful-aura";
+export const paladinOathOfVengeanceAvengingAngelStatusSourceId =
+  "feature-paladin-oath-of-vengeance-avenging-angel";
+export const paladinOathOfVengeanceFrightfulAuraStatusSourceId =
+  "feature-paladin-oath-of-vengeance-frightful-aura";
 
 const oathOfVengeanceSpellIdsByLevel = {
   3: resolveSpellIdsByName(["Bane", "Hunter's Mark"]),
@@ -10,6 +36,369 @@ const oathOfVengeanceSpellIdsByLevel = {
   13: resolveSpellIdsByName(["Banishment", "Dimension Door"]),
   17: resolveSpellIdsByName(["Hold Monster", "Scrying"])
 } as const;
+const avengingAngelName = "Avenging Angel";
+const frightfulAuraName = "Frightful Aura";
+const avengingAngelUsesTotal = 1;
+const avengingAngelFallbackSpellSlotLevel = 5;
+const oathOfVengeanceSubclassEntry = getSubclassEntryById(oathOfVengeanceSubclassId);
+const frightfulAuraDescription = [
+  "Whenever an enemy starts its turn in your Aura of Protection, that creature must succeed on a Wisdom saving throw or have the Frightened condition for 1 minute or until it takes any damage.",
+  "Attack rolls against the Frightened creature have Advantage."
+] as const;
+
+type PaladinOathOfVengeanceCharacter = Pick<Character, "className"> &
+  Partial<
+    Pick<Character, "classFeatureState" | "level" | "spellSlotsExpended" | "statusEntries" | "subclassId">
+  >;
+
+function getOathOfVengeanceFeatureDescriptionEntries(feature: CLASS_FEATURE): string[] {
+  const featureRow = oathOfVengeanceSubclassEntry?.features.find((row) =>
+    row.classFeatures.includes(feature)
+  );
+
+  return (featureRow?.featureOverrides?.[feature]?.description ?? []).filter(
+    (entry): entry is string => typeof entry === "string"
+  );
+}
+
+const avengingAngelDescription = getOathOfVengeanceFeatureDescriptionEntries(
+  CLASS_FEATURE.AVENGING_ANGEL
+);
+const frightfulAuraReactionEntry: ReactionEntry = {
+  id: frightfulAuraReactionId,
+  reaction: REACTION.FRIGHTFUL_AURA,
+  name: frightfulAuraName,
+  sourceType: "feature",
+  sourceFeature: CLASS_FEATURE.AVENGING_ANGEL,
+  sourceLabel: "Oath of Vengeance",
+  description: [...frightfulAuraDescription]
+};
+
+export function hasPaladinOathOfVengeanceAvengingAngelFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Paladin" &&
+    character.subclassId === oathOfVengeanceSubclassId &&
+    (character.level ?? 0) >= 20
+  );
+}
+
+export function getPaladinOathOfVengeanceAvengingAngelUsesTotal(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return hasPaladinOathOfVengeanceAvengingAngelFeature(character) ? avengingAngelUsesTotal : 0;
+}
+
+export function getPaladinOathOfVengeanceAvengingAngelUsesRemaining(
+  character: PaladinOathOfVengeanceCharacter
+): number {
+  const totalUses = getPaladinOathOfVengeanceAvengingAngelUsesTotal(character);
+  const usesExpended = character.classFeatureState?.paladin?.avengingAngelUsesExpended ?? 0;
+
+  return Math.max(0, totalUses - usesExpended);
+}
+
+function getPaladinOathOfVengeanceAvengingAngelFallbackSlotSummary(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "spellSlotsExpended" | "subclassId">>
+): { total: number; remaining: number } {
+  const spellSlotTotals = getSpellSlotTotalsForCharacter(
+    character.className,
+    character.level ?? 1,
+    character.subclassId
+  );
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
+  const slotIndex = avengingAngelFallbackSpellSlotLevel - 1;
+  const total = spellSlotTotals[slotIndex] ?? 0;
+
+  return {
+    total,
+    remaining: Math.max(0, total - (spellSlotsExpended[slotIndex] ?? 0))
+  };
+}
+
+function getPaladinOathOfVengeanceAvengingAngelFallbackSlotLevel(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "spellSlotsExpended" | "subclassId">>
+): number | null {
+  return getPaladinOathOfVengeanceAvengingAngelFallbackSlotSummary(character).remaining > 0
+    ? avengingAngelFallbackSpellSlotLevel
+    : null;
+}
+
+function getPaladinAuraRangeFeet(character: PaladinOathOfVengeanceCharacter): number {
+  return hasPaladinFeature(
+    {
+      className: character.className,
+      level: character.level ?? 0
+    },
+    CLASS_FEATURE.AURA_EXPANSION
+  )
+    ? 30
+    : 10;
+}
+
+export function hasActivePaladinOathOfVengeanceAvengingAngel(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "statusEntries" | "subclassId">>
+): boolean {
+  if (!hasPaladinOathOfVengeanceAvengingAngelFeature(character)) {
+    return false;
+  }
+
+  return normalizeCharacterStatusEntries(character.statusEntries).some(
+    (entry) =>
+      entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+      entry.sourceId === paladinOathOfVengeanceAvengingAngelStatusSourceId
+  );
+}
+
+function hasActivePaladinOathOfVengeanceFrightfulAura(
+  character: PaladinOathOfVengeanceCharacter
+): boolean {
+  return (
+    hasActivePaladinOathOfVengeanceAvengingAngel(character) &&
+    hasActivePaladinAuraOfProtection({
+      className: character.className,
+      level: character.level ?? 0,
+      statusEntries: character.statusEntries ?? []
+    })
+  );
+}
+
+function getPaladinOathOfVengeanceFeatureActions(
+  character: PaladinOathOfVengeanceCharacter
+): FeatureActionCard[] {
+  if (!hasPaladinOathOfVengeanceAvengingAngelFeature(character)) {
+    return [];
+  }
+
+  const usesRemaining = getPaladinOathOfVengeanceAvengingAngelUsesRemaining(character);
+  const fallbackSlotSummary = getPaladinOathOfVengeanceAvengingAngelFallbackSlotSummary(character);
+  const showFallbackSlotInfo = usesRemaining <= 0 && fallbackSlotSummary.total > 0;
+  const hasFallbackSlot = showFallbackSlotInfo && fallbackSlotSummary.remaining > 0;
+  const isActive = hasActivePaladinOathOfVengeanceAvengingAngel(character);
+
+  return [
+    {
+      key: avengingAngelActionKey,
+      name: avengingAngelName,
+      summary: "Assume your avenging form.",
+      detail: "Gain Avenging Angel for 10 minutes.",
+      economyType: ECONOMY_TYPE.BONUS_ACTION,
+      actionCategory: ACTION_CATEGORY.FEATURE,
+      usesRemaining,
+      usesTotal: avengingAngelUsesTotal,
+      usesInlineLabel: showFallbackSlotInfo ? "| Use 5th Spell Slot" : undefined,
+      description: [...avengingAngelDescription],
+      resources: [
+        {
+          kind: "tracker",
+          label: "Uses",
+          current: usesRemaining,
+          total: avengingAngelUsesTotal,
+          cost: 1
+        },
+        ...(showFallbackSlotInfo
+          ? [
+              {
+                kind: "text" as const,
+                label: "Level 5 Slots",
+                value: `${fallbackSlotSummary.remaining}/${fallbackSlotSummary.total}`
+              }
+            ]
+          : [])
+      ],
+      drawer: {
+        kind: "confirm",
+        eyebrow: "Oath of Vengeance",
+        confirmLabel: "Activate Avenging Angel",
+        resources: [
+          {
+            kind: "tracker" as const,
+            label: "Uses",
+            current: usesRemaining,
+            total: avengingAngelUsesTotal,
+            cost: 1
+          },
+          ...(showFallbackSlotInfo
+            ? [
+                {
+                  kind: "text" as const,
+                  label: "Level 5 Slots",
+                  value: `${fallbackSlotSummary.remaining}/${fallbackSlotSummary.total}`
+                }
+              ]
+            : [])
+        ]
+      },
+      execute: {
+        kind: "activate",
+        label: "Activate Avenging Angel"
+      },
+      isActive,
+      disabled: isActive || (usesRemaining <= 0 && !hasFallbackSlot),
+      disabledReason: isActive
+        ? "Avenging Angel is already active."
+        : usesRemaining <= 0 && !hasFallbackSlot
+          ? "No Avenging Angel use or level 5 spell slots remaining."
+          : undefined
+    }
+  ];
+}
+
+function getPaladinOathOfVengeanceDerivedStatusEntries(
+  character: PaladinOathOfVengeanceCharacter
+): DerivedFeatureStatusEntry[] {
+  if (!hasActivePaladinOathOfVengeanceFrightfulAura(character)) {
+    return [];
+  }
+
+  return [
+    {
+      id: paladinOathOfVengeanceFrightfulAuraStatusSourceId,
+      sourceId: paladinOathOfVengeanceFrightfulAuraStatusSourceId,
+      group: STATUS_ENTRY_GROUP.AURAS,
+      value: frightfulAuraName,
+      source: frightfulAuraName,
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.INFINITE
+      },
+      rangeFeet: getPaladinAuraRangeFeet(character)
+    }
+  ];
+}
+
+function getPaladinOathOfVengeanceReactionEntries(
+  character: PaladinOathOfVengeanceCharacter
+): ReactionEntry[] {
+  return hasActivePaladinOathOfVengeanceFrightfulAura(character)
+    ? [frightfulAuraReactionEntry]
+    : [];
+}
+
+function getPaladinOathOfVengeanceSpeedBonuses(
+  character: PaladinOathOfVengeanceCharacter
+): FeatureSpeedBonus[] {
+  return hasActivePaladinOathOfVengeanceAvengingAngel(character)
+    ? [
+        {
+          label: avengingAngelName,
+          value: 0,
+          movementType: "fly",
+          setTotal: 60,
+          hover: true
+        }
+      ]
+    : [];
+}
+
+export function applyPaladinOathOfVengeanceAvengingAngelStatus(character: Character): Character {
+  const nextStatusEntries = normalizeCharacterStatusEntries(character.statusEntries).filter(
+    (entry) => entry.sourceId !== paladinOathOfVengeanceAvengingAngelStatusSourceId
+  );
+
+  return {
+    ...character,
+    statusEntries: [
+      ...nextStatusEntries,
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: avengingAngelName,
+        source: avengingAngelName,
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+        duration: {
+          kind: STATUS_DURATION_KIND.MINUTES,
+          amount: 10
+        },
+        sourceId: paladinOathOfVengeanceAvengingAngelStatusSourceId
+      })
+    ]
+  };
+}
+
+export function activatePaladinOathOfVengeanceAvengingAngel(character: Character): Character {
+  if (
+    !hasPaladinOathOfVengeanceAvengingAngelFeature(character) ||
+    hasActivePaladinOathOfVengeanceAvengingAngel(character)
+  ) {
+    return character;
+  }
+
+  const usesRemaining = getPaladinOathOfVengeanceAvengingAngelUsesRemaining(character);
+  let nextCharacter = character;
+
+  if (usesRemaining > 0) {
+    const paladinState = character.classFeatureState?.paladin ?? {};
+
+    nextCharacter = {
+      ...character,
+      classFeatureState: {
+        ...character.classFeatureState,
+        paladin: {
+          ...paladinState,
+          avengingAngelUsesExpended: (paladinState.avengingAngelUsesExpended ?? 0) + 1
+        }
+      }
+    };
+  } else {
+    const fallbackSlotLevel = getPaladinOathOfVengeanceAvengingAngelFallbackSlotLevel(character);
+
+    if (fallbackSlotLevel === null) {
+      return character;
+    }
+
+    const spellSlotTotals = getSpellSlotTotalsForCharacter(
+      character.className,
+      character.level,
+      character.subclassId
+    );
+    const spellSlotsExpended = normalizeSpellSlotsExpended(
+      character.spellSlotsExpended,
+      spellSlotTotals
+    );
+    const nextSpellSlotsExpended = [...spellSlotsExpended];
+    nextSpellSlotsExpended[fallbackSlotLevel - 1] =
+      (nextSpellSlotsExpended[fallbackSlotLevel - 1] ?? 0) + 1;
+
+    nextCharacter = {
+      ...character,
+      spellSlotsExpended: nextSpellSlotsExpended
+    };
+  }
+
+  return applyPaladinOathOfVengeanceAvengingAngelStatus(nextCharacter);
+}
+
+export function restorePaladinOathOfVengeanceAvengingAngelOnLongRest(
+  character: Character
+): Character {
+  if (!hasPaladinOathOfVengeanceAvengingAngelFeature(character)) {
+    return character;
+  }
+
+  const paladinState = character.classFeatureState?.paladin ?? {};
+
+  if ((paladinState.avengingAngelUsesExpended ?? 0) <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      paladin: {
+        ...paladinState,
+        avengingAngelUsesExpended: 0
+      }
+    }
+  };
+}
 
 export const getPaladinOathOfVengeanceDerivedFeatureState: SubclassRuntimeResolver = (
   character
@@ -21,6 +410,10 @@ export const getPaladinOathOfVengeanceDerivedFeatureState: SubclassRuntimeResolv
         alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
           character.level ?? 0,
           oathOfVengeanceSpellIdsByLevel
-        )
+        ),
+        featureActions: getPaladinOathOfVengeanceFeatureActions(character),
+        derivedStatusEntries: getPaladinOathOfVengeanceDerivedStatusEntries(character),
+        reactionEntries: getPaladinOathOfVengeanceReactionEntries(character),
+        speedBonuses: getPaladinOathOfVengeanceSpeedBonuses(character)
       }
     : {};

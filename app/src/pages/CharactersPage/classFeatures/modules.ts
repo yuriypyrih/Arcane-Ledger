@@ -176,13 +176,19 @@ import {
   normalizeMonkFeatureState
 } from "./monk/monk";
 import {
+  activateElderChampion,
   activateHolyNimbus,
   activateLivingLegend,
+  activateNobleScion,
+  activateAvengingAngel,
+  activateNaturesWrath,
+  activateUndyingSentinel,
   activatePeerlessAthlete,
   activatePaladinFeatureActionOption,
   advancePaladinFeaturesForNewRound,
   applyLongRestToPaladinFeatures,
   applyShortRestToPaladinFeatures,
+  elderChampionActionKey,
   faithfulSteedActionKey,
   getPaladinAlwaysPreparedSpellIds,
   getPaladinDerivedStatusEntries,
@@ -195,11 +201,15 @@ import {
   getPaladinWeaponProficiencyEntries,
   holyNimbusActionKey,
   livingLegendActionKey,
+  nobleScionActionKey,
+  avengingAngelActionKey,
+  naturesWrathActionKey,
   normalizePaladinFeatureState,
   paladinChannelDivinityActionKey,
   paladinLayOnHandsActionKey,
   paladinsSmiteActionKey,
   peerlessAthleteActionKey,
+  undyingSentinelActionKey,
   setPaladinWeaponMasterySelections
 } from "./paladin/paladin";
 import {
@@ -211,6 +221,7 @@ import {
   getRangerDerivedStatusEntries,
   getRangerFeatureActions,
   getRangerLanguageProficiencyEntries,
+  getRangerSkillBonuses,
   getRangerSkillProficiencyEntries,
   getRangerSpeedBonuses,
   getRangerSpellDamageFormula,
@@ -219,11 +230,13 @@ import {
   getRangerWeaponMasterySelectionCount,
   getRangerWeaponMasterySelections,
   getRangerWeaponProficiencyEntries,
+  fortifyingSoulActionKey,
   naturesVeilActionKey,
   normalizeRangerFeatureState,
   setRangerWeaponMasterySelections,
   tirelessActionKey,
-  consumeRangerTirelessUse
+  consumeRangerTirelessUse,
+  consumeRangerWinterWalkerFortifyingSoulUse
 } from "./ranger/ranger";
 import {
   activateRogueSneakAttack,
@@ -251,6 +264,10 @@ import {
   rogueStrokeOfLuckActionKey,
   setRogueWeaponMasterySelections
 } from "./rogue/rogue";
+import {
+  activateRogueSoulknifePsychicVeil,
+  rogueSoulknifePsychicVeilActionKey
+} from "./rogue/subclasses/rogueSoulknife";
 import {
   activateInnateSorcery,
   advanceSorcererFeaturesForNewRound,
@@ -664,8 +681,28 @@ const classFeatureModules = {
         return activateHolyNimbus(character);
       }
 
+      if (actionKey === naturesWrathActionKey) {
+        return activateNaturesWrath(character);
+      }
+
+      if (actionKey === undyingSentinelActionKey) {
+        return activateUndyingSentinel(character);
+      }
+
       if (actionKey === livingLegendActionKey) {
         return activateLivingLegend(character);
+      }
+
+      if (actionKey === nobleScionActionKey) {
+        return activateNobleScion(character);
+      }
+
+      if (actionKey === avengingAngelActionKey) {
+        return activateAvengingAngel(character);
+      }
+
+      if (actionKey === elderChampionActionKey) {
+        return activateElderChampion(character);
       }
 
       if (actionKey === peerlessAthleteActionKey) {
@@ -690,6 +727,7 @@ const classFeatureModules = {
     collectDerived(character) {
       return {
         actions: getRangerFeatureActions(character),
+        getSkillBonuses: (skill) => getRangerSkillBonuses(character, skill),
         getSpeedBonuses: (context) => getRangerSpeedBonuses(character, context),
         skillProficiencyEntries: getRangerSkillProficiencyEntries(character),
         languageProficiencyEntries: getRangerLanguageProficiencyEntries(character),
@@ -709,6 +747,10 @@ const classFeatureModules = {
     handleAction(character, actionKey) {
       if (actionKey === tirelessActionKey) {
         return consumeRangerTirelessUse(character);
+      }
+
+      if (actionKey === fortifyingSoulActionKey) {
+        return consumeRangerWinterWalkerFortifyingSoulUse(character);
       }
 
       if (actionKey === naturesVeilActionKey) {
@@ -752,6 +794,10 @@ const classFeatureModules = {
 
       if (actionKey === rogueSteadyAimActionKey) {
         return activateRogueSteadyAim(character);
+      }
+
+      if (actionKey === rogueSoulknifePsychicVeilActionKey) {
+        return activateRogueSoulknifePsychicVeil(character);
       }
 
       if (actionKey === rogueStrokeOfLuckActionKey) {

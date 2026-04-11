@@ -86,21 +86,31 @@ import {
   restoreOneDruidWildShapeUse
 } from "../../../../../pages/CharactersPage/classFeatures/druid/druid";
 import {
+  getElderChampionUsesTotal,
+  getElementalRebukeUsesTotal,
   getFaithfulSteedUsesTotal,
   getGloriousDefenseUsesTotal,
   getHolyNimbusUsesTotal,
   getLivingLegendUsesTotal,
+  getNobleScionUsesTotal,
+  getAvengingAngelUsesTotal,
   getPaladinHealingPoolTotal,
   getPaladinChannelDivinityUsesTotal,
   getPaladinsSmiteUsesTotal,
+  getUndyingSentinelUsesTotal,
   restorePaladinChannelDivinityOnLongRest,
   restorePaladinChannelDivinityOnShortRest,
+  restoreElderChampionOnLongRest,
+  restoreElementalRebukeOnLongRest,
   restoreFaithfulSteedOnLongRest,
   restoreGloriousDefenseOnLongRest,
   restoreHolyNimbusOnLongRest,
   restoreLivingLegendOnLongRest,
+  restoreNobleScionOnLongRest,
+  restoreAvengingAngelOnLongRest,
   restorePaladinLayOnHandsOnLongRest,
-  restorePaladinsSmiteOnLongRest
+  restorePaladinsSmiteOnLongRest,
+  restoreUndyingSentinelOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
 import {
   getMonkFocusPointsTotal,
@@ -114,18 +124,47 @@ import {
   restoreMonkWholenessOfBodyOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/monk/monk";
 import {
+  getRangerGloomStalkerDreadAmbusherUsesTotal,
+  getRangerFeyReinforcementsUsesTotal,
   getRangerFavoredEnemyUsesTotal,
+  getRangerMistyWandererUsesTotal,
   getRangerNaturesVeilUsesTotal,
   getRangerTirelessUsesTotal,
+  getRangerWinterWalkerChillingRetributionUsesTotal,
+  getRangerWinterWalkerFrozenHauntUsesTotal,
+  getRangerWinterWalkerFortifyingSoulUsesTotal,
+  restoreRangerGloomStalkerDreadAmbusherOnLongRest,
+  restoreRangerFeyReinforcementsOnLongRest,
   restoreRangerFavoredEnemyOnLongRest,
+  restoreRangerMistyWandererOnLongRest,
   restoreRangerNaturesVeilOnLongRest,
-  restoreRangerTirelessOnLongRest
+  restoreRangerTirelessOnLongRest,
+  restoreRangerWinterWalkerChillingRetributionOnLongRest,
+  restoreRangerWinterWalkerFrozenHauntOnLongRest,
+  restoreRangerWinterWalkerFortifyingSoulOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/ranger/ranger";
 import {
+  getRogueSpellThiefUsesTotal,
   getRogueStrokeOfLuckUsesTotal,
+  restoreRogueSpellThiefOnLongRest,
   restoreRogueStrokeOfLuckOnLongRest,
   restoreRogueStrokeOfLuckOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/rogue/rogue";
+import {
+  getRogueScionOfTheThreeBloodthirstUsesTotal,
+  hasRogueScionOfTheThreeDreadIncarnateFeature,
+  restoreRogueScionOfTheThreeBloodthirstOnShortRest,
+  restoreRogueScionOfTheThreeBloodthirstOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueScionOfTheThree";
+import {
+  getRogueSoulknifePsionicDiceTotal,
+  getRogueSoulknifePsychicVeilUsesTotal,
+  getRogueSoulknifeRendMindUsesTotal,
+  restoreAllRogueSoulknifePsionicDice,
+  restoreRogueSoulknifePsychicVeilOnLongRest,
+  restoreRogueSoulknifeRendMindOnLongRest,
+  restoreRogueSoulknifePsionicDie
+} from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueSoulknife";
 import {
   applySorcerousRestorationOnShortRest,
   getInnateSorceryUsesTotal,
@@ -196,7 +235,6 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const bardicInspirationShortRestRecoveryAvailable =
     restoreBardicInspirationOnShortRest(character) !== character;
   const unbreakableMajestyUsesTotal = getUnbreakableMajestyUsesTotal(character);
-  const divineForeknowledgeUsesTotal = getDivineForeknowledgeUsesTotal(character);
   const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
   const groupRecoveryUsesTotal = getFighterGroupRecoveryUsesTotal(character);
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
@@ -213,6 +251,9 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const hasTimedStatuses = normalizeCharacterStatusEntries(character.statusEntries).length > 0;
   const exhaustionLevel = getExhaustionLevel(character.statusEntries);
   const tirelessUsesTotal = getRangerTirelessUsesTotal(character);
+  const hasRogueScionDreadIncarnate = hasRogueScionOfTheThreeDreadIncarnateFeature(character);
+  const rogueBloodthirstUsesTotal = getRogueScionOfTheThreeBloodthirstUsesTotal(character);
+  const rogueSoulknifePsionicDiceTotal = getRogueSoulknifePsionicDiceTotal(character);
   const rogueStrokeOfLuckUsesTotal = getRogueStrokeOfLuckUsesTotal(character);
   const sorcerousRestorationUsesTotal = getSorcerousRestorationUsesTotal(character);
   const sorcerousRestorationUsesRemaining = getSorcerousRestorationUsesRemaining(character);
@@ -456,6 +497,27 @@ export function createShortRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(hasRogueScionDreadIncarnate && rogueBloodthirstUsesTotal > 0
+      ? [
+          {
+            id: "restore-bloodthirst",
+            label: "Restore 1 Bloodthirst use",
+            detail: "Cutthroat restores one expended Bloodthirst use on a Short Rest.",
+            apply: (currentCharacter: Character) =>
+              restoreRogueScionOfTheThreeBloodthirstOnShortRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(rogueSoulknifePsionicDiceTotal > 0
+      ? [
+          {
+            id: "restore-rogue-soulknife-psionic-die",
+            label: "Restore 1 Psionic Die",
+            apply: (currentCharacter: Character) =>
+              restoreRogueSoulknifePsionicDie(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(rogueStrokeOfLuckUsesTotal > 0
       ? [
           {
@@ -547,12 +609,29 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const paladinHealingPoolTotal = getPaladinHealingPoolTotal(character);
   const paladinsSmiteUsesTotal = getPaladinsSmiteUsesTotal(character);
   const faithfulSteedUsesTotal = getFaithfulSteedUsesTotal(character);
+  const undyingSentinelUsesTotal = getUndyingSentinelUsesTotal(character);
   const holyNimbusUsesTotal = getHolyNimbusUsesTotal(character);
   const gloriousDefenseUsesTotal = getGloriousDefenseUsesTotal(character);
+  const elementalRebukeUsesTotal = getElementalRebukeUsesTotal(character);
   const livingLegendUsesTotal = getLivingLegendUsesTotal(character);
+  const nobleScionUsesTotal = getNobleScionUsesTotal(character);
+  const avengingAngelUsesTotal = getAvengingAngelUsesTotal(character);
+  const elderChampionUsesTotal = getElderChampionUsesTotal(character);
+  const rangerFeyReinforcementsUsesTotal = getRangerFeyReinforcementsUsesTotal(character);
   const rangerFavoredEnemyUsesTotal = getRangerFavoredEnemyUsesTotal(character);
+  const rangerDreadAmbusherUsesTotal = getRangerGloomStalkerDreadAmbusherUsesTotal(character);
+  const rangerMistyWandererUsesTotal = getRangerMistyWandererUsesTotal(character);
   const rangerNaturesVeilUsesTotal = getRangerNaturesVeilUsesTotal(character);
   const rangerTirelessUsesTotal = getRangerTirelessUsesTotal(character);
+  const rangerChillingRetributionUsesTotal =
+    getRangerWinterWalkerChillingRetributionUsesTotal(character);
+  const rangerFrozenHauntUsesTotal = getRangerWinterWalkerFrozenHauntUsesTotal(character);
+  const rangerFortifyingSoulUsesTotal = getRangerWinterWalkerFortifyingSoulUsesTotal(character);
+  const rogueBloodthirstUsesTotal = getRogueScionOfTheThreeBloodthirstUsesTotal(character);
+  const rogueSoulknifePsionicDiceTotal = getRogueSoulknifePsionicDiceTotal(character);
+  const rogueSoulknifePsychicVeilUsesTotal = getRogueSoulknifePsychicVeilUsesTotal(character);
+  const rogueSoulknifeRendMindUsesTotal = getRogueSoulknifeRendMindUsesTotal(character);
+  const rogueSpellThiefUsesTotal = getRogueSpellThiefUsesTotal(character);
   const rogueStrokeOfLuckUsesTotal = getRogueStrokeOfLuckUsesTotal(character);
   const sorceryPointsTotal = getSorceryPointsTotal(character);
   const innateSorceryUsesTotal = getInnateSorceryUsesTotal(character);
@@ -972,6 +1051,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(undyingSentinelUsesTotal > 0
+      ? [
+          {
+            id: "restore-undying-sentinel",
+            label: "Restore Undying Sentinel",
+            apply: (currentCharacter: Character) =>
+              restoreUndyingSentinelOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(holyNimbusUsesTotal > 0
       ? [
           {
@@ -991,13 +1080,49 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(elementalRebukeUsesTotal > 0
+      ? [
+          {
+            id: "restore-elemental-rebuke",
+            label: "Restore Elemental Rebuke",
+            apply: (currentCharacter: Character) =>
+              restoreElementalRebukeOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(livingLegendUsesTotal > 0
       ? [
           {
             id: "restore-living-legend",
             label: "Restore Living Legend",
-            apply: (currentCharacter: Character) =>
-              restoreLivingLegendOnLongRest(currentCharacter)
+            apply: (currentCharacter: Character) => restoreLivingLegendOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(nobleScionUsesTotal > 0
+      ? [
+          {
+            id: "restore-noble-scion",
+            label: "Restore Noble Scion",
+            apply: (currentCharacter: Character) => restoreNobleScionOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(avengingAngelUsesTotal > 0
+      ? [
+          {
+            id: "restore-avenging-angel",
+            label: "Restore Avenging Angel",
+            apply: (currentCharacter: Character) => restoreAvengingAngelOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(elderChampionUsesTotal > 0
+      ? [
+          {
+            id: "restore-elder-champion",
+            label: "Restore Elder Champion",
+            apply: (currentCharacter: Character) => restoreElderChampionOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -1008,6 +1133,36 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore Favored Enemy",
             apply: (currentCharacter: Character) =>
               restoreRangerFavoredEnemyOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(rangerFeyReinforcementsUsesTotal > 0
+      ? [
+          {
+            id: "restore-fey-reinforcements",
+            label: "Restore Fey Reinforcements",
+            apply: (currentCharacter: Character) =>
+              restoreRangerFeyReinforcementsOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(rangerDreadAmbusherUsesTotal > 0
+      ? [
+          {
+            id: "restore-dread-ambusher",
+            label: "Restore Dread Ambusher",
+            apply: (currentCharacter: Character) =>
+              restoreRangerGloomStalkerDreadAmbusherOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(rangerMistyWandererUsesTotal > 0
+      ? [
+          {
+            id: "restore-misty-wanderer",
+            label: "Restore Misty Wanderer",
+            apply: (currentCharacter: Character) =>
+              restoreRangerMistyWandererOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -1028,6 +1183,36 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore Tireless",
             apply: (currentCharacter: Character) =>
               restoreRangerTirelessOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(rangerFortifyingSoulUsesTotal > 0
+      ? [
+          {
+            id: "restore-fortifying-soul",
+            label: "Restore Fortifying Soul",
+            apply: (currentCharacter: Character) =>
+              restoreRangerWinterWalkerFortifyingSoulOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(rangerChillingRetributionUsesTotal > 0
+      ? [
+          {
+            id: "restore-chilling-retribution",
+            label: "Restore Chilling Retribution",
+            apply: (currentCharacter: Character) =>
+              restoreRangerWinterWalkerChillingRetributionOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(rangerFrozenHauntUsesTotal > 0
+      ? [
+          {
+            id: "restore-frozen-haunt",
+            label: "Restore Frozen Haunt",
+            apply: (currentCharacter: Character) =>
+              restoreRangerWinterWalkerFrozenHauntOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -1104,6 +1289,56 @@ export function createLongRestOptions(character: Character): RestOption[] {
             id: "restore-mystic-arcanum",
             label: "Restore Mystic Arcanum",
             apply: (currentCharacter: Character) => restoreMysticArcanumOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(rogueSpellThiefUsesTotal > 0
+      ? [
+          {
+            id: "restore-spell-thief",
+            label: "Restore Spell Thief",
+            apply: (currentCharacter: Character) =>
+              restoreRogueSpellThiefOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(rogueBloodthirstUsesTotal > 0
+      ? [
+          {
+            id: "restore-bloodthirst",
+            label: "Restore Bloodthirst",
+            apply: (currentCharacter: Character) =>
+              restoreRogueScionOfTheThreeBloodthirstOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(rogueSoulknifePsionicDiceTotal > 0
+      ? [
+          {
+            id: "restore-rogue-soulknife-psionic-dice",
+            label: "Restore all Psionic Dice",
+            apply: (currentCharacter: Character) =>
+              restoreAllRogueSoulknifePsionicDice(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(rogueSoulknifePsychicVeilUsesTotal > 0
+      ? [
+          {
+            id: "restore-rogue-soulknife-psychic-veil",
+            label: "Restore Psychic Veil",
+            apply: (currentCharacter: Character) =>
+              restoreRogueSoulknifePsychicVeilOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(rogueSoulknifeRendMindUsesTotal > 0
+      ? [
+          {
+            id: "restore-rogue-soulknife-rend-mind",
+            label: "Restore Rend Mind",
+            apply: (currentCharacter: Character) =>
+              restoreRogueSoulknifeRendMindOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

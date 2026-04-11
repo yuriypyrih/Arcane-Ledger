@@ -17,12 +17,7 @@ import {
   type ItemEntry,
   type WeaponEntry
 } from "../../../../codex/entries";
-import {
-  PROF_LEVEL,
-  currencyKeys,
-  type Character,
-  type CurrencyKey
-} from "../../../../types";
+import { PROF_LEVEL, currencyKeys, type Character, type CurrencyKey } from "../../../../types";
 import {
   formatEquipmentWeight,
   formatCodexLabel,
@@ -41,7 +36,10 @@ import {
   normalizeCharacterEquipmentSelections,
   type LoadoutCodexEntry
 } from "../../../../pages/CharactersPage/proficiency";
-import { getAdditionalWeaponMasteriesForCharacter } from "../../../../pages/CharactersPage/classFeatures";
+import {
+  getAdditionalWeaponMasteriesForCharacter,
+  getFeatureEquipmentEntriesForCharacter
+} from "../../../../pages/CharactersPage/classFeatures";
 import { getAbilityScoreForCharacter } from "../../../../pages/CharactersPage/abilities";
 import {
   getKeywordReferences,
@@ -87,6 +85,8 @@ type CatalogTab = "weapons" | "armor" | "items";
 type SelectedLoadoutEntryState = {
   entry: LoadoutDrawerEntry;
   customEquipmentId?: string;
+  featureManagedSource?: string;
+  summaryText?: string;
   origin: "loadout" | "catalog";
 };
 type SelectedWeaponReference = {
@@ -98,6 +98,8 @@ type LoadoutGroupItem = {
   name: string;
   entry: LoadoutDrawerEntry;
   customEquipmentId?: string;
+  featureManagedSource?: string;
+  summaryText?: string;
   onHand: boolean;
   worn: boolean;
 };
@@ -188,8 +190,9 @@ function getCurrencyDefinitionByType(currencyType: CURRENCY_TYPE): CurrencyDefin
 }
 
 function isHandEquippableEntry(entry: LoadoutDrawerEntry): boolean {
-  return entry.category === ENTRY_CATEGORIES.WEAPONS || (
-    entry.category === ENTRY_CATEGORIES.ARMOR && isShieldArmorEntry(entry)
+  return (
+    entry.category === ENTRY_CATEGORIES.WEAPONS ||
+    (entry.category === ENTRY_CATEGORIES.ARMOR && isShieldArmorEntry(entry))
   );
 }
 
@@ -524,30 +527,33 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     () => getResolvedCustomLoadoutEntries(customEquipment),
     [customEquipment]
   );
+  const featureEquipmentEntries = useMemo(
+    () => getFeatureEquipmentEntriesForCharacter(character),
+    [character]
+  );
   const ownedEquipmentNames = useMemo(
     () => new Set(character.equipment.map((item) => item.name)),
     [character.equipment]
   );
   const selectedLoadoutItems = useMemo(
     () => [
-      ...character.equipment
-        .flatMap<LoadoutGroupItem>((item) => {
-          const entry = getLoadoutCodexEntryByName(item.name);
+      ...character.equipment.flatMap<LoadoutGroupItem>((item) => {
+        const entry = getLoadoutCodexEntryByName(item.name);
 
-          if (!entry) {
-            return [];
+        if (!entry) {
+          return [];
+        }
+
+        return [
+          {
+            key: `codex-${entry.id}`,
+            name: entry.name,
+            entry,
+            onHand: item.onHand,
+            worn: item.worn
           }
-
-          return [
-            {
-              key: `codex-${entry.id}`,
-              name: entry.name,
-              entry,
-              onHand: item.onHand,
-              worn: item.worn
-            }
-          ];
-        }),
+        ];
+      }),
       ...resolvedCustomEquipmentEntries.map(
         (entry) =>
           ({
@@ -558,9 +564,21 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
             onHand: entry.category === ENTRY_CATEGORIES.WEAPONS ? entry.onHand : false,
             worn: entry.category === ENTRY_CATEGORIES.ARMOR ? entry.worn : false
           }) satisfies LoadoutGroupItem
+      ),
+      ...featureEquipmentEntries.map(
+        (featureEntry) =>
+          ({
+            key: featureEntry.key,
+            name: featureEntry.entry.name,
+            entry: featureEntry.entry,
+            featureManagedSource: featureEntry.sourceLabel,
+            summaryText: featureEntry.summaryOverride,
+            onHand: false,
+            worn: false
+          }) satisfies LoadoutGroupItem
       )
     ],
-    [character.equipment, resolvedCustomEquipmentEntries]
+    [character.equipment, featureEquipmentEntries, resolvedCustomEquipmentEntries]
   );
   const selectedEquipmentGroups = useMemo(
     () => groupEquipmentItems(selectedLoadoutItems),
@@ -585,10 +603,13 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     ? (findCustomEquipmentById(customEquipment, pendingDeleteCustomEquipmentId) ?? null)
     : null;
   const selectedLoadoutEntryData = selectedLoadoutEntry?.entry ?? null;
+  const selectedLoadoutSummary =
+    selectedLoadoutEntry?.summaryText ?? selectedLoadoutEntryData?.summary ?? "";
   const isSelectedCustomEntry = selectedLoadoutEntryData
     ? isResolvedCustomLoadoutEntry(selectedLoadoutEntryData)
     : false;
   const isCatalogDrawerInspection = selectedLoadoutEntry?.origin === "catalog";
+  const isSelectedFeatureManagedEntry = Boolean(selectedLoadoutEntry?.featureManagedSource);
   const heldWeaponDescriptors = useMemo(
     () => [
       ...character.equipment
@@ -615,7 +636,11 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     [character.equipment, resolvedCustomEquipmentEntries]
   );
   const selectedHandDescriptor = useMemo(() => {
-    if (!selectedLoadoutEntryData || !isHandEquippableEntry(selectedLoadoutEntryData)) {
+    if (
+      !selectedLoadoutEntryData ||
+      selectedLoadoutEntry?.featureManagedSource ||
+      !isHandEquippableEntry(selectedLoadoutEntryData)
+    ) {
       return null;
     }
 
@@ -626,7 +651,11 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     return createHeldDescriptorForEntry(key, selectedLoadoutEntryData);
   }, [selectedLoadoutEntry, selectedLoadoutEntryData]);
   const isSelectedEntryOnHand = useMemo(() => {
-    if (!selectedLoadoutEntryData || !isHandEquippableEntry(selectedLoadoutEntryData)) {
+    if (
+      !selectedLoadoutEntryData ||
+      selectedLoadoutEntry?.featureManagedSource ||
+      !isHandEquippableEntry(selectedLoadoutEntryData)
+    ) {
       return false;
     }
 
@@ -659,7 +688,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       return customArmor?.kind === "armor" ? customArmor.worn : false;
     }
 
-    return Boolean(getCharacterEquipmentItem(character.equipment, selectedLoadoutEntryData.name)?.worn);
+    return Boolean(
+      getCharacterEquipmentItem(character.equipment, selectedLoadoutEntryData.name)?.worn
+    );
   }, [character.equipment, customEquipment, selectedLoadoutEntry, selectedLoadoutEntryData]);
   const isSelectedShield =
     selectedLoadoutEntryData?.category === ENTRY_CATEGORIES.ARMOR &&
@@ -708,7 +739,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     }
 
     return [
-      ...(selectedLoadoutEntryData.mastery ? [formatCodexLabel(selectedLoadoutEntryData.mastery)] : []),
+      ...(selectedLoadoutEntryData.mastery
+        ? [formatCodexLabel(selectedLoadoutEntryData.mastery)]
+        : []),
       ...selectedAdditionalWeaponMasteries.map((entry) => formatCodexLabel(entry.mastery))
     ];
   }, [selectedAdditionalWeaponMasteries, selectedLoadoutEntryData]);
@@ -724,20 +757,21 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       ? formatCodexLabel(selectedLoadoutEntryData.mastery)
       : null;
     const additionalLabels = selectedAdditionalWeaponMasteries.map(
-      (entry) =>
-        `${formatCodexLabel(entry.mastery)}${entry.source ? ` (${entry.source})` : ""}`
+      (entry) => `${formatCodexLabel(entry.mastery)}${entry.source ? ` (${entry.source})` : ""}`
     );
 
-    return [baseLabel, ...additionalLabels].filter((entry): entry is string => Boolean(entry)).join(", ") || "None";
+    return (
+      [baseLabel, ...additionalLabels]
+        .filter((entry): entry is string => Boolean(entry))
+        .join(", ") || "None"
+    );
   }, [selectedAdditionalWeaponMasteries, selectedLoadoutEntryData]);
   const canSelectedEntryBePutOnHand =
     selectedHandDescriptor && !isSelectedEntryOnHand
       ? canWeaponBePutOnHand(selectedHandDescriptor, heldWeaponDescriptors)
       : false;
   const shouldOfferHandSwap =
-    Boolean(selectedHandDescriptor) &&
-    !isSelectedEntryOnHand &&
-    !canSelectedEntryBePutOnHand;
+    Boolean(selectedHandDescriptor) && !isSelectedEntryOnHand && !canSelectedEntryBePutOnHand;
   const availableCatalogItems = useMemo(
     () =>
       groupCatalogItems(
@@ -771,6 +805,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     setSelectedLoadoutEntry({
       entry: item.entry,
       customEquipmentId: item.customEquipmentId,
+      featureManagedSource: item.featureManagedSource,
+      summaryText: item.summaryText,
       origin: "loadout"
     });
   }
@@ -1058,7 +1094,11 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   }
 
   function swapEntryToHand() {
-    if (!selectedLoadoutEntryData || !isHandEquippableEntry(selectedLoadoutEntryData) || isSelectedEntryOnHand) {
+    if (
+      !selectedLoadoutEntryData ||
+      !isHandEquippableEntry(selectedLoadoutEntryData) ||
+      isSelectedEntryOnHand
+    ) {
       return;
     }
 
@@ -1277,10 +1317,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
             <div className={sheetStyles.spellManagementHeader}>
               <div>
                 <p className={sheetStyles.eyebrow}>Equipment</p>
-                <h3
-                  id="character-equipment-add-title"
-                  className={sheetStyles.sheetPanelTitle}
-                >
+                <h3 id="character-equipment-add-title" className={sheetStyles.sheetPanelTitle}>
                   Add equipment
                 </h3>
               </div>
@@ -1415,7 +1452,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                           )}
                           disabled={isAlreadyAdded}
                           onClick={() => {
-    setSelectedWeaponReference(null);
+                            setSelectedWeaponReference(null);
                             setSelectedLoadoutEntry({
                               entry: catalogEntry,
                               origin: "catalog"
@@ -1542,10 +1579,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
             <div className={sheetStyles.spellManagementHeader}>
               <div>
                 <p className={sheetStyles.eyebrow}>Equipment</p>
-                <h3
-                  id="character-custom-equipment-title"
-                  className={sheetStyles.sheetPanelTitle}
-                >
+                <h3 id="character-custom-equipment-title" className={sheetStyles.sheetPanelTitle}>
                   {customEditorMode === "edit"
                     ? "Edit custom equipment"
                     : "Create custom equipment"}
@@ -1587,10 +1621,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
             <div className={sheetStyles.spellManagementHeader}>
               <div>
                 <p className={sheetStyles.eyebrow}>Currency</p>
-                <h3
-                  id="character-currency-modal-title"
-                  className={sheetStyles.sheetPanelTitle}
-                >
+                <h3 id="character-currency-modal-title" className={sheetStyles.sheetPanelTitle}>
                   Currency balance
                 </h3>
               </div>
@@ -1700,10 +1731,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                   {formatCodexLabel(selectedLoadoutEntryData.category)}
                 </p>
                 <div className={sheetStyles.spellDrawerTitleRow}>
-                  <h3
-                    id="character-loadout-drawer-title"
-                    className={sheetStyles.spellDrawerTitle}
-                  >
+                  <h3 id="character-loadout-drawer-title" className={sheetStyles.spellDrawerTitle}>
                     {selectedLoadoutEntryData.name}
                   </h3>
                   {isSelectedEntryOnHand ? (
@@ -1722,7 +1750,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                     <RarityPill rarity={selectedLoadoutEntryData.rarity} />
                   ) : null}
                 </div>
-                <p className={sheetStyles.spellDrawerSummary}>{selectedLoadoutEntryData.summary}</p>
+                <p className={sheetStyles.spellDrawerSummary}>{selectedLoadoutSummary}</p>
               </div>
               <button
                 type="button"
@@ -1761,7 +1789,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                         )
                       }
                     />
-                    {selectedLoadoutEntryData.mastery || selectedAdditionalWeaponMasteries.length > 0 ? (
+                    {selectedLoadoutEntryData.mastery ||
+                    selectedAdditionalWeaponMasteries.length > 0 ? (
                       <CellContainer
                         type="button"
                         as="button"
@@ -1796,7 +1825,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                       })}
                     />
                   </>
-                ) : selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR && isSelectedShield ? null : (
+                ) : selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR &&
+                  isSelectedShield ? null : (
                   <CellContainer
                     label="Type"
                     content={
@@ -1847,69 +1877,79 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
             {!isCatalogDrawerInspection ? (
               <div className={styles.loadoutDrawerActions}>
-                {selectedLoadoutEntryData && isHandEquippableEntry(selectedLoadoutEntryData) ? (
-                  <>
-                    {shouldOfferHandSwap ? (
-                      <span className={styles.weaponHandStatusText}>Hands are full</span>
-                    ) : null}
-                    <button
-                      type="button"
-                      className={clsx(
-                        styles.editItemButton,
-                        shouldOfferHandSwap && styles.weaponHandSwapButton
-                      )}
-                      onClick={shouldOfferHandSwap ? swapEntryToHand : toggleEntryOnHand}
-                    >
-                      <Hand size={15} aria-hidden="true" />
-                      {isSelectedEntryOnHand
-                        ? "Remove from Hand"
-                        : shouldOfferHandSwap
-                          ? "Swap to Hand"
-                          : "Put on Hand"}
-                    </button>
-                  </>
-                ) : null}
-                {selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR && !isSelectedShield ? (
-                  <button
-                    type="button"
-                    className={styles.editItemButton}
-                    onClick={toggleArmorWorn}
-                  >
-                    <Shield size={15} aria-hidden="true" />
-                    {isSelectedArmorWorn ? "Remove Armor" : "Wear Armor"}
-                  </button>
-                ) : null}
-                {selectedLoadoutEntry.customEquipmentId ? (
-                  <>
-                    <button
-                      type="button"
-                      className={styles.editItemButton}
-                      onClick={() =>
-                        openCustomEquipmentEditor(selectedLoadoutEntry.customEquipmentId!)
-                      }
-                    >
-                      Edit
-                    </button>
-                    <button
-                      type="button"
-                      className={styles.removeItemButton}
-                      onClick={() =>
-                        setPendingDeleteCustomEquipmentId(
-                          selectedLoadoutEntry.customEquipmentId ?? null
-                        )
-                      }
-                    >
-                      Delete
-                    </button>
-                  </>
+                {isSelectedFeatureManagedEntry ? (
+                  <p className={styles.featureManagedItemNote}>
+                    Granted by {selectedLoadoutEntry.featureManagedSource} and managed
+                    automatically.
+                  </p>
                 ) : (
-                  <button
-                    type="button"
-                    className={styles.removeItemButton}
-                    onClick={() => removeEquipmentItem(selectedLoadoutEntryData.name)}
-                  >
-                    Remove Item
-                  </button>
+                  <>
+                    {selectedLoadoutEntryData && isHandEquippableEntry(selectedLoadoutEntryData) ? (
+                      <>
+                        {shouldOfferHandSwap ? (
+                          <span className={styles.weaponHandStatusText}>Hands are full</span>
+                        ) : null}
+                        <button
+                          type="button"
+                          className={clsx(
+                            styles.editItemButton,
+                            shouldOfferHandSwap && styles.weaponHandSwapButton
+                          )}
+                          onClick={shouldOfferHandSwap ? swapEntryToHand : toggleEntryOnHand}
+                        >
+                          <Hand size={15} aria-hidden="true" />
+                          {isSelectedEntryOnHand
+                            ? "Remove from Hand"
+                            : shouldOfferHandSwap
+                              ? "Swap to Hand"
+                              : "Put on Hand"}
+                        </button>
+                      </>
+                    ) : null}
+                    {selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR &&
+                    !isSelectedShield ? (
+                      <button
+                        type="button"
+                        className={styles.editItemButton}
+                        onClick={toggleArmorWorn}
+                      >
+                        <Shield size={15} aria-hidden="true" />
+                        {isSelectedArmorWorn ? "Remove Armor" : "Wear Armor"}
+                      </button>
+                    ) : null}
+                    {selectedLoadoutEntry.customEquipmentId ? (
+                      <>
+                        <button
+                          type="button"
+                          className={styles.editItemButton}
+                          onClick={() =>
+                            openCustomEquipmentEditor(selectedLoadoutEntry.customEquipmentId!)
+                          }
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className={styles.removeItemButton}
+                          onClick={() =>
+                            setPendingDeleteCustomEquipmentId(
+                              selectedLoadoutEntry.customEquipmentId ?? null
+                            )
+                          }
+                        >
+                          Delete
+                        </button>
+                      </>
+                    ) : (
+                      <button
+                        type="button"
+                        className={styles.removeItemButton}
+                        onClick={() => removeEquipmentItem(selectedLoadoutEntryData.name)}
+                      >
+                        Remove Item
+                      </button>
+                    )}
+                  </>
                 )}
               </div>
             ) : null}

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { X } from "lucide-react";
 import type { DivinityEntry, SpellEntry } from "../../../../../codex/entries";
 import CellContainer from "../../../../../components/CellContainer/CellContainer";
@@ -38,6 +38,7 @@ import {
 
 type StatusEntryDrawerProps = {
   entry: CharacterStatusEntry;
+  customContent?: ReactNode;
   isEditingDuration: boolean;
   durationPreset: STATUS_DURATION_PRESET;
   roundTickOn: STATUS_DURATION_ROUND_TICK;
@@ -54,6 +55,7 @@ type StatusEntryDrawerProps = {
 
 function StatusEntryDrawer({
   entry,
+  customContent = null,
   isEditingDuration,
   durationPreset,
   roundTickOn,
@@ -157,6 +159,8 @@ function StatusEntryDrawer({
               onOpenSpell={setSelectedSpellReference}
               onOpenDivinity={setSelectedDivinityReference}
             />
+
+            {customContent}
 
             <div className={styles.drawerFacts}>
               <CellContainer label="Duration" content={getStatusDurationLabel(entry.duration)} />

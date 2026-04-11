@@ -23,6 +23,7 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
+import { isRogueArcaneTricksterSpellThiefStatusSourceId } from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 
 export type TraitEditorTab =
   | "conditions"
@@ -159,6 +160,15 @@ export function isStatusEntryRemovable(entry: CharacterStatusEntry): boolean {
     entry.sourceId === "feature-barbarian-fanatical-focus";
 
   if (isFanaticalFocusEffect) {
+    return true;
+  }
+
+  const isSpellThiefEffect =
+    entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE &&
+    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+    isRogueArcaneTricksterSpellThiefStatusSourceId(entry.sourceId);
+
+  if (isSpellThiefEffect) {
     return true;
   }
 

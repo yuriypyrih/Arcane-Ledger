@@ -48,6 +48,7 @@ export function getSpellSelectionInputStatusForCharacter(
     | "preparedSpellIds"
     | "spellbookSpellIds"
     | "feats"
+    | "statusEntries"
   >
 ): SpellSelectionInputStatus {
   const cantripLimit = getCantripLimitForCharacter(
@@ -92,7 +93,8 @@ export function getSpellSelectionInputStatusForCharacter(
     character.level,
     character.classFeatureState,
     character.spellbookSpellIds,
-    character.subclassId
+    character.subclassId,
+    character.statusEntries
   );
   const selectedSpellbookSpellIds = usesSpellbook
     ? normalizeSpellbookSpellIds(character.spellbookSpellIds, spellPreparationOptions)

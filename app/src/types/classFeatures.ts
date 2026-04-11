@@ -4,10 +4,22 @@ import type {
   SAVING_THROW_PROFICIENCY,
   WEAPON_PROFICIENCY
 } from "./proficiencies";
+import type { DAMAGE_TYPE } from "../codex/entries";
 import type { MonsterRecord } from "./monsters";
 import type { SkillName } from "./skills";
 
 export type BarbarianWildHeartAspect = "owl" | "panther" | "salmon";
+export type RangerFeyWandererGift =
+  | "illusory-butterflies"
+  | "flowers-bloom"
+  | "comforting-aroma"
+  | "dancing-shadow"
+  | "horns-or-antlers"
+  | "shifting-colors";
+export type RangerOtherworldlyGlamourSkill = "Deception" | "Performance" | "Persuasion";
+export type RangerHunterPreyChoice = "colossus-slayer" | "horde-breaker";
+export type RangerHunterDefensiveTacticsChoice = "escape-the-horde" | "multiattack-defense";
+export type RogueScionOfTheThreeDreadAllegianceChoice = "bane" | "bhaal" | "myrkul";
 
 export type CharacterRageFeatureState = {
   usesExpended: number;
@@ -78,10 +90,17 @@ export type CharacterPaladinFeatureState = {
   layOnHandsExpended?: number;
   paladinsSmiteUsesExpended?: number;
   faithfulSteedUsesExpended?: number;
+  undyingSentinelUsesExpended?: number;
   holyNimbusUsesExpended?: number;
   gloriousDefenseUsesExpended?: number;
   livingLegendUsesExpended?: number;
+  elderChampionUsesExpended?: number;
+  elementalRebukeUsesExpended?: number;
+  nobleScionUsesExpended?: number;
+  avengingAngelUsesExpended?: number;
   channelDivinityUsesExpended?: number;
+  nobleGeniesGeniesSplendorSkill?: SkillName;
+  nobleGeniesAuraOfElementalShieldingDamageType?: DAMAGE_TYPE;
   extraAttacksRemainingThisTurn?: number;
   weaponMasteries?: WEAPON_PROFICIENCY[];
 };
@@ -90,6 +109,21 @@ export type CharacterRangerFeatureState = {
   favoredEnemyUsesExpended?: number;
   tirelessUsesExpended?: number;
   naturesVeilUsesExpended?: number;
+  fortifyingSoulUsesExpended?: number;
+  chillingRetributionUsesExpended?: number;
+  frozenHauntUsesExpended?: number;
+  dreadfulStrikesUsedThisTurn?: boolean;
+  winterWalkerPolarStrikesUsedThisTurn?: boolean;
+  dreadAmbusherUsesExpended?: number;
+  dreadAmbusherUsedThisTurn?: boolean;
+  ironMindSavingThrow?: SAVING_THROW_PROFICIENCY;
+  huntersPreyChoice?: RangerHunterPreyChoice;
+  defensiveTacticsChoice?: RangerHunterDefensiveTacticsChoice;
+  superiorHuntersDefenseDamageType?: DAMAGE_TYPE;
+  feyReinforcementsUsesExpended?: number;
+  mistyWandererUsesExpended?: number;
+  feyWandererGift?: RangerFeyWandererGift;
+  otherworldlyGlamourSkill?: RangerOtherworldlyGlamourSkill;
   deftExplorerExpertise?: SkillName;
   deftExplorerLanguages?: LanguageProficiency[];
   expertise?: SkillName[];
@@ -103,9 +137,15 @@ export type CharacterRogueExpertiseState = {
 };
 
 export type CharacterRogueFeatureState = {
+  bloodthirstUsesExpended?: number;
+  dreadAllegianceChoice?: RogueScionOfTheThreeDreadAllegianceChoice;
+  soulknifePsionicDiceExpended?: number;
+  soulknifePsychicVeilUsesExpended?: number;
+  soulknifeRendMindUsesExpended?: number;
   expertise?: CharacterRogueExpertiseState;
   sneakAttackUsedThisTurn?: boolean;
   steadyAimActive?: boolean;
+  spellThiefUsesExpended?: number;
   strokeOfLuckUsesExpended?: number;
   thievesCantLanguage?: LanguageProficiency;
   weaponMasteries?: WEAPON_PROFICIENCY[];

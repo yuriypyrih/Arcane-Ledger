@@ -279,6 +279,10 @@ export function normalizeCharacter(value: unknown): Character | null {
     legacySavingThrowProficiencies: rawLegacySavingThrowProficiencies,
     legacyToolProficiencies: rawLegacyToolProficiencies
   });
+  const normalizedStatusEntries = normalizeCharacterStatusEntries(
+    record.statusEntries,
+    record.conditions
+  );
   const rawKnownSpellIds = Array.isArray(record.knownSpellIds)
     ? record.knownSpellIds.filter((spellId): spellId is string => typeof spellId === "string")
     : [];
@@ -355,7 +359,8 @@ export function normalizeCharacter(value: unknown): Character | null {
       normalizedLevel,
       normalizedClassFeatureState,
       undefined,
-      normalizedSubclassId
+      normalizedSubclassId,
+      normalizedStatusEntries
     )
   );
   const spellSlotTotals = getSpellSlotTotalsForCharacter(
@@ -390,10 +395,6 @@ export function normalizeCharacter(value: unknown): Character | null {
       ? record.maxHitPointsMode
       : loadPreferences().defaultMaxHitPointsMode;
   const normalizedRoundTracker = normalizeRoundTracker(record.roundTracker);
-  const normalizedStatusEntries = normalizeCharacterStatusEntries(
-    record.statusEntries,
-    record.conditions
-  );
   const normalizedDeathSaves = normalizeDeathSaves(record.deathSaves);
   const normalizedCompanions = normalizeCharacterCompanions(record.companions);
   const normalizedFeats = normalizeCharacterFeats(record.feats, normalizedLevel);

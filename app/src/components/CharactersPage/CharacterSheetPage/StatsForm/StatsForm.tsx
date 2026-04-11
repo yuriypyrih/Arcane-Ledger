@@ -50,7 +50,6 @@ import {
   getBarbarianRageDamageBonusForCharacter,
   getBardicInspirationDieForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
-  getBardicInspirationUsesTotalForCharacter,
   getCoreStatIndicatorsForCharacter,
   getFighterBattleMasterSuperiorityDiceRemainingForCharacter,
   getFighterBattleMasterSuperiorityDiceTotalForCharacter,
@@ -59,6 +58,9 @@ import {
   getFighterPsiWarriorEnergyDiceRemainingForCharacter,
   getFighterPsiWarriorEnergyDieForCharacter,
   getMonkMartialArtsDieForCharacter,
+  getRogueSoulknifePsionicDiceRemainingForCharacter,
+  getRogueSoulknifePsionicDiceTotalForCharacter,
+  getRogueSoulknifePsionicDieForCharacter,
   getRogueSneakAttackDiceCountForCharacter,
   getRogueSneakAttackFormulaForCharacter,
   getSavingThrowBonusesForCharacter,
@@ -189,7 +191,9 @@ function formatArmorClassFormula(
 }
 
 function formatMovementBaseFormula(
-  baseExpression: ReturnType<typeof getMovementSpeedBreakdownsForCharacter>["walk"]["baseExpression"]
+  baseExpression: ReturnType<
+    typeof getMovementSpeedBreakdownsForCharacter
+  >["walk"]["baseExpression"]
 ): string {
   if (baseExpression.kind === "none") {
     return "-";
@@ -388,11 +392,7 @@ function formatDieValue(die: string | null): string | null {
   return die ? String(die).toLowerCase() : null;
 }
 
-function CharacterStatsForm({
-  character,
-  className,
-  onPersistCharacter
-}: CharacterStatsFormProps) {
+function CharacterStatsForm({ character, className, onPersistCharacter }: CharacterStatsFormProps) {
   const [isAbilityModalOpen, setIsAbilityModalOpen] = useState(false);
   const [abilitiesDraft, setAbilitiesDraft] = useState<AbilitiesDraft>(() =>
     createAbilitiesDraft(character)
@@ -406,7 +406,9 @@ function CharacterStatsForm({
   const [isDiceRollerSettingsOpen, setIsDiceRollerSettingsOpen] = useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
-  useBodyScrollLock(Boolean(selectedStatReference) || isAbilityModalOpen || isDiceRollerSettingsOpen);
+  useBodyScrollLock(
+    Boolean(selectedStatReference) || isAbilityModalOpen || isDiceRollerSettingsOpen
+  );
 
   useEffect(() => {
     if (!selectedStatReference && !isAbilityModalOpen && !isDiceRollerSettingsOpen) {
@@ -443,7 +445,8 @@ function CharacterStatsForm({
   const mainAbility = getMainAbilityForClass(character.className);
   const hasPerfectFocus = hasPerfectFocusForCharacter(character);
   const persistentRageUsesTotal = getBarbarianPersistentRageUsesTotalForCharacter(character);
-  const persistentRageUsesRemaining = getBarbarianPersistentRageUsesRemainingForCharacter(character);
+  const persistentRageUsesRemaining =
+    getBarbarianPersistentRageUsesRemainingForCharacter(character);
   const hasPersistentRage = persistentRageUsesTotal > 0;
   const hasLeadingEvasion =
     character.className === "Bard" &&
@@ -486,9 +489,8 @@ function CharacterStatsForm({
   const initiativeBreakdown = getInitiativeBreakdownForCharacter(character);
   const monkMartialArtsDie = getMonkMartialArtsDieForCharacter(character);
   const barbarianRageDamageBonus = getBarbarianRageDamageBonusForCharacter(character);
-  const fighterBattleMasterSuperiorityDie = getFighterBattleMasterSuperiorityDieForCharacter(
-    character
-  );
+  const fighterBattleMasterSuperiorityDie =
+    getFighterBattleMasterSuperiorityDieForCharacter(character);
   const fighterBattleMasterSuperiorityDiceTotal =
     getFighterBattleMasterSuperiorityDiceTotalForCharacter(character);
   const fighterBattleMasterSuperiorityDiceRemaining =
@@ -498,6 +500,10 @@ function CharacterStatsForm({
     getFighterPsiWarriorEnergyDiceTotalForCharacter(character);
   const fighterPsiWarriorEnergyDiceRemaining =
     getFighterPsiWarriorEnergyDiceRemainingForCharacter(character);
+  const rogueSoulknifePsionicDie = getRogueSoulknifePsionicDieForCharacter(character);
+  const rogueSoulknifePsionicDiceTotal = getRogueSoulknifePsionicDiceTotalForCharacter(character);
+  const rogueSoulknifePsionicDiceRemaining =
+    getRogueSoulknifePsionicDiceRemainingForCharacter(character);
   const rogueSneakAttackDiceCount = getRogueSneakAttackDiceCountForCharacter(character);
   const rogueSneakAttackFormula = getRogueSneakAttackFormulaForCharacter(character);
   const abilitySavingThrowCards = abilityKeys.map((ability) => {
@@ -510,13 +516,11 @@ function CharacterStatsForm({
     );
     const proficiencyMultiplier = getProficiencyMultiplier(savingThrowLevel);
     const proficiencyContribution = proficiencyBonus * proficiencyMultiplier;
-    const featureSavingThrowBonusEntries: SavingThrowBonusEntry[] = getSavingThrowBonusesForCharacter(
-      character,
-      ability
-    ).map((bonus) => ({
-      label: bonus.label,
-      value: resolveFeatureSavingThrowBonusValue(bonus, effectiveAbilities)
-    }));
+    const featureSavingThrowBonusEntries: SavingThrowBonusEntry[] =
+      getSavingThrowBonusesForCharacter(character, ability).map((bonus) => ({
+        label: bonus.label,
+        value: resolveFeatureSavingThrowBonusValue(bonus, effectiveAbilities)
+      }));
     const savingThrowBonusEntries: SavingThrowBonusEntry[] = [
       ...(paladinAuraOfProtectionBonus > 0
         ? [
@@ -743,6 +747,34 @@ function CharacterStatsForm({
         {
           label: "Current Dice",
           value: `${fighterPsiWarriorEnergyDiceRemaining}/${fighterPsiWarriorEnergyDiceTotal}`
+        },
+        {
+          label: "Recovery",
+          value: "Restore 1 die on Short Rest | Restore all dice on Long Rest"
+        },
+        {
+          label: "Progression",
+          value: "4d6 at 3, 6d8 at 5, 8d8 at 9, 8d10 at 11, 10d10 at 13, 12d12 at 17"
+        }
+      ]
+    });
+  }
+
+  if (rogueSoulknifePsionicDie && rogueSoulknifePsionicDiceTotal > 0) {
+    additionalCoreStatCards.push({
+      key: "rogue-soulknife-psionic-die",
+      label: "Psionic Die",
+      value: formatDieValue(rogueSoulknifePsionicDie) ?? "-",
+      summaryText:
+        "Your current Soulknife Psionic Die. Soulknife powers spend this pool, and you regain one expended die on a Short Rest and all expended dice on a Long Rest.",
+      detailCards: [
+        {
+          label: "Current Die",
+          value: formatDieValue(rogueSoulknifePsionicDie) ?? "-"
+        },
+        {
+          label: "Current Dice",
+          value: `${rogueSoulknifePsionicDiceRemaining}/${rogueSoulknifePsionicDiceTotal}`
         },
         {
           label: "Recovery",
@@ -1145,10 +1177,7 @@ function CharacterStatsForm({
               <div className={sheetStyles.spellDrawerHeaderContent}>
                 <p className={sheetStyles.spellDrawerBadge}>Reference</p>
                 <div className={sheetStyles.spellDrawerTitleRow}>
-                  <h3
-                    id="character-stats-reference-title"
-                    className={sheetStyles.spellDrawerTitle}
-                  >
+                  <h3 id="character-stats-reference-title" className={sheetStyles.spellDrawerTitle}>
                     {selectedStatReference.keyword}
                   </h3>
                 </div>
@@ -1255,12 +1284,12 @@ function CharacterStatsForm({
                         type="checkbox"
                         checked={usePersistentRageOnInitiative}
                         disabled={persistentRageUsesRemaining <= 0}
-                        onChange={(event) =>
-                          setUsePersistentRageOnInitiative(event.target.checked)
-                        }
+                        onChange={(event) => setUsePersistentRageOnInitiative(event.target.checked)}
                       />
                       <span>Persistent Rage</span>
-                      <span className={clsx(sheetStyles.shortRestDots, styles.initiativeChargeDots)}>
+                      <span
+                        className={clsx(sheetStyles.shortRestDots, styles.initiativeChargeDots)}
+                      >
                         {Array.from({ length: persistentRageUsesTotal }, (_, index) => (
                           <span
                             key={`persistent-rage-charge-${index}`}

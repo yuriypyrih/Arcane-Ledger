@@ -39,6 +39,7 @@ type GameplayActionDrawerBase = {
   descriptionAdditions: SpellDescriptionEntry[][];
   helperText?: string;
   helperTextTone?: FeatureActionTone;
+  blockedReason?: string;
   facts: FeatureActionFact[];
   resources: FeatureActionResource[];
 };
@@ -263,6 +264,7 @@ function createFeatureActionDrawer(
   ];
   const helperText = action.drawer?.helperText;
   const helperTextTone = action.drawer?.helperTextTone;
+  const blockedReason = action.drawer?.blockedReason;
   const facts = action.drawer?.facts ?? createFeatureActionFacts(action);
   const resources = action.drawer?.resources ?? createFeatureActionResources(action);
   const eyebrow = action.drawer?.eyebrow;
@@ -276,6 +278,7 @@ function createFeatureActionDrawer(
       descriptionAdditions,
       helperText,
       helperTextTone,
+      blockedReason,
       facts,
       resources,
       selection: action.drawer?.optionSelection ?? "single-immediate",
@@ -297,6 +300,7 @@ function createFeatureActionDrawer(
       descriptionAdditions,
       helperText,
       helperTextTone,
+      blockedReason,
       facts,
       resources,
       formKind:
@@ -319,6 +323,7 @@ function createFeatureActionDrawer(
       descriptionAdditions,
       helperText,
       helperTextTone,
+      blockedReason,
       facts,
       resources,
       confirmLabel
@@ -332,6 +337,7 @@ function createFeatureActionDrawer(
     descriptionAdditions,
     helperText,
     helperTextTone,
+    blockedReason,
     facts,
     resources,
     confirmLabel
