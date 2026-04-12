@@ -1,4 +1,8 @@
-import { sorcererFeatures, type SorcererFeatureClassObj } from "../../../../codex/classes";
+import {
+  sorcererFeatureMap,
+  sorcererFeatures,
+  type SorcererFeatureClassObj
+} from "../../../../codex/classes";
 import { CLASS_FEATURE } from "../../../../codex/entries";
 import type { Character, CharacterSorcererFeatureState } from "../../../../types";
 import {
@@ -9,6 +13,24 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../traits";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
+import {
+  activateSorcererSubclassCrownOfSpellfire,
+  activateSorcererSubclassFeatureAction,
+  activateSorcererSubclassFeatureActionOption,
+  activateSorcererSubclassFeatureActionOptions,
+  getSorcererSubclassClockworkCavalcadeUsesTotal,
+  getSorcererSubclassCrownOfSpellfireFallbackSorceryPointCost,
+  getSorcererSubclassCrownOfSpellfireUsesRemaining,
+  getSorcererSubclassCrownOfSpellfireUsesTotal,
+  getSorcererSubclassDragonWingsUsesTotal,
+  hasSorcererDraconicElementalAffinityFeature,
+  getSorcererSubclassRestoreBalanceUsesTotal,
+  getSorcererSubclassTamedSurgeUsesTotal,
+  getSorcererSubclassTidesOfChaosUsesTotal,
+  getSorcererSubclassTranceOfOrderUsesTotal,
+  normalizeSorcererDraconicElementalAffinityDamageType,
+  restoreSorcererSubclassFeaturesOnLongRest
+} from "./subclasses";
 import type { FeatureActionCard, FeatureActionOptionCard } from "../types";
 
 export const innateSorceryActionKey = "sorcerer-innate-sorcery";
@@ -208,9 +230,16 @@ function getUnlockedSorcererFeatures(level: number): Set<CLASS_FEATURE> {
 }
 
 function getSorcererFeatureState(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
 ): CharacterSorcererFeatureState {
   return normalizeSorcererFeatureState(character.classFeatureState?.sorcerer, character);
+}
+
+function getSorcererFeatureDescription(feature: CLASS_FEATURE): string[] {
+  return (sorcererFeatureMap[feature]?.description ?? []).filter(
+    (entry): entry is string => typeof entry === "string"
+  );
 }
 
 export function hasActiveInnateSorcery(character: Pick<Character, "statusEntries">): boolean {
@@ -307,7 +336,7 @@ export function hasSorcererFeature(
 
 export function normalizeSorcererFeatureState(
   value: unknown,
-  character: Pick<Character, "className" | "level">
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): CharacterSorcererFeatureState {
   const hasInnateSorcery = hasSorcererFeature(character, CLASS_FEATURE.INNATE_SORCERY);
   const hasFontOfMagic = hasSorcererFeature(character, CLASS_FEATURE.FONT_OF_MAGIC);
@@ -316,13 +345,29 @@ export function normalizeSorcererFeatureState(
     CLASS_FEATURE.SORCEROUS_RESTORATION
   );
   const hasArcaneApotheosis = hasSorcererFeature(character, CLASS_FEATURE.ARCANE_APOTHEOSIS);
+  const hasDraconicElementalAffinity = hasSorcererDraconicElementalAffinityFeature(character);
+  const dragonWingsUsesTotal = getSorcererSubclassDragonWingsUsesTotal(character);
   const metamagicSelectionCount = getSorcererMetamagicSelectionCount(character);
+  const clockworkCavalcadeUsesTotal = getSorcererSubclassClockworkCavalcadeUsesTotal(character);
+  const crownOfSpellfireUsesTotal = getSorcererSubclassCrownOfSpellfireUsesTotal(character);
+  const restoreBalanceUsesTotal = getSorcererSubclassRestoreBalanceUsesTotal(character);
+  const tamedSurgeUsesTotal = getSorcererSubclassTamedSurgeUsesTotal(character);
+  const tidesOfChaosUsesTotal = getSorcererSubclassTidesOfChaosUsesTotal(character);
+  const tranceOfOrderUsesTotal = getSorcererSubclassTranceOfOrderUsesTotal(character);
 
   if (
     !hasInnateSorcery &&
     !hasFontOfMagic &&
     !hasSorcerousRestoration &&
     !hasArcaneApotheosis &&
+    !hasDraconicElementalAffinity &&
+    dragonWingsUsesTotal <= 0 &&
+    clockworkCavalcadeUsesTotal <= 0 &&
+    crownOfSpellfireUsesTotal <= 0 &&
+    restoreBalanceUsesTotal <= 0 &&
+    tamedSurgeUsesTotal <= 0 &&
+    tidesOfChaosUsesTotal <= 0 &&
+    tranceOfOrderUsesTotal <= 0 &&
     metamagicSelectionCount <= 0
   ) {
     return {};
@@ -333,7 +378,15 @@ export function normalizeSorcererFeatureState(
   const totalSorceryPoints = hasFontOfMagic ? getSorceryPointsTotal(character) : 0;
   const sorceryPointsExpended = Number(record.sorceryPointsExpended);
   const innateSorceryUsesExpended = Number(record.innateSorceryUsesExpended);
+  const tamedSurgeUsesExpended = Number(record.tamedSurgeUsesExpended);
+  const tidesOfChaosUsesExpended = Number(record.tidesOfChaosUsesExpended);
+  const crownOfSpellfireUsesExpended = Number(record.crownOfSpellfireUsesExpended);
   const sorcerousRestorationUsesExpended = Number(record.sorcerousRestorationUsesExpended);
+  const dragonWingsUsesExpended = Number(record.dragonWingsUsesExpended);
+  const clockworkCavalcadeUsesExpended = Number(record.clockworkCavalcadeUsesExpended);
+  const restoreBalanceUsesExpended = Number(record.restoreBalanceUsesExpended);
+  const tranceOfOrderUsesExpended = Number(record.tranceOfOrderUsesExpended);
+  const warpingImplosionUsesExpended = Number(record.warpingImplosionUsesExpended);
   const arcaneApotheosisFreeMetamagicUsedThisTurn =
     record.arcaneApotheosisFreeMetamagicUsedThisTurn === true;
 
@@ -349,6 +402,18 @@ export function normalizeSorcererFeatureState(
             Math.min(sorcererInnateSorceryUsesTotal, Math.floor(innateSorceryUsesExpended))
           )
         : 0,
+    tamedSurgeUsesExpended:
+      tamedSurgeUsesTotal > 0 && Number.isFinite(tamedSurgeUsesExpended)
+        ? Math.max(0, Math.min(tamedSurgeUsesTotal, Math.floor(tamedSurgeUsesExpended)))
+        : 0,
+    tidesOfChaosUsesExpended:
+      tidesOfChaosUsesTotal > 0 && Number.isFinite(tidesOfChaosUsesExpended)
+        ? Math.max(0, Math.min(tidesOfChaosUsesTotal, Math.floor(tidesOfChaosUsesExpended)))
+        : 0,
+    crownOfSpellfireUsesExpended:
+      crownOfSpellfireUsesTotal > 0 && Number.isFinite(crownOfSpellfireUsesExpended)
+        ? Math.max(0, Math.min(crownOfSpellfireUsesTotal, Math.floor(crownOfSpellfireUsesExpended)))
+        : 0,
     sorcerousRestorationUsesExpended:
       hasSorcerousRestoration && Number.isFinite(sorcerousRestorationUsesExpended)
         ? Math.max(
@@ -356,9 +421,36 @@ export function normalizeSorcererFeatureState(
             Math.min(sorcerousRestorationUsesTotal, Math.floor(sorcerousRestorationUsesExpended))
           )
         : 0,
+    dragonWingsUsesExpended:
+      dragonWingsUsesTotal > 0 && Number.isFinite(dragonWingsUsesExpended)
+        ? Math.max(0, Math.min(dragonWingsUsesTotal, Math.floor(dragonWingsUsesExpended)))
+        : 0,
+    clockworkCavalcadeUsesExpended:
+      clockworkCavalcadeUsesTotal > 0 && Number.isFinite(clockworkCavalcadeUsesExpended)
+        ? Math.max(
+            0,
+            Math.min(clockworkCavalcadeUsesTotal, Math.floor(clockworkCavalcadeUsesExpended))
+          )
+        : 0,
+    restoreBalanceUsesExpended:
+      restoreBalanceUsesTotal > 0 && Number.isFinite(restoreBalanceUsesExpended)
+        ? Math.max(0, Math.min(restoreBalanceUsesTotal, Math.floor(restoreBalanceUsesExpended)))
+        : 0,
+    tranceOfOrderUsesExpended:
+      tranceOfOrderUsesTotal > 0 && Number.isFinite(tranceOfOrderUsesExpended)
+        ? Math.max(0, Math.min(tranceOfOrderUsesTotal, Math.floor(tranceOfOrderUsesExpended)))
+        : 0,
+    warpingImplosionUsesExpended: Number.isFinite(warpingImplosionUsesExpended)
+      ? Math.max(0, Math.min(1, Math.floor(warpingImplosionUsesExpended)))
+      : 0,
     arcaneApotheosisFreeMetamagicUsedThisTurn: hasArcaneApotheosis
       ? arcaneApotheosisFreeMetamagicUsedThisTurn
       : false,
+    draconicElementalAffinityDamageType: hasDraconicElementalAffinity
+      ? normalizeSorcererDraconicElementalAffinityDamageType(
+          record.draconicElementalAffinityDamageType
+        )
+      : undefined,
     metamagicSelections: normalizeMetamagicSelections(
       record.metamagicSelections,
       metamagicSelectionCount
@@ -567,6 +659,7 @@ export function getSorcererFeatureActions(
       summary: "Unleash inner magic for 10 rounds.",
       detail: "Unleash inner magic for 10 rounds.",
       breakdown: "Unleash inner magic for 10 rounds",
+      description: getSorcererFeatureDescription(CLASS_FEATURE.INNATE_SORCERY),
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
       usesRemaining: remainingUses,
@@ -632,7 +725,8 @@ export function getSorcererFeatureActions(
       drawer: {
         kind: "options",
         eyebrow: "Sorcerer",
-        optionSelection: "multi-confirm"
+        optionSelection: "multi-confirm",
+        optionSelectionLimit: getSorcererMetamagicSelectionLimitForAction(character)
       },
       execute: {
         kind: "option",
@@ -698,7 +792,12 @@ export function spendSorceryPoints(character: Character, cost: number): Characte
   return updateSorceryPointsExpended(character, (currentExpended) => currentExpended + cost);
 }
 
-export function activateInnateSorcery(character: Character): Character {
+export function activateInnateSorcery(
+  character: Character,
+  options?: {
+    useCrownOfSpellfire?: boolean;
+  }
+): Character {
   if (
     !hasSorcererFeature(character, CLASS_FEATURE.INNATE_SORCERY) ||
     hasActiveInnateSorcery(character)
@@ -706,7 +805,26 @@ export function activateInnateSorcery(character: Character): Character {
     return character;
   }
 
+  const useCrownOfSpellfire = options?.useCrownOfSpellfire === true;
   const usesRemaining = getInnateSorceryUsesRemaining(character);
+  const fallbackSorceryPointCost = getInnateSorceryActivationSorceryPointCost(character);
+  const crownOfSpellfireUsesRemaining = getSorcererSubclassCrownOfSpellfireUsesRemaining(character);
+  const crownOfSpellfireFallbackSorceryPointCost =
+    getSorcererSubclassCrownOfSpellfireFallbackSorceryPointCost(character);
+  const totalSorceryPointCost =
+    fallbackSorceryPointCost +
+    (useCrownOfSpellfire && crownOfSpellfireUsesRemaining <= 0
+      ? crownOfSpellfireFallbackSorceryPointCost
+      : 0);
+
+  if (useCrownOfSpellfire && getSorcererSubclassCrownOfSpellfireUsesTotal(character) <= 0) {
+    return character;
+  }
+
+  if (totalSorceryPointCost > 0 && getSorceryPointsRemaining(character) < totalSorceryPointCost) {
+    return character;
+  }
+
   let nextCharacter: Character = character;
 
   if (usesRemaining > 0) {
@@ -722,12 +840,7 @@ export function activateInnateSorcery(character: Character): Character {
       }
     };
   } else {
-    const fallbackSorceryPointCost = getInnateSorceryActivationSorceryPointCost(character);
-
-    if (
-      fallbackSorceryPointCost <= 0 ||
-      getSorceryPointsRemaining(character) < fallbackSorceryPointCost
-    ) {
+    if (fallbackSorceryPointCost <= 0) {
       return character;
     }
 
@@ -738,7 +851,7 @@ export function activateInnateSorcery(character: Character): Character {
     }
   }
 
-  return {
+  nextCharacter = {
     ...nextCharacter,
     statusEntries: [
       ...normalizeCharacterStatusEntries(nextCharacter.statusEntries).filter(
@@ -757,6 +870,41 @@ export function activateInnateSorcery(character: Character): Character {
       })
     ]
   };
+
+  return useCrownOfSpellfire
+    ? activateSorcererSubclassCrownOfSpellfire(nextCharacter)
+    : nextCharacter;
+}
+
+export function activateSorcererFeatureAction(
+  character: Character,
+  actionKey: string
+): Character | null {
+  if (actionKey === innateSorceryActionKey) {
+    return activateInnateSorcery(character);
+  }
+
+  return activateSorcererSubclassFeatureAction(character, actionKey);
+}
+
+export function activateSorcererFeatureActionOption(
+  character: Character,
+  actionKey: string,
+  optionKey: string
+): Character | null {
+  return activateSorcererSubclassFeatureActionOption(character, actionKey, optionKey);
+}
+
+export function activateSorcererFeatureActionOptions(
+  character: Character,
+  actionKey: string,
+  optionKeys: string[]
+): Character | null {
+  if (actionKey === metamagicActionKey) {
+    return spendMetamagicOptions(character, optionKeys);
+  }
+
+  return activateSorcererSubclassFeatureActionOptions(character, actionKey, optionKeys);
 }
 
 export function spendMetamagicOption(character: Character, optionKey: string): Character {
@@ -980,8 +1128,10 @@ export function applyShortRestToSorcererFeatures(character: Character): Characte
 }
 
 export function applyLongRestToSorcererFeatures(character: Character): Character {
-  return restoreSorcerousRestorationOnLongRest(
-    restoreInnateSorceryOnLongRest(restoreSorceryPointsOnLongRest(character))
+  return restoreSorcererSubclassFeaturesOnLongRest(
+    restoreSorcerousRestorationOnLongRest(
+      restoreInnateSorceryOnLongRest(restoreSorceryPointsOnLongRest(character))
+    )
   );
 }
 

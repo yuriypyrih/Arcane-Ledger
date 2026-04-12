@@ -52,6 +52,7 @@ export type GameplayActionDrawerDefinition =
   | (GameplayActionDrawerBase & {
       kind: "options";
       selection: FeatureActionOptionSelection;
+      selectionLimit?: number;
       options: FeatureActionOptionCard[];
       confirmLabel?: string;
     })
@@ -282,6 +283,7 @@ function createFeatureActionDrawer(
       facts,
       resources,
       selection: action.drawer?.optionSelection ?? "single-immediate",
+      selectionLimit: action.drawer?.optionSelectionLimit,
       options: options.map((option) => ({
         ...option,
         description: createOptionDescription(option),

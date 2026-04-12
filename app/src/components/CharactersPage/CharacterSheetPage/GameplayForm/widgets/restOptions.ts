@@ -176,6 +176,17 @@ import {
   restoreSorceryPointsOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
 import {
+  getSorcererSubclassClockworkCavalcadeUsesTotal,
+  getSorcererSubclassCrownOfSpellfireUsesTotal,
+  getSorcererSubclassDragonWingsUsesTotal,
+  getSorcererSubclassRestoreBalanceUsesTotal,
+  getSorcererSubclassTamedSurgeUsesTotal,
+  getSorcererSubclassTidesOfChaosUsesTotal,
+  getSorcererSubclassTranceOfOrderUsesTotal,
+  getSorcererSubclassWarpingImplosionUsesTotal,
+  restoreSorcererSubclassFeaturesOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses";
+import {
   getContactPatronUsesTotal,
   getWarlockMagicalCunningUsesTotal,
   hasWarlockFeature,
@@ -636,6 +647,15 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const sorceryPointsTotal = getSorceryPointsTotal(character);
   const innateSorceryUsesTotal = getInnateSorceryUsesTotal(character);
   const sorcerousRestorationUsesTotal = getSorcerousRestorationUsesTotal(character);
+  const sorcererClockworkCavalcadeUsesTotal =
+    getSorcererSubclassClockworkCavalcadeUsesTotal(character);
+  const sorcererCrownOfSpellfireUsesTotal = getSorcererSubclassCrownOfSpellfireUsesTotal(character);
+  const sorcererDragonWingsUsesTotal = getSorcererSubclassDragonWingsUsesTotal(character);
+  const sorcererRestoreBalanceUsesTotal = getSorcererSubclassRestoreBalanceUsesTotal(character);
+  const sorcererTamedSurgeUsesTotal = getSorcererSubclassTamedSurgeUsesTotal(character);
+  const sorcererTidesOfChaosUsesTotal = getSorcererSubclassTidesOfChaosUsesTotal(character);
+  const sorcererTranceOfOrderUsesTotal = getSorcererSubclassTranceOfOrderUsesTotal(character);
+  const sorcererWarpingImplosionUsesTotal = getSorcererSubclassWarpingImplosionUsesTotal(character);
   const magicalCunningUsesTotal = getWarlockMagicalCunningUsesTotal(character);
   const arcaneRecoveryUsesTotal = getArcaneRecoveryUsesTotal(character);
   const wizardSignatureSpellIds = getWizardSignatureSpellIds(character);
@@ -1234,6 +1254,36 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(sorcererTidesOfChaosUsesTotal > 0
+      ? [
+          {
+            id: "restore-tides-of-chaos",
+            label: "Restore Tides of Chaos",
+            apply: (currentCharacter: Character) =>
+              restoreSorcererSubclassFeaturesOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(sorcererTamedSurgeUsesTotal > 0
+      ? [
+          {
+            id: "restore-tamed-surge",
+            label: "Restore Tamed Surge",
+            apply: (currentCharacter: Character) =>
+              restoreSorcererSubclassFeaturesOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(sorcererCrownOfSpellfireUsesTotal > 0
+      ? [
+          {
+            id: "restore-crown-of-spellfire",
+            label: "Restore Crown of Spellfire",
+            apply: (currentCharacter: Character) =>
+              restoreSorcererSubclassFeaturesOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(sorcerousRestorationUsesTotal > 0
       ? [
           {
@@ -1241,6 +1291,56 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore Sorcerous Restoration",
             apply: (currentCharacter: Character) =>
               restoreSorcerousRestorationOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(sorcererDragonWingsUsesTotal > 0
+      ? [
+          {
+            id: "restore-dragon-wings",
+            label: "Restore Dragon Wings",
+            apply: (currentCharacter: Character) =>
+              restoreSorcererSubclassFeaturesOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(sorcererRestoreBalanceUsesTotal > 0
+      ? [
+          {
+            id: "restore-balance",
+            label: "Restore Balance",
+            apply: (currentCharacter: Character) =>
+              restoreSorcererSubclassFeaturesOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(sorcererClockworkCavalcadeUsesTotal > 0
+      ? [
+          {
+            id: "restore-clockwork-cavalcade",
+            label: "Restore Clockwork Cavalcade",
+            apply: (currentCharacter: Character) =>
+              restoreSorcererSubclassFeaturesOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(sorcererTranceOfOrderUsesTotal > 0
+      ? [
+          {
+            id: "restore-trance-of-order",
+            label: "Restore Trance of Order",
+            apply: (currentCharacter: Character) =>
+              restoreSorcererSubclassFeaturesOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(sorcererWarpingImplosionUsesTotal > 0
+      ? [
+          {
+            id: "restore-warping-implosion",
+            label: "Restore Warping Implosion",
+            apply: (currentCharacter: Character) =>
+              restoreSorcererSubclassFeaturesOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

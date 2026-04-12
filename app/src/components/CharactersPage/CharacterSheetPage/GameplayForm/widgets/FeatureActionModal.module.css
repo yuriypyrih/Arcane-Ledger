@@ -18,8 +18,8 @@
 }
 
 .featureActionOptionButtonSelected {
-  background: rgba(47, 120, 255, 0.1);
-  border-color: rgba(47, 120, 255, 0.34);
+  background: rgba(47, 120, 255, 0.12);
+  border-color: rgba(47, 120, 255, 0.42);
 }
 
 .featureActionHelperTextAccent {

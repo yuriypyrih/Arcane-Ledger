@@ -117,6 +117,7 @@ export type FeatureActionDrawerConfig = {
   resources?: FeatureActionResource[];
   confirmLabel?: string;
   optionSelection?: FeatureActionOptionSelection;
+  optionSelectionLimit?: number;
   formKind?: FeatureActionFormKind;
 };
 
@@ -450,6 +451,11 @@ export type ClassFeatureModule<TStateKey extends keyof CharacterClassFeatureStat
     character: Character,
     actionKey: string,
     optionKey: string
+  ) => Character | null;
+  handleActionOptions?: (
+    character: Character,
+    actionKey: string,
+    optionKeys: string[]
   ) => Character | null;
   applyShortRest?: (character: Character) => Character;
   applyLongRest?: (character: Character) => Character;

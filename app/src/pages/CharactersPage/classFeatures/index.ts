@@ -231,6 +231,7 @@ import {
   restoreRogueSoulknifePsionicDie
 } from "./rogue/subclasses/rogueSoulknife";
 import {
+  activateInnateSorcery,
   createSpellSlotFromSorceryPoints,
   convertSpellSlotToSorceryPoints,
   expendOneSorceryPoint,
@@ -252,6 +253,20 @@ import {
   setSorcererMetamagicSelections,
   spendMetamagicOptions
 } from "./sorcerer/sorcerer";
+import {
+  consumeSorcererSubclassRestoreBalanceUse,
+  getSorcererSubclassCrownOfSpellfireFallbackSorceryPointCost,
+  getSorcererSubclassCrownOfSpellfireUsesRemaining,
+  getSorcererSubclassCrownOfSpellfireUsesTotal,
+  sorcererBendLuckReactionEntryId,
+  getSorcererDraconicElementalAffinityDamageTypeSelection,
+  getSorcererSubclassRestoreBalanceUsesRemaining,
+  getSorcererSubclassRestoreBalanceUsesTotal,
+  restoreSorcererSubclassFeaturesOnSpellSlotCast,
+  setSorcererDraconicElementalAffinityDamageTypeSelection,
+  sorcererDraconicElementalAffinityDamageTypeOptions,
+  sorcererRestoreBalanceReactionId
+} from "./sorcerer/subclasses";
 import {
   consumeContactPatronUse,
   consumeMysticArcanumUse,
@@ -1036,6 +1051,12 @@ export function applyBardBattleMagicAfterSpellCastForCharacter(
   return applyBardBattleMagicAfterSpellCast(character, spell);
 }
 
+export function restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(
+  character: Character
+): Character {
+  return restoreSorcererSubclassFeaturesOnSpellSlotCast(character);
+}
+
 export function hasBattleMagicBonusWeaponAttackForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
     Partial<Pick<Character, "subclassId" | "statusEntries">>,
@@ -1753,6 +1774,22 @@ export function getSorcererMetamagicSelectionsForCharacter(
   return getSorcererMetamagicSelections(character);
 }
 
+export { sorcererDraconicElementalAffinityDamageTypeOptions };
+
+export function getSorcererDraconicElementalAffinityDamageTypeSelectionForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+) {
+  return getSorcererDraconicElementalAffinityDamageTypeSelection(character);
+}
+
+export function setSorcererDraconicElementalAffinityDamageTypeSelectionForCharacter(
+  character: Character,
+  damageType: Parameters<typeof setSorcererDraconicElementalAffinityDamageTypeSelection>[1]
+): Character {
+  return setSorcererDraconicElementalAffinityDamageTypeSelection(character, damageType);
+}
+
 export function setSorcererMetamagicSelectionsForCharacter(
   character: Character,
   selections: Parameters<typeof setSorcererMetamagicSelections>[1]
@@ -1808,6 +1845,53 @@ export function getInnateSorceryUsesRemainingForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ) {
   return getInnateSorceryUsesRemaining(character);
+}
+
+export function activateInnateSorceryForCharacter(
+  character: Character,
+  options?: Parameters<typeof activateInnateSorcery>[1]
+) {
+  return activateInnateSorcery(character, options);
+}
+
+export function getSorcererSpellfireCrownOfSpellfireUsesTotalForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+) {
+  return getSorcererSubclassCrownOfSpellfireUsesTotal(character);
+}
+
+export function getSorcererSpellfireCrownOfSpellfireUsesRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+) {
+  return getSorcererSubclassCrownOfSpellfireUsesRemaining(character);
+}
+
+export function getSorcererSpellfireCrownOfSpellfireFallbackSorceryPointCostForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+) {
+  return getSorcererSubclassCrownOfSpellfireFallbackSorceryPointCost(character);
+}
+
+export const sorcererRestoreBalanceReactionEntryId = sorcererRestoreBalanceReactionId;
+export { sorcererBendLuckReactionEntryId };
+
+export function getSorcererRestoreBalanceUsesTotalForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): number {
+  return getSorcererSubclassRestoreBalanceUsesTotal(character);
+}
+
+export function getSorcererRestoreBalanceUsesRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "subclassId">>
+): number {
+  return getSorcererSubclassRestoreBalanceUsesRemaining(character);
+}
+
+export function consumeSorcererRestoreBalanceUseForCharacter(character: Character): Character {
+  return consumeSorcererSubclassRestoreBalanceUse(character);
 }
 
 export function getAlwaysPreparedSpellIdsForCharacter(
@@ -3013,6 +3097,20 @@ export function activateFeatureActionOptionForCharacter(
       character,
       actionKey,
       optionKey
+    ) ?? character
+  );
+}
+
+export function activateFeatureActionOptionsForCharacter(
+  character: Character,
+  actionKey: string,
+  optionKeys: string[]
+): Character {
+  return (
+    getActiveClassFeatureModule(character.className)?.handleActionOptions?.(
+      character,
+      actionKey,
+      optionKeys
     ) ?? character
   );
 }

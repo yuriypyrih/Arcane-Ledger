@@ -73,6 +73,7 @@ import {
   getWarlockEldritchInvocationLimitForCharacter,
   getWarlockInvocationBlockingSelectionNamesForCharacter,
   getWarlockInvocationOptionsForCharacter,
+  restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter,
   getWarlockInvocationSelectionIdsForCharacter,
   getWarlockLearnedInvocationOptionsForCharacter,
   consumeWizardSignatureSpellFreeCastForCharacter,
@@ -94,6 +95,11 @@ import {
 import { getClericResolvedDivinityDisplay } from "../../../../pages/CharactersPage/classFeatures/cleric/cleric";
 import { paladinChannelDivinityActionKey } from "../../../../pages/CharactersPage/classFeatures/paladin/paladin";
 import { hasPaladinOathOfTheNobleGeniesElementalSmite } from "../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
+import {
+  getSorceryPointsRemaining,
+  spendSorceryPoints
+} from "../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
+import { canUseSorcererSubclassPsionicSorceryForSpell } from "../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses";
 import {
   getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
@@ -304,6 +310,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseFeyReinforcementsNoConcentrationOnSelectedSpell
   ] = useState(false);
   const [useNaturalRecoveryOnSelectedSpell, setUseNaturalRecoveryOnSelectedSpell] = useState(false);
+  const [usePsionicSorceryOnSelectedSpell, setUsePsionicSorceryOnSelectedSpell] = useState(false);
   const [useTelekineticMasterOnSelectedSpell, setUseTelekineticMasterOnSelectedSpell] =
     useState(false);
   const [useFrozenHauntOnSelectedSpell, setUseFrozenHauntOnSelectedSpell] = useState(false);
@@ -332,6 +339,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseMistyWandererOnSelectedSpell(false);
     setUseFeyReinforcementsNoConcentrationOnSelectedSpell(false);
     setUseNaturalRecoveryOnSelectedSpell(false);
+    setUsePsionicSorceryOnSelectedSpell(false);
     setUseTelekineticMasterOnSelectedSpell(false);
     setUseFrozenHauntOnSelectedSpell(false);
     setSelectedFrozenHauntFallbackSlotLevel(frozenHauntFallbackSpellSlotMinimumLevel);
@@ -518,6 +526,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     () => getChannelDivinityUsesRemainingForCharacter(character),
     [character]
   );
+  const sorceryPointsRemaining = useMemo(() => getSorceryPointsRemaining(character), [character]);
   const usesPreparedSpells = usesPreparedSpellsForCharacter(
     character.className,
     character.level,
@@ -535,7 +544,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     character.subclassId
   );
   const spellSlotTotals = useMemo(
-    () => getSpellSlotTotalsForCharacter(character.className, character.level, character.subclassId),
+    () =>
+      getSpellSlotTotalsForCharacter(character.className, character.level, character.subclassId),
     [character.className, character.level, character.subclassId]
   );
   const spellSlotsExpended = useMemo(
@@ -567,9 +577,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     () => getDruidNaturalRecoveryUsesRemainingForCharacter(character),
     [character.classFeatureState, character.className, character.level, character.subclassId]
   );
-  const rangerFeyReinforcementsUsesTotal = getRangerFeyReinforcementsUsesTotalForCharacter(
-    character
-  );
+  const rangerFeyReinforcementsUsesTotal =
+    getRangerFeyReinforcementsUsesTotalForCharacter(character);
   const rangerFeyReinforcementsUsesRemaining =
     getRangerFeyReinforcementsUsesRemainingForCharacter(character);
   const rangerMistyWandererUsesTotal = getRangerMistyWandererUsesTotalForCharacter(character);
@@ -974,25 +983,50 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpell !== null &&
     getSpellLevel(selectedSpell) > 0 &&
     druidCircleOfTheLandSpellIds.includes(selectedSpell.id);
+  const selectedSpellSupportsPsionicSorcery =
+    selectedSpell !== null &&
+    getSpellLevel(selectedSpell) > 0 &&
+    canUseSorcererSubclassPsionicSorceryForSpell(character, selectedSpell.id);
   const selectedSpellSupportsMistyWanderer =
     selectedSpell?.id === mistyStepSpellId && rangerMistyWandererUsesTotal > 0;
   const selectedSpellSupportsFeyReinforcements =
     selectedSpell?.id === summonFeySpellId && rangerFeyReinforcementsUsesTotal > 0;
   const selectedSpellCanIgnoreSpellcastingBlock =
     selectedSpell !== null && druidCircleOfTheMoonSpellIds.includes(selectedSpell.id);
+  const selectedSpellPsionicSorcerySlotLevel =
+    selectedSpell && getSpellLevel(selectedSpell) > 0
+      ? clampNumber(
+          selectedSpellSlotLevel,
+          Math.max(1, getSpellLevel(selectedSpell)),
+          9,
+          Math.max(1, getSpellLevel(selectedSpell))
+        )
+      : 1;
+  const selectedSpellPsionicSorceryMinimumCost =
+    selectedSpell && getSpellLevel(selectedSpell) > 0
+      ? Math.max(1, getSpellLevel(selectedSpell))
+      : 0;
+  const selectedSpellPsionicSorceryCurrentCost = selectedSpellSupportsPsionicSorcery
+    ? selectedSpellPsionicSorcerySlotLevel
+    : 0;
+  const selectedSpellPsionicSorceryDisabled =
+    selectedSpellSupportsPsionicSorcery &&
+    sorceryPointsRemaining < selectedSpellPsionicSorceryMinimumCost;
   const selectedSpellFreeCastSlotLevel = selectedSpellUnderMantleOfMajesty
     ? 1
-    : selectedSpellSupportsNaturalRecovery &&
-        useNaturalRecoveryOnSelectedSpell &&
-        druidNaturalRecoveryUsesRemaining > 0
-      ? Math.max(1, getSpellLevel(selectedSpell))
-      : selectedSpell && selectedSpellIsWizardSpellMastery
+    : selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell
+      ? selectedSpellPsionicSorcerySlotLevel
+      : selectedSpellSupportsNaturalRecovery &&
+          useNaturalRecoveryOnSelectedSpell &&
+          druidNaturalRecoveryUsesRemaining > 0
         ? Math.max(1, getSpellLevel(selectedSpell))
-        : selectedSpell &&
-            selectedSpellIsWizardSignatureSpell &&
-            selectedSpellHasSignatureSpellFreeCastAvailable
-          ? 3
-          : null;
+        : selectedSpell && selectedSpellIsWizardSpellMastery
+          ? Math.max(1, getSpellLevel(selectedSpell))
+          : selectedSpell &&
+              selectedSpellIsWizardSignatureSpell &&
+              selectedSpellHasSignatureSpellFreeCastAvailable
+            ? 3
+            : null;
   const selectedSpellBlockedReason = selectedSpellIsSpellbookOnly
     ? "This spell is in your spellbook but not prepared."
     : null;
@@ -1022,6 +1056,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellSupportsTelekineticMaster &&
     fighterPsiWarriorTelekineticMasterUsesRemaining <= 0 &&
     fighterPsiWarriorEnergyDiceRemaining <= 0;
+  const selectedSpellPsionicSorceryWarning =
+    usePsionicSorceryOnSelectedSpell &&
+    selectedSpellSupportsPsionicSorcery &&
+    sorceryPointsRemaining < selectedSpellPsionicSorceryCurrentCost
+      ? `You need ${selectedSpellPsionicSorceryCurrentCost} Sorcery Points.`
+      : null;
   const selectedSpellProjectedSpellSlotsExpended = useMemo(() => {
     if (!selectedSpell || getSpellLevel(selectedSpell) <= 0) {
       return spellSlotsExpended;
@@ -1078,15 +1118,17 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useFrozenHauntOnSelectedSpell && selectedSpellFrozenHauntOptionState
       ? selectedSpellFrozenHauntOptionState.usesRemaining > 0
         ? null
-        : selectedSpellFrozenHauntOptionState.disabledReason ??
+        : (selectedSpellFrozenHauntOptionState.disabledReason ??
           (!selectedSpellFrozenHauntFallbackSlotLevelIsValid
             ? `Select a level ${frozenHauntFallbackSpellSlotMinimumLevel}+ spell slot for Frozen Haunt.`
-            : null)
+            : null))
       : null;
   const selectedSpellCastWarning =
     spellcastingState.blocked && !selectedSpellCanIgnoreSpellcastingBlock
       ? spellcastingState.reason
-      : (selectedSpellActionWarning ?? selectedSpellFrozenHauntWarning);
+      : (selectedSpellActionWarning ??
+        selectedSpellPsionicSorceryWarning ??
+        selectedSpellFrozenHauntWarning);
 
   useEffect(() => {
     setUseBeguilingMagicOnSelectedSpell(false);
@@ -1096,10 +1138,19 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseMistyWandererOnSelectedSpell(false);
     setUseFeyReinforcementsNoConcentrationOnSelectedSpell(false);
     setUseNaturalRecoveryOnSelectedSpell(false);
+    setUsePsionicSorceryOnSelectedSpell(false);
     setUseTelekineticMasterOnSelectedSpell(false);
     setUseFrozenHauntOnSelectedSpell(false);
     setSelectedFrozenHauntFallbackSlotLevel(frozenHauntFallbackSpellSlotMinimumLevel);
   }, [selectedSpell?.id]);
+
+  useEffect(() => {
+    if (selectedSpellSupportsPsionicSorcery && !selectedSpellPsionicSorceryDisabled) {
+      return;
+    }
+
+    setUsePsionicSorceryOnSelectedSpell(false);
+  }, [selectedSpellPsionicSorceryDisabled, selectedSpellSupportsPsionicSorcery]);
 
   useEffect(() => {
     if (!selectedSpellSupportsElementalSmite || !selectedSpellElementalSmiteDisabled) {
@@ -1158,10 +1209,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     if (selectedSpellFrozenHauntOptionState.disabled) {
       setUseFrozenHauntOnSelectedSpell(false);
     }
-  }, [
-    selectedSpellFrozenHauntFallbackSlotLevelIsValid,
-    selectedSpellFrozenHauntOptionState
-  ]);
+  }, [selectedSpellFrozenHauntFallbackSlotLevelIsValid, selectedSpellFrozenHauntOptionState]);
 
   function getSpellRowActionShapeState(spell: SpellEntry) {
     const roundTrackerResource = getRoundTrackerResourceForSpell(spell);
@@ -1662,6 +1710,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     frozenHauntFallbackSlotLevel?: number;
     useMistyWanderer?: boolean;
     useNaturalRecovery?: boolean;
+    usePsionicSorcery?: boolean;
     useTelekineticMaster?: boolean;
   }) {
     if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpellcastingBlock)) {
@@ -1688,6 +1737,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     const useFeyReinforcementsNoConcentration =
       useFeyReinforcements && options?.useFeyReinforcementsNoConcentration === true;
     const useNaturalRecovery = options?.useNaturalRecovery === true;
+    const usePsionicSorcery =
+      options?.usePsionicSorcery === true && selectedSpellSupportsPsionicSorcery;
     const useTelekineticMaster =
       options?.useTelekineticMaster === true &&
       selectedSpellSupportsTelekineticMaster &&
@@ -1696,7 +1747,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     const useFrozenHaunt =
       options?.useFrozenHaunt === true && selectedSpellFrozenHauntOptionState !== null;
     const frozenHauntFallbackSlotLevel = useFrozenHaunt
-      ? options?.frozenHauntFallbackSlotLevel ?? null
+      ? (options?.frozenHauntFallbackSlotLevel ?? null)
       : null;
     const spellForStatusEntries = useFeyReinforcementsNoConcentration
       ? {
@@ -1825,9 +1876,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     }
 
     const minimumSlotLevel = Math.max(1, spellLevel);
-    const slotLevel = useMistyWanderer || useFeyReinforcements
-      ? minimumSlotLevel
-      : clampNumber(selectedSpellSlotLevel, minimumSlotLevel, 9, minimumSlotLevel);
+    const slotLevel =
+      useMistyWanderer || useFeyReinforcements
+        ? minimumSlotLevel
+        : clampNumber(selectedSpellSlotLevel, minimumSlotLevel, 9, minimumSlotLevel);
     const castsFreeViaSpellMastery =
       selectedSpellIsWizardSpellMastery && slotLevel === minimumSlotLevel;
     const castsFreeViaSignatureSpells =
@@ -1839,6 +1891,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       selectedSpellSupportsNaturalRecovery &&
       druidNaturalRecoveryUsesRemaining > 0 &&
       slotLevel === spellLevel;
+    const castsFreeViaPsionicSorcery = usePsionicSorcery && sorceryPointsRemaining >= slotLevel;
     const castsFreeViaMistyWanderer = useMistyWanderer;
     const castsFreeViaFeyReinforcements = useFeyReinforcements;
     const castsFreeViaTelekineticMaster = useTelekineticMaster;
@@ -1846,9 +1899,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       castsFreeViaSpellMastery ||
       castsFreeViaSignatureSpells ||
       castsFreeViaNaturalRecovery ||
+      castsFreeViaPsionicSorcery ||
       castsFreeViaMistyWanderer ||
       castsFreeViaFeyReinforcements ||
       castsFreeViaTelekineticMaster;
+
+    if (usePsionicSorcery && sorceryPointsRemaining < slotLevel) {
+      return;
+    }
 
     if (!castsWithoutSpellSlot && (spellSlotsRemaining[slotLevel - 1] ?? 0) <= 0) {
       return;
@@ -1868,23 +1926,30 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         preparedCharacter.spellSlotsExpended,
         currentSpellSlotTotals
       );
+      const preparedCharacterSorceryPointsRemaining = getSorceryPointsRemaining(preparedCharacter);
       const nextSpellSlotsExpended = [...currentSpellSlotsExpended];
-      const currentFrozenHauntOptionState = getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter(
-        preparedCharacter,
-        selectedSpell,
-        currentSpellSlotTotals,
-        nextSpellSlotsExpended
-      );
+      const currentFrozenHauntOptionState =
+        getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter(
+          preparedCharacter,
+          selectedSpell,
+          currentSpellSlotTotals,
+          nextSpellSlotsExpended
+        );
 
       if (!castsWithoutSpellSlot) {
         if (
-          (currentSpellSlotTotals[slotLevel - 1] ?? 0) - (nextSpellSlotsExpended[slotLevel - 1] ?? 0) <=
+          (currentSpellSlotTotals[slotLevel - 1] ?? 0) -
+            (nextSpellSlotsExpended[slotLevel - 1] ?? 0) <=
           0
         ) {
           return currentCharacter;
         }
 
         nextSpellSlotsExpended[slotLevel - 1] = (nextSpellSlotsExpended[slotLevel - 1] ?? 0) + 1;
+      }
+
+      if (castsFreeViaPsionicSorcery && preparedCharacterSorceryPointsRemaining < slotLevel) {
+        return currentCharacter;
       }
 
       const usesFrozenHauntCharge =
@@ -1914,16 +1979,26 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       const nextCharacter = castsFreeViaSignatureSpells
         ? consumeWizardSignatureSpellFreeCastForCharacter(preparedCharacter, selectedSpell.id)
         : preparedCharacter;
+      const nextCharacterWithPsionicSorcery = castsFreeViaPsionicSorcery
+        ? spendSorceryPoints(nextCharacter, slotLevel)
+        : nextCharacter;
       const nextCharacterWithSpellcast = {
-        ...nextCharacter,
-        spellSlotsExpended: castsWithoutSpellSlot && !shouldSpendFrozenHauntFallbackSlot
-          ? nextCharacter.spellSlotsExpended
-          : nextSpellSlotsExpended,
+        ...nextCharacterWithPsionicSorcery,
+        spellSlotsExpended:
+          castsWithoutSpellSlot && !shouldSpendFrozenHauntFallbackSlot
+            ? nextCharacterWithPsionicSorcery.spellSlotsExpended
+            : nextSpellSlotsExpended,
         statusEntries: useFrozenHaunt
           ? applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter(
-              applySpellConcentrationToStatusEntries(nextCharacter.statusEntries, spellForStatusEntries)
+              applySpellConcentrationToStatusEntries(
+                nextCharacterWithPsionicSorcery.statusEntries,
+                spellForStatusEntries
+              )
             )
-          : applySpellConcentrationToStatusEntries(nextCharacter.statusEntries, spellForStatusEntries)
+          : applySpellConcentrationToStatusEntries(
+              nextCharacterWithPsionicSorcery.statusEntries,
+              spellForStatusEntries
+            )
       };
       const nextCharacterWithTelekineticMaster = castsFreeViaTelekineticMaster
         ? activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter(
@@ -1951,8 +2026,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       const nextCharacterWithFrozenHaunt = usesFrozenHauntCharge
         ? consumeRangerWinterWalkerFrozenHauntUseForCharacter(nextCharacterWithFeyReinforcements)
         : nextCharacterWithFeyReinforcements;
+      const spellConsumedSpellSlot = !castsWithoutSpellSlot || shouldSpendFrozenHauntFallbackSlot;
+      const nextCharacterWithSorcererSubclassRecharge = spellConsumedSpellSlot
+        ? restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(nextCharacterWithFrozenHaunt)
+        : nextCharacterWithFrozenHaunt;
       const nextCharacterWithBattleMagic = applyBardBattleMagicAfterSpellCastForCharacter(
-        nextCharacterWithFrozenHaunt,
+        nextCharacterWithSorcererSubclassRecharge,
         selectedSpell
       );
 
@@ -1978,8 +2057,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(
-          nextCharacterWithBattleMagic,
-          roundTrackerResource
+            nextCharacterWithBattleMagic,
+            roundTrackerResource
           )
         : nextCharacterWithBattleMagic;
     });
@@ -2600,12 +2679,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               frozenHauntFallbackSlotLevel: selectedFrozenHauntFallbackSlotLevel,
               useMistyWanderer: useMistyWandererOnSelectedSpell,
               useNaturalRecovery: useNaturalRecoveryOnSelectedSpell,
+              usePsionicSorcery: usePsionicSorceryOnSelectedSpell,
               useTelekineticMaster: useTelekineticMasterOnSelectedSpell
             })
           }
           actionConsumesSpellSlot={
             !selectedSpellIsSpellbookOnly &&
             !selectedSpellCanOnlyBeCastAsRitual &&
+            !(selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell) &&
             !(selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell) &&
             !(selectedSpellSupportsFeyReinforcements && useFeyReinforcementsOnSelectedSpell) &&
             !(selectedSpellSupportsTelekineticMaster && useTelekineticMasterOnSelectedSpell)
@@ -2618,17 +2699,19 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           actionAvailabilityText={
             selectedSpellCanOnlyBeCastAsRitual
               ? "Knightly Envoy lets you cast this spell only as a Ritual without expending a spell slot."
-              : selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell
-                ? "Misty Wanderer lets you cast this spell without expending a spell slot."
-              : selectedSpellSupportsFeyReinforcements && useFeyReinforcementsOnSelectedSpell
-                ? "Fey Reinforcements lets you cast this spell without expending a spell slot."
-              : selectedSpellSupportsTelekineticMaster && useTelekineticMasterOnSelectedSpell
-                ? fighterPsiWarriorTelekineticMasterUsesRemaining > 0
-                  ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                  : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
-              : selectedSpellUnderMantleOfMajesty
-                ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
-                : null
+              : selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell
+                ? `Psionic Sorcery lets you cast this spell at level ${selectedSpellPsionicSorceryCurrentCost} by spending ${selectedSpellPsionicSorceryCurrentCost} Sorcery Point${selectedSpellPsionicSorceryCurrentCost === 1 ? "" : "s"} instead of a spell slot.`
+                : selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell
+                  ? "Misty Wanderer lets you cast this spell without expending a spell slot."
+                  : selectedSpellSupportsFeyReinforcements && useFeyReinforcementsOnSelectedSpell
+                    ? "Fey Reinforcements lets you cast this spell without expending a spell slot."
+                    : selectedSpellSupportsTelekineticMaster && useTelekineticMasterOnSelectedSpell
+                      ? fighterPsiWarriorTelekineticMasterUsesRemaining > 0
+                        ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                        : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
+                      : selectedSpellUnderMantleOfMajesty
+                        ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
+                        : null
           }
           actionContextText={
             selectedSpellSupportsFeyReinforcements &&
@@ -2644,6 +2727,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           actionShapeAvailable={selectedSpellActionShapeState.isSelected}
           actionShapeMultiCount={selectedSpellActionShapeState.multiCount}
           actionOptions={
+            selectedSpellSupportsPsionicSorcery ||
             selectedSpellSupportsBeguilingMagic ||
             selectedSpellSupportsBlessingOfMoonlight ||
             selectedSpellSupportsElementalSmite ||
@@ -2653,6 +2737,22 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             selectedSpellSupportsNaturalRecovery ||
             selectedSpellSupportsTelekineticMaster
               ? [
+                  ...(selectedSpellSupportsPsionicSorcery
+                    ? [
+                        {
+                          id: "psionic-sorcery",
+                          label: "Psionic Sorcery",
+                          checked: usePsionicSorceryOnSelectedSpell,
+                          onCheckedChange: setUsePsionicSorceryOnSelectedSpell,
+                          disabled: selectedSpellPsionicSorceryDisabled,
+                          fallbackCost: {
+                            label: `${selectedSpellPsionicSorceryCurrentCost} Sorcery Point${
+                              selectedSpellPsionicSorceryCurrentCost === 1 ? "" : "s"
+                            }`
+                          }
+                        }
+                      ]
+                    : []),
                   ...(selectedSpellSupportsBeguilingMagic
                     ? [
                         {
@@ -2688,13 +2788,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                             current: fighterPsiWarriorTelekineticMasterUsesRemaining,
                             total: fighterPsiWarriorTelekineticMasterUsesTotal
                           },
-                          fallbackCost:
-                            selectedSpellCanUseTelekineticMasterFallback
-                              ? {
-                                  label: "Use 1",
-                                  icon: "psi" as const
-                                }
-                              : undefined
+                          fallbackCost: selectedSpellCanUseTelekineticMasterFallback
+                            ? {
+                                label: "Use 1",
+                                icon: "psi" as const
+                              }
+                            : undefined
                         }
                       ]
                     : []),

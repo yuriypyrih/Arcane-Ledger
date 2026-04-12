@@ -269,16 +269,16 @@ import {
   rogueSoulknifePsychicVeilActionKey
 } from "./rogue/subclasses/rogueSoulknife";
 import {
-  activateInnateSorcery,
+  activateSorcererFeatureAction,
+  activateSorcererFeatureActionOption,
+  activateSorcererFeatureActionOptions,
   advanceSorcererFeaturesForNewRound,
   applyLongRestToSorcererFeatures,
   applyShortRestToSorcererFeatures,
   getSorcererFeatureActions,
   getSorcererMetamagicOptionsForAction,
   metamagicActionKey,
-  innateSorceryActionKey,
-  normalizeSorcererFeatureState,
-  spendMetamagicOption
+  normalizeSorcererFeatureState
 } from "./sorcerer/sorcerer";
 import {
   activateWarlockMagicalCunning,
@@ -823,10 +823,13 @@ const classFeatureModules = {
       };
     },
     handleAction(character, actionKey) {
-      return actionKey === innateSorceryActionKey ? activateInnateSorcery(character) : null;
+      return activateSorcererFeatureAction(character, actionKey);
     },
     handleActionOption(character, actionKey, optionKey) {
-      return actionKey === metamagicActionKey ? spendMetamagicOption(character, optionKey) : null;
+      return activateSorcererFeatureActionOption(character, actionKey, optionKey);
+    },
+    handleActionOptions(character, actionKey, optionKeys) {
+      return activateSorcererFeatureActionOptions(character, actionKey, optionKeys);
     },
     applyShortRest: applyShortRestToSorcererFeatures,
     applyLongRest: applyLongRestToSorcererFeatures,

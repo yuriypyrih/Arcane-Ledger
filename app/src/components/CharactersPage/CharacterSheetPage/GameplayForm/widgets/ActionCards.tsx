@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Brain, Flame, Hexagon, Music, PawPrint, Sparkles } from "lucide-react";
+import { Brain, Check, Flame, Hexagon, Music, PawPrint, Sparkles } from "lucide-react";
 import ActionShape from "../../../../ActionShape";
 import FeatureTrackingBadgeButton from "../../../../FeatureDisclosure/FeatureTrackingBadgeButton";
 import type { Character } from "../../../../../types";
@@ -338,7 +338,7 @@ type FeatureActionOptionButtonProps = {
   onClick: () => void;
   formatValueLabel: (option: FeatureActionOptionCard) => string;
   selected?: boolean;
-  selectionIndicatorType?: "radio" | null;
+  selectionIndicatorType?: "radio" | "checkbox" | null;
   selectionName?: string;
 };
 
@@ -417,10 +417,13 @@ export function FeatureActionOptionButton({
         styles.actionCard,
         economyShapeState.multiCount > 0 && styles.actionCardMulti,
         modalStyles.featureActionOptionButton,
+        selected && styles.optionCardSelected,
         selected && modalStyles.featureActionOptionButtonSelected
       )}
       disabled={isDisabled}
       onClick={onClick}
+      aria-checked={selectionIndicatorType === "checkbox" ? selected : undefined}
+      role={selectionIndicatorType === "checkbox" ? "checkbox" : undefined}
     >
       {actionShape ? (
         <span className={styles.shapeBadge} aria-hidden="true">
@@ -432,7 +435,21 @@ export function FeatureActionOptionButton({
           />
         </span>
       ) : null}
-      <strong>{option.name}</strong>
+      <span className={styles.optionCardHeader}>
+        {selectionIndicatorType === "checkbox" ? (
+          <span
+            className={clsx(
+              styles.optionSelectionIndicator,
+              selected && styles.optionSelectionIndicatorSelected,
+              isDisabled && styles.optionSelectionIndicatorDisabled
+            )}
+            aria-hidden="true"
+          >
+            <Check size={12} strokeWidth={2.8} />
+          </span>
+        ) : null}
+        <strong>{option.name}</strong>
+      </span>
       <span
         className={clsx(
           styles.damageRow,

@@ -40,7 +40,11 @@ import {
 } from "./heroicInspiration";
 import { clampNumber } from "./shared";
 import { normalizeSubclassId } from "./subclasses";
-import { normalizeCharacterStatusEntries, reconcileCharacterStatusConsequences } from "./traits";
+import {
+  getEffectiveHitPointMaximumForCharacter,
+  normalizeCharacterStatusEntries,
+  reconcileCharacterStatusConsequences
+} from "./traits";
 import {
   createTemporaryHitPointsAssignment,
   normalizeTemporaryHitPointsSource
@@ -402,6 +406,13 @@ export function normalizeCharacter(value: unknown): Character | null {
     clampNumber(record.temporaryHitPoints, 0, 999, defaults.temporaryHitPoints),
     normalizeTemporaryHitPointsSource(record.temporaryHitPointsSource)
   );
+  const normalizedCurrentHitPointMaximum = getEffectiveHitPointMaximumForCharacter({
+    className: normalizedClassName,
+    subclassId: normalizedSubclassId,
+    level: normalizedLevel,
+    hitPoints: normalizedHitPoints,
+    statusEntries: normalizedStatusEntries
+  });
 
   return reconcileCharacterStatusConsequences({
     id,
@@ -415,8 +426,8 @@ export function normalizeCharacter(value: unknown): Character | null {
     currentHitPoints: clampNumber(
       record.currentHitPoints,
       0,
-      normalizedHitPoints,
-      normalizedHitPoints
+      normalizedCurrentHitPointMaximum,
+      normalizedCurrentHitPointMaximum
     ),
     temporaryHitPoints: normalizedTemporaryHitPointsAssignment.temporaryHitPoints,
     temporaryHitPointsSource: normalizedTemporaryHitPointsAssignment.temporaryHitPointsSource,

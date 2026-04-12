@@ -55,6 +55,7 @@ import {
   rangerWinterWalkerBitingColdStatusSourceId,
   rangerWinterWalkerFrozenHauntStatusSourceId
 } from "./classFeatures/ranger/subclasses/rangerWinterWalker";
+import { getSorcererDraconicResilienceHitPointMaximumBonus } from "./classFeatures/sorcerer/subclasses/sorcererDraconicSorcery";
 import {
   isRogueArcaneTricksterSpellThiefStatusSourceId,
   rogueArcaneTricksterMagicalAmbushStatusSourceId
@@ -102,6 +103,24 @@ const paladinNobleScionStatusSourceId = "feature-paladin-oath-of-the-noble-genie
 const paladinMinorWishStatusSourceId = "feature-paladin-oath-of-the-noble-genies-minor-wish";
 const paladinAvengingAngelStatusSourceId = "feature-paladin-oath-of-vengeance-avenging-angel";
 const paladinFrightfulAuraStatusSourceId = "feature-paladin-oath-of-vengeance-frightful-aura";
+const sorcererTelepathicSpeechStatusSourceId =
+  "feature-sorcerer-aberrant-sorcery-telepathic-speech";
+const sorcererPsychicDefensesStatusSourceId =
+  "feature-sorcerer-aberrant-sorcery-psychic-defenses";
+const sorcererClockworkBastionOfLawStatusSourceId =
+  "feature-sorcerer-clockwork-sorcery-bastion-of-law";
+const sorcererClockworkTranceOfOrderStatusSourceId =
+  "feature-sorcerer-clockwork-sorcery-trance-of-order";
+const sorcererSpellfireCrownOfSpellfireStatusSourceId =
+  "feature-sorcerer-spellfire-sorcery-crown-of-spellfire";
+const sorcererRevelationInFleshAquaticAdaptationStatusSourceId =
+  "feature-sorcerer-aberrant-sorcery-revelation-in-flesh-aquatic-adaptation";
+const sorcererRevelationInFleshGlisteningFlightStatusSourceId =
+  "feature-sorcerer-aberrant-sorcery-revelation-in-flesh-glistening-flight";
+const sorcererRevelationInFleshSeeTheInvisibleStatusSourceId =
+  "feature-sorcerer-aberrant-sorcery-revelation-in-flesh-see-the-invisible";
+const sorcererRevelationInFleshWormlikeMovementStatusSourceId =
+  "feature-sorcerer-aberrant-sorcery-revelation-in-flesh-wormlike-movement";
 const monkWarriorOfShadowSubclassEntry = getSubclassEntryById("monk-warrior-of-shadow");
 const monkWarriorOfTheElementsSubclassEntry = getSubclassEntryById(
   "monk-warrior-of-the-elements"
@@ -117,6 +136,9 @@ const rangerHunterSubclassEntry = getSubclassEntryById("ranger-hunter");
 const rangerGloomStalkerSubclassEntry = getSubclassEntryById("ranger-gloom-stalker");
 const rangerWinterWalkerSubclassEntry = getSubclassEntryById("ranger-winter-walker");
 const rogueArcaneTricksterSubclassEntry = getSubclassEntryById("rogue-arcane-trickster");
+const sorcererAberrantSorcerySubclassEntry = getSubclassEntryById("sorcerer-aberrant-sorcery");
+const sorcererClockworkSorcerySubclassEntry = getSubclassEntryById("sorcerer-clockwork-sorcery");
+const sorcererSpellfireSorcerySubclassEntry = getSubclassEntryById("sorcerer-spellfire-sorcery");
 
 function extractSubclassFeatureDescriptionSection(
   description: readonly string[],
@@ -239,6 +261,62 @@ const paladinFrightfulAuraDescription = [
   "Whenever an enemy starts its turn in your Aura of Protection, that creature must succeed on a Wisdom saving throw or have the Frightened condition for 1 minute or until it takes any damage.",
   "Attack rolls against the Frightened creature have Advantage."
 ];
+const sorcererTelepathicSpeechDescription =
+  sorcererAberrantSorcerySubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.TELEPATHIC_SPEECH))
+    ?.featureOverrides?.[CLASS_FEATURE.TELEPATHIC_SPEECH]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const sorcererPsychicDefensesDescription =
+  sorcererAberrantSorcerySubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.PSYCHIC_DEFENSES))
+    ?.featureOverrides?.[CLASS_FEATURE.PSYCHIC_DEFENSES]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const sorcererBastionOfLawDescription =
+  sorcererClockworkSorcerySubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.BASTION_OF_LAW))
+    ?.featureOverrides?.[CLASS_FEATURE.BASTION_OF_LAW]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const sorcererTranceOfOrderDescription =
+  sorcererClockworkSorcerySubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.TRANCE_OF_ORDER))
+    ?.featureOverrides?.[CLASS_FEATURE.TRANCE_OF_ORDER]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const sorcererCrownOfSpellfireDescription =
+  sorcererSpellfireSorcerySubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.CROWN_OF_SPELLFIRE))
+    ?.featureOverrides?.[CLASS_FEATURE.CROWN_OF_SPELLFIRE]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const sorcererRevelationInFleshDescription =
+  sorcererAberrantSorcerySubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.REVELATION_IN_FLESH))
+    ?.featureOverrides?.[CLASS_FEATURE.REVELATION_IN_FLESH]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
+const sorcererRevelationInFleshAquaticAdaptationDescription =
+  extractSubclassFeatureDescriptionSection(
+    sorcererRevelationInFleshDescription,
+    "<strong>Aquatic Adaptation.</strong>"
+  );
+const sorcererRevelationInFleshGlisteningFlightDescription =
+  extractSubclassFeatureDescriptionSection(
+    sorcererRevelationInFleshDescription,
+    "<strong>Glistening Flight.</strong>"
+  );
+const sorcererRevelationInFleshSeeTheInvisibleDescription =
+  extractSubclassFeatureDescriptionSection(
+    sorcererRevelationInFleshDescription,
+    "<strong>See the Invisible.</strong>"
+  );
+const sorcererRevelationInFleshWormlikeMovementDescription =
+  extractSubclassFeatureDescriptionSection(
+    sorcererRevelationInFleshDescription,
+    "<strong>Wormlike Movement.</strong>"
+  );
 const rangerDefensiveTacticsDescription =
   rangerHunterSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.DEFENSIVE_TACTICS))
@@ -1210,16 +1288,22 @@ export function getExhaustionSpeedAdjustment(
 }
 
 export function getEffectiveHitPointMaximumForCharacter(
-  character: Pick<Character, "hitPoints" | "statusEntries">
+  character: Pick<Character, "className" | "hitPoints" | "statusEntries"> &
+    Partial<Pick<Character, "level" | "subclassId">>
 ): number {
   const baseHitPoints = Math.max(1, Math.floor(character.hitPoints));
+  const featureHitPointMaximumBonus = getSorcererDraconicResilienceHitPointMaximumBonus(character);
+  const effectiveBaseHitPoints = Math.max(
+    1,
+    Math.floor(baseHitPoints + featureHitPointMaximumBonus)
+  );
   const exhaustionLevel = getExhaustionLevel(character.statusEntries);
 
   if (exhaustionLevel !== null && exhaustionLevel >= 4) {
-    return Math.max(1, Math.floor(baseHitPoints / 2));
+    return Math.max(1, Math.floor(effectiveBaseHitPoints / 2));
   }
 
-  return baseHitPoints;
+  return effectiveBaseHitPoints;
 }
 
 export function reconcileCharacterStatusConsequences(character: Character): Character {
@@ -1598,6 +1682,60 @@ export function getStatusEntryDescriptionEntries(
         "A current effect or trait that may change how your character plays."
       ]
     );
+  }
+
+  if (entry.sourceId === sorcererTelepathicSpeechStatusSourceId) {
+    return sorcererTelepathicSpeechDescription.length > 0
+      ? sorcererTelepathicSpeechDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === sorcererPsychicDefensesStatusSourceId) {
+    return sorcererPsychicDefensesDescription.length > 0
+      ? sorcererPsychicDefensesDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === sorcererClockworkBastionOfLawStatusSourceId) {
+    return sorcererBastionOfLawDescription.length > 0
+      ? [`<strong>Current Ward.</strong> ${getStatusEntryTitle(entry)}.`, ...sorcererBastionOfLawDescription]
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === sorcererClockworkTranceOfOrderStatusSourceId) {
+    return sorcererTranceOfOrderDescription.length > 0
+      ? sorcererTranceOfOrderDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === sorcererSpellfireCrownOfSpellfireStatusSourceId) {
+    return sorcererCrownOfSpellfireDescription.length > 0
+      ? sorcererCrownOfSpellfireDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === sorcererRevelationInFleshAquaticAdaptationStatusSourceId) {
+    return sorcererRevelationInFleshAquaticAdaptationDescription.length > 0
+      ? sorcererRevelationInFleshAquaticAdaptationDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === sorcererRevelationInFleshGlisteningFlightStatusSourceId) {
+    return sorcererRevelationInFleshGlisteningFlightDescription.length > 0
+      ? sorcererRevelationInFleshGlisteningFlightDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === sorcererRevelationInFleshSeeTheInvisibleStatusSourceId) {
+    return sorcererRevelationInFleshSeeTheInvisibleDescription.length > 0
+      ? sorcererRevelationInFleshSeeTheInvisibleDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === sorcererRevelationInFleshWormlikeMovementStatusSourceId) {
+    return sorcererRevelationInFleshWormlikeMovementDescription.length > 0
+      ? sorcererRevelationInFleshWormlikeMovementDescription
+      : ["A current effect or trait that may change how your character plays."];
   }
 
   if (entry.sourceId === fighterBanneretTeamTacticsStatusSourceId) {

@@ -39,6 +39,13 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
   const [hitPointStep, setHitPointStep] = useState(1);
   const effectiveHitPoints = getEffectiveHitPointMaximumForCharacter(character);
 
+  function getEffectiveHitPointsForBase(baseHitPoints: number): number {
+    return getEffectiveHitPointMaximumForCharacter({
+      ...character,
+      hitPoints: baseHitPoints
+    });
+  }
+
   useEffect(() => {
     if (!isEditing) {
       setHpDraft(createHpDraft(character));
@@ -70,8 +77,8 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
 
       const hitPointDelta = nextAutomaticHitPoints - currentCharacter.hitPoints;
       const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter({
-        hitPoints: nextAutomaticHitPoints,
-        statusEntries: currentCharacter.statusEntries
+        ...currentCharacter,
+        hitPoints: nextAutomaticHitPoints
       });
       const nextCurrentHitPoints = clampNumber(
         currentCharacter.currentHitPoints + hitPointDelta,
@@ -127,10 +134,7 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
       hpModeDraft === "automatic"
         ? getAutomaticMaxHitPointsForCharacter(character)
         : clampNumber(hpDraft.hitPoints, 1, 999, character.hitPoints);
-    const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter({
-      hitPoints: nextBaseHitPoints,
-      statusEntries: character.statusEntries
-    });
+    const nextEffectiveHitPoints = getEffectiveHitPointsForBase(nextBaseHitPoints);
     const nextCurrentHitPoints = clampNumber(
       hpDraft.currentHitPoints,
       0,
@@ -162,10 +166,7 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
     }
 
     const automaticHitPoints = getAutomaticMaxHitPointsForCharacter(character);
-    const automaticEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter({
-      hitPoints: automaticHitPoints,
-      statusEntries: character.statusEntries
-    });
+    const automaticEffectiveHitPoints = getEffectiveHitPointsForBase(automaticHitPoints);
 
     setHpDraft((currentDraft) => ({
       hitPoints: automaticHitPoints,
@@ -193,10 +194,7 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
       currentHitPoints: clampNumber(
         value,
         0,
-        getEffectiveHitPointMaximumForCharacter({
-          hitPoints: current.hitPoints,
-          statusEntries: character.statusEntries
-        }),
+        getEffectiveHitPointsForBase(current.hitPoints),
         current.currentHitPoints
       )
     }));
@@ -245,10 +243,11 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
       const absorbedByTemporaryHitPoints = Math.min(amount, currentTemporaryHitPoints);
       const nextTemporaryHitPoints = currentTemporaryHitPoints - absorbedByTemporaryHitPoints;
       const remainingDamage = amount - absorbedByTemporaryHitPoints;
+      const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter(currentCharacter);
       const nextCurrentHitPoints = clampNumber(
         currentCharacter.currentHitPoints - remainingDamage,
         0,
-        currentCharacter.hitPoints,
+        nextEffectiveHitPoints,
         currentCharacter.currentHitPoints
       );
 
@@ -332,10 +331,7 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
             <span>Current HP</span>
             <NumberInput
               min={0}
-              max={getEffectiveHitPointMaximumForCharacter({
-                hitPoints: hpDraft.hitPoints,
-                statusEntries: character.statusEntries
-              })}
+              max={getEffectiveHitPointsForBase(hpDraft.hitPoints)}
               value={hpDraft.currentHitPoints}
               onChange={updateCurrentHitPointDraftValue}
             />

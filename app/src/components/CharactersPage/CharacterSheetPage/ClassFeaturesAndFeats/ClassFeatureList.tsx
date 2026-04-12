@@ -3,6 +3,7 @@ import { Pencil, Plus, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import {
   CLASS_FEATURE,
+  DAMAGE_TYPE,
   getFeatureTrackingState,
   type DivinityEntry,
   type SpellEntry
@@ -50,9 +51,11 @@ import {
   getRogueThievesCantLanguageSelectionForCharacter,
   isRangerGloomStalkerIronMindLockedToWisForCharacter,
   isKnowledgeDomainUnfetteredMindLockedToIntForCharacter,
+  getSorcererDraconicElementalAffinityDamageTypeSelectionForCharacter,
   getSorcererMetamagicDefinitionsForCharacter,
   getSorcererMetamagicSelectionCountForCharacter,
   getSorcererMetamagicSelectionsForCharacter,
+  sorcererDraconicElementalAffinityDamageTypeOptions,
   getWarlockMysticArcanumSpellIdForCharacter,
   getWarlockMysticArcanumSpellOptionsForCharacter,
   getWizardScholarSelectionForCharacter,
@@ -93,6 +96,7 @@ import {
   setRogueExpertiseSelectionsForCharacter,
   setRogueScionOfTheThreeDreadAllegianceChoiceForCharacter,
   setRogueThievesCantLanguageSelectionForCharacter,
+  setSorcererDraconicElementalAffinityDamageTypeSelectionForCharacter,
   setSorcererMetamagicSelectionsForCharacter,
   setWarlockMysticArcanumSpellIdForCharacter,
   setWizardScholarSelectionForCharacter,
@@ -261,6 +265,11 @@ function FeatureChoiceOptions<TChoice extends string>({
       ))}
     </div>
   );
+}
+
+function getDamageTypeChoiceContent(damageType: DAMAGE_TYPE): string {
+  const label = formatCodexLabel(damageType);
+  return `<link:${label}>${label}</link>`;
 }
 
 function ClassFeatureList({
@@ -1041,6 +1050,20 @@ function ClassFeatureList({
     return [0, 1].some((slotIndex) => !currentSelections[startIndex + slotIndex]);
   }
 
+  function getSorcererDraconicElementalAffinityDamageTypeSelection(): DAMAGE_TYPE | null {
+    return getSorcererDraconicElementalAffinityDamageTypeSelectionForCharacter(character);
+  }
+
+  function updateSorcererDraconicElementalAffinityDamageTypeSelection(choice: DAMAGE_TYPE) {
+    onPersistCharacter((currentCharacter) =>
+      setSorcererDraconicElementalAffinityDamageTypeSelectionForCharacter(currentCharacter, choice)
+    );
+  }
+
+  function isSorcererDraconicElementalAffinityInputRequired(): boolean {
+    return getSorcererDraconicElementalAffinityDamageTypeSelection() === null;
+  }
+
   function getWarlockMysticArcanumSpellLevel(level: number): 6 | 7 | 8 | 9 | null {
     if (level === 11) {
       return 6;
@@ -1522,7 +1545,11 @@ function ClassFeatureList({
             (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.ELEMENTAL_FURY &&
               character.className === "Druid" &&
-              druidElementalFuryChoice === null);
+              druidElementalFuryChoice === null) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.ELEMENTAL_AFFINITY &&
+              character.className === "Sorcerer" &&
+              isSorcererDraconicElementalAffinityInputRequired());
 
           return (
             <FeatureDisclosureRow
@@ -1688,6 +1715,44 @@ function ClassFeatureList({
                           }
                         ]}
                         onChange={updateDruidElementalFuryChoice}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                    </>
+                  ) : featureRow.feature === CLASS_FEATURE.ELEMENTAL_AFFINITY &&
+                    character.className === "Sorcerer" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description.slice(0, 2)}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <FeatureChoiceOptions
+                        featureKey={featureRow.key}
+                        groupName={`elemental-affinity-${character.id}`}
+                        isUnlocked={isUnlocked}
+                        selectedValue={getSorcererDraconicElementalAffinityDamageTypeSelection()}
+                        options={sorcererDraconicElementalAffinityDamageTypeOptions.map(
+                          (damageType) => ({
+                            key: damageType,
+                            value: damageType,
+                            content: getDamageTypeChoiceContent(damageType)
+                          })
+                        )}
+                        onChange={updateSorcererDraconicElementalAffinityDamageTypeSelection}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description.slice(2)}
                         onOpenKeyword={onOpenKeyword}
                         onOpenFeatReference={onOpenFeatReference}
                         onOpenSpellReference={onOpenSpellReference}

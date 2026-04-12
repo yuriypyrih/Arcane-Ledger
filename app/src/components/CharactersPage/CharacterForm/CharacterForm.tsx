@@ -36,6 +36,7 @@ import {
 } from "../../../pages/CharactersPage/proficiency";
 import { normalizeLevelAndXp } from "../../../pages/CharactersPage/experience";
 import { getAutomaticMaxHitPointsForCharacter } from "../../../pages/CharactersPage/gameplay";
+import { getEffectiveHitPointMaximumForCharacter } from "../../../pages/CharactersPage/traits";
 import {
   getSubclassOptionsForClassName,
   normalizeSubclassId
@@ -113,6 +114,19 @@ function createFormValues(
     maxHitPointsMode: draft.maxHitPointsMode ?? options?.defaultHitPointMode ?? "automatic",
     startingEquipmentChoiceIndex: options?.startingEquipmentChoiceIndex ?? ""
   };
+}
+
+function getEffectiveHitPointMaximumForDraft(
+  draft: Pick<CharacterDraft, "className" | "hitPoints"> &
+    Partial<Pick<CharacterDraft, "level" | "subclassId" | "statusEntries">>
+): number {
+  return getEffectiveHitPointMaximumForCharacter({
+    className: draft.className,
+    subclassId: draft.subclassId,
+    level: draft.level,
+    hitPoints: draft.hitPoints,
+    statusEntries: draft.statusEntries ?? []
+  });
 }
 
 function createBasicProfileSnapshot(values: CharacterFormValues): CharacterFormValues {
@@ -783,13 +797,22 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       draftValues.species,
       resolvedNormalizedBackground
     );
+    const normalizedSubclassId =
+      normalizeSubclassId(draftValues.subclassId, normalizedClassName) ?? "";
+    const normalizedCurrentHitPointMaximum = getEffectiveHitPointMaximumForDraft({
+      className: normalizedClassName,
+      subclassId: normalizedSubclassId,
+      level: normalizedProgress.level,
+      hitPoints: normalizedHitPoints,
+      statusEntries: draftValues.statusEntries ?? []
+    });
 
     return {
       ...draftValues,
       name: draftValues.name.trim(),
       species: draftValues.species.trim(),
       className: normalizedClassName,
-      subclassId: normalizeSubclassId(draftValues.subclassId, normalizedClassName) ?? "",
+      subclassId: normalizedSubclassId,
       level: normalizedProgress.level,
       xp: normalizedProgress.xp,
       hitPoints: normalizedHitPoints,
@@ -797,10 +820,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         ? clampNumber(
             String(draftValues.currentHitPoints),
             0,
-            normalizedHitPoints,
+            normalizedCurrentHitPointMaximum,
             normalizedHitPoints
           )
-        : normalizedHitPoints,
+        : normalizedCurrentHitPointMaximum,
       temporaryHitPoints: clampNumber(String(draftValues.temporaryHitPoints), 0, 999, 0),
       temporaryHitPointsSource:
         clampNumber(String(draftValues.temporaryHitPoints), 0, 999, 0) > 0

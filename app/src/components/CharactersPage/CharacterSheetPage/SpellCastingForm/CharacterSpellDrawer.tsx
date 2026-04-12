@@ -36,6 +36,7 @@ export type CharacterSpellDrawerActionOptions = {
   castAsRitual?: boolean;
   useBeguilingMagic?: boolean;
   useElementalSmite?: boolean;
+  usePsionicSorcery?: boolean;
   useTelekineticMaster?: boolean;
 };
 
@@ -533,6 +534,9 @@ function CharacterSpellDrawer({
                     onClick={() =>
                       onAction({
                         castAsRitual: ritualCastingRequired || isRitualCastingSelected,
+                        usePsionicSorcery: actionOptions.some(
+                          (option) => option.id === "psionic-sorcery" && option.checked
+                        ),
                         useTelekineticMaster: actionOptions.some(
                           (option) => option.id === "telekinetic-master" && option.checked
                         )

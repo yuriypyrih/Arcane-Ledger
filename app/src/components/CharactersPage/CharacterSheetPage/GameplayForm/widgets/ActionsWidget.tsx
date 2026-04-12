@@ -15,6 +15,7 @@ import type { Character, AbilityKey, CodexStatus, MonsterRecord } from "../../..
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { abilityKeys } from "../../../../../pages/CharactersPage/constants";
 import {
+  activateInnateSorceryForCharacter,
   activateDruidNatureMagicianForCharacter,
   activateDruidStarryFormForCharacter,
   activateDruidWildResurgenceLevelOneSpellSlotRecoveryForCharacter,
@@ -22,6 +23,7 @@ import {
   activateDruidWildShapeForCharacter,
   activateDruidWildCompanionForCharacter,
   activateFeatureActionForCharacter,
+  activateFeatureActionOptionsForCharacter,
   activateFeatureActionOptionForCharacter,
   activateArcaneRecoveryForCharacter,
   applyBardBattleMagicAfterSpellCastForCharacter,
@@ -62,11 +64,14 @@ import {
   getBeguilingMagicUsesRemainingForCharacter,
   getBeguilingMagicUsesTotalForCharacter,
   getChannelDivinityUsesRemainingForCharacter,
+  getInnateSorceryActivationSorceryPointCostForCharacter,
   getMonkFocusPointsRemainingForCharacter,
   getMantleOfMajestyFallbackSlotLevelForCharacter,
   getMantleOfMajestyUsesRemainingForCharacter,
   getSorcererMetamagicActionCostForCharacter,
-  getSorcererMetamagicSelectionLimitForActionForCharacter,
+  getSorcererSpellfireCrownOfSpellfireFallbackSorceryPointCostForCharacter,
+  getSorcererSpellfireCrownOfSpellfireUsesRemainingForCharacter,
+  getSorcererSpellfireCrownOfSpellfireUsesTotalForCharacter,
   getSorceryPointsRemainingForCharacter,
   getLayOnHandsCurableConditionsForCharacter,
   getPaladinHealingPoolRemainingForCharacter,
@@ -78,9 +83,9 @@ import {
   hasBattleMagicBonusWeaponAttackForCharacter,
   getWarlockMysticArcanumSelectionsForCharacter,
   hasActivePaladinAuraOfProtectionForCharacter,
+  restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter,
   hasSorcererArcaneApotheosisFreeMetamagicAvailableForCharacter,
   markFeatureWeaponBonusUseForCharacter,
-  spendSorcererMetamagicOptionsForCharacter,
   type FeatureActionCard,
   type FeatureActionExecuteConfig,
   type FeatureActionOptionCard
@@ -132,7 +137,10 @@ import { hasPaladinOathOfTheNobleGeniesElementalSmite } from "../../../../../pag
 import { getRangerTirelessTemporaryHitPointsFormula } from "../../../../../pages/CharactersPage/classFeatures/ranger/ranger";
 import { getRangerGloomStalkerDreadAmbusherOptionState } from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerGloomStalker";
 import { getRangerWinterWalkerPolarStrikesOptionState } from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerWinterWalker";
-import { metamagicActionKey } from "../../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
+import {
+  innateSorceryActionKey,
+  metamagicActionKey
+} from "../../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
 import { type MysticArcanumLevel } from "../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import {
   type ArcaneRecoverySelection,
@@ -229,6 +237,7 @@ import {
   FighterSecondWindActionFooter
 } from "./FighterSecondWindAction";
 import RadioOption from "./RadioOption";
+import { SorcererInnateSorceryActionFooter } from "./SorcererInnateSorceryAction";
 import {
   appendRollModifier,
   formatWildShapeMonsterMeta,
@@ -413,7 +422,7 @@ function FeatureOptionsActionBody({
   const drawer = action.drawer.kind === "options" ? action.drawer : null;
   const selection = drawer?.selection ?? "single-immediate";
   const options = drawer?.options ?? [];
-  const selectionLimit = getSorcererMetamagicSelectionLimitForActionForCharacter(character);
+  const selectionLimit = drawer?.selectionLimit ?? options.length;
 
   return (
     <>
@@ -433,7 +442,13 @@ function FeatureOptionsActionBody({
               character={character}
               roundTracker={roundTracker}
               selected={isSelected}
-              selectionIndicatorType={selection === "single-immediate" ? "radio" : null}
+              selectionIndicatorType={
+                selection === "single-immediate"
+                  ? "radio"
+                  : selection === "multi-confirm"
+                    ? "checkbox"
+                    : null
+              }
               selectionName={selection === "single-immediate" ? action.action.key : undefined}
               onClick={() => onToggleOption(option)}
               formatValueLabel={formatFeatureActionOptionValueLabel}
@@ -1546,6 +1561,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [selectedFrozenHauntFallbackSlotLevel, setSelectedFrozenHauntFallbackSlotLevel] = useState(
     frozenHauntFallbackSpellSlotMinimumLevel
   );
+  const [isCrownOfSpellfireSelected, setIsCrownOfSpellfireSelected] = useState(false);
   const [isInspiredEclipseSelected, setIsInspiredEclipseSelected] = useState(false);
   const [isGroupRecoverySelected, setIsGroupRecoverySelected] = useState(false);
   const [isPsionicStrikeSelected, setIsPsionicStrikeSelected] = useState(false);
@@ -2055,8 +2071,38 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     (selectedActionEconomyShapeState?.isUsable || selectedActionSecondaryEconomyShapeState.isUsable)
       ? null
       : (selectedActionPrimaryWarning ?? selectedActionSecondaryWarning);
+  const selectedInnateSorceryActivationSorceryPointCost =
+    selectedFeatureAction?.key === innateSorceryActionKey
+      ? getInnateSorceryActivationSorceryPointCostForCharacter(character)
+      : 0;
+  const selectedCrownOfSpellfireUsesTotal =
+    selectedFeatureAction?.key === innateSorceryActionKey
+      ? getSorcererSpellfireCrownOfSpellfireUsesTotalForCharacter(character)
+      : 0;
+  const selectedCrownOfSpellfireUsesRemaining =
+    selectedFeatureAction?.key === innateSorceryActionKey
+      ? getSorcererSpellfireCrownOfSpellfireUsesRemainingForCharacter(character)
+      : 0;
+  const selectedCrownOfSpellfireFallbackSorceryPointCost =
+    selectedFeatureAction?.key === innateSorceryActionKey
+      ? getSorcererSpellfireCrownOfSpellfireFallbackSorceryPointCostForCharacter(character)
+      : 0;
+  const selectedCrownOfSpellfireAvailableSorceryPoints = Math.max(
+    0,
+    getSorceryPointsRemainingForCharacter(character) -
+      selectedInnateSorceryActivationSorceryPointCost
+  );
+  const selectedCrownOfSpellfireBlockedReason =
+    isCrownOfSpellfireSelected &&
+    selectedCrownOfSpellfireUsesRemaining <= 0 &&
+    selectedCrownOfSpellfireAvailableSorceryPoints <
+      selectedCrownOfSpellfireFallbackSorceryPointCost
+      ? `You need ${selectedCrownOfSpellfireFallbackSorceryPointCost} Sorcery Points for Crown of Spellfire.`
+      : null;
   const selectedActionBlockedReason =
-    selectedAction?.kind === "feature" ? (selectedAction.drawer.blockedReason ?? null) : null;
+    selectedAction?.kind === "feature"
+      ? (selectedAction.drawer.blockedReason ?? selectedCrownOfSpellfireBlockedReason ?? null)
+      : null;
   const selectedDrawerWarning =
     selectedOptionWarning ??
     (selectedAction?.kind === "feature" &&
@@ -2248,6 +2294,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedDivineInterventionSpell(null);
     setSelectedMysticArcanumSpell(null);
     setSelectedMysticArcanumSpellLevel(null);
+    setIsCrownOfSpellfireSelected(false);
     setIsInspiredEclipseSelected(false);
     setIsGroupRecoverySelected(false);
     setIsPsionicStrikeSelected(false);
@@ -2297,6 +2344,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedRageOptionKey(null);
     setSelectedRagePowerOptionKey(null);
     setIsRageOfTheGodsSelected(false);
+    setIsCrownOfSpellfireSelected(false);
     setIsGroupRecoverySelected(false);
     setIsPsionicStrikeSelected(false);
     setIsSacredWeaponSelected(false);
@@ -2632,6 +2680,29 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   function executeFeatureActivate(action: FeatureActionCard) {
     const effectKind =
       action.execute?.kind === "activate" ? (action.execute.effectKind ?? "default") : "default";
+
+    if (action.key === innateSorceryActionKey) {
+      onPersistCharacter((currentCharacter) => {
+        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+        const preparedCharacter = prepareCharacterForResourceConsumption(
+          currentCharacter,
+          roundTrackerResource
+        );
+        const nextCharacter = activateInnateSorceryForCharacter(preparedCharacter, {
+          useCrownOfSpellfire: isCrownOfSpellfireSelected
+        });
+
+        if (nextCharacter === preparedCharacter) {
+          return currentCharacter;
+        }
+
+        return roundTrackerResource
+          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+          : nextCharacter;
+      });
+      closeActionDrawer();
+      return;
+    }
 
     if (action.key === monkWholenessOfBodyActionKey) {
       onPersistCharacter((currentCharacter) => {
@@ -3047,6 +3118,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     const selection = selectedAction.drawer.selection;
+    const selectionLimit =
+      selection === "multi-confirm"
+        ? (selectedAction.drawer.selectionLimit ?? selectedAction.drawer.options.length)
+        : 1;
 
     setSelectedActionOptionKeys((currentKeys) => {
       if (selection === "multi-confirm") {
@@ -3054,9 +3129,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           return currentKeys.filter((entry) => entry !== option.key);
         }
 
-        if (
-          currentKeys.length >= getSorcererMetamagicSelectionLimitForActionForCharacter(character)
-        ) {
+        if (currentKeys.length >= selectionLimit) {
           return currentKeys;
         }
 
@@ -3106,12 +3179,48 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   }
 
   function confirmSelectedFeatureOptions() {
-    if (!selectedFeatureAction || selectedActionOptionKeys.length <= 0) {
+    if (
+      !selectedFeatureAction ||
+      !selectedAction ||
+      selectedAction.kind !== "feature" ||
+      selectedAction.drawer.kind !== "options" ||
+      selectedActionOptionKeys.length <= 0
+    ) {
       return;
     }
 
-    if (selectedFeatureAction.key === metamagicActionKey) {
-      confirmMetamagic(selectedActionOptionKeys);
+    if (selectedAction.drawer.selection === "multi-confirm") {
+      onPersistCharacter((currentCharacter) => {
+        const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+          selectedFeatureAction.economyType
+        );
+        const preparedCharacter = prepareCharacterForResourceConsumption(
+          currentCharacter,
+          roundTrackerResource
+        );
+        const nextCharacter = activateFeatureActionOptionsForCharacter(
+          preparedCharacter,
+          selectedFeatureAction.key,
+          selectedActionOptionKeys
+        );
+
+        if (nextCharacter === preparedCharacter) {
+          return currentCharacter;
+        }
+
+        if (
+          selectedFeatureAction.economyType === "action" &&
+          selectedFeatureAction.actionCategory !== "magic"
+        ) {
+          return consumeNonMagicActionForCharacter(nextCharacter, selectedFeatureAction);
+        }
+
+        return roundTrackerResource
+          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+          : nextCharacter;
+      });
+
+      closeActionDrawer();
       return;
     }
 
@@ -3476,13 +3585,6 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     closeActionDrawer();
   }
 
-  function confirmMetamagic(optionKeys: string[]) {
-    onPersistCharacter((currentCharacter) =>
-      spendSorcererMetamagicOptionsForCharacter(currentCharacter, optionKeys)
-    );
-    closeActionDrawer();
-  }
-
   function convertSpellSlotToSorceryPoints(spellSlotLevel: number) {
     onPersistCharacter((currentCharacter) =>
       convertSpellSlotToSorceryPointsForCharacter(currentCharacter, spellSlotLevel)
@@ -3677,10 +3779,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       const nextCharacterWithFrozenHaunt = usesFrozenHauntCharge
         ? consumeRangerWinterWalkerFrozenHauntUseForCharacter(nextCharacterWithElementalSmite)
         : nextCharacterWithElementalSmite;
+      const spellConsumedSpellSlot =
+        (fixedSpellConsumesSpellSlot && !castsWithoutSpellSlot) ||
+        shouldSpendFrozenHauntFallbackSlot;
+      const nextCharacterWithSorcererSubclassRecharge = spellConsumedSpellSlot
+        ? restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(nextCharacterWithFrozenHaunt)
+        : nextCharacterWithFrozenHaunt;
       const nextCharacterWithBattleMagic = castAsRitual
-        ? nextCharacterWithFrozenHaunt
+        ? nextCharacterWithSorcererSubclassRecharge
         : applyBardBattleMagicAfterSpellCastForCharacter(
-            nextCharacterWithFrozenHaunt,
+            nextCharacterWithSorcererSubclassRecharge,
             fixedSpellEntry
           );
 
@@ -4272,6 +4380,33 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedAction.kind === "feature" &&
       selectedAction.drawer.kind === "confirm" &&
       selectedAction.execute.kind === "activate" &&
+      selectedAction.action.key === innateSorceryActionKey
+    ) {
+      return (
+        <SorcererInnateSorceryActionFooter
+          confirmLabel={selectedAction.drawer.confirmLabel ?? "Innate Sorcery"}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedActionWarning !== null || selectedActionBlockedReason !== null}
+          crownOfSpellfireUnlocked={selectedCrownOfSpellfireUsesTotal > 0}
+          crownOfSpellfireUsesRemaining={selectedCrownOfSpellfireUsesRemaining}
+          crownOfSpellfireUsesTotal={selectedCrownOfSpellfireUsesTotal}
+          crownOfSpellfireFallbackSorceryPointCost={
+            selectedCrownOfSpellfireFallbackSorceryPointCost
+          }
+          crownOfSpellfireDisabledReason={selectedCrownOfSpellfireBlockedReason ?? undefined}
+          isCrownOfSpellfireSelected={isCrownOfSpellfireSelected}
+          onConfirm={() => executeFeatureActivate(selectedAction.action)}
+          onCrownOfSpellfireSelectedChange={setIsCrownOfSpellfireSelected}
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
       selectedAction.execute.effectKind === "bardic-inspiration-roll"
     ) {
       const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
@@ -4371,10 +4506,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     if (selectedAction.drawer.kind === "options") {
+      const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
       const selectedOption = selectedDrawerOption;
-      const selectedOptionShape = selectedOption
-        ? getActionShapeForEconomyType(selectedOption.economyType)
-        : null;
+      const isMultiConfirm = selectedAction.drawer.selection === "multi-confirm";
+      const selectedOptionShape = isMultiConfirm
+        ? actionShape
+        : selectedOption
+          ? getActionShapeForEconomyType(selectedOption.economyType)
+          : null;
+      const selectedOptionShapeState = isMultiConfirm
+        ? selectedActionEconomyShapeState
+        : selectedOptionEconomyShapeState;
 
       return (
         <button
@@ -4382,19 +4524,23 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           className={clsx(sheetStyles.castButton, styles.footerActionButton)}
           onClick={confirmSelectedFeatureOptions}
           disabled={
-            !selectedOption ||
-            selectedOption.disabled === true ||
-            selectedOptionWarning !== null ||
+            (isMultiConfirm
+              ? selectedActionOptionKeys.length <= 0 ||
+                selectedActionWarning !== null ||
+                selectedActionBlockedReason !== null
+              : !selectedOption ||
+                selectedOption.disabled === true ||
+                selectedOptionWarning !== null) ||
             (selectedFeatureAction?.key === metamagicActionKey &&
               selectedMetamagicCost > getSorceryPointsRemainingForCharacter(character))
           }
         >
           <span>{selectedAction.drawer.confirmLabel ?? "Confirm"}</span>
-          {selectedOptionShape && selectedOptionEconomyShapeState ? (
+          {selectedOptionShape && selectedOptionShapeState ? (
             <ActionShape
               shape={selectedOptionShape}
-              isSelected={selectedOptionEconomyShapeState.isAvailable}
-              multiCount={selectedOptionEconomyShapeState.multiCount}
+              isSelected={selectedOptionShapeState.isAvailable}
+              multiCount={selectedOptionShapeState.multiCount}
               className={styles.footerActionShape}
             />
           ) : null}
@@ -4670,7 +4816,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           warning={selectedDrawerWarning}
           blockedReason={
             selectedAction.kind === "feature"
-              ? (selectedAction.drawer.blockedReason ?? selectedAction.disabledReason ?? null)
+              ? (selectedActionBlockedReason ?? selectedAction.disabledReason ?? null)
               : (selectedAction.disabledReason ?? null)
           }
           onClose={closeActionDrawer}

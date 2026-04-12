@@ -13,6 +13,7 @@ import {
   activateRangerHunterSuperiorHuntersDefenseForCharacter,
   consumeElementalRebukeUseForCharacter,
   consumeBeguilingMagicOrBardicInspirationForCharacter,
+  consumeSorcererRestoreBalanceUseForCharacter,
   consumeRogueScionOfTheThreeBloodthirstUseForCharacter,
   consumeRogueSpellThiefUseForCharacter,
   consumeFighterIndomitableUseForCharacter,
@@ -20,6 +21,7 @@ import {
   consumeRangerWinterWalkerChillingRetributionUseForCharacter,
   expendFighterPsiWarriorEnergyDieForCharacter,
   expendBardicInspirationUseForCharacter,
+  expendSorceryPointForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
   getBeguilingMagicUsesTotalForCharacter,
@@ -38,6 +40,10 @@ import {
   getRogueScionOfTheThreeBloodthirstUsesTotalForCharacter,
   getRogueSpellThiefUsesRemainingForCharacter,
   getRogueSpellThiefUsesTotalForCharacter,
+  getSorceryPointsRemainingForCharacter,
+  sorcererBendLuckReactionEntryId,
+  getSorcererRestoreBalanceUsesRemainingForCharacter,
+  getSorcererRestoreBalanceUsesTotalForCharacter,
   getSpellEntryForCharacter,
   getRangerWinterWalkerChillingRetributionUsesRemainingForCharacter,
   getRangerWinterWalkerChillingRetributionUsesTotalForCharacter,
@@ -46,7 +52,9 @@ import {
   paladinGloriousDefenseReactionEntryId,
   rogueScionOfTheThreeBloodthirstReactionEntryId,
   rangerWinterWalkerChillingRetributionReactionEntryId,
+  sorcererRestoreBalanceReactionEntryId,
   rangerHunterSuperiorHuntersDefenseDamageTypeOptions,
+  restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter,
   setRangerHunterSuperiorHuntersDefenseDamageTypeSelectionForCharacter,
   getSpellcastingStateForCharacter,
   removeFeatureStatusEntryForCharacter,
@@ -188,11 +196,13 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     [character.classFeatureState, character.className, character.level, character.subclassId]
   );
   const preparedSpellLimit = useMemo(
-    () => getPreparedSpellLimitForCharacter(character.className, character.level, character.subclassId),
+    () =>
+      getPreparedSpellLimitForCharacter(character.className, character.level, character.subclassId),
     [character.className, character.level, character.subclassId]
   );
   const spellSlotTotals = useMemo(
-    () => getSpellSlotTotalsForCharacter(character.className, character.level, character.subclassId),
+    () =>
+      getSpellSlotTotalsForCharacter(character.className, character.level, character.subclassId),
     [character.className, character.level, character.subclassId]
   );
   const spellSlotsExpended = useMemo(
@@ -205,7 +215,10 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     [spellSlotTotals, spellSlotsExpended]
   );
   const allSpellEntries = useMemo(
-    () => getSpellEntries().slice().sort((left, right) => left.name.localeCompare(right.name)),
+    () =>
+      getSpellEntries()
+        .slice()
+        .sort((left, right) => left.name.localeCompare(right.name)),
     []
   );
   const beguilingMagicUsesTotal = useMemo(
@@ -227,7 +240,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     ]
   );
   const usesPreparedSpells = useMemo(
-    () => usesPreparedSpellsForCharacter(character.className, character.level, character.subclassId),
+    () =>
+      usesPreparedSpellsForCharacter(character.className, character.level, character.subclassId),
     [character.className, character.level, character.subclassId]
   );
   const alwaysPreparedSpellIds = useMemo(
@@ -406,15 +420,20 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     getRangerWinterWalkerChillingRetributionUsesRemainingForCharacter(character);
   const chillingRetributionUsesTotal =
     getRangerWinterWalkerChillingRetributionUsesTotalForCharacter(character);
+  const sorceryPointsRemaining = getSorceryPointsRemainingForCharacter(character);
+  const restoreBalanceUsesRemaining = getSorcererRestoreBalanceUsesRemainingForCharacter(character);
+  const restoreBalanceUsesTotal = getSorcererRestoreBalanceUsesTotalForCharacter(character);
   const bloodthirstUsesRemaining =
     getRogueScionOfTheThreeBloodthirstUsesRemainingForCharacter(character);
   const bloodthirstUsesTotal = getRogueScionOfTheThreeBloodthirstUsesTotalForCharacter(character);
-  const selectedWildShapeMonster =
-    selectedStatusEntry?.sourceId?.startsWith("feature-druid-wild-shape:")
-      ? getDruidWildShapeActiveFormForCharacter(character)
-      : null;
+  const selectedWildShapeMonster = selectedStatusEntry?.sourceId?.startsWith(
+    "feature-druid-wild-shape:"
+  )
+    ? getDruidWildShapeActiveFormForCharacter(character)
+    : null;
   const selectedNobleGeniesAuraOfElementalShieldingDamageType =
-    selectedStatusEntry?.sourceId === paladinOathOfTheNobleGeniesAuraOfElementalShieldingStatusSourceId
+    selectedStatusEntry?.sourceId ===
+    paladinOathOfTheNobleGeniesAuraOfElementalShieldingStatusSourceId
       ? getPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter(
           character
         )
@@ -475,39 +494,52 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           ? getFighterPsiWarriorEnergyDiceRemainingForCharacter(character) <= 0
             ? "No Psi Energy Dice remaining."
             : null
-          : selectedReactionEntry?.id === paladinGloriousDefenseReactionEntryId
-            ? gloriousDefenseUsesRemaining <= 0
-              ? "No Glorious Defense charges remaining."
+          : selectedReactionEntry?.id === sorcererBendLuckReactionEntryId
+            ? sorceryPointsRemaining <= 0
+              ? "You need 1 Sorcery Point."
               : null
-          : selectedReactionEntry?.id === paladinElementalRebukeReactionEntryId
-            ? elementalRebukeUsesRemaining <= 0
-              ? "No Elemental Rebuke charges remaining."
-              : null
-            : selectedReactionEntry?.id === rogueScionOfTheThreeBloodthirstReactionEntryId
-              ? bloodthirstUsesRemaining <= 0
-                ? "No Bloodthirst uses remaining."
+            : selectedReactionEntry?.id === sorcererRestoreBalanceReactionEntryId
+              ? restoreBalanceUsesRemaining <= 0
+                ? "No Restore Balance uses remaining."
                 : null
-            : selectedReactionEntry?.id === rangerWinterWalkerChillingRetributionReactionEntryId
-              ? chillingRetributionUsesRemaining <= 0
-                ? "No Chilling Retribution charges remaining."
-                : null
-              : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId
-                ? spellThiefUsesRemaining <= 0
-                  ? "No Spell Thief charges remaining."
+              : selectedReactionEntry?.id === paladinGloriousDefenseReactionEntryId
+                ? gloriousDefenseUsesRemaining <= 0
+                  ? "No Glorious Defense charges remaining."
                   : null
-          : null;
+                : selectedReactionEntry?.id === paladinElementalRebukeReactionEntryId
+                  ? elementalRebukeUsesRemaining <= 0
+                    ? "No Elemental Rebuke charges remaining."
+                    : null
+                  : selectedReactionEntry?.id === rogueScionOfTheThreeBloodthirstReactionEntryId
+                    ? bloodthirstUsesRemaining <= 0
+                      ? "No Bloodthirst uses remaining."
+                      : null
+                    : selectedReactionEntry?.id ===
+                        rangerWinterWalkerChillingRetributionReactionEntryId
+                      ? chillingRetributionUsesRemaining <= 0
+                        ? "No Chilling Retribution charges remaining."
+                        : null
+                      : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId
+                        ? spellThiefUsesRemaining <= 0
+                          ? "No Spell Thief charges remaining."
+                          : null
+                        : null;
   const selectedReactionResourceSummary =
     selectedReactionEntry?.id === paladinGloriousDefenseReactionEntryId
       ? `${gloriousDefenseUsesRemaining}/${gloriousDefenseUsesTotal} charges | Long Rest`
       : selectedReactionEntry?.id === paladinElementalRebukeReactionEntryId
         ? `${elementalRebukeUsesRemaining}/${elementalRebukeUsesTotal} charges | Long Rest`
-        : selectedReactionEntry?.id === rogueScionOfTheThreeBloodthirstReactionEntryId
-          ? `${bloodthirstUsesRemaining}/${bloodthirstUsesTotal} uses | Long Rest`
-        : selectedReactionEntry?.id === rangerWinterWalkerChillingRetributionReactionEntryId
-          ? `${chillingRetributionUsesRemaining}/${chillingRetributionUsesTotal} charges | Long Rest`
-          : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId
-            ? `${spellThiefUsesRemaining}/${spellThiefUsesTotal} charges | Long Rest`
-      : null;
+        : selectedReactionEntry?.id === sorcererBendLuckReactionEntryId
+          ? `${sorceryPointsRemaining} Sorcery Points remaining | Cost: 1`
+          : selectedReactionEntry?.id === sorcererRestoreBalanceReactionEntryId
+            ? `${restoreBalanceUsesRemaining}/${restoreBalanceUsesTotal} uses | Long Rest`
+            : selectedReactionEntry?.id === rogueScionOfTheThreeBloodthirstReactionEntryId
+              ? `${bloodthirstUsesRemaining}/${bloodthirstUsesTotal} uses | Long Rest`
+              : selectedReactionEntry?.id === rangerWinterWalkerChillingRetributionReactionEntryId
+                ? `${chillingRetributionUsesRemaining}/${chillingRetributionUsesTotal} charges | Long Rest`
+                : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId
+                  ? `${spellThiefUsesRemaining}/${spellThiefUsesTotal} charges | Long Rest`
+                  : null;
   const selectedReactionSelectionWarning =
     selectedReactionEntry?.id === superiorHuntersDefenseReactionId &&
     selectedRangerHunterSuperiorHuntersDefenseDamageType === null
@@ -515,7 +547,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId &&
           selectedSpellThiefSpell === null
         ? "Select a spell."
-      : null;
+        : null;
   const selectedReactionActionWarning =
     getRoundTrackerActionWarning("reaction", roundTracker) ??
     selectedReactionSelectionWarning ??
@@ -564,7 +596,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
 
     setStatusDrawerDurationPreset(selectedStatusEntryPreset);
     setStatusDrawerRoundTickOn(
-      getStatusDurationTickOn(selectedStatusEntry.duration) ?? STATUS_DURATION_ROUND_TICK.ROUND_START
+      getStatusDurationTickOn(selectedStatusEntry.duration) ??
+        STATUS_DURATION_ROUND_TICK.ROUND_START
     );
     setIsEditingStatusDuration(false);
   }, [selectedStatusEntry, selectedStatusEntryId, selectedStatusEntryPreset]);
@@ -728,8 +761,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     }
 
     const spellLevel = getSpellLevel(selectedReactionSpell);
-    const castAsRitual =
-      options?.castAsRitual === true && selectedReactionSpell.ritual === true;
+    const castAsRitual = options?.castAsRitual === true && selectedReactionSpell.ritual === true;
     const useBeguilingMagic = options?.useBeguilingMagic === true;
 
     if (spellLevel === 0) {
@@ -791,7 +823,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       );
       nextSpellSlotsExpended[slotLevel - 1] = (nextSpellSlotsExpended[slotLevel - 1] ?? 0) + 1;
 
-      return {
+      return restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter({
         ...preparedCharacter,
         spellSlotsExpended: nextSpellSlotsExpended,
         statusEntries: applySpellConcentrationToStatusEntries(
@@ -799,7 +831,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           selectedReactionSpell
         ),
         roundTracker: consumeRoundTrackerResource(preparedCharacter.roundTracker, "reaction")
-      };
+      });
     });
 
     closeSelectedReaction();
@@ -819,14 +851,21 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         nextCharacter = consumeFighterIndomitableUseForCharacter(currentCharacter);
       } else if (selectedReactionEntry.id === "reaction-psi-warrior-protective-field") {
         nextCharacter = expendFighterPsiWarriorEnergyDieForCharacter(currentCharacter);
+      } else if (selectedReactionEntry.id === sorcererBendLuckReactionEntryId) {
+        nextCharacter = expendSorceryPointForCharacter(currentCharacter);
+      } else if (selectedReactionEntry.id === sorcererRestoreBalanceReactionEntryId) {
+        nextCharacter = consumeSorcererRestoreBalanceUseForCharacter(currentCharacter);
       } else if (selectedReactionEntry.id === paladinGloriousDefenseReactionEntryId) {
         nextCharacter = consumeGloriousDefenseUseForCharacter(currentCharacter);
       } else if (selectedReactionEntry.id === paladinElementalRebukeReactionEntryId) {
         nextCharacter = consumeElementalRebukeUseForCharacter(currentCharacter);
       } else if (selectedReactionEntry.id === rogueScionOfTheThreeBloodthirstReactionEntryId) {
         nextCharacter = consumeRogueScionOfTheThreeBloodthirstUseForCharacter(currentCharacter);
-      } else if (selectedReactionEntry.id === rangerWinterWalkerChillingRetributionReactionEntryId) {
-        nextCharacter = consumeRangerWinterWalkerChillingRetributionUseForCharacter(currentCharacter);
+      } else if (
+        selectedReactionEntry.id === rangerWinterWalkerChillingRetributionReactionEntryId
+      ) {
+        nextCharacter =
+          consumeRangerWinterWalkerChillingRetributionUseForCharacter(currentCharacter);
       } else if (selectedReactionEntry.id === superiorHuntersDefenseReactionId) {
         nextCharacter = activateRangerHunterSuperiorHuntersDefenseForCharacter(currentCharacter);
       } else if (
@@ -865,6 +904,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         (selectedReactionEntry.id === "reaction-cutting-words" ||
           selectedReactionEntry.id === "reaction-banneret-shared-resilience" ||
           selectedReactionEntry.id === "reaction-psi-warrior-protective-field" ||
+          selectedReactionEntry.id === sorcererBendLuckReactionEntryId ||
+          selectedReactionEntry.id === sorcererRestoreBalanceReactionEntryId ||
           selectedReactionEntry.id === paladinGloriousDefenseReactionEntryId ||
           selectedReactionEntry.id === paladinElementalRebukeReactionEntryId ||
           selectedReactionEntry.id === rogueScionOfTheThreeBloodthirstReactionEntryId ||

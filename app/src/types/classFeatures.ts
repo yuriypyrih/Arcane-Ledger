@@ -154,9 +154,18 @@ export type CharacterRogueFeatureState = {
 export type CharacterSorcererFeatureState = {
   sorceryPointsExpended?: number;
   innateSorceryUsesExpended?: number;
+  tidesOfChaosUsesExpended?: number;
+  tamedSurgeUsesExpended?: number;
+  crownOfSpellfireUsesExpended?: number;
   sorcerousRestorationUsesExpended?: number;
+  dragonWingsUsesExpended?: number;
+  restoreBalanceUsesExpended?: number;
+  tranceOfOrderUsesExpended?: number;
+  clockworkCavalcadeUsesExpended?: number;
+  warpingImplosionUsesExpended?: number;
   arcaneApotheosisFreeMetamagicUsedThisTurn?: boolean;
   metamagicSelections?: string[];
+  draconicElementalAffinityDamageType?: DAMAGE_TYPE;
 };
 
 export type CharacterWizardFeatureState = {
