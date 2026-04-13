@@ -21,6 +21,7 @@ import type {
   FeatureDamageBonus,
   FeatureIndicator,
   FeatureLanguageProficiencyEntry,
+  MagicTemporaryHitPointsFeature,
   FeatureSavingThrowBonus,
   FeatureSavingThrowProficiencyEntry,
   FeatureSkillProficiencyEntry,
@@ -65,10 +66,13 @@ export type SubclassDerivedFeatureState = {
   armorProficiencyEntries?: FeatureArmorProficiencyEntry[];
   languageProficiencyEntries?: FeatureLanguageProficiencyEntry[];
   alwaysPreparedSpellIds?: string[];
+  alwaysSpellbookSpellIds?: string[];
+  magicTemporaryHitPointsFeature?: MagicTemporaryHitPointsFeature | null;
   ritualOnlySpellIds?: string[];
   derivedStatusEntries?: DerivedFeatureStatusEntry[];
   reactionEntries?: ReactionEntry[];
   spellDamageFormulaOverrides?: Record<string, string>;
+  getSpellDamageFormulaOverride?: (spell: Pick<SpellEntry, "id">) => string | null;
   transformSpellEntry?: (spell: SpellEntry) => SpellEntry;
   getUnarmedStrikeConfig?: () => FeatureUnarmedStrikeConfig | null;
 };

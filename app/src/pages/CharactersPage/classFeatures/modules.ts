@@ -281,19 +281,17 @@ import {
   normalizeSorcererFeatureState
 } from "./sorcerer/sorcerer";
 import {
-  activateWarlockMagicalCunning,
-  contactPatronActionKey,
+  activateWarlockFeatureAction,
+  advanceWarlockFeaturesForNewRound,
+  applyLongRestToWarlockFeatures,
+  applyShortRestToWarlockFeatures,
   getWarlockAlwaysPreparedSpellIds,
   getWarlockFeatureActions,
-  magicalCunningActionKey,
-  mysticArcanumActionKey,
-  normalizeWarlockFeatureState,
-  restoreContactPatronOnLongRest,
-  restoreMysticArcanumOnLongRest,
-  restoreWarlockMagicalCunningOnLongRest
+  normalizeWarlockFeatureState
 } from "./warlock/warlock";
 import {
-  arcaneRecoveryActionKey,
+  activateWizardFeatureAction,
+  advanceWizardFeaturesForNewRound,
   applyLongRestToWizardFeatures,
   applyShortRestToWizardFeatures,
   getWizardAlwaysPreparedSpellIds,
@@ -846,21 +844,11 @@ const classFeatureModules = {
       };
     },
     handleAction(character, actionKey) {
-      if (actionKey === magicalCunningActionKey) {
-        return activateWarlockMagicalCunning(character);
-      }
-
-      if (actionKey === contactPatronActionKey || actionKey === mysticArcanumActionKey) {
-        return character;
-      }
-
-      return null;
+      return activateWarlockFeatureAction(character, actionKey);
     },
-    applyLongRest(character) {
-      return restoreMysticArcanumOnLongRest(
-        restoreContactPatronOnLongRest(restoreWarlockMagicalCunningOnLongRest(character))
-      );
-    }
+    applyShortRest: applyShortRestToWarlockFeatures,
+    advanceRound: advanceWarlockFeaturesForNewRound,
+    applyLongRest: applyLongRestToWarlockFeatures
   },
   Wizard: {
     className: "Wizard",
@@ -874,8 +862,9 @@ const classFeatureModules = {
       };
     },
     handleAction(character, actionKey) {
-      return actionKey === arcaneRecoveryActionKey ? character : null;
+      return activateWizardFeatureAction(character, actionKey);
     },
+    advanceRound: advanceWizardFeaturesForNewRound,
     applyShortRest: applyShortRestToWizardFeatures,
     applyLongRest: applyLongRestToWizardFeatures
   }

@@ -1,5 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
-import { FormProvider, useForm, useWatch } from "react-hook-form";
+import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   CharacterProfileForm,
@@ -12,56 +11,15 @@ import {
   SpellCastingForm,
   ThumbDiceButton
 } from "../../../components/CharactersPage/CharacterSheetPage";
-import type { Character } from "../../../types";
-import { findCharacter, upsertCharacter } from "../storage";
-import type { PersistCharacterUpdater } from "./types";
 import styles from "./CharacterSheetPage.module.css";
+import { useCharacterSheetPersistence } from "./useCharacterSheetPersistence";
 
 function CharacterSheetPage() {
   const navigate = useNavigate();
   const { characterId } = useParams();
-  const parsedCharacterId = Number(characterId);
-  const [character, setCharacter] = useState<Character | null>(() =>
-    Number.isFinite(parsedCharacterId) && parsedCharacterId > 0
-      ? (findCharacter(parsedCharacterId) ?? null)
-      : null
-  );
-  const characterForm = useForm<Character>({
-    defaultValues: character ?? undefined
-  });
-  const watchedCharacter = useWatch({
-    control: characterForm.control
-  });
-
-  useEffect(() => {
-    const nextCharacter =
-      Number.isFinite(parsedCharacterId) && parsedCharacterId > 0
-        ? (findCharacter(parsedCharacterId) ?? null)
-        : null;
-
-    setCharacter(nextCharacter);
-
-    if (nextCharacter) {
-      characterForm.reset(nextCharacter);
-    }
-  }, [parsedCharacterId, characterForm]);
-
-  const persistCharacter = useCallback<PersistCharacterUpdater>(
-    (updater) => {
-      const currentCharacter = characterForm.getValues();
-
-      if (!currentCharacter || !Number.isFinite(currentCharacter.id)) {
-        return;
-      }
-
-      const nextCharacter = updater(currentCharacter);
-      const { id, ...draft } = nextCharacter;
-      const savedCharacter = upsertCharacter(draft, id);
-
-      setCharacter(savedCharacter);
-      characterForm.reset(savedCharacter);
-    },
-    [characterForm]
+  const parsedCharacterId = useMemo(() => Number(characterId), [characterId]);
+  const { character, persistCharacter, queueHitPointCharacterSave } = useCharacterSheetPersistence(
+    parsedCharacterId
   );
 
   if (!character) {
@@ -82,59 +40,56 @@ function CharacterSheetPage() {
     );
   }
 
-  const liveCharacter = (watchedCharacter ?? character) as Character;
-
   return (
     <section className={styles.page}>
       <button type="button" className={styles.backButton} onClick={() => navigate("/characters")}>
         Go back
       </button>
 
-      <FormProvider {...characterForm}>
-        <div className={styles.cascadeStack}>
-          <CharacterProfileForm
-            character={liveCharacter}
-            className={styles.cascadeOne}
-            onPersistCharacter={persistCharacter}
-          />
-          <GameplayForm
-            character={liveCharacter}
-            className={styles.cascadeTwo}
-            onPersistCharacter={persistCharacter}
-          />
-          <CharacterStatsForm
-            character={liveCharacter}
-            className={styles.cascadeThree}
-            onPersistCharacter={persistCharacter}
-          />
-          <SkillsAndProficienciesForm
-            character={liveCharacter}
-            className={styles.cascadeFive}
-            onPersistCharacter={persistCharacter}
-          />
-          <ClassFeaturesAndFeats
-            character={liveCharacter}
-            className={styles.cascadeFour}
-            onPersistCharacter={persistCharacter}
-          />
-          <CompanionsSection
-            character={liveCharacter}
-            className={styles.cascadeSix}
-            onPersistCharacter={persistCharacter}
-          />
-          <EquipmentForm
-            character={liveCharacter}
-            className={styles.cascadeSeven}
-            onPersistCharacter={persistCharacter}
-          />
-          <SpellCastingForm
-            character={liveCharacter}
-            className={styles.cascadeEight}
-            onPersistCharacter={persistCharacter}
-          />
-        </div>
-        <ThumbDiceButton />
-      </FormProvider>
+      <div className={styles.cascadeStack}>
+        <CharacterProfileForm
+          character={character}
+          className={styles.cascadeOne}
+          onPersistCharacter={persistCharacter}
+        />
+        <GameplayForm
+          character={character}
+          className={styles.cascadeTwo}
+          onPersistCharacter={persistCharacter}
+          onQueueHitPointCharacter={queueHitPointCharacterSave}
+        />
+        <CharacterStatsForm
+          character={character}
+          className={styles.cascadeThree}
+          onPersistCharacter={persistCharacter}
+        />
+        <SkillsAndProficienciesForm
+          character={character}
+          className={styles.cascadeFive}
+          onPersistCharacter={persistCharacter}
+        />
+        <ClassFeaturesAndFeats
+          character={character}
+          className={styles.cascadeFour}
+          onPersistCharacter={persistCharacter}
+        />
+        <CompanionsSection
+          character={character}
+          className={styles.cascadeSix}
+          onPersistCharacter={persistCharacter}
+        />
+        <EquipmentForm
+          character={character}
+          className={styles.cascadeSeven}
+          onPersistCharacter={persistCharacter}
+        />
+        <SpellCastingForm
+          character={character}
+          className={styles.cascadeEight}
+          onPersistCharacter={persistCharacter}
+        />
+      </div>
+      <ThumbDiceButton />
     </section>
   );
 }

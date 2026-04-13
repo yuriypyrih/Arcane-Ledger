@@ -38,6 +38,11 @@ import {
   consumeRangerWeaponAttack,
   getRangerWeaponAttackMultiCount
 } from "./ranger/ranger";
+import {
+  consumeWizardActionCantrip,
+  consumeWizardWeaponAttack,
+  getWizardWeaponAttackMultiCount
+} from "./wizard/wizard";
 import type {
   EconomyMultiActionContext,
   FeatureActionCard,
@@ -332,6 +337,38 @@ function createMonkExtraAttackPool(
   };
 }
 
+function createWizardBladesingerExtraAttackPool(
+  character: SharedEconomyMultiCharacter
+): SharedEconomyMultiPool | null {
+  if (
+    character.className !== "Wizard" ||
+    character.subclassId !== "wizard-bladesinger" ||
+    character.level < 6
+  ) {
+    return null;
+  }
+
+  const wizardState = character.classFeatureState?.wizard;
+  const cantripReplacementUsed =
+    wizardState?.bladesingerCantripReplacementUsedThisTurn === true;
+
+  return {
+    id: "wizard-bladesinger-extra-attack",
+    remaining: clampRemaining(getWizardWeaponAttackMultiCount(character)),
+    priority: 10,
+    accessRules: [
+      createAttackAccessRule(),
+      ...(!cantripReplacementUsed ? [createActionCantripAccessRule()] : [])
+    ],
+    consume: (nextCharacter, context) =>
+      context.actionCategory === ACTION_CATEGORY.MAGIC && context.spellLevel === 0
+        ? consumeWizardActionCantrip(nextCharacter)
+        : consumeWizardWeaponAttack(nextCharacter, {
+            attackKind: context.attackKind ?? "weapon"
+          })
+  };
+}
+
 function getSharedEconomyMultiPools(
   character: SharedEconomyMultiCharacter
 ): SharedEconomyMultiPool[] {
@@ -342,7 +379,8 @@ function getSharedEconomyMultiPools(
     createBarbarianExtraAttackPool(character),
     createRangerExtraAttackPool(character),
     createPaladinExtraAttackPool(character),
-    createMonkExtraAttackPool(character)
+    createMonkExtraAttackPool(character),
+    createWizardBladesingerExtraAttackPool(character)
   ].filter((pool): pool is SharedEconomyMultiPool => pool !== null);
 
   return pools.sort((left, right) => left.priority - right.priority);

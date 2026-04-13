@@ -17,6 +17,21 @@
   align-self: center;
 }
 
+.alwaysSpellbookPill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  background: rgba(47, 120, 255, 0.14);
+  color: #2f78ff;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  padding: 0.22rem 0.48rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .concentrationDetailValue {
   display: inline-flex;
   align-items: center;

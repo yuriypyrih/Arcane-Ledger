@@ -20,7 +20,11 @@ import {
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
 import {
+  createMagicTemporaryHitPointsAssignment,
   MANUAL_TEMPORARY_HIT_POINTS_SOURCE,
+  gainMagicTemporaryHitPointsAssignment,
+  normalizeMagicTemporaryHitPoints,
+  normalizeMagicTemporaryHitPointsSource,
   createTemporaryHitPointsAssignment,
   normalizeTemporaryHitPoints,
   normalizeTemporaryHitPointsSource,
@@ -62,7 +66,11 @@ export function normalizeDeathSaves(value: Character["deathSaves"]): DeathSaveSt
 }
 
 export {
+  createMagicTemporaryHitPointsAssignment,
   MANUAL_TEMPORARY_HIT_POINTS_SOURCE,
+  gainMagicTemporaryHitPointsAssignment,
+  normalizeMagicTemporaryHitPoints,
+  normalizeMagicTemporaryHitPointsSource,
   createTemporaryHitPointsAssignment,
   normalizeTemporaryHitPoints,
   normalizeTemporaryHitPointsSource,

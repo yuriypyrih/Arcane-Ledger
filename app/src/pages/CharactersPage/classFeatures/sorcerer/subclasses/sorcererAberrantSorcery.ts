@@ -9,6 +9,11 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import {
+  activateTelepathicBond,
+  createTelepathicBondFeatureAction,
+  getTelepathicBondDurationMinutes
+} from "../../shared/telepathicBond";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
 import type {
@@ -236,10 +241,6 @@ function hasSorcererAberrantWarpingImplosionFeature(
   );
 }
 
-function getTelepathicSpeechDurationMinutes(level: number | undefined): number {
-  return Math.max(1, Math.min(20, Math.floor(level ?? 0)));
-}
-
 function hasSorcererAberrantPsionicSpellsFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
@@ -328,17 +329,6 @@ function normalizeRevelationInFleshAlterations(
     definitions.push(definition);
     return definitions;
   }, []);
-}
-
-function hasActiveSorcererTelepathicSpeech(
-  character: Partial<Pick<Character, "statusEntries">>
-): boolean {
-  return normalizeCharacterStatusEntries(character.statusEntries).some(
-    (entry) =>
-      entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
-      entry.value === telepathicSpeechName &&
-      entry.sourceId === sorcererTelepathicSpeechStatusSourceId
-  );
 }
 
 function hasActiveSorcererAberrantRevelationInFleshAlteration(
@@ -485,32 +475,18 @@ function getSorcererAberrantSorceryFeatureActions(
   const actions: FeatureActionCard[] = [];
 
   if (hasSorcererAberrantTelepathicSpeechFeature(character)) {
-    const durationMinutes = getTelepathicSpeechDurationMinutes(character.level);
-
-    actions.push({
-      key: sorcererTelepathicSpeechActionKey,
-      name: telepathicSpeechName,
-      summary: "Form a telepathic connection with a creature you can see.",
-      detail: `Create a telepathic connection for ${durationMinutes} minute${durationMinutes === 1 ? "" : "s"}.`,
-      breakdown: `Create a telepathic connection for ${durationMinutes} minute${durationMinutes === 1 ? "" : "s"}`,
-      economyType: ECONOMY_TYPE.BONUS_ACTION,
-      actionCategory: ACTION_CATEGORY.MAGIC,
-      description: getSorcererAberrantFeatureDescription(character, CLASS_FEATURE.TELEPATHIC_SPEECH),
-      drawer: {
-        kind: "confirm",
+    actions.push(
+      createTelepathicBondFeatureAction(character, {
+        actionKey: sorcererTelepathicSpeechActionKey,
+        name: telepathicSpeechName,
+        sourceId: sorcererTelepathicSpeechStatusSourceId,
         eyebrow: "Aberrant Sorcery",
         description: getSorcererAberrantFeatureDescription(
           character,
           CLASS_FEATURE.TELEPATHIC_SPEECH
-        ),
-        confirmLabel: "Activate Telepathic Speech"
-      },
-      execute: {
-        kind: "activate",
-        label: "Activate Telepathic Speech"
-      },
-      isActive: hasActiveSorcererTelepathicSpeech(character)
-    });
+        )
+      })
+    );
   }
 
   if (hasSorcererAberrantRevelationInFleshFeature(character)) {
@@ -619,27 +595,12 @@ export function activateSorcererAberrantTelepathicSpeech(character: Character): 
     return character;
   }
 
-  const nextStatusEntries = normalizeCharacterStatusEntries(character.statusEntries).filter(
-    (entry) => entry.sourceId !== sorcererTelepathicSpeechStatusSourceId
-  );
-
-  return {
-    ...character,
-    statusEntries: [
-      ...nextStatusEntries,
-      createCharacterStatusEntry({
-        group: STATUS_ENTRY_GROUP.EFFECTS,
-        value: telepathicSpeechName,
-        source: telepathicSpeechSource,
-        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
-        duration: {
-          kind: STATUS_DURATION_KIND.MINUTES,
-          amount: getTelepathicSpeechDurationMinutes(character.level)
-        },
-        sourceId: sorcererTelepathicSpeechStatusSourceId
-      })
-    ]
-  };
+  return activateTelepathicBond(character, {
+    name: telepathicSpeechName,
+    source: telepathicSpeechSource,
+    sourceId: sorcererTelepathicSpeechStatusSourceId,
+    durationMinutes: getTelepathicBondDurationMinutes(character.level)
+  });
 }
 
 export function activateSorcererAberrantRevelationInFlesh(

@@ -104,23 +104,31 @@
 }
 
 .barFill {
-  flex: 0 0 auto;
+  position: absolute;
+  inset: 0 auto 0 0;
   block-size: 100%;
   background: linear-gradient(90deg, #953f30, #bc5d49, #d7965f);
   transition: width 180ms ease;
 }
 
-.barTempFill {
-  flex: 0 0 auto;
+.barMagicTempFill {
+  position: absolute;
+  inset: 0 auto 0 0;
   height: 14px;
-  background: linear-gradient(90deg, #f2d786 0%, #fff1b8 60%, #f2d786 100%);
-  transition: width 180ms ease;
+  background: linear-gradient(90deg, #7fc4ff 0%, #d6efff 60%, #7fc4ff 100%);
+  transition:
+    left 180ms ease,
+    width 180ms ease;
 }
 
-.tempOverflow {
-  flex: none;
+.barTempFill {
   position: absolute;
-  right: 0;
+  inset: 0 auto 0 0;
+  height: 14px;
+  background: linear-gradient(90deg, #f2d786 0%, #fff1b8 60%, #f2d786 100%);
+  transition:
+    left 180ms ease,
+    width 180ms ease;
 }
 
 .stepControl {

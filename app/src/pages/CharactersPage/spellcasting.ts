@@ -302,7 +302,8 @@ export function normalizePreparedSpellIds(
 
 export function normalizeSpellbookSpellIds(
   spellIds: unknown,
-  availableSpells: SpellEntry[]
+  availableSpells: SpellEntry[],
+  alwaysIncludedSpellIds: string[] = []
 ): string[] {
   const availableSpellsById = new Map(availableSpells.map((spell) => [spell.id, spell]));
   const rawSpellIds = Array.isArray(spellIds)
@@ -310,7 +311,7 @@ export function normalizeSpellbookSpellIds(
     : [];
   const selectedSpellIds: string[] = [];
 
-  for (const spellId of [...new Set(rawSpellIds)]) {
+  for (const spellId of [...new Set([...rawSpellIds, ...alwaysIncludedSpellIds])]) {
     const spell = availableSpellsById.get(spellId);
 
     if (!spell) {
@@ -366,12 +367,7 @@ export function getDefaultCantripIdsForCharacter(
   classFeatureState?: CharacterClassFeatureState,
   subclassId?: string
 ): string[] {
-  const cantripLimit = getCantripLimitForCharacter(
-    className,
-    level,
-    classFeatureState,
-    subclassId
-  );
+  const cantripLimit = getCantripLimitForCharacter(className, level, classFeatureState, subclassId);
 
   if (cantripLimit === null || cantripLimit <= 0) {
     return [];

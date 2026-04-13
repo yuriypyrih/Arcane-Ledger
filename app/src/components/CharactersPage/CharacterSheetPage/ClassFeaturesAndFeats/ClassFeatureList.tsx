@@ -56,11 +56,15 @@ import {
   getSorcererMetamagicSelectionCountForCharacter,
   getSorcererMetamagicSelectionsForCharacter,
   sorcererDraconicElementalAffinityDamageTypeOptions,
+  getWarlockFiendishResilienceDamageTypeSelectionForCharacter,
+  warlockFiendPatronFiendishResilienceDamageTypeOptions,
   getWarlockMysticArcanumSpellIdForCharacter,
   getWarlockMysticArcanumSpellOptionsForCharacter,
+  getWizardSavantSpellIdsForCharacter,
   getWizardScholarSelectionForCharacter,
   getWizardSignatureSpellIdsForCharacter,
   getWizardSpellMasterySelectionForCharacter,
+  getAlwaysSpellbookSpellIdsForCharacter,
   getWeaponMasteryOptionsForCharacter,
   getWeaponMasterySelectionCountForCharacter,
   getWeaponMasterySelectionsForCharacter,
@@ -98,6 +102,7 @@ import {
   setRogueThievesCantLanguageSelectionForCharacter,
   setSorcererDraconicElementalAffinityDamageTypeSelectionForCharacter,
   setSorcererMetamagicSelectionsForCharacter,
+  setWarlockFiendishResilienceDamageTypeSelectionForCharacter,
   setWarlockMysticArcanumSpellIdForCharacter,
   setWizardScholarSelectionForCharacter,
   setWizardSignatureSpellIdsForCharacter,
@@ -121,6 +126,14 @@ import {
   normalizeSpellbookSpellIds
 } from "../../../../pages/CharactersPage/spellcasting";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
+import {
+  getWizardSavantSelectionCount,
+  isWizardSavantFeature
+} from "../../../../pages/CharactersPage/classFeatures/wizard/savant";
+import {
+  getWizardBladesingerTrainingInWarAndSongSkillSelection,
+  wizardBladesingerTrainingInWarAndSongSkillOptions
+} from "../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
 import type {
   Character,
   CharacterFeatEntry,
@@ -140,6 +153,8 @@ import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.m
 import styles from "./ClassFeaturesAndFeats.module.css";
 import BattleMasterManeuverSelection from "./BattleMasterManeuverSelection";
 import DruidWildShapeMonsterModal from "./DruidWildShapeMonsterModal";
+import WizardBladesingerTrainingInWarAndSongFields from "./WizardBladesingerTrainingInWarAndSongFields";
+import WizardSavantFeatureFields from "./WizardSavantFeatureFields";
 import {
   getBardExpertiseTierForLevel,
   getRogueExpertiseTierForLevel,
@@ -554,9 +569,7 @@ function ClassFeatureList({
     return getKnowledgeDomainUnfetteredMindSavingThrowSelection() === null;
   }
 
-  function getRangerGloomStalkerIronMindSavingThrowSelection():
-    | SAVING_THROW_PROFICIENCY
-    | null {
+  function getRangerGloomStalkerIronMindSavingThrowSelection(): SAVING_THROW_PROFICIENCY | null {
     return getRangerGloomStalkerIronMindSavingThrowSelectionForCharacter(character);
   }
 
@@ -668,9 +681,7 @@ function ClassFeatureList({
     return getRogueThievesCantLanguageSelection() === null;
   }
 
-  function getRogueScionOfTheThreeDreadAllegianceChoice():
-    | RogueScionOfTheThreeDreadAllegianceChoice
-    | null {
+  function getRogueScionOfTheThreeDreadAllegianceChoice(): RogueScionOfTheThreeDreadAllegianceChoice | null {
     return getRogueScionOfTheThreeDreadAllegianceChoiceForCharacter(character);
   }
 
@@ -807,15 +818,11 @@ function ClassFeatureList({
     return getRangerHunterPreyChoice() === null;
   }
 
-  function getRangerHunterDefensiveTacticsChoice():
-    | RangerHunterDefensiveTacticsChoice
-    | null {
+  function getRangerHunterDefensiveTacticsChoice(): RangerHunterDefensiveTacticsChoice | null {
     return getRangerHunterDefensiveTacticsChoiceForCharacter(character);
   }
 
-  function updateRangerHunterDefensiveTacticsChoice(
-    choice: RangerHunterDefensiveTacticsChoice
-  ) {
+  function updateRangerHunterDefensiveTacticsChoice(choice: RangerHunterDefensiveTacticsChoice) {
     onPersistCharacter((currentCharacter) =>
       setRangerHunterDefensiveTacticsChoiceForCharacter(currentCharacter, choice)
     );
@@ -901,6 +908,28 @@ function ClassFeatureList({
     return getWizardScholarSelection() === null;
   }
 
+  function isWizardBladesingerTrainingInWarAndSongInputRequired(): boolean {
+    return (
+      getWizardBladesingerTrainingInWarAndSongSkillSelection(character) === null &&
+      getSelectableUnproficientSkillOptions(
+        character,
+        wizardBladesingerTrainingInWarAndSongSkillOptions,
+        null
+      ).length > 0
+    );
+  }
+
+  function isWizardSavantInputRequired(feature: CLASS_FEATURE): boolean {
+    if (!isWizardSavantFeature(feature)) {
+      return false;
+    }
+
+    return (
+      getWizardSavantSpellIdsForCharacter(character).length <
+      getWizardSavantSelectionCount(character.level)
+    );
+  }
+
   function getWizardSpellMasterySelection(spellLevel: 1 | 2): string {
     return getWizardSpellMasterySelectionForCharacter(character, spellLevel) ?? "";
   }
@@ -911,7 +940,11 @@ function ClassFeatureList({
       character.level
     );
     const spellbookSpellIdSet = new Set(
-      normalizeSpellbookSpellIds(character.spellbookSpellIds, availablePreparedSpells)
+      normalizeSpellbookSpellIds(
+        character.spellbookSpellIds,
+        availablePreparedSpells,
+        getAlwaysSpellbookSpellIdsForCharacter(character)
+      )
     );
 
     return availablePreparedSpells
@@ -950,7 +983,11 @@ function ClassFeatureList({
       character.level
     );
     const spellbookSpellIdSet = new Set(
-      normalizeSpellbookSpellIds(character.spellbookSpellIds, availablePreparedSpells)
+      normalizeSpellbookSpellIds(
+        character.spellbookSpellIds,
+        availablePreparedSpells,
+        getAlwaysSpellbookSpellIdsForCharacter(character)
+      )
     );
 
     return availablePreparedSpells
@@ -1062,6 +1099,20 @@ function ClassFeatureList({
 
   function isSorcererDraconicElementalAffinityInputRequired(): boolean {
     return getSorcererDraconicElementalAffinityDamageTypeSelection() === null;
+  }
+
+  function getWarlockFiendishResilienceDamageTypeSelection(): DAMAGE_TYPE | null {
+    return getWarlockFiendishResilienceDamageTypeSelectionForCharacter(character);
+  }
+
+  function updateWarlockFiendishResilienceDamageTypeSelection(choice: DAMAGE_TYPE) {
+    onPersistCharacter((currentCharacter) =>
+      setWarlockFiendishResilienceDamageTypeSelectionForCharacter(currentCharacter, choice)
+    );
+  }
+
+  function isWarlockFiendishResilienceInputRequired(): boolean {
+    return getWarlockFiendishResilienceDamageTypeSelection() === null;
   }
 
   function getWarlockMysticArcanumSpellLevel(level: number): 6 | 7 | 8 | 9 | null {
@@ -1213,9 +1264,7 @@ function ClassFeatureList({
     });
   }
 
-  function updateDruidCircleOfTheLandChoice(
-    choice: "arid" | "polar" | "temperate" | "tropical"
-  ) {
+  function updateDruidCircleOfTheLandChoice(choice: "arid" | "polar" | "temperate" | "tropical") {
     onPersistCharacter((currentCharacter) =>
       setDruidCircleOfTheLandChoiceForCharacter(currentCharacter, choice)
     );
@@ -1498,9 +1547,17 @@ function ClassFeatureList({
               character.className === "Warlock" &&
               isWarlockMysticArcanumInputRequired(featureRow.level)) ||
             (isUnlocked &&
+              isWizardSavantFeature(featureRow.feature) &&
+              character.className === "Wizard" &&
+              isWizardSavantInputRequired(featureRow.feature)) ||
+            (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.SCHOLAR &&
               character.className === "Wizard" &&
               isWizardScholarInputRequired()) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.TRAINING_IN_WAR_AND_SONG &&
+              character.className === "Wizard" &&
+              isWizardBladesingerTrainingInWarAndSongInputRequired()) ||
             (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.SPELL_MASTERY &&
               character.className === "Wizard" &&
@@ -1549,7 +1606,11 @@ function ClassFeatureList({
             (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.ELEMENTAL_AFFINITY &&
               character.className === "Sorcerer" &&
-              isSorcererDraconicElementalAffinityInputRequired());
+              isSorcererDraconicElementalAffinityInputRequired()) ||
+            (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.FIENDISH_RESILIENCE &&
+              character.className === "Warlock" &&
+              isWarlockFiendishResilienceInputRequired());
 
           return (
             <FeatureDisclosureRow
@@ -1753,6 +1814,44 @@ function ClassFeatureList({
                       <FeatureDescriptionLines
                         featureKey={featureRow.key}
                         lines={featureDetails.description.slice(2)}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                    </>
+                  ) : featureRow.feature === CLASS_FEATURE.FIENDISH_RESILIENCE &&
+                    character.className === "Warlock" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description.slice(0, 1)}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <FeatureChoiceOptions
+                        featureKey={featureRow.key}
+                        groupName={`fiendish-resilience-${character.id}`}
+                        isUnlocked={isUnlocked}
+                        selectedValue={getWarlockFiendishResilienceDamageTypeSelection()}
+                        options={warlockFiendPatronFiendishResilienceDamageTypeOptions.map(
+                          (damageType) => ({
+                            key: damageType,
+                            value: damageType,
+                            content: getDamageTypeChoiceContent(damageType)
+                          })
+                        )}
+                        onChange={updateWarlockFiendishResilienceDamageTypeSelection}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description.slice(1)}
                         onOpenKeyword={onOpenKeyword}
                         onOpenFeatReference={onOpenFeatReference}
                         onOpenSpellReference={onOpenSpellReference}
@@ -2131,6 +2230,25 @@ function ClassFeatureList({
                         />
                       ) : null}
                     </>
+                  ) : isWizardSavantFeature(featureRow.feature) &&
+                    character.className === "Wizard" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <WizardSavantFeatureFields
+                        character={character}
+                        feature={featureRow.feature}
+                        featureKey={featureRow.key}
+                        isUnlocked={isUnlocked}
+                        onPersistCharacter={onPersistCharacter}
+                      />
+                    </>
                   ) : featureRow.feature === CLASS_FEATURE.SCHOLAR &&
                     character.className === "Wizard" ? (
                     <>
@@ -2164,6 +2282,27 @@ function ClassFeatureList({
                           </SelectInput>
                         </label>
                       </div>
+                    </>
+                  ) : featureRow.feature === CLASS_FEATURE.TRAINING_IN_WAR_AND_SONG &&
+                    character.className === "Wizard" ? (
+                    <>
+                      <FeatureDescriptionLines
+                        featureKey={featureRow.key}
+                        lines={featureDetails.description}
+                        onOpenKeyword={onOpenKeyword}
+                        onOpenFeatReference={onOpenFeatReference}
+                        onOpenSpellReference={onOpenSpellReference}
+                        onOpenDivinityReference={onOpenDivinityReference}
+                      />
+                      <WizardBladesingerTrainingInWarAndSongFields
+                        character={character}
+                        featureKey={featureRow.key}
+                        isUnlocked={isUnlocked}
+                        onPersistCharacter={onPersistCharacter}
+                        recomputeCharacterFeatureProficiencies={
+                          recomputeCharacterFeatureProficiencies
+                        }
+                      />
                     </>
                   ) : featureRow.feature === CLASS_FEATURE.KNIGHTLY_ENVOY &&
                     character.className === "Fighter" ? (
@@ -2217,9 +2356,7 @@ function ClassFeatureList({
                             value={getFighterBanneretKnightlyEnvoySkillSelection() ?? ""}
                             disabled={!isUnlocked}
                             onChange={(event) =>
-                              updateFighterBanneretKnightlyEnvoySkillSelection(
-                                event.target.value
-                              )
+                              updateFighterBanneretKnightlyEnvoySkillSelection(event.target.value)
                             }
                           >
                             <option value="">Select a skill</option>
@@ -2247,7 +2384,8 @@ function ClassFeatureList({
                         onOpenDivinityReference={onOpenDivinityReference}
                       />
                       <div className={styles.featureSelectionGrid}>
-                        {getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills().length > 0 ? (
+                        {getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills().length >
+                        0 ? (
                           <label
                             className={clsx(
                               styles.featureSelectionField,

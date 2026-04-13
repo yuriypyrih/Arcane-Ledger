@@ -8,6 +8,7 @@ export type SpellManagementMode =
   | "prepared-spells"
   | "eldritch-invocations";
 export type PersistCharacterUpdater = (updater: (current: Character) => Character) => void;
+export type QueueCharacterSave = (nextCharacter: Character) => void;
 
 export type IdentityDraft = {
   name: string;

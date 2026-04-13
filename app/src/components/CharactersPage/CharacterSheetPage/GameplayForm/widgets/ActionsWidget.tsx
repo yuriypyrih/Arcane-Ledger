@@ -11,7 +11,13 @@ import CharacterSpellDrawer from "../../SpellCastingForm/CharacterSpellDrawer";
 import SelectInput from "../../../FormInputs/SelectInput";
 import ActionShape from "../../../../ActionShape";
 import RollStatePill from "../../../../RollStatePill/RollStatePill";
-import type { Character, AbilityKey, CodexStatus, MonsterRecord } from "../../../../../types";
+import type {
+  Character,
+  AbilityKey,
+  CharacterWizardPortentRoll,
+  CodexStatus,
+  MonsterRecord
+} from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { abilityKeys } from "../../../../../pages/CharactersPage/constants";
 import {
@@ -26,7 +32,7 @@ import {
   activateFeatureActionOptionsForCharacter,
   activateFeatureActionOptionForCharacter,
   activateArcaneRecoveryForCharacter,
-  applyBardBattleMagicAfterSpellCastForCharacter,
+  applySpellCastFeatureEffectsForCharacter,
   applyInspiredEclipseStatusForCharacter,
   applyMantleOfMajestyStatusForCharacter,
   applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter,
@@ -81,11 +87,16 @@ import {
   getSpellcastingStateForCharacter,
   getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter,
   hasBattleMagicBonusWeaponAttackForCharacter,
+  getWarlockHealingLightDiceRemainingForCharacter,
+  getWarlockHealingLightMaxSpendForCharacter,
   getWarlockMysticArcanumSelectionsForCharacter,
+  getWarlockPactMagicSlotTotalForCharacter,
+  getWarlockPactMagicSlotsRemainingForCharacter,
   hasActivePaladinAuraOfProtectionForCharacter,
   restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter,
   hasSorcererArcaneApotheosisFreeMetamagicAvailableForCharacter,
   markFeatureWeaponBonusUseForCharacter,
+  spendWarlockHealingLightDiceForCharacter,
   type FeatureActionCard,
   type FeatureActionExecuteConfig,
   type FeatureActionOptionCard
@@ -141,11 +152,22 @@ import {
   innateSorceryActionKey,
   metamagicActionKey
 } from "../../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
-import { type MysticArcanumLevel } from "../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
+import {
+  activateWarlockAwakenedMind,
+  getWarlockClairvoyantCombatantUsesRemaining,
+  getWarlockClairvoyantCombatantUsesTotal,
+  type MysticArcanumLevel
+} from "../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
+import { awakenedMindActionKey } from "../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockGreatOldOnePatron";
 import {
   type ArcaneRecoverySelection,
   getArcaneRecoveryRecoveryLevelLimit
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
+import { setWizardDivinerPortentRolls } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerPortent";
+import {
+  activateWizardDivinerThirdEye
+} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerThirdEye";
+import type { WizardDivinerThirdEyeOptionKey } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerThirdEyeConfig";
 import {
   getRogueSneakAttackEffectDefinitions,
   getRogueSneakAttackFormula
@@ -236,8 +258,12 @@ import {
   FighterSecondWindActionBody,
   FighterSecondWindActionFooter
 } from "./FighterSecondWindAction";
+import HealingLightActionBody from "./HealingLightActionBody";
+import PortentActionBody from "./PortentActionBody";
 import RadioOption from "./RadioOption";
 import { SorcererInnateSorceryActionFooter } from "./SorcererInnateSorceryAction";
+import ThirdEyeActionBody from "./ThirdEyeActionBody";
+import { WarlockAwakenedMindActionFooter } from "./WarlockAwakenedMindAction";
 import {
   appendRollModifier,
   formatWildShapeMonsterMeta,
@@ -1533,6 +1559,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [selectedNatureMagicianWildShapeCost, setSelectedNatureMagicianWildShapeCost] = useState<
     number | null
   >(null);
+  const [selectedThirdEyeOptionKey, setSelectedThirdEyeOptionKey] =
+    useState<WizardDivinerThirdEyeOptionKey | null>(null);
   const [selectedStarryFormConstellation, setSelectedStarryFormConstellation] =
     useState<DruidStarryFormConstellation | null>(null);
   const [selectedWildShapePreviewSlug, setSelectedWildShapePreviewSlug] = useState<string | null>(
@@ -1564,6 +1592,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [isCrownOfSpellfireSelected, setIsCrownOfSpellfireSelected] = useState(false);
   const [isInspiredEclipseSelected, setIsInspiredEclipseSelected] = useState(false);
   const [isGroupRecoverySelected, setIsGroupRecoverySelected] = useState(false);
+  const [isClairvoyantCombatantSelected, setIsClairvoyantCombatantSelected] = useState(false);
   const [isPsionicStrikeSelected, setIsPsionicStrikeSelected] = useState(false);
   const [isDreadfulStrikeSelected, setIsDreadfulStrikeSelected] = useState(false);
   const [isPolarStrikesSelected, setIsPolarStrikesSelected] = useState(false);
@@ -1967,6 +1996,30 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedSecondWindGroupRecoveryUsesTotal > 0
       ? getFighterGroupRecoveryHealingFormula(character)
       : null;
+  const selectedClairvoyantCombatantUsesTotal =
+    selectedFeatureAction?.key === awakenedMindActionKey
+      ? getWarlockClairvoyantCombatantUsesTotal(character)
+      : 0;
+  const selectedClairvoyantCombatantUsesRemaining =
+    selectedFeatureAction?.key === awakenedMindActionKey
+      ? getWarlockClairvoyantCombatantUsesRemaining(character)
+      : 0;
+  const selectedClairvoyantCombatantPactMagicSlotTotal =
+    selectedFeatureAction?.key === awakenedMindActionKey
+      ? getWarlockPactMagicSlotTotalForCharacter(character)
+      : 0;
+  const selectedClairvoyantCombatantPactMagicSlotsRemaining =
+    selectedFeatureAction?.key === awakenedMindActionKey
+      ? getWarlockPactMagicSlotsRemainingForCharacter(character)
+      : 0;
+  const selectedClairvoyantCombatantToggleDisabled =
+    selectedFeatureAction?.key === awakenedMindActionKey &&
+    selectedClairvoyantCombatantUsesRemaining <= 0 &&
+    selectedClairvoyantCombatantPactMagicSlotsRemaining <= 0;
+  const selectedClairvoyantCombatantToggleDisabledReason =
+    selectedClairvoyantCombatantToggleDisabled
+      ? "No Clairvoyant Combatant charge or Pact Magic spell slots remaining."
+      : null;
   const selectedDrawerOption = useMemo(
     () =>
       selectedDrawerOptions.find((option) => selectedActionOptionKeys.includes(option.key)) ?? null,
@@ -2282,6 +2335,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedWildResurgenceMode(null);
     setSelectedWildResurgenceSpellSlotLevel(1);
     setSelectedNatureMagicianWildShapeCost(null);
+    setSelectedThirdEyeOptionKey(null);
     setSelectedStarryFormConstellation(null);
     setSelectedRageOptionKey(null);
     setSelectedRagePowerOptionKey(null);
@@ -2297,6 +2351,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsCrownOfSpellfireSelected(false);
     setIsInspiredEclipseSelected(false);
     setIsGroupRecoverySelected(false);
+    setIsClairvoyantCombatantSelected(false);
     setIsPsionicStrikeSelected(false);
     setIsDreadfulStrikeSelected(false);
     setIsPolarStrikesSelected(false);
@@ -2340,12 +2395,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedWildResurgenceMode(null);
     setSelectedWildResurgenceSpellSlotLevel(1);
     setSelectedNatureMagicianWildShapeCost(null);
+    setSelectedThirdEyeOptionKey(null);
     setSelectedStarryFormConstellation(null);
     setSelectedRageOptionKey(null);
     setSelectedRagePowerOptionKey(null);
     setIsRageOfTheGodsSelected(false);
     setIsCrownOfSpellfireSelected(false);
     setIsGroupRecoverySelected(false);
+    setIsClairvoyantCombatantSelected(false);
     setIsPsionicStrikeSelected(false);
     setIsSacredWeaponSelected(false);
     setIsHandOfHarmSelected(false);
@@ -2358,6 +2415,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       setIsSacredWeaponSelected(false);
     }
   }, [selectedWeaponSacredWeaponState, selectedWeaponSacredWeaponToggleDisabled]);
+
+  useEffect(() => {
+    if (selectedClairvoyantCombatantToggleDisabled) {
+      setIsClairvoyantCombatantSelected(false);
+    }
+  }, [selectedClairvoyantCombatantToggleDisabled]);
 
   useEffect(() => {
     if (!selectedWeaponHandOfHarmState || selectedWeaponHandOfHarmToggleDisabled) {
@@ -2690,6 +2753,32 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         );
         const nextCharacter = activateInnateSorceryForCharacter(preparedCharacter, {
           useCrownOfSpellfire: isCrownOfSpellfireSelected
+        });
+
+        if (nextCharacter === preparedCharacter) {
+          return currentCharacter;
+        }
+
+        return roundTrackerResource
+          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+          : nextCharacter;
+      });
+      closeActionDrawer();
+      return;
+    }
+
+    if (action.key === awakenedMindActionKey) {
+      const useClairvoyantCombatant =
+        isClairvoyantCombatantSelected && !selectedClairvoyantCombatantToggleDisabled;
+
+      onPersistCharacter((currentCharacter) => {
+        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+        const preparedCharacter = prepareCharacterForResourceConsumption(
+          currentCharacter,
+          roundTrackerResource
+        );
+        const nextCharacter = activateWarlockAwakenedMind(preparedCharacter, {
+          useClairvoyantCombatant
         });
 
         if (nextCharacter === preparedCharacter) {
@@ -3319,6 +3408,43 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     closeActionDrawer();
   }
 
+  function submitHealingLight(diceCount: number) {
+    if (!selectedFeatureAction || diceCount <= 0) {
+      return;
+    }
+
+    const healingFormula = `${diceCount}d6`;
+    const dieLabel = diceCount === 1 ? "Healing d6" : "Healing d6s";
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = spendWarlockHealingLightDiceForCharacter(preparedCharacter, diceCount);
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
+    openDiceRoller({
+      title: selectedFeatureAction.name,
+      formula: healingFormula,
+      formulaDisplay: healingFormula,
+      description: `${selectedFeatureAction.detail} ${diceCount} ${dieLabel} expended.`
+    });
+
+    closeActionDrawer();
+  }
+
   function submitSneakAttack({ effectKeys, useRendMind }: SneakAttackActionSelection) {
     if (!selectedFeatureAction) {
       return;
@@ -3381,6 +3507,42 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     onPersistCharacter((currentCharacter) =>
       activateArcaneRecoveryForCharacter(currentCharacter, selection)
     );
+    closeActionDrawer();
+  }
+
+  function submitPortent(portentRolls: CharacterWizardPortentRoll[]) {
+    onPersistCharacter((currentCharacter) =>
+      setWizardDivinerPortentRolls(currentCharacter, portentRolls)
+    );
+    closeActionDrawer();
+  }
+
+  function submitThirdEye() {
+    if (!selectedFeatureAction || !selectedThirdEyeOptionKey) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateWizardDivinerThirdEye(
+        preparedCharacter,
+        selectedThirdEyeOptionKey
+      );
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
     closeActionDrawer();
   }
 
@@ -3785,19 +3947,18 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       const nextCharacterWithSorcererSubclassRecharge = spellConsumedSpellSlot
         ? restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(nextCharacterWithFrozenHaunt)
         : nextCharacterWithFrozenHaunt;
-      const nextCharacterWithBattleMagic = castAsRitual
-        ? nextCharacterWithSorcererSubclassRecharge
-        : applyBardBattleMagicAfterSpellCastForCharacter(
-            nextCharacterWithSorcererSubclassRecharge,
-            fixedSpellEntry
-          );
+      const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
+        nextCharacterWithSorcererSubclassRecharge,
+        fixedSpellEntry,
+        { includeBardBattleMagic: !castAsRitual }
+      );
 
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithBattleMagic,
+            nextCharacterWithSpellCastEffects,
             roundTrackerResource
           )
-        : nextCharacterWithBattleMagic;
+        : nextCharacterWithSpellCastEffects;
     });
 
     closeActionDrawer();
@@ -3837,17 +3998,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithConcentration)
         : nextCharacterWithConcentration;
-      const nextCharacterWithBattleMagic = applyBardBattleMagicAfterSpellCastForCharacter(
+      const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
         nextCharacterWithBeguilingMagic,
         selectedDivineInterventionSpell
       );
 
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithBattleMagic,
+            nextCharacterWithSpellCastEffects,
             roundTrackerResource
           )
-        : nextCharacterWithBattleMagic;
+        : nextCharacterWithSpellCastEffects;
     });
 
     closeActionDrawer();
@@ -3893,17 +4054,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithConcentration)
         : nextCharacterWithConcentration;
-      const nextCharacterWithBattleMagic = applyBardBattleMagicAfterSpellCastForCharacter(
+      const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
         nextCharacterWithBeguilingMagic,
         selectedMysticArcanumSpell
       );
 
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithBattleMagic,
+            nextCharacterWithSpellCastEffects,
             roundTrackerResource
           )
-        : nextCharacterWithBattleMagic;
+        : nextCharacterWithSpellCastEffects;
     });
 
     closeActionDrawer();
@@ -3997,6 +4158,19 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     if (selectedAction.drawer.kind === "custom-form") {
+      if (selectedAction.drawer.formKind === "portent") {
+        return <PortentActionBody character={character} onSubmit={submitPortent} />;
+      }
+
+      if (selectedAction.drawer.formKind === "third-eye") {
+        return (
+          <ThirdEyeActionBody
+            selectedOptionKey={selectedThirdEyeOptionKey}
+            onSelectOption={setSelectedThirdEyeOptionKey}
+          />
+        );
+      }
+
       if (selectedAction.drawer.formKind === "arcane-recovery") {
         return <ArcaneRecoveryActionBody character={character} onRecover={submitArcaneRecovery} />;
       }
@@ -4016,6 +4190,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             conditionOptions={getLayOnHandsCurableConditionsForCharacter(character)}
             remainingPool={getPaladinHealingPoolRemainingForCharacter(character)}
             onSubmit={submitLayOnHands}
+          />
+        );
+      }
+
+      if (selectedAction.drawer.formKind === "healing-light") {
+        return (
+          <HealingLightActionBody
+            remainingDice={getWarlockHealingLightDiceRemainingForCharacter(character)}
+            maxDicePerUse={getWarlockHealingLightMaxSpendForCharacter(character)}
+            onSubmit={submitHealingLight}
           />
         );
       }
@@ -4407,6 +4591,33 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedAction.kind === "feature" &&
       selectedAction.drawer.kind === "confirm" &&
       selectedAction.execute.kind === "activate" &&
+      selectedAction.action.key === awakenedMindActionKey &&
+      selectedClairvoyantCombatantUsesTotal > 0
+    ) {
+      return (
+        <WarlockAwakenedMindActionFooter
+          confirmLabel={selectedAction.drawer.confirmLabel ?? "Activate Awakened Mind"}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedActionWarning !== null || selectedActionBlockedReason !== null}
+          clairvoyantCombatantUsesRemaining={selectedClairvoyantCombatantUsesRemaining}
+          clairvoyantCombatantUsesTotal={selectedClairvoyantCombatantUsesTotal}
+          pactMagicSlotsRemaining={selectedClairvoyantCombatantPactMagicSlotsRemaining}
+          pactMagicSlotTotal={selectedClairvoyantCombatantPactMagicSlotTotal}
+          toggleDisabled={selectedClairvoyantCombatantToggleDisabled}
+          toggleDisabledReason={selectedClairvoyantCombatantToggleDisabledReason}
+          isClairvoyantCombatantSelected={isClairvoyantCombatantSelected}
+          onConfirm={() => executeFeatureActivate(selectedAction.action)}
+          onClairvoyantCombatantSelectedChange={setIsClairvoyantCombatantSelected}
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
       selectedAction.execute.effectKind === "bardic-inspiration-roll"
     ) {
       const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
@@ -4544,6 +4755,33 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               className={styles.footerActionShape}
             />
           ) : null}
+        </button>
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "custom-form" &&
+      selectedAction.drawer.formKind === "third-eye"
+    ) {
+      return (
+        <button
+          type="button"
+          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+          onClick={submitThirdEye}
+          disabled={
+            selectedThirdEyeOptionKey === null ||
+            selectedActionWarning !== null ||
+            selectedActionBlockedReason !== null
+          }
+        >
+          <span>Activate</span>
+          <ActionShape
+            shape="bonusAction"
+            isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+            multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+            className={styles.footerActionShape}
+          />
         </button>
       );
     }

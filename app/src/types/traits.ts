@@ -51,6 +51,8 @@ export enum STATUS_DURATION_KIND {
   INFINITE = "INFINITE",
   CONCENTRATION = "CONCENTRATION",
   LINKED = "LINKED",
+  SHORT_REST = "SHORT_REST",
+  LONG_REST = "LONG_REST",
   MINUTES = "MINUTES",
   HOURS = "HOURS",
   DAYS = "DAYS",
@@ -65,6 +67,8 @@ export enum STATUS_DURATION_ROUND_TICK {
 export enum STATUS_DURATION_PRESET {
   INFINITE = "INFINITE",
   CONCENTRATION = "CONCENTRATION",
+  SHORT_REST = "SHORT_REST",
+  LONG_REST = "LONG_REST",
   ONE_MINUTE = "ONE_MINUTE",
   TEN_MINUTES = "TEN_MINUTES",
   ONE_HOUR = "ONE_HOUR",
@@ -109,6 +113,12 @@ export type CharacterStatusDuration =
       kind: STATUS_DURATION_KIND.LINKED;
       linkedGroup: STATUS_ENTRY_GROUP;
       linkedValue: CharacterStatusValue;
+    }
+  | {
+      kind: STATUS_DURATION_KIND.SHORT_REST;
+    }
+  | {
+      kind: STATUS_DURATION_KIND.LONG_REST;
     }
   | {
       kind: STATUS_DURATION_KIND.MINUTES;

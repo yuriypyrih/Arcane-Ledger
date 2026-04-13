@@ -4,13 +4,12 @@ import { useEffect, useState } from "react";
 import NumberInput from "../../FormInputs/NumberInput";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
-import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./TemporaryHitPoints.module.css";
+import { assignManualTemporaryHitPointsForCharacter } from "../GameplayForm/hitPointState";
 import {
-  MANUAL_TEMPORARY_HIT_POINTS_SOURCE,
-  createTemporaryHitPointsAssignment,
+  normalizeTemporaryHitPoints,
   normalizeTemporaryHitPointsSource
 } from "../GameplayForm/gameplayStateUtils";
 
@@ -19,10 +18,6 @@ type TemporaryHitPointsProps = {
   temporaryHitPointsSource?: string;
   onPersistCharacter: PersistCharacterUpdater;
 };
-
-function normalizeTemporaryHitPoints(value: unknown): number {
-  return Math.floor(clampNumber(value, 0, 999, 0));
-}
 
 function TemporaryHitPoints({
   temporaryHitPoints,
@@ -81,13 +76,9 @@ function TemporaryHitPoints({
   function saveTemporaryHitPoints() {
     const nextTemporaryHitPoints = normalizeTemporaryHitPoints(temporaryHitPointsDraft);
 
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      ...createTemporaryHitPointsAssignment(
-        nextTemporaryHitPoints,
-        nextTemporaryHitPoints > 0 ? MANUAL_TEMPORARY_HIT_POINTS_SOURCE : undefined
-      )
-    }));
+    onPersistCharacter((currentCharacter) =>
+      assignManualTemporaryHitPointsForCharacter(currentCharacter, nextTemporaryHitPoints)
+    );
 
     setTemporaryHitPointsDraft(nextTemporaryHitPoints);
     setIsModalOpen(false);

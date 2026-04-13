@@ -79,9 +79,12 @@ export type FeatureActionFormKind =
   | "arcane-recovery"
   | "brutal-strike"
   | "font-of-magic"
+  | "healing-light"
   | "indomitable"
   | "lay-on-hands"
   | "nature-magician"
+  | "portent"
+  | "third-eye"
   | "starry-form"
   | "sneak-attack"
   | "wild-companion"
@@ -277,6 +280,14 @@ export type FeatureUnarmedStrikeConfig = {
   damageTypeLabel?: string;
 };
 
+export type MagicTemporaryHitPointsFeature = {
+  id: string;
+  label: string;
+  modalTitle: string;
+  description: string;
+  maxHitPoints: number;
+};
+
 export type FeatureIndicator = {
   label: string;
   tone: "advantage" | "disadvantage";
@@ -394,6 +405,8 @@ export type ClassFeatureDerivedState = {
   armorProficiencyEntries?: FeatureArmorProficiencyEntry[];
   languageProficiencyEntries?: FeatureLanguageProficiencyEntry[];
   alwaysPreparedSpellIds?: string[];
+  alwaysSpellbookSpellIds?: string[];
+  magicTemporaryHitPointsFeature?: MagicTemporaryHitPointsFeature | null;
   ritualOnlySpellIds?: string[];
   weaponMastery?: {
     selectionCount: number;

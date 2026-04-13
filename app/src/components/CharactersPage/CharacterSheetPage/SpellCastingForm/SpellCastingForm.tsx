@@ -34,15 +34,17 @@ import {
 import { getRoundTrackerResourceForEconomyType } from "../../../../pages/CharactersPage/actionEconomy";
 import {
   applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter,
-  applyBardBattleMagicAfterSpellCastForCharacter,
+  applySpellCastFeatureEffectsForCharacter,
   activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter,
   consumeDruidNaturalRecoveryUseForCharacter,
   consumeBlessingOfMoonlightUseForCharacter,
   activateFeatureActionOptionForCharacter,
   consumeBeguilingMagicOrBardicInspirationForCharacter,
   consumeRangerFeyReinforcementsUseForCharacter,
+  consumeWizardIllusionistPhantasmalCreaturesUseForCharacter,
   consumeRangerWinterWalkerFrozenHauntUseForCharacter,
   consumeRangerMistyWandererUseForCharacter,
+  consumeWarlockStepsOfTheFeyUseForCharacter,
   consumeSharedEconomyMultiForCharacterAction,
   expendChannelDivinityUseForCharacter,
   getBlessingOfMoonlightUsesRemainingForCharacter,
@@ -50,6 +52,7 @@ import {
   getChannelDivinityUsesRemainingForCharacter,
   getChannelDivinityUsesTotalForCharacter,
   getAlwaysPreparedSpellIdsForCharacter,
+  getAlwaysSpellbookSpellIdsForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
   getBeguilingMagicUsesTotalForCharacter,
@@ -64,10 +67,13 @@ import {
   getRangerMistyWandererUsesRemainingForCharacter,
   getRangerMistyWandererUsesTotalForCharacter,
   getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter,
+  getWarlockStepsOfTheFeyUsesRemainingForCharacter,
+  getWarlockStepsOfTheFeyUsesTotalForCharacter,
   hasActiveMantleOfMajestyForCharacter,
   getRitualOnlySpellIdsForCharacter,
   createEconomyMultiContextForSpell,
   getSharedEconomyMultiCountForCharacterAction,
+  getSpellbookSpellEntryForCharacter,
   getSpellEntryForCharacter,
   getSpellcastingStateForCharacter,
   getWarlockEldritchInvocationLimitForCharacter,
@@ -80,6 +86,7 @@ import {
   getWizardSignatureSpellIdsForCharacter,
   hasWizardSignatureSpellFreeCastAvailableForCharacter,
   getWizardSpellMasterySpellIdsForCharacter,
+  getWizardIllusionistPhantasmalCreaturesSpellOptionStateForCharacter,
   setWarlockInvocationSelectionIdsForCharacter,
   syncWizardSignatureSpellsToSpellbookForCharacter,
   syncWizardSpellMasterySelectionsToSpellbookForCharacter,
@@ -304,6 +311,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const [useElementalSmiteOnSelectedSpell, setUseElementalSmiteOnSelectedSpell] = useState(false);
   const [useFeyReinforcementsOnSelectedSpell, setUseFeyReinforcementsOnSelectedSpell] =
     useState(false);
+  const [usePhantasmalCreaturesOnSelectedSpell, setUsePhantasmalCreaturesOnSelectedSpell] =
+    useState(false);
+  const [useStepsOfTheFeyOnSelectedSpell, setUseStepsOfTheFeyOnSelectedSpell] = useState(false);
   const [useMistyWandererOnSelectedSpell, setUseMistyWandererOnSelectedSpell] = useState(false);
   const [
     useFeyReinforcementsNoConcentrationOnSelectedSpell,
@@ -336,6 +346,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseBlessingOfMoonlightOnSelectedSpell(false);
     setUseElementalSmiteOnSelectedSpell(false);
     setUseFeyReinforcementsOnSelectedSpell(false);
+    setUsePhantasmalCreaturesOnSelectedSpell(false);
     setUseMistyWandererOnSelectedSpell(false);
     setUseFeyReinforcementsNoConcentrationOnSelectedSpell(false);
     setUseNaturalRecoveryOnSelectedSpell(false);
@@ -406,11 +417,18 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
   const baseClassSpellEntries = useClassSpellEntries(character.className, character.subclassId);
   const featGrantedCantripEntries = useMemo(
-    () => getFeatGrantedCantripEntriesForCharacter(character),
+    () =>
+      getFeatGrantedCantripEntriesForCharacter(character).map((spell) =>
+        getSpellEntryForCharacter(character, spell)
+      ),
     [character]
   );
   const featureAlwaysPreparedSpellIds = useMemo(
     () => getAlwaysPreparedSpellIdsForCharacter(character),
+    [character]
+  );
+  const featureAlwaysSpellbookSpellIds = useMemo(
+    () => getAlwaysSpellbookSpellIdsForCharacter(character),
     [character]
   );
   const featureRitualOnlySpellIds = useMemo(
@@ -425,7 +443,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const canCastSpells =
     isSpellcastingClass(character.className, character.level, character.subclassId) ||
     featGrantedCantripEntries.length > 0 ||
-    featureAlwaysPreparedSpellIds.length > 0;
+    featureAlwaysPreparedSpellIds.length > 0 ||
+    featureAlwaysSpellbookSpellIds.length > 0;
   const spellcastingState = getSpellcastingStateForCharacter(character);
 
   useEffect(() => {
@@ -584,6 +603,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const rangerMistyWandererUsesTotal = getRangerMistyWandererUsesTotalForCharacter(character);
   const rangerMistyWandererUsesRemaining =
     getRangerMistyWandererUsesRemainingForCharacter(character);
+  const warlockStepsOfTheFeyUsesTotal = getWarlockStepsOfTheFeyUsesTotalForCharacter(character);
+  const warlockStepsOfTheFeyUsesRemaining =
+    getWarlockStepsOfTheFeyUsesRemainingForCharacter(character);
   const fighterPsiWarriorTelekineticMasterUsesTotal = useMemo(
     () => getFighterPsiWarriorTelekineticMasterUsesTotalForCharacter(character),
     [character.className, character.level, character.subclassId]
@@ -674,6 +696,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     () => new Set(alwaysPreparedSpellIds),
     [alwaysPreparedSpellIds]
   );
+  const alwaysSpellbookSpellIds = featureAlwaysSpellbookSpellIds;
+  const alwaysSpellbookSpellIdSet = useMemo(
+    () => new Set(alwaysSpellbookSpellIds),
+    [alwaysSpellbookSpellIds]
+  );
   const alwaysPreparedSpellEntries = useMemo(
     () =>
       alwaysPreparedSpellIds
@@ -686,12 +713,25 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     () => normalizeTrackedSpellIds(character.cantripIds, cantripOptions, cantripLimit),
     [cantripLimit, cantripOptions, character.cantripIds]
   );
+  const selectedManualSpellbookSpellIds = useMemo(
+    () =>
+      usesSpellbook
+        ? normalizeSpellbookSpellIds(character.spellbookSpellIds, spellPreparationOptions).filter(
+            (spellId) => !alwaysSpellbookSpellIdSet.has(spellId)
+          )
+        : [],
+    [alwaysSpellbookSpellIdSet, character.spellbookSpellIds, spellPreparationOptions, usesSpellbook]
+  );
   const selectedSpellbookSpellIds = useMemo(
     () =>
       usesSpellbook
-        ? normalizeSpellbookSpellIds(character.spellbookSpellIds, spellPreparationOptions)
+        ? normalizeSpellbookSpellIds(
+            character.spellbookSpellIds,
+            spellPreparationOptions,
+            alwaysSpellbookSpellIds
+          )
         : [],
-    [character.spellbookSpellIds, spellPreparationOptions, usesSpellbook]
+    [alwaysSpellbookSpellIds, character.spellbookSpellIds, spellPreparationOptions, usesSpellbook]
   );
   const selectedSpellbookSpellIdSet = useMemo(
     () => new Set(selectedSpellbookSpellIds),
@@ -735,6 +775,19 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       preparedSpellPoolEntries
     ]
   );
+  const spellbookSpellEntriesById = useMemo(
+    () =>
+      new Map(
+        selectedSpellbookSpellIds.flatMap((spellId) => {
+          const spell = knownSpellEntriesById.get(spellId);
+
+          return spell
+            ? [[spellId, getSpellbookSpellEntryForCharacter(character, spell)] as const]
+            : [];
+        })
+      ),
+    [character, knownSpellEntriesById, selectedSpellbookSpellIds]
+  );
   const spellPreparationOptionsById = useMemo(
     () => new Map(spellPreparationOptions.map((spell) => [spell.id, spell])),
     [spellPreparationOptions]
@@ -762,7 +815,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     () =>
       usesPreparedSpells
         ? [...alwaysPreparedSpellIds, ...selectedPreparedSpellIds]
-            .map((spellId) => knownSpellEntriesById.get(spellId))
+            .map(
+              (spellId) => spellbookSpellEntriesById.get(spellId) ?? knownSpellEntriesById.get(spellId)
+            )
             .filter((spell): spell is SpellEntry => spell !== undefined)
         : alwaysPreparedSpellEntries.length > 0
           ? alwaysPreparedSpellEntries
@@ -772,6 +827,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       alwaysPreparedSpellEntries,
       knownSpellEntriesById,
       selectedPreparedSpellIds,
+      spellbookSpellEntriesById,
       spellPreparationOptions,
       usesPreparedSpells
     ]
@@ -779,9 +835,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellbookSpells = useMemo(
     () =>
       selectedSpellbookSpellIds
-        .map((spellId) => knownSpellEntriesById.get(spellId))
+        .map(
+          (spellId) => spellbookSpellEntriesById.get(spellId) ?? knownSpellEntriesById.get(spellId)
+        )
         .filter((spell): spell is SpellEntry => spell !== undefined),
-    [knownSpellEntriesById, selectedSpellbookSpellIds]
+    [knownSpellEntriesById, selectedSpellbookSpellIds, spellbookSpellEntriesById]
   );
   const wizardPreparedSpellIdSet = useMemo(
     () => new Set([...alwaysPreparedSpellIds, ...selectedPreparedSpellIds]),
@@ -832,6 +890,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   );
   const cantripDraftSet = useMemo(() => new Set(cantripDraftIds), [cantripDraftIds]);
   const spellbookDraftSet = useMemo(() => new Set(spellbookDraftIds), [spellbookDraftIds]);
+  const spellbookAccessibleDraftSet = useMemo(
+    () => new Set([...spellbookDraftIds, ...alwaysSpellbookSpellIds]),
+    [alwaysSpellbookSpellIds, spellbookDraftIds]
+  );
   const preparedSpellDraftSet = useMemo(
     () => new Set(preparedSpellDraftIds),
     [preparedSpellDraftIds]
@@ -845,6 +907,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const hasCantripManagement = cantripLimit !== null && cantripLimit > 0;
   const isCantripLimitReached = cantripLimit !== null && cantripCount >= cantripLimit;
   const spellbookSpellCount = spellbookDraftIds.length;
+  const alwaysSpellbookCount = alwaysSpellbookSpellIds.length;
   const preparedSpellCount = preparedSpellDraftIds.length;
   const selectedCantripCount = selectedCantripIds.length;
   const selectedPreparedSpellCount = selectedPreparedSpellIds.length;
@@ -872,6 +935,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const activePreparedSpellOptions = useMemo(
     () => spellPreparationLevelGroups[activePreparedSpellLevel] ?? [],
     [activePreparedSpellLevel, spellPreparationLevelGroups]
+  );
+  const activePreparedSpellDisplayOptions = useMemo(
+    () =>
+      activePreparedSpellOptions.map((spell) => spellbookSpellEntriesById.get(spell.id) ?? spell),
+    [activePreparedSpellOptions, spellbookSpellEntriesById]
   );
   const firstAvailablePreparedSpellLevel = useMemo(
     () =>
@@ -940,6 +1008,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellAlwaysPrepared = selectedSpell
     ? alwaysPreparedSpellIdSet.has(selectedSpell.id)
     : false;
+  const selectedSpellAlwaysSpellbook = selectedSpell
+    ? alwaysSpellbookSpellIdSet.has(selectedSpell.id)
+    : false;
   const ritualOnlySpellIdSet = useMemo(
     () => new Set(featureRitualOnlySpellIds),
     [featureRitualOnlySpellIds]
@@ -987,10 +1058,16 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpell !== null &&
     getSpellLevel(selectedSpell) > 0 &&
     canUseSorcererSubclassPsionicSorceryForSpell(character, selectedSpell.id);
+  const selectedSpellSupportsStepsOfTheFey =
+    selectedSpell?.id === mistyStepSpellId && warlockStepsOfTheFeyUsesTotal > 0;
   const selectedSpellSupportsMistyWanderer =
     selectedSpell?.id === mistyStepSpellId && rangerMistyWandererUsesTotal > 0;
   const selectedSpellSupportsFeyReinforcements =
     selectedSpell?.id === summonFeySpellId && rangerFeyReinforcementsUsesTotal > 0;
+  const selectedSpellPhantasmalCreaturesOptionState =
+    getWizardIllusionistPhantasmalCreaturesSpellOptionStateForCharacter(character, selectedSpell);
+  const selectedSpellSupportsPhantasmalCreatures =
+    selectedSpellPhantasmalCreaturesOptionState !== null;
   const selectedSpellCanIgnoreSpellcastingBlock =
     selectedSpell !== null && druidCircleOfTheMoonSpellIds.includes(selectedSpell.id);
   const selectedSpellPsionicSorcerySlotLevel =
@@ -1042,10 +1119,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     hasPaladinOathOfTheNobleGeniesElementalSmite(character);
   const selectedSpellElementalSmiteDisabled =
     selectedSpellSupportsElementalSmite && channelDivinityUsesRemaining <= 0;
+  const selectedSpellStepsOfTheFeyDisabled =
+    selectedSpellSupportsStepsOfTheFey && warlockStepsOfTheFeyUsesRemaining <= 0;
   const selectedSpellMistyWandererDisabled =
     selectedSpellSupportsMistyWanderer && rangerMistyWandererUsesRemaining <= 0;
   const selectedSpellFeyReinforcementsDisabled =
     selectedSpellSupportsFeyReinforcements && rangerFeyReinforcementsUsesRemaining <= 0;
+  const selectedSpellPhantasmalCreaturesDisabled =
+    selectedSpellPhantasmalCreaturesOptionState?.disabled ?? false;
   const selectedSpellSupportsTelekineticMaster =
     selectedSpell?.id === telekinesisSpellId && fighterPsiWarriorTelekineticMasterUsesTotal > 0;
   const selectedSpellCanUseTelekineticMasterFallback =
@@ -1135,6 +1216,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseBlessingOfMoonlightOnSelectedSpell(false);
     setUseElementalSmiteOnSelectedSpell(false);
     setUseFeyReinforcementsOnSelectedSpell(false);
+    setUsePhantasmalCreaturesOnSelectedSpell(false);
+    setUseStepsOfTheFeyOnSelectedSpell(false);
     setUseMistyWandererOnSelectedSpell(false);
     setUseFeyReinforcementsNoConcentrationOnSelectedSpell(false);
     setUseNaturalRecoveryOnSelectedSpell(false);
@@ -1161,6 +1244,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   }, [selectedSpellElementalSmiteDisabled, selectedSpellSupportsElementalSmite]);
 
   useEffect(() => {
+    if (!selectedSpellSupportsStepsOfTheFey || !selectedSpellStepsOfTheFeyDisabled) {
+      return;
+    }
+
+    setUseStepsOfTheFeyOnSelectedSpell(false);
+  }, [selectedSpellStepsOfTheFeyDisabled, selectedSpellSupportsStepsOfTheFey]);
+
+  useEffect(() => {
     if (!selectedSpellSupportsMistyWanderer || !selectedSpellMistyWandererDisabled) {
       return;
     }
@@ -1176,6 +1267,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseFeyReinforcementsOnSelectedSpell(false);
     setUseFeyReinforcementsNoConcentrationOnSelectedSpell(false);
   }, [selectedSpellFeyReinforcementsDisabled, selectedSpellSupportsFeyReinforcements]);
+
+  useEffect(() => {
+    if (!selectedSpellSupportsPhantasmalCreatures || !selectedSpellPhantasmalCreaturesDisabled) {
+      return;
+    }
+
+    setUsePhantasmalCreaturesOnSelectedSpell(false);
+  }, [selectedSpellPhantasmalCreaturesDisabled, selectedSpellSupportsPhantasmalCreatures]);
 
   useEffect(() => {
     if (useFeyReinforcementsOnSelectedSpell) {
@@ -1254,17 +1353,21 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   useEffect(() => {
     setSpellbookDraftIds((current) => {
       const normalized = usesSpellbook
-        ? normalizeSpellbookSpellIds(current, spellPreparationOptions)
+        ? normalizeSpellbookSpellIds(current, spellPreparationOptions).filter(
+            (spellId) => !alwaysSpellbookSpellIdSet.has(spellId)
+          )
         : [];
 
       return areSpellIdListsEqual(current, normalized) ? current : normalized;
     });
-  }, [spellPreparationOptions, usesSpellbook]);
+  }, [alwaysSpellbookSpellIdSet, spellPreparationOptions, usesSpellbook]);
 
   useEffect(() => {
     setPreparedSpellDraftIds((current) => {
       const normalized = normalizePreparedSpellIds(
-        usesSpellbook ? current.filter((spellId) => spellbookDraftSet.has(spellId)) : current,
+        usesSpellbook
+          ? current.filter((spellId) => spellbookAccessibleDraftSet.has(spellId))
+          : current,
         spellPreparationOptions,
         preparedSpellLimit,
         alwaysPreparedSpellIds
@@ -1275,7 +1378,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     alwaysPreparedSpellIds,
     preparedSpellLimit,
     spellPreparationOptions,
-    spellbookDraftSet,
+    spellbookAccessibleDraftSet,
     usesSpellbook
   ]);
 
@@ -1349,18 +1452,26 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     }
 
     const nextSpellbookIds = usesSpellbook
-      ? normalizeSpellbookSpellIds(spellbookDraftIds, spellPreparationOptions)
+      ? normalizeSpellbookSpellIds(spellbookDraftIds, spellPreparationOptions).filter(
+          (spellId) => !alwaysSpellbookSpellIdSet.has(spellId)
+        )
       : [];
+    const nextAvailableSpellbookIdSet = new Set(
+      normalizeSpellbookSpellIds(nextSpellbookIds, spellPreparationOptions, alwaysSpellbookSpellIds)
+    );
     const nextPreparedSpellIds = normalizePreparedSpellIds(
       usesSpellbook
-        ? preparedSpellDraftIds.filter((spellId) => nextSpellbookIds.includes(spellId))
+        ? preparedSpellDraftIds.filter((spellId) => nextAvailableSpellbookIdSet.has(spellId))
         : preparedSpellDraftIds,
       spellPreparationOptions,
       preparedSpellLimit,
       alwaysPreparedSpellIds
     );
 
-    const spellbookUnchanged = areSpellIdListsEqual(selectedSpellbookSpellIds, nextSpellbookIds);
+    const spellbookUnchanged = areSpellIdListsEqual(
+      selectedManualSpellbookSpellIds,
+      nextSpellbookIds
+    );
     const preparedUnchanged = areSpellIdListsEqual(selectedPreparedSpellIds, nextPreparedSpellIds);
 
     if (spellbookUnchanged && preparedUnchanged) {
@@ -1381,12 +1492,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         : nextCharacter;
     });
   }, [
+    alwaysSpellbookSpellIdSet,
+    alwaysSpellbookSpellIds,
     alwaysPreparedSpellIds,
     onPersistCharacter,
     preparedSpellDraftIds,
     preparedSpellLimit,
+    selectedManualSpellbookSpellIds,
     selectedPreparedSpellIds,
-    selectedSpellbookSpellIds,
     spellPreparationOptions,
     spellbookDraftIds,
     spellManagementMode,
@@ -1419,15 +1532,15 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
   const openSpellManagementMenu = useCallback(() => {
     setCantripDraftIds(selectedCantripIds);
-    setSpellbookDraftIds(selectedSpellbookSpellIds);
+    setSpellbookDraftIds(selectedManualSpellbookSpellIds);
     setPreparedSpellDraftIds(selectedPreparedSpellIds);
     setInvocationDraftIds(selectedInvocationIds);
     setSpellManagementMode("menu");
   }, [
     selectedCantripIds,
     selectedInvocationIds,
-    selectedPreparedSpellIds,
-    selectedSpellbookSpellIds
+    selectedManualSpellbookSpellIds,
+    selectedPreparedSpellIds
   ]);
 
   const beginCantripManagement = useCallback(() => {
@@ -1526,7 +1639,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       setPreparedSpellDraftIds((current) => {
         const normalizedCurrent = normalizePreparedSpellIds(
           usesSpellbook
-            ? current.filter((currentSpellId) => spellbookDraftSet.has(currentSpellId))
+            ? current.filter((currentSpellId) => spellbookAccessibleDraftSet.has(currentSpellId))
             : current,
           spellPreparationOptions,
           preparedSpellLimit,
@@ -1555,7 +1668,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       preparedSpellLimit,
       spellPreparationOptions,
       spellPreparationOptionsById,
-      spellbookDraftSet,
+      spellbookAccessibleDraftSet,
       usesSpellbook
     ]
   );
@@ -1600,9 +1713,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
   function renderWizardSpellManagementControls(spell: SpellEntry) {
     const isAlwaysPrepared = alwaysPreparedSpellIdSet.has(spell.id);
-    const isInSpellbook = spellbookDraftSet.has(spell.id);
+    const isAlwaysSpellbook = alwaysSpellbookSpellIdSet.has(spell.id);
+    const isInSpellbook = isAlwaysSpellbook || spellbookDraftSet.has(spell.id);
     const isPrepared = isAlwaysPrepared || preparedSpellDraftSet.has(spell.id);
     const canPrepare = isAlwaysPrepared || isInSpellbook;
+    const isSpellbookToggleDisabled = isAlwaysSpellbook;
     const isPrepareDisabled =
       isAlwaysPrepared || !canPrepare || (!isPrepared && isPreparedSpellLimitReached);
 
@@ -1610,11 +1725,19 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       <div className={styles.wizardSelectionControls}>
         <button
           type="button"
-          className={styles.wizardSelectionToggle}
+          className={clsx(
+            styles.wizardSelectionToggle,
+            isSpellbookToggleDisabled && styles.wizardSelectionToggleDisabled
+          )}
           role="checkbox"
           aria-checked={isInSpellbook}
-          aria-label={`${isInSpellbook ? "Remove" : "Add"} ${spell.name} from spellbook`}
+          aria-label={
+            isAlwaysSpellbook
+              ? `${spell.name} is always in your spellbook`
+              : `${isInSpellbook ? "Remove" : "Add"} ${spell.name} from spellbook`
+          }
           onClick={() => toggleSpellbookDraft(spell.id)}
+          disabled={isSpellbookToggleDisabled}
         >
           <span className={styles.wizardSelectionLabel}>Spellbook</span>
           <input
@@ -1708,7 +1831,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useFeyReinforcementsNoConcentration?: boolean;
     useFrozenHaunt?: boolean;
     frozenHauntFallbackSlotLevel?: number;
+    usePhantasmalCreatures?: boolean;
     useMistyWanderer?: boolean;
+    useStepsOfTheFey?: boolean;
     useNaturalRecovery?: boolean;
     usePsionicSorcery?: boolean;
     useTelekineticMaster?: boolean;
@@ -1726,6 +1851,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       options?.useElementalSmite === true &&
       selectedSpellSupportsElementalSmite &&
       channelDivinityUsesRemaining > 0;
+    const useStepsOfTheFey =
+      options?.useStepsOfTheFey === true &&
+      selectedSpellSupportsStepsOfTheFey &&
+      warlockStepsOfTheFeyUsesRemaining > 0;
     const useMistyWanderer =
       options?.useMistyWanderer === true &&
       selectedSpellSupportsMistyWanderer &&
@@ -1734,6 +1863,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       options?.useFeyReinforcements === true &&
       selectedSpellSupportsFeyReinforcements &&
       rangerFeyReinforcementsUsesRemaining > 0;
+    const usePhantasmalCreatures =
+      options?.usePhantasmalCreatures === true &&
+      selectedSpellPhantasmalCreaturesOptionState !== null &&
+      selectedSpellPhantasmalCreaturesOptionState.usesRemaining > 0;
     const useFeyReinforcementsNoConcentration =
       useFeyReinforcements && options?.useFeyReinforcementsNoConcentration === true;
     const useNaturalRecovery = options?.useNaturalRecovery === true;
@@ -1793,19 +1926,19 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           );
 
           if (nextCharacterWithSharedMulti !== nextCharacterWithElementalSmite) {
-            return applyBardBattleMagicAfterSpellCastForCharacter(
+            return applySpellCastFeatureEffectsForCharacter(
               nextCharacterWithSharedMulti,
               selectedSpell
             );
           }
 
-          const nextCharacterWithBattleMagic = applyBardBattleMagicAfterSpellCastForCharacter(
+          const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
             nextCharacterWithElementalSmite,
             selectedSpell
           );
 
           return consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithBattleMagic,
+            nextCharacterWithSpellCastEffects,
             roundTrackerResource
           );
         });
@@ -1821,15 +1954,15 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             ? expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions)
             : nextCharacterWithSpellOptions;
 
-          const nextCharacterWithBattleMagic = applyBardBattleMagicAfterSpellCastForCharacter(
+          const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
             nextCharacterWithElementalSmite,
             selectedSpell
           );
 
           return {
-            ...nextCharacterWithBattleMagic,
+            ...nextCharacterWithSpellCastEffects,
             statusEntries: applySpellConcentrationToStatusEntries(
-              nextCharacterWithBattleMagic.statusEntries,
+              nextCharacterWithSpellCastEffects.statusEntries,
               spellForStatusEntries
             )
           };
@@ -1863,12 +1996,18 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           ? expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions)
           : nextCharacterWithSpellOptions;
 
+        const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
+          nextCharacterWithElementalSmite,
+          selectedSpell,
+          { includeBardBattleMagic: false }
+        );
+
         return roundTrackerResource
           ? consumeRoundTrackerResourceForCharacter(
-              nextCharacterWithElementalSmite,
+              nextCharacterWithSpellCastEffects,
               roundTrackerResource
             )
-          : nextCharacterWithElementalSmite;
+          : nextCharacterWithSpellCastEffects;
       });
 
       closeSelectedSpell();
@@ -1877,7 +2016,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
     const minimumSlotLevel = Math.max(1, spellLevel);
     const slotLevel =
-      useMistyWanderer || useFeyReinforcements
+      useStepsOfTheFey || useMistyWanderer || useFeyReinforcements || usePhantasmalCreatures
         ? minimumSlotLevel
         : clampNumber(selectedSpellSlotLevel, minimumSlotLevel, 9, minimumSlotLevel);
     const castsFreeViaSpellMastery =
@@ -1892,16 +2031,20 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       druidNaturalRecoveryUsesRemaining > 0 &&
       slotLevel === spellLevel;
     const castsFreeViaPsionicSorcery = usePsionicSorcery && sorceryPointsRemaining >= slotLevel;
+    const castsFreeViaStepsOfTheFey = useStepsOfTheFey;
     const castsFreeViaMistyWanderer = useMistyWanderer;
     const castsFreeViaFeyReinforcements = useFeyReinforcements;
+    const castsFreeViaPhantasmalCreatures = usePhantasmalCreatures;
     const castsFreeViaTelekineticMaster = useTelekineticMaster;
     const castsWithoutSpellSlot =
       castsFreeViaSpellMastery ||
       castsFreeViaSignatureSpells ||
       castsFreeViaNaturalRecovery ||
       castsFreeViaPsionicSorcery ||
+      castsFreeViaStepsOfTheFey ||
       castsFreeViaMistyWanderer ||
       castsFreeViaFeyReinforcements ||
+      castsFreeViaPhantasmalCreatures ||
       castsFreeViaTelekineticMaster;
 
     if (usePsionicSorcery && sorceryPointsRemaining < slotLevel) {
@@ -1934,6 +2077,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           selectedSpell,
           currentSpellSlotTotals,
           nextSpellSlotsExpended
+        );
+      const currentPhantasmalCreaturesOptionState =
+        getWizardIllusionistPhantasmalCreaturesSpellOptionStateForCharacter(
+          preparedCharacter,
+          selectedSpell
         );
 
       if (!castsWithoutSpellSlot) {
@@ -1974,6 +2122,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
         nextSpellSlotsExpended[frozenHauntFallbackSlotLevel - 1] =
           (nextSpellSlotsExpended[frozenHauntFallbackSlotLevel - 1] ?? 0) + 1;
+      }
+
+      if (castsFreeViaPhantasmalCreatures) {
+        if ((currentPhantasmalCreaturesOptionState?.usesRemaining ?? 0) <= 0) {
+          return currentCharacter;
+        }
       }
 
       const nextCharacter = castsFreeViaSignatureSpells
@@ -2017,27 +2171,43 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       const nextCharacterWithNaturalRecovery = castsFreeViaNaturalRecovery
         ? consumeDruidNaturalRecoveryUseForCharacter(nextCharacterWithElementalSmite)
         : nextCharacterWithElementalSmite;
-      const nextCharacterWithMistyWanderer = castsFreeViaMistyWanderer
-        ? consumeRangerMistyWandererUseForCharacter(nextCharacterWithNaturalRecovery)
+      const nextCharacterWithStepsOfTheFey = castsFreeViaStepsOfTheFey
+        ? consumeWarlockStepsOfTheFeyUseForCharacter(nextCharacterWithNaturalRecovery)
         : nextCharacterWithNaturalRecovery;
+      const nextCharacterWithMistyWanderer = castsFreeViaMistyWanderer
+        ? consumeRangerMistyWandererUseForCharacter(nextCharacterWithStepsOfTheFey)
+        : nextCharacterWithStepsOfTheFey;
       const nextCharacterWithFeyReinforcements = castsFreeViaFeyReinforcements
         ? consumeRangerFeyReinforcementsUseForCharacter(nextCharacterWithMistyWanderer)
         : nextCharacterWithMistyWanderer;
-      const nextCharacterWithFrozenHaunt = usesFrozenHauntCharge
-        ? consumeRangerWinterWalkerFrozenHauntUseForCharacter(nextCharacterWithFeyReinforcements)
+      const nextCharacterWithPhantasmalCreatures = castsFreeViaPhantasmalCreatures
+        ? consumeWizardIllusionistPhantasmalCreaturesUseForCharacter(
+            nextCharacterWithFeyReinforcements
+          )
         : nextCharacterWithFeyReinforcements;
+      const nextCharacterWithFrozenHaunt = usesFrozenHauntCharge
+        ? consumeRangerWinterWalkerFrozenHauntUseForCharacter(
+            nextCharacterWithPhantasmalCreatures
+          )
+        : nextCharacterWithPhantasmalCreatures;
       const spellConsumedSpellSlot = !castsWithoutSpellSlot || shouldSpendFrozenHauntFallbackSlot;
+      const spellCastFeatureEffectSlotLevel = spellConsumedSpellSlot
+        ? (shouldSpendFrozenHauntFallbackSlot ? frozenHauntFallbackSlotLevel : slotLevel)
+        : null;
       const nextCharacterWithSorcererSubclassRecharge = spellConsumedSpellSlot
         ? restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(nextCharacterWithFrozenHaunt)
         : nextCharacterWithFrozenHaunt;
-      const nextCharacterWithBattleMagic = applyBardBattleMagicAfterSpellCastForCharacter(
+      const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
         nextCharacterWithSorcererSubclassRecharge,
-        selectedSpell
+        selectedSpell,
+        {
+          spellSlotLevel: spellCastFeatureEffectSlotLevel
+        }
       );
 
       if (castsFreeViaTelekineticMaster && roundTrackerResource) {
         return consumeRoundTrackerResourceForCharacter(
-          nextCharacterWithBattleMagic,
+          nextCharacterWithSpellCastEffects,
           roundTrackerResource
         );
       }
@@ -2046,21 +2216,21 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       const nextCharacterWithSharedMulti =
         roundTrackerResource === "action"
           ? consumeSharedEconomyMultiForCharacterAction(
-              nextCharacterWithBattleMagic,
+              nextCharacterWithSpellCastEffects,
               sharedEconomyContext
             )
-          : nextCharacterWithBattleMagic;
+          : nextCharacterWithSpellCastEffects;
 
-      if (nextCharacterWithSharedMulti !== nextCharacterWithBattleMagic) {
+      if (nextCharacterWithSharedMulti !== nextCharacterWithSpellCastEffects) {
         return nextCharacterWithSharedMulti;
       }
 
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithBattleMagic,
+            nextCharacterWithSpellCastEffects,
             roundTrackerResource
           )
-        : nextCharacterWithBattleMagic;
+        : nextCharacterWithSpellCastEffects;
     });
 
     closeSelectedSpell();
@@ -2279,6 +2449,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                             wizardSpellbookOnlyIdSet.has(spell.id) ? "accent" : "default"
                           }
                           alwaysPrepared={alwaysPreparedSpellIdSet.has(spell.id)}
+                          alwaysSpellbook={alwaysSpellbookSpellIdSet.has(spell.id)}
                           highlightTone={
                             wizardSpellMasterySpellIdSet.has(spell.id) ||
                             wizardSignatureSpellIdSet.has(spell.id)
@@ -2541,8 +2712,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                     {usesSpellbook ? (
                       <>
                         <p className={styles.preparedSpellLimitText}>
-                          {spellbookSpellCount} in spellbook
+                          {spellbookSpellCount} chosen in spellbook
                         </p>
+                        {alwaysSpellbookCount > 0 ? (
+                          <p className={styles.preparedSpellLimitText}>
+                            {alwaysSpellbookCount} always in spellbook
+                          </p>
+                        ) : null}
                         {preparedSpellLimit !== null ? (
                           <p className={styles.preparedSpellLimitText}>
                             <SelectionCounter
@@ -2599,15 +2775,16 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                 </div>
 
                 <div className={clsx(sheetStyles.spellManagementList, styles.preparedSpellList)}>
-                  {activePreparedSpellOptions.length === 0 ? (
+                  {activePreparedSpellDisplayOptions.length === 0 ? (
                     <p className={shared.emptyText}>
                       No {formatSpellGroupTitle(activePreparedSpellLevel).toLowerCase()} are
                       available for this class and level yet.
                     </p>
                   ) : (
                     <ul className={styles.preparedSpellSelectionList}>
-                      {activePreparedSpellOptions.map((spell) => {
+                      {activePreparedSpellDisplayOptions.map((spell) => {
                         const isAlwaysPrepared = alwaysPreparedSpellIdSet.has(spell.id);
+                        const isAlwaysSpellbook = alwaysSpellbookSpellIdSet.has(spell.id);
                         const isChecked = isAlwaysPrepared || preparedSpellDraftSet.has(spell.id);
                         const isDisabled =
                           !usesSpellbook &&
@@ -2621,11 +2798,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                               onClick={() => openSpellDetails(spell, "prepare-preview")}
                               valueSummary={spellOutcomeSummariesById.get(spell.id) ?? ""}
                               alwaysPrepared={isAlwaysPrepared}
+                              alwaysSpellbook={isAlwaysSpellbook}
                               compactConcentrationDuration
                               selectable
                               isSelected={
                                 usesSpellbook
-                                  ? spellbookDraftSet.has(spell.id) || isAlwaysPrepared
+                                  ? spellbookAccessibleDraftSet.has(spell.id) || isAlwaysPrepared
                                   : isChecked
                               }
                               onSelect={
@@ -2660,6 +2838,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           character={character}
           spell={selectedSpell}
           alwaysPrepared={selectedSpellAlwaysPrepared}
+          alwaysSpellbook={selectedSpellAlwaysSpellbook}
           mode={selectedSpellViewMode}
           spellSlotTotals={spellSlotTotals}
           spellSlotsRemaining={spellSlotsRemaining}
@@ -2677,7 +2856,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                 useFeyReinforcementsNoConcentrationOnSelectedSpell,
               useFrozenHaunt: useFrozenHauntOnSelectedSpell,
               frozenHauntFallbackSlotLevel: selectedFrozenHauntFallbackSlotLevel,
+              usePhantasmalCreatures: usePhantasmalCreaturesOnSelectedSpell,
               useMistyWanderer: useMistyWandererOnSelectedSpell,
+              useStepsOfTheFey: useStepsOfTheFeyOnSelectedSpell,
               useNaturalRecovery: useNaturalRecoveryOnSelectedSpell,
               usePsionicSorcery: usePsionicSorceryOnSelectedSpell,
               useTelekineticMaster: useTelekineticMasterOnSelectedSpell
@@ -2687,8 +2868,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             !selectedSpellIsSpellbookOnly &&
             !selectedSpellCanOnlyBeCastAsRitual &&
             !(selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell) &&
+            !(selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell) &&
             !(selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell) &&
             !(selectedSpellSupportsFeyReinforcements && useFeyReinforcementsOnSelectedSpell) &&
+            !(selectedSpellSupportsPhantasmalCreatures && usePhantasmalCreaturesOnSelectedSpell) &&
             !(selectedSpellSupportsTelekineticMaster && useTelekineticMasterOnSelectedSpell)
           }
           freeCastSlotLevel={selectedSpellFreeCastSlotLevel}
@@ -2701,17 +2884,23 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               ? "Knightly Envoy lets you cast this spell only as a Ritual without expending a spell slot."
               : selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell
                 ? `Psionic Sorcery lets you cast this spell at level ${selectedSpellPsionicSorceryCurrentCost} by spending ${selectedSpellPsionicSorceryCurrentCost} Sorcery Point${selectedSpellPsionicSorceryCurrentCost === 1 ? "" : "s"} instead of a spell slot.`
-                : selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell
-                  ? "Misty Wanderer lets you cast this spell without expending a spell slot."
-                  : selectedSpellSupportsFeyReinforcements && useFeyReinforcementsOnSelectedSpell
-                    ? "Fey Reinforcements lets you cast this spell without expending a spell slot."
-                    : selectedSpellSupportsTelekineticMaster && useTelekineticMasterOnSelectedSpell
-                      ? fighterPsiWarriorTelekineticMasterUsesRemaining > 0
-                        ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                        : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
-                      : selectedSpellUnderMantleOfMajesty
-                        ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
-                        : null
+                : selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell
+                  ? "Steps of the Fey lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                  : selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell
+                    ? "Misty Wanderer lets you cast this spell without expending a spell slot."
+                    : selectedSpellSupportsFeyReinforcements && useFeyReinforcementsOnSelectedSpell
+                      ? "Fey Reinforcements lets you cast this spell without expending a spell slot."
+                      : selectedSpellSupportsPhantasmalCreatures &&
+                          usePhantasmalCreaturesOnSelectedSpell
+                        ? "Phantasmal Creatures lets you cast this spell without expending a spell slot. This shared use recharges on a Long Rest, and the summoned creature has half Hit Points."
+                      : selectedSpellSupportsTelekineticMaster &&
+                          useTelekineticMasterOnSelectedSpell
+                        ? fighterPsiWarriorTelekineticMasterUsesRemaining > 0
+                          ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                          : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
+                        : selectedSpellUnderMantleOfMajesty
+                          ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
+                          : null
           }
           actionContextText={
             selectedSpellSupportsFeyReinforcements &&
@@ -2731,8 +2920,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             selectedSpellSupportsBeguilingMagic ||
             selectedSpellSupportsBlessingOfMoonlight ||
             selectedSpellSupportsElementalSmite ||
+            selectedSpellSupportsStepsOfTheFey ||
             selectedSpellSupportsMistyWanderer ||
             selectedSpellSupportsFeyReinforcements ||
+            selectedSpellSupportsPhantasmalCreatures ||
             selectedSpellFrozenHauntOptionState !== null ||
             selectedSpellSupportsNaturalRecovery ||
             selectedSpellSupportsTelekineticMaster
@@ -2812,6 +3003,21 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                         }
                       ]
                     : []),
+                  ...(selectedSpellSupportsStepsOfTheFey
+                    ? [
+                        {
+                          id: "steps-of-the-fey",
+                          label: "Steps of the Fey",
+                          checked: useStepsOfTheFeyOnSelectedSpell,
+                          onCheckedChange: setUseStepsOfTheFeyOnSelectedSpell,
+                          disabled: selectedSpellStepsOfTheFeyDisabled,
+                          tracker: {
+                            current: warlockStepsOfTheFeyUsesRemaining,
+                            total: warlockStepsOfTheFeyUsesTotal
+                          }
+                        }
+                      ]
+                    : []),
                   ...(selectedSpellSupportsMistyWanderer
                     ? [
                         {
@@ -2848,6 +3054,22 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           disabled:
                             selectedSpellFeyReinforcementsDisabled ||
                             !useFeyReinforcementsOnSelectedSpell
+                        }
+                      ]
+                    : []),
+                  ...(selectedSpellSupportsPhantasmalCreatures
+                    ? [
+                        {
+                          id: "phantasmal-creatures",
+                          label: "Phantasmal Creatures",
+                          checked: usePhantasmalCreaturesOnSelectedSpell,
+                          onCheckedChange: setUsePhantasmalCreaturesOnSelectedSpell,
+                          disabled: selectedSpellPhantasmalCreaturesDisabled,
+                          tracker: {
+                            current:
+                              selectedSpellPhantasmalCreaturesOptionState?.usesRemaining ?? 0,
+                            total: selectedSpellPhantasmalCreaturesOptionState?.usesTotal ?? 1
+                          }
                         }
                       ]
                     : []),

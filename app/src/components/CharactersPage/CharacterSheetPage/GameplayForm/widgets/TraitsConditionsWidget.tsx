@@ -11,14 +11,18 @@ import {
 import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
 import {
   activateRangerHunterSuperiorHuntersDefenseForCharacter,
+  applySpellCastFeatureEffectsForCharacter,
   consumeElementalRebukeUseForCharacter,
   consumeBeguilingMagicOrBardicInspirationForCharacter,
+  consumeWarlockBeguilingDefenseUseForCharacter,
   consumeSorcererRestoreBalanceUseForCharacter,
   consumeRogueScionOfTheThreeBloodthirstUseForCharacter,
   consumeRogueSpellThiefUseForCharacter,
+  consumeWizardIllusionistIllusorySelfUseForCharacter,
   consumeFighterIndomitableUseForCharacter,
   consumeGloriousDefenseUseForCharacter,
   consumeRangerWinterWalkerChillingRetributionUseForCharacter,
+  consumeWarlockStepsOfTheFeyUseForCharacter,
   expendFighterPsiWarriorEnergyDieForCharacter,
   expendBardicInspirationUseForCharacter,
   expendSorceryPointForCharacter,
@@ -32,6 +36,7 @@ import {
   getFighterIndomitableUsesRemainingForCharacter,
   getFighterPsiWarriorEnergyDiceRemainingForCharacter,
   getFeatureReactionEntriesForCharacter,
+  getFeatureReactionSpellForCharacter,
   getGloriousDefenseUsesRemainingForCharacter,
   getGloriousDefenseUsesTotalForCharacter,
   getPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter,
@@ -41,6 +46,13 @@ import {
   getRogueSpellThiefUsesRemainingForCharacter,
   getRogueSpellThiefUsesTotalForCharacter,
   getSorceryPointsRemainingForCharacter,
+  getWarlockBeguilingDefenseUsesRemainingForCharacter,
+  getWarlockBeguilingDefenseUsesTotalForCharacter,
+  getWarlockPactMagicSlotTotalForCharacter,
+  getWarlockPactMagicSlotsRemainingForCharacter,
+  getWizardIllusionistIllusorySelfFallbackSlotSummaryForCharacter,
+  getWizardIllusionistIllusorySelfUsesRemainingForCharacter,
+  getWizardIllusionistIllusorySelfUsesTotalForCharacter,
   sorcererBendLuckReactionEntryId,
   getSorcererRestoreBalanceUsesRemainingForCharacter,
   getSorcererRestoreBalanceUsesTotalForCharacter,
@@ -57,6 +69,10 @@ import {
   restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter,
   setRangerHunterSuperiorHuntersDefenseDamageTypeSelectionForCharacter,
   getSpellcastingStateForCharacter,
+  wizardIllusionistIllusorySelfReactionEntryId,
+  warlockBeguilingDefenseReactionEntryId,
+  getWarlockStepsOfTheFeyUsesRemainingForCharacter,
+  getWarlockStepsOfTheFeyUsesTotalForCharacter,
   removeFeatureStatusEntryForCharacter,
   setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
@@ -137,6 +153,7 @@ import {
   isRogueArcaneTricksterSpellThiefStatusSourceId,
   rogueArcaneTricksterSpellThiefReactionId
 } from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
+import { wizardBladesingerSongOfDefenseReactionId } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
 
 type TraitsConditionsWidgetProps = {
   character: Character;
@@ -144,6 +161,7 @@ type TraitsConditionsWidgetProps = {
 };
 
 const spellThiefSearchResultLimit = 50;
+const mistyStepSpellId = "spell-misty-step";
 
 function formatSpellThiefSpellOptionLabel(spell: SpellEntry): string {
   return `${spell.name} (${spell.spellLevel === 0 ? "Cantrip" : `Level ${spell.spellLevel}`})`;
@@ -169,21 +187,38 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   const [statusDrawerRoundTickOn, setStatusDrawerRoundTickOn] = useState(
     STATUS_DURATION_ROUND_TICK.ROUND_START
   );
+  const [openedFeatureReactionSpellEntryId, setOpenedFeatureReactionSpellEntryId] = useState<
+    string | null
+  >(null);
   const [selectedReactionSpellSlotLevel, setSelectedReactionSpellSlotLevel] = useState(1);
+  const [selectedSongOfDefenseSpellSlotLevel, setSelectedSongOfDefenseSpellSlotLevel] =
+    useState(1);
   const [useBeguilingMagicOnReactionSpell, setUseBeguilingMagicOnReactionSpell] = useState(false);
+  const [useStepsOfTheFeyOnReactionSpell, setUseStepsOfTheFeyOnReactionSpell] = useState(false);
   const [spellThiefSearchQuery, setSpellThiefSearchQuery] = useState("");
   const [selectedSpellThiefSpellId, setSelectedSpellThiefSpellId] = useState("");
 
   const roundTracker = normalizeRoundTracker(character.roundTracker);
-  const classSpellEntries = useClassSpellEntries(character.className, character.subclassId);
+  const baseClassSpellEntries = useClassSpellEntries(character.className, character.subclassId);
+  const classSpellEntries = useMemo(
+    () => baseClassSpellEntries.map((spell) => getSpellEntryForCharacter(character, spell)),
+    [baseClassSpellEntries, character]
+  );
   const featGrantedCantripEntries = useMemo(
-    () => getFeatGrantedCantripEntriesForCharacter(character),
+    () =>
+      getFeatGrantedCantripEntriesForCharacter(character).map((spell) =>
+        getSpellEntryForCharacter(character, spell)
+      ),
     [character]
   );
-  const preparedSpellPoolEntries = usePreparedSpellEntries(
+  const basePreparedSpellPoolEntries = usePreparedSpellEntries(
     character.className,
     character.level,
     character.subclassId
+  );
+  const preparedSpellPoolEntries = useMemo(
+    () => basePreparedSpellPoolEntries.map((spell) => getSpellEntryForCharacter(character, spell)),
+    [basePreparedSpellPoolEntries, character]
   );
   const cantripLimit = useMemo(
     () =>
@@ -239,6 +274,21 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       character.level
     ]
   );
+  const warlockStepsOfTheFeyUsesTotal = getWarlockStepsOfTheFeyUsesTotalForCharacter(character);
+  const warlockStepsOfTheFeyUsesRemaining =
+    getWarlockStepsOfTheFeyUsesRemainingForCharacter(character);
+  const warlockBeguilingDefenseUsesTotal =
+    getWarlockBeguilingDefenseUsesTotalForCharacter(character);
+  const warlockBeguilingDefenseUsesRemaining =
+    getWarlockBeguilingDefenseUsesRemainingForCharacter(character);
+  const warlockPactMagicSlotTotal = getWarlockPactMagicSlotTotalForCharacter(character);
+  const warlockPactMagicSlotsRemaining = getWarlockPactMagicSlotsRemainingForCharacter(character);
+  const wizardIllusionistIllusorySelfUsesTotal =
+    getWizardIllusionistIllusorySelfUsesTotalForCharacter(character);
+  const wizardIllusionistIllusorySelfUsesRemaining =
+    getWizardIllusionistIllusorySelfUsesRemainingForCharacter(character);
+  const wizardIllusionistIllusorySelfFallbackSlotSummary =
+    getWizardIllusionistIllusorySelfFallbackSlotSummaryForCharacter(character);
   const usesPreparedSpells = useMemo(
     () =>
       usesPreparedSpellsForCharacter(character.className, character.level, character.subclassId),
@@ -392,17 +442,6 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   const selectedStatusEntry = selectedStatusEntryId
     ? (statusEntries.find((entry) => entry.id === selectedStatusEntryId) ?? null)
     : null;
-  const selectedReactionSpell =
-    selectedStatusEntry?.group === STATUS_ENTRY_GROUP.REACTIONS &&
-    selectedStatusEntry.sourceId?.startsWith("reaction-spell-")
-      ? (classSpellEntriesById.get(selectedStatusEntry.sourceId.replace(/^reaction-spell-/, "")) ??
-        null)
-      : null;
-  const selectedReactionSpellSupportsBeguilingMagic =
-    selectedReactionSpell !== null &&
-    beguilingMagicUsesTotal > 0 &&
-    (selectedReactionSpell.magicSchool === MAGIC_SCHOOL.ENCHANTMENT ||
-      selectedReactionSpell.magicSchool === MAGIC_SCHOOL.ILLUSION);
   const selectedReactionEntry =
     selectedStatusEntry?.group === STATUS_ENTRY_GROUP.REACTIONS &&
     selectedStatusEntry.sourceId?.startsWith("reaction-entry-")
@@ -410,6 +449,39 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           selectedStatusEntry.sourceId as `reaction-entry-${string}`
         ) ?? null)
       : null;
+  const selectedFeatureReactionSpell = useMemo(() => {
+    if (!selectedReactionEntry || openedFeatureReactionSpellEntryId !== selectedReactionEntry.id) {
+      return null;
+    }
+
+    return getFeatureReactionSpellForCharacter(character, selectedReactionEntry.id);
+  }, [character, openedFeatureReactionSpellEntryId, selectedReactionEntry]);
+  const selectedReactionSpell =
+    selectedStatusEntry?.group === STATUS_ENTRY_GROUP.REACTIONS &&
+    selectedStatusEntry.sourceId?.startsWith("reaction-spell-")
+      ? (classSpellEntriesById.get(selectedStatusEntry.sourceId.replace(/^reaction-spell-/, "")) ??
+        null)
+      : selectedFeatureReactionSpell;
+  const selectedReactionSpellSupportsBeguilingMagic =
+    selectedReactionSpell !== null &&
+    beguilingMagicUsesTotal > 0 &&
+    (selectedReactionSpell.magicSchool === MAGIC_SCHOOL.ENCHANTMENT ||
+      selectedReactionSpell.magicSchool === MAGIC_SCHOOL.ILLUSION);
+  const selectedReactionSpellSupportsStepsOfTheFey =
+    selectedReactionSpell?.id === mistyStepSpellId && warlockStepsOfTheFeyUsesTotal > 0;
+  const selectedReactionSpellStepsOfTheFeyDisabled =
+    selectedReactionSpellSupportsStepsOfTheFey && warlockStepsOfTheFeyUsesRemaining <= 0;
+  const availableSongOfDefenseSpellSlotLevels = useMemo(
+    () =>
+      [1, 2, 3, 4, 5, 6, 7, 8, 9].filter(
+        (slotLevel) => (spellSlotsRemaining[slotLevel - 1] ?? 0) > 0
+      ),
+    [spellSlotsRemaining]
+  );
+  const selectedSongOfDefenseDamageReduction = Math.max(
+    1,
+    Math.min(9, Math.floor(selectedSongOfDefenseSpellSlotLevel || 1))
+  ) * 5;
   const spellThiefUsesRemaining = getRogueSpellThiefUsesRemainingForCharacter(character);
   const spellThiefUsesTotal = getRogueSpellThiefUsesTotalForCharacter(character);
   const gloriousDefenseUsesRemaining = getGloriousDefenseUsesRemainingForCharacter(character);
@@ -474,6 +546,16 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     setUseBeguilingMagicOnReactionSpell(false);
   }, [selectedReactionSpell?.id]);
   useEffect(() => {
+    setUseStepsOfTheFeyOnReactionSpell(false);
+  }, [selectedReactionSpell?.id]);
+  useEffect(() => {
+    if (selectedReactionEntry?.id === openedFeatureReactionSpellEntryId) {
+      return;
+    }
+
+    setOpenedFeatureReactionSpellEntryId(null);
+  }, [openedFeatureReactionSpellEntryId, selectedReactionEntry?.id]);
+  useEffect(() => {
     if (selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId) {
       return;
     }
@@ -481,6 +563,16 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     setSpellThiefSearchQuery("");
     setSelectedSpellThiefSpellId("");
   }, [selectedReactionEntry?.id]);
+  useEffect(() => {
+    if (
+      !selectedReactionSpellSupportsStepsOfTheFey ||
+      !selectedReactionSpellStepsOfTheFeyDisabled
+    ) {
+      return;
+    }
+
+    setUseStepsOfTheFeyOnReactionSpell(false);
+  }, [selectedReactionSpellStepsOfTheFeyDisabled, selectedReactionSpellSupportsStepsOfTheFey]);
   const selectedReactionResourceWarning =
     selectedReactionEntry?.id === "reaction-cutting-words"
       ? bardicInspirationUsesRemaining <= 0
@@ -519,11 +611,30 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
                       ? chillingRetributionUsesRemaining <= 0
                         ? "No Chilling Retribution charges remaining."
                         : null
-                      : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId
-                        ? spellThiefUsesRemaining <= 0
-                          ? "No Spell Thief charges remaining."
+                      : selectedReactionEntry?.id ===
+                          wizardIllusionistIllusorySelfReactionEntryId
+                        ? wizardIllusionistIllusorySelfUsesRemaining <= 0 &&
+                          wizardIllusionistIllusorySelfFallbackSlotSummary.remaining <= 0
+                          ? "No Illusory Self charge or level 2+ spell slots remaining."
                           : null
-                        : null;
+                      : selectedReactionEntry?.id === warlockBeguilingDefenseReactionEntryId
+                        ? warlockBeguilingDefenseUsesRemaining <= 0 &&
+                          warlockPactMagicSlotsRemaining <= 0
+                          ? "No Beguiling Defense charges or Pact Magic spell slots remaining."
+                          : null
+                        : selectedReactionEntry?.id === wizardBladesingerSongOfDefenseReactionId
+                          ? availableSongOfDefenseSpellSlotLevels.length <= 0
+                            ? "No spell slots remaining."
+                            : !availableSongOfDefenseSpellSlotLevels.includes(
+                                  selectedSongOfDefenseSpellSlotLevel
+                                )
+                              ? `No level ${selectedSongOfDefenseSpellSlotLevel} spell slots remaining.`
+                              : null
+                        : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId
+                          ? spellThiefUsesRemaining <= 0
+                            ? "No Spell Thief charges remaining."
+                            : null
+                          : null;
   const selectedReactionResourceSummary =
     selectedReactionEntry?.id === paladinGloriousDefenseReactionEntryId
       ? `${gloriousDefenseUsesRemaining}/${gloriousDefenseUsesTotal} charges | Long Rest`
@@ -537,9 +648,23 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
               ? `${bloodthirstUsesRemaining}/${bloodthirstUsesTotal} uses | Long Rest`
               : selectedReactionEntry?.id === rangerWinterWalkerChillingRetributionReactionEntryId
                 ? `${chillingRetributionUsesRemaining}/${chillingRetributionUsesTotal} charges | Long Rest`
-                : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId
-                  ? `${spellThiefUsesRemaining}/${spellThiefUsesTotal} charges | Long Rest`
-                  : null;
+                : selectedReactionEntry?.id === wizardIllusionistIllusorySelfReactionEntryId
+                  ? `${wizardIllusionistIllusorySelfUsesRemaining}/${wizardIllusionistIllusorySelfUsesTotal} charge | Short Rest / Long Rest${
+                      wizardIllusionistIllusorySelfFallbackSlotSummary.total > 0
+                        ? ` | Fallback: 1 level 2+ spell slot (${wizardIllusionistIllusorySelfFallbackSlotSummary.remaining}/${wizardIllusionistIllusorySelfFallbackSlotSummary.total})`
+                        : ""
+                    }`
+                : selectedReactionEntry?.id === warlockBeguilingDefenseReactionEntryId
+                  ? `${warlockBeguilingDefenseUsesRemaining}/${warlockBeguilingDefenseUsesTotal} charge${warlockBeguilingDefenseUsesTotal === 1 ? "" : "s"} | Long Rest${
+                      warlockPactMagicSlotTotal > 0
+                        ? ` | Fallback: 1 Pact Magic spell slot (${warlockPactMagicSlotsRemaining}/${warlockPactMagicSlotTotal})`
+                        : ""
+                    }`
+                  : selectedReactionEntry?.id === wizardBladesingerSongOfDefenseReactionId
+                    ? `Reduce damage by ${selectedSongOfDefenseDamageReduction} | Level ${selectedSongOfDefenseSpellSlotLevel} slot (${spellSlotsRemaining[selectedSongOfDefenseSpellSlotLevel - 1] ?? 0} remaining)`
+                  : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId
+                    ? `${spellThiefUsesRemaining}/${spellThiefUsesTotal} charges | Long Rest`
+                    : null;
   const selectedReactionSelectionWarning =
     selectedReactionEntry?.id === superiorHuntersDefenseReactionId &&
     selectedRangerHunterSuperiorHuntersDefenseDamageType === null
@@ -624,6 +749,18 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
 
     setSelectedReactionSpellSlotLevel(preferredSlotLevel);
   }, [selectedReactionSpell, spellSlotTotals, spellSlotsRemaining]);
+  useEffect(() => {
+    if (selectedReactionEntry?.id !== wizardBladesingerSongOfDefenseReactionId) {
+      return;
+    }
+
+    const preferredSlotLevel =
+      availableSongOfDefenseSpellSlotLevels[0] ??
+      [1, 2, 3, 4, 5, 6, 7, 8, 9].find((slotLevel) => (spellSlotTotals[slotLevel - 1] ?? 0) > 0) ??
+      1;
+
+    setSelectedSongOfDefenseSpellSlotLevel(preferredSlotLevel);
+  }, [availableSongOfDefenseSpellSlotLevels, selectedReactionEntry?.id, spellSlotTotals]);
 
   function openTraitEditor() {
     setActiveTraitEditorTab("conditions");
@@ -746,7 +883,9 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   }
 
   function closeSelectedReaction() {
+    setOpenedFeatureReactionSpellEntryId(null);
     setUseBeguilingMagicOnReactionSpell(false);
+    setUseStepsOfTheFeyOnReactionSpell(false);
     setSpellThiefSearchQuery("");
     setSelectedSpellThiefSpellId("");
     setSelectedStatusEntryId(null);
@@ -755,6 +894,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   function castSelectedReactionSpell(options?: {
     castAsRitual?: boolean;
     useBeguilingMagic?: boolean;
+    useStepsOfTheFey?: boolean;
   }) {
     if (!selectedReactionSpell || selectedReactionBlockedReason || selectedReactionActionWarning) {
       return;
@@ -763,6 +903,10 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     const spellLevel = getSpellLevel(selectedReactionSpell);
     const castAsRitual = options?.castAsRitual === true && selectedReactionSpell.ritual === true;
     const useBeguilingMagic = options?.useBeguilingMagic === true;
+    const useStepsOfTheFey =
+      options?.useStepsOfTheFey === true &&
+      selectedReactionSpellSupportsStepsOfTheFey &&
+      warlockStepsOfTheFeyUsesRemaining > 0;
 
     if (spellLevel === 0) {
       onPersistCharacter((currentCharacter) => {
@@ -803,6 +947,36 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       return;
     }
 
+    if (useStepsOfTheFey) {
+      onPersistCharacter((currentCharacter) => {
+        const nextCharacter = useBeguilingMagic
+          ? consumeBeguilingMagicOrBardicInspirationForCharacter(currentCharacter)
+          : currentCharacter;
+        const nextCharacterWithStepsOfTheFey =
+          consumeWarlockStepsOfTheFeyUseForCharacter(nextCharacter);
+        const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
+          nextCharacterWithStepsOfTheFey,
+          selectedReactionSpell,
+          { includeBardBattleMagic: false }
+        );
+
+        return {
+          ...nextCharacterWithSpellCastEffects,
+          statusEntries: applySpellConcentrationToStatusEntries(
+            nextCharacterWithSpellCastEffects.statusEntries,
+            selectedReactionSpell
+          ),
+          roundTracker: consumeRoundTrackerResource(
+            nextCharacterWithSpellCastEffects.roundTracker,
+            "reaction"
+          )
+        };
+      });
+
+      closeSelectedReaction();
+      return;
+    }
+
     const minimumSlotLevel = Math.max(1, spellLevel);
     const slotLevel = Math.max(
       minimumSlotLevel,
@@ -823,15 +997,19 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       );
       nextSpellSlotsExpended[slotLevel - 1] = (nextSpellSlotsExpended[slotLevel - 1] ?? 0) + 1;
 
-      return restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter({
-        ...preparedCharacter,
-        spellSlotsExpended: nextSpellSlotsExpended,
-        statusEntries: applySpellConcentrationToStatusEntries(
-          preparedCharacter.statusEntries,
-          selectedReactionSpell
-        ),
-        roundTracker: consumeRoundTrackerResource(preparedCharacter.roundTracker, "reaction")
-      });
+      return applySpellCastFeatureEffectsForCharacter(
+        restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter({
+          ...preparedCharacter,
+          spellSlotsExpended: nextSpellSlotsExpended,
+          statusEntries: applySpellConcentrationToStatusEntries(
+            preparedCharacter.statusEntries,
+            selectedReactionSpell
+          ),
+          roundTracker: consumeRoundTrackerResource(preparedCharacter.roundTracker, "reaction")
+        }),
+        selectedReactionSpell,
+        { includeBardBattleMagic: false }
+      );
     });
 
     closeSelectedReaction();
@@ -839,6 +1017,16 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
 
   function castSelectedReactionEntry() {
     if (!selectedReactionEntry || selectedReactionActionWarning) {
+      return;
+    }
+
+    const featureReactionSpell = getFeatureReactionSpellForCharacter(
+      character,
+      selectedReactionEntry.id
+    );
+
+    if (featureReactionSpell) {
+      setOpenedFeatureReactionSpellEntryId(selectedReactionEntry.id);
       return;
     }
 
@@ -866,6 +1054,37 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       ) {
         nextCharacter =
           consumeRangerWinterWalkerChillingRetributionUseForCharacter(currentCharacter);
+      } else if (selectedReactionEntry.id === wizardIllusionistIllusorySelfReactionEntryId) {
+        nextCharacter = consumeWizardIllusionistIllusorySelfUseForCharacter(currentCharacter);
+      } else if (selectedReactionEntry.id === warlockBeguilingDefenseReactionEntryId) {
+        nextCharacter = consumeWarlockBeguilingDefenseUseForCharacter(currentCharacter);
+      } else if (selectedReactionEntry.id === wizardBladesingerSongOfDefenseReactionId) {
+        const slotLevel = Math.max(
+          1,
+          Math.min(9, Math.floor(selectedSongOfDefenseSpellSlotLevel || 1))
+        );
+        const spellSlotTotalsForCurrentCharacter = getSpellSlotTotalsForCharacter(
+          currentCharacter.className,
+          currentCharacter.level,
+          currentCharacter.subclassId
+        );
+        const nextSpellSlotsExpended = normalizeSpellSlotsExpended(
+          currentCharacter.spellSlotsExpended,
+          spellSlotTotalsForCurrentCharacter
+        );
+
+        if (
+          (spellSlotTotalsForCurrentCharacter[slotLevel - 1] ?? 0) <=
+          (nextSpellSlotsExpended[slotLevel - 1] ?? 0)
+        ) {
+          return currentCharacter;
+        }
+
+        nextSpellSlotsExpended[slotLevel - 1] = (nextSpellSlotsExpended[slotLevel - 1] ?? 0) + 1;
+        nextCharacter = {
+          ...currentCharacter,
+          spellSlotsExpended: nextSpellSlotsExpended
+        };
       } else if (selectedReactionEntry.id === superiorHuntersDefenseReactionId) {
         nextCharacter = activateRangerHunterSuperiorHuntersDefenseForCharacter(currentCharacter);
       } else if (
@@ -910,6 +1129,9 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           selectedReactionEntry.id === paladinElementalRebukeReactionEntryId ||
           selectedReactionEntry.id === rogueScionOfTheThreeBloodthirstReactionEntryId ||
           selectedReactionEntry.id === rangerWinterWalkerChillingRetributionReactionEntryId ||
+          selectedReactionEntry.id === wizardIllusionistIllusorySelfReactionEntryId ||
+          selectedReactionEntry.id === warlockBeguilingDefenseReactionEntryId ||
+          selectedReactionEntry.id === wizardBladesingerSongOfDefenseReactionId ||
           selectedReactionEntry.id === superiorHuntersDefenseReactionId ||
           selectedReactionEntry.id === rogueArcaneTricksterSpellThiefReactionId) &&
         nextCharacter === currentCharacter
@@ -1008,11 +1230,21 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           selectedSpellSlotLevel={selectedReactionSpellSlotLevel}
           onSelectedSpellSlotLevelChange={setSelectedReactionSpellSlotLevel}
           onClose={closeSelectedReaction}
+          actionLabel={openedFeatureReactionSpellEntryId ? "Take Reaction" : undefined}
           onAction={(options) =>
             castSelectedReactionSpell({
               ...options,
-              useBeguilingMagic: useBeguilingMagicOnReactionSpell
+              useBeguilingMagic: useBeguilingMagicOnReactionSpell,
+              useStepsOfTheFey: useStepsOfTheFeyOnReactionSpell
             })
+          }
+          actionConsumesSpellSlot={
+            !(selectedReactionSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnReactionSpell)
+          }
+          actionAvailabilityText={
+            selectedReactionSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnReactionSpell
+              ? "Steps of the Fey lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+              : null
           }
           actionWarning={selectedReactionActionWarning}
           actionDisabled={selectedReactionActionWarning !== null}
@@ -1020,40 +1252,81 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           actionShape="reaction"
           actionShapeAvailable={selectedReactionActionWarning === null}
           actionOptions={
-            selectedReactionSpellSupportsBeguilingMagic
+            selectedReactionSpellSupportsBeguilingMagic ||
+            selectedReactionSpellSupportsStepsOfTheFey
               ? [
-                  {
-                    id: "beguiling-magic",
-                    label: "Beguiling Magic",
-                    checked: useBeguilingMagicOnReactionSpell,
-                    onCheckedChange: setUseBeguilingMagicOnReactionSpell,
-                    disabled:
-                      beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
-                    tracker: {
-                      current: beguilingMagicUsesRemaining,
-                      total: beguilingMagicUsesTotal
-                    },
-                    fallbackCost:
-                      beguilingMagicUsesRemaining <= 0
-                        ? {
-                            label: "Use 1",
-                            icon: "music"
+                  ...(selectedReactionSpellSupportsBeguilingMagic
+                    ? [
+                        {
+                          id: "beguiling-magic",
+                          label: "Beguiling Magic",
+                          checked: useBeguilingMagicOnReactionSpell,
+                          onCheckedChange: setUseBeguilingMagicOnReactionSpell,
+                          disabled:
+                            beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
+                          tracker: {
+                            current: beguilingMagicUsesRemaining,
+                            total: beguilingMagicUsesTotal
+                          },
+                          fallbackCost:
+                            beguilingMagicUsesRemaining <= 0
+                              ? {
+                                  label: "Use 1",
+                                  icon: "music" as const
+                                }
+                              : undefined
+                        }
+                      ]
+                    : []),
+                  ...(selectedReactionSpellSupportsStepsOfTheFey
+                    ? [
+                        {
+                          id: "steps-of-the-fey",
+                          label: "Steps of the Fey",
+                          checked: useStepsOfTheFeyOnReactionSpell,
+                          onCheckedChange: setUseStepsOfTheFeyOnReactionSpell,
+                          disabled: selectedReactionSpellStepsOfTheFeyDisabled,
+                          tracker: {
+                            current: warlockStepsOfTheFeyUsesRemaining,
+                            total: warlockStepsOfTheFeyUsesTotal
                           }
-                        : undefined
-                  }
+                        }
+                      ]
+                    : [])
                 ]
               : undefined
           }
         />
       ) : null}
 
-      {selectedReactionEntry && selectedStatusEntry ? (
+      {selectedReactionEntry && selectedStatusEntry && !selectedReactionSpell ? (
         <ReactionEntryDrawer
           reaction={selectedReactionEntry}
           actionWarning={selectedReactionActionWarning}
           resourceSummary={selectedReactionResourceSummary}
           customContent={
-            selectedReactionEntry.id === superiorHuntersDefenseReactionId ? (
+            selectedReactionEntry.id === wizardBladesingerSongOfDefenseReactionId ? (
+              <label className={shared.field}>
+                <span className={shared.fieldLabel}>Spell Slot</span>
+                <SelectInput
+                  value={
+                    availableSongOfDefenseSpellSlotLevels.includes(selectedSongOfDefenseSpellSlotLevel)
+                      ? String(selectedSongOfDefenseSpellSlotLevel)
+                      : ""
+                  }
+                  onChange={(event) =>
+                    setSelectedSongOfDefenseSpellSlotLevel(Number(event.target.value) || 1)
+                  }
+                >
+                  <option value="">Select a spell slot</option>
+                  {availableSongOfDefenseSpellSlotLevels.map((slotLevel) => (
+                    <option key={slotLevel} value={slotLevel}>
+                      {`Level ${slotLevel} (${spellSlotsRemaining[slotLevel - 1] ?? 0} remaining) - reduce ${slotLevel * 5}`}
+                    </option>
+                  ))}
+                </SelectInput>
+              </label>
+            ) : selectedReactionEntry.id === superiorHuntersDefenseReactionId ? (
               <label className={shared.field}>
                 <span className={shared.fieldLabel}>Damage Type</span>
                 <SelectInput

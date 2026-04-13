@@ -9,6 +9,7 @@ import styles from "./GameplayForm.module.css";
 import BardicInspirationWidget from "./widgets/BardicInspirationWidget";
 import DivinityPointsWidget from "./widgets/DivinityPointsWidget";
 import HeroicInspirationWidget from "./widgets/HeroicInspirationWidget";
+import HealingLightDiceWidget from "./widgets/HealingLightDiceWidget";
 import PoolOfHealingWidget from "./widgets/PoolOfHealingWidget";
 import FocusPointsWidget from "./widgets/FocusPointsWidget";
 import PsiEnergyDiceWidget from "./widgets/PsiEnergyDiceWidget";
@@ -19,19 +20,25 @@ import SuperiorityDiceWidget from "./widgets/SuperiorityDiceWidget";
 import WildShapeWidget from "./widgets/WildShapeWidget";
 import RoundTrackerWidget from "./widgets/RoundTrackerWidget";
 import CampButton from "./widgets/CampButton";
-import HitPointsWidget from "./widgets/HitPointsWidget";
 import ActionsWidget from "./widgets/ActionsWidget";
 import TraitsConditionsWidget from "./widgets/TraitsConditionsWidget";
-import DeathSavesWidget from "./widgets/DeathSavesWidget";
 import GameplayGuideModal from "./GameplayGuideModal";
+import HitPointsCluster from "./widgets/HitPointsCluster";
+import type { QueueCharacterSave } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 
 type GameplayFormProps = {
   character: Character;
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
+  onQueueHitPointCharacter: QueueCharacterSave;
 };
 
-function GameplayForm({ character, className, onPersistCharacter }: GameplayFormProps) {
+function GameplayForm({
+  character,
+  className,
+  onPersistCharacter,
+  onQueueHitPointCharacter
+}: GameplayFormProps) {
   const [isGuideOpen, setIsGuideOpen] = useState(false);
   const [isRoundStartFlashActive, setIsRoundStartFlashActive] = useState(false);
   const roundTracker = normalizeRoundTracker(character.roundTracker);
@@ -84,6 +91,7 @@ function GameplayForm({ character, className, onPersistCharacter }: GameplayForm
         </div>
         <div className={styles.gameplayHeaderControls}>
           <PoolOfHealingWidget character={character} />
+          <HealingLightDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
           <HeroicInspirationWidget character={character} onPersistCharacter={onPersistCharacter} />
           <RagePointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <FocusPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
@@ -103,13 +111,14 @@ function GameplayForm({ character, className, onPersistCharacter }: GameplayForm
       </div>
 
       <div className={styles.dashboardGrid}>
-        <HitPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
+        <HitPointsCluster
+          character={character}
+          onQueueCharacterSave={onQueueHitPointCharacter}
+        />
 
         <ActionsWidget character={character} onPersistCharacter={onPersistCharacter} />
 
         <TraitsConditionsWidget character={character} onPersistCharacter={onPersistCharacter} />
-
-        <DeathSavesWidget character={character} onPersistCharacter={onPersistCharacter} />
       </div>
 
       {isGuideOpen ? <GameplayGuideModal onClose={() => setIsGuideOpen(false)} /> : null}

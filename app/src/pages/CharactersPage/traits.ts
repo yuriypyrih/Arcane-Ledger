@@ -60,6 +60,23 @@ import {
   isRogueArcaneTricksterSpellThiefStatusSourceId,
   rogueArcaneTricksterMagicalAmbushStatusSourceId
 } from "./classFeatures/rogue/subclasses/rogueArcaneTrickster";
+import { wizardAbjurerSpellResistanceStatusSourceId } from "./classFeatures/wizard/subclasses/wizardAbjurer";
+import {
+  wizardBladesingerBladesongDescription,
+  wizardBladesongStatusSourceId
+} from "./classFeatures/wizard/subclasses/wizardBladesinger";
+import {
+  wizardIllusionistIllusoryRealityDescription,
+  wizardIllusionistIllusoryRealityStatusSourceId
+} from "./classFeatures/wizard/subclasses/wizardIllusionist";
+import {
+  wizardDivinerThirdEyeDarkvisionDescription,
+  wizardDivinerThirdEyeDarkvisionStatusSourceId,
+  wizardDivinerThirdEyeGreaterComprehensionDescription,
+  wizardDivinerThirdEyeGreaterComprehensionStatusSourceId,
+  wizardDivinerThirdEyeSeeInvisibilityDescription,
+  wizardDivinerThirdEyeSeeInvisibilityStatusSourceId
+} from "./classFeatures/wizard/subclasses/wizardDivinerThirdEyeConfig";
 import { getKeywordDescriptionLines } from "./keywordDescriptions";
 import { clampInteger } from "./shared";
 
@@ -105,6 +122,7 @@ const paladinAvengingAngelStatusSourceId = "feature-paladin-oath-of-vengeance-av
 const paladinFrightfulAuraStatusSourceId = "feature-paladin-oath-of-vengeance-frightful-aura";
 const sorcererTelepathicSpeechStatusSourceId =
   "feature-sorcerer-aberrant-sorcery-telepathic-speech";
+const warlockAwakenedMindStatusSourceId = "feature-warlock-great-old-one-patron-awakened-mind";
 const sorcererPsychicDefensesStatusSourceId =
   "feature-sorcerer-aberrant-sorcery-psychic-defenses";
 const sorcererClockworkBastionOfLawStatusSourceId =
@@ -139,6 +157,8 @@ const rogueArcaneTricksterSubclassEntry = getSubclassEntryById("rogue-arcane-tri
 const sorcererAberrantSorcerySubclassEntry = getSubclassEntryById("sorcerer-aberrant-sorcery");
 const sorcererClockworkSorcerySubclassEntry = getSubclassEntryById("sorcerer-clockwork-sorcery");
 const sorcererSpellfireSorcerySubclassEntry = getSubclassEntryById("sorcerer-spellfire-sorcery");
+const warlockGreatOldOnePatronSubclassEntry = getSubclassEntryById("warlock-great-old-one-patron");
+const wizardAbjurerSubclassEntry = getSubclassEntryById("wizard-abjurer");
 
 function extractSubclassFeatureDescriptionSection(
   description: readonly string[],
@@ -267,6 +287,12 @@ const sorcererTelepathicSpeechDescription =
     ?.featureOverrides?.[CLASS_FEATURE.TELEPATHIC_SPEECH]?.description?.filter(
       (entry): entry is string => typeof entry === "string"
     ) ?? [];
+const warlockAwakenedMindDescription =
+  warlockGreatOldOnePatronSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.AWAKENED_MIND))
+    ?.featureOverrides?.[CLASS_FEATURE.AWAKENED_MIND]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
 const sorcererPsychicDefensesDescription =
   sorcererAberrantSorcerySubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.PSYCHIC_DEFENSES))
@@ -371,6 +397,12 @@ const rogueArcaneTricksterSpellThiefDescription =
     ?.featureOverrides?.[CLASS_FEATURE.SPELL_THIEF]?.description?.filter(
       (entry): entry is string => typeof entry === "string"
     ) ?? [];
+const wizardAbjurerSpellResistanceDescription =
+  wizardAbjurerSubclassEntry?.features
+    .find((row) => row.classFeatures.includes(CLASS_FEATURE.SPELL_RESISTANCE))
+    ?.featureOverrides?.[CLASS_FEATURE.SPELL_RESISTANCE]?.description?.filter(
+      (entry): entry is string => typeof entry === "string"
+    ) ?? [];
 const monkQuiveringPalmTraitDescription = ["You have marked a creature with Quivering Palm."];
 export const exhaustionLevels = [1, 2, 3, 4, 5, 6] as const;
 export type ExhaustionLevel = (typeof exhaustionLevels)[number];
@@ -418,6 +450,8 @@ export const durationPresetOptions: Array<{
 }> = [
   { value: STATUS_DURATION_PRESET.INFINITE, label: "Infinity" },
   { value: STATUS_DURATION_PRESET.CONCENTRATION, label: "Concentration" },
+  { value: STATUS_DURATION_PRESET.SHORT_REST, label: "Short Rest" },
+  { value: STATUS_DURATION_PRESET.LONG_REST, label: "Long Rest" },
   { value: STATUS_DURATION_PRESET.ONE_MINUTE, label: "1 minute" },
   { value: STATUS_DURATION_PRESET.TEN_MINUTES, label: "10 minutes" },
   { value: STATUS_DURATION_PRESET.ONE_HOUR, label: "1 hour" },
@@ -700,6 +734,10 @@ function normalizeStatusDuration(value: unknown): CharacterStatusDuration | null
         linkedValue
       };
     }
+    case STATUS_DURATION_KIND.SHORT_REST:
+      return { kind: STATUS_DURATION_KIND.SHORT_REST };
+    case STATUS_DURATION_KIND.LONG_REST:
+      return { kind: STATUS_DURATION_KIND.LONG_REST };
     case STATUS_DURATION_KIND.MINUTES:
       return Number.isFinite(record.amount)
         ? {
@@ -895,6 +933,10 @@ export function createStatusDurationFromPreset(
         linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
         linkedValue: EFFECT_NAME.CONCENTRATION
       };
+    case STATUS_DURATION_PRESET.SHORT_REST:
+      return { kind: STATUS_DURATION_KIND.SHORT_REST };
+    case STATUS_DURATION_PRESET.LONG_REST:
+      return { kind: STATUS_DURATION_KIND.LONG_REST };
     case STATUS_DURATION_PRESET.ONE_MINUTE:
       return { kind: STATUS_DURATION_KIND.MINUTES, amount: 1 };
     case STATUS_DURATION_PRESET.TEN_MINUTES:
@@ -1416,9 +1458,12 @@ export function applyShortRestToCharacterStatusEntries(value: unknown): Characte
           return (
             entry.group !== STATUS_ENTRY_GROUP.EFFECTS || entry.value !== EFFECT_NAME.CONCENTRATION
           );
+        case STATUS_DURATION_KIND.LONG_REST:
+          return true;
         case STATUS_DURATION_KIND.HOURS:
         case STATUS_DURATION_KIND.DAYS:
           return entry.duration.amount >= 1;
+        case STATUS_DURATION_KIND.SHORT_REST:
         case STATUS_DURATION_KIND.MINUTES:
         case STATUS_DURATION_KIND.ROUNDS:
         case STATUS_DURATION_KIND.CONCENTRATION:
@@ -1617,6 +1662,36 @@ export function getStatusEntryDescriptionEntries(
       : ["A current effect or trait that may change how your character plays."];
   }
 
+  if (entry.sourceId === wizardAbjurerSpellResistanceStatusSourceId) {
+    return wizardAbjurerSpellResistanceDescription.length > 0
+      ? wizardAbjurerSpellResistanceDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === wizardBladesongStatusSourceId) {
+    return wizardBladesingerBladesongDescription.length > 0
+      ? wizardBladesingerBladesongDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === wizardIllusionistIllusoryRealityStatusSourceId) {
+    return wizardIllusionistIllusoryRealityDescription.length > 0
+      ? wizardIllusionistIllusoryRealityDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === wizardDivinerThirdEyeDarkvisionStatusSourceId) {
+    return wizardDivinerThirdEyeDarkvisionDescription;
+  }
+
+  if (entry.sourceId === wizardDivinerThirdEyeGreaterComprehensionStatusSourceId) {
+    return wizardDivinerThirdEyeGreaterComprehensionDescription;
+  }
+
+  if (entry.sourceId === wizardDivinerThirdEyeSeeInvisibilityStatusSourceId) {
+    return wizardDivinerThirdEyeSeeInvisibilityDescription;
+  }
+
   if (
     entry.sourceId === rangerWinterWalkerFrozenHauntStatusSourceId &&
     entry.group === STATUS_ENTRY_GROUP.EFFECTS
@@ -1687,6 +1762,12 @@ export function getStatusEntryDescriptionEntries(
   if (entry.sourceId === sorcererTelepathicSpeechStatusSourceId) {
     return sorcererTelepathicSpeechDescription.length > 0
       ? sorcererTelepathicSpeechDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === warlockAwakenedMindStatusSourceId) {
+    return warlockAwakenedMindDescription.length > 0
+      ? warlockAwakenedMindDescription
       : ["A current effect or trait that may change how your character plays."];
   }
 
@@ -1881,6 +1962,10 @@ export function getStatusDurationLabel(duration: CharacterStatusDuration): strin
       return "Concentration";
     case STATUS_DURATION_KIND.LINKED:
       return formatLinkedStatusDurationLabel(duration);
+    case STATUS_DURATION_KIND.SHORT_REST:
+      return "Short Rest";
+    case STATUS_DURATION_KIND.LONG_REST:
+      return "Long Rest";
     case STATUS_DURATION_KIND.MINUTES:
       return `${duration.amount} minute${duration.amount === 1 ? "" : "s"}`;
     case STATUS_DURATION_KIND.HOURS:
@@ -1903,6 +1988,10 @@ export function getStatusDurationPreset(duration: CharacterStatusDuration): STAT
         duration.linkedValue === EFFECT_NAME.CONCENTRATION
         ? STATUS_DURATION_PRESET.CONCENTRATION
         : STATUS_DURATION_PRESET.INFINITE;
+    case STATUS_DURATION_KIND.SHORT_REST:
+      return STATUS_DURATION_PRESET.SHORT_REST;
+    case STATUS_DURATION_KIND.LONG_REST:
+      return STATUS_DURATION_PRESET.LONG_REST;
     case STATUS_DURATION_KIND.MINUTES:
       switch (duration.amount) {
         case 1:
@@ -1945,6 +2034,10 @@ export function getStatusDurationShortLabel(duration: CharacterStatusDuration): 
       return "Conc.";
     case STATUS_DURATION_KIND.LINKED:
       return formatLinkedStatusDurationLabel(duration);
+    case STATUS_DURATION_KIND.SHORT_REST:
+      return "SR";
+    case STATUS_DURATION_KIND.LONG_REST:
+      return "LR";
     case STATUS_DURATION_KIND.MINUTES:
       return `${duration.amount}m`;
     case STATUS_DURATION_KIND.HOURS:

@@ -140,6 +140,7 @@ export type SpellEntry = {
   components: SPELL_COMPONENT[];
   duration: SpellDurationPart[];
   description: SpellDescriptionEntry[];
+  descriptionAdditions?: SpellDescriptionEntry[][];
   damage: WeaponDamage;
   spellLists: SPELL_LIST_CLASS[];
   spellLevel: number;

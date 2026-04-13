@@ -1,5 +1,5 @@
 import { wizardFeatures, type WizardFeatureClassObj } from "../../../../codex/classes";
-import { CLASS_FEATURE, getSpellEntryById } from "../../../../codex/entries";
+import { CLASS_FEATURE, getSpellEntryById, type SpellEntry } from "../../../../codex/entries";
 import type {
   Character,
   CharacterWizardFeatureState,
@@ -21,12 +21,41 @@ import {
   normalizeSpellSlotsExpended
 } from "../../spellcasting";
 import type { FeatureActionCard, FeatureSkillProficiencyEntry } from "../types";
+import {
+  getWizardSavantSelectionCount,
+  hasWizardSavantFeature,
+  normalizeWizardSavantSpellIds
+} from "./savant";
+import {
+  advanceWizardSubclassFeaturesForNewRound,
+  activateWizardSubclassFeatureAction,
+  applyWizardSubclassFeaturesAfterSpellCast,
+  getWizardSubclassSpellbookSpellEntry,
+  restoreWizardSubclassFeaturesOnArcaneRecovery,
+  restoreWizardSubclassFeaturesOnShortRest,
+  restoreWizardSubclassFeaturesOnLongRest
+} from "./subclasses";
+import {
+  canUseWizardBladesingerActionCantripReplacement,
+  consumeWizardBladesingerActionCantrip,
+  consumeWizardBladesingerWeaponAttack,
+  getWizardBladesongUsesTotal,
+  hasWizardBladesingerSpellcastWeaponBonusActionAvailable,
+  getWizardBladesingerWeaponAttackMultiCount,
+  normalizeWizardBladesingerFeatureState
+} from "./subclasses/wizardBladesinger";
+import {
+  getWizardIllusionistIllusorySelfUsesTotal,
+  getWizardIllusionistPhantasmalCreaturesUsesTotal
+} from "./subclasses/wizardIllusionist";
+import { normalizeWizardDivinerPortentRolls } from "./subclasses/wizardDivinerPortent";
 
 const arcaneRecoveryUsesTotal = 1;
 const wizardScholarSource = "Scholar";
 const wizardSpellMasteryLevels = [1, 2] as const;
 const wizardSignatureSpellLevel = 3;
 const wizardSignatureSpellSelectionCount = 2;
+const wizardSavantMaxSelectionCount = getWizardSavantSelectionCount(20);
 const wizardScholarSkillOptions: SkillName[] = [
   SKILL.ARCANA,
   SKILL.HISTORY,
@@ -70,7 +99,8 @@ function getUnlockedWizardFeatures(level: number): Set<CLASS_FEATURE> {
 }
 
 function getWizardFeatureState(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "classFeatureState" | "subclassId">>
 ): CharacterWizardFeatureState {
   return normalizeWizardFeatureState(character.classFeatureState?.wizard, character);
 }
@@ -114,13 +144,17 @@ function normalizeWizardSpellMasterySpellIds(
 }
 
 function normalizeWizardSignatureSpellIds(value: unknown): string[] {
+  return normalizeWizardTrackedSpellIds(value, wizardSignatureSpellSelectionCount);
+}
+
+function normalizeWizardTrackedSpellIds(value: unknown, limit: number): string[] {
   if (!Array.isArray(value)) {
     return [];
   }
 
   return [...new Set(value.filter((entry): entry is string => typeof entry === "string"))].slice(
     0,
-    wizardSignatureSpellSelectionCount
+    limit
   );
 }
 
@@ -129,7 +163,8 @@ function getWizardPreparedSpellSelectionOptions(character: Pick<Character, "clas
 }
 
 function isWizardSpellMasterySpellIdValid(
-  character: Pick<Character, "className" | "level" | "spellbookSpellIds">,
+  character: Pick<Character, "className" | "level" | "spellbookSpellIds" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>,
   spellLevel: WizardSpellMasteryLevel,
   spellId: string | undefined
 ): spellId is string {
@@ -137,11 +172,14 @@ function isWizardSpellMasterySpellIdValid(
     return false;
   }
 
-  const spellbookSpellIds = Array.isArray(character.spellbookSpellIds)
-    ? character.spellbookSpellIds.filter((entry): entry is string => typeof entry === "string")
-    : [];
+  const spellbookSpellIdSet = new Set([
+    ...(Array.isArray(character.spellbookSpellIds)
+      ? character.spellbookSpellIds.filter((entry): entry is string => typeof entry === "string")
+      : []),
+    ...getWizardAlwaysSpellbookSpellIds(character)
+  ]);
 
-  if (!spellbookSpellIds.includes(spellId)) {
+  if (!spellbookSpellIdSet.has(spellId)) {
     return false;
   }
 
@@ -159,18 +197,22 @@ function isWizardSpellMasterySpellIdValid(
 }
 
 function isWizardSignatureSpellIdValid(
-  character: Pick<Character, "className" | "level" | "spellbookSpellIds">,
+  character: Pick<Character, "className" | "level" | "spellbookSpellIds" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>,
   spellId: string | undefined
 ): spellId is string {
   if (!spellId) {
     return false;
   }
 
-  const spellbookSpellIds = Array.isArray(character.spellbookSpellIds)
-    ? character.spellbookSpellIds.filter((entry): entry is string => typeof entry === "string")
-    : [];
+  const spellbookSpellIdSet = new Set([
+    ...(Array.isArray(character.spellbookSpellIds)
+      ? character.spellbookSpellIds.filter((entry): entry is string => typeof entry === "string")
+      : []),
+    ...getWizardAlwaysSpellbookSpellIds(character)
+  ]);
 
-  if (!spellbookSpellIds.includes(spellId)) {
+  if (!spellbookSpellIdSet.has(spellId)) {
     return false;
   }
 
@@ -238,7 +280,8 @@ export function hasWizardFeature(
 
 export function normalizeWizardFeatureState(
   record: CharacterWizardFeatureState | undefined,
-  character: Pick<Character, "className" | "level">
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
 ): CharacterWizardFeatureState {
   if (character.className !== "Wizard") {
     return {};
@@ -248,14 +291,50 @@ export function normalizeWizardFeatureState(
   const hasScholar = hasWizardFeature(character, CLASS_FEATURE.SCHOLAR);
   const hasSpellMastery = hasWizardFeature(character, CLASS_FEATURE.SPELL_MASTERY);
   const hasSignatureSpells = hasWizardFeature(character, CLASS_FEATURE.SIGNATURE_SPELLS);
+  const bladesongUsesTotal = getWizardBladesongUsesTotal(character);
+  const phantasmalCreaturesUsesTotal = getWizardIllusionistPhantasmalCreaturesUsesTotal(character);
+  const illusorySelfUsesTotal = getWizardIllusionistIllusorySelfUsesTotal(character);
   const rawArcaneRecoveryUsesExpended = Number(record?.arcaneRecoveryUsesExpended);
+  const rawBladesongUsesExpended = Number(record?.bladesongUsesExpended);
+  const rawPhantasmalCreaturesUsesExpended = Number(record?.phantasmalCreaturesUsesExpended);
+  const rawIllusorySelfUsesExpended = Number(record?.illusorySelfUsesExpended);
 
   return {
     arcaneRecoveryUsesExpended:
       hasArcaneRecovery && Number.isFinite(rawArcaneRecoveryUsesExpended)
         ? Math.max(0, Math.min(arcaneRecoveryUsesTotal, Math.floor(rawArcaneRecoveryUsesExpended)))
         : 0,
+    bladesongUsesExpended: Number.isFinite(rawBladesongUsesExpended)
+      ? Math.max(
+          0,
+          Math.min(
+            bladesongUsesTotal > 0 ? bladesongUsesTotal : Math.floor(rawBladesongUsesExpended),
+            Math.floor(rawBladesongUsesExpended)
+          )
+        )
+      : 0,
+    ...normalizeWizardBladesingerFeatureState(record ?? {}, character),
     scholar: hasScholar ? normalizeWizardScholarSelection(record?.scholar) : undefined,
+    savantSpellIds:
+      character.subclassId === undefined
+        ? normalizeWizardTrackedSpellIds(record?.savantSpellIds, wizardSavantMaxSelectionCount)
+        : hasWizardSavantFeature(character)
+          ? normalizeWizardSavantSpellIds(record?.savantSpellIds, character)
+          : undefined,
+    phantasmalCreaturesUsesExpended:
+      phantasmalCreaturesUsesTotal > 0 && Number.isFinite(rawPhantasmalCreaturesUsesExpended)
+        ? Math.max(
+            0,
+            Math.min(
+              phantasmalCreaturesUsesTotal,
+              Math.floor(rawPhantasmalCreaturesUsesExpended)
+            )
+          )
+        : 0,
+    illusorySelfUsesExpended:
+      illusorySelfUsesTotal > 0 && Number.isFinite(rawIllusorySelfUsesExpended)
+        ? Math.max(0, Math.min(illusorySelfUsesTotal, Math.floor(rawIllusorySelfUsesExpended)))
+        : 0,
     spellMasterySpellIds: hasSpellMastery
       ? normalizeWizardSpellMasterySpellIds(record?.spellMasterySpellIds)
       : undefined,
@@ -264,7 +343,8 @@ export function normalizeWizardFeatureState(
       : undefined,
     expendedSignatureSpellIds: hasSignatureSpells
       ? normalizeWizardSignatureSpellIds(record?.expendedSignatureSpellIds)
-      : undefined
+      : undefined,
+    portentRolls: normalizeWizardDivinerPortentRolls(record?.portentRolls, character)
   };
 }
 
@@ -310,8 +390,52 @@ export function getWizardSkillProficiencyEntries(
   return entry ? [entry] : [];
 }
 
+export function getWizardSavantSpellIds(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "classFeatureState" | "subclassId">>
+): string[] {
+  if (!hasWizardSavantFeature(character)) {
+    return [];
+  }
+
+  return normalizeWizardSavantSpellIds(getWizardFeatureState(character).savantSpellIds, character);
+}
+
+export function getWizardAlwaysSpellbookSpellIds(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "classFeatureState" | "subclassId">>
+): string[] {
+  return getWizardSavantSpellIds(character);
+}
+
+export function setWizardSavantSpellIds(character: Character, spellIds: string[]): Character {
+  if (!hasWizardSavantFeature(character)) {
+    return character;
+  }
+
+  const wizardState = getWizardFeatureState(character);
+  const normalizedSpellIds = normalizeWizardSavantSpellIds(spellIds, character);
+  const savantSpellIdSet = new Set(normalizedSpellIds);
+  const nextSpellbookSpellIds = Array.isArray(character.spellbookSpellIds)
+    ? character.spellbookSpellIds.filter((spellId) => !savantSpellIdSet.has(spellId))
+    : [];
+
+  return {
+    ...character,
+    spellbookSpellIds: nextSpellbookSpellIds,
+    classFeatureState: {
+      ...character.classFeatureState,
+      wizard: {
+        ...wizardState,
+        savantSpellIds: normalizedSpellIds
+      }
+    }
+  };
+}
+
 export function getWizardSpellMasterySelection(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds">,
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds"> &
+    Partial<Pick<Character, "subclassId">>,
   spellLevel: WizardSpellMasteryLevel
 ): string | null {
   if (!hasWizardFeature(character, CLASS_FEATURE.SPELL_MASTERY)) {
@@ -324,7 +448,8 @@ export function getWizardSpellMasterySelection(
 }
 
 export function getWizardSpellMasterySpellIds(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds">
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds"> &
+    Partial<Pick<Character, "subclassId">>
 ): string[] {
   if (!hasWizardFeature(character, CLASS_FEATURE.SPELL_MASTERY)) {
     return [];
@@ -406,13 +531,15 @@ export function syncWizardSpellMasterySelectionsToSpellbook(character: Character
 }
 
 export function getWizardAlwaysPreparedSpellIds(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds">
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds"> &
+    Partial<Pick<Character, "subclassId">>
 ): string[] {
   return [...getWizardSpellMasterySpellIds(character), ...getWizardSignatureSpellIds(character)];
 }
 
 export function getWizardSignatureSpellIds(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds">
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds"> &
+    Partial<Pick<Character, "subclassId">>
 ): string[] {
   if (!hasWizardFeature(character, CLASS_FEATURE.SIGNATURE_SPELLS)) {
     return [];
@@ -448,7 +575,8 @@ export function setWizardSignatureSpellIds(character: Character, spellIds: strin
 }
 
 export function getWizardExpendedSignatureSpellIds(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds">
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds"> &
+    Partial<Pick<Character, "subclassId">>
 ): string[] {
   const signatureSpellIdSet = new Set(getWizardSignatureSpellIds(character));
   return normalizeWizardSignatureSpellIds(
@@ -457,7 +585,8 @@ export function getWizardExpendedSignatureSpellIds(
 }
 
 export function hasWizardSignatureSpellFreeCastAvailable(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds">,
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellbookSpellIds"> &
+    Partial<Pick<Character, "subclassId">>,
   spellId: string
 ): boolean {
   const signatureSpellIds = getWizardSignatureSpellIds(character);
@@ -555,17 +684,74 @@ export function syncWizardSignatureSpellsToSpellbook(character: Character): Char
 }
 
 export function applyShortRestToWizardFeatures(character: Character): Character {
-  return restoreWizardSignatureSpellsOnShortRest(character);
+  return restoreWizardSubclassFeaturesOnShortRest(restoreWizardSignatureSpellsOnShortRest(character));
 }
 
 export function applyLongRestToWizardFeatures(character: Character): Character {
-  return restoreWizardSignatureSpellsOnLongRest(restoreArcaneRecoveryOnLongRest(character));
+  return restoreWizardSubclassFeaturesOnLongRest(
+    restoreWizardSignatureSpellsOnLongRest(restoreArcaneRecoveryOnLongRest(character))
+  );
+}
+
+export function advanceWizardFeaturesForNewRound(character: Character): Character {
+  return advanceWizardSubclassFeaturesForNewRound(character);
+}
+
+export function applyWizardFeaturesAfterSpellCast(
+  character: Character,
+  spell: Pick<SpellEntry, "castingTime" | "magicSchool" | "spellLevel">,
+  spellSlotLevel: number | null | undefined
+): Character {
+  return applyWizardSubclassFeaturesAfterSpellCast(character, spell, spellSlotLevel);
+}
+
+export function getWizardSpellbookSpellEntry(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "subclassId" | "classFeatureState">>,
+  spell: SpellEntry
+): SpellEntry {
+  return getWizardSubclassSpellbookSpellEntry(character, spell);
 }
 
 export function getArcaneRecoveryUsesTotal(
   character: Pick<Character, "className" | "level">
 ): number {
   return hasWizardFeature(character, CLASS_FEATURE.ARCANE_RECOVERY) ? arcaneRecoveryUsesTotal : 0;
+}
+
+export function getWizardWeaponAttackMultiCount(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+): number {
+  return getWizardBladesingerWeaponAttackMultiCount(character);
+}
+
+export function canUseWizardActionCantripReplacement(
+  character: Pick<Character, "className" | "roundTracker"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>,
+  spell: Pick<SpellEntry, "castingTime" | "spellLevel">
+): boolean {
+  return canUseWizardBladesingerActionCantripReplacement(character, spell);
+}
+
+export function hasWizardSpellcastWeaponBonusActionAvailable(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+): boolean {
+  return hasWizardBladesingerSpellcastWeaponBonusActionAvailable(character);
+}
+
+export function consumeWizardWeaponAttack(
+  character: Character,
+  action?: {
+    attackKind: "weapon" | "unarmed";
+  }
+): Character {
+  return consumeWizardBladesingerWeaponAttack(character, action);
+}
+
+export function consumeWizardActionCantrip(character: Character): Character {
+  return consumeWizardBladesingerActionCantrip(character);
 }
 
 export function getArcaneRecoveryUsesRemaining(
@@ -638,6 +824,17 @@ export function getWizardFeatureActions(
   ];
 }
 
+export function activateWizardFeatureAction(
+  character: Character,
+  actionKey: string
+): Character | null {
+  if (actionKey === arcaneRecoveryActionKey) {
+    return character;
+  }
+
+  return activateWizardSubclassFeatureAction(character, actionKey);
+}
+
 export function activateArcaneRecovery(
   character: Character,
   selection: ArcaneRecoverySelection
@@ -688,7 +885,7 @@ export function activateArcaneRecovery(
 
   const wizardState = getWizardFeatureState(character);
 
-  return {
+  return restoreWizardSubclassFeaturesOnArcaneRecovery({
     ...character,
     spellSlotsExpended: nextSpellSlotsExpended,
     classFeatureState: {
@@ -701,7 +898,7 @@ export function activateArcaneRecovery(
         )
       }
     }
-  };
+  });
 }
 
 export function restoreArcaneRecoveryOnLongRest(character: Character): Character {

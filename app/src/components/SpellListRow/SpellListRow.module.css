@@ -152,6 +152,11 @@
   color: #c04f86;
 }
 
+.alwaysSpellbookPill {
+  background: rgba(47, 120, 255, 0.14);
+  color: #2f78ff;
+}
+
 .nameButton {
   border: none;
   background: none;

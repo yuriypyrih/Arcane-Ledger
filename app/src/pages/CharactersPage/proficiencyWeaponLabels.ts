@@ -9,7 +9,11 @@ import {
 } from "../../codex/entries";
 import { getWeaponEntries } from "../../codex/selectors";
 import { formatCodexLabel } from "../../utils/codex";
-import { isMartialMeleeLightWeapon, isSimpleMeleeWeapon } from "./monkWeapons";
+import {
+  isMartialMeleeLightWeapon,
+  isMartialMeleeWeaponWithoutHeavyOrTwoHandedProperty,
+  isSimpleMeleeWeapon
+} from "./monkWeapons";
 
 export type WeaponType = WEAPON_TRAINING;
 
@@ -63,7 +67,9 @@ const weaponProficiencyLabelsByCategory: Partial<Record<WEAPON_PROFICIENCY, stri
   [WEAPON_PROFICIENCY.SIMPLE]: "Simple weapons",
   [WEAPON_PROFICIENCY.SIMPLE_MELEE]: "Simple melee weapons",
   [WEAPON_PROFICIENCY.MARTIAL]: "Martial weapons",
-  [WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT]: "Martial melee weapons with Light property"
+  [WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT]: "Martial melee weapons with Light property",
+  [WEAPON_PROFICIENCY.MARTIAL_MELEE_NO_HEAVY_OR_TWO_HANDED]:
+    "Martial melee weapons without Heavy or Two-Handed"
 };
 
 const commonWeaponEntriesByBaseWeapon = new Map<WEAPON_BASE, WeaponEntry>(
@@ -93,6 +99,7 @@ export const weaponProficiencyOptions: WEAPON_PROFICIENCY[] = [
   WEAPON_PROFICIENCY.SIMPLE_MELEE,
   WEAPON_PROFICIENCY.MARTIAL,
   WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT,
+  WEAPON_PROFICIENCY.MARTIAL_MELEE_NO_HEAVY_OR_TWO_HANDED,
   ...weaponSpecificProficiencyOptions
 ];
 
@@ -144,6 +151,10 @@ export function doesWeaponProficiencyMatchWeapon(
     return isMartialMeleeLightWeapon(weaponCandidate);
   }
 
+  if (proficiency === WEAPON_PROFICIENCY.MARTIAL_MELEE_NO_HEAVY_OR_TWO_HANDED) {
+    return isMartialMeleeWeaponWithoutHeavyOrTwoHandedProperty(weaponCandidate);
+  }
+
   return false;
 }
 
@@ -180,6 +191,10 @@ export function getMatchingWeaponProficiencies(
     if (isMartialMeleeLightWeapon(weaponCandidate)) {
       candidates.push(WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT);
     }
+
+    if (isMartialMeleeWeaponWithoutHeavyOrTwoHandedProperty(weaponCandidate)) {
+      candidates.push(WEAPON_PROFICIENCY.MARTIAL_MELEE_NO_HEAVY_OR_TWO_HANDED);
+    }
   }
 
   candidates.push(getWeaponProficiencyForTraining(training));
@@ -210,7 +225,8 @@ export function isWeaponMasteryProficiency(proficiency: WEAPON_PROFICIENCY): boo
     WEAPON_PROFICIENCY.SIMPLE,
     WEAPON_PROFICIENCY.SIMPLE_MELEE,
     WEAPON_PROFICIENCY.MARTIAL,
-    WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT
+    WEAPON_PROFICIENCY.MARTIAL_MELEE_LIGHT,
+    WEAPON_PROFICIENCY.MARTIAL_MELEE_NO_HEAVY_OR_TWO_HANDED
   ].includes(proficiency);
 }
 

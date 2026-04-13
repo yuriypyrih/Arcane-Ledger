@@ -136,6 +136,8 @@ export type Character = {
   xp: number;
   hitPoints: number;
   currentHitPoints: number;
+  magicTemporaryHitPoints: number;
+  magicTemporaryHitPointsSource?: string;
   temporaryHitPoints: number;
   temporaryHitPointsSource?: string;
   hover?: boolean;
@@ -179,6 +181,8 @@ export type CharacterDraft = {
   xp: number;
   hitPoints: number;
   currentHitPoints: number;
+  magicTemporaryHitPoints: number;
+  magicTemporaryHitPointsSource?: string;
   temporaryHitPoints: number;
   temporaryHitPointsSource?: string;
   hover?: boolean;

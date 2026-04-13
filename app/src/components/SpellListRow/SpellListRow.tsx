@@ -15,6 +15,7 @@ type SpellListRowProps = {
   detailNote?: string;
   detailNoteTone?: "default" | "accent";
   alwaysPrepared?: boolean;
+  alwaysSpellbook?: boolean;
   actionShapeSelected?: boolean;
   actionShapeMultiCount?: number;
   selectable?: boolean;
@@ -100,6 +101,7 @@ function SpellListRow({
   detailNote,
   detailNoteTone = "default",
   alwaysPrepared = false,
+  alwaysSpellbook = false,
   actionShapeSelected = true,
   actionShapeMultiCount = 0,
   selectable = false,
@@ -179,6 +181,11 @@ function SpellListRow({
                       Always Prepared
                     </span>
                   ) : null}
+                  {alwaysSpellbook ? (
+                    <span className={clsx(styles.namePill, styles.alwaysSpellbookPill)}>
+                      Always Spellbook
+                    </span>
+                  ) : null}
                 </div>
                 <small className={styles.subtitle}>
                   <SpellSubtitle spell={spell} />
@@ -225,6 +232,11 @@ function SpellListRow({
             {alwaysPrepared ? (
               <span className={clsx(styles.namePill, styles.alwaysPreparedPill)}>
                 Always Prepared
+              </span>
+            ) : null}
+            {alwaysSpellbook ? (
+              <span className={clsx(styles.namePill, styles.alwaysSpellbookPill)}>
+                Always Spellbook
               </span>
             ) : null}
           </div>

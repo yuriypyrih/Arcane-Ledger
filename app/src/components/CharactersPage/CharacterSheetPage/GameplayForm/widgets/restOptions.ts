@@ -187,13 +187,30 @@ import {
   restoreSorcererSubclassFeaturesOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses";
 import {
+  applyWarlockCelestialResilienceTemporaryHitPoints,
+  getWarlockBeguilingDefenseUsesTotal,
+  getWarlockCelestialResilienceTemporaryHitPoints,
+  getWarlockClairvoyantCombatantUsesTotal,
   getContactPatronUsesTotal,
+  getWarlockDarkOnesOwnLuckUsesTotal,
+  getWarlockHurlThroughHellUsesTotal,
+  getWarlockHealingLightDiceTotal,
+  getWarlockSearingVengeanceUsesTotal,
+  getWarlockStepsOfTheFeyUsesTotal,
   getWarlockMagicalCunningUsesTotal,
   hasWarlockFeature,
+  restoreWarlockBeguilingDefenseOnLongRest,
+  restoreWarlockClairvoyantCombatantOnLongRest,
+  restoreWarlockClairvoyantCombatantOnShortRest,
   restoreContactPatronOnLongRest,
+  restoreWarlockDarkOnesOwnLuckOnLongRest,
+  restoreWarlockHurlThroughHellOnLongRest,
+  restoreWarlockHealingLightOnLongRest,
+  restoreWarlockSearingVengeanceOnLongRest,
   restoreMysticArcanumOnLongRest,
   restoreWarlockPactMagicSpellSlots,
-  restoreWarlockMagicalCunningOnLongRest
+  restoreWarlockMagicalCunningOnLongRest,
+  restoreWarlockStepsOfTheFeyOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import {
   getArcaneRecoveryUsesTotal,
@@ -202,6 +219,22 @@ import {
   restoreWizardSignatureSpellsOnLongRest,
   restoreWizardSignatureSpellsOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
+import {
+  getWizardBladesongUsesTotal,
+  restoreWizardBladesongOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
+import {
+  getWizardIllusionistIllusorySelfUsesTotal,
+  getWizardIllusionistPhantasmalCreaturesUsesTotal,
+  restoreWizardIllusionistIllusorySelfOnLongRest,
+  restoreWizardIllusionistIllusorySelfOnShortRest,
+  restoreWizardIllusionistPhantasmalCreaturesOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardIllusionist";
+import {
+  getWizardDivinerPortentUsesTotal,
+  restoreWizardDivinerPortentOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerPortent";
+import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pages/CharactersPage/classFeatures";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import { getSpellSlotTotalsForCharacter } from "../../../../../pages/CharactersPage/spellcasting";
 import {
@@ -215,7 +248,12 @@ import {
   setCharacterExhaustionLevel
 } from "../../../../../pages/CharactersPage/traits";
 import { createDefaultRoundTracker } from "../../../../../pages/CharactersPage/combat";
-import { createDefaultDeathSaves, normalizeTemporaryHitPoints } from "../gameplayStateUtils";
+import {
+  createDefaultDeathSaves,
+  createMagicTemporaryHitPointsAssignment,
+  normalizeMagicTemporaryHitPoints,
+  normalizeTemporaryHitPoints
+} from "../gameplayStateUtils";
 
 export type RestType = "short" | "long";
 
@@ -269,6 +307,11 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const sorcerousRestorationUsesTotal = getSorcerousRestorationUsesTotal(character);
   const sorcerousRestorationUsesRemaining = getSorcerousRestorationUsesRemaining(character);
   const wizardSignatureSpellIds = getWizardSignatureSpellIds(character);
+  const wizardIllusionistIllusorySelfUsesTotal =
+    getWizardIllusionistIllusorySelfUsesTotal(character);
+  const warlockCelestialResilienceTemporaryHitPoints =
+    getWarlockCelestialResilienceTemporaryHitPoints(character);
+  const clairvoyantCombatantUsesTotal = getWarlockClairvoyantCombatantUsesTotal(character);
 
   return [
     {
@@ -324,12 +367,24 @@ export function createShortRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(warlockCelestialResilienceTemporaryHitPoints > 0
+      ? [
+          {
+            id: "gain-celestial-resilience-temporary-hit-points",
+            label: "Gain Celestial Resilience Temporary Hit Points",
+            detail: `Gain ${warlockCelestialResilienceTemporaryHitPoints} Temporary Hit Points.`,
+            emphasis: "feature",
+            apply: (currentCharacter: Character) =>
+              applyWarlockCelestialResilienceTemporaryHitPoints(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(hasTimedStatuses
       ? [
           {
             id: "update-statuses",
             label: "Update Traits & Conditions",
-            detail: "Ends durations below 1 hour and clears Concentration-linked effects.",
+            detail: "Ends Short Rest effects, durations below 1 hour, and Concentration-linked effects.",
             apply: (currentCharacter: Character) => ({
               ...currentCharacter,
               statusEntries: applyShortRestToCharacterStatusEntries(currentCharacter.statusEntries)
@@ -539,6 +594,26 @@ export function createShortRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(clairvoyantCombatantUsesTotal > 0
+      ? [
+          {
+            id: "restore-clairvoyant-combatant",
+            label: "Restore Clairvoyant Combatant",
+            apply: (currentCharacter: Character) =>
+              restoreWarlockClairvoyantCombatantOnShortRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(wizardIllusionistIllusorySelfUsesTotal > 0
+      ? [
+          {
+            id: "restore-illusory-self",
+            label: "Restore Illusory Self",
+            apply: (currentCharacter: Character) =>
+              restoreWizardIllusionistIllusorySelfOnShortRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(wizardSignatureSpellIds.length > 0
       ? [
           {
@@ -574,6 +649,10 @@ export function createLongRestOptions(character: Character): RestOption[] {
     character.subclassId
   ).reduce((sum, value) => sum + value, 0);
   const hasWarlockPactMagic = hasWarlockFeature(character, CLASS_FEATURE.PACT_MAGIC);
+  const magicTemporaryHitPointsFeature = getMagicTemporaryHitPointsFeatureForCharacter(character);
+  const magicTemporaryHitPoints = normalizeMagicTemporaryHitPoints(
+    character.magicTemporaryHitPoints
+  );
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
   const rageUsesTotal = getBarbarianRageUsesTotal(character);
   const hasBarbarianRelentlessRage = hasBarbarianRelentlessRageFeature(character);
@@ -657,9 +736,24 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const sorcererTranceOfOrderUsesTotal = getSorcererSubclassTranceOfOrderUsesTotal(character);
   const sorcererWarpingImplosionUsesTotal = getSorcererSubclassWarpingImplosionUsesTotal(character);
   const magicalCunningUsesTotal = getWarlockMagicalCunningUsesTotal(character);
+  const warlockCelestialResilienceTemporaryHitPoints =
+    getWarlockCelestialResilienceTemporaryHitPoints(character);
   const arcaneRecoveryUsesTotal = getArcaneRecoveryUsesTotal(character);
+  const wizardBladesongUsesTotal = getWizardBladesongUsesTotal(character);
+  const wizardIllusionistIllusorySelfUsesTotal =
+    getWizardIllusionistIllusorySelfUsesTotal(character);
+  const wizardIllusionistPhantasmalCreaturesUsesTotal =
+    getWizardIllusionistPhantasmalCreaturesUsesTotal(character);
+  const wizardDivinerPortentUsesTotal = getWizardDivinerPortentUsesTotal(character);
   const wizardSignatureSpellIds = getWizardSignatureSpellIds(character);
+  const darkOnesOwnLuckUsesTotal = getWarlockDarkOnesOwnLuckUsesTotal(character);
+  const hurlThroughHellUsesTotal = getWarlockHurlThroughHellUsesTotal(character);
+  const stepsOfTheFeyUsesTotal = getWarlockStepsOfTheFeyUsesTotal(character);
+  const beguilingDefenseUsesTotal = getWarlockBeguilingDefenseUsesTotal(character);
+  const clairvoyantCombatantUsesTotal = getWarlockClairvoyantCombatantUsesTotal(character);
   const contactPatronUsesTotal = getContactPatronUsesTotal(character);
+  const healingLightDiceTotal = getWarlockHealingLightDiceTotal(character);
+  const searingVengeanceUsesTotal = getWarlockSearingVengeanceUsesTotal(character);
   const hasMysticArcanum = hasWarlockFeature(character, CLASS_FEATURE.MYSTIC_ARCANUM);
   const monkFocusPointsTotal = getMonkFocusPointsTotal(character);
   const monkHandOfUltimateJusticeUsesTotal = getMonkHandOfUltimateJusticeUsesTotal(character);
@@ -748,11 +842,38 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(magicTemporaryHitPointsFeature && magicTemporaryHitPoints > 0
+      ? [
+          {
+            id: "clear-magic-temporary-hit-points",
+            label: `Reset ${magicTemporaryHitPointsFeature.modalTitle}`,
+            detail: "Reset this Magical Temporary HP pool to 0.",
+            emphasis: "feature",
+            apply: (currentCharacter: Character) => ({
+              ...currentCharacter,
+              ...createMagicTemporaryHitPointsAssignment(0)
+            })
+          } satisfies RestOption
+        ]
+      : []),
+    ...(warlockCelestialResilienceTemporaryHitPoints > 0
+      ? [
+          {
+            id: "gain-celestial-resilience-temporary-hit-points",
+            label: "Gain Celestial Resilience Temporary Hit Points",
+            detail: `Gain ${warlockCelestialResilienceTemporaryHitPoints} Temporary Hit Points.`,
+            emphasis: "feature",
+            apply: (currentCharacter: Character) =>
+              applyWarlockCelestialResilienceTemporaryHitPoints(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(hasTimedStatuses
       ? [
           {
             id: "update-statuses",
             label: "Update Traits & Conditions",
+            detail: "Ends Short Rest and Long Rest effects along with expiring timed statuses.",
             apply: (currentCharacter: Character) => ({
               ...currentCharacter,
               statusEntries: applyLongRestToCharacterStatusEntries(currentCharacter.statusEntries)
@@ -1354,6 +1475,56 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(darkOnesOwnLuckUsesTotal > 0
+      ? [
+          {
+            id: "restore-dark-ones-own-luck",
+            label: "Restore Dark One's Own Luck",
+            apply: (currentCharacter: Character) =>
+              restoreWarlockDarkOnesOwnLuckOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hurlThroughHellUsesTotal > 0
+      ? [
+          {
+            id: "restore-hurl-through-hell",
+            label: "Restore Hurl Through Hell",
+            apply: (currentCharacter: Character) =>
+              restoreWarlockHurlThroughHellOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(stepsOfTheFeyUsesTotal > 0
+      ? [
+          {
+            id: "restore-steps-of-the-fey",
+            label: "Restore Steps of the Fey",
+            apply: (currentCharacter: Character) =>
+              restoreWarlockStepsOfTheFeyOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(beguilingDefenseUsesTotal > 0
+      ? [
+          {
+            id: "restore-beguiling-defense",
+            label: "Restore Beguiling Defense",
+            apply: (currentCharacter: Character) =>
+              restoreWarlockBeguilingDefenseOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(clairvoyantCombatantUsesTotal > 0
+      ? [
+          {
+            id: "restore-clairvoyant-combatant",
+            label: "Restore Clairvoyant Combatant",
+            apply: (currentCharacter: Character) =>
+              restoreWarlockClairvoyantCombatantOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(arcaneRecoveryUsesTotal > 0
       ? [
           {
@@ -1361,6 +1532,47 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore Arcane Recovery",
             apply: (currentCharacter: Character) =>
               restoreArcaneRecoveryOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(wizardBladesongUsesTotal > 0
+      ? [
+          {
+            id: "restore-bladesong",
+            label: "Restore Bladesong",
+            apply: (currentCharacter: Character) =>
+              restoreWizardBladesongOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(wizardIllusionistIllusorySelfUsesTotal > 0
+      ? [
+          {
+            id: "restore-illusory-self",
+            label: "Restore Illusory Self",
+            apply: (currentCharacter: Character) =>
+              restoreWizardIllusionistIllusorySelfOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(wizardIllusionistPhantasmalCreaturesUsesTotal > 0
+      ? [
+          {
+            id: "restore-phantasmal-creatures",
+            label: "Restore Phantasmal Creatures",
+            apply: (currentCharacter: Character) =>
+              restoreWizardIllusionistPhantasmalCreaturesOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(wizardDivinerPortentUsesTotal > 0
+      ? [
+          {
+            id: "restore-portent",
+            label: "Restore Portent",
+            detail: "Clear old foretelling rolls and ready new Portent rolls.",
+            apply: (currentCharacter: Character) =>
+              restoreWizardDivinerPortentOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),
@@ -1380,6 +1592,26 @@ export function createLongRestOptions(character: Character): RestOption[] {
             id: "restore-contact-patron",
             label: "Restore Contact Patron",
             apply: (currentCharacter: Character) => restoreContactPatronOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(healingLightDiceTotal > 0
+      ? [
+          {
+            id: "restore-healing-light",
+            label: "Restore all Healing d6",
+            apply: (currentCharacter: Character) =>
+              restoreWarlockHealingLightOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(searingVengeanceUsesTotal > 0
+      ? [
+          {
+            id: "restore-searing-vengeance",
+            label: "Restore Searing Vengeance",
+            apply: (currentCharacter: Character) =>
+              restoreWarlockSearingVengeanceOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

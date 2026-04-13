@@ -1,5 +1,6 @@
 import type { Character } from "../../types";
 import {
+  getAlwaysSpellbookSpellIdsForCharacter,
   getWarlockEldritchInvocationLimitForCharacter,
   getWarlockInvocationOptionsForCharacter,
   getWarlockInvocationSelectionIdsForCharacter
@@ -96,8 +97,13 @@ export function getSpellSelectionInputStatusForCharacter(
     character.subclassId,
     character.statusEntries
   );
+  const alwaysSpellbookSpellIds = getAlwaysSpellbookSpellIdsForCharacter(character);
   const selectedSpellbookSpellIds = usesSpellbook
-    ? normalizeSpellbookSpellIds(character.spellbookSpellIds, spellPreparationOptions)
+    ? normalizeSpellbookSpellIds(
+        character.spellbookSpellIds,
+        spellPreparationOptions,
+        alwaysSpellbookSpellIds
+      )
     : [];
   const selectedSpellbookSpellIdSet = new Set(selectedSpellbookSpellIds);
   const selectedPreparedSpellIds = normalizePreparedSpellIds(

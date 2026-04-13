@@ -5,24 +5,28 @@ import { useEffect, useState } from "react";
 import NumberInput from "../../../FormInputs/NumberInput";
 import type { Character } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
+import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pages/CharactersPage/classFeatures";
 import { clampNumber } from "../../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { getAutomaticMaxHitPointsForCharacter } from "../../../../../pages/CharactersPage/gameplay";
-import {
-  getEffectiveHitPointMaximumForCharacter,
-  reconcileCharacterStatusConsequences
-} from "../../../../../pages/CharactersPage/traits";
+import { getEffectiveHitPointMaximumForCharacter } from "../../../../../pages/CharactersPage/traits";
+import MagicTemporaryHitPoints from "../../MagicTemporaryHitPoints";
 import TemporaryHitPoints from "../../TemporaryHitPoints";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import widgetShellStyles from "../GameplayWidgetShared.module.css";
 import {
-  createDefaultDeathSaves,
-  createTemporaryHitPointsAssignment,
   createHpDraft,
   normalizeDeathSaves,
+  normalizeMagicTemporaryHitPoints,
   normalizeMaxHitPointsMode,
   normalizeTemporaryHitPoints,
   type MaxHitPointsMode
 } from "../gameplayStateUtils";
+import {
+  applyDamageToCharacter,
+  applyHealingToCharacter,
+  applyHitPointEditToCharacter,
+  syncAutomaticHitPointsForCharacter
+} from "../hitPointState";
 import styles from "./HitPointsWidget.module.css";
 
 type HitPointsWidgetProps = {
@@ -58,45 +62,13 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
       return;
     }
 
-    const automaticHitPoints = getAutomaticMaxHitPointsForCharacter(character);
+    const nextCharacter = syncAutomaticHitPointsForCharacter(character);
 
-    if (character.hitPoints === automaticHitPoints) {
+    if (nextCharacter === character) {
       return;
     }
 
-    onPersistCharacter((currentCharacter) => {
-      if (normalizeMaxHitPointsMode(currentCharacter.maxHitPointsMode) !== "automatic") {
-        return currentCharacter;
-      }
-
-      const nextAutomaticHitPoints = getAutomaticMaxHitPointsForCharacter(currentCharacter);
-
-      if (currentCharacter.hitPoints === nextAutomaticHitPoints) {
-        return currentCharacter;
-      }
-
-      const hitPointDelta = nextAutomaticHitPoints - currentCharacter.hitPoints;
-      const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter({
-        ...currentCharacter,
-        hitPoints: nextAutomaticHitPoints
-      });
-      const nextCurrentHitPoints = clampNumber(
-        currentCharacter.currentHitPoints + hitPointDelta,
-        0,
-        nextEffectiveHitPoints,
-        currentCharacter.currentHitPoints
-      );
-
-      return reconcileCharacterStatusConsequences({
-        ...currentCharacter,
-        hitPoints: nextAutomaticHitPoints,
-        currentHitPoints: nextCurrentHitPoints,
-        deathSaves:
-          nextCurrentHitPoints > 0
-            ? createDefaultDeathSaves()
-            : normalizeDeathSaves(currentCharacter.deathSaves)
-      });
-    });
+    onPersistCharacter((currentCharacter) => syncAutomaticHitPointsForCharacter(currentCharacter));
   }, [
     character,
     character.abilities.CON,
@@ -109,13 +81,23 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
   ]);
 
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
+  const magicTemporaryHitPoints = normalizeMagicTemporaryHitPoints(character.magicTemporaryHitPoints);
+  const magicTemporaryHitPointsFeature = getMagicTemporaryHitPointsFeatureForCharacter(character);
   const deathSaves = normalizeDeathSaves(character.deathSaves);
   const currentHitPointPercent =
     effectiveHitPoints > 0 ? (character.currentHitPoints / effectiveHitPoints) * 100 : 0;
-  const temporaryHitPointPercent =
+  const rawMagicTemporaryHitPointPercent =
+    effectiveHitPoints > 0 ? (magicTemporaryHitPoints / effectiveHitPoints) * 100 : 0;
+  const rawTemporaryHitPointPercent =
     effectiveHitPoints > 0 ? (temporaryHitPoints / effectiveHitPoints) * 100 : 0;
-  const temporaryHitPointOverflow =
-    character.currentHitPoints + temporaryHitPoints > effectiveHitPoints;
+  const visibleTemporaryHitPointPercent = Math.min(
+    Math.max(0, 100 - currentHitPointPercent),
+    rawTemporaryHitPointPercent
+  );
+  const visibleMagicTemporaryHitPointPercent = Math.min(
+    Math.max(0, 100 - currentHitPointPercent - visibleTemporaryHitPointPercent),
+    rawMagicTemporaryHitPointPercent
+  );
 
   function beginEditing() {
     setHpDraft(createHpDraft(character));
@@ -143,15 +125,10 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
     );
 
     onPersistCharacter((currentCharacter) =>
-      reconcileCharacterStatusConsequences({
-        ...currentCharacter,
+      applyHitPointEditToCharacter(currentCharacter, {
         hitPoints: nextBaseHitPoints,
         currentHitPoints: nextCurrentHitPoints,
-        maxHitPointsMode: hpModeDraft,
-        deathSaves:
-          nextCurrentHitPoints > 0
-            ? createDefaultDeathSaves()
-            : normalizeDeathSaves(currentCharacter.deathSaves)
+        maxHitPointsMode: hpModeDraft
       })
     );
 
@@ -215,61 +192,10 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
 
     onPersistCharacter((currentCharacter) => {
       if (direction > 0) {
-        const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter(currentCharacter);
-        const nextCurrentHitPoints = clampNumber(
-          currentCharacter.currentHitPoints + amount,
-          0,
-          nextEffectiveHitPoints,
-          currentCharacter.currentHitPoints
-        );
-
-        if (nextCurrentHitPoints === currentCharacter.currentHitPoints) {
-          return currentCharacter;
-        }
-
-        return reconcileCharacterStatusConsequences({
-          ...currentCharacter,
-          currentHitPoints: nextCurrentHitPoints,
-          deathSaves:
-            nextCurrentHitPoints > 0
-              ? createDefaultDeathSaves()
-              : normalizeDeathSaves(currentCharacter.deathSaves)
-        });
+        return applyHealingToCharacter(currentCharacter, amount);
       }
 
-      const currentTemporaryHitPoints = normalizeTemporaryHitPoints(
-        currentCharacter.temporaryHitPoints
-      );
-      const absorbedByTemporaryHitPoints = Math.min(amount, currentTemporaryHitPoints);
-      const nextTemporaryHitPoints = currentTemporaryHitPoints - absorbedByTemporaryHitPoints;
-      const remainingDamage = amount - absorbedByTemporaryHitPoints;
-      const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter(currentCharacter);
-      const nextCurrentHitPoints = clampNumber(
-        currentCharacter.currentHitPoints - remainingDamage,
-        0,
-        nextEffectiveHitPoints,
-        currentCharacter.currentHitPoints
-      );
-
-      if (
-        nextTemporaryHitPoints === currentTemporaryHitPoints &&
-        nextCurrentHitPoints === currentCharacter.currentHitPoints
-      ) {
-        return currentCharacter;
-      }
-
-      return reconcileCharacterStatusConsequences({
-        ...currentCharacter,
-        ...createTemporaryHitPointsAssignment(
-          nextTemporaryHitPoints,
-          nextTemporaryHitPoints > 0 ? currentCharacter.temporaryHitPointsSource : undefined
-        ),
-        currentHitPoints: nextCurrentHitPoints,
-        deathSaves:
-          nextCurrentHitPoints > 0
-            ? createDefaultDeathSaves()
-            : normalizeDeathSaves(currentCharacter.deathSaves)
-      });
+      return applyDamageToCharacter(currentCharacter, amount);
     });
 
     setHitPointStep(1);
@@ -361,6 +287,14 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
                     temporaryHitPointsSource={character.temporaryHitPointsSource}
                     onPersistCharacter={onPersistCharacter}
                   />
+                  {magicTemporaryHitPointsFeature ? (
+                    <MagicTemporaryHitPoints
+                      feature={magicTemporaryHitPointsFeature}
+                      magicTemporaryHitPoints={magicTemporaryHitPoints}
+                      magicTemporaryHitPointsSource={character.magicTemporaryHitPointsSource}
+                      onPersistCharacter={onPersistCharacter}
+                    />
+                  ) : null}
                 </div>
 
                 <span>
@@ -384,13 +318,25 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
                   className={styles.barFill}
                   style={{ width: `${Math.max(0, currentHitPointPercent)}%` }}
                 />
-                {temporaryHitPointPercent > 0 ? (
+                {visibleTemporaryHitPointPercent > 0 ? (
                   <div
-                    className={clsx(
-                      styles.barTempFill,
-                      temporaryHitPointOverflow && styles.tempOverflow
-                    )}
-                    style={{ width: `${temporaryHitPointPercent}%` }}
+                    className={styles.barTempFill}
+                    style={{
+                      left: `${Math.max(0, currentHitPointPercent)}%`,
+                      width: `${visibleTemporaryHitPointPercent}%`
+                    }}
+                  />
+                ) : null}
+                {visibleMagicTemporaryHitPointPercent > 0 ? (
+                  <div
+                    className={styles.barMagicTempFill}
+                    style={{
+                      left: `${Math.max(
+                        0,
+                        currentHitPointPercent + visibleTemporaryHitPointPercent
+                      )}%`,
+                      width: `${visibleMagicTemporaryHitPointPercent}%`
+                    }}
                   />
                 ) : null}
               </div>

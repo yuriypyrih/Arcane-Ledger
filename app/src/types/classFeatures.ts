@@ -17,6 +17,11 @@ export type RangerFeyWandererGift =
   | "horns-or-antlers"
   | "shifting-colors";
 export type RangerOtherworldlyGlamourSkill = "Deception" | "Performance" | "Persuasion";
+export type WizardBladesingerTrainingInWarAndSongSkill =
+  | "Acrobatics"
+  | "Athletics"
+  | "Performance"
+  | "Persuasion";
 export type RangerHunterPreyChoice = "colossus-slayer" | "horde-breaker";
 export type RangerHunterDefensiveTacticsChoice = "escape-the-horde" | "multiattack-defense";
 export type RogueScionOfTheThreeDreadAllegianceChoice = "bane" | "bhaal" | "myrkul";
@@ -168,18 +173,41 @@ export type CharacterSorcererFeatureState = {
   draconicElementalAffinityDamageType?: DAMAGE_TYPE;
 };
 
+export type CharacterWizardPortentRoll = {
+  value?: number;
+  used?: boolean;
+};
+
 export type CharacterWizardFeatureState = {
   arcaneRecoveryUsesExpended?: number;
+  bladesongUsesExpended?: number;
+  trainingInWarAndSongSkill?: WizardBladesingerTrainingInWarAndSongSkill;
+  extraAttacksRemainingThisTurn?: number;
+  bladesingerCantripReplacementUsedThisTurn?: boolean;
+  spellcastWeaponBonusActionAvailable?: boolean;
   scholar?: SkillName;
+  savantSpellIds?: string[];
+  phantasmalCreaturesUsesExpended?: number;
+  illusorySelfUsesExpended?: number;
   spellMasterySpellIds?: Partial<Record<1 | 2, string>>;
   signatureSpellIds?: string[];
   expendedSignatureSpellIds?: string[];
+  portentRolls?: CharacterWizardPortentRoll[];
 };
 
 export type CharacterWarlockFeatureState = {
   eldritchInvocationIds?: string[];
   magicalCunningUsesExpended?: number;
   contactPatronUsesExpended?: number;
+  darkOnesOwnLuckUsesExpended?: number;
+  hurlThroughHellUsesExpended?: number;
+  fiendishResilienceDamageType?: DAMAGE_TYPE;
+  healingLightDiceExpended?: number;
+  radiantSoulUsedThisTurn?: boolean;
+  searingVengeanceUsesExpended?: number;
+  stepsOfTheFeyUsesExpended?: number;
+  beguilingDefenseUsesExpended?: number;
+  clairvoyantCombatantUsesExpended?: number;
   mysticArcanumSpellIds?: Partial<Record<6 | 7 | 8 | 9, string>>;
   mysticArcanumExpendedLevels?: Array<6 | 7 | 8 | 9>;
 };

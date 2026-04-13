@@ -269,10 +269,18 @@ import {
 } from "./sorcerer/subclasses";
 import {
   consumeContactPatronUse,
+  expendWarlockHealingLightDie,
+  consumeWarlockBeguilingDefenseUse,
   consumeMysticArcanumUse,
   getContactPatronUsesRemaining,
   getContactPatronUsesTotal,
+  getWarlockBeguilingDefenseUsesRemaining,
+  getWarlockBeguilingDefenseUsesTotal,
   getWarlockEldritchInvocationLimit,
+  getWarlockFiendishResilienceDamageTypeSelection,
+  getWarlockHealingLightDiceRemaining,
+  getWarlockHealingLightDiceTotal,
+  getWarlockHealingLightMaxSpend,
   getWarlockMagicalCunningUsesRemaining,
   getWarlockMagicalCunningUsesTotal,
   getWarlockInvocationBlockingSelectionNames,
@@ -282,28 +290,58 @@ import {
   getWarlockMysticArcanumSelections,
   getWarlockMysticArcanumSpellId,
   getWarlockMysticArcanumSpellOptions,
+  getWarlockFeatureReactionSpellDefinition,
+  applyWarlockFeaturesAfterSpellCast,
+  getWarlockPactMagicSlotTotal,
+  getWarlockPactMagicSlotsRemaining,
+  getWarlockStepsOfTheFeyUsesRemaining,
+  getWarlockStepsOfTheFeyUsesTotal,
+  restoreAllWarlockHealingLightDice,
   restoreContactPatronOnLongRest,
+  restoreWarlockHealingLightDie,
+  restoreWarlockHealingLightOnLongRest,
+  restoreWarlockBeguilingDefenseOnLongRest,
   restoreWarlockMagicalCunningOnLongRest,
+  consumeWarlockStepsOfTheFeyUse,
+  spendWarlockHealingLightDice,
+  setWarlockFiendishResilienceDamageTypeSelection,
   setWarlockMysticArcanumSpellId,
-  setWarlockInvocationSelectionIds
+  setWarlockInvocationSelectionIds,
+  warlockFiendPatronFiendishResilienceDamageTypeOptions,
+  warlockBeguilingDefenseReactionId
 } from "./warlock/warlock";
 import {
   activateArcaneRecovery,
+  applyWizardFeaturesAfterSpellCast,
+  consumeWizardWeaponAttack,
   consumeWizardSignatureSpellFreeCast,
   getArcaneRecoveryUsesRemaining,
   getArcaneRecoveryUsesTotal,
   getWizardExpendedSignatureSpellIds,
   getWizardScholarSelection,
+  getWizardSavantSpellIds,
   getWizardSignatureSpellIds,
+  getWizardSpellbookSpellEntry,
   hasWizardSignatureSpellFreeCastAvailable,
+  hasWizardSpellcastWeaponBonusActionAvailable,
   getWizardSpellMasterySelection,
   getWizardSpellMasterySpellIds,
   setWizardScholarSelection,
+  setWizardSavantSpellIds,
   setWizardSignatureSpellIds,
   setWizardSpellMasterySelection,
   syncWizardSignatureSpellsToSpellbook,
   syncWizardSpellMasterySelectionsToSpellbook
 } from "./wizard/wizard";
+import {
+  consumeWizardIllusionistIllusorySelfUse,
+  consumeWizardIllusionistPhantasmalCreaturesUse,
+  getWizardIllusionistIllusorySelfFallbackSlotSummary,
+  getWizardIllusionistIllusorySelfUsesRemaining,
+  getWizardIllusionistIllusorySelfUsesTotal,
+  getWizardIllusionistPhantasmalCreaturesSpellOptionState,
+  wizardIllusionistIllusorySelfReactionId
+} from "./wizard/subclasses/wizardIllusionist";
 import { getSubclassDerivedFeatureState } from "./subclasses";
 import {
   applyLayOnHands,
@@ -404,6 +442,7 @@ import {
   getActiveClassFeatureModule,
   getClassFeatureModules
 } from "./modules";
+export { getMagicTemporaryHitPointsFeatureForCharacter } from "./magicTemporaryHitPoints";
 import type {
   AbilityCheckIndicatorMap,
   ArmorClassFeatureContext,
@@ -444,12 +483,13 @@ import type {
   WeaponFeatureContext
 } from "./types";
 import type { CharacterStatusEntry } from "../../../types";
-import type {
-  ReactionEntry,
-  SpellEntry,
-  WEAPON_COMBAT_TYPE,
-  WEAPON_MASTERY,
-  WEAPON_PROPERTY
+import {
+  getSpellEntryById,
+  type ReactionEntry,
+  type SpellEntry,
+  type WEAPON_COMBAT_TYPE,
+  type WEAPON_MASTERY,
+  type WEAPON_PROPERTY
 } from "../../../codex/entries";
 import { PROF_LEVEL } from "../../../types";
 
@@ -581,6 +621,7 @@ export function transformWeaponActionForCharacter(
     | "className"
     | "level"
     | "subclassId"
+    | "abilities"
     | "classFeatureState"
     | "equipment"
     | "customEquipment"
@@ -716,7 +757,8 @@ export function getInitiativeBonusesForCharacter(
 }
 
 export function getSkillIndicatorsForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries"> &
+    Partial<Pick<Character, "subclassId">>
 ): SkillIndicatorMap {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
@@ -793,7 +835,12 @@ export function getArmorClassModesForCharacter(
 
 export function getArmorClassBonusesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "subclassId" | "equipment" | "customEquipment">>,
+    Partial<
+      Pick<
+        Character,
+        "abilities" | "customEquipment" | "equipment" | "statusEntries" | "subclassId"
+      >
+    >,
   context: ArmorClassFeatureContext
 ): FeatureArmorClassBonus[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
@@ -808,7 +855,13 @@ export function getArmorClassBonusesForCharacter(
 export function getSpeedBonusesForCharacter(
   character: Pick<
     Character,
-    "className" | "level" | "classFeatureState" | "equipment" | "customEquipment" | "subclassId"
+    | "className"
+    | "level"
+    | "classFeatureState"
+    | "equipment"
+    | "customEquipment"
+    | "statusEntries"
+    | "subclassId"
   >,
   context: SpeedFeatureContext
 ): FeatureSpeedBonus[] {
@@ -1051,6 +1104,25 @@ export function applyBardBattleMagicAfterSpellCastForCharacter(
   return applyBardBattleMagicAfterSpellCast(character, spell);
 }
 
+export function applySpellCastFeatureEffectsForCharacter(
+  character: Character,
+  spell: Pick<SpellEntry, "id" | "castingTime" | "magicSchool" | "spellLevel">,
+  options?: {
+    includeBardBattleMagic?: boolean;
+    spellSlotLevel?: number | null;
+  }
+): Character {
+  const nextCharacter =
+    options?.includeBardBattleMagic === false
+      ? character
+      : applyBardBattleMagicAfterSpellCast(character, spell);
+
+  return applyWarlockFeaturesAfterSpellCast(
+    applyWizardFeaturesAfterSpellCast(nextCharacter, spell, options?.spellSlotLevel),
+    spell
+  );
+}
+
 export function restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(
   character: Character
 ): Character {
@@ -1065,6 +1137,7 @@ export function hasBattleMagicBonusWeaponAttackForCharacter(
   return (
     attackKind === "weapon" &&
     (hasBardBattleMagicBonusAttackAvailable(character) ||
+      hasWizardSpellcastWeaponBonusActionAvailable(character) ||
       hasFighterPsiWarriorTelekineticMasterBonusAttackAvailable(character))
   );
 }
@@ -1687,11 +1760,25 @@ export function getWizardScholarSelectionForCharacter(
   return getWizardScholarSelection(character);
 }
 
+export function getWizardSavantSpellIdsForCharacter(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "classFeatureState" | "subclassId">>
+): string[] {
+  return getWizardSavantSpellIds(character);
+}
+
 export function setWizardScholarSelectionForCharacter(
   character: Character,
   selection: Parameters<typeof setWizardScholarSelection>[1]
 ): Character {
   return setWizardScholarSelection(character, selection);
+}
+
+export function setWizardSavantSpellIdsForCharacter(
+  character: Character,
+  spellIds: Parameters<typeof setWizardSavantSpellIds>[1]
+): Character {
+  return setWizardSavantSpellIds(character, spellIds);
 }
 
 export function getWizardSpellMasterySelectionForCharacter(
@@ -1756,6 +1843,46 @@ export function consumeWizardSignatureSpellFreeCastForCharacter(
   spellId: string
 ): Character {
   return consumeWizardSignatureSpellFreeCast(character, spellId);
+}
+
+export function getWizardIllusionistPhantasmalCreaturesSpellOptionStateForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>,
+  spell: Pick<SpellEntry, "id"> | null
+) {
+  return getWizardIllusionistPhantasmalCreaturesSpellOptionState(character, spell);
+}
+
+export function consumeWizardIllusionistPhantasmalCreaturesUseForCharacter(
+  character: Character
+): Character {
+  return consumeWizardIllusionistPhantasmalCreaturesUse(character);
+}
+
+export function getWizardIllusionistIllusorySelfUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level" | "subclassId">
+): number {
+  return getWizardIllusionistIllusorySelfUsesTotal(character);
+}
+
+export function getWizardIllusionistIllusorySelfUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): number {
+  return getWizardIllusionistIllusorySelfUsesRemaining(character);
+}
+
+export function getWizardIllusionistIllusorySelfFallbackSlotSummaryForCharacter(
+  character: Pick<Character, "className" | "level" | "spellSlotsExpended"> &
+    Partial<Pick<Character, "subclassId">>
+) {
+  return getWizardIllusionistIllusorySelfFallbackSlotSummary(character);
+}
+
+export function consumeWizardIllusionistIllusorySelfUseForCharacter(
+  character: Character
+): Character {
+  return consumeWizardIllusionistIllusorySelfUse(character);
 }
 
 export function getSorcererMetamagicDefinitionsForCharacter() {
@@ -1911,6 +2038,22 @@ export function getAlwaysPreparedSpellIdsForCharacter(
   ];
 }
 
+export function getAlwaysSpellbookSpellIdsForCharacter(
+  character: Pick<
+    Character,
+    "className" | "level" | "classFeatureState" | "spellbookSpellIds" | "subclassId"
+  >
+): string[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  return [
+    ...new Set([
+      ...(baseFeatureState.alwaysSpellbookSpellIds ?? []),
+      ...(subclassDerivedState.alwaysSpellbookSpellIds ?? [])
+    ])
+  ];
+}
+
 export function getRitualOnlySpellIdsForCharacter(
   character: Pick<
     Character,
@@ -1957,6 +2100,77 @@ export function getContactPatronUsesRemainingForCharacter(
   return getContactPatronUsesRemaining(character);
 }
 
+export function getWarlockStepsOfTheFeyUsesTotalForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+) {
+  return getWarlockStepsOfTheFeyUsesTotal(character);
+}
+
+export function getWarlockStepsOfTheFeyUsesRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "subclassId">>
+) {
+  return getWarlockStepsOfTheFeyUsesRemaining(character);
+}
+
+export function getWarlockHealingLightDiceTotalForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+) {
+  return getWarlockHealingLightDiceTotal(character);
+}
+
+export function getWarlockHealingLightDiceRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "subclassId">>
+) {
+  return getWarlockHealingLightDiceRemaining(character);
+}
+
+export function getWarlockHealingLightMaxSpendForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+) {
+  return getWarlockHealingLightMaxSpend(character);
+}
+
+export function getWarlockBeguilingDefenseUsesTotalForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+) {
+  return getWarlockBeguilingDefenseUsesTotal(character);
+}
+
+export function getWarlockBeguilingDefenseUsesRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+) {
+  return getWarlockBeguilingDefenseUsesRemaining(character);
+}
+
+export { warlockFiendPatronFiendishResilienceDamageTypeOptions };
+
+export function getWarlockFiendishResilienceDamageTypeSelectionForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+) {
+  return getWarlockFiendishResilienceDamageTypeSelection(character);
+}
+
+export function getWarlockPactMagicSlotTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+) {
+  return getWarlockPactMagicSlotTotal(character);
+}
+
+export function getWarlockPactMagicSlotsRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "spellSlotsExpended">
+) {
+  return getWarlockPactMagicSlotsRemaining(character);
+}
+
+export const warlockBeguilingDefenseReactionEntryId = warlockBeguilingDefenseReactionId;
+
 export function getWarlockMysticArcanumSelectionsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">
 ) {
@@ -1983,6 +2197,13 @@ export function setWarlockMysticArcanumSpellIdForCharacter(
   spellId: Parameters<typeof setWarlockMysticArcanumSpellId>[2]
 ): Character {
   return setWarlockMysticArcanumSpellId(character, spellLevel, spellId);
+}
+
+export function setWarlockFiendishResilienceDamageTypeSelectionForCharacter(
+  character: Character,
+  damageType: Parameters<typeof setWarlockFiendishResilienceDamageTypeSelection>[1]
+): Character {
+  return setWarlockFiendishResilienceDamageTypeSelection(character, damageType);
 }
 
 export function getWarlockInvocationSelectionIdsForCharacter(
@@ -2392,6 +2613,36 @@ export function getSpellEntryForCharacter(
     : baseSpellEntry;
 }
 
+export function getSpellbookSpellEntryForCharacter(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "subclassId" | "statusEntries" | "classFeatureState" | "feats">>,
+  spell: SpellEntry
+): SpellEntry {
+  return character.className === "Wizard"
+    ? getWizardSpellbookSpellEntry(character, spell)
+    : spell;
+}
+
+export function getFeatureReactionSpellForCharacter(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "subclassId" | "statusEntries" | "classFeatureState" | "feats">>,
+  reactionEntryId: string
+): SpellEntry | null {
+  const warlockReactionSpellDefinition = getWarlockFeatureReactionSpellDefinition(reactionEntryId);
+
+  if (warlockReactionSpellDefinition) {
+    const spell = getSpellEntryById(warlockReactionSpellDefinition.spellId);
+
+    return spell
+      ? warlockReactionSpellDefinition.transformSpellEntry(
+          getSpellEntryForCharacter(character, spell)
+        )
+      : null;
+  }
+
+  return null;
+}
+
 export function getSpellDamageFormulaOverrideForCharacter(
   character: Pick<Character, "className" | "level">,
   spell: Pick<SpellEntry, "id">
@@ -2400,6 +2651,7 @@ export function getSpellDamageFormulaOverrideForCharacter(
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
   return (
     subclassDerivedState.spellDamageFormulaOverrides?.[spell.id] ??
+    subclassDerivedState.getSpellDamageFormulaOverride?.(spell) ??
     baseFeatureState.getSpellDamageFormulaOverride?.(spell) ??
     null
   );
@@ -2834,6 +3086,7 @@ export function consumeFaithfulSteedUseForCharacter(character: Character): Chara
 export const paladinGloriousDefenseReactionEntryId = gloriousDefenseReactionId;
 export const paladinElementalRebukeReactionEntryId = elementalRebukeReactionId;
 export const rangerWinterWalkerChillingRetributionReactionEntryId = chillingRetributionReactionId;
+export const wizardIllusionistIllusorySelfReactionEntryId = wizardIllusionistIllusorySelfReactionId;
 
 export function getGloriousDefenseUsesTotalForCharacter(
   character: Pick<Character, "className"> &
@@ -2915,8 +3168,45 @@ export function restoreContactPatronOnLongRestForCharacter(character: Character)
   return restoreContactPatronOnLongRest(character);
 }
 
+export function restoreWarlockBeguilingDefenseOnLongRestForCharacter(
+  character: Character
+): Character {
+  return restoreWarlockBeguilingDefenseOnLongRest(character);
+}
+
+export function restoreWarlockHealingLightOnLongRestForCharacter(character: Character): Character {
+  return restoreWarlockHealingLightOnLongRest(character);
+}
+
 export function consumeContactPatronUseForCharacter(character: Character): Character {
   return consumeContactPatronUse(character);
+}
+
+export function consumeWarlockStepsOfTheFeyUseForCharacter(character: Character): Character {
+  return consumeWarlockStepsOfTheFeyUse(character);
+}
+
+export function consumeWarlockBeguilingDefenseUseForCharacter(character: Character): Character {
+  return consumeWarlockBeguilingDefenseUse(character);
+}
+
+export function spendWarlockHealingLightDiceForCharacter(
+  character: Character,
+  diceCount: number
+): Character {
+  return spendWarlockHealingLightDice(character, diceCount);
+}
+
+export function expendWarlockHealingLightDieForCharacter(character: Character): Character {
+  return expendWarlockHealingLightDie(character);
+}
+
+export function restoreWarlockHealingLightDieForCharacter(character: Character): Character {
+  return restoreWarlockHealingLightDie(character);
+}
+
+export function restoreAllWarlockHealingLightDiceForCharacter(character: Character): Character {
+  return restoreAllWarlockHealingLightDice(character);
 }
 
 export function consumeMysticArcanumUseForCharacter(
@@ -3052,6 +3342,14 @@ export function consumeWeaponAttackActionForCharacter(
 
   if (character.className === "Fighter") {
     return consumeFighterWeaponAttack(character, action);
+  }
+
+  if (character.className === "Wizard") {
+    const nextCharacter = consumeWizardWeaponAttack(character, action);
+
+    if (nextCharacter !== character) {
+      return nextCharacter;
+    }
   }
 
   const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);

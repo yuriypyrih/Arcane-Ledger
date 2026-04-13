@@ -20,6 +20,70 @@ import { getFeatDefinitionsByCategory } from "../../feats";
 import type { Character, CharacterWarlockFeatureState } from "../../../../types";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
 import type { FeatureActionCard } from "../types";
+import {
+  beguilingDefenseReactionId,
+  consumeWarlockArchfeyPatronBeguilingDefenseUse,
+  getWarlockArchfeyPatronBeguilingDefenseUsesRemaining,
+  getWarlockArchfeyPatronBeguilingDefenseUsesTotal,
+  consumeWarlockArchfeyPatronStepsOfTheFeyUse,
+  getWarlockArchfeyPatronFeatureReactionSpellDefinition,
+  getWarlockArchfeyPatronStepsOfTheFeyUsesRemaining,
+  getWarlockArchfeyPatronStepsOfTheFeyUsesTotal,
+  restoreWarlockArchfeyPatronBeguilingDefenseOnLongRest,
+  restoreWarlockArchfeyPatronStepsOfTheFeyOnLongRest
+} from "./subclasses/warlockArchfeyPatron";
+import {
+  advanceWarlockCelestialPatronFeaturesForNewRound,
+  applyWarlockCelestialPatronCelestialResilienceTemporaryHitPoints,
+  applyWarlockCelestialPatronFeaturesAfterSpellCast,
+  applyWarlockCelestialPatronFeaturesOnLongRest,
+  applyWarlockCelestialPatronFeaturesOnShortRest,
+  consumeWarlockCelestialPatronSearingVengeanceUse,
+  expendWarlockCelestialPatronHealingLightDie,
+  getWarlockCelestialPatronCelestialResilienceTemporaryHitPoints,
+  getWarlockCelestialPatronHealingLightDiceRemaining,
+  getWarlockCelestialPatronHealingLightDiceTotal,
+  getWarlockCelestialPatronHealingLightMaxSpend,
+  getWarlockCelestialPatronSearingVengeanceUsesRemaining,
+  getWarlockCelestialPatronSearingVengeanceUsesTotal,
+  restoreAllWarlockCelestialPatronHealingLightDice,
+  restoreWarlockCelestialPatronHealingLightDie,
+  restoreWarlockCelestialPatronHealingLightOnLongRest,
+  restoreWarlockCelestialPatronSearingVengeanceOnLongRest,
+  searingVengeanceActionKey,
+  spendWarlockCelestialPatronHealingLightDice
+} from "./subclasses/warlockCelestialPatron";
+import {
+  applyWarlockFiendPatronDarkOnesBlessing,
+  consumeWarlockFiendPatronDarkOnesOwnLuckUse,
+  consumeWarlockFiendPatronHurlThroughHellUse,
+  darkOnesBlessingActionKey,
+  darkOnesOwnLuckActionKey,
+  getWarlockFiendPatronFiendishResilienceDamageTypeSelection,
+  getWarlockFiendPatronDarkOnesOwnLuckUsesRemaining,
+  getWarlockFiendPatronDarkOnesOwnLuckUsesTotal,
+  getWarlockFiendPatronHurlThroughHellUsesRemaining,
+  getWarlockFiendPatronHurlThroughHellUsesTotal,
+  hurlThroughHellActionKey,
+  restoreWarlockFiendPatronDarkOnesOwnLuckOnLongRest,
+  restoreWarlockFiendPatronHurlThroughHellOnLongRest,
+  setWarlockFiendPatronFiendishResilienceDamageTypeSelection,
+  warlockFiendPatronFiendishResilienceDamageTypeOptions
+} from "./subclasses/warlockFiendPatron";
+import {
+  activateWarlockGreatOldOnePatronAwakenedMind,
+  getWarlockGreatOldOnePatronClairvoyantCombatantUsesRemaining,
+  getWarlockGreatOldOnePatronClairvoyantCombatantUsesTotal,
+  restoreWarlockGreatOldOnePatronClairvoyantCombatantOnLongRest,
+  restoreWarlockGreatOldOnePatronClairvoyantCombatantOnShortRest,
+  type ActivateWarlockGreatOldOnePatronAwakenedMindOptions
+} from "./subclasses/warlockGreatOldOnePatron";
+import {
+  activateWarlockSubclassFeatureAction,
+  normalizeWarlockSubclassFeatureState,
+  restoreWarlockSubclassFeaturesOnShortRest,
+  restoreWarlockSubclassFeaturesOnLongRest
+} from "./subclasses";
 
 const invocationSelectionSeparator = "::";
 const placeholderSelectionSuffix = "placeholder";
@@ -33,6 +97,13 @@ const mysticArcanumActionDetail =
 export const magicalCunningActionKey = "warlock-magical-cunning";
 export const contactPatronActionKey = "warlock-contact-patron";
 export const mysticArcanumActionKey = "warlock-mystic-arcanum";
+export {
+  darkOnesBlessingActionKey,
+  darkOnesOwnLuckActionKey,
+  hurlThroughHellActionKey,
+  searingVengeanceActionKey
+};
+export { warlockFiendPatronFiendishResilienceDamageTypeOptions };
 
 export type MysticArcanumLevel = 6 | 7 | 8 | 9;
 
@@ -119,7 +190,8 @@ function parseSelectionId(selectionId: string): {
 }
 
 function getWarlockFeatureState(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
 ): CharacterWarlockFeatureState {
   return normalizeWarlockFeatureState(character.classFeatureState?.warlock, character);
 }
@@ -574,7 +646,8 @@ export function getWarlockInvocationBlockingSelectionNames(
 
 export function normalizeWarlockFeatureState(
   value: unknown,
-  character: Pick<Character, "className" | "level" | "cantripIds" | "feats">
+  character: Pick<Character, "className" | "level" | "cantripIds" | "feats"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
 ): CharacterWarlockFeatureState {
   if (!hasWarlockFeature(character, CLASS_FEATURE.ELDRITCH_INVOCATIONS)) {
     return {};
@@ -662,8 +735,142 @@ export function normalizeWarlockFeatureState(
     magicalCunningUsesExpended,
     contactPatronUsesExpended,
     mysticArcanumSpellIds,
-    mysticArcanumExpendedLevels
+    mysticArcanumExpendedLevels,
+    ...normalizeWarlockSubclassFeatureState(record, character)
   };
+}
+
+export function getWarlockStepsOfTheFeyUsesTotal(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): number {
+  return getWarlockArchfeyPatronStepsOfTheFeyUsesTotal(character);
+}
+
+export function getWarlockStepsOfTheFeyUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "subclassId">>
+): number {
+  return getWarlockArchfeyPatronStepsOfTheFeyUsesRemaining(character);
+}
+
+export function getWarlockHealingLightDiceTotal(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): number {
+  return getWarlockCelestialPatronHealingLightDiceTotal(character);
+}
+
+export function getWarlockHealingLightDiceRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "subclassId">>
+): number {
+  return getWarlockCelestialPatronHealingLightDiceRemaining(character);
+}
+
+export function getWarlockHealingLightMaxSpend(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): number {
+  return getWarlockCelestialPatronHealingLightMaxSpend(character);
+}
+
+export function getWarlockCelestialResilienceTemporaryHitPoints(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>
+): number {
+  return getWarlockCelestialPatronCelestialResilienceTemporaryHitPoints(character);
+}
+
+export function applyWarlockCelestialResilienceTemporaryHitPoints(character: Character): Character {
+  return applyWarlockCelestialPatronCelestialResilienceTemporaryHitPoints(character);
+}
+
+export function getWarlockBeguilingDefenseUsesTotal(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return getWarlockArchfeyPatronBeguilingDefenseUsesTotal(character);
+}
+
+export function getWarlockBeguilingDefenseUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+): number {
+  return getWarlockArchfeyPatronBeguilingDefenseUsesRemaining(character);
+}
+
+export function getWarlockClairvoyantCombatantUsesTotal(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return getWarlockGreatOldOnePatronClairvoyantCombatantUsesTotal(character);
+}
+
+export function getWarlockClairvoyantCombatantUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+): number {
+  return getWarlockGreatOldOnePatronClairvoyantCombatantUsesRemaining(character);
+}
+
+export function getWarlockDarkOnesOwnLuckUsesTotal(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): number {
+  return getWarlockFiendPatronDarkOnesOwnLuckUsesTotal(character);
+}
+
+export function getWarlockDarkOnesOwnLuckUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "subclassId">>
+): number {
+  return getWarlockFiendPatronDarkOnesOwnLuckUsesRemaining(character);
+}
+
+export function getWarlockHurlThroughHellUsesTotal(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "spellSlotsExpended" | "subclassId">>
+): number {
+  return getWarlockFiendPatronHurlThroughHellUsesTotal(character);
+}
+
+export function getWarlockHurlThroughHellUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "spellSlotsExpended" | "subclassId">>
+): number {
+  return getWarlockFiendPatronHurlThroughHellUsesRemaining(character);
+}
+
+export function getWarlockFiendishResilienceDamageTypeSelection(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+) {
+  return getWarlockFiendPatronFiendishResilienceDamageTypeSelection(character);
+}
+
+export function getWarlockSearingVengeanceUsesTotal(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return getWarlockCelestialPatronSearingVengeanceUsesTotal(character);
+}
+
+export function getWarlockSearingVengeanceUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+): number {
+  return getWarlockCelestialPatronSearingVengeanceUsesRemaining(character);
+}
+
+export function getWarlockFeatureReactionSpellDefinition(reactionEntryId: string) {
+  return getWarlockArchfeyPatronFeatureReactionSpellDefinition(reactionEntryId);
+}
+
+export function getWarlockPactMagicSlotsRemaining(
+  character: Pick<Character, "className" | "level" | "spellSlotsExpended">
+): number {
+  return Math.max(
+    0,
+    getWarlockPactMagicSlotTotal(character) - getWarlockPactMagicSlotsExpended(character)
+  );
 }
 
 export function getWarlockAlwaysPreparedSpellIds(
@@ -703,6 +910,13 @@ export function setWarlockMysticArcanumSpellId(
       warlock: nextWarlockState
     }
   };
+}
+
+export function setWarlockFiendishResilienceDamageTypeSelection(
+  character: Character,
+  damageType: Parameters<typeof setWarlockFiendPatronFiendishResilienceDamageTypeSelection>[1]
+): Character {
+  return setWarlockFiendPatronFiendishResilienceDamageTypeSelection(character, damageType);
 }
 
 export function setWarlockInvocationSelectionIds(
@@ -854,6 +1068,28 @@ export function getWarlockFeatureActions(
   return actions;
 }
 
+export function activateWarlockFeatureAction(
+  character: Character,
+  actionKey: string
+): Character | null {
+  if (actionKey === magicalCunningActionKey) {
+    return activateWarlockMagicalCunning(character);
+  }
+
+  if (actionKey === contactPatronActionKey || actionKey === mysticArcanumActionKey) {
+    return character;
+  }
+
+  return activateWarlockSubclassFeatureAction(character, actionKey);
+}
+
+export function activateWarlockAwakenedMind(
+  character: Character,
+  options: ActivateWarlockGreatOldOnePatronAwakenedMindOptions = {}
+): Character {
+  return activateWarlockGreatOldOnePatronAwakenedMind(character, options);
+}
+
 export function activateWarlockMagicalCunning(character: Character): Character {
   if (!hasWarlockFeature(character, CLASS_FEATURE.MAGICAL_CUNNING)) {
     return character;
@@ -887,7 +1123,7 @@ export function activateWarlockMagicalCunning(character: Character): Character {
   nextSpellSlotsExpended[pactMagicSlotLevel - 1] = Math.max(0, expendedSlots - slotsToRestore);
   const warlockState = getWarlockFeatureState(character);
 
-  return {
+  return applyWarlockCelestialPatronCelestialResilienceTemporaryHitPoints({
     ...character,
     spellSlotsExpended: nextSpellSlotsExpended,
     classFeatureState: {
@@ -897,7 +1133,7 @@ export function activateWarlockMagicalCunning(character: Character): Character {
         magicalCunningUsesExpended: (warlockState.magicalCunningUsesExpended ?? 0) + 1
       }
     }
-  };
+  });
 }
 
 export function restoreWarlockPactMagicSpellSlots(character: Character): Character {
@@ -1058,3 +1294,104 @@ export function restoreMysticArcanumOnLongRest(character: Character): Character 
     }
   };
 }
+
+export function consumeWarlockStepsOfTheFeyUse(character: Character): Character {
+  return consumeWarlockArchfeyPatronStepsOfTheFeyUse(character);
+}
+
+export function consumeWarlockBeguilingDefenseUse(character: Character): Character {
+  return consumeWarlockArchfeyPatronBeguilingDefenseUse(character);
+}
+
+export function restoreWarlockStepsOfTheFeyOnLongRest(character: Character): Character {
+  return restoreWarlockArchfeyPatronStepsOfTheFeyOnLongRest(character);
+}
+
+export function restoreWarlockBeguilingDefenseOnLongRest(character: Character): Character {
+  return restoreWarlockArchfeyPatronBeguilingDefenseOnLongRest(character);
+}
+
+export function restoreWarlockClairvoyantCombatantOnShortRest(character: Character): Character {
+  return restoreWarlockGreatOldOnePatronClairvoyantCombatantOnShortRest(character);
+}
+
+export function restoreWarlockClairvoyantCombatantOnLongRest(character: Character): Character {
+  return restoreWarlockGreatOldOnePatronClairvoyantCombatantOnLongRest(character);
+}
+
+export function spendWarlockHealingLightDice(character: Character, diceCount: number): Character {
+  return spendWarlockCelestialPatronHealingLightDice(character, diceCount);
+}
+
+export function expendWarlockHealingLightDie(character: Character): Character {
+  return expendWarlockCelestialPatronHealingLightDie(character);
+}
+
+export function restoreWarlockHealingLightDie(character: Character): Character {
+  return restoreWarlockCelestialPatronHealingLightDie(character);
+}
+
+export function consumeWarlockSearingVengeanceUse(character: Character): Character {
+  return consumeWarlockCelestialPatronSearingVengeanceUse(character);
+}
+
+export function activateWarlockDarkOnesBlessing(character: Character): Character {
+  return applyWarlockFiendPatronDarkOnesBlessing(character);
+}
+
+export function consumeWarlockDarkOnesOwnLuckUse(character: Character): Character {
+  return consumeWarlockFiendPatronDarkOnesOwnLuckUse(character);
+}
+
+export function consumeWarlockHurlThroughHellUse(character: Character): Character {
+  return consumeWarlockFiendPatronHurlThroughHellUse(character);
+}
+
+export function restoreAllWarlockHealingLightDice(character: Character): Character {
+  return restoreAllWarlockCelestialPatronHealingLightDice(character);
+}
+
+export function restoreWarlockHealingLightOnLongRest(character: Character): Character {
+  return restoreWarlockCelestialPatronHealingLightOnLongRest(character);
+}
+
+export function restoreWarlockSearingVengeanceOnLongRest(character: Character): Character {
+  return restoreWarlockCelestialPatronSearingVengeanceOnLongRest(character);
+}
+
+export function restoreWarlockDarkOnesOwnLuckOnLongRest(character: Character): Character {
+  return restoreWarlockFiendPatronDarkOnesOwnLuckOnLongRest(character);
+}
+
+export function restoreWarlockHurlThroughHellOnLongRest(character: Character): Character {
+  return restoreWarlockFiendPatronHurlThroughHellOnLongRest(character);
+}
+
+export function applyWarlockFeaturesAfterSpellCast(
+  character: Character,
+  spell: Pick<SpellEntry, "id">
+): Character {
+  return applyWarlockCelestialPatronFeaturesAfterSpellCast(character, spell.id);
+}
+
+export function applyShortRestToWarlockFeatures(character: Character): Character {
+  return applyWarlockCelestialPatronFeaturesOnShortRest(
+    restoreWarlockPactMagicSpellSlots(restoreWarlockSubclassFeaturesOnShortRest(character))
+  );
+}
+
+export function applyLongRestToWarlockFeatures(character: Character): Character {
+  return applyWarlockCelestialPatronFeaturesOnLongRest(
+    restoreContactPatronOnLongRest(
+      restoreMysticArcanumOnLongRest(
+        restoreWarlockMagicalCunningOnLongRest(restoreWarlockSubclassFeaturesOnLongRest(character))
+      )
+    )
+  );
+}
+
+export function advanceWarlockFeaturesForNewRound(character: Character): Character {
+  return advanceWarlockCelestialPatronFeaturesForNewRound(character);
+}
+
+export const warlockBeguilingDefenseReactionId = beguilingDefenseReactionId;

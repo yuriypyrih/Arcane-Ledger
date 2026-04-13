@@ -11,7 +11,12 @@ import ConcentrationLabel from "../../../ConcentrationLabel";
 import SpellSubtitle from "../../../SpellSubtitle";
 import SelectInput from "../../FormInputs/SelectInput";
 import SpellDescriptionContent from "../../../SpellDescriptionContent";
-import { ENTRY_CATEGORIES, KeywordTooltip, type SpellEntry } from "../../../../codex/entries";
+import {
+  ENTRY_CATEGORIES,
+  KeywordTooltip,
+  type SpellDescriptionEntry,
+  type SpellEntry
+} from "../../../../codex/entries";
 import type { Character } from "../../../../types";
 import {
   formatCodexLabel,
@@ -36,6 +41,7 @@ export type CharacterSpellDrawerActionOptions = {
   castAsRitual?: boolean;
   useBeguilingMagic?: boolean;
   useElementalSmite?: boolean;
+  usePhantasmalCreatures?: boolean;
   usePsionicSorcery?: boolean;
   useTelekineticMaster?: boolean;
 };
@@ -70,6 +76,7 @@ type CharacterSpellDrawerProps = {
   character: Character;
   spell: SpellEntry;
   alwaysPrepared?: boolean;
+  alwaysSpellbook?: boolean;
   mode: CharacterSpellDrawerMode;
   spellSlotTotals: number[];
   spellSlotsRemaining: number[];
@@ -133,6 +140,7 @@ function CharacterSpellDrawer({
   character,
   spell,
   alwaysPrepared = false,
+  alwaysSpellbook = false,
   mode,
   spellSlotTotals,
   spellSlotsRemaining,
@@ -253,11 +261,19 @@ function CharacterSpellDrawer({
     }
   }, [ritualCastingRequired, spell.id]);
 
-  const spellDescription = useMemo(() => spell.description, [spell.description]);
-  const availabilityText = isRitualCastingSelected || ritualCastingRequired
-    ? (actionAvailabilityText ??
-      "Cast as a Ritual without expending a spell slot. Ritual casting can't be upcast.")
-    : actionAvailabilityText;
+  const spellDescription = useMemo<SpellDescriptionEntry[]>(() => {
+    const descriptionAdditions =
+      spell.descriptionAdditions?.flatMap((section) => section.filter(Boolean)) ?? [];
+
+    return descriptionAdditions.length > 0
+      ? [...spell.description, ...descriptionAdditions]
+      : spell.description;
+  }, [spell.description, spell.descriptionAdditions]);
+  const availabilityText =
+    isRitualCastingSelected || ritualCastingRequired
+      ? (actionAvailabilityText ??
+        "Cast as a Ritual without expending a spell slot. Ritual casting can't be upcast.")
+      : actionAvailabilityText;
   const slotText =
     availabilityText ??
     (selectedSlotIsFreeCast
@@ -304,6 +320,13 @@ function CharacterSpellDrawer({
                     className={clsx(styles.alwaysPreparedPill, styles.alwaysPreparedDrawerPill)}
                   >
                     Always Prepared
+                  </span>
+                ) : null}
+                {alwaysSpellbook ? (
+                  <span
+                    className={clsx(styles.alwaysSpellbookPill, styles.alwaysPreparedDrawerPill)}
+                  >
+                    Always Spellbook
                   </span>
                 ) : null}
               </div>
@@ -402,7 +425,9 @@ function CharacterSpellDrawer({
                             disabled={ritualCastingRequired}
                             onChange={(event) => setIsRitualCastingSelected(event.target.checked)}
                           />
-                          <span>{ritualCastingRequired ? "Ritual Casting Only" : "Cast as Ritual"}</span>
+                          <span>
+                            {ritualCastingRequired ? "Ritual Casting Only" : "Cast as Ritual"}
+                          </span>
                         </label>
                       ) : null}
                       {actionOptions.map((option) => {
@@ -536,6 +561,9 @@ function CharacterSpellDrawer({
                         castAsRitual: ritualCastingRequired || isRitualCastingSelected,
                         usePsionicSorcery: actionOptions.some(
                           (option) => option.id === "psionic-sorcery" && option.checked
+                        ),
+                        usePhantasmalCreatures: actionOptions.some(
+                          (option) => option.id === "phantasmal-creatures" && option.checked
                         ),
                         useTelekineticMaster: actionOptions.some(
                           (option) => option.id === "telekinetic-master" && option.checked

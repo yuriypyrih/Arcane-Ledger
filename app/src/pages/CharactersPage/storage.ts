@@ -29,7 +29,11 @@ import {
   usesSpellbookForCharacter,
   normalizeSpellSlotsExpended
 } from "./spellcasting";
-import { normalizeCharacterClassFeatureState } from "./classFeatures";
+import {
+  getAlwaysSpellbookSpellIdsForCharacter,
+  getMagicTemporaryHitPointsFeatureForCharacter,
+  normalizeCharacterClassFeatureState
+} from "./classFeatures";
 import { normalizeLevelAndXp } from "./experience";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
 import { normalizeCharacterCompanions } from "./companions";
@@ -38,17 +42,19 @@ import {
   normalizeHeroicInspiration,
   restoreHeroicInspirationForCharacter
 } from "./heroicInspiration";
-import { clampNumber } from "./shared";
+import {
+  clampNumber,
+  createMagicTemporaryHitPointsAssignment,
+  createTemporaryHitPointsAssignment,
+  normalizeMagicTemporaryHitPointsSource,
+  normalizeTemporaryHitPointsSource
+} from "./shared";
 import { normalizeSubclassId } from "./subclasses";
 import {
   getEffectiveHitPointMaximumForCharacter,
   normalizeCharacterStatusEntries,
   reconcileCharacterStatusConsequences
 } from "./traits";
-import {
-  createTemporaryHitPointsAssignment,
-  normalizeTemporaryHitPointsSource
-} from "./shared";
 
 function normalizeCoreStatValue(value: unknown, fallback: string): string {
   if (typeof value !== "string") {
@@ -176,6 +182,8 @@ export function normalizeCharacter(value: unknown): Character | null {
     savingThrowProficiencies?: unknown;
     hitDiceRemaining?: unknown;
     maxHitPointsMode?: unknown;
+    magicTemporaryHitPoints?: unknown;
+    magicTemporaryHitPointsSource?: unknown;
     temporaryHitPoints?: unknown;
     temporaryHitPointsSource?: unknown;
     hover?: unknown;
@@ -314,9 +322,7 @@ export function normalizeCharacter(value: unknown): Character | null {
       normalizedClassName,
       normalizedLevel,
       normalizedSubclassId
-    ).map(
-      (spell) => spell.id
-    )
+    ).map((spell) => spell.id)
   );
   const normalizedCantripIds = [...new Set(rawCantripIds)]
     .filter((spellId) => cantripSelectionOptionIds.has(spellId))
@@ -339,16 +345,30 @@ export function normalizeCharacter(value: unknown): Character | null {
     : usesSpellbookForCharacter(normalizedClassName, normalizedSubclassId)
       ? [...rawKnownSpellIds, ...rawPreparedSpellIds]
       : [];
+  const alwaysSpellbookSpellIds = getAlwaysSpellbookSpellIdsForCharacter({
+    className: normalizedClassName,
+    level: normalizedLevel,
+    classFeatureState: normalizedClassFeatureState,
+    spellbookSpellIds: rawSpellbookSpellIds,
+    subclassId: normalizedSubclassId
+  });
+  const alwaysSpellbookSpellIdSet = new Set(alwaysSpellbookSpellIds);
   const normalizedSpellbookSpellIds = usesSpellbookForCharacter(
     normalizedClassName,
     normalizedSubclassId
   )
     ? normalizeSpellbookSpellIds(
-        rawSpellbookSpellIds.filter((spellId) => preparedSpellSelectionOptionIds.has(spellId)),
+        rawSpellbookSpellIds.filter(
+          (spellId) =>
+            preparedSpellSelectionOptionIds.has(spellId) && !alwaysSpellbookSpellIdSet.has(spellId)
+        ),
         preparedSpellSelectionOptions
       )
     : [];
-  const normalizedSpellbookSpellIdSet = new Set(normalizedSpellbookSpellIds);
+  const normalizedSpellbookSpellIdSet = new Set([
+    ...normalizedSpellbookSpellIds,
+    ...alwaysSpellbookSpellIds
+  ]);
   const normalizedPreparedSpellIds = normalizePreparedSpellIds(
     rawPreparedSpellIds.filter(
       (spellId) =>
@@ -376,6 +396,13 @@ export function normalizeCharacter(value: unknown): Character | null {
     record.spellSlotsExpended,
     spellSlotTotals
   );
+  const magicTemporaryHitPointsFeature = getMagicTemporaryHitPointsFeatureForCharacter({
+    className: normalizedClassName,
+    level: normalizedLevel,
+    subclassId: normalizedSubclassId,
+    abilities: normalizedAbilities,
+    classFeatureState: normalizedClassFeatureState
+  });
   const normalizedShortRestsUsedToday = clampNumber(
     record.shortRestsUsedToday,
     0,
@@ -406,6 +433,18 @@ export function normalizeCharacter(value: unknown): Character | null {
     clampNumber(record.temporaryHitPoints, 0, 999, defaults.temporaryHitPoints),
     normalizeTemporaryHitPointsSource(record.temporaryHitPointsSource)
   );
+  const normalizedMagicTemporaryHitPointsAssignment = magicTemporaryHitPointsFeature
+    ? createMagicTemporaryHitPointsAssignment(
+        clampNumber(
+          record.magicTemporaryHitPoints,
+          0,
+          magicTemporaryHitPointsFeature.maxHitPoints,
+          defaults.magicTemporaryHitPoints
+        ),
+        normalizeMagicTemporaryHitPointsSource(record.magicTemporaryHitPointsSource) ??
+          magicTemporaryHitPointsFeature.label
+      )
+    : createMagicTemporaryHitPointsAssignment(0);
   const normalizedCurrentHitPointMaximum = getEffectiveHitPointMaximumForCharacter({
     className: normalizedClassName,
     subclassId: normalizedSubclassId,
@@ -429,6 +468,9 @@ export function normalizeCharacter(value: unknown): Character | null {
       normalizedCurrentHitPointMaximum,
       normalizedCurrentHitPointMaximum
     ),
+    magicTemporaryHitPoints: normalizedMagicTemporaryHitPointsAssignment.magicTemporaryHitPoints,
+    magicTemporaryHitPointsSource:
+      normalizedMagicTemporaryHitPointsAssignment.magicTemporaryHitPointsSource,
     temporaryHitPoints: normalizedTemporaryHitPointsAssignment.temporaryHitPoints,
     temporaryHitPointsSource: normalizedTemporaryHitPointsAssignment.temporaryHitPointsSource,
     hover: record.hover === true,
@@ -441,8 +483,8 @@ export function normalizeCharacter(value: unknown): Character | null {
     alignment:
       typeof record.alignment === "string" &&
       alignmentOptions.includes(record.alignment as Character["alignment"])
-      ? (record.alignment as Character["alignment"])
-      : defaults.alignment,
+        ? (record.alignment as Character["alignment"])
+        : defaults.alignment,
     background: resolvedBackground,
     backgroundNotes: normalizedBackgroundNotes,
     currencies: normalizedCurrencies,
@@ -471,7 +513,7 @@ export function normalizeCharacter(value: unknown): Character | null {
   });
 }
 
-export function loadCharacters(): Character[] {
+function loadStoredCharacterRecords(): unknown[] {
   if (typeof window === "undefined") {
     return [];
   }
@@ -484,19 +526,13 @@ export function loadCharacters(): Character[] {
 
   try {
     const parsedCharacters = JSON.parse(serializedCharacters) as unknown;
-    if (!Array.isArray(parsedCharacters)) {
-      return [];
-    }
-
-    return parsedCharacters
-      .map((character) => normalizeCharacter(character))
-      .filter((character): character is Character => character !== null);
+    return Array.isArray(parsedCharacters) ? parsedCharacters : [];
   } catch {
     return [];
   }
 }
 
-export function saveCharacters(characters: Character[]) {
+function saveStoredCharacterRecords(characters: unknown[]) {
   if (typeof window === "undefined") {
     return;
   }
@@ -504,31 +540,69 @@ export function saveCharacters(characters: Character[]) {
   window.localStorage.setItem(CHARACTERS_STORAGE_KEY, JSON.stringify(characters));
 }
 
+function getStoredCharacterId(character: unknown): number | null {
+  if (!character || typeof character !== "object") {
+    return null;
+  }
+
+  const id = Number((character as { id?: unknown }).id);
+
+  return Number.isFinite(id) ? id : null;
+}
+
+export function loadCharacters(): Character[] {
+  return loadStoredCharacterRecords()
+    .map((character) => normalizeCharacter(character))
+    .filter((character): character is Character => character !== null);
+}
+
+export function saveCharacters(characters: Character[]) {
+  saveStoredCharacterRecords(characters);
+}
+
 export function findCharacter(characterId: number): Character | undefined {
-  return loadCharacters().find((character) => character.id === characterId);
+  const matchingCharacterRecord = loadStoredCharacterRecords().find(
+    (character) => getStoredCharacterId(character) === characterId
+  );
+
+  if (!matchingCharacterRecord) {
+    return undefined;
+  }
+
+  return normalizeCharacter(matchingCharacterRecord) ?? undefined;
 }
 
 export function deleteCharacter(characterId: number): Character[] {
-  const characters = loadCharacters();
-  const nextCharacters = characters.filter((character) => character.id !== characterId);
+  const characters = loadStoredCharacterRecords();
+  const nextCharacters = characters.filter(
+    (character) => getStoredCharacterId(character) !== characterId
+  );
 
   if (nextCharacters.length !== characters.length) {
-    saveCharacters(nextCharacters);
+    saveStoredCharacterRecords(nextCharacters);
   }
 
-  return nextCharacters;
+  return nextCharacters
+    .map((character) => normalizeCharacter(character))
+    .filter((character): character is Character => character !== null);
 }
 
 export function upsertCharacter(
   draft: CharacterDraft | Omit<Character, "id">,
   characterId?: number
 ): Character {
-  const characters = loadCharacters();
+  const characters = loadStoredCharacterRecords();
   const nextId = characterId ?? Date.now();
   const previousCharacter =
     characterId === undefined
       ? null
-      : characters.find((character) => character.id === characterId) ?? null;
+      : (() => {
+          const previousCharacterRecord =
+            characters.find((character) => getStoredCharacterId(character) === characterId) ??
+            null;
+
+          return previousCharacterRecord ? normalizeCharacter(previousCharacterRecord) : null;
+        })();
   let nextCharacter = normalizeCharacter({
     id: nextId,
     ...draft
@@ -549,10 +623,12 @@ export function upsertCharacter(
   const nextCharacters =
     characterId === undefined
       ? [nextCharacter, ...characters]
-      : characters.some((character) => character.id === characterId)
-        ? characters.map((character) => (character.id === characterId ? nextCharacter : character))
+      : characters.some((character) => getStoredCharacterId(character) === characterId)
+        ? characters.map((character) =>
+            getStoredCharacterId(character) === characterId ? nextCharacter : character
+          )
         : [nextCharacter, ...characters];
 
-  saveCharacters(nextCharacters);
+  saveStoredCharacterRecords(nextCharacters);
   return nextCharacter;
 }

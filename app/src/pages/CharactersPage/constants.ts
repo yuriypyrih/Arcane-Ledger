@@ -89,6 +89,8 @@ export function createEmptyCharacter(): CharacterDraft {
     xp: 0,
     hitPoints: 8,
     currentHitPoints: 8,
+    magicTemporaryHitPoints: 0,
+    magicTemporaryHitPointsSource: undefined,
     temporaryHitPoints: 0,
     temporaryHitPointsSource: undefined,
     hover: false,
