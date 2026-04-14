@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Hand, Minus, Plus, Shield, TicketMinus, TicketPlus, X } from "lucide-react";
+import { Hand, Minus, Package, Plus, Shield, TicketMinus, TicketPlus, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import CellContainer from "../../../CellContainer/CellContainer";
 import coinCopperIcon from "../../../../assets/svg/coin-copper.svg";
@@ -11,6 +11,7 @@ import CurrencyInlineDisplay from "../../../CurrencyInlineDisplay";
 import NumberInput from "../../FormInputs/NumberInput";
 import RarityPill from "../../../CodexPage/RarityPill";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
+import { fetchItemPackContents } from "../../../../api";
 import {
   ENTRY_CATEGORIES,
   type ArmorEntry,
@@ -64,6 +65,7 @@ import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/C
 import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import {
+  addInventoryItemCopies,
   createCharacterInventoryItem,
   createHeldDescriptorForInventoryItem,
   findFirstInventoryCopyByKey,
@@ -74,6 +76,7 @@ import {
   getItemTransactionCost,
   getItemWeightValue,
   groupCharacterInventoryItems,
+  isExtractableEquipmentPackRecord,
   isItemBodyArmorRecord,
   isItemHandEquippableRecord,
   isItemShieldRecord,
@@ -301,6 +304,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const [customEditorMode, setCustomEditorMode] = useState<"create" | "edit">("create");
   const [editingCustomEquipmentId, setEditingCustomEquipmentId] = useState<string | null>(null);
   const [isGeneralEquipmentExpanded, setIsGeneralEquipmentExpanded] = useState(false);
+  const [extractingItemKey, setExtractingItemKey] = useState<string | null>(null);
   const [pendingDeleteCustomEquipmentId, setPendingDeleteCustomEquipmentId] = useState<
     string | null
   >(null);
@@ -1006,6 +1010,56 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     }
   }
 
+  async function extractInventoryPackContents() {
+    const selectedItem = selectedInventoryRecord;
+    const packKey = selectedInventoryInspection?.itemKey ?? selectedItem?.key ?? "";
+    const source = selectedInventoryInspection?.source ?? "browser";
+
+    if (
+      !selectedItem ||
+      !packKey ||
+      !isExtractableEquipmentPackRecord(selectedItem) ||
+      extractingItemKey === packKey
+    ) {
+      return;
+    }
+
+    setExtractingItemKey(packKey);
+
+    try {
+      const payload = await fetchItemPackContents(packKey);
+
+      onPersistCharacter((currentCharacter) => {
+        let nextInventoryItems = currentCharacter.inventoryItems;
+
+        payload.contents.forEach((entry) => {
+          nextInventoryItems = addInventoryItemCopies(
+            nextInventoryItems,
+            entry.item,
+            entry.quantity
+          );
+        });
+
+        if (source === "inventory") {
+          nextInventoryItems = removeOneInventoryItemCopyByKey(nextInventoryItems, packKey);
+        }
+
+        if (nextInventoryItems === currentCharacter.inventoryItems) {
+          return currentCharacter;
+        }
+
+        return {
+          ...currentCharacter,
+          inventoryItems: nextInventoryItems
+        };
+      });
+    } catch (error) {
+      console.error("Failed to extract equipment pack contents.", error);
+    } finally {
+      setExtractingItemKey((currentKey) => (currentKey === packKey ? null : currentKey));
+    }
+  }
+
   function removeEquipmentItem(itemName: string) {
     onPersistCharacter((currentCharacter) => ({
       ...currentCharacter,
@@ -1244,9 +1298,22 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     setCurrencyAmountDraft(0);
   }
 
-  const inventoryLeftFooterActions: EquipmentInventoryDrawerAction[] = selectedInventoryGroup
+  const inventoryLeftFooterActions: EquipmentInventoryDrawerAction[] = selectedInventoryRecord
     ? [
-        ...(isItemHandEquippableRecord(selectedInventoryGroup.item)
+        ...(isExtractableEquipmentPackRecord(selectedInventoryRecord)
+          ? [
+              {
+                key: "extract-items",
+                label: "Extract Items",
+                icon: Package,
+                disabled: extractingItemKey === selectedInventoryRecord.key,
+                onClick: () => {
+                  void extractInventoryPackContents();
+                }
+              }
+            ]
+          : []),
+        ...(selectedInventoryGroup && isItemHandEquippableRecord(selectedInventoryGroup.item)
           ? [
               {
                 key: "hand",
@@ -1266,7 +1333,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
               }
             ]
           : []),
-        ...(isItemBodyArmorRecord(selectedInventoryGroup.item)
+        ...(selectedInventoryGroup && isItemBodyArmorRecord(selectedInventoryGroup.item)
           ? [
               {
                 key: "armor",
@@ -1711,7 +1778,6 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
             aria-labelledby="character-loadout-drawer-title"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className={sheetStyles.spellDrawerHandle} aria-hidden="true" />
             <div className={sheetStyles.spellDrawerHeader}>
               <div className={sheetStyles.spellDrawerHeaderContent}>
                 <p className={sheetStyles.spellDrawerBadge}>

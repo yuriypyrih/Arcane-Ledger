@@ -1172,7 +1172,6 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
             aria-labelledby="character-stats-reference-title"
             onClick={(event) => event.stopPropagation()}
           >
-            <div className={sheetStyles.spellDrawerHandle} aria-hidden="true" />
             <div className={clsx(sheetStyles.spellDrawerHeader, styles.referenceDrawerHeader)}>
               <div className={sheetStyles.spellDrawerHeaderContent}>
                 <p className={sheetStyles.spellDrawerBadge}>Reference</p>

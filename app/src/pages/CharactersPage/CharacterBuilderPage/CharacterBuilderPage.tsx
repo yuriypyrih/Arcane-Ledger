@@ -77,7 +77,7 @@ function CharacterBuilderPage() {
       }
     : emptyCharacter;
 
-  function handleSave(draft: CharacterDraft) {
+  async function handleSave(draft: CharacterDraft) {
     const savedCharacter = upsertCharacter(draft, existingCharacter?.id);
     navigate(existingCharacter ? "/characters" : `/characters/${savedCharacter.id}`);
   }

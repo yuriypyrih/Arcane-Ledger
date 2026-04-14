@@ -13,24 +13,27 @@ import {
 } from "./helpers";
 import type { ClassStarterPack } from "./type";
 
-export const barbarianStarterPack: ClassStarterPack = {
-  primaryAbility: "STR",
-  hitPointDieLabel: "D12 per Barbarian level",
+export const rangerStarterPack: ClassStarterPack = {
+  primaryAbility: "DEX",
+  primaryAbilityLabel: "Dexterity and Wisdom",
+  hitPointDieLabel: "D10 per Ranger level",
   savingThrowProficiencies: [
     SAVING_THROW_PROFICIENCY.STR,
-    SAVING_THROW_PROFICIENCY.CON
+    SAVING_THROW_PROFICIENCY.DEX
   ],
   grantedSkillProficiencies: [],
   skillProficiencies: [
     SKILL.ANIMAL_HANDLING,
     SKILL.ATHLETICS,
-    SKILL.INTIMIDATION,
+    SKILL.INSIGHT,
+    SKILL.INVESTIGATION,
     SKILL.NATURE,
     SKILL.PERCEPTION,
+    SKILL.STEALTH,
     SKILL.SURVIVAL
   ],
-  skillProficiencySelectionCount: 2,
-  recommendedSkillProficiencies: [SKILL.ATHLETICS, SKILL.INTIMIDATION],
+  skillProficiencySelectionCount: 3,
+  recommendedSkillProficiencies: [SKILL.SURVIVAL, SKILL.PERCEPTION, SKILL.STEALTH],
   grantedToolProficiencies: [],
   toolProficiencyChoices: [],
   toolProficiencyChoiceCount: 0,
@@ -44,20 +47,28 @@ export const barbarianStarterPack: ClassStarterPack = {
   weaponMasteryCount: 2,
   startingEquipment: [
     starterPackChoice(
-      starterPackItem("srd-2024_greataxe", "Greataxe"),
-      starterPackItem("srd-2024_handaxe", "Handaxe", 4),
+      starterPackItem("srd-2024_studded-leather-armor", "Studded Leather Armor"),
+      starterPackItem("srd-2024_scimitar", "Scimitar"),
+      starterPackItem("srd-2024_shortsword", "Shortsword"),
+      starterPackItem("srd-2024_longbow", "Longbow"),
+      starterPackItem("srd-2024_arrows-20", "Arrows"),
+      starterPackItem("srd-2024_quiver", "Quiver"),
+      starterPackItem(
+        "srd-2024_druidic-focus-sprig-of-mistletoe",
+        "Druidic Focus (Sprig of Mistletoe)"
+      ),
       starterPackPack("srd-2024_explorers-pack", "Explorer's Pack"),
-      starterPackCurrency(15, CURRENCY_TYPE.GP)
+      starterPackCurrency(7, CURRENCY_TYPE.GP)
     ),
-    starterPackChoice(starterPackCurrency(75, CURRENCY_TYPE.GP))
+    starterPackChoice(starterPackCurrency(150, CURRENCY_TYPE.GP))
   ],
   recommendedStartingEquipmentIndex: 0,
   recommendedAbilityScores: {
-    STR: 15,
-    DEX: 14,
-    CON: 15,
-    INT: 8,
-    WIS: 10,
+    STR: 12,
+    DEX: 15,
+    CON: 13,
+    INT: 10,
+    WIS: 14,
     CHA: 8
   }
 };

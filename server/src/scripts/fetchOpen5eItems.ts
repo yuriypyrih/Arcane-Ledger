@@ -1,5 +1,6 @@
 import { getAppConfig } from "../config/env.js";
 import { AppError } from "../errors/AppError.js";
+import { normalizeOpen5eItemSnapshotPayload } from "../services/itemDataCorrectionService.js";
 import { fetchOpen5eListSnapshot } from "../services/open5eFetchService.js";
 import { getOption, hasFlag, parseCliArgs } from "../utils/cli.js";
 
@@ -15,7 +16,8 @@ async function run() {
     requestDelayMs: config.open5eRequestDelayMs,
     resourceName: "items",
     overwrite,
-    fetchDate
+    fetchDate,
+    transformPage: normalizeOpen5eItemSnapshotPayload
   });
 
   console.info(

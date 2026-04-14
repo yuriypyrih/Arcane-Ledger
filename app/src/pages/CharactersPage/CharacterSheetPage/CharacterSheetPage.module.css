@@ -478,15 +478,6 @@
     var(--sheet-drawer-bottom-padding) var(--sheet-drawer-inline-padding);
 }
 
-.spellDrawerHandle {
-  align-self: center;
-  border-radius: 999px;
-  background: rgba(75, 47, 29, 0.2);
-  block-size: 5px;
-  inline-size: 58px;
-  margin-top: 0.95rem;
-}
-
 .spellDrawerHeader {
   display: flex;
   align-items: flex-start;

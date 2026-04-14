@@ -19,6 +19,9 @@ export type FetchOpen5eListSnapshotOptions = {
   fetchDate?: string;
   fetchImpl?: typeof fetch;
   logger?: Logger;
+  transformPage?: (
+    payload: Open5eListEnvelope<Record<string, unknown>>
+  ) => Open5eListEnvelope<Record<string, unknown>>;
 };
 
 async function sleep(durationMs: number) {
@@ -112,7 +115,8 @@ export async function fetchOpen5eListSnapshot({
   overwrite = false,
   fetchDate,
   fetchImpl = fetch,
-  logger = console
+  logger = console,
+  transformPage
 }: FetchOpen5eListSnapshotOptions) {
   const resolvedFetchDate = resolveFetchDate(fetchDate);
   const snapshotDir = join(rootDir, getSnapshotDirectoryName(resolvedFetchDate));
@@ -142,7 +146,8 @@ export async function fetchOpen5eListSnapshot({
       pageNumber += 1;
       logger.info(`Fetching Open5e ${resourceName} page ${pageNumber}.`);
 
-      const payload = await fetchWithRetry(nextUrl, fetchImpl, logger);
+      const rawPayload = await fetchWithRetry(nextUrl, fetchImpl, logger);
+      const payload = transformPage ? transformPage(rawPayload) : rawPayload;
 
       totalCount = payload.count;
 

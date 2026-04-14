@@ -250,17 +250,22 @@ function buildItemSort(ordering: ItemOrdering | undefined) {
       return [
         ["rarity.rank", 1],
         ["rarity.name", 1],
-        ["name", 1]
+        ["name", 1],
+        ["document.key", -1],
+        ["key", 1]
       ] as [string, 1 | -1][];
     case "-rarity":
       return [
         ["rarity.rank", -1],
         ["rarity.name", -1],
-        ["name", 1]
+        ["name", 1],
+        ["document.key", -1],
+        ["key", 1]
       ] as [string, 1 | -1][];
     case "-name":
       return [
         ["name", -1],
+        ["document.key", -1],
         ["key", -1]
       ] as [string, 1 | -1][];
     case "weight":
@@ -268,6 +273,7 @@ function buildItemSort(ordering: ItemOrdering | undefined) {
         ["__sortMissing", 1],
         ["__sortValue", 1],
         ["name", 1],
+        ["document.key", -1],
         ["key", 1]
       ] as [string, 1 | -1][];
     case "-weight":
@@ -275,6 +281,7 @@ function buildItemSort(ordering: ItemOrdering | undefined) {
         ["__sortMissing", 1],
         ["__sortValue", -1],
         ["name", 1],
+        ["document.key", -1],
         ["key", 1]
       ] as [string, 1 | -1][];
     case "cost":
@@ -282,6 +289,7 @@ function buildItemSort(ordering: ItemOrdering | undefined) {
         ["__sortMissing", 1],
         ["__sortValue", 1],
         ["name", 1],
+        ["document.key", -1],
         ["key", 1]
       ] as [string, 1 | -1][];
     case "-cost":
@@ -289,12 +297,14 @@ function buildItemSort(ordering: ItemOrdering | undefined) {
         ["__sortMissing", 1],
         ["__sortValue", -1],
         ["name", 1],
+        ["document.key", -1],
         ["key", 1]
       ] as [string, 1 | -1][];
     case "name":
     default:
       return [
         ["name", 1],
+        ["document.key", -1],
         ["key", 1]
       ] as [string, 1 | -1][];
   }

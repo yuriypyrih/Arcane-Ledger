@@ -4,6 +4,7 @@ import { asyncHandler } from "../middleware/asyncHandler.js";
 import type { ItemListQueryLocals } from "../types/item.js";
 import { createPaginationEnvelope } from "../utils/pagination.js";
 import { getItemByKey, listItemFilterOptions, listItems } from "../services/itemService.js";
+import { getItemPackContentsByKey } from "../services/itemPackService.js";
 
 export const getItems = asyncHandler(
   async (request: Request, response: Response<unknown, ItemListQueryLocals>) => {
@@ -34,4 +35,19 @@ export const getItem = asyncHandler(async (request: Request, response: Response)
 
 export const getItemFilters = asyncHandler(async (_request: Request, response: Response) => {
   response.json(await listItemFilterOptions());
+});
+
+export const getItemPackContents = asyncHandler(async (request: Request, response: Response) => {
+  const key = request.params.key ?? "";
+  const contents = await getItemPackContentsByKey(key);
+
+  if (!contents) {
+    throw new AppError(
+      `Equipment pack with key "${key}" was not found.`,
+      404,
+      "ITEM_PACK_NOT_FOUND"
+    );
+  }
+
+  response.json(contents);
 });

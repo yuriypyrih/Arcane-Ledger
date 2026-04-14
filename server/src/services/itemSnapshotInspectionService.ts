@@ -12,6 +12,7 @@ import type {
   PlannedCategoryMapping
 } from "../types/item.js";
 import type { Open5eDocumentReference, Open5eKeyedReference } from "../types/open5e.js";
+import { normalizeOpen5eItemRecord } from "./itemDataCorrectionService.js";
 import { readSnapshotPage } from "./open5eFetchService.js";
 import { getLatestSnapshotDirectory, getSnapshotPageFiles, resolveExistingPath } from "../utils/snapshots.js";
 
@@ -95,7 +96,7 @@ function isObjectRecord(value: unknown): value is Record<string, unknown> {
 }
 
 function toItemRecord(value: unknown): Open5eItemRecord | null {
-  return isObjectRecord(value) ? (value as Open5eItemRecord) : null;
+  return isObjectRecord(value) ? normalizeOpen5eItemRecord(value as Open5eItemRecord) : null;
 }
 
 function getValueType(value: unknown) {

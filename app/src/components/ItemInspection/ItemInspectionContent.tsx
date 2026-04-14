@@ -2,22 +2,25 @@ import CellContainer from "../CellContainer/CellContainer";
 import DescriptionContent from "../DescriptionContent/DescriptionContent";
 import { buildItemDetailPresentation } from "../../pages/ItemCodexEntryPage/itemPresentation";
 import type { ItemRecord } from "../../types";
+import ItemInspectionHeader from "./ItemInspectionHeader";
 import styles from "./ItemInspectionContent.module.css";
 
 type ItemInspectionContentProps = {
   item: ItemRecord;
   className?: string;
+  showHeader?: boolean;
 };
 
-function ItemInspectionContent({ item, className }: ItemInspectionContentProps) {
+function ItemInspectionContent({
+  item,
+  className,
+  showHeader = true
+}: ItemInspectionContentProps) {
   const presentation = buildItemDetailPresentation(item);
 
   return (
     <article className={className ?? styles.card}>
-      <header className={styles.header}>
-        <h1 className={styles.title}>{presentation.name}</h1>
-        <p className={styles.subtitle}>{presentation.subtitleParts.join(" • ")}</p>
-      </header>
+      {showHeader ? <ItemInspectionHeader item={item} /> : null}
 
       {presentation.description.length > 0 ? (
         <section className={styles.section}>

@@ -15,6 +15,7 @@
     "db:monsters:fetch": "tsx src/scripts/fetchOpen5eMonsters.ts",
     "db:monsters:import": "tsx src/scripts/importOpen5eMonsters.ts",
     "db:items:fetch": "tsx src/scripts/fetchOpen5eItems.ts",
+    "db:items:normalize-snapshot": "tsx src/scripts/normalizeOpen5eItemSnapshot.ts",
     "db:items:inspect": "tsx src/scripts/inspectOpen5eItems.ts",
     "db:items:import": "tsx src/scripts/importOpen5eItems.ts"
   },

@@ -55,6 +55,11 @@ import {
   getPrimaryAbilityForClass,
   getSavingThrowAbilityKeysForClass
 } from "../CharactersPage/proficiencyClassData";
+import { getToolProficiencyLabel } from "../CharactersPage/proficiencyOptions";
+import {
+  formatStarterPackStartingEquipmentSummary,
+  getLevelOneWeaponMasteryCountForClass
+} from "../../codex/classes/starterPack";
 import { useCodexEntry } from "./useCodexEntry";
 import styles from "./CodexEntryPage.module.css";
 
@@ -123,10 +128,10 @@ function formatSelectableProficiencyList(values: string[], count: number): strin
 function formatClassToolProficiencyList(className: string): string {
   const profile = getClassProficiencyProfile(className);
   const grantedTools = (profile?.grantedToolProficiencies ?? []).map((entry) =>
-    formatCodexLabel(entry)
+    getToolProficiencyLabel(entry)
   );
   const selectableTools = (profile?.toolProficiencyChoices ?? []).map((entry) =>
-    formatCodexLabel(entry)
+    getToolProficiencyLabel(entry)
   );
   const selectableCount = profile?.toolProficiencyChoiceCount ?? 0;
   const parts = [
@@ -214,6 +219,7 @@ function CodexEntryPage() {
       : [];
   const classPrimaryAbility =
     entry?.category === ENTRY_CATEGORIES.CLASSES ? getPrimaryAbilityForClass(entry.name) : null;
+  const classStarterPack = entry?.category === ENTRY_CATEGORIES.CLASSES ? entry.starterPack ?? null : null;
   const classSavingThrows =
     entry?.category === ENTRY_CATEGORIES.CLASSES
       ? getSavingThrowAbilityKeysForClass(entry.name)
@@ -226,6 +232,14 @@ function CodexEntryPage() {
       : { weapons: [], armor: [] };
   const classSubclassEntries =
     entry?.category === ENTRY_CATEGORIES.CLASSES ? getSubclassEntriesForClass(entry.name) : [];
+  const classStartingEquipment =
+    entry?.category === ENTRY_CATEGORIES.CLASSES && classStarterPack
+      ? formatStarterPackStartingEquipmentSummary(classStarterPack.startingEquipment)
+      : "None";
+  const classWeaponMasteryCount =
+    entry?.category === ENTRY_CATEGORIES.CLASSES
+      ? (classStarterPack?.weaponMasteryCount ?? getLevelOneWeaponMasteryCountForClass(entry.name))
+      : 0;
   const classFeaturesSectionKey =
     entry?.category === ENTRY_CATEGORIES.CLASSES ? `class-features-${entry.id}` : null;
 
@@ -358,7 +372,6 @@ function CodexEntryPage() {
         <article className={isDrawerStyledEntry ? styles.drawerCard : styles.card}>
           {isDrawerStyledEntry ? (
             <div className={styles.entryDrawer}>
-              <div className={sheetStyles.spellDrawerHandle} aria-hidden="true" />
               <div className={sheetStyles.spellDrawerHeader}>
                 <div className={sheetStyles.spellDrawerHeaderContent}>
                   <p className={sheetStyles.spellDrawerBadge}>{formatCodexLabel(entry.category)}</p>
@@ -495,11 +508,14 @@ function CodexEntryPage() {
                   <>
                     <div className={styles.detailItem}>
                       <span>Primary Ability</span>
-                      <strong>{classPrimaryAbility ? formatCodexLabel(classPrimaryAbility) : "None"}</strong>
+                      <strong>
+                        {classStarterPack?.primaryAbilityLabel ??
+                          (classPrimaryAbility ? formatCodexLabel(classPrimaryAbility) : "None")}
+                      </strong>
                     </div>
                     <div className={styles.detailItem}>
                       <span>Hit Point Die</span>
-                      <strong>{formatCodexLabel(entry.hitPointDie)}</strong>
+                      <strong>{classStarterPack?.hitPointDieLabel ?? formatCodexLabel(entry.hitPointDie)}</strong>
                     </div>
                     <div className={styles.detailItem}>
                       <span>Saving Throws</span>
@@ -514,6 +530,10 @@ function CodexEntryPage() {
                           ? classEquipmentLabels.weapons.join(", ")
                           : "None"}
                       </strong>
+                    </div>
+                    <div className={styles.detailItem}>
+                      <span>Weapon Masteries</span>
+                      <strong>{classWeaponMasteryCount > 0 ? classWeaponMasteryCount : "None"}</strong>
                     </div>
                     <div className={styles.detailItem}>
                       <span>Armor Training</span>
@@ -535,6 +555,10 @@ function CodexEntryPage() {
                     <div className={styles.detailItem}>
                       <span>Tool Proficiencies</span>
                       <strong>{formatClassToolProficiencyList(entry.name)}</strong>
+                    </div>
+                    <div className={styles.detailItem}>
+                      <span>Starting Equipment</span>
+                      <strong>{classStartingEquipment}</strong>
                     </div>
                   </>
                 ) : null}

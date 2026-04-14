@@ -1,0 +1,178 @@
+import { TOOL_PROFICIENCY } from "../../../types/proficiencies";
+
+export type StarterPackToolItemMapping = {
+  label: string;
+  itemKey: string | null;
+  warning?: string;
+};
+
+export const starterPackMusicalInstrumentTools: TOOL_PROFICIENCY[] = [
+  TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_BAGPIPES,
+  TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_DRUM,
+  TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_DULCIMER,
+  TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_FLUTE,
+  TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_HORN,
+  TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_LUTE,
+  TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_LYRE,
+  TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_PAN_FLUTE,
+  TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_SHAWM,
+  TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_VIOL
+];
+
+export const starterPackArtisanTools: TOOL_PROFICIENCY[] = [
+  TOOL_PROFICIENCY.ALCHEMISTS_SUPPLIES,
+  TOOL_PROFICIENCY.BREWERS_SUPPLIES,
+  TOOL_PROFICIENCY.CALLIGRAPHERS_SUPPLIES,
+  TOOL_PROFICIENCY.CARPENTERS_TOOLS,
+  TOOL_PROFICIENCY.CARTOGRAPHERS_TOOLS,
+  TOOL_PROFICIENCY.COBBLERS_TOOLS,
+  TOOL_PROFICIENCY.COOKS_UTENSILS,
+  TOOL_PROFICIENCY.GLASSBLOWERS_TOOLS,
+  TOOL_PROFICIENCY.JEWELERS_TOOLS,
+  TOOL_PROFICIENCY.LEATHERWORKERS_TOOLS,
+  TOOL_PROFICIENCY.MASONS_TOOLS,
+  TOOL_PROFICIENCY.PAINTERS_SUPPLIES,
+  TOOL_PROFICIENCY.POTTERS_TOOLS,
+  TOOL_PROFICIENCY.SMITHS_TOOLKIT,
+  TOOL_PROFICIENCY.TINKERS_TOOLS,
+  TOOL_PROFICIENCY.WEAVERS_TOOLS,
+  TOOL_PROFICIENCY.WOODCARVERS_TOOLS
+];
+
+const toolItemMappings: Partial<Record<TOOL_PROFICIENCY, StarterPackToolItemMapping>> = {
+  [TOOL_PROFICIENCY.THIEVES_TOOLKIT]: {
+    label: "Thieves' Tools",
+    itemKey: "srd-2024_thieves-tools"
+  },
+  [TOOL_PROFICIENCY.HERBALISM_KIT]: {
+    label: "Herbalism Kit",
+    itemKey: "srd-2024_herbalism-kit"
+  },
+  [TOOL_PROFICIENCY.ALCHEMISTS_SUPPLIES]: {
+    label: "Alchemist's Supplies",
+    itemKey: "srd-2024_alchemists-supplies"
+  },
+  [TOOL_PROFICIENCY.BREWERS_SUPPLIES]: {
+    label: "Brewer's Supplies",
+    itemKey: "srd-2024_brewers-supplies"
+  },
+  [TOOL_PROFICIENCY.CALLIGRAPHERS_SUPPLIES]: {
+    label: "Calligrapher's Supplies",
+    itemKey: null,
+    warning: "Backend item missing for Calligrapher's Supplies."
+  },
+  [TOOL_PROFICIENCY.CARPENTERS_TOOLS]: {
+    label: "Carpenter's Tools",
+    itemKey: "srd-2024_carpenters-tools"
+  },
+  [TOOL_PROFICIENCY.CARTOGRAPHERS_TOOLS]: {
+    label: "Cartographer's Tools",
+    itemKey: "srd-2024_cartographers-tools"
+  },
+  [TOOL_PROFICIENCY.COBBLERS_TOOLS]: {
+    label: "Cobbler's Tools",
+    itemKey: "srd-2024_cobblers-tools"
+  },
+  [TOOL_PROFICIENCY.COOKS_UTENSILS]: {
+    label: "Cook's Utensils",
+    itemKey: null,
+    warning: "Backend item missing for Cook's Utensils."
+  },
+  [TOOL_PROFICIENCY.GLASSBLOWERS_TOOLS]: {
+    label: "Glassblower's Tools",
+    itemKey: "srd-2024_glassblowers-tools"
+  },
+  [TOOL_PROFICIENCY.JEWELERS_TOOLS]: {
+    label: "Jeweler's Tools",
+    itemKey: "srd-2024_jewelers-tools"
+  },
+  [TOOL_PROFICIENCY.LEATHERWORKERS_TOOLS]: {
+    label: "Leatherworker's Tools",
+    itemKey: "srd-2024_leatherworkers-tools"
+  },
+  [TOOL_PROFICIENCY.MASONS_TOOLS]: {
+    label: "Mason's Tools",
+    itemKey: "srd-2024_masons-tools"
+  },
+  [TOOL_PROFICIENCY.PAINTERS_SUPPLIES]: {
+    label: "Painter's Supplies",
+    itemKey: "srd-2024_painters-supplies"
+  },
+  [TOOL_PROFICIENCY.POTTERS_TOOLS]: {
+    label: "Potter's Tools",
+    itemKey: null,
+    warning: "Backend item missing for Potter's Tools."
+  },
+  [TOOL_PROFICIENCY.SMITHS_TOOLKIT]: {
+    label: "Smith's Tools",
+    itemKey: null,
+    warning: "Backend item missing for Smith's Tools."
+  },
+  [TOOL_PROFICIENCY.TINKERS_TOOLS]: {
+    label: "Tinker's Tools",
+    itemKey: null,
+    warning: "Backend item missing for Tinker's Tools."
+  },
+  [TOOL_PROFICIENCY.WEAVERS_TOOLS]: {
+    label: "Weaver's Tools",
+    itemKey: null,
+    warning: "Backend item missing for Weaver's Tools."
+  },
+  [TOOL_PROFICIENCY.WOODCARVERS_TOOLS]: {
+    label: "Woodcarver's Tools",
+    itemKey: null,
+    warning: "Backend item missing for Woodcarver's Tools."
+  },
+  [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_BAGPIPES]: {
+    label: "Bagpipes",
+    itemKey: "srd-2024_musical-instrument-bagpipes"
+  },
+  [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_DRUM]: {
+    label: "Drum",
+    itemKey: "srd-2024_musical-instrument-drum"
+  },
+  [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_DULCIMER]: {
+    label: "Dulcimer",
+    itemKey: "srd-2024_musical-instrument-dulcimer"
+  },
+  [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_FLUTE]: {
+    label: "Flute",
+    itemKey: "srd-2024_musical-instrument-flute"
+  },
+  [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_HORN]: {
+    label: "Horn",
+    itemKey: "srd-2024_musical-instrument-horn"
+  },
+  [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_LUTE]: {
+    label: "Lute",
+    itemKey: "srd-2024_musical-instrument-lute"
+  },
+  [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_LYRE]: {
+    label: "Lyre",
+    itemKey: "srd-2024_musical-instrument-lyre"
+  },
+  [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_PAN_FLUTE]: {
+    label: "Pan Flute",
+    itemKey: "srd-2024_musical-instrument-pan-flute"
+  },
+  [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_SHAWM]: {
+    label: "Shawm",
+    itemKey: "srd-2024_musical-instrument-shawm"
+  },
+  [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_VIOL]: {
+    label: "Viol",
+    itemKey: "srd-2024_musical-instrument-viol"
+  }
+};
+
+export function getStarterPackToolItemMapping(
+  toolProficiency: TOOL_PROFICIENCY | string
+): StarterPackToolItemMapping | null {
+  return toolItemMappings[toolProficiency as TOOL_PROFICIENCY] ?? null;
+}
+
+export function isStarterPackMusicalInstrumentTool(
+  toolProficiency: TOOL_PROFICIENCY | string
+): boolean {
+  return starterPackMusicalInstrumentTools.includes(toolProficiency as TOOL_PROFICIENCY);
+}

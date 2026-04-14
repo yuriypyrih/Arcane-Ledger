@@ -13,51 +13,51 @@ import {
 } from "./helpers";
 import type { ClassStarterPack } from "./type";
 
-export const barbarianStarterPack: ClassStarterPack = {
-  primaryAbility: "STR",
-  hitPointDieLabel: "D12 per Barbarian level",
+export const clericStarterPack: ClassStarterPack = {
+  primaryAbility: "WIS",
+  hitPointDieLabel: "D8 per Cleric level",
   savingThrowProficiencies: [
-    SAVING_THROW_PROFICIENCY.STR,
-    SAVING_THROW_PROFICIENCY.CON
+    SAVING_THROW_PROFICIENCY.WIS,
+    SAVING_THROW_PROFICIENCY.CHA
   ],
   grantedSkillProficiencies: [],
   skillProficiencies: [
-    SKILL.ANIMAL_HANDLING,
-    SKILL.ATHLETICS,
-    SKILL.INTIMIDATION,
-    SKILL.NATURE,
-    SKILL.PERCEPTION,
-    SKILL.SURVIVAL
+    SKILL.HISTORY,
+    SKILL.INSIGHT,
+    SKILL.MEDICINE,
+    SKILL.PERSUASION,
+    SKILL.RELIGION
   ],
   skillProficiencySelectionCount: 2,
-  recommendedSkillProficiencies: [SKILL.ATHLETICS, SKILL.INTIMIDATION],
+  recommendedSkillProficiencies: [SKILL.INSIGHT, SKILL.RELIGION],
   grantedToolProficiencies: [],
   toolProficiencyChoices: [],
   toolProficiencyChoiceCount: 0,
   recommendedToolProficiencies: [],
-  weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE, WEAPON_PROFICIENCY.MARTIAL],
+  weaponProficiencies: [WEAPON_PROFICIENCY.SIMPLE],
   armorTrainingProficiencies: [
     ARMOR_PROFICIENCY.LIGHT,
     ARMOR_PROFICIENCY.MEDIUM,
     ARMOR_PROFICIENCY.SHIELD
   ],
-  weaponMasteryCount: 2,
   startingEquipment: [
     starterPackChoice(
-      starterPackItem("srd-2024_greataxe", "Greataxe"),
-      starterPackItem("srd-2024_handaxe", "Handaxe", 4),
-      starterPackPack("srd-2024_explorers-pack", "Explorer's Pack"),
-      starterPackCurrency(15, CURRENCY_TYPE.GP)
+      starterPackItem("srd-2024_chain-shirt", "Chain Shirt"),
+      starterPackItem("srd-2024_shield", "Shield"),
+      starterPackItem("srd-2024_mace", "Mace"),
+      starterPackItem("srd-2024_holy-symbol-amulet", "Holy Symbol"),
+      starterPackPack("srd-2024_priests-pack", "Priest's Pack"),
+      starterPackCurrency(7, CURRENCY_TYPE.GP)
     ),
-    starterPackChoice(starterPackCurrency(75, CURRENCY_TYPE.GP))
+    starterPackChoice(starterPackCurrency(110, CURRENCY_TYPE.GP))
   ],
   recommendedStartingEquipmentIndex: 0,
   recommendedAbilityScores: {
-    STR: 15,
-    DEX: 14,
-    CON: 15,
-    INT: 8,
-    WIS: 10,
-    CHA: 8
+    STR: 13,
+    DEX: 8,
+    CON: 14,
+    INT: 10,
+    WIS: 15,
+    CHA: 12
   }
 };

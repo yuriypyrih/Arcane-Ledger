@@ -57,15 +57,6 @@
   animation: drawerSlideUp 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
-.drawerHandle {
-  align-self: center;
-  border-radius: 999px;
-  background: rgba(75, 47, 29, 0.2);
-  block-size: 5px;
-  inline-size: 58px;
-  margin-top: 0.95rem;
-}
-
 .header {
   display: flex;
   align-items: flex-start;
@@ -213,7 +204,4 @@
     --overlay-panel-bottom-padding: 0.75rem;
   }
 
-  .drawerHandle {
-    margin-top: 0.75rem;
-  }
 }

@@ -1,19 +1,30 @@
 import {
   artificerFeatures,
-  bardFeatures,
   barbarianFeatures,
+  barbarianStarterPack,
+  bardFeatures,
+  bardStarterPack,
+  clericStarterPack,
   clericFeatures,
+  druidStarterPack,
   druidFeatures,
+  fighterStarterPack,
   fighterFeatures,
+  monkStarterPack,
   monkFeatures,
+  paladinStarterPack,
   paladinFeatures,
+  rangerStarterPack,
   rangerFeatures,
+  rogueStarterPack,
   rogueFeatures,
+  sorcererStarterPack,
   sorcererFeatures,
+  warlockStarterPack,
   warlockFeatures,
+  wizardStarterPack,
   wizardFeatures
 } from "../classes";
-import { barbarianStarterPack } from "../classes/starterPack";
 import {
   CLASS_TYPES,
   DICE_TYPES,
@@ -68,6 +79,7 @@ export const classEntries: ClassEntry[] = [
       GENERAL_PROFICIENCIES.LIGHT_ARMOR
     ],
     features: bardFeatures,
+    starterPack: bardStarterPack,
     summary: "A versatile performer whose magic and skill mastery strengthen every party role."
   },
   {
@@ -83,6 +95,7 @@ export const classEntries: ClassEntry[] = [
       GENERAL_PROFICIENCIES.SHIELDS
     ],
     features: clericFeatures,
+    starterPack: clericStarterPack,
     summary: "A divine champion who balances healing, protection, and holy offense."
   },
   {
@@ -98,6 +111,7 @@ export const classEntries: ClassEntry[] = [
       GENERAL_PROFICIENCIES.SHIELDS
     ],
     features: druidFeatures,
+    starterPack: druidStarterPack,
     summary: "A primal spellcaster who commands nature, shapeshifts, and controls the battlefield."
   },
   {
@@ -115,6 +129,7 @@ export const classEntries: ClassEntry[] = [
       GENERAL_PROFICIENCIES.SHIELDS
     ],
     features: fighterFeatures,
+    starterPack: fighterStarterPack,
     summary: "A tactical combat specialist with unmatched weapon and armor discipline."
   },
   {
@@ -125,6 +140,7 @@ export const classEntries: ClassEntry[] = [
     hitPointDie: DICE_TYPES.DICE_TYPE_D8,
     innateProficiencies: [GENERAL_PROFICIENCIES.SIMPLE_WEAPONS],
     features: monkFeatures,
+    starterPack: monkStarterPack,
     summary: "A disciplined martial artist who blends mobility, precision, and ki techniques."
   },
   {
@@ -142,6 +158,7 @@ export const classEntries: ClassEntry[] = [
       GENERAL_PROFICIENCIES.SHIELDS
     ],
     features: paladinFeatures,
+    starterPack: paladinStarterPack,
     summary: "A holy knight who combines durable frontline defense with radiant burst damage."
   },
   {
@@ -158,6 +175,7 @@ export const classEntries: ClassEntry[] = [
       GENERAL_PROFICIENCIES.SHIELDS
     ],
     features: rangerFeatures,
+    starterPack: rangerStarterPack,
     summary: "A wilderness hunter who excels at tracking foes and controlling range."
   },
   {
@@ -172,6 +190,7 @@ export const classEntries: ClassEntry[] = [
       GENERAL_PROFICIENCIES.LIGHT_ARMOR
     ],
     features: rogueFeatures,
+    starterPack: rogueStarterPack,
     summary: "A precision striker and expert operative built around stealth, timing, and utility."
   },
   {
@@ -182,6 +201,7 @@ export const classEntries: ClassEntry[] = [
     hitPointDie: DICE_TYPES.DICE_TYPE_D6,
     innateProficiencies: [GENERAL_PROFICIENCIES.SIMPLE_WEAPONS],
     features: sorcererFeatures,
+    starterPack: sorcererStarterPack,
     summary: "An innate arcane caster whose bloodline power fuels explosive spell output."
   },
   {
@@ -192,6 +212,7 @@ export const classEntries: ClassEntry[] = [
     hitPointDie: DICE_TYPES.DICE_TYPE_D8,
     innateProficiencies: [GENERAL_PROFICIENCIES.SIMPLE_WEAPONS, GENERAL_PROFICIENCIES.LIGHT_ARMOR],
     features: warlockFeatures,
+    starterPack: warlockStarterPack,
     summary: "A pact-bound caster with focused spell slots and potent invocations."
   },
   {
@@ -202,6 +223,7 @@ export const classEntries: ClassEntry[] = [
     hitPointDie: DICE_TYPES.DICE_TYPE_D6,
     innateProficiencies: [GENERAL_PROFICIENCIES.SIMPLE_WEAPONS],
     features: wizardFeatures,
+    starterPack: wizardStarterPack,
     summary:
       "A scholar of spellcraft who prepares flexible arcane solutions for almost any challenge."
   }

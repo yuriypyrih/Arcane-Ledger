@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { Dice6 } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Controller, useForm, useWatch } from "react-hook-form";
 import type {
   AbilityKey,
@@ -9,6 +9,7 @@ import type {
   CharacterDraft,
   SkillName
 } from "../../../types";
+import { getClassStarterPack } from "../../../codex/classes/starterPack";
 import {
   POINT_BUY_BUDGET,
   abilityKeys,
@@ -27,13 +28,15 @@ import { clampNumber } from "../../../pages/CharactersPage/shared";
 import {
   backgroundOptions,
   classOptions,
-  getAvailableEquipmentNamesForClass,
   getGrantedSkillProficienciesForCharacter,
   getSkillProficiencyOptionsForClass,
   getSkillSelectionLimitForClass,
-  normalizeSelectionsForClass,
+  getToolProficiencyChoicesForClass,
+  normalizeSkillSelectionsForClass,
+  normalizeToolSelectionsForClass,
   resolveSkillProficienciesForCharacter
 } from "../../../pages/CharactersPage/proficiency";
+import { getToolProficiencyLabel } from "../../../pages/CharactersPage/proficiencyOptions";
 import { normalizeLevelAndXp } from "../../../pages/CharactersPage/experience";
 import { getAutomaticMaxHitPointsForCharacter } from "../../../pages/CharactersPage/gameplay";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../pages/CharactersPage/traits";
@@ -50,20 +53,26 @@ import {
   type ClassBuildPlan,
   getBuildPlan,
   speciesAbilityBonuses,
-  speciesEquipmentAffinity,
   speciesSkillAffinity
 } from "./recommendedBuildData";
 import {
+  materializeStarterPackChoiceToInventory,
+  previewStarterPackChoiceWarnings
+} from "./starterPackInventory";
+import {
   formatStarterPackEquipmentChoice,
   getResolvedStarterPack,
-  materializeStarterPackEquipmentChoice
+  getStarterPackSelectionLabels,
+  getStarterPackSelectionOptions,
+  normalizeStarterPackSelectionValues,
+  resolveStarterPackChoiceCurrencies
 } from "./starterPackUtils";
 import styles from "./CharacterForm.module.css";
 
 type CharacterFormProps = {
   isEditing: boolean;
   initialValues: CharacterDraft;
-  onSubmit: (draft: CharacterDraft) => void;
+  onSubmit: (draft: CharacterDraft) => void | Promise<void>;
   onBack: () => void;
 };
 
@@ -71,6 +80,7 @@ type CreationStep = 1 | 2 | 3;
 
 type CharacterFormValues = CharacterDraft & {
   startingEquipmentChoiceIndex: string;
+  starterPackSelectionValues: Record<string, string>;
 };
 
 function normalizeCustomAbilities(abilities: AbilityScores): AbilityScores {
@@ -102,17 +112,24 @@ function areCurrenciesEqual(
   );
 }
 
+function areStringMapsEqual(left: Record<string, string>, right: Record<string, string>): boolean {
+  const keys = [...new Set([...Object.keys(left), ...Object.keys(right)])];
+  return keys.every((key) => (left[key] ?? "") === (right[key] ?? ""));
+}
+
 function createFormValues(
   draft: CharacterDraft,
   options?: {
     defaultHitPointMode?: CharacterDraft["maxHitPointsMode"];
     startingEquipmentChoiceIndex?: string;
+    starterPackSelectionValues?: Record<string, string>;
   }
 ): CharacterFormValues {
   return {
     ...draft,
     maxHitPointsMode: draft.maxHitPointsMode ?? options?.defaultHitPointMode ?? "automatic",
-    startingEquipmentChoiceIndex: options?.startingEquipmentChoiceIndex ?? ""
+    startingEquipmentChoiceIndex: options?.startingEquipmentChoiceIndex ?? "",
+    starterPackSelectionValues: options?.starterPackSelectionValues ?? {}
   };
 }
 
@@ -148,7 +165,8 @@ function createBasicProfileSnapshot(values: CharacterFormValues): CharacterFormV
     },
     {
       defaultHitPointMode: "automatic",
-      startingEquipmentChoiceIndex: ""
+      startingEquipmentChoiceIndex: "",
+      starterPackSelectionValues: {}
     }
   );
 }
@@ -217,28 +235,10 @@ function createFallbackRecommendedSkills(
     .slice(0, targetCount);
 }
 
-function createFallbackRecommendedEquipment(
-  species: string,
-  level: number,
-  className: string,
-  buildPlan: ClassBuildPlan
-): string[] {
-  const availableClassEquipment = getAvailableEquipmentNamesForClass(className);
-  const targetCount = Math.max(4, Math.min(8, 5 + Math.floor((level - 1) / 4)));
-
-  return normalizeSelection(
-    [
-      ...buildPlan.preferredEquipment,
-      ...(speciesEquipmentAffinity[species] ?? []),
-      ...availableClassEquipment
-    ],
-    availableClassEquipment
-  ).slice(0, targetCount);
-}
-
 function createRecommendedCharacterDraft(profile: CharacterFormValues): CharacterFormValues {
   const normalizedProgress = normalizeLevelAndXp(profile.level, profile.xp);
   const starterPack = getResolvedStarterPack(profile.className);
+  const configuredStarterPack = getClassStarterPack(profile.className);
 
   if (starterPack.hasConfiguredStarterPack && starterPack.recommendedAbilityScores) {
     const abilities = cloneAbilities(starterPack.recommendedAbilityScores);
@@ -255,11 +255,19 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
     )
       .filter((skill) => !grantedSkillSet.has(skill))
       .slice(0, starterPack.skillProficiencySelectionCount);
+    const recommendedTools = normalizeToolSelectionsForClass(
+      profile.className,
+      configuredStarterPack?.recommendedToolProficiencies ?? []
+    );
     const recommendedChoice =
       starterPack.recommendedStartingEquipmentIndex !== null
         ? (starterPack.startingEquipment[starterPack.recommendedStartingEquipmentIndex] ?? null)
         : null;
-    const recommendedEquipment = materializeStarterPackEquipmentChoice(recommendedChoice);
+    const starterPackSelectionValues = normalizeStarterPackSelectionValues(
+      configuredStarterPack,
+      recommendedTools,
+      {}
+    );
     const hitPoints = getAutomaticMaxHitPointsForCharacter({
       className: profile.className,
       level: normalizedProgress.level,
@@ -283,16 +291,18 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
         attributeMode: "pointBuy",
         abilities,
         alignment: "True Neutral",
-        currencies: recommendedEquipment.currencies,
+        currencies: resolveStarterPackChoiceCurrencies(recommendedChoice),
         skills: recommendedSkills,
-        equipment: recommendedEquipment.equipment
+        toolProficiencies: recommendedTools,
+        equipment: []
       },
       {
         defaultHitPointMode: "automatic",
         startingEquipmentChoiceIndex:
           starterPack.recommendedStartingEquipmentIndex !== null
             ? String(starterPack.recommendedStartingEquipmentIndex)
-            : ""
+            : "",
+        starterPackSelectionValues
       }
     );
   }
@@ -333,16 +343,12 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
         profile.background,
         buildPlan
       ),
-      equipment: createFallbackRecommendedEquipment(
-        profile.species,
-        normalizedProgress.level,
-        profile.className,
-        buildPlan
-      )
+      equipment: []
     },
     {
       defaultHitPointMode: "automatic",
-      startingEquipmentChoiceIndex: ""
+      startingEquipmentChoiceIndex: "",
+      starterPackSelectionValues: {}
     }
   );
 }
@@ -473,10 +479,16 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const [wizardStep, setWizardStep] = useState<CreationStep>(1);
   const [stepOneSnapshot, setStepOneSnapshot] = useState<CharacterFormValues | null>(null);
   const [attemptedBuildAdvance, setAttemptedBuildAdvance] = useState(false);
-  const initialFormValues = createFormValues(initialValues, {
-    defaultHitPointMode: isEditing ? (initialValues.maxHitPointsMode ?? "custom") : "automatic",
-    startingEquipmentChoiceIndex: ""
-  });
+  const [starterPackWarnings, setStarterPackWarnings] = useState<string[]>([]);
+  const initialFormValues = useMemo(
+    () =>
+      createFormValues(initialValues, {
+        defaultHitPointMode: isEditing ? (initialValues.maxHitPointsMode ?? "custom") : "automatic",
+        startingEquipmentChoiceIndex: "",
+        starterPackSelectionValues: {}
+      }),
+    [initialValues, isEditing]
+  );
   const {
     control,
     formState: { errors },
@@ -500,9 +512,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     selectedMaxHitPointsMode,
     alignment,
     selectedSkills,
-    selectedEquipment,
+    selectedToolProficiencies,
     selectedCurrencies,
-    selectedStartingEquipmentChoiceIndex
+    selectedStartingEquipmentChoiceIndex,
+    selectedStarterPackSelectionValues
   ] = useWatch({
     control,
     name: [
@@ -516,9 +529,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       "maxHitPointsMode",
       "alignment",
       "skills",
-      "equipment",
+      "toolProficiencies",
       "currencies",
-      "startingEquipmentChoiceIndex"
+      "startingEquipmentChoiceIndex",
+      "starterPackSelectionValues"
     ]
   });
   const resolvedClassName = selectedClassName ?? initialFormValues.className;
@@ -532,14 +546,52 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     selectedMaxHitPointsMode ?? initialFormValues.maxHitPointsMode ?? "automatic";
   const resolvedAlignment = alignment ?? initialFormValues.alignment;
   const resolvedSkills = selectedSkills ?? initialFormValues.skills;
-  const resolvedEquipment = selectedEquipment ?? initialFormValues.equipment;
+  const resolvedToolSelections = useMemo(
+    () => selectedToolProficiencies ?? initialFormValues.toolProficiencies ?? [],
+    [initialFormValues.toolProficiencies, selectedToolProficiencies]
+  );
   const resolvedCurrencies = selectedCurrencies ?? initialFormValues.currencies;
   const resolvedStartingEquipmentChoiceIndex = selectedStartingEquipmentChoiceIndex ?? "";
+  const resolvedStarterPackSelectionValues = useMemo(
+    () => selectedStarterPackSelectionValues ?? {},
+    [selectedStarterPackSelectionValues]
+  );
   const availableSubclassOptions = getSubclassOptionsForClassName(resolvedClassName);
   const starterPack = getResolvedStarterPack(resolvedClassName);
+  const configuredStarterPack = getClassStarterPack(resolvedClassName);
   const availableSkillOptions = starterPack.skillProficiencies;
   const skillSelectionLimit = starterPack.skillProficiencySelectionCount;
+  const { choices: availableToolOptions, count: toolSelectionLimit } =
+    getToolProficiencyChoicesForClass(resolvedClassName);
   const starterEquipmentChoices = starterPack.startingEquipment;
+  const normalizedStarterPackSelectionValues = useMemo(
+    () =>
+      normalizeStarterPackSelectionValues(
+        configuredStarterPack,
+        resolvedToolSelections,
+        resolvedStarterPackSelectionValues
+      ),
+    [configuredStarterPack, resolvedStarterPackSelectionValues, resolvedToolSelections]
+  );
+  const selectedStarterEquipmentChoice =
+    resolvedStartingEquipmentChoiceIndex.length > 0
+      ? (starterEquipmentChoices[Number(resolvedStartingEquipmentChoiceIndex)] ?? null)
+      : null;
+  const starterPackSelectionLabels = useMemo(
+    () =>
+      getStarterPackSelectionLabels(
+        configuredStarterPack,
+        resolvedToolSelections,
+        normalizedStarterPackSelectionValues
+      ),
+    [configuredStarterPack, normalizedStarterPackSelectionValues, resolvedToolSelections]
+  );
+  const requiredStarterPackSelections = (configuredStarterPack?.startingEquipmentSelections ?? []).filter(
+    (selection) =>
+      selectedStarterEquipmentChoice?.some(
+        (reference) => reference.type === "selected-tool" && reference.selectionId === selection.id
+      ) ?? false
+  );
   const automaticHitPoints = getAutomaticMaxHitPointsForCharacter({
     className: resolvedClassName,
     level: resolvedLevel,
@@ -564,15 +616,24 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     (skill) => !grantedSkillSet.has(skill)
   );
   const selectedSkillCount = resolvedSkillSelections.manual.length;
+  const selectedToolCount = resolvedToolSelections.length;
   const buildRequiresSkillSelection = skillSelectionLimit > 0;
+  const buildRequiresToolSelection = toolSelectionLimit > 0;
   const isSkillSelectionReady =
     !buildRequiresSkillSelection || selectedSkillCount === skillSelectionLimit;
+  const isToolSelectionReady =
+    !buildRequiresToolSelection || selectedToolCount === toolSelectionLimit;
   const isEquipmentChoiceReady =
     starterEquipmentChoices.length === 0 || resolvedStartingEquipmentChoiceIndex.length > 0;
+  const isStarterPackSelectionReady = requiredStarterPackSelections.every(
+    (selection) => normalizedStarterPackSelectionValues[selection.id]?.length > 0
+  );
   const isPointBuyReady = resolvedAttributeMode !== "pointBuy" || pointBuyRemaining === 0;
   const isBuildSetupReady =
     isSkillSelectionReady &&
+    isToolSelectionReady &&
     isEquipmentChoiceReady &&
+    isStarterPackSelectionReady &&
     isPointBuyReady &&
     (resolvedMaxHitPointsMode !== "custom" || automaticHitPoints > 0);
 
@@ -590,7 +651,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   useEffect(() => {
     const nextInitialValues = createFormValues(initialValues, {
       defaultHitPointMode: isEditing ? (initialValues.maxHitPointsMode ?? "custom") : "automatic",
-      startingEquipmentChoiceIndex: ""
+      startingEquipmentChoiceIndex: "",
+      starterPackSelectionValues: {}
     });
 
     reset(nextInitialValues);
@@ -605,28 +667,32 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     setWizardStep(1);
     setStepOneSnapshot(null);
     setAttemptedBuildAdvance(false);
+    setStarterPackWarnings([]);
   }, [initialValues, isEditing, reset]);
 
   useEffect(() => {
     const currentSkills = getValues("skills") ?? [];
-    const currentEquipment = getValues("equipment") ?? [];
-    const normalizedSelections = normalizeSelectionsForClass(
+    const currentToolSelections = getValues("toolProficiencies") ?? [];
+    const normalizedSkills = normalizeSkillSelectionsForClass(
       resolvedClassName,
       currentSkills,
-      currentEquipment,
       resolvedSpecies,
       resolvedBackground
     );
+    const normalizedTools = normalizeToolSelectionsForClass(
+      resolvedClassName,
+      currentToolSelections
+    );
 
-    if (!areStringArraysEqual(currentSkills, normalizedSelections.skills)) {
-      setValue("skills", normalizedSelections.skills, {
+    if (!areStringArraysEqual(currentSkills, normalizedSkills)) {
+      setValue("skills", normalizedSkills, {
         shouldDirty: true,
         shouldValidate: true
       });
     }
 
-    if (!areStringArraysEqual(currentEquipment, normalizedSelections.equipment)) {
-      setValue("equipment", normalizedSelections.equipment, {
+    if (!areStringArraysEqual(currentToolSelections, normalizedTools)) {
+      setValue("toolProficiencies", normalizedTools, {
         shouldDirty: true,
         shouldValidate: true
       });
@@ -657,35 +723,72 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }, [resolvedStartingEquipmentChoiceIndex, setValue, starterEquipmentChoices]);
 
   useEffect(() => {
-    const selectedChoice =
-      resolvedStartingEquipmentChoiceIndex.length > 0
-        ? (starterEquipmentChoices[Number(resolvedStartingEquipmentChoiceIndex)] ?? null)
-        : null;
-
-    if (!selectedChoice) {
+    if (areStringMapsEqual(resolvedStarterPackSelectionValues, normalizedStarterPackSelectionValues)) {
       return;
     }
 
-    const nextEquipment = materializeStarterPackEquipmentChoice(selectedChoice);
+    setValue("starterPackSelectionValues", normalizedStarterPackSelectionValues, {
+      shouldDirty: true
+    });
+  }, [
+    normalizedStarterPackSelectionValues,
+    resolvedStarterPackSelectionValues,
+    setValue,
+    starterEquipmentChoices
+  ]);
 
-    if (!areStringArraysEqual(resolvedEquipment, nextEquipment.equipment)) {
-      setValue("equipment", nextEquipment.equipment, {
-        shouldDirty: true,
-        shouldValidate: true
-      });
+  useEffect(() => {
+    if (!selectedStarterEquipmentChoice) {
+      if (!isEditing && !areCurrenciesEqual(resolvedCurrencies, createDefaultCurrencies())) {
+        setValue("currencies", createDefaultCurrencies(), {
+          shouldDirty: true
+        });
+      }
+
+      return;
     }
 
-    if (!areCurrenciesEqual(resolvedCurrencies, nextEquipment.currencies)) {
-      setValue("currencies", nextEquipment.currencies, {
+    const nextCurrencies = resolveStarterPackChoiceCurrencies(selectedStarterEquipmentChoice);
+
+    if (!areCurrenciesEqual(resolvedCurrencies, nextCurrencies)) {
+      setValue("currencies", nextCurrencies, {
         shouldDirty: true
       });
     }
+  }, [isEditing, resolvedCurrencies, selectedStarterEquipmentChoice, setValue]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    if (!selectedStarterEquipmentChoice) {
+      setStarterPackWarnings([]);
+      return undefined;
+    }
+
+    void previewStarterPackChoiceWarnings(selectedStarterEquipmentChoice, {
+      selectedToolProficiencies: resolvedToolSelections,
+      selectionValues: normalizedStarterPackSelectionValues
+    })
+      .then((warnings) => {
+        if (!cancelled) {
+          setStarterPackWarnings(warnings);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setStarterPackWarnings([
+            "Couldn't preview starter equipment from the backend. Character creation will still continue without unresolved items."
+          ]);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
   }, [
-    resolvedCurrencies,
-    resolvedEquipment,
-    resolvedStartingEquipmentChoiceIndex,
-    setValue,
-    starterEquipmentChoices
+    normalizedStarterPackSelectionValues,
+    resolvedToolSelections,
+    selectedStarterEquipmentChoice
   ]);
 
   useEffect(() => {
@@ -769,8 +872,11 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }
 
   function normalizeDraft(values: CharacterFormValues): CharacterDraft {
-    const { startingEquipmentChoiceIndex: _unusedStartingEquipmentChoiceIndex, ...draftValues } =
-      values;
+    const {
+      startingEquipmentChoiceIndex: _unusedStartingEquipmentChoiceIndex,
+      starterPackSelectionValues: _unusedStarterPackSelectionValues,
+      ...draftValues
+    } = values;
     const normalizedProgress = normalizeLevelAndXp(draftValues.level, draftValues.xp);
     const normalizedClassName = draftValues.className.trim();
     const normalizedBackground = draftValues.background.trim();
@@ -790,12 +896,15 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             classFeatureState: draftValues.classFeatureState ?? {}
           })
         : clampNumber(String(draftValues.hitPoints), 1, 999, automaticHitPoints);
-    const normalizedSelections = normalizeSelectionsForClass(
+    const normalizedSkills = normalizeSkillSelectionsForClass(
       normalizedClassName,
       draftValues.skills ?? [],
-      draftValues.equipment ?? [],
       draftValues.species,
       resolvedNormalizedBackground
+    );
+    const normalizedTools = normalizeToolSelectionsForClass(
+      normalizedClassName,
+      draftValues.toolProficiencies ?? []
     );
     const normalizedSubclassId =
       normalizeSubclassId(draftValues.subclassId, normalizedClassName) ?? "";
@@ -835,14 +944,49 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       alignment: alignmentOptions.includes(draftValues.alignment)
         ? draftValues.alignment
         : "True Neutral",
-      skills: normalizedSelections.skills,
-      equipment: normalizedSelections.equipment,
+      skills: normalizedSkills,
+      toolProficiencies: normalizedTools,
+      equipment: [...new Set((draftValues.equipment ?? []).map((item) => item.trim()).filter(Boolean))],
       abilities: normalizedAbilities
     };
   }
 
-  function submitForm(values: CharacterFormValues) {
-    onSubmit(normalizeDraft(values));
+  async function submitResolvedDraft(values: CharacterFormValues) {
+    const normalizedDraft = normalizeDraft(values);
+    const configuredStarterPack = getClassStarterPack(normalizedDraft.className);
+    const selectedChoice =
+      !isEditing && configuredStarterPack && values.startingEquipmentChoiceIndex.length > 0
+        ? (configuredStarterPack.startingEquipment[Number(values.startingEquipmentChoiceIndex)] ?? null)
+        : null;
+
+    if (!selectedChoice) {
+      await onSubmit(normalizedDraft);
+      return;
+    }
+
+    const normalizedSelectionValues = normalizeStarterPackSelectionValues(
+      configuredStarterPack,
+      normalizedDraft.toolProficiencies ?? [],
+      values.starterPackSelectionValues
+    );
+    const materializedStarterPack = await materializeStarterPackChoiceToInventory(
+      normalizedDraft.inventoryItems,
+      selectedChoice,
+      {
+        selectedToolProficiencies: normalizedDraft.toolProficiencies ?? [],
+        selectionValues: normalizedSelectionValues
+      }
+    );
+
+    setStarterPackWarnings(materializedStarterPack.warnings);
+    await onSubmit({
+      ...normalizedDraft,
+      inventoryItems: materializedStarterPack.inventoryItems
+    });
+  }
+
+  async function submitForm(values: CharacterFormValues) {
+    await submitResolvedDraft(values);
   }
 
   async function validateWizardStepOne(): Promise<boolean> {
@@ -867,7 +1011,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const recommendedDraft = createRecommendedCharacterDraft(snapshot);
 
     reset(recommendedDraft);
-    onSubmit(normalizeDraft(recommendedDraft));
+    await submitResolvedDraft(recommendedDraft);
   }
 
   async function handleStartCustomization() {
@@ -925,7 +1069,21 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
     const randomClassSkillOptions = getSkillProficiencyOptionsForClass(randomClassName);
     const randomClassSkillLimit = getSkillSelectionLimitForClass(randomClassName);
-    const randomClassEquipmentOptions = getAvailableEquipmentNamesForClass(randomClassName);
+    const { choices: randomClassToolOptions, count: randomClassToolLimit } =
+      getToolProficiencyChoicesForClass(randomClassName);
+    const randomToolSelections = pickRandomSubset(
+      randomClassToolOptions,
+      randomClassToolLimit,
+      randomClassToolLimit
+    );
+    const randomStarterPack = getClassStarterPack(randomClassName);
+    const randomStartingEquipmentChoiceIndex =
+      randomStarterPack?.startingEquipment.length ? "0" : "";
+    const randomStarterPackSelectionValues = normalizeStarterPackSelectionValues(
+      randomStarterPack,
+      randomToolSelections,
+      {}
+    );
     const randomMode: AttributeMode = Math.random() < 0.5 ? "custom" : "pointBuy";
     const randomizedAbilities =
       randomMode === "custom" ? createRandomCustomAbilities() : createRandomPointBuyAbilities();
@@ -955,11 +1113,11 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         randomClassSkillLimit,
         randomClassSkillLimit
       ),
-      equipment: pickRandomSubset(
-        randomClassEquipmentOptions,
-        3,
-        Math.min(8, randomClassEquipmentOptions.length)
-      )
+      toolProficiencies: randomToolSelections,
+      equipment: []
+    }, {
+      startingEquipmentChoiceIndex: randomStartingEquipmentChoiceIndex,
+      starterPackSelectionValues: randomStarterPackSelectionValues
     });
     randomizedDraft.currentHitPoints = randomizedDraft.hitPoints;
 
@@ -1345,7 +1503,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     );
   }
 
-  function renderClassSetupSection() {
+  function renderClassSetupSection(options?: { showStartingEquipmentChoice?: boolean }) {
+    const showStartingEquipmentChoice = options?.showStartingEquipmentChoice ?? true;
+
     return (
       <section className={styles.sectionCard}>
         <div className={styles.sectionHeader}>
@@ -1359,6 +1519,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           <div className={styles.summaryCard}>
             <strong>Primary Ability</strong>
             <span>{starterPack.primaryAbility ?? "Not configured yet"}</span>
+          </div>
+          <div className={styles.summaryCard}>
+            <strong>Hit Point Die</strong>
+            <span>{starterPack.hitPointDieLabel ?? "Not configured yet"}</span>
           </div>
           <div className={styles.summaryCard}>
             <strong>Saving Throws</strong>
@@ -1383,6 +1547,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 ? starterPack.armorTrainingProficiencies.join(", ")
                 : "Not configured yet"}
             </span>
+          </div>
+          <div className={styles.summaryCard}>
+            <strong>Weapon Masteries</strong>
+            <span>{starterPack.weaponMasteryCount > 0 ? starterPack.weaponMasteryCount : "None"}</span>
           </div>
         </div>
 
@@ -1443,45 +1611,167 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           </fieldset>
 
           <fieldset className={styles.choiceGroup}>
-            <legend>Starting Equipment</legend>
-            {starterEquipmentChoices.length === 0 ? (
+            <legend>Tool Proficiencies</legend>
+            {starterPack.grantedToolProficiencies.length > 0 ? (
+              <ul className={styles.grantedSkillList}>
+                {starterPack.grantedToolProficiencies.map((tool) => (
+                  <li key={tool}>
+                    <span>{tool}</span>
+                    <small>Granted by class</small>
+                  </li>
+                ))}
+              </ul>
+            ) : null}
+
+            {buildRequiresToolSelection ? (
+              <>
+                <p className={styles.helperText}>
+                  Choose exactly {toolSelectionLimit} class tool proficiencies.
+                </p>
+                <div className={styles.choiceGrid}>
+                  {availableToolOptions.map((tool) => {
+                    const isActive = resolvedToolSelections.includes(tool);
+
+                    return (
+                      <label
+                        key={tool}
+                        className={clsx(styles.choiceOption, isActive && styles.choiceOptionActive)}
+                      >
+                        <input
+                          type="checkbox"
+                          value={tool}
+                          className={styles.choiceCheckbox}
+                          disabled={!isActive && selectedToolCount >= toolSelectionLimit}
+                          {...register("toolProficiencies")}
+                        />
+                        <span>{getToolProficiencyLabel(tool)}</span>
+                      </label>
+                    );
+                  })}
+                </div>
+              </>
+            ) : starterPack.grantedToolProficiencies.length === 0 ? (
               <p className={styles.helperText}>
-                Starter equipment choices haven&apos;t been configured for this class yet.
+                This class doesn&apos;t grant or choose tool proficiencies here.
               </p>
             ) : (
-              <div className={styles.radioChoiceGrid}>
-                {starterEquipmentChoices.map((choice, choiceIndex) => {
-                  const isActive = resolvedStartingEquipmentChoiceIndex === String(choiceIndex);
-
-                  return (
-                    <button
-                      key={choiceIndex}
-                      type="button"
-                      className={clsx(
-                        styles.radioChoiceCard,
-                        isActive && styles.radioChoiceCardActive
-                      )}
-                      onClick={() =>
-                        setValue("startingEquipmentChoiceIndex", String(choiceIndex), {
-                          shouldDirty: true,
-                          shouldValidate: true
-                        })
-                      }
-                    >
-                      <strong>Option {String.fromCharCode(65 + choiceIndex)}</strong>
-                      <span>{formatStarterPackEquipmentChoice(choice, choiceIndex)}</span>
-                    </button>
-                  );
-                })}
-              </div>
+              <p className={styles.helperText}>No tool choices required for this class.</p>
             )}
 
-            {attemptedBuildAdvance && !isEquipmentChoiceReady ? (
+            {attemptedBuildAdvance && !isToolSelectionReady ? (
               <p className={styles.errorText}>
-                Choose a starter equipment option before continuing.
+                Choose exactly {toolSelectionLimit} class tools before continuing.
               </p>
             ) : null}
           </fieldset>
+
+          {showStartingEquipmentChoice ? (
+            <fieldset className={styles.choiceGroup}>
+              <legend>Starting Equipment</legend>
+              {starterEquipmentChoices.length === 0 ? (
+                <p className={styles.helperText}>
+                  Starter equipment choices haven&apos;t been configured for this class yet.
+                </p>
+              ) : (
+                <div className={styles.radioChoiceGrid}>
+                  {starterEquipmentChoices.map((choice, choiceIndex) => {
+                    const isActive = resolvedStartingEquipmentChoiceIndex === String(choiceIndex);
+
+                    return (
+                      <button
+                        key={choiceIndex}
+                        type="button"
+                        className={clsx(
+                          styles.radioChoiceCard,
+                          isActive && styles.radioChoiceCardActive
+                        )}
+                        onClick={() =>
+                          setValue("startingEquipmentChoiceIndex", String(choiceIndex), {
+                            shouldDirty: true,
+                            shouldValidate: true
+                          })
+                        }
+                      >
+                        <strong>Option {String.fromCharCode(65 + choiceIndex)}</strong>
+                        <span>
+                          {formatStarterPackEquipmentChoice(choice, choiceIndex, {
+                            includeOptionLabel: false,
+                            selectionLabels: starterPackSelectionLabels
+                          })}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {requiredStarterPackSelections.map((selection) => {
+                const selectionOptions = getStarterPackSelectionOptions(
+                  selection,
+                  resolvedToolSelections
+                );
+                const selectedValue = normalizedStarterPackSelectionValues[selection.id] ?? "";
+
+                return (
+                  <div key={selection.id}>
+                    <p className={styles.helperText}>{selection.label}</p>
+                    {selection.description ? (
+                      <p className={styles.helperText}>{selection.description}</p>
+                    ) : null}
+                    <div className={styles.choiceGrid}>
+                      {selectionOptions.map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          className={clsx(
+                            styles.choiceOption,
+                            selectedValue === option.value && styles.choiceOptionActive
+                          )}
+                          onClick={() =>
+                            setValue(
+                              "starterPackSelectionValues",
+                              {
+                                ...normalizedStarterPackSelectionValues,
+                                [selection.id]: option.value
+                              },
+                              {
+                                shouldDirty: true,
+                                shouldValidate: true
+                              }
+                            )
+                          }
+                        >
+                          <span>{option.label}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {starterPackWarnings.length > 0 ? (
+                <div>
+                  {starterPackWarnings.map((warning) => (
+                    <p key={warning} className={styles.helperText}>
+                      {warning}
+                    </p>
+                  ))}
+                </div>
+              ) : null}
+
+              {attemptedBuildAdvance && !isEquipmentChoiceReady ? (
+                <p className={styles.errorText}>
+                  Choose a starter equipment option before continuing.
+                </p>
+              ) : null}
+
+              {attemptedBuildAdvance && !isStarterPackSelectionReady ? (
+                <p className={styles.errorText}>
+                  Finish the starter equipment item choices before continuing.
+                </p>
+              ) : null}
+            </fieldset>
+          ) : null}
         </div>
 
         <input type="hidden" {...register("startingEquipmentChoiceIndex")} />
@@ -1562,103 +1852,6 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     );
   }
 
-  function renderLoadoutSection() {
-    const availableEquipmentOptions = getAvailableEquipmentNamesForClass(resolvedClassName);
-    const isSkillSelectionLimited = skillSelectionLimit > 0;
-    const isSkillSelectionAtLimit =
-      isSkillSelectionLimited && selectedSkillCount >= skillSelectionLimit;
-
-    return (
-      <section className={styles.sectionCard}>
-        <div className={styles.sectionHeader}>
-          <div>
-            <p className={styles.sectionEyebrow}>Skills and equipment</p>
-            <h3>Choose current proficiencies and gear</h3>
-          </div>
-          <span>
-            {isSkillSelectionLimited
-              ? `${selectedSkillCount}/${skillSelectionLimit} class skills selected`
-              : "Select a class to view proficiencies"}
-          </span>
-        </div>
-
-        <div className={styles.classSetupGrid}>
-          <fieldset className={styles.choiceGroup}>
-            <legend>Skills</legend>
-            <p className={styles.helperText}>Granted proficiencies (locked):</p>
-            {resolvedSkillSelections.granted.length === 0 ? (
-              <p className={styles.helperText}>
-                No granted proficiencies from class, species, or background.
-              </p>
-            ) : (
-              <ul className={styles.grantedSkillList}>
-                {resolvedSkillSelections.granted.map((entry) => (
-                  <li key={entry.skill}>
-                    <span>{entry.skill}</span>
-                    <small>{entry.sources.join(", ")}</small>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p className={styles.helperText}>
-              {isSkillSelectionLimited
-                ? `Choose exactly ${skillSelectionLimit} manual skills allowed by this class.`
-                : "Choose a class to unlock skill proficiency options."}
-            </p>
-            <div className={styles.choiceGrid}>
-              {availableManualSkillOptions.map((skill) => (
-                <label
-                  key={skill}
-                  className={clsx(
-                    styles.choiceOption,
-                    resolvedSkillSelections.manual.includes(skill) && styles.choiceOptionActive
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    value={skill}
-                    className={styles.choiceCheckbox}
-                    disabled={
-                      !resolvedSkillSelections.manual.includes(skill) && isSkillSelectionAtLimit
-                    }
-                    {...register("skills")}
-                  />
-                  <span>{skill}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-
-          <fieldset className={styles.choiceGroup}>
-            <legend>Equipment</legend>
-            <p className={styles.helperText}>
-              Weapons and armor are filtered by class proficiency type.
-            </p>
-            <div className={styles.choiceGrid}>
-              {availableEquipmentOptions.map((item) => (
-                <label
-                  key={item}
-                  className={clsx(
-                    styles.choiceOption,
-                    resolvedEquipment.includes(item) && styles.choiceOptionActive
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    value={item}
-                    className={styles.choiceCheckbox}
-                    {...register("equipment")}
-                  />
-                  <span>{item}</span>
-                </label>
-              ))}
-            </div>
-          </fieldset>
-        </div>
-      </section>
-    );
-  }
-
   return (
     <div className={styles.page}>
       <button type="button" className={styles.backButton} onClick={onBack}>
@@ -1723,8 +1916,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             {renderBasicProfileSection()}
             {renderStartingHitPointsSection()}
             {renderAbilityDistributionSection()}
+            {renderClassSetupSection({ showStartingEquipmentChoice: false })}
             {renderNotesSection()}
-            {renderLoadoutSection()}
           </>
         ) : null}
 

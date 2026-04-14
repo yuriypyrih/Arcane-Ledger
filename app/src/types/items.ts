@@ -138,3 +138,21 @@ export type ItemFilterOptions = {
   rarities: ItemFilterOption[];
   sources: ItemFilterOption[];
 };
+
+export type ItemPackContent = {
+  quantity: number;
+  item: ItemRecord;
+};
+
+export type ItemPackMissingReference = {
+  name: string;
+  quantity: number;
+  expectedItemKey: string | null;
+};
+
+export type ItemPackContentsRecord = {
+  packKey: string;
+  packName: string;
+  contents: ItemPackContent[];
+  missingReferences: ItemPackMissingReference[];
+};

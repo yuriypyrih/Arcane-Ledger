@@ -76,7 +76,6 @@ function ReactionEntryDrawer({
           aria-labelledby="reaction-drawer-title"
           onClick={(event) => event.stopPropagation()}
         >
-          <div className={sheetStyles.spellDrawerHandle} aria-hidden="true" />
           <div className={sheetStyles.spellDrawerHeader}>
             <div className={sheetStyles.spellDrawerHeaderContent}>
               <p className={sheetStyles.spellDrawerBadge}>Reaction</p>

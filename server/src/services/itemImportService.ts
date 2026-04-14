@@ -1,6 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { ItemModel } from "../models/Item.js";
+import { normalizeOpen5eItemRecord } from "./itemDataCorrectionService.js";
 import type { Open5eItemRecord } from "../types/item.js";
 import type { Open5eListEnvelope } from "../types/open5e.js";
 import { getLatestSnapshotDirectory, getSnapshotPageFiles, resolveExistingPath } from "../utils/snapshots.js";
@@ -45,7 +46,7 @@ async function loadSnapshotItems(snapshotDir: string) {
         continue;
       }
 
-      uniqueItems.set(result.key, result);
+      uniqueItems.set(result.key, normalizeOpen5eItemRecord(result));
     }
   }
 

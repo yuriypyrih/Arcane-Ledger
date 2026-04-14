@@ -259,6 +259,18 @@ export function isItemSpellcastingFocusRecord(item: ItemRecord): boolean {
   return item.category?.key === "spellcasting-focus";
 }
 
+export function isItemEquipmentPackRecord(item: ItemRecord): boolean {
+  return item.category?.key === "equipment-pack";
+}
+
+export function isExtractableEquipmentPackRecord(item: ItemRecord): boolean {
+  return (
+    isItemEquipmentPackRecord(item) &&
+    typeof item.desc === "string" &&
+    /contains the following items:/i.test(item.desc)
+  );
+}
+
 export function isItemHandEquippableRecord(item: ItemRecord): boolean {
   return Boolean(
     item.weapon ||
@@ -390,6 +402,23 @@ export function getItemTransactionCost(
     currency: resolvedCurrency.currency,
     currencyKey: currencyKeyByType[resolvedCurrency.currency]
   };
+}
+
+export function addInventoryItemCopies(
+  inventoryItems: CharacterInventoryItem[],
+  item: ItemRecord,
+  quantity = 1
+): CharacterInventoryItem[] {
+  const normalizedQuantity = Math.max(0, Math.floor(quantity));
+
+  if (!item.key || normalizedQuantity === 0) {
+    return inventoryItems;
+  }
+
+  return [
+    ...inventoryItems,
+    ...Array.from({ length: normalizedQuantity }, () => createCharacterInventoryItem(item))
+  ];
 }
 
 export function findFirstInventoryCopyByKey(

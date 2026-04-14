@@ -3,6 +3,7 @@ import type {
   ItemArmorType,
   ItemAttackType,
   ItemBrowserTab,
+  ItemPackContentsRecord,
   ItemFilterOptions,
   ItemListItem,
   ItemOrdering,
@@ -78,6 +79,10 @@ export async function fetchItemList({
 
 export async function fetchItemByKey(key: string) {
   return apiGet<ItemRecord>(`items/${key}`);
+}
+
+export async function fetchItemPackContents(key: string) {
+  return apiGet<ItemPackContentsRecord>(`items/${key}/pack-contents`);
 }
 
 export async function fetchItemFilterOptions() {

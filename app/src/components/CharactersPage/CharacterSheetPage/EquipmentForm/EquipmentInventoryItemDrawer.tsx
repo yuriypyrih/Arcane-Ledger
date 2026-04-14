@@ -1,6 +1,6 @@
 import { X } from "lucide-react";
 import type { ReactNode } from "react";
-import ItemInspectionContent from "../../../ItemInspection";
+import ItemInspectionContent, { ItemInspectionHeader } from "../../../ItemInspection";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import type { CodexStatus, ItemRecord } from "../../../../types";
 import styles from "./EquipmentInventoryItemDrawer.module.css";
@@ -10,14 +10,26 @@ type EquipmentInventoryItemDrawerProps = {
   status: CodexStatus;
   onClose: () => void;
   footer?: ReactNode;
+  headerContent?: ReactNode;
 };
 
 function EquipmentInventoryItemDrawer({
   item,
   status,
   onClose,
-  footer
+  footer,
+  headerContent
 }: EquipmentInventoryItemDrawerProps) {
+  const resolvedHeaderContent =
+    headerContent ??
+    (status === "ready" && item ? (
+      <ItemInspectionHeader
+        item={item}
+        titleId="equipment-item-drawer-title"
+        headingLevel="h3"
+      />
+    ) : null);
+
   return (
     <div
       className={`${sheetStyles.spellDrawerBackdrop} ${styles.backdrop}`}
@@ -31,16 +43,17 @@ function EquipmentInventoryItemDrawer({
         aria-labelledby="equipment-item-drawer-title"
         onClick={(event) => event.stopPropagation()}
       >
-        <div className={sheetStyles.spellDrawerHandle} aria-hidden="true" />
         <div className={sheetStyles.spellDrawerHeader}>
-          <div className={sheetStyles.spellDrawerHeaderContent}>
-            <p className={sheetStyles.spellDrawerBadge}>Item Inspection</p>
-            <div className={sheetStyles.spellDrawerTitleRow}>
-              <h3 id="equipment-item-drawer-title" className={sheetStyles.spellDrawerTitle}>
-                Item details
-              </h3>
+          {resolvedHeaderContent ?? (
+            <div className={sheetStyles.spellDrawerHeaderContent}>
+              <p className={sheetStyles.spellDrawerBadge}>Item Inspection</p>
+              <div className={sheetStyles.spellDrawerTitleRow}>
+                <h3 id="equipment-item-drawer-title" className={sheetStyles.spellDrawerTitle}>
+                  Item details
+                </h3>
+              </div>
             </div>
-          </div>
+          )}
           <button
             type="button"
             className={sheetStyles.spellDrawerCloseButton}
@@ -73,7 +86,7 @@ function EquipmentInventoryItemDrawer({
             </div>
           ) : null}
 
-          {status === "ready" && item ? <ItemInspectionContent item={item} /> : null}
+          {status === "ready" && item ? <ItemInspectionContent item={item} showHeader={false} /> : null}
         </div>
 
         {footer ? <div className={styles.footer}>{footer}</div> : null}

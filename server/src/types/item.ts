@@ -123,6 +123,24 @@ export type ItemFilterOptions = {
   sources: ItemFilterOption[];
 };
 
+export type ItemPackContent = {
+  quantity: number;
+  item: ItemDetailRecord;
+};
+
+export type ItemPackMissingReference = {
+  name: string;
+  quantity: number;
+  expectedItemKey: string | null;
+};
+
+export type ItemPackContentsRecord = {
+  packKey: string;
+  packName: string;
+  contents: ItemPackContent[];
+  missingReferences: ItemPackMissingReference[];
+};
+
 export type Open5eItemRecord = {
   url?: string;
   key?: string;

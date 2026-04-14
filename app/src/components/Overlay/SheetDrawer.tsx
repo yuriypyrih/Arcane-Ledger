@@ -38,7 +38,6 @@ function SheetDrawer({
         aria-labelledby={titleId}
         onClick={onContentClick}
       >
-        <div className={styles.drawerHandle} aria-hidden="true" />
         {children}
       </section>
     </div>
