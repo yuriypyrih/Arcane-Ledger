@@ -1,7 +1,8 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { MonsterModel } from "../models/Monster.js";
-import type { MonsterRecord, Open5eListEnvelope } from "../types/monster.js";
+import type { MonsterRecord } from "../types/monster.js";
+import type { Open5eListEnvelope } from "../types/open5e.js";
 import { getLatestSnapshotDirectory, getSnapshotPageFiles, resolveExistingPath } from "../utils/snapshots.js";
 
 export type ImportMonsterSnapshotOptions = {

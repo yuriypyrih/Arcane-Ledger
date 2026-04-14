@@ -20,8 +20,11 @@ import {
   getSavingThrowLevelFromEntries,
   getSkillProficiencyForName
 } from "../../../proficiencyResolvers";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellSlots";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import { getPreparedSpellIdsByLevel, type SubclassRuntimeResolver } from "../../subclassRuntime";
 import type {
   AbilityCheckIndicatorMap,
@@ -32,7 +35,7 @@ import type {
   SavingThrowIndicatorMap,
   SkillIndicatorMap
 } from "../../types";
-import { normalizeClericFeatureState } from "../cleric";
+import { normalizeClericBaseFeatureState } from "../clericFeatureState";
 
 export const knowledgeDomainSubclassId = "cleric-knowledge-domain";
 export const divineForeknowledgeActionKey = "cleric-divine-foreknowledge";
@@ -73,6 +76,24 @@ const knowledgeDomainSpellIdsByLevel = {
   7: ["spell-arcane-eye", "spell-banishment", "spell-confusion"],
   9: ["spell-legend-lore", "spell-scrying", "spell-synaptic-static"]
 } as const;
+
+function normalizeKnowledgeDomainClericFeatureState(
+  value: unknown,
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "savingThrowProficiencies">>
+): CharacterClericFeatureState {
+  const normalizedCharacter = {
+    ...character,
+    level: character.level ?? 1
+  };
+  const record =
+    value && typeof value === "object" ? (value as Partial<CharacterClericFeatureState>) : {};
+
+  return {
+    ...normalizeClericBaseFeatureState(record, normalizedCharacter),
+    ...normalizeClericKnowledgeDomainFeatureState(record, normalizedCharacter)
+  };
+}
 
 export function hasClericKnowledgeDomainFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
@@ -219,7 +240,7 @@ export function getKnowledgeDomainBlessingsSkillSelections(
   }
 
   return (
-    normalizeClericFeatureState(character.classFeatureState?.cleric, character)
+    normalizeKnowledgeDomainClericFeatureState(character.classFeatureState?.cleric, character)
       .knowledgeBlessingsSkills ?? []
   );
 }
@@ -232,7 +253,10 @@ export function setKnowledgeDomainBlessingsSkillSelections(
     return character;
   }
 
-  const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
+  const clericState = normalizeKnowledgeDomainClericFeatureState(
+    character.classFeatureState?.cleric,
+    character
+  );
   const nextSelections = Array.from(
     new Set(selections.filter(isKnowledgeDomainBlessingsSkill))
   ).slice(0, 2);
@@ -298,7 +322,7 @@ export function getKnowledgeDomainUnfetteredMindSavingThrowSelection(
     return SAVING_THROW_PROFICIENCY.INT;
   }
 
-  const savedSelection = normalizeClericFeatureState(
+  const savedSelection = normalizeKnowledgeDomainClericFeatureState(
     character.classFeatureState?.cleric,
     character
   ).unfetteredMindSavingThrow;
@@ -325,7 +349,10 @@ export function setKnowledgeDomainUnfetteredMindSavingThrowSelection(
     return character;
   }
 
-  const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
+  const clericState = normalizeKnowledgeDomainClericFeatureState(
+    character.classFeatureState?.cleric,
+    character
+  );
   const availableSavingThrows = getUnfetteredMindAvailableSavingThrows(character);
   const lockedToInt = isKnowledgeDomainUnfetteredMindLockedToInt(character);
   const nextSelection = lockedToInt
@@ -380,7 +407,10 @@ export function getDivineForeknowledgeUsesRemaining(
     Partial<Pick<Character, "level" | "classFeatureState" | "subclassId">>
 ): number {
   const totalUses = getDivineForeknowledgeUsesTotal(character);
-  const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
+  const clericState = normalizeKnowledgeDomainClericFeatureState(
+    character.classFeatureState?.cleric,
+    character
+  );
 
   return Math.max(0, totalUses - (clericState.divineForeknowledgeUsesExpended ?? 0));
 }
@@ -557,7 +587,10 @@ export function activateClericDivineForeknowledge(character: Character): Charact
   let nextCharacter = character;
 
   if (usesRemaining > 0) {
-    const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
+    const clericState = normalizeKnowledgeDomainClericFeatureState(
+      character.classFeatureState?.cleric,
+      character
+    );
 
     nextCharacter = {
       ...character,
@@ -661,7 +694,10 @@ export function restoreClericDivineForeknowledgeOnLongRest(character: Character)
     return character;
   }
 
-  const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
+  const clericState = normalizeKnowledgeDomainClericFeatureState(
+    character.classFeatureState?.cleric,
+    character
+  );
 
   if ((clericState.divineForeknowledgeUsesExpended ?? 0) <= 0) {
     return character;

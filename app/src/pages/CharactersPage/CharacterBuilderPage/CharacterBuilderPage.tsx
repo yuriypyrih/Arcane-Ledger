@@ -63,6 +63,7 @@ function CharacterBuilderPage() {
         hitDiceRemaining: existingCharacter.hitDiceRemaining,
         statusEntries: existingCharacter.statusEntries,
         deathSaves: existingCharacter.deathSaves,
+        inventoryItems: existingCharacter.inventoryItems,
         customEquipment: existingCharacter.customEquipment,
         cantripIds: existingCharacter.cantripIds,
         spellbookSpellIds: existingCharacter.spellbookSpellIds,

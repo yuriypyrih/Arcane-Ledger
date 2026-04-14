@@ -42,7 +42,7 @@ export async function getLatestSnapshotDirectory(rootDir: string) {
   const latestSnapshotDirectory = snapshotDirectories.at(-1);
 
   if (!latestSnapshotDirectory) {
-    throw new AppError("No monster snapshots were found to import.", 404, "SNAPSHOT_NOT_FOUND");
+    throw new AppError("No snapshots were found.", 404, "SNAPSHOT_NOT_FOUND");
   }
 
   return latestSnapshotDirectory;

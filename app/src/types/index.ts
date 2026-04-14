@@ -3,6 +3,7 @@ export * from "./classFeatures";
 export * from "./codex";
 export * from "./dice";
 export * from "./feats";
+export * from "./items";
 export * from "./languages";
 export * from "./monsters";
 export * from "./proficiencies";

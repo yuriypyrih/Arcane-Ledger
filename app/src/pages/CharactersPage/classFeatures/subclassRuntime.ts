@@ -84,6 +84,7 @@ export type SubclassRuntimeCharacter = Pick<Character, "className"> &
       | "level"
       | "subclassId"
       | "equipment"
+      | "inventoryItems"
       | "customEquipment"
       | "abilities"
       | "classFeatureState"

@@ -913,6 +913,7 @@ export function collectActiveClassFeatureState(
     statusEntries: [],
     roundTracker: undefined,
     equipment: [],
+    inventoryItems: [],
     customEquipment: [],
     spellbookSpellIds: [],
     cantripIds: [],

@@ -86,6 +86,7 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
+  padding: var(--overlay-panel-top-padding) var(--overlay-panel-inline-padding) 0.85rem;
 }
 
 .closeButton {
@@ -106,6 +107,7 @@
   display: grid;
   gap: 0.9rem;
   grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
+  padding: 0 var(--overlay-panel-inline-padding) var(--overlay-panel-bottom-padding);
 }
 
 .editorPanel {
@@ -268,6 +270,8 @@
   display: grid;
   gap: 0.85rem;
   min-width: 0;
+  padding: var(--overlay-panel-top-padding) var(--overlay-panel-inline-padding)
+    var(--overlay-panel-bottom-padding);
 }
 
 .browserControls {

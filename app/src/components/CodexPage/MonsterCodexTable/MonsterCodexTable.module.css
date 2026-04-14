@@ -8,6 +8,7 @@
   justify-content: space-between;
   gap: var(--space-section-gap);
   align-items: center;
+  flex-wrap: wrap;
 }
 
 .resultsHeader h3,
@@ -20,9 +21,16 @@
   font-size: 1rem;
 }
 
-.resultsHeader span,
-.statusContent span,
-.paginationStatus {
+.resultsMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.8rem;
+}
+
+.totalLabel,
+.statusContent span {
   color: var(--color-ink-soft);
 }
 
@@ -175,33 +183,6 @@
   height: 0.88rem;
 }
 
-.pagination {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.85rem;
-}
-
-.paginationButton {
-  border: 1px solid rgba(75, 47, 29, 0.18);
-  border-radius: 999px;
-  background: rgba(255, 250, 241, 0.9);
-  color: var(--color-accent);
-  cursor: pointer;
-  font: inherit;
-  min-height: 40px;
-  padding: 0.4rem 0.85rem;
-}
-
-.paginationButton:disabled {
-  cursor: default;
-  opacity: 0.5;
-}
-
-.paginationStatus {
-  font-size: 0.88rem;
-}
-
 @media (max-width: 760px) {
   .table th,
   .table td {
@@ -225,9 +206,5 @@
   .crCell,
   .numericCell {
     font-size: 0.82rem;
-  }
-
-  .pagination {
-    flex-wrap: wrap;
   }
 }

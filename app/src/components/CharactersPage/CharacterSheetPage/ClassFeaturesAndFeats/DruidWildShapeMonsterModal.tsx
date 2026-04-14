@@ -5,6 +5,7 @@ import MonsterCodexTable from "../../../CodexPage/MonsterCodexTable";
 import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../../../constants/monsters";
 import { SheetModal } from "../../../Overlay";
 import { MonsterEntryDrawer } from "../../../MonsterEntryRenderer";
+import SearchField from "../../../SearchField";
 import { getDruidWildShapeRulesForCharacter } from "../../../../pages/CharactersPage/classFeatures";
 import { useMonsterEntries } from "../../../../pages/CodexPage/useMonsterEntries";
 import type { Character, CodexStatus, MonsterListItem, MonsterOrdering, MonsterRecord } from "../../../../types";
@@ -279,10 +280,10 @@ function DruidWildShapeMonsterModal({
           <div className={styles.filters}>
             <label className={styles.field}>
               <span>Search</span>
-              <input
+              <SearchField
                 className={styles.input}
                 value={query}
-                onChange={(event) => setQuery(event.target.value)}
+                onValueChange={setQuery}
                 placeholder="Search monsters..."
               />
             </label>

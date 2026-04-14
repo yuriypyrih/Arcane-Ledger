@@ -7,7 +7,7 @@ import {
   expendClericChannelDivinityUse,
   getClericChannelDivinityUsesRemaining,
   getClericChannelDivinityUsesTotal
-} from "../cleric";
+} from "../clericChannelDivinity";
 
 export const lifeDomainSubclassId = "cleric-life-domain";
 export const preserveLifeActionKey = "cleric-preserve-life";

@@ -17,6 +17,7 @@ import type {
 } from "./proficiencies";
 import type { CharacterClassFeatureState } from "./classFeatures";
 import type { CharacterFeatEntry } from "./feats";
+import type { ItemRecord } from "./items";
 import type { MonsterRecord } from "./monsters";
 import type { SkillName } from "./skills";
 import type { CharacterStatusEntry } from "./traits";
@@ -62,6 +63,13 @@ export type CharacterDeathSaves = {
 
 export type CharacterEquipmentItem = {
   name: string;
+  onHand: boolean;
+  worn: boolean;
+};
+
+export type CharacterInventoryItem = {
+  id: string;
+  item: ItemRecord;
   onHand: boolean;
   worn: boolean;
 };
@@ -159,6 +167,7 @@ export type Character = {
   statusEntries?: CharacterStatusEntry[];
   deathSaves?: CharacterDeathSaves;
   equipment: CharacterEquipmentItem[];
+  inventoryItems: CharacterInventoryItem[];
   customEquipment: CharacterCustomEquipment[];
   companions: CharacterCompanion[];
   cantripIds?: string[];
@@ -202,6 +211,7 @@ export type CharacterDraft = {
   statusEntries?: CharacterStatusEntry[];
   deathSaves?: CharacterDeathSaves;
   equipment: string[];
+  inventoryItems: CharacterInventoryItem[];
   customEquipment: CharacterCustomEquipment[];
   companions: CharacterCompanion[];
   cantripIds?: string[];

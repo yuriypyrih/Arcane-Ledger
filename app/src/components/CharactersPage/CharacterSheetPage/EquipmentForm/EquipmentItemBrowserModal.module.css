@@ -1,0 +1,60 @@
+.modal {
+  display: grid;
+  gap: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
+  min-height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
+  max-height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
+  max-width: min(1080px, calc(100vw - 2rem));
+  width: min(1080px, calc(100vw - 2rem));
+  overflow: hidden;
+}
+
+.headerActions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+.currencyButton,
+.customButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: 999px;
+  background: rgba(255, 250, 241, 0.95);
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  min-height: 40px;
+  padding: 0.45rem 0.8rem;
+}
+
+.customButton {
+  font-weight: 700;
+}
+
+.body {
+  display: grid;
+  gap: 1rem;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
+  overflow: hidden;
+}
+
+.body > :last-child {
+  min-height: 0;
+}
+
+@media (max-width: 760px) {
+  .modal {
+    width: calc(100vw - 1rem);
+  }
+
+  .headerActions {
+    justify-content: stretch;
+  }
+}

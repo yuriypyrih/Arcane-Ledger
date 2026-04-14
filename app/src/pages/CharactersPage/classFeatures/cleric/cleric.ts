@@ -1,4 +1,4 @@
-import { clericFeatures, getSpellEntriesForClassName } from "../../../../codex/classes";
+import { getSpellEntriesForClassName } from "../../../../codex/classes";
 import {
   CLASS_FEATURE,
   DAMAGE_TYPE,
@@ -11,7 +11,6 @@ import {
   type SpellEntry
 } from "../../../../codex/entries";
 import { getSpellEntryById } from "../../../../codex/selectors";
-import type { ClericFeatureClassObj } from "../../../../types";
 import type {
   AbilityKey,
   Character,
@@ -49,6 +48,18 @@ import type {
   SkillIndicatorMap,
   WeaponFeatureContext
 } from "../types";
+import {
+  expendClericChannelDivinityUse,
+  getClericChannelDivinityUsesRemaining,
+  getClericChannelDivinityUsesTotal,
+  restoreClericChannelDivinityOnLongRest,
+  restoreClericChannelDivinityOnShortRest
+} from "./clericChannelDivinity";
+import {
+  getClericFeatureRow,
+  hasClericFeature,
+  normalizeClericBaseFeatureState
+} from "./clericFeatureState";
 import * as knowledgeDomainSubclass from "./subclasses/clericKnowledgeDomain";
 import * as lifeDomainSubclass from "./subclasses/clericLifeDomain";
 
@@ -59,40 +70,13 @@ export const divineInterventionActionKey = "cleric-divine-intervention";
 export const divineForeknowledgeActionKey = knowledgeDomainSubclass.divineForeknowledgeActionKey;
 export const preserveLifeActionKey = lifeDomainSubclass.preserveLifeActionKey;
 const greaterDivineInterventionWishSpellId = "spell-wish";
-
-function getClericFeatureRow(level: number): ClericFeatureClassObj | null {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-  const matchingRows = clericFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .sort((left, right) => left.level - right.level);
-
-  return matchingRows.length > 0 ? matchingRows[matchingRows.length - 1] : null;
-}
-
-function getUnlockedClericFeatures(level: number): Set<CLASS_FEATURE> {
-  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
-
-  return clericFeatures
-    .filter((row) => row.level <= normalizedLevel)
-    .reduce((featureSet, row) => {
-      row.classFeatures.forEach((feature) => {
-        featureSet.add(feature);
-      });
-
-      return featureSet;
-    }, new Set<CLASS_FEATURE>());
-}
-
-function hasClericFeature(
-  character: Pick<Character, "className" | "level">,
-  feature: CLASS_FEATURE
-): boolean {
-  if (character.className !== "Cleric") {
-    return false;
-  }
-
-  return getUnlockedClericFeatures(character.level).has(feature);
-}
+export {
+  expendClericChannelDivinityUse,
+  getClericChannelDivinityUsesRemaining,
+  getClericChannelDivinityUsesTotal,
+  restoreClericChannelDivinityOnLongRest,
+  restoreClericChannelDivinityOnShortRest
+};
 
 function getAppliedAbilityScoreBonus(
   currentScore: number,
@@ -235,65 +219,16 @@ export function normalizeClericFeatureState(
     ...character,
     level: character.level ?? 1
   };
-  const hasDivineOrder = hasClericFeature(normalizedCharacter, CLASS_FEATURE.DIVINE_ORDER);
-  const hasBlessedStrikes = hasClericFeature(normalizedCharacter, CLASS_FEATURE.BLESSED_STRIKES);
-  const hasChannelDivinity = hasClericFeature(normalizedCharacter, CLASS_FEATURE.CHANNEL_DIVINITY);
-  const hasDivineIntervention = hasClericFeature(
-    normalizedCharacter,
-    CLASS_FEATURE.DIVINE_INTERVENTION
-  );
-  const hasKnowledgeDomainState = knowledgeDomainSubclass.hasClericKnowledgeDomainFeature(
-    normalizedCharacter,
-    3
-  );
-
-  if (
-    !hasDivineOrder &&
-    !hasBlessedStrikes &&
-    !hasChannelDivinity &&
-    !hasDivineIntervention &&
-    !hasKnowledgeDomainState
-  ) {
-    return {};
-  }
-
   const record =
     value && typeof value === "object" ? (value as Partial<CharacterClericFeatureState>) : {};
-  const channelDivinityTotal = hasChannelDivinity
-    ? (getClericFeatureRow(normalizedCharacter.level)?.channelDivinity ?? 0)
-    : 0;
+  const baseState = normalizeClericBaseFeatureState(record, normalizedCharacter);
+
+  if (!knowledgeDomainSubclass.hasClericKnowledgeDomainFeature(normalizedCharacter, 3)) {
+    return baseState;
+  }
 
   return {
-    divineOrderChoice:
-      hasDivineOrder &&
-      (record.divineOrderChoice === "protector" || record.divineOrderChoice === "thaumaturge")
-        ? record.divineOrderChoice
-        : hasDivineOrder
-          ? "protector"
-          : undefined,
-    blessedStrikesChoice:
-      hasBlessedStrikes &&
-      (record.blessedStrikesChoice === "blessed-strike" ||
-        record.blessedStrikesChoice === "potent-spellcasting")
-        ? record.blessedStrikesChoice
-        : undefined,
-    blessedStrikeUsedThisTurn: hasBlessedStrikes
-      ? Boolean(record.blessedStrikeUsedThisTurn)
-      : undefined,
-    channelDivinityUsesExpended: hasChannelDivinity
-      ? Math.max(
-          0,
-          Math.min(
-            channelDivinityTotal,
-            Number.isFinite(Number(record.channelDivinityUsesExpended))
-              ? Math.floor(Number(record.channelDivinityUsesExpended))
-              : 0
-          )
-        )
-      : undefined,
-    divineInterventionUsed: hasDivineIntervention
-      ? Boolean(record.divineInterventionUsed)
-      : undefined,
+    ...baseState,
     ...knowledgeDomainSubclass.normalizeClericKnowledgeDomainFeatureState(record, normalizedCharacter)
   };
 }
@@ -561,51 +496,6 @@ export function hasClericSpellcastingFeature(
   character: Pick<Character, "className" | "level">
 ): boolean {
   return hasClericFeature(character, CLASS_FEATURE.SPELLCASTING);
-}
-
-export function getClericChannelDivinityUsesTotal(
-  character: Pick<Character, "className" | "level">
-): number {
-  if (!hasClericFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY)) {
-    return 0;
-  }
-
-  return getClericFeatureRow(character.level)?.channelDivinity ?? 0;
-}
-
-export function getClericChannelDivinityUsesRemaining(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
-): number {
-  const totalUses = getClericChannelDivinityUsesTotal(character);
-  const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
-  const usesExpended = clericState.channelDivinityUsesExpended ?? 0;
-
-  return Math.max(0, totalUses - usesExpended);
-}
-
-export function expendClericChannelDivinityUse(character: Character): Character {
-  if (!hasClericFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY)) {
-    return character;
-  }
-
-  const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
-  const totalUses = getClericChannelDivinityUsesTotal(character);
-  const usesExpended = clericState.channelDivinityUsesExpended ?? 0;
-
-  if (usesExpended >= totalUses) {
-    return character;
-  }
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        channelDivinityUsesExpended: usesExpended + 1
-      }
-    }
-  };
 }
 
 export function getClericDivineInterventionUsesRemaining(
@@ -1005,50 +895,10 @@ export function applyShortRestToClericFeatures(character: Character): Character 
   return restoreClericChannelDivinityOnShortRest(character);
 }
 
-export function restoreClericChannelDivinityOnShortRest(character: Character): Character {
-  if (!hasClericFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY)) {
-    return character;
-  }
-
-  const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        blessedStrikeUsedThisTurn: false,
-        channelDivinityUsesExpended: Math.max(0, (clericState.channelDivinityUsesExpended ?? 0) - 1)
-      }
-    }
-  };
-}
-
 export function applyLongRestToClericFeatures(character: Character): Character {
   return restoreClericDivineForeknowledgeOnLongRest(
     restoreClericDivineInterventionOnLongRest(restoreClericChannelDivinityOnLongRest(character))
   );
-}
-
-export function restoreClericChannelDivinityOnLongRest(character: Character): Character {
-  if (!hasClericFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY)) {
-    return character;
-  }
-
-  const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        blessedStrikeUsedThisTurn: false,
-        channelDivinityUsesExpended: 0
-      }
-    }
-  };
 }
 
 export function restoreClericDivineInterventionOnLongRest(character: Character): Character {

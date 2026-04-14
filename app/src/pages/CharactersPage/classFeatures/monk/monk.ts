@@ -49,6 +49,12 @@ import {
   createHeldWeaponDescriptor,
   getHeldWeaponSlotCount
 } from "../../inventory";
+import {
+  createHeldDescriptorForInventoryItem,
+  getItemWeaponProperties,
+  getItemWeaponType,
+  isItemShieldRecord
+} from "../../inventoryItems";
 import { isMonkWeapon } from "../../monkWeapons";
 import { hasStatusCondition } from "../../traits";
 import {
@@ -184,13 +190,28 @@ function getResolvedWornCustomArmor(
 }
 
 function getMonkCombatState(
-  character: Pick<Character, "className" | "level" | "equipment" | "customEquipment">
+  character: Pick<Character, "className" | "level" | "equipment" | "inventoryItems" | "customEquipment">
 ): MonkCombatState {
   const heldCodexEquipment = character.equipment.filter((item) => item.onHand);
+  const heldInventoryItems = character.inventoryItems.filter((item) => item.onHand);
   const heldCodexWeapons = heldCodexEquipment.reduce<WeaponEntry[]>((entries, item) => {
     const weaponEntry = codexWeaponEntriesByName.get(item.name);
     return weaponEntry ? [...entries, weaponEntry] : entries;
   }, []);
+  const heldInventoryWeapons = heldInventoryItems
+    .map((entry) => {
+      const type = getItemWeaponType(entry.item);
+
+      if (!type) {
+        return null;
+      }
+
+      return {
+        type,
+        properties: getItemWeaponProperties(entry.item)
+      };
+    })
+    .filter((entry): entry is Pick<WeaponEntry, "type" | "properties"> => entry !== null);
   const heldCodexDescriptors = heldCodexEquipment.reduce<
     ReturnType<typeof createHeldWeaponDescriptor>[]
   >((descriptors, item) => {
@@ -208,6 +229,10 @@ function getMonkCombatState(
 
     return descriptors;
   }, []);
+  const heldInventoryDescriptors = heldInventoryItems.flatMap((entry) => {
+    const descriptor = createHeldDescriptorForInventoryItem(`inventory-${entry.id}`, entry.item);
+    return descriptor ? [descriptor] : [];
+  });
   const heldCustomWeapons = getResolvedHeldCustomWeapons(character);
   const wornCustomArmor = getResolvedWornCustomArmor(character);
   const heldCustomDescriptors = heldCustomWeapons.map((entry) =>
@@ -216,12 +241,19 @@ function getMonkCombatState(
   const shieldDescriptors = wornCustomArmor
     .filter((entry) => entry.tags.includes(ARMOR_TYPES.SHIELD))
     .map((entry) => createHeldShieldDescriptor(`custom-${entry.customEquipmentId}`));
-  const heldDescriptors = [...heldCodexDescriptors, ...heldCustomDescriptors, ...shieldDescriptors];
+  const heldDescriptors = [
+    ...heldCodexDescriptors,
+    ...heldInventoryDescriptors,
+    ...heldCustomDescriptors,
+    ...shieldDescriptors
+  ];
   const hasFreeHand = getHeldWeaponSlotCount(heldDescriptors) < 2;
   const hasShieldEquipped =
     heldCodexEquipment.some((item) =>
       codexArmorEntriesByName.get(item.name)?.tags.includes(ARMOR_TYPES.SHIELD)
-    ) || wornCustomArmor.some((entry) => entry.tags.includes(ARMOR_TYPES.SHIELD));
+    ) ||
+    heldInventoryItems.some((entry) => isItemShieldRecord(entry.item)) ||
+    wornCustomArmor.some((entry) => entry.tags.includes(ARMOR_TYPES.SHIELD));
   const hasWornBodyArmor =
     character.equipment.some((item) => {
       if (!item.worn) {
@@ -230,13 +262,17 @@ function getMonkCombatState(
 
       const armorEntry = codexArmorEntriesByName.get(item.name);
       return Boolean(armorEntry && !armorEntry.tags.includes(ARMOR_TYPES.SHIELD));
-    }) || wornCustomArmor.some((entry) => !entry.tags.includes(ARMOR_TYPES.SHIELD));
+    }) ||
+    character.inventoryItems.some((entry) => entry.worn && !isItemShieldRecord(entry.item)) ||
+    wornCustomArmor.some((entry) => !entry.tags.includes(ARMOR_TYPES.SHIELD));
   const martialArtsContext = {
     hasWornBodyArmor,
     hasShieldEquipped,
-    wieldsOnlyMonkWeaponsOrUnarmed: [...heldCodexWeapons, ...heldCustomWeapons].every((weapon) =>
-      isMonkWeapon(weapon)
-    )
+    wieldsOnlyMonkWeaponsOrUnarmed: [
+      ...heldCodexWeapons,
+      ...heldInventoryWeapons,
+      ...heldCustomWeapons
+    ].every((weapon) => isMonkWeapon(weapon))
   } satisfies MonkMartialArtsContext;
 
   return {
@@ -247,7 +283,7 @@ function getMonkCombatState(
 }
 
 function canUseFlurryOfBlows(
-  character: Pick<Character, "className" | "level" | "equipment" | "customEquipment">
+  character: Pick<Character, "className" | "level" | "equipment" | "inventoryItems" | "customEquipment">
 ): boolean {
   const combatState = getMonkCombatState(character);
   return combatState.martialArtsActive && combatState.hasFreeHand;
@@ -440,6 +476,7 @@ export function getMonkFeatureActions(
     | "level"
     | "classFeatureState"
     | "equipment"
+    | "inventoryItems"
     | "customEquipment"
     | "roundTracker"
     | "statusEntries"
@@ -1088,7 +1125,7 @@ export function activateMonkHandOfUltimateJustice(character: Character): Charact
 }
 
 export function getMonkSpeedBonuses(
-  character: Pick<Character, "className" | "level" | "equipment" | "customEquipment">,
+  character: Pick<Character, "className" | "level" | "equipment" | "inventoryItems" | "customEquipment">,
   _context: SpeedFeatureContext
 ): FeatureSpeedBonus[] {
   const movementBonus = getMonkUnarmoredMovementBonus(character);

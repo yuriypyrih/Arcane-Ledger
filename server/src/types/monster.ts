@@ -101,10 +101,3 @@ export type MonsterListQuery = {
 export type MonsterListQueryLocals = {
   monsterListQuery: MonsterListQuery;
 };
-
-export type Open5eListEnvelope<T> = {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: T[];
-};

@@ -1,3 +1,4 @@
+import type { ItemDetailRecord, ItemListItem, Open5eItemRecord } from "../types/item.js";
 import type { MonsterDetailRecord, MonsterListItem, MonsterRecord } from "../types/monster.js";
 
 type MongoInternals = {
@@ -33,5 +34,37 @@ export function serializeMonsterListItem(
     sourceTitle: record.document__title,
     sourceSlug: record.document__slug,
     imageUrl: record.img_main
+  };
+}
+
+export function serializeItemRecord(
+  record: Open5eItemRecord & MongoInternals
+): ItemDetailRecord {
+  const { _id, __v: _unusedVersion, ...item } = record;
+
+  return {
+    id: _id?.toString() ?? "",
+    ...item
+  };
+}
+
+export function serializeItemListItem(
+  record: Open5eItemRecord & MongoInternals
+): ItemListItem {
+  const { _id } = record;
+
+  return {
+    id: _id?.toString() ?? "",
+    key: record.key ?? "",
+    name: record.name ?? "",
+    rarityKey: record.rarity?.key ?? null,
+    rarityName: record.rarity?.name ?? null,
+    categoryKey: record.category?.key ?? "",
+    categoryName: record.category?.name ?? "",
+    weight: record.weight ?? "",
+    weightUnit: record.weight_unit ?? "",
+    cost: record.cost ?? null,
+    sourceKey: record.document?.key ?? "",
+    sourceTitle: record.document?.display_name ?? record.document?.name ?? ""
   };
 }

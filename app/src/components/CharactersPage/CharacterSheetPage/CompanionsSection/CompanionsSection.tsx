@@ -18,6 +18,7 @@ import {
 } from "../../../Overlay";
 import MonsterEntryDrawer from "../../../MonsterEntryRenderer/MonsterEntryDrawer";
 import MonsterEntryRenderer from "../../../MonsterEntryRenderer/MonsterEntryRenderer";
+import SearchField from "../../../SearchField";
 import SelectInput from "../../FormInputs/SelectInput";
 import TextAreaInput from "../../FormInputs/TextAreaInput";
 import TextInput from "../../FormInputs/TextInput";
@@ -702,9 +703,9 @@ function MonsterBrowserModal({
         <div className={styles.browserControls}>
           <label className={shared.fieldWide}>
             <span className={shared.fieldLabel}>Search Monsters</span>
-            <TextInput
+            <SearchField
               value={query}
-              onChange={(event) => onQueryChange(event.target.value)}
+              onValueChange={onQueryChange}
               placeholder="Search by monster name"
             />
           </label>

@@ -6,6 +6,7 @@ export {
   OverlayCloseButton,
   OverlayDetailsGrid,
   OverlayEyebrow,
+  OverlayFooter,
   OverlayHeader,
   OverlayHeaderContent,
   OverlaySummary,

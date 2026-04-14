@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import CodexFilters from "../../components/CodexPage/CodexFilters";
 import CodexResults from "../../components/CodexPage/CodexResults";
+import ItemCodexTable from "../../components/CodexPage/ItemCodexTable";
+import { sanitizeItemBrowserScopedFilters } from "../../components/ItemBrowser/itemBrowser";
 import MonsterCodexTable from "../../components/CodexPage/MonsterCodexTable";
 import CodexSpellDrawer from "../../components/CodexPage/CodexSpellDrawer";
 import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../constants/monsters";
@@ -11,6 +13,15 @@ import { useCodexEntries } from "./useCodexEntries";
 import {
   clearCategoryScopedSearchParams,
   hasCategoryScopedSearchParams,
+  ITEMS_PER_PAGE,
+  ITEM_ARMOR_TYPE_PARAM,
+  ITEM_ATTACK_TYPE_PARAM,
+  ITEM_CATEGORY_PARAM,
+  ITEM_ORDER_PARAM,
+  ITEM_PROFICIENCY_TYPE_PARAM,
+  ITEM_RARITY_PARAM,
+  ITEM_SOURCE_PARAM,
+  ITEM_TAB_PARAM,
   MONSTERS_PER_PAGE,
   MONSTER_ORDER_PARAM,
   MONSTER_SOURCE_PARAM,
@@ -24,8 +35,18 @@ import {
   SPELL_LEVEL_PARAM,
   SPELLS_PER_PAGE
 } from "./searchParams";
+import { useItemEntries } from "./useItemEntries";
+import { useItemFilterOptions } from "./useItemFilterOptions";
 import { useMonsterEntries } from "./useMonsterEntries";
-import type { MonsterOrdering } from "../../types";
+import {
+  DEFAULT_ITEM_BROWSER_TAB,
+  type ItemArmorType,
+  type ItemAttackType,
+  type ItemBrowserTab,
+  type ItemOrdering,
+  type ItemProficiencyType,
+  type MonsterOrdering
+} from "../../types";
 import styles from "./CodexPage.module.css";
 
 function CodexPage() {
@@ -36,9 +57,17 @@ function CodexPage() {
   const {
     category,
     currentPage,
+    itemArmorTypeFilter,
+    itemAttackTypeFilter,
     monsterOrdering,
     monsterSourceFilter,
     monsterTypeFilter,
+    itemCategoryFilter,
+    itemOrdering,
+    itemProficiencyTypeFilter,
+    itemRarityFilter,
+    itemSourceFilter,
+    itemTab,
     query,
     spellClassFilter,
     spellLevelFilter
@@ -46,6 +75,47 @@ function CodexPage() {
     () => parseCodexSearchState(searchParams, categories),
     [categories, searchParams]
   );
+  const {
+    payload: itemFilterOptionsPayload
+  } = useItemFilterOptions(category === ENTRY_CATEGORIES.ITEMS);
+  const sanitizedItemFilters = useMemo(
+    () =>
+      sanitizeItemBrowserScopedFilters(
+        {
+          tab: itemTab,
+          category: itemCategoryFilter,
+          attackType: itemAttackTypeFilter,
+          proficiencyType: itemProficiencyTypeFilter,
+          armorType: itemArmorTypeFilter
+        },
+        itemFilterOptionsPayload
+      ),
+    [
+      itemArmorTypeFilter,
+      itemAttackTypeFilter,
+      itemCategoryFilter,
+      itemFilterOptionsPayload,
+      itemProficiencyTypeFilter,
+      itemTab
+    ]
+  );
+  const {
+    payload: itemPayload,
+    status: itemStatus
+  } = useItemEntries({
+    enabled: category === ENTRY_CATEGORIES.ITEMS,
+    page: currentPage,
+    limit: ITEMS_PER_PAGE,
+    search: query,
+    tab: sanitizedItemFilters.tab,
+    category: sanitizedItemFilters.category,
+    attackType: sanitizedItemFilters.attackType,
+    proficiencyType: sanitizedItemFilters.proficiencyType,
+    armorType: sanitizedItemFilters.armorType,
+    rarity: itemRarityFilter,
+    source: itemSourceFilter,
+    ordering: itemOrdering
+  });
   const {
     payload: monsterPayload,
     status: monsterStatus
@@ -74,6 +144,7 @@ function CodexPage() {
     if (
       category === ENTRY_CATEGORIES.SPELLS ||
       category === ENTRY_CATEGORIES.MONSTERS ||
+      category === ENTRY_CATEGORIES.ITEMS ||
       !hasCategoryScopedSearchParams(searchParams)
     ) {
       return;
@@ -84,6 +155,42 @@ function CodexPage() {
     resetPageSearchParam(nextSearchParams);
     setSearchParams(nextSearchParams, { replace: true });
   }, [category, searchParams, setSearchParams]);
+
+  useEffect(() => {
+    if (category !== ENTRY_CATEGORIES.ITEMS) {
+      return;
+    }
+
+    if (
+      itemCategoryFilter === sanitizedItemFilters.category &&
+      itemAttackTypeFilter === sanitizedItemFilters.attackType &&
+      itemProficiencyTypeFilter === sanitizedItemFilters.proficiencyType &&
+      itemArmorTypeFilter === sanitizedItemFilters.armorType
+    ) {
+      return;
+    }
+
+    const nextSearchParams = new URLSearchParams(searchParams);
+    setSearchParamValue(nextSearchParams, ITEM_CATEGORY_PARAM, sanitizedItemFilters.category);
+    setSearchParamValue(nextSearchParams, ITEM_ATTACK_TYPE_PARAM, sanitizedItemFilters.attackType);
+    setSearchParamValue(
+      nextSearchParams,
+      ITEM_PROFICIENCY_TYPE_PARAM,
+      sanitizedItemFilters.proficiencyType
+    );
+    setSearchParamValue(nextSearchParams, ITEM_ARMOR_TYPE_PARAM, sanitizedItemFilters.armorType);
+    resetPageSearchParam(nextSearchParams);
+    setSearchParams(nextSearchParams, { replace: true });
+  }, [
+    category,
+    itemArmorTypeFilter,
+    itemAttackTypeFilter,
+    itemCategoryFilter,
+    itemProficiencyTypeFilter,
+    sanitizedItemFilters,
+    searchParams,
+    setSearchParams
+  ]);
 
   useEffect(() => {
     if (category === ENTRY_CATEGORIES.SPELLS) {
@@ -117,6 +224,8 @@ function CodexPage() {
   const totalPages =
     category === ENTRY_CATEGORIES.SPELLS
       ? Math.max(1, Math.ceil(sortedEntries.length / SPELLS_PER_PAGE))
+      : category === ENTRY_CATEGORIES.ITEMS
+        ? Math.max(1, Math.ceil((itemPayload?.count ?? 0) / ITEMS_PER_PAGE))
       : category === ENTRY_CATEGORIES.MONSTERS
         ? Math.max(1, Math.ceil((monsterPayload?.count ?? 0) / MONSTERS_PER_PAGE))
         : 1;
@@ -125,8 +234,11 @@ function CodexPage() {
   useEffect(() => {
     if (
       ((category === ENTRY_CATEGORIES.SPELLS && status !== "ready") ||
+        (category === ENTRY_CATEGORIES.ITEMS && itemStatus !== "ready") ||
         (category === ENTRY_CATEGORIES.MONSTERS && monsterStatus !== "ready")) ||
-      (category !== ENTRY_CATEGORIES.SPELLS && category !== ENTRY_CATEGORIES.MONSTERS) ||
+      (category !== ENTRY_CATEGORIES.SPELLS &&
+        category !== ENTRY_CATEGORIES.MONSTERS &&
+        category !== ENTRY_CATEGORIES.ITEMS) ||
       currentPage === safeCurrentPage
     ) {
       return;
@@ -136,7 +248,16 @@ function CodexPage() {
     setPageSearchParam(nextSearchParams, safeCurrentPage);
 
     setSearchParams(nextSearchParams, { replace: true });
-  }, [category, currentPage, monsterStatus, safeCurrentPage, searchParams, setSearchParams, status]);
+  }, [
+    category,
+    currentPage,
+    itemStatus,
+    monsterStatus,
+    safeCurrentPage,
+    searchParams,
+    setSearchParams,
+    status
+  ]);
 
   const visibleEntries = useMemo(() => {
     if (category !== ENTRY_CATEGORIES.SPELLS) {
@@ -201,6 +322,86 @@ function CodexPage() {
     },
     [searchParams, setSearchParams]
   );
+  const handleItemCategoryFilterChange = useCallback(
+    (value: string | null) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      setSearchParamValue(nextSearchParams, ITEM_CATEGORY_PARAM, value);
+      resetPageSearchParam(nextSearchParams);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+  const handleItemTabChange = useCallback(
+    (value: ItemBrowserTab) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      setSearchParamValue(
+        nextSearchParams,
+        ITEM_TAB_PARAM,
+        value === DEFAULT_ITEM_BROWSER_TAB ? null : value
+      );
+      setSearchParamValue(nextSearchParams, ITEM_CATEGORY_PARAM, null);
+      setSearchParamValue(nextSearchParams, ITEM_ATTACK_TYPE_PARAM, null);
+      setSearchParamValue(nextSearchParams, ITEM_PROFICIENCY_TYPE_PARAM, null);
+      setSearchParamValue(nextSearchParams, ITEM_ARMOR_TYPE_PARAM, null);
+      resetPageSearchParam(nextSearchParams);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+  const handleItemAttackTypeFilterChange = useCallback(
+    (value: ItemAttackType | null) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      setSearchParamValue(nextSearchParams, ITEM_ATTACK_TYPE_PARAM, value);
+      resetPageSearchParam(nextSearchParams);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+  const handleItemProficiencyTypeFilterChange = useCallback(
+    (value: ItemProficiencyType | null) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      setSearchParamValue(nextSearchParams, ITEM_PROFICIENCY_TYPE_PARAM, value);
+      resetPageSearchParam(nextSearchParams);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+  const handleItemArmorTypeFilterChange = useCallback(
+    (value: ItemArmorType | null) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      setSearchParamValue(nextSearchParams, ITEM_ARMOR_TYPE_PARAM, value);
+      resetPageSearchParam(nextSearchParams);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+  const handleItemRarityFilterChange = useCallback(
+    (value: string | null) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      setSearchParamValue(nextSearchParams, ITEM_RARITY_PARAM, value);
+      resetPageSearchParam(nextSearchParams);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+  const handleItemSourceFilterChange = useCallback(
+    (value: string | null) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      setSearchParamValue(nextSearchParams, ITEM_SOURCE_PARAM, value);
+      resetPageSearchParam(nextSearchParams);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+  const handleItemOrderingChange = useCallback(
+    (value: ItemOrdering) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      setSearchParamValue(nextSearchParams, ITEM_ORDER_PARAM, value === "name" ? null : value);
+      resetPageSearchParam(nextSearchParams);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
   const handlePageChange = useCallback(
     (page: number) => {
       const nextPage = Math.max(1, Math.min(totalPages, page));
@@ -216,8 +417,11 @@ function CodexPage() {
   }, []);
   const codexSearch = searchParams.toString();
   const isMonsterCategory = category === ENTRY_CATEGORIES.MONSTERS;
+  const isItemCategory = category === ENTRY_CATEGORIES.ITEMS;
   const headerDescription = isMonsterCategory
     ? "Monster entries are loaded from the local backend and kept paginated at 50 per page."
+    : isItemCategory
+      ? "Item entries are loaded from the local backend and exposed with backend-driven filters."
     : "Starter entries are currently hardcoded in src/codex/entries.";
 
   return (
@@ -241,12 +445,27 @@ function CodexPage() {
           monsterTypeOptions={MONSTER_TYPE_OPTIONS}
           monsterSourceFilter={monsterSourceFilter}
           monsterSourceOptions={MONSTER_SOURCE_OPTIONS}
+          itemTab={sanitizedItemFilters.tab}
+          itemCategoryFilter={sanitizedItemFilters.category}
+          itemAttackTypeFilter={sanitizedItemFilters.attackType}
+          itemProficiencyTypeFilter={sanitizedItemFilters.proficiencyType}
+          itemArmorTypeFilter={sanitizedItemFilters.armorType}
+          itemRarityFilter={itemRarityFilter}
+          itemSourceFilter={itemSourceFilter}
+          itemFilterOptions={itemFilterOptionsPayload}
           onQueryChange={handleQueryChange}
           onCategoryChange={updateCategory}
           onSpellLevelFilterChange={handleSpellLevelFilterChange}
           onSpellClassFilterChange={handleSpellClassFilterChange}
           onMonsterTypeFilterChange={handleMonsterTypeFilterChange}
           onMonsterSourceFilterChange={handleMonsterSourceFilterChange}
+          onItemTabChange={handleItemTabChange}
+          onItemCategoryFilterChange={handleItemCategoryFilterChange}
+          onItemAttackTypeFilterChange={handleItemAttackTypeFilterChange}
+          onItemProficiencyTypeFilterChange={handleItemProficiencyTypeFilterChange}
+          onItemArmorTypeFilterChange={handleItemArmorTypeFilterChange}
+          onItemRarityFilterChange={handleItemRarityFilterChange}
+          onItemSourceFilterChange={handleItemSourceFilterChange}
         />
       </div>
 
@@ -261,6 +480,18 @@ function CodexPage() {
           onPageChange={handlePageChange}
           ordering={monsterOrdering}
           onOrderingChange={handleMonsterOrderingChange}
+        />
+      ) : isItemCategory ? (
+        <ItemCodexTable
+          items={itemPayload?.results ?? []}
+          totalEntries={itemPayload?.count ?? 0}
+          status={itemStatus}
+          search={codexSearch}
+          currentPage={safeCurrentPage}
+          totalPages={totalPages}
+          onPageChange={handlePageChange}
+          ordering={itemOrdering}
+          onOrderingChange={handleItemOrderingChange}
         />
       ) : (
         <CodexResults

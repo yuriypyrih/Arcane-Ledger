@@ -26,6 +26,7 @@ import {
   createHeldWeaponDescriptor,
   getHeldWeaponSlotCount
 } from "../../../inventory";
+import { createHeldDescriptorForInventoryItem } from "../../../inventoryItems";
 import { isShieldArmorEntry } from "../../../armor";
 import { getLoadoutCodexEntryByName } from "../../../proficiency";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
@@ -72,6 +73,7 @@ type RogueSoulknifeCharacter = Pick<Character, "className"> &
       | "classFeatureState"
       | "customEquipment"
       | "equipment"
+      | "inventoryItems"
       | "level"
       | "roundTracker"
       | "statusEntries"
@@ -120,6 +122,14 @@ function hasFreeHandForPsychicBlade(character: RogueSoulknifeCharacter): boolean
 
     return [];
   });
+  const heldInventoryDescriptors = (character.inventoryItems ?? []).flatMap((entry) => {
+    if (!entry.onHand) {
+      return [];
+    }
+
+    const descriptor = createHeldDescriptorForInventoryItem(`inventory-${entry.id}`, entry.item);
+    return descriptor ? [descriptor] : [];
+  });
   const heldCustomDescriptors = getResolvedCustomLoadoutEntries(character.customEquipment ?? [])
     .filter(
       (
@@ -131,7 +141,11 @@ function hasFreeHandForPsychicBlade(character: RogueSoulknifeCharacter): boolean
     )
     .map((entry) => createHeldWeaponDescriptor(`custom-${entry.customEquipmentId}`, entry));
 
-  return getHeldWeaponSlotCount([...heldCodexDescriptors, ...heldCustomDescriptors]) < 2;
+  return getHeldWeaponSlotCount([
+    ...heldCodexDescriptors,
+    ...heldInventoryDescriptors,
+    ...heldCustomDescriptors
+  ]) < 2;
 }
 
 function getPsychicBladeAbility(character: Partial<Pick<Character, "abilities">>): "STR" | "DEX" {

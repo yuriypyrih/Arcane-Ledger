@@ -400,28 +400,6 @@
   white-space: nowrap;
 }
 
-.currencyInlineDisplay {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.28rem;
-  line-height: 1;
-  white-space: nowrap;
-}
-
-.currencyInlineDisplay span {
-  color: inherit;
-  font-size: inherit;
-  font-weight: inherit;
-  letter-spacing: inherit;
-  text-transform: none;
-}
-
-.currencyInlineIcon {
-  block-size: 14px;
-  inline-size: 14px;
-  object-fit: contain;
-}
-
 .drawerCurrencyDisplay {
   gap: 0.34rem;
   line-height: 1.15;

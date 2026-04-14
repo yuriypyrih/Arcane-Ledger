@@ -1,7 +1,7 @@
 import { mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { basename, join } from "node:path";
 import { AppError } from "../errors/AppError.js";
-import type { Open5eListEnvelope } from "../types/monster.js";
+import type { Open5eListEnvelope } from "../types/open5e.js";
 import { formatFetchDate, getSnapshotDirectoryName, parseFetchDate } from "../utils/dates.js";
 import { pathExists } from "../utils/filesystem.js";
 
@@ -10,10 +10,11 @@ const DEFAULT_MAX_RETRIES = 3;
 
 type Logger = Pick<Console, "info" | "warn">;
 
-export type FetchMonsterSnapshotOptions = {
+export type FetchOpen5eListSnapshotOptions = {
   rootDir: string;
-  monstersUrl: string;
+  listUrl: string;
   requestDelayMs: number;
+  resourceName: string;
   overwrite?: boolean;
   fetchDate?: string;
   fetchImpl?: typeof fetch;
@@ -103,15 +104,16 @@ function resolveFetchDate(fetchDate: string | undefined): string {
   return formatFetchDate(new Date());
 }
 
-export async function fetchMonsterSnapshot({
+export async function fetchOpen5eListSnapshot({
   rootDir,
-  monstersUrl,
+  listUrl,
   requestDelayMs,
+  resourceName,
   overwrite = false,
   fetchDate,
   fetchImpl = fetch,
   logger = console
-}: FetchMonsterSnapshotOptions) {
+}: FetchOpen5eListSnapshotOptions) {
   const resolvedFetchDate = resolveFetchDate(fetchDate);
   const snapshotDir = join(rootDir, getSnapshotDirectoryName(resolvedFetchDate));
 
@@ -131,14 +133,14 @@ export async function fetchMonsterSnapshot({
 
   await mkdir(snapshotDir, { recursive: true });
 
-  let nextUrl: string | null = monstersUrl;
+  let nextUrl: string | null = listUrl;
   let pageNumber = 0;
   let totalCount = 0;
 
   try {
     while (nextUrl) {
       pageNumber += 1;
-      logger.info(`Fetching Open5e monsters page ${pageNumber}.`);
+      logger.info(`Fetching Open5e ${resourceName} page ${pageNumber}.`);
 
       const payload = await fetchWithRetry(nextUrl, fetchImpl, logger);
 

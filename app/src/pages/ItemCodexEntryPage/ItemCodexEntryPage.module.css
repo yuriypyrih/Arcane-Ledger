@@ -1,0 +1,76 @@
+.page {
+  display: grid;
+  gap: var(--space-page-gap);
+}
+
+.backButton,
+.linkButton {
+  justify-self: start;
+  border: 1px solid rgba(75, 47, 29, 0.16);
+  border-radius: 999px;
+  background: rgba(255, 250, 241, 0.9);
+  color: var(--color-accent);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.92rem;
+  padding: 0.38rem 0.8rem;
+  text-decoration: none;
+}
+
+.card {
+  display: grid;
+  gap: 1.2rem;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 250, 241, 0.95);
+  box-shadow: 0 10px 30px rgba(54, 34, 21, 0.05);
+  padding: var(--space-card-padding-tight);
+}
+
+.header {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.title {
+  margin: 0;
+  color: var(--color-ink);
+  font-size: clamp(1.7rem, 2.2vw, 2.3rem);
+  line-height: 1.08;
+}
+
+.subtitle {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.95rem;
+  line-height: 1.5;
+}
+
+.section {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.sectionTitle {
+  margin: 0;
+  color: var(--color-accent);
+  font-size: 0.98rem;
+}
+
+.descriptionBlock {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.descriptionParagraph {
+  margin: 0;
+  color: var(--color-ink);
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.cellGrid {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}

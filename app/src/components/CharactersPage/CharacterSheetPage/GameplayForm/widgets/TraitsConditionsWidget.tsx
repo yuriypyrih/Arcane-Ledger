@@ -129,6 +129,7 @@ import { consumeRoundTrackerResource } from "../../../../../pages/CharactersPage
 import CharacterSpellDrawer from "../../SpellCastingForm/CharacterSpellDrawer";
 import SelectInput from "../../../FormInputs/SelectInput";
 import { MonsterEntryDrawer } from "../../../../MonsterEntryRenderer";
+import SearchField from "../../../../SearchField";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import widgetShellStyles from "../GameplayWidgetShared.module.css";
 import { createDefaultDeathSaves } from "../gameplayStateUtils";
@@ -1347,10 +1348,9 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
               <div className={styles.spellThiefFieldGroup}>
                 <label className={shared.field}>
                   <span className={shared.fieldLabel}>Spell Search</span>
-                  <input
-                    type="search"
+                  <SearchField
                     value={spellThiefSearchQuery}
-                    onChange={(event) => setSpellThiefSearchQuery(event.target.value)}
+                    onValueChange={setSpellThiefSearchQuery}
                     placeholder="Search all spells"
                     className={styles.spellThiefSearchInput}
                   />

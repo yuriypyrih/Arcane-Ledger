@@ -3,7 +3,13 @@ import {
   type ArmorEntry
 } from "../../codex/entries";
 import { getArmorEntries } from "../../codex/selectors";
-import type { AbilityKey, Character, CharacterCustomEquipment, CharacterEquipmentItem } from "../../types";
+import type {
+  AbilityKey,
+  Character,
+  CharacterCustomEquipment,
+  CharacterEquipmentItem,
+  CharacterInventoryItem
+} from "../../types";
 import { getAbilityScoreForCharacter } from "./abilities";
 import {
   getArmorClassBonusesForCharacter,
@@ -12,6 +18,11 @@ import {
   type FeatureArmorClassMode
 } from "./classFeatures";
 import { getFeatArmorClassBonusesForCharacter } from "./feats";
+import {
+  getItemArmorType,
+  isItemBodyArmorRecord,
+  isItemShieldRecord
+} from "./inventoryItems";
 
 export type BodyArmorType = "light" | "medium" | "heavy";
 
@@ -126,6 +137,29 @@ function getCustomBodyArmorCandidate(
   };
 }
 
+function getInventoryBodyArmorCandidate(
+  inventoryItem: CharacterInventoryItem
+): BodyArmorCandidate | null {
+  if (!isItemBodyArmorRecord(inventoryItem.item)) {
+    return null;
+  }
+
+  const armorType = getItemArmorType(inventoryItem.item);
+  const armorBase = inventoryItem.item.armor?.ac_base;
+
+  if (!armorType || typeof armorBase !== "number") {
+    return null;
+  }
+
+  return {
+    key: `inventory:${inventoryItem.id}`,
+    name: inventoryItem.item.name ?? inventoryItem.item.key ?? "Armor",
+    armorBase,
+    armorType,
+    worn: Boolean(inventoryItem.worn)
+  };
+}
+
 function pickLegacyBodyArmorCandidate(candidates: BodyArmorCandidate[]): BodyArmorCandidate | null {
   if (candidates.length === 0) {
     return null;
@@ -139,6 +173,9 @@ function getBodyArmorCandidates(character: Character): BodyArmorCandidate[] {
     ...character.equipment
       .map((item) => getCodexBodyArmorCandidate(item))
       .filter((candidate): candidate is BodyArmorCandidate => candidate !== null),
+    ...character.inventoryItems
+      .map((item) => getInventoryBodyArmorCandidate(item))
+      .filter((candidate): candidate is BodyArmorCandidate => candidate !== null),
     ...character.customEquipment
       .map((entry) => getCustomBodyArmorCandidate(entry))
       .filter((candidate): candidate is BodyArmorCandidate => candidate !== null)
@@ -151,10 +188,12 @@ export function getWornBodyArmorTypeForCharacter(character: Character): BodyArmo
 
 export function normalizeCharacterArmorWearState(
   equipment: CharacterEquipmentItem[],
+  inventoryItems: CharacterInventoryItem[],
   customEquipment: CharacterCustomEquipment[],
   options?: NormalizeArmorWearStateOptions
 ): {
   equipment: CharacterEquipmentItem[];
+  inventoryItems: CharacterInventoryItem[];
   customEquipment: CharacterCustomEquipment[];
 } {
   const normalizedEquipment = equipment.map((item) => {
@@ -166,6 +205,17 @@ export function normalizeCharacterArmorWearState(
       worn: isBodyArmor ? Boolean(item.worn) : false
     };
   });
+  const normalizedInventoryItems = inventoryItems.map((entry) =>
+    isItemBodyArmorRecord(entry.item)
+      ? {
+          ...entry,
+          worn: Boolean(entry.worn)
+        }
+      : {
+          ...entry,
+          worn: false
+        }
+  );
   const normalizedCustomEquipment = customEquipment.map((entry) =>
     entry.kind === "armor" && entry.armorType !== "shield"
       ? {
@@ -183,6 +233,9 @@ export function normalizeCharacterArmorWearState(
     ...normalizedEquipment
       .map((item) => getCodexBodyArmorCandidate(item))
       .filter((candidate): candidate is BodyArmorCandidate => candidate !== null),
+    ...normalizedInventoryItems
+      .map((entry) => getInventoryBodyArmorCandidate(entry))
+      .filter((candidate): candidate is BodyArmorCandidate => candidate !== null),
     ...normalizedCustomEquipment
       .map((entry) => getCustomBodyArmorCandidate(entry))
       .filter((candidate): candidate is BodyArmorCandidate => candidate !== null)
@@ -199,6 +252,10 @@ export function normalizeCharacterArmorWearState(
       ...item,
       worn: selectedBodyArmorKey === `codex:${item.name}`
     })),
+    inventoryItems: normalizedInventoryItems.map((entry) => ({
+      ...entry,
+      worn: selectedBodyArmorKey === `inventory:${entry.id}`
+    })),
     customEquipment: normalizedCustomEquipment.map((entry) =>
       entry.kind === "armor" && entry.armorType !== "shield"
         ? {
@@ -212,7 +269,10 @@ export function normalizeCharacterArmorWearState(
 
 function applyBodyArmorWearState(
   character: Character,
-  target: { kind: "codex"; name: string } | { kind: "custom"; customEquipmentId: string },
+  target:
+    | { kind: "codex"; name: string }
+    | { kind: "inventory"; inventoryItemId: string }
+    | { kind: "custom"; customEquipmentId: string },
   shouldWear: boolean
 ): Character {
   const isValidBodyArmorTarget =
@@ -221,6 +281,10 @@ function applyBodyArmorWearState(
           const armorEntry = codexArmorEntriesByName.get(target.name);
           return Boolean(armorEntry && !isShieldArmorEntry(armorEntry));
         })()
+      : target.kind === "inventory"
+        ? character.inventoryItems.some(
+            (entry) => entry.id === target.inventoryItemId && isItemBodyArmorRecord(entry.item)
+          )
       : character.customEquipment.some(
           (entry) =>
             entry.kind === "armor" &&
@@ -237,6 +301,10 @@ function applyBodyArmorWearState(
     equipment: character.equipment.map((item) => ({
       ...item,
       worn: shouldWear && target.kind === "codex" ? item.name === target.name : false
+    })),
+    inventoryItems: character.inventoryItems.map((entry) => ({
+      ...entry,
+      worn: shouldWear && target.kind === "inventory" ? entry.id === target.inventoryItemId : false
     })),
     customEquipment: character.customEquipment.map((entry) =>
       entry.kind === "armor" && entry.armorType !== "shield"
@@ -265,12 +333,20 @@ export function setCustomArmorWornState(
   return applyBodyArmorWearState(character, { kind: "custom", customEquipmentId }, shouldWear);
 }
 
+export function setInventoryItemArmorWornState(
+  character: Character,
+  inventoryItemId: string,
+  shouldWear: boolean
+): Character {
+  return applyBodyArmorWearState(character, { kind: "inventory", inventoryItemId }, shouldWear);
+}
+
 function getAbilityModifier(score: number): number {
   return Math.floor((score - 10) / 2);
 }
 
 function getHeldShieldBonus(character: Character): number {
-  return character.equipment.reduce((highestShieldBonus, item) => {
+  const codexShieldBonus = character.equipment.reduce((highestShieldBonus, item) => {
     if (!item.onHand) {
       return highestShieldBonus;
     }
@@ -283,6 +359,15 @@ function getHeldShieldBonus(character: Character): number {
 
     return Math.max(highestShieldBonus, armorEntry.shieldBonus);
   }, 0);
+  const inventoryShieldBonus = character.inventoryItems.reduce((highestShieldBonus, item) => {
+    if (!item.onHand || !isItemShieldRecord(item.item)) {
+      return highestShieldBonus;
+    }
+
+    return Math.max(highestShieldBonus, 2);
+  }, 0);
+
+  return Math.max(codexShieldBonus, inventoryShieldBonus);
 }
 
 function getBaseArmorClassModes(character: Character): BaseArmorClassMode[] {

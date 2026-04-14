@@ -176,6 +176,9 @@
 .spellManagementModal,
 .restPopupCard,
 .xpPopupCard {
+  --sheet-panel-inline-padding: 1rem;
+  --sheet-panel-top-padding: 1rem;
+  --sheet-panel-bottom-padding: 1rem;
   display: grid;
   align-content: start;
   gap: 0.88rem;
@@ -187,7 +190,7 @@
   box-shadow: 0 24px 60px rgba(38, 23, 14, 0.24);
   overflow: auto;
   overscroll-behavior: contain;
-  padding: 1rem;
+  padding: 0;
 }
 
 .spellManagementHeader,
@@ -200,7 +203,19 @@
   top: 0;
   z-index: 2;
   background: linear-gradient(165deg, rgba(255, 252, 245, 0.98), rgba(246, 236, 221, 0.98));
-  padding-bottom: 0.2rem;
+  padding: var(--sheet-panel-top-padding) var(--sheet-panel-inline-padding) 0.2rem;
+}
+
+.spellManagementModal > :not(.spellManagementHeader),
+.restPopupCard > :not(.restPopupHeader),
+.xpPopupCard > :not(.restPopupHeader) {
+  padding-inline: var(--sheet-panel-inline-padding);
+}
+
+.spellManagementModal > :last-child,
+.restPopupCard > :last-child,
+.xpPopupCard > :last-child {
+  padding-bottom: var(--sheet-panel-bottom-padding);
 }
 
 .sheetPanelTitle {
@@ -436,9 +451,12 @@
 }
 
 .spellDrawer {
+  --sheet-drawer-inline-padding: 0.95rem;
+  --sheet-drawer-top-padding: 0.95rem;
+  --sheet-drawer-bottom-padding: 0.95rem;
   display: flex;
   flex-direction: column;
-  gap: 0.92rem;
+  gap: 0;
   width: min(920px, 100%);
   max-height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
   border: 1px solid rgba(75, 47, 29, 0.22);
@@ -446,7 +464,6 @@
   background: linear-gradient(160deg, rgba(255, 252, 245, 0.99), rgba(245, 234, 218, 0.99));
   box-shadow: 0 28px 70px rgba(32, 18, 12, 0.35);
   overflow: hidden;
-  padding: 0.95rem;
   animation: drawerSlideUp 220ms cubic-bezier(0.22, 1, 0.36, 1);
 }
 
@@ -457,7 +474,8 @@
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  padding-right: 0.12rem;
+  padding: 0 calc(var(--sheet-drawer-inline-padding) - 0.12rem)
+    var(--sheet-drawer-bottom-padding) var(--sheet-drawer-inline-padding);
 }
 
 .spellDrawerHandle {
@@ -466,6 +484,7 @@
   background: rgba(75, 47, 29, 0.2);
   block-size: 5px;
   inline-size: 58px;
+  margin-top: 0.95rem;
 }
 
 .spellDrawerHeader {
@@ -477,7 +496,7 @@
   top: 0;
   z-index: 2;
   background: linear-gradient(160deg, rgba(255, 252, 245, 0.99), rgba(245, 234, 218, 0.99));
-  padding-bottom: 0.2rem;
+  padding: var(--sheet-drawer-top-padding) var(--sheet-drawer-inline-padding) 0.2rem;
 }
 
 .spellDrawerHeaderContent {
@@ -559,7 +578,7 @@
   z-index: 2;
   border-top: 1px solid rgba(75, 47, 29, 0.12);
   background: linear-gradient(160deg, rgba(255, 252, 245, 0.99), rgba(245, 234, 218, 0.99));
-  padding-top: 0.8rem;
+  padding: 0.8rem var(--sheet-drawer-inline-padding) var(--sheet-drawer-bottom-padding);
 }
 
 .spellDrawerCastControls {
@@ -730,7 +749,9 @@
   .restPopupCard,
   .xpPopupCard {
     border-radius: 20px;
-    padding: 0.9rem;
+    --sheet-panel-inline-padding: 0.9rem;
+    --sheet-panel-top-padding: 0.9rem;
+    --sheet-panel-bottom-padding: 0.9rem;
   }
 
   .xpQuickActionRow {
@@ -744,7 +765,9 @@
 
   .spellDrawer {
     border-radius: 20px;
-    padding: 0.85rem;
+    --sheet-drawer-inline-padding: 0.85rem;
+    --sheet-drawer-top-padding: 0.85rem;
+    --sheet-drawer-bottom-padding: 0.85rem;
   }
 
   .spellDrawerDetails {

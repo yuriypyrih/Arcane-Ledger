@@ -1,15 +1,32 @@
 import { ENTRY_CATEGORIES, SPELL_LIST_CLASS } from "../../codex/entries";
 import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../constants/monsters";
-import type { MonsterOrdering } from "../../types";
+import {
+  DEFAULT_ITEM_BROWSER_TAB,
+  type ItemArmorType,
+  type ItemAttackType,
+  type ItemBrowserTab,
+  type ItemOrdering,
+  type ItemProficiencyType,
+  type MonsterOrdering
+} from "../../types";
 import type { CodexFilterCategory } from "../../utils/codex";
 
 export const SPELLS_PER_PAGE = 20;
 export const MONSTERS_PER_PAGE = 50;
+export const ITEMS_PER_PAGE = 50;
 export const SPELL_LEVEL_PARAM = "spellLevel";
 export const SPELL_CLASS_PARAM = "spellClass";
 export const MONSTER_TYPE_PARAM = "monsterType";
 export const MONSTER_SOURCE_PARAM = "monsterSource";
 export const MONSTER_ORDER_PARAM = "monsterOrder";
+export const ITEM_CATEGORY_PARAM = "itemCategory";
+export const ITEM_TAB_PARAM = "itemTab";
+export const ITEM_ATTACK_TYPE_PARAM = "itemAttackType";
+export const ITEM_PROFICIENCY_TYPE_PARAM = "itemProficiencyType";
+export const ITEM_ARMOR_TYPE_PARAM = "itemArmorType";
+export const ITEM_RARITY_PARAM = "itemRarity";
+export const ITEM_SOURCE_PARAM = "itemSource";
+export const ITEM_ORDER_PARAM = "itemOrder";
 export const PAGE_PARAM = "page";
 export const QUERY_PARAM = "q";
 
@@ -21,6 +38,20 @@ const MONSTER_ORDERINGS = new Set<string>([
   "challenge_rating",
   "-challenge_rating"
 ]);
+const ITEM_ORDERINGS = new Set<string>([
+  "name",
+  "-name",
+  "rarity",
+  "-rarity",
+  "weight",
+  "-weight",
+  "cost",
+  "-cost"
+]);
+const ITEM_TABS = new Set<ItemBrowserTab>(["weapons", "armor", "gear"]);
+const ITEM_ATTACK_TYPES = new Set<ItemAttackType>(["melee", "range"]);
+const ITEM_PROFICIENCY_TYPES = new Set<ItemProficiencyType>(["simple", "martial"]);
+const ITEM_ARMOR_TYPES = new Set<ItemArmorType>(["light", "medium", "heavy"]);
 
 export type ParsedCodexSearchState = {
   category: CodexFilterCategory;
@@ -30,6 +61,14 @@ export type ParsedCodexSearchState = {
   monsterTypeFilter: string | null;
   monsterSourceFilter: string | null;
   monsterOrdering: MonsterOrdering;
+  itemTab: ItemBrowserTab;
+  itemCategoryFilter: string | null;
+  itemAttackTypeFilter: ItemAttackType | null;
+  itemProficiencyTypeFilter: ItemProficiencyType | null;
+  itemArmorTypeFilter: ItemArmorType | null;
+  itemRarityFilter: string | null;
+  itemSourceFilter: string | null;
+  itemOrdering: ItemOrdering;
   currentPage: number;
 };
 
@@ -101,6 +140,27 @@ function parseMonsterSourceFilter(value: string | null): string | null {
     : null;
 }
 
+function parseItemOrdering(value: string | null): ItemOrdering {
+  if (!value || !ITEM_ORDERINGS.has(value)) {
+    return "name";
+  }
+
+  return value as ItemOrdering;
+}
+
+function parseEnumFilter<T extends string>(value: string | null, allowedValues: Set<T>): T | null {
+  if (!value) {
+    return null;
+  }
+
+  return allowedValues.has(value as T) ? (value as T) : null;
+}
+
+function parseOptionalFilter(value: string | null): string | null {
+  const normalizedValue = value?.trim();
+  return normalizedValue ? normalizedValue : null;
+}
+
 export function parseCodexSearchState(
   searchParams: URLSearchParams,
   categories: CodexFilterCategory[]
@@ -118,6 +178,18 @@ export function parseCodexSearchState(
     monsterTypeFilter: parseMonsterTypeFilter(searchParams.get(MONSTER_TYPE_PARAM)),
     monsterSourceFilter: parseMonsterSourceFilter(searchParams.get(MONSTER_SOURCE_PARAM)),
     monsterOrdering: parseMonsterOrdering(searchParams.get(MONSTER_ORDER_PARAM)),
+    itemTab:
+      parseEnumFilter(searchParams.get(ITEM_TAB_PARAM), ITEM_TABS) ?? DEFAULT_ITEM_BROWSER_TAB,
+    itemCategoryFilter: parseOptionalFilter(searchParams.get(ITEM_CATEGORY_PARAM)),
+    itemAttackTypeFilter: parseEnumFilter(searchParams.get(ITEM_ATTACK_TYPE_PARAM), ITEM_ATTACK_TYPES),
+    itemProficiencyTypeFilter: parseEnumFilter(
+      searchParams.get(ITEM_PROFICIENCY_TYPE_PARAM),
+      ITEM_PROFICIENCY_TYPES
+    ),
+    itemArmorTypeFilter: parseEnumFilter(searchParams.get(ITEM_ARMOR_TYPE_PARAM), ITEM_ARMOR_TYPES),
+    itemRarityFilter: parseOptionalFilter(searchParams.get(ITEM_RARITY_PARAM)),
+    itemSourceFilter: parseOptionalFilter(searchParams.get(ITEM_SOURCE_PARAM)),
+    itemOrdering: parseItemOrdering(searchParams.get(ITEM_ORDER_PARAM)),
     currentPage: parsePageValue(searchParams.get(PAGE_PARAM))
   };
 }
@@ -135,6 +207,18 @@ export function clearMonsterSearchParams(searchParams: URLSearchParams): URLSear
   return searchParams;
 }
 
+export function clearItemSearchParams(searchParams: URLSearchParams): URLSearchParams {
+  searchParams.delete(ITEM_TAB_PARAM);
+  searchParams.delete(ITEM_CATEGORY_PARAM);
+  searchParams.delete(ITEM_ATTACK_TYPE_PARAM);
+  searchParams.delete(ITEM_PROFICIENCY_TYPE_PARAM);
+  searchParams.delete(ITEM_ARMOR_TYPE_PARAM);
+  searchParams.delete(ITEM_RARITY_PARAM);
+  searchParams.delete(ITEM_SOURCE_PARAM);
+  searchParams.delete(ITEM_ORDER_PARAM);
+  return searchParams;
+}
+
 export function clearCategoryScopedSearchParams(
   searchParams: URLSearchParams,
   category: CodexFilterCategory
@@ -147,6 +231,10 @@ export function clearCategoryScopedSearchParams(
     clearMonsterSearchParams(searchParams);
   }
 
+  if (category !== ENTRY_CATEGORIES.ITEMS) {
+    clearItemSearchParams(searchParams);
+  }
+
   return searchParams;
 }
 
@@ -157,6 +245,14 @@ export function hasCategoryScopedSearchParams(searchParams: URLSearchParams): bo
     searchParams.has(MONSTER_TYPE_PARAM) ||
     searchParams.has(MONSTER_SOURCE_PARAM) ||
     searchParams.has(MONSTER_ORDER_PARAM) ||
+    searchParams.has(ITEM_TAB_PARAM) ||
+    searchParams.has(ITEM_CATEGORY_PARAM) ||
+    searchParams.has(ITEM_ATTACK_TYPE_PARAM) ||
+    searchParams.has(ITEM_PROFICIENCY_TYPE_PARAM) ||
+    searchParams.has(ITEM_ARMOR_TYPE_PARAM) ||
+    searchParams.has(ITEM_RARITY_PARAM) ||
+    searchParams.has(ITEM_SOURCE_PARAM) ||
+    searchParams.has(ITEM_ORDER_PARAM) ||
     searchParams.has(PAGE_PARAM)
   );
 }

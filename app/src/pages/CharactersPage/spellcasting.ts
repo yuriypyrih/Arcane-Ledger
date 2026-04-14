@@ -17,15 +17,9 @@ import {
   getAlwaysPreparedSpellIdsForCharacter,
   getCantripLimitBonusForCharacter
 } from "./classFeatures";
+import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "./spellSlots";
 
-const spellSlotLevels = [1, 2, 3, 4, 5, 6, 7, 8, 9] as const;
 const arcaneTricksterRequiredCantripId = "spell-mage-hand";
-
-function createSpellSlotRow(...slots: number[]): number[] {
-  return spellSlotLevels.map((_, index) => Math.max(0, Math.floor(slots[index] ?? 0)));
-}
-
-const emptySpellSlotRow = createSpellSlotRow();
 
 type SpellcastingFeatureClassObj = FeatureClassObj & {
   preparedSpells?: number;
@@ -112,39 +106,7 @@ export function getSpellLevel(spell: Pick<SpellEntry, "spellLevel">): number {
   return sanitizeSpellLevel(spell.spellLevel);
 }
 
-export function getSpellSlotTotalsForCharacter(
-  className: string,
-  level: number,
-  subclassId?: string
-): number[] {
-  const subclassFeatureRow = getSubclassSpellcastingProgressionRow(className, level, subclassId);
-
-  if (subclassFeatureRow) {
-    return createSpellSlotRow(...subclassFeatureRow.spellSlots);
-  }
-
-  const featureRow = getClassFeatureRowForLevel(className, level);
-
-  if (!Array.isArray(featureRow?.spellSlots)) {
-    return [...emptySpellSlotRow];
-  }
-
-  return createSpellSlotRow(...featureRow.spellSlots);
-}
-
-export function normalizeSpellSlotsExpended(
-  spellSlotsExpended: unknown,
-  spellSlotTotals: number[]
-): number[] {
-  const rawValues = Array.isArray(spellSlotsExpended) ? spellSlotsExpended : [];
-
-  return spellSlotLevels.map((_, index) => {
-    const parsedValue = Number(rawValues[index]);
-    const safeValue = Number.isFinite(parsedValue) ? Math.max(0, Math.floor(parsedValue)) : 0;
-
-    return Math.min(spellSlotTotals[index] ?? 0, safeValue);
-  });
-}
+export { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "./spellSlots";
 
 export function getPreparedSpellLimitForCharacter(
   className: string,

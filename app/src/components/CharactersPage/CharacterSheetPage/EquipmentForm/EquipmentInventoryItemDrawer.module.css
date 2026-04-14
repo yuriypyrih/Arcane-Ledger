@@ -1,0 +1,88 @@
+.backdrop {
+  z-index: 50;
+}
+
+.drawer {
+  display: grid;
+  grid-template-rows: auto 1fr auto;
+}
+
+.statusCard {
+  display: grid;
+  gap: 0.25rem;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 250, 241, 0.92);
+  color: var(--color-ink-soft);
+  padding: 1rem;
+}
+
+.statusCard strong {
+  color: var(--color-ink);
+}
+
+.footer {
+  border-top: 1px solid rgba(75, 47, 29, 0.12);
+  padding: 0.85rem 1rem 1rem;
+}
+
+.footerLayout {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.85rem;
+}
+
+.footerActionGroup,
+.footerRightGroup {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.65rem;
+}
+
+.copyCountBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 42px;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 250, 241, 0.95);
+  color: var(--color-ink);
+  font-size: 0.92rem;
+  font-weight: 700;
+  padding: 0.6rem 0.85rem;
+}
+
+.footerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  min-height: 42px;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: 12px;
+  background: rgba(255, 250, 241, 0.95);
+  cursor: pointer;
+  font: inherit;
+  padding: 0.6rem 0.85rem;
+}
+
+.footerButton:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.toneNeutral {
+  color: var(--color-ink-soft);
+}
+
+.tonePositive {
+  color: #2e7d32;
+}
+
+.toneNegative {
+  color: #c62828;
+}

@@ -54,6 +54,13 @@ import { getWornBodyArmorTypeForCharacter } from "./armor";
 import { isMonkWeapon } from "./monkWeapons";
 import { normalizeCharacterFeats } from "./feats";
 import {
+  createHeldDescriptorForInventoryItem,
+  getItemWeaponDamage,
+  getItemWeaponProperties,
+  getItemWeaponType,
+  isItemShieldRecord
+} from "./inventoryItems";
+import {
   getAppliedWeaponProficiency,
   getEquipmentByName,
   getPrimaryAbilityForClass,
@@ -380,6 +387,36 @@ function getWeaponReference(
   }
 
   return fallbackWeaponReferencesByName.get(name) ?? null;
+}
+
+function getWeaponReferenceFromItemRecord(
+  item: Character["inventoryItems"][number]["item"],
+  options?: {
+    applyGreatWeaponFighting?: boolean;
+    damageOverride?: WeaponDamage;
+    abilityRuleOverride?: WeaponAbilityRule;
+  }
+): WeaponReference | null {
+  const type = getItemWeaponType(item);
+  const damage = options?.damageOverride ?? getItemWeaponDamage(item);
+
+  if (!type || !damage) {
+    return null;
+  }
+
+  return getWeaponReferenceFromEntry(
+    {
+      type,
+      damage,
+      properties: getItemWeaponProperties(item),
+      versatileDamage: undefined
+    },
+    {
+      applyGreatWeaponFighting: options?.applyGreatWeaponFighting,
+      damageOverride: options?.damageOverride,
+      abilityRuleOverride: options?.abilityRuleOverride
+    }
+  );
 }
 
 function resolveWeaponAbility(rule: WeaponAbilityRule, abilities: AbilityScores): AbilityKey {
@@ -784,12 +821,38 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
     (entry): entry is ResolvedCustomWeaponEntry =>
       entry.category === ENTRY_CATEGORIES.WEAPONS && entry.onHand
   );
+  const heldInventoryItems = character.inventoryItems.filter((entry) => entry.onHand);
+  const heldInventoryWeapons = heldInventoryItems.filter((entry) => Boolean(entry.item.weapon));
   const heldCodexWeapons = character.equipment.filter((item) => item.onHand);
   const heldCodexWeaponEntries = heldCodexWeapons.reduce<WeaponEntry[]>((entries, item) => {
     const entry = codexWeaponEntriesByName.get(item.name);
 
     return entry ? [...entries, entry] : entries;
   }, []);
+  const heldInventoryWeaponEntries = heldInventoryWeapons
+    .map((entry) => {
+      const type = getItemWeaponType(entry.item);
+      const damage = getItemWeaponDamage(entry.item);
+
+      if (!type || !damage) {
+        return null;
+      }
+
+      return {
+        type,
+        damage,
+        properties: getItemWeaponProperties(entry.item)
+      };
+    })
+    .filter(
+      (
+        entry
+      ): entry is {
+        type: WeaponEntry["type"];
+        damage: WeaponDamage;
+        properties: WeaponEntry["properties"];
+      } => entry !== null
+    );
   const heldCodexWeaponDescriptors = heldCodexWeapons.reduce<HeldWeaponDescriptor[]>(
     (descriptors, item) => {
       const equipmentDefinition = getEquipmentByName(item.name);
@@ -815,24 +878,31 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
   const heldCustomWeaponDescriptors = heldCustomWeapons.map((entry) =>
     createHeldWeaponDescriptor(`custom-${entry.customEquipmentId}`, entry)
   );
+  const heldInventoryWeaponDescriptors = heldInventoryItems.flatMap((entry) => {
+    const descriptor = createHeldDescriptorForInventoryItem(`inventory-${entry.id}`, entry.item);
+    return descriptor ? [descriptor] : [];
+  });
   const heldWeaponDescriptors: HeldWeaponDescriptor[] = [
     ...heldCodexWeaponDescriptors,
+    ...heldInventoryWeaponDescriptors,
     ...heldCustomWeaponDescriptors
   ];
   const hasFreeHand = getHeldWeaponSlotCount(heldWeaponDescriptors) < 2;
   const hasShieldEquipped = heldCodexWeapons.some((item) => {
     const equipmentDefinition = getEquipmentByName(item.name);
     return equipmentDefinition?.category === "armor" && equipmentDefinition.type === "shield";
-  });
+  }) || heldInventoryItems.some((entry) => isItemShieldRecord(entry.item));
   const monkMartialArtsDie = getMonkMartialArtsDieForCharacter(character);
   const monkMartialArtsActive =
     monkMartialArtsDie !== null &&
     canUseMonkMartialArtsForCharacter(character, {
       hasWornBodyArmor: getWornBodyArmorTypeForCharacter(character) !== null,
       hasShieldEquipped,
-      wieldsOnlyMonkWeaponsOrUnarmed: [...heldCodexWeaponEntries, ...heldCustomWeapons].every(
-        (weapon) => isMonkWeapon(weapon)
-      )
+      wieldsOnlyMonkWeaponsOrUnarmed: [
+        ...heldCodexWeaponEntries,
+        ...heldCustomWeapons,
+        ...heldInventoryWeaponEntries
+      ].every((weapon) => isMonkWeapon(weapon))
     });
   const monkUnarmedStrikeMulti = getMonkUnarmedStrikeMultiCountForCharacter(character);
 
@@ -975,6 +1045,71 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
       })
     ];
   }, []);
+  const inventoryWeaponActions = heldInventoryWeapons.reduce<WeaponAction[]>(
+    (actions, inventoryItem) => {
+      const weaponType = getItemWeaponType(inventoryItem.item);
+      const weaponProperties = getItemWeaponProperties(inventoryItem.item);
+      const baseDamage = getItemWeaponDamage(inventoryItem.item);
+      const isEligibleMonkWeapon =
+        monkMartialArtsActive &&
+        weaponType &&
+        isMonkWeapon({
+          type: weaponType,
+          properties: weaponProperties
+        });
+      const monkDamageAdjustment =
+        isEligibleMonkWeapon && monkMartialArtsDie && baseDamage
+          ? applyMartialArtsDamageDie(baseDamage, monkMartialArtsDie)
+          : null;
+      const weaponReference = getWeaponReferenceFromItemRecord(inventoryItem.item, {
+        applyGreatWeaponFighting: hasGreatWeaponFighting,
+        damageOverride: monkDamageAdjustment?.damage,
+        abilityRuleOverride:
+          isEligibleMonkWeapon
+            ? "finesse"
+            : undefined
+      });
+
+      if (!weaponType || !weaponReference) {
+        return actions;
+      }
+
+      const ability = resolveWeaponAbility(weaponReference.abilityRule, effectiveAbilityScores);
+      const abilityModifier = getAbilityModifier(getAbilityScoreForCharacter(character, ability));
+      const appliedWeaponProficiency = getAppliedWeaponProficiency(
+        character.weaponProficiencies,
+        weaponType.training,
+        {
+          combatType: weaponType.combat,
+          properties: weaponProperties
+        }
+      );
+      const appliedProficiencyBonus = appliedWeaponProficiency ? proficiencyBonus : 0;
+      const proficiencyLabel = appliedWeaponProficiency?.label ?? "";
+
+      return [
+        ...actions,
+        createWeaponAction(character, {
+          key: `inventory-${inventoryItem.id}`,
+          name: inventoryItem.item.name ?? inventoryItem.item.key ?? "Weapon",
+          attackKind: "weapon",
+          combatType: weaponType.combat,
+          properties: weaponProperties,
+          damageLabel: weaponReference.damageLabel,
+          damageFormula: weaponReference.damageFormula,
+          rollFormulaBase: weaponReference.rollFormulaBase,
+          ability,
+          abilityModifier,
+          proficiencyLabel,
+          proficiencyBonus: appliedProficiencyBonus,
+          hasVersatileBonus: weaponReference.hasVersatileBonus,
+          hasGreatWeaponFighting: weaponReference.hasGreatWeaponFighting,
+          hasMartialArtsDamageDie: Boolean(monkDamageAdjustment?.applied)
+        })
+      ];
+    },
+    []
+  );
   const featureWeaponActions = getFeatureWeaponActionsForCharacter(character);
   const resolvedWeaponActions = [
     ...featureWeaponActions,
@@ -988,6 +1123,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
         ]
       : []),
     ...codexWeaponActions,
+    ...inventoryWeaponActions,
     ...customWeaponActions
   ];
 

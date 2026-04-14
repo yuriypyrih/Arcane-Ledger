@@ -81,6 +81,10 @@ export function OverlayBody({ children, className }: OverlayContainerProps) {
   return <div className={clsx(styles.body, className)}>{children}</div>;
 }
 
+export function OverlayFooter({ children, className }: OverlayContainerProps) {
+  return <div className={clsx(styles.footer, className)}>{children}</div>;
+}
+
 export function OverlayDetailsGrid({ children, className }: OverlayContainerProps) {
   return <div className={clsx(styles.detailsGrid, className)}>{children}</div>;
 }

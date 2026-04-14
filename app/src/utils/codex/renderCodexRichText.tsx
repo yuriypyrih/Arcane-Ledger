@@ -29,7 +29,7 @@ export type RenderCodexRichTextOptions = {
 };
 
 const inlineMarkupPattern =
-  /<strong>(.*?)<\/strong>|<link:([^>]+)>(.*?)<\/link>|<spell:([^>]+)>(.*?)<\/spell>|<divinity:([^>]+)>(.*?)<\/divinity>|<feat:([^>]+)>(.*?)<\/feat>/g;
+  /<strong>(.*?)<\/strong>|<link:([^>]+)>(.*?)<\/link>|<spell:([^>]+)>(.*?)<\/spell>|<divinity:([^>]+)>(.*?)<\/divinity>|<feat:([^>]+)>(.*?)<\/feat>|<em>(.*?)<\/em>/g;
 
 export function resolveKeywordReference(
   keywordKey: string,
@@ -183,6 +183,10 @@ export function renderCodexRichText(
           renderNestedText(label)
         )
       );
+    }
+
+    if (match[10]) {
+      nodes.push(<em key={`${match[10]}-${index}`}>{renderNestedText(match[10])}</em>);
     }
 
     cursor = index + match[0].length;

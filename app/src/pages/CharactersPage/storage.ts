@@ -38,6 +38,7 @@ import { normalizeLevelAndXp } from "./experience";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
 import { normalizeCharacterCompanions } from "./companions";
 import { normalizeCharacterFeats } from "./feats";
+import { normalizeCharacterInventoryItems } from "./inventoryItems";
 import {
   normalizeHeroicInspiration,
   restoreHeroicInspirationForCharacter
@@ -191,6 +192,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     conditions?: unknown;
     statusEntries?: unknown;
     deathSaves?: unknown;
+    inventoryItems?: unknown;
     customEquipment?: unknown;
     companions?: unknown;
     classFeatureState?: unknown;
@@ -250,11 +252,14 @@ export function normalizeCharacter(value: unknown): Character | null {
     : (defaults.toolProficiencies ?? []);
   const hasPersistedArmorWearState =
     hasExplicitArmorWornState(record.equipment) ||
+    hasExplicitArmorWornState(record.inventoryItems) ||
     hasExplicitArmorWornState(record.customEquipment);
   const normalizedEquipment = normalizeCharacterEquipmentSelections(rawEquipment);
+  const normalizedInventoryItems = normalizeCharacterInventoryItems(record.inventoryItems);
   const normalizedCustomEquipment = normalizeCustomEquipmentEntries(record.customEquipment);
   const normalizedArmorWearState = normalizeCharacterArmorWearState(
     normalizedEquipment,
+    normalizedInventoryItems,
     normalizedCustomEquipment,
     {
       autoEquipLegacyArmor: !hasPersistedArmorWearState
@@ -498,6 +503,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     statusEntries: normalizedStatusEntries,
     deathSaves: normalizedDeathSaves,
     equipment: normalizedArmorWearState.equipment,
+    inventoryItems: normalizedArmorWearState.inventoryItems,
     customEquipment: normalizedArmorWearState.customEquipment,
     companions: normalizedCompanions,
     cantripIds: normalizedCantripIds,

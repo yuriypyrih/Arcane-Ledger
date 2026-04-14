@@ -444,6 +444,7 @@ export type CollectedClassFeatureCharacter = Pick<Character, "className" | "leve
     | "statusEntries"
     | "roundTracker"
     | "equipment"
+    | "inventoryItems"
     | "customEquipment"
     | "spellbookSpellIds"
     | "cantripIds"

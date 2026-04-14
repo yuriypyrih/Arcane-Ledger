@@ -1,5 +1,14 @@
 import type { CodexFilterCategory } from "../../../utils/codex";
 import { ENTRY_CATEGORIES, SPELL_LIST_CLASS } from "../../../codex/entries";
+import ItemBrowserFilters from "../../ItemBrowser";
+import type {
+  ItemArmorType,
+  ItemAttackType,
+  ItemBrowserTab,
+  ItemFilterOptions,
+  ItemProficiencyType
+} from "../../../types";
+import SearchField from "../../SearchField";
 import styles from "./CodexFilters.module.css";
 
 type CodexFiltersProps = {
@@ -12,12 +21,27 @@ type CodexFiltersProps = {
   monsterTypeOptions: readonly string[];
   monsterSourceFilter: string | null;
   monsterSourceOptions: readonly string[];
+  itemTab: ItemBrowserTab;
+  itemCategoryFilter: string | null;
+  itemAttackTypeFilter: ItemAttackType | null;
+  itemProficiencyTypeFilter: ItemProficiencyType | null;
+  itemArmorTypeFilter: ItemArmorType | null;
+  itemRarityFilter: string | null;
+  itemSourceFilter: string | null;
+  itemFilterOptions: ItemFilterOptions | null;
   onQueryChange: (value: string) => void;
   onCategoryChange: (value: CodexFilterCategory) => void;
   onSpellLevelFilterChange: (value: number | null) => void;
   onSpellClassFilterChange: (value: SPELL_LIST_CLASS | null) => void;
   onMonsterTypeFilterChange: (value: string | null) => void;
   onMonsterSourceFilterChange: (value: string | null) => void;
+  onItemTabChange: (value: ItemBrowserTab) => void;
+  onItemCategoryFilterChange: (value: string | null) => void;
+  onItemAttackTypeFilterChange: (value: ItemAttackType | null) => void;
+  onItemProficiencyTypeFilterChange: (value: ItemProficiencyType | null) => void;
+  onItemArmorTypeFilterChange: (value: ItemArmorType | null) => void;
+  onItemRarityFilterChange: (value: string | null) => void;
+  onItemSourceFilterChange: (value: string | null) => void;
 };
 
 function formatEnumLabel(value: string): string {
@@ -52,13 +76,33 @@ function CodexFilters({
   monsterTypeOptions,
   monsterSourceFilter,
   monsterSourceOptions,
+  itemTab,
+  itemCategoryFilter,
+  itemAttackTypeFilter,
+  itemProficiencyTypeFilter,
+  itemArmorTypeFilter,
+  itemRarityFilter,
+  itemSourceFilter,
+  itemFilterOptions,
   onQueryChange,
   onCategoryChange,
   onSpellLevelFilterChange,
   onSpellClassFilterChange,
   onMonsterTypeFilterChange,
-  onMonsterSourceFilterChange
+  onMonsterSourceFilterChange,
+  onItemTabChange,
+  onItemCategoryFilterChange,
+  onItemAttackTypeFilterChange,
+  onItemProficiencyTypeFilterChange,
+  onItemArmorTypeFilterChange,
+  onItemRarityFilterChange,
+  onItemSourceFilterChange
 }: CodexFiltersProps) {
+  const searchPlaceholder =
+    category === ENTRY_CATEGORIES.ITEMS
+      ? "Search by name, rarity, category, or source..."
+      : "Search based on name, rarity, type..";
+
   return (
     <div className={styles.controls}>
       <label className={styles.field}>
@@ -159,15 +203,41 @@ function CodexFilters({
         </>
       ) : null}
 
-      <label className={`${styles.field} ${styles.searchField}`}>
-        <span>Search</span>
-        <input
-          className={styles.input}
-          value={query}
-          onChange={(event) => onQueryChange(event.target.value)}
-          placeholder="Search based on name, rarity, type.."
-        />
-      </label>
+      {category === ENTRY_CATEGORIES.ITEMS ? (
+        <div className={styles.itemControls}>
+          <ItemBrowserFilters
+            query={query}
+            tab={itemTab}
+            category={itemCategoryFilter}
+            attackType={itemAttackTypeFilter}
+            proficiencyType={itemProficiencyTypeFilter}
+            armorType={itemArmorTypeFilter}
+            rarity={itemRarityFilter}
+            source={itemSourceFilter}
+            filterOptions={itemFilterOptions}
+            onQueryChange={onQueryChange}
+            onTabChange={onItemTabChange}
+            onCategoryChange={onItemCategoryFilterChange}
+            onAttackTypeChange={onItemAttackTypeFilterChange}
+            onProficiencyTypeChange={onItemProficiencyTypeFilterChange}
+            onArmorTypeChange={onItemArmorTypeFilterChange}
+            onRarityChange={onItemRarityFilterChange}
+            onSourceChange={onItemSourceFilterChange}
+          />
+        </div>
+      ) : null}
+
+      {category !== ENTRY_CATEGORIES.ITEMS ? (
+        <label className={`${styles.field} ${styles.searchField}`}>
+          <span>Search</span>
+          <SearchField
+            className={styles.input}
+            value={query}
+            onValueChange={onQueryChange}
+            placeholder={searchPlaceholder}
+          />
+        </label>
+      ) : null}
     </div>
   );
 }

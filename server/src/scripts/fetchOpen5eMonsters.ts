@@ -1,6 +1,6 @@
 import { getAppConfig } from "../config/env.js";
 import { AppError } from "../errors/AppError.js";
-import { fetchMonsterSnapshot } from "../services/open5eFetchService.js";
+import { fetchOpen5eListSnapshot } from "../services/open5eFetchService.js";
 import { getOption, hasFlag, parseCliArgs } from "../utils/cli.js";
 
 async function run() {
@@ -9,10 +9,11 @@ async function run() {
   const overwrite = hasFlag(args, "overwrite");
   const fetchDate = getOption(args, "fetch-date");
 
-  const result = await fetchMonsterSnapshot({
+  const result = await fetchOpen5eListSnapshot({
     rootDir: config.open5eMonstersRootDir,
-    monstersUrl: config.open5eMonstersUrl,
+    listUrl: config.open5eMonstersUrl,
     requestDelayMs: config.open5eRequestDelayMs,
+    resourceName: "monsters",
     overwrite,
     fetchDate
   });

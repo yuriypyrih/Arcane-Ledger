@@ -38,8 +38,12 @@ cd server && npm run build
 
 - The backend exposes its API under `server` at `/api/v1`.
 - Monster fetch snapshots are stored under `server/data/open5e/monsters/fetch-MM-DD-YYYY/`.
+- Item fetch snapshots are stored under `server/data/open5e/items/fetch-MM-DD-YYYY/`.
 - Fetch Open5e monsters with `npm --prefix server run db:monsters:fetch`.
 - Import the latest monster snapshot with `npm --prefix server run db:monsters:import`.
+- Fetch Open5e items with `npm --prefix server run db:items:fetch`.
+- Inspect the latest item snapshot schema with `npm --prefix server run db:items:inspect`.
+- Import the latest item snapshot with `npm --prefix server run db:items:import`.
 
 ## Frontend Notes
 

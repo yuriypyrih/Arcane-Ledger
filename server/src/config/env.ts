@@ -59,8 +59,10 @@ export type AppConfig = {
   corsAllowedOrigins: string[];
   open5eBaseUrl: string;
   open5eMonstersUrl: string;
+  open5eItemsUrl: string;
   open5eRequestDelayMs: number;
   open5eMonstersRootDir: string;
+  open5eItemsRootDir: string;
 };
 
 export function getAppConfig(): AppConfig {
@@ -70,10 +72,12 @@ export function getAppConfig(): AppConfig {
   const port = parseInteger(process.env.PORT, 3001);
   const open5eBaseUrl = trimTrailingSlash(process.env.OPEN5E_BASE_URL ?? "https://api.open5e.com");
   const open5eMonstersUrl = process.env.OPEN5E_MONSTERS_URL ?? `${open5eBaseUrl}/monsters/`;
+  const open5eItemsUrl = process.env.OPEN5E_ITEMS_URL ?? `${open5eBaseUrl}/v2/items/?limit=100`;
   const open5eRequestDelayMs = parseInteger(process.env.OPEN5E_REQUEST_DELAY_MS, 200);
   const open5eMonstersRootDir = resolveRootPath(
     process.env.OPEN5E_MONSTERS_ROOT_DIR ?? "data/open5e/monsters"
   );
+  const open5eItemsRootDir = resolveRootPath(process.env.OPEN5E_ITEMS_ROOT_DIR ?? "data/open5e/items");
 
   return {
     nodeEnv,
@@ -83,8 +87,10 @@ export function getAppConfig(): AppConfig {
     corsAllowedOrigins: parseCommaSeparatedList(process.env.CORS_ALLOWED_ORIGINS),
     open5eBaseUrl,
     open5eMonstersUrl,
+    open5eItemsUrl,
     open5eRequestDelayMs,
-    open5eMonstersRootDir
+    open5eMonstersRootDir,
+    open5eItemsRootDir
   };
 }
 

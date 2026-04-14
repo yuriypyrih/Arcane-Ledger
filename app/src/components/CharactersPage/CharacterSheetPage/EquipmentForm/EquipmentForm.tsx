@@ -1,17 +1,17 @@
 import clsx from "clsx";
-import { Hand, Minus, Plus, Search, SearchX, Shield, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
+import { Hand, Minus, Plus, Shield, TicketMinus, TicketPlus, X } from "lucide-react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import CellContainer from "../../../CellContainer/CellContainer";
 import coinCopperIcon from "../../../../assets/svg/coin-copper.svg";
 import coinElectrumIcon from "../../../../assets/svg/coin-electrum.svg";
 import coinGoldIcon from "../../../../assets/svg/coin.svg";
 import coinPlatinumIcon from "../../../../assets/svg/coin-platinum.svg";
 import coinSilverIcon from "../../../../assets/svg/coin-silver.svg";
+import CurrencyInlineDisplay from "../../../CurrencyInlineDisplay";
 import NumberInput from "../../FormInputs/NumberInput";
 import RarityPill from "../../../CodexPage/RarityPill";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import {
-  CURRENCY_TYPE,
   ENTRY_CATEGORIES,
   type ArmorEntry,
   type ItemEntry,
@@ -28,13 +28,9 @@ import {
   formatWeaponWeight
 } from "../../../../utils/codex";
 import {
-  equipmentOptions,
-  getEquipmentByName,
   getLoadoutCodexEntryByName,
   getWeaponLevelFromEntries,
-  getWeaponProficiencyForBaseWeapon,
-  normalizeCharacterEquipmentSelections,
-  type LoadoutCodexEntry
+  getWeaponProficiencyForBaseWeapon
 } from "../../../../pages/CharactersPage/proficiency";
 import {
   getAdditionalWeaponMasteriesForCharacter,
@@ -55,23 +51,47 @@ import {
   createHeldShieldDescriptor,
   canWeaponBePutOnHand,
   createHeldWeaponDescriptor,
-  createCharacterEquipmentItem,
   getCharacterEquipmentItem,
   type HeldWeaponDescriptor
 } from "../../../../pages/CharactersPage/inventory";
 import {
   isShieldArmorEntry,
   setCodexArmorWornState,
-  setCustomArmorWornState
+  setCustomArmorWornState,
+  setInventoryItemArmorWornState
 } from "../../../../pages/CharactersPage/armor";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { clampNumber } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import {
+  createCharacterInventoryItem,
+  createHeldDescriptorForInventoryItem,
+  findFirstInventoryCopyByKey,
+  findHeldInventoryCopyByKey,
+  findOwnedInventoryItemRecord,
+  findWornInventoryCopyByKey,
+  getInventoryItemCountsByKey,
+  getItemTransactionCost,
+  getItemWeightValue,
+  groupCharacterInventoryItems,
+  isItemBodyArmorRecord,
+  isItemHandEquippableRecord,
+  isItemShieldRecord,
+  removeOneInventoryItemCopyByKey,
+  type GroupedInventoryItem
+} from "../../../../pages/CharactersPage/inventoryItems";
 import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
+import type { ItemRecord } from "../../../../types";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import CustomEquipmentEditor from "../CustomEquipmentEditor";
+import EquipmentInventoryItemDrawer from "./EquipmentInventoryItemDrawer";
+import EquipmentInventoryItemDrawerFooter, {
+  type EquipmentInventoryDrawerAction
+} from "./EquipmentInventoryItemDrawerFooter";
+import EquipmentItemBrowserModal from "./EquipmentItemBrowserModal";
 import InlineToggleButton from "../InlineToggleButton";
 import styles from "./EquipmentForm.module.css";
+import { useItemEntry } from "../../../../pages/ItemCodexEntryPage/useItemEntry";
 
 type EquipmentFormProps = {
   character: Character;
@@ -81,13 +101,17 @@ type EquipmentFormProps = {
 
 type LoadoutDrawerEntry = ArmorEntry | ItemEntry | WeaponEntry | ResolvedCustomLoadoutEntry;
 type EquipmentGroupKey = "weaponsAndStaff" | "armorAndShield" | "generalEquipment";
-type CatalogTab = "weapons" | "armor" | "items";
 type SelectedLoadoutEntryState = {
   entry: LoadoutDrawerEntry;
   customEquipmentId?: string;
   featureManagedSource?: string;
   summaryText?: string;
-  origin: "loadout" | "catalog";
+  origin: "loadout";
+};
+type SelectedInventoryInspectionState = {
+  itemKey: string;
+  initialItem: ItemRecord | null;
+  source: "browser" | "inventory";
 };
 type SelectedWeaponReference = {
   name: string;
@@ -110,11 +134,6 @@ type EquipmentGroup = {
   items: LoadoutGroupItem[];
 };
 
-type CatalogTabDefinition = {
-  key: CatalogTab;
-  label: string;
-};
-
 type CurrencyDefinition = {
   key: CurrencyKey;
   label: string;
@@ -122,24 +141,9 @@ type CurrencyDefinition = {
   icon: string;
 };
 
-type PurchasableLoadoutEntry = LoadoutDrawerEntry & {
-  cost: { amount: number; currency: CURRENCY_TYPE };
-  weight: number | null;
+type InventoryEquipmentGroup = Omit<EquipmentGroup, "items"> & {
+  items: GroupedInventoryItem[];
 };
-
-type UndoableCatalogAction = {
-  refundCost: PurchasableLoadoutEntry["cost"] | null;
-};
-
-const EQUIPMENT_PAGE_SIZE = 24;
-
-function createCatalogPageState(): Record<CatalogTab, number> {
-  return {
-    weapons: 1,
-    armor: 1,
-    items: 1
-  };
-}
 
 const equipmentGroupMeta: Array<Omit<EquipmentGroup, "items">> = [
   {
@@ -159,12 +163,6 @@ const equipmentGroupMeta: Array<Omit<EquipmentGroup, "items">> = [
   }
 ];
 
-const catalogTabs: CatalogTabDefinition[] = [
-  { key: "weapons", label: "Weapons" },
-  { key: "armor", label: "Armor" },
-  { key: "items", label: "Items" }
-];
-
 const currencyDefinitions: CurrencyDefinition[] = [
   { key: "copper", label: "Copper", code: "CP", icon: coinCopperIcon },
   { key: "silver", label: "Silver", code: "SP", icon: coinSilverIcon },
@@ -172,22 +170,6 @@ const currencyDefinitions: CurrencyDefinition[] = [
   { key: "gold", label: "Gold", code: "GP", icon: coinGoldIcon },
   { key: "platinum", label: "Platinum", code: "PP", icon: coinPlatinumIcon }
 ];
-
-const currencyKeyByType: Record<CURRENCY_TYPE, CurrencyKey> = {
-  [CURRENCY_TYPE.CP]: "copper",
-  [CURRENCY_TYPE.SP]: "silver",
-  [CURRENCY_TYPE.EP]: "electrum",
-  [CURRENCY_TYPE.GP]: "gold",
-  [CURRENCY_TYPE.PP]: "platinum"
-};
-
-function getCurrencyDefinitionByType(currencyType: CURRENCY_TYPE): CurrencyDefinition {
-  const currencyKey = currencyKeyByType[currencyType];
-  return (
-    currencyDefinitions.find((currencyDefinition) => currencyDefinition.key === currencyKey) ??
-    currencyDefinitions[0]
-  );
-}
 
 function isHandEquippableEntry(entry: LoadoutDrawerEntry): boolean {
   return (
@@ -227,48 +209,6 @@ function formatWeightValue(weight: number): string {
   return `${weight}`.replace(/\.0+$/, "").replace(/(\.\d*?)0+$/, "$1");
 }
 
-function renderCurrencyDisplay(
-  cost: PurchasableLoadoutEntry["cost"] | WeaponEntry["cost"],
-  options?: {
-    classNames?: {
-      root?: string;
-      icon?: string;
-    };
-    fontSize?: CSSProperties["fontSize"];
-    color?: CSSProperties["color"];
-    fontWeight?: CSSProperties["fontWeight"];
-    iconSize?: CSSProperties["width"];
-  }
-) {
-  const currency = getCurrencyDefinitionByType(cost.currency);
-  const rootStyle: CSSProperties = {
-    fontSize: options?.fontSize,
-    color: options?.color,
-    fontWeight: options?.fontWeight
-  };
-  const iconStyle: CSSProperties = {
-    inlineSize: options?.iconSize,
-    blockSize: options?.iconSize
-  };
-
-  return (
-    <span
-      className={clsx(styles.currencyInlineDisplay, options?.classNames?.root)}
-      style={rootStyle}
-    >
-      <img
-        src={currency.icon}
-        alt=""
-        className={clsx(styles.currencyInlineIcon, options?.classNames?.icon)}
-        style={iconStyle}
-        aria-hidden="true"
-      />
-      <span>{cost.amount}</span>
-      <span>{currency.code}</span>
-    </span>
-  );
-}
-
 function normalizeCurrencyAmountInput(value: string, fallback: number): number {
   const numericOnly = value.replace(/[^\d]/g, "");
 
@@ -280,30 +220,24 @@ function normalizeCurrencyAmountInput(value: string, fallback: number): number {
   return Math.floor(clampNumber(withoutLeadingZeros, 0, 999999999, fallback));
 }
 
-function getCatalogTabForItem(itemName: string): CatalogTab {
-  const equipmentDefinition = getEquipmentByName(itemName);
-
-  if (!equipmentDefinition) {
-    return "items";
-  }
-
-  if (equipmentDefinition.category === "weapon") {
-    return "weapons";
-  }
-
-  if (equipmentDefinition.category === "armor") {
-    return "armor";
-  }
-
-  return "items";
-}
-
 function getEquipmentGroupKeyForEntry(entry: LoadoutDrawerEntry): EquipmentGroupKey {
   if (entry.category === ENTRY_CATEGORIES.WEAPONS) {
     return "weaponsAndStaff";
   }
 
   if (entry.category === ENTRY_CATEGORIES.ARMOR) {
+    return "armorAndShield";
+  }
+
+  return "generalEquipment";
+}
+
+function getEquipmentGroupKeyForInventoryItem(item: ItemRecord): EquipmentGroupKey {
+  if (item.weapon || item.category?.key === "staff" || item.category?.key === "spellcasting-focus") {
+    return "weaponsAndStaff";
+  }
+
+  if (isItemShieldRecord(item) || isItemBodyArmorRecord(item)) {
     return "armorAndShield";
   }
 
@@ -327,59 +261,25 @@ function groupEquipmentItems(items: LoadoutGroupItem[]): EquipmentGroup[] {
   }));
 }
 
-function groupCatalogItems(
-  entries: LoadoutDrawerEntry[]
-): Record<CatalogTab, LoadoutDrawerEntry[]> {
-  const groupedItems: Record<CatalogTab, LoadoutDrawerEntry[]> = {
-    weapons: [],
-    armor: [],
-    items: []
+function groupInventoryEquipmentItems(items: GroupedInventoryItem[]): InventoryEquipmentGroup[] {
+  const groupedItems: Record<EquipmentGroupKey, GroupedInventoryItem[]> = {
+    weaponsAndStaff: [],
+    armorAndShield: [],
+    generalEquipment: []
   };
 
-  entries.forEach((entry) => {
-    groupedItems[getCatalogTabForItem(entry.name)].push(entry);
+  items.forEach((item) => {
+    groupedItems[getEquipmentGroupKeyForInventoryItem(item.item)].push(item);
   });
 
-  return groupedItems;
+  return equipmentGroupMeta.map((group) => ({
+    ...group,
+    items: groupedItems[group.key]
+  }));
 }
 
-function getCatalogEntryTypeLabel(entry: LoadoutDrawerEntry): string {
-  if (entry.category === ENTRY_CATEGORIES.WEAPONS) {
-    return `${formatWeaponType(entry.type)} weapon`;
-  }
-
-  const primaryTag = entry.tags[0];
-  return primaryTag ? formatCodexLabel(primaryTag) : formatCodexLabel(entry.category);
-}
-
-function isPurchasableLoadoutEntry(entry: LoadoutDrawerEntry): entry is PurchasableLoadoutEntry {
-  return "cost" in entry && "weight" in entry;
-}
-
-function matchesCatalogSearch(entry: LoadoutDrawerEntry, query: string): boolean {
-  const normalizedQuery = query.trim().toLowerCase();
-
-  if (!normalizedQuery) {
-    return true;
-  }
-
-  const searchableParts = [entry.name, "rarity" in entry ? formatCodexLabel(entry.rarity) : ""];
-
-  return searchableParts.join(" ").toLowerCase().includes(normalizedQuery);
-}
-
-function applyEquipmentToCharacter(currentCharacter: Character, itemName: string): Character {
-  if (currentCharacter.equipment.some((item) => item.name === itemName)) {
-    return currentCharacter;
-  }
-
-  return {
-    ...currentCharacter,
-    equipment: normalizeCharacterEquipmentSelections([
-      ...currentCharacter.equipment,
-      createCharacterEquipmentItem(itemName)
-    ])
-  };
+function formatInventoryStackName(item: GroupedInventoryItem): string {
+  return item.count > 1 ? `${item.count}x ${item.name}` : item.name;
 }
 
 function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFormProps) {
@@ -387,10 +287,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     () => character.customEquipment ?? [],
     [character.customEquipment]
   );
-  const catalogSearchInputRef = useRef<HTMLInputElement | null>(null);
-  const catalogListRef = useRef<HTMLUListElement | null>(null);
   const [selectedLoadoutEntry, setSelectedLoadoutEntry] =
     useState<SelectedLoadoutEntryState | null>(null);
+  const [selectedInventoryInspection, setSelectedInventoryInspection] =
+    useState<SelectedInventoryInspectionState | null>(null);
   const [selectedWeaponReference, setSelectedWeaponReference] =
     useState<SelectedWeaponReference | null>(null);
   const [isCurrencyDrawerOpen, setIsCurrencyDrawerOpen] = useState(false);
@@ -400,34 +300,21 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const [isCustomEquipmentModalOpen, setIsCustomEquipmentModalOpen] = useState(false);
   const [customEditorMode, setCustomEditorMode] = useState<"create" | "edit">("create");
   const [editingCustomEquipmentId, setEditingCustomEquipmentId] = useState<string | null>(null);
-  const [isCatalogSearchVisible, setIsCatalogSearchVisible] = useState(false);
-  const [catalogSearchDraft, setCatalogSearchDraft] = useState("");
-  const [catalogSearchQuery, setCatalogSearchQuery] = useState("");
-  const [activeCatalogTab, setActiveCatalogTab] = useState<CatalogTab>("weapons");
-  const [catalogPageByTab, setCatalogPageByTab] =
-    useState<Record<CatalogTab, number>>(createCatalogPageState);
-  const [undoableCatalogActions, setUndoableCatalogActions] = useState<
-    Record<string, UndoableCatalogAction>
-  >({});
   const [isGeneralEquipmentExpanded, setIsGeneralEquipmentExpanded] = useState(false);
   const [pendingDeleteCustomEquipmentId, setPendingDeleteCustomEquipmentId] = useState<
     string | null
   >(null);
-  const resetCatalogSearch = useCallback(() => {
-    setIsCatalogSearchVisible(false);
-    setCatalogSearchDraft("");
-    setCatalogSearchQuery("");
-    setCatalogPageByTab(createCatalogPageState());
-  }, []);
   const closeAddModal = useCallback(() => {
     setIsAddModalOpen(false);
-    setUndoableCatalogActions({});
-    resetCatalogSearch();
-  }, [resetCatalogSearch]);
+    setSelectedInventoryInspection((currentSelection) =>
+      currentSelection?.source === "browser" ? null : currentSelection
+    );
+  }, []);
 
   const hasBackdrop = Boolean(
     selectedWeaponReference ||
     selectedLoadoutEntry ||
+    selectedInventoryInspection ||
     isCurrencyDrawerOpen ||
     isAddModalOpen ||
     isCustomEquipmentModalOpen ||
@@ -462,6 +349,11 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           return;
         }
 
+        if (selectedInventoryInspection) {
+          closeInventoryItemDrawer();
+          return;
+        }
+
         if (isCurrencyDrawerOpen) {
           setIsCurrencyDrawerOpen(false);
           return;
@@ -485,17 +377,11 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     isCurrencyDrawerOpen,
     isCustomEquipmentModalOpen,
     pendingDeleteCustomEquipmentId,
+    selectedInventoryInspection,
     selectedLoadoutEntry,
     selectedWeaponReference
   ]);
 
-  useEffect(() => {
-    if (isAddModalOpen && isCatalogSearchVisible) {
-      catalogSearchInputRef.current?.focus();
-    }
-  }, [isAddModalOpen, isCatalogSearchVisible]);
-
-  const availableEquipmentOptions = equipmentOptions;
   const normalizedCurrencies = useMemo(() => {
     const nextCurrencies: Record<CurrencyKey, number> = {
       copper: 0,
@@ -530,10 +416,6 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const featureEquipmentEntries = useMemo(
     () => getFeatureEquipmentEntriesForCharacter(character),
     [character]
-  );
-  const ownedEquipmentNames = useMemo(
-    () => new Set(character.equipment.map((item) => item.name)),
-    [character.equipment]
   );
   const selectedLoadoutItems = useMemo(
     () => [
@@ -584,15 +466,30 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     () => groupEquipmentItems(selectedLoadoutItems),
     [selectedLoadoutItems]
   );
+  const inventoryCountsByKey = useMemo(
+    () => getInventoryItemCountsByKey(character.inventoryItems),
+    [character.inventoryItems]
+  );
+  const groupedInventoryItems = useMemo(
+    () => groupCharacterInventoryItems(character.inventoryItems),
+    [character.inventoryItems]
+  );
+  const inventoryEquipmentGroups = useMemo(
+    () => groupInventoryEquipmentItems(groupedInventoryItems),
+    [groupedInventoryItems]
+  );
   const carriedWeight = useMemo(
     () =>
       Math.round(
-        selectedLoadoutItems.reduce(
-          (totalWeight, item) => totalWeight + (item.entry.weight ?? 0),
-          0
+        (
+          selectedLoadoutItems.reduce((totalWeight, item) => totalWeight + (item.entry.weight ?? 0), 0) +
+          groupedInventoryItems.reduce(
+            (totalWeight, item) => totalWeight + (getItemWeightValue(item.item) ?? 0) * item.count,
+            0
+          )
         ) * 100
       ) / 100,
-    [selectedLoadoutItems]
+    [groupedInventoryItems, selectedLoadoutItems]
   );
   const carryingCapacity = Math.max(0, getAbilityScoreForCharacter(character, "STR") * 15);
   const isOverCarryingCapacity = carriedWeight > carryingCapacity;
@@ -608,7 +505,6 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const isSelectedCustomEntry = selectedLoadoutEntryData
     ? isResolvedCustomLoadoutEntry(selectedLoadoutEntryData)
     : false;
-  const isCatalogDrawerInspection = selectedLoadoutEntry?.origin === "catalog";
   const isSelectedFeatureManagedEntry = Boolean(selectedLoadoutEntry?.featureManagedSource);
   const heldWeaponDescriptors = useMemo(
     () => [
@@ -624,6 +520,15 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           const heldDescriptor = createHeldDescriptorForEntry(`codex-${entry.id}`, entry);
           return heldDescriptor ? [heldDescriptor] : [];
         }),
+      ...character.inventoryItems
+        .filter((item) => item.onHand)
+        .flatMap<HeldWeaponDescriptor>((item) => {
+          const heldDescriptor = createHeldDescriptorForInventoryItem(
+            `inventory-${item.id}`,
+            item.item
+          );
+          return heldDescriptor ? [heldDescriptor] : [];
+        }),
       ...resolvedCustomEquipmentEntries
         .filter(
           (
@@ -633,7 +538,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         )
         .map((entry) => createHeldWeaponDescriptor(`custom-${entry.customEquipmentId}`, entry))
     ],
-    [character.equipment, resolvedCustomEquipmentEntries]
+    [character.equipment, character.inventoryItems, resolvedCustomEquipmentEntries]
   );
   const selectedHandDescriptor = useMemo(() => {
     if (
@@ -772,36 +677,76 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       : false;
   const shouldOfferHandSwap =
     Boolean(selectedHandDescriptor) && !isSelectedEntryOnHand && !canSelectedEntryBePutOnHand;
-  const availableCatalogItems = useMemo(
+  const selectedInventoryGroup = useMemo(
     () =>
-      groupCatalogItems(
-        availableEquipmentOptions
-          .map((itemName) => getLoadoutCodexEntryByName(itemName))
-          .filter((entry): entry is LoadoutCodexEntry => entry !== undefined)
-          .filter((entry) => matchesCatalogSearch(entry, catalogSearchQuery))
-      ),
-    [availableEquipmentOptions, catalogSearchQuery]
+      selectedInventoryInspection
+        ? groupedInventoryItems.find((entry) => entry.key === selectedInventoryInspection.itemKey) ?? null
+        : null,
+    [groupedInventoryItems, selectedInventoryInspection]
   );
-
-  const activeCatalogItems = availableCatalogItems[activeCatalogTab] ?? [];
-  const totalCatalogPages = Math.max(1, Math.ceil(activeCatalogItems.length / EQUIPMENT_PAGE_SIZE));
-  const activeCatalogPage = Math.min(catalogPageByTab[activeCatalogTab] ?? 1, totalCatalogPages);
-  const paginatedCatalogItems = activeCatalogItems.slice(
-    (activeCatalogPage - 1) * EQUIPMENT_PAGE_SIZE,
-    activeCatalogPage * EQUIPMENT_PAGE_SIZE
+  const { item: selectedInventoryItem, status: selectedInventoryItemStatus } = useItemEntry(
+    selectedInventoryInspection?.itemKey,
+    {
+      enabled: Boolean(selectedInventoryInspection),
+      initialItem: selectedInventoryInspection?.initialItem ?? null
+    }
   );
+  const selectedInventoryCopy = useMemo(
+    () =>
+      selectedInventoryInspection
+        ? findFirstInventoryCopyByKey(character.inventoryItems, selectedInventoryInspection.itemKey)
+        : null,
+    [character.inventoryItems, selectedInventoryInspection]
+  );
+  const selectedHeldInventoryCopy = useMemo(
+    () =>
+      selectedInventoryInspection
+        ? findHeldInventoryCopyByKey(character.inventoryItems, selectedInventoryInspection.itemKey)
+        : null,
+    [character.inventoryItems, selectedInventoryInspection]
+  );
+  const selectedWornInventoryCopy = useMemo(
+    () =>
+      selectedInventoryInspection
+        ? findWornInventoryCopyByKey(character.inventoryItems, selectedInventoryInspection.itemKey)
+        : null,
+    [character.inventoryItems, selectedInventoryInspection]
+  );
+  const selectedInventoryRecord = selectedInventoryGroup?.item ?? selectedInventoryItem ?? null;
+  const selectedInventoryCount = selectedInventoryInspection
+    ? inventoryCountsByKey[selectedInventoryInspection.itemKey] ?? 0
+    : 0;
+  const selectedInventoryTransactionCost = selectedInventoryRecord
+    ? getItemTransactionCost(selectedInventoryRecord)
+    : null;
+  const selectedInventoryHandDescriptor =
+    selectedInventoryGroup && selectedInventoryCopy
+      ? createHeldDescriptorForInventoryItem(`inventory-${selectedInventoryCopy.id}`, selectedInventoryGroup.item)
+      : null;
+  const isSelectedInventoryOnHand = Boolean(selectedHeldInventoryCopy);
+  const isSelectedInventoryArmorWorn = Boolean(selectedWornInventoryCopy);
+  const canSelectedInventoryBePutOnHand =
+    selectedInventoryHandDescriptor && !isSelectedInventoryOnHand
+      ? canWeaponBePutOnHand(selectedInventoryHandDescriptor, heldWeaponDescriptors)
+      : false;
+  const shouldOfferInventoryHandSwap =
+    Boolean(selectedInventoryHandDescriptor) &&
+    !isSelectedInventoryOnHand &&
+    !canSelectedInventoryBePutOnHand;
 
   useEffect(() => {
-    if (!isAddModalOpen) {
-      return;
+    if (
+      selectedInventoryInspection?.source === "inventory" &&
+      (inventoryCountsByKey[selectedInventoryInspection.itemKey] ?? 0) === 0
+    ) {
+      setSelectedInventoryInspection(null);
     }
-
-    catalogListRef.current?.scrollTo({ top: 0 });
-  }, [isAddModalOpen, activeCatalogPage, activeCatalogTab, catalogSearchQuery]);
+  }, [inventoryCountsByKey, selectedInventoryInspection]);
 
   function openLoadoutEntryDetails(item: LoadoutGroupItem) {
     setIsCurrencyDrawerOpen(false);
     setSelectedWeaponReference(null);
+    setSelectedInventoryInspection(null);
     setSelectedLoadoutEntry({
       entry: item.entry,
       customEquipmentId: item.customEquipmentId,
@@ -834,6 +779,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   function openCustomEquipmentEditor(customEquipmentId: string) {
     setSelectedWeaponReference(null);
     setSelectedLoadoutEntry(null);
+    setSelectedInventoryInspection(null);
     setIsCurrencyDrawerOpen(false);
     setIsCustomEquipmentModalOpen(true);
     setCustomEditorMode("edit");
@@ -863,6 +809,12 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
                     return createHeldDescriptorForEntry(`codex-${entry.id}`, entry);
                   })
+                  .filter((entry): entry is HeldWeaponDescriptor => entry !== null),
+                ...currentCharacter.inventoryItems
+                  .filter((item) => item.onHand)
+                  .map((item) =>
+                    createHeldDescriptorForInventoryItem(`inventory-${item.id}`, item.item)
+                  )
                   .filter((entry): entry is HeldWeaponDescriptor => entry !== null),
                 ...currentCharacter.customEquipment
                   .filter(
@@ -923,116 +875,135 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   function openCurrencyModal() {
     setSelectedWeaponReference(null);
     setSelectedLoadoutEntry(null);
+    setSelectedInventoryInspection(null);
     setCurrencyAmountDraft(0);
     setIsCurrencyDrawerOpen(true);
   }
 
-  function runCatalogSearch() {
-    setCatalogSearchQuery(catalogSearchDraft.trim());
-    setCatalogPageByTab(createCatalogPageState());
+  function openInventoryInspectionFromBrowser(item: { key: string }) {
+    setSelectedWeaponReference(null);
+    setSelectedLoadoutEntry(null);
+    setSelectedInventoryInspection({
+      itemKey: item.key,
+      initialItem: findOwnedInventoryItemRecord(character.inventoryItems, item.key),
+      source: "browser"
+    });
   }
 
-  function addEquipmentItem(itemName: string) {
-    if (ownedEquipmentNames.has(itemName)) {
+  function openInventoryInspectionFromLoadout(item: GroupedInventoryItem) {
+    setSelectedWeaponReference(null);
+    setSelectedLoadoutEntry(null);
+    setSelectedInventoryInspection({
+      itemKey: item.key,
+      initialItem: item.item,
+      source: "inventory"
+    });
+  }
+
+  function closeInventoryItemDrawer() {
+    setSelectedInventoryInspection(null);
+  }
+
+  function addInventoryItemCopy(item: ItemRecord) {
+    if (!item.key) {
       return;
     }
 
-    onPersistCharacter((currentCharacter) => applyEquipmentToCharacter(currentCharacter, itemName));
-    setUndoableCatalogActions((currentActions) => ({
-      ...currentActions,
-      [itemName]: { refundCost: null }
+    onPersistCharacter((currentCharacter) => ({
+      ...currentCharacter,
+      inventoryItems: [...currentCharacter.inventoryItems, createCharacterInventoryItem(item)]
     }));
   }
 
-  function canAffordEntry(entry: PurchasableLoadoutEntry): boolean {
-    const currencyKey = currencyKeyByType[entry.cost.currency];
-    return normalizedCurrencies[currencyKey] >= entry.cost.amount;
-  }
+  function buyInventoryItemCopy(item: ItemRecord) {
+    if (!item.key) {
+      return;
+    }
 
-  function buyEquipmentItem(entry: PurchasableLoadoutEntry) {
-    if (ownedEquipmentNames.has(entry.name) || !canAffordEntry(entry)) {
+    const transactionCost = getItemTransactionCost(item);
+
+    if (!transactionCost || transactionCost.amount <= 0) {
       return;
     }
 
     onPersistCharacter((currentCharacter) => {
-      if (currentCharacter.equipment.some((item) => item.name === entry.name)) {
-        return currentCharacter;
-      }
-
-      const currencyKey = currencyKeyByType[entry.cost.currency];
       const currentCurrencyAmount = Math.max(
         0,
-        Math.floor(clampNumber(currentCharacter.currencies[currencyKey], 0, 999999999, 0))
+        Math.floor(clampNumber(currentCharacter.currencies[transactionCost.currencyKey], 0, 999999999, 0))
       );
 
-      if (currentCurrencyAmount < entry.cost.amount) {
+      if (currentCurrencyAmount < transactionCost.amount) {
         return currentCharacter;
       }
 
-      return applyEquipmentToCharacter(
-        {
-          ...currentCharacter,
-          currencies: {
-            ...currentCharacter.currencies,
-            [currencyKey]: currentCurrencyAmount - entry.cost.amount
-          }
+      return {
+        ...currentCharacter,
+        currencies: {
+          ...currentCharacter.currencies,
+          [transactionCost.currencyKey]: currentCurrencyAmount - transactionCost.amount
         },
-        entry.name
-      );
+        inventoryItems: [...currentCharacter.inventoryItems, createCharacterInventoryItem(item)]
+      };
+    });
+  }
+
+  function removeInventoryItemCopy(itemKey: string, options?: { closeDrawer?: boolean }) {
+    if (!itemKey) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      if (!currentCharacter.inventoryItems.some((entry) => entry.item.key === itemKey)) {
+        return currentCharacter;
+      }
+
+      return {
+        ...currentCharacter,
+        inventoryItems: removeOneInventoryItemCopyByKey(currentCharacter.inventoryItems, itemKey)
+      };
     });
 
-    setUndoableCatalogActions((currentActions) => ({
-      ...currentActions,
-      [entry.name]: { refundCost: entry.cost }
-    }));
+    if (options?.closeDrawer) {
+      closeInventoryItemDrawer();
+    }
   }
 
-  function undoCatalogAction(itemName: string) {
-    const undoableAction = undoableCatalogActions[itemName];
+  function sellInventoryItemCopy(item: ItemRecord, options?: { closeDrawer?: boolean }) {
+    const itemKey = item.key;
 
-    if (!undoableAction) {
+    if (!itemKey) {
+      return;
+    }
+
+    const transactionCost = getItemTransactionCost(item);
+
+    if (!transactionCost || transactionCost.amount <= 0) {
       return;
     }
 
     onPersistCharacter((currentCharacter) => {
-      if (!currentCharacter.equipment.some((item) => item.name === itemName)) {
+      if (!currentCharacter.inventoryItems.some((entry) => entry.item.key === itemKey)) {
         return currentCharacter;
       }
 
-      const nextEquipment = currentCharacter.equipment.filter(
-        (equipmentItem) => equipmentItem.name !== itemName
-      );
-
-      if (!undoableAction.refundCost) {
-        return {
-          ...currentCharacter,
-          equipment: nextEquipment
-        };
-      }
-
-      const currencyKey = currencyKeyByType[undoableAction.refundCost.currency];
       const currentCurrencyAmount = Math.max(
         0,
-        Math.floor(clampNumber(currentCharacter.currencies[currencyKey], 0, 999999999, 0))
+        Math.floor(clampNumber(currentCharacter.currencies[transactionCost.currencyKey], 0, 999999999, 0))
       );
 
       return {
         ...currentCharacter,
-        equipment: nextEquipment,
         currencies: {
           ...currentCharacter.currencies,
-          [currencyKey]: Math.floor(
-            clampNumber(currentCurrencyAmount + undoableAction.refundCost.amount, 0, 999999999, 0)
-          )
-        }
+          [transactionCost.currencyKey]: currentCurrencyAmount + transactionCost.amount
+        },
+        inventoryItems: removeOneInventoryItemCopyByKey(currentCharacter.inventoryItems, itemKey)
       };
     });
 
-    setUndoableCatalogActions((currentActions) => {
-      const nextActions = { ...currentActions };
-      delete nextActions[itemName];
-      return nextActions;
-    });
+    if (options?.closeDrawer) {
+      closeInventoryItemDrawer();
+    }
   }
 
   function removeEquipmentItem(itemName: string) {
@@ -1119,6 +1090,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       return {
         ...currentCharacter,
         equipment: nextEquipment,
+        inventoryItems: currentCharacter.inventoryItems.map((entry) => ({
+          ...entry,
+          onHand: false
+        })),
         customEquipment: nextCustomEquipment
       };
     });
@@ -1144,6 +1119,97 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     );
 
     closeLoadoutDrawer();
+  }
+
+  function toggleSelectedInventoryItemOnHand() {
+    if (!selectedInventoryInspection?.itemKey || !selectedInventoryGroup || !selectedInventoryHandDescriptor) {
+      return;
+    }
+
+    if (!isSelectedInventoryOnHand && !canSelectedInventoryBePutOnHand) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const targetCopy = isSelectedInventoryOnHand
+        ? findHeldInventoryCopyByKey(currentCharacter.inventoryItems, selectedInventoryInspection.itemKey)
+        : findFirstInventoryCopyByKey(currentCharacter.inventoryItems, selectedInventoryInspection.itemKey);
+
+      if (!targetCopy) {
+        return currentCharacter;
+      }
+
+      return {
+        ...currentCharacter,
+        inventoryItems: currentCharacter.inventoryItems.map((entry) =>
+          entry.id === targetCopy.id
+            ? {
+                ...entry,
+                onHand: !entry.onHand
+              }
+            : entry
+        )
+      };
+    });
+  }
+
+  function swapSelectedInventoryItemToHand() {
+    if (
+      !selectedInventoryInspection?.itemKey ||
+      !selectedInventoryGroup ||
+      isSelectedInventoryOnHand
+    ) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const targetCopy = findFirstInventoryCopyByKey(
+        currentCharacter.inventoryItems,
+        selectedInventoryInspection.itemKey
+      );
+
+      if (!targetCopy) {
+        return currentCharacter;
+      }
+
+      return {
+        ...currentCharacter,
+        equipment: currentCharacter.equipment.map((entry) => ({
+          ...entry,
+          onHand: false
+        })),
+        inventoryItems: currentCharacter.inventoryItems.map((entry) => ({
+          ...entry,
+          onHand: entry.id === targetCopy.id
+        })),
+        customEquipment: currentCharacter.customEquipment.map((entry) =>
+          entry.kind === "weapon"
+            ? {
+                ...entry,
+                onHand: false
+              }
+            : entry
+        )
+      };
+    });
+  }
+
+  function toggleSelectedInventoryArmorWorn() {
+    if (!selectedInventoryGroup || !selectedInventoryInspection?.itemKey || !selectedInventoryCopy) {
+      return;
+    }
+
+    if (!isItemBodyArmorRecord(selectedInventoryGroup.item)) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) =>
+      setInventoryItemArmorWornState(
+        currentCharacter,
+        selectedInventoryCopy.id,
+        !isSelectedInventoryArmorWorn
+      )
+    );
   }
 
   function adjustCurrencyBalance(mode: "spend" | "gain") {
@@ -1177,6 +1243,109 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
     setCurrencyAmountDraft(0);
   }
+
+  const inventoryLeftFooterActions: EquipmentInventoryDrawerAction[] = selectedInventoryGroup
+    ? [
+        ...(isItemHandEquippableRecord(selectedInventoryGroup.item)
+          ? [
+              {
+                key: "hand",
+                label: isSelectedInventoryOnHand
+                  ? "Remove from Hand"
+                  : shouldOfferInventoryHandSwap
+                    ? "Swap to Hand"
+                    : "Put on Hand",
+                icon: Hand,
+                disabled:
+                  !isSelectedInventoryOnHand &&
+                  !canSelectedInventoryBePutOnHand &&
+                  !shouldOfferInventoryHandSwap,
+                onClick: shouldOfferInventoryHandSwap
+                  ? swapSelectedInventoryItemToHand
+                  : toggleSelectedInventoryItemOnHand
+              }
+            ]
+          : []),
+        ...(isItemBodyArmorRecord(selectedInventoryGroup.item)
+          ? [
+              {
+                key: "armor",
+                label: isSelectedInventoryArmorWorn ? "Remove Armor" : "Wear Armor",
+                icon: Shield,
+                onClick: toggleSelectedInventoryArmorWorn
+              }
+            ]
+          : [])
+      ]
+    : [];
+  const inventoryRightFooterActions: EquipmentInventoryDrawerAction[] = selectedInventoryInspection
+    ? [
+        {
+          key: "buy",
+          label: "Buy",
+          icon: TicketPlus,
+          tone: "positive",
+          disabled:
+            !selectedInventoryRecord ||
+            !selectedInventoryTransactionCost ||
+            selectedInventoryTransactionCost.amount <= 0 ||
+            normalizedCurrencies[selectedInventoryTransactionCost.currencyKey] <
+              selectedInventoryTransactionCost.amount,
+          onClick: () => {
+            if (selectedInventoryRecord) {
+              buyInventoryItemCopy(selectedInventoryRecord);
+            }
+          }
+        },
+        {
+          key: "sell",
+          label: "Sell",
+          icon: TicketMinus,
+          tone: "negative",
+          disabled:
+            !selectedInventoryRecord ||
+            selectedInventoryCount <= 0 ||
+            !selectedInventoryTransactionCost ||
+            selectedInventoryTransactionCost.amount <= 0,
+          onClick: () => {
+            if (selectedInventoryRecord) {
+              sellInventoryItemCopy(selectedInventoryRecord);
+            }
+          }
+        },
+        {
+          key: "add",
+          label: "Add",
+          icon: Plus,
+          tone: "neutral",
+          disabled: !selectedInventoryRecord,
+          onClick: () => {
+            if (selectedInventoryRecord) {
+              addInventoryItemCopy(selectedInventoryRecord);
+            }
+          }
+        },
+        {
+          key: "remove",
+          label: "Remove",
+          icon: Minus,
+          tone: "neutral",
+          disabled: !selectedInventoryInspection.itemKey || selectedInventoryCount <= 0,
+          onClick: () => {
+            if (selectedInventoryInspection.itemKey) {
+              removeInventoryItemCopy(selectedInventoryInspection.itemKey);
+            }
+          }
+        }
+      ]
+    : [];
+  const inventoryDrawerFooter = selectedInventoryInspection ? (
+    <EquipmentInventoryItemDrawerFooter
+      leftActions={inventoryLeftFooterActions}
+      rightActions={inventoryRightFooterActions}
+      ownedCount={selectedInventoryCount}
+    />
+  ) : null;
 
   return (
     <article className={clsx(shared.sectionCard, className)}>
@@ -1234,19 +1403,40 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         </div>
       </div>
 
-      {selectedLoadoutItems.length === 0 ? (
+      {selectedLoadoutItems.length === 0 && groupedInventoryItems.length === 0 ? (
         <p className={shared.emptyText}>No equipment selected.</p>
       ) : (
         <div className={styles.equipmentGroupStack}>
-          {selectedEquipmentGroups
-            .filter((group) => group.items.length > 0)
-            .map((group) => {
+          {equipmentGroupMeta.map((group) => {
+              const legacyItems =
+                selectedEquipmentGroups.find((entry) => entry.key === group.key)?.items ?? [];
+              const inventoryItems =
+                inventoryEquipmentGroups.find((entry) => entry.key === group.key)?.items ?? [];
+              const combinedItems = [
+                ...legacyItems.map((item) => ({
+                  key: item.key,
+                  name: item.name,
+                  kind: "legacy" as const,
+                  item
+                })),
+                ...inventoryItems.map((item) => ({
+                  key: `inventory-${item.key}`,
+                  name: item.name,
+                  kind: "inventory" as const,
+                  item
+                }))
+              ].sort((left, right) => left.name.localeCompare(right.name));
+
+              if (combinedItems.length === 0) {
+                return null;
+              }
+
               const shouldCollapseGeneral =
-                group.key === "generalEquipment" && group.items.length > 6;
+                group.key === "generalEquipment" && combinedItems.length > 6;
               const visibleGroupItems =
                 shouldCollapseGeneral && !isGeneralEquipmentExpanded
-                  ? group.items.slice(0, 4)
-                  : group.items;
+                  ? combinedItems.slice(0, 4)
+                  : combinedItems;
 
               return (
                 <section key={group.key} className={styles.equipmentGroup}>
@@ -1254,39 +1444,72 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                     <p className={styles.equipmentGroupTitle}>{group.title}</p>
                   </header>
                   <ul className={styles.equipmentItemList}>
-                    {visibleGroupItems.map((item) => (
-                      <li key={item.key}>
-                        <button
-                          type="button"
-                          className={styles.equipmentItemButton}
-                          onClick={() => openLoadoutEntryDetails(item)}
-                        >
-                          <span className={styles.equipmentItemLabel}>
-                            <span className={styles.equipmentItemName}>{item.name}</span>
-                            {item.onHand ? (
-                              <span className={styles.equipmentItemOnHand}>
-                                <Hand size={13} aria-hidden="true" />
-                                <span>On Hand</span>
-                              </span>
-                            ) : null}
-                            {item.worn ? (
-                              <span className={styles.equipmentItemWorn}>
-                                <Shield size={13} aria-hidden="true" />
-                                <span>Worn</span>
-                              </span>
-                            ) : null}
-                          </span>
-                          <span className={styles.equipmentItemMeta}>
-                            <span className={styles.equipmentItemWeight}>
-                              {formatEquipmentWeight(item.entry.weight)}
+                    {visibleGroupItems.map((entry) =>
+                      entry.kind === "legacy" ? (
+                        <li key={entry.key}>
+                          <button
+                            type="button"
+                            className={styles.equipmentItemButton}
+                            onClick={() => openLoadoutEntryDetails(entry.item)}
+                          >
+                            <span className={styles.equipmentItemLabel}>
+                              <span className={styles.equipmentItemName}>{entry.item.name}</span>
+                              {entry.item.onHand ? (
+                                <span className={styles.equipmentItemOnHand}>
+                                  <Hand size={13} aria-hidden="true" />
+                                  <span>On Hand</span>
+                                </span>
+                              ) : null}
+                              {entry.item.worn ? (
+                                <span className={styles.equipmentItemWorn}>
+                                  <Shield size={13} aria-hidden="true" />
+                                  <span>Worn</span>
+                                </span>
+                              ) : null}
                             </span>
-                            {"rarity" in item.entry ? (
-                              <RarityPill rarity={item.entry.rarity} />
-                            ) : null}
-                          </span>
-                        </button>
-                      </li>
-                    ))}
+                            <span className={styles.equipmentItemMeta}>
+                              <span className={styles.equipmentItemWeight}>
+                                {formatEquipmentWeight(entry.item.entry.weight)}
+                              </span>
+                              {"rarity" in entry.item.entry ? (
+                                <RarityPill rarity={entry.item.entry.rarity} />
+                              ) : null}
+                            </span>
+                          </button>
+                        </li>
+                      ) : (
+                        <li key={entry.key}>
+                          <button
+                            type="button"
+                            className={styles.equipmentItemButton}
+                            onClick={() => openInventoryInspectionFromLoadout(entry.item)}
+                          >
+                            <span className={styles.equipmentItemLabel}>
+                              <span className={styles.equipmentItemName}>
+                                {formatInventoryStackName(entry.item)}
+                              </span>
+                              {entry.item.onHand ? (
+                                <span className={styles.equipmentItemOnHand}>
+                                  <Hand size={13} aria-hidden="true" />
+                                  <span>On Hand</span>
+                                </span>
+                              ) : null}
+                              {entry.item.worn ? (
+                                <span className={styles.equipmentItemWorn}>
+                                  <Shield size={13} aria-hidden="true" />
+                                  <span>Worn</span>
+                                </span>
+                              ) : null}
+                            </span>
+                            <span className={styles.equipmentItemMeta}>
+                              <span className={styles.equipmentItemWeight}>
+                                {formatEquipmentWeight(getItemWeightValue(entry.item.item))}
+                              </span>
+                            </span>
+                          </button>
+                        </li>
+                      )
+                    )}
                   </ul>
                   {shouldCollapseGeneral ? (
                     <InlineToggleButton
@@ -1301,267 +1524,31 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         </div>
       )}
 
-      {isAddModalOpen ? (
-        <div
-          className={sheetStyles.spellManagementBackdrop}
-          role="presentation"
-          onClick={closeAddModal}
-        >
-          <section
-            className={clsx(sheetStyles.spellManagementModal, styles.catalogModal)}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="character-equipment-add-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className={sheetStyles.spellManagementHeader}>
-              <div>
-                <p className={sheetStyles.eyebrow}>Equipment</p>
-                <h3 id="character-equipment-add-title" className={sheetStyles.sheetPanelTitle}>
-                  Add equipment
-                </h3>
-              </div>
-              <div className={styles.catalogHeaderActions}>
-                <button
-                  type="button"
-                  className={styles.catalogIconButton}
-                  onClick={() => {
-                    if (isCatalogSearchVisible) {
-                      resetCatalogSearch();
-                      return;
-                    }
-
-                    setIsCatalogSearchVisible(true);
-                  }}
-                  aria-label={
-                    isCatalogSearchVisible ? "Close equipment search" : "Open equipment search"
-                  }
-                  title={isCatalogSearchVisible ? "Close search" : "Open search"}
-                >
-                  {isCatalogSearchVisible ? (
-                    <SearchX size={16} aria-hidden="true" />
-                  ) : (
-                    <Search size={16} aria-hidden="true" />
-                  )}
-                </button>
-                <button
-                  type="button"
-                  className={clsx(shared.currencyPill, styles.catalogCurrencyPill)}
-                  onClick={openCurrencyModal}
-                >
-                  <span className={styles.currencyPillSummary}>
-                    {currencyDefinitions.map((currency) => (
-                      <span key={currency.key} className={styles.currencyPillToken}>
-                        <img
-                          src={currency.icon}
-                          alt=""
-                          className={styles.currencyPillTokenIcon}
-                          aria-hidden="true"
-                        />
-                        <span className={styles.currencyPillTokenValue}>
-                          {normalizedCurrencies[currency.key]}
-                        </span>
-                        <span className={styles.currencyPillTokenCode}>{currency.code}</span>
-                      </span>
-                    ))}
-                  </span>
-                </button>
-                <button
-                  type="button"
-                  className={styles.catalogCreateCustomButton}
-                  onClick={openCustomEquipmentCreator}
-                >
-                  <Plus size={14} aria-hidden="true" />
-                  <span>Custom</span>
-                </button>
-                <button
-                  type="button"
-                  className={sheetStyles.spellManagementCloseButton}
-                  onClick={closeAddModal}
-                  aria-label="Close add equipment popup"
-                >
-                  <X size={18} />
-                </button>
-              </div>
-            </div>
-
-            {isCatalogSearchVisible ? (
-              <div className={styles.catalogSearchRow}>
-                <div className={styles.catalogSearchField}>
-                  <input
-                    ref={catalogSearchInputRef}
-                    type="text"
-                    className={styles.catalogSearchInput}
-                    value={catalogSearchDraft}
-                    onChange={(event) => setCatalogSearchDraft(event.target.value)}
-                    placeholder="Search by name or rarity"
-                  />
-                </div>
-                <button
-                  type="button"
-                  className={styles.catalogSearchButton}
-                  onClick={runCatalogSearch}
-                >
-                  Search
-                </button>
-              </div>
-            ) : null}
-
-            <div className={styles.catalogTabRow} role="tablist" aria-label="Equipment categories">
-              {catalogTabs.map((tab) => (
-                <button
-                  key={tab.key}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeCatalogTab === tab.key}
-                  className={clsx(
-                    styles.catalogTabButton,
-                    activeCatalogTab === tab.key && styles.catalogTabButtonActive
-                  )}
-                  onClick={() => setActiveCatalogTab(tab.key)}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            <div className={styles.catalogBody}>
-              {paginatedCatalogItems.length === 0 ? (
-                <p className={styles.catalogEmptyState}>No available entries in this category.</p>
-              ) : (
-                <ul ref={catalogListRef} className={styles.catalogItemList}>
-                  {paginatedCatalogItems.map((catalogEntry) => {
-                    const isAlreadyAdded = ownedEquipmentNames.has(catalogEntry.name);
-                    const isUndoable = Boolean(undoableCatalogActions[catalogEntry.name]);
-                    const isPurchasable = isPurchasableLoadoutEntry(catalogEntry);
-                    const canAffordPurchase = isPurchasable ? canAffordEntry(catalogEntry) : false;
-                    const subtitle = getCatalogEntryTypeLabel(catalogEntry);
-                    return (
-                      <li
-                        key={catalogEntry.name}
-                        className={clsx(
-                          styles.catalogItemRow,
-                          isAlreadyAdded && styles.catalogItemRowDisabled
-                        )}
-                      >
-                        <button
-                          type="button"
-                          className={clsx(
-                            styles.catalogItemMetaButton,
-                            isAlreadyAdded && styles.catalogItemMetaButtonDisabled
-                          )}
-                          disabled={isAlreadyAdded}
-                          onClick={() => {
-                            setSelectedWeaponReference(null);
-                            setSelectedLoadoutEntry({
-                              entry: catalogEntry,
-                              origin: "catalog"
-                            });
-                          }}
-                        >
-                          <div className={styles.catalogItemMeta}>
-                            <div className={styles.catalogItemHeading}>
-                              <span className={styles.catalogItemName}>{catalogEntry.name}</span>
-                            </div>
-                            <span className={styles.catalogItemType}>{subtitle}</span>
-                          </div>
-                        </button>
-                        <div className={styles.catalogItemStats}>
-                          {"rarity" in catalogEntry ? (
-                            <RarityPill rarity={catalogEntry.rarity} />
-                          ) : null}
-                          <div className={styles.catalogItemMetric}>
-                            <span className={styles.catalogItemStat}>
-                              {formatEquipmentWeight(catalogEntry.weight)}
-                            </span>
-                          </div>
-                          <div className={styles.catalogItemMetric}>
-                            <span className={styles.catalogItemStat}>
-                              {renderCurrencyDisplay(catalogEntry.cost)}
-                            </span>
-                          </div>
-                        </div>
-                        <div className={styles.catalogItemActions}>
-                          {isAlreadyAdded ? (
-                            isUndoable ? (
-                              <button
-                                type="button"
-                                className={styles.catalogItemUndoLink}
-                                onClick={() => undoCatalogAction(catalogEntry.name)}
-                              >
-                                Undo
-                              </button>
-                            ) : (
-                              <span className={styles.catalogItemAddedLabel}>Added</span>
-                            )
-                          ) : (
-                            <>
-                              <button
-                                type="button"
-                                className={clsx(
-                                  styles.catalogItemBuyButton,
-                                  !canAffordPurchase && styles.catalogItemBuyButtonDisabled
-                                )}
-                                disabled={!isPurchasable || !canAffordPurchase}
-                                onClick={() => {
-                                  if (isPurchasable) {
-                                    buyEquipmentItem(catalogEntry);
-                                  }
-                                }}
-                              >
-                                <span>Buy</span>
-                              </button>
-                              <button
-                                type="button"
-                                className={styles.catalogItemAddButton}
-                                onClick={() => addEquipmentItem(catalogEntry.name)}
-                              >
-                                <span>Add</span>
-                              </button>
-                            </>
-                          )}
-                        </div>
-                      </li>
-                    );
-                  })}
-                </ul>
-              )}
-            </div>
-
-            <div className={styles.catalogPaginationRow}>
-              <button
-                type="button"
-                className={styles.catalogPageButton}
-                disabled={activeCatalogPage <= 1}
-                onClick={() =>
-                  setCatalogPageByTab((currentPages) => ({
-                    ...currentPages,
-                    [activeCatalogTab]: Math.max(1, activeCatalogPage - 1)
-                  }))
-                }
-              >
-                Previous
-              </button>
-              <span>
-                Page {activeCatalogPage} / {totalCatalogPages}
+      <EquipmentItemBrowserModal
+        isOpen={isAddModalOpen}
+        currencySummary={
+          <span className={styles.currencyPillSummary}>
+            {currencyDefinitions.map((currency) => (
+              <span key={currency.key} className={styles.currencyPillToken}>
+                <img
+                  src={currency.icon}
+                  alt=""
+                  className={styles.currencyPillTokenIcon}
+                  aria-hidden="true"
+                />
+                <span className={styles.currencyPillTokenValue}>
+                  {normalizedCurrencies[currency.key]}
+                </span>
+                <span className={styles.currencyPillTokenCode}>{currency.code}</span>
               </span>
-              <button
-                type="button"
-                className={styles.catalogPageButton}
-                disabled={activeCatalogPage >= totalCatalogPages}
-                onClick={() =>
-                  setCatalogPageByTab((currentPages) => ({
-                    ...currentPages,
-                    [activeCatalogTab]: Math.min(totalCatalogPages, activeCatalogPage + 1)
-                  }))
-                }
-              >
-                Next
-              </button>
-            </div>
-          </section>
-        </div>
-      ) : null}
+            ))}
+          </span>
+        }
+        onClose={closeAddModal}
+        onOpenCurrencyModal={openCurrencyModal}
+        onOpenCustomEquipmentCreator={openCustomEquipmentCreator}
+        onItemSelect={openInventoryInspectionFromBrowser}
+      />
 
       {isCustomEquipmentModalOpen ? (
         <div
@@ -1814,15 +1801,22 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                     />
                     <CellContainer
                       label="Cost"
-                      content={renderCurrencyDisplay(selectedLoadoutEntryData.cost, {
-                        classNames: {
-                          root: styles.drawerCurrencyDisplay,
-                          icon: styles.drawerCurrencyIcon
-                        },
-                        fontSize: "16px",
-                        color: "rgb(46, 32, 23)",
-                        fontWeight: 700
-                      })}
+                      content={
+                        <CurrencyInlineDisplay
+                          cost={selectedLoadoutEntryData.cost}
+                          className={styles.drawerCurrencyDisplay}
+                          iconClassName={styles.drawerCurrencyIcon}
+                          style={{
+                            fontSize: "16px",
+                            color: "rgb(46, 32, 23)",
+                            fontWeight: 700
+                          }}
+                          iconStyle={{
+                            inlineSize: "18px",
+                            blockSize: "18px"
+                          }}
+                        />
+                      }
                     />
                   </>
                 ) : selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR &&
@@ -1860,101 +1854,115 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                     />
                     <CellContainer
                       label="Cost"
-                      content={renderCurrencyDisplay(selectedLoadoutEntryData.cost, {
-                        classNames: {
-                          root: styles.drawerCurrencyDisplay,
-                          icon: styles.drawerCurrencyIcon
-                        },
-                        fontSize: "16px",
-                        color: "rgb(46, 32, 23)",
-                        fontWeight: 700
-                      })}
+                      content={
+                        <CurrencyInlineDisplay
+                          cost={selectedLoadoutEntryData.cost}
+                          className={styles.drawerCurrencyDisplay}
+                          iconClassName={styles.drawerCurrencyIcon}
+                          style={{
+                            fontSize: "16px",
+                            color: "rgb(46, 32, 23)",
+                            fontWeight: 700
+                          }}
+                          iconStyle={{
+                            inlineSize: "18px",
+                            blockSize: "18px"
+                          }}
+                        />
+                      }
                     />
                   </>
                 ) : null}
               </div>
             </div>
 
-            {!isCatalogDrawerInspection ? (
-              <div className={styles.loadoutDrawerActions}>
-                {isSelectedFeatureManagedEntry ? (
-                  <p className={styles.featureManagedItemNote}>
-                    Granted by {selectedLoadoutEntry.featureManagedSource} and managed
-                    automatically.
-                  </p>
-                ) : (
-                  <>
-                    {selectedLoadoutEntryData && isHandEquippableEntry(selectedLoadoutEntryData) ? (
-                      <>
-                        {shouldOfferHandSwap ? (
-                          <span className={styles.weaponHandStatusText}>Hands are full</span>
-                        ) : null}
-                        <button
-                          type="button"
-                          className={clsx(
-                            styles.editItemButton,
-                            shouldOfferHandSwap && styles.weaponHandSwapButton
-                          )}
-                          onClick={shouldOfferHandSwap ? swapEntryToHand : toggleEntryOnHand}
-                        >
-                          <Hand size={15} aria-hidden="true" />
-                          {isSelectedEntryOnHand
-                            ? "Remove from Hand"
-                            : shouldOfferHandSwap
-                              ? "Swap to Hand"
-                              : "Put on Hand"}
-                        </button>
-                      </>
-                    ) : null}
-                    {selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR &&
-                    !isSelectedShield ? (
+            <div className={styles.loadoutDrawerActions}>
+              {isSelectedFeatureManagedEntry ? (
+                <p className={styles.featureManagedItemNote}>
+                  Granted by {selectedLoadoutEntry.featureManagedSource} and managed
+                  automatically.
+                </p>
+              ) : (
+                <>
+                  {selectedLoadoutEntryData && isHandEquippableEntry(selectedLoadoutEntryData) ? (
+                    <>
+                      {shouldOfferHandSwap ? (
+                        <span className={styles.weaponHandStatusText}>Hands are full</span>
+                      ) : null}
+                      <button
+                        type="button"
+                        className={clsx(
+                          styles.editItemButton,
+                          shouldOfferHandSwap && styles.weaponHandSwapButton
+                        )}
+                        onClick={shouldOfferHandSwap ? swapEntryToHand : toggleEntryOnHand}
+                      >
+                        <Hand size={15} aria-hidden="true" />
+                        {isSelectedEntryOnHand
+                          ? "Remove from Hand"
+                          : shouldOfferHandSwap
+                            ? "Swap to Hand"
+                            : "Put on Hand"}
+                      </button>
+                    </>
+                  ) : null}
+                  {selectedLoadoutEntryData.category === ENTRY_CATEGORIES.ARMOR &&
+                  !isSelectedShield ? (
+                    <button
+                      type="button"
+                      className={styles.editItemButton}
+                      onClick={toggleArmorWorn}
+                    >
+                      <Shield size={15} aria-hidden="true" />
+                      {isSelectedArmorWorn ? "Remove Armor" : "Wear Armor"}
+                    </button>
+                  ) : null}
+                  {selectedLoadoutEntry.customEquipmentId ? (
+                    <>
                       <button
                         type="button"
                         className={styles.editItemButton}
-                        onClick={toggleArmorWorn}
+                        onClick={() =>
+                          openCustomEquipmentEditor(selectedLoadoutEntry.customEquipmentId!)
+                        }
                       >
-                        <Shield size={15} aria-hidden="true" />
-                        {isSelectedArmorWorn ? "Remove Armor" : "Wear Armor"}
+                        Edit
                       </button>
-                    ) : null}
-                    {selectedLoadoutEntry.customEquipmentId ? (
-                      <>
-                        <button
-                          type="button"
-                          className={styles.editItemButton}
-                          onClick={() =>
-                            openCustomEquipmentEditor(selectedLoadoutEntry.customEquipmentId!)
-                          }
-                        >
-                          Edit
-                        </button>
-                        <button
-                          type="button"
-                          className={styles.removeItemButton}
-                          onClick={() =>
-                            setPendingDeleteCustomEquipmentId(
-                              selectedLoadoutEntry.customEquipmentId ?? null
-                            )
-                          }
-                        >
-                          Delete
-                        </button>
-                      </>
-                    ) : (
                       <button
                         type="button"
                         className={styles.removeItemButton}
-                        onClick={() => removeEquipmentItem(selectedLoadoutEntryData.name)}
+                        onClick={() =>
+                          setPendingDeleteCustomEquipmentId(
+                            selectedLoadoutEntry.customEquipmentId ?? null
+                          )
+                        }
                       >
-                        Remove Item
+                        Delete
                       </button>
-                    )}
-                  </>
-                )}
-              </div>
-            ) : null}
+                    </>
+                  ) : (
+                    <button
+                      type="button"
+                      className={styles.removeItemButton}
+                      onClick={() => removeEquipmentItem(selectedLoadoutEntryData.name)}
+                    >
+                      Remove Item
+                    </button>
+                  )}
+                </>
+              )}
+            </div>
           </section>
         </div>
+      ) : null}
+
+      {selectedInventoryInspection ? (
+        <EquipmentInventoryItemDrawer
+          item={selectedInventoryRecord}
+          status={selectedInventoryItemStatus}
+          onClose={closeInventoryItemDrawer}
+          footer={inventoryDrawerFooter}
+        />
       ) : null}
 
       {selectedWeaponReference ? (

@@ -1,6 +1,7 @@
 import { getReactionEntryById } from "../../../../../codex/entries";
 import { SKILL } from "../../../../../types";
 import { appendUniqueDescriptionAddition } from "../../../actionModalDescriptions";
+import { isItemShieldRecord } from "../../../inventoryItems";
 import { getEquipmentByName } from "../../../proficiencyCodexData";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { createDefaultFeatureActionDescription } from "../../subclassRuntime";
@@ -28,7 +29,7 @@ function hasCollegeOfDanceDazzlingFootwork(
 }
 
 function hasWornBodyArmor(
-  character: Pick<Parameters<SubclassRuntimeResolver>[0], "equipment" | "customEquipment">
+  character: Pick<Parameters<SubclassRuntimeResolver>[0], "equipment" | "inventoryItems" | "customEquipment">
 ): boolean {
   return (
     (character.equipment ?? []).some((item) => {
@@ -39,6 +40,7 @@ function hasWornBodyArmor(
       const equipmentDefinition = getEquipmentByName(item.name);
       return equipmentDefinition?.category === "armor" && equipmentDefinition.type !== "shield";
     }) ||
+    (character.inventoryItems ?? []).some((entry) => entry.worn && !isItemShieldRecord(entry.item)) ||
     (character.customEquipment ?? []).some(
       (entry) => entry.kind === "armor" && entry.armorType !== "shield" && entry.worn
     )
@@ -46,7 +48,7 @@ function hasWornBodyArmor(
 }
 
 function hasShieldEquipped(
-  character: Pick<Parameters<SubclassRuntimeResolver>[0], "equipment" | "customEquipment">
+  character: Pick<Parameters<SubclassRuntimeResolver>[0], "equipment" | "inventoryItems" | "customEquipment">
 ): boolean {
   return (
     (character.equipment ?? []).some((item) => {
@@ -57,6 +59,7 @@ function hasShieldEquipped(
       const equipmentDefinition = getEquipmentByName(item.name);
       return equipmentDefinition?.category === "armor" && equipmentDefinition.type === "shield";
     }) ||
+    (character.inventoryItems ?? []).some((entry) => entry.onHand && isItemShieldRecord(entry.item)) ||
     (character.customEquipment ?? []).some(
       (entry) => entry.kind === "armor" && entry.armorType === "shield" && entry.worn
     )

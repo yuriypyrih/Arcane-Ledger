@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { CodexStatus, MonsterListItem, MonsterOrdering } from "../../../types";
+import TablePagination from "../TablePagination";
 import styles from "./MonsterCodexTable.module.css";
 
 type MonsterTableRowTone = "valid" | "invalid";
@@ -210,7 +211,17 @@ function MonsterCodexTable({
     <div className={getContainerClassName(styles.layout, className)}>
       <div className={styles.resultsHeader}>
         <h3>Monster Entries</h3>
-        <span>{totalEntriesLabel}</span>
+        <div className={styles.resultsMeta}>
+          <span className={styles.totalLabel}>{totalEntriesLabel}</span>
+          {status === "ready" && monsters.length > 0 ? (
+            <TablePagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={onPageChange}
+              className={paginationClassName}
+            />
+          ) : null}
+        </div>
       </div>
 
       <div className={getContainerClassName(styles.tableWrapper, tableWrapperClassName)}>
@@ -226,30 +237,6 @@ function MonsterCodexTable({
           <tbody>{renderStatusRow()}</tbody>
         </table>
       </div>
-
-      {status === "ready" && monsters.length > 0 && totalPages > 1 ? (
-        <div className={getContainerClassName(styles.pagination, paginationClassName)}>
-          <button
-            type="button"
-            className={styles.paginationButton}
-            onClick={() => onPageChange(currentPage - 1)}
-            disabled={currentPage <= 1}
-          >
-            Previous
-          </button>
-          <span className={styles.paginationStatus}>
-            Page {currentPage} of {totalPages}
-          </span>
-          <button
-            type="button"
-            className={styles.paginationButton}
-            onClick={() => onPageChange(currentPage + 1)}
-            disabled={currentPage >= totalPages}
-          >
-            Next
-          </button>
-        </div>
-      ) : null}
     </div>
   );
 }
