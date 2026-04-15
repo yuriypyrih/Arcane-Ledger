@@ -582,6 +582,7 @@ export function getPaladinFeatureActions(
     featureActions.push({
       key: paladinLayOnHandsActionKey,
       name: "Lay on Hands",
+      sourceFeature: CLASS_FEATURE.LAY_ON_HANDS,
       summary: "Uses Pool of Healing",
       detail: "Your blessed touch can heal wounds.",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
@@ -615,6 +616,7 @@ export function getPaladinFeatureActions(
     featureActions.push({
       key: paladinChannelDivinityActionKey,
       name: "Channel Divinity",
+      sourceFeature: CLASS_FEATURE.CHANNEL_DIVINITY,
       summary: "Choose a divine effect.",
       detail:
         "Use Divine Sense as a Bonus Action to detect Celestials, Fiends, and Undead within 60 feet.",
@@ -691,6 +693,7 @@ export function getPaladinFeatureActions(
     featureActions.push({
       key: faithfulSteedActionKey,
       name: "Faithful Steed",
+      sourceFeature: CLASS_FEATURE.FAITHFUL_STEED,
       summary: "Cast Find Steed without a spell slot.",
       detail: "Open Find Steed and cast it using your Faithful Steed charge.",
       economyType: ECONOMY_TYPE.ACTION,
@@ -723,6 +726,7 @@ export function getPaladinFeatureActions(
     featureActions.push({
       key: abjureFoesActionKey,
       name: "Abjure Foes",
+      sourceFeature: CLASS_FEATURE.ABJURE_FOES,
       summary: "Overwhelm foes with divine awe.",
       detail: "Use a Magic action to force nearby foes to resist your divine presence.",
       economyType: ECONOMY_TYPE.ACTION,

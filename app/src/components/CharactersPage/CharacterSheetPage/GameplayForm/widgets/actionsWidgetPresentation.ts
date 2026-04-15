@@ -1,6 +1,8 @@
+import type { ReactNode } from "react";
 import type { SpellDescriptionEntry } from "../../../../../codex/entries";
-import type { MonsterRecord } from "../../../../../types";
+import type { ItemRecord, MonsterRecord } from "../../../../../types";
 import { parseRollFormulaRange } from "../../../../../pages/CharactersPage/actionOutcome";
+import { buildItemDetailPresentation } from "../../../../../pages/ItemCodexEntryPage/itemPresentation";
 import {
   formatAbilityModifier,
   type WeaponAction
@@ -8,6 +10,7 @@ import {
 import type { WeaponEntry } from "../../../../../codex/entries";
 import {
   formatCodexLabel,
+  formatWeaponDamage,
   formatWeaponProperties,
   formatWeaponType
 } from "../../../../../utils/codex";
@@ -20,7 +23,7 @@ type WeaponFormulaPresentation = {
 
 type WeaponDrawerDetail = {
   label: string;
-  value: string;
+  value: ReactNode;
 };
 
 type WeaponDrawerDescription = {
@@ -356,13 +359,25 @@ export function getWeaponDamageFormulaPresentation(
 export function getWeaponDrawerDetails(
   action: WeaponAction,
   weaponEntry:
-    | (Pick<WeaponEntry, "type" | "properties" | "range" | "versatileDamage" | "propertyNotes"> & {
-        mastery?: WeaponEntry["mastery"];
-      })
-    | null
+    | Pick<
+        WeaponEntry,
+        "damage" | "type" | "properties" | "range" | "versatileDamage" | "propertyNotes" | "mastery"
+      >
+    | null,
+  itemRecord?: ItemRecord | null
 ): WeaponDrawerDetail[] {
   if (action.details && action.details.length > 0) {
     return action.details;
+  }
+
+  const itemWeaponCells =
+    itemRecord && itemRecord.weapon ? buildItemDetailPresentation(itemRecord).weaponCells : [];
+
+  if (itemWeaponCells.length > 0) {
+    return itemWeaponCells.map((cell) => ({
+      label: cell.label,
+      value: cell.value
+    }));
   }
 
   if (!weaponEntry) {
@@ -370,6 +385,10 @@ export function getWeaponDrawerDetails(
       {
         label: "Type",
         value: action.attackKind === "unarmed" ? "Unarmed strike" : "Weapon"
+      },
+      {
+        label: "Damage",
+        value: action.damageLabel
       },
       {
         label: "Properties",
@@ -382,10 +401,19 @@ export function getWeaponDrawerDetails(
     ];
   }
 
+  const selectedDamage =
+    action.hasVersatileBonus && weaponEntry.versatileDamage?.length
+      ? weaponEntry.versatileDamage
+      : weaponEntry.damage;
+
   return [
     {
       label: "Type",
       value: formatWeaponType(weaponEntry.type)
+    },
+    {
+      label: "Damage",
+      value: formatWeaponDamage(selectedDamage)
     },
     {
       label: "Properties",
@@ -400,30 +428,31 @@ export function getWeaponDrawerDetails(
 
 export function getWeaponDrawerDescription(
   action: WeaponAction,
-  summary?: string | null
+  itemRecord?: ItemRecord | null
 ): WeaponDrawerDescription {
-  const normalizedSummary = typeof summary === "string" ? summary.trim() : "";
   const actionDescription = action.description?.length ? [...action.description] : [];
   const actionDescriptionAdditions =
     action.descriptionAdditions?.map((section) => [...section]) ?? [];
+  const itemDescription =
+    itemRecord && itemRecord.weapon ? buildItemDetailPresentation(itemRecord).description : [];
 
-  if (!normalizedSummary) {
+  if (actionDescription.length > 0) {
     return {
       description: actionDescription,
       descriptionAdditions: actionDescriptionAdditions
     };
   }
 
-  if (actionDescription.length === 0) {
+  if (itemDescription.length > 0) {
     return {
-      description: [normalizedSummary],
+      description: itemDescription,
       descriptionAdditions: actionDescriptionAdditions
     };
   }
 
   return {
-    description: [normalizedSummary],
-    descriptionAdditions: [actionDescription, ...actionDescriptionAdditions]
+    description: [],
+    descriptionAdditions: actionDescriptionAdditions
   };
 }
 

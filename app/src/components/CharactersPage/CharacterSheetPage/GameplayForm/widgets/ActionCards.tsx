@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { Brain, Check, Flame, Hexagon, Music, PawPrint, Sparkles } from "lucide-react";
+import type { ReactNode } from "react";
 import ActionShape from "../../../../ActionShape";
 import FeatureTrackingBadgeButton from "../../../../FeatureDisclosure/FeatureTrackingBadgeButton";
 import type { Character } from "../../../../../types";
@@ -22,10 +23,8 @@ import {
   getEconomyShapeState,
   getWeaponActionBreakdown
 } from "../gameplayWidgetUtils";
-import RollStatePill from "../../../../RollStatePill/RollStatePill";
 import animaIcon from "../../../../../assets/svg/anima.svg";
 import pyromancyIcon from "../../../../../assets/svg/pyromancy.svg";
-import { resolveFeatureIndicators } from "../../../../RollStatePill/rollState";
 import styles from "./ActionCards.module.css";
 import modalStyles from "./FeatureActionModal.module.css";
 import RadioOption from "./RadioOption";
@@ -35,6 +34,18 @@ type RoundTrackerAvailability = {
   bonusActionAvailable: boolean;
   reactionAvailable: boolean;
 };
+
+function renderCardSubheader(content: ReactNode) {
+  return (
+    <span className={styles.subheaderSlot}>
+      {content ?? (
+        <span className={styles.subheaderPlaceholder} aria-hidden="true">
+          &nbsp;
+        </span>
+      )}
+    </span>
+  );
+}
 
 type WeaponActionCardProps = {
   action: WeaponAction;
@@ -67,7 +78,6 @@ export function WeaponActionCard({
   const secondaryEconomyShapeState = secondaryEconomyType
     ? getEconomyShapeState(secondaryEconomyType, roundTracker)
     : null;
-  const resolvedRollState = resolveFeatureIndicators(action.indicators);
   const isUsable = economyShapeState.isUsable || (secondaryEconomyShapeState?.isUsable ?? false);
 
   return (
@@ -106,14 +116,11 @@ export function WeaponActionCard({
         </span>
       ) : null}
       <strong>{action.name}</strong>
-      {resolvedRollState ? (
-        <span className={styles.actionIndicatorRow}>
-          <RollStatePill tone={resolvedRollState.tone} label={resolvedRollState.label} />
+      {renderCardSubheader(
+        <span className={styles.damageRow}>
+          {getDamageRangeLabel(action.damageLabel, action.totalModifier, action.rollFormula)}
         </span>
-      ) : null}
-      <span className={styles.damageRow}>
-        {getDamageRangeLabel(action.damageLabel, action.totalModifier, action.rollFormula)}
-      </span>
+      )}
       <small className={styles.breakdownRow}>{getWeaponActionBreakdown(action)}</small>
     </button>
   );
@@ -226,6 +233,71 @@ function renderFeatureActionOptionUsesLabel(option: FeatureActionOptionCard) {
   return <span>{option.usesLabel}</span>;
 }
 
+function renderFeatureActionSubheader(
+  action: FeatureActionCard,
+  usesTotal: number,
+  showsUsesTracker: boolean,
+  inlineUses: ReactNode
+) {
+  if (showsUsesTracker) {
+    return (
+      <span className={styles.subheaderStack}>
+        <span className={styles.usesRow}>
+          <span className={styles.usesLabelText}>Charges</span>
+          <span className={clsx(sheetStyles.shortRestDots, styles.usesDots)}>
+            {Array.from({ length: usesTotal }, (_, index) => (
+              <span
+                key={`${action.key}-use-${index}`}
+                className={clsx(
+                  sheetStyles.shortRestDot,
+                  index < (action.usesRemaining ?? 0) && sheetStyles.shortRestDotActive
+                )}
+              />
+            ))}
+          </span>
+          {action.usesInlineLabel || action.usesInlineIcon || action.usesInlineSuffix ? (
+            <span
+              className={clsx(
+                styles.usesInlineSupplementary,
+                action.usesInlineIcon && styles.usesInlineSupplementaryWithIcon
+              )}
+            >
+              {inlineUses}
+            </span>
+          ) : null}
+        </span>
+        {action.usesSupplementaryLabel ? (
+          <span className={clsx(styles.damageRow, styles.featureUsesSupplementary)}>
+            {action.usesSupplementaryLabel}
+          </span>
+        ) : null}
+      </span>
+    );
+  }
+
+  if (action.usesLabel || inlineUses || action.valueLabel) {
+    return (
+      <span className={styles.subheaderStack}>
+        {action.usesLabel || inlineUses ? (
+          <span
+            className={clsx(
+              styles.damageRow,
+              styles.featureMeta,
+              (action.usesIcon || action.usesInlineIcon) && styles.featureMetaWithIcon,
+              action.usesTone === "danger" && styles.featureMetaDanger
+            )}
+          >
+            {action.usesLabel ? renderFeatureActionUsesLabel(action) : inlineUses}
+          </span>
+        ) : null}
+        {action.valueLabel ? <span className={styles.damageRow}>{action.valueLabel}</span> : null}
+      </span>
+    );
+  }
+
+  return null;
+}
+
 export function FeatureActionCardButton({
   action,
   character,
@@ -274,51 +346,9 @@ export function FeatureActionCardButton({
         </span>
       ) : null}
       <strong>{action.name}</strong>
-      {showsUsesTracker ? (
-        <span className={styles.usesRow}>
-          <span className={styles.usesLabelText}>Charges</span>
-          <span className={clsx(sheetStyles.shortRestDots, styles.usesDots)}>
-            {Array.from({ length: usesTotal }, (_, index) => (
-              <span
-                key={`${action.key}-use-${index}`}
-                className={clsx(
-                  sheetStyles.shortRestDot,
-                  index < (action.usesRemaining ?? 0) && sheetStyles.shortRestDotActive
-                )}
-              />
-            ))}
-          </span>
-          {action.usesInlineLabel || action.usesInlineIcon || action.usesInlineSuffix ? (
-            <span
-              className={clsx(
-                styles.usesInlineSupplementary,
-                action.usesInlineIcon && styles.usesInlineSupplementaryWithIcon
-              )}
-            >
-              {inlineUses}
-            </span>
-          ) : null}
-        </span>
-      ) : null}
-      {showsUsesTracker ? (
-        action.usesSupplementaryLabel ? (
-          <span className={clsx(styles.damageRow, styles.featureUsesSupplementary)}>
-            {action.usesSupplementaryLabel}
-          </span>
-        ) : null
-      ) : action.usesLabel || inlineUses ? (
-        <span
-          className={clsx(
-            styles.damageRow,
-            styles.featureMeta,
-            (action.usesIcon || action.usesInlineIcon) && styles.featureMetaWithIcon,
-            action.usesTone === "danger" && styles.featureMetaDanger
-          )}
-        >
-          {action.usesLabel ? renderFeatureActionUsesLabel(action) : inlineUses}
-        </span>
-      ) : null}
-      {action.valueLabel ? <span className={styles.damageRow}>{action.valueLabel}</span> : null}
+      {renderCardSubheader(
+        renderFeatureActionSubheader(action, usesTotal, showsUsesTracker, inlineUses)
+      )}
       <small
         className={clsx(
           styles.breakdownRow,

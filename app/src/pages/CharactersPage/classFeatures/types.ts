@@ -1,5 +1,6 @@
 import type {
   ArmorEntry,
+  CLASS_FEATURE,
   DICE,
   ItemEntry,
   TRACKER,
@@ -157,6 +158,7 @@ export type FeatureActionExecuteConfig =
 export type FeatureActionCard = {
   key: string;
   name: string;
+  sourceFeature?: CLASS_FEATURE;
   summary: string;
   detail: string;
   valueLabel?: string;

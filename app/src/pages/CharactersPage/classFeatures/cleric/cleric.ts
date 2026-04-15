@@ -564,6 +564,7 @@ function getClericChannelDivinityAction(
   return {
     key: channelDivinityActionKey,
     name: "Channel Divinity",
+    sourceFeature: CLASS_FEATURE.CHANNEL_DIVINITY,
     summary: "Choose a divine effect.",
     detail:
       "Use a Magic action to invoke Divine Spark or Turn Undead. Divine Spark scales at Cleric levels 7, 13, and 18.",

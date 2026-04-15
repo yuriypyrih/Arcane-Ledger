@@ -1748,10 +1748,25 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     return codexWeaponEntriesByName.get(selectedWeaponAction.name) ?? null;
   }, [customWeaponEntriesById, selectedWeaponAction]);
+  const selectedWeaponItemRecord = useMemo(() => {
+    if (!selectedWeaponAction || !selectedWeaponAction.key.startsWith("inventory-")) {
+      return null;
+    }
+
+    const inventoryItemId = selectedWeaponAction.key.replace(/^inventory-/, "");
+
+    return character.inventoryItems.find((entry) => entry.id === inventoryItemId)?.item ?? null;
+  }, [character.inventoryItems, selectedWeaponAction]);
   const selectedWeaponDetails = useMemo(
     () =>
-      selectedWeaponAction ? getWeaponDrawerDetails(selectedWeaponAction, selectedWeaponEntry) : [],
-    [selectedWeaponAction, selectedWeaponEntry]
+      selectedWeaponAction
+        ? getWeaponDrawerDetails(
+            selectedWeaponAction,
+            selectedWeaponEntry,
+            selectedWeaponItemRecord
+          )
+        : [],
+    [selectedWeaponAction, selectedWeaponEntry, selectedWeaponItemRecord]
   );
   const selectedWeaponAttackFormula = useMemo(
     () => (selectedWeaponAction ? getWeaponAttackFormulaPresentation(selectedWeaponAction) : null),
@@ -1909,12 +1924,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const selectedWeaponDrawerDescription = useMemo(
     () =>
       selectedWeaponAction
-        ? getWeaponDrawerDescription(selectedWeaponAction, selectedWeaponEntry?.summary)
+        ? getWeaponDrawerDescription(selectedWeaponAction, selectedWeaponItemRecord)
         : {
             description: [],
             descriptionAdditions: []
           },
-    [selectedWeaponAction, selectedWeaponEntry]
+    [selectedWeaponAction, selectedWeaponItemRecord]
   );
   const selectedWeaponRollState = useMemo(
     () => (selectedWeaponAction ? resolveFeatureIndicators(selectedWeaponAction.indicators) : null),

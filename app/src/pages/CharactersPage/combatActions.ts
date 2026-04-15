@@ -1,6 +1,7 @@
 import type { SpellDescriptionEntry } from "../../codex/entries";
 import type { Character } from "../../types";
 import type { ActionCategory, EconomyType } from "./actionEconomy";
+import { getFeatureDescriptionForCharacter } from "./classFeatures/featureDescriptions";
 import {
   getFeatureActionOptionsForCharacter,
   getFeatureActionsForCharacter,
@@ -242,6 +243,7 @@ function createFeatureActionExecute(
 }
 
 function createFeatureActionDrawer(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
   action: FeatureActionCard,
   options: FeatureActionOptionCard[],
   execute: GameplayActionExecuteDefinition
@@ -255,10 +257,15 @@ function createFeatureActionDrawer(
         : options.length > 0
           ? "options"
           : "confirm");
+  const sourcedDescription =
+    !action.drawer?.description && action.sourceFeature
+      ? getFeatureDescriptionForCharacter(character, action.sourceFeature)
+      : [];
   const description =
     action.drawer?.description ??
-    action.description ??
-    createDefaultDescription(action.summary, action.detail, action.breakdown);
+    (sourcedDescription.length > 0
+      ? sourcedDescription
+      : action.description ?? createDefaultDescription(action.summary, action.detail, action.breakdown));
   const descriptionAdditions = [
     ...(action.descriptionAdditions ?? []),
     ...(action.drawer?.descriptionAdditions ?? [])
@@ -364,7 +371,7 @@ function createFeatureActionDefinition(
     disabledReason: action.disabledReason,
     action,
     execute,
-    drawer: createFeatureActionDrawer(action, options, execute)
+    drawer: createFeatureActionDrawer(character, action, options, execute)
   };
 }
 

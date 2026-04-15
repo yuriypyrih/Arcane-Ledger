@@ -708,8 +708,6 @@ export function getBarbarianFeatureAction(
   const rageState = getBarbarianRageState(character);
   const totalUses = getBarbarianRageUsesTotal(character);
   const usesRemaining = Math.max(0, totalUses - rageState.usesExpended);
-  const rageDescription =
-    "You can imbue yourself with a primal power called Rage, a force that grants you extraordinary might and resilience.";
   const rageDrawerResources = [
     {
       kind: "tracker" as const,
@@ -729,11 +727,11 @@ export function getBarbarianFeatureAction(
   return {
     key: barbarianRageActionKey,
     name: "Rage",
+    sourceFeature: CLASS_FEATURE.RAGE,
     summary: rageState.active ? "Rage Active" : "Enter Rage",
     detail: "Enter Rage",
     breakdown: rageState.active ? "Rage Active" : "Enter Rage",
     breakdownTone: rageState.active ? "danger" : "default",
-    description: [rageDescription],
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
     interaction: rageActionOverride.interaction,

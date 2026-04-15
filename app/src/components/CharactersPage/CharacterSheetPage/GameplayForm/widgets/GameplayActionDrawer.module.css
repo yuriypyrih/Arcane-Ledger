@@ -161,7 +161,7 @@
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  padding-right: 0.12rem;
+  padding: 0 var(--overlay-panel-inline-padding) 0.35rem;
 }
 
 .descriptionStack,
@@ -180,7 +180,7 @@
   display: grid;
   gap: 0.8rem;
   border-top: 1px solid rgba(75, 47, 29, 0.1);
-  padding-top: 0.9rem;
+  padding: 0.9rem var(--overlay-panel-inline-padding) var(--overlay-panel-bottom-padding);
 }
 
 .inlineLinkButton {
