@@ -42,7 +42,9 @@ export type AdaptedItemArmorPreview = {
 
 export type ItemDetailPresentation = {
   name: string;
-  subtitleParts: string[];
+  categoryLabel: string;
+  rarityLabel: string;
+  sourceLabel: string;
   description: SpellDescriptionEntry[];
   stapleCells: DetailCell[];
   weapon: AdaptedItemWeaponPreview | null;
@@ -298,7 +300,9 @@ export function buildItemDetailPresentation(item: ItemRecord): ItemDetailPresent
 
   return {
     name: item.name ?? item.key ?? "Unknown Item",
-    subtitleParts: [item.category?.name ?? "Item", rarityLabel, sourceLabel],
+    categoryLabel: item.category?.name ?? "Item",
+    rarityLabel,
+    sourceLabel,
     description: formatDescription(item.desc),
     stapleCells: [
       { label: "Weight", value: formatWeight(item.weight, item.weight_unit) },

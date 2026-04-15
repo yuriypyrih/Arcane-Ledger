@@ -23,6 +23,18 @@ const NON_GEAR_CATEGORY_KEYS = new Set<string>([
 const CATEGORY_LABEL_OVERRIDES: Record<string, string> = {
   weapon: "Weapons"
 };
+const RARITY_FILTER_ORDER = [
+  ITEM_NO_RARITY_FILTER_VALUE,
+  "common",
+  "uncommon",
+  "rare",
+  "very-rare",
+  "legendary",
+  "artifact"
+] as const;
+const rarityFilterOrderRank = new Map<string, number>(
+  RARITY_FILTER_ORDER.map((value, index) => [value, index])
+);
 const RANGED_WEAPON_NAMES = [
   "Blowgun",
   "Dart",
@@ -50,6 +62,10 @@ function createCaseInsensitiveContainsMatch(value: string) {
 
 function normalizeKey(value: string) {
   return value.trim().toLowerCase();
+}
+
+function normalizeOptionOrderKey(value: string) {
+  return normalizeKey(value).replace(/[\s_]+/g, "-");
 }
 
 function combineAndFilters(
@@ -378,9 +394,10 @@ function buildGroupedOptionsPipeline(fieldPath: string, labelPath: string): Pipe
 
 function normalizeFilterOptions(
   entries: Array<{ value: string | null; label: string | null; count: number }>,
-  fallback?: { value: string; label: string }
+  fallback?: { value: string; label: string },
+  compare?: (left: ItemFilterOption, right: ItemFilterOption) => number
 ): ItemFilterOption[] {
-  return entries
+  const normalizedEntries = entries
     .filter((entry) => entry.value !== null || fallback)
     .map((entry) => {
       const value = entry.value ?? fallback?.value ?? "";
@@ -393,6 +410,8 @@ function normalizeFilterOptions(
       };
     })
     .filter((entry) => entry.value.length > 0);
+
+  return compare ? normalizedEntries.sort(compare) : normalizedEntries;
 }
 
 function sumOptionCounts(options: ItemFilterOption[]) {
@@ -421,6 +440,33 @@ function createStaticOption(value: string, label: string, count: number): ItemFi
     label,
     count
   };
+}
+
+function getRarityFilterRank(option: ItemFilterOption): number {
+  const candidateKeys = [
+    normalizeOptionOrderKey(option.value),
+    normalizeOptionOrderKey(option.label)
+  ];
+
+  for (const candidateKey of candidateKeys) {
+    const rank = rarityFilterOrderRank.get(candidateKey);
+
+    if (rank !== undefined) {
+      return rank;
+    }
+  }
+
+  return Number.POSITIVE_INFINITY;
+}
+
+function compareRarityFilterOptions(left: ItemFilterOption, right: ItemFilterOption): number {
+  const rankDifference = getRarityFilterRank(left) - getRarityFilterRank(right);
+
+  if (rankDifference !== 0) {
+    return rankDifference;
+  }
+
+  return left.label.localeCompare(right.label);
 }
 
 export async function listItems(query: ItemListQuery) {
@@ -579,10 +625,14 @@ export async function listItemFilterOptions(): Promise<ItemFilterOptions> {
         categories: gearCategories
       }
     },
-    rarities: normalizeFilterOptions(rarities, {
-      value: ITEM_NO_RARITY_FILTER_VALUE,
-      label: "No rarity"
-    }),
+    rarities: normalizeFilterOptions(
+      rarities,
+      {
+        value: ITEM_NO_RARITY_FILTER_VALUE,
+        label: "No rarity"
+      },
+      compareRarityFilterOptions
+    ),
     sources: normalizeFilterOptions(sources)
   };
 }

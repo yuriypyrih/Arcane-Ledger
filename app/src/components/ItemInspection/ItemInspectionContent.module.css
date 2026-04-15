@@ -17,9 +17,17 @@
 
 .subtitle {
   margin: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
   color: var(--color-ink-soft);
   font-size: 0.95rem;
   line-height: 1.5;
+}
+
+.subtitleSeparator {
+  color: inherit;
 }
 
 .section {

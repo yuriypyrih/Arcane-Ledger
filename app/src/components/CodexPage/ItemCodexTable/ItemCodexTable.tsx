@@ -2,6 +2,7 @@ import { ArrowDown, ArrowUp, ArrowUpDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import type { CodexStatus, ItemListItem, ItemOrdering } from "../../../types";
 import CurrencyInlineDisplay from "../../CurrencyInlineDisplay";
+import RarityPill, { hasDisplayableRarity } from "../RarityPill";
 import TablePagination from "../TablePagination";
 import { parseItemCost } from "../../../utils/items/cost";
 import styles from "./ItemCodexTable.module.css";
@@ -209,7 +210,13 @@ function ItemCodexTable({
             <strong>{item.name}</strong>
           </div>
         </td>
-        <td className={styles.rarityCell}>{item.rarityName ?? "No rarity"}</td>
+        <td className={styles.rarityCell}>
+          {hasDisplayableRarity(item.rarityName ?? item.rarityKey) ? (
+            <RarityPill rarity={item.rarityName ?? item.rarityKey} />
+          ) : (
+            item.rarityName ?? "No rarity"
+          )}
+        </td>
         <td className={styles.categoryCell}>{item.categoryName || "Unknown"}</td>
         <td className={`${styles.weightCell} ${styles.numericCell}`}>{formatWeight(item)}</td>
         <td className={`${styles.costCell} ${styles.numericCell}`}>{renderCost(item)}</td>

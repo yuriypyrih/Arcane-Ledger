@@ -9,7 +9,7 @@ import coinPlatinumIcon from "../../../../assets/svg/coin-platinum.svg";
 import coinSilverIcon from "../../../../assets/svg/coin-silver.svg";
 import CurrencyInlineDisplay from "../../../CurrencyInlineDisplay";
 import NumberInput from "../../FormInputs/NumberInput";
-import RarityPill from "../../../CodexPage/RarityPill";
+import RarityPill, { hasDisplayableRarity } from "../../../CodexPage/RarityPill";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { fetchItemPackContents } from "../../../../api";
 import {
@@ -1538,7 +1538,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                               <span className={styles.equipmentItemWeight}>
                                 {formatEquipmentWeight(entry.item.entry.weight)}
                               </span>
-                              {"rarity" in entry.item.entry ? (
+                              {"rarity" in entry.item.entry &&
+                              hasDisplayableRarity(entry.item.entry.rarity) ? (
                                 <RarityPill rarity={entry.item.entry.rarity} />
                               ) : null}
                             </span>
@@ -1572,6 +1573,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                               <span className={styles.equipmentItemWeight}>
                                 {formatEquipmentWeight(getItemWeightValue(entry.item.item))}
                               </span>
+                              {hasDisplayableRarity(entry.item.item.rarity) ? (
+                                <RarityPill rarity={entry.item.item.rarity} />
+                              ) : null}
                             </span>
                           </button>
                         </li>

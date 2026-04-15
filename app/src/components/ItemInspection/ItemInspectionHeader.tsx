@@ -1,4 +1,5 @@
 import { createElement } from "react";
+import RarityPill, { hasDisplayableRarity } from "../CodexPage/RarityPill";
 import { buildItemDetailPresentation } from "../../pages/ItemCodexEntryPage/itemPresentation";
 import type { ItemRecord } from "../../types";
 import styles from "./ItemInspectionContent.module.css";
@@ -28,7 +29,21 @@ function ItemInspectionHeader({
         },
         presentation.name
       )}
-      <p className={styles.subtitle}>{presentation.subtitleParts.join(" • ")}</p>
+      <p className={styles.subtitle}>
+        <span>{presentation.categoryLabel}</span>
+        <span className={styles.subtitleSeparator} aria-hidden="true">
+          •
+        </span>
+        {hasDisplayableRarity(item.rarity) ? (
+          <RarityPill rarity={item.rarity} />
+        ) : (
+          <span>{presentation.rarityLabel}</span>
+        )}
+        <span className={styles.subtitleSeparator} aria-hidden="true">
+          •
+        </span>
+        <span>{presentation.sourceLabel}</span>
+      </p>
     </header>
   );
 }
