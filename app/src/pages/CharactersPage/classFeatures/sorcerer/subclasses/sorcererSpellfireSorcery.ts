@@ -7,7 +7,7 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
-import { appendUniqueDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import {
@@ -148,18 +148,11 @@ function appendAbsorbSpellsCounterspellDescription(spell: SpellEntry): SpellEntr
     return spell;
   }
 
-  const missingDescriptionEntries = absorbSpellsCounterspellDescription.filter(
-    (entry) => !spell.description.some((existingEntry) => existingEntry === entry)
+  return appendSourcedDescriptionAddition(
+    spell,
+    "Absorb Spells",
+    absorbSpellsCounterspellDescription
   );
-
-  if (missingDescriptionEntries.length <= 0) {
-    return spell;
-  }
-
-  return {
-    ...spell,
-    description: [...spell.description, ...missingDescriptionEntries]
-  };
 }
 
 function appendCrownOfSpellfireDescription(action: FeatureActionCard): FeatureActionCard {
@@ -170,13 +163,14 @@ function appendCrownOfSpellfireDescription(action: FeatureActionCard): FeatureAc
     return action;
   }
 
-  return appendUniqueDescriptionAddition(
+  return appendSourcedDescriptionAddition(
     {
       ...action,
       description: action.description?.length
         ? [...action.description]
         : createDefaultFeatureActionDescription(action)
     },
+    spellfireCrownOfSpellfireName,
     spellfireCrownOfSpellfireDescription
   );
 }

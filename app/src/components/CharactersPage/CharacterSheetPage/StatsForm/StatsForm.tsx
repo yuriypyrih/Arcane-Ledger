@@ -1,10 +1,12 @@
 import clsx from "clsx";
-import { ChevronsUp, Music, Pencil, Pentagon, X } from "lucide-react";
+import { ChevronsUp, Music, Pencil, Pentagon } from "lucide-react";
 import { useEffect, useState } from "react";
 import d20Icon from "../../../../assets/svg/d20.svg";
 import CellContainer from "../../../CellContainer/CellContainer";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
+import { createSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
+import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
 import type { AbilityKey, Character, CoreStats } from "../../../../types";
 import {
   getAbilityScoreBreakdownForCharacter,
@@ -70,10 +72,11 @@ import {
   type FeatureIndicator,
   type FeatureSavingThrowBonus
 } from "../../../../pages/CharactersPage/classFeatures";
+import { getFeatureDescriptionForCharacter } from "../../../../pages/CharactersPage/classFeatures/featureDescriptions";
+import { getBarbarianPersistentRageInitiativeDescriptionAdditions } from "../../../../pages/CharactersPage/classFeatures/barbarian/barbarianDescriptionSections";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
 import {
   areResolvedRollStatesEquivalent,
-  formatResolvedRollStateDetailText,
   resolveFeatureIndicators,
   type ResolvedRollState
 } from "../../../RollStatePill/rollState";
@@ -95,34 +98,17 @@ import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/Cha
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import AbilityScoresModal from "./AbilityScoresModal";
 import DiceRollerSettingsButton from "../GameplayForm/widgets/DiceRollerSettingsButton";
+import StatReferenceDrawer, {
+  type ReferenceDetailCard,
+  type ReferenceIndicatorSection,
+  type SelectedStatReference
+} from "./StatReferenceDrawer";
 import styles from "./StatsForm.module.css";
 
 type CharacterStatsFormProps = {
   character: Character;
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
-};
-
-type ReferenceIndicatorSection = {
-  label?: string;
-  indicators: FeatureIndicator[];
-};
-
-type ReferenceDetailCard = {
-  label: string;
-  value: string;
-  variant?: "default" | "formula";
-};
-
-type SelectedStatReference = {
-  keyword: string;
-  summaryText?: string;
-  descriptionItems?: Array<{
-    label: string;
-    text: string;
-  }>;
-  detailCards?: ReferenceDetailCard[];
-  indicatorSections?: ReferenceIndicatorSection[];
 };
 
 type CoreStatCard = {
@@ -133,6 +119,26 @@ type CoreStatCard = {
   indicators?: FeatureIndicator[];
   summaryText?: string;
   detailCards?: ReferenceDetailCard[];
+};
+
+type AbilitySavingThrowCard = {
+  ability: AbilityKey;
+  score: number;
+  modifier: string;
+  modifierValue: number;
+  isSavingThrowProficient: boolean;
+  proficiencyContribution: number;
+  proficiencyLabel?: string;
+  savingThrowBonusEntries: SavingThrowBonusEntry[];
+  totalSavingThrowValue: number;
+  totalSavingThrow: string;
+  showScoreBoostIcon?: boolean;
+  showSavingThrowBoostIcon?: boolean;
+  modifierIndicators: FeatureIndicator[];
+  modifierRollState: ResolvedRollState | null;
+  savingThrowIndicators: FeatureIndicator[];
+  savingThrowRollState: ResolvedRollState | null;
+  sharedRollState: ResolvedRollState | null;
 };
 
 type SavingThrowBonusEntry = {
@@ -324,6 +330,21 @@ function stripLeadingLabel(description: string, label: string): string {
   return description;
 }
 
+function getInitiativeDescriptionAdditions(character: Character): SpellDescriptionEntry[][] {
+  return getBarbarianPersistentRageInitiativeDescriptionAdditions(character);
+}
+
+function getStrengthDescriptionAdditions(character: Character): SpellDescriptionEntry[][] {
+  const indomitableMightDescription = getFeatureDescriptionForCharacter(
+    character,
+    CLASS_FEATURE.INDOMITABLE_MIGHT
+  );
+
+  return indomitableMightDescription.length > 0
+    ? [createSourcedDescriptionEntries("Indomitable Might", indomitableMightDescription)]
+    : [];
+}
+
 function buildReferenceIndicatorSections(
   sections: Array<{
     label?: string;
@@ -448,6 +469,9 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   const persistentRageUsesRemaining =
     getBarbarianPersistentRageUsesRemainingForCharacter(character);
   const hasPersistentRage = persistentRageUsesTotal > 0;
+  const hasIndomitableMight =
+    character.className === "Barbarian" &&
+    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.INDOMITABLE_MIGHT).length > 0;
   const hasLeadingEvasion =
     character.className === "Bard" &&
     character.subclassId === "bard-college-of-dance" &&
@@ -506,7 +530,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
     getRogueSoulknifePsionicDiceRemainingForCharacter(character);
   const rogueSneakAttackDiceCount = getRogueSneakAttackDiceCountForCharacter(character);
   const rogueSneakAttackFormula = getRogueSneakAttackFormulaForCharacter(character);
-  const abilitySavingThrowCards = abilityKeys.map((ability) => {
+  const abilitySavingThrowCards: AbilitySavingThrowCard[] = abilityKeys.map((ability) => {
     const abilityScore = effectiveAbilities[ability];
     const abilityModifierValue = getAbilityModifier(abilityScore);
     const savingThrowProficiency = getSavingThrowProficiencyForAbilityKey(ability);
@@ -570,6 +594,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
       savingThrowBonusEntries,
       totalSavingThrowValue,
       totalSavingThrow: formatAbilityModifier(totalSavingThrowValue),
+      showScoreBoostIcon: ability === "STR" && hasIndomitableMight,
       showSavingThrowBoostIcon: ability === "DEX" && hasLeadingEvasion,
       modifierIndicators,
       modifierRollState,
@@ -878,9 +903,15 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
 
     setIsDiceRollerSettingsOpen(false);
 
+    const descriptionAdditions =
+      card.label === "Initiative" && hasPersistentRage
+        ? getInitiativeDescriptionAdditions(character)
+        : undefined;
+
     setSelectedStatReference({
       keyword: card.label,
       summaryText: card.summaryText,
+      descriptionAdditions,
       indicatorSections: buildReferenceIndicatorSections([
         {
           indicators: card.indicators
@@ -919,9 +950,14 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
           ]
         : [])
     ];
+    const descriptionAdditions =
+      ability === "STR" && hasIndomitableMight
+        ? getStrengthDescriptionAdditions(character)
+        : undefined;
 
     setSelectedStatReference({
       keyword: ability,
+      descriptionAdditions,
       indicatorSections: getAbilityReferenceIndicatorSections(
         selectedCard.modifierIndicators,
         selectedCard.savingThrowIndicators
@@ -1092,6 +1128,13 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
                     <Pentagon size={28} className={styles.scoreBadgeIcon} aria-hidden="true" />
                     <span className={styles.scoreBadgeValue}>{card.score}</span>
                   </span>
+                  {card.showScoreBoostIcon ? (
+                    <ChevronsUp
+                      size={18}
+                      className={styles.scoreBoostIcon}
+                      aria-label="Indomitable Might active"
+                    />
+                  ) : null}
                   {rightRollState ? (
                     <RollStatePill tone={rightRollState.tone} label={rightRollState.label} />
                   ) : null}
@@ -1160,117 +1203,11 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
       />
 
       {selectedStatReference ? (
-        <div
-          className={sheetStyles.spellDrawerBackdrop}
-          role="presentation"
-          onClick={closeSelectedStatReference}
-        >
-          <section
-            className={sheetStyles.spellDrawer}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="character-stats-reference-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className={clsx(sheetStyles.spellDrawerHeader, styles.referenceDrawerHeader)}>
-              <div className={sheetStyles.spellDrawerHeaderContent}>
-                <p className={sheetStyles.spellDrawerBadge}>Reference</p>
-                <div className={sheetStyles.spellDrawerTitleRow}>
-                  <h3 id="character-stats-reference-title" className={sheetStyles.spellDrawerTitle}>
-                    {selectedStatReference.keyword}
-                  </h3>
-                </div>
-                {selectedStatReference.summaryText ? (
-                  <p className={sheetStyles.spellDrawerSummary}>
-                    {selectedStatReference.summaryText}
-                  </p>
-                ) : null}
-              </div>
-              {selectedStatReference.indicatorSections?.length ? (
-                <div className={styles.referenceIndicatorStack}>
-                  {selectedStatReference.indicatorSections.map((section, index) => {
-                    const rollState = resolveFeatureIndicators(section.indicators);
-
-                    if (!rollState) {
-                      return null;
-                    }
-
-                    return (
-                      <div
-                        key={`${selectedStatReference.keyword}-${section.label ?? "shared"}-${index}`}
-                        className={styles.referenceIndicatorSection}
-                      >
-                        {section.label ? (
-                          <span className={styles.referenceIndicatorSectionLabel}>
-                            {section.label}
-                          </span>
-                        ) : null}
-                        <RollStatePill
-                          tone={rollState.tone}
-                          label={rollState.label}
-                          detailText={formatResolvedRollStateDetailText(rollState)}
-                        />
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : null}
-              <button
-                type="button"
-                className={sheetStyles.spellDrawerCloseButton}
-                onClick={closeSelectedStatReference}
-                aria-label="Close stats details"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            {selectedStatReference.descriptionItems?.length ||
-            selectedStatReference.detailCards?.length ? (
-              <div className={sheetStyles.spellDrawerBody}>
-                {selectedStatReference.descriptionItems?.length ? (
-                  <div className={sheetStyles.spellDrawerDescriptionSection}>
-                    <ul className={styles.referenceDescriptionList}>
-                      {selectedStatReference.descriptionItems.map((item) => (
-                        <li
-                          key={`${selectedStatReference.keyword}-${item.label}`}
-                          className={styles.referenceDescriptionItem}
-                        >
-                          <strong>{item.label}</strong>: {item.text}
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                ) : null}
-                {selectedStatReference.detailCards?.length ? (
-                  <div
-                    className={clsx(sheetStyles.spellDrawerDetails, styles.referenceDetailStack)}
-                  >
-                    {selectedStatReference.detailCards.map((detailCard) => (
-                      <CellContainer
-                        key={`${selectedStatReference.keyword}-${detailCard.label}`}
-                        label={detailCard.label}
-                        content={detailCard.value}
-                        className={
-                          detailCard.variant === "formula" ? styles.referenceFormulaCard : undefined
-                        }
-                        contentRowClassName={
-                          detailCard.variant === "formula"
-                            ? styles.referenceFormulaContentRow
-                            : undefined
-                        }
-                        contentClassName={
-                          detailCard.variant === "formula"
-                            ? styles.referenceFormulaValue
-                            : undefined
-                        }
-                      />
-                    ))}
-                  </div>
-                ) : null}
-              </div>
-            ) : null}
-            {selectedStatReference.keyword === "Initiative" ? (
-              <div className={clsx(sheetStyles.spellDrawerActions, styles.initiativeActions)}>
+        <StatReferenceDrawer
+          reference={selectedStatReference}
+          footer={
+            selectedStatReference.keyword === "Initiative" ? (
+              <div className={styles.initiativeActions}>
                 <div className={styles.initiativeActionsStart}>
                   {hasPersistentRage ? (
                     <label
@@ -1286,18 +1223,22 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
                         onChange={(event) => setUsePersistentRageOnInitiative(event.target.checked)}
                       />
                       <span>Persistent Rage</span>
-                      <span
-                        className={clsx(sheetStyles.shortRestDots, styles.initiativeChargeDots)}
-                      >
-                        {Array.from({ length: persistentRageUsesTotal }, (_, index) => (
-                          <span
-                            key={`persistent-rage-charge-${index}`}
-                            className={clsx(
-                              sheetStyles.shortRestDot,
-                              index < persistentRageUsesRemaining && sheetStyles.shortRestDotActive
-                            )}
-                          />
-                        ))}
+                      <span className={styles.initiativeUsageMeta}>
+                        <span className={styles.initiativeUsageText}>
+                          <span aria-hidden="true">|</span>
+                          <span>Charges</span>
+                        </span>
+                        <span className={sheetStyles.shortRestDots}>
+                          {Array.from({ length: persistentRageUsesTotal }, (_, index) => (
+                            <span
+                              key={`persistent-rage-charge-${index}`}
+                              className={clsx(
+                                sheetStyles.shortRestDot,
+                                index < persistentRageUsesRemaining && sheetStyles.shortRestDotActive
+                              )}
+                            />
+                          ))}
+                        </span>
                       </span>
                     </label>
                   ) : null}
@@ -1350,9 +1291,10 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
                   />
                 </div>
               </div>
-            ) : null}
-          </section>
-        </div>
+            ) : null
+          }
+          onClose={closeSelectedStatReference}
+        />
       ) : null}
       {diceRollerPopup}
     </article>

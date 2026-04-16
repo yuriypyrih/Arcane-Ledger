@@ -79,7 +79,7 @@ export const KeywordTooltip: Record<string, KeywordTooltipEntry> = {
   [TRACKER.SEMI_TRACKED]: {
     title: "Semi Tracked",
     description: [
-      "<strong>Semi Tracked</strong> means the app may handle parts of this feature but not all of them, so read the feature for more details."
+      "<strong>Semi Tracked</strong> means the app may handle parts of this feature but not all of them. Check the feature details for specifics; if none are provided, assume the app only offers reminders where you would expect them (Gameplay Dashboard or Spell Drawer)."
     ]
   }
 };
@@ -90,7 +90,9 @@ export function getFeatureTrackingState(feature: FeatureMapEntry): TRACKER {
 
 const commonFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   [CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT]: {
-    description: ["You gain the Ability Score Improvement feat, or another feat of your choice for which you qualify."],
+    description: [
+      "You gain the Ability Score Improvement feat, or another feat of your choice for which you qualify."
+    ],
     trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.EPIC_BOON]: {

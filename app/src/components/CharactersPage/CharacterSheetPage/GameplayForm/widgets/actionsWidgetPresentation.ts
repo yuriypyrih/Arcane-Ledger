@@ -323,6 +323,9 @@ export function getWeaponDamageFormulaPresentation(
       parsedBonusDamage.damageType === mainDamageGroup.damageType
     ) {
       addExpressionToDamageGroup(mainDamageGroup, parsedBonusDamage.expression);
+      if (entry.label.trim().length > 0) {
+        breakdownEntries.push(entry.label);
+      }
       return;
     }
 
@@ -334,6 +337,9 @@ export function getWeaponDamageFormulaPresentation(
 
     addExpressionToDamageGroup(existingGroup, parsedBonusDamage.expression);
     typedBonusGroups.set(parsedBonusDamage.damageType, existingGroup);
+    if (entry.label.trim().length > 0) {
+      breakdownEntries.push(entry.label);
+    }
   });
 
   const damageFormula = appendRollModifier(action.damageFormula, damageAbilityModifier);

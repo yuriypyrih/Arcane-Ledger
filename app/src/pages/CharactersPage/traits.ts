@@ -77,6 +77,7 @@ import {
   wizardDivinerThirdEyeSeeInvisibilityDescription,
   wizardDivinerThirdEyeSeeInvisibilityStatusSourceId
 } from "./classFeatures/wizard/subclasses/wizardDivinerThirdEyeConfig";
+import { getBarbarianRageDescriptionContent } from "./classFeatures/barbarian/barbarianDescriptionSections";
 import { getKeywordDescriptionLines } from "./keywordDescriptions";
 import { clampInteger } from "./shared";
 
@@ -1511,7 +1512,7 @@ export function getStatusEntryKeyword(entry: CharacterStatusEntry): string {
   return formatCodexLabel(String(entry.value));
 }
 
-export function getStatusEntryDescriptionEntries(
+function getDefaultStatusEntryDescriptionEntries(
   entry: CharacterStatusEntry
 ): SpellDescriptionEntry[] {
   if (isExhaustionStatusEntry(entry)) {
@@ -1932,8 +1933,48 @@ export function getStatusEntryDescriptionEntries(
   }
 }
 
-export function getStatusEntryDescription(entry: CharacterStatusEntry): string {
-  return getStatusEntryDescriptionEntries(entry)
+export function getStatusEntryDescriptionContent(
+  entry: CharacterStatusEntry,
+  character?: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): {
+  description: SpellDescriptionEntry[];
+  descriptionAdditions: SpellDescriptionEntry[][];
+} {
+  if (
+    entry.sourceId === "feature-rage" &&
+    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+    character?.className === "Barbarian"
+  ) {
+    const rageDescriptionContent = getBarbarianRageDescriptionContent(character);
+
+    if (
+      rageDescriptionContent.description.length > 0 ||
+      rageDescriptionContent.descriptionAdditions.length > 0
+    ) {
+      return rageDescriptionContent;
+    }
+  }
+
+  return {
+    description: getDefaultStatusEntryDescriptionEntries(entry),
+    descriptionAdditions: []
+  };
+}
+
+export function getStatusEntryDescriptionEntries(
+  entry: CharacterStatusEntry,
+  character?: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): SpellDescriptionEntry[] {
+  const { description, descriptionAdditions } = getStatusEntryDescriptionContent(entry, character);
+
+  return [...description, ...descriptionAdditions.flatMap((section) => section)];
+}
+
+export function getStatusEntryDescription(
+  entry: CharacterStatusEntry,
+  character?: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): string {
+  return getStatusEntryDescriptionEntries(entry, character)
     .map((descriptionEntry) =>
       typeof descriptionEntry === "string" ? descriptionEntry : descriptionEntry.items.join(" ")
     )

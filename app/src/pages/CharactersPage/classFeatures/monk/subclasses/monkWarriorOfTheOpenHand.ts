@@ -8,7 +8,7 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { appendUniqueDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import type { WeaponAction } from "../../../gameplay";
 import type { FeatureActionCard } from "../../types";
@@ -22,6 +22,7 @@ export const monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId =
   "feature-monk-warrior-of-the-open-hand-quivering-palm";
 
 const warriorOfTheOpenHandSubclassEntry = getSubclassEntryById(warriorOfTheOpenHandSubclassId);
+const openHandTechniqueName = "Open Hand Technique";
 const wholenessOfBodyActionName = "Wholeness of Body";
 const quiveringPalmEffectName = "Quivering Palm";
 const quiveringPalmFocusCost = 3;
@@ -458,7 +459,11 @@ export const getMonkWarriorOfTheOpenHandDerivedFeatureState: SubclassRuntimeReso
         return action;
       }
 
-      return appendUniqueDescriptionAddition(action, openHandTechniqueDescription);
+      return appendSourcedDescriptionAddition(
+        action,
+        openHandTechniqueName,
+        openHandTechniqueDescription
+      );
     }
   };
 };

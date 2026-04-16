@@ -48,12 +48,14 @@ function ClassFeaturesGuideModal({ onClose }: ClassFeaturesGuideModalProps) {
           <p className={styles.sectionText}>
             Tracked means the app is doing the heavy lifting for you. Semi Tracked means it helps
             with part of the feature, or at least reminds you it exists, but you still need to read
-            and handle the rest. Not Tracked means the app is showing it for reference, but that
-            part is on you. The general philosophy is simple: this app mainly tracks the stuff
-            happening on your own sheet, like your turn, uses and charges, formulas, HP, and
-            conditions that affect you. It does not really track interactions between you and other
-            creatures, so if a feature affects allies or enemies, the app tries its best to remind
-            you, but remembering who got affected and how is still on you.
+            and handle the rest. Not Tracked means the app is only showing it for reference.
+          </p>
+          <p className={styles.sectionText}>
+            The general philosophy is simple: this app mainly tracks the stuff happening on your own
+            sheet, like your turn, uses and charges, formulas, HP, and conditions that affect you.
+            It does not really track interactions between you and other creatures, so if a feature
+            affects allies or enemies, the app tries its best to remind you, but remembering who got
+            affected and how is still on you.
           </p>
         </section>
       </OverlayBody>

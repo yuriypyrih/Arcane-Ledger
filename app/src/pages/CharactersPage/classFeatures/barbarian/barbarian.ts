@@ -52,7 +52,9 @@ import type {
   SkillIndicatorMap,
   WeaponFeatureContext
 } from "../types";
+import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
+import { getBarbarianRageActionDescriptionAdditions } from "./barbarianDescriptionSections";
 import * as berserkerSubclass from "./subclasses/barbarianPathOfTheBerserker";
 import * as wildHeartSubclass from "./subclasses/barbarianPathOfTheWildHeart";
 import * as worldTreeSubclass from "./subclasses/barbarianPathOfTheWorldTree";
@@ -206,6 +208,12 @@ function hasBarbarianExtraAttack(character: Pick<Character, "className" | "level
 
 function hasBarbarianRelentlessRage(character: Pick<Character, "className" | "level">): boolean {
   return hasBarbarianFeature(character, CLASS_FEATURE.RELENTLESS_RAGE);
+}
+
+function getBarbarianBrutalStrikeDescription(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+) {
+  return getFeatureDescriptionForCharacter(character, CLASS_FEATURE.BRUTAL_STRIKE).slice(0, 2);
 }
 
 function hasBarbarianImprovedBrutalStrike(
@@ -718,6 +726,7 @@ export function getBarbarianFeatureAction(
       cost: 1
     }
   ];
+  const descriptionAdditions = getBarbarianRageActionDescriptionAdditions(character);
   const rageActionOverride = wildHeartSubclass.getBarbarianPathOfTheWildHeartRageActionOverride(
     character,
     rageState,
@@ -732,6 +741,7 @@ export function getBarbarianFeatureAction(
     detail: "Enter Rage",
     breakdown: rageState.active ? "Rage Active" : "Enter Rage",
     breakdownTone: rageState.active ? "danger" : "default",
+    descriptionAdditions,
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
     interaction: rageActionOverride.interaction,
@@ -750,7 +760,8 @@ export function getBarbarianFeatureAction(
 }
 
 function getBarbarianRecklessAttackAction(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
 ): FeatureActionCard | null {
   if (!hasBarbarianFeature(character, CLASS_FEATURE.RECKLESS_ATTACK)) {
     return null;
@@ -762,16 +773,24 @@ function getBarbarianRecklessAttackAction(
     roundsRemaining > 0
       ? `Active for ${roundsRemaining} round${roundsRemaining === 1 ? "" : "s"}.`
       : "Attack with ferocity at the cost of defense.";
+  const descriptionAdditions =
+    berserkerSubclass.getBarbarianPathOfTheBerserkerRecklessAttackDescriptionAdditions(character);
 
   return {
     key: barbarianRecklessAttackActionKey,
     name: "Reckless Attack",
+    sourceFeature: CLASS_FEATURE.RECKLESS_ATTACK,
     summary,
     detail: "Gain reckless advantage at a cost.",
     valueLabel: "Once at start of turn",
     breakdown: "Gain reckless advantage at a cost.",
+    descriptionAdditions,
     economyType: ECONOMY_TYPE.FREE,
     actionCategory: ACTION_CATEGORY.FEATURE,
+    drawer: {
+      kind: "confirm",
+      facts: []
+    },
     isActive: roundsRemaining > 0,
     disabled: rageState.recklessAttackUsedThisTurn === true,
     disabledReason:
@@ -782,7 +801,8 @@ function getBarbarianRecklessAttackAction(
 }
 
 function getBarbarianBrutalStrikeAction(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
 ): FeatureActionCard | null {
   if (!hasBarbarianBrutalStrike(character)) {
     return null;
@@ -790,6 +810,7 @@ function getBarbarianBrutalStrikeAction(
 
   const rageState = getBarbarianRageState(character);
   const selectionLimit = getBarbarianBrutalStrikeSelectionLimit(character);
+  const description = getBarbarianBrutalStrikeDescription(character);
   const isAvailable =
     rageState.recklessAttackUsedThisTurn === true &&
     rageState.brutalStrikePending !== true &&
@@ -800,6 +821,7 @@ function getBarbarianBrutalStrikeAction(
     name: "Brutal Strike",
     summary: brutalStrikeActionSummary,
     detail: brutalStrikeActionSummary,
+    description,
     valueLabel: "Once per Reckless Attack",
     breakdown:
       selectionLimit > 1
@@ -852,6 +874,10 @@ function getBarbarianRelentlessRageAction(
     breakdown: relentlessRageActionSummary,
     economyType: ECONOMY_TYPE.FREE,
     actionCategory: ACTION_CATEGORY.FEATURE,
+    drawer: {
+      kind: "confirm",
+      facts: []
+    },
     disabled: !isRaging,
     disabledReason: !isRaging ? "Relentless Rage requires Rage to be active." : undefined
   };

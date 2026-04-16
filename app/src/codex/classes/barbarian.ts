@@ -133,7 +133,7 @@ export const barbarianFeatures: BarbarianFeatureClassObj[] = [
           "The extra damage of your Brutal Strike increases to <strong>2d10</strong>.",
           "In addition, you can use two different Brutal Strike effects whenever you use your Brutal Strike feature."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }
     },
     rages: 6,
@@ -154,9 +154,9 @@ export const barbarianFeatures: BarbarianFeatureClassObj[] = [
       [CLASS_FEATURE.EPIC_BOON]: {
         description: [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
-          "Boon of Irresistible Offense is recommended."
+          "<feat:BOON_OF_IRRESISTIBLE_OFFENSE>Boon of Irresistible Offense</feat> is recommended."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }
     },
     rages: 6,
@@ -215,8 +215,7 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
   [CLASS_FEATURE.RECKLESS_ATTACK]: {
     description: [
       "You can throw aside all concern for defense to attack with increased ferocity.",
-      "When you make your first attack roll on your turn, you can decide to attack recklessly. Doing so gives you <link:advantage>Advantage</link> on attack rolls using Strength until the start of your next turn, but attack rolls against you have <link:advantage>Advantage</link> during that time.",
-      "(The app is tracking the usage but you have to remember that others have advantage over you.)"
+      "When you make your first attack roll on your turn, you can decide to attack recklessly. Doing so gives you <link:advantage>Advantage</link> on attack rolls using Strength until the start of your next turn, but attack rolls against you have <link:advantage>Advantage</link> during that time."
     ],
     trackingState: TRACKER.SEMI_TRACKED
   },
@@ -286,7 +285,7 @@ export const barbarianFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>
     description: [
       "If your total for a Strength check or Strength saving throw is less than your Strength score, you can use that score in place of the total."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.PRIMAL_CHAMPION]: {
     description: [

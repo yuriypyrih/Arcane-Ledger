@@ -10,10 +10,7 @@ import {
   getSkillProficiencyForSkillName
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import {
-  appendSourcedDescriptionAddition,
-  appendUniqueDescriptionAddition
-} from "../../../actionModalDescriptions";
+import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import type {
   FeatureActionCard,
   FeatureDamageBonus,
@@ -94,13 +91,14 @@ function appendWeaponDescriptionSection<T extends { description?: SpellDescripti
 function appendFeatureActionDescriptionEntries(
   action: FeatureActionCard,
   actionKey: string,
+  sourceName: string,
   descriptionEntries: readonly string[]
 ): FeatureActionCard {
   if (action.key !== actionKey || descriptionEntries.length === 0) {
     return action;
   }
 
-  return appendUniqueDescriptionAddition(action, descriptionEntries);
+  return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
 }
 
 function getRawWisdomModifier(character: Partial<Pick<Character, "abilities">>): number | null {
@@ -569,6 +567,7 @@ export const getMonkWarriorOfMercyDerivedFeatureState: SubclassRuntimeResolver =
           appendFeatureActionDescriptionEntries(
             action,
             monkHandOfHealingActionKey,
+            "Physician's Touch: Hand of Healing",
             physiciansTouchHandOfHealingDescription
           )
       : undefined,
@@ -585,8 +584,9 @@ export const getMonkWarriorOfMercyDerivedFeatureState: SubclassRuntimeResolver =
       );
 
       return hasMonkWarriorOfMercyPhysiciansTouch(character)
-        ? appendUniqueDescriptionAddition(
+        ? appendWeaponDescriptionSection(
             actionWithHandOfHarm,
+            "Physician's Touch: Hand of Harm",
             physiciansTouchHandOfHarmDescription
           )
         : actionWithHandOfHarm;

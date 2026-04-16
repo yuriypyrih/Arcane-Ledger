@@ -13,7 +13,10 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import {
+  appendSourcedDescriptionAddition,
+  createSourcedDescriptionEntries
+} from "../../../actionModalDescriptions";
 import { getResolvedCustomLoadoutEntries } from "../../../customEquipment";
 import {
   createWeaponAction,
@@ -49,6 +52,7 @@ export const rogueSoulknifePsychicBladeWeaponActionKey = "rogue-soulknife-psychi
 export const rogueSoulknifePsychicVeilActionKey = "rogue-soulknife-psychic-veil";
 
 const soulknifeSourceLabel = "Psychic Blades";
+const soulBladesSourceLabel = "Soul Blades";
 const soulknifeDrawerEyebrow = "Soulknife";
 const soulknifePsychicBladeEquipmentKey = "feature-rogue-soulknife-psychic-blade";
 const psychicVeilName = "Psychic Veil";
@@ -665,7 +669,7 @@ export function getRogueSoulknifeWeaponActions(character: RogueSoulknifeCharacte
       drawerEyebrow: soulknifeDrawerEyebrow,
       description: psychicBladesDescription,
       descriptionAdditions: hasRogueSoulknifeSoulBladesFeature(character)
-        ? [soulBladesDescription]
+        ? [createSourcedDescriptionEntries(soulBladesSourceLabel, soulBladesDescription)]
         : undefined
     }
   ];

@@ -126,6 +126,7 @@ import {
   getBarbarianRageOfTheGodsUsesTotal,
   getBarbarianPowerOfTheWildsOptions
 } from "../../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
+import { frenzyDamageBonusLabel } from "../../../../../pages/CharactersPage/classFeatures/barbarian/subclasses/barbarianPathOfTheBerserker";
 import {
   applyFighterTeamTacticsStatus,
   consumeFighterGroupRecoveryUse,
@@ -2170,6 +2171,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedAction?.kind === "feature"
       ? (selectedAction.drawer.blockedReason ?? selectedCrownOfSpellfireBlockedReason ?? null)
       : null;
+  const selectedFeatureActionPrimaryDisabledReason =
+    selectedAction?.kind === "feature"
+      ? (selectedActionWarning ??
+        selectedActionBlockedReason ??
+        selectedAction.action.disabledReason ??
+        null)
+      : null;
+  const selectedWeaponPrimaryDisabledReason =
+    selectedAction?.kind === "weapon"
+      ? (selectedActionWarning ?? selectedAction.disabledReason ?? null)
+      : null;
   const selectedDrawerWarning =
     selectedOptionWarning ??
     (selectedAction?.kind === "feature" &&
@@ -2267,7 +2279,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             ? `Select a level ${frozenHauntFallbackSpellSlotMinimumLevel}+ spell slot for Frozen Haunt.`
             : null))
       : null;
-  const fixedSpellCastWarning = selectedActionWarning ?? fixedSpellFrozenHauntWarning;
+  const fixedSpellCastWarning =
+    selectedFeatureActionPrimaryDisabledReason ?? fixedSpellFrozenHauntWarning;
   const paladinAuraOfProtectionBonus = hasActivePaladinAuraOfProtectionForCharacter(character)
     ? Math.max(1, getAbilityModifier(effectiveAbilities.CHA))
     : 0;
@@ -3096,7 +3109,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
       let nextCharacter = preparedAction.damageBonusEntries.reduce(
         (updatedCharacter, entry) =>
-          entry.label === "Primal Strike"
+          entry.label === "Primal Strike" || entry.label === frenzyDamageBonusLabel
             ? updatedCharacter
             : markFeatureWeaponBonusUseForCharacter(updatedCharacter, entry.label),
         preparedCharacter
@@ -4505,7 +4518,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               type="button"
               className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
               onClick={() => handleWeaponAttackRoll(selectedAction.action)}
-              disabled={selectedActionWarning !== null}
+              disabled={selectedWeaponPrimaryDisabledReason !== null}
             >
               <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
               <span>Attack</span>
@@ -4561,7 +4574,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
           actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
           disabled={
-            selectedActionWarning !== null ||
+            selectedFeatureActionPrimaryDisabledReason !== null ||
             (isGroupRecoverySelected && selectedSecondWindGroupRecoveryUsesRemaining <= 0)
           }
           groupRecoveryUnlocked={selectedSecondWindGroupRecoveryUsesTotal > 0}
@@ -4586,7 +4599,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
           actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
           actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-          disabled={selectedActionWarning !== null || selectedActionBlockedReason !== null}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
           crownOfSpellfireUnlocked={selectedCrownOfSpellfireUsesTotal > 0}
           crownOfSpellfireUsesRemaining={selectedCrownOfSpellfireUsesRemaining}
           crownOfSpellfireUsesTotal={selectedCrownOfSpellfireUsesTotal}
@@ -4614,7 +4627,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
           actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
           actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-          disabled={selectedActionWarning !== null || selectedActionBlockedReason !== null}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
           clairvoyantCombatantUsesRemaining={selectedClairvoyantCombatantUsesRemaining}
           clairvoyantCombatantUsesTotal={selectedClairvoyantCombatantUsesTotal}
           pactMagicSlotsRemaining={selectedClairvoyantCombatantPactMagicSlotsRemaining}
@@ -4655,7 +4668,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               type="button"
               className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
               onClick={() => executeFeatureActivate(selectedAction.action)}
-              disabled={selectedActionWarning !== null}
+              disabled={selectedFeatureActionPrimaryDisabledReason !== null}
             >
               <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
               <span>{selectedAction.drawer.confirmLabel}</span>
@@ -4714,7 +4727,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             type="button"
             className={clsx(sheetStyles.castButton, styles.footerActionButton)}
             onClick={() => executeFeatureActivate(selectedAction.action)}
-            disabled={selectedActionWarning !== null}
+            disabled={selectedFeatureActionPrimaryDisabledReason !== null}
           >
             <span>{selectedAction.drawer.confirmLabel}</span>
             {actionShape ? (
@@ -4751,11 +4764,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           disabled={
             (isMultiConfirm
               ? selectedActionOptionKeys.length <= 0 ||
-                selectedActionWarning !== null ||
-                selectedActionBlockedReason !== null
+                selectedFeatureActionPrimaryDisabledReason !== null
               : !selectedOption ||
                 selectedOption.disabled === true ||
-                selectedOptionWarning !== null) ||
+                selectedOptionWarning !== null ||
+                selectedFeatureActionPrimaryDisabledReason !== null) ||
             (selectedFeatureAction?.key === metamagicActionKey &&
               selectedMetamagicCost > getSorceryPointsRemainingForCharacter(character))
           }
@@ -4785,8 +4798,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onClick={submitThirdEye}
           disabled={
             selectedThirdEyeOptionKey === null ||
-            selectedActionWarning !== null ||
-            selectedActionBlockedReason !== null
+            selectedFeatureActionPrimaryDisabledReason !== null
           }
         >
           <span>Activate</span>
@@ -4810,7 +4822,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           type="button"
           className={clsx(sheetStyles.castButton, styles.footerActionButton)}
           onClick={submitWildShape}
-          disabled={!selectedWildShapeMonster || selectedActionWarning !== null}
+          disabled={
+            !selectedWildShapeMonster || selectedFeatureActionPrimaryDisabledReason !== null
+          }
         >
           <span>Shape Shift</span>
           <ActionShape
@@ -4832,12 +4846,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           type="button"
           className={clsx(sheetStyles.castButton, styles.footerActionButton)}
           onClick={submitStarryForm}
-          disabled={selectedActionWarning !== null || selectedStarryFormConstellation === null}
+          disabled={
+            selectedFeatureActionPrimaryDisabledReason !== null ||
+            selectedStarryFormConstellation === null
+          }
         >
           <span>Assume Form</span>
           <ActionShape
             shape="bonusAction"
-            isSelected={selectedActionWarning === null}
+            isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
             className={styles.footerActionShape}
           />
         </button>
@@ -4854,7 +4871,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           type="button"
           className={clsx(sheetStyles.castButton, styles.footerActionButton)}
           onClick={submitWildCompanion}
-          disabled={selectedActionWarning !== null || !canUseSelectedWildCompanionResource}
+          disabled={
+            selectedFeatureActionPrimaryDisabledReason !== null ||
+            !canUseSelectedWildCompanionResource
+          }
         >
           <span>Cast</span>
           <ActionShape
@@ -4877,7 +4897,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           type="button"
           className={clsx(sheetStyles.castButton, styles.footerActionButton)}
           onClick={submitNatureMagician}
-          disabled={selectedActionWarning !== null || !selectedNatureMagicianOption}
+          disabled={
+            selectedFeatureActionPrimaryDisabledReason !== null || !selectedNatureMagicianOption
+          }
         >
           <span>Convert</span>
         </button>
@@ -4894,7 +4916,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           type="button"
           className={clsx(sheetStyles.castButton, styles.footerActionButton)}
           onClick={submitWildResurgence}
-          disabled={!canUseSelectedWildResurgenceMode}
+          disabled={
+            !canUseSelectedWildResurgenceMode ||
+            selectedFeatureActionPrimaryDisabledReason !== null
+          }
         >
           <span>Use</span>
         </button>
@@ -4913,6 +4938,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onClick={confirmFontOfMagicSelection}
           disabled={
             selectedFontOfMagicSelection === null ||
+            selectedFeatureActionPrimaryDisabledReason !== null ||
             (selectedFontOfMagicSelection.kind === "points-to-slot" &&
               selectedFontOfMagicWarning !== null)
           }
@@ -4941,12 +4967,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           type="button"
           className={clsx(sheetStyles.castButton, styles.footerActionButton)}
           onClick={submitRage}
-          disabled={!canConfirm || selectedActionWarning !== null}
+          disabled={!canConfirm || selectedFeatureActionPrimaryDisabledReason !== null}
         >
           <span>Enter Rage</span>
           <ActionShape
             shape="bonusAction"
-            isSelected={selectedActionWarning === null}
+            isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
             className={styles.footerActionShape}
           />
         </button>
@@ -4965,7 +4991,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           type="button"
           className={clsx(sheetStyles.castButton, styles.footerActionButton)}
           onClick={() => executeFeatureActivate(selectedAction.action)}
-          disabled={selectedActionWarning !== null || selectedActionBlockedReason !== null}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
         >
           <span>{selectedAction.drawer.confirmLabel}</span>
           {actionShape ? (
@@ -4988,7 +5014,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           type="button"
           className={clsx(sheetStyles.castButton, styles.footerActionButton)}
           onClick={() => setIsFixedSpellDrawerOpen(true)}
-          disabled={selectedActionBlockedReason !== null}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
         >
           <span>{selectedAction.drawer.confirmLabel}</span>
           {actionShape ? (
@@ -5216,8 +5242,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             })
           }
           actionLabel="Divine Intervention"
-          actionWarning={selectedActionWarning}
-          actionDisabled={selectedActionWarning !== null}
+          actionWarning={selectedFeatureActionPrimaryDisabledReason}
+          actionDisabled={selectedFeatureActionPrimaryDisabledReason !== null}
           blockedReason={selectedDivineInterventionBlockedReason}
           actionAvailabilityText={selectedFeatureAction.usesLabel ?? null}
           actionOptions={
@@ -5276,12 +5302,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           actionContextText="Using Mystic Arcanum"
           actionAvailabilityText="Cast without expending a spell slot. Mystic Arcanum spells can't be upcast."
           actionWarning={
-            selectedMysticArcanumExpended
+            selectedFeatureActionPrimaryDisabledReason ??
+            (selectedMysticArcanumExpended
               ? "This arcanum recharges on a Long Rest."
-              : selectedMysticArcanumActionWarning
+              : selectedMysticArcanumActionWarning)
           }
           actionDisabled={
-            selectedMysticArcanumExpended || selectedMysticArcanumActionWarning !== null
+            selectedFeatureActionPrimaryDisabledReason !== null ||
+            selectedMysticArcanumExpended ||
+            selectedMysticArcanumActionWarning !== null
           }
           blockedReason={selectedMysticArcanumBlockedReason}
           actionOptions={

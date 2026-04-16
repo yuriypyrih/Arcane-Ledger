@@ -1409,6 +1409,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       !selectedReactionEntry &&
       !selectedWildShapeMonster ? (
         <StatusEntryDrawer
+          character={character}
           entry={selectedStatusEntry}
           customContent={
             selectedStatusEntry.sourceId ===

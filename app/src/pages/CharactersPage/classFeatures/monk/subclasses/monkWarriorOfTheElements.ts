@@ -8,7 +8,7 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { appendUniqueDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import type {
   FeatureActionCard,
@@ -36,6 +36,8 @@ const elementalAttunementEffectName = "Elemental Attunement";
 const elementalAttunementDurationMinutes = 10;
 const elementalAttunementFocusCost = 1;
 const elementalBurstFocusCost = 2;
+const strideOfTheElementsName = "Stride of the Elements";
+const elementalEpitomeName = "Elemental Epitome";
 const elementalAttunementAdditionalDamageTypes = [
   "Acid",
   "Cold",
@@ -268,9 +270,12 @@ export function activateMonkWarriorOfTheElementsElementalBurst(character: Charac
 
 function appendElementalAttunementDescriptionAddition(
   action: FeatureActionCard,
+  sourceName: string,
   descriptionEntries: readonly string[]
 ): FeatureActionCard {
-  return descriptionEntries.length > 0 ? appendUniqueDescriptionAddition(action, descriptionEntries) : action;
+  return descriptionEntries.length > 0
+    ? appendSourcedDescriptionAddition(action, sourceName, descriptionEntries)
+    : action;
 }
 
 function getMonkWarriorOfTheElementsElementalAttunementAction(
@@ -326,11 +331,19 @@ function getMonkWarriorOfTheElementsElementalAttunementAction(
   };
 
   if (hasMonkWarriorOfTheElementsStrideOfTheElements(character)) {
-    action = appendElementalAttunementDescriptionAddition(action, strideOfTheElementsDescription);
+    action = appendElementalAttunementDescriptionAddition(
+      action,
+      strideOfTheElementsName,
+      strideOfTheElementsDescription
+    );
   }
 
   if (hasMonkWarriorOfTheElementsElementalEpitome(character)) {
-    action = appendElementalAttunementDescriptionAddition(action, elementalEpitomeDescription);
+    action = appendElementalAttunementDescriptionAddition(
+      action,
+      elementalEpitomeName,
+      elementalEpitomeDescription
+    );
   }
 
   return action;

@@ -1,7 +1,9 @@
 import { CONDITION_NAME, EFFECT_NAME, STATUS_DURATION_KIND, STATUS_ENTRY_GROUP, STATUS_ENTRY_SOURCE_TYPE } from "../../../../../types";
 import type { Character, CharacterRageFeatureState, CharacterStatusEntry } from "../../../../../types";
-import { getReactionEntryById } from "../../../../../codex/entries";
+import { CLASS_FEATURE, getReactionEntryById } from "../../../../../codex/entries";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import { createSourcedDescriptionEntries } from "../../../actionModalDescriptions";
+import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
@@ -203,6 +205,19 @@ export function getBarbarianPathOfTheBerserkerRecklessAttackPatch(
   return {
     frenzyPending: isBarbarianPathOfTheBerserker(character) && rageState.active === true
   };
+}
+
+export function getBarbarianPathOfTheBerserkerRecklessAttackDescriptionAdditions(
+  character: BarbarianSubclassCharacter
+) {
+  if (!isBarbarianPathOfTheBerserker(character)) {
+    return [];
+  }
+
+  const frenzyDescription = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.FRENZY);
+  return frenzyDescription.length > 0
+    ? [createSourcedDescriptionEntries(frenzyDamageBonusLabel, frenzyDescription)]
+    : [];
 }
 
 export function activateBarbarianPathOfTheBerserkerIntimidatingPresence(

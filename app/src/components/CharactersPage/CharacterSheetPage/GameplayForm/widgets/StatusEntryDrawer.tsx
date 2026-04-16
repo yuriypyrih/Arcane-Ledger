@@ -1,6 +1,5 @@
 import clsx from "clsx";
-import { useEffect, useState, type ReactNode } from "react";
-import { X } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import type { DivinityEntry, SpellEntry } from "../../../../../codex/entries";
 import CellContainer from "../../../../../components/CellContainer/CellContainer";
 import ConcentrationLabel from "../../../../../components/ConcentrationLabel";
@@ -8,6 +7,18 @@ import DescriptionContent from "../../../../../components/DescriptionContent/Des
 import KeywordReferenceDrawer from "../../../../../components/KeywordReferenceDrawer/KeywordReferenceDrawer";
 import CodexDivinityDrawer from "../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import CodexSpellDrawer from "../../../../CodexPage/CodexSpellDrawer/CodexSpellDrawer";
+import {
+  OverlayBody,
+  OverlayCloseButton,
+  OverlayDetailsGrid,
+  OverlayEyebrow,
+  OverlayFooter,
+  OverlayHeader,
+  OverlayHeaderContent,
+  OverlayTitle,
+  OverlayTitleRow,
+  SheetDrawer
+} from "../../../../Overlay";
 import SelectInput from "../../../FormInputs/SelectInput";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
@@ -15,13 +26,13 @@ import {
   durationPresetOptions,
   isRoundDurationPreset,
   getStatusDurationLabel,
-  getStatusEntryDescriptionEntries,
+  getStatusEntryDescriptionContent,
   isExhaustionStatusEntry,
   getStatusEntrySourceLabel,
   statusRoundTickOptions,
   getStatusEntryTitle
 } from "../../../../../pages/CharactersPage/traits";
-import type { CharacterStatusEntry } from "../../../../../types";
+import type { Character, CharacterStatusEntry } from "../../../../../types";
 import {
   EFFECT_NAME,
   STATUS_DURATION_PRESET,
@@ -37,6 +48,7 @@ import {
 } from "./traitsWidgetUtils";
 
 type StatusEntryDrawerProps = {
+  character: Character;
   entry: CharacterStatusEntry;
   customContent?: ReactNode;
   isEditingDuration: boolean;
@@ -54,6 +66,7 @@ type StatusEntryDrawerProps = {
 };
 
 function StatusEntryDrawer({
+  character,
   entry,
   customContent = null,
   isEditingDuration,
@@ -78,187 +91,193 @@ function StatusEntryDrawer({
     null
   );
   const [selectedKeyword, setSelectedKeyword] = useState<ResolvedKeywordReference | null>(null);
-  const descriptionEntries = getStatusEntryDescriptionEntries(entry);
-
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key !== "Escape") {
-        return;
-      }
-
-      if (selectedKeyword) {
-        setSelectedKeyword(null);
-        return;
-      }
-
-      if (selectedDivinityReference) {
-        setSelectedDivinityReference(null);
-        return;
-      }
-
-      if (selectedSpellReference) {
-        setSelectedSpellReference(null);
-        return;
-      }
-
-      onClose();
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose, selectedDivinityReference, selectedKeyword, selectedSpellReference]);
+  const { description: descriptionEntries, descriptionAdditions } = getStatusEntryDescriptionContent(
+    entry,
+    character
+  );
+  const hasBaseDescription = descriptionEntries.length > 0;
+  const descriptionSections = descriptionAdditions.filter((section) => section.length > 0);
 
   return (
     <>
-      <div className={sheetStyles.spellDrawerBackdrop} role="presentation" onClick={onClose}>
-        <section
-          className={sheetStyles.spellDrawer}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="status-drawer-title"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <div className={sheetStyles.spellDrawerHeader}>
-            <div className={sheetStyles.spellDrawerHeaderContent}>
-              <p className={sheetStyles.spellDrawerBadge}>
-                {getStatusDrawerBadgeLabel(entry.group)}
-              </p>
-              <div className={sheetStyles.spellDrawerTitleRow}>
-                <h3 id="status-drawer-title" className={sheetStyles.spellDrawerTitle}>
-                  {entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
-                  entry.value === EFFECT_NAME.CONCENTRATION ? (
-                    <ConcentrationLabel iconSize={18} />
-                  ) : (
-                    getStatusEntryTitle(entry)
+      <SheetDrawer
+        titleId="status-drawer-title"
+        onClose={onClose}
+        onEscape={() => {
+          if (selectedKeyword) {
+            setSelectedKeyword(null);
+            return;
+          }
+
+          if (selectedDivinityReference) {
+            setSelectedDivinityReference(null);
+            return;
+          }
+
+          if (selectedSpellReference) {
+            setSelectedSpellReference(null);
+            return;
+          }
+
+          onClose();
+        }}
+      >
+        <OverlayHeader>
+          <OverlayHeaderContent>
+            <OverlayEyebrow>{getStatusDrawerBadgeLabel(entry.group)}</OverlayEyebrow>
+            <OverlayTitleRow>
+              <OverlayTitle id="status-drawer-title">
+                {entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+                entry.value === EFFECT_NAME.CONCENTRATION ? (
+                  <ConcentrationLabel iconSize={18} />
+                ) : (
+                  getStatusEntryTitle(entry)
+                )}
+              </OverlayTitle>
+            </OverlayTitleRow>
+          </OverlayHeaderContent>
+          <OverlayCloseButton label="Close trait details" onClick={onClose} />
+        </OverlayHeader>
+
+        <OverlayBody className={styles.drawerBody}>
+          {hasBaseDescription || descriptionSections.length > 0 ? (
+            <div className={sheetStyles.spellDrawerDescriptionStack}>
+              {hasBaseDescription ? (
+                <DescriptionContent
+                  description={descriptionEntries}
+                  className={clsx(
+                    sheetStyles.spellDrawerDescriptionList,
+                    sheetStyles.spellDrawerDescriptionSection
                   )}
-                </h3>
-              </div>
-            </div>
-            <button
-              type="button"
-              className={sheetStyles.spellDrawerCloseButton}
-              onClick={onClose}
-              aria-label="Close trait details"
-            >
-              <X size={18} />
-            </button>
-          </div>
-
-          <div className={styles.drawerBody}>
-            <DescriptionContent
-              description={descriptionEntries}
-              className={clsx(
-                sheetStyles.spellDrawerDescriptionList,
-                sheetStyles.spellDrawerDescriptionSection
-              )}
-              entryClassName={sheetStyles.spellDrawerDescriptionLine}
-              strongClassName={sheetStyles.spellDrawerDescriptionStrong}
-              linkClassName={styles.inlineLinkButton}
-              onOpenKeyword={setSelectedKeyword}
-              onOpenSpell={setSelectedSpellReference}
-              onOpenDivinity={setSelectedDivinityReference}
-            />
-
-            {customContent}
-
-            <div className={styles.drawerFacts}>
-              <CellContainer label="Duration" content={getStatusDurationLabel(entry.duration)} />
-              <CellContainer label="Source" content={getStatusEntrySourceLabel(entry)} />
-              {isExhaustionEntry ? (
-                <CellContainer
-                  label="Current Level"
-                  content={`Level ${entry.conditionLevel ?? 1}`}
+                  entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                  strongClassName={sheetStyles.spellDrawerDescriptionStrong}
+                  linkClassName={styles.inlineLinkButton}
+                  onOpenKeyword={setSelectedKeyword}
+                  onOpenSpell={setSelectedSpellReference}
+                  onOpenDivinity={setSelectedDivinityReference}
                 />
               ) : null}
+              {descriptionSections.map((section, index) => (
+                <div
+                  key={`${entry.id}-description-addition-${index}`}
+                  className={sheetStyles.spellDrawerDescriptionAdditionSection}
+                >
+                  {hasBaseDescription || index > 0 ? (
+                    <hr
+                      className={sheetStyles.spellDrawerDescriptionDivider}
+                      aria-hidden="true"
+                    />
+                  ) : null}
+                  <DescriptionContent
+                    description={section}
+                    className={clsx(
+                      sheetStyles.spellDrawerDescriptionList,
+                      sheetStyles.spellDrawerDescriptionSection
+                    )}
+                    entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                    strongClassName={sheetStyles.spellDrawerDescriptionStrong}
+                    linkClassName={styles.inlineLinkButton}
+                    onOpenKeyword={setSelectedKeyword}
+                    onOpenSpell={setSelectedSpellReference}
+                    onOpenDivinity={setSelectedDivinityReference}
+                  />
+                </div>
+              ))}
             </div>
+          ) : null}
 
-            {isEditingDuration ? (
-              <div className={styles.durationEditor}>
+          {customContent}
+
+          <OverlayDetailsGrid className={styles.drawerFacts}>
+            <CellContainer label="Duration" content={getStatusDurationLabel(entry.duration)} />
+            <CellContainer label="Source" content={getStatusEntrySourceLabel(entry)} />
+            {isExhaustionEntry ? (
+              <CellContainer label="Current Level" content={`Level ${entry.conditionLevel ?? 1}`} />
+            ) : null}
+          </OverlayDetailsGrid>
+
+          {isEditingDuration ? (
+            <div className={styles.durationEditor}>
+              <label className={shared.field}>
+                <span className={shared.fieldLabel}>Duration</span>
+                <SelectInput
+                  value={durationPreset}
+                  onChange={(event) =>
+                    onDurationPresetChange(event.target.value as STATUS_DURATION_PRESET)
+                  }
+                >
+                  {durationPresetOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </SelectInput>
+              </label>
+
+              {showRoundTickSelector ? (
                 <label className={shared.field}>
-                  <span className={shared.fieldLabel}>Duration</span>
+                  <span className={shared.fieldLabel}>Round Tick</span>
                   <SelectInput
-                    value={durationPreset}
+                    value={roundTickOn}
                     onChange={(event) =>
-                      onDurationPresetChange(event.target.value as STATUS_DURATION_PRESET)
+                      onRoundTickOnChange(event.target.value as STATUS_DURATION_ROUND_TICK)
                     }
                   >
-                    {durationPresetOptions.map((option) => (
+                    {statusRoundTickOptions.map((option) => (
                       <option key={option.value} value={option.value}>
                         {option.label}
                       </option>
                     ))}
                   </SelectInput>
                 </label>
+              ) : null}
 
-                {showRoundTickSelector ? (
-                  <label className={shared.field}>
-                    <span className={shared.fieldLabel}>Round Tick</span>
-                    <SelectInput
-                      value={roundTickOn}
-                      onChange={(event) =>
-                        onRoundTickOnChange(event.target.value as STATUS_DURATION_ROUND_TICK)
-                      }
-                    >
-                      {statusRoundTickOptions.map((option) => (
-                        <option key={option.value} value={option.value}>
-                          {option.label}
-                        </option>
-                      ))}
-                    </SelectInput>
-                  </label>
-                ) : null}
-
-                <div className={styles.durationEditorActions}>
-                  <button type="button" className={shared.saveButton} onClick={onApplyDuration}>
-                    Apply
-                  </button>
-                  <button
-                    type="button"
-                    className={shared.cancelButton}
-                    onClick={onCancelEditDuration}
-                  >
-                    Cancel
-                  </button>
-                </div>
+              <div className={styles.durationEditorActions}>
+                <button type="button" className={shared.saveButton} onClick={onApplyDuration}>
+                  Apply
+                </button>
+                <button type="button" className={shared.cancelButton} onClick={onCancelEditDuration}>
+                  Cancel
+                </button>
               </div>
-            ) : null}
+            </div>
+          ) : null}
+        </OverlayBody>
 
-            {isExhaustionEntry ? (
-              <div className={styles.exhaustionActionRow}>
-                <button type="button" className={shared.saveButton} onClick={onIncreaseExhaustion}>
-                  Increase Exhaustion
+        {isExhaustionEntry ? (
+          <OverlayFooter>
+            <div className={styles.exhaustionActionRow}>
+              <button type="button" className={shared.saveButton} onClick={onIncreaseExhaustion}>
+                Increase Exhaustion
+              </button>
+              <button type="button" className={shared.cancelButton} onClick={onDecreaseExhaustion}>
+                Decrease Exhaustion
+              </button>
+              <button type="button" className={styles.removeButton} onClick={onRemove}>
+                Remove Exhaustion
+              </button>
+            </div>
+          </OverlayFooter>
+        ) : !isEditingDuration && (canEditDuration || canRemove) ? (
+          <OverlayFooter>
+            <div className={styles.drawerFooter}>
+              {canEditDuration ? (
+                <button type="button" className={shared.editButton} onClick={onStartEditDuration}>
+                  Edit Duration
                 </button>
-                <button
-                  type="button"
-                  className={shared.cancelButton}
-                  onClick={onDecreaseExhaustion}
-                >
-                  Decrease Exhaustion
-                </button>
+              ) : (
+                <span />
+              )}
+
+              {canRemove ? (
                 <button type="button" className={styles.removeButton} onClick={onRemove}>
-                  Remove Exhaustion
+                  Remove
                 </button>
-              </div>
-            ) : isEditingDuration || canEditDuration || canRemove ? (
-              <div className={styles.drawerFooter}>
-                {canEditDuration ? (
-                  <button type="button" className={shared.editButton} onClick={onStartEditDuration}>
-                    Edit Duration
-                  </button>
-                ) : (
-                  <span />
-                )}
-
-                {canRemove ? (
-                  <button type="button" className={styles.removeButton} onClick={onRemove}>
-                    Remove
-                  </button>
-                ) : null}
-              </div>
-            ) : null}
-          </div>
-        </section>
-      </div>
+              ) : null}
+            </div>
+          </OverlayFooter>
+        ) : null}
+      </SheetDrawer>
 
       {selectedSpellReference ? (
         <CodexSpellDrawer

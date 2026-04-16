@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { Hexagon, Music, X } from "lucide-react";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import pyromancyIcon from "../../../../assets/svg/pyromancy.svg";
 import ActionShape, {
   getActionShapeForCastingTime,
@@ -261,14 +261,9 @@ function CharacterSpellDrawer({
     }
   }, [ritualCastingRequired, spell.id]);
 
-  const spellDescription = useMemo<SpellDescriptionEntry[]>(() => {
-    const descriptionAdditions =
-      spell.descriptionAdditions?.flatMap((section) => section.filter(Boolean)) ?? [];
-
-    return descriptionAdditions.length > 0
-      ? [...spell.description, ...descriptionAdditions]
-      : spell.description;
-  }, [spell.description, spell.descriptionAdditions]);
+  const hasBaseDescription = spell.description.length > 0;
+  const spellDescriptionSections =
+    spell.descriptionAdditions?.filter((section) => section.length > 0) ?? [];
   const availabilityText =
     isRitualCastingSelected || ritualCastingRequired
       ? (actionAvailabilityText ??
@@ -396,15 +391,43 @@ function CharacterSpellDrawer({
               />
             </div>
 
-            <SpellDescriptionContent
-              description={spellDescription}
-              className={clsx(
-                sheetStyles.spellDrawerDescriptionList,
-                sheetStyles.spellDrawerDescriptionSection
-              )}
-              entryClassName={sheetStyles.spellDrawerDescriptionLine}
-              strongClassName={sheetStyles.spellDrawerDescriptionStrong}
-            />
+            {hasBaseDescription || spellDescriptionSections.length > 0 ? (
+              <div className={sheetStyles.spellDrawerDescriptionStack}>
+                {hasBaseDescription ? (
+                  <SpellDescriptionContent
+                    description={spell.description}
+                    className={clsx(
+                      sheetStyles.spellDrawerDescriptionList,
+                      sheetStyles.spellDrawerDescriptionSection
+                    )}
+                    entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                    strongClassName={sheetStyles.spellDrawerDescriptionStrong}
+                  />
+                ) : null}
+                {spellDescriptionSections.map((section, index) => (
+                  <div
+                    key={`${spell.id}-description-addition-${index}`}
+                    className={sheetStyles.spellDrawerDescriptionAdditionSection}
+                  >
+                    {hasBaseDescription || index > 0 ? (
+                      <hr
+                        className={sheetStyles.spellDrawerDescriptionDivider}
+                        aria-hidden="true"
+                      />
+                    ) : null}
+                    <SpellDescriptionContent
+                      description={section}
+                      className={clsx(
+                        sheetStyles.spellDrawerDescriptionList,
+                        sheetStyles.spellDrawerDescriptionSection
+                      )}
+                      entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                      strongClassName={sheetStyles.spellDrawerDescriptionStrong}
+                    />
+                  </div>
+                ))}
+              </div>
+            ) : null}
           </div>
 
           {shouldShowActionFooter ? (

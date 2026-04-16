@@ -85,6 +85,20 @@
   text-transform: uppercase;
 }
 
+.featureTitleContent {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.subclassFeatureIndicator {
+  color: var(--color-ink-soft);
+  font-size: 0.86em;
+  font-style: italic;
+  font-weight: 500;
+}
+
 .featureOptionRow {
   display: grid;
   grid-template-columns: auto 1fr;

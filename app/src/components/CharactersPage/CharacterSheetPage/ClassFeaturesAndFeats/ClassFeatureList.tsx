@@ -1554,7 +1554,14 @@ function ClassFeatureList({
             <FeatureDisclosureRow
               key={featureRow.key}
               as="li"
-              title={`Level ${featureRow.level}: ${formatCodexLabel(featureRow.feature)}`}
+              title={
+                <span className={styles.featureTitleContent}>
+                  <span>{`Level ${featureRow.level}: ${formatCodexLabel(featureRow.feature)}`}</span>
+                  {featureRow.isSubclass ? (
+                    <span className={styles.subclassFeatureIndicator}>(subclass)</span>
+                  ) : null}
+                </span>
+              }
               isExpanded={isFeatureExpanded}
               onToggle={() => onToggleFeature(featureRow.key)}
               bodyId={featurePanelId}

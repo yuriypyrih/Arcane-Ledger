@@ -22,6 +22,7 @@ export type FeatureRow = {
   level: number;
   feature: CLASS_FEATURE;
   details: FeatureMapEntry;
+  isSubclass: boolean;
 };
 
 export type TrackingButtonRenderer = (trackingState: TRACKER) => ReactNode;

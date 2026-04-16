@@ -1,6 +1,6 @@
 import { getReactionEntryById } from "../../../../../codex/entries";
 import { SKILL } from "../../../../../types";
-import { appendUniqueDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { isItemShieldRecord } from "../../../inventoryItems";
 import { getEquipmentByName } from "../../../proficiencyCodexData";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
@@ -10,8 +10,8 @@ import { getBardicInspirationDie } from "../bard";
 
 export const collegeOfDanceSubclassId = "bard-college-of-dance";
 
-const agileStrikesDescription =
-  "Agile Strikes: You can make one Unarmed Strike as part of this action.";
+const agileStrikesDescription = "You can make one Unarmed Strike as part of this action.";
+const agileStrikesSource = "Agile Strikes";
 const dazzlingFootworkPerformanceIndicator = {
   label: "Advantage",
   tone: "advantage" as const,
@@ -93,13 +93,14 @@ function appendAgileStrikesDescription(action: FeatureActionCard): FeatureAction
     return action;
   }
 
-  return appendUniqueDescriptionAddition(
+  return appendSourcedDescriptionAddition(
     {
       ...action,
       description: action.description?.length
         ? [...action.description]
         : createDefaultFeatureActionDescription(action)
     },
+    agileStrikesSource,
     [agileStrikesDescription]
   );
 }

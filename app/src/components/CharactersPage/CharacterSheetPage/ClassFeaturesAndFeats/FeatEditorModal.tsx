@@ -94,25 +94,25 @@ function FeatEditorModal({
         <OverlayCloseButton label="Close feat editor" onClick={onClose} />
       </OverlayHeader>
 
-      <div className={styles.tabRow} role="tablist" aria-label="Feat categories">
-        {visibleFeatCategories.map((category) => (
-          <button
-            key={category}
-            type="button"
-            role="tab"
-            aria-selected={activeFeatCategory === category}
-            className={clsx(
-              styles.tabButton,
-              activeFeatCategory === category && styles.tabButtonActive
-            )}
-            onClick={() => onSelectCategory(category)}
-          >
-            {getFeatCategoryLabel(category)}
-          </button>
-        ))}
-      </div>
-
       <OverlayBody className={styles.scrollArea}>
+        <div className={styles.tabRow} role="tablist" aria-label="Feat categories">
+          {visibleFeatCategories.map((category) => (
+            <button
+              key={category}
+              type="button"
+              role="tab"
+              aria-selected={activeFeatCategory === category}
+              className={clsx(
+                styles.tabButton,
+                activeFeatCategory === category && styles.tabButtonActive
+              )}
+              onClick={() => onSelectCategory(category)}
+            >
+              {getFeatCategoryLabel(category)}
+            </button>
+          ))}
+        </div>
+
         <div className={styles.optionList}>
           {visibleFeatDefinitionsByCategory[activeFeatCategory].map((featDefinition) => (
             <FeatEditorCard

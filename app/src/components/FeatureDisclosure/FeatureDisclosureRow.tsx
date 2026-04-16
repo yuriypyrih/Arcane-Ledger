@@ -6,7 +6,7 @@ import styles from "./FeatureDisclosure.module.css";
 type FeatureDisclosureRowProps<TElement extends ElementType = "div"> = {
   as?: TElement;
   className?: string;
-  title: string;
+  title: ReactNode;
   isExpanded: boolean;
   onToggle: () => void;
   bodyId?: string;

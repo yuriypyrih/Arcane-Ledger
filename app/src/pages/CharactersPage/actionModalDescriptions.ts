@@ -39,15 +39,23 @@ function descriptionHasEntry(
 
 export function createSourcedDescriptionEntries(
   sourceName: string,
-  descriptionEntries: readonly string[]
+  descriptionEntries: readonly SpellDescriptionEntry[]
 ): SpellDescriptionEntry[] {
-  const [firstEntry, ...remainingEntries] = descriptionEntries;
+  const clonedEntries = descriptionEntries.map(cloneDescriptionEntry);
+  const [firstEntry, ...remainingEntries] = clonedEntries;
+  const marker = `<strong>${sourceName}.</strong>`;
 
   if (!firstEntry) {
     return [];
   }
 
-  return [`<strong>${sourceName}.</strong> ${firstEntry}`, ...remainingEntries];
+  if (typeof firstEntry === "string") {
+    return firstEntry.includes(marker)
+      ? clonedEntries
+      : [`${marker} ${firstEntry}`, ...remainingEntries];
+  }
+
+  return [marker, firstEntry, ...remainingEntries];
 }
 
 export function descriptionValueSomeText(
@@ -103,7 +111,7 @@ export function appendUniqueDescriptionAddition<T extends DescriptionAdditionCar
 export function appendSourcedDescriptionAddition<T extends DescriptionAdditionCarrier>(
   value: T,
   sourceName: string,
-  descriptionEntries: readonly string[]
+  descriptionEntries: readonly SpellDescriptionEntry[]
 ): T {
   const marker = `<strong>${sourceName}.</strong>`;
 

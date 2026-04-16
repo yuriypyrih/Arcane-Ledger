@@ -78,7 +78,8 @@ export function WeaponActionCard({
   const secondaryEconomyShapeState = secondaryEconomyType
     ? getEconomyShapeState(secondaryEconomyType, roundTracker)
     : null;
-  const isUsable = economyShapeState.isUsable || (secondaryEconomyShapeState?.isUsable ?? false);
+  const isUnavailable =
+    !economyShapeState.isUsable && !(secondaryEconomyShapeState?.isUsable ?? false);
 
   return (
     <button
@@ -86,9 +87,10 @@ export function WeaponActionCard({
       className={clsx(
         styles.button,
         styles.actionCard,
+        isUnavailable && styles.actionCardUnavailable,
         economyShapeState.multiCount > 0 && styles.actionCardMulti
       )}
-      disabled={!isUsable}
+      aria-disabled={isUnavailable}
       onClick={() => onClick(action)}
     >
       {actionShape || secondaryActionShape ? (
@@ -314,7 +316,7 @@ export function FeatureActionCardButton({
     roundTracker,
     (action.economyMultiCount ?? 0) + sharedEconomyMultiCount
   );
-  const isDisabled =
+  const isUnavailable =
     action.disabled === true ||
     (!action.ignoreEconomyAvailability && !economyShapeState.isUsable);
   const showsUsesTracker =
@@ -328,11 +330,12 @@ export function FeatureActionCardButton({
       className={clsx(
         styles.button,
         styles.actionCard,
+        isUnavailable && styles.actionCardUnavailable,
         economyShapeState.multiCount > 0 && styles.actionCardMulti,
         styles.featureButton,
         action.isActive && styles.featureButtonActive
       )}
-      disabled={isDisabled}
+      aria-disabled={isUnavailable}
       onClick={() => onClick(action)}
     >
       {actionShape ? (

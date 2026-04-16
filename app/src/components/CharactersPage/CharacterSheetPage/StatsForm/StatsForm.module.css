@@ -128,6 +128,10 @@
   stroke-width: 1.6;
 }
 
+.scoreBoostIcon {
+  color: #2f7fd8;
+}
+
 .coreStatLabel {
   letter-spacing: 0.02em;
   text-transform: none;
@@ -306,10 +310,16 @@
   display: inline-flex;
   align-items: center;
   gap: 0.28rem;
-  color: #2f6de0;
   font-size: 0.84rem;
   font-weight: 700;
   white-space: nowrap;
+}
+
+.initiativeUsageText {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+  color: var(--color-ink-soft);
 }
 
 .initiativeActionButtons {

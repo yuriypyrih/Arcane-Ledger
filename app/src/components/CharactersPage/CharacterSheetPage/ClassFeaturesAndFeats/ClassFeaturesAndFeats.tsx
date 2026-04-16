@@ -147,13 +147,15 @@ function ClassFeaturesAndFeats({
       level: number,
       feature: CLASS_FEATURE,
       index: number,
-      details: FeatureMapEntry
+      details: FeatureMapEntry,
+      isSubclass = false
     ): FeatureRow {
       return {
         key: `${level}-${feature}-${index}`,
         level,
         feature,
-        details
+        details,
+        isSubclass
       };
     }
 
@@ -199,7 +201,8 @@ function ClassFeaturesAndFeats({
             level,
             feature,
             rowIndex * 100 + index,
-            resolveFeatureDetails(level, feature, resolvedDetails)
+            resolveFeatureDetails(level, feature, resolvedDetails),
+            true
           );
         })
       );

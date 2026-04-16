@@ -545,8 +545,20 @@
   gap: 0.55rem;
 }
 
+.spellDrawerDescriptionStack,
+.spellDrawerDescriptionAdditionSection {
+  display: grid;
+  gap: 0.75rem;
+}
+
 .spellDrawerDescriptionSection {
   padding-bottom: 0.65rem;
+}
+
+.spellDrawerDescriptionDivider {
+  border: none;
+  border-top: 1px solid rgba(75, 47, 29, 0.14);
+  margin: 0;
 }
 
 .spellDrawerDescriptionLine {
