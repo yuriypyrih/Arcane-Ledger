@@ -20,6 +20,8 @@ type UseItemEntriesOptions = {
   category: string | null;
   attackType: ItemAttackType | null;
   proficiencyType: ItemProficiencyType | null;
+  mastery: string | null;
+  property: string | null;
   armorType: ItemArmorType | null;
   rarity: string | null;
   source: string | null;
@@ -35,6 +37,8 @@ export function useItemEntries({
   category,
   attackType,
   proficiencyType,
+  mastery,
+  property,
   armorType,
   rarity,
   source,
@@ -63,6 +67,8 @@ export function useItemEntries({
           category: category ?? undefined,
           attackType: attackType ?? undefined,
           proficiencyType: proficiencyType ?? undefined,
+          mastery: mastery ?? undefined,
+          property: property ?? undefined,
           armorType: armorType ?? undefined,
           rarity: rarity ?? undefined,
           source: source ?? undefined,
@@ -95,8 +101,10 @@ export function useItemEntries({
     category,
     enabled,
     limit,
+    mastery,
     ordering,
     page,
+    property,
     proficiencyType,
     rarity,
     search,

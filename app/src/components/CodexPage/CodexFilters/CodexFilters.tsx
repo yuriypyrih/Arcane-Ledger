@@ -25,6 +25,8 @@ type CodexFiltersProps = {
   itemCategoryFilter: string | null;
   itemAttackTypeFilter: ItemAttackType | null;
   itemProficiencyTypeFilter: ItemProficiencyType | null;
+  itemMasteryFilter: string | null;
+  itemPropertyFilter: string | null;
   itemArmorTypeFilter: ItemArmorType | null;
   itemRarityFilter: string | null;
   itemSourceFilter: string | null;
@@ -39,6 +41,8 @@ type CodexFiltersProps = {
   onItemCategoryFilterChange: (value: string | null) => void;
   onItemAttackTypeFilterChange: (value: ItemAttackType | null) => void;
   onItemProficiencyTypeFilterChange: (value: ItemProficiencyType | null) => void;
+  onItemMasteryFilterChange: (value: string | null) => void;
+  onItemPropertyFilterChange: (value: string | null) => void;
   onItemArmorTypeFilterChange: (value: ItemArmorType | null) => void;
   onItemRarityFilterChange: (value: string | null) => void;
   onItemSourceFilterChange: (value: string | null) => void;
@@ -80,6 +84,8 @@ function CodexFilters({
   itemCategoryFilter,
   itemAttackTypeFilter,
   itemProficiencyTypeFilter,
+  itemMasteryFilter,
+  itemPropertyFilter,
   itemArmorTypeFilter,
   itemRarityFilter,
   itemSourceFilter,
@@ -94,6 +100,8 @@ function CodexFilters({
   onItemCategoryFilterChange,
   onItemAttackTypeFilterChange,
   onItemProficiencyTypeFilterChange,
+  onItemMasteryFilterChange,
+  onItemPropertyFilterChange,
   onItemArmorTypeFilterChange,
   onItemRarityFilterChange,
   onItemSourceFilterChange
@@ -211,6 +219,8 @@ function CodexFilters({
             category={itemCategoryFilter}
             attackType={itemAttackTypeFilter}
             proficiencyType={itemProficiencyTypeFilter}
+            mastery={itemMasteryFilter}
+            property={itemPropertyFilter}
             armorType={itemArmorTypeFilter}
             rarity={itemRarityFilter}
             source={itemSourceFilter}
@@ -220,6 +230,8 @@ function CodexFilters({
             onCategoryChange={onItemCategoryFilterChange}
             onAttackTypeChange={onItemAttackTypeFilterChange}
             onProficiencyTypeChange={onItemProficiencyTypeFilterChange}
+            onMasteryChange={onItemMasteryFilterChange}
+            onPropertyChange={onItemPropertyFilterChange}
             onArmorTypeChange={onItemArmorTypeFilterChange}
             onRarityChange={onItemRarityFilterChange}
             onSourceChange={onItemSourceFilterChange}

@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { Pencil } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import CellContainer from "../../../../CellContainer/CellContainer";
 import { useClassSpellEntries, usePreparedSpellEntries } from "../../../../../codex/classes";
 import {
   MAGIC_SCHOOL,
@@ -10,6 +11,7 @@ import {
 } from "../../../../../codex/entries";
 import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
 import {
+  activateBarbarianBerserkerRetaliationForCharacter,
   activateRangerHunterSuperiorHuntersDefenseForCharacter,
   applySpellCastFeatureEffectsForCharacter,
   consumeElementalRebukeUseForCharacter,
@@ -130,6 +132,7 @@ import CharacterSpellDrawer from "../../SpellCastingForm/CharacterSpellDrawer";
 import SelectInput from "../../../FormInputs/SelectInput";
 import { MonsterEntryDrawer } from "../../../../MonsterEntryRenderer";
 import SearchField from "../../../../SearchField";
+import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import widgetShellStyles from "../GameplayWidgetShared.module.css";
 import { createDefaultDeathSaves } from "../gameplayStateUtils";
@@ -147,6 +150,11 @@ import {
   type TraitEditorTab
 } from "./traitsWidgetUtils";
 import { formatCodexLabel } from "../../../../../utils/codex";
+import { barbarianBerserkerRetaliationReactionId } from "../../../../../pages/CharactersPage/classFeatures/barbarian/subclasses/barbarianPathOfTheBerserker";
+import {
+  barbarianWorldTreeBranchesOfTheTreeReactionId,
+  getBarbarianPathOfTheWorldTreeBranchesOfTheTreeDcFormula
+} from "../../../../../pages/CharactersPage/classFeatures/barbarian/subclasses/barbarianPathOfTheWorldTree";
 import { paladinOathOfTheNobleGeniesAuraOfElementalShieldingStatusSourceId } from "../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
 import { superiorHuntersDefenseReactionId } from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerHunter";
 import {
@@ -514,6 +522,10 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   const selectedRangerHunterSuperiorHuntersDefenseDamageType =
     selectedReactionEntry?.id === superiorHuntersDefenseReactionId
       ? getRangerHunterSuperiorHuntersDefenseDamageTypeSelectionForCharacter(character)
+      : null;
+  const selectedBranchesOfTheTreeDcFormula =
+    selectedReactionEntry?.id === barbarianWorldTreeBranchesOfTheTreeReactionId
+      ? getBarbarianPathOfTheWorldTreeBranchesOfTheTreeDcFormula(character)
       : null;
   const selectedSpellThiefSpell =
     selectedSpellThiefSpellId.length > 0
@@ -1088,6 +1100,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         };
       } else if (selectedReactionEntry.id === superiorHuntersDefenseReactionId) {
         nextCharacter = activateRangerHunterSuperiorHuntersDefenseForCharacter(currentCharacter);
+      } else if (selectedReactionEntry.id === barbarianBerserkerRetaliationReactionId) {
+        nextCharacter = activateBarbarianBerserkerRetaliationForCharacter(currentCharacter);
       } else if (
         selectedReactionEntry.id === rogueArcaneTricksterSpellThiefReactionId &&
         selectedSpellThiefSpell
@@ -1134,6 +1148,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           selectedReactionEntry.id === warlockBeguilingDefenseReactionEntryId ||
           selectedReactionEntry.id === wizardBladesingerSongOfDefenseReactionId ||
           selectedReactionEntry.id === superiorHuntersDefenseReactionId ||
+          selectedReactionEntry.id === barbarianBerserkerRetaliationReactionId ||
           selectedReactionEntry.id === rogueArcaneTricksterSpellThiefReactionId) &&
         nextCharacter === currentCharacter
       ) {
@@ -1344,6 +1359,11 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
                   ))}
                 </SelectInput>
               </label>
+            ) : selectedReactionEntry.id === barbarianWorldTreeBranchesOfTheTreeReactionId &&
+              selectedBranchesOfTheTreeDcFormula ? (
+              <div className={sheetStyles.spellDrawerDetails}>
+                <CellContainer label="DC Formula" content={selectedBranchesOfTheTreeDcFormula} />
+              </div>
             ) : selectedReactionEntry.id === rogueArcaneTricksterSpellThiefReactionId ? (
               <div className={styles.spellThiefFieldGroup}>
                 <label className={shared.field}>

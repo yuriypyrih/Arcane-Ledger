@@ -28,14 +28,14 @@ function createSubclassFeatureRow(
 }
 
 export const berserkerRetaliationDescription = [
-  "When you take damage from a creature that is within 5 feet of you, you can take a Reaction to make one melee attack against that creature. <link:tracked>Tracked</link>",
-  "You can make the attack using a weapon or an Unarmed Strike. <link:not-tracked>Not Tracked</link>"
+  "When you take damage from a creature that is within 5 feet of you, you can take a Reaction to make one melee attack against that creature.",
+  "You can make the attack using a weapon or an Unarmed Strike."
 ];
 
 export const worldTreeBranchesOfTheTreeDescription = [
-  "Whenever a creature you can see starts its turn within 30 feet of you while your <link:Rage>Rage</link> is active, you can take a Reaction to summon spectral branches of the World Tree around it. <link:tracked>Tracked</link>",
-  "The target must succeed on a <link:Strength Saving Throw>Strength saving throw</link> with a DC equal to 8 plus your Strength modifier and <link:Proficiency Bonus>Proficiency Bonus</link>, or be teleported to an unoccupied space you can see within 5 feet of yourself or in the nearest unoccupied space you can see. <link:not-tracked>Not Tracked</link>",
-  "After the target teleports, you can reduce its Speed to 0 until the end of the current turn. <link:not-tracked>Not Tracked</link>"
+  "Whenever a creature you can see starts its turn within 30 feet of you while your <link:Rage>Rage</link> is active, you can take a Reaction to summon spectral branches of the World Tree around it.",
+  "The target must succeed on a <link:Strength Saving Throw>Strength saving throw</link> with a DC equal to 8 plus your Strength modifier and <link:Proficiency Bonus>Proficiency Bonus</link>, or be teleported to an unoccupied space you can see within 5 feet of yourself or in the nearest unoccupied space you can see.",
+  "After the target teleports, you can reduce its Speed to 0 until the end of the current turn."
 ];
 
 export const barbarianSubclassEntries: SubclassEntry[] = [
@@ -64,7 +64,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.RETALIATION, {
         description: berserkerRetaliationDescription,
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_14,
@@ -75,8 +75,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
             "When you do so, each creature of your choice in a 30-foot <link:Emanation>Emanation</link> originating from you must make a <link:Wisdom Saving Throw>Wisdom saving throw</link> with a DC equal to 8 plus your Strength modifier and <link:Proficiency Bonus>Proficiency Bonus</link>.",
             "On a failed save, a creature has the <link:Frightened>Frightened</link> condition for 1 minute.",
             "At the end of each Frightened creature's turns, the creature repeats the save, ending the effect on itself on a success.",
-            "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link> unless you expend a use of your <link:Rage>Rage</link>, no action required, to restore your use of it.",
-            "This feature is <link:semi-tracked>Semi Tracked</link>. The usage is tracked but not the effect of the feature."
+            "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link> unless you expend a use of your <link:Rage>Rage</link>, no action required, to restore your use of it."
           ],
           trackingState: TRACKER.SEMI_TRACKED
         }
@@ -149,9 +148,9 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
           description: [
             "Your <link:Rage>Rage</link> taps into the life force of the World Tree. You gain the following benefits.",
             "<strong>Vitality Surge.</strong> When you activate your Rage, you gain a number of <link:Temporary Hit Points>Temporary Hit Points</link> equal to your Barbarian level. <link:tracked>Tracked</link>",
-            "<strong>Life-Giving Force.</strong> At the start of each of your turns while your Rage is active, you can choose another creature within 10 feet of yourself to gain Temporary Hit Points.",
+            "<strong>Life-Giving Force.</strong> At the start of each of your turns while your Rage is active, you can choose another creature within 10 feet of yourself to gain Temporary Hit Points. <link:not-tracked>Not Tracked</link>",
             "To determine the number of Temporary Hit Points, roll a number of d6s equal to your Rage Damage bonus and add them together.",
-            "If any of these Temporary Hit Points remain when your Rage ends, they vanish. <link:not-tracked>Not Tracked</link>"
+            "If any of these Temporary Hit Points remain when your Rage ends, they vanish."
           ],
           trackingState: TRACKER.SEMI_TRACKED
         }
@@ -169,7 +168,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
           "During your turn, your reach is 10 feet greater with any Melee weapon that has the <link:Heavy>Heavy</link> or <link:Versatile>Versatile</link> property, as tendrils of the World Tree extend from you.",
           "When you hit with such a weapon on your turn, you can activate the <link:Push>Push</link> or <link:Topple>Topple</link> mastery property in addition to a different mastery property you're using with that weapon."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_14,
@@ -216,7 +215,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
           "Once per active <link:Rage>Rage</link>, if you fail a saving throw, you can reroll it with a bonus equal to your Rage Damage bonus.",
           "You must use the new roll."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.ZEALOUS_PRESENCE, {
         description: [
@@ -224,7 +223,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
           "Up to ten other creatures of your choice within 60 feet of you gain <link:Advantage>Advantage</link> on attack rolls and saving throws until the start of your next turn.",
           "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link> unless you expend a use of your <link:Rage>Rage</link>, no action required, to restore your use of it."
         ],
-        trackingState: TRACKER.SEMI_TRACKED
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.RAGE_OF_THE_GODS, {
         description: [
@@ -235,7 +234,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
           "<strong>Resistance.</strong> You have <link:Resistance>Resistance</link> to <link:Necrotic>Necrotic</link>, <link:Psychic>Psychic</link>, and <link:Radiant>Radiant</link> damage.",
           "<strong>Revivification.</strong> When a creature within 30 feet of you would drop to 0 Hit Points, you can take a Reaction to expend a use of your <link:Rage>Rage</link> to instead change the target's Hit Points to a number equal to your Barbarian level."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       })
     ]
   }

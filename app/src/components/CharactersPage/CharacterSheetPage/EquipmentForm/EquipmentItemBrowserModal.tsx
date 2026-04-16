@@ -39,6 +39,8 @@ function EquipmentItemBrowserModal({
   const [category, setCategory] = useState<string | null>(null);
   const [attackType, setAttackType] = useState<ItemAttackType | null>(null);
   const [proficiencyType, setProficiencyType] = useState<ItemProficiencyType | null>(null);
+  const [mastery, setMastery] = useState<string | null>(null);
+  const [property, setProperty] = useState<string | null>(null);
   const [armorType, setArmorType] = useState<ItemArmorType | null>(null);
   const [rarity, setRarity] = useState<string | null>(null);
   const [source, setSource] = useState<string | null>(null);
@@ -53,11 +55,13 @@ function EquipmentItemBrowserModal({
           category,
           attackType,
           proficiencyType,
+          mastery,
+          property,
           armorType
         },
         filterOptionsPayload
       ),
-    [armorType, attackType, category, filterOptionsPayload, proficiencyType, tab]
+    [armorType, attackType, category, filterOptionsPayload, mastery, property, proficiencyType, tab]
   );
   const { payload, status } = useItemEntries({
     enabled: isOpen,
@@ -68,6 +72,8 @@ function EquipmentItemBrowserModal({
     category: sanitizedScopedFilters.category,
     attackType: sanitizedScopedFilters.attackType,
     proficiencyType: sanitizedScopedFilters.proficiencyType,
+    mastery: sanitizedScopedFilters.mastery,
+    property: sanitizedScopedFilters.property,
     armorType: sanitizedScopedFilters.armorType,
     rarity,
     source,
@@ -98,6 +104,14 @@ function EquipmentItemBrowserModal({
       setProficiencyType(sanitizedScopedFilters.proficiencyType);
     }
 
+    if (sanitizedScopedFilters.mastery !== mastery) {
+      setMastery(sanitizedScopedFilters.mastery);
+    }
+
+    if (sanitizedScopedFilters.property !== property) {
+      setProperty(sanitizedScopedFilters.property);
+    }
+
     if (sanitizedScopedFilters.armorType !== armorType) {
       setArmorType(sanitizedScopedFilters.armorType);
     }
@@ -105,10 +119,14 @@ function EquipmentItemBrowserModal({
     armorType,
     attackType,
     category,
+    mastery,
+    property,
     proficiencyType,
     sanitizedScopedFilters.attackType,
     sanitizedScopedFilters.armorType,
     sanitizedScopedFilters.category,
+    sanitizedScopedFilters.mastery,
+    sanitizedScopedFilters.property,
     sanitizedScopedFilters.proficiencyType
   ]);
 
@@ -166,6 +184,8 @@ function EquipmentItemBrowserModal({
             category={sanitizedScopedFilters.category}
             attackType={sanitizedScopedFilters.attackType}
             proficiencyType={sanitizedScopedFilters.proficiencyType}
+            mastery={sanitizedScopedFilters.mastery}
+            property={sanitizedScopedFilters.property}
             armorType={sanitizedScopedFilters.armorType}
             rarity={rarity}
             source={source}
@@ -179,6 +199,8 @@ function EquipmentItemBrowserModal({
               setCategory(null);
               setAttackType(null);
               setProficiencyType(null);
+              setMastery(null);
+              setProperty(null);
               setArmorType(null);
               setPage(1);
             }}
@@ -192,6 +214,14 @@ function EquipmentItemBrowserModal({
             }}
             onProficiencyTypeChange={(value: ItemProficiencyType | null) => {
               setProficiencyType(value);
+              setPage(1);
+            }}
+            onMasteryChange={(value: string | null) => {
+              setMastery(value);
+              setPage(1);
+            }}
+            onPropertyChange={(value: string | null) => {
+              setProperty(value);
               setPage(1);
             }}
             onArmorTypeChange={(value: ItemArmorType | null) => {

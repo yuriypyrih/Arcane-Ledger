@@ -186,6 +186,30 @@ function buildWeaponProficiencyFilter(
   };
 }
 
+function buildWeaponMasteryFilter(mastery: string): FilterQuery<Open5eItemRecord> {
+  return {
+    "weapon.properties": {
+      $elemMatch: {
+        "property.type": createCaseInsensitiveExactMatch("Mastery"),
+        "property.name": createCaseInsensitiveExactMatch(mastery)
+      }
+    }
+  };
+}
+
+function buildWeaponPropertyFilter(property: string): FilterQuery<Open5eItemRecord> {
+  return {
+    "weapon.properties": {
+      $elemMatch: {
+        "property.name": createCaseInsensitiveExactMatch(property),
+        "property.type": {
+          $not: createCaseInsensitiveExactMatch("Mastery")
+        }
+      }
+    }
+  };
+}
+
 function buildArmorTypeFilter(armorType: ItemArmorType): FilterQuery<Open5eItemRecord> {
   return {
     $and: [
@@ -251,6 +275,14 @@ function buildItemFilter(query: ItemListQuery): FilterQuery<Open5eItemRecord> {
 
   if (query.tab === "weapons" && query.proficiencyType) {
     filters.push(buildWeaponProficiencyFilter(query.proficiencyType));
+  }
+
+  if (query.tab === "weapons" && query.mastery) {
+    filters.push(buildWeaponMasteryFilter(query.mastery));
+  }
+
+  if (query.tab === "weapons" && query.property) {
+    filters.push(buildWeaponPropertyFilter(query.property));
   }
 
   if (query.tab === "armor" && query.armorType) {
@@ -392,6 +424,30 @@ function buildGroupedOptionsPipeline(fieldPath: string, labelPath: string): Pipe
   ];
 }
 
+function buildWeaponPropertyOptionsPipeline(
+  match: FilterQuery<Open5eItemRecord>
+): PipelineStage[] {
+  return [
+    {
+      $match: combineAndFilters([
+        buildTabFilter("weapons") ?? {},
+        {
+          weapon: {
+            $ne: null
+          }
+        }
+      ])
+    },
+    {
+      $unwind: "$weapon.properties"
+    },
+    {
+      $match: match
+    },
+    ...buildGroupedOptionsPipeline("weapon.properties.property.name", "weapon.properties.property.name")
+  ];
+}
+
 function normalizeFilterOptions(
   entries: Array<{ value: string | null; label: string | null; count: number }>,
   fallback?: { value: string; label: string },
@@ -513,7 +569,20 @@ export async function getItemByKey(key: string) {
 }
 
 export async function listItemFilterOptions(): Promise<ItemFilterOptions> {
-  const [categories, rarities, sources, meleeCount, rangeCount, simpleCount, martialCount, lightCount, mediumCount, heavyCount] =
+  const [
+    categories,
+    rarities,
+    sources,
+    meleeCount,
+    rangeCount,
+    simpleCount,
+    martialCount,
+    masteries,
+    properties,
+    lightCount,
+    mediumCount,
+    heavyCount
+  ] =
     await Promise.all([
       ItemModel.aggregate<{ value: string; label: string; count: number }>(
         buildGroupedOptionsPipeline("category.key", "category.name")
@@ -572,6 +641,18 @@ export async function listItemFilterOptions(): Promise<ItemFilterOptions> {
           buildWeaponProficiencyFilter("martial")
         ])
       ).exec(),
+      ItemModel.aggregate<{ value: string | null; label: string | null; count: number }>(
+        buildWeaponPropertyOptionsPipeline({
+          "weapon.properties.property.type": createCaseInsensitiveExactMatch("Mastery")
+        })
+      ).exec(),
+      ItemModel.aggregate<{ value: string | null; label: string | null; count: number }>(
+        buildWeaponPropertyOptionsPipeline({
+          "weapon.properties.property.type": {
+            $not: createCaseInsensitiveExactMatch("Mastery")
+          }
+        })
+      ).exec(),
       ItemModel.countDocuments(
         combineAndFilters([
           buildTabFilter("armor") ?? {},
@@ -609,7 +690,9 @@ export async function listItemFilterOptions(): Promise<ItemFilterOptions> {
         proficiencyTypes: [
           createStaticOption("simple", "Simple", simpleCount),
           createStaticOption("martial", "Martial", martialCount)
-        ]
+        ],
+        masteries: normalizeFilterOptions(masteries),
+        properties: normalizeFilterOptions(properties)
       },
       armor: {
         count: sumOptionCounts(armorCategories),

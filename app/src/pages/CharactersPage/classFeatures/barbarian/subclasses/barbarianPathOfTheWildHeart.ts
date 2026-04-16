@@ -1,4 +1,4 @@
-import { DAMAGE_TYPE, TRACKER } from "../../../../../codex/entries";
+import { DAMAGE_TYPE, TRACKER, type SpellDescriptionEntry } from "../../../../../codex/entries";
 import {
   EFFECT_NAME,
   SENSE,
@@ -7,7 +7,8 @@ import {
   STATUS_ENTRY_SOURCE_TYPE,
   type BarbarianWildHeartAspect,
   type Character,
-  type CharacterRageFeatureState
+  type CharacterRageFeatureState,
+  type CharacterStatusEntry
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import type {
@@ -29,6 +30,7 @@ const wildHeartNatureSpeakerSpellId = "spell-commune-with-nature";
 const rageOfTheWildsBearStatusSourceId = "feature-barbarian-rage-of-the-wilds-bear";
 const rageOfTheWildsEffectSourceId = "feature-barbarian-rage-of-the-wilds-effect";
 const powerOfTheWildsEffectSourceId = "feature-barbarian-power-of-the-wilds-effect";
+const aspectOfTheWildsStatusSourcePrefix = "feature-barbarian-aspect-of-the-wilds-";
 
 export type WildHeartRageOption = "bear" | "eagle" | "wolf";
 export type WildHeartPowerOption = "falcon" | "lion" | "ram";
@@ -548,6 +550,76 @@ export function getBarbarianPathOfTheWildHeartActivationSelection(
   return { rageOption, powerOption };
 }
 
+function getWildHeartRageOptionDescriptionEntries(
+  sourceId: string | undefined
+): SpellDescriptionEntry[] | null {
+  if (!sourceId) {
+    return null;
+  }
+
+  const definition =
+    sourceId === rageOfTheWildsBearStatusSourceId
+      ? wildHeartRageOptionDefinitions.find((option) => option.key === "bear") ?? null
+      : sourceId.startsWith(`${rageOfTheWildsEffectSourceId}-`)
+        ? (wildHeartRageOptionDefinitions.find(
+            (option) => option.key === sourceId.slice(`${rageOfTheWildsEffectSourceId}-`.length)
+          ) ?? null)
+        : null;
+
+  return definition ? [definition.description] : null;
+}
+
+function getWildHeartPowerOptionDescriptionEntries(
+  sourceId: string | undefined
+): SpellDescriptionEntry[] | null {
+  if (!sourceId) {
+    return null;
+  }
+
+  const definition = sourceId.startsWith(`${powerOfTheWildsEffectSourceId}-`)
+    ? (wildHeartPowerOptionDefinitions.find(
+        (option) => option.key === sourceId.slice(`${powerOfTheWildsEffectSourceId}-`.length)
+      ) ?? null)
+    : null;
+
+  return definition ? [definition.description] : null;
+}
+
+function getWildHeartAspectDescriptionEntries(
+  sourceId: string | undefined
+): SpellDescriptionEntry[] | null {
+  if (!sourceId) {
+    return null;
+  }
+
+  const definition = sourceId.startsWith(aspectOfTheWildsStatusSourcePrefix)
+    ? (wildHeartAspectDefinitions.find(
+        (option) => option.key === sourceId.slice(aspectOfTheWildsStatusSourcePrefix.length)
+      ) ?? null)
+    : null;
+
+  return definition ? [definition.description] : null;
+}
+
+export function getBarbarianPathOfTheWildHeartStatusDescriptionEntries(
+  entry: Pick<CharacterStatusEntry, "sourceId">
+): SpellDescriptionEntry[] | null {
+  return (
+    getWildHeartRageOptionDescriptionEntries(entry.sourceId) ??
+    getWildHeartPowerOptionDescriptionEntries(entry.sourceId) ??
+    getWildHeartAspectDescriptionEntries(entry.sourceId)
+  );
+}
+
+function getBarbarianPathOfTheWildHeartSpeakerSpellIds(
+  character: Partial<Pick<Character, "level">>
+): string[] {
+  return [
+    ...wildHeartAnimalSpeakerSpellIds,
+    ...((character.level ?? 0) >= 10 ? [wildHeartNatureSpeakerSpellId] : [])
+  ];
+}
+
 export const getBarbarianPathOfTheWildHeartDerivedFeatureState: SubclassRuntimeResolver = (
   character
 ) => {
@@ -560,9 +632,7 @@ export const getBarbarianPathOfTheWildHeartDerivedFeatureState: SubclassRuntimeR
   }
 
   return {
-    alwaysPreparedSpellIds: [
-      ...wildHeartAnimalSpeakerSpellIds,
-      ...((character.level ?? 0) >= 10 ? [wildHeartNatureSpeakerSpellId] : [])
-    ]
+    alwaysPreparedSpellIds: getBarbarianPathOfTheWildHeartSpeakerSpellIds(character),
+    ritualOnlySpellIds: getBarbarianPathOfTheWildHeartSpeakerSpellIds(character)
   };
 };

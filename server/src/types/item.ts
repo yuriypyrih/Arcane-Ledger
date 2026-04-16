@@ -84,6 +84,8 @@ export type ItemListQuery = {
   category?: string;
   attackType?: ItemAttackType;
   proficiencyType?: ItemProficiencyType;
+  mastery?: string;
+  property?: string;
   armorType?: ItemArmorType;
   rarity?: string;
   source?: string;
@@ -107,6 +109,8 @@ export type ItemFilterGroup = {
 export type WeaponItemFilterGroup = ItemFilterGroup & {
   attackTypes: ItemFilterOption[];
   proficiencyTypes: ItemFilterOption[];
+  masteries: ItemFilterOption[];
+  properties: ItemFilterOption[];
 };
 
 export type ArmorItemFilterGroup = ItemFilterGroup & {

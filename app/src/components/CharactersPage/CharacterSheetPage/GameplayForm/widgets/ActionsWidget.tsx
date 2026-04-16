@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { fetchMonsterBySlug } from "../../../../../api";
 import pyromancyIcon from "../../../../../assets/svg/pyromancy.svg";
 import CellContainer from "../../../../CellContainer/CellContainer";
+import DescriptionContent from "../../../../DescriptionContent/DescriptionContent";
 import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
 import SpellListRow from "../../../../SpellListRow";
 import { MonsterEntryDrawer } from "../../../../MonsterEntryRenderer";
@@ -122,6 +123,7 @@ import {
   barbarianWarriorOfTheGodsActionKey,
   getBarbarianBrutalStrikeDamageFormula,
   getBarbarianBrutalStrikeSelectionLimit,
+  getBarbarianRageOfTheWildsOptions,
   getBarbarianRageOfTheGodsUsesRemaining,
   getBarbarianRageOfTheGodsUsesTotal,
   getBarbarianPowerOfTheWildsOptions
@@ -210,11 +212,14 @@ import {
   getSavingThrowLevelFromEntries,
   getSavingThrowProficiencyForAbilityKey
 } from "../../../../../pages/CharactersPage/proficiency";
+import { getFeatureDescriptionForCharacter } from "../../../../../pages/CharactersPage/classFeatures/featureDescriptions";
 import {
+  CLASS_FEATURE,
   ACTION_TYPE,
   ENTRY_CATEGORIES,
   MAGIC_SCHOOL,
   getSpellEntryById,
+  type SpellDescriptionEntry,
   type SpellEntry,
   type WeaponEntry
 } from "../../../../../codex/entries";
@@ -265,6 +270,10 @@ import RadioContainerOption from "../../RadioContainerOption";
 import { SorcererInnateSorceryActionFooter } from "./SorcererInnateSorceryAction";
 import ThirdEyeActionBody from "./ThirdEyeActionBody";
 import { WarlockAwakenedMindActionFooter } from "./WarlockAwakenedMindAction";
+import {
+  WarriorOfTheGodsActionBody,
+  WarriorOfTheGodsActionFooter
+} from "./WarriorOfTheGodsAction";
 import {
   appendRollModifier,
   formatWildShapeMonsterMeta,
@@ -804,54 +813,6 @@ function LayOnHandsActionBody({
   );
 }
 
-function WarriorOfTheGodsActionBody({
-  remainingCharges,
-  onSubmit
-}: {
-  remainingCharges: number;
-  onSubmit: (chargeCount: number) => void;
-}) {
-  const [chargeInput, setChargeInput] = useState(() => (remainingCharges > 0 ? "1" : "0"));
-  const selectedChargeCount = Math.max(
-    0,
-    Math.min(remainingCharges, Math.floor(Number(chargeInput) || 0))
-  );
-  const canSubmit = selectedChargeCount > 0 && selectedChargeCount <= remainingCharges;
-
-  return (
-    <>
-      <label className={sharedModalStyles.chargeSpendField}>
-        <span className={sharedModalStyles.chargeSpendLabel}>Charges to Use</span>
-        <input
-          className={sharedModalStyles.chargeSpendInput}
-          type="number"
-          min={1}
-          max={remainingCharges}
-          inputMode="numeric"
-          value={chargeInput}
-          onChange={(event) => setChargeInput(event.target.value)}
-        />
-      </label>
-
-      <CellContainer
-        label="Charges Remaining"
-        content={`${remainingCharges} available | ${selectedChargeCount} selected`}
-      />
-
-      <div className={shared.formActions}>
-        <button
-          type="button"
-          className={shared.saveButton}
-          disabled={!canSubmit}
-          onClick={() => onSubmit(selectedChargeCount)}
-        >
-          Heal
-        </button>
-      </div>
-    </>
-  );
-}
-
 function FontOfMagicActionBody({
   actionWarning,
   character,
@@ -1009,6 +970,7 @@ function RageActionBody({
   action,
   rageOptions,
   powerOptions,
+  rageOfTheGodsDescription,
   selectedRageOptionKey,
   selectedPowerOptionKey,
   onSelectRageOption,
@@ -1021,6 +983,7 @@ function RageActionBody({
   action: FeatureActionCard;
   rageOptions: FeatureActionOptionCard[];
   powerOptions: FeatureActionOptionCard[];
+  rageOfTheGodsDescription: SpellDescriptionEntry[];
   selectedRageOptionKey: string | null;
   selectedPowerOptionKey: string | null;
   onSelectRageOption: (optionKey: string) => void;
@@ -1086,7 +1049,17 @@ function RageActionBody({
           </div>
           <RadioContainerOption
             header="Use Rage of the Gods"
-            breakdown="You can assume the form of a divine Warrior for a minute."
+            breakdown={
+              rageOfTheGodsDescription.length > 0 ? (
+                <DescriptionContent
+                  description={rageOfTheGodsDescription}
+                  className={styles.rageEnhancementDescription}
+                  entryClassName={styles.rageEnhancementDescriptionLine}
+                />
+              ) : (
+                "You can assume the form of a divine warrior for a minute."
+              )
+            }
             selected={isRageOfTheGodsSelected}
             onSelect={() => onToggleRageOfTheGods(!isRageOfTheGodsSelected)}
             disabled={rageOfTheGodsUsesRemaining <= 0}
@@ -1109,14 +1082,15 @@ function BrutalStrikeActionBody({
   options,
   selectionLimit,
   damageFormula,
-  onConfirm
+  selectedOptionKeys,
+  onToggleOption
 }: {
   options: FeatureActionOptionCard[];
   selectionLimit: number;
   damageFormula: string;
-  onConfirm: (optionKeys: string[]) => void;
+  selectedOptionKeys: string[];
+  onToggleOption: (optionKey: string) => void;
 }) {
-  const [selectedOptionKeys, setSelectedOptionKeys] = useState<string[]>([]);
   const allowsMultipleSelections = selectionLimit > 1;
   const helperText = allowsMultipleSelections
     ? `Applying Brutal Strike adds the extra ${damageFormula} damage. You can optionally choose up to ${selectionLimit} different effects below.`
@@ -1139,26 +1113,10 @@ function BrutalStrikeActionBody({
               selected={isSelected}
               indicatorType={allowsMultipleSelections ? "checkbox" : "radio"}
               disabled={isSelectionLimitReached}
-              onSelect={() =>
-                setSelectedOptionKeys((currentKeys) =>
-                  currentKeys.includes(option.key)
-                    ? currentKeys.filter((entry) => entry !== option.key)
-                    : [...currentKeys, option.key]
-                )
-              }
+              onSelect={() => onToggleOption(option.key)}
             />
           );
         })}
-      </div>
-
-      <div className={shared.formActions}>
-        <button
-          type="button"
-          className={sheetStyles.castButton}
-          onClick={() => onConfirm(selectedOptionKeys)}
-        >
-          Apply Brutal Strike
-        </button>
       </div>
     </>
   );
@@ -1573,6 +1531,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [selectedRageOptionKey, setSelectedRageOptionKey] = useState<string | null>(null);
   const [selectedRagePowerOptionKey, setSelectedRagePowerOptionKey] = useState<string | null>(null);
   const [isRageOfTheGodsSelected, setIsRageOfTheGodsSelected] = useState(false);
+  const [selectedWarriorOfTheGodsChargeCount, setSelectedWarriorOfTheGodsChargeCount] =
+    useState(1);
   const [isFixedSpellDrawerOpen, setIsFixedSpellDrawerOpen] = useState(false);
   const [selectedFixedSpellSlotLevel, setSelectedFixedSpellSlotLevel] = useState(1);
   const [isDiceRollerSettingsOpen, setIsDiceRollerSettingsOpen] = useState(false);
@@ -1975,11 +1935,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           (option) => option.wildShapeCost === selectedNatureMagicianWildShapeCost
         ) ?? null)
       : null;
-  const selectedRageOptions =
-    selectedFeatureAction?.key === barbarianRageActionKey &&
-    selectedAction?.drawer.kind === "custom-form"
-      ? (selectedAction.drawer.options ?? [])
-      : [];
+  const selectedRageOptions = useMemo(
+    () =>
+      selectedFeatureAction?.key === barbarianRageActionKey
+        ? getBarbarianRageOfTheWildsOptions(character)
+        : [],
+    [character, selectedFeatureAction]
+  );
   const selectedRagePowerOptions = useMemo(
     () =>
       selectedFeatureAction?.key === barbarianRageActionKey
@@ -1994,6 +1956,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const selectedRageOfTheGodsUsesRemaining =
     selectedFeatureAction?.key === barbarianRageActionKey
       ? getBarbarianRageOfTheGodsUsesRemaining(character)
+      : 0;
+  const selectedRageOfTheGodsDescription = useMemo(
+    () =>
+      selectedFeatureAction?.key === barbarianRageActionKey
+        ? getFeatureDescriptionForCharacter(character, CLASS_FEATURE.RAGE_OF_THE_GODS)
+        : [],
+    [character, selectedFeatureAction]
+  );
+  const selectedWarriorOfTheGodsUsesRemaining =
+    selectedFeatureAction?.key === barbarianWarriorOfTheGodsActionKey
+      ? selectedFeatureAction.usesRemaining ?? 0
       : 0;
   const selectedSecondWindHealingFormula =
     selectedFeatureAction?.key === fighterSecondWindActionKey
@@ -2171,6 +2144,40 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedAction?.kind === "feature"
       ? (selectedAction.drawer.blockedReason ?? selectedCrownOfSpellfireBlockedReason ?? null)
       : null;
+  const selectedRageSelectionWarning = useMemo(() => {
+    if (
+      selectedAction?.kind !== "feature" ||
+      selectedAction.action.key !== barbarianRageActionKey ||
+      selectedAction.drawer.kind !== "custom-form"
+    ) {
+      return null;
+    }
+
+    const requiresRageOption = selectedRageOptions.length > 0;
+    const requiresPowerOption = selectedRagePowerOptions.length > 0;
+    const missingRageOption = requiresRageOption && selectedRageOptionKey === null;
+    const missingPowerOption = requiresPowerOption && selectedRagePowerOptionKey === null;
+
+    if (missingRageOption && missingPowerOption) {
+      return "Choose a Rage of the Wilds and Power of the Wilds option to enter Rage.";
+    }
+
+    if (missingRageOption) {
+      return "Choose a Rage of the Wilds option to enter Rage.";
+    }
+
+    if (missingPowerOption) {
+      return "Choose a Power of the Wilds option to enter Rage.";
+    }
+
+    return null;
+  }, [
+    selectedAction,
+    selectedRageOptionKey,
+    selectedRageOptions.length,
+    selectedRagePowerOptionKey,
+    selectedRagePowerOptions.length
+  ]);
   const selectedFeatureActionPrimaryDisabledReason =
     selectedAction?.kind === "feature"
       ? (selectedActionWarning ??
@@ -2178,10 +2185,27 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         selectedAction.action.disabledReason ??
         null)
       : null;
+  const canSubmitSelectedWarriorOfTheGodsRoll =
+    selectedWarriorOfTheGodsChargeCount > 0 &&
+    selectedWarriorOfTheGodsChargeCount <= selectedWarriorOfTheGodsUsesRemaining;
   const selectedWeaponPrimaryDisabledReason =
     selectedAction?.kind === "weapon"
       ? (selectedActionWarning ?? selectedAction.disabledReason ?? null)
       : null;
+
+  useEffect(() => {
+    if (selectedFeatureAction?.key !== barbarianWarriorOfTheGodsActionKey) {
+      return;
+    }
+
+    setSelectedWarriorOfTheGodsChargeCount((currentCount) => {
+      if (selectedWarriorOfTheGodsUsesRemaining <= 0) {
+        return 0;
+      }
+
+      return Math.max(1, Math.min(selectedWarriorOfTheGodsUsesRemaining, currentCount));
+    });
+  }, [selectedFeatureAction?.key, selectedWarriorOfTheGodsUsesRemaining]);
   const selectedDrawerWarning =
     selectedOptionWarning ??
     (selectedAction?.kind === "feature" &&
@@ -2189,7 +2213,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedAction.drawer.formKind === "font-of-magic" &&
     selectedFontOfMagicSelection !== null
       ? selectedFontOfMagicWarning
-      : selectedActionWarning);
+      : (selectedActionWarning ?? selectedRageSelectionWarning));
   const fixedSpellExecute =
     selectedAction?.kind === "feature" &&
     selectedAction.execute.kind === "spell" &&
@@ -2367,6 +2391,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedRageOptionKey(null);
     setSelectedRagePowerOptionKey(null);
     setIsRageOfTheGodsSelected(false);
+    setSelectedWarriorOfTheGodsChargeCount(1);
     setUseBeguilingMagicOnActionSpell(false);
     setUseElementalSmiteOnActionSpell(false);
     setIsDiceRollerSettingsOpen(false);
@@ -3391,6 +3416,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return;
     }
 
+    const healingFormula = `${chargeCount}d12`;
+    const chargeLabel = chargeCount === 1 ? "charge" : "charges";
+
     onPersistCharacter((currentCharacter) => {
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(
         selectedFeatureAction.economyType
@@ -3411,6 +3439,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
         : nextCharacter;
+    });
+
+    openDiceRoller({
+      title: selectedFeatureAction.name,
+      formula: healingFormula,
+      formulaDisplay: healingFormula,
+      description: `${selectedFeatureAction.detail} ${chargeCount} ${chargeLabel} expended.`
     });
 
     closeActionDrawer();
@@ -4146,6 +4181,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           action={selectedAction.action}
           rageOptions={selectedRageOptions}
           powerOptions={selectedRagePowerOptions}
+          rageOfTheGodsDescription={selectedRageOfTheGodsDescription}
           selectedRageOptionKey={selectedRageOptionKey}
           selectedPowerOptionKey={selectedRagePowerOptionKey}
           onSelectRageOption={setSelectedRageOptionKey}
@@ -4234,8 +4270,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       if (selectedAction.drawer.formKind === "warrior-of-the-gods") {
         return (
           <WarriorOfTheGodsActionBody
-            remainingCharges={selectedAction.action.usesRemaining ?? 0}
-            onSubmit={submitWarriorOfTheGods}
+            remainingCharges={selectedWarriorOfTheGodsUsesRemaining}
+            selectedChargeCount={selectedWarriorOfTheGodsChargeCount}
+            onSelectedChargeCountChange={setSelectedWarriorOfTheGodsChargeCount}
           />
         );
       }
@@ -4328,6 +4365,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             action={selectedAction.action}
             rageOptions={selectedRageOptions}
             powerOptions={selectedRagePowerOptions}
+            rageOfTheGodsDescription={selectedRageOfTheGodsDescription}
             selectedRageOptionKey={selectedRageOptionKey}
             selectedPowerOptionKey={selectedRagePowerOptionKey}
             onSelectRageOption={setSelectedRageOptionKey}
@@ -4346,7 +4384,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             options={selectedAction.drawer.options ?? []}
             selectionLimit={getBarbarianBrutalStrikeSelectionLimit(character)}
             damageFormula={getBarbarianBrutalStrikeDamageFormula(character)}
-            onConfirm={submitBrutalStrike}
+            selectedOptionKeys={selectedActionOptionKeys}
+            onToggleOption={(optionKey) =>
+              setSelectedActionOptionKeys((currentKeys) =>
+                currentKeys.includes(optionKey)
+                  ? currentKeys.filter((entry) => entry !== optionKey)
+                  : [...currentKeys, optionKey]
+              )
+            }
           />
         );
       }
@@ -4955,19 +5000,66 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       );
     }
 
-    if (selectedAction.kind === "feature" && selectedAction.action.key === barbarianRageActionKey) {
-      const requiresRageOption = selectedRageOptions.length > 0;
-      const requiresPowerOption = selectedRagePowerOptions.length > 0;
-      const canConfirm =
-        (!requiresRageOption || selectedRageOptionKey !== null) &&
-        (!requiresPowerOption || selectedRagePowerOptionKey !== null);
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "custom-form" &&
+      selectedAction.drawer.formKind === "warrior-of-the-gods"
+    ) {
+      return (
+        <WarriorOfTheGodsActionFooter
+          actionName={selectedAction.name}
+          confirmLabel={selectedAction.execute.label ?? "Heal"}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={
+            selectedFeatureActionPrimaryDisabledReason !== null ||
+            !canSubmitSelectedWarriorOfTheGodsRoll
+          }
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onConfirm={() => submitWarriorOfTheGods(selectedWarriorOfTheGodsChargeCount)}
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "custom-form" &&
+      selectedAction.drawer.formKind === "brutal-strike"
+    ) {
+      const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
 
       return (
         <button
           type="button"
           className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+          onClick={submitBrutalStrike}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+        >
+          <span>{selectedAction.execute.label ?? "Apply Brutal Strike"}</span>
+          {actionShape ? (
+            <ActionShape
+              shape={actionShape}
+              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+              className={styles.footerActionShape}
+            />
+          ) : null}
+        </button>
+      );
+    }
+
+    if (selectedAction.kind === "feature" && selectedAction.action.key === barbarianRageActionKey) {
+      return (
+        <button
+          type="button"
+          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
           onClick={submitRage}
-          disabled={!canConfirm || selectedFeatureActionPrimaryDisabledReason !== null}
+          disabled={
+            selectedRageSelectionWarning !== null ||
+            selectedFeatureActionPrimaryDisabledReason !== null
+          }
         >
           <span>Enter Rage</span>
           <ActionShape

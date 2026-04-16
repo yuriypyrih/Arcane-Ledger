@@ -1,0 +1,16 @@
+.header {
+  align-items: center;
+}
+
+.body {
+  gap: 1rem;
+}
+
+.indicatorStack {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  justify-content: flex-end;
+  margin-left: auto;
+}

@@ -42,6 +42,7 @@ export type CharacterRageFeatureState = {
   recklessAttackRoundsRemaining?: number;
   recklessAttackUsedThisTurn?: boolean;
   frenzyPending?: boolean;
+  retaliationAttacksRemaining?: number;
   intimidatingPresenceUsesExpended?: number;
   zealousPresenceUsesExpended?: number;
   rageOfTheGodsUsesExpended?: number;

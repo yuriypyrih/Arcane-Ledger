@@ -23,6 +23,8 @@ export const ITEM_CATEGORY_PARAM = "itemCategory";
 export const ITEM_TAB_PARAM = "itemTab";
 export const ITEM_ATTACK_TYPE_PARAM = "itemAttackType";
 export const ITEM_PROFICIENCY_TYPE_PARAM = "itemProficiencyType";
+export const ITEM_MASTERY_PARAM = "itemMastery";
+export const ITEM_PROPERTY_PARAM = "itemProperty";
 export const ITEM_ARMOR_TYPE_PARAM = "itemArmorType";
 export const ITEM_RARITY_PARAM = "itemRarity";
 export const ITEM_SOURCE_PARAM = "itemSource";
@@ -65,6 +67,8 @@ export type ParsedCodexSearchState = {
   itemCategoryFilter: string | null;
   itemAttackTypeFilter: ItemAttackType | null;
   itemProficiencyTypeFilter: ItemProficiencyType | null;
+  itemMasteryFilter: string | null;
+  itemPropertyFilter: string | null;
   itemArmorTypeFilter: ItemArmorType | null;
   itemRarityFilter: string | null;
   itemSourceFilter: string | null;
@@ -186,6 +190,8 @@ export function parseCodexSearchState(
       searchParams.get(ITEM_PROFICIENCY_TYPE_PARAM),
       ITEM_PROFICIENCY_TYPES
     ),
+    itemMasteryFilter: parseOptionalFilter(searchParams.get(ITEM_MASTERY_PARAM)),
+    itemPropertyFilter: parseOptionalFilter(searchParams.get(ITEM_PROPERTY_PARAM)),
     itemArmorTypeFilter: parseEnumFilter(searchParams.get(ITEM_ARMOR_TYPE_PARAM), ITEM_ARMOR_TYPES),
     itemRarityFilter: parseOptionalFilter(searchParams.get(ITEM_RARITY_PARAM)),
     itemSourceFilter: parseOptionalFilter(searchParams.get(ITEM_SOURCE_PARAM)),
@@ -212,6 +218,8 @@ export function clearItemSearchParams(searchParams: URLSearchParams): URLSearchP
   searchParams.delete(ITEM_CATEGORY_PARAM);
   searchParams.delete(ITEM_ATTACK_TYPE_PARAM);
   searchParams.delete(ITEM_PROFICIENCY_TYPE_PARAM);
+  searchParams.delete(ITEM_MASTERY_PARAM);
+  searchParams.delete(ITEM_PROPERTY_PARAM);
   searchParams.delete(ITEM_ARMOR_TYPE_PARAM);
   searchParams.delete(ITEM_RARITY_PARAM);
   searchParams.delete(ITEM_SOURCE_PARAM);
@@ -249,6 +257,8 @@ export function hasCategoryScopedSearchParams(searchParams: URLSearchParams): bo
     searchParams.has(ITEM_CATEGORY_PARAM) ||
     searchParams.has(ITEM_ATTACK_TYPE_PARAM) ||
     searchParams.has(ITEM_PROFICIENCY_TYPE_PARAM) ||
+    searchParams.has(ITEM_MASTERY_PARAM) ||
+    searchParams.has(ITEM_PROPERTY_PARAM) ||
     searchParams.has(ITEM_ARMOR_TYPE_PARAM) ||
     searchParams.has(ITEM_RARITY_PARAM) ||
     searchParams.has(ITEM_SOURCE_PARAM) ||

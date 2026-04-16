@@ -78,6 +78,7 @@ import {
   wizardDivinerThirdEyeSeeInvisibilityStatusSourceId
 } from "./classFeatures/wizard/subclasses/wizardDivinerThirdEyeConfig";
 import { getBarbarianRageDescriptionContent } from "./classFeatures/barbarian/barbarianDescriptionSections";
+import { getBarbarianPathOfTheWildHeartStatusDescriptionEntries } from "./classFeatures/barbarian/subclasses/barbarianPathOfTheWildHeart";
 import { getKeywordDescriptionLines } from "./keywordDescriptions";
 import { clampInteger } from "./shared";
 
@@ -1752,6 +1753,14 @@ function getDefaultStatusEntryDescriptionEntries(
     ];
   }
 
+  if (entry.sourceId === "feature-barbarian-zealous-presence") {
+    return (
+      barbarianFeatureMap[CLASS_FEATURE.ZEALOUS_PRESENCE]?.description ?? [
+        "A current effect or trait that may change how your character plays."
+      ]
+    );
+  }
+
   if (entry.sourceId === "feature-sorcerer-innate-sorcery") {
     return (
       sorcererFeatureMap[CLASS_FEATURE.INNATE_SORCERY]?.description ?? [
@@ -1952,6 +1961,18 @@ export function getStatusEntryDescriptionContent(
       rageDescriptionContent.descriptionAdditions.length > 0
     ) {
       return rageDescriptionContent;
+    }
+  }
+
+  if (character?.className === "Barbarian") {
+    const wildHeartDescriptionEntries =
+      getBarbarianPathOfTheWildHeartStatusDescriptionEntries(entry);
+
+    if (wildHeartDescriptionEntries && wildHeartDescriptionEntries.length > 0) {
+      return {
+        description: wildHeartDescriptionEntries,
+        descriptionAdditions: []
+      };
     }
   }
 

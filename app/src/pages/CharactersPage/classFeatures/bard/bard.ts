@@ -908,6 +908,7 @@ export function getBardFeatureAction(
   return {
     key: bardicInspirationActionKey,
     name: "Bardic Inspiration",
+    sourceFeature: CLASS_FEATURE.BARDIC_INSPIRATION,
     summary: `Grant a ${bardicDieLabel} inspiration die.`,
     detail:
       "Use a Bonus Action to inspire another creature within 60 feet that can see or hear you.",
@@ -919,9 +920,6 @@ export function getBardFeatureAction(
     usesSupplementaryLabel: spellSlotLabel,
     usesInlineLabel: "Use 1",
     usesInlineIcon: "music",
-    description: [
-      "Use a Bonus Action to inspire another creature within 60 feet that can see or hear you."
-    ],
     drawer: {
       kind: "confirm",
       eyebrow: "Bard",

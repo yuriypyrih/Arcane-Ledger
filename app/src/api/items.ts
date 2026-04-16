@@ -21,6 +21,8 @@ export type FetchItemListParams = {
   category?: string;
   attackType?: ItemAttackType;
   proficiencyType?: ItemProficiencyType;
+  mastery?: string;
+  property?: string;
   armorType?: ItemArmorType;
   rarity?: string;
   source?: string;
@@ -35,6 +37,8 @@ export async function fetchItemList({
   category,
   attackType,
   proficiencyType,
+  mastery,
+  property,
   armorType,
   rarity,
   source,
@@ -60,6 +64,14 @@ export async function fetchItemList({
 
   if (proficiencyType) {
     searchParams.set("proficiencyType", proficiencyType);
+  }
+
+  if (mastery) {
+    searchParams.set("mastery", mastery);
+  }
+
+  if (property) {
+    searchParams.set("property", property);
   }
 
   if (armorType) {

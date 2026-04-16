@@ -15,6 +15,7 @@ import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 
 export const pathOfTheBerserkerSubclassId = "barbarian-path-of-the-berserker";
 export const barbarianIntimidatingPresenceActionKey = "barbarian-intimidating-presence";
+export const barbarianBerserkerRetaliationReactionId = "reaction-berserker-retaliation";
 export const frenzyDamageBonusLabel = "Frenzy";
 
 const mindlessRageCharmedImmunitySourceId = "feature-barbarian-mindless-rage-charmed-immunity";
@@ -39,6 +40,12 @@ export function hasBarbarianPathOfTheBerserkerMindlessRage(
   return isBarbarianPathOfTheBerserker(character) && character.level >= 6;
 }
 
+export function hasBarbarianPathOfTheBerserkerRetaliation(
+  character: BarbarianSubclassCharacter
+): boolean {
+  return isBarbarianPathOfTheBerserker(character) && character.level >= 10;
+}
+
 export function hasBarbarianPathOfTheBerserkerIntimidatingPresence(
   character: BarbarianSubclassCharacter
 ): boolean {
@@ -48,12 +55,21 @@ export function hasBarbarianPathOfTheBerserkerIntimidatingPresence(
 export function normalizeBarbarianPathOfTheBerserkerRageState(
   value: Partial<CharacterRageFeatureState>,
   character: BarbarianSubclassCharacter
-): Pick<CharacterRageFeatureState, "frenzyPending" | "intimidatingPresenceUsesExpended"> {
+): Pick<
+  CharacterRageFeatureState,
+  "frenzyPending" | "retaliationAttacksRemaining" | "intimidatingPresenceUsesExpended"
+> {
   const intimidatingPresenceUsesExpended = Number(value.intimidatingPresenceUsesExpended);
+  const retaliationAttacksRemaining = Number(value.retaliationAttacksRemaining);
 
   return {
     frenzyPending:
       isBarbarianPathOfTheBerserker(character) && value.frenzyPending === true ? true : false,
+    retaliationAttacksRemaining: hasBarbarianPathOfTheBerserkerRetaliation(character)
+      ? Number.isFinite(retaliationAttacksRemaining)
+        ? Math.max(0, Math.min(1, Math.floor(retaliationAttacksRemaining)))
+        : 0
+      : 0,
     intimidatingPresenceUsesExpended: hasBarbarianPathOfTheBerserkerIntimidatingPresence(character)
       ? Number.isFinite(intimidatingPresenceUsesExpended)
         ? Math.max(
@@ -132,6 +148,7 @@ export function getBarbarianPathOfTheBerserkerFeatureAction(
   return {
     key: barbarianIntimidatingPresenceActionKey,
     name: "Intimidating Presence",
+    sourceFeature: CLASS_FEATURE.INTIMIDATING_PRESENCE,
     summary: "Frighten nearby creatures.",
     detail: "Project fear nearby.",
     breakdown: "Project fear nearby.",
@@ -218,6 +235,64 @@ export function getBarbarianPathOfTheBerserkerRecklessAttackDescriptionAdditions
   return frenzyDescription.length > 0
     ? [createSourcedDescriptionEntries(frenzyDamageBonusLabel, frenzyDescription)]
     : [];
+}
+
+export function getBarbarianPathOfTheBerserkerRetaliationAttackMultiCount(
+  character: BarbarianSubclassCharacter,
+  rageState: CharacterRageFeatureState
+): number {
+  return hasBarbarianPathOfTheBerserkerRetaliation(character)
+    ? Math.max(0, rageState.retaliationAttacksRemaining ?? 0)
+    : 0;
+}
+
+export function activateBarbarianPathOfTheBerserkerRetaliation(
+  character: Character,
+  rageState: CharacterRageFeatureState
+): Character {
+  if (!hasBarbarianPathOfTheBerserkerRetaliation(character)) {
+    return character;
+  }
+
+  if ((rageState.retaliationAttacksRemaining ?? 0) >= 1) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        retaliationAttacksRemaining: 1
+      }
+    }
+  };
+}
+
+export function consumeBarbarianPathOfTheBerserkerRetaliationAttack(
+  character: Character,
+  rageState: CharacterRageFeatureState
+): Character {
+  const retaliationAttacksRemaining = getBarbarianPathOfTheBerserkerRetaliationAttackMultiCount(
+    character,
+    rageState
+  );
+
+  if (retaliationAttacksRemaining <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rage: {
+        ...rageState,
+        retaliationAttacksRemaining: retaliationAttacksRemaining - 1
+      }
+    }
+  };
 }
 
 export function activateBarbarianPathOfTheBerserkerIntimidatingPresence(
@@ -318,7 +393,7 @@ export const getBarbarianPathOfTheBerserkerDerivedFeatureState: SubclassRuntimeR
     return {};
   }
 
-  const retaliation = getReactionEntryById("reaction-berserker-retaliation");
+  const retaliation = getReactionEntryById(barbarianBerserkerRetaliationReactionId);
 
   return retaliation ? { reactionEntries: [retaliation] } : {};
 };

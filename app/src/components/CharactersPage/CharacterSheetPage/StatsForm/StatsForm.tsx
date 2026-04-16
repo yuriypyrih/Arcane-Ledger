@@ -73,6 +73,7 @@ import {
   type FeatureSavingThrowBonus
 } from "../../../../pages/CharactersPage/classFeatures";
 import { getFeatureDescriptionForCharacter } from "../../../../pages/CharactersPage/classFeatures/featureDescriptions";
+import { getBarbarianRageState } from "../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
 import { getBarbarianPersistentRageInitiativeDescriptionAdditions } from "../../../../pages/CharactersPage/classFeatures/barbarian/barbarianDescriptionSections";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
 import {
@@ -345,6 +346,32 @@ function getStrengthDescriptionAdditions(character: Character): SpellDescription
     : [];
 }
 
+function getFanaticalFocusDescriptionAdditions(character: Character): SpellDescriptionEntry[][] {
+  const fanaticalFocusDescription = getFeatureDescriptionForCharacter(
+    character,
+    CLASS_FEATURE.FANATICAL_FOCUS
+  );
+
+  return fanaticalFocusDescription.length > 0
+    ? [createSourcedDescriptionEntries("Fanatical Focus", fanaticalFocusDescription)]
+    : [];
+}
+
+function getAbilityDescriptionAdditions(
+  character: Character,
+  ability: AbilityKey
+): SpellDescriptionEntry[][] | undefined {
+  const descriptionAdditions: SpellDescriptionEntry[][] = [];
+
+  if (ability === "STR") {
+    descriptionAdditions.push(...getStrengthDescriptionAdditions(character));
+  }
+
+  descriptionAdditions.push(...getFanaticalFocusDescriptionAdditions(character));
+
+  return descriptionAdditions.length > 0 ? descriptionAdditions : undefined;
+}
+
 function buildReferenceIndicatorSections(
   sections: Array<{
     label?: string;
@@ -472,6 +499,10 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   const hasIndomitableMight =
     character.className === "Barbarian" &&
     getFeatureDescriptionForCharacter(character, CLASS_FEATURE.INDOMITABLE_MIGHT).length > 0;
+  const hasFanaticalFocus =
+    character.className === "Barbarian" &&
+    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.FANATICAL_FOCUS).length > 0;
+  const isBarbarianRaging = hasFanaticalFocus && getBarbarianRageState(character).active === true;
   const hasLeadingEvasion =
     character.className === "Bard" &&
     character.subclassId === "bard-college-of-dance" &&
@@ -594,7 +625,9 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
       savingThrowBonusEntries,
       totalSavingThrowValue,
       totalSavingThrow: formatAbilityModifier(totalSavingThrowValue),
-      showScoreBoostIcon: ability === "STR" && hasIndomitableMight,
+      showScoreBoostIcon:
+        (ability === "STR" && hasIndomitableMight) ||
+        (isBarbarianRaging && !(ability === "DEX" && hasLeadingEvasion)),
       showSavingThrowBoostIcon: ability === "DEX" && hasLeadingEvasion,
       modifierIndicators,
       modifierRollState,
@@ -950,14 +983,9 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
           ]
         : [])
     ];
-    const descriptionAdditions =
-      ability === "STR" && hasIndomitableMight
-        ? getStrengthDescriptionAdditions(character)
-        : undefined;
-
     setSelectedStatReference({
       keyword: ability,
-      descriptionAdditions,
+      descriptionAdditions: getAbilityDescriptionAdditions(character, ability),
       indicatorSections: getAbilityReferenceIndicatorSections(
         selectedCard.modifierIndicators,
         selectedCard.savingThrowIndicators

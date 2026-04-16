@@ -143,6 +143,7 @@ import {
 import { getSpellOutcomeSummaryForCharacter } from "../../../../pages/CharactersPage/spellOutcome";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import gameplayActionStyles from "../GameplayForm/widgets/GameplayActionDrawer.module.css";
 import styles from "./SpellCastingForm.module.css";
 import actionStyles from "./SpellActionDrawer.module.css";
 import {
@@ -2880,25 +2881,23 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           }
           ritualCastingRequired={selectedSpellCanOnlyBeCastAsRitual}
           actionAvailabilityText={
-            selectedSpellCanOnlyBeCastAsRitual
-              ? "Knightly Envoy lets you cast this spell only as a Ritual without expending a spell slot."
-              : selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell
+            selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell
                 ? `Psionic Sorcery lets you cast this spell at level ${selectedSpellPsionicSorceryCurrentCost} by spending ${selectedSpellPsionicSorceryCurrentCost} Sorcery Point${selectedSpellPsionicSorceryCurrentCost === 1 ? "" : "s"} instead of a spell slot.`
-                : selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell
+              : selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell
                   ? "Steps of the Fey lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                  : selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell
+                : selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell
                     ? "Misty Wanderer lets you cast this spell without expending a spell slot."
-                    : selectedSpellSupportsFeyReinforcements && useFeyReinforcementsOnSelectedSpell
+                  : selectedSpellSupportsFeyReinforcements && useFeyReinforcementsOnSelectedSpell
                       ? "Fey Reinforcements lets you cast this spell without expending a spell slot."
-                      : selectedSpellSupportsPhantasmalCreatures &&
-                          usePhantasmalCreaturesOnSelectedSpell
+                    : selectedSpellSupportsPhantasmalCreatures &&
+                        usePhantasmalCreaturesOnSelectedSpell
                         ? "Phantasmal Creatures lets you cast this spell without expending a spell slot. This shared use recharges on a Long Rest, and the summoned creature has half Hit Points."
-                      : selectedSpellSupportsTelekineticMaster &&
-                          useTelekineticMasterOnSelectedSpell
+                    : selectedSpellSupportsTelekineticMaster &&
+                        useTelekineticMasterOnSelectedSpell
                         ? fighterPsiWarriorTelekineticMasterUsesRemaining > 0
                           ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
                           : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
-                        : selectedSpellUnderMantleOfMajesty
+                    : selectedSpellUnderMantleOfMajesty
                           ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
                           : null
           }
@@ -3224,7 +3223,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                   </p>
                 </div>
                 {selectedDivinityActionWarning ? (
-                  <p className={actionStyles.castActionWarning}>{selectedDivinityActionWarning}</p>
+                  <div className={gameplayActionStyles.warningBlock}>
+                    <p className={gameplayActionStyles.warningCard}>
+                      {selectedDivinityActionWarning}
+                    </p>
+                  </div>
                 ) : null}
               </div>
               <button

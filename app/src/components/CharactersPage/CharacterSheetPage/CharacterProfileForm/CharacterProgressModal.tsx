@@ -6,6 +6,7 @@ import {
   OverlayBody,
   OverlayCloseButton,
   OverlayEyebrow,
+  OverlayFooter,
   OverlayHeader,
   OverlayHeaderContent,
   OverlaySummary,
@@ -365,7 +366,7 @@ function CharacterProgressModal({
         </div>
       </OverlayBody>
 
-      <div className={styles.footer}>
+      <OverlayFooter className={styles.footer}>
         <button type="button" className={shared.cancelButton} onClick={closeModal}>
           Cancel
         </button>
@@ -377,7 +378,7 @@ function CharacterProgressModal({
         >
           Save
         </button>
-      </div>
+      </OverlayFooter>
     </SheetModal>
   );
 }

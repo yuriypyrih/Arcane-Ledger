@@ -33,6 +33,7 @@ import {
 import { getSpellLevel } from "../../../../pages/CharactersPage/spellcasting";
 import { getSpellDamageDetailForCharacter } from "../../../../pages/CharactersPage/spellOutcome";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import gameplayActionStyles from "../GameplayForm/widgets/GameplayActionDrawer.module.css";
 import styles from "./CharacterSpellDrawer.module.css";
 import actionStyles from "./SpellActionDrawer.module.css";
 
@@ -528,11 +529,19 @@ function CharacterSpellDrawer({
                       })}
                     </div>
                     <div className={actionStyles.castActionTopRight}>
-                      {visibleActionWarning ? (
-                        <p className={actionStyles.castActionWarning}>{visibleActionWarning}</p>
-                      ) : null}
-                      {effectiveBlockedReason ? (
-                        <p className={actionStyles.castActionWarning}>{effectiveBlockedReason}</p>
+                      {visibleActionWarning || effectiveBlockedReason ? (
+                        <div className={gameplayActionStyles.warningBlock}>
+                          {visibleActionWarning ? (
+                            <p className={gameplayActionStyles.warningCard}>
+                              {visibleActionWarning}
+                            </p>
+                          ) : null}
+                          {effectiveBlockedReason ? (
+                            <p className={gameplayActionStyles.warningCard}>
+                              {effectiveBlockedReason}
+                            </p>
+                          ) : null}
+                        </div>
                       ) : null}
                       {actionContextText ? (
                         <p className={actionStyles.castActionContext}>{actionContextText}</p>

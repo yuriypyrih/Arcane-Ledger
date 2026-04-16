@@ -119,6 +119,8 @@ function buildItemListQuery(request: Request): ItemListQuery {
       "proficiencyType",
       ALLOWED_PROFICIENCY_TYPES
     ),
+    mastery: normalizeOptionalString(readSingleQueryValue(request.query.mastery, "mastery")),
+    property: normalizeOptionalString(readSingleQueryValue(request.query.property, "property")),
     armorType: parseEnumValue(
       readSingleQueryValue(request.query.armorType, "armorType"),
       "armorType",

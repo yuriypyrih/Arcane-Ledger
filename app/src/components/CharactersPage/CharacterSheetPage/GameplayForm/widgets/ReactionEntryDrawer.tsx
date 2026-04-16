@@ -13,6 +13,7 @@ import CodexSpellDrawer from "../../../../CodexPage/CodexSpellDrawer/CodexSpellD
 import KeywordReferenceDrawer from "../../../../../components/KeywordReferenceDrawer/KeywordReferenceDrawer";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import type { ResolvedKeywordReference } from "../../../../../utils/codex/renderCodexRichText";
+import actionDrawerStyles from "./GameplayActionDrawer.module.css";
 import styles from "./ReactionEntryDrawer.module.css";
 
 type ReactionEntryDrawerProps = {
@@ -119,7 +120,11 @@ function ReactionEntryDrawer({
           <div className={sheetStyles.spellDrawerActions}>
             <div className={styles.castActionMeta}>
               {resourceSummary ? <p className={styles.castActionResource}>{resourceSummary}</p> : null}
-              {actionWarning ? <p className={styles.castActionWarning}>{actionWarning}</p> : null}
+              {actionWarning ? (
+                <div className={actionDrawerStyles.warningBlock}>
+                  <p className={actionDrawerStyles.warningCard}>{actionWarning}</p>
+                </div>
+              ) : null}
             </div>
             <button
               type="button"

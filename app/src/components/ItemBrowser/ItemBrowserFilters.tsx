@@ -9,6 +9,8 @@ import {
   getItemBrowserArmorTypeOptions,
   getItemBrowserAttackTypeOptions,
   getItemBrowserCategoryOptions,
+  getItemBrowserMasteryOptions,
+  getItemBrowserPropertyOptions,
   getItemBrowserProficiencyTypeOptions,
   getItemBrowserTabCount,
   ITEM_BROWSER_TAB_OPTIONS
@@ -24,6 +26,8 @@ type ItemBrowserFiltersProps = {
   source: string | null;
   attackType: ItemAttackType | null;
   proficiencyType: ItemProficiencyType | null;
+  mastery: string | null;
+  property: string | null;
   armorType: ItemArmorType | null;
   filterOptions: ItemFilterOptions | null;
   onQueryChange: (value: string) => void;
@@ -33,6 +37,8 @@ type ItemBrowserFiltersProps = {
   onSourceChange: (value: string | null) => void;
   onAttackTypeChange: (value: ItemAttackType | null) => void;
   onProficiencyTypeChange: (value: ItemProficiencyType | null) => void;
+  onMasteryChange: (value: string | null) => void;
+  onPropertyChange: (value: string | null) => void;
   onArmorTypeChange: (value: ItemArmorType | null) => void;
 };
 
@@ -44,6 +50,8 @@ function ItemBrowserFilters({
   source,
   attackType,
   proficiencyType,
+  mastery,
+  property,
   armorType,
   filterOptions,
   onQueryChange,
@@ -53,11 +61,15 @@ function ItemBrowserFilters({
   onSourceChange,
   onAttackTypeChange,
   onProficiencyTypeChange,
+  onMasteryChange,
+  onPropertyChange,
   onArmorTypeChange
 }: ItemBrowserFiltersProps) {
   const categoryOptions = getItemBrowserCategoryOptions(filterOptions, tab);
   const attackTypeOptions = getItemBrowserAttackTypeOptions(filterOptions, tab);
   const proficiencyTypeOptions = getItemBrowserProficiencyTypeOptions(filterOptions, tab);
+  const masteryOptions = getItemBrowserMasteryOptions(filterOptions, tab);
+  const propertyOptions = getItemBrowserPropertyOptions(filterOptions, tab);
   const armorTypeOptions = getItemBrowserArmorTypeOptions(filterOptions, tab);
 
   return (
@@ -137,6 +149,42 @@ function ItemBrowserFilters({
               >
                 <option value="ALL">All</option>
                 {proficiencyTypeOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {`${option.label} (${option.count})`}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className={styles.field}>
+              <span>Mastery</span>
+              <select
+                className={styles.input}
+                value={mastery ?? "ALL"}
+                onChange={(event) =>
+                  onMasteryChange(event.target.value === "ALL" ? null : event.target.value)
+                }
+              >
+                <option value="ALL">All</option>
+                {masteryOptions.map((option) => (
+                  <option key={option.value} value={option.value}>
+                    {`${option.label} (${option.count})`}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className={styles.field}>
+              <span>Property</span>
+              <select
+                className={styles.input}
+                value={property ?? "ALL"}
+                onChange={(event) =>
+                  onPropertyChange(event.target.value === "ALL" ? null : event.target.value)
+                }
+              >
+                <option value="ALL">All</option>
+                {propertyOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {`${option.label} (${option.count})`}
                   </option>

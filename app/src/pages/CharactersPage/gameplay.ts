@@ -23,6 +23,7 @@ import {
 } from "./abilities";
 import {
   canUseMonkMartialArtsForCharacter,
+  getAdditionalWeaponMasteriesForCharacter,
   getFeatureWeaponActionsForCharacter,
   hasBatteringRootsBonusForCharacter,
   getInitiativeBonusesForCharacter,
@@ -105,6 +106,7 @@ export type WeaponAction = {
   hasGreatWeaponFighting: boolean;
   hasMartialArtsDamageDie: boolean;
   hasBatteringRootsBonus: boolean;
+  isBatteringRootsEligible?: boolean;
   drawerEyebrow?: string;
   description?: SpellDescriptionEntry[];
   descriptionAdditions?: SpellDescriptionEntry[][];
@@ -559,6 +561,13 @@ export function createWeaponAction(
         combatType: options.combatType ?? null,
         properties: options.properties
       });
+  const isBatteringRootsEligible = options.skipFeatureDerivedLookups
+    ? false
+    : getAdditionalWeaponMasteriesForCharacter(character, {
+        attackKind: options.attackKind,
+        combatType: options.combatType ?? null,
+        properties: options.properties
+      }).some((entry) => entry.source === "Battering Roots");
 
   return {
     key: options.key,
@@ -585,7 +594,8 @@ export function createWeaponAction(
     hasVersatileBonus: options.hasVersatileBonus,
     hasGreatWeaponFighting: options.hasGreatWeaponFighting,
     hasMartialArtsDamageDie: Boolean(options.hasMartialArtsDamageDie),
-    hasBatteringRootsBonus
+    hasBatteringRootsBonus,
+    isBatteringRootsEligible
   };
 }
 

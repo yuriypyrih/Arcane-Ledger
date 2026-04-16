@@ -1558,7 +1558,7 @@ function ClassFeatureList({
                 <span className={styles.featureTitleContent}>
                   <span>{`Level ${featureRow.level}: ${formatCodexLabel(featureRow.feature)}`}</span>
                   {featureRow.isSubclass ? (
-                    <span className={styles.subclassFeatureIndicator}>(subclass)</span>
+                    <span className={styles.subclassFeatureIndicator}>Subclass</span>
                   ) : null}
                 </span>
               }

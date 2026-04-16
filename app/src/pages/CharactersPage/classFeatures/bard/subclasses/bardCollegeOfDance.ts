@@ -11,7 +11,7 @@ import { getBardicInspirationDie } from "../bard";
 export const collegeOfDanceSubclassId = "bard-college-of-dance";
 
 const agileStrikesDescription = "You can make one Unarmed Strike as part of this action.";
-const agileStrikesSource = "Agile Strikes";
+const agileStrikesSource = "Dazzling Footwork / Agile Strikes";
 const dazzlingFootworkPerformanceIndicator = {
   label: "Advantage",
   tone: "advantage" as const,

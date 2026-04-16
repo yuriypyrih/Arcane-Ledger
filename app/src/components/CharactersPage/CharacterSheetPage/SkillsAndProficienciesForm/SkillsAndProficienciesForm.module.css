@@ -114,9 +114,19 @@
   max-width: 100%;
 }
 
-.skillExpertiseIcon {
+.skillBonusIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: center;
   flex-shrink: 0;
-  color: #2f7fd8;
+  color: inherit;
+  line-height: 0;
+}
+
+.skillBonusIcon :global(svg) {
+  display: block;
+  stroke: currentColor;
 }
 
 .skillIndicators {
@@ -125,19 +135,6 @@
   justify-content: flex-end;
   gap: 0.3rem;
   flex-shrink: 0;
-}
-
-.referenceDrawerHeader {
-  align-items: center;
-}
-
-.referenceIndicatorStack {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 0.45rem;
-  justify-content: flex-end;
-  margin-left: auto;
 }
 
 .editorToggleCardDisabled {

@@ -55,6 +55,7 @@ import {
   setBardExpertiseSelections
 } from "./bard/bard";
 import {
+  activateBarbarianBerserkerRetaliation,
   applyPersistentRageOnInitiative,
   consumeBarbarianWarriorOfTheGodsCharges,
   expendBarbarianRageUse,
@@ -2565,6 +2566,12 @@ export function restoreBarbarianRageUseForCharacter(character: Character): Chara
 
 export function restoreAllBarbarianRageUsesForCharacter(character: Character): Character {
   return restoreAllBarbarianRageUses(character);
+}
+
+export function activateBarbarianBerserkerRetaliationForCharacter(
+  character: Character
+): Character {
+  return activateBarbarianBerserkerRetaliation(character);
 }
 
 export function getBarbarianWarriorOfTheGodsUsesTotalForCharacter(

@@ -17,7 +17,9 @@ import {
   ITEM_ARMOR_TYPE_PARAM,
   ITEM_ATTACK_TYPE_PARAM,
   ITEM_CATEGORY_PARAM,
+  ITEM_MASTERY_PARAM,
   ITEM_ORDER_PARAM,
+  ITEM_PROPERTY_PARAM,
   ITEM_PROFICIENCY_TYPE_PARAM,
   ITEM_RARITY_PARAM,
   ITEM_SOURCE_PARAM,
@@ -63,7 +65,9 @@ function CodexPage() {
     monsterSourceFilter,
     monsterTypeFilter,
     itemCategoryFilter,
+    itemMasteryFilter,
     itemOrdering,
+    itemPropertyFilter,
     itemProficiencyTypeFilter,
     itemRarityFilter,
     itemSourceFilter,
@@ -86,6 +90,8 @@ function CodexPage() {
           category: itemCategoryFilter,
           attackType: itemAttackTypeFilter,
           proficiencyType: itemProficiencyTypeFilter,
+          mastery: itemMasteryFilter,
+          property: itemPropertyFilter,
           armorType: itemArmorTypeFilter
         },
         itemFilterOptionsPayload
@@ -95,6 +101,8 @@ function CodexPage() {
       itemAttackTypeFilter,
       itemCategoryFilter,
       itemFilterOptionsPayload,
+      itemMasteryFilter,
+      itemPropertyFilter,
       itemProficiencyTypeFilter,
       itemTab
     ]
@@ -111,6 +119,8 @@ function CodexPage() {
     category: sanitizedItemFilters.category,
     attackType: sanitizedItemFilters.attackType,
     proficiencyType: sanitizedItemFilters.proficiencyType,
+    mastery: sanitizedItemFilters.mastery,
+    property: sanitizedItemFilters.property,
     armorType: sanitizedItemFilters.armorType,
     rarity: itemRarityFilter,
     source: itemSourceFilter,
@@ -165,6 +175,8 @@ function CodexPage() {
       itemCategoryFilter === sanitizedItemFilters.category &&
       itemAttackTypeFilter === sanitizedItemFilters.attackType &&
       itemProficiencyTypeFilter === sanitizedItemFilters.proficiencyType &&
+      itemMasteryFilter === sanitizedItemFilters.mastery &&
+      itemPropertyFilter === sanitizedItemFilters.property &&
       itemArmorTypeFilter === sanitizedItemFilters.armorType
     ) {
       return;
@@ -178,6 +190,8 @@ function CodexPage() {
       ITEM_PROFICIENCY_TYPE_PARAM,
       sanitizedItemFilters.proficiencyType
     );
+    setSearchParamValue(nextSearchParams, ITEM_MASTERY_PARAM, sanitizedItemFilters.mastery);
+    setSearchParamValue(nextSearchParams, ITEM_PROPERTY_PARAM, sanitizedItemFilters.property);
     setSearchParamValue(nextSearchParams, ITEM_ARMOR_TYPE_PARAM, sanitizedItemFilters.armorType);
     resetPageSearchParam(nextSearchParams);
     setSearchParams(nextSearchParams, { replace: true });
@@ -186,6 +200,8 @@ function CodexPage() {
     itemArmorTypeFilter,
     itemAttackTypeFilter,
     itemCategoryFilter,
+    itemMasteryFilter,
+    itemPropertyFilter,
     itemProficiencyTypeFilter,
     sanitizedItemFilters,
     searchParams,
@@ -342,6 +358,8 @@ function CodexPage() {
       setSearchParamValue(nextSearchParams, ITEM_CATEGORY_PARAM, null);
       setSearchParamValue(nextSearchParams, ITEM_ATTACK_TYPE_PARAM, null);
       setSearchParamValue(nextSearchParams, ITEM_PROFICIENCY_TYPE_PARAM, null);
+      setSearchParamValue(nextSearchParams, ITEM_MASTERY_PARAM, null);
+      setSearchParamValue(nextSearchParams, ITEM_PROPERTY_PARAM, null);
       setSearchParamValue(nextSearchParams, ITEM_ARMOR_TYPE_PARAM, null);
       resetPageSearchParam(nextSearchParams);
       setSearchParams(nextSearchParams, { replace: true });
@@ -370,6 +388,24 @@ function CodexPage() {
     (value: ItemArmorType | null) => {
       const nextSearchParams = new URLSearchParams(searchParams);
       setSearchParamValue(nextSearchParams, ITEM_ARMOR_TYPE_PARAM, value);
+      resetPageSearchParam(nextSearchParams);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+  const handleItemMasteryFilterChange = useCallback(
+    (value: string | null) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      setSearchParamValue(nextSearchParams, ITEM_MASTERY_PARAM, value);
+      resetPageSearchParam(nextSearchParams);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
+  const handleItemPropertyFilterChange = useCallback(
+    (value: string | null) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      setSearchParamValue(nextSearchParams, ITEM_PROPERTY_PARAM, value);
       resetPageSearchParam(nextSearchParams);
       setSearchParams(nextSearchParams, { replace: true });
     },
@@ -449,6 +485,8 @@ function CodexPage() {
           itemCategoryFilter={sanitizedItemFilters.category}
           itemAttackTypeFilter={sanitizedItemFilters.attackType}
           itemProficiencyTypeFilter={sanitizedItemFilters.proficiencyType}
+          itemMasteryFilter={sanitizedItemFilters.mastery}
+          itemPropertyFilter={sanitizedItemFilters.property}
           itemArmorTypeFilter={sanitizedItemFilters.armorType}
           itemRarityFilter={itemRarityFilter}
           itemSourceFilter={itemSourceFilter}
@@ -463,6 +501,8 @@ function CodexPage() {
           onItemCategoryFilterChange={handleItemCategoryFilterChange}
           onItemAttackTypeFilterChange={handleItemAttackTypeFilterChange}
           onItemProficiencyTypeFilterChange={handleItemProficiencyTypeFilterChange}
+          onItemMasteryFilterChange={handleItemMasteryFilterChange}
+          onItemPropertyFilterChange={handleItemPropertyFilterChange}
           onItemArmorTypeFilterChange={handleItemArmorTypeFilterChange}
           onItemRarityFilterChange={handleItemRarityFilterChange}
           onItemSourceFilterChange={handleItemSourceFilterChange}

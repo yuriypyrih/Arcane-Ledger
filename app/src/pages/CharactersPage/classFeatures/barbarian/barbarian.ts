@@ -1595,6 +1595,16 @@ export function deactivateBarbarianRage(character: Character): Character {
 
   return {
     ...character,
+    temporaryHitPoints:
+      character.temporaryHitPointsSource ===
+      worldTreeSubclass.barbarianWorldTreeVitalitySurgeTemporaryHitPointsSource
+        ? 0
+        : character.temporaryHitPoints,
+    temporaryHitPointsSource:
+      character.temporaryHitPointsSource ===
+      worldTreeSubclass.barbarianWorldTreeVitalitySurgeTemporaryHitPointsSource
+        ? undefined
+        : character.temporaryHitPointsSource,
     classFeatureState: {
       ...character.classFeatureState,
       rage: {
@@ -1602,6 +1612,7 @@ export function deactivateBarbarianRage(character: Character): Character {
         active: false,
         divineFuryUsedThisTurn: false,
         frenzyPending: false,
+        retaliationAttacksRemaining: 0,
         wildHeartRageOption: undefined,
         wildHeartPowerOption: undefined
       }
@@ -1672,10 +1683,25 @@ export function consumeBarbarianFrenzyBonus(character: Character): Character {
   );
 }
 
+export function activateBarbarianBerserkerRetaliation(character: Character): Character {
+  return berserkerSubclass.activateBarbarianPathOfTheBerserkerRetaliation(
+    character,
+    getBarbarianRageState(character)
+  );
+}
+
 export function getBarbarianWeaponAttackMultiCount(
   character: Pick<Character, "className" | "level" | "classFeatureState">
 ): number {
-  return getBarbarianRageState(character).extraAttacksRemainingThisTurn ?? 0;
+  const rageState = getBarbarianRageState(character);
+
+  return (
+    (rageState.extraAttacksRemainingThisTurn ?? 0) +
+    berserkerSubclass.getBarbarianPathOfTheBerserkerRetaliationAttackMultiCount(
+      character,
+      rageState
+    )
+  );
 }
 
 export function consumeBarbarianWeaponAttack(character: Character): Character {
@@ -1690,7 +1716,19 @@ export function consumeBarbarianWeaponAttack(character: Character): Character {
 
   const rageState = getBarbarianRageState(character);
   const extraAttacksRemaining = rageState.extraAttacksRemainingThisTurn ?? 0;
+  const retaliationAttacksRemaining =
+    berserkerSubclass.getBarbarianPathOfTheBerserkerRetaliationAttackMultiCount(
+      character,
+      rageState
+    );
   const actionAvailable = isRoundTrackerResourceAvailable(character.roundTracker, "action");
+
+  if (retaliationAttacksRemaining > 0) {
+    return berserkerSubclass.consumeBarbarianPathOfTheBerserkerRetaliationAttack(
+      character,
+      rageState
+    );
+  }
 
   if (actionAvailable) {
     return {
@@ -1743,7 +1781,8 @@ export function restoreBarbarianRageOnShortRest(character: Character): Character
         brutalStrikeUsedThisTurn: false,
         recklessAttackRoundsRemaining: 0,
         recklessAttackUsedThisTurn: false,
-        frenzyPending: false
+        frenzyPending: false,
+        retaliationAttacksRemaining: 0
       }
     }
   };
@@ -1768,7 +1807,8 @@ export function restoreBarbarianRageOnLongRest(character: Character): Character 
         brutalStrikeUsedThisTurn: false,
         recklessAttackRoundsRemaining: 0,
         recklessAttackUsedThisTurn: false,
-        frenzyPending: false
+        frenzyPending: false,
+        retaliationAttacksRemaining: 0
       }
     }
   };
@@ -1891,6 +1931,7 @@ export function advanceBarbarianFeaturesForNewRound(character: Character): Chara
 
   if (
     (rageState.extraAttacksRemainingThisTurn ?? 0) === 0 &&
+    (rageState.retaliationAttacksRemaining ?? 0) === 0 &&
     recklessAttackRoundsRemaining === 0 &&
     rageState.divineFuryUsedThisTurn !== true &&
     rageState.recklessAttackUsedThisTurn !== true &&
@@ -1908,6 +1949,7 @@ export function advanceBarbarianFeaturesForNewRound(character: Character): Chara
       rage: {
         ...rageState,
         extraAttacksRemainingThisTurn: 0,
+        retaliationAttacksRemaining: 0,
         recklessAttackRoundsRemaining: Math.max(0, recklessAttackRoundsRemaining - 1),
         divineFuryUsedThisTurn: false,
         recklessAttackUsedThisTurn: false,

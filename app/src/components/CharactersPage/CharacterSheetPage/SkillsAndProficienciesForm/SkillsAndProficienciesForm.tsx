@@ -1,7 +1,6 @@
 import clsx from "clsx";
 import { ChevronsUp, Pencil, Save, X } from "lucide-react";
 import { useEffect, useState } from "react";
-import CellContainer from "../../../CellContainer/CellContainer";
 import SelectInput from "../../FormInputs/SelectInput";
 import TextInput from "../../FormInputs/TextInput";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
@@ -76,27 +75,18 @@ import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/C
 import { skillColumnLayout } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
-import {
-  formatResolvedRollStateDetailText,
-  resolveFeatureIndicators
-} from "../../../RollStatePill/rollState";
+import { resolveFeatureIndicators } from "../../../RollStatePill/rollState";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SkillReferenceDrawer, {
+  type SelectedSkillReference,
+  type SkillReferenceDetailCard
+} from "./SkillReferenceDrawer";
 import styles from "./SkillsAndProficienciesForm.module.css";
 
 type SkillsAndProficienciesFormProps = {
   character: Character;
   className?: string;
   onPersistCharacter: PersistCharacterUpdater;
-};
-
-type SelectedKeyword = {
-  name: string;
-  description: string;
-  indicators?: FeatureIndicator[];
-  detailCards?: Array<{
-    label: string;
-    value: string;
-  }>;
 };
 
 type ProficiencyEditorTab = "skills" | "savingThrows" | "weapons" | "armor" | "tools" | "languages";
@@ -143,7 +133,7 @@ function SkillsAndProficienciesForm({
   >(() => character.languageProficiencies);
   const [customLanguageNameDraft, setCustomLanguageNameDraft] = useState("");
   const [customLanguageDescriptionDraft, setCustomLanguageDescriptionDraft] = useState("");
-  const [selectedKeyword, setSelectedKeyword] = useState<SelectedKeyword | null>(null);
+  const [selectedKeyword, setSelectedKeyword] = useState<SelectedSkillReference | null>(null);
 
   useBodyScrollLock(Boolean(selectedKeyword) || isProficiencyModalOpen);
 
@@ -208,7 +198,6 @@ function SkillsAndProficienciesForm({
     displayedLanguageProficiencies
   );
   const skillIndicators = getSkillIndicatorsForCharacter(character);
-  const selectedKeywordRollState = resolveFeatureIndicators(selectedKeyword?.indicators);
   const skillRowsByAbility = getSkillRowsByAbility(character, displayedSkillProficiencies);
   const skillRowsByAbilityMap = new Map(skillRowsByAbility.map((group) => [group.ability, group]));
 
@@ -435,10 +424,32 @@ function SkillsAndProficienciesForm({
     );
   }
 
+  function formatReferenceSourceLabel(sourceLabels: string[], fallback: string): string {
+    const normalizedLabels = [...new Set(sourceLabels.map((label) => label.trim()).filter(Boolean))];
+
+    return normalizedLabels.length > 0 ? normalizedLabels.join(", ") : fallback;
+  }
+
+  function getSkillReferenceDetailCards(row: SkillRow): SkillReferenceDetailCard[] {
+    return [
+      {
+        label: "Source",
+        value: formatReferenceSourceLabel(
+          [...row.proficiencySourceLabels, ...row.bonusEntries.map((entry) => entry.label)],
+          "Ability modifier only"
+        )
+      },
+      {
+        label: "Formula",
+        value: formatSkillFormula(row)
+      }
+    ];
+  }
+
   function openKeywordReference(
     keyword: string,
     indicators?: FeatureIndicator[],
-    detailCards?: Array<{ label: string; value: string }>
+    detailCards?: SkillReferenceDetailCard[]
   ) {
     const description = getKeywordDescription(keyword);
 
@@ -471,7 +482,14 @@ function SkillsAndProficienciesForm({
                 <button
                   type="button"
                   className={styles.proficiencyPillButton}
-                  onClick={() => openKeywordReference(keyword)}
+                  onClick={() =>
+                    openKeywordReference(keyword, undefined, [
+                      {
+                        label: "Source",
+                        value: formatReferenceSourceLabel(entry.sourceLabels, "Manual")
+                      }
+                    ])
+                  }
                 >
                   <span>{label}</span>
                   <small>{entry.sourceLabels.join(", ")}</small>
@@ -829,13 +847,8 @@ function SkillsAndProficienciesForm({
                           const skillRollState = resolveFeatureIndicators(
                             skillIndicators[row.name]
                           );
-                          const isExpertSkill = currentSkillLevel === PROF_LEVEL.EXPERT;
-                          const skillDetailCards = [
-                            {
-                              label: "Formula",
-                              value: formatSkillFormula(row)
-                            }
-                          ];
+                          const hasAdditionalBonuses = row.bonusEntries.length > 0;
+                          const skillDetailCards = getSkillReferenceDetailCards(row);
 
                           return (
                             <li
@@ -866,8 +879,11 @@ function SkillsAndProficienciesForm({
                                 >
                                   <span className={styles.skillNameContent}>
                                     <span>{row.name}</span>
-                                    {isExpertSkill ? (
-                                      <span title="Expertise" className={styles.skillExpertiseIcon}>
+                                    {hasAdditionalBonuses ? (
+                                      <span
+                                        title={row.bonusEntries.map((entry) => entry.label).join(", ")}
+                                        className={styles.skillBonusIcon}
+                                      >
                                         <ChevronsUp size={16} aria-hidden="true" />
                                       </span>
                                     ) : null}
@@ -1068,66 +1084,10 @@ function SkillsAndProficienciesForm({
       ) : null}
 
       {selectedKeyword ? (
-        <div
-          className={sheetStyles.spellDrawerBackdrop}
-          role="presentation"
-          onClick={() => setSelectedKeyword(null)}
-        >
-          <section
-            className={sheetStyles.spellDrawer}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="character-skill-reference-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className={clsx(sheetStyles.spellDrawerHeader, styles.referenceDrawerHeader)}>
-              <div className={sheetStyles.spellDrawerHeaderContent}>
-                <p className={sheetStyles.spellDrawerBadge}>Reference</p>
-                <div className={sheetStyles.spellDrawerTitleRow}>
-                  <h3
-                    id="character-skill-reference-title"
-                    className={sheetStyles.spellDrawerTitle}
-                  >
-                    {selectedKeyword.name}
-                  </h3>
-                </div>
-                <p className={sheetStyles.spellDrawerSummary}>{selectedKeyword.description}</p>
-              </div>
-              {selectedKeyword.indicators?.length ? (
-                selectedKeywordRollState ? (
-                  <div className={styles.referenceIndicatorStack}>
-                    <RollStatePill
-                      tone={selectedKeywordRollState.tone}
-                      label={selectedKeywordRollState.label}
-                      detailText={formatResolvedRollStateDetailText(selectedKeywordRollState)}
-                    />
-                  </div>
-                ) : null
-              ) : null}
-              <button
-                type="button"
-                className={sheetStyles.spellDrawerCloseButton}
-                onClick={() => setSelectedKeyword(null)}
-                aria-label="Close skill details"
-              >
-                <X size={18} />
-              </button>
-            </div>
-            {selectedKeyword.detailCards?.length ? (
-              <div className={sheetStyles.spellDrawerBody}>
-                <div className={sheetStyles.spellDrawerDetails}>
-                  {selectedKeyword.detailCards.map((detailCard) => (
-                    <CellContainer
-                      key={`${selectedKeyword.name}-${detailCard.label}`}
-                      label={detailCard.label}
-                      content={detailCard.value}
-                    />
-                  ))}
-                </div>
-              </div>
-            ) : null}
-          </section>
-        </div>
+        <SkillReferenceDrawer
+          reference={selectedKeyword}
+          onClose={() => setSelectedKeyword(null)}
+        />
       ) : null}
     </article>
   );

@@ -1,15 +1,19 @@
-import { DAMAGE_TYPE } from "../../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries";
 import {
   EFFECT_NAME,
   STATUS_DURATION_KIND,
+  STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
   type Character,
   type CharacterRageFeatureState
 } from "../../../../../types";
+import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import { clampNumber } from "../../../shared";
+import type { WeaponAction } from "../../../gameplay";
+import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
@@ -27,9 +31,12 @@ export const barbarianZealousPresenceActionKey = "barbarian-zealous-presence";
 const divineFuryDamageBonusLabel = "Divine Fury";
 const fanaticalFocusStatusSourceId = "feature-barbarian-fanatical-focus";
 const rageOfTheGodsStatusSourceId = "feature-barbarian-rage-of-the-gods";
+const zealousPresenceStatusSourceId = "feature-barbarian-zealous-presence";
 const rageOfTheGodsUsesTotal = 1;
 const warriorOfTheGodsBaseUses = 4;
 const zealousPresenceUsesTotal = 1;
+const divineFurySource = "Divine Fury";
+const zealousPresenceEffectName = "Zealous Presence";
 
 type BarbarianSubclassCharacter = Pick<Character, "className" | "level"> &
   Partial<Pick<Character, "subclassId">>;
@@ -245,6 +252,7 @@ export function getBarbarianPathOfTheZealotZealousPresenceAction(
     summary: "Divine infused Battle Cry",
     detail: "Divine infused Battle Cry",
     breakdown: "Divine infused Battle Cry",
+    sourceFeature: CLASS_FEATURE.ZEALOUS_PRESENCE,
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
     usesLabel: `${usesRemaining}/${zealousPresenceUsesTotal} charge`,
@@ -254,6 +262,35 @@ export function getBarbarianPathOfTheZealotZealousPresenceAction(
     usesInlineIcon: isUsingRageCharges ? "flame" : undefined,
     disabled,
     disabledReason: disabled ? "No Zealous Presence or Rage uses remaining." : undefined
+  };
+}
+
+function applyBarbarianPathOfTheZealotZealousPresenceStatus(character: Character): Character {
+  if (!hasBarbarianPathOfTheZealotZealousPresence(character)) {
+    return character;
+  }
+
+  const nextStatusEntries = normalizeCharacterStatusEntries(character.statusEntries).filter(
+    (entry) => entry.sourceId !== zealousPresenceStatusSourceId
+  );
+
+  return {
+    ...character,
+    statusEntries: [
+      ...nextStatusEntries,
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: zealousPresenceEffectName,
+        source: zealousPresenceEffectName,
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+        duration: {
+          kind: STATUS_DURATION_KIND.ROUNDS,
+          amount: 1,
+          tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
+        },
+        sourceId: zealousPresenceStatusSourceId
+      })
+    ]
   };
 }
 
@@ -469,7 +506,7 @@ export function activateBarbarianPathOfTheZealotZealousPresence(
   );
 
   if (usesRemaining > 0) {
-    return {
+    return applyBarbarianPathOfTheZealotZealousPresenceStatus({
       ...character,
       classFeatureState: {
         ...character.classFeatureState,
@@ -478,14 +515,14 @@ export function activateBarbarianPathOfTheZealotZealousPresence(
           zealousPresenceUsesExpended: (rageState.zealousPresenceUsesExpended ?? 0) + 1
         }
       }
-    };
+    });
   }
 
   if (rageUsesRemaining <= 0) {
     return character;
   }
 
-  return {
+  return applyBarbarianPathOfTheZealotZealousPresenceStatus({
     ...character,
     classFeatureState: {
       ...character.classFeatureState,
@@ -494,7 +531,7 @@ export function activateBarbarianPathOfTheZealotZealousPresence(
         usesExpended: rageState.usesExpended + 1
       }
     }
-  };
+  });
 }
 
 export function consumeBarbarianPathOfTheZealotDivineFuryBonus(
@@ -593,4 +630,35 @@ export function restoreBarbarianPathOfTheZealotRageOfTheGodsOnLongRest(
   };
 }
 
-export const getBarbarianPathOfTheZealotDerivedFeatureState: SubclassRuntimeResolver = () => ({});
+function appendDivineFuryDescription(
+  action: WeaponAction,
+  descriptionEntries: ReturnType<typeof getFeatureDescriptionForCharacter>
+): WeaponAction {
+  return appendSourcedDescriptionAddition(action, divineFurySource, descriptionEntries);
+}
+
+export const getBarbarianPathOfTheZealotDerivedFeatureState: SubclassRuntimeResolver = (
+  character
+) => {
+  const normalizedCharacter = {
+    className: character.className,
+    subclassId: character.subclassId,
+    level: character.level ?? 0
+  };
+
+  if (!hasBarbarianPathOfTheZealotDivineFury(normalizedCharacter)) {
+    return {};
+  }
+
+  const divineFuryDescription = getFeatureDescriptionForCharacter(
+    normalizedCharacter,
+    CLASS_FEATURE.DIVINE_FURY
+  );
+
+  return divineFuryDescription.length > 0
+    ? {
+        transformWeaponAction: (action: WeaponAction) =>
+          appendDivineFuryDescription(action, divineFuryDescription)
+      }
+    : {};
+};

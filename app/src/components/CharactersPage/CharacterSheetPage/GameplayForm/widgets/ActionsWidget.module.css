@@ -155,6 +155,15 @@
   stroke: currentColor;
 }
 
+.rageEnhancementDescription {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.rageEnhancementDescriptionLine {
+  margin: 0;
+}
+
 .rageEnhancementModeBadge {
   border-radius: 999px;
   background: rgba(181, 86, 42, 0.12);
