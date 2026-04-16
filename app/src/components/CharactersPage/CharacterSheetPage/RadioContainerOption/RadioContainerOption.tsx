@@ -1,0 +1,75 @@
+import clsx from "clsx";
+import type { CSSProperties, ReactNode } from "react";
+import styles from "./RadioContainerOption.module.css";
+
+export type RadioContainerOptionProps = {
+  header: ReactNode;
+  selected: boolean;
+  onSelect: () => void;
+  headerFollowup?: ReactNode;
+  subheader?: ReactNode;
+  breakdown?: ReactNode;
+  actionBadge?: ReactNode;
+  aside?: ReactNode;
+  disabled?: boolean;
+  name?: string;
+  indicatorType?: "radio" | "checkbox";
+  width?: CSSProperties["width"];
+  className?: string;
+};
+
+function RadioContainerOption({
+  header,
+  selected,
+  onSelect,
+  headerFollowup,
+  subheader,
+  breakdown,
+  actionBadge,
+  aside,
+  disabled = false,
+  name,
+  indicatorType = "radio",
+  width,
+  className
+}: RadioContainerOptionProps) {
+  return (
+    <div
+      className={clsx(
+        styles.root,
+        selected && styles.selected,
+        disabled && styles.disabled,
+        actionBadge && styles.withActionBadge,
+        className
+      )}
+      style={{ width: width ?? "100%" }}
+    >
+      {actionBadge ? (
+        <div className={styles.actionBadge} aria-hidden="true">
+          {actionBadge}
+        </div>
+      ) : null}
+      <label className={styles.label}>
+        <input
+          type={indicatorType}
+          name={name}
+          checked={selected}
+          disabled={disabled}
+          onChange={onSelect}
+          className={styles.input}
+        />
+        <div className={styles.content}>
+          <div className={styles.headerLine}>
+            <div className={styles.header}>{header}</div>
+            {headerFollowup ? <div className={styles.headerFollowup}>{headerFollowup}</div> : null}
+          </div>
+          {subheader ? <div className={styles.subheader}>{subheader}</div> : null}
+          {breakdown ? <div className={styles.breakdown}>{breakdown}</div> : null}
+        </div>
+      </label>
+      {aside ? <div className={styles.aside}>{aside}</div> : null}
+    </div>
+  );
+}
+
+export default RadioContainerOption;

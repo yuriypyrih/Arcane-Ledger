@@ -152,6 +152,7 @@ import { MonsterEntryDrawer } from "../../../MonsterEntryRenderer";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./ClassFeaturesAndFeats.module.css";
 import BattleMasterManeuverSelection from "./BattleMasterManeuverSelection";
+import FeatureChoiceOptions from "./ClassFeatureChoiceOptions";
 import DruidWildShapeMonsterModal from "./DruidWildShapeMonsterModal";
 import WizardBladesingerTrainingInWarAndSongFields from "./WizardBladesingerTrainingInWarAndSongFields";
 import WizardSavantFeatureFields from "./WizardSavantFeatureFields";
@@ -187,12 +188,6 @@ type ClassFeatureListProps = {
   getFeatDefinition: (feat: CharacterFeatEntry["feat"]) => { label: string } | null;
 };
 
-type FeatureChoiceOption<TChoice extends string> = {
-  key: string;
-  value: TChoice;
-  content: string;
-};
-
 function FeatureDescriptionLines({
   featureKey,
   lines,
@@ -222,63 +217,6 @@ function FeatureDescriptionLines({
         </p>
       ))}
     </>
-  );
-}
-
-function FeatureChoiceOptions<TChoice extends string>({
-  featureKey,
-  groupName,
-  isUnlocked,
-  selectedValue,
-  options,
-  onChange,
-  onOpenKeyword,
-  onOpenFeatReference,
-  onOpenSpellReference,
-  onOpenDivinityReference
-}: {
-  featureKey: string;
-  groupName: string;
-  isUnlocked: boolean;
-  selectedValue: TChoice | null;
-  options: readonly FeatureChoiceOption<TChoice>[];
-  onChange: (choice: TChoice) => void;
-  onOpenKeyword: (keywordKey: string, title?: string) => void;
-  onOpenFeatReference: (feat: CharacterFeatEntry["feat"], entry?: CharacterFeatEntry) => void;
-  onOpenSpellReference: (spell: SpellEntry) => void;
-  onOpenDivinityReference: (divinity: DivinityEntry) => void;
-}) {
-  return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "0.4rem" }}>
-      {options.map((option) => (
-        <label
-          key={`${featureKey}-choice-${option.key}`}
-          className={clsx(
-            styles.featureOptionRow,
-            !isUnlocked && styles.featureOptionRowDisabled,
-            selectedValue === option.value && styles.featureOptionRowActive
-          )}
-        >
-          <input
-            type="radio"
-            name={groupName}
-            checked={selectedValue === option.value}
-            disabled={!isUnlocked}
-            onChange={() => onChange(option.value)}
-            className={styles.featureOptionRadio}
-          />
-          <span className={styles.featureOptionText}>
-            {renderDescriptionLine(
-              option.content,
-              onOpenKeyword,
-              (feat) => onOpenFeatReference(feat),
-              onOpenSpellReference,
-              onOpenDivinityReference
-            )}
-          </span>
-        </label>
-      ))}
-    </div>
   );
 }
 

@@ -1,4 +1,5 @@
 import { Outlet, useLocation } from "react-router-dom";
+import ToastHost from "../ToastViewport";
 import PrimaryNav from "./PrimaryNav";
 import { navigationLinks } from "./navigationLinks";
 import styles from "./AppShell.module.css";
@@ -18,6 +19,7 @@ function AppShell() {
       <main className={[styles.main, isDiceRoute ? styles.mainFullBleed : ""].join(" ").trim()}>
         <Outlet />
       </main>
+      <ToastHost />
     </div>
   );
 }

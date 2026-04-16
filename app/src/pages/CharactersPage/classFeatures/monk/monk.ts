@@ -286,7 +286,7 @@ function canUseFlurryOfBlows(
   character: Pick<Character, "className" | "level" | "equipment" | "inventoryItems" | "customEquipment">
 ): boolean {
   const combatState = getMonkCombatState(character);
-  return combatState.martialArtsActive && combatState.hasFreeHand;
+  return combatState.martialArtsActive;
 }
 
 function isMonkTurnFresh(character: Pick<Character, "roundTracker">): boolean {
@@ -493,9 +493,7 @@ export function getMonkFeatureActions(
     const disabledReason =
       !shadowFlurryActive && focusRemaining <= 0
         ? "No Focus Points remaining."
-        : !combatState.hasFreeHand
-          ? "Unarmed Strike isn't available while your hands are full."
-          : !combatState.martialArtsActive
+        : !combatState.martialArtsActive
             ? "Flurry of Blows requires Martial Arts to be active."
             : undefined;
 

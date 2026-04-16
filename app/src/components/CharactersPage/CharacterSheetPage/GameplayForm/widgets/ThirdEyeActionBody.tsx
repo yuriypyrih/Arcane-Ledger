@@ -3,7 +3,7 @@ import {
   wizardDivinerThirdEyeOptionDefinitions
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerThirdEyeConfig";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
-import RadioOption from "./RadioOption";
+import RadioContainerOption from "../../RadioContainerOption";
 import styles from "./ThirdEyeActionBody.module.css";
 
 type ThirdEyeActionBodyProps = {
@@ -16,12 +16,12 @@ function ThirdEyeActionBody({ selectedOptionKey, onSelectOption }: ThirdEyeActio
     <>
       <div className={styles.thirdEyeOptionList}>
         {wizardDivinerThirdEyeOptionDefinitions.map((option) => (
-          <RadioOption
+          <RadioContainerOption
             key={option.key}
             name="wizard-diviner-third-eye"
             header={option.name}
-            description={option.textDescription}
-            isSelected={selectedOptionKey === option.key}
+            breakdown={option.textDescription}
+            selected={selectedOptionKey === option.key}
             onSelect={() => onSelectOption(option.key)}
           />
         ))}

@@ -1,4 +1,4 @@
-import RadioOption from "./RadioOption";
+import RadioContainerOption from "../../RadioContainerOption";
 import styles from "./ActionsWidget.module.css";
 import type { DruidStarryFormConstellation } from "../../../../../pages/CharactersPage/classFeatures/druid/druid";
 
@@ -39,12 +39,12 @@ function DruidStarryFormActionBody({
   return (
     <div className={styles.wildCompanionBody}>
       {constellationOptions.map((option) => (
-        <RadioOption
+        <RadioContainerOption
           key={option.value}
           name="druid-starry-form"
           header={option.header}
-          description={option.description}
-          isSelected={selectedConstellation === option.value}
+          breakdown={option.description}
+          selected={selectedConstellation === option.value}
           onSelect={() => onSelectConstellation(option.value)}
         />
       ))}

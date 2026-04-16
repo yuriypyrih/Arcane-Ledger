@@ -49,12 +49,14 @@ import {
   type ResolvedCustomLoadoutEntry
 } from "../../../../pages/CharactersPage/customEquipment";
 import {
+  canWeaponCopiesBePutOnHand,
   createHeldShieldDescriptor,
   canWeaponBePutOnHand,
   createHeldWeaponDescriptor,
   getCharacterEquipmentItem,
   type HeldWeaponDescriptor
 } from "../../../../pages/CharactersPage/inventory";
+import { clearCharacterHandOccupants } from "../../../../pages/CharactersPage/handStateMutations";
 import {
   isShieldArmorEntry,
   setCodexArmorWornState,
@@ -68,10 +70,12 @@ import {
   addInventoryItemCopies,
   createCharacterInventoryItem,
   createHeldDescriptorForInventoryItem,
+  findAvailableInventoryCopyByKey,
   findFirstInventoryCopyByKey,
-  findHeldInventoryCopyByKey,
+  findHeldInventoryCopiesByKey,
   findOwnedInventoryItemRecord,
   findWornInventoryCopyByKey,
+  getPreferredInventoryCopiesByKey,
   getInventoryItemCountsByKey,
   getItemTransactionCost,
   getItemWeightValue,
@@ -88,6 +92,7 @@ import type { ItemRecord } from "../../../../types";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import CustomEquipmentEditor from "../CustomEquipmentEditor";
 import EquipmentInventoryItemDrawer from "./EquipmentInventoryItemDrawer";
+import EquipmentInventoryItemDrawerHeader from "./EquipmentInventoryItemDrawerHeader";
 import EquipmentInventoryItemDrawerFooter, {
   type EquipmentInventoryDrawerAction
 } from "./EquipmentInventoryItemDrawerFooter";
@@ -283,6 +288,10 @@ function groupInventoryEquipmentItems(items: GroupedInventoryItem[]): InventoryE
 
 function formatInventoryStackName(item: GroupedInventoryItem): string {
   return item.count > 1 ? `${item.count}x ${item.name}` : item.name;
+}
+
+function formatOnHandLabel(onHandCount: number): string {
+  return onHandCount > 1 ? `On Hand x${onHandCount}` : "On Hand";
 }
 
 function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFormProps) {
@@ -702,10 +711,17 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         : null,
     [character.inventoryItems, selectedInventoryInspection]
   );
-  const selectedHeldInventoryCopy = useMemo(
+  const selectedHeldInventoryCopies = useMemo(
     () =>
       selectedInventoryInspection
-        ? findHeldInventoryCopyByKey(character.inventoryItems, selectedInventoryInspection.itemKey)
+        ? findHeldInventoryCopiesByKey(character.inventoryItems, selectedInventoryInspection.itemKey)
+        : [],
+    [character.inventoryItems, selectedInventoryInspection]
+  );
+  const selectedAvailableInventoryCopy = useMemo(
+    () =>
+      selectedInventoryInspection
+        ? findAvailableInventoryCopyByKey(character.inventoryItems, selectedInventoryInspection.itemKey)
         : null,
     [character.inventoryItems, selectedInventoryInspection]
   );
@@ -720,23 +736,46 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const selectedInventoryCount = selectedInventoryInspection
     ? inventoryCountsByKey[selectedInventoryInspection.itemKey] ?? 0
     : 0;
+  const selectedInventoryOnHandCount = selectedInventoryInspection
+    ? selectedHeldInventoryCopies.length
+    : 0;
   const selectedInventoryTransactionCost = selectedInventoryRecord
     ? getItemTransactionCost(selectedInventoryRecord)
     : null;
   const selectedInventoryHandDescriptor =
-    selectedInventoryGroup && selectedInventoryCopy
-      ? createHeldDescriptorForInventoryItem(`inventory-${selectedInventoryCopy.id}`, selectedInventoryGroup.item)
+    selectedInventoryGroup && selectedAvailableInventoryCopy
+      ? createHeldDescriptorForInventoryItem(
+          `inventory-${selectedAvailableInventoryCopy.id}`,
+          selectedInventoryGroup.item
+        )
       : null;
-  const isSelectedInventoryOnHand = Boolean(selectedHeldInventoryCopy);
+  const selectedInventoryDualDescriptors =
+    selectedInventoryGroup && selectedInventoryCount >= 2
+      ? getPreferredInventoryCopiesByKey(character.inventoryItems, selectedInventoryGroup.key, 2)
+          .map((copy) => createHeldDescriptorForInventoryItem(`inventory-${copy.id}`, copy.item))
+          .filter((entry): entry is HeldWeaponDescriptor => entry !== null)
+      : [];
+  const isSelectedInventoryOnHand = selectedInventoryOnHandCount > 0;
   const isSelectedInventoryArmorWorn = Boolean(selectedWornInventoryCopy);
   const canSelectedInventoryBePutOnHand =
-    selectedInventoryHandDescriptor && !isSelectedInventoryOnHand
+    selectedInventoryHandDescriptor !== null
       ? canWeaponBePutOnHand(selectedInventoryHandDescriptor, heldWeaponDescriptors)
       : false;
   const shouldOfferInventoryHandSwap =
     Boolean(selectedInventoryHandDescriptor) &&
-    !isSelectedInventoryOnHand &&
     !canSelectedInventoryBePutOnHand;
+  const shouldShowInventoryDualAction =
+    Boolean(selectedInventoryGroup?.item.weapon) &&
+    selectedInventoryDualDescriptors.length === 2 &&
+    selectedInventoryDualDescriptors.every((descriptor) => descriptor.handSlots === 1);
+  const canSelectedInventoryBeDualEquipped =
+    shouldShowInventoryDualAction &&
+    selectedInventoryOnHandCount < 2 &&
+    canWeaponCopiesBePutOnHand(selectedInventoryDualDescriptors, heldWeaponDescriptors);
+  const shouldOfferInventoryDualSwap =
+    shouldShowInventoryDualAction &&
+    selectedInventoryOnHandCount < 2 &&
+    !canSelectedInventoryBeDualEquipped;
 
   useEffect(() => {
     if (
@@ -1128,11 +1167,14 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     }
 
     onPersistCharacter((currentCharacter) => {
-      const nextEquipment = currentCharacter.equipment.map((equipmentItem) => ({
+      const clearedCharacter = clearCharacterHandOccupants(currentCharacter);
+      const nextEquipment = clearedCharacter.equipment.map((equipmentItem) => ({
         ...equipmentItem,
-        onHand: equipmentItem.name === selectedLoadoutEntryData.name
+        onHand:
+          !selectedLoadoutEntry?.customEquipmentId &&
+          equipmentItem.name === selectedLoadoutEntryData.name
       }));
-      const nextCustomEquipment = currentCharacter.customEquipment.map((entry) =>
+      const nextCustomEquipment = clearedCharacter.customEquipment.map((entry) =>
         entry.kind !== "weapon"
           ? entry
           : {
@@ -1142,12 +1184,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       );
 
       return {
-        ...currentCharacter,
+        ...clearedCharacter,
         equipment: nextEquipment,
-        inventoryItems: currentCharacter.inventoryItems.map((entry) => ({
-          ...entry,
-          onHand: false
-        })),
         customEquipment: nextCustomEquipment
       };
     });
@@ -1176,18 +1214,64 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   }
 
   function toggleSelectedInventoryItemOnHand() {
-    if (!selectedInventoryInspection?.itemKey || !selectedInventoryGroup || !selectedInventoryHandDescriptor) {
+    if (!selectedInventoryInspection?.itemKey || !selectedInventoryGroup) {
       return;
     }
 
-    if (!isSelectedInventoryOnHand && !canSelectedInventoryBePutOnHand) {
+    if (!isSelectedInventoryOnHand && (!selectedInventoryHandDescriptor || !canSelectedInventoryBePutOnHand)) {
       return;
     }
 
     onPersistCharacter((currentCharacter) => {
-      const targetCopy = isSelectedInventoryOnHand
-        ? findHeldInventoryCopyByKey(currentCharacter.inventoryItems, selectedInventoryInspection.itemKey)
-        : findFirstInventoryCopyByKey(currentCharacter.inventoryItems, selectedInventoryInspection.itemKey);
+      if (isSelectedInventoryOnHand) {
+        const heldCopies = findHeldInventoryCopiesByKey(
+          currentCharacter.inventoryItems,
+          selectedInventoryInspection.itemKey
+        );
+
+        if (heldCopies.length === 0) {
+          return currentCharacter;
+        }
+
+        if (heldCopies.length >= 2) {
+          const copyToKeepId = heldCopies[0]?.id;
+
+          if (!copyToKeepId) {
+            return currentCharacter;
+          }
+
+          return {
+            ...currentCharacter,
+            inventoryItems: currentCharacter.inventoryItems.map((entry) =>
+              entry.item.key === selectedInventoryInspection.itemKey
+                ? {
+                    ...entry,
+                    onHand: entry.id === copyToKeepId
+                  }
+                : entry
+            )
+          };
+        }
+
+        const targetCopy = heldCopies[0];
+
+        return {
+          ...currentCharacter,
+          inventoryItems: currentCharacter.inventoryItems.map((entry) =>
+            entry.id === targetCopy.id
+              ? {
+                  ...entry,
+                  onHand: false
+                }
+              : entry
+          )
+        };
+      }
+
+      const targetCopy = findAvailableInventoryCopyByKey(
+        currentCharacter.inventoryItems,
+        selectedInventoryInspection.itemKey
+      );
 
       if (!targetCopy) {
         return currentCharacter;
@@ -1217,7 +1301,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     }
 
     onPersistCharacter((currentCharacter) => {
-      const targetCopy = findFirstInventoryCopyByKey(
+      const targetCopy = findAvailableInventoryCopyByKey(
         currentCharacter.inventoryItems,
         selectedInventoryInspection.itemKey
       );
@@ -1226,24 +1310,61 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         return currentCharacter;
       }
 
+      const clearedCharacter = clearCharacterHandOccupants(currentCharacter);
+
       return {
-        ...currentCharacter,
-        equipment: currentCharacter.equipment.map((entry) => ({
-          ...entry,
-          onHand: false
-        })),
-        inventoryItems: currentCharacter.inventoryItems.map((entry) => ({
+        ...clearedCharacter,
+        inventoryItems: clearedCharacter.inventoryItems.map((entry) => ({
           ...entry,
           onHand: entry.id === targetCopy.id
-        })),
-        customEquipment: currentCharacter.customEquipment.map((entry) =>
-          entry.kind === "weapon"
-            ? {
-                ...entry,
-                onHand: false
-              }
-            : entry
-        )
+        }))
+      };
+    });
+  }
+
+  function toggleSelectedInventoryItemDualOnHand() {
+    if (
+      !selectedInventoryInspection?.itemKey ||
+      !selectedInventoryGroup ||
+      !shouldShowInventoryDualAction ||
+      selectedInventoryOnHandCount >= 2
+    ) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const targetCopyIds = getPreferredInventoryCopiesByKey(
+        currentCharacter.inventoryItems,
+        selectedInventoryInspection.itemKey,
+        2
+      ).map((entry) => entry.id);
+
+      if (targetCopyIds.length < 2) {
+        return currentCharacter;
+      }
+
+      if (canSelectedInventoryBeDualEquipped) {
+        return {
+          ...currentCharacter,
+          inventoryItems: currentCharacter.inventoryItems.map((entry) =>
+            targetCopyIds.includes(entry.id)
+              ? {
+                  ...entry,
+                  onHand: true
+                }
+              : entry
+          )
+        };
+      }
+
+      const clearedCharacter = clearCharacterHandOccupants(currentCharacter);
+
+      return {
+        ...clearedCharacter,
+        inventoryItems: clearedCharacter.inventoryItems.map((entry) => ({
+          ...entry,
+          onHand: targetCopyIds.includes(entry.id)
+        }))
       };
     });
   }
@@ -1318,10 +1439,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
               {
                 key: "hand",
                 label: isSelectedInventoryOnHand
-                  ? "Remove from Hand"
+                  ? "Unequip"
                   : shouldOfferInventoryHandSwap
-                    ? "Swap to Hand"
-                    : "Put on Hand",
+                    ? "Swap"
+                    : "Equip",
                 icon: Hand,
                 disabled:
                   !isSelectedInventoryOnHand &&
@@ -1330,14 +1451,27 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                 onClick: shouldOfferInventoryHandSwap
                   ? swapSelectedInventoryItemToHand
                   : toggleSelectedInventoryItemOnHand
-              }
+              },
+              ...(shouldShowInventoryDualAction
+                ? [
+                    {
+                      key: "dual",
+                      label: "Dual",
+                      icon: Hand,
+                      disabled:
+                        selectedInventoryOnHandCount >= 2 ||
+                        (!canSelectedInventoryBeDualEquipped && !shouldOfferInventoryDualSwap),
+                      onClick: toggleSelectedInventoryItemDualOnHand
+                    }
+                  ]
+                : [])
             ]
           : []),
         ...(selectedInventoryGroup && isItemBodyArmorRecord(selectedInventoryGroup.item)
           ? [
               {
                 key: "armor",
-                label: isSelectedInventoryArmorWorn ? "Remove Armor" : "Wear Armor",
+                label: isSelectedInventoryArmorWorn ? "DOFF" : "DON",
                 icon: Shield,
                 onClick: toggleSelectedInventoryArmorWorn
               }
@@ -1413,6 +1547,13 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       ownedCount={selectedInventoryCount}
     />
   ) : null;
+  const inventoryDrawerHeaderContent = selectedInventoryRecord ? (
+    <EquipmentInventoryItemDrawerHeader
+      item={selectedInventoryRecord}
+      onHandCount={selectedInventoryOnHandCount}
+      worn={isSelectedInventoryArmorWorn}
+    />
+  ) : undefined;
 
   return (
     <article className={clsx(shared.sectionCard, className)}>
@@ -1556,10 +1697,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                               <span className={styles.equipmentItemName}>
                                 {formatInventoryStackName(entry.item)}
                               </span>
-                              {entry.item.onHand ? (
+                              {entry.item.onHandCount > 0 ? (
                                 <span className={styles.equipmentItemOnHand}>
                                   <Hand size={13} aria-hidden="true" />
-                                  <span>On Hand</span>
+                                  <span>{formatOnHandLabel(entry.item.onHandCount)}</span>
                                 </span>
                               ) : null}
                               {entry.item.worn ? (
@@ -1969,10 +2110,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                       >
                         <Hand size={15} aria-hidden="true" />
                         {isSelectedEntryOnHand
-                          ? "Remove from Hand"
+                          ? "Unequip"
                           : shouldOfferHandSwap
-                            ? "Swap to Hand"
-                            : "Put on Hand"}
+                            ? "Swap"
+                            : "Equip"}
                       </button>
                     </>
                   ) : null}
@@ -1984,7 +2125,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                       onClick={toggleArmorWorn}
                     >
                       <Shield size={15} aria-hidden="true" />
-                      {isSelectedArmorWorn ? "Remove Armor" : "Wear Armor"}
+                      {isSelectedArmorWorn ? "DOFF" : "DON"}
                     </button>
                   ) : null}
                   {selectedLoadoutEntry.customEquipmentId ? (
@@ -2031,6 +2172,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           item={selectedInventoryRecord}
           status={selectedInventoryItemStatus}
           onClose={closeInventoryItemDrawer}
+          headerContent={inventoryDrawerHeaderContent}
           footer={inventoryDrawerFooter}
         />
       ) : null}

@@ -5,6 +5,7 @@ import {
   OverlayBody,
   OverlayCloseButton,
   OverlayEyebrow,
+  OverlayFooter,
   OverlayHeader,
   OverlayHeaderContent,
   OverlaySummary,
@@ -61,9 +62,10 @@ function HeroicInspirationWidget({ character, onPersistCharacter }: HeroicInspir
           hasHeroicInspiration && styles.buttonActive
         )}
         onClick={() => setIsOpen(true)}
+        aria-label={HEROIC_INSPIRATION_TITLE}
+        title={HEROIC_INSPIRATION_TITLE}
       >
         <HeroicInspirationStar isActive={hasHeroicInspiration} />
-        <span>Heroic Inspiration</span>
       </button>
 
       {isOpen ? (
@@ -80,10 +82,7 @@ function HeroicInspirationWidget({ character, onPersistCharacter }: HeroicInspir
                 Track whether this character currently has Heroic Inspiration ready to spend.
               </OverlaySummary>
             </OverlayHeaderContent>
-            <OverlayCloseButton
-              label="Close Heroic Inspiration"
-              onClick={() => setIsOpen(false)}
-            />
+            <OverlayCloseButton label="Close Heroic Inspiration" onClick={() => setIsOpen(false)} />
           </OverlayHeader>
 
           <OverlayBody className={styles.body}>
@@ -94,7 +93,7 @@ function HeroicInspirationWidget({ character, onPersistCharacter }: HeroicInspir
             ))}
           </OverlayBody>
 
-          <div className={styles.footer}>
+          <OverlayFooter className={styles.footer}>
             <button
               type="button"
               role="switch"
@@ -130,7 +129,7 @@ function HeroicInspirationWidget({ character, onPersistCharacter }: HeroicInspir
                 <span>{hasHeroicInspiration ? "Ready" : "Empty"}</span>
               </span>
             </button>
-          </div>
+          </OverlayFooter>
         </SheetModal>
       ) : null}
     </>

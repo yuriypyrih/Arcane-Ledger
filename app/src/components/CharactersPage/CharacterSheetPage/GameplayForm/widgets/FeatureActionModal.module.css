@@ -17,11 +17,6 @@
   width: 100%;
 }
 
-.featureActionOptionButtonSelected {
-  background: rgba(47, 120, 255, 0.12);
-  border-color: rgba(47, 120, 255, 0.42);
-}
-
 .featureActionHelperTextAccent {
   color: #25508d;
   font-weight: 700;

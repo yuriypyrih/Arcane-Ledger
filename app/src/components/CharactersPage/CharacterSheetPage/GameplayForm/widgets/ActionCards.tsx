@@ -1,8 +1,9 @@
 import clsx from "clsx";
-import { Brain, Check, Flame, Hexagon, Music, PawPrint, Sparkles } from "lucide-react";
+import { Brain, Flame, Hexagon, Music, PawPrint, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import ActionShape from "../../../../ActionShape";
 import FeatureTrackingBadgeButton from "../../../../FeatureDisclosure/FeatureTrackingBadgeButton";
+import RadioContainerOption from "../../RadioContainerOption";
 import type { Character } from "../../../../../types";
 import type {
   FeatureActionCard,
@@ -27,7 +28,6 @@ import animaIcon from "../../../../../assets/svg/anima.svg";
 import pyromancyIcon from "../../../../../assets/svg/pyromancy.svg";
 import styles from "./ActionCards.module.css";
 import modalStyles from "./FeatureActionModal.module.css";
-import RadioOption from "./RadioOption";
 
 type RoundTrackerAvailability = {
   actionAvailable: boolean;
@@ -368,7 +368,7 @@ type FeatureActionOptionButtonProps = {
   onClick: () => void;
   formatValueLabel: (option: FeatureActionOptionCard) => string;
   selected?: boolean;
-  selectionIndicatorType?: "radio" | "checkbox" | null;
+  selectionIndicatorType?: "radio" | "checkbox";
   selectionName?: string;
 };
 
@@ -379,7 +379,7 @@ export function FeatureActionOptionButton({
   onClick,
   formatValueLabel,
   selected = false,
-  selectionIndicatorType = null,
+  selectionIndicatorType = "radio",
   selectionName
 }: FeatureActionOptionButtonProps) {
   const actionShape = getActionShapeForEconomyType(option.economyType);
@@ -399,98 +399,47 @@ export function FeatureActionOptionButton({
   const breakdownLabel =
     option.disabledReason ?? economyShapeState.disabledReason ?? option.breakdown ?? option.summary;
 
-  if (selectionIndicatorType === "radio") {
-    return (
-      <RadioOption
-        header={option.name}
-        description={
-          <>
-            <span className={styles.optionChoiceDetails}>
-              <span
-                className={clsx(
-                  styles.optionChoiceValue,
-                  option.usesLabel && styles.featureMeta,
-                  option.usesIcon && styles.featureMetaWithIcon
-                )}
-              >
-                {valueLabel}
-              </span>
-              {breakdownLabel ? (
-                <span className={styles.optionChoiceBreakdown}>{breakdownLabel}</span>
-              ) : null}
-            </span>
-          </>
-        }
-        isSelected={selected}
-        onSelect={onClick}
-        name={selectionName}
-        disabled={isDisabled}
-        aside={
-          actionShape ? (
-            <ActionShape
-              shape={actionShape}
-              isSelected={economyShapeState.isAvailable}
-              multiCount={economyShapeState.multiCount}
-              size="small"
-            />
-          ) : undefined
-        }
-      />
-    );
-  }
-
   return (
-    <button
-      type="button"
-      className={clsx(
-        styles.button,
-        styles.actionCard,
-        economyShapeState.multiCount > 0 && styles.actionCardMulti,
-        modalStyles.featureActionOptionButton,
-        selected && styles.optionCardSelected,
-        selected && modalStyles.featureActionOptionButtonSelected
-      )}
+    <RadioContainerOption
+      header={option.name}
+      subheader={
+        valueLabel ? (
+          <span
+            className={clsx(
+              styles.optionChoiceValue,
+              option.usesLabel && styles.featureMeta,
+              option.usesIcon && styles.featureMetaWithIcon
+            )}
+          >
+            {valueLabel}
+          </span>
+        ) : undefined
+      }
+      breakdown={
+        breakdownLabel ? (
+          <span className={styles.optionChoiceBreakdown}>{breakdownLabel}</span>
+        ) : undefined
+      }
+      selected={selected}
+      onSelect={onClick}
+      name={selectionName}
       disabled={isDisabled}
-      onClick={onClick}
-      aria-checked={selectionIndicatorType === "checkbox" ? selected : undefined}
-      role={selectionIndicatorType === "checkbox" ? "checkbox" : undefined}
-    >
-      {actionShape ? (
-        <span className={styles.shapeBadge} aria-hidden="true">
+      indicatorType={selectionIndicatorType}
+      className={clsx(
+        economyShapeState.multiCount > 0 && styles.actionCardMulti,
+        modalStyles.featureActionOptionButton
+      )}
+      actionBadge={
+        actionShape ? (
           <ActionShape
             shape={actionShape}
             isSelected={economyShapeState.isAvailable}
             multiCount={economyShapeState.multiCount}
             size="small"
           />
-        </span>
-      ) : null}
-      <span className={styles.optionCardHeader}>
-        {selectionIndicatorType === "checkbox" ? (
-          <span
-            className={clsx(
-              styles.optionSelectionIndicator,
-              selected && styles.optionSelectionIndicatorSelected,
-              isDisabled && styles.optionSelectionIndicatorDisabled
-            )}
-            aria-hidden="true"
-          >
-            <Check size={12} strokeWidth={2.8} />
-          </span>
-        ) : null}
-        <strong>{option.name}</strong>
-      </span>
-      <span
-        className={clsx(
-          styles.damageRow,
-          option.usesLabel && styles.featureMeta,
-          option.usesIcon && styles.featureMetaWithIcon
-        )}
-      >
-        {valueLabel}
-      </span>
-      <small className={styles.breakdownRow}>{breakdownLabel}</small>
-    </button>
+        ) : undefined
+      }
+    />
   );
 }
 
@@ -510,10 +459,10 @@ export function FeatureActionChoiceRow({
   const isDisabled = option.disabled === true;
 
   return (
-    <RadioOption
+    <RadioContainerOption
       header={option.name}
-      description={option.disabledReason ?? option.detail}
-      isSelected={selected}
+      breakdown={option.disabledReason ?? option.detail}
+      selected={selected}
       onSelect={onClick}
       name={groupName}
       disabled={isDisabled}

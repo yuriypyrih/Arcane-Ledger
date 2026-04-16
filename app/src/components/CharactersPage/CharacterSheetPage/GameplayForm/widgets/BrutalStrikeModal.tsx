@@ -3,9 +3,9 @@ import type {
   FeatureActionOptionCard
 } from "../../../../../pages/CharactersPage/classFeatures";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import RadioContainerOption from "../../RadioContainerOption";
 import FeatureActionOptionsModal from "./FeatureActionOptionsModal";
 import styles from "./FeatureActionModal.module.css";
-import RadioOption from "./RadioOption";
 
 type BrutalStrikeModalProps = {
   action: FeatureActionCard;
@@ -54,11 +54,11 @@ function BrutalStrikeModal({
           selectedOptionKeys.length >= selectionLimit;
 
         return (
-          <RadioOption
+          <RadioContainerOption
             key={option.key}
             header={option.name}
-            description={option.detail}
-            isSelected={isSelected}
+            breakdown={option.detail}
+            selected={isSelected}
             indicatorType={allowsMultipleSelections ? "checkbox" : "radio"}
             disabled={isSelectionLimitReached}
             onSelect={() => onSelectOption(option.key)}

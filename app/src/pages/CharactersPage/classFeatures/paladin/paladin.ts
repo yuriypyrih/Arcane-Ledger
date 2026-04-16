@@ -577,6 +577,7 @@ export function getPaladinFeatureActions(
   const featureActions: FeatureActionCard[] = [];
 
   if (hasPaladinFeature(character, CLASS_FEATURE.LAY_ON_HANDS)) {
+    const totalPool = getPaladinHealingPoolTotal(character);
     const remainingPool = getPaladinHealingPoolRemaining(character);
 
     featureActions.push({
@@ -588,6 +589,7 @@ export function getPaladinFeatureActions(
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
       interaction: "select",
+      valueLabel: `Pool of Healing ${remainingPool}/${totalPool}`,
       facts: [
         {
           label: "Pool Remaining",

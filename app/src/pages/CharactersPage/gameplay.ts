@@ -46,7 +46,6 @@ import {
 import {
   createHeldShieldDescriptor,
   createHeldWeaponDescriptor,
-  getHeldWeaponSlotCount,
   hasVersatileHandBonus,
   type HeldWeaponDescriptor
 } from "./inventory";
@@ -55,9 +54,7 @@ import { isMonkWeapon } from "./monkWeapons";
 import { normalizeCharacterFeats } from "./feats";
 import {
   createHeldDescriptorForInventoryItem,
-  getItemWeaponDamage,
-  getItemWeaponProperties,
-  getItemWeaponType,
+  getAdaptedItemWeapon,
   isItemShieldRecord
 } from "./inventoryItems";
 import {
@@ -170,6 +167,10 @@ const codexWeaponEntriesByName = new Map<string, WeaponEntry>(
 const codexClassEntriesByName = new Map<string, ClassEntry>(
   getClassEntries().map((entry) => [entry.name, entry])
 );
+
+const unarmedStrikeDescription: SpellDescriptionEntry[] = [
+  "An Unarmed Strike is a melee attack made without a weapon, using your body (such as a punch, kick, or headbutt). On a hit, it deals bludgeoning damage equal to 1 + your Strength modifier, unless modified by a feature. It counts as a melee weapon attack for rules and effects."
+];
 
 function getWeaponAbilityRule(weapon: Pick<WeaponEntry, "type" | "properties">): WeaponAbilityRule {
   if (weapon.type.combat === WEAPON_COMBAT_TYPE.RANGED) {
@@ -392,26 +393,28 @@ function getWeaponReference(
 function getWeaponReferenceFromItemRecord(
   item: Character["inventoryItems"][number]["item"],
   options?: {
+    useVersatileDamage?: boolean;
     applyGreatWeaponFighting?: boolean;
     damageOverride?: WeaponDamage;
     abilityRuleOverride?: WeaponAbilityRule;
   }
 ): WeaponReference | null {
-  const type = getItemWeaponType(item);
-  const damage = options?.damageOverride ?? getItemWeaponDamage(item);
+  const adaptedWeapon = getAdaptedItemWeapon(item);
+  const damage = options?.damageOverride ?? adaptedWeapon?.damage;
 
-  if (!type || !damage) {
+  if (!adaptedWeapon || !damage) {
     return null;
   }
 
   return getWeaponReferenceFromEntry(
     {
-      type,
+      type: adaptedWeapon.type,
       damage,
-      properties: getItemWeaponProperties(item),
-      versatileDamage: undefined
+      properties: adaptedWeapon.properties,
+      versatileDamage: adaptedWeapon.versatileDamage ?? undefined
     },
     {
+      useVersatileDamage: options?.useVersatileDamage,
       applyGreatWeaponFighting: options?.applyGreatWeaponFighting,
       damageOverride: options?.damageOverride,
       abilityRuleOverride: options?.abilityRuleOverride
@@ -790,27 +793,30 @@ function createUnarmedStrikeAction(
   const damageTypeLabel =
     unarmedStrikeConfig?.damageTypeLabel ?? getMonkUnarmedDamageTypeLabelForCharacter(character);
 
-  return createWeaponAction(character, {
-    key: "unarmed-strike",
-    name: "Unarmed Strike",
-    attackKind: "unarmed",
-    combatType: null,
-    properties: [],
-    damageLabel: `${damageFormula} ${damageTypeLabel}`,
-    damageFormula,
-    rollFormulaBase: damageFormula,
-    ability,
-    abilityModifier,
-    damageAbility,
-    damageAbilityModifier,
-    proficiencyLabel: "Unarmed strike",
-    proficiencyBonus: 0,
-    economyType: options?.economyType,
-    economyMultiCount: options?.economyMultiCount,
-    hasVersatileBonus: false,
-    hasGreatWeaponFighting: false,
-    hasMartialArtsDamageDie: Boolean(options?.martialArtsDie)
-  });
+  return {
+    ...createWeaponAction(character, {
+      key: "unarmed-strike",
+      name: "Unarmed Strike",
+      attackKind: "unarmed",
+      combatType: WEAPON_COMBAT_TYPE.MELEE,
+      properties: [],
+      damageLabel: `${damageFormula} ${damageTypeLabel}`,
+      damageFormula,
+      rollFormulaBase: damageFormula,
+      ability,
+      abilityModifier,
+      damageAbility,
+      damageAbilityModifier,
+      proficiencyLabel: "Unarmed strike",
+      proficiencyBonus: 0,
+      economyType: options?.economyType,
+      economyMultiCount: options?.economyMultiCount,
+      hasVersatileBonus: false,
+      hasGreatWeaponFighting: false,
+      hasMartialArtsDamageDie: Boolean(options?.martialArtsDie)
+    }),
+    description: unarmedStrikeDescription
+  };
 }
 
 export function getWeaponActionsForCharacter(character: Character): WeaponAction[] {
@@ -831,17 +837,16 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
   }, []);
   const heldInventoryWeaponEntries = heldInventoryWeapons
     .map((entry) => {
-      const type = getItemWeaponType(entry.item);
-      const damage = getItemWeaponDamage(entry.item);
+      const adaptedWeapon = getAdaptedItemWeapon(entry.item);
 
-      if (!type || !damage) {
+      if (!adaptedWeapon?.damage) {
         return null;
       }
 
       return {
-        type,
-        damage,
-        properties: getItemWeaponProperties(entry.item)
+        type: adaptedWeapon.type,
+        damage: adaptedWeapon.damage,
+        properties: adaptedWeapon.properties
       };
     })
     .filter(
@@ -887,7 +892,6 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
     ...heldInventoryWeaponDescriptors,
     ...heldCustomWeaponDescriptors
   ];
-  const hasFreeHand = getHeldWeaponSlotCount(heldWeaponDescriptors) < 2;
   const hasShieldEquipped = heldCodexWeapons.some((item) => {
     const equipmentDefinition = getEquipmentByName(item.name);
     return equipmentDefinition?.category === "armor" && equipmentDefinition.type === "shield";
@@ -1047,9 +1051,25 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
   }, []);
   const inventoryWeaponActions = heldInventoryWeapons.reduce<WeaponAction[]>(
     (actions, inventoryItem) => {
-      const weaponType = getItemWeaponType(inventoryItem.item);
-      const weaponProperties = getItemWeaponProperties(inventoryItem.item);
-      const baseDamage = getItemWeaponDamage(inventoryItem.item);
+      const adaptedWeapon = getAdaptedItemWeapon(inventoryItem.item);
+      const weaponDescriptor = createHeldDescriptorForInventoryItem(
+        `inventory-${inventoryItem.id}`,
+        inventoryItem.item
+      );
+      const weaponType = adaptedWeapon?.type ?? null;
+      const weaponProperties = adaptedWeapon?.properties ?? [];
+      const useVersatileDamage =
+        weaponDescriptor !== null ? hasVersatileHandBonus(weaponDescriptor, heldWeaponDescriptors) : false;
+      const baseDamage =
+        adaptedWeapon?.damage
+          ? getSelectedWeaponDamage(
+              {
+                damage: adaptedWeapon.damage,
+                versatileDamage: adaptedWeapon.versatileDamage ?? undefined
+              },
+              { useVersatileDamage }
+            )
+          : null;
       const isEligibleMonkWeapon =
         monkMartialArtsActive &&
         weaponType &&
@@ -1062,6 +1082,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
           ? applyMartialArtsDamageDie(baseDamage, monkMartialArtsDie)
           : null;
       const weaponReference = getWeaponReferenceFromItemRecord(inventoryItem.item, {
+        useVersatileDamage,
         applyGreatWeaponFighting: hasGreatWeaponFighting,
         damageOverride: monkDamageAdjustment?.damage,
         abilityRuleOverride:
@@ -1113,15 +1134,11 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
   const featureWeaponActions = getFeatureWeaponActionsForCharacter(character);
   const resolvedWeaponActions = [
     ...featureWeaponActions,
-    ...(hasFreeHand
-      ? [
-          createUnarmedStrikeAction(character, {
-            martialArtsDie: monkMartialArtsActive ? monkMartialArtsDie : null,
-            economyType: monkMartialArtsActive ? ECONOMY_TYPE.BONUS_ACTION : ECONOMY_TYPE.ACTION,
-            economyMultiCount: monkMartialArtsActive ? monkUnarmedStrikeMulti : undefined
-          })
-        ]
-      : []),
+    createUnarmedStrikeAction(character, {
+      martialArtsDie: monkMartialArtsActive ? monkMartialArtsDie : null,
+      economyType: monkMartialArtsActive ? ECONOMY_TYPE.BONUS_ACTION : ECONOMY_TYPE.ACTION,
+      economyMultiCount: monkMartialArtsActive ? monkUnarmedStrikeMulti : undefined
+    }),
     ...codexWeaponActions,
     ...inventoryWeaponActions,
     ...customWeaponActions

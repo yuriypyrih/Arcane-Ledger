@@ -10,7 +10,6 @@ import BardicInspirationWidget from "./widgets/BardicInspirationWidget";
 import DivinityPointsWidget from "./widgets/DivinityPointsWidget";
 import HeroicInspirationWidget from "./widgets/HeroicInspirationWidget";
 import HealingLightDiceWidget from "./widgets/HealingLightDiceWidget";
-import PoolOfHealingWidget from "./widgets/PoolOfHealingWidget";
 import FocusPointsWidget from "./widgets/FocusPointsWidget";
 import PsiEnergyDiceWidget from "./widgets/PsiEnergyDiceWidget";
 import RagePointsWidget from "./widgets/RagePointsWidget";
@@ -90,9 +89,8 @@ function GameplayForm({
           </button>
         </div>
         <div className={styles.gameplayHeaderControls}>
-          <PoolOfHealingWidget character={character} />
-          <HealingLightDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
           <HeroicInspirationWidget character={character} onPersistCharacter={onPersistCharacter} />
+          <HealingLightDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
           <RagePointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <FocusPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <PsiEnergyDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
@@ -111,10 +109,7 @@ function GameplayForm({
       </div>
 
       <div className={styles.dashboardGrid}>
-        <HitPointsCluster
-          character={character}
-          onQueueCharacterSave={onQueueHitPointCharacter}
-        />
+        <HitPointsCluster character={character} onQueueCharacterSave={onQueueHitPointCharacter} />
 
         <ActionsWidget character={character} onPersistCharacter={onPersistCharacter} />
 

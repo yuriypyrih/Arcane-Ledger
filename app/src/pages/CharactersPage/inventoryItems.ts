@@ -1,16 +1,15 @@
 import {
   CURRENCY_TYPE,
-  DAMAGE_TYPE,
-  DICE,
-  WEAPON_COMBAT_TYPE,
-  WEAPON_PROPERTY,
-  WEAPON_TRAINING,
   type EquipmentCost,
   type WeaponDamage,
   type WeaponType
 } from "../../codex/entries";
 import type { CharacterInventoryItem, CurrencyKey, ItemRecord } from "../../types";
 import { parseItemCost } from "../../utils/items/cost";
+import {
+  adaptItemWeapon,
+  type AdaptedItemWeaponRecord
+} from "../../utils/items/adaptItemWeapon";
 import type { HeldWeaponDescriptor } from "./inventory";
 
 export type GroupedInventoryItem = {
@@ -20,49 +19,12 @@ export type GroupedInventoryItem = {
   copies: CharacterInventoryItem[];
   count: number;
   onHand: boolean;
+  onHandCount: number;
   worn: boolean;
 };
 
 type InventoryTransactionCost = EquipmentCost & {
   currencyKey: CurrencyKey;
-};
-
-const damageTypeByKey: Partial<Record<string, DAMAGE_TYPE>> = {
-  acid: DAMAGE_TYPE.ACID,
-  bludgeoning: DAMAGE_TYPE.BLUDGEONING,
-  cold: DAMAGE_TYPE.COLD,
-  fire: DAMAGE_TYPE.FIRE,
-  force: DAMAGE_TYPE.FORCE,
-  lightning: DAMAGE_TYPE.LIGHTNING,
-  necrotic: DAMAGE_TYPE.NECROTIC,
-  piercing: DAMAGE_TYPE.PIERCING,
-  poison: DAMAGE_TYPE.POISON,
-  psychic: DAMAGE_TYPE.PSYCHIC,
-  radiant: DAMAGE_TYPE.RADIANT,
-  slashing: DAMAGE_TYPE.SLASHING,
-  thunder: DAMAGE_TYPE.THUNDER
-};
-
-const weaponPropertyByName: Partial<Record<string, WEAPON_PROPERTY>> = {
-  Ammunition: WEAPON_PROPERTY.AMMUNITION,
-  Finesse: WEAPON_PROPERTY.FINESSE,
-  Heavy: WEAPON_PROPERTY.HEAVY,
-  Light: WEAPON_PROPERTY.LIGHT,
-  Loading: WEAPON_PROPERTY.LOADING,
-  Range: WEAPON_PROPERTY.RANGE,
-  Reach: WEAPON_PROPERTY.REACH,
-  Thrown: WEAPON_PROPERTY.THROWN,
-  "Two-Handed": WEAPON_PROPERTY.TWO_HANDED,
-  Versatile: WEAPON_PROPERTY.VERSATILE
-};
-
-const diceBySides: Record<string, DICE> = {
-  "4": DICE.D4,
-  "6": DICE.D6,
-  "8": DICE.D8,
-  "10": DICE.D10,
-  "12": DICE.D12,
-  "20": DICE.D20
 };
 
 const currencyKeyByType: Record<CURRENCY_TYPE, CurrencyKey> = {
@@ -72,19 +34,6 @@ const currencyKeyByType: Record<CURRENCY_TYPE, CurrencyKey> = {
   [CURRENCY_TYPE.GP]: "gold",
   [CURRENCY_TYPE.PP]: "platinum"
 };
-
-const rangedWeaponNames = new Set([
-  "Blowgun",
-  "Dart",
-  "Hand Crossbow",
-  "Heavy Crossbow",
-  "Light Crossbow",
-  "Longbow",
-  "Musket",
-  "Pistol",
-  "Shortbow",
-  "Sling"
-]);
 
 function createInventoryItemId() {
   if (typeof globalThis.crypto?.randomUUID === "function") {
@@ -238,6 +187,7 @@ export function groupCharacterInventoryItems(
       copies,
       count: copies.length,
       onHand: copies.some((copy) => copy.onHand),
+      onHandCount: copies.filter((copy) => copy.onHand).length,
       worn: copies.some((copy) => copy.worn)
     }))
     .sort((left, right) => left.name.localeCompare(right.name));
@@ -307,73 +257,34 @@ export function getItemArmorType(item: ItemRecord): "light" | "medium" | "heavy"
   return null;
 }
 
-export function getItemWeaponProperties(item: ItemRecord): WEAPON_PROPERTY[] {
-  if (!item.weapon) {
-    return [];
-  }
-
-  return item.weapon.properties
-    .map((entry) => weaponPropertyByName[entry.property.name])
-    .filter((value): value is WEAPON_PROPERTY => value !== undefined);
+export function getAdaptedItemWeapon(item: ItemRecord): AdaptedItemWeaponRecord | null {
+  return adaptItemWeapon(item);
 }
 
-export function inferItemWeaponCombatType(item: ItemRecord): WEAPON_COMBAT_TYPE | null {
-  const weapon = item.weapon;
-
-  if (!weapon) {
-    return null;
-  }
-
-  const propertyNames = weapon.properties.map((entry) => entry.property.name);
-
-  if (propertyNames.includes("Ammunition") || rangedWeaponNames.has(weapon.name)) {
-    return WEAPON_COMBAT_TYPE.RANGED;
-  }
-
-  return WEAPON_COMBAT_TYPE.MELEE;
+export function getItemWeaponProperties(item: ItemRecord) {
+  return getAdaptedItemWeapon(item)?.properties ?? [];
 }
 
 export function getItemWeaponType(item: ItemRecord): WeaponType | null {
-  if (!item.weapon) {
-    return null;
-  }
-
-  return {
-    training: item.weapon.is_martial ? WEAPON_TRAINING.MARTIAL : WEAPON_TRAINING.SIMPLE,
-    combat: inferItemWeaponCombatType(item) ?? WEAPON_COMBAT_TYPE.MELEE
-  };
+  return getAdaptedItemWeapon(item)?.type ?? null;
 }
 
 export function getItemWeaponDamage(item: ItemRecord): WeaponDamage | null {
-  const damageDice = item.weapon?.damage_dice?.trim();
-  const damageTypeKey = item.weapon?.damage_type?.key;
-  const match = damageDice?.match(/^(\d+)d(4|6|8|10|12|20)$/i);
-
-  if (!match || !damageTypeKey) {
-    return null;
-  }
-
-  const count = Number(match[1]);
-  const die = diceBySides[match[2]];
-  const damageType = damageTypeByKey[damageTypeKey];
-
-  if (!count || !die || !damageType) {
-    return null;
-  }
-
-  return Array.from({ length: count }, () => [die, damageType] as WeaponDamage[number]);
+  return getAdaptedItemWeapon(item)?.damage ?? null;
 }
 
 export function createHeldDescriptorForInventoryItem(
   key: string,
   item: ItemRecord
 ): HeldWeaponDescriptor | null {
-  if (item.weapon) {
-    const properties = getItemWeaponProperties(item);
+  const adaptedWeapon = getAdaptedItemWeapon(item);
+
+  if (adaptedWeapon) {
     return {
       key,
-      properties,
-      handSlots: properties.includes(WEAPON_PROPERTY.TWO_HANDED) ? 2 : 1
+      properties: adaptedWeapon.properties,
+      versatileDamage: adaptedWeapon.versatileDamage ?? undefined,
+      handSlots: adaptedWeapon.handSlots
     };
   }
 
@@ -432,9 +343,34 @@ export function findHeldInventoryCopyByKey(
   inventoryItems: CharacterInventoryItem[],
   itemKey: string
 ): CharacterInventoryItem | null {
+  return findHeldInventoryCopiesByKey(inventoryItems, itemKey)[0] ?? null;
+}
+
+export function findHeldInventoryCopiesByKey(
+  inventoryItems: CharacterInventoryItem[],
+  itemKey: string
+): CharacterInventoryItem[] {
+  return inventoryItems.filter((entry) => getItemRecordKey(entry.item) === itemKey && entry.onHand);
+}
+
+export function findAvailableInventoryCopyByKey(
+  inventoryItems: CharacterInventoryItem[],
+  itemKey: string
+): CharacterInventoryItem | null {
   return inventoryItems.find(
-    (entry) => getItemRecordKey(entry.item) === itemKey && entry.onHand
+    (entry) => getItemRecordKey(entry.item) === itemKey && !entry.onHand
   ) ?? null;
+}
+
+export function getPreferredInventoryCopiesByKey(
+  inventoryItems: CharacterInventoryItem[],
+  itemKey: string,
+  count: number
+): CharacterInventoryItem[] {
+  return [...inventoryItems]
+    .filter((entry) => getItemRecordKey(entry.item) === itemKey)
+    .sort((left, right) => Number(right.onHand) - Number(left.onHand))
+    .slice(0, Math.max(0, count));
 }
 
 export function findWornInventoryCopyByKey(

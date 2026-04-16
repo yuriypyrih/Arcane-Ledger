@@ -260,7 +260,7 @@ import {
 } from "./FighterSecondWindAction";
 import HealingLightActionBody from "./HealingLightActionBody";
 import PortentActionBody from "./PortentActionBody";
-import RadioOption from "./RadioOption";
+import RadioContainerOption from "../../RadioContainerOption";
 import { SorcererInnateSorceryActionFooter } from "./SorcererInnateSorceryAction";
 import ThirdEyeActionBody from "./ThirdEyeActionBody";
 import { WarlockAwakenedMindActionFooter } from "./WarlockAwakenedMindAction";
@@ -469,13 +469,9 @@ function FeatureOptionsActionBody({
               roundTracker={roundTracker}
               selected={isSelected}
               selectionIndicatorType={
-                selection === "single-immediate"
-                  ? "radio"
-                  : selection === "multi-confirm"
-                    ? "checkbox"
-                    : null
+                selection === "multi-confirm" ? "checkbox" : "radio"
               }
-              selectionName={selection === "single-immediate" ? action.action.key : undefined}
+              selectionName={selection === "multi-confirm" ? undefined : action.action.key}
               onClick={() => onToggleOption(option)}
               formatValueLabel={formatFeatureActionOptionValueLabel}
             />
@@ -1087,10 +1083,10 @@ function RageActionBody({
               Choose whether to empower this Rage with your divine warrior form.
             </p>
           </div>
-          <RadioOption
+          <RadioContainerOption
             header="Use Rage of the Gods"
-            description="You can assume the form of a divine Warrior for a minute."
-            isSelected={isRageOfTheGodsSelected}
+            breakdown="You can assume the form of a divine Warrior for a minute."
+            selected={isRageOfTheGodsSelected}
             onSelect={() => onToggleRageOfTheGods(!isRageOfTheGodsSelected)}
             disabled={rageOfTheGodsUsesRemaining <= 0}
             indicatorType="checkbox"
@@ -1135,11 +1131,11 @@ function BrutalStrikeActionBody({
             !isSelected && selectionLimit > 0 && selectedOptionKeys.length >= selectionLimit;
 
           return (
-            <RadioOption
+            <RadioContainerOption
               key={option.key}
               header={option.name}
-              description={option.detail}
-              isSelected={isSelected}
+              breakdown={option.detail}
+              selected={isSelected}
               indicatorType={allowsMultipleSelections ? "checkbox" : "radio"}
               disabled={isSelectionLimitReached}
               onSelect={() =>
@@ -1332,15 +1328,18 @@ function WildShapeActionBody({
   return (
     <div className={styles.wildShapeBody}>
       {monsters.map((monster) => (
-        <RadioOption
+        <RadioContainerOption
           key={monster.slug}
           name="wild-shape-monster"
           header={monster.name}
-          description={formatWildShapeMonsterMeta(monster)}
-          isSelected={selectedMonsterSlug === monster.slug}
+          breakdown={
+            <span className={styles.wildShapeOptionDescription}>
+              {formatWildShapeMonsterMeta(monster)}
+            </span>
+          }
+          selected={selectedMonsterSlug === monster.slug}
           onSelect={() => onSelectMonster(monster.slug)}
           className={styles.wildShapeOption}
-          descriptionClassName={styles.wildShapeOptionDescription}
           aside={
             <button
               type="button"
@@ -1383,23 +1382,23 @@ function WildCompanionActionBody({
 
   return (
     <div className={styles.wildCompanionBody}>
-      <RadioOption
+      <RadioContainerOption
         name="wild-companion-resource"
         header="Use 1 Wild Shape"
-        description={`${wildShapeUsesRemaining}/${wildShapeUsesTotal} uses remaining`}
-        isSelected={selectedResource === "wild-shape"}
+        subheader={`${wildShapeUsesRemaining}/${wildShapeUsesTotal} uses remaining`}
+        selected={selectedResource === "wild-shape"}
         onSelect={() => onSelectResource("wild-shape")}
         disabled={wildShapeUsesRemaining <= 0}
       />
-      <RadioOption
+      <RadioContainerOption
         name="wild-companion-resource"
         header="Use Spell Slot"
-        description={
+        breakdown={
           hasAvailableSpellSlots
             ? `${availableSpellSlotOptions.reduce((sum, slot) => sum + slot.remaining, 0)} spell slots available`
             : "No spell slots available"
         }
-        isSelected={selectedResource === "spell-slot"}
+        selected={selectedResource === "spell-slot"}
         onSelect={() => onSelectResource("spell-slot")}
         disabled={!hasAvailableSpellSlots}
       />
@@ -1447,12 +1446,12 @@ function NatureMagicianActionBody({
   return (
     <div className={styles.natureMagicianBody}>
       {options.map((option) => (
-        <RadioOption
+        <RadioContainerOption
           key={`nature-magician-${option.wildShapeCost}`}
           name="nature-magician-option"
           header={`Use ${option.wildShapeCost} Wild Shape`}
-          description={`Recover 1 level ${option.spellSlotLevel} spell slot`}
-          isSelected={selectedWildShapeCost === option.wildShapeCost}
+          breakdown={`Recover 1 level ${option.spellSlotLevel} spell slot`}
+          selected={selectedWildShapeCost === option.wildShapeCost}
           onSelect={() => onSelectWildShapeCost(option.wildShapeCost)}
         />
       ))}
@@ -1496,15 +1495,15 @@ function WildResurgenceActionBody({
 
   return (
     <div className={styles.wildCompanionBody}>
-      <RadioOption
+      <RadioContainerOption
         name="wild-resurgence-mode"
         header="Recover 1 Wild Shape"
-        description={
+        breakdown={
           canRecoverWildShape
             ? "Expend an available spell slot. This can be done only once on each of your turns."
             : "Requires 0 Wild Shape remaining and an available spell slot"
         }
-        isSelected={selectedMode === "spell-slot-to-wild-shape"}
+        selected={selectedMode === "spell-slot-to-wild-shape"}
         onSelect={() => onSelectMode("spell-slot-to-wild-shape")}
         disabled={!canRecoverWildShape}
       />
@@ -1525,15 +1524,15 @@ function WildResurgenceActionBody({
           </SelectInput>
         </label>
       ) : null}
-      <RadioOption
+      <RadioContainerOption
         name="wild-resurgence-mode"
         header="Recover 1 Level 1 Spell Slot"
-        description={
+        breakdown={
           canRecoverLevelOneSpellSlot
             ? `${wildShapeUsesRemaining}/${wildShapeUsesTotal} Wild Shape uses remaining, ${spellSlotRecoveryUsesRemaining}/1 charge available`
             : "Requires 1 Wild Shape, an expended level 1 slot, and an unused charge"
         }
-        isSelected={selectedMode === "wild-shape-to-slot"}
+        selected={selectedMode === "wild-shape-to-slot"}
         onSelect={() => onSelectMode("wild-shape-to-slot")}
         disabled={!canRecoverLevelOneSpellSlot}
       />

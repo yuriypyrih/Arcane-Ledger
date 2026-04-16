@@ -1,0 +1,105 @@
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  min-height: 38px;
+  min-width: 0;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 999px;
+  background: linear-gradient(165deg, rgba(255, 252, 245, 0.96), rgba(244, 234, 219, 0.92));
+  color: var(--color-ink);
+  cursor: pointer;
+  font: inherit;
+  padding: 0 0.9rem;
+  transition:
+    background-color 160ms ease,
+    border-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+  white-space: nowrap;
+}
+
+.pill:hover {
+  background: linear-gradient(165deg, rgba(255, 252, 245, 1), rgba(248, 239, 225, 0.98));
+  box-shadow: 0 8px 20px rgba(54, 34, 21, 0.07);
+}
+
+.pill:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.34);
+  outline-offset: 2px;
+}
+
+.modal {
+  width: min(420px, 100%);
+}
+
+.body {
+  gap: 0.78rem;
+}
+
+.description {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.95rem;
+  line-height: 1.55;
+}
+
+.footer {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.actions {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.actionButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  min-width: 0;
+  margin-left: 0 !important;
+  padding-inline: 0.9rem;
+  text-align: center;
+  white-space: normal;
+}
+
+.actionButtonCompact {
+  grid-column: span 1;
+}
+
+.actionButtonWide {
+  grid-column: span 2;
+}
+
+.pillIcon,
+.actionIcon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 auto;
+}
+
+.pillIcon svg,
+.actionIcon svg {
+  color: currentColor;
+  stroke: currentColor;
+}
+
+.pillImage {
+  display: block;
+  height: 16px;
+  width: 16px;
+  object-fit: contain;
+}
+
+.actionImage {
+  display: block;
+  height: 14px;
+  width: 14px;
+  object-fit: contain;
+}

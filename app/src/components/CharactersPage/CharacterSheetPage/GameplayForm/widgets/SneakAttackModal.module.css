@@ -37,38 +37,8 @@
   padding-right: 0.2rem;
 }
 
-.sneakAttackEffectRow {
-  align-items: stretch;
-  display: grid;
-  gap: 0.45rem;
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.sneakAttackEffectRowSelected .sneakAttackEffectButton {
-  background: rgba(47, 120, 255, 0.1);
-  border-color: rgba(47, 120, 255, 0.34);
-}
-
-.sneakAttackEffectButton {
-  display: grid;
-  gap: 0.18rem;
-  border: 1px solid rgba(75, 47, 29, 0.16);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.82);
-  color: var(--color-ink);
-  cursor: pointer;
-  font: inherit;
-  padding: 0.72rem 0.8rem;
-  text-align: left;
-}
-
-.sneakAttackEffectButton:disabled {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.sneakAttackEffectName {
-  font-size: 0.92rem;
+.sneakAttackEffectOption {
+  width: 100%;
 }
 
 .sneakAttackEffectMeta {
@@ -118,44 +88,6 @@
   line-height: 1;
   padding: 0.45rem 0.62rem;
   white-space: nowrap;
-}
-
-.rendMindOption {
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr);
-  gap: 0.72rem;
-  align-items: center;
-  border: 1px solid rgba(75, 47, 29, 0.16);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.82);
-  cursor: pointer;
-  padding: 0.8rem;
-}
-
-.rendMindOptionSelected {
-  background: rgba(47, 120, 255, 0.08);
-  border-color: rgba(47, 120, 255, 0.34);
-}
-
-.rendMindOptionDisabled {
-  cursor: not-allowed;
-  opacity: 0.6;
-}
-
-.rendMindCheckbox {
-  width: 1rem;
-  height: 1rem;
-  margin: 0;
-}
-
-.rendMindBody {
-  display: grid;
-  gap: 0.18rem;
-}
-
-.rendMindMeta {
-  color: var(--color-ink-soft);
-  font-size: 0.76rem;
 }
 
 .rendMindWarning {

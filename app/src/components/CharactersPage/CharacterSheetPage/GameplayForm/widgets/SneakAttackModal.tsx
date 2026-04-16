@@ -1,8 +1,8 @@
-import clsx from "clsx";
 import { BookOpen } from "lucide-react";
 import { useState } from "react";
 import CellContainer from "../../../../CellContainer/CellContainer";
 import KeywordReferenceDrawer from "../../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
+import RadioContainerOption from "../../RadioContainerOption";
 import type { Character } from "../../../../../types";
 import type { FeatureActionCard } from "../../../../../pages/CharactersPage/classFeatures";
 import {
@@ -110,34 +110,28 @@ function SneakAttackActionBody({ action, character, onConfirm }: SneakAttackActi
                   selectedEffectCost + effect.costDice > totalDiceCount);
 
               return (
-                <div
+                <RadioContainerOption
                   key={effect.key}
-                  className={clsx(
-                    styles.sneakAttackEffectRow,
-                    isSelected && styles.sneakAttackEffectRowSelected
-                  )}
-                >
-                  <button
-                    type="button"
-                    className={styles.sneakAttackEffectButton}
-                    onClick={() => toggleEffect(effect)}
-                    disabled={isDisabled}
-                    aria-pressed={isSelected}
-                  >
-                    <strong className={styles.sneakAttackEffectName}>{effect.name}</strong>
-                    <small className={styles.sneakAttackEffectMeta}>
-                      {`Cost: ${effect.costDice}d6`}
-                    </small>
-                  </button>
-                  <button
-                    type="button"
-                    className={styles.sneakAttackReferenceButton}
-                    onClick={() => setSelectedReferenceEffect(effect)}
-                    aria-label={`Open ${effect.name} reference`}
-                  >
-                    <BookOpen size={16} />
-                  </button>
-                </div>
+                  header={effect.name}
+                  breakdown={
+                    <span className={styles.sneakAttackEffectMeta}>{`Cost: ${effect.costDice}d6`}</span>
+                  }
+                  selected={isSelected}
+                  disabled={isDisabled}
+                  indicatorType="checkbox"
+                  onSelect={() => toggleEffect(effect)}
+                  className={styles.sneakAttackEffectOption}
+                  aside={
+                    <button
+                      type="button"
+                      className={styles.sneakAttackReferenceButton}
+                      onClick={() => setSelectedReferenceEffect(effect)}
+                      aria-label={`Open ${effect.name} reference`}
+                    >
+                      <BookOpen size={16} />
+                    </button>
+                  }
+                />
               );
             })}
           </div>
@@ -156,27 +150,16 @@ function SneakAttackActionBody({ action, character, onConfirm }: SneakAttackActi
             <span className={styles.rendMindTag}>{rendMindUsageLabel}</span>
           </div>
 
-          <label
-            className={clsx(
-              styles.rendMindOption,
-              selectedRendMind && styles.rendMindOptionSelected,
-              !canUseRendMind && styles.rendMindOptionDisabled
-            )}
-          >
-            <input
-              type="checkbox"
-              className={styles.rendMindCheckbox}
-              checked={selectedRendMind}
-              disabled={!canUseRendMind}
-              onChange={(event) => setSelectedRendMind(event.target.checked)}
-            />
-            <div className={styles.rendMindBody}>
-              <strong>Rend Mind</strong>
-              <small className={styles.rendMindMeta}>
-                {`Wis Save DC ${rendMindSaveDc} | ${rendMindUsesRemaining > 0 ? "Long Rest charge" : "Use 1 Psionic Die"}`}
-              </small>
-            </div>
-          </label>
+          <RadioContainerOption
+            header="Rend Mind"
+            subheader={`Wis Save DC ${rendMindSaveDc} | ${
+              rendMindUsesRemaining > 0 ? "Long Rest charge" : "Use 1 Psionic Die"
+            }`}
+            selected={selectedRendMind}
+            disabled={!canUseRendMind}
+            indicatorType="checkbox"
+            onSelect={() => setSelectedRendMind((current) => !current)}
+          />
 
           {!canUseRendMind ? (
             <p className={styles.rendMindWarning}>Rend Mind needs a charge or 1 Psionic Die.</p>

@@ -3,6 +3,7 @@ import type { SpellDescriptionEntry } from "../../../../../codex/entries";
 import type { ItemRecord, MonsterRecord } from "../../../../../types";
 import { parseRollFormulaRange } from "../../../../../pages/CharactersPage/actionOutcome";
 import { buildItemDetailPresentation } from "../../../../../pages/ItemCodexEntryPage/itemPresentation";
+import { adaptItemWeapon } from "../../../../../utils/items/adaptItemWeapon";
 import {
   formatAbilityModifier,
   type WeaponAction
@@ -359,10 +360,12 @@ export function getWeaponDamageFormulaPresentation(
 export function getWeaponDrawerDetails(
   action: WeaponAction,
   weaponEntry:
-    | Pick<
+    | (Pick<
         WeaponEntry,
-        "damage" | "type" | "properties" | "range" | "versatileDamage" | "propertyNotes" | "mastery"
-      >
+        "damage" | "type" | "properties" | "range" | "versatileDamage" | "propertyNotes"
+      > & {
+        mastery?: WeaponEntry["mastery"];
+      })
     | null,
   itemRecord?: ItemRecord | null
 ): WeaponDrawerDetail[] {
@@ -370,21 +373,45 @@ export function getWeaponDrawerDetails(
     return action.details;
   }
 
-  const itemWeaponCells =
-    itemRecord && itemRecord.weapon ? buildItemDetailPresentation(itemRecord).weaponCells : [];
+  const adaptedItemWeapon = itemRecord ? adaptItemWeapon(itemRecord) : null;
 
-  if (itemWeaponCells.length > 0) {
-    return itemWeaponCells.map((cell) => ({
-      label: cell.label,
-      value: cell.value
-    }));
+  if (adaptedItemWeapon) {
+    const selectedDamage =
+      action.hasVersatileBonus && adaptedItemWeapon.versatileDamage?.length
+        ? adaptedItemWeapon.versatileDamage
+        : adaptedItemWeapon.damage;
+
+    return [
+      {
+        label: "Type",
+        value: formatWeaponType(adaptedItemWeapon.type)
+      },
+      {
+        label: "Damage",
+        value: selectedDamage?.length
+          ? formatWeaponDamage(selectedDamage)
+          : adaptedItemWeapon.damageLabel || action.damageLabel
+      },
+      {
+        label: "Properties",
+        value: adaptedItemWeapon.propertyLabels.join(", ") || "None"
+      },
+      {
+        label: "Mastery",
+        value: adaptedItemWeapon.masteryLabels.join(", ") || "None"
+      }
+    ];
+  }
+
+  if (action.attackKind === "unarmed") {
+    return [];
   }
 
   if (!weaponEntry) {
     return [
       {
         label: "Type",
-        value: action.attackKind === "unarmed" ? "Unarmed strike" : "Weapon"
+        value: "Weapon"
       },
       {
         label: "Damage",

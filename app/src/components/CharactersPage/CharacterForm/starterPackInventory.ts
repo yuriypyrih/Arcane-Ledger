@@ -2,7 +2,7 @@ import {
   getStarterPackToolItemMapping,
   type StarterPackEquipmentChoice
 } from "../../../codex/classes/starterPack";
-import { fetchItemByKey, fetchItemPackContents } from "../../../api/items";
+import { fetchItemByKey } from "../../../api/items";
 import type { CharacterInventoryItem } from "../../../types";
 import { addInventoryItemCopies } from "../../../pages/CharactersPage/inventoryItems";
 
@@ -23,19 +23,6 @@ type ResolvedStarterPackRequest =
       itemKey: string;
       label: string;
     };
-
-function getMissingPackReferenceWarnings(
-  label: string,
-  missingReferences: Array<{
-    name: string;
-    quantity: number;
-  }>
-): string[] {
-  return missingReferences.map((reference) => {
-    const quantityPrefix = reference.quantity > 1 ? `${reference.quantity} ` : "";
-    return `${label} is missing ${quantityPrefix}${reference.name} in the backend pack contents.`;
-  });
-}
 
 function resolveSelectedToolItemRequest(
   reference: Extract<
@@ -144,27 +131,8 @@ export async function previewStarterPackChoiceWarnings(
   choice: StarterPackEquipmentChoice | null,
   context: StarterPackResolutionContext
 ): Promise<string[]> {
-  const { requests, warnings } = resolveStarterPackRequests(choice, context);
-  const previewWarnings = [...warnings];
-
-  for (const request of requests) {
-    if (request.type !== "pack") {
-      continue;
-    }
-
-    try {
-      const packContents = await fetchItemPackContents(request.itemKey);
-      previewWarnings.push(
-        ...getMissingPackReferenceWarnings(request.label, packContents.missingReferences)
-      );
-    } catch {
-      previewWarnings.push(
-        `Couldn't preview ${request.label} contents from the backend. Character creation will still continue without unresolved items.`
-      );
-    }
-  }
-
-  return [...new Set(previewWarnings)];
+  const { warnings } = resolveStarterPackRequests(choice, context);
+  return [...new Set(warnings)];
 }
 
 export async function materializeStarterPackChoiceToInventory(
@@ -194,20 +162,11 @@ export async function materializeStarterPackChoiceToInventory(
     }
 
     try {
-      const packContents = await fetchItemPackContents(request.itemKey);
-      nextWarnings.push(
-        ...getMissingPackReferenceWarnings(request.label, packContents.missingReferences)
-      );
-      packContents.contents.forEach((entry) => {
-        nextInventoryItems = addInventoryItemCopies(
-          nextInventoryItems,
-          entry.item,
-          entry.quantity
-        );
-      });
+      const item = await fetchItemByKey(request.itemKey);
+      nextInventoryItems = addInventoryItemCopies(nextInventoryItems, item, 1);
     } catch {
       nextWarnings.push(
-        `Couldn't fetch ${request.label} contents from the backend, so that pack was skipped during character creation.`
+        `Couldn't fetch ${request.label} from the backend, so it was skipped during character creation.`
       );
     }
   }

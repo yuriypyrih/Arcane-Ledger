@@ -1,0 +1,53 @@
+import { Hand, Shield } from "lucide-react";
+import RarityPill, { hasDisplayableRarity } from "../../../CodexPage/RarityPill";
+import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import { buildItemDetailPresentation } from "../../../../pages/ItemCodexEntryPage/itemPresentation";
+import type { ItemRecord } from "../../../../types";
+import styles from "./EquipmentForm.module.css";
+
+type EquipmentInventoryItemDrawerHeaderProps = {
+  item: ItemRecord;
+  onHandCount?: number;
+  worn?: boolean;
+};
+
+function getOnHandLabel(onHandCount: number) {
+  return onHandCount > 1 ? `On Hand x${onHandCount}` : "On Hand";
+}
+
+function EquipmentInventoryItemDrawerHeader({
+  item,
+  onHandCount = 0,
+  worn = false
+}: EquipmentInventoryItemDrawerHeaderProps) {
+  const presentation = buildItemDetailPresentation(item);
+
+  return (
+    <div className={sheetStyles.spellDrawerHeaderContent}>
+      <p className={sheetStyles.spellDrawerBadge}>Item Inspection</p>
+      <div className={sheetStyles.spellDrawerTitleRow}>
+        <h3 id="equipment-item-drawer-title" className={sheetStyles.spellDrawerTitle}>
+          {presentation.name}
+        </h3>
+        {onHandCount > 0 ? (
+          <span className={styles.drawerOnHandBadge}>
+            <Hand size={13} aria-hidden="true" />
+            <span>{getOnHandLabel(onHandCount)}</span>
+          </span>
+        ) : null}
+        {worn ? (
+          <span className={styles.drawerWornBadge}>
+            <Shield size={13} aria-hidden="true" />
+            <span>Worn</span>
+          </span>
+        ) : null}
+        {hasDisplayableRarity(item.rarity) ? <RarityPill rarity={item.rarity} /> : null}
+      </div>
+      <p className={sheetStyles.spellDrawerSummary}>
+        {presentation.categoryLabel} • {presentation.sourceLabel}
+      </p>
+    </div>
+  );
+}
+
+export default EquipmentInventoryItemDrawerHeader;

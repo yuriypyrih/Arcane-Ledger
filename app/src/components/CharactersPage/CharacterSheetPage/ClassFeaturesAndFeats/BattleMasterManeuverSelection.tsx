@@ -1,4 +1,3 @@
-import clsx from "clsx";
 import type { DivinityEntry, SpellEntry } from "../../../../codex/entries";
 import {
   fighterBattleMasterManeuverDefinitions,
@@ -12,6 +11,7 @@ import {
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type { Character, CharacterFeatEntry } from "../../../../types";
 import { featureDisclosureStyles } from "../../../FeatureDisclosure";
+import RadioContainerOption from "../RadioContainerOption";
 import { renderDescriptionLine } from "./helpers";
 import styles from "./ClassFeaturesAndFeats.module.css";
 
@@ -64,23 +64,10 @@ function BattleMasterManeuverSelection({
         const isDisabled = !isUnlocked || (!isSelected && isSelectionLimitReached);
 
         return (
-          <label
+          <RadioContainerOption
             key={`${featureKey}-battle-master-maneuver-${maneuver.id}`}
-            className={clsx(
-              styles.featureOptionRow,
-              isSelected && styles.featureOptionRowActive,
-              isDisabled && styles.featureOptionRowDisabled
-            )}
-          >
-            <input
-              type="checkbox"
-              checked={isSelected}
-              disabled={isDisabled}
-              onChange={() => toggleManeuverSelection(maneuver.id)}
-              className={styles.featureOptionRadio}
-            />
-            <div className={styles.featureOptionText}>
-              <span className={styles.featureOptionTitle}>{maneuver.name}</span>
+            header={maneuver.name}
+            breakdown={
               <div className={styles.featureOptionDescriptionList}>
                 {maneuver.description.map((entry, index) => (
                   <p
@@ -97,8 +84,12 @@ function BattleMasterManeuverSelection({
                   </p>
                 ))}
               </div>
-            </div>
-          </label>
+            }
+            selected={isSelected}
+            disabled={isDisabled}
+            indicatorType="checkbox"
+            onSelect={() => toggleManeuverSelection(maneuver.id)}
+          />
         );
       })}
     </div>
