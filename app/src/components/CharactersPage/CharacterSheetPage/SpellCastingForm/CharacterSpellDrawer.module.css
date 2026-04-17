@@ -32,6 +32,54 @@
   white-space: nowrap;
 }
 
+.resourceBadgeRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin-top: 0.45rem;
+}
+
+.resourceBadge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  min-height: 38px;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-ink);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.28rem 0.62rem;
+}
+
+.resourceBadgeLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.resourceBadgeValue {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.28rem;
+}
+
+.resourceBadgeValue svg {
+  color: currentColor;
+  flex: 0 0 auto;
+  stroke: currentColor;
+}
+
+.resourceAssetIcon {
+  display: block;
+  height: 14px;
+  object-fit: contain;
+  width: 14px;
+}
+
 .concentrationDetailValue {
   display: inline-flex;
   align-items: center;

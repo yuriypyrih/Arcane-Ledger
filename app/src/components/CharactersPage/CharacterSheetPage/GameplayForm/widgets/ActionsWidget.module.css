@@ -50,47 +50,6 @@
   width: 100%;
 }
 
-.footerActionToggle {
-  color: #25508d;
-  display: flex;
-  min-width: 0;
-}
-
-.footerActionToggleLabel {
-  align-items: center;
-  display: inline-flex;
-  flex-wrap: wrap;
-  font-size: 0.84rem;
-  font-weight: 700;
-  gap: 0.45rem;
-  min-width: 0;
-}
-
-.footerActionToggleLabel input {
-  accent-color: #2f78ff;
-  margin: 0;
-}
-
-.psiStrikeCostLabel {
-  align-items: center;
-  color: #5a3a8c;
-  display: inline-flex;
-  gap: 0.3rem;
-  white-space: nowrap;
-}
-
-.psiStrikeCostLabel svg {
-  color: currentColor;
-  flex: 0 0 auto;
-  stroke: currentColor;
-}
-
-.footerResourceIcon {
-  width: 14px;
-  height: 14px;
-  flex: 0 0 auto;
-}
-
 .weaponFooterButton,
 .weaponFooterIconButton {
   margin-left: 0;
@@ -104,6 +63,33 @@
 .footerActionButton {
   gap: 0.55rem;
   margin-left: 0;
+}
+
+.channelDivinityFooterMeta {
+  display: grid;
+  gap: 0.45rem;
+  width: 100%;
+}
+
+.channelDivinityFooterWarning {
+  border-radius: 16px;
+  background: rgba(139, 51, 33, 0.1);
+  color: #6d2417;
+  margin: 0;
+  padding: 0.8rem 0.9rem;
+}
+
+.channelDivinityFooterButton {
+  margin-left: 0;
+  width: 100%;
+}
+
+.centeredFooterButtonContent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
 .footerActionShape {

@@ -480,6 +480,7 @@ export const regenerate: SpellEntry = {
     "You touch a creature and stimulate its natural healing ability. The target regains 4d8 + 15 Hit Points. For the duration of the spell, the target regains 1 Hit Point at the start of each of its turns, 10 Hit Points each minute.",
     "The target's severed body members, fingers, legs, tails, and so on, if any, are restored after 2 minutes. If you have the severed part and hold it to the stump, the spell instantaneously causes the limb to knit to the stump."
   ],
+  isHealingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID],
   spellLevel: 7

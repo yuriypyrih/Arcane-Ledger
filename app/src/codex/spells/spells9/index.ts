@@ -163,6 +163,7 @@ export const massHeal: SpellEntry = {
     "A flood of healing energy flows from you into injured creatures around you. You restore up to 700 Hit Points, divided as you choose among any number of creatures that you can see within range.",
     "Creatures healed by this spell are also cured of all diseases and any effect making them Blinded or Deafened. This spell has no effect on Undead or Constructs."
   ],
+  isHealingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 9
@@ -221,6 +222,7 @@ export const powerWordHeal: SpellEntry = {
     "A wave of healing energy washes over a creature you touch. The target regains all its Hit Points. If the creature is Charmed, Frightened, Paralyzed, or Stunned, the condition ends.",
     "If the creature is Prone, it can use its reaction to stand up. This spell has no effect on Undead or Constructs."
   ],
+  isHealingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC],
   spellLevel: 9

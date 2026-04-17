@@ -4,58 +4,6 @@
   width: 100%;
 }
 
-.toggle {
-  color: #25508d;
-  display: flex;
-  min-width: 0;
-}
-
-.toggleDepleted {
-  color: #5a3a8c;
-}
-
-.toggleLabel {
-  align-items: center;
-  display: inline-flex;
-  flex-wrap: wrap;
-  font-size: 0.84rem;
-  font-weight: 700;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
-.toggleLabel input {
-  accent-color: #2f78ff;
-  margin: 0;
-}
-
-.tracker {
-  align-items: center;
-  color: #5274a6;
-  display: inline-flex;
-  font-size: 0.76rem;
-  font-weight: 700;
-  gap: 0.45rem;
-}
-
-.trackerLabel {
-  line-height: 1;
-}
-
-.costLabel {
-  align-items: center;
-  color: #5a3a8c;
-  display: inline-flex;
-  gap: 0.3rem;
-  white-space: nowrap;
-}
-
-.costLabel svg {
-  color: currentColor;
-  flex: 0 0 auto;
-  stroke: currentColor;
-}
-
 .confirmButton {
   gap: 0.55rem;
   margin-left: 0;

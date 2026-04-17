@@ -83,6 +83,30 @@ export const toolProficiencyLabels: Record<TOOL_PROFICIENCY, string> = {
   [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_VIOL]: "Viol"
 };
 
+const artisanToolProficiencySet = new Set<ToolProficiency>(artisanToolProficiencies);
+const musicalInstrumentToolProficiencySet = new Set<ToolProficiency>(
+  musicalInstrumentToolProficiencies
+);
+
+function sortToolProficienciesAlphabetically(
+  toolProficiencies: readonly ToolProficiency[]
+): ToolProficiency[] {
+  return [...toolProficiencies].sort((left, right) =>
+    toolProficiencyLabels[left].localeCompare(toolProficiencyLabels[right])
+  );
+}
+
+export const groupedToolProficiencyOptions: ToolProficiency[] = [
+  ...sortToolProficienciesAlphabetically(artisanToolProficiencies),
+  ...sortToolProficienciesAlphabetically(musicalInstrumentToolProficiencies),
+  ...sortToolProficienciesAlphabetically(
+    toolProficiencyOptions.filter(
+      (tool) =>
+        !artisanToolProficiencySet.has(tool) && !musicalInstrumentToolProficiencySet.has(tool)
+    )
+  )
+];
+
 export const languageProficiencyLabels: Record<LANGUAGE_PROFICIENCY, string> = {
   [LANGUAGE_PROFICIENCY.COMMON]: "Common",
   [LANGUAGE_PROFICIENCY.ABYSSAL]: "Abyssal",

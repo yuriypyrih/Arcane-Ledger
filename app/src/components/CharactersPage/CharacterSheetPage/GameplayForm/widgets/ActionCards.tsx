@@ -51,6 +51,7 @@ type WeaponActionCardProps = {
   action: WeaponAction;
   character: Character;
   secondaryEconomyType?: EconomyType | null;
+  secondaryEconomyMultiCount?: number;
   roundTracker: RoundTrackerAvailability;
   onClick: (action: WeaponAction) => void;
 };
@@ -59,6 +60,7 @@ export function WeaponActionCard({
   action,
   character,
   secondaryEconomyType = null,
+  secondaryEconomyMultiCount = 0,
   roundTracker,
   onClick
 }: WeaponActionCardProps) {
@@ -76,7 +78,7 @@ export function WeaponActionCard({
     ? getActionShapeForEconomyType(secondaryEconomyType)
     : null;
   const secondaryEconomyShapeState = secondaryEconomyType
-    ? getEconomyShapeState(secondaryEconomyType, roundTracker)
+    ? getEconomyShapeState(secondaryEconomyType, roundTracker, secondaryEconomyMultiCount)
     : null;
   const isUnavailable =
     !economyShapeState.isUsable && !(secondaryEconomyShapeState?.isUsable ?? false);

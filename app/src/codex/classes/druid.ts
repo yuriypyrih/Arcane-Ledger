@@ -191,7 +191,7 @@ export const druidFeatures: DruidFeatureClassObj[] = [
       [CLASS_FEATURE.EPIC_BOON]: {
         description: [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
-          "Boon of Dimensional Travel is recommended."
+          "<feat:BOON_OF_DIMENSIONAL_TRAVEL>Boon of Dimensional Travel</feat> is recommended."
         ],
         trackingState: TRACKER.NOT_TRACKED
       }

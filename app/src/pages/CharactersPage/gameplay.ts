@@ -90,6 +90,7 @@ export type WeaponAction = {
   economyMultiCount?: number;
   damageLabel: string;
   damageFormula: string;
+  damageBreakdownLabel?: string;
   rollDisplay: string;
   rollFormulaDisplay: string;
   ability: AbilityKey;
@@ -511,6 +512,7 @@ export function createWeaponAction(
     damageLabel: string;
     damageFormula: string;
     rollFormulaBase: string;
+    damageBreakdownLabel?: string;
     ability: AbilityKey;
     abilityModifier: number;
     damageAbility?: AbilityKey;
@@ -579,6 +581,7 @@ export function createWeaponAction(
     economyMultiCount: options.economyMultiCount,
     damageLabel,
     damageFormula,
+    damageBreakdownLabel: options.damageBreakdownLabel,
     rollDisplay: createRollDisplay(damageFormula, totalModifier),
     rollFormulaDisplay: createRollFormula(damageFormula, totalModifier),
     ability: options.ability,
@@ -813,6 +816,7 @@ function createUnarmedStrikeAction(
       damageLabel: `${damageFormula} ${damageTypeLabel}`,
       damageFormula,
       rollFormulaBase: damageFormula,
+      damageBreakdownLabel: unarmedStrikeConfig?.damageBreakdownLabel,
       ability,
       abilityModifier,
       damageAbility,

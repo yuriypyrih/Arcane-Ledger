@@ -1,7 +1,11 @@
+.footerActions {
+  display: grid;
+  align-items: stretch;
+}
+
 .castActionMeta {
   display: grid;
   gap: 0.42rem;
-  flex: 1;
   min-width: 0;
 }
 
@@ -10,7 +14,7 @@
   color: rgba(94, 67, 37, 0.82);
   font-size: 0.8rem;
   font-weight: 600;
-  text-align: right;
+  text-align: left;
 }
 
 .inlineLinkButton {
@@ -31,6 +35,8 @@
 
 .castActionButton {
   gap: 0.55rem;
+  justify-content: space-between;
+  width: 100%;
 }
 
 .castActionShape {

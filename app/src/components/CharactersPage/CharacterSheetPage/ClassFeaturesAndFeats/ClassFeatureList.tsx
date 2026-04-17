@@ -25,6 +25,7 @@ import {
   getClericDivineOrderChoiceForCharacter,
   fighterBanneretKnightlyEnvoySkillOptions,
   getKnowledgeDomainBlessingsSkillSelectionsForCharacter,
+  getKnowledgeDomainBlessingsToolSelectionForCharacter,
   getKnowledgeDomainUnfetteredMindSavingThrowOptionsForCharacter,
   getKnowledgeDomainUnfetteredMindSavingThrowSelectionForCharacter,
   getDruidCircleOfTheLandChoiceForCharacter,
@@ -81,6 +82,7 @@ import {
   setClericBlessedStrikesChoiceForCharacter,
   setClericDivineOrderChoiceForCharacter,
   setKnowledgeDomainBlessingsSkillSelectionsForCharacter,
+  setKnowledgeDomainBlessingsToolSelectionForCharacter,
   setKnowledgeDomainUnfetteredMindSavingThrowSelectionForCharacter,
   setDruidCircleOfTheLandChoiceForCharacter,
   setDruidElementalFuryChoiceForCharacter,
@@ -110,9 +112,8 @@ import {
   setWeaponMasterySelectionsForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
 import {
+  artisanToolProficiencies,
   getProficiencyLabel,
-  getSkillLevelFromEntries,
-  getSkillProficiencyForName,
   getWeaponProficiencyLabel,
   normalizeCharacterProficiencies,
   skillsOptions
@@ -145,7 +146,7 @@ import type {
   SkillName,
   WEAPON_PROFICIENCY
 } from "../../../../types";
-import { PROF_LEVEL, SAVING_THROW_PROFICIENCY, SKILL } from "../../../../types";
+import { SAVING_THROW_PROFICIENCY, SKILL } from "../../../../types";
 import { formatCodexLabel } from "../../../../utils/codex";
 import { FeatureDisclosureRow, featureDisclosureStyles } from "../../../FeatureDisclosure";
 import { MonsterEntryDrawer } from "../../../MonsterEntryRenderer";
@@ -157,11 +158,14 @@ import DruidWildShapeMonsterModal from "./DruidWildShapeMonsterModal";
 import WizardBladesingerTrainingInWarAndSongFields from "./WizardBladesingerTrainingInWarAndSongFields";
 import WizardSavantFeatureFields from "./WizardSavantFeatureFields";
 import {
+  buildSkillSelectOptions,
+  buildToolSelectOptions,
   getBardExpertiseTierForLevel,
   getRogueExpertiseTierForLevel,
   getSelectableLanguageOptions,
   getSelectableNonExpertSkillOptions,
   getSelectableProficientSkillOptions,
+  getSelectableUnproficientToolOptions,
   getSelectableUnproficientSavingThrowOptions,
   getSelectableUnproficientSkillOptions,
   isFeatChoiceFeature,
@@ -435,6 +439,10 @@ function ClassFeatureList({
     return getKnowledgeDomainBlessingsSkillSelectionsForCharacter(character);
   }
 
+  function getKnowledgeDomainBlessingsToolSelection() {
+    return getKnowledgeDomainBlessingsToolSelectionForCharacter(character);
+  }
+
   function getAvailableKnowledgeDomainBlessingsSkills(slotIndex: number): SkillName[] {
     const currentSelections = getKnowledgeDomainBlessingsSkillSelections();
     const currentValue = currentSelections[slotIndex] ?? null;
@@ -445,6 +453,14 @@ function ClassFeatureList({
       [SKILL.ARCANA, SKILL.HISTORY, SKILL.NATURE, SKILL.RELIGION],
       currentValue,
       blockedSelections
+    );
+  }
+
+  function getAvailableKnowledgeDomainBlessingsTools() {
+    return getSelectableUnproficientToolOptions(
+      character,
+      artisanToolProficiencies,
+      getKnowledgeDomainBlessingsToolSelection()
     );
   }
 
@@ -468,8 +484,24 @@ function ClassFeatureList({
     );
   }
 
+  function updateKnowledgeDomainBlessingsToolSelection(nextValue: string) {
+    onPersistCharacter((currentCharacter) =>
+      recomputeCharacterFeatureProficiencies(
+        setKnowledgeDomainBlessingsToolSelectionForCharacter(
+          currentCharacter,
+          artisanToolProficiencies.some((option) => option === nextValue)
+            ? (nextValue as (typeof artisanToolProficiencies)[number])
+            : null
+        )
+      )
+    );
+  }
+
   function isKnowledgeDomainBlessingsInputRequired(): boolean {
-    return getKnowledgeDomainBlessingsSkillSelections().length < 2;
+    return (
+      getKnowledgeDomainBlessingsToolSelection() === null ||
+      getKnowledgeDomainBlessingsSkillSelections().length < 2
+    );
   }
 
   function getKnowledgeDomainUnfetteredMindSavingThrowSelection(): SAVING_THROW_PROFICIENCY | null {
@@ -1320,26 +1352,15 @@ function ClassFeatureList({
     );
   }
 
-  function getBarbarianPrimalKnowledgeOptions(): Array<{
-    skill: SkillName;
-    disabled: boolean;
-    label: string;
-  }> {
+  function getBarbarianPrimalKnowledgeOptions() {
     const currentSelection = getBarbarianPrimalKnowledgeSelection();
+    const allOptions = getBarbarianPrimalKnowledgeSkillOptionsForCharacter(character);
 
-    return getBarbarianPrimalKnowledgeSkillOptionsForCharacter(character).map((skillName) => {
-      const proficiency = getSkillProficiencyForName(skillName);
-      const isAlreadyProficient =
-        proficiency !== null &&
-        currentSelection !== skillName &&
-        getSkillLevelFromEntries(character.skillProficiencies, proficiency) !== PROF_LEVEL.NONE;
-
-      return {
-        skill: skillName,
-        disabled: isAlreadyProficient,
-        label: isAlreadyProficient ? `${skillName} (already proficient)` : skillName
-      };
-    });
+    return buildSkillSelectOptions(
+      allOptions,
+      getSelectableUnproficientSkillOptions(character, allOptions, currentSelection),
+      currentSelection
+    );
   }
 
   function updateBarbarianPrimalKnowledgeSelection(nextValue: string) {
@@ -1565,7 +1586,10 @@ function ClassFeatureList({
               isExpanded={isFeatureExpanded}
               onToggle={() => onToggleFeature(featureRow.key)}
               bodyId={featurePanelId}
-              bodyClassName={featureDisclosureStyles.descriptionList}
+              bodyClassName={clsx(
+                featureDisclosureStyles.descriptionList,
+                styles.featureDescriptionList
+              )}
               trackingButton={renderTrackingButton(getFeatureTrackingState(featureDetails))}
               headerMeta={
                 isInputRequired ? (
@@ -1578,7 +1602,7 @@ function ClassFeatureList({
               showDivider={index > 0}
             >
               {featureDetails.description.length > 0 ? (
-                <div>
+                <>
                   {featureRow.feature === CLASS_FEATURE.DIVINE_ORDER ? (
                     <>
                       <FeatureDescriptionLines
@@ -1997,9 +2021,17 @@ function ClassFeatureList({
                             }
                           >
                             <option value="">Select a skill</option>
-                            {getAvailableRangerDeftExplorerSkills().map((skillName) => (
-                              <option key={`${featureRow.key}-${skillName}`} value={skillName}>
-                                {skillName}
+                            {buildSkillSelectOptions(
+                              skillsOptions,
+                              getAvailableRangerDeftExplorerSkills(),
+                              getRangerDeftExplorerExpertiseSelection()
+                            ).map((option) => (
+                              <option
+                                key={`${featureRow.key}-${option.skill}`}
+                                value={option.skill}
+                                disabled={option.disabled}
+                              >
+                                {option.label}
                               </option>
                             ))}
                           </SelectInput>
@@ -2219,9 +2251,17 @@ function ClassFeatureList({
                             onChange={(event) => updateWizardScholarSelection(event.target.value)}
                           >
                             <option value="">Select a skill</option>
-                            {getAvailableWizardScholarSkills().map((skillName) => (
-                              <option key={`${featureRow.key}-${skillName}`} value={skillName}>
-                                {skillName}
+                            {buildSkillSelectOptions(
+                              wizardScholarSkillOptions,
+                              getAvailableWizardScholarSkills(),
+                              getWizardScholarSelection()
+                            ).map((option) => (
+                              <option
+                                key={`${featureRow.key}-${option.skill}`}
+                                value={option.skill}
+                                disabled={option.disabled}
+                              >
+                                {option.label}
                               </option>
                             ))}
                           </SelectInput>
@@ -2305,12 +2345,17 @@ function ClassFeatureList({
                             }
                           >
                             <option value="">Select a skill</option>
-                            {getAvailableFighterBanneretKnightlyEnvoySkills().map((skillName) => (
+                            {buildSkillSelectOptions(
+                              fighterBanneretKnightlyEnvoySkillOptions,
+                              getAvailableFighterBanneretKnightlyEnvoySkills(),
+                              getFighterBanneretKnightlyEnvoySkillSelection()
+                            ).map((option) => (
                               <option
-                                key={`${featureRow.key}-banneret-skill-${skillName}`}
-                                value={skillName}
+                                key={`${featureRow.key}-banneret-skill-${option.skill}`}
+                                value={option.skill}
+                                disabled={option.disabled}
                               >
-                                {skillName}
+                                {option.label}
                               </option>
                             ))}
                           </SelectInput>
@@ -2329,44 +2374,38 @@ function ClassFeatureList({
                         onOpenDivinityReference={onOpenDivinityReference}
                       />
                       <div className={styles.featureSelectionGrid}>
-                        {getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills().length >
-                        0 ? (
-                          <label
-                            className={clsx(
-                              styles.featureSelectionField,
-                              !isUnlocked && styles.featureOptionRowDisabled
-                            )}
+                        <label
+                          className={clsx(
+                            styles.featureSelectionField,
+                            !isUnlocked && styles.featureOptionRowDisabled
+                          )}
+                        >
+                          <span className={styles.featureSelectionLabel}>Bonus Skill</span>
+                          <SelectInput
+                            value={getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection() ?? ""}
+                            disabled={!isUnlocked}
+                            onChange={(event) =>
+                              updatePaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection(
+                                event.target.value
+                              )
+                            }
                           >
-                            <span className={styles.featureSelectionLabel}>Bonus Skill</span>
-                            <SelectInput
-                              value={
-                                getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection() ?? ""
-                              }
-                              disabled={!isUnlocked}
-                              onChange={(event) =>
-                                updatePaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection(
-                                  event.target.value
-                                )
-                              }
-                            >
-                              <option value="">Select a skill</option>
-                              {getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills().map(
-                                (skillName) => (
-                                  <option
-                                    key={`${featureRow.key}-noble-genies-skill-${skillName}`}
-                                    value={skillName}
-                                  >
-                                    {skillName}
-                                  </option>
-                                )
-                              )}
-                            </SelectInput>
-                          </label>
-                        ) : (
-                          <p className={styles.emptyFeatureText}>
-                            No eligible bonus skills are available.
-                          </p>
-                        )}
+                            <option value="">Select a skill</option>
+                            {buildSkillSelectOptions(
+                              paladinOathOfTheNobleGeniesGeniesSplendorSkillOptions,
+                              getAvailablePaladinOathOfTheNobleGeniesGeniesSplendorSkills(),
+                              getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection()
+                            ).map((option) => (
+                              <option
+                                key={`${featureRow.key}-noble-genies-skill-${option.skill}`}
+                                value={option.skill}
+                                disabled={option.disabled}
+                              >
+                                {option.label}
+                              </option>
+                            ))}
+                          </SelectInput>
+                        </label>
                       </div>
                     </>
                   ) : featureRow.feature === CLASS_FEATURE.PRIMAL_KNOWLEDGE &&
@@ -2573,23 +2612,16 @@ function ClassFeatureList({
                         onOpenSpellReference={onOpenSpellReference}
                         onOpenDivinityReference={onOpenDivinityReference}
                       />
-                      <div className={styles.featureSelectionGrid}>
-                        {[0, 1, 2].map((slotIndex) => {
-                          const currentValue =
-                            getBardLoreBonusProficiencySelections()[slotIndex] ?? "";
-                          const availableSkills =
-                            getAvailableBardLoreBonusProficiencySkills(slotIndex);
+                        <div className={styles.featureSelectionGrid}>
+                          {[0, 1, 2].map((slotIndex) => {
+                            const currentValue =
+                              getBardLoreBonusProficiencySelections()[slotIndex] ?? "";
+                            const availableSkills =
+                              getAvailableBardLoreBonusProficiencySkills(slotIndex);
 
-                          if (
-                            currentValue &&
-                            !availableSkills.includes(currentValue as SkillName)
-                          ) {
-                            availableSkills.unshift(currentValue as SkillName);
-                          }
-
-                          return (
-                            <label
-                              key={`${featureRow.key}-bonus-proficiency-slot-${slotIndex}`}
+                            return (
+                              <label
+                                key={`${featureRow.key}-bonus-proficiency-slot-${slotIndex}`}
                               className={clsx(
                                 styles.featureSelectionField,
                                 !isUnlocked && styles.featureOptionRowDisabled
@@ -2609,12 +2641,17 @@ function ClassFeatureList({
                                 }
                               >
                                 <option value="">Select a skill</option>
-                                {availableSkills.map((skillName) => (
+                                {buildSkillSelectOptions(
+                                  skillsOptions,
+                                  availableSkills,
+                                  currentValue.length > 0 ? (currentValue as SkillName) : null
+                                ).map((option) => (
                                   <option
-                                    key={`${featureRow.key}-bonus-proficiency-${skillName}`}
-                                    value={skillName}
+                                    key={`${featureRow.key}-bonus-proficiency-${option.skill}`}
+                                    value={option.skill}
+                                    disabled={option.disabled}
                                   >
-                                    {skillName}
+                                    {option.label}
                                   </option>
                                 ))}
                               </SelectInput>
@@ -2729,12 +2766,17 @@ function ClassFeatureList({
                             }
                           >
                             <option value="">Select a skill</option>
-                            {getAvailableBardPrimalLoreSkills().map((skillName) => (
+                            {buildSkillSelectOptions(
+                              getBardPrimalLoreSkillOptionsForCharacter(),
+                              getAvailableBardPrimalLoreSkills(),
+                              getBardPrimalLoreSkillSelection()
+                            ).map((option) => (
                               <option
-                                key={`${featureRow.key}-primal-lore-skill-${skillName}`}
-                                value={skillName}
+                                key={`${featureRow.key}-primal-lore-skill-${option.skill}`}
+                                value={option.skill}
+                                disabled={option.disabled}
                               >
-                                {skillName}
+                                {option.label}
                               </option>
                             ))}
                           </SelectInput>
@@ -2753,6 +2795,38 @@ function ClassFeatureList({
                         onOpenDivinityReference={onOpenDivinityReference}
                       />
                       <div className={styles.featureSelectionGrid}>
+                        <label
+                          className={clsx(
+                            styles.featureSelectionField,
+                            !isUnlocked && styles.featureOptionRowDisabled
+                          )}
+                        >
+                          <span className={styles.featureSelectionLabel}>
+                            Artisan&apos;s Tool
+                          </span>
+                          <SelectInput
+                            value={getKnowledgeDomainBlessingsToolSelection() ?? ""}
+                            disabled={!isUnlocked}
+                            onChange={(event) =>
+                              updateKnowledgeDomainBlessingsToolSelection(event.target.value)
+                            }
+                          >
+                            <option value="">Select a tool</option>
+                            {buildToolSelectOptions(
+                              artisanToolProficiencies,
+                              getAvailableKnowledgeDomainBlessingsTools(),
+                              getKnowledgeDomainBlessingsToolSelection()
+                            ).map((option) => (
+                              <option
+                                key={`${featureRow.key}-knowledge-tool-${option.tool}`}
+                                value={option.tool}
+                                disabled={option.disabled}
+                              >
+                                {option.label}
+                              </option>
+                            ))}
+                          </SelectInput>
+                        </label>
                         {[0, 1].map((slotIndex) => {
                           const currentValue =
                             getKnowledgeDomainBlessingsSkillSelections()[slotIndex] ?? "";
@@ -2781,12 +2855,17 @@ function ClassFeatureList({
                                 }
                               >
                                 <option value="">Select a skill</option>
-                                {availableSkills.map((skillName) => (
+                                {buildSkillSelectOptions(
+                                  [SKILL.ARCANA, SKILL.HISTORY, SKILL.NATURE, SKILL.RELIGION],
+                                  availableSkills,
+                                  currentValue.length > 0 ? (currentValue as SkillName) : null
+                                ).map((option) => (
                                   <option
-                                    key={`${featureRow.key}-knowledge-skill-${skillName}`}
-                                    value={skillName}
+                                    key={`${featureRow.key}-knowledge-skill-${option.skill}`}
+                                    value={option.skill}
+                                    disabled={option.disabled}
                                   >
-                                    {skillName}
+                                    {option.label}
                                   </option>
                                 ))}
                               </SelectInput>
@@ -2899,13 +2978,6 @@ function ClassFeatureList({
                             const availableSkills =
                               getAvailableRangerLevel9ExpertiseSkills(slotIndex);
 
-                            if (
-                              currentValue &&
-                              !availableSkills.includes(currentValue as SkillName)
-                            ) {
-                              availableSkills.unshift(currentValue as SkillName);
-                            }
-
                             return (
                               <label
                                 key={`${featureRow.key}-expertise-slot-${slotIndex}`}
@@ -2928,12 +3000,17 @@ function ClassFeatureList({
                                   }
                                 >
                                   <option value="">Select a skill</option>
-                                  {availableSkills.map((skillName) => (
+                                  {buildSkillSelectOptions(
+                                    skillsOptions,
+                                    availableSkills,
+                                    currentValue.length > 0 ? (currentValue as SkillName) : null
+                                  ).map((option) => (
                                     <option
-                                      key={`${featureRow.key}-${skillName}`}
-                                      value={skillName}
+                                      key={`${featureRow.key}-${option.skill}`}
+                                      value={option.skill}
+                                      disabled={option.disabled}
                                     >
-                                      {skillName}
+                                      {option.label}
                                     </option>
                                   ))}
                                 </SelectInput>
@@ -2965,13 +3042,6 @@ function ClassFeatureList({
                               slotIndex
                             );
 
-                            if (
-                              currentValue &&
-                              !availableSkills.includes(currentValue as SkillName)
-                            ) {
-                              availableSkills.unshift(currentValue as SkillName);
-                            }
-
                             return (
                               <label
                                 key={`${featureRow.key}-expertise-slot-${slotIndex}`}
@@ -2995,12 +3065,17 @@ function ClassFeatureList({
                                   }
                                 >
                                   <option value="">Select a skill</option>
-                                  {availableSkills.map((skillName) => (
+                                  {buildSkillSelectOptions(
+                                    skillsOptions,
+                                    availableSkills,
+                                    currentValue.length > 0 ? (currentValue as SkillName) : null
+                                  ).map((option) => (
                                     <option
-                                      key={`${featureRow.key}-${skillName}`}
-                                      value={skillName}
+                                      key={`${featureRow.key}-${option.skill}`}
+                                      value={option.skill}
+                                      disabled={option.disabled}
                                     >
-                                      {skillName}
+                                      {option.label}
                                     </option>
                                   ))}
                                 </SelectInput>
@@ -3032,13 +3107,6 @@ function ClassFeatureList({
                               slotIndex
                             );
 
-                            if (
-                              currentValue &&
-                              !availableSkills.includes(currentValue as SkillName)
-                            ) {
-                              availableSkills.unshift(currentValue as SkillName);
-                            }
-
                             return (
                               <label
                                 key={`${featureRow.key}-expertise-slot-${slotIndex}`}
@@ -3062,12 +3130,17 @@ function ClassFeatureList({
                                   }
                                 >
                                   <option value="">Select a skill</option>
-                                  {availableSkills.map((skillName) => (
+                                  {buildSkillSelectOptions(
+                                    skillsOptions,
+                                    availableSkills,
+                                    currentValue.length > 0 ? (currentValue as SkillName) : null
+                                  ).map((option) => (
                                     <option
-                                      key={`${featureRow.key}-${skillName}`}
-                                      value={skillName}
+                                      key={`${featureRow.key}-${option.skill}`}
+                                      value={option.skill}
+                                      disabled={option.disabled}
                                     >
-                                      {skillName}
+                                      {option.label}
                                     </option>
                                   ))}
                                 </SelectInput>
@@ -3317,7 +3390,7 @@ function ClassFeatureList({
                       </div>
                     )
                   ) : null}
-                </div>
+                </>
               ) : (
                 <p className={styles.emptyFeatureText}>Details coming soon.</p>
               )}

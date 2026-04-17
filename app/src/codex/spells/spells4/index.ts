@@ -40,6 +40,7 @@ export const auraOfLife: SpellEntry = {
   description: [
     "Life-preserving energy radiates from you in an aura with a 30-foot radius. Until the spell ends, the aura moves with you, centered on you. Each non-hostile creature in the aura, including you, has Resistance to Necrotic damage, and its Hit Point maximum can't be reduced. In addition, a non-hostile, living creature regains 1 Hit Point when it starts its turn in the aura with 0 Hit Points."
   ],
+  isHealingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.PALADIN],
   spellLevel: 4

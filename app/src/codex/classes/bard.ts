@@ -173,7 +173,7 @@ export const bardFeatures: BardFeatureClassObj[] = [
       [CLASS_FEATURE.EPIC_BOON]: {
         description: [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
-          "Boon of Spell Recall is recommended."
+          "<feat:BOON_OF_SPELL_RECALL>Boon of Spell Recall</feat> is recommended."
         ],
         trackingState: TRACKER.TRACKED
       }
@@ -237,9 +237,9 @@ export const bardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   [CLASS_FEATURE.FONT_OF_INSPIRATION]: {
     description: [
       "You now regain all your expended uses of Bardic Inspiration when you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",
-      "In addition, you can expend a spell slot, no action required, to regain one expended use of Bardic Inspiration."
+      "In addition, you can expend a spell slot, no action required, to regain one expended use of Bardic Inspiration. <link:not-tracked>Not Tracked</link>"
     ],
-    trackingState: TRACKER.TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.COUNTERCHARM]: {
     description: [

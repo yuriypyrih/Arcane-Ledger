@@ -191,7 +191,7 @@ export const clericFeatures: ClericFeatureClassObj[] = [
       [CLASS_FEATURE.EPIC_BOON]: {
         description: [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
-          "Boon of Fate is recommended."
+          "<feat:BOON_OF_FATE>Boon of Fate</feat> is recommended."
         ],
         trackingState: TRACKER.TRACKED
       }
@@ -239,10 +239,10 @@ export const clericFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
   [CLASS_FEATURE.BLESSED_STRIKES]: {
     description: [
       "Divine power infuses you in battle. You gain one of the following options of your choice. If you get either option from a Cleric subclass in an older book, use only the option you choose for this feature.",
-      "<strong>Blessed Strike.</strong> Once on each of your turns when you hit a creature with an attack roll using a weapon, you can cause the target to take an extra 1d8 Necrotic or Radiant damage, your choice.",
+      "<strong>Divine Strike.</strong> Once on each of your turns when you hit a creature with an attack roll using a weapon, you can cause the target to take an extra 1d8 Necrotic or Radiant damage, your choice.",
       "<strong>Potent Spellcasting.</strong> Add your Wisdom modifier to the damage you deal with any Cleric cantrip."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.DIVINE_INTERVENTION]: {
     description: [
@@ -255,8 +255,8 @@ export const clericFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
   [CLASS_FEATURE.IMPROVED_BLESSED_STRIKES]: {
     description: [
       "The option you chose for Blessed Strikes grows more powerful.",
-      "<strong>Divine Strike.</strong> The extra damage of your Divine Strike increases to 2d8. <link:tracked>Tracked</link>",
-      "<strong>Potent Spellcasting.</strong> When you cast a Cleric cantrip and deal damage to a creature with it, you can give vitality to yourself or another creature within 60 feet of yourself, granting a number of Temporary Hit Points equal to twice your Wisdom modifier. <link:not-tracked>Not Tracked</link>"
+      "<strong>Divine Strike.</strong> The extra damage of your Divine Strike increases to 2d8.",
+      "<strong>Potent Spellcasting.</strong> When you cast a Cleric cantrip and deal damage to a creature with it, you can give vitality to yourself or another creature within 60 feet of yourself, granting a number of Temporary Hit Points equal to twice your Wisdom modifier."
     ],
     trackingState: TRACKER.SEMI_TRACKED
   },

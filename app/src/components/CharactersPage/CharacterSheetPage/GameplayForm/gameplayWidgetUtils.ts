@@ -122,6 +122,10 @@ export function getWeaponActionBreakdown(action: WeaponAction): string {
     segments.push(`Damage ${damageAbility} ${formatSignedValue(damageAbilityModifier)}`);
   }
 
+  if (action.damageBreakdownLabel) {
+    segments.push(action.damageBreakdownLabel);
+  }
+
   if (hasVisibleWeaponProficiency(action)) {
     segments.push(
       `Prof. (${formatProficiencyLabel(action.proficiencyLabel)}) ${formatSignedValue(action.proficiencyBonus)}`

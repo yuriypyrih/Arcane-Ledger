@@ -473,6 +473,7 @@ export const cureWounds: SpellEntry = {
     "A creature you touch regains a number of Hit Points equal to 1d8 + your spellcasting ability modifier. This spell has no effect on Undead or constructs.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the healing increases by 1d8 for each slot level above 1st."
   ],
+  isHealingSpell: true,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
@@ -886,6 +887,7 @@ export const goodberry: SpellEntry = {
     "Up to ten berries appear in your hand and are infused with magic for the duration. A creature can use its action to eat one berry. Eating a berry restores 1 Hit Point, and the berry provides enough nourishment to sustain a creature for one day.",
     "The berries lose their potency if they have not been consumed within 24 hours of the casting of this spell."
   ],
+  isHealingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
   spellLevel: 1
@@ -987,6 +989,7 @@ export const healingElixir: SpellEntry = {
     "You create a healing elixir in a simple vial that appears in your hand. The elixir retains its potency for the duration or until it's consumed, at which point the vial vanishes.",
     "As an action, a creature can drink the elixir or administer it to another creature. The drinker regains 2d4 + 2 Hit Points."
   ],
+  isHealingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
@@ -1005,6 +1008,7 @@ export const healingWord: SpellEntry = {
     "A creature of your choice that you can see within range regains Hit Points equal to 1d4 + your spellcasting ability modifier. This spell has no effect on Undead or constructs.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the healing increases by 1d4 for each slot level above 1st."
   ],
+  isHealingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID],
   spellLevel: 1

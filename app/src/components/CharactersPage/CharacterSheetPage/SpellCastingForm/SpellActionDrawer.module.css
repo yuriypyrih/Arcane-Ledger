@@ -38,6 +38,11 @@
   min-width: 0;
 }
 
+.castActionBottomRowStacked {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+}
+
 .compactSlotSelectField {
   flex: 1 1 0;
   min-width: 0;
@@ -60,16 +65,7 @@
 }
 
 .ritualCastToggle {
-  align-items: center;
-  color: #8c4d14;
-  display: inline-flex;
-  font-size: 0.84rem;
-  font-weight: 700;
-  gap: 0.45rem;
-}
-
-.ritualCastToggle input {
-  accent-color: #d17316;
+  color: var(--color-ink);
 }
 
 .ritualCastButton {
@@ -78,28 +74,9 @@
 }
 
 .featureActionToggle {
-  color: #8c4d14;
-  display: flex;
+  display: grid;
+  gap: 0.42rem;
   min-width: 0;
-}
-
-.featureActionToggleDisabled {
-  opacity: 0.58;
-}
-
-.featureActionToggleStart {
-  align-items: center;
-  display: inline-flex;
-  font-size: 0.84rem;
-  font-weight: 700;
-  gap: 0.45rem;
-  flex-wrap: wrap;
-  min-width: 0;
-}
-
-.featureActionToggleStart input {
-  accent-color: #d17316;
-  margin: 0;
 }
 
 .featureActionSelectField {
@@ -121,38 +98,6 @@
   min-height: 36px;
   min-width: 168px;
   width: auto;
-}
-
-.featureActionTracker {
-  align-items: center;
-  color: #8c4d14;
-  display: inline-flex;
-  flex-wrap: wrap;
-  gap: 0.34rem;
-}
-
-.featureActionTrackerLabel {
-  font-size: 0.78rem;
-  font-weight: 700;
-  line-height: 1;
-}
-
-.featureActionCost {
-  align-items: center;
-  display: inline-flex;
-  font-size: 0.8rem;
-  font-weight: 700;
-  gap: 0.28rem;
-}
-
-.featureActionCostIcon {
-  flex: 0 0 auto;
-  height: 14px;
-  width: 14px;
-}
-
-.featureActionCostDivider {
-  color: rgba(102, 75, 56, 0.72);
 }
 
 .castActionButton {

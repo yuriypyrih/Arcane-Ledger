@@ -2,6 +2,7 @@ import type {
   LanguageProficiency,
   LANGUAGE_PROFICIENCY,
   SAVING_THROW_PROFICIENCY,
+  TOOL_PROFICIENCY,
   WEAPON_PROFICIENCY
 } from "./proficiencies";
 import type { DAMAGE_TYPE } from "../codex/entries";
@@ -58,6 +59,8 @@ export type CharacterBardExpertiseState = {
 export type CharacterBardFeatureState = {
   bardicInspirationUsesExpended?: number;
   bardicInspirationTemporaryTotal?: number;
+  lunarVitalityUsedThisTurn?: boolean;
+  dazzlingFootworkUnarmedStrikesRemainingThisTurn?: number;
   beguilingMagicUsesExpended?: number;
   blessingOfMoonlightUsesExpended?: number;
   mantleOfMajestyUsesExpended?: number;
@@ -260,6 +263,7 @@ export type CharacterClericFeatureState = {
   channelDivinityUsesExpended?: number;
   divineInterventionUsed?: boolean;
   knowledgeBlessingsSkills?: SkillName[];
+  knowledgeBlessingsTool?: TOOL_PROFICIENCY;
   unfetteredMindSavingThrow?: SAVING_THROW_PROFICIENCY;
   divineForeknowledgeUsesExpended?: number;
 };

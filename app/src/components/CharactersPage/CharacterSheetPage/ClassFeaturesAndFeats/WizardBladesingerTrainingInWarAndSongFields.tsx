@@ -39,7 +39,7 @@ function getTrainingInWarAndSongOptions(character: Character): Array<{
     return {
       skill: skillName,
       disabled: isAlreadyProficient,
-      label: isAlreadyProficient ? `${skillName} (already proficient)` : skillName
+      label: skillName
     };
   });
 }

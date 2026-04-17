@@ -58,7 +58,7 @@ export const clericSubclassEntries: SubclassEntry[] = [
             "You gain proficiency with one type of Artisan's Tools of your choice and in two of the following skills of your choice: <link:Arcana>Arcana</link>, <link:History>History</link>, <link:Nature>Nature</link>, or <link:Religion>Religion</link>.",
             "You have Expertise in those two skills."
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(
@@ -73,7 +73,7 @@ export const clericSubclassEntries: SubclassEntry[] = [
             "<strong>Level 9.</strong> <spell:Legend Lore>Legend Lore</spell>, <spell:Scrying>Scrying</spell>, <spell:Synaptic Static>Synaptic Static</spell>",
             "<spell:Comprehend Languages>Comprehend Languages</spell>, <spell:Detect Magic>Detect Magic</spell>, <spell:Detect Thoughts>Detect Thoughts</spell>, <spell:Identify>Identify</spell>, <spell:Mind Spike>Mind Spike</spell>, <spell:Tongues>Tongues</spell>, <spell:Arcane Eye>Arcane Eye</spell>, <spell:Legend Lore>Legend Lore</spell>, and <spell:Scrying>Scrying</spell> are spells of the Divination school."
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.MIND_MAGIC, {
@@ -82,26 +82,22 @@ export const clericSubclassEntries: SubclassEntry[] = [
           "Choose one spell from the Divination school on the Knowledge Domain Spells table that you have prepared.",
           "As part of that action, you cast that spell without expending a spell slot or needing Material components."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_6,
-        CLASS_FEATURE.UNFETTERED_MIND,
-        {
-          description: [
-            "You gain telepathy out to 60 feet. When you use this telepathy, you can simultaneously contact a number of creatures equal to your <link:WIS>Wisdom</link> modifier (minimum of one).",
-            "Additionally, you gain proficiency in <link:Intelligence Saving Throw>Intelligence saving throws</link>.",
-            "If you already have this proficiency, you instead gain saving throw proficiency with one ability in which you lack it."
-          ],
-          ...notTracked
-        }
-      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.UNFETTERED_MIND, {
+        description: [
+          "You gain telepathy out to 60 feet. When you use this telepathy, you can simultaneously contact a number of creatures equal to your <link:WIS>Wisdom</link> modifier (minimum of one).",
+          "Additionally, you gain proficiency in <link:Intelligence Saving Throw>Intelligence saving throws</link>.",
+          "If you already have this proficiency, you instead gain saving throw proficiency with one ability in which you lack it."
+        ],
+        trackingState: TRACKER.TRACKED
+      }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_17,
         CLASS_FEATURE.DIVINE_FOREKNOWLEDGE,
         {
           description: [...divineForeknowledgeDescription],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       )
     ]
@@ -114,57 +110,41 @@ export const clericSubclassEntries: SubclassEntry[] = [
     summary:
       "The Life Domain focuses on the positive energy that helps sustain all life in the multiverse. Clerics who tap into this domain are masters of healing, using that life force to cure many hurts.",
     features: [
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
-        CLASS_FEATURE.LIFE_DOMAIN_SPELLS,
-        {
-          description: [
-            "When you reach a Cleric level specified in the Life Domain Spells table, you thereafter always have the listed spells prepared.",
-            "<strong>Level 3.</strong> <spell:Aid>Aid</spell>, <spell:Bless>Bless</spell>, <spell:Cure Wounds>Cure Wounds</spell>, <spell:Lesser Restoration>Lesser Restoration</spell>",
-            "<strong>Level 5.</strong> <spell:Mass Healing Word>Mass Healing Word</spell>, <spell:Revivify>Revivify</spell>",
-            "<strong>Level 7.</strong> <spell:Aura of Life>Aura of Life</spell>, <spell:Death Ward>Death Ward</spell>",
-            "<strong>Level 9.</strong> <spell:Greater Restoration>Greater Restoration</spell>, <spell:Mass Cure Wounds>Mass Cure Wounds</spell>"
-          ],
-          ...notTracked
-        }
-      ),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
-        CLASS_FEATURE.DISCIPLE_OF_LIFE,
-        {
-          description: [
-            "When a spell you cast with a spell slot restores Hit Points to a creature, that creature regains additional Hit Points on the turn you cast the spell.",
-            "The additional Hit Points equal 2 plus the spell slot's level."
-          ],
-          ...notTracked
-        }
-      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.LIFE_DOMAIN_SPELLS, {
+        description: [
+          "When you reach a Cleric level specified in the Life Domain Spells table, you thereafter always have the listed spells prepared.",
+          "<strong>Level 3.</strong> <spell:Aid>Aid</spell>, <spell:Bless>Bless</spell>, <spell:Cure Wounds>Cure Wounds</spell>, <spell:Lesser Restoration>Lesser Restoration</spell>",
+          "<strong>Level 5.</strong> <spell:Mass Healing Word>Mass Healing Word</spell>, <spell:Revivify>Revivify</spell>",
+          "<strong>Level 7.</strong> <spell:Aura of Life>Aura of Life</spell>, <spell:Death Ward>Death Ward</spell>",
+          "<strong>Level 9.</strong> <spell:Greater Restoration>Greater Restoration</spell>, <spell:Mass Cure Wounds>Mass Cure Wounds</spell>"
+        ],
+        trackingState: TRACKER.TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.DISCIPLE_OF_LIFE, {
+        description: [
+          "When a spell you cast with a spell slot restores Hit Points to a creature, that creature regains additional Hit Points on the turn you cast the spell.",
+          "The additional Hit Points equal 2 plus the spell slot's level."
+        ],
+        trackingState: TRACKER.SEMI_TRACKED
+      }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.PRESERVE_LIFE, {
         description: [...preserveLifeDescription],
+        trackingState: TRACKER.SEMI_TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.BLESSED_HEALER, {
+        description: [
+          "The healing spells you cast on others heal you as well.",
+          "Immediately after you cast a spell with a spell slot that restores Hit Points to one creature other than you, you regain Hit Points equal to 2 plus the spell slot's level."
+        ],
         ...notTracked
       }),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_6,
-        CLASS_FEATURE.BLESSED_HEALER,
-        {
-          description: [
-            "The healing spells you cast on others heal you as well.",
-            "Immediately after you cast a spell with a spell slot that restores Hit Points to one creature other than you, you regain Hit Points equal to 2 plus the spell slot's level."
-          ],
-          ...notTracked
-        }
-      ),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_17,
-        CLASS_FEATURE.SUPREME_HEALING,
-        {
-          description: [
-            "When you would normally roll one or more dice to restore Hit Points to a creature with a spell or Channel Divinity, don't roll those dice for the healing; instead use the highest number possible for each die.",
-            "For example, instead of restoring 2d6 Hit Points to a creature with a spell, you restore 12."
-          ],
-          ...notTracked
-        }
-      )
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.SUPREME_HEALING, {
+        description: [
+          "When you would normally roll one or more dice to restore Hit Points to a creature with a spell or Channel Divinity, don't roll those dice for the healing; instead use the highest number possible for each die.",
+          "For example, instead of restoring 2d6 Hit Points to a creature with a spell, you restore 12."
+        ],
+        ...notTracked
+      })
     ]
   },
   {
@@ -175,20 +155,16 @@ export const clericSubclassEntries: SubclassEntry[] = [
     summary:
       "The Light Domain emphasizes the divine power to bring about blazing fire and revelation. Clerics who wield this power are enlightened souls infused with radiance and the power of their deities' discerning vision, charged with chasing away lies and burning away darkness.",
     features: [
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
-        CLASS_FEATURE.LIGHT_DOMAIN_SPELLS,
-        {
-          description: [
-            "When you reach a Cleric level specified in the Light Domain Spells table, you thereafter always have the listed spells prepared.",
-            "<strong>Level 3.</strong> <spell:Burning Hands>Burning Hands</spell>, <spell:Faerie Fire>Faerie Fire</spell>, <spell:Scorching Ray>Scorching Ray</spell>, <spell:See Invisibility>See Invisibility</spell>",
-            "<strong>Level 5.</strong> <spell:Daylight>Daylight</spell>, <spell:Fireball>Fireball</spell>",
-            "<strong>Level 7.</strong> <spell:Arcane Eye>Arcane Eye</spell>, <spell:Wall of Fire>Wall of Fire</spell>",
-            "<strong>Level 9.</strong> <spell:Flame Strike>Flame Strike</spell>, <spell:Scrying>Scrying</spell>"
-          ],
-          ...notTracked
-        }
-      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.LIGHT_DOMAIN_SPELLS, {
+        description: [
+          "When you reach a Cleric level specified in the Light Domain Spells table, you thereafter always have the listed spells prepared.",
+          "<strong>Level 3.</strong> <spell:Burning Hands>Burning Hands</spell>, <spell:Faerie Fire>Faerie Fire</spell>, <spell:Scorching Ray>Scorching Ray</spell>, <spell:See Invisibility>See Invisibility</spell>",
+          "<strong>Level 5.</strong> <spell:Daylight>Daylight</spell>, <spell:Fireball>Fireball</spell>",
+          "<strong>Level 7.</strong> <spell:Arcane Eye>Arcane Eye</spell>, <spell:Wall of Fire>Wall of Fire</spell>",
+          "<strong>Level 9.</strong> <spell:Flame Strike>Flame Strike</spell>, <spell:Scrying>Scrying</spell>"
+        ],
+        ...notTracked
+      }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.RADIANCE_OF_THE_DAWN,
@@ -220,19 +196,15 @@ export const clericSubclassEntries: SubclassEntry[] = [
           ...notTracked
         }
       ),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_17,
-        CLASS_FEATURE.CORONA_OF_LIGHT,
-        {
-          description: [
-            "As a Magic action, you cause yourself to emit an aura of sunlight that lasts for 1 minute or until you dismiss it, no action required.",
-            "You emit Bright Light in a 60-foot radius and Dim Light for an additional 30 feet.",
-            "Your enemies in the Bright Light have <link:Disadvantage>Disadvantage</link> on saving throws against your Radiance of the Dawn and any spell that deals <link:Fire>Fire</link> or <link:Radiant>Radiant</link> damage.",
-            "You can use this feature a number of times equal to your <link:WIS>Wisdom</link> modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
-          ],
-          ...notTracked
-        }
-      )
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.CORONA_OF_LIGHT, {
+        description: [
+          "As a Magic action, you cause yourself to emit an aura of sunlight that lasts for 1 minute or until you dismiss it, no action required.",
+          "You emit Bright Light in a 60-foot radius and Dim Light for an additional 30 feet.",
+          "Your enemies in the Bright Light have <link:Disadvantage>Disadvantage</link> on saving throws against your Radiance of the Dawn and any spell that deals <link:Fire>Fire</link> or <link:Radiant>Radiant</link> damage.",
+          "You can use this feature a number of times equal to your <link:WIS>Wisdom</link> modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
+        ],
+        ...notTracked
+      })
     ]
   },
   {
@@ -268,22 +240,18 @@ export const clericSubclassEntries: SubclassEntry[] = [
           ...notTracked
         }
       ),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
-        CLASS_FEATURE.INVOKE_DUPLICITY,
-        {
-          description: [
-            "As a Bonus Action, you can expend one use of your Channel Divinity to create a perfect visual illusion of yourself in an unoccupied space you can see within 30 feet of yourself.",
-            "The illusion is intangible and doesn't occupy its space. It lasts for 1 minute, but it ends early if you dismiss it, no action required, or have the <link:Incapacitated>Incapacitated</link> condition.",
-            "The illusion is animated and mimics your expressions and gestures.",
-            "While it persists, you gain the following benefits.",
-            "<strong>Cast Spells.</strong> You can cast spells as though you were in the illusion's space, but you must use your own senses.",
-            "<strong>Distract.</strong> When both you and your illusion are within 5 feet of a creature that can see the illusion, you have <link:Advantage>Advantage</link> on attack rolls against that creature, given how distracting the illusion is to the target.",
-            "<strong>Move.</strong> As a Bonus Action, you can move the illusion up to 30 feet to an unoccupied space you can see that is within 120 feet of yourself."
-          ],
-          ...notTracked
-        }
-      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.INVOKE_DUPLICITY, {
+        description: [
+          "As a Bonus Action, you can expend one use of your Channel Divinity to create a perfect visual illusion of yourself in an unoccupied space you can see within 30 feet of yourself.",
+          "The illusion is intangible and doesn't occupy its space. It lasts for 1 minute, but it ends early if you dismiss it, no action required, or have the <link:Incapacitated>Incapacitated</link> condition.",
+          "The illusion is animated and mimics your expressions and gestures.",
+          "While it persists, you gain the following benefits.",
+          "<strong>Cast Spells.</strong> You can cast spells as though you were in the illusion's space, but you must use your own senses.",
+          "<strong>Distract.</strong> When both you and your illusion are within 5 feet of a creature that can see the illusion, you have <link:Advantage>Advantage</link> on attack rolls against that creature, given how distracting the illusion is to the target.",
+          "<strong>Move.</strong> As a Bonus Action, you can move the illusion up to 30 feet to an unoccupied space you can see that is within 120 feet of yourself."
+        ],
+        ...notTracked
+      }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_6,
         CLASS_FEATURE.TRICKSTERS_TRANSPOSITION,
@@ -294,18 +262,14 @@ export const clericSubclassEntries: SubclassEntry[] = [
           ...notTracked
         }
       ),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_17,
-        CLASS_FEATURE.IMPROVED_DUPLICITY,
-        {
-          description: [
-            "The illusion of your Invoke Duplicity has grown more powerful in the following ways.",
-            "<strong>Shared Distraction.</strong> When you and your allies make attack rolls against a creature within 5 feet of the illusion, the attack rolls have <link:Advantage>Advantage</link>.",
-            "<strong>Healing Illusion.</strong> When the illusion ends, you or a creature of your choice within 5 feet of it regains a number of Hit Points equal to your Cleric level."
-          ],
-          ...notTracked
-        }
-      )
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.IMPROVED_DUPLICITY, {
+        description: [
+          "The illusion of your Invoke Duplicity has grown more powerful in the following ways.",
+          "<strong>Shared Distraction.</strong> When you and your allies make attack rolls against a creature within 5 feet of the illusion, the attack rolls have <link:Advantage>Advantage</link>.",
+          "<strong>Healing Illusion.</strong> When the illusion ends, you or a creature of your choice within 5 feet of it regains a number of Hit Points equal to your Cleric level."
+        ],
+        ...notTracked
+      })
     ]
   },
   {
@@ -316,20 +280,16 @@ export const clericSubclassEntries: SubclassEntry[] = [
     summary:
       "War has many manifestations. It can make heroes of ordinary people. It can be desperate and horrific, with acts of cruelty and cowardice eclipsing instances of excellence and courage. Clerics who tap into the magic of the War Domain excel in battle, inspiring others to fight the good fight or offering acts of violence as prayers.",
     features: [
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
-        CLASS_FEATURE.WAR_DOMAIN_SPELLS,
-        {
-          description: [
-            "When you reach a Cleric level specified in the War Domain Spells table, you thereafter always have the listed spells prepared.",
-            "<strong>Level 3.</strong> <spell:Guiding Bolt>Guiding Bolt</spell>, <spell:Magic Weapon>Magic Weapon</spell>, <spell:Shield of Faith>Shield of Faith</spell>, <spell:Spiritual Weapon>Spiritual Weapon</spell>",
-            "<strong>Level 5.</strong> <spell:Crusader's Mantle>Crusader's Mantle</spell>, <spell:Spirit Guardians>Spirit Guardians</spell>",
-            "<strong>Level 7.</strong> <spell:Fire Shield>Fire Shield</spell>, <spell:Freedom of Movement>Freedom of Movement</spell>",
-            "<strong>Level 9.</strong> <spell:Hold Monster>Hold Monster</spell>, <spell:Steel Wind Strike>Steel Wind Strike</spell>"
-          ],
-          ...notTracked
-        }
-      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.WAR_DOMAIN_SPELLS, {
+        description: [
+          "When you reach a Cleric level specified in the War Domain Spells table, you thereafter always have the listed spells prepared.",
+          "<strong>Level 3.</strong> <spell:Guiding Bolt>Guiding Bolt</spell>, <spell:Magic Weapon>Magic Weapon</spell>, <spell:Shield of Faith>Shield of Faith</spell>, <spell:Spiritual Weapon>Spiritual Weapon</spell>",
+          "<strong>Level 5.</strong> <spell:Crusader's Mantle>Crusader's Mantle</spell>, <spell:Spirit Guardians>Spirit Guardians</spell>",
+          "<strong>Level 7.</strong> <spell:Fire Shield>Fire Shield</spell>, <spell:Freedom of Movement>Freedom of Movement</spell>",
+          "<strong>Level 9.</strong> <spell:Hold Monster>Hold Monster</spell>, <spell:Steel Wind Strike>Steel Wind Strike</spell>"
+        ],
+        ...notTracked
+      }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.WAR_PRIEST, {
         description: [
           "As a Bonus Action, you can make one attack with a weapon or an Unarmed Strike.",
@@ -338,39 +298,27 @@ export const clericSubclassEntries: SubclassEntry[] = [
         ],
         ...notTracked
       }),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
-        CLASS_FEATURE.GUIDED_STRIKE,
-        {
-          description: [
-            "When you or a creature within 30 feet of you misses with an attack roll, you can expend one use of your Channel Divinity and give that roll a +10 bonus, potentially causing it to hit.",
-            "When you use this feature to benefit another creature's attack roll, you must take a Reaction to do so."
-          ],
-          ...notTracked
-        }
-      ),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_6,
-        CLASS_FEATURE.WAR_GODS_BLESSING,
-        {
-          description: [
-            "You can expend a use of your Channel Divinity to cast <spell:Shield of Faith>Shield of Faith</spell> or <spell:Spiritual Weapon>Spiritual Weapon</spell> rather than expending a spell slot.",
-            "When you cast either spell in this way, the spell doesn't require <link:Concentration>Concentration</link>.",
-            "Instead the spell lasts for 1 minute, but it ends early if you cast that spell again, have the <link:Incapacitated>Incapacitated</link> condition, or die."
-          ],
-          ...notTracked
-        }
-      ),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_17,
-        CLASS_FEATURE.AVATAR_OF_BATTLE,
-        {
-          description: [
-            "You gain <link:Resistance>Resistance</link> to <link:Bludgeoning>Bludgeoning</link>, <link:Piercing>Piercing</link>, and <link:Slashing>Slashing</link> damage."
-          ],
-          ...notTracked
-        }
-      )
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.GUIDED_STRIKE, {
+        description: [
+          "When you or a creature within 30 feet of you misses with an attack roll, you can expend one use of your Channel Divinity and give that roll a +10 bonus, potentially causing it to hit.",
+          "When you use this feature to benefit another creature's attack roll, you must take a Reaction to do so."
+        ],
+        ...notTracked
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.WAR_GODS_BLESSING, {
+        description: [
+          "You can expend a use of your Channel Divinity to cast <spell:Shield of Faith>Shield of Faith</spell> or <spell:Spiritual Weapon>Spiritual Weapon</spell> rather than expending a spell slot.",
+          "When you cast either spell in this way, the spell doesn't require <link:Concentration>Concentration</link>.",
+          "Instead the spell lasts for 1 minute, but it ends early if you cast that spell again, have the <link:Incapacitated>Incapacitated</link> condition, or die."
+        ],
+        ...notTracked
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.AVATAR_OF_BATTLE, {
+        description: [
+          "You gain <link:Resistance>Resistance</link> to <link:Bludgeoning>Bludgeoning</link>, <link:Piercing>Piercing</link>, and <link:Slashing>Slashing</link> damage."
+        ],
+        ...notTracked
+      })
     ]
   }
 ];

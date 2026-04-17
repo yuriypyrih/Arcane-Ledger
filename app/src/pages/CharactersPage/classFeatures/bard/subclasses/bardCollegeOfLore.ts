@@ -1,5 +1,6 @@
 import { getSpellEntriesForSpellListClasses } from "../../../../../codex/classes";
 import {
+  CLASS_FEATURE,
   getReactionEntryById,
   SPELL_LIST_CLASS,
   type SpellEntry
@@ -18,6 +19,7 @@ import {
   isSkillName
 } from "../../../../../types";
 import { getSpellLevel, getSpellSlotTotalsForCharacter } from "../../../spellcasting";
+import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { FeatureSkillProficiencyEntry } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 
@@ -214,5 +216,14 @@ export const getBardCollegeOfLoreDerivedFeatureState: SubclassRuntimeResolver = 
 
   const cuttingWords = getReactionEntryById("reaction-cutting-words");
 
-  return cuttingWords ? { reactionEntries: [cuttingWords] } : {};
+  return cuttingWords
+    ? {
+        reactionEntries: [
+          {
+            ...cuttingWords,
+            description: getFeatureDescriptionForCharacter(character, CLASS_FEATURE.CUTTING_WORDS)
+          }
+        ]
+      }
+    : {};
 };

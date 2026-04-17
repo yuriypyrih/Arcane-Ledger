@@ -122,6 +122,10 @@ export function createEmptyCharacter(): CharacterDraft {
     shortRestsUsedToday: 0,
     heroicInspiration: true,
     coreStats: createDefaultCoreStats(),
+    armorClassFormulaSelection: {
+      key: null,
+      mode: "auto"
+    },
     classFeatureState: {},
     feats: []
   };

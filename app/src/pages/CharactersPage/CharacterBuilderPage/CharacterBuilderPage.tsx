@@ -72,6 +72,7 @@ function CharacterBuilderPage() {
         shortRestsUsedToday: existingCharacter.shortRestsUsedToday,
         heroicInspiration: existingCharacter.heroicInspiration,
         coreStats: existingCharacter.coreStats,
+        armorClassFormulaSelection: existingCharacter.armorClassFormulaSelection,
         classFeatureState: existingCharacter.classFeatureState,
         feats: existingCharacter.feats
       }

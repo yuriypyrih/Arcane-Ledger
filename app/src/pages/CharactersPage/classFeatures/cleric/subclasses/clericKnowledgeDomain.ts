@@ -1,9 +1,15 @@
+import {
+  CLASS_FEATURE,
+  MAGIC_SCHOOL,
+  type SpellEntry
+} from "../../../../../codex/entries";
 import { divineForeknowledgeDescription } from "../../../../../codex/subclasses/cleric";
 import type {
   Character,
   CharacterClericFeatureState,
   SavingThrowProficiencyEntry,
-  SkillProficiencyEntry
+  SkillProficiencyEntry,
+  ToolProficiencyEntry
 } from "../../../../../types";
 import {
   PROFICIENCY_OVERRIDE_POLICY,
@@ -15,7 +21,12 @@ import {
   STATUS_ENTRY_GROUP,
   type SkillName
 } from "../../../../../types";
+import {
+  artisanToolProficiencies,
+  type ToolProficiency
+} from "../../../proficiencyOptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import {
   getSavingThrowLevelFromEntries,
   getSkillProficiencyForName
@@ -32,15 +43,18 @@ import type {
   FeatureActionCard,
   FeatureSavingThrowProficiencyEntry,
   FeatureSkillProficiencyEntry,
+  FeatureToolProficiencyEntry,
   SavingThrowIndicatorMap,
   SkillIndicatorMap
 } from "../../types";
+import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import { normalizeClericBaseFeatureState } from "../clericFeatureState";
 
 export const knowledgeDomainSubclassId = "cleric-knowledge-domain";
 export const divineForeknowledgeActionKey = "cleric-divine-foreknowledge";
 
 const blessingsOfKnowledgeSource = "Blessings of Knowledge";
+const mindMagicSource = "Mind Magic";
 const unfetteredMindSource = "Unfettered Mind";
 const divineForeknowledgeSource = "Divine Foreknowledge";
 const divineForeknowledgeStatusSourceId = "feature-cleric-divine-foreknowledge";
@@ -50,6 +64,7 @@ const knowledgeDomainBlessingsSkillOptions = [
   SKILL.NATURE,
   SKILL.RELIGION
 ] as const;
+const knowledgeDomainBlessingsToolOptions = [...artisanToolProficiencies] as const;
 const divineForeknowledgeAdvantageIndicator = {
   label: "Advantage",
   tone: "advantage" as const,
@@ -112,6 +127,12 @@ function hasClericKnowledgeDomainBlessingsOfKnowledgeFeature(
   return hasClericKnowledgeDomainFeature(character, 3);
 }
 
+export function hasClericKnowledgeDomainMindMagicFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return hasClericKnowledgeDomainFeature(character, 3);
+}
+
 function hasClericKnowledgeDomainUnfetteredMindFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
@@ -150,6 +171,22 @@ function createKnowledgeDomainSkillEntries(skill: SkillName): SkillProficiencyEn
       proficiencyLevel: PROF_LEVEL.EXPERT,
       overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
     } satisfies SkillProficiencyEntry
+  ];
+}
+
+function isKnowledgeDomainBlessingsTool(tool: ToolProficiency): boolean {
+  return knowledgeDomainBlessingsToolOptions.some((option) => option === tool);
+}
+
+function createKnowledgeDomainToolEntries(tool: ToolProficiency): ToolProficiencyEntry[] {
+  return [
+    {
+      source: PROFICIENCY_SOURCE.CLASS,
+      sourceStr: blessingsOfKnowledgeSource,
+      proficiency: tool,
+      proficiencyLevel: PROF_LEVEL.PROFICIENT,
+      overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
+    } satisfies ToolProficiencyEntry
   ];
 }
 
@@ -192,7 +229,10 @@ export function normalizeClericKnowledgeDomainFeatureState(
     Partial<Pick<Character, "level" | "subclassId" | "savingThrowProficiencies">>
 ): Pick<
   CharacterClericFeatureState,
-  "knowledgeBlessingsSkills" | "unfetteredMindSavingThrow" | "divineForeknowledgeUsesExpended"
+  | "knowledgeBlessingsSkills"
+  | "knowledgeBlessingsTool"
+  | "unfetteredMindSavingThrow"
+  | "divineForeknowledgeUsesExpended"
 > {
   const hasBlessingsOfKnowledge = hasClericKnowledgeDomainBlessingsOfKnowledgeFeature(character);
   const hasUnfetteredMind = hasClericKnowledgeDomainUnfetteredMindFeature(character);
@@ -210,6 +250,12 @@ export function normalizeClericKnowledgeDomainFeatureState(
           )
         ).slice(0, 2)
       : undefined,
+    knowledgeBlessingsTool:
+      hasBlessingsOfKnowledge &&
+      typeof value.knowledgeBlessingsTool === "string" &&
+      knowledgeDomainBlessingsToolOptions.some((tool) => tool === value.knowledgeBlessingsTool)
+        ? value.knowledgeBlessingsTool
+        : undefined,
     unfetteredMindSavingThrow:
       hasUnfetteredMind &&
       abilitySavingThrowProficiencies.some(
@@ -245,6 +291,20 @@ export function getKnowledgeDomainBlessingsSkillSelections(
   );
 }
 
+export function getKnowledgeDomainBlessingsToolSelection(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "classFeatureState" | "subclassId">>
+): ToolProficiency | null {
+  if (!hasClericKnowledgeDomainBlessingsOfKnowledgeFeature(character)) {
+    return null;
+  }
+
+  return (
+    normalizeKnowledgeDomainClericFeatureState(character.classFeatureState?.cleric, character)
+      .knowledgeBlessingsTool ?? null
+  );
+}
+
 export function setKnowledgeDomainBlessingsSkillSelections(
   character: Character,
   selections: SkillName[]
@@ -273,6 +333,32 @@ export function setKnowledgeDomainBlessingsSkillSelections(
   };
 }
 
+export function setKnowledgeDomainBlessingsToolSelection(
+  character: Character,
+  selection: ToolProficiency | null
+): Character {
+  if (!hasClericKnowledgeDomainBlessingsOfKnowledgeFeature(character)) {
+    return character;
+  }
+
+  const clericState = normalizeKnowledgeDomainClericFeatureState(
+    character.classFeatureState?.cleric,
+    character
+  );
+  const nextSelection = selection && isKnowledgeDomainBlessingsTool(selection) ? selection : undefined;
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      cleric: {
+        ...clericState,
+        knowledgeBlessingsTool: nextSelection
+      }
+    }
+  };
+}
+
 export function getKnowledgeDomainSkillProficiencyEntries(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "classFeatureState" | "subclassId">>
@@ -284,6 +370,44 @@ export function getKnowledgeDomainSkillProficiencyEntries(
   return getKnowledgeDomainBlessingsSkillSelections(character).flatMap((skill) =>
     createKnowledgeDomainSkillEntries(skill)
   );
+}
+
+export function getKnowledgeDomainToolProficiencyEntries(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "classFeatureState" | "subclassId">>
+): FeatureToolProficiencyEntry[] {
+  const tool = getKnowledgeDomainBlessingsToolSelection(character);
+
+  return tool ? createKnowledgeDomainToolEntries(tool) : [];
+}
+
+export function canUseClericKnowledgeDomainMindMagicForSpell(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  spell: Pick<SpellEntry, "magicSchool"> | null,
+  isPrepared: boolean
+): boolean {
+  return (
+    isPrepared &&
+    spell !== null &&
+    spell.magicSchool === MAGIC_SCHOOL.DIVINATION &&
+    hasClericKnowledgeDomainMindMagicFeature(character)
+  );
+}
+
+export function getClericKnowledgeDomainMindMagicSpellEntry(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  spell: SpellEntry,
+  isPrepared: boolean
+): SpellEntry {
+  if (!canUseClericKnowledgeDomainMindMagicForSpell(character, spell, isPrepared)) {
+    return spell;
+  }
+
+  const descriptionEntries = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.MIND_MAGIC);
+
+  return descriptionEntries.length > 0
+    ? appendSourcedDescriptionAddition(spell, mindMagicSource, descriptionEntries)
+    : spell;
 }
 
 export function isKnowledgeDomainUnfetteredMindLockedToInt(
@@ -510,9 +634,7 @@ export function getKnowledgeDomainFeatureActions(
       actionCategory: ACTION_CATEGORY.FEATURE,
       usesRemaining,
       usesTotal,
-      hideUsesTrackerOnCard: true,
-      usesLabel: `${usesRemaining}/${usesTotal} use`,
-      usesInlineLabel: fallbackSlotSummary.total > 0 ? "| Use 6+ Spell Slot" : undefined,
+      usesInlineLabel: usesRemaining <= 0 && hasFallbackSlot ? "| Use 6+ Spell Slot" : undefined,
       description: [...divineForeknowledgeDescription],
       drawer: {
         kind: "confirm",
@@ -723,6 +845,7 @@ export const getClericKnowledgeDomainDerivedFeatureState: SubclassRuntimeResolve
   return {
     featureActions: getKnowledgeDomainFeatureActions(character),
     skillProficiencyEntries: getKnowledgeDomainSkillProficiencyEntries(character),
+    toolProficiencyEntries: getKnowledgeDomainToolProficiencyEntries(character),
     savingThrowProficiencyEntries: getKnowledgeDomainSavingThrowProficiencyEntries(character),
     skillIndicators: getKnowledgeDomainSkillIndicators(character),
     savingThrowIndicators: getKnowledgeDomainSavingThrowIndicators(character),

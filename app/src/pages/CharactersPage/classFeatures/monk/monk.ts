@@ -1145,21 +1145,29 @@ export function getMonkArmorClassModes(
   character: Pick<Character, "className" | "level">,
   context: ArmorClassFeatureContext
 ): FeatureArmorClassMode[] {
-  if (
-    !hasMonkFeature(character, CLASS_FEATURE.UNARMORED_DEFENSE) ||
-    context.hasWornBodyArmor ||
-    context.hasShieldEquipped
-  ) {
+  if (!hasMonkFeature(character, CLASS_FEATURE.UNARMORED_DEFENSE)) {
     return [];
   }
+
+  const isApplicable = !context.hasWornBodyArmor && !context.hasShieldEquipped;
+  const unavailableReason = context.hasWornBodyArmor
+    ? context.hasShieldEquipped
+      ? "Requires you to wear no body armor and wield no shield."
+      : "Requires you to wear no body armor."
+    : context.hasShieldEquipped
+      ? "Requires you to wield no shield."
+      : undefined;
 
   return [
     {
       key: "monk-unarmored-defense",
       label: "Unarmored Defense",
+      unlockedAtLevel: 1,
       baseValue: 10,
       abilityModifiers: ["DEX", "WIS"],
       shieldAllowed: false,
+      isApplicable,
+      unavailableReason,
       detail: "Monk feature"
     }
   ];

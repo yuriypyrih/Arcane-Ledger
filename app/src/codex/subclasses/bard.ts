@@ -130,26 +130,26 @@ export const bardSubclassEntries: SubclassEntry[] = [
           "Once you use this benefit, you can't use it again until you finish a <link:long-rest>Long Rest</link>.",
           "You can also restore your use of it by expending one use of your Bardic Inspiration (no action required)."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.MANTLE_OF_INSPIRATION,
         {
           description: [...mantleOfInspirationDescription],
-          ...notTracked
+          trackingState: TRACKER.SEMI_TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.MANTLE_OF_MAJESTY, {
         description: [...mantleOfMajestyDescription],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_14,
         CLASS_FEATURE.UNBREAKABLE_MAJESTY,
         {
           description: [...unbreakableMajestyDescription],
-          ...notTracked
+          trackingState: TRACKER.SEMI_TRACKED
         }
       )
     ]
@@ -164,11 +164,11 @@ export const bardSubclassEntries: SubclassEntry[] = [
     features: [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.BONUS_PROFICIENCIES, {
         description: ["You gain proficiency with three skills of your choice."],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.CUTTING_WORDS, {
         description: [...cuttingWordsDescription],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.MAGICAL_DISCOVERIES, {
         description: [
@@ -177,14 +177,14 @@ export const bardSubclassEntries: SubclassEntry[] = [
           "A spell you choose must be a cantrip or a spell for which you have spell slots, as shown in the Bard Features table.",
           "You always have the chosen spells prepared, and whenever you gain a Bard level, you can replace one of the spells with another spell that meets these requirements."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.PEERLESS_SKILL, {
         description: [
           "When you make an ability check or attack roll and fail, you can expend one use of your Bardic Inspiration; roll the Bardic Inspiration die, and add the number rolled to the d20, potentially turning a failure into a success.",
           "On a failure, the Bardic Inspiration isn't expended."
         ],
-        ...notTracked
+        trackingState: TRACKER.NOT_TRACKED
       })
     ]
   },
@@ -204,7 +204,7 @@ export const bardSubclassEntries: SubclassEntry[] = [
           "<strong>Lunar Vitality.</strong> Once per turn when you restore Hit Points to a creature with a spell, you can expend a Bardic Inspiration die and increase the amount of Hit Points restored by a number equal to a roll of the Bardic Inspiration die.",
           "The creature's Speed also increases by 10 feet until the end of its next turn."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.PRIMAL_LORE, {
         description: [
@@ -214,7 +214,7 @@ export const bardSubclassEntries: SubclassEntry[] = [
           "Additionally, choose one of the following skills: <link:Animal Handling>Animal Handling</link>, <link:Insight>Insight</link>, <link:Medicine>Medicine</link>, <link:Nature>Nature</link>, <link:Perception>Perception</link>, or <link:Survival>Survival</link>.",
           "You have proficiency in that skill."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_6,
@@ -224,7 +224,7 @@ export const bardSubclassEntries: SubclassEntry[] = [
             "You always have the <spell:Moonbeam>Moonbeam</spell> spell prepared.",
             ...blessingOfMoonlightDescription
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.EVENTIDES_SPLENDOR, {
@@ -234,7 +234,7 @@ export const bardSubclassEntries: SubclassEntry[] = [
           "The creature remains Invisible until the start of its next turn.",
           "<strong>Vibrance of the Full Moon.</strong> When you use Lunar Vitality, you can roll 1d6 and use the number rolled in place of expending a Bardic Inspiration die."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   },
@@ -253,27 +253,27 @@ export const bardSubclassEntries: SubclassEntry[] = [
           "<strong>Defense.</strong> When the creature is hit by an attack roll, that creature can use its Reaction to roll the Bardic Inspiration die and add the number rolled to its <link:Armor Class>AC</link> against that attack, potentially causing the attack to miss.",
           "<strong>Offense.</strong> Immediately after the creature hits a target with an attack roll, the creature can roll the Bardic Inspiration die and add the number rolled to the attack's damage against the target."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.MARTIAL_TRAINING, {
         description: [
           "You gain proficiency with <link:Martial weapons>Martial weapons</link> and training with <link:Medium armor>Medium armor</link> and <link:Shield>Shields</link>.",
           "In addition, you can use a Simple or Martial weapon as a Spellcasting Focus to cast spells from your Bard spell list."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.EXTRA_ATTACK, {
         description: [
           "You can attack twice instead of once whenever you take the Attack action on your turn.",
           "In addition, you can cast one of your cantrips that has a casting time of an action in place of one of those attacks."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.BATTLE_MAGIC, {
         description: [
           "After you cast a spell that has a casting time of an action, you can make one attack with a weapon as a Bonus Action."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       })
     ]
   }

@@ -38,6 +38,7 @@ export type ReferenceDetailCard = {
 export type SelectedStatReference = {
   keyword: string;
   summaryText?: string;
+  warning?: string | null;
   descriptionAdditions?: SpellDescriptionEntry[][];
   descriptionItems?: Array<{
     label: string;
@@ -170,7 +171,16 @@ function StatReferenceDrawer({ reference, footer = null, onClose }: StatReferenc
         </OverlayBody>
       ) : null}
 
-      {footer ? <OverlayFooter>{footer}</OverlayFooter> : null}
+      {reference.warning || footer ? (
+        <OverlayFooter className={styles.referenceFooter}>
+          {reference.warning ? (
+            <div className={styles.referenceWarningBlock}>
+              <p className={styles.referenceWarningCard}>{reference.warning}</p>
+            </div>
+          ) : null}
+          {footer}
+        </OverlayFooter>
+      ) : null}
     </SheetDrawer>
   );
 }

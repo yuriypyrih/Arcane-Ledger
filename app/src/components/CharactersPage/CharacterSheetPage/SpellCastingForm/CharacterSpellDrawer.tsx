@@ -1,7 +1,6 @@
 import clsx from "clsx";
-import { Hexagon, Music, X } from "lucide-react";
-import { useEffect, useState, type ReactNode } from "react";
-import pyromancyIcon from "../../../../assets/svg/pyromancy.svg";
+import { Brain, Flame, Hexagon, Music, PawPrint, Sparkles, X } from "lucide-react";
+import { useEffect, useState } from "react";
 import ActionShape, {
   getActionShapeForCastingTime,
   type ActionShapeType
@@ -14,7 +13,6 @@ import SpellDescriptionContent from "../../../SpellDescriptionContent";
 import {
   ENTRY_CATEGORIES,
   KeywordTooltip,
-  type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
@@ -32,6 +30,15 @@ import {
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { getSpellLevel } from "../../../../pages/CharactersPage/spellcasting";
 import { getSpellDamageDetailForCharacter } from "../../../../pages/CharactersPage/spellOutcome";
+import type {
+  FeatureActionIcon,
+  FeatureActionResource
+} from "../../../../pages/CharactersPage/classFeatures";
+import FeatureOptInToggle, {
+  type FeatureOptInToggleIconKind
+} from "../FeatureOptInToggle/FeatureOptInToggle";
+import animaIcon from "../../../../assets/svg/anima.svg";
+import pyromancyIcon from "../../../../assets/svg/pyromancy.svg";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import gameplayActionStyles from "../GameplayForm/widgets/GameplayActionDrawer.module.css";
 import styles from "./CharacterSpellDrawer.module.css";
@@ -41,6 +48,7 @@ export type CharacterSpellDrawerMode = "standard" | "prepare-preview" | "divine-
 export type CharacterSpellDrawerActionOptions = {
   castAsRitual?: boolean;
   useBeguilingMagic?: boolean;
+  useMindMagic?: boolean;
   useElementalSmite?: boolean;
   usePhantasmalCreatures?: boolean;
   usePsionicSorcery?: boolean;
@@ -53,13 +61,14 @@ export type CharacterSpellDrawerActionOption = {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   disabled?: boolean;
+  headerResource?: FeatureActionResource;
   tracker?: {
     current: number;
     total: number;
   };
   fallbackCost?: {
     label: string;
-    icon?: "divinity" | "music" | "psi";
+    icon?: FeatureOptInToggleIconKind;
   };
   select?: {
     label: string;
@@ -72,6 +81,90 @@ export type CharacterSpellDrawerActionOption = {
     }>;
   };
 };
+
+function renderUsesIcon(icon?: FeatureActionIcon) {
+  if (icon === "anima") {
+    return <img src={animaIcon} alt="" className={styles.resourceAssetIcon} />;
+  }
+
+  if (icon === "brain") {
+    return <Brain size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "sparkles") {
+    return <Sparkles size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "music") {
+    return <Music size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "flame") {
+    return <Flame size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "paw") {
+    return <PawPrint size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "psi") {
+    return <Hexagon size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "pyromancy") {
+    return <img src={pyromancyIcon} alt="" className={styles.resourceAssetIcon} />;
+  }
+
+  return null;
+}
+
+function renderHeaderResource(resource: FeatureActionResource, key: string) {
+  if (resource.kind === "tracker" && resource.icon) {
+    return (
+      <span key={key} className={styles.resourceBadge}>
+        <span className={styles.resourceBadgeLabel}>{resource.label}</span>
+        <span className={styles.resourceBadgeValue}>
+          <span>{resource.cost ?? resource.current}</span>
+          {renderUsesIcon(resource.icon)}
+          <span>out of</span>
+          <span>{`${resource.current}/${resource.total}`}</span>
+          {renderUsesIcon(resource.icon)}
+        </span>
+      </span>
+    );
+  }
+
+  if (resource.kind === "tracker") {
+    return (
+      <span key={key} className={styles.resourceBadge}>
+        Charges
+        <span className={sheetStyles.shortRestDots}>
+          {Array.from({ length: resource.total }, (_, dotIndex) => (
+            <span
+              key={`${key}-dot-${dotIndex}`}
+              className={[
+                sheetStyles.shortRestDot,
+                dotIndex < resource.current ? sheetStyles.shortRestDotActive : ""
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            />
+          ))}
+        </span>
+      </span>
+    );
+  }
+
+  return (
+    <span key={key} className={styles.resourceBadge}>
+      <span className={styles.resourceBadgeLabel}>{resource.label}</span>
+      <span className={styles.resourceBadgeValue}>
+        <span>{resource.value}</span>
+        {renderUsesIcon(resource.icon)}
+      </span>
+    </span>
+  );
+}
 
 type CharacterSpellDrawerProps = {
   character: Character;
@@ -102,22 +195,6 @@ type CharacterSpellDrawerProps = {
   actionOptions?: CharacterSpellDrawerActionOption[];
   backdropClassName?: string;
 };
-
-function renderActionOptionIcon(icon?: "divinity" | "music" | "psi"): ReactNode {
-  if (icon === "divinity") {
-    return <img src={pyromancyIcon} alt="" className={actionStyles.featureActionCostIcon} />;
-  }
-
-  if (icon === "music") {
-    return <Music size={14} aria-hidden="true" />;
-  }
-
-  if (icon === "psi") {
-    return <Hexagon size={14} aria-hidden="true" />;
-  }
-
-  return null;
-}
 
 function getActionShapeTitle(shape: ActionShapeType): string {
   switch (shape) {
@@ -194,6 +271,16 @@ function CharacterSpellDrawer({
       normalizedSelectedSpellSlotLevel >= minimumSelectedSlotLevel &&
       selectedSpellRemainingSlots > 0);
   const shouldShowActionFooter = mode !== "prepare-preview";
+  const isMindMagicSelected = actionOptions.some(
+    (option) => option.id === "mind-magic" && option.checked
+  );
+  const visibleActionOptions = isRitualCastingSelected
+    ? actionOptions.filter((option) => option.id !== "mind-magic")
+    : actionOptions;
+  const visibleHeaderResources = visibleActionOptions.flatMap((option, index) =>
+    option.headerResource ? [{ key: `${option.id}-header-resource-${index}`, value: option.headerResource }] : []
+  );
+  const shouldShowRitualToggle = ritualCastingAvailable && !isMindMagicSelected;
   const shouldShowSlotControls =
     mode === "standard" &&
     spellLevel > 0 &&
@@ -217,6 +304,7 @@ function CharacterSpellDrawer({
   const footerActionShape =
     actionShape ??
     (isRitualCastingSelected || ritualCastingRequired ? "nonCombat" : castingTimeActionShape);
+  const shouldUseFullWidthReactionLayout = footerActionShape === "reaction";
   const castingTimeActionShapeTitle = castingTimeActionShape
     ? getActionShapeTitle(castingTimeActionShape)
     : null;
@@ -261,6 +349,26 @@ function CharacterSpellDrawer({
       setIsRitualCastingSelected(true);
     }
   }, [ritualCastingRequired, spell.id]);
+
+  useEffect(() => {
+    if (!isMindMagicSelected) {
+      return;
+    }
+
+    setIsRitualCastingSelected(false);
+  }, [isMindMagicSelected]);
+
+  useEffect(() => {
+    if (!isRitualCastingSelected) {
+      return;
+    }
+
+    const mindMagicOption = actionOptions.find((option) => option.id === "mind-magic");
+
+    if (mindMagicOption?.checked) {
+      mindMagicOption.onCheckedChange(false);
+    }
+  }, [actionOptions, isRitualCastingSelected]);
 
   const hasBaseDescription = spell.description.length > 0;
   const spellDescriptionSections =
@@ -328,6 +436,13 @@ function CharacterSpellDrawer({
               <p className={sheetStyles.spellDrawerSummary}>
                 <SpellSubtitle spell={spell} />
               </p>
+              {visibleHeaderResources.length > 0 ? (
+                <div className={styles.resourceBadgeRow}>
+                  {visibleHeaderResources.map((resource) =>
+                    renderHeaderResource(resource.value, resource.key)
+                  )}
+                </div>
+              ) : null}
             </div>
             <button
               type="button"
@@ -440,65 +555,49 @@ function CharacterSpellDrawer({
                       {relativeDescription ? (
                         <p className={actionStyles.castActionDescription}>{relativeDescription}</p>
                       ) : null}
-                      {ritualCastingAvailable ? (
-                        <label className={actionStyles.ritualCastToggle}>
-                          <input
-                            type="checkbox"
-                            checked={isRitualCastingSelected}
-                            disabled={ritualCastingRequired}
-                            onChange={(event) => setIsRitualCastingSelected(event.target.checked)}
-                          />
-                          <span>
-                            {ritualCastingRequired ? "Ritual Casting Only" : "Cast as Ritual"}
-                          </span>
-                        </label>
+                      {shouldShowRitualToggle ? (
+                        <FeatureOptInToggle
+                          className={actionStyles.ritualCastToggle}
+                          label={ritualCastingRequired ? "Ritual Casting Only" : "Cast as Ritual"}
+                          checked={isRitualCastingSelected}
+                          disabled={ritualCastingRequired}
+                          onCheckedChange={setIsRitualCastingSelected}
+                          checkboxAccentColor="#c96c14"
+                        />
                       ) : null}
-                      {actionOptions.map((option) => {
+                      {visibleActionOptions.map((option) => {
                         const tracker = option.tracker;
                         const select = option.select;
 
                         return (
-                          <div
-                            key={option.id}
-                            className={clsx(
-                              actionStyles.featureActionToggle,
-                              option.disabled ? actionStyles.featureActionToggleDisabled : null
-                            )}
-                          >
-                            <label className={actionStyles.featureActionToggleStart}>
-                              <input
-                                type="checkbox"
-                                checked={option.checked}
-                                disabled={option.disabled}
-                                onChange={(event) => option.onCheckedChange(event.target.checked)}
-                              />
-                              <span>{option.label}</span>
-                              {tracker ? (
-                                <span className={actionStyles.featureActionTracker}>
-                                  <span className={actionStyles.featureActionTrackerLabel}>
-                                    Charges
-                                  </span>
-                                  <span className={sheetStyles.shortRestDots}>
-                                    {Array.from({ length: tracker.total }, (_, index) => (
-                                      <span
-                                        key={`${option.id}-charge-${index}`}
-                                        className={clsx(
-                                          sheetStyles.shortRestDot,
-                                          index < tracker.current && sheetStyles.shortRestDotActive
-                                        )}
-                                      />
-                                    ))}
-                                  </span>
-                                </span>
-                              ) : null}
-                              {option.fallbackCost ? (
-                                <span className={actionStyles.featureActionCost}>
-                                  <span className={actionStyles.featureActionCostDivider}>|</span>
-                                  <span>{option.fallbackCost.label}</span>
-                                  {renderActionOptionIcon(option.fallbackCost.icon)}
-                                </span>
-                              ) : null}
-                            </label>
+                          <div key={option.id} className={actionStyles.featureActionToggle}>
+                            <FeatureOptInToggle
+                              label={option.label}
+                              checked={option.checked}
+                              disabled={option.disabled}
+                              muted={option.disabled}
+                              onCheckedChange={option.onCheckedChange}
+                              metaItems={[
+                                ...(tracker
+                                  ? [
+                                      {
+                                        kind: "tracker" as const,
+                                        current: tracker.current,
+                                        total: tracker.total
+                                      }
+                                    ]
+                                  : []),
+                                ...(option.fallbackCost
+                                  ? [
+                                      {
+                                        kind: "cost" as const,
+                                        label: option.fallbackCost.label,
+                                        icon: option.fallbackCost.icon
+                                      }
+                                    ]
+                                  : [])
+                              ]}
+                            />
                             {option.checked && select ? (
                               <div className={actionStyles.featureActionSelectField}>
                                 <span className={actionStyles.featureActionSelectLabel}>
@@ -549,7 +648,14 @@ function CharacterSpellDrawer({
                     </div>
                   </div>
                 ) : null}
-                <div className={actionStyles.castActionBottomRow}>
+                <div
+                  className={clsx(
+                    actionStyles.castActionBottomRow,
+                    shouldUseFullWidthReactionLayout || !shouldShowSlotControls
+                      ? actionStyles.castActionBottomRowStacked
+                      : null
+                  )}
+                >
                   {shouldShowSlotControls ? (
                     <div className={actionStyles.compactSlotSelectField}>
                       <SelectInput
@@ -590,6 +696,11 @@ function CharacterSpellDrawer({
                     onClick={() =>
                       onAction({
                         castAsRitual: ritualCastingRequired || isRitualCastingSelected,
+                        useMindMagic:
+                          !isRitualCastingSelected &&
+                          actionOptions.some(
+                          (option) => option.id === "mind-magic" && option.checked
+                        ),
                         usePsionicSorcery: actionOptions.some(
                           (option) => option.id === "psionic-sorcery" && option.checked
                         ),

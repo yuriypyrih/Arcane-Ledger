@@ -1,0 +1,68 @@
+.toggle {
+  color: var(--color-ink);
+  display: flex;
+  min-width: 0;
+}
+
+.toggleMuted {
+  opacity: 0.64;
+}
+
+.toggleDisabled {
+  cursor: not-allowed;
+}
+
+.toggleContent {
+  align-items: center;
+  display: inline-flex;
+  flex-wrap: wrap;
+  font-size: 0.84rem;
+  font-weight: 700;
+  gap: 0.45rem;
+  min-width: 0;
+  cursor: pointer;
+  width: fit-content;
+}
+
+.toggleDisabled .toggleContent {
+  cursor: not-allowed;
+}
+
+.toggleContent input {
+  accent-color: #2f78ff;
+  margin: 0;
+}
+
+.metaGroup {
+  align-items: center;
+  color: var(--color-ink);
+  display: inline-flex;
+  gap: 0.34rem;
+  min-width: 0;
+}
+
+.metaDivider {
+  color: rgba(75, 47, 29, 0.54);
+}
+
+.metaText {
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.trackerDots {
+  margin-top: 0;
+}
+
+.metaIcon {
+  color: currentColor;
+  flex: 0 0 auto;
+  stroke: currentColor;
+}
+
+.metaImageIcon {
+  flex: 0 0 auto;
+  height: 14px;
+  width: 14px;
+}

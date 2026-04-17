@@ -17,6 +17,10 @@ import {
   starryFormDescription,
   wrathOfTheSeaDescription
 } from "../../codex/subclasses/druid";
+import {
+  mantleOfMajestyDescription,
+  unbreakableMajestyDescription
+} from "../../codex/subclasses/bard";
 import { getSubclassEntryById } from "../../codex/subclasses";
 import type { SpellDescriptionEntry, SpellDurationPart } from "../../codex/entries";
 import { CLASS_FEATURE, DAMAGE_TYPE, DURATION } from "../../codex/entries";
@@ -78,6 +82,7 @@ import {
   wizardDivinerThirdEyeSeeInvisibilityStatusSourceId
 } from "./classFeatures/wizard/subclasses/wizardDivinerThirdEyeConfig";
 import { getBarbarianRageDescriptionContent } from "./classFeatures/barbarian/barbarianDescriptionSections";
+import { getFeatureDescriptionForCharacter } from "./classFeatures/featureDescriptions";
 import { getBarbarianPathOfTheWildHeartStatusDescriptionEntries } from "./classFeatures/barbarian/subclasses/barbarianPathOfTheWildHeart";
 import { getKeywordDescriptionLines } from "./keywordDescriptions";
 import { clampInteger } from "./shared";
@@ -91,6 +96,8 @@ const statusSourceTypeValues = new Set<STATUS_ENTRY_SOURCE_TYPE>(
   Object.values(STATUS_ENTRY_SOURCE_TYPE)
 );
 const exhaustionConditionOptionPrefix = "EXHAUSTION_LEVEL_";
+const inspiredEclipseStatusSourceId = "feature-bard-inspired-eclipse";
+const mantleOfMajestyStatusSourceId = "feature-bard-mantle-of-majesty";
 const unbreakableMajestyStatusSourceId = "feature-bard-unbreakable-majesty";
 const divineForeknowledgeStatusSourceId = "feature-cleric-divine-foreknowledge";
 const druidNaturesSanctuaryStatusSourceId = "feature-druid-natures-sanctuary";
@@ -1805,6 +1812,10 @@ function getDefaultStatusEntryDescriptionEntries(
       : ["A current effect or trait that may change how your character plays."];
   }
 
+  if (entry.sourceId === mantleOfMajestyStatusSourceId) {
+    return [...mantleOfMajestyDescription];
+  }
+
   if (entry.sourceId === sorcererRevelationInFleshAquaticAdaptationStatusSourceId) {
     return sorcererRevelationInFleshAquaticAdaptationDescription.length > 0
       ? sorcererRevelationInFleshAquaticAdaptationDescription
@@ -1846,10 +1857,7 @@ function getDefaultStatusEntryDescriptionEntries(
   }
 
   if (entry.sourceId === unbreakableMajestyStatusSourceId) {
-    return [
-      "As a Bonus Action, you can assume a magically majestic presence for 10 turns or until you have the Incapacitated condition.",
-      "For the duration, whenever any creature hits you with an attack roll for the first time on a turn, the attacker must succeed on a Charisma saving throw against your spell save DC, or the attack misses instead, as the creature recoils from your majesty."
-    ];
+    return [...unbreakableMajestyDescription];
   }
 
   if (entry.sourceId === divineForeknowledgeStatusSourceId) {
@@ -1971,6 +1979,24 @@ export function getStatusEntryDescriptionContent(
     if (wildHeartDescriptionEntries && wildHeartDescriptionEntries.length > 0) {
       return {
         description: wildHeartDescriptionEntries,
+        descriptionAdditions: []
+      };
+    }
+  }
+
+  if (entry.sourceId === inspiredEclipseStatusSourceId && character?.className === "Bard") {
+    const moonsInspirationDescription = getFeatureDescriptionForCharacter(
+      character,
+      CLASS_FEATURE.MOONS_INSPIRATION
+    ).filter((descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string");
+    const inspiredEclipseSection = extractSubclassFeatureDescriptionSection(
+      moonsInspirationDescription,
+      "Inspired Eclipse."
+    );
+
+    if (inspiredEclipseSection.length > 0) {
+      return {
+        description: inspiredEclipseSection,
         descriptionAdditions: []
       };
     }

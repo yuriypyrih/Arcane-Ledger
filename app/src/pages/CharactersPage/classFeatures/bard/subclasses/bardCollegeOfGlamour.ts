@@ -1,3 +1,4 @@
+import { CLASS_FEATURE, MAGIC_SCHOOL, type SpellEntry } from "../../../../../codex/entries";
 import {
   mantleOfInspirationDescription,
   mantleOfMajestyDescription,
@@ -11,9 +12,11 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
+import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { transformSpellToBonusAction } from "../../subclassRuntime";
 import type { FeatureActionCard } from "../../types";
@@ -215,6 +218,36 @@ export function consumeBardCollegeOfGlamourBeguilingMagicOrBardicInspiration(
   }
 
   return expendBardicInspirationUse(character);
+}
+
+function appendBeguilingMagicDescription(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  spell: SpellEntry
+): SpellEntry {
+  if (
+    !hasBardCollegeOfGlamourBeguilingMagicFeature(character) ||
+    (spell.magicSchool !== MAGIC_SCHOOL.ENCHANTMENT &&
+      spell.magicSchool !== MAGIC_SCHOOL.ILLUSION)
+  ) {
+    return spell;
+  }
+
+  return appendSourcedDescriptionAddition(
+    spell,
+    "Beguiling Magic",
+    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.BEGUILING_MAGIC)
+  );
+}
+
+function getBardCollegeOfGlamourTransformedSpell(
+  character: Parameters<SubclassRuntimeResolver>[0],
+  spell: SpellEntry
+): SpellEntry {
+  const spellWithBeguilingMagic = appendBeguilingMagicDescription(character, spell);
+
+  return hasActiveBardCollegeOfGlamourMantleOfMajesty(character)
+    ? transformSpellToBonusAction(glamourCommandSpellId, spellWithBeguilingMagic)
+    : spellWithBeguilingMagic;
 }
 
 export function getBardCollegeOfGlamourMantleOfMajestyUsesTotal(
@@ -708,9 +741,6 @@ export const getBardCollegeOfGlamourDerivedFeatureState: SubclassRuntimeResolver
       level >= 3
         ? [...glamourBeguilingMagicSpellIds, ...(level >= 6 ? [glamourCommandSpellId] : [])]
         : [],
-    transformSpellEntry: (spell) =>
-      hasActiveBardCollegeOfGlamourMantleOfMajesty(character)
-        ? transformSpellToBonusAction(glamourCommandSpellId, spell)
-        : spell
+    transformSpellEntry: (spell) => getBardCollegeOfGlamourTransformedSpell(character, spell)
   };
 };

@@ -850,6 +850,7 @@ export const healingSpirit: SpellEntry = {
     "As a Bonus Action on your turn, you can move the spirit up to 30 feet to a space you can see. The spirit can heal a number of times equal to 1 + your spellcasting ability modifier, minimum of twice. After healing that number of times, the spirit disappears.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the healing increases by 1d6 for each slot level above 2nd."
   ],
+  isHealingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
   spellLevel: 2
@@ -1431,6 +1432,7 @@ export const prayerOfHealing: SpellEntry = {
     "Up to six creatures of your choice that you can see within range each regain Hit Points equal to 2d8 + your spellcasting ability modifier. This spell has no effect on Undead or Constructs.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the healing increases by 1d8 for each slot level above 2nd."
   ],
+  isHealingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.PALADIN],
   spellLevel: 2
@@ -2007,6 +2009,7 @@ export const witherAndBloom: SpellEntry = {
     "In addition, one creature of your choice in that area can spend and roll one of its unspent Hit Dice and regain a number of Hit Points equal to the roll plus your spellcasting ability modifier.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d6 for each slot above 2nd, and the number of Hit Dice that can be spent and added to the healing roll increases by one for each slot above 2nd."
   ],
+  isHealingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.NECROTIC],
     [DICE.D6, DAMAGE_TYPE.NECROTIC]

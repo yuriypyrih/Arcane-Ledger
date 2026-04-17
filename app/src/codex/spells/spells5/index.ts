@@ -620,6 +620,7 @@ export const enervation: SpellEntry = {
     "The spell ends if you use your action to do anything else, if the target is ever outside the spell's range, or if the target has Total Cover from you. Whenever the spell deals damage to a target, you regain Hit Points equal to half the amount of Necrotic damage the target takes.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 6th level or higher, the damage increases by 1d8 for each slot level above 5th."
   ],
+  isHealingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
@@ -944,6 +945,7 @@ export const massCureWounds: SpellEntry = {
     "A wave of healing energy washes out from a point of your choice within range. Choose up to six creatures in a 30-foot-radius sphere centered on that point. Each target regains Hit Points equal to 3d8 + your spellcasting ability modifier. This spell has no effect on Undead or Constructs.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 6th level or higher, the healing increases by 1d8 for each slot level above 5th."
   ],
+  isHealingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID],
   spellLevel: 5

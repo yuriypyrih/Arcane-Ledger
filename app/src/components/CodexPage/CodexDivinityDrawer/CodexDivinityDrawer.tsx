@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { Brain, Flame, Hexagon, Music, PawPrint, Sparkles } from "lucide-react";
+import { useState, type ReactNode } from "react";
 import CellContainer from "../../CellContainer/CellContainer";
 import SpellDescriptionContent from "../../SpellDescriptionContent";
 import { FEATS, type DivinityEntry, type SpellEntry } from "../../../codex/entries";
@@ -7,6 +8,7 @@ import {
   OverlayBody,
   OverlayCloseButton,
   OverlayDetailsGrid,
+  OverlayFooter,
   OverlayHeader,
   OverlayHeaderContent,
   OverlaySummary,
@@ -16,6 +18,10 @@ import {
   overlayClassNames
 } from "../../Overlay";
 import { getClericResolvedDivinityDisplay } from "../../../pages/CharactersPage/classFeatures/cleric/cleric";
+import type {
+  FeatureActionIcon,
+  FeatureActionResource
+} from "../../../pages/CharactersPage/classFeatures";
 import type { ResolvedKeywordReference } from "../../../utils/codex/renderCodexRichText";
 import type { Character } from "../../../types";
 import {
@@ -27,6 +33,9 @@ import {
 import CodexFeatDrawer from "../CodexFeatDrawer/CodexFeatDrawer";
 import CodexSpellDrawer from "../CodexSpellDrawer/CodexSpellDrawer";
 import KeywordReferenceDrawer from "../../KeywordReferenceDrawer/KeywordReferenceDrawer";
+import animaIcon from "../../../assets/svg/anima.svg";
+import pyromancyIcon from "../../../assets/svg/pyromancy.svg";
+import sheetStyles from "../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import styles from "./CodexDivinityDrawer.module.css";
 
 type SelectedFeatReference = {
@@ -37,10 +46,147 @@ type SelectedFeatReference = {
 type CodexDivinityDrawerProps = {
   divinity: DivinityEntry;
   character?: Pick<Character, "className" | "level" | "abilities" | "feats">;
+  resources?: FeatureActionResource[];
+  footer?: ReactNode;
   onClose: () => void;
 };
 
-function CodexDivinityDrawer({ divinity, character, onClose }: CodexDivinityDrawerProps) {
+function renderUsesIcon(icon?: FeatureActionIcon) {
+  if (icon === "anima") {
+    return <img src={animaIcon} alt="" className={styles.resourceAssetIcon} />;
+  }
+
+  if (icon === "brain") {
+    return <Brain size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "sparkles") {
+    return <Sparkles size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "music") {
+    return <Music size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "flame") {
+    return <Flame size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "paw") {
+    return <PawPrint size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "psi") {
+    return <Hexagon size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "pyromancy") {
+    return <img src={pyromancyIcon} alt="" className={styles.resourceAssetIcon} />;
+  }
+
+  return null;
+}
+
+function renderHeaderResource(resource: FeatureActionResource, key: string) {
+  if (resource.kind === "tracker" && resource.icon) {
+    return (
+      <span key={key} className={styles.resourceBadge}>
+        <span className={styles.resourceBadgeLabel}>{resource.label}</span>
+        <span className={styles.resourceBadgeValue}>
+          <span>{resource.cost ?? resource.current}</span>
+          {renderUsesIcon(resource.icon)}
+          <span>out of</span>
+          <span>{`${resource.current}/${resource.total}`}</span>
+          {renderUsesIcon(resource.icon)}
+        </span>
+      </span>
+    );
+  }
+
+  if (resource.kind === "tracker") {
+    return (
+      <span key={key} className={styles.resourceBadge}>
+        Charges
+        <span className={sheetStyles.shortRestDots}>
+          {Array.from({ length: resource.total }, (_, dotIndex) => (
+            <span
+              key={`${key}-dot-${dotIndex}`}
+              className={[
+                sheetStyles.shortRestDot,
+                dotIndex < resource.current ? sheetStyles.shortRestDotActive : ""
+              ]
+                .filter(Boolean)
+                .join(" ")}
+            />
+          ))}
+        </span>
+        {resource.supplementary ? (
+          <span className={styles.resourceBadgeSupplementary}>{resource.supplementary}</span>
+        ) : null}
+      </span>
+    );
+  }
+
+  return (
+    <span key={key} className={styles.resourceBadge}>
+      <span className={styles.resourceBadgeLabel}>{resource.label}</span>
+      <span className={styles.resourceBadgeValue}>
+        <span>{resource.value}</span>
+        {renderUsesIcon(resource.icon)}
+      </span>
+    </span>
+  );
+}
+
+function getDivinityValueCell(
+  damage: ReturnType<typeof getClericResolvedDivinityDisplay>["damage"],
+  healing: ReturnType<typeof getClericResolvedDivinityDisplay>["healing"],
+  customValueCell?: ReturnType<typeof getClericResolvedDivinityDisplay>["valueCell"] | null
+): {
+  label: string;
+  content: string;
+} {
+  if (customValueCell) {
+    return customValueCell;
+  }
+
+  const damageLabel = damage ? formatDivinityValue(damage) : null;
+  const healingLabel = healing ? formatDivinityValue(healing) : null;
+
+  if (damageLabel && healingLabel) {
+    return {
+      label: "Damage/Heal",
+      content: damageLabel === healingLabel ? damageLabel : `${damageLabel} / ${healingLabel}`
+    };
+  }
+
+  if (damageLabel) {
+    return {
+      label: "Damage",
+      content: damageLabel
+    };
+  }
+
+  if (healingLabel) {
+    return {
+      label: "Heal",
+      content: healingLabel
+    };
+  }
+
+  return {
+    label: "Damage",
+    content: "-"
+  };
+}
+
+function CodexDivinityDrawer({
+  divinity,
+  character,
+  resources = [],
+  footer,
+  onClose
+}: CodexDivinityDrawerProps) {
   const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
   const [selectedKeyword, setSelectedKeyword] = useState<ResolvedKeywordReference | null>(null);
   const [selectedFeatReference, setSelectedFeatReference] = useState<SelectedFeatReference | null>(
@@ -51,9 +197,19 @@ function CodexDivinityDrawer({ divinity, character, onClose }: CodexDivinityDraw
     : {
         damage: divinity.damage ?? null,
         healing: divinity.healing ?? null,
-        description: divinity.description
+        valueCell: null,
+        description: divinity.description,
+        descriptionAdditions: []
       };
-  const primaryValue = resolvedDisplay.damage ?? resolvedDisplay.healing;
+  const valueCell = getDivinityValueCell(
+    resolvedDisplay.damage,
+    resolvedDisplay.healing,
+    resolvedDisplay.valueCell
+  );
+  const hasBaseDescription = resolvedDisplay.description.length > 0;
+  const descriptionSections = resolvedDisplay.descriptionAdditions.filter(
+    (section) => section.length > 0
+  );
 
   return (
     <>
@@ -79,7 +235,7 @@ function CodexDivinityDrawer({ divinity, character, onClose }: CodexDivinityDraw
           onClose();
         }}
       >
-        <OverlayHeader>
+        <OverlayHeader className={styles.header}>
           <OverlayHeaderContent>
             <OverlayBadge>{formatCodexLabel("DIVINITY")}</OverlayBadge>
             <OverlayTitleRow>
@@ -87,7 +243,16 @@ function CodexDivinityDrawer({ divinity, character, onClose }: CodexDivinityDraw
             </OverlayTitleRow>
             <OverlaySummary>{formatDivinitySubtitle(divinity)}</OverlaySummary>
           </OverlayHeaderContent>
-          <OverlayCloseButton label="Close divinity details" onClick={onClose} />
+          <div className={styles.headerAside}>
+            {resources.length > 0 ? (
+              <div className={styles.resourceBadgeRow}>
+                {resources.map((resource, index) =>
+                  renderHeaderResource(resource, `${divinity.id}-resource-${index}`)
+                )}
+              </div>
+            ) : null}
+            <OverlayCloseButton label="Close divinity details" onClick={onClose} />
+          </div>
         </OverlayHeader>
 
         <OverlayBody>
@@ -98,23 +263,47 @@ function CodexDivinityDrawer({ divinity, character, onClose }: CodexDivinityDraw
             />
             <CellContainer label="Range" content={divinity.range} />
             <CellContainer label="Duration" content={divinity.duration} />
-            <CellContainer
-              label="Damage"
-              content={primaryValue ? formatDivinityValue(primaryValue) : "-"}
-            />
+            <CellContainer label={valueCell.label} content={valueCell.content} />
           </OverlayDetailsGrid>
 
-          <SpellDescriptionContent
-            description={resolvedDisplay.description}
-            className={`${overlayClassNames.descriptionList} ${overlayClassNames.descriptionSection}`}
-            entryClassName={overlayClassNames.descriptionLine}
-            strongClassName={overlayClassNames.descriptionStrong}
-            linkClassName={styles.inlineLinkButton}
-            onOpenKeyword={setSelectedKeyword}
-            onOpenSpell={setSelectedSpellReference}
-            onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
-          />
+          {hasBaseDescription || descriptionSections.length > 0 ? (
+            <div className={styles.descriptionStack}>
+              {hasBaseDescription ? (
+                <SpellDescriptionContent
+                  description={resolvedDisplay.description}
+                  className={`${overlayClassNames.descriptionList} ${overlayClassNames.descriptionSection}`}
+                  entryClassName={overlayClassNames.descriptionLine}
+                  strongClassName={overlayClassNames.descriptionStrong}
+                  linkClassName={styles.inlineLinkButton}
+                  onOpenKeyword={setSelectedKeyword}
+                  onOpenSpell={setSelectedSpellReference}
+                  onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
+                />
+              ) : null}
+              {descriptionSections.map((section, index) => (
+                <div
+                  key={`${divinity.id}-description-section-${index}`}
+                  className={styles.descriptionSection}
+                >
+                  {hasBaseDescription || index > 0 ? (
+                    <hr className={styles.descriptionDivider} aria-hidden="true" />
+                  ) : null}
+                  <SpellDescriptionContent
+                    description={section}
+                    className={`${overlayClassNames.descriptionList} ${overlayClassNames.descriptionSection}`}
+                    entryClassName={overlayClassNames.descriptionLine}
+                    strongClassName={overlayClassNames.descriptionStrong}
+                    linkClassName={styles.inlineLinkButton}
+                    onOpenKeyword={setSelectedKeyword}
+                    onOpenSpell={setSelectedSpellReference}
+                    onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
+                  />
+                </div>
+              ))}
+            </div>
+          ) : null}
         </OverlayBody>
+        {footer ? <OverlayFooter>{footer}</OverlayFooter> : null}
       </SheetDrawer>
 
       {selectedSpellReference ? (

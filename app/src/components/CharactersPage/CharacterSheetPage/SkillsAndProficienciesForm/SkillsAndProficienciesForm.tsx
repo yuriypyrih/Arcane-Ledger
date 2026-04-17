@@ -1,82 +1,37 @@
 import clsx from "clsx";
 import { ChevronsUp, Pencil, Save, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import SelectInput from "../../FormInputs/SelectInput";
-import TextInput from "../../FormInputs/TextInput";
-import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
-import type {
-  ArmorProficiencyEntry,
-  Character,
-  LanguageProficiency,
-  LanguageProficiencyEntry,
-  SavingThrowProficiencyEntry,
-  SkillProficiencyEntry,
-  ToolProficiencyEntry,
-  WeaponProficiencyEntry
-} from "../../../../types";
-import {
-  ARMOR_PROFICIENCY,
-  exoticLanguageEntries,
-  LANGUAGE_PROFICIENCY,
-  PROF_LEVEL,
-  SAVING_THROW_PROFICIENCY,
-  standardLanguageEntries,
-  WEAPON_PROFICIENCY
-} from "../../../../types";
+import type { Character, SkillProficiencyEntry } from "../../../../types";
+import { PROF_LEVEL } from "../../../../types";
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
 import { getSkillIndicatorsForCharacter } from "../../../../pages/CharactersPage/classFeatures";
 import type { FeatureIndicator } from "../../../../pages/CharactersPage/classFeatures";
 import {
-  armorProficiencyOptions,
-  getArmorLevelFromEntries,
   getDisplayArmorProficiencyEntries,
   getDisplayLanguageProficiencyEntries,
   getDisplaySavingThrowProficiencyEntries,
   getDisplaySkillProficiencyEntries,
   getDisplayToolProficiencyEntries,
   getDisplayWeaponProficiencyEntries,
-  getEditableWeaponProficiencyOptions,
-  getLanguageLevelFromEntries,
   getProficiencyKeyword,
   getProficiencyLabel,
   getResolvedSkillProficiencyEntry,
-  getSavingThrowLevelFromEntries,
-  getSkillLevelFromEntries,
   getSkillProficiencyForName,
-  hasLockedArmorEntry,
-  hasLockedLanguageEntry,
-  hasLockedSavingThrowEntry,
-  hasLockedSkillEntry,
-  hasLockedToolEntry,
-  hasLockedWeaponEntry,
   isManualSkillLevelSelectable,
-  isCustomLanguageProficiency,
-  addManualCustomLanguageEntry,
-  getToolLevelFromEntries,
-  getWeaponProficiencyTypeLabel,
-  getWeaponLevelFromEntries,
   isWeaponMasteryProficiency,
-  setManualArmorEntry,
-  setManualLanguageEntry,
-  setManualSavingThrowEntry,
-  setManualToolEntry,
-  setManualWeaponEntry,
-  savingThrowProficiencyOptions,
-  skillsOptions,
-  toolProficiencyOptions,
   upsertManualSkillEntry,
-  type ProficiencyDisplayEntry,
-  type ToolProficiency
+  type ProficiencyDisplayEntry
 } from "../../../../pages/CharactersPage/proficiency";
 import { getSkillRowsByAbility } from "../../../../pages/CharactersPage/skills";
 import type { SkillRow } from "../../../../pages/CharactersPage/skills";
 import { formatAbilityModifier } from "../../../../pages/CharactersPage/gameplay";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { skillColumnLayout } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
-import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
 import { resolveFeatureIndicators } from "../../../RollStatePill/rollState";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import ProficiencyEditorModal, { type ProficiencyEditorTab } from "./ProficiencyEditorModal";
 import SkillReferenceDrawer, {
   type SelectedSkillReference,
   type SkillReferenceDetailCard
@@ -89,21 +44,10 @@ type SkillsAndProficienciesFormProps = {
   onPersistCharacter: PersistCharacterUpdater;
 };
 
-type ProficiencyEditorTab = "skills" | "savingThrows" | "weapons" | "armor" | "tools" | "languages";
-
 type ProficiencyCategorySection = {
   title: string;
   entries: ProficiencyDisplayEntry[];
 };
-
-const proficiencyEditorTabs: Array<{ id: ProficiencyEditorTab; label: string }> = [
-  { id: "skills", label: "Skills" },
-  { id: "savingThrows", label: "Saving Throws" },
-  { id: "weapons", label: "Weapons" },
-  { id: "armor", label: "Armor" },
-  { id: "tools", label: "Tools" },
-  { id: "languages", label: "Languages" }
-];
 
 function SkillsAndProficienciesForm({
   character,
@@ -112,90 +56,23 @@ function SkillsAndProficienciesForm({
 }: SkillsAndProficienciesFormProps) {
   const [isSkillTableEditing, setIsSkillTableEditing] = useState(false);
   const [isProficiencyModalOpen, setIsProficiencyModalOpen] = useState(false);
-  const [activeProficiencyTab, setActiveProficiencyTab] = useState<ProficiencyEditorTab>("weapons");
+  const [proficiencyEditorInitialTab, setProficiencyEditorInitialTab] =
+    useState<ProficiencyEditorTab>("weapons");
   const [skillProficienciesDraft, setSkillProficienciesDraft] = useState<SkillProficiencyEntry[]>(
     () => character.skillProficiencies
   );
-  const [savingThrowProficienciesDraft, setSavingThrowProficienciesDraft] = useState<
-    SavingThrowProficiencyEntry[]
-  >(() => character.savingThrowProficiencies);
-  const [weaponProficienciesDraft, setWeaponProficienciesDraft] = useState<
-    WeaponProficiencyEntry[]
-  >(() => character.weaponProficiencies);
-  const [armorProficienciesDraft, setArmorProficienciesDraft] = useState<ArmorProficiencyEntry[]>(
-    () => character.armorProficiencies
-  );
-  const [toolProficienciesDraft, setToolProficienciesDraft] = useState<ToolProficiencyEntry[]>(
-    () => character.toolProficiencies
-  );
-  const [languageProficienciesDraft, setLanguageProficienciesDraft] = useState<
-    LanguageProficiencyEntry[]
-  >(() => character.languageProficiencies);
-  const [customLanguageNameDraft, setCustomLanguageNameDraft] = useState("");
-  const [customLanguageDescriptionDraft, setCustomLanguageDescriptionDraft] = useState("");
   const [selectedKeyword, setSelectedKeyword] = useState<SelectedSkillReference | null>(null);
 
-  useBodyScrollLock(Boolean(selectedKeyword) || isProficiencyModalOpen);
-
-  useEffect(() => {
-    if (!selectedKeyword && !isProficiencyModalOpen) {
-      return;
-    }
-
-    function handleKeyDown(event: globalThis.KeyboardEvent) {
-      if (event.key !== "Escape") {
-        return;
-      }
-
-      if (selectedKeyword) {
-        setSelectedKeyword(null);
-        return;
-      }
-
-      if (isProficiencyModalOpen) {
-        setSkillProficienciesDraft(character.skillProficiencies);
-        setSavingThrowProficienciesDraft(character.savingThrowProficiencies);
-        setWeaponProficienciesDraft(character.weaponProficiencies);
-        setArmorProficienciesDraft(character.armorProficiencies);
-        setToolProficienciesDraft(character.toolProficiencies);
-        setLanguageProficienciesDraft(character.languageProficiencies);
-        setIsProficiencyModalOpen(false);
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [character, isProficiencyModalOpen, selectedKeyword]);
-
-  const displayedSkillProficiencies =
-    isSkillTableEditing || isProficiencyModalOpen
-      ? skillProficienciesDraft
-      : character.skillProficiencies;
-  const displayedSavingThrowProficiencies = isProficiencyModalOpen
-    ? savingThrowProficienciesDraft
-    : character.savingThrowProficiencies;
-  const displayedWeaponProficiencies = isProficiencyModalOpen
-    ? weaponProficienciesDraft
-    : character.weaponProficiencies;
-  const displayedArmorProficiencies = isProficiencyModalOpen
-    ? armorProficienciesDraft
-    : character.armorProficiencies;
-  const displayedToolProficiencies = isProficiencyModalOpen
-    ? toolProficienciesDraft
-    : character.toolProficiencies;
-  const displayedLanguageProficiencies = isProficiencyModalOpen
-    ? languageProficienciesDraft
-    : character.languageProficiencies;
+  const displayedSkillProficiencies = isSkillTableEditing
+    ? skillProficienciesDraft
+    : character.skillProficiencies;
 
   const displayedWeaponProficiencyEntries = getDisplayWeaponProficiencyEntries(
-    displayedWeaponProficiencies,
+    character.weaponProficiencies,
     character.className
   );
   const displayedLanguageProficiencyEntries = getDisplayLanguageProficiencyEntries(
-    displayedLanguageProficiencies
+    character.languageProficiencies
   );
   const skillIndicators = getSkillIndicatorsForCharacter(character);
   const skillRowsByAbility = getSkillRowsByAbility(character, displayedSkillProficiencies);
@@ -208,7 +85,7 @@ function SkillsAndProficienciesForm({
     },
     {
       title: "Saving Throws",
-      entries: getDisplaySavingThrowProficiencyEntries(displayedSavingThrowProficiencies)
+      entries: getDisplaySavingThrowProficiencyEntries(character.savingThrowProficiencies)
     },
     {
       title: "Weapon Proficiencies",
@@ -224,11 +101,11 @@ function SkillsAndProficienciesForm({
     },
     {
       title: "Armor Proficiencies",
-      entries: getDisplayArmorProficiencyEntries(displayedArmorProficiencies)
+      entries: getDisplayArmorProficiencyEntries(character.armorProficiencies)
     },
     {
       title: "Tool Proficiencies",
-      entries: getDisplayToolProficiencyEntries(displayedToolProficiencies)
+      entries: getDisplayToolProficiencyEntries(character.toolProficiencies)
     },
     {
       title: "Languages",
@@ -256,17 +133,6 @@ function SkillsAndProficienciesForm({
     return `${row.name} ${formatAbilityModifier(row.totalModifier)} = ${terms.join(" ")}`;
   }
 
-  function syncProficiencyDraftsFromCharacter() {
-    setSkillProficienciesDraft(character.skillProficiencies);
-    setSavingThrowProficienciesDraft(character.savingThrowProficiencies);
-    setWeaponProficienciesDraft(character.weaponProficiencies);
-    setArmorProficienciesDraft(character.armorProficiencies);
-    setToolProficienciesDraft(character.toolProficiencies);
-    setLanguageProficienciesDraft(character.languageProficiencies);
-    setCustomLanguageNameDraft("");
-    setCustomLanguageDescriptionDraft("");
-  }
-
   function beginSkillTableEditing() {
     setSkillProficienciesDraft(character.skillProficiencies);
     setIsSkillTableEditing(true);
@@ -287,28 +153,8 @@ function SkillsAndProficienciesForm({
   }
 
   function openProficiencyEditor(tab: ProficiencyEditorTab = "weapons") {
-    syncProficiencyDraftsFromCharacter();
-    setActiveProficiencyTab(tab);
+    setProficiencyEditorInitialTab(tab);
     setIsProficiencyModalOpen(true);
-  }
-
-  function cancelProficiencyEditing() {
-    syncProficiencyDraftsFromCharacter();
-    setIsProficiencyModalOpen(false);
-  }
-
-  function saveProficiencyEditing() {
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      skillProficiencies: skillProficienciesDraft,
-      savingThrowProficiencies: savingThrowProficienciesDraft,
-      weaponProficiencies: weaponProficienciesDraft,
-      armorProficiencies: armorProficienciesDraft,
-      toolProficiencies: toolProficienciesDraft,
-      languageProficiencies: languageProficienciesDraft
-    }));
-
-    setIsProficiencyModalOpen(false);
   }
 
   function updateSkillLevel(skillName: string, nextLevel: PROF_LEVEL) {
@@ -323,109 +169,10 @@ function SkillsAndProficienciesForm({
     );
   }
 
-  function updateSkillProficiency(skillName: string, isSelected: boolean) {
-    updateSkillLevel(skillName, isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE);
-  }
-
-  function updateWeaponProficiency(proficiency: WEAPON_PROFICIENCY, isSelected: boolean) {
-    if (hasLockedWeaponEntry(weaponProficienciesDraft, proficiency)) {
-      return;
-    }
-
-    setWeaponProficienciesDraft((currentProficiencies) =>
-      setManualWeaponEntry(
-        currentProficiencies,
-        proficiency,
-        isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
-      )
-    );
-  }
-
-  function updateSavingThrowProficiency(
-    proficiency: SAVING_THROW_PROFICIENCY,
-    isSelected: boolean
-  ) {
-    if (hasLockedSavingThrowEntry(savingThrowProficienciesDraft, proficiency)) {
-      return;
-    }
-
-    setSavingThrowProficienciesDraft((currentProficiencies) =>
-      setManualSavingThrowEntry(
-        currentProficiencies,
-        proficiency,
-        isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
-      )
-    );
-  }
-
-  function updateArmorProficiency(proficiency: ARMOR_PROFICIENCY, isSelected: boolean) {
-    if (hasLockedArmorEntry(armorProficienciesDraft, proficiency)) {
-      return;
-    }
-
-    setArmorProficienciesDraft((currentProficiencies) =>
-      setManualArmorEntry(
-        currentProficiencies,
-        proficiency,
-        isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
-      )
-    );
-  }
-
-  function updateToolProficiency(proficiency: ToolProficiency, isSelected: boolean) {
-    if (hasLockedToolEntry(toolProficienciesDraft, proficiency)) {
-      return;
-    }
-
-    setToolProficienciesDraft((currentProficiencies) =>
-      setManualToolEntry(
-        currentProficiencies,
-        proficiency,
-        isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
-      )
-    );
-  }
-
-  function updateLanguageProficiency(proficiency: LANGUAGE_PROFICIENCY, isSelected: boolean) {
-    if (hasLockedLanguageEntry(languageProficienciesDraft, proficiency)) {
-      return;
-    }
-
-    setLanguageProficienciesDraft((currentProficiencies) =>
-      setManualLanguageEntry(
-        currentProficiencies,
-        proficiency,
-        isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
-      )
-    );
-  }
-
-  function addCustomLanguage() {
-    const normalizedName = customLanguageNameDraft.trim();
-
-    if (!normalizedName) {
-      return;
-    }
-
-    setLanguageProficienciesDraft((currentProficiencies) =>
-      addManualCustomLanguageEntry(
-        currentProficiencies,
-        normalizedName,
-        customLanguageDescriptionDraft.trim()
-      )
-    );
-    setCustomLanguageNameDraft("");
-    setCustomLanguageDescriptionDraft("");
-  }
-
-  function removeLanguage(proficiency: LanguageProficiency) {
-    setLanguageProficienciesDraft((currentProficiencies) =>
-      setManualLanguageEntry(currentProficiencies, proficiency, PROF_LEVEL.NONE)
-    );
-  }
-
   function formatReferenceSourceLabel(sourceLabels: string[], fallback: string): string {
-    const normalizedLabels = [...new Set(sourceLabels.map((label) => label.trim()).filter(Boolean))];
+    const normalizedLabels = [
+      ...new Set(sourceLabels.map((label) => label.trim()).filter(Boolean))
+    ];
 
     return normalizedLabels.length > 0 ? normalizedLabels.join(", ") : fallback;
   }
@@ -500,298 +247,6 @@ function SkillsAndProficienciesForm({
         </ul>
       </div>
     );
-  }
-
-  function renderToggleEditor<TOption extends string>(
-    options: readonly TOption[],
-    isSelected: (option: TOption) => boolean,
-    onToggle: (option: TOption, isSelected: boolean) => void,
-    optionsConfig?: {
-      compact?: boolean;
-      twoColumn?: boolean;
-      getLabel?: (option: TOption) => string;
-      renderMeta?: (option: TOption) => string | null;
-      isDisabled?: (option: TOption) => boolean;
-    }
-  ) {
-    return (
-      <div
-        className={clsx(
-          styles.editorGrid,
-          optionsConfig?.compact && styles.editorGridCompact,
-          optionsConfig?.twoColumn && styles.editorGridTwoColumn
-        )}
-      >
-        {options.map((option) => {
-          const label =
-            optionsConfig?.getLabel?.(option) ??
-            getProficiencyLabel(option as Parameters<typeof getProficiencyLabel>[0]);
-          const meta = optionsConfig?.renderMeta?.(option) ?? null;
-          const selected = isSelected(option);
-          const disabled = optionsConfig?.isDisabled?.(option) ?? false;
-
-          return (
-            <label
-              key={option}
-              className={clsx(
-                styles.editorCard,
-                optionsConfig?.compact && styles.editorCardCompact,
-                styles.editorToggleCard,
-                selected && styles.editorCardActive,
-                disabled && styles.editorToggleCardDisabled
-              )}
-              onClick={(event) => {
-                event.preventDefault();
-                if (disabled) {
-                  return;
-                }
-                onToggle(option, !selected);
-              }}
-            >
-              <span className={styles.editorLabelRow}>
-                <span className={styles.editorLabel}>{label}</span>
-                {meta ? <span className={styles.editorMeta}>{meta}</span> : null}
-              </span>
-              <span className={styles.editorCheckboxRow}>
-                <input
-                  type="checkbox"
-                  checked={selected}
-                  disabled={disabled}
-                  readOnly
-                  tabIndex={-1}
-                  className={styles.editorCheckbox}
-                  aria-hidden="true"
-                />
-                <span className={styles.editorState}>{selected ? "Included" : "Not included"}</span>
-              </span>
-            </label>
-          );
-        })}
-      </div>
-    );
-  }
-
-  function renderSkillEditor() {
-    return renderToggleEditor(
-      skillsOptions,
-      (skillName) => {
-        const proficiency = getSkillProficiencyForName(skillName);
-
-        return proficiency
-          ? getSkillLevelFromEntries(skillProficienciesDraft, proficiency) !== PROF_LEVEL.NONE
-          : false;
-      },
-      updateSkillProficiency,
-      {
-        getLabel: (skillName) => skillName,
-        isDisabled: (skillName) => {
-          const proficiency = getSkillProficiencyForName(skillName);
-
-          return proficiency ? hasLockedSkillEntry(skillProficienciesDraft, proficiency) : false;
-        }
-      }
-    );
-  }
-
-  function renderLanguageToggleEditor(options: readonly LANGUAGE_PROFICIENCY[]) {
-    return renderToggleEditor(
-      options,
-      (proficiency) =>
-        getLanguageLevelFromEntries(languageProficienciesDraft, proficiency) !== PROF_LEVEL.NONE,
-      updateLanguageProficiency,
-      {
-        isDisabled: (proficiency) =>
-          getDisplayLanguageProficiencyEntries(languageProficienciesDraft).some(
-            (entry) => entry.proficiency === proficiency && entry.locked
-          )
-      }
-    );
-  }
-
-  function renderSavingThrowEditor() {
-    return renderToggleEditor(
-      savingThrowProficiencyOptions,
-      (proficiency) =>
-        getSavingThrowLevelFromEntries(savingThrowProficienciesDraft, proficiency) !==
-        PROF_LEVEL.NONE,
-      updateSavingThrowProficiency,
-      {
-        isDisabled: (proficiency) =>
-          hasLockedSavingThrowEntry(savingThrowProficienciesDraft, proficiency)
-      }
-    );
-  }
-
-  function renderLanguageEditor() {
-    const standardLanguageOptions = standardLanguageEntries.map((entry) => entry.proficiency);
-    const exoticLanguageOptions = exoticLanguageEntries.map((entry) => entry.proficiency);
-    const customLanguageEntries = displayedLanguageProficiencyEntries.filter((entry) =>
-      isCustomLanguageProficiency(entry.proficiency)
-    );
-    const grantedLanguageEntries = displayedLanguageProficiencyEntries.filter(
-      (entry) =>
-        !isCustomLanguageProficiency(entry.proficiency) &&
-        entry.locked &&
-        !standardLanguageOptions.includes(entry.proficiency as LANGUAGE_PROFICIENCY) &&
-        !exoticLanguageOptions.includes(entry.proficiency as LANGUAGE_PROFICIENCY)
-    );
-
-    return (
-      <div className={styles.languageEditorStack}>
-        <div className={styles.languageEditorGroup}>
-          <p className={styles.skillGroupSubtitle}>Standard Languages</p>
-          {renderLanguageToggleEditor(standardLanguageOptions)}
-        </div>
-        <div className={styles.languageEditorGroup}>
-          <p className={styles.skillGroupSubtitle}>Exotic Languages</p>
-          {renderLanguageToggleEditor(exoticLanguageOptions)}
-        </div>
-        {grantedLanguageEntries.length > 0 ? (
-          <div className={styles.languageEditorGroup}>
-            <p className={styles.skillGroupSubtitle}>Granted Languages</p>
-            {renderToggleEditor(
-              grantedLanguageEntries.map(
-                (entry) => entry.proficiency as LANGUAGE_PROFICIENCY
-              ),
-              (proficiency) =>
-                getLanguageLevelFromEntries(languageProficienciesDraft, proficiency) !==
-                PROF_LEVEL.NONE,
-              updateLanguageProficiency,
-              {
-                compact: true,
-                twoColumn: true,
-                renderMeta: (proficiency) =>
-                  grantedLanguageEntries.find((entry) => entry.proficiency === proficiency)
-                    ?.sourceLabels.join(", ") ?? null,
-                isDisabled: () => true
-              }
-            )}
-          </div>
-        ) : null}
-        <div className={styles.languageEditorGroup}>
-          <p className={styles.skillGroupSubtitle}>Custom Language</p>
-          <div className={styles.customLanguageForm}>
-            <TextInput
-              value={customLanguageNameDraft}
-              onChange={(event) => setCustomLanguageNameDraft(event.target.value)}
-              placeholder="Language name"
-            />
-            <TextInput
-              value={customLanguageDescriptionDraft}
-              onChange={(event) => setCustomLanguageDescriptionDraft(event.target.value)}
-              placeholder="Optional description"
-            />
-            <button
-              type="button"
-              className={shared.editButton}
-              onClick={addCustomLanguage}
-              disabled={customLanguageNameDraft.trim().length === 0}
-            >
-              Add language
-            </button>
-          </div>
-          {customLanguageEntries.length > 0 ? (
-            <ul className={styles.customLanguageList}>
-              {customLanguageEntries.map((entry) => {
-                const matchingDraftEntry = languageProficienciesDraft.find(
-                  (draftEntry) => draftEntry.proficiency === entry.proficiency
-                );
-
-                return (
-                  <li key={String(entry.proficiency)} className={styles.customLanguageItem}>
-                    <div className={styles.customLanguageContent}>
-                      <strong>{getProficiencyLabel(entry.proficiency)}</strong>
-                      {matchingDraftEntry?.customDescription ? (
-                        <small>{matchingDraftEntry.customDescription}</small>
-                      ) : null}
-                    </div>
-                    <button
-                      type="button"
-                      className={styles.customLanguageRemoveButton}
-                      onClick={() => removeLanguage(entry.proficiency)}
-                    >
-                      Remove
-                    </button>
-                  </li>
-                );
-              })}
-            </ul>
-          ) : null}
-        </div>
-      </div>
-    );
-  }
-
-  function renderWeaponEditor() {
-    const availableWeaponProficiencyOptions = getEditableWeaponProficiencyOptions();
-    const broadWeaponOptions = availableWeaponProficiencyOptions.filter(
-      (proficiency) => !isWeaponMasteryProficiency(proficiency)
-    );
-    const masteryWeaponOptions = availableWeaponProficiencyOptions.filter((proficiency) =>
-      isWeaponMasteryProficiency(proficiency)
-    );
-    const isWeaponSelected = (proficiency: WEAPON_PROFICIENCY) =>
-      getWeaponLevelFromEntries(weaponProficienciesDraft, proficiency) !== PROF_LEVEL.NONE;
-    const isWeaponDisabled = (proficiency: WEAPON_PROFICIENCY) =>
-      hasLockedWeaponEntry(weaponProficienciesDraft, proficiency);
-
-    return (
-      <div className={styles.editorSectionStack}>
-        {renderToggleEditor(broadWeaponOptions, isWeaponSelected, updateWeaponProficiency, {
-          compact: true,
-          twoColumn: true,
-          renderMeta: getWeaponProficiencyTypeLabel,
-          isDisabled: isWeaponDisabled
-        })}
-        <div className={styles.editorDivider} role="presentation">
-          <span className={styles.editorDividerLine} />
-          <span className={styles.editorDividerLabel}>Weapon masteries</span>
-          <span className={styles.editorDividerLine} />
-        </div>
-        {renderToggleEditor(masteryWeaponOptions, isWeaponSelected, updateWeaponProficiency, {
-          compact: true,
-          twoColumn: true,
-          renderMeta: getWeaponProficiencyTypeLabel,
-          isDisabled: isWeaponDisabled
-        })}
-      </div>
-    );
-  }
-
-  function renderProficiencyEditorContent() {
-    switch (activeProficiencyTab) {
-      case "skills":
-        return renderSkillEditor();
-      case "savingThrows":
-        return renderSavingThrowEditor();
-      case "weapons":
-        return renderWeaponEditor();
-      case "armor":
-        return renderToggleEditor(
-          armorProficiencyOptions,
-          (proficiency) =>
-            getArmorLevelFromEntries(armorProficienciesDraft, proficiency) !== PROF_LEVEL.NONE,
-          updateArmorProficiency,
-          {
-            isDisabled: (proficiency) =>
-              hasLockedArmorEntry(armorProficienciesDraft, proficiency)
-          }
-        );
-      case "tools":
-        return renderToggleEditor(
-          toolProficiencyOptions,
-          (proficiency) =>
-            getToolLevelFromEntries(toolProficienciesDraft, proficiency) !== PROF_LEVEL.NONE,
-          updateToolProficiency,
-          {
-            isDisabled: (proficiency) => hasLockedToolEntry(toolProficienciesDraft, proficiency)
-          }
-        );
-      case "languages":
-        return renderLanguageEditor();
-      default:
-        return null;
-    }
   }
 
   return (
@@ -881,7 +336,9 @@ function SkillsAndProficienciesForm({
                                     <span>{row.name}</span>
                                     {hasAdditionalBonuses ? (
                                       <span
-                                        title={row.bonusEntries.map((entry) => entry.label).join(", ")}
+                                        title={row.bonusEntries
+                                          .map((entry) => entry.label)
+                                          .join(", ")}
                                         className={styles.skillBonusIcon}
                                       >
                                         <ChevronsUp size={16} aria-hidden="true" />
@@ -1001,86 +458,12 @@ function SkillsAndProficienciesForm({
       </div>
 
       {isProficiencyModalOpen ? (
-        <div
-          className={sheetStyles.spellManagementBackdrop}
-          role="presentation"
-          onMouseDown={(event) => {
-            event.preventDefault();
-          }}
-          onClick={(event) => {
-            event.preventDefault();
-            event.stopPropagation();
-            cancelProficiencyEditing();
-          }}
-        >
-          <section
-            className={clsx(sheetStyles.spellManagementModal, styles.proficiencyEditorModal)}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="character-proficiency-editor-title"
-            onMouseDown={(event) => {
-              event.stopPropagation();
-            }}
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className={sheetStyles.spellManagementHeader}>
-              <div className={styles.modalHeading}>
-                <h3
-                  id="character-proficiency-editor-title"
-                  className={sheetStyles.sheetPanelTitle}
-                >
-                  Edit Proficiencies
-                </h3>
-                <p className={shared.helperText}>
-                  Changes here are stored as manual overrides when you save.
-                </p>
-              </div>
-              <button
-                type="button"
-                className={sheetStyles.spellManagementCloseButton}
-                onClick={cancelProficiencyEditing}
-                aria-label="Close proficiency editor"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className={styles.tabRow} role="tablist" aria-label="Proficiency categories">
-              {proficiencyEditorTabs.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  role="tab"
-                  aria-selected={activeProficiencyTab === tab.id}
-                  className={clsx(
-                    styles.tabButton,
-                    activeProficiencyTab === tab.id && styles.tabButtonActive
-                  )}
-                  onClick={() => setActiveProficiencyTab(tab.id)}
-                >
-                  {tab.label}
-                </button>
-              ))}
-            </div>
-
-            <div className={styles.editorScrollArea}>{renderProficiencyEditorContent()}</div>
-
-            <div className={shared.formActions}>
-              <button type="button" className={shared.saveButton} onClick={saveProficiencyEditing}>
-                <Save size={16} />
-                Save
-              </button>
-              <button
-                type="button"
-                className={shared.cancelButton}
-                onClick={cancelProficiencyEditing}
-              >
-                <X size={16} />
-                Cancel
-              </button>
-            </div>
-          </section>
-        </div>
+        <ProficiencyEditorModal
+          character={character}
+          initialTab={proficiencyEditorInitialTab}
+          onClose={() => setIsProficiencyModalOpen(false)}
+          onPersistCharacter={onPersistCharacter}
+        />
       ) : null}
 
       {selectedKeyword ? (

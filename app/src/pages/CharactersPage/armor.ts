@@ -5,6 +5,7 @@ import {
 import { getArmorEntries } from "../../codex/selectors";
 import type {
   AbilityKey,
+  CharacterArmorClassFormulaSelection,
   Character,
   CharacterCustomEquipment,
   CharacterEquipmentItem,
@@ -14,8 +15,7 @@ import { getAbilityScoreForCharacter } from "./abilities";
 import {
   getArmorClassBonusesForCharacter,
   getArmorClassModesForCharacter,
-  type FeatureArmorClassBonus,
-  type FeatureArmorClassMode
+  type FeatureArmorClassBonus
 } from "./classFeatures";
 import { getFeatArmorClassBonusesForCharacter } from "./feats";
 import {
@@ -34,15 +34,15 @@ type BodyArmorCandidate = {
   worn: boolean;
 };
 
-type BaseArmorClassMode = {
+type ArmorClassModeDefinition = {
   key: string;
   label: string;
   detail?: string;
+  unlockedAtLevel?: number;
   baseValue: number;
   abilityModifiers: AbilityKey[];
   abilityModifierCaps?: Partial<Record<AbilityKey, number | null>>;
   shieldAllowed: boolean;
-  armorType: BodyArmorType | "unarmored";
 };
 
 export type ArmorClassBreakdownEntry = {
@@ -57,6 +57,32 @@ export type ArmorClassBreakdown = {
   entries: ArmorClassBreakdownEntry[];
 };
 
+export type ArmorClassFormulaOption = {
+  key: string;
+  label: string;
+  selectorLabel: string;
+  detail?: string;
+  isApplicable: boolean;
+  unavailableReason?: string;
+  isDefault: boolean;
+  breakdown: ArmorClassBreakdown;
+};
+
+export type ArmorClassResolution = {
+  formulas: ArmorClassFormulaOption[];
+  defaultFormula: ArmorClassFormulaOption;
+  selectedFormula: ArmorClassFormulaOption;
+  activeFormula: ArmorClassFormulaOption;
+  selection: CharacterArmorClassFormulaSelection;
+  warning: string | null;
+};
+
+type ArmorClassFormulaSelectionCharacter = Pick<
+  Character,
+  "className" | "level" | "equipment" | "inventoryItems" | "customEquipment"
+> &
+  Partial<Pick<Character, "classFeatureState" | "subclassId">>;
+
 type NormalizeArmorWearStateOptions = {
   autoEquipLegacyArmor?: boolean;
 };
@@ -64,6 +90,11 @@ type NormalizeArmorWearStateOptions = {
 const codexArmorEntriesByName = new Map<string, ArmorEntry>(
   getArmorEntries().map((entry) => [entry.name, entry])
 );
+
+const defaultArmorClassFormulaSelection: CharacterArmorClassFormulaSelection = {
+  key: null,
+  mode: "auto"
+};
 
 export function isShieldArmorEntry(entry: Pick<ArmorEntry, "tags">): boolean {
   return entry.tags.includes(ARMOR_TYPES.SHIELD);
@@ -168,7 +199,9 @@ function pickLegacyBodyArmorCandidate(candidates: BodyArmorCandidate[]): BodyArm
   return [...candidates].sort((left, right) => right.armorBase - left.armorBase)[0] ?? null;
 }
 
-function getBodyArmorCandidates(character: Character): BodyArmorCandidate[] {
+function getBodyArmorCandidates(
+  character: Pick<Character, "equipment" | "inventoryItems" | "customEquipment">
+): BodyArmorCandidate[] {
   return [
     ...character.equipment
       .map((item) => getCodexBodyArmorCandidate(item))
@@ -182,7 +215,9 @@ function getBodyArmorCandidates(character: Character): BodyArmorCandidate[] {
   ];
 }
 
-export function getWornBodyArmorTypeForCharacter(character: Character): BodyArmorType | null {
+export function getWornBodyArmorTypeForCharacter(
+  character: Pick<Character, "equipment" | "inventoryItems" | "customEquipment">
+): BodyArmorType | null {
   return getBodyArmorCandidates(character).find((candidate) => candidate.worn)?.armorType ?? null;
 }
 
@@ -345,7 +380,7 @@ function getAbilityModifier(score: number): number {
   return Math.floor((score - 10) / 2);
 }
 
-function getHeldShieldBonus(character: Character): number {
+function getHeldShieldBonus(character: Pick<Character, "equipment" | "inventoryItems">): number {
   const codexShieldBonus = character.equipment.reduce((highestShieldBonus, item) => {
     if (!item.onHand) {
       return highestShieldBonus;
@@ -370,71 +405,80 @@ function getHeldShieldBonus(character: Character): number {
   return Math.max(codexShieldBonus, inventoryShieldBonus);
 }
 
-function getBaseArmorClassModes(character: Character): BaseArmorClassMode[] {
+type ArmorClassModeState = ArmorClassModeDefinition & {
+  isApplicable: boolean;
+  unavailableReason?: string;
+  isDefault: boolean;
+};
+
+function getDefaultArmorClassMode(
+  character: ArmorClassFormulaSelectionCharacter
+): ArmorClassModeState {
   const wornBodyArmor = getBodyArmorCandidates(character).find((candidate) => candidate.worn) ?? null;
-  const baseModes: BaseArmorClassMode[] = [
-    {
+
+  if (!wornBodyArmor) {
+    return {
       key: "base-unarmored",
       label: "Unarmored",
       baseValue: 10,
       abilityModifiers: ["DEX"],
       shieldAllowed: true,
-      armorType: "unarmored"
-    }
-  ];
-
-  if (!wornBodyArmor) {
-    return baseModes;
+      isApplicable: true,
+      isDefault: true
+    };
   }
 
-  return [
-    {
-      key: wornBodyArmor.key,
-      label: wornBodyArmor.name,
-      baseValue: wornBodyArmor.armorBase,
-      abilityModifiers: ["DEX"],
-      abilityModifierCaps: {
-        DEX:
-          wornBodyArmor.armorType === "heavy"
-            ? 0
-            : wornBodyArmor.armorType === "medium"
-              ? 2
-              : null
-      },
-      shieldAllowed: true,
-      armorType: wornBodyArmor.armorType
-    }
-  ];
+  return {
+    key: wornBodyArmor.key,
+    label: wornBodyArmor.name,
+    baseValue: wornBodyArmor.armorBase,
+    abilityModifiers: ["DEX"],
+    abilityModifierCaps: {
+      DEX:
+        wornBodyArmor.armorType === "heavy"
+          ? 0
+          : wornBodyArmor.armorType === "medium"
+            ? 2
+            : null
+    },
+    shieldAllowed: true,
+    isApplicable: true,
+    isDefault: true
+  };
 }
 
-function getArmorClassModeValue(
-  character: Character,
-  mode: Pick<
-    BaseArmorClassMode | FeatureArmorClassMode,
-    "baseValue" | "abilityModifiers" | "abilityModifierCaps" | "shieldAllowed"
-  >,
-  shieldBonus: number,
-  featureBonuses: FeatureArmorClassBonus[]
-): number {
-  const abilityTotal = mode.abilityModifiers.reduce(
-    (total, ability) => {
-      const modifier = getAbilityModifier(getAbilityScoreForCharacter(character, ability));
-      const cap = mode.abilityModifierCaps?.[ability];
-      const adjustedModifier = cap === null || cap === undefined ? modifier : Math.min(modifier, cap);
+function getArmorClassModeStates(character: ArmorClassFormulaSelectionCharacter): ArmorClassModeState[] {
+  const defaultMode = getDefaultArmorClassMode(character);
+  const shieldBonus = getHeldShieldBonus(character);
+  const featureContext = {
+    hasWornBodyArmor: defaultMode.key !== "base-unarmored",
+    hasShieldEquipped: shieldBonus > 0
+  };
+  const featureModes = getArmorClassModesForCharacter(character, featureContext).map((mode) => ({
+    ...mode,
+    isDefault: false
+  }));
 
-      return total + adjustedModifier;
-    },
-    0
-  );
-  const shieldTotal = mode.shieldAllowed ? shieldBonus : 0;
-  const featureBonusTotal = featureBonuses.reduce((total, bonus) => total + bonus.value, 0);
+  return [defaultMode, ...featureModes];
+}
 
-  return mode.baseValue + abilityTotal + shieldTotal + featureBonusTotal;
+function getArmorClassFormulaSelectorLabel(
+  mode: Pick<ArmorClassModeState, "isDefault" | "unlockedAtLevel" | "label">
+): string {
+  if (mode.isDefault) {
+    return "Default";
+  }
+
+  if (typeof mode.unlockedAtLevel === "number" && Number.isFinite(mode.unlockedAtLevel)) {
+    return `Level ${mode.unlockedAtLevel}: ${mode.label}`;
+  }
+
+  return mode.label;
 }
 
 function buildArmorClassBreakdownEntries(
   character: Character,
-  mode: BaseArmorClassMode | FeatureArmorClassMode,
+  mode: ArmorClassModeDefinition,
   shieldBonus: number,
   featureBonuses: FeatureArmorClassBonus[]
 ): ArmorClassBreakdownEntry[] {
@@ -474,40 +518,165 @@ function buildArmorClassBreakdownEntries(
   return entries;
 }
 
-export function getArmorClassBreakdownForCharacter(character: Character): ArmorClassBreakdown {
-  const baseModes = getBaseArmorClassModes(character);
-  const shieldBonus = getHeldShieldBonus(character);
-  const featureContext = {
-    hasWornBodyArmor: baseModes.some((mode) => mode.armorType !== "unarmored"),
-    hasShieldEquipped: shieldBonus > 0
-  };
-  const featureModes = getArmorClassModesForCharacter(character, featureContext);
-  const featureBonuses = [
-    ...getArmorClassBonusesForCharacter(character, featureContext),
-    ...getFeatArmorClassBonusesForCharacter(character, featureContext)
-  ];
-  const allModes: Array<BaseArmorClassMode | FeatureArmorClassMode> = [...baseModes, ...featureModes];
-  const selectedMode =
-    [...allModes].sort((left, right) => {
-      const leftValue = getArmorClassModeValue(character, left, shieldBonus, featureBonuses);
-      const rightValue = getArmorClassModeValue(character, right, shieldBonus, featureBonuses);
-
-      if (rightValue !== leftValue) {
-        return rightValue - leftValue;
-      }
-
-      return right.label.localeCompare(left.label);
-    })[0] ?? baseModes[0];
-  const entries = buildArmorClassBreakdownEntries(character, selectedMode, shieldBonus, featureBonuses);
+function buildArmorClassBreakdown(
+  character: Character,
+  mode: ArmorClassModeDefinition,
+  shieldBonus: number,
+  featureBonuses: FeatureArmorClassBonus[]
+): ArmorClassBreakdown {
+  const entries = buildArmorClassBreakdownEntries(character, mode, shieldBonus, featureBonuses);
 
   return {
     total: entries.reduce((total, entry) => total + entry.value, 0),
-    source: selectedMode.label,
-    detail: selectedMode.detail,
+    source: mode.label,
+    detail: mode.detail,
     entries
   };
 }
 
+function buildArmorClassFormulaOption(
+  character: Character,
+  mode: ArmorClassModeState,
+  shieldBonus: number,
+  featureBonuses: FeatureArmorClassBonus[]
+): ArmorClassFormulaOption {
+  return {
+    key: mode.key,
+    label: mode.label,
+    selectorLabel: getArmorClassFormulaSelectorLabel(mode),
+    detail: mode.detail,
+    isApplicable: mode.isApplicable,
+    unavailableReason: mode.unavailableReason,
+    isDefault: mode.isDefault,
+    breakdown: buildArmorClassBreakdown(character, mode, shieldBonus, featureBonuses)
+  };
+}
+
+function getAutoSelectedArmorClassFormulaKey(
+  modes: Array<Pick<ArmorClassModeState, "key">>
+): string | null {
+  return modes[modes.length - 1]?.key ?? null;
+}
+
+export function normalizeArmorClassFormulaSelection(
+  value: unknown,
+  character: ArmorClassFormulaSelectionCharacter
+): CharacterArmorClassFormulaSelection {
+  const modes = getArmorClassModeStates(character);
+  const defaultMode = modes[0];
+  const autoSelectedKey = getAutoSelectedArmorClassFormulaKey(modes) ?? defaultMode?.key ?? null;
+
+  if (!defaultMode) {
+    return {
+      ...defaultArmorClassFormulaSelection,
+      key: autoSelectedKey
+    };
+  }
+
+  let mode: CharacterArmorClassFormulaSelection["mode"] = defaultArmorClassFormulaSelection.mode;
+  let key: string | null = defaultArmorClassFormulaSelection.key;
+
+  if (typeof value === "string") {
+    mode = "manual";
+    key = value.trim() || null;
+  } else if (value && typeof value === "object") {
+    const record = value as Partial<CharacterArmorClassFormulaSelection>;
+
+    if (record.mode === "manual" || record.mode === "auto") {
+      mode = record.mode;
+    }
+
+    key = typeof record.key === "string" && record.key.trim().length > 0 ? record.key.trim() : null;
+  }
+
+  if (mode === "auto") {
+    return {
+      key: autoSelectedKey ?? defaultMode.key,
+      mode
+    };
+  }
+
+  return {
+    key: modes.some((candidate) => candidate.key === key) ? key : defaultMode.key,
+    mode
+  };
+}
+
+function buildArmorClassSelectionWarning(
+  selectedFormula: ArmorClassFormulaOption,
+  activeFormula: ArmorClassFormulaOption
+): string | null {
+  if (selectedFormula.isApplicable) {
+    return null;
+  }
+
+  const reason = selectedFormula.unavailableReason ?? "Its requirements are not currently met.";
+  const reasonText = reason.endsWith(".") ? reason : `${reason}.`;
+
+  return `${selectedFormula.label} is selected, but it doesn't currently apply. ${reasonText} Armor Class is using ${activeFormula.selectorLabel} instead.`;
+}
+
+export function getArmorClassResolutionForCharacter(character: Character): ArmorClassResolution {
+  const modes = getArmorClassModeStates(character);
+  const shieldBonus = getHeldShieldBonus(character);
+  const featureContext = {
+    hasWornBodyArmor: modes[0]?.key !== "base-unarmored",
+    hasShieldEquipped: shieldBonus > 0
+  };
+  const featureBonuses = [
+    ...getArmorClassBonusesForCharacter(character, featureContext),
+    ...getFeatArmorClassBonusesForCharacter(character, featureContext)
+  ];
+  const formulas = modes.map((mode) =>
+    buildArmorClassFormulaOption(character, mode, shieldBonus, featureBonuses)
+  );
+  const defaultFormula = formulas[0];
+
+  if (!defaultFormula) {
+    throw new Error("Unable to resolve Armor Class formulas.");
+  }
+
+  const selection = normalizeArmorClassFormulaSelection(
+    character.armorClassFormulaSelection,
+    character
+  );
+  const selectedFormula =
+    formulas.find((formula) => formula.key === selection.key) ?? defaultFormula;
+  const activeFormula = selectedFormula.isApplicable ? selectedFormula : defaultFormula;
+
+  return {
+    formulas,
+    defaultFormula,
+    selectedFormula,
+    activeFormula,
+    selection,
+    warning: buildArmorClassSelectionWarning(selectedFormula, activeFormula)
+  };
+}
+
+export function setArmorClassFormulaSelectionForCharacter(
+  character: Character,
+  formulaKey: string
+): Character {
+  const modes = getArmorClassModeStates(character);
+
+  if (!modes.some((mode) => mode.key === formulaKey)) {
+    return character;
+  }
+
+  return {
+    ...character,
+    armorClassFormulaSelection: {
+      key: formulaKey,
+      mode: "manual"
+    }
+  };
+}
+
+export function getArmorClassBreakdownForCharacter(character: Character): ArmorClassBreakdown {
+  return getArmorClassResolutionForCharacter(character).activeFormula.breakdown;
+}
+
 export function getArmorClassForCharacter(character: Character): number {
-  return getArmorClassBreakdownForCharacter(character).total;
+  return getArmorClassResolutionForCharacter(character).activeFormula.breakdown.total;
 }

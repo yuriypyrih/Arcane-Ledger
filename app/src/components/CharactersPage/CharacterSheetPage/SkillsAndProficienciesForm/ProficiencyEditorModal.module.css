@@ -1,0 +1,251 @@
+.modalPanel {
+  width: min(880px, 100%);
+  height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
+}
+
+.body {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.9rem;
+  min-height: 0;
+  overflow: hidden;
+  padding: 0 var(--overlay-panel-inline-padding);
+}
+
+.tabRow {
+  display: inline-grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.2rem;
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.08);
+  padding: 0.24rem;
+}
+
+.tabButton {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  font: inherit;
+  min-height: 36px;
+  padding: 0 0.86rem;
+  white-space: nowrap;
+}
+
+.tabButtonActive {
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-ink);
+  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
+}
+
+.editorScrollArea {
+  min-height: 0;
+  overflow: auto;
+  padding-right: 0.12rem;
+}
+
+.editorGrid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.editorGridCompact {
+  gap: 0.55rem;
+}
+
+.editorGridTwoColumn {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.editorOption {
+  height: 100%;
+}
+
+.editorOptionCompact {
+  min-height: 0;
+}
+
+.editorSectionStack {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.editorDivider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.editorDividerLine {
+  flex: 1 1 auto;
+  height: 1px;
+  background: rgba(75, 47, 29, 0.12);
+}
+
+.editorDividerLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.72rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.groupSubtitle {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.74rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.languageEditorStack {
+  display: grid;
+  gap: 1rem;
+}
+
+.languageEditorGroup {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.customLanguageForm {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.addLanguageButton,
+.footerButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  border: none;
+  border-radius: 14px;
+  cursor: pointer;
+  font: inherit;
+}
+
+.addLanguageButton {
+  justify-self: start;
+  min-height: 42px;
+  padding: 0 0.95rem;
+  background: rgba(47, 120, 255, 0.12);
+  color: #1f5eb5;
+}
+
+.customLanguageList {
+  display: grid;
+  gap: 0.42rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.customLanguageItem {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.65rem 0.72rem;
+}
+
+.customLanguageContent {
+  display: grid;
+  gap: 0.18rem;
+}
+
+.customLanguageContent strong {
+  font-size: 0.92rem;
+}
+
+.customLanguageContent small {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+}
+
+.customLanguageRemoveButton {
+  border: none;
+  background: none;
+  color: #1f5eb5;
+  cursor: pointer;
+  font: inherit;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.footer {
+  border-top: 1px solid rgba(75, 47, 29, 0.12);
+  background: linear-gradient(180deg, rgba(255, 252, 245, 0.24), rgba(246, 236, 221, 0.92));
+  padding-top: 0.9rem;
+}
+
+.footerActions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.65rem;
+  width: 100%;
+}
+
+.footerButton {
+  min-height: 44px;
+  padding: 0 1rem;
+}
+
+.footerPrimaryButton {
+  background: linear-gradient(135deg, #2f6de0, #4a8eff);
+  color: #f7fbff;
+}
+
+.footerSecondaryButton {
+  background: rgba(236, 245, 255, 0.94);
+  color: #1f5eb5;
+  box-shadow: inset 0 0 0 1px rgba(47, 120, 255, 0.16);
+}
+
+.addLanguageButton:disabled,
+.footerButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.56;
+}
+
+@media (max-width: 860px) {
+  .editorGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .editorGridTwoColumn {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .tabRow {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .footerActions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .footerButton,
+  .addLanguageButton {
+    width: 100%;
+  }
+}
+
+@media (max-width: 520px) {
+  .editorGrid,
+  .editorGridTwoColumn,
+  .tabRow {
+    grid-template-columns: 1fr;
+  }
+}

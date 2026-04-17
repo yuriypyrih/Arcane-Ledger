@@ -296,6 +296,10 @@ export function getWeaponDamageFormulaPresentation(
   mainDamageGroup.preferNumericFirst =
     mainDamageGroup.diceTerms.length === 0 && mainDamageGroup.numericTotal !== 0;
 
+  if (action.damageBreakdownLabel) {
+    breakdownEntries.push(action.damageBreakdownLabel);
+  }
+
   if (damageAbilityModifier !== 0) {
     mainDamageGroup.numericTotal += damageAbilityModifier;
     breakdownEntries.push(`${formatAbilityModifier(damageAbilityModifier)} ${damageAbility}`);

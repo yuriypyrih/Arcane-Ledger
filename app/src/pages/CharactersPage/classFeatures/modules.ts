@@ -2,6 +2,7 @@ import type { Character, CharacterClassFeatureState, WEAPON_PROFICIENCY } from "
 import { createDefaultAbilities } from "../constants";
 import {
   activateBardicInspiration,
+  activateBardCollegeOfTheMoonLunarVitality,
   advanceBardFeaturesForNewRound,
   activateMantleOfInspiration,
   activateUnbreakableMajesty,
@@ -13,11 +14,13 @@ import {
   getBardFeatureAction,
   getBardLanguageProficiencyEntries,
   getBardReactionEntries,
+  getBardSpellEntry,
   getBardSkillBonuses,
   getBardSkillProficiencyEntries,
   getBardicInspirationDie,
   getBardWeaponProficiencyEntries,
   mantleOfInspirationActionKey,
+  lunarVitalityActionKey,
   unbreakableMajestyActionKey,
   normalizeBardFeatureState
 } from "./bard/bard";
@@ -80,6 +83,8 @@ import {
   getClericFeatureActions,
   getClericFeatureActionOptions,
   getClericSkillBonuses,
+  getClericSpellEntry,
+  getClericWeaponAction,
   getClericWeaponDamageBonuses,
   getClericWeaponProficiencyEntries,
   preserveLifeActionKey,
@@ -415,6 +420,7 @@ const classFeatureModules = {
         armorProficiencyEntries: getBardArmorProficiencyEntries(character),
         languageProficiencyEntries: getBardLanguageProficiencyEntries(character),
         alwaysPreparedSpellIds: getBardAlwaysPreparedSpellIds(character),
+        transformSpellEntry: (spell) => getBardSpellEntry(character, spell),
         reactionEntries: getBardReactionEntries(character),
         bardicInspirationDie: getBardicInspirationDie(character)
       };
@@ -426,6 +432,10 @@ const classFeatureModules = {
 
       if (actionKey === mantleOfInspirationActionKey) {
         return activateMantleOfInspiration(character);
+      }
+
+      if (actionKey === lunarVitalityActionKey) {
+        return activateBardCollegeOfTheMoonLunarVitality(character);
       }
 
       if (actionKey === unbreakableMajestyActionKey) {
@@ -452,6 +462,8 @@ const classFeatureModules = {
         getSkillBonuses: (skill) => getClericSkillBonuses(character, skill),
         cantripLimitBonus: getClericCantripBonus(character),
         cantripDamageBonus: getClericCantripDamageBonus(character),
+        transformSpellEntry: (spell) => getClericSpellEntry(character, spell),
+        transformWeaponAction: (action) => getClericWeaponAction(character, action),
         weaponProficiencyEntries: getClericWeaponProficiencyEntries(character),
         armorProficiencyEntries: getClericArmorProficiencyEntries(character)
       };

@@ -1,8 +1,7 @@
 import clsx from "clsx";
-import { BookOpen, Brain, Flame, Hexagon, Minus, Plus, Sparkles } from "lucide-react";
+import { BookOpen, Flame, Minus, Plus, Sparkles } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { fetchMonsterBySlug } from "../../../../../api";
-import pyromancyIcon from "../../../../../assets/svg/pyromancy.svg";
 import CellContainer from "../../../../CellContainer/CellContainer";
 import DescriptionContent from "../../../../DescriptionContent/DescriptionContent";
 import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
@@ -12,6 +11,7 @@ import CharacterSpellDrawer from "../../SpellCastingForm/CharacterSpellDrawer";
 import SelectInput from "../../../FormInputs/SelectInput";
 import ActionShape from "../../../../ActionShape";
 import RollStatePill from "../../../../RollStatePill/RollStatePill";
+import FeatureOptInToggle from "../../FeatureOptInToggle/FeatureOptInToggle";
 import type {
   Character,
   AbilityKey,
@@ -66,11 +66,12 @@ import {
   createEconomyMultiContextForFeatureAction,
   createEconomyMultiContextForFeatureActionOption,
   expendMonkFocusPointForCharacter,
-  getBardicInspirationDieForCharacter,
+  getBonusActionWeaponAttackMultiCountForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
   getBeguilingMagicUsesTotalForCharacter,
   getChannelDivinityUsesRemainingForCharacter,
+  getChannelDivinityUsesTotalForCharacter,
   getInnateSorceryActivationSorceryPointCostForCharacter,
   getMonkFocusPointsRemainingForCharacter,
   getMantleOfMajestyFallbackSlotLevelForCharacter,
@@ -103,7 +104,9 @@ import {
   type FeatureActionOptionCard
 } from "../../../../../pages/CharactersPage/classFeatures";
 import { bardicInspirationActionKey } from "../../../../../pages/CharactersPage/classFeatures/bard/bard";
+import { mantleOfInspirationActionKey } from "../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfGlamour";
 import {
+  channelDivinityActionKey,
   divineInterventionActionKey,
   getClericDivineInterventionEnabledLevels,
   getClericDivineInterventionSpellEntries
@@ -258,7 +261,9 @@ import fontOfMagicStyles from "./FontOfMagicModal.module.css";
 import SneakAttackActionBody, { type SneakAttackActionSelection } from "./SneakAttackModal";
 import divineStyles from "./DivineInterventionModal.module.css";
 import GameplayActionDrawer from "./GameplayActionDrawer";
+import CodexDivinityDrawer from "../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
+import ClericChannelDivinityAction from "./ClericChannelDivinityAction";
 import DruidStarryFormActionBody from "./DruidStarryFormActionBody";
 import {
   FighterSecondWindActionBody,
@@ -304,6 +309,10 @@ import {
   FeatureActionOptionButton,
   WeaponActionCard
 } from "./ActionCards";
+import {
+  createChannelDivinityOptionRows,
+  type ChannelDivinityOptionRow
+} from "../../channelDivinityUtils";
 
 type RoundTrackerAvailability = {
   actionAvailable: boolean;
@@ -1502,6 +1511,9 @@ function WildResurgenceActionBody({
 function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [selectedActionKey, setSelectedActionKey] = useState<string | null>(null);
   const [selectedActionOptionKeys, setSelectedActionOptionKeys] = useState<string[]>([]);
+  const [selectedChannelDivinityOptionKey, setSelectedChannelDivinityOptionKey] = useState<
+    string | null
+  >(null);
   const [selectedFontOfMagicSelection, setSelectedFontOfMagicSelection] =
     useState<FontOfMagicSelection | null>(null);
   const [selectedWildShapeMonsterSlug, setSelectedWildShapeMonsterSlug] = useState<string | null>(
@@ -1895,10 +1907,29 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     () => (selectedWeaponAction ? resolveFeatureIndicators(selectedWeaponAction.indicators) : null),
     [selectedWeaponAction]
   );
-  const selectedDrawerOptions =
-    selectedAction?.kind === "feature" && selectedAction.drawer.kind === "options"
-      ? selectedAction.drawer.options
-      : [];
+  const selectedDrawerOptions = useMemo(
+    () =>
+      selectedAction?.kind === "feature" && selectedAction.drawer.kind === "options"
+        ? selectedAction.drawer.options
+        : [],
+    [selectedAction]
+  );
+  const selectedClericChannelDivinityRows = useMemo(
+    () =>
+      selectedFeatureAction?.key === channelDivinityActionKey
+        ? createChannelDivinityOptionRows(selectedFeatureAction, selectedDrawerOptions)
+        : [],
+    [selectedDrawerOptions, selectedFeatureAction]
+  );
+  const selectedClericChannelDivinityRow = useMemo(
+    () =>
+      selectedChannelDivinityOptionKey
+        ? (selectedClericChannelDivinityRows.find(
+            (row) => row.option.key === selectedChannelDivinityOptionKey
+          ) ?? null)
+        : null,
+    [selectedChannelDivinityOptionKey, selectedClericChannelDivinityRows]
+  );
   const selectedWildShapeMonster = useMemo(
     () =>
       selectedFeatureAction?.key === druidWildShapeActionKey
@@ -2075,6 +2106,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       (selectedAction.economyMultiCount ?? 0) + sharedEconomyMultiCount
     );
   }, [character, roundTracker, selectedAction]);
+  const selectedActionSecondaryEconomyMultiCount = useMemo(() => {
+    if (!selectedAction || selectedAction.kind !== "weapon") {
+      return 0;
+    }
+
+    return getBonusActionWeaponAttackMultiCountForCharacter(
+      character,
+      selectedAction.action.attackKind
+    );
+  }, [character, selectedAction]);
   const selectedActionSecondaryEconomyShapeState = useMemo(() => {
     if (
       !selectedAction ||
@@ -2084,8 +2125,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return null;
     }
 
-    return getEconomyShapeState("bonus_action", roundTracker);
-  }, [character, roundTracker, selectedAction]);
+    return getEconomyShapeState(
+      "bonus_action",
+      roundTracker,
+      selectedActionSecondaryEconomyMultiCount
+    );
+  }, [character, roundTracker, selectedAction, selectedActionSecondaryEconomyMultiCount]);
   const selectedActionPrimaryWarning = useMemo(() => {
     if (!selectedAction) {
       return null;
@@ -2185,6 +2230,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         selectedAction.action.disabledReason ??
         null)
       : null;
+  const selectedClericChannelDivinityWarning =
+    selectedClericChannelDivinityRow
+      ? (selectedFeatureActionPrimaryDisabledReason ??
+        (selectedClericChannelDivinityRow.option.disabled
+          ? (selectedClericChannelDivinityRow.option.disabledReason ?? "This divinity is unavailable.")
+          : null) ??
+        selectedClericChannelDivinityRow.option.disabledReason ??
+        null)
+      : null;
   const canSubmitSelectedWarriorOfTheGodsRoll =
     selectedWarriorOfTheGodsChargeCount > 0 &&
     selectedWarriorOfTheGodsChargeCount <= selectedWarriorOfTheGodsUsesRemaining;
@@ -2255,6 +2309,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       : (fixedSpellExecute?.actionContextText ?? null);
   const selectedActionSpellEntry =
     fixedSpellEntry ?? selectedDivineInterventionSpell ?? selectedMysticArcanumSpell;
+  const channelDivinityUsesTotal = getChannelDivinityUsesTotalForCharacter(character);
   const channelDivinityUsesRemaining = getChannelDivinityUsesRemainingForCharacter(character);
   const selectedActionSpellSupportsBeguilingMagic =
     selectedActionSpellEntry !== null &&
@@ -2376,6 +2431,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
   function closeActionDrawer() {
     setSelectedActionOptionKeys([]);
+    setSelectedChannelDivinityOptionKey(null);
     setSelectedFontOfMagicSelection(null);
     setSelectedWildShapeMonsterSlug(null);
     setSelectedWildShapePreviewSlug(null);
@@ -2437,6 +2493,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
   useEffect(() => {
     setSelectedActionOptionKeys([]);
+    setSelectedChannelDivinityOptionKey(null);
     setSelectedFontOfMagicSelection(null);
     setSelectedWildShapeMonsterSlug(null);
     setSelectedWildShapePreviewSlug(null);
@@ -2461,6 +2518,18 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsQuiveringPalmSelected(false);
     setIsImprovedShadowStepSelected(false);
   }, [selectedActionKey]);
+
+  useEffect(() => {
+    if (!selectedChannelDivinityOptionKey) {
+      return;
+    }
+
+    if (selectedClericChannelDivinityRow) {
+      return;
+    }
+
+    setSelectedChannelDivinityOptionKey(null);
+  }, [selectedChannelDivinityOptionKey, selectedClericChannelDivinityRow]);
 
   useEffect(() => {
     if (!selectedWeaponSacredWeaponState || selectedWeaponSacredWeaponToggleDisabled) {
@@ -2897,9 +2966,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return;
     }
 
-    if (effectKind === "bardic-inspiration-roll") {
-      const bardicDie = getBardicInspirationDieForCharacter(character);
-      const bardicDieFormula = bardicDie ? `1${String(bardicDie).toLowerCase()}` : "1d6";
+    if (action.key === bardicInspirationActionKey) {
       onPersistCharacter((currentCharacter) => {
         const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
         const preparedCharacter = prepareCharacterForResourceConsumption(
@@ -2928,12 +2995,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             )
           : nextCharacterWithInspiredEclipse;
       });
-      openDiceRoller({
-        title: action.name,
-        formula: bardicDieFormula,
-        formulaDisplay: bardicDieFormula,
-        description: action.detail
-      });
+      closeActionDrawer();
       return;
     }
 
@@ -3315,6 +3377,31 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         description: option.rollDescription ?? option.detail
       });
     }
+
+    closeActionDrawer();
+  }
+
+  function channelSelectedClericDivinity(row: ChannelDivinityOptionRow) {
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(row.option.economyType);
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateFeatureActionOptionForCharacter(
+        preparedCharacter,
+        row.action.key,
+        row.option.key
+      );
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
 
     closeActionDrawer();
   }
@@ -4208,6 +4295,21 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       );
     }
 
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.action.key === channelDivinityActionKey &&
+      selectedAction.drawer.kind === "options"
+    ) {
+      return (
+        <ClericChannelDivinityAction
+          rows={selectedClericChannelDivinityRows}
+          character={character}
+          roundTracker={roundTracker}
+          onOpenDivinity={(row) => setSelectedChannelDivinityOptionKey(row.option.key)}
+        />
+      );
+    }
+
     if (selectedAction.drawer.kind === "options") {
       return (
         <FeatureOptionsActionBody
@@ -4441,122 +4543,80 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return (
         <div className={styles.footerActionStack}>
           {selectedWeaponDreadAmbusherState ? (
-            <label
-              className={styles.footerActionToggle}
+            <FeatureOptInToggle
+              label="Dreadful Strike"
+              checked={isDreadfulStrikeSelected}
+              disabled={selectedWeaponDreadfulStrikeToggleDisabled}
+              muted={selectedWeaponDreadfulStrikeToggleDisabled}
+              onCheckedChange={setIsDreadfulStrikeSelected}
               title={selectedWeaponDreadAmbusherState.disabledReason ?? undefined}
-            >
-              <span className={styles.footerActionToggleLabel}>
-                <input
-                  type="checkbox"
-                  checked={isDreadfulStrikeSelected}
-                  onChange={(event) => setIsDreadfulStrikeSelected(event.target.checked)}
-                  disabled={selectedWeaponDreadfulStrikeToggleDisabled}
-                />
-                <span>Dreadful Strike</span>
-                <span className={styles.psiStrikeCostLabel}>
-                  <span>
-                    | {selectedWeaponDreadAmbusherState.usesRemaining}/
-                    {selectedWeaponDreadAmbusherState.usesTotal}
-                  </span>
-                </span>
-              </span>
-            </label>
+              metaItems={[
+                {
+                  kind: "tracker",
+                  current: selectedWeaponDreadAmbusherState.usesRemaining,
+                  total: selectedWeaponDreadAmbusherState.usesTotal
+                }
+              ]}
+            />
           ) : null}
           {selectedWeaponPolarStrikesState ? (
-            <label
-              className={styles.footerActionToggle}
+            <FeatureOptInToggle
+              label="Polar Strikes"
+              checked={isPolarStrikesSelected}
+              disabled={selectedWeaponPolarStrikesToggleDisabled}
+              muted={selectedWeaponPolarStrikesToggleDisabled}
+              onCheckedChange={setIsPolarStrikesSelected}
               title={selectedWeaponPolarStrikesState.disabledReason ?? undefined}
-            >
-              <span className={styles.footerActionToggleLabel}>
-                <input
-                  type="checkbox"
-                  checked={isPolarStrikesSelected}
-                  onChange={(event) => setIsPolarStrikesSelected(event.target.checked)}
-                  disabled={selectedWeaponPolarStrikesToggleDisabled}
-                />
-                <span>Polar Strikes</span>
-                <span className={styles.psiStrikeCostLabel}>
-                  <span>| {selectedWeaponPolarStrikesState.damageBonus.displayLabel}</span>
-                </span>
-              </span>
-            </label>
+              metaItems={[
+                {
+                  kind: "text",
+                  label: selectedWeaponPolarStrikesState.damageBonus.displayLabel
+                }
+              ]}
+            />
           ) : null}
           {selectedWeaponSacredWeaponState ? (
-            <label
-              className={styles.footerActionToggle}
+            <FeatureOptInToggle
+              label="Sacred Weapon"
+              checked={isSacredWeaponSelected}
+              disabled={selectedWeaponSacredWeaponToggleDisabled}
+              muted={selectedWeaponSacredWeaponToggleDisabled}
+              onCheckedChange={setIsSacredWeaponSelected}
               title={selectedWeaponSacredWeaponState.disabledReason ?? undefined}
-            >
-              <span className={styles.footerActionToggleLabel}>
-                <input
-                  type="checkbox"
-                  checked={isSacredWeaponSelected}
-                  onChange={(event) => setIsSacredWeaponSelected(event.target.checked)}
-                  disabled={selectedWeaponSacredWeaponToggleDisabled}
-                />
-                <span>Sacred Weapon</span>
-                <span className={styles.psiStrikeCostLabel}>
-                  <span>| Use 1</span>
-                  <img src={pyromancyIcon} alt="" className={styles.footerResourceIcon} />
-                </span>
-              </span>
-            </label>
+              metaItems={[{ kind: "cost", label: "Use 1", icon: "divinity" }]}
+            />
           ) : null}
           {selectedWeaponHandOfHarmState ? (
-            <label
-              className={styles.footerActionToggle}
+            <FeatureOptInToggle
+              label="Hand of Harm"
+              checked={isHandOfHarmSelected}
+              disabled={selectedWeaponHandOfHarmToggleDisabled}
+              muted={selectedWeaponHandOfHarmToggleDisabled}
+              onCheckedChange={setIsHandOfHarmSelected}
               title={selectedWeaponHandOfHarmDisabledReason ?? undefined}
-            >
-              <span className={styles.footerActionToggleLabel}>
-                <input
-                  type="checkbox"
-                  checked={isHandOfHarmSelected}
-                  onChange={(event) => setIsHandOfHarmSelected(event.target.checked)}
-                  disabled={selectedWeaponHandOfHarmToggleDisabled}
-                />
-                <span>Hand of Harm</span>
-                <span className={styles.psiStrikeCostLabel}>
-                  <span>| Use 1</span>
-                  <Brain size={14} strokeWidth={2.1} />
-                </span>
-              </span>
-            </label>
+              metaItems={[{ kind: "cost", label: "Use 1", icon: "brain" }]}
+            />
           ) : null}
           {selectedWeaponQuiveringPalmState ? (
-            <label
-              className={styles.footerActionToggle}
+            <FeatureOptInToggle
+              label="Quivering Palm"
+              checked={isQuiveringPalmSelected}
+              disabled={selectedWeaponQuiveringPalmToggleDisabled}
+              muted={selectedWeaponQuiveringPalmToggleDisabled}
+              onCheckedChange={setIsQuiveringPalmSelected}
               title={selectedWeaponQuiveringPalmDisabledReason ?? undefined}
-            >
-              <span className={styles.footerActionToggleLabel}>
-                <input
-                  type="checkbox"
-                  checked={isQuiveringPalmSelected}
-                  onChange={(event) => setIsQuiveringPalmSelected(event.target.checked)}
-                  disabled={selectedWeaponQuiveringPalmToggleDisabled}
-                />
-                <span>Quivering Palm</span>
-                <span className={styles.psiStrikeCostLabel}>
-                  <span>| Use 3</span>
-                  <Brain size={14} strokeWidth={2.1} />
-                </span>
-              </span>
-            </label>
+              metaItems={[{ kind: "cost", label: "Use 3", icon: "brain" }]}
+            />
           ) : null}
           {showPsionicStrikeToggle ? (
-            <label className={styles.footerActionToggle}>
-              <span className={styles.footerActionToggleLabel}>
-                <input
-                  type="checkbox"
-                  checked={isPsionicStrikeSelected}
-                  onChange={(event) => setIsPsionicStrikeSelected(event.target.checked)}
-                  disabled={!selectedWeaponPsionicStrikeAvailable}
-                />
-                <span>Psionic Strike</span>
-                <span className={styles.psiStrikeCostLabel}>
-                  <span>| Use 1</span>
-                  <Hexagon size={14} strokeWidth={2.1} />
-                </span>
-              </span>
-            </label>
+            <FeatureOptInToggle
+              label="Psionic Strike"
+              checked={isPsionicStrikeSelected}
+              disabled={!selectedWeaponPsionicStrikeAvailable}
+              muted={!selectedWeaponPsionicStrikeAvailable}
+              onCheckedChange={setIsPsionicStrikeSelected}
+              metaItems={[{ kind: "cost", label: "Use 1", icon: "psi" }]}
+            />
           ) : null}
           <div className={styles.weaponFooterActions}>
             <button
@@ -4602,6 +4662,46 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               onOpenChange={setIsDiceRollerSettingsOpen}
             />
           </div>
+        </div>
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
+      selectedAction.action.key === mantleOfInspirationActionKey
+    ) {
+      const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
+
+      return (
+        <div className={styles.weaponFooterActions}>
+          <button
+            type="button"
+            className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
+            onClick={() => executeFeatureActivate(selectedAction.action)}
+            disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          >
+            <span className={styles.centeredFooterButtonContent}>
+              <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
+              <span>{selectedAction.drawer.confirmLabel}</span>
+              {actionShape ? (
+                <ActionShape
+                  shape={actionShape}
+                  isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+                  multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+                  className={styles.footerActionShape}
+                />
+              ) : null}
+            </span>
+          </button>
+          <DiceRollerSettingsButton
+            actionName={selectedAction.action.name}
+            className={clsx(sheetStyles.castButton, styles.weaponFooterIconButton)}
+            isOpen={isDiceRollerSettingsOpen}
+            aria-label="Open dice roller settings"
+            onOpenChange={setIsDiceRollerSettingsOpen}
+          />
         </div>
       );
     }
@@ -4690,83 +4790,19 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedAction.kind === "feature" &&
       selectedAction.drawer.kind === "confirm" &&
       selectedAction.execute.kind === "activate" &&
-      selectedAction.execute.effectKind === "bardic-inspiration-roll"
+      selectedAction.action.key === bardicInspirationActionKey
     ) {
       const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
 
       return (
         <div className={styles.footerActionStack}>
           {canUseInspiredEclipse ? (
-            <label className={styles.footerActionToggle}>
-              <span className={styles.footerActionToggleLabel}>
-                <input
-                  type="checkbox"
-                  checked={isInspiredEclipseSelected}
-                  onChange={(event) => setIsInspiredEclipseSelected(event.target.checked)}
-                />
-                <span>Inspired Eclipse</span>
-              </span>
-            </label>
-          ) : null}
-          <div className={styles.weaponFooterActions}>
-            <button
-              type="button"
-              className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
-              onClick={() => executeFeatureActivate(selectedAction.action)}
-              disabled={selectedFeatureActionPrimaryDisabledReason !== null}
-            >
-              <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
-              <span>{selectedAction.drawer.confirmLabel}</span>
-              {actionShape ? (
-                <ActionShape
-                  shape={actionShape}
-                  isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-                  multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-                  className={styles.footerActionShape}
-                />
-              ) : null}
-            </button>
-            <DiceRollerSettingsButton
-              actionName={selectedAction.name}
-              className={clsx(sheetStyles.castButton, styles.weaponFooterIconButton)}
-              isOpen={isDiceRollerSettingsOpen}
-              aria-label="Open dice roller settings"
-              onOpenChange={setIsDiceRollerSettingsOpen}
+            <FeatureOptInToggle
+              label="Inspired Eclipse"
+              checked={isInspiredEclipseSelected}
+              onCheckedChange={setIsInspiredEclipseSelected}
+              metaItems={[{ kind: "cost", label: "Use 1", icon: "music" }]}
             />
-          </div>
-        </div>
-      );
-    }
-
-    if (
-      selectedAction.kind === "feature" &&
-      selectedAction.action.key === monkShadowStepActionKey &&
-      selectedAction.drawer.kind === "confirm" &&
-      selectedAction.execute.kind === "activate"
-    ) {
-      const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
-
-      return (
-        <div className={styles.footerActionStack}>
-          {selectedImprovedShadowStepState ? (
-            <label
-              className={styles.footerActionToggle}
-              title={selectedImprovedShadowStepState.disabledReason ?? undefined}
-            >
-              <span className={styles.footerActionToggleLabel}>
-                <input
-                  type="checkbox"
-                  checked={isImprovedShadowStepSelected}
-                  onChange={(event) => setIsImprovedShadowStepSelected(event.target.checked)}
-                  disabled={selectedImprovedShadowStepState.disabled}
-                />
-                <span>Improved Shadow Step</span>
-                <span className={styles.psiStrikeCostLabel}>
-                  <span>| Use 1</span>
-                  <Brain size={14} strokeWidth={2.1} />
-                </span>
-              </span>
-            </label>
           ) : null}
           <button
             type="button"
@@ -4786,6 +4822,55 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           </button>
         </div>
       );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.action.key === monkShadowStepActionKey &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate"
+    ) {
+      const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
+
+      return (
+        <div className={styles.footerActionStack}>
+          {selectedImprovedShadowStepState ? (
+            <FeatureOptInToggle
+              label="Improved Shadow Step"
+              checked={isImprovedShadowStepSelected}
+              disabled={selectedImprovedShadowStepState.disabled}
+              muted={selectedImprovedShadowStepState.disabled}
+              onCheckedChange={setIsImprovedShadowStepSelected}
+              title={selectedImprovedShadowStepState.disabledReason ?? undefined}
+              metaItems={[{ kind: "cost", label: "Use 1", icon: "brain" }]}
+            />
+          ) : null}
+          <button
+            type="button"
+            className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+            onClick={() => executeFeatureActivate(selectedAction.action)}
+            disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          >
+            <span>{selectedAction.drawer.confirmLabel}</span>
+            {actionShape ? (
+              <ActionShape
+                shape={actionShape}
+                isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+                multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+                className={styles.footerActionShape}
+              />
+            ) : null}
+          </button>
+        </div>
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.action.key === channelDivinityActionKey &&
+      selectedAction.drawer.kind === "options"
+    ) {
+      return null;
     }
 
     if (selectedAction.drawer.kind === "options") {
@@ -5148,6 +5233,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                       ? "bonus_action"
                       : null
                   }
+                  secondaryEconomyMultiCount={getBonusActionWeaponAttackMultiCountForCharacter(
+                    character,
+                    combatAction.action.attackKind
+                  )}
                   roundTracker={roundTracker}
                   onClick={() => setSelectedActionKey(combatAction.key)}
                 />
@@ -5194,6 +5283,47 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         >
           {renderActionDrawerBody()}
         </GameplayActionDrawer>
+      ) : null}
+
+      {selectedClericChannelDivinityRow ? (
+        <CodexDivinityDrawer
+          divinity={selectedClericChannelDivinityRow.entry}
+          character={character}
+          resources={[
+            {
+              kind: "tracker",
+              label: "Uses",
+              current: channelDivinityUsesRemaining,
+              total: channelDivinityUsesTotal,
+              icon: "pyromancy",
+              cost: 1
+            }
+          ]}
+          onClose={() => setSelectedChannelDivinityOptionKey(null)}
+          footer={
+            <div className={styles.footerActionStack}>
+              {selectedClericChannelDivinityWarning ? (
+                <div className={styles.channelDivinityFooterMeta}>
+                  <p className={styles.channelDivinityFooterWarning}>
+                    {selectedClericChannelDivinityWarning}
+                  </p>
+                </div>
+              ) : null}
+              <button
+                type="button"
+                className={clsx(
+                  sheetStyles.castButton,
+                  styles.footerActionButton,
+                  styles.channelDivinityFooterButton
+                )}
+                onClick={() => channelSelectedClericDivinity(selectedClericChannelDivinityRow)}
+                disabled={selectedClericChannelDivinityWarning !== null}
+              >
+                Channel Divinity
+              </button>
+            </div>
+          }
+        />
       ) : null}
 
       {isFixedSpellDrawerOpen && fixedSpellEntry && fixedSpellExecute ? (

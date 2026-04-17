@@ -94,6 +94,7 @@ export const auraOfVitality: SpellEntry = {
   description: [
     "Healing energy radiates from you in an aura with a 30-foot radius. Until the spell ends, the aura moves with you, centered on you. You can use a Bonus Action to cause one creature in the aura, including you, to regain 2d6 Hit Points."
   ],
+  isHealingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.PALADIN],
   spellLevel: 3
@@ -935,6 +936,7 @@ export const lifeTransference: SpellEntry = {
     "You sacrifice some of your health to mend another creature's injuries. You take 4d8 Necrotic damage, which can't be reduced in any way, and one creature of your choice that you can see within range regains a number of Hit Points equal to twice the Necrotic damage you take.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d8 for each slot level above 3rd."
   ],
+  isHealingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
@@ -1064,6 +1066,7 @@ export const massHealingWord: SpellEntry = {
     "As you call out words of restoration, up to six creatures of your choice that you can see within range regain Hit Points equal to 1d4 + your spellcasting ability modifier. This spell has no effect on Undead or Constructs.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the healing increases by 1d4 for each slot level above 3rd."
   ],
+  isHealingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC],
   spellLevel: 3
@@ -1760,6 +1763,7 @@ export const vampiricTouch: SpellEntry = {
     "The touch of your shadow-wreathed hand can siphon force from others to heal your wounds. Make a melee spell attack against a creature within your reach. On a hit, the target takes 3d6 Necrotic damage, and you regain Hit Points equal to half the amount of Necrotic damage dealt. Until the spell ends, you can make the attack again on each of your turns as an action.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d6 for each slot level above 3rd."
   ],
+  isHealingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.NECROTIC],
     [DICE.D6, DAMAGE_TYPE.NECROTIC],

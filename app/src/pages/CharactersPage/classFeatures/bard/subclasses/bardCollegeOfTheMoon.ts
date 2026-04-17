@@ -1,10 +1,16 @@
 import { getSpellEntriesForSpellListClasses } from "../../../../../codex/classes";
-import { SPELL_LIST_CLASS, type SpellEntry } from "../../../../../codex/entries";
+import {
+  CLASS_FEATURE,
+  SPELL_LIST_CLASS,
+  type SpellDescriptionEntry,
+  type SpellEntry
+} from "../../../../../codex/entries";
 import {
   blessingOfMoonlightDescription,
   inspiredEclipseDescription,
   shadowOfTheNewMoonDescription
 } from "../../../../../codex/subclasses/bard";
+import { getAbilityModifierForCharacter } from "../../../abilities";
 import type {
   Character,
   CharacterBardFeatureState,
@@ -12,6 +18,7 @@ import type {
   SkillName,
   SkillProficiencyEntry
 } from "../../../../../types";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
   CONDITION_NAME,
   LANGUAGE_PROFICIENCY,
@@ -24,7 +31,11 @@ import {
   STATUS_ENTRY_SOURCE_TYPE,
   getSkillProficiencyForSkillName
 } from "../../../../../types";
-import { appendUniqueDescriptionAddition } from "../../../actionModalDescriptions";
+import {
+  appendSourcedDescriptionAddition,
+  appendUniqueDescriptionAddition
+} from "../../../actionModalDescriptions";
+import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import { createDefaultFeatureActionDescription } from "../../subclassRuntime";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
@@ -35,12 +46,16 @@ import type {
 } from "../../types";
 
 export const collegeOfTheMoonSubclassId = "bard-college-of-the-moon";
+export const lunarVitalityActionKey = "bard-college-of-the-moon-lunar-vitality";
 
 const moonbeamSpellId = "spell-moonbeam";
 const inspiredEclipseStatusSourceId = "feature-bard-inspired-eclipse";
 const inspiredEclipseInvisibleStatusSourceId = "feature-bard-inspired-eclipse-invisible";
 const bardPrimalLoreSourceLabel = "College of the Moon: Primal Lore";
 const bardicInspirationActionKey = "bard-bardic-inspiration";
+const lunarVitalitySourceHeading = "Lunar Vitality.";
+const vibranceOfTheFullMoonSourceHeading = "Vibrance of the Full Moon.";
+const eventidesSplendorVibranceSourceLabel = "Eventide's Splendor / Vibrance of the Full Moon";
 const primalLoreSkillOptions = [
   "Animal Handling",
   "Insight",
@@ -51,7 +66,12 @@ const primalLoreSkillOptions = [
 ] as const satisfies readonly SkillName[];
 
 type BardMoonCharacter = Pick<Character, "className"> &
-  Partial<Pick<Character, "level" | "subclassId" | "classFeatureState" | "statusEntries">>;
+  Partial<
+    Pick<
+      Character,
+      "abilities" | "classFeatureState" | "feats" | "level" | "statusEntries" | "subclassId"
+    >
+  >;
 
 function isPrimalLoreSkill(value: unknown): value is (typeof primalLoreSkillOptions)[number] {
   return primalLoreSkillOptions.some((skill) => skill === value);
@@ -99,6 +119,119 @@ export function hasBardCollegeOfTheMoonBlessingOfMoonlightFeature(
   return hasCollegeOfTheMoonBlessingOfMoonlight(character);
 }
 
+function extractFeatureDescriptionSection(
+  description: readonly string[],
+  heading: string,
+  options?: {
+    stripHeading?: boolean;
+  }
+): SpellDescriptionEntry[] {
+  const startIndex = description.findIndex((entry) => entry.includes(heading));
+
+  if (startIndex < 0) {
+    return [];
+  }
+
+  const section: SpellDescriptionEntry[] = [];
+  const headingMarker = `<strong>${heading}</strong>`;
+
+  for (let index = startIndex; index < description.length; index += 1) {
+    const entry = description[index]!;
+
+    if (index > startIndex && entry.startsWith("<strong>")) {
+      break;
+    }
+
+    if (options?.stripHeading && index === startIndex && entry.includes(headingMarker)) {
+      const strippedEntry = entry.replace(headingMarker, "").trim();
+
+      if (strippedEntry.length > 0) {
+        section.push(strippedEntry);
+      }
+
+      continue;
+    }
+
+    section.push(entry);
+  }
+
+  return section;
+}
+
+function getMoonFeatureDescriptionStrings(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  feature: CLASS_FEATURE
+): string[] {
+  return getFeatureDescriptionForCharacter(character, feature).filter(
+    (entry): entry is string => typeof entry === "string"
+  );
+}
+
+function getLunarVitalityDescription(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): SpellDescriptionEntry[] {
+  return extractFeatureDescriptionSection(
+    getMoonFeatureDescriptionStrings(character, CLASS_FEATURE.MOONS_INSPIRATION),
+    lunarVitalitySourceHeading,
+    { stripHeading: true }
+  );
+}
+
+function getVibranceOfTheFullMoonDescription(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): SpellDescriptionEntry[] {
+  return extractFeatureDescriptionSection(
+    getMoonFeatureDescriptionStrings(character, CLASS_FEATURE.EVENTIDES_SPLENDOR),
+    vibranceOfTheFullMoonSourceHeading,
+    { stripHeading: true }
+  );
+}
+
+function getMoonBardicInspirationBaseUsesTotal(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "classFeatureState" | "feats" | "level">>
+): number {
+  if (character.className !== "Bard" || !character.abilities) {
+    return 0;
+  }
+
+  return Math.max(
+    1,
+    getAbilityModifierForCharacter(
+      {
+        abilities: character.abilities,
+        classFeatureState: character.classFeatureState,
+        className: character.className,
+        feats: character.feats ?? [],
+        level: character.level ?? 1
+      },
+      "CHA"
+    )
+  );
+}
+
+function getMoonBardicInspirationUsesTotal(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "classFeatureState" | "feats" | "level">>
+): number {
+  const baseTotal = getMoonBardicInspirationBaseUsesTotal(character);
+  const bardState = character.classFeatureState?.bard;
+
+  return Math.max(baseTotal, bardState?.bardicInspirationTemporaryTotal ?? 0);
+}
+
+function getMoonBardicInspirationUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "classFeatureState" | "feats" | "level">>
+): number {
+  const totalUses = getMoonBardicInspirationUsesTotal(character);
+
+  return Math.max(
+    0,
+    totalUses - (character.classFeatureState?.bard?.bardicInspirationUsesExpended ?? 0)
+  );
+}
+
 export function normalizeBardCollegeOfTheMoonPrimalLoreCantripId(
   value: unknown
 ): string | undefined {
@@ -116,10 +249,14 @@ export function normalizeBardCollegeOfTheMoonFeatureState(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): Pick<
   CharacterBardFeatureState,
-  "blessingOfMoonlightUsesExpended" | "primalLoreCantripId" | "primalLoreSkill"
+  | "blessingOfMoonlightUsesExpended"
+  | "lunarVitalityUsedThisTurn"
+  | "primalLoreCantripId"
+  | "primalLoreSkill"
 > {
   const blessingOfMoonlightUsesExpended = Number(value.blessingOfMoonlightUsesExpended);
   const hasBlessingOfMoonlight = hasBardCollegeOfTheMoonBlessingOfMoonlightFeature(character);
+  const hasMoonsInspiration = hasCollegeOfTheMoonMoonsInspiration(character);
   const hasPrimalLore = hasBardCollegeOfTheMoonPrimalLoreFeature(character);
 
   return {
@@ -129,6 +266,9 @@ export function normalizeBardCollegeOfTheMoonFeatureState(
         : hasBlessingOfMoonlight
           ? 0
           : undefined,
+    lunarVitalityUsedThisTurn: hasMoonsInspiration
+      ? value.lunarVitalityUsedThisTurn === true
+      : undefined,
     primalLoreCantripId: hasPrimalLore
       ? normalizeBardCollegeOfTheMoonPrimalLoreCantripId(value.primalLoreCantripId)
       : undefined,
@@ -350,6 +490,61 @@ export function restoreBardCollegeOfTheMoonBlessingOfMoonlightOnLongRest(
   };
 }
 
+export function shouldAdvanceBardCollegeOfTheMoonFeaturesForNewRound(
+  character: BardMoonCharacter
+): boolean {
+  return Boolean(
+    hasCollegeOfTheMoonMoonsInspiration(character) &&
+      character.classFeatureState?.bard?.lunarVitalityUsedThisTurn
+  );
+}
+
+export function clearBardCollegeOfTheMoonTurnState(
+  character: Character,
+  bardState: CharacterBardFeatureState
+): Character {
+  if (!bardState.lunarVitalityUsedThisTurn) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        lunarVitalityUsedThisTurn: false
+      }
+    }
+  };
+}
+
+export function activateBardCollegeOfTheMoonLunarVitality(
+  character: Character,
+  bardState: CharacterBardFeatureState
+): Character {
+  if (!hasCollegeOfTheMoonMoonsInspiration(character) || bardState.lunarVitalityUsedThisTurn) {
+    return character;
+  }
+
+  if (getMoonBardicInspirationUsesRemaining(character) <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        bardicInspirationUsesExpended:
+          Math.max(0, bardState.bardicInspirationUsesExpended ?? 0) + 1,
+        lunarVitalityUsedThisTurn: true
+      }
+    }
+  };
+}
+
 export function applyBardCollegeOfTheMoonInspiredEclipseStatus(character: Character): Character {
   if (!hasCollegeOfTheMoonMoonsInspiration(character)) {
     return character;
@@ -421,34 +616,97 @@ function appendBlessingOfMoonlightDescription(spell: SpellEntry): SpellEntry {
     return spell;
   }
 
-  const hasBlessingDescription = spell.description.some(
-    (entry) =>
-      typeof entry === "string" &&
-      blessingOfMoonlightDescription.some((descriptionEntry: string) => descriptionEntry === entry)
+  return appendSourcedDescriptionAddition(
+    spell,
+    "Blessing of Moonlight",
+    blessingOfMoonlightDescription
   );
-
-  if (hasBlessingDescription) {
-    return spell;
-  }
-
-  return {
-    ...spell,
-    description: [...spell.description, ...blessingOfMoonlightDescription]
-  };
 }
 
-export const getBardCollegeOfTheMoonDerivedFeatureState: SubclassRuntimeResolver = (character) => ({
-  transformFeatureAction: hasCollegeOfTheMoonMoonsInspiration(character)
-    ? (action) =>
-        appendInspiredEclipseDescription(action, hasCollegeOfTheMoonEventidesSplendor(character))
-    : undefined,
-  alwaysPreparedSpellIds:
-    character.className === "Bard" &&
-    character.subclassId === collegeOfTheMoonSubclassId &&
-    (character.level ?? 0) >= 6
-      ? [moonbeamSpellId]
-      : [],
-  transformSpellEntry: hasCollegeOfTheMoonBlessingOfMoonlight(character)
-    ? appendBlessingOfMoonlightDescription
-    : undefined
-});
+function getBardCollegeOfTheMoonLunarVitalityAction(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureActionCard | null {
+  if (!hasCollegeOfTheMoonMoonsInspiration(character)) {
+    return null;
+  }
+
+  const usesRemaining = getMoonBardicInspirationUsesRemaining(character);
+  const usesTotal = getMoonBardicInspirationUsesTotal(character);
+  const usedThisTurn = character.classFeatureState?.bard?.lunarVitalityUsedThisTurn === true;
+  const disabledReason = usedThisTurn
+    ? "Lunar Vitality is limited to once per turn."
+    : usesRemaining <= 0
+      ? "No Bardic Inspiration uses remaining."
+      : undefined;
+
+  let action: FeatureActionCard = {
+    key: lunarVitalityActionKey,
+    name: "Lunar Vitality",
+    sourceFeature: CLASS_FEATURE.MOONS_INSPIRATION,
+    summary: "Empower spell healing with lunar magic.",
+    detail: "Use when one of your spells restores Hit Points to a creature.",
+    breakdown: "Once per turn on heal",
+    economyType: ECONOMY_TYPE.FREE,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    usesRemaining,
+    usesTotal,
+    hideUsesTrackerOnCard: true,
+    usesInlineLabel: "Use 1",
+    usesInlineIcon: "music",
+    description: getLunarVitalityDescription(character),
+    drawer: {
+      kind: "confirm",
+      eyebrow: "College of the Moon",
+      confirmLabel: "Use Lunar Vitality",
+      resources: [
+        {
+          kind: "text",
+          label: "Use",
+          value: "1",
+          icon: "music"
+        }
+      ]
+    },
+    execute: {
+      kind: "activate",
+      label: "Use Lunar Vitality"
+    },
+    disabled: Boolean(disabledReason),
+    disabledReason
+  };
+
+  if (hasCollegeOfTheMoonEventidesSplendor(character)) {
+    const vibranceDescription = getVibranceOfTheFullMoonDescription(character);
+
+    if (vibranceDescription.length > 0) {
+      action = appendSourcedDescriptionAddition(
+        action,
+        eventidesSplendorVibranceSourceLabel,
+        vibranceDescription
+      );
+    }
+  }
+
+  return action;
+}
+
+export const getBardCollegeOfTheMoonDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+  const lunarVitalityAction = getBardCollegeOfTheMoonLunarVitalityAction(character);
+
+  return {
+    featureActions: lunarVitalityAction ? [lunarVitalityAction] : [],
+    transformFeatureAction: hasCollegeOfTheMoonMoonsInspiration(character)
+      ? (action) =>
+          appendInspiredEclipseDescription(action, hasCollegeOfTheMoonEventidesSplendor(character))
+      : undefined,
+    alwaysPreparedSpellIds:
+      character.className === "Bard" &&
+      character.subclassId === collegeOfTheMoonSubclassId &&
+      (character.level ?? 0) >= 6
+        ? [moonbeamSpellId]
+        : [],
+    transformSpellEntry: hasCollegeOfTheMoonBlessingOfMoonlight(character)
+      ? appendBlessingOfMoonlightDescription
+      : undefined
+  };
+};

@@ -23,6 +23,7 @@ import type {
   SavingThrowProficiencyEntry,
   SkillName,
   SkillProficiencyEntry,
+  ToolProficiencyEntry,
   WEAPON_PROFICIENCY,
   WeaponProficiencyEntry
 } from "../../../types";
@@ -280,6 +281,7 @@ export type FeatureUnarmedStrikeConfig = {
   damageAbility?: AbilityKey;
   damageFormula?: string;
   damageTypeLabel?: string;
+  damageBreakdownLabel?: string;
 };
 
 export type MagicTemporaryHitPointsFeature = {
@@ -319,10 +321,13 @@ export type ArmorClassFeatureContext = {
 export type FeatureArmorClassMode = {
   key: string;
   label: string;
+  unlockedAtLevel?: number;
   baseValue: number;
   abilityModifiers: AbilityKey[];
   abilityModifierCaps?: Partial<Record<AbilityKey, number | null>>;
   shieldAllowed: boolean;
+  isApplicable: boolean;
+  unavailableReason?: string;
   detail?: string;
 };
 
@@ -357,6 +362,7 @@ export type FeatureAbilityScoreBonus = {
 export type FeatureSkillProficiencyEntry = SkillProficiencyEntry;
 export type FeatureSavingThrowProficiencyEntry = SavingThrowProficiencyEntry;
 export type FeatureWeaponProficiencyEntry = WeaponProficiencyEntry;
+export type FeatureToolProficiencyEntry = ToolProficiencyEntry;
 
 export type FeatureArmorProficiencyEntry = ArmorProficiencyEntry;
 export type FeatureLanguageProficiencyEntry = LanguageProficiencyEntry;
@@ -405,6 +411,7 @@ export type ClassFeatureDerivedState = {
   skillProficiencyEntries?: FeatureSkillProficiencyEntry[];
   savingThrowProficiencyEntries?: FeatureSavingThrowProficiencyEntry[];
   armorProficiencyEntries?: FeatureArmorProficiencyEntry[];
+  toolProficiencyEntries?: FeatureToolProficiencyEntry[];
   languageProficiencyEntries?: FeatureLanguageProficiencyEntry[];
   alwaysPreparedSpellIds?: string[];
   alwaysSpellbookSpellIds?: string[];
@@ -420,6 +427,7 @@ export type ClassFeatureDerivedState = {
   reactionEntries?: ReactionEntry[];
   transformSpellEntry?: (spell: SpellEntry) => SpellEntry;
   transformFeatureAction?: (action: FeatureActionCard) => FeatureActionCard;
+  transformWeaponAction?: (action: WeaponAction) => WeaponAction;
   getSpellDamageFormulaOverride?: (spell: Pick<SpellEntry, "id">) => string | null;
   bardicInspirationDie?: DICE | null;
   monkMartialArtsDie?: DICE | null;
@@ -440,8 +448,9 @@ export type CollectedClassFeatureCharacter = Pick<Character, "className" | "leve
     | "abilities"
     | "subclassId"
     | "classFeatureState"
-    | "skillProficiencies"
-    | "savingThrowProficiencies"
+      | "skillProficiencies"
+      | "toolProficiencies"
+      | "savingThrowProficiencies"
     | "spellSlotsExpended"
     | "statusEntries"
     | "roundTracker"

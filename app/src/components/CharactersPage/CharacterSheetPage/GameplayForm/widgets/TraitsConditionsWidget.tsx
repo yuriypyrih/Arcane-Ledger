@@ -11,6 +11,7 @@ import {
 } from "../../../../../codex/entries";
 import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
 import {
+  activateBardCollegeOfDanceInspiringMovementForCharacter,
   activateBarbarianBerserkerRetaliationForCharacter,
   activateRangerHunterSuperiorHuntersDefenseForCharacter,
   applySpellCastFeatureEffectsForCharacter,
@@ -29,6 +30,7 @@ import {
   expendBardicInspirationUseForCharacter,
   expendSorceryPointForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
+  getBardicInspirationUsesTotalForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
   getBeguilingMagicUsesTotalForCharacter,
   getDerivedFeatureStatusEntriesForCharacter,
@@ -163,6 +165,7 @@ import {
   rogueArcaneTricksterSpellThiefReactionId
 } from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 import { wizardBladesingerSongOfDefenseReactionId } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
+import { bardCollegeOfDanceInspiringMovementReactionId } from "../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfDance";
 
 type TraitsConditionsWidgetProps = {
   character: Character;
@@ -267,21 +270,19 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   );
   const beguilingMagicUsesTotal = useMemo(
     () => getBeguilingMagicUsesTotalForCharacter(character),
-    [character.className, character.level, character.subclassId]
+    [character]
   );
   const beguilingMagicUsesRemaining = useMemo(
     () => getBeguilingMagicUsesRemainingForCharacter(character),
-    [character.classFeatureState, character.className, character.level, character.subclassId]
+    [character]
   );
   const bardicInspirationUsesRemaining = useMemo(
     () => getBardicInspirationUsesRemainingForCharacter(character),
-    [
-      character.abilities,
-      character.classFeatureState,
-      character.className,
-      character.feats,
-      character.level
-    ]
+    [character]
+  );
+  const bardicInspirationUsesTotal = useMemo(
+    () => getBardicInspirationUsesTotalForCharacter(character),
+    [character]
   );
   const warlockStepsOfTheFeyUsesTotal = getWarlockStepsOfTheFeyUsesTotalForCharacter(character);
   const warlockStepsOfTheFeyUsesRemaining =
@@ -591,6 +592,10 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       ? bardicInspirationUsesRemaining <= 0
         ? "No Bardic Inspiration uses remaining."
         : null
+      : selectedReactionEntry?.id === bardCollegeOfDanceInspiringMovementReactionId
+        ? bardicInspirationUsesRemaining <= 0
+          ? "No Bardic Inspiration uses remaining."
+          : null
       : selectedReactionEntry?.id === "reaction-banneret-shared-resilience"
         ? getFighterIndomitableUsesRemainingForCharacter(character) <= 0
           ? "No Indomitable uses remaining."
@@ -649,7 +654,9 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
                             : null
                           : null;
   const selectedReactionResourceSummary =
-    selectedReactionEntry?.id === paladinGloriousDefenseReactionEntryId
+    selectedReactionEntry?.id === bardCollegeOfDanceInspiringMovementReactionId
+      ? `${bardicInspirationUsesRemaining}/${bardicInspirationUsesTotal} Bardic Inspiration uses | Cost: 1`
+      : selectedReactionEntry?.id === paladinGloriousDefenseReactionEntryId
       ? `${gloriousDefenseUsesRemaining}/${gloriousDefenseUsesTotal} charges | Long Rest`
       : selectedReactionEntry?.id === paladinElementalRebukeReactionEntryId
         ? `${elementalRebukeUsesRemaining}/${elementalRebukeUsesTotal} charges | Long Rest`
@@ -1048,6 +1055,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
 
       if (selectedReactionEntry.id === "reaction-cutting-words") {
         nextCharacter = expendBardicInspirationUseForCharacter(currentCharacter);
+      } else if (selectedReactionEntry.id === bardCollegeOfDanceInspiringMovementReactionId) {
+        nextCharacter = activateBardCollegeOfDanceInspiringMovementForCharacter(currentCharacter);
       } else if (selectedReactionEntry.id === "reaction-banneret-shared-resilience") {
         nextCharacter = consumeFighterIndomitableUseForCharacter(currentCharacter);
       } else if (selectedReactionEntry.id === "reaction-psi-warrior-protective-field") {
@@ -1136,6 +1145,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
 
       if (
         (selectedReactionEntry.id === "reaction-cutting-words" ||
+          selectedReactionEntry.id === bardCollegeOfDanceInspiringMovementReactionId ||
           selectedReactionEntry.id === "reaction-banneret-shared-resilience" ||
           selectedReactionEntry.id === "reaction-psi-warrior-protective-field" ||
           selectedReactionEntry.id === sorcererBendLuckReactionEntryId ||
@@ -1319,6 +1329,11 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         <ReactionEntryDrawer
           reaction={selectedReactionEntry}
           actionWarning={selectedReactionActionWarning}
+          headerBadges={
+            selectedReactionEntry.id === bardCollegeOfDanceInspiringMovementReactionId
+              ? ["Use 1 Bardic Inspiration"]
+              : []
+          }
           resourceSummary={selectedReactionResourceSummary}
           customContent={
             selectedReactionEntry.id === wizardBladesingerSongOfDefenseReactionId ? (

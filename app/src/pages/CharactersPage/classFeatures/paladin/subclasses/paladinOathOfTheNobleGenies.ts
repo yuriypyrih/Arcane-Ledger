@@ -782,19 +782,21 @@ export const getPaladinOathOfTheNobleGeniesDerivedFeatureState: SubclassRuntimeR
         ),
         featureActions: getPaladinOathOfTheNobleGeniesFeatureActions(character),
         transformSpellEntry: appendElementalSmiteDescription,
-        getArmorClassModes: (context) =>
-          !context.hasWornBodyArmor
-            ? [
-                {
-                  key: "paladin-oath-of-the-noble-genies-genies-splendor",
-                  label: geniesSplendorSource,
-                  baseValue: 10,
-                  abilityModifiers: ["DEX", "CHA"],
-                  shieldAllowed: true,
-                  detail: "Oath of the Noble Genies feature"
-                }
-              ]
-            : [],
+        getArmorClassModes: (context) => [
+          {
+            key: "paladin-oath-of-the-noble-genies-genies-splendor",
+            label: geniesSplendorSource,
+            unlockedAtLevel: 3,
+            baseValue: 10,
+            abilityModifiers: ["DEX", "CHA"],
+            shieldAllowed: true,
+            isApplicable: !context.hasWornBodyArmor,
+            unavailableReason: context.hasWornBodyArmor
+              ? "Requires you to wear no body armor."
+              : undefined,
+            detail: "Oath of the Noble Genies feature"
+          }
+        ],
         skillProficiencyEntries: getPaladinOathOfTheNobleGeniesSkillProficiencyEntries(character),
         derivedStatusEntries: getPaladinOathOfTheNobleGeniesDerivedStatusEntries(character),
         reactionEntries: getPaladinOathOfTheNobleGeniesReactionEntries(character),

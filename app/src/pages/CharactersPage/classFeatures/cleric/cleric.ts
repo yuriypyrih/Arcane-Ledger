@@ -30,9 +30,18 @@ import {
   type SkillName,
   type WeaponProficiencyEntry
 } from "../../../../types";
-import { formatDivinityValue, formatDivinityValueFormula } from "../../../../utils/codex";
+import {
+  formatCodexLabel,
+  formatDivinityValue,
+  formatDivinityValueFormula
+} from "../../../../utils/codex";
 import { getFeatAbilityScoreBonusesForCharacter } from "../../feats";
+import type { WeaponAction } from "../../gameplay";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
+import {
+  appendSourcedDescriptionAddition,
+  createSourcedDescriptionEntries
+} from "../../actionModalDescriptions";
 import type {
   AbilityCheckIndicatorMap,
   CoreStatIndicatorMap,
@@ -43,11 +52,17 @@ import type {
   FeatureSkillBonus,
   FeatureSkillProficiencyEntry,
   FeatureSavingThrowProficiencyEntry,
+  FeatureToolProficiencyEntry,
   FeatureWeaponProficiencyEntry,
   SavingThrowIndicatorMap,
   SkillIndicatorMap,
   WeaponFeatureContext
 } from "../types";
+import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
+import {
+  getClericBlessedStrikesSpellEntry,
+  getClericBlessedStrikesWeaponAction
+} from "./clericBlessedStrikesDescriptions";
 import {
   expendClericChannelDivinityUse,
   getClericChannelDivinityUsesRemaining,
@@ -64,8 +79,9 @@ import * as knowledgeDomainSubclass from "./subclasses/clericKnowledgeDomain";
 import * as lifeDomainSubclass from "./subclasses/clericLifeDomain";
 
 const divineOrderProtectorSource = "Divine Order";
-const blessedStrikesSource = "Blessed Strikes";
-const channelDivinityActionKey = "cleric-channel-divinity";
+const divineStrikeSource = "Divine Strike";
+const discipleOfLifeSource = "Disciple of Life";
+export const channelDivinityActionKey = "cleric-channel-divinity";
 export const divineInterventionActionKey = "cleric-divine-intervention";
 export const divineForeknowledgeActionKey = knowledgeDomainSubclass.divineForeknowledgeActionKey;
 export const preserveLifeActionKey = lifeDomainSubclass.preserveLifeActionKey;
@@ -180,33 +196,55 @@ export function getClericResolvedDivinityDisplay(
 ): {
   damage: DivinityValue | null;
   healing: DivinityValue | null;
+  valueCell: {
+    label: string;
+    content: string;
+  } | null;
   description: SpellDescriptionEntry[];
+  descriptionAdditions: SpellDescriptionEntry[][];
 } {
   const baseDamage = getResolvedDivinityValue(divinity, "damage", character.level);
   const baseHealing = getResolvedDivinityValue(divinity, "healing", character.level);
+  const wisdomModifier = getClericWisdomModifier(character);
+  const divineSparkValueCell =
+    divinity.id === "divinity-divine-spark" && baseDamage && baseHealing
+      ? {
+          label: "Damage/Heal",
+          content: `${formatDivinityValueFormula(baseDamage)} ${formatAbilityContribution(
+            wisdomModifier,
+            "WIS"
+          )} ${
+            baseDamage.damageTypes?.map((damageType) => formatCodexLabel(damageType)).join("/") ??
+            ""
+          } or Heal`
+        }
+      : null;
 
   if (divinity.id !== "divinity-turn-undead" || !hasClericSearUndead(character)) {
     return {
       damage: baseDamage,
       healing: baseHealing,
-      description: divinity.description
+      valueCell: divineSparkValueCell,
+      description: divinity.description,
+      descriptionAdditions: []
     };
   }
 
-  const wisdomModifier = getClericWisdomModifier(character);
   const searUndeadDamage: DivinityValue = {
     amounts: Array.from({ length: Math.max(1, wisdomModifier) }, () => DICE.D8),
     damageTypes: [DAMAGE_TYPE.RADIANT]
   };
+  const searUndeadDescription = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.SEAR_UNDEAD);
 
   return {
     damage: searUndeadDamage,
     healing: null,
-    description: [
-      ...divinity.description,
-      "Whenever you use Turn Undead, you can roll a number of d8s equal to your Wisdom modifier, minimum of 1d8, and add the rolls together.",
-      "Each Undead that fails its saving throw against that use of Turn Undead takes Radiant damage equal to the roll's total. This damage doesn't end the turn effect."
-    ]
+    valueCell: null,
+    description: divinity.description,
+    descriptionAdditions:
+      searUndeadDescription.length > 0
+        ? [createSourcedDescriptionEntries("Sear Undead", searUndeadDescription)]
+        : []
   };
 }
 
@@ -240,10 +278,8 @@ export function getClericDivineOrderChoice(
     return null;
   }
 
-  return (
-    normalizeClericFeatureState(character.classFeatureState?.cleric, character).divineOrderChoice ??
-    "protector"
-  );
+  return normalizeClericFeatureState(character.classFeatureState?.cleric, character)
+    .divineOrderChoice ?? null;
 }
 
 export function setClericDivineOrderChoice(
@@ -365,6 +401,75 @@ export function getClericCantripDamageBonus(
   return getClericWisdomModifier(character);
 }
 
+export function getClericSpellEntry(
+  character: Pick<Character, "className" | "level" | "classFeatureState">,
+  spell: SpellEntry
+): SpellEntry {
+  return getClericBlessedStrikesSpellEntry(
+    character,
+    getClericBlessedStrikesChoice(character),
+    spell
+  );
+}
+
+export function getClericDiscipleOfLifeSpellEntry(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  spell: SpellEntry,
+  isPrepared: boolean
+): SpellEntry {
+  if (
+    !isPrepared ||
+    spell.isHealingSpell !== true ||
+    !lifeDomainSubclass.hasClericLifeDomainFeature(character, 3)
+  ) {
+    return spell;
+  }
+
+  const descriptionEntries = getFeatureDescriptionForCharacter(
+    character,
+    CLASS_FEATURE.DISCIPLE_OF_LIFE
+  );
+
+  return descriptionEntries.length > 0
+    ? appendSourcedDescriptionAddition(spell, discipleOfLifeSource, descriptionEntries)
+    : spell;
+}
+
+export function canUseClericMindMagicForSpell(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  spell: Pick<SpellEntry, "magicSchool"> | null,
+  isPrepared: boolean
+): boolean {
+  return knowledgeDomainSubclass.canUseClericKnowledgeDomainMindMagicForSpell(
+    character,
+    spell,
+    isPrepared
+  );
+}
+
+export function getClericMindMagicSpellEntry(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  spell: SpellEntry,
+  isPrepared: boolean
+): SpellEntry {
+  return knowledgeDomainSubclass.getClericKnowledgeDomainMindMagicSpellEntry(
+    character,
+    spell,
+    isPrepared
+  );
+}
+
+export function getClericWeaponAction(
+  character: Pick<Character, "className" | "level" | "classFeatureState">,
+  action: WeaponAction
+): WeaponAction {
+  return getClericBlessedStrikesWeaponAction(
+    character,
+    getClericBlessedStrikesChoice(character),
+    action
+  );
+}
+
 export function getClericSkillBonuses(
   character: Pick<Character, "className" | "level" | "classFeatureState">,
   skill: SkillName
@@ -393,6 +498,13 @@ export function getKnowledgeDomainBlessingsSkillSelections(
   return knowledgeDomainSubclass.getKnowledgeDomainBlessingsSkillSelections(character);
 }
 
+export function getKnowledgeDomainBlessingsToolSelection(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "classFeatureState" | "subclassId">>
+) {
+  return knowledgeDomainSubclass.getKnowledgeDomainBlessingsToolSelection(character);
+}
+
 export function setKnowledgeDomainBlessingsSkillSelections(
   character: Character,
   selections: SkillName[]
@@ -400,11 +512,25 @@ export function setKnowledgeDomainBlessingsSkillSelections(
   return knowledgeDomainSubclass.setKnowledgeDomainBlessingsSkillSelections(character, selections);
 }
 
+export function setKnowledgeDomainBlessingsToolSelection(
+  character: Character,
+  selection: Parameters<typeof knowledgeDomainSubclass.setKnowledgeDomainBlessingsToolSelection>[1]
+): Character {
+  return knowledgeDomainSubclass.setKnowledgeDomainBlessingsToolSelection(character, selection);
+}
+
 export function getKnowledgeDomainSkillProficiencyEntries(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "classFeatureState" | "subclassId">>
 ): FeatureSkillProficiencyEntry[] {
   return knowledgeDomainSubclass.getKnowledgeDomainSkillProficiencyEntries(character);
+}
+
+export function getKnowledgeDomainToolProficiencyEntries(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "classFeatureState" | "subclassId">>
+): FeatureToolProficiencyEntry[] {
+  return knowledgeDomainSubclass.getKnowledgeDomainToolProficiencyEntries(character);
 }
 
 export function isKnowledgeDomainUnfetteredMindLockedToInt(
@@ -740,15 +866,15 @@ export function getClericWeaponDamageBonuses(
     return [];
   }
 
-  const blessedStrikeFormula = hasClericFeature(character, CLASS_FEATURE.IMPROVED_BLESSED_STRIKES)
+  const divineStrikeFormula = hasClericFeature(character, CLASS_FEATURE.IMPROVED_BLESSED_STRIKES)
     ? "2d8"
     : "1d8";
 
   return [
     {
-      label: blessedStrikesSource,
-      formula: blessedStrikeFormula,
-      displayLabel: `${blessedStrikeFormula} Necrotic/Radiant`
+      label: divineStrikeSource,
+      formula: divineStrikeFormula,
+      displayLabel: `${divineStrikeFormula} Necrotic/Radiant`
     }
   ];
 }
@@ -777,11 +903,8 @@ export function getClericFeatureActionOptions(
   }
 
   const divineSparkDiceLabel = formatDivinityValueFormula(divineSparkDamage);
-  const divineSparkDamageLabel = formatDivinityValue(divineSparkDamage);
-  const divineSparkHealingLabel = formatDivinityValue(divineSparkHealing);
   const wisdomContribution = formatAbilityContribution(wisdomModifier, "WIS");
-  const damageFormulaDisplay = `${divineSparkDamageLabel} ${wisdomModifier >= 0 ? "+" : "-"} ${Math.abs(wisdomModifier)} WIS`;
-  const healingFormulaDisplay = `${divineSparkHealingLabel} ${wisdomModifier >= 0 ? "+" : "-"} ${Math.abs(wisdomModifier)} WIS`;
+  const divineSparkCombinedDisplay = `${divineSparkDiceLabel} ${wisdomContribution} Necrotic/Radiant or Heal`;
   const searUndeadDiceCount = Math.max(1, wisdomModifier);
   const searUndeadValue = {
     amounts: Array.from({ length: searUndeadDiceCount }, () => DICE.D8),
@@ -795,35 +918,26 @@ export function getClericFeatureActionOptions(
 
   return [
     {
-      key: "divine-spark-heal",
-      name: `${divineSparkEntry.name} (Heal)`,
-      summary: "Healing",
+      key: "divine-spark",
+      name: divineSparkEntry.name,
+      summary: "Damage or healing",
       detail:
         getDivinityDescriptionLine(divineSparkEntry, 1) ||
         getDivinityDescriptionLine(divineSparkEntry, 0),
       economyType: ECONOMY_TYPE.ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
-      resultLabel: "Heal",
-      breakdown: `${wisdomContribution} | Channel Divinity`,
-      rollFormula: `${divineSparkDiceLabel}${wisdomModifier >= 0 ? "+" : ""}${wisdomModifier}`,
-      rollFormulaDisplay: healingFormulaDisplay,
-      rollDescription: `${wisdomContribution} | Channel Divinity | Healing`
-    },
-    {
-      key: "divine-spark-damage",
-      name: `${divineSparkEntry.name} (Damage)`,
-      summary: "Damage",
-      detail:
-        getDivinityDescriptionLine(divineSparkEntry, 2) ||
-        getDivinityDescriptionLine(divineSparkEntry, 0),
-      economyType: ECONOMY_TYPE.ACTION,
-      actionCategory: ACTION_CATEGORY.MAGIC,
-      resultLabel: "Damage",
-      rangeResultLabel: "Necrotic/Radiant Damage",
+      resultLabel: "Damage/Heal",
       breakdown: `${wisdomContribution} | CON save DC ${spellSaveDc} | Half on success`,
       rollFormula: `${divineSparkDiceLabel}${wisdomModifier >= 0 ? "+" : ""}${wisdomModifier}`,
-      rollFormulaDisplay: damageFormulaDisplay,
-      rollDescription: `${wisdomContribution} | Constitution save DC ${spellSaveDc} | Necrotic/Radiant`
+      rollFormulaDisplay: divineSparkCombinedDisplay,
+      rollDescription: `${wisdomContribution} | Constitution save DC ${spellSaveDc} | Necrotic/Radiant or Healing`,
+      description: divineSparkEntry.description,
+      facts: [
+        {
+          label: "Damage/Heal",
+          value: divineSparkCombinedDisplay
+        }
+      ]
     },
     {
       key: "turn-undead",
@@ -854,7 +968,7 @@ export function activateClericFeatureActionOption(
     return character;
   }
 
-  if (!["divine-spark-heal", "divine-spark-damage", "turn-undead"].includes(optionKey)) {
+  if (!["divine-spark", "turn-undead"].includes(optionKey)) {
     return character;
   }
 

@@ -25,6 +25,7 @@ import {
   getFeatureLanguageProficiencyEntriesForCharacter,
   getFeatureSavingThrowProficiencyEntriesForCharacter,
   getFeatureSkillProficiencyEntriesForCharacter,
+  getFeatureToolProficiencyEntriesForCharacter,
   getFeatureWeaponProficiencyEntriesForCharacter
 } from "../classFeatures";
 import {
@@ -373,7 +374,9 @@ function getFeatureProficiencyCollectionsForCharacter(
     armorProficiencies: mergeProficiencyEntries(
       getFeatureArmorProficiencyEntriesForCharacter(featureCharacter)
     ),
-    toolProficiencies: [],
+    toolProficiencies: mergeProficiencyEntries(
+      getFeatureToolProficiencyEntriesForCharacter(featureCharacter)
+    ),
     languageProficiencies: mergeProficiencyEntries(
       getFeatureLanguageProficiencyEntriesForCharacter(featureCharacter)
     )

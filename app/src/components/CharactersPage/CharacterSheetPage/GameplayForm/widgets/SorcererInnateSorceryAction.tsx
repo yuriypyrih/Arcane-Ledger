@@ -1,6 +1,6 @@
 import clsx from "clsx";
-import { Sparkles } from "lucide-react";
 import ActionShape, { type ActionShapeType } from "../../../../ActionShape";
+import FeatureOptInToggle from "../../FeatureOptInToggle/FeatureOptInToggle";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import styles from "./SorcererInnateSorceryAction.module.css";
 
@@ -38,43 +38,28 @@ export function SorcererInnateSorceryActionFooter({
   return (
     <div className={styles.footerStack}>
       {crownOfSpellfireUnlocked ? (
-        <label
-          className={clsx(
-            styles.toggle,
-            crownOfSpellfireUsesRemaining <= 0 && styles.toggleDepleted
-          )}
+        <FeatureOptInToggle
+          label="Crown of Spellfire"
+          checked={isCrownOfSpellfireSelected}
+          onCheckedChange={onCrownOfSpellfireSelectedChange}
           title={crownOfSpellfireDisabledReason ?? undefined}
-        >
-          <span className={styles.toggleLabel}>
-            <input
-              type="checkbox"
-              checked={isCrownOfSpellfireSelected}
-              onChange={(event) => onCrownOfSpellfireSelectedChange(event.target.checked)}
-            />
-            <span>Crown of Spellfire</span>
-            {crownOfSpellfireUsesRemaining > 0 ? (
-              <span className={styles.tracker}>
-                <span className={styles.trackerLabel}>Charge</span>
-                <span className={sheetStyles.shortRestDots}>
-                  {Array.from({ length: crownOfSpellfireUsesTotal }, (_, index) => (
-                    <span
-                      key={`crown-of-spellfire-charge-${index}`}
-                      className={clsx(
-                        sheetStyles.shortRestDot,
-                        index < crownOfSpellfireUsesRemaining && sheetStyles.shortRestDotActive
-                      )}
-                    />
-                  ))}
-                </span>
-              </span>
-            ) : crownOfSpellfireFallbackSorceryPointCost > 0 ? (
-              <span className={styles.costLabel}>
-                <span>{`| Use ${crownOfSpellfireFallbackSorceryPointCost}`}</span>
-                <Sparkles size={14} strokeWidth={2.1} />
-              </span>
-            ) : null}
-          </span>
-        </label>
+          metaItems={[
+            {
+              kind: "tracker",
+              current: crownOfSpellfireUsesRemaining,
+              total: crownOfSpellfireUsesTotal
+            },
+            ...(crownOfSpellfireUsesRemaining <= 0 && crownOfSpellfireFallbackSorceryPointCost > 0
+              ? [
+                  {
+                    kind: "cost" as const,
+                    label: `Use ${crownOfSpellfireFallbackSorceryPointCost}`,
+                    icon: "sparkles" as const
+                  }
+                ]
+              : [])
+          ]}
+        />
       ) : null}
       <button
         type="button"

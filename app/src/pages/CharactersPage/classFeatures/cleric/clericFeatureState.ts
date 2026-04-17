@@ -68,9 +68,7 @@ export function normalizeClericBaseFeatureState(
       hasDivineOrder &&
       (record.divineOrderChoice === "protector" || record.divineOrderChoice === "thaumaturge")
         ? record.divineOrderChoice
-        : hasDivineOrder
-          ? "protector"
-          : undefined,
+        : undefined,
     blessedStrikesChoice:
       hasBlessedStrikes &&
       (record.blessedStrikesChoice === "blessed-strike" ||

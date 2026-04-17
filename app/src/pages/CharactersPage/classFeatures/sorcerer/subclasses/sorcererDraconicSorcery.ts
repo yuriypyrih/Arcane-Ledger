@@ -426,7 +426,7 @@ export function getSorcererDraconicResilienceArmorClassModes(
   character: DraconicSorceryCharacter,
   context: ArmorClassFeatureContext
 ): FeatureArmorClassMode[] {
-  if (!hasSorcererDraconicResilienceFeature(character) || context.hasWornBodyArmor) {
+  if (!hasSorcererDraconicResilienceFeature(character)) {
     return [];
   }
 
@@ -434,9 +434,14 @@ export function getSorcererDraconicResilienceArmorClassModes(
     {
       key: "sorcerer-draconic-resilience",
       label: "Draconic Resilience",
+      unlockedAtLevel: 3,
       baseValue: 10,
       abilityModifiers: ["DEX", "CHA"],
       shieldAllowed: true,
+      isApplicable: !context.hasWornBodyArmor,
+      unavailableReason: context.hasWornBodyArmor
+        ? "Requires you to wear no body armor."
+        : undefined,
       detail: "Draconic Sorcery feature"
     }
   ];

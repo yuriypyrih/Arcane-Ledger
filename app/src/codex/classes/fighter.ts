@@ -143,7 +143,7 @@ export const fighterFeatures: FighterFeatureClassObj[] = [
       [CLASS_FEATURE.EPIC_BOON]: {
         description: [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
-          "Boon of Combat Prowess is recommended."
+          "<feat:BOON_OF_COMBAT_PROWESS>Boon of Combat Prowess</feat> is recommended."
         ],
         trackingState: TRACKER.NOT_TRACKED
       }

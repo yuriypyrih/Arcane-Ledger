@@ -10,7 +10,10 @@ import {
   createEmptyCharacter
 } from "./constants";
 import { normalizeRoundTracker } from "./combat";
-import { normalizeCharacterArmorWearState } from "./armor";
+import {
+  normalizeArmorClassFormulaSelection,
+  normalizeCharacterArmorWearState
+} from "./armor";
 import {
   isBackgroundName,
   normalizeCharacterEquipmentSelections,
@@ -178,6 +181,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     toolProficiencies?: unknown;
     languageProficiencies?: unknown;
     coreStats?: unknown;
+    armorClassFormulaSelection?: unknown;
     currencies?: unknown;
     backgroundNotes?: unknown;
     savingThrowProficiencies?: unknown;
@@ -425,6 +429,18 @@ export function normalizeCharacter(value: unknown): Character | null {
     normalizedLevel
   );
   const normalizedCoreStats = normalizeCoreStats(record.coreStats);
+  const normalizedArmorClassFormulaSelection = normalizeArmorClassFormulaSelection(
+    record.armorClassFormulaSelection,
+    {
+      className: normalizedClassName,
+      level: normalizedLevel,
+      subclassId: normalizedSubclassId,
+      classFeatureState: normalizedClassFeatureState,
+      equipment: normalizedArmorWearState.equipment,
+      inventoryItems: normalizedArmorWearState.inventoryItems,
+      customEquipment: normalizedArmorWearState.customEquipment
+    }
+  );
   const normalizedCurrencies = normalizeCurrencies(record.currencies, defaults.currencies);
   const normalizedMaxHitPointsMode =
     record.maxHitPointsMode === "automatic" || record.maxHitPointsMode === "custom"
@@ -514,6 +530,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     heroicInspiration: normalizedHeroicInspiration,
     hitDiceRemaining: normalizedHitDiceRemaining,
     coreStats: normalizedCoreStats,
+    armorClassFormulaSelection: normalizedArmorClassFormulaSelection,
     classFeatureState: normalizedClassFeatureState,
     feats: normalizedFeats
   });

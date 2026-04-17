@@ -18,6 +18,7 @@ import {
   removeCharacterStatusEntry
 } from "../traits";
 import {
+  activateBardCollegeOfDanceInspiringMovement,
   applyMantleOfMajestyStatus,
   applyInspiredEclipseStatus,
   applySuperiorInspirationOnInitiative,
@@ -33,6 +34,7 @@ import {
   getBardLoreBonusProficiencySelections,
   getBardMagicalDiscoveriesSpellIds,
   getBardMagicalDiscoveriesSpellOptions,
+  getBardCollegeOfDanceUnarmedStrikeMultiCount,
   getBardPrimalLoreCantripId,
   getBardPrimalLoreCantripOptions,
   getBardPrimalLoreSkillOptions,
@@ -89,6 +91,7 @@ import {
   getClericChannelDivinityUsesTotal,
   getClericDivineOrderChoice,
   getKnowledgeDomainBlessingsSkillSelections,
+  getKnowledgeDomainBlessingsToolSelection,
   getKnowledgeDomainUnfetteredMindSavingThrowOptions,
   getKnowledgeDomainUnfetteredMindSavingThrowSelection,
   isKnowledgeDomainUnfetteredMindLockedToInt,
@@ -98,6 +101,7 @@ import {
   setClericBlessedStrikesChoice,
   setClericDivineOrderChoice,
   setKnowledgeDomainBlessingsSkillSelections,
+  setKnowledgeDomainBlessingsToolSelection,
   setKnowledgeDomainUnfetteredMindSavingThrowSelection
 } from "./cleric/cleric";
 import {
@@ -477,6 +481,7 @@ import type {
   FeatureSkillProficiencyEntry,
   FeatureSpeedBonus,
   FeatureSpellcastingState,
+  FeatureToolProficiencyEntry,
   FeatureWeaponProficiencyEntry,
   SavingThrowIndicatorMap,
   SpeedFeatureContext,
@@ -630,11 +635,15 @@ export function transformWeaponActionForCharacter(
   >,
   action: WeaponAction
 ): WeaponAction {
+  const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  const baseAction = baseFeatureState.transformWeaponAction
+    ? baseFeatureState.transformWeaponAction(action)
+    : action;
 
   return subclassDerivedState.transformWeaponAction
-    ? subclassDerivedState.transformWeaponAction(action)
-    : action;
+    ? subclassDerivedState.transformWeaponAction(baseAction)
+    : baseAction;
 }
 
 export function getFeatureActionOptionsForCharacter(
@@ -1086,6 +1095,18 @@ export function getFeatureArmorProficiencyEntriesForCharacter(
   ];
 }
 
+export function getFeatureToolProficiencyEntriesForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+): FeatureToolProficiencyEntry[] {
+  const baseFeatureState = collectActiveClassFeatureState(character);
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  return [
+    ...(baseFeatureState.toolProficiencyEntries ?? []),
+    ...(subclassDerivedState.toolProficiencyEntries ?? [])
+  ];
+}
+
 export function getFeatureLanguageProficiencyEntriesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
     Partial<Pick<Character, "subclassId">>
@@ -1132,15 +1153,34 @@ export function restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(
 
 export function hasBattleMagicBonusWeaponAttackForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "subclassId" | "statusEntries">>,
+    Partial<
+      Pick<
+        Character,
+        "subclassId" | "statusEntries" | "equipment" | "inventoryItems" | "customEquipment"
+      >
+    >,
   attackKind: "weapon" | "unarmed"
 ): boolean {
   return (
-    attackKind === "weapon" &&
-    (hasBardBattleMagicBonusAttackAvailable(character) ||
-      hasWizardSpellcastWeaponBonusActionAvailable(character) ||
-      hasFighterPsiWarriorTelekineticMasterBonusAttackAvailable(character))
+    (attackKind === "weapon" &&
+      (hasBardBattleMagicBonusAttackAvailable(character) ||
+        hasWizardSpellcastWeaponBonusActionAvailable(character) ||
+        hasFighterPsiWarriorTelekineticMasterBonusAttackAvailable(character))) ||
+    (attackKind === "unarmed" && getBardCollegeOfDanceUnarmedStrikeMultiCount(character) > 0)
   );
+}
+
+export function getBonusActionWeaponAttackMultiCountForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<
+      Pick<
+        Character,
+        "subclassId" | "statusEntries" | "equipment" | "inventoryItems" | "customEquipment"
+      >
+    >,
+  attackKind: "weapon" | "unarmed"
+): number {
+  return attackKind === "unarmed" ? getBardCollegeOfDanceUnarmedStrikeMultiCount(character) : 0;
 }
 
 export function getClericDivineOrderChoiceForCharacter(
@@ -1176,11 +1216,25 @@ export function getKnowledgeDomainBlessingsSkillSelectionsForCharacter(
   return getKnowledgeDomainBlessingsSkillSelections(character);
 }
 
+export function getKnowledgeDomainBlessingsToolSelectionForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
+) {
+  return getKnowledgeDomainBlessingsToolSelection(character);
+}
+
 export function setKnowledgeDomainBlessingsSkillSelectionsForCharacter(
   character: Character,
   selections: Parameters<typeof setKnowledgeDomainBlessingsSkillSelections>[1]
 ): Character {
   return setKnowledgeDomainBlessingsSkillSelections(character, selections);
+}
+
+export function setKnowledgeDomainBlessingsToolSelectionForCharacter(
+  character: Character,
+  selection: Parameters<typeof setKnowledgeDomainBlessingsToolSelection>[1]
+): Character {
+  return setKnowledgeDomainBlessingsToolSelection(character, selection);
 }
 
 export function getKnowledgeDomainUnfetteredMindSavingThrowSelectionForCharacter(
@@ -2494,6 +2548,12 @@ export function expendBardicInspirationUseForCharacter(character: Character): Ch
   return expendBardicInspirationUse(character);
 }
 
+export function activateBardCollegeOfDanceInspiringMovementForCharacter(
+  character: Character
+): Character {
+  return activateBardCollegeOfDanceInspiringMovement(character);
+}
+
 export function restoreBardicInspirationUseForCharacter(character: Character): Character {
   return restoreBardicInspirationUse(character);
 }
@@ -3287,7 +3347,7 @@ export function markFeatureWeaponBonusUseForCharacter(
     return consumeBarbarianFrenzyBonus(character);
   }
 
-  if (label === "Blessed Strikes") {
+  if (label === "Divine Strike" || label === "Blessed Strikes") {
     return markClericBlessedStrikeUsed(character);
   }
 

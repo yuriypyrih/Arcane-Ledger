@@ -1,4 +1,8 @@
-import { ACTION_TYPE, type SpellEntry } from "../../../../../codex/entries";
+import {
+  ACTION_TYPE,
+  CLASS_FEATURE,
+  type SpellEntry
+} from "../../../../../codex/entries";
 import type {
   ArmorProficiencyEntry,
   Character,
@@ -12,20 +16,38 @@ import {
   PROF_LEVEL,
   WEAPON_PROFICIENCY
 } from "../../../../../types";
+import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
+import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type {
+  FeatureActionCard,
   FeatureArmorProficiencyEntry,
   FeatureWeaponProficiencyEntry
 } from "../../types";
-import type { SubclassRuntimeResolver } from "../../subclassRuntime";
+import {
+  createDefaultFeatureActionDescription,
+  type SubclassRuntimeResolver
+} from "../../subclassRuntime";
 
 export const collegeOfValorSubclassId = "bard-college-of-valor";
 const bardValorMartialTrainingSourceLabel = "College of Valor: Martial Training";
+const bardicInspirationActionKey = "bard-bardic-inspiration";
+const combatInspirationSource = "Combat Inspiration";
 
 type BardValorCharacter = Pick<Character, "className"> &
   Partial<Pick<Character, "level" | "subclassId" | "classFeatureState" | "roundTracker">>;
 
 export function hasBardCollegeOfValorMartialTrainingFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Bard" &&
+    character.subclassId === collegeOfValorSubclassId &&
+    (character.level ?? 0) >= 3
+  );
+}
+
+export function hasBardCollegeOfValorCombatInspirationFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
@@ -351,4 +373,28 @@ export function shouldAdvanceBardCollegeOfValorFeaturesForNewRound(
   );
 }
 
-export const getBardCollegeOfValorDerivedFeatureState: SubclassRuntimeResolver = () => ({});
+function appendCombatInspirationDescription(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  action: FeatureActionCard
+): FeatureActionCard {
+  if (action.key !== bardicInspirationActionKey) {
+    return action;
+  }
+
+  return appendSourcedDescriptionAddition(
+    {
+      ...action,
+      description: action.description?.length
+        ? [...action.description]
+        : createDefaultFeatureActionDescription(action)
+    },
+    combatInspirationSource,
+    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.COMBAT_INSPIRATION)
+  );
+}
+
+export const getBardCollegeOfValorDerivedFeatureState: SubclassRuntimeResolver = (character) => ({
+  transformFeatureAction: hasBardCollegeOfValorCombatInspirationFeature(character)
+    ? (action) => appendCombatInspirationDescription(character, action)
+    : undefined
+});

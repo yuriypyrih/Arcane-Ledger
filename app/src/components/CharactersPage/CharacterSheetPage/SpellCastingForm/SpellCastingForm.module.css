@@ -295,6 +295,23 @@
   z-index: 48;
 }
 
+.divinityDrawerActionStack {
+  display: grid;
+  gap: 0.52rem;
+  min-width: 0;
+  width: 100%;
+}
+
+.divinityDrawerWarningBlock {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.divinityDrawerActionButton {
+  margin-left: 0;
+  width: 100%;
+}
+
 @media (max-width: 860px) {
   .spellSlotGrid {
     grid-template-columns: repeat(5, minmax(0, 1fr));

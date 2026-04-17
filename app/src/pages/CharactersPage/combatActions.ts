@@ -257,15 +257,17 @@ function createFeatureActionDrawer(
         : options.length > 0
           ? "options"
           : "confirm");
+  const hasExplicitActionDescription = Boolean(action.description && action.description.length > 0);
   const sourcedDescription =
-    !action.drawer?.description && action.sourceFeature
+    !action.drawer?.description && !hasExplicitActionDescription && action.sourceFeature
       ? getFeatureDescriptionForCharacter(character, action.sourceFeature)
       : [];
   const description =
     action.drawer?.description ??
+    action.description ??
     (sourcedDescription.length > 0
       ? sourcedDescription
-      : action.description ?? createDefaultDescription(action.summary, action.detail, action.breakdown));
+      : createDefaultDescription(action.summary, action.detail, action.breakdown));
   const descriptionAdditions = [
     ...(action.descriptionAdditions ?? []),
     ...(action.drawer?.descriptionAdditions ?? [])

@@ -15,9 +15,7 @@ import {
   ACTION_TYPE,
   CLASS_FEATURE,
   MAGIC_SCHOOL,
-  getDivinityEntryById,
   getSpellEntryById,
-  type DivinityEntry,
   type SpellEntry
 } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
@@ -90,7 +88,6 @@ import {
   setWarlockInvocationSelectionIdsForCharacter,
   syncWizardSignatureSpellsToSpellbookForCharacter,
   syncWizardSpellMasterySelectionsToSpellbookForCharacter,
-  type FeatureActionCard,
   type FeatureActionOptionCard
 } from "../../../../pages/CharactersPage/classFeatures";
 import {
@@ -99,7 +96,13 @@ import {
   getDruidCircleOfTheMoonSpellIdsForCharacter,
   getDruidCircleOfTheLandSpellIdsForCharacter
 } from "../../../../pages/CharactersPage/classFeatures/subclasses";
-import { getClericResolvedDivinityDisplay } from "../../../../pages/CharactersPage/classFeatures/cleric/cleric";
+import {
+  channelDivinityActionKey,
+  canUseClericMindMagicForSpell,
+  getClericDiscipleOfLifeSpellEntry,
+  getClericMindMagicSpellEntry,
+  getClericResolvedDivinityDisplay
+} from "../../../../pages/CharactersPage/classFeatures/cleric/cleric";
 import { paladinChannelDivinityActionKey } from "../../../../pages/CharactersPage/classFeatures/paladin/paladin";
 import { hasPaladinOathOfTheNobleGeniesElementalSmite } from "../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
 import {
@@ -145,11 +148,14 @@ import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/Cha
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import gameplayActionStyles from "../GameplayForm/widgets/GameplayActionDrawer.module.css";
 import styles from "./SpellCastingForm.module.css";
-import actionStyles from "./SpellActionDrawer.module.css";
 import {
   consumeRoundTrackerResourceForCharacter,
   prepareCharacterForRoundTrackerResourceConsumption
 } from "../GameplayForm/gameplayStateUtils";
+import {
+  createChannelDivinityOptionRows,
+  type ChannelDivinityOptionRow
+} from "../channelDivinityUtils";
 
 type SpellCastingFormProps = {
   character: Character;
@@ -170,11 +176,6 @@ const frozenHauntFallbackSpellSlotMinimumLevel = 4;
 const mistyStepSpellId = "spell-misty-step";
 const summonFeySpellId = "spell-summon-fey";
 const telekinesisSpellId = "spell-telekinesis";
-type DivinityOptionRow = {
-  action: FeatureActionCard;
-  option: FeatureActionOptionCard;
-  entry: DivinityEntry;
-};
 
 function SelectionCounter({ current, total }: { current: number; total: number }) {
   return (
@@ -182,22 +183,6 @@ function SelectionCounter({ current, total }: { current: number; total: number }
       className={clsx(current < total && styles.selectionCounterIncomplete)}
     >{`${current}/${total}`}</span>
   );
-}
-
-function getChannelDivinityEntryForOption(optionKey: string): DivinityEntry | null {
-  if (optionKey === "divine-spark-heal" || optionKey === "divine-spark-damage") {
-    return getDivinityEntryById("divinity-divine-spark");
-  }
-
-  if (optionKey === "turn-undead") {
-    return getDivinityEntryById("divinity-turn-undead");
-  }
-
-  if (optionKey === "paladin-divine-sense") {
-    return getDivinityEntryById("divinity-divine-sense");
-  }
-
-  return null;
 }
 
 function getDivinityDrawerValueLabel(option: FeatureActionOptionCard): string {
@@ -307,6 +292,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useState<SelectedSpellViewMode>("standard");
   const [selectedSpellSlotLevel, setSelectedSpellSlotLevel] = useState(1);
   const [useBeguilingMagicOnSelectedSpell, setUseBeguilingMagicOnSelectedSpell] = useState(false);
+  const [useMindMagicOnSelectedSpell, setUseMindMagicOnSelectedSpell] = useState(false);
   const [useBlessingOfMoonlightOnSelectedSpell, setUseBlessingOfMoonlightOnSelectedSpell] =
     useState(false);
   const [useElementalSmiteOnSelectedSpell, setUseElementalSmiteOnSelectedSpell] = useState(false);
@@ -344,6 +330,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setSelectedSpell(null);
     setSelectedSpellViewMode("standard");
     setUseBeguilingMagicOnSelectedSpell(false);
+    setUseMindMagicOnSelectedSpell(false);
     setUseBlessingOfMoonlightOnSelectedSpell(false);
     setUseElementalSmiteOnSelectedSpell(false);
     setUseFeyReinforcementsOnSelectedSpell(false);
@@ -486,7 +473,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     () =>
       featureActions.find(
         (action) =>
-          action.key === "cleric-channel-divinity" || action.key === paladinChannelDivinityActionKey
+          action.key === channelDivinityActionKey || action.key === paladinChannelDivinityActionKey
       ) ?? null,
     [featureActions]
   );
@@ -498,42 +485,34 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     [channelDivinityAction, character]
   );
   const channelDivinityRows = useMemo(
-    () =>
-      channelDivinityAction
-        ? channelDivinityOptions
-            .map((option) => {
-              const entry = getChannelDivinityEntryForOption(option.key);
-
-              if (!entry) {
-                return null;
-              }
-
-              return {
-                action: channelDivinityAction,
-                option,
-                entry
-              } satisfies DivinityOptionRow;
-            })
-            .filter((row): row is DivinityOptionRow => row !== null)
-        : [],
+    () => createChannelDivinityOptionRows(channelDivinityAction, channelDivinityOptions),
     [channelDivinityAction, channelDivinityOptions]
+  );
+  const spellcastingChannelDivinityRows = useMemo(
+    () =>
+      channelDivinityAction?.key === channelDivinityActionKey ? [] : channelDivinityRows,
+    [channelDivinityAction?.key, channelDivinityRows]
   );
   const selectedDivinityRow = useMemo(
     () =>
       selectedDivinityOptionKey
-        ? (channelDivinityRows.find((row) => row.option.key === selectedDivinityOptionKey) ?? null)
+        ? (spellcastingChannelDivinityRows.find(
+            (row) => row.option.key === selectedDivinityOptionKey
+          ) ?? null)
         : null,
-    [channelDivinityRows, selectedDivinityOptionKey]
+    [selectedDivinityOptionKey, spellcastingChannelDivinityRows]
   );
   const selectedDivinityDisplay = useMemo(
     () =>
       selectedDivinityRow
-        ? selectedDivinityRow.action.key === "cleric-channel-divinity"
+        ? selectedDivinityRow.action.key === channelDivinityActionKey
           ? getClericResolvedDivinityDisplay(character, selectedDivinityRow.entry)
           : {
               damage: null,
               healing: null,
-              description: selectedDivinityRow.entry.description
+              valueCell: null,
+              description: selectedDivinityRow.entry.description,
+              descriptionAdditions: []
             }
         : null,
     [character, selectedDivinityRow]
@@ -813,8 +792,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     );
   }, [cantripOptionsById, featGrantedCantripEntries, selectedCantripIds]);
   const selectedPreparedSpells = useMemo(
-    () =>
-      usesPreparedSpells
+    () => {
+      const preparedSpells = usesPreparedSpells
         ? [...alwaysPreparedSpellIds, ...selectedPreparedSpellIds]
             .map(
               (spellId) => spellbookSpellEntriesById.get(spellId) ?? knownSpellEntriesById.get(spellId)
@@ -822,10 +801,16 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             .filter((spell): spell is SpellEntry => spell !== undefined)
         : alwaysPreparedSpellEntries.length > 0
           ? alwaysPreparedSpellEntries
-          : spellPreparationOptions,
+          : spellPreparationOptions;
+
+      return usesPreparedSpells
+        ? preparedSpells.map((spell) => getClericDiscipleOfLifeSpellEntry(character, spell, true))
+        : preparedSpells;
+    },
     [
       alwaysPreparedSpellIds,
       alwaysPreparedSpellEntries,
+      character,
       knownSpellEntriesById,
       selectedPreparedSpellIds,
       spellbookSpellEntriesById,
@@ -1028,6 +1013,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellPreparedNormally = selectedSpell
     ? selectedPreparedSpellIds.includes(selectedSpell.id)
     : false;
+  const selectedSpellIsPrepared =
+    Boolean(selectedSpell) && (selectedSpellAlwaysPrepared || selectedSpellPreparedNormally);
   const selectedSpellIsSpellbookOnly =
     usesSpellbook &&
     Boolean(selectedSpell) &&
@@ -1059,6 +1046,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpell !== null &&
     getSpellLevel(selectedSpell) > 0 &&
     canUseSorcererSubclassPsionicSorceryForSpell(character, selectedSpell.id);
+  const selectedSpellSupportsMindMagic = canUseClericMindMagicForSpell(
+    character,
+    selectedSpell,
+    selectedSpellIsPrepared
+  );
   const selectedSpellSupportsStepsOfTheFey =
     selectedSpell?.id === mistyStepSpellId && warlockStepsOfTheFeyUsesTotal > 0;
   const selectedSpellSupportsMistyWanderer =
@@ -1087,24 +1079,26 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellPsionicSorceryCurrentCost = selectedSpellSupportsPsionicSorcery
     ? selectedSpellPsionicSorcerySlotLevel
     : 0;
+  const selectedSpellMindMagicDisabled =
+    selectedSpellSupportsMindMagic && channelDivinityUsesRemaining <= 0;
   const selectedSpellPsionicSorceryDisabled =
     selectedSpellSupportsPsionicSorcery &&
     sorceryPointsRemaining < selectedSpellPsionicSorceryMinimumCost;
   const selectedSpellFreeCastSlotLevel = selectedSpellUnderMantleOfMajesty
     ? 1
     : selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell
-      ? selectedSpellPsionicSorcerySlotLevel
-      : selectedSpellSupportsNaturalRecovery &&
-          useNaturalRecoveryOnSelectedSpell &&
-          druidNaturalRecoveryUsesRemaining > 0
-        ? Math.max(1, getSpellLevel(selectedSpell))
-        : selectedSpell && selectedSpellIsWizardSpellMastery
+        ? selectedSpellPsionicSorcerySlotLevel
+        : selectedSpellSupportsNaturalRecovery &&
+            useNaturalRecoveryOnSelectedSpell &&
+            druidNaturalRecoveryUsesRemaining > 0
           ? Math.max(1, getSpellLevel(selectedSpell))
-          : selectedSpell &&
-              selectedSpellIsWizardSignatureSpell &&
-              selectedSpellHasSignatureSpellFreeCastAvailable
-            ? 3
-            : null;
+          : selectedSpell && selectedSpellIsWizardSpellMastery
+            ? Math.max(1, getSpellLevel(selectedSpell))
+            : selectedSpell &&
+                selectedSpellIsWizardSignatureSpell &&
+                selectedSpellHasSignatureSpellFreeCastAvailable
+              ? 3
+              : null;
   const selectedSpellBlockedReason = selectedSpellIsSpellbookOnly
     ? "This spell is in your spellbook but not prepared."
     : null;
@@ -1113,6 +1107,17 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     beguilingMagicUsesTotal > 0 &&
     (selectedSpell.magicSchool === MAGIC_SCHOOL.ENCHANTMENT ||
       selectedSpell.magicSchool === MAGIC_SCHOOL.ILLUSION);
+  const selectedSpellDisplay = useMemo(
+    () =>
+      selectedSpell
+        ? getClericDiscipleOfLifeSpellEntry(
+            character,
+            getClericMindMagicSpellEntry(character, selectedSpell, selectedSpellIsPrepared),
+            selectedSpellIsPrepared
+          )
+        : null,
+    [character, selectedSpell, selectedSpellIsPrepared]
+  );
   const selectedSpellSupportsBlessingOfMoonlight =
     selectedSpell?.id === "spell-moonbeam" && blessingOfMoonlightUsesTotal > 0;
   const selectedSpellSupportsElementalSmite =
@@ -1150,9 +1155,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     }
 
     const minimumSlotLevel = Math.max(1, getSpellLevel(selectedSpell));
-    const slotLevel = clampNumber(selectedSpellSlotLevel, minimumSlotLevel, 9, minimumSlotLevel);
+    const slotLevel =
+      selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell
+        ? minimumSlotLevel
+        : clampNumber(selectedSpellSlotLevel, minimumSlotLevel, 9, minimumSlotLevel);
     const castsWithoutSpellSlot =
-      selectedSpellFreeCastSlotLevel !== null && slotLevel === selectedSpellFreeCastSlotLevel;
+      (selectedSpellFreeCastSlotLevel !== null && slotLevel === selectedSpellFreeCastSlotLevel) ||
+      (selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell);
 
     if (castsWithoutSpellSlot) {
       return spellSlotsExpended;
@@ -1162,7 +1171,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     nextSpellSlotsExpended[slotLevel - 1] = (nextSpellSlotsExpended[slotLevel - 1] ?? 0) + 1;
 
     return nextSpellSlotsExpended;
-  }, [selectedSpell, selectedSpellFreeCastSlotLevel, selectedSpellSlotLevel, spellSlotsExpended]);
+  }, [
+    selectedSpell,
+    selectedSpellFreeCastSlotLevel,
+    selectedSpellSlotLevel,
+    selectedSpellSupportsMindMagic,
+    spellSlotsExpended,
+    useMindMagicOnSelectedSpell
+  ]);
   const selectedSpellFrozenHauntOptionState = useMemo(
     () =>
       getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter(
@@ -1214,6 +1230,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
   useEffect(() => {
     setUseBeguilingMagicOnSelectedSpell(false);
+    setUseMindMagicOnSelectedSpell(false);
     setUseBlessingOfMoonlightOnSelectedSpell(false);
     setUseElementalSmiteOnSelectedSpell(false);
     setUseFeyReinforcementsOnSelectedSpell(false);
@@ -1227,6 +1244,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseFrozenHauntOnSelectedSpell(false);
     setSelectedFrozenHauntFallbackSlotLevel(frozenHauntFallbackSpellSlotMinimumLevel);
   }, [selectedSpell?.id]);
+
+  useEffect(() => {
+    if (!selectedSpellSupportsMindMagic || !selectedSpellMindMagicDisabled) {
+      return;
+    }
+
+    setUseMindMagicOnSelectedSpell(false);
+  }, [selectedSpellMindMagicDisabled, selectedSpellSupportsMindMagic]);
 
   useEffect(() => {
     if (selectedSpellSupportsPsionicSorcery && !selectedSpellPsionicSorceryDisabled) {
@@ -1325,7 +1350,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     );
   }
 
-  function getDivinityRowActionShapeState(row: DivinityOptionRow) {
+  function getDivinityRowActionShapeState(row: ChannelDivinityOptionRow) {
     return getActionShapeStateForRoundTrackerResource(
       getRoundTrackerResourceForEconomyType(row.option.economyType),
       roundTracker
@@ -1826,6 +1851,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   function castSelectedSpell(options?: {
     castAsRitual?: boolean;
     useBeguilingMagic?: boolean;
+    useMindMagic?: boolean;
     useBlessingOfMoonlight?: boolean;
     useElementalSmite?: boolean;
     useFeyReinforcements?: boolean;
@@ -1847,6 +1873,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     const roundTrackerResource = getRoundTrackerResourceForSpell(selectedSpell);
     const castAsRitual = options?.castAsRitual === true && selectedSpell.ritual === true;
     const useBeguilingMagic = options?.useBeguilingMagic === true;
+    const useMindMagic =
+      options?.useMindMagic === true &&
+      selectedSpellSupportsMindMagic &&
+      channelDivinityUsesRemaining > 0;
     const useBlessingOfMoonlight = options?.useBlessingOfMoonlight === true;
     const useElementalSmite =
       options?.useElementalSmite === true &&
@@ -1913,9 +1943,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           const nextCharacterWithBeguilingMagic = useBeguilingMagic
             ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacter)
             : nextCharacter;
-          const nextCharacterWithSpellOptions = useBlessingOfMoonlight
-            ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithBeguilingMagic)
+          const nextCharacterWithMindMagic = useMindMagic
+            ? expendChannelDivinityUseForCharacter(nextCharacterWithBeguilingMagic)
             : nextCharacterWithBeguilingMagic;
+          const nextCharacterWithSpellOptions = useBlessingOfMoonlight
+            ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithMindMagic)
+            : nextCharacterWithMindMagic;
           const nextCharacterWithElementalSmite = useElementalSmite
             ? expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions)
             : nextCharacterWithSpellOptions;
@@ -1948,9 +1981,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           const nextCharacter = useBeguilingMagic
             ? consumeBeguilingMagicOrBardicInspirationForCharacter(currentCharacter)
             : currentCharacter;
-          const nextCharacterWithSpellOptions = useBlessingOfMoonlight
-            ? consumeBlessingOfMoonlightUseForCharacter(nextCharacter)
+          const nextCharacterWithMindMagic = useMindMagic
+            ? expendChannelDivinityUseForCharacter(nextCharacter)
             : nextCharacter;
+          const nextCharacterWithSpellOptions = useBlessingOfMoonlight
+            ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithMindMagic)
+            : nextCharacterWithMindMagic;
           const nextCharacterWithElementalSmite = useElementalSmite
             ? expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions)
             : nextCharacterWithSpellOptions;
@@ -1990,9 +2026,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         const nextCharacterWithBeguilingMagic = useBeguilingMagic
           ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacter)
           : nextCharacter;
-        const nextCharacterWithSpellOptions = useBlessingOfMoonlight
-          ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithBeguilingMagic)
+        const nextCharacterWithMindMagic = useMindMagic
+          ? expendChannelDivinityUseForCharacter(nextCharacterWithBeguilingMagic)
           : nextCharacterWithBeguilingMagic;
+        const nextCharacterWithSpellOptions = useBlessingOfMoonlight
+          ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithMindMagic)
+          : nextCharacterWithMindMagic;
         const nextCharacterWithElementalSmite = useElementalSmite
           ? expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions)
           : nextCharacterWithSpellOptions;
@@ -2017,7 +2056,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
     const minimumSlotLevel = Math.max(1, spellLevel);
     const slotLevel =
-      useStepsOfTheFey || useMistyWanderer || useFeyReinforcements || usePhantasmalCreatures
+      useMindMagic ||
+      useStepsOfTheFey ||
+      useMistyWanderer ||
+      useFeyReinforcements ||
+      usePhantasmalCreatures
         ? minimumSlotLevel
         : clampNumber(selectedSpellSlotLevel, minimumSlotLevel, 9, minimumSlotLevel);
     const castsFreeViaSpellMastery =
@@ -2031,6 +2074,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       selectedSpellSupportsNaturalRecovery &&
       druidNaturalRecoveryUsesRemaining > 0 &&
       slotLevel === spellLevel;
+    const castsFreeViaMindMagic = useMindMagic;
     const castsFreeViaPsionicSorcery = usePsionicSorcery && sorceryPointsRemaining >= slotLevel;
     const castsFreeViaStepsOfTheFey = useStepsOfTheFey;
     const castsFreeViaMistyWanderer = useMistyWanderer;
@@ -2041,6 +2085,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       castsFreeViaSpellMastery ||
       castsFreeViaSignatureSpells ||
       castsFreeViaNaturalRecovery ||
+      castsFreeViaMindMagic ||
       castsFreeViaPsionicSorcery ||
       castsFreeViaStepsOfTheFey ||
       castsFreeViaMistyWanderer ||
@@ -2163,9 +2208,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       const nextCharacterWithBeguilingMagic = useBeguilingMagic
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithTelekineticMaster)
         : nextCharacterWithTelekineticMaster;
-      const nextCharacterWithSpellOptions = useBlessingOfMoonlight
-        ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithBeguilingMagic)
+      const nextCharacterWithMindMagic = castsFreeViaMindMagic
+        ? expendChannelDivinityUseForCharacter(nextCharacterWithBeguilingMagic)
         : nextCharacterWithBeguilingMagic;
+      const nextCharacterWithSpellOptions = useBlessingOfMoonlight
+        ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithMindMagic)
+        : nextCharacterWithMindMagic;
       const nextCharacterWithElementalSmite = useElementalSmite
         ? expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions)
         : nextCharacterWithSpellOptions;
@@ -2386,13 +2434,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           </div>
         ) : null}
 
-        {channelDivinityRows.length > 0 ? (
+        {spellcastingChannelDivinityRows.length > 0 ? (
           <div className={styles.spellGroup}>
             <p className={styles.spellGroupTitle}>
               {`Channel Divinity (uses ${channelDivinityUsesRemaining}/${channelDivinityUsesTotal})`}
             </p>
             <ul className={styles.spellList}>
-              {channelDivinityRows.map((row) => (
+              {spellcastingChannelDivinityRows.map((row) => (
                 <li key={row.option.key}>
                   {(() => {
                     const actionShapeState = getDivinityRowActionShapeState(row);
@@ -2417,7 +2465,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         ) : null}
 
         {preparedSpellGroups.length === 0 &&
-        channelDivinityRows.length === 0 &&
+        spellcastingChannelDivinityRows.length === 0 &&
         learnedInvocationOptions.length === 0 ? (
           <p className={shared.emptyText}>
             No spells, cantrips, or eldritch invocations have been selected yet.
@@ -2837,7 +2885,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       {selectedSpell ? (
         <CharacterSpellDrawer
           character={character}
-          spell={selectedSpell}
+          spell={selectedSpellDisplay ?? selectedSpell}
           alwaysPrepared={selectedSpellAlwaysPrepared}
           alwaysSpellbook={selectedSpellAlwaysSpellbook}
           mode={selectedSpellViewMode}
@@ -2850,6 +2898,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             castSelectedSpell({
               ...options,
               useBeguilingMagic: useBeguilingMagicOnSelectedSpell,
+              useMindMagic: useMindMagicOnSelectedSpell,
               useBlessingOfMoonlight: useBlessingOfMoonlightOnSelectedSpell,
               useElementalSmite: useElementalSmiteOnSelectedSpell,
               useFeyReinforcements: useFeyReinforcementsOnSelectedSpell,
@@ -2868,6 +2917,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           actionConsumesSpellSlot={
             !selectedSpellIsSpellbookOnly &&
             !selectedSpellCanOnlyBeCastAsRitual &&
+            !(selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell) &&
             !(selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell) &&
             !(selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell) &&
             !(selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell) &&
@@ -2881,7 +2931,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           }
           ritualCastingRequired={selectedSpellCanOnlyBeCastAsRitual}
           actionAvailabilityText={
-            selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell
+            selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell
+              ? "Mind Magic lets you cast this spell at its base level by using 1 Channel Divinity instead of a spell slot."
+              : selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell
                 ? `Psionic Sorcery lets you cast this spell at level ${selectedSpellPsionicSorceryCurrentCost} by spending ${selectedSpellPsionicSorceryCurrentCost} Sorcery Point${selectedSpellPsionicSorceryCurrentCost === 1 ? "" : "s"} instead of a spell slot.`
               : selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell
                   ? "Steps of the Fey lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
@@ -2915,6 +2967,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           actionShapeAvailable={selectedSpellActionShapeState.isSelected}
           actionShapeMultiCount={selectedSpellActionShapeState.multiCount}
           actionOptions={
+            selectedSpellSupportsMindMagic ||
             selectedSpellSupportsPsionicSorcery ||
             selectedSpellSupportsBeguilingMagic ||
             selectedSpellSupportsBlessingOfMoonlight ||
@@ -2927,6 +2980,29 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             selectedSpellSupportsNaturalRecovery ||
             selectedSpellSupportsTelekineticMaster
               ? [
+                  ...(selectedSpellSupportsMindMagic
+                    ? [
+                        {
+                          id: "mind-magic",
+                          label: "Mind Magic",
+                          checked: useMindMagicOnSelectedSpell,
+                          onCheckedChange: setUseMindMagicOnSelectedSpell,
+                          disabled: selectedSpellMindMagicDisabled,
+                          headerResource: {
+                            kind: "tracker" as const,
+                            label: "Channel Divinity",
+                            current: channelDivinityUsesRemaining,
+                            total: channelDivinityUsesTotal,
+                            icon: "pyromancy" as const,
+                            cost: 1
+                          },
+                          fallbackCost: {
+                            label: "Use 1",
+                            icon: "divinity" as const
+                          }
+                        }
+                      ]
+                    : []),
                   ...(selectedSpellSupportsPsionicSorcery
                     ? [
                         {
@@ -2936,9 +3012,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           onCheckedChange: setUsePsionicSorceryOnSelectedSpell,
                           disabled: selectedSpellPsionicSorceryDisabled,
                           fallbackCost: {
-                            label: `${selectedSpellPsionicSorceryCurrentCost} Sorcery Point${
-                              selectedSpellPsionicSorceryCurrentCost === 1 ? "" : "s"
-                            }`
+                            label: `Use ${selectedSpellPsionicSorceryCurrentCost}`,
+                            icon: "sparkles" as const
                           }
                         }
                       ]
@@ -3202,28 +3277,59 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                 />
               </div>
 
-              <SpellDescriptionContent
-                description={
-                  selectedDivinityDisplay?.description ?? selectedDivinityRow.entry.description
-                }
-                className={clsx(
-                  sheetStyles.spellDrawerDescriptionList,
-                  sheetStyles.spellDrawerDescriptionSection
-                )}
-                entryClassName={sheetStyles.spellDrawerDescriptionLine}
-                strongClassName={sheetStyles.spellDrawerDescriptionStrong}
-              />
+              {(() => {
+                const descriptionEntries =
+                  selectedDivinityDisplay?.description ?? selectedDivinityRow.entry.description;
+                const descriptionSections =
+                  selectedDivinityDisplay?.descriptionAdditions?.filter(
+                    (section) => section.length > 0
+                  ) ?? [];
+                const hasBaseDescription = descriptionEntries.length > 0;
+
+                return hasBaseDescription || descriptionSections.length > 0 ? (
+                  <div className={sheetStyles.spellDrawerDescriptionStack}>
+                    {hasBaseDescription ? (
+                      <SpellDescriptionContent
+                        description={descriptionEntries}
+                        className={clsx(
+                          sheetStyles.spellDrawerDescriptionList,
+                          sheetStyles.spellDrawerDescriptionSection
+                        )}
+                        entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                        strongClassName={sheetStyles.spellDrawerDescriptionStrong}
+                      />
+                    ) : null}
+                    {descriptionSections.map((section, index) => (
+                      <div
+                        key={`${selectedDivinityRow.option.key}-description-addition-${index}`}
+                        className={sheetStyles.spellDrawerDescriptionAdditionSection}
+                      >
+                        {hasBaseDescription || index > 0 ? (
+                          <hr
+                            className={sheetStyles.spellDrawerDescriptionDivider}
+                            aria-hidden="true"
+                          />
+                        ) : null}
+                        <SpellDescriptionContent
+                          description={section}
+                          className={clsx(
+                            sheetStyles.spellDrawerDescriptionList,
+                            sheetStyles.spellDrawerDescriptionSection
+                          )}
+                          entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                          strongClassName={sheetStyles.spellDrawerDescriptionStrong}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                ) : null;
+              })()}
             </div>
 
             <div className={sheetStyles.spellDrawerActions}>
-              <div className={actionStyles.castActionMeta}>
-                <div className={sheetStyles.spellDrawerCastControls}>
-                  <p className={sheetStyles.spellDrawerSlotText}>
-                    {`${channelDivinityUsesRemaining}/${channelDivinityUsesTotal} uses remaining`}
-                  </p>
-                </div>
+              <div className={styles.divinityDrawerActionStack}>
                 {selectedDivinityActionWarning ? (
-                  <div className={gameplayActionStyles.warningBlock}>
+                  <div className={styles.divinityDrawerWarningBlock}>
                     <p className={gameplayActionStyles.warningCard}>
                       {selectedDivinityActionWarning}
                     </p>
@@ -3232,7 +3338,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               </div>
               <button
                 type="button"
-                className={sheetStyles.castButton}
+                className={clsx(sheetStyles.castButton, styles.divinityDrawerActionButton)}
                 onClick={channelSelectedDivinity}
                 disabled={
                   channelDivinityUsesRemaining <= 0 || selectedDivinityActionWarning !== null

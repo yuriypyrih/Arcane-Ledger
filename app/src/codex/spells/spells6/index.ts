@@ -558,6 +558,7 @@ export const heal: SpellEntry = {
     "Choose a creature that you can see within range. A surge of positive energy washes through the creature, causing it to regain 70 Hit Points. The spell also ends blindness, deafness, and any diseases affecting the target. This spell has no effect on Constructs or Undead.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, the amount of healing increases by 10 for each slot level above 6th."
   ],
+  isHealingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID],
   spellLevel: 6
@@ -1018,6 +1019,7 @@ export const soulCage: SpellEntry = {
     },
     "A creature that can see the sensor, such as one using See Invisibility or Truesight, sees a translucent image of the tormented Humanoid whose soul you caged."
   ],
+  isHealingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 6

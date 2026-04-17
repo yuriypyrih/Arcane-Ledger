@@ -37,6 +37,13 @@ export type CoreStats = {
   hitDice: string;
 };
 
+export type ArmorClassFormulaSelectionMode = "auto" | "manual";
+
+export type CharacterArmorClassFormulaSelection = {
+  key: string | null;
+  mode: ArmorClassFormulaSelectionMode;
+};
+
 export type CurrencyKey = "copper" | "silver" | "gold" | "electrum" | "platinum";
 
 export const currencyKeys: CurrencyKey[] = ["copper", "silver", "electrum", "gold", "platinum"];
@@ -177,6 +184,7 @@ export type Character = {
   shortRestsUsedToday?: number;
   heroicInspiration: boolean;
   coreStats?: CoreStats;
+  armorClassFormulaSelection?: CharacterArmorClassFormulaSelection;
   classFeatureState?: CharacterClassFeatureState;
   feats?: CharacterFeatEntry[];
 };
@@ -221,6 +229,7 @@ export type CharacterDraft = {
   shortRestsUsedToday?: number;
   heroicInspiration: boolean;
   coreStats?: CoreStats;
+  armorClassFormulaSelection?: CharacterArmorClassFormulaSelection;
   classFeatureState?: CharacterClassFeatureState;
   feats?: CharacterFeatEntry[];
 };

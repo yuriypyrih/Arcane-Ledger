@@ -129,6 +129,10 @@
     var(--overlay-panel-bottom-padding) var(--overlay-panel-inline-padding);
 }
 
+.body:last-child {
+  padding-bottom: calc(var(--overlay-panel-bottom-padding) * 2);
+}
+
 .footer {
   padding: 0 var(--overlay-panel-inline-padding) var(--overlay-panel-bottom-padding);
 }

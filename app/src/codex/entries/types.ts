@@ -141,6 +141,7 @@ export type SpellEntry = {
   duration: SpellDurationPart[];
   description: SpellDescriptionEntry[];
   descriptionAdditions?: SpellDescriptionEntry[][];
+  isHealingSpell?: boolean;
   damage: WeaponDamage;
   spellLists: SPELL_LIST_CLASS[];
   spellLevel: number;

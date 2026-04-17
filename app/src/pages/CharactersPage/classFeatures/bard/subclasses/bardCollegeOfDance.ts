@@ -1,30 +1,64 @@
-import { getReactionEntryById } from "../../../../../codex/entries";
+import {
+  CLASS_FEATURE,
+  REACTION,
+  type ReactionEntry
+} from "../../../../../codex/entries";
+import type { Character, CharacterBardFeatureState } from "../../../../../types";
 import { SKILL } from "../../../../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import {
+  appendSourcedDescriptionAddition,
+  createSourcedDescriptionEntries
+} from "../../../actionModalDescriptions";
 import { isItemShieldRecord } from "../../../inventoryItems";
 import { getEquipmentByName } from "../../../proficiencyCodexData";
+import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { createDefaultFeatureActionDescription } from "../../subclassRuntime";
 import type { FeatureActionCard } from "../../types";
 import { getBardicInspirationDie } from "../bard";
 
 export const collegeOfDanceSubclassId = "bard-college-of-dance";
+export const bardCollegeOfDanceInspiringMovementReactionId = "reaction-inspiring-movement";
 
 const agileStrikesDescription = "You can make one Unarmed Strike as part of this action.";
 const agileStrikesSource = "Dazzling Footwork / Agile Strikes";
+const dazzlingFootworkBardicDamageSource = "Dazzling Footwork / Bardic Damage";
 const dazzlingFootworkPerformanceIndicator = {
   label: "Advantage",
   tone: "advantage" as const,
   source: "Dazzling Footwork"
 };
 
-function hasCollegeOfDanceDazzlingFootwork(
-  character: Parameters<SubclassRuntimeResolver>[0]
+type BardCollegeOfDanceCharacter = Pick<Character, "className"> &
+  Partial<
+    Pick<
+      Character,
+      | "level"
+      | "subclassId"
+      | "classFeatureState"
+      | "equipment"
+      | "inventoryItems"
+      | "customEquipment"
+    >
+  >;
+
+export function hasBardCollegeOfDanceDazzlingFootworkFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return (
     character.className === "Bard" &&
     character.subclassId === collegeOfDanceSubclassId &&
     (character.level ?? 0) >= 3
+  );
+}
+
+export function hasBardCollegeOfDanceInspiringMovementFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Bard" &&
+    character.subclassId === collegeOfDanceSubclassId &&
+    (character.level ?? 0) >= 6
   );
 }
 
@@ -67,13 +101,123 @@ function hasShieldEquipped(
 }
 
 function hasActiveCollegeOfDanceCombatBenefits(
-  character: Parameters<SubclassRuntimeResolver>[0]
+  character: Pick<Character, "className"> &
+    Partial<
+      Pick<Character, "level" | "subclassId" | "equipment" | "inventoryItems" | "customEquipment">
+    >
 ): boolean {
   return (
-    hasCollegeOfDanceDazzlingFootwork(character) &&
+    hasBardCollegeOfDanceDazzlingFootworkFeature(character) &&
     !hasWornBodyArmor(character) &&
     !hasShieldEquipped(character)
   );
+}
+
+export function normalizeBardCollegeOfDanceFeatureState(
+  value: Partial<CharacterBardFeatureState>,
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): Pick<CharacterBardFeatureState, "dazzlingFootworkUnarmedStrikesRemainingThisTurn"> {
+  const dazzlingFootworkUnarmedStrikesRemainingThisTurn = Number(
+    value.dazzlingFootworkUnarmedStrikesRemainingThisTurn
+  );
+
+  return {
+    dazzlingFootworkUnarmedStrikesRemainingThisTurn:
+      hasBardCollegeOfDanceDazzlingFootworkFeature(character)
+        ? Number.isFinite(dazzlingFootworkUnarmedStrikesRemainingThisTurn)
+          ? Math.max(0, Math.min(1, Math.floor(dazzlingFootworkUnarmedStrikesRemainingThisTurn)))
+          : 0
+        : undefined
+  };
+}
+
+export function getBardCollegeOfDanceUnarmedStrikeMultiCount(
+  character: BardCollegeOfDanceCharacter
+): number {
+  if (!hasActiveCollegeOfDanceCombatBenefits(character)) {
+    return 0;
+  }
+
+  return character.classFeatureState?.bard?.dazzlingFootworkUnarmedStrikesRemainingThisTurn ?? 0;
+}
+
+export function grantBardCollegeOfDanceAgileStrikes(
+  character: Character,
+  bardState: CharacterBardFeatureState
+): Character {
+  if (!hasActiveCollegeOfDanceCombatBenefits(character)) {
+    return character;
+  }
+
+  if ((bardState.dazzlingFootworkUnarmedStrikesRemainingThisTurn ?? 0) >= 1) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        dazzlingFootworkUnarmedStrikesRemainingThisTurn: 1
+      }
+    }
+  };
+}
+
+export function consumeBardCollegeOfDanceAgileStrike(
+  character: Character,
+  bardState: CharacterBardFeatureState,
+  action?: {
+    attackKind: "weapon" | "unarmed";
+  }
+): Character {
+  if (action?.attackKind !== "unarmed") {
+    return character;
+  }
+
+  const remaining = getBardCollegeOfDanceUnarmedStrikeMultiCount(character);
+
+  if (remaining <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        dazzlingFootworkUnarmedStrikesRemainingThisTurn: remaining - 1
+      }
+    }
+  };
+}
+
+export function clearBardCollegeOfDanceTurnState(
+  character: Character,
+  bardState: CharacterBardFeatureState
+): Character {
+  if ((bardState.dazzlingFootworkUnarmedStrikesRemainingThisTurn ?? 0) <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      bard: {
+        ...bardState,
+        dazzlingFootworkUnarmedStrikesRemainingThisTurn: 0
+      }
+    }
+  };
+}
+
+export function shouldAdvanceBardCollegeOfDanceFeaturesForNewRound(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return hasBardCollegeOfDanceDazzlingFootworkFeature(character);
 }
 
 function shouldAppendAgileStrikesDescription(action: FeatureActionCard): boolean {
@@ -105,22 +249,47 @@ function appendAgileStrikesDescription(action: FeatureActionCard): FeatureAction
   );
 }
 
+function getBardCollegeOfDanceInspiringMovementReactionEntry(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">> &
+    Pick<Parameters<SubclassRuntimeResolver>[0], "equipment" | "inventoryItems" | "customEquipment">
+): ReactionEntry {
+  const description = getFeatureDescriptionForCharacter(
+    {
+      className: character.className,
+      level: character.level ?? 0,
+      subclassId: character.subclassId
+    },
+    CLASS_FEATURE.INSPIRING_MOVEMENT
+  );
+
+  return {
+    id: bardCollegeOfDanceInspiringMovementReactionId,
+    reaction: REACTION.INSPIRING_MOVEMENT,
+    name: "Inspiring Movement",
+    sourceType: "feature",
+    sourceFeature: CLASS_FEATURE.INSPIRING_MOVEMENT,
+    sourceLabel: "College of Dance",
+    description: hasActiveCollegeOfDanceCombatBenefits(character)
+      ? [
+          ...description,
+          ...createSourcedDescriptionEntries(agileStrikesSource, [agileStrikesDescription])
+        ]
+      : description
+  };
+}
+
 export const getBardCollegeOfDanceDerivedFeatureState: SubclassRuntimeResolver = (character) => {
   if (character.className !== "Bard" || character.subclassId !== collegeOfDanceSubclassId) {
     return {};
   }
 
-  const reactionEntries =
-    hasCollegeOfDanceDazzlingFootwork(character) && (character.level ?? 0) >= 6
-      ? (() => {
-          const inspiringMovement = getReactionEntryById("reaction-inspiring-movement");
-          return inspiringMovement ? [inspiringMovement] : [];
-        })()
-      : [];
+  const reactionEntries = hasBardCollegeOfDanceInspiringMovementFeature(character)
+    ? [getBardCollegeOfDanceInspiringMovementReactionEntry(character)]
+    : [];
 
   return {
     reactionEntries,
-    skillIndicators: hasCollegeOfDanceDazzlingFootwork(character)
+    skillIndicators: hasBardCollegeOfDanceDazzlingFootworkFeature(character)
       ? {
           [SKILL.PERFORMANCE]: [dazzlingFootworkPerformanceIndicator]
         }
@@ -128,21 +297,34 @@ export const getBardCollegeOfDanceDerivedFeatureState: SubclassRuntimeResolver =
     transformFeatureAction: hasActiveCollegeOfDanceCombatBenefits(character)
       ? appendAgileStrikesDescription
       : undefined,
-    getArmorClassModes: (context) =>
-      hasCollegeOfDanceDazzlingFootwork(character) &&
-      !context.hasWornBodyArmor &&
-      !context.hasShieldEquipped
-        ? [
-            {
-              key: "bard-dance-unarmored-defense",
-              label: "Unarmored Defense",
-              baseValue: 10,
-              abilityModifiers: ["DEX", "CHA"],
-              shieldAllowed: false,
-              detail: "College of Dance feature"
-            }
-          ]
-        : [],
+    getArmorClassModes: (context) => {
+      if (!hasBardCollegeOfDanceDazzlingFootworkFeature(character)) {
+        return [];
+      }
+
+      const isApplicable = !context.hasWornBodyArmor && !context.hasShieldEquipped;
+      const unavailableReason = context.hasWornBodyArmor
+        ? context.hasShieldEquipped
+          ? "Requires you to wear no body armor and wield no shield."
+          : "Requires you to wear no body armor."
+        : context.hasShieldEquipped
+          ? "Requires you to wield no shield."
+          : undefined;
+
+      return [
+        {
+          key: "bard-dance-unarmored-defense",
+          label: "Unarmored Defense",
+          unlockedAtLevel: 3,
+          baseValue: 10,
+          abilityModifiers: ["DEX", "CHA"],
+          shieldAllowed: false,
+          isApplicable,
+          unavailableReason,
+          detail: "College of Dance feature"
+        }
+      ];
+    },
     getUnarmedStrikeConfig: () => {
       if (!hasActiveCollegeOfDanceCombatBenefits(character)) {
         return null;
@@ -157,7 +339,8 @@ export const getBardCollegeOfDanceDerivedFeatureState: SubclassRuntimeResolver =
         attackAbility: "finesse",
         damageAbility: "DEX",
         damageFormula: bardicDie ? `1${String(bardicDie).toLowerCase()}` : undefined,
-        damageTypeLabel: "Bludgeoning"
+        damageTypeLabel: "Bludgeoning",
+        damageBreakdownLabel: bardicDie ? dazzlingFootworkBardicDamageSource : undefined
       };
     }
   };

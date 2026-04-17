@@ -1075,10 +1075,7 @@ export function getBarbarianArmorClassModes(
   character: Pick<Character, "className" | "level">,
   context: ArmorClassFeatureContext
 ): FeatureArmorClassMode[] {
-  if (
-    !hasBarbarianFeature(character, CLASS_FEATURE.UNARMORED_DEFENSE) ||
-    context.hasWornBodyArmor
-  ) {
+  if (!hasBarbarianFeature(character, CLASS_FEATURE.UNARMORED_DEFENSE)) {
     return [];
   }
 
@@ -1086,9 +1083,14 @@ export function getBarbarianArmorClassModes(
     {
       key: "barbarian-unarmored-defense",
       label: "Unarmored Defense",
+      unlockedAtLevel: 1,
       baseValue: 10,
       abilityModifiers: ["DEX", "CON"],
       shieldAllowed: true,
+      isApplicable: !context.hasWornBodyArmor,
+      unavailableReason: context.hasWornBodyArmor
+        ? "Requires you to wear no body armor."
+        : undefined,
       detail: "Barbarian feature"
     }
   ];

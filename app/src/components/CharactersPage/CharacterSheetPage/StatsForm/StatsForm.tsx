@@ -2,7 +2,6 @@ import clsx from "clsx";
 import { ChevronsUp, Music, Pencil, Pentagon } from "lucide-react";
 import { useEffect, useState } from "react";
 import d20Icon from "../../../../assets/svg/d20.svg";
-import CellContainer from "../../../CellContainer/CellContainer";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { createSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
@@ -30,8 +29,8 @@ import {
   getProficiencyBonus
 } from "../../../../pages/CharactersPage/gameplay";
 import {
-  getArmorClassBreakdownForCharacter,
-  getArmorClassForCharacter
+  getArmorClassResolutionForCharacter,
+  setArmorClassFormulaSelectionForCharacter
 } from "../../../../pages/CharactersPage/armor";
 import {
   canCharacterHover,
@@ -74,7 +73,7 @@ import {
 } from "../../../../pages/CharactersPage/classFeatures";
 import { getFeatureDescriptionForCharacter } from "../../../../pages/CharactersPage/classFeatures/featureDescriptions";
 import { getBarbarianRageState } from "../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
-import { getBarbarianPersistentRageInitiativeDescriptionAdditions } from "../../../../pages/CharactersPage/classFeatures/barbarian/barbarianDescriptionSections";
+import { getInitiativeReferenceDescriptionAdditions } from "../../../../pages/CharactersPage/classFeatures/initiativeDescriptionSections";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
 import {
   areResolvedRollStatesEquivalent,
@@ -98,12 +97,14 @@ import { getProficiencyMultiplier } from "../../../../pages/CharactersPage/share
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import AbilityScoresModal from "./AbilityScoresModal";
+import ArmorClassFormulaFooter from "./ArmorClassFormulaFooter";
 import DiceRollerSettingsButton from "../GameplayForm/widgets/DiceRollerSettingsButton";
 import StatReferenceDrawer, {
   type ReferenceDetailCard,
   type ReferenceIndicatorSection,
   type SelectedStatReference
 } from "./StatReferenceDrawer";
+import { getArmorClassReferenceDetailCards } from "./armorClassReference";
 import styles from "./StatsForm.module.css";
 
 type CharacterStatsFormProps = {
@@ -134,7 +135,7 @@ type AbilitySavingThrowCard = {
   totalSavingThrowValue: number;
   totalSavingThrow: string;
   showScoreBoostIcon?: boolean;
-  showSavingThrowBoostIcon?: boolean;
+  scoreBoostIconLabel?: string;
   modifierIndicators: FeatureIndicator[];
   modifierRollState: ResolvedRollState | null;
   savingThrowIndicators: FeatureIndicator[];
@@ -171,30 +172,6 @@ function createAbilitiesDraft(character: Character): AbilitiesDraft {
     attributeMode: "pointBuy",
     abilities: cloneAbilityScores(character.abilities)
   };
-}
-
-function formatArmorClassTermLabel(label: string, source: string): string {
-  if (label === "Base") {
-    return `Base (${source})`;
-  }
-
-  if (["STR", "DEX", "CON", "INT", "WIS", "CHA"].includes(label)) {
-    return label;
-  }
-
-  return label;
-}
-
-function formatArmorClassFormula(
-  total: number,
-  entries: Array<{ label: string; value: number }>,
-  source: string
-): string {
-  const terms = entries.map(
-    (entry) =>
-      `${entry.value >= 0 ? "+" : ""}${entry.value} ${formatArmorClassTermLabel(entry.label, source)}`
-  );
-  return `${total} AC = ${terms.join(" ")}`;
 }
 
 function formatMovementBaseFormula(
@@ -332,7 +309,7 @@ function stripLeadingLabel(description: string, label: string): string {
 }
 
 function getInitiativeDescriptionAdditions(character: Character): SpellDescriptionEntry[][] {
-  return getBarbarianPersistentRageInitiativeDescriptionAdditions(character);
+  return getInitiativeReferenceDescriptionAdditions(character);
 }
 
 function getStrengthDescriptionAdditions(character: Character): SpellDescriptionEntry[][] {
@@ -357,6 +334,17 @@ function getFanaticalFocusDescriptionAdditions(character: Character): SpellDescr
     : [];
 }
 
+function getLeadingEvasionDescriptionAdditions(character: Character): SpellDescriptionEntry[][] {
+  const leadingEvasionDescription = getFeatureDescriptionForCharacter(
+    character,
+    CLASS_FEATURE.LEADING_EVASION
+  );
+
+  return leadingEvasionDescription.length > 0
+    ? [createSourcedDescriptionEntries("Leading Evasion", leadingEvasionDescription)]
+    : [];
+}
+
 function getAbilityDescriptionAdditions(
   character: Character,
   ability: AbilityKey
@@ -365,6 +353,10 @@ function getAbilityDescriptionAdditions(
 
   if (ability === "STR") {
     descriptionAdditions.push(...getStrengthDescriptionAdditions(character));
+  }
+
+  if (ability === "DEX") {
+    descriptionAdditions.push(...getLeadingEvasionDescriptionAdditions(character));
   }
 
   descriptionAdditions.push(...getFanaticalFocusDescriptionAdditions(character));
@@ -521,12 +513,14 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
       : null;
   const proficiencyBonus = getProficiencyBonus(character.level);
   const effectiveAbilities = getAbilityScoresForCharacter(character);
+  const armorClassResolution = getArmorClassResolutionForCharacter(character);
+  const armorClassBreakdown = armorClassResolution.activeFormula.breakdown;
   const paladinAuraOfProtectionBonus = hasActivePaladinAuraOfProtectionForCharacter(character)
     ? Math.max(1, getAbilityModifier(effectiveAbilities.CHA))
     : 0;
   const displayedCoreStats: CoreStats = {
     ...(character.coreStats ?? createDefaultCoreStats()),
-    armorClass: String(getArmorClassForCharacter(character)),
+    armorClass: String(armorClassBreakdown.total),
     initiative: formatAbilityModifier(getInitiativeForCharacter(character)),
     speed: `${getSpeedForCharacter(character)} ft`,
     passivePerception: String(getPassivePerceptionForCharacter(character)),
@@ -536,7 +530,6 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   const coreStatIndicators = getCoreStatIndicatorsForCharacter(character);
   const abilityCheckIndicators = getAbilityCheckIndicatorsForCharacter(character);
   const savingThrowIndicators = getSavingThrowIndicatorsForCharacter(character);
-  const armorClassBreakdown = getArmorClassBreakdownForCharacter(character);
   const speedBreakdown = getSpeedBreakdownForCharacter(character);
   const movementSpeedBreakdowns = getMovementSpeedBreakdownsForCharacter(character);
   const hasModifiedSpecialMovement = hasModifiedSpecialMovementForCharacter(character);
@@ -585,16 +578,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
             }
           ]
         : []),
-      ...featureSavingThrowBonusEntries,
-      ...(ability === "DEX" && hasLeadingEvasion
-        ? [
-            {
-              label: "Leading Evasion",
-              value: 0,
-              formulaLabel: "+ Leading Evasion"
-            }
-          ]
-        : [])
+      ...featureSavingThrowBonusEntries
     ];
     const totalSavingThrowValue =
       abilityModifierValue +
@@ -627,8 +611,16 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
       totalSavingThrow: formatAbilityModifier(totalSavingThrowValue),
       showScoreBoostIcon:
         (ability === "STR" && hasIndomitableMight) ||
-        (isBarbarianRaging && !(ability === "DEX" && hasLeadingEvasion)),
-      showSavingThrowBoostIcon: ability === "DEX" && hasLeadingEvasion,
+        isBarbarianRaging ||
+        (ability === "DEX" && hasLeadingEvasion),
+      scoreBoostIconLabel:
+        ability === "DEX" && hasLeadingEvasion
+          ? "Leading Evasion active"
+          : ability === "STR" && hasIndomitableMight
+            ? "Indomitable Might active"
+            : isBarbarianRaging
+              ? "Fanatical Focus active"
+              : undefined,
       modifierIndicators,
       modifierRollState,
       savingThrowIndicators: saveIndicators,
@@ -640,13 +632,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   const baseCoreStatCards = coreStatFields.map((field) => {
     let detailValue: string | undefined;
 
-    if (field.label === "Armor Class") {
-      detailValue = formatArmorClassFormula(
-        armorClassBreakdown.total,
-        armorClassBreakdown.entries,
-        armorClassBreakdown.source
-      );
-    } else if (field.label === "Initiative") {
+    if (field.label === "Initiative") {
       detailValue = formatInitiativeFormula(initiativeBreakdown.total, initiativeBreakdown.entries);
     } else if (field.label === "Speed") {
       detailValue = formatMovementFormula(speedBreakdown);
@@ -692,6 +678,8 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
                 value: characterCanHover ? "Yes" : "No"
               }
             ]
+          : field.label === "Armor Class"
+            ? getArmorClassReferenceDetailCards(armorClassResolution)
           : detailValue
             ? [
                 {
@@ -868,6 +856,14 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   }
 
   const coreStatCards: CoreStatCard[] = [...additionalCoreStatCards, ...baseCoreStatCards];
+  const resolvedSelectedStatReference =
+    selectedStatReference?.keyword === "Armor Class"
+      ? {
+          ...selectedStatReference,
+          detailCards: getArmorClassReferenceDetailCards(armorClassResolution),
+          warning: armorClassResolution.warning
+        }
+      : selectedStatReference;
 
   function syncAbilityDraftFromCharacter() {
     setAbilitiesDraft(createAbilitiesDraft(character));
@@ -921,6 +917,12 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
     setSelectedStatReference(null);
   }
 
+  function selectArmorClassFormula(formulaKey: string) {
+    onPersistCharacter((currentCharacter) =>
+      setArmorClassFormulaSelectionForCharacter(currentCharacter, formulaKey)
+    );
+  }
+
   function openCoreStatReference(card: CoreStatCard) {
     if (card.label === "Initiative" && hasPerfectFocus) {
       setUsePerfectFocusOnInitiative(true);
@@ -937,8 +939,11 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
     setIsDiceRollerSettingsOpen(false);
 
     const descriptionAdditions =
-      card.label === "Initiative" && hasPersistentRage
-        ? getInitiativeDescriptionAdditions(character)
+      card.label === "Initiative"
+        ? (() => {
+            const additions = getInitiativeDescriptionAdditions(character);
+            return additions.length > 0 ? additions : undefined;
+          })()
         : undefined;
 
     setSelectedStatReference({
@@ -1160,7 +1165,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
                     <ChevronsUp
                       size={18}
                       className={styles.scoreBoostIcon}
-                      aria-label="Indomitable Might active"
+                      aria-label={card.scoreBoostIconLabel ?? "Feature boost active"}
                     />
                   ) : null}
                   {rightRollState ? (
@@ -1185,13 +1190,6 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
                     >
                       {card.totalSavingThrow}
                     </strong>
-                    {card.showSavingThrowBoostIcon ? (
-                      <ChevronsUp
-                        size={18}
-                        className={styles.savingThrowBoostIcon}
-                        aria-label="Leading Evasion active"
-                      />
-                    ) : null}
                   </span>
                 </div>
               </button>
@@ -1230,11 +1228,18 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
         onUpdateAbilityScore={updateAbilityScore}
       />
 
-      {selectedStatReference ? (
+      {resolvedSelectedStatReference ? (
         <StatReferenceDrawer
-          reference={selectedStatReference}
+          reference={resolvedSelectedStatReference}
           footer={
-            selectedStatReference.keyword === "Initiative" ? (
+            resolvedSelectedStatReference.keyword === "Armor Class" &&
+            armorClassResolution.formulas.length >= 2 ? (
+              <ArmorClassFormulaFooter
+                formulas={armorClassResolution.formulas}
+                selectedFormulaKey={armorClassResolution.selectedFormula.key}
+                onFormulaChange={selectArmorClassFormula}
+              />
+            ) : resolvedSelectedStatReference.keyword === "Initiative" ? (
               <div className={styles.initiativeActions}>
                 <div className={styles.initiativeActionsStart}>
                   {hasPersistentRage ? (

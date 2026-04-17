@@ -11,9 +11,14 @@ import {
   getSavingThrowLevelFromEntries,
   getLanguageLevelFromEntries,
   getSkillLevelFromEntries,
-  getSkillProficiencyForName
+  getSkillProficiencyForName,
+  getToolLevelFromEntries
 } from "../../../../pages/CharactersPage/proficiency";
-import { languageProficiencyOptions } from "../../../../pages/CharactersPage/proficiencyOptions";
+import {
+  getToolProficiencyLabel,
+  languageProficiencyOptions,
+  type ToolProficiency
+} from "../../../../pages/CharactersPage/proficiencyOptions";
 import { PROF_LEVEL, SAVING_THROW_PROFICIENCY, SKILL } from "../../../../types";
 import type {
   Character,
@@ -157,6 +162,46 @@ export function filterAvailableChoices<T extends string>(
   });
 }
 
+export type SkillSelectOption<TSkill extends SkillName = SkillName> = {
+  skill: TSkill;
+  disabled: boolean;
+  label: string;
+};
+
+export type ToolSelectOption<TTool extends ToolProficiency = ToolProficiency> = {
+  tool: TTool;
+  disabled: boolean;
+  label: string;
+};
+
+export function buildSkillSelectOptions<TSkill extends SkillName>(
+  allOptions: readonly TSkill[],
+  availableOptions: readonly TSkill[],
+  currentValue: TSkill | null | undefined
+): SkillSelectOption<TSkill>[] {
+  const availableOptionSet = new Set(availableOptions);
+
+  return allOptions.map((skill) => ({
+    skill,
+    disabled: currentValue !== skill && !availableOptionSet.has(skill),
+    label: skill
+  }));
+}
+
+export function buildToolSelectOptions<TTool extends ToolProficiency>(
+  allOptions: readonly TTool[],
+  availableOptions: readonly TTool[],
+  currentValue: TTool | null | undefined
+): ToolSelectOption<TTool>[] {
+  const availableOptionSet = new Set(availableOptions);
+
+  return allOptions.map((tool) => ({
+    tool,
+    disabled: currentValue !== tool && !availableOptionSet.has(tool),
+    label: getToolProficiencyLabel(tool)
+  }));
+}
+
 export function getSelectableProficientSkillOptions(
   character: Pick<Character, "skillProficiencies">,
   options: readonly SkillName[],
@@ -236,6 +281,21 @@ export function getSelectableLanguageOptions(
       );
     }
   );
+}
+
+export function getSelectableUnproficientToolOptions(
+  character: Pick<Character, "toolProficiencies">,
+  options: readonly ToolProficiency[],
+  currentValue: ToolProficiency | null | undefined,
+  blockedSelections: readonly ToolProficiency[] = []
+): ToolProficiency[] {
+  return filterAvailableChoices(options, currentValue, blockedSelections).filter((tool) => {
+    if (currentValue === tool) {
+      return true;
+    }
+
+    return getToolLevelFromEntries(character.toolProficiencies ?? [], tool) === PROF_LEVEL.NONE;
+  });
 }
 
 export function getSelectableUnproficientSavingThrowOptions(

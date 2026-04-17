@@ -58,8 +58,7 @@ const toolItemMappings: Partial<Record<TOOL_PROFICIENCY, StarterPackToolItemMapp
   },
   [TOOL_PROFICIENCY.CALLIGRAPHERS_SUPPLIES]: {
     label: "Calligrapher's Supplies",
-    itemKey: null,
-    warning: "Backend item missing for Calligrapher's Supplies."
+    itemKey: "srd-2024_calligraphers-supplies"
   },
   [TOOL_PROFICIENCY.CARPENTERS_TOOLS]: {
     label: "Carpenter's Tools",
@@ -75,8 +74,7 @@ const toolItemMappings: Partial<Record<TOOL_PROFICIENCY, StarterPackToolItemMapp
   },
   [TOOL_PROFICIENCY.COOKS_UTENSILS]: {
     label: "Cook's Utensils",
-    itemKey: null,
-    warning: "Backend item missing for Cook's Utensils."
+    itemKey: "srd-2024_cooks-utensils"
   },
   [TOOL_PROFICIENCY.GLASSBLOWERS_TOOLS]: {
     label: "Glassblower's Tools",
@@ -100,28 +98,23 @@ const toolItemMappings: Partial<Record<TOOL_PROFICIENCY, StarterPackToolItemMapp
   },
   [TOOL_PROFICIENCY.POTTERS_TOOLS]: {
     label: "Potter's Tools",
-    itemKey: null,
-    warning: "Backend item missing for Potter's Tools."
+    itemKey: "srd-2024_potters-tools"
   },
   [TOOL_PROFICIENCY.SMITHS_TOOLKIT]: {
     label: "Smith's Tools",
-    itemKey: null,
-    warning: "Backend item missing for Smith's Tools."
+    itemKey: "srd-2024_smiths-tools"
   },
   [TOOL_PROFICIENCY.TINKERS_TOOLS]: {
     label: "Tinker's Tools",
-    itemKey: null,
-    warning: "Backend item missing for Tinker's Tools."
+    itemKey: "srd-2024_tinkers-tools"
   },
   [TOOL_PROFICIENCY.WEAVERS_TOOLS]: {
     label: "Weaver's Tools",
-    itemKey: null,
-    warning: "Backend item missing for Weaver's Tools."
+    itemKey: "srd-2024_weavers-tools"
   },
   [TOOL_PROFICIENCY.WOODCARVERS_TOOLS]: {
     label: "Woodcarver's Tools",
-    itemKey: null,
-    warning: "Backend item missing for Woodcarver's Tools."
+    itemKey: "srd-2024_woodcarvers-tools"
   },
   [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_BAGPIPES]: {
     label: "Bagpipes",

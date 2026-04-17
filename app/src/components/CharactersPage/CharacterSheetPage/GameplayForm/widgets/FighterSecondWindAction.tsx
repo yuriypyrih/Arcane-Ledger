@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import ActionShape, { type ActionShapeType } from "../../../../ActionShape";
 import CellContainer from "../../../../CellContainer/CellContainer";
+import FeatureOptInToggle from "../../FeatureOptInToggle/FeatureOptInToggle";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import { parseRollFormulaRange } from "../../../../../pages/CharactersPage/actionOutcome";
 import styles from "./FighterSecondWindAction.module.css";
@@ -83,36 +84,20 @@ export function FighterSecondWindActionFooter({
   return (
     <div className={styles.footerStack}>
       {groupRecoveryUnlocked ? (
-        <label
-          className={clsx(
-            styles.groupRecoveryToggle,
-            groupRecoveryUsesRemaining <= 0 && styles.groupRecoveryToggleDisabled
-          )}
-        >
-          <span className={styles.groupRecoveryToggleLabel}>
-            <input
-              type="checkbox"
-              checked={isGroupRecoverySelected}
-              disabled={groupRecoveryUsesRemaining <= 0}
-              onChange={(event) => onGroupRecoverySelectedChange(event.target.checked)}
-            />
-            <span>Group Recovery</span>
-            <span className={styles.groupRecoveryTracker}>
-              <span className={styles.groupRecoveryTrackerLabel}>Charges</span>
-              <span className={sheetStyles.shortRestDots}>
-                {Array.from({ length: groupRecoveryUsesTotal }, (_, index) => (
-                  <span
-                    key={`group-recovery-charge-${index}`}
-                    className={clsx(
-                      sheetStyles.shortRestDot,
-                      index < groupRecoveryUsesRemaining && sheetStyles.shortRestDotActive
-                    )}
-                  />
-                ))}
-              </span>
-            </span>
-          </span>
-        </label>
+        <FeatureOptInToggle
+          label="Group Recovery"
+          checked={isGroupRecoverySelected}
+          disabled={groupRecoveryUsesRemaining <= 0}
+          muted={groupRecoveryUsesRemaining <= 0}
+          onCheckedChange={onGroupRecoverySelectedChange}
+          metaItems={[
+            {
+              kind: "tracker",
+              current: groupRecoveryUsesRemaining,
+              total: groupRecoveryUsesTotal
+            }
+          ]}
+        />
       ) : null}
       <button
         type="button"

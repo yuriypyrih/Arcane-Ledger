@@ -20,7 +20,9 @@ import {
   PROF_LEVEL,
   PROFICIENCY_SOURCE,
 } from "../../../../types";
+import { appendSourcedDescriptionAddition } from "../../actionModalDescriptions";
 import { getFeatAbilityScoreBonusesForCharacter } from "../../feats";
+import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
@@ -33,12 +35,14 @@ import type {
   FeatureSkillProficiencyEntry,
   FeatureWeaponProficiencyEntry
 } from "../types";
+import * as danceSubclass from "./subclasses/bardCollegeOfDance";
 import * as glamourSubclass from "./subclasses/bardCollegeOfGlamour";
 import * as loreSubclass from "./subclasses/bardCollegeOfLore";
 import * as moonSubclass from "./subclasses/bardCollegeOfTheMoon";
 import * as valorSubclass from "./subclasses/bardCollegeOfValor";
 
 const bardicInspirationActionKey = "bard-bardic-inspiration";
+const lunarVitalityActionKey = moonSubclass.lunarVitalityActionKey;
 const mantleOfInspirationActionKey = glamourSubclass.mantleOfInspirationActionKey;
 const mantleOfMajestyActionKey = glamourSubclass.mantleOfMajestyActionKey;
 const unbreakableMajestyActionKey = glamourSubclass.unbreakableMajestyActionKey;
@@ -180,6 +184,10 @@ function hasSuperiorInspiration(character: Pick<Character, "className" | "level"
   return hasBardFeature(character, CLASS_FEATURE.SUPERIOR_INSPIRATION);
 }
 
+function hasWordsOfCreation(character: Pick<Character, "className" | "level">): boolean {
+  return hasBardFeature(character, CLASS_FEATURE.WORDS_OF_CREATION);
+}
+
 function hasFontOfInspiration(character: Pick<Character, "className" | "level">): boolean {
   return hasBardFeature(character, CLASS_FEATURE.FONT_OF_INSPIRATION);
 }
@@ -205,6 +213,8 @@ export function normalizeBardFeatureState(
     glamourSubclass.hasBardCollegeOfGlamourBeguilingMagicFeature(character) ||
     glamourSubclass.hasBardCollegeOfGlamourMantleOfMajestyFeature(character) ||
     glamourSubclass.hasBardCollegeOfGlamourUnbreakableMajestyFeature(character);
+  const hasDanceSubclassState =
+    danceSubclass.hasBardCollegeOfDanceDazzlingFootworkFeature(character);
   const hasLoreSubclassState =
     loreSubclass.hasBardCollegeOfLoreBonusProficienciesFeature(character) ||
     loreSubclass.hasBardCollegeOfLoreMagicalDiscoveriesFeature(character);
@@ -220,6 +230,7 @@ export function normalizeBardFeatureState(
     !hasBardicInspiration &&
     !hasLevel2Expertise &&
     !hasLevel9Expertise &&
+    !hasDanceSubclassState &&
     !hasGlamourSubclassState &&
     !hasLoreSubclassState &&
     !hasMoonSubclassState &&
@@ -245,6 +256,7 @@ export function normalizeBardFeatureState(
       hasBardicInspiration && Number.isFinite(temporaryTotal)
         ? Math.max(0, Math.floor(temporaryTotal))
         : undefined,
+    ...danceSubclass.normalizeBardCollegeOfDanceFeatureState(record, character),
     ...glamourSubclass.normalizeBardCollegeOfGlamourFeatureState(record, character),
     ...loreSubclass.normalizeBardCollegeOfLoreFeatureState(record, character),
     ...moonSubclass.normalizeBardCollegeOfTheMoonFeatureState(record, character),
@@ -459,6 +471,23 @@ export function hasBardBattleMagicBonusAttackAvailable(
   return valorSubclass.hasBardCollegeOfValorBattleMagicBonusAttackAvailable(character);
 }
 
+export function getBardCollegeOfDanceUnarmedStrikeMultiCount(
+  character: Pick<Character, "className"> &
+    Partial<
+      Pick<
+        Character,
+        | "level"
+        | "subclassId"
+        | "classFeatureState"
+        | "equipment"
+        | "inventoryItems"
+        | "customEquipment"
+      >
+    >
+): number {
+  return danceSubclass.getBardCollegeOfDanceUnarmedStrikeMultiCount(character);
+}
+
 export function applyBardBattleMagicAfterSpellCast(
   character: Character,
   spell: Pick<SpellEntry, "castingTime">
@@ -497,11 +526,18 @@ export function consumeBardWeaponAttack(
       : character;
   }
 
-  return valorSubclass.consumeBardCollegeOfValorWeaponAttack(
+  const bardState = getBardFeatureState(character);
+  const characterAfterDanceAgileStrike = danceSubclass.consumeBardCollegeOfDanceAgileStrike(
     character,
-    getBardFeatureState(character),
+    bardState,
     action
   );
+
+  if (characterAfterDanceAgileStrike !== character) {
+    return characterAfterDanceAgileStrike;
+  }
+
+  return valorSubclass.consumeBardCollegeOfValorWeaponAttack(character, bardState, action);
 }
 
 export function consumeBardValorActionCantrip(character: Character): Character {
@@ -524,6 +560,21 @@ export function getBardAlwaysPreparedSpellIds(
       ...moonSubclass.getBardCollegeOfTheMoonAlwaysPreparedSpellIds(character)
     ])
   ];
+}
+
+export function getBardSpellEntry(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  spell: SpellEntry
+): SpellEntry {
+  if (!hasWordsOfCreation(character) || !wordsOfCreationAlwaysPreparedSpellIds.includes(spell.id)) {
+    return spell;
+  }
+
+  return appendSourcedDescriptionAddition(
+    spell,
+    "Words of Creation",
+    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.WORDS_OF_CREATION)
+  );
 }
 
 export function getBeguilingMagicUsesTotal(
@@ -817,15 +868,31 @@ export function restoreAllBardicInspirationUses(character: Character): Character
 }
 
 export function advanceBardFeaturesForNewRound(character: Character): Character {
-  if (!valorSubclass.shouldAdvanceBardCollegeOfValorFeaturesForNewRound(character)) {
+  if (
+    !valorSubclass.shouldAdvanceBardCollegeOfValorFeaturesForNewRound(character) &&
+    !danceSubclass.shouldAdvanceBardCollegeOfDanceFeaturesForNewRound(character) &&
+    !moonSubclass.shouldAdvanceBardCollegeOfTheMoonFeaturesForNewRound(character)
+  ) {
     return character;
   }
 
-  return valorSubclass.clearBardCollegeOfValorTurnState(character, getBardFeatureState(character));
+  return clearBardTurnState(character);
 }
 
 function clearBardTurnState(character: Character): Character {
-  return valorSubclass.clearBardCollegeOfValorTurnState(character, getBardFeatureState(character));
+  const characterAfterDanceReset = danceSubclass.clearBardCollegeOfDanceTurnState(
+    character,
+    getBardFeatureState(character)
+  );
+  const characterAfterMoonReset = moonSubclass.clearBardCollegeOfTheMoonTurnState(
+    characterAfterDanceReset,
+    getBardFeatureState(characterAfterDanceReset)
+  );
+
+  return valorSubclass.clearBardCollegeOfValorTurnState(
+    characterAfterMoonReset,
+    getBardFeatureState(characterAfterMoonReset)
+  );
 }
 
 function getBardSpellSlotAvailability(
@@ -928,8 +995,7 @@ export function getBardFeatureAction(
     },
     execute: {
       kind: "activate",
-      label: "Use Bardic Inspiration",
-      effectKind: "bardic-inspiration-roll"
+      label: "Use Bardic Inspiration"
     },
     disabled,
     disabledReason
@@ -946,7 +1012,12 @@ export function activateBardicInspiration(character: Character): Character {
   const totalUses = getBardicInspirationUsesTotal(character);
 
   if (usesExpended < totalUses) {
-    return expendBardicInspirationUse(character);
+    const nextCharacter = expendBardicInspirationUse(character);
+
+    return danceSubclass.grantBardCollegeOfDanceAgileStrikes(
+      nextCharacter,
+      getBardFeatureState(nextCharacter)
+    );
   }
 
   if (!hasFontOfInspiration(character)) {
@@ -963,10 +1034,42 @@ export function activateBardicInspiration(character: Character): Character {
   const nextSpellSlotsExpended = [...spellSlotAvailability.expended];
   nextSpellSlotsExpended[spellSlotIndex] = (nextSpellSlotsExpended[spellSlotIndex] ?? 0) + 1;
 
-  return {
+  const nextCharacter = {
     ...character,
     spellSlotsExpended: nextSpellSlotsExpended
   };
+
+  return danceSubclass.grantBardCollegeOfDanceAgileStrikes(
+    nextCharacter,
+    getBardFeatureState(nextCharacter)
+  );
+}
+
+export function activateBardCollegeOfDanceInspiringMovement(character: Character): Character {
+  if (
+    !hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION) ||
+    !danceSubclass.hasBardCollegeOfDanceInspiringMovementFeature(character)
+  ) {
+    return character;
+  }
+
+  if (getBardicInspirationUsesRemaining(character) <= 0) {
+    return character;
+  }
+
+  const nextCharacter = expendBardicInspirationUse(character);
+
+  return danceSubclass.grantBardCollegeOfDanceAgileStrikes(
+    nextCharacter,
+    getBardFeatureState(nextCharacter)
+  );
+}
+
+export function activateBardCollegeOfTheMoonLunarVitality(character: Character): Character {
+  return moonSubclass.activateBardCollegeOfTheMoonLunarVitality(
+    character,
+    getBardFeatureState(character)
+  );
 }
 
 export function activateMantleOfInspiration(character: Character): Character {
@@ -1095,6 +1198,7 @@ export function restoreBardicInspirationOnLongRest(character: Character): Charac
 
 export {
   bardicInspirationActionKey,
+  lunarVitalityActionKey,
   mantleOfInspirationActionKey,
   mantleOfMajestyActionKey,
   unbreakableMajestyActionKey,

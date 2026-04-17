@@ -19,6 +19,7 @@ import styles from "./ReactionEntryDrawer.module.css";
 type ReactionEntryDrawerProps = {
   reaction: ReactionEntry;
   actionWarning: string | null;
+  headerBadges?: string[];
   resourceSummary?: string | null;
   customContent?: ReactNode;
   onCast: () => void;
@@ -28,6 +29,7 @@ type ReactionEntryDrawerProps = {
 function ReactionEntryDrawer({
   reaction,
   actionWarning,
+  headerBadges = [],
   resourceSummary = null,
   customContent = null,
   onCast,
@@ -84,6 +86,11 @@ function ReactionEntryDrawer({
                 <h3 id="reaction-drawer-title" className={sheetStyles.spellDrawerTitle}>
                   {reaction.name}
                 </h3>
+                {headerBadges.map((badge) => (
+                  <span key={`${reaction.id}-${badge}`} className={actionDrawerStyles.badgePill}>
+                    {badge}
+                  </span>
+                ))}
               </div>
             </div>
             <button
@@ -117,7 +124,7 @@ function ReactionEntryDrawer({
             {customContent}
           </div>
 
-          <div className={sheetStyles.spellDrawerActions}>
+          <div className={clsx(sheetStyles.spellDrawerActions, styles.footerActions)}>
             <div className={styles.castActionMeta}>
               {resourceSummary ? <p className={styles.castActionResource}>{resourceSummary}</p> : null}
               {actionWarning ? (

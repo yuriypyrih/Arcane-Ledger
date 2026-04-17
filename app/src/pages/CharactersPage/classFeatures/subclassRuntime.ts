@@ -26,6 +26,7 @@ import type {
   FeatureSavingThrowProficiencyEntry,
   FeatureSkillProficiencyEntry,
   FeatureSpeedBonus,
+  FeatureToolProficiencyEntry,
   FeatureUnarmedStrikeConfig,
   FeatureWeaponProficiencyEntry,
   SavingThrowIndicatorMap,
@@ -64,6 +65,7 @@ export type SubclassDerivedFeatureState = {
   skillProficiencyEntries?: FeatureSkillProficiencyEntry[];
   savingThrowProficiencyEntries?: FeatureSavingThrowProficiencyEntry[];
   armorProficiencyEntries?: FeatureArmorProficiencyEntry[];
+  toolProficiencyEntries?: FeatureToolProficiencyEntry[];
   languageProficiencyEntries?: FeatureLanguageProficiencyEntry[];
   alwaysPreparedSpellIds?: string[];
   alwaysSpellbookSpellIds?: string[];
@@ -89,6 +91,7 @@ export type SubclassRuntimeCharacter = Pick<Character, "className"> &
       | "abilities"
       | "classFeatureState"
       | "skillProficiencies"
+      | "toolProficiencies"
       | "savingThrowProficiencies"
       | "feats"
       | "statusEntries"
