@@ -206,7 +206,7 @@ export const bardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   },
   [CLASS_FEATURE.SPELLCASTING]: {
     description: [
-      "You have learned to cast spells through your bardic arts. The information below details how you use those rules with Bard spells, which appear in the Bard spell list later in the class's description.",
+      "You have learned to cast spells through your bardic arts.",
       "<strong>Cantrips.</strong> You know two cantrips of your choice from the Bard spell list. <spell:Dancing Lights>Dancing Lights</spell> and <spell:Vicious Mockery>Vicious Mockery</spell> are recommended.",
       "Whenever you gain a Bard level, you can replace one of your cantrips with another cantrip of your choice from the Bard spell list.",
       "When you reach Bard levels 4 and 10, you learn another cantrip of your choice from the Bard spell list.",

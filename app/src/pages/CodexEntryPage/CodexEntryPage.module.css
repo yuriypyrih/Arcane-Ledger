@@ -88,6 +88,10 @@
   gap: 0.3rem;
 }
 
+.detailItemFullWidth {
+  grid-column: 1 / -1;
+}
+
 .detailButton {
   border: 0;
   border-radius: 16px;

@@ -40,7 +40,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
     features: [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.SPELLCASTING, {
         description: [
-          "You have learned to cast spells. The information below details how you use spellcasting as an Arcane Trickster.",
+          "You have learned to cast spells.",
           "<strong>Cantrips.</strong> You know three cantrips: <spell:Mage Hand>Mage Hand</spell> and two other cantrips of your choice from the Wizard spell list. <spell:Mind Sliver>Mind Sliver</spell> and <spell:Minor Illusion>Minor Illusion</spell> are recommended.",
           "Whenever you gain a Rogue level, you can replace one of your cantrips, except <spell:Mage Hand>Mage Hand</spell>, with another Wizard cantrip of your choice.",
           "When you reach Rogue level 10, you learn another Wizard cantrip of your choice.",

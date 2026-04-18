@@ -229,7 +229,7 @@ export const fighterSubclassEntries: SubclassEntry[] = [
     features: [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.SPELLCASTING, {
         description: [
-          "You have learned to cast spells. The information below details how you use spellcasting as an Eldritch Knight.",
+          "You have learned to cast spells.",
           "<strong>Cantrips.</strong> You know two cantrips of your choice from the Wizard spell list. <spell:Ray of Frost>Ray of Frost</spell> and <spell:Shocking Grasp>Shocking Grasp</spell> are recommended. Whenever you gain a Fighter level, you can replace one of these cantrips with another cantrip of your choice from the Wizard spell list.",
           "When you reach Fighter level 10, you learn another Wizard cantrip of your choice.",
           "<strong>Spell Slots.</strong> The Eldritch Knight Spellcasting table shows how many spell slots you have to cast your level 1+ spells. You regain all expended slots when you finish a <link:long-rest>Long Rest</link>.",

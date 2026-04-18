@@ -3,6 +3,7 @@ import { Link, useNavigate, useParams, useSearchParams } from "react-router-dom"
 import CodexDivinityDrawer from "../../components/CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import CodexFeatDrawer from "../../components/CodexPage/CodexFeatDrawer/CodexFeatDrawer";
 import CodexSpellDrawer from "../../components/CodexPage/CodexSpellDrawer/CodexSpellDrawer";
+import ClassProgressionTable from "../../components/CodexPage/ClassProgressionTable";
 import CellContainer from "../../components/CellContainer/CellContainer";
 import {
   FeatureDisclosureRow,
@@ -303,9 +304,9 @@ function CodexEntryPage() {
     setSelectedSpellReference(null);
     setSelectedDivinityReference(null);
     setSelectedFeatReference(null);
-    setExpandedSectionKeys([]);
+    setExpandedSectionKeys(classFeaturesSectionKey ? [classFeaturesSectionKey] : []);
     setExpandedFeatureKeys([]);
-  }, [entry]);
+  }, [entry, classFeaturesSectionKey]);
 
   function openWeaponReference(title: string, keywords: string[]) {
     const referenceEntries = getKeywordReferences(keywords);
@@ -489,7 +490,11 @@ function CodexEntryPage() {
             </div>
           ) : (
             <>
-              <p className={styles.badge}>{formatCodexLabel(entry.category)}</p>
+              <p className={styles.badge}>
+                {entry.category === ENTRY_CATEGORIES.CLASSES
+                  ? "Class"
+                  : formatCodexLabel(entry.category)}
+              </p>
               <div className={styles.titleRow}>
                 <h2>{entry.name}</h2>
                 {"rarity" in entry ? <RarityPill rarity={entry.rarity} /> : null}
@@ -560,6 +565,15 @@ function CodexEntryPage() {
                       <span>Starting Equipment</span>
                       <strong>{classStartingEquipment}</strong>
                     </div>
+                    {entry.features.length > 0 ? (
+                      <div className={`${styles.detailItem} ${styles.detailItemFullWidth}`}>
+                        <span>Level Progression</span>
+                        <ClassProgressionTable
+                          featureRows={entry.features}
+                          subclassEntries={classSubclassEntries}
+                        />
+                      </div>
+                    ) : null}
                   </>
                 ) : null}
 

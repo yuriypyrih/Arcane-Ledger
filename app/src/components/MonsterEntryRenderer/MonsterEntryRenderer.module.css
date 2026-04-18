@@ -8,6 +8,14 @@
   padding: var(--space-card-padding-tight);
 }
 
+.entryPlain {
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+}
+
 .section {
   display: grid;
   gap: 0.5rem;

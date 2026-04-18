@@ -17,7 +17,7 @@ export const artificerFeatures: ArtificerFeatureClassObj[] = [
     featureOverrides: {
       [CLASS_FEATURE.SPELLCASTING]: {
         description: [
-          "You have learned how to channel magical energy through objects. See 'Spells' for the rules on spellcasting. The information below details how you use those rules with Artificer spells, which appear in the Artificer spell list later in the class's description.",
+          "You have learned how to channel magical energy through objects.",
           "<strong>Tools Required.</strong> You produce your Artificer spells through tools. You can use Thieves' Tools, Tinker's Tools, or another kind of Artisan's Tools with which you have proficiency as a Spellcasting Focus, and you must have one of those focuses in hand when you cast an Artificer spell, meaning the spell has a Material component when you cast it.",
           "<strong>Cantrips.</strong> You know two Artificer cantrips of your choice. <spell:Acid Splash>Acid Splash</spell> and <spell:Prestidigitation>Prestidigitation</spell> are recommended. Whenever you finish a <link:long-rest>Long Rest</link>, you can replace one of your cantrips from this feature with another Artificer cantrip of your choice.",
           "When you reach Artificer levels 10 and 14, you learn another Artificer cantrip of your choice, as shown in the Cantrips column of the Artificer Features table.",

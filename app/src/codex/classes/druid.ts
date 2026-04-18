@@ -28,7 +28,7 @@ export const druidFeatures: DruidFeatureClassObj[] = [
     featureOverrides: {
       [CLASS_FEATURE.SPELLCASTING]: {
         description: [
-          "You have learned to cast spells through studying the mystical forces of nature. See 'Spells' for the rules on spellcasting. The information below details how you use those rules with Druid spells, which appear on the Druid spell list later in the class's description.",
+          "You have learned to cast spells through studying the mystical forces of nature.",
           "<strong>Cantrips.</strong> You know two cantrips of your choice from the Druid spell list. <spell:Druidcraft>Druidcraft</spell> and <spell:Produce Flame>Produce Flame</spell> are recommended.",
           "Whenever you gain a Druid level, you can replace one of your cantrips with another cantrip of your choice from the Druid spell list.",
           "When you reach Druid levels 4 and 10, you learn another cantrip of your choice from the Druid spell list, as shown in the Cantrips column of the Druid Features table.",

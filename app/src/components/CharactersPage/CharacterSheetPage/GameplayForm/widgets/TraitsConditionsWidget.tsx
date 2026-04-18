@@ -1488,6 +1488,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           status="ready"
           badgeLabel="Wild Shape"
           onClose={() => setSelectedStatusEntryId(null)}
+          contentSurface="plain"
+          showHeaderDivider
           footer={
             <button type="button" className={shared.cancelButton} onClick={endSelectedWildShape}>
               End Wild Shape

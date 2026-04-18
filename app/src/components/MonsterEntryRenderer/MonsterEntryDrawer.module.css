@@ -1,5 +1,6 @@
-.body {
-  padding-right: 0.12rem;
+.bodyWithHeaderDivider {
+  border-top: 1px solid rgba(75, 47, 29, 0.08);
+  padding-top: 0.72rem;
 }
 
 .statusState {

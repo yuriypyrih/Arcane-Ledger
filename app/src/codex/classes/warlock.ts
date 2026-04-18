@@ -280,7 +280,7 @@ export const warlockFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
   },
   [CLASS_FEATURE.PACT_MAGIC]: {
     description: [
-      "Through occult ceremony, you have formed a pact with a mysterious entity to gain magical powers. The entity is a voice in the shadows, its identity unclear, but its boon to you is concrete: the ability to cast spells. See 'Spells' for the rules on spellcasting. The information below details how you use those rules with Warlock spells, which appear in the Warlock spell list later in the class's description.",
+      "Through occult ceremony, you have formed a pact with a mysterious entity to gain magical powers. The entity is a voice in the shadows, its identity unclear, but its boon to you is concrete: the ability to cast spells.",
       "<strong>Cantrips.</strong> You know two Warlock cantrips of your choice. Eldritch Blast and Prestidigitation are recommended. Whenever you gain a Warlock level, you can replace one of your cantrips from this feature with another Warlock cantrip of your choice.",
       "When you reach Warlock levels 4 and 10, you learn another Warlock cantrip of your choice, as shown in the Cantrips column of the Warlock Features table.",
       "<strong>Spell Slots.</strong> The Warlock Features table shows how many spell slots you have to cast your Warlock spells of levels 1 through 5. The table also shows the level of those slots, all of which are the same level. You regain all expended Pact Magic spell slots when you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",

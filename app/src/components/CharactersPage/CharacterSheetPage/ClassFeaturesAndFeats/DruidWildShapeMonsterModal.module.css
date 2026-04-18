@@ -1,72 +1,22 @@
 .modalPanel {
+  height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
   gap: 1rem;
   min-height: 0;
   width: min(1040px, 100%);
   overflow: hidden;
 }
 
-.header {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.9rem;
-  padding: var(--overlay-panel-top-padding) var(--overlay-panel-inline-padding) 0.9rem;
-}
-
-.headerContent {
-  display: grid;
-  gap: 0.35rem;
-  min-width: 0;
-}
-
-.eyebrow,
-.title,
-.summary,
-.helperText,
 .selectionLabel,
-.selectionCount,
+.selectionLimit,
 .emptySelectionText,
 .noticeText {
   margin: 0;
 }
 
-.eyebrow {
-  color: var(--color-accent);
-  font-size: 0.76rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.title {
-  font-size: 1.3rem;
-  line-height: 1.1;
-}
-
-.summary,
 .helperText,
-.selectionCount,
+.selectionLimit,
 .emptySelectionText {
   color: var(--color-ink-soft);
-}
-
-.summary {
-  font-size: 0.94rem;
-  line-height: 1.45;
-}
-
-.closeButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: none;
-  border-radius: 12px;
-  background: rgba(75, 47, 29, 0.08);
-  color: var(--color-ink);
-  cursor: pointer;
-  min-height: 40px;
-  min-width: 40px;
-  padding: 0;
 }
 
 .body {
@@ -76,7 +26,6 @@
   grid-template-rows: auto auto minmax(0, 1fr);
   min-height: 0;
   overflow: hidden;
-  padding: 0 var(--overlay-panel-inline-padding) var(--overlay-panel-bottom-padding);
 }
 
 .selectionSection {
@@ -93,9 +42,55 @@
   gap: 0.75rem;
 }
 
+.selectionMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .selectionLabel {
   font-size: 0.78rem;
   font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.selectionLimit {
+  font-size: 0.88rem;
+  line-height: 1.35;
+}
+
+.selectionCount {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  border: 1px solid rgba(95, 138, 68, 0.22);
+  border-radius: 999px;
+  background: rgba(95, 138, 68, 0.12);
+  color: #37522a;
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0;
+  padding: 0.44rem 0.68rem;
+}
+
+.selectionCountValue {
+  color: var(--color-ink);
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+}
+
+.selectionCountDivider {
+  color: rgba(55, 82, 42, 0.6);
+  margin: 0 0.1rem;
+}
+
+.selectionCountLabel {
+  color: #4f6f3c;
+  font-size: 0.72rem;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -189,14 +184,16 @@
 
 .tableSection {
   display: grid;
+  align-content: stretch;
   gap: 0.75rem;
+  height: 100%;
   grid-template-rows: auto minmax(0, 1fr) auto;
   min-height: 0;
 }
 
 .tableScrollArea {
-  height: 300px;
-  max-height: 300px;
+  height: 100%;
+  max-height: none;
   min-height: 0;
   overflow: auto;
 }
@@ -247,5 +244,9 @@
   .selectionHeader {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .selectionMeta {
+    justify-content: flex-start;
   }
 }

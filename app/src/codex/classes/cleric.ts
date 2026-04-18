@@ -28,7 +28,7 @@ export const clericFeatures: ClericFeatureClassObj[] = [
     featureOverrides: {
       [CLASS_FEATURE.SPELLCASTING]: {
         description: [
-          "You have learned to cast spells through prayer and meditation. See 'Spells' for the rules on spellcasting. The information below details how you use those rules with Cleric spells, which appear on the Cleric spell list later in the class's description.",
+          "You have learned to cast spells through prayer and meditation.",
           "<strong>Cantrips.</strong> You know three cantrips of your choice from the Cleric spell list. <spell:Guidance>Guidance</spell>, <spell:Sacred Flame>Sacred Flame</spell>, and <spell:Thaumaturgy>Thaumaturgy</spell> are recommended.",
           "Whenever you gain a Cleric level, you can replace one of your cantrips with another cantrip of your choice from the Cleric spell list.",
           "When you reach Cleric levels 4 and 10, you learn another cantrip of your choice from the Cleric spell list, as shown in the Cantrips column of the Cleric Features table.",

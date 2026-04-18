@@ -1,9 +1,7 @@
 import { useNavigate } from "react-router-dom";
 import { ARMOR_TYPES, ENTRY_CATEGORIES, type SpellEntry } from "../../../codex/entries";
-import { formatStarterPackStartingEquipmentSummary } from "../../../codex/classes/starterPack";
 import SpellListRow from "../../SpellListRow";
 import type { CodexEntry, CodexStatus } from "../../../types";
-import { getPrimaryAbilityForClass } from "../../../pages/CharactersPage/proficiencyClassData";
 import {
   formatCodexLabel,
   formatSpellSubtitle,
@@ -193,30 +191,6 @@ function CodexResults({
                       120
                     )}
                   </p>
-                  {entry.category === ENTRY_CATEGORIES.CLASSES ? (
-                    <>
-                      <small>
-                        Primary Ability:{" "}
-                        {entry.starterPack?.primaryAbilityLabel ??
-                          (getPrimaryAbilityForClass(entry.name)
-                            ? formatCodexLabel(getPrimaryAbilityForClass(entry.name) as string)
-                            : "Not configured")}
-                      </small>
-                      <small>
-                        Hit Point Die:{" "}
-                        {entry.starterPack?.hitPointDieLabel ?? formatCodexLabel(entry.hitPointDie)}
-                      </small>
-                      <small>
-                        Starting Equipment:{" "}
-                        {entry.starterPack
-                          ? truncateCodexText(
-                              formatStarterPackStartingEquipmentSummary(entry.starterPack.startingEquipment),
-                              120
-                            )
-                          : "Not configured"}
-                      </small>
-                    </>
-                  ) : null}
                 </article>
               </button>
             );

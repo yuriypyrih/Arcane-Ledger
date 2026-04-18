@@ -21,7 +21,7 @@ export const rangerFeatures: RangerFeatureClassObj[] = [
     featureOverrides: {
       [CLASS_FEATURE.SPELLCASTING]: {
         description: [
-          "You have learned to channel the magical essence of nature to cast spells. See 'Spells' for the rules on spellcasting. The information below details how you use those rules with Ranger spells, which appear in the Ranger spell list later in the class's description.",
+          "You have learned to channel the magical essence of nature to cast spells.",
           "<strong>Spell Slots.</strong> The Ranger Features table shows how many spell slots you have to cast your level 1+ spells. You regain all expended slots when you finish a <link:long-rest>Long Rest</link>.",
           "<strong>Prepared Spells of Level 1+.</strong> You prepare the list of level 1+ spells that are available for you to cast with this feature. To start, choose two level 1 Ranger spells. <spell:Cure Wounds>Cure Wounds</spell> and <spell:Ensnaring Strike>Ensnaring Strike</spell> are recommended.",
           "The number of spells on your list increases as you gain Ranger levels, as shown in the Prepared Spells column of the Ranger Features table. Whenever that number increases, choose additional Ranger spells until the number of spells on your list matches the number in the Ranger Features table. The chosen spells must be of a level for which you have spell slots.",

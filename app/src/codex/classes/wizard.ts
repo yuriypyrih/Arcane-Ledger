@@ -31,7 +31,7 @@ export const wizardFeatures: WizardFeatureClassObj[] = [
     featureOverrides: {
       [CLASS_FEATURE.SPELLCASTING]: {
         description: [
-          "As a student of arcane magic, you have learned to cast spells. See 'Spells' for the rules on spellcasting. The information below details how you use those rules with Wizard spells, which appear in the Wizard spell list later in the class's description.",
+          "As a student of arcane magic, you have learned to cast spells.",
           "<strong>Cantrips.</strong> You know three Wizard cantrips of your choice. Light, Mage Hand, and Ray of Frost are recommended. Whenever you finish a <link:long-rest>Long Rest</link>, you can replace one of your cantrips from this feature with another Wizard cantrip of your choice.",
           "When you reach Wizard levels 4 and 10, you learn another Wizard cantrip of your choice, as shown in the Cantrips column of the Wizard Features table.",
           "<strong>Spellbook.</strong> Your wizardly apprenticeship culminated in the creation of a unique book: your spellbook. It is a Tiny object that weighs 3 pounds, contains 100 pages, and can be read only by you or someone casting Identify. You determine the book's appearance and materials, such as a gilt-edged tome or a collection of vellum bound with twine.",

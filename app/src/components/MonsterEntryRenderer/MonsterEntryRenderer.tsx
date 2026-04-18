@@ -1,5 +1,6 @@
 import { Pentagon } from "lucide-react";
 import type { MonsterRecord } from "../../types";
+import { renderCodexRichText } from "../../utils/codex/renderCodexRichText";
 import statsStyles from "../CharactersPage/CharacterSheetPage/StatsForm/StatsForm.module.css";
 import {
   buildMonsterActionGroups,
@@ -19,6 +20,8 @@ type MonsterEntryRendererProps = {
   monster: MonsterRecord;
   className?: string;
   headingId?: string;
+  showHeading?: boolean;
+  surface?: "card" | "plain";
 };
 
 function FeatureGroup({ title, description, features }: MonsterActionGroup) {
@@ -32,7 +35,9 @@ function FeatureGroup({ title, description, features }: MonsterActionGroup) {
     <section className={styles.featureGroup}>
       <div className={styles.groupHeader}>
         <h3>{title}</h3>
-        {groupDescription ? <p className={styles.groupDescription}>{groupDescription}</p> : null}
+        {groupDescription ? (
+          <p className={styles.groupDescription}>{renderCodexRichText(groupDescription)}</p>
+        ) : null}
       </div>
       {features?.length ? (
         <div className={styles.featureList}>
@@ -46,7 +51,7 @@ function FeatureGroup({ title, description, features }: MonsterActionGroup) {
                   <strong>{getKnownMonsterText(feature.name) ?? "Unnamed Feature"}</strong>
                   {featureMeta ? <span className={styles.featureMeta}>{featureMeta}</span> : null}
                 </div>
-                {descriptionText ? <p>{descriptionText}</p> : null}
+                {descriptionText ? <p>{renderCodexRichText(descriptionText)}</p> : null}
               </article>
             );
           })}
@@ -101,9 +106,7 @@ function AbilityCell({
         <span className={statsStyles.combinedValueDivider} aria-hidden="true" />
         <div className={styles.abilityValueStack}>
           <span className={styles.abilityValueLabel}>SAVE</span>
-          <strong
-            className={hasSavingThrowProficiency ? styles.abilityValueProficient : undefined}
-          >
+          <strong className={hasSavingThrowProficiency ? styles.abilityValueProficient : undefined}>
             {resolvedSavingThrow}
           </strong>
         </div>
@@ -112,20 +115,35 @@ function AbilityCell({
   );
 }
 
-function MonsterEntryRenderer({ monster, className, headingId }: MonsterEntryRendererProps) {
+function MonsterEntryRenderer({
+  monster,
+  className,
+  headingId,
+  showHeading = true,
+  surface = "card"
+}: MonsterEntryRendererProps) {
   const titleMeta = formatMonsterTitleMeta(monster);
   const description = getKnownMonsterText(monster.desc);
   const speed = formatMonsterSpeed(monster.speed);
   const detailRows = buildMonsterDetailRows(monster);
   const actionGroups = buildMonsterActionGroups(monster);
+  const shouldRenderIntro = showHeading || description;
 
   return (
-    <article className={`${styles.entry}${className ? ` ${className}` : ""}`}>
-      <section className={styles.section}>
-        <h2 id={headingId}>{getKnownMonsterText(monster.name) ?? "Unknown Monster"}</h2>
-        {titleMeta ? <p className={styles.subtitle}>{titleMeta}</p> : null}
-        {description ? <p className={styles.description}>{description}</p> : null}
-      </section>
+    <article
+      className={`${styles.entry} ${surface === "plain" ? styles.entryPlain : ""}${
+        className ? ` ${className}` : ""
+      }`.trim()}
+    >
+      {shouldRenderIntro ? (
+        <section className={styles.section}>
+          {showHeading ? (
+            <h2 id={headingId}>{getKnownMonsterText(monster.name) ?? "Unknown Monster"}</h2>
+          ) : null}
+          {showHeading && titleMeta ? <p className={styles.subtitle}>{titleMeta}</p> : null}
+          {description ? <p className={styles.description}>{renderCodexRichText(description)}</p> : null}
+        </section>
+      ) : null}
 
       <section className={styles.section}>
         <div className={styles.inlineRows}>

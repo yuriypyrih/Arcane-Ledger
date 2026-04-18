@@ -28,7 +28,7 @@ export const sorcererFeatures: SorcererFeatureClassObj[] = [
     featureOverrides: {
       [CLASS_FEATURE.SPELLCASTING]: {
         description: [
-          "Drawing from your innate magic, you can cast spells. See 'Spells' for the rules on spellcasting. The information below details how you use those rules with Sorcerer spells, which appear in the Sorcerer spell list later in the class's description.",
+          "Drawing from your innate magic, you can cast spells.",
           "<strong>Cantrips.</strong> You know four Sorcerer cantrips of your choice. <spell:Light>Light</spell>, <spell:Prestidigitation>Prestidigitation</spell>, <spell:Shocking Grasp>Shocking Grasp</spell>, and <spell:Sorcerous Burst>Sorcerous Burst</spell> are recommended.",
           "Whenever you gain a Sorcerer level, you can replace one of your cantrips from this feature with another Sorcerer cantrip of your choice.",
           "When you reach Sorcerer levels 4 and 10, you learn another Sorcerer cantrip of your choice, as shown in the Cantrips column of the Sorcerer Features table.",

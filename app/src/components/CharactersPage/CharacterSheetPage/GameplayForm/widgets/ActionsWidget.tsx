@@ -5648,6 +5648,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           badgeLabel="Wild Shape Preview"
           backdropClassName={styles.wildShapePreviewDrawerBackdrop}
           onClose={() => setSelectedWildShapePreviewSlug(null)}
+          contentSurface="plain"
+          showHeaderDivider
         />
       ) : null}
 

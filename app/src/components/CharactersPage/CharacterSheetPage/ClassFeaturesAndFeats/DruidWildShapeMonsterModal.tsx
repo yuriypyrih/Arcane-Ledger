@@ -1,14 +1,30 @@
-import { Minus, Plus, X } from "lucide-react";
+import { Minus, Plus } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { fetchMonsterBySlug } from "../../../../api";
 import MonsterCodexTable from "../../../CodexPage/MonsterCodexTable";
 import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../../../constants/monsters";
-import { SheetModal } from "../../../Overlay";
+import {
+  OverlayBody,
+  OverlayCloseButton,
+  OverlayEyebrow,
+  OverlayHeader,
+  OverlayHeaderContent,
+  OverlaySummary,
+  OverlayTitle,
+  OverlayTitleRow,
+  SheetModal
+} from "../../../Overlay";
 import { MonsterEntryDrawer } from "../../../MonsterEntryRenderer";
 import SearchField from "../../../SearchField";
 import { getDruidWildShapeRulesForCharacter } from "../../../../pages/CharactersPage/classFeatures";
 import { useMonsterEntries } from "../../../../pages/CodexPage/useMonsterEntries";
-import type { Character, CodexStatus, MonsterListItem, MonsterOrdering, MonsterRecord } from "../../../../types";
+import type {
+  Character,
+  CodexStatus,
+  MonsterListItem,
+  MonsterOrdering,
+  MonsterRecord
+} from "../../../../types";
 import styles from "./DruidWildShapeMonsterModal.module.css";
 
 type DruidWildShapeMonsterModalProps = {
@@ -18,7 +34,7 @@ type DruidWildShapeMonsterModalProps = {
   onClose: () => void;
 };
 
-const MONSTERS_PER_PAGE = 12;
+const MONSTERS_PER_PAGE = 20;
 const DEFAULT_VALID_MONSTER_TYPE = "Beast";
 const DEFAULT_VALID_MONSTER_SOURCE = "wotc-srd";
 
@@ -41,8 +57,12 @@ function DruidWildShapeMonsterModal({
 }: DruidWildShapeMonsterModalProps) {
   const rules = getDruidWildShapeRulesForCharacter(character);
   const [query, setQuery] = useState("");
-  const [monsterTypeFilter, setMonsterTypeFilter] = useState<string | null>(DEFAULT_VALID_MONSTER_TYPE);
-  const [monsterSourceFilter, setMonsterSourceFilter] = useState<string | null>(DEFAULT_VALID_MONSTER_SOURCE);
+  const [monsterTypeFilter, setMonsterTypeFilter] = useState<string | null>(
+    DEFAULT_VALID_MONSTER_TYPE
+  );
+  const [monsterSourceFilter, setMonsterSourceFilter] = useState<string | null>(
+    DEFAULT_VALID_MONSTER_SOURCE
+  );
   const [monsterOrdering, setMonsterOrdering] = useState<MonsterOrdering>("cr");
   const [onlyValidBeasts, setOnlyValidBeasts] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
@@ -225,32 +245,42 @@ function DruidWildShapeMonsterModal({
         onClose={onClose}
         panelClassName={styles.modalPanel}
       >
-        <div className={styles.header}>
-          <div className={styles.headerContent}>
-            <p className={styles.eyebrow}>Wild Shape</p>
-            <h2 id="druid-wild-shape-monster-modal-title" className={styles.title}>
-              Choose beast shapes
-            </h2>
-          </div>
+        <OverlayHeader>
+          <OverlayHeaderContent>
+            <OverlayEyebrow>Wild Shape</OverlayEyebrow>
+            <OverlayTitleRow>
+              <OverlayTitle as="h2" id="druid-wild-shape-monster-modal-title">
+                Choose beast shapes
+              </OverlayTitle>
+            </OverlayTitleRow>
+            <OverlaySummary>
+              {rules
+                ? `Learn up to ${rules.knownForms} forms. Valid beasts must be CR ${rules.maxCrLabel} or lower.`
+                : "Choose the beast entries you want ready for Wild Shape."}
+            </OverlaySummary>
+          </OverlayHeaderContent>
+          <OverlayCloseButton label="Close wild shape monster picker" onClick={onClose} />
+        </OverlayHeader>
 
-          <button
-            type="button"
-            className={styles.closeButton}
-            onClick={onClose}
-            aria-label="Close wild shape monster picker"
-          >
-            <X size={18} aria-hidden="true" />
-          </button>
-        </div>
-
-        <div className={styles.body}>
+        <OverlayBody className={styles.body}>
           <section className={styles.selectionSection}>
             <div className={styles.selectionHeader}>
               <p className={styles.selectionLabel}>Chosen forms</p>
               {rules ? (
-                <p className={styles.selectionCount}>
-                  Max CR {rules.maxCrLabel} | {selectedMonsters.length} / {rules.knownForms}
-                </p>
+                <div className={styles.selectionMeta}>
+                  <p className={styles.selectionLimit}>Max CR {rules.maxCrLabel}</p>
+                  <p
+                    className={styles.selectionCount}
+                    aria-label={`${selectedMonsters.length} of ${rules.knownForms} forms selected`}
+                  >
+                    <span className={styles.selectionCountValue}>
+                      {selectedMonsters.length}
+                      <span className={styles.selectionCountDivider}>/</span>
+                      {rules.knownForms}
+                    </span>
+                    <span className={styles.selectionCountLabel}>forms</span>
+                  </p>
+                </div>
               ) : null}
             </div>
 
@@ -376,7 +406,7 @@ function DruidWildShapeMonsterModal({
               );
             }}
           />
-        </div>
+        </OverlayBody>
       </SheetModal>
 
       {previewSlug ? (
@@ -386,6 +416,8 @@ function DruidWildShapeMonsterModal({
           onClose={() => setPreviewSlug(null)}
           badgeLabel="Wild Shape Preview"
           backdropClassName={styles.previewDrawerBackdrop}
+          contentSurface="plain"
+          showHeaderDivider
         />
       ) : null}
     </>

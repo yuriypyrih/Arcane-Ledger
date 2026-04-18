@@ -3414,6 +3414,8 @@ function ClassFeatureList({
           status="ready"
           onClose={() => setSelectedWildShapeMonster(null)}
           badgeLabel="Wild Shape"
+          contentSurface="plain"
+          showHeaderDivider
         />
       ) : null}
     </>

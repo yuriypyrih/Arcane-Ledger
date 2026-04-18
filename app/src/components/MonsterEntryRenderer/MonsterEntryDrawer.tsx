@@ -1,9 +1,19 @@
-import { X } from "lucide-react";
 import { useId, type ReactNode } from "react";
-import { SheetDrawer } from "../Overlay";
+import {
+  OverlayBadge,
+  OverlayBody,
+  OverlayCloseButton,
+  OverlayFooter,
+  OverlayHeader,
+  OverlayHeaderContent,
+  OverlaySummary,
+  OverlayTitle,
+  OverlayTitleRow,
+  SheetDrawer
+} from "../Overlay";
 import type { CodexStatus, MonsterRecord } from "../../types";
-import sheetStyles from "../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import MonsterEntryRenderer from "./MonsterEntryRenderer";
+import { formatMonsterTitleMeta, getKnownMonsterText } from "./monsterEntryFormatting";
 import styles from "./MonsterEntryDrawer.module.css";
 
 type MonsterEntryDrawerProps = {
@@ -14,6 +24,8 @@ type MonsterEntryDrawerProps = {
   backdropClassName?: string;
   drawerClassName?: string;
   footer?: ReactNode;
+  contentSurface?: "card" | "plain";
+  showHeaderDivider?: boolean;
 };
 
 function MonsterEntryDrawer({
@@ -23,9 +35,23 @@ function MonsterEntryDrawer({
   badgeLabel = "Monster",
   backdropClassName,
   drawerClassName,
-  footer
+  footer,
+  contentSurface = "card",
+  showHeaderDivider = false
 }: MonsterEntryDrawerProps) {
   const titleId = useId();
+  const title =
+    status === "ready" && monster
+      ? (getKnownMonsterText(monster.name) ?? "Unknown Monster")
+      : status === "loading"
+        ? "Loading monster..."
+        : "Monster unavailable";
+  const summary =
+    status === "ready" && monster
+      ? formatMonsterTitleMeta(monster)
+      : status === "loading"
+        ? "Fetching the full monster entry."
+        : "The full monster entry could not be loaded.";
 
   return (
     <SheetDrawer
@@ -34,41 +60,50 @@ function MonsterEntryDrawer({
       backdropClassName={backdropClassName}
       drawerClassName={drawerClassName}
     >
-      <div className={sheetStyles.spellDrawerHeader}>
-        <div className={sheetStyles.spellDrawerHeaderContent}>
-          <p className={sheetStyles.spellDrawerBadge}>{badgeLabel}</p>
-        </div>
-        <button
-          type="button"
-          className={sheetStyles.spellDrawerCloseButton}
-          onClick={onClose}
-          aria-label="Close monster preview"
-        >
-          <X size={18} aria-hidden="true" />
-        </button>
-      </div>
+      <OverlayHeader>
+        <OverlayHeaderContent>
+          <OverlayBadge>{badgeLabel}</OverlayBadge>
+          <OverlayTitleRow>
+            <OverlayTitle id={titleId}>{title}</OverlayTitle>
+          </OverlayTitleRow>
+          <OverlaySummary>{summary}</OverlaySummary>
+        </OverlayHeaderContent>
+        <OverlayCloseButton label="Close monster preview" onClick={onClose} />
+      </OverlayHeader>
 
-      <div className={`${sheetStyles.spellDrawerBody} ${styles.body}`}>
+      <OverlayBody
+        className={[styles.body, showHeaderDivider ? styles.bodyWithHeaderDivider : ""]
+          .join(" ")
+          .trim()}
+      >
         {status === "loading" ? (
           <div className={styles.statusState}>
-            <h3 id={titleId}>Loading monster...</h3>
             <p>Fetching the full monster entry.</p>
           </div>
         ) : null}
 
         {status === "error" ? (
           <div className={styles.statusState}>
-            <h3 id={titleId}>Monster unavailable</h3>
             <p>The full monster entry could not be loaded.</p>
           </div>
         ) : null}
 
-        {status === "ready" && monster ? (
-          <MonsterEntryRenderer monster={monster} headingId={titleId} />
+        {status === "ready" && !monster ? (
+          <div className={styles.statusState}>
+            <p>No monster entry is available for this preview.</p>
+          </div>
         ) : null}
-      </div>
 
-      {footer ? <div className={`${sheetStyles.spellDrawerActions} ${styles.footer}`}>{footer}</div> : null}
+        {status === "ready" && monster ? (
+          <MonsterEntryRenderer
+            monster={monster}
+            showHeading={false}
+            surface={contentSurface}
+          />
+        ) : null}
+      </OverlayBody>
+
+      {footer ? <OverlayFooter className={styles.footer}>{footer}</OverlayFooter> : null}
     </SheetDrawer>
   );
 }
