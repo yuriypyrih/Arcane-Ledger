@@ -47,7 +47,6 @@ export function getClericLifeDomainFeatureActions(
     level: character.level ?? 0,
     classFeatureState: character.classFeatureState
   });
-
   return [
     {
       key: preserveLifeActionKey,

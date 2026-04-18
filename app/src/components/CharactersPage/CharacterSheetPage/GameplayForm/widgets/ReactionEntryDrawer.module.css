@@ -1,12 +1,7 @@
 .footerActions {
   display: grid;
-  align-items: stretch;
-}
-
-.castActionMeta {
-  display: grid;
-  gap: 0.42rem;
-  min-width: 0;
+  gap: 0.65rem;
+  width: 100%;
 }
 
 .castActionResource {
@@ -17,26 +12,19 @@
   text-align: left;
 }
 
-.inlineLinkButton {
-  border: none;
-  background: transparent;
-  color: var(--color-accent);
-  cursor: pointer;
-  font: inherit;
-  margin: 0;
-  padding: 0;
-  text-decoration: underline;
-  text-underline-offset: 0.12em;
-}
-
-.inlineLinkButton:hover {
-  color: var(--color-accent-strong, #8f4d1f);
-}
-
 .castActionButton {
-  gap: 0.55rem;
-  justify-content: space-between;
+  align-self: stretch;
+  justify-content: center;
+  margin-left: 0;
   width: 100%;
+}
+
+.castActionButtonContent {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-width: 0;
 }
 
 .castActionShape {

@@ -45,7 +45,8 @@ type SelectedFeatReference = {
 
 type CodexDivinityDrawerProps = {
   divinity: DivinityEntry;
-  character?: Pick<Character, "className" | "level" | "abilities" | "feats">;
+  character?: Pick<Character, "className" | "level" | "abilities" | "feats"> &
+    Partial<Pick<Character, "subclassId">>;
   resources?: FeatureActionResource[];
   footer?: ReactNode;
   onClose: () => void;

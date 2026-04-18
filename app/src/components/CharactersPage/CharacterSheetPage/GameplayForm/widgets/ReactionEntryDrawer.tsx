@@ -1,25 +1,16 @@
-import clsx from "clsx";
-import { useEffect, useState, type ReactNode } from "react";
-import { X } from "lucide-react";
+import type { ReactNode } from "react";
 import ActionShape from "../../../../ActionShape";
-import {
-  type DivinityEntry,
-  type ReactionEntry,
-  type SpellEntry
-} from "../../../../../codex/entries";
-import DescriptionContent from "../../../../../components/DescriptionContent/DescriptionContent";
-import CodexDivinityDrawer from "../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
-import CodexSpellDrawer from "../../../../CodexPage/CodexSpellDrawer/CodexSpellDrawer";
-import KeywordReferenceDrawer from "../../../../../components/KeywordReferenceDrawer/KeywordReferenceDrawer";
+import type { ReactionEntry } from "../../../../../codex/entries";
+import type { FeatureActionResource } from "../../../../../pages/CharactersPage/classFeatures";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import type { ResolvedKeywordReference } from "../../../../../utils/codex/renderCodexRichText";
-import actionDrawerStyles from "./GameplayActionDrawer.module.css";
+import GameplayActionDrawer from "./GameplayActionDrawer";
 import styles from "./ReactionEntryDrawer.module.css";
 
 type ReactionEntryDrawerProps = {
   reaction: ReactionEntry;
   actionWarning: string | null;
   headerBadges?: string[];
+  headerResources?: FeatureActionResource[];
   resourceSummary?: string | null;
   customContent?: ReactNode;
   onCast: () => void;
@@ -30,153 +21,46 @@ function ReactionEntryDrawer({
   reaction,
   actionWarning,
   headerBadges = [],
+  headerResources = [],
   resourceSummary = null,
   customContent = null,
   onCast,
   onClose
 }: ReactionEntryDrawerProps) {
-  const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
-  const [selectedDivinityReference, setSelectedDivinityReference] = useState<DivinityEntry | null>(
-    null
-  );
-  const [selectedKeyword, setSelectedKeyword] = useState<ResolvedKeywordReference | null>(null);
-
-  useEffect(() => {
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key !== "Escape") {
-        return;
-      }
-
-      if (selectedKeyword) {
-        setSelectedKeyword(null);
-        return;
-      }
-
-      if (selectedDivinityReference) {
-        setSelectedDivinityReference(null);
-        return;
-      }
-
-      if (selectedSpellReference) {
-        setSelectedSpellReference(null);
-        return;
-      }
-
-      onClose();
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [onClose, selectedDivinityReference, selectedKeyword, selectedSpellReference]);
-
   return (
-    <>
-      <div className={sheetStyles.spellDrawerBackdrop} role="presentation" onClick={onClose}>
-        <section
-          className={sheetStyles.spellDrawer}
-          role="dialog"
-          aria-modal="true"
-          aria-labelledby="reaction-drawer-title"
-          onClick={(event) => event.stopPropagation()}
-        >
-          <div className={sheetStyles.spellDrawerHeader}>
-            <div className={sheetStyles.spellDrawerHeaderContent}>
-              <p className={sheetStyles.spellDrawerBadge}>Reaction</p>
-              <div className={sheetStyles.spellDrawerTitleRow}>
-                <h3 id="reaction-drawer-title" className={sheetStyles.spellDrawerTitle}>
-                  {reaction.name}
-                </h3>
-                {headerBadges.map((badge) => (
-                  <span key={`${reaction.id}-${badge}`} className={actionDrawerStyles.badgePill}>
-                    {badge}
-                  </span>
-                ))}
-              </div>
-            </div>
-            <button
-              type="button"
-              className={sheetStyles.spellDrawerCloseButton}
-              onClick={onClose}
-              aria-label="Close reaction details"
-            >
-              <X size={18} />
-            </button>
-          </div>
-
-          <div className={sheetStyles.spellDrawerBody}>
-            <div
-              className={clsx(
-                sheetStyles.spellDrawerDescriptionList,
-                sheetStyles.spellDrawerDescriptionSection
-              )}
-            >
-              <DescriptionContent
-                description={reaction.description}
-                entryClassName={sheetStyles.spellDrawerDescriptionLine}
-                strongClassName={sheetStyles.spellDrawerDescriptionStrong}
-                linkClassName={styles.inlineLinkButton}
-                onOpenKeyword={setSelectedKeyword}
-                onOpenSpell={setSelectedSpellReference}
-                onOpenDivinity={setSelectedDivinityReference}
-              />
-            </div>
-
-            {customContent}
-          </div>
-
-          <div className={clsx(sheetStyles.spellDrawerActions, styles.footerActions)}>
-            <div className={styles.castActionMeta}>
-              {resourceSummary ? <p className={styles.castActionResource}>{resourceSummary}</p> : null}
-              {actionWarning ? (
-                <div className={actionDrawerStyles.warningBlock}>
-                  <p className={actionDrawerStyles.warningCard}>{actionWarning}</p>
-                </div>
-              ) : null}
-            </div>
-            <button
-              type="button"
-              className={clsx(sheetStyles.castButton, styles.castActionButton)}
-              onClick={onCast}
-              disabled={actionWarning !== null}
-            >
-              Take Reaction
+    <GameplayActionDrawer
+      title={reaction.name}
+      eyebrow="Reaction"
+      badges={headerBadges}
+      resources={headerResources}
+      description={reaction.description}
+      descriptionAdditions={reaction.descriptionAdditions}
+      warning={actionWarning}
+      footer={
+        <div className={styles.footerActions}>
+          {resourceSummary ? <p className={styles.castActionResource}>{resourceSummary}</p> : null}
+          <button
+            type="button"
+            className={[sheetStyles.castButton, styles.castActionButton].join(" ")}
+            onClick={onCast}
+            disabled={actionWarning !== null}
+          >
+            <span className={styles.castActionButtonContent}>
+              <span>Take Reaction</span>
               <ActionShape
                 shape="reaction"
                 isSelected={actionWarning === null}
                 className={styles.castActionShape}
                 aria-label="Reaction action state"
               />
-            </button>
-          </div>
-        </section>
-      </div>
-
-      {selectedSpellReference ? (
-        <CodexSpellDrawer
-          spell={selectedSpellReference}
-          onClose={() => setSelectedSpellReference(null)}
-        />
-      ) : null}
-      {selectedDivinityReference ? (
-        <CodexDivinityDrawer
-          divinity={selectedDivinityReference}
-          onClose={() => setSelectedDivinityReference(null)}
-        />
-      ) : null}
-      {selectedKeyword ? (
-        <KeywordReferenceDrawer
-          title={selectedKeyword.title}
-          entries={[
-            {
-              title: selectedKeyword.title,
-              description: selectedKeyword.description
-            }
-          ]}
-          badgeLabel="Keyword"
-          onClose={() => setSelectedKeyword(null)}
-        />
-      ) : null}
-    </>
+            </span>
+          </button>
+        </div>
+      }
+      onClose={onClose}
+    >
+      {customContent}
+    </GameplayActionDrawer>
   );
 }
 

@@ -85,11 +85,15 @@ import {
   setBarbarianPrimalKnowledgeSkillSelection
 } from "./barbarian/barbarian";
 import {
+  activateClericBlessingOfTheTrickster,
+  consumeClericWardingFlareUse,
   expendClericChannelDivinityUse,
   getClericBlessedStrikesChoice,
   getClericChannelDivinityUsesRemaining,
   getClericChannelDivinityUsesTotal,
   getClericDivineOrderChoice,
+  getClericWardingFlareUsesRemaining,
+  getClericWardingFlareUsesTotal,
   getKnowledgeDomainBlessingsSkillSelections,
   getKnowledgeDomainBlessingsToolSelection,
   getKnowledgeDomainUnfetteredMindSavingThrowOptions,
@@ -102,7 +106,8 @@ import {
   setClericDivineOrderChoice,
   setKnowledgeDomainBlessingsSkillSelections,
   setKnowledgeDomainBlessingsToolSelection,
-  setKnowledgeDomainUnfetteredMindSavingThrowSelection
+  setKnowledgeDomainUnfetteredMindSavingThrowSelection,
+  wardingFlareReactionEntryId
 } from "./cleric/cleric";
 import {
   activateDruidNatureMagician,
@@ -2743,6 +2748,33 @@ export function activateFeatureActionForCharacter(
     getActiveClassFeatureModule(character.className)?.handleAction?.(character, actionKey) ??
     character
   );
+}
+
+export function activateClericBlessingOfTheTricksterForCharacter(
+  character: Character,
+  target: "self" | "other"
+): Character {
+  return activateClericBlessingOfTheTrickster(character, target);
+}
+
+export const clericWardingFlareReactionEntryId = wardingFlareReactionEntryId;
+
+export function getClericWardingFlareUsesTotalForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): number {
+  return getClericWardingFlareUsesTotal(character);
+}
+
+export function getClericWardingFlareUsesRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId" | "classFeatureState">>
+): number {
+  return getClericWardingFlareUsesRemaining(character);
+}
+
+export function consumeClericWardingFlareUseForCharacter(character: Character): Character {
+  return consumeClericWardingFlareUse(character);
 }
 
 export function getMonkFocusPointsTotalForCharacter(

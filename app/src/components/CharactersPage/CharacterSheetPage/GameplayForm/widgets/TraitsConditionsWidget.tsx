@@ -17,6 +17,7 @@ import {
   applySpellCastFeatureEffectsForCharacter,
   consumeElementalRebukeUseForCharacter,
   consumeBeguilingMagicOrBardicInspirationForCharacter,
+  consumeClericWardingFlareUseForCharacter,
   consumeWarlockBeguilingDefenseUseForCharacter,
   consumeSorcererRestoreBalanceUseForCharacter,
   consumeRogueScionOfTheThreeBloodthirstUseForCharacter,
@@ -37,6 +38,8 @@ import {
   getDruidWildShapeActiveFormForCharacter,
   getElementalRebukeUsesRemainingForCharacter,
   getElementalRebukeUsesTotalForCharacter,
+  getClericWardingFlareUsesRemainingForCharacter,
+  getClericWardingFlareUsesTotalForCharacter,
   getFighterIndomitableUsesRemainingForCharacter,
   getFighterPsiWarriorEnergyDiceRemainingForCharacter,
   getFeatureReactionEntriesForCharacter,
@@ -66,6 +69,7 @@ import {
   paladinElementalRebukeReactionEntryId,
   paladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeOptions,
   paladinGloriousDefenseReactionEntryId,
+  clericWardingFlareReactionEntryId,
   rogueScionOfTheThreeBloodthirstReactionEntryId,
   rangerWinterWalkerChillingRetributionReactionEntryId,
   sorcererRestoreBalanceReactionEntryId,
@@ -78,6 +82,7 @@ import {
   getWarlockStepsOfTheFeyUsesRemainingForCharacter,
   getWarlockStepsOfTheFeyUsesTotalForCharacter,
   removeFeatureStatusEntryForCharacter,
+  type FeatureActionResource,
   setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
 import {
@@ -505,6 +510,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   const sorceryPointsRemaining = getSorceryPointsRemainingForCharacter(character);
   const restoreBalanceUsesRemaining = getSorcererRestoreBalanceUsesRemainingForCharacter(character);
   const restoreBalanceUsesTotal = getSorcererRestoreBalanceUsesTotalForCharacter(character);
+  const wardingFlareUsesRemaining = getClericWardingFlareUsesRemainingForCharacter(character);
+  const wardingFlareUsesTotal = getClericWardingFlareUsesTotalForCharacter(character);
   const bloodthirstUsesRemaining =
     getRogueScionOfTheThreeBloodthirstUsesRemainingForCharacter(character);
   const bloodthirstUsesTotal = getRogueScionOfTheThreeBloodthirstUsesTotalForCharacter(character);
@@ -612,6 +619,10 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
               ? restoreBalanceUsesRemaining <= 0
                 ? "No Restore Balance uses remaining."
                 : null
+              : selectedReactionEntry?.id === clericWardingFlareReactionEntryId
+                ? wardingFlareUsesRemaining <= 0
+                  ? "No Warding Flare uses remaining."
+                  : null
               : selectedReactionEntry?.id === paladinGloriousDefenseReactionEntryId
                 ? gloriousDefenseUsesRemaining <= 0
                   ? "No Glorious Defense charges remaining."
@@ -664,6 +675,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           ? `${sorceryPointsRemaining} Sorcery Points remaining | Cost: 1`
           : selectedReactionEntry?.id === sorcererRestoreBalanceReactionEntryId
             ? `${restoreBalanceUsesRemaining}/${restoreBalanceUsesTotal} uses | Long Rest`
+            : selectedReactionEntry?.id === clericWardingFlareReactionEntryId
+              ? null
             : selectedReactionEntry?.id === rogueScionOfTheThreeBloodthirstReactionEntryId
               ? `${bloodthirstUsesRemaining}/${bloodthirstUsesTotal} uses | Long Rest`
               : selectedReactionEntry?.id === rangerWinterWalkerChillingRetributionReactionEntryId
@@ -685,6 +698,17 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
                   : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId
                     ? `${spellThiefUsesRemaining}/${spellThiefUsesTotal} charges | Long Rest`
                     : null;
+  const selectedReactionHeaderResources: FeatureActionResource[] =
+    selectedReactionEntry?.id === clericWardingFlareReactionEntryId
+      ? [
+          {
+            kind: "tracker",
+            label: "Charges",
+            current: wardingFlareUsesRemaining,
+            total: wardingFlareUsesTotal
+          }
+        ]
+      : [];
   const selectedReactionSelectionWarning =
     selectedReactionEntry?.id === superiorHuntersDefenseReactionId &&
     selectedRangerHunterSuperiorHuntersDefenseDamageType === null
@@ -1065,6 +1089,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         nextCharacter = expendSorceryPointForCharacter(currentCharacter);
       } else if (selectedReactionEntry.id === sorcererRestoreBalanceReactionEntryId) {
         nextCharacter = consumeSorcererRestoreBalanceUseForCharacter(currentCharacter);
+      } else if (selectedReactionEntry.id === clericWardingFlareReactionEntryId) {
+        nextCharacter = consumeClericWardingFlareUseForCharacter(currentCharacter);
       } else if (selectedReactionEntry.id === paladinGloriousDefenseReactionEntryId) {
         nextCharacter = consumeGloriousDefenseUseForCharacter(currentCharacter);
       } else if (selectedReactionEntry.id === paladinElementalRebukeReactionEntryId) {
@@ -1150,6 +1176,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           selectedReactionEntry.id === "reaction-psi-warrior-protective-field" ||
           selectedReactionEntry.id === sorcererBendLuckReactionEntryId ||
           selectedReactionEntry.id === sorcererRestoreBalanceReactionEntryId ||
+          selectedReactionEntry.id === clericWardingFlareReactionEntryId ||
           selectedReactionEntry.id === paladinGloriousDefenseReactionEntryId ||
           selectedReactionEntry.id === paladinElementalRebukeReactionEntryId ||
           selectedReactionEntry.id === rogueScionOfTheThreeBloodthirstReactionEntryId ||
@@ -1329,6 +1356,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         <ReactionEntryDrawer
           reaction={selectedReactionEntry}
           actionWarning={selectedReactionActionWarning}
+          headerResources={selectedReactionHeaderResources}
           headerBadges={
             selectedReactionEntry.id === bardCollegeOfDanceInspiringMovementReactionId
               ? ["Use 1 Bardic Inspiration"]

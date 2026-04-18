@@ -23,6 +23,7 @@ import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPag
 import { abilityKeys } from "../../../../../pages/CharactersPage/constants";
 import {
   activateInnateSorceryForCharacter,
+  activateClericBlessingOfTheTricksterForCharacter,
   activateDruidNatureMagicianForCharacter,
   activateDruidStarryFormForCharacter,
   activateDruidWildResurgenceLevelOneSpellSlotRecoveryForCharacter,
@@ -109,7 +110,8 @@ import {
   channelDivinityActionKey,
   divineInterventionActionKey,
   getClericDivineInterventionEnabledLevels,
-  getClericDivineInterventionSpellEntries
+  getClericDivineInterventionSpellEntries,
+  preserveLifeActionKey
 } from "../../../../../pages/CharactersPage/classFeatures/cleric/cleric";
 import {
   type DruidStarryFormConstellation,
@@ -262,6 +264,8 @@ import SneakAttackActionBody, { type SneakAttackActionSelection } from "./SneakA
 import divineStyles from "./DivineInterventionModal.module.css";
 import GameplayActionDrawer from "./GameplayActionDrawer";
 import CodexDivinityDrawer from "../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
+import BlessingOfTheTricksterActionBody from "./BlessingOfTheTricksterActionBody";
+import { ClericPreserveLifeActionBody } from "./ClericPreserveLifeAction";
 import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
 import ClericChannelDivinityAction from "./ClericChannelDivinityAction";
 import DruidStarryFormActionBody from "./DruidStarryFormActionBody";
@@ -346,6 +350,7 @@ const frozenHauntFallbackSpellSlotMinimumLevel = 4;
 
 type WildCompanionResourceKind = "wild-shape" | "spell-slot";
 type WildResurgenceMode = "spell-slot-to-wild-shape" | "wild-shape-to-slot";
+type BlessingOfTheTricksterTarget = "self" | "other";
 
 const codexWeaponEntriesByName = new Map<string, WeaponEntry>(
   getWeaponEntries().map((entry) => [entry.name, entry])
@@ -1529,6 +1534,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [selectedNatureMagicianWildShapeCost, setSelectedNatureMagicianWildShapeCost] = useState<
     number | null
   >(null);
+  const [selectedBlessingOfTheTricksterTarget, setSelectedBlessingOfTheTricksterTarget] =
+    useState<BlessingOfTheTricksterTarget>("self");
   const [selectedThirdEyeOptionKey, setSelectedThirdEyeOptionKey] =
     useState<WizardDivinerThirdEyeOptionKey | null>(null);
   const [selectedStarryFormConstellation, setSelectedStarryFormConstellation] =
@@ -2442,6 +2449,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedWildResurgenceMode(null);
     setSelectedWildResurgenceSpellSlotLevel(1);
     setSelectedNatureMagicianWildShapeCost(null);
+    setSelectedBlessingOfTheTricksterTarget("self");
     setSelectedThirdEyeOptionKey(null);
     setSelectedStarryFormConstellation(null);
     setSelectedRageOptionKey(null);
@@ -3695,6 +3703,32 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     closeActionDrawer();
   }
 
+  function submitBlessingOfTheTrickster() {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateClericBlessingOfTheTricksterForCharacter(
+        preparedCharacter,
+        selectedBlessingOfTheTricksterTarget
+      );
+      const characterToUpdate = nextCharacter === preparedCharacter ? preparedCharacter : nextCharacter;
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(characterToUpdate, roundTrackerResource)
+        : characterToUpdate;
+    });
+    closeActionDrawer();
+  }
+
   function submitWildShape() {
     if (!selectedFeatureAction || !selectedWildShapeMonsterSlug) {
       return;
@@ -4297,6 +4331,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     if (
       selectedAction.kind === "feature" &&
+      selectedAction.action.key === preserveLifeActionKey
+    ) {
+      return <ClericPreserveLifeActionBody clericLevel={character.level} />;
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
       selectedAction.action.key === channelDivinityActionKey &&
       selectedAction.drawer.kind === "options"
     ) {
@@ -4332,6 +4373,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           <ThirdEyeActionBody
             selectedOptionKey={selectedThirdEyeOptionKey}
             onSelectOption={setSelectedThirdEyeOptionKey}
+          />
+        );
+      }
+
+      if (selectedAction.drawer.formKind === "blessing-of-the-trickster") {
+        return (
+          <BlessingOfTheTricksterActionBody
+            selectedTarget={selectedBlessingOfTheTricksterTarget}
+            onSelectTarget={setSelectedBlessingOfTheTricksterTarget}
           />
         );
       }
@@ -4909,6 +4959,33 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               shape={selectedOptionShape}
               isSelected={selectedOptionShapeState.isAvailable}
               multiCount={selectedOptionShapeState.multiCount}
+              className={styles.footerActionShape}
+            />
+          ) : null}
+        </button>
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "custom-form" &&
+      selectedAction.drawer.formKind === "blessing-of-the-trickster"
+    ) {
+      const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
+
+      return (
+        <button
+          type="button"
+          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+          onClick={submitBlessingOfTheTrickster}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+        >
+          <span>Use Blessing of the Trickster</span>
+          {actionShape ? (
+            <ActionShape
+              shape={actionShape}
+              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
               className={styles.footerActionShape}
             />
           ) : null}

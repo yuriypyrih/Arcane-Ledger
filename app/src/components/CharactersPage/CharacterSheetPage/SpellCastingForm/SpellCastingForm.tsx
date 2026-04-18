@@ -99,7 +99,7 @@ import {
 import {
   channelDivinityActionKey,
   canUseClericMindMagicForSpell,
-  getClericDiscipleOfLifeSpellEntry,
+  getClericLifeDomainHealingSpellEntry,
   getClericMindMagicSpellEntry,
   getClericResolvedDivinityDisplay
 } from "../../../../pages/CharactersPage/classFeatures/cleric/cleric";
@@ -804,7 +804,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           : spellPreparationOptions;
 
       return usesPreparedSpells
-        ? preparedSpells.map((spell) => getClericDiscipleOfLifeSpellEntry(character, spell, true))
+        ? preparedSpells.map((spell) => getClericLifeDomainHealingSpellEntry(character, spell, true))
         : preparedSpells;
     },
     [
@@ -1110,7 +1110,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellDisplay = useMemo(
     () =>
       selectedSpell
-        ? getClericDiscipleOfLifeSpellEntry(
+        ? getClericLifeDomainHealingSpellEntry(
             character,
             getClericMindMagicSpellEntry(character, selectedSpell, selectedSpellIsPrepared),
             selectedSpellIsPrepared

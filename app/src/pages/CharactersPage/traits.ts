@@ -4,7 +4,12 @@ import {
   rogueFeatureMap,
   sorcererFeatureMap
 } from "../../codex/classes";
-import { divineForeknowledgeDescription } from "../../codex/subclasses/cleric";
+import {
+  blessingOfTheTricksterDescription,
+  coronaOfLightDescription,
+  divineForeknowledgeDescription,
+  invokeDuplicityDescription
+} from "../../codex/subclasses/cleric";
 import { banneretTeamTacticsDescription } from "../../codex/subclasses/fighterBanneret";
 import {
   psiWarriorBulwarkOfForceDescription,
@@ -41,6 +46,12 @@ import {
 } from "../../types";
 import { formatCodexLabel } from "../../utils/codex";
 import { fighterBanneretTeamTacticsStatusSourceId } from "./classFeatures/fighter/subclasses/fighterBanneretShared";
+import { coronaOfLightStatusSourceId } from "./classFeatures/cleric/subclasses/clericLightDomainShared";
+import {
+  blessingOfTheTricksterStatusSourceId,
+  invokeDuplicityStatusSourceId
+} from "./classFeatures/cleric/subclasses/clericTrickeryDomainShared";
+import { getClericInvokeDuplicityDescriptionAdditions } from "./classFeatures/cleric/subclasses/clericTrickeryDomain";
 import {
   fighterPsiWarriorBulwarkOfForceStatusSourceId,
   fighterPsiWarriorPsiPoweredLeapStatusSourceId,
@@ -2000,6 +2011,50 @@ export function getStatusEntryDescriptionContent(
         descriptionAdditions: []
       };
     }
+  }
+
+  if (entry.sourceId === coronaOfLightStatusSourceId && character?.className === "Cleric") {
+    const descriptionEntries = getFeatureDescriptionForCharacter(
+      character,
+      CLASS_FEATURE.CORONA_OF_LIGHT
+    );
+
+    return {
+      description:
+        descriptionEntries.length > 0 ? descriptionEntries : [...coronaOfLightDescription],
+      descriptionAdditions: []
+    };
+  }
+
+  if (
+    entry.sourceId === blessingOfTheTricksterStatusSourceId &&
+    character?.className === "Cleric"
+  ) {
+    const descriptionEntries = getFeatureDescriptionForCharacter(
+      character,
+      CLASS_FEATURE.BLESSING_OF_THE_TRICKSTER
+    );
+
+    return {
+      description:
+        descriptionEntries.length > 0
+          ? descriptionEntries
+          : [...blessingOfTheTricksterDescription],
+      descriptionAdditions: []
+    };
+  }
+
+  if (entry.sourceId === invokeDuplicityStatusSourceId && character?.className === "Cleric") {
+    const descriptionEntries = getFeatureDescriptionForCharacter(
+      character,
+      CLASS_FEATURE.INVOKE_DUPLICITY
+    );
+
+    return {
+      description:
+        descriptionEntries.length > 0 ? descriptionEntries : [...invokeDuplicityDescription],
+      descriptionAdditions: getClericInvokeDuplicityDescriptionAdditions(character)
+    };
   }
 
   return {

@@ -79,6 +79,7 @@ export type FeatureActionExecuteEffectKind =
 
 export type FeatureActionFormKind =
   | "arcane-recovery"
+  | "blessing-of-the-trickster"
   | "brutal-strike"
   | "font-of-magic"
   | "healing-light"

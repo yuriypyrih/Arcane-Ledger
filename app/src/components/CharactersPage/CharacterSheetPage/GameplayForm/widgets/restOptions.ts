@@ -34,12 +34,18 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
   getClericChannelDivinityUsesTotal,
+  getClericCoronaOfLightUsesTotal,
+  getClericWardingFlareUsesTotal,
   getDivineForeknowledgeUsesTotal,
+  hasClericImprovedWardingFlareFeature,
   hasClericDivineInterventionFeature,
   restoreClericChannelDivinityOnLongRest,
   restoreClericChannelDivinityOnShortRest,
+  restoreClericCoronaOfLightOnLongRest,
   restoreClericDivineForeknowledgeOnLongRest,
-  restoreClericDivineInterventionOnLongRest
+  restoreClericDivineInterventionOnLongRest,
+  restoreClericWardingFlareOnLongRest,
+  restoreClericWardingFlareOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/cleric/cleric";
 import {
   getFighterActionSurgeUsesTotal,
@@ -297,6 +303,8 @@ export function createShortRestOptions(character: Character): RestOption[] {
     getClericChannelDivinityUsesTotal(character),
     getPaladinChannelDivinityUsesTotal(character)
   );
+  const wardingFlareUsesTotal = getClericWardingFlareUsesTotal(character);
+  const improvedWardingFlareShortRestAvailable = hasClericImprovedWardingFlareFeature(character);
   const hasTimedStatuses = normalizeCharacterStatusEntries(character.statusEntries).length > 0;
   const exhaustionLevel = getExhaustionLevel(character.statusEntries);
   const tirelessUsesTotal = getRangerTirelessUsesTotal(character);
@@ -563,6 +571,16 @@ export function createShortRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(improvedWardingFlareShortRestAvailable && wardingFlareUsesTotal > 0
+      ? [
+          {
+            id: "restore-warding-flare",
+            label: "Restore all Warding Flare uses",
+            apply: (currentCharacter: Character) =>
+              restoreClericWardingFlareOnShortRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(hasRogueScionDreadIncarnate && rogueBloodthirstUsesTotal > 0
       ? [
           {
@@ -680,6 +698,8 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const mantleOfMajestyUsesTotal = getMantleOfMajestyUsesTotal(character);
   const unbreakableMajestyUsesTotal = getUnbreakableMajestyUsesTotal(character);
   const divineForeknowledgeUsesTotal = getDivineForeknowledgeUsesTotal(character);
+  const coronaOfLightUsesTotal = getClericCoronaOfLightUsesTotal(character);
+  const wardingFlareUsesTotal = getClericWardingFlareUsesTotal(character);
   const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
   const groupRecoveryUsesTotal = getFighterGroupRecoveryUsesTotal(character);
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
@@ -1733,6 +1753,26 @@ export function createLongRestOptions(character: Character): RestOption[] {
               currentCharacter.className === "Paladin"
                 ? restorePaladinChannelDivinityOnLongRest(currentCharacter)
                 : restoreClericChannelDivinityOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(wardingFlareUsesTotal > 0
+      ? [
+          {
+            id: "restore-warding-flare",
+            label: "Restore all Warding Flare uses",
+            apply: (currentCharacter: Character) =>
+              restoreClericWardingFlareOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(coronaOfLightUsesTotal > 0
+      ? [
+          {
+            id: "restore-corona-of-light",
+            label: "Restore all Corona of Light uses",
+            apply: (currentCharacter: Character) =>
+              restoreClericCoronaOfLightOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

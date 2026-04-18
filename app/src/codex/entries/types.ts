@@ -155,6 +155,7 @@ export type DivinityEntry = {
   range: string;
   duration: string;
   description: SpellDescriptionEntry[];
+  isHealingSpell?: boolean;
   damage?: DivinityValue;
   healing?: DivinityValue;
   scaling?: DivinityScalingEntry[];
@@ -168,6 +169,7 @@ export type ReactionEntry = {
   sourceItemName?: string;
   sourceLabel: string;
   description: SpellDescriptionEntry[];
+  descriptionAdditions?: SpellDescriptionEntry[][];
 };
 export type EldritchInvocationEntry = {
   id: ELDRITCH_INVOCATION;

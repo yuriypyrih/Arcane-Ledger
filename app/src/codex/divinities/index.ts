@@ -19,6 +19,7 @@ export const divineSpark: DivinityEntry = {
     "On a failed save, the target takes Necrotic or Radiant damage equal to that total (your choice). On a successful save, the target takes half as much damage.",
     "You roll an additional d8 when you reach Cleric levels 7 (<strong>2d8</strong>), 13 (<strong>3d8</strong>), and 18 (<strong>4d8</strong>)."
   ],
+  isHealingSpell: true,
   damage: divineSparkBaseValue,
   healing: {
     amounts: [DICE.D8]

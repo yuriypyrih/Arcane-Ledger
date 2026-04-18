@@ -68,15 +68,22 @@ import {
   setBarbarianWeaponMasterySelections
 } from "./barbarian/barbarian";
 import {
+  activateClericBlessingOfTheTrickster,
+  activateClericCoronaOfLight,
   activateClericDivineForeknowledge,
   activateClericDivineIntervention,
   activateClericFeatureActionOption,
+  activateClericInvokeDuplicity,
+  blessingOfTheTricksterActionKey,
   activateClericPreserveLife,
+  activateClericRadianceOfTheDawn,
   advanceClericFeaturesForNewRound,
   applyLongRestToClericFeatures,
   applyShortRestToClericFeatures,
+  coronaOfLightActionKey,
   divineForeknowledgeActionKey,
   divineInterventionActionKey,
+  invokeDuplicityActionKey,
   getClericArmorProficiencyEntries,
   getClericCantripBonus,
   getClericCantripDamageBonus,
@@ -88,6 +95,7 @@ import {
   getClericWeaponDamageBonuses,
   getClericWeaponProficiencyEntries,
   preserveLifeActionKey,
+  radianceOfTheDawnActionKey,
   normalizeClericFeatureState
 } from "./cleric/cleric";
 import {
@@ -469,12 +477,28 @@ const classFeatureModules = {
       };
     },
     handleAction(character, actionKey) {
+      if (actionKey === blessingOfTheTricksterActionKey) {
+        return activateClericBlessingOfTheTrickster(character);
+      }
+
+      if (actionKey === invokeDuplicityActionKey) {
+        return activateClericInvokeDuplicity(character);
+      }
+
       if (actionKey === divineForeknowledgeActionKey) {
         return activateClericDivineForeknowledge(character);
       }
 
       if (actionKey === preserveLifeActionKey) {
         return activateClericPreserveLife(character);
+      }
+
+      if (actionKey === radianceOfTheDawnActionKey) {
+        return activateClericRadianceOfTheDawn(character);
+      }
+
+      if (actionKey === coronaOfLightActionKey) {
+        return activateClericCoronaOfLight(character);
       }
 
       return actionKey === divineInterventionActionKey

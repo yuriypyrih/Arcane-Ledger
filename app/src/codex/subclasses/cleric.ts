@@ -25,6 +25,55 @@ export const preserveLifeDescription = [
   "This feature can restore a creature to no more than half its Hit Point maximum."
 ] as const;
 
+export const blessingOfTheTricksterDescription = [
+  "As a Magic action, you can choose yourself or a willing creature within 30 feet of yourself to have <link:Advantage>Advantage</link> on <link:Stealth>Stealth</link> checks.",
+  "This blessing lasts until you finish a <link:long-rest>Long Rest</link> or you use this feature again."
+] as const;
+
+export const invokeDuplicityDescription = [
+  "As a Bonus Action, you can expend one use of your Channel Divinity to create a perfect visual illusion of yourself in an unoccupied space you can see within 30 feet of yourself. <link:tracked>Tracked</link>",
+  "The illusion is intangible and doesn't occupy its space. It lasts for 1 minute, but it ends early if you dismiss it, no action required, or have the <link:Incapacitated>Incapacitated</link> condition.",
+  "The illusion is animated and mimics your expressions and gestures.",
+  "While it persists, you gain the following benefits.",
+  "<strong>Cast Spells.</strong> You can cast spells as though you were in the illusion's space, but you must use your own senses.",
+  "<strong>Distract.</strong> When both you and your illusion are within 5 feet of a creature that can see the illusion, you have <link:Advantage>Advantage</link> on attack rolls against that creature, given how distracting the illusion is to the target.",
+  "<strong>Move.</strong> As a Bonus Action, you can move the illusion up to 30 feet to an unoccupied space you can see that is within 120 feet of yourself. <link:not-tracked>Not Tracked</link>"
+] as const;
+
+export const trickstersTranspositionDescription = [
+  "Whenever you take the Bonus Action to create or move the illusion of your Invoke Duplicity, you can teleport, swapping places with the illusion."
+] as const;
+
+export const improvedDuplicityDescription = [
+  "The illusion of your Invoke Duplicity has grown more powerful in the following ways.",
+  "<strong>Shared Distraction.</strong> When you and your allies make attack rolls against a creature within 5 feet of the illusion, the attack rolls have <link:Advantage>Advantage</link>. <link:not-tracked>Not Tracked</link>",
+  "<strong>Healing Illusion.</strong> When the illusion ends, you or a creature of your choice within 5 feet of it regains a number of Hit Points equal to your Cleric level. <link:not-tracked>Not Tracked</link>"
+] as const;
+
+export const radianceOfTheDawnDescription = [
+  "As a Magic action, you present your Holy Symbol and expend a use of your Channel Divinity to emit a flash of light in a 30-foot <link:Emanation>Emanation</link> originating from yourself.",
+  "Any magical Darkness, such as that created by the <spell:Darkness>Darkness</spell> spell, in that area is dispelled.",
+  "Additionally, each creature of your choice in that area must make a <link:Constitution Saving Throw>Constitution saving throw</link>, taking <link:Radiant>Radiant</link> damage equal to 2d10 plus your Cleric level on a failed save or half as much damage on a successful one."
+] as const;
+
+export const wardingFlareDescription = [
+  "When a creature that you can see within 30 feet of yourself makes an attack roll, you can take a Reaction to impose <link:Disadvantage>Disadvantage</link> on the attack roll, causing light to flare before it hits or misses.",
+  "You can use this feature a number of times equal to your <link:WIS>Wisdom</link> modifier, minimum of once.",
+  "You regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
+] as const;
+
+export const improvedWardingFlareDescription = [
+  "You regain all expended uses of your Warding Flare when you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",
+  "In addition, whenever you use Warding Flare, you can give the target of the triggering attack a number of <link:Temporary Hit Points>Temporary Hit Points</link> equal to 2d6 plus your <link:WIS>Wisdom</link> modifier."
+] as const;
+
+export const coronaOfLightDescription = [
+  "As a Magic action, you cause yourself to emit an aura of sunlight that lasts for 1 minute or until you dismiss it, no action required.",
+  "You emit Bright Light in a 60-foot radius and Dim Light for an additional 30 feet.",
+  "Your enemies in the Bright Light have <link:Disadvantage>Disadvantage</link> on saving throws against your Radiance of the Dawn and any spell that deals <link:Fire>Fire</link> or <link:Radiant>Radiant</link> damage.",
+  "You can use this feature a number of times equal to your <link:WIS>Wisdom</link> modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
+] as const;
+
 function createSubclassFeatureRow(
   level: SubclassFeatureLevel,
   feature: CLASS_FEATURE,
@@ -136,14 +185,14 @@ export const clericSubclassEntries: SubclassEntry[] = [
           "The healing spells you cast on others heal you as well.",
           "Immediately after you cast a spell with a spell slot that restores Hit Points to one creature other than you, you regain Hit Points equal to 2 plus the spell slot's level."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.SUPREME_HEALING, {
         description: [
           "When you would normally roll one or more dice to restore Hit Points to a creature with a spell or Channel Divinity, don't roll those dice for the healing; instead use the highest number possible for each die.",
           "For example, instead of restoring 2d6 Hit Points to a creature with a spell, you restore 12."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   },
@@ -163,7 +212,7 @@ export const clericSubclassEntries: SubclassEntry[] = [
           "<strong>Level 7.</strong> <spell:Arcane Eye>Arcane Eye</spell>, <spell:Wall of Fire>Wall of Fire</spell>",
           "<strong>Level 9.</strong> <spell:Flame Strike>Flame Strike</spell>, <spell:Scrying>Scrying</spell>"
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
@@ -174,36 +223,24 @@ export const clericSubclassEntries: SubclassEntry[] = [
             "Any magical Darkness, such as that created by the <spell:Darkness>Darkness</spell> spell, in that area is dispelled.",
             "Additionally, each creature of your choice in that area must make a <link:Constitution Saving Throw>Constitution saving throw</link>, taking <link:Radiant>Radiant</link> damage equal to 2d10 plus your Cleric level on a failed save or half as much damage on a successful one."
           ],
-          ...notTracked
+          trackingState: TRACKER.SEMI_TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.WARDING_FLARE, {
-        description: [
-          "When a creature that you can see within 30 feet of yourself makes an attack roll, you can take a Reaction to impose <link:Disadvantage>Disadvantage</link> on the attack roll, causing light to flare before it hits or misses.",
-          "You can use this feature a number of times equal to your <link:WIS>Wisdom</link> modifier, minimum of once.",
-          "You regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
-        ],
-        ...notTracked
+        description: [...wardingFlareDescription],
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_6,
         CLASS_FEATURE.IMPROVED_WARDING_FLARE,
         {
-          description: [
-            "You regain all expended uses of your Warding Flare when you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",
-            "In addition, whenever you use Warding Flare, you can give the target of the triggering attack a number of <link:Temporary Hit Points>Temporary Hit Points</link> equal to 2d6 plus your <link:WIS>Wisdom</link> modifier."
-          ],
-          ...notTracked
+          description: [...improvedWardingFlareDescription],
+          trackingState: TRACKER.SEMI_TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.CORONA_OF_LIGHT, {
-        description: [
-          "As a Magic action, you cause yourself to emit an aura of sunlight that lasts for 1 minute or until you dismiss it, no action required.",
-          "You emit Bright Light in a 60-foot radius and Dim Light for an additional 30 feet.",
-          "Your enemies in the Bright Light have <link:Disadvantage>Disadvantage</link> on saving throws against your Radiance of the Dawn and any spell that deals <link:Fire>Fire</link> or <link:Radiant>Radiant</link> damage.",
-          "You can use this feature a number of times equal to your <link:WIS>Wisdom</link> modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
-        ],
-        ...notTracked
+        description: [...coronaOfLightDescription],
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   },
@@ -226,49 +263,32 @@ export const clericSubclassEntries: SubclassEntry[] = [
             "<strong>Level 7.</strong> <spell:Confusion>Confusion</spell>, <spell:Dimension Door>Dimension Door</spell>",
             "<strong>Level 9.</strong> <spell:Dominate Person>Dominate Person</spell>, <spell:Modify Memory>Modify Memory</spell>"
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
         CLASS_FEATURE.BLESSING_OF_THE_TRICKSTER,
         {
-          description: [
-            "As a Magic action, you can choose yourself or a willing creature within 30 feet of yourself to have <link:Advantage>Advantage</link> on <link:Stealth>Stealth</link> checks.",
-            "This blessing lasts until you finish a <link:long-rest>Long Rest</link> or you use this feature again."
-          ],
-          ...notTracked
+          description: [...blessingOfTheTricksterDescription],
+          trackingState: TRACKER.SEMI_TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.INVOKE_DUPLICITY, {
-        description: [
-          "As a Bonus Action, you can expend one use of your Channel Divinity to create a perfect visual illusion of yourself in an unoccupied space you can see within 30 feet of yourself.",
-          "The illusion is intangible and doesn't occupy its space. It lasts for 1 minute, but it ends early if you dismiss it, no action required, or have the <link:Incapacitated>Incapacitated</link> condition.",
-          "The illusion is animated and mimics your expressions and gestures.",
-          "While it persists, you gain the following benefits.",
-          "<strong>Cast Spells.</strong> You can cast spells as though you were in the illusion's space, but you must use your own senses.",
-          "<strong>Distract.</strong> When both you and your illusion are within 5 feet of a creature that can see the illusion, you have <link:Advantage>Advantage</link> on attack rolls against that creature, given how distracting the illusion is to the target.",
-          "<strong>Move.</strong> As a Bonus Action, you can move the illusion up to 30 feet to an unoccupied space you can see that is within 120 feet of yourself."
-        ],
-        ...notTracked
+        description: [...invokeDuplicityDescription],
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_6,
         CLASS_FEATURE.TRICKSTERS_TRANSPOSITION,
         {
-          description: [
-            "Whenever you take the Bonus Action to create or move the illusion of your Invoke Duplicity, you can teleport, swapping places with the illusion."
-          ],
-          ...notTracked
+          description: [...trickstersTranspositionDescription],
+          trackingState: TRACKER.SEMI_TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.IMPROVED_DUPLICITY, {
-        description: [
-          "The illusion of your Invoke Duplicity has grown more powerful in the following ways.",
-          "<strong>Shared Distraction.</strong> When you and your allies make attack rolls against a creature within 5 feet of the illusion, the attack rolls have <link:Advantage>Advantage</link>.",
-          "<strong>Healing Illusion.</strong> When the illusion ends, you or a creature of your choice within 5 feet of it regains a number of Hit Points equal to your Cleric level."
-        ],
-        ...notTracked
+        description: [...improvedDuplicityDescription],
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   },

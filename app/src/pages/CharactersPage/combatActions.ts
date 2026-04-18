@@ -242,6 +242,27 @@ function createFeatureActionExecute(
   };
 }
 
+function mergeUniqueDescriptionAdditions(
+  sections: Array<readonly SpellDescriptionEntry[] | undefined>
+): SpellDescriptionEntry[][] {
+  const seenSections = new Set<string>();
+
+  return sections.flatMap((section) => {
+    if (!section || section.length <= 0) {
+      return [];
+    }
+
+    const serializedSection = JSON.stringify(section);
+
+    if (seenSections.has(serializedSection)) {
+      return [];
+    }
+
+    seenSections.add(serializedSection);
+    return [[...section]];
+  });
+}
+
 function createFeatureActionDrawer(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
   action: FeatureActionCard,
@@ -268,10 +289,10 @@ function createFeatureActionDrawer(
     (sourcedDescription.length > 0
       ? sourcedDescription
       : createDefaultDescription(action.summary, action.detail, action.breakdown));
-  const descriptionAdditions = [
+  const descriptionAdditions = mergeUniqueDescriptionAdditions([
     ...(action.descriptionAdditions ?? []),
     ...(action.drawer?.descriptionAdditions ?? [])
-  ];
+  ]);
   const helperText = action.drawer?.helperText;
   const helperTextTone = action.drawer?.helperTextTone;
   const blockedReason = action.drawer?.blockedReason;

@@ -77,14 +77,24 @@ import {
 } from "./clericFeatureState";
 import * as knowledgeDomainSubclass from "./subclasses/clericKnowledgeDomain";
 import * as lifeDomainSubclass from "./subclasses/clericLifeDomain";
+import * as lightDomainSubclass from "./subclasses/clericLightDomain";
+import * as trickeryDomainSubclass from "./subclasses/clericTrickeryDomain";
 
 const divineOrderProtectorSource = "Divine Order";
 const divineStrikeSource = "Divine Strike";
 const discipleOfLifeSource = "Disciple of Life";
+const blessedHealerSource = "Blessed Healer";
+const supremeHealingSource = "Supreme Healing";
 export const channelDivinityActionKey = "cleric-channel-divinity";
 export const divineInterventionActionKey = "cleric-divine-intervention";
 export const divineForeknowledgeActionKey = knowledgeDomainSubclass.divineForeknowledgeActionKey;
+export const blessingOfTheTricksterActionKey =
+  trickeryDomainSubclass.blessingOfTheTricksterActionKey;
+export const invokeDuplicityActionKey = trickeryDomainSubclass.invokeDuplicityActionKey;
 export const preserveLifeActionKey = lifeDomainSubclass.preserveLifeActionKey;
+export const radianceOfTheDawnActionKey = lightDomainSubclass.radianceOfTheDawnActionKey;
+export const coronaOfLightActionKey = lightDomainSubclass.coronaOfLightActionKey;
+export const wardingFlareReactionEntryId = lightDomainSubclass.wardingFlareReactionEntryId;
 const greaterDivineInterventionWishSpellId = "spell-wish";
 export {
   expendClericChannelDivinityUse,
@@ -190,8 +200,70 @@ function getDivinityDescriptionLine(
   return typeof line === "string" ? line : "";
 }
 
+function appendClericLifeDomainHealingSpellDescriptions(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  spell: SpellEntry
+): SpellEntry {
+  if (spell.isHealingSpell !== true) {
+    return spell;
+  }
+
+  const featureConfigs: Array<{
+    feature: CLASS_FEATURE;
+    minimumLevel: number;
+    sourceName: string;
+  }> = [
+    {
+      feature: CLASS_FEATURE.DISCIPLE_OF_LIFE,
+      minimumLevel: 3,
+      sourceName: discipleOfLifeSource
+    },
+    {
+      feature: CLASS_FEATURE.BLESSED_HEALER,
+      minimumLevel: 6,
+      sourceName: blessedHealerSource
+    },
+    {
+      feature: CLASS_FEATURE.SUPREME_HEALING,
+      minimumLevel: 17,
+      sourceName: supremeHealingSource
+    }
+  ];
+
+  return featureConfigs.reduce((nextSpell, { feature, minimumLevel, sourceName }) => {
+    if (!lifeDomainSubclass.hasClericLifeDomainFeature(character, minimumLevel)) {
+      return nextSpell;
+    }
+
+    const descriptionEntries = getFeatureDescriptionForCharacter(character, feature);
+
+    return descriptionEntries.length > 0
+      ? appendSourcedDescriptionAddition(nextSpell, sourceName, descriptionEntries)
+      : nextSpell;
+  }, spell);
+}
+
+function getClericSupremeHealingDivinityDescriptionAdditions(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  divinity: DivinityEntry
+): SpellDescriptionEntry[][] {
+  if (
+    divinity.isHealingSpell !== true ||
+    !lifeDomainSubclass.hasClericLifeDomainFeature(character, 17)
+  ) {
+    return [];
+  }
+
+  const descriptionEntries = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.SUPREME_HEALING);
+
+  return descriptionEntries.length > 0
+    ? [createSourcedDescriptionEntries(supremeHealingSource, descriptionEntries)]
+    : [];
+}
+
 export function getClericResolvedDivinityDisplay(
-  character: Pick<Character, "className" | "level" | "abilities" | "feats">,
+  character: Pick<Character, "className" | "level" | "abilities" | "feats"> &
+    Partial<Pick<Character, "subclassId">>,
   divinity: DivinityEntry
 ): {
   damage: DivinityValue | null;
@@ -219,6 +291,10 @@ export function getClericResolvedDivinityDisplay(
           } or Heal`
         }
       : null;
+  const healingDescriptionAdditions = getClericSupremeHealingDivinityDescriptionAdditions(
+    character,
+    divinity
+  );
 
   if (divinity.id !== "divinity-turn-undead" || !hasClericSearUndead(character)) {
     return {
@@ -226,7 +302,7 @@ export function getClericResolvedDivinityDisplay(
       healing: baseHealing,
       valueCell: divineSparkValueCell,
       description: divinity.description,
-      descriptionAdditions: []
+      descriptionAdditions: healingDescriptionAdditions
     };
   }
 
@@ -243,8 +319,11 @@ export function getClericResolvedDivinityDisplay(
     description: divinity.description,
     descriptionAdditions:
       searUndeadDescription.length > 0
-        ? [createSourcedDescriptionEntries("Sear Undead", searUndeadDescription)]
-        : []
+        ? [
+            ...healingDescriptionAdditions,
+            createSourcedDescriptionEntries("Sear Undead", searUndeadDescription)
+          ]
+        : healingDescriptionAdditions
   };
 }
 
@@ -260,14 +339,23 @@ export function normalizeClericFeatureState(
   const record =
     value && typeof value === "object" ? (value as Partial<CharacterClericFeatureState>) : {};
   const baseState = normalizeClericBaseFeatureState(record, normalizedCharacter);
-
-  if (!knowledgeDomainSubclass.hasClericKnowledgeDomainFeature(normalizedCharacter, 3)) {
-    return baseState;
-  }
+  const knowledgeDomainState = knowledgeDomainSubclass.hasClericKnowledgeDomainFeature(
+    normalizedCharacter,
+    3
+  )
+    ? knowledgeDomainSubclass.normalizeClericKnowledgeDomainFeatureState(
+        record,
+        normalizedCharacter
+      )
+    : {};
+  const lightDomainState = lightDomainSubclass.hasClericLightDomainFeature(normalizedCharacter, 3)
+    ? lightDomainSubclass.normalizeClericLightDomainFeatureState(record, normalizedCharacter)
+    : {};
 
   return {
     ...baseState,
-    ...knowledgeDomainSubclass.normalizeClericKnowledgeDomainFeatureState(record, normalizedCharacter)
+    ...knowledgeDomainState,
+    ...lightDomainState
   };
 }
 
@@ -412,27 +500,16 @@ export function getClericSpellEntry(
   );
 }
 
-export function getClericDiscipleOfLifeSpellEntry(
+export function getClericLifeDomainHealingSpellEntry(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
   spell: SpellEntry,
   isPrepared: boolean
 ): SpellEntry {
-  if (
-    !isPrepared ||
-    spell.isHealingSpell !== true ||
-    !lifeDomainSubclass.hasClericLifeDomainFeature(character, 3)
-  ) {
+  if (!isPrepared) {
     return spell;
   }
 
-  const descriptionEntries = getFeatureDescriptionForCharacter(
-    character,
-    CLASS_FEATURE.DISCIPLE_OF_LIFE
-  );
-
-  return descriptionEntries.length > 0
-    ? appendSourcedDescriptionAddition(spell, discipleOfLifeSource, descriptionEntries)
-    : spell;
+  return appendClericLifeDomainHealingSpellDescriptions(character, spell);
 }
 
 export function canUseClericMindMagicForSpell(
@@ -1002,17 +1079,86 @@ export function activateClericPreserveLife(character: Character): Character {
   return lifeDomainSubclass.activateClericPreserveLife(character);
 }
 
+export function activateClericBlessingOfTheTrickster(
+  character: Character,
+  target: "self" | "other" = "self"
+): Character {
+  return trickeryDomainSubclass.activateClericBlessingOfTheTrickster(character, target);
+}
+
+export function activateClericInvokeDuplicity(character: Character): Character {
+  return trickeryDomainSubclass.activateClericInvokeDuplicity(character);
+}
+
+export function activateClericRadianceOfTheDawn(character: Character): Character {
+  return lightDomainSubclass.activateClericRadianceOfTheDawn(character);
+}
+
+export function activateClericCoronaOfLight(character: Character): Character {
+  return lightDomainSubclass.activateClericCoronaOfLight(character);
+}
+
+export function getClericWardingFlareUsesTotal(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): number {
+  return lightDomainSubclass.getClericLightDomainWardingFlareUsesTotal(character);
+}
+
+export function getClericWardingFlareUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId" | "classFeatureState">>
+): number {
+  return lightDomainSubclass.getClericLightDomainWardingFlareUsesRemaining(character);
+}
+
+export function consumeClericWardingFlareUse(character: Character): Character {
+  return lightDomainSubclass.consumeClericWardingFlareUse(character);
+}
+
+export function hasClericImprovedWardingFlareFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return lightDomainSubclass.hasClericLightDomainFeature(character, 6);
+}
+
+export function restoreClericWardingFlareOnShortRest(character: Character): Character {
+  return lightDomainSubclass.restoreClericWardingFlareOnShortRest(character);
+}
+
+export function restoreClericWardingFlareOnLongRest(character: Character): Character {
+  return lightDomainSubclass.restoreClericWardingFlareOnLongRest(character);
+}
+
+export function getClericCoronaOfLightUsesTotal(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): number {
+  return lightDomainSubclass.getClericLightDomainCoronaOfLightUsesTotal(character);
+}
+
+export function restoreClericCoronaOfLightOnLongRest(character: Character): Character {
+  return lightDomainSubclass.restoreClericCoronaOfLightOnLongRest(character);
+}
+
 export function applyShortRestToClericFeatures(character: Character): Character {
-  if (!hasClericFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY)) {
+  if (
+    !hasClericFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY) &&
+    !hasClericImprovedWardingFlareFeature(character)
+  ) {
     return character;
   }
 
-  return restoreClericChannelDivinityOnShortRest(character);
+  return restoreClericWardingFlareOnShortRest(restoreClericChannelDivinityOnShortRest(character));
 }
 
 export function applyLongRestToClericFeatures(character: Character): Character {
   return restoreClericDivineForeknowledgeOnLongRest(
-    restoreClericDivineInterventionOnLongRest(restoreClericChannelDivinityOnLongRest(character))
+    restoreClericDivineInterventionOnLongRest(
+      restoreClericCoronaOfLightOnLongRest(
+        restoreClericWardingFlareOnLongRest(restoreClericChannelDivinityOnLongRest(character))
+      )
+    )
   );
 }
 
