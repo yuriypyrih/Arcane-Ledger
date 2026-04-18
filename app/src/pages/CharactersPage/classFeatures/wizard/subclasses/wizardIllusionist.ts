@@ -288,9 +288,7 @@ function getWizardIllusionistIllusoryRealityFeatureAction(
     name: illusoryRealityName,
     summary: "Make part of your illusion feel real for 10 turns.",
     detail: "Create an Illusory Reality trait in Traits & Conditions.",
-    breakdown: isActive
-      ? "Illusory Reality is already active and can be refreshed."
-      : "Activate Illusory Reality and create a 10-turn trait in Traits & Conditions.",
+    breakdown: "Start 10-turn reality",
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.MAGIC,
     isActive,

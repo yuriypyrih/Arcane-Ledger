@@ -245,21 +245,22 @@ export const druidFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = 
       "<strong>No Spellcasting.</strong> You can't cast spells, but shape-shifting doesn't break your Concentration or otherwise interfere with a spell you've already cast.",
       "<strong>Objects.</strong> Your ability to handle objects is determined by the form's limbs rather than your own. In addition, you choose whether your equipment falls in your space, merges into your new form, or is worn by it. Worn equipment functions as normal, but the DM decides whether it's practical for the new form to wear a piece of equipment based on the creature's size and shape. Your equipment doesn't change size or shape to match the new form, and any equipment that the new form can't wear must either fall to the ground or merge with the form. Equipment that merges with the form has no effect while you're in that form."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.WILD_COMPANION]: {
     description: [
       "You can summon a nature spirit that assumes an animal form to aid you. As a Magic action, you can expend a spell slot or a use of Wild Shape to cast the <spell:Find Familiar>Find Familiar</spell> spell without Material components.",
-      "When you cast the spell in this way, the familiar is Fey and disappears when you finish a <link:long-rest>Long Rest</link>."
+      "When you cast the spell in this way, the familiar is Fey and disappears when you finish a <link:long-rest>Long Rest</link>.",
+      "(You can click on the spell's name to read more about the spell. Once you activate Wild Companion you still need to go to the Companions Section and add it yourself)"
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.WILD_RESURGENCE]: {
     description: [
       "Once on each of your turns, if you have no uses of Wild Shape left, you can give yourself one use by expending a spell slot, no action required.",
       "In addition, you can expend one use of Wild Shape, no action required, to give yourself a level 1 spell slot, but you can't do so again until you finish a <link:long-rest>Long Rest</link>."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.ELEMENTAL_FURY]: {
     description: [

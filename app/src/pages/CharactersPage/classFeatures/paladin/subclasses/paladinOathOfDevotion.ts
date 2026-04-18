@@ -573,6 +573,7 @@ function getPaladinOathOfDevotionFeatureActions(
       name: holyNimbusName,
       summary: "Imbue your aura with holy power.",
       detail: "Empower your Aura of Protection for 10 minutes.",
+      breakdown: "Holy aura empowerment",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
       usesRemaining,

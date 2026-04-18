@@ -739,12 +739,11 @@ export function getBarbarianFeatureAction(
     sourceFeature: CLASS_FEATURE.RAGE,
     summary: rageState.active ? "Rage Active" : "Enter Rage",
     detail: "Enter Rage",
-    breakdown: rageState.active ? "Rage Active" : "Enter Rage",
+    breakdown: "Enter Rage",
     breakdownTone: rageState.active ? "danger" : "default",
     descriptionAdditions,
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
-    interaction: rageActionOverride.interaction,
     usesLabel: "Use 1",
     usesIcon: "flame",
     drawer: rageActionOverride.drawer,
@@ -783,7 +782,7 @@ function getBarbarianRecklessAttackAction(
     summary,
     detail: "Gain reckless advantage at a cost.",
     valueLabel: "Once at start of turn",
-    breakdown: "Gain reckless advantage at a cost.",
+    breakdown: "Reckless advantage",
     descriptionAdditions,
     economyType: ECONOMY_TYPE.FREE,
     actionCategory: ACTION_CATEGORY.FEATURE,
@@ -809,7 +808,6 @@ function getBarbarianBrutalStrikeAction(
   }
 
   const rageState = getBarbarianRageState(character);
-  const selectionLimit = getBarbarianBrutalStrikeSelectionLimit(character);
   const description = getBarbarianBrutalStrikeDescription(character);
   const isAvailable =
     rageState.recklessAttackUsedThisTurn === true &&
@@ -823,13 +821,9 @@ function getBarbarianBrutalStrikeAction(
     detail: brutalStrikeActionSummary,
     description,
     valueLabel: "Once per Reckless Attack",
-    breakdown:
-      selectionLimit > 1
-        ? `${getBarbarianBrutalStrikeDamageFormula(character)} + up to ${selectionLimit} effects`
-        : `${getBarbarianBrutalStrikeDamageFormula(character)} + optional effect`,
+    breakdown: "Weapon damage boost",
     economyType: ECONOMY_TYPE.FREE,
     actionCategory: ACTION_CATEGORY.FEATURE,
-    interaction: "select",
     drawer: {
       kind: "custom-form",
       eyebrow: "Barbarian",
@@ -871,7 +865,7 @@ function getBarbarianRelentlessRageAction(
     detail: relentlessRageActionSummary,
     description: [...relentlessRageDescription],
     valueLabel: `Current DC ${currentDc}`,
-    breakdown: relentlessRageActionSummary,
+    breakdown: "Keep fighting in Rage",
     economyType: ECONOMY_TYPE.FREE,
     actionCategory: ACTION_CATEGORY.FEATURE,
     drawer: {

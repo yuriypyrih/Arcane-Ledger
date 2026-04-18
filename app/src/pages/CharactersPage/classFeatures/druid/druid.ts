@@ -1158,7 +1158,6 @@ function getDruidWildShapeAction(
   const totalUses = getDruidWildShapeUsesTotal(character);
   const usesRemaining = getDruidWildShapeUsesRemaining(character);
   const knownForms = getDruidWildShapeKnownForms(character);
-  const activeForm = getDruidWildShapeActiveForm(character);
 
   return {
     key: druidWildShapeActionKey,
@@ -1171,7 +1170,7 @@ function getDruidWildShapeAction(
       knownForms.length > 0
         ? "Choose one of your learned beast forms and shape-shift as a Bonus Action."
         : "Choose beast forms in Class Features before you shape-shift.",
-    breakdown: activeForm ? `Current form: ${activeForm.name}` : undefined,
+    breakdown: "Shift into beast",
     description: [],
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
@@ -1228,6 +1227,7 @@ function getDruidWildCompanionAction(
     name: "Wild Companion",
     summary: "Cast Find Familiar with Wild Shape or a spell slot.",
     detail: "Summon a fey familiar using Wild Shape or a spell slot.",
+    breakdown: "Summon familiar",
     description: getDruidWildCompanionDescription(),
     economyType: ECONOMY_TYPE.ACTION,
     actionCategory: ACTION_CATEGORY.MAGIC,
@@ -1332,6 +1332,7 @@ function getDruidWildResurgenceAction(
     name: "Wild Resurgence",
     summary: "Recover Wild Shape or a level 1 spell slot without using an action.",
     detail: "Recover Wild Shape or a level 1 spell slot without using an action.",
+    breakdown: "Recover shape or slot",
     economyType: ECONOMY_TYPE.FREE,
     actionCategory: ACTION_CATEGORY.MAGIC,
     usesRemaining: spellSlotRecoveryUsesRemaining,
@@ -1396,9 +1397,9 @@ function getDruidNatureMagicianAction(
     name: "Nature Magician",
     summary: "Convert Wild Shape into an expended spell slot.",
     detail: "Convert Wild Shape into an expended spell slot.",
+    breakdown: "Shape for spell slot",
     economyType: ECONOMY_TYPE.FREE,
     actionCategory: ACTION_CATEGORY.MAGIC,
-    interaction: "select",
     usesRemaining,
     usesTotal,
     drawer: {

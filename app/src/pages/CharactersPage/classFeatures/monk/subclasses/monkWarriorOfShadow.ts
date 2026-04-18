@@ -340,7 +340,6 @@ function getMonkWarriorOfShadowFeatureActions(
       breakdown: "Open Darkness using Shadow Arts",
       economyType: ECONOMY_TYPE.ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
-      interaction: "select",
       usesInlineLabel: "Use 1",
       usesInlineIcon: "brain",
       description: [...shadowArtsDescription],

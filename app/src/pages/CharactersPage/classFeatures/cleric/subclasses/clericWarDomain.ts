@@ -162,9 +162,7 @@ export function getClericWarDomainFeatureActions(
       sourceFeature: CLASS_FEATURE.WAR_PRIEST,
       summary: "Ready a bonus-action weapon or unarmed attack this turn.",
       detail: "Spend 1 charge to use a weapon or unarmed strike with your bonus action this turn.",
-      breakdown: isActive
-        ? "Bonus-action attack ready this turn."
-        : "Weapon or unarmed strike as bonus action.",
+      breakdown: "Ready bonus attack",
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.FEATURE,
       usesRemaining,

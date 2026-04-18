@@ -162,6 +162,7 @@ function getCircleOfTheSeaFeatureActions(character: Parameters<SubclassRuntimeRe
       name: "Wrath of the Sea",
       summary: "Manifest an ocean-spray aura that damages and pushes nearby creatures.",
       detail: "Expend a Wild Shape use to manifest your sea wrath for 10 minutes.",
+      breakdown: "Ocean aura blast",
       description,
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,

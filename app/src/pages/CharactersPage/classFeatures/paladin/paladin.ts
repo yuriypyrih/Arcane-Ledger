@@ -588,7 +588,6 @@ export function getPaladinFeatureActions(
       detail: "Your blessed touch can heal wounds.",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
-      interaction: "select",
       valueLabel: `Pool of Healing ${remainingPool}/${totalPool}`,
       facts: [
         {
@@ -624,7 +623,6 @@ export function getPaladinFeatureActions(
         "Use Divine Sense as a Bonus Action to detect Celestials, Fiends, and Undead within 60 feet.",
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.FEATURE,
-      interaction: "select",
       hideUsesTrackerOnCard: true,
       usesInlineLabel: "Use 1",
       usesInlineIcon: "pyromancy",
@@ -662,9 +660,9 @@ export function getPaladinFeatureActions(
       name: "Paladin's Smite",
       summary: "Cast Divine Smite without a spell slot.",
       detail: "Open Divine Smite and cast it using your Paladin's Smite charge.",
+      breakdown: "Free Divine Smite",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
-      interaction: "select",
       usesRemaining,
       usesTotal: paladinsSmiteUsesTotal,
       description: getPaladinsSmiteDescription(),
@@ -698,9 +696,9 @@ export function getPaladinFeatureActions(
       sourceFeature: CLASS_FEATURE.FAITHFUL_STEED,
       summary: "Cast Find Steed without a spell slot.",
       detail: "Open Find Steed and cast it using your Faithful Steed charge.",
+      breakdown: "Free Find Steed",
       economyType: ECONOMY_TYPE.ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
-      interaction: "select",
       usesRemaining,
       usesTotal: faithfulSteedUsesTotal,
       drawer: {
@@ -733,7 +731,6 @@ export function getPaladinFeatureActions(
       detail: "Use a Magic action to force nearby foes to resist your divine presence.",
       economyType: ECONOMY_TYPE.ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
-      interaction: "activate",
       consumesEconomyOnActivate: true
     });
   }

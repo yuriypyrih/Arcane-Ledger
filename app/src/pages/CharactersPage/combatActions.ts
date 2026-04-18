@@ -1,6 +1,7 @@
 import type { SpellDescriptionEntry } from "../../codex/entries";
 import type { Character } from "../../types";
 import type { ActionCategory, EconomyType } from "./actionEconomy";
+import { createDefaultFeatureActionDescription } from "./classFeatures/featureActionDescription";
 import { getFeatureDescriptionForCharacter } from "./classFeatures/featureDescriptions";
 import {
   getFeatureActionOptionsForCharacter,
@@ -85,26 +86,6 @@ export type GameplayActionDefinition =
       drawer: GameplayActionDrawerDefinition;
     });
 
-function createDefaultDescription(
-  summary: string,
-  detail: string,
-  _breakdown?: string
-): SpellDescriptionEntry[] {
-  const description: SpellDescriptionEntry[] = [];
-  const normalizedDetail = detail.trim();
-  const normalizedSummary = summary.trim();
-
-  if (normalizedDetail) {
-    description.push(normalizedDetail);
-  }
-
-  if (normalizedSummary && normalizedSummary !== normalizedDetail) {
-    description.push(`<strong>${normalizedSummary}</strong>`);
-  }
-
-  return description;
-}
-
 function createTextResource(
   label: string,
   value: string,
@@ -177,7 +158,7 @@ function createOptionDescription(option: FeatureActionOptionCard): SpellDescript
     return option.description;
   }
 
-  return createDefaultDescription(option.summary, option.detail, option.breakdown);
+  return createDefaultFeatureActionDescription(option);
 }
 
 function createOptionFacts(option: FeatureActionOptionCard): FeatureActionFact[] {
@@ -288,7 +269,7 @@ function createFeatureActionDrawer(
     action.description ??
     (sourcedDescription.length > 0
       ? sourcedDescription
-      : createDefaultDescription(action.summary, action.detail, action.breakdown));
+      : createDefaultFeatureActionDescription(action));
   const descriptionAdditions = mergeUniqueDescriptionAdditions([
     ...(action.descriptionAdditions ?? []),
     ...(action.drawer?.descriptionAdditions ?? [])

@@ -136,14 +136,10 @@ export function getWizardDivinerPortentFeatureAction(
     summary: "Replace a d20 test with a foretelling roll.",
     detail:
       "Track the foretelling rolls from your last Long Rest and mark each one off after it is spent.",
-    breakdown:
-      usesRemaining > 0
-        ? `${usesRemaining} foretelling roll${usesRemaining === 1 ? "" : "s"} ready`
-        : "All foretelling rolls spent. Recharges on a Long Rest.",
+    breakdown: "Use portent rolls",
     breakdownTone: usesRemaining > 0 ? "default" : "danger",
     economyType: ECONOMY_TYPE.FREE,
     actionCategory: ACTION_CATEGORY.FEATURE,
-    interaction: "select",
     usesRemaining,
     usesTotal,
     usesSupplementaryLabel: `Rolls ${getWizardDivinerPortentRollSummary(portentRolls)}`,

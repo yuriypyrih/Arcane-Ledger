@@ -600,9 +600,7 @@ export function getWizardBladesongFeatureAction(
     summary: "Enter your Bladesong for 10 turns.",
     detail:
       "Gain AC, speed, Acrobatics, and weapon attack benefits while your Bladesong trait is active.",
-    breakdown: isActive
-      ? "Bladesong is active for 10 turns."
-      : "Activate Bladesong and create a 10-turn trait in Traits & Conditions.",
+    breakdown: "Start 10-turn song",
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
     usesRemaining,

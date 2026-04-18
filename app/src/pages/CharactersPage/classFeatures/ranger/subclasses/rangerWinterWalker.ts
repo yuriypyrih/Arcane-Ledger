@@ -627,7 +627,7 @@ function getRangerWinterWalkerFeatureActions(
       name: fortifyingSoulActionName,
       summary: `Heal up to ${targetCount} ${creatureLabel} and bolster them against fear.`,
       detail: `Choose up to ${targetCount} ${creatureLabel} you can see. Each regains ${healingFormula} Hit Points and gains Advantage on saves to avoid or end Frightened for 1 hour.`,
-      breakdown: `${healingFormula} HP | up to ${targetCount} ${creatureLabel}`,
+      breakdown: "Heal and bolster allies",
       economyType: ECONOMY_TYPE.ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
       usesRemaining,

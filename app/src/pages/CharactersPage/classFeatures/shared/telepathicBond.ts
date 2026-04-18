@@ -51,7 +51,7 @@ export function createTelepathicBondFeatureAction(
     name: config.name,
     summary: "Form a telepathic connection with a creature you can see.",
     detail: `Create a telepathic connection for ${durationLabel}.`,
-    breakdown: `Create a telepathic connection for ${durationLabel}`,
+    breakdown: "Telepathic link",
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.MAGIC,
     description: config.description,

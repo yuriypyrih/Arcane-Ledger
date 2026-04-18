@@ -380,6 +380,7 @@ function getCircleOfTheMoonFeatureActions(character: Parameters<SubclassRuntimeR
       name: "Moonlight Step",
       summary: "Teleport up to 30 feet and empower your next attack.",
       detail: "Teleport up to 30 feet and gain Advantage on your next attack roll this turn.",
+      breakdown: "Teleport, boost attack",
       description,
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,

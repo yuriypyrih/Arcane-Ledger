@@ -323,6 +323,7 @@ function getPaladinOathOfGloryFeatureActions(
       name: livingLegendName,
       summary: "Become the embodiment of heroic glory.",
       detail: "Assume a legendary presence for 10 minutes.",
+      breakdown: "Heroic glory form",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
       usesRemaining: livingLegendUsesRemaining,

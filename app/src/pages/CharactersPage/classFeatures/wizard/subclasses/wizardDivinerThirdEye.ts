@@ -80,12 +80,9 @@ export function getWizardDivinerThirdEyeFeatureAction(
     name: thirdEyeName,
     summary: "Choose a supernatural boon of perception.",
     detail: "Darkvision, greater comprehension, or See Invisibility until you rest.",
-    breakdown: activeOption
-      ? `${activeOption.name} is active until a Short or Long Rest.`
-      : "Choose Darkvision, Greater Comprehension, or See Invisibility.",
+    breakdown: "Choose sight boon",
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
-    interaction: "select",
     description:
       wizardDivinerThirdEyeDescription.length > 0
         ? wizardDivinerThirdEyeDescription

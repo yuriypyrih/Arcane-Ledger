@@ -6,6 +6,7 @@ import {
 } from "../../../codex/entries";
 import type { AbilityKey, Character } from "../../../types";
 import type { WeaponAction } from "../gameplay";
+export { createDefaultFeatureActionDescription } from "./featureActionDescription";
 import type {
   AbilityCheckIndicatorMap,
   CoreStatIndicatorMap,
@@ -120,22 +121,6 @@ export function resolveSpellIdsByName(names: readonly string[]): string[] {
     const spell = getSpellEntryByName(name);
     return spell ? [spell.id] : [];
   });
-}
-
-export function createDefaultFeatureActionDescription(action: FeatureActionCard): string[] {
-  const description: string[] = [];
-  const normalizedDetail = action.detail.trim();
-  const normalizedSummary = action.summary.trim();
-
-  if (normalizedDetail) {
-    description.push(normalizedDetail);
-  }
-
-  if (normalizedSummary && normalizedSummary !== normalizedDetail) {
-    description.push(`<strong>${normalizedSummary}</strong>`);
-  }
-
-  return description;
 }
 
 export function transformSpellToBonusAction(spellId: string, spell: SpellEntry): SpellEntry {

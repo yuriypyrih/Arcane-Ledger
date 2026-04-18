@@ -645,7 +645,7 @@ export const getBardCollegeOfGlamourDerivedFeatureState: SubclassRuntimeResolver
         name: "Mantle of Majesty",
         summary: "Cast Command and assume your unearthly majesty.",
         detail: "Open Command and cast it through Mantle of Majesty.",
-        breakdown: "Command as the Majesty you are.",
+        breakdown: "Command with majesty",
         economyType: ECONOMY_TYPE.BONUS_ACTION,
         actionCategory: ACTION_CATEGORY.MAGIC,
         usesRemaining,

@@ -629,7 +629,7 @@ export function getKnowledgeDomainFeatureActions(
       name: "Divine Foreknowledge",
       summary: "Gain advantage on skills and saving throws.",
       detail: "Expand your mind to the future for 1 hour.",
-      breakdown: "Expand your mind to the future.",
+      breakdown: "Skill/save advantage",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
       usesRemaining,

@@ -169,7 +169,6 @@ export type FeatureActionCard = {
   economyType: EconomyType;
   actionCategory: ActionCategory;
   economyMultiCount?: number;
-  interaction?: "activate" | "select";
   usesLabel?: string;
   usesIcon?: FeatureActionIcon;
   usesTone?: "default" | "danger";

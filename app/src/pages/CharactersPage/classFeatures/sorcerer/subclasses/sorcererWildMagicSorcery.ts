@@ -117,7 +117,7 @@ function getSorcererWildMagicFeatureActions(
       name: tidesOfChaosName,
       summary: "Gain Advantage on one D20 Test.",
       detail: "Give yourself Advantage on one D20 Test before you roll.",
-      breakdown: "Gain Advantage on one D20 Test",
+      breakdown: "Advantage on one roll",
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.MAGIC,
       usesRemaining,
@@ -151,7 +151,7 @@ function getSorcererWildMagicFeatureActions(
       summary: "Choose a Wild Magic Surge effect.",
       detail:
         "Choose an eligible Wild Magic Surge effect immediately after casting a spell slot spell.",
-      breakdown: "Choose a Wild Magic Surge effect",
+      breakdown: "Choose surge effect",
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.MAGIC,
       usesRemaining,

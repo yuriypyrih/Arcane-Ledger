@@ -341,6 +341,7 @@ export function getMonkWarriorOfMercyFeatureActions(
       summary: "Restore HP equal to your Martial Arts die plus WIS.",
       detail:
         "Expend 1 Focus Point to touch a creature and restore Hit Points equal to your Martial Arts die plus your Wisdom modifier.",
+      breakdown: "Martial Arts healing",
       economyType: ECONOMY_TYPE.ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
       usesInlineLabel: "Use 1",
@@ -385,7 +386,7 @@ export function getMonkWarriorOfMercyFeatureActions(
       name: handOfUltimateJusticeActionName,
       summary: "Return a creature to life.",
       detail: "Expend 5 Focus Points to return a creature that died within the past 24 hours to life.",
-      breakdown: "Revive a creature with 4d10 + WIS HP",
+      breakdown: "Revive with 4d10 + WIS",
       economyType: ECONOMY_TYPE.ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
       usesRemaining,

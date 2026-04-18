@@ -208,7 +208,7 @@ export function getClericLightDomainFeatureActions(
       sourceFeature: CLASS_FEATURE.CORONA_OF_LIGHT,
       summary: "Emit a radiant corona for 10 turns.",
       detail: "Create a 10-turn Corona of Light trait in Traits & Conditions.",
-      breakdown: "You can cause yourself to emit an aura of sunlight.",
+      breakdown: "10-turn sunlight aura",
       economyType: ECONOMY_TYPE.ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
       usesRemaining,

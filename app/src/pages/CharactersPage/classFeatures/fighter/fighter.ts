@@ -661,6 +661,7 @@ export function getFighterFeatureActions(
       summary: "Gain one additional non-Magic action.",
       detail:
         "Use Action Surge to gain one additional non-Magic action this turn. Starting at level 17, you can use it twice before resting, but only once per turn.",
+      breakdown: "Extra action this turn",
       description: getFighterFeatureDescription(CLASS_FEATURE.ACTION_SURGE),
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.FEATURE,
@@ -718,6 +719,7 @@ export function getFighterFeatureActions(
       summary: "Roll 1d10 for an ability check.",
       detail:
         "Use Tactical Mind to expend one Second Wind use and roll 1d10 to add to an ability check.",
+      breakdown: "1d10 ability check",
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.FEATURE,
       usesLabel: "Uses Second Wind charges",
@@ -746,9 +748,9 @@ export function getFighterFeatureActions(
       summary: "Roll 1d10 + a saving throw + Fighter level.",
       detail:
         "Choose a saving throw, then reroll it with a bonus equal to 1d10 plus that saving throw and your Fighter level.",
+      breakdown: "Boosted save reroll",
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.FEATURE,
-      interaction: "select",
       usesLabel: `${usesRemaining}/${totalUses} uses`,
       usesRemaining,
       usesTotal: totalUses,

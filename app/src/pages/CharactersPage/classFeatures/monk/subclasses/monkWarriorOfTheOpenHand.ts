@@ -394,7 +394,7 @@ function getMonkWarriorOfTheOpenHandFeatureActions(
       detail: healingFormula
         ? `Heal yourself for ${healingFormula} Hit Points (minimum of 1).`
         : "Heal yourself with your Martial Arts die and Wisdom modifier (minimum of 1).",
-      breakdown: healingFormula ? `${healingFormula} HP (minimum 1)` : "Martial Arts die + WIS",
+      breakdown: "Martial Arts self-heal",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
       usesRemaining,

@@ -980,9 +980,7 @@ export function getWarlockFeatureActions(
       detail: restoresAllPactMagicSlots
         ? "Restore all of your expended Pact Magic spell slots."
         : "Restore half your maximum Pact Magic spell slots, rounded up.",
-      breakdown: restoresAllPactMagicSlots
-        ? "Restore all your Pact Magic spell slots"
-        : "Restore half your Pact Magic spell slots",
+      breakdown: "Restore Pact slots",
       economyType: ECONOMY_TYPE.ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
       usesRemaining,
@@ -1003,7 +1001,6 @@ export function getWarlockFeatureActions(
       breakdown: "Auto-succeed on the saving throw",
       economyType: ECONOMY_TYPE.ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
-      interaction: "select",
       usesRemaining,
       usesTotal: contactPatronUsesTotal,
       drawer: {
@@ -1044,7 +1041,6 @@ export function getWarlockFeatureActions(
       breakdown: "Cast your arcanum spells",
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.MAGIC,
-      interaction: "select",
       usesRemaining: remainingArcanumCount,
       usesTotal: selectedArcanumCount,
       drawer: {

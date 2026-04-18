@@ -277,10 +277,9 @@ export function getBarbarianPathOfTheWildHeartRageActionOverride(
   character: BarbarianSubclassCharacter,
   rageState: CharacterRageFeatureState,
   resources: FeatureActionResource[]
-): Pick<FeatureActionCard, "interaction" | "drawer" | "execute"> {
+): Pick<FeatureActionCard, "drawer" | "execute"> {
   if (rageState.active || !hasBarbarianPathOfTheWildHeartRageOfTheWilds(character)) {
     return {
-      interaction: undefined,
       drawer: {
         kind: "confirm",
         eyebrow: "Barbarian",
@@ -295,7 +294,6 @@ export function getBarbarianPathOfTheWildHeartRageActionOverride(
   }
 
   return {
-    interaction: "select",
     drawer: {
       kind: "custom-form",
       eyebrow: "Barbarian",

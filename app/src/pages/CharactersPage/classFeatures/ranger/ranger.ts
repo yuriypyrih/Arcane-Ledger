@@ -560,9 +560,9 @@ export function getRangerFeatureActions(
       name: "Favored Enemy",
       summary: "Cast Hunter's Mark without a spell slot.",
       detail: "Open Hunter's Mark and cast it using your Favored Enemy charge.",
+      breakdown: "Free Hunter's Mark",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
-      interaction: "select",
       usesRemaining,
       usesTotal: totalUses,
       drawer: {

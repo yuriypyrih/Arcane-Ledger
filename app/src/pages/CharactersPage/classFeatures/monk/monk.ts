@@ -544,6 +544,7 @@ export function getMonkFeatureActions(
       summary: "Once per turn only after a hit.",
       detail:
         "Once per turn only after a hit, expend 1 Focus Point to use Stunning Strike. The usage is tracked, but resolving the effect is up to the player.",
+      breakdown: "Stun after hit",
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.FEATURE,
       usesLabel: "1",
@@ -576,6 +577,7 @@ export function getMonkFeatureActions(
       name: "Superior Defense",
       summary: "Once at the start of a turn.",
       detail: "Once at the start of a turn.",
+      breakdown: "Turn-start defense",
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.FEATURE,
       usesLabel: "3",

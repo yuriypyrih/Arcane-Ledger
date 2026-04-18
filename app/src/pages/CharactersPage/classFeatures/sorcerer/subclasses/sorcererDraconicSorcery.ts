@@ -213,10 +213,9 @@ function getSorcererDragonWingsAction(
     name: dragonWingsName,
     summary: "Manifest draconic wings for 1 hour.",
     detail: `Gain a Fly Speed of ${dragonWingsFlySpeed} feet for 1 hour.`,
-    breakdown: `Manifest draconic wings for ${dragonWingsDurationHours} hour`,
+    breakdown: "Manifest dragon wings",
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.MAGIC,
-    interaction: "activate",
     usesRemaining,
     usesTotal: getSorcererDraconicDragonWingsUsesTotal(character),
     usesInlineLabel:

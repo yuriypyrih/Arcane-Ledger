@@ -503,7 +503,7 @@ function getSorcererAberrantSorceryFeatureActions(
       name: revelationInFleshName,
       summary: "Spend Sorcery Points to manifest aberrant alterations.",
       detail: "Spend 1 or more Sorcery Points to gain chosen aberrant alterations for 10 minutes.",
-      breakdown: "Spend Sorcery Points to gain aberrant alterations for 10 minutes",
+      breakdown: "Choose aberrant traits",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
       resources:
@@ -559,7 +559,7 @@ function getSorcererAberrantSorceryFeatureActions(
       name: warpingImplosionName,
       summary: "Teleport and collapse space where you stood.",
       detail: "Teleport to a visible space and implode space at your previous location.",
-      breakdown: "Teleport and implode space where you stood",
+      breakdown: "Teleport, implode space",
       economyType: ECONOMY_TYPE.ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
       usesRemaining,

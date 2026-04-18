@@ -300,7 +300,7 @@ function getMonkWarriorOfTheElementsElementalAttunementAction(
     summary: "Imbue yourself with elemental energy for 10 minutes.",
     detail:
       "Expend 1 Focus Point to gain the Reach and Elemental Strikes benefits for 10 minutes.",
-    breakdown: "Gain Elemental Attunement for 10 minutes",
+    breakdown: "10-minute elemental aura",
     economyType: ECONOMY_TYPE.ACTION,
     actionCategory: ACTION_CATEGORY.MAGIC,
     usesInlineLabel: "Use 1",
@@ -369,7 +369,7 @@ function getMonkWarriorOfTheElementsElementalBurstAction(
     summary: "Release a 20-foot-radius burst of elemental energy.",
     detail:
       "Expend 2 Focus Points to create a burst of elemental energy that deals three Martial Arts dice of Acid, Cold, Fire, Lightning, or Thunder damage.",
-    breakdown: "20-foot sphere | 3 Martial Arts dice",
+    breakdown: "20-ft elemental burst",
     economyType: ECONOMY_TYPE.ACTION,
     actionCategory: ACTION_CATEGORY.MAGIC,
     usesInlineLabel: "Use 2",

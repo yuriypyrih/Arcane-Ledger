@@ -527,7 +527,7 @@ function getRogueSoulknifePsychicVeilAction(
     name: psychicVeilName,
     summary: "Invisible for 1 hour",
     detail: "Gain the Invisible condition for 1 hour.",
-    breakdown: "Gain the Invisible condition for 1 hour.",
+    breakdown: "1-hour invisibility",
     description: psychicVeilDescription,
     economyType: ECONOMY_TYPE.ACTION,
     actionCategory: ACTION_CATEGORY.MAGIC,

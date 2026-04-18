@@ -786,7 +786,6 @@ export function getWizardFeatureActions(
 
   const usesRemaining = getArcaneRecoveryUsesRemaining(character);
   const usesTotal = getArcaneRecoveryUsesTotal(character);
-  const recoveryLimit = getArcaneRecoveryRecoveryLevelLimit(character);
   const eligibleExpendedSlotCount = getArcaneRecoveryEligibleExpendedSlotCount(character);
   const disabledReason =
     usesRemaining <= 0
@@ -802,10 +801,9 @@ export function getWizardFeatureActions(
       summary: "Recover expended spell slots.",
       detail:
         "Recover expended spell slots with a combined level up to half your Wizard level, rounded up. Slots recovered this way must be level 5 or lower.",
-      breakdown: `Recover up to ${recoveryLimit} total slot level${recoveryLimit === 1 ? "" : "s"}`,
+      breakdown: "Recover spell slots",
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.MAGIC,
-      interaction: "select",
       usesRemaining,
       usesTotal,
       drawer: {
