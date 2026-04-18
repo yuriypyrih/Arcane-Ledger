@@ -308,7 +308,7 @@ export const clericSubclassEntries: SubclassEntry[] = [
           "<strong>Level 7.</strong> <spell:Fire Shield>Fire Shield</spell>, <spell:Freedom of Movement>Freedom of Movement</spell>",
           "<strong>Level 9.</strong> <spell:Hold Monster>Hold Monster</spell>, <spell:Steel Wind Strike>Steel Wind Strike</spell>"
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.WAR_PRIEST, {
         description: [
@@ -316,14 +316,15 @@ export const clericSubclassEntries: SubclassEntry[] = [
           "You can use this Bonus Action a number of times equal to your <link:WIS>Wisdom</link> modifier, minimum of once.",
           "You regain all expended uses when you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.GUIDED_STRIKE, {
         description: [
           "When you or a creature within 30 feet of you misses with an attack roll, you can expend one use of your Channel Divinity and give that roll a +10 bonus, potentially causing it to hit.",
-          "When you use this feature to benefit another creature's attack roll, you must take a Reaction to do so."
+          "When you use this feature to benefit another creature's attack roll, you must take a Reaction to do so.",
+          "(The reaction is fully <link:tracked>Tracked</link> but for the personal benefit simply remove one Channel Divinity usage yourself)"
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.WAR_GODS_BLESSING, {
         description: [
@@ -331,13 +332,13 @@ export const clericSubclassEntries: SubclassEntry[] = [
           "When you cast either spell in this way, the spell doesn't require <link:Concentration>Concentration</link>.",
           "Instead the spell lasts for 1 minute, but it ends early if you cast that spell again, have the <link:Incapacitated>Incapacitated</link> condition, or die."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.AVATAR_OF_BATTLE, {
         description: [
           "You gain <link:Resistance>Resistance</link> to <link:Bludgeoning>Bludgeoning</link>, <link:Piercing>Piercing</link>, and <link:Slashing>Slashing</link> damage."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       })
     ]
   }

@@ -74,6 +74,7 @@ import {
   activateClericDivineIntervention,
   activateClericFeatureActionOption,
   activateClericInvokeDuplicity,
+  activateClericWarPriest,
   blessingOfTheTricksterActionKey,
   activateClericPreserveLife,
   activateClericRadianceOfTheDawn,
@@ -96,6 +97,7 @@ import {
   getClericWeaponProficiencyEntries,
   preserveLifeActionKey,
   radianceOfTheDawnActionKey,
+  warPriestActionKey,
   normalizeClericFeatureState
 } from "./cleric/cleric";
 import {
@@ -499,6 +501,10 @@ const classFeatureModules = {
 
       if (actionKey === coronaOfLightActionKey) {
         return activateClericCoronaOfLight(character);
+      }
+
+      if (actionKey === warPriestActionKey) {
+        return activateClericWarPriest(character);
       }
 
       return actionKey === divineInterventionActionKey

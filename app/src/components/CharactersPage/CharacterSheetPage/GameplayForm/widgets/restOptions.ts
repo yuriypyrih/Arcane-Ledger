@@ -35,6 +35,7 @@ import {
 import {
   getClericChannelDivinityUsesTotal,
   getClericCoronaOfLightUsesTotal,
+  getClericWarPriestUsesTotal,
   getClericWardingFlareUsesTotal,
   getDivineForeknowledgeUsesTotal,
   hasClericImprovedWardingFlareFeature,
@@ -44,6 +45,8 @@ import {
   restoreClericCoronaOfLightOnLongRest,
   restoreClericDivineForeknowledgeOnLongRest,
   restoreClericDivineInterventionOnLongRest,
+  restoreClericWarPriestOnLongRest,
+  restoreClericWarPriestOnShortRest,
   restoreClericWardingFlareOnLongRest,
   restoreClericWardingFlareOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/cleric/cleric";
@@ -303,6 +306,7 @@ export function createShortRestOptions(character: Character): RestOption[] {
     getClericChannelDivinityUsesTotal(character),
     getPaladinChannelDivinityUsesTotal(character)
   );
+  const warPriestUsesTotal = getClericWarPriestUsesTotal(character);
   const wardingFlareUsesTotal = getClericWardingFlareUsesTotal(character);
   const improvedWardingFlareShortRestAvailable = hasClericImprovedWardingFlareFeature(character);
   const hasTimedStatuses = normalizeCharacterStatusEntries(character.statusEntries).length > 0;
@@ -392,7 +396,8 @@ export function createShortRestOptions(character: Character): RestOption[] {
           {
             id: "update-statuses",
             label: "Update Traits & Conditions",
-            detail: "Ends Short Rest effects, durations below 1 hour, and Concentration-linked effects.",
+            detail:
+              "Ends Short Rest effects, durations below 1 hour, and Concentration-linked effects.",
             apply: (currentCharacter: Character) => ({
               ...currentCharacter,
               statusEntries: applyShortRestToCharacterStatusEntries(currentCharacter.statusEntries)
@@ -581,6 +586,16 @@ export function createShortRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
+    ...(warPriestUsesTotal > 0
+      ? [
+          {
+            id: "restore-war-priest",
+            label: "Restore all War Priest charges",
+            apply: (currentCharacter: Character) =>
+              restoreClericWarPriestOnShortRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
     ...(hasRogueScionDreadIncarnate && rogueBloodthirstUsesTotal > 0
       ? [
           {
@@ -699,6 +714,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const unbreakableMajestyUsesTotal = getUnbreakableMajestyUsesTotal(character);
   const divineForeknowledgeUsesTotal = getDivineForeknowledgeUsesTotal(character);
   const coronaOfLightUsesTotal = getClericCoronaOfLightUsesTotal(character);
+  const warPriestUsesTotal = getClericWarPriestUsesTotal(character);
   const wardingFlareUsesTotal = getClericWardingFlareUsesTotal(character);
   const secondWindUsesTotal = getFighterSecondWindUsesTotal(character);
   const groupRecoveryUsesTotal = getFighterGroupRecoveryUsesTotal(character);
@@ -1763,6 +1779,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore all Warding Flare uses",
             apply: (currentCharacter: Character) =>
               restoreClericWardingFlareOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(warPriestUsesTotal > 0
+      ? [
+          {
+            id: "restore-war-priest",
+            label: "Restore all War Priest charges",
+            apply: (currentCharacter: Character) =>
+              restoreClericWarPriestOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

@@ -86,12 +86,16 @@ import {
 } from "./barbarian/barbarian";
 import {
   activateClericBlessingOfTheTrickster,
+  consumeClericWeaponAttack,
+  consumeClericGuidedStrikeReaction,
   consumeClericWardingFlareUse,
   expendClericChannelDivinityUse,
   getClericBlessedStrikesChoice,
   getClericChannelDivinityUsesRemaining,
   getClericChannelDivinityUsesTotal,
   getClericDivineOrderChoice,
+  guidedStrikeReactionEntryId,
+  hasClericWarPriestBonusAttackAvailable,
   getClericWardingFlareUsesRemaining,
   getClericWardingFlareUsesTotal,
   getKnowledgeDomainBlessingsSkillSelections,
@@ -1167,6 +1171,7 @@ export function hasBattleMagicBonusWeaponAttackForCharacter(
   attackKind: "weapon" | "unarmed"
 ): boolean {
   return (
+    hasClericWarPriestBonusAttackAvailable(character) ||
     (attackKind === "weapon" &&
       (hasBardBattleMagicBonusAttackAvailable(character) ||
         hasWizardSpellcastWeaponBonusActionAvailable(character) ||
@@ -2633,9 +2638,7 @@ export function restoreAllBarbarianRageUsesForCharacter(character: Character): C
   return restoreAllBarbarianRageUses(character);
 }
 
-export function activateBarbarianBerserkerRetaliationForCharacter(
-  character: Character
-): Character {
+export function activateBarbarianBerserkerRetaliationForCharacter(character: Character): Character {
   return activateBarbarianBerserkerRetaliation(character);
 }
 
@@ -2690,9 +2693,7 @@ export function getSpellbookSpellEntryForCharacter(
     Partial<Pick<Character, "subclassId" | "statusEntries" | "classFeatureState" | "feats">>,
   spell: SpellEntry
 ): SpellEntry {
-  return character.className === "Wizard"
-    ? getWizardSpellbookSpellEntry(character, spell)
-    : spell;
+  return character.className === "Wizard" ? getWizardSpellbookSpellEntry(character, spell) : spell;
 }
 
 export function getFeatureReactionSpellForCharacter(
@@ -2758,6 +2759,7 @@ export function activateClericBlessingOfTheTricksterForCharacter(
 }
 
 export const clericWardingFlareReactionEntryId = wardingFlareReactionEntryId;
+export const clericGuidedStrikeReactionEntryId = guidedStrikeReactionEntryId;
 
 export function getClericWardingFlareUsesTotalForCharacter(
   character: Pick<Character, "className"> &
@@ -2775,6 +2777,10 @@ export function getClericWardingFlareUsesRemainingForCharacter(
 
 export function consumeClericWardingFlareUseForCharacter(character: Character): Character {
   return consumeClericWardingFlareUse(character);
+}
+
+export function consumeClericGuidedStrikeReactionForCharacter(character: Character): Character {
+  return consumeClericGuidedStrikeReaction(character);
 }
 
 export function getMonkFocusPointsTotalForCharacter(
@@ -3425,6 +3431,14 @@ export function consumeWeaponAttackActionForCharacter(
 
   if (character.className === "Bard") {
     return consumeBardWeaponAttack(character, action);
+  }
+
+  if (character.className === "Cleric") {
+    const nextCharacter = consumeClericWeaponAttack(character, action);
+
+    if (nextCharacter !== character) {
+      return nextCharacter;
+    }
   }
 
   if (character.className === "Monk") {

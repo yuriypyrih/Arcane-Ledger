@@ -17,6 +17,7 @@ import {
   applySpellCastFeatureEffectsForCharacter,
   consumeElementalRebukeUseForCharacter,
   consumeBeguilingMagicOrBardicInspirationForCharacter,
+  consumeClericGuidedStrikeReactionForCharacter,
   consumeClericWardingFlareUseForCharacter,
   consumeWarlockBeguilingDefenseUseForCharacter,
   consumeSorcererRestoreBalanceUseForCharacter,
@@ -34,6 +35,9 @@ import {
   getBardicInspirationUsesTotalForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
   getBeguilingMagicUsesTotalForCharacter,
+  getChannelDivinityUsesRemainingForCharacter,
+  getChannelDivinityUsesTotalForCharacter,
+  clericGuidedStrikeReactionEntryId,
   getDerivedFeatureStatusEntriesForCharacter,
   getDruidWildShapeActiveFormForCharacter,
   getElementalRebukeUsesRemainingForCharacter,
@@ -208,8 +212,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     string | null
   >(null);
   const [selectedReactionSpellSlotLevel, setSelectedReactionSpellSlotLevel] = useState(1);
-  const [selectedSongOfDefenseSpellSlotLevel, setSelectedSongOfDefenseSpellSlotLevel] =
-    useState(1);
+  const [selectedSongOfDefenseSpellSlotLevel, setSelectedSongOfDefenseSpellSlotLevel] = useState(1);
   const [useBeguilingMagicOnReactionSpell, setUseBeguilingMagicOnReactionSpell] = useState(false);
   const [useStepsOfTheFeyOnReactionSpell, setUseStepsOfTheFeyOnReactionSpell] = useState(false);
   const [spellThiefSearchQuery, setSpellThiefSearchQuery] = useState("");
@@ -493,10 +496,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       ),
     [spellSlotsRemaining]
   );
-  const selectedSongOfDefenseDamageReduction = Math.max(
-    1,
-    Math.min(9, Math.floor(selectedSongOfDefenseSpellSlotLevel || 1))
-  ) * 5;
+  const selectedSongOfDefenseDamageReduction =
+    Math.max(1, Math.min(9, Math.floor(selectedSongOfDefenseSpellSlotLevel || 1))) * 5;
   const spellThiefUsesRemaining = getRogueSpellThiefUsesRemainingForCharacter(character);
   const spellThiefUsesTotal = getRogueSpellThiefUsesTotalForCharacter(character);
   const gloriousDefenseUsesRemaining = getGloriousDefenseUsesRemainingForCharacter(character);
@@ -510,6 +511,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   const sorceryPointsRemaining = getSorceryPointsRemainingForCharacter(character);
   const restoreBalanceUsesRemaining = getSorcererRestoreBalanceUsesRemainingForCharacter(character);
   const restoreBalanceUsesTotal = getSorcererRestoreBalanceUsesTotalForCharacter(character);
+  const channelDivinityUsesRemaining = getChannelDivinityUsesRemainingForCharacter(character);
+  const channelDivinityUsesTotal = getChannelDivinityUsesTotalForCharacter(character);
   const wardingFlareUsesRemaining = getClericWardingFlareUsesRemainingForCharacter(character);
   const wardingFlareUsesTotal = getClericWardingFlareUsesTotalForCharacter(character);
   const bloodthirstUsesRemaining =
@@ -603,112 +606,133 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         ? bardicInspirationUsesRemaining <= 0
           ? "No Bardic Inspiration uses remaining."
           : null
-      : selectedReactionEntry?.id === "reaction-banneret-shared-resilience"
-        ? getFighterIndomitableUsesRemainingForCharacter(character) <= 0
-          ? "No Indomitable uses remaining."
-          : null
-        : selectedReactionEntry?.id === "reaction-psi-warrior-protective-field"
-          ? getFighterPsiWarriorEnergyDiceRemainingForCharacter(character) <= 0
-            ? "No Psi Energy Dice remaining."
+        : selectedReactionEntry?.id === "reaction-banneret-shared-resilience"
+          ? getFighterIndomitableUsesRemainingForCharacter(character) <= 0
+            ? "No Indomitable uses remaining."
             : null
-          : selectedReactionEntry?.id === sorcererBendLuckReactionEntryId
-            ? sorceryPointsRemaining <= 0
-              ? "You need 1 Sorcery Point."
+          : selectedReactionEntry?.id === "reaction-psi-warrior-protective-field"
+            ? getFighterPsiWarriorEnergyDiceRemainingForCharacter(character) <= 0
+              ? "No Psi Energy Dice remaining."
               : null
-            : selectedReactionEntry?.id === sorcererRestoreBalanceReactionEntryId
-              ? restoreBalanceUsesRemaining <= 0
-                ? "No Restore Balance uses remaining."
+            : selectedReactionEntry?.id === sorcererBendLuckReactionEntryId
+              ? sorceryPointsRemaining <= 0
+                ? "You need 1 Sorcery Point."
                 : null
-              : selectedReactionEntry?.id === clericWardingFlareReactionEntryId
-                ? wardingFlareUsesRemaining <= 0
-                  ? "No Warding Flare uses remaining."
+              : selectedReactionEntry?.id === sorcererRestoreBalanceReactionEntryId
+                ? restoreBalanceUsesRemaining <= 0
+                  ? "No Restore Balance uses remaining."
                   : null
-              : selectedReactionEntry?.id === paladinGloriousDefenseReactionEntryId
-                ? gloriousDefenseUsesRemaining <= 0
-                  ? "No Glorious Defense charges remaining."
-                  : null
-                : selectedReactionEntry?.id === paladinElementalRebukeReactionEntryId
-                  ? elementalRebukeUsesRemaining <= 0
-                    ? "No Elemental Rebuke charges remaining."
+                : selectedReactionEntry?.id === clericGuidedStrikeReactionEntryId
+                  ? channelDivinityUsesRemaining <= 0
+                    ? "No Channel Divinity uses remaining."
                     : null
-                  : selectedReactionEntry?.id === rogueScionOfTheThreeBloodthirstReactionEntryId
-                    ? bloodthirstUsesRemaining <= 0
-                      ? "No Bloodthirst uses remaining."
+                  : selectedReactionEntry?.id === clericWardingFlareReactionEntryId
+                    ? wardingFlareUsesRemaining <= 0
+                      ? "No Warding Flare uses remaining."
                       : null
-                    : selectedReactionEntry?.id ===
-                        rangerWinterWalkerChillingRetributionReactionEntryId
-                      ? chillingRetributionUsesRemaining <= 0
-                        ? "No Chilling Retribution charges remaining."
+                    : selectedReactionEntry?.id === paladinGloriousDefenseReactionEntryId
+                      ? gloriousDefenseUsesRemaining <= 0
+                        ? "No Glorious Defense charges remaining."
                         : null
-                      : selectedReactionEntry?.id ===
-                          wizardIllusionistIllusorySelfReactionEntryId
-                        ? wizardIllusionistIllusorySelfUsesRemaining <= 0 &&
-                          wizardIllusionistIllusorySelfFallbackSlotSummary.remaining <= 0
-                          ? "No Illusory Self charge or level 2+ spell slots remaining."
+                      : selectedReactionEntry?.id === paladinElementalRebukeReactionEntryId
+                        ? elementalRebukeUsesRemaining <= 0
+                          ? "No Elemental Rebuke charges remaining."
                           : null
-                      : selectedReactionEntry?.id === warlockBeguilingDefenseReactionEntryId
-                        ? warlockBeguilingDefenseUsesRemaining <= 0 &&
-                          warlockPactMagicSlotsRemaining <= 0
-                          ? "No Beguiling Defense charges or Pact Magic spell slots remaining."
-                          : null
-                        : selectedReactionEntry?.id === wizardBladesingerSongOfDefenseReactionId
-                          ? availableSongOfDefenseSpellSlotLevels.length <= 0
-                            ? "No spell slots remaining."
-                            : !availableSongOfDefenseSpellSlotLevels.includes(
-                                  selectedSongOfDefenseSpellSlotLevel
-                                )
-                              ? `No level ${selectedSongOfDefenseSpellSlotLevel} spell slots remaining.`
-                              : null
-                        : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId
-                          ? spellThiefUsesRemaining <= 0
-                            ? "No Spell Thief charges remaining."
+                        : selectedReactionEntry?.id ===
+                            rogueScionOfTheThreeBloodthirstReactionEntryId
+                          ? bloodthirstUsesRemaining <= 0
+                            ? "No Bloodthirst uses remaining."
                             : null
-                          : null;
+                          : selectedReactionEntry?.id ===
+                              rangerWinterWalkerChillingRetributionReactionEntryId
+                            ? chillingRetributionUsesRemaining <= 0
+                              ? "No Chilling Retribution charges remaining."
+                              : null
+                            : selectedReactionEntry?.id ===
+                                wizardIllusionistIllusorySelfReactionEntryId
+                              ? wizardIllusionistIllusorySelfUsesRemaining <= 0 &&
+                                wizardIllusionistIllusorySelfFallbackSlotSummary.remaining <= 0
+                                ? "No Illusory Self charge or level 2+ spell slots remaining."
+                                : null
+                              : selectedReactionEntry?.id === warlockBeguilingDefenseReactionEntryId
+                                ? warlockBeguilingDefenseUsesRemaining <= 0 &&
+                                  warlockPactMagicSlotsRemaining <= 0
+                                  ? "No Beguiling Defense charges or Pact Magic spell slots remaining."
+                                  : null
+                                : selectedReactionEntry?.id ===
+                                    wizardBladesingerSongOfDefenseReactionId
+                                  ? availableSongOfDefenseSpellSlotLevels.length <= 0
+                                    ? "No spell slots remaining."
+                                    : !availableSongOfDefenseSpellSlotLevels.includes(
+                                          selectedSongOfDefenseSpellSlotLevel
+                                        )
+                                      ? `No level ${selectedSongOfDefenseSpellSlotLevel} spell slots remaining.`
+                                      : null
+                                  : selectedReactionEntry?.id ===
+                                      rogueArcaneTricksterSpellThiefReactionId
+                                    ? spellThiefUsesRemaining <= 0
+                                      ? "No Spell Thief charges remaining."
+                                      : null
+                                    : null;
   const selectedReactionResourceSummary =
     selectedReactionEntry?.id === bardCollegeOfDanceInspiringMovementReactionId
       ? `${bardicInspirationUsesRemaining}/${bardicInspirationUsesTotal} Bardic Inspiration uses | Cost: 1`
       : selectedReactionEntry?.id === paladinGloriousDefenseReactionEntryId
-      ? `${gloriousDefenseUsesRemaining}/${gloriousDefenseUsesTotal} charges | Long Rest`
-      : selectedReactionEntry?.id === paladinElementalRebukeReactionEntryId
-        ? `${elementalRebukeUsesRemaining}/${elementalRebukeUsesTotal} charges | Long Rest`
-        : selectedReactionEntry?.id === sorcererBendLuckReactionEntryId
-          ? `${sorceryPointsRemaining} Sorcery Points remaining | Cost: 1`
-          : selectedReactionEntry?.id === sorcererRestoreBalanceReactionEntryId
-            ? `${restoreBalanceUsesRemaining}/${restoreBalanceUsesTotal} uses | Long Rest`
-            : selectedReactionEntry?.id === clericWardingFlareReactionEntryId
-              ? null
-            : selectedReactionEntry?.id === rogueScionOfTheThreeBloodthirstReactionEntryId
-              ? `${bloodthirstUsesRemaining}/${bloodthirstUsesTotal} uses | Long Rest`
-              : selectedReactionEntry?.id === rangerWinterWalkerChillingRetributionReactionEntryId
-                ? `${chillingRetributionUsesRemaining}/${chillingRetributionUsesTotal} charges | Long Rest`
-                : selectedReactionEntry?.id === wizardIllusionistIllusorySelfReactionEntryId
-                  ? `${wizardIllusionistIllusorySelfUsesRemaining}/${wizardIllusionistIllusorySelfUsesTotal} charge | Short Rest / Long Rest${
-                      wizardIllusionistIllusorySelfFallbackSlotSummary.total > 0
-                        ? ` | Fallback: 1 level 2+ spell slot (${wizardIllusionistIllusorySelfFallbackSlotSummary.remaining}/${wizardIllusionistIllusorySelfFallbackSlotSummary.total})`
-                        : ""
-                    }`
-                : selectedReactionEntry?.id === warlockBeguilingDefenseReactionEntryId
-                  ? `${warlockBeguilingDefenseUsesRemaining}/${warlockBeguilingDefenseUsesTotal} charge${warlockBeguilingDefenseUsesTotal === 1 ? "" : "s"} | Long Rest${
-                      warlockPactMagicSlotTotal > 0
-                        ? ` | Fallback: 1 Pact Magic spell slot (${warlockPactMagicSlotsRemaining}/${warlockPactMagicSlotTotal})`
-                        : ""
-                    }`
-                  : selectedReactionEntry?.id === wizardBladesingerSongOfDefenseReactionId
-                    ? `Reduce damage by ${selectedSongOfDefenseDamageReduction} | Level ${selectedSongOfDefenseSpellSlotLevel} slot (${spellSlotsRemaining[selectedSongOfDefenseSpellSlotLevel - 1] ?? 0} remaining)`
-                  : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId
-                    ? `${spellThiefUsesRemaining}/${spellThiefUsesTotal} charges | Long Rest`
-                    : null;
+        ? `${gloriousDefenseUsesRemaining}/${gloriousDefenseUsesTotal} charges | Long Rest`
+        : selectedReactionEntry?.id === paladinElementalRebukeReactionEntryId
+          ? `${elementalRebukeUsesRemaining}/${elementalRebukeUsesTotal} charges | Long Rest`
+          : selectedReactionEntry?.id === sorcererBendLuckReactionEntryId
+            ? `${sorceryPointsRemaining} Sorcery Points remaining | Cost: 1`
+            : selectedReactionEntry?.id === sorcererRestoreBalanceReactionEntryId
+              ? `${restoreBalanceUsesRemaining}/${restoreBalanceUsesTotal} uses | Long Rest`
+              : selectedReactionEntry?.id === clericGuidedStrikeReactionEntryId
+                ? null
+                : selectedReactionEntry?.id === clericWardingFlareReactionEntryId
+                  ? null
+                  : selectedReactionEntry?.id === rogueScionOfTheThreeBloodthirstReactionEntryId
+                    ? `${bloodthirstUsesRemaining}/${bloodthirstUsesTotal} uses | Long Rest`
+                    : selectedReactionEntry?.id ===
+                        rangerWinterWalkerChillingRetributionReactionEntryId
+                      ? `${chillingRetributionUsesRemaining}/${chillingRetributionUsesTotal} charges | Long Rest`
+                      : selectedReactionEntry?.id === wizardIllusionistIllusorySelfReactionEntryId
+                        ? `${wizardIllusionistIllusorySelfUsesRemaining}/${wizardIllusionistIllusorySelfUsesTotal} charge | Short Rest / Long Rest${
+                            wizardIllusionistIllusorySelfFallbackSlotSummary.total > 0
+                              ? ` | Fallback: 1 level 2+ spell slot (${wizardIllusionistIllusorySelfFallbackSlotSummary.remaining}/${wizardIllusionistIllusorySelfFallbackSlotSummary.total})`
+                              : ""
+                          }`
+                        : selectedReactionEntry?.id === warlockBeguilingDefenseReactionEntryId
+                          ? `${warlockBeguilingDefenseUsesRemaining}/${warlockBeguilingDefenseUsesTotal} charge${warlockBeguilingDefenseUsesTotal === 1 ? "" : "s"} | Long Rest${
+                              warlockPactMagicSlotTotal > 0
+                                ? ` | Fallback: 1 Pact Magic spell slot (${warlockPactMagicSlotsRemaining}/${warlockPactMagicSlotTotal})`
+                                : ""
+                            }`
+                          : selectedReactionEntry?.id === wizardBladesingerSongOfDefenseReactionId
+                            ? `Reduce damage by ${selectedSongOfDefenseDamageReduction} | Level ${selectedSongOfDefenseSpellSlotLevel} slot (${spellSlotsRemaining[selectedSongOfDefenseSpellSlotLevel - 1] ?? 0} remaining)`
+                            : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId
+                              ? `${spellThiefUsesRemaining}/${spellThiefUsesTotal} charges | Long Rest`
+                              : null;
   const selectedReactionHeaderResources: FeatureActionResource[] =
-    selectedReactionEntry?.id === clericWardingFlareReactionEntryId
+    selectedReactionEntry?.id === clericGuidedStrikeReactionEntryId
       ? [
           {
             kind: "tracker",
-            label: "Charges",
-            current: wardingFlareUsesRemaining,
-            total: wardingFlareUsesTotal
+            label: "Channel Divinity",
+            current: channelDivinityUsesRemaining,
+            total: channelDivinityUsesTotal,
+            icon: "pyromancy",
+            cost: 1
           }
         ]
-      : [];
+      : selectedReactionEntry?.id === clericWardingFlareReactionEntryId
+        ? [
+            {
+              kind: "tracker",
+              label: "Charges",
+              current: wardingFlareUsesRemaining,
+              total: wardingFlareUsesTotal
+            }
+          ]
+        : [];
   const selectedReactionSelectionWarning =
     selectedReactionEntry?.id === superiorHuntersDefenseReactionId &&
     selectedRangerHunterSuperiorHuntersDefenseDamageType === null
@@ -1089,6 +1113,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         nextCharacter = expendSorceryPointForCharacter(currentCharacter);
       } else if (selectedReactionEntry.id === sorcererRestoreBalanceReactionEntryId) {
         nextCharacter = consumeSorcererRestoreBalanceUseForCharacter(currentCharacter);
+      } else if (selectedReactionEntry.id === clericGuidedStrikeReactionEntryId) {
+        nextCharacter = consumeClericGuidedStrikeReactionForCharacter(currentCharacter);
       } else if (selectedReactionEntry.id === clericWardingFlareReactionEntryId) {
         nextCharacter = consumeClericWardingFlareUseForCharacter(currentCharacter);
       } else if (selectedReactionEntry.id === paladinGloriousDefenseReactionEntryId) {
@@ -1176,6 +1202,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           selectedReactionEntry.id === "reaction-psi-warrior-protective-field" ||
           selectedReactionEntry.id === sorcererBendLuckReactionEntryId ||
           selectedReactionEntry.id === sorcererRestoreBalanceReactionEntryId ||
+          selectedReactionEntry.id === clericGuidedStrikeReactionEntryId ||
           selectedReactionEntry.id === clericWardingFlareReactionEntryId ||
           selectedReactionEntry.id === paladinGloriousDefenseReactionEntryId ||
           selectedReactionEntry.id === paladinElementalRebukeReactionEntryId ||
@@ -1369,7 +1396,9 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
                 <span className={shared.fieldLabel}>Spell Slot</span>
                 <SelectInput
                   value={
-                    availableSongOfDefenseSpellSlotLevels.includes(selectedSongOfDefenseSpellSlotLevel)
+                    availableSongOfDefenseSpellSlotLevels.includes(
+                      selectedSongOfDefenseSpellSlotLevel
+                    )
                       ? String(selectedSongOfDefenseSpellSlotLevel)
                       : ""
                   }

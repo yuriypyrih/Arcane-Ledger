@@ -79,6 +79,7 @@ import * as knowledgeDomainSubclass from "./subclasses/clericKnowledgeDomain";
 import * as lifeDomainSubclass from "./subclasses/clericLifeDomain";
 import * as lightDomainSubclass from "./subclasses/clericLightDomain";
 import * as trickeryDomainSubclass from "./subclasses/clericTrickeryDomain";
+import * as warDomainSubclass from "./subclasses/clericWarDomain";
 
 const divineOrderProtectorSource = "Divine Order";
 const divineStrikeSource = "Divine Strike";
@@ -94,6 +95,8 @@ export const invokeDuplicityActionKey = trickeryDomainSubclass.invokeDuplicityAc
 export const preserveLifeActionKey = lifeDomainSubclass.preserveLifeActionKey;
 export const radianceOfTheDawnActionKey = lightDomainSubclass.radianceOfTheDawnActionKey;
 export const coronaOfLightActionKey = lightDomainSubclass.coronaOfLightActionKey;
+export const warPriestActionKey = warDomainSubclass.warPriestActionKey;
+export const guidedStrikeReactionEntryId = warDomainSubclass.guidedStrikeReactionEntryId;
 export const wardingFlareReactionEntryId = lightDomainSubclass.wardingFlareReactionEntryId;
 const greaterDivineInterventionWishSpellId = "spell-wish";
 export {
@@ -254,7 +257,10 @@ function getClericSupremeHealingDivinityDescriptionAdditions(
     return [];
   }
 
-  const descriptionEntries = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.SUPREME_HEALING);
+  const descriptionEntries = getFeatureDescriptionForCharacter(
+    character,
+    CLASS_FEATURE.SUPREME_HEALING
+  );
 
   return descriptionEntries.length > 0
     ? [createSourcedDescriptionEntries(supremeHealingSource, descriptionEntries)]
@@ -310,7 +316,10 @@ export function getClericResolvedDivinityDisplay(
     amounts: Array.from({ length: Math.max(1, wisdomModifier) }, () => DICE.D8),
     damageTypes: [DAMAGE_TYPE.RADIANT]
   };
-  const searUndeadDescription = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.SEAR_UNDEAD);
+  const searUndeadDescription = getFeatureDescriptionForCharacter(
+    character,
+    CLASS_FEATURE.SEAR_UNDEAD
+  );
 
   return {
     damage: searUndeadDamage,
@@ -351,11 +360,15 @@ export function normalizeClericFeatureState(
   const lightDomainState = lightDomainSubclass.hasClericLightDomainFeature(normalizedCharacter, 3)
     ? lightDomainSubclass.normalizeClericLightDomainFeatureState(record, normalizedCharacter)
     : {};
+  const warDomainState = warDomainSubclass.hasClericWarDomainFeature(normalizedCharacter, 3)
+    ? warDomainSubclass.normalizeClericWarDomainFeatureState(record, normalizedCharacter)
+    : {};
 
   return {
     ...baseState,
     ...knowledgeDomainState,
-    ...lightDomainState
+    ...lightDomainState,
+    ...warDomainState
   };
 }
 
@@ -366,8 +379,10 @@ export function getClericDivineOrderChoice(
     return null;
   }
 
-  return normalizeClericFeatureState(character.classFeatureState?.cleric, character)
-    .divineOrderChoice ?? null;
+  return (
+    normalizeClericFeatureState(character.classFeatureState?.cleric, character).divineOrderChoice ??
+    null
+  );
 }
 
 export function setClericDivineOrderChoice(
@@ -451,26 +466,29 @@ export function markClericBlessedStrikeUsed(character: Character): Character {
 }
 
 export function advanceClericFeaturesForNewRound(character: Character): Character {
-  if (!hasClericFeature(character, CLASS_FEATURE.BLESSED_STRIKES)) {
-    return character;
-  }
+  let nextCharacter = character;
 
-  const clericState = normalizeClericFeatureState(character.classFeatureState?.cleric, character);
+  if (hasClericFeature(nextCharacter, CLASS_FEATURE.BLESSED_STRIKES)) {
+    const clericState = normalizeClericFeatureState(
+      nextCharacter.classFeatureState?.cleric,
+      nextCharacter
+    );
 
-  if (!clericState.blessedStrikeUsedThisTurn) {
-    return character;
-  }
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      cleric: {
-        ...clericState,
-        blessedStrikeUsedThisTurn: false
-      }
+    if (clericState.blessedStrikeUsedThisTurn) {
+      nextCharacter = {
+        ...nextCharacter,
+        classFeatureState: {
+          ...nextCharacter.classFeatureState,
+          cleric: {
+            ...clericState,
+            blessedStrikeUsedThisTurn: false
+          }
+        }
+      };
     }
-  };
+  }
+
+  return warDomainSubclass.advanceClericWarPriestForNewRound(nextCharacter);
 }
 
 export function getClericCantripBonus(
@@ -536,6 +554,13 @@ export function getClericMindMagicSpellEntry(
   );
 }
 
+export function canUseClericWarGodsBlessingForSpell(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  spell: Pick<SpellEntry, "id"> | null
+): boolean {
+  return warDomainSubclass.canUseClericWarGodsBlessingForSpell(character, spell);
+}
+
 export function getClericWeaponAction(
   character: Pick<Character, "className" | "level" | "classFeatureState">,
   action: WeaponAction
@@ -545,6 +570,15 @@ export function getClericWeaponAction(
     getClericBlessedStrikesChoice(character),
     action
   );
+}
+
+export function consumeClericWeaponAttack(
+  character: Character,
+  action: {
+    attackKind: "weapon" | "unarmed";
+  }
+): Character {
+  return warDomainSubclass.consumeClericWarPriestWeaponAttack(character, action);
 }
 
 export function getClericSkillBonuses(
@@ -846,6 +880,27 @@ export function getDivineForeknowledgeUsesTotal(
   return knowledgeDomainSubclass.getDivineForeknowledgeUsesTotal(character);
 }
 
+export function getClericWarPriestUsesTotal(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+): number {
+  return warDomainSubclass.getClericWarPriestUsesTotal(character);
+}
+
+export function getClericWarPriestUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "subclassId">>
+): number {
+  return warDomainSubclass.getClericWarPriestUsesRemaining(character);
+}
+
+export function hasClericWarPriestBonusAttackAvailable(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+): boolean {
+  return warDomainSubclass.hasClericWarPriestBonusAttackAvailable(character);
+}
+
 export function getDivineForeknowledgeUsesRemaining(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "classFeatureState" | "subclassId">>
@@ -889,6 +944,10 @@ export function applyDivineForeknowledgeStatus(character: Character): Character 
 
 export function activateClericDivineForeknowledge(character: Character): Character {
   return knowledgeDomainSubclass.activateClericDivineForeknowledge(character);
+}
+
+export function activateClericWarPriest(character: Character): Character {
+  return warDomainSubclass.activateClericWarPriest(character);
 }
 
 export function getClericFeatureActions(
@@ -1098,6 +1157,18 @@ export function activateClericCoronaOfLight(character: Character): Character {
   return lightDomainSubclass.activateClericCoronaOfLight(character);
 }
 
+export function consumeClericGuidedStrikeReaction(character: Character): Character {
+  return warDomainSubclass.consumeClericGuidedStrikeReaction(character);
+}
+
+export function restoreClericWarPriestOnShortRest(character: Character): Character {
+  return warDomainSubclass.restoreClericWarPriestOnShortRest(character);
+}
+
+export function restoreClericWarPriestOnLongRest(character: Character): Character {
+  return warDomainSubclass.restoreClericWarPriestOnLongRest(character);
+}
+
 export function getClericWardingFlareUsesTotal(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "abilities" | "level" | "subclassId">>
@@ -1144,19 +1215,24 @@ export function restoreClericCoronaOfLightOnLongRest(character: Character): Char
 export function applyShortRestToClericFeatures(character: Character): Character {
   if (
     !hasClericFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY) &&
-    !hasClericImprovedWardingFlareFeature(character)
+    !hasClericImprovedWardingFlareFeature(character) &&
+    getClericWarPriestUsesTotal(character) <= 0
   ) {
     return character;
   }
 
-  return restoreClericWardingFlareOnShortRest(restoreClericChannelDivinityOnShortRest(character));
+  return restoreClericWarPriestOnShortRest(
+    restoreClericWardingFlareOnShortRest(restoreClericChannelDivinityOnShortRest(character))
+  );
 }
 
 export function applyLongRestToClericFeatures(character: Character): Character {
   return restoreClericDivineForeknowledgeOnLongRest(
     restoreClericDivineInterventionOnLongRest(
-      restoreClericCoronaOfLightOnLongRest(
-        restoreClericWardingFlareOnLongRest(restoreClericChannelDivinityOnLongRest(character))
+      restoreClericWarPriestOnLongRest(
+        restoreClericCoronaOfLightOnLongRest(
+          restoreClericWardingFlareOnLongRest(restoreClericChannelDivinityOnLongRest(character))
+        )
       )
     )
   );

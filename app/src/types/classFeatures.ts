@@ -262,6 +262,8 @@ export type CharacterClericFeatureState = {
   blessedStrikeUsedThisTurn?: boolean;
   channelDivinityUsesExpended?: number;
   divineInterventionUsed?: boolean;
+  warPriestUsesExpended?: number;
+  warPriestBonusAttackAvailable?: boolean;
   wardingFlareUsesExpended?: number;
   coronaOfLightUsesExpended?: number;
   knowledgeBlessingsSkills?: SkillName[];

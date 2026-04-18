@@ -14,6 +14,7 @@ import { useClassSpellEntries, usePreparedSpellEntries } from "../../../../codex
 import {
   ACTION_TYPE,
   CLASS_FEATURE,
+  DURATION,
   MAGIC_SCHOOL,
   getSpellEntryById,
   type SpellEntry
@@ -99,6 +100,7 @@ import {
 import {
   channelDivinityActionKey,
   canUseClericMindMagicForSpell,
+  canUseClericWarGodsBlessingForSpell,
   getClericLifeDomainHealingSpellEntry,
   getClericMindMagicSpellEntry,
   getClericResolvedDivinityDisplay
@@ -293,6 +295,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const [selectedSpellSlotLevel, setSelectedSpellSlotLevel] = useState(1);
   const [useBeguilingMagicOnSelectedSpell, setUseBeguilingMagicOnSelectedSpell] = useState(false);
   const [useMindMagicOnSelectedSpell, setUseMindMagicOnSelectedSpell] = useState(false);
+  const [useWarGodsBlessingOnSelectedSpell, setUseWarGodsBlessingOnSelectedSpell] =
+    useState(false);
   const [useBlessingOfMoonlightOnSelectedSpell, setUseBlessingOfMoonlightOnSelectedSpell] =
     useState(false);
   const [useElementalSmiteOnSelectedSpell, setUseElementalSmiteOnSelectedSpell] = useState(false);
@@ -331,6 +335,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setSelectedSpellViewMode("standard");
     setUseBeguilingMagicOnSelectedSpell(false);
     setUseMindMagicOnSelectedSpell(false);
+    setUseWarGodsBlessingOnSelectedSpell(false);
     setUseBlessingOfMoonlightOnSelectedSpell(false);
     setUseElementalSmiteOnSelectedSpell(false);
     setUseFeyReinforcementsOnSelectedSpell(false);
@@ -1051,6 +1056,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpell,
     selectedSpellIsPrepared
   );
+  const selectedSpellSupportsWarGodsBlessing = canUseClericWarGodsBlessingForSpell(
+    character,
+    selectedSpell
+  );
   const selectedSpellSupportsStepsOfTheFey =
     selectedSpell?.id === mistyStepSpellId && warlockStepsOfTheFeyUsesTotal > 0;
   const selectedSpellSupportsMistyWanderer =
@@ -1081,6 +1090,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     : 0;
   const selectedSpellMindMagicDisabled =
     selectedSpellSupportsMindMagic && channelDivinityUsesRemaining <= 0;
+  const selectedSpellWarGodsBlessingDisabled =
+    selectedSpellSupportsWarGodsBlessing && channelDivinityUsesRemaining <= 0;
   const selectedSpellPsionicSorceryDisabled =
     selectedSpellSupportsPsionicSorcery &&
     sorceryPointsRemaining < selectedSpellPsionicSorceryMinimumCost;
@@ -1156,12 +1167,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
     const minimumSlotLevel = Math.max(1, getSpellLevel(selectedSpell));
     const slotLevel =
-      selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell
+      (selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell) ||
+      (selectedSpellSupportsWarGodsBlessing && useWarGodsBlessingOnSelectedSpell)
         ? minimumSlotLevel
         : clampNumber(selectedSpellSlotLevel, minimumSlotLevel, 9, minimumSlotLevel);
     const castsWithoutSpellSlot =
       (selectedSpellFreeCastSlotLevel !== null && slotLevel === selectedSpellFreeCastSlotLevel) ||
-      (selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell);
+      (selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell) ||
+      (selectedSpellSupportsWarGodsBlessing && useWarGodsBlessingOnSelectedSpell);
 
     if (castsWithoutSpellSlot) {
       return spellSlotsExpended;
@@ -1176,8 +1189,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellFreeCastSlotLevel,
     selectedSpellSlotLevel,
     selectedSpellSupportsMindMagic,
+    selectedSpellSupportsWarGodsBlessing,
     spellSlotsExpended,
-    useMindMagicOnSelectedSpell
+    useMindMagicOnSelectedSpell,
+    useWarGodsBlessingOnSelectedSpell
   ]);
   const selectedSpellFrozenHauntOptionState = useMemo(
     () =>
@@ -1231,6 +1246,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   useEffect(() => {
     setUseBeguilingMagicOnSelectedSpell(false);
     setUseMindMagicOnSelectedSpell(false);
+    setUseWarGodsBlessingOnSelectedSpell(false);
     setUseBlessingOfMoonlightOnSelectedSpell(false);
     setUseElementalSmiteOnSelectedSpell(false);
     setUseFeyReinforcementsOnSelectedSpell(false);
@@ -1252,6 +1268,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
     setUseMindMagicOnSelectedSpell(false);
   }, [selectedSpellMindMagicDisabled, selectedSpellSupportsMindMagic]);
+
+  useEffect(() => {
+    if (!selectedSpellSupportsWarGodsBlessing || !selectedSpellWarGodsBlessingDisabled) {
+      return;
+    }
+
+    setUseWarGodsBlessingOnSelectedSpell(false);
+  }, [selectedSpellSupportsWarGodsBlessing, selectedSpellWarGodsBlessingDisabled]);
 
   useEffect(() => {
     if (selectedSpellSupportsPsionicSorcery && !selectedSpellPsionicSorceryDisabled) {
@@ -1852,6 +1876,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     castAsRitual?: boolean;
     useBeguilingMagic?: boolean;
     useMindMagic?: boolean;
+    useWarGodsBlessing?: boolean;
     useBlessingOfMoonlight?: boolean;
     useElementalSmite?: boolean;
     useFeyReinforcements?: boolean;
@@ -1876,6 +1901,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     const useMindMagic =
       options?.useMindMagic === true &&
       selectedSpellSupportsMindMagic &&
+      channelDivinityUsesRemaining > 0;
+    const useWarGodsBlessing =
+      options?.useWarGodsBlessing === true &&
+      selectedSpellSupportsWarGodsBlessing &&
       channelDivinityUsesRemaining > 0;
     const useBlessingOfMoonlight = options?.useBlessingOfMoonlight === true;
     const useElementalSmite =
@@ -1918,6 +1947,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           name: selectedSpell.name,
           duration: ["1 minute"]
         }
+      : useWarGodsBlessing && selectedSpell.duration.includes(DURATION.CONCENTRATION)
+        ? {
+            name: selectedSpell.name,
+            duration: selectedSpell.duration.filter(
+              (durationPart) => durationPart !== DURATION.CONCENTRATION
+            )
+          }
       : selectedSpell;
     const canCastSpellbookRitual =
       selectedSpellIsSpellbookOnly && hasWizardRitualAdept && castAsRitual;
@@ -2057,6 +2093,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     const minimumSlotLevel = Math.max(1, spellLevel);
     const slotLevel =
       useMindMagic ||
+      useWarGodsBlessing ||
       useStepsOfTheFey ||
       useMistyWanderer ||
       useFeyReinforcements ||
@@ -2075,6 +2112,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       druidNaturalRecoveryUsesRemaining > 0 &&
       slotLevel === spellLevel;
     const castsFreeViaMindMagic = useMindMagic;
+    const castsFreeViaWarGodsBlessing = useWarGodsBlessing;
     const castsFreeViaPsionicSorcery = usePsionicSorcery && sorceryPointsRemaining >= slotLevel;
     const castsFreeViaStepsOfTheFey = useStepsOfTheFey;
     const castsFreeViaMistyWanderer = useMistyWanderer;
@@ -2086,6 +2124,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       castsFreeViaSignatureSpells ||
       castsFreeViaNaturalRecovery ||
       castsFreeViaMindMagic ||
+      castsFreeViaWarGodsBlessing ||
       castsFreeViaPsionicSorcery ||
       castsFreeViaStepsOfTheFey ||
       castsFreeViaMistyWanderer ||
@@ -2211,9 +2250,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       const nextCharacterWithMindMagic = castsFreeViaMindMagic
         ? expendChannelDivinityUseForCharacter(nextCharacterWithBeguilingMagic)
         : nextCharacterWithBeguilingMagic;
-      const nextCharacterWithSpellOptions = useBlessingOfMoonlight
-        ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithMindMagic)
+      const nextCharacterWithWarGodsBlessing = castsFreeViaWarGodsBlessing
+        ? expendChannelDivinityUseForCharacter(nextCharacterWithMindMagic)
         : nextCharacterWithMindMagic;
+      const nextCharacterWithSpellOptions = useBlessingOfMoonlight
+        ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithWarGodsBlessing)
+        : nextCharacterWithWarGodsBlessing;
       const nextCharacterWithElementalSmite = useElementalSmite
         ? expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions)
         : nextCharacterWithSpellOptions;
@@ -2899,6 +2941,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               ...options,
               useBeguilingMagic: useBeguilingMagicOnSelectedSpell,
               useMindMagic: useMindMagicOnSelectedSpell,
+              useWarGodsBlessing: useWarGodsBlessingOnSelectedSpell,
               useBlessingOfMoonlight: useBlessingOfMoonlightOnSelectedSpell,
               useElementalSmite: useElementalSmiteOnSelectedSpell,
               useFeyReinforcements: useFeyReinforcementsOnSelectedSpell,
@@ -2918,6 +2961,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             !selectedSpellIsSpellbookOnly &&
             !selectedSpellCanOnlyBeCastAsRitual &&
             !(selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell) &&
+            !(selectedSpellSupportsWarGodsBlessing && useWarGodsBlessingOnSelectedSpell) &&
             !(selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell) &&
             !(selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell) &&
             !(selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell) &&
@@ -2954,8 +2998,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           : null
           }
           actionContextText={
-            selectedSpellSupportsFeyReinforcements &&
-            useFeyReinforcementsNoConcentrationOnSelectedSpell
+            selectedSpellSupportsWarGodsBlessing &&
+            useWarGodsBlessingOnSelectedSpell &&
+            selectedSpell?.duration.includes(DURATION.CONCENTRATION)
+              ? "Concentration is removed for this casting."
+              : selectedSpellSupportsFeyReinforcements &&
+                  useFeyReinforcementsNoConcentrationOnSelectedSpell
               ? "Concentration is removed for this casting, and the duration becomes 10 turns."
               : selectedSpellUnderMantleOfMajesty
                 ? "Under the effect of Mantle of Majesty."
@@ -2967,6 +3015,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           actionShapeAvailable={selectedSpellActionShapeState.isSelected}
           actionShapeMultiCount={selectedSpellActionShapeState.multiCount}
           actionOptions={
+            selectedSpellSupportsWarGodsBlessing ||
             selectedSpellSupportsMindMagic ||
             selectedSpellSupportsPsionicSorcery ||
             selectedSpellSupportsBeguilingMagic ||
@@ -2980,6 +3029,21 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             selectedSpellSupportsNaturalRecovery ||
             selectedSpellSupportsTelekineticMaster
               ? [
+                  ...(selectedSpellSupportsWarGodsBlessing
+                    ? [
+                        {
+                          id: "war-gods-blessing",
+                          label: "War God's Blessing",
+                          checked: useWarGodsBlessingOnSelectedSpell,
+                          onCheckedChange: setUseWarGodsBlessingOnSelectedSpell,
+                          disabled: selectedSpellWarGodsBlessingDisabled,
+                          fallbackCost: {
+                            label: "Use 1",
+                            icon: "divinity" as const
+                          }
+                        }
+                      ]
+                    : []),
                   ...(selectedSpellSupportsMindMagic
                     ? [
                         {
