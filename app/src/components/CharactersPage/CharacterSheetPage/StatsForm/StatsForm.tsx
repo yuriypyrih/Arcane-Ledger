@@ -924,6 +924,18 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
     setSelectedStatReference(null);
   }
 
+  function rollAbilityReference(title: string, modifier: number, description: string) {
+    const rollFormula = formatD20Formula(modifier);
+
+    closeSelectedStatReference();
+    openDiceRoller({
+      title,
+      formula: rollFormula,
+      formulaDisplay: rollFormula,
+      description
+    });
+  }
+
   function selectArmorClassFormula(formulaKey: string) {
     onPersistCharacter((currentCharacter) =>
       setArmorClassFormulaSelectionForCharacter(currentCharacter, formulaKey)
@@ -977,6 +989,24 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
       return;
     }
 
+    setIsDiceRollerSettingsOpen(false);
+
+    const abilityScoreFormula = formatAbilityScoreFormula(
+      ability,
+      abilityBreakdown.total,
+      abilityBreakdown.entries
+    );
+    const abilityModifierFormula = formatAbilityModifierFormula(ability, selectedCard.score);
+    const savingThrowFormula = formatSavingThrowFormula(
+      ability,
+      selectedCard.totalSavingThrowValue,
+      selectedCard.modifierValue,
+      selectedCard.proficiencyContribution,
+      selectedCard.proficiencyLabel,
+      selectedCard.savingThrowBonusEntries
+    );
+    const abilityLabel = abilityDisplayLabels[ability];
+
     const descriptionItems = [
       ...(abilityDescription
         ? [
@@ -997,6 +1027,19 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
     ];
     setSelectedStatReference({
       keyword: ability,
+      rollActions: {
+        label: abilityLabel,
+        mod: {
+          title: `${abilityLabel} Ability Modifier`,
+          modifier: selectedCard.modifierValue,
+          description: abilityModifierFormula
+        },
+        save: {
+          title: `${abilityLabel} Saving Throw`,
+          modifier: selectedCard.totalSavingThrowValue,
+          description: savingThrowFormula
+        }
+      },
       descriptionAdditions: getAbilityDescriptionAdditions(character, ability),
       indicatorSections: getAbilityReferenceIndicatorSections(
         selectedCard.modifierIndicators,
@@ -1006,28 +1049,17 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
       detailCards: [
         {
           label: "Ability Score Formula",
-          value: formatAbilityScoreFormula(
-            ability,
-            abilityBreakdown.total,
-            abilityBreakdown.entries
-          ),
+          value: abilityScoreFormula,
           variant: "formula"
         },
         {
           label: "Ability Modifier Formula",
-          value: formatAbilityModifierFormula(ability, selectedCard.score),
+          value: abilityModifierFormula,
           variant: "formula"
         },
         {
           label: "Saving Throw Formula",
-          value: formatSavingThrowFormula(
-            ability,
-            selectedCard.totalSavingThrowValue,
-            selectedCard.modifierValue,
-            selectedCard.proficiencyContribution,
-            selectedCard.proficiencyLabel,
-            selectedCard.savingThrowBonusEntries
-          ),
+          value: savingThrowFormula,
           variant: "formula"
         }
       ]
@@ -1239,8 +1271,45 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
         <StatReferenceDrawer
           reference={resolvedSelectedStatReference}
           footer={
-            resolvedSelectedStatReference.keyword === "Armor Class" &&
-            armorClassResolution.formulas.length >= 2 ? (
+            resolvedSelectedStatReference.rollActions ? (
+              <div className={styles.referenceRollActions}>
+                <button
+                  type="button"
+                  className={clsx(sheetStyles.castButton, styles.referenceRollButton)}
+                  onClick={() =>
+                    rollAbilityReference(
+                      resolvedSelectedStatReference.rollActions?.mod.title ?? "Ability Modifier",
+                      resolvedSelectedStatReference.rollActions?.mod.modifier ?? 0,
+                      resolvedSelectedStatReference.rollActions?.mod.description ?? ""
+                    )
+                  }
+                >
+                  <img src={d20Icon} alt="" className={styles.referenceRollIcon} />
+                  <span>Mod Roll</span>
+                </button>
+                <button
+                  type="button"
+                  className={clsx(sheetStyles.castButton, styles.referenceRollButton)}
+                  onClick={() =>
+                    rollAbilityReference(
+                      resolvedSelectedStatReference.rollActions?.save.title ?? "Saving Throw",
+                      resolvedSelectedStatReference.rollActions?.save.modifier ?? 0,
+                      resolvedSelectedStatReference.rollActions?.save.description ?? ""
+                    )
+                  }
+                >
+                  <img src={d20Icon} alt="" className={styles.referenceRollIcon} />
+                  <span>Save Roll</span>
+                </button>
+                <DiceRollerSettingsButton
+                  actionName={`${resolvedSelectedStatReference.rollActions.label} Rolls`}
+                  className={clsx(sheetStyles.castButton, styles.referenceRollSettingsButton)}
+                  isOpen={isDiceRollerSettingsOpen}
+                  onOpenChange={setIsDiceRollerSettingsOpen}
+                />
+              </div>
+            ) : resolvedSelectedStatReference.keyword === "Armor Class" &&
+              armorClassResolution.formulas.length >= 2 ? (
               <ArmorClassFormulaFooter
                 formulas={armorClassResolution.formulas}
                 selectedFormulaKey={armorClassResolution.selectedFormula.key}

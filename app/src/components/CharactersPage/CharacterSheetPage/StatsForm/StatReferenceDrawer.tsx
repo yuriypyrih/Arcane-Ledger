@@ -39,6 +39,19 @@ export type SelectedStatReference = {
   keyword: string;
   summaryText?: string;
   warning?: string | null;
+  rollActions?: {
+    label: string;
+    mod: {
+      title: string;
+      modifier: number;
+      description: string;
+    };
+    save: {
+      title: string;
+      modifier: number;
+      description: string;
+    };
+  };
   descriptionAdditions?: SpellDescriptionEntry[][];
   descriptionItems?: Array<{
     label: string;
@@ -55,7 +68,8 @@ type StatReferenceDrawerProps = {
 };
 
 function StatReferenceDrawer({ reference, footer = null, onClose }: StatReferenceDrawerProps) {
-  const descriptionSections = reference.descriptionAdditions?.filter((section) => section.length > 0) ?? [];
+  const descriptionSections =
+    reference.descriptionAdditions?.filter((section) => section.length > 0) ?? [];
   const hasBaseDescriptionContent =
     Boolean(reference.summaryText) || Boolean(reference.descriptionItems?.length);
   const hasDescriptionContent = hasBaseDescriptionContent || descriptionSections.length > 0;
@@ -63,7 +77,7 @@ function StatReferenceDrawer({ reference, footer = null, onClose }: StatReferenc
 
   return (
     <SheetDrawer titleId="character-stats-reference-title" onClose={onClose} onEscape={onClose}>
-        <OverlayHeader className={styles.referenceDrawerHeader}>
+      <OverlayHeader className={styles.referenceDrawerHeader}>
         <OverlayHeaderContent>
           <OverlayEyebrow>Reference</OverlayEyebrow>
           <OverlayTitleRow>
@@ -134,7 +148,10 @@ function StatReferenceDrawer({ reference, footer = null, onClose }: StatReferenc
                     className={sheetStyles.spellDrawerDescriptionAdditionSection}
                   >
                     {hasBaseDescriptionContent || index > 0 ? (
-                      <hr className={sheetStyles.spellDrawerDescriptionDivider} aria-hidden="true" />
+                      <hr
+                        className={sheetStyles.spellDrawerDescriptionDivider}
+                        aria-hidden="true"
+                      />
                     ) : null}
                     <DescriptionContent
                       description={section}
@@ -157,7 +174,9 @@ function StatReferenceDrawer({ reference, footer = null, onClose }: StatReferenc
                   key={`${reference.keyword}-${detailCard.label}`}
                   label={detailCard.label}
                   content={detailCard.value}
-                  className={detailCard.variant === "formula" ? styles.referenceFormulaCard : undefined}
+                  className={
+                    detailCard.variant === "formula" ? styles.referenceFormulaCard : undefined
+                  }
                   contentRowClassName={
                     detailCard.variant === "formula" ? styles.referenceFormulaContentRow : undefined
                   }

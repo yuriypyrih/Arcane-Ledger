@@ -1,5 +1,8 @@
+import clsx from "clsx";
+import d20Icon from "../../../../assets/svg/d20.svg";
 import DescriptionContent from "../../../DescriptionContent/DescriptionContent";
 import CellContainer from "../../../CellContainer/CellContainer";
+import DiceRollerSettingsButton from "../GameplayForm/widgets/DiceRollerSettingsButton";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
 import {
   formatResolvedRollStateDetailText,
@@ -10,6 +13,7 @@ import {
   OverlayCloseButton,
   OverlayDetailsGrid,
   OverlayEyebrow,
+  OverlayFooter,
   OverlayHeader,
   OverlayHeaderContent,
   OverlayTitle,
@@ -18,6 +22,7 @@ import {
   overlayClassNames
 } from "../../../Overlay";
 import type { FeatureIndicator } from "../../../../pages/CharactersPage/classFeatures";
+import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import styles from "./SkillReferenceDrawer.module.css";
 
 export type SkillReferenceDetailCard = {
@@ -30,14 +35,21 @@ export type SelectedSkillReference = {
   description: string;
   indicators?: FeatureIndicator[];
   detailCards?: SkillReferenceDetailCard[];
+  rollModifier?: number;
+  rollDescription?: string;
 };
 
 type SkillReferenceDrawerProps = {
   reference: SelectedSkillReference;
+  rollAction?: {
+    onRoll: () => void;
+    isDiceRollerSettingsOpen: boolean;
+    onDiceRollerSettingsOpenChange: (isOpen: boolean) => void;
+  };
   onClose: () => void;
 };
 
-function SkillReferenceDrawer({ reference, onClose }: SkillReferenceDrawerProps) {
+function SkillReferenceDrawer({ reference, rollAction, onClose }: SkillReferenceDrawerProps) {
   const rollState = resolveFeatureIndicators(reference.indicators);
 
   return (
@@ -80,6 +92,27 @@ function SkillReferenceDrawer({ reference, onClose }: SkillReferenceDrawerProps)
           </OverlayDetailsGrid>
         ) : null}
       </OverlayBody>
+
+      {rollAction ? (
+        <OverlayFooter className={styles.footer}>
+          <div className={styles.footerActions}>
+            <button
+              type="button"
+              className={clsx(sheetStyles.castButton, styles.rollButton)}
+              onClick={rollAction.onRoll}
+            >
+              <img src={d20Icon} alt="" className={styles.rollButtonIcon} />
+              <span>Roll</span>
+            </button>
+            <DiceRollerSettingsButton
+              actionName={reference.name}
+              className={clsx(sheetStyles.castButton, styles.settingsButton)}
+              isOpen={rollAction.isDiceRollerSettingsOpen}
+              onOpenChange={rollAction.onDiceRollerSettingsOpenChange}
+            />
+          </div>
+        </OverlayFooter>
+      ) : null}
     </SheetDrawer>
   );
 }

@@ -1,6 +1,8 @@
 import clsx from "clsx";
 import { ChevronsUp, Pencil, Save, X } from "lucide-react";
 import { useState } from "react";
+import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
+import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import SelectInput from "../../FormInputs/SelectInput";
 import type { Character, SkillProficiencyEntry } from "../../../../types";
 import { PROF_LEVEL } from "../../../../types";
@@ -62,6 +64,13 @@ function SkillsAndProficienciesForm({
     () => character.skillProficiencies
   );
   const [selectedKeyword, setSelectedKeyword] = useState<SelectedSkillReference | null>(null);
+  const [isSkillReferenceDiceRollerSettingsOpen, setIsSkillReferenceDiceRollerSettingsOpen] =
+    useState(false);
+  const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
+
+  useBodyScrollLock(
+    Boolean(selectedKeyword) || isProficiencyModalOpen || isSkillReferenceDiceRollerSettingsOpen
+  );
 
   const displayedSkillProficiencies = isSkillTableEditing
     ? skillProficienciesDraft
@@ -133,6 +142,14 @@ function SkillsAndProficienciesForm({
     return `${row.name} ${formatAbilityModifier(row.totalModifier)} = ${terms.join(" ")}`;
   }
 
+  function formatD20Formula(modifier: number): string {
+    if (modifier === 0) {
+      return "1d20";
+    }
+
+    return `1d20 ${modifier > 0 ? "+" : "-"} ${Math.abs(modifier)}`;
+  }
+
   function beginSkillTableEditing() {
     setSkillProficienciesDraft(character.skillProficiencies);
     setIsSkillTableEditing(true);
@@ -155,6 +172,11 @@ function SkillsAndProficienciesForm({
   function openProficiencyEditor(tab: ProficiencyEditorTab = "weapons") {
     setProficiencyEditorInitialTab(tab);
     setIsProficiencyModalOpen(true);
+  }
+
+  function closeSelectedKeyword() {
+    setIsSkillReferenceDiceRollerSettingsOpen(false);
+    setSelectedKeyword(null);
   }
 
   function updateSkillLevel(skillName: string, nextLevel: PROF_LEVEL) {
@@ -196,7 +218,9 @@ function SkillsAndProficienciesForm({
   function openKeywordReference(
     keyword: string,
     indicators?: FeatureIndicator[],
-    detailCards?: SkillReferenceDetailCard[]
+    detailCards?: SkillReferenceDetailCard[],
+    rollModifier?: number,
+    rollDescription?: string
   ) {
     const description = getKeywordDescription(keyword);
 
@@ -204,11 +228,30 @@ function SkillsAndProficienciesForm({
       return;
     }
 
+    setIsSkillReferenceDiceRollerSettingsOpen(false);
     setSelectedKeyword({
       name: keyword,
       description,
       indicators: indicators?.length ? indicators : undefined,
-      detailCards
+      detailCards,
+      rollModifier,
+      rollDescription
+    });
+  }
+
+  function rollSelectedSkillReference() {
+    if (!selectedKeyword || typeof selectedKeyword.rollModifier !== "number") {
+      return;
+    }
+
+    const rollFormula = formatD20Formula(selectedKeyword.rollModifier);
+
+    closeSelectedKeyword();
+    openDiceRoller({
+      title: selectedKeyword.name,
+      formula: rollFormula,
+      formulaDisplay: rollFormula,
+      description: selectedKeyword.rollDescription ?? selectedKeyword.description
     });
   }
 
@@ -328,7 +371,9 @@ function SkillsAndProficienciesForm({
                                     openKeywordReference(
                                       row.name,
                                       skillIndicators[row.name],
-                                      skillDetailCards
+                                      skillDetailCards,
+                                      row.totalModifier,
+                                      formatSkillFormula(row)
                                     )
                                   }
                                 >
@@ -469,9 +514,19 @@ function SkillsAndProficienciesForm({
       {selectedKeyword ? (
         <SkillReferenceDrawer
           reference={selectedKeyword}
-          onClose={() => setSelectedKeyword(null)}
+          rollAction={
+            typeof selectedKeyword.rollModifier === "number"
+              ? {
+                  onRoll: rollSelectedSkillReference,
+                  isDiceRollerSettingsOpen: isSkillReferenceDiceRollerSettingsOpen,
+                  onDiceRollerSettingsOpenChange: setIsSkillReferenceDiceRollerSettingsOpen
+                }
+              : undefined
+          }
+          onClose={closeSelectedKeyword}
         />
       ) : null}
+      {diceRollerPopup}
     </article>
   );
 }

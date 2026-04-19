@@ -6,6 +6,43 @@
   gap: 1rem;
 }
 
+.footer {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.footerActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.rollButton,
+.settingsButton {
+  margin-left: 0;
+}
+
+.rollButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1 1 auto;
+  justify-content: center;
+}
+
+.settingsButton {
+  flex: 0 0 auto;
+  min-width: 48px;
+  padding: 0;
+}
+
+.rollButtonIcon {
+  width: 18px;
+  height: 18px;
+  filter: brightness(0) invert(1);
+}
+
 .indicatorStack {
   display: flex;
   align-items: center;
@@ -13,4 +50,10 @@
   gap: 0.45rem;
   justify-content: flex-end;
   margin-left: auto;
+}
+
+@media (max-width: 620px) {
+  .footerActions {
+    width: 100%;
+  }
 }

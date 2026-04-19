@@ -273,6 +273,42 @@
   gap: 0.85rem;
 }
 
+.referenceRollActions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: nowrap;
+  min-width: 0;
+}
+
+.referenceRollButton,
+.referenceRollSettingsButton {
+  margin-left: 0;
+}
+
+.referenceRollButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  flex: 1 1 0;
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.referenceRollSettingsButton {
+  flex: 0 0 auto;
+  min-width: 48px;
+  padding: 0;
+  white-space: nowrap;
+}
+
+.referenceRollIcon {
+  width: 18px;
+  height: 18px;
+  filter: brightness(0) invert(1);
+}
+
 .referenceWarningBlock {
   display: grid;
   gap: 0.55rem;
