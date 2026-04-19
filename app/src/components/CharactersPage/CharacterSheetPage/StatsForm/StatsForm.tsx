@@ -212,10 +212,17 @@ function formatMovementFormula(
     return "-";
   }
 
-  const terms = [formatMovementBaseFormula(movement.baseExpression)];
+  const terms: string[] =
+    movement.baseExpression.kind === "none" && movement.entries.length > 0
+      ? []
+      : [formatMovementBaseFormula(movement.baseExpression)];
 
-  movement.entries.forEach((entry) => {
-    terms.push(`${entry.value >= 0 ? "+" : ""}${entry.value} ${entry.label}`);
+  movement.entries.forEach((entry, index) => {
+    const isFirstVisibleTerm = terms.length === 0 && index === 0;
+
+    terms.push(
+      `${!isFirstVisibleTerm && entry.value >= 0 ? "+" : ""}${entry.value} ${entry.label}`
+    );
   });
 
   return `${movement.total} ft = ${terms.join(" ")}`;
@@ -680,15 +687,15 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
             ]
           : field.label === "Armor Class"
             ? getArmorClassReferenceDetailCards(armorClassResolution)
-          : detailValue
-            ? [
-                {
-                  label: "Formula",
-                  value: detailValue,
-                  variant: "formula"
-                }
-              ]
-            : undefined
+            : detailValue
+              ? [
+                  {
+                    label: "Formula",
+                    value: detailValue,
+                    variant: "formula"
+                  }
+                ]
+              : undefined
     } satisfies CoreStatCard;
   });
 
@@ -1267,7 +1274,8 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
                               key={`persistent-rage-charge-${index}`}
                               className={clsx(
                                 sheetStyles.shortRestDot,
-                                index < persistentRageUsesRemaining && sheetStyles.shortRestDotActive
+                                index < persistentRageUsesRemaining &&
+                                  sheetStyles.shortRestDotActive
                               )}
                             />
                           ))}

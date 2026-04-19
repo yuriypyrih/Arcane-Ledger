@@ -10,6 +10,10 @@ import {
 
 export const ITEM_BROWSER_TAB_OPTIONS: Array<{ value: ItemBrowserTab; label: string }> = [
   {
+    value: "all",
+    label: "All"
+  },
+  {
     value: "weapons",
     label: "Weapons"
   },
@@ -112,7 +116,7 @@ export function sanitizeItemBrowserScopedFilters(
 
   return {
     tab: nextTab,
-    category: hasCategory ? filters.category : null,
+    category: nextTab === "all" ? null : hasCategory ? filters.category : null,
     attackType: nextTab === "weapons" ? filters.attackType : null,
     proficiencyType: nextTab === "weapons" ? filters.proficiencyType : null,
     mastery: nextTab === "weapons" && hasMastery ? filters.mastery : null,

@@ -1,5 +1,5 @@
 import { druidFeatureMap, druidFeatures } from "../../../../codex/classes";
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { CLASS_FEATURE, type SpellEntry } from "../../../../codex/entries";
 import type {
   Character,
   DruidCircleOfTheLandChoice,
@@ -25,6 +25,7 @@ import {
 } from "../../../../types";
 import { normalizeCharacterStatusEntries } from "../../traits";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
+import type { WeaponAction } from "../../gameplay";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
 import { clampNumber, swapTemporaryHitPointsAssignment } from "../../shared";
 import type {
@@ -42,6 +43,15 @@ import * as landSubclass from "./subclasses/druidCircleOfTheLand";
 import * as moonSubclass from "./subclasses/druidCircleOfTheMoon";
 import * as seaSubclass from "./subclasses/druidCircleOfTheSea";
 import * as starsSubclass from "./subclasses/druidCircleOfTheStars";
+import {
+  isDruidPrimalStrikeEligibleAttack,
+  getDruidElementalFurySpellEntry,
+  getDruidElementalFuryWeaponAction
+} from "./druidElementalFuryDescriptions";
+import {
+  getDruidWildShapeActionDescription,
+  getDruidWildShapeActionDescriptionAdditions
+} from "./druidWildShapeDescriptions";
 import type { DruidStarryFormConstellation as DruidStarryFormConstellationType } from "./subclasses/druidCircleOfTheStars";
 
 const primalOrderWardenSource = "Primal Order";
@@ -57,7 +67,6 @@ export const druidWildCompanionActionKey = "druid-wild-companion";
 export const druidLandsAidActionKey = "druid-lands-aid";
 export const druidNaturesSanctuaryActionKey = "druid-natures-sanctuary";
 export const druidWrathOfTheSeaActionKey = "druid-wrath-of-the-sea";
-export const druidStarsGuidingBoltActionKey = "druid-stars-guiding-bolt";
 export const druidStarryFormActionKey = "druid-starry-form";
 export const druidWildResurgenceActionKey = "druid-wild-resurgence";
 export const druidNatureMagicianActionKey = "druid-nature-magician";
@@ -65,6 +74,7 @@ export const druidMoonlightStepActionKey = "druid-moonlight-step";
 export const druidNaturesSanctuaryStatusSourceId = "feature-druid-natures-sanctuary";
 export const druidWrathOfTheSeaStatusSourceId = "feature-druid-wrath-of-the-sea";
 export const druidStarryFormStatusSourceId = starsSubclass.druidStarryFormStatusSourceId;
+export const druidCosmicOmenReactionId = starsSubclass.druidCosmicOmenReactionId;
 
 export const druidStarryFormConstellations = starsSubclass.druidStarryFormConstellations;
 export type DruidStarryFormConstellation = DruidStarryFormConstellationType;
@@ -89,6 +99,10 @@ export type DruidNatureMagicianOption = {
   wildShapeCost: number;
   spellSlotLevel: number;
 };
+
+function getDruidNatureMagicianWildShapeCost(spellSlotLevel: number): number {
+  return Math.ceil(Math.max(1, Math.floor(spellSlotLevel)) / 2);
+}
 
 function getDruidFeatureRow(level: number) {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
@@ -192,6 +206,13 @@ export function getDruidStarryFormConstellationLabel(
   constellation: DruidStarryFormConstellation
 ): string {
   return starsSubclass.getDruidStarryFormConstellationLabel(constellation);
+}
+
+export function hasDruidTwinklingConstellationsFeature(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "abilities">>
+): boolean {
+  return starsSubclass.hasDruidTwinklingConstellationsFeature(character);
 }
 
 function hasFlySpeed(speed: MonsterRecord["speed"] | null | undefined): boolean {
@@ -627,6 +648,13 @@ export function getDruidActiveStarryFormConstellation(
   return starsSubclass.getDruidActiveStarryFormConstellation(character);
 }
 
+export function setDruidActiveStarryFormConstellation(
+  character: Character,
+  constellation: DruidStarryFormConstellation
+): Character {
+  return starsSubclass.setDruidActiveStarryFormConstellation(character, constellation);
+}
+
 export function getDruidNatureMagicianOptions(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended">
 ): DruidNatureMagicianOption[] {
@@ -645,11 +673,12 @@ export function getDruidNatureMagicianOptions(
     character.spellSlotsExpended,
     spellSlotTotals
   );
+  const maxSpellSlotLevel = Math.min(spellSlotTotals.length, wildShapeUsesRemaining * 2);
 
-  return Array.from({ length: wildShapeUsesRemaining }, (_, index) => index + 1)
-    .map((wildShapeCost) => ({
-      wildShapeCost,
-      spellSlotLevel: wildShapeCost * 2
+  return Array.from({ length: maxSpellSlotLevel }, (_, index) => index + 1)
+    .map((spellSlotLevel) => ({
+      spellSlotLevel,
+      wildShapeCost: getDruidNatureMagicianWildShapeCost(spellSlotLevel)
     }))
     .filter(({ spellSlotLevel }) => {
       const totalSlots = spellSlotTotals[spellSlotLevel - 1] ?? 0;
@@ -737,8 +766,18 @@ export function restoreDruidStarMapGuidingBoltOnLongRest(character: Character): 
   );
 }
 
+export function restoreDruidCosmicOmenOnLongRest(character: Character): Character {
+  return starsSubclass.restoreDruidCosmicOmenOnLongRest(
+    character,
+    getDruidWildShapeState(character)
+  );
+}
+
 export function restoreDruidMoonlightStepOnLongRest(character: Character): Character {
-  return moonSubclass.restoreDruidMoonlightStepOnLongRest(character, getDruidWildShapeState(character));
+  return moonSubclass.restoreDruidMoonlightStepOnLongRest(
+    character,
+    getDruidWildShapeState(character)
+  );
 }
 
 export function restoreDruidNatureMagicianOnLongRest(character: Character): Character {
@@ -764,7 +803,10 @@ export function restoreDruidNatureMagicianOnLongRest(character: Character): Char
 }
 
 export function restoreDruidNaturalRecoveryOnLongRest(character: Character): Character {
-  return landSubclass.restoreDruidNaturalRecoveryOnLongRest(character, getDruidWildShapeState(character));
+  return landSubclass.restoreDruidNaturalRecoveryOnLongRest(
+    character,
+    getDruidWildShapeState(character)
+  );
 }
 
 export function restoreDruidWildResurgenceOnLongRest(character: Character): Character {
@@ -798,7 +840,42 @@ export function restoreDruidWildResurgenceOnLongRest(character: Character): Char
 }
 
 export function consumeDruidStarMapGuidingBoltUse(character: Character): Character {
-  return starsSubclass.consumeDruidStarMapGuidingBoltUse(character, getDruidWildShapeState(character));
+  return starsSubclass.consumeDruidStarMapGuidingBoltUse(
+    character,
+    getDruidWildShapeState(character)
+  );
+}
+
+export function consumeDruidCosmicOmenUse(character: Character): Character {
+  return starsSubclass.consumeDruidCosmicOmenUse(character, getDruidWildShapeState(character));
+}
+
+export function getDruidCosmicOmenUsesTotal(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
+): number {
+  return starsSubclass.getDruidCosmicOmenUsesTotal(character);
+}
+
+export function getDruidCosmicOmenUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
+): number {
+  return starsSubclass.getDruidCosmicOmenUsesRemaining(character);
+}
+
+export function getDruidCosmicOmenSelection(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
+) {
+  return starsSubclass.getDruidCosmicOmenSelection(character);
+}
+
+export function setDruidCosmicOmenSelection(
+  character: Character,
+  selection: Parameters<typeof starsSubclass.setDruidCosmicOmenSelection>[1]
+): Character {
+  return starsSubclass.setDruidCosmicOmenSelection(character, selection);
 }
 
 export function markDruidPrimalStrikeUsed(character: Character): Character {
@@ -991,20 +1068,20 @@ export function activateDruidWrathOfTheSea(character: Character): Character {
 
 export function activateDruidNatureMagician(
   character: Character,
-  wildShapeCost: number
+  spellSlotLevel: number
 ): Character {
   const natureMagicianUsesRemaining = getDruidNatureMagicianUsesRemaining(character);
-  const normalizedWildShapeCost = Math.max(0, Math.floor(wildShapeCost));
 
-  if (natureMagicianUsesRemaining <= 0 || normalizedWildShapeCost <= 0) {
+  if (natureMagicianUsesRemaining <= 0) {
     return character;
   }
 
+  const normalizedSpellSlotLevel = Math.max(1, Math.floor(spellSlotLevel));
   const option = getDruidNatureMagicianOptions(character).find(
-    (candidate) => candidate.wildShapeCost === normalizedWildShapeCost
+    (candidate) => candidate.spellSlotLevel === normalizedSpellSlotLevel
   );
 
-  if (!option || getDruidWildShapeUsesRemaining(character) < normalizedWildShapeCost) {
+  if (!option || getDruidWildShapeUsesRemaining(character) < option.wildShapeCost) {
     return character;
   }
 
@@ -1021,7 +1098,7 @@ export function activateDruidNatureMagician(
 
   let nextCharacter = character;
 
-  for (let spendCount = 0; spendCount < normalizedWildShapeCost; spendCount += 1) {
+  for (let spendCount = 0; spendCount < option.wildShapeCost; spendCount += 1) {
     nextCharacter = expendOneDruidWildShapeUse(nextCharacter);
   }
 
@@ -1192,6 +1269,8 @@ function getDruidWildShapeAction(
     drawer: {
       kind: "custom-form",
       eyebrow: "Druid",
+      description: getDruidWildShapeActionDescription(character),
+      descriptionAdditions: getDruidWildShapeActionDescriptionAdditions(character),
       formKind: "wild-shape"
     },
     execute: {
@@ -1462,8 +1541,10 @@ export function applyLongRestToDruidFeatures(character: Character): Character {
   const nextCharacter = restoreDruidNaturalRecoveryOnLongRest(
     restoreDruidNatureMagicianOnLongRest(
       restoreDruidMoonlightStepOnLongRest(
-        restoreDruidStarMapGuidingBoltOnLongRest(
-          restoreDruidWildResurgenceOnLongRest(restoreAllDruidWildShapeUses(character))
+        restoreDruidCosmicOmenOnLongRest(
+          restoreDruidStarMapGuidingBoltOnLongRest(
+            restoreDruidWildResurgenceOnLongRest(restoreAllDruidWildShapeUses(character))
+          )
         )
       )
     )
@@ -1577,6 +1658,13 @@ export function getDruidCantripDamageBonus(
   return getDruidWisdomModifier(character);
 }
 
+export function getDruidSpellEntry(
+  character: Pick<Character, "className" | "level" | "classFeatureState">,
+  spell: SpellEntry
+): SpellEntry {
+  return getDruidElementalFurySpellEntry(character, getDruidElementalFuryChoice(character), spell);
+}
+
 export function getDruidWeaponDamageBonuses(
   character: Pick<Character, "className" | "level" | "classFeatureState">,
   context: WeaponFeatureContext
@@ -1586,7 +1674,7 @@ export function getDruidWeaponDamageBonuses(
   if (
     getDruidElementalFuryChoice(character) !== "primal-strike" ||
     druidState.primalStrikeUsedThisTurn === true ||
-    (context.attackKind !== "weapon" && context.attackKind !== "unarmed")
+    !isDruidPrimalStrikeEligibleAttack(context)
   ) {
     return [];
   }
@@ -1602,6 +1690,17 @@ export function getDruidWeaponDamageBonuses(
       displayLabel: `${primalStrikeFormula} Cold/Fire/Lightning/Thunder`
     }
   ];
+}
+
+export function getDruidWeaponAction(
+  character: Pick<Character, "className" | "level" | "classFeatureState">,
+  action: WeaponAction
+): WeaponAction {
+  return getDruidElementalFuryWeaponAction(
+    character,
+    getDruidElementalFuryChoice(character),
+    action
+  );
 }
 
 export function getDruidSkillBonuses(

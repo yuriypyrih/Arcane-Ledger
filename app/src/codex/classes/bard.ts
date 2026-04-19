@@ -196,11 +196,11 @@ export const bardFeatures: BardFeatureClassObj[] = [
 export const bardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   [CLASS_FEATURE.BARDIC_INSPIRATION]: {
     description: [
-      "You can supernaturally inspire others through words, music, or dance. This inspiration is represented by your Bardic Inspiration die, which is a d6.",
+      "You can supernaturally inspire others through words, music, or dance. This inspiration is represented by your Bardic Inspiration die, which is a <strong>d6</strong>.",
       "<strong>Using Bardic Inspiration.</strong> As a Bonus Action, you can inspire another creature within 60 feet of yourself who can see or hear you. That creature gains one of your Bardic Inspiration dice. A creature can have only one Bardic Inspiration die at a time.",
-      "Once within the next hour when the creature fails a D20 Test, the creature can roll the Bardic Inspiration die and add the number rolled to the d20, potentially turning the failure into a success. A Bardic Inspiration die is expended when it is rolled.",
+      "Once within the next hour when the creature fails a <strong>D20</strong> Test, the creature can roll the Bardic Inspiration die and add the number rolled to the <strong>d20</strong>, potentially turning the failure into a success. A Bardic Inspiration die is expended when it is rolled.",
       "<strong>Number of Uses.</strong> You can confer a Bardic Inspiration die a number of times equal to your <link:CHA>Charisma</link> modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
-      "<strong>At Higher Levels.</strong> Your Bardic Inspiration die changes when you reach certain Bard levels. The die becomes a d8 at level 5, a d10 at level 10, and a d12 at level 15."
+      "<strong>At Higher Levels.</strong> Your Bardic Inspiration die changes when you reach certain Bard levels. The die becomes a <strong>d8</strong> at level 5, a <strong>d10</strong> at level 10, and a <strong>d12</strong> at level 15."
     ],
     trackingState: TRACKER.TRACKED
   },

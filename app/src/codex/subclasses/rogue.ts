@@ -129,7 +129,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_13, CLASS_FEATURE.ENVENOM_WEAPONS, {
         description: [
-          "When you use the Poison option of your Cunning Strike, the target also takes 2d6 <link:Poison>Poison</link> damage whenever it fails the saving throw.",
+          "When you use the Poison option of your Cunning Strike, the target also takes <strong>2d6</strong> <link:Poison>Poison</link> damage whenever it fails the saving throw.",
           "This damage ignores <link:Resistance>Resistance</link> to Poison damage."
         ],
         ...notTracked
@@ -209,7 +209,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.PSIONIC_POWER, {
         description: [
           "You harbor a wellspring of psionic energy within yourself. It is represented by your Psionic Energy Dice, which fuel certain powers you have from this subclass.",
-          "The Soulknife Energy Dice table shows the die size and number of these dice you have when you reach certain Rogue levels: level 3, four d6s; level 5, six d8s; level 9, eight d8s; level 11, eight d10s; level 13, ten d10s; level 17, twelve d12s.",
+          "The Soulknife Energy Dice table shows the die size and number of these dice you have when you reach certain Rogue levels: level 3, four <strong>d6s</strong>; level 5, six <strong>d8s</strong>; level 9, eight <strong>d8s</strong>; level 11, eight <strong>d10s</strong>; level 13, ten <strong>d10s</strong>; level 17, twelve <strong>d12s</strong>.",
           "Any features in this subclass that use a Psionic Energy Die use only the dice from this subclass. Some of your powers expend a Psionic Energy Die as specified in a power's description, and you can't use a power if it requires you to use a die when all your Psionic Energy Dice are expended.",
           "You regain one of your expended Psionic Energy Dice when you finish a <link:short-rest>Short Rest</link>, and you regain all of them when you finish a <link:long-rest>Long Rest</link>.",
           "<strong>Psi-Bolstered Knack.</strong> If you fail an ability check using a skill or tool with which you have proficiency, you can roll one Psionic Energy Die and add the number rolled to the check, potentially turning failure into success. The die is expended only if the roll then succeeds.",
@@ -223,10 +223,10 @@ export const rogueSubclassEntries: SubclassEntry[] = [
         description: [
           "You can manifest shimmering blades of <link:Psychic>Psychic</link> energy.",
           "Whenever you take the Attack action or make an Opportunity Attack, you can manifest a Psychic Blade in your free hand and make the attack with that blade.",
-          "The blade is a Simple Melee weapon that deals 1d6 Psychic damage and has the <link:Finesse>Finesse</link> and <link:Thrown>Thrown</link> (60/120 ft.) properties.",
+          "The blade is a Simple Melee weapon that deals <strong>1d6</strong> Psychic damage and has the <link:Finesse>Finesse</link> and <link:Thrown>Thrown</link> (60/120 ft.) properties.",
           "It also has Mastery: Vex, which you can use, and it doesn't count against the number of properties you can use with Weapon Mastery.",
           "The blade vanishes immediately after it hits or misses its target, and it leaves no mark if it deals damage.",
-          "After you attack with the blade on your turn, you can make a melee or ranged attack with a second psychic blade as a Bonus Action on the same turn if your other hand is free to create it. The damage die of this bonus attack is 1d4 instead of 1d6."
+          "After you attack with the blade on your turn, you can make a melee or ranged attack with a second psychic blade as a Bonus Action on the same turn if your other hand is free to create it. The damage die of this bonus attack is <strong>1d4</strong> instead of <strong>1d6</strong>."
         ],
         ...notTracked
       }),
@@ -292,7 +292,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
         description: [
           "You've learned how to maximize use of magic items, granting you the following benefits.",
           "<strong>Attunement.</strong> You can attune to up to four magic items at once.",
-          "<strong>Charges.</strong> Whenever you use a magic item property that expends charges, roll 1d6. On a roll of 6, you use the property without expending the charges.",
+          "<strong>Charges.</strong> Whenever you use a magic item property that expends charges, roll <strong>1d6</strong>. On a roll of 6, you use the property without expending the charges.",
           "<strong>Scrolls.</strong> You can use any Spell Scroll, using <link:INT>Intelligence</link> as your spellcasting ability for the spell.",
           "If the spell is a cantrip or a level 1 spell, you can cast it reliably. If the scroll contains a higher-level spell, you must first succeed on an <link:INT>Intelligence</link> (<link:Arcana>Arcana</link>) check (DC 10 plus the spell's level). On a successful check, you cast the spell from the scroll. On a failed check, the scroll disintegrates."
         ],

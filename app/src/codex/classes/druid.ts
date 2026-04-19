@@ -193,7 +193,7 @@ export const druidFeatures: DruidFeatureClassObj[] = [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
           "<feat:BOON_OF_DIMENSIONAL_TRAVEL>Boon of Dimensional Travel</feat> is recommended."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }
     },
     wildShape: 4,
@@ -266,23 +266,23 @@ export const druidFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = 
     description: [
       "The might of the elements flows through you. You gain one of the following options of your choice.",
       "<strong>Potent Spellcasting.</strong> Add your Wisdom modifier to the damage you deal with any Druid cantrip.",
-      "<strong>Primal Strike.</strong> Once on each of your turns when you hit a creature with an attack roll using a weapon or a Beast form's attack in Wild Shape, you can cause the target to take an extra 1d8 Cold, Fire, Lightning, or Thunder damage, choose when you hit."
+      "<strong>Primal Strike.</strong> Once on each of your turns when you hit a creature with an attack roll using a weapon or a Beast form's attack in Wild Shape, you can cause the target to take an extra <strong>1d8</strong> Cold, Fire, Lightning, or Thunder damage, choose when you hit."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.IMPROVED_ELEMENTAL_FURY]: {
     description: [
       "The option you chose for Elemental Fury grows more powerful, as detailed below.",
       "<strong>Potent Spellcasting.</strong> When you cast a Druid cantrip with a range of 10 feet or greater, the spell's range increases by 300 feet.",
-      "<strong>Primal Strike.</strong> The extra damage of your Primal Strike increases to 2d8."
+      "<strong>Primal Strike.</strong> The extra damage of your Primal Strike increases to <strong>2d8</strong>."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.BEAST_SPELLS]: {
     description: [
       "While using Wild Shape, you can cast spells in Beast form, except for any spell that has a Material component with a cost specified or that consumes its Material component."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.ARCHDRUID]: {
     description: [

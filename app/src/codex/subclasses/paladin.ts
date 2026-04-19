@@ -179,7 +179,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.INSPIRING_SMITE, {
         description: [
           "Immediately after you cast <spell:Divine Smite>Divine Smite</spell>, you can expend one use of your Channel Divinity and distribute <link:Temporary Hit Points>Temporary Hit Points</link> to creatures of your choice within 30 feet of yourself, which can include you.",
-          "The total number of Temporary Hit Points equals 2d8 plus your Paladin level, divided among the chosen creatures however you like."
+          "The total number of Temporary Hit Points equals <strong>2d8</strong> plus your Paladin level, divided among the chosen creatures however you like."
         ],
         ...notTracked
       }),
@@ -234,7 +234,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "<strong>Dao's Crush.</strong> Earth rises up around the target of your Divine Smite. The target has the <link:Grappled>Grappled</link> condition, with an escape DC equal to your spell save DC. While Grappled, the target has the <link:Restrained>Restrained</link> condition.",
           "<strong>Djinni's Escape.</strong> You teleport to an unoccupied space you can see within 30 feet of yourself and take on a semi-incorporeal form, which lasts until the end of your next turn.",
           "While in this form, you have <link:Resistance>Resistance</link> to <link:Bludgeoning>Bludgeoning</link>, <link:Piercing>Piercing</link>, and <link:Slashing>Slashing</link> damage, and you have <link:Immunity>Immunity</link> to the <link:Grappled>Grappled</link>, <link:Prone>Prone</link>, and <link:Restrained>Restrained</link> conditions.",
-          "<strong>Efreeti's Fury.</strong> The target of your Divine Smite takes an extra 2d4 <link:Fire>Fire</link> damage, and fire jumps from the target to another creature you can see within 30 feet of yourself. The second creature also takes 2d4 Fire damage.",
+          "<strong>Efreeti's Fury.</strong> The target of your Divine Smite takes an extra <strong>2d4</strong> <link:Fire>Fire</link> damage, and fire jumps from the target to another creature you can see within 30 feet of yourself. The second creature also takes <strong>2d4</strong> Fire damage.",
           "<strong>Marid's Surge.</strong> The target of your Divine Smite and each creature of your choice in a 10-foot <link:Emanation>Emanation</link> originating from you make a <link:Strength Saving Throw>Strength saving throw</link> against your spell save DC. On a failed save, a creature is pushed 15 feet straight away from you and has the <link:Prone>Prone</link> condition."
         ],
         ...notTracked
@@ -273,7 +273,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_15, CLASS_FEATURE.ELEMENTAL_REBUKE, {
         description: [
           "When you are hit by an attack roll, you can take a Reaction to halve the attack's damage against yourself, round down, and force the attacker to make a <link:Dexterity Saving Throw>Dexterity saving throw</link> against your spell save DC.",
-          "On a failed save, the attacker takes damage equal to 2d10 plus your <link:CHA>Charisma</link> modifier of one of the following types, your choice: <link:Acid>Acid</link>, <link:Cold>Cold</link>, <link:Fire>Fire</link>, <link:Lightning>Lightning</link>, or <link:Thunder>Thunder</link>.",
+          "On a failed save, the attacker takes damage equal to <strong>2d10</strong> plus your <link:CHA>Charisma</link> modifier of one of the following types, your choice: <link:Acid>Acid</link>, <link:Cold>Cold</link>, <link:Fire>Fire</link>, <link:Lightning>Lightning</link>, or <link:Thunder>Thunder</link>.",
           "On a successful save, the attacker takes half as much damage.",
           "You can use this feature a number of times equal to your Charisma modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
         ],
@@ -285,7 +285,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link>.",
           "You can also restore your use of it by expending a level 5 spell slot, no action required.",
           "<strong>Flight.</strong> You have a Fly Speed of 60 feet and can hover.",
-          "<strong>Minor Wish.</strong> When you or an ally in your Aura of Protection fails a D20 Test, you can take a Reaction to make the D20 Test succeed instead."
+          "<strong>Minor Wish.</strong> When you or an ally in your Aura of Protection fails a <strong>D20</strong> Test, you can take a Reaction to make the <strong>D20</strong> Test succeed instead."
         ],
         ...notTracked
       })

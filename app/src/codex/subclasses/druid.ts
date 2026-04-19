@@ -41,7 +41,7 @@ function createWrathOfTheSeaDescription(emanationLabel: string) {
     "It ends early if you dismiss it (no action required), manifest it again, or have the <link:Incapacitated>Incapacitated</link> condition.",
     "When you manifest the Emanation and as a Bonus Action on your subsequent turns, you can choose another creature you can see in the Emanation.",
     "The target must succeed on a <link:Constitution Saving Throw>Constitution saving throw</link> against your spell save DC or take Cold damage and, if the creature is Large or smaller, be pushed up to 15 feet away from you.",
-    "To determine this damage, roll a number of d6s equal to your <link:WIS>Wisdom</link> modifier (minimum of one die)."
+    "To determine this damage, roll a number of <strong>d6s</strong> equal to your <link:WIS>Wisdom</link> modifier (minimum of one die)."
   ] as const;
 }
 
@@ -74,9 +74,9 @@ export const starryFormDescription = [
   "This form sheds Bright Light in a 10-foot radius and Dim Light for an additional 10 feet.",
   "The form lasts for 10 minutes. It ends early if you dismiss it (no action required), have the <link:Incapacitated>Incapacitated</link> condition, or use this feature again.",
   "Whenever you assume your starry form, choose which of the following constellations glimmers on your body.",
-  "<strong>Archer.</strong> When you activate this form and as a Bonus Action on your subsequent turns while it lasts, you can make a ranged spell attack, hurling a luminous arrow that targets one creature within 60 feet of yourself. On a hit, the attack deals <link:Radiant>Radiant</link> damage equal to 1d8 plus your <link:WIS>Wisdom</link> modifier.",
-  "<strong>Chalice.</strong> Whenever you cast a spell using a spell slot that restores Hit Points to a creature, you or another creature within 30 feet of you can regain Hit Points equal to 1d8 plus your Wisdom modifier.",
-  "<strong>Dragon.</strong> When you make an Intelligence or a Wisdom check or a <link:Constitution Saving Throw>Constitution saving throw</link> to maintain <link:Concentration>Concentration</link>, you can treat a roll of 9 or lower on the d20 as a 10."
+  "<strong>Archer.</strong> When you activate this form and as a Bonus Action on your subsequent turns while it lasts, you can make a ranged spell attack, hurling a luminous arrow that targets one creature within 60 feet of yourself. On a hit, the attack deals <link:Radiant>Radiant</link> damage equal to <strong>1d8</strong> plus your <link:WIS>Wisdom</link> modifier.",
+  "<strong>Chalice.</strong> Whenever you cast a spell using a spell slot that restores Hit Points to a creature, you or another creature within 30 feet of you can regain Hit Points equal to <strong>1d8</strong> plus your Wisdom modifier.",
+  "<strong>Dragon.</strong> When you make an Intelligence or a Wisdom check or a <link:Constitution Saving Throw>Constitution saving throw</link> to maintain <link:Concentration>Concentration</link>, you can treat a roll of 9 or lower on the <strong>d20</strong> as a 10."
 ] as const;
 
 export const druidSubclassEntries: SubclassEntry[] = [
@@ -106,11 +106,11 @@ export const druidSubclassEntries: SubclassEntry[] = [
         description: [
           "As a Magic action, you can expend a use of your Wild Shape and choose a point within 60 feet of yourself.",
           "Vitality-giving flowers and life-draining thorns appear for a moment in a 10-foot-radius Sphere centered on that point.",
-          "Each creature of your choice in the area must make a <link:Constitution Saving Throw>Constitution saving throw</link> against your spell save DC, taking 2d6 <link:Necrotic>Necrotic</link> damage on a failed save or half as much damage on a successful one.",
-          "One creature of your choice in that area regains 2d6 Hit Points.",
-          "The damage and healing increase by 1d6 when you reach Druid levels 10 (3d6) and 14 (4d6)."
+          "Each creature of your choice in the area must make a <link:Constitution Saving Throw>Constitution saving throw</link> against your spell save DC, taking <strong>2d6</strong> <link:Necrotic>Necrotic</link> damage on a failed save or half as much damage on a successful one.",
+          "One creature of your choice in that area regains <strong>2d6</strong> Hit Points.",
+          "The damage and healing increase by <strong>1d6</strong> when you reach Druid levels 10 (<strong>3d6</strong>) and 14 (<strong>4d6</strong>)."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.NATURAL_RECOVERY, {
         description: [
@@ -119,7 +119,7 @@ export const druidSubclassEntries: SubclassEntry[] = [
           "The spell slots can have a combined level that is equal to or less than half your Druid level (round up), and none of them can be level 6+.",
           "Once you recover spell slots with this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.NATURES_WARD, {
         description: [
@@ -129,11 +129,11 @@ export const druidSubclassEntries: SubclassEntry[] = [
           "<strong>Temperate.</strong> Lightning",
           "<strong>Tropical.</strong> Poison"
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.NATURES_SANCTUARY, {
         description: [...naturesSanctuaryDescription],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   },
@@ -157,7 +157,7 @@ export const druidSubclassEntries: SubclassEntry[] = [
             "<strong>Level 7.</strong> <spell:Fount of Moonlight>Fount of Moonlight</spell>",
             "<strong>Level 9.</strong> <spell:Mass Cure Wounds>Mass Cure Wounds</spell>"
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.CIRCLE_FORMS, {
@@ -167,7 +167,7 @@ export const druidSubclassEntries: SubclassEntry[] = [
           "<strong>Armor Class.</strong> Until you leave the form, your <link:Armor Class>AC</link> equals 13 plus your <link:WIS>Wisdom</link> modifier if that total is higher than the Beast's AC.",
           "<strong>Temporary Hit Points.</strong> You gain a number of <link:Temporary Hit Points>Temporary Hit Points</link> equal to three times your Druid level."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_6,
@@ -178,7 +178,7 @@ export const druidSubclassEntries: SubclassEntry[] = [
             "<strong>Lunar Radiance.</strong> Each of your attacks in a Wild Shape form can deal its normal damage type or <link:Radiant>Radiant</link> damage. You make this choice each time you hit with those attacks.",
             "<strong>Increased Toughness.</strong> You can add your <link:WIS>Wisdom</link> modifier to your <link:Constitution Saving Throw>Constitution saving throws</link>."
           ],
-          ...notTracked
+          trackingState: TRACKER.SEMI_TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.MOONLIGHT_STEP, {
@@ -188,15 +188,15 @@ export const druidSubclassEntries: SubclassEntry[] = [
           "You can use this feature a number of times equal to your <link:WIS>Wisdom</link> modifier (minimum of once), and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
           "You can also regain uses by expending a level 2+ spell slot for each use you want to restore (no action required)."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.LUNAR_FORM, {
         description: [
           "The power of the moon suffuses you, granting you the following benefits.",
-          "<strong>Improved Lunar Radiance.</strong> Once per turn, you can deal an extra 2d10 <link:Radiant>Radiant</link> damage to a target you hit with a Wild Shape form's attack.",
+          "<strong>Improved Lunar Radiance.</strong> Once per turn, you can deal an extra <strong>2d10</strong> <link:Radiant>Radiant</link> damage to a target you hit with a Wild Shape form's attack.",
           "<strong>Shared Moonlight.</strong> Whenever you use Moonlight Step, you can also teleport one willing creature. That creature must be within 10 feet of you, and you teleport it to an unoccupied space you can see within 10 feet of your destination space."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   },
@@ -224,7 +224,7 @@ export const druidSubclassEntries: SubclassEntry[] = [
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.WRATH_OF_THE_SEA, {
         description: [...wrathOfTheSeaDescription],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       {
         level: SUBCLASS_FEATURE_LEVELS.LEVEL_6,
@@ -235,11 +235,11 @@ export const druidSubclassEntries: SubclassEntry[] = [
               "The size of the Emanation created by your Wrath of the Sea increases to 10 feet.",
               "In addition, you gain a Swim Speed equal to your <link:Speed>Speed</link>."
             ],
-            ...notTracked
+            trackingState: TRACKER.TRACKED
           },
           [CLASS_FEATURE.WRATH_OF_THE_SEA]: {
             description: [...aquaticAffinityWrathOfTheSeaDescription],
-            ...notTracked
+            trackingState: TRACKER.TRACKED
           }
         }
       },
@@ -253,11 +253,7 @@ export const druidSubclassEntries: SubclassEntry[] = [
               "<strong>Flight.</strong> You gain a Fly Speed equal to your <link:Speed>Speed</link>.",
               "<strong>Resistance.</strong> You have <link:Resistance>Resistance</link> to Cold, Lightning, and Thunder damage."
             ],
-            ...notTracked
-          },
-          [CLASS_FEATURE.WRATH_OF_THE_SEA]: {
-            description: [...stormbornWrathOfTheSeaDescription],
-            ...notTracked
+            trackingState: TRACKER.TRACKED
           }
         }
       },
@@ -267,7 +263,7 @@ export const druidSubclassEntries: SubclassEntry[] = [
           "That creature gains all the benefits of the Emanation and uses your spell save DC and <link:WIS>Wisdom</link> modifier for it.",
           "In addition, you can manifest the Emanation around both the other creature and yourself if you expend two uses of your Wild Shape instead of one when manifesting it."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   },
@@ -281,21 +277,21 @@ export const druidSubclassEntries: SubclassEntry[] = [
     features: [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.STAR_MAP, {
         description: [...starMapDescription],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.STARRY_FORM, {
         description: [...starryFormDescription],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.COSMIC_OMEN, {
         description: [
           "Whenever you finish a <link:long-rest>Long Rest</link>, you can consult your Star Map for omens and roll a die.",
           "Until you finish your next Long Rest, you gain access to a special Reaction based on whether you rolled an even or an odd number on the die.",
-          "<strong>Weal (even).</strong> Whenever a creature you can see within 30 feet of you is about to make a D20 Test, you can take a Reaction to roll 1d6 and add the number rolled to the total.",
-          "<strong>Woe (odd).</strong> Whenever a creature you can see within 30 feet of you is about to make a D20 Test, you can take a Reaction to roll 1d6 and subtract the number rolled from the total.",
+          "<strong>Weal (even).</strong> Whenever a creature you can see within 30 feet of you is about to make a <strong>D20</strong> Test, you can take a Reaction to roll <strong>1d6</strong> and add the number rolled to the total.",
+          "<strong>Woe (odd).</strong> Whenever a creature you can see within 30 feet of you is about to make a <strong>D20</strong> Test, you can take a Reaction to roll <strong>1d6</strong> and subtract the number rolled from the total.",
           "You can use this Reaction a number of times equal to your <link:WIS>Wisdom</link> modifier (minimum of once), and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_10,
@@ -303,17 +299,17 @@ export const druidSubclassEntries: SubclassEntry[] = [
         {
           description: [
             "The constellations of your Starry Form improve.",
-            "The 1d8 of the Archer and the Chalice becomes 2d8, and while the Dragon is active, you have a Fly Speed of 20 feet and can hover.",
+            "The <strong>1d8</strong> of the Archer and the Chalice becomes <strong>2d8</strong>, and while the Dragon is active, you have a Fly Speed of 20 feet and can hover.",
             "Moreover, at the start of each of your turns while in your Starry Form, you can change which constellation glimmers on your body."
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.FULL_OF_STARS, {
         description: [
           "While in your Starry Form, you become partially incorporeal, giving you <link:Resistance>Resistance</link> to <link:Bludgeoning>Bludgeoning</link>, <link:Piercing>Piercing</link>, and <link:Slashing>Slashing</link> damage."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       })
     ]
   }

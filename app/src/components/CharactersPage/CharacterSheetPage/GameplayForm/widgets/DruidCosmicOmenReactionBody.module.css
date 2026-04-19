@@ -1,0 +1,20 @@
+.body {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.optionList {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.optionDescription {
+  display: inline;
+}
+
+.usesText {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}

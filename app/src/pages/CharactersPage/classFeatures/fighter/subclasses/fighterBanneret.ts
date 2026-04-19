@@ -34,6 +34,7 @@ import {
   createDefaultFeatureActionDescription,
   type SubclassRuntimeResolver
 } from "../../subclassRuntime";
+import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
@@ -201,6 +202,7 @@ function createKnightlyEnvoySkillEntry(skill: SkillName): SkillProficiencyEntry 
 }
 
 function appendFeatureDescriptionSections(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
   action: FeatureActionCard,
   actionKey: string,
   sections: Array<{
@@ -214,6 +216,8 @@ function appendFeatureDescriptionSections(
 
   const description = action.description?.length
     ? [...action.description]
+    : action.sourceFeature
+      ? getFeatureDescriptionForCharacter(character, action.sourceFeature)
     : createDefaultFeatureActionDescription(action);
   let nextAction: FeatureActionCard = {
     ...action,
@@ -508,6 +512,7 @@ export const getFighterBanneretDerivedFeatureState: SubclassRuntimeResolver = (c
     derivedStatusEntries: getFighterBanneretDerivedStatusEntries(character),
     transformFeatureAction: (action) => {
       const secondWindAction = appendFeatureDescriptionSections(
+        character,
         action,
         fighterSecondWindActionKey,
         [
@@ -526,7 +531,7 @@ export const getFighterBanneretDerivedFeatureState: SubclassRuntimeResolver = (c
         ]
       );
 
-      return appendFeatureDescriptionSections(secondWindAction, fighterActionSurgeActionKey, [
+      return appendFeatureDescriptionSections(character, secondWindAction, fighterActionSurgeActionKey, [
         ...(hasFighterBanneretFeature(character, 10)
           ? [
               {

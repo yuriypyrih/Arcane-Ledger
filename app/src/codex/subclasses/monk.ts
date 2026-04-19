@@ -90,7 +90,7 @@ export const monkSubclassEntries: SubclassEntry[] = [
         CLASS_FEATURE.HAND_OF_ULTIMATE_MERCY,
         {
           description: [
-            "Your mastery of life energy opens the door to the ultimate mercy. As a Magic action, you can touch the corpse of a creature that died within the past 24 hours and expend 5 Focus Points. The creature then returns to life with a number of Hit Points equal to 4d10 plus your <link:WIS>Wisdom</link> modifier.",
+            "Your mastery of life energy opens the door to the ultimate mercy. As a Magic action, you can touch the corpse of a creature that died within the past 24 hours and expend 5 Focus Points. The creature then returns to life with a number of Hit Points equal to <strong>4d10</strong> plus your <link:WIS>Wisdom</link> modifier.",
             "If the creature died with any of the following conditions, the creature revives with the conditions removed: <link:Blinded>Blinded</link>, <link:Deafened>Deafened</link>, <link:Paralyzed>Paralyzed</link>, <link:Poisoned>Poisoned</link>, and <link:Stunned>Stunned</link>.",
             "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link>."
           ],
@@ -261,7 +261,7 @@ export const monkSubclassEntries: SubclassEntry[] = [
           description: [
             "You gain the ability to set up lethal vibrations in someone's body. When you hit a creature with an Unarmed Strike, you can expend 4 Focus Points to start these imperceptible vibrations, which last for a number of days equal to your Monk level.",
             "The vibrations are harmless unless you take an action to end them. Alternatively, when you take the Attack action on your turn, you can forgo one of the attacks to end the vibrations. To end them, you and the target must be on the same plane of existence.",
-            "When you end them, the target must make a <link:Constitution Saving Throw>Constitution saving throw</link>, taking 10d12 <link:Force>Force</link> damage on a failed save or half as much damage on a successful one.",
+            "When you end them, the target must make a <link:Constitution Saving Throw>Constitution saving throw</link>, taking <strong>10d12</strong> <link:Force>Force</link> damage on a failed save or half as much damage on a successful one.",
             "You can have only one creature under the effect of this feature at a time. You can end the vibrations harmlessly (no action required)."
           ],
           ...notTracked

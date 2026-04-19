@@ -13,7 +13,11 @@ import {
 } from "../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
-import type { FeatureActionCard, FeatureWeaponProficiencyEntry } from "../types";
+import type {
+  FeatureActionCard,
+  FeatureActionResource,
+  FeatureWeaponProficiencyEntry
+} from "../types";
 import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
 import {
   advanceFighterSubclassFeaturesForNewRound,
@@ -88,6 +92,7 @@ import {
   restoreFighterPsiWarriorTelekineticMovementOnLongRest as restoreFighterPsiWarriorTelekineticMovementOnLongRestInternal,
   restoreFighterPsiWarriorTelekineticMovementOnShortRest as restoreFighterPsiWarriorTelekineticMovementOnShortRestInternal
 } from "./subclasses/fighterPsiWarrior";
+import { createSourcedDescriptionEntries } from "../../actionModalDescriptions";
 
 export const fighterSecondWindActionKey = "fighter-second-wind";
 export const fighterActionSurgeActionKey = "fighter-action-surge";
@@ -102,6 +107,32 @@ const fighterWeaponMasteryOptions = getWeaponMasteryOptions();
 
 function getFighterFeatureDescription(feature: CLASS_FEATURE): string[] {
   return [...(fighterFeatureMap[feature]?.description ?? [])];
+}
+
+function createFighterSecondWindResource(
+  usesRemaining: number,
+  usesTotal: number
+): FeatureActionResource {
+  return {
+    kind: "text",
+    label: "Second Wind",
+    value: `${usesRemaining}/${usesTotal}`,
+    icon: "wind"
+  };
+}
+
+function getFighterSecondWindDescriptionAdditions(
+  character: Pick<Character, "className" | "level">
+) {
+  if (!hasFighterFeature(character, CLASS_FEATURE.TACTICAL_SHIFT)) {
+    return [];
+  }
+
+  const tacticalShiftDescription = getFighterFeatureDescription(CLASS_FEATURE.TACTICAL_SHIFT);
+
+  return tacticalShiftDescription.length > 0
+    ? [createSourcedDescriptionEntries("Tactical Shift", tacticalShiftDescription)]
+    : [];
 }
 
 function getFighterFeatureRow(level: number) {
@@ -683,18 +714,23 @@ export function getFighterFeatureActions(
     const usesRemaining = getFighterSecondWindUsesRemaining(character);
     const minimumHealing = character.level + 1;
     const maximumHealing = character.level + 10;
+    const descriptionAdditions = getFighterSecondWindDescriptionAdditions(character);
 
     actions.push({
       key: fighterSecondWindActionKey,
       name: "Second Wind",
+      sourceFeature: CLASS_FEATURE.SECOND_WIND,
       summary: `${minimumHealing}~${maximumHealing} Heal`,
       detail: "Use a Bonus Action to regain Hit Points equal to 1d10 plus your Fighter level.",
-      description: getFighterFeatureDescription(CLASS_FEATURE.SECOND_WIND),
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
-      usesLabel: `${usesRemaining}/${totalUses} uses`,
+      hideUsesTrackerOnCard: true,
+      usesLabel: `${usesRemaining}/${totalUses} Second Wind`,
+      usesIcon: "wind",
       usesRemaining,
       usesTotal: totalUses,
+      descriptionAdditions,
+      resources: [createFighterSecondWindResource(usesRemaining, totalUses)],
       drawer: {
         kind: "confirm",
         eyebrow: "Fighter",
@@ -711,18 +747,25 @@ export function getFighterFeatureActions(
   }
 
   if (hasFighterFeature(character, CLASS_FEATURE.TACTICAL_MIND)) {
+    const totalUses = getFighterSecondWindUsesTotal(character);
     const usesRemaining = getFighterSecondWindUsesRemaining(character);
 
     actions.push({
       key: fighterTacticalMindActionKey,
       name: "Tactical Mind",
+      sourceFeature: CLASS_FEATURE.TACTICAL_MIND,
       summary: "Roll 1d10 for an ability check.",
       detail:
         "Use Tactical Mind to expend one Second Wind use and roll 1d10 to add to an ability check.",
       breakdown: "1d10 ability check",
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.FEATURE,
-      usesLabel: "Uses Second Wind charges",
+      hideUsesTrackerOnCard: true,
+      usesLabel: `${usesRemaining}/${totalUses} Second Wind`,
+      usesIcon: "wind",
+      usesRemaining,
+      usesTotal: totalUses,
+      resources: [createFighterSecondWindResource(usesRemaining, totalUses)],
       drawer: {
         kind: "confirm",
         eyebrow: "Fighter",

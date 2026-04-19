@@ -20,7 +20,7 @@ const ALLOWED_ORDERINGS = new Set<ItemOrdering>([
   "cost",
   "-cost"
 ]);
-const ALLOWED_TABS = new Set<ItemBrowserTab>(["weapons", "armor", "gear"]);
+const ALLOWED_TABS = new Set<ItemBrowserTab>(["all", "weapons", "armor", "gear"]);
 const ALLOWED_ATTACK_TYPES = new Set<ItemAttackType>(["melee", "range"]);
 const ALLOWED_PROFICIENCY_TYPES = new Set<ItemProficiencyType>(["simple", "martial"]);
 const ALLOWED_ARMOR_TYPES = new Set<ItemArmorType>(["light", "medium", "heavy"]);

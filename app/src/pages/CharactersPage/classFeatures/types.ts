@@ -36,6 +36,7 @@ export type FeatureActionIcon =
   | "music"
   | "sparkles"
   | "flame"
+  | "wind"
   | "paw"
   | "psi"
   | "pyromancy";
@@ -102,7 +103,6 @@ export type FeatureActionSpellSource = "fixed" | "divine-intervention" | "mystic
 
 export type FeatureActionSpellEffectKind =
   | "contact-patron"
-  | "druids-guiding-bolt"
   | "divine-intervention"
   | "faithful-steed"
   | "favored-enemy"
@@ -448,9 +448,9 @@ export type CollectedClassFeatureCharacter = Pick<Character, "className" | "leve
     | "abilities"
     | "subclassId"
     | "classFeatureState"
-      | "skillProficiencies"
-      | "toolProficiencies"
-      | "savingThrowProficiencies"
+    | "skillProficiencies"
+    | "toolProficiencies"
+    | "savingThrowProficiencies"
     | "spellSlotsExpended"
     | "statusEntries"
     | "roundTracker"

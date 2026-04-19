@@ -49,7 +49,7 @@ export type ItemOrdering =
   | "-weight"
   | "cost"
   | "-cost";
-export type ItemBrowserTab = "weapons" | "armor" | "gear";
+export type ItemBrowserTab = "all" | "weapons" | "armor" | "gear";
 export type ItemAttackType = "melee" | "range";
 export type ItemProficiencyType = "simple" | "martial";
 export type ItemArmorType = "light" | "medium" | "heavy";
@@ -119,6 +119,7 @@ export type ArmorItemFilterGroup = ItemFilterGroup & {
 
 export type ItemFilterOptions = {
   groups: {
+    all: ItemFilterGroup;
     weapons: WeaponItemFilterGroup;
     armor: ArmorItemFilterGroup;
     gear: ItemFilterGroup;

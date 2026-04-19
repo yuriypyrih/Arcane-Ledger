@@ -33,7 +33,7 @@ export const shadowOfTheNewMoonDescription = [
 ] as const;
 
 export const blessingOfMoonlightDescription = [
-  "<strong>Blessing of Moonlight.</strong> When you cast Moonbeam, you can modify the spell so that you glow faintly while the spell is active. While glowing, you shed Dim Light out to 5 feet, and whenever a creature fails its saving throw against the effects of this Moonbeam, another creature of your choice that you can see within 60 feet of yourself regains 2d4 Hit Points.",
+  "<strong>Blessing of Moonlight.</strong> When you cast Moonbeam, you can modify the spell so that you glow faintly while the spell is active. While glowing, you shed Dim Light out to 5 feet, and whenever a creature fails its saving throw against the effects of this Moonbeam, another creature of your choice that you can see within 60 feet of yourself regains <strong>2d4</strong> Hit Points.",
   "Once you use this feature to modify a casting of Moonbeam, you can't use it again until you finish a <link:long-rest>Long Rest</link>."
 ] as const;
 
@@ -181,7 +181,7 @@ export const bardSubclassEntries: SubclassEntry[] = [
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.PEERLESS_SKILL, {
         description: [
-          "When you make an ability check or attack roll and fail, you can expend one use of your Bardic Inspiration; roll the Bardic Inspiration die, and add the number rolled to the d20, potentially turning a failure into a success.",
+          "When you make an ability check or attack roll and fail, you can expend one use of your Bardic Inspiration; roll the Bardic Inspiration die, and add the number rolled to the <strong>d20</strong>, potentially turning a failure into a success.",
           "On a failure, the Bardic Inspiration isn't expended."
         ],
         trackingState: TRACKER.NOT_TRACKED
@@ -232,7 +232,7 @@ export const bardSubclassEntries: SubclassEntry[] = [
           "You become suffused with the might of the moon, improving your Moon's Inspiration in the following ways.",
           "<strong>Shadow of the New Moon.</strong> When you use Inspired Eclipse, the creature who received the Bardic Inspiration die can also have the <link:Invisible>Invisible</link> condition and immediately take a Reaction to teleport up to 30 feet to an unoccupied space it can see.",
           "The creature remains Invisible until the start of its next turn.",
-          "<strong>Vibrance of the Full Moon.</strong> When you use Lunar Vitality, you can roll 1d6 and use the number rolled in place of expending a Bardic Inspiration die."
+          "<strong>Vibrance of the Full Moon.</strong> When you use Lunar Vitality, you can roll <strong>1d6</strong> and use the number rolled in place of expending a Bardic Inspiration die."
         ],
         trackingState: TRACKER.SEMI_TRACKED
       })

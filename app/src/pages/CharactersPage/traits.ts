@@ -93,6 +93,7 @@ import {
   wizardDivinerThirdEyeSeeInvisibilityStatusSourceId
 } from "./classFeatures/wizard/subclasses/wizardDivinerThirdEyeConfig";
 import { getBarbarianRageDescriptionContent } from "./classFeatures/barbarian/barbarianDescriptionSections";
+import { createSourcedDescriptionEntries } from "./actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "./classFeatures/featureDescriptions";
 import { getBarbarianPathOfTheWildHeartStatusDescriptionEntries } from "./classFeatures/barbarian/subclasses/barbarianPathOfTheWildHeart";
 import { getKeywordDescriptionLines } from "./keywordDescriptions";
@@ -143,8 +144,7 @@ const paladinFrightfulAuraStatusSourceId = "feature-paladin-oath-of-vengeance-fr
 const sorcererTelepathicSpeechStatusSourceId =
   "feature-sorcerer-aberrant-sorcery-telepathic-speech";
 const warlockAwakenedMindStatusSourceId = "feature-warlock-great-old-one-patron-awakened-mind";
-const sorcererPsychicDefensesStatusSourceId =
-  "feature-sorcerer-aberrant-sorcery-psychic-defenses";
+const sorcererPsychicDefensesStatusSourceId = "feature-sorcerer-aberrant-sorcery-psychic-defenses";
 const sorcererClockworkBastionOfLawStatusSourceId =
   "feature-sorcerer-clockwork-sorcery-bastion-of-law";
 const sorcererClockworkTranceOfOrderStatusSourceId =
@@ -160,9 +160,7 @@ const sorcererRevelationInFleshSeeTheInvisibleStatusSourceId =
 const sorcererRevelationInFleshWormlikeMovementStatusSourceId =
   "feature-sorcerer-aberrant-sorcery-revelation-in-flesh-wormlike-movement";
 const monkWarriorOfShadowSubclassEntry = getSubclassEntryById("monk-warrior-of-shadow");
-const monkWarriorOfTheElementsSubclassEntry = getSubclassEntryById(
-  "monk-warrior-of-the-elements"
-);
+const monkWarriorOfTheElementsSubclassEntry = getSubclassEntryById("monk-warrior-of-the-elements");
 const paladinOathOfTheAncientsSubclassEntry = getSubclassEntryById("paladin-oath-of-the-ancients");
 const paladinOathOfDevotionSubclassEntry = getSubclassEntryById("paladin-oath-of-devotion");
 const paladinOathOfGlorySubclassEntry = getSubclassEntryById("paladin-oath-of-glory");
@@ -207,96 +205,94 @@ function extractSubclassFeatureDescriptionSection(
 const monkCloakOfShadowsDescription =
   monkWarriorOfShadowSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.CLOAK_OF_SHADOWS))
-    ?.featureOverrides?.[CLASS_FEATURE.CLOAK_OF_SHADOWS]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.CLOAK_OF_SHADOWS
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const monkElementalAttunementTraitDescription =
   monkWarriorOfTheElementsSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.ELEMENTAL_ATTUNEMENT))
-    ?.featureOverrides?.[CLASS_FEATURE.ELEMENTAL_ATTUNEMENT]?.description?.filter(
-      (entry): entry is string =>
-        typeof entry === "string" &&
-        (entry.startsWith("<strong>Reach.</strong>") ||
-          entry.startsWith("<strong>Elemental Strikes.</strong>"))
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.ELEMENTAL_ATTUNEMENT
+    ]?.description?.filter((entry): entry is string => typeof entry === "string" && (entry.startsWith("<strong>Reach.</strong>") || entry.startsWith("<strong>Elemental Strikes.</strong>"))) ??
+  [];
 const monkStrideOfTheElementsDescription =
   monkWarriorOfTheElementsSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.STRIDE_OF_THE_ELEMENTS))
-    ?.featureOverrides?.[CLASS_FEATURE.STRIDE_OF_THE_ELEMENTS]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.STRIDE_OF_THE_ELEMENTS
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const monkElementalEpitomeDescription =
   monkWarriorOfTheElementsSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.ELEMENTAL_EPITOME))
-    ?.featureOverrides?.[CLASS_FEATURE.ELEMENTAL_EPITOME]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.ELEMENTAL_EPITOME
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const paladinAuraOfDevotionDescription =
   paladinOathOfDevotionSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.AURA_OF_DEVOTION))
-    ?.featureOverrides?.[CLASS_FEATURE.AURA_OF_DEVOTION]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.AURA_OF_DEVOTION
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const paladinAuraOfWardingDescription =
   paladinOathOfTheAncientsSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.AURA_OF_WARDING))
-    ?.featureOverrides?.[CLASS_FEATURE.AURA_OF_WARDING]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.AURA_OF_WARDING
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const paladinAuraOfElementalShieldingDescription =
   paladinOathOfTheNobleGeniesSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.AURA_OF_ELEMENTAL_SHIELDING))
-    ?.featureOverrides?.[CLASS_FEATURE.AURA_OF_ELEMENTAL_SHIELDING]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.AURA_OF_ELEMENTAL_SHIELDING
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const paladinElderChampionDescription =
   paladinOathOfTheAncientsSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.ELDER_CHAMPION))
-    ?.featureOverrides?.[CLASS_FEATURE.ELDER_CHAMPION]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.ELDER_CHAMPION
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const paladinDiminishDefianceDescription = [
   "Enemies in the aura have Disadvantage on saving throws against your spells and Channel Divinity options."
 ];
 const paladinHolyNimbusDescription =
   paladinOathOfDevotionSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.HOLY_NIMBUS))
-    ?.featureOverrides?.[CLASS_FEATURE.HOLY_NIMBUS]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.HOLY_NIMBUS
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const paladinPeerlessAthleteDescription =
   paladinOathOfGlorySubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.PEERLESS_ATHLETE))
-    ?.featureOverrides?.[CLASS_FEATURE.PEERLESS_ATHLETE]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.PEERLESS_ATHLETE
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const paladinAuraOfAlacrityDescription =
   paladinOathOfGlorySubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.AURA_OF_ALACRITY))
-    ?.featureOverrides?.[CLASS_FEATURE.AURA_OF_ALACRITY]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.AURA_OF_ALACRITY
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const paladinLivingLegendDescription =
   paladinOathOfGlorySubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.LIVING_LEGEND))
-    ?.featureOverrides?.[CLASS_FEATURE.LIVING_LEGEND]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.LIVING_LEGEND
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const paladinNobleScionDescription =
   paladinOathOfTheNobleGeniesSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.NOBLE_SCION))
-    ?.featureOverrides?.[CLASS_FEATURE.NOBLE_SCION]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.NOBLE_SCION
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const paladinMinorWishDescription = [
   "When you or an ally in your Aura of Protection fails a D20 Test, you can take a Reaction to make the D20 Test succeed instead."
 ];
 const paladinAvengingAngelDescription =
   paladinOathOfVengeanceSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.AVENGING_ANGEL))
-    ?.featureOverrides?.[CLASS_FEATURE.AVENGING_ANGEL]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.AVENGING_ANGEL
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const paladinFrightfulAuraDescription = [
   "Whenever an enemy starts its turn in your Aura of Protection, that creature must succeed on a Wisdom saving throw or have the Frightened condition for 1 minute or until it takes any damage.",
   "Attack rolls against the Frightened creature have Advantage."
@@ -304,45 +300,45 @@ const paladinFrightfulAuraDescription = [
 const sorcererTelepathicSpeechDescription =
   sorcererAberrantSorcerySubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.TELEPATHIC_SPEECH))
-    ?.featureOverrides?.[CLASS_FEATURE.TELEPATHIC_SPEECH]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.TELEPATHIC_SPEECH
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const warlockAwakenedMindDescription =
   warlockGreatOldOnePatronSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.AWAKENED_MIND))
-    ?.featureOverrides?.[CLASS_FEATURE.AWAKENED_MIND]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.AWAKENED_MIND
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const sorcererPsychicDefensesDescription =
   sorcererAberrantSorcerySubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.PSYCHIC_DEFENSES))
-    ?.featureOverrides?.[CLASS_FEATURE.PSYCHIC_DEFENSES]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.PSYCHIC_DEFENSES
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const sorcererBastionOfLawDescription =
   sorcererClockworkSorcerySubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.BASTION_OF_LAW))
-    ?.featureOverrides?.[CLASS_FEATURE.BASTION_OF_LAW]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.BASTION_OF_LAW
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const sorcererTranceOfOrderDescription =
   sorcererClockworkSorcerySubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.TRANCE_OF_ORDER))
-    ?.featureOverrides?.[CLASS_FEATURE.TRANCE_OF_ORDER]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.TRANCE_OF_ORDER
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const sorcererCrownOfSpellfireDescription =
   sorcererSpellfireSorcerySubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.CROWN_OF_SPELLFIRE))
-    ?.featureOverrides?.[CLASS_FEATURE.CROWN_OF_SPELLFIRE]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.CROWN_OF_SPELLFIRE
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const sorcererRevelationInFleshDescription =
   sorcererAberrantSorcerySubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.REVELATION_IN_FLESH))
-    ?.featureOverrides?.[CLASS_FEATURE.REVELATION_IN_FLESH]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.REVELATION_IN_FLESH
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const sorcererRevelationInFleshAquaticAdaptationDescription =
   extractSubclassFeatureDescriptionSection(
     sorcererRevelationInFleshDescription,
@@ -366,9 +362,9 @@ const sorcererRevelationInFleshWormlikeMovementDescription =
 const rangerDefensiveTacticsDescription =
   rangerHunterSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.DEFENSIVE_TACTICS))
-    ?.featureOverrides?.[CLASS_FEATURE.DEFENSIVE_TACTICS]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.DEFENSIVE_TACTICS
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const rangerEscapeTheHordeDescription = extractSubclassFeatureDescriptionSection(
   rangerDefensiveTacticsDescription,
   "<strong>Escape the Horde.</strong>"
@@ -380,21 +376,21 @@ const rangerMultiattackDefenseDescription = extractSubclassFeatureDescriptionSec
 const rangerSuperiorHuntersDefenseDescription =
   rangerHunterSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.SUPERIOR_HUNTERS_DEFENSE))
-    ?.featureOverrides?.[CLASS_FEATURE.SUPERIOR_HUNTERS_DEFENSE]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.SUPERIOR_HUNTERS_DEFENSE
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const rangerUmbralSightDescription =
   rangerGloomStalkerSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.UMBRAL_SIGHT))
-    ?.featureOverrides?.[CLASS_FEATURE.UMBRAL_SIGHT]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.UMBRAL_SIGHT
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const rangerFrigidExplorerDescription =
   rangerWinterWalkerSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.FRIGID_EXPLORER))
-    ?.featureOverrides?.[CLASS_FEATURE.FRIGID_EXPLORER]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.FRIGID_EXPLORER
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const rangerBitingColdDescription = extractSubclassFeatureDescriptionSection(
   rangerFrigidExplorerDescription,
   "<strong>Biting Cold.</strong>"
@@ -402,27 +398,27 @@ const rangerBitingColdDescription = extractSubclassFeatureDescriptionSection(
 const rangerFrozenHauntDescription =
   rangerWinterWalkerSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.FROZEN_HAUNT))
-    ?.featureOverrides?.[CLASS_FEATURE.FROZEN_HAUNT]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.FROZEN_HAUNT
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const rogueArcaneTricksterMagicalAmbushDescription =
   rogueArcaneTricksterSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.MAGICAL_AMBUSH))
-    ?.featureOverrides?.[CLASS_FEATURE.MAGICAL_AMBUSH]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.MAGICAL_AMBUSH
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const rogueArcaneTricksterSpellThiefDescription =
   rogueArcaneTricksterSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.SPELL_THIEF))
-    ?.featureOverrides?.[CLASS_FEATURE.SPELL_THIEF]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.SPELL_THIEF
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const wizardAbjurerSpellResistanceDescription =
   wizardAbjurerSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.SPELL_RESISTANCE))
-    ?.featureOverrides?.[CLASS_FEATURE.SPELL_RESISTANCE]?.description?.filter(
-      (entry): entry is string => typeof entry === "string"
-    ) ?? [];
+    ?.featureOverrides?.[
+      CLASS_FEATURE.SPELL_RESISTANCE
+    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const monkQuiveringPalmTraitDescription = ["You have marked a creature with Quivering Palm."];
 export const exhaustionLevels = [1, 2, 3, 4, 5, 6] as const;
 export type ExhaustionLevel = (typeof exhaustionLevels)[number];
@@ -1807,7 +1803,10 @@ function getDefaultStatusEntryDescriptionEntries(
 
   if (entry.sourceId === sorcererClockworkBastionOfLawStatusSourceId) {
     return sorcererBastionOfLawDescription.length > 0
-      ? [`<strong>Current Ward.</strong> ${getStatusEntryTitle(entry)}.`, ...sorcererBastionOfLawDescription]
+      ? [
+          `<strong>Current Ward.</strong> ${getStatusEntryTitle(entry)}.`,
+          ...sorcererBastionOfLawDescription
+        ]
       : ["A current effect or trait that may change how your character plays."];
   }
 
@@ -1999,7 +1998,9 @@ export function getStatusEntryDescriptionContent(
     const moonsInspirationDescription = getFeatureDescriptionForCharacter(
       character,
       CLASS_FEATURE.MOONS_INSPIRATION
-    ).filter((descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string");
+    ).filter(
+      (descriptionEntry): descriptionEntry is string => typeof descriptionEntry === "string"
+    );
     const inspiredEclipseSection = extractSubclassFeatureDescriptionSection(
       moonsInspirationDescription,
       "Inspired Eclipse."
@@ -2037,10 +2038,32 @@ export function getStatusEntryDescriptionContent(
 
     return {
       description:
-        descriptionEntries.length > 0
-          ? descriptionEntries
-          : [...blessingOfTheTricksterDescription],
+        descriptionEntries.length > 0 ? descriptionEntries : [...blessingOfTheTricksterDescription],
       descriptionAdditions: []
+    };
+  }
+
+  if (entry.sourceId === druidStarryFormStatusSourceId && character?.className === "Druid") {
+    const descriptionEntries = getFeatureDescriptionForCharacter(
+      character,
+      CLASS_FEATURE.STARRY_FORM
+    );
+    const twinklingConstellationsDescription = getFeatureDescriptionForCharacter(
+      character,
+      CLASS_FEATURE.TWINKLING_CONSTELLATIONS
+    );
+
+    return {
+      description: descriptionEntries.length > 0 ? descriptionEntries : [...starryFormDescription],
+      descriptionAdditions:
+        twinklingConstellationsDescription.length > 0
+          ? [
+              createSourcedDescriptionEntries(
+                "Twinkling Constellations",
+                twinklingConstellationsDescription
+              )
+            ]
+          : []
     };
   }
 

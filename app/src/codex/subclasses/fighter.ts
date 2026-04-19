@@ -124,7 +124,7 @@ export const fighterSubclassEntries: SubclassEntry[] = [
           "Your experience on the battlefield has refined your fighting techniques. You learn maneuvers that are fueled by special dice called Superiority Dice.",
           "<strong>Maneuvers.</strong> You learn three maneuvers of your choice from the Maneuver Options feature. Many maneuvers enhance an attack in some way, and you can use only one maneuver per attack.",
           "You learn two additional maneuvers of your choice when you reach Fighter levels 7, 10, and 15. Each time you learn new maneuvers, you can also replace one maneuver you know with a different one.",
-          "<strong>Superiority Dice.</strong> You have four Superiority Dice, which are d8s. A Superiority Die is expended when you use it, and you regain all expended Superiority Dice when you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",
+          "<strong>Superiority Dice.</strong> You have four Superiority Dice, which are <strong>d8s</strong>. A Superiority Die is expended when you use it, and you regain all expended Superiority Dice when you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",
           "You gain an additional Superiority Die when you reach Fighter level 7 (five dice total) and 15 (six dice total).",
           "<strong>Saving Throws.</strong> If a maneuver requires a saving throw, the DC equals 8 plus your <link:STR>Strength</link> or <link:DEX>Dexterity</link> modifier (your choice) and <link:Proficiency Bonus>Proficiency Bonus</link>."
         ],
@@ -152,13 +152,13 @@ export const fighterSubclassEntries: SubclassEntry[] = [
         SUBCLASS_FEATURE_LEVELS.LEVEL_10,
         CLASS_FEATURE.IMPROVED_COMBAT_SUPERIORITY,
         {
-          description: ["Your Superiority Die becomes a d10."],
+          description: ["Your Superiority Die becomes a <strong>d10</strong>."],
           ...notTracked
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_15, CLASS_FEATURE.RELENTLESS, {
         description: [
-          "Once per turn, when you use a maneuver, you can roll 1d8 and use the number rolled instead of expending a Superiority Die."
+          "Once per turn, when you use a maneuver, you can roll <strong>1d8</strong> and use the number rolled instead of expending a Superiority Die."
         ],
         ...notTracked
       }),
@@ -166,7 +166,7 @@ export const fighterSubclassEntries: SubclassEntry[] = [
         SUBCLASS_FEATURE_LEVELS.LEVEL_18,
         CLASS_FEATURE.ULTIMATE_COMBAT_SUPERIORITY,
         {
-          description: ["Your Superiority Die becomes a d12."],
+          description: ["Your Superiority Die becomes a <strong>d12</strong>."],
           ...notTracked
         }
       )
@@ -288,7 +288,7 @@ export const fighterSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.PSIONIC_POWER, {
         description: [
           "You harbor a wellspring of psionic energy within yourself. It is represented by your Psionic Energy Dice, which fuel powers you have from this subclass.",
-          "The Psi Warrior Energy Dice table shows the die size and number of these dice you have when you reach certain Fighter levels: level 3, four d6s; level 5, six d8s; level 9, eight d8s; level 11, eight d10s; level 13, ten d10s; level 17, twelve d12s.",
+          "The Psi Warrior Energy Dice table shows the die size and number of these dice you have when you reach certain Fighter levels: level 3, four <strong>d6s</strong>; level 5, six <strong>d8s</strong>; level 9, eight <strong>d8s</strong>; level 11, eight <strong>d10s</strong>; level 13, ten <strong>d10s</strong>; level 17, twelve <strong>d12s</strong>.",
           "Any features in this subclass that use a Psionic Energy Die use only the dice from this subclass. Some of your powers expend a Psionic Energy Die as specified in a power's description, and you can't use a power if it requires you to use a die when all your Psionic Energy Dice are expended.",
           "You regain one of your expended Psionic Energy Dice when you finish a <link:short-rest>Short Rest</link>, and you regain all of them when you finish a <link:long-rest>Long Rest</link>.",
           `<strong>Protective Field.</strong> ${psiWarriorProtectiveFieldDescription[0]}`,

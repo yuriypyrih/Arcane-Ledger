@@ -23,8 +23,8 @@ export const absorbElements: SpellEntry = {
   components: [SPELL_COMPONENT.S],
   duration: ["1 round"],
   description: [
-    "The spell captures some of the incoming energy, lessening its effect on you and storing it for your next melee attack. You have Resistance to the triggering damage type until the start of your next turn. Also, the first time you hit with a melee attack on your next turn, the target takes an extra 1d6 damage of the triggering type, and the spell ends.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the extra damage increases by 1d6 for each slot level above 1st."
+    "The spell captures some of the incoming energy, lessening its effect on you and storing it for your next melee attack. You have Resistance to the triggering damage type until the start of your next turn. Also, the first time you hit with a melee attack on your next turn, the target takes an extra <strong>1d6</strong> damage of the triggering type, and the spell ends.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the extra damage increases by <strong>1d6</strong> for each slot level above 1st."
   ],
   damage: [],
   spellLists: [
@@ -47,8 +47,8 @@ export const acidStream: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "A stream of acid emanates from you in a line 30 feet long and 5 feet wide in a direction you choose. Each creature in the line must succeed on a Dexterity saving throw or be covered in acid for the spell's duration or until a creature uses its action to scrape or wash the acid off itself or another creature. A creature covered in the acid takes 3d4 Acid damage at the start of each of its turns.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d4 for each slot level above 1st."
+    "A stream of acid emanates from you in a line 30 feet long and 5 feet wide in a direction you choose. Each creature in the line must succeed on a Dexterity saving throw or be covered in acid for the spell's duration or until a creature uses its action to scrape or wash the acid off itself or another creature. A creature covered in the acid takes <strong>3d4</strong> Acid damage at the start of each of its turns.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by <strong>1d4</strong> for each slot level above 1st."
   ],
   damage: [
     [DICE.D4, DAMAGE_TYPE.ACID],
@@ -106,7 +106,7 @@ export const arcaneWeapon: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
-    "You channel arcane energy into one Simple or Martial weapon you're holding, and choose one damage type: Acid, Cold, Fire, Lightning, Poison, or Thunder. Until the spell ends, you deal an extra 1d6 damage of the chosen type to any target you hit with the weapon. If the weapon isn't magical, it becomes a magic weapon for the spell's duration.",
+    "You channel arcane energy into one Simple or Martial weapon you're holding, and choose one damage type: Acid, Cold, Fire, Lightning, Poison, or Thunder. Until the spell ends, you deal an extra <strong>1d6</strong> damage of the chosen type to any target you hit with the weapon. If the weapon isn't magical, it becomes a magic weapon for the spell's duration.",
     "As a Bonus Action, you can change the damage type, choosing from the options above.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, you can maintain your Concentration on the spell for up to 8 hours."
   ],
@@ -143,8 +143,8 @@ export const armsOfHadar: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "You invoke the power of Hadar, the Dark Hunger. Tendrils of dark energy erupt from you and batter all creatures within 10 feet of you. Each creature in that area must make a Strength saving throw. On a failed save, a target takes 2d6 Necrotic damage and can't take reactions until its next turn. On a successful save, the creature takes half damage, but suffers no other effect.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d6 for each slot level above 1st."
+    "You invoke the power of Hadar, the Dark Hunger. Tendrils of dark energy erupt from you and batter all creatures within 10 feet of you. Each creature in that area must make a Strength saving throw. On a failed save, a target takes <strong>2d6</strong> Necrotic damage and can't take reactions until its next turn. On a successful save, the creature takes half damage, but suffers no other effect.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by <strong>1d6</strong> for each slot level above 1st."
   ],
   damage: [
     [DICE.D6, DAMAGE_TYPE.NECROTIC],
@@ -164,7 +164,7 @@ export const bane: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "Up to three creatures of your choice that you can see within range must make Charisma saving throws. Whenever a target that fails this saving throw makes an attack roll or a saving throw before the spell ends, the target must roll a d4 and subtract the number rolled from the attack roll or saving throw.",
+    "Up to three creatures of your choice that you can see within range must make Charisma saving throws. Whenever a target that fails this saving throw makes an attack roll or a saving throw before the spell ends, the target must roll a <strong>d4</strong> and subtract the number rolled from the attack roll or saving throw.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st."
   ],
   damage: [],
@@ -199,7 +199,7 @@ export const bless: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You bless up to three creatures of your choice within range. Whenever a target makes an attack roll or a saving throw before the spell ends, the target can roll a d4 and add the number rolled to the attack roll or saving throw.",
+    "You bless up to three creatures of your choice within range. Whenever a target makes an attack roll or a saving throw before the spell ends, the target can roll a <strong>d4</strong> and add the number rolled to the attack roll or saving throw.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st."
   ],
   damage: [],
@@ -217,9 +217,9 @@ export const burningHands: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "As you hold your hands with thumbs touching and fingers spread, a thin sheet of flames shoots forth from your outstretched fingertips. Each creature in a 15-foot cone must make a Dexterity saving throw. A creature takes 3d6 Fire damage on a failed save, or half as much damage on a successful one.",
+    "As you hold your hands with thumbs touching and fingers spread, a thin sheet of flames shoots forth from your outstretched fingertips. Each creature in a 15-foot cone must make a Dexterity saving throw. A creature takes <strong>3d6</strong> Fire damage on a failed save, or half as much damage on a successful one.",
     "The fire ignites any flammable objects in the area that aren't being worn or carried.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d6 for each slot level above 1st."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by <strong>1d6</strong> for each slot level above 1st."
   ],
   damage: [
     [DICE.D6, DAMAGE_TYPE.FIRE],
@@ -240,8 +240,8 @@ export const catapult: SpellEntry = {
   components: [SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "Choose one object weighing 1 to 5 pounds within range that isn't being worn or carried. The object flies in a straight line up to 90 feet in a direction you choose before falling to the ground, stopping early if it impacts against a solid surface. If the object would strike a creature, that creature must make a Dexterity saving throw. On a failed save, the object strikes the target and stops moving. When the object strikes something, the object and what it strikes each take 3d8 Bludgeoning damage.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the maximum weight of objects that you can target with this spell increases by 5 pounds, and the damage increases by 1d8, for each slot level above 1st."
+    "Choose one object weighing 1 to 5 pounds within range that isn't being worn or carried. The object flies in a straight line up to 90 feet in a direction you choose before falling to the ground, stopping early if it impacts against a solid surface. If the object would strike a creature, that creature must make a Dexterity saving throw. On a failed save, the object strikes the target and stops moving. When the object strikes something, the object and what it strikes each take <strong>3d8</strong> Bludgeoning damage.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the maximum weight of objects that you can target with this spell increases by 5 pounds, and the damage increases by <strong>1d8</strong>, for each slot level above 1st."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.BLUDGEONING],
@@ -284,8 +284,8 @@ export const ceremony: SpellEntry = {
     "You perform one of several religious ceremonies. When you cast the spell, choose one of the following ceremonies, the target of which must be within 10 feet of you throughout the casting.",
     "Atonement. You touch one willing creature whose alignment has changed, and you make a DC 20 Wisdom (Insight) check. On a successful check, you restore the target to its original alignment.",
     "Bless Water. You touch one vial of water and cause it to become holy water.",
-    "Coming of Age. You touch one Humanoid who is a young adult. For the next 24 hours, whenever the target makes an ability check, it can roll a d4 and add the number rolled to the ability check. A creature can benefit from this rite only once.",
-    "Dedication. You touch one Humanoid who wishes to be dedicated to your god's service. For the next 24 hours, whenever the target makes a saving throw, it can roll a d4 and add the number rolled to the save. A creature can benefit from this rite only once.",
+    "Coming of Age. You touch one Humanoid who is a young adult. For the next 24 hours, whenever the target makes an ability check, it can roll a <strong>d4</strong> and add the number rolled to the ability check. A creature can benefit from this rite only once.",
+    "Dedication. You touch one Humanoid who wishes to be dedicated to your god's service. For the next 24 hours, whenever the target makes a saving throw, it can roll a <strong>d4</strong> and add the number rolled to the save. A creature can benefit from this rite only once.",
     "Funeral Rite. You touch one corpse, and for the next 7 days, the target can't become Undead by any means short of a Wish spell.",
     "Wedding. You touch adult Humanoids willing to be bonded together in marriage. For the next 7 days, each target gains a +2 bonus to AC while they are within 30 feet of each other. A creature can benefit from this rite again only if widowed."
   ],
@@ -304,10 +304,10 @@ export const chaosBolt: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "You hurl an undulating, warbling mass of chaotic energy at one creature in range. Make a ranged spell attack against the target. On a hit, the target takes 2d8 + 1d6 damage. Choose one of the d8s. The number rolled on that die determines the attack's damage type as follows: 1 Acid, 2 Cold, 3 Fire, 4 Force, 5 Lightning, 6 Poison, 7 Psychic, 8 Thunder.",
-    "If you roll the same number on both d8s, the chaotic energy leaps from the target to a different creature of your choice within 30 feet of it. Make a new attack roll against the new target, and make a new damage roll, which could cause the chaotic energy to leap again.",
+    "You hurl an undulating, warbling mass of chaotic energy at one creature in range. Make a ranged spell attack against the target. On a hit, the target takes <strong>2d8</strong> + <strong>1d6</strong> damage. Choose one of the <strong>d8s</strong>. The number rolled on that die determines the attack's damage type as follows: 1 Acid, 2 Cold, 3 Fire, 4 Force, 5 Lightning, 6 Poison, 7 Psychic, 8 Thunder.",
+    "If you roll the same number on both <strong>d8s</strong>, the chaotic energy leaps from the target to a different creature of your choice within 30 feet of it. Make a new attack roll against the new target, and make a new damage roll, which could cause the chaotic energy to leap again.",
     "A creature can be targeted only once by each casting of this spell.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, each target takes 1d6 extra damage of the type rolled for each slot level above 1st."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, each target takes <strong>1d6</strong> extra damage of the type rolled for each slot level above 1st."
   ],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER],
@@ -348,8 +348,8 @@ export const chromaticOrb: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "You hurl a 4-inch-diameter sphere of energy at a creature that you can see within range. You choose Acid, Cold, Fire, Lightning, Poison, or Thunder for the type of orb you create, and then make a ranged spell attack against the target. If the attack hits, the creature takes 3d8 damage of the type you chose.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d8 for each slot level above 1st."
+    "You hurl a 4-inch-diameter sphere of energy at a creature that you can see within range. You choose Acid, Cold, Fire, Lightning, Poison, or Thunder for the type of orb you create, and then make a ranged spell attack against the target. If the attack hits, the creature takes <strong>3d8</strong> damage of the type you chose.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by <strong>1d8</strong> for each slot level above 1st."
   ],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -366,9 +366,9 @@ export const colorSpray: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["1 round"],
   description: [
-    "A dazzling array of flashing, colored light springs from your hand. Roll 6d10; the total is how many Hit Points of creatures this spell can affect. Creatures in a 15-foot cone originating from you are affected in ascending order of their current Hit Points, ignoring Unconscious creatures and creatures that can't see.",
+    "A dazzling array of flashing, colored light springs from your hand. Roll <strong>6d10</strong>; the total is how many Hit Points of creatures this spell can affect. Creatures in a 15-foot cone originating from you are affected in ascending order of their current Hit Points, ignoring Unconscious creatures and creatures that can't see.",
     "Starting with the creature that has the lowest current Hit Points, each creature affected by this spell is Blinded until the end of your next turn. Subtract each creature's Hit Points from the total before moving on to the creature with the next lowest Hit Points. A creature's Hit Points must be equal to or less than the remaining total for the creature to be affected.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, roll an additional 2d10 for each slot level above 1st."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, roll an additional <strong>2d10</strong> for each slot level above 1st."
   ],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -470,8 +470,8 @@ export const cureWounds: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "A creature you touch regains a number of Hit Points equal to 1d8 + your spellcasting ability modifier. This spell has no effect on Undead or constructs.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the healing increases by 1d8 for each slot level above 1st."
+    "A creature you touch regains a number of Hit Points equal to <strong>1d8</strong> + your spellcasting ability modifier. This spell has no effect on Undead or constructs.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the healing increases by <strong>1d8</strong> for each slot level above 1st."
   ],
   isHealingSpell: true,
   damage: [],
@@ -571,8 +571,8 @@ export const dissonantWhispers: SpellEntry = {
   components: [SPELL_COMPONENT.V],
   duration: ["Instantaneous"],
   description: [
-    "You whisper a discordant melody that only one creature of your choice within range can hear, wracking it with terrible pain. The target must make a Wisdom saving throw. On a failed save, it takes 3d6 Psychic damage and must immediately use its reaction, if available, to move as far as its Speed allows away from you. The creature doesn't move into obviously dangerous ground, such as a fire or a pit. On a successful save, the target takes half as much damage and doesn't have to move away. A Deafened creature automatically succeeds on the save.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d6 for each slot level above 1st."
+    "You whisper a discordant melody that only one creature of your choice within range can hear, wracking it with terrible pain. The target must make a Wisdom saving throw. On a failed save, it takes <strong>3d6</strong> Psychic damage and must immediately use its reaction, if available, to move as far as its Speed allows away from you. The creature doesn't move into obviously dangerous ground, such as a fire or a pit. On a successful save, the target takes half as much damage and doesn't have to move away. A Deafened creature automatically succeeds on the save.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by <strong>1d6</strong> for each slot level above 1st."
   ],
   damage: [
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
@@ -616,7 +616,7 @@ export const divineFavor: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "Your prayer empowers you with divine radiance. Until the spell ends, your weapon attacks deal an extra 1d4 Radiant damage on a hit."
+    "Your prayer empowers you with divine radiance. Until the spell ends, your weapon attacks deal an extra <strong>1d4</strong> Radiant damage on a hit."
   ],
   damage: [[DICE.D4, DAMAGE_TYPE.RADIANT]],
   spellLists: [SPELL_LIST_CLASS.PALADIN],
@@ -633,8 +633,8 @@ export const divineSmite: SpellEntry = {
   components: [SPELL_COMPONENT.V],
   duration: ["Instantaneous"],
   description: [
-    "The target takes an extra 2d8 Radiant damage from the attack. The damage increases by 1d8 if the target is a Fiend or an Undead.",
-    "<strong>Using a Higher-Level Spell Slot.</strong> The damage increases by 1d8 for each spell slot level above 1st."
+    "The target takes an extra <strong>2d8</strong> Radiant damage from the attack. The damage increases by <strong>1d8</strong> if the target is a Fiend or an Undead.",
+    "<strong>Using a Higher-Level Spell Slot.</strong> The damage increases by <strong>1d8</strong> for each spell slot level above 1st."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.RADIANT],
@@ -654,8 +654,8 @@ export const earthTremor: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "You cause a tremor in the ground in a 10-foot radius. Each creature other than you in that area must make a Dexterity saving throw. On a failed save, a creature takes 1d6 Bludgeoning damage and is knocked Prone. If the ground in that area is loose earth or stone, it becomes difficult terrain until cleared.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d6 for each slot level above 1st."
+    "You cause a tremor in the ground in a 10-foot radius. Each creature other than you in that area must make a Dexterity saving throw. On a failed save, a creature takes <strong>1d6</strong> Bludgeoning damage and is knocked Prone. If the ground in that area is loose earth or stone, it becomes difficult terrain until cleared.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by <strong>1d6</strong> for each slot level above 1st."
   ],
   damage: [[DICE.D6, DAMAGE_TYPE.BLUDGEONING]],
   spellLists: [
@@ -678,8 +678,8 @@ export const ensnaringStrike: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "The next time you hit a creature with a weapon attack before this spell ends, a writhing mass of thorny vines appears at the point of impact, and the target must succeed on a Strength saving throw or be Restrained by the magical vines until the spell ends. A Large or larger creature has Advantage on this saving throw. If the target succeeds on the save, the vines shrivel away.",
-    "While Restrained by this spell, the target takes 1d6 Piercing damage at the start of each of its turns. A creature Restrained by the vines or one that can touch the creature can use its action to make a Strength check against your spell save DC. On a success, the target is freed.",
-    "<strong>At Higher Levels.</strong> If you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d6 for each slot level above 1st."
+    "While Restrained by this spell, the target takes <strong>1d6</strong> Piercing damage at the start of each of its turns. A creature Restrained by the vines or one that can touch the creature can use its action to make a Strength check against your spell save DC. On a success, the target is freed.",
+    "<strong>At Higher Levels.</strong> If you cast this spell using a spell slot of 2nd level or higher, the damage increases by <strong>1d6</strong> for each slot level above 1st."
   ],
   damage: [[DICE.D6, DAMAGE_TYPE.PIERCING]],
   spellLists: [SPELL_LIST_CLASS.RANGER],
@@ -756,7 +756,7 @@ export const falseLife: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["1 hour"],
   description: [
-    "Bolstering yourself with a necromantic facsimile of life, you gain 1d4 + 4 Temporary Hit Points for the duration.",
+    "Bolstering yourself with a necromantic facsimile of life, you gain <strong>1d4</strong> + 4 Temporary Hit Points for the duration.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, you gain 5 additional Temporary Hit Points for each slot level above 1st."
   ],
   damage: [],
@@ -845,9 +845,9 @@ export const frostFingers: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "Freezing cold blasts from your fingertips in a 15-foot cone. Each creature in that area must make a Constitution saving throw, taking 2d8 Cold damage on a failed save, or half as much damage on a successful one.",
+    "Freezing cold blasts from your fingertips in a 15-foot cone. Each creature in that area must make a Constitution saving throw, taking <strong>2d8</strong> Cold damage on a failed save, or half as much damage on a successful one.",
     "The cold freezes nonmagical liquids in the area that aren't being worn or carried.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d8 for each slot level above 1st."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by <strong>1d8</strong> for each slot level above 1st."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.COLD],
@@ -867,7 +867,7 @@ export const giftOfAlacrity: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["8 hours"],
   description: [
-    "You touch a willing creature. For the duration, the target can add 1d8 to its Initiative rolls."
+    "You touch a willing creature. For the duration, the target can add <strong>1d8</strong> to its Initiative rolls."
   ],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
@@ -921,8 +921,8 @@ export const guidingBolt: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["1 round"],
   description: [
-    "A flash of light streaks toward a creature of your choice within range. Make a ranged spell attack against the target. On a hit, the target takes 4d6 Radiant damage, and the next attack roll made against this target before the end of your next turn has Advantage, thanks to the mystical dim light glittering on the target until then.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d6 for each slot level above 1st."
+    "A flash of light streaks toward a creature of your choice within range. Make a ranged spell attack against the target. On a hit, the target takes <strong>4d6</strong> Radiant damage, and the next attack roll made against this target before the end of your next turn has Advantage, thanks to the mystical dim light glittering on the target until then.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by <strong>1d6</strong> for each slot level above 1st."
   ],
   damage: [
     [DICE.D6, DAMAGE_TYPE.RADIANT],
@@ -946,7 +946,7 @@ export const guidingHand: SpellEntry = {
   description: [
     "You create a Tiny incorporeal hand of shimmering light in an unoccupied space you can see within range. The hand exists for the duration, but it disappears if you teleport or you travel to a different plane of existence.",
     "When the hand appears, you name one major landmark, such as a city, mountain, castle, or battlefield on the same plane of existence as you. Someone in history must have visited the site and mapped it. If the landmark appears on no map in existence, the spell fails. Otherwise, whenever you move toward the hand, it moves away from you at the same speed you moved, and it moves in the direction of the landmark, always remaining 5 feet away from you.",
-    "If you don't move toward the hand, it remains in place until you do and beckons for you to follow once every 1d4 minutes."
+    "If you don't move toward the hand, it remains in place until you do and beckons for you to follow once every <strong>1d4</strong> minutes."
   ],
   damage: [],
   spellLists: [
@@ -968,8 +968,8 @@ export const hailOfThorns: SpellEntry = {
   components: [SPELL_COMPONENT.V],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "The next time you hit a creature with a ranged weapon attack before the spell ends, this spell creates a rain of thorns that sprouts from your ranged weapon or ammunition. In addition to the normal effect of the attack, the target of the attack and each creature within 5 feet of it must make a Dexterity saving throw. A creature takes 1d10 Piercing damage on a failed save, or half as much damage on a successful one.",
-    "<strong>At Higher Levels.</strong> If you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d10 for each slot level above 1st, to a maximum of 6d10."
+    "The next time you hit a creature with a ranged weapon attack before the spell ends, this spell creates a rain of thorns that sprouts from your ranged weapon or ammunition. In addition to the normal effect of the attack, the target of the attack and each creature within 5 feet of it must make a Dexterity saving throw. A creature takes <strong>1d10</strong> Piercing damage on a failed save, or half as much damage on a successful one.",
+    "<strong>At Higher Levels.</strong> If you cast this spell using a spell slot of 2nd level or higher, the damage increases by <strong>1d10</strong> for each slot level above 1st, to a maximum of <strong>6d10</strong>."
   ],
   damage: [[DICE.D10, DAMAGE_TYPE.PIERCING]],
   spellLists: [SPELL_LIST_CLASS.RANGER],
@@ -987,7 +987,7 @@ export const healingElixir: SpellEntry = {
   duration: ["24 hours"],
   description: [
     "You create a healing elixir in a simple vial that appears in your hand. The elixir retains its potency for the duration or until it's consumed, at which point the vial vanishes.",
-    "As an action, a creature can drink the elixir or administer it to another creature. The drinker regains 2d4 + 2 Hit Points."
+    "As an action, a creature can drink the elixir or administer it to another creature. The drinker regains <strong>2d4</strong> + 2 Hit Points."
   ],
   isHealingSpell: true,
   damage: [],
@@ -1005,8 +1005,8 @@ export const healingWord: SpellEntry = {
   components: [SPELL_COMPONENT.V],
   duration: ["Instantaneous"],
   description: [
-    "A creature of your choice that you can see within range regains Hit Points equal to 1d4 + your spellcasting ability modifier. This spell has no effect on Undead or constructs.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the healing increases by 1d4 for each slot level above 1st."
+    "A creature of your choice that you can see within range regains Hit Points equal to <strong>1d4</strong> + your spellcasting ability modifier. This spell has no effect on Undead or constructs.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the healing increases by <strong>1d4</strong> for each slot level above 1st."
   ],
   isHealingSpell: true,
   damage: [],
@@ -1027,8 +1027,8 @@ export const hellishRebuke: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "You point your finger, and the creature that damaged you is momentarily surrounded by hellish flames. The creature must make a Dexterity saving throw. It takes 2d10 Fire damage on a failed save, or half as much damage on a successful one.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d10 for each slot level above 1st."
+    "You point your finger, and the creature that damaged you is momentarily surrounded by hellish flames. The creature must make a Dexterity saving throw. It takes <strong>2d10</strong> Fire damage on a failed save, or half as much damage on a successful one.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by <strong>1d10</strong> for each slot level above 1st."
   ],
   damage: [
     [DICE.D10, DAMAGE_TYPE.FIRE],
@@ -1066,7 +1066,7 @@ export const hex: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
-    "You place a curse on a creature that you can see within range. Until the spell ends, you deal an extra 1d6 Necrotic damage to the target whenever you hit it with an attack. Also, choose one ability when you cast the spell. The target has Disadvantage on ability checks made with the chosen ability.",
+    "You place a curse on a creature that you can see within range. Until the spell ends, you deal an extra <strong>1d6</strong> Necrotic damage to the target whenever you hit it with an attack. Also, choose one ability when you cast the spell. The target has Disadvantage on ability checks made with the chosen ability.",
     "If the target drops to 0 Hit Points before this spell ends, you can use a Bonus Action on a subsequent turn of yours to curse a new creature.",
     "A Remove Curse cast on the target ends this spell early.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd or 4th level, you can maintain your Concentration on the spell for up to 8 hours. When you use a spell slot of 5th level or higher, you can maintain your Concentration on the spell for up to 24 hours."
@@ -1086,7 +1086,7 @@ export const huntersMark: SpellEntry = {
   components: [SPELL_COMPONENT.V],
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
-    "You choose a creature you can see within range and mystically mark it as your quarry. Until the spell ends, you deal an extra 1d6 damage to the target whenever you hit it with a weapon attack, and you have Advantage on any Wisdom (Perception) or Wisdom (Survival) check you make to find it.",
+    "You choose a creature you can see within range and mystically mark it as your quarry. Until the spell ends, you deal an extra <strong>1d6</strong> damage to the target whenever you hit it with a weapon attack, and you have Advantage on any Wisdom (Perception) or Wisdom (Survival) check you make to find it.",
     "If the target drops to 0 Hit Points before this spell ends, you can use a Bonus Action on a subsequent turn of yours to mark a new creature.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd or 4th level, you can maintain your Concentration on the spell for up to 8 hours. When you use a spell slot of 5th level or higher, you can maintain your Concentration on the spell for up to 24 hours."
   ],
@@ -1105,8 +1105,8 @@ export const iceKnife: SpellEntry = {
   components: [SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes 1d10 Piercing damage. Hit or miss, the shard then explodes. The target and each creature within 5 feet of the point where the ice exploded must succeed on a Dexterity saving throw or take 2d6 Cold damage.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the Cold damage increases by 1d6 for each slot level above 1st."
+    "You create a shard of ice and fling it at one creature within range. Make a ranged spell attack against the target. On a hit, the target takes <strong>1d10</strong> Piercing damage. Hit or miss, the shard then explodes. The target and each creature within 5 feet of the point where the ice exploded must succeed on a Dexterity saving throw or take <strong>2d6</strong> Cold damage.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the Cold damage increases by <strong>1d6</strong> for each slot level above 1st."
   ],
   damage: [
     [DICE.D10, DAMAGE_TYPE.PIERCING],
@@ -1127,7 +1127,7 @@ export const idInsinuation: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You unleash a torrent of conflicting desires in the mind of one creature you can see within range, impairing its ability to make decisions. The target must succeed on a Wisdom saving throw or be Incapacitated. At the end of each of its turns, it takes 1d12 Psychic damage, and it can then make another Wisdom saving throw. On a success, the spell ends on the target."
+    "You unleash a torrent of conflicting desires in the mind of one creature you can see within range, impairing its ability to make decisions. The target must succeed on a Wisdom saving throw or be Incapacitated. At the end of each of its turns, it takes <strong>1d12</strong> Psychic damage, and it can then make another Wisdom saving throw. On a success, the spell ends on the target."
   ],
   damage: [[DICE.D12, DAMAGE_TYPE.PSYCHIC]],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
@@ -1201,8 +1201,8 @@ export const inflictWounds: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "Make a melee spell attack against a creature you can reach. On a hit, the target takes 3d10 Necrotic damage.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d10 for each slot level above 1st."
+    "Make a melee spell attack against a creature you can reach. On a hit, the target takes <strong>3d10</strong> Necrotic damage.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by <strong>1d10</strong> for each slot level above 1st."
   ],
   damage: [
     [DICE.D10, DAMAGE_TYPE.NECROTIC],
@@ -1223,8 +1223,8 @@ export const jimsMagicMissile: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "You create three twisting, whistling, hypoallergenic, gluten-free darts of magical force. Each dart can target a creature of your choice that you can see within range. Make a ranged spell attack for each missile. On a hit, the missile does 2d4 Force damage.",
-    "If the attack roll scores a critical, the missile does 5d4 Force damage instead of the 4d4 Force that you would normally get on a critical. If any of the attack rolls is a natural one, all missiles turn around and hit the caster for 1 Force damage per missile.",
+    "You create three twisting, whistling, hypoallergenic, gluten-free darts of magical force. Each dart can target a creature of your choice that you can see within range. Make a ranged spell attack for each missile. On a hit, the missile does <strong>2d4</strong> Force damage.",
+    "If the attack roll scores a critical, the missile does <strong>5d4</strong> Force damage instead of the <strong>4d4</strong> Force that you would normally get on a critical. If any of the attack rolls is a natural one, all missiles turn around and hit the caster for 1 Force damage per missile.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the spell creates one more dart for each slot level above 1st. This also increases the tax by 1 GP per spell slot over 1st."
   ],
   damage: [
@@ -1309,7 +1309,7 @@ export const magicMissile: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "You create three glowing darts of magical force. Each dart hits a creature of your choice that you can see within range. A dart deals 1d4 + 1 Force damage to its target. The darts all strike simultaneously and you can direct them to hit one creature or several.",
+    "You create three glowing darts of magical force. Each dart hits a creature of your choice that you can see within range. A dart deals <strong>1d4</strong> + 1 Force damage to its target. The darts all strike simultaneously and you can direct them to hit one creature or several.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the spell creates one more dart for each slot level above 1st."
   ],
   damage: [[DICE.D4, DAMAGE_TYPE.FORCE]],
@@ -1327,9 +1327,9 @@ export const magnifyGravity: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["1 round"],
   description: [
-    "The gravity in a 10-foot-radius sphere centered on a point you can see within range increases for a moment. Each creature in the sphere on the turn when you cast the spell must make a Constitution saving throw. On a failed save, a creature takes 2d8 Force damage, and its Speed is halved until the end of its next turn. On a successful save, a creature takes half as much damage and suffers no reduction to its Speed.",
+    "The gravity in a 10-foot-radius sphere centered on a point you can see within range increases for a moment. Each creature in the sphere on the turn when you cast the spell must make a Constitution saving throw. On a failed save, a creature takes <strong>2d8</strong> Force damage, and its Speed is halved until the end of its next turn. On a successful save, a creature takes half as much damage and suffers no reduction to its Speed.",
     "Until the start of your next turn, any object that isn't being worn or carried in the sphere requires a successful Strength check against your spell save DC to pick up or move.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d8 for each slot level above 1st."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by <strong>1d8</strong> for each slot level above 1st."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.FORCE],
@@ -1413,8 +1413,8 @@ export const rayOfSickness: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "A ray of sickening greenish energy lashes out toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes 2d8 Poison damage and must make a Constitution saving throw. On a failed save, it is also Poisoned until the end of your next turn.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d8 for each slot level above 1st."
+    "A ray of sickening greenish energy lashes out toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes <strong>2d8</strong> Poison damage and must make a Constitution saving throw. On a failed save, it is also Poisoned until the end of your next turn.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by <strong>1d8</strong> for each slot level above 1st."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.POISON],
@@ -1469,9 +1469,9 @@ export const searingSmite: SpellEntry = {
   components: [SPELL_COMPONENT.V],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "The next time you hit a creature with a melee weapon attack during the spell's duration, your weapon flares with white-hot intensity, and the attack deals an extra 1d6 Fire damage to the target and causes the target to ignite in flames.",
-    "At the start of each of its turns until the spell ends, the target must make a Constitution saving throw. On a failed save, it takes 1d6 Fire damage. On a successful save, the spell ends. If the target or a creature within 5 feet of it uses an action to put out the flames, or if some other effect douses the flames, such as the target being submerged in water, the spell ends.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the initial extra damage dealt by the attack increases by 1d6 for each slot above 1st."
+    "The next time you hit a creature with a melee weapon attack during the spell's duration, your weapon flares with white-hot intensity, and the attack deals an extra <strong>1d6</strong> Fire damage to the target and causes the target to ignite in flames.",
+    "At the start of each of its turns until the spell ends, the target must make a Constitution saving throw. On a failed save, it takes <strong>1d6</strong> Fire damage. On a successful save, the spell ends. If the target or a creature within 5 feet of it uses an action to put out the flames, or if some other effect douses the flames, such as the target being submerged in water, the spell ends.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the initial extra damage dealt by the attack increases by <strong>1d6</strong> for each slot above 1st."
   ],
   damage: [[DICE.D6, DAMAGE_TYPE.FIRE]],
   spellLists: [SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.RANGER],
@@ -1564,7 +1564,7 @@ export const silveryBarbs: SpellEntry = {
   components: [SPELL_COMPONENT.V],
   duration: ["Instantaneous"],
   description: [
-    "You magically distract the triggering creature and turn its momentary uncertainty into encouragement for another creature. The triggering creature must reroll the d20 and use the lower roll.",
+    "You magically distract the triggering creature and turn its momentary uncertainty into encouragement for another creature. The triggering creature must reroll the <strong>d20</strong> and use the lower roll.",
     "You can then choose a different creature you can see within range, and you can choose yourself. The chosen creature has Advantage on the next attack roll, ability check, or saving throw it makes within 1 minute. A creature can be empowered by only one use of this spell at a time."
   ],
   damage: [],
@@ -1582,9 +1582,9 @@ export const sleep: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["1 minute"],
   description: [
-    "This spell sends creatures into a magical slumber. Roll 5d8, the total is how many Hit Points of creatures this spell can affect. Creatures within 20 feet of a point you choose within range are affected in ascending order of their current Hit Points, ignoring Unconscious creatures.",
+    "This spell sends creatures into a magical slumber. Roll <strong>5d8</strong>, the total is how many Hit Points of creatures this spell can affect. Creatures within 20 feet of a point you choose within range are affected in ascending order of their current Hit Points, ignoring Unconscious creatures.",
     "Starting with the creature that has the lowest current Hit Points, each creature affected by this spell falls Unconscious until the spell ends, the sleeper takes damage, or someone uses an action to shake or slap the sleeper awake. Subtract each creature's Hit Points from the total before moving on to the creature with the next lowest Hit Points. A creature's Hit Points must be equal to or less than the remaining total for that creature to be affected. Undead and creatures immune to being Charmed aren't affected by this spell.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, roll an additional 2d8 for each slot level above 1st."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, roll an additional <strong>2d8</strong> for each slot level above 1st."
   ],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -1667,8 +1667,8 @@ export const tashasCausticBrew: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "A stream of acid emanates from you in a line 30 feet long and 5 feet wide in a direction you choose. Each creature in the line must succeed on a Dexterity saving throw or be covered in acid for the spell's duration or until a creature uses its action to scrape or wash the acid off itself or another creature. A creature covered in the acid takes 2d4 Acid damage at the start of each of its turns.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 2d4 for each slot level above 1st."
+    "A stream of acid emanates from you in a line 30 feet long and 5 feet wide in a direction you choose. Each creature in the line must succeed on a Dexterity saving throw or be covered in acid for the spell's duration or until a creature uses its action to scrape or wash the acid off itself or another creature. A creature covered in the acid takes <strong>2d4</strong> Acid damage at the start of each of its turns.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by <strong>2d4</strong> for each slot level above 1st."
   ],
   damage: [
     [DICE.D4, DAMAGE_TYPE.ACID],
@@ -1726,7 +1726,7 @@ export const thunderousSmite: SpellEntry = {
   components: [SPELL_COMPONENT.V],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "The first time you hit with a melee weapon attack during this spell's duration, your weapon rings with thunder that is audible within 300 feet of you, and the attack deals an extra 2d6 Thunder damage to the target. Additionally, if the target is a creature, it must succeed on a Strength saving throw or be pushed 10 feet away from you and knocked Prone."
+    "The first time you hit with a melee weapon attack during this spell's duration, your weapon rings with thunder that is audible within 300 feet of you, and the attack deals an extra <strong>2d6</strong> Thunder damage to the target. Additionally, if the target is a creature, it must succeed on a Strength saving throw or be pushed 10 feet away from you and knocked Prone."
   ],
   damage: [
     [DICE.D6, DAMAGE_TYPE.THUNDER],
@@ -1746,9 +1746,9 @@ export const thunderwave: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "A wave of thunderous force sweeps out from you. Each creature in a 15-foot cube originating from you must make a Constitution saving throw. On a failed save, a creature takes 2d8 Thunder damage and is pushed 10 feet away from you. On a successful save, the creature takes half as much damage and isn't pushed.",
+    "A wave of thunderous force sweeps out from you. Each creature in a 15-foot cube originating from you must make a Constitution saving throw. On a failed save, a creature takes <strong>2d8</strong> Thunder damage and is pushed 10 feet away from you. On a successful save, the creature takes half as much damage and isn't pushed.",
     "In addition, unsecured objects that are completely within the area of effect are automatically pushed 10 feet away from you by the spell's effect, and the spell emits a thunderous boom audible out to 300 feet.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by 1d8 for each slot level above 1st."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the damage increases by <strong>1d8</strong> for each slot level above 1st."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.THUNDER],
@@ -1834,8 +1834,8 @@ export const witchBolt: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "A beam of crackling, blue energy lances out toward a creature within range, forming a sustained arc of Lightning between you and the target. Make a ranged spell attack against that creature. On a hit, the target takes 1d12 Lightning damage, and on each of your turns for the duration, you can use your action to deal 1d12 Lightning damage to the target automatically. The spell ends if you use your action to do anything else. The spell also ends if the target is ever outside the spell's range or if it has Total Cover from you.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the initial damage increases by 1d12 for each slot level above 1st."
+    "A beam of crackling, blue energy lances out toward a creature within range, forming a sustained arc of Lightning between you and the target. Make a ranged spell attack against that creature. On a hit, the target takes <strong>1d12</strong> Lightning damage, and on each of your turns for the duration, you can use your action to deal <strong>1d12</strong> Lightning damage to the target automatically. The spell ends if you use your action to do anything else. The spell also ends if the target is ever outside the spell's range or if it has Total Cover from you.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the initial damage increases by <strong>1d12</strong> for each slot level above 1st."
   ],
   damage: [[DICE.D12, DAMAGE_TYPE.LIGHTNING]],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
@@ -1852,7 +1852,7 @@ export const wrathfulSmite: SpellEntry = {
   components: [SPELL_COMPONENT.V],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "The next time you hit with a melee weapon attack during this spell's duration, your attack deals an extra 1d6 Psychic damage. Additionally, if the target is a creature, it must make a Wisdom saving throw or be Frightened of you until the spell ends. As an action, the creature can make a Wisdom check against your spell save DC to steel its resolve and end this spell."
+    "The next time you hit with a melee weapon attack during this spell's duration, your attack deals an extra <strong>1d6</strong> Psychic damage. Additionally, if the target is a creature, it must make a Wisdom saving throw or be Frightened of you until the spell ends. As an action, the creature can make a Wisdom check against your spell save DC to steel its resolve and end this spell."
   ],
   damage: [[DICE.D6, DAMAGE_TYPE.PSYCHIC]],
   spellLists: [SPELL_LIST_CLASS.PALADIN],
@@ -1870,7 +1870,7 @@ export const zephyrStrike: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You move like the wind. For the duration, your movement doesn't provoke Opportunity Attacks.",
-    "Once before the spell ends, you can give yourself Advantage on one weapon attack roll on your turn. That attack deals an extra 1d8 Force damage on a hit. Whether you hit or miss, your walking Speed increases by 30 feet until the end of that turn."
+    "Once before the spell ends, you can give yourself Advantage on one weapon attack roll on your turn. That attack deals an extra <strong>1d8</strong> Force damage on a hit. Whether you hit or miss, your walking Speed increases by 30 feet until the end of that turn."
   ],
   damage: [[DICE.D8, DAMAGE_TYPE.FORCE]],
   spellLists: [SPELL_LIST_CLASS.RANGER],

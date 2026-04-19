@@ -53,7 +53,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "Your patron grants you the ability to move between the boundaries of the planes.",
           "You can cast <spell:Misty Step>Misty Step</spell> without expending a spell slot a number of times equal to your <link:CHA>Charisma</link> modifier (minimum of once), and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
           "In addition, whenever you cast that spell, you can choose one of the following additional effects.",
-          "<strong>Refreshing Step.</strong> Immediately after you teleport, you or one creature you can see within 10 feet of yourself gains 1d10 <link:Temporary Hit Points>Temporary Hit Points</link>.",
+          "<strong>Refreshing Step.</strong> Immediately after you teleport, you or one creature you can see within 10 feet of yourself gains <strong>1d10</strong> <link:Temporary Hit Points>Temporary Hit Points</link>.",
           "<strong>Taunting Step.</strong> Creatures within 5 feet of the space you left must succeed on a <link:Wisdom Saving Throw>Wisdom saving throw</link> against your spell save DC or have <link:Disadvantage>Disadvantage</link> on attack rolls against creatures other than you until the start of your next turn."
         ],
         ...notTracked
@@ -63,7 +63,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "You can cast <spell:Misty Step>Misty Step</spell> as a Reaction in response to taking damage.",
           "In addition, the following effects are now among your Steps of the Fey options.",
           "<strong>Disappearing Step.</strong> You have the <link:Invisible>Invisible</link> condition until the start of your next turn or until immediately after you make an attack roll, deal damage, or cast a spell.",
-          "<strong>Dreadful Step.</strong> Creatures within 5 feet of the space you left or the space you appear in (your choice) must succeed on a <link:Wisdom Saving Throw>Wisdom saving throw</link> against your spell save DC or take 2d10 <link:Psychic>Psychic</link> damage."
+          "<strong>Dreadful Step.</strong> Creatures within 5 feet of the space you left or the space you appear in (your choice) must succeed on a <link:Wisdom Saving Throw>Wisdom saving throw</link> against your spell save DC or take <strong>2d10</strong> <link:Psychic>Psychic</link> damage."
         ],
         ...notTracked
       }),
@@ -107,7 +107,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.HEALING_LIGHT, {
         description: [
           "You gain the ability to channel celestial energy to heal wounds.",
-          "You have a pool of d6s to fuel this healing. The number of dice in the pool equals 1 plus your Warlock level.",
+          "You have a pool of <strong>d6s</strong> to fuel this healing. The number of dice in the pool equals 1 plus your Warlock level.",
           "As a Bonus Action, you can heal yourself or one creature you can see within 60 feet of yourself, expending dice from the pool.",
           "The maximum number of dice you can expend at once equals your <link:CHA>Charisma</link> modifier (minimum of one die).",
           "Roll the dice you expend, and restore a number of Hit Points equal to the roll's total.",
@@ -140,7 +140,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
         description: [
           "When you or an ally within 60 feet of you is about to make a Death Saving Throw, you can unleash radiant energy to save the creature.",
           "The creature regains Hit Points equal to half its Hit Point maximum and can end the <link:Prone>Prone</link> condition on itself.",
-          "Each creature of your choice that is within 30 feet of the creature takes <link:Radiant>Radiant</link> damage equal to 2d8 plus your <link:CHA>Charisma</link> modifier, and each has the <link:Blinded>Blinded</link> condition until the end of the current turn.",
+          "Each creature of your choice that is within 30 feet of the creature takes <link:Radiant>Radiant</link> damage equal to <strong>2d8</strong> plus your <link:CHA>Charisma</link> modifier, and each has the <link:Blinded>Blinded</link> condition until the end of the current turn.",
           "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link>."
         ],
         ...notTracked
@@ -175,7 +175,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.DARK_ONES_OWN_LUCK, {
         description: [
           "You can call on your fiendish patron to alter fate in your favor.",
-          "When you make an ability check or a saving throw, you can use this feature to add 1d10 to your roll.",
+          "When you make an ability check or a saving throw, you can use this feature to add <strong>1d10</strong> to your roll.",
           "You can do so after seeing the roll but before any of the roll's effects occur.",
           "You can use this feature a number of times equal to your <link:CHA>Charisma</link> modifier (minimum of once), but you can use it no more than once per roll.",
           "You regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
@@ -197,7 +197,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
         description: [
           "Once per turn when you hit a creature with an attack roll, you can try to instantly transport the target through the Lower Planes.",
           "The target must succeed on a <link:Charisma Saving Throw>Charisma saving throw</link> against your spell save DC, or the target disappears and hurtles through a nightmare landscape.",
-          "The target takes 8d10 <link:Psychic>Psychic</link> damage if it isn't a Fiend, and it has the <link:Incapacitated>Incapacitated</link> condition until the end of your next turn, when it returns to the space it previously occupied or the nearest unoccupied space.",
+          "The target takes <strong>8d10</strong> <link:Psychic>Psychic</link> damage if it isn't a Fiend, and it has the <link:Incapacitated>Incapacitated</link> condition until the end of your next turn, when it returns to the space it previously occupied or the nearest unoccupied space.",
           "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link> unless you expend a Pact Magic spell slot (no action required) to restore your use of it."
         ],
         ...notTracked

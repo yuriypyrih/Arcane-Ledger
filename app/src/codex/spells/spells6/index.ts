@@ -40,7 +40,7 @@ export const bladeBarrier: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "You create a vertical wall of whirling, razor-sharp blades made of magical energy. The wall appears within range and lasts for the duration. You can make a straight wall up to 100 feet long, 20 feet high, and 5 feet thick, or a ringed wall up to 60 feet in diameter, 20 feet high, and 5 feet thick. The wall provides three-quarters cover to creatures behind it, and its space is difficult terrain.",
-    "When a creature enters the wall's area for the first time on a turn or starts its turn there, the creature must make a Dexterity saving throw. On a failed save, the creature takes 6d10 Slashing damage. On a successful save, the creature takes half as much damage."
+    "When a creature enters the wall's area for the first time on a turn or starts its turn there, the creature must make a Dexterity saving throw. On a failed save, the creature takes <strong>6d10</strong> Slashing damage. On a successful save, the creature takes half as much damage."
   ],
   damage: [
     [DICE.D10, DAMAGE_TYPE.SLASHING],
@@ -66,7 +66,7 @@ export const bonesOfTheEarth: SpellEntry = {
   description: [
     "You cause up to six pillars of stone to burst from places on the ground that you can see within range. Each pillar is a cylinder that has a diameter of 5 feet and a height of up to 30 feet. The ground where a pillar appears must be wide enough for its diameter, and you can target ground under a creature if that creature is Medium or smaller. Each pillar has AC 5 and 30 Hit Points. When reduced to 0 Hit Points, a pillar crumbles into rubble, which creates an area of difficult terrain with a 10-foot radius. The rubble lasts until cleared.",
     "If a pillar is created under a creature, that creature must succeed on a Dexterity saving throw or be lifted by the pillar. A creature can choose to fail the save.",
-    "If a pillar is prevented from reaching its full height because of a ceiling or other obstacle, a creature on the pillar takes 6d6 Bludgeoning damage and is Restrained, pinched between the pillar and the obstacle. The Restrained creature can use an action to make a Strength or Dexterity check, the creature's choice, against the spell save DC. On a success, the creature is no longer Restrained and must either move off the pillar or fall off it.",
+    "If a pillar is prevented from reaching its full height because of a ceiling or other obstacle, a creature on the pillar takes <strong>6d6</strong> Bludgeoning damage and is Restrained, pinched between the pillar and the obstacle. The Restrained creature can use an action to make a Strength or Dexterity check, the creature's choice, against the spell save DC. On a success, the creature is no longer Restrained and must either move off the pillar or fall off it.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, you can create two additional pillars for each slot level above 6th."
   ],
   damage: [
@@ -92,7 +92,7 @@ export const chainLightning: SpellEntry = {
   duration: ["Instantaneous"],
   description: [
     "You create a bolt of Lightning that arcs toward a target of your choice that you can see within range. Three bolts then leap from that target to as many as three other targets, each of which must be within 30 feet of the first target. A target can be a creature or an object and can be targeted by only one of the bolts.",
-    "A target must make a Dexterity saving throw. The target takes 10d8 Lightning damage on a failed save, or half as much on a successful one.",
+    "A target must make a Dexterity saving throw. The target takes <strong>10d8</strong> Lightning damage on a failed save, or half as much on a successful one.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, one additional bolt leaps from the first target to another target for each slot level above 6th."
   ],
   damage: [
@@ -121,8 +121,8 @@ export const circleOfDeath: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "A sphere of negative energy ripples out in a 60-foot-radius sphere from a point within range. Each creature in that area must make a Constitution saving throw. A target takes 8d6 Necrotic damage on a failed save, or half as much damage on a successful one.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, the damage increases by 2d6 for each slot level above 6th."
+    "A sphere of negative energy ripples out in a 60-foot-radius sphere from a point within range. Each creature in that area must make a Constitution saving throw. A target takes <strong>8d6</strong> Necrotic damage on a failed save, or half as much damage on a successful one.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, the damage increases by <strong>2d6</strong> for each slot level above 6th."
   ],
   damage: [
     [DICE.D6, DAMAGE_TYPE.NECROTIC],
@@ -187,7 +187,7 @@ export const createHomunculus: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "While speaking an intricate incantation, you cut yourself with a jewel-encrusted dagger, taking 2d4 Piercing damage that can't be reduced in any way. You then drip your blood on the spell's other components and touch them, transforming them into a special Construct called a homunculus. The statistics of the homunculus are in the Monster Manual. It is your faithful companion, and it dies if you die.",
+    "While speaking an intricate incantation, you cut yourself with a jewel-encrusted dagger, taking <strong>2d4</strong> Piercing damage that can't be reduced in any way. You then drip your blood on the spell's other components and touch them, transforming them into a special Construct called a homunculus. The statistics of the homunculus are in the Monster Manual. It is your faithful companion, and it dies if you die.",
     "Whenever you finish a Long Rest, you can spend up to half your Hit Dice if the homunculus is on the same plane of existence as you. When you do so, roll each die and add your Constitution modifier to it. Your Hit Point maximum is reduced by the total, and the homunculus's Hit Point maximum and current Hit Points are both increased by it. This process can reduce you to no lower than 1 Hit Point, and the change to your and the homunculus's Hit Points ends when you finish your next Long Rest. The reduction to your Hit Point maximum can't be removed by any means before then, except by the homunculus's death.",
     "You can have only one homunculus at a time. If you cast this spell while your homunculus lives, the spell fails."
   ],
@@ -238,10 +238,10 @@ export const disintegrate: SpellEntry = {
   duration: ["Instantaneous"],
   description: [
     "A thin green ray springs from your pointing finger to a target that you can see within range. The target can be a creature, an object, or a creation of magical force, such as the wall created by Wall of Force.",
-    "A creature targeted by this spell must make a Dexterity saving throw. On a failed save, the target takes 10d6 + 40 Force damage. The target is disintegrated if this damage leaves it with 0 Hit Points.",
+    "A creature targeted by this spell must make a Dexterity saving throw. On a failed save, the target takes <strong>10d6</strong> + 40 Force damage. The target is disintegrated if this damage leaves it with 0 Hit Points.",
     "A disintegrated creature and everything it is wearing and carrying, except magic items, are reduced to a pile of fine gray dust. The creature can be restored to life only by means of a True Resurrection or a Wish spell.",
     "This spell automatically disintegrates a Large or smaller nonmagical object or a creation of magical force. If the target is a Huge or larger object or creation of force, this spell disintegrates a 10-foot-cube portion of it. A magic item is unaffected by this spell.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, the damage increases by 3d6 for each slot level above 6th."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, the damage increases by <strong>3d6</strong> for each slot level above 6th."
   ],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -416,7 +416,7 @@ export const forbiddance: SpellEntry = {
   duration: ["1 day"],
   description: [
     "You create a ward against magical travel that protects up to 40,000 square feet of floor space to a height of 30 feet above the floor. For the duration, creatures can't teleport into the area or use portals, such as those created by the Gate spell, to enter the area. The spell proofs the area against planar travel, and therefore prevents creatures from accessing the area by way of the Astral Plane, Ethereal Plane, Feywild, Shadowfell, or the Plane Shift spell.",
-    "In addition, the spell damages types of creatures that you choose when you cast it. Choose one or more of the following: Celestials, Elementals, Fey, Fiends, and Undead. When a chosen creature enters the spell's area for the first time on a turn or starts its turn there, the creature takes 5d10 Radiant or Necrotic damage, your choice when you cast this spell.",
+    "In addition, the spell damages types of creatures that you choose when you cast it. Choose one or more of the following: Celestials, Elementals, Fey, Fiends, and Undead. When a chosen creature enters the spell's area for the first time on a turn or starts its turn there, the creature takes <strong>5d10</strong> Radiant or Necrotic damage, your choice when you cast this spell.",
     "When you cast this spell, you can designate a password. A creature that speaks the password as it enters the area takes no damage from the spell.",
     "This spell's area can't overlap with the area of another Forbiddance spell. If you cast Forbiddance every day for 30 days in the same location, the spell lasts until it is dispelled, and the material components are consumed on the last casting."
   ],
@@ -454,9 +454,9 @@ export const gravityFissure: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "You manifest a ravine of gravitational energy in a line originating from you that is 100 feet long and 5 feet wide. Each creature in that line must make a Constitution saving throw, taking 8d8 Force damage on a failed save, or half as much damage on a successful one.",
-    "Each creature within 10 feet of the line but not in it must succeed on a Constitution saving throw or take 8d8 Force damage and be pulled toward the line until the creature is in its area.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, the damage increases by 1d8 for each slot level above 6th."
+    "You manifest a ravine of gravitational energy in a line originating from you that is 100 feet long and 5 feet wide. Each creature in that line must make a Constitution saving throw, taking <strong>8d8</strong> Force damage on a failed save, or half as much damage on a successful one.",
+    "Each creature within 10 feet of the line but not in it must succeed on a Constitution saving throw or take <strong>8d8</strong> Force damage and be pulled toward the line until the creature is in its area.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, the damage increases by <strong>1d8</strong> for each slot level above 6th."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.FORCE],
@@ -523,7 +523,7 @@ export const harm: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "You unleash a virulent disease on a creature that you can see within range. The target must make a Constitution saving throw. On a failed save, it takes 14d6 Necrotic damage, or half as much damage on a successful save. The damage can't reduce the target's Hit Points below 1. If the target fails the saving throw, its Hit Point maximum is reduced for 1 hour by an amount equal to the Necrotic damage it took. Any effect that removes a disease allows a creature's Hit Point maximum to return to normal before that time passes."
+    "You unleash a virulent disease on a creature that you can see within range. The target must make a Constitution saving throw. On a failed save, it takes <strong>14d6</strong> Necrotic damage, or half as much damage on a successful save. The damage can't reduce the target's Hit Points below 1. If the target fails the saving throw, its Hit Point maximum is reduced for 1 hour by an amount equal to the Necrotic damage it took. Any effect that removes a disease allows a creature's Hit Point maximum to return to normal before that time passes."
   ],
   damage: [
     [DICE.D6, DAMAGE_TYPE.NECROTIC],
@@ -575,7 +575,7 @@ export const heroesFeast: SpellEntry = {
   duration: ["Instantaneous"],
   description: [
     "You bring forth a great feast, including magnificent food and drink. The feast takes 1 hour to consume and disappears at the end of that time, and the beneficial effects don't set in until this hour is over. Up to twelve creatures can partake of the feast.",
-    "A creature that partakes of the feast gains several benefits. The creature is cured of all diseases and poison, becomes immune to poison and being Frightened, and makes all Wisdom saving throws with Advantage. Its Hit Point maximum also increases by 2d10, and it gains the same number of Hit Points. These benefits last for 24 hours."
+    "A creature that partakes of the feast gains several benefits. The creature is cured of all diseases and poison, becomes immune to poison and being Frightened, and makes all Wisdom saving throws with Advantage. Its Hit Point maximum also increases by <strong>2d10</strong>, and it gains the same number of Hit Points. These benefits last for 24 hours."
   ],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID],
@@ -598,8 +598,8 @@ export const investitureOfFlame: SpellEntry = {
       style: "bullet",
       items: [
         "You are immune to Fire damage and have Resistance to Cold damage.",
-        "Any creature that moves within 5 feet of you for the first time on a turn or ends its turn there takes 1d10 Fire damage.",
-        "You can use your action to create a line of fire 15 feet long and 5 feet wide extending from you in a direction you choose. Each creature in the line must make a Dexterity saving throw. A creature takes 4d8 Fire damage on a failed save, or half as much damage on a successful one."
+        "Any creature that moves within 5 feet of you for the first time on a turn or ends its turn there takes <strong>1d10</strong> Fire damage.",
+        "You can use your action to create a line of fire 15 feet long and 5 feet wide extending from you in a direction you choose. Each creature in the line must make a Dexterity saving throw. A creature takes <strong>4d8</strong> Fire damage on a failed save, or half as much damage on a successful one."
       ]
     }
   ],
@@ -631,7 +631,7 @@ export const investitureOfIce: SpellEntry = {
         "You are immune to Cold damage and have Resistance to Fire damage.",
         "You can move across difficult terrain created by ice or snow without spending extra movement.",
         "The ground in a 10-foot radius around you is icy and is difficult terrain for creatures other than you. The radius moves with you.",
-        "You can use your action to create a 15-foot cone of freezing wind extending from your outstretched hand in a direction you choose. Each creature in the cone must make a Constitution saving throw. A creature takes 4d6 Cold damage on a failed save, or half as much damage on a successful one. A creature that fails its save against this effect has its Speed halved until the start of your next turn."
+        "You can use your action to create a 15-foot cone of freezing wind extending from your outstretched hand in a direction you choose. Each creature in the cone must make a Constitution saving throw. A creature takes <strong>4d6</strong> Cold damage on a failed save, or half as much damage on a successful one. A creature that fails its save against this effect has its Speed halved until the start of your next turn."
       ]
     }
   ],
@@ -693,7 +693,7 @@ export const investitureOfWind: SpellEntry = {
       items: [
         "Ranged weapon attacks made against you have Disadvantage on the attack roll.",
         "You gain a flying Speed of 60 feet. If you are still flying when the spell ends, you fall, unless you can somehow prevent it.",
-        "You can use your action to create a 15-foot cube of swirling wind centered on a point you can see within 60 feet of you. Each creature in that area must make a Constitution saving throw. A creature takes 2d10 Bludgeoning damage on a failed save, or half as much damage on a successful one. If a Large or smaller creature fails the save, that creature is also pushed up to 10 feet away from the center of the cube."
+        "You can use your action to create a 15-foot cube of swirling wind centered on a point you can see within 60 feet of you. Each creature in that area must make a Constitution saving throw. A creature takes <strong>2d10</strong> Bludgeoning damage on a failed save, or half as much damage on a successful one. If a Large or smaller creature fails the save, that creature is also pushed up to 10 feet away from the center of the cube."
       ]
     }
   ],
@@ -766,9 +766,9 @@ export const mentalPrison: SpellEntry = {
   components: [SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You attempt to bind a creature within an illusory cell that only it perceives. One creature you can see within range must make an Intelligence saving throw. The target succeeds automatically if it is immune to being Charmed. On a successful save, the target takes 5d10 Psychic damage, and the spell ends.",
-    "On a failed save, the target takes 5d10 Psychic damage, and you make the area immediately around the target's space appear dangerous to it in some way. You might cause the target to perceive itself as being surrounded by fire, floating razors, or hideous maws filled with dripping teeth. Whatever form the illusion takes, the target can't see or hear anything beyond it and is Restrained for the spell's duration.",
-    "If the target is moved out of the illusion, makes a melee attack through it, or reaches any part of its body through it, the target takes 10d10 Psychic damage, and the spell ends."
+    "You attempt to bind a creature within an illusory cell that only it perceives. One creature you can see within range must make an Intelligence saving throw. The target succeeds automatically if it is immune to being Charmed. On a successful save, the target takes <strong>5d10</strong> Psychic damage, and the spell ends.",
+    "On a failed save, the target takes <strong>5d10</strong> Psychic damage, and you make the area immediately around the target's space appear dangerous to it in some way. You might cause the target to perceive itself as being surrounded by fire, floating razors, or hideous maws filled with dripping teeth. Whatever form the illusion takes, the target can't see or hear anything beyond it and is Restrained for the spell's duration.",
+    "If the target is moved out of the illusion, makes a melee attack through it, or reaches any part of its body through it, the target takes <strong>10d10</strong> Psychic damage, and the spell ends."
   ],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
@@ -840,10 +840,10 @@ export const otilukesFreezingSphere: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "A frigid globe of Cold energy streaks from your fingertips to a point of your choice within range, where it explodes in a 60-foot-radius sphere. Each creature within the area must make a Constitution saving throw. On a failed save, a creature takes 10d6 Cold damage. On a successful save, it takes half as much damage.",
+    "A frigid globe of Cold energy streaks from your fingertips to a point of your choice within range, where it explodes in a 60-foot-radius sphere. Each creature within the area must make a Constitution saving throw. On a failed save, a creature takes <strong>10d6</strong> Cold damage. On a successful save, it takes half as much damage.",
     "If the globe strikes a body of water or a liquid that is principally water, not including water-based creatures, it freezes the liquid to a depth of 6 inches over an area 30 feet square. This ice lasts for 1 minute. Creatures that were swimming on the surface of frozen water are trapped in the ice. A trapped creature can use an action to make a Strength check against your spell save DC to break free.",
     "You can refrain from firing the globe after completing the spell, if you wish. A small globe about the size of a sling stone, cool to the touch, appears in your hand. At any time, you or a creature you give the globe to can throw the globe, to a range of 40 feet, or hurl it with a sling, to the sling's normal range. It shatters on impact, with the same effect as the normal casting of the spell. You can also set the globe down without shattering it. After 1 minute, if the globe hasn't already shattered, it explodes.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, the damage increases by 1d6 for each slot level above 6th."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, the damage increases by <strong>1d6</strong> for each slot level above 6th."
   ],
   damage: [
     [DICE.D6, DAMAGE_TYPE.COLD],
@@ -958,7 +958,7 @@ export const psychicCrush: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["1 minute"],
   description: [
-    "You overload the mind of one creature you can see within range, filling its psyche with discordant emotions. The target must make an Intelligence saving throw. On a failed save, the target takes 12d6 Psychic damage and is Stunned for 1 minute. On a successful save, the target takes half as much damage and isn't Stunned.",
+    "You overload the mind of one creature you can see within range, filling its psyche with discordant emotions. The target must make an Intelligence saving throw. On a failed save, the target takes <strong>12d6</strong> Psychic damage and is Stunned for 1 minute. On a successful save, the target takes half as much damage and isn't Stunned.",
     "The Stunned target can make an Intelligence saving throw at the end of each of its turns. On a successful save, the spell ends on the target."
   ],
   damage: [
@@ -1011,7 +1011,7 @@ export const soulCage: SpellEntry = {
       type: "list",
       style: "bullet",
       items: [
-        "<strong>Steal Life.</strong> You can use a Bonus Action to drain vigor from the soul and regain 2d8 Hit Points.",
+        "<strong>Steal Life.</strong> You can use a Bonus Action to drain vigor from the soul and regain <strong>2d8</strong> Hit Points.",
         "<strong>Query Soul.</strong> You ask the soul a question, no action required, and receive a brief telepathic answer, which you can understand regardless of the language used. The soul knows only what it knew in life, but it must answer you truthfully and to the best of its ability. The answer is no more than a sentence or two and might be cryptic.",
         "<strong>Borrow Experience.</strong> You can use a Bonus Action to bolster yourself with the soul's life experience, making your next attack roll, ability check, or saving throw with Advantage. If you don't use this benefit before the start of your next turn, it is lost.",
         "<strong>Eyes of the Dead.</strong> You can use an action to name a place the Humanoid saw in life, which creates an invisible sensor somewhere in that place if it is on the plane of existence you're currently on. The sensor remains for as long as you concentrate, up to 10 minutes, as if you were concentrating on a spell. You receive visual and auditory information from the sensor as if you were in its space using your senses."
@@ -1054,7 +1054,7 @@ export const sunbeam: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "A beam of brilliant light flashes out from your hand in a 5-foot-wide, 60-foot line. Each creature in the line must make a Constitution saving throw. On a failed save, a creature takes 6d8 Radiant damage and is Blinded until your next turn. On a successful save, it takes half as much damage and isn't Blinded by this spell. Undead and Oozes have Disadvantage on this saving throw.",
+    "A beam of brilliant light flashes out from your hand in a 5-foot-wide, 60-foot line. Each creature in the line must make a Constitution saving throw. On a failed save, a creature takes <strong>6d8</strong> Radiant damage and is Blinded until your next turn. On a successful save, it takes half as much damage and isn't Blinded by this spell. Undead and Oozes have Disadvantage on this saving throw.",
     "You can create a new line of radiance as your action on any turn until the spell ends.",
     "For the duration, a mote of brilliant radiance shines in your hand. It sheds bright light in a 30-foot radius and dim light for an additional 30 feet. The light is sunlight."
   ],
@@ -1121,7 +1121,7 @@ export const tensersTransformation: SpellEntry = {
       items: [
         "You gain 50 temporary Hit Points. If any of these remain when the spell ends, they are lost.",
         "You have Advantage on attack rolls that you make with simple and martial weapons.",
-        "When you hit a target with a weapon attack, that target takes an extra 2d12 Force damage.",
+        "When you hit a target with a weapon attack, that target takes an extra <strong>2d12</strong> Force damage.",
         "You have Proficiency with all armor, shields, simple weapons, and martial weapons.",
         "You have Proficiency in Strength and Constitution saving throws.",
         "You can attack twice, instead of once, when you take the Attack action on your turn. You ignore this benefit if you already have a feature, like Extra Attack, that gives you extra attacks."
@@ -1185,9 +1185,9 @@ export const wallOfIce: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "You create a wall of ice on a solid surface within range. You can form it into a hemispherical dome or a sphere with a radius of up to 10 feet, or you can shape a flat surface made up of ten 10-foot-square panels. Each panel must be contiguous with another panel. In any form, the wall is 1 foot thick and lasts for the duration.",
-    "If the wall cuts through a creature's space when it appears, the creature within its area is pushed to one side of the wall and must make a Dexterity saving throw. On a failed save, the creature takes 10d6 Cold damage, or half as much damage on a successful save.",
-    "The wall is an object that can be damaged and thus breached. It has AC 12 and 30 Hit Points per 10-foot section, and it is Vulnerable to Fire damage. Reducing a 10-foot section of wall to 0 Hit Points destroys it and leaves behind a sheet of frigid air in the space the wall occupied. A creature moving through the sheet of frigid air for the first time on a turn must make a Constitution saving throw. The creature takes 5d6 Cold damage on a failed save, or half as much damage on a successful one.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, the damage the wall deals when it appears increases by 2d6, and the damage from passing through the sheet of frigid air increases by 1d6 for each slot level above 6th."
+    "If the wall cuts through a creature's space when it appears, the creature within its area is pushed to one side of the wall and must make a Dexterity saving throw. On a failed save, the creature takes <strong>10d6</strong> Cold damage, or half as much damage on a successful save.",
+    "The wall is an object that can be damaged and thus breached. It has AC 12 and 30 Hit Points per 10-foot section, and it is Vulnerable to Fire damage. Reducing a 10-foot section of wall to 0 Hit Points destroys it and leaves behind a sheet of frigid air in the space the wall occupied. A creature moving through the sheet of frigid air for the first time on a turn must make a Constitution saving throw. The creature takes <strong>5d6</strong> Cold damage on a failed save, or half as much damage on a successful one.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, the damage the wall deals when it appears increases by <strong>2d6</strong>, and the damage from passing through the sheet of frigid air increases by <strong>1d6</strong> for each slot level above 6th."
   ],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
@@ -1205,9 +1205,9 @@ export const wallOfThorns: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "You create a wall of tough, pliable, tangled brush bristling with needle-sharp thorns. The wall appears within range on a solid surface and lasts for the duration. You choose to make the wall up to 60 feet long, 10 feet high, and 5 feet thick or a circle that has a 20-foot diameter and is up to 20 feet high and 5 feet thick. The wall blocks line of sight.",
-    "When the wall appears, each creature within its area must make a Dexterity saving throw. On a failed save, a creature takes 7d8 Piercing damage, or half as much damage on a successful save.",
-    "A creature can move through the wall, albeit slowly and painfully. For every 1 foot a creature moves through the wall, it must spend 4 feet of movement. Furthermore, the first time a creature enters the wall on a turn or ends its turn there, the creature must make a Dexterity saving throw. It takes 7d8 Slashing damage on a failed save, or half as much on a successful save.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, both types of damage increase by 1d8 for each slot level above 6th."
+    "When the wall appears, each creature within its area must make a Dexterity saving throw. On a failed save, a creature takes <strong>7d8</strong> Piercing damage, or half as much damage on a successful save.",
+    "A creature can move through the wall, albeit slowly and painfully. For every 1 foot a creature moves through the wall, it must spend 4 feet of movement. Furthermore, the first time a creature enters the wall on a turn or ends its turn there, the creature must make a Dexterity saving throw. It takes <strong>7d8</strong> Slashing damage on a failed save, or half as much on a successful save.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, both types of damage increase by <strong>1d8</strong> for each slot level above 6th."
   ],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID],

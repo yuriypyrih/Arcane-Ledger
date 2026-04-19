@@ -14,7 +14,7 @@ const SUBCLASS_FEATURE_LEVELS = {
 
 export const divineForeknowledgeDescription = [
   "As a Bonus Action, you magically expand your mind to the future.",
-  "For 1 hour, you have <link:Advantage>Advantage</link> on D20 Tests.",
+  "For 1 hour, you have <link:Advantage>Advantage</link> on <strong>D20</strong> Tests.",
   "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link>.",
   "You can also restore your use of this feature by expending a level 6+ spell slot (no action required)."
 ] as const;
@@ -53,7 +53,7 @@ export const improvedDuplicityDescription = [
 export const radianceOfTheDawnDescription = [
   "As a Magic action, you present your Holy Symbol and expend a use of your Channel Divinity to emit a flash of light in a 30-foot <link:Emanation>Emanation</link> originating from yourself.",
   "Any magical Darkness, such as that created by the <spell:Darkness>Darkness</spell> spell, in that area is dispelled.",
-  "Additionally, each creature of your choice in that area must make a <link:Constitution Saving Throw>Constitution saving throw</link>, taking <link:Radiant>Radiant</link> damage equal to 2d10 plus your Cleric level on a failed save or half as much damage on a successful one."
+  "Additionally, each creature of your choice in that area must make a <link:Constitution Saving Throw>Constitution saving throw</link>, taking <link:Radiant>Radiant</link> damage equal to <strong>2d10</strong> plus your Cleric level on a failed save or half as much damage on a successful one."
 ] as const;
 
 export const wardingFlareDescription = [
@@ -64,7 +64,7 @@ export const wardingFlareDescription = [
 
 export const improvedWardingFlareDescription = [
   "You regain all expended uses of your Warding Flare when you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",
-  "In addition, whenever you use Warding Flare, you can give the target of the triggering attack a number of <link:Temporary Hit Points>Temporary Hit Points</link> equal to 2d6 plus your <link:WIS>Wisdom</link> modifier."
+  "In addition, whenever you use Warding Flare, you can give the target of the triggering attack a number of <link:Temporary Hit Points>Temporary Hit Points</link> equal to <strong>2d6</strong> plus your <link:WIS>Wisdom</link> modifier."
 ] as const;
 
 export const coronaOfLightDescription = [
@@ -190,7 +190,7 @@ export const clericSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.SUPREME_HEALING, {
         description: [
           "When you would normally roll one or more dice to restore Hit Points to a creature with a spell or Channel Divinity, don't roll those dice for the healing; instead use the highest number possible for each die.",
-          "For example, instead of restoring 2d6 Hit Points to a creature with a spell, you restore 12."
+          "For example, instead of restoring <strong>2d6</strong> Hit Points to a creature with a spell, you restore 12."
         ],
         trackingState: TRACKER.SEMI_TRACKED
       })
@@ -221,7 +221,7 @@ export const clericSubclassEntries: SubclassEntry[] = [
           description: [
             "As a Magic action, you present your Holy Symbol and expend a use of your Channel Divinity to emit a flash of light in a 30-foot <link:Emanation>Emanation</link> originating from yourself.",
             "Any magical Darkness, such as that created by the <spell:Darkness>Darkness</spell> spell, in that area is dispelled.",
-            "Additionally, each creature of your choice in that area must make a <link:Constitution Saving Throw>Constitution saving throw</link>, taking <link:Radiant>Radiant</link> damage equal to 2d10 plus your Cleric level on a failed save or half as much damage on a successful one."
+            "Additionally, each creature of your choice in that area must make a <link:Constitution Saving Throw>Constitution saving throw</link>, taking <link:Radiant>Radiant</link> damage equal to <strong>2d10</strong> plus your Cleric level on a failed save or half as much damage on a successful one."
           ],
           trackingState: TRACKER.SEMI_TRACKED
         }

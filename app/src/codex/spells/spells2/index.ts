@@ -20,8 +20,8 @@ export const aganazzarsScorcher: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "A line of roaring flame 30 feet long and 5 feet wide emanates from you in a direction you choose. Each creature in the line must make a Dexterity saving throw. A creature takes 3d8 Fire damage on a failed save, or half as much damage on a successful one.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for each slot level above 2nd."
+    "A line of roaring flame 30 feet long and 5 feet wide emanates from you in a direction you choose. Each creature in the line must make a Dexterity saving throw. A creature takes <strong>3d8</strong> Fire damage on a failed save, or half as much damage on a successful one.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by <strong>1d8</strong> for each slot level above 2nd."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.FIRE],
@@ -93,7 +93,7 @@ export const alterSelf: SpellEntry = {
     "You assume a different form. When you cast the spell, choose one of the following options, the effects of which last for the duration of the spell. While the spell lasts, you can end one option as an action to gain the benefits of a different one.",
     "<strong>Aquatic Adaptation.</strong> You adapt your body to an aquatic environment, sprouting gills, and growing webbing between your fingers. You can breathe underwater and gain a Swimming Speed equal to your walking Speed.",
     "<strong>Change Appearance.</strong> You transform your appearance. You decide what you look like, including your height, weight, facial features, sound of your voice, hair length, coloration, and distinguishing characteristics, if any. You can make yourself appear as a member of another species, though none of your statistics change. You also don't appear as a creature of a different size than you, and your basic shape stays the same; if you're bipedal, you can't use this spell to become quadrupedal, for instance. At any time for the duration of the spell, you can use your action to change your appearance in this way again.",
-    "<strong>Natural Weapons.</strong> You grow claws, fangs, spines, horns, or a different natural weapon of your choice. Your Unarmed Strikes deal 1d6 Bludgeoning, Piercing, or Slashing damage, as appropriate to the natural weapon you chose, and you are proficient with your Unarmed Strikes. Finally, the natural weapon is magical and you have a +1 bonus to the attack and damage rolls you make using it."
+    "<strong>Natural Weapons.</strong> You grow claws, fangs, spines, horns, or a different natural weapon of your choice. Your Unarmed Strikes deal <strong>1d6</strong> Bludgeoning, Piercing, or Slashing damage, as appropriate to the natural weapon you chose, and you are proficient with your Unarmed Strikes. Finally, the natural weapon is magical and you have a +1 bonus to the attack and damage rolls you make using it."
   ],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -288,8 +288,8 @@ export const brandingSmite: SpellEntry = {
   components: [SPELL_COMPONENT.V],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "The next time you hit a creature with a weapon attack before this spell ends, the weapon gleams with astral radiance as you strike. The attack deals an extra 2d6 Radiant damage to the target, which becomes visible if it is Invisible, and the target sheds dim light in a 5-foot radius and can't become Invisible until the spell ends.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the extra damage increases by 1d6 for each slot level above 2nd."
+    "The next time you hit a creature with a weapon attack before this spell ends, the weapon gleams with astral radiance as you strike. The attack deals an extra <strong>2d6</strong> Radiant damage to the target, which becomes visible if it is Invisible, and the target sheds dim light in a 5-foot radius and can't become Invisible until the spell ends.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the extra damage increases by <strong>1d6</strong> for each slot level above 2nd."
   ],
   damage: [
     [DICE.D6, DAMAGE_TYPE.RADIANT],
@@ -327,8 +327,8 @@ export const cloudOfDaggers: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You fill the air with spinning daggers in a cube 5 feet on each side, centered on a point you choose within range. A creature takes 4d4 Slashing damage when it enters the spell's area for the first time on a turn or starts its turn there.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 2d4 for each slot level above 2nd."
+    "You fill the air with spinning daggers in a cube 5 feet on each side, centered on a point you choose within range. A creature takes <strong>4d4</strong> Slashing damage when it enters the spell's area for the first time on a turn or starts its turn there.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by <strong>2d4</strong> for each slot level above 2nd."
   ],
   damage: [
     [DICE.D4, DAMAGE_TYPE.SLASHING],
@@ -377,7 +377,7 @@ export const cordonOfArrows: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["8 hours"],
   description: [
-    "You plant four pieces of nonmagical ammunition, arrows or crossbow bolts, in the ground within range and lay magic upon them to protect an area. Until the spell ends, whenever a creature other than you comes within 30 feet of the ammunition for the first time on a turn or ends its turn there, one piece of ammunition flies up to strike it. The creature must succeed on a Dexterity saving throw or take 1d6 Piercing damage. The piece of ammunition is then destroyed. The spell ends when no ammunition remains.",
+    "You plant four pieces of nonmagical ammunition, arrows or crossbow bolts, in the ground within range and lay magic upon them to protect an area. Until the spell ends, whenever a creature other than you comes within 30 feet of the ammunition for the first time on a turn or ends its turn there, one piece of ammunition flies up to strike it. The creature must succeed on a Dexterity saving throw or take <strong>1d6</strong> Piercing damage. The piece of ammunition is then destroyed. The spell ends when no ammunition remains.",
     "When you cast this spell, you can designate any creatures you choose, and the spell ignores them.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the amount of ammunition that can be affected increases by two for each slot level above 2nd."
   ],
@@ -500,8 +500,8 @@ export const dragonsBreath: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You touch one willing creature and imbue it with the power to spew magical energy from its mouth, provided it has one. Choose Acid, Cold, Fire, Lightning, or Poison. Until the spell ends, the creature can use an action to exhale energy of the chosen type in a 15-foot cone. Each creature in that area must make a Dexterity saving throw, taking 3d6 damage of the chosen type on a failed save, or half as much damage on a successful one.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d6 for each slot level above 2nd."
+    "You touch one willing creature and imbue it with the power to spew magical energy from its mouth, provided it has one. Choose Acid, Cold, Fire, Lightning, or Poison. Until the spell ends, the creature can use an action to exhale energy of the chosen type in a 15-foot cone. Each creature in that area must make a Dexterity saving throw, taking <strong>3d6</strong> damage of the chosen type on a failed save, or half as much damage on a successful one.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by <strong>1d6</strong> for each slot level above 2nd."
   ],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -519,9 +519,9 @@ export const dustDevil: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "Choose an unoccupied 5-foot cube of air that you can see within range. An elemental force that resembles a dust devil appears in the cube and lasts for the spell's duration.",
-    "Any creature that ends its turn within 5 feet of the dust devil must make a Strength saving throw. On a failed save, the creature takes 1d8 Bludgeoning damage and is pushed 10 feet away. On a successful save, the creature takes half as much damage and isn't pushed.",
+    "Any creature that ends its turn within 5 feet of the dust devil must make a Strength saving throw. On a failed save, the creature takes <strong>1d8</strong> Bludgeoning damage and is pushed 10 feet away. On a successful save, the creature takes half as much damage and isn't pushed.",
     "As a Bonus Action, you can move the dust devil up to 30 feet in any direction. If the dust devil moves over sand, dust, loose dirt, or small gravel, it sucks up the material and forms a 10-foot-radius cloud of debris around itself that lasts until the start of your next turn. The cloud heavily obscures its area.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for each slot level above 2nd."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by <strong>1d8</strong> for each slot level above 2nd."
   ],
   damage: [[DICE.D8, DAMAGE_TYPE.BLUDGEONING]],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -561,7 +561,7 @@ export const enhanceAbility: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
     "You touch a creature and bestow upon it a magical enhancement. Choose one of the following effects; the target gains the effect until the spell ends.",
-    "<strong>Bear's Endurance.</strong> The target has Advantage on Constitution checks. It also gains 2d6 Temporary Hit Points, which are lost when the spell ends.",
+    "<strong>Bear's Endurance.</strong> The target has Advantage on Constitution checks. It also gains <strong>2d6</strong> Temporary Hit Points, which are lost when the spell ends.",
     "<strong>Bull's Strength.</strong> The target has Advantage on Strength checks, and its carrying capacity doubles.",
     "<strong>Cat's Grace.</strong> The target has Advantage on Dexterity checks. It also doesn't take damage from falling 20 feet or less if it isn't Incapacitated.",
     "<strong>Eagle's Splendor.</strong> The target has Advantage on Charisma checks.",
@@ -594,8 +594,8 @@ export const enlargeReduce: SpellEntry = {
   description: [
     "You cause a creature or an object you can see within range to grow larger or smaller for the duration. Choose either a creature or an object that is neither worn nor carried. If the target is unwilling, it can make a Constitution saving throw. On a success, the spell has no effect.",
     "If the target is a creature, everything it is wearing and carrying changes size with it. Any item dropped by an affected creature returns to normal size at once.",
-    "<strong>Enlarge.</strong> The target's size doubles in all dimensions, and its weight is multiplied by eight. This growth increases its size by one category, from Medium to Large, for example. If there isn't enough room for the target to double its size, the creature or object attains the maximum possible size in the space available. Until the spell ends, the target also has Advantage on Strength checks and Strength saving throws. The target's weapons also grow to match its new size. While these weapons are enlarged, the target's attacks with them deal 1d4 extra damage.",
-    "<strong>Reduce.</strong> The target's size is halved in all dimensions, and its weight is reduced to one-eighth of normal. This reduction decreases its size by one category, from Medium to Small, for example. Until the spell ends, the target also has Disadvantage on Strength checks and Strength saving throws. The target's weapons also shrink to match its new size. While these weapons are reduced, the target's attacks with them deal 1d4 less damage, which can't reduce the damage below 1."
+    "<strong>Enlarge.</strong> The target's size doubles in all dimensions, and its weight is multiplied by eight. This growth increases its size by one category, from Medium to Large, for example. If there isn't enough room for the target to double its size, the creature or object attains the maximum possible size in the space available. Until the spell ends, the target also has Advantage on Strength checks and Strength saving throws. The target's weapons also grow to match its new size. While these weapons are enlarged, the target's attacks with them deal <strong>1d4</strong> extra damage.",
+    "<strong>Reduce.</strong> The target's size is halved in all dimensions, and its weight is reduced to one-eighth of normal. This reduction decreases its size by one category, from Medium to Small, for example. Until the spell ends, the target also has Disadvantage on Strength checks and Strength saving throws. The target's weapons also shrink to match its new size. While these weapons are reduced, the target's attacks with them deal <strong>1d4</strong> less damage, which can't reduce the damage below 1."
   ],
   damage: [],
   spellLists: [
@@ -701,8 +701,8 @@ export const flameBlade: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "You evoke a fiery blade in your free hand. The blade is similar in size and shape to a scimitar, and it lasts for the duration. If you let go of the blade, it disappears, but you can evoke the blade again as a Bonus Action.",
-    "You can use your action to make a melee spell attack with the fiery blade. On a hit, the target takes 3d6 Fire damage. The flaming blade sheds bright light in a 10-foot radius and dim light for an additional 10 feet.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by 1d6 for every two slot levels above 2nd."
+    "You can use your action to make a melee spell attack with the fiery blade. On a hit, the target takes <strong>3d6</strong> Fire damage. The flaming blade sheds bright light in a 10-foot radius and dim light for an additional 10 feet.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by <strong>1d6</strong> for every two slot levels above 2nd."
   ],
   damage: [
     [DICE.D6, DAMAGE_TYPE.FIRE],
@@ -723,10 +723,10 @@ export const flamingSphere: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "A 5-foot-diameter sphere of fire appears in an unoccupied space of your choice within range and lasts for the duration. Any creature that ends its turn within 5 feet of the sphere must make a Dexterity saving throw. The creature takes 2d6 Fire damage on a failed save, or half as much damage on a successful one.",
+    "A 5-foot-diameter sphere of fire appears in an unoccupied space of your choice within range and lasts for the duration. Any creature that ends its turn within 5 feet of the sphere must make a Dexterity saving throw. The creature takes <strong>2d6</strong> Fire damage on a failed save, or half as much damage on a successful one.",
     "As a Bonus Action, you can move the sphere up to 30 feet. If you ram the sphere into a creature, that creature must make the saving throw against the sphere's damage, and the sphere stops moving this turn.",
     "When you move the sphere, you can direct it over barriers up to 5 feet tall and jump it across pits up to 10 feet wide. The sphere ignites flammable objects not being worn or carried, and it sheds bright light in a 20-foot radius and dim light for an additional 20 feet.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d6 for each slot level above 2nd."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by <strong>1d6</strong> for each slot level above 2nd."
   ],
   damage: [
     [DICE.D6, DAMAGE_TYPE.FIRE],
@@ -766,8 +766,8 @@ export const fortunesFavor: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["1 hour"],
   description: [
-    "You impart latent luck to yourself or one willing creature you can see within range. When the chosen creature makes an attack roll, an ability check, or a saving throw before the spell ends, it can dismiss this spell on itself to roll an additional d20 and choose which of the d20s to use. Alternatively, when an attack roll is made against the chosen creature, it can dismiss this spell on itself to roll a d20 and choose which of the d20s to use, the one it rolled or the one the attacker rolled.",
-    "If the original d20 roll has Advantage or Disadvantage, the creature rolls the additional d20 after Advantage or Disadvantage has been applied to the original roll.",
+    "You impart latent luck to yourself or one willing creature you can see within range. When the chosen creature makes an attack roll, an ability check, or a saving throw before the spell ends, it can dismiss this spell on itself to roll an additional <strong>d20</strong> and choose which of the <strong>d20s</strong> to use. Alternatively, when an attack roll is made against the chosen creature, it can dismiss this spell on itself to roll a <strong>d20</strong> and choose which of the <strong>d20s</strong> to use, the one it rolled or the one the attacker rolled.",
+    "If the original <strong>d20</strong> roll has Advantage or Disadvantage, the creature rolls the additional <strong>d20</strong> after Advantage or Disadvantage has been applied to the original roll.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, you can target one additional creature for each slot level above 2nd."
   ],
   damage: [],
@@ -846,9 +846,9 @@ export const healingSpirit: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You call forth a nature spirit to soothe the wounded. The intangible spirit appears in a space that is a 5-foot cube you can see within range. The spirit looks like a transparent Beast or Fey, your choice.",
-    "Until the spell ends, whenever you or a creature you can see moves into the spirit's space for the first time on a turn or starts its turn there, you can cause the spirit to restore 1d6 Hit Points to that creature, no action required. The spirit can't heal Constructs or Undead.",
+    "Until the spell ends, whenever you or a creature you can see moves into the spirit's space for the first time on a turn or starts its turn there, you can cause the spirit to restore <strong>1d6</strong> Hit Points to that creature, no action required. The spirit can't heal Constructs or Undead.",
     "As a Bonus Action on your turn, you can move the spirit up to 30 feet to a space you can see. The spirit can heal a number of times equal to 1 + your spellcasting ability modifier, minimum of twice. After healing that number of times, the spirit disappears.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the healing increases by 1d6 for each slot level above 2nd."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the healing increases by <strong>1d6</strong> for each slot level above 2nd."
   ],
   isHealingSpell: true,
   damage: [],
@@ -866,9 +866,9 @@ export const heatMetal: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "Choose a manufactured metal object, such as a metal weapon or a suit of Heavy or Medium metal armor, that you can see within range. You cause the object to glow red-hot. Any creature in physical contact with the object takes 2d8 Fire damage when you cast the spell. Until the spell ends, you can use a Bonus Action on each of your subsequent turns to cause this damage again.",
+    "Choose a manufactured metal object, such as a metal weapon or a suit of Heavy or Medium metal armor, that you can see within range. You cause the object to glow red-hot. Any creature in physical contact with the object takes <strong>2d8</strong> Fire damage when you cast the spell. Until the spell ends, you can use a Bonus Action on each of your subsequent turns to cause this damage again.",
     "If a creature is holding or wearing the object and takes the damage from it, the creature must succeed on a Constitution saving throw or drop the object if it can. If it doesn't drop the object, it has Disadvantage on attack rolls and ability checks until the start of your next turn.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for each slot level above 2nd."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by <strong>1d8</strong> for each slot level above 2nd."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.FIRE],
@@ -913,8 +913,8 @@ export const icingdeathsFrost: SpellEntry = {
   components: [SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "A burst of icy cold energy emanates from you in a 30-foot cone. Each creature in that area must make a Constitution saving throw. On a failed save, a creature takes 3d8 Cold damage and is covered in ice for 1 minute or until a creature uses its action to break the ice off itself or another creature. A creature covered in ice has its Speed reduced to 0. On a successful save, a creature takes half as much damage with no additional effects.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, increase the cold damage by 1d8 for each slot level above 2nd."
+    "A burst of icy cold energy emanates from you in a 30-foot cone. Each creature in that area must make a Constitution saving throw. On a failed save, a creature takes <strong>3d8</strong> Cold damage and is covered in ice for 1 minute or until a creature uses its action to break the ice off itself or another creature. A creature covered in ice has its Speed reduced to 0. On a successful save, a creature takes half as much damage with no additional effects.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, increase the cold damage by <strong>1d8</strong> for each slot level above 2nd."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.COLD],
@@ -998,7 +998,7 @@ export const kineticJaunt: SpellEntry = {
     "You magically empower your movement with dancelike steps, giving yourself the following benefits for the duration:",
     "Your walking Speed increases by 10 feet.",
     "You don't provoke Opportunity Attacks.",
-    "You can move through the space of another creature, and it doesn't count as difficult terrain. If you end your turn in another creature's space, you are shunted to the last unoccupied space you occupied, and you take 1d8 Force damage."
+    "You can move through the space of another creature, and it doesn't count as difficult terrain. If you end your turn in another creature's space, you are shunted to the last unoccupied space you occupied, and you take <strong>1d8</strong> Force damage."
   ],
   damage: [[DICE.D8, DAMAGE_TYPE.FORCE]],
   spellLists: [
@@ -1171,8 +1171,8 @@ export const maximilliansEarthenGrasp: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You choose a 5-foot-square unoccupied space on the ground that you can see within range. A Medium hand made from compacted soil rises there and reaches for one creature you can see within 5 feet of it. The target must make a Strength saving throw. On a failed save, the target takes 2d6 Bludgeoning damage and is Restrained for the spell's duration.",
-    "As an action, you can cause the hand to crush the Restrained target, who must make a Strength saving throw. It takes 2d6 Bludgeoning damage on a failed save, or half as much damage on a successful one.",
+    "You choose a 5-foot-square unoccupied space on the ground that you can see within range. A Medium hand made from compacted soil rises there and reaches for one creature you can see within 5 feet of it. The target must make a Strength saving throw. On a failed save, the target takes <strong>2d6</strong> Bludgeoning damage and is Restrained for the spell's duration.",
+    "As an action, you can cause the hand to crush the Restrained target, who must make a Strength saving throw. It takes <strong>2d6</strong> Bludgeoning damage on a failed save, or half as much damage on a successful one.",
     "To break out, the Restrained target can use its action to make a Strength check against your spell save DC. On a success, the target escapes and is no longer Restrained by the hand.",
     "As an action, you can cause the hand to reach for a different creature or to move to a different unoccupied space within range. The hand releases a Restrained target if you do either."
   ],
@@ -1194,8 +1194,8 @@ export const melfsAcidArrow: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "A shimmering green arrow streaks toward a target within range and bursts in a spray of acid. Make a ranged spell attack against the target. On a hit, the target takes 4d4 Acid damage immediately and 2d4 Acid damage at the end of its next turn. On a miss, the arrow splashes the target with acid for half as much of the initial damage and no damage at the end of its next turn.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage, both initial and later, increases by 1d4 for each slot level above 2nd."
+    "A shimmering green arrow streaks toward a target within range and bursts in a spray of acid. Make a ranged spell attack against the target. On a hit, the target takes <strong>4d4</strong> Acid damage immediately and <strong>2d4</strong> Acid damage at the end of its next turn. On a miss, the arrow splashes the target with acid for half as much of the initial damage and no damage at the end of its next turn.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage, both initial and later, increases by <strong>1d4</strong> for each slot level above 2nd."
   ],
   damage: [
     [DICE.D4, DAMAGE_TYPE.ACID],
@@ -1239,8 +1239,8 @@ export const mindSpike: SpellEntry = {
   components: [SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 hour"],
   description: [
-    "You reach into the mind of one creature you can see within range. The target must make a Wisdom saving throw, taking 3d8 Psychic damage on a failed save, or half as much damage on a successful one. On a failed save, you also always know the target's location until the spell ends, but only while the two of you are on the same plane of existence. While you have this knowledge, the target can't become Hidden from you, and if it's Invisible, it gains no benefit from that condition against you.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for each slot level above 2nd."
+    "You reach into the mind of one creature you can see within range. The target must make a Wisdom saving throw, taking <strong>3d8</strong> Psychic damage on a failed save, or half as much damage on a successful one. On a failed save, you also always know the target's location until the spell ends, but only while the two of you are on the same plane of existence. While you have this knowledge, the target can't become Hidden from you, and if it's Invisible, it gains no benefit from that condition against you.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by <strong>1d8</strong> for each slot level above 2nd."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.PSYCHIC],
@@ -1261,7 +1261,7 @@ export const mindThrust: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["1 round"],
   description: [
-    "You thrust a lance of psychic disruption into the mind of one creature you can see within range. The target must make an Intelligence saving throw. On a failed save, the target takes 3d6 Psychic damage, and it can't take a Reaction until the end of its next turn. Moreover, on its next turn, it must choose whether it gets a move, an action, or a Bonus Action; it gets only one of the three. On a successful save, the target takes half as much damage and suffers none of the spell's other effects.",
+    "You thrust a lance of psychic disruption into the mind of one creature you can see within range. The target must make an Intelligence saving throw. On a failed save, the target takes <strong>3d6</strong> Psychic damage, and it can't take a Reaction until the end of its next turn. Moreover, on its next turn, it must choose whether it gets a move, an action, or a Bonus Action; it gets only one of the three. On a successful save, the target takes half as much damage and suffers none of the spell's other effects.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, you can target one additional creature for each slot level above 2nd. The creatures must be within 30 feet of each other when you target them."
   ],
   damage: [
@@ -1284,7 +1284,7 @@ export const mirrorImage: SpellEntry = {
   duration: ["1 minute"],
   description: [
     "Three illusory duplicates of yourself appear in your space. Until the spell ends, the duplicates move with you and mimic your actions, shifting position so it's impossible to track which image is real. You can use your action to dismiss the illusory duplicates.",
-    "Each time a creature targets you with an attack during the spell's duration, roll a d20 to determine whether the attack instead targets one of your duplicates.",
+    "Each time a creature targets you with an attack during the spell's duration, roll a <strong>d20</strong> to determine whether the attack instead targets one of your duplicates.",
     "If you have three duplicates, you must roll a 6 or higher to change the attack's target to a duplicate. With two duplicates, you must roll an 8 or higher. With one duplicate, you must roll an 11 or higher.",
     "A duplicate's AC equals 10 + your Dexterity modifier. If an attack hits a duplicate, the duplicate is destroyed. A duplicate can be destroyed only by an attack that hits it. It ignores all other damage and effects. The spell ends when all three duplicates are destroyed.",
     "A creature is unaffected by this spell if it can't see, if it relies on senses other than sight, such as Blindsight, or if it can perceive illusions as false, as with Truesight."
@@ -1327,10 +1327,10 @@ export const moonbeam: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "A silvery beam of pale light shines down in a 5-foot radius, 40-foot-high cylinder centered on a point within range. Until the spell ends, dim light fills the cylinder.",
-    "When a creature enters the spell's area for the first time on a turn or starts its turn there, it is engulfed in ghostly flames that cause searing pain, and it must make a Constitution saving throw. It takes 2d10 Radiant damage on a failed save, or half as much damage on a successful one.",
+    "When a creature enters the spell's area for the first time on a turn or starts its turn there, it is engulfed in ghostly flames that cause searing pain, and it must make a Constitution saving throw. It takes <strong>2d10</strong> Radiant damage on a failed save, or half as much damage on a successful one.",
     "A shapechanger makes its saving throw with Disadvantage. If it fails, it also instantly reverts to its original form and can't assume a different form until it leaves the spell's light.",
     "On each of your turns after you cast this spell, you can use an action to move the beam up to 60 feet in any direction.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d10 for each slot level above 2nd."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by <strong>1d10</strong> for each slot level above 2nd."
   ],
   damage: [
     [DICE.D10, DAMAGE_TYPE.RADIANT],
@@ -1412,7 +1412,7 @@ export const phantasmalForce: SpellEntry = {
     "The phantasm includes sound, temperature, and other stimuli, also evident only to the creature.",
     "The target can use its action to examine the phantasm with an Intelligence (Investigation) check against your spell save DC. If the check succeeds, the target realizes that the phantasm is an illusion, and the spell ends.",
     "While a target is affected by the spell, the target treats the phantasm as if it were real. The target rationalizes any illogical outcomes from interacting with the phantasm. For example, a target attempting to walk across a phantasmal bridge that spans a chasm falls once it steps onto the bridge. If the target survives the fall, it still believes that the bridge exists and comes up with some other explanation for its fall; it was pushed, it slipped, or a strong wind might have knocked it off.",
-    "An affected target is so convinced of the phantasm's reality that it can even take damage from the illusion. A phantasm created to appear as a creature can attack the target. Similarly, a phantasm created to appear as fire, a pool of acid, or lava can burn the target. Each round on your turn, the phantasm can deal 1d6 Psychic damage to the target if it is in the phantasm's area or within 5 feet of the phantasm, provided that the illusion is of a creature or hazard that could logically deal damage, such as by attacking. The target perceives the damage as a type appropriate to the illusion."
+    "An affected target is so convinced of the phantasm's reality that it can even take damage from the illusion. A phantasm created to appear as a creature can attack the target. Similarly, a phantasm created to appear as fire, a pool of acid, or lava can burn the target. Each round on your turn, the phantasm can deal <strong>1d6</strong> Psychic damage to the target if it is in the phantasm's area or within 5 feet of the phantasm, provided that the illusion is of a creature or hazard that could logically deal damage, such as by attacking. The target perceives the damage as a type appropriate to the illusion."
   ],
   damage: [[DICE.D6, DAMAGE_TYPE.PSYCHIC]],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -1429,8 +1429,8 @@ export const prayerOfHealing: SpellEntry = {
   components: [SPELL_COMPONENT.V],
   duration: ["Instantaneous"],
   description: [
-    "Up to six creatures of your choice that you can see within range each regain Hit Points equal to 2d8 + your spellcasting ability modifier. This spell has no effect on Undead or Constructs.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the healing increases by 1d8 for each slot level above 2nd."
+    "Up to six creatures of your choice that you can see within range each regain Hit Points equal to <strong>2d8</strong> + your spellcasting ability modifier. This spell has no effect on Undead or Constructs.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the healing increases by <strong>1d8</strong> for each slot level above 2nd."
   ],
   isHealingSpell: true,
   damage: [],
@@ -1514,8 +1514,8 @@ export const rimesBindingIce: SpellEntry = {
   components: [SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "A burst of cold energy emanates from you in a 30-foot cone. Each creature in that area must make a Constitution saving throw. On a failed save, a creature takes 3d8 Cold damage and is hindered by ice formations for 1 minute, or until it or another creature within reach of it uses an action to break away the ice. A creature hindered by ice has its Speed reduced to 0. On a successful save, a creature takes half as much damage and isn't hindered by ice.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, increase the cold damage by 1d8 for each slot level above 2nd."
+    "A burst of cold energy emanates from you in a 30-foot cone. Each creature in that area must make a Constitution saving throw. On a failed save, a creature takes <strong>3d8</strong> Cold damage and is hindered by ice formations for 1 minute, or until it or another creature within reach of it uses an action to break away the ice. A creature hindered by ice has its Speed reduced to 0. On a successful save, a creature takes half as much damage and isn't hindered by ice.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, increase the cold damage by <strong>1d8</strong> for each slot level above 2nd."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.COLD],
@@ -1556,7 +1556,7 @@ export const scorchingRay: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "You create three rays of fire and hurl them at targets within range. You can hurl them at one target or several. Make a ranged spell attack for each ray. On a hit, the target takes 2d6 Fire damage.",
+    "You create three rays of fire and hurl them at targets within range. You can hurl them at one target or several. Make a ranged spell attack for each ray. On a hit, the target takes <strong>2d6</strong> Fire damage.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, you create one additional ray for each slot level above 2nd."
   ],
   damage: [
@@ -1599,9 +1599,9 @@ export const shadowBlade: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You weave together threads of shadow to create a sword of solidified gloom in your hand. This magic sword lasts until the spell ends. It counts as a Simple Melee weapon with which you are proficient. It deals 2d8 Psychic damage on a hit and has the Finesse, Light, and Thrown properties, range 20/60. In addition, when you use the sword to attack a target that is in dim light or darkness, you make the attack roll with Advantage.",
+    "You weave together threads of shadow to create a sword of solidified gloom in your hand. This magic sword lasts until the spell ends. It counts as a Simple Melee weapon with which you are proficient. It deals <strong>2d8</strong> Psychic damage on a hit and has the Finesse, Light, and Thrown properties, range 20/60. In addition, when you use the sword to attack a target that is in dim light or darkness, you make the attack roll with Advantage.",
     "If you drop the weapon or throw it, it dissipates at the end of the turn. Thereafter, while the spell persists, you can use a Bonus Action to cause the sword to reappear in your hand.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a 3rd- or 4th-level spell slot, the damage increases to 3d8. When you cast it using a 5th- or 6th-level spell slot, the damage increases to 4d8. When you cast it using a spell slot of 7th level or higher, the damage increases to 5d8."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a 3rd- or 4th-level spell slot, the damage increases to <strong>3d8</strong>. When you cast it using a 5th- or 6th-level spell slot, the damage increases to <strong>4d8</strong>. When you cast it using a spell slot of 7th level or higher, the damage increases to <strong>5d8</strong>."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.PSYCHIC],
@@ -1621,9 +1621,9 @@ export const shatter: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "A sudden loud ringing noise, painfully intense, erupts from a point of your choice within range. Each creature in a 10-foot-radius sphere centered on that point must make a Constitution saving throw. A creature takes 3d8 Thunder damage on a failed save, or half as much damage on a successful one. A creature made of inorganic material such as stone, crystal, or metal has Disadvantage on this saving throw.",
+    "A sudden loud ringing noise, painfully intense, erupts from a point of your choice within range. Each creature in a 10-foot-radius sphere centered on that point must make a Constitution saving throw. A creature takes <strong>3d8</strong> Thunder damage on a failed save, or half as much damage on a successful one. A creature made of inorganic material such as stone, crystal, or metal has Disadvantage on this saving throw.",
     "A nonmagical object that isn't being worn or carried also takes the damage if it's in the spell's area.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for each slot level above 2nd."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by <strong>1d8</strong> for each slot level above 2nd."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.THUNDER],
@@ -1690,8 +1690,8 @@ export const snillocsSnowballSwarm: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "A flurry of magic snowballs erupts from a point you choose within range. Each creature in a 5-foot-radius sphere centered on that point must make a Dexterity saving throw. A creature takes 3d6 Cold damage on a failed save, or half as much damage on a successful one.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d6 for each slot level above 2nd."
+    "A flurry of magic snowballs erupts from a point you choose within range. Each creature in a 5-foot-radius sphere centered on that point must make a Dexterity saving throw. A creature takes <strong>3d6</strong> Cold damage on a failed save, or half as much damage on a successful one.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by <strong>1d6</strong> for each slot level above 2nd."
   ],
   damage: [
     [DICE.D6, DAMAGE_TYPE.COLD],
@@ -1734,7 +1734,7 @@ export const spikeGrowth: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
-    "The ground in a 20-foot radius centered on a point within range twists and sprouts hard spikes and thorns. The area becomes difficult terrain for the duration. When a creature moves into or within the area, it takes 2d4 Piercing damage for every 5 feet it travels.",
+    "The ground in a 20-foot radius centered on a point within range twists and sprouts hard spikes and thorns. The area becomes difficult terrain for the duration. When a creature moves into or within the area, it takes <strong>2d4</strong> Piercing damage for every 5 feet it travels.",
     "The transformation of the ground is camouflaged to look natural. Any creature that can't see the area at the time the spell is cast must make a Wisdom (Perception) check against your spell save DC to recognize the terrain as hazardous before entering it."
   ],
   damage: [
@@ -1756,10 +1756,10 @@ export const spiritualWeapon: SpellEntry = {
   duration: ["1 minute"],
   description: [
     "You create a floating, spectral weapon within range that lasts for the duration or until you cast this spell again.",
-    "When you cast the spell, you can make a melee spell attack against a creature within 5 feet of the weapon. On a hit, the target takes Force damage equal to 1d8 + your spellcasting ability modifier.",
+    "When you cast the spell, you can make a melee spell attack against a creature within 5 feet of the weapon. On a hit, the target takes Force damage equal to <strong>1d8</strong> + your spellcasting ability modifier.",
     "As a Bonus Action on your turn, you can move the weapon up to 20 feet and repeat the attack against a creature within 5 feet of it.",
     "The weapon can take whatever form you choose. Clerics of deities who are associated with a particular weapon make this spell's effect resemble that weapon.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d8 for every two slot levels above 2nd."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by <strong>1d8</strong> for every two slot levels above 2nd."
   ],
   damage: [[DICE.D8, DAMAGE_TYPE.FORCE]],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
@@ -1776,8 +1776,8 @@ export const sprayOfCards: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "You spray a 15-foot cone of spectral cards. Each creature in that area must make a Dexterity saving throw. On a failed save, a creature takes 2d10 Force damage and has the Blinded condition until the end of its next turn. On a successful save, a creature takes half as much damage only.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d10 for each slot level above 2nd."
+    "You spray a 15-foot cone of spectral cards. Each creature in that area must make a Dexterity saving throw. On a failed save, a creature takes <strong>2d10</strong> Force damage and has the Blinded condition until the end of its next turn. On a successful save, a creature takes half as much damage only.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by <strong>1d10</strong> for each slot level above 2nd."
   ],
   damage: [
     [DICE.D10, DAMAGE_TYPE.FORCE],
@@ -1842,7 +1842,7 @@ export const summonBeast: SpellEntry = {
     "<strong>Pack Tactics.</strong> Land and Water only. The Beast has Advantage on an attack roll against a creature if at least one of the Beast's allies is within 5 feet of the creature and the ally isn't Incapacitated.",
     "<strong>Water Breathing.</strong> Water only. The Beast can breathe only underwater.",
     "<strong>Multiattack.</strong> The Beast makes a number of attacks equal to half this spell's level, rounded down.",
-    "<strong>Maul.</strong> Melee Weapon Attack: your spell attack modifier to hit, reach 5 ft., one target. Hit: 1d8 + 4 + the spell's level Piercing damage."
+    "<strong>Maul.</strong> Melee Weapon Attack: your spell attack modifier to hit, reach 5 ft., one target. Hit: <strong>1d8</strong> + 4 + the spell's level Piercing damage."
   ],
   damage: [[DICE.D8, DAMAGE_TYPE.PIERCING]],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
@@ -1859,7 +1859,7 @@ export const tashasMindWhip: SpellEntry = {
   components: [SPELL_COMPONENT.V],
   duration: ["1 round"],
   description: [
-    "You psychically lash out at one creature you can see within range. The target must make an Intelligence saving throw. On a failed save, the target takes 3d6 Psychic damage, and it can't take a Reaction until the end of its next turn. Moreover, on its next turn, it must choose whether it gets a move, an action, or a Bonus Action; it gets only one of the three. On a successful save, the target takes half as much damage and suffers none of the spell's other effects.",
+    "You psychically lash out at one creature you can see within range. The target must make an Intelligence saving throw. On a failed save, the target takes <strong>3d6</strong> Psychic damage, and it can't take a Reaction until the end of its next turn. Moreover, on its next turn, it must choose whether it gets a move, an action, or a Bonus Action; it gets only one of the three. On a successful save, the target takes half as much damage and suffers none of the spell's other effects.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, you can target one additional creature for each slot level above 2nd. The creatures must be within 30 feet of each other when you target them."
   ],
   damage: [
@@ -1985,7 +1985,7 @@ export const web: SpellEntry = {
     "If the webs aren't anchored between two solid masses, such as walls or trees, or layered across a floor, wall, or ceiling, the conjured web collapses on itself, and the spell ends at the start of your next turn. Webs layered over a flat surface have a depth of 5 feet.",
     "Each creature that starts its turn in the webs or that enters them during its turn must make a Dexterity saving throw. On a failed save, the creature is Restrained as long as it remains in the webs or until it breaks free.",
     "A creature Restrained by the webs can use its action to make a Strength check against your spell save DC. If it succeeds, it is no longer Restrained.",
-    "The webs are flammable. Any 5-foot cube of webs exposed to fire burns away in 1 round, dealing 2d4 Fire damage to any creature that starts its turn in the fire."
+    "The webs are flammable. Any 5-foot cube of webs exposed to fire burns away in 1 round, dealing <strong>2d4</strong> Fire damage to any creature that starts its turn in the fire."
   ],
   damage: [
     [DICE.D4, DAMAGE_TYPE.FIRE],
@@ -2005,9 +2005,9 @@ export const witherAndBloom: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "You invoke both death and life upon a 10-foot-radius sphere centered on a point within range. Each creature of your choice in that area must make a Constitution saving throw, taking 2d6 Necrotic damage on a failed save, or half as much damage on a successful one. Nonmagical vegetation in that area withers.",
+    "You invoke both death and life upon a 10-foot-radius sphere centered on a point within range. Each creature of your choice in that area must make a Constitution saving throw, taking <strong>2d6</strong> Necrotic damage on a failed save, or half as much damage on a successful one. Nonmagical vegetation in that area withers.",
     "In addition, one creature of your choice in that area can spend and roll one of its unspent Hit Dice and regain a number of Hit Points equal to the roll plus your spellcasting ability modifier.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by 1d6 for each slot above 2nd, and the number of Hit Dice that can be spent and added to the healing roll increases by one for each slot above 2nd."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, the damage increases by <strong>1d6</strong> for each slot above 2nd, and the number of Hit Dice that can be spent and added to the healing roll increases by one for each slot above 2nd."
   ],
   isHealingSpell: true,
   damage: [

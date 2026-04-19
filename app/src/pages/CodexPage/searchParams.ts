@@ -50,7 +50,7 @@ const ITEM_ORDERINGS = new Set<string>([
   "cost",
   "-cost"
 ]);
-const ITEM_TABS = new Set<ItemBrowserTab>(["weapons", "armor", "gear"]);
+const ITEM_TABS = new Set<ItemBrowserTab>(["all", "weapons", "armor", "gear"]);
 const ITEM_ATTACK_TYPES = new Set<ItemAttackType>(["melee", "range"]);
 const ITEM_PROFICIENCY_TYPES = new Set<ItemProficiencyType>(["simple", "martial"]);
 const ITEM_ARMOR_TYPES = new Set<ItemArmorType>(["light", "medium", "heavy"]);

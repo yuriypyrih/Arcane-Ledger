@@ -41,7 +41,7 @@ export const bladeOfDisaster: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You create a blade-shaped planar rift about 3 feet long in an unoccupied space you can see within range. The blade lasts for the duration. When you cast this spell, you can make up to two melee spell attacks with the blade, each one against a creature, loose object, or structure within 5 feet of the blade.",
-    "On a hit, the target takes 4d12 Force damage. This attack scores a critical hit if the number on the d20 is 18 or higher. On a critical hit, the blade deals an extra 8d12 Force damage, for a total of 12d12 Force damage.",
+    "On a hit, the target takes <strong>4d12</strong> Force damage. This attack scores a critical hit if the number on the <strong>d20</strong> is 18 or higher. On a critical hit, the blade deals an extra <strong>8d12</strong> Force damage, for a total of <strong>12d12</strong> Force damage.",
     "As a Bonus Action on your turn, you can move the blade up to 30 feet to an unoccupied space you can see and then make up to two melee spell attacks with it again.",
     "The blade can harmlessly pass through any barrier, including a Wall of Force."
   ],
@@ -201,7 +201,7 @@ export const meteorSwarm: SpellEntry = {
   duration: ["Instantaneous"],
   description: [
     "Blazing orbs of fire plummet to the ground at four different points you can see within range. Each creature in a 40-foot-radius sphere centered on each point you choose must make a Dexterity saving throw. The sphere spreads around corners.",
-    "A creature takes 20d6 Fire damage and 20d6 Bludgeoning damage on a failed save, or half as much damage on a successful one. A creature in the area of more than one fiery burst is affected only once.",
+    "A creature takes <strong>20d6</strong> Fire damage and <strong>20d6</strong> Bludgeoning damage on a failed save, or half as much damage on a successful one. A creature in the area of more than one fiery burst is affected only once.",
     "The spell damages objects in the area and ignites flammable objects that aren't being worn or carried."
   ],
   damage: [],
@@ -268,11 +268,11 @@ export const prismaticWall: SpellEntry = {
       type: "list",
       style: "bullet",
       items: [
-        "<strong>Red.</strong> The creature takes 10d6 Fire damage on a failed save, or half as much damage on a successful one. While this layer is in place, nonmagical ranged attacks can't pass through the wall. The layer can be destroyed by dealing at least 25 Cold damage to it.",
-        "<strong>Orange.</strong> The creature takes 10d6 Acid damage on a failed save, or half as much damage on a successful one. While this layer is in place, magical ranged attacks can't pass through the wall. The layer is destroyed by a strong wind.",
-        "<strong>Yellow.</strong> The creature takes 10d6 Lightning damage on a failed save, or half as much damage on a successful one. This layer can be destroyed by dealing at least 60 Force damage to it.",
-        "<strong>Green.</strong> The creature takes 10d6 Poison damage on a failed save, or half as much damage on a successful one. A passwall spell, or another spell of equal or greater level that can open a portal on a solid surface, destroys this layer.",
-        "<strong>Blue.</strong> The creature takes 10d6 Cold damage on a failed save, or half as much damage on a successful one. This layer can be destroyed by dealing at least 25 Fire damage to it.",
+        "<strong>Red.</strong> The creature takes <strong>10d6</strong> Fire damage on a failed save, or half as much damage on a successful one. While this layer is in place, nonmagical ranged attacks can't pass through the wall. The layer can be destroyed by dealing at least 25 Cold damage to it.",
+        "<strong>Orange.</strong> The creature takes <strong>10d6</strong> Acid damage on a failed save, or half as much damage on a successful one. While this layer is in place, magical ranged attacks can't pass through the wall. The layer is destroyed by a strong wind.",
+        "<strong>Yellow.</strong> The creature takes <strong>10d6</strong> Lightning damage on a failed save, or half as much damage on a successful one. This layer can be destroyed by dealing at least 60 Force damage to it.",
+        "<strong>Green.</strong> The creature takes <strong>10d6</strong> Poison damage on a failed save, or half as much damage on a successful one. A passwall spell, or another spell of equal or greater level that can open a portal on a solid surface, destroys this layer.",
+        "<strong>Blue.</strong> The creature takes <strong>10d6</strong> Cold damage on a failed save, or half as much damage on a successful one. This layer can be destroyed by dealing at least 25 Fire damage to it.",
         "<strong>Indigo.</strong> On a failed save, the creature is Restrained. It must then make a Constitution saving throw at the end of each of its turns. If it successfully saves three times, the spell ends. If it fails its save three times, it permanently turns to stone and is subjected to the Petrified condition. The successes and failures don't need to be consecutive; keep track of both until the creature collects three of a kind. While this layer is in place, spells can't be cast through the wall. The layer is destroyed by bright light shed by a daylight spell or a similar spell of equal or higher level.",
         "<strong>Violet.</strong> On a failed save, the creature is Blinded. It must then make a Wisdom saving throw at the start of your next turn. A successful save ends the blindness. If it fails that save, the creature is transported to another plane of the DM's choosing and is no longer Blinded. Typically, a creature that is on a plane that isn't its home plane is banished home, while other creatures are usually cast into the Astral or Ethereal planes. This layer is destroyed by a dispel magic spell or similar spell of equal or higher level that can end spells and magical effects."
       ]
@@ -294,7 +294,7 @@ export const psychicScream: SpellEntry = {
   duration: ["Instantaneous"],
   description: [
     "You unleash the power of your mind to blast the intellect of up to ten creatures of your choice that you can see within range. Creatures that have an Intelligence score of 2 or lower are unaffected.",
-    "Each target must make an Intelligence saving throw. On a failed save, a target takes 14d6 Psychic damage and is Stunned. On a successful save, a target takes half as much damage and isn't Stunned. If a target is killed by this damage, its head explodes, assuming it has one.",
+    "Each target must make an Intelligence saving throw. On a failed save, a target takes <strong>14d6</strong> Psychic damage and is Stunned. On a successful save, a target takes half as much damage and isn't Stunned. If a target is killed by this damage, its head explodes, assuming it has one.",
     "A Stunned target can make an Intelligence saving throw at the end of each of its turns. On a successful save, the stunning effect ends."
   ],
   damage: [
@@ -334,7 +334,7 @@ export const ravenousVoid: SpellEntry = {
   description: [
     "You create a 20-foot-radius sphere of destructive gravitation force centered on a point you can see within range. For the spell's duration, the sphere and any space within 100 feet of it are difficult terrain, and nonmagical objects fully inside the sphere are destroyed if they aren't being worn or carried.",
     "When the sphere appears and at the start of each of your turns until the spell ends, unsecured objects within 100 feet of the sphere are pulled toward the sphere's center, ending in an unoccupied space as close to the center as possible.",
-    "A creature that starts its turn within 100 feet of the sphere must succeed on a Strength saving throw or be pulled straight toward the sphere's center, ending in an unoccupied space as close to the center as possible. A creature that enters the sphere for the first time on a turn or starts its turn there takes 5d10 Force damage and is Restrained until it is no longer in the sphere. If the sphere is in the air, the Restrained creature hovers inside the sphere.",
+    "A creature that starts its turn within 100 feet of the sphere must succeed on a Strength saving throw or be pulled straight toward the sphere's center, ending in an unoccupied space as close to the center as possible. A creature that enters the sphere for the first time on a turn or starts its turn there takes <strong>5d10</strong> Force damage and is Restrained until it is no longer in the sphere. If the sphere is in the air, the Restrained creature hovers inside the sphere.",
     "A creature can use its action to make a Strength check against your spell save DC, ending this Restrained condition on itself or another creature in the sphere that it can reach. A creature reduced to 0 Hit Points by this spell is annihilated, along with any nonmagical items it is wearing or carrying."
   ],
   damage: [
@@ -380,16 +380,16 @@ export const stormOfVengeance: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "A churning storm cloud forms, centered on a point you can see and spreading to a radius of 360 feet. Lightning flashes in the area, thunder booms, and strong winds roar. Each creature under the cloud, no more than 5,000 feet beneath the cloud, when it appears must make a Constitution saving throw. On a failed save, a creature takes 2d6 Thunder damage and becomes Deafened for 5 minutes.",
+    "A churning storm cloud forms, centered on a point you can see and spreading to a radius of 360 feet. Lightning flashes in the area, thunder booms, and strong winds roar. Each creature under the cloud, no more than 5,000 feet beneath the cloud, when it appears must make a Constitution saving throw. On a failed save, a creature takes <strong>2d6</strong> Thunder damage and becomes Deafened for 5 minutes.",
     "Each round you maintain concentration on this spell, the storm produces different effects on your turn:",
     {
       type: "list",
       style: "bullet",
       items: [
-        "<strong>Round 2.</strong> Acidic rain falls from the cloud. Each creature and object under the cloud takes 1d6 Acid damage.",
-        "<strong>Round 3.</strong> You call six bolts of lightning from the cloud to strike six creatures or objects of your choice beneath the cloud. A given creature or object can't be struck by more than one bolt. A struck creature must make a Dexterity saving throw. The creature takes 10d6 Lightning damage on a failed save, or half as much damage on a successful one.",
-        "<strong>Round 4.</strong> Hailstones rain down from the cloud. Each creature under the cloud takes 2d6 Bludgeoning damage.",
-        "<strong>Rounds 5-10.</strong> Gusts and freezing rain assail the area under the cloud. The area becomes difficult terrain and is heavily obscured. Each creature there takes 1d6 Cold damage. Ranged weapon attacks in the area are impossible. The wind and rain count as a severe distraction for the purposes of maintaining Concentration on spells. Finally, gusts of strong wind, ranging from 20 to 50 miles per hour, automatically disperse fog, mists, and similar phenomena in the area whether mundane or magical."
+        "<strong>Round 2.</strong> Acidic rain falls from the cloud. Each creature and object under the cloud takes <strong>1d6</strong> Acid damage.",
+        "<strong>Round 3.</strong> You call six bolts of lightning from the cloud to strike six creatures or objects of your choice beneath the cloud. A given creature or object can't be struck by more than one bolt. A struck creature must make a Dexterity saving throw. The creature takes <strong>10d6</strong> Lightning damage on a failed save, or half as much damage on a successful one.",
+        "<strong>Round 4.</strong> Hailstones rain down from the cloud. Each creature under the cloud takes <strong>2d6</strong> Bludgeoning damage.",
+        "<strong>Rounds 5-10.</strong> Gusts and freezing rain assail the area under the cloud. The area becomes difficult terrain and is heavily obscured. Each creature there takes <strong>1d6</strong> Cold damage. Ranged weapon attacks in the area are impossible. The wind and rain count as a severe distraction for the purposes of maintaining Concentration on spells. Finally, gusts of strong wind, ranging from 20 to 50 miles per hour, automatically disperse fog, mists, and similar phenomena in the area whether mundane or magical."
       ]
     }
   ],
@@ -408,7 +408,7 @@ export const timeRavage: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "You target a creature you can see within range, putting its physical form through the devastation of rapid aging. The target must make a Constitution saving throw, taking 10d12 Necrotic damage on a failed save, or half as much damage on a successful one.",
+    "You target a creature you can see within range, putting its physical form through the devastation of rapid aging. The target must make a Constitution saving throw, taking <strong>10d12</strong> Necrotic damage on a failed save, or half as much damage on a successful one.",
     "If the save fails, the target also ages to the point where it has only 30 days left before it dies of old age. In this aged state, the target has disadvantage on attack rolls, Ability Checks, and saving throws, and its walking speed is halved. Only the wish spell or the greater restoration spell cast with a 9th-level spell slot can end these effects and restore the target to its previous age."
   ],
   damage: [
@@ -437,7 +437,7 @@ export const timeStop: SpellEntry = {
   components: [SPELL_COMPONENT.V],
   duration: ["Instantaneous"],
   description: [
-    "You briefly stop the flow of time for everyone but yourself. No time passes for other creatures, while you take 1d4 + 1 turns in a row, during which you can use actions and move as normal.",
+    "You briefly stop the flow of time for everyone but yourself. No time passes for other creatures, while you take <strong>1d4</strong> + 1 turns in a row, during which you can use actions and move as normal.",
     "This spell ends if one of the actions you use during this period, or any effects that you create during this period, affects a creature other than you or an object being worn or carried by someone other than you. In addition, the spell ends if you move to a place more than 1,000 feet from the location where you cast it."
   ],
   damage: [],
@@ -504,7 +504,7 @@ export const weird: SpellEntry = {
   description: [
     "Drawing on the deepest fears of a group of creatures, you create illusory creatures in their minds, visible only to them.",
     "Each creature in a 30-foot-radius sphere centered on a point of your choice within range must make a Wisdom saving throw. On a failed save, a creature becomes Frightened for the duration.",
-    "The illusion calls on the creature's deepest fears, manifesting its worst nightmares as an implacable threat. At the end of each of the Frightened creature's turns, it must succeed on a Wisdom saving throw or take 4d10 Psychic damage. On a successful save, the spell ends for that creature."
+    "The illusion calls on the creature's deepest fears, manifesting its worst nightmares as an implacable threat. At the end of each of the Frightened creature's turns, it must succeed on a Wisdom saving throw or take <strong>4d10</strong> Psychic damage. On a successful save, the spell ends for that creature."
   ],
   damage: [
     [DICE.D10, DAMAGE_TYPE.PSYCHIC],
@@ -541,7 +541,7 @@ export const wish: SpellEntry = {
       ]
     },
     "You might be able to achieve something beyond the scope of the above examples. State your wish to the DM as precisely as possible. The DM has great latitude in ruling what occurs in such an instance. The greater the wish, the greater the likelihood that something goes wrong. This spell might simply fail, the effect you desire might only be partly achieved, or you might suffer some unforeseen consequence as a result of how you worded the wish.",
-    "The stress of casting this spell to produce any effect other than duplicating another spell weakens you. After enduring that stress, each time you cast a spell until you finish a Long Rest, you take 1d10 Necrotic damage per level of that spell. This damage can't be reduced or prevented in any way. In addition, your Strength drops to 3, if it isn't 3 or lower already, for 2d4 days. For each of those days that you spend resting and doing nothing more than light activity, your remaining recovery time decreases by 2 days. Finally, there is a 33 percent chance that you are unable to cast wish ever again if you suffer this stress."
+    "The stress of casting this spell to produce any effect other than duplicating another spell weakens you. After enduring that stress, each time you cast a spell until you finish a Long Rest, you take <strong>1d10</strong> Necrotic damage per level of that spell. This damage can't be reduced or prevented in any way. In addition, your Strength drops to 3, if it isn't 3 or lower already, for <strong>2d4</strong> days. For each of those days that you spend resting and doing nothing more than light activity, your remaining recovery time decreases by 2 days. Finally, there is a 33 percent chance that you are unable to cast wish ever again if you suffer this stress."
   ],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],

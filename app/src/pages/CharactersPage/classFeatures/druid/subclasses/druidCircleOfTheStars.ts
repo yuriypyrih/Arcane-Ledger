@@ -1,8 +1,27 @@
-import { CLASS_FEATURE, getSpellEntryByName } from "../../../../../codex/entries";
-import type { Character, CharacterDruidFeatureState } from "../../../../../types";
-import { STATUS_DURATION_KIND, STATUS_ENTRY_GROUP, STATUS_ENTRY_SOURCE_TYPE } from "../../../../../types";
+import {
+  CLASS_FEATURE,
+  DAMAGE_TYPE,
+  REACTION,
+  getSpellEntryByName,
+  type ReactionEntry
+} from "../../../../../codex/entries";
+import type {
+  Character,
+  CharacterDruidFeatureState,
+  DruidCosmicOmenSelection
+} from "../../../../../types";
+import {
+  STATUS_DURATION_KIND,
+  STATUS_ENTRY_GROUP,
+  STATUS_ENTRY_SOURCE_TYPE
+} from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import type { FeatureActionCard, FeatureIndicator } from "../../types";
+import type {
+  DerivedFeatureStatusEntry,
+  FeatureActionCard,
+  FeatureIndicator,
+  FeatureSpeedBonus
+} from "../../types";
 import type { WeaponAction } from "../../../gameplay";
 import {
   createCharacterStatusEntry,
@@ -12,8 +31,13 @@ import {
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import {
+  getDruidCircleOfTheStarsCosmicOmenIntroDescriptionEntries,
+  getDruidCircleOfTheStarsCosmicOmenUsesDescriptionEntries,
+  getDruidCircleOfTheStarsGuidingBoltSpellEntry,
+  getDruidCircleOfTheStarsTwinklingConstellationsDescriptionAdditions
+} from "./druidCircleOfTheStarsDescriptions";
+import {
   deactivateDruidWildShape,
-  druidStarsGuidingBoltActionKey,
   druidStarryFormActionKey,
   expendOneDruidWildShapeUse,
   getDruidWildShapeUsesRemaining,
@@ -24,10 +48,13 @@ import {
 export const circleOfTheStarsSubclassId = "druid-circle-of-the-stars";
 export const druidStarryFormStatusSourceId = "feature-druid-starry-form";
 export const druidStarryFormConstellations = ["archer", "chalice", "dragon"] as const;
+export const druidCosmicOmenReactionId = "reaction-druid-cosmic-omen";
 export type DruidStarryFormConstellation = (typeof druidStarryFormConstellations)[number];
 
 const guidanceSpellId = getSpellEntryByName("Guidance")?.id ?? null;
 const guidingBoltSpellId = getSpellEntryByName("Guiding Bolt")?.id ?? null;
+const cosmicOmenName = "Cosmic Omen";
+const cosmicOmenSourceLabel = "Circle of the Stars";
 const exhaustionDisadvantageIndicator: FeatureIndicator = {
   label: "Disadvantage",
   tone: "disadvantage",
@@ -67,10 +94,42 @@ export function hasDruidStarMapFeature(
 }
 
 export function hasDruidStarryFormFeature(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "subclassId">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return hasDruidStarMapFeature(character);
+}
+
+export function hasDruidCosmicOmenFeature(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "abilities">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheStarsSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level ?? 0))) >= 6
+  );
+}
+
+export function hasDruidTwinklingConstellationsFeature(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "abilities">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheStarsSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level ?? 0))) >= 10
+  );
+}
+
+export function hasDruidFullOfStarsFeature(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "abilities">>
+): boolean {
+  return (
+    character.className === "Druid" &&
+    character.subclassId === circleOfTheStarsSubclassId &&
+    Math.max(1, Math.min(20, Math.floor(character.level ?? 0))) >= 14
+  );
 }
 
 function getCircleOfTheStarsFeatureDescription(
@@ -135,9 +194,15 @@ export function normalizeDruidCircleOfTheStarsFeatureState(
   value: Partial<CharacterDruidFeatureState>,
   character: Pick<Character, "className" | "level"> &
     Partial<Pick<Character, "subclassId" | "abilities">>
-): Pick<CharacterDruidFeatureState, "starMapGuidingBoltUsesExpended"> {
+): Pick<
+  CharacterDruidFeatureState,
+  "starMapGuidingBoltUsesExpended" | "cosmicOmenSelection" | "cosmicOmenUsesExpended"
+> {
   const starMapGuidingBoltUsesTotal = hasDruidStarMapFeature(character)
     ? Math.max(1, Math.floor((Math.max(1, Math.floor(character.abilities?.WIS ?? 10)) - 10) / 2))
+    : 0;
+  const cosmicOmenUsesTotal = hasDruidCosmicOmenFeature(character)
+    ? Math.max(1, getAbilityModifier(Math.max(1, Math.floor(character.abilities?.WIS ?? 10))))
     : 0;
 
   return {
@@ -148,6 +213,22 @@ export function normalizeDruidCircleOfTheStarsFeatureState(
             starMapGuidingBoltUsesTotal,
             Number.isFinite(Number(value.starMapGuidingBoltUsesExpended))
               ? Math.floor(Number(value.starMapGuidingBoltUsesExpended))
+              : 0
+          )
+        )
+      : undefined,
+    cosmicOmenSelection: hasDruidCosmicOmenFeature(character)
+      ? value.cosmicOmenSelection === "woe"
+        ? "woe"
+        : "weal"
+      : undefined,
+    cosmicOmenUsesExpended: hasDruidCosmicOmenFeature(character)
+      ? Math.max(
+          0,
+          Math.min(
+            cosmicOmenUsesTotal,
+            Number.isFinite(Number(value.cosmicOmenUsesExpended))
+              ? Math.floor(Number(value.cosmicOmenUsesExpended))
               : 0
           )
         )
@@ -216,11 +297,64 @@ export function getDruidActiveStarryFormConstellation(
   return activeEntry ? parseDruidStarryFormConstellation(activeEntry.value) : null;
 }
 
+function getActiveDruidStarryFormValue(character: Pick<Character, "statusEntries">): string | null {
+  const activeEntry = normalizeCharacterStatusEntries(character.statusEntries).find(
+    (entry) => entry.sourceId === druidStarryFormStatusSourceId
+  );
+
+  return typeof activeEntry?.value === "string" ? activeEntry.value : null;
+}
+
+export function setDruidActiveStarryFormConstellation(
+  character: Character,
+  constellation: DruidStarryFormConstellation
+): Character {
+  if (
+    !hasDruidTwinklingConstellationsFeature(character) ||
+    !isDruidStarryFormConstellation(constellation)
+  ) {
+    return character;
+  }
+
+  const nextValue = createDruidStarryFormValue(constellation);
+  let didUpdateEntry = false;
+
+  const nextStatusEntries = normalizeCharacterStatusEntries(character.statusEntries).map(
+    (entry) => {
+      if (entry.sourceId !== druidStarryFormStatusSourceId) {
+        return entry;
+      }
+
+      didUpdateEntry = true;
+
+      if (entry.value === nextValue) {
+        return entry;
+      }
+
+      return {
+        ...entry,
+        value: nextValue
+      };
+    }
+  );
+
+  if (!didUpdateEntry) {
+    return character;
+  }
+
+  return {
+    ...character,
+    statusEntries: nextStatusEntries
+  };
+}
+
 export function getDruidStarMapGuidingBoltUsesTotal(
   character: Pick<Character, "className" | "level"> &
     Partial<Pick<Character, "subclassId" | "abilities">>
 ): number {
-  return hasDruidStarMapFeature(character) ? Math.max(1, getAbilityModifier(Math.max(1, Math.floor(character.abilities?.WIS ?? 10)))) : 0;
+  return hasDruidStarMapFeature(character)
+    ? Math.max(1, getAbilityModifier(Math.max(1, Math.floor(character.abilities?.WIS ?? 10))))
+    : 0;
 }
 
 export function getDruidStarMapGuidingBoltUsesRemaining(
@@ -239,6 +373,73 @@ export function getDruidStarMapGuidingBoltUsesRemaining(
   );
 
   return Math.max(0, totalUses - (druidState.starMapGuidingBoltUsesExpended ?? 0));
+}
+
+export function getDruidCosmicOmenUsesTotal(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
+): number {
+  return hasDruidCosmicOmenFeature(character)
+    ? Math.max(1, getAbilityModifier(Math.max(1, Math.floor(character.abilities?.WIS ?? 10))))
+    : 0;
+}
+
+export function getDruidCosmicOmenUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
+): number {
+  const totalUses = getDruidCosmicOmenUsesTotal(character);
+
+  if (totalUses <= 0) {
+    return 0;
+  }
+
+  const druidState = normalizeDruidCircleOfTheStarsFeatureState(
+    character.classFeatureState?.druid ?? {},
+    character
+  );
+
+  return Math.max(0, totalUses - (druidState.cosmicOmenUsesExpended ?? 0));
+}
+
+export function getDruidCosmicOmenSelection(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
+): DruidCosmicOmenSelection | null {
+  if (!hasDruidCosmicOmenFeature(character)) {
+    return null;
+  }
+
+  return (
+    normalizeDruidCircleOfTheStarsFeatureState(character.classFeatureState?.druid ?? {}, character)
+      .cosmicOmenSelection ?? "weal"
+  );
+}
+
+export function setDruidCosmicOmenSelection(
+  character: Character,
+  selection: DruidCosmicOmenSelection
+): Character {
+  if (!hasDruidCosmicOmenFeature(character) || (selection !== "weal" && selection !== "woe")) {
+    return character;
+  }
+
+  const druidState = normalizeDruidFeatureState(character.classFeatureState?.druid, character);
+
+  if (druidState.cosmicOmenSelection === selection) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...druidState,
+        cosmicOmenSelection: selection
+      }
+    }
+  };
 }
 
 export function restoreDruidStarMapGuidingBoltOnLongRest(
@@ -264,6 +465,29 @@ export function restoreDruidStarMapGuidingBoltOnLongRest(
   };
 }
 
+export function restoreDruidCosmicOmenOnLongRest(
+  character: Character,
+  druidState = normalizeDruidFeatureState(character.classFeatureState?.druid, character)
+): Character {
+  if (
+    getDruidCosmicOmenUsesTotal(character) <= 0 ||
+    (druidState.cosmicOmenUsesExpended ?? 0) <= 0
+  ) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...druidState,
+        cosmicOmenUsesExpended: 0
+      }
+    }
+  };
+}
+
 export function consumeDruidStarMapGuidingBoltUse(
   character: Character,
   druidState = normalizeDruidFeatureState(character.classFeatureState?.druid, character)
@@ -283,6 +507,31 @@ export function consumeDruidStarMapGuidingBoltUse(
         starMapGuidingBoltUsesExpended: Math.min(
           getDruidStarMapGuidingBoltUsesTotal(character),
           (druidState.starMapGuidingBoltUsesExpended ?? 0) + 1
+        )
+      }
+    }
+  };
+}
+
+export function consumeDruidCosmicOmenUse(
+  character: Character,
+  druidState = normalizeDruidFeatureState(character.classFeatureState?.druid, character)
+): Character {
+  const usesRemaining = getDruidCosmicOmenUsesRemaining(character);
+
+  if (usesRemaining <= 0) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      druid: {
+        ...druidState,
+        cosmicOmenUsesExpended: Math.min(
+          getDruidCosmicOmenUsesTotal(character),
+          (druidState.cosmicOmenUsesExpended ?? 0) + 1
         )
       }
     }
@@ -324,6 +573,28 @@ export function activateDruidStarryForm(
   };
 }
 
+function getCircleOfTheStarsReactionEntries(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "abilities">>
+): ReactionEntry[] {
+  return hasDruidCosmicOmenFeature(character)
+    ? [
+        {
+          id: druidCosmicOmenReactionId,
+          reaction: REACTION.COSMIC_OMEN,
+          name: cosmicOmenName,
+          sourceType: "feature",
+          sourceFeature: CLASS_FEATURE.COSMIC_OMEN,
+          sourceLabel: cosmicOmenSourceLabel,
+          description: [
+            ...getDruidCircleOfTheStarsCosmicOmenIntroDescriptionEntries(character),
+            ...getDruidCircleOfTheStarsCosmicOmenUsesDescriptionEntries(character)
+          ]
+        }
+      ]
+    : [];
+}
+
 export function getCircleOfTheStarsFeatureActions(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "classFeatureState" | "abilities" | "subclassId">>
@@ -333,67 +604,16 @@ export function getCircleOfTheStarsFeatureActions(
   }
 
   const resourceCharacter = toDruidStarsResourceCharacter(character);
-  const guidingBoltUsesRemaining = getDruidStarMapGuidingBoltUsesRemaining(resourceCharacter);
-  const guidingBoltUsesTotal = getDruidStarMapGuidingBoltUsesTotal(resourceCharacter);
   const wildShapeUsesRemaining = getDruidWildShapeUsesRemaining(resourceCharacter);
   const wildShapeUsesTotal = getDruidWildShapeUsesTotal(resourceCharacter);
-  const starMapDescription = getCircleOfTheStarsFeatureDescription(
-    character,
-    CLASS_FEATURE.STAR_MAP
-  );
   const starryFormDescription = getCircleOfTheStarsFeatureDescription(
     character,
     CLASS_FEATURE.STARRY_FORM
   );
+  const twinklingConstellationsDescriptionAdditions =
+    getDruidCircleOfTheStarsTwinklingConstellationsDescriptionAdditions(character);
 
   return [
-    ...(guidingBoltSpellId
-      ? [
-          {
-            key: druidStarsGuidingBoltActionKey,
-            name: "Druid's Guiding Bolt",
-            summary: "Cast Guiding Bolt without expending a spell slot.",
-            detail: "Spend 1 Star Map charge to cast Guiding Bolt without using a spell slot.",
-            breakdown: "Free Guiding Bolt",
-            economyType: ECONOMY_TYPE.ACTION,
-            actionCategory: ACTION_CATEGORY.MAGIC,
-            usesRemaining: guidingBoltUsesRemaining,
-            usesTotal: guidingBoltUsesTotal,
-            description: starMapDescription,
-            resources: [
-              {
-                kind: "tracker",
-                label: "Charges",
-                current: guidingBoltUsesRemaining,
-                total: guidingBoltUsesTotal,
-                supplementary: "Long Rest"
-              }
-            ],
-            drawer: {
-              kind: "confirm",
-              eyebrow: "Circle of the Stars",
-              description: starMapDescription,
-              confirmLabel: "Cast"
-            },
-            execute: {
-              kind: "spell",
-              spellSource: "fixed",
-              effectKind: "druids-guiding-bolt",
-              spellId: guidingBoltSpellId,
-              label: "Cast",
-              actionLabel: "Cast",
-              actionConsumesSpellSlot: false,
-              actionAvailabilityText: `${guidingBoltUsesRemaining}/${guidingBoltUsesTotal} Star Map charge${
-                guidingBoltUsesTotal === 1 ? "" : "s"
-              } available. Cast without expending a spell slot.`,
-              actionContextText: "Using Star Map"
-            },
-            disabled: guidingBoltUsesRemaining <= 0,
-            disabledReason:
-              guidingBoltUsesRemaining <= 0 ? "No Star Map charges remaining." : undefined
-          } satisfies FeatureActionCard
-        ]
-      : []),
     {
       key: druidStarryFormActionKey,
       name: "Starry Form",
@@ -408,6 +628,7 @@ export function getCircleOfTheStarsFeatureActions(
       usesInlineLabel: "Use 1",
       usesInlineIcon: "paw",
       description: starryFormDescription,
+      descriptionAdditions: twinklingConstellationsDescriptionAdditions,
       resources: [
         {
           kind: "tracker",
@@ -422,6 +643,7 @@ export function getCircleOfTheStarsFeatureActions(
         kind: "custom-form",
         eyebrow: "Circle of the Stars",
         description: starryFormDescription,
+        descriptionAdditions: twinklingConstellationsDescriptionAdditions,
         formKind: "starry-form",
         confirmLabel: "Assume Form"
       },
@@ -466,7 +688,8 @@ export function getCircleOfTheStarsWeaponActions(
     Math.max(1, Math.floor(character.abilities?.WIS ?? 10))
   );
   const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
-  const damageFormula = "1d8";
+  const hasTwinklingConstellations = hasDruidTwinklingConstellationsFeature(character);
+  const damageFormula = hasTwinklingConstellations ? "2d8" : "1d8";
 
   return [
     {
@@ -475,7 +698,7 @@ export function getCircleOfTheStarsWeaponActions(
       attackKind: "weapon",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.ATTACK,
-      damageLabel: "1d8 Radiant",
+      damageLabel: `${damageFormula} Radiant`,
       damageFormula,
       rollDisplay: createRollDisplay(damageFormula, wisdomModifier),
       rollFormulaDisplay: createRollFormula(damageFormula, wisdomModifier),
@@ -498,8 +721,10 @@ export function getCircleOfTheStarsWeaponActions(
       drawerEyebrow: "Circle of the Stars",
       description: [
         "Hurl a luminous arrow at a creature within 60 feet.",
-        "On a hit, the arrow deals 1d8 Radiant damage plus your Wisdom modifier."
+        `On a hit, the arrow deals ${damageFormula} Radiant damage plus your Wisdom modifier.`
       ],
+      descriptionAdditions:
+        getDruidCircleOfTheStarsTwinklingConstellationsDescriptionAdditions(character),
       details: [
         { label: "Type", value: "Ranged spell attack" },
         { label: "Range", value: "60 feet" },
@@ -507,6 +732,60 @@ export function getCircleOfTheStarsWeaponActions(
       ]
     }
   ];
+}
+
+function getCircleOfTheStarsSpeedBonuses(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "abilities" | "statusEntries" | "subclassId">>
+): FeatureSpeedBonus[] {
+  return character.className === "Druid" &&
+    hasDruidTwinklingConstellationsFeature(character) &&
+    getDruidActiveStarryFormConstellation({
+      statusEntries: character.statusEntries ?? []
+    }) === "dragon"
+    ? [
+        {
+          label: "Twinkling Constellations",
+          movementType: "fly",
+          value: 0,
+          setTotal: 20,
+          hover: true
+        }
+      ]
+    : [];
+}
+
+function getCircleOfTheStarsFullOfStarsDerivedStatusEntries(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "statusEntries" | "subclassId" | "abilities">>
+): DerivedFeatureStatusEntry[] {
+  if (!hasDruidFullOfStarsFeature(character)) {
+    return [];
+  }
+
+  const activeStarryFormValue = getActiveDruidStarryFormValue({
+    statusEntries: character.statusEntries ?? []
+  });
+
+  if (!activeStarryFormValue) {
+    return [];
+  }
+
+  return [DAMAGE_TYPE.BLUDGEONING, DAMAGE_TYPE.PIERCING, DAMAGE_TYPE.SLASHING].map(
+    (damageType): DerivedFeatureStatusEntry => ({
+      id: `feature-druid-full-of-stars-resistance-${damageType.toLowerCase()}`,
+      sourceId: "feature-druid-full-of-stars",
+      group: STATUS_ENTRY_GROUP.RESISTANCES,
+      value: damageType,
+      source: "Full of Stars",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.LINKED,
+        linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+        linkedValue: activeStarryFormValue
+      }
+    })
+  );
 }
 
 export const getDruidCircleOfTheStarsDerivedFeatureState: SubclassRuntimeResolver = (character) =>
@@ -519,6 +798,18 @@ export const getDruidCircleOfTheStarsDerivedFeatureState: SubclassRuntimeResolve
     ? {
         featureActions: getCircleOfTheStarsFeatureActions(character),
         weaponActions: getCircleOfTheStarsWeaponActions(character),
-        alwaysPreparedSpellIds: getCircleOfTheStarsAlwaysPreparedSpellIds(character)
+        reactionEntries: getCircleOfTheStarsReactionEntries(character),
+        alwaysPreparedSpellIds: getCircleOfTheStarsAlwaysPreparedSpellIds(character),
+        speedBonuses: getCircleOfTheStarsSpeedBonuses(character),
+        derivedStatusEntries: getCircleOfTheStarsFullOfStarsDerivedStatusEntries(character),
+        transformSpellEntry: (spell) =>
+          getDruidCircleOfTheStarsGuidingBoltSpellEntry(
+            {
+              className: character.className,
+              level: character.level ?? 0,
+              subclassId: character.subclassId
+            },
+            spell
+          )
       }
     : {};

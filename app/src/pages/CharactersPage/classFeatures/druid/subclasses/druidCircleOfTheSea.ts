@@ -1,21 +1,19 @@
-import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries";
+import { DAMAGE_TYPE } from "../../../../../codex/entries";
 import {
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
   type Character
 } from "../../../../../types";
-import {
-  aquaticAffinityWrathOfTheSeaDescription,
-  stormbornWrathOfTheSeaDescription,
-  wrathOfTheSeaDescription
-} from "../../../../../codex/subclasses/druid";
-import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
 import type { DerivedFeatureStatusEntry, FeatureActionCard } from "../../types";
+import {
+  getDruidCircleOfTheSeaWrathOfTheSeaDescription,
+  getDruidCircleOfTheSeaWrathOfTheSeaDescriptionAdditions
+} from "./druidCircleOfTheSeaDescriptions";
 import {
   druidWrathOfTheSeaActionKey,
   druidWrathOfTheSeaStatusSourceId,
@@ -134,17 +132,16 @@ function getCircleOfTheSeaFeatureActions(character: Parameters<SubclassRuntimeRe
     level: character.level ?? 0
   });
   const wrathActive = getActiveWrathOfTheSeaStatusValue(character.statusEntries) !== null;
-  const description =
-    getSubclassFeatureDetails(
-      getSelectedSubclassForCharacter(character),
-      character.level ?? 0,
-      CLASS_FEATURE.WRATH_OF_THE_SEA
-    )?.description ??
-    ((character.level ?? 0) >= 10
-      ? [...stormbornWrathOfTheSeaDescription]
-      : (character.level ?? 0) >= 6
-        ? [...aquaticAffinityWrathOfTheSeaDescription]
-        : [...wrathOfTheSeaDescription]);
+  const description = getDruidCircleOfTheSeaWrathOfTheSeaDescription({
+    className: character.className,
+    level: character.level ?? 0,
+    subclassId: character.subclassId
+  });
+  const descriptionAdditions = getDruidCircleOfTheSeaWrathOfTheSeaDescriptionAdditions({
+    className: character.className,
+    level: character.level ?? 0,
+    subclassId: character.subclassId
+  });
   const resources = [
     {
       kind: "tracker" as const,
@@ -164,6 +161,7 @@ function getCircleOfTheSeaFeatureActions(character: Parameters<SubclassRuntimeRe
       detail: "Expend a Wild Shape use to manifest your sea wrath for 10 minutes.",
       breakdown: "Ocean aura blast",
       description,
+      descriptionAdditions,
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
       usesRemaining,

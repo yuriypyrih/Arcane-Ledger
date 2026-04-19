@@ -20,7 +20,7 @@ export const abiDalzimsHorridWilting: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "You draw the moisture from every creature in a 30-foot cube centered on a point you choose within range. Each creature in that area must make a Constitution saving throw. Constructs and Undead aren't affected, and plants and water Elementals make this saving throw with disadvantage. A creature takes 12d8 Necrotic damage on a failed save, or half as much damage on a successful one.",
+    "You draw the moisture from every creature in a 30-foot cube centered on a point you choose within range. Each creature in that area must make a Constitution saving throw. Constructs and Undead aren't affected, and plants and water Elementals make this saving throw with disadvantage. A creature takes <strong>12d8</strong> Necrotic damage on a failed save, or half as much damage on a successful one.",
     "Nonmagical plants in the area that aren't creatures, such as trees and shrubs, wither and die instantly."
   ],
   damage: [
@@ -146,7 +146,7 @@ export const controlWeather: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 8 hours"],
   description: [
     "You take control of the weather within 5 miles of you for the duration. You must be outdoors to cast this spell. Moving to a place where you don't have a clear path to the sky ends the spell early.",
-    "When you cast the spell, you change the current weather conditions, which are determined by the DM based on the climate and season. You can change precipitation, temperature, and wind. It takes 1d4 x 10 minutes for the new conditions to take effect. Once they do so, you can change the conditions again. When the spell ends, the weather gradually returns to normal.",
+    "When you cast the spell, you change the current weather conditions, which are determined by the DM based on the climate and season. You can change precipitation, temperature, and wind. It takes <strong>1d4</strong> x 10 minutes for the new conditions to take effect. Once they do so, you can change the conditions again. When the spell ends, the weather gradually returns to normal.",
     "When you change the weather conditions, find a current condition on the following tables and change its stage by one, up or down. When changing the wind, you can change its direction.",
     "Precipitation:",
     {
@@ -203,7 +203,7 @@ export const darkStar: SpellEntry = {
   description: [
     "This spell creates a sphere centered on a point you choose within range. The sphere can have a radius of up to 40 feet. The area within this sphere is filled with magical darkness and crushing gravitational force.",
     "For the duration, the spell's area is difficult terrain. A creature with Darkvision can't see through the magical darkness, and nonmagical light can't illuminate it. No sound can be created within or pass through the area. Any creature or object entirely inside the sphere is immune to Thunder damage, and creatures are Deafened while entirely inside it. Casting a spell that includes a verbal component is impossible there.",
-    "Any creature that enters the spell's area for the first time on a turn or starts its turn there must make a Constitution saving throw. The creature takes 8d10 Force damage on a failed save or half as much damage on a successful save. A creature reduced to 0 Hit Points by this damage is disintegrated. A disintegrated creature and everything it is wearing and carrying, except magic items, are reduced to a pile of fine gray dust."
+    "Any creature that enters the spell's area for the first time on a turn or starts its turn there must make a Constitution saving throw. The creature takes <strong>8d10</strong> Force damage on a failed save or half as much damage on a successful save. A creature reduced to 0 Hit Points by this damage is disintegrated. A disintegrated creature and everything it is wearing and carrying, except magic items, are reduced to a pile of fine gray dust."
   ],
   damage: [
     [DICE.D10, DAMAGE_TYPE.FORCE],
@@ -281,8 +281,8 @@ export const earthquake: SpellEntry = {
       type: "list",
       style: "bullet",
       items: [
-        "<strong>Fissures.</strong> Fissures open throughout the spell's area at the start of your next turn after you cast the spell. A total of 1d6 such fissures open in locations chosen by the DM. Each is 1d10 x 10 feet deep, 10 feet wide, and extends from one edge of the spell's area to the opposite side. A creature standing on a spot where a fissure opens must succeed on a Dexterity saving throw or fall in. A creature that successfully saves moves with the fissure's edge as it opens. A fissure that opens beneath a structure causes it to automatically collapse.",
-        "<strong>Structures.</strong> The tremor deals 50 Bludgeoning damage to any structure in contact with the ground in the area when you cast the spell and at the start of each of your turns until the spell ends. If a structure drops to 0 Hit Points, it collapses and potentially damages nearby creatures. A creature within half the distance of a structure's height must make a Dexterity saving throw. On a failed save, the creature takes 5d6 Bludgeoning damage, is knocked Prone, and is buried in the rubble, requiring a DC 20 Strength (Athletics) check as an action to escape. On a successful save, the creature takes half as much damage and doesn't fall Prone or become buried."
+        "<strong>Fissures.</strong> Fissures open throughout the spell's area at the start of your next turn after you cast the spell. A total of <strong>1d6</strong> such fissures open in locations chosen by the DM. Each is <strong>1d10</strong> x 10 feet deep, 10 feet wide, and extends from one edge of the spell's area to the opposite side. A creature standing on a spot where a fissure opens must succeed on a Dexterity saving throw or fall in. A creature that successfully saves moves with the fissure's edge as it opens. A fissure that opens beneath a structure causes it to automatically collapse.",
+        "<strong>Structures.</strong> The tremor deals 50 Bludgeoning damage to any structure in contact with the ground in the area when you cast the spell and at the start of each of your turns until the spell ends. If a structure drops to 0 Hit Points, it collapses and potentially damages nearby creatures. A creature within half the distance of a structure's height must make a Dexterity saving throw. On a failed save, the creature takes <strong>5d6</strong> Bludgeoning damage, is knocked Prone, and is buried in the rubble, requiring a DC 20 Strength (Athletics) check as an action to escape. On a successful save, the creature takes half as much damage and doesn't fall Prone or become buried."
       ]
     }
   ],
@@ -301,7 +301,7 @@ export const feeblemind: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "You blast the mind of a creature that you can see within range, attempting to shatter its intellect and personality. The target takes 4d6 Psychic damage and must make an Intelligence saving throw.",
+    "You blast the mind of a creature that you can see within range, attempting to shatter its intellect and personality. The target takes <strong>4d6</strong> Psychic damage and must make an Intelligence saving throw.",
     "On a failed save, the creature's Intelligence and Charisma scores become 1. The creature can't cast spells, activate magic items, understand language, or communicate in any intelligible way. The creature can, however, identify its friends, follow them, and even protect them.",
     "At the end of every 30 days, the creature can repeat its saving throw against this spell. If it succeeds on its saving throw, the spell ends. The spell can also be ended by Greater Restoration, Heal, or Wish."
   ],
@@ -368,7 +368,7 @@ export const illusoryDragon: SpellEntry = {
     "By gathering threads of shadow material from the Shadowfell, you create a Huge shadowy dragon in an unoccupied space that you can see within range. The illusion lasts for the spell's duration and occupies its space, as if it were a creature.",
     "When the illusion appears, any of your enemies that can see it must succeed on a Wisdom saving throw or become Frightened of it for 1 minute. If a Frightened creature ends its turn in a location where it doesn't have line of sight to the illusion, it can repeat the saving throw, ending the effect on itself on a success.",
     "As a Bonus Action on your turn, you can move the illusion up to 60 feet. At any point during its movement, you can cause it to exhale a blast of energy in a 60-foot cone originating from its space.",
-    "When you create the dragon, choose a damage type: Acid, Cold, Fire, Lightning, Necrotic, or Poison. Each creature in the cone must make an Intelligence saving throw, taking 7d6 damage of the chosen type on a failed save, or half as much damage on a successful one.",
+    "When you create the dragon, choose a damage type: Acid, Cold, Fire, Lightning, Necrotic, or Poison. Each creature in the cone must make an Intelligence saving throw, taking <strong>7d6</strong> damage of the chosen type on a failed save, or half as much damage on a successful one.",
     "The illusion is tangible because of the shadow stuff used to create it, but attacks miss it automatically. It succeeds on all saving throws, and it is immune to all damage and conditions. A creature that uses an action to examine the dragon can determine that it is an illusion by succeeding on an Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through it and has advantage on saving throws against its breath."
   ],
   damage: [],
@@ -387,7 +387,7 @@ export const incendiaryCloud: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "A swirling cloud of smoke shot through with white-hot embers appears in a 20-foot-radius sphere centered on a point within range. The cloud spreads around corners and is heavily obscured. It lasts for the duration or until a wind of moderate or greater speed, at least 10 miles per hour, disperses it.",
-    "When the cloud appears, each creature in it must make a Dexterity saving throw. A creature takes 10d8 Fire damage on a failed save, or half as much damage on a successful one. A creature must also make this saving throw when it enters the spell's area for the first time on a turn or ends its turn there.",
+    "When the cloud appears, each creature in it must make a Dexterity saving throw. A creature takes <strong>10d8</strong> Fire damage on a failed save, or half as much damage on a successful one. A creature must also make this saving throw when it enters the spell's area for the first time on a turn or ends its turn there.",
     "The cloud moves 10 feet directly away from you in a direction that you choose at the start of each of your turns."
   ],
   damage: [
@@ -417,7 +417,7 @@ export const maddeningDarkness: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "Magical darkness spreads from a point you choose within range to fill a 60-foot-radius sphere until the spell ends. The darkness spreads around corners. A creature with Darkvision can't see through this darkness. Nonmagical light, as well as light created by spells of 8th level or lower, can't illuminate the area. Shrieks, gibbering, and mad laughter can be heard within the sphere.",
-    "Whenever a creature starts its turn in the sphere, it must make a Wisdom saving throw, taking 8d8 Psychic damage on a failed save, or half as much damage on a successful one."
+    "Whenever a creature starts its turn in the sphere, it must make a Wisdom saving throw, taking <strong>8d8</strong> Psychic damage on a failed save, or half as much damage on a successful one."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.PSYCHIC],
@@ -525,15 +525,15 @@ export const realityBreak: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "You shatter the barriers between realities and timelines, thrusting a creature into turmoil and madness. The target must succeed on a Wisdom saving throw, or it can't take reactions until the spell ends. The affected target must also roll a d10 at the start of each of its turns. The number rolled determines what happens to the target.",
+    "You shatter the barriers between realities and timelines, thrusting a creature into turmoil and madness. The target must succeed on a Wisdom saving throw, or it can't take reactions until the spell ends. The affected target must also roll a <strong>d10</strong> at the start of each of its turns. The number rolled determines what happens to the target.",
     {
       type: "list",
       style: "bullet",
       items: [
-        "<strong>1-2. Vision of the Far Realm.</strong> The target takes 6d12 Psychic damage, and it is Stunned until the end of the turn.",
-        "<strong>3-5. Rending Rift.</strong> The target must make a Dexterity saving throw, taking 8d12 Force damage on a failed save, or half as much damage on a successful save.",
-        "<strong>6-8. Wormhole.</strong> The target is teleported, along with everything it is wearing and carrying, up to 30 feet to an unoccupied space of your choice that you can see. The target also takes 10d12 Force damage and is knocked Prone.",
-        "<strong>9-10. Chill of the Dark Void.</strong> The target takes 10d12 Cold damage, and it is Blinded until the end of the turn."
+        "<strong>1-2. Vision of the Far Realm.</strong> The target takes <strong>6d12</strong> Psychic damage, and it is Stunned until the end of the turn.",
+        "<strong>3-5. Rending Rift.</strong> The target must make a Dexterity saving throw, taking <strong>8d12</strong> Force damage on a failed save, or half as much damage on a successful save.",
+        "<strong>6-8. Wormhole.</strong> The target is teleported, along with everything it is wearing and carrying, up to 30 feet to an unoccupied space of your choice that you can see. The target also takes <strong>10d12</strong> Force damage and is knocked Prone.",
+        "<strong>9-10. Chill of the Dark Void.</strong> The target takes <strong>10d12</strong> Cold damage, and it is Blinded until the end of the turn."
       ]
     },
     "At the end of each of its turns, the affected target can repeat the Wisdom saving throw, ending the spell on itself on a success."
@@ -553,7 +553,7 @@ export const sunburst: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "Brilliant sunlight flashes in a 60-foot radius centered on a point you choose within range. Each creature in that light must make a Constitution saving throw. On a failed save, a creature takes 12d6 Radiant damage and is Blinded for 1 minute. On a successful save, it takes half as much damage and isn't Blinded by this spell. Undead and Oozes have disadvantage on this saving throw.",
+    "Brilliant sunlight flashes in a 60-foot radius centered on a point you choose within range. Each creature in that light must make a Constitution saving throw. On a failed save, a creature takes <strong>12d6</strong> Radiant damage and is Blinded for 1 minute. On a successful save, it takes half as much damage and isn't Blinded by this spell. Undead and Oozes have disadvantage on this saving throw.",
     "A creature Blinded by this spell makes another Constitution saving throw at the end of each of its turns. On a successful save, it is no longer Blinded.",
     "This spell dispels any darkness in its area that was created by a spell."
   ],
@@ -609,8 +609,8 @@ export const tsunami: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 6 rounds"],
   description: [
     "A wall of water springs into existence at a point you choose within range. You can make the wall up to 300 feet long, 300 feet high, and 50 feet thick. The wall lasts for the duration.",
-    "When the wall appears, each creature within its area must make a Strength saving throw. On a failed save, a creature takes 6d10 Bludgeoning damage, or half as much damage on a successful save.",
-    "At the start of each of your turns after the wall appears, the wall, along with any creatures in it, moves 50 feet away from you. Any Huge or smaller creature inside the wall or whose space the wall enters when it moves must succeed on a Strength saving throw or take 5d10 Bludgeoning damage. A creature can take this damage only once per round. At the end of the turn, the wall's height is reduced by 50 feet, and the damage creatures take from the spell on subsequent rounds is reduced by 1d10. When the wall reaches 0 feet in height, the spell ends.",
+    "When the wall appears, each creature within its area must make a Strength saving throw. On a failed save, a creature takes <strong>6d10</strong> Bludgeoning damage, or half as much damage on a successful save.",
+    "At the start of each of your turns after the wall appears, the wall, along with any creatures in it, moves 50 feet away from you. Any Huge or smaller creature inside the wall or whose space the wall enters when it moves must succeed on a Strength saving throw or take <strong>5d10</strong> Bludgeoning damage. A creature can take this damage only once per round. At the end of the turn, the wall's height is reduced by 50 feet, and the damage creatures take from the spell on subsequent rounds is reduced by <strong>1d10</strong>. When the wall reaches 0 feet in height, the spell ends.",
     "A creature caught in the wall can move by swimming. Because of the force of the wave, though, the creature must make a successful Strength (Athletics) check against your spell save DC in order to move at all. If it fails the check, it can't move. A creature that moves out of the area falls to the ground."
   ],
   damage: [

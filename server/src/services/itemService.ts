@@ -87,7 +87,7 @@ function combineAndFilters(
 function isCategoryAllowedForTab(category: string, tab: ItemBrowserTab | undefined) {
   const normalizedCategory = normalizeKey(category);
 
-  if (!tab) {
+  if (!tab || tab === "all") {
     return true;
   }
 
@@ -103,10 +103,18 @@ function isCategoryAllowedForTab(category: string, tab: ItemBrowserTab | undefin
     );
   }
 
-  return !NON_GEAR_CATEGORY_KEYS.has(normalizedCategory);
+  if (tab === "gear") {
+    return !NON_GEAR_CATEGORY_KEYS.has(normalizedCategory);
+  }
+
+  return true;
 }
 
 function buildTabFilter(tab: ItemBrowserTab | undefined): FilterQuery<Open5eItemRecord> | null {
+  if (!tab || tab === "all") {
+    return null;
+  }
+
   if (tab === "weapons") {
     return {
       "category.key": {
@@ -470,11 +478,11 @@ function normalizeFilterOptions(
   return compare ? normalizedEntries.sort(compare) : normalizedEntries;
 }
 
-function sumOptionCounts(options: ItemFilterOption[]) {
-  return options.reduce((total, option) => total + option.count, 0);
-}
-
 function filterCategoryOptionsByTab(options: ItemFilterOption[], tab: ItemBrowserTab) {
+  if (tab === "all") {
+    return options;
+  }
+
   if (tab === "weapons") {
     return options.filter((option) =>
       WEAPON_TAB_CATEGORY_KEYS.includes(option.value as (typeof WEAPON_TAB_CATEGORY_KEYS)[number])
@@ -573,6 +581,10 @@ export async function listItemFilterOptions(): Promise<ItemFilterOptions> {
     categories,
     rarities,
     sources,
+    allCount,
+    weaponsCount,
+    armorCount,
+    gearCount,
     meleeCount,
     rangeCount,
     simpleCount,
@@ -617,6 +629,10 @@ export async function listItemFilterOptions(): Promise<ItemFilterOptions> {
       ItemModel.aggregate<{ value: string; label: string; count: number }>(
         buildGroupedOptionsPipeline("document.key", "document.display_name")
       ).exec(),
+      ItemModel.countDocuments({}).exec(),
+      ItemModel.countDocuments(buildTabFilter("weapons") ?? {}).exec(),
+      ItemModel.countDocuments(buildTabFilter("armor") ?? {}).exec(),
+      ItemModel.countDocuments(buildTabFilter("gear") ?? {}).exec(),
       ItemModel.countDocuments(
         combineAndFilters([
           buildTabFilter("weapons") ?? {},
@@ -674,14 +690,19 @@ export async function listItemFilterOptions(): Promise<ItemFilterOptions> {
     ]);
 
   const normalizedCategories = normalizeFilterOptions(categories);
+  const allCategories = filterCategoryOptionsByTab(normalizedCategories, "all");
   const weaponCategories = filterCategoryOptionsByTab(normalizedCategories, "weapons");
   const armorCategories = filterCategoryOptionsByTab(normalizedCategories, "armor");
   const gearCategories = filterCategoryOptionsByTab(normalizedCategories, "gear");
 
   return {
     groups: {
+      all: {
+        count: allCount,
+        categories: allCategories
+      },
       weapons: {
-        count: sumOptionCounts(weaponCategories),
+        count: weaponsCount,
         categories: weaponCategories,
         attackTypes: [
           createStaticOption("melee", "Melee", meleeCount),
@@ -695,7 +716,7 @@ export async function listItemFilterOptions(): Promise<ItemFilterOptions> {
         properties: normalizeFilterOptions(properties)
       },
       armor: {
-        count: sumOptionCounts(armorCategories),
+        count: armorCount,
         categories: armorCategories,
         armorTypes: [
           createStaticOption("light", "Light Armor", lightCount),
@@ -704,7 +725,7 @@ export async function listItemFilterOptions(): Promise<ItemFilterOptions> {
         ]
       },
       gear: {
-        count: sumOptionCounts(gearCategories),
+        count: gearCount,
         categories: gearCategories
       }
     },

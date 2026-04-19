@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Brain, Flame, Hexagon, Music, PawPrint, Sparkles } from "lucide-react";
+import { Brain, Flame, Hexagon, Music, PawPrint, Sparkles, Wind } from "lucide-react";
 import type { ReactNode } from "react";
 import ActionShape from "../../../../ActionShape";
 import FeatureTrackingBadgeButton from "../../../../FeatureDisclosure/FeatureTrackingBadgeButton";
@@ -156,6 +156,10 @@ function renderFeatureActionUsesIcon(icon: FeatureActionCard["usesIcon"]) {
 
   if (icon === "flame") {
     return <Flame size={14} strokeWidth={2.1} />;
+  }
+
+  if (icon === "wind") {
+    return <Wind size={14} strokeWidth={2.1} />;
   }
 
   if (icon === "paw") {

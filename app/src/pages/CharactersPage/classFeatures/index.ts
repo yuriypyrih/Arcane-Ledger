@@ -117,15 +117,21 @@ import {
   activateDruidNatureMagician,
   applyArchdruidOnInitiative,
   activateDruidStarryForm,
+  consumeDruidCosmicOmenUse,
   consumeDruidNaturalRecoveryUse,
   consumeDruidStarMapGuidingBoltUse,
   activateDruidWildResurgenceLevelOneSpellSlotRecovery,
   activateDruidWildResurgenceWildShapeRecovery,
   activateDruidWildCompanion,
+  getDruidActiveStarryFormConstellation,
   getDruidCircleOfTheLandChoice,
+  getDruidCosmicOmenSelection,
+  getDruidCosmicOmenUsesRemaining,
+  getDruidCosmicOmenUsesTotal,
   getDruidNaturalRecoveryUsesRemaining,
   getDruidNaturalRecoveryUsesTotal,
   getDruidElementalFuryChoice,
+  hasDruidTwinklingConstellationsFeature,
   activateDruidWildShape,
   deactivateDruidWildShape,
   expendOneDruidWildShapeUse,
@@ -147,8 +153,11 @@ import {
   isDruidWildShapeStatusSourceId,
   markDruidPrimalStrikeUsed,
   restoreAllDruidWildShapeUses,
+  restoreDruidCosmicOmenOnLongRest,
   restoreOneDruidWildShapeUse,
+  setDruidActiveStarryFormConstellation,
   setDruidCircleOfTheLandChoice,
+  setDruidCosmicOmenSelection,
   setDruidElementalFuryChoice,
   setDruidPrimalOrderChoice,
   setDruidWildShapeKnownForms
@@ -408,6 +417,7 @@ import {
 import {
   activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter as activateFighterPsiWarriorTelekineticMasterSpellCast,
   activateFighterPsiWarriorTelekineticMovementForCharacter as activateFighterPsiWarriorTelekineticMovement,
+  consumeFighterSecondWindUse,
   consumeFighterPsiWarriorPsionicStrikeForCharacter as consumeFighterPsiWarriorPsionicStrike,
   consumeFighterIndomitableUse,
   expendFighterBattleMasterSuperiorityDieForCharacter as expendFighterBattleMasterSuperiorityDie,
@@ -423,6 +433,8 @@ import {
   getFighterBanneretKnightlyEnvoySkillSelectionForCharacter as getFighterBanneretKnightlyEnvoySkillSelection,
   getFighterIndomitableUsesRemaining,
   getFighterIndomitableUsesTotal,
+  getFighterSecondWindUsesRemaining,
+  getFighterSecondWindUsesTotal,
   getFighterPsiWarriorEnergyDiceRemainingForCharacter as getFighterPsiWarriorEnergyDiceRemaining,
   getFighterPsiWarriorEnergyDiceTotalForCharacter as getFighterPsiWarriorEnergyDiceTotal,
   getFighterPsiWarriorEnergyDieForCharacter as getFighterPsiWarriorEnergyDie,
@@ -437,6 +449,8 @@ import {
   restoreAllFighterBattleMasterSuperiorityDiceForCharacter as restoreAllFighterBattleMasterSuperiorityDice,
   restoreAllFighterPsiWarriorEnergyDiceForCharacter as restoreAllFighterPsiWarriorEnergyDice,
   restoreFighterBattleMasterSuperiorityDieForCharacter as restoreFighterBattleMasterSuperiorityDie,
+  restoreFighterSecondWindOnLongRest,
+  restoreFighterSecondWindOnShortRest,
   restoreFighterPsiWarriorEnergyDieForCharacter as restoreFighterPsiWarriorEnergyDie,
   restoreFighterPsiWarriorTelekineticMasterOnLongRest,
   setFighterBattleMasterManeuverSelectionsForCharacter as setFighterBattleMasterManeuverSelections,
@@ -1605,6 +1619,18 @@ export function getFighterIndomitableUsesTotalForCharacter(
   return getFighterIndomitableUsesTotal(character);
 }
 
+export function getFighterSecondWindUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+): number {
+  return getFighterSecondWindUsesTotal(character);
+}
+
+export function getFighterSecondWindUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  return getFighterSecondWindUsesRemaining(character);
+}
+
 export function getFighterBattleMasterSuperiorityDiceTotalForCharacter(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
@@ -1713,6 +1739,10 @@ export function consumeFighterIndomitableUseForCharacter(character: Character): 
   return consumeFighterIndomitableUse(character);
 }
 
+export function consumeFighterSecondWindUseForCharacter(character: Character): Character {
+  return consumeFighterSecondWindUse(character);
+}
+
 export function expendFighterBattleMasterSuperiorityDieForCharacter(
   character: Character
 ): Character {
@@ -1745,6 +1775,14 @@ export function restoreFighterPsiWarriorEnergyDieForCharacter(character: Charact
 
 export function restoreAllFighterPsiWarriorEnergyDiceForCharacter(character: Character): Character {
   return restoreAllFighterPsiWarriorEnergyDice(character);
+}
+
+export function restoreFighterSecondWindOnShortRestForCharacter(character: Character): Character {
+  return restoreFighterSecondWindOnShortRest(character);
+}
+
+export function restoreFighterSecondWindOnLongRestForCharacter(character: Character): Character {
+  return restoreFighterSecondWindOnLongRest(character);
 }
 
 export function activateFighterPsiWarriorTelekineticMovementForCharacter(
@@ -2395,6 +2433,40 @@ export function getDruidStarMapGuidingBoltUsesRemainingForCharacter(
   return getDruidStarMapGuidingBoltUsesRemaining(character);
 }
 
+export function getDruidCosmicOmenUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
+) {
+  return getDruidCosmicOmenUsesTotal(character);
+}
+
+export function getDruidCosmicOmenUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
+) {
+  return getDruidCosmicOmenUsesRemaining(character);
+}
+
+export function getDruidCosmicOmenSelectionForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
+) {
+  return getDruidCosmicOmenSelection(character);
+}
+
+export function getDruidActiveStarryFormConstellationForCharacter(
+  character: Pick<Character, "statusEntries">
+) {
+  return getDruidActiveStarryFormConstellation(character);
+}
+
+export function hasDruidTwinklingConstellationsFeatureForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "abilities">>
+) {
+  return hasDruidTwinklingConstellationsFeature(character);
+}
+
 export function getDruidNaturalRecoveryUsesTotalForCharacter(
   character: Pick<Character, "className" | "level" | "subclassId">
 ) {
@@ -2466,9 +2538,9 @@ export function activateDruidWildCompanionForCharacter(
 
 export function activateDruidNatureMagicianForCharacter(
   character: Character,
-  wildShapeCost: number
+  spellSlotLevel: number
 ): Character {
-  return activateDruidNatureMagician(character, wildShapeCost);
+  return activateDruidNatureMagician(character, spellSlotLevel);
 }
 
 export function activateDruidStarryFormForCharacter(
@@ -2476,6 +2548,24 @@ export function activateDruidStarryFormForCharacter(
   constellation: Parameters<typeof activateDruidStarryForm>[1]
 ): Character {
   return activateDruidStarryForm(character, constellation);
+}
+
+export function setDruidCosmicOmenSelectionForCharacter(
+  character: Character,
+  selection: Parameters<typeof setDruidCosmicOmenSelection>[1]
+): Character {
+  return setDruidCosmicOmenSelection(character, selection);
+}
+
+export function setDruidActiveStarryFormConstellationForCharacter(
+  character: Character,
+  constellation: Parameters<typeof setDruidActiveStarryFormConstellation>[1]
+): Character {
+  return setDruidActiveStarryFormConstellation(character, constellation);
+}
+
+export function consumeDruidCosmicOmenUseForCharacter(character: Character): Character {
+  return consumeDruidCosmicOmenUse(character);
 }
 
 export function consumeDruidStarMapGuidingBoltUseForCharacter(character: Character): Character {
@@ -2505,6 +2595,10 @@ export function restoreDruidWildShapeUseForCharacter(character: Character): Char
 
 export function restoreAllDruidWildShapeUsesForCharacter(character: Character): Character {
   return restoreAllDruidWildShapeUses(character);
+}
+
+export function restoreDruidCosmicOmenOnLongRestForCharacter(character: Character): Character {
+  return restoreDruidCosmicOmenOnLongRest(character);
 }
 
 export function expendDruidWildShapeUseForCharacter(character: Character): Character {

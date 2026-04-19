@@ -231,7 +231,7 @@ export const clericFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
   },
   [CLASS_FEATURE.SEAR_UNDEAD]: {
     description: [
-      "Whenever you use Turn Undead, you can roll a number of d8s equal to your Wisdom modifier, minimum of 1d8, and add the rolls together.",
+      "Whenever you use Turn Undead, you can roll a number of <strong>d8s</strong> equal to your Wisdom modifier, minimum of <strong>1d8</strong>, and add the rolls together.",
       "Each Undead that fails its saving throw against that use of Turn Undead takes Radiant damage equal to the roll's total. This damage doesn't end the turn effect."
     ],
     trackingState: TRACKER.TRACKED
@@ -239,7 +239,7 @@ export const clericFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
   [CLASS_FEATURE.BLESSED_STRIKES]: {
     description: [
       "Divine power infuses you in battle. You gain one of the following options of your choice. If you get either option from a Cleric subclass in an older book, use only the option you choose for this feature.",
-      "<strong>Divine Strike.</strong> Once on each of your turns when you hit a creature with an attack roll using a weapon, you can cause the target to take an extra 1d8 Necrotic or Radiant damage, your choice.",
+      "<strong>Divine Strike.</strong> Once on each of your turns when you hit a creature with an attack roll using a weapon, you can cause the target to take an extra <strong>1d8</strong> Necrotic or Radiant damage, your choice.",
       "<strong>Potent Spellcasting.</strong> Add your Wisdom modifier to the damage you deal with any Cleric cantrip."
     ],
     trackingState: TRACKER.TRACKED
@@ -255,7 +255,7 @@ export const clericFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
   [CLASS_FEATURE.IMPROVED_BLESSED_STRIKES]: {
     description: [
       "The option you chose for Blessed Strikes grows more powerful.",
-      "<strong>Divine Strike.</strong> The extra damage of your Divine Strike increases to 2d8.",
+      "<strong>Divine Strike.</strong> The extra damage of your Divine Strike increases to <strong>2d8</strong>.",
       "<strong>Potent Spellcasting.</strong> When you cast a Cleric cantrip and deal damage to a creature with it, you can give vitality to yourself or another creature within 60 feet of yourself, granting a number of Temporary Hit Points equal to twice your Wisdom modifier."
     ],
     trackingState: TRACKER.SEMI_TRACKED
@@ -264,7 +264,7 @@ export const clericFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
     description: [
       "You can call on even more powerful divine intervention.",
       "When you use your Divine Intervention feature, you can choose <spell:Wish>Wish</spell> when you select a spell. <link:tracked>Tracked</link>",
-      "If you do so, you can't use Divine Intervention again until you finish 2d4 <link:long-rest>Long Rests</link>. (This is <link:not-tracked>Not Tracked</link> but you can roll the dice and keep skipping the Divine Intervenation reset during Long Rest)."
+      "If you do so, you can't use Divine Intervention again until you finish <strong>2d4</strong> <link:long-rest>Long Rests</link>. (This is <link:not-tracked>Not Tracked</link> but you can roll the dice and keep skipping the Divine Intervenation reset during Long Rest)."
     ],
     trackingState: TRACKER.SEMI_TRACKED
   }

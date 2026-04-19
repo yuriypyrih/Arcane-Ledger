@@ -1,24 +1,29 @@
 import { CLASS_FEATURE } from "../../../../../codex/entries";
-import type {
-  Character,
-  CharacterDruidFeatureState
-} from "../../../../../types";
+import type { Character, CharacterDruidFeatureState } from "../../../../../types";
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
 import type {
+  ArmorClassFeatureContext,
+  FeatureArmorClassMode,
   FeatureSavingThrowBonus,
   FeatureSpellcastingState
 } from "../../types";
+import { getDruidCircleOfTheMoonMoonlightStepDescriptionAdditions } from "./druidCircleOfTheMoonDescriptions";
+import {
+  circleOfTheMoonSubclassId,
+  hasDruidCircleFormsFeature,
+  hasDruidCircleOfTheMoonSpellsFeature,
+  hasDruidImprovedCircleFormsFeature,
+  hasDruidMoonlightStepFeature
+} from "./druidCircleOfTheMoonFeatures";
 import {
   druidMoonlightStepActionKey,
   getDruidWildShapeActiveForm,
   normalizeDruidFeatureState
 } from "../druid";
-
-export const circleOfTheMoonSubclassId = "druid-circle-of-the-moon";
 
 export const circleOfTheMoonSpellIdsByLevel = {
   3: resolveSpellIdsByName(["Cure Wounds", "Moonbeam", "Starry Wisp"]),
@@ -26,46 +31,6 @@ export const circleOfTheMoonSpellIdsByLevel = {
   7: resolveSpellIdsByName(["Fount of Moonlight"]),
   9: resolveSpellIdsByName(["Mass Cure Wounds"])
 } as const;
-
-export function hasDruidCircleOfTheMoonSpellsFeature(
-  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
-): boolean {
-  return (
-    character.className === "Druid" &&
-    character.subclassId === circleOfTheMoonSubclassId &&
-    Math.max(1, Math.min(20, Math.floor(character.level))) >= 3
-  );
-}
-
-export function hasDruidCircleFormsFeature(
-  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
-): boolean {
-  return (
-    character.className === "Druid" &&
-    character.subclassId === circleOfTheMoonSubclassId &&
-    Math.max(1, Math.min(20, Math.floor(character.level))) >= 3
-  );
-}
-
-export function hasDruidImprovedCircleFormsFeature(
-  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
-): boolean {
-  return (
-    character.className === "Druid" &&
-    character.subclassId === circleOfTheMoonSubclassId &&
-    Math.max(1, Math.min(20, Math.floor(character.level))) >= 6
-  );
-}
-
-export function hasDruidMoonlightStepFeature(
-  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
-): boolean {
-  return (
-    character.className === "Druid" &&
-    character.subclassId === circleOfTheMoonSubclassId &&
-    Math.max(1, Math.min(20, Math.floor(character.level))) >= 10
-  );
-}
 
 export function getDruidCircleOfTheMoonWildShapeRules(
   baseRules: {
@@ -98,7 +63,8 @@ export function getDruidCircleOfTheMoonWildShapeTemporaryHitPoints(
 
 export function normalizeDruidCircleOfTheMoonFeatureState(
   value: Partial<CharacterDruidFeatureState>,
-  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId" | "abilities">>
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "subclassId" | "abilities">>
 ): Pick<CharacterDruidFeatureState, "moonlightStepUsesExpended"> {
   const moonlightStepUsesTotal = hasDruidMoonlightStepFeature(character)
     ? Math.max(1, Math.floor((Math.max(1, Math.floor(character.abilities?.WIS ?? 10)) - 10) / 2))
@@ -127,7 +93,9 @@ export function getDruidMoonlightStepUsesTotal(
   character: Pick<Character, "className" | "level"> &
     Partial<Pick<Character, "subclassId" | "abilities">>
 ): number {
-  return hasDruidMoonlightStepFeature(character) ? Math.max(1, getDruidWisdomModifier(character)) : 0;
+  return hasDruidMoonlightStepFeature(character)
+    ? Math.max(1, getDruidWisdomModifier(character))
+    : 0;
 }
 
 export function getDruidMoonlightStepUsesRemaining(
@@ -290,6 +258,32 @@ export function getDruidCircleOfTheMoonSavingThrowBonuses(
   ];
 }
 
+export function getDruidCircleFormsArmorClassModes(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>,
+  _context: ArmorClassFeatureContext
+): FeatureArmorClassMode[] {
+  if (!hasDruidCircleFormsFeature(character)) {
+    return [];
+  }
+
+  const hasActiveWildShapeForm = getDruidWildShapeActiveForm(character) !== null;
+
+  return [
+    {
+      key: "druid-circle-forms-wild-shape-ac",
+      label: "Circle Forms",
+      unlockedAtLevel: 3,
+      baseValue: 13,
+      abilityModifiers: ["WIS"],
+      shieldAllowed: false,
+      isApplicable: hasActiveWildShapeForm,
+      unavailableReason: hasActiveWildShapeForm ? undefined : "Requires an active Wild Shape form.",
+      detail: "Circle of the Moon feature"
+    }
+  ];
+}
+
 export function getDruidCircleOfTheMoonSpellcastingState(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
   hasActiveWildShapeForm: boolean,
@@ -393,11 +387,8 @@ function getCircleOfTheMoonFeatureActions(character: Parameters<SubclassRuntimeR
         kind: "confirm" as const,
         eyebrow: "Circle of the Moon",
         description,
+        descriptionAdditions: getDruidCircleOfTheMoonMoonlightStepDescriptionAdditions(character),
         confirmLabel: "Step",
-        helperText:
-          fallbackSlotSummary.total > 0
-            ? "When your uses are gone, Moonlight Step spends your lowest available 2+ spell slot."
-            : undefined,
         resources
       },
       execute: {
@@ -419,6 +410,16 @@ export const getDruidCircleOfTheMoonDerivedFeatureState: SubclassRuntimeResolver
     ? {
         featureActions: getCircleOfTheMoonFeatureActions(character),
         alwaysPreparedSpellIds: getDruidCircleOfTheMoonSpellIdsForCharacter(character),
+        getArmorClassModes: (context) =>
+          getDruidCircleFormsArmorClassModes(
+            {
+              className: character.className,
+              level: character.level ?? 0,
+              subclassId: character.subclassId,
+              classFeatureState: character.classFeatureState
+            },
+            context
+          ),
         getSavingThrowBonuses: (ability) =>
           getDruidCircleOfTheMoonSavingThrowBonuses(
             {

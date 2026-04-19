@@ -78,6 +78,7 @@ export type CharacterBardFeatureState = {
 export type DruidPrimalOrderChoice = "magician" | "warden";
 export type DruidCircleOfTheLandChoice = "arid" | "polar" | "temperate" | "tropical";
 export type DruidElementalFuryChoice = "potent-spellcasting" | "primal-strike";
+export type DruidCosmicOmenSelection = "weal" | "woe";
 
 export type CharacterDruidFeatureState = {
   primalOrderChoice?: DruidPrimalOrderChoice;
@@ -86,6 +87,8 @@ export type CharacterDruidFeatureState = {
   wildShapeKnownForms?: MonsterRecord[];
   wildShapeUsesExpended?: number;
   starMapGuidingBoltUsesExpended?: number;
+  cosmicOmenSelection?: DruidCosmicOmenSelection;
+  cosmicOmenUsesExpended?: number;
   moonlightStepUsesExpended?: number;
   naturalRecoveryUsesExpended?: number;
   primalStrikeUsedThisTurn?: boolean;

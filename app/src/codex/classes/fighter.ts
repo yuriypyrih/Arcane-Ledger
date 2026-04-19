@@ -162,14 +162,14 @@ export const fighterFeatures: FighterFeatureClassObj[] = [
 export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   [CLASS_FEATURE.FIGHTING_STYLE]: {
     description: [
-      "You have honed your martial prowess and gain a Fighting Style feat of your choice. Defense is recommended.",
+      "You have honed your martial prowess and gain a Fighting Style feat of your choice. <feat:DEFENSE>Defense</feat> is recommended.",
       "Whenever you gain a Fighter level, you can replace the feat you chose with a different Fighting Style feat."
     ],
     trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.SECOND_WIND]: {
     description: [
-      "You have a limited well of physical and mental stamina that you can draw on. As a Bonus Action, you can use it to regain Hit Points equal to 1d10 plus your Fighter level.",
+      "You have a limited well of physical and mental stamina that you can draw on. As a Bonus Action, you can use it to regain Hit Points equal to <strong>1d10</strong> plus your Fighter level.",
       "You can use this feature twice. You regain one expended use when you finish a <link:short-rest>Short Rest</link>, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
       "When you reach certain Fighter levels, you gain more uses of this feature, as shown in the Second Wind column of the Fighter Features table."
     ],
@@ -186,16 +186,16 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
   [CLASS_FEATURE.TACTICAL_MIND]: {
     description: [
       "You have a mind for tactics on and off the battlefield.",
-      "When you fail an ability check, you can expend a use of your Second Wind to push yourself toward success. Rather than regaining Hit Points, you roll 1d10 and add the number rolled to the ability check, potentially turning it into a success.",
-      "If the check still fails, this use of Second Wind isn't expended."
+      "When you fail an ability check, you can expend a use of your Second Wind to push yourself toward success. Rather than regaining Hit Points, you roll <strong>1d10</strong> and add the number rolled to the ability check, potentially turning it into a success.",
+      "If the check still fails, this use of Second Wind isn't expended. (If it fails do not click on Use Tactical Mind)"
     ],
-    trackingState: TRACKER.TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.TACTICAL_SHIFT]: {
     description: [
       "Whenever you activate your Second Wind with a Bonus Action, you can move up to half your Speed without provoking Opportunity Attacks."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.INDOMITABLE]: {
     description: [

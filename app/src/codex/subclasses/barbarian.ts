@@ -149,7 +149,7 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
             "Your <link:Rage>Rage</link> taps into the life force of the World Tree. You gain the following benefits.",
             "<strong>Vitality Surge.</strong> When you activate your Rage, you gain a number of <link:Temporary Hit Points>Temporary Hit Points</link> equal to your Barbarian level. <link:tracked>Tracked</link>",
             "<strong>Life-Giving Force.</strong> At the start of each of your turns while your Rage is active, you can choose another creature within 10 feet of yourself to gain Temporary Hit Points. <link:not-tracked>Not Tracked</link>",
-            "To determine the number of Temporary Hit Points, roll a number of d6s equal to your Rage Damage bonus and add them together.",
+            "To determine the number of Temporary Hit Points, roll a number of <strong>d6s</strong> equal to your Rage Damage bonus and add them together.",
             "If any of these Temporary Hit Points remain when your Rage ends, they vanish."
           ],
           trackingState: TRACKER.SEMI_TRACKED
@@ -196,14 +196,14 @@ export const barbarianSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.DIVINE_FURY, {
         description: [
           "You can channel divine power into your strikes.",
-          "On each of your turns while your <link:Rage>Rage</link> is active, the first creature you hit with a weapon or an Unarmed Strike takes extra damage equal to 1d6 plus half your Barbarian level, round down.",
+          "On each of your turns while your <link:Rage>Rage</link> is active, the first creature you hit with a weapon or an Unarmed Strike takes extra damage equal to <strong>1d6</strong> plus half your Barbarian level, round down.",
           "The extra damage is <link:Necrotic>Necrotic</link> or <link:Radiant>Radiant</link>; you choose the type each time you deal the damage."
         ],
         trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.WARRIOR_OF_THE_GODS, {
         description: [
-          "A divine entity helps ensure you can continue the fight. You have a pool of four d12s that you can spend to heal yourself.",
+          "A divine entity helps ensure you can continue the fight. You have a pool of four <strong>d12s</strong> that you can spend to heal yourself.",
           "As a Bonus Action, you can expend dice from the pool, roll them, and regain a number of Hit Points equal to the roll's total.",
           "Your pool regains all expended dice when you finish a <link:long-rest>Long Rest</link>.",
           "The pool's maximum number of dice increases by one when you reach Barbarian levels 6, 12, and 17."

@@ -7,10 +7,8 @@ import {
   circleOfTheLandSubclassId,
   getDruidCircleOfTheLandDerivedFeatureState
 } from "./druidCircleOfTheLand";
-import {
-  circleOfTheMoonSubclassId,
-  getDruidCircleOfTheMoonDerivedFeatureState
-} from "./druidCircleOfTheMoon";
+import { getDruidCircleOfTheMoonDerivedFeatureState } from "./druidCircleOfTheMoon";
+import { circleOfTheMoonSubclassId } from "./druidCircleOfTheMoonFeatures";
 import {
   circleOfTheSeaSubclassId,
   getDruidCircleOfTheSeaDerivedFeatureState

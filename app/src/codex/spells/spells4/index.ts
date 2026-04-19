@@ -99,9 +99,9 @@ export const blight: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "Necromantic energy washes over a creature of your choice that you can see within range, draining moisture and vitality from it. The target must make a Constitution saving throw. The target takes 8d8 Necrotic damage on a failed save, or half as much damage on a successful one. This spell has no effect on Undead or Constructs.",
+    "Necromantic energy washes over a creature of your choice that you can see within range, draining moisture and vitality from it. The target must make a Constitution saving throw. The target takes <strong>8d8</strong> Necrotic damage on a failed save, or half as much damage on a successful one. This spell has no effect on Undead or Constructs.",
     "If you target a plant creature or a magical plant, it makes the saving throw with Disadvantage, and the spell deals maximum damage to it. If you target a nonmagical plant that isn't a creature, such as a tree or shrub, it doesn't make a saving throw; it simply withers and dies.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by 1d8 for each slot level above 4th."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by <strong>1d8</strong> for each slot level above 4th."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
@@ -175,8 +175,8 @@ export const confusion: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "This spell assaults and twists creatures' minds, spawning delusions and provoking uncontrolled actions. Each creature in a 10-foot-radius sphere centered on a point you choose within range must succeed on a Wisdom saving throw when you cast this spell or be affected by it.",
-    "An affected target can't take Reactions and must roll a d10 at the start of each of its turns to determine its behavior for that turn.",
-    "<strong>1.</strong> The creature uses all its movement to move in a random direction. To determine the direction, roll a d8 and assign a direction to each die face. The creature doesn't take an action this turn.",
+    "An affected target can't take Reactions and must roll a <strong>d10</strong> at the start of each of its turns to determine its behavior for that turn.",
+    "<strong>1.</strong> The creature uses all its movement to move in a random direction. To determine the direction, roll a <strong>d8</strong> and assign a direction to each die face. The creature doesn't take an action this turn.",
     "<strong>2-6.</strong> The creature doesn't move or take actions this turn.",
     "<strong>7-8.</strong> The creature uses its action to make a melee attack against a randomly determined creature within its reach. If there is no creature within its reach, the creature does nothing this turn.",
     "<strong>9-10.</strong> The creature can act and move normally.",
@@ -223,7 +223,7 @@ export const conjureKnowbot: SpellEntry = {
   duration: ["10 minutes"],
   description: [
     "You touch a single computerized device or computer system to conjure a knowbot, a partially sentient piece of software imprinted with vestiges of your own skills and computer abilities. For the duration of the spell, you can use a Bonus Action to have the knowbot execute a computer-related task that would normally require an action. The knowbot makes Intelligence ability checks using your ability score and proficiency bonuses including your proficiency with hacking tools, if applicable.",
-    "You have a limited telepathic bond with the knowbot, out to a range of 500 feet from the device or system where the knowbot was conjured. If you move beyond this range, the knowbot disappears in 2d4 rounds, as if the duration of the spell had expired. Moving within range again immediately reestablishes the bond.",
+    "You have a limited telepathic bond with the knowbot, out to a range of 500 feet from the device or system where the knowbot was conjured. If you move beyond this range, the knowbot disappears in <strong>2d4</strong> rounds, as if the duration of the spell had expired. Moving within range again immediately reestablishes the bond.",
     "The knowbot is bound to the system in which it was created, and it stays there until it is dismissed or the spell's duration expires.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the spell's duration increases to 1 hour. Additionally, your telepathic bond with the knowbot is effective out to a range of 1,000 feet, and if you leave the range of the bond, the knowbot continues performing its last directed task until the spell expires."
   ],
@@ -314,8 +314,8 @@ export const controlWater: SpellEntry = {
     "<strong>Part Water.</strong> You cause water in the area to move apart and create a trench. The trench extends across the spell's area, and the separated water forms a wall to either side. The trench remains until the spell ends or you choose a different effect. The water then slowly fills in the trench over the course of the next round until the normal water level is restored.",
     "<strong>Redirect Flow.</strong> You cause flowing water in the area to move in a direction you choose, even if the water has to flow over obstacles, up walls, or in other unlikely directions. The water in the area moves as you direct it, but once it moves beyond the spell's area, it resumes its flow based on the terrain conditions. The water continues to move in the direction you chose until the spell ends or you choose a different effect.",
     "<strong>Whirlpool.</strong> This effect requires a body of water at least 50 feet square and 25 feet deep. You cause a whirlpool to form in the center of the area. The whirlpool forms a vortex that is 5 feet wide at the base, up to 50 feet wide at the top, and 25 feet tall. Any creature or object in the water and within 25 feet of the vortex is pulled 10 feet toward it. A creature can swim away from the vortex by making a Strength (Athletics) check against your spell save DC.",
-    "When a creature enters the vortex for the first time on a turn or starts its turn there, it must make a Strength saving throw. On a failed save, the creature takes 2d8 Bludgeoning damage and is caught in the vortex until the spell ends. On a successful save, the creature takes half damage and isn't caught in the vortex. A creature caught in the vortex can use its action to try to swim away from the vortex as described above, but has Disadvantage on the Strength (Athletics) check to do so.",
-    "The first time each turn that an object enters the vortex, the object takes 2d8 Bludgeoning damage, and this damage occurs each round it remains in the vortex."
+    "When a creature enters the vortex for the first time on a turn or starts its turn there, it must make a Strength saving throw. On a failed save, the creature takes <strong>2d8</strong> Bludgeoning damage and is caught in the vortex until the spell ends. On a successful save, the creature takes half damage and isn't caught in the vortex. A creature caught in the vortex can use its action to try to swim away from the vortex as described above, but has Disadvantage on the Strength (Athletics) check to do so.",
+    "The first time each turn that an object enters the vortex, the object takes <strong>2d8</strong> Bludgeoning damage, and this damage occurs each round it remains in the vortex."
   ],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
@@ -351,7 +351,7 @@ export const dimensionDoor: SpellEntry = {
   description: [
     'You teleport yourself from your current location to any other spot within range. You arrive at exactly the spot desired. It can be a place you can see, one you can visualize, or one you can describe by stating distance and direction, such as "200 feet straight downward" or "upward to the northwest at a 45-degree angle, 300 feet."',
     "You can bring along objects as long as their weight doesn't exceed what you can carry. You can also bring one willing creature of your size or smaller who is carrying gear up to its carrying capacity. The creature must be within 5 feet of you when you cast this spell.",
-    "If you would arrive in a place already occupied by an object or a creature, you and any creature traveling with you each take 4d6 Force damage, and the spell fails to teleport you."
+    "If you would arrive in a place already occupied by an object or a creature, you and any creature traveling with you each take <strong>4d6</strong> Force damage, and the spell fails to teleport you."
   ],
   damage: [],
   spellLists: [
@@ -436,7 +436,7 @@ export const elementalBane: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "Choose one creature you can see within range, and choose one of the following damage types: Acid, Cold, Fire, Lightning, or Thunder. The target must succeed on a Constitution saving throw or be affected by the spell for its duration. The first time each turn the affected target takes damage of the chosen type, the target takes an extra 2d6 damage of that type. Moreover, the target loses any Resistance to that damage type until the spell ends.",
+    "Choose one creature you can see within range, and choose one of the following damage types: Acid, Cold, Fire, Lightning, or Thunder. The target must succeed on a Constitution saving throw or be affected by the spell for its duration. The first time each turn the affected target takes damage of the chosen type, the target takes an extra <strong>2d6</strong> damage of that type. Moreover, the target loses any Resistance to that damage type until the spell ends.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, you can target one additional creature for each slot level above 4th. The creatures must be within 30 feet of each other when you target them."
   ],
   damage: [],
@@ -460,7 +460,7 @@ export const evardsBlackTentacles: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "Squirming, ebony tentacles fill a 20-foot square on ground that you can see within range. For the duration, these tentacles turn the ground in the area into difficult terrain.",
-    "When a creature enters the affected area for the first time on a turn or starts its turn there, the creature must succeed on a Dexterity saving throw or take 3d6 Bludgeoning damage and be Restrained by the tentacles until the spell ends. A creature that starts its turn in the area and is already Restrained by the tentacles takes 3d6 Bludgeoning damage.",
+    "When a creature enters the affected area for the first time on a turn or starts its turn there, the creature must succeed on a Dexterity saving throw or take <strong>3d6</strong> Bludgeoning damage and be Restrained by the tentacles until the spell ends. A creature that starts its turn in the area and is already Restrained by the tentacles takes <strong>3d6</strong> Bludgeoning damage.",
     "A creature Restrained by the tentacles can use its action to make a Strength or Dexterity check, its choice, against your spell save DC. On a success, it frees itself."
   ],
   damage: [
@@ -521,7 +521,7 @@ export const fireShield: SpellEntry = {
   description: [
     "Thin and wispy flames wreathe your body for the duration, shedding bright light in a 10-foot radius and dim light for an additional 10 feet. You can end the spell early by using an action to dismiss it.",
     "The flames provide you with a warm shield or a chill shield, as you choose. The warm shield grants you Resistance to Cold damage, and the chill shield grants you Resistance to Fire damage.",
-    "In addition, whenever a creature within 5 feet of you hits you with a melee attack, the shield erupts with flame. The attacker takes 2d8 Fire damage from a warm shield, or 2d8 Cold damage from a cold shield."
+    "In addition, whenever a creature within 5 feet of you hits you with a melee attack, the shield erupts with flame. The attacker takes <strong>2d8</strong> Fire damage from a warm shield, or <strong>2d8</strong> Cold damage from a cold shield."
   ],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -638,8 +638,8 @@ export const gravitySinkhole: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "A 20-foot-radius sphere of crushing force forms at a point you can see within range and tugs at the creatures there. Each creature in the sphere must make a Constitution saving throw. On a failed save, the creature takes 5d10 Force damage, and is pulled in a straight line toward the center of the sphere, ending in an unoccupied space as close to the center as possible, even if that space is in the air. On a successful save, the creature takes half as much damage and isn't pulled.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by 1d10 for each slot level above 4th."
+    "A 20-foot-radius sphere of crushing force forms at a point you can see within range and tugs at the creatures there. Each creature in the sphere must make a Constitution saving throw. On a failed save, the creature takes <strong>5d10</strong> Force damage, and is pulled in a straight line toward the center of the sphere, ending in an unoccupied space as close to the center as possible, even if that space is in the air. On a successful save, the creature takes half as much damage and isn't pulled.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by <strong>1d10</strong> for each slot level above 4th."
   ],
   damage: [
     [DICE.D10, DAMAGE_TYPE.FORCE],
@@ -702,7 +702,7 @@ export const guardianOfNature: SpellEntry = {
     "Your walking Speed increases by 10 feet.",
     "You gain Darkvision with a range of 120 feet.",
     "You make Strength-based attack rolls with Advantage.",
-    "Your melee weapon attacks deal an extra 1d6 Force damage on a hit.",
+    "Your melee weapon attacks deal an extra <strong>1d6</strong> Force damage on a hit.",
     "<strong>Great Tree.</strong> Your skin appears barky, leaves sprout from your hair, and you gain the following benefits:",
     "You gain 10 temporary Hit Points.",
     "You make Constitution saving throws with Advantage.",
@@ -747,9 +747,9 @@ export const iceStorm: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "A hail of rock-hard ice pounds to the ground in a 20-foot-radius, 40-foot-high cylinder centered on a point within range. Each creature in the cylinder must make a Dexterity saving throw. A creature takes 2d8 Bludgeoning damage and 4d6 Cold damage on a failed save, or half as much damage on a successful one.",
+    "A hail of rock-hard ice pounds to the ground in a 20-foot-radius, 40-foot-high cylinder centered on a point within range. Each creature in the cylinder must make a Dexterity saving throw. A creature takes <strong>2d8</strong> Bludgeoning damage and <strong>4d6</strong> Cold damage on a failed save, or half as much damage on a successful one.",
     "Hailstones turn the storm's area of effect into difficult terrain until the end of your next turn.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the Bludgeoning damage increases by 1d8 for each slot level above 4th."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the Bludgeoning damage increases by <strong>1d8</strong> for each slot level above 4th."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.BLUDGEONING],
@@ -820,7 +820,7 @@ export const mordenkainensFaithfulHound: SpellEntry = {
   description: [
     "You conjure a phantom watchdog in an unoccupied space that you can see within range, where it remains for the duration, until you dismiss it as an action, or until you move more than 100 feet away from it.",
     "The hound is Invisible to all creatures except you and can't be harmed. When a Small or larger creature comes within 30 feet of it without first speaking the password that you specify when you cast this spell, the hound starts barking loudly. The hound sees Invisible creatures and can see into the Ethereal Plane. It ignores illusions.",
-    "At the start of each of your turns, the hound attempts to bite one creature within 5 feet of it that is hostile to you. The hound's attack bonus is equal to your spellcasting ability modifier + your proficiency bonus. On a hit, it deals 4d8 Piercing damage."
+    "At the start of each of your turns, the hound attempts to bite one creature within 5 feet of it that is hostile to you. The hound's attack bonus is equal to your spellcasting ability modifier + your proficiency bonus. On a hit, it deals <strong>4d8</strong> Piercing damage."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.PIERCING],
@@ -889,8 +889,8 @@ export const phantasmalKiller: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You tap into the nightmares of a creature you can see within range and create an illusory manifestation of its deepest fears, visible only to that creature.",
-    "The target must make a Wisdom saving throw. On a failed save, the target becomes Frightened for the duration. At the end of each of the target's turns before the spell ends, the target must succeed on a Wisdom saving throw or take 4d10 Psychic damage. On a successful save, the spell ends.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by 1d10 for each slot level above 4th."
+    "The target must make a Wisdom saving throw. On a failed save, the target becomes Frightened for the duration. At the end of each of the target's turns before the spell ends, the target must succeed on a Wisdom saving throw or take <strong>4d10</strong> Psychic damage. On a successful save, the spell ends.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by <strong>1d10</strong> for each slot level above 4th."
   ],
   damage: [
     [DICE.D10, DAMAGE_TYPE.PSYCHIC],
@@ -939,8 +939,8 @@ export const raulothimsPsychicLance: SpellEntry = {
   duration: ["Instantaneous"],
   description: [
     "You unleash a shimmering lance of Psychic power from your forehead at a creature that you can see within range. Alternatively, you can utter a creature's name. If the named target is within range, it becomes the spell's target even if you can't see it. If the named target isn't within range, the lance dissipates without effect.",
-    "The target must make an Intelligence saving throw. On a failed save, the target takes 7d6 Psychic damage and is Incapacitated until the start of your next turn. On a successful save, the creature takes half as much damage and isn't Incapacitated.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by 1d6 for each slot level above 4th."
+    "The target must make an Intelligence saving throw. On a failed save, the target takes <strong>7d6</strong> Psychic damage and is Incapacitated until the start of your next turn. On a successful save, the creature takes half as much damage and isn't Incapacitated.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by <strong>1d6</strong> for each slot level above 4th."
   ],
   damage: [
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
@@ -971,7 +971,7 @@ export const shadowOfMoil: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "Flame-like shadows wreathe your body until the spell ends, causing you to become heavily obscured to others. The shadows turn dim light within 10 feet of you into darkness, and bright light in the same area into dim light.",
-    "Until the spell ends, you have Resistance to Radiant damage. In addition, whenever a creature within 10 feet of you hits you with an attack, the shadows lash out at that creature, dealing it 2d8 Necrotic damage."
+    "Until the spell ends, you have Resistance to Radiant damage. In addition, whenever a creature within 10 feet of you hits you with an attack, the shadows lash out at that creature, dealing it <strong>2d8</strong> Necrotic damage."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
@@ -992,7 +992,7 @@ export const sickeningRadiance: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: [
     "Dim, greenish light spreads within a 30-foot-radius sphere centered on a point you choose within range. The light spreads around corners, and it lasts until the spell ends.",
-    "When a creature moves into the spell's area for the first time on a turn or starts its turn there, that creature must succeed on a Constitution saving throw or take 4d10 Radiant damage, and it suffers one level of Exhaustion and emits a dim, greenish light in a 5-foot radius. This light makes it impossible for the creature to benefit from being Invisible. The light and any levels of Exhaustion caused by this spell go away when the spell ends."
+    "When a creature moves into the spell's area for the first time on a turn or starts its turn there, that creature must succeed on a Constitution saving throw or take <strong>4d10</strong> Radiant damage, and it suffers one level of Exhaustion and emits a dim, greenish light in a 5-foot radius. This light makes it impossible for the creature to benefit from being Invisible. The light and any levels of Exhaustion caused by this spell go away when the spell ends."
   ],
   damage: [
     [DICE.D10, DAMAGE_TYPE.RADIANT],
@@ -1027,9 +1027,9 @@ export const spiritOfDeath: SpellEntry = {
     "<strong>Senses.</strong> Darkvision 60 ft., passive Perception 13.",
     "<strong>Languages.</strong> Understands the languages you speak.",
     "<strong>Proficiency Bonus.</strong> Equals your bonus.",
-    "<strong>Incorporeal Movement.</strong> The reaper can move through other creatures and objects as if they were difficult terrain. If it ends its turn inside an object, it is shunted to the nearest unoccupied space and takes 1d10 Force damage for every 5 feet traveled.",
+    "<strong>Incorporeal Movement.</strong> The reaper can move through other creatures and objects as if they were difficult terrain. If it ends its turn inside an object, it is shunted to the nearest unoccupied space and takes <strong>1d10</strong> Force damage for every 5 feet traveled.",
     "<strong>Multiattack.</strong> The spirit makes a number of Reaping Scythe attacks equal to half the level of the spell, rounded down.",
-    "<strong>Reaping Scythe.</strong> Melee Weapon Attack: your spell attack modifier to hit, with Advantage, reach 5 ft., one target. Hit: 1d8 + 3 + the spell's level Necrotic damage.",
+    "<strong>Reaping Scythe.</strong> Melee Weapon Attack: your spell attack modifier to hit, with Advantage, reach 5 ft., one target. Hit: <strong>1d8</strong> + 3 + the spell's level Necrotic damage.",
     "<strong>Haunt Creature.</strong> The spirit targets a creature it can see within 10 feet of itself and begins haunting it. While the target is haunted, you and the spirit sense the direction and distance to the target if it is on the same plane of existence as you. Additionally, if the target starts its turn within 10 feet of the spirit, the target must succeed on a Wisdom saving throw against your spell save DC or have the Frightened condition until the start of the target's next turn. The target remains haunted until it dies, the spirit disappears, or the spirit uses this action again."
   ],
   damage: [[DICE.D8, DAMAGE_TYPE.NECROTIC]],
@@ -1047,7 +1047,7 @@ export const staggeringSmite: SpellEntry = {
   components: [SPELL_COMPONENT.V],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "The next time you hit a creature with a melee weapon attack during this spell's duration, your weapon pierces both body and mind, and the attack deals an extra 4d6 Psychic damage to the target. The target must make a Wisdom saving throw. On a failed save, it has Disadvantage on attack rolls and ability checks, and can't take Reactions, until the end of its next turn."
+    "The next time you hit a creature with a melee weapon attack during this spell's duration, your weapon pierces both body and mind, and the attack deals an extra <strong>4d6</strong> Psychic damage to the target. The target must make a Wisdom saving throw. On a failed save, it has Disadvantage on attack rolls and ability checks, and can't take Reactions, until the end of its next turn."
   ],
   damage: [
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
@@ -1114,10 +1114,10 @@ export const stormSphere: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
-    "A 20-foot-radius sphere of whirling air springs into existence centered on a point you choose within range. The sphere remains for the spell's duration. Each creature in the sphere when it appears or that ends its turn there must succeed on a Strength saving throw or take 2d6 Bludgeoning damage. The sphere's space is difficult terrain.",
-    "Until the spell ends, you can use a Bonus Action on each of your turns to cause a bolt of Lightning to leap from the center of the sphere toward one creature you choose within 60 feet of the center. Make a ranged spell attack. You have Advantage on the attack roll if the target is in the sphere. On a hit, the target takes 4d6 Lightning damage.",
+    "A 20-foot-radius sphere of whirling air springs into existence centered on a point you choose within range. The sphere remains for the spell's duration. Each creature in the sphere when it appears or that ends its turn there must succeed on a Strength saving throw or take <strong>2d6</strong> Bludgeoning damage. The sphere's space is difficult terrain.",
+    "Until the spell ends, you can use a Bonus Action on each of your turns to cause a bolt of Lightning to leap from the center of the sphere toward one creature you choose within 60 feet of the center. Make a ranged spell attack. You have Advantage on the attack roll if the target is in the sphere. On a hit, the target takes <strong>4d6</strong> Lightning damage.",
     "Creatures within 30 feet of the sphere have Disadvantage on Wisdom (Perception) checks made to listen.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases for each of its effects by 1d6 for each slot level above 4th."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases for each of its effects by <strong>1d6</strong> for each slot level above 4th."
   ],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -1193,7 +1193,7 @@ export const summonGreaterDemon: SpellEntry = {
   description: [
     "You utter foul words, summoning one demon from the chaos of the Abyss. You choose the demon's type, which must be one of Challenge Rating 5 or lower, such as a shadow demon or a barlgura. The demon appears in an unoccupied space you can see within range, and the demon disappears when it drops to 0 Hit Points or when the spell ends.",
     "Roll Initiative for the demon, which has its own turns. When you summon it and on each of your turns thereafter, you can issue a verbal command to it, requiring no action on your part, telling it what it must do on its next turn. If you issue no command, it spends its turn attacking any creature within reach that has attacked it.",
-    "At the end of each of the demon's turns, it makes a Charisma saving throw. The demon has Disadvantage on this saving throw if you say its true name. On a failed save, the demon continues to obey you. On a successful save, your control of the demon ends for the rest of the duration, and the demon spends its turns pursuing and attacking the nearest non-demons to the best of its ability. If you stop Concentrating on the spell before it reaches its full duration, an uncontrolled demon doesn't disappear for 1d6 rounds if it still has Hit Points.",
+    "At the end of each of the demon's turns, it makes a Charisma saving throw. The demon has Disadvantage on this saving throw if you say its true name. On a failed save, the demon continues to obey you. On a successful save, your control of the demon ends for the rest of the duration, and the demon spends its turns pursuing and attacking the nearest non-demons to the best of its ability. If you stop Concentrating on the spell before it reaches its full duration, an uncontrolled demon doesn't disappear for <strong>1d6</strong> rounds if it still has Hit Points.",
     "As part of casting the spell, you can form a circle on the ground with the blood used as a material component. The circle is large enough to encompass your space. While the spell lasts, the summoned demon can't cross the circle or harm it, and it can't target anyone within it. Using the material component in this manner consumes it when the spell ends.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the Challenge Rating increases by 1 for each slot level above 4th."
   ],
@@ -1250,8 +1250,8 @@ export const vitriolicSphere: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["Instantaneous"],
   description: [
-    "You point at a place within range, and a glowing 1-foot ball of emerald acid streaks there and explodes in a 20-foot radius. Each creature in that area must make a Dexterity saving throw. On a failed save, a creature takes 10d4 Acid damage and 5d4 Acid damage at the end of its next turn. On a successful save, a creature takes half the initial damage and no damage at the end of its next turn.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the initial damage increases by 2d4 for each slot level above 4th."
+    "You point at a place within range, and a glowing 1-foot ball of emerald acid streaks there and explodes in a 20-foot radius. Each creature in that area must make a Dexterity saving throw. On a failed save, a creature takes <strong>10d4</strong> Acid damage and <strong>5d4</strong> Acid damage at the end of its next turn. On a successful save, a creature takes half the initial damage and no damage at the end of its next turn.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the initial damage increases by <strong>2d4</strong> for each slot level above 4th."
   ],
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -1269,9 +1269,9 @@ export const wallOfFire: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You create a wall of fire on a solid surface within range. You can make the wall up to 60 feet long, 20 feet high, and 1 foot thick, or a ringed wall up to 20 feet in diameter, 20 feet high, and 1 foot thick. The wall is opaque and lasts for the duration.",
-    "When the wall appears, each creature within its area must make a Dexterity saving throw. On a failed save, a creature takes 5d8 Fire damage, or half as much damage on a successful save.",
-    "One side of the wall, selected by you when you cast this spell, deals 5d8 Fire damage to each creature that ends its turn within 10 feet of that side or inside the wall. A creature takes the same damage when it enters the wall for the first time on a turn or ends its turn there. The other side of the wall deals no damage.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by 1d8 for each slot level above 4th."
+    "When the wall appears, each creature within its area must make a Dexterity saving throw. On a failed save, a creature takes <strong>5d8</strong> Fire damage, or half as much damage on a successful save.",
+    "One side of the wall, selected by you when you cast this spell, deals <strong>5d8</strong> Fire damage to each creature that ends its turn within 10 feet of that side or inside the wall. A creature takes the same damage when it enters the wall for the first time on a turn or ends its turn there. The other side of the wall deals no damage.",
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by <strong>1d8</strong> for each slot level above 4th."
   ],
   damage: [
     [DICE.D8, DAMAGE_TYPE.FIRE],

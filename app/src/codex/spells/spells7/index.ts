@@ -78,7 +78,7 @@ export const crownOfStars: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["1 hour"],
   description: [
-    "Seven star-like motes of light appear and orbit your head until the spell ends. You can use a Bonus Action to send one of the motes streaking toward one creature or object within 120 feet of you. When you do so, make a ranged spell attack. On a hit, the target takes 4d12 Radiant damage. Whether you hit or miss, the mote is expended. The spell ends early if you expend the last mote.",
+    "Seven star-like motes of light appear and orbit your head until the spell ends. You can use a Bonus Action to send one of the motes streaking toward one creature or object within 120 feet of you. When you do so, make a ranged spell attack. On a hit, the target takes <strong>4d12</strong> Radiant damage. Whether you hit or miss, the mote is expended. The spell ends early if you expend the last mote.",
     "If you have four or more motes remaining, they shed bright light in a 30-foot radius and dim light for an additional 30 feet. If you have one to three motes remaining, they shed dim light in a 30-foot radius.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 8th level or higher, the number of motes created increases by two for each slot level above 7th."
   ],
@@ -103,10 +103,10 @@ export const delayedBlastFireball: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "A beam of yellow light flashes from your pointing finger, then condenses to linger at a chosen point within range as a glowing bead for the duration. When the spell ends, either because your Concentration is broken or because you decide to end it, the bead blossoms with a low roar into an explosion of flame that spreads around corners. Each creature in a 20-foot-radius sphere centered on that point must make a Dexterity saving throw. A creature takes Fire damage equal to the total accumulated damage on a failed save, or half as much damage on a successful one.",
-    "The spell's base damage is 12d6. If at the end of your turn the bead has not yet detonated, the damage increases by 1d6.",
+    "The spell's base damage is <strong>12d6</strong>. If at the end of your turn the bead has not yet detonated, the damage increases by <strong>1d6</strong>.",
     "If the glowing bead is touched before the interval has expired, the creature touching it must make a Dexterity saving throw. On a failed save, the spell ends immediately, causing the bead to erupt in flame. On a successful save, the creature can throw the bead up to 40 feet. When it strikes a creature or a solid object, the spell ends, and the bead explodes.",
     "The fire damages objects in the area and ignites flammable objects that aren't being worn or carried.",
-    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 8th level or higher, the base damage increases by 1d6 for each slot level above 7th."
+    "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 8th level or higher, the base damage increases by <strong>1d6</strong> for each slot level above 7th."
   ],
   damage: [
     [DICE.D6, DAMAGE_TYPE.FIRE],
@@ -170,7 +170,7 @@ export const draconicTransformation: SpellEntry = {
       style: "bullet",
       items: [
         "<strong>Blindsight.</strong> You have Blindsight with a range of 30 feet. Within that range, you can effectively see anything that isn't behind Total Cover, even if you're Blinded or in darkness. Moreover, you can see an Invisible creature, unless the creature successfully hides from you.",
-        "<strong>Breath Weapon.</strong> When you cast this spell, and as a Bonus Action on subsequent turns for the duration, you can exhale shimmering energy in a 60-foot cone. Each creature in that area must make a Dexterity saving throw, taking 6d8 Force damage on a failed save, or half as much damage on a successful one.",
+        "<strong>Breath Weapon.</strong> When you cast this spell, and as a Bonus Action on subsequent turns for the duration, you can exhale shimmering energy in a 60-foot cone. Each creature in that area must make a Dexterity saving throw, taking <strong>6d8</strong> Force damage on a failed save, or half as much damage on a successful one.",
         "<strong>Wings.</strong> Incorporeal wings sprout from your back, giving you a flying Speed of 60 feet."
       ]
     }
@@ -248,7 +248,7 @@ export const fingerOfDeath: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "You send negative energy coursing through a creature that you can see within range, causing it searing pain. The target must make a Constitution saving throw. It takes 7d8 + 30 Necrotic damage on a failed save, or half as much damage on a successful one.",
+    "You send negative energy coursing through a creature that you can see within range, causing it searing pain. The target must make a Constitution saving throw. It takes <strong>7d8</strong> + 30 Necrotic damage on a failed save, or half as much damage on a successful one.",
     "A Humanoid killed by this spell rises at the start of your next turn as a zombie that is permanently under your command, following your verbal orders to the best of its ability."
   ],
   damage: [],
@@ -266,7 +266,7 @@ export const fireStorm: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "A storm made up of sheets of roaring flame appears in a location you choose within range. The area of the storm consists of up to ten 10-foot cubes, which you can arrange as you wish. Each cube must have at least one face adjacent to the face of another cube. Each creature in the area must make a Dexterity saving throw. It takes 7d10 Fire damage on a failed save, or half as much damage on a successful save.",
+    "A storm made up of sheets of roaring flame appears in a location you choose within range. The area of the storm consists of up to ten 10-foot cubes, which you can arrange as you wish. Each cube must have at least one face adjacent to the face of another cube. Each creature in the area must make a Dexterity saving throw. It takes <strong>7d10</strong> Fire damage on a failed save, or half as much damage on a successful save.",
     "The fire damages objects in the area and ignites flammable objects that aren't being worn or carried. If you choose, plant life in the area is unaffected by this spell."
   ],
   damage: [
@@ -361,7 +361,7 @@ export const mordenkainensSword: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "You create a sword-shaped plane of force that hovers within range. It lasts for the duration.",
-    "When the sword appears, you make a melee spell attack against a target of your choice within 5 feet of the sword. On a hit, the target takes 3d10 Force damage. Until the spell ends, you can use a Bonus Action on each of your turns to move the sword up to 20 feet to a spot you can see and repeat this attack against the same target or a different one."
+    "When the sword appears, you make a melee spell attack against a target of your choice within 5 feet of the sword. On a hit, the target takes <strong>3d10</strong> Force damage. Until the spell ends, you can use a Bonus Action on each of your turns to move the sword up to 20 feet to a spot you can see and repeat this attack against the same target or a different one."
   ],
   damage: [
     [DICE.D10, DAMAGE_TYPE.FORCE],
@@ -426,16 +426,16 @@ export const prismaticSpray: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S],
   duration: ["Instantaneous"],
   description: [
-    "Eight multicolored rays of light flash from your hand. Each ray is a different color and has a different power and purpose. Each creature in a 60-foot cone must make a Dexterity saving throw. For each target, roll a d8 to determine which color ray affects it.",
+    "Eight multicolored rays of light flash from your hand. Each ray is a different color and has a different power and purpose. Each creature in a 60-foot cone must make a Dexterity saving throw. For each target, roll a <strong>d8</strong> to determine which color ray affects it.",
     {
       type: "list",
       style: "number",
       items: [
-        "<strong>Red.</strong> The target takes 10d6 Fire damage on a failed save, or half as much damage on a successful one.",
-        "<strong>Orange.</strong> The target takes 10d6 Acid damage on a failed save, or half as much damage on a successful one.",
-        "<strong>Yellow.</strong> The target takes 10d6 Lightning damage on a failed save, or half as much damage on a successful one.",
-        "<strong>Green.</strong> The target takes 10d6 Poison damage on a failed save, or half as much damage on a successful one.",
-        "<strong>Blue.</strong> The target takes 10d6 Cold damage on a failed save, or half as much damage on a successful one.",
+        "<strong>Red.</strong> The target takes <strong>10d6</strong> Fire damage on a failed save, or half as much damage on a successful one.",
+        "<strong>Orange.</strong> The target takes <strong>10d6</strong> Acid damage on a failed save, or half as much damage on a successful one.",
+        "<strong>Yellow.</strong> The target takes <strong>10d6</strong> Lightning damage on a failed save, or half as much damage on a successful one.",
+        "<strong>Green.</strong> The target takes <strong>10d6</strong> Poison damage on a failed save, or half as much damage on a successful one.",
+        "<strong>Blue.</strong> The target takes <strong>10d6</strong> Cold damage on a failed save, or half as much damage on a successful one.",
         "<strong>Indigo.</strong> On a failed save, the target is Restrained. It must then make a Constitution saving throw at the end of each of its turns. If it successfully saves three times, the spell ends. If it fails its save three times, it permanently turns to stone and is subjected to the Petrified condition. The successes and failures don't need to be consecutive; keep track of both until the target collects three of a kind.",
         "<strong>Violet.</strong> On a failed save, the target is Blinded. It must then make a Wisdom saving throw at the start of your next turn. A successful save ends the blindness. If it fails that save, the creature is transported to another plane of existence of the DM's choosing and is no longer Blinded. Typically, a creature that is on a plane that isn't its home plane is banished home, while other creatures are usually cast into the Astral or Ethereal planes.",
         "<strong>Special.</strong> The target is struck by two rays. Roll twice more, rerolling any 8."
@@ -477,7 +477,7 @@ export const regenerate: SpellEntry = {
   components: [SPELL_COMPONENT.V, SPELL_COMPONENT.S, SPELL_COMPONENT.M],
   duration: ["1 hour"],
   description: [
-    "You touch a creature and stimulate its natural healing ability. The target regains 4d8 + 15 Hit Points. For the duration of the spell, the target regains 1 Hit Point at the start of each of its turns, 10 Hit Points each minute.",
+    "You touch a creature and stimulate its natural healing ability. The target regains <strong>4d8</strong> + 15 Hit Points. For the duration of the spell, the target regains 1 Hit Point at the start of each of its turns, 10 Hit Points each minute.",
     "The target's severed body members, fingers, legs, tails, and so on, if any, are restored after 2 minutes. If you have the severed part and hold it to the stump, the spell instantaneously causes the limb to knit to the stump."
   ],
   isHealingSpell: true,
@@ -584,7 +584,7 @@ export const symbol: SpellEntry = {
       type: "list",
       style: "bullet",
       items: [
-        "<strong>Death.</strong> Each target must make a Constitution saving throw, taking 10d10 Necrotic damage on a failed save, or half as much damage on a successful save.",
+        "<strong>Death.</strong> Each target must make a Constitution saving throw, taking <strong>10d10</strong> Necrotic damage on a failed save, or half as much damage on a successful save.",
         "<strong>Discord.</strong> Each target must make a Constitution saving throw. On a failed save, a target bickers and argues with other creatures for 1 minute. During this time, it is incapable of meaningful communication and has disadvantage on attack rolls and Ability Checks.",
         "<strong>Fear.</strong> Each target must make a Wisdom saving throw and becomes Frightened for 1 minute on a failed save. While Frightened, the target drops whatever it is holding and must move at least 20 feet away from the glyph on each of its turns, if able.",
         "<strong>Hopelessness.</strong> Each target must make a Charisma saving throw. On a failed save, the target is overwhelmed with despair for 1 minute. During this time, it can't attack or target any creature with harmful abilities, spells, or other magical effects.",
@@ -616,7 +616,7 @@ export const teleport: SpellEntry = {
   duration: ["Instantaneous"],
   description: [
     "This spell instantly transports you and up to eight willing creatures of your choice that you can see within range, or a single object that you can see within range, to a destination you select. If you target an object, it must be able to fit entirely inside a 10-foot cube, and it can't be held or carried by an unwilling creature.",
-    "The destination you choose must be known to you, and it must be on the same plane of existence as you. Your familiarity with the destination determines whether you arrive there successfully. The DM rolls d100 and consults the table.",
+    "The destination you choose must be known to you, and it must be on the same plane of existence as you. Your familiarity with the destination determines whether you arrive there successfully. The DM rolls <strong>d100</strong> and consults the table.",
     {
       type: "list",
       style: "bullet",
@@ -642,9 +642,9 @@ export const teleport: SpellEntry = {
       style: "bullet",
       items: [
         "<strong>On Target.</strong> You and your group, or the target object, appear where you want to.",
-        "<strong>Off Target.</strong> You and your group, or the target object, appear a random distance away from the destination in a random direction. Distance off target is 1d10 x 1d10 percent of the distance that was to be traveled.",
+        "<strong>Off Target.</strong> You and your group, or the target object, appear a random distance away from the destination in a random direction. Distance off target is <strong>1d10</strong> x <strong>1d10</strong> percent of the distance that was to be traveled.",
         "<strong>Similar Area.</strong> You and your group, or the target object, wind up in a different area that's visually or thematically similar to the target area. Generally, you appear in the closest similar place, but since the spell has no range limit, you could conceivably wind up anywhere on the plane.",
-        "<strong>Mishap.</strong> The spell's unpredictable magic results in a difficult journey. Each teleporting creature, or the target object, takes 3d10 Force damage, and the DM rerolls on the table to see where you wind up. Multiple mishaps can occur, dealing damage each time."
+        "<strong>Mishap.</strong> The spell's unpredictable magic results in a difficult journey. Each teleporting creature, or the target object, takes <strong>3d10</strong> Force damage, and the DM rerolls on the table to see where you wind up. Multiple mishaps can occur, dealing damage each time."
       ]
     }
   ],
@@ -666,7 +666,7 @@ export const templeOfTheGods: SpellEntry = {
     "You cause a temple to shimmer into existence on ground you can see within range. The temple must fit within an unoccupied cube of space, up to 120 feet on each side. The temple remains until the spell ends. It is dedicated to whatever god, pantheon, or philosophy is represented by the holy symbol used in the casting.",
     "You make all decisions about the temple's appearance. The interior is enclosed by a floor, walls, and a roof, with one door granting access to the interior and as many windows as you wish. Only you and any creatures you designate when you cast the spell can open or close the door.",
     "The temple's interior is an open space with an idol or altar at one end. You decide whether the temple is illuminated and whether that illumination is bright light or dim light. The smell of burning incense fills the air within, and the temperature is mild.",
-    "The temple opposes types of creatures you choose when you cast this spell. Choose one or more of the following: Celestials, Elementals, Fey, Fiends, or Undead. If a creature of the chosen type attempts to enter the temple, that creature must make a Charisma saving throw. On a failed save, it can't enter the temple for 24 hours. Even if the creature can enter the temple, the magic there hinders it. Whenever it makes an attack roll, an Ability Check, or a saving throw inside the temple, it must roll a d4 and subtract the number rolled from the d20 roll.",
+    "The temple opposes types of creatures you choose when you cast this spell. Choose one or more of the following: Celestials, Elementals, Fey, Fiends, or Undead. If a creature of the chosen type attempts to enter the temple, that creature must make a Charisma saving throw. On a failed save, it can't enter the temple for 24 hours. Even if the creature can enter the temple, the magic there hinders it. Whenever it makes an attack roll, an Ability Check, or a saving throw inside the temple, it must roll a <strong>d4</strong> and subtract the number rolled from the <strong>d20</strong> roll.",
     "In addition, the sensors created by Divination spells can't appear inside the temple, and creatures within can't be targeted by Divination spells.",
     "Finally, whenever any creature in the temple regains Hit Points from a spell of 1st level or higher, the creature regains additional Hit Points equal to your Wisdom modifier, minimum 1 Hit Point.",
     "The temple is made from opaque magical force that extends into the Ethereal Plane, thus blocking ethereal travel into the temple's interior. Nothing can physically pass through the temple's exterior. It can't be dispelled by Dispel Magic, and Antimagic Field has no effect on it. A Disintegrate spell destroys the temple instantly.",
@@ -706,9 +706,9 @@ export const whirlwind: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 1 minute"],
   description: [
     "A whirlwind howls down to a point on the ground you specify. The whirlwind is a 10-foot-radius, 30-foot-high cylinder centered on that point. Until the spell ends, you can use your action to move the whirlwind up to 30 feet in any direction along the ground. The whirlwind sucks up any Medium or smaller objects that aren't secured to anything and that aren't worn or carried by anyone.",
-    "A creature must make a Dexterity saving throw the first time on a turn that it enters the whirlwind or that the whirlwind enters its space, including when the whirlwind first appears. A creature takes 10d6 Bludgeoning damage on a failed save, or half as much damage on a successful one. In addition, a Large or smaller creature that fails the save must succeed on a Strength saving throw or become Restrained in the whirlwind until the spell ends.",
+    "A creature must make a Dexterity saving throw the first time on a turn that it enters the whirlwind or that the whirlwind enters its space, including when the whirlwind first appears. A creature takes <strong>10d6</strong> Bludgeoning damage on a failed save, or half as much damage on a successful one. In addition, a Large or smaller creature that fails the save must succeed on a Strength saving throw or become Restrained in the whirlwind until the spell ends.",
     "When a creature starts its turn Restrained by the whirlwind, the creature is pulled 5 feet higher inside it, unless the creature is at the top. A Restrained creature moves with the whirlwind and falls when the spell ends, unless the creature has some means to stay aloft.",
-    "A Restrained creature can use an action to make a Strength or Dexterity check against your spell save DC. If successful, the creature is no longer Restrained by the whirlwind and is hurled 3d6 x 10 feet away from it in a random direction."
+    "A Restrained creature can use an action to make a Strength or Dexterity check against your spell save DC. If successful, the creature is no longer Restrained by the whirlwind and is hurled <strong>3d6</strong> x 10 feet away from it in a random direction."
   ],
   damage: [
     [DICE.D6, DAMAGE_TYPE.BLUDGEONING],

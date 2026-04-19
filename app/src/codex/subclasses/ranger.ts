@@ -88,8 +88,8 @@ export const rangerSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.DREADFUL_STRIKES, {
         description: [
           "You can augment your weapon strikes with mind-scarring magic drawn from the murky hollows of the Feywild.",
-          "When you hit a creature with a weapon, you can deal an extra 1d4 <link:Psychic>Psychic</link> damage to the target, which can take this extra damage only once per turn.",
-          "The extra damage increases to 1d6 when you reach Ranger level 11."
+          "When you hit a creature with a weapon, you can deal an extra <strong>1d4</strong> <link:Psychic>Psychic</link> damage to the target, which can take this extra damage only once per turn.",
+          "The extra damage increases to <strong>1d6</strong> when you reach Ranger level 11."
         ],
         ...notTracked
       }),
@@ -176,7 +176,7 @@ export const rangerSubclassEntries: SubclassEntry[] = [
         description: [
           "You have mastered the art of creating fearsome ambushes, granting you the following benefits.",
           "<strong>Ambusher's Leap.</strong> At the start of your first turn of each combat, your <link:Speed>Speed</link> increases by 10 feet until the end of that turn.",
-          "<strong>Dreadful Strike.</strong> When you attack a creature and hit it with a weapon, you can deal an extra 2d6 <link:Psychic>Psychic</link> damage.",
+          "<strong>Dreadful Strike.</strong> When you attack a creature and hit it with a weapon, you can deal an extra <strong>2d6</strong> <link:Psychic>Psychic</link> damage.",
           "You can use this benefit only once per turn, you can use it a number of times equal to your <link:WIS>Wisdom</link> modifier (minimum of once), and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
           "<strong>Initiative Bonus.</strong> When you roll <link:Initiative>Initiative</link>, you can add your <link:WIS>Wisdom</link> modifier to the roll."
         ],
@@ -217,7 +217,7 @@ export const rangerSubclassEntries: SubclassEntry[] = [
         CLASS_FEATURE.STALKERS_FLURRY,
         {
           description: [
-            "The <link:Psychic>Psychic</link> damage of your Dreadful Strike becomes 2d8.",
+            "The <link:Psychic>Psychic</link> damage of your Dreadful Strike becomes <strong>2d8</strong>.",
             "In addition, when you use the Dreadful Strike effect of your Dread Ambusher feature, you can cause one of the following additional effects.",
             "<strong>Sudden Strike.</strong> You can make another attack with the same weapon against a different creature that is within 5 feet of the original target and that is within the weapon's range.",
             "<strong>Mass Fear.</strong> The target and each creature within 10 feet of it must make a <link:Wisdom Saving Throw>Wisdom saving throw</link> against your spell save DC.",
@@ -246,7 +246,7 @@ export const rangerSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.HUNTERS_PREY, {
         description: [
           "You gain one of the following feature options of your choice. Whenever you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>, you can replace the chosen option with the other one.",
-          "<strong>Colossus Slayer.</strong> Your tenacity can wear down even the most resilient foes. When you hit a creature with a weapon, the weapon deals an extra 1d8 damage to the target if it's missing any of its Hit Points. You can deal this extra damage only once per turn.",
+          "<strong>Colossus Slayer.</strong> Your tenacity can wear down even the most resilient foes. When you hit a creature with a weapon, the weapon deals an extra <strong>1d8</strong> damage to the target if it's missing any of its Hit Points. You can deal this extra damage only once per turn.",
           "<strong>Horde Breaker.</strong> Once on each of your turns when you make an attack with a weapon, you can make another attack with the same weapon against a different creature that is within 5 feet of the original target, that is within the weapon's range, and that you haven't attacked this turn."
         ],
         ...notTracked
@@ -305,15 +305,15 @@ export const rangerSubclassEntries: SubclassEntry[] = [
           "You gain the following benefits.",
           "<strong>Biting Cold.</strong> Damage from your weapon attacks, Ranger spells, and Ranger features ignores <link:Resistance>Resistance</link> to <link:Cold>Cold</link> damage.",
           "<strong>Frost Resistance.</strong> You have <link:Resistance>Resistance</link> to <link:Cold>Cold</link> damage.",
-          "<strong>Polar Strikes.</strong> When you hit a creature with an attack roll using a weapon, you can deal an extra 1d4 <link:Cold>Cold</link> damage to the target, which can take this extra damage only once per turn.",
-          "When you reach Ranger level 11, this extra damage increases to 1d6."
+          "<strong>Polar Strikes.</strong> When you hit a creature with an attack roll using a weapon, you can deal an extra <strong>1d4</strong> <link:Cold>Cold</link> damage to the target, which can take this extra damage only once per turn.",
+          "When you reach Ranger level 11, this extra damage increases to <strong>1d6</strong>."
         ],
         ...notTracked
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.HUNTERS_RIME, {
         description: [
           "Ice rimes you and your prey, protecting you and slowing them.",
-          "When you cast <spell:Hunter's Mark>Hunter's Mark</spell>, you gain <link:Temporary Hit Points>Temporary Hit Points</link> equal to 1d10 plus your Ranger level.",
+          "When you cast <spell:Hunter's Mark>Hunter's Mark</spell>, you gain <link:Temporary Hit Points>Temporary Hit Points</link> equal to <strong>1d10</strong> plus your Ranger level.",
           "Additionally, while a creature is marked by your <spell:Hunter's Mark>Hunter's Mark</spell>, it can't take the Disengage action."
         ],
         ...notTracked
@@ -337,7 +337,7 @@ export const rangerSubclassEntries: SubclassEntry[] = [
         description: [
           "Your experience surviving harrowing environments allows you to bolster your allies in addition to yourself.",
           "As a Magic action, choose a number of creatures you can see equal to your <link:WIS>Wisdom</link> modifier (minimum of one).",
-          "Each chosen creature regains Hit Points equal to 1d10 plus your Ranger level and has <link:Advantage>Advantage</link> on saving throws to avoid or end the <link:Frightened>Frightened</link> condition for 1 hour.",
+          "Each chosen creature regains Hit Points equal to <strong>1d10</strong> plus your Ranger level and has <link:Advantage>Advantage</link> on saving throws to avoid or end the <link:Frightened>Frightened</link> condition for 1 hour.",
           "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link>."
         ],
         ...notTracked
@@ -361,9 +361,9 @@ export const rangerSubclassEntries: SubclassEntry[] = [
           "This form lasts until the spell ends, and while you are in this form, you gain the following benefits.",
           "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link> unless you expend a level 4+ spell slot (no action required).",
           "<strong>Frozen Soul.</strong> You have <link:Immunity>Immunity</link> to <link:Cold>Cold</link> damage.",
-          "When you first adopt this form and at the start of each of your subsequent turns, each creature of your choice in a 15-foot <link:Emanation>Emanation</link> originating from you takes 2d4 <link:Cold>Cold</link> damage.",
+          "When you first adopt this form and at the start of each of your subsequent turns, each creature of your choice in a 15-foot <link:Emanation>Emanation</link> originating from you takes <strong>2d4</strong> <link:Cold>Cold</link> damage.",
           "<strong>Partially Incorporeal.</strong> You have <link:Immunity>Immunity</link> to the <link:Grappled>Grappled</link>, <link:Prone>Prone</link>, and <link:Restrained>Restrained</link> conditions.",
-          "You can move through creatures and objects as if they were Difficult Terrain, but you take 1d10 <link:Force>Force</link> damage if you end your turn inside a creature or an object.",
+          "You can move through creatures and objects as if they were Difficult Terrain, but you take <strong>1d10</strong> <link:Force>Force</link> damage if you end your turn inside a creature or an object.",
           "If the form ends while you are inside a creature or an object, you are shunted to the nearest unoccupied space."
         ],
         ...notTracked

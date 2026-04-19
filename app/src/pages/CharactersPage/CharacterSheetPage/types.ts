@@ -1,12 +1,7 @@
 import type { AbilityScores, AttributeMode, Character } from "../../../types";
 
 export type SkillLevel = "none" | "proficient" | "expert";
-export type SpellManagementMode =
-  | "menu"
-  | "spell-slots"
-  | "cantrips"
-  | "prepared-spells"
-  | "eldritch-invocations";
+export type SpellManagementMode = "menu" | "cantrips" | "prepared-spells" | "eldritch-invocations";
 export type PersistCharacterUpdater = (updater: (current: Character) => Character) => void;
 export type QueueCharacterSave = (nextCharacter: Character) => void;
 

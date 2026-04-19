@@ -260,7 +260,7 @@ export const paladinFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
   [CLASS_FEATURE.RADIANT_STRIKES]: {
     description: [
       "Your strikes now carry supernatural power.",
-      "When you hit a target with an attack roll using a Melee weapon or an Unarmed Strike, the target takes an extra 1d8 Radiant damage."
+      "When you hit a target with an attack roll using a Melee weapon or an Unarmed Strike, the target takes an extra <strong>1d8</strong> Radiant damage."
     ],
     trackingState: TRACKER.TRACKED
   },

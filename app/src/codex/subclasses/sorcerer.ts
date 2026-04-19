@@ -109,7 +109,7 @@ export const sorcererSubclassEntries: SubclassEntry[] = [
             "You can unleash a space-warping anomaly.",
             "As a Magic action, you teleport to an unoccupied space you can see within 120 feet of yourself.",
             "Immediately after you disappear, each creature within 30 feet of the space you left must make a <link:Strength Saving Throw>Strength saving throw</link> against your spell save DC.",
-            "On a failed save, a creature takes 3d10 <link:Force>Force</link> damage and is pulled straight toward the space you left, ending in an unoccupied space as close to your former space as possible.",
+            "On a failed save, a creature takes <strong>3d10</strong> <link:Force>Force</link> damage and is pulled straight toward the space you left, ending in an unoccupied space as close to your former space as possible.",
             "On a successful save, the creature takes half as much damage only.",
             "Once you use this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link> unless you spend 5 Sorcery Points (no action required) to restore your use of it."
           ],
@@ -150,7 +150,7 @@ export const sorcererSubclassEntries: SubclassEntry[] = [
         {
           description: [
             "Your connection to the plane of absolute order allows you to equalize chaotic moments.",
-            "When a creature you can see within 60 feet of yourself is about to roll a d20 with <link:Advantage>Advantage</link> or <link:Disadvantage>Disadvantage</link>, you can take a Reaction to prevent the roll from being affected by Advantage and Disadvantage.",
+            "When a creature you can see within 60 feet of yourself is about to roll a <strong>d20</strong> with <link:Advantage>Advantage</link> or <link:Disadvantage>Disadvantage</link>, you can take a Reaction to prevent the roll from being affected by Advantage and Disadvantage.",
             "You can use this feature a number of times equal to your <link:CHA>Charisma</link> modifier (minimum of once), and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
           ],
           ...notTracked
@@ -163,7 +163,7 @@ export const sorcererSubclassEntries: SubclassEntry[] = [
           description: [
             "You can tap into the grand equation of existence to imbue a creature with a shimmering shield of order.",
             "As a Magic action, you can expend 1 to 5 Sorcery Points to create a magical ward around yourself or another creature you can see within 30 feet of yourself.",
-            "The ward is represented by a number of d8s equal to the number of Sorcery Points spent to create it.",
+            "The ward is represented by a number of <strong>d8s</strong> equal to the number of Sorcery Points spent to create it.",
             "When the warded creature takes damage, it can expend a number of those dice, roll them, and reduce the damage taken by the total rolled on those dice.",
             "The ward lasts until you finish a <link:long-rest>Long Rest</link> or until you use this feature again."
           ],
@@ -177,7 +177,7 @@ export const sorcererSubclassEntries: SubclassEntry[] = [
           description: [
             "You gain the ability to align your consciousness with the endless calculations of Mechanus.",
             "As a Bonus Action, you can enter this state for 1 minute.",
-            "For the duration, attack rolls against you can't benefit from <link:Advantage>Advantage</link>, and whenever you make a D20 Test, you can treat a roll of 9 or lower on the d20 as a 10.",
+            "For the duration, attack rolls against you can't benefit from <link:Advantage>Advantage</link>, and whenever you make a <strong>D20</strong> Test, you can treat a roll of 9 or lower on the <strong>d20</strong> as a 10.",
             "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link> unless you spend 5 Sorcery Points (no action required) to restore your use of it."
           ],
           ...notTracked
@@ -284,8 +284,8 @@ export const sorcererSubclassEntries: SubclassEntry[] = [
           description: [
             "When you spend at least 1 Sorcery Point as part of the Magic action or a Bonus Action on your turn, you can unleash one of the following magical effects of your choice.",
             "You can do so only once per turn.",
-            "<strong>Bolstering Flames.</strong> You or one creature you can see within 30 feet of yourself gains <link:Temporary Hit Points>Temporary Hit Points</link> equal to 1d4 plus your <link:CHA>Charisma</link> modifier.",
-            "<strong>Radiant Fire.</strong> One creature you can see within 30 feet of yourself takes 1d4 <link:Fire>Fire</link> or <link:Radiant>Radiant</link> damage (your choice)."
+            "<strong>Bolstering Flames.</strong> You or one creature you can see within 30 feet of yourself gains <link:Temporary Hit Points>Temporary Hit Points</link> equal to <strong>1d4</strong> plus your <link:CHA>Charisma</link> modifier.",
+            "<strong>Radiant Fire.</strong> One creature you can see within 30 feet of yourself takes <strong>1d4</strong> <link:Fire>Fire</link> or <link:Radiant>Radiant</link> damage (your choice)."
           ],
           ...notTracked
         }
@@ -307,7 +307,7 @@ export const sorcererSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.ABSORB_SPELLS, {
         description: [
           "You always have <spell:Counterspell>Counterspell</spell> prepared.",
-          "Additionally, whenever a target fails the saving throw against a <spell:Counterspell>Counterspell</spell> you cast, you regain 1d4 Sorcery Points."
+          "Additionally, whenever a target fails the saving throw against a <spell:Counterspell>Counterspell</spell> you cast, you regain <strong>1d4</strong> Sorcery Points."
         ],
         ...notTracked
       }),
@@ -317,7 +317,7 @@ export const sorcererSubclassEntries: SubclassEntry[] = [
         {
           description: [
             "Your Spellfire Burst improves.",
-            "You add your Sorcerer level to the <link:Temporary Hit Points>Temporary Hit Points</link> gained from Bolstering Flames, and the damage of Radiant Fire increases to 1d8."
+            "You add your Sorcerer level to the <link:Temporary Hit Points>Temporary Hit Points</link> gained from Bolstering Flames, and the damage of Radiant Fire increases to <strong>1d8</strong>."
           ],
           ...notTracked
         }
@@ -352,15 +352,15 @@ export const sorcererSubclassEntries: SubclassEntry[] = [
         {
           description: [
             "Your spellcasting can unleash surges of untamed magic.",
-            "Once per turn, you can roll 1d20 immediately after you cast a Sorcerer spell with a spell slot.",
+            "Once per turn, you can roll <strong>1d20</strong> immediately after you cast a Sorcerer spell with a spell slot.",
             "If you roll a 20, roll on the Wild Magic Surge table to create a magical effect.",
             "If the magical effect is a spell, it is too wild to be affected by your <link:Metamagic>Metamagic</link>.",
             "<strong>Wild Magic Surge.</strong>",
             "01-04. Roll on this table at the start of each of your turns for the next minute, ignoring this result on subsequent rolls.",
-            "05-08. A creature that is Friendly toward you appears in a random unoccupied space within 60 feet of you. The creature is under the DM's control and disappears 1 minute later. Roll 1d4 to determine the creature: on a 1, a Modron Duodrone appears; on a 2, a Flumph appears; on a 3, a Modron Monodrone appears; on a 4, a Unicorn appears. See the Monster Manual for the creature's stat block.",
+            "05-08. A creature that is Friendly toward you appears in a random unoccupied space within 60 feet of you. The creature is under the DM's control and disappears 1 minute later. Roll <strong>1d4</strong> to determine the creature: on a 1, a Modron Duodrone appears; on a 2, a Flumph appears; on a 3, a Modron Monodrone appears; on a 4, a Unicorn appears. See the Monster Manual for the creature's stat block.",
             "09-12. For the next minute, you regain 5 Hit Points at the start of each of your turns.",
             "13-16. Creatures have <link:Disadvantage>Disadvantage</link> on saving throws against the next spell you cast in the next minute that involves a saving throw.",
-            "17-20. You are subjected to an effect that lasts for 1 minute unless its description says otherwise. Roll 1d8 to determine the effect: on a 1, you're surrounded by faint, ethereal music only you and creatures within 5 feet of you can hear; on a 2, your size increases by one size category; on a 3, you grow a long beard made of feathers that remains until you sneeze, at which point the feathers explode from your face and vanish; on a 4, you must shout when you speak; on a 5, illusory butterflies flutter in the air within 10 feet of you; on a 6, an eye appears on your forehead, granting you <link:Advantage>Advantage</link> on Wisdom (<link:Perception>Perception</link>) checks; on a 7, pink bubbles float out of your mouth whenever you speak; on an 8, your skin turns a vibrant shade of blue for 24 hours or until the effect is ended by a <spell:Remove Curse>Remove Curse</spell> spell.",
+            "17-20. You are subjected to an effect that lasts for 1 minute unless its description says otherwise. Roll <strong>1d8</strong> to determine the effect: on a 1, you're surrounded by faint, ethereal music only you and creatures within 5 feet of you can hear; on a 2, your size increases by one size category; on a 3, you grow a long beard made of feathers that remains until you sneeze, at which point the feathers explode from your face and vanish; on a 4, you must shout when you speak; on a 5, illusory butterflies flutter in the air within 10 feet of you; on a 6, an eye appears on your forehead, granting you <link:Advantage>Advantage</link> on Wisdom (<link:Perception>Perception</link>) checks; on a 7, pink bubbles float out of your mouth whenever you speak; on an 8, your skin turns a vibrant shade of blue for 24 hours or until the effect is ended by a <spell:Remove Curse>Remove Curse</spell> spell.",
             "21-24. For the next minute, all your spells with a casting time of an action have a casting time of a Bonus Action.",
             "25-28. You are transported to the Astral Plane until the end of your next turn. You then return to the space you previously occupied or the nearest unoccupied space if that space is occupied.",
             "29-32. The next time you cast a spell that deals damage within the next minute, don't roll the spell's damage dice for the damage. Instead use the highest number possible for each damage die.",
@@ -370,24 +370,24 @@ export const sorcererSubclassEntries: SubclassEntry[] = [
             "45-48. You and up to three creatures you choose within 30 feet of you have the <link:Invisible>Invisible</link> condition for 1 minute. This invisibility ends on a creature immediately after it makes an attack roll, deals damage, or casts a spell.",
             "49-52. A spectral shield hovers near you for the next minute, granting you a +2 bonus to AC and immunity to <spell:Magic Missile>Magic Missile</spell>.",
             "53-56. You can take one extra action on this turn.",
-            "57-60. You cast a random spell. If the spell normally requires <link:Concentration>Concentration</link>, it doesn't require Concentration in this case; the spell lasts for its full duration. Roll 1d10 to determine the spell: on a 1, <spell:Confusion>Confusion</spell>; on a 2, <spell:Fireball>Fireball</spell>; on a 3, <spell:Fog Cloud>Fog Cloud</spell>; on a 4, <spell:Fly>Fly</spell> (cast on a random creature within 60 feet of you); on a 5, <spell:Grease>Grease</spell>; on a 6, <spell:Levitate>Levitate</spell> (cast on yourself); on a 7, <spell:Magic Missile>Magic Missile</spell> (cast as a level 5 spell); on an 8, <spell:Mirror Image>Mirror Image</spell>; on a 9, <spell:Polymorph>Polymorph</spell> (cast on yourself), and if you fail the saving throw, you turn into a Goat (see appendix B); on a 10, <spell:See Invisibility>See Invisibility</spell>.",
-            "61-64. For the next minute, any flammable, nonmagical object you touch that isn't being worn or carried by another creature bursts into flame, takes 1d4 <link:Fire>Fire</link> damage, and is burning.",
+            "57-60. You cast a random spell. If the spell normally requires <link:Concentration>Concentration</link>, it doesn't require Concentration in this case; the spell lasts for its full duration. Roll <strong>1d10</strong> to determine the spell: on a 1, <spell:Confusion>Confusion</spell>; on a 2, <spell:Fireball>Fireball</spell>; on a 3, <spell:Fog Cloud>Fog Cloud</spell>; on a 4, <spell:Fly>Fly</spell> (cast on a random creature within 60 feet of you); on a 5, <spell:Grease>Grease</spell>; on a 6, <spell:Levitate>Levitate</spell> (cast on yourself); on a 7, <spell:Magic Missile>Magic Missile</spell> (cast as a level 5 spell); on an 8, <spell:Mirror Image>Mirror Image</spell>; on a 9, <spell:Polymorph>Polymorph</spell> (cast on yourself), and if you fail the saving throw, you turn into a Goat (see appendix B); on a 10, <spell:See Invisibility>See Invisibility</spell>.",
+            "61-64. For the next minute, any flammable, nonmagical object you touch that isn't being worn or carried by another creature bursts into flame, takes <strong>1d4</strong> <link:Fire>Fire</link> damage, and is burning.",
             "65-68. If you die within the next hour, you immediately revive as if by the <spell:Reincarnate>Reincarnate</spell> spell.",
             "69-72. You have the <link:Frightened>Frightened</link> condition until the end of your next turn. The DM determines the source of your fear.",
             "73-76. You teleport up to 60 feet to an unoccupied space you can see.",
-            "77-80. A random creature within 60 feet of you has the <link:Poisoned>Poisoned</link> condition for 1d4 hours.",
+            "77-80. A random creature within 60 feet of you has the <link:Poisoned>Poisoned</link> condition for <strong>1d4</strong> hours.",
             "81-84. You radiate Bright Light in a 30-foot radius for the next minute. Any creature that ends its turn within 5 feet of you has the <link:Blinded>Blinded</link> condition until the end of its next turn.",
-            "85-88. Up to three creatures of your choice that you can see within 30 feet of you take 1d10 <link:Necrotic>Necrotic</link> damage. You regain Hit Points equal to the sum of the Necrotic damage dealt.",
-            "89-92. Up to three creatures of your choice that you can see within 30 feet of you take 4d10 <link:Lightning>Lightning</link> damage.",
+            "85-88. Up to three creatures of your choice that you can see within 30 feet of you take <strong>1d10</strong> <link:Necrotic>Necrotic</link> damage. You regain Hit Points equal to the sum of the Necrotic damage dealt.",
+            "89-92. Up to three creatures of your choice that you can see within 30 feet of you take <strong>4d10</strong> <link:Lightning>Lightning</link> damage.",
             "93-96. You and all creatures within 30 feet of you have <link:Vulnerability>Vulnerability</link> to <link:Piercing>Piercing</link> damage for the next minute.",
-            "97-00. Roll 1d6. On a 1, you regain 2d10 Hit Points; on a 2, one ally of your choice within 300 feet of you regains 2d10 Hit Points; on a 3, you regain your lowest-level expended spell slot; on a 4, one ally of your choice within 300 feet of you regains their lowest-level expended spell slot; on a 5, you regain all your expended Sorcery Points; on a 6, all the effects of row 17-20 affect you simultaneously."
+            "97-00. Roll <strong>1d6</strong>. On a 1, you regain <strong>2d10</strong> Hit Points; on a 2, one ally of your choice within 300 feet of you regains <strong>2d10</strong> Hit Points; on a 3, you regain your lowest-level expended spell slot; on a 4, one ally of your choice within 300 feet of you regains their lowest-level expended spell slot; on a 5, you regain all your expended Sorcery Points; on a 6, all the effects of row 17-20 affect you simultaneously."
           ],
           ...notTracked
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.TIDES_OF_CHAOS, {
         description: [
-          "You can manipulate chaos itself to give yourself <link:Advantage>Advantage</link> on one D20 Test before you roll the d20.",
+          "You can manipulate chaos itself to give yourself <link:Advantage>Advantage</link> on one <strong>D20</strong> Test before you roll the <strong>d20</strong>.",
           "Once you do so, you must cast a Sorcerer spell with a spell slot or finish a <link:long-rest>Long Rest</link> before you can use this feature again.",
           "If you do cast a Sorcerer spell with a spell slot before you finish a Long Rest, you automatically roll on the Wild Magic Surge table."
         ],
@@ -396,7 +396,7 @@ export const sorcererSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.BEND_LUCK, {
         description: [
           "You have the ability to twist fate using your wild magic.",
-          "Immediately after another creature you can see rolls the d20 for a D20 Test, you can take a Reaction and spend 1 Sorcery Point to roll 1d4 and apply the number rolled as a bonus or penalty (your choice) to the d20 roll."
+          "Immediately after another creature you can see rolls the <strong>d20</strong> for a <strong>D20</strong> Test, you can take a Reaction and spend 1 Sorcery Point to roll <strong>1d4</strong> and apply the number rolled as a bonus or penalty (your choice) to the <strong>d20</strong> roll."
         ],
         ...notTracked
       }),

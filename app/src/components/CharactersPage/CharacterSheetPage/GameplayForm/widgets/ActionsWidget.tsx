@@ -42,7 +42,6 @@ import {
   consumeBeguilingMagicOrBardicInspirationForCharacter,
   consumeMantleOfMajestyUseForCharacter,
   consumeContactPatronUseForCharacter,
-  consumeDruidStarMapGuidingBoltUseForCharacter,
   expendChannelDivinityUseForCharacter,
   consumeFighterPsiWarriorPsionicStrikeForCharacter,
   consumeMysticArcanumUseForCharacter,
@@ -53,6 +52,7 @@ import {
   consumeFaithfulSteedUseForCharacter,
   consumePaladinsSmiteUseForCharacter,
   getDruidNatureMagicianOptionsForCharacter,
+  hasDruidTwinklingConstellationsFeatureForCharacter,
   getDruidWildResurgenceAvailableSpellSlotLevelsForCharacter,
   getDruidWildResurgenceSpellSlotRecoveryUsesRemainingForCharacter,
   getDruidWildShapeKnownFormsForCharacter,
@@ -172,9 +172,7 @@ import {
   getArcaneRecoveryRecoveryLevelLimit
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
 import { setWizardDivinerPortentRolls } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerPortent";
-import {
-  activateWizardDivinerThirdEye
-} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerThirdEye";
+import { activateWizardDivinerThirdEye } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerThirdEye";
 import type { WizardDivinerThirdEyeOptionKey } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerThirdEyeConfig";
 import {
   getRogueSneakAttackEffectDefinitions,
@@ -279,10 +277,7 @@ import RadioContainerOption from "../../RadioContainerOption";
 import { SorcererInnateSorceryActionFooter } from "./SorcererInnateSorceryAction";
 import ThirdEyeActionBody from "./ThirdEyeActionBody";
 import { WarlockAwakenedMindActionFooter } from "./WarlockAwakenedMindAction";
-import {
-  WarriorOfTheGodsActionBody,
-  WarriorOfTheGodsActionFooter
-} from "./WarriorOfTheGodsAction";
+import { WarriorOfTheGodsActionBody, WarriorOfTheGodsActionFooter } from "./WarriorOfTheGodsAction";
 import {
   appendRollModifier,
   formatWildShapeMonsterMeta,
@@ -492,9 +487,7 @@ function FeatureOptionsActionBody({
               character={character}
               roundTracker={roundTracker}
               selected={isSelected}
-              selectionIndicatorType={
-                selection === "multi-confirm" ? "checkbox" : "radio"
-              }
+              selectionIndicatorType={selection === "multi-confirm" ? "checkbox" : "radio"}
               selectionName={selection === "multi-confirm" ? undefined : action.action.key}
               onClick={() => onToggleOption(option)}
               formatValueLabel={formatFeatureActionOptionValueLabel}
@@ -1313,6 +1306,7 @@ function WildShapeActionBody({
           selected={selectedMonsterSlug === monster.slug}
           onSelect={() => onSelectMonster(monster.slug)}
           className={styles.wildShapeOption}
+          asideClassName={styles.wildShapeReferenceAside}
           aside={
             <button
               type="button"
@@ -1320,7 +1314,7 @@ function WildShapeActionBody({
               onClick={() => onPreviewMonster(monster.slug)}
               aria-label={`Open ${monster.name} details`}
             >
-              <BookOpen size={16} aria-hidden="true" />
+              <BookOpen aria-hidden="true" />
             </button>
           }
         />
@@ -1398,15 +1392,15 @@ function WildCompanionActionBody({
 
 function NatureMagicianActionBody({
   options,
-  selectedWildShapeCost,
-  onSelectWildShapeCost
+  selectedSpellSlotLevel,
+  onSelectSpellSlotLevel
 }: {
   options: Array<{
     wildShapeCost: number;
     spellSlotLevel: number;
   }>;
-  selectedWildShapeCost: number | null;
-  onSelectWildShapeCost: (wildShapeCost: number) => void;
+  selectedSpellSlotLevel: number | null;
+  onSelectSpellSlotLevel: (spellSlotLevel: number) => void;
 }) {
   if (options.length <= 0) {
     return (
@@ -1420,12 +1414,12 @@ function NatureMagicianActionBody({
     <div className={styles.natureMagicianBody}>
       {options.map((option) => (
         <RadioContainerOption
-          key={`nature-magician-${option.wildShapeCost}`}
+          key={`nature-magician-${option.spellSlotLevel}`}
           name="nature-magician-option"
-          header={`Use ${option.wildShapeCost} Wild Shape`}
-          breakdown={`Recover 1 level ${option.spellSlotLevel} spell slot`}
-          selected={selectedWildShapeCost === option.wildShapeCost}
-          onSelect={() => onSelectWildShapeCost(option.wildShapeCost)}
+          header={`Recover 1 level ${option.spellSlotLevel} spell slot`}
+          subheader={`Use ${option.wildShapeCost} Wild Shape`}
+          selected={selectedSpellSlotLevel === option.spellSlotLevel}
+          onSelect={() => onSelectSpellSlotLevel(option.spellSlotLevel)}
         />
       ))}
     </div>
@@ -1531,7 +1525,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     useState<WildResurgenceMode | null>(null);
   const [selectedWildResurgenceSpellSlotLevel, setSelectedWildResurgenceSpellSlotLevel] =
     useState(1);
-  const [selectedNatureMagicianWildShapeCost, setSelectedNatureMagicianWildShapeCost] = useState<
+  const [selectedNatureMagicianSpellSlotLevel, setSelectedNatureMagicianSpellSlotLevel] = useState<
     number | null
   >(null);
   const [selectedBlessingOfTheTricksterTarget, setSelectedBlessingOfTheTricksterTarget] =
@@ -1550,8 +1544,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [selectedRageOptionKey, setSelectedRageOptionKey] = useState<string | null>(null);
   const [selectedRagePowerOptionKey, setSelectedRagePowerOptionKey] = useState<string | null>(null);
   const [isRageOfTheGodsSelected, setIsRageOfTheGodsSelected] = useState(false);
-  const [selectedWarriorOfTheGodsChargeCount, setSelectedWarriorOfTheGodsChargeCount] =
-    useState(1);
+  const [selectedWarriorOfTheGodsChargeCount, setSelectedWarriorOfTheGodsChargeCount] = useState(1);
   const [isFixedSpellDrawerOpen, setIsFixedSpellDrawerOpen] = useState(false);
   const [selectedFixedSpellSlotLevel, setSelectedFixedSpellSlotLevel] = useState(1);
   const [isDiceRollerSettingsOpen, setIsDiceRollerSettingsOpen] = useState(false);
@@ -1970,7 +1963,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const selectedNatureMagicianOption =
     selectedFeatureAction?.key === druidNatureMagicianActionKey
       ? (natureMagicianOptions.find(
-          (option) => option.wildShapeCost === selectedNatureMagicianWildShapeCost
+          (option) => option.spellSlotLevel === selectedNatureMagicianSpellSlotLevel
         ) ?? null)
       : null;
   const selectedRageOptions = useMemo(
@@ -2004,7 +1997,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   );
   const selectedWarriorOfTheGodsUsesRemaining =
     selectedFeatureAction?.key === barbarianWarriorOfTheGodsActionKey
-      ? selectedFeatureAction.usesRemaining ?? 0
+      ? (selectedFeatureAction.usesRemaining ?? 0)
       : 0;
   const selectedSecondWindHealingFormula =
     selectedFeatureAction?.key === fighterSecondWindActionKey
@@ -2237,15 +2230,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         selectedAction.action.disabledReason ??
         null)
       : null;
-  const selectedClericChannelDivinityWarning =
-    selectedClericChannelDivinityRow
-      ? (selectedFeatureActionPrimaryDisabledReason ??
-        (selectedClericChannelDivinityRow.option.disabled
-          ? (selectedClericChannelDivinityRow.option.disabledReason ?? "This divinity is unavailable.")
-          : null) ??
-        selectedClericChannelDivinityRow.option.disabledReason ??
-        null)
-      : null;
+  const selectedClericChannelDivinityWarning = selectedClericChannelDivinityRow
+    ? (selectedFeatureActionPrimaryDisabledReason ??
+      (selectedClericChannelDivinityRow.option.disabled
+        ? (selectedClericChannelDivinityRow.option.disabledReason ??
+          "This divinity is unavailable.")
+        : null) ??
+      selectedClericChannelDivinityRow.option.disabledReason ??
+      null)
+    : null;
   const canSubmitSelectedWarriorOfTheGodsRoll =
     selectedWarriorOfTheGodsChargeCount > 0 &&
     selectedWarriorOfTheGodsChargeCount <= selectedWarriorOfTheGodsUsesRemaining;
@@ -2448,7 +2441,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedWildCompanionSpellSlotLevel(1);
     setSelectedWildResurgenceMode(null);
     setSelectedWildResurgenceSpellSlotLevel(1);
-    setSelectedNatureMagicianWildShapeCost(null);
+    setSelectedNatureMagicianSpellSlotLevel(null);
     setSelectedBlessingOfTheTricksterTarget("self");
     setSelectedThirdEyeOptionKey(null);
     setSelectedStarryFormConstellation(null);
@@ -2511,7 +2504,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedWildCompanionSpellSlotLevel(1);
     setSelectedWildResurgenceMode(null);
     setSelectedWildResurgenceSpellSlotLevel(1);
-    setSelectedNatureMagicianWildShapeCost(null);
+    setSelectedNatureMagicianSpellSlotLevel(null);
     setSelectedThirdEyeOptionKey(null);
     setSelectedStarryFormConstellation(null);
     setSelectedRageOptionKey(null);
@@ -2675,11 +2668,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return;
     }
 
-    setSelectedNatureMagicianWildShapeCost((currentValue) =>
+    setSelectedNatureMagicianSpellSlotLevel((currentValue) =>
       currentValue !== null &&
-      natureMagicianOptions.some((option) => option.wildShapeCost === currentValue)
+      natureMagicianOptions.some((option) => option.spellSlotLevel === currentValue)
         ? currentValue
-        : null
+        : (natureMagicianOptions[0]?.spellSlotLevel ?? null)
     );
   }, [natureMagicianOptions, selectedFeatureAction?.key]);
 
@@ -3720,7 +3713,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         preparedCharacter,
         selectedBlessingOfTheTricksterTarget
       );
-      const characterToUpdate = nextCharacter === preparedCharacter ? preparedCharacter : nextCharacter;
+      const characterToUpdate =
+        nextCharacter === preparedCharacter ? preparedCharacter : nextCharacter;
 
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(characterToUpdate, roundTrackerResource)
@@ -3845,7 +3839,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     onPersistCharacter((currentCharacter) =>
       activateDruidNatureMagicianForCharacter(
         currentCharacter,
-        selectedNatureMagicianOption.wildShapeCost
+        selectedNatureMagicianOption.spellSlotLevel
       )
     );
 
@@ -4029,8 +4023,6 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         nextCharacter = expendMonkFocusPointForCharacter(preparedCharacter);
       } else if (fixedSpellExecute.effectKind === "contact-patron") {
         nextCharacter = consumeContactPatronUseForCharacter(preparedCharacter);
-      } else if (fixedSpellExecute.effectKind === "druids-guiding-bolt") {
-        nextCharacter = consumeDruidStarMapGuidingBoltUseForCharacter(preparedCharacter);
       } else if (fixedSpellExecute.effectKind === "mantle-of-majesty") {
         nextCharacter =
           getMantleOfMajestyUsesRemainingForCharacter(preparedCharacter) > 0
@@ -4329,10 +4321,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       );
     }
 
-    if (
-      selectedAction.kind === "feature" &&
-      selectedAction.action.key === preserveLifeActionKey
-    ) {
+    if (selectedAction.kind === "feature" && selectedAction.action.key === preserveLifeActionKey) {
       return <ClericPreserveLifeActionBody clericLevel={character.level} />;
     }
 
@@ -4454,6 +4443,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         return (
           <DruidStarryFormActionBody
             selectedConstellation={selectedStarryFormConstellation}
+            hasTwinklingConstellations={hasDruidTwinklingConstellationsFeatureForCharacter(
+              character
+            )}
             onSelectConstellation={setSelectedStarryFormConstellation}
           />
         );
@@ -4477,8 +4469,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         return (
           <NatureMagicianActionBody
             options={natureMagicianOptions}
-            selectedWildShapeCost={selectedNatureMagicianWildShapeCost}
-            onSelectWildShapeCost={setSelectedNatureMagicianWildShapeCost}
+            selectedSpellSlotLevel={selectedNatureMagicianSpellSlotLevel}
+            onSelectSpellSlotLevel={setSelectedNatureMagicianSpellSlotLevel}
           />
         );
       }
@@ -5124,8 +5116,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           className={clsx(sheetStyles.castButton, styles.footerActionButton)}
           onClick={submitWildResurgence}
           disabled={
-            !canUseSelectedWildResurgenceMode ||
-            selectedFeatureActionPrimaryDisabledReason !== null
+            !canUseSelectedWildResurgenceMode || selectedFeatureActionPrimaryDisabledReason !== null
           }
         >
           <span>Use</span>

@@ -11,6 +11,7 @@ export type RadioContainerOptionProps = {
   breakdown?: ReactNode;
   actionBadge?: ReactNode;
   aside?: ReactNode;
+  asideClassName?: string;
   disabled?: boolean;
   name?: string;
   indicatorType?: "radio" | "checkbox";
@@ -27,6 +28,7 @@ function RadioContainerOption({
   breakdown,
   actionBadge,
   aside,
+  asideClassName,
   disabled = false,
   name,
   indicatorType = "radio",
@@ -67,7 +69,7 @@ function RadioContainerOption({
           {breakdown ? <div className={styles.breakdown}>{breakdown}</div> : null}
         </div>
       </label>
-      {aside ? <div className={styles.aside}>{aside}</div> : null}
+      {aside ? <div className={clsx(styles.aside, asideClassName)}>{aside}</div> : null}
     </div>
   );
 }

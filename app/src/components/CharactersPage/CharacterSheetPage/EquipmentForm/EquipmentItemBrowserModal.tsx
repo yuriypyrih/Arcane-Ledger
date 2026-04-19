@@ -1,5 +1,5 @@
 import { Plus, X } from "lucide-react";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useState, type ReactNode } from "react";
 import ItemBrowserFilters from "../../../ItemBrowser";
 import { sanitizeItemBrowserScopedFilters } from "../../../ItemBrowser/itemBrowser";
 import ItemCodexTable from "../../../CodexPage/ItemCodexTable";
@@ -46,6 +46,20 @@ function EquipmentItemBrowserModal({
   const [source, setSource] = useState<string | null>(null);
   const [page, setPage] = useState(1);
   const [ordering, setOrdering] = useState<ItemOrdering>("name");
+  const resetBrowserState = useCallback(() => {
+    setQuery("");
+    setTab(DEFAULT_ITEM_BROWSER_TAB);
+    setCategory(null);
+    setAttackType(null);
+    setProficiencyType(null);
+    setMastery(null);
+    setProperty(null);
+    setArmorType(null);
+    setRarity(null);
+    setSource(null);
+    setPage(1);
+    setOrdering("name");
+  }, []);
   const { payload: filterOptionsPayload } = useItemFilterOptions(isOpen);
   const sanitizedScopedFilters = useMemo(
     () =>
@@ -84,6 +98,14 @@ function EquipmentItemBrowserModal({
     [payload?.count]
   );
   const safePage = Math.min(page, totalPages);
+
+  useEffect(() => {
+    if (isOpen) {
+      return;
+    }
+
+    resetBrowserState();
+  }, [isOpen, resetBrowserState]);
 
   useEffect(() => {
     if (safePage !== page) {

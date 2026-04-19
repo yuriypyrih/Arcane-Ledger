@@ -80,12 +80,14 @@ import {
   restoreFighterSecondWindOnShortRest
 } from "../../../../../pages/CharactersPage/classFeatures/fighter/fighter";
 import {
+  getDruidCosmicOmenUsesTotal,
   getDruidStarMapGuidingBoltUsesTotal,
   getDruidMoonlightStepUsesTotal,
   getDruidNaturalRecoveryUsesTotal,
   getDruidNatureMagicianUsesTotal,
   getDruidWildResurgenceSpellSlotRecoveryUsesTotal,
   getDruidWildShapeUsesTotal,
+  restoreDruidCosmicOmenOnLongRest,
   restoreDruidMoonlightStepOnLongRest,
   restoreDruidNaturalRecoveryOnLongRest,
   restoreDruidNatureMagicianOnLongRest,
@@ -727,6 +729,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const bulwarkOfForceUsesTotal = getFighterPsiWarriorBulwarkOfForceUsesTotal(character);
   const telekineticMasterUsesTotal = getFighterPsiWarriorTelekineticMasterUsesTotal(character);
   const druidWildShapeUsesTotal = getDruidWildShapeUsesTotal(character);
+  const druidCosmicOmenUsesTotal = getDruidCosmicOmenUsesTotal(character);
   const druidStarMapGuidingBoltUsesTotal = getDruidStarMapGuidingBoltUsesTotal(character);
   const druidMoonlightStepUsesTotal = getDruidMoonlightStepUsesTotal(character);
   const druidNaturalRecoveryUsesTotal = getDruidNaturalRecoveryUsesTotal(character);
@@ -1144,9 +1147,19 @@ export function createLongRestOptions(character: Character): RestOption[] {
       ? [
           {
             id: "restore-druids-guiding-bolt",
-            label: "Restore Druid's Guiding Bolt charges",
+            label: "Restore Star Map charges",
             apply: (currentCharacter: Character) =>
               restoreDruidStarMapGuidingBoltOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(druidCosmicOmenUsesTotal > 0
+      ? [
+          {
+            id: "restore-cosmic-omen",
+            label: "Restore Cosmic Omen",
+            apply: (currentCharacter: Character) =>
+              restoreDruidCosmicOmenOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

@@ -71,6 +71,7 @@ function ItemBrowserFilters({
   const masteryOptions = getItemBrowserMasteryOptions(filterOptions, tab);
   const propertyOptions = getItemBrowserPropertyOptions(filterOptions, tab);
   const armorTypeOptions = getItemBrowserArmorTypeOptions(filterOptions, tab);
+  const showsScopedFilters = tab !== "all";
 
   return (
     <div className={styles.stack}>
@@ -96,21 +97,25 @@ function ItemBrowserFilters({
       </div>
 
       <div className={styles.controls}>
-        <label className={styles.field}>
-          <span>Category</span>
-          <select
-            className={styles.input}
-            value={category ?? "ALL"}
-            onChange={(event) => onCategoryChange(event.target.value === "ALL" ? null : event.target.value)}
-          >
-            <option value="ALL">All</option>
-            {categoryOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {`${option.label} (${option.count})`}
-              </option>
-            ))}
-          </select>
-        </label>
+        {showsScopedFilters ? (
+          <label className={styles.field}>
+            <span>Category</span>
+            <select
+              className={styles.input}
+              value={category ?? "ALL"}
+              onChange={(event) =>
+                onCategoryChange(event.target.value === "ALL" ? null : event.target.value)
+              }
+            >
+              <option value="ALL">All</option>
+              {categoryOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {`${option.label} (${option.count})`}
+                </option>
+              ))}
+            </select>
+          </label>
+        ) : null}
 
         {tab === "weapons" ? (
           <>

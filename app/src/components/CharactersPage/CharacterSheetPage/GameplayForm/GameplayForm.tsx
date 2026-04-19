@@ -11,6 +11,7 @@ import DivinityPointsWidget from "./widgets/DivinityPointsWidget";
 import HeroicInspirationWidget from "./widgets/HeroicInspirationWidget";
 import HealingLightDiceWidget from "./widgets/HealingLightDiceWidget";
 import FocusPointsWidget from "./widgets/FocusPointsWidget";
+import FighterSecondWindWidget from "./widgets/FighterSecondWindWidget";
 import PsiEnergyDiceWidget from "./widgets/PsiEnergyDiceWidget";
 import RagePointsWidget from "./widgets/RagePointsWidget";
 import SoulknifePsionicDiceWidget from "./widgets/SoulknifePsionicDiceWidget";
@@ -93,6 +94,7 @@ function GameplayForm({
           <HealingLightDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
           <RagePointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <FocusPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
+          <FighterSecondWindWidget character={character} onPersistCharacter={onPersistCharacter} />
           <PsiEnergyDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
           <SoulknifePsionicDiceWidget
             character={character}

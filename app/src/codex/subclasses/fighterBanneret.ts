@@ -1,7 +1,7 @@
 function createBanneretGroupRecoveryDescription(rangeLabel: string) {
   return [
     `When you use your Second Wind to regain Hit Points, you can choose a number of allies within a ${rangeLabel} <link:Emanation>Emanation</link> originating from yourself, up to a number of allies equal to your <link:CHA>Charisma</link> modifier (minimum of one).`,
-    "Each of those allies regains Hit Points equal to 1d4 plus your Fighter level.",
+    "Each of those allies regains Hit Points equal to <strong>1d4</strong> plus your Fighter level.",
     "Once you use this ability, you can't use it again until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>."
   ] as const;
 }
@@ -22,7 +22,7 @@ export const banneretBolsteredGroupRecoveryDescription =
   createBanneretGroupRecoveryDescription("<strong>60-foot</strong>");
 
 export const banneretTeamTacticsDescription = [
-  "When you use Group Recovery, each chosen ally has <link:Advantage>Advantage</link> on D20 Tests until the start of your next turn."
+  "When you use Group Recovery, each chosen ally has <link:Advantage>Advantage</link> on <strong>D20</strong> Tests until the start of your next turn."
 ] as const;
 
 export const banneretRallyingSurgeDescription =

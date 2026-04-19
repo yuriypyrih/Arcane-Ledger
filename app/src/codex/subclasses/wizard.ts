@@ -185,8 +185,8 @@ export const wizardSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.PORTENT, {
         description: [
           "Glimpses of the future begin to press on your awareness.",
-          "Whenever you finish a <link:long-rest>Long Rest</link>, roll two d20s and record the numbers rolled.",
-          "You can replace any D20 Test made by you or a creature that you can see with one of these foretelling rolls.",
+          "Whenever you finish a <link:long-rest>Long Rest</link>, roll two <strong>d20s</strong> and record the numbers rolled.",
+          "You can replace any <strong>D20</strong> Test made by you or a creature that you can see with one of these foretelling rolls.",
           "You must choose to do so before the roll, and you can replace a roll in this way only once per turn.",
           "Each foretelling roll can be used only once.",
           "When you finish a <link:long-rest>Long Rest</link>, you lose any unused foretelling rolls."
@@ -222,7 +222,7 @@ export const wizardSubclassEntries: SubclassEntry[] = [
         {
           description: [
             "The visions in your dreams intensify and paint a more accurate picture in your mind of what is to come.",
-            "Roll three d20s for your Portent feature rather than two."
+            "Roll three <strong>d20s</strong> for your Portent feature rather than two."
           ],
           ...notTracked
         }
@@ -283,9 +283,9 @@ export const wizardSubclassEntries: SubclassEntry[] = [
           "You can increase the power of your spells.",
           "When you cast a Wizard spell with a spell slot of levels 1-5 that deals damage, you can deal maximum damage with that spell on the turn you cast it.",
           "The first time you do so, you suffer no adverse effect.",
-          "If you use this feature again before you finish a <link:long-rest>Long Rest</link>, you take 2d12 <link:Necrotic>Necrotic</link> damage for each level of the spell slot immediately after you cast it.",
+          "If you use this feature again before you finish a <link:long-rest>Long Rest</link>, you take <strong>2d12</strong> <link:Necrotic>Necrotic</link> damage for each level of the spell slot immediately after you cast it.",
           "This damage ignores <link:Resistance>Resistance</link> and <link:Immunity>Immunity</link>.",
-          "Each time you use this feature again before finishing a <link:long-rest>Long Rest</link>, the Necrotic damage per spell level increases by 1d12."
+          "Each time you use this feature again before finishing a <link:long-rest>Long Rest</link>, the Necrotic damage per spell level increases by <strong>1d12</strong>."
         ],
         ...notTracked
       })

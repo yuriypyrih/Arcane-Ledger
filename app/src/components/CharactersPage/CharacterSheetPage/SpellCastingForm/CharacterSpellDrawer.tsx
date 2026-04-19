@@ -10,11 +10,7 @@ import ConcentrationLabel from "../../../ConcentrationLabel";
 import SpellSubtitle from "../../../SpellSubtitle";
 import SelectInput from "../../FormInputs/SelectInput";
 import SpellDescriptionContent from "../../../SpellDescriptionContent";
-import {
-  ENTRY_CATEGORIES,
-  KeywordTooltip,
-  type SpellEntry
-} from "../../../../codex/entries";
+import { ENTRY_CATEGORIES, KeywordTooltip, type SpellEntry } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
 import {
   formatCodexLabel,
@@ -49,6 +45,7 @@ export type CharacterSpellDrawerActionOptions = {
   castAsRitual?: boolean;
   useBeguilingMagic?: boolean;
   useMindMagic?: boolean;
+  useStarMap?: boolean;
   useElementalSmite?: boolean;
   usePhantasmalCreatures?: boolean;
   usePsionicSorcery?: boolean;
@@ -278,7 +275,9 @@ function CharacterSpellDrawer({
     ? actionOptions.filter((option) => option.id !== "mind-magic")
     : actionOptions;
   const visibleHeaderResources = visibleActionOptions.flatMap((option, index) =>
-    option.headerResource ? [{ key: `${option.id}-header-resource-${index}`, value: option.headerResource }] : []
+    option.headerResource
+      ? [{ key: `${option.id}-header-resource-${index}`, value: option.headerResource }]
+      : []
   );
   const shouldShowRitualToggle = ritualCastingAvailable && !isMindMagicSelected;
   const shouldShowSlotControls =
@@ -699,7 +698,10 @@ function CharacterSpellDrawer({
                         useMindMagic:
                           !isRitualCastingSelected &&
                           actionOptions.some(
-                          (option) => option.id === "mind-magic" && option.checked
+                            (option) => option.id === "mind-magic" && option.checked
+                          ),
+                        useStarMap: actionOptions.some(
+                          (option) => option.id === "star-map" && option.checked
                         ),
                         usePsionicSorcery: actionOptions.some(
                           (option) => option.id === "psionic-sorcery" && option.checked

@@ -161,7 +161,7 @@ export const rogueFeatures: RogueFeatureClassObj[] = [
 export const rogueFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   [CLASS_FEATURE.SNEAK_ATTACK]: {
     description: [
-      "You know how to strike subtly and exploit a foe's distraction. Once per turn, you can deal an extra 1d6 damage to one creature you hit with an attack roll if you have <link:Advantage>Advantage</link> on the roll and the attack uses a <link:Finesse>Finesse</link> or a Ranged weapon. The extra damage's type is the same as the weapon's type.",
+      "You know how to strike subtly and exploit a foe's distraction. Once per turn, you can deal an extra <strong>1d6</strong> damage to one creature you hit with an attack roll if you have <link:Advantage>Advantage</link> on the roll and the attack uses a <link:Finesse>Finesse</link> or a Ranged weapon. The extra damage's type is the same as the weapon's type.",
       "You don't need <link:Advantage>Advantage</link> on the attack roll if at least one of your allies is within 5 feet of the target, the ally doesn't have the <link:Incapacitated>Incapacitated</link> condition, and you don't have <link:Disadvantage>Disadvantage</link> on the attack roll.",
       "The extra damage increases as you gain Rogue levels, as shown in the Sneak Attack column of the Rogue Features table."
     ],
@@ -191,7 +191,7 @@ export const rogueFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = 
   [CLASS_FEATURE.CUNNING_STRIKE]: {
     description: [
       "You've developed cunning ways to use your Sneak Attack. When you deal Sneak Attack damage, you can add one of the following Cunning Strike effects. Each effect has a die cost, which is the number of Sneak Attack damage dice you must forgo to add the effect.",
-      "You remove the die before rolling, and the effect occurs immediately after the attack's damage is dealt. For example, if you add the Poison effect, remove 1d6 from the Sneak Attack's damage before rolling.",
+      "You remove the die before rolling, and the effect occurs immediately after the attack's damage is dealt. For example, if you add the Poison effect, remove <strong>1d6</strong> from the Sneak Attack's damage before rolling.",
       "If a Cunning Strike effect requires a saving throw, the DC equals 8 plus your Dexterity modifier and Proficiency Bonus.",
       "<strong>Poison (Cost: 1d6).</strong> You add a toxin to your strike, forcing the target to make a Constitution saving throw. On a failed save, the target has the <link:Poisoned>Poisoned</link> condition for 1 minute. At the end of each of its turns, the Poisoned target repeats the save, ending the effect on itself on a success.",
       "To use this effect, you must have a Poisoner's Kit on your person.",
@@ -208,7 +208,7 @@ export const rogueFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = 
   },
   [CLASS_FEATURE.RELIABLE_TALENT]: {
     description: [
-      "Whenever you make an ability check that uses one of your skill or tool proficiencies, you can treat a d20 roll of 9 or lower as a 10."
+      "Whenever you make an ability check that uses one of your skill or tool proficiencies, you can treat a <strong>d20</strong> roll of 9 or lower as a 10."
     ],
     trackingState: TRACKER.NOT_TRACKED
   },
@@ -241,7 +241,7 @@ export const rogueFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = 
   },
   [CLASS_FEATURE.STROKE_OF_LUCK]: {
     description: [
-      "You have a marvelous knack for succeeding when you need to. If you fail a D20 Test, you can turn the roll into a 20.",
+      "You have a marvelous knack for succeeding when you need to. If you fail a <strong>D20</strong> Test, you can turn the roll into a 20.",
       "Once you use this feature, you can't use it again until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>."
     ],
     trackingState: TRACKER.TRACKED

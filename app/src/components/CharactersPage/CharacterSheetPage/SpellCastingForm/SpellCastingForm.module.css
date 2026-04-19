@@ -23,6 +23,33 @@
   width: 100%;
 }
 
+.spellSlotCardButton {
+  border: 1px solid rgba(75, 47, 29, 0.08);
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: center;
+  transition:
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    transform 140ms ease;
+}
+
+.spellSlotCardButton:hover:not(:disabled) {
+  border-color: rgba(47, 120, 255, 0.34);
+  box-shadow: 0 10px 20px rgba(47, 120, 255, 0.12);
+  transform: translateY(-1px);
+}
+
+.spellSlotCardButton:focus-visible {
+  outline: 2px solid rgba(47, 120, 255, 0.58);
+  outline-offset: 2px;
+}
+
+.spellSlotCardButton:disabled {
+  cursor: not-allowed;
+}
+
 .spellSlotCard span {
   color: var(--color-ink-soft);
   font-size: 0.72rem;
@@ -116,7 +143,7 @@
   font-weight: 600;
   gap: 0.35rem;
   white-space: nowrap;
-  padding-right: 0.4rem
+  padding-right: 0.4rem;
 }
 
 .selectionCounterIncomplete {
