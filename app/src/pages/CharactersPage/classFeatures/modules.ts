@@ -147,6 +147,7 @@ import {
   fighterSecondWindActionKey,
   fighterTacticalMindActionKey,
   getFighterFeatureActions,
+  getFighterWeaponAction,
   getFighterWeaponMasteryOptions,
   getFighterWeaponMasterySelectionCount,
   getFighterWeaponMasterySelections,
@@ -581,6 +582,7 @@ const classFeatureModules = {
     collectDerived(character) {
       return {
         actions: getFighterFeatureActions(character),
+        transformWeaponAction: (action) => getFighterWeaponAction(character, action),
         weaponProficiencyEntries: getFighterWeaponProficiencyEntries(character),
         weaponMastery: createWeaponMasteryState(
           getFighterWeaponMasterySelectionCount(character),

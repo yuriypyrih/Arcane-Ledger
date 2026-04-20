@@ -1,4 +1,5 @@
 import { WEAPON_BASE, WEAPON_MASTERY, WEAPON_PROPERTY } from "../../codex/entries/enums";
+import { fighterBattleMasterManeuverReferenceEntries } from "../../codex/subclasses/fighterBattleMaster";
 import type { AbilityKey, SkillName } from "../../types";
 
 export type KeywordReference = {
@@ -350,6 +351,10 @@ Object.values(WEAPON_BASE).forEach((weaponBase) => {
     normalizeKeyword(label),
     `Weapon mastery with the ${label} weapon type. This applies to variants built on that same weapon base.`
   );
+});
+
+fighterBattleMasterManeuverReferenceEntries.forEach((entry) => {
+  keywordDescriptionLookup.set(normalizeKeyword(entry.key), entry.description);
 });
 
 export function getKeywordDescription(keyword: string): string | null {

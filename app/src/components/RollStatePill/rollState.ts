@@ -1,3 +1,4 @@
+import type { RollMode } from "../../types";
 import type { FeatureIndicator } from "../../pages/CharactersPage/classFeatures/types";
 
 export type RollStateTone = "advantage" | "disadvantage" | "neutralized";
@@ -90,6 +91,22 @@ export function areResolvedRollStatesEquivalent(
   }
 
   return left.tone === right.tone;
+}
+
+export function getRollModeFromResolvedRollState(
+  rollState: ResolvedRollState | null | undefined
+): RollMode {
+  if (!rollState || rollState.tone === "neutralized") {
+    return "normal";
+  }
+
+  return rollState.tone;
+}
+
+export function getRollModeFromIndicators(
+  indicators: FeatureIndicator[] | null | undefined
+): RollMode {
+  return getRollModeFromResolvedRollState(resolveFeatureIndicators(indicators));
 }
 
 export function formatResolvedRollStateDetailText(

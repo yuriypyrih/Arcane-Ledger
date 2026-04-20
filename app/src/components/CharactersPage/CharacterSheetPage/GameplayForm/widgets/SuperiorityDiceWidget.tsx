@@ -30,7 +30,6 @@ function SuperiorityDiceWidget({ character, onPersistCharacter }: SuperiorityDic
       icon={{ kind: "lucide", icon: Pentagon }}
       pillLabel={`${remainingDice}/${totalDice} Superiority Dice`}
       modalTitle="Superiority Dice"
-      eyebrow="Battle Master"
       current={remainingDice}
       total={totalDice}
       titleSuffix={superiorityDie.toUpperCase()}

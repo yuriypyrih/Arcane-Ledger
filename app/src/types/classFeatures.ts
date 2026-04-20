@@ -241,6 +241,8 @@ export type CharacterFighterFeatureState = {
   indomitableUsesExpended?: number;
   battleMasterSuperiorityDiceExpended?: number;
   battleMasterManeuverIds?: string[];
+  battleMasterCombatSuperiorityUsedThisTurn?: boolean;
+  battleMasterKnowYourEnemyUsesExpended?: number;
   psiWarriorEnergyDiceExpended?: number;
   psiWarriorPsionicStrikeUsedThisTurn?: boolean;
   psiWarriorPsiPoweredLeapUsesExpended?: number;

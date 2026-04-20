@@ -26,6 +26,17 @@ export type BattleMasterManeuverDefinition = {
   description: string[];
 };
 
+export type BattleMasterManeuverReferenceKey = `:${BattleMasterManeuverId}`;
+
+export function getFighterBattleMasterManeuverReferenceKey(
+  maneuverId: BattleMasterManeuverId
+): BattleMasterManeuverReferenceKey {
+  return `:${maneuverId}`;
+}
+
+export const fighterBattleMasterCombatSuperiorityManeuversDescription =
+  "You learn three maneuvers of your choice from the Maneuver Options feature. Many maneuvers enhance an attack in some way, and you can use only one maneuver per attack.";
+
 export const fighterBattleMasterManeuverDefinitions = [
   {
     id: "ambush",
@@ -178,9 +189,21 @@ export const fighterBattleMasterManeuverOptionsDescription = [
   ...fighterBattleMasterManeuverOptionsIntroDescription,
   ...fighterBattleMasterManeuverDefinitions.flatMap((maneuver) => {
     const [firstEntry, ...remainingEntries] = maneuver.description;
+    const maneuverReferenceKey = getFighterBattleMasterManeuverReferenceKey(maneuver.id);
 
     return firstEntry
-      ? [`<strong>${maneuver.name}.</strong> ${firstEntry}`, ...remainingEntries]
+      ? [
+          `<strong><link:${maneuverReferenceKey}>${maneuver.name}</link>.</strong> ${firstEntry}`,
+          ...remainingEntries
+        ]
       : [];
   })
 ];
+
+export const fighterBattleMasterManeuverReferenceEntries = fighterBattleMasterManeuverDefinitions.map(
+  (maneuver) => ({
+    key: getFighterBattleMasterManeuverReferenceKey(maneuver.id),
+    title: maneuver.name,
+    description: maneuver.description.join("\n\n")
+  })
+);

@@ -33,7 +33,6 @@ function SoulknifePsionicDiceWidget({
       icon={{ kind: "lucide", icon: Hexagon }}
       pillLabel={`${remainingDice}/${totalDice} Psionic Dice`}
       modalTitle="Psionic Dice"
-      eyebrow="Soulknife"
       current={remainingDice}
       total={totalDice}
       titleSuffix={psionicDie.toUpperCase()}

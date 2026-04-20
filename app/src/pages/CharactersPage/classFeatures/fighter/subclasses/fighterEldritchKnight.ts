@@ -1,9 +1,16 @@
-import { ACTION_TYPE, type SpellEntry } from "../../../../../codex/entries";
+import { ACTION_TYPE, CLASS_FEATURE, type SpellEntry } from "../../../../../codex/entries";
 import type { Character, CharacterFighterFeatureState } from "../../../../../types";
+import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
+import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
+import type { FeatureActionCard } from "../../types";
+import type { WeaponAction } from "../../../gameplay";
 
 export const eldritchKnightSubclassId = "fighter-eldritch-knight";
+const fighterActionSurgeActionKey = "fighter-action-surge";
+const eldritchStrikeSource = "Eldritch Strike";
+const arcaneChargeSource = "Arcane Charge";
 
 type FighterEldritchKnightCharacter = Pick<Character, "className"> &
   Partial<Pick<Character, "level" | "subclassId" | "classFeatureState" | "roundTracker">>;
@@ -97,6 +104,26 @@ function hasFighterEldritchKnightWarMagicFeature(
     character.className === "Fighter" &&
     character.subclassId === eldritchKnightSubclassId &&
     (character.level ?? 0) >= 7
+  );
+}
+
+function hasFighterEldritchKnightEldritchStrikeFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Fighter" &&
+    character.subclassId === eldritchKnightSubclassId &&
+    (character.level ?? 0) >= 10
+  );
+}
+
+function hasFighterEldritchKnightArcaneChargeFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Fighter" &&
+    character.subclassId === eldritchKnightSubclassId &&
+    (character.level ?? 0) >= 15
   );
 }
 
@@ -225,4 +252,65 @@ export function consumeFighterEldritchKnightActionCantrip(character: Character):
   return character;
 }
 
-export const getFighterEldritchKnightDerivedFeatureState: SubclassRuntimeResolver = () => ({});
+function appendWeaponDescriptionSection(
+  action: WeaponAction,
+  sourceName: string,
+  descriptionEntries: readonly string[]
+): WeaponAction {
+  return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
+}
+
+function appendFeatureActionDescriptionEntries(
+  action: FeatureActionCard,
+  actionKey: string,
+  sourceName: string,
+  descriptionEntries: readonly string[]
+): FeatureActionCard {
+  if (action.key !== actionKey || descriptionEntries.length === 0) {
+    return action;
+  }
+
+  return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
+}
+
+export const getFighterEldritchKnightDerivedFeatureState: SubclassRuntimeResolver = (character) => {
+  const hasEldritchStrike = hasFighterEldritchKnightEldritchStrikeFeature(character);
+  const hasArcaneCharge = hasFighterEldritchKnightArcaneChargeFeature(character);
+
+  if (!hasEldritchStrike && !hasArcaneCharge) {
+    return {};
+  }
+
+  const eldritchStrikeDescription = hasEldritchStrike
+    ? getFeatureDescriptionForCharacter(character, CLASS_FEATURE.ELDRITCH_STRIKE).filter(
+        (entry): entry is string => typeof entry === "string"
+      )
+    : [];
+  const arcaneChargeDescription = hasArcaneCharge
+    ? getFeatureDescriptionForCharacter(character, CLASS_FEATURE.ARCANE_CHARGE).filter(
+        (entry): entry is string => typeof entry === "string"
+      )
+    : [];
+
+  return {
+    transformFeatureAction: hasArcaneCharge
+      ? (action) =>
+          appendFeatureActionDescriptionEntries(
+            action,
+            fighterActionSurgeActionKey,
+            arcaneChargeSource,
+            arcaneChargeDescription
+          )
+      : undefined,
+    transformWeaponAction: hasEldritchStrike
+      ? (action) =>
+          action.attackKind === "weapon"
+            ? appendWeaponDescriptionSection(
+                action,
+                eldritchStrikeSource,
+                eldritchStrikeDescription
+              )
+            : action
+      : undefined
+  };
+};

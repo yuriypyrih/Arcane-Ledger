@@ -1,15 +1,29 @@
 import * as THREE from "three";
-import { ROYAL_BLUE_THEME } from "./constants";
+import type { DieTheme } from "../../types";
+import { CRIMSON_RED_THEME, EMERALD_GREEN_THEME, ROYAL_BLUE_THEME } from "./constants";
 import { createRoughnessTexture } from "./textures";
 
-export function createMaterialSet() {
+function getTheme(theme: DieTheme) {
+  if (theme === "advantage") {
+    return EMERALD_GREEN_THEME;
+  }
+
+  if (theme === "disadvantage") {
+    return CRIMSON_RED_THEME;
+  }
+
+  return ROYAL_BLUE_THEME;
+}
+
+export function createMaterialSet(theme: DieTheme = "default") {
   const bodyRoughnessTexture = createRoughnessTexture();
   const lacquerRoughnessTexture = createRoughnessTexture();
+  const resolvedTheme = getTheme(theme);
 
   return {
     body: new THREE.MeshPhysicalMaterial({
-      color: ROYAL_BLUE_THEME.body,
-      emissive: ROYAL_BLUE_THEME.emissive,
+      color: resolvedTheme.body,
+      emissive: resolvedTheme.emissive,
       emissiveIntensity: 0.16,
       metalness: 0.24,
       roughness: 0.16,
@@ -20,7 +34,7 @@ export function createMaterialSet() {
       flatShading: true
     }),
     lacquer: new THREE.MeshPhysicalMaterial({
-      color: ROYAL_BLUE_THEME.lacquer,
+      color: resolvedTheme.lacquer,
       transparent: true,
       opacity: 0.06,
       metalness: 0.05,
@@ -30,12 +44,12 @@ export function createMaterialSet() {
       clearcoatRoughness: 0.12
     }),
     edge: new THREE.LineBasicMaterial({
-      color: ROYAL_BLUE_THEME.edge,
+      color: resolvedTheme.edge,
       transparent: true,
       opacity: 0.82
     }),
     glow: new THREE.MeshBasicMaterial({
-      color: ROYAL_BLUE_THEME.glow,
+      color: resolvedTheme.glow,
       transparent: true,
       opacity: 0.04
     })

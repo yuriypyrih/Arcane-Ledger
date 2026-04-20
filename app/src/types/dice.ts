@@ -1,5 +1,7 @@
 export type RollMode = "normal" | "advantage" | "disadvantage";
 
+export type DieTheme = "default" | "advantage" | "disadvantage";
+
 export type RollResult = {
   formula: string;
   total: number;
@@ -22,6 +24,8 @@ export type RolledDie = {
   id: string;
   sides: DiceSides;
   value: number;
+  counted?: boolean;
+  theme?: DieTheme;
 };
 
 export type DicePoolRollResult = {

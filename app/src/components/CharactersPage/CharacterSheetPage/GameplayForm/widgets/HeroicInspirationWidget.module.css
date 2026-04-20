@@ -1,16 +1,16 @@
 .button {
   justify-content: center;
   gap: 0;
-  background: rgba(139, 108, 18, 0.14);
-  color: #745700;
   min-width: 38px;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  background: rgba(75, 47, 29, 0.1);
+  color: var(--color-ink);
   padding-inline: 0.8rem;
 }
 
 .buttonActive {
-  background: linear-gradient(135deg, rgba(255, 213, 79, 0.28), rgba(255, 233, 143, 0.32));
-  color: #6e5200;
-  box-shadow: inset 0 0 0 1px rgba(214, 165, 22, 0.18);
+  border-color: rgba(214, 165, 22, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(214, 165, 22, 0.14);
 }
 
 .starIcon {
@@ -18,8 +18,7 @@
 }
 
 .starIconActive {
-  color: #ffc931;
-  filter: drop-shadow(0 0 6px rgba(255, 207, 77, 0.45));
+  filter: drop-shadow(0 0 8px rgba(255, 223, 107, 0.52));
 }
 
 .starIconInactive {
@@ -99,6 +98,7 @@
   display: inline-flex;
   align-items: center;
   gap: 0.5rem;
+  border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: 999px;
   background: rgba(75, 47, 29, 0.08);
   color: var(--color-ink-soft);
@@ -110,8 +110,7 @@
 }
 
 .toggleStateActive {
-  background: rgba(255, 213, 79, 0.24);
-  color: #6e5200;
+  border-color: rgba(214, 165, 22, 0.42);
 }
 
 .toggleStateIcon {

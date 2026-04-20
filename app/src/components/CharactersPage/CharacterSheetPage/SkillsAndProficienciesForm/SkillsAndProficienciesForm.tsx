@@ -31,7 +31,10 @@ import { formatAbilityModifier } from "../../../../pages/CharactersPage/gameplay
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { skillColumnLayout } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
-import { resolveFeatureIndicators } from "../../../RollStatePill/rollState";
+import {
+  getRollModeFromIndicators,
+  resolveFeatureIndicators
+} from "../../../RollStatePill/rollState";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import ProficiencyEditorModal, { type ProficiencyEditorTab } from "./ProficiencyEditorModal";
 import SkillReferenceDrawer, {
@@ -246,12 +249,12 @@ function SkillsAndProficienciesForm({
 
     const rollFormula = formatD20Formula(selectedKeyword.rollModifier);
 
-    closeSelectedKeyword();
     openDiceRoller({
       title: selectedKeyword.name,
       formula: rollFormula,
       formulaDisplay: rollFormula,
-      description: selectedKeyword.rollDescription ?? selectedKeyword.description
+      description: selectedKeyword.rollDescription ?? selectedKeyword.description,
+      mode: getRollModeFromIndicators(selectedKeyword.indicators)
     });
   }
 

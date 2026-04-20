@@ -2,11 +2,13 @@ import { isObjectRecord, normalizeBoolean } from "../utils/normalize";
 
 export type StatsViewMode = "tabs" | "full";
 export type MaxHitPointsModePreference = "automatic" | "custom";
+export type DiceRollerBehaviorPreference = "full_manual" | "manual_with_roller" | "full_auto";
 
 export type Preferences = {
   statsViewMode: StatsViewMode;
   skillsProficienciesVisible: boolean;
   defaultMaxHitPointsMode: MaxHitPointsModePreference;
+  diceRollerBehavior: DiceRollerBehaviorPreference;
 };
 
 const PREFERENCES_STORAGE_KEY = "dnd-companion.preferences";
@@ -14,7 +16,8 @@ const PREFERENCES_STORAGE_KEY = "dnd-companion.preferences";
 const defaultPreferences: Preferences = {
   statsViewMode: "tabs",
   skillsProficienciesVisible: true,
-  defaultMaxHitPointsMode: "automatic"
+  defaultMaxHitPointsMode: "automatic",
+  diceRollerBehavior: "manual_with_roller"
 };
 
 function normalizeStatsViewMode(value: unknown): StatsViewMode {
@@ -23,6 +26,14 @@ function normalizeStatsViewMode(value: unknown): StatsViewMode {
 
 function normalizeMaxHitPointsModePreference(value: unknown): MaxHitPointsModePreference {
   return value === "custom" ? "custom" : "automatic";
+}
+
+function normalizeDiceRollerBehaviorPreference(value: unknown): DiceRollerBehaviorPreference {
+  if (value === "full_manual" || value === "full_auto") {
+    return value;
+  }
+
+  return "manual_with_roller";
 }
 
 function normalizePreferences(value: unknown): Preferences {
@@ -38,9 +49,8 @@ function normalizePreferences(value: unknown): Preferences {
       record.skillsProficienciesVisible,
       defaultPreferences.skillsProficienciesVisible
     ),
-    defaultMaxHitPointsMode: normalizeMaxHitPointsModePreference(
-      record.defaultMaxHitPointsMode
-    )
+    defaultMaxHitPointsMode: normalizeMaxHitPointsModePreference(record.defaultMaxHitPointsMode),
+    diceRollerBehavior: normalizeDiceRollerBehaviorPreference(record.diceRollerBehavior)
   };
 }
 
@@ -90,4 +100,16 @@ export function updatePreferences(partialPreferences: Partial<Preferences>): Pre
   const normalizedPreferences = normalizePreferences(nextPreferences);
   savePreferences(normalizedPreferences);
   return normalizedPreferences;
+}
+
+export function getDiceRollerBehaviorPreference(): DiceRollerBehaviorPreference {
+  return loadPreferences().diceRollerBehavior;
+}
+
+export function updateDiceRollerBehaviorPreference(
+  diceRollerBehavior: DiceRollerBehaviorPreference
+): Preferences {
+  return updatePreferences({
+    diceRollerBehavior
+  });
 }

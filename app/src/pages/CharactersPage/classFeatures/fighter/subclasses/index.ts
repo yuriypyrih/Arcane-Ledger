@@ -10,6 +10,7 @@ import {
   normalizeFighterBanneretFeatureState
 } from "./fighterBanneret";
 import {
+  advanceFighterBattleMasterFeaturesForNewRound,
   battleMasterSubclassId,
   getFighterBattleMasterDerivedFeatureState,
   normalizeFighterBattleMasterFeatureState
@@ -80,6 +81,8 @@ export function advanceFighterSubclassFeaturesForNewRound(character: Character):
   }
 
   switch (character.subclassId) {
+    case battleMasterSubclassId:
+      return advanceFighterBattleMasterFeaturesForNewRound(character);
     case championSubclassId:
       return advanceFighterChampionFeaturesForNewRound(character);
     case eldritchKnightSubclassId:

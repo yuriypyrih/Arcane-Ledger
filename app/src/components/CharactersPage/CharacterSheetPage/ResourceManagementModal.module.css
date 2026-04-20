@@ -1,0 +1,35 @@
+.body {
+  gap: 0.9rem;
+}
+
+.description {
+  margin: 0;
+  color: rgba(75, 47, 29, 0.74);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.footer {
+  border-top: 1px solid rgba(75, 47, 29, 0.12);
+  background: linear-gradient(180deg, rgba(255, 252, 245, 0.24), rgba(246, 236, 221, 0.92));
+  padding-top: 0.9rem;
+}
+
+.footerActions {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+}
+
+.footerButton {
+  margin-left: 0;
+  min-height: 46px;
+  width: 100%;
+}
+
+@media (max-width: 620px) {
+  .footerActions {
+    grid-template-columns: 1fr;
+  }
+}

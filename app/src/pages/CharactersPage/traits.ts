@@ -55,6 +55,8 @@ import { getClericInvokeDuplicityDescriptionAdditions } from "./classFeatures/cl
 import {
   fighterPsiWarriorBulwarkOfForceStatusSourceId,
   fighterPsiWarriorPsiPoweredLeapStatusSourceId,
+  fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId,
+  fighterPsiWarriorTelekineticMasterEffectName,
   fighterPsiWarriorTelekineticMasterStatusSourceId
 } from "./classFeatures/fighter/subclasses/fighterPsiWarriorShared";
 import {
@@ -1044,6 +1046,11 @@ export function resolveCharacterStatusEntries(
   derivedEntries: CharacterStatusEntry[] = []
 ): CharacterStatusEntry[] {
   const normalizedEntries = normalizeCharacterStatusEntries(manualEntries);
+  const derivedEntrySourceIds = new Set(
+    derivedEntries
+      .map((entry) => entry.sourceId)
+      .filter((sourceId): sourceId is string => typeof sourceId === "string" && sourceId.length > 0)
+  );
   const overrideEntries = normalizedEntries.filter(
     (entry) =>
       entry.sourceType !== STATUS_ENTRY_SOURCE_TYPE.MANUAL &&
@@ -1064,8 +1071,13 @@ export function resolveCharacterStatusEntries(
     }
   });
 
+  const persistedFeatureEntries = overrideEntries.filter(
+    (entry) => entry.sourceId && !derivedEntrySourceIds.has(entry.sourceId)
+  );
+
   return pruneLinkedStatusEntries([
     ...standaloneEntries,
+    ...persistedFeatureEntries,
     ...derivedEntries.map((entry) => {
       const durationOverride = overrideEntriesBySourceId.get(entry.sourceId ?? entry.id);
 
@@ -1213,7 +1225,10 @@ export function updateCharacterStatusEntryDuration(
 
 export function applySpellConcentrationToStatusEntries(
   value: unknown,
-  spell: { name: string; duration: SpellDurationPart[] }
+  spell: { name: string; duration: SpellDurationPart[] },
+  options?: {
+    sourceId?: string;
+  }
 ): CharacterStatusEntry[] {
   const concentrationDuration = getSpellConcentrationDuration(spell.duration);
   const entries = normalizeCharacterStatusEntries(value);
@@ -1236,7 +1251,8 @@ export function applySpellConcentrationToStatusEntries(
       value: EFFECT_NAME.CONCENTRATION,
       source: spell.name,
       sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
-      duration: concentrationDuration
+      duration: concentrationDuration,
+      sourceId: options?.sourceId
     })
   ]);
 }
@@ -2077,6 +2093,33 @@ export function getStatusEntryDescriptionContent(
       description:
         descriptionEntries.length > 0 ? descriptionEntries : [...invokeDuplicityDescription],
       descriptionAdditions: getClericInvokeDuplicityDescriptionAdditions(character)
+    };
+  }
+
+  if (
+    entry.sourceId === fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId &&
+    character?.className === "Fighter"
+  ) {
+    const telekineticMasterDescription = getFeatureDescriptionForCharacter(
+      character,
+      CLASS_FEATURE.TELEKINETIC_MASTER
+    ).filter(
+      (descriptionEntry): descriptionEntry is string =>
+        typeof descriptionEntry === "string" &&
+        descriptionEntry.includes("you can make one attack with a weapon as a Bonus Action")
+    );
+
+    return {
+      description: getDefaultStatusEntryDescriptionEntries(entry),
+      descriptionAdditions:
+        telekineticMasterDescription.length > 0
+          ? [
+              createSourcedDescriptionEntries(
+                fighterPsiWarriorTelekineticMasterEffectName,
+                telekineticMasterDescription
+              )
+            ]
+          : []
     };
   }
 

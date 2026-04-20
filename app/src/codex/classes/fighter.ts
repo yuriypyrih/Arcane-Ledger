@@ -145,7 +145,7 @@ export const fighterFeatures: FighterFeatureClassObj[] = [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
           "<feat:BOON_OF_COMBAT_PROWESS>Boon of Combat Prowess</feat> is recommended."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }
     },
     secondWind: 4,
@@ -209,7 +209,7 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
     description: [
       "When you attack with a weapon whose mastery property you can use, you can replace that property with the Push, Sap, or Slow property for that attack."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.TWO_EXTRA_ATTACKS]: {
     description: [
@@ -222,7 +222,7 @@ export const fighterFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> 
       "You study your opponents and learn from each attack you make.",
       "If you make an attack roll against a creature and miss, you have Advantage on your next attack roll against that creature before the end of your next turn."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.THREE_EXTRA_ATTACKS]: {
     description: [

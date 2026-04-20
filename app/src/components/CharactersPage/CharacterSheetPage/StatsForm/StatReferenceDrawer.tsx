@@ -39,17 +39,21 @@ export type SelectedStatReference = {
   keyword: string;
   summaryText?: string;
   warning?: string | null;
+  rollIndicators?: FeatureIndicator[];
   rollActions?: {
     label: string;
+    actionName: string;
     mod: {
       title: string;
       modifier: number;
       description: string;
+      indicators?: FeatureIndicator[];
     };
     save: {
       title: string;
       modifier: number;
       description: string;
+      indicators?: FeatureIndicator[];
     };
   };
   descriptionAdditions?: SpellDescriptionEntry[][];

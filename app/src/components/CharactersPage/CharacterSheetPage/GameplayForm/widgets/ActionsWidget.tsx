@@ -135,6 +135,11 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
 import { frenzyDamageBonusLabel } from "../../../../../pages/CharactersPage/classFeatures/barbarian/subclasses/barbarianPathOfTheBerserker";
 import {
+  consumeFighterBattleMasterKnowYourEnemyForCharacter,
+  expendFighterBattleMasterSuperiorityDieForCharacter,
+  getFighterBattleMasterCombatSuperiorityUsedThisTurnForCharacter,
+  getFighterBattleMasterSuperiorityDieForCharacter,
+  getFighterBattleMasterSuperiorityDiceRemainingForCharacter,
   applyFighterTeamTacticsStatus,
   consumeFighterGroupRecoveryUse,
   getFighterGroupRecoveryHealingFormula,
@@ -145,8 +150,10 @@ import {
   fighterSecondWindActionKey,
   fighterTacticalMindActionKey,
   hasFighterPsiWarriorPsionicStrikeAvailableForCharacter,
-  getFighterSecondWindHealingFormula
+  getFighterSecondWindHealingFormula,
+  markFighterBattleMasterCombatSuperiorityUsedForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures/fighter/fighter";
+import { fighterBattleMasterCombatSuperiorityActionKey } from "../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterBattleMaster";
 import { type LayOnHandsCondition } from "../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
 import {
   activatePaladinOathOfDevotionSacredWeapon,
@@ -196,18 +203,12 @@ import {
   getProficiencyBonus,
   type WeaponAction
 } from "../../../../../pages/CharactersPage/gameplay";
+import { applySpellConcentrationToStatusEntries } from "../../../../../pages/CharactersPage/traits";
 import {
-  applySpellConcentrationToStatusEntries,
-  getEffectiveHitPointMaximumForCharacter,
-  reconcileCharacterStatusConsequences
-} from "../../../../../pages/CharactersPage/traits";
-import { rollFormulaWithDice } from "../../../../../utils/dice";
-import {
-  createDefaultDeathSaves,
+  applyRolledHealingToCharacter,
+  applyRolledTemporaryHitPointsToCharacter,
   consumeRoundTrackerResourceForCharacter,
-  normalizeDeathSaves,
-  prepareCharacterForRoundTrackerResourceConsumption,
-  swapTemporaryHitPointsAssignment
+  prepareCharacterForRoundTrackerResourceConsumption
 } from "../gameplayStateUtils";
 import { getSpellOutcomeSummaryForCharacter } from "../../../../../pages/CharactersPage/spellOutcome";
 import { formatFeatureActionOptionValueLabel } from "../../../../../pages/CharactersPage/actionOutcome";
@@ -216,6 +217,7 @@ import {
   getSavingThrowProficiencyForAbilityKey
 } from "../../../../../pages/CharactersPage/proficiency";
 import { getFeatureDescriptionForCharacter } from "../../../../../pages/CharactersPage/classFeatures/featureDescriptions";
+import { hasActiveWeaponMastery } from "../../../../../pages/CharactersPage/weaponMasteryStatus";
 import {
   CLASS_FEATURE,
   ACTION_TYPE,
@@ -255,7 +257,6 @@ import d20Icon from "../../../../../assets/svg/d20.svg";
 import styles from "./ActionsWidget.module.css";
 import sharedModalStyles from "./FeatureActionModal.module.css";
 import arcaneRecoveryStyles from "./ArcaneRecoveryModal.module.css";
-import indomitableStyles from "./IndomitableModal.module.css";
 import layOnHandsStyles from "./LayOnHandsModal.module.css";
 import fontOfMagicStyles from "./FontOfMagicModal.module.css";
 import SneakAttackActionBody, { type SneakAttackActionSelection } from "./SneakAttackModal";
@@ -272,6 +273,11 @@ import {
   FighterSecondWindActionFooter
 } from "./FighterSecondWindAction";
 import HealingLightActionBody from "./HealingLightActionBody";
+import {
+  IndomitableActionBody,
+  IndomitableActionFooter,
+  type IndomitableOption
+} from "./IndomitableAction";
 import PortentActionBody from "./PortentActionBody";
 import RadioContainerOption from "../../RadioContainerOption";
 import { SorcererInnateSorceryActionFooter } from "./SorcererInnateSorceryAction";
@@ -324,13 +330,6 @@ type ActionsWidgetProps = {
   onPersistCharacter: PersistCharacterUpdater;
 };
 
-type IndomitableOption = {
-  ability: AbilityKey;
-  total: number;
-  formula: string;
-  formulaDisplay: string;
-};
-
 type FontOfMagicSelection =
   | {
       kind: "slot-to-points";
@@ -346,6 +345,14 @@ const frozenHauntFallbackSpellSlotMinimumLevel = 4;
 type WildCompanionResourceKind = "wild-shape" | "spell-slot";
 type WildResurgenceMode = "spell-slot-to-wild-shape" | "wild-shape-to-slot";
 type BlessingOfTheTricksterTarget = "self" | "other";
+
+function formatD20RollFormula(modifier: number): string {
+  if (modifier === 0) {
+    return "1d20";
+  }
+
+  return `1d20${modifier >= 0 ? "+" : ""}${modifier}`;
+}
 
 const codexWeaponEntriesByName = new Map<string, WeaponEntry>(
   getWeaponEntries().map((entry) => [entry.name, entry])
@@ -628,57 +635,6 @@ function ArcaneRecoveryActionBody({
           onClick={() => onRecover(selection)}
         >
           Recover Spell Slots
-        </button>
-      </div>
-    </>
-  );
-}
-
-function IndomitableActionBody({
-  options,
-  onRoll
-}: {
-  options: IndomitableOption[];
-  onRoll: (option: IndomitableOption) => void;
-}) {
-  const [selectedAbility, setSelectedAbility] = useState<AbilityKey | null>(null);
-  const selectedOption =
-    selectedAbility !== null
-      ? (options.find((option) => option.ability === selectedAbility) ?? null)
-      : null;
-
-  return (
-    <>
-      <div className={indomitableStyles.indomitableAbilityGrid}>
-        {options.map((option) => (
-          <button
-            key={option.ability}
-            type="button"
-            className={clsx(
-              indomitableStyles.indomitableAbilityButton,
-              selectedAbility === option.ability && indomitableStyles.indomitableAbilityButtonActive
-            )}
-            onClick={() => setSelectedAbility(option.ability)}
-          >
-            <strong>{option.ability}</strong>
-            <small>{formatAbilityModifier(option.total)} Save</small>
-          </button>
-        ))}
-      </div>
-
-      <CellContainer
-        label="Formula"
-        content={selectedOption?.formulaDisplay ?? "Choose a saving throw to see the roll formula."}
-      />
-
-      <div className={shared.formActions}>
-        <button
-          type="button"
-          className={shared.saveButton}
-          onClick={() => selectedOption && onRoll(selectedOption)}
-          disabled={selectedOption === null}
-        >
-          Roll Saving Throw
         </button>
       </div>
     </>
@@ -1544,6 +1500,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [selectedRageOptionKey, setSelectedRageOptionKey] = useState<string | null>(null);
   const [selectedRagePowerOptionKey, setSelectedRagePowerOptionKey] = useState<string | null>(null);
   const [isRageOfTheGodsSelected, setIsRageOfTheGodsSelected] = useState(false);
+  const [selectedIndomitableAbility, setSelectedIndomitableAbility] = useState<AbilityKey | null>(
+    null
+  );
   const [selectedWarriorOfTheGodsChargeCount, setSelectedWarriorOfTheGodsChargeCount] = useState(1);
   const [isFixedSpellDrawerOpen, setIsFixedSpellDrawerOpen] = useState(false);
   const [selectedFixedSpellSlotLevel, setSelectedFixedSpellSlotLevel] = useState(1);
@@ -1684,6 +1643,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       ? (combatActions.find((combatAction) => combatAction.key === selectedActionKey) ?? null)
       : null;
   const selectedFeatureAction = selectedAction?.kind === "feature" ? selectedAction.action : null;
+  const selectedCombatSuperiorityDie =
+    selectedFeatureAction?.key === fighterBattleMasterCombatSuperiorityActionKey
+      ? getFighterBattleMasterSuperiorityDieForCharacter(character)
+      : null;
+  const selectedActionBadges = selectedCombatSuperiorityDie
+    ? [`Current ${selectedCombatSuperiorityDie.toUpperCase()}`]
+    : [];
   const wildShapeKnownForms = useMemo(
     () => getDruidWildShapeKnownFormsForCharacter(character),
     [character.classFeatureState, character.className, character.level]
@@ -1729,16 +1695,46 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     return character.inventoryItems.find((entry) => entry.id === inventoryItemId)?.item ?? null;
   }, [character.inventoryItems, selectedWeaponAction]);
+  const selectedWeaponHasActiveMastery = useMemo(() => {
+    if (!selectedWeaponAction) {
+      return false;
+    }
+
+    if (selectedWeaponEntry?.baseWeapon) {
+      return hasActiveWeaponMastery(character.weaponProficiencies, {
+        baseWeapon: selectedWeaponEntry.baseWeapon
+      });
+    }
+
+    if (selectedWeaponItemRecord?.weapon) {
+      return hasActiveWeaponMastery(character.weaponProficiencies, selectedWeaponItemRecord.weapon);
+    }
+
+    return false;
+  }, [
+    character.weaponProficiencies,
+    selectedWeaponAction,
+    selectedWeaponEntry,
+    selectedWeaponItemRecord
+  ]);
   const selectedWeaponDetails = useMemo(
     () =>
       selectedWeaponAction
         ? getWeaponDrawerDetails(
             selectedWeaponAction,
             selectedWeaponEntry,
-            selectedWeaponItemRecord
+            selectedWeaponItemRecord,
+            {
+              hasActiveMastery: selectedWeaponHasActiveMastery
+            }
           )
         : [],
-    [selectedWeaponAction, selectedWeaponEntry, selectedWeaponItemRecord]
+    [
+      selectedWeaponAction,
+      selectedWeaponEntry,
+      selectedWeaponHasActiveMastery,
+      selectedWeaponItemRecord
+    ]
   );
   const selectedWeaponAttackFormula = useMemo(
     () => (selectedWeaponAction ? getWeaponAttackFormulaPresentation(selectedWeaponAction) : null),
@@ -2379,15 +2375,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           proficiencyContribution +
           paladinAuraOfProtectionBonus +
           resolveFeatureSavingThrowBonusTotal(character, ability, effectiveAbilities);
+        const fighterLevelBonus = Math.max(1, Math.floor(character.level));
+        const totalWithIndomitable = total + fighterLevelBonus;
 
         return {
           ability,
           total,
-          formula: `1d10${total >= 0 ? "+" : ""}${total}+${Math.max(1, Math.floor(character.level))}`,
-          formulaDisplay: `1d10 ${formatSignedLabel(total, `${ability} Save`)} + ${Math.max(
-            1,
-            Math.floor(character.level)
-          )} Fighter Level`
+          formula: formatD20RollFormula(totalWithIndomitable),
+          formulaDisplay: `d20 ${formatSignedLabel(total, `${ability} Save`)} + ${fighterLevelBonus} Fighter Level`
         };
       }),
     [
@@ -2397,6 +2392,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       paladinAuraOfProtectionBonus
     ]
   );
+  const selectedIndomitableOption =
+    selectedIndomitableAbility !== null
+      ? (indomitableSavingThrowOptions.find(
+          (option) => option.ability === selectedIndomitableAbility
+        ) ?? null)
+      : null;
   const selectedMysticArcanumExpended =
     selectedMysticArcanumSpellLevel !== null
       ? (getWarlockMysticArcanumSelectionsForCharacter(character).find(
@@ -2510,6 +2511,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedRageOptionKey(null);
     setSelectedRagePowerOptionKey(null);
     setIsRageOfTheGodsSelected(false);
+    setSelectedIndomitableAbility(null);
     setIsCrownOfSpellfireSelected(false);
     setIsGroupRecoverySelected(false);
     setIsClairvoyantCombatantSelected(false);
@@ -2916,6 +2918,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     if (action.key === monkWholenessOfBodyActionKey) {
+      const healingFormula = getMonkWarriorOfTheOpenHandWholenessOfBodyHealingFormula(character);
+
+      if (!healingFormula) {
+        closeActionDrawer();
+        return;
+      }
+
       onPersistCharacter((currentCharacter) => {
         const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
         const preparedCharacter = prepareCharacterForResourceConsumption(
@@ -2928,41 +2937,23 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           return currentCharacter;
         }
 
-        const healingFormula =
-          getMonkWarriorOfTheOpenHandWholenessOfBodyHealingFormula(preparedCharacter);
-
-        if (!healingFormula) {
-          return currentCharacter;
-        }
-
-        const healingResult = rollFormulaWithDice(healingFormula, "normal");
-        const healedAmount = Math.max(1, healingResult.total);
-        const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter(nextCharacter);
-        const nextCurrentHitPoints = Math.max(
-          0,
-          Math.min(nextEffectiveHitPoints, nextCharacter.currentHitPoints + healedAmount)
-        );
-
-        openDiceRoller({
-          title: action.name,
-          formula: healingFormula,
-          formulaDisplay: healingFormula,
-          description: `${action.detail} Minimum 1 Hit Point regained.`
-        });
-
-        const healedCharacter = reconcileCharacterStatusConsequences({
-          ...nextCharacter,
-          currentHitPoints: nextCurrentHitPoints,
-          deathSaves:
-            nextCurrentHitPoints > 0
-              ? createDefaultDeathSaves()
-              : normalizeDeathSaves(nextCharacter.deathSaves)
-        });
-
         return roundTrackerResource
-          ? consumeRoundTrackerResourceForCharacter(healedCharacter, roundTrackerResource)
-          : healedCharacter;
+          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+          : nextCharacter;
       });
+
+      openDiceRoller({
+        title: action.name,
+        formula: healingFormula,
+        formulaDisplay: healingFormula,
+        description: `${action.detail} Minimum 1 Hit Point regained.`,
+        onResolvedResult: ({ result }) => {
+          onPersistCharacter((currentCharacter) =>
+            applyRolledHealingToCharacter(currentCharacter, result.total)
+          );
+        }
+      });
+
       closeActionDrawer();
       return;
     }
@@ -3001,6 +2992,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     if (effectKind === "second-wind") {
+      const healingFormula = getFighterSecondWindHealingFormula(character);
+      const groupRecoveryFormula = getFighterGroupRecoveryHealingFormula(character);
+      const usesGroupRecovery =
+        isGroupRecoverySelected && getFighterGroupRecoveryUsesRemaining(character) > 0;
+
       onPersistCharacter((currentCharacter) => {
         const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
         const preparedCharacter = prepareCharacterForResourceConsumption(
@@ -3013,46 +3009,87 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           return currentCharacter;
         }
 
-        const healingFormula = getFighterSecondWindHealingFormula(currentCharacter);
-        const groupRecoveryFormula = getFighterGroupRecoveryHealingFormula(currentCharacter);
-        const healingResult = rollFormulaWithDice(healingFormula, "normal");
-        const usesGroupRecovery =
-          isGroupRecoverySelected && getFighterGroupRecoveryUsesRemaining(currentCharacter) > 0;
         const nextCharacterWithGroupRecovery = usesGroupRecovery
           ? consumeFighterGroupRecoveryUse(nextCharacter)
           : nextCharacter;
         const nextCharacterWithBanneretEffects = usesGroupRecovery
           ? applyFighterTeamTacticsStatus(nextCharacterWithGroupRecovery)
           : nextCharacterWithGroupRecovery;
-        openDiceRoller({
-          title: "Second Wind",
-          formula: healingFormula,
-          formulaDisplay: healingFormula,
-          description: usesGroupRecovery
-            ? `${action.detail} Group Recovery: each chosen ally regains Hit Points equal to ${groupRecoveryFormula}.`
-            : action.detail
-        });
-        const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter(
-          nextCharacterWithBanneretEffects
+        const nextCharacterWithConsumedEconomy = roundTrackerResource
+          ? consumeRoundTrackerResourceForCharacter(
+              nextCharacterWithBanneretEffects,
+              roundTrackerResource
+            )
+          : nextCharacterWithBanneretEffects;
+
+        return nextCharacterWithConsumedEconomy;
+      });
+
+      openDiceRoller({
+        title: "Second Wind",
+        formula: healingFormula,
+        formulaDisplay: healingFormula,
+        description: usesGroupRecovery
+          ? `${action.detail} Group Recovery: each chosen ally regains Hit Points equal to ${groupRecoveryFormula}.`
+          : action.detail,
+        onResolvedResult: ({ result }) => {
+          onPersistCharacter((currentCharacter) =>
+            applyRolledHealingToCharacter(currentCharacter, result.total)
+          );
+        }
+      });
+
+      closeActionDrawer();
+      return;
+    }
+
+    if (effectKind === "know-your-enemy") {
+      onPersistCharacter((currentCharacter) => {
+        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+        const preparedCharacter = prepareCharacterForResourceConsumption(
+          currentCharacter,
+          roundTrackerResource
         );
-        const nextCurrentHitPoints = Math.max(
-          0,
-          Math.min(
-            nextEffectiveHitPoints,
-            nextCharacterWithBanneretEffects.currentHitPoints + healingResult.total
-          )
-        );
-        const healedCharacter = reconcileCharacterStatusConsequences({
-          ...nextCharacterWithBanneretEffects,
-          currentHitPoints: nextCurrentHitPoints,
-          deathSaves:
-            nextCurrentHitPoints > 0
-              ? createDefaultDeathSaves()
-              : normalizeDeathSaves(nextCharacterWithBanneretEffects.deathSaves)
-        });
+        const nextCharacter = consumeFighterBattleMasterKnowYourEnemyForCharacter(preparedCharacter);
+
+        if (nextCharacter === preparedCharacter) {
+          return currentCharacter;
+        }
+
         return roundTrackerResource
-          ? consumeRoundTrackerResourceForCharacter(healedCharacter, roundTrackerResource)
-          : healedCharacter;
+          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+          : nextCharacter;
+      });
+      closeActionDrawer();
+      return;
+    }
+
+    if (effectKind === "combat-superiority") {
+      onPersistCharacter((currentCharacter) => {
+        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+        const preparedCharacter = prepareCharacterForResourceConsumption(
+          currentCharacter,
+          roundTrackerResource
+        );
+        const alreadyUsedThisTurn =
+          getFighterBattleMasterCombatSuperiorityUsedThisTurnForCharacter(preparedCharacter);
+        const superiorityDiceRemaining =
+          getFighterBattleMasterSuperiorityDiceRemainingForCharacter(preparedCharacter);
+
+        if (alreadyUsedThisTurn || superiorityDiceRemaining <= 0) {
+          return currentCharacter;
+        }
+
+        let nextCharacter = expendFighterBattleMasterSuperiorityDieForCharacter(preparedCharacter);
+        nextCharacter = markFighterBattleMasterCombatSuperiorityUsedForCharacter(nextCharacter);
+
+        if (nextCharacter === preparedCharacter) {
+          return currentCharacter;
+        }
+
+        return roundTrackerResource
+          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+          : nextCharacter;
       });
       closeActionDrawer();
       return;
@@ -3073,6 +3110,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     if (effectKind === "tireless") {
+      const temporaryHitPointsFormula = getRangerTirelessTemporaryHitPointsFormula(character);
+
       onPersistCharacter((currentCharacter) => {
         const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
         const preparedCharacter = prepareCharacterForResourceConsumption(
@@ -3085,33 +3124,23 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           return currentCharacter;
         }
 
-        const temporaryHitPointsFormula =
-          getRangerTirelessTemporaryHitPointsFormula(currentCharacter);
-        const temporaryHitPointsResult = rollFormulaWithDice(temporaryHitPointsFormula, "normal");
-        const grantedTemporaryHitPoints = Math.max(1, temporaryHitPointsResult.total);
-        const nextTemporaryHitPointsAssignment = swapTemporaryHitPointsAssignment(
-          nextCharacter.temporaryHitPoints,
-          nextCharacter.temporaryHitPointsSource,
-          grantedTemporaryHitPoints,
-          "Tireless"
-        );
-
-        openDiceRoller({
-          title: "Tireless",
-          formula: temporaryHitPointsFormula,
-          formulaDisplay: temporaryHitPointsFormula,
-          description: `${action.detail} Minimum 1 Temporary Hit Points.`
-        });
-
-        const updatedCharacter = {
-          ...nextCharacter,
-          ...nextTemporaryHitPointsAssignment
-        };
-
         return roundTrackerResource
-          ? consumeRoundTrackerResourceForCharacter(updatedCharacter, roundTrackerResource)
-          : updatedCharacter;
+          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+          : nextCharacter;
       });
+
+      openDiceRoller({
+        title: "Tireless",
+        formula: temporaryHitPointsFormula,
+        formulaDisplay: temporaryHitPointsFormula,
+        description: `${action.detail} Minimum 1 Temporary Hit Points.`,
+        onResolvedResult: ({ result }) => {
+          onPersistCharacter((currentCharacter) =>
+            applyRolledTemporaryHitPointsToCharacter(currentCharacter, result.total, "Tireless")
+          );
+        }
+      });
+
       closeActionDrawer();
       return;
     }
@@ -4256,7 +4285,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           <div className={sheetStyles.spellDrawerDetails}>
             {selectedWeaponDetails.map((detail) => (
               <CellContainer
-                key={`${selectedAction.key}-${detail.label}`}
+                key={`${selectedAction.key}-${detail.key}`}
                 label={detail.label}
                 content={detail.value}
               />
@@ -4283,6 +4312,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                 breakdownClassName={styles.weaponFormulaBreakdown}
               />
             ) : null}
+
           </div>
         </div>
       );
@@ -4383,7 +4413,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         return (
           <IndomitableActionBody
             options={indomitableSavingThrowOptions}
-            onRoll={submitIndomitable}
+            selectedAbility={selectedIndomitableAbility}
+            onSelectAbility={setSelectedIndomitableAbility}
           />
         );
       }
@@ -4667,25 +4698,27 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               onClick={() => handleWeaponAttackRoll(selectedAction.action)}
               disabled={selectedWeaponPrimaryDisabledReason !== null}
             >
-              <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
-              <span>Attack</span>
-              <span className={styles.footerActionShapeGroup}>
-                {selectedActionEconomyShapeState ? (
-                  <ActionShape
-                    shape={getActionShapeForEconomyType(selectedAction.economyType) ?? "action"}
-                    isSelected={selectedActionEconomyShapeState.isAvailable}
-                    multiCount={selectedActionEconomyShapeState.multiCount}
-                    className={styles.footerActionShape}
-                  />
-                ) : null}
-                {selectedActionSecondaryEconomyShapeState ? (
-                  <ActionShape
-                    shape="bonusAction"
-                    isSelected={selectedActionSecondaryEconomyShapeState.isAvailable}
-                    multiCount={selectedActionSecondaryEconomyShapeState.multiCount}
-                    className={styles.footerActionShape}
-                  />
-                ) : null}
+              <span className={styles.centeredFooterButtonContent}>
+                <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
+                <span>Attack</span>
+                <span className={styles.footerActionShapeGroup}>
+                  {selectedActionEconomyShapeState ? (
+                    <ActionShape
+                      shape={getActionShapeForEconomyType(selectedAction.economyType) ?? "action"}
+                      isSelected={selectedActionEconomyShapeState.isAvailable}
+                      multiCount={selectedActionEconomyShapeState.multiCount}
+                      className={styles.footerActionShape}
+                    />
+                  ) : null}
+                  {selectedActionSecondaryEconomyShapeState ? (
+                    <ActionShape
+                      shape="bonusAction"
+                      isSelected={selectedActionSecondaryEconomyShapeState.isAvailable}
+                      multiCount={selectedActionSecondaryEconomyShapeState.multiCount}
+                      className={styles.footerActionShape}
+                    />
+                  ) : null}
+                </span>
               </span>
             </button>
             <button
@@ -4756,6 +4789,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     ) {
       return (
         <FighterSecondWindActionFooter
+          actionName={selectedAction.action.name}
           confirmLabel={selectedAction.drawer.confirmLabel ?? "Use Second Wind"}
           actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
           actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
@@ -4768,7 +4802,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           groupRecoveryUsesRemaining={selectedSecondWindGroupRecoveryUsesRemaining}
           groupRecoveryUsesTotal={selectedSecondWindGroupRecoveryUsesTotal}
           isGroupRecoverySelected={isGroupRecoverySelected}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
           onConfirm={() => executeFeatureActivate(selectedAction.action)}
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
           onGroupRecoverySelectedChange={setIsGroupRecoverySelected}
         />
       );
@@ -4955,6 +4991,28 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             />
           ) : null}
         </button>
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "custom-form" &&
+      selectedAction.drawer.formKind === "indomitable"
+    ) {
+      return (
+        <IndomitableActionFooter
+          actionName={selectedAction.name}
+          confirmLabel={selectedAction.execute.label ?? "Roll Saving Throw with Indomitable"}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={
+            selectedFeatureActionPrimaryDisabledReason !== null || selectedIndomitableOption === null
+          }
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onConfirm={() => selectedIndomitableOption && submitIndomitable(selectedIndomitableOption)}
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+        />
       );
     }
 
@@ -5326,6 +5384,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         <GameplayActionDrawer
           title={selectedAction.name}
           eyebrow={selectedAction.drawer.eyebrow}
+          badges={selectedActionBadges}
           headerAside={renderActionHeaderAside()}
           description={
             selectedAction.kind === "weapon"
@@ -5337,7 +5396,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               ? selectedWeaponDrawerDescription.descriptionAdditions
               : selectedAction.drawer.descriptionAdditions
           }
-          facts={selectedAction.kind === "weapon" ? [] : selectedAction.drawer.facts}
+          facts={
+            selectedAction.kind === "weapon"
+              ? (selectedWeaponAction?.facts ?? [])
+              : selectedAction.drawer.facts
+          }
           resources={selectedAction.kind === "weapon" ? [] : selectedAction.drawer.resources}
           helperText={selectedAction.drawer.helperText}
           warning={selectedDrawerWarning}

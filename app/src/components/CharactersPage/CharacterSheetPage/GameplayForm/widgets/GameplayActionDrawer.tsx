@@ -1,4 +1,4 @@
-import { Brain, Flame, Hexagon, Music, PawPrint, Sparkles, Wind } from "lucide-react";
+import { Brain, Flame, Hexagon, Music, PawPrint, Pentagon, Sparkles, Wind } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type {
   DivinityEntry,
@@ -75,6 +75,10 @@ function renderUsesIcon(icon?: FeatureActionIcon) {
     return <Flame size={14} strokeWidth={2.1} />;
   }
 
+  if (icon === "superiority") {
+    return <Pentagon size={14} strokeWidth={2.1} />;
+  }
+
   if (icon === "wind") {
     return <Wind size={14} strokeWidth={2.1} />;
   }
@@ -114,7 +118,7 @@ function renderHeaderResource(resource: FeatureActionResource, key: string) {
         <span className={styles.resourceBadgeValue}>
           <span>{resource.cost ?? resource.current}</span>
           {renderUsesIcon(resource.icon)}
-          <span>out of</span>
+          <span>{resource.connectorText ?? "out of"}</span>
           <span>{`${resource.current}/${resource.total}`}</span>
           {renderUsesIcon(resource.icon)}
         </span>
@@ -308,10 +312,13 @@ function GameplayActionDrawer({
                       key={`${title}-fact-${index}`}
                       label={fact.label}
                       content={fact.value}
+                      breakdown={fact.breakdown}
+                      className={fact.fullWidth ? styles.factFullWidth : undefined}
                       contentClassName={getToneClassName(fact.tone, {
                         danger: styles.factValueDanger,
                         accent: styles.factValueAccent
                       })}
+                      breakdownClassName={styles.factBreakdown}
                     />
                   ))}
                 </div>

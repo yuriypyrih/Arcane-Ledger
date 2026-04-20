@@ -41,10 +41,23 @@ function EquipmentInventoryItemDrawerHeader({
             <span>Worn</span>
           </span>
         ) : null}
-        {hasDisplayableRarity(item.rarity) ? <RarityPill rarity={item.rarity} /> : null}
       </div>
-      <p className={sheetStyles.spellDrawerSummary}>
-        {presentation.categoryLabel} • {presentation.sourceLabel}
+      <p className={`${sheetStyles.spellDrawerSummary} ${styles.drawerSummaryRow}`}>
+        <span>{presentation.categoryLabel}</span>
+        <span className={styles.drawerSummarySeparator} aria-hidden="true">
+          •
+        </span>
+        {hasDisplayableRarity(item.rarity) ? (
+          <span className={styles.drawerSummaryRarity}>
+            <RarityPill rarity={item.rarity} />
+          </span>
+        ) : (
+          <span>{presentation.rarityLabel}</span>
+        )}
+        <span className={styles.drawerSummarySeparator} aria-hidden="true">
+          •
+        </span>
+        <span>{presentation.sourceLabel}</span>
       </p>
     </div>
   );

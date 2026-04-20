@@ -1,10 +1,14 @@
 import {
+  CLASS_FEATURE,
   DAMAGE_TYPE,
   getReactionEntryById,
-  getSpellEntryByName
+  getSpellEntryByName,
+  type SpellDescriptionEntry,
+  type SpellEntry
 } from "../../../../../codex/entries";
 import {
   psiWarriorBulwarkOfForceDescription,
+  psiWarriorPsionicStrikeDescription,
   psiWarriorPsiPoweredLeapDescription,
   psiWarriorTelekineticMovementDescription,
   psiWarriorTelekineticThrustDescription
@@ -19,7 +23,8 @@ import {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
-import { getAbilityModifier } from "../../../gameplay";
+import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
+import { getAbilityModifier, getProficiencyBonus } from "../../../gameplay";
 import type { WeaponAction } from "../../../gameplay";
 import {
   getPsionicDiceTotalForLevel,
@@ -28,7 +33,12 @@ import {
 } from "../../psionicDice";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
-import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureSpeedBonus } from "../../types";
+import type {
+  DerivedFeatureStatusEntry,
+  FeatureActionCard,
+  FeatureActionFact,
+  FeatureSpeedBonus
+} from "../../types";
 import {
   fighterPsiWarriorBulwarkOfForceEffectName,
   fighterPsiWarriorBulwarkOfForceStatusSourceId,
@@ -50,6 +60,7 @@ type PsiWarriorCharacter = Pick<Character, "className"> &
 
 const psiWarriorProtectiveFieldReactionId = "reaction-psi-warrior-protective-field";
 export const fighterPsiPoweredLeapActionKey = "fighter-psi-warrior-psi-powered-leap";
+const psiWarriorPsionicStrikeSource = "Psionic Strike";
 const psiWarriorTelekineticThrustSource = "Telekinetic Thrust";
 const fighterPsiWarriorGuardedMindSource = "Guarded Mind";
 const fighterPsiWarriorGuardedMindPsychicResistanceSourceId =
@@ -122,11 +133,13 @@ function buildPsiWarriorFormula(die: PsionicDie | null, modifier: number): strin
     return null;
   }
 
+  const dieFormula = `1${die}`;
+
   if (modifier === 0) {
-    return die;
+    return dieFormula;
   }
 
-  return `${die}${modifier > 0 ? `+${modifier}` : modifier}`;
+  return `${dieFormula}${modifier > 0 ? `+${modifier}` : modifier}`;
 }
 
 function appendWeaponDescriptionSection(
@@ -135,6 +148,98 @@ function appendWeaponDescriptionSection(
   descriptionEntries: readonly string[]
 ): WeaponAction {
   return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
+}
+
+function getTelekineticMasterDescriptionEntries(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): SpellDescriptionEntry[] {
+  const descriptionEntries = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.TELEKINETIC_MASTER);
+
+  return descriptionEntries.length > 0
+    ? descriptionEntries
+    : [...psiWarriorTelekineticMasterDescription];
+}
+
+function appendTelekineticMasterSpellDescription(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  spell: SpellEntry
+): SpellEntry {
+  if (!hasFighterPsiWarriorTelekineticMaster(character) || spell.id !== telekinesisSpellId) {
+    return spell;
+  }
+
+  return appendSourcedDescriptionAddition(
+    spell,
+    fighterPsiWarriorTelekineticMasterEffectName,
+    getTelekineticMasterDescriptionEntries(character)
+  );
+}
+
+function appendWeaponFact(action: WeaponAction, fact: FeatureActionFact): WeaponAction {
+  const existingFacts = action.facts ?? [];
+
+  if (existingFacts.some((entry) => entry.label === fact.label)) {
+    return action;
+  }
+
+  return {
+    ...action,
+    facts: [...existingFacts, fact]
+  };
+}
+
+function formatPsiWarriorBreakdownTerm(value: number, label: string): string {
+  const absoluteValue = Math.abs(value);
+
+  return `${value >= 0 ? "+" : "-"} ${absoluteValue} ${label}`;
+}
+
+function getTelekineticThrustDcFact(character: PsiWarriorCharacter): FeatureActionFact {
+  const intelligenceModifier = getPsiWarriorIntelligenceModifier(character);
+  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const telekineticThrustDc = 8 + intelligenceModifier + proficiencyBonus;
+  const breakdown = [
+    "8 Base",
+    formatPsiWarriorBreakdownTerm(intelligenceModifier, "INT"),
+    formatPsiWarriorBreakdownTerm(proficiencyBonus, "Prof. Bonus")
+  ].join(" ");
+
+  return {
+    label: "Telekinetic Thrust DC Formula",
+    value: `DC ${telekineticThrustDc}`,
+    breakdown: `[${breakdown}]`,
+    fullWidth: true
+  };
+}
+
+function applyPsiWarriorWeaponDescriptionAdditions(
+  action: WeaponAction,
+  character: PsiWarriorCharacter
+): WeaponAction {
+  if (action.attackKind !== "weapon") {
+    return action;
+  }
+
+  let nextAction = action;
+
+  if (hasFighterPsiWarriorPsionicPower(character)) {
+    nextAction = appendWeaponDescriptionSection(
+      nextAction,
+      psiWarriorPsionicStrikeSource,
+      psiWarriorPsionicStrikeDescription
+    );
+  }
+
+  if (hasFighterPsiWarriorTelekineticAdept(character)) {
+    nextAction = appendWeaponDescriptionSection(
+      nextAction,
+      psiWarriorTelekineticThrustSource,
+      psiWarriorTelekineticThrustDescription
+    );
+    nextAction = appendWeaponFact(nextAction, getTelekineticThrustDcFact(character));
+  }
+
+  return nextAction;
 }
 
 function hasFighterPsiWarriorPsiPoweredLeapStatus(
@@ -964,8 +1069,7 @@ function getFighterPsiWarriorTelekineticMovementAction(
         kind: "tracker",
         label: "Charge",
         current: usesRemaining,
-        total: usesTotal,
-        supplementary: "Short/Long Rest"
+        total: usesTotal
       },
       ...(canUseFallback
         ? [
@@ -1026,8 +1130,7 @@ function getFighterPsiWarriorPsiPoweredLeapAction(
         kind: "tracker",
         label: "Charge",
         current: usesRemaining,
-        total: usesTotal,
-        supplementary: "Short/Long Rest"
+        total: usesTotal
       },
       ...(canUseFallback
         ? [
@@ -1088,8 +1191,7 @@ function getFighterPsiWarriorBulwarkOfForceAction(
         kind: "tracker",
         label: "Charge",
         current: usesRemaining,
-        total: usesTotal,
-        supplementary: "Long Rest"
+        total: usesTotal
       },
       ...(canUseFallback
         ? [
@@ -1166,18 +1268,15 @@ export const getFighterPsiWarriorDerivedFeatureState: SubclassRuntimeResolver = 
       hasFighterPsiWarriorTelekineticMaster(character) && telekinesisSpellId
         ? [telekinesisSpellId]
         : [],
+    transformSpellEntry: hasFighterPsiWarriorTelekineticMaster(character)
+      ? (spell) => appendTelekineticMasterSpellDescription(character, spell)
+      : undefined,
     reactionEntries: protectiveFieldReaction ? [protectiveFieldReaction] : [],
     derivedStatusEntries: getFighterPsiWarriorDerivedStatusEntries(character),
     speedBonuses,
-    transformWeaponAction: hasFighterPsiWarriorTelekineticAdept(character)
-      ? (action) =>
-          action.attackKind === "weapon"
-            ? appendWeaponDescriptionSection(
-                action,
-                psiWarriorTelekineticThrustSource,
-                psiWarriorTelekineticThrustDescription
-              )
-            : action
-      : undefined
+    transformWeaponAction:
+      hasFighterPsiWarriorPsionicPower(character) || hasFighterPsiWarriorTelekineticAdept(character)
+        ? (action) => applyPsiWarriorWeaponDescriptionAdditions(action, character)
+        : undefined
   };
 };

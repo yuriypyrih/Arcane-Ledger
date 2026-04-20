@@ -28,7 +28,6 @@ function BardicInspirationWidget({ character, onPersistCharacter }: BardicInspir
       icon={{ kind: "lucide", icon: Music }}
       pillLabel={`${remainingUses}/${totalUses} Bardic Inspiration`}
       modalTitle="Bardic Inspiration"
-      eyebrow="Bard"
       current={remainingUses}
       total={totalUses}
       onAdd={() =>

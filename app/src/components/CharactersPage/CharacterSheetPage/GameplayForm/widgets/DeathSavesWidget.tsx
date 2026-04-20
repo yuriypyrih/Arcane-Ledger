@@ -1,14 +1,11 @@
 import clsx from "clsx";
 import { Dices, Skull } from "lucide-react";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect } from "react";
 import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
 import type { Character } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import widgetShellStyles from "../GameplayWidgetShared.module.css";
-import {
-  createDefaultDeathSaves,
-  normalizeDeathSaves
-} from "../gameplayStateUtils";
+import { createDefaultDeathSaves, normalizeDeathSaves } from "../gameplayStateUtils";
 import styles from "./DeathSavesWidget.module.css";
 
 type DeathSavesWidgetProps = {
@@ -17,49 +14,41 @@ type DeathSavesWidgetProps = {
 };
 
 function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetProps) {
-  const [lastDeathSaveRoll, setLastDeathSaveRoll] = useState<number | null>(null);
-  const [lastProcessedDeathSaveRollToken, setLastProcessedDeathSaveRollToken] = useState<
-    number | null
-  >(null);
-  const { popupState, openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
+  const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
   const deathSaves = normalizeDeathSaves(character.deathSaves);
   const isAtZeroHitPoints = character.currentHitPoints === 0;
   const isDeathSaveResolved = deathSaves.successes >= 3 || deathSaves.failures >= 3;
 
-  const updateDeathSaves = useCallback((track: "success" | "failure") => {
-    onPersistCharacter((currentCharacter) => {
-      if (currentCharacter.currentHitPoints > 0) {
-        return currentCharacter;
-      }
+  const updateDeathSaves = useCallback(
+    (track: "success" | "failure") => {
+      onPersistCharacter((currentCharacter) => {
+        if (currentCharacter.currentHitPoints > 0) {
+          return currentCharacter;
+        }
 
-      const currentDeathSaves = normalizeDeathSaves(currentCharacter.deathSaves);
+        const currentDeathSaves = normalizeDeathSaves(currentCharacter.deathSaves);
 
-      if (track === "success") {
+        if (track === "success") {
+          return {
+            ...currentCharacter,
+            deathSaves: {
+              ...currentDeathSaves,
+              successes: Math.min(3, currentDeathSaves.successes + 1)
+            }
+          };
+        }
+
         return {
           ...currentCharacter,
           deathSaves: {
             ...currentDeathSaves,
-            successes: Math.min(3, currentDeathSaves.successes + 1)
+            failures: Math.min(3, currentDeathSaves.failures + 1)
           }
         };
-      }
-
-      return {
-        ...currentCharacter,
-        deathSaves: {
-          ...currentDeathSaves,
-          failures: Math.min(3, currentDeathSaves.failures + 1)
-        }
-      };
-    });
-  }, [onPersistCharacter]);
-
-  useEffect(() => {
-    if (character.currentHitPoints > 0) {
-      setLastDeathSaveRoll(null);
-      setLastProcessedDeathSaveRollToken(null);
-    }
-  }, [character.currentHitPoints]);
+      });
+    },
+    [onPersistCharacter]
+  );
 
   useEffect(() => {
     if (character.currentHitPoints <= 0) {
@@ -76,32 +65,15 @@ function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetPro
     }));
   }, [character.currentHitPoints, deathSaves.failures, deathSaves.successes, onPersistCharacter]);
 
-  useEffect(() => {
-    if (!popupState || popupState.request.title !== "Death save") {
-      return;
-    }
-
-    if (!popupState.result || popupState.error) {
-      return;
-    }
-
-    if (lastProcessedDeathSaveRollToken === popupState.rollToken) {
-      return;
-    }
-
-    const rolledValue = popupState.result.total;
-
-    setLastProcessedDeathSaveRollToken(popupState.rollToken);
-    setLastDeathSaveRoll(rolledValue);
-    updateDeathSaves(rolledValue >= 10 ? "success" : "failure");
-  }, [lastProcessedDeathSaveRollToken, popupState, updateDeathSaves]);
-
   function rollDeathSave() {
     openDiceRoller({
       title: "Death save",
       formula: "1d20",
       formulaDisplay: "1d20",
-      description: "Roll a death saving throw."
+      description: "Roll a death saving throw.",
+      onResolvedResult: ({ result }) => {
+        updateDeathSaves(result.total >= 10 ? "success" : "failure");
+      }
     });
   }
 
@@ -178,13 +150,6 @@ function DeathSavesWidget({ character, onPersistCharacter }: DeathSavesWidgetPro
             Roll death save
           </button>
         </div>
-
-        {lastDeathSaveRoll !== null ? (
-          <p className={styles.rollResult}>
-            Last roll: d20 = {lastDeathSaveRoll} (
-            {lastDeathSaveRoll >= 10 ? "Success" : "Failure"})
-          </p>
-        ) : null}
       </section>
 
       {diceRollerPopup}

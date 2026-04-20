@@ -13,7 +13,9 @@ export function createRollRecord(result: DicePoolRollResult): RollRecord {
 export function createResultPopup(dice: RolledDie[], rollToken: number): ResultPopup {
   return {
     rollToken,
-    total: dice.reduce((sum, die) => sum + die.value, 0),
-    breakdown: dice.map((die) => `d${die.sides}:${die.value}`).join("  ")
+    total: dice.reduce((sum, die) => sum + (die.counted === false ? 0 : die.value), 0),
+    breakdown: dice
+      .map((die) => `d${die.sides}:${die.value}${die.counted === false ? " (ignored)" : ""}`)
+      .join("  ")
   };
 }

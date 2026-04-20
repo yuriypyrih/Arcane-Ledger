@@ -23,6 +23,7 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
+import { fighterPsiWarriorBulwarkOfForceStatusSourceId } from "../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterPsiWarriorShared";
 import { isRogueArcaneTricksterSpellThiefStatusSourceId } from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 
 export type TraitEditorTab =
@@ -169,6 +170,15 @@ export function isStatusEntryRemovable(entry: CharacterStatusEntry): boolean {
     isRogueArcaneTricksterSpellThiefStatusSourceId(entry.sourceId);
 
   if (isSpellThiefEffect) {
+    return true;
+  }
+
+  const isBulwarkOfForceEffect =
+    entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE &&
+    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+    entry.sourceId === fighterPsiWarriorBulwarkOfForceStatusSourceId;
+
+  if (isBulwarkOfForceEffect) {
     return true;
   }
 

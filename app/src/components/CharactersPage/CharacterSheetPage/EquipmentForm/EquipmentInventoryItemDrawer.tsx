@@ -11,6 +11,7 @@ type EquipmentInventoryItemDrawerProps = {
   onClose: () => void;
   footer?: ReactNode;
   headerContent?: ReactNode;
+  weaponMasteryActive?: boolean;
 };
 
 function EquipmentInventoryItemDrawer({
@@ -18,16 +19,13 @@ function EquipmentInventoryItemDrawer({
   status,
   onClose,
   footer,
-  headerContent
+  headerContent,
+  weaponMasteryActive = false
 }: EquipmentInventoryItemDrawerProps) {
   const resolvedHeaderContent =
     headerContent ??
     (status === "ready" && item ? (
-      <ItemInspectionHeader
-        item={item}
-        titleId="equipment-item-drawer-title"
-        headingLevel="h3"
-      />
+      <ItemInspectionHeader item={item} titleId="equipment-item-drawer-title" headingLevel="h3" />
     ) : null);
 
   return (
@@ -86,7 +84,13 @@ function EquipmentInventoryItemDrawer({
             </div>
           ) : null}
 
-          {status === "ready" && item ? <ItemInspectionContent item={item} showHeader={false} /> : null}
+          {status === "ready" && item ? (
+            <ItemInspectionContent
+              item={item}
+              showHeader={false}
+              weaponMasteryActive={weaponMasteryActive}
+            />
+          ) : null}
         </div>
 
         {footer ? <div className={styles.footer}>{footer}</div> : null}

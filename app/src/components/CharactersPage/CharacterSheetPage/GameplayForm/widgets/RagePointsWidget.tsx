@@ -28,7 +28,6 @@ function RagePointsWidget({ character, onPersistCharacter }: RagePointsWidgetPro
       icon={{ kind: "lucide", icon: Flame }}
       pillLabel={`${remainingRageUses}/${totalRageUses} Rage`}
       modalTitle="Rage"
-      eyebrow="Barbarian"
       current={remainingRageUses}
       total={totalRageUses}
       onAdd={() =>

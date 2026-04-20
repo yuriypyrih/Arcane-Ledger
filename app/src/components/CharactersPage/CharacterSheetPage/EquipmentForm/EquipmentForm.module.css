@@ -96,6 +96,22 @@
   color: #51631f;
 }
 
+.drawerSummaryRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.drawerSummarySeparator {
+  color: inherit;
+}
+
+.drawerSummaryRarity {
+  display: inline-flex;
+  align-items: center;
+}
+
 .equipmentItemMeta {
   display: inline-flex;
   align-items: center;

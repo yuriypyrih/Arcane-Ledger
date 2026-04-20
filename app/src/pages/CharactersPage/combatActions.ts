@@ -17,6 +17,7 @@ import {
   type FeatureActionTone
 } from "./classFeatures";
 import { getWeaponActionsForCharacter, type WeaponAction } from "./gameplay";
+import { getWeaponActionDrawerDescriptionAdditions } from "./weaponActionDrawerDescriptions";
 
 type GameplayActionBase = {
   key: string;
@@ -396,25 +397,36 @@ function createWeaponActionFacts(action: WeaponAction): FeatureActionFact[] {
   ];
 }
 
-function createWeaponActionDefinition(action: WeaponAction): GameplayActionDefinition {
+function createWeaponActionDefinition(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  action: WeaponAction
+): GameplayActionDefinition {
+  const descriptionAdditions = mergeUniqueDescriptionAdditions(
+    getWeaponActionDrawerDescriptionAdditions(character, action)
+  );
+  const preparedAction: WeaponAction = {
+    ...action,
+    descriptionAdditions
+  };
+
   return {
     kind: "weapon",
-    key: action.key,
-    name: action.name,
-    economyType: action.economyType,
-    actionCategory: action.actionCategory,
-    economyMultiCount: action.economyMultiCount,
-    action,
+    key: preparedAction.key,
+    name: preparedAction.name,
+    economyType: preparedAction.economyType,
+    actionCategory: preparedAction.actionCategory,
+    economyMultiCount: preparedAction.economyMultiCount,
+    action: preparedAction,
     execute: {
       kind: "weapon-roll",
       label: "Roll Attack"
     },
     drawer: {
       kind: "weapon-roll",
-      eyebrow: action.drawerEyebrow ?? "Weapon Attack",
-      description: action.description ?? [],
-      descriptionAdditions: action.descriptionAdditions ?? [],
-      facts: createWeaponActionFacts(action),
+      eyebrow: preparedAction.drawerEyebrow ?? "Weapon Attack",
+      description: preparedAction.description ?? [],
+      descriptionAdditions: preparedAction.descriptionAdditions ?? [],
+      facts: createWeaponActionFacts(preparedAction),
       resources: [],
       confirmLabel: "Roll Attack"
     }
@@ -426,7 +438,7 @@ export function getCombatActionsForCharacter(character: Character): GameplayActi
     createFeatureActionDefinition(character, action)
   );
   const weaponActions = getWeaponActionsForCharacter(character).map((action) =>
-    createWeaponActionDefinition(action)
+    createWeaponActionDefinition(character, action)
   );
 
   return [...featureActions, ...weaponActions];

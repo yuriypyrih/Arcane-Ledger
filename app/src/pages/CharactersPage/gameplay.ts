@@ -24,6 +24,7 @@ import {
 import {
   canUseMonkMartialArtsForCharacter,
   getAdditionalWeaponMasteriesForCharacter,
+  type FeatureActionFact,
   getFeatureWeaponActionsForCharacter,
   hasBatteringRootsBonusForCharacter,
   getInitiativeBonusesForCharacter,
@@ -111,6 +112,7 @@ export type WeaponAction = {
   drawerEyebrow?: string;
   description?: SpellDescriptionEntry[];
   descriptionAdditions?: SpellDescriptionEntry[][];
+  facts?: FeatureActionFact[];
   details?: Array<{
     label: string;
     value: string;

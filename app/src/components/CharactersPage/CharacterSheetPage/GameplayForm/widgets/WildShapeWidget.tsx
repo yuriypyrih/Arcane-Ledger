@@ -28,7 +28,6 @@ function WildShapeWidget({ character, onPersistCharacter }: WildShapeWidgetProps
       icon={{ kind: "lucide", icon: PawPrint }}
       pillLabel={`${remainingUses}/${totalUses} Wild Shape`}
       modalTitle="Wild Shape"
-      eyebrow="Druid"
       current={remainingUses}
       total={totalUses}
       onAdd={() =>

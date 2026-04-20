@@ -1,9 +1,10 @@
-import type { ReactNode } from "react";
+import { createElement, type ReactNode } from "react";
 import type { SpellDescriptionEntry } from "../../../../../codex/entries";
 import type { ItemRecord, MonsterRecord } from "../../../../../types";
 import { parseRollFormulaRange } from "../../../../../pages/CharactersPage/actionOutcome";
 import { buildItemDetailPresentation } from "../../../../../pages/ItemCodexEntryPage/itemPresentation";
 import { adaptItemWeapon } from "../../../../../utils/items/adaptItemWeapon";
+import WeaponMasteryStatusLabel from "../../../../WeaponMasteryStatusLabel/WeaponMasteryStatusLabel";
 import {
   formatAbilityModifier,
   type WeaponAction
@@ -23,7 +24,8 @@ type WeaponFormulaPresentation = {
 };
 
 type WeaponDrawerDetail = {
-  label: string;
+  key: string;
+  label: ReactNode;
   value: ReactNode;
 };
 
@@ -377,13 +379,23 @@ export function getWeaponDrawerDetails(
         mastery?: WeaponEntry["mastery"];
       })
     | null,
-  itemRecord?: ItemRecord | null
+  itemRecord?: ItemRecord | null,
+  options?: {
+    hasActiveMastery?: boolean;
+  }
 ): WeaponDrawerDetail[] {
   if (action.details && action.details.length > 0) {
-    return action.details;
+    return action.details.map((detail, index) => ({
+      key: `${detail.label.toLowerCase().replace(/\s+/g, "-")}-${index}`,
+      label: detail.label,
+      value: detail.value
+    }));
   }
 
   const adaptedItemWeapon = itemRecord ? adaptItemWeapon(itemRecord) : null;
+  const masteryLabel = options?.hasActiveMastery
+    ? createElement(WeaponMasteryStatusLabel)
+    : "Mastery";
 
   if (adaptedItemWeapon) {
     const selectedDamage =
@@ -393,21 +405,25 @@ export function getWeaponDrawerDetails(
 
     return [
       {
+        key: "type",
         label: "Type",
         value: formatWeaponType(adaptedItemWeapon.type)
       },
       {
+        key: "damage",
         label: "Damage",
         value: selectedDamage?.length
           ? formatWeaponDamage(selectedDamage)
           : adaptedItemWeapon.damageLabel || action.damageLabel
       },
       {
+        key: "properties",
         label: "Properties",
         value: adaptedItemWeapon.propertyLabels.join(", ") || "None"
       },
       {
-        label: "Mastery",
+        key: "mastery",
+        label: masteryLabel,
         value: adaptedItemWeapon.masteryLabels.join(", ") || "None"
       }
     ];
@@ -420,19 +436,23 @@ export function getWeaponDrawerDetails(
   if (!weaponEntry) {
     return [
       {
+        key: "type",
         label: "Type",
         value: "Weapon"
       },
       {
+        key: "damage",
         label: "Damage",
         value: action.damageLabel
       },
       {
+        key: "properties",
         label: "Properties",
         value: "None"
       },
       {
-        label: "Mastery",
+        key: "mastery",
+        label: masteryLabel,
         value: "None"
       }
     ];
@@ -445,19 +465,23 @@ export function getWeaponDrawerDetails(
 
   return [
     {
+      key: "type",
       label: "Type",
       value: formatWeaponType(weaponEntry.type)
     },
     {
+      key: "damage",
       label: "Damage",
       value: formatWeaponDamage(selectedDamage)
     },
     {
+      key: "properties",
       label: "Properties",
       value: formatWeaponProperties(weaponEntry)
     },
     {
-      label: "Mastery",
+      key: "mastery",
+      label: masteryLabel,
       value: weaponEntry.mastery ? formatCodexLabel(weaponEntry.mastery) : "None"
     }
   ];

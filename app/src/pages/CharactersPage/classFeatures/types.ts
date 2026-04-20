@@ -36,6 +36,7 @@ export type FeatureActionIcon =
   | "music"
   | "sparkles"
   | "flame"
+  | "superiority"
   | "wind"
   | "paw"
   | "psi"
@@ -44,6 +45,8 @@ export type FeatureActionIcon =
 export type FeatureActionFact = {
   label: string;
   value: string;
+  breakdown?: string;
+  fullWidth?: boolean;
   tone?: FeatureActionTone;
 };
 
@@ -58,6 +61,7 @@ export type FeatureActionResource =
       supplementary?: string;
       icon?: FeatureActionIcon;
       cost?: number;
+      connectorText?: string;
     }
   | {
       kind: "text";
@@ -73,6 +77,8 @@ export type FeatureActionExecuteKind = "activate" | "option" | "custom-form" | "
 
 export type FeatureActionExecuteEffectKind =
   | "default"
+  | "combat-superiority"
+  | "know-your-enemy"
   | "bardic-inspiration-roll"
   | "second-wind"
   | "tactical-mind"

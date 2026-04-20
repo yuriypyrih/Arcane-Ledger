@@ -1,15 +1,14 @@
 import type { Character, CharacterStatusEntry } from "../../../../types";
-import {
-  STATUS_DURATION_ROUND_TICK,
-  STATUS_ENTRY_SOURCE_TYPE
-} from "../../../../types";
+import { STATUS_DURATION_ROUND_TICK, STATUS_ENTRY_SOURCE_TYPE } from "../../../../types";
 import {
   advanceFeatureStateForNewRound,
   removeFeatureStatusEntryForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
 import {
   advanceCharacterStatusEntries,
-  normalizeCharacterStatusEntries
+  getEffectiveHitPointMaximumForCharacter,
+  normalizeCharacterStatusEntries,
+  reconcileCharacterStatusConsequences
 } from "../../../../pages/CharactersPage/traits";
 import type { HpDraft } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
@@ -65,6 +64,45 @@ export function normalizeDeathSaves(value: Character["deathSaves"]): DeathSaveSt
   };
 }
 
+export function applyRolledHealingToCharacter(
+  character: Character,
+  rolledTotal: number
+): Character {
+  const healedAmount = Math.max(1, rolledTotal);
+  const nextEffectiveHitPoints = getEffectiveHitPointMaximumForCharacter(character);
+  const nextCurrentHitPoints = Math.max(
+    0,
+    Math.min(nextEffectiveHitPoints, character.currentHitPoints + healedAmount)
+  );
+
+  return reconcileCharacterStatusConsequences({
+    ...character,
+    currentHitPoints: nextCurrentHitPoints,
+    deathSaves:
+      nextCurrentHitPoints > 0
+        ? createDefaultDeathSaves()
+        : normalizeDeathSaves(character.deathSaves)
+  });
+}
+
+export function applyRolledTemporaryHitPointsToCharacter(
+  character: Character,
+  rolledTotal: number,
+  source: string
+): Character {
+  const grantedTemporaryHitPoints = Math.max(1, rolledTotal);
+
+  return {
+    ...character,
+    ...swapTemporaryHitPointsAssignment(
+      character.temporaryHitPoints,
+      character.temporaryHitPointsSource,
+      grantedTemporaryHitPoints,
+      source
+    )
+  };
+}
+
 export {
   createMagicTemporaryHitPointsAssignment,
   MANUAL_TEMPORARY_HIT_POINTS_SOURCE,
@@ -117,9 +155,7 @@ function advanceTimedStatusesForTurnStart(character: Character): Character {
 }
 
 export function startCharacterTurn(character: Character): Character {
-  const nextCharacter = advanceFeatureStateForNewRound(
-    advanceTimedStatusesForTurnStart(character)
-  );
+  const nextCharacter = advanceFeatureStateForNewRound(advanceTimedStatusesForTurnStart(character));
 
   return {
     ...nextCharacter,
@@ -144,10 +180,7 @@ export function consumeRoundTrackerResourceForCharacter(
   character: Character,
   resource: RoundTrackerResource
 ): Character {
-  const preparedCharacter = prepareCharacterForRoundTrackerResourceConsumption(
-    character,
-    resource
-  );
+  const preparedCharacter = prepareCharacterForRoundTrackerResourceConsumption(character, resource);
 
   return {
     ...preparedCharacter,

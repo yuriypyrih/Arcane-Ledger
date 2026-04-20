@@ -28,7 +28,6 @@ function FocusPointsWidget({ character, onPersistCharacter }: FocusPointsWidgetP
       icon={{ kind: "lucide", icon: Brain }}
       pillLabel={`${remainingFocusPoints}/${totalFocusPoints} Focus Points`}
       modalTitle="Focus Points"
-      eyebrow="Monk"
       current={remainingFocusPoints}
       total={totalFocusPoints}
       onAdd={() =>

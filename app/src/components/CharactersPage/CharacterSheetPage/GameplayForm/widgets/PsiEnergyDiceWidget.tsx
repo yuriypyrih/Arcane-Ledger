@@ -30,7 +30,6 @@ function PsiEnergyDiceWidget({ character, onPersistCharacter }: PsiEnergyDiceWid
       icon={{ kind: "lucide", icon: Hexagon }}
       pillLabel={`${remainingDice}/${totalDice} Psi Energy Dice`}
       modalTitle="Psi Energy Dice"
-      eyebrow="Psi Warrior"
       current={remainingDice}
       total={totalDice}
       titleSuffix={energyDie.toUpperCase()}

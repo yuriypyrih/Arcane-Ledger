@@ -3,18 +3,21 @@ import DescriptionContent from "../DescriptionContent/DescriptionContent";
 import { buildItemDetailPresentation } from "../../pages/ItemCodexEntryPage/itemPresentation";
 import type { ItemRecord } from "../../types";
 import ItemInspectionHeader from "./ItemInspectionHeader";
+import WeaponMasteryStatusLabel from "../WeaponMasteryStatusLabel/WeaponMasteryStatusLabel";
 import styles from "./ItemInspectionContent.module.css";
 
 type ItemInspectionContentProps = {
   item: ItemRecord;
   className?: string;
   showHeader?: boolean;
+  weaponMasteryActive?: boolean;
 };
 
 function ItemInspectionContent({
   item,
   className,
-  showHeader = true
+  showHeader = true,
+  weaponMasteryActive = false
 }: ItemInspectionContentProps) {
   const presentation = buildItemDetailPresentation(item);
 
@@ -52,7 +55,13 @@ function ItemInspectionContent({
             {presentation.weaponCells.map((cell) => (
               <CellContainer
                 key={cell.label}
-                label={cell.label}
+                label={
+                  weaponMasteryActive && cell.label === "Mastery" ? (
+                    <WeaponMasteryStatusLabel />
+                  ) : (
+                    cell.label
+                  )
+                }
                 content={cell.value}
                 breakdown={cell.note ?? undefined}
               />

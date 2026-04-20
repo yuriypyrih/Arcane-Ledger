@@ -1,9 +1,11 @@
+import { CLASS_FEATURE } from "../../../../../codex/entries";
 import {
   fighterChampionImprovedCriticalDescription,
   fighterChampionSuperiorCriticalDescription
 } from "../../../../../codex/subclasses/fighterChampion";
 import { SKILL, type Character } from "../../../../../types";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import { restoreHeroicInspirationForCharacter } from "../../../heroicInspiration";
 import type { WeaponAction } from "../../../gameplay";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
@@ -12,6 +14,7 @@ import type { CoreStatIndicatorMap, SkillIndicatorMap } from "../../types";
 export const championSubclassId = "fighter-champion";
 
 const improvedCriticalSource = "Improved Critical";
+const remarkableAthleteSource = "Remarkable Athlete";
 const superiorCriticalSource = "Superior Critical";
 const remarkableAthleteAdvantageIndicator = {
   label: "Advantage",
@@ -91,6 +94,14 @@ function appendWeaponDescriptionSection(
   return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
 }
 
+function getRemarkableAthleteCriticalHitDescription(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): string[] {
+  return getFeatureDescriptionForCharacter(character, CLASS_FEATURE.REMARKABLE_ATHLETE).filter(
+    (entry): entry is string => typeof entry === "string" && entry.includes("Critical Hit")
+  );
+}
+
 export const getFighterChampionDerivedFeatureState: SubclassRuntimeResolver = (character) => {
   if (!hasFighterChampionImprovedCritical(character)) {
     return {};
@@ -102,12 +113,19 @@ export const getFighterChampionDerivedFeatureState: SubclassRuntimeResolver = (c
   const criticalFeatureDescription = hasFighterChampionSuperiorCritical(character)
     ? fighterChampionSuperiorCriticalDescription
     : fighterChampionImprovedCriticalDescription;
+  const remarkableAthleteDescription = hasFighterChampionRemarkableAthlete(character)
+    ? getRemarkableAthleteCriticalHitDescription(character)
+    : [];
 
   return {
     coreStatIndicators: getFighterChampionCoreStatIndicators(character),
     skillIndicators: getFighterChampionSkillIndicators(character),
     transformWeaponAction: (action) =>
-      appendWeaponDescriptionSection(action, criticalFeatureSource, criticalFeatureDescription)
+      appendWeaponDescriptionSection(
+        appendWeaponDescriptionSection(action, criticalFeatureSource, criticalFeatureDescription),
+        remarkableAthleteSource,
+        remarkableAthleteDescription
+      )
   };
 };
 

@@ -51,6 +51,7 @@ import {
   getClericWardingFlareUsesTotalForCharacter,
   getFighterIndomitableUsesRemainingForCharacter,
   getFighterPsiWarriorEnergyDiceRemainingForCharacter,
+  getFighterPsiWarriorEnergyDiceTotalForCharacter,
   getFeatureReactionEntriesForCharacter,
   getFeatureReactionSpellForCharacter,
   getGloriousDefenseUsesRemainingForCharacter,
@@ -772,6 +773,18 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
                 total: wardingFlareUsesTotal
               }
             ]
+          : selectedReactionEntry?.id === "reaction-psi-warrior-protective-field"
+            ? [
+                {
+                  kind: "tracker",
+                  label: "Use",
+                  current: getFighterPsiWarriorEnergyDiceRemainingForCharacter(character),
+                  total: getFighterPsiWarriorEnergyDiceTotalForCharacter(character),
+                  icon: "psi",
+                  cost: 1,
+                  connectorText: "of"
+                }
+              ]
           : [];
   const selectedReactionSelectionWarning =
     selectedReactionEntry?.id === superiorHuntersDefenseReactionId &&

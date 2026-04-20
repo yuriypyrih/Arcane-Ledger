@@ -1,14 +1,20 @@
 import clsx from "clsx";
-import { CircleCheck, CircleX, Info, TriangleAlert, X, type LucideIcon } from "lucide-react";
+import { CircleAlert, CircleCheck, Info, TriangleAlert, X, type LucideIcon } from "lucide-react";
 import { useEffect } from "react";
-import { DEFAULT_TOAST_DISMISS_MS, dismissToast, type ToastEntry, type ToastType, useAppDispatch } from "../../store";
+import {
+  DEFAULT_TOAST_DISMISS_MS,
+  dismissToast,
+  type ToastEntry,
+  type ToastType,
+  useAppDispatch
+} from "../../store";
 import styles from "./ToastViewport.module.css";
 
 const toastIcons: Record<ToastType, LucideIcon> = {
   info: Info,
   success: CircleCheck,
   warning: TriangleAlert,
-  error: CircleX
+  error: CircleAlert
 };
 
 const toastLabels: Record<ToastType, string> = {
@@ -53,10 +59,9 @@ function ToastItem({ toast }: ToastItemProps) {
       aria-live={toast.type === "error" ? "assertive" : "polite"}
     >
       <span className={styles.iconWrap} aria-hidden="true">
-        <Icon size={18} strokeWidth={2.2} />
+        <Icon size={22} strokeWidth={2.1} />
       </span>
       <div className={styles.content}>
-        <p className={styles.typeLabel}>{typeLabel}</p>
         <p className={styles.text}>{toast.text}</p>
       </div>
       <button

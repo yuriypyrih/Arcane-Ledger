@@ -2,8 +2,11 @@ import clsx from "clsx";
 import ActionShape, { type ActionShapeType } from "../../../../ActionShape";
 import CellContainer from "../../../../CellContainer/CellContainer";
 import FeatureOptInToggle from "../../FeatureOptInToggle/FeatureOptInToggle";
+import d20Icon from "../../../../../assets/svg/d20.svg";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import { parseRollFormulaRange } from "../../../../../pages/CharactersPage/actionOutcome";
+import actionStyles from "./ActionsWidget.module.css";
+import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
 import styles from "./FighterSecondWindAction.module.css";
 
 type FighterSecondWindActionBodyProps = {
@@ -12,6 +15,7 @@ type FighterSecondWindActionBodyProps = {
 };
 
 type FighterSecondWindActionFooterProps = {
+  actionName: string;
   confirmLabel: string;
   actionShape: ActionShapeType | null;
   actionShapeAvailable: boolean;
@@ -21,7 +25,9 @@ type FighterSecondWindActionFooterProps = {
   groupRecoveryUsesRemaining: number;
   groupRecoveryUsesTotal: number;
   isGroupRecoverySelected: boolean;
+  isDiceRollerSettingsOpen: boolean;
   onConfirm: () => void;
+  onDiceRollerSettingsOpenChange: (isOpen: boolean) => void;
   onGroupRecoverySelectedChange: (checked: boolean) => void;
 };
 
@@ -69,6 +75,7 @@ export function FighterSecondWindActionBody({
 }
 
 export function FighterSecondWindActionFooter({
+  actionName,
   confirmLabel,
   actionShape,
   actionShapeAvailable,
@@ -78,7 +85,9 @@ export function FighterSecondWindActionFooter({
   groupRecoveryUsesRemaining,
   groupRecoveryUsesTotal,
   isGroupRecoverySelected,
+  isDiceRollerSettingsOpen,
   onConfirm,
+  onDiceRollerSettingsOpenChange,
   onGroupRecoverySelectedChange
 }: FighterSecondWindActionFooterProps) {
   return (
@@ -99,22 +108,34 @@ export function FighterSecondWindActionFooter({
           ]}
         />
       ) : null}
-      <button
-        type="button"
-        className={clsx(sheetStyles.castButton, styles.confirmButton)}
-        onClick={onConfirm}
-        disabled={disabled}
-      >
-        <span>{confirmLabel}</span>
-        {actionShape ? (
-          <ActionShape
-            shape={actionShape}
-            isSelected={actionShapeAvailable}
-            multiCount={actionShapeMultiCount}
-            className={styles.footerActionShape}
-          />
-        ) : null}
-      </button>
+      <div className={actionStyles.weaponFooterActions}>
+        <button
+          type="button"
+          className={clsx(sheetStyles.castButton, actionStyles.weaponFooterButton, styles.confirmButton)}
+          onClick={onConfirm}
+          disabled={disabled}
+        >
+          <span className={actionStyles.centeredFooterButtonContent}>
+            <img src={d20Icon} alt="" className={actionStyles.weaponFooterIcon} />
+            <span>{confirmLabel}</span>
+            {actionShape ? (
+              <ActionShape
+                shape={actionShape}
+                isSelected={actionShapeAvailable}
+                multiCount={actionShapeMultiCount}
+                className={styles.footerActionShape}
+              />
+            ) : null}
+          </span>
+        </button>
+        <DiceRollerSettingsButton
+          actionName={actionName}
+          className={clsx(sheetStyles.castButton, actionStyles.weaponFooterIconButton)}
+          isOpen={isDiceRollerSettingsOpen}
+          ariaLabel="Open dice roller settings"
+          onOpenChange={onDiceRollerSettingsOpenChange}
+        />
+      </div>
     </div>
   );
 }

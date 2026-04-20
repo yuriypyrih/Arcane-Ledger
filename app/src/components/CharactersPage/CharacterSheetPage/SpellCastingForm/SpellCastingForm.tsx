@@ -135,6 +135,7 @@ import { getSpellSelectionInputStatusForCharacter } from "../../../../pages/Char
 import { getFeatGrantedCantripEntriesForCharacter } from "../../../../pages/CharactersPage/feats";
 import { formatFeatureActionOptionRangeLabel } from "../../../../pages/CharactersPage/actionOutcome";
 import { applySpellConcentrationToStatusEntries } from "../../../../pages/CharactersPage/traits";
+import { fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId } from "../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterPsiWarriorShared";
 import type {
   PersistCharacterUpdater,
   SpellManagementMode
@@ -2038,6 +2039,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             )
           }
         : selectedSpell;
+    const concentrationStatusOptions = useTelekineticMaster
+      ? {
+          sourceId: fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId
+        }
+      : undefined;
     const canCastSpellbookRitual =
       selectedSpellIsSpellbookOnly && hasWizardRitualAdept && castAsRitual;
 
@@ -2056,7 +2062,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             ...preparedCharacter,
             statusEntries: applySpellConcentrationToStatusEntries(
               preparedCharacter.statusEntries,
-              spellForStatusEntries
+              spellForStatusEntries,
+              concentrationStatusOptions
             )
           };
           const nextCharacterWithBeguilingMagic = useBeguilingMagic
@@ -2119,7 +2126,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             ...nextCharacterWithSpellCastEffects,
             statusEntries: applySpellConcentrationToStatusEntries(
               nextCharacterWithSpellCastEffects.statusEntries,
-              spellForStatusEntries
+              spellForStatusEntries,
+              concentrationStatusOptions
             )
           };
         });
@@ -2139,7 +2147,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           ...preparedCharacter,
           statusEntries: applySpellConcentrationToStatusEntries(
             preparedCharacter.statusEntries,
-            spellForStatusEntries
+            spellForStatusEntries,
+            concentrationStatusOptions
           )
         };
         const nextCharacterWithBeguilingMagic = useBeguilingMagic
@@ -2323,12 +2332,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           ? applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter(
               applySpellConcentrationToStatusEntries(
                 nextCharacterWithPsionicSorcery.statusEntries,
-                spellForStatusEntries
+                spellForStatusEntries,
+                concentrationStatusOptions
               )
             )
           : applySpellConcentrationToStatusEntries(
               nextCharacterWithPsionicSorcery.statusEntries,
-              spellForStatusEntries
+              spellForStatusEntries,
+              concentrationStatusOptions
             )
       };
       const nextCharacterWithTelekineticMaster = castsFreeViaTelekineticMaster
@@ -2677,45 +2688,15 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       </div>
 
       {activeSpellSlotSheetLevel !== null ? (
-        <div
-          className={sheetStyles.spellManagementBackdrop}
-          role="presentation"
-          onClick={closeSpellSlotActionSheet}
-        >
-          <section
-            className={sheetStyles.spellManagementModal}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="spell-slot-actions-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className={sheetStyles.spellManagementHeader}>
-              <div>
-                <p className={sheetStyles.eyebrow}>Spell slots</p>
-                <h3 id="spell-slot-actions-title" className={sheetStyles.sheetPanelTitle}>
-                  {`Level ${activeSpellSlotSheetLevel} Spell Slots`}
-                </h3>
-              </div>
-              <button
-                type="button"
-                className={sheetStyles.spellManagementCloseButton}
-                onClick={closeSpellSlotActionSheet}
-                aria-label="Close spell slot actions"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <SpellSlotActionSheet
-              slotLevel={activeSpellSlotSheetLevel}
-              totalSlots={activeSpellSlotSheetTotal}
-              expendedSlots={activeSpellSlotSheetExpended}
-              onResetSlot={() => updateSpellSlotsExpended(activeSpellSlotSheetLevel, -1)}
-              onUseSlot={() => updateSpellSlotsExpended(activeSpellSlotSheetLevel, 1)}
-              onResetAll={() => resetAllSpellSlotsAtLevel(activeSpellSlotSheetLevel)}
-            />
-          </section>
-        </div>
+        <SpellSlotActionSheet
+          slotLevel={activeSpellSlotSheetLevel}
+          totalSlots={activeSpellSlotSheetTotal}
+          expendedSlots={activeSpellSlotSheetExpended}
+          onClose={closeSpellSlotActionSheet}
+          onResetSlot={() => updateSpellSlotsExpended(activeSpellSlotSheetLevel, -1)}
+          onUseSlot={() => updateSpellSlotsExpended(activeSpellSlotSheetLevel, 1)}
+          onResetAll={() => resetAllSpellSlotsAtLevel(activeSpellSlotSheetLevel)}
+        />
       ) : null}
 
       {spellManagementMode ? (

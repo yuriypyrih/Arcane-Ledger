@@ -1,11 +1,7 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 import type { RolledDie } from "../../types";
-import {
-  SETTLE_START,
-  TABLE_Y,
-  TOTAL_DURATION
-} from "./constants";
+import { SETTLE_START, TABLE_Y, TOTAL_DURATION } from "./constants";
 import {
   createDieShape,
   createPlaneMesh,
@@ -131,7 +127,7 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
       const visuals = nextDice.map((die, index) => {
         const spinScale = index < 4 ? 0.58 : 0.7;
         const root = new THREE.Group();
-        const shapeData = createDieShape(die.sides);
+        const shapeData = createDieShape(die.sides, die.theme ?? "default");
         const valueLabel = createPlaneMesh(
           createValueTexture(die.value),
           1.06,

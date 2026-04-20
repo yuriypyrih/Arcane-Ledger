@@ -28,7 +28,6 @@ function HealingLightDiceWidget({ character, onPersistCharacter }: HealingLightD
       icon={{ kind: "lucide", icon: Cross }}
       pillLabel={`${remainingDice}/${totalDice} Healing d6`}
       modalTitle="Healing d6"
-      eyebrow="Celestial Patron"
       current={remainingDice}
       total={totalDice}
       onAdd={() =>

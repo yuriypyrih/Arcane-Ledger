@@ -13,6 +13,7 @@ import {
 } from "../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
+import type { WeaponAction } from "../../gameplay";
 import type {
   FeatureActionCard,
   FeatureActionResource,
@@ -38,12 +39,18 @@ import {
   setFighterBanneretKnightlyEnvoySkillSelection
 } from "./subclasses/fighterBanneret";
 import {
+  consumeFighterBattleMasterKnowYourEnemy,
   expendFighterBattleMasterSuperiorityDie,
+  getFighterBattleMasterCombatSuperiorityUsedThisTurn,
+  getFighterBattleMasterKnowYourEnemyUsesRemaining,
+  getFighterBattleMasterKnowYourEnemyUsesTotal,
   getFighterBattleMasterManeuverSelectionCount,
   getFighterBattleMasterManeuverSelections,
   getFighterBattleMasterSuperiorityDiceRemaining,
   getFighterBattleMasterSuperiorityDiceTotal,
   getFighterBattleMasterSuperiorityDie,
+  markFighterBattleMasterCombatSuperiorityUsed,
+  restoreFighterBattleMasterKnowYourEnemyOnLongRest as restoreFighterBattleMasterKnowYourEnemyOnLongRestInternal,
   restoreAllFighterBattleMasterSuperiorityDice,
   restoreFighterBattleMasterSuperiorityDiceOnLongRest as restoreFighterBattleMasterSuperiorityDiceOnLongRestInternal,
   restoreFighterBattleMasterSuperiorityDiceOnShortRest as restoreFighterBattleMasterSuperiorityDiceOnShortRestInternal,
@@ -92,7 +99,10 @@ import {
   restoreFighterPsiWarriorTelekineticMovementOnLongRest as restoreFighterPsiWarriorTelekineticMovementOnLongRestInternal,
   restoreFighterPsiWarriorTelekineticMovementOnShortRest as restoreFighterPsiWarriorTelekineticMovementOnShortRestInternal
 } from "./subclasses/fighterPsiWarrior";
-import { createSourcedDescriptionEntries } from "../../actionModalDescriptions";
+import {
+  appendSourcedDescriptionAddition,
+  createSourcedDescriptionEntries
+} from "../../actionModalDescriptions";
 
 export const fighterSecondWindActionKey = "fighter-second-wind";
 export const fighterActionSurgeActionKey = "fighter-action-surge";
@@ -133,6 +143,40 @@ function getFighterSecondWindDescriptionAdditions(
   return tacticalShiftDescription.length > 0
     ? [createSourcedDescriptionEntries("Tactical Shift", tacticalShiftDescription)]
     : [];
+}
+
+export function getFighterWeaponAction(
+  character: Pick<Character, "className" | "level">,
+  action: WeaponAction
+): WeaponAction {
+  if (action.attackKind !== "weapon" && action.attackKind !== "unarmed") {
+    return action;
+  }
+
+  let nextAction = action;
+
+  if (action.attackKind === "weapon" && hasFighterFeature(character, CLASS_FEATURE.TACTICAL_MASTER)) {
+    const tacticalMasterDescription = getFighterFeatureDescription(CLASS_FEATURE.TACTICAL_MASTER);
+
+    nextAction =
+      tacticalMasterDescription.length > 0
+        ? appendSourcedDescriptionAddition(
+            nextAction,
+            "Tactical Master",
+            tacticalMasterDescription
+          )
+        : nextAction;
+  }
+
+  if (!hasFighterFeature(character, CLASS_FEATURE.STUDIED_ATTACKS)) {
+    return nextAction;
+  }
+
+  const studiedAttacksDescription = getFighterFeatureDescription(CLASS_FEATURE.STUDIED_ATTACKS);
+
+  return studiedAttacksDescription.length > 0
+    ? appendSourcedDescriptionAddition(nextAction, "Studied Attacks", studiedAttacksDescription)
+    : nextAction;
 }
 
 function getFighterFeatureRow(level: number) {
@@ -483,6 +527,26 @@ export function getFighterBattleMasterSuperiorityDieForCharacter(
   return getFighterBattleMasterSuperiorityDie(character);
 }
 
+export function getFighterBattleMasterCombatSuperiorityUsedThisTurnForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): boolean {
+  return getFighterBattleMasterCombatSuperiorityUsedThisTurn(character);
+}
+
+export function getFighterBattleMasterKnowYourEnemyUsesTotalForCharacter(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): number {
+  return getFighterBattleMasterKnowYourEnemyUsesTotal(character);
+}
+
+export function getFighterBattleMasterKnowYourEnemyUsesRemainingForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId" | "classFeatureState">>
+): number {
+  return getFighterBattleMasterKnowYourEnemyUsesRemaining(character);
+}
+
 export function getFighterPsiWarriorEnergyDiceTotalForCharacter(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
@@ -577,6 +641,18 @@ export function getFighterPsiWarriorTelekineticMovementUsesRemainingForCharacter
 
 export function expendFighterBattleMasterSuperiorityDieForCharacter(character: Character): Character {
   return expendFighterBattleMasterSuperiorityDie(character);
+}
+
+export function markFighterBattleMasterCombatSuperiorityUsedForCharacter(
+  character: Character
+): Character {
+  return markFighterBattleMasterCombatSuperiorityUsed(character);
+}
+
+export function consumeFighterBattleMasterKnowYourEnemyForCharacter(
+  character: Character
+): Character {
+  return consumeFighterBattleMasterKnowYourEnemy(character);
 }
 
 export function restoreFighterBattleMasterSuperiorityDieForCharacter(character: Character): Character {
@@ -725,8 +801,8 @@ export function getFighterFeatureActions(
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
       hideUsesTrackerOnCard: true,
-      usesLabel: `${usesRemaining}/${totalUses} Second Wind`,
-      usesIcon: "wind",
+      usesInlineLabel: "Use 1",
+      usesInlineIcon: "wind",
       usesRemaining,
       usesTotal: totalUses,
       descriptionAdditions,
@@ -761,8 +837,8 @@ export function getFighterFeatureActions(
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.FEATURE,
       hideUsesTrackerOnCard: true,
-      usesLabel: `${usesRemaining}/${totalUses} Second Wind`,
-      usesIcon: "wind",
+      usesInlineLabel: "Use 1",
+      usesInlineIcon: "wind",
       usesRemaining,
       usesTotal: totalUses,
       resources: [createFighterSecondWindResource(usesRemaining, totalUses)],
@@ -788,10 +864,10 @@ export function getFighterFeatureActions(
     actions.push({
       key: fighterIndomitableActionKey,
       name: "Indomitable",
-      summary: "Roll 1d10 + a saving throw + Fighter level.",
-      detail:
-        "Choose a saving throw, then reroll it with a bonus equal to 1d10 plus that saving throw and your Fighter level.",
-      breakdown: "Boosted save reroll",
+      sourceFeature: CLASS_FEATURE.INDOMITABLE,
+      summary: "Reroll a saving throw + Fighter level.",
+      detail: "Reroll the chosen saving throw and add your Fighter level to the result.",
+      breakdown: "Save reroll + Fighter level",
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.FEATURE,
       usesLabel: `${usesRemaining}/${totalUses} uses`,
@@ -805,7 +881,7 @@ export function getFighterFeatureActions(
       execute: {
         kind: "custom-form",
         formKind: "indomitable",
-        label: "Roll Saving Throw"
+        label: "Roll Saving Throw with Indomitable"
       },
       disabled: usesRemaining <= 0,
       disabledReason: usesRemaining <= 0 ? "No Indomitable uses remaining." : undefined
@@ -901,6 +977,8 @@ export function applyShortRestToFighterFeatures(character: Character): Character
         actionSurgeExtraActionsRemainingThisTurn: 0,
         battleMasterSuperiorityDiceExpended:
           fighterState.battleMasterSuperiorityDiceExpended !== undefined ? 0 : undefined,
+        battleMasterCombatSuperiorityUsedThisTurn:
+          fighterState.battleMasterCombatSuperiorityUsedThisTurn !== undefined ? false : undefined,
         psiWarriorEnergyDiceExpended:
           fighterState.psiWarriorEnergyDiceExpended !== undefined
             ? Math.max(0, (fighterState.psiWarriorEnergyDiceExpended ?? 0) - 1)
@@ -988,6 +1066,7 @@ export function applyLongRestToFighterFeatures(character: Character): Character 
     !hasFighterFeature(character, CLASS_FEATURE.ACTION_SURGE) &&
     !hasFighterFeature(character, CLASS_FEATURE.INDOMITABLE) &&
     getFighterBattleMasterSuperiorityDiceTotal(character) <= 0 &&
+    getFighterBattleMasterKnowYourEnemyUsesTotal(character) <= 0 &&
     getFighterPsiWarriorPsiPoweredLeapUsesTotal(character) <= 0 &&
     getFighterPsiWarriorEnergyDiceTotal(character) <= 0 &&
     getFighterPsiWarriorTelekineticMovementUsesTotal(character) <= 0 &&
@@ -1015,6 +1094,10 @@ export function applyLongRestToFighterFeatures(character: Character): Character 
         indomitableUsesExpended: 0,
         battleMasterSuperiorityDiceExpended:
           fighterState.battleMasterSuperiorityDiceExpended !== undefined ? 0 : undefined,
+        battleMasterCombatSuperiorityUsedThisTurn:
+          fighterState.battleMasterCombatSuperiorityUsedThisTurn !== undefined ? false : undefined,
+        battleMasterKnowYourEnemyUsesExpended:
+          fighterState.battleMasterKnowYourEnemyUsesExpended !== undefined ? 0 : undefined,
         psiWarriorEnergyDiceExpended:
           fighterState.psiWarriorEnergyDiceExpended !== undefined ? 0 : undefined,
         psiWarriorPsionicStrikeUsedThisTurn:
@@ -1137,6 +1220,10 @@ export function restoreFighterBattleMasterSuperiorityDiceOnShortRest(character: 
 
 export function restoreFighterBattleMasterSuperiorityDiceOnLongRest(character: Character): Character {
   return restoreFighterBattleMasterSuperiorityDiceOnLongRestInternal(character);
+}
+
+export function restoreFighterBattleMasterKnowYourEnemyOnLongRest(character: Character): Character {
+  return restoreFighterBattleMasterKnowYourEnemyOnLongRestInternal(character);
 }
 
 export function restoreFighterPsiWarriorEnergyDiceOnShortRest(character: Character): Character {

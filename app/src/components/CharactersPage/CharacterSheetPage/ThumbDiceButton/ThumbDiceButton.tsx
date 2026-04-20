@@ -3,9 +3,27 @@ import { X } from "lucide-react";
 import { useState } from "react";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import d20Icon from "../../../../assets/svg/d20.svg";
-import type { DiceSelection, DiceSides } from "../../../../types";
+import type { DiceSelection, DiceSides, RollMode } from "../../../../types";
 import { createEmptySelection, selectableDice } from "../../../../utils/dice";
 import styles from "./ThumbDiceButton.module.css";
+
+const modeOptions: Array<{ mode: RollMode; label: string; ariaLabel: string }> = [
+  {
+    mode: "normal",
+    label: "Normal",
+    ariaLabel: "Use normal roll mode"
+  },
+  {
+    mode: "advantage",
+    label: "ADV",
+    ariaLabel: "Use advantage roll mode"
+  },
+  {
+    mode: "disadvantage",
+    label: "DIS",
+    ariaLabel: "Use disadvantage roll mode"
+  }
+];
 
 function buildDiceFormula(selection: DiceSelection): string {
   const terms = selectableDice
@@ -32,6 +50,7 @@ function buildDiceDescription(selection: DiceSelection): string {
 function ThumbDiceButton() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [selection, setSelection] = useState<DiceSelection>(createEmptySelection);
+  const [mode, setMode] = useState<RollMode>("normal");
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   const totalSelectedDice = selectableDice.reduce((sum, sides) => sum + selection[sides], 0);
@@ -47,6 +66,11 @@ function ThumbDiceButton() {
     });
   }
 
+  function closeThumbPanel() {
+    setIsExpanded(false);
+    setMode("normal");
+  }
+
   function handleThumbClick() {
     if (!isExpanded) {
       setIsExpanded(true);
@@ -54,18 +78,19 @@ function ThumbDiceButton() {
     }
 
     if (totalSelectedDice === 0) {
-      setIsExpanded(false);
+      closeThumbPanel();
       return;
     }
 
     openDiceRoller({
       title: "Quick roll",
       formula: buildDiceFormula(selection),
-      description: buildDiceDescription(selection)
+      description: buildDiceDescription(selection),
+      mode
     });
 
     setSelection(createEmptySelection());
-    setIsExpanded(false);
+    closeThumbPanel();
   }
 
   const triggerLabel = !isExpanded ? (
@@ -84,37 +109,53 @@ function ThumbDiceButton() {
           className={clsx(styles.diceRail, isExpanded && styles.diceRailExpanded)}
           aria-hidden={!isExpanded}
         >
-          <div className={styles.diceGroup} aria-label="Dice pool">
-            {selectableDice.map((sides) => (
-              <button
-                key={sides}
-                type="button"
-                className={clsx(styles.dieButton, selection[sides] > 0 && styles.dieButtonActive)}
-                disabled={!isExpanded}
-                onClick={() => adjustSelection(sides, 1)}
-              >
-                <span>d{sides}</span>
-                {selection[sides] > 0 ? (
-                  <span
-                    className={styles.countBadge}
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      adjustSelection(sides, -1);
-                    }}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={(event) => {
-                      if (event.key === "Enter" || event.key === " ") {
-                        event.preventDefault();
+          <div className={styles.dicePanel}>
+            <div className={styles.modeGroup} role="group" aria-label="Quick roll mode">
+              {modeOptions.map((option) => (
+                <button
+                  key={option.mode}
+                  type="button"
+                  className={styles.modeButton}
+                  data-active={mode === option.mode}
+                  aria-label={option.ariaLabel}
+                  onClick={() => setMode(option.mode)}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+            <div className={styles.diceGroup} aria-label="Dice pool">
+              {selectableDice.map((sides) => (
+                <button
+                  key={sides}
+                  type="button"
+                  className={clsx(styles.dieButton, selection[sides] > 0 && styles.dieButtonActive)}
+                  disabled={!isExpanded}
+                  onClick={() => adjustSelection(sides, 1)}
+                >
+                  <span>d{sides}</span>
+                  {selection[sides] > 0 ? (
+                    <span
+                      className={styles.countBadge}
+                      onClick={(event) => {
+                        event.stopPropagation();
                         adjustSelection(sides, -1);
-                      }
-                    }}
-                  >
-                    {selection[sides]}
-                  </span>
-                ) : null}
-              </button>
-            ))}
+                      }}
+                      role="button"
+                      tabIndex={0}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          adjustSelection(sides, -1);
+                        }
+                      }}
+                    >
+                      {selection[sides]}
+                    </span>
+                  ) : null}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 

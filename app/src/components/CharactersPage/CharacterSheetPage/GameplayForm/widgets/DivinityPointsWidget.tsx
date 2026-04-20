@@ -28,7 +28,6 @@ function DivinityPointsWidget({ character, onPersistCharacter }: DivinityPointsW
       icon={{ kind: "image", src: pyromancyIcon }}
       pillLabel={`${remainingUses}/${totalUses} Channel Divinity`}
       modalTitle="Channel Divinity"
-      eyebrow={character.className}
       current={remainingUses}
       total={totalUses}
       onAdd={() =>

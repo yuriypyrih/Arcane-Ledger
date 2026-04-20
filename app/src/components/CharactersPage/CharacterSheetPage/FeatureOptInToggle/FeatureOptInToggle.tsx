@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Brain, Hexagon, Music, Sparkles } from "lucide-react";
+import { Brain, Hexagon, Music, Pentagon, Sparkles } from "lucide-react";
 import type { ReactNode } from "react";
 import pyromancyIcon from "../../../../assets/svg/pyromancy.svg";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
@@ -10,6 +10,7 @@ export type FeatureOptInToggleIconKind =
   | "divinity"
   | "music"
   | "psi"
+  | "superiority"
   | "sparkles";
 
 export type FeatureOptInToggleMetaItem =
@@ -52,6 +53,10 @@ function renderMetaIcon(icon?: FeatureOptInToggleIconKind): ReactNode {
     case "psi":
       return (
         <Hexagon size={14} strokeWidth={2.1} className={styles.metaIcon} aria-hidden="true" />
+      );
+    case "superiority":
+      return (
+        <Pentagon size={14} strokeWidth={2.1} className={styles.metaIcon} aria-hidden="true" />
       );
     case "sparkles":
       return (

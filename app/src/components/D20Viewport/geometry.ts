@@ -1,9 +1,19 @@
 import * as THREE from "three";
-import { DIE_Y, UP_AXIS, d20Faces, d4Faces, d6Faces, d8Faces, d10Faces, d12Faces } from "./constants";
+import type { DieTheme } from "../../types";
+import {
+  DIE_Y,
+  UP_AXIS,
+  d20Faces,
+  d4Faces,
+  d6Faces,
+  d8Faces,
+  d10Faces,
+  d12Faces
+} from "./constants";
 import { addSolidGeometry, createMaterialSet } from "./materials";
 import { createD10Geometry } from "./polyhedra";
 
-function createD20Shape(): {
+function createD20Shape(theme: DieTheme): {
   group: THREE.Group;
   valueLabelY: number;
   typeLabelY: number;
@@ -13,13 +23,13 @@ function createD20Shape(): {
   addSolidGeometry(
     group,
     new THREE.IcosahedronGeometry(1.22, 0).toNonIndexed(),
-    createMaterialSet(),
+    createMaterialSet(theme),
     0.9
   );
   return { group, valueLabelY: 1.82, typeLabelY: 2.62, typeLabelZ: -1.22 };
 }
 
-function createD4Shape(): {
+function createD4Shape(theme: DieTheme): {
   group: THREE.Group;
   valueLabelY: number;
   typeLabelY: number;
@@ -29,24 +39,29 @@ function createD4Shape(): {
   addSolidGeometry(
     group,
     new THREE.TetrahedronGeometry(1.22, 0).toNonIndexed(),
-    createMaterialSet(),
+    createMaterialSet(theme),
     0.82
   );
   return { group, valueLabelY: 1.68, typeLabelY: 2.24, typeLabelZ: -0.98 };
 }
 
-function createD6Shape(): {
+function createD6Shape(theme: DieTheme): {
   group: THREE.Group;
   valueLabelY: number;
   typeLabelY: number;
   typeLabelZ: number;
 } {
   const group = new THREE.Group();
-  addSolidGeometry(group, new THREE.BoxGeometry(1.68, 1.68, 1.68).toNonIndexed(), createMaterialSet(), 0.84);
+  addSolidGeometry(
+    group,
+    new THREE.BoxGeometry(1.68, 1.68, 1.68).toNonIndexed(),
+    createMaterialSet(theme),
+    0.84
+  );
   return { group, valueLabelY: 1.62, typeLabelY: 2.24, typeLabelZ: -0.98 };
 }
 
-function createD8Shape(): {
+function createD8Shape(theme: DieTheme): {
   group: THREE.Group;
   valueLabelY: number;
   typeLabelY: number;
@@ -56,24 +71,24 @@ function createD8Shape(): {
   addSolidGeometry(
     group,
     new THREE.OctahedronGeometry(1.34, 0).toNonIndexed(),
-    createMaterialSet(),
+    createMaterialSet(theme),
     0.86
   );
   return { group, valueLabelY: 1.8, typeLabelY: 2.46, typeLabelZ: -1.08 };
 }
 
-function createD10Shape(): {
+function createD10Shape(theme: DieTheme): {
   group: THREE.Group;
   valueLabelY: number;
   typeLabelY: number;
   typeLabelZ: number;
 } {
   const group = new THREE.Group();
-  addSolidGeometry(group, createD10Geometry(), createMaterialSet(), 0.84);
+  addSolidGeometry(group, createD10Geometry(), createMaterialSet(theme), 0.84);
   return { group, valueLabelY: 1.82, typeLabelY: 2.48, typeLabelZ: -1.08 };
 }
 
-function createD12Shape(): {
+function createD12Shape(theme: DieTheme): {
   group: THREE.Group;
   valueLabelY: number;
   typeLabelY: number;
@@ -83,39 +98,42 @@ function createD12Shape(): {
   addSolidGeometry(
     group,
     new THREE.DodecahedronGeometry(1.18, 0).toNonIndexed(),
-    createMaterialSet(),
+    createMaterialSet(theme),
     0.87
   );
   return { group, valueLabelY: 1.78, typeLabelY: 2.48, typeLabelZ: -1.08 };
 }
 
-export function createDieShape(sides: number): {
+export function createDieShape(
+  sides: number,
+  theme: DieTheme = "default"
+): {
   group: THREE.Group;
   valueLabelY: number;
   typeLabelY: number;
   typeLabelZ: number;
 } {
   if (sides === 4) {
-    return createD4Shape();
+    return createD4Shape(theme);
   }
 
   if (sides === 6) {
-    return createD6Shape();
+    return createD6Shape(theme);
   }
 
   if (sides === 8) {
-    return createD8Shape();
+    return createD8Shape(theme);
   }
 
   if (sides === 10) {
-    return createD10Shape();
+    return createD10Shape(theme);
   }
 
   if (sides === 12) {
-    return createD12Shape();
+    return createD12Shape(theme);
   }
 
-  return createD20Shape();
+  return createD20Shape(theme);
 }
 
 export function createPlaneMesh(
@@ -161,7 +179,17 @@ export function getTargetQuaternion(sides: number, value: number): THREE.Quatern
               ? d12Faces
               : d20Faces;
   const maxValue =
-    sides === 4 ? 4 : sides === 6 ? 6 : sides === 8 ? 8 : sides === 10 ? 10 : sides === 12 ? 12 : 20;
+    sides === 4
+      ? 4
+      : sides === 6
+        ? 6
+        : sides === 8
+          ? 8
+          : sides === 10
+            ? 10
+            : sides === 12
+              ? 12
+              : 20;
   const safeValue = Math.max(1, Math.min(maxValue, value));
   const targetFace = faces.find((face) => face.value === safeValue) ?? faces[0];
   const liftToTop = new THREE.Quaternion().setFromUnitVectors(
@@ -182,12 +210,13 @@ export function getTargetQuaternion(sides: number, value: number): THREE.Quatern
     planarDirection.x * desiredDirection.x + planarDirection.z * desiredDirection.z
   );
 
-  return new THREE.Quaternion()
-    .setFromAxisAngle(UP_AXIS, twistAngle)
-    .multiply(liftToTop);
+  return new THREE.Quaternion().setFromAxisAngle(UP_AXIS, twistAngle).multiply(liftToTop);
 }
 
-export function getDiePositions(index: number, total: number): {
+export function getDiePositions(
+  index: number,
+  total: number
+): {
   start: THREE.Vector3;
   end: THREE.Vector3;
 } {

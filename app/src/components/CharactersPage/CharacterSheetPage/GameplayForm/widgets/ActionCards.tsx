@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Brain, Flame, Hexagon, Music, PawPrint, Sparkles, Wind } from "lucide-react";
+import { Brain, Flame, Hexagon, Music, PawPrint, Pentagon, Sparkles, Wind } from "lucide-react";
 import type { ReactNode } from "react";
 import ActionShape from "../../../../ActionShape";
 import FeatureTrackingBadgeButton from "../../../../FeatureDisclosure/FeatureTrackingBadgeButton";
@@ -158,6 +158,10 @@ function renderFeatureActionUsesIcon(icon: FeatureActionCard["usesIcon"]) {
     return <Flame size={14} strokeWidth={2.1} />;
   }
 
+  if (icon === "superiority") {
+    return <Pentagon size={14} strokeWidth={2.1} />;
+  }
+
   if (icon === "wind") {
     return <Wind size={14} strokeWidth={2.1} />;
   }
@@ -221,6 +225,27 @@ function renderFeatureActionInlineUses(action: FeatureActionCard) {
   );
 }
 
+function renderFeatureActionNamedResource(action: FeatureActionCard) {
+  const namedResource = action.resources?.find(
+    (resource): resource is Extract<NonNullable<FeatureActionCard["resources"]>[number], { kind: "text" }> =>
+      resource.kind === "text" &&
+      resource.label !== "Usage" &&
+      resource.label !== "Value" &&
+      resource.value.includes("/")
+  );
+
+  if (!namedResource) {
+    return null;
+  }
+
+  return (
+    <>
+      <span>{`${namedResource.value} ${namedResource.label}`}</span>
+      {namedResource.icon ? renderFeatureActionUsesIcon(namedResource.icon) : null}
+    </>
+  );
+}
+
 function renderFeatureActionOptionUsesLabel(option: FeatureActionOptionCard) {
   if (!option.usesLabel) {
     return null;
@@ -247,6 +272,23 @@ function renderFeatureActionSubheader(
   showsUsesTracker: boolean,
   inlineUses: ReactNode
 ) {
+  const namedResource = renderFeatureActionNamedResource(action);
+  const explicitUses = action.usesLabel ? renderFeatureActionUsesLabel(action) : inlineUses;
+  const usesContent = explicitUses ?? namedResource;
+  const usesHasIcon = Boolean(
+    action.usesIcon ||
+      action.usesInlineIcon ||
+      (namedResource &&
+        action.resources?.some(
+          (resource) =>
+            resource.kind === "text" &&
+            resource.label !== "Usage" &&
+            resource.label !== "Value" &&
+            resource.value.includes("/") &&
+            resource.icon
+        ))
+  );
+
   if (showsUsesTracker) {
     return (
       <span className={styles.subheaderStack}>
@@ -283,19 +325,19 @@ function renderFeatureActionSubheader(
     );
   }
 
-  if (action.usesLabel || inlineUses || action.valueLabel) {
+  if (usesContent || action.valueLabel) {
     return (
       <span className={styles.subheaderStack}>
-        {action.usesLabel || inlineUses ? (
+        {usesContent ? (
           <span
             className={clsx(
               styles.damageRow,
               styles.featureMeta,
-              (action.usesIcon || action.usesInlineIcon) && styles.featureMetaWithIcon,
+              usesHasIcon && styles.featureMetaWithIcon,
               action.usesTone === "danger" && styles.featureMetaDanger
             )}
           >
-            {action.usesLabel ? renderFeatureActionUsesLabel(action) : inlineUses}
+            {usesContent}
           </span>
         ) : null}
         {action.valueLabel ? <span className={styles.damageRow}>{action.valueLabel}</span> : null}

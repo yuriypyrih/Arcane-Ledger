@@ -29,63 +29,14 @@
   outline-offset: 2px;
 }
 
-.modal {
-  width: min(420px, 100%);
-}
-
-.body {
-  gap: 0.78rem;
-}
-
-.description {
-  margin: 0;
-  color: var(--color-ink-soft);
-  font-size: 0.95rem;
-  line-height: 1.55;
-}
-
-.footer {
-  display: grid;
-  gap: 0.65rem;
-}
-
-.actions {
-  display: grid;
-  gap: 0.65rem;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.actionButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  width: 100%;
-  min-width: 0;
-  margin-left: 0 !important;
-  padding-inline: 0.9rem;
-  text-align: center;
-  white-space: normal;
-}
-
-.actionButtonCompact {
-  grid-column: span 1;
-}
-
-.actionButtonWide {
-  grid-column: span 2;
-}
-
-.pillIcon,
-.actionIcon {
+.pillIcon {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex: 0 0 auto;
 }
 
-.pillIcon svg,
-.actionIcon svg {
+.pillIcon svg {
   color: currentColor;
   stroke: currentColor;
 }
@@ -94,12 +45,5 @@
   display: block;
   height: 16px;
   width: 16px;
-  object-fit: contain;
-}
-
-.actionImage {
-  display: block;
-  height: 14px;
-  width: 14px;
   object-fit: contain;
 }

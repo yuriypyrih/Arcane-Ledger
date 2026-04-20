@@ -31,7 +31,6 @@ function FighterSecondWindWidget({
       icon={{ kind: "lucide", icon: Wind }}
       pillLabel={`${remainingUses}/${totalUses} Second Wind`}
       modalTitle="Second Wind"
-      eyebrow="Fighter"
       current={remainingUses}
       total={totalUses}
       onAdd={() =>

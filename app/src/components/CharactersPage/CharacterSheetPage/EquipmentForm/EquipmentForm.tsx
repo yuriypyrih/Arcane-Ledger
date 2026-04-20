@@ -18,7 +18,7 @@ import {
   type ItemEntry,
   type WeaponEntry
 } from "../../../../codex/entries";
-import { PROF_LEVEL, currencyKeys, type Character, type CurrencyKey } from "../../../../types";
+import { currencyKeys, type Character, type CurrencyKey } from "../../../../types";
 import {
   formatEquipmentWeight,
   formatCodexLabel,
@@ -28,16 +28,13 @@ import {
   formatWeaponType,
   formatWeaponWeight
 } from "../../../../utils/codex";
-import {
-  getLoadoutCodexEntryByName,
-  getWeaponLevelFromEntries,
-  getWeaponProficiencyForBaseWeapon
-} from "../../../../pages/CharactersPage/proficiency";
+import { getLoadoutCodexEntryByName } from "../../../../pages/CharactersPage/proficiency";
 import {
   getAdditionalWeaponMasteriesForCharacter,
   getFeatureEquipmentEntriesForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
 import { getAbilityScoreForCharacter } from "../../../../pages/CharactersPage/abilities";
+import { hasActiveWeaponMastery } from "../../../../pages/CharactersPage/weaponMasteryStatus";
 import {
   getKeywordReferences,
   type KeywordReference
@@ -100,6 +97,7 @@ import EquipmentItemBrowserModal from "./EquipmentItemBrowserModal";
 import InlineToggleButton from "../InlineToggleButton";
 import styles from "./EquipmentForm.module.css";
 import { useItemEntry } from "../../../../pages/ItemCodexEntryPage/useItemEntry";
+import WeaponMasteryStatusLabel from "../../../WeaponMasteryStatusLabel/WeaponMasteryStatusLabel";
 
 type EquipmentFormProps = {
   character: Character;
@@ -241,7 +239,11 @@ function getEquipmentGroupKeyForEntry(entry: LoadoutDrawerEntry): EquipmentGroup
 }
 
 function getEquipmentGroupKeyForInventoryItem(item: ItemRecord): EquipmentGroupKey {
-  if (item.weapon || item.category?.key === "staff" || item.category?.key === "spellcasting-focus") {
+  if (
+    item.weapon ||
+    item.category?.key === "staff" ||
+    item.category?.key === "spellcasting-focus"
+  ) {
     return "weaponsAndStaff";
   }
 
@@ -494,13 +496,15 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const carriedWeight = useMemo(
     () =>
       Math.round(
-        (
-          selectedLoadoutItems.reduce((totalWeight, item) => totalWeight + (item.entry.weight ?? 0), 0) +
+        (selectedLoadoutItems.reduce(
+          (totalWeight, item) => totalWeight + (item.entry.weight ?? 0),
+          0
+        ) +
           groupedInventoryItems.reduce(
             (totalWeight, item) => totalWeight + (getItemWeightValue(item.item) ?? 0) * item.count,
             0
-          )
-        ) * 100
+          )) *
+          100
       ) / 100,
     [groupedInventoryItems, selectedLoadoutItems]
   );
@@ -613,27 +617,6 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const isSelectedShield =
     selectedLoadoutEntryData?.category === ENTRY_CATEGORIES.ARMOR &&
     isShieldArmorEntry(selectedLoadoutEntryData);
-  const selectedWeaponMasteryStatus = useMemo(() => {
-    if (
-      !selectedLoadoutEntryData ||
-      selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS
-    ) {
-      return null;
-    }
-
-    if (!selectedLoadoutEntryData.mastery || !selectedLoadoutEntryData.baseWeapon) {
-      return null;
-    }
-
-    const masteryProficiency = getWeaponProficiencyForBaseWeapon(
-      selectedLoadoutEntryData.baseWeapon
-    );
-    const hasMastery =
-      getWeaponLevelFromEntries(character.weaponProficiencies, masteryProficiency) !==
-      PROF_LEVEL.NONE;
-
-    return hasMastery ? "Active" : "Inactive";
-  }, [character.weaponProficiencies, selectedLoadoutEntryData]);
   const selectedAdditionalWeaponMasteries = useMemo(() => {
     if (
       !selectedLoadoutEntryData ||
@@ -648,6 +631,26 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       properties: selectedLoadoutEntryData.properties
     });
   }, [character, selectedLoadoutEntryData]);
+  const selectedWeaponHasActiveMastery = useMemo(() => {
+    if (
+      !selectedLoadoutEntryData ||
+      selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS
+    ) {
+      return false;
+    }
+
+    const hasBaseWeaponMastery =
+      Boolean(selectedLoadoutEntryData.mastery) &&
+      hasActiveWeaponMastery(character.weaponProficiencies, {
+        baseWeapon: selectedLoadoutEntryData.baseWeapon
+      });
+
+    return hasBaseWeaponMastery || selectedAdditionalWeaponMasteries.length > 0;
+  }, [
+    character.weaponProficiencies,
+    selectedAdditionalWeaponMasteries.length,
+    selectedLoadoutEntryData
+  ]);
   const selectedWeaponMasteryKeywords = useMemo(() => {
     if (
       !selectedLoadoutEntryData ||
@@ -693,7 +696,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const selectedInventoryGroup = useMemo(
     () =>
       selectedInventoryInspection
-        ? groupedInventoryItems.find((entry) => entry.key === selectedInventoryInspection.itemKey) ?? null
+        ? (groupedInventoryItems.find(
+            (entry) => entry.key === selectedInventoryInspection.itemKey
+          ) ?? null)
         : null,
     [groupedInventoryItems, selectedInventoryInspection]
   );
@@ -714,14 +719,20 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const selectedHeldInventoryCopies = useMemo(
     () =>
       selectedInventoryInspection
-        ? findHeldInventoryCopiesByKey(character.inventoryItems, selectedInventoryInspection.itemKey)
+        ? findHeldInventoryCopiesByKey(
+            character.inventoryItems,
+            selectedInventoryInspection.itemKey
+          )
         : [],
     [character.inventoryItems, selectedInventoryInspection]
   );
   const selectedAvailableInventoryCopy = useMemo(
     () =>
       selectedInventoryInspection
-        ? findAvailableInventoryCopyByKey(character.inventoryItems, selectedInventoryInspection.itemKey)
+        ? findAvailableInventoryCopyByKey(
+            character.inventoryItems,
+            selectedInventoryInspection.itemKey
+          )
         : null,
     [character.inventoryItems, selectedInventoryInspection]
   );
@@ -733,8 +744,15 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     [character.inventoryItems, selectedInventoryInspection]
   );
   const selectedInventoryRecord = selectedInventoryGroup?.item ?? selectedInventoryItem ?? null;
+  const selectedInventoryWeaponHasActiveMastery = useMemo(
+    () =>
+      selectedInventoryRecord?.weapon
+        ? hasActiveWeaponMastery(character.weaponProficiencies, selectedInventoryRecord.weapon)
+        : false,
+    [character.weaponProficiencies, selectedInventoryRecord]
+  );
   const selectedInventoryCount = selectedInventoryInspection
-    ? inventoryCountsByKey[selectedInventoryInspection.itemKey] ?? 0
+    ? (inventoryCountsByKey[selectedInventoryInspection.itemKey] ?? 0)
     : 0;
   const selectedInventoryOnHandCount = selectedInventoryInspection
     ? selectedHeldInventoryCopies.length
@@ -762,8 +780,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       ? canWeaponBePutOnHand(selectedInventoryHandDescriptor, heldWeaponDescriptors)
       : false;
   const shouldOfferInventoryHandSwap =
-    Boolean(selectedInventoryHandDescriptor) &&
-    !canSelectedInventoryBePutOnHand;
+    Boolean(selectedInventoryHandDescriptor) && !canSelectedInventoryBePutOnHand;
   const shouldShowInventoryDualAction =
     Boolean(selectedInventoryGroup?.item.weapon) &&
     selectedInventoryDualDescriptors.length === 2 &&
@@ -972,7 +989,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     onPersistCharacter((currentCharacter) => {
       const currentCurrencyAmount = Math.max(
         0,
-        Math.floor(clampNumber(currentCharacter.currencies[transactionCost.currencyKey], 0, 999999999, 0))
+        Math.floor(
+          clampNumber(currentCharacter.currencies[transactionCost.currencyKey], 0, 999999999, 0)
+        )
       );
 
       if (currentCurrencyAmount < transactionCost.amount) {
@@ -1031,7 +1050,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
       const currentCurrencyAmount = Math.max(
         0,
-        Math.floor(clampNumber(currentCharacter.currencies[transactionCost.currencyKey], 0, 999999999, 0))
+        Math.floor(
+          clampNumber(currentCharacter.currencies[transactionCost.currencyKey], 0, 999999999, 0)
+        )
       );
 
       return {
@@ -1218,7 +1239,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       return;
     }
 
-    if (!isSelectedInventoryOnHand && (!selectedInventoryHandDescriptor || !canSelectedInventoryBePutOnHand)) {
+    if (
+      !isSelectedInventoryOnHand &&
+      (!selectedInventoryHandDescriptor || !canSelectedInventoryBePutOnHand)
+    ) {
       return;
     }
 
@@ -1370,7 +1394,11 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   }
 
   function toggleSelectedInventoryArmorWorn() {
-    if (!selectedInventoryGroup || !selectedInventoryInspection?.itemKey || !selectedInventoryCopy) {
+    if (
+      !selectedInventoryGroup ||
+      !selectedInventoryInspection?.itemKey ||
+      !selectedInventoryCopy
+    ) {
       return;
     }
 
@@ -1616,123 +1644,123 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       ) : (
         <div className={styles.equipmentGroupStack}>
           {equipmentGroupMeta.map((group) => {
-              const legacyItems =
-                selectedEquipmentGroups.find((entry) => entry.key === group.key)?.items ?? [];
-              const inventoryItems =
-                inventoryEquipmentGroups.find((entry) => entry.key === group.key)?.items ?? [];
-              const combinedItems = [
-                ...legacyItems.map((item) => ({
-                  key: item.key,
-                  name: item.name,
-                  kind: "legacy" as const,
-                  item
-                })),
-                ...inventoryItems.map((item) => ({
-                  key: `inventory-${item.key}`,
-                  name: item.name,
-                  kind: "inventory" as const,
-                  item
-                }))
-              ].sort((left, right) => left.name.localeCompare(right.name));
+            const legacyItems =
+              selectedEquipmentGroups.find((entry) => entry.key === group.key)?.items ?? [];
+            const inventoryItems =
+              inventoryEquipmentGroups.find((entry) => entry.key === group.key)?.items ?? [];
+            const combinedItems = [
+              ...legacyItems.map((item) => ({
+                key: item.key,
+                name: item.name,
+                kind: "legacy" as const,
+                item
+              })),
+              ...inventoryItems.map((item) => ({
+                key: `inventory-${item.key}`,
+                name: item.name,
+                kind: "inventory" as const,
+                item
+              }))
+            ].sort((left, right) => left.name.localeCompare(right.name));
 
-              if (combinedItems.length === 0) {
-                return null;
-              }
+            if (combinedItems.length === 0) {
+              return null;
+            }
 
-              const shouldCollapseGeneral =
-                group.key === "generalEquipment" && combinedItems.length > 6;
-              const visibleGroupItems =
-                shouldCollapseGeneral && !isGeneralEquipmentExpanded
-                  ? combinedItems.slice(0, 4)
-                  : combinedItems;
+            const shouldCollapseGeneral =
+              group.key === "generalEquipment" && combinedItems.length > 6;
+            const visibleGroupItems =
+              shouldCollapseGeneral && !isGeneralEquipmentExpanded
+                ? combinedItems.slice(0, 4)
+                : combinedItems;
 
-              return (
-                <section key={group.key} className={styles.equipmentGroup}>
-                  <header className={styles.equipmentGroupHeader}>
-                    <p className={styles.equipmentGroupTitle}>{group.title}</p>
-                  </header>
-                  <ul className={styles.equipmentItemList}>
-                    {visibleGroupItems.map((entry) =>
-                      entry.kind === "legacy" ? (
-                        <li key={entry.key}>
-                          <button
-                            type="button"
-                            className={styles.equipmentItemButton}
-                            onClick={() => openLoadoutEntryDetails(entry.item)}
-                          >
-                            <span className={styles.equipmentItemLabel}>
-                              <span className={styles.equipmentItemName}>{entry.item.name}</span>
-                              {entry.item.onHand ? (
-                                <span className={styles.equipmentItemOnHand}>
-                                  <Hand size={13} aria-hidden="true" />
-                                  <span>On Hand</span>
-                                </span>
-                              ) : null}
-                              {entry.item.worn ? (
-                                <span className={styles.equipmentItemWorn}>
-                                  <Shield size={13} aria-hidden="true" />
-                                  <span>Worn</span>
-                                </span>
-                              ) : null}
-                            </span>
-                            <span className={styles.equipmentItemMeta}>
-                              <span className={styles.equipmentItemWeight}>
-                                {formatEquipmentWeight(entry.item.entry.weight)}
+            return (
+              <section key={group.key} className={styles.equipmentGroup}>
+                <header className={styles.equipmentGroupHeader}>
+                  <p className={styles.equipmentGroupTitle}>{group.title}</p>
+                </header>
+                <ul className={styles.equipmentItemList}>
+                  {visibleGroupItems.map((entry) =>
+                    entry.kind === "legacy" ? (
+                      <li key={entry.key}>
+                        <button
+                          type="button"
+                          className={styles.equipmentItemButton}
+                          onClick={() => openLoadoutEntryDetails(entry.item)}
+                        >
+                          <span className={styles.equipmentItemLabel}>
+                            <span className={styles.equipmentItemName}>{entry.item.name}</span>
+                            {entry.item.onHand ? (
+                              <span className={styles.equipmentItemOnHand}>
+                                <Hand size={13} aria-hidden="true" />
+                                <span>On Hand</span>
                               </span>
-                              {"rarity" in entry.item.entry &&
-                              hasDisplayableRarity(entry.item.entry.rarity) ? (
-                                <RarityPill rarity={entry.item.entry.rarity} />
-                              ) : null}
-                            </span>
-                          </button>
-                        </li>
-                      ) : (
-                        <li key={entry.key}>
-                          <button
-                            type="button"
-                            className={styles.equipmentItemButton}
-                            onClick={() => openInventoryInspectionFromLoadout(entry.item)}
-                          >
-                            <span className={styles.equipmentItemLabel}>
-                              <span className={styles.equipmentItemName}>
-                                {formatInventoryStackName(entry.item)}
+                            ) : null}
+                            {entry.item.worn ? (
+                              <span className={styles.equipmentItemWorn}>
+                                <Shield size={13} aria-hidden="true" />
+                                <span>Worn</span>
                               </span>
-                              {entry.item.onHandCount > 0 ? (
-                                <span className={styles.equipmentItemOnHand}>
-                                  <Hand size={13} aria-hidden="true" />
-                                  <span>{formatOnHandLabel(entry.item.onHandCount)}</span>
-                                </span>
-                              ) : null}
-                              {entry.item.worn ? (
-                                <span className={styles.equipmentItemWorn}>
-                                  <Shield size={13} aria-hidden="true" />
-                                  <span>Worn</span>
-                                </span>
-                              ) : null}
+                            ) : null}
+                          </span>
+                          <span className={styles.equipmentItemMeta}>
+                            <span className={styles.equipmentItemWeight}>
+                              {formatEquipmentWeight(entry.item.entry.weight)}
                             </span>
-                            <span className={styles.equipmentItemMeta}>
-                              <span className={styles.equipmentItemWeight}>
-                                {formatEquipmentWeight(getItemWeightValue(entry.item.item))}
+                            {"rarity" in entry.item.entry &&
+                            hasDisplayableRarity(entry.item.entry.rarity) ? (
+                              <RarityPill rarity={entry.item.entry.rarity} />
+                            ) : null}
+                          </span>
+                        </button>
+                      </li>
+                    ) : (
+                      <li key={entry.key}>
+                        <button
+                          type="button"
+                          className={styles.equipmentItemButton}
+                          onClick={() => openInventoryInspectionFromLoadout(entry.item)}
+                        >
+                          <span className={styles.equipmentItemLabel}>
+                            <span className={styles.equipmentItemName}>
+                              {formatInventoryStackName(entry.item)}
+                            </span>
+                            {entry.item.onHandCount > 0 ? (
+                              <span className={styles.equipmentItemOnHand}>
+                                <Hand size={13} aria-hidden="true" />
+                                <span>{formatOnHandLabel(entry.item.onHandCount)}</span>
                               </span>
-                              {hasDisplayableRarity(entry.item.item.rarity) ? (
-                                <RarityPill rarity={entry.item.item.rarity} />
-                              ) : null}
+                            ) : null}
+                            {entry.item.worn ? (
+                              <span className={styles.equipmentItemWorn}>
+                                <Shield size={13} aria-hidden="true" />
+                                <span>Worn</span>
+                              </span>
+                            ) : null}
+                          </span>
+                          <span className={styles.equipmentItemMeta}>
+                            <span className={styles.equipmentItemWeight}>
+                              {formatEquipmentWeight(getItemWeightValue(entry.item.item))}
                             </span>
-                          </button>
-                        </li>
-                      )
-                    )}
-                  </ul>
-                  {shouldCollapseGeneral ? (
-                    <InlineToggleButton
-                      label={isGeneralEquipmentExpanded ? "Show less items" : "Show more items"}
-                      expanded={isGeneralEquipmentExpanded}
-                      onClick={() => setIsGeneralEquipmentExpanded((currentState) => !currentState)}
-                    />
-                  ) : null}
-                </section>
-              );
-            })}
+                            {hasDisplayableRarity(entry.item.item.rarity) ? (
+                              <RarityPill rarity={entry.item.item.rarity} />
+                            ) : null}
+                          </span>
+                        </button>
+                      </li>
+                    )
+                  )}
+                </ul>
+                {shouldCollapseGeneral ? (
+                  <InlineToggleButton
+                    label={isGeneralEquipmentExpanded ? "Show less items" : "Show more items"}
+                    expanded={isGeneralEquipmentExpanded}
+                    onClick={() => setIsGeneralEquipmentExpanded((currentState) => !currentState)}
+                  />
+                ) : null}
+              </section>
+            );
+          })}
         </div>
       )}
 
@@ -1994,9 +2022,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                         as="button"
                         className={styles.referenceDetailButton}
                         label={
-                          selectedWeaponMasteryStatus
-                            ? `Mastery (${selectedWeaponMasteryStatus})`
-                            : "Mastery"
+                          selectedWeaponHasActiveMastery ? <WeaponMasteryStatusLabel /> : "Mastery"
                         }
                         content={selectedWeaponMasteryLabel}
                         onClick={() =>
@@ -2090,8 +2116,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
             <div className={styles.loadoutDrawerActions}>
               {isSelectedFeatureManagedEntry ? (
                 <p className={styles.featureManagedItemNote}>
-                  Granted by {selectedLoadoutEntry.featureManagedSource} and managed
-                  automatically.
+                  Granted by {selectedLoadoutEntry.featureManagedSource} and managed automatically.
                 </p>
               ) : (
                 <>
@@ -2109,11 +2134,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                         onClick={shouldOfferHandSwap ? swapEntryToHand : toggleEntryOnHand}
                       >
                         <Hand size={15} aria-hidden="true" />
-                        {isSelectedEntryOnHand
-                          ? "Unequip"
-                          : shouldOfferHandSwap
-                            ? "Swap"
-                            : "Equip"}
+                        {isSelectedEntryOnHand ? "Unequip" : shouldOfferHandSwap ? "Swap" : "Equip"}
                       </button>
                     </>
                   ) : null}
@@ -2174,6 +2195,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           onClose={closeInventoryItemDrawer}
           headerContent={inventoryDrawerHeaderContent}
           footer={inventoryDrawerFooter}
+          weaponMasteryActive={selectedInventoryWeaponHasActiveMastery}
         />
       ) : null}
 

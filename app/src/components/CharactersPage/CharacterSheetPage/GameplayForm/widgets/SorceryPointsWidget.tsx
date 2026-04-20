@@ -28,7 +28,6 @@ function SorceryPointsWidget({ character, onPersistCharacter }: SorceryPointsWid
       icon={{ kind: "lucide", icon: Sparkles }}
       pillLabel={`${remainingSorceryPoints}/${totalSorceryPoints} Sorcery Points`}
       modalTitle="Sorcery Points"
-      eyebrow="Sorcerer"
       current={remainingSorceryPoints}
       total={totalSorceryPoints}
       onAdd={() =>

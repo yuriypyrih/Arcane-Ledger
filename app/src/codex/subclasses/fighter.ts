@@ -13,7 +13,10 @@ import {
   banneretSharedResilienceDescription,
   banneretTeamTacticsDescription
 } from "./fighterBanneret";
-import { fighterBattleMasterManeuverOptionsDescription } from "./fighterBattleMaster";
+import {
+  fighterBattleMasterCombatSuperiorityManeuversDescription,
+  fighterBattleMasterManeuverOptionsDescription
+} from "./fighterBattleMaster";
 import {
   fighterChampionImprovedCriticalDescription,
   fighterChampionSuperiorCriticalDescription
@@ -22,11 +25,11 @@ import {
   psiWarriorBulwarkOfForceDescription,
   psiWarriorGuardedMindDescription,
   psiWarriorProtectiveFieldDescription,
-  psiWarriorPsiPoweredLeapDescription,
   psiWarriorPsionicStrikeDescription,
+  psiWarriorPsiPoweredLeapDescription,
   psiWarriorTelekineticMasterDescription,
-  psiWarriorTelekineticThrustDescription,
-  psiWarriorTelekineticMovementDescription
+  psiWarriorTelekineticMovementDescription,
+  psiWarriorTelekineticThrustDescription
 } from "./fighterPsiWarrior";
 
 const SUBCLASS_FEATURE_LEVELS = {
@@ -69,23 +72,23 @@ export const fighterSubclassEntries: SubclassEntry[] = [
           "<strong>Polyglot.</strong> You learn one language from the language tables in the Player's Handbook or chapter 2 of this book. When you finish a <link:long-rest>Long Rest</link>, you can replace a language learned from this benefit with another language you have heard, seen signed, or read in the past 24 hours.",
           "<strong>Well Spoken.</strong> You gain proficiency in one of the following skills of your choice: <link:Insight>Insight</link>, <link:Intimidation>Intimidation</link>, <link:Persuasion>Persuasion</link>, or <link:Performance>Performance</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.GROUP_RECOVERY, {
         description: [...banneretGroupRecoveryDescription],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.TEAM_TACTICS, {
         description: [...banneretTeamTacticsDescription],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.RALLYING_SURGE, {
         description: [...banneretRallyingSurgeDescription],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_15, CLASS_FEATURE.SHARED_RESILIENCE, {
         description: [...banneretSharedResilienceDescription],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       {
         level: SUBCLASS_FEATURE_LEVELS.LEVEL_18,
@@ -97,15 +100,15 @@ export const fighterSubclassEntries: SubclassEntry[] = [
               "<strong>Bolstered Rally.</strong> The area of effect for both Group Recovery and Rallying Surge is now a <strong>60-foot</strong> <link:Emanation>Emanation</link>.",
               "<strong>Unshakable Bravery.</strong> You have <link:Immunity>Immunity</link> to the <link:Charmed>Charmed</link> and <link:Frightened>Frightened</link> conditions."
             ],
-            ...notTracked
+            trackingState: TRACKER.TRACKED
           },
           [CLASS_FEATURE.GROUP_RECOVERY]: {
             description: [...banneretBolsteredGroupRecoveryDescription],
-            ...notTracked
+            trackingState: TRACKER.SEMI_TRACKED
           },
           [CLASS_FEATURE.RALLYING_SURGE]: {
             description: [...banneretBolsteredRallyingSurgeDescription],
-            ...notTracked
+            trackingState: TRACKER.SEMI_TRACKED
           }
         }
       }
@@ -122,23 +125,23 @@ export const fighterSubclassEntries: SubclassEntry[] = [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.COMBAT_SUPERIORITY, {
         description: [
           "Your experience on the battlefield has refined your fighting techniques. You learn maneuvers that are fueled by special dice called Superiority Dice.",
-          "<strong>Maneuvers.</strong> You learn three maneuvers of your choice from the Maneuver Options feature. Many maneuvers enhance an attack in some way, and you can use only one maneuver per attack.",
+          `<strong>Maneuvers.</strong> ${fighterBattleMasterCombatSuperiorityManeuversDescription}`,
           "You learn two additional maneuvers of your choice when you reach Fighter levels 7, 10, and 15. Each time you learn new maneuvers, you can also replace one maneuver you know with a different one.",
           "<strong>Superiority Dice.</strong> You have four Superiority Dice, which are <strong>d8s</strong>. A Superiority Die is expended when you use it, and you regain all expended Superiority Dice when you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",
           "You gain an additional Superiority Die when you reach Fighter level 7 (five dice total) and 15 (six dice total).",
           "<strong>Saving Throws.</strong> If a maneuver requires a saving throw, the DC equals 8 plus your <link:STR>Strength</link> or <link:DEX>Dexterity</link> modifier (your choice) and <link:Proficiency Bonus>Proficiency Bonus</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.STUDENT_OF_WAR, {
         description: [
           "You gain proficiency with one type of Artisan's Tools of your choice, and you gain proficiency in one skill of your choice from the skills available to Fighters at level 1."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.MANEUVER_OPTIONS, {
         description: [...fighterBattleMasterManeuverOptionsDescription],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.KNOW_YOUR_ENEMY, {
         description: [
@@ -146,28 +149,28 @@ export const fighterSubclassEntries: SubclassEntry[] = [
           "Once you use this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link>.",
           "You can also restore a use of the feature by expending one Superiority Die, no action required."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_10,
         CLASS_FEATURE.IMPROVED_COMBAT_SUPERIORITY,
         {
           description: ["Your Superiority Die becomes a <strong>d10</strong>."],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_15, CLASS_FEATURE.RELENTLESS, {
         description: [
           "Once per turn, when you use a maneuver, you can roll <strong>1d8</strong> and use the number rolled instead of expending a Superiority Die."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_18,
         CLASS_FEATURE.ULTIMATE_COMBAT_SUPERIORITY,
         {
           description: ["Your Superiority Die becomes a <strong>d12</strong>."],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       )
     ]
@@ -182,32 +185,32 @@ export const fighterSubclassEntries: SubclassEntry[] = [
     features: [
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.IMPROVED_CRITICAL, {
         description: [...fighterChampionImprovedCriticalDescription],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.REMARKABLE_ATHLETE, {
         description: [
           "Thanks to your athleticism, you have <link:Advantage>Advantage</link> on <link:Initiative>Initiative</link> rolls and Strength (<link:Athletics>Athletics</link>) checks.",
           "In addition, immediately after you score a Critical Hit, you can move up to half your <link:Speed>Speed</link> without provoking Opportunity Attacks."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_7,
         CLASS_FEATURE.ADDITIONAL_FIGHTING_STYLE,
         {
           description: ["You gain another Fighting Style feat of your choice."],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.HEROIC_WARRIOR, {
         description: [
           "The thrill of battle drives you toward victory. During combat, you can give yourself Heroic Inspiration whenever you start your turn without it."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_15, CLASS_FEATURE.SUPERIOR_CRITICAL, {
         description: [...fighterChampionSuperiorCriticalDescription],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_18, CLASS_FEATURE.SURVIVOR, {
         description: [
@@ -215,7 +218,7 @@ export const fighterSubclassEntries: SubclassEntry[] = [
           "<strong>Defy Death.</strong> You have <link:Advantage>Advantage</link> on Death Saving Throws. Moreover, when you roll 18-20 on a Death Saving Throw, you gain the benefit of rolling a 20 on it.",
           "<strong>Heroic Rally.</strong> At the start of each of your turns, you regain Hit Points equal to 5 plus your <link:CON>Constitution</link> modifier if you are Bloodied and have at least 1 Hit Point."
         ],
-        ...notTracked
+        trackingState: TRACKER.NOT_TRACKED
       })
     ]
   },
@@ -239,7 +242,7 @@ export const fighterSubclassEntries: SubclassEntry[] = [
           "<strong>Spellcasting Ability.</strong> <link:INT>Intelligence</link> is your spellcasting ability for your Wizard spells.",
           "<strong>Spellcasting Focus.</strong> You can use an <link:Arcane Focus>Arcane Focus</link> as a Spellcasting Focus for your Wizard spells."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.WAR_BOND, {
         description: [
@@ -249,31 +252,31 @@ export const fighterSubclassEntries: SubclassEntry[] = [
           "If it is on the same plane of existence, you can summon that weapon as a Bonus Action, causing it to teleport instantly to your hand.",
           "You can have up to two bonded weapons, but you can summon only one at a time with a Bonus Action. If you attempt to bond with a third weapon, you must break the bond with one of the other two."
         ],
-        ...notTracked
+        trackingState: TRACKER.NOT_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.WAR_MAGIC, {
         description: [
           "When you take the Attack action on your turn, you can replace one of the attacks with a casting of one of your Wizard cantrips that has a casting time of an action."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.ELDRITCH_STRIKE, {
         description: [
           "You learn how to make your weapon strikes undercut a creature's ability to withstand your spells. When you hit a creature with an attack using a weapon, that creature has <link:Disadvantage>Disadvantage</link> on the next saving throw it makes against a spell you cast before the end of your next turn."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_15, CLASS_FEATURE.ARCANE_CHARGE, {
         description: [
           "When you use your Action Surge, you can teleport up to 30 feet to an unoccupied space you can see. You can teleport before or after the additional action."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_18, CLASS_FEATURE.IMPROVED_WAR_MAGIC, {
         description: [
           "When you take the Attack action on your turn, you can replace two of the attacks with a casting of one of your level 1 or level 2 Wizard spells that has a casting time of an action."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       })
     ]
   },
@@ -296,7 +299,7 @@ export const fighterSubclassEntries: SubclassEntry[] = [
           `<strong>Telekinetic Movement.</strong> ${psiWarriorTelekineticMovementDescription[0]}`,
           ...psiWarriorTelekineticMovementDescription.slice(1)
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.TELEKINETIC_ADEPT, {
         description: [
@@ -305,19 +308,19 @@ export const fighterSubclassEntries: SubclassEntry[] = [
           ...psiWarriorPsiPoweredLeapDescription.slice(1),
           `<strong>Telekinetic Thrust.</strong> ${psiWarriorTelekineticThrustDescription[0]}`
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.GUARDED_MIND, {
         description: [...psiWarriorGuardedMindDescription],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_15, CLASS_FEATURE.BULWARK_OF_FORCE, {
         description: [...psiWarriorBulwarkOfForceDescription],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_18, CLASS_FEATURE.TELEKINETIC_MASTER, {
         description: [...psiWarriorTelekineticMasterDescription],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       })
     ]
   }

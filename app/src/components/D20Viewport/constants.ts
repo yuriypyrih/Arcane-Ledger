@@ -16,6 +16,22 @@ export const ROYAL_BLUE_THEME = {
   glow: "#7e95ff"
 };
 
+export const EMERALD_GREEN_THEME = {
+  body: "#2f9a5a",
+  emissive: "#103a24",
+  lacquer: "#b8ffd0",
+  edge: "#f0fff5",
+  glow: "#86efac"
+};
+
+export const CRIMSON_RED_THEME = {
+  body: "#c94a4a",
+  emissive: "#4b1515",
+  lacquer: "#ffc2c2",
+  edge: "#fff0f0",
+  glow: "#fca5a5"
+};
+
 const d20FaceGeometry = new THREE.IcosahedronGeometry(1.14, 0).toNonIndexed();
 export const d20Faces = buildFaces(d20FaceGeometry);
 d20FaceGeometry.dispose();

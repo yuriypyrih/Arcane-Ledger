@@ -44,6 +44,7 @@ import {
   applyPerfectFocusOnInitiativeForCharacter,
   applyPersistentRageOnInitiativeForCharacter,
   applySuperiorInspirationOnInitiativeForCharacter,
+  consumeFighterIndomitableUseForCharacter,
   expendBardicInspirationUseForCharacter,
   getAbilityCheckIndicatorsForCharacter,
   getBarbarianPersistentRageUsesRemainingForCharacter,
@@ -52,6 +53,8 @@ import {
   getBardicInspirationDieForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
   getCoreStatIndicatorsForCharacter,
+  getFighterIndomitableUsesRemainingForCharacter,
+  getFighterIndomitableUsesTotalForCharacter,
   getFighterBattleMasterSuperiorityDiceRemainingForCharacter,
   getFighterBattleMasterSuperiorityDiceTotalForCharacter,
   getFighterBattleMasterSuperiorityDieForCharacter,
@@ -76,6 +79,7 @@ import { getBarbarianRageState } from "../../../../pages/CharactersPage/classFea
 import { getInitiativeReferenceDescriptionAdditions } from "../../../../pages/CharactersPage/classFeatures/initiativeDescriptionSections";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
 import {
+  getRollModeFromIndicators,
   areResolvedRollStatesEquivalent,
   resolveFeatureIndicators,
   type ResolvedRollState
@@ -99,6 +103,7 @@ import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.m
 import AbilityScoresModal from "./AbilityScoresModal";
 import ArmorClassFormulaFooter from "./ArmorClassFormulaFooter";
 import DiceRollerSettingsButton from "../GameplayForm/widgets/DiceRollerSettingsButton";
+import FeatureOptInToggle from "../FeatureOptInToggle/FeatureOptInToggle";
 import StatReferenceDrawer, {
   type ReferenceDetailCard,
   type ReferenceIndicatorSection,
@@ -451,6 +456,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   const [usePersistentRageOnInitiative, setUsePersistentRageOnInitiative] = useState(false);
   const [useTandemFootworkOnInitiative, setUseTandemFootworkOnInitiative] = useState(false);
   const [isDiceRollerSettingsOpen, setIsDiceRollerSettingsOpen] = useState(false);
+  const [isIndomitableSaveSelected, setIsIndomitableSaveSelected] = useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   useBodyScrollLock(
@@ -550,6 +556,8 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
     getFighterBattleMasterSuperiorityDiceTotalForCharacter(character);
   const fighterBattleMasterSuperiorityDiceRemaining =
     getFighterBattleMasterSuperiorityDiceRemainingForCharacter(character);
+  const fighterIndomitableUsesTotal = getFighterIndomitableUsesTotalForCharacter(character);
+  const fighterIndomitableUsesRemaining = getFighterIndomitableUsesRemainingForCharacter(character);
   const fighterPsiWarriorEnergyDie = getFighterPsiWarriorEnergyDieForCharacter(character);
   const fighterPsiWarriorEnergyDiceTotal =
     getFighterPsiWarriorEnergyDiceTotalForCharacter(character);
@@ -761,7 +769,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
     additionalCoreStatCards.push({
       key: "fighter-battle-master-superiority-dice",
       label: "Superiority Dice",
-      value: `${fighterBattleMasterSuperiorityDiceRemaining}/${fighterBattleMasterSuperiorityDiceTotal} ${formatDieValue(fighterBattleMasterSuperiorityDie) ?? "-"}`,
+      value: formatDieValue(fighterBattleMasterSuperiorityDie) ?? "-",
       summaryText:
         "Your current Battle Master Superiority Dice pool. Maneuvers expend these dice, and you regain all expended Superiority Dice when you finish a Short Rest or Long Rest.",
       detailCards: [
@@ -871,6 +879,16 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
           warning: armorClassResolution.warning
         }
       : selectedStatReference;
+  const selectedAbilityReferenceKey =
+    abilityKeys.find((ability) => ability === resolvedSelectedStatReference?.keyword) ?? null;
+  const indomitableSaveBonus = Math.max(1, Math.floor(character.level));
+  const canUseIndomitableOnSelectedSave =
+    selectedAbilityReferenceKey !== null && fighterIndomitableUsesTotal > 0;
+  const indomitableSaveToggleDisabled = fighterIndomitableUsesRemaining <= 0;
+
+  useEffect(() => {
+    setIsIndomitableSaveSelected(false);
+  }, [resolvedSelectedStatReference?.keyword]);
 
   function syncAbilityDraftFromCharacter() {
     setAbilitiesDraft(createAbilitiesDraft(character));
@@ -921,18 +939,57 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
 
   function closeSelectedStatReference() {
     setIsDiceRollerSettingsOpen(false);
+    setIsIndomitableSaveSelected(false);
     setSelectedStatReference(null);
   }
 
-  function rollAbilityReference(title: string, modifier: number, description: string) {
+  function rollAbilityReference(
+    title: string,
+    modifier: number,
+    description: string,
+    indicators?: FeatureIndicator[]
+  ) {
     const rollFormula = formatD20Formula(modifier);
+    const mode = getRollModeFromIndicators(indicators);
 
-    closeSelectedStatReference();
     openDiceRoller({
       title,
       formula: rollFormula,
       formulaDisplay: rollFormula,
-      description
+      description,
+      mode
+    });
+  }
+
+  function rollSavingThrowReference() {
+    const saveRoll = resolvedSelectedStatReference?.rollActions?.save;
+
+    if (!saveRoll) {
+      return;
+    }
+
+    const usesIndomitable =
+      canUseIndomitableOnSelectedSave &&
+      isIndomitableSaveSelected &&
+      fighterIndomitableUsesRemaining > 0;
+    const totalModifier = saveRoll.modifier + (usesIndomitable ? indomitableSaveBonus : 0);
+    const rollFormula = formatD20Formula(totalModifier);
+    const title = usesIndomitable ? `${saveRoll.title} (Indomitable)` : saveRoll.title;
+    const description = usesIndomitable
+      ? `${saveRoll.description}. Indomitable adds +${indomitableSaveBonus} Fighter Level.`
+      : saveRoll.description;
+
+    if (usesIndomitable) {
+      onPersistCharacter((currentCharacter) => consumeFighterIndomitableUseForCharacter(currentCharacter));
+      setIsIndomitableSaveSelected(false);
+    }
+
+    openDiceRoller({
+      title,
+      formula: rollFormula,
+      formulaDisplay: rollFormula,
+      description,
+      mode: getRollModeFromIndicators(saveRoll.indicators)
     });
   }
 
@@ -967,6 +1024,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
 
     setSelectedStatReference({
       keyword: card.label,
+      rollIndicators: card.indicators,
       summaryText: card.summaryText,
       descriptionAdditions,
       indicatorSections: buildReferenceIndicatorSections([
@@ -1029,15 +1087,18 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
       keyword: ability,
       rollActions: {
         label: abilityLabel,
+        actionName: `${abilityLabel} Rolls`,
         mod: {
           title: `${abilityLabel} Ability Modifier`,
           modifier: selectedCard.modifierValue,
-          description: abilityModifierFormula
+          description: abilityModifierFormula,
+          indicators: selectedCard.modifierIndicators
         },
         save: {
           title: `${abilityLabel} Saving Throw`,
           modifier: selectedCard.totalSavingThrowValue,
-          description: savingThrowFormula
+          description: savingThrowFormula,
+          indicators: selectedCard.savingThrowIndicators
         }
       },
       descriptionAdditions: getAbilityDescriptionAdditions(character, ability),
@@ -1100,12 +1161,12 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
 
       return nextCharacter;
     });
-    closeSelectedStatReference();
     openDiceRoller({
       title: "Initiative",
       formula: rollFormula,
       formulaDisplay: rollFormula,
-      description: rollDescription
+      description: rollDescription,
+      mode: getRollModeFromIndicators(selectedStatReference?.rollIndicators)
     });
   }
 
@@ -1272,41 +1333,57 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
           reference={resolvedSelectedStatReference}
           footer={
             resolvedSelectedStatReference.rollActions ? (
-              <div className={styles.referenceRollActions}>
-                <button
-                  type="button"
-                  className={clsx(sheetStyles.castButton, styles.referenceRollButton)}
-                  onClick={() =>
-                    rollAbilityReference(
-                      resolvedSelectedStatReference.rollActions?.mod.title ?? "Ability Modifier",
-                      resolvedSelectedStatReference.rollActions?.mod.modifier ?? 0,
-                      resolvedSelectedStatReference.rollActions?.mod.description ?? ""
-                    )
-                  }
-                >
-                  <img src={d20Icon} alt="" className={styles.referenceRollIcon} />
-                  <span>Mod Roll</span>
-                </button>
-                <button
-                  type="button"
-                  className={clsx(sheetStyles.castButton, styles.referenceRollButton)}
-                  onClick={() =>
-                    rollAbilityReference(
-                      resolvedSelectedStatReference.rollActions?.save.title ?? "Saving Throw",
-                      resolvedSelectedStatReference.rollActions?.save.modifier ?? 0,
-                      resolvedSelectedStatReference.rollActions?.save.description ?? ""
-                    )
-                  }
-                >
-                  <img src={d20Icon} alt="" className={styles.referenceRollIcon} />
-                  <span>Save Roll</span>
-                </button>
-                <DiceRollerSettingsButton
-                  actionName={`${resolvedSelectedStatReference.rollActions.label} Rolls`}
-                  className={clsx(sheetStyles.castButton, styles.referenceRollSettingsButton)}
-                  isOpen={isDiceRollerSettingsOpen}
-                  onOpenChange={setIsDiceRollerSettingsOpen}
-                />
+              <div className={styles.referenceFooterStack}>
+                {canUseIndomitableOnSelectedSave ? (
+                  <FeatureOptInToggle
+                    label="Indomitable Save Roll"
+                    checked={isIndomitableSaveSelected}
+                    disabled={indomitableSaveToggleDisabled}
+                    muted={indomitableSaveToggleDisabled}
+                    onCheckedChange={setIsIndomitableSaveSelected}
+                    title={
+                      indomitableSaveToggleDisabled ? "No Indomitable uses remaining." : undefined
+                    }
+                    metaItems={[
+                      {
+                        kind: "tracker",
+                        current: fighterIndomitableUsesRemaining,
+                        total: fighterIndomitableUsesTotal
+                      }
+                    ]}
+                  />
+                ) : null}
+                <div className={styles.referenceRollActions}>
+                  <button
+                    type="button"
+                    className={clsx(sheetStyles.castButton, styles.referenceRollButton)}
+                    onClick={() =>
+                      rollAbilityReference(
+                        resolvedSelectedStatReference.rollActions?.mod.title ?? "Ability Modifier",
+                        resolvedSelectedStatReference.rollActions?.mod.modifier ?? 0,
+                        resolvedSelectedStatReference.rollActions?.mod.description ?? "",
+                        resolvedSelectedStatReference.rollActions?.mod.indicators
+                      )
+                    }
+                  >
+                    <img src={d20Icon} alt="" className={styles.referenceRollIcon} />
+                    <span>Mod Roll</span>
+                  </button>
+                  <button
+                    type="button"
+                    className={clsx(sheetStyles.castButton, styles.referenceRollButton)}
+                    onClick={rollSavingThrowReference}
+                  >
+                    <img src={d20Icon} alt="" className={styles.referenceRollIcon} />
+                    <span>Save Roll</span>
+                  </button>
+                  <DiceRollerSettingsButton
+                    actionName={resolvedSelectedStatReference.rollActions.actionName}
+                    className={clsx(sheetStyles.castButton, styles.referenceRollSettingsButton)}
+                    isOpen={isDiceRollerSettingsOpen}
+                    onOpenChange={setIsDiceRollerSettingsOpen}
+                  />
+                </div>
               </div>
             ) : resolvedSelectedStatReference.keyword === "Armor Class" &&
               armorClassResolution.formulas.length >= 2 ? (

@@ -52,6 +52,7 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/cleric/cleric";
 import {
   getFighterActionSurgeUsesTotal,
+  getFighterBattleMasterKnowYourEnemyUsesTotalForCharacter as getFighterBattleMasterKnowYourEnemyUsesTotal,
   getFighterBattleMasterSuperiorityDiceTotalForCharacter as getFighterBattleMasterSuperiorityDiceTotal,
   getFighterGroupRecoveryUsesTotal,
   getFighterIndomitableUsesTotal,
@@ -63,6 +64,7 @@ import {
   getFighterSecondWindUsesTotal,
   restoreFighterActionSurgeOnLongRest,
   restoreFighterActionSurgeOnShortRest,
+  restoreFighterBattleMasterKnowYourEnemyOnLongRest,
   restoreFighterBattleMasterSuperiorityDiceOnLongRest,
   restoreFighterBattleMasterSuperiorityDiceOnShortRest,
   restoreFighterGroupRecoveryOnLongRest,
@@ -722,6 +724,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const groupRecoveryUsesTotal = getFighterGroupRecoveryUsesTotal(character);
   const actionSurgeUsesTotal = getFighterActionSurgeUsesTotal(character);
   const indomitableUsesTotal = getFighterIndomitableUsesTotal(character);
+  const knowYourEnemyUsesTotal = getFighterBattleMasterKnowYourEnemyUsesTotal(character);
   const superiorityDiceTotal = getFighterBattleMasterSuperiorityDiceTotal(character);
   const psiEnergyDiceTotal = getFighterPsiWarriorEnergyDiceTotal(character);
   const psiPoweredLeapUsesTotal = getFighterPsiWarriorPsiPoweredLeapUsesTotal(character);
@@ -1081,6 +1084,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore all Superiority Dice",
             apply: (currentCharacter: Character) =>
               restoreFighterBattleMasterSuperiorityDiceOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(knowYourEnemyUsesTotal > 0
+      ? [
+          {
+            id: "restore-know-your-enemy",
+            label: "Restore Know Your Enemy",
+            apply: (currentCharacter: Character) =>
+              restoreFighterBattleMasterKnowYourEnemyOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),
