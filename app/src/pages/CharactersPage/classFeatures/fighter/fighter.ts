@@ -11,13 +11,17 @@ import {
   PROF_LEVEL,
   WEAPON_PROFICIENCY
 } from "../../../../types";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
+import {
+  ACTION_CATEGORY,
+  ECONOMY_TYPE,
+  getRoundTrackerResourceForEconomyType
+} from "../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
 import type { WeaponAction } from "../../gameplay";
 import type {
   FeatureActionCard,
-  FeatureActionResource,
-  FeatureWeaponProficiencyEntry
+  FeatureWeaponProficiencyEntry,
+  WeaponAttackConsumptionContext
 } from "../types";
 import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
 import {
@@ -119,18 +123,6 @@ function getFighterFeatureDescription(feature: CLASS_FEATURE): string[] {
   return [...(fighterFeatureMap[feature]?.description ?? [])];
 }
 
-function createFighterSecondWindResource(
-  usesRemaining: number,
-  usesTotal: number
-): FeatureActionResource {
-  return {
-    kind: "text",
-    label: "Second Wind",
-    value: `${usesRemaining}/${usesTotal}`,
-    icon: "wind"
-  };
-}
-
 function getFighterSecondWindDescriptionAdditions(
   character: Pick<Character, "className" | "level">
 ) {
@@ -155,16 +147,15 @@ export function getFighterWeaponAction(
 
   let nextAction = action;
 
-  if (action.attackKind === "weapon" && hasFighterFeature(character, CLASS_FEATURE.TACTICAL_MASTER)) {
+  if (
+    action.attackKind === "weapon" &&
+    hasFighterFeature(character, CLASS_FEATURE.TACTICAL_MASTER)
+  ) {
     const tacticalMasterDescription = getFighterFeatureDescription(CLASS_FEATURE.TACTICAL_MASTER);
 
     nextAction =
       tacticalMasterDescription.length > 0
-        ? appendSourcedDescriptionAddition(
-            nextAction,
-            "Tactical Master",
-            tacticalMasterDescription
-          )
+        ? appendSourcedDescriptionAddition(nextAction, "Tactical Master", tacticalMasterDescription)
         : nextAction;
   }
 
@@ -481,9 +472,7 @@ export function getFighterGroupRecoveryUsesRemaining(
   return getFighterBanneretGroupRecoveryUsesRemaining(character);
 }
 
-export function getFighterGroupRecoveryHealingFormula(
-  character: Pick<Character, "level">
-): string {
+export function getFighterGroupRecoveryHealingFormula(character: Pick<Character, "level">): string {
   return getFighterBanneretGroupRecoveryHealingFormula(character);
 }
 
@@ -639,7 +628,9 @@ export function getFighterPsiWarriorTelekineticMovementUsesRemainingForCharacter
   return getFighterPsiWarriorTelekineticMovementUsesRemaining(character);
 }
 
-export function expendFighterBattleMasterSuperiorityDieForCharacter(character: Character): Character {
+export function expendFighterBattleMasterSuperiorityDieForCharacter(
+  character: Character
+): Character {
   return expendFighterBattleMasterSuperiorityDie(character);
 }
 
@@ -655,7 +646,9 @@ export function consumeFighterBattleMasterKnowYourEnemyForCharacter(
   return consumeFighterBattleMasterKnowYourEnemy(character);
 }
 
-export function restoreFighterBattleMasterSuperiorityDieForCharacter(character: Character): Character {
+export function restoreFighterBattleMasterSuperiorityDieForCharacter(
+  character: Character
+): Character {
   return restoreOneFighterBattleMasterSuperiorityDie(character);
 }
 
@@ -806,7 +799,6 @@ export function getFighterFeatureActions(
       usesRemaining,
       usesTotal: totalUses,
       descriptionAdditions,
-      resources: [createFighterSecondWindResource(usesRemaining, totalUses)],
       drawer: {
         kind: "confirm",
         eyebrow: "Fighter",
@@ -841,7 +833,6 @@ export function getFighterFeatureActions(
       usesInlineIcon: "wind",
       usesRemaining,
       usesTotal: totalUses,
-      resources: [createFighterSecondWindResource(usesRemaining, totalUses)],
       drawer: {
         kind: "confirm",
         eyebrow: "Fighter",
@@ -1214,11 +1205,15 @@ export function restoreFighterGroupRecoveryOnLongRest(character: Character): Cha
   return restoreFighterBanneretGroupRecoveryOnLongRest(character);
 }
 
-export function restoreFighterBattleMasterSuperiorityDiceOnShortRest(character: Character): Character {
+export function restoreFighterBattleMasterSuperiorityDiceOnShortRest(
+  character: Character
+): Character {
   return restoreFighterBattleMasterSuperiorityDiceOnShortRestInternal(character);
 }
 
-export function restoreFighterBattleMasterSuperiorityDiceOnLongRest(character: Character): Character {
+export function restoreFighterBattleMasterSuperiorityDiceOnLongRest(
+  character: Character
+): Character {
   return restoreFighterBattleMasterSuperiorityDiceOnLongRestInternal(character);
 }
 
@@ -1367,15 +1362,16 @@ export function getFighterWeaponProficiencyEntries(
 
 export function consumeFighterWeaponAttack(
   character: Character,
-  action?: {
-    attackKind: "weapon" | "unarmed";
-  }
+  action: WeaponAttackConsumptionContext
 ): Character {
+  const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+
   if (character.className !== "Fighter") {
-    return isRoundTrackerResourceAvailable(character.roundTracker, "action")
+    return roundTrackerResource &&
+      isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource)
       ? {
           ...character,
-          roundTracker: consumeRoundTrackerResource(character.roundTracker, "action")
+          roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)
         }
       : character;
   }
@@ -1389,24 +1385,20 @@ export function consumeFighterWeaponAttack(
   const surgedActionsRemaining = fighterState.actionSurgeExtraActionsRemainingThisTurn ?? 0;
   const actionAvailable = isRoundTrackerResourceAvailable(character.roundTracker, "action");
   const canUseTelekineticMasterBonusAttack =
-    action?.attackKind === "weapon" &&
+    action.attackKind === "weapon" &&
     hasFighterPsiWarriorTelekineticMasterBonusAttackAvailable(character) &&
     isRoundTrackerResourceAvailable(character.roundTracker, "bonusAction");
 
-  if (canUseTelekineticMasterBonusAttack) {
+  if (action.economyType === ECONOMY_TYPE.BONUS_ACTION) {
+    if (!canUseTelekineticMasterBonusAttack) {
+      return character;
+    }
+
     const nextCharacter = consumeFighterPsiWarriorTelekineticMasterBonusAttack(character);
 
     return {
       ...nextCharacter,
-      roundTracker: consumeRoundTrackerResource(character.roundTracker, "bonusAction"),
-      classFeatureState: {
-        ...nextCharacter.classFeatureState,
-        fighter: {
-          ...fighterState,
-          ...nextCharacter.classFeatureState?.fighter,
-          extraAttacksRemainingThisTurn: extraAttacksRemaining + additionalAttackCount
-        }
-      }
+      roundTracker: consumeRoundTrackerResource(nextCharacter.roundTracker, "bonusAction")
     };
   }
 

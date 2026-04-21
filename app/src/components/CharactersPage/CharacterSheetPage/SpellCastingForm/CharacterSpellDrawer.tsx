@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Brain, Flame, Hexagon, Music, PawPrint, Sparkles, X } from "lucide-react";
+import { X } from "lucide-react";
 import { useEffect, useState } from "react";
 import ActionShape, {
   getActionShapeForCastingTime,
@@ -24,17 +24,17 @@ import {
   clampNumber,
   spellSlotLevels
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
+import { markUsageHeaderTagsAsFallback } from "../../../../pages/CharactersPage/classFeatures/cardUsage";
 import { getSpellLevel } from "../../../../pages/CharactersPage/spellcasting";
 import { getSpellDamageDetailForCharacter } from "../../../../pages/CharactersPage/spellOutcome";
 import type {
-  FeatureActionIcon,
-  FeatureActionResource
+  FeatureActionCardUsage,
+  FeatureActionHeaderTag
 } from "../../../../pages/CharactersPage/classFeatures";
 import FeatureOptInToggle, {
-  type FeatureOptInToggleIconKind
+  type FeatureOptInToggleApplication
 } from "../FeatureOptInToggle/FeatureOptInToggle";
-import animaIcon from "../../../../assets/svg/anima.svg";
-import pyromancyIcon from "../../../../assets/svg/pyromancy.svg";
+import FeatureActionHeaderTags from "../GameplayForm/widgets/FeatureActionHeaderTags";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import gameplayActionStyles from "../GameplayForm/widgets/GameplayActionDrawer.module.css";
 import styles from "./CharacterSpellDrawer.module.css";
@@ -58,15 +58,9 @@ export type CharacterSpellDrawerActionOption = {
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
   disabled?: boolean;
-  headerResource?: FeatureActionResource;
-  tracker?: {
-    current: number;
-    total: number;
-  };
-  fallbackCost?: {
-    label: string;
-    icon?: FeatureOptInToggleIconKind;
-  };
+  headerTags?: FeatureActionHeaderTag[];
+  usage?: FeatureActionCardUsage;
+  application?: FeatureOptInToggleApplication;
   select?: {
     label: string;
     value: number;
@@ -78,90 +72,6 @@ export type CharacterSpellDrawerActionOption = {
     }>;
   };
 };
-
-function renderUsesIcon(icon?: FeatureActionIcon) {
-  if (icon === "anima") {
-    return <img src={animaIcon} alt="" className={styles.resourceAssetIcon} />;
-  }
-
-  if (icon === "brain") {
-    return <Brain size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "sparkles") {
-    return <Sparkles size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "music") {
-    return <Music size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "flame") {
-    return <Flame size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "paw") {
-    return <PawPrint size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "psi") {
-    return <Hexagon size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "pyromancy") {
-    return <img src={pyromancyIcon} alt="" className={styles.resourceAssetIcon} />;
-  }
-
-  return null;
-}
-
-function renderHeaderResource(resource: FeatureActionResource, key: string) {
-  if (resource.kind === "tracker" && resource.icon) {
-    return (
-      <span key={key} className={styles.resourceBadge}>
-        <span className={styles.resourceBadgeLabel}>{resource.label}</span>
-        <span className={styles.resourceBadgeValue}>
-          <span>{resource.cost ?? resource.current}</span>
-          {renderUsesIcon(resource.icon)}
-          <span>out of</span>
-          <span>{`${resource.current}/${resource.total}`}</span>
-          {renderUsesIcon(resource.icon)}
-        </span>
-      </span>
-    );
-  }
-
-  if (resource.kind === "tracker") {
-    return (
-      <span key={key} className={styles.resourceBadge}>
-        Charges
-        <span className={sheetStyles.shortRestDots}>
-          {Array.from({ length: resource.total }, (_, dotIndex) => (
-            <span
-              key={`${key}-dot-${dotIndex}`}
-              className={[
-                sheetStyles.shortRestDot,
-                dotIndex < resource.current ? sheetStyles.shortRestDotActive : ""
-              ]
-                .filter(Boolean)
-                .join(" ")}
-            />
-          ))}
-        </span>
-      </span>
-    );
-  }
-
-  return (
-    <span key={key} className={styles.resourceBadge}>
-      <span className={styles.resourceBadgeLabel}>{resource.label}</span>
-      <span className={styles.resourceBadgeValue}>
-        <span>{resource.value}</span>
-        {renderUsesIcon(resource.icon)}
-      </span>
-    </span>
-  );
-}
 
 type CharacterSpellDrawerProps = {
   character: Character;
@@ -274,9 +184,16 @@ function CharacterSpellDrawer({
   const visibleActionOptions = isRitualCastingSelected
     ? actionOptions.filter((option) => option.id !== "mind-magic")
     : actionOptions;
-  const visibleHeaderResources = visibleActionOptions.flatMap((option, index) =>
-    option.headerResource
-      ? [{ key: `${option.id}-header-resource-${index}`, value: option.headerResource }]
+  const visibleHeaderTags = visibleActionOptions.flatMap((option) =>
+    option.headerTags?.length
+      ? (
+          option.usage?.mode === "charges-or-resource"
+            ? markUsageHeaderTagsAsFallback(option.headerTags)
+            : option.headerTags
+        ).map((tag, index) => ({
+          key: `${option.id}-header-tag-${index}`,
+          value: tag
+        }))
       : []
   );
   const shouldShowRitualToggle = ritualCastingAvailable && !isMindMagicSelected;
@@ -435,11 +352,12 @@ function CharacterSpellDrawer({
               <p className={sheetStyles.spellDrawerSummary}>
                 <SpellSubtitle spell={spell} />
               </p>
-              {visibleHeaderResources.length > 0 ? (
-                <div className={styles.resourceBadgeRow}>
-                  {visibleHeaderResources.map((resource) =>
-                    renderHeaderResource(resource.value, resource.key)
-                  )}
+              {visibleHeaderTags.length > 0 ? (
+                <div className={gameplayActionStyles.resourceBadgeRow}>
+                  <FeatureActionHeaderTags
+                    tags={visibleHeaderTags.map((tag) => tag.value)}
+                    tagKeyPrefix={spell.name}
+                  />
                 </div>
               ) : null}
             </div>
@@ -565,7 +483,6 @@ function CharacterSpellDrawer({
                         />
                       ) : null}
                       {visibleActionOptions.map((option) => {
-                        const tracker = option.tracker;
                         const select = option.select;
 
                         return (
@@ -576,26 +493,9 @@ function CharacterSpellDrawer({
                               disabled={option.disabled}
                               muted={option.disabled}
                               onCheckedChange={option.onCheckedChange}
-                              metaItems={[
-                                ...(tracker
-                                  ? [
-                                      {
-                                        kind: "tracker" as const,
-                                        current: tracker.current,
-                                        total: tracker.total
-                                      }
-                                    ]
-                                  : []),
-                                ...(option.fallbackCost
-                                  ? [
-                                      {
-                                        kind: "cost" as const,
-                                        label: option.fallbackCost.label,
-                                        icon: option.fallbackCost.icon
-                                      }
-                                    ]
-                                  : [])
-                              ]}
+                              usage={option.usage}
+                              application={option.application}
+                              usageKey={option.id}
                             />
                             {option.checked && select ? (
                               <div className={actionStyles.featureActionSelectField}>

@@ -9,6 +9,11 @@ import {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import {
+  createChargesAndUsageHeaderTags,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../cardUsage";
 import type {
   ArmorClassFeatureContext,
   DerivedFeatureStatusEntry,
@@ -216,6 +221,14 @@ function getSorcererDragonWingsAction(
     breakdown: "Manifest dragon wings",
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.MAGIC,
+    cardUsage: createChargesOrResourceCardUsage(
+      usesRemaining,
+      getSorcererDraconicDragonWingsUsesTotal(character),
+      createFeatureActionCardCost({
+        amountText: String(dragonWingsFallbackSorceryPointCost),
+        icon: "sparkles"
+      })
+    ),
     usesRemaining,
     usesTotal: getSorcererDraconicDragonWingsUsesTotal(character),
     usesInlineLabel:
@@ -223,6 +236,22 @@ function getSorcererDragonWingsAction(
     usesInlineIcon: usesRemaining <= 0 ? "sparkles" : undefined,
     usesInlineSuffix: usesRemaining <= 0 ? "instead" : undefined,
     description: dragonWingsDescription,
+    headerTags:
+      totalPoints > 0
+        ? createChargesAndUsageHeaderTags(
+            usesRemaining,
+            getSorcererDraconicDragonWingsUsesTotal(character),
+            createFeatureActionCardCost({
+              amountText: String(dragonWingsFallbackSorceryPointCost),
+              icon: "sparkles"
+            }),
+            remainingPoints,
+            totalPoints,
+            {
+              icon: "sparkles"
+            }
+          )
+        : undefined,
     resources:
       totalPoints > 0
         ? [

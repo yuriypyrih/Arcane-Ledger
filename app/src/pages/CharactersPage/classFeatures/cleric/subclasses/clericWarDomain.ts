@@ -22,7 +22,11 @@ import {
 } from "../../../combat";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import { getPreparedSpellIdsByLevel, type SubclassRuntimeResolver } from "../../subclassRuntime";
-import type { DerivedFeatureStatusEntry, FeatureActionCard } from "../../types";
+import type {
+  DerivedFeatureStatusEntry,
+  FeatureActionCard,
+  WeaponAttackConsumptionContext
+} from "../../types";
 import { expendClericChannelDivinityUse } from "../clericChannelDivinity";
 
 export const warDomainSubclassId = "cleric-war-domain";
@@ -325,11 +329,10 @@ export function activateClericWarPriest(character: Character): Character {
 
 export function consumeClericWarPriestWeaponAttack(
   character: Character,
-  action: {
-    attackKind: "weapon" | "unarmed";
-  }
+  action: WeaponAttackConsumptionContext
 ): Character {
   if (
+    action.economyType !== ECONOMY_TYPE.BONUS_ACTION ||
     !hasClericWarPriestBonusAttackAvailable(character) ||
     (action.attackKind !== "weapon" && action.attackKind !== "unarmed") ||
     !isRoundTrackerResourceAvailable(character.roundTracker, "bonusAction")

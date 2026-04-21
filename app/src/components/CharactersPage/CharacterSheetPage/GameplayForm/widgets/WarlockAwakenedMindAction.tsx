@@ -2,6 +2,10 @@ import clsx from "clsx";
 import ActionShape, { type ActionShapeType } from "../../../../ActionShape";
 import FeatureOptInToggle from "../../FeatureOptInToggle/FeatureOptInToggle";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import {
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../../../../pages/CharactersPage/classFeatures/cardUsage";
 import styles from "./WarlockAwakenedMindAction.module.css";
 
 type WarlockAwakenedMindActionFooterProps = {
@@ -12,8 +16,6 @@ type WarlockAwakenedMindActionFooterProps = {
   disabled: boolean;
   clairvoyantCombatantUsesRemaining: number;
   clairvoyantCombatantUsesTotal: number;
-  pactMagicSlotsRemaining: number;
-  pactMagicSlotTotal: number;
   toggleDisabled: boolean;
   toggleDisabledReason?: string | null;
   isClairvoyantCombatantSelected: boolean;
@@ -29,8 +31,6 @@ export function WarlockAwakenedMindActionFooter({
   disabled,
   clairvoyantCombatantUsesRemaining,
   clairvoyantCombatantUsesTotal,
-  pactMagicSlotsRemaining,
-  pactMagicSlotTotal,
   toggleDisabled,
   toggleDisabledReason = null,
   isClairvoyantCombatantSelected,
@@ -46,21 +46,14 @@ export function WarlockAwakenedMindActionFooter({
         muted={toggleDisabled}
         onCheckedChange={onClairvoyantCombatantSelectedChange}
         title={toggleDisabledReason ?? undefined}
-        metaItems={[
-          {
-            kind: "tracker",
-            current: clairvoyantCombatantUsesRemaining,
-            total: clairvoyantCombatantUsesTotal
-          },
-          ...(clairvoyantCombatantUsesRemaining <= 0
-            ? [
-                {
-                  kind: "cost" as const,
-                  label: `Use 1 Pact Magic slot (${pactMagicSlotsRemaining}/${pactMagicSlotTotal})`
-                }
-              ]
-            : [])
-        ]}
+        usage={createChargesOrResourceCardUsage(
+          clairvoyantCombatantUsesRemaining,
+          clairvoyantCombatantUsesTotal,
+          createFeatureActionCardCost({
+            resourceLabel: "Pact Magic Slot"
+          })
+        )}
+        usageKey="clairvoyant-combatant"
       />
       <button
         type="button"

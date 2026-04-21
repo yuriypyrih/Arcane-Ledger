@@ -30,14 +30,8 @@ import {
   getFighterEldritchKnightWarMagicSpellLevels
 } from "./fighter/subclasses/fighterEldritchKnight";
 import { consumeMonkWeaponAttack, getMonkExtraAttackMultiCount } from "./monk/monk";
-import {
-  consumePaladinWeaponAttack,
-  getPaladinWeaponAttackMultiCount
-} from "./paladin/paladin";
-import {
-  consumeRangerWeaponAttack,
-  getRangerWeaponAttackMultiCount
-} from "./ranger/ranger";
+import { consumePaladinWeaponAttack, getPaladinWeaponAttackMultiCount } from "./paladin/paladin";
+import { consumeRangerWeaponAttack, getRangerWeaponAttackMultiCount } from "./ranger/ranger";
 import {
   consumeWizardActionCantrip,
   consumeWizardWeaponAttack,
@@ -48,7 +42,8 @@ import type {
   FeatureActionCard,
   FeatureActionOptionCard,
   FeatureEconomyMultiAccessRule,
-  FeatureEconomyMultiPool
+  FeatureEconomyMultiPool,
+  WeaponAttackConsumptionContext
 } from "./types";
 
 type SharedEconomyMultiPool = FeatureEconomyMultiPool & {
@@ -114,9 +109,7 @@ function getAccessiblePoolCount(
     : Math.min(pool.remaining, matchingRule.maxAccessible);
 }
 
-function hasFighterExtraAttackPool(
-  character: Pick<Character, "className" | "level">
-): boolean {
+function hasFighterExtraAttackPool(character: Pick<Character, "className" | "level">): boolean {
   return character.className === "Fighter" && character.level >= 5;
 }
 
@@ -130,9 +123,7 @@ function hasFighterWarMagic(
   );
 }
 
-function hasFighterActionSurgePool(
-  character: Pick<Character, "className" | "level">
-): boolean {
+function hasFighterActionSurgePool(character: Pick<Character, "className" | "level">): boolean {
   return getFighterActionSurgeUsesTotal(character) > 0;
 }
 
@@ -173,6 +164,19 @@ function createActionSpellAccessRule(
   };
 }
 
+function createWeaponAttackConsumptionContext(
+  context: EconomyMultiActionContext
+): WeaponAttackConsumptionContext {
+  const attackKind = context.attackKind ?? "weapon";
+
+  return {
+    key: attackKind === "unarmed" ? "unarmed-strike" : "shared-attack",
+    economyType: context.economyType,
+    actionCategory: context.actionCategory,
+    attackKind
+  };
+}
+
 function createFighterExtraAttackPool(
   character: SharedEconomyMultiCharacter
 ): SharedEconomyMultiPool | null {
@@ -202,7 +206,7 @@ function createFighterExtraAttackPool(
       context.spellLevel !== undefined &&
       warMagicSpellLevels.includes(context.spellLevel)
         ? consumeFighterActionCantrip(nextCharacter)
-        : consumeFighterWeaponAttack(nextCharacter)
+        : consumeFighterWeaponAttack(nextCharacter, createWeaponAttackConsumptionContext(context))
   };
 }
 
@@ -254,9 +258,7 @@ function createBardValorExtraAttackPool(
     consume: (nextCharacter, context) =>
       context.actionCategory === ACTION_CATEGORY.MAGIC && context.spellLevel === 0
         ? consumeBardValorActionCantrip(nextCharacter)
-        : consumeBardWeaponAttack(nextCharacter, {
-            attackKind: context.attackKind ?? "weapon"
-          })
+        : consumeBardWeaponAttack(nextCharacter, createWeaponAttackConsumptionContext(context))
   };
 }
 
@@ -329,11 +331,7 @@ function createMonkExtraAttackPool(
     priority: 10,
     accessRules: [createAttackAccessRule()],
     consume: (nextCharacter, context) =>
-      consumeMonkWeaponAttack(nextCharacter, {
-        key: context.attackKind === "unarmed" ? "unarmed-strike" : "shared-attack",
-        economyType: context.economyType,
-        attackKind: context.attackKind ?? "weapon"
-      })
+      consumeMonkWeaponAttack(nextCharacter, createWeaponAttackConsumptionContext(context))
   };
 }
 
@@ -349,8 +347,7 @@ function createWizardBladesingerExtraAttackPool(
   }
 
   const wizardState = character.classFeatureState?.wizard;
-  const cantripReplacementUsed =
-    wizardState?.bladesingerCantripReplacementUsedThisTurn === true;
+  const cantripReplacementUsed = wizardState?.bladesingerCantripReplacementUsedThisTurn === true;
 
   return {
     id: "wizard-bladesinger-extra-attack",
@@ -363,9 +360,7 @@ function createWizardBladesingerExtraAttackPool(
     consume: (nextCharacter, context) =>
       context.actionCategory === ACTION_CATEGORY.MAGIC && context.spellLevel === 0
         ? consumeWizardActionCantrip(nextCharacter)
-        : consumeWizardWeaponAttack(nextCharacter, {
-            attackKind: context.attackKind ?? "weapon"
-          })
+        : consumeWizardWeaponAttack(nextCharacter, createWeaponAttackConsumptionContext(context))
   };
 }
 

@@ -72,6 +72,12 @@
   justify-content: center;
 }
 
+.shapeBadgeMeta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.14rem;
+}
+
 .actionCard > .shapeBadge {
   position: absolute;
   left: 50%;
@@ -86,6 +92,14 @@
 .shapeBadgeRow > .shapeBadge {
   position: static;
   transform: none;
+}
+
+.shapeBadgeCount {
+  color: #8a4d26;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
 }
 
 .damageRow {
@@ -127,6 +141,39 @@
 
 .featureMeta {
   color: #8a4d26;
+}
+
+.featureUsage {
+  align-items: center;
+  color: #8a4d26;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.featureUsage span {
+  color: inherit;
+}
+
+.featureUsage svg {
+  color: currentColor;
+  flex: 0 0 auto;
+  stroke: currentColor;
+}
+
+.featureUsage img {
+  flex: 0 0 auto;
+}
+
+.featureUsageCharges,
+.featureUsageText {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.35rem;
+}
+
+.featureUsageOperator {
+  color: inherit;
 }
 
 .featureMetaWithIcon {

@@ -20,7 +20,11 @@ import {
   getSpellSlotTotalsForCharacter,
   normalizeSpellSlotsExpended
 } from "../../spellcasting";
-import type { FeatureActionCard, FeatureSkillProficiencyEntry } from "../types";
+import type {
+  FeatureActionCard,
+  FeatureSkillProficiencyEntry,
+  WeaponAttackConsumptionContext
+} from "../types";
 import {
   getWizardSavantSelectionCount,
   hasWizardSavantFeature,
@@ -325,10 +329,7 @@ export function normalizeWizardFeatureState(
       phantasmalCreaturesUsesTotal > 0 && Number.isFinite(rawPhantasmalCreaturesUsesExpended)
         ? Math.max(
             0,
-            Math.min(
-              phantasmalCreaturesUsesTotal,
-              Math.floor(rawPhantasmalCreaturesUsesExpended)
-            )
+            Math.min(phantasmalCreaturesUsesTotal, Math.floor(rawPhantasmalCreaturesUsesExpended))
           )
         : 0,
     illusorySelfUsesExpended:
@@ -684,7 +685,9 @@ export function syncWizardSignatureSpellsToSpellbook(character: Character): Char
 }
 
 export function applyShortRestToWizardFeatures(character: Character): Character {
-  return restoreWizardSubclassFeaturesOnShortRest(restoreWizardSignatureSpellsOnShortRest(character));
+  return restoreWizardSubclassFeaturesOnShortRest(
+    restoreWizardSignatureSpellsOnShortRest(character)
+  );
 }
 
 export function applyLongRestToWizardFeatures(character: Character): Character {
@@ -743,9 +746,7 @@ export function hasWizardSpellcastWeaponBonusActionAvailable(
 
 export function consumeWizardWeaponAttack(
   character: Character,
-  action?: {
-    attackKind: "weapon" | "unarmed";
-  }
+  action: WeaponAttackConsumptionContext
 ): Character {
   return consumeWizardBladesingerWeaponAttack(character, action);
 }

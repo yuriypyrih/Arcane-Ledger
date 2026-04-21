@@ -1,8 +1,4 @@
-import {
-  ACTION_TYPE,
-  CLASS_FEATURE,
-  type SpellEntry
-} from "../../../../../codex/entries";
+import { ACTION_TYPE, CLASS_FEATURE, type SpellEntry } from "../../../../../codex/entries";
 import type {
   ArmorProficiencyEntry,
   Character,
@@ -17,12 +13,14 @@ import {
   WEAPON_PROFICIENCY
 } from "../../../../../types";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { ECONOMY_TYPE } from "../../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type {
   FeatureActionCard,
   FeatureArmorProficiencyEntry,
-  FeatureWeaponProficiencyEntry
+  FeatureWeaponProficiencyEntry,
+  WeaponAttackConsumptionContext
 } from "../../types";
 import {
   createDefaultFeatureActionDescription,
@@ -82,7 +80,9 @@ export function normalizeBardCollegeOfValorFeatureState(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): Pick<
   CharacterBardFeatureState,
-  "extraAttacksRemainingThisTurn" | "valorCantripReplacementUsedThisTurn" | "battleMagicBonusAttackAvailable"
+  | "extraAttacksRemainingThisTurn"
+  | "valorCantripReplacementUsedThisTurn"
+  | "battleMagicBonusAttackAvailable"
 > {
   const extraAttacksRemainingThisTurn = Number(value.extraAttacksRemainingThisTurn);
 
@@ -150,9 +150,7 @@ export function getBardCollegeOfValorAdditionalAttackCount(
   return hasBardCollegeOfValorExtraAttackFeature(character) ? 1 : 0;
 }
 
-export function getBardCollegeOfValorWeaponAttackMultiCount(
-  character: BardValorCharacter
-): number {
+export function getBardCollegeOfValorWeaponAttackMultiCount(character: BardValorCharacter): number {
   if (getBardCollegeOfValorAdditionalAttackCount(character) <= 0) {
     return 0;
   }
@@ -236,16 +234,32 @@ export function canUseBardCollegeOfValorActionCantripReplacement(
 export function consumeBardCollegeOfValorWeaponAttack(
   character: Character,
   bardState: CharacterBardFeatureState,
-  action?: {
-    attackKind: "weapon" | "unarmed";
-  }
+  action: WeaponAttackConsumptionContext
 ): Character {
   const extraAttacksRemaining = bardState.extraAttacksRemainingThisTurn ?? 0;
   const actionAvailable = isRoundTrackerResourceAvailable(character.roundTracker, "action");
   const canUseBattleMagicBonusAttack =
-    action?.attackKind === "weapon" &&
+    action.attackKind === "weapon" &&
     bardState.battleMagicBonusAttackAvailable === true &&
     isRoundTrackerResourceAvailable(character.roundTracker, "bonusAction");
+
+  if (action.economyType === ECONOMY_TYPE.BONUS_ACTION) {
+    if (!canUseBattleMagicBonusAttack) {
+      return character;
+    }
+
+    return {
+      ...character,
+      roundTracker: consumeRoundTrackerResource(character.roundTracker, "bonusAction"),
+      classFeatureState: {
+        ...character.classFeatureState,
+        bard: {
+          ...bardState,
+          battleMagicBonusAttackAvailable: false
+        }
+      }
+    };
+  }
 
   if (actionAvailable) {
     return {
@@ -262,21 +276,7 @@ export function consumeBardCollegeOfValorWeaponAttack(
   }
 
   if (extraAttacksRemaining <= 0) {
-    if (!canUseBattleMagicBonusAttack) {
-      return character;
-    }
-
-    return {
-      ...character,
-      roundTracker: consumeRoundTrackerResource(character.roundTracker, "bonusAction"),
-      classFeatureState: {
-        ...character.classFeatureState,
-        bard: {
-          ...bardState,
-          battleMagicBonusAttackAvailable: false
-        }
-      }
-    };
+    return character;
   }
 
   return {

@@ -9,6 +9,7 @@ type ActionShapeProps = {
   shape: ActionShapeType;
   isSelected: boolean;
   multiCount?: number;
+  showMultiCountLabel?: boolean;
   onSelect?: () => void;
   className?: string;
   shapeClassName?: string;
@@ -22,6 +23,7 @@ function ActionShape({
   shape,
   isSelected,
   multiCount = 0,
+  showMultiCountLabel = true,
   onSelect,
   className,
   shapeClassName,
@@ -112,7 +114,7 @@ function ActionShape({
       role={ariaLabel ? "img" : undefined}
     >
       {shapeNode}
-      {showMulti && resolvedMultiCount >= 2 ? (
+      {showMulti && showMultiCountLabel && resolvedMultiCount >= 2 ? (
         <span className={styles.multiCountLabel}>{`${resolvedMultiCount}`}</span>
       ) : null}
     </span>

@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import type { ReactNode } from "react";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -16,17 +17,22 @@ import styles from "./ResourceManagementModal.module.css";
 const RESOURCE_MANAGEMENT_DESCRIPTION =
   "Here you can manually adjust your resources outside of the app internal logic.";
 
+export type ResourceManagementModalAction = {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  ariaLabel?: string;
+};
+
 type ResourceManagementModalProps = {
   titleId: string;
   title: string;
   closeLabel: string;
   onClose: () => void;
-  onUseOne: () => void;
-  onResetOne: () => void;
-  onResetAll: () => void;
-  useOneDisabled?: boolean;
-  resetOneDisabled?: boolean;
-  resetAllDisabled?: boolean;
+  actions: ResourceManagementModalAction[];
+  eyebrow?: string;
+  description?: string;
+  titleAccessory?: ReactNode;
 };
 
 function ResourceManagementModal({
@@ -34,58 +40,47 @@ function ResourceManagementModal({
   title,
   closeLabel,
   onClose,
-  onUseOne,
-  onResetOne,
-  onResetAll,
-  useOneDisabled = false,
-  resetOneDisabled = false,
-  resetAllDisabled = false
+  actions,
+  eyebrow = "RESOURCE MANAGEMENT",
+  description = RESOURCE_MANAGEMENT_DESCRIPTION,
+  titleAccessory
 }: ResourceManagementModalProps) {
   return (
     <SheetModal titleId={titleId} onClose={onClose}>
       <OverlayHeader>
         <OverlayHeaderContent>
-          <OverlayEyebrow>RESOURCE MANAGEMENT</OverlayEyebrow>
-          <OverlayTitleRow>
+          <OverlayEyebrow>{eyebrow}</OverlayEyebrow>
+          <OverlayTitleRow className={styles.titleRow}>
             <OverlayTitle id={titleId}>{title}</OverlayTitle>
+            {titleAccessory ? (
+              <span className={styles.titleAccessory}>{titleAccessory}</span>
+            ) : null}
           </OverlayTitleRow>
         </OverlayHeaderContent>
         <OverlayCloseButton label={closeLabel} onClick={onClose} />
       </OverlayHeader>
 
       <OverlayBody className={styles.body}>
-        <p className={styles.description}>{RESOURCE_MANAGEMENT_DESCRIPTION}</p>
+        <p className={styles.description}>{description}</p>
       </OverlayBody>
 
       <OverlayFooter className={styles.footer}>
-        <div className={styles.footerActions}>
-          <button
-            type="button"
-            className={clsx(sheetStyles.castButton, styles.footerButton)}
-            onClick={onUseOne}
-            disabled={useOneDisabled}
-            aria-label={`Use 1 ${title}`}
-          >
-            Use 1
-          </button>
-          <button
-            type="button"
-            className={clsx(sheetStyles.castButton, styles.footerButton)}
-            onClick={onResetOne}
-            disabled={resetOneDisabled}
-            aria-label={`Reset 1 ${title}`}
-          >
-            Reset 1
-          </button>
-          <button
-            type="button"
-            className={clsx(sheetStyles.castButton, styles.footerButton)}
-            onClick={onResetAll}
-            disabled={resetAllDisabled}
-            aria-label={`Reset all ${title}`}
-          >
-            Reset All
-          </button>
+        <div
+          className={styles.footerActions}
+          style={{ gridTemplateColumns: `repeat(${Math.max(1, actions.length)}, minmax(0, 1fr))` }}
+        >
+          {actions.map((action) => (
+            <button
+              key={action.label}
+              type="button"
+              className={clsx(sheetStyles.castButton, styles.footerButton)}
+              onClick={action.onClick}
+              disabled={action.disabled}
+              aria-label={action.ariaLabel ?? action.label}
+            >
+              {action.label}
+            </button>
+          ))}
         </div>
       </OverlayFooter>
     </SheetModal>

@@ -3,6 +3,11 @@ import type { Character, CharacterRageFeatureState, CharacterStatusEntry } from 
 import { CLASS_FEATURE, getReactionEntryById } from "../../../../../codex/entries";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { createSourcedDescriptionEntries } from "../../../actionModalDescriptions";
+import {
+  createChargesAndUsageHeaderTags,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type {
   DerivedFeatureStatusEntry,
@@ -132,7 +137,8 @@ export function getBarbarianPathOfTheBerserkerIntimidatingPresenceUsesRemaining(
 export function getBarbarianPathOfTheBerserkerFeatureAction(
   character: BarbarianSubclassCharacter,
   rageState: CharacterRageFeatureState,
-  rageUsesRemaining: number
+  rageUsesRemaining: number,
+  rageUsesTotal: number
 ): FeatureActionCard | null {
   if (!hasBarbarianPathOfTheBerserkerIntimidatingPresence(character)) {
     return null;
@@ -154,10 +160,31 @@ export function getBarbarianPathOfTheBerserkerFeatureAction(
     breakdown: "Project fear nearby.",
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
+    cardUsage: createChargesOrResourceCardUsage(
+      usesRemaining,
+      intimidatingPresenceUsesTotal,
+      createFeatureActionCardCost({
+        amountText: "1",
+        icon: "flame"
+      })
+    ),
     usesRemaining,
     usesTotal: intimidatingPresenceUsesTotal,
     usesInlineLabel: isUsingRageCharges ? "Use 1" : undefined,
     usesInlineIcon: isUsingRageCharges ? "flame" : undefined,
+    headerTags: createChargesAndUsageHeaderTags(
+      usesRemaining,
+      intimidatingPresenceUsesTotal,
+      createFeatureActionCardCost({
+        amountText: "1",
+        icon: "flame"
+      }),
+      rageUsesRemaining,
+      rageUsesTotal,
+      {
+        icon: "flame"
+      }
+    ),
     disabled,
     disabledReason: disabled ? "No Intimidating Presence or Rage uses remaining." : undefined
   };

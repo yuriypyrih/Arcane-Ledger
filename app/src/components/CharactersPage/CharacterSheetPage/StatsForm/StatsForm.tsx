@@ -1,7 +1,6 @@
 import clsx from "clsx";
-import { ChevronsUp, Music, Pencil, Pentagon } from "lucide-react";
-import { useEffect, useState } from "react";
-import d20Icon from "../../../../assets/svg/d20.svg";
+import { ChevronsUp, Pencil, Pentagon } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { createSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
@@ -40,12 +39,7 @@ import {
   getSpeedForCharacter
 } from "../../../../pages/CharactersPage/speed";
 import {
-  applyArchdruidOnInitiativeForCharacter,
-  applyPerfectFocusOnInitiativeForCharacter,
-  applyPersistentRageOnInitiativeForCharacter,
-  applySuperiorInspirationOnInitiativeForCharacter,
   consumeFighterIndomitableUseForCharacter,
-  expendBardicInspirationUseForCharacter,
   getAbilityCheckIndicatorsForCharacter,
   getBarbarianPersistentRageUsesRemainingForCharacter,
   getBarbarianPersistentRageUsesTotalForCharacter,
@@ -62,6 +56,8 @@ import {
   getFighterPsiWarriorEnergyDiceRemainingForCharacter,
   getFighterPsiWarriorEnergyDieForCharacter,
   getMonkMartialArtsDieForCharacter,
+  getMonkUncannyMetabolismUsesRemainingForCharacter,
+  getMonkUncannyMetabolismUsesTotalForCharacter,
   getRogueSoulknifePsionicDiceRemainingForCharacter,
   getRogueSoulknifePsionicDiceTotalForCharacter,
   getRogueSoulknifePsionicDieForCharacter,
@@ -69,7 +65,6 @@ import {
   getRogueSneakAttackFormulaForCharacter,
   getSavingThrowBonusesForCharacter,
   hasActivePaladinAuraOfProtectionForCharacter,
-  hasPerfectFocusForCharacter,
   getSavingThrowIndicatorsForCharacter,
   type FeatureIndicator,
   type FeatureSavingThrowBonus
@@ -77,6 +72,11 @@ import {
 import { getFeatureDescriptionForCharacter } from "../../../../pages/CharactersPage/classFeatures/featureDescriptions";
 import { getBarbarianRageState } from "../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
 import { getInitiativeReferenceDescriptionAdditions } from "../../../../pages/CharactersPage/classFeatures/initiativeDescriptionSections";
+import {
+  consumeMonkDisciplinedSurvivor,
+  getMonkDisciplinedSurvivorOptionState
+} from "../../../../pages/CharactersPage/classFeatures/monk/monkDisciplinedSurvivor";
+import { getMonkAbilityDescriptionAdditions } from "../../../../pages/CharactersPage/classFeatures/monk/monkDescriptionSections";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
 import {
   getRollModeFromIndicators,
@@ -98,18 +98,21 @@ import {
   normalizeCustomAbilityScores
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { getProficiencyMultiplier } from "../../../../pages/CharactersPage/shared";
-import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import AbilityReferenceFooter from "./AbilityReferenceFooter";
 import AbilityScoresModal from "./AbilityScoresModal";
 import ArmorClassFormulaFooter from "./ArmorClassFormulaFooter";
-import DiceRollerSettingsButton from "../GameplayForm/widgets/DiceRollerSettingsButton";
-import FeatureOptInToggle from "../FeatureOptInToggle/FeatureOptInToggle";
+import InitiativeReferenceFooter from "./InitiativeReferenceFooter";
 import StatReferenceDrawer, {
   type ReferenceDetailCard,
   type ReferenceIndicatorSection,
   type SelectedStatReference
 } from "./StatReferenceDrawer";
 import { getArmorClassReferenceDetailCards } from "./armorClassReference";
+import {
+  applyInitiativeRollCharacterEffects,
+  createInitiativeRollRequest
+} from "./initiativeRoll";
 import styles from "./StatsForm.module.css";
 
 type CharacterStatsFormProps = {
@@ -141,6 +144,8 @@ type AbilitySavingThrowCard = {
   totalSavingThrow: string;
   showScoreBoostIcon?: boolean;
   scoreBoostIconLabel?: string;
+  showSavingThrowBoostIcon?: boolean;
+  savingThrowBoostIconLabel?: string;
   modifierIndicators: FeatureIndicator[];
   modifierRollState: ResolvedRollState | null;
   savingThrowIndicators: FeatureIndicator[];
@@ -357,6 +362,25 @@ function getLeadingEvasionDescriptionAdditions(character: Character): SpellDescr
     : [];
 }
 
+function getSpeedDescriptionAdditions(character: Character): SpellDescriptionEntry[][] {
+  const acrobaticMovementDescription = getFeatureDescriptionForCharacter(
+    character,
+    CLASS_FEATURE.ACROBATIC_MOVEMENT
+  );
+
+  return acrobaticMovementDescription.length > 0
+    ? [createSourcedDescriptionEntries("Acrobatic Movement", acrobaticMovementDescription)]
+    : [];
+}
+
+function getEvasionDescriptionAdditions(character: Character): SpellDescriptionEntry[][] {
+  const evasionDescription = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.EVASION);
+
+  return evasionDescription.length > 0
+    ? [createSourcedDescriptionEntries("Evasion", evasionDescription)]
+    : [];
+}
+
 function getAbilityDescriptionAdditions(
   character: Character,
   ability: AbilityKey
@@ -368,10 +392,12 @@ function getAbilityDescriptionAdditions(
   }
 
   if (ability === "DEX") {
+    descriptionAdditions.push(...getEvasionDescriptionAdditions(character));
     descriptionAdditions.push(...getLeadingEvasionDescriptionAdditions(character));
   }
 
   descriptionAdditions.push(...getFanaticalFocusDescriptionAdditions(character));
+  descriptionAdditions.push(...getMonkAbilityDescriptionAdditions(character, ability));
 
   return descriptionAdditions.length > 0 ? descriptionAdditions : undefined;
 }
@@ -452,11 +478,13 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   const [selectedStatReference, setSelectedStatReference] = useState<SelectedStatReference | null>(
     null
   );
-  const [usePerfectFocusOnInitiative, setUsePerfectFocusOnInitiative] = useState(true);
+  const [useUncannyMetabolismOnInitiative, setUseUncannyMetabolismOnInitiative] = useState(false);
   const [usePersistentRageOnInitiative, setUsePersistentRageOnInitiative] = useState(false);
   const [useTandemFootworkOnInitiative, setUseTandemFootworkOnInitiative] = useState(false);
   const [isDiceRollerSettingsOpen, setIsDiceRollerSettingsOpen] = useState(false);
   const [isIndomitableSaveSelected, setIsIndomitableSaveSelected] = useState(false);
+  const [isDisciplinedSurvivorSaveSelected, setIsDisciplinedSurvivorSaveSelected] =
+    useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   useBodyScrollLock(
@@ -496,11 +524,15 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   }, [character, isAbilityModalOpen, isDiceRollerSettingsOpen, selectedStatReference]);
 
   const mainAbility = getMainAbilityForClass(character.className);
-  const hasPerfectFocus = hasPerfectFocusForCharacter(character);
   const persistentRageUsesTotal = getBarbarianPersistentRageUsesTotalForCharacter(character);
   const persistentRageUsesRemaining =
     getBarbarianPersistentRageUsesRemainingForCharacter(character);
   const hasPersistentRage = persistentRageUsesTotal > 0;
+  const uncannyMetabolismUsesTotal =
+    getMonkUncannyMetabolismUsesTotalForCharacter(character);
+  const uncannyMetabolismUsesRemaining =
+    getMonkUncannyMetabolismUsesRemainingForCharacter(character);
+  const hasUncannyMetabolism = uncannyMetabolismUsesTotal > 0;
   const hasIndomitableMight =
     character.className === "Barbarian" &&
     getFeatureDescriptionForCharacter(character, CLASS_FEATURE.INDOMITABLE_MIGHT).length > 0;
@@ -512,6 +544,9 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
     character.className === "Bard" &&
     character.subclassId === "bard-college-of-dance" &&
     character.level >= 14;
+  const hasAcrobaticMovement =
+    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.ACROBATIC_MOVEMENT).length > 0;
+  const hasEvasion = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.EVASION).length > 0;
   const hasTandemFootwork =
     character.className === "Bard" &&
     character.subclassId === "bard-college-of-dance" &&
@@ -636,6 +671,9 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
             : isBarbarianRaging
               ? "Fanatical Focus active"
               : undefined,
+      showSavingThrowBoostIcon: ability === "DEX" && hasEvasion,
+      savingThrowBoostIconLabel:
+        ability === "DEX" && hasEvasion ? "Evasion active" : undefined,
       modifierIndicators,
       modifierRollState,
       savingThrowIndicators: saveIndicators,
@@ -657,7 +695,8 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
       key: String(field.key),
       label: field.label,
       value: displayedCoreStats[field.key],
-      showBoostIcon: field.label === "Speed" && hasModifiedSpecialMovement,
+      showBoostIcon:
+        field.label === "Speed" && (hasModifiedSpecialMovement || hasAcrobaticMovement),
       indicators: coreStatIndicators[field.key],
       summaryText: getKeywordDescription(field.label) ?? undefined,
       detailCards:
@@ -884,11 +923,24 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   const indomitableSaveBonus = Math.max(1, Math.floor(character.level));
   const canUseIndomitableOnSelectedSave =
     selectedAbilityReferenceKey !== null && fighterIndomitableUsesTotal > 0;
-  const indomitableSaveToggleDisabled = fighterIndomitableUsesRemaining <= 0;
+  const disciplinedSurvivorSaveState = useMemo(
+    () =>
+      selectedAbilityReferenceKey !== null
+        ? getMonkDisciplinedSurvivorOptionState(character)
+        : null,
+    [character, selectedAbilityReferenceKey]
+  );
 
   useEffect(() => {
     setIsIndomitableSaveSelected(false);
+    setIsDisciplinedSurvivorSaveSelected(false);
   }, [resolvedSelectedStatReference?.keyword]);
+
+  useEffect(() => {
+    if (!disciplinedSurvivorSaveState || disciplinedSurvivorSaveState.disabled) {
+      setIsDisciplinedSurvivorSaveSelected(false);
+    }
+  }, [disciplinedSurvivorSaveState]);
 
   function syncAbilityDraftFromCharacter() {
     setAbilitiesDraft(createAbilitiesDraft(character));
@@ -940,6 +992,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   function closeSelectedStatReference() {
     setIsDiceRollerSettingsOpen(false);
     setIsIndomitableSaveSelected(false);
+    setIsDisciplinedSurvivorSaveSelected(false);
     setSelectedStatReference(null);
   }
 
@@ -972,23 +1025,57 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
       canUseIndomitableOnSelectedSave &&
       isIndomitableSaveSelected &&
       fighterIndomitableUsesRemaining > 0;
+    const usesDisciplinedSurvivor =
+      isDisciplinedSurvivorSaveSelected &&
+      disciplinedSurvivorSaveState !== null &&
+      !disciplinedSurvivorSaveState.disabled;
     const totalModifier = saveRoll.modifier + (usesIndomitable ? indomitableSaveBonus : 0);
     const rollFormula = formatD20Formula(totalModifier);
-    const title = usesIndomitable ? `${saveRoll.title} (Indomitable)` : saveRoll.title;
-    const description = usesIndomitable
-      ? `${saveRoll.description}. Indomitable adds +${indomitableSaveBonus} Fighter Level.`
-      : saveRoll.description;
+    const titleSuffixes = [
+      ...(usesIndomitable ? ["Indomitable"] : []),
+      ...(usesDisciplinedSurvivor ? ["Discipline Survivor"] : [])
+    ];
+    const title =
+      titleSuffixes.length > 0 ? `${saveRoll.title} (${titleSuffixes.join(", ")})` : saveRoll.title;
+    const descriptionParts = [
+      saveRoll.description,
+      ...(usesIndomitable ? [`Indomitable adds +${indomitableSaveBonus} Fighter Level.`] : []),
+      ...(usesDisciplinedSurvivor
+        ? [
+            "Discipline Survivor expends 1 Focus Point to reroll this saving throw; you must use the new roll."
+          ]
+        : [])
+    ];
+
+    if (usesIndomitable || usesDisciplinedSurvivor) {
+      onPersistCharacter((currentCharacter) => {
+        let nextCharacter = currentCharacter;
+
+        if (usesIndomitable) {
+          nextCharacter = consumeFighterIndomitableUseForCharacter(nextCharacter);
+        }
+
+        if (usesDisciplinedSurvivor) {
+          nextCharacter = consumeMonkDisciplinedSurvivor(nextCharacter);
+        }
+
+        return nextCharacter;
+      });
+    }
 
     if (usesIndomitable) {
-      onPersistCharacter((currentCharacter) => consumeFighterIndomitableUseForCharacter(currentCharacter));
       setIsIndomitableSaveSelected(false);
+    }
+
+    if (usesDisciplinedSurvivor) {
+      setIsDisciplinedSurvivorSaveSelected(false);
     }
 
     openDiceRoller({
       title,
       formula: rollFormula,
       formulaDisplay: rollFormula,
-      description,
+      description: descriptionParts.join(" "),
       mode: getRollModeFromIndicators(saveRoll.indicators)
     });
   }
@@ -1000,12 +1087,12 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   }
 
   function openCoreStatReference(card: CoreStatCard) {
-    if (card.label === "Initiative" && hasPerfectFocus) {
-      setUsePerfectFocusOnInitiative(true);
-    }
-
     if (card.label === "Initiative" && hasPersistentRage) {
       setUsePersistentRageOnInitiative(false);
+    }
+
+    if (card.label === "Initiative" && hasUncannyMetabolism) {
+      setUseUncannyMetabolismOnInitiative(false);
     }
 
     if (card.label === "Initiative" && hasTandemFootwork) {
@@ -1020,6 +1107,11 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
             const additions = getInitiativeDescriptionAdditions(character);
             return additions.length > 0 ? additions : undefined;
           })()
+        : card.label === "Speed"
+          ? (() => {
+              const additions = getSpeedDescriptionAdditions(character);
+              return additions.length > 0 ? additions : undefined;
+            })()
         : undefined;
 
     setSelectedStatReference({
@@ -1128,46 +1220,33 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   }
 
   function rollInitiative() {
-    const initiativeFormula = formatInitiativeFormula(
-      initiativeBreakdown.total,
-      initiativeBreakdown.entries
-    );
-    const tandemFootworkFormula =
-      useTandemFootworkOnInitiative && bardicInspirationDie
-        ? `1${String(bardicInspirationDie).toLowerCase()}`
-        : null;
-    const rollFormula = tandemFootworkFormula
-      ? `${formatD20Formula(initiativeBreakdown.total)} + ${tandemFootworkFormula}`
-      : formatD20Formula(initiativeBreakdown.total);
-    const rollDescription = tandemFootworkFormula
-      ? `${initiativeFormula}. Tandem Footwork adds ${tandemFootworkFormula}.`
-      : initiativeFormula;
-
     onPersistCharacter((currentCharacter) => {
-      let nextCharacter = applySuperiorInspirationOnInitiativeForCharacter(currentCharacter);
-      nextCharacter = applyArchdruidOnInitiativeForCharacter(nextCharacter);
-
-      if (usePerfectFocusOnInitiative) {
-        nextCharacter = applyPerfectFocusOnInitiativeForCharacter(nextCharacter);
-      }
-
-      if (usePersistentRageOnInitiative) {
-        nextCharacter = applyPersistentRageOnInitiativeForCharacter(nextCharacter);
-      }
-
-      if (useTandemFootworkOnInitiative && tandemFootworkAvailable) {
-        nextCharacter = expendBardicInspirationUseForCharacter(nextCharacter);
-      }
-
-      return nextCharacter;
+      return applyInitiativeRollCharacterEffects(currentCharacter, {
+        usePersistentRageOnInitiative,
+        useTandemFootworkOnInitiative,
+        useUncannyMetabolismOnInitiative,
+        tandemFootworkAvailable
+      });
     });
-    openDiceRoller({
-      title: "Initiative",
-      formula: rollFormula,
-      formulaDisplay: rollFormula,
-      description: rollDescription,
-      mode: getRollModeFromIndicators(selectedStatReference?.rollIndicators)
-    });
+
+    openDiceRoller(
+      createInitiativeRollRequest({
+        initiativeBreakdown,
+        bardicInspirationDie,
+        monkMartialArtsDie,
+        usePersistentRageOnInitiative,
+        useTandemFootworkOnInitiative,
+        useUncannyMetabolismOnInitiative,
+        tandemFootworkAvailable,
+        characterLevel: character.level,
+        onPersistCharacter,
+        rollMode: getRollModeFromIndicators(selectedStatReference?.rollIndicators)
+      })
+    );
+
+    if (useUncannyMetabolismOnInitiative) {
+      setUseUncannyMetabolismOnInitiative(false);
+    }
   }
 
   function renderCoreStatsSection() {
@@ -1282,14 +1361,23 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
                   <span className={styles.combinedValueDivider} aria-hidden="true" />
                   <span className={clsx(styles.savingThrowValueGroup, styles.combinedValueColumn)}>
                     <span className={styles.combinedValueLabel}>SAVE</span>
-                    <strong
-                      className={clsx(
-                        getRollStateValueClassName(card.savingThrowRollState),
-                        card.isSavingThrowProficient && styles.savingThrowValueProficient
-                      )}
-                    >
-                      {card.totalSavingThrow}
-                    </strong>
+                    <span className={styles.savingThrowValueRow}>
+                      <strong
+                        className={clsx(
+                          getRollStateValueClassName(card.savingThrowRollState),
+                          card.isSavingThrowProficient && styles.savingThrowValueProficient
+                        )}
+                      >
+                        {card.totalSavingThrow}
+                      </strong>
+                      {card.showSavingThrowBoostIcon ? (
+                        <ChevronsUp
+                          size={16}
+                          className={styles.savingThrowBoostIcon}
+                          aria-label={card.savingThrowBoostIconLabel ?? "Saving throw feature boost active"}
+                        />
+                      ) : null}
+                    </span>
                   </span>
                 </div>
               </button>
@@ -1333,58 +1421,28 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
           reference={resolvedSelectedStatReference}
           footer={
             resolvedSelectedStatReference.rollActions ? (
-              <div className={styles.referenceFooterStack}>
-                {canUseIndomitableOnSelectedSave ? (
-                  <FeatureOptInToggle
-                    label="Indomitable Save Roll"
-                    checked={isIndomitableSaveSelected}
-                    disabled={indomitableSaveToggleDisabled}
-                    muted={indomitableSaveToggleDisabled}
-                    onCheckedChange={setIsIndomitableSaveSelected}
-                    title={
-                      indomitableSaveToggleDisabled ? "No Indomitable uses remaining." : undefined
-                    }
-                    metaItems={[
-                      {
-                        kind: "tracker",
-                        current: fighterIndomitableUsesRemaining,
-                        total: fighterIndomitableUsesTotal
-                      }
-                    ]}
-                  />
-                ) : null}
-                <div className={styles.referenceRollActions}>
-                  <button
-                    type="button"
-                    className={clsx(sheetStyles.castButton, styles.referenceRollButton)}
-                    onClick={() =>
-                      rollAbilityReference(
-                        resolvedSelectedStatReference.rollActions?.mod.title ?? "Ability Modifier",
-                        resolvedSelectedStatReference.rollActions?.mod.modifier ?? 0,
-                        resolvedSelectedStatReference.rollActions?.mod.description ?? "",
-                        resolvedSelectedStatReference.rollActions?.mod.indicators
-                      )
-                    }
-                  >
-                    <img src={d20Icon} alt="" className={styles.referenceRollIcon} />
-                    <span>Mod Roll</span>
-                  </button>
-                  <button
-                    type="button"
-                    className={clsx(sheetStyles.castButton, styles.referenceRollButton)}
-                    onClick={rollSavingThrowReference}
-                  >
-                    <img src={d20Icon} alt="" className={styles.referenceRollIcon} />
-                    <span>Save Roll</span>
-                  </button>
-                  <DiceRollerSettingsButton
-                    actionName={resolvedSelectedStatReference.rollActions.actionName}
-                    className={clsx(sheetStyles.castButton, styles.referenceRollSettingsButton)}
-                    isOpen={isDiceRollerSettingsOpen}
-                    onOpenChange={setIsDiceRollerSettingsOpen}
-                  />
-                </div>
-              </div>
+              <AbilityReferenceFooter
+                actionName={resolvedSelectedStatReference.rollActions.actionName}
+                canUseIndomitableOnSave={canUseIndomitableOnSelectedSave}
+                indomitableUsesRemaining={fighterIndomitableUsesRemaining}
+                indomitableUsesTotal={fighterIndomitableUsesTotal}
+                isIndomitableSaveSelected={isIndomitableSaveSelected}
+                onIndomitableSaveChange={setIsIndomitableSaveSelected}
+                disciplinedSurvivorState={disciplinedSurvivorSaveState}
+                isDisciplinedSurvivorSelected={isDisciplinedSurvivorSaveSelected}
+                onDisciplinedSurvivorChange={setIsDisciplinedSurvivorSaveSelected}
+                isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+                onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+                onRollMod={() =>
+                  rollAbilityReference(
+                    resolvedSelectedStatReference.rollActions?.mod.title ?? "Ability Modifier",
+                    resolvedSelectedStatReference.rollActions?.mod.modifier ?? 0,
+                    resolvedSelectedStatReference.rollActions?.mod.description ?? "",
+                    resolvedSelectedStatReference.rollActions?.mod.indicators
+                  )
+                }
+                onRollSave={rollSavingThrowReference}
+              />
             ) : resolvedSelectedStatReference.keyword === "Armor Class" &&
               armorClassResolution.formulas.length >= 2 ? (
               <ArmorClassFormulaFooter
@@ -1393,91 +1451,25 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
                 onFormulaChange={selectArmorClassFormula}
               />
             ) : resolvedSelectedStatReference.keyword === "Initiative" ? (
-              <div className={styles.initiativeActions}>
-                <div className={styles.initiativeActionsStart}>
-                  {hasPersistentRage ? (
-                    <label
-                      className={clsx(
-                        styles.initiativeCheckboxLabel,
-                        persistentRageUsesRemaining <= 0 && styles.initiativeCheckboxLabelDisabled
-                      )}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={usePersistentRageOnInitiative}
-                        disabled={persistentRageUsesRemaining <= 0}
-                        onChange={(event) => setUsePersistentRageOnInitiative(event.target.checked)}
-                      />
-                      <span>Persistent Rage</span>
-                      <span className={styles.initiativeUsageMeta}>
-                        <span className={styles.initiativeUsageText}>
-                          <span aria-hidden="true">|</span>
-                          <span>Charges</span>
-                        </span>
-                        <span className={sheetStyles.shortRestDots}>
-                          {Array.from({ length: persistentRageUsesTotal }, (_, index) => (
-                            <span
-                              key={`persistent-rage-charge-${index}`}
-                              className={clsx(
-                                sheetStyles.shortRestDot,
-                                index < persistentRageUsesRemaining &&
-                                  sheetStyles.shortRestDotActive
-                              )}
-                            />
-                          ))}
-                        </span>
-                      </span>
-                    </label>
-                  ) : null}
-                  {hasPerfectFocus ? (
-                    <label className={styles.initiativeCheckboxLabel}>
-                      <input
-                        type="checkbox"
-                        checked={usePerfectFocusOnInitiative}
-                        onChange={(event) => setUsePerfectFocusOnInitiative(event.target.checked)}
-                      />
-                      <span>Perfect Focus</span>
-                    </label>
-                  ) : null}
-                  {hasTandemFootwork ? (
-                    <label
-                      className={clsx(
-                        styles.initiativeCheckboxLabel,
-                        !tandemFootworkAvailable && styles.initiativeCheckboxLabelDisabled
-                      )}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={useTandemFootworkOnInitiative}
-                        disabled={!tandemFootworkAvailable}
-                        onChange={(event) => setUseTandemFootworkOnInitiative(event.target.checked)}
-                      />
-                      <span>Tandem Footwork</span>
-                      <span className={styles.initiativeUsageMeta}>
-                        <span aria-hidden="true">|</span>
-                        <span>Use 1</span>
-                        <Music size={14} strokeWidth={2.1} aria-hidden="true" />
-                      </span>
-                    </label>
-                  ) : null}
-                </div>
-                <div className={styles.initiativeActionButtons}>
-                  <button
-                    type="button"
-                    className={clsx(sheetStyles.castButton, styles.initiativeRollButton)}
-                    onClick={rollInitiative}
-                  >
-                    <img src={d20Icon} alt="" className={styles.initiativeRollIcon} />
-                    <span>Roll Initiative</span>
-                  </button>
-                  <DiceRollerSettingsButton
-                    actionName="Initiative"
-                    className={clsx(sheetStyles.castButton, styles.initiativeSettingsButton)}
-                    isOpen={isDiceRollerSettingsOpen}
-                    onOpenChange={setIsDiceRollerSettingsOpen}
-                  />
-                </div>
-              </div>
+              <InitiativeReferenceFooter
+                hasUncannyMetabolism={hasUncannyMetabolism}
+                uncannyMetabolismUsesRemaining={uncannyMetabolismUsesRemaining}
+                uncannyMetabolismUsesTotal={uncannyMetabolismUsesTotal}
+                useUncannyMetabolismOnInitiative={useUncannyMetabolismOnInitiative}
+                onUseUncannyMetabolismChange={setUseUncannyMetabolismOnInitiative}
+                hasPersistentRage={hasPersistentRage}
+                persistentRageUsesRemaining={persistentRageUsesRemaining}
+                persistentRageUsesTotal={persistentRageUsesTotal}
+                usePersistentRageOnInitiative={usePersistentRageOnInitiative}
+                onUsePersistentRageChange={setUsePersistentRageOnInitiative}
+                hasTandemFootwork={hasTandemFootwork}
+                tandemFootworkAvailable={tandemFootworkAvailable}
+                useTandemFootworkOnInitiative={useTandemFootworkOnInitiative}
+                onUseTandemFootworkChange={setUseTandemFootworkOnInitiative}
+                isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+                onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+                onRollInitiative={rollInitiative}
+              />
             ) : null
           }
           onClose={closeSelectedStatReference}

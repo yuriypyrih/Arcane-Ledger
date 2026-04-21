@@ -239,17 +239,13 @@ export function getRoundTrackerResourceMeta(
 ): {
   title: string;
   description: string;
-  useLabel: string;
-  resetLabel: string;
 } {
   if (resource === "action") {
     return {
       title: "Action",
       description: isAvailable
         ? "Your main action is ready for this round. Weapon attacks and most spells will spend it automatically."
-        : "Your main action has already been spent this round. Reset it here if you need to correct the tracker manually.",
-      useLabel: "Use Action",
-      resetLabel: "Reset Action"
+        : "Your main action has already been spent this round. Reset it here if you need to correct the tracker manually."
     };
   }
 
@@ -258,9 +254,7 @@ export function getRoundTrackerResourceMeta(
       title: "Reaction",
       description: isAvailable
         ? "Your reaction is ready for this round. Reaction spells and similar responses will spend it automatically."
-        : "Your reaction has already been spent this round. Reset it here if you need to correct the tracker manually.",
-      useLabel: "Use Reaction",
-      resetLabel: "Reset Reaction"
+        : "Your reaction has already been spent this round. Reset it here if you need to correct the tracker manually."
     };
   }
 
@@ -268,8 +262,6 @@ export function getRoundTrackerResourceMeta(
     title: "Bonus Action",
     description: isAvailable
       ? "Your bonus action is ready for this round. Bonus-action spells and similar abilities will spend it automatically."
-      : "Your bonus action has already been spent this round. Reset it here if you need to correct the tracker manually.",
-    useLabel: "Use Bonus Action",
-    resetLabel: "Reset Bonus Action"
+      : "Your bonus action has already been spent this round. Reset it here if you need to correct the tracker manually."
   };
 }

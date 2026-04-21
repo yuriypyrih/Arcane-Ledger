@@ -26,6 +26,8 @@ import {
 import { fighterPsiWarriorBulwarkOfForceStatusSourceId } from "../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterPsiWarriorShared";
 import { isRogueArcaneTricksterSpellThiefStatusSourceId } from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 
+const monkSuperiorDefenseStatusSourceId = "feature-monk-superior-defense";
+
 export type TraitEditorTab =
   | "conditions"
   | "senses"
@@ -179,6 +181,15 @@ export function isStatusEntryRemovable(entry: CharacterStatusEntry): boolean {
     entry.sourceId === fighterPsiWarriorBulwarkOfForceStatusSourceId;
 
   if (isBulwarkOfForceEffect) {
+    return true;
+  }
+
+  const isSuperiorDefenseEffect =
+    entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE &&
+    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+    entry.sourceId === monkSuperiorDefenseStatusSourceId;
+
+  if (isSuperiorDefenseEffect) {
     return true;
   }
 

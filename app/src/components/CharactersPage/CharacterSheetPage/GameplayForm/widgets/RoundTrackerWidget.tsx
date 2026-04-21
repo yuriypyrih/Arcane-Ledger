@@ -1,10 +1,8 @@
-import { X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useState } from "react";
+import ActionShape from "../../../../ActionShape";
+import ResourceManagementModal from "../../ResourceManagementModal";
 import type { Character, CharacterStatusEntry } from "../../../../../types";
-import {
-  STATUS_DURATION_ROUND_TICK,
-  STATUS_ENTRY_SOURCE_TYPE
-} from "../../../../../types";
+import { STATUS_DURATION_ROUND_TICK, STATUS_ENTRY_SOURCE_TYPE } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
   finishRoundTrackerTurn,
@@ -12,23 +10,14 @@ import {
   setRoundTrackerResourceAvailability,
   type RoundTrackerResource
 } from "../../../../../pages/CharactersPage/combat";
-import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
 import { removeFeatureStatusEntryForCharacter } from "../../../../../pages/CharactersPage/classFeatures";
 import {
   advanceCharacterStatusEntries,
   normalizeCharacterStatusEntries
 } from "../../../../../pages/CharactersPage/traits";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
-import {
-  getRoundTrackerResourceMeta
-} from "../gameplayWidgetUtils";
+import { getRoundTrackerResourceMeta } from "../gameplayWidgetUtils";
 import RoundTrackerControl from "./RoundTrackerControl";
-import styles from "./RoundTrackerWidget.module.css";
-import {
-  consumeRoundTrackerResourceForCharacter,
-  startCharacterTurn
-} from "../gameplayStateUtils";
+import { consumeRoundTrackerResourceForCharacter, startCharacterTurn } from "../gameplayStateUtils";
 
 type RoundTrackerWidgetProps = {
   character: Character;
@@ -55,37 +44,18 @@ function getExpiredFeatureOverrideEntries(
 function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidgetProps) {
   const [selectedResource, setSelectedResource] = useState<RoundTrackerResource | null>(null);
   const roundTracker = normalizeRoundTracker(character.roundTracker);
-  const selectedMeta = useMemo(
-    () =>
-      selectedResource
-        ? getRoundTrackerResourceMeta(
-            selectedResource,
-            selectedResource === "action"
-              ? roundTracker.actionAvailable
-              : selectedResource === "bonusAction"
-                ? roundTracker.bonusActionAvailable
-                : roundTracker.reactionAvailable
-          )
-        : null,
-    [roundTracker.actionAvailable, roundTracker.bonusActionAvailable, roundTracker.reactionAvailable, selectedResource]
-  );
-
-  useBodyScrollLock(selectedResource !== null);
-
-  useEffect(() => {
-    if (selectedResource === null) {
-      return;
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        setSelectedResource(null);
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [selectedResource]);
+  const isSelectedResourceAvailable =
+    selectedResource === "action"
+      ? roundTracker.actionAvailable
+      : selectedResource === "bonusAction"
+        ? roundTracker.bonusActionAvailable
+        : selectedResource === "reaction"
+          ? roundTracker.reactionAvailable
+          : null;
+  const selectedMeta =
+    selectedResource && isSelectedResourceAvailable !== null
+      ? getRoundTrackerResourceMeta(selectedResource, isSelectedResourceAvailable)
+      : null;
 
   function startTurn() {
     onPersistCharacter((currentCharacter) => startCharacterTurn(currentCharacter));
@@ -135,7 +105,11 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
   function resetResource(resource: RoundTrackerResource) {
     onPersistCharacter((currentCharacter) => ({
       ...currentCharacter,
-      roundTracker: setRoundTrackerResourceAvailability(currentCharacter.roundTracker, resource, true)
+      roundTracker: setRoundTrackerResourceAvailability(
+        currentCharacter.roundTracker,
+        resource,
+        true
+      )
     }));
   }
 
@@ -148,57 +122,35 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
         onFinishRound={finishRound}
       />
 
-      {selectedResource && selectedMeta ? (
-        <div
-          className={sheetStyles.spellDrawerBackdrop}
-          role="presentation"
-          onClick={() => setSelectedResource(null)}
-        >
-          <section
-            className={sheetStyles.spellDrawer}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="round-tracker-drawer-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className={sheetStyles.spellDrawerHeader}>
-              <div className={sheetStyles.spellDrawerHeaderContent}>
-                <p className={sheetStyles.spellDrawerBadge}>Round Tracker</p>
-                <div className={sheetStyles.spellDrawerTitleRow}>
-                  <h3 id="round-tracker-drawer-title" className={sheetStyles.spellDrawerTitle}>
-                    {selectedMeta.title}
-                  </h3>
-                </div>
-                <p className={sheetStyles.spellDrawerSummary}>{selectedMeta.description}</p>
-              </div>
-              <button
-                type="button"
-                className={sheetStyles.spellDrawerCloseButton}
-                onClick={() => setSelectedResource(null)}
-                aria-label="Close round tracker details"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div className={styles.drawerActions}>
-              <button
-                type="button"
-                className={shared.saveButton}
-                onClick={() => consumeResource(selectedResource)}
-              >
-                {selectedMeta.useLabel}
-              </button>
-              <button
-                type="button"
-                className={shared.cancelButton}
-                onClick={() => resetResource(selectedResource)}
-              >
-                {selectedMeta.resetLabel}
-              </button>
-            </div>
-          </section>
-        </div>
+      {selectedResource && selectedMeta && isSelectedResourceAvailable !== null ? (
+        <ResourceManagementModal
+          titleId={`round-tracker-${selectedResource}-title`}
+          title={selectedMeta.title}
+          closeLabel={`Close ${selectedMeta.title.toLowerCase()} resource management`}
+          onClose={() => setSelectedResource(null)}
+          titleAccessory={
+            <ActionShape
+              shape={selectedResource}
+              isSelected={isSelectedResourceAvailable}
+              size="small"
+              aria-label={`${selectedMeta.title} action badge`}
+            />
+          }
+          actions={[
+            {
+              label: "Use",
+              onClick: () => consumeResource(selectedResource),
+              disabled: !isSelectedResourceAvailable,
+              ariaLabel: `Use ${selectedMeta.title.toLowerCase()}`
+            },
+            {
+              label: "Reset",
+              onClick: () => resetResource(selectedResource),
+              disabled: isSelectedResourceAvailable,
+              ariaLabel: `Reset ${selectedMeta.title.toLowerCase()}`
+            }
+          ]}
+        />
       ) : null}
     </>
   );

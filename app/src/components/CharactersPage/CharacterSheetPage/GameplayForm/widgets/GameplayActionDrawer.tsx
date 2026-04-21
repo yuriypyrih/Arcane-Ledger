@@ -1,4 +1,3 @@
-import { Brain, Flame, Hexagon, Music, PawPrint, Pentagon, Sparkles, Wind } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type {
   DivinityEntry,
@@ -26,13 +25,10 @@ import {
 } from "../../../../Overlay";
 import type {
   FeatureActionFact,
-  FeatureActionIcon,
-  FeatureActionResource
+  FeatureActionHeaderTag
 } from "../../../../../pages/CharactersPage/classFeatures";
 import type { ResolvedKeywordReference } from "../../../../../utils/codex/renderCodexRichText";
-import animaIcon from "../../../../../assets/svg/anima.svg";
-import pyromancyIcon from "../../../../../assets/svg/pyromancy.svg";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import FeatureActionHeaderTags from "./FeatureActionHeaderTags";
 import styles from "./GameplayActionDrawer.module.css";
 
 type GameplayActionDrawerProps = {
@@ -43,7 +39,8 @@ type GameplayActionDrawerProps = {
   description: SpellDescriptionEntry[];
   descriptionAdditions?: SpellDescriptionEntry[][];
   facts?: FeatureActionFact[];
-  resources?: FeatureActionResource[];
+  factsSectionTitle?: string | null;
+  headerTags?: FeatureActionHeaderTag[];
   helperText?: string;
   warning?: string | null;
   blockedReason?: string | null;
@@ -53,50 +50,6 @@ type GameplayActionDrawerProps = {
   backdropClassName?: string;
   drawerClassName?: string;
 };
-
-function renderUsesIcon(icon?: FeatureActionIcon) {
-  if (icon === "anima") {
-    return <img src={animaIcon} alt="" className={styles.resourceAssetIcon} />;
-  }
-
-  if (icon === "brain") {
-    return <Brain size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "sparkles") {
-    return <Sparkles size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "music") {
-    return <Music size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "flame") {
-    return <Flame size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "superiority") {
-    return <Pentagon size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "wind") {
-    return <Wind size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "paw") {
-    return <PawPrint size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "psi") {
-    return <Hexagon size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "pyromancy") {
-    return <img src={pyromancyIcon} alt="" className={styles.resourceAssetIcon} />;
-  }
-
-  return null;
-}
 
 function getToneClassName(tone: FeatureActionFact["tone"], classes: Record<string, string>) {
   if (tone === "danger") {
@@ -110,67 +63,6 @@ function getToneClassName(tone: FeatureActionFact["tone"], classes: Record<strin
   return "";
 }
 
-function renderHeaderResource(resource: FeatureActionResource, key: string) {
-  if (resource.kind === "tracker" && resource.icon) {
-    return (
-      <span key={key} className={styles.resourceBadge}>
-        <span className={styles.resourceBadgeLabel}>{resource.label}</span>
-        <span className={styles.resourceBadgeValue}>
-          <span>{resource.cost ?? resource.current}</span>
-          {renderUsesIcon(resource.icon)}
-          <span>{resource.connectorText ?? "out of"}</span>
-          <span>{`${resource.current}/${resource.total}`}</span>
-          {renderUsesIcon(resource.icon)}
-        </span>
-      </span>
-    );
-  }
-
-  if (resource.kind === "tracker") {
-    return (
-      <span key={key} className={styles.resourceBadge}>
-        Charges
-        <span className={sheetStyles.shortRestDots}>
-          {Array.from({ length: resource.total }, (_, dotIndex) => (
-            <span
-              key={`${key}-dot-${dotIndex}`}
-              className={[
-                sheetStyles.shortRestDot,
-                dotIndex < resource.current ? sheetStyles.shortRestDotActive : ""
-              ]
-                .filter(Boolean)
-                .join(" ")}
-            />
-          ))}
-        </span>
-        {resource.supplementary ? (
-          <span className={styles.resourceBadgeSupplementary}>{resource.supplementary}</span>
-        ) : null}
-      </span>
-    );
-  }
-
-  return (
-    <span key={key} className={styles.resourceBadge}>
-      <span className={styles.resourceBadgeLabel}>{resource.label}</span>
-      <span
-        className={[
-          styles.resourceBadgeValue,
-          getToneClassName(resource.tone, {
-            danger: styles.resourceBadgeValueDanger,
-            accent: styles.resourceBadgeValueAccent
-          })
-        ]
-          .filter(Boolean)
-          .join(" ")}
-      >
-        <span>{resource.value}</span>
-        {renderUsesIcon(resource.icon)}
-      </span>
-    </span>
-  );
-}
-
 function GameplayActionDrawer({
   title,
   eyebrow,
@@ -179,7 +71,8 @@ function GameplayActionDrawer({
   description,
   descriptionAdditions = [],
   facts = [],
-  resources = [],
+  factsSectionTitle = "Details",
+  headerTags = [],
   helperText,
   warning = null,
   blockedReason = null,
@@ -242,11 +135,9 @@ function GameplayActionDrawer({
               {helperText ? <OverlaySummary>{helperText}</OverlaySummary> : null}
             </OverlayHeaderContent>
             <div className={styles.headerAside}>
-              {resources.length > 0 ? (
+              {headerTags.length > 0 ? (
                 <div className={styles.resourceBadgeRow}>
-                  {resources.map((resource, index) =>
-                    renderHeaderResource(resource, `${title}-resource-${index}`)
-                  )}
+                  <FeatureActionHeaderTags tags={headerTags} tagKeyPrefix={title} />
                 </div>
               ) : null}
               {headerAside}
@@ -305,7 +196,7 @@ function GameplayActionDrawer({
 
             {facts.length > 0 ? (
               <section className={styles.section}>
-                <h4 className={styles.sectionTitle}>Details</h4>
+                {factsSectionTitle ? <h4 className={styles.sectionTitle}>{factsSectionTitle}</h4> : null}
                 <div className={styles.factGrid}>
                   {facts.map((fact, index) => (
                     <CellContainer

@@ -32,6 +32,11 @@ import {
   type PsionicDie
 } from "../../psionicDice";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import {
+  createChargesAndUsageHeaderTags,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../cardUsage";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type {
   DerivedFeatureStatusEntry,
@@ -1045,6 +1050,7 @@ function getFighterPsiWarriorTelekineticMovementAction(
   const usesTotal = getFighterPsiWarriorTelekineticMovementUsesTotal(character);
   const usesRemaining = getFighterPsiWarriorTelekineticMovementUsesRemaining(character);
   const psiEnergyDiceRemaining = getFighterPsiWarriorEnergyDiceRemaining(character);
+  const psiEnergyDiceTotal = getFighterPsiWarriorEnergyDiceTotal(character);
   const canUseFallback = usesRemaining <= 0 && psiEnergyDiceRemaining > 0;
   const disabledReason =
     usesRemaining > 0 || canUseFallback
@@ -1060,10 +1066,31 @@ function getFighterPsiWarriorTelekineticMovementAction(
     description: [...psiWarriorTelekineticMovementDescription],
     economyType: ECONOMY_TYPE.ACTION,
     actionCategory: ACTION_CATEGORY.MAGIC,
+    cardUsage: createChargesOrResourceCardUsage(
+      usesRemaining,
+      usesTotal,
+      createFeatureActionCardCost({
+        amountText: "1",
+        icon: "psi"
+      })
+    ),
     usesRemaining,
     usesTotal,
     usesInlineLabel: canUseFallback ? "| Use 1" : undefined,
     usesInlineIcon: canUseFallback ? "psi" : undefined,
+    headerTags: createChargesAndUsageHeaderTags(
+      usesRemaining,
+      usesTotal,
+      createFeatureActionCardCost({
+        amountText: "1",
+        icon: "psi"
+      }),
+      psiEnergyDiceRemaining,
+      psiEnergyDiceTotal,
+      {
+        icon: "psi"
+      }
+    ),
     resources: [
       {
         kind: "tracker",
@@ -1106,6 +1133,7 @@ function getFighterPsiWarriorPsiPoweredLeapAction(
   const usesTotal = getFighterPsiWarriorPsiPoweredLeapUsesTotal(character);
   const usesRemaining = getFighterPsiWarriorPsiPoweredLeapUsesRemaining(character);
   const psiEnergyDiceRemaining = getFighterPsiWarriorEnergyDiceRemaining(character);
+  const psiEnergyDiceTotal = getFighterPsiWarriorEnergyDiceTotal(character);
   const canUseFallback = usesRemaining <= 0 && psiEnergyDiceRemaining > 0;
   const disabledReason =
     usesRemaining > 0 || canUseFallback
@@ -1121,10 +1149,31 @@ function getFighterPsiWarriorPsiPoweredLeapAction(
     description: [...psiWarriorPsiPoweredLeapDescription],
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
+    cardUsage: createChargesOrResourceCardUsage(
+      usesRemaining,
+      usesTotal,
+      createFeatureActionCardCost({
+        amountText: "1",
+        icon: "psi"
+      })
+    ),
     usesRemaining,
     usesTotal,
     usesInlineLabel: canUseFallback ? "| Use 1" : undefined,
     usesInlineIcon: canUseFallback ? "psi" : undefined,
+    headerTags: createChargesAndUsageHeaderTags(
+      usesRemaining,
+      usesTotal,
+      createFeatureActionCardCost({
+        amountText: "1",
+        icon: "psi"
+      }),
+      psiEnergyDiceRemaining,
+      psiEnergyDiceTotal,
+      {
+        icon: "psi"
+      }
+    ),
     resources: [
       {
         kind: "tracker",
@@ -1167,6 +1216,7 @@ function getFighterPsiWarriorBulwarkOfForceAction(
   const usesTotal = getFighterPsiWarriorBulwarkOfForceUsesTotal(character);
   const usesRemaining = getFighterPsiWarriorBulwarkOfForceUsesRemaining(character);
   const psiEnergyDiceRemaining = getFighterPsiWarriorEnergyDiceRemaining(character);
+  const psiEnergyDiceTotal = getFighterPsiWarriorEnergyDiceTotal(character);
   const canUseFallback = usesRemaining <= 0 && psiEnergyDiceRemaining > 0;
   const disabledReason =
     usesRemaining > 0 || canUseFallback
@@ -1182,10 +1232,31 @@ function getFighterPsiWarriorBulwarkOfForceAction(
     description: [...psiWarriorBulwarkOfForceDescription],
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
+    cardUsage: createChargesOrResourceCardUsage(
+      usesRemaining,
+      usesTotal,
+      createFeatureActionCardCost({
+        amountText: "1",
+        icon: "psi"
+      })
+    ),
     usesRemaining,
     usesTotal,
     usesInlineLabel: canUseFallback ? "| Use 1" : undefined,
     usesInlineIcon: canUseFallback ? "psi" : undefined,
+    headerTags: createChargesAndUsageHeaderTags(
+      usesRemaining,
+      usesTotal,
+      createFeatureActionCardCost({
+        amountText: "1",
+        icon: "psi"
+      }),
+      psiEnergyDiceRemaining,
+      psiEnergyDiceTotal,
+      {
+        icon: "psi"
+      }
+    ),
     resources: [
       {
         kind: "tracker",

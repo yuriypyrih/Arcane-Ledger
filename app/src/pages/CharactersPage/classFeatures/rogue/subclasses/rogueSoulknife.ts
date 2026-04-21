@@ -42,6 +42,11 @@ import {
   createDefaultFeatureActionDescription,
   type SubclassRuntimeResolver
 } from "../../subclassRuntime";
+import {
+  createChargesAndUsageHeaderTags,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../cardUsage";
 import type { FeatureActionCard, FeatureEquipmentEntry } from "../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { formatWeaponDamage, formatWeaponDamageFormula } from "../../../../../utils/codex";
@@ -515,6 +520,7 @@ function getRogueSoulknifePsychicVeilAction(
   const usesTotal = getRogueSoulknifePsychicVeilUsesTotal(character);
   const usesRemaining = getRogueSoulknifePsychicVeilUsesRemaining(character);
   const psionicDiceRemaining = getRogueSoulknifePsionicDiceRemaining(character);
+  const psionicDiceTotal = getRogueSoulknifePsionicDiceTotal(character);
   const canUseFallback =
     usesRemaining <= 0 && psionicDiceRemaining >= rogueSoulknifePsionicFallbackCost;
   const disabledReason =
@@ -531,9 +537,33 @@ function getRogueSoulknifePsychicVeilAction(
     description: psychicVeilDescription,
     economyType: ECONOMY_TYPE.ACTION,
     actionCategory: ACTION_CATEGORY.MAGIC,
+    cardUsage: createChargesOrResourceCardUsage(
+      usesRemaining,
+      usesTotal,
+      createFeatureActionCardCost({
+        amountText: "1",
+        resourceLabel: "Psionic Die",
+        icon: "psi"
+      })
+    ),
     usesRemaining,
     usesTotal,
     usesInlineLabel: canUseFallback ? "| Use 1 Psionic Die" : undefined,
+    headerTags: createChargesAndUsageHeaderTags(
+      usesRemaining,
+      usesTotal,
+      createFeatureActionCardCost({
+        amountText: "1",
+        resourceLabel: "Psionic Die",
+        icon: "psi"
+      }),
+      psionicDiceRemaining,
+      psionicDiceTotal,
+      {
+        icon: "psi"
+      },
+      "Long Rest"
+    ),
     resources: [
       {
         kind: "tracker",
@@ -644,6 +674,7 @@ export function getRogueSoulknifeWeaponActions(character: RogueSoulknifeCharacte
       name: psychicBladeWeaponEntry.name,
       attackKind: "weapon",
       combatType: psychicBladeWeaponEntry.type.combat,
+      weaponTraining: psychicBladeWeaponEntry.type.training,
       properties: psychicBladeWeaponEntry.properties,
       damageLabel: formatWeaponDamage(psychicBladeWeaponEntry.damage),
       damageFormula,

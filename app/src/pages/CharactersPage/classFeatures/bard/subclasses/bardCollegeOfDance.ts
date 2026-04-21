@@ -1,8 +1,4 @@
-import {
-  CLASS_FEATURE,
-  REACTION,
-  type ReactionEntry
-} from "../../../../../codex/entries";
+import { CLASS_FEATURE, REACTION, type ReactionEntry } from "../../../../../codex/entries";
 import type { Character, CharacterBardFeatureState } from "../../../../../types";
 import { SKILL } from "../../../../../types";
 import {
@@ -14,7 +10,7 @@ import { getEquipmentByName } from "../../../proficiencyCodexData";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { createDefaultFeatureActionDescription } from "../../subclassRuntime";
-import type { FeatureActionCard } from "../../types";
+import type { FeatureActionCard, WeaponAttackConsumptionContext } from "../../types";
 import { getBardicInspirationDie } from "../bard";
 
 export const collegeOfDanceSubclassId = "bard-college-of-dance";
@@ -63,7 +59,10 @@ export function hasBardCollegeOfDanceInspiringMovementFeature(
 }
 
 function hasWornBodyArmor(
-  character: Pick<Parameters<SubclassRuntimeResolver>[0], "equipment" | "inventoryItems" | "customEquipment">
+  character: Pick<
+    Parameters<SubclassRuntimeResolver>[0],
+    "equipment" | "inventoryItems" | "customEquipment"
+  >
 ): boolean {
   return (
     (character.equipment ?? []).some((item) => {
@@ -74,7 +73,9 @@ function hasWornBodyArmor(
       const equipmentDefinition = getEquipmentByName(item.name);
       return equipmentDefinition?.category === "armor" && equipmentDefinition.type !== "shield";
     }) ||
-    (character.inventoryItems ?? []).some((entry) => entry.worn && !isItemShieldRecord(entry.item)) ||
+    (character.inventoryItems ?? []).some(
+      (entry) => entry.worn && !isItemShieldRecord(entry.item)
+    ) ||
     (character.customEquipment ?? []).some(
       (entry) => entry.kind === "armor" && entry.armorType !== "shield" && entry.worn
     )
@@ -82,7 +83,10 @@ function hasWornBodyArmor(
 }
 
 function hasShieldEquipped(
-  character: Pick<Parameters<SubclassRuntimeResolver>[0], "equipment" | "inventoryItems" | "customEquipment">
+  character: Pick<
+    Parameters<SubclassRuntimeResolver>[0],
+    "equipment" | "inventoryItems" | "customEquipment"
+  >
 ): boolean {
   return (
     (character.equipment ?? []).some((item) => {
@@ -93,7 +97,9 @@ function hasShieldEquipped(
       const equipmentDefinition = getEquipmentByName(item.name);
       return equipmentDefinition?.category === "armor" && equipmentDefinition.type === "shield";
     }) ||
-    (character.inventoryItems ?? []).some((entry) => entry.onHand && isItemShieldRecord(entry.item)) ||
+    (character.inventoryItems ?? []).some(
+      (entry) => entry.onHand && isItemShieldRecord(entry.item)
+    ) ||
     (character.customEquipment ?? []).some(
       (entry) => entry.kind === "armor" && entry.armorType === "shield" && entry.worn
     )
@@ -122,12 +128,13 @@ export function normalizeBardCollegeOfDanceFeatureState(
   );
 
   return {
-    dazzlingFootworkUnarmedStrikesRemainingThisTurn:
-      hasBardCollegeOfDanceDazzlingFootworkFeature(character)
-        ? Number.isFinite(dazzlingFootworkUnarmedStrikesRemainingThisTurn)
-          ? Math.max(0, Math.min(1, Math.floor(dazzlingFootworkUnarmedStrikesRemainingThisTurn)))
-          : 0
-        : undefined
+    dazzlingFootworkUnarmedStrikesRemainingThisTurn: hasBardCollegeOfDanceDazzlingFootworkFeature(
+      character
+    )
+      ? Number.isFinite(dazzlingFootworkUnarmedStrikesRemainingThisTurn)
+        ? Math.max(0, Math.min(1, Math.floor(dazzlingFootworkUnarmedStrikesRemainingThisTurn)))
+        : 0
+      : undefined
   };
 }
 
@@ -168,11 +175,9 @@ export function grantBardCollegeOfDanceAgileStrikes(
 export function consumeBardCollegeOfDanceAgileStrike(
   character: Character,
   bardState: CharacterBardFeatureState,
-  action?: {
-    attackKind: "weapon" | "unarmed";
-  }
+  action: WeaponAttackConsumptionContext
 ): Character {
-  if (action?.attackKind !== "unarmed") {
+  if (action.economyType !== "bonus_action" || action.attackKind !== "unarmed") {
     return character;
   }
 
@@ -250,7 +255,8 @@ function appendAgileStrikesDescription(action: FeatureActionCard): FeatureAction
 }
 
 function getBardCollegeOfDanceInspiringMovementReactionEntry(
-  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">> &
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "subclassId">> &
     Pick<Parameters<SubclassRuntimeResolver>[0], "equipment" | "inventoryItems" | "customEquipment">
 ): ReactionEntry {
   const description = getFeatureDescriptionForCharacter(

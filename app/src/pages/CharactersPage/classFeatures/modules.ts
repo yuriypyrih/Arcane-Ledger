@@ -164,8 +164,6 @@ import {
   activateMonkHandOfUltimateJustice,
   activateMonkQuiveringPalm,
   activateMonkSuperiorDefense,
-  activateMonkStunningStrike,
-  activateMonkUncannyMetabolism,
   activateMonkWholenessOfBody,
   advanceMonkFeaturesForNewRound,
   applyLongRestToMonkFeatures,
@@ -179,6 +177,7 @@ import {
   getMonkReactionEntries,
   getMonkSavingThrowProficiencyEntries,
   getMonkSpeedBonuses,
+  getMonkWeaponAction,
   monkHandOfHealingActionKey,
   monkHandOfUltimateJusticeActionKey,
   getMonkUnarmedDamageTypeLabel,
@@ -188,8 +187,6 @@ import {
   monkElementalAttunementActionKey,
   monkQuiveringPalmActionKey,
   monkSuperiorDefenseActionKey,
-  monkStunningStrikeActionKey,
-  monkUncannyMetabolismActionKey,
   monkWholenessOfBodyActionKey,
   normalizeMonkFeatureState
 } from "./monk/monk";
@@ -636,6 +633,7 @@ const classFeatureModules = {
         savingThrowProficiencyEntries: getMonkSavingThrowProficiencyEntries(character),
         derivedStatusEntries: getMonkDerivedStatusEntries(character),
         reactionEntries: getMonkReactionEntries(character),
+        transformWeaponAction: (action) => getMonkWeaponAction(character, action),
         monkMartialArtsDie: getMonkMartialArtsDie(character),
         monkUnarmedDamageTypeLabel: getMonkUnarmedDamageTypeLabel(character),
         canUseMonkMartialArts: (context) => canUseMonkMartialArts(character, context)
@@ -644,14 +642,6 @@ const classFeatureModules = {
     handleAction(character, actionKey) {
       if (actionKey === monkFlurryOfBlowsActionKey) {
         return activateMonkFlurryOfBlows(character);
-      }
-
-      if (actionKey === monkUncannyMetabolismActionKey) {
-        return activateMonkUncannyMetabolism(character);
-      }
-
-      if (actionKey === monkStunningStrikeActionKey) {
-        return activateMonkStunningStrike(character);
       }
 
       if (actionKey === monkSuperiorDefenseActionKey) {

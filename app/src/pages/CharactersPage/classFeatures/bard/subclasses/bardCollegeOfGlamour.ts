@@ -16,6 +16,11 @@ import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptio
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import {
+  createChargesAndUsageHeaderTags,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { transformSpellToBonusAction } from "../../subclassRuntime";
@@ -648,10 +653,31 @@ export const getBardCollegeOfGlamourDerivedFeatureState: SubclassRuntimeResolver
         breakdown: "Command with majesty",
         economyType: ECONOMY_TYPE.BONUS_ACTION,
         actionCategory: ACTION_CATEGORY.MAGIC,
+        cardUsage: createChargesOrResourceCardUsage(
+          usesRemaining,
+          usesTotal,
+          createFeatureActionCardCost({
+            amountText: "3+",
+            resourceLabel: "Spell Slot"
+          })
+        ),
         usesRemaining,
         usesTotal,
         isActive: mantleActive,
         description: [...mantleOfMajestyDescription],
+        headerTags: createChargesAndUsageHeaderTags(
+          usesRemaining,
+          usesTotal,
+          createFeatureActionCardCost({
+            amountText: "3+",
+            resourceLabel: "Spell Slot"
+          }),
+          fallbackSlotSummary.remaining,
+          fallbackSlotSummary.total,
+          {
+            label: "Spell Slots"
+          }
+        ),
         resources: [
           {
             kind: "tracker",

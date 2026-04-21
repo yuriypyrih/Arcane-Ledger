@@ -4,6 +4,7 @@ import {
   ENTRY_CATEGORIES,
   FEATS,
   WEAPON_COMBAT_TYPE,
+  WEAPON_TRAINING,
   WEAPON_PROPERTY,
   type SpellDescriptionEntry,
   type ClassEntry,
@@ -32,7 +33,6 @@ import {
   transformWeaponActionForCharacter,
   getFeatureDamageBonusesForWeaponAction,
   getMonkMartialArtsDieForCharacter,
-  getMonkUnarmedStrikeMultiCountForCharacter,
   getMonkUnarmedDamageTypeLabelForCharacter,
   getSkillBonusesForCharacter,
   getWeaponAttackIndicatorsForCharacter,
@@ -86,6 +86,8 @@ export type WeaponAction = {
   name: string;
   attackKind: "weapon" | "unarmed";
   combatType?: WEAPON_COMBAT_TYPE | null;
+  weaponTraining?: WEAPON_TRAINING | null;
+  properties?: WEAPON_PROPERTY[];
   economyType: EconomyType;
   actionCategory: ActionCategory;
   economyMultiCount?: number;
@@ -510,6 +512,7 @@ export function createWeaponAction(
     name: string;
     attackKind: "weapon" | "unarmed";
     combatType?: WEAPON_COMBAT_TYPE | null;
+    weaponTraining?: WEAPON_TRAINING | null;
     properties?: WEAPON_PROPERTY[];
     damageLabel: string;
     damageFormula: string;
@@ -578,6 +581,8 @@ export function createWeaponAction(
     name: options.name,
     attackKind: options.attackKind,
     combatType: options.combatType ?? null,
+    weaponTraining: options.weaponTraining ?? null,
+    properties: options.properties ?? [],
     economyType: options.economyType ?? ECONOMY_TYPE.ACTION,
     actionCategory: ACTION_CATEGORY.ATTACK,
     economyMultiCount: options.economyMultiCount,
@@ -814,6 +819,7 @@ function createUnarmedStrikeAction(
       name: "Unarmed Strike",
       attackKind: "unarmed",
       combatType: WEAPON_COMBAT_TYPE.MELEE,
+      weaponTraining: null,
       properties: [],
       damageLabel: `${damageFormula} ${damageTypeLabel}`,
       damageFormula,
@@ -908,10 +914,11 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
     ...heldInventoryWeaponDescriptors,
     ...heldCustomWeaponDescriptors
   ];
-  const hasShieldEquipped = heldCodexWeapons.some((item) => {
-    const equipmentDefinition = getEquipmentByName(item.name);
-    return equipmentDefinition?.category === "armor" && equipmentDefinition.type === "shield";
-  }) || heldInventoryItems.some((entry) => isItemShieldRecord(entry.item));
+  const hasShieldEquipped =
+    heldCodexWeapons.some((item) => {
+      const equipmentDefinition = getEquipmentByName(item.name);
+      return equipmentDefinition?.category === "armor" && equipmentDefinition.type === "shield";
+    }) || heldInventoryItems.some((entry) => isItemShieldRecord(entry.item));
   const monkMartialArtsDie = getMonkMartialArtsDieForCharacter(character);
   const monkMartialArtsActive =
     monkMartialArtsDie !== null &&
@@ -924,7 +931,6 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
         ...heldInventoryWeaponEntries
       ].every((weapon) => isMonkWeapon(weapon))
     });
-  const monkUnarmedStrikeMulti = getMonkUnarmedStrikeMultiCountForCharacter(character);
 
   const codexWeaponActions = heldCodexWeapons.reduce<WeaponAction[]>((actions, equipmentItem) => {
     const equipmentDefinition = getEquipmentByName(equipmentItem.name);
@@ -989,6 +995,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
         name: equipmentItem.name,
         attackKind: "weapon",
         combatType: weaponEntry.type.combat,
+        weaponTraining: weaponEntry.type.training,
         properties: weaponEntry.properties,
         damageLabel: weaponReference.damageLabel,
         damageFormula: weaponReference.damageFormula,
@@ -1051,6 +1058,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
         name: weaponEntry.name,
         attackKind: "weapon",
         combatType: weaponEntry.type.combat,
+        weaponTraining: weaponEntry.type.training,
         properties: weaponEntry.properties,
         damageLabel: weaponReference.damageLabel,
         damageFormula: weaponReference.damageFormula,
@@ -1075,17 +1083,18 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
       const weaponType = adaptedWeapon?.type ?? null;
       const weaponProperties = adaptedWeapon?.properties ?? [];
       const useVersatileDamage =
-        weaponDescriptor !== null ? hasVersatileHandBonus(weaponDescriptor, heldWeaponDescriptors) : false;
-      const baseDamage =
-        adaptedWeapon?.damage
-          ? getSelectedWeaponDamage(
-              {
-                damage: adaptedWeapon.damage,
-                versatileDamage: adaptedWeapon.versatileDamage ?? undefined
-              },
-              { useVersatileDamage }
-            )
-          : null;
+        weaponDescriptor !== null
+          ? hasVersatileHandBonus(weaponDescriptor, heldWeaponDescriptors)
+          : false;
+      const baseDamage = adaptedWeapon?.damage
+        ? getSelectedWeaponDamage(
+            {
+              damage: adaptedWeapon.damage,
+              versatileDamage: adaptedWeapon.versatileDamage ?? undefined
+            },
+            { useVersatileDamage }
+          )
+        : null;
       const isEligibleMonkWeapon =
         monkMartialArtsActive &&
         weaponType &&
@@ -1101,10 +1110,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
         useVersatileDamage,
         applyGreatWeaponFighting: hasGreatWeaponFighting,
         damageOverride: monkDamageAdjustment?.damage,
-        abilityRuleOverride:
-          isEligibleMonkWeapon
-            ? "finesse"
-            : undefined
+        abilityRuleOverride: isEligibleMonkWeapon ? "finesse" : undefined
       });
 
       if (!weaponType || !weaponReference) {
@@ -1131,6 +1137,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
           name: inventoryItem.item.name ?? inventoryItem.item.key ?? "Weapon",
           attackKind: "weapon",
           combatType: weaponType.combat,
+          weaponTraining: weaponType.training,
           properties: weaponProperties,
           damageLabel: weaponReference.damageLabel,
           damageFormula: weaponReference.damageFormula,
@@ -1152,8 +1159,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
     ...featureWeaponActions,
     createUnarmedStrikeAction(character, {
       martialArtsDie: monkMartialArtsActive ? monkMartialArtsDie : null,
-      economyType: monkMartialArtsActive ? ECONOMY_TYPE.BONUS_ACTION : ECONOMY_TYPE.ACTION,
-      economyMultiCount: monkMartialArtsActive ? monkUnarmedStrikeMulti : undefined
+      economyType: ECONOMY_TYPE.ACTION
     }),
     ...codexWeaponActions,
     ...inventoryWeaponActions,

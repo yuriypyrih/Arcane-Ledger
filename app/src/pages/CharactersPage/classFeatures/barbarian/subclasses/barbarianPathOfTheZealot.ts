@@ -13,6 +13,11 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import { clampNumber } from "../../../shared";
 import type { WeaponAction } from "../../../gameplay";
+import {
+  createChargesAndUsageHeaderTags,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type {
   DerivedFeatureStatusEntry,
@@ -232,7 +237,8 @@ export function getBarbarianPathOfTheZealotWarriorOfTheGodsAction(
 export function getBarbarianPathOfTheZealotZealousPresenceAction(
   character: BarbarianSubclassCharacter,
   rageState: CharacterRageFeatureState,
-  rageUsesRemaining: number
+  rageUsesRemaining: number,
+  rageUsesTotal: number
 ): FeatureActionCard | null {
   if (!hasBarbarianPathOfTheZealotZealousPresence(character)) {
     return null;
@@ -254,11 +260,32 @@ export function getBarbarianPathOfTheZealotZealousPresenceAction(
     sourceFeature: CLASS_FEATURE.ZEALOUS_PRESENCE,
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
+    cardUsage: createChargesOrResourceCardUsage(
+      usesRemaining,
+      zealousPresenceUsesTotal,
+      createFeatureActionCardCost({
+        amountText: "1",
+        icon: "flame"
+      })
+    ),
     usesLabel: `${usesRemaining}/${zealousPresenceUsesTotal} charge`,
     usesRemaining,
     usesTotal: zealousPresenceUsesTotal,
     usesInlineLabel: isUsingRageCharges ? "Use 1" : undefined,
     usesInlineIcon: isUsingRageCharges ? "flame" : undefined,
+    headerTags: createChargesAndUsageHeaderTags(
+      usesRemaining,
+      zealousPresenceUsesTotal,
+      createFeatureActionCardCost({
+        amountText: "1",
+        icon: "flame"
+      }),
+      rageUsesRemaining,
+      rageUsesTotal,
+      {
+        icon: "flame"
+      }
+    ),
     disabled,
     disabledReason: disabled ? "No Zealous Presence or Rage uses remaining." : undefined
   };

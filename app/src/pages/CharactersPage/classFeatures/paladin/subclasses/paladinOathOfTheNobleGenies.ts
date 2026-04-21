@@ -32,6 +32,11 @@ import { getAbilityModifier } from "../../../gameplay";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import {
+  createChargesAndUsageHeaderTags,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../cardUsage";
+import {
   getPreparedSpellIdsByLevel,
   resolveSpellIdsByName,
   type SubclassRuntimeResolver
@@ -591,10 +596,31 @@ function getPaladinOathOfTheNobleGeniesFeatureActions(
       detail: "Gain Noble Scion for 10 minutes.",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
+      cardUsage: createChargesOrResourceCardUsage(
+        usesRemaining,
+        nobleScionUsesTotal,
+        createFeatureActionCardCost({
+          amountText: "5th",
+          resourceLabel: "Spell Slot"
+        })
+      ),
       usesRemaining,
       usesTotal: nobleScionUsesTotal,
       usesInlineLabel: showFallbackSlotInfo ? "| Use 5th Spell Slot" : undefined,
       description: [...nobleScionDescription],
+      headerTags: createChargesAndUsageHeaderTags(
+        usesRemaining,
+        nobleScionUsesTotal,
+        createFeatureActionCardCost({
+          amountText: "5th",
+          resourceLabel: "Spell Slot"
+        }),
+        fallbackSlotSummary.remaining,
+        fallbackSlotSummary.total,
+        {
+          label: "Spell Slots"
+        }
+      ),
       resources: [
         {
           kind: "tracker",

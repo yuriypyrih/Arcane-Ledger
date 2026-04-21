@@ -16,6 +16,11 @@ import {
   reconcileCharacterStatusConsequences
 } from "../../../traits";
 import {
+  createChargesAndUsageHeaderTags,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../cardUsage";
+import {
   getPreparedSpellIdsByLevel,
   resolveSpellIdsByName,
   type SubclassRuntimeResolver
@@ -364,10 +369,31 @@ function getPaladinOathOfTheAncientsFeatureActions(
       breakdown: "Primal champion aura",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
+      cardUsage: createChargesOrResourceCardUsage(
+        usesRemaining,
+        elderChampionUsesTotal,
+        createFeatureActionCardCost({
+          amountText: "5th",
+          resourceLabel: "Spell Slot"
+        })
+      ),
       usesRemaining,
       usesTotal: elderChampionUsesTotal,
       usesInlineLabel: showFallbackSlotInfo ? "| Use 5th Spell Slot" : undefined,
       description: [...elderChampionDescription],
+      headerTags: createChargesAndUsageHeaderTags(
+        usesRemaining,
+        elderChampionUsesTotal,
+        createFeatureActionCardCost({
+          amountText: "5th",
+          resourceLabel: "Spell Slot"
+        }),
+        fallbackSlotSummary.remaining,
+        fallbackSlotSummary.total,
+        {
+          label: "Spell Slots"
+        }
+      ),
       resources: [
         {
           kind: "tracker",

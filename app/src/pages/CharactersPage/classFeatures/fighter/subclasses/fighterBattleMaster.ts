@@ -9,6 +9,11 @@ import type { Character, CharacterFighterFeatureState } from "../../../../../typ
 import { createSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifier, getProficiencyBonus } from "../../../gameplay";
+import {
+  createChargesAndUsageHeaderTags,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { FeatureActionCard, FeatureActionFact } from "../../types";
@@ -630,6 +635,7 @@ function getFighterBattleMasterKnowYourEnemyAction(
   const usesTotal = getFighterBattleMasterKnowYourEnemyUsesTotal(character);
   const usesRemaining = getFighterBattleMasterKnowYourEnemyUsesRemaining(character);
   const superiorityDiceRemaining = getFighterBattleMasterSuperiorityDiceRemaining(character);
+  const superiorityDiceTotal = getFighterBattleMasterSuperiorityDiceTotal(character);
   const canUseFallback = usesRemaining <= 0 && superiorityDiceRemaining > 0;
   const disabledReason =
     usesRemaining > 0 || canUseFallback
@@ -645,11 +651,33 @@ function getFighterBattleMasterKnowYourEnemyAction(
       "Use Know Your Enemy to discern a visible creature's Immunities, Resistances, and Vulnerabilities within 30 feet.",
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
+    cardUsage: createChargesOrResourceCardUsage(
+      usesRemaining,
+      usesTotal,
+      createFeatureActionCardCost({
+        amountText: "1",
+        icon: "superiority"
+      })
+    ),
     usesRemaining,
     usesTotal,
     usesInlineLabel: canUseFallback ? "| Use 1" : undefined,
     usesInlineIcon: canUseFallback ? "superiority" : undefined,
     usesInlineSuffix: canUseFallback ? "instead" : undefined,
+    headerTags: createChargesAndUsageHeaderTags(
+      usesRemaining,
+      usesTotal,
+      createFeatureActionCardCost({
+        amountText: "1",
+        icon: "superiority"
+      }),
+      superiorityDiceRemaining,
+      superiorityDiceTotal,
+      {
+        icon: "superiority"
+      },
+      "Long Rest"
+    ),
     resources: [
       {
         kind: "tracker",

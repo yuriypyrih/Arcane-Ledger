@@ -1,12 +1,20 @@
 import type { SpellDescriptionEntry } from "../../codex/entries";
 import type { Character } from "../../types";
 import type { ActionCategory, EconomyType } from "./actionEconomy";
+import {
+  createChargesHeaderTag,
+  createFeatureActionHeaderTagPool,
+  markUsageHeaderTagsAsFallback,
+  createTextHeaderTag,
+  createUsageHeaderTag
+} from "./classFeatures/cardUsage";
 import { createDefaultFeatureActionDescription } from "./classFeatures/featureActionDescription";
 import { getFeatureDescriptionForCharacter } from "./classFeatures/featureDescriptions";
 import {
   getFeatureActionOptionsForCharacter,
   getFeatureActionsForCharacter,
   type FeatureActionCard,
+  type FeatureActionHeaderTag,
   type FeatureActionDrawerConfig,
   type FeatureActionExecuteConfig,
   type FeatureActionFact,
@@ -44,7 +52,7 @@ type GameplayActionDrawerBase = {
   helperTextTone?: FeatureActionTone;
   blockedReason?: string;
   facts: FeatureActionFact[];
-  resources: FeatureActionResource[];
+  headerTags: FeatureActionHeaderTag[];
 };
 
 export type GameplayActionDrawerDefinition =
@@ -102,39 +110,125 @@ function createTextResource(
   };
 }
 
-function createFeatureActionResources(action: FeatureActionCard): FeatureActionResource[] {
-  if (action.resources && action.resources.length > 0) {
-    return action.resources;
+function createFeatureActionHeaderTags(action: FeatureActionCard): FeatureActionHeaderTag[] {
+  const explicitHeaderTags = action.drawer?.headerTags ?? action.headerTags;
+
+  if (explicitHeaderTags && explicitHeaderTags.length > 0) {
+    return action.cardUsage?.mode === "charges-or-resource"
+      ? markUsageHeaderTagsAsFallback(explicitHeaderTags)
+      : explicitHeaderTags;
   }
 
-  if (action.usesTotal && action.usesTotal > 0) {
-    return [
-      {
-        kind: "tracker",
-        label: action.usesSupplementaryLabel ? "Charges" : "Uses",
-        current: Math.max(0, action.usesRemaining ?? 0),
-        total: action.usesTotal,
-        value: action.usesLabel,
-        tone: action.usesTone ?? "default",
-        icon: action.usesIcon,
-        supplementary: [action.usesInlineLabel, action.usesInlineSuffix]
-          .filter((entry): entry is string => Boolean(entry))
-          .join(" ")
+  const legacyResources = action.drawer?.resources ?? action.resources ?? [];
+  const consumedLegacyResourceIndexes = new Set<number>();
+  const headerTags: FeatureActionHeaderTag[] = [];
+
+  const consumeLegacyChargeTracker = () => {
+    const legacyChargeTrackerIndex = legacyResources.findIndex(
+      (resource, index) =>
+        !consumedLegacyResourceIndexes.has(index) &&
+        resource.kind === "tracker" &&
+        !resource.icon
+    );
+
+    if (legacyChargeTrackerIndex >= 0) {
+      consumedLegacyResourceIndexes.add(legacyChargeTrackerIndex);
+    }
+  };
+
+  const findUsagePoolResource = () =>
+    legacyResources.find((resource, index) => {
+      if (consumedLegacyResourceIndexes.has(index)) {
+        return false;
       }
-    ];
+
+      return resource.kind === "tracker" && Boolean(resource.icon);
+    });
+
+  const appendUsageTag = () => {
+    if (!action.cardUsage || action.cardUsage.mode === "charges" || action.cardUsage.mode === "free") {
+      return;
+    }
+
+    const usageCost = action.cardUsage.cost;
+    const usagePoolResource = findUsagePoolResource();
+
+    if (usagePoolResource && usagePoolResource.kind === "tracker") {
+      const usagePoolIndex = legacyResources.indexOf(usagePoolResource);
+
+      headerTags.push(
+        createUsageHeaderTag(
+          usageCost,
+          createFeatureActionHeaderTagPool(usagePoolResource.current, usagePoolResource.total, {
+            icon: usagePoolResource.icon
+          }),
+          {
+            isFallback: action.cardUsage?.mode === "charges-or-resource"
+          }
+        )
+      );
+      consumedLegacyResourceIndexes.add(usagePoolIndex);
+      return;
+    }
+
+    if (action.usesTotal && action.usesTotal > 0) {
+      headerTags.push(
+        createUsageHeaderTag(
+          usageCost,
+          createFeatureActionHeaderTagPool(action.usesRemaining ?? 0, action.usesTotal, {
+            icon: usageCost.icon
+          }),
+          {
+            isFallback: action.cardUsage?.mode === "charges-or-resource"
+          }
+        )
+      );
+    }
+  };
+
+  if (action.cardUsage) {
+    switch (action.cardUsage.mode) {
+      case "charges":
+        headerTags.push(
+          createChargesHeaderTag(action.cardUsage.charges.current, action.cardUsage.charges.total)
+        );
+        consumeLegacyChargeTracker();
+        break;
+      case "charges-and-resource":
+      case "charges-or-resource":
+        headerTags.push(
+          createChargesHeaderTag(action.cardUsage.charges.current, action.cardUsage.charges.total)
+        );
+        consumeLegacyChargeTracker();
+        appendUsageTag();
+        break;
+      case "named-resource":
+        appendUsageTag();
+        break;
+      case "free":
+      default:
+        break;
+    }
   }
 
-  if (action.usesLabel) {
-    return [
-      createTextResource("Usage", action.usesLabel, action.usesTone ?? "default", action.usesIcon)
-    ];
-  }
+  legacyResources.forEach((resource, index) => {
+    if (consumedLegacyResourceIndexes.has(index)) {
+      return;
+    }
 
-  if (action.valueLabel) {
-    return [createTextResource("Value", action.valueLabel)];
-  }
+    if (resource.kind === "tracker") {
+      if (resource.icon) {
+        return;
+      }
 
-  return [];
+      headerTags.push(createChargesHeaderTag(resource.current, resource.total, resource.supplementary));
+      return;
+    }
+
+    headerTags.push(createTextHeaderTag(resource.label, resource.value, resource.icon, resource.tone));
+  });
+
+  return headerTags;
 }
 
 function createFeatureActionFacts(action: FeatureActionCard): FeatureActionFact[] {
@@ -279,7 +373,7 @@ function createFeatureActionDrawer(
   const helperTextTone = action.drawer?.helperTextTone;
   const blockedReason = action.drawer?.blockedReason;
   const facts = action.drawer?.facts ?? createFeatureActionFacts(action);
-  const resources = action.drawer?.resources ?? createFeatureActionResources(action);
+  const headerTags = createFeatureActionHeaderTags(action);
   const eyebrow = action.drawer?.eyebrow;
   const confirmLabel = action.drawer?.confirmLabel ?? execute.label ?? action.name;
 
@@ -293,7 +387,7 @@ function createFeatureActionDrawer(
       helperTextTone,
       blockedReason,
       facts,
-      resources,
+      headerTags,
       selection: action.drawer?.optionSelection ?? "single-immediate",
       selectionLimit: action.drawer?.optionSelectionLimit,
       options: options.map((option) => ({
@@ -316,7 +410,7 @@ function createFeatureActionDrawer(
       helperTextTone,
       blockedReason,
       facts,
-      resources,
+      headerTags,
       formKind:
         action.drawer?.formKind ??
         (execute.kind === "custom-form" ? execute.formKind : "lay-on-hands"),
@@ -339,7 +433,7 @@ function createFeatureActionDrawer(
       helperTextTone,
       blockedReason,
       facts,
-      resources,
+      headerTags,
       confirmLabel
     };
   }
@@ -353,7 +447,7 @@ function createFeatureActionDrawer(
     helperTextTone,
     blockedReason,
     facts,
-    resources,
+    headerTags,
     confirmLabel
   };
 }
@@ -427,7 +521,7 @@ function createWeaponActionDefinition(
       description: preparedAction.description ?? [],
       descriptionAdditions: preparedAction.descriptionAdditions ?? [],
       facts: createWeaponActionFacts(preparedAction),
-      resources: [],
+      headerTags: [],
       confirmLabel: "Roll Attack"
     }
   };

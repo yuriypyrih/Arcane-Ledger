@@ -3,6 +3,11 @@ import type { Character, CharacterDruidFeatureState } from "../../../../../types
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
+import {
+  createChargesAndUsageHeaderTags,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../cardUsage";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
 import type {
@@ -378,10 +383,31 @@ function getCircleOfTheMoonFeatureActions(character: Parameters<SubclassRuntimeR
       description,
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
+      cardUsage: createChargesOrResourceCardUsage(
+        usesRemaining,
+        usesTotal,
+        createFeatureActionCardCost({
+          amountText: "2+",
+          resourceLabel: "Spell Slot"
+        })
+      ),
       usesRemaining,
       usesTotal,
       usesInlineLabel:
         usesRemaining <= 0 && fallbackSlotLevel !== null ? "| Use 2+ Spell Slot" : undefined,
+      headerTags: createChargesAndUsageHeaderTags(
+        usesRemaining,
+        usesTotal,
+        createFeatureActionCardCost({
+          amountText: "2+",
+          resourceLabel: "Spell Slot"
+        }),
+        fallbackSlotSummary.remaining,
+        fallbackSlotSummary.total,
+        {
+          label: "Spell Slots"
+        }
+      ),
       resources,
       drawer: {
         kind: "confirm" as const,

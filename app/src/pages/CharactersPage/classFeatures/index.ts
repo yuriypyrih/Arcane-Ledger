@@ -6,11 +6,10 @@ import type {
   SkillName,
   WEAPON_PROFICIENCY
 } from "../../../types";
-import type { ActionCategory, EconomyType } from "../actionEconomy";
 import type { WeaponAction } from "../gameplay";
 import { getRoundTrackerResourceForEconomyType } from "../actionEconomy";
 import { abilityKeys } from "../constants";
-import { consumeRoundTrackerResource } from "../combat";
+import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../combat";
 import {
   hasExhaustionAbilityCheckDisadvantage,
   hasExhaustionAttackRollDisadvantage,
@@ -56,6 +55,7 @@ import {
   setBardPrimalLoreSkillSelection,
   setBardExpertiseSelections
 } from "./bard/bard";
+import { normalizeFeatureActionCardUsage } from "./cardUsage";
 import {
   activateBarbarianBerserkerRetaliation,
   applyPersistentRageOnInitiative,
@@ -398,12 +398,15 @@ import {
   setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelectionForCharacter as setPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection
 } from "./paladin/paladin";
 import {
+  applyMonkUncannyMetabolismOnInitiative,
   applyPerfectFocusOnInitiative,
   consumeMonkWeaponAttack,
   expendMonkFocusPoint,
   getMonkFocusPointsRemaining,
   getMonkFocusPointsTotal,
   getMonkFlurryOfBlowsAttackMultiCount,
+  getMonkUncannyMetabolismUsesRemaining,
+  getMonkUncannyMetabolismUsesTotal,
   hasMonkPerfectFocus,
   getMonkUnarmedStrikeMultiCount,
   restoreAllMonkFocusPoints,
@@ -477,6 +480,11 @@ import type {
   CoreStatIndicatorMap,
   DerivedFeatureStatusEntry,
   FeatureActionCard,
+  FeatureActionHeaderTag,
+  FeatureActionHeaderTagPool,
+  FeatureActionCardUsage,
+  FeatureActionCardUsageCharges,
+  FeatureActionCardUsageCost,
   FeatureActionDrawerConfig,
   FeatureActionExecuteConfig,
   FeatureActionFact,
@@ -509,6 +517,7 @@ import type {
   SavingThrowIndicatorMap,
   SpeedFeatureContext,
   SkillIndicatorMap,
+  WeaponAttackConsumptionContext,
   WeaponFeatureContext
 } from "./types";
 import type { CharacterStatusEntry } from "../../../types";
@@ -552,6 +561,11 @@ export type {
   CoreStatIndicatorMap,
   EconomyMultiActionContext,
   FeatureActionCard,
+  FeatureActionHeaderTag,
+  FeatureActionHeaderTagPool,
+  FeatureActionCardUsage,
+  FeatureActionCardUsageCharges,
+  FeatureActionCardUsageCost,
   FeatureActionDrawerConfig,
   FeatureActionExecuteConfig,
   FeatureActionFact,
@@ -618,10 +632,11 @@ export function getFeatureActionsForCharacter(character: Character): FeatureActi
     ...(baseFeatureState.actions ?? []),
     ...(subclassDerivedState.featureActions ?? [])
   ];
-
-  return subclassDerivedState.transformFeatureAction
+  const transformedActions = subclassDerivedState.transformFeatureAction
     ? actions.map(subclassDerivedState.transformFeatureAction)
     : actions;
+
+  return transformedActions.map(normalizeFeatureActionCardUsage);
 }
 
 export function getFeatureEquipmentEntriesForCharacter(
@@ -2692,6 +2707,12 @@ export function applyPerfectFocusOnInitiativeForCharacter(character: Character):
   return applyPerfectFocusOnInitiative(character);
 }
 
+export function applyMonkUncannyMetabolismOnInitiativeForCharacter(
+  character: Character
+): Character {
+  return applyMonkUncannyMetabolismOnInitiative(character);
+}
+
 export function applyPersistentRageOnInitiativeForCharacter(character: Character): Character {
   return applyPersistentRageOnInitiative(character);
 }
@@ -2881,6 +2902,18 @@ export function getMonkFocusPointsTotalForCharacter(
   character: Pick<Character, "className" | "level">
 ): number {
   return getMonkFocusPointsTotal(character);
+}
+
+export function getMonkUncannyMetabolismUsesTotalForCharacter(
+  character: Pick<Character, "className" | "level">
+): number {
+  return getMonkUncannyMetabolismUsesTotal(character);
+}
+
+export function getMonkUncannyMetabolismUsesRemainingForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  return getMonkUncannyMetabolismUsesRemaining(character);
 }
 
 export function getPaladinHealingPoolTotalForCharacter(
@@ -3512,12 +3545,7 @@ export function getMonkUnarmedStrikeMultiCountForCharacter(
 
 export function consumeWeaponAttackActionForCharacter(
   character: Character,
-  action: {
-    key: string;
-    actionCategory: ActionCategory;
-    economyType: EconomyType;
-    attackKind: "weapon" | "unarmed";
-  }
+  action: WeaponAttackConsumptionContext
 ): Character {
   if (character.className === "Barbarian") {
     return consumeBarbarianWeaponAttack(character);
@@ -3561,7 +3589,8 @@ export function consumeWeaponAttackActionForCharacter(
 
   const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
 
-  return roundTrackerResource
+  return roundTrackerResource &&
+    isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource)
     ? {
         ...character,
         roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)

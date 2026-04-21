@@ -40,6 +40,7 @@
 
 .weaponFooterActions {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.6rem;
   width: 100%;
 }
@@ -57,7 +58,8 @@
 
 .weaponFooterButton {
   gap: 0.5rem;
-  flex: 1 1 0;
+  flex: 1 1 160px;
+  min-width: 0;
 }
 
 .footerActionButton {
@@ -107,7 +109,16 @@
   gap: 0.28rem;
 }
 
+.footerActionCount {
+  color: rgba(255, 255, 255, 0.92);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
 .weaponFooterIconButton {
+  flex: 0 0 auto;
   min-width: 48px;
   padding: 0;
 }

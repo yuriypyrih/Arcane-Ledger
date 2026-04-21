@@ -11,6 +11,12 @@ type DiceRollerPopupProps = {
   onRollComplete: (rollToken: number) => void;
 };
 
+function formatResultSummary(state: DiceRollerPopupState): string {
+  return state.results
+    .map((entry) => `${entry.label?.trim() || "Roll"} ${entry.result.total}`)
+    .join(" | ");
+}
+
 function DiceRollerPopup({ state, onClose, onRollComplete }: DiceRollerPopupProps) {
   useBodyScrollLock(Boolean(state));
 
@@ -37,6 +43,7 @@ function DiceRollerPopup({ state, onClose, onRollComplete }: DiceRollerPopupProp
   }
 
   const { request, result, error } = state;
+  const hasMultipleResults = state.results.length > 1;
 
   return (
     <div className={styles.modalBackdrop} role="presentation" onClick={onClose}>
@@ -64,11 +71,30 @@ function DiceRollerPopup({ state, onClose, onRollComplete }: DiceRollerPopupProp
         {error ? (
           <p className={styles.errorText}>{error}</p>
         ) : result && state.resultVisible ? (
-          <div className={styles.resultPanel}>
-            <p className={styles.resultLabel}>Result</p>
-            <strong className={styles.resultValue}>{result.total}</strong>
-            <p className={styles.breakdown}>{result.breakdown}</p>
-          </div>
+          hasMultipleResults ? (
+            <div className={styles.multiResultPanel}>
+              <p className={styles.resultLabel}>Results</p>
+              <strong className={styles.multiResultSummary}>{formatResultSummary(state)}</strong>
+              <div className={styles.multiResultGrid}>
+                {state.results.map((entry) => (
+                  <div
+                    key={`${entry.request.formulaDisplay}-${entry.label ?? "roll"}`}
+                    className={styles.multiResultCard}
+                  >
+                    <p className={styles.multiResultCardLabel}>{entry.label ?? "Roll"}</p>
+                    <strong className={styles.multiResultCardValue}>{entry.result.total}</strong>
+                    <p className={styles.breakdown}>{entry.result.breakdown}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className={styles.resultPanel}>
+              <p className={styles.resultLabel}>Result</p>
+              <strong className={styles.resultValue}>{result.total}</strong>
+              <p className={styles.breakdown}>{result.breakdown}</p>
+            </div>
+          )
         ) : state.dice.length > 0 ? (
           <p className={styles.pendingText}>Rolling...</p>
         ) : (

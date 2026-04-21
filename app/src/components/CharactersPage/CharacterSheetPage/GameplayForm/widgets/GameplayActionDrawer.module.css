@@ -83,6 +83,12 @@
   stroke: currentColor;
 }
 
+.resourceBadgeIcon {
+  color: currentColor;
+  flex: 0 0 auto;
+  stroke: currentColor;
+}
+
 .resourceAssetIcon {
   display: block;
   height: 14px;

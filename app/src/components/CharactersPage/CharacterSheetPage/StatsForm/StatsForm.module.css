@@ -179,6 +179,16 @@
   display: grid;
 }
 
+.savingThrowValueRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.savingThrowBoostIcon {
+  color: #2f7fd8;
+}
+
 .savingThrowValueProficient {
   color: #6f2bc5;
 }
@@ -353,38 +363,6 @@
   flex-wrap: wrap;
   gap: 0.65rem;
   min-width: 0;
-}
-
-.initiativeCheckboxLabel {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-  color: var(--color-ink-soft);
-  font-size: 0.92rem;
-}
-
-.initiativeCheckboxLabelDisabled {
-  opacity: 0.58;
-}
-
-.initiativeCheckboxLabel input {
-  margin: 0;
-}
-
-.initiativeUsageMeta {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.28rem;
-  font-size: 0.84rem;
-  font-weight: 700;
-  white-space: nowrap;
-}
-
-.initiativeUsageText {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.28rem;
-  color: var(--color-ink-soft);
 }
 
 .initiativeActionButtons {

@@ -54,6 +54,7 @@ import {
   getAlwaysPreparedSpellIdsForCharacter,
   getAlwaysSpellbookSpellIdsForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
+  getBardicInspirationUsesTotalForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
   getBeguilingMagicUsesTotalForCharacter,
   getDruidNaturalRecoveryUsesRemainingForCharacter,
@@ -62,6 +63,7 @@ import {
   getFeatureActionsForCharacter,
   getFeatureActionOptionsForCharacter,
   getFighterPsiWarriorEnergyDiceRemainingForCharacter,
+  getFighterPsiWarriorEnergyDiceTotalForCharacter,
   getFighterPsiWarriorTelekineticMasterUsesRemainingForCharacter,
   getFighterPsiWarriorTelekineticMasterUsesTotalForCharacter,
   getRangerFeyReinforcementsUsesRemainingForCharacter,
@@ -109,9 +111,19 @@ import {
   getClericResolvedDivinityDisplay
 } from "../../../../pages/CharactersPage/classFeatures/cleric/cleric";
 import { getDruidCircleOfTheStarsChaliceHealingSpellEntry } from "../../../../pages/CharactersPage/classFeatures/druid/subclasses/druidCircleOfTheStarsDescriptions";
+import {
+  createChargesAndUsageHeaderTags,
+  createChargesCardUsage,
+  createChargesHeaderTag,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost,
+  createNamedResourceCardUsage,
+  createNamedUsageHeaderTags
+} from "../../../../pages/CharactersPage/classFeatures/cardUsage";
 import { paladinChannelDivinityActionKey } from "../../../../pages/CharactersPage/classFeatures/paladin/paladin";
 import { hasPaladinOathOfTheNobleGeniesElementalSmite } from "../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
 import {
+  getSorceryPointsTotal,
   getSorceryPointsRemaining,
   spendSorceryPoints
 } from "../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
@@ -561,7 +573,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     () => getChannelDivinityUsesRemainingForCharacter(character),
     [character]
   );
+  const bardicInspirationUsesTotal = useMemo(
+    () => getBardicInspirationUsesTotalForCharacter(character),
+    [character]
+  );
   const sorceryPointsRemaining = useMemo(() => getSorceryPointsRemaining(character), [character]);
+  const sorceryPointsTotal = useMemo(() => getSorceryPointsTotal(character), [character]);
   const usesPreparedSpells = usesPreparedSpellsForCharacter(
     character.className,
     character.level,
@@ -647,6 +664,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const fighterPsiWarriorEnergyDiceRemaining = useMemo(
     () => getFighterPsiWarriorEnergyDiceRemainingForCharacter(character),
     [character.classFeatureState, character.className, character.level, character.subclassId]
+  );
+  const fighterPsiWarriorEnergyDiceTotal = useMemo(
+    () => getFighterPsiWarriorEnergyDiceTotalForCharacter(character),
+    [character.className, character.level, character.subclassId]
   );
   const bardicInspirationUsesRemaining = useMemo(
     () => getBardicInspirationUsesRemainingForCharacter(character),
@@ -1205,10 +1226,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellPhantasmalCreaturesOptionState?.disabled ?? false;
   const selectedSpellSupportsTelekineticMaster =
     selectedSpell?.id === telekinesisSpellId && fighterPsiWarriorTelekineticMasterUsesTotal > 0;
-  const selectedSpellCanUseTelekineticMasterFallback =
-    selectedSpellSupportsTelekineticMaster &&
-    fighterPsiWarriorTelekineticMasterUsesRemaining <= 0 &&
-    fighterPsiWarriorEnergyDiceRemaining > 0;
   const selectedSpellTelekineticMasterDisabled =
     selectedSpellSupportsTelekineticMaster &&
     fighterPsiWarriorTelekineticMasterUsesRemaining <= 0 &&
@@ -1285,6 +1302,17 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       selectedSpellProjectedSpellSlotsRemaining,
       spellSlotTotals
     ]
+  );
+  const selectedSpellFrozenHauntFallbackSlotSummary = useMemo(
+    () => ({
+      remaining: selectedSpellProjectedSpellSlotsRemaining
+        .slice(frozenHauntFallbackSpellSlotMinimumLevel - 1)
+        .reduce((sum, remaining) => sum + remaining, 0),
+      total: spellSlotTotals
+        .slice(frozenHauntFallbackSpellSlotMinimumLevel - 1)
+        .reduce((sum, total) => sum + total, 0)
+    }),
+    [selectedSpellProjectedSpellSlotsRemaining, spellSlotTotals]
   );
   const selectedSpellFrozenHauntFallbackSlotLevelIsValid =
     selectedSpellFrozenHauntOptionState?.fallbackSpellSlotLevels.includes(
@@ -3163,10 +3191,23 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           checked: useWarGodsBlessingOnSelectedSpell,
                           onCheckedChange: setUseWarGodsBlessingOnSelectedSpell,
                           disabled: selectedSpellWarGodsBlessingDisabled,
-                          fallbackCost: {
-                            label: "Use 1",
-                            icon: "divinity" as const
-                          }
+                          headerTags: createNamedUsageHeaderTags(
+                            createFeatureActionCardCost({
+                              amountText: "1",
+                              icon: "pyromancy"
+                            }),
+                            channelDivinityUsesRemaining,
+                            channelDivinityUsesTotal,
+                            {
+                              icon: "pyromancy"
+                            }
+                          ),
+                          usage: createNamedResourceCardUsage(
+                            createFeatureActionCardCost({
+                              amountText: "1",
+                              icon: "pyromancy"
+                            })
+                          )
                         }
                       ]
                     : []),
@@ -3178,18 +3219,23 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           checked: useMindMagicOnSelectedSpell,
                           onCheckedChange: setUseMindMagicOnSelectedSpell,
                           disabled: selectedSpellMindMagicDisabled,
-                          headerResource: {
-                            kind: "tracker" as const,
-                            label: "Channel Divinity",
-                            current: channelDivinityUsesRemaining,
-                            total: channelDivinityUsesTotal,
-                            icon: "pyromancy" as const,
-                            cost: 1
-                          },
-                          fallbackCost: {
-                            label: "Use 1",
-                            icon: "divinity" as const
-                          }
+                          headerTags: createNamedUsageHeaderTags(
+                            createFeatureActionCardCost({
+                              amountText: "1",
+                              icon: "pyromancy"
+                            }),
+                            channelDivinityUsesRemaining,
+                            channelDivinityUsesTotal,
+                            {
+                              icon: "pyromancy"
+                            }
+                          ),
+                          usage: createNamedResourceCardUsage(
+                            createFeatureActionCardCost({
+                              amountText: "1",
+                              icon: "pyromancy"
+                            })
+                          )
                         }
                       ]
                     : []),
@@ -3201,10 +3247,16 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           checked: useStarMapOnSelectedSpell,
                           onCheckedChange: setUseStarMapOnSelectedSpell,
                           disabled: selectedSpellStarMapDisabled,
-                          tracker: {
-                            current: druidStarMapGuidingBoltUsesRemaining,
-                            total: druidStarMapGuidingBoltUsesTotal
-                          }
+                          headerTags: [
+                            createChargesHeaderTag(
+                              druidStarMapGuidingBoltUsesRemaining,
+                              druidStarMapGuidingBoltUsesTotal
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            druidStarMapGuidingBoltUsesRemaining,
+                            druidStarMapGuidingBoltUsesTotal
+                          )
                         }
                       ]
                     : []),
@@ -3216,10 +3268,23 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           checked: usePsionicSorceryOnSelectedSpell,
                           onCheckedChange: setUsePsionicSorceryOnSelectedSpell,
                           disabled: selectedSpellPsionicSorceryDisabled,
-                          fallbackCost: {
-                            label: `Use ${selectedSpellPsionicSorceryCurrentCost}`,
-                            icon: "sparkles" as const
-                          }
+                          headerTags: createNamedUsageHeaderTags(
+                            createFeatureActionCardCost({
+                              amountText: String(selectedSpellPsionicSorceryCurrentCost),
+                              icon: "sparkles"
+                            }),
+                            sorceryPointsRemaining,
+                            sorceryPointsTotal,
+                            {
+                              icon: "sparkles"
+                            }
+                          ),
+                          usage: createNamedResourceCardUsage(
+                            createFeatureActionCardCost({
+                              amountText: String(selectedSpellPsionicSorceryCurrentCost),
+                              icon: "sparkles"
+                            })
+                          )
                         }
                       ]
                     : []),
@@ -3232,17 +3297,27 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           onCheckedChange: setUseBeguilingMagicOnSelectedSpell,
                           disabled:
                             beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
-                          tracker: {
-                            current: beguilingMagicUsesRemaining,
-                            total: beguilingMagicUsesTotal
-                          },
-                          fallbackCost:
-                            beguilingMagicUsesRemaining <= 0
-                              ? {
-                                  label: "Use 1",
-                                  icon: "music" as const
-                                }
-                              : undefined
+                          headerTags: createChargesAndUsageHeaderTags(
+                            beguilingMagicUsesRemaining,
+                            beguilingMagicUsesTotal,
+                            createFeatureActionCardCost({
+                              amountText: "1",
+                              icon: "music"
+                            }),
+                            bardicInspirationUsesRemaining,
+                            bardicInspirationUsesTotal,
+                            {
+                              icon: "music"
+                            }
+                          ),
+                          usage: createChargesOrResourceCardUsage(
+                            beguilingMagicUsesRemaining,
+                            beguilingMagicUsesTotal,
+                            createFeatureActionCardCost({
+                              amountText: "1",
+                              icon: "music"
+                            })
+                          )
                         }
                       ]
                     : []),
@@ -3254,16 +3329,27 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           checked: useTelekineticMasterOnSelectedSpell,
                           onCheckedChange: setUseTelekineticMasterOnSelectedSpell,
                           disabled: selectedSpellTelekineticMasterDisabled,
-                          tracker: {
-                            current: fighterPsiWarriorTelekineticMasterUsesRemaining,
-                            total: fighterPsiWarriorTelekineticMasterUsesTotal
-                          },
-                          fallbackCost: selectedSpellCanUseTelekineticMasterFallback
-                            ? {
-                                label: "Use 1",
-                                icon: "psi" as const
-                              }
-                            : undefined
+                          headerTags: createChargesAndUsageHeaderTags(
+                            fighterPsiWarriorTelekineticMasterUsesRemaining,
+                            fighterPsiWarriorTelekineticMasterUsesTotal,
+                            createFeatureActionCardCost({
+                              amountText: "1",
+                              icon: "psi"
+                            }),
+                            fighterPsiWarriorEnergyDiceRemaining,
+                            fighterPsiWarriorEnergyDiceTotal,
+                            {
+                              icon: "psi"
+                            }
+                          ),
+                          usage: createChargesOrResourceCardUsage(
+                            fighterPsiWarriorTelekineticMasterUsesRemaining,
+                            fighterPsiWarriorTelekineticMasterUsesTotal,
+                            createFeatureActionCardCost({
+                              amountText: "1",
+                              icon: "psi"
+                            })
+                          )
                         }
                       ]
                     : []),
@@ -3275,10 +3361,23 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           checked: useElementalSmiteOnSelectedSpell,
                           onCheckedChange: setUseElementalSmiteOnSelectedSpell,
                           disabled: selectedSpellElementalSmiteDisabled,
-                          fallbackCost: {
-                            label: "Use 1",
-                            icon: "divinity" as const
-                          }
+                          headerTags: createNamedUsageHeaderTags(
+                            createFeatureActionCardCost({
+                              amountText: "1",
+                              icon: "pyromancy"
+                            }),
+                            channelDivinityUsesRemaining,
+                            channelDivinityUsesTotal,
+                            {
+                              icon: "pyromancy"
+                            }
+                          ),
+                          usage: createNamedResourceCardUsage(
+                            createFeatureActionCardCost({
+                              amountText: "1",
+                              icon: "pyromancy"
+                            })
+                          )
                         }
                       ]
                     : []),
@@ -3290,10 +3389,16 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           checked: useStepsOfTheFeyOnSelectedSpell,
                           onCheckedChange: setUseStepsOfTheFeyOnSelectedSpell,
                           disabled: selectedSpellStepsOfTheFeyDisabled,
-                          tracker: {
-                            current: warlockStepsOfTheFeyUsesRemaining,
-                            total: warlockStepsOfTheFeyUsesTotal
-                          }
+                          headerTags: [
+                            createChargesHeaderTag(
+                              warlockStepsOfTheFeyUsesRemaining,
+                              warlockStepsOfTheFeyUsesTotal
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            warlockStepsOfTheFeyUsesRemaining,
+                            warlockStepsOfTheFeyUsesTotal
+                          )
                         }
                       ]
                     : []),
@@ -3305,10 +3410,16 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           checked: useMistyWandererOnSelectedSpell,
                           onCheckedChange: setUseMistyWandererOnSelectedSpell,
                           disabled: selectedSpellMistyWandererDisabled,
-                          tracker: {
-                            current: rangerMistyWandererUsesRemaining,
-                            total: rangerMistyWandererUsesTotal
-                          }
+                          headerTags: [
+                            createChargesHeaderTag(
+                              rangerMistyWandererUsesRemaining,
+                              rangerMistyWandererUsesTotal
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            rangerMistyWandererUsesRemaining,
+                            rangerMistyWandererUsesTotal
+                          )
                         }
                       ]
                     : []),
@@ -3320,10 +3431,16 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           checked: useFeyReinforcementsOnSelectedSpell,
                           onCheckedChange: setUseFeyReinforcementsOnSelectedSpell,
                           disabled: selectedSpellFeyReinforcementsDisabled,
-                          tracker: {
-                            current: rangerFeyReinforcementsUsesRemaining,
-                            total: rangerFeyReinforcementsUsesTotal
-                          }
+                          headerTags: [
+                            createChargesHeaderTag(
+                              rangerFeyReinforcementsUsesRemaining,
+                              rangerFeyReinforcementsUsesTotal
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            rangerFeyReinforcementsUsesRemaining,
+                            rangerFeyReinforcementsUsesTotal
+                          )
                         },
                         {
                           id: "fey-reinforcements-no-concentration",
@@ -3344,11 +3461,16 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           checked: usePhantasmalCreaturesOnSelectedSpell,
                           onCheckedChange: setUsePhantasmalCreaturesOnSelectedSpell,
                           disabled: selectedSpellPhantasmalCreaturesDisabled,
-                          tracker: {
-                            current:
+                          headerTags: [
+                            createChargesHeaderTag(
                               selectedSpellPhantasmalCreaturesOptionState?.usesRemaining ?? 0,
-                            total: selectedSpellPhantasmalCreaturesOptionState?.usesTotal ?? 1
-                          }
+                              selectedSpellPhantasmalCreaturesOptionState?.usesTotal ?? 1
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            selectedSpellPhantasmalCreaturesOptionState?.usesRemaining ?? 0,
+                            selectedSpellPhantasmalCreaturesOptionState?.usesTotal ?? 1
+                          )
                         }
                       ]
                     : []),
@@ -3360,16 +3482,27 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           checked: useFrozenHauntOnSelectedSpell,
                           onCheckedChange: setUseFrozenHauntOnSelectedSpell,
                           disabled: selectedSpellFrozenHauntOptionState.disabled,
-                          tracker: {
-                            current: selectedSpellFrozenHauntOptionState.usesRemaining,
-                            total: selectedSpellFrozenHauntOptionState.usesTotal
-                          },
-                          fallbackCost:
-                            selectedSpellFrozenHauntOptionState.usesRemaining <= 0
-                              ? {
-                                  label: `Use 1 level ${frozenHauntFallbackSpellSlotMinimumLevel}+ slot`
-                                }
-                              : undefined,
+                          headerTags: createChargesAndUsageHeaderTags(
+                            selectedSpellFrozenHauntOptionState.usesRemaining,
+                            selectedSpellFrozenHauntOptionState.usesTotal,
+                            createFeatureActionCardCost({
+                              amountText: `${frozenHauntFallbackSpellSlotMinimumLevel}+`,
+                              resourceLabel: "Spell Slot"
+                            }),
+                            selectedSpellFrozenHauntFallbackSlotSummary.remaining,
+                            selectedSpellFrozenHauntFallbackSlotSummary.total,
+                            {
+                              label: "Spell Slots"
+                            }
+                          ),
+                          usage: createChargesOrResourceCardUsage(
+                            selectedSpellFrozenHauntOptionState.usesRemaining,
+                            selectedSpellFrozenHauntOptionState.usesTotal,
+                            createFeatureActionCardCost({
+                              amountText: `${frozenHauntFallbackSpellSlotMinimumLevel}+`,
+                              resourceLabel: "Spell Slot"
+                            })
+                          ),
                           select:
                             useFrozenHauntOnSelectedSpell &&
                             selectedSpellFrozenHauntOptionState.usesRemaining <= 0 &&
@@ -3392,10 +3525,16 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           checked: useBlessingOfMoonlightOnSelectedSpell,
                           onCheckedChange: setUseBlessingOfMoonlightOnSelectedSpell,
                           disabled: blessingOfMoonlightUsesRemaining <= 0,
-                          tracker: {
-                            current: blessingOfMoonlightUsesRemaining,
-                            total: blessingOfMoonlightUsesTotal
-                          }
+                          headerTags: [
+                            createChargesHeaderTag(
+                              blessingOfMoonlightUsesRemaining,
+                              blessingOfMoonlightUsesTotal
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            blessingOfMoonlightUsesRemaining,
+                            blessingOfMoonlightUsesTotal
+                          )
                         }
                       ]
                     : []),
@@ -3407,10 +3546,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           checked: useNaturalRecoveryOnSelectedSpell,
                           onCheckedChange: setUseNaturalRecoveryOnSelectedSpell,
                           disabled: druidNaturalRecoveryUsesRemaining <= 0,
-                          tracker: {
-                            current: druidNaturalRecoveryUsesRemaining,
-                            total: 1
-                          }
+                          headerTags: [
+                            createChargesHeaderTag(druidNaturalRecoveryUsesRemaining, 1)
+                          ],
+                          usage: createChargesCardUsage(druidNaturalRecoveryUsesRemaining, 1)
                         }
                       ]
                     : [])

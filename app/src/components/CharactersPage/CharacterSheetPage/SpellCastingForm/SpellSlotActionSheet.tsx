@@ -28,12 +28,26 @@ function SpellSlotActionSheet({
       title={`Level ${slotLevel} Spell Slots ${remainingSlots}/${totalSlots}`}
       closeLabel={`Close level ${slotLevel} spell slot management`}
       onClose={onClose}
-      onUseOne={onUseSlot}
-      onResetOne={onResetSlot}
-      onResetAll={onResetAll}
-      useOneDisabled={!hasSlots || remainingSlots <= 0}
-      resetOneDisabled={expendedSlots <= 0}
-      resetAllDisabled={expendedSlots <= 0}
+      actions={[
+        {
+          label: "Use 1",
+          onClick: onUseSlot,
+          disabled: !hasSlots || remainingSlots <= 0,
+          ariaLabel: `Use 1 level ${slotLevel} spell slot`
+        },
+        {
+          label: "Reset 1",
+          onClick: onResetSlot,
+          disabled: expendedSlots <= 0,
+          ariaLabel: `Reset 1 level ${slotLevel} spell slot`
+        },
+        {
+          label: "Reset All",
+          onClick: onResetAll,
+          disabled: expendedSlots <= 0,
+          ariaLabel: `Reset all level ${slotLevel} spell slots`
+        }
+      ]}
     />
   );
 }

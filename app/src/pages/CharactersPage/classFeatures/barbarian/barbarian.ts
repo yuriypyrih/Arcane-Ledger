@@ -27,6 +27,7 @@ import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
 } from "../../traits";
+import { createTextHeaderTag } from "../cardUsage";
 import { skillGroupsByAbility } from "../../skillDefinitions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
@@ -870,6 +871,7 @@ function getBarbarianRelentlessRageAction(
     actionCategory: ACTION_CATEGORY.FEATURE,
     drawer: {
       kind: "confirm",
+      headerTags: [createTextHeaderTag("Current DC", String(currentDc))],
       facts: []
     },
     disabled: !isRaging,
@@ -883,6 +885,7 @@ export function getBarbarianFeatureActions(
 ): FeatureActionCard[] {
   const rageState = getBarbarianRageState(character);
   const rageUsesRemaining = getBarbarianRageUsesRemaining(character);
+  const rageUsesTotal = getBarbarianRageUsesTotal(character);
 
   return [
     getBarbarianFeatureAction(character),
@@ -893,12 +896,14 @@ export function getBarbarianFeatureActions(
     berserkerSubclass.getBarbarianPathOfTheBerserkerFeatureAction(
       character,
       rageState,
-      rageUsesRemaining
+      rageUsesRemaining,
+      rageUsesTotal
     ),
     zealotSubclass.getBarbarianPathOfTheZealotZealousPresenceAction(
       character,
       rageState,
-      rageUsesRemaining
+      rageUsesRemaining,
+      rageUsesTotal
     ),
     worldTreeSubclass.getBarbarianPathOfTheWorldTreeFeatureAction(
       character,

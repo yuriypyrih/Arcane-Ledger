@@ -10,6 +10,7 @@ import {
   type SpellEntry
 } from "../../../../../codex/entries";
 import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
+import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
 import {
   activateBardCollegeOfDanceInspiringMovementForCharacter,
   activateBarbarianBerserkerRetaliationForCharacter,
@@ -63,6 +64,7 @@ import {
   getRogueSpellThiefUsesRemainingForCharacter,
   getRogueSpellThiefUsesTotalForCharacter,
   getSorceryPointsRemainingForCharacter,
+  getSorceryPointsTotalForCharacter,
   getWarlockBeguilingDefenseUsesRemainingForCharacter,
   getWarlockBeguilingDefenseUsesTotalForCharacter,
   getWarlockPactMagicSlotTotalForCharacter,
@@ -95,7 +97,7 @@ import {
   removeFeatureStatusEntryForCharacter,
   setDruidActiveStarryFormConstellationForCharacter,
   setDruidCosmicOmenSelectionForCharacter,
-  type FeatureActionResource,
+  type FeatureActionHeaderTag,
   setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures";
 import {
@@ -134,6 +136,14 @@ import {
 } from "../../../../../pages/CharactersPage/traits";
 import type { ExhaustionLevel } from "../../../../../pages/CharactersPage/traits";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
+import {
+  createChargesAndUsageHeaderTags,
+  createChargesCardUsage,
+  createChargesHeaderTag,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost,
+  createNamedUsageHeaderTags
+} from "../../../../../pages/CharactersPage/classFeatures/cardUsage";
 import type {
   Character,
   CharacterStatusDuration,
@@ -162,6 +172,12 @@ import TraitEditorModal from "./TraitEditorModal";
 import ReactionEntryDrawer from "./ReactionEntryDrawer";
 import StatusEntryDrawer from "./StatusEntryDrawer";
 import TraitsConditionsSections from "./TraitsConditionsSections";
+import DeflectAttacksReactionFooter from "./DeflectAttacksReaction";
+import {
+  createDeflectAttacksReactionRollRequest,
+  getDeflectAttacksReactionFacts,
+  getSlowFallReactionFacts
+} from "./deflectAttacksReactionUtils";
 import DruidCosmicOmenReactionBody from "./DruidCosmicOmenReactionBody";
 import DruidStarryFormActionBody from "./DruidStarryFormActionBody";
 import {
@@ -232,6 +248,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   const [useStepsOfTheFeyOnReactionSpell, setUseStepsOfTheFeyOnReactionSpell] = useState(false);
   const [spellThiefSearchQuery, setSpellThiefSearchQuery] = useState("");
   const [selectedSpellThiefSpellId, setSelectedSpellThiefSpellId] = useState("");
+  const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   const roundTracker = normalizeRoundTracker(character.roundTracker);
   const baseClassSpellEntries = useClassSpellEntries(character.className, character.subclassId);
@@ -529,6 +546,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   const chillingRetributionUsesTotal =
     getRangerWinterWalkerChillingRetributionUsesTotalForCharacter(character);
   const sorceryPointsRemaining = getSorceryPointsRemainingForCharacter(character);
+  const sorceryPointsTotal = getSorceryPointsTotalForCharacter(character);
   const restoreBalanceUsesRemaining = getSorcererRestoreBalanceUsesRemainingForCharacter(character);
   const restoreBalanceUsesTotal = getSorcererRestoreBalanceUsesTotalForCharacter(character);
   const channelDivinityUsesRemaining = getChannelDivinityUsesRemainingForCharacter(character);
@@ -743,48 +761,126 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
                                   rogueArcaneTricksterSpellThiefReactionId
                                 ? `${spellThiefUsesRemaining}/${spellThiefUsesTotal} charges | Long Rest`
                                 : null;
-  const selectedReactionHeaderResources: FeatureActionResource[] =
+  const selectedReactionHeaderTags: FeatureActionHeaderTag[] =
     selectedReactionEntry?.id === druidCosmicOmenReactionId
-      ? [
-          {
-            kind: "tracker",
-            label: "Charges",
-            current: cosmicOmenUsesRemaining,
-            total: cosmicOmenUsesTotal
-          }
-        ]
-      : selectedReactionEntry?.id === clericGuidedStrikeReactionEntryId
-        ? [
+      ? [createChargesHeaderTag(cosmicOmenUsesRemaining, cosmicOmenUsesTotal)]
+      : selectedReactionEntry?.id === bardCollegeOfDanceInspiringMovementReactionId
+        ? createNamedUsageHeaderTags(
+            createFeatureActionCardCost({
+              amountText: "1",
+              icon: "music"
+            }),
+            bardicInspirationUsesRemaining,
+            bardicInspirationUsesTotal,
             {
-              kind: "tracker",
-              label: "Channel Divinity",
-              current: channelDivinityUsesRemaining,
-              total: channelDivinityUsesTotal,
-              icon: "pyromancy",
-              cost: 1
+              icon: "music"
             }
-          ]
+          )
+      : selectedReactionEntry?.id === clericGuidedStrikeReactionEntryId
+        ? createNamedUsageHeaderTags(
+            createFeatureActionCardCost({
+              amountText: "1",
+              icon: "pyromancy"
+            }),
+            channelDivinityUsesRemaining,
+            channelDivinityUsesTotal,
+            {
+              icon: "pyromancy"
+            }
+          )
         : selectedReactionEntry?.id === clericWardingFlareReactionEntryId
-          ? [
-              {
-                kind: "tracker",
-                label: "Charges",
-                current: wardingFlareUsesRemaining,
-                total: wardingFlareUsesTotal
-              }
-            ]
+          ? [createChargesHeaderTag(wardingFlareUsesRemaining, wardingFlareUsesTotal)]
           : selectedReactionEntry?.id === "reaction-psi-warrior-protective-field"
-            ? [
+            ? createNamedUsageHeaderTags(
+                createFeatureActionCardCost({
+                  amountText: "1",
+                  icon: "psi"
+                }),
+                getFighterPsiWarriorEnergyDiceRemainingForCharacter(character),
+                getFighterPsiWarriorEnergyDiceTotalForCharacter(character),
                 {
-                  kind: "tracker",
-                  label: "Use",
-                  current: getFighterPsiWarriorEnergyDiceRemainingForCharacter(character),
-                  total: getFighterPsiWarriorEnergyDiceTotalForCharacter(character),
-                  icon: "psi",
-                  cost: 1,
-                  connectorText: "of"
+                  icon: "psi"
                 }
-              ]
+              )
+            : selectedReactionEntry?.id === paladinGloriousDefenseReactionEntryId
+              ? [createChargesHeaderTag(gloriousDefenseUsesRemaining, gloriousDefenseUsesTotal)]
+              : selectedReactionEntry?.id === paladinElementalRebukeReactionEntryId
+                ? [createChargesHeaderTag(elementalRebukeUsesRemaining, elementalRebukeUsesTotal)]
+                : selectedReactionEntry?.id === sorcererBendLuckReactionEntryId
+                  ? createNamedUsageHeaderTags(
+                      createFeatureActionCardCost({
+                        amountText: "1",
+                        icon: "sparkles"
+                      }),
+                      sorceryPointsRemaining,
+                      sorceryPointsTotal,
+                      {
+                        icon: "sparkles"
+                      }
+                    )
+                  : selectedReactionEntry?.id === sorcererRestoreBalanceReactionEntryId
+                    ? [createChargesHeaderTag(restoreBalanceUsesRemaining, restoreBalanceUsesTotal)]
+                    : selectedReactionEntry?.id === rogueScionOfTheThreeBloodthirstReactionEntryId
+                      ? [
+                          createChargesHeaderTag(
+                            bloodthirstUsesRemaining,
+                            bloodthirstUsesTotal,
+                            "Long Rest"
+                          )
+                        ]
+                      : selectedReactionEntry?.id ===
+                            rangerWinterWalkerChillingRetributionReactionEntryId
+                        ? [
+                            createChargesHeaderTag(
+                              chillingRetributionUsesRemaining,
+                              chillingRetributionUsesTotal,
+                              "Long Rest"
+                            )
+                          ]
+                        : selectedReactionEntry?.id ===
+                              wizardIllusionistIllusorySelfReactionEntryId
+                          ? createChargesAndUsageHeaderTags(
+                              wizardIllusionistIllusorySelfUsesRemaining,
+                              wizardIllusionistIllusorySelfUsesTotal,
+                              createFeatureActionCardCost({
+                                amountText: "2+",
+                                resourceLabel: "Spell Slot"
+                              }),
+                              wizardIllusionistIllusorySelfFallbackSlotSummary.remaining,
+                              wizardIllusionistIllusorySelfFallbackSlotSummary.total,
+                              {
+                                label: "Spell Slots"
+                              },
+                              "Short Rest / Long Rest",
+                              {
+                                isFallback: true
+                              }
+                            )
+                          : selectedReactionEntry?.id === warlockBeguilingDefenseReactionEntryId
+                            ? createChargesAndUsageHeaderTags(
+                                warlockBeguilingDefenseUsesRemaining,
+                                warlockBeguilingDefenseUsesTotal,
+                                createFeatureActionCardCost({
+                                  resourceLabel: "Pact Magic Slot"
+                                }),
+                                warlockPactMagicSlotsRemaining,
+                                warlockPactMagicSlotTotal,
+                                {
+                                  label: "Pact Magic Slots"
+                                },
+                              "Long Rest",
+                              {
+                                isFallback: true
+                              }
+                            )
+                            : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId
+                              ? [
+                                  createChargesHeaderTag(
+                                    spellThiefUsesRemaining,
+                                    spellThiefUsesTotal,
+                                    "Long Rest"
+                                  )
+                                ]
           : [];
   const selectedReactionSelectionWarning =
     selectedReactionEntry?.id === superiorHuntersDefenseReactionId &&
@@ -799,6 +895,13 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     selectedReactionSelectionWarning ??
     selectedReactionResourceWarning;
   const selectedReactionBlockedReason = spellcastingState.blocked ? spellcastingState.reason : null;
+  const isDeflectAttacksReaction = selectedReactionEntry?.id === "reaction-deflect-attacks";
+  const isSlowFallReaction = selectedReactionEntry?.id === "reaction-slow-fall";
+  const selectedReactionFacts = isDeflectAttacksReaction
+    ? getDeflectAttacksReactionFacts(character)
+    : isSlowFallReaction
+      ? getSlowFallReactionFacts(character)
+      : [];
   const selectedStatusEntryPreset = selectedStatusEntry
     ? getStatusDurationPreset(selectedStatusEntry.duration)
     : STATUS_DURATION_PRESET.INFINITE;
@@ -1284,6 +1387,20 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     closeSelectedReaction();
   }
 
+  function takeDeflectAttacksReaction() {
+    if (!isDeflectAttacksReaction || selectedReactionActionWarning) {
+      return;
+    }
+
+    const rollRequest = createDeflectAttacksReactionRollRequest(character);
+
+    castSelectedReactionEntry();
+
+    if (rollRequest) {
+      openDiceRoller(rollRequest);
+    }
+  }
+
   function updatePaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageType(nextValue: string) {
     onPersistCharacter((currentCharacter) =>
       setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter(
@@ -1414,17 +1531,27 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
                           onCheckedChange: setUseBeguilingMagicOnReactionSpell,
                           disabled:
                             beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
-                          tracker: {
-                            current: beguilingMagicUsesRemaining,
-                            total: beguilingMagicUsesTotal
-                          },
-                          fallbackCost:
-                            beguilingMagicUsesRemaining <= 0
-                              ? {
-                                  label: "Use 1",
-                                  icon: "music" as const
-                                }
-                              : undefined
+                          headerTags: createChargesAndUsageHeaderTags(
+                            beguilingMagicUsesRemaining,
+                            beguilingMagicUsesTotal,
+                            createFeatureActionCardCost({
+                              amountText: "1",
+                              icon: "music"
+                            }),
+                            bardicInspirationUsesRemaining,
+                            bardicInspirationUsesTotal,
+                            {
+                              icon: "music"
+                            }
+                          ),
+                          usage: createChargesOrResourceCardUsage(
+                            beguilingMagicUsesRemaining,
+                            beguilingMagicUsesTotal,
+                            createFeatureActionCardCost({
+                              amountText: "1",
+                              icon: "music"
+                            })
+                          )
                         }
                       ]
                     : []),
@@ -1436,10 +1563,16 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
                           checked: useStepsOfTheFeyOnReactionSpell,
                           onCheckedChange: setUseStepsOfTheFeyOnReactionSpell,
                           disabled: selectedReactionSpellStepsOfTheFeyDisabled,
-                          tracker: {
-                            current: warlockStepsOfTheFeyUsesRemaining,
-                            total: warlockStepsOfTheFeyUsesTotal
-                          }
+                          headerTags: [
+                            createChargesHeaderTag(
+                              warlockStepsOfTheFeyUsesRemaining,
+                              warlockStepsOfTheFeyUsesTotal
+                            )
+                          ],
+                          usage: createChargesCardUsage(
+                            warlockStepsOfTheFeyUsesRemaining,
+                            warlockStepsOfTheFeyUsesTotal
+                          )
                         }
                       ]
                     : [])
@@ -1453,13 +1586,19 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         <ReactionEntryDrawer
           reaction={selectedReactionEntry}
           actionWarning={selectedReactionActionWarning}
-          headerResources={selectedReactionHeaderResources}
-          headerBadges={
-            selectedReactionEntry.id === bardCollegeOfDanceInspiringMovementReactionId
-              ? ["Use 1 Bardic Inspiration"]
-              : []
-          }
+          headerTags={selectedReactionHeaderTags}
+          facts={selectedReactionFacts}
+          factsSectionTitle={isDeflectAttacksReaction ? null : undefined}
+          headerBadges={[]}
           resourceSummary={selectedReactionResourceSummary}
+          footerContent={
+            isDeflectAttacksReaction ? (
+              <DeflectAttacksReactionFooter
+                disabled={selectedReactionActionWarning !== null}
+                onTakeReaction={takeDeflectAttacksReaction}
+              />
+            ) : null
+          }
           customContent={
             selectedReactionEntry.id === druidCosmicOmenReactionId ? (
               <DruidCosmicOmenReactionBody
@@ -1648,6 +1787,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           onClose={() => setSelectedStatusEntryId(null)}
         />
       ) : null}
+
+      {diceRollerPopup}
     </>
   );
 }

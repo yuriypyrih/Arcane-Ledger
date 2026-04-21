@@ -11,6 +11,11 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifier } from "../../../gameplay";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import { swapTemporaryHitPointsAssignment } from "../../../shared";
+import {
+  createChargesAndUsageHeaderTags,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../cardUsage";
 import type { DerivedFeatureStatusEntry, FeatureActionCard } from "../../types";
 import {
   getPreparedSpellIdsByLevel,
@@ -593,6 +598,13 @@ function getWarlockFiendPatronHurlThroughHellAction(
     breakdown: "1 charge per Long Rest",
     economyType: ECONOMY_TYPE.FREE,
     actionCategory: ACTION_CATEGORY.FEATURE,
+    cardUsage: createChargesOrResourceCardUsage(
+      usesRemaining,
+      usesTotal,
+      createFeatureActionCardCost({
+        resourceLabel: "Pact Magic Slot"
+      })
+    ),
     usesRemaining,
     usesTotal,
     hideUsesTrackerOnCard: true,
@@ -601,6 +613,18 @@ function getWarlockFiendPatronHurlThroughHellAction(
     usesInlineIcon: hasFallbackSlot ? "sparkles" : undefined,
     usesInlineSuffix: hasFallbackSlot ? "instead" : undefined,
     description: [...hurlThroughHellDescription],
+    headerTags: createChargesAndUsageHeaderTags(
+      usesRemaining,
+      usesTotal,
+      createFeatureActionCardCost({
+        resourceLabel: "Pact Magic Slot"
+      }),
+      pactMagicSlotsRemaining,
+      pactMagicSlotsTotal,
+      {
+        label: "Pact Magic Slots"
+      }
+    ),
     resources,
     drawer: {
       kind: "confirm",

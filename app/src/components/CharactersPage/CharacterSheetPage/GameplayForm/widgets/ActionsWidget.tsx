@@ -67,7 +67,6 @@ import {
   createEconomyMultiContextForFeatureAction,
   createEconomyMultiContextForFeatureActionOption,
   expendMonkFocusPointForCharacter,
-  getBonusActionWeaponAttackMultiCountForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
   getBeguilingMagicUsesRemainingForCharacter,
   getBeguilingMagicUsesTotalForCharacter,
@@ -89,11 +88,9 @@ import {
   getSpellEntryForCharacter,
   getSpellcastingStateForCharacter,
   getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter,
-  hasBattleMagicBonusWeaponAttackForCharacter,
   getWarlockHealingLightDiceRemainingForCharacter,
   getWarlockHealingLightMaxSpendForCharacter,
   getWarlockMysticArcanumSelectionsForCharacter,
-  getWarlockPactMagicSlotTotalForCharacter,
   getWarlockPactMagicSlotsRemainingForCharacter,
   hasActivePaladinAuraOfProtectionForCharacter,
   restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter,
@@ -105,6 +102,12 @@ import {
   type FeatureActionOptionCard
 } from "../../../../../pages/CharactersPage/classFeatures";
 import { bardicInspirationActionKey } from "../../../../../pages/CharactersPage/classFeatures/bard/bard";
+import {
+  createChargesCardUsage,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost,
+  createNamedResourceCardUsage
+} from "../../../../../pages/CharactersPage/classFeatures/cardUsage";
 import { mantleOfInspirationActionKey } from "../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfGlamour";
 import {
   channelDivinityActionKey,
@@ -195,7 +198,11 @@ import {
   type GameplayActionDefinition
 } from "../../../../../pages/CharactersPage/combatActions";
 import { normalizeRoundTracker } from "../../../../../pages/CharactersPage/combat";
-import { getRoundTrackerResourceForEconomyType } from "../../../../../pages/CharactersPage/actionEconomy";
+import {
+  ECONOMY_TYPE,
+  getRoundTrackerResourceForEconomyType,
+  type EconomyType
+} from "../../../../../pages/CharactersPage/actionEconomy";
 import { getAbilityScoresForCharacter } from "../../../../../pages/CharactersPage/abilities";
 import {
   formatAbilityModifier,
@@ -266,6 +273,7 @@ import CodexDivinityDrawer from "../../../../CodexPage/CodexDivinityDrawer/Codex
 import BlessingOfTheTricksterActionBody from "./BlessingOfTheTricksterActionBody";
 import { ClericPreserveLifeActionBody } from "./ClericPreserveLifeAction";
 import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
+import WeaponAttackFooterButtons from "./WeaponAttackFooterButtons";
 import ClericChannelDivinityAction from "./ClericChannelDivinityAction";
 import DruidStarryFormActionBody from "./DruidStarryFormActionBody";
 import {
@@ -296,7 +304,15 @@ import {
   applyWeaponDamageBonusPreview,
   createPsiWarriorPsionicStrikeDamageBonus
 } from "./fighterPsiWarriorWeapon";
-import { getMonkWarriorOfMercyHandOfHarmOptionState } from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfMercy";
+import {
+  consumeMonkStunningStrike,
+  getMonkStunningStrikeOptionState
+} from "../../../../../pages/CharactersPage/classFeatures/monk/monkStunningStrike";
+import {
+  activateMonkWarriorOfMercyHandOfHealing,
+  getMonkWarriorOfMercyHandOfHarmOptionState,
+  monkHandOfHealingActionKey
+} from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfMercy";
 import {
   activateMonkWarriorOfTheOpenHandQuiveringPalmMark,
   getMonkWarriorOfTheOpenHandQuiveringPalmOptionState,
@@ -315,9 +331,16 @@ import {
   WeaponActionCard
 } from "./ActionCards";
 import {
+  MonkHandOfHealingActionCard,
+  MonkHandOfHealingActionFooter
+} from "./MonkHandOfHealingAction";
+import { getMonkHandOfHealingActionPathStates } from "./monkHandOfHealingActionUtils";
+import {
   createChannelDivinityOptionRows,
   type ChannelDivinityOptionRow
 } from "../../channelDivinityUtils";
+import { getWeaponAttackPathStates } from "./weaponActionEconomy";
+import { getMonkFocusComboDisabledReason } from "./monkWeaponFocusCombos";
 
 type RoundTrackerAvailability = {
   actionAvailable: boolean;
@@ -329,6 +352,12 @@ type ActionsWidgetProps = {
   character: Character;
   onPersistCharacter: PersistCharacterUpdater;
 };
+
+function getFeatureActionDrawerPrimaryLabel(action: Pick<FeatureActionCard, "name">): string {
+  const normalizedName = action.name.trim();
+
+  return normalizedName ? `Use ${normalizedName}` : "Use";
+}
 
 type FontOfMagicSelection =
   | {
@@ -407,21 +436,6 @@ function getDivineInterventionLevelGroups(spells: SpellEntry[]): Record<number, 
 
     return groups;
   }, {});
-}
-
-function getWeaponBattleMagicWarning(
-  action: WeaponAction,
-  character: Character,
-  roundTracker: RoundTrackerAvailability
-): string | null {
-  if (!hasBattleMagicBonusWeaponAttackForCharacter(character, action.attackKind)) {
-    return null;
-  }
-
-  return getRoundTrackerActionWarning(
-    getRoundTrackerResourceForEconomyType("bonus_action"),
-    roundTracker
-  );
 }
 
 function getFixedSpellEntryForExecute(
@@ -1528,6 +1542,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [isDreadfulStrikeSelected, setIsDreadfulStrikeSelected] = useState(false);
   const [isPolarStrikesSelected, setIsPolarStrikesSelected] = useState(false);
   const [isSacredWeaponSelected, setIsSacredWeaponSelected] = useState(false);
+  const [isStunningStrikeSelected, setIsStunningStrikeSelected] = useState(false);
   const [isHandOfHarmSelected, setIsHandOfHarmSelected] = useState(false);
   const [isQuiveringPalmSelected, setIsQuiveringPalmSelected] = useState(false);
   const [isImprovedShadowStepSelected, setIsImprovedShadowStepSelected] = useState(false);
@@ -1765,7 +1780,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   );
   const selectedWeaponFocusPointsRemaining = useMemo(
     () => getMonkFocusPointsRemainingForCharacter(character),
-    [character.classFeatureState, character.className, character.level]
+    [character]
+  );
+  const selectedWeaponStunningStrikeState = useMemo(
+    () => getMonkStunningStrikeOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
   );
   const selectedWeaponHandOfHarmState = useMemo(
     () => getMonkWarriorOfMercyHandOfHarmOptionState(character, selectedWeaponAction),
@@ -1784,10 +1803,66 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return selectedWeaponHandOfHarmState.disabledReason;
     }
 
-    return isQuiveringPalmSelected && selectedWeaponFocusPointsRemaining < 4
-      ? "You need 4 Focus Points to use Hand of Harm and Quivering Palm together."
-      : null;
-  }, [isQuiveringPalmSelected, selectedWeaponFocusPointsRemaining, selectedWeaponHandOfHarmState]);
+    return getMonkFocusComboDisabledReason({
+      focusPointsRemaining: selectedWeaponFocusPointsRemaining,
+      currentOption: {
+        label: "Hand of Harm",
+        cost: 1
+      },
+      selectedOptions: [
+        {
+          label: "Stunnig Strike",
+          cost: selectedWeaponStunningStrikeState?.focusPointCost ?? 1,
+          selected: isStunningStrikeSelected
+        },
+        {
+          label: "Quivering Palm",
+          cost: 3,
+          selected: isQuiveringPalmSelected
+        }
+      ]
+    });
+  }, [
+    isQuiveringPalmSelected,
+    isStunningStrikeSelected,
+    selectedWeaponFocusPointsRemaining,
+    selectedWeaponHandOfHarmState,
+    selectedWeaponStunningStrikeState
+  ]);
+  const selectedWeaponStunningStrikeDisabledReason = useMemo(() => {
+    if (!selectedWeaponStunningStrikeState) {
+      return null;
+    }
+
+    if (selectedWeaponStunningStrikeState.disabledReason) {
+      return selectedWeaponStunningStrikeState.disabledReason;
+    }
+
+    return getMonkFocusComboDisabledReason({
+      focusPointsRemaining: selectedWeaponFocusPointsRemaining,
+      currentOption: {
+        label: "Stunnig Strike",
+        cost: selectedWeaponStunningStrikeState.focusPointCost
+      },
+      selectedOptions: [
+        {
+          label: "Hand of Harm",
+          cost: 1,
+          selected: isHandOfHarmSelected
+        },
+        {
+          label: "Quivering Palm",
+          cost: 3,
+          selected: isQuiveringPalmSelected
+        }
+      ]
+    });
+  }, [
+    isHandOfHarmSelected,
+    isQuiveringPalmSelected,
+    selectedWeaponFocusPointsRemaining,
+    selectedWeaponStunningStrikeState
+  ]);
   const selectedWeaponQuiveringPalmDisabledReason = useMemo(() => {
     if (!selectedWeaponQuiveringPalmState) {
       return null;
@@ -1797,16 +1872,40 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return selectedWeaponQuiveringPalmState.disabledReason;
     }
 
-    return isHandOfHarmSelected && selectedWeaponFocusPointsRemaining < 4
-      ? "You need 4 Focus Points to use Hand of Harm and Quivering Palm together."
-      : null;
-  }, [isHandOfHarmSelected, selectedWeaponFocusPointsRemaining, selectedWeaponQuiveringPalmState]);
+    return getMonkFocusComboDisabledReason({
+      focusPointsRemaining: selectedWeaponFocusPointsRemaining,
+      currentOption: {
+        label: "Quivering Palm",
+        cost: 3
+      },
+      selectedOptions: [
+        {
+          label: "Stunnig Strike",
+          cost: selectedWeaponStunningStrikeState?.focusPointCost ?? 1,
+          selected: isStunningStrikeSelected
+        },
+        {
+          label: "Hand of Harm",
+          cost: 1,
+          selected: isHandOfHarmSelected
+        }
+      ]
+    });
+  }, [
+    isHandOfHarmSelected,
+    isStunningStrikeSelected,
+    selectedWeaponFocusPointsRemaining,
+    selectedWeaponQuiveringPalmState,
+    selectedWeaponStunningStrikeState
+  ]);
   const selectedWeaponSacredWeaponToggleDisabled =
     selectedWeaponSacredWeaponState?.disabled ?? false;
   const selectedWeaponDreadfulStrikeToggleDisabled =
     selectedWeaponDreadAmbusherState?.disabled ?? false;
   const selectedWeaponPolarStrikesToggleDisabled =
     selectedWeaponPolarStrikesState?.disabled ?? false;
+  const selectedWeaponStunningStrikeToggleDisabled =
+    selectedWeaponStunningStrikeDisabledReason !== null;
   const selectedWeaponHandOfHarmToggleDisabled = selectedWeaponHandOfHarmDisabledReason !== null;
   const selectedWeaponQuiveringPalmToggleDisabled =
     selectedWeaponQuiveringPalmDisabledReason !== null;
@@ -2019,10 +2118,6 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedFeatureAction?.key === awakenedMindActionKey
       ? getWarlockClairvoyantCombatantUsesRemaining(character)
       : 0;
-  const selectedClairvoyantCombatantPactMagicSlotTotal =
-    selectedFeatureAction?.key === awakenedMindActionKey
-      ? getWarlockPactMagicSlotTotalForCharacter(character)
-      : 0;
   const selectedClairvoyantCombatantPactMagicSlotsRemaining =
     selectedFeatureAction?.key === awakenedMindActionKey
       ? getWarlockPactMagicSlotsRemainingForCharacter(character)
@@ -2102,31 +2197,32 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       (selectedAction.economyMultiCount ?? 0) + sharedEconomyMultiCount
     );
   }, [character, roundTracker, selectedAction]);
-  const selectedActionSecondaryEconomyMultiCount = useMemo(() => {
+  const selectedWeaponAttackPathStates = useMemo(() => {
     if (!selectedAction || selectedAction.kind !== "weapon") {
-      return 0;
+      return [];
     }
 
-    return getBonusActionWeaponAttackMultiCountForCharacter(
-      character,
-      selectedAction.action.attackKind
-    );
-  }, [character, selectedAction]);
-  const selectedActionSecondaryEconomyShapeState = useMemo(() => {
+    return getWeaponAttackPathStates(character, selectedAction.action, roundTracker);
+  }, [character, roundTracker, selectedAction]);
+  const selectedHandOfHealingActionPathStates = useMemo(() => {
     if (
       !selectedAction ||
-      selectedAction.kind !== "weapon" ||
-      !hasBattleMagicBonusWeaponAttackForCharacter(character, selectedAction.action.attackKind)
+      selectedAction.kind !== "feature" ||
+      selectedAction.action.key !== monkHandOfHealingActionKey
     ) {
-      return null;
+      return [];
     }
 
-    return getEconomyShapeState(
-      "bonus_action",
-      roundTracker,
-      selectedActionSecondaryEconomyMultiCount
-    );
-  }, [character, roundTracker, selectedAction, selectedActionSecondaryEconomyMultiCount]);
+    return getMonkHandOfHealingActionPathStates(character, selectedAction.action, roundTracker);
+  }, [character, roundTracker, selectedAction]);
+  const selectedWeaponPrimaryAttackPathState =
+    selectedAction?.kind === "weapon"
+      ? (selectedWeaponAttackPathStates.find((path) => path.id === "primary") ?? null)
+      : null;
+  const selectedWeaponSecondaryAttackPathState =
+    selectedAction?.kind === "weapon"
+      ? (selectedWeaponAttackPathStates.find((path) => path.id === "secondary") ?? null)
+      : null;
   const selectedActionPrimaryWarning = useMemo(() => {
     if (!selectedAction) {
       return null;
@@ -2143,16 +2239,35 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           roundTracker
         );
   }, [roundTracker, selectedAction, selectedActionEconomyShapeState]);
-  const selectedActionSecondaryWarning =
-    selectedAction?.kind === "weapon"
-      ? getWeaponBattleMagicWarning(selectedAction.action, character, roundTracker)
-      : null;
-  const selectedActionWarning =
-    selectedAction?.kind === "weapon" &&
-    selectedActionSecondaryEconomyShapeState &&
-    (selectedActionEconomyShapeState?.isUsable || selectedActionSecondaryEconomyShapeState.isUsable)
-      ? null
-      : (selectedActionPrimaryWarning ?? selectedActionSecondaryWarning);
+  const selectedActionWarning = useMemo(() => {
+    if (!selectedAction) {
+      return null;
+    }
+
+    if (selectedAction.kind !== "weapon") {
+      return selectedActionPrimaryWarning;
+    }
+
+    if (selectedAction.disabledReason) {
+      return selectedAction.disabledReason;
+    }
+
+    if (selectedWeaponAttackPathStates.some((path) => path.shapeState.isUsable)) {
+      return null;
+    }
+
+    return (
+      selectedWeaponPrimaryAttackPathState?.shapeState.disabledReason ??
+      selectedWeaponSecondaryAttackPathState?.shapeState.disabledReason ??
+      selectedActionPrimaryWarning
+    );
+  }, [
+    selectedAction,
+    selectedActionPrimaryWarning,
+    selectedWeaponAttackPathStates,
+    selectedWeaponPrimaryAttackPathState,
+    selectedWeaponSecondaryAttackPathState
+  ]);
   const selectedInnateSorceryActivationSorceryPointCost =
     selectedFeatureAction?.key === innateSorceryActionKey
       ? getInnateSorceryActivationSorceryPointCostForCharacter(character)
@@ -2240,7 +2355,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedWarriorOfTheGodsChargeCount <= selectedWarriorOfTheGodsUsesRemaining;
   const selectedWeaponPrimaryDisabledReason =
     selectedAction?.kind === "weapon"
-      ? (selectedActionWarning ?? selectedAction.disabledReason ?? null)
+      ? (selectedAction.disabledReason ??
+        selectedWeaponPrimaryAttackPathState?.shapeState.disabledReason ??
+        null)
+      : null;
+  const selectedWeaponSecondaryDisabledReason =
+    selectedAction?.kind === "weapon"
+      ? (selectedAction.disabledReason ??
+        selectedWeaponSecondaryAttackPathState?.shapeState.disabledReason ??
+        null)
       : null;
 
   useEffect(() => {
@@ -2466,6 +2589,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsDreadfulStrikeSelected(false);
     setIsPolarStrikesSelected(false);
     setIsSacredWeaponSelected(false);
+    setIsStunningStrikeSelected(false);
     setIsHandOfHarmSelected(false);
     setIsQuiveringPalmSelected(false);
     setIsImprovedShadowStepSelected(false);
@@ -2517,6 +2641,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsClairvoyantCombatantSelected(false);
     setIsPsionicStrikeSelected(false);
     setIsSacredWeaponSelected(false);
+    setIsStunningStrikeSelected(false);
     setIsHandOfHarmSelected(false);
     setIsQuiveringPalmSelected(false);
     setIsImprovedShadowStepSelected(false);
@@ -2539,6 +2664,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       setIsSacredWeaponSelected(false);
     }
   }, [selectedWeaponSacredWeaponState, selectedWeaponSacredWeaponToggleDisabled]);
+
+  useEffect(() => {
+    if (!selectedWeaponStunningStrikeState || selectedWeaponStunningStrikeToggleDisabled) {
+      setIsStunningStrikeSelected(false);
+    }
+  }, [selectedWeaponStunningStrikeState, selectedWeaponStunningStrikeToggleDisabled]);
 
   useEffect(() => {
     if (selectedClairvoyantCombatantToggleDisabled) {
@@ -2864,6 +2995,29 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     });
   }
 
+  function executeMonkHandOfHealingPath(economyType: EconomyType) {
+    onPersistCharacter((currentCharacter) => {
+      const isFlurryBonusPath = economyType === ECONOMY_TYPE.BONUS_ACTION;
+      const roundTrackerResource = isFlurryBonusPath ? null : "action";
+      const preparedCharacter = roundTrackerResource
+        ? prepareCharacterForRoundTrackerResourceConsumption(currentCharacter, roundTrackerResource)
+        : currentCharacter;
+      const nextCharacter = activateMonkWarriorOfMercyHandOfHealing(
+        preparedCharacter,
+        isFlurryBonusPath ? "flurry_bonus_action" : "action"
+      );
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+    closeActionDrawer();
+  }
+
   function executeFeatureActivate(action: FeatureActionCard) {
     const effectKind =
       action.execute?.kind === "activate" ? (action.execute.effectKind ?? "default") : "default";
@@ -3050,7 +3204,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           currentCharacter,
           roundTrackerResource
         );
-        const nextCharacter = consumeFighterBattleMasterKnowYourEnemyForCharacter(preparedCharacter);
+        const nextCharacter =
+          consumeFighterBattleMasterKnowYourEnemyForCharacter(preparedCharacter);
 
         if (nextCharacter === preparedCharacter) {
           return currentCharacter;
@@ -3187,17 +3342,34 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     closeActionDrawer();
   }
 
-  function resolvePreparedWeaponAction(currentCharacter: Character, action: WeaponAction) {
-    const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+  function resolvePreparedWeaponAction(
+    currentCharacter: Character,
+    action: WeaponAction,
+    economyTypeOverride?: EconomyType
+  ) {
+    const currentAction =
+      getCombatActionsForCharacter(currentCharacter).find(
+        (combatAction): combatAction is Extract<GameplayActionDefinition, { kind: "weapon" }> =>
+          combatAction.kind === "weapon" && combatAction.action.key === action.key
+      )?.action ?? action;
+    const resolvedEconomyType = economyTypeOverride ?? currentAction.economyType;
+    const roundTrackerResource = getRoundTrackerResourceForEconomyType(resolvedEconomyType);
     const preparedCharacter = prepareCharacterForResourceConsumption(
       currentCharacter,
       roundTrackerResource
     );
-    const preparedAction =
+    const preparedActionBase =
       getCombatActionsForCharacter(preparedCharacter).find(
         (combatAction): combatAction is Extract<GameplayActionDefinition, { kind: "weapon" }> =>
           combatAction.kind === "weapon" && combatAction.action.key === action.key
-      )?.action ?? action;
+      )?.action ?? currentAction;
+    const preparedAction =
+      preparedActionBase.economyType === resolvedEconomyType
+        ? preparedActionBase
+        : {
+            ...preparedActionBase,
+            economyType: resolvedEconomyType
+          };
 
     return {
       preparedCharacter,
@@ -3206,7 +3378,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     };
   }
 
-  function handleWeaponAttackRoll(action: WeaponAction) {
+  function handleWeaponAttackRoll(action: WeaponAction, economyTypeOverride?: EconomyType) {
     const useSacredWeapon =
       isSacredWeaponSelected &&
       selectedWeaponSacredWeaponState !== null &&
@@ -3214,7 +3386,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     onPersistCharacter((currentCharacter) => {
       const { preparedCharacter, preparedAction, roundTrackerResource } =
-        resolvePreparedWeaponAction(currentCharacter, action);
+        resolvePreparedWeaponAction(currentCharacter, action, economyTypeOverride);
       const attackFormula = getWeaponAttackFormulaPresentation(preparedAction).value;
 
       openDiceRoller({
@@ -3265,6 +3437,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       isQuiveringPalmSelected &&
       selectedWeaponQuiveringPalmState !== null &&
       !selectedWeaponQuiveringPalmToggleDisabled;
+    const useStunningStrike =
+      isStunningStrikeSelected &&
+      selectedWeaponStunningStrikeState !== null &&
+      !selectedWeaponStunningStrikeToggleDisabled;
     const usePsionicStrike =
       action.attackKind === "weapon" &&
       isPsionicStrikeSelected &&
@@ -3298,6 +3474,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     ) {
       setIsDreadfulStrikeSelected(false);
       setIsPolarStrikesSelected(false);
+      setIsStunningStrikeSelected(false);
       setIsHandOfHarmSelected(false);
       setIsQuiveringPalmSelected(false);
       setIsPsionicStrikeSelected(false);
@@ -3327,11 +3504,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         nextCharacter = activateMonkWarriorOfTheOpenHandQuiveringPalmMark(nextCharacter);
       }
 
+      if (useStunningStrike) {
+        nextCharacter = consumeMonkStunningStrike(nextCharacter);
+      }
+
       return nextCharacter;
     });
 
     setIsDreadfulStrikeSelected(false);
     setIsPolarStrikesSelected(false);
+    setIsStunningStrikeSelected(false);
     setIsHandOfHarmSelected(false);
     setIsQuiveringPalmSelected(false);
     setIsPsionicStrikeSelected(false);
@@ -4312,7 +4494,6 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                 breakdownClassName={styles.weaponFormulaBreakdown}
               />
             ) : null}
-
           </div>
         </div>
       );
@@ -4623,13 +4804,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               muted={selectedWeaponDreadfulStrikeToggleDisabled}
               onCheckedChange={setIsDreadfulStrikeSelected}
               title={selectedWeaponDreadAmbusherState.disabledReason ?? undefined}
-              metaItems={[
-                {
-                  kind: "tracker",
-                  current: selectedWeaponDreadAmbusherState.usesRemaining,
-                  total: selectedWeaponDreadAmbusherState.usesTotal
-                }
-              ]}
+              usage={createChargesCardUsage(
+                selectedWeaponDreadAmbusherState.usesRemaining,
+                selectedWeaponDreadAmbusherState.usesTotal
+              )}
+              application={{ targetLabel: "Damage" }}
+              usageKey="dreadful-strike"
             />
           ) : null}
           {selectedWeaponPolarStrikesState ? (
@@ -4640,12 +4820,20 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               muted={selectedWeaponPolarStrikesToggleDisabled}
               onCheckedChange={setIsPolarStrikesSelected}
               title={selectedWeaponPolarStrikesState.disabledReason ?? undefined}
-              metaItems={[
-                {
-                  kind: "text",
-                  label: selectedWeaponPolarStrikesState.damageBonus.displayLabel
-                }
-              ]}
+              application={{
+                qualifierText: "Once per turn",
+                targetLabel: "Damage"
+              }}
+              metaItems={
+                selectedWeaponPolarStrikesState.damageBonus.displayLabel
+                  ? [
+                      {
+                        kind: "text" as const,
+                        label: selectedWeaponPolarStrikesState.damageBonus.displayLabel
+                      }
+                    ]
+                  : []
+              }
             />
           ) : null}
           {selectedWeaponSacredWeaponState ? (
@@ -4656,7 +4844,35 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               muted={selectedWeaponSacredWeaponToggleDisabled}
               onCheckedChange={setIsSacredWeaponSelected}
               title={selectedWeaponSacredWeaponState.disabledReason ?? undefined}
-              metaItems={[{ kind: "cost", label: "Use 1", icon: "divinity" }]}
+              usage={createNamedResourceCardUsage(
+                createFeatureActionCardCost({
+                  amountText: "1",
+                  icon: "pyromancy"
+                })
+              )}
+              application={{ targetLabel: "Attack" }}
+              usageKey="sacred-weapon"
+            />
+          ) : null}
+          {selectedWeaponStunningStrikeState ? (
+            <FeatureOptInToggle
+              label="Stunnig Strike"
+              checked={isStunningStrikeSelected}
+              disabled={selectedWeaponStunningStrikeToggleDisabled}
+              muted={selectedWeaponStunningStrikeToggleDisabled}
+              onCheckedChange={setIsStunningStrikeSelected}
+              title={selectedWeaponStunningStrikeDisabledReason ?? undefined}
+              usage={createNamedResourceCardUsage(
+                createFeatureActionCardCost({
+                  amountText: String(selectedWeaponStunningStrikeState.focusPointCost),
+                  icon: "brain"
+                })
+              )}
+              application={{
+                qualifierText: "Once per turn",
+                targetLabel: "Damage"
+              }}
+              usageKey="stunning-strike"
             />
           ) : null}
           {selectedWeaponHandOfHarmState ? (
@@ -4667,7 +4883,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               muted={selectedWeaponHandOfHarmToggleDisabled}
               onCheckedChange={setIsHandOfHarmSelected}
               title={selectedWeaponHandOfHarmDisabledReason ?? undefined}
-              metaItems={[{ kind: "cost", label: "Use 1", icon: "brain" }]}
+              usage={createNamedResourceCardUsage(
+                createFeatureActionCardCost({
+                  amountText: "1",
+                  icon: "brain"
+                })
+              )}
+              application={{
+                qualifierText: "Once per turn",
+                targetLabel: "Damage"
+              }}
+              usageKey="hand-of-harm"
             />
           ) : null}
           {selectedWeaponQuiveringPalmState ? (
@@ -4678,7 +4904,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               muted={selectedWeaponQuiveringPalmToggleDisabled}
               onCheckedChange={setIsQuiveringPalmSelected}
               title={selectedWeaponQuiveringPalmDisabledReason ?? undefined}
-              metaItems={[{ kind: "cost", label: "Use 3", icon: "brain" }]}
+              usage={createNamedResourceCardUsage(
+                createFeatureActionCardCost({
+                  amountText: "3",
+                  icon: "brain"
+                })
+              )}
+              application={{ targetLabel: "Damage" }}
+              usageKey="quivering-palm"
             />
           ) : null}
           {showPsionicStrikeToggle ? (
@@ -4688,56 +4921,62 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               disabled={!selectedWeaponPsionicStrikeAvailable}
               muted={!selectedWeaponPsionicStrikeAvailable}
               onCheckedChange={setIsPsionicStrikeSelected}
-              metaItems={[{ kind: "cost", label: "Use 1", icon: "psi" }]}
+              usage={createNamedResourceCardUsage(
+                createFeatureActionCardCost({
+                  amountText: "1",
+                  icon: "psi"
+                })
+              )}
+              application={{
+                qualifierText: "Once per turn",
+                targetLabel: "Damage"
+              }}
+              usageKey="psionic-strike"
             />
           ) : null}
-          <div className={styles.weaponFooterActions}>
-            <button
-              type="button"
-              className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
-              onClick={() => handleWeaponAttackRoll(selectedAction.action)}
-              disabled={selectedWeaponPrimaryDisabledReason !== null}
-            >
-              <span className={styles.centeredFooterButtonContent}>
-                <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
-                <span>Attack</span>
-                <span className={styles.footerActionShapeGroup}>
-                  {selectedActionEconomyShapeState ? (
-                    <ActionShape
-                      shape={getActionShapeForEconomyType(selectedAction.economyType) ?? "action"}
-                      isSelected={selectedActionEconomyShapeState.isAvailable}
-                      multiCount={selectedActionEconomyShapeState.multiCount}
-                      className={styles.footerActionShape}
-                    />
-                  ) : null}
-                  {selectedActionSecondaryEconomyShapeState ? (
-                    <ActionShape
-                      shape="bonusAction"
-                      isSelected={selectedActionSecondaryEconomyShapeState.isAvailable}
-                      multiCount={selectedActionSecondaryEconomyShapeState.multiCount}
-                      className={styles.footerActionShape}
-                    />
-                  ) : null}
-                </span>
-              </span>
-            </button>
-            <button
-              type="button"
-              className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
-              onClick={() => handleWeaponDamageRoll(selectedAction.action)}
-            >
-              <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
-              <span>Damage</span>
-            </button>
-            <DiceRollerSettingsButton
-              actionName={selectedAction.name}
-              className={clsx(sheetStyles.castButton, styles.weaponFooterIconButton)}
-              isOpen={isDiceRollerSettingsOpen}
-              aria-label="Open dice roller settings"
-              onOpenChange={setIsDiceRollerSettingsOpen}
-            />
-          </div>
+          <WeaponAttackFooterButtons
+            actionName={selectedAction.name}
+            attackPaths={[
+              ...(selectedWeaponPrimaryAttackPathState
+                ? [
+                    {
+                      pathState: selectedWeaponPrimaryAttackPathState,
+                      disabledReason: selectedWeaponPrimaryDisabledReason
+                    }
+                  ]
+                : []),
+              ...(selectedWeaponSecondaryAttackPathState
+                ? [
+                    {
+                      pathState: selectedWeaponSecondaryAttackPathState,
+                      disabledReason: selectedWeaponSecondaryDisabledReason
+                    }
+                  ]
+                : [])
+            ]}
+            isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+            onAttack={(economyType) => handleWeaponAttackRoll(selectedAction.action, economyType)}
+            onDamage={() => handleWeaponDamageRoll(selectedAction.action)}
+            onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+          />
         </div>
+      );
+    }
+
+    const selectedFeaturePrimaryLabel = getFeatureActionDrawerPrimaryLabel(selectedAction.action);
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
+      selectedAction.action.key === monkHandOfHealingActionKey
+    ) {
+      return (
+        <MonkHandOfHealingActionFooter
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionPaths={selectedHandOfHealingActionPathStates}
+          onConfirmPath={executeMonkHandOfHealingPath}
+        />
       );
     }
 
@@ -4759,7 +4998,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           >
             <span className={styles.centeredFooterButtonContent}>
               <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
-              <span>{selectedAction.drawer.confirmLabel}</span>
+              <span>{selectedFeaturePrimaryLabel}</span>
               {actionShape ? (
                 <ActionShape
                   shape={actionShape}
@@ -4790,7 +5029,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return (
         <FighterSecondWindActionFooter
           actionName={selectedAction.action.name}
-          confirmLabel={selectedAction.drawer.confirmLabel ?? "Use Second Wind"}
+          confirmLabel={selectedFeaturePrimaryLabel}
           actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
           actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
           actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
@@ -4818,7 +5057,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     ) {
       return (
         <SorcererInnateSorceryActionFooter
-          confirmLabel={selectedAction.drawer.confirmLabel ?? "Innate Sorcery"}
+          confirmLabel={selectedFeaturePrimaryLabel}
           actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
           actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
           actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
@@ -4846,15 +5085,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     ) {
       return (
         <WarlockAwakenedMindActionFooter
-          confirmLabel={selectedAction.drawer.confirmLabel ?? "Activate Awakened Mind"}
+          confirmLabel={selectedFeaturePrimaryLabel}
           actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
           actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
           actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
           disabled={selectedFeatureActionPrimaryDisabledReason !== null}
           clairvoyantCombatantUsesRemaining={selectedClairvoyantCombatantUsesRemaining}
           clairvoyantCombatantUsesTotal={selectedClairvoyantCombatantUsesTotal}
-          pactMagicSlotsRemaining={selectedClairvoyantCombatantPactMagicSlotsRemaining}
-          pactMagicSlotTotal={selectedClairvoyantCombatantPactMagicSlotTotal}
           toggleDisabled={selectedClairvoyantCombatantToggleDisabled}
           toggleDisabledReason={selectedClairvoyantCombatantToggleDisabledReason}
           isClairvoyantCombatantSelected={isClairvoyantCombatantSelected}
@@ -4879,7 +5116,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               label="Inspired Eclipse"
               checked={isInspiredEclipseSelected}
               onCheckedChange={setIsInspiredEclipseSelected}
-              metaItems={[{ kind: "cost", label: "Use 1", icon: "music" }]}
+              usage={createNamedResourceCardUsage(
+                createFeatureActionCardCost({
+                  amountText: "1",
+                  icon: "music"
+                })
+              )}
+              usageKey="inspired-eclipse"
             />
           ) : null}
           <button
@@ -4888,7 +5131,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             onClick={() => executeFeatureActivate(selectedAction.action)}
             disabled={selectedFeatureActionPrimaryDisabledReason !== null}
           >
-            <span>{selectedAction.drawer.confirmLabel}</span>
+            <span>{selectedFeaturePrimaryLabel}</span>
             {actionShape ? (
               <ActionShape
                 shape={actionShape}
@@ -4920,7 +5163,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               muted={selectedImprovedShadowStepState.disabled}
               onCheckedChange={setIsImprovedShadowStepSelected}
               title={selectedImprovedShadowStepState.disabledReason ?? undefined}
-              metaItems={[{ kind: "cost", label: "Use 1", icon: "brain" }]}
+              usage={createNamedResourceCardUsage(
+                createFeatureActionCardCost({
+                  amountText: "1",
+                  icon: "brain"
+                })
+              )}
+              usageKey="improved-shadow-step"
             />
           ) : null}
           <button
@@ -4929,7 +5178,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             onClick={() => executeFeatureActivate(selectedAction.action)}
             disabled={selectedFeatureActionPrimaryDisabledReason !== null}
           >
-            <span>{selectedAction.drawer.confirmLabel}</span>
+            <span>{selectedFeaturePrimaryLabel}</span>
             {actionShape ? (
               <ActionShape
                 shape={actionShape}
@@ -4981,7 +5230,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               selectedMetamagicCost > getSorceryPointsRemainingForCharacter(character))
           }
         >
-          <span>{selectedAction.drawer.confirmLabel ?? "Confirm"}</span>
+          <span>{selectedFeaturePrimaryLabel}</span>
           {selectedOptionShape && selectedOptionShapeState ? (
             <ActionShape
               shape={selectedOptionShape}
@@ -5002,15 +5251,18 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return (
         <IndomitableActionFooter
           actionName={selectedAction.name}
-          confirmLabel={selectedAction.execute.label ?? "Roll Saving Throw with Indomitable"}
+          confirmLabel={selectedFeaturePrimaryLabel}
           actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
           actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
           actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
           disabled={
-            selectedFeatureActionPrimaryDisabledReason !== null || selectedIndomitableOption === null
+            selectedFeatureActionPrimaryDisabledReason !== null ||
+            selectedIndomitableOption === null
           }
           isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
-          onConfirm={() => selectedIndomitableOption && submitIndomitable(selectedIndomitableOption)}
+          onConfirm={() =>
+            selectedIndomitableOption && submitIndomitable(selectedIndomitableOption)
+          }
           onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
         />
       );
@@ -5030,7 +5282,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onClick={submitBlessingOfTheTrickster}
           disabled={selectedFeatureActionPrimaryDisabledReason !== null}
         >
-          <span>Use Blessing of the Trickster</span>
+          <span>{selectedFeaturePrimaryLabel}</span>
           {actionShape ? (
             <ActionShape
               shape={actionShape}
@@ -5058,7 +5310,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             selectedFeatureActionPrimaryDisabledReason !== null
           }
         >
-          <span>Activate</span>
+          <span>{selectedFeaturePrimaryLabel}</span>
           <ActionShape
             shape="bonusAction"
             isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
@@ -5083,7 +5335,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             !selectedWildShapeMonster || selectedFeatureActionPrimaryDisabledReason !== null
           }
         >
-          <span>Shape Shift</span>
+          <span>{selectedFeaturePrimaryLabel}</span>
           <ActionShape
             shape="bonusAction"
             isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
@@ -5108,7 +5360,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             selectedStarryFormConstellation === null
           }
         >
-          <span>Assume Form</span>
+          <span>{selectedFeaturePrimaryLabel}</span>
           <ActionShape
             shape="bonusAction"
             isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
@@ -5133,7 +5385,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             !canUseSelectedWildCompanionResource
           }
         >
-          <span>Cast</span>
+          <span>{selectedFeaturePrimaryLabel}</span>
           <ActionShape
             shape="action"
             isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
@@ -5158,7 +5410,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             selectedFeatureActionPrimaryDisabledReason !== null || !selectedNatureMagicianOption
           }
         >
-          <span>Convert</span>
+          <span>{selectedFeaturePrimaryLabel}</span>
         </button>
       );
     }
@@ -5177,7 +5429,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             !canUseSelectedWildResurgenceMode || selectedFeatureActionPrimaryDisabledReason !== null
           }
         >
-          <span>Use</span>
+          <span>{selectedFeaturePrimaryLabel}</span>
         </button>
       );
     }
@@ -5199,7 +5451,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               selectedFontOfMagicWarning !== null)
           }
         >
-          <span>Convert</span>
+          <span>{selectedFeaturePrimaryLabel}</span>
           {selectedFontOfMagicSelection?.kind === "points-to-slot" ? (
             <ActionShape
               shape="bonusAction"
@@ -5219,7 +5471,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return (
         <WarriorOfTheGodsActionFooter
           actionName={selectedAction.name}
-          confirmLabel={selectedAction.execute.label ?? "Heal"}
+          confirmLabel={selectedFeaturePrimaryLabel}
           actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
           actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
           actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
@@ -5248,7 +5500,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onClick={submitBrutalStrike}
           disabled={selectedFeatureActionPrimaryDisabledReason !== null}
         >
-          <span>{selectedAction.execute.label ?? "Apply Brutal Strike"}</span>
+          <span>{selectedFeaturePrimaryLabel}</span>
           {actionShape ? (
             <ActionShape
               shape={actionShape}
@@ -5272,7 +5524,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             selectedFeatureActionPrimaryDisabledReason !== null
           }
         >
-          <span>Enter Rage</span>
+          <span>{selectedFeaturePrimaryLabel}</span>
           <ActionShape
             shape="bonusAction"
             isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
@@ -5296,7 +5548,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onClick={() => executeFeatureActivate(selectedAction.action)}
           disabled={selectedFeatureActionPrimaryDisabledReason !== null}
         >
-          <span>{selectedAction.drawer.confirmLabel}</span>
+          <span>{selectedFeaturePrimaryLabel}</span>
           {actionShape ? (
             <ActionShape
               shape={actionShape}
@@ -5319,7 +5571,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onClick={() => setIsFixedSpellDrawerOpen(true)}
           disabled={selectedFeatureActionPrimaryDisabledReason !== null}
         >
-          <span>{selectedAction.drawer.confirmLabel}</span>
+          <span>{selectedFeaturePrimaryLabel}</span>
           {actionShape ? (
             <ActionShape
               shape={actionShape}
@@ -5351,18 +5603,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                   key={combatAction.key}
                   action={combatAction.action}
                   character={character}
-                  secondaryEconomyType={
-                    hasBattleMagicBonusWeaponAttackForCharacter(
-                      character,
-                      combatAction.action.attackKind
-                    )
-                      ? "bonus_action"
-                      : null
-                  }
-                  secondaryEconomyMultiCount={getBonusActionWeaponAttackMultiCountForCharacter(
-                    character,
-                    combatAction.action.attackKind
-                  )}
+                  roundTracker={roundTracker}
+                  onClick={() => setSelectedActionKey(combatAction.key)}
+                />
+              ) : combatAction.action.key === monkHandOfHealingActionKey ? (
+                <MonkHandOfHealingActionCard
+                  key={combatAction.key}
+                  action={combatAction.action}
+                  character={character}
                   roundTracker={roundTracker}
                   onClick={() => setSelectedActionKey(combatAction.key)}
                 />
@@ -5401,7 +5649,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               ? (selectedWeaponAction?.facts ?? [])
               : selectedAction.drawer.facts
           }
-          resources={selectedAction.kind === "weapon" ? [] : selectedAction.drawer.resources}
+          headerTags={selectedAction.kind === "weapon" ? [] : selectedAction.drawer.headerTags}
           helperText={selectedAction.drawer.helperText}
           warning={selectedDrawerWarning}
           blockedReason={
@@ -5507,17 +5755,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                           onCheckedChange: setUseBeguilingMagicOnActionSpell,
                           disabled:
                             beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
-                          tracker: {
-                            current: beguilingMagicUsesRemaining,
-                            total: beguilingMagicUsesTotal
-                          },
-                          fallbackCost:
-                            beguilingMagicUsesRemaining <= 0
-                              ? {
-                                  label: "Use 1",
-                                  icon: "music" as const
-                                }
-                              : undefined
+                          usage: createChargesOrResourceCardUsage(
+                            beguilingMagicUsesRemaining,
+                            beguilingMagicUsesTotal,
+                            createFeatureActionCardCost({
+                              amountText: "1",
+                              icon: "music"
+                            })
+                          )
                         }
                       ]
                     : []),
@@ -5529,16 +5774,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                           checked: useFrozenHauntOnActionSpell,
                           onCheckedChange: setUseFrozenHauntOnActionSpell,
                           disabled: selectedActionSpellFrozenHauntOptionState.disabled,
-                          tracker: {
-                            current: selectedActionSpellFrozenHauntOptionState.usesRemaining,
-                            total: selectedActionSpellFrozenHauntOptionState.usesTotal
-                          },
-                          fallbackCost:
-                            selectedActionSpellFrozenHauntOptionState.usesRemaining <= 0
-                              ? {
-                                  label: `Use 1 level ${frozenHauntFallbackSpellSlotMinimumLevel}+ slot`
-                                }
-                              : undefined,
+                          usage: createChargesOrResourceCardUsage(
+                            selectedActionSpellFrozenHauntOptionState.usesRemaining,
+                            selectedActionSpellFrozenHauntOptionState.usesTotal,
+                            createFeatureActionCardCost({
+                              amountText: `${frozenHauntFallbackSpellSlotMinimumLevel}+`,
+                              resourceLabel: "Spell Slot"
+                            })
+                          ),
                           select:
                             useFrozenHauntOnActionSpell &&
                             selectedActionSpellFrozenHauntOptionState.usesRemaining <= 0 &&
@@ -5561,10 +5804,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                           checked: useElementalSmiteOnActionSpell,
                           onCheckedChange: setUseElementalSmiteOnActionSpell,
                           disabled: selectedActionSpellElementalSmiteDisabled,
-                          fallbackCost: {
-                            label: "Use 1",
-                            icon: "divinity" as const
-                          }
+                          usage: createNamedResourceCardUsage(
+                            createFeatureActionCardCost({
+                              amountText: "1",
+                              icon: "pyromancy"
+                            })
+                          )
                         }
                       ]
                     : [])
@@ -5609,17 +5854,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                     onCheckedChange: setUseBeguilingMagicOnActionSpell,
                     disabled:
                       beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
-                    tracker: {
-                      current: beguilingMagicUsesRemaining,
-                      total: beguilingMagicUsesTotal
-                    },
-                    fallbackCost:
-                      beguilingMagicUsesRemaining <= 0
-                        ? {
-                            label: "Use 1",
-                            icon: "music"
-                          }
-                        : undefined
+                    usage: createChargesOrResourceCardUsage(
+                      beguilingMagicUsesRemaining,
+                      beguilingMagicUsesTotal,
+                      createFeatureActionCardCost({
+                        amountText: "1",
+                        icon: "music"
+                      })
+                    )
                   }
                 ]
               : undefined
@@ -5676,17 +5918,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                     onCheckedChange: setUseBeguilingMagicOnActionSpell,
                     disabled:
                       beguilingMagicUsesRemaining <= 0 && bardicInspirationUsesRemaining <= 0,
-                    tracker: {
-                      current: beguilingMagicUsesRemaining,
-                      total: beguilingMagicUsesTotal
-                    },
-                    fallbackCost:
-                      beguilingMagicUsesRemaining <= 0
-                        ? {
-                            label: "Use 1",
-                            icon: "music"
-                          }
-                        : undefined
+                    usage: createChargesOrResourceCardUsage(
+                      beguilingMagicUsesRemaining,
+                      beguilingMagicUsesTotal,
+                      createFeatureActionCardCost({
+                        amountText: "1",
+                        icon: "music"
+                      })
+                    )
                   }
                 ]
               : undefined

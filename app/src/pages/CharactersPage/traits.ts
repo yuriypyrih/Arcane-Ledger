@@ -1,5 +1,6 @@
 import {
   barbarianFeatureMap,
+  monkFeatureMap,
   paladinFeatureMap,
   rogueFeatureMap,
   sorcererFeatureMap
@@ -118,6 +119,8 @@ const druidNaturesSanctuaryStatusSourceId = "feature-druid-natures-sanctuary";
 const druidStarryFormStatusSourceId = "feature-druid-starry-form";
 const druidWrathOfTheSeaStatusSourceId = "feature-druid-wrath-of-the-sea";
 const monkCloakOfShadowStatusSourceId = "feature-monk-warrior-of-shadow-cloak-of-shadow";
+const monkSelfRestorationStatusSourceId = "feature-monk-self-restoration";
+const monkSuperiorDefenseStatusSourceId = "feature-monk-superior-defense";
 const monkQuiveringPalmStatusSourceId = "feature-monk-warrior-of-the-open-hand-quivering-palm";
 const monkElementalAttunementStatusSourceId =
   "feature-monk-warrior-of-the-elements-elemental-attunement";
@@ -1781,6 +1784,22 @@ function getDefaultStatusEntryDescriptionEntries(
       "<strong>Resistance.</strong> You have Resistance to Necrotic, Psychic, and Radiant damage.",
       "<strong>Revivification.</strong> When a creature within 30 feet of you would drop to 0 Hit Points, you can take a Reaction to expend a use of your Rage to instead change the target's Hit Points to a number equal to your Barbarian level."
     ];
+  }
+
+  if (entry.sourceId === monkSelfRestorationStatusSourceId) {
+    return (
+      monkFeatureMap[CLASS_FEATURE.SELF_RESTORATION]?.description ?? [
+        "A current effect or trait that may change how your character plays."
+      ]
+    );
+  }
+
+  if (entry.sourceId === monkSuperiorDefenseStatusSourceId) {
+    return (
+      monkFeatureMap[CLASS_FEATURE.SUPERIOR_DEFENSE]?.description ?? [
+        "A current effect or trait that may change how your character plays."
+      ]
+    );
   }
 
   if (entry.sourceId === "feature-barbarian-zealous-presence") {

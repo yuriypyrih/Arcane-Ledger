@@ -51,6 +51,40 @@
   line-height: 1;
 }
 
+.usageContent {
+  align-items: center;
+  color: var(--color-ink);
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 0.34rem;
+  min-width: 0;
+}
+
+.usageContent span {
+  color: inherit;
+}
+
+.usageCharges,
+.usageText {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.34rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.usageOperator,
+.applicationText {
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.usageDots {
+  margin-top: 0;
+}
+
 .trackerDots {
   margin-top: 0;
 }

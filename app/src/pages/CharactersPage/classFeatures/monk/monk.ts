@@ -1,8 +1,4 @@
-import {
-  getMonkDeflectAttacksDescription,
-  monkFeatures,
-  type MonkFeatureClassObj
-} from "../../../../codex/classes";
+import { monkFeatures, type MonkFeatureClassObj } from "../../../../codex/classes";
 import {
   ARMOR_TYPES,
   CLASS_FEATURE,
@@ -36,9 +32,9 @@ import {
 } from "../../actionEconomy";
 import {
   consumeRoundTrackerResource,
-  isRoundTrackerResourceAvailable,
-  normalizeRoundTracker
+  isRoundTrackerResourceAvailable
 } from "../../combat";
+import type { WeaponAction } from "../../gameplay";
 import {
   getResolvedCustomLoadoutEntries,
   type ResolvedCustomArmorEntry,
@@ -56,9 +52,14 @@ import {
   isItemShieldRecord
 } from "../../inventoryItems";
 import { isMonkWeapon } from "../../monkWeapons";
-import { hasStatusCondition } from "../../traits";
+import {
+  createCharacterStatusEntry,
+  hasStatusCondition,
+  normalizeCharacterStatusEntries
+} from "../../traits";
 import {
   activateMonkWarriorOfMercyHandOfHealing,
+  getMonkWarriorOfMercyHandOfHealingFlurryUsesThisTurn,
   activateMonkWarriorOfMercyHandOfUltimateJustice,
   getMonkWarriorOfMercyHandOfHarmUsedThisTurn,
   getMonkWarriorOfMercyHandOfUltimateMercyUsesTotal,
@@ -89,6 +90,15 @@ import {
   monkElementalBurstActionKey,
   monkElementalAttunementActionKey
 } from "./subclasses/monkWarriorOfTheElements";
+import { appendMonkWeaponDescriptionSections } from "./monkDescriptionSections";
+import { appendSourcedDescriptionAddition } from "../../actionModalDescriptions";
+import {
+  createFeatureActionCardCost,
+  createFreeCardUsage,
+  createNamedResourceCardUsage,
+  createNamedUsageHeaderTags
+} from "../cardUsage";
+import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 import type {
   ArmorClassFeatureContext,
   DerivedFeatureStatusEntry,
@@ -101,8 +111,6 @@ import type {
 } from "../types";
 
 export const monkFlurryOfBlowsActionKey = "monk-flurry-of-blows";
-export const monkUncannyMetabolismActionKey = "monk-uncanny-metabolism";
-export const monkStunningStrikeActionKey = "monk-stunning-strike";
 export const monkSuperiorDefenseActionKey = "monk-superior-defense";
 export const monkHandOfHealingActionKey = warriorOfMercyHandOfHealingActionKey;
 export const monkHandOfUltimateJusticeActionKey = warriorOfMercyHandOfUltimateJusticeActionKey;
@@ -138,6 +146,9 @@ const codexArmorEntriesByName = new Map<string, ArmorEntry>(
 );
 
 const superiorDefenseDurationRounds = 10;
+const deflectEnergySource = "Deflect Energy";
+const selfRestorationStatusSourceId = "feature-monk-self-restoration";
+const superiorDefenseStatusSourceId = "feature-monk-superior-defense";
 const nonForceDamageTypes = (Object.values(DAMAGE_TYPE) as DAMAGE_TYPE[]).filter(
   (damageType) => damageType !== DAMAGE_TYPE.FORCE
 );
@@ -171,6 +182,14 @@ function getMonkFeatureState(
   return normalizeMonkFeatureState(character.classFeatureState?.monk, character);
 }
 
+function hasMonkSuperiorDefenseStatus(
+  character: Pick<Character, "statusEntries">
+): boolean {
+  return normalizeCharacterStatusEntries(character.statusEntries).some(
+    (entry) => entry.sourceId === superiorDefenseStatusSourceId
+  );
+}
+
 function getResolvedHeldCustomWeapons(
   character: Pick<Character, "customEquipment">
 ): ResolvedCustomWeaponEntry[] {
@@ -190,7 +209,10 @@ function getResolvedWornCustomArmor(
 }
 
 function getMonkCombatState(
-  character: Pick<Character, "className" | "level" | "equipment" | "inventoryItems" | "customEquipment">
+  character: Pick<
+    Character,
+    "className" | "level" | "equipment" | "inventoryItems" | "customEquipment"
+  >
 ): MonkCombatState {
   const heldCodexEquipment = character.equipment.filter((item) => item.onHand);
   const heldInventoryItems = character.inventoryItems.filter((item) => item.onHand);
@@ -283,20 +305,13 @@ function getMonkCombatState(
 }
 
 function canUseFlurryOfBlows(
-  character: Pick<Character, "className" | "level" | "equipment" | "inventoryItems" | "customEquipment">
+  character: Pick<
+    Character,
+    "className" | "level" | "equipment" | "inventoryItems" | "customEquipment"
+  >
 ): boolean {
   const combatState = getMonkCombatState(character);
   return combatState.martialArtsActive;
-}
-
-function isMonkTurnFresh(character: Pick<Character, "roundTracker">): boolean {
-  const roundTracker = normalizeRoundTracker(character.roundTracker);
-
-  return (
-    roundTracker.actionAvailable &&
-    roundTracker.bonusActionAvailable &&
-    roundTracker.reactionAvailable
-  );
 }
 
 export function hasMonkFeature(
@@ -401,6 +416,28 @@ export function getMonkFocusPointsRemaining(
   return Math.max(0, totalFocusPoints - focusPointsExpended);
 }
 
+export function hasMonkUncannyMetabolism(
+  character: Pick<Character, "className" | "level">
+): boolean {
+  return hasMonkFeature(character, CLASS_FEATURE.UNCANNY_METABOLISM);
+}
+
+export function getMonkUncannyMetabolismUsesTotal(
+  character: Pick<Character, "className" | "level">
+): number {
+  return hasMonkUncannyMetabolism(character) ? 1 : 0;
+}
+
+export function getMonkUncannyMetabolismUsesRemaining(
+  character: Pick<Character, "className" | "level" | "classFeatureState">
+): number {
+  return Math.max(
+    0,
+    getMonkUncannyMetabolismUsesTotal(character) -
+      (getMonkFeatureState(character).uncannyMetabolismUsesExpended ?? 0)
+  );
+}
+
 export function hasMonkPerfectFocus(character: Pick<Character, "className" | "level">): boolean {
   return hasMonkFeature(character, CLASS_FEATURE.PERFECT_FOCUS);
 }
@@ -478,7 +515,6 @@ export function getMonkFeatureActions(
     | "equipment"
     | "inventoryItems"
     | "customEquipment"
-    | "roundTracker"
     | "statusEntries"
     | "subclassId"
   >
@@ -487,6 +523,7 @@ export function getMonkFeatureActions(
 
   if (hasMonkFeature(character, CLASS_FEATURE.MONKS_FOCUS)) {
     const focusRemaining = getMonkFocusPointsRemaining(character);
+    const focusTotal = getMonkFocusPointsTotal(character);
     const combatState = getMonkCombatState(character);
     const flurryStrikeCount = getMonkFlurryOfBlowsStrikeCount(character);
     const shadowFlurryActive = isMonkWarriorOfShadowCloakOfShadowActive(character);
@@ -494,8 +531,8 @@ export function getMonkFeatureActions(
       !shadowFlurryActive && focusRemaining <= 0
         ? "No Focus Points remaining."
         : !combatState.martialArtsActive
-            ? "Flurry of Blows requires Martial Arts to be active."
-            : undefined;
+          ? "Flurry of Blows requires Martial Arts to be active."
+          : undefined;
 
     actions.push({
       key: monkFlurryOfBlowsActionKey,
@@ -506,6 +543,27 @@ export function getMonkFeatureActions(
         : `Expend 1 Focus Point to make ${flurryStrikeCount} Unarmed Strikes as a Bonus Action.`,
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
+      cardUsage: shadowFlurryActive
+        ? createFreeCardUsage()
+        : createNamedResourceCardUsage(
+            createFeatureActionCardCost({
+              amountText: "1",
+              icon: "brain"
+            })
+          ),
+      headerTags: shadowFlurryActive
+        ? undefined
+        : createNamedUsageHeaderTags(
+            createFeatureActionCardCost({
+              amountText: "1",
+              icon: "brain"
+            }),
+            focusRemaining,
+            focusTotal,
+            {
+              icon: "brain"
+            }
+          ),
       usesLabel: shadowFlurryActive ? undefined : "1",
       usesIcon: shadowFlurryActive ? undefined : "brain",
       usesTone: !shadowFlurryActive && focusRemaining <= 0 ? "danger" : "default",
@@ -514,72 +572,43 @@ export function getMonkFeatureActions(
     });
   }
 
-  if (hasMonkFeature(character, CLASS_FEATURE.UNCANNY_METABOLISM)) {
-    const uncannyRemaining = Math.max(
-      0,
-      1 - (getMonkFeatureState(character).uncannyMetabolismUsesExpended ?? 0)
-    );
-
-    actions.push({
-      key: monkUncannyMetabolismActionKey,
-      name: "Uncanny Metabolism",
-      summary: "Recharge focus and health.",
-      detail: "Recharge focus and health.",
-      economyType: ECONOMY_TYPE.FREE,
-      actionCategory: ACTION_CATEGORY.FEATURE,
-      usesRemaining: uncannyRemaining,
-      usesTotal: 1,
-      disabled: uncannyRemaining <= 0,
-      disabledReason: uncannyRemaining <= 0 ? "No charges remaining." : undefined
-    });
-  }
-
-  if (hasMonkFeature(character, CLASS_FEATURE.STUNNING_STRIKE)) {
-    const focusRemaining = getMonkFocusPointsRemaining(character);
-    const monkState = getMonkFeatureState(character);
-
-    actions.push({
-      key: monkStunningStrikeActionKey,
-      name: "Stunning Strike",
-      summary: "Once per turn only after a hit.",
-      detail:
-        "Once per turn only after a hit, expend 1 Focus Point to use Stunning Strike. The usage is tracked, but resolving the effect is up to the player.",
-      breakdown: "Stun after hit",
-      economyType: ECONOMY_TYPE.FREE,
-      actionCategory: ACTION_CATEGORY.FEATURE,
-      usesLabel: "1",
-      usesIcon: "brain",
-      usesTone: focusRemaining <= 0 ? "danger" : "default",
-      disabled: focusRemaining <= 0 || monkState.stunningStrikeUsedThisTurn === true,
-      disabledReason:
-        focusRemaining <= 0
-          ? "No Focus Points remaining."
-          : monkState.stunningStrikeUsedThisTurn === true
-            ? "Stunning Strike has already been used this turn."
-            : undefined
-    });
-  }
-
   if (hasMonkFeature(character, CLASS_FEATURE.SUPERIOR_DEFENSE)) {
     const focusRemaining = getMonkFocusPointsRemaining(character);
+    const focusTotal = getMonkFocusPointsTotal(character);
     const monkState = getMonkFeatureState(character);
     const disabledReason =
       focusRemaining < 3
         ? "You need 3 Focus Points to use Superior Defense."
         : monkState.superiorDefenseUsedThisTurn === true
           ? "Superior Defense has already been used this turn."
-          : !isMonkTurnFresh(character)
-            ? "Superior Defense can only be activated at the start of your turn."
-            : undefined;
+          : undefined;
 
     actions.push({
       key: monkSuperiorDefenseActionKey,
       name: "Superior Defense",
+      sourceFeature: CLASS_FEATURE.SUPERIOR_DEFENSE,
       summary: "Once at the start of a turn.",
       detail: "Once at the start of a turn.",
       breakdown: "Turn-start defense",
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.FEATURE,
+      cardUsage: createNamedResourceCardUsage(
+        createFeatureActionCardCost({
+          amountText: "3",
+          icon: "brain"
+        })
+      ),
+      headerTags: createNamedUsageHeaderTags(
+        createFeatureActionCardCost({
+          amountText: "3",
+          icon: "brain"
+        }),
+        focusRemaining,
+        focusTotal,
+        {
+          icon: "brain"
+        }
+      ),
       usesLabel: "3",
       usesIcon: "brain",
       usesTone: focusRemaining < 3 ? "danger" : "default",
@@ -595,16 +624,24 @@ export function getMonkReactionEntries(
   character: Pick<Character, "className" | "level">
 ): ReactionEntry[] {
   const reactionEntries: ReactionEntry[] = [];
-  const hasDeflectEnergy = hasMonkFeature(character, CLASS_FEATURE.DEFLECT_ENERGY);
 
   if (hasMonkFeature(character, CLASS_FEATURE.DEFLECT_ATTACKS)) {
     const deflectAttacks = getReactionEntryById("reaction-deflect-attacks");
 
     if (deflectAttacks) {
-      reactionEntries.push({
-        ...deflectAttacks,
-        description: getMonkDeflectAttacksDescription(hasDeflectEnergy)
-      });
+      const deflectEnergyDescription = hasMonkFeature(character, CLASS_FEATURE.DEFLECT_ENERGY)
+        ? getFeatureDescriptionForCharacter(character, CLASS_FEATURE.DEFLECT_ENERGY)
+        : [];
+
+      reactionEntries.push(
+        deflectEnergyDescription.length > 0
+          ? appendSourcedDescriptionAddition(
+              deflectAttacks,
+              deflectEnergySource,
+              deflectEnergyDescription
+            )
+          : deflectAttacks
+      );
     }
   }
 
@@ -617,6 +654,13 @@ export function getMonkReactionEntries(
   }
 
   return reactionEntries;
+}
+
+export function getMonkWeaponAction(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  action: WeaponAction
+): WeaponAction {
+  return appendMonkWeaponDescriptionSections(action, character);
 }
 
 export function getMonkSavingThrowProficiencyEntries(
@@ -640,33 +684,59 @@ export function getMonkSavingThrowProficiencyEntries(
 export function getMonkDerivedStatusEntries(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "statusEntries">
 ): DerivedFeatureStatusEntry[] {
-  if (!hasMonkFeature(character, CLASS_FEATURE.SUPERIOR_DEFENSE)) {
-    return [];
-  }
-
+  const derivedEntries: DerivedFeatureStatusEntry[] = [];
   const superiorDefenseRoundsRemaining =
     getMonkFeatureState(character).superiorDefenseRoundsRemaining ?? 0;
+  const superiorDefenseActive = hasMonkSuperiorDefenseStatus(character);
 
-  if (superiorDefenseRoundsRemaining <= 0) {
-    return [];
+  if (hasMonkFeature(character, CLASS_FEATURE.SELF_RESTORATION)) {
+    derivedEntries.push({
+      id: selfRestorationStatusSourceId,
+      sourceId: selfRestorationStatusSourceId,
+      group: STATUS_ENTRY_GROUP.EFFECTS,
+      value: "Self Restoration",
+      source: "Self Restoration",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.INFINITE
+      }
+    });
+  }
+
+  if (!hasMonkFeature(character, CLASS_FEATURE.SUPERIOR_DEFENSE)) {
+    return derivedEntries;
+  }
+
+  if (!superiorDefenseActive && superiorDefenseRoundsRemaining <= 0) {
+    return derivedEntries;
   }
 
   if (hasStatusCondition(character.statusEntries, CONDITION_NAME.INCAPACITATED)) {
-    return [];
+    return derivedEntries;
   }
 
-  return nonForceDamageTypes.map<DerivedFeatureStatusEntry>((damageType) => ({
-    id: `feature-monk-superior-defense-resistance-${damageType.toLowerCase()}`,
-    sourceId: `feature-monk-superior-defense-resistance-${damageType.toLowerCase()}`,
-    group: STATUS_ENTRY_GROUP.RESISTANCES,
-    value: damageType,
-    source: "Superior Defense",
-    sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
-    duration: {
-      kind: STATUS_DURATION_KIND.ROUNDS,
-      amount: superiorDefenseRoundsRemaining
-    }
-  }));
+  derivedEntries.push(
+    ...nonForceDamageTypes.map<DerivedFeatureStatusEntry>((damageType) => ({
+      id: `feature-monk-superior-defense-resistance-${damageType.toLowerCase()}`,
+      sourceId: `feature-monk-superior-defense-resistance-${damageType.toLowerCase()}`,
+      group: STATUS_ENTRY_GROUP.RESISTANCES,
+      value: damageType,
+      source: "Superior Defense",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: superiorDefenseActive
+        ? {
+            kind: STATUS_DURATION_KIND.LINKED,
+            linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+            linkedValue: "Superior Defense"
+          }
+        : {
+            kind: STATUS_DURATION_KIND.ROUNDS,
+            amount: superiorDefenseRoundsRemaining
+          }
+    }))
+  );
+
+  return derivedEntries;
 }
 
 export function activateMonkFlurryOfBlows(character: Character): Character {
@@ -690,42 +760,18 @@ export function activateMonkFlurryOfBlows(character: Character): Character {
       monk: {
         ...monkState,
         focusPointsExpended: shadowFlurryActive
-          ? monkState.focusPointsExpended ?? 0
+          ? (monkState.focusPointsExpended ?? 0)
           : (monkState.focusPointsExpended ?? 0) + 1,
         flurryOfBlowsAttacksRemainingThisTurn:
-          (monkState.flurryOfBlowsAttacksRemainingThisTurn ?? 0) + flurryStrikeCount
+          (monkState.flurryOfBlowsAttacksRemainingThisTurn ?? 0) + flurryStrikeCount,
+        warriorOfMercyHandOfHealingFlurryUsesThisTurn: 0
       }
     }
   };
 }
 
-export function activateMonkStunningStrike(character: Character): Character {
-  if (!hasMonkFeature(character, CLASS_FEATURE.STUNNING_STRIKE)) {
-    return character;
-  }
-
-  const monkState = getMonkFeatureState(character);
-  const focusRemaining = getMonkFocusPointsRemaining(character);
-
-  if (focusRemaining <= 0 || monkState.stunningStrikeUsedThisTurn === true) {
-    return character;
-  }
-
-  return {
-    ...character,
-    classFeatureState: {
-      ...character.classFeatureState,
-      monk: {
-        ...monkState,
-        focusPointsExpended: (monkState.focusPointsExpended ?? 0) + 1,
-        stunningStrikeUsedThisTurn: true
-      }
-    }
-  };
-}
-
-export function activateMonkUncannyMetabolism(character: Character): Character {
-  if (!hasMonkFeature(character, CLASS_FEATURE.UNCANNY_METABOLISM)) {
+export function applyMonkUncannyMetabolismOnInitiative(character: Character): Character {
+  if (!hasMonkUncannyMetabolism(character)) {
     return character;
   }
 
@@ -735,12 +781,15 @@ export function activateMonkUncannyMetabolism(character: Character): Character {
     return character;
   }
 
+  const nextCharacter = restoreAllMonkFocusPoints(character);
+  const nextMonkState = getMonkFeatureState(nextCharacter);
+
   return {
-    ...character,
+    ...nextCharacter,
     classFeatureState: {
-      ...character.classFeatureState,
+      ...nextCharacter.classFeatureState,
       monk: {
-        ...monkState,
+        ...nextMonkState,
         uncannyMetabolismUsesExpended: 1
       }
     }
@@ -781,22 +830,36 @@ export function activateMonkSuperiorDefense(character: Character): Character {
   const monkState = getMonkFeatureState(character);
   const focusRemaining = getMonkFocusPointsRemaining(character);
 
-  if (
-    focusRemaining < 3 ||
-    !isMonkTurnFresh(character) ||
-    monkState.superiorDefenseUsedThisTurn === true
-  ) {
+  if (focusRemaining < 3 || monkState.superiorDefenseUsedThisTurn === true) {
     return character;
   }
 
+  const nextStatusEntries = normalizeCharacterStatusEntries(character.statusEntries).filter(
+    (entry) => entry.sourceId !== superiorDefenseStatusSourceId
+  );
+
   return {
     ...character,
+    statusEntries: [
+      ...nextStatusEntries,
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: "Superior Defense",
+        source: "Superior Defense",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+        duration: {
+          kind: STATUS_DURATION_KIND.ROUNDS,
+          amount: superiorDefenseDurationRounds
+        },
+        sourceId: superiorDefenseStatusSourceId
+      })
+    ],
     classFeatureState: {
       ...character.classFeatureState,
       monk: {
         ...monkState,
         focusPointsExpended: (monkState.focusPointsExpended ?? 0) + 3,
-        superiorDefenseRoundsRemaining: superiorDefenseDurationRounds,
+        superiorDefenseRoundsRemaining: 0,
         superiorDefenseUsedThisTurn: true
       }
     }
@@ -888,7 +951,8 @@ export function restoreAllMonkFocusPoints(character: Character): Character {
     (monkState.extraAttacksRemainingThisTurn ?? 0) === 0 &&
     (monkState.warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn ?? 0) === 0 &&
     monkState.stunningStrikeUsedThisTurn !== true &&
-    !getMonkWarriorOfMercyHandOfHarmUsedThisTurn(character)
+    !getMonkWarriorOfMercyHandOfHarmUsedThisTurn(character) &&
+    getMonkWarriorOfMercyHandOfHealingFlurryUsesThisTurn(character) <= 0
   ) {
     return character;
   }
@@ -904,7 +968,8 @@ export function restoreAllMonkFocusPoints(character: Character): Character {
         extraAttacksRemainingThisTurn: 0,
         warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn: 0,
         stunningStrikeUsedThisTurn: false,
-        warriorOfMercyHandOfHarmUsedThisTurn: false
+        warriorOfMercyHandOfHarmUsedThisTurn: false,
+        warriorOfMercyHandOfHealingFlurryUsesThisTurn: 0
       }
     }
   };
@@ -916,13 +981,22 @@ function deactivateMonkSuperiorDefense(character: Character): Character {
   }
 
   const monkState = getMonkFeatureState(character);
+  const currentStatusEntries = normalizeCharacterStatusEntries(character.statusEntries);
+  const nextStatusEntries = currentStatusEntries.filter(
+    (entry) => entry.sourceId !== superiorDefenseStatusSourceId
+  );
 
-  if ((monkState.superiorDefenseRoundsRemaining ?? 0) === 0) {
+  if (
+    (monkState.superiorDefenseRoundsRemaining ?? 0) === 0 &&
+    monkState.superiorDefenseUsedThisTurn !== true &&
+    nextStatusEntries.length === currentStatusEntries.length
+  ) {
     return character;
   }
 
   return {
     ...character,
+    statusEntries: nextStatusEntries,
     classFeatureState: {
       ...character.classFeatureState,
       monk: {
@@ -989,12 +1063,12 @@ export function consumeMonkWeaponAttack(
   }
 
   const monkState = getMonkFeatureState(character);
-
-  if (
+  const isBonusActionUnarmedStrike =
     action.key === "unarmed-strike" &&
     action.attackKind === "unarmed" &&
-    action.economyType === ECONOMY_TYPE.BONUS_ACTION
-  ) {
+    action.economyType === ECONOMY_TYPE.BONUS_ACTION;
+
+  if (isBonusActionUnarmedStrike) {
     const flurryAttacksRemaining = monkState.flurryOfBlowsAttacksRemainingThisTurn ?? 0;
 
     if (flurryAttacksRemaining > 0) {
@@ -1026,25 +1100,41 @@ export function consumeMonkWeaponAttack(
         }
       };
     }
+
+    return isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource)
+      ? {
+          ...character,
+          roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)
+        }
+      : character;
   }
 
-  const extraAttacksRemaining = monkState.extraAttacksRemainingThisTurn ?? 0;
+  if (action.economyType === ECONOMY_TYPE.ACTION) {
+    const extraAttacksRemaining = monkState.extraAttacksRemainingThisTurn ?? 0;
 
-  if (extraAttacksRemaining > 0) {
-    return {
-      ...character,
-      classFeatureState: {
-        ...character.classFeatureState,
-        monk: {
-          ...monkState,
-          extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
+    if (extraAttacksRemaining > 0) {
+      return {
+        ...character,
+        classFeatureState: {
+          ...character.classFeatureState,
+          monk: {
+            ...monkState,
+            extraAttacksRemainingThisTurn: extraAttacksRemaining - 1
+          }
         }
-      }
-    };
+      };
+    }
   }
 
   if (!isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource)) {
     return character;
+  }
+
+  if (action.economyType !== ECONOMY_TYPE.ACTION) {
+    return {
+      ...character,
+      roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)
+    };
   }
 
   return {
@@ -1089,6 +1179,7 @@ export function advanceMonkFeaturesForNewRound(character: Character): Character 
 
   const monkState = getMonkFeatureState(character);
   const superiorDefenseRoundsRemaining = monkState.superiorDefenseRoundsRemaining ?? 0;
+  const superiorDefenseActive = hasMonkSuperiorDefenseStatus(character);
 
   if (
     (monkState.flurryOfBlowsAttacksRemainingThisTurn ?? 0) === 0 &&
@@ -1096,6 +1187,7 @@ export function advanceMonkFeaturesForNewRound(character: Character): Character 
     (monkState.warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn ?? 0) === 0 &&
     monkState.stunningStrikeUsedThisTurn !== true &&
     !getMonkWarriorOfMercyHandOfHarmUsedThisTurn(character) &&
+    getMonkWarriorOfMercyHandOfHealingFlurryUsesThisTurn(character) <= 0 &&
     superiorDefenseRoundsRemaining === 0 &&
     monkState.superiorDefenseUsedThisTurn !== true
   ) {
@@ -1113,7 +1205,10 @@ export function advanceMonkFeaturesForNewRound(character: Character): Character 
         warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn: 0,
         stunningStrikeUsedThisTurn: false,
         warriorOfMercyHandOfHarmUsedThisTurn: false,
-        superiorDefenseRoundsRemaining: Math.max(0, superiorDefenseRoundsRemaining - 1),
+        warriorOfMercyHandOfHealingFlurryUsesThisTurn: 0,
+        superiorDefenseRoundsRemaining: superiorDefenseActive
+          ? 0
+          : Math.max(0, superiorDefenseRoundsRemaining - 1),
         superiorDefenseUsedThisTurn: false
       }
     }
@@ -1125,7 +1220,10 @@ export function activateMonkHandOfUltimateJustice(character: Character): Charact
 }
 
 export function getMonkSpeedBonuses(
-  character: Pick<Character, "className" | "level" | "equipment" | "inventoryItems" | "customEquipment">,
+  character: Pick<
+    Character,
+    "className" | "level" | "equipment" | "inventoryItems" | "customEquipment"
+  >,
   _context: SpeedFeatureContext
 ): FeatureSpeedBonus[] {
   const movementBonus = getMonkUnarmoredMovementBonus(character);

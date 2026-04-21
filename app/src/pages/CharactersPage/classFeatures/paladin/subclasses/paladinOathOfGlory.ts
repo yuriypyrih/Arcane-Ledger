@@ -13,6 +13,11 @@ import { getAbilityModifier } from "../../../gameplay";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import {
+  createChargesAndUsageHeaderTags,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../cardUsage";
+import {
   createDefaultFeatureActionDescription,
   getPreparedSpellIdsByLevel,
   resolveSpellIdsByName,
@@ -326,10 +331,31 @@ function getPaladinOathOfGloryFeatureActions(
       breakdown: "Heroic glory form",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
+      cardUsage: createChargesOrResourceCardUsage(
+        livingLegendUsesRemaining,
+        livingLegendUsesTotal,
+        createFeatureActionCardCost({
+          amountText: "5th",
+          resourceLabel: "Spell Slot"
+        })
+      ),
       usesRemaining: livingLegendUsesRemaining,
       usesTotal: livingLegendUsesTotal,
       usesInlineLabel: showLivingLegendFallbackSlotInfo ? "| Use 5th Spell Slot" : undefined,
       description: [...livingLegendDescription],
+      headerTags: createChargesAndUsageHeaderTags(
+        livingLegendUsesRemaining,
+        livingLegendUsesTotal,
+        createFeatureActionCardCost({
+          amountText: "5th",
+          resourceLabel: "Spell Slot"
+        }),
+        livingLegendFallbackSlotSummary.remaining,
+        livingLegendFallbackSlotSummary.total,
+        {
+          label: "Spell Slots"
+        }
+      ),
       resources: [
         {
           kind: "tracker",

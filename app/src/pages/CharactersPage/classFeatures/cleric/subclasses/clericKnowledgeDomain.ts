@@ -36,6 +36,11 @@ import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
 } from "../../../statusEntries";
+import {
+  createChargesAndUsageHeaderTags,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../cardUsage";
 import { getPreparedSpellIdsByLevel, type SubclassRuntimeResolver } from "../../subclassRuntime";
 import type {
   AbilityCheckIndicatorMap,
@@ -632,10 +637,31 @@ export function getKnowledgeDomainFeatureActions(
       breakdown: "Skill/save advantage",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
+      cardUsage: createChargesOrResourceCardUsage(
+        usesRemaining,
+        usesTotal,
+        createFeatureActionCardCost({
+          amountText: "6+",
+          resourceLabel: "Spell Slot"
+        })
+      ),
       usesRemaining,
       usesTotal,
       usesInlineLabel: usesRemaining <= 0 && hasFallbackSlot ? "| Use 6+ Spell Slot" : undefined,
       description: [...divineForeknowledgeDescription],
+      headerTags: createChargesAndUsageHeaderTags(
+        usesRemaining,
+        usesTotal,
+        createFeatureActionCardCost({
+          amountText: "6+",
+          resourceLabel: "Spell Slot"
+        }),
+        fallbackSlotSummary.remaining,
+        fallbackSlotSummary.total,
+        {
+          label: "Spell Slots"
+        }
+      ),
       drawer: {
         kind: "confirm",
         eyebrow: "Knowledge Domain",

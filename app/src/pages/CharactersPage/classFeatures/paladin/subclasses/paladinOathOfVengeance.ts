@@ -10,6 +10,11 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import {
+  createChargesAndUsageHeaderTags,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../cardUsage";
+import {
   getPreparedSpellIdsByLevel,
   resolveSpellIdsByName,
   type SubclassRuntimeResolver
@@ -191,10 +196,31 @@ function getPaladinOathOfVengeanceFeatureActions(
       detail: "Gain Avenging Angel for 10 minutes.",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
+      cardUsage: createChargesOrResourceCardUsage(
+        usesRemaining,
+        avengingAngelUsesTotal,
+        createFeatureActionCardCost({
+          amountText: "5th",
+          resourceLabel: "Spell Slot"
+        })
+      ),
       usesRemaining,
       usesTotal: avengingAngelUsesTotal,
       usesInlineLabel: showFallbackSlotInfo ? "| Use 5th Spell Slot" : undefined,
       description: [...avengingAngelDescription],
+      headerTags: createChargesAndUsageHeaderTags(
+        usesRemaining,
+        avengingAngelUsesTotal,
+        createFeatureActionCardCost({
+          amountText: "5th",
+          resourceLabel: "Spell Slot"
+        }),
+        fallbackSlotSummary.remaining,
+        fallbackSlotSummary.total,
+        {
+          label: "Spell Slots"
+        }
+      ),
       resources: [
         {
           kind: "tracker",

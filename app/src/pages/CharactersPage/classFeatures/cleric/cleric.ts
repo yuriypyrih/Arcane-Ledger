@@ -54,6 +54,7 @@ import type {
   FeatureSavingThrowProficiencyEntry,
   FeatureToolProficiencyEntry,
   FeatureWeaponProficiencyEntry,
+  WeaponAttackConsumptionContext,
   SavingThrowIndicatorMap,
   SkillIndicatorMap,
   WeaponFeatureContext
@@ -574,9 +575,7 @@ export function getClericWeaponAction(
 
 export function consumeClericWeaponAttack(
   character: Character,
-  action: {
-    attackKind: "weapon" | "unarmed";
-  }
+  action: WeaponAttackConsumptionContext
 ): Character {
   return warDomainSubclass.consumeClericWarPriestWeaponAttack(character, action);
 }

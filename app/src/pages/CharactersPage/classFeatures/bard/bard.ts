@@ -11,20 +11,30 @@ import type {
   Character,
   CharacterBardFeatureState,
   SkillName,
-  SkillProficiencyEntry,
+  SkillProficiencyEntry
 } from "../../../../types";
 import {
   getSkillProficiencyForSkillName,
   isSkillName,
   PROFICIENCY_OVERRIDE_POLICY,
   PROF_LEVEL,
-  PROFICIENCY_SOURCE,
+  PROFICIENCY_SOURCE
 } from "../../../../types";
 import { appendSourcedDescriptionAddition } from "../../actionModalDescriptions";
 import { getFeatAbilityScoreBonusesForCharacter } from "../../feats";
+import {
+  createFeatureActionCardCost,
+  markUsageHeaderTagsAsFallback,
+  createNamedResourceCardUsage,
+  createNamedUsageHeaderTags
+} from "../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
+import {
+  ACTION_CATEGORY,
+  ECONOMY_TYPE,
+  getRoundTrackerResourceForEconomyType
+} from "../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
 import type {
   FeatureArmorProficiencyEntry,
@@ -33,7 +43,8 @@ import type {
   FeatureLanguageProficiencyEntry,
   FeatureSkillBonus,
   FeatureSkillProficiencyEntry,
-  FeatureWeaponProficiencyEntry
+  FeatureWeaponProficiencyEntry,
+  WeaponAttackConsumptionContext
 } from "../types";
 import * as danceSubclass from "./subclasses/bardCollegeOfDance";
 import * as glamourSubclass from "./subclasses/bardCollegeOfGlamour";
@@ -513,15 +524,16 @@ export function canUseBardValorActionCantripReplacement(
 
 export function consumeBardWeaponAttack(
   character: Character,
-  action?: {
-    attackKind: "weapon" | "unarmed";
-  }
+  action: WeaponAttackConsumptionContext
 ): Character {
+  const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+
   if (character.className !== "Bard") {
-    return isRoundTrackerResourceAvailable(character.roundTracker, "action")
+    return roundTrackerResource &&
+      isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource)
       ? {
           ...character,
-          roundTracker: consumeRoundTrackerResource(character.roundTracker, "action")
+          roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)
         }
       : character;
   }
@@ -971,6 +983,26 @@ export function getBardFeatureAction(
         ? "No Bardic Inspiration uses or spell slots remaining."
         : "No Bardic Inspiration uses remaining."
       : undefined;
+  const cardUsage =
+    usesRemaining > 0
+      ? createNamedResourceCardUsage(
+          createFeatureActionCardCost({
+            amountText: "1",
+            icon: "music"
+          })
+        )
+      : canSpendSpellSlotForUse
+        ? createNamedResourceCardUsage(
+            createFeatureActionCardCost({
+              resourceLabel: "Spell Slot"
+            })
+          )
+        : createNamedResourceCardUsage(
+            createFeatureActionCardCost({
+              amountText: "1",
+              icon: "music"
+            })
+          );
 
   return {
     key: bardicInspirationActionKey,
@@ -981,12 +1013,39 @@ export function getBardFeatureAction(
       "Use a Bonus Action to inspire another creature within 60 feet that can see or hear you.",
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
+    cardUsage,
     usesRemaining,
     usesTotal: totalUses,
     hideUsesTrackerOnCard: true,
     usesSupplementaryLabel: spellSlotLabel,
     usesInlineLabel: "Use 1",
     usesInlineIcon: "music",
+    headerTags:
+      usesRemaining > 0 || !canSpendSpellSlotForUse
+        ? createNamedUsageHeaderTags(
+            createFeatureActionCardCost({
+              amountText: "1",
+              icon: "music"
+            }),
+            usesRemaining,
+            totalUses,
+            {
+              icon: "music"
+            }
+          )
+        : markUsageHeaderTagsAsFallback(
+            createNamedUsageHeaderTags(
+              createFeatureActionCardCost({
+                amountText: "1",
+                resourceLabel: "Spell Slot"
+              }),
+              spellSlotAvailability.remainingCount,
+              spellSlotAvailability.totalCount,
+              {
+                label: "Spell Slots"
+              }
+            )
+          ),
     drawer: {
       kind: "confirm",
       eyebrow: "Bard",

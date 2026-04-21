@@ -10,6 +10,11 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifier } from "../../../gameplay";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import {
+  createChargesAndUsageHeaderTags,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../cardUsage";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
 import type {
@@ -381,6 +386,14 @@ function getSorcererClockworkFeatureActions(
       breakdown: "10-turn perfect order",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
+      cardUsage: createChargesOrResourceCardUsage(
+        usesRemaining,
+        getSorcererClockworkTranceOfOrderUsesTotal(character),
+        createFeatureActionCardCost({
+          amountText: String(tranceOfOrderFallbackSorceryPointCost),
+          icon: "sparkles"
+        })
+      ),
       usesRemaining,
       usesTotal: getSorcererClockworkTranceOfOrderUsesTotal(character),
       usesInlineLabel:
@@ -388,6 +401,22 @@ function getSorcererClockworkFeatureActions(
       usesInlineIcon: usesRemaining <= 0 ? "sparkles" : undefined,
       usesInlineSuffix: usesRemaining <= 0 ? "instead" : undefined,
       description: tranceOfOrderDescription,
+      headerTags:
+        totalPoints > 0
+          ? createChargesAndUsageHeaderTags(
+              usesRemaining,
+              getSorcererClockworkTranceOfOrderUsesTotal(character),
+              createFeatureActionCardCost({
+                amountText: String(tranceOfOrderFallbackSorceryPointCost),
+                icon: "sparkles"
+              }),
+              remainingPoints,
+              totalPoints,
+              {
+                icon: "sparkles"
+              }
+            )
+          : undefined,
       resources:
         totalPoints > 0
           ? [
@@ -463,6 +492,14 @@ function getSorcererClockworkFeatureActions(
       breakdown: "Summon order spirits",
       economyType: ECONOMY_TYPE.ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
+      cardUsage: createChargesOrResourceCardUsage(
+        usesRemaining,
+        getSorcererClockworkCavalcadeUsesTotal(character),
+        createFeatureActionCardCost({
+          amountText: String(clockworkCavalcadeFallbackSorceryPointCost),
+          icon: "sparkles"
+        })
+      ),
       usesRemaining,
       usesTotal: getSorcererClockworkCavalcadeUsesTotal(character),
       usesInlineLabel:
@@ -470,6 +507,22 @@ function getSorcererClockworkFeatureActions(
       usesInlineIcon: usesRemaining <= 0 ? "sparkles" : undefined,
       usesInlineSuffix: usesRemaining <= 0 ? "instead" : undefined,
       description: clockworkCavalcadeDescription,
+      headerTags:
+        totalPoints > 0
+          ? createChargesAndUsageHeaderTags(
+              usesRemaining,
+              getSorcererClockworkCavalcadeUsesTotal(character),
+              createFeatureActionCardCost({
+                amountText: String(clockworkCavalcadeFallbackSorceryPointCost),
+                icon: "sparkles"
+              }),
+              remainingPoints,
+              totalPoints,
+              {
+                icon: "sparkles"
+              }
+            )
+          : undefined,
       resources:
         totalPoints > 0
           ? [

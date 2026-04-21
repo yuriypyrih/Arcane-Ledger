@@ -31,6 +31,12 @@ import {
   normalizeSorcererDraconicElementalAffinityDamageType,
   restoreSorcererSubclassFeaturesOnLongRest
 } from "./subclasses";
+import {
+  createChargesAndUsageHeaderTags,
+  createChargesCardUsage,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../cardUsage";
 import type { FeatureActionCard, FeatureActionOptionCard } from "../types";
 
 export const innateSorceryActionKey = "sorcerer-innate-sorcery";
@@ -662,6 +668,17 @@ export function getSorcererFeatureActions(
       description: getSorcererFeatureDescription(CLASS_FEATURE.INNATE_SORCERY),
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
+      cardUsage:
+        fallbackSorceryPointCost > 0
+          ? createChargesOrResourceCardUsage(
+              remainingUses,
+              getInnateSorceryUsesTotal(character),
+              createFeatureActionCardCost({
+                amountText: String(fallbackSorceryPointCost),
+                icon: "sparkles"
+              })
+            )
+          : createChargesCardUsage(remainingUses, getInnateSorceryUsesTotal(character)),
       usesRemaining: remainingUses,
       usesTotal: getInnateSorceryUsesTotal(character),
       usesInlineLabel:
@@ -670,6 +687,22 @@ export function getSorcererFeatureActions(
           : undefined,
       usesInlineIcon: remainingUses <= 0 && fallbackSorceryPointCost > 0 ? "sparkles" : undefined,
       usesInlineSuffix: remainingUses <= 0 && fallbackSorceryPointCost > 0 ? "instead" : undefined,
+      headerTags:
+        fallbackSorceryPointCost > 0
+          ? createChargesAndUsageHeaderTags(
+              remainingUses,
+              getInnateSorceryUsesTotal(character),
+              createFeatureActionCardCost({
+                amountText: String(fallbackSorceryPointCost),
+                icon: "sparkles"
+              }),
+              getSorceryPointsRemaining(character),
+              getSorceryPointsTotal(character),
+              {
+                icon: "sparkles"
+              }
+            )
+          : undefined,
       isActive,
       disabled: Boolean(disabledReason),
       disabledReason

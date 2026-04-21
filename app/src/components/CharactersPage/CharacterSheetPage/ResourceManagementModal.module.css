@@ -2,6 +2,16 @@
   gap: 0.9rem;
 }
 
+.titleRow {
+  align-items: center;
+}
+
+.titleAccessory {
+  display: inline-flex;
+  align-items: center;
+  color: var(--color-accent);
+}
+
 .description {
   margin: 0;
   color: rgba(75, 47, 29, 0.74);

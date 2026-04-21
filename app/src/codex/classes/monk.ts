@@ -221,20 +221,19 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   },
   [CLASS_FEATURE.UNCANNY_METABOLISM]: {
     description: [
-      "When you roll Initiative, you can regain all expended Focus Points. <link:not-tracked>Not Tracked</link>",
-      "When you do so, roll your Martial Arts die, and regain a number of Hit Points equal to your Monk level plus the number rolled. <link:not-tracked>Not Tracked</link>",
-      "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link>. <link:tracked>Tracked</link>"
+      "When you roll Initiative, you can regain all expended Focus Points.",
+      "When you do so, roll your Martial Arts die, and regain a number of Hit Points equal to your Monk level plus the number rolled.",
+      "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link>."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.DEFLECT_ATTACKS]: {
     description: getMonkDeflectAttacksDescription(false),
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.SLOW_FALL]: {
     description: [
-      "You can take a Reaction when you fall to reduce any damage you take from the fall by an amount equal to five times your Monk level.",
-      "This feature is <link:semi-tracked>Semi Tracked</link>. You can find it in the Reactions list, but you have to do the math yourself."
+      "You can take a Reaction when you fall to reduce any damage you take from the fall by an amount equal to five times your Monk level."
     ],
     trackingState: TRACKER.SEMI_TRACKED
   },
@@ -248,9 +247,7 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
     description: [
       "Once per turn when you hit a creature with a Monk weapon or an Unarmed Strike, you can expend 1 Focus Point to attempt a stunning strike.",
       "The target must make a Constitution saving throw.",
-      "On a failed save, the target has the Stunned condition until the start of your next turn.",
-      "On a successful save, the target's Speed is halved until the start of your next turn, and the next attack roll made against the target before then has Advantage.",
-      "The usage is being tracked but not the mechanic itself."
+      "On a failed save, the target has the Stunned condition until the start of your next turn.On a successful save, the target's Speed is halved until the start of your next turn, and the next attack roll made against the target before then has Advantage."
     ],
     trackingState: TRACKER.SEMI_TRACKED
   },
@@ -265,13 +262,13 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "When you're subjected to an effect that allows you to make a Dexterity saving throw to take only half damage, you instead take no damage if you succeed on the saving throw and only half damage if you fail.",
       "You don't benefit from this feature if you have the Incapacitated condition."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.ACROBATIC_MOVEMENT]: {
     description: [
       "While you aren't wearing armor or wielding a Shield, you gain the ability to move along vertical surfaces and across liquids on your turn without falling during the movement."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.HEIGHTENED_FOCUS]: {
     description: [
@@ -287,7 +284,7 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "Through sheer force of will, you can remove one of the following conditions from yourself at the end of each of your turns: Charmed, Frightened, or Poisoned.",
       "In addition, forgoing food and drink doesn't give you levels of Exhaustion."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   [CLASS_FEATURE.DEFLECT_ENERGY]: {
     description: [

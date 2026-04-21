@@ -1,7 +1,7 @@
 import clsx from "clsx";
-import { Brain, Flame, Hexagon, Music, PawPrint, Pentagon, Sparkles, Wind } from "lucide-react";
 import type { ReactNode } from "react";
 import ActionShape from "../../../../ActionShape";
+import FeatureUsageLabel, { renderFeatureUsageIcon } from "../../FeatureUsageLabel";
 import FeatureTrackingBadgeButton from "../../../../FeatureDisclosure/FeatureTrackingBadgeButton";
 import RadioContainerOption from "../../RadioContainerOption";
 import type { Character } from "../../../../../types";
@@ -12,11 +12,9 @@ import type {
 import {
   createEconomyMultiContextForFeatureAction,
   createEconomyMultiContextForFeatureActionOption,
-  createEconomyMultiContextForWeaponAction,
   getSharedEconomyMultiCountForCharacterAction
 } from "../../../../../pages/CharactersPage/classFeatures";
 import type { WeaponAction } from "../../../../../pages/CharactersPage/gameplay";
-import type { EconomyType } from "../../../../../pages/CharactersPage/actionEconomy";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import {
   getActionShapeForEconomyType,
@@ -24,8 +22,7 @@ import {
   getEconomyShapeState,
   getWeaponActionBreakdown
 } from "../gameplayWidgetUtils";
-import animaIcon from "../../../../../assets/svg/anima.svg";
-import pyromancyIcon from "../../../../../assets/svg/pyromancy.svg";
+import { getWeaponAttackPathStates } from "./weaponActionEconomy";
 import styles from "./ActionCards.module.css";
 import modalStyles from "./FeatureActionModal.module.css";
 
@@ -50,8 +47,6 @@ function renderCardSubheader(content: ReactNode) {
 type WeaponActionCardProps = {
   action: WeaponAction;
   character: Character;
-  secondaryEconomyType?: EconomyType | null;
-  secondaryEconomyMultiCount?: number;
   roundTracker: RoundTrackerAvailability;
   onClick: (action: WeaponAction) => void;
 };
@@ -59,29 +54,12 @@ type WeaponActionCardProps = {
 export function WeaponActionCard({
   action,
   character,
-  secondaryEconomyType = null,
-  secondaryEconomyMultiCount = 0,
   roundTracker,
   onClick
 }: WeaponActionCardProps) {
-  const actionShape = getActionShapeForEconomyType(action.economyType);
-  const sharedEconomyMultiCount = getSharedEconomyMultiCountForCharacterAction(
-    character,
-    createEconomyMultiContextForWeaponAction(action)
-  );
-  const economyShapeState = getEconomyShapeState(
-    action.economyType,
-    roundTracker,
-    (action.economyMultiCount ?? 0) + sharedEconomyMultiCount
-  );
-  const secondaryActionShape = secondaryEconomyType
-    ? getActionShapeForEconomyType(secondaryEconomyType)
-    : null;
-  const secondaryEconomyShapeState = secondaryEconomyType
-    ? getEconomyShapeState(secondaryEconomyType, roundTracker, secondaryEconomyMultiCount)
-    : null;
-  const isUnavailable =
-    !economyShapeState.isUsable && !(secondaryEconomyShapeState?.isUsable ?? false);
+  const attackPaths = getWeaponAttackPathStates(character, action, roundTracker);
+  const isUnavailable = attackPaths.every((path) => !path.shapeState.isUsable);
+  const hasAdditionalPathUses = attackPaths.some((path) => path.additionalUseCount > 0);
 
   return (
     <button
@@ -90,33 +68,42 @@ export function WeaponActionCard({
         styles.button,
         styles.actionCard,
         isUnavailable && styles.actionCardUnavailable,
-        economyShapeState.multiCount > 0 && styles.actionCardMulti
+        hasAdditionalPathUses && styles.actionCardMulti
       )}
       aria-disabled={isUnavailable}
       onClick={() => onClick(action)}
     >
-      {actionShape || secondaryActionShape ? (
+      {attackPaths.length > 0 ? (
         <span className={styles.shapeBadgeRow} aria-hidden="true">
-          {actionShape ? (
-            <span className={styles.shapeBadge}>
-              <ActionShape
-                shape={actionShape}
-                isSelected={economyShapeState.isAvailable}
-                multiCount={economyShapeState.multiCount}
-                size="small"
-              />
-            </span>
-          ) : null}
-          {secondaryActionShape && secondaryEconomyShapeState ? (
-            <span className={clsx(styles.shapeBadge, styles.shapeBadgeSecondary)}>
-              <ActionShape
-                shape={secondaryActionShape}
-                isSelected={secondaryEconomyShapeState.isAvailable}
-                multiCount={secondaryEconomyShapeState.multiCount}
-                size="small"
-              />
-            </span>
-          ) : null}
+          {attackPaths.map((path) => {
+            const actionShape = getActionShapeForEconomyType(path.economyType);
+
+            if (!actionShape) {
+              return null;
+            }
+
+            return (
+              <span key={`${action.key}-${path.id}`} className={styles.shapeBadgeMeta}>
+                <span
+                  className={clsx(
+                    styles.shapeBadge,
+                    path.id === "secondary" && styles.shapeBadgeSecondary
+                  )}
+                >
+                  <ActionShape
+                    shape={actionShape}
+                    isSelected={path.shapeState.isAvailable}
+                    multiCount={path.shapeState.multiCount}
+                    showMultiCountLabel={false}
+                    size="small"
+                  />
+                </span>
+                {path.additionalUseCount > 0 ? (
+                  <span className={styles.shapeBadgeCount}>{`x${path.totalUseCount}`}</span>
+                ) : null}
+              </span>
+            );
+          })}
         </span>
       ) : null}
       <strong>{action.name}</strong>
@@ -137,112 +124,22 @@ type FeatureActionCardButtonProps = {
   onClick: (action: FeatureActionCard) => void;
 };
 
-function renderFeatureActionUsesIcon(icon: FeatureActionCard["usesIcon"]) {
-  if (icon === "anima") {
-    return <img src={animaIcon} alt="" className={styles.usesAssetIcon} />;
-  }
-
-  if (icon === "brain") {
-    return <Brain size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "sparkles") {
-    return <Sparkles size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "music") {
-    return <Music size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "flame") {
-    return <Flame size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "superiority") {
-    return <Pentagon size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "wind") {
-    return <Wind size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "paw") {
-    return <PawPrint size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "psi") {
-    return <Hexagon size={14} strokeWidth={2.1} />;
-  }
-
-  if (icon === "pyromancy") {
-    return <img src={pyromancyIcon} alt="" className={styles.usesAssetIcon} />;
-  }
-
-  return null;
-}
-
-function renderFeatureActionUsesLabel(action: FeatureActionCard) {
-  if (!action.usesLabel) {
-    return null;
-  }
-
-  if (action.usesIcon === "brain") {
-    return (
-      <>
-        <span>Uses</span>
-        <span>{action.usesLabel}</span>
-        {renderFeatureActionUsesIcon(action.usesIcon)}
-      </>
-    );
-  }
-
-  if (action.usesIcon) {
-    const shouldPrefixUses = !/\s/.test(action.usesLabel);
-
-    return (
-      <>
-        {shouldPrefixUses ? <span>Uses</span> : null}
-        <span>{action.usesLabel}</span>
-        {renderFeatureActionUsesIcon(action.usesIcon)}
-      </>
-    );
-  }
-
-  return <span>{action.usesLabel}</span>;
-}
-
-function renderFeatureActionInlineUses(action: FeatureActionCard) {
-  if (!action.usesInlineLabel && !action.usesInlineIcon && !action.usesInlineSuffix) {
+function renderFeatureActionCardUsage(action: FeatureActionCard) {
+  if (!action.cardUsage) {
     return null;
   }
 
   return (
-    <>
-      {action.usesInlineLabel ? <span>{action.usesInlineLabel}</span> : null}
-      {action.usesInlineIcon ? renderFeatureActionUsesIcon(action.usesInlineIcon) : null}
-      {action.usesInlineSuffix ? <span>{action.usesInlineSuffix}</span> : null}
-    </>
-  );
-}
-
-function renderFeatureActionNamedResource(action: FeatureActionCard) {
-  const namedResource = action.resources?.find(
-    (resource): resource is Extract<NonNullable<FeatureActionCard["resources"]>[number], { kind: "text" }> =>
-      resource.kind === "text" &&
-      resource.label !== "Usage" &&
-      resource.label !== "Value" &&
-      resource.value.includes("/")
-  );
-
-  if (!namedResource) {
-    return null;
-  }
-
-  return (
-    <>
-      <span>{`${namedResource.value} ${namedResource.label}`}</span>
-      {namedResource.icon ? renderFeatureActionUsesIcon(namedResource.icon) : null}
-    </>
+    <FeatureUsageLabel
+      usage={action.cardUsage}
+      usageKey={action.key}
+      className={styles.featureUsage}
+      chargesClassName={styles.featureUsageCharges}
+      textClassName={styles.featureUsageText}
+      operatorClassName={styles.featureUsageOperator}
+      dotsClassName={styles.usesDots}
+      imageIconClassName={styles.usesAssetIcon}
+    />
   );
 }
 
@@ -258,7 +155,9 @@ function renderFeatureActionOptionUsesLabel(option: FeatureActionOptionCard) {
       <>
         {shouldPrefixUses ? <span>Uses</span> : null}
         <span>{option.usesLabel}</span>
-        {renderFeatureActionUsesIcon(option.usesIcon)}
+        {renderFeatureUsageIcon(option.usesIcon, {
+          imageIconClassName: styles.usesAssetIcon
+        })}
       </>
     );
   }
@@ -266,86 +165,24 @@ function renderFeatureActionOptionUsesLabel(option: FeatureActionOptionCard) {
   return <span>{option.usesLabel}</span>;
 }
 
-function renderFeatureActionSubheader(
-  action: FeatureActionCard,
-  usesTotal: number,
-  showsUsesTracker: boolean,
-  inlineUses: ReactNode
-) {
-  const namedResource = renderFeatureActionNamedResource(action);
-  const explicitUses = action.usesLabel ? renderFeatureActionUsesLabel(action) : inlineUses;
-  const usesContent = explicitUses ?? namedResource;
-  const usesHasIcon = Boolean(
-    action.usesIcon ||
-      action.usesInlineIcon ||
-      (namedResource &&
-        action.resources?.some(
-          (resource) =>
-            resource.kind === "text" &&
-            resource.label !== "Usage" &&
-            resource.label !== "Value" &&
-            resource.value.includes("/") &&
-            resource.icon
-        ))
-  );
+function renderFeatureActionSubheader(action: FeatureActionCard) {
+  const usageContent = renderFeatureActionCardUsage(action);
 
-  if (showsUsesTracker) {
-    return (
-      <span className={styles.subheaderStack}>
-        <span className={styles.usesRow}>
-          <span className={styles.usesLabelText}>Charges</span>
-          <span className={clsx(sheetStyles.shortRestDots, styles.usesDots)}>
-            {Array.from({ length: usesTotal }, (_, index) => (
-              <span
-                key={`${action.key}-use-${index}`}
-                className={clsx(
-                  sheetStyles.shortRestDot,
-                  index < (action.usesRemaining ?? 0) && sheetStyles.shortRestDotActive
-                )}
-              />
-            ))}
-          </span>
-          {action.usesInlineLabel || action.usesInlineIcon || action.usesInlineSuffix ? (
-            <span
-              className={clsx(
-                styles.usesInlineSupplementary,
-                action.usesInlineIcon && styles.usesInlineSupplementaryWithIcon
-              )}
-            >
-              {inlineUses}
-            </span>
-          ) : null}
+  if (!usageContent && !action.usesSupplementaryLabel && !action.valueLabel) {
+    return null;
+  }
+
+  return (
+    <span className={styles.subheaderStack}>
+      {usageContent ? <span className={styles.damageRow}>{usageContent}</span> : null}
+      {action.usesSupplementaryLabel ? (
+        <span className={clsx(styles.damageRow, styles.featureUsesSupplementary)}>
+          {action.usesSupplementaryLabel}
         </span>
-        {action.usesSupplementaryLabel ? (
-          <span className={clsx(styles.damageRow, styles.featureUsesSupplementary)}>
-            {action.usesSupplementaryLabel}
-          </span>
-        ) : null}
-      </span>
-    );
-  }
-
-  if (usesContent || action.valueLabel) {
-    return (
-      <span className={styles.subheaderStack}>
-        {usesContent ? (
-          <span
-            className={clsx(
-              styles.damageRow,
-              styles.featureMeta,
-              usesHasIcon && styles.featureMetaWithIcon,
-              action.usesTone === "danger" && styles.featureMetaDanger
-            )}
-          >
-            {usesContent}
-          </span>
-        ) : null}
-        {action.valueLabel ? <span className={styles.damageRow}>{action.valueLabel}</span> : null}
-      </span>
-    );
-  }
-
-  return null;
+      ) : null}
+      {action.valueLabel ? <span className={styles.damageRow}>{action.valueLabel}</span> : null}
+    </span>
+  );
 }
 
 export function FeatureActionCardButton({
@@ -365,12 +202,7 @@ export function FeatureActionCardButton({
     (action.economyMultiCount ?? 0) + sharedEconomyMultiCount
   );
   const isUnavailable =
-    action.disabled === true ||
-    (!action.ignoreEconomyAvailability && !economyShapeState.isUsable);
-  const showsUsesTracker =
-    Boolean(action.usesTotal && action.usesTotal > 0) && !action.hideUsesTrackerOnCard;
-  const usesTotal = action.usesTotal ?? 0;
-  const inlineUses = renderFeatureActionInlineUses(action);
+    action.disabled === true || (!action.ignoreEconomyAvailability && !economyShapeState.isUsable);
 
   return (
     <button
@@ -397,9 +229,7 @@ export function FeatureActionCardButton({
         </span>
       ) : null}
       <strong>{action.name}</strong>
-      {renderCardSubheader(
-        renderFeatureActionSubheader(action, usesTotal, showsUsesTracker, inlineUses)
-      )}
+      {renderCardSubheader(renderFeatureActionSubheader(action))}
       <small
         className={clsx(
           styles.breakdownRow,

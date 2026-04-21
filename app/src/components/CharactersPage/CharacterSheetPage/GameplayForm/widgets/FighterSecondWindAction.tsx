@@ -5,6 +5,7 @@ import FeatureOptInToggle from "../../FeatureOptInToggle/FeatureOptInToggle";
 import d20Icon from "../../../../../assets/svg/d20.svg";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import { parseRollFormulaRange } from "../../../../../pages/CharactersPage/actionOutcome";
+import { createChargesCardUsage } from "../../../../../pages/CharactersPage/classFeatures/cardUsage";
 import actionStyles from "./ActionsWidget.module.css";
 import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
 import styles from "./FighterSecondWindAction.module.css";
@@ -99,13 +100,8 @@ export function FighterSecondWindActionFooter({
           disabled={groupRecoveryUsesRemaining <= 0}
           muted={groupRecoveryUsesRemaining <= 0}
           onCheckedChange={onGroupRecoverySelectedChange}
-          metaItems={[
-            {
-              kind: "tracker",
-              current: groupRecoveryUsesRemaining,
-              total: groupRecoveryUsesTotal
-            }
-          ]}
+          usage={createChargesCardUsage(groupRecoveryUsesRemaining, groupRecoveryUsesTotal)}
+          usageKey="group-recovery"
         />
       ) : null}
       <div className={actionStyles.weaponFooterActions}>

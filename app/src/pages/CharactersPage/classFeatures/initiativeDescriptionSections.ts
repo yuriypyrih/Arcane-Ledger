@@ -3,6 +3,7 @@ import type { Character } from "../../../types";
 import { createSourcedDescriptionEntries } from "../actionModalDescriptions";
 import { getBarbarianPersistentRageInitiativeDescriptionAdditions } from "./barbarian/barbarianDescriptionSections";
 import { getFeatureDescriptionForCharacter } from "./featureDescriptions";
+import { getMonkInitiativeDescriptionAdditions } from "./monk/monkDescriptionSections";
 
 type InitiativeDescriptionCharacter = Pick<Character, "className" | "level"> &
   Partial<Pick<Character, "subclassId">>;
@@ -46,6 +47,7 @@ export function getInitiativeReferenceDescriptionAdditions(
 ): SpellDescriptionEntry[][] {
   return [
     ...getBarbarianPersistentRageInitiativeDescriptionAdditions(character),
-    ...getBardInitiativeDescriptionAdditions(character)
+    ...getBardInitiativeDescriptionAdditions(character),
+    ...getMonkInitiativeDescriptionAdditions(character)
   ];
 }

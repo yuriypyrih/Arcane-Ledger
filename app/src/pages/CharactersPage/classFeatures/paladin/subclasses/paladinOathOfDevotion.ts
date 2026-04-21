@@ -13,6 +13,11 @@ import type { WeaponAction } from "../../../gameplay";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import { createDefaultFeatureActionDescription } from "../../subclassRuntime";
+import {
+  createChargesAndUsageHeaderTags,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../cardUsage";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
@@ -576,10 +581,31 @@ function getPaladinOathOfDevotionFeatureActions(
       breakdown: "Holy aura empowerment",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
+      cardUsage: createChargesOrResourceCardUsage(
+        usesRemaining,
+        holyNimbusUsesTotal,
+        createFeatureActionCardCost({
+          amountText: "5th",
+          resourceLabel: "Spell Slot"
+        })
+      ),
       usesRemaining,
       usesTotal: holyNimbusUsesTotal,
       usesInlineLabel: showFallbackSlotInfo ? "| Use 5th Spell Slot" : undefined,
       description: [...holyNimbusDescription],
+      headerTags: createChargesAndUsageHeaderTags(
+        usesRemaining,
+        holyNimbusUsesTotal,
+        createFeatureActionCardCost({
+          amountText: "5th",
+          resourceLabel: "Spell Slot"
+        }),
+        fallbackSlotSummary.remaining,
+        fallbackSlotSummary.total,
+        {
+          label: "Spell Slots"
+        }
+      ),
       resources: [
         {
           kind: "tracker",

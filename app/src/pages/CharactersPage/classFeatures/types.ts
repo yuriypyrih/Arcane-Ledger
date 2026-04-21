@@ -42,6 +42,67 @@ export type FeatureActionIcon =
   | "psi"
   | "pyromancy";
 
+export type FeatureActionCardUsageCharges = {
+  current: number;
+  total: number;
+};
+
+export type FeatureActionCardUsageCost = {
+  amountText?: string;
+  resourceLabel: string;
+  icon?: FeatureActionIcon;
+};
+
+export type FeatureActionCardUsage =
+  | {
+      mode: "free";
+    }
+  | {
+      mode: "named-resource";
+      cost: FeatureActionCardUsageCost;
+    }
+  | {
+      mode: "charges";
+      charges: FeatureActionCardUsageCharges;
+    }
+  | {
+      mode: "charges-and-resource";
+      charges: FeatureActionCardUsageCharges;
+      cost: FeatureActionCardUsageCost;
+    }
+  | {
+      mode: "charges-or-resource";
+      charges: FeatureActionCardUsageCharges;
+      cost: FeatureActionCardUsageCost;
+    };
+
+export type FeatureActionHeaderTagPool = {
+  current: number;
+  total: number;
+  label?: string;
+  icon?: FeatureActionIcon;
+};
+
+export type FeatureActionHeaderTag =
+  | {
+      kind: "charges";
+      charges: FeatureActionCardUsageCharges;
+      supplementaryText?: string;
+    }
+  | {
+      kind: "usage";
+      cost: FeatureActionCardUsageCost;
+      pool: FeatureActionHeaderTagPool;
+      isFallback?: boolean;
+    }
+  | {
+      kind: "text";
+      label: string;
+      value: string;
+      tone?: FeatureActionTone;
+      icon?: FeatureActionIcon;
+    };
+
 export type FeatureActionFact = {
   label: string;
   value: string;
@@ -126,6 +187,7 @@ export type FeatureActionDrawerConfig = {
   helperTextTone?: FeatureActionTone;
   blockedReason?: string;
   facts?: FeatureActionFact[];
+  headerTags?: FeatureActionHeaderTag[];
   resources?: FeatureActionResource[];
   confirmLabel?: string;
   optionSelection?: FeatureActionOptionSelection;
@@ -185,6 +247,7 @@ export type FeatureActionCard = {
   usesInlineLabel?: string;
   usesInlineIcon?: FeatureActionIcon;
   usesInlineSuffix?: string;
+  cardUsage?: FeatureActionCardUsage;
   isActive?: boolean;
   consumesEconomyOnActivate?: boolean;
   ignoreEconomyAvailability?: boolean;
@@ -193,6 +256,7 @@ export type FeatureActionCard = {
   description?: SpellDescriptionEntry[];
   descriptionAdditions?: SpellDescriptionEntry[][];
   facts?: FeatureActionFact[];
+  headerTags?: FeatureActionHeaderTag[];
   resources?: FeatureActionResource[];
   drawer?: FeatureActionDrawerConfig;
   execute?: FeatureActionExecuteConfig;
@@ -223,6 +287,11 @@ export type FeatureActionOptionCard = {
 };
 
 export type EconomyMultiAttackKind = "weapon" | "unarmed";
+
+export type WeaponAttackConsumptionContext = Pick<
+  WeaponAction,
+  "key" | "economyType" | "actionCategory" | "attackKind"
+>;
 
 export type EconomyMultiActionContext = {
   economyType: EconomyType;

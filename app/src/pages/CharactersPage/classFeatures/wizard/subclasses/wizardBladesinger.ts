@@ -25,10 +25,7 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
 import { getAbilityModifier, type WeaponAction } from "../../../gameplay";
-import {
-  createCharacterStatusEntry,
-  normalizeCharacterStatusEntries
-} from "../../../traits";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import type {
   FeatureActionCard,
   FeatureArmorClassBonus,
@@ -36,7 +33,8 @@ import type {
   FeatureSpeedBonus,
   FeatureSkillProficiencyEntry,
   FeatureWeaponProficiencyEntry,
-  SkillIndicatorMap
+  SkillIndicatorMap,
+  WeaponAttackConsumptionContext
 } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 
@@ -75,10 +73,12 @@ function getWizardBladesingerFeatureDescriptionEntries(feature: CLASS_FEATURE): 
   );
 }
 
-export const wizardBladesingerBladesongDescription =
-  getWizardBladesingerFeatureDescriptionEntries(CLASS_FEATURE.BLADESONG);
-const wizardBladesingerSongOfDefenseDescription =
-  getWizardBladesingerFeatureDescriptionEntries(CLASS_FEATURE.SONG_OF_DEFENSE);
+export const wizardBladesingerBladesongDescription = getWizardBladesingerFeatureDescriptionEntries(
+  CLASS_FEATURE.BLADESONG
+);
+const wizardBladesingerSongOfDefenseDescription = getWizardBladesingerFeatureDescriptionEntries(
+  CLASS_FEATURE.SONG_OF_DEFENSE
+);
 const wizardBladesingerSongOfDefenseReactionEntry: ReactionEntry = {
   id: wizardBladesingerSongOfDefenseReactionId,
   reaction: REACTION.SONG_OF_DEFENSE,
@@ -216,9 +216,10 @@ export function normalizeWizardBladesingerFeatureState(
         : additionalAttackCount > 0
           ? 0
           : undefined,
-    bladesingerCantripReplacementUsedThisTurn: additionalAttackCount > 0
-      ? Boolean(value.bladesingerCantripReplacementUsedThisTurn)
-      : undefined,
+    bladesingerCantripReplacementUsedThisTurn:
+      additionalAttackCount > 0
+        ? Boolean(value.bladesingerCantripReplacementUsedThisTurn)
+        : undefined,
     spellcastWeaponBonusActionAvailable: hasWizardBladesingerSpellcastWeaponBonusActionFeature(
       character
     )
@@ -231,7 +232,10 @@ function getWizardBladesingerFeatureState(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
 ) {
-  return normalizeWizardBladesingerFeatureState(character.classFeatureState?.wizard ?? {}, character);
+  return normalizeWizardBladesingerFeatureState(
+    character.classFeatureState?.wizard ?? {},
+    character
+  );
 }
 
 export function getWizardBladesingerTrainingInWarAndSongSkillSelection(
@@ -400,9 +404,7 @@ export function applyWizardBladesingerFeaturesAfterSpellCast(
 
 export function consumeWizardBladesingerWeaponAttack(
   character: Character,
-  action?: {
-    attackKind: "weapon" | "unarmed";
-  }
+  action: WeaponAttackConsumptionContext
 ): Character {
   if (!hasWizardBladesingerExtraAttackFeature(character)) {
     return character;
@@ -414,9 +416,27 @@ export function consumeWizardBladesingerWeaponAttack(
   const extraAttacksRemaining = wizardState.extraAttacksRemainingThisTurn ?? 0;
   const actionAvailable = isRoundTrackerResourceAvailable(character.roundTracker, "action");
   const canUseSpellcastWeaponBonusAction =
-    action?.attackKind === "weapon" &&
+    action.attackKind === "weapon" &&
     wizardState.spellcastWeaponBonusActionAvailable === true &&
     isRoundTrackerResourceAvailable(character.roundTracker, "bonusAction");
+
+  if (action.economyType === ECONOMY_TYPE.BONUS_ACTION) {
+    if (!canUseSpellcastWeaponBonusAction) {
+      return character;
+    }
+
+    return {
+      ...character,
+      roundTracker: consumeRoundTrackerResource(character.roundTracker, "bonusAction"),
+      classFeatureState: {
+        ...character.classFeatureState,
+        wizard: {
+          ...rawWizardState,
+          spellcastWeaponBonusActionAvailable: false
+        }
+      }
+    };
+  }
 
   if (actionAvailable) {
     return {
@@ -433,21 +453,7 @@ export function consumeWizardBladesingerWeaponAttack(
   }
 
   if (extraAttacksRemaining <= 0) {
-    if (!canUseSpellcastWeaponBonusAction) {
-      return character;
-    }
-
-    return {
-      ...character,
-      roundTracker: consumeRoundTrackerResource(character.roundTracker, "bonusAction"),
-      classFeatureState: {
-        ...character.classFeatureState,
-        wizard: {
-          ...rawWizardState,
-          spellcastWeaponBonusActionAvailable: false
-        }
-      }
-    };
+    return character;
   }
 
   return {
@@ -783,12 +789,10 @@ export const getWizardBladesingerDerivedFeatureState: SubclassRuntimeResolver = 
       bladesongActive && hasWizardBladesingerSongOfDefenseFeature(character)
         ? [wizardBladesingerSongOfDefenseReactionEntry]
         : [],
-    weaponProficiencyEntries: getWizardBladesingerTrainingInWarAndSongWeaponProficiencyEntries(
-      character
-    ),
-    skillProficiencyEntries: getWizardBladesingerTrainingInWarAndSongSkillProficiencyEntries(
-      character
-    ),
+    weaponProficiencyEntries:
+      getWizardBladesingerTrainingInWarAndSongWeaponProficiencyEntries(character),
+    skillProficiencyEntries:
+      getWizardBladesingerTrainingInWarAndSongSkillProficiencyEntries(character),
     getArmorClassBonuses: bladesongActive
       ? () => getWizardBladesongArmorClassBonuses(character)
       : undefined,

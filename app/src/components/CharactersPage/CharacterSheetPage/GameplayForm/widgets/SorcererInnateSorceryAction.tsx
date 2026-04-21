@@ -2,6 +2,10 @@ import clsx from "clsx";
 import ActionShape, { type ActionShapeType } from "../../../../ActionShape";
 import FeatureOptInToggle from "../../FeatureOptInToggle/FeatureOptInToggle";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import {
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../../../../pages/CharactersPage/classFeatures/cardUsage";
 import styles from "./SorcererInnateSorceryAction.module.css";
 
 type SorcererInnateSorceryActionFooterProps = {
@@ -43,22 +47,15 @@ export function SorcererInnateSorceryActionFooter({
           checked={isCrownOfSpellfireSelected}
           onCheckedChange={onCrownOfSpellfireSelectedChange}
           title={crownOfSpellfireDisabledReason ?? undefined}
-          metaItems={[
-            {
-              kind: "tracker",
-              current: crownOfSpellfireUsesRemaining,
-              total: crownOfSpellfireUsesTotal
-            },
-            ...(crownOfSpellfireUsesRemaining <= 0 && crownOfSpellfireFallbackSorceryPointCost > 0
-              ? [
-                  {
-                    kind: "cost" as const,
-                    label: `Use ${crownOfSpellfireFallbackSorceryPointCost}`,
-                    icon: "sparkles" as const
-                  }
-                ]
-              : [])
-          ]}
+          usage={createChargesOrResourceCardUsage(
+            crownOfSpellfireUsesRemaining,
+            crownOfSpellfireUsesTotal,
+            createFeatureActionCardCost({
+              amountText: String(crownOfSpellfireFallbackSorceryPointCost),
+              icon: "sparkles"
+            })
+          )}
+          usageKey="crown-of-spellfire"
         />
       ) : null}
       <button

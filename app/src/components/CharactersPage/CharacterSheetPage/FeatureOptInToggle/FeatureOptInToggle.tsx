@@ -1,17 +1,18 @@
 import clsx from "clsx";
-import { Brain, Hexagon, Music, Pentagon, Sparkles } from "lucide-react";
-import type { ReactNode } from "react";
-import pyromancyIcon from "../../../../assets/svg/pyromancy.svg";
+import FeatureUsageLabel, { renderFeatureUsageIcon } from "../FeatureUsageLabel";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import type {
+  FeatureActionCardUsage,
+  FeatureActionIcon
+} from "../../../../pages/CharactersPage/classFeatures";
 import styles from "./FeatureOptInToggle.module.css";
 
-export type FeatureOptInToggleIconKind =
-  | "brain"
-  | "divinity"
-  | "music"
-  | "psi"
-  | "superiority"
-  | "sparkles";
+export type FeatureOptInToggleIconKind = FeatureActionIcon | "divinity";
+
+export type FeatureOptInToggleApplication = {
+  targetLabel: string;
+  qualifierText?: string;
+};
 
 export type FeatureOptInToggleMetaItem =
   | {
@@ -36,35 +37,36 @@ type FeatureOptInToggleProps = {
   onCheckedChange: (checked: boolean) => void;
   disabled?: boolean;
   title?: string;
+  usage?: FeatureActionCardUsage;
+  application?: FeatureOptInToggleApplication;
+  usageKey?: string;
   metaItems?: FeatureOptInToggleMetaItem[];
   muted?: boolean;
   className?: string;
   checkboxAccentColor?: string;
 };
 
-function renderMetaIcon(icon?: FeatureOptInToggleIconKind): ReactNode {
-  switch (icon) {
-    case "brain":
-      return <Brain size={14} strokeWidth={2.1} className={styles.metaIcon} aria-hidden="true" />;
-    case "divinity":
-      return <img src={pyromancyIcon} alt="" className={styles.metaImageIcon} />;
-    case "music":
-      return <Music size={14} strokeWidth={2.1} className={styles.metaIcon} aria-hidden="true" />;
-    case "psi":
-      return (
-        <Hexagon size={14} strokeWidth={2.1} className={styles.metaIcon} aria-hidden="true" />
-      );
-    case "superiority":
-      return (
-        <Pentagon size={14} strokeWidth={2.1} className={styles.metaIcon} aria-hidden="true" />
-      );
-    case "sparkles":
-      return (
-        <Sparkles size={14} strokeWidth={2.1} className={styles.metaIcon} aria-hidden="true" />
-      );
-    default:
-      return null;
+function normalizeMetaIcon(icon?: FeatureOptInToggleIconKind): FeatureActionIcon | undefined {
+  if (icon === "divinity") {
+    return "pyromancy";
   }
+
+  return icon;
+}
+
+function getApplicationLabel(application?: FeatureOptInToggleApplication) {
+  if (!application) {
+    return null;
+  }
+
+  const qualifierText = application.qualifierText?.trim();
+  const targetLabel = application.targetLabel.trim();
+
+  if (!qualifierText && !targetLabel) {
+    return null;
+  }
+
+  return [qualifierText, targetLabel ? `on ${targetLabel}` : null].filter(Boolean).join(" ");
 }
 
 function FeatureOptInToggle({
@@ -73,6 +75,9 @@ function FeatureOptInToggle({
   onCheckedChange,
   disabled = false,
   title,
+  usage,
+  application,
+  usageKey,
   metaItems = [],
   muted = false,
   className,
@@ -81,6 +86,7 @@ function FeatureOptInToggle({
   const visibleMetaItems = metaItems.filter(
     (item) => item.kind !== "tracker" || Math.max(0, Math.floor(item.total)) > 0
   );
+  const applicationLabel = getApplicationLabel(application);
 
   return (
     <div
@@ -100,6 +106,28 @@ function FeatureOptInToggle({
           style={checkboxAccentColor ? { accentColor: checkboxAccentColor } : undefined}
         />
         <span>{label}</span>
+        {usage ? (
+          <span className={styles.metaGroup}>
+            <span className={styles.metaDivider}>|</span>
+            <FeatureUsageLabel
+              usage={usage}
+              usageKey={usageKey ?? label}
+              className={styles.usageContent}
+              chargesClassName={styles.usageCharges}
+              textClassName={styles.usageText}
+              operatorClassName={styles.usageOperator}
+              dotsClassName={styles.usageDots}
+              iconClassName={styles.metaIcon}
+              imageIconClassName={styles.metaImageIcon}
+            />
+          </span>
+        ) : null}
+        {applicationLabel ? (
+          <span className={styles.metaGroup}>
+            <span className={styles.metaDivider}>|</span>
+            <span className={styles.applicationText}>{applicationLabel}</span>
+          </span>
+        ) : null}
         {visibleMetaItems.map((item, index) => {
           if (item.kind === "tracker") {
             const total = Math.max(0, Math.floor(item.total));
@@ -128,7 +156,12 @@ function FeatureOptInToggle({
             <span key={`${item.kind}-${index}`} className={styles.metaGroup}>
               <span className={styles.metaDivider}>|</span>
               <span className={styles.metaText}>{item.label}</span>
-              {item.kind === "cost" ? renderMetaIcon(item.icon) : null}
+              {item.kind === "cost"
+                ? renderFeatureUsageIcon(normalizeMetaIcon(item.icon), {
+                    iconClassName: styles.metaIcon,
+                    imageIconClassName: styles.metaImageIcon
+                  })
+                : null}
             </span>
           );
         })}

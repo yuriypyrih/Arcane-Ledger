@@ -5,22 +5,94 @@ import {
 } from "../../../storage/preferences";
 import { showToast, useAppDispatch } from "../../../store";
 import { rollFormulaWithDice } from "../../../utils/dice";
+import type { RolledDie } from "../../../types";
 import DiceRollerPopup from "./DiceRollerPopup";
-import type { DiceRollerPopupState, DiceRollerRequest, DiceRollerResolvedResult } from "./types";
+import type {
+  DiceRollerPopupState,
+  DiceRollerRequest,
+  DiceRollerResolvedEntryResult,
+  DiceRollerResolvedRequest,
+  DiceRollerResolvedResult
+} from "./types";
+
+function normalizeRequest(request: DiceRollerRequest): DiceRollerResolvedRequest {
+  const mode = request.mode ?? "normal";
+  const entries =
+    request.entries && request.entries.length > 0
+      ? request.entries
+      : request.formula
+        ? [
+            {
+              formula: request.formula,
+              formulaDisplay: request.formulaDisplay
+            }
+          ]
+        : [];
+
+  if (entries.length === 0) {
+    throw new Error("No dice formula available for this roll.");
+  }
+
+  return {
+    title: request.title,
+    description: request.description,
+    mode,
+    getFullManualToastText: request.getFullManualToastText,
+    entries: entries.map((entry) => ({
+      label: entry.label,
+      formula: entry.formula,
+      formulaDisplay: entry.formulaDisplay ?? entry.formula
+    }))
+  };
+}
+
+function prefixDiceIds(dice: RolledDie[], prefix: string): RolledDie[] {
+  return dice.map((die, index) => ({
+    ...die,
+    id: `${prefix}-${index}-${die.id}`
+  }));
+}
+
+function createEntryResult(
+  request: DiceRollerResolvedRequest,
+  entryIndex: number
+): DiceRollerResolvedEntryResult {
+  const entry = request.entries[entryIndex]!;
+  const { dice, ...result } = rollFormulaWithDice(entry.formula, request.mode);
+
+  return {
+    label: entry.label,
+    request: entry,
+    result,
+    dice: prefixDiceIds(dice, `entry-${entryIndex}`)
+  };
+}
 
 function createResolvedResult(state: DiceRollerPopupState): DiceRollerResolvedResult | null {
-  if (!state.result) {
+  if (!state.result || state.results.length === 0) {
     return null;
   }
 
-  const { onResolvedResult: _onResolvedResult, ...request } = state.request;
-
   return {
-    request,
+    request: state.request,
     result: state.result,
+    results: state.results,
     dice: state.dice,
     rollToken: state.rollToken
   };
+}
+
+function createDefaultToastText(resolvedResult: DiceRollerResolvedResult): string {
+  if (resolvedResult.results.length <= 1) {
+    return `Action Used: Rolled ${resolvedResult.result.total}`;
+  }
+
+  const labels = resolvedResult.results.map((entry) => {
+    const label = entry.label?.trim() || "Roll";
+    return `${label} ${entry.result.total}`;
+  });
+
+  return `Action Used: ${labels.join(" | ")}`;
 }
 
 function createPopupState(
@@ -28,31 +100,40 @@ function createPopupState(
   rollToken: number,
   behavior: DiceRollerBehaviorPreference
 ): DiceRollerPopupState {
-  const mode = request.mode ?? "normal";
-
   try {
-    const rollResult = rollFormulaWithDice(request.formula, mode);
+    const normalizedRequest = normalizeRequest(request);
+    const results = normalizedRequest.entries.map((_, index) =>
+      createEntryResult(normalizedRequest, index)
+    );
+    const primaryResult = results[0]?.result ?? null;
+    const dice = results.flatMap((entry) => entry.dice);
 
     return {
-      request: {
-        ...request,
-        mode
-      },
-      result: rollResult,
+      request: normalizedRequest,
+      onResolvedResult: request.onResolvedResult,
+      result: primaryResult,
+      results,
       error: "",
-      dice: rollResult.dice,
+      dice,
       rollToken,
-      resultVisible: rollResult.dice.length === 0,
+      resultVisible: dice.length === 0,
       behavior,
       resolvedCallbackHandled: false
     };
   } catch (rollError) {
+    const fallbackRequest: DiceRollerResolvedRequest = {
+      title: request.title,
+      description: request.description,
+      mode: request.mode ?? "normal",
+      getFullManualToastText: request.getFullManualToastText,
+      entries: []
+    };
+
     return {
-      request: {
-        ...request,
-        mode
-      },
+      request: fallbackRequest,
+      onResolvedResult: request.onResolvedResult,
       result: null,
+      results: [],
       error: rollError instanceof Error ? rollError.message : "Failed to roll dice.",
       dice: [],
       rollToken,
@@ -76,10 +157,14 @@ export function useDiceRollerPopup() {
       const nextPopupState = createPopupState(request, rollToken, behavior);
 
       if (behavior === "full_manual") {
-        if (nextPopupState.result) {
+        const resolvedResult = createResolvedResult(nextPopupState);
+
+        if (resolvedResult) {
           dispatch(
             showToast({
-              text: `Action Used: Rolled ${nextPopupState.result.total}`,
+              text:
+                nextPopupState.request.getFullManualToastText?.(resolvedResult) ??
+                createDefaultToastText(resolvedResult),
               type: "success",
               position: "top-middle",
               effect: "default"
@@ -123,17 +208,14 @@ export function useDiceRollerPopup() {
   }, []);
 
   useEffect(() => {
-    if (!popupState) {
-      return;
-    }
-
     if (
+      !popupState ||
       popupState.behavior !== "full_auto" ||
       popupState.resolvedCallbackHandled ||
       !popupState.resultVisible ||
       !popupState.result ||
       popupState.error ||
-      !popupState.request.onResolvedResult
+      !popupState.onResolvedResult
     ) {
       return;
     }
@@ -144,7 +226,7 @@ export function useDiceRollerPopup() {
       return;
     }
 
-    popupState.request.onResolvedResult(resolvedResult);
+    popupState.onResolvedResult(resolvedResult);
 
     setPopupState((current) => {
       if (!current || current.rollToken !== popupState.rollToken) {

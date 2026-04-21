@@ -10,6 +10,11 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import {
+  createChargesAndUsageHeaderTags,
+  createChargesOrResourceCardUsage,
+  createFeatureActionCardCost
+} from "../../cardUsage";
+import {
   activateTelepathicBond,
   createTelepathicBondFeatureAction,
   getTelepathicBondDurationMinutes
@@ -562,12 +567,33 @@ function getSorcererAberrantSorceryFeatureActions(
       breakdown: "Teleport, implode space",
       economyType: ECONOMY_TYPE.ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
+      cardUsage: createChargesOrResourceCardUsage(
+        usesRemaining,
+        getSorcererAberrantWarpingImplosionUsesTotal(character),
+        createFeatureActionCardCost({
+          amountText: String(warpingImplosionFallbackSorceryPointCost),
+          icon: "sparkles"
+        })
+      ),
       usesRemaining,
       usesTotal: getSorcererAberrantWarpingImplosionUsesTotal(character),
       usesInlineLabel:
         usesRemaining <= 0 ? `| Use ${warpingImplosionFallbackSorceryPointCost}` : undefined,
       usesInlineIcon: usesRemaining <= 0 ? "sparkles" : undefined,
       usesInlineSuffix: usesRemaining <= 0 ? "instead" : undefined,
+      headerTags: createChargesAndUsageHeaderTags(
+        usesRemaining,
+        getSorcererAberrantWarpingImplosionUsesTotal(character),
+        createFeatureActionCardCost({
+          amountText: String(warpingImplosionFallbackSorceryPointCost),
+          icon: "sparkles"
+        }),
+        getSorcererAberrantSorceryPointsRemaining(character),
+        getSorcererAberrantSorceryPointsTotal(character),
+        {
+          icon: "sparkles"
+        }
+      ),
       description: getSorcererAberrantFeatureDescription(character, CLASS_FEATURE.WARPING_IMPLOSION),
       drawer: {
         kind: "confirm",

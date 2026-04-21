@@ -36,9 +36,7 @@ function renderPillIcon(icon: ResourceCountWidgetIcon) {
     );
   }
 
-  return (
-    <img src={icon.src} alt="" className={styles.pillImage} aria-hidden="true" />
-  );
+  return <img src={icon.src} alt="" className={styles.pillImage} aria-hidden="true" />;
 }
 
 function ResourceCountWidget({
@@ -81,12 +79,26 @@ function ResourceCountWidget({
           title={resolvedModalTitle}
           closeLabel={`Close ${modalTitle} resource management`}
           onClose={() => setIsOpen(false)}
-          onUseOne={onUse}
-          onResetOne={onAdd}
-          onResetAll={onReset}
-          useOneDisabled={current <= 0}
-          resetOneDisabled={current >= total}
-          resetAllDisabled={current >= total}
+          actions={[
+            {
+              label: "Use 1",
+              onClick: onUse,
+              disabled: current <= 0,
+              ariaLabel: `Use 1 ${modalTitle}`
+            },
+            {
+              label: "Reset 1",
+              onClick: onAdd,
+              disabled: current >= total,
+              ariaLabel: `Reset 1 ${modalTitle}`
+            },
+            {
+              label: "Reset All",
+              onClick: onReset,
+              disabled: current >= total,
+              ariaLabel: `Reset all ${modalTitle}`
+            }
+          ]}
         />
       ) : null}
     </>
