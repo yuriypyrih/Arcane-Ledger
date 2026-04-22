@@ -445,8 +445,7 @@ export function getRogueFeatureActions(
         },
         execute: {
           kind: "custom-form",
-          formKind: "sneak-attack",
-          label: "Sneak Attack"
+          formKind: "sneak-attack"
         },
         disabled: Boolean(disabledReason),
         disabledReason

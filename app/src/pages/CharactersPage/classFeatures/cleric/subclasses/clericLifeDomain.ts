@@ -75,12 +75,10 @@ export function getClericLifeDomainFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Life Domain",
-        description: [...preserveLifeDescription],
-        confirmLabel: "Use Preserve Life"
+        description: [...preserveLifeDescription]
       },
       execute: {
-        kind: "activate",
-        label: "Use Preserve Life"
+        kind: "activate"
       },
       disabled: usesRemaining <= 0,
       disabledReason: usesRemaining <= 0 ? "No Channel Divinity uses remaining." : undefined

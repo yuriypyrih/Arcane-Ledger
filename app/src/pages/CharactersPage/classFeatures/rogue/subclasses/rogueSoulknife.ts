@@ -585,12 +585,10 @@ function getRogueSoulknifePsychicVeilAction(
     ],
     drawer: {
       kind: "confirm",
-      eyebrow: soulknifeDrawerEyebrow,
-      confirmLabel: "Use Psychic Veil"
+      eyebrow: soulknifeDrawerEyebrow
     },
     execute: {
-      kind: "activate",
-      label: "Use Psychic Veil"
+      kind: "activate"
     },
     disabled: Boolean(disabledReason),
     disabledReason

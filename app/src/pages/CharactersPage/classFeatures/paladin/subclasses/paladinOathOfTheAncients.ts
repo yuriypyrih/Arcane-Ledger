@@ -280,7 +280,6 @@ function getPaladinOathOfTheAncientsFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Oath of the Ancients",
-        confirmLabel: "Use Nature's Wrath",
         resources: [
           {
             kind: "tracker",
@@ -293,8 +292,7 @@ function getPaladinOathOfTheAncientsFeatureActions(
         ]
       },
       execute: {
-        kind: "activate",
-        label: "Use Nature's Wrath"
+        kind: "activate"
       },
       disabled: channelDivinityUsesRemaining <= 0,
       disabledReason:
@@ -328,7 +326,6 @@ function getPaladinOathOfTheAncientsFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Oath of the Ancients",
-        confirmLabel: "Activate Undying Sentinel",
         blockedReason:
           character.currentHitPoints === 0
             ? undefined
@@ -344,8 +341,7 @@ function getPaladinOathOfTheAncientsFeatureActions(
         ]
       },
       execute: {
-        kind: "activate",
-        label: "Activate Undying Sentinel"
+        kind: "activate"
       },
       disabled: usesRemaining <= 0,
       disabledReason:
@@ -415,7 +411,6 @@ function getPaladinOathOfTheAncientsFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Oath of the Ancients",
-        confirmLabel: "Activate Elder Champion",
         resources: [
           {
             kind: "tracker" as const,
@@ -436,8 +431,7 @@ function getPaladinOathOfTheAncientsFeatureActions(
         ]
       },
       execute: {
-        kind: "activate",
-        label: "Activate Elder Champion"
+        kind: "activate"
       },
       isActive,
       disabled: isActive || (usesRemaining <= 0 && !hasFallbackSlot),

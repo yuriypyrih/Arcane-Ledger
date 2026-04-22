@@ -4,6 +4,7 @@ import {
   CLASS_FEATURE,
   type DICE,
   type ReactionEntry,
+  type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../codex/entries";
 import type { BardFeatureClassObj } from "../../../../types";
@@ -26,6 +27,7 @@ import {
   createFeatureActionCardCost,
   markUsageHeaderTagsAsFallback,
   createNamedResourceCardUsage,
+  createNamedResourceOrResourceCardUsage,
   createNamedUsageHeaderTags
 } from "../cardUsage";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
@@ -934,6 +936,33 @@ function getBardSpellSlotAvailability(
   };
 }
 
+function getBardicInspirationDrawerDescription(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+) {
+  const baseDescription = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.BARDIC_INSPIRATION);
+
+  if (!hasFontOfInspiration(character)) {
+    return {
+      description: baseDescription,
+      descriptionAdditions: [] as SpellDescriptionEntry[][]
+    };
+  }
+
+  const describedAction = appendSourcedDescriptionAddition(
+    {
+      description: baseDescription,
+      descriptionAdditions: [] as SpellDescriptionEntry[][]
+    },
+    "Font of Inspiration",
+    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.FONT_OF_INSPIRATION)
+  );
+
+  return {
+    description: describedAction.description ?? [],
+    descriptionAdditions: describedAction.descriptionAdditions ?? []
+  };
+}
+
 export function getBardFeatureAction(
   character: Pick<
     Character,
@@ -950,12 +979,12 @@ export function getBardFeatureAction(
   const bardicDieLabel = bardicDie ? bardicDie.toLowerCase() : "die";
   const fontOfInspirationUnlocked = hasFontOfInspiration(character);
   const spellSlotAvailability = getBardSpellSlotAvailability(character);
-  const canSpendSpellSlotForUse =
-    fontOfInspirationUnlocked && usesRemaining <= 0 && spellSlotAvailability.remainingCount > 0;
+  const hasFallbackSpellSlot = fontOfInspirationUnlocked && spellSlotAvailability.remainingCount > 0;
   const spellSlotLabel =
-    fontOfInspirationUnlocked && usesRemaining <= 0
+    fontOfInspirationUnlocked
       ? `${spellSlotAvailability.remainingCount}/${spellSlotAvailability.totalCount} spell slots`
       : undefined;
+  const bardicInspirationDrawerDescription = getBardicInspirationDrawerDescription(character);
   const drawerResources: FeatureActionResource[] = [
     {
       kind: "tracker",
@@ -976,33 +1005,59 @@ export function getBardFeatureAction(
       : [])
   ];
 
-  const disabled = usesRemaining <= 0 && !canSpendSpellSlotForUse;
+  const disabled = usesRemaining <= 0 && !hasFallbackSpellSlot;
   const disabledReason =
-    usesRemaining <= 0
+    disabled
       ? fontOfInspirationUnlocked
         ? "No Bardic Inspiration uses or spell slots remaining."
         : "No Bardic Inspiration uses remaining."
       : undefined;
   const cardUsage =
-    usesRemaining > 0
-      ? createNamedResourceCardUsage(
+    fontOfInspirationUnlocked
+      ? createNamedResourceOrResourceCardUsage(
+          createFeatureActionCardCost({
+            amountText: "1",
+            icon: "music"
+          }),
+          createFeatureActionCardCost({
+            amountText: "1+",
+            resourceLabel: "Spell Slot"
+          })
+        )
+      : createNamedResourceCardUsage(
           createFeatureActionCardCost({
             amountText: "1",
             icon: "music"
           })
-        )
-      : canSpendSpellSlotForUse
-        ? createNamedResourceCardUsage(
+        );
+  const headerTags = [
+    ...createNamedUsageHeaderTags(
+      createFeatureActionCardCost({
+        amountText: "1",
+        icon: "music"
+      }),
+      usesRemaining,
+      totalUses,
+      {
+        icon: "music"
+      }
+    ),
+    ...(fontOfInspirationUnlocked
+      ? markUsageHeaderTagsAsFallback(
+          createNamedUsageHeaderTags(
             createFeatureActionCardCost({
+              amountText: "1+",
               resourceLabel: "Spell Slot"
-            })
+            }),
+            spellSlotAvailability.remainingCount,
+            spellSlotAvailability.totalCount,
+            {
+              label: "Spell Slots"
+            }
           )
-        : createNamedResourceCardUsage(
-            createFeatureActionCardCost({
-              amountText: "1",
-              icon: "music"
-            })
-          );
+        )
+      : [])
+  ];
 
   return {
     key: bardicInspirationActionKey,
@@ -1017,51 +1072,26 @@ export function getBardFeatureAction(
     usesRemaining,
     usesTotal: totalUses,
     hideUsesTrackerOnCard: true,
-    usesSupplementaryLabel: spellSlotLabel,
-    usesInlineLabel: "Use 1",
-    usesInlineIcon: "music",
-    headerTags:
-      usesRemaining > 0 || !canSpendSpellSlotForUse
-        ? createNamedUsageHeaderTags(
-            createFeatureActionCardCost({
-              amountText: "1",
-              icon: "music"
-            }),
-            usesRemaining,
-            totalUses,
-            {
-              icon: "music"
-            }
-          )
-        : markUsageHeaderTagsAsFallback(
-            createNamedUsageHeaderTags(
-              createFeatureActionCardCost({
-                amountText: "1",
-                resourceLabel: "Spell Slot"
-              }),
-              spellSlotAvailability.remainingCount,
-              spellSlotAvailability.totalCount,
-              {
-                label: "Spell Slots"
-              }
-            )
-          ),
+    headerTags,
     drawer: {
       kind: "confirm",
       eyebrow: "Bard",
-      confirmLabel: "Use Bardic Inspiration",
+      description: bardicInspirationDrawerDescription.description,
+      descriptionAdditions: bardicInspirationDrawerDescription.descriptionAdditions,
       resources: drawerResources
     },
     execute: {
-      kind: "activate",
-      label: "Use Bardic Inspiration"
+      kind: "activate"
     },
     disabled,
     disabledReason
   };
 }
 
-export function activateBardicInspiration(character: Character): Character {
+export function activateBardicInspiration(
+  character: Character,
+  fallbackSpellSlotLevel?: number
+): Character {
   if (!hasBardFeature(character, CLASS_FEATURE.BARDIC_INSPIRATION)) {
     return character;
   }
@@ -1089,7 +1119,25 @@ export function activateBardicInspiration(character: Character): Character {
     return character;
   }
 
-  const spellSlotIndex = spellSlotAvailability.lowestAvailableLevel - 1;
+  const requestedSlotLevel =
+    fallbackSpellSlotLevel !== undefined &&
+    Number.isInteger(fallbackSpellSlotLevel) &&
+    fallbackSpellSlotLevel >= 1 &&
+    fallbackSpellSlotLevel <= spellSlotAvailability.remaining.length
+      ? fallbackSpellSlotLevel
+      : null;
+  const spellSlotLevel =
+    requestedSlotLevel !== null
+      ? (spellSlotAvailability.remaining[requestedSlotLevel - 1] ?? 0) > 0
+        ? requestedSlotLevel
+        : null
+      : spellSlotAvailability.lowestAvailableLevel;
+
+  if (spellSlotLevel === null) {
+    return character;
+  }
+
+  const spellSlotIndex = spellSlotLevel - 1;
   const nextSpellSlotsExpended = [...spellSlotAvailability.expended];
   nextSpellSlotsExpended[spellSlotIndex] = (nextSpellSlotsExpended[spellSlotIndex] ?? 0) + 1;
 

@@ -175,7 +175,6 @@ function getCircleOfTheSeaFeatureActions(character: Parameters<SubclassRuntimeRe
         kind: "confirm" as const,
         eyebrow: "Circle of the Sea",
         description,
-        confirmLabel: "Manifest",
         resources
       },
       execute: {

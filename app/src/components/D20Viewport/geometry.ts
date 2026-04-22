@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { DieTheme } from "../../types";
+import type { DieTheme, NaturalOutcome } from "../../types";
 import {
   DIE_Y,
   UP_AXIS,
@@ -13,7 +13,7 @@ import {
 import { addSolidGeometry, createMaterialSet } from "./materials";
 import { createD10Geometry } from "./polyhedra";
 
-function createD20Shape(theme: DieTheme): {
+function createD20Shape(theme: DieTheme, naturalOutcome: NaturalOutcome): {
   group: THREE.Group;
   valueLabelY: number;
   typeLabelY: number;
@@ -23,13 +23,13 @@ function createD20Shape(theme: DieTheme): {
   addSolidGeometry(
     group,
     new THREE.IcosahedronGeometry(1.22, 0).toNonIndexed(),
-    createMaterialSet(theme),
+    createMaterialSet(theme, naturalOutcome),
     0.9
   );
   return { group, valueLabelY: 1.82, typeLabelY: 2.62, typeLabelZ: -1.22 };
 }
 
-function createD4Shape(theme: DieTheme): {
+function createD4Shape(theme: DieTheme, naturalOutcome: NaturalOutcome): {
   group: THREE.Group;
   valueLabelY: number;
   typeLabelY: number;
@@ -39,13 +39,13 @@ function createD4Shape(theme: DieTheme): {
   addSolidGeometry(
     group,
     new THREE.TetrahedronGeometry(1.22, 0).toNonIndexed(),
-    createMaterialSet(theme),
+    createMaterialSet(theme, naturalOutcome),
     0.82
   );
   return { group, valueLabelY: 1.68, typeLabelY: 2.24, typeLabelZ: -0.98 };
 }
 
-function createD6Shape(theme: DieTheme): {
+function createD6Shape(theme: DieTheme, naturalOutcome: NaturalOutcome): {
   group: THREE.Group;
   valueLabelY: number;
   typeLabelY: number;
@@ -55,13 +55,13 @@ function createD6Shape(theme: DieTheme): {
   addSolidGeometry(
     group,
     new THREE.BoxGeometry(1.68, 1.68, 1.68).toNonIndexed(),
-    createMaterialSet(theme),
+    createMaterialSet(theme, naturalOutcome),
     0.84
   );
   return { group, valueLabelY: 1.62, typeLabelY: 2.24, typeLabelZ: -0.98 };
 }
 
-function createD8Shape(theme: DieTheme): {
+function createD8Shape(theme: DieTheme, naturalOutcome: NaturalOutcome): {
   group: THREE.Group;
   valueLabelY: number;
   typeLabelY: number;
@@ -71,24 +71,24 @@ function createD8Shape(theme: DieTheme): {
   addSolidGeometry(
     group,
     new THREE.OctahedronGeometry(1.34, 0).toNonIndexed(),
-    createMaterialSet(theme),
+    createMaterialSet(theme, naturalOutcome),
     0.86
   );
   return { group, valueLabelY: 1.8, typeLabelY: 2.46, typeLabelZ: -1.08 };
 }
 
-function createD10Shape(theme: DieTheme): {
+function createD10Shape(theme: DieTheme, naturalOutcome: NaturalOutcome): {
   group: THREE.Group;
   valueLabelY: number;
   typeLabelY: number;
   typeLabelZ: number;
 } {
   const group = new THREE.Group();
-  addSolidGeometry(group, createD10Geometry(), createMaterialSet(theme), 0.84);
+  addSolidGeometry(group, createD10Geometry(), createMaterialSet(theme, naturalOutcome), 0.84);
   return { group, valueLabelY: 1.82, typeLabelY: 2.48, typeLabelZ: -1.08 };
 }
 
-function createD12Shape(theme: DieTheme): {
+function createD12Shape(theme: DieTheme, naturalOutcome: NaturalOutcome): {
   group: THREE.Group;
   valueLabelY: number;
   typeLabelY: number;
@@ -98,7 +98,7 @@ function createD12Shape(theme: DieTheme): {
   addSolidGeometry(
     group,
     new THREE.DodecahedronGeometry(1.18, 0).toNonIndexed(),
-    createMaterialSet(theme),
+    createMaterialSet(theme, naturalOutcome),
     0.87
   );
   return { group, valueLabelY: 1.78, typeLabelY: 2.48, typeLabelZ: -1.08 };
@@ -106,7 +106,8 @@ function createD12Shape(theme: DieTheme): {
 
 export function createDieShape(
   sides: number,
-  theme: DieTheme = "default"
+  theme: DieTheme = "default",
+  naturalOutcome: NaturalOutcome = null
 ): {
   group: THREE.Group;
   valueLabelY: number;
@@ -114,26 +115,26 @@ export function createDieShape(
   typeLabelZ: number;
 } {
   if (sides === 4) {
-    return createD4Shape(theme);
+    return createD4Shape(theme, naturalOutcome);
   }
 
   if (sides === 6) {
-    return createD6Shape(theme);
+    return createD6Shape(theme, naturalOutcome);
   }
 
   if (sides === 8) {
-    return createD8Shape(theme);
+    return createD8Shape(theme, naturalOutcome);
   }
 
   if (sides === 10) {
-    return createD10Shape(theme);
+    return createD10Shape(theme, naturalOutcome);
   }
 
   if (sides === 12) {
-    return createD12Shape(theme);
+    return createD12Shape(theme, naturalOutcome);
   }
 
-  return createD20Shape(theme);
+  return createD20Shape(theme, naturalOutcome);
 }
 
 export function createPlaneMesh(

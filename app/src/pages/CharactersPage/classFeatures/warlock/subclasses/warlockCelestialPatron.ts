@@ -532,8 +532,7 @@ function getWarlockCelestialPatronSearingVengeanceAction(
     drawer: {
       kind: "confirm",
       eyebrow: "Celestial Patron",
-      description: [...searingVengeanceDescription],
-      confirmLabel: "Use Searing Vengeance"
+      description: [...searingVengeanceDescription]
     },
     disabled: usesRemaining <= 0,
     disabledReason: usesRemaining <= 0 ? "Searing Vengeance recharges on a Long Rest." : undefined
@@ -594,8 +593,7 @@ function getWarlockCelestialPatronHealingLightAction(
     },
     execute: {
       kind: "custom-form",
-      formKind: "healing-light",
-      label: "Roll Healing"
+      formKind: "healing-light"
     },
     disabled: remainingDice <= 0,
     disabledReason: remainingDice <= 0 ? "No Healing d6 remaining." : undefined

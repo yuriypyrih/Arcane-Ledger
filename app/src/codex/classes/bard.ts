@@ -237,9 +237,9 @@ export const bardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   [CLASS_FEATURE.FONT_OF_INSPIRATION]: {
     description: [
       "You now regain all your expended uses of Bardic Inspiration when you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",
-      "In addition, you can expend a spell slot, no action required, to regain one expended use of Bardic Inspiration. <link:not-tracked>Not Tracked</link>"
+      "In addition, you can expend a spell slot, no action required, to regain one expended use of Bardic Inspiration."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.COUNTERCHARM]: {
     description: [

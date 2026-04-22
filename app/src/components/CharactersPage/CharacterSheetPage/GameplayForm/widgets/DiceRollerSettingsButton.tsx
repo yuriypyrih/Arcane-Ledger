@@ -1,7 +1,9 @@
 import clsx from "clsx";
 import { Cog } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import { useAppSelector } from "../../../../../store";
 import DiceRollerSettingsModal from "./DiceRollerSettingsModal";
+import styles from "./DiceRollerSettingsButton.module.css";
 
 type DiceRollerSettingsButtonProps = {
   actionName: string;
@@ -23,6 +25,10 @@ function DiceRollerSettingsButton({
   onOpenChange
 }: DiceRollerSettingsButtonProps) {
   const [internalIsOpen, setInternalIsOpen] = useState(false);
+  const nextRollCriticalHitOverride = useAppSelector(
+    (state) => state.diceRoller.nextRollCriticalHitOverride
+  );
+  const nextRollModeOverride = useAppSelector((state) => state.diceRoller.nextRollModeOverride);
   const isControlled = typeof isOpen === "boolean";
   const isModalOpen = isControlled ? isOpen : internalIsOpen;
 
@@ -38,7 +44,14 @@ function DiceRollerSettingsButton({
     <>
       <button
         type="button"
-        className={clsx(className)}
+        className={clsx(
+          styles.button,
+          className,
+          nextRollCriticalHitOverride && styles.overrideCritical,
+          nextRollModeOverride === "advantage" && styles.overrideAdvantage,
+          nextRollModeOverride === "disadvantage" && styles.overrideDisadvantage,
+          nextRollModeOverride === "normal" && styles.overrideNormal
+        )}
         onClick={() => setModalOpen(true)}
         aria-label={ariaLabel}
       >

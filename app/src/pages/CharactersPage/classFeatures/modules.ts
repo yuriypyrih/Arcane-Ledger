@@ -163,6 +163,7 @@ import {
   activateMonkHandOfHealing,
   activateMonkHandOfUltimateJustice,
   activateMonkQuiveringPalm,
+  activateMonkShadowStep,
   activateMonkSuperiorDefense,
   activateMonkWholenessOfBody,
   advanceMonkFeaturesForNewRound,
@@ -186,6 +187,7 @@ import {
   monkElementalBurstActionKey,
   monkElementalAttunementActionKey,
   monkQuiveringPalmActionKey,
+  monkShadowStepActionKey,
   monkSuperiorDefenseActionKey,
   monkWholenessOfBodyActionKey,
   normalizeMonkFeatureState
@@ -654,6 +656,10 @@ const classFeatureModules = {
 
       if (actionKey === monkHandOfUltimateJusticeActionKey) {
         return activateMonkHandOfUltimateJustice(character);
+      }
+
+      if (actionKey === monkShadowStepActionKey) {
+        return activateMonkShadowStep(character);
       }
 
       if (actionKey === monkWholenessOfBodyActionKey) {

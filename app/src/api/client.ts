@@ -1,6 +1,9 @@
 function getApiBaseUrl() {
-  const baseUrl = import.meta.env.VITE_API_BASE_URL ?? "http://localhost:3001/api/v1";
-  return baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+  const configuredBaseUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+  const baseUrl = configuredBaseUrl ? configuredBaseUrl : "/api/v1";
+  const normalizedBaseUrl = baseUrl.endsWith("/") ? baseUrl : `${baseUrl}/`;
+
+  return new URL(normalizedBaseUrl, globalThis.location.origin);
 }
 
 export async function apiGet<T>(path: string): Promise<T> {

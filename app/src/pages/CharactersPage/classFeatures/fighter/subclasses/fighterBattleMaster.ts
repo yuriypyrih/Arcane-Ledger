@@ -607,12 +607,10 @@ function getFighterBattleMasterCombatSuperiorityAction(
     ],
     drawer: {
       kind: "confirm",
-      eyebrow: "Fighter",
-      confirmLabel: "Use Combat Superiority"
+      eyebrow: "Fighter"
     },
     execute: {
       kind: "activate",
-      label: "Use Combat Superiority",
       effectKind: "combat-superiority"
     },
     disabled: remainingDice <= 0 || usedThisTurn,
@@ -700,14 +698,12 @@ function getFighterBattleMasterKnowYourEnemyAction(
     drawer: {
       kind: "confirm",
       eyebrow: "Fighter",
-      confirmLabel: "Use Know Your Enemy",
       helperText: canUseFallback
         ? "Your normal use is depleted, so this activation will spend 1 Superiority Die instead."
         : undefined
     },
     execute: {
       kind: "activate",
-      label: "Use Know Your Enemy",
       effectKind: "know-your-enemy"
     },
     disabled: Boolean(disabledReason),

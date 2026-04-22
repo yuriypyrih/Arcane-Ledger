@@ -812,11 +812,10 @@ export function getWizardFeatureActions(
         eyebrow: "Wizard",
         formKind: "arcane-recovery"
       },
-      execute: {
-        kind: "custom-form",
-        formKind: "arcane-recovery",
-        label: "Recover Spell Slots"
-      },
+    execute: {
+      kind: "custom-form",
+      formKind: "arcane-recovery"
+    },
       disabled: Boolean(disabledReason),
       disabledReason
     }

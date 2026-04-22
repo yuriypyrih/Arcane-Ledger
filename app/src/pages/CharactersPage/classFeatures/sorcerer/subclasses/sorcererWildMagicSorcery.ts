@@ -128,12 +128,10 @@ function getSorcererWildMagicFeatureActions(
         eyebrow: "Wild Magic Sorcery",
         description: tidesOfChaosDescription,
         helperText:
-          usesRemaining > 0 ? "Use Tides of Chaos before you roll the D20 Test." : disabledReason,
-        confirmLabel: "Use Tides of Chaos"
+          usesRemaining > 0 ? "Use Tides of Chaos before you roll the D20 Test." : disabledReason
       },
       execute: {
-        kind: "activate",
-        label: "Use Tides of Chaos"
+        kind: "activate"
       },
       disabled: Boolean(disabledReason),
       disabledReason
@@ -164,12 +162,10 @@ function getSorcererWildMagicFeatureActions(
         helperText:
           usesRemaining > 0
             ? "Use Tamed Surge after casting a Sorcerer spell with a spell slot."
-            : disabledReason,
-        confirmLabel: "Use Tamed Surge"
+            : disabledReason
       },
       execute: {
-        kind: "activate",
-        label: "Use Tamed Surge"
+        kind: "activate"
       },
       disabled: Boolean(disabledReason),
       disabledReason

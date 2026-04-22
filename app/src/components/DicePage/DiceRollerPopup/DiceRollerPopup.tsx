@@ -1,7 +1,9 @@
+import clsx from "clsx";
 import { X } from "lucide-react";
 import { useEffect } from "react";
 import D20Viewport from "../../D20Viewport";
 import { useBodyScrollLock } from "../../../lib/useBodyScrollLock";
+import type { NaturalOutcome } from "../../../types";
 import styles from "./DiceRollerPopup.module.css";
 import type { DiceRollerPopupState } from "./types";
 
@@ -15,6 +17,26 @@ function formatResultSummary(state: DiceRollerPopupState): string {
   return state.results
     .map((entry) => `${entry.label?.trim() || "Roll"} ${entry.result.total}`)
     .join(" | ");
+}
+
+function renderNaturalOutcomePill(outcome: NaturalOutcome) {
+  const label =
+    outcome === "natural20" ? "Natural 20" : outcome === "natural1" ? "Natural 1" : null;
+
+  if (!label) {
+    return null;
+  }
+
+  return (
+    <span
+      className={clsx(
+        styles.naturalOutcomePill,
+        outcome === "natural20" ? styles.natural20Pill : styles.natural1Pill
+      )}
+    >
+      {label}
+    </span>
+  );
 }
 
 function DiceRollerPopup({ state, onClose, onRollComplete }: DiceRollerPopupProps) {
@@ -54,7 +76,12 @@ function DiceRollerPopup({ state, onClose, onRollComplete }: DiceRollerPopupProp
         aria-label={request.title}
         onClick={(event) => event.stopPropagation()}
       >
-        <button type="button" className={styles.closeButton} onClick={onClose} aria-label="Close dice roller">
+        <button
+          type="button"
+          className={styles.closeButton}
+          onClick={onClose}
+          aria-label="Close dice roller"
+        >
           <X size={18} />
         </button>
 
@@ -83,7 +110,12 @@ function DiceRollerPopup({ state, onClose, onRollComplete }: DiceRollerPopupProp
                   >
                     <p className={styles.multiResultCardLabel}>{entry.label ?? "Roll"}</p>
                     <strong className={styles.multiResultCardValue}>{entry.result.total}</strong>
-                    <p className={styles.breakdown}>{entry.result.breakdown}</p>
+                    <div className={clsx(styles.breakdownRow, styles.multiResultBreakdownRow)}>
+                      {renderNaturalOutcomePill(entry.result.naturalOutcome)}
+                      <p className={clsx(styles.breakdown, styles.multiResultBreakdown)}>
+                        {entry.result.breakdown}
+                      </p>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -92,7 +124,10 @@ function DiceRollerPopup({ state, onClose, onRollComplete }: DiceRollerPopupProp
             <div className={styles.resultPanel}>
               <p className={styles.resultLabel}>Result</p>
               <strong className={styles.resultValue}>{result.total}</strong>
-              <p className={styles.breakdown}>{result.breakdown}</p>
+              <div className={clsx(styles.breakdownRow, styles.resultBreakdownRow)}>
+                {renderNaturalOutcomePill(result.naturalOutcome)}
+                <p className={clsx(styles.breakdown, styles.resultBreakdown)}>{result.breakdown}</p>
+              </div>
             </div>
           )
         ) : state.dice.length > 0 ? (

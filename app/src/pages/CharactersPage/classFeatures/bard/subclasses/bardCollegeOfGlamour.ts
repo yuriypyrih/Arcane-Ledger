@@ -606,7 +606,6 @@ export const getBardCollegeOfGlamourDerivedFeatureState: SubclassRuntimeResolver
         drawer: {
           kind: "confirm",
           eyebrow: "College of Glamour",
-          confirmLabel: "Roll Bardic Dice",
           resources: [
             {
               kind: "tracker",
@@ -745,8 +744,7 @@ export const getBardCollegeOfGlamourDerivedFeatureState: SubclassRuntimeResolver
         ],
         drawer: {
           kind: "confirm",
-          eyebrow: "College of Glamour",
-          confirmLabel: "Assume Majesty"
+          eyebrow: "College of Glamour"
         },
         execute: {
           kind: "activate"

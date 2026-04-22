@@ -1,6 +1,64 @@
 import * as THREE from "three";
+import type { NaturalOutcome } from "../../types";
 
-export function createValueTexture(value: number): THREE.CanvasTexture {
+type ValueTexturePalette = {
+  fill: string;
+  stroke: string;
+  shadowColor: string;
+  shadowBlur: number;
+  fontSize: number;
+  lineWidth: number;
+  glowFill: string;
+  glowFontSize: number;
+  glowBlur: number;
+};
+
+function getValueTexturePalette(naturalOutcome: NaturalOutcome): ValueTexturePalette {
+  if (naturalOutcome === "natural20") {
+    return {
+      fill: "#ffd54d",
+      stroke: "rgba(116, 68, 8, 0.96)",
+      shadowColor: "rgba(255, 219, 92, 0.94)",
+      shadowBlur: 30,
+      fontSize: 142,
+      lineWidth: 16,
+      glowFill: "rgba(255, 238, 162, 0.98)",
+      glowFontSize: 158,
+      glowBlur: 48
+    };
+  }
+
+  if (naturalOutcome === "natural1") {
+    return {
+      fill: "#ff6767",
+      stroke: "rgba(18, 7, 11, 0.96)",
+      shadowColor: "rgba(74, 6, 14, 0.92)",
+      shadowBlur: 34,
+      fontSize: 142,
+      lineWidth: 16,
+      glowFill: "rgba(255, 141, 141, 0.96)",
+      glowFontSize: 158,
+      glowBlur: 52
+    };
+  }
+
+  return {
+    fill: "#fff3d7",
+    stroke: "rgba(11, 20, 39, 0.68)",
+    shadowColor: "rgba(21, 10, 5, 0.28)",
+    shadowBlur: 5,
+    fontSize: 128,
+    lineWidth: 14,
+    glowFill: "rgba(255, 243, 215, 0.62)",
+    glowFontSize: 128,
+    glowBlur: 5
+  };
+}
+
+export function createValueTexture(
+  value: number,
+  naturalOutcome: NaturalOutcome = null
+): THREE.CanvasTexture {
   const canvas = document.createElement("canvas");
   canvas.width = 256;
   canvas.height = 256;
@@ -11,19 +69,28 @@ export function createValueTexture(value: number): THREE.CanvasTexture {
     throw new Error("2D canvas context is unavailable.");
   }
 
+  const palette = getValueTexturePalette(naturalOutcome);
+  const label = String(value);
+
   context.clearRect(0, 0, canvas.width, canvas.height);
   context.translate(canvas.width / 2, canvas.height / 2);
-  context.font = "700 128px Georgia";
   context.textAlign = "center";
   context.textBaseline = "middle";
   context.lineJoin = "round";
-  context.lineWidth = 14;
-  context.strokeStyle = "rgba(11, 20, 39, 0.68)";
-  context.strokeText(String(value), 0, 3);
-  context.fillStyle = "#fff3d7";
-  context.shadowColor = "rgba(21, 10, 5, 0.28)";
-  context.shadowBlur = 5;
-  context.fillText(String(value), 0, 3);
+  context.font = `900 ${palette.glowFontSize}px Georgia`;
+  context.fillStyle = palette.glowFill;
+  context.shadowColor = palette.shadowColor;
+  context.shadowBlur = palette.glowBlur;
+  context.fillText(label, 0, 3);
+  context.font = `800 ${palette.fontSize}px Georgia`;
+  context.shadowBlur = 0;
+  context.lineWidth = palette.lineWidth;
+  context.strokeStyle = palette.stroke;
+  context.strokeText(label, 0, 3);
+  context.fillStyle = palette.fill;
+  context.shadowColor = palette.shadowColor;
+  context.shadowBlur = palette.shadowBlur;
+  context.fillText(label, 0, 3);
 
   const texture = new THREE.CanvasTexture(canvas);
   texture.colorSpace = THREE.SRGBColorSpace;

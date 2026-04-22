@@ -619,12 +619,10 @@ export function getWizardBladesongFeatureAction(
     drawer: {
       kind: "confirm",
       eyebrow: "Bladesinger",
-      confirmLabel: "Activate Bladesong",
       helperText: "Activating this creates a Bladesong trait that lasts for 10 turns."
     },
     execute: {
-      kind: "activate",
-      label: "Activate Bladesong"
+      kind: "activate"
     },
     disabled: Boolean(disabledReason),
     disabledReason

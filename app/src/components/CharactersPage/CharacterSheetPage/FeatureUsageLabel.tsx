@@ -141,6 +141,15 @@ function FeatureUsageLabel(props: FeatureUsageLabelProps) {
           {renderFeatureUsageCost(usageKey, usage.cost, props)}
         </span>
       );
+    case "named-resource-or-resource":
+      return (
+        <span className={className}>
+          {renderFeatureUsageCost(usageKey, usage.cost, props)}
+          {renderFeatureUsageOperator("|", operatorClassName)}
+          {renderFeatureUsageCost(`${usageKey}-fallback`, usage.fallbackCost, props)}
+          {renderFeatureUsageOperator("instead", operatorClassName)}
+        </span>
+      );
     case "charges":
       return (
         <span className={className}>

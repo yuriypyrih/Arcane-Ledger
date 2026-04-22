@@ -7,6 +7,7 @@ export function rollFormula(input: string, mode: RollMode): RollResult {
     formula: rolledResult.formula,
     total: rolledResult.total,
     breakdown: rolledResult.breakdown,
-    modeApplied: rolledResult.modeApplied
+    modeApplied: rolledResult.modeApplied,
+    naturalOutcome: rolledResult.naturalOutcome
   };
 }

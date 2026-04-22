@@ -136,7 +136,7 @@
 }
 
 .viewButton,
-.deleteButton {
+.iconButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -155,7 +155,7 @@
   text-decoration: none;
 }
 
-.deleteButton {
+.iconButton {
   border-radius: 12px;
   background: rgba(75, 47, 29, 0.08);
   color: var(--color-ink);
@@ -228,7 +228,7 @@
     padding: 0 0.7rem;
   }
 
-  .deleteButton {
+  .iconButton {
     min-height: 38px;
     min-width: 38px;
   }
@@ -254,7 +254,7 @@
     padding: 0 0.58rem;
   }
 
-  .deleteButton {
+  .iconButton {
     min-height: 34px;
     min-width: 34px;
   }

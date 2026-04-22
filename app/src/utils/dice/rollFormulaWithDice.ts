@@ -1,8 +1,12 @@
-import type { DiceSides, RollMode, RollResult, RolledDie } from "../../types";
+import type { DiceSides, NaturalOutcome, RollMode, RollResult, RolledDie } from "../../types";
 import { createDiceId } from "./createDiceId";
+import { getNaturalOutcome } from "./naturalOutcome";
 import { normalizeFormula } from "./normalizeFormula";
 import { parseFormula } from "./parseFormula";
 import { rollDie } from "./rollDie";
+
+// eslint-disable-next-line @typescript-eslint/no-wrapper-object-types
+const DEV_D20_ROLL: Number | null = null;
 
 export type RollFormulaWithDiceResult = RollResult & {
   dice: RolledDie[];
@@ -14,15 +18,28 @@ function asSupportedDiceSides(sides: number): DiceSides | null {
   return supportedDiceSides.has(sides) ? (sides as DiceSides) : null;
 }
 
+function getDevD20Roll(): number | null {
+  if (DEV_D20_ROLL === null) {
+    return null;
+  }
+
+  const normalizedValue = Number(DEV_D20_ROLL);
+
+  return Number.isInteger(normalizedValue) && normalizedValue >= 1 && normalizedValue <= 20
+    ? normalizedValue
+    : null;
+}
+
 function appendModeD20Dice(
   dice: RolledDie[],
-  first: number,
-  second: number,
+  firstAdjusted: number,
+  secondAdjusted: number,
   selectedIndex: 0 | 1,
   diceIndex: number,
-  mode: Exclude<RollMode, "normal">
+  mode: Exclude<RollMode, "normal">,
+  naturalOutcome: NaturalOutcome
 ) {
-  const values = [first, second] as const;
+  const values = [firstAdjusted, secondAdjusted] as const;
 
   values.forEach((value, index) => {
     dice.push({
@@ -30,29 +47,53 @@ function appendModeD20Dice(
       sides: 20,
       value,
       counted: index === selectedIndex,
-      theme: mode
+      theme: mode,
+      naturalOutcome: index === selectedIndex && naturalOutcome ? naturalOutcome : undefined
     });
   });
 }
 
 function getModeD20Roll(
   minimum: number,
-  mode: Exclude<RollMode, "normal">
+  mode: Exclude<RollMode, "normal">,
+  forcedFirstRaw: number | null = null
 ): {
-  first: number;
-  second: number;
+  firstRaw: number;
+  secondRaw: number;
+  firstAdjusted: number;
+  secondAdjusted: number;
   selectedIndex: 0 | 1;
-  chosen: number;
+  chosenRaw: number;
+  chosenAdjusted: number;
 } {
-  const first = Math.max(rollDie(20), minimum);
-  const second = Math.max(rollDie(20), minimum);
-  const selectedIndex = mode === "advantage" ? (first >= second ? 0 : 1) : first <= second ? 0 : 1;
+  let firstRaw = rollDie(20);
+  const secondRaw = rollDie(20);
+
+  if (forcedFirstRaw !== null) {
+    firstRaw = forcedFirstRaw;
+  }
+
+  const firstAdjusted = Math.max(firstRaw, minimum);
+  const secondAdjusted = Math.max(secondRaw, minimum);
+  const selectedIndex =
+    mode === "advantage"
+      ? firstAdjusted >= secondAdjusted
+        ? 0
+        : 1
+      : firstAdjusted <= secondAdjusted
+        ? 0
+        : 1;
+  const chosenRaw = selectedIndex === 0 ? firstRaw : secondRaw;
+  const chosenAdjusted = selectedIndex === 0 ? firstAdjusted : secondAdjusted;
 
   return {
-    first,
-    second,
+    firstRaw,
+    secondRaw,
+    firstAdjusted,
+    secondAdjusted,
     selectedIndex,
-    chosen: selectedIndex === 0 ? first : second
+    chosenRaw,
+    chosenAdjusted
   };
 }
 
@@ -62,28 +103,59 @@ export function rollFormulaWithDice(input: string, mode: RollMode): RollFormulaW
   const dice: RolledDie[] = [];
   let total = 0;
   let modeApplied: RollMode = "normal";
+  let naturalOutcome: NaturalOutcome = null;
   let advantageConsumed = false;
+  let countedD20Resolved = false;
+  let devD20Consumed = false;
   let diceIndex = 0;
+  const devD20Roll = getDevD20Roll();
 
   for (const term of parsed.diceTerms) {
     const applyModeToTerm =
       !advantageConsumed && mode !== "normal" && term.sides === 20 && term.count > 0;
     const normalRollCount = applyModeToTerm ? term.count - 1 : term.count;
-    const normalRolls = Array.from({ length: normalRollCount }, () => rollDie(term.sides));
-    const adjustedRolls = normalRolls.map((value) => Math.max(value, term.minimum));
+    const rawRolls = Array.from({ length: normalRollCount }, () => rollDie(term.sides));
 
     if (applyModeToTerm) {
-      const { first, second, selectedIndex, chosen } = getModeD20Roll(term.minimum, mode);
+      const { firstAdjusted, secondAdjusted, selectedIndex, chosenRaw, chosenAdjusted } =
+        getModeD20Roll(
+          term.minimum,
+          mode,
+          devD20Roll !== null && !devD20Consumed ? devD20Roll : null
+        );
+      const selectedNaturalOutcome = getNaturalOutcome(chosenRaw);
 
-      total += chosen * term.sign;
+      total += chosenAdjusted * term.sign;
       detailParts.push(
-        `${term.sign === -1 ? "-" : ""}${mode} d20 [${first}, ${second}] -> ${chosen}`
+        `${term.sign === -1 ? "-" : ""}${mode} d20 [${firstAdjusted}, ${secondAdjusted}] -> ${chosenAdjusted}`
       );
       modeApplied = mode;
       advantageConsumed = true;
-      appendModeD20Dice(dice, first, second, selectedIndex, diceIndex, mode);
+      if (devD20Roll !== null && !devD20Consumed) {
+        devD20Consumed = true;
+      }
+      appendModeD20Dice(
+        dice,
+        firstAdjusted,
+        secondAdjusted,
+        selectedIndex,
+        diceIndex,
+        mode,
+        selectedNaturalOutcome
+      );
+      if (!countedD20Resolved) {
+        naturalOutcome = selectedNaturalOutcome;
+        countedD20Resolved = true;
+      }
       diceIndex += 2;
     }
+
+    if (devD20Roll !== null && !devD20Consumed && term.sides === 20 && rawRolls.length > 0) {
+      rawRolls[0] = devD20Roll;
+      devD20Consumed = true;
+    }
+
+    const adjustedRolls = rawRolls.map((value) => Math.max(value, term.minimum));
 
     const subtotal = adjustedRolls.reduce((sum, value) => sum + value, 0) * term.sign;
     total += subtotal;
@@ -101,14 +173,27 @@ export function rollFormulaWithDice(input: string, mode: RollMode): RollFormulaW
       continue;
     }
 
-    adjustedRolls.forEach((value) => {
+    adjustedRolls.forEach((value, index) => {
+      const dieNaturalOutcome =
+        !countedD20Resolved && term.sides === 20 ? getNaturalOutcome(rawRolls[index]) : null;
+
       dice.push({
         id: createDiceId(supportedSides, diceIndex),
         sides: supportedSides,
         value,
         counted: true,
-        theme: "default"
+        theme: "default",
+        naturalOutcome: dieNaturalOutcome ?? undefined
       });
+
+      if (dieNaturalOutcome) {
+        naturalOutcome = dieNaturalOutcome;
+      }
+
+      if (!countedD20Resolved && term.sides === 20) {
+        countedD20Resolved = true;
+      }
+
       diceIndex += 1;
     });
   }
@@ -123,6 +208,7 @@ export function rollFormulaWithDice(input: string, mode: RollMode): RollFormulaW
     total,
     breakdown: detailParts.join(" "),
     modeApplied,
+    naturalOutcome,
     dice
   };
 }

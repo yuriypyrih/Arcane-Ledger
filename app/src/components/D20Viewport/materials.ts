@@ -1,5 +1,5 @@
 import * as THREE from "three";
-import type { DieTheme } from "../../types";
+import type { DieTheme, NaturalOutcome } from "../../types";
 import { CRIMSON_RED_THEME, EMERALD_GREEN_THEME, ROYAL_BLUE_THEME } from "./constants";
 import { createRoughnessTexture } from "./textures";
 
@@ -15,10 +15,41 @@ function getTheme(theme: DieTheme) {
   return ROYAL_BLUE_THEME;
 }
 
-export function createMaterialSet(theme: DieTheme = "default") {
+function getGlowStyle(
+  resolvedTheme: ReturnType<typeof getTheme>,
+  naturalOutcome: NaturalOutcome
+): {
+  color: THREE.ColorRepresentation;
+  opacity: number;
+} {
+  if (naturalOutcome === "natural20") {
+    return {
+      color: 0xffd24d,
+      opacity: 0.18
+    };
+  }
+
+  if (naturalOutcome === "natural1") {
+    return {
+      color: 0x3a040a,
+      opacity: 0.17
+    };
+  }
+
+  return {
+    color: resolvedTheme.glow,
+    opacity: 0.04
+  };
+}
+
+export function createMaterialSet(
+  theme: DieTheme = "default",
+  naturalOutcome: NaturalOutcome = null
+) {
   const bodyRoughnessTexture = createRoughnessTexture();
   const lacquerRoughnessTexture = createRoughnessTexture();
   const resolvedTheme = getTheme(theme);
+  const glowStyle = getGlowStyle(resolvedTheme, naturalOutcome);
 
   return {
     body: new THREE.MeshPhysicalMaterial({
@@ -49,9 +80,9 @@ export function createMaterialSet(theme: DieTheme = "default") {
       opacity: 0.82
     }),
     glow: new THREE.MeshBasicMaterial({
-      color: resolvedTheme.glow,
+      color: glowStyle.color,
       transparent: true,
-      opacity: 0.04
+      opacity: glowStyle.opacity
     })
   };
 }

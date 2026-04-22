@@ -1,0 +1,36 @@
+.button {
+  position: relative;
+  transition: box-shadow 140ms ease;
+}
+
+.overrideAdvantage::after,
+.overrideDisadvantage::after,
+.overrideNormal::after,
+.overrideCritical::after {
+  content: "";
+  position: absolute;
+  inset: -2px;
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+.overrideAdvantage::after {
+  box-shadow:
+    0 0 0 2px rgba(47, 122, 79, 0.92)
+}
+
+.overrideDisadvantage::after {
+  box-shadow:
+    0 0 0 2px rgba(163, 63, 52, 0.92)
+}
+
+.overrideNormal::after {
+  box-shadow:
+    0 0 0 2px rgba(95, 116, 140, 0.92)
+}
+
+.overrideCritical::after {
+  box-shadow:
+    0 0 0 1px rgba(255, 243, 188, 0.98),
+    0 0 0 3px rgba(241, 204, 92, 0.56);
+}

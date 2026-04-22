@@ -414,12 +414,10 @@ function getCircleOfTheMoonFeatureActions(character: Parameters<SubclassRuntimeR
         eyebrow: "Circle of the Moon",
         description,
         descriptionAdditions: getDruidCircleOfTheMoonMoonlightStepDescriptionAdditions(character),
-        confirmLabel: "Step",
         resources
       },
       execute: {
-        kind: "activate" as const,
-        label: "Step"
+        kind: "activate" as const
       },
       disabled,
       disabledReason: disabled ? "No Moonlight Step uses or 2+ spell slots available." : undefined

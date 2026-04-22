@@ -58,12 +58,10 @@ export function createTelepathicBondFeatureAction(
     drawer: {
       kind: "confirm",
       eyebrow: config.eyebrow,
-      description: config.description,
-      confirmLabel: `Activate ${config.name}`
+      description: config.description
     },
     execute: {
-      kind: "activate",
-      label: `Activate ${config.name}`
+      kind: "activate"
     },
     isActive: hasActiveTelepathicBond(character, config)
   };

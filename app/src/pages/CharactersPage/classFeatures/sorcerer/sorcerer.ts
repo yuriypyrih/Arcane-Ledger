@@ -724,11 +724,10 @@ export function getSorcererFeatureActions(
         eyebrow: "Sorcerer",
         formKind: "font-of-magic"
       },
-      execute: {
-        kind: "custom-form",
-        formKind: "font-of-magic",
-        label: "Convert Resources"
-      },
+    execute: {
+      kind: "custom-form",
+      formKind: "font-of-magic"
+    },
       ignoreEconomyAvailability: true
     });
   }
@@ -759,10 +758,9 @@ export function getSorcererFeatureActions(
         optionSelection: "multi-confirm",
         optionSelectionLimit: getSorcererMetamagicSelectionLimitForAction(character)
       },
-      execute: {
-        kind: "option",
-        label: "Infuse Next Spell"
-      },
+    execute: {
+      kind: "option"
+    },
       disabled: Boolean(disabledReason),
       disabledReason
     });

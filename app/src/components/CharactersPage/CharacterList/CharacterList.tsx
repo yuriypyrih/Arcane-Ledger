@@ -1,10 +1,11 @@
-import { Eye, Trash2 } from "lucide-react";
+import { Download, Eye, Trash2 } from "lucide-react";
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { SheetModal } from "../../Overlay";
 import { abilityKeys } from "../../../pages/CharactersPage/constants";
 import type { Character } from "../../../types";
 import { getClassSignatureStyle } from "../classSignature";
+import { downloadCharacterExport } from "./characterExport";
 import styles from "./CharacterList.module.css";
 
 type CharacterListProps = {
@@ -66,7 +67,16 @@ function CharacterList({ characters, onDeleteCharacter }: CharacterListProps) {
                       </Link>
                       <button
                         type="button"
-                        className={styles.deleteButton}
+                        className={styles.iconButton}
+                        aria-label={`Export ${character.name}`}
+                        title={`Export ${character.name}`}
+                        onClick={() => downloadCharacterExport(character)}
+                      >
+                        <Download size={16} aria-hidden="true" />
+                      </button>
+                      <button
+                        type="button"
+                        className={styles.iconButton}
                         aria-label={`Delete ${character.name}`}
                         onClick={() => setPendingDeleteCharacter(character)}
                       >
@@ -96,27 +106,27 @@ function CharacterList({ characters, onDeleteCharacter }: CharacterListProps) {
           backdropClassName={styles.modalBackdrop}
           panelClassName={styles.modalCard}
         >
-            <h4 id="delete-character-title">Delete character?</h4>
-            <p>
-              This will permanently remove <strong>{pendingDeleteCharacter.name}</strong> from your
-              roster.
-            </p>
-            <div className={styles.modalActions}>
-              <button
-                type="button"
-                className={styles.modalCancelButton}
-                onClick={() => setPendingDeleteCharacter(null)}
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                className={styles.modalDeleteButton}
-                onClick={handleDeleteConfirm}
-              >
-                Delete
-              </button>
-            </div>
+          <h4 id="delete-character-title">Delete character?</h4>
+          <p>
+            This will permanently remove <strong>{pendingDeleteCharacter.name}</strong> from your
+            roster.
+          </p>
+          <div className={styles.modalActions}>
+            <button
+              type="button"
+              className={styles.modalCancelButton}
+              onClick={() => setPendingDeleteCharacter(null)}
+            >
+              Cancel
+            </button>
+            <button
+              type="button"
+              className={styles.modalDeleteButton}
+              onClick={handleDeleteConfirm}
+            >
+              Delete
+            </button>
+          </div>
         </SheetModal>
       ) : null}
     </div>

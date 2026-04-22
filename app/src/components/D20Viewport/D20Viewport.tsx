@@ -126,12 +126,14 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
 
       const visuals = nextDice.map((die, index) => {
         const spinScale = index < 4 ? 0.58 : 0.7;
+        const naturalOutcome = die.naturalOutcome ?? null;
+        const valueLabelSize = naturalOutcome ? 1.18 : 1.06;
         const root = new THREE.Group();
-        const shapeData = createDieShape(die.sides, die.theme ?? "default");
+        const shapeData = createDieShape(die.sides, die.theme ?? "default", naturalOutcome);
         const valueLabel = createPlaneMesh(
-          createValueTexture(die.value),
-          1.06,
-          1.06,
+          createValueTexture(die.value, naturalOutcome),
+          valueLabelSize,
+          valueLabelSize,
           shapeData.valueLabelY,
           0
         );

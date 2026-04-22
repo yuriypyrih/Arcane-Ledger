@@ -657,11 +657,9 @@ function getRangerWinterWalkerFeatureActions(
             cost: 1
           }
         ],
-        confirmLabel: `Use ${fortifyingSoulActionName}`
       },
       execute: {
-        kind: "activate",
-        label: `Use ${fortifyingSoulActionName}`
+        kind: "activate"
       },
       disabled: usesRemaining <= 0,
       disabledReason:

@@ -169,6 +169,17 @@ export function createNamedResourceCardUsage(
   };
 }
 
+export function createNamedResourceOrResourceCardUsage(
+  cost: FeatureActionCardUsageCost,
+  fallbackCost: FeatureActionCardUsageCost
+): FeatureActionCardUsage {
+  return {
+    mode: "named-resource-or-resource",
+    cost,
+    fallbackCost
+  };
+}
+
 export function createChargesCardUsage(current: number, total: number): FeatureActionCardUsage {
   return {
     mode: "charges",

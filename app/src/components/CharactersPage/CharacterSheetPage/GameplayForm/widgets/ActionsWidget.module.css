@@ -51,6 +51,13 @@
   width: 100%;
 }
 
+.footerHelperText {
+  margin: 0;
+  color: var(--color-accent);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
 .weaponFooterButton,
 .weaponFooterIconButton {
   margin-left: 0;
@@ -251,6 +258,15 @@
 .wildCompanionSelectField {
   display: grid;
   gap: 0.35rem;
+}
+
+.footerSplitField {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.footerActionSelect {
+  min-height: 44px;
 }
 
 .wildCompanionSelectLabel {

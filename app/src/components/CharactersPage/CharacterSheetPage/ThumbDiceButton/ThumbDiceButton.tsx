@@ -1,7 +1,8 @@
 import clsx from "clsx";
-import { X } from "lucide-react";
+import { Cog, X } from "lucide-react";
 import { useState } from "react";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
+import DiceRollerSettingsButton from "../GameplayForm/widgets/DiceRollerSettingsButton";
 import d20Icon from "../../../../assets/svg/d20.svg";
 import type { DiceSelection, DiceSides, RollMode } from "../../../../types";
 import { createEmptySelection, selectableDice } from "../../../../utils/dice";
@@ -49,6 +50,7 @@ function buildDiceDescription(selection: DiceSelection): string {
 
 function ThumbDiceButton() {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isDiceRollerSettingsOpen, setIsDiceRollerSettingsOpen] = useState(false);
   const [selection, setSelection] = useState<DiceSelection>(createEmptySelection);
   const [mode, setMode] = useState<RollMode>("normal");
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
@@ -68,6 +70,7 @@ function ThumbDiceButton() {
 
   function closeThumbPanel() {
     setIsExpanded(false);
+    setIsDiceRollerSettingsOpen(false);
     setMode("normal");
   }
 
@@ -110,6 +113,18 @@ function ThumbDiceButton() {
           aria-hidden={!isExpanded}
         >
           <div className={styles.dicePanel}>
+            <DiceRollerSettingsButton
+              actionName="Quick roll"
+              className={styles.settingsButton}
+              isOpen={isDiceRollerSettingsOpen}
+              ariaLabel="Open dice roller settings"
+              onOpenChange={setIsDiceRollerSettingsOpen}
+            >
+              <span className={styles.settingsButtonContent}>
+                <Cog size={16} />
+                <span>Dice Settings</span>
+              </span>
+            </DiceRollerSettingsButton>
             <div className={styles.modeGroup} role="group" aria-label="Quick roll mode">
               {modeOptions.map((option) => (
                 <button

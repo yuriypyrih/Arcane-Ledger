@@ -665,7 +665,6 @@ export function getKnowledgeDomainFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Knowledge Domain",
-        confirmLabel: "Activate Divine Foreknowledge",
         resources: [
           {
             kind: "tracker",
@@ -686,8 +685,7 @@ export function getKnowledgeDomainFeatureActions(
         ]
       },
       execute: {
-        kind: "activate",
-        label: "Activate Divine Foreknowledge"
+        kind: "activate"
       },
       isActive,
       disabled: isActive || (usesRemaining <= 0 && !hasFallbackSlot),

@@ -296,12 +296,10 @@ function getWizardIllusionistIllusoryRealityFeatureAction(
     drawer: {
       kind: "confirm",
       eyebrow: "Illusionist",
-      confirmLabel: "Activate Illusory Reality",
       helperText: "Activating this creates an Illusory Reality trait that lasts for 10 turns."
     },
     execute: {
-      kind: "activate",
-      label: "Activate Illusory Reality"
+      kind: "activate"
     }
   };
 }

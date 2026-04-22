@@ -183,12 +183,10 @@ export function getClericLightDomainFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Light Domain",
-        description: [...radianceOfTheDawnDescription],
-        confirmLabel: "Use Radiance of the Dawn"
+        description: [...radianceOfTheDawnDescription]
       },
       execute: {
-        kind: "activate",
-        label: "Use Radiance of the Dawn"
+        kind: "activate"
       },
       disabled: channelDivinityUsesRemaining <= 0,
       disabledReason:
@@ -218,12 +216,10 @@ export function getClericLightDomainFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Light Domain",
-        description,
-        confirmLabel: "Activate Corona of Light"
+        description
       },
       execute: {
-        kind: "activate",
-        label: "Activate Corona of Light"
+        kind: "activate"
       },
       disabled: isActive || usesRemaining <= 0,
       disabledReason: isActive

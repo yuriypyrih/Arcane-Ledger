@@ -296,7 +296,6 @@ function getPaladinOathOfGloryFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Oath of Glory",
-        confirmLabel: "Activate Peerless Athlete",
         resources: [
           {
             kind: "tracker",
@@ -309,8 +308,7 @@ function getPaladinOathOfGloryFeatureActions(
         ]
       },
       execute: {
-        kind: "activate",
-        label: "Activate Peerless Athlete"
+        kind: "activate"
       },
       isActive,
       disabled: isActive || usesRemaining <= 0,
@@ -377,7 +375,6 @@ function getPaladinOathOfGloryFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Oath of Glory",
-        confirmLabel: "Activate Living Legend",
         resources: [
           {
             kind: "tracker" as const,
@@ -398,8 +395,7 @@ function getPaladinOathOfGloryFeatureActions(
         ]
       },
       execute: {
-        kind: "activate",
-        label: "Activate Living Legend"
+        kind: "activate"
       },
       isActive: isLivingLegendActive,
       disabled: isLivingLegendActive || (livingLegendUsesRemaining <= 0 && !hasLivingLegendFallbackSlot),

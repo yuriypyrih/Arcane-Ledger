@@ -127,9 +127,11 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
 import {
   getMonkFocusPointsTotal,
+  getMonkFlurryOfHealingAndHarmUsesTotal,
   getMonkHandOfUltimateJusticeUsesTotal,
   getMonkWholenessOfBodyUsesTotal,
   hasMonkFeature,
+  restoreMonkFlurryOfHealingAndHarmOnLongRest,
   restoreMonkHandOfUltimateJusticeOnLongRest,
   restoreMonkFocusPointsOnLongRest,
   restoreMonkFocusPointsOnShortRest,
@@ -798,6 +800,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const searingVengeanceUsesTotal = getWarlockSearingVengeanceUsesTotal(character);
   const hasMysticArcanum = hasWarlockFeature(character, CLASS_FEATURE.MYSTIC_ARCANUM);
   const monkFocusPointsTotal = getMonkFocusPointsTotal(character);
+  const monkFlurryOfHealingAndHarmUsesTotal = getMonkFlurryOfHealingAndHarmUsesTotal(character);
   const monkHandOfUltimateJusticeUsesTotal = getMonkHandOfUltimateJusticeUsesTotal(character);
   const monkWholenessOfBodyUsesTotal = getMonkWholenessOfBodyUsesTotal(character);
   const hasUncannyMetabolism = hasMonkFeature(character, CLASS_FEATURE.UNCANNY_METABOLISM);
@@ -1763,6 +1766,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore Uncanny Metabolism",
             apply: (currentCharacter: Character) =>
               restoreMonkUncannyMetabolismOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(monkFlurryOfHealingAndHarmUsesTotal > 0
+      ? [
+          {
+            id: "restore-flurry-of-healing-and-harm",
+            label: "Restore Flurry of Healing and Harm",
+            apply: (currentCharacter: Character) =>
+              restoreMonkFlurryOfHealingAndHarmOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

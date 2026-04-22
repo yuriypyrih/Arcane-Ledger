@@ -7,15 +7,23 @@ type RollStatePillProps = {
   label?: string;
   className?: string;
   detailText?: string;
+  size?: "default" | "small";
 };
 
-function RollStatePill({ tone, label, className, detailText }: RollStatePillProps) {
+function RollStatePill({
+  tone,
+  label,
+  className,
+  detailText,
+  size = "default"
+}: RollStatePillProps) {
   const labelText = label ?? getRollStateDefaultLabel(tone);
 
   return (
     <span
       className={clsx(
         styles.pill,
+        size === "small" && styles.small,
         tone === "advantage"
           ? styles.advantage
           : tone === "disadvantage"

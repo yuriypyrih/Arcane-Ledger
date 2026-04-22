@@ -15,7 +15,7 @@ export function createApp() {
   app.set("trust proxy", true);
   app.use(requestLogger);
   app.use(helmet());
-  app.use(cors(createCorsOptions(config.corsAllowedOrigins)));
+  app.use(cors(createCorsOptions(config.corsAllowedOrigins, config.nodeEnv)));
   app.use(express.json());
   app.use("/api/v1", apiRouter);
   app.use(notFoundHandler);

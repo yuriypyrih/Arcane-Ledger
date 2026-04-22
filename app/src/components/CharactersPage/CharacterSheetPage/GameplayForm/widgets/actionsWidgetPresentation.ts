@@ -302,6 +302,10 @@ export function getWeaponDamageFormulaPresentation(
     breakdownEntries.push(action.damageBreakdownLabel);
   }
 
+  if (action.attackKind === "unarmed" && action.hasMartialArtsDamageDie) {
+    breakdownEntries.push("Martial Arts");
+  }
+
   if (damageAbilityModifier !== 0) {
     mainDamageGroup.numericTotal += damageAbilityModifier;
     breakdownEntries.push(`${formatAbilityModifier(damageAbilityModifier)} ${damageAbility}`);

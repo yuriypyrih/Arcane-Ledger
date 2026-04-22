@@ -319,12 +319,10 @@ function getMonkWarriorOfTheElementsElementalAttunementAction(
     drawer: {
       kind: "confirm",
       eyebrow: "Warrior of the Elements",
-      description: [...elementalAttunementDescription],
-      confirmLabel: `Use ${elementalAttunementEffectName}`
+      description: [...elementalAttunementDescription]
     },
     execute: {
-      kind: "activate",
-      label: `Use ${elementalAttunementEffectName}`
+      kind: "activate"
     },
     disabled: Boolean(disabledReason),
     disabledReason
@@ -388,12 +386,10 @@ function getMonkWarriorOfTheElementsElementalBurstAction(
     drawer: {
       kind: "confirm",
       eyebrow: "Warrior of the Elements",
-      description: [...elementalBurstDescription],
-      confirmLabel: "Use Elemental Burst"
+      description: [...elementalBurstDescription]
     },
     execute: {
-      kind: "activate",
-      label: "Use Elemental Burst"
+      kind: "activate"
     },
     disabled: Boolean(disabledReason),
     disabledReason

@@ -1111,12 +1111,10 @@ function getFighterPsiWarriorTelekineticMovementAction(
     ],
     drawer: {
       kind: "confirm",
-      eyebrow: fighterPsiWarriorSource,
-      confirmLabel: "Use Telekinetic Movement"
+      eyebrow: fighterPsiWarriorSource
     },
     execute: {
-      kind: "activate",
-      label: "Use Telekinetic Movement"
+      kind: "activate"
     },
     disabled: Boolean(disabledReason),
     disabledReason
@@ -1194,12 +1192,10 @@ function getFighterPsiWarriorPsiPoweredLeapAction(
     ],
     drawer: {
       kind: "confirm",
-      eyebrow: fighterPsiWarriorSource,
-      confirmLabel: "Use Psi-Powered Leap"
+      eyebrow: fighterPsiWarriorSource
     },
     execute: {
-      kind: "activate",
-      label: "Use Psi-Powered Leap"
+      kind: "activate"
     },
     disabled: Boolean(disabledReason),
     disabledReason
@@ -1277,12 +1273,10 @@ function getFighterPsiWarriorBulwarkOfForceAction(
     ],
     drawer: {
       kind: "confirm",
-      eyebrow: fighterPsiWarriorSource,
-      confirmLabel: "Use Bulwark of Force"
+      eyebrow: fighterPsiWarriorSource
     },
     execute: {
-      kind: "activate",
-      label: "Use Bulwark of Force"
+      kind: "activate"
     },
     disabled: Boolean(disabledReason),
     disabledReason

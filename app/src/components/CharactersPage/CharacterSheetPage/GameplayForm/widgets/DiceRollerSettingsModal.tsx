@@ -4,6 +4,14 @@ import {
   updateDiceRollerBehaviorPreference,
   type DiceRollerBehaviorPreference
 } from "../../../../../storage/preferences";
+import type { RollMode } from "../../../../../types";
+import {
+  clearNextRollOverrides,
+  setNextRollCriticalHitOverride,
+  setNextRollModeOverride,
+  useAppDispatch,
+  useAppSelector
+} from "../../../../../store";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -43,19 +51,69 @@ const diceRollerBehaviorOptions: Array<{
     value: "full_auto",
     label: "Full Auto with Roller",
     description:
-      "Open the dice roller and show the animated rolled result and apply the number where applicable (ie. Personal Heal or TempHp)."
+      "Open the dice roller and show the animated rolled result and apply the number where applicable (ie. Personal Heal, TempHp, Critical Hit, etc)."
+  }
+];
+
+type NextRollOverrideOption = {
+  value: RollMode | "critical_hit";
+  label: string;
+  toneClassName: string;
+};
+
+const nextRollOverrideOptions: NextRollOverrideOption[] = [
+  {
+    value: "advantage",
+    label: "ADVANTAGE",
+    toneClassName: "advantageTone"
+  },
+  {
+    value: "disadvantage",
+    label: "DISADVANTAGE",
+    toneClassName: "disadvantageTone"
+  },
+  {
+    value: "normal",
+    label: "NORMAL",
+    toneClassName: "normalTone"
+  },
+  {
+    value: "critical_hit",
+    label: "CRITICAL HIT",
+    toneClassName: "criticalTone"
   }
 ];
 
 function DiceRollerSettingsModal({ onClose }: DiceRollerSettingsModalProps) {
   const titleId = useId().replace(/:/g, "");
+  const nextRollOverrideId = `${titleId}-next-roll-override`;
+  const dispatch = useAppDispatch();
+  const nextRollCriticalHitOverride = useAppSelector(
+    (state) => state.diceRoller.nextRollCriticalHitOverride
+  );
+  const nextRollModeOverride = useAppSelector((state) => state.diceRoller.nextRollModeOverride);
   const [behavior, setBehavior] = useState<DiceRollerBehaviorPreference>(() =>
     getDiceRollerBehaviorPreference()
   );
+  const selectedOverrideValue = nextRollCriticalHitOverride ? "critical_hit" : nextRollModeOverride;
 
   function selectBehavior(nextBehavior: DiceRollerBehaviorPreference) {
     setBehavior(nextBehavior);
     updateDiceRollerBehaviorPreference(nextBehavior);
+  }
+
+  function toggleNextRollOverride(option: NextRollOverrideOption["value"]) {
+    if (selectedOverrideValue === option) {
+      dispatch(clearNextRollOverrides());
+      return;
+    }
+
+    if (option === "critical_hit") {
+      dispatch(setNextRollCriticalHitOverride());
+      return;
+    }
+
+    dispatch(setNextRollModeOverride(option));
   }
 
   return (
@@ -84,6 +142,42 @@ function DiceRollerSettingsModal({ onClose }: DiceRollerSettingsModalProps) {
             />
           ))}
         </div>
+
+        <section className={styles.overrideSection} aria-labelledby={nextRollOverrideId}>
+          <p id={nextRollOverrideId} className={styles.overrideSectionTitle}>
+            Next Roll Override
+          </p>
+          <div className={styles.overrideList}>
+            {nextRollOverrideOptions.map((option) => {
+              const checked = selectedOverrideValue === option.value;
+              const disabled = selectedOverrideValue !== null && !checked;
+
+              return (
+                <label
+                  key={option.value}
+                  className={[
+                    styles.overrideRow,
+                    checked ? styles.overrideRowSelected : "",
+                    disabled ? styles.overrideRowDisabled : ""
+                  ].join(" ")}
+                >
+                  <input
+                    type="checkbox"
+                    className={styles.overrideCheckbox}
+                    checked={checked}
+                    disabled={disabled}
+                    onChange={() => toggleNextRollOverride(option.value)}
+                  />
+                  <span className={styles.overrideLabel}>
+                    Force{option.value === "critical_hit" ? " a " : " "}
+                    <span className={styles[option.toneClassName]}>{option.label}</span> to the next
+                    roll.
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        </section>
       </OverlayBody>
     </SheetModal>
   );

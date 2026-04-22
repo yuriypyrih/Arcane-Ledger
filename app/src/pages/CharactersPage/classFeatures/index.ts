@@ -17,6 +17,7 @@ import {
   removeCharacterStatusEntry
 } from "../traits";
 import {
+  activateBardicInspiration,
   activateBardCollegeOfDanceInspiringMovement,
   applyMantleOfMajestyStatus,
   applyInspiredEclipseStatus,
@@ -1162,6 +1163,13 @@ export function applyBardBattleMagicAfterSpellCastForCharacter(
   spell: Pick<SpellEntry, "castingTime">
 ): Character {
   return applyBardBattleMagicAfterSpellCast(character, spell);
+}
+
+export function activateBardicInspirationForCharacter(
+  character: Character,
+  fallbackSpellSlotLevel?: number
+): Character {
+  return activateBardicInspiration(character, fallbackSpellSlotLevel);
 }
 
 export function applySpellCastFeatureEffectsForCharacter(

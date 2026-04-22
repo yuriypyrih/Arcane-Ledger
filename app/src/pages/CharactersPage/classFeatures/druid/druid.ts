@@ -1275,8 +1275,7 @@ function getDruidWildShapeAction(
     },
     execute: {
       kind: "custom-form",
-      formKind: "wild-shape",
-      label: "Shape Shift"
+      formKind: "wild-shape"
     },
     disabled: usesRemaining <= 0,
     disabledReason: usesRemaining <= 0 ? "No Wild Shape uses remaining." : undefined
@@ -1335,7 +1334,6 @@ function getDruidWildCompanionAction(
       eyebrow: "Druid",
       description: getDruidWildCompanionDescription(),
       formKind: "wild-companion",
-      confirmLabel: "Cast",
       resources: [
         {
           kind: "text",
@@ -1356,8 +1354,7 @@ function getDruidWildCompanionAction(
     },
     execute: {
       kind: "custom-form",
-      formKind: "wild-companion",
-      label: "Cast"
+      formKind: "wild-companion"
     },
     disabled: !hasValidResource,
     disabledReason: !hasValidResource ? "No Wild Shape uses or spell slots available." : undefined
@@ -1420,13 +1417,11 @@ function getDruidWildResurgenceAction(
       kind: "custom-form",
       eyebrow: "Druid",
       description: getDruidWildResurgenceDescription(),
-      formKind: "wild-resurgence",
-      confirmLabel: "Use"
+      formKind: "wild-resurgence"
     },
     execute: {
       kind: "custom-form",
-      formKind: "wild-resurgence",
-      label: "Use"
+      formKind: "wild-resurgence"
     },
     resources: [
       {
@@ -1485,13 +1480,11 @@ function getDruidNatureMagicianAction(
       kind: "custom-form",
       eyebrow: "Druid",
       description: getDruidNatureMagicianDescription(),
-      formKind: "nature-magician",
-      confirmLabel: "Convert"
+      formKind: "nature-magician"
     },
     execute: {
       kind: "custom-form",
-      formKind: "nature-magician",
-      label: "Convert"
+      formKind: "nature-magician"
     },
     resources: [
       {

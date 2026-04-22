@@ -28,6 +28,21 @@ const stunningStrikeSource = "Stunning Strike";
 const disciplinedSurvivorSource = "Disciplined Survivor";
 const uncannyMetabolismSource = "Uncanny Metabolism";
 const perfectFocusSource = "Perfect Focus";
+const heightenedFocusSource = "Heightened Focus";
+
+function getFeatureDescriptionSlice(
+  character: MonkDescriptionCharacter,
+  feature: CLASS_FEATURE,
+  predicate: (entry: string) => boolean
+): SpellDescriptionEntry[] {
+  return getFeatureDescriptionForCharacter(character, feature).filter((entry) =>
+    typeof entry === "string" ? predicate(entry) : entry.items.some((item) => predicate(item))
+  );
+}
+
+function isFlurryOfBlowsDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Flurry of Blows.</strong>");
+}
 
 function createInitiativeFeatureSection(
   character: MonkDescriptionCharacter,
@@ -129,4 +144,28 @@ export function getMonkAbilityDescriptionAdditions(
     CLASS_FEATURE.DISCIPLINED_SURVIVOR,
     disciplinedSurvivorSource
   );
+}
+
+export function getMonkFlurryOfBlowsBaseDescription(
+  character: MonkDescriptionCharacter
+): SpellDescriptionEntry[] {
+  return getFeatureDescriptionSlice(
+    character,
+    CLASS_FEATURE.MONKS_FOCUS,
+    isFlurryOfBlowsDescriptionEntry
+  );
+}
+
+export function getMonkFlurryOfBlowsDescriptionAdditions(
+  character: MonkDescriptionCharacter
+): SpellDescriptionEntry[][] {
+  const heightenedFocusDescription = getFeatureDescriptionSlice(
+    character,
+    CLASS_FEATURE.HEIGHTENED_FOCUS,
+    isFlurryOfBlowsDescriptionEntry
+  );
+
+  return heightenedFocusDescription.length > 0
+    ? [createSourcedDescriptionEntries(heightenedFocusSource, heightenedFocusDescription)]
+    : [];
 }

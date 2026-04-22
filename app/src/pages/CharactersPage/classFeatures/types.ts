@@ -62,6 +62,11 @@ export type FeatureActionCardUsage =
       cost: FeatureActionCardUsageCost;
     }
   | {
+      mode: "named-resource-or-resource";
+      cost: FeatureActionCardUsageCost;
+      fallbackCost: FeatureActionCardUsageCost;
+    }
+  | {
       mode: "charges";
       charges: FeatureActionCardUsageCharges;
     }

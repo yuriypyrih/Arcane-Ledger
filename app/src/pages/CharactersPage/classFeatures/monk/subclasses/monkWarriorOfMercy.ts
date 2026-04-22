@@ -29,8 +29,11 @@ export const warriorOfMercySubclassId = "monk-warrior-of-mercy";
 export const monkWarriorOfMercyHandOfHarmBonusLabel = "Hand of Harm";
 export const monkHandOfHealingActionKey = "monk-warrior-of-mercy-hand-of-healing";
 export const monkHandOfUltimateJusticeActionKey = "monk-warrior-of-mercy-hand-of-ultimate-justice";
+const monkFlurryOfBlowsActionKey = "monk-flurry-of-blows";
 
 const implementsOfMercySource = "Implements of Mercy";
+const handOfHealingSource = "Hand of Healing";
+const flurryOfHealingAndHarmSource = "Flurry of Healing and Harm";
 const warriorOfMercySubclassEntry = getSubclassEntryById(warriorOfMercySubclassId);
 const handOfUltimateJusticeActionName = "Hand of Ultimate Justice";
 const handOfUltimateMercyUsesTotal = 1;
@@ -44,6 +47,7 @@ export type MonkWarriorOfMercyHandOfHealingMode = "action" | "flurry_bonus_actio
 
 export type MonkWarriorOfMercyHandOfHarmOptionState = {
   damageBonus: FeatureDamageBonus;
+  focusPointCost: number;
   disabled: boolean;
   disabledReason?: string;
 };
@@ -63,6 +67,12 @@ const handOfHarmDescription = getWarriorOfMercyFeatureDescriptionEntries(
 );
 const handOfHealingDescription = getWarriorOfMercyFeatureDescriptionEntries(
   CLASS_FEATURE.HAND_OF_HEALING
+);
+const handOfHealingFlurryDescription = handOfHealingDescription.filter((entry) =>
+  entry.startsWith("When you use your Flurry of Blows")
+);
+const flurryOfHealingAndHarmDescription = getWarriorOfMercyFeatureDescriptionEntries(
+  CLASS_FEATURE.FLURRY_OF_HEALING_AND_HARM
 );
 const physiciansTouchHandOfHarmDescription = getWarriorOfMercyFeatureDescriptionEntries(
   CLASS_FEATURE.PHYSICIANS_TOUCH
@@ -188,6 +198,45 @@ export function hasMonkWarriorOfMercyHandOfUltimateMercy(
   return isMonkWarriorOfMercy(character) && (character.level ?? 0) >= 17;
 }
 
+export function hasMonkWarriorOfMercyFlurryOfHealingAndHarm(
+  character: MonkWarriorOfMercyCharacter
+): boolean {
+  return isMonkWarriorOfMercy(character) && (character.level ?? 0) >= 11;
+}
+
+export function getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesTotal(
+  character: MonkWarriorOfMercyCharacter
+): number {
+  if (!hasMonkWarriorOfMercyFlurryOfHealingAndHarm(character)) {
+    return 0;
+  }
+
+  return Math.max(1, getRawWisdomModifier(character) ?? 0);
+}
+
+export function getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesRemaining(
+  character: Partial<Pick<Character, "classFeatureState">> & MonkWarriorOfMercyCharacter
+): number {
+  const totalUses = getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesTotal(character);
+  const rawUsesExpended = Number(
+    character.classFeatureState?.monk?.warriorOfMercyFlurryOfHealingAndHarmUsesExpended
+  );
+  const usesExpended = Number.isFinite(rawUsesExpended)
+    ? Math.max(0, Math.floor(rawUsesExpended))
+    : 0;
+
+  return Math.max(0, totalUses - usesExpended);
+}
+
+export function isMonkWarriorOfMercyFlurryOfHealingAndHarmActive(
+  character: Partial<Pick<Character, "classFeatureState">> & MonkWarriorOfMercyCharacter
+): boolean {
+  return hasMonkWarriorOfMercyFlurryOfHealingAndHarm(character) &&
+    character.classFeatureState?.monk?.warriorOfMercyFlurryOfHealingAndHarmActive === true
+    ? true
+    : false;
+}
+
 export function getMonkWarriorOfMercyHandOfUltimateMercyUsesTotal(
   character: MonkWarriorOfMercyCharacter
 ): number {
@@ -221,6 +270,10 @@ export function getMonkWarriorOfMercyHandOfHarmUsedThisTurn(
 export function getMonkWarriorOfMercyHandOfHealingFlurryUseCap(
   character: MonkWarriorOfMercyCharacter
 ): number {
+  if (isMonkWarriorOfMercyFlurryOfHealingAndHarmActive(character)) {
+    return 3;
+  }
+
   return hasMonkWarriorOfMercyHandOfHealing(character) ? 1 : 0;
 }
 
@@ -255,16 +308,26 @@ export function normalizeMonkWarriorOfMercyFeatureState(
   CharacterMonkFeatureState,
   | "warriorOfMercyHandOfHarmUsedThisTurn"
   | "warriorOfMercyHandOfHealingFlurryUsesThisTurn"
+  | "warriorOfMercyFlurryOfHealingAndHarmUsesExpended"
+  | "warriorOfMercyFlurryOfHealingAndHarmActive"
   | "warriorOfMercyHandOfUltimateMercyUsesExpended"
 > {
   const handOfUltimateMercyUsesExpended = Number(
     value?.warriorOfMercyHandOfUltimateMercyUsesExpended
   );
+  const flurryOfHealingAndHarmUsesExpended = Number(
+    value?.warriorOfMercyFlurryOfHealingAndHarmUsesExpended
+  );
   const handOfUltimateMercyUsesTotal = getMonkWarriorOfMercyHandOfUltimateMercyUsesTotal(character);
+  const flurryOfHealingAndHarmUsesTotal =
+    getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesTotal(character);
   const handOfHealingFlurryUsesThisTurn = getMonkWarriorOfMercyHandOfHealingFlurryUsesThisTurn({
     ...character,
     classFeatureState: value ? { monk: value } : undefined
   });
+  const flurryOfHealingAndHarmActive =
+    hasMonkWarriorOfMercyFlurryOfHealingAndHarm(character) &&
+    value?.warriorOfMercyFlurryOfHealingAndHarmActive === true;
   const handOfHealingFlurryUseCap = getMonkWarriorOfMercyHandOfHealingFlurryUseCap(character);
 
   return {
@@ -274,6 +337,19 @@ export function normalizeMonkWarriorOfMercyFeatureState(
     warriorOfMercyHandOfHealingFlurryUsesThisTurn: hasMonkWarriorOfMercyHandOfHealing(character)
       ? Math.max(0, Math.min(handOfHealingFlurryUseCap, handOfHealingFlurryUsesThisTurn))
       : 0,
+    warriorOfMercyFlurryOfHealingAndHarmUsesExpended:
+      hasMonkWarriorOfMercyFlurryOfHealingAndHarm(character)
+        ? Number.isFinite(flurryOfHealingAndHarmUsesExpended)
+          ? Math.max(
+              0,
+              Math.min(
+                flurryOfHealingAndHarmUsesTotal,
+                Math.floor(flurryOfHealingAndHarmUsesExpended)
+              )
+            )
+          : 0
+        : 0,
+    warriorOfMercyFlurryOfHealingAndHarmActive: flurryOfHealingAndHarmActive,
     warriorOfMercyHandOfUltimateMercyUsesExpended: hasMonkWarriorOfMercyHandOfUltimateMercy(
       character
     )
@@ -415,8 +491,10 @@ export function getMonkWarriorOfMercyHandOfHarmOptionState(
     return null;
   }
 
+  const focusPointCost = isMonkWarriorOfMercyFlurryOfHealingAndHarmActive(character) ? 0 : 1;
+  const focusPointsRemaining = getMonkFocusPointsRemaining(character);
   const disabledReason =
-    getMonkFocusPointsRemaining(character) <= 0
+    focusPointCost > 0 && focusPointsRemaining < focusPointCost
       ? "No Focus Points remaining."
       : getMonkWarriorOfMercyHandOfHarmUsedThisTurn(character)
         ? "Hand of Harm has already been used this turn."
@@ -424,6 +502,7 @@ export function getMonkWarriorOfMercyHandOfHarmOptionState(
 
   return {
     damageBonus,
+    focusPointCost,
     disabled: Boolean(disabledReason),
     disabledReason
   };
@@ -449,6 +528,7 @@ export function consumeMonkWarriorOfMercyHandOfHarm(character: Character): Chara
   const focusPointsExpended = Number.isFinite(rawFocusPointsExpended)
     ? Math.max(0, Math.floor(rawFocusPointsExpended))
     : 0;
+  const focusPointCost = optionState.focusPointCost;
 
   return {
     ...character,
@@ -456,7 +536,7 @@ export function consumeMonkWarriorOfMercyHandOfHarm(character: Character): Chara
       ...character.classFeatureState,
       monk: {
         ...monkState,
-        focusPointsExpended: Math.min(totalFocusPoints, focusPointsExpended + 1),
+        focusPointsExpended: Math.min(totalFocusPoints, focusPointsExpended + focusPointCost),
         warriorOfMercyHandOfHarmUsedThisTurn: true
       }
     }
@@ -503,12 +583,10 @@ export function getMonkWarriorOfMercyFeatureActions(
         kind: "confirm",
         eyebrow: "Warrior of Mercy",
         description: [...handOfHealingDescription],
-        facts: handOfHealingFacts,
-        confirmLabel: "Use Hand of Healing"
+        facts: handOfHealingFacts
       },
       execute: {
-        kind: "activate",
-        label: "Use Hand of Healing"
+        kind: "activate"
       },
       disabled: focusPointsRemaining <= 0 && flurryHealingUsesRemaining <= 0,
       disabledReason:
@@ -568,12 +646,10 @@ export function getMonkWarriorOfMercyFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Warrior of Mercy",
-        description: [...handOfUltimateMercyDescription],
-        confirmLabel: `Use ${handOfUltimateJusticeActionName}`
+        description: [...handOfUltimateMercyDescription]
       },
       execute: {
-        kind: "activate",
-        label: `Use ${handOfUltimateJusticeActionName}`
+        kind: "activate"
       },
       disabled: Boolean(disabledReason),
       disabledReason
@@ -706,6 +782,33 @@ export function restoreMonkWarriorOfMercyHandOfUltimateMercyOnLongRest(
   };
 }
 
+export function restoreMonkWarriorOfMercyFlurryOfHealingAndHarmOnLongRest(
+  character: Character
+): Character {
+  if (!hasMonkWarriorOfMercyFlurryOfHealingAndHarm(character)) {
+    return character;
+  }
+
+  const monkState = character.classFeatureState?.monk ?? {};
+  const usesExpended = monkState.warriorOfMercyFlurryOfHealingAndHarmUsesExpended ?? 0;
+
+  if (usesExpended === 0 && monkState.warriorOfMercyFlurryOfHealingAndHarmActive !== true) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      monk: {
+        ...monkState,
+        warriorOfMercyFlurryOfHealingAndHarmUsesExpended: 0,
+        warriorOfMercyFlurryOfHealingAndHarmActive: false
+      }
+    }
+  };
+}
+
 function createImplementsOfMercySkillProficiencyEntry(
   skill: SkillName
 ): FeatureSkillProficiencyEntry | null {
@@ -743,15 +846,32 @@ export const getMonkWarriorOfMercyDerivedFeatureState: SubclassRuntimeResolver =
 
   return {
     featureActions: getMonkWarriorOfMercyFeatureActions(character),
-    transformFeatureAction: hasMonkWarriorOfMercyPhysiciansTouch(character)
-      ? (action) =>
-          appendFeatureActionDescriptionEntries(
-            action,
+    transformFeatureAction: (action) => {
+      let nextAction = appendFeatureActionDescriptionEntries(
+        action,
+        monkFlurryOfBlowsActionKey,
+        handOfHealingSource,
+        handOfHealingFlurryDescription
+      );
+
+      if (hasMonkWarriorOfMercyFlurryOfHealingAndHarm(character)) {
+        nextAction = appendFeatureActionDescriptionEntries(
+          nextAction,
+          monkFlurryOfBlowsActionKey,
+          flurryOfHealingAndHarmSource,
+          flurryOfHealingAndHarmDescription
+        );
+      }
+
+      return hasMonkWarriorOfMercyPhysiciansTouch(character)
+        ? appendFeatureActionDescriptionEntries(
+            nextAction,
             monkHandOfHealingActionKey,
             "Physician's Touch: Hand of Healing",
             physiciansTouchHandOfHealingDescription
           )
-      : undefined,
+        : nextAction;
+    },
     skillProficiencyEntries: getMonkWarriorOfMercySkillProficiencyEntries(character),
     transformWeaponAction: (action) => {
       if (!isMercyUnarmedStrikeAction(action)) {

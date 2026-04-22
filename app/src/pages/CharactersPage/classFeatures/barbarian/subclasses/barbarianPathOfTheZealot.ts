@@ -226,8 +226,7 @@ export function getBarbarianPathOfTheZealotWarriorOfTheGodsAction(
     },
     execute: {
       kind: "custom-form",
-      formKind: "warrior-of-the-gods",
-      label: "Heal"
+      formKind: "warrior-of-the-gods"
     },
     disabled: usesRemaining <= 0,
     disabledReason: usesRemaining <= 0 ? "No Warrior of the Gods charges remaining." : undefined

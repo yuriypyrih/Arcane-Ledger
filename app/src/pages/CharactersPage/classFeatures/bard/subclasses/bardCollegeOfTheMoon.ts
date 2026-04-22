@@ -657,7 +657,6 @@ function getBardCollegeOfTheMoonLunarVitalityAction(
     drawer: {
       kind: "confirm",
       eyebrow: "College of the Moon",
-      confirmLabel: "Use Lunar Vitality",
       resources: [
         {
           kind: "text",
@@ -668,8 +667,7 @@ function getBardCollegeOfTheMoonLunarVitalityAction(
       ]
     },
     execute: {
-      kind: "activate",
-      label: "Use Lunar Vitality"
+      kind: "activate"
     },
     disabled: Boolean(disabledReason),
     disabledReason

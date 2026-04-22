@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
 import ActionShape from "../../../../ActionShape";
+import RollStatePill from "../../../../RollStatePill/RollStatePill";
 import FeatureUsageLabel, { renderFeatureUsageIcon } from "../../FeatureUsageLabel";
 import FeatureTrackingBadgeButton from "../../../../FeatureDisclosure/FeatureTrackingBadgeButton";
 import RadioContainerOption from "../../RadioContainerOption";
@@ -15,13 +16,13 @@ import {
   getSharedEconomyMultiCountForCharacterAction
 } from "../../../../../pages/CharactersPage/classFeatures";
 import type { WeaponAction } from "../../../../../pages/CharactersPage/gameplay";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import {
   getActionShapeForEconomyType,
   getDamageRangeLabel,
   getEconomyShapeState,
   getWeaponActionBreakdown
 } from "../gameplayWidgetUtils";
+import { resolveFeatureIndicators } from "../../../../RollStatePill/rollState";
 import { getWeaponAttackPathStates } from "./weaponActionEconomy";
 import styles from "./ActionCards.module.css";
 import modalStyles from "./FeatureActionModal.module.css";
@@ -60,6 +61,7 @@ export function WeaponActionCard({
   const attackPaths = getWeaponAttackPathStates(character, action, roundTracker);
   const isUnavailable = attackPaths.every((path) => !path.shapeState.isUsable);
   const hasAdditionalPathUses = attackPaths.some((path) => path.additionalUseCount > 0);
+  const resolvedRollState = resolveFeatureIndicators(action.indicators);
 
   return (
     <button
@@ -106,7 +108,16 @@ export function WeaponActionCard({
           })}
         </span>
       ) : null}
-      <strong>{action.name}</strong>
+      <span className={styles.cardHeaderRow}>
+        <strong className={styles.cardHeaderTitle}>{action.name}</strong>
+        {resolvedRollState ? (
+          <RollStatePill
+            tone={resolvedRollState.tone}
+            size="small"
+            className={styles.weaponRollStatePill}
+          />
+        ) : null}
+      </span>
       {renderCardSubheader(
         <span className={styles.damageRow}>
           {getDamageRangeLabel(action.damageLabel, action.totalModifier, action.rollFormula)}

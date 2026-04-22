@@ -644,13 +644,11 @@ export function getCircleOfTheStarsFeatureActions(
         eyebrow: "Circle of the Stars",
         description: starryFormDescription,
         descriptionAdditions: twinklingConstellationsDescriptionAdditions,
-        formKind: "starry-form",
-        confirmLabel: "Assume Form"
+        formKind: "starry-form"
       },
       execute: {
         kind: "custom-form",
-        formKind: "starry-form",
-        label: "Assume Form"
+        formKind: "starry-form"
       },
       disabled: wildShapeUsesRemaining <= 0,
       disabledReason: wildShapeUsesRemaining <= 0 ? "No Wild Shape uses remaining." : undefined

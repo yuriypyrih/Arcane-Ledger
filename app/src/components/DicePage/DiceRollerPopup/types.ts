@@ -25,6 +25,7 @@ export type DiceRollerResolvedRequest = {
   description?: string;
   mode: RollMode;
   entries: DiceRollerResolvedRequestEntry[];
+  enableNextCriticalHitOnNatural20?: boolean;
   getFullManualToastText?: (resolvedResult: DiceRollerResolvedResult) => string;
 };
 
@@ -35,6 +36,7 @@ export type DiceRollerRequestBase = {
   description?: string;
   mode?: RollMode;
   entries?: DiceRollerRequestEntry[];
+  enableNextCriticalHitOnNatural20?: boolean;
   getFullManualToastText?: (resolvedResult: DiceRollerResolvedResult) => string;
 };
 

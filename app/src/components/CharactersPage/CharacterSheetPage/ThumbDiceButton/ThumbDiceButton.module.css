@@ -81,6 +81,28 @@
   gap: 0.56rem;
 }
 
+.settingsButton {
+  align-items: center;
+  background: rgba(255, 245, 229, 0.14);
+  border: none;
+  border-radius: 8px;
+  color: #f7e9d1;
+  cursor: pointer;
+  display: inline-flex;
+  justify-content: center;
+  min-height: 2.4rem;
+  padding: 0.7rem 0.9rem;
+  width: 100%;
+}
+
+.settingsButtonContent {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.5rem;
+  justify-content: center;
+  width: 100%;
+}
+
 .dieButton,
 .thumbButton {
   border: none;

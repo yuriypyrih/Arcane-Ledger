@@ -1,5 +1,5 @@
 import { monkFeatures, type MonkFeatureClassObj } from "../../../../../codex/classes";
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+import { CLASS_FEATURE, WEAPON_COMBAT_TYPE } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, CharacterMonkFeatureState } from "../../../../../types";
 import {
@@ -12,8 +12,9 @@ import {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import type { WeaponAction } from "../../../gameplay";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
-import type { DerivedFeatureStatusEntry, FeatureActionCard } from "../../types";
+import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureIndicator } from "../../types";
 import {
   resolveSpellIdsByName,
   type SubclassRuntimeResolver
@@ -31,6 +32,12 @@ const shadowArtsDarknessSpellId = resolveSpellIdsByName(["Darkness"])[0] ?? null
 const shadowArtsMinorIllusionSpellIds = resolveSpellIdsByName(["Minor Illusion"]);
 const cloakOfShadowActionName = "Cloak of Shadow";
 const cloakOfShadowEffectName = "Cloak of Shadow";
+const shadowStepAdvantageSource = "Shadow Step";
+const shadowStepAdvantageIndicator: FeatureIndicator = {
+  label: "Advantage",
+  tone: "advantage",
+  source: shadowStepAdvantageSource
+};
 const cloakOfShadowInvisibleStatusSourceId = "feature-monk-warrior-of-shadow-cloak-of-shadow-invisible";
 const cloakOfShadowDurationRounds = 10;
 const cloakOfShadowFocusCost = 3;
@@ -55,6 +62,9 @@ function getWarriorOfShadowFeatureDescriptionEntries(feature: CLASS_FEATURE): st
 }
 
 const shadowArtsDescription = getWarriorOfShadowFeatureDescriptionEntries(CLASS_FEATURE.SHADOW_ARTS);
+const shadowArtsDarknessDescription = shadowArtsDescription.filter((entry) =>
+  entry.startsWith("<strong>Darkness.</strong>")
+);
 const shadowStepDescription = getWarriorOfShadowFeatureDescriptionEntries(CLASS_FEATURE.SHADOW_STEP);
 const improvedShadowStepDescription = getWarriorOfShadowFeatureDescriptionEntries(
   CLASS_FEATURE.IMPROVED_SHADOW_STEP
@@ -139,18 +149,62 @@ export function normalizeMonkWarriorOfShadowFeatureState(
   character: MonkWarriorOfShadowCharacter
 ): Pick<
   CharacterMonkFeatureState,
-  "warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn"
+  | "warriorOfShadowShadowStepAdvantageActive"
+  | "warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn"
 > {
+  const shadowStepAdvantageActive = value?.warriorOfShadowShadowStepAdvantageActive === true;
   const improvedShadowStepUnarmedStrikesRemainingThisTurn = Number(
     value?.warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn
   );
 
   return {
+    warriorOfShadowShadowStepAdvantageActive: hasMonkWarriorOfShadowStep(character)
+      ? shadowStepAdvantageActive
+      : false,
     warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn:
       hasMonkWarriorOfShadowImprovedShadowStep(character) &&
       Number.isFinite(improvedShadowStepUnarmedStrikesRemainingThisTurn)
         ? Math.max(0, Math.floor(improvedShadowStepUnarmedStrikesRemainingThisTurn))
         : 0
+  };
+}
+
+export function hasMonkWarriorOfShadowStepAttackAdvantage(
+  character: Partial<Pick<Character, "classFeatureState">> & MonkWarriorOfShadowCharacter
+): boolean {
+  return (
+    hasMonkWarriorOfShadowStep(character) &&
+    character.classFeatureState?.monk?.warriorOfShadowShadowStepAdvantageActive === true
+  );
+}
+
+function isMonkWarriorOfShadowStepEligibleWeaponAction(
+  action: Pick<WeaponAction, "attackKind" | "combatType">
+): boolean {
+  return (
+    action.attackKind === "unarmed" ||
+    (action.attackKind === "weapon" && action.combatType === WEAPON_COMBAT_TYPE.MELEE)
+  );
+}
+
+function appendShadowStepAdvantageIndicator(action: WeaponAction): WeaponAction {
+  if (
+    !isMonkWarriorOfShadowStepEligibleWeaponAction(action) ||
+    action.indicators.some(
+      (indicator) =>
+        indicator.label === shadowStepAdvantageIndicator.label &&
+        indicator.tone === shadowStepAdvantageIndicator.tone &&
+        (Array.isArray(indicator.source)
+          ? indicator.source.includes(shadowStepAdvantageSource)
+          : indicator.source === shadowStepAdvantageSource)
+    )
+  ) {
+    return action;
+  }
+
+  return {
+    ...action,
+    indicators: [...action.indicators, shadowStepAdvantageIndicator]
   };
 }
 
@@ -212,6 +266,54 @@ export function activateMonkWarriorOfShadowImprovedShadowStep(character: Charact
         focusPointsExpended: Math.min(totalFocusPoints, focusPointsExpended + 1),
         warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn:
           getMonkWarriorOfShadowImprovedShadowStepUnarmedStrikeMultiCount(character) + 1
+      }
+    }
+  };
+}
+
+export function activateMonkWarriorOfShadowStep(character: Character): Character {
+  if (!hasMonkWarriorOfShadowStep(character)) {
+    return character;
+  }
+
+  const monkState = character.classFeatureState?.monk ?? {};
+
+  if (monkState.warriorOfShadowShadowStepAdvantageActive === true) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      monk: {
+        ...monkState,
+        warriorOfShadowShadowStepAdvantageActive: true
+      }
+    }
+  };
+}
+
+export function consumeMonkWarriorOfShadowStepAttackAdvantage(
+  character: Character,
+  action: Pick<WeaponAction, "attackKind" | "combatType">
+): Character {
+  if (
+    !hasMonkWarriorOfShadowStepAttackAdvantage(character) ||
+    !isMonkWarriorOfShadowStepEligibleWeaponAction(action)
+  ) {
+    return character;
+  }
+
+  const monkState = character.classFeatureState?.monk ?? {};
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      monk: {
+        ...monkState,
+        warriorOfShadowShadowStepAdvantageActive: false
       }
     }
   };
@@ -342,7 +444,7 @@ function getMonkWarriorOfShadowFeatureActions(
       actionCategory: ACTION_CATEGORY.MAGIC,
       usesInlineLabel: "Use 1",
       usesInlineIcon: "brain",
-      description: [...shadowArtsDescription],
+      description: [...shadowArtsDarknessDescription],
       resources: [
         {
           kind: "tracker",
@@ -356,7 +458,7 @@ function getMonkWarriorOfShadowFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Warrior of Shadow",
-        description: [...shadowArtsDescription],
+        description: [...shadowArtsDarknessDescription],
         confirmLabel: "Open Darkness"
       },
       execute: {
@@ -391,12 +493,10 @@ function getMonkWarriorOfShadowFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Warrior of Shadow",
-        description: [...shadowStepDescription],
-        confirmLabel: "Use Shadow Step"
+        description: [...shadowStepDescription]
       },
       execute: {
-        kind: "activate",
-        label: "Use Shadow Step"
+        kind: "activate"
       }
     };
 
@@ -439,12 +539,10 @@ function getMonkWarriorOfShadowFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Warrior of Shadow",
-        description: [...cloakOfShadowsDescription],
-        confirmLabel: `Use ${cloakOfShadowActionName}`
+        description: [...cloakOfShadowsDescription]
       },
       execute: {
-        kind: "activate",
-        label: `Use ${cloakOfShadowActionName}`
+        kind: "activate"
       },
       disabled: Boolean(cloakOfShadowDisabledReason),
       disabledReason: cloakOfShadowDisabledReason
@@ -462,6 +560,10 @@ export const getMonkWarriorOfShadowDerivedFeatureState: SubclassRuntimeResolver 
   return {
     derivedStatusEntries: getMonkWarriorOfShadowDerivedStatusEntries(character),
     featureActions: getMonkWarriorOfShadowFeatureActions(character),
+    transformWeaponAction: (action) =>
+      hasMonkWarriorOfShadowStepAttackAdvantage(character)
+        ? appendShadowStepAdvantageIndicator(action)
+        : action,
     alwaysPreparedSpellIds: shadowArtsMinorIllusionSpellIds
   };
 };

@@ -502,12 +502,10 @@ function getWarlockFiendPatronDarkOnesBlessingAction(
       kind: "confirm",
       eyebrow: "Fiend Patron",
       description: [...darkOnesBlessingDescription],
-      helperText: `Gain ${grantedTemporaryHitPoints} Temporary Hit Points.`,
-      confirmLabel: "Gain Temporary Hit Points"
+      helperText: `Gain ${grantedTemporaryHitPoints} Temporary Hit Points.`
     },
     execute: {
-      kind: "activate",
-      label: "Gain Temporary Hit Points"
+      kind: "activate"
     }
   };
 }
@@ -536,12 +534,10 @@ function getWarlockFiendPatronDarkOnesOwnLuckAction(
     drawer: {
       kind: "confirm",
       eyebrow: "Fiend Patron",
-      description: [...darkOnesOwnLuckDescription],
-      confirmLabel: "Use Dark One's Own Luck"
+      description: [...darkOnesOwnLuckDescription]
     },
     execute: {
-      kind: "activate",
-      label: "Use Dark One's Own Luck"
+      kind: "activate"
     },
     disabled: usesRemaining <= 0,
     disabledReason:
@@ -635,12 +631,10 @@ function getWarlockFiendPatronHurlThroughHellAction(
         : pactMagicSlotsTotal > 0
           ? "After your free use is spent, Hurl Through Hell can expend one Pact Magic spell slot instead."
           : undefined,
-      resources,
-      confirmLabel: "Use Hurl Through Hell"
+      resources
     },
     execute: {
-      kind: "activate",
-      label: "Use Hurl Through Hell"
+      kind: "activate"
     },
     disabled,
     disabledReason: disabled

@@ -13,6 +13,7 @@ import {
   getMonkHandOfHealingActionPathStates,
   type MonkHandOfHealingActionPathState
 } from "./monkHandOfHealingActionUtils";
+import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
 
 type RoundTrackerAvailability = {
   actionAvailable: boolean;
@@ -28,9 +29,13 @@ type MonkHandOfHealingActionCardProps = {
 };
 
 type MonkHandOfHealingActionFooterProps = {
+  actionName: string;
   confirmLabel: string;
   actionPaths: MonkHandOfHealingActionPathState[];
+  helperText?: string;
+  isDiceRollerSettingsOpen: boolean;
   onConfirmPath: (economyType: EconomyType) => void;
+  onDiceRollerSettingsOpenChange: (isOpen: boolean) => void;
 };
 
 function renderFeatureActionCardUsage(action: FeatureActionCard) {
@@ -150,47 +155,61 @@ export function MonkHandOfHealingActionCard({
 }
 
 export function MonkHandOfHealingActionFooter({
+  actionName,
   confirmLabel,
   actionPaths,
-  onConfirmPath
+  helperText,
+  isDiceRollerSettingsOpen,
+  onConfirmPath,
+  onDiceRollerSettingsOpenChange
 }: MonkHandOfHealingActionFooterProps) {
   return (
-    <div className={actionStyles.weaponFooterActions}>
-      {actionPaths.map((path) => {
-        const actionShape = getActionShapeForEconomyType(path.economyType);
+    <div className={actionStyles.footerActionStack}>
+      {helperText ? <p className={actionStyles.footerHelperText}>{helperText}</p> : null}
+      <div className={actionStyles.weaponFooterActions}>
+        {actionPaths.map((path) => {
+          const actionShape = getActionShapeForEconomyType(path.economyType);
 
-        if (!actionShape) {
-          return null;
-        }
+          if (!actionShape) {
+            return null;
+          }
 
-        return (
-          <button
-            key={`hand-of-healing-${path.id}`}
-            type="button"
-            className={clsx(sheetStyles.castButton, actionStyles.weaponFooterButton)}
-            onClick={() => onConfirmPath(path.economyType)}
-            disabled={path.disabledReason !== null}
-            title={path.disabledReason ?? undefined}
-          >
-            <span className={actionStyles.centeredFooterButtonContent}>
-              <img src={d20Icon} alt="" className={actionStyles.weaponFooterIcon} />
-              <span>{confirmLabel}</span>
-              <span className={actionStyles.footerActionShapeGroup}>
-                <ActionShape
-                  shape={actionShape}
-                  isSelected={path.shapeState.isAvailable}
-                  multiCount={path.shapeState.multiCount}
-                  showMultiCountLabel={false}
-                  className={actionStyles.footerActionShape}
-                />
-                {path.additionalUseCount > 0 ? (
-                  <span className={actionStyles.footerActionCount}>{`x${path.totalUseCount}`}</span>
-                ) : null}
+          return (
+            <button
+              key={`hand-of-healing-${path.id}`}
+              type="button"
+              className={clsx(sheetStyles.castButton, actionStyles.weaponFooterButton)}
+              onClick={() => onConfirmPath(path.economyType)}
+              disabled={path.disabledReason !== null}
+              title={path.disabledReason ?? undefined}
+            >
+              <span className={actionStyles.centeredFooterButtonContent}>
+                <img src={d20Icon} alt="" className={actionStyles.weaponFooterIcon} />
+                <span>{confirmLabel}</span>
+                <span className={actionStyles.footerActionShapeGroup}>
+                  <ActionShape
+                    shape={actionShape}
+                    isSelected={path.shapeState.isAvailable}
+                    multiCount={path.shapeState.multiCount}
+                    showMultiCountLabel={false}
+                    className={actionStyles.footerActionShape}
+                  />
+                  {path.additionalUseCount > 0 ? (
+                    <span className={actionStyles.footerActionCount}>{`x${path.totalUseCount}`}</span>
+                  ) : null}
+                </span>
               </span>
-            </span>
-          </button>
-        );
-      })}
+            </button>
+          );
+        })}
+        <DiceRollerSettingsButton
+          actionName={actionName}
+          className={clsx(sheetStyles.castButton, actionStyles.weaponFooterIconButton)}
+          isOpen={isDiceRollerSettingsOpen}
+          aria-label="Open dice roller settings"
+          onOpenChange={onDiceRollerSettingsOpenChange}
+        />
+      </div>
     </div>
   );
 }

@@ -353,12 +353,10 @@ function getSorcererClockworkFeatureActions(
           remainingPoints > 0
             ? "Choose how many Sorcery Points to spend. The ward lasts until you finish a Long Rest or use Bastion of Law again."
             : "You need at least 1 Sorcery Point to create a ward.",
-        optionSelection: "single-confirm",
-        confirmLabel: "Create Bastion of Law"
+        optionSelection: "single-confirm"
       },
       execute: {
-        kind: "option",
-        label: "Create Bastion of Law"
+        kind: "option"
       },
       disabled: remainingPoints <= 0,
       disabledReason: remainingPoints <= 0 ? "No Sorcery Points remaining." : undefined
@@ -444,7 +442,6 @@ function getSorcererClockworkFeatureActions(
             : fallbackAvailable
               ? `Your normal use is depleted, so activating this feature will spend ${tranceOfOrderFallbackSorceryPointCost} Sorcery Points.`
               : `You need ${tranceOfOrderFallbackSorceryPointCost} Sorcery Points to activate ${tranceOfOrderName} again.`,
-        confirmLabel: "Enter Trance of Order",
         resources:
           totalPoints > 0
             ? [
@@ -464,8 +461,7 @@ function getSorcererClockworkFeatureActions(
             : undefined
       },
       execute: {
-        kind: "activate",
-        label: "Enter Trance of Order"
+        kind: "activate"
       },
       isActive,
       disabled: Boolean(disabledReason),
@@ -550,7 +546,6 @@ function getSorcererClockworkFeatureActions(
             : fallbackAvailable
               ? `Your normal use is depleted, so activating this feature will spend ${clockworkCavalcadeFallbackSorceryPointCost} Sorcery Points.`
               : `You need ${clockworkCavalcadeFallbackSorceryPointCost} Sorcery Points to activate ${clockworkCavalcadeName} again.`,
-        confirmLabel: "Use Clockwork Cavalcade",
         resources:
           totalPoints > 0
             ? [
@@ -571,8 +566,7 @@ function getSorcererClockworkFeatureActions(
             : undefined
       },
       execute: {
-        kind: "activate",
-        label: "Use Clockwork Cavalcade"
+        kind: "activate"
       },
       disabled: Boolean(disabledReason),
       disabledReason

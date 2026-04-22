@@ -642,7 +642,6 @@ function getPaladinOathOfTheNobleGeniesFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Oath of the Noble Genies",
-        confirmLabel: "Activate Noble Scion",
         resources: [
           {
             kind: "tracker" as const,
@@ -663,8 +662,7 @@ function getPaladinOathOfTheNobleGeniesFeatureActions(
         ]
       },
       execute: {
-        kind: "activate",
-        label: "Activate Noble Scion"
+        kind: "activate"
       },
       isActive,
       disabled: isActive || (usesRemaining <= 0 && !hasFallbackSlot),

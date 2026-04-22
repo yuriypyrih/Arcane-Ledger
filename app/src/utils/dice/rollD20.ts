@@ -1,4 +1,5 @@
 import type { D20RollResult, RollMode } from "../../types";
+import { getNaturalOutcome } from "./naturalOutcome";
 import { rollDie } from "./rollDie";
 
 export function rollD20(mode: RollMode): D20RollResult {
@@ -9,7 +10,8 @@ export function rollD20(mode: RollMode): D20RollResult {
       total: result,
       breakdown: `d20 [${result}]`,
       modeApplied: "normal",
-      rawRolls: [result]
+      rawRolls: [result],
+      naturalOutcome: getNaturalOutcome(result)
     };
   }
 
@@ -21,6 +23,7 @@ export function rollD20(mode: RollMode): D20RollResult {
     total,
     breakdown: `${mode} d20 [${first}, ${second}] -> ${total}`,
     modeApplied: mode,
-    rawRolls: [first, second]
+    rawRolls: [first, second],
+    naturalOutcome: getNaturalOutcome(total)
   };
 }

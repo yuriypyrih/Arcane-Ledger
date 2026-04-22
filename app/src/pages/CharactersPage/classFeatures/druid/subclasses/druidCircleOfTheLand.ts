@@ -350,7 +350,6 @@ function getCircleOfTheLandFeatureActions(character: Parameters<SubclassRuntimeR
         kind: "confirm" as const,
         eyebrow: "Circle of the Land",
         description,
-        confirmLabel: "Use Lands Aid",
         resources
       },
       execute: {
@@ -380,12 +379,10 @@ function getCircleOfTheLandFeatureActions(character: Parameters<SubclassRuntimeR
               kind: "confirm" as const,
               eyebrow: "Circle of the Land",
               description: naturesSanctuaryDescription,
-              confirmLabel: "Cast",
               resources
             },
             execute: {
-              kind: "activate" as const,
-              label: "Cast"
+              kind: "activate" as const
             },
             disabled: usesRemaining <= 0,
             disabledReason: usesRemaining <= 0 ? "No Wild Shape uses remaining." : undefined

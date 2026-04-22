@@ -6,6 +6,11 @@
   padding: 0.18rem 0.44rem;
 }
 
+.small {
+  gap: 0.24rem;
+  padding: 0.15rem 0.4rem;
+}
+
 .advantage {
   background: rgba(54, 140, 84, 0.14);
 }
@@ -25,12 +30,21 @@
   text-transform: uppercase;
 }
 
+.small .label {
+  font-size: 0.61rem;
+  letter-spacing: 0.048em;
+}
+
 .detail {
   color: var(--color-ink-soft);
   font-size: 0.72rem;
   font-weight: 500;
   letter-spacing: 0;
   text-transform: none;
+}
+
+.small .detail {
+  font-size: 0.69rem;
 }
 
 .advantage .label {

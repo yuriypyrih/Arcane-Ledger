@@ -533,12 +533,10 @@ function getSorcererAberrantSorceryFeatureActions(
             ? `Choose up to ${selectionLimit} alteration${selectionLimit === 1 ? "" : "s"}. Each chosen alteration costs 1 Sorcery Point.`
             : "You need at least 1 Sorcery Point to choose an alteration.",
         optionSelection: "multi-confirm",
-        optionSelectionLimit: selectionLimit,
-        confirmLabel: "Activate Revelation in Flesh"
+        optionSelectionLimit: selectionLimit
       },
       execute: {
-        kind: "option",
-        label: "Activate Revelation in Flesh"
+        kind: "option"
       },
       isActive: hasActiveSorcererAberrantRevelationInFlesh(character),
       disabled: remainingPoints <= 0,
@@ -601,12 +599,10 @@ function getSorcererAberrantSorceryFeatureActions(
         description: getSorcererAberrantFeatureDescription(
           character,
           CLASS_FEATURE.WARPING_IMPLOSION
-        ),
-        confirmLabel: "Use Warping Implosion"
+        )
       },
       execute: {
-        kind: "activate",
-        label: "Use Warping Implosion"
+        kind: "activate"
       },
       disabled: Boolean(disabledReason),
       disabledReason

@@ -801,12 +801,10 @@ export function getFighterFeatureActions(
       descriptionAdditions,
       drawer: {
         kind: "confirm",
-        eyebrow: "Fighter",
-        confirmLabel: "Use Second Wind"
+        eyebrow: "Fighter"
       },
       execute: {
         kind: "activate",
-        label: "Use Second Wind",
         effectKind: "second-wind"
       },
       disabled: usesRemaining <= 0,
@@ -835,12 +833,10 @@ export function getFighterFeatureActions(
       usesTotal: totalUses,
       drawer: {
         kind: "confirm",
-        eyebrow: "Fighter",
-        confirmLabel: "Use Tactical Mind"
+        eyebrow: "Fighter"
       },
       execute: {
         kind: "activate",
-        label: "Use Tactical Mind",
         effectKind: "tactical-mind"
       },
       disabled: usesRemaining <= 0,
@@ -871,8 +867,7 @@ export function getFighterFeatureActions(
       },
       execute: {
         kind: "custom-form",
-        formKind: "indomitable",
-        label: "Roll Saving Throw with Indomitable"
+        formKind: "indomitable"
       },
       disabled: usesRemaining <= 0,
       disabledReason: usesRemaining <= 0 ? "No Indomitable uses remaining." : undefined

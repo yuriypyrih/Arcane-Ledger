@@ -17,6 +17,7 @@ import {
   expendBardicInspirationUseForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
 import type { Character } from "../../../../types";
+import { formatRollResultTotal } from "../../../../utils/dice";
 
 type InitiativeCharacterEffectOptions = {
   usePersistentRageOnInitiative: boolean;
@@ -59,7 +60,7 @@ function formatDieFormula(die: DICE): string {
 
 function formatDualRollToast(resolvedResult: DiceRollerResolvedResult): string {
   const parts = resolvedResult.results.map(
-    (entry) => `${entry.label?.trim() || "Roll"} ${entry.result.total}`
+    (entry) => `${entry.label?.trim() || "Roll"} ${formatRollResultTotal(entry.result)}`
   );
 
   return `Action Used: ${parts.join(" | ")}`;

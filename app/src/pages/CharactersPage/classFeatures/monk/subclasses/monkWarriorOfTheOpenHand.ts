@@ -403,12 +403,10 @@ function getMonkWarriorOfTheOpenHandFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Warrior of the Open Hand",
-        description: [...wholenessOfBodyDescription],
-        confirmLabel: `Use ${wholenessOfBodyActionName}`
+        description: [...wholenessOfBodyDescription]
       },
       execute: {
-        kind: "activate",
-        label: `Use ${wholenessOfBodyActionName}`
+        kind: "activate"
       },
       disabled: usesRemaining <= 0,
       disabledReason:
@@ -429,12 +427,10 @@ function getMonkWarriorOfTheOpenHandFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Warrior of the Open Hand",
-        description: [...quiveringPalmDescription],
-        confirmLabel: `Use ${quiveringPalmEffectName}`
+        description: [...quiveringPalmDescription]
       },
       execute: {
-        kind: "activate",
-        label: `Use ${quiveringPalmEffectName}`
+        kind: "activate"
       }
     });
   }

@@ -22,6 +22,7 @@ import type {
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { abilityKeys } from "../../../../../pages/CharactersPage/constants";
 import {
+  activateBardicInspirationForCharacter,
   activateInnateSorceryForCharacter,
   activateClericBlessingOfTheTricksterForCharacter,
   activateDruidNatureMagicianForCharacter,
@@ -104,10 +105,12 @@ import {
 import { bardicInspirationActionKey } from "../../../../../pages/CharactersPage/classFeatures/bard/bard";
 import {
   createChargesCardUsage,
+  createFreeCardUsage,
   createChargesOrResourceCardUsage,
   createFeatureActionCardCost,
   createNamedResourceCardUsage
 } from "../../../../../pages/CharactersPage/classFeatures/cardUsage";
+import { appendSourcedDescriptionAddition } from "../../../../../pages/CharactersPage/actionModalDescriptions";
 import { mantleOfInspirationActionKey } from "../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfGlamour";
 import {
   channelDivinityActionKey,
@@ -258,9 +261,14 @@ import {
   getEconomyShapeState,
   getRoundTrackerActionWarning
 } from "../gameplayWidgetUtils";
-import { resolveFeatureIndicators } from "../../../../RollStatePill/rollState";
+import {
+  formatResolvedRollStateDetailText,
+  getRollModeFromIndicators,
+  resolveFeatureIndicators
+} from "../../../../RollStatePill/rollState";
 import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
 import d20Icon from "../../../../../assets/svg/d20.svg";
+import { useAppSelector } from "../../../../../store";
 import styles from "./ActionsWidget.module.css";
 import sharedModalStyles from "./FeatureActionModal.module.css";
 import arcaneRecoveryStyles from "./ArcaneRecoveryModal.module.css";
@@ -269,6 +277,7 @@ import fontOfMagicStyles from "./FontOfMagicModal.module.css";
 import SneakAttackActionBody, { type SneakAttackActionSelection } from "./SneakAttackModal";
 import divineStyles from "./DivineInterventionModal.module.css";
 import GameplayActionDrawer from "./GameplayActionDrawer";
+import { BardicInspirationActionFooter } from "./BardicInspirationActionFooter";
 import CodexDivinityDrawer from "../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import BlessingOfTheTricksterActionBody from "./BlessingOfTheTricksterActionBody";
 import { ClericPreserveLifeActionBody } from "./ClericPreserveLifeAction";
@@ -305,12 +314,24 @@ import {
   createPsiWarriorPsionicStrikeDamageBonus
 } from "./fighterPsiWarriorWeapon";
 import {
+  applyCriticalHitToWeaponAction,
+  appendCriticalHitToFormulaBreakdown
+} from "./weaponCriticalHit";
+import {
   consumeMonkStunningStrike,
   getMonkStunningStrikeOptionState
 } from "../../../../../pages/CharactersPage/classFeatures/monk/monkStunningStrike";
 import {
+  activateMonkFlurryOfBlows,
+  monkFlurryOfBlowsActionKey
+} from "../../../../../pages/CharactersPage/classFeatures/monk/monk";
+import {
   activateMonkWarriorOfMercyHandOfHealing,
+  getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesRemaining,
+  getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesTotal,
+  getMonkWarriorOfMercyHandOfHealingFormula,
   getMonkWarriorOfMercyHandOfHarmOptionState,
+  isMonkWarriorOfMercyFlurryOfHealingAndHarmActive,
   monkHandOfHealingActionKey
 } from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfMercy";
 import {
@@ -334,6 +355,7 @@ import {
   MonkHandOfHealingActionCard,
   MonkHandOfHealingActionFooter
 } from "./MonkHandOfHealingAction";
+import { MonkFlurryOfBlowsActionFooter } from "./MonkFlurryOfBlowsActionFooter";
 import { getMonkHandOfHealingActionPathStates } from "./monkHandOfHealingActionUtils";
 import {
   createChannelDivinityOptionRows,
@@ -418,14 +440,16 @@ function createContactPatronSpellEntry(spell: SpellEntry): SpellEntry {
 }
 
 function createShadowArtsDarknessSpellEntry(spell: SpellEntry): SpellEntry {
-  return {
-    ...spell,
-    components: [],
-    description: [
-      "<strong>Shadow Arts.</strong> This casting doesn't expend a spell slot or spell components. You can see within the spell's area when you cast it with this feature, and while the spell persists, you can move its area to a space within 60 feet of yourself at the start of each of your turns.",
-      ...spell.description
+  return appendSourcedDescriptionAddition(
+    {
+      ...spell,
+      components: []
+    },
+    "Shadow Arts",
+    [
+      "This casting doesn't expend a spell slot or spell components. You can see within the spell's area when you cast it with this feature, and while the spell persists, you can move its area to a space within 60 feet of yourself at the start of each of your turns."
     ]
-  };
+  );
 }
 
 function getDivineInterventionLevelGroups(spells: SpellEntry[]): Record<number, SpellEntry[]> {
@@ -1478,6 +1502,9 @@ function WildResurgenceActionBody({
 }
 
 function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
+  const nextRollCriticalHitOverride = useAppSelector(
+    (state) => state.diceRoller.nextRollCriticalHitOverride
+  );
   const [selectedActionKey, setSelectedActionKey] = useState<string | null>(null);
   const [selectedActionOptionKeys, setSelectedActionOptionKeys] = useState<string[]>([]);
   const [selectedChannelDivinityOptionKey, setSelectedChannelDivinityOptionKey] = useState<
@@ -1490,6 +1517,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   );
   const [selectedWildCompanionResource, setSelectedWildCompanionResource] =
     useState<WildCompanionResourceKind>("wild-shape");
+  const [selectedBardicInspirationSpellSlotLevel, setSelectedBardicInspirationSpellSlotLevel] =
+    useState<number | null>(null);
   const [selectedWildCompanionSpellSlotLevel, setSelectedWildCompanionSpellSlotLevel] = useState(1);
   const [selectedWildResurgenceMode, setSelectedWildResurgenceMode] =
     useState<WildResurgenceMode | null>(null);
@@ -1544,6 +1573,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [isSacredWeaponSelected, setIsSacredWeaponSelected] = useState(false);
   const [isStunningStrikeSelected, setIsStunningStrikeSelected] = useState(false);
   const [isHandOfHarmSelected, setIsHandOfHarmSelected] = useState(false);
+  const [isFlurryOfHealingAndHarmSelected, setIsFlurryOfHealingAndHarmSelected] = useState(false);
   const [isQuiveringPalmSelected, setIsQuiveringPalmSelected] = useState(false);
   const [isImprovedShadowStepSelected, setIsImprovedShadowStepSelected] = useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
@@ -1615,6 +1645,23 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       ),
     [fixedSpellSlotTotals, fixedSpellSlotsRemaining]
   );
+  const bardicInspirationFallbackSpellSlotOptions = useMemo(
+    () =>
+      fixedSpellSlotTotals.flatMap((total, index) =>
+        total > 0 && (fixedSpellSlotsRemaining[index] ?? 0) > 0
+          ? [
+              {
+                level: index + 1,
+                remaining: fixedSpellSlotsRemaining[index] ?? 0,
+                total
+              }
+            ]
+          : []
+      ),
+    [fixedSpellSlotTotals, fixedSpellSlotsRemaining]
+  );
+  const firstAvailableBardicInspirationSpellSlotLevel =
+    bardicInspirationFallbackSpellSlotOptions[0]?.level ?? null;
   const firstAvailableWildCompanionSpellSlotLevel =
     wildCompanionSpellSlotOptions.find((slot) => slot.remaining > 0)?.level ?? null;
   const wildResurgenceAvailableSpellSlotLevels = useMemo(
@@ -1807,7 +1854,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       focusPointsRemaining: selectedWeaponFocusPointsRemaining,
       currentOption: {
         label: "Hand of Harm",
-        cost: 1
+        cost: selectedWeaponHandOfHarmState.focusPointCost
       },
       selectedOptions: [
         {
@@ -1847,7 +1894,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedOptions: [
         {
           label: "Hand of Harm",
-          cost: 1,
+          cost: selectedWeaponHandOfHarmState?.focusPointCost ?? 1,
           selected: isHandOfHarmSelected
         },
         {
@@ -1861,6 +1908,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     isHandOfHarmSelected,
     isQuiveringPalmSelected,
     selectedWeaponFocusPointsRemaining,
+    selectedWeaponHandOfHarmState,
     selectedWeaponStunningStrikeState
   ]);
   const selectedWeaponQuiveringPalmDisabledReason = useMemo(() => {
@@ -1886,7 +1934,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         },
         {
           label: "Hand of Harm",
-          cost: 1,
+          cost: selectedWeaponHandOfHarmState?.focusPointCost ?? 1,
           selected: isHandOfHarmSelected
         }
       ]
@@ -1895,6 +1943,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     isHandOfHarmSelected,
     isStunningStrikeSelected,
     selectedWeaponFocusPointsRemaining,
+    selectedWeaponHandOfHarmState,
     selectedWeaponQuiveringPalmState,
     selectedWeaponStunningStrikeState
   ]);
@@ -1907,6 +1956,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const selectedWeaponStunningStrikeToggleDisabled =
     selectedWeaponStunningStrikeDisabledReason !== null;
   const selectedWeaponHandOfHarmToggleDisabled = selectedWeaponHandOfHarmDisabledReason !== null;
+  const selectedWeaponHandOfHarmUsage =
+    selectedWeaponHandOfHarmState?.focusPointCost === 0
+      ? createFreeCardUsage()
+      : createNamedResourceCardUsage(
+          createFeatureActionCardCost({
+            amountText: String(selectedWeaponHandOfHarmState?.focusPointCost ?? 1),
+            icon: "brain"
+          })
+        );
   const selectedWeaponQuiveringPalmToggleDisabled =
     selectedWeaponQuiveringPalmDisabledReason !== null;
   const selectedImprovedShadowStepState = useMemo(
@@ -1982,11 +2040,24 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedWeaponPsionicStrikeFormula
   ]);
   const selectedWeaponDamageFormula = useMemo(
-    () =>
-      selectedWeaponEffectiveAction
-        ? getWeaponDamageFormulaPresentation(selectedWeaponEffectiveAction)
-        : null,
-    [selectedWeaponEffectiveAction]
+    () => {
+      if (!selectedWeaponEffectiveAction) {
+        return null;
+      }
+
+      const previewAction = nextRollCriticalHitOverride
+        ? applyCriticalHitToWeaponAction(selectedWeaponEffectiveAction)
+        : selectedWeaponEffectiveAction;
+      const formulaPresentation = getWeaponDamageFormulaPresentation(previewAction);
+
+      return nextRollCriticalHitOverride
+        ? {
+            ...formulaPresentation,
+            breakdown: appendCriticalHitToFormulaBreakdown(formulaPresentation.breakdown)
+          }
+        : formulaPresentation;
+    },
+    [nextRollCriticalHitOverride, selectedWeaponEffectiveAction]
   );
   const selectedWeaponDrawerDescription = useMemo(
     () =>
@@ -2033,6 +2104,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         : null,
     [selectedFeatureAction?.key, selectedWildShapeMonsterSlug, wildShapeKnownForms]
   );
+  const showBardicInspirationFallbackSlotSelect =
+    selectedFeatureAction?.key === bardicInspirationActionKey && bardicInspirationUsesRemaining <= 0;
+  const selectedBardicInspirationFallbackSlotIsValid =
+    selectedBardicInspirationSpellSlotLevel !== null &&
+    bardicInspirationFallbackSpellSlotOptions.some(
+      (slot) => slot.level === selectedBardicInspirationSpellSlotLevel
+    );
   const selectedWildCompanionSpellSlotRemaining =
     fixedSpellSlotsRemaining[selectedWildCompanionSpellSlotLevel - 1] ?? 0;
   const canUseSelectedWildCompanionResource =
@@ -2215,6 +2293,21 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     return getMonkHandOfHealingActionPathStates(character, selectedAction.action, roundTracker);
   }, [character, roundTracker, selectedAction]);
+  const selectedFlurryOfHealingAndHarmUsesTotal = useMemo(
+    () => getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesTotal(character),
+    [character]
+  );
+  const selectedFlurryOfHealingAndHarmUsesRemaining = useMemo(
+    () => getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesRemaining(character),
+    [character]
+  );
+  const selectedFlurryOfHealingAndHarmActive = useMemo(
+    () => isMonkWarriorOfMercyFlurryOfHealingAndHarmActive(character),
+    [character]
+  );
+  const selectedFlurryOfHealingAndHarmActiveHelperText = selectedFlurryOfHealingAndHarmActive
+    ? "Flurry of Healing And Harm is active for this turn"
+    : null;
   const selectedWeaponPrimaryAttackPathState =
     selectedAction?.kind === "weapon"
       ? (selectedWeaponAttackPathStates.find((path) => path.id === "primary") ?? null)
@@ -2340,6 +2433,36 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         selectedActionBlockedReason ??
         selectedAction.action.disabledReason ??
         null)
+      : null;
+  const selectedBardicInspirationFallbackDisabledReason =
+    selectedFeatureAction?.key !== bardicInspirationActionKey || !showBardicInspirationFallbackSlotSelect
+      ? selectedFeatureActionPrimaryDisabledReason
+      : selectedFeatureActionPrimaryDisabledReason ??
+        (bardicInspirationFallbackSpellSlotOptions.length <= 0
+          ? "No spell slots remain to fuel Font of Inspiration."
+          : !selectedBardicInspirationFallbackSlotIsValid
+            ? "Select a spell slot to regain Bardic Inspiration."
+            : null);
+  const showSelectedFlurryOfHealingAndHarmToggle =
+    selectedAction?.kind === "feature" &&
+    selectedAction.action.key === monkFlurryOfBlowsActionKey &&
+    selectedFlurryOfHealingAndHarmUsesTotal > 0;
+  const selectedFlurryOfHealingAndHarmDisabledReason =
+    showSelectedFlurryOfHealingAndHarmToggle && selectedFlurryOfHealingAndHarmUsesRemaining <= 0
+      ? "Flurry of Healing and Harm has no charges remaining."
+      : null;
+  const selectedFlurryOfBlowsPrimaryDisabledReason =
+    selectedFeatureActionPrimaryDisabledReason ??
+    (isFlurryOfHealingAndHarmSelected ? selectedFlurryOfHealingAndHarmDisabledReason : null);
+  const selectedUnarmedStrikeFlurryOfHealingAndHarmHelperText =
+    selectedAction?.kind === "weapon" &&
+    selectedAction.action.key === "unarmed-strike" &&
+    selectedFlurryOfHealingAndHarmActive
+      ? selectedFlurryOfHealingAndHarmActiveHelperText
+      : null;
+  const selectedHandOfHealingFlurryOfHealingAndHarmHelperText =
+    selectedFeatureAction?.key === monkHandOfHealingActionKey && selectedFlurryOfHealingAndHarmActive
+      ? selectedFlurryOfHealingAndHarmActiveHelperText
       : null;
   const selectedClericChannelDivinityWarning = selectedClericChannelDivinityRow
     ? (selectedFeatureActionPrimaryDisabledReason ??
@@ -2562,6 +2685,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedWildShapePreviewMonster(null);
     setSelectedWildShapePreviewStatus("ready");
     setSelectedWildCompanionResource("wild-shape");
+    setSelectedBardicInspirationSpellSlotLevel(null);
     setSelectedWildCompanionSpellSlotLevel(1);
     setSelectedWildResurgenceMode(null);
     setSelectedWildResurgenceSpellSlotLevel(1);
@@ -2591,6 +2715,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsSacredWeaponSelected(false);
     setIsStunningStrikeSelected(false);
     setIsHandOfHarmSelected(false);
+    setIsFlurryOfHealingAndHarmSelected(false);
     setIsQuiveringPalmSelected(false);
     setIsImprovedShadowStepSelected(false);
     setSelectedActionKey(null);
@@ -2779,6 +2904,27 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
   useEffect(() => {
     if (
+      selectedFeatureAction?.key !== bardicInspirationActionKey ||
+      !showBardicInspirationFallbackSlotSelect
+    ) {
+      return;
+    }
+
+    setSelectedBardicInspirationSpellSlotLevel((currentValue) =>
+      currentValue !== null &&
+      bardicInspirationFallbackSpellSlotOptions.some((slot) => slot.level === currentValue)
+        ? currentValue
+        : firstAvailableBardicInspirationSpellSlotLevel
+    );
+  }, [
+    bardicInspirationFallbackSpellSlotOptions,
+    firstAvailableBardicInspirationSpellSlotLevel,
+    selectedFeatureAction?.key,
+    showBardicInspirationFallbackSlotSelect
+  ]);
+
+  useEffect(() => {
+    if (
       selectedFeatureAction?.key !== druidWildCompanionActionKey ||
       firstAvailableWildCompanionSpellSlotLevel === null
     ) {
@@ -2903,6 +3049,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   }, [selectedWeaponPsionicStrikeAvailable]);
 
   useEffect(() => {
+    if (
+      showSelectedFlurryOfHealingAndHarmToggle &&
+      selectedFlurryOfHealingAndHarmUsesRemaining > 0
+    ) {
+      return;
+    }
+
+    setIsFlurryOfHealingAndHarmSelected(false);
+  }, [showSelectedFlurryOfHealingAndHarmToggle, selectedFlurryOfHealingAndHarmUsesRemaining]);
+
+  useEffect(() => {
     if (!fixedSpellEntry || !fixedSpellExecute) {
       return;
     }
@@ -2996,6 +3153,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   }
 
   function executeMonkHandOfHealingPath(economyType: EconomyType) {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    const healingFormula = getMonkWarriorOfMercyHandOfHealingFormula(character);
+
+    if (!healingFormula) {
+      return;
+    }
+
     onPersistCharacter((currentCharacter) => {
       const isFlurryBonusPath = economyType === ECONOMY_TYPE.BONUS_ACTION;
       const roundTrackerResource = isFlurryBonusPath ? null : "action";
@@ -3015,6 +3182,47 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
         : nextCharacter;
     });
+
+    openDiceRoller({
+      title: selectedFeatureAction.name,
+      formula: healingFormula,
+      formulaDisplay: healingFormula,
+      description: selectedFeatureAction.detail
+    });
+
+    closeActionDrawer();
+  }
+
+  function executeMonkFlurryOfBlowsAction() {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    const useFlurryOfHealingAndHarm =
+      isFlurryOfHealingAndHarmSelected &&
+      selectedFlurryOfHealingAndHarmUsesRemaining > 0;
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateMonkFlurryOfBlows(preparedCharacter, {
+        useFlurryOfHealingAndHarm
+      });
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
     closeActionDrawer();
   }
 
@@ -3119,7 +3327,22 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           currentCharacter,
           roundTrackerResource
         );
-        const nextCharacter = activateFeatureActionForCharacter(preparedCharacter, action.key);
+        const bardicUsesRemaining = getBardicInspirationUsesRemainingForCharacter(preparedCharacter);
+
+        if (bardicUsesRemaining <= 0 && !selectedBardicInspirationFallbackSlotIsValid) {
+          return currentCharacter;
+        }
+
+        const fallbackSpellSlotLevel =
+          bardicUsesRemaining > 0
+            ? undefined
+            : selectedBardicInspirationFallbackSlotIsValid
+              ? selectedBardicInspirationSpellSlotLevel ?? undefined
+              : undefined;
+        const nextCharacter = activateBardicInspirationForCharacter(
+          preparedCharacter,
+          fallbackSpellSlotLevel
+        );
 
         if (nextCharacter === preparedCharacter) {
           return currentCharacter;
@@ -3388,12 +3611,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       const { preparedCharacter, preparedAction, roundTrackerResource } =
         resolvePreparedWeaponAction(currentCharacter, action, economyTypeOverride);
       const attackFormula = getWeaponAttackFormulaPresentation(preparedAction).value;
+      const attackRollMode = getRollModeFromIndicators(preparedAction.indicators);
 
       openDiceRoller({
         title: `${preparedAction.name} attack`,
         formula: attackFormula,
         formulaDisplay: attackFormula,
-        description: `${preparedAction.name} attack roll`
+        description: `${preparedAction.name} attack roll`,
+        mode: attackRollMode,
+        enableNextCriticalHitOnNatural20: true
       });
 
       let nextCharacter = preparedAction.damageBonusEntries.reduce(
@@ -3451,17 +3677,20 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedWeaponEffectiveAction
         ? selectedWeaponEffectiveAction
         : action;
+    const damageAction = nextRollCriticalHitOverride
+      ? applyCriticalHitToWeaponAction(effectiveAction)
+      : effectiveAction;
     const damageFormula = appendRollModifier(
-      effectiveAction.damageFormula,
-      effectiveAction.damageAbilityModifier ?? effectiveAction.abilityModifier
+      damageAction.damageFormula,
+      damageAction.damageAbilityModifier ?? damageAction.abilityModifier
     );
-    const damageFormulaDisplay = getWeaponDamageFormulaPresentation(effectiveAction).value;
+    const damageFormulaDisplay = getWeaponDamageFormulaPresentation(damageAction).value;
 
     openDiceRoller({
-      title: `${effectiveAction.name} damage`,
+      title: `${damageAction.name} damage`,
       formula: damageFormula,
       formulaDisplay: damageFormulaDisplay,
-      description: `${effectiveAction.name} damage roll`
+      description: `${damageAction.name} damage roll`
     });
 
     if (
@@ -4780,7 +5009,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     return (
-      <RollStatePill tone={selectedWeaponRollState.tone} label={selectedWeaponRollState.label} />
+      <RollStatePill
+        tone={selectedWeaponRollState.tone}
+        label={selectedWeaponRollState.label}
+        detailText={formatResolvedRollStateDetailText(selectedWeaponRollState)}
+      />
     );
   }
 
@@ -4883,12 +5116,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               muted={selectedWeaponHandOfHarmToggleDisabled}
               onCheckedChange={setIsHandOfHarmSelected}
               title={selectedWeaponHandOfHarmDisabledReason ?? undefined}
-              usage={createNamedResourceCardUsage(
-                createFeatureActionCardCost({
-                  amountText: "1",
-                  icon: "brain"
-                })
-              )}
+              usage={selectedWeaponHandOfHarmUsage}
               application={{
                 qualifierText: "Once per turn",
                 targetLabel: "Damage"
@@ -4934,6 +5162,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               usageKey="psionic-strike"
             />
           ) : null}
+          {selectedUnarmedStrikeFlurryOfHealingAndHarmHelperText ? (
+            <p className={styles.footerHelperText}>
+              {selectedUnarmedStrikeFlurryOfHealingAndHarmHelperText}
+            </p>
+          ) : null}
           <WeaponAttackFooterButtons
             actionName={selectedAction.name}
             attackPaths={[
@@ -4969,13 +5202,46 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedAction.kind === "feature" &&
       selectedAction.drawer.kind === "confirm" &&
       selectedAction.execute.kind === "activate" &&
+      selectedAction.action.key === monkFlurryOfBlowsActionKey
+    ) {
+      return (
+        <MonkFlurryOfBlowsActionFooter
+          confirmLabel={selectedFeaturePrimaryLabel}
+          economyType={selectedAction.economyType}
+          shapeState={selectedActionEconomyShapeState}
+          confirmDisabledReason={selectedFlurryOfBlowsPrimaryDisabledReason}
+          onConfirm={executeMonkFlurryOfBlowsAction}
+          flurryOfHealingAndHarmOption={
+            showSelectedFlurryOfHealingAndHarmToggle
+              ? {
+                  checked: isFlurryOfHealingAndHarmSelected,
+                  disabled: selectedFlurryOfHealingAndHarmDisabledReason !== null,
+                  current: selectedFlurryOfHealingAndHarmUsesRemaining,
+                  total: selectedFlurryOfHealingAndHarmUsesTotal,
+                  title: selectedFlurryOfHealingAndHarmDisabledReason ?? undefined,
+                  onCheckedChange: setIsFlurryOfHealingAndHarmSelected
+                }
+              : undefined
+          }
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
       selectedAction.action.key === monkHandOfHealingActionKey
     ) {
       return (
         <MonkHandOfHealingActionFooter
+          actionName={selectedAction.action.name}
           confirmLabel={selectedFeaturePrimaryLabel}
           actionPaths={selectedHandOfHealingActionPathStates}
+          helperText={selectedHandOfHealingFlurryOfHealingAndHarmHelperText ?? undefined}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
           onConfirmPath={executeMonkHandOfHealingPath}
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
         />
       );
     }
@@ -5107,41 +5373,30 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedAction.execute.kind === "activate" &&
       selectedAction.action.key === bardicInspirationActionKey
     ) {
-      const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
-
       return (
-        <div className={styles.footerActionStack}>
-          {canUseInspiredEclipse ? (
-            <FeatureOptInToggle
-              label="Inspired Eclipse"
-              checked={isInspiredEclipseSelected}
-              onCheckedChange={setIsInspiredEclipseSelected}
-              usage={createNamedResourceCardUsage(
-                createFeatureActionCardCost({
-                  amountText: "1",
-                  icon: "music"
-                })
-              )}
-              usageKey="inspired-eclipse"
-            />
-          ) : null}
-          <button
-            type="button"
-            className={clsx(sheetStyles.castButton, styles.footerActionButton)}
-            onClick={() => executeFeatureActivate(selectedAction.action)}
-            disabled={selectedFeatureActionPrimaryDisabledReason !== null}
-          >
-            <span>{selectedFeaturePrimaryLabel}</span>
-            {actionShape ? (
-              <ActionShape
-                shape={actionShape}
-                isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-                multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-                className={styles.footerActionShape}
-              />
-            ) : null}
-          </button>
-        </div>
+        <BardicInspirationActionFooter
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedBardicInspirationFallbackDisabledReason !== null}
+          disabledReason={selectedBardicInspirationFallbackDisabledReason}
+          showInspiredEclipseToggle={canUseInspiredEclipse}
+          isInspiredEclipseSelected={isInspiredEclipseSelected}
+          onInspiredEclipseSelectedChange={setIsInspiredEclipseSelected}
+          showSpellSlotSelect={showBardicInspirationFallbackSlotSelect}
+          spellSlotOptions={bardicInspirationFallbackSpellSlotOptions}
+          selectedSpellSlotLevel={selectedBardicInspirationSpellSlotLevel}
+          onSelectedSpellSlotLevelChange={setSelectedBardicInspirationSpellSlotLevel}
+          helperText={
+            showBardicInspirationFallbackSlotSelect &&
+            selectedBardicInspirationFallbackDisabledReason !==
+              selectedFeatureActionPrimaryDisabledReason
+              ? selectedBardicInspirationFallbackDisabledReason
+              : null
+          }
+          onConfirm={() => executeFeatureActivate(selectedAction.action)}
+        />
       );
     }
 

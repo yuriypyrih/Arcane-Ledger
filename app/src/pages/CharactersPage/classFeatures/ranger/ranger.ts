@@ -605,12 +605,10 @@ export function getRangerFeatureActions(
       usesTotal: totalUses,
       drawer: {
         kind: "confirm",
-        eyebrow: "Ranger",
-        confirmLabel: "Use Tireless"
+        eyebrow: "Ranger"
       },
       execute: {
         kind: "activate",
-        label: "Use Tireless",
         effectKind: "tireless"
       },
       disabled: usesRemaining <= 0,

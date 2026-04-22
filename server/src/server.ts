@@ -12,7 +12,7 @@ export async function startServer() {
 
   return new Promise<Server>((resolve, reject) => {
     const server = app.listen(config.port, () => {
-      console.log(`DnD Companion server listening on http://localhost:${config.port}`);
+      console.log(`DnD Companion server listening on port ${config.port}.`);
       resolve(server);
     });
 

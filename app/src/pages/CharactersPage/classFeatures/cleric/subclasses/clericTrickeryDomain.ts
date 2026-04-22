@@ -248,8 +248,7 @@ function getClericBlessingOfTheTricksterAction(
     },
     execute: {
       kind: "custom-form",
-      formKind: "blessing-of-the-trickster",
-      label: "Use Blessing of the Trickster"
+      formKind: "blessing-of-the-trickster"
     }
   };
 }
@@ -303,12 +302,10 @@ function getClericInvokeDuplicityAction(
       kind: "confirm",
       eyebrow: "Trickery Domain",
       description: [...invokeDuplicityDescription],
-      descriptionAdditions,
-      confirmLabel: "Use Invoke Duplicity"
+      descriptionAdditions
     },
     execute: {
-      kind: "activate",
-      label: "Use Invoke Duplicity"
+      kind: "activate"
     },
     disabled: usesRemaining <= 0,
     disabledReason: usesRemaining <= 0 ? "No Channel Divinity uses remaining." : undefined

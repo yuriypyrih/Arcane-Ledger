@@ -602,8 +602,7 @@ export function getPaladinFeatureActions(
       },
       execute: {
         kind: "custom-form",
-        formKind: "lay-on-hands",
-        label: "Heal"
+        formKind: "lay-on-hands"
       },
       disabled: remainingPool <= 0,
       disabledReason: remainingPool <= 0 ? "Pool of Healing is empty." : undefined
@@ -644,8 +643,7 @@ export function getPaladinFeatureActions(
         optionSelection: "single-immediate"
       },
       execute: {
-        kind: "option",
-        label: "Use Channel Divinity"
+        kind: "option"
       },
       disabled: usesRemaining <= 0,
       disabledReason: usesRemaining <= 0 ? "No Channel Divinity uses remaining." : undefined

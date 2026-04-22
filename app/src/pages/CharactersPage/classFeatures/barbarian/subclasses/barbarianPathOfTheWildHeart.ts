@@ -283,12 +283,10 @@ export function getBarbarianPathOfTheWildHeartRageActionOverride(
       drawer: {
         kind: "confirm",
         eyebrow: "Barbarian",
-        confirmLabel: "Enter Rage",
         resources
       },
       execute: {
-        kind: "activate",
-        label: "Enter Rage"
+        kind: "activate"
       }
     };
   }
@@ -302,8 +300,7 @@ export function getBarbarianPathOfTheWildHeartRageActionOverride(
     } satisfies FeatureActionDrawerConfig,
     execute: {
       kind: "custom-form",
-      formKind: "wild-heart-rage",
-      label: "Enter Rage"
+      formKind: "wild-heart-rage"
     } satisfies FeatureActionExecuteConfig
   };
 }

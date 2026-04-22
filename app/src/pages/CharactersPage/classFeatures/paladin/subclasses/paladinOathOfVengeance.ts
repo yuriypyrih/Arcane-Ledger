@@ -242,7 +242,6 @@ function getPaladinOathOfVengeanceFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Oath of Vengeance",
-        confirmLabel: "Activate Avenging Angel",
         resources: [
           {
             kind: "tracker" as const,
@@ -263,8 +262,7 @@ function getPaladinOathOfVengeanceFeatureActions(
         ]
       },
       execute: {
-        kind: "activate",
-        label: "Activate Avenging Angel"
+        kind: "activate"
       },
       isActive,
       disabled: isActive || (usesRemaining <= 0 && !hasFallbackSlot),

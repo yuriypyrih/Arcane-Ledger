@@ -121,11 +121,71 @@
   line-height: 1;
 }
 
+.naturalOutcomePill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 28px;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 0.2rem 0.58rem;
+  font-size: 0.66rem;
+  font-weight: 900;
+  letter-spacing: 0.05em;
+  line-height: 1;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.natural20Pill {
+  border-color: rgba(184, 124, 20, 0.48);
+  background:
+    linear-gradient(180deg, rgba(255, 244, 192, 0.96), rgba(249, 208, 84, 0.94)),
+    rgba(255, 216, 103, 0.92);
+  color: #724508;
+}
+
+.natural1Pill {
+  border-color: rgba(83, 21, 26, 0.74);
+  background:
+    linear-gradient(180deg, rgba(44, 14, 18, 0.98), rgba(102, 18, 26, 0.96)),
+    rgba(76, 17, 23, 0.94);
+  color: #ffd8d8;
+}
+
+.breakdownRow {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  text-align: left;
+  max-width: 100%;
+}
+
+.resultBreakdownRow {
+  justify-content: center;
+  width: fit-content;
+  margin: 0 auto;
+}
+
+.multiResultBreakdownRow {
+  justify-content: flex-start;
+  width: 100%;
+}
+
 .breakdown {
   margin: 0;
   color: var(--color-ink-soft);
-  max-width: 100%;
+  min-width: 0;
   overflow-wrap: anywhere;
+}
+
+.resultBreakdown {
+  max-width: min(100%, 34rem);
+}
+
+.multiResultBreakdown {
+  flex: 1 1 auto;
+  max-width: 100%;
 }
 
 .errorText {

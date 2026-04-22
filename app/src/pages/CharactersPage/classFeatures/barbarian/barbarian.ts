@@ -833,8 +833,7 @@ function getBarbarianBrutalStrikeAction(
     },
     execute: {
       kind: "custom-form",
-      formKind: "brutal-strike",
-      label: "Apply Brutal Strike"
+      formKind: "brutal-strike"
     },
     isActive: rageState.brutalStrikePending === true,
     disabled: !isAvailable,

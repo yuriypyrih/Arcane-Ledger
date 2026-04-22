@@ -279,7 +279,6 @@ function getSorcererDragonWingsAction(
           : fallbackAvailable
             ? `Your normal use is depleted, so activating this feature will spend ${dragonWingsFallbackSorceryPointCost} Sorcery Points.`
             : `You need ${dragonWingsFallbackSorceryPointCost} Sorcery Points to activate ${dragonWingsName} again.`,
-      confirmLabel: "Manifest Dragon Wings",
       resources:
         totalPoints > 0
           ? [
@@ -299,8 +298,7 @@ function getSorcererDragonWingsAction(
           : undefined
     },
     execute: {
-      kind: "activate",
-      label: "Manifest Dragon Wings"
+      kind: "activate"
     },
     isActive,
     disabled: Boolean(disabledReason),

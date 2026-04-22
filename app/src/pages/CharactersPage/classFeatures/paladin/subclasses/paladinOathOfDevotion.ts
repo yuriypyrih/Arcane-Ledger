@@ -627,7 +627,6 @@ function getPaladinOathOfDevotionFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Oath of Devotion",
-        confirmLabel: "Activate Holy Nimbus",
         resources: [
           {
             kind: "tracker" as const,
@@ -648,8 +647,7 @@ function getPaladinOathOfDevotionFeatureActions(
         ]
       },
       execute: {
-        kind: "activate",
-        label: "Activate Holy Nimbus"
+        kind: "activate"
       },
       isActive,
       disabled: isActive || (usesRemaining <= 0 && !hasFallbackSlot),

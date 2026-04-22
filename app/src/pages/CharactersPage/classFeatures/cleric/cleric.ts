@@ -827,8 +827,7 @@ function getClericChannelDivinityAction(
       optionSelection: "single-immediate"
     },
     execute: {
-      kind: "option",
-      label: "Use Channel Divinity"
+      kind: "option"
     },
     disabled: usesRemaining <= 0,
     disabledReason: usesRemaining <= 0 ? "No Channel Divinity uses remaining." : undefined

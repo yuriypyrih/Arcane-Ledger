@@ -17,6 +17,22 @@
   line-height: 1.3;
 }
 
+.cardHeaderRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.42rem;
+}
+
+.cardHeaderTitle {
+  flex: 1 1 auto;
+  min-width: 0;
+}
+
+.weaponRollStatePill {
+  flex: 0 0 auto;
+}
+
 .button span {
   color: var(--color-ink);
   font-size: 0.82rem;

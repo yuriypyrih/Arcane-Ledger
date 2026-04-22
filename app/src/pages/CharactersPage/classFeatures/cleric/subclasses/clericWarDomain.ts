@@ -176,12 +176,10 @@ export function getClericWarDomainFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "War Domain",
-        description,
-        confirmLabel: "Activate War Priest"
+        description
       },
       execute: {
-        kind: "activate",
-        label: "Activate War Priest"
+        kind: "activate"
       },
       disabled: isActive || usesRemaining <= 0,
       disabledReason: isActive

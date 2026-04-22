@@ -3,9 +3,15 @@ import {
   getDiceRollerBehaviorPreference,
   type DiceRollerBehaviorPreference
 } from "../../../storage/preferences";
-import { showToast, useAppDispatch } from "../../../store";
-import { rollFormulaWithDice } from "../../../utils/dice";
-import type { RolledDie } from "../../../types";
+import {
+  clearNextRollOverrides,
+  setNextRollCriticalHitOverride,
+  showToast,
+  store,
+  useAppDispatch
+} from "../../../store";
+import { formatRollResultTotal, rollFormulaWithDice } from "../../../utils/dice";
+import type { RollMode, RolledDie } from "../../../types";
 import DiceRollerPopup from "./DiceRollerPopup";
 import type {
   DiceRollerPopupState,
@@ -15,8 +21,11 @@ import type {
   DiceRollerResolvedResult
 } from "./types";
 
-function normalizeRequest(request: DiceRollerRequest): DiceRollerResolvedRequest {
-  const mode = request.mode ?? "normal";
+function normalizeRequest(
+  request: DiceRollerRequest,
+  modeOverride?: RollMode | null
+): DiceRollerResolvedRequest {
+  const mode = modeOverride ?? request.mode ?? "normal";
   const entries =
     request.entries && request.entries.length > 0
       ? request.entries
@@ -37,6 +46,7 @@ function normalizeRequest(request: DiceRollerRequest): DiceRollerResolvedRequest
     title: request.title,
     description: request.description,
     mode,
+    enableNextCriticalHitOnNatural20: request.enableNextCriticalHitOnNatural20,
     getFullManualToastText: request.getFullManualToastText,
     entries: entries.map((entry) => ({
       label: entry.label,
@@ -84,12 +94,12 @@ function createResolvedResult(state: DiceRollerPopupState): DiceRollerResolvedRe
 
 function createDefaultToastText(resolvedResult: DiceRollerResolvedResult): string {
   if (resolvedResult.results.length <= 1) {
-    return `Action Used: Rolled ${resolvedResult.result.total}`;
+    return `Action Used: Rolled ${formatRollResultTotal(resolvedResult.result)}`;
   }
 
   const labels = resolvedResult.results.map((entry) => {
     const label = entry.label?.trim() || "Roll";
-    return `${label} ${entry.result.total}`;
+    return `${label} ${formatRollResultTotal(entry.result)}`;
   });
 
   return `Action Used: ${labels.join(" | ")}`;
@@ -98,10 +108,11 @@ function createDefaultToastText(resolvedResult: DiceRollerResolvedResult): strin
 function createPopupState(
   request: DiceRollerRequest,
   rollToken: number,
-  behavior: DiceRollerBehaviorPreference
+  behavior: DiceRollerBehaviorPreference,
+  modeOverride?: RollMode | null
 ): DiceRollerPopupState {
   try {
-    const normalizedRequest = normalizeRequest(request);
+    const normalizedRequest = normalizeRequest(request, modeOverride);
     const results = normalizedRequest.entries.map((_, index) =>
       createEntryResult(normalizedRequest, index)
     );
@@ -124,7 +135,8 @@ function createPopupState(
     const fallbackRequest: DiceRollerResolvedRequest = {
       title: request.title,
       description: request.description,
-      mode: request.mode ?? "normal",
+      mode: modeOverride ?? request.mode ?? "normal",
+      enableNextCriticalHitOnNatural20: request.enableNextCriticalHitOnNatural20,
       getFullManualToastText: request.getFullManualToastText,
       entries: []
     };
@@ -154,7 +166,14 @@ export function useDiceRollerPopup() {
       nextRollTokenRef.current += 1;
       const rollToken = nextRollTokenRef.current;
       const behavior = getDiceRollerBehaviorPreference();
-      const nextPopupState = createPopupState(request, rollToken, behavior);
+      const { nextRollCriticalHitOverride, nextRollModeOverride } = store.getState().diceRoller;
+      const effectiveMode = nextRollModeOverride ?? request.mode ?? "normal";
+
+      if (nextRollModeOverride !== null || nextRollCriticalHitOverride) {
+        dispatch(clearNextRollOverrides());
+      }
+
+      const nextPopupState = createPopupState(request, rollToken, behavior, effectiveMode);
 
       if (behavior === "full_manual") {
         const resolvedResult = createResolvedResult(nextPopupState);
@@ -214,8 +233,7 @@ export function useDiceRollerPopup() {
       popupState.resolvedCallbackHandled ||
       !popupState.resultVisible ||
       !popupState.result ||
-      popupState.error ||
-      !popupState.onResolvedResult
+      popupState.error
     ) {
       return;
     }
@@ -226,7 +244,14 @@ export function useDiceRollerPopup() {
       return;
     }
 
-    popupState.onResolvedResult(resolvedResult);
+    if (
+      popupState.request.enableNextCriticalHitOnNatural20 &&
+      resolvedResult.result.naturalOutcome === "natural20"
+    ) {
+      dispatch(setNextRollCriticalHitOverride());
+    }
+
+    popupState.onResolvedResult?.(resolvedResult);
 
     setPopupState((current) => {
       if (!current || current.rollToken !== popupState.rollToken) {
@@ -238,7 +263,7 @@ export function useDiceRollerPopup() {
         resolvedCallbackHandled: true
       };
     });
-  }, [popupState]);
+  }, [dispatch, popupState]);
 
   return {
     popupState,
