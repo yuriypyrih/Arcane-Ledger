@@ -1,0 +1,35 @@
+.backdrop {
+  z-index: 44;
+}
+
+.panel {
+  width: min(1080px, 100%);
+}
+
+.body {
+  gap: 0.9rem;
+}
+
+.grid {
+  display: grid;
+  gap: 0.55rem;
+  align-items: stretch;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.grid > * {
+  min-width: 0;
+  width: 100%;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 560px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -107,7 +107,7 @@ export function getMonkStunningStrikeOptionState(
   const focusPointsRemaining = getMonkFocusPointsRemaining(character);
   const disabledReason =
     character.classFeatureState?.monk?.stunningStrikeUsedThisTurn === true
-      ? "Stunnig Strike has already been used this turn."
+      ? "Stunning Strike has already been used this turn."
       : focusPointsRemaining < stunningStrikeFocusCost
         ? "No Focus Points remaining."
         : undefined;

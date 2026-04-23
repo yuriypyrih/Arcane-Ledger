@@ -232,6 +232,9 @@ export type CharacterMonkFeatureState = {
   warriorOfMercyHandOfUltimateMercyUsesExpended?: number;
   warriorOfShadowShadowStepAdvantageActive?: boolean;
   warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn?: number;
+  warriorOfTheElementsElementalResistanceDamageType?: DAMAGE_TYPE;
+  warriorOfTheElementsEmpoweredStrikesUsedThisTurn?: boolean;
+  warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn?: number;
   warriorOfTheOpenHandWholenessOfBodyUsesExpended?: number;
   superiorDefenseRoundsRemaining?: number;
   superiorDefenseUsedThisTurn?: boolean;

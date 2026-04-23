@@ -812,6 +812,7 @@ function createUnarmedStrikeAction(
     (options?.martialArtsDie ? `1${String(options.martialArtsDie).toLowerCase()}` : "1");
   const damageTypeLabel =
     unarmedStrikeConfig?.damageTypeLabel ?? getMonkUnarmedDamageTypeLabelForCharacter(character);
+  const proficiencyBonus = getProficiencyBonus(character.level);
 
   return {
     ...createWeaponAction(character, {
@@ -829,8 +830,8 @@ function createUnarmedStrikeAction(
       abilityModifier,
       damageAbility,
       damageAbilityModifier,
-      proficiencyLabel: "Unarmed strike",
-      proficiencyBonus: 0,
+      proficiencyLabel: "",
+      proficiencyBonus,
       economyType: options?.economyType,
       economyMultiCount: options?.economyMultiCount,
       hasVersatileBonus: false,

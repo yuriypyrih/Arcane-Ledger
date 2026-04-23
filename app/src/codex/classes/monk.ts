@@ -206,11 +206,11 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
       "You can expend these points to enhance or fuel certain Monk features. You start knowing three such features: Flurry of Blows, Patient Defense, and Step of the Wind, each of which is detailed below.",
       "When you expend a Focus Point, it is unavailable until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>, at the end of which you regain all your expended points.",
       "Some features that use Focus Points require your target to make a saving throw. The save DC equals 8 plus your Wisdom modifier and Proficiency Bonus.",
-      "<strong>Flurry of Blows.</strong> You can expend 1 Focus Point to make two Unarmed Strikes as a Bonus Action. <link:tracked>Tracked</link>",
-      "<strong>Patient Defense.</strong> You can take the Disengage action as a Bonus Action. Alternatively, you can expend 1 Focus Point to take both the Disengage and the Dodge actions as a Bonus Action. <link:not-tracked>Not Tracked</link>",
-      "<strong>Step of the Wind.</strong> You can take the Dash action as a Bonus Action. Alternatively, you can expend 1 Focus Point to take both the Disengage and Dash actions as a Bonus Action, and your jump distance is doubled for the turn. <link:not-tracked>Not Tracked</link>"
+      "<strong>Flurry of Blows.</strong> You can expend 1 Focus Point to make two Unarmed Strikes as a Bonus Action.",
+      "<strong>Patient Defense.</strong> You can take the Disengage action as a Bonus Action. Alternatively, you can expend 1 Focus Point to take both the Disengage and the Dodge actions as a Bonus Action.",
+      "<strong>Step of the Wind.</strong> You can take the Dash action as a Bonus Action. Alternatively, you can expend 1 Focus Point to take both the Disengage and Dash actions as a Bonus Action, and your jump distance is doubled for the turn."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.UNARMORED_MOVEMENT]: {
     description: [
@@ -273,11 +273,11 @@ export const monkFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> = {
   [CLASS_FEATURE.HEIGHTENED_FOCUS]: {
     description: [
       "Your Flurry of Blows, Patient Defense, and Step of the Wind gain the following benefits.",
-      "<strong>Flurry of Blows.</strong> You can expend 1 Focus Point to use Flurry of Blows and make three Unarmed Strikes with it instead of two. <link:tracked>Tracked</link>",
-      "<strong>Patient Defense.</strong> When you expend a Focus Point to use Patient Defense, you gain a number of Temporary Hit Points equal to two rolls of your Martial Arts die. <link:not-tracked>Not Tracked</link>",
-      "<strong>Step of the Wind.</strong> When you expend a Focus Point to use Step of the Wind, you can choose a willing creature within 5 feet of yourself that is Large or smaller. You move the creature with you until the end of your turn. The creature's movement doesn't provoke Opportunity Attacks. <link:not-tracked>Not Tracked</link>"
+      "<strong>Flurry of Blows.</strong> You can expend 1 Focus Point to use Flurry of Blows and make three Unarmed Strikes with it instead of two.",
+      "<strong>Patient Defense.</strong> When you expend a Focus Point to use Patient Defense, you gain a number of Temporary Hit Points equal to two rolls of your Martial Arts die.",
+      "<strong>Step of the Wind.</strong> When you expend a Focus Point to use Step of the Wind, you can choose a willing creature within 5 feet of yourself that is Large or smaller. You move the creature with you until the end of your turn. The creature's movement doesn't provoke Opportunity Attacks."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.SELF_RESTORATION]: {
     description: [

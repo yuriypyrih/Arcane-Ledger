@@ -418,6 +418,7 @@ import {
   consumeMonkWarriorOfMercyHandOfHarm,
   monkWarriorOfMercyHandOfHarmBonusLabel
 } from "./monk/subclasses/monkWarriorOfMercy";
+import { consumeMonkWarriorOfTheElementsEmpoweredStrikes } from "./monk/subclasses/monkWarriorOfTheElements";
 import {
   activateFighterPsiWarriorTelekineticMasterSpellCastForCharacter as activateFighterPsiWarriorTelekineticMasterSpellCast,
   activateFighterPsiWarriorTelekineticMovementForCharacter as activateFighterPsiWarriorTelekineticMovement,
@@ -658,6 +659,22 @@ export function getFeatureWeaponActionsForCharacter(character: Character) {
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
 
   return [...(baseFeatureState.weaponActions ?? []), ...(subclassDerivedState.weaponActions ?? [])];
+}
+
+export function transformCommonActionForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId" | "abilities" | "equipment" | "inventoryItems" | "customEquipment">>,
+  action: FeatureActionCard
+): FeatureActionCard {
+  const baseFeatureState = collectActiveClassFeatureState(character);
+  const subclassDerivedState = getSubclassDerivedFeatureState(character);
+  const baseAction = baseFeatureState.transformCommonAction
+    ? baseFeatureState.transformCommonAction(action)
+    : action;
+
+  return subclassDerivedState.transformCommonAction
+    ? subclassDerivedState.transformCommonAction(baseAction)
+    : baseAction;
 }
 
 export function transformWeaponActionForCharacter(
@@ -3534,6 +3551,10 @@ export function markFeatureWeaponBonusUseForCharacter(
 
   if (label === monkWarriorOfMercyHandOfHarmBonusLabel) {
     return consumeMonkWarriorOfMercyHandOfHarm(character);
+  }
+
+  if (label === "Empowered Strikes") {
+    return consumeMonkWarriorOfTheElementsEmpoweredStrikes(character);
   }
 
   return character;

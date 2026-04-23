@@ -1,7 +1,8 @@
 import { monkFeatures, type MonkFeatureClassObj } from "../../../../../codex/classes";
-import { CLASS_FEATURE } from "../../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
-import type { Character } from "../../../../../types";
+import { parseRollFormulaRange } from "../../../actionOutcome";
+import type { Character, CharacterMonkFeatureState } from "../../../../../types";
 import {
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
@@ -9,9 +10,13 @@ import {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import type { WeaponAction } from "../../../gameplay";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import type {
+  DerivedFeatureStatusEntry,
   FeatureActionCard,
+  FeatureActionFact,
+  FeatureDamageBonus,
   FeatureSpeedBonus,
   FeatureUnarmedStrikeConfig
 } from "../../types";
@@ -29,7 +34,16 @@ export const monkElementalAttunementStrideStatusSourceId =
   "feature-monk-warrior-of-the-elements-elemental-attunement-stride";
 export const monkElementalAttunementEpitomeStatusSourceId =
   "feature-monk-warrior-of-the-elements-elemental-attunement-epitome";
+export const monkElementalAttunementResistanceStatusSourceId =
+  "feature-monk-warrior-of-the-elements-elemental-attunement-resistance";
 export const monkElementalBurstActionKey = "monk-warrior-of-the-elements-elemental-burst";
+export const monkWarriorOfTheElementsElementalResistanceDamageTypeOptions = [
+  DAMAGE_TYPE.ACID,
+  DAMAGE_TYPE.COLD,
+  DAMAGE_TYPE.FIRE,
+  DAMAGE_TYPE.LIGHTNING,
+  DAMAGE_TYPE.THUNDER
+] as const satisfies readonly DAMAGE_TYPE[];
 
 const warriorOfTheElementsSubclassEntry = getSubclassEntryById(warriorOfTheElementsSubclassId);
 const elementalAttunementEffectName = "Elemental Attunement";
@@ -38,6 +52,8 @@ const elementalAttunementFocusCost = 1;
 const elementalBurstFocusCost = 2;
 const strideOfTheElementsName = "Stride of the Elements";
 const elementalEpitomeName = "Elemental Epitome";
+const empoweredStrikesName = "Empowered Strikes";
+const defaultElementalResistanceDamageType = DAMAGE_TYPE.ACID;
 const elementalAttunementAdditionalDamageTypes = [
   "Acid",
   "Cold",
@@ -54,6 +70,14 @@ const manipulateElementsElementalismSpellIds = resolveSpellIdsByName(["Elemental
 
 type MonkWarriorOfTheElementsCharacter = Pick<Character, "className"> &
   Partial<Pick<Character, "level" | "subclassId" | "classFeatureState" | "statusEntries">>;
+
+type MonkWarriorOfTheElementsWeaponAction = Pick<WeaponAction, "attackKind" | "key">;
+
+type MonkWarriorOfTheElementsEmpoweredStrikesOptionState = {
+  damageBonus: FeatureDamageBonus;
+  disabled: boolean;
+  disabledReason?: string;
+};
 
 function getWarriorOfTheElementsFeatureDescriptionEntries(feature: CLASS_FEATURE): string[] {
   const featureRow = warriorOfTheElementsSubclassEntry?.features.find((row) =>
@@ -81,6 +105,9 @@ const elementalAttunementTraitDescription = elementalAttunementDescription.filte
   (entry) =>
     entry.startsWith("<strong>Reach.</strong>") ||
     entry.startsWith("<strong>Elemental Strikes.</strong>")
+);
+const empoweredStrikesDescription = elementalEpitomeDescription.filter((entry) =>
+  entry.startsWith("<strong>Empowered Strikes.</strong>")
 );
 
 function getMonkFeatureRow(level: number | undefined): MonkFeatureClassObj | null {
@@ -112,6 +139,25 @@ function getMonkFocusPointsRemaining(
   return Math.max(0, totalFocusPoints - focusPointsExpended);
 }
 
+function getMonkMartialArtsDieLabel(character: Partial<Pick<Character, "level">>): string | null {
+  const martialArtsDie = getMonkFeatureRow(character.level)?.martialArts;
+
+  return martialArtsDie ? `1${String(martialArtsDie).toLowerCase()}` : null;
+}
+
+function getMonkMartialArtsDiceFormula(
+  character: Partial<Pick<Character, "level">>,
+  diceCount: number
+): string | null {
+  const martialArtsDie = getMonkFeatureRow(character.level)?.martialArts;
+
+  if (!martialArtsDie) {
+    return null;
+  }
+
+  return `${diceCount}${String(martialArtsDie).toLowerCase()}`;
+}
+
 function hasEmpoweredStrikes(character: Partial<Pick<Character, "level">>): boolean {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(character.level ?? 0)));
 
@@ -128,6 +174,21 @@ function getElementalAttunementDamageTypeLabel(
     : ["Bludgeoning"];
 
   return [...baseDamageTypes, ...elementalAttunementAdditionalDamageTypes].join("/");
+}
+
+function formatFormulaValue(formula: string, terms: string[]): string {
+  const parsedRange = parseRollFormulaRange(formula);
+  const formulaText = terms.filter(Boolean).join(" ");
+
+  if (!parsedRange) {
+    return formulaText;
+  }
+
+  if (parsedRange.minimum === parsedRange.maximum) {
+    return `${parsedRange.minimum} = ${formulaText}`;
+  }
+
+  return `${parsedRange.minimum}~${parsedRange.maximum} = ${formulaText}`;
 }
 
 export function isMonkWarriorOfTheElements(
@@ -162,6 +223,78 @@ export function hasMonkWarriorOfTheElementsElementalEpitome(
   character: MonkWarriorOfTheElementsCharacter
 ): boolean {
   return isMonkWarriorOfTheElements(character) && (character.level ?? 0) >= 17;
+}
+
+export function isMonkWarriorOfTheElementsElementalAttunementStatusSourceId(
+  sourceId: string | undefined
+): boolean {
+  return elementalAttunementStatusSourceIds.has(sourceId ?? "");
+}
+
+export function normalizeMonkWarriorOfTheElementsElementalResistanceDamageType(
+  value: unknown
+): DAMAGE_TYPE {
+  return typeof value === "string" &&
+    monkWarriorOfTheElementsElementalResistanceDamageTypeOptions.some(
+      (damageType) => damageType === value
+    )
+    ? (value as DAMAGE_TYPE)
+    : defaultElementalResistanceDamageType;
+}
+
+export function getMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection(
+  character: MonkWarriorOfTheElementsCharacter
+): DAMAGE_TYPE | null {
+  if (!hasMonkWarriorOfTheElementsElementalEpitome(character)) {
+    return null;
+  }
+
+  return normalizeMonkWarriorOfTheElementsElementalResistanceDamageType(
+    character.classFeatureState?.monk?.warriorOfTheElementsElementalResistanceDamageType
+  );
+}
+
+export function setMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection(
+  character: Character,
+  selection: DAMAGE_TYPE | null
+): Character {
+  if (!hasMonkWarriorOfTheElementsElementalEpitome(character)) {
+    return character;
+  }
+
+  const monkState = character.classFeatureState?.monk ?? {};
+  const normalizedSelection = normalizeMonkWarriorOfTheElementsElementalResistanceDamageType(
+    selection
+  );
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      monk: {
+        ...monkState,
+        warriorOfTheElementsElementalResistanceDamageType: normalizedSelection
+      }
+    }
+  };
+}
+
+export function normalizeMonkWarriorOfTheElementsFeatureState(
+  value: Partial<CharacterMonkFeatureState>,
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): Partial<CharacterMonkFeatureState> {
+  return {
+    warriorOfTheElementsElementalResistanceDamageType:
+      hasMonkWarriorOfTheElementsElementalEpitome(character)
+        ? normalizeMonkWarriorOfTheElementsElementalResistanceDamageType(
+            value.warriorOfTheElementsElementalResistanceDamageType
+          )
+        : undefined,
+    warriorOfTheElementsEmpoweredStrikesUsedThisTurn:
+      hasMonkWarriorOfTheElementsElementalEpitome(character)
+        ? value.warriorOfTheElementsEmpoweredStrikesUsedThisTurn === true
+        : undefined
+  };
 }
 
 function getElementalAttunementStatusSourceId(
@@ -266,6 +399,41 @@ export function activateMonkWarriorOfTheElementsElementalBurst(character: Charac
   }
 
   return spendMonkFocusPoints(character, elementalBurstFocusCost) ?? character;
+}
+
+export function getMonkWarriorOfTheElementsElementalBurstDamageFormula(
+  character: MonkWarriorOfTheElementsCharacter
+): string | null {
+  if (!hasMonkWarriorOfTheElementsElementalBurst(character)) {
+    return null;
+  }
+
+  return getMonkMartialArtsDiceFormula(character, 3);
+}
+
+export function getMonkWarriorOfTheElementsElementalBurstFacts(
+  character: MonkWarriorOfTheElementsCharacter
+): FeatureActionFact[] {
+  const damageFormula = getMonkWarriorOfTheElementsElementalBurstDamageFormula(character);
+  const martialArtsDie = getMonkMartialArtsDieLabel(character);
+
+  if (!damageFormula || !martialArtsDie) {
+    return [];
+  }
+
+  return [
+    {
+      label: "Range",
+      value: "20-foot radius"
+    },
+    {
+      label: "Damage Formula",
+      value: formatFormulaValue(damageFormula, [
+        `3 * ${martialArtsDie}`,
+        "Acid/Cold/Fire/Lightning/Thunder"
+      ])
+    }
+  ];
 }
 
 function appendElementalAttunementDescriptionAddition(
@@ -386,7 +554,8 @@ function getMonkWarriorOfTheElementsElementalBurstAction(
     drawer: {
       kind: "confirm",
       eyebrow: "Warrior of the Elements",
-      description: [...elementalBurstDescription]
+      description: [...elementalBurstDescription],
+      facts: getMonkWarriorOfTheElementsElementalBurstFacts(character)
     },
     execute: {
       kind: "activate"
@@ -408,8 +577,142 @@ function getMonkWarriorOfTheElementsUnarmedStrikeConfig(
   };
 }
 
+function transformMonkWarriorOfTheElementsWeaponAction(
+  character: MonkWarriorOfTheElementsCharacter,
+  action: WeaponAction
+): WeaponAction {
+  if (
+    action.key !== "unarmed-strike" ||
+    !isMonkWarriorOfTheElementsElementalAttunementActive(character)
+  ) {
+    return action;
+  }
+
+  let nextAction = appendSourcedDescriptionAddition(
+    action,
+    elementalAttunementEffectName,
+    elementalAttunementTraitDescription
+  );
+
+  if (
+    hasMonkWarriorOfTheElementsElementalEpitome(character) &&
+    empoweredStrikesDescription.length > 0
+  ) {
+    nextAction = appendSourcedDescriptionAddition(
+      nextAction,
+      elementalEpitomeName,
+      empoweredStrikesDescription
+    );
+  }
+
+  return nextAction;
+}
+
 export function getMonkWarriorOfTheElementsTraitDescription(): string[] {
   return [...elementalAttunementTraitDescription];
+}
+
+function isMonkWarriorOfTheElementsEmpoweredStrikesAction(
+  action: MonkWarriorOfTheElementsWeaponAction | null
+): boolean {
+  return action?.attackKind === "unarmed" && action.key === "unarmed-strike";
+}
+
+function getMonkWarriorOfTheElementsEmpoweredStrikesDamageBonus(
+  character: MonkWarriorOfTheElementsCharacter
+): FeatureDamageBonus | null {
+  const damageFormula = getMonkMartialArtsDiceFormula(character, 1);
+
+  if (!damageFormula) {
+    return null;
+  }
+
+  return {
+    label: empoweredStrikesName,
+    formula: damageFormula
+  };
+}
+
+export function getMonkWarriorOfTheElementsEmpoweredStrikesOptionState(
+  character: MonkWarriorOfTheElementsCharacter,
+  action: MonkWarriorOfTheElementsWeaponAction | null
+): MonkWarriorOfTheElementsEmpoweredStrikesOptionState | null {
+  if (
+    !hasMonkWarriorOfTheElementsElementalEpitome(character) ||
+    !isMonkWarriorOfTheElementsElementalAttunementActive(character) ||
+    !isMonkWarriorOfTheElementsEmpoweredStrikesAction(action)
+  ) {
+    return null;
+  }
+
+  const damageBonus = getMonkWarriorOfTheElementsEmpoweredStrikesDamageBonus(character);
+
+  if (!damageBonus) {
+    return null;
+  }
+
+  const disabledReason =
+    character.classFeatureState?.monk?.warriorOfTheElementsEmpoweredStrikesUsedThisTurn === true
+      ? "Empowered Strikes has already been used this turn."
+      : undefined;
+
+  return {
+    damageBonus,
+    disabled: Boolean(disabledReason),
+    disabledReason
+  };
+}
+
+export function consumeMonkWarriorOfTheElementsEmpoweredStrikes(character: Character): Character {
+  const optionState = getMonkWarriorOfTheElementsEmpoweredStrikesOptionState(character, {
+    key: "unarmed-strike",
+    attackKind: "unarmed"
+  });
+
+  if (!optionState || optionState.disabled) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      monk: {
+        ...character.classFeatureState?.monk,
+        warriorOfTheElementsEmpoweredStrikesUsedThisTurn: true
+      }
+    }
+  };
+}
+
+function getMonkWarriorOfTheElementsDerivedStatusEntries(
+  character: MonkWarriorOfTheElementsCharacter
+): DerivedFeatureStatusEntry[] {
+  const selectedResistanceDamageType =
+    getMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection(character);
+
+  if (
+    selectedResistanceDamageType === null ||
+    !isMonkWarriorOfTheElementsElementalAttunementActive(character)
+  ) {
+    return [];
+  }
+
+  return [
+    {
+      id: monkElementalAttunementResistanceStatusSourceId,
+      sourceId: monkElementalAttunementResistanceStatusSourceId,
+      group: STATUS_ENTRY_GROUP.RESISTANCES,
+      value: selectedResistanceDamageType,
+      source: elementalAttunementEffectName,
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.LINKED,
+        linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
+        linkedValue: elementalAttunementEffectName
+      }
+    }
+  ];
 }
 
 export const getMonkWarriorOfTheElementsDerivedFeatureState: SubclassRuntimeResolver = (
@@ -445,7 +748,10 @@ export const getMonkWarriorOfTheElementsDerivedFeatureState: SubclassRuntimeReso
       (action): action is FeatureActionCard => action !== null
     ),
     alwaysPreparedSpellIds: manipulateElementsElementalismSpellIds,
+    derivedStatusEntries: getMonkWarriorOfTheElementsDerivedStatusEntries(character),
     speedBonuses,
+    transformWeaponAction: (action) =>
+      transformMonkWarriorOfTheElementsWeaponAction(character, action),
     getUnarmedStrikeConfig: () => getMonkWarriorOfTheElementsUnarmedStrikeConfig(character)
   };
 };

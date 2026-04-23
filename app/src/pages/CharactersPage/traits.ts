@@ -128,6 +128,7 @@ const monkElementalAttunementStrideStatusSourceId =
   "feature-monk-warrior-of-the-elements-elemental-attunement-stride";
 const monkElementalAttunementEpitomeStatusSourceId =
   "feature-monk-warrior-of-the-elements-elemental-attunement-epitome";
+const monkWarriorOfTheElementsSubclassId = "monk-warrior-of-the-elements";
 const paladinAuraOfDevotionStatusSourceId = "feature-paladin-oath-of-devotion-aura-of-devotion";
 const paladinAuraOfDevotionImmunitySourceId =
   "feature-paladin-oath-of-devotion-aura-of-devotion-immunity";
@@ -232,6 +233,41 @@ const monkElementalEpitomeDescription =
     ?.featureOverrides?.[
       CLASS_FEATURE.ELEMENTAL_EPITOME
     ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
+
+function getMonkElementalAttunementDescriptionContent(
+  entry: CharacterStatusEntry,
+  character?: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): {
+  description: SpellDescriptionEntry[];
+  descriptionAdditions: SpellDescriptionEntry[][];
+} {
+  const useCurrentSubclassLevel =
+    character?.className === "Monk" && character.subclassId === monkWarriorOfTheElementsSubclassId;
+  const hasStrideOfTheElements = useCurrentSubclassLevel
+    ? (character.level ?? 0) >= 11
+    : entry.sourceId === monkElementalAttunementStrideStatusSourceId ||
+      entry.sourceId === monkElementalAttunementEpitomeStatusSourceId;
+  const hasElementalEpitome = useCurrentSubclassLevel
+    ? (character.level ?? 0) >= 17
+    : entry.sourceId === monkElementalAttunementEpitomeStatusSourceId;
+
+  return {
+    description: [...monkElementalAttunementTraitDescription],
+    descriptionAdditions: [
+      ...(hasStrideOfTheElements && monkStrideOfTheElementsDescription.length > 0
+        ? [
+            createSourcedDescriptionEntries(
+              "Stride of the Elements",
+              monkStrideOfTheElementsDescription
+            )
+          ]
+        : []),
+      ...(hasElementalEpitome && monkElementalEpitomeDescription.length > 0
+        ? [createSourcedDescriptionEntries("Elemental Epitome", monkElementalEpitomeDescription)]
+        : [])
+    ]
+  };
+}
 const paladinAuraOfDevotionDescription =
   paladinOathOfDevotionSubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.AURA_OF_DEVOTION))
@@ -2139,7 +2175,15 @@ export function getStatusEntryDescriptionContent(
               )
             ]
           : []
-    };
+      };
+  }
+
+  if (
+    entry.sourceId === monkElementalAttunementStatusSourceId ||
+    entry.sourceId === monkElementalAttunementStrideStatusSourceId ||
+    entry.sourceId === monkElementalAttunementEpitomeStatusSourceId
+  ) {
+    return getMonkElementalAttunementDescriptionContent(entry, character);
   }
 
   return {

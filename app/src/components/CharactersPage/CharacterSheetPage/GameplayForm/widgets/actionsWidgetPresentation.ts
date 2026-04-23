@@ -262,9 +262,11 @@ export function getWeaponAttackFormulaPresentation(
   const attackModifier = action.abilityModifier + action.proficiencyBonus;
   const breakdownEntries = [`${formatAbilityModifier(action.abilityModifier)} ${action.ability}`];
 
-  if (action.proficiencyBonus !== 0 && action.proficiencyLabel.trim().length > 0) {
+  if (action.proficiencyBonus !== 0) {
     breakdownEntries.push(
-      `${Math.abs(action.proficiencyBonus)} Prof (${formatWeaponProficiencyLabel(action.proficiencyLabel)})`
+      action.proficiencyLabel.trim().length > 0
+        ? `${Math.abs(action.proficiencyBonus)} Prof (${formatWeaponProficiencyLabel(action.proficiencyLabel)})`
+        : `${Math.abs(action.proficiencyBonus)} Prof. Bonus`
     );
   }
 

@@ -52,6 +52,7 @@ type GameplayActionDrawerBase = {
   helperTextTone?: FeatureActionTone;
   blockedReason?: string;
   facts: FeatureActionFact[];
+  factsSectionTitle?: string | null;
   headerTags: FeatureActionHeaderTag[];
 };
 
@@ -373,6 +374,7 @@ function createFeatureActionDrawer(
   const helperTextTone = action.drawer?.helperTextTone;
   const blockedReason = action.drawer?.blockedReason;
   const facts = action.drawer?.facts ?? createFeatureActionFacts(action);
+  const factsSectionTitle = action.drawer?.factsSectionTitle;
   const headerTags = createFeatureActionHeaderTags(action);
   const eyebrow = action.drawer?.eyebrow;
   const confirmLabel = action.drawer?.confirmLabel ?? execute.label ?? action.name;
@@ -387,6 +389,7 @@ function createFeatureActionDrawer(
       helperTextTone,
       blockedReason,
       facts,
+      factsSectionTitle,
       headerTags,
       selection: action.drawer?.optionSelection ?? "single-immediate",
       selectionLimit: action.drawer?.optionSelectionLimit,
@@ -410,6 +413,7 @@ function createFeatureActionDrawer(
       helperTextTone,
       blockedReason,
       facts,
+      factsSectionTitle,
       headerTags,
       formKind:
         action.drawer?.formKind ??
@@ -433,6 +437,7 @@ function createFeatureActionDrawer(
       helperTextTone,
       blockedReason,
       facts,
+      factsSectionTitle,
       headerTags,
       confirmLabel
     };
@@ -447,6 +452,7 @@ function createFeatureActionDrawer(
     helperTextTone,
     blockedReason,
     facts,
+    factsSectionTitle,
     headerTags,
     confirmLabel
   };

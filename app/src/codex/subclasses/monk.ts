@@ -158,14 +158,14 @@ export const monkSubclassEntries: SubclassEntry[] = [
             "<strong>Elemental Strikes.</strong> Whenever you hit with your Unarmed Strike, you can cause it to deal your choice of <link:Acid>Acid</link>, <link:Cold>Cold</link>, <link:Fire>Fire</link>, <link:Lightning>Lightning</link>, or <link:Thunder>Thunder</link> damage rather than its normal damage type.",
             "When you deal one of these types with it, you can also force the target to make a <link:Strength Saving Throw>Strength saving throw</link>. On a failed save, you can move the target up to 10 feet toward or away from you, as elemental energy swirls around it."
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.MANIPULATE_ELEMENTS, {
         description: [
           "You know the Elementalism spell. <link:WIS>Wisdom</link> is your spellcasting ability for it."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.ELEMENTAL_BURST, {
         description: [
@@ -173,7 +173,7 @@ export const monkSubclassEntries: SubclassEntry[] = [
           "Choose a damage type: <link:Acid>Acid</link>, <link:Cold>Cold</link>, <link:Fire>Fire</link>, <link:Lightning>Lightning</link>, or <link:Thunder>Thunder</link>.",
           "Each creature in the Sphere must make a <link:Dexterity Saving Throw>Dexterity saving throw</link>. On a failed save, a creature takes damage of the chosen type equal to three rolls of your Martial Arts die. On a successful save, a creature takes half as much damage."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_11,
@@ -182,7 +182,7 @@ export const monkSubclassEntries: SubclassEntry[] = [
           description: [
             "While your Elemental Attunement is active, you also have a Fly Speed and a Swim Speed equal to your <link:Speed>Speed</link>."
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.ELEMENTAL_EPITOME, {
@@ -192,7 +192,7 @@ export const monkSubclassEntries: SubclassEntry[] = [
           "<strong>Destructive Stride.</strong> When you use your Step of the Wind, your <link:Speed>Speed</link> increases by 20 feet until the end of the turn. For that duration, any creature of your choice takes damage equal to one roll of your Martial Arts die when you enter a space within 5 feet of it. The damage type is your choice of <link:Acid>Acid</link>, <link:Cold>Cold</link>, <link:Fire>Fire</link>, <link:Lightning>Lightning</link>, or <link:Thunder>Thunder</link>. A creature can take this damage only once per turn.",
           "<strong>Empowered Strikes.</strong> Once on each of your turns, you can deal extra damage to a target equal to one roll of your Martial Arts die when you hit it with an Unarmed Strike. The extra damage is the same type dealt by that strike."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       })
     ]
   },

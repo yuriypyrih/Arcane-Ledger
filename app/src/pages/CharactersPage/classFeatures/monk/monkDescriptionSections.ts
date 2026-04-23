@@ -21,6 +21,11 @@ type MonkWeaponDescriptionAction = {
   descriptionAdditions?: SpellDescriptionEntry[][];
 };
 
+type MonkCommonActionDescriptionAction = Pick<
+  MonkWeaponDescriptionAction,
+  "key" | "description" | "descriptionAdditions"
+>;
+
 const martialArtsSource = "Martial Arts";
 const empoweredStrikesSource = "Empowered Strikes";
 const extraAttackSource = "Extra Attack";
@@ -29,6 +34,18 @@ const disciplinedSurvivorSource = "Disciplined Survivor";
 const uncannyMetabolismSource = "Uncanny Metabolism";
 const perfectFocusSource = "Perfect Focus";
 const heightenedFocusSource = "Heightened Focus";
+const fleetStepSource = "Fleet Step";
+const elementalEpitomeSource = "Elemental Epitome";
+const patientDefenseSource = "Patient Defense";
+const stepOfTheWindSource = "Step of the Wind";
+
+const patientDefenseCommonActionDescription: SpellDescriptionEntry[] = [
+  "You can take the Disengage action as a Bonus Action."
+];
+
+const stepOfTheWindCommonActionDescription: SpellDescriptionEntry[] = [
+  "You can take the Dash action as a Bonus Action."
+];
 
 function getFeatureDescriptionSlice(
   character: MonkDescriptionCharacter,
@@ -42,6 +59,18 @@ function getFeatureDescriptionSlice(
 
 function isFlurryOfBlowsDescriptionEntry(entry: string): boolean {
   return entry.startsWith("<strong>Flurry of Blows.</strong>");
+}
+
+function isPatientDefenseDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Patient Defense.</strong>");
+}
+
+function isStepOfTheWindDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Step of the Wind.</strong>");
+}
+
+function isDestructiveStrideDescriptionEntry(entry: string): boolean {
+  return entry.startsWith("<strong>Destructive Stride.</strong>");
 }
 
 function createInitiativeFeatureSection(
@@ -78,6 +107,18 @@ function isMonkUnarmedStrikeAction(
   action: Pick<MonkWeaponDescriptionAction, "key" | "attackKind">
 ): boolean {
   return action.key === "unarmed-strike" && action.attackKind === "unarmed";
+}
+
+function isMonkDisengageCommonAction(
+  action: Pick<MonkCommonActionDescriptionAction, "key">
+): boolean {
+  return action.key === "common-action-disengage";
+}
+
+function isMonkDashCommonAction(
+  action: Pick<MonkCommonActionDescriptionAction, "key">
+): boolean {
+  return action.key === "common-action-dash";
 }
 
 export function appendMonkWeaponDescriptionSections<T extends MonkWeaponDescriptionAction>(
@@ -122,6 +163,30 @@ export function appendMonkWeaponDescriptionSections<T extends MonkWeaponDescript
   return nextAction;
 }
 
+export function appendMonkCommonActionDescriptionSections<T extends MonkCommonActionDescriptionAction>(
+  action: T
+): T {
+  let nextAction = action;
+
+  if (isMonkDisengageCommonAction(nextAction)) {
+    nextAction = appendSourcedDescriptionAddition(
+      nextAction,
+      patientDefenseSource,
+      patientDefenseCommonActionDescription
+    );
+  }
+
+  if (isMonkDashCommonAction(nextAction)) {
+    nextAction = appendSourcedDescriptionAddition(
+      nextAction,
+      stepOfTheWindSource,
+      stepOfTheWindCommonActionDescription
+    );
+  }
+
+  return nextAction;
+}
+
 export function getMonkInitiativeDescriptionAdditions(
   character: MonkDescriptionCharacter
 ): SpellDescriptionEntry[][] {
@@ -154,6 +219,68 @@ export function getMonkFlurryOfBlowsBaseDescription(
     CLASS_FEATURE.MONKS_FOCUS,
     isFlurryOfBlowsDescriptionEntry
   );
+}
+
+export function getMonkPatientDefenseBaseDescription(
+  character: MonkDescriptionCharacter
+): SpellDescriptionEntry[] {
+  return getFeatureDescriptionSlice(
+    character,
+    CLASS_FEATURE.MONKS_FOCUS,
+    isPatientDefenseDescriptionEntry
+  );
+}
+
+export function getMonkPatientDefenseDescriptionAdditions(
+  character: MonkDescriptionCharacter
+): SpellDescriptionEntry[][] {
+  const heightenedFocusDescription = getFeatureDescriptionSlice(
+    character,
+    CLASS_FEATURE.HEIGHTENED_FOCUS,
+    isPatientDefenseDescriptionEntry
+  );
+
+  return heightenedFocusDescription.length > 0
+    ? [createSourcedDescriptionEntries(heightenedFocusSource, heightenedFocusDescription)]
+    : [];
+}
+
+export function getMonkStepOfTheWindBaseDescription(
+  character: MonkDescriptionCharacter
+): SpellDescriptionEntry[] {
+  return getFeatureDescriptionSlice(
+    character,
+    CLASS_FEATURE.MONKS_FOCUS,
+    isStepOfTheWindDescriptionEntry
+  );
+}
+
+export function getMonkStepOfTheWindDescriptionAdditions(
+  character: MonkDescriptionCharacter
+): SpellDescriptionEntry[][] {
+  const heightenedFocusDescription = getFeatureDescriptionSlice(
+    character,
+    CLASS_FEATURE.HEIGHTENED_FOCUS,
+    isStepOfTheWindDescriptionEntry
+  );
+  const fleetStepDescription = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.FLEET_STEP);
+  const elementalEpitomeDescription = getFeatureDescriptionSlice(
+    character,
+    CLASS_FEATURE.ELEMENTAL_EPITOME,
+    isDestructiveStrideDescriptionEntry
+  );
+
+  return [
+    ...(heightenedFocusDescription.length > 0
+      ? [createSourcedDescriptionEntries(heightenedFocusSource, heightenedFocusDescription)]
+      : []),
+    ...(fleetStepDescription.length > 0
+      ? [createSourcedDescriptionEntries(fleetStepSource, fleetStepDescription)]
+      : []),
+    ...(elementalEpitomeDescription.length > 0
+      ? [createSourcedDescriptionEntries(elementalEpitomeSource, elementalEpitomeDescription)]
+      : [])
+  ];
 }
 
 export function getMonkFlurryOfBlowsDescriptionAdditions(

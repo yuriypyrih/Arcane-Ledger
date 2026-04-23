@@ -2,6 +2,23 @@
   grid-column: 1 / -1;
 }
 
+.commonActionsButton {
+  gap: 0.45rem;
+}
+
+.commonActionsButton:focus-visible {
+  outline: 2px solid rgba(179, 92, 28, 0.34);
+  outline-offset: 2px;
+}
+
+.commonActionsButton svg {
+  flex: 0 0 auto;
+}
+
+.commonActionsButtonActive {
+  background: rgba(75, 47, 29, 0.16);
+}
+
 .grid {
   display: flex;
   flex-wrap: wrap;

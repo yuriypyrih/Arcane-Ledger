@@ -1,6 +1,7 @@
 import { monkFeatures, type MonkFeatureClassObj } from "../../../../../codex/classes";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
+import { parseRollFormulaRange } from "../../../actionOutcome";
 import type { Character, CharacterMonkFeatureState } from "../../../../../types";
 import {
   STATUS_DURATION_KIND,
@@ -11,7 +12,7 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
 import type { WeaponAction } from "../../../gameplay";
-import type { FeatureActionCard } from "../../types";
+import type { FeatureActionCard, FeatureActionFact } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 
 export const warriorOfTheOpenHandSubclassId = "monk-warrior-of-the-open-hand";
@@ -26,6 +27,7 @@ const openHandTechniqueName = "Open Hand Technique";
 const wholenessOfBodyActionName = "Wholeness of Body";
 const quiveringPalmEffectName = "Quivering Palm";
 const quiveringPalmFocusCost = 3;
+const monkFlurryOfBlowsActionKey = "monk-flurry-of-blows";
 
 type MonkWarriorOfTheOpenHandCharacter = Pick<Character, "className"> &
   Partial<
@@ -124,22 +126,26 @@ function hasMonkWarriorOfTheOpenHandWholenessOfBody(
   return hasMonkWarriorOfTheOpenHandTechnique(character) && (character.level ?? 0) >= 6;
 }
 
+function hasMonkWarriorOfTheOpenHandFleetStep(
+  character: MonkWarriorOfTheOpenHandCharacter
+): boolean {
+  return hasMonkWarriorOfTheOpenHandTechnique(character) && (character.level ?? 0) >= 11;
+}
+
 function hasMonkWarriorOfTheOpenHandQuiveringPalm(
   character: MonkWarriorOfTheOpenHandCharacter
 ): boolean {
   return hasMonkWarriorOfTheOpenHandTechnique(character) && (character.level ?? 0) >= 17;
 }
 
-function getMonkFlurryOfBlowsAttacksRemainingThisTurn(
-  character: MonkWarriorOfTheOpenHandCharacter
-): number {
-  const flurryOfBlowsAttacksRemainingThisTurn = Number(
-    character.classFeatureState?.monk?.flurryOfBlowsAttacksRemainingThisTurn
-  );
+function formatWholenessOfBodyWisdomModifierLabel(wisdomModifier: number): string {
+  if (wisdomModifier === 0) {
+    return "";
+  }
 
-  return Number.isFinite(flurryOfBlowsAttacksRemainingThisTurn)
-    ? Math.max(0, Math.floor(flurryOfBlowsAttacksRemainingThisTurn))
-    : 0;
+  return wisdomModifier > 0
+    ? ` + ${wisdomModifier} WIS`
+    : ` - ${Math.abs(wisdomModifier)} WIS`;
 }
 
 export function getMonkWarriorOfTheOpenHandWholenessOfBodyUsesTotal(
@@ -187,12 +193,66 @@ export function getMonkWarriorOfTheOpenHandWholenessOfBodyHealingFormula(
   return wisdomModifier > 0 ? `${martialArtsDie}+${wisdomModifier}` : `${martialArtsDie}${wisdomModifier}`;
 }
 
+function getMonkWarriorOfTheOpenHandWholenessOfBodyFacts(
+  character: MonkWarriorOfTheOpenHandCharacter
+): FeatureActionFact[] {
+  const healingFormula = getMonkWarriorOfTheOpenHandWholenessOfBodyHealingFormula(character);
+  const martialArtsDie = getMonkMartialArtsDieLabel(character);
+  const wisdomModifier = getRawWisdomModifier(character);
+
+  if (!healingFormula || !martialArtsDie || wisdomModifier === null) {
+    return [];
+  }
+
+  const parsedRange = parseRollFormulaRange(healingFormula);
+  const minimum = parsedRange ? Math.max(1, parsedRange.minimum) : null;
+  const maximum = parsedRange ? Math.max(1, parsedRange.maximum) : null;
+  const formulaLabel = `${martialArtsDie}${formatWholenessOfBodyWisdomModifierLabel(
+    wisdomModifier
+  )}${parsedRange && parsedRange.minimum < 1 ? " (min 1)" : ""}`;
+  const value =
+    minimum === null || maximum === null
+      ? formulaLabel
+      : minimum === maximum
+        ? `${minimum} Heal = ${formulaLabel}`
+        : `${minimum}~${maximum} Heal = ${formulaLabel}`;
+
+  return [
+    {
+      label: "Self Heal Formula",
+      value,
+      fullWidth: true
+    }
+  ];
+}
+
+export function getMonkWarriorOfTheOpenHandFleetStepFollowUpUsesRemaining(
+  character: MonkWarriorOfTheOpenHandCharacter
+): number {
+  if (!hasMonkWarriorOfTheOpenHandFleetStep(character)) {
+    return 0;
+  }
+
+  const usesRemaining = Number(
+    character.classFeatureState?.monk?.warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn
+  );
+
+  return Number.isFinite(usesRemaining) ? Math.max(0, Math.floor(usesRemaining)) : 0;
+}
+
 export function normalizeMonkWarriorOfTheOpenHandFeatureState(
   value: Partial<CharacterMonkFeatureState> | undefined,
   character: MonkWarriorOfTheOpenHandCharacter
-): Pick<CharacterMonkFeatureState, "warriorOfTheOpenHandWholenessOfBodyUsesExpended"> {
+): Pick<
+  CharacterMonkFeatureState,
+  | "warriorOfTheOpenHandWholenessOfBodyUsesExpended"
+  | "warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn"
+> {
   const wholenessOfBodyUsesExpended = Number(value?.warriorOfTheOpenHandWholenessOfBodyUsesExpended);
   const wholenessOfBodyUsesTotal = getMonkWarriorOfTheOpenHandWholenessOfBodyUsesTotal(character);
+  const fleetStepFollowUpUsesRemainingThisTurn = Number(
+    value?.warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn
+  );
 
   return {
     warriorOfTheOpenHandWholenessOfBodyUsesExpended: hasMonkWarriorOfTheOpenHandWholenessOfBody(
@@ -201,7 +261,55 @@ export function normalizeMonkWarriorOfTheOpenHandFeatureState(
       ? Number.isFinite(wholenessOfBodyUsesExpended)
         ? Math.max(0, Math.min(wholenessOfBodyUsesTotal, Math.floor(wholenessOfBodyUsesExpended)))
         : 0
+      : 0,
+    warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn: hasMonkWarriorOfTheOpenHandFleetStep(
+      character
+    )
+      ? Number.isFinite(fleetStepFollowUpUsesRemainingThisTurn)
+        ? Math.max(0, Math.floor(fleetStepFollowUpUsesRemainingThisTurn))
+        : 0
       : 0
+  };
+}
+
+export function grantMonkWarriorOfTheOpenHandFleetStepFollowUpUse(character: Character): Character {
+  if (!hasMonkWarriorOfTheOpenHandFleetStep(character)) {
+    return character;
+  }
+
+  const monkState = character.classFeatureState?.monk ?? {};
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      monk: {
+        ...monkState,
+        warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn:
+          getMonkWarriorOfTheOpenHandFleetStepFollowUpUsesRemaining(character) + 1
+      }
+    }
+  };
+}
+
+export function consumeMonkWarriorOfTheOpenHandFleetStepFollowUpUse(character: Character): Character {
+  const usesRemaining = getMonkWarriorOfTheOpenHandFleetStepFollowUpUsesRemaining(character);
+
+  if (usesRemaining <= 0) {
+    return character;
+  }
+
+  const monkState = character.classFeatureState?.monk ?? {};
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      monk: {
+        ...monkState,
+        warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn: usesRemaining - 1
+      }
+    }
   };
 }
 
@@ -386,6 +494,7 @@ function getMonkWarriorOfTheOpenHandFeatureActions(
     const usesRemaining = getMonkWarriorOfTheOpenHandWholenessOfBodyUsesRemaining(character);
     const usesTotal = getMonkWarriorOfTheOpenHandWholenessOfBodyUsesTotal(character);
     const healingFormula = getMonkWarriorOfTheOpenHandWholenessOfBodyHealingFormula(character);
+    const facts = getMonkWarriorOfTheOpenHandWholenessOfBodyFacts(character);
 
     actions.push({
       key: monkWholenessOfBodyActionKey,
@@ -400,10 +509,12 @@ function getMonkWarriorOfTheOpenHandFeatureActions(
       usesRemaining,
       usesTotal,
       description: [...wholenessOfBodyDescription],
+      facts,
       drawer: {
         kind: "confirm",
         eyebrow: "Warrior of the Open Hand",
-        description: [...wholenessOfBodyDescription]
+        description: [...wholenessOfBodyDescription],
+        facts
       },
       execute: {
         kind: "activate"
@@ -447,11 +558,12 @@ export const getMonkWarriorOfTheOpenHandDerivedFeatureState: SubclassRuntimeReso
 
   return {
     featureActions: getMonkWarriorOfTheOpenHandFeatureActions(character),
+    transformFeatureAction: (action) =>
+      action.key === monkFlurryOfBlowsActionKey
+        ? appendSourcedDescriptionAddition(action, openHandTechniqueName, openHandTechniqueDescription)
+        : action,
     transformWeaponAction: (action) => {
-      if (
-        !isOpenHandUnarmedStrikeAction(action) ||
-        getMonkFlurryOfBlowsAttacksRemainingThisTurn(character) <= 0
-      ) {
+      if (!isOpenHandUnarmedStrikeAction(action)) {
         return action;
       }
 

@@ -1,0 +1,9 @@
+.root {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.options {
+  display: grid;
+  gap: 0.75rem;
+}

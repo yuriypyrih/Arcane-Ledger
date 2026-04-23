@@ -31,6 +31,7 @@ import {
   getRoundTrackerResourceForEconomyType,
   type EconomyType
 } from "../../actionEconomy";
+import { parseRollFormulaRange } from "../../actionOutcome";
 import {
   consumeRoundTrackerResource,
   isRoundTrackerResourceAvailable
@@ -85,7 +86,9 @@ import {
 import {
   activateMonkWarriorOfTheOpenHandQuiveringPalm,
   activateMonkWarriorOfTheOpenHandWholenessOfBody,
+  getMonkWarriorOfTheOpenHandFleetStepFollowUpUsesRemaining,
   getMonkWarriorOfTheOpenHandWholenessOfBodyUsesTotal,
+  grantMonkWarriorOfTheOpenHandFleetStepFollowUpUse,
   monkQuiveringPalmActionKey,
   monkWholenessOfBodyActionKey,
   normalizeMonkWarriorOfTheOpenHandFeatureState,
@@ -94,13 +97,19 @@ import {
 import {
   activateMonkWarriorOfTheElementsElementalAttunement,
   activateMonkWarriorOfTheElementsElementalBurst,
+  normalizeMonkWarriorOfTheElementsFeatureState,
   monkElementalBurstActionKey,
   monkElementalAttunementActionKey
 } from "./subclasses/monkWarriorOfTheElements";
 import {
+  appendMonkCommonActionDescriptionSections,
   appendMonkWeaponDescriptionSections,
   getMonkFlurryOfBlowsBaseDescription,
-  getMonkFlurryOfBlowsDescriptionAdditions
+  getMonkFlurryOfBlowsDescriptionAdditions,
+  getMonkPatientDefenseBaseDescription,
+  getMonkPatientDefenseDescriptionAdditions,
+  getMonkStepOfTheWindBaseDescription,
+  getMonkStepOfTheWindDescriptionAdditions
 } from "./monkDescriptionSections";
 import { appendSourcedDescriptionAddition } from "../../actionModalDescriptions";
 import {
@@ -123,6 +132,8 @@ import type {
 } from "../types";
 
 export const monkFlurryOfBlowsActionKey = "monk-flurry-of-blows";
+export const monkPatientDefenseActionKey = "monk-patient-defense";
+export const monkStepOfTheWindActionKey = "monk-step-of-the-wind";
 export const monkSuperiorDefenseActionKey = "monk-superior-defense";
 export const monkHandOfHealingActionKey = warriorOfMercyHandOfHealingActionKey;
 export const monkHandOfUltimateJusticeActionKey = warriorOfMercyHandOfUltimateJusticeActionKey;
@@ -163,6 +174,7 @@ const superiorDefenseDurationRounds = 10;
 const deflectEnergySource = "Deflect Energy";
 const selfRestorationStatusSourceId = "feature-monk-self-restoration";
 const superiorDefenseStatusSourceId = "feature-monk-superior-defense";
+const monkFocusCommonActionBonusPathKeys = new Set(["common-action-dash", "common-action-disengage"]);
 const nonForceDamageTypes = (Object.values(DAMAGE_TYPE) as DAMAGE_TYPE[]).filter(
   (damageType) => damageType !== DAMAGE_TYPE.FORCE
 );
@@ -370,7 +382,7 @@ export function hasMonkFeature(
 
 export function normalizeMonkFeatureState(
   value: unknown,
-  character: Pick<Character, "className" | "level">
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): CharacterMonkFeatureState {
   if (!hasMonkFeature(character, CLASS_FEATURE.MONKS_FOCUS)) {
     return {};
@@ -388,6 +400,10 @@ export function normalizeMonkFeatureState(
   const stunningStrikeUsedThisTurn = record.stunningStrikeUsedThisTurn === true;
   const warriorOfMercyHandOfHarmState = normalizeMonkWarriorOfMercyFeatureState(record, character);
   const warriorOfShadowFeatureState = normalizeMonkWarriorOfShadowFeatureState(record, character);
+  const warriorOfTheElementsFeatureState = normalizeMonkWarriorOfTheElementsFeatureState(
+    record,
+    character
+  );
   const warriorOfTheOpenHandFeatureState = normalizeMonkWarriorOfTheOpenHandFeatureState(
     record,
     character
@@ -417,6 +433,7 @@ export function normalizeMonkFeatureState(
       : false,
     ...warriorOfMercyHandOfHarmState,
     ...warriorOfShadowFeatureState,
+    ...warriorOfTheElementsFeatureState,
     ...warriorOfTheOpenHandFeatureState,
     superiorDefenseRoundsRemaining:
       hasMonkFeature(character, CLASS_FEATURE.SUPERIOR_DEFENSE) &&
@@ -530,6 +547,60 @@ function getMonkFlurryOfBlowsFacts(
   ];
 }
 
+function getMonkMartialArtsDieLabel(
+  character: Pick<Character, "className" | "level">
+): string | null {
+  const martialArtsDie = getMonkMartialArtsDie(character);
+
+  return martialArtsDie ? `1${String(martialArtsDie).toLowerCase()}` : null;
+}
+
+function formatFormulaValue(formula: string, terms: string[]): string {
+  const parsedRange = parseRollFormulaRange(formula);
+  const formulaText = terms.filter(Boolean).join(" ");
+
+  if (!parsedRange) {
+    return formulaText;
+  }
+
+  if (parsedRange.minimum === parsedRange.maximum) {
+    return `${parsedRange.minimum} Temp HP = ${formulaText}`;
+  }
+
+  return `${parsedRange.minimum}~${parsedRange.maximum} Temp HP = ${formulaText}`;
+}
+
+export function getMonkPatientDefenseTemporaryHitPointsFormula(
+  character: Pick<Character, "className" | "level">
+): string | null {
+  if (!hasMonkFeature(character, CLASS_FEATURE.HEIGHTENED_FOCUS)) {
+    return null;
+  }
+
+  const martialArtsDie = getMonkMartialArtsDie(character);
+
+  return martialArtsDie ? `2${String(martialArtsDie).toLowerCase()}` : null;
+}
+
+function getMonkPatientDefenseTemporaryHitPointsFacts(
+  character: Pick<Character, "className" | "level">
+): FeatureActionFact[] {
+  const temporaryHitPointsFormula = getMonkPatientDefenseTemporaryHitPointsFormula(character);
+  const martialArtsDie = getMonkMartialArtsDieLabel(character);
+
+  if (!temporaryHitPointsFormula || !martialArtsDie) {
+    return [];
+  }
+
+  return [
+    {
+      label: "Temporary HP Formula",
+      value: formatFormulaValue(temporaryHitPointsFormula, ["2 *", martialArtsDie]),
+      fullWidth: true
+    }
+  ];
+}
+
 export function getMonkUnarmedDamageTypeLabel(
   character: Pick<Character, "className" | "level">
 ): string {
@@ -582,10 +653,30 @@ export function getMonkFeatureActions(
     const focusRemaining = getMonkFocusPointsRemaining(character);
     const focusTotal = getMonkFocusPointsTotal(character);
     const combatState = getMonkCombatState(character);
+    const focusPointCost = createFeatureActionCardCost({
+      amountText: "1",
+      icon: "brain"
+    });
+    const focusCardUsage = createNamedResourceCardUsage(focusPointCost);
+    const focusHeaderTags = createNamedUsageHeaderTags(
+      focusPointCost,
+      focusRemaining,
+      focusTotal,
+      {
+        icon: "brain"
+      }
+    );
     const flurryStrikeCount = getMonkFlurryOfBlowsStrikeCount(character);
     const flurryFacts = getMonkFlurryOfBlowsFacts(character);
     const shadowFlurryActive = isMonkWarriorOfShadowCloakOfShadowActive(character);
     const flurryDescription = getMonkFlurryOfBlowsBaseDescription(character);
+    const patientDefenseDescription = getMonkPatientDefenseBaseDescription(character);
+    const patientDefenseDescriptionAdditions = getMonkPatientDefenseDescriptionAdditions(character);
+    const patientDefenseFacts = getMonkPatientDefenseTemporaryHitPointsFacts(character);
+    const stepOfTheWindDescription = getMonkStepOfTheWindBaseDescription(character);
+    const stepOfTheWindDescriptionAdditions = getMonkStepOfTheWindDescriptionAdditions(character);
+    const stepOfTheWindAdditionalUseCount =
+      getMonkWarriorOfTheOpenHandFleetStepFollowUpUsesRemaining(character);
     const martialArtsDisabledReason = !combatState.martialArtsActive
       ? getMonkFlurryOfBlowsMartialArtsDisabledReason(combatState)
       : null;
@@ -607,25 +698,10 @@ export function getMonkFeatureActions(
       actionCategory: ACTION_CATEGORY.FEATURE,
       cardUsage: shadowFlurryActive
         ? createFreeCardUsage()
-        : createNamedResourceCardUsage(
-            createFeatureActionCardCost({
-              amountText: "1",
-              icon: "brain"
-            })
-          ),
+        : focusCardUsage,
       headerTags: shadowFlurryActive
         ? undefined
-        : createNamedUsageHeaderTags(
-            createFeatureActionCardCost({
-              amountText: "1",
-              icon: "brain"
-            }),
-            focusRemaining,
-            focusTotal,
-            {
-              icon: "brain"
-            }
-          ),
+        : focusHeaderTags,
       usesLabel: shadowFlurryActive ? undefined : "1",
       usesIcon: shadowFlurryActive ? undefined : "brain",
       usesTone: !shadowFlurryActive && focusRemaining <= 0 ? "danger" : "default",
@@ -642,6 +718,64 @@ export function getMonkFeatureActions(
       },
       disabled: Boolean(disabledReason),
       disabledReason
+    });
+
+    actions.push({
+      key: monkPatientDefenseActionKey,
+      name: "Patient Defense",
+      sourceFeature: CLASS_FEATURE.MONKS_FOCUS,
+      summary: "Take Disengage and Dodge as a Bonus Action.",
+      detail: "Expend 1 Focus Point to take both the Disengage and Dodge actions as a Bonus Action.",
+      breakdown: "Bonus Disengage + Dodge",
+      economyType: ECONOMY_TYPE.BONUS_ACTION,
+      actionCategory: ACTION_CATEGORY.FEATURE,
+      cardUsage: focusCardUsage,
+      headerTags: focusHeaderTags,
+      usesLabel: "1",
+      usesIcon: "brain",
+      usesTone: focusRemaining <= 0 ? "danger" : "default",
+      description: patientDefenseDescription,
+      descriptionAdditions: patientDefenseDescriptionAdditions,
+      facts: patientDefenseFacts,
+      drawer: {
+        kind: "confirm",
+        description: patientDefenseDescription,
+        factsSectionTitle: null
+      },
+      execute: {
+        kind: "activate"
+      },
+      disabled: focusRemaining <= 0,
+      disabledReason: focusRemaining <= 0 ? "No Focus Points remaining." : undefined
+    });
+
+    actions.push({
+      key: monkStepOfTheWindActionKey,
+      name: "Step of the Wind",
+      sourceFeature: CLASS_FEATURE.MONKS_FOCUS,
+      summary: "Take Disengage and Dash as a Bonus Action.",
+      detail:
+        "Expend 1 Focus Point to take both the Disengage and Dash actions as a Bonus Action, and double your jump distance for the turn.",
+      breakdown: "Bonus Disengage + Dash",
+      economyType: ECONOMY_TYPE.BONUS_ACTION,
+      actionCategory: ACTION_CATEGORY.FEATURE,
+      economyMultiCount: stepOfTheWindAdditionalUseCount,
+      cardUsage: focusCardUsage,
+      headerTags: focusHeaderTags,
+      usesLabel: "1",
+      usesIcon: "brain",
+      usesTone: focusRemaining <= 0 ? "danger" : "default",
+      description: stepOfTheWindDescription,
+      descriptionAdditions: stepOfTheWindDescriptionAdditions,
+      drawer: {
+        kind: "confirm",
+        description: stepOfTheWindDescription
+      },
+      execute: {
+        kind: "activate"
+      },
+      disabled: focusRemaining <= 0,
+      disabledReason: focusRemaining <= 0 ? "No Focus Points remaining." : undefined
     });
   }
 
@@ -734,6 +868,35 @@ export function getMonkWeaponAction(
   action: WeaponAction
 ): WeaponAction {
   return appendMonkWeaponDescriptionSections(action, character);
+}
+
+export function hasMonkFocusCommonActionBonusPath(
+  character: Pick<Character, "className" | "level">,
+  actionKey: string
+): boolean {
+  return (
+    hasMonkFeature(character, CLASS_FEATURE.MONKS_FOCUS) &&
+    monkFocusCommonActionBonusPathKeys.has(actionKey)
+  );
+}
+
+export function getMonkCommonActionBonusPathAdditionalUseCount(
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>,
+  actionKey: string
+): number {
+  return actionKey === "common-action-dash"
+    ? getMonkWarriorOfTheOpenHandFleetStepFollowUpUsesRemaining(character)
+    : 0;
+}
+
+export function getMonkCommonAction(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  action: FeatureActionCard
+): FeatureActionCard {
+  return hasMonkFeature(character, CLASS_FEATURE.MONKS_FOCUS)
+    ? appendMonkCommonActionDescriptionSections(action)
+    : action;
 }
 
 export function getMonkSavingThrowProficiencyEntries(
@@ -958,6 +1121,14 @@ export function activateMonkSuperiorDefense(character: Character): Character {
   };
 }
 
+export function activateMonkPatientDefense(character: Character): Character {
+  return expendMonkFocusPoint(character);
+}
+
+export function activateMonkStepOfTheWind(character: Character): Character {
+  return expendMonkFocusPoint(character);
+}
+
 export function activateMonkHandOfHealing(character: Character): Character {
   return activateMonkWarriorOfMercyHandOfHealing(character);
 }
@@ -1048,6 +1219,8 @@ export function restoreAllMonkFocusPoints(character: Character): Character {
     monkState.warriorOfShadowShadowStepAdvantageActive !== true &&
     (monkState.warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn ?? 0) === 0 &&
     monkState.stunningStrikeUsedThisTurn !== true &&
+    monkState.warriorOfTheElementsEmpoweredStrikesUsedThisTurn !== true &&
+    (monkState.warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn ?? 0) === 0 &&
     !getMonkWarriorOfMercyHandOfHarmUsedThisTurn(character) &&
     getMonkWarriorOfMercyHandOfHealingFlurryUsesThisTurn(character) <= 0
   ) {
@@ -1066,6 +1239,8 @@ export function restoreAllMonkFocusPoints(character: Character): Character {
         warriorOfShadowShadowStepAdvantageActive: false,
         warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn: 0,
         stunningStrikeUsedThisTurn: false,
+        warriorOfTheElementsEmpoweredStrikesUsedThisTurn: false,
+        warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn: 0,
         warriorOfMercyHandOfHarmUsedThisTurn: false,
         warriorOfMercyHandOfHealingFlurryUsesThisTurn: 0
       }
@@ -1179,6 +1354,10 @@ export function consumeMonkWeaponAttack(
           attackKind: action.attackKind,
           combatType: action.combatType ?? null
         });
+  const grantFleetStepFollowUp = (nextCharacter: Character): Character =>
+    action.economyType === ECONOMY_TYPE.BONUS_ACTION
+      ? grantMonkWarriorOfTheOpenHandFleetStepFollowUpUse(nextCharacter)
+      : nextCharacter;
   const isBonusActionUnarmedStrike =
     action.key === "unarmed-strike" &&
     action.attackKind === "unarmed" &&
@@ -1247,10 +1426,12 @@ export function consumeMonkWeaponAttack(
   }
 
   if (action.economyType !== ECONOMY_TYPE.ACTION) {
-    return consumeShadowStepAdvantage({
-      ...character,
-      roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)
-    });
+    return grantFleetStepFollowUp(
+      consumeShadowStepAdvantage({
+        ...character,
+        roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)
+      })
+    );
   }
 
   return consumeShadowStepAdvantage({
@@ -1305,6 +1486,8 @@ export function advanceMonkFeaturesForNewRound(character: Character): Character 
     monkState.warriorOfShadowShadowStepAdvantageActive !== true &&
     (monkState.warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn ?? 0) === 0 &&
     monkState.stunningStrikeUsedThisTurn !== true &&
+    monkState.warriorOfTheElementsEmpoweredStrikesUsedThisTurn !== true &&
+    (monkState.warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn ?? 0) === 0 &&
     !getMonkWarriorOfMercyHandOfHarmUsedThisTurn(character) &&
     getMonkWarriorOfMercyHandOfHealingFlurryUsesThisTurn(character) <= 0 &&
     monkState.warriorOfMercyFlurryOfHealingAndHarmActive !== true &&
@@ -1325,6 +1508,8 @@ export function advanceMonkFeaturesForNewRound(character: Character): Character 
         warriorOfShadowShadowStepAdvantageActive: false,
         warriorOfShadowImprovedShadowStepUnarmedStrikesRemainingThisTurn: 0,
         stunningStrikeUsedThisTurn: false,
+        warriorOfTheElementsEmpoweredStrikesUsedThisTurn: false,
+        warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn: 0,
         warriorOfMercyHandOfHarmUsedThisTurn: false,
         warriorOfMercyHandOfHealingFlurryUsesThisTurn: 0,
         warriorOfMercyFlurryOfHealingAndHarmActive: false,

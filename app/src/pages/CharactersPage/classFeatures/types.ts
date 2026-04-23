@@ -192,6 +192,7 @@ export type FeatureActionDrawerConfig = {
   helperTextTone?: FeatureActionTone;
   blockedReason?: string;
   facts?: FeatureActionFact[];
+  factsSectionTitle?: string | null;
   headerTags?: FeatureActionHeaderTag[];
   resources?: FeatureActionResource[];
   confirmLabel?: string;
@@ -506,6 +507,7 @@ export type ClassFeatureDerivedState = {
   derivedStatusEntries?: DerivedFeatureStatusEntry[];
   reactionEntries?: ReactionEntry[];
   transformSpellEntry?: (spell: SpellEntry) => SpellEntry;
+  transformCommonAction?: (action: FeatureActionCard) => FeatureActionCard;
   transformFeatureAction?: (action: FeatureActionCard) => FeatureActionCard;
   transformWeaponAction?: (action: WeaponAction) => WeaponAction;
   getSpellDamageFormulaOverride?: (spell: Pick<SpellEntry, "id">) => string | null;

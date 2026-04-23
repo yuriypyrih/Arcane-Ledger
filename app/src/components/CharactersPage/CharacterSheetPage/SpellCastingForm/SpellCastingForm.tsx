@@ -97,6 +97,10 @@ import {
   type FeatureActionOptionCard
 } from "../../../../pages/CharactersPage/classFeatures";
 import {
+  grantMonkWarriorOfTheOpenHandFleetStepFollowUpUse,
+  warriorOfTheOpenHandSubclassId
+} from "../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheOpenHand";
+import {
   circleOfTheMoonSpellIdsByLevel,
   circleOfTheLandSpellIdsByLand,
   getDruidCircleOfTheMoonSpellIdsForCharacter,
@@ -189,6 +193,18 @@ type SpellGroup = {
 
 type SpellPreparationLevelGroup = Record<number, SpellEntry[]>;
 type SelectedSpellViewMode = CharacterSpellDrawerMode;
+
+function grantMonkFleetStepFollowUpForSpellCastIfEligible(
+  character: Character,
+  roundTrackerResource: RoundTrackerResource | null
+): Character {
+  return roundTrackerResource === "bonusAction" &&
+    character.className === "Monk" &&
+    character.subclassId === warriorOfTheOpenHandSubclassId &&
+    character.level >= 11
+    ? grantMonkWarriorOfTheOpenHandFleetStepFollowUpUse(character)
+    : character;
+}
 type WizardSpellViewFilter = "all" | "prepared";
 const wizardSignatureSpellLevel = 3;
 const frozenHauntFallbackSpellSlotMinimumLevel = 4;
@@ -913,13 +929,38 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       ),
     [selectedSpellbookSpellIds, wizardPreparedSpellIdSet]
   );
+  const wizardSpellbookOnlyRitualSpells = useMemo(
+    () =>
+      hasWizardRitualAdept
+        ? selectedSpellbookSpells.filter(
+            (spell) => wizardSpellbookOnlyIdSet.has(spell.id) && spell.ritual === true
+          )
+        : [],
+    [hasWizardRitualAdept, selectedSpellbookSpells, wizardSpellbookOnlyIdSet]
+  );
+  const wizardSpellbookOnlyRitualIdSet = useMemo(
+    () => new Set(wizardSpellbookOnlyRitualSpells.map((spell) => spell.id)),
+    [wizardSpellbookOnlyRitualSpells]
+  );
   const visibleWizardLevelledSpells = useMemo(() => {
     if (!usesSpellbook) {
       return selectedPreparedSpells;
     }
 
     if (activeWizardSpellFilter === "prepared") {
-      return selectedPreparedSpells;
+      const mergedSpells = new Map<string, SpellEntry>();
+
+      [...selectedPreparedSpells, ...wizardSpellbookOnlyRitualSpells].forEach((spell) => {
+        mergedSpells.set(spell.id, spell);
+      });
+
+      return [...mergedSpells.values()].sort((left, right) => {
+        if (left.spellLevel !== right.spellLevel) {
+          return left.spellLevel - right.spellLevel;
+        }
+
+        return left.name.localeCompare(right.name);
+      });
     }
 
     const mergedSpells = new Map<string, SpellEntry>();
@@ -935,7 +976,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
       return left.name.localeCompare(right.name);
     });
-  }, [activeWizardSpellFilter, selectedPreparedSpells, selectedSpellbookSpells, usesSpellbook]);
+  }, [
+    activeWizardSpellFilter,
+    selectedPreparedSpells,
+    selectedSpellbookSpells,
+    usesSpellbook,
+    wizardSpellbookOnlyRitualSpells
+  ]);
   const visibleSpellEntries = useMemo(
     () => [...selectedCantrips, ...visibleWizardLevelledSpells],
     [selectedCantrips, visibleWizardLevelledSpells]
@@ -1099,7 +1146,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     !selectedSpellAlwaysPrepared &&
     !selectedSpellPreparedNormally;
   const selectedSpellCanOnlyBeCastAsRitual =
-    selectedSpell !== null && ritualOnlySpellIdSet.has(selectedSpell.id);
+    selectedSpell !== null &&
+    (ritualOnlySpellIdSet.has(selectedSpell.id) ||
+      wizardSpellbookOnlyRitualIdSet.has(selectedSpell.id));
   const selectedSpellCanCastAsRitualFromSpellbook =
     selectedSpellIsSpellbookOnly && hasWizardRitualAdept && selectedSpell?.ritual === true;
   const selectedSpellHasSignatureSpellFreeCastAvailable =
@@ -2073,7 +2122,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         }
       : undefined;
     const canCastSpellbookRitual =
-      selectedSpellIsSpellbookOnly && hasWizardRitualAdept && castAsRitual;
+      selectedSpellIsSpellbookOnly &&
+      castAsRitual &&
+      (hasWizardRitualAdept || selectedSpellCanOnlyBeCastAsRitual);
 
     if (selectedSpellIsSpellbookOnly && !canCastSpellbookRitual) {
       return;
@@ -2124,9 +2175,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             nextCharacterWithElementalSmite,
             selectedSpell
           );
+          const nextCharacterWithFleetStep = grantMonkFleetStepFollowUpForSpellCastIfEligible(
+            nextCharacterWithSpellCastEffects,
+            roundTrackerResource
+          );
 
           return consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithSpellCastEffects,
+            nextCharacterWithFleetStep,
             roundTrackerResource
           );
         });
@@ -2197,13 +2252,17 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           selectedSpell,
           { includeBardBattleMagic: false }
         );
+        const nextCharacterWithFleetStep = grantMonkFleetStepFollowUpForSpellCastIfEligible(
+          nextCharacterWithSpellCastEffects,
+          roundTrackerResource
+        );
 
         return roundTrackerResource
           ? consumeRoundTrackerResourceForCharacter(
-              nextCharacterWithSpellCastEffects,
+              nextCharacterWithFleetStep,
               roundTrackerResource
             )
-          : nextCharacterWithSpellCastEffects;
+          : nextCharacterWithFleetStep;
       });
 
       closeSelectedSpell();
@@ -2429,10 +2488,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           spellSlotLevel: spellCastFeatureEffectSlotLevel
         }
       );
+      const nextCharacterWithFleetStep = grantMonkFleetStepFollowUpForSpellCastIfEligible(
+        nextCharacterWithSpellCastEffects,
+        roundTrackerResource
+      );
 
       if (castsFreeViaTelekineticMaster && roundTrackerResource) {
         return consumeRoundTrackerResourceForCharacter(
-          nextCharacterWithSpellCastEffects,
+          nextCharacterWithFleetStep,
           roundTrackerResource
         );
       }
@@ -2452,10 +2515,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithSpellCastEffects,
+            nextCharacterWithFleetStep,
             roundTrackerResource
           )
-        : nextCharacterWithSpellCastEffects;
+        : nextCharacterWithFleetStep;
     });
 
     closeSelectedSpell();
@@ -2686,8 +2749,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                               : (spellOutcomeSummariesById.get(spell.id) ?? "")
                           }
                           detailNote={
-                            wizardSpellbookOnlyIdSet.has(spell.id)
-                              ? "In Spellbook but not prepared"
+                            wizardSpellbookOnlyRitualIdSet.has(spell.id)
+                              ? "Ritual from spellbook"
+                              : wizardSpellbookOnlyIdSet.has(spell.id)
+                                ? "In Spellbook but not prepared"
                               : undefined
                           }
                           detailNoteTone={

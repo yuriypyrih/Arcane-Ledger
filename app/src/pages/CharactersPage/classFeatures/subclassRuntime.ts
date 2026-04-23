@@ -40,6 +40,7 @@ export type SubclassDerivedFeatureState = {
   featureActionOptions?: Partial<Record<string, FeatureActionOptionCard[]>>;
   equipmentEntries?: FeatureEquipmentEntry[];
   weaponActions?: WeaponAction[];
+  transformCommonAction?: (action: FeatureActionCard) => FeatureActionCard;
   transformFeatureAction?: (action: FeatureActionCard) => FeatureActionCard;
   transformWeaponAction?: (action: WeaponAction) => WeaponAction;
   getInitiativeBonuses?: () => FeatureInitiativeBonus[];

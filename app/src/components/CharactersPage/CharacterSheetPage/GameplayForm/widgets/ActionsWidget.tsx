@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { BookOpen, Flame, Minus, Plus, Sparkles } from "lucide-react";
+import { BookOpen, Flame, Minus, Plus, Sparkles, Swords } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { fetchMonsterBySlug } from "../../../../../api";
 import CellContainer from "../../../../CellContainer/CellContainer";
@@ -98,6 +98,7 @@ import {
   hasSorcererArcaneApotheosisFreeMetamagicAvailableForCharacter,
   markFeatureWeaponBonusUseForCharacter,
   spendWarlockHealingLightDiceForCharacter,
+  transformCommonActionForCharacter,
   type FeatureActionCard,
   type FeatureActionExecuteConfig,
   type FeatureActionOptionCard
@@ -139,7 +140,6 @@ import {
   getBarbarianRageOfTheGodsUsesTotal,
   getBarbarianPowerOfTheWildsOptions
 } from "../../../../../pages/CharactersPage/classFeatures/barbarian/barbarian";
-import { frenzyDamageBonusLabel } from "../../../../../pages/CharactersPage/classFeatures/barbarian/subclasses/barbarianPathOfTheBerserker";
 import {
   consumeFighterBattleMasterKnowYourEnemyForCharacter,
   expendFighterBattleMasterSuperiorityDieForCharacter,
@@ -200,7 +200,14 @@ import {
   getCombatActionsForCharacter,
   type GameplayActionDefinition
 } from "../../../../../pages/CharactersPage/combatActions";
-import { normalizeRoundTracker } from "../../../../../pages/CharactersPage/combat";
+import {
+  isRoundTrackerResourceAvailable,
+  normalizeRoundTracker
+} from "../../../../../pages/CharactersPage/combat";
+import {
+  getCommonActionCards,
+  isCommonActionKey
+} from "../../../../../pages/CharactersPage/commonActions";
 import {
   ECONOMY_TYPE,
   getRoundTrackerResourceForEconomyType,
@@ -231,6 +238,7 @@ import { hasActiveWeaponMastery } from "../../../../../pages/CharactersPage/weap
 import {
   CLASS_FEATURE,
   ACTION_TYPE,
+  DAMAGE_TYPE,
   ENTRY_CATEGORIES,
   MAGIC_SCHOOL,
   getSpellEntryById,
@@ -323,7 +331,10 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/monk/monkStunningStrike";
 import {
   activateMonkFlurryOfBlows,
-  monkFlurryOfBlowsActionKey
+  getMonkPatientDefenseTemporaryHitPointsFormula,
+  monkFlurryOfBlowsActionKey,
+  monkPatientDefenseActionKey,
+  monkStepOfTheWindActionKey
 } from "../../../../../pages/CharactersPage/classFeatures/monk/monk";
 import {
   activateMonkWarriorOfMercyHandOfHealing,
@@ -335,10 +346,14 @@ import {
   monkHandOfHealingActionKey
 } from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfMercy";
 import {
+  consumeMonkWarriorOfTheOpenHandFleetStepFollowUpUse,
+  getMonkWarriorOfTheOpenHandFleetStepFollowUpUsesRemaining,
+  grantMonkWarriorOfTheOpenHandFleetStepFollowUpUse,
   activateMonkWarriorOfTheOpenHandQuiveringPalmMark,
   getMonkWarriorOfTheOpenHandQuiveringPalmOptionState,
   getMonkWarriorOfTheOpenHandWholenessOfBodyHealingFormula,
-  monkWholenessOfBodyActionKey
+  monkWholenessOfBodyActionKey,
+  warriorOfTheOpenHandSubclassId
 } from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheOpenHand";
 import {
   activateMonkWarriorOfShadowImprovedShadowStep,
@@ -346,16 +361,30 @@ import {
   monkShadowStepActionKey
 } from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfShadow";
 import {
+  getMonkWarriorOfTheElementsElementalBurstDamageFormula,
+  getMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection,
+  getMonkWarriorOfTheElementsEmpoweredStrikesOptionState,
+  hasMonkWarriorOfTheElementsElementalEpitome,
+  monkElementalAttunementActionKey,
+  monkElementalBurstActionKey,
+  setMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection
+} from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheElements";
+import {
   FeatureActionCardButton,
   FeatureActionChoiceRow,
   FeatureActionOptionButton,
   WeaponActionCard
 } from "./ActionCards";
+import { CommonActionFooter } from "./CommonAction";
+import ElementalAttunementResistanceSelector from "./ElementalAttunementResistanceSelector";
+import { ElementalBurstActionFooter } from "./ElementalBurstAction";
 import {
   MonkHandOfHealingActionCard,
   MonkHandOfHealingActionFooter
 } from "./MonkHandOfHealingAction";
 import { MonkFlurryOfBlowsActionFooter } from "./MonkFlurryOfBlowsActionFooter";
+import CommonActionsModal from "./CommonActionsModal";
+import { getCommonActionPathStates } from "./commonActionEconomy";
 import { getMonkHandOfHealingActionPathStates } from "./monkHandOfHealingActionUtils";
 import {
   createChannelDivinityOptionRows,
@@ -379,6 +408,73 @@ function getFeatureActionDrawerPrimaryLabel(action: Pick<FeatureActionCard, "nam
   const normalizedName = action.name.trim();
 
   return normalizedName ? `Use ${normalizedName}` : "Use";
+}
+
+function shouldGrantMonkFleetStepFollowUp(
+  character: Pick<Character, "className" | "level" | "subclassId" | "classFeatureState">,
+  actionKey: string,
+  economyType: EconomyType
+): boolean {
+  return (
+    economyType === ECONOMY_TYPE.BONUS_ACTION &&
+    character.className === "Monk" &&
+    character.subclassId === warriorOfTheOpenHandSubclassId &&
+    character.level >= 11 &&
+    actionKey !== monkStepOfTheWindActionKey &&
+    actionKey !== "common-action-dash"
+  );
+}
+
+function grantMonkFleetStepFollowUpIfEligible(
+  character: Character,
+  actionKey: string,
+  economyType: EconomyType
+): Character {
+  return shouldGrantMonkFleetStepFollowUp(character, actionKey, economyType)
+    ? grantMonkWarriorOfTheOpenHandFleetStepFollowUpUse(character)
+    : character;
+}
+
+function shouldConsumeMonkFleetStepFollowUp(
+  character: Pick<
+    Character,
+    "className" | "level" | "subclassId" | "classFeatureState" | "roundTracker"
+  >
+): boolean {
+  return (
+    getMonkWarriorOfTheOpenHandFleetStepFollowUpUsesRemaining(character) > 0 &&
+    !isRoundTrackerResourceAvailable(character.roundTracker, "bonusAction")
+  );
+}
+
+function createCommonActionDefinition(action: FeatureActionCard): GameplayActionDefinition {
+  return {
+    kind: "feature",
+    key: action.key,
+    name: action.name,
+    economyType: action.economyType,
+    actionCategory: action.actionCategory,
+    economyMultiCount: action.economyMultiCount,
+    disabled: action.disabled,
+    disabledReason: action.disabledReason,
+    action,
+    execute: {
+      kind: "activate"
+    },
+    drawer: {
+      kind: "confirm",
+      eyebrow: "Common Action",
+      description: action.description ?? [],
+      descriptionAdditions: action.descriptionAdditions ?? [],
+      helperText: action.drawer?.helperText,
+      helperTextTone: action.drawer?.helperTextTone,
+      blockedReason: action.drawer?.blockedReason,
+      facts: action.drawer?.facts ?? action.facts ?? [],
+      factsSectionTitle: action.drawer?.factsSectionTitle,
+      headerTags: action.drawer?.headerTags ?? action.headerTags ?? [],
+      confirmLabel: action.drawer?.confirmLabel ?? getFeatureActionDrawerPrimaryLabel(action)
+    }
+  };
 }
 
 type FontOfMagicSelection =
@@ -1502,6 +1598,7 @@ function WildResurgenceActionBody({
 }
 
 function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
+  const [isCommonActionsOpen, setIsCommonActionsOpen] = useState(false);
   const nextRollCriticalHitOverride = useAppSelector(
     (state) => state.diceRoller.nextRollCriticalHitOverride
   );
@@ -1574,12 +1671,26 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [isStunningStrikeSelected, setIsStunningStrikeSelected] = useState(false);
   const [isHandOfHarmSelected, setIsHandOfHarmSelected] = useState(false);
   const [isFlurryOfHealingAndHarmSelected, setIsFlurryOfHealingAndHarmSelected] = useState(false);
+  const [isEmpoweredStrikesSelected, setIsEmpoweredStrikesSelected] = useState(false);
   const [isQuiveringPalmSelected, setIsQuiveringPalmSelected] = useState(false);
   const [isImprovedShadowStepSelected, setIsImprovedShadowStepSelected] = useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   const roundTracker = normalizeRoundTracker(character.roundTracker);
   const combatActions = useMemo(() => getCombatActionsForCharacter(character), [character]);
+  const commonActionCards = useMemo(
+    () =>
+      getCommonActionCards().map((action) => transformCommonActionForCharacter(character, action)),
+    [character]
+  );
+  const commonActions = useMemo(
+    () => commonActionCards.map(createCommonActionDefinition),
+    [commonActionCards]
+  );
+  const selectableActions = useMemo(
+    () => [...combatActions, ...commonActions],
+    [combatActions, commonActions]
+  );
   const customWeaponEntriesById = useMemo(
     () =>
       new Map(
@@ -1702,9 +1813,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const effectiveAbilities = useMemo(() => getAbilityScoresForCharacter(character), [character]);
   const selectedAction =
     selectedActionKey !== null
-      ? (combatActions.find((combatAction) => combatAction.key === selectedActionKey) ?? null)
+      ? (selectableActions.find((combatAction) => combatAction.key === selectedActionKey) ?? null)
       : null;
   const selectedFeatureAction = selectedAction?.kind === "feature" ? selectedAction.action : null;
+  const selectedMonkElementalAttunementResistanceDamageType =
+    selectedFeatureAction?.key === monkElementalAttunementActionKey
+      ? getMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection(character)
+      : null;
   const selectedCombatSuperiorityDie =
     selectedFeatureAction?.key === fighterBattleMasterCombatSuperiorityActionKey
       ? getFighterBattleMasterSuperiorityDieForCharacter(character)
@@ -1833,6 +1948,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     () => getMonkStunningStrikeOptionState(character, selectedWeaponAction),
     [character, selectedWeaponAction]
   );
+  const selectedWeaponEmpoweredStrikesState = useMemo(
+    () => getMonkWarriorOfTheElementsEmpoweredStrikesOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
   const selectedWeaponHandOfHarmState = useMemo(
     () => getMonkWarriorOfMercyHandOfHarmOptionState(character, selectedWeaponAction),
     [character, selectedWeaponAction]
@@ -1858,7 +1977,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       },
       selectedOptions: [
         {
-          label: "Stunnig Strike",
+          label: "Stunning Strike",
           cost: selectedWeaponStunningStrikeState?.focusPointCost ?? 1,
           selected: isStunningStrikeSelected
         },
@@ -1888,7 +2007,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     return getMonkFocusComboDisabledReason({
       focusPointsRemaining: selectedWeaponFocusPointsRemaining,
       currentOption: {
-        label: "Stunnig Strike",
+        label: "Stunning Strike",
         cost: selectedWeaponStunningStrikeState.focusPointCost
       },
       selectedOptions: [
@@ -1928,7 +2047,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       },
       selectedOptions: [
         {
-          label: "Stunnig Strike",
+          label: "Stunning Strike",
           cost: selectedWeaponStunningStrikeState?.focusPointCost ?? 1,
           selected: isStunningStrikeSelected
         },
@@ -1955,6 +2074,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedWeaponPolarStrikesState?.disabled ?? false;
   const selectedWeaponStunningStrikeToggleDisabled =
     selectedWeaponStunningStrikeDisabledReason !== null;
+  const selectedWeaponEmpoweredStrikesToggleDisabled =
+    selectedWeaponEmpoweredStrikesState?.disabled ?? false;
   const selectedWeaponHandOfHarmToggleDisabled = selectedWeaponHandOfHarmDisabledReason !== null;
   const selectedWeaponHandOfHarmUsage =
     selectedWeaponHandOfHarmState?.focusPointCost === 0
@@ -2001,6 +2122,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     if (
+      isEmpoweredStrikesSelected &&
+      selectedWeaponEmpoweredStrikesState &&
+      !selectedWeaponEmpoweredStrikesToggleDisabled
+    ) {
+      nextAction = applyWeaponDamageBonusPreview(
+        nextAction,
+        selectedWeaponEmpoweredStrikesState.damageBonus
+      );
+    }
+
+    if (
       isHandOfHarmSelected &&
       selectedWeaponHandOfHarmState &&
       !selectedWeaponHandOfHarmToggleDisabled
@@ -2026,12 +2158,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     return nextAction;
   }, [
     isDreadfulStrikeSelected,
+    isEmpoweredStrikesSelected,
     isHandOfHarmSelected,
     isPolarStrikesSelected,
     isPsionicStrikeSelected,
     selectedWeaponAction,
     selectedWeaponDreadAmbusherState,
     selectedWeaponDreadfulStrikeToggleDisabled,
+    selectedWeaponEmpoweredStrikesState,
+    selectedWeaponEmpoweredStrikesToggleDisabled,
     selectedWeaponHandOfHarmToggleDisabled,
     selectedWeaponHandOfHarmState,
     selectedWeaponPolarStrikesState,
@@ -2188,6 +2323,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedSecondWindGroupRecoveryUsesTotal > 0
       ? getFighterGroupRecoveryHealingFormula(character)
       : null;
+  const selectedMonkPatientDefenseTemporaryHitPointsFormula =
+    selectedFeatureAction?.key === monkPatientDefenseActionKey
+      ? getMonkPatientDefenseTemporaryHitPointsFormula(character)
+      : null;
+  const selectedMonkWholenessOfBodyHealingFormula =
+    selectedFeatureAction?.key === monkWholenessOfBodyActionKey
+      ? getMonkWarriorOfTheOpenHandWholenessOfBodyHealingFormula(character)
+      : null;
   const selectedClairvoyantCombatantUsesTotal =
     selectedFeatureAction?.key === awakenedMindActionKey
       ? getWarlockClairvoyantCombatantUsesTotal(character)
@@ -2293,6 +2436,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     return getMonkHandOfHealingActionPathStates(character, selectedAction.action, roundTracker);
   }, [character, roundTracker, selectedAction]);
+  const selectedCommonActionPathStates = useMemo(() => {
+    if (
+      !selectedAction ||
+      selectedAction.kind !== "feature" ||
+      !isCommonActionKey(selectedAction.action.key)
+    ) {
+      return [];
+    }
+
+    return getCommonActionPathStates(character, selectedAction.action, roundTracker);
+  }, [character, roundTracker, selectedAction]);
   const selectedFlurryOfHealingAndHarmUsesTotal = useMemo(
     () => getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesTotal(character),
     [character]
@@ -2316,6 +2470,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedAction?.kind === "weapon"
       ? (selectedWeaponAttackPathStates.find((path) => path.id === "secondary") ?? null)
       : null;
+  const selectedCommonActionPrimaryPathState =
+    selectedAction?.kind === "feature" && isCommonActionKey(selectedAction.action.key)
+      ? (selectedCommonActionPathStates.find((path) => path.id === "primary") ?? null)
+      : null;
+  const selectedCommonActionSecondaryPathState =
+    selectedAction?.kind === "feature" && isCommonActionKey(selectedAction.action.key)
+      ? (selectedCommonActionPathStates.find((path) => path.id === "secondary") ?? null)
+      : null;
   const selectedActionPrimaryWarning = useMemo(() => {
     if (!selectedAction) {
       return null;
@@ -2335,6 +2497,21 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const selectedActionWarning = useMemo(() => {
     if (!selectedAction) {
       return null;
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      isCommonActionKey(selectedAction.action.key)
+    ) {
+      if (selectedCommonActionPathStates.some((path) => path.shapeState.isUsable)) {
+        return null;
+      }
+
+      return (
+        selectedCommonActionPrimaryPathState?.disabledReason ??
+        selectedCommonActionSecondaryPathState?.disabledReason ??
+        selectedActionPrimaryWarning
+      );
     }
 
     if (selectedAction.kind !== "weapon") {
@@ -2357,6 +2534,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   }, [
     selectedAction,
     selectedActionPrimaryWarning,
+    selectedCommonActionPathStates,
+    selectedCommonActionPrimaryPathState,
+    selectedCommonActionSecondaryPathState,
     selectedWeaponAttackPathStates,
     selectedWeaponPrimaryAttackPathState,
     selectedWeaponSecondaryAttackPathState
@@ -2486,6 +2666,18 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedAction?.kind === "weapon"
       ? (selectedAction.disabledReason ??
         selectedWeaponSecondaryAttackPathState?.shapeState.disabledReason ??
+        null)
+      : null;
+  const selectedCommonActionPrimaryDisabledReason =
+    selectedAction?.kind === "feature" && isCommonActionKey(selectedAction.action.key)
+      ? (selectedAction.action.disabledReason ??
+        selectedCommonActionPrimaryPathState?.disabledReason ??
+        null)
+      : null;
+  const selectedCommonActionSecondaryDisabledReason =
+    selectedAction?.kind === "feature" && isCommonActionKey(selectedAction.action.key)
+      ? (selectedAction.action.disabledReason ??
+        selectedCommonActionSecondaryPathState?.disabledReason ??
         null)
       : null;
 
@@ -2664,6 +2856,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         ? spellcastingState.reason
         : null;
   const hasOverlayOpen =
+    isCommonActionsOpen ||
     selectedAction !== null ||
     isDiceRollerSettingsOpen ||
     isFixedSpellDrawerOpen ||
@@ -2714,6 +2907,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsPolarStrikesSelected(false);
     setIsSacredWeaponSelected(false);
     setIsStunningStrikeSelected(false);
+    setIsEmpoweredStrikesSelected(false);
     setIsHandOfHarmSelected(false);
     setIsFlurryOfHealingAndHarmSelected(false);
     setIsQuiveringPalmSelected(false);
@@ -2767,6 +2961,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsPsionicStrikeSelected(false);
     setIsSacredWeaponSelected(false);
     setIsStunningStrikeSelected(false);
+    setIsEmpoweredStrikesSelected(false);
     setIsHandOfHarmSelected(false);
     setIsQuiveringPalmSelected(false);
     setIsImprovedShadowStepSelected(false);
@@ -2795,6 +2990,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       setIsStunningStrikeSelected(false);
     }
   }, [selectedWeaponStunningStrikeState, selectedWeaponStunningStrikeToggleDisabled]);
+
+  useEffect(() => {
+    if (!selectedWeaponEmpoweredStrikesState || selectedWeaponEmpoweredStrikesToggleDisabled) {
+      setIsEmpoweredStrikesSelected(false);
+    }
+  }, [selectedWeaponEmpoweredStrikesState, selectedWeaponEmpoweredStrikesToggleDisabled]);
 
   useEffect(() => {
     if (selectedClairvoyantCombatantToggleDisabled) {
@@ -3108,23 +3309,43 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         return;
       }
 
-      setSelectedActionKey(null);
+      if (selectedActionKey !== null) {
+        setSelectedActionKey(null);
+        return;
+      }
+
+      if (isCommonActionsOpen) {
+        setIsCommonActionsOpen(false);
+      }
     }
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [
     hasOverlayOpen,
+    isCommonActionsOpen,
     isDiceRollerSettingsOpen,
     isFixedSpellDrawerOpen,
+    selectedActionKey,
     selectedDivineInterventionSpell,
     selectedMysticArcanumSpell
   ]);
 
-  function activateFeatureAction(action: FeatureActionCard) {
+  function activateFeatureAction(
+    action: FeatureActionCard,
+    economyTypeOverride: EconomyType | null = null
+  ) {
+    const nextAction =
+      economyTypeOverride === null || economyTypeOverride === action.economyType
+        ? action
+        : {
+            ...action,
+            economyType: economyTypeOverride
+          };
+
     onPersistCharacter((currentCharacter) => {
       const nextCharacter = activateFeatureActionForCharacter(currentCharacter, action.key);
-      const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(nextAction.economyType);
       const preparedCharacter = prepareCharacterForResourceConsumption(
         currentCharacter,
         roundTrackerResource
@@ -3134,22 +3355,52 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           ? nextCharacter
           : activateFeatureActionForCharacter(preparedCharacter, action.key);
       const characterToUpdate =
-        preparedNextCharacter === preparedCharacter && action.consumesEconomyOnActivate
+        preparedNextCharacter === preparedCharacter && nextAction.consumesEconomyOnActivate
           ? preparedCharacter
           : preparedNextCharacter;
 
-      if (characterToUpdate === preparedCharacter && !action.consumesEconomyOnActivate) {
+      if (characterToUpdate === preparedCharacter && !nextAction.consumesEconomyOnActivate) {
         return currentCharacter;
       }
 
-      if (action.economyType === "action" && action.actionCategory !== "magic") {
-        return consumeNonMagicActionForCharacter(characterToUpdate, action);
+      const nextCharacterWithFleetStep = grantMonkFleetStepFollowUpIfEligible(
+        characterToUpdate,
+        action.key,
+        nextAction.economyType
+      );
+
+      if (nextAction.economyType === "action" && nextAction.actionCategory !== "magic") {
+        return consumeNonMagicActionForCharacter(nextCharacterWithFleetStep, nextAction);
       }
 
       return roundTrackerResource
-        ? consumeRoundTrackerResourceForCharacter(characterToUpdate, roundTrackerResource)
-        : characterToUpdate;
+        ? consumeRoundTrackerResourceForCharacter(nextCharacterWithFleetStep, roundTrackerResource)
+        : nextCharacterWithFleetStep;
     });
+  }
+
+  function executeCommonAction(
+    action: FeatureActionCard,
+    economyType: EconomyType = action.economyType
+  ) {
+    if (
+      action.key === "common-action-dash" &&
+      economyType === ECONOMY_TYPE.BONUS_ACTION &&
+      shouldConsumeMonkFleetStepFollowUp(character)
+    ) {
+      onPersistCharacter((currentCharacter) =>
+        shouldConsumeMonkFleetStepFollowUp(currentCharacter)
+          ? consumeMonkWarriorOfTheOpenHandFleetStepFollowUpUse(currentCharacter)
+          : currentCharacter
+      );
+      closeActionDrawer();
+      setIsCommonActionsOpen(false);
+      return;
+    }
+
+    activateFeatureAction(action, economyType);
+    closeActionDrawer();
+    setIsCommonActionsOpen(false);
   }
 
   function executeMonkHandOfHealingPath(economyType: EconomyType) {
@@ -3218,9 +3469,62 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         return currentCharacter;
       }
 
+      const nextCharacterWithFleetStep = grantMonkFleetStepFollowUpIfEligible(
+        nextCharacter,
+        selectedFeatureAction.key,
+        selectedFeatureAction.economyType
+      );
+
       return roundTrackerResource
-        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
-        : nextCharacter;
+        ? consumeRoundTrackerResourceForCharacter(nextCharacterWithFleetStep, roundTrackerResource)
+        : nextCharacterWithFleetStep;
+    });
+
+    closeActionDrawer();
+  }
+
+  function submitMonkWholenessOfBody(action: FeatureActionCard) {
+    const healingFormula = getMonkWarriorOfTheOpenHandWholenessOfBodyHealingFormula(character);
+
+    if (!healingFormula) {
+      closeActionDrawer();
+      return;
+    }
+
+    activateFeatureAction(action);
+
+    openDiceRoller({
+      title: action.name,
+      formula: healingFormula,
+      formulaDisplay: healingFormula,
+      description: `${action.detail} Minimum 1 Hit Point regained.`,
+      onResolvedResult: ({ result }) => {
+        onPersistCharacter((currentCharacter) =>
+          applyRolledHealingToCharacter(currentCharacter, result.total)
+        );
+      }
+    });
+
+    closeActionDrawer();
+  }
+
+  function submitMonkPatientDefense() {
+    if (!selectedFeatureAction || !selectedMonkPatientDefenseTemporaryHitPointsFormula) {
+      return;
+    }
+
+    activateFeatureAction(selectedFeatureAction);
+
+    openDiceRoller({
+      title: selectedFeatureAction.name,
+      formula: selectedMonkPatientDefenseTemporaryHitPointsFormula,
+      formulaDisplay: selectedMonkPatientDefenseTemporaryHitPointsFormula,
+      description: selectedFeatureAction.detail,
+      onResolvedResult: ({ result }) => {
+        onPersistCharacter((currentCharacter) =>
+          applyRolledTemporaryHitPointsToCharacter(currentCharacter, result.total, "Patient Defense")
+        );
+      }
     });
 
     closeActionDrawer();
@@ -3229,6 +3533,27 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   function executeFeatureActivate(action: FeatureActionCard) {
     const effectKind =
       action.execute?.kind === "activate" ? (action.execute.effectKind ?? "default") : "default";
+
+    if (
+      action.key === monkStepOfTheWindActionKey &&
+      shouldConsumeMonkFleetStepFollowUp(character)
+    ) {
+      onPersistCharacter((currentCharacter) => {
+        if (!shouldConsumeMonkFleetStepFollowUp(currentCharacter)) {
+          return currentCharacter;
+        }
+
+        const nextCharacter = activateFeatureActionForCharacter(currentCharacter, action.key);
+
+        if (nextCharacter === currentCharacter) {
+          return currentCharacter;
+        }
+
+        return consumeMonkWarriorOfTheOpenHandFleetStepFollowUpUse(nextCharacter);
+      });
+      closeActionDrawer();
+      return;
+    }
 
     if (action.key === innateSorceryActionKey) {
       onPersistCharacter((currentCharacter) => {
@@ -3280,43 +3605,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     if (action.key === monkWholenessOfBodyActionKey) {
-      const healingFormula = getMonkWarriorOfTheOpenHandWholenessOfBodyHealingFormula(character);
-
-      if (!healingFormula) {
-        closeActionDrawer();
-        return;
-      }
-
-      onPersistCharacter((currentCharacter) => {
-        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
-        const preparedCharacter = prepareCharacterForResourceConsumption(
-          currentCharacter,
-          roundTrackerResource
-        );
-        const nextCharacter = activateFeatureActionForCharacter(preparedCharacter, action.key);
-
-        if (nextCharacter === preparedCharacter) {
-          return currentCharacter;
-        }
-
-        return roundTrackerResource
-          ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
-          : nextCharacter;
-      });
-
-      openDiceRoller({
-        title: action.name,
-        formula: healingFormula,
-        formulaDisplay: healingFormula,
-        description: `${action.detail} Minimum 1 Hit Point regained.`,
-        onResolvedResult: ({ result }) => {
-          onPersistCharacter((currentCharacter) =>
-            applyRolledHealingToCharacter(currentCharacter, result.total)
-          );
-        }
-      });
-
-      closeActionDrawer();
+      submitMonkWholenessOfBody(action);
       return;
     }
 
@@ -3622,13 +3911,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         enableNextCriticalHitOnNatural20: true
       });
 
-      let nextCharacter = preparedAction.damageBonusEntries.reduce(
-        (updatedCharacter, entry) =>
-          entry.label === "Primal Strike" || entry.label === frenzyDamageBonusLabel
-            ? updatedCharacter
-            : markFeatureWeaponBonusUseForCharacter(updatedCharacter, entry.label),
-        preparedCharacter
-      );
+      let nextCharacter = preparedCharacter;
 
       if (useSacredWeapon) {
         nextCharacter = activatePaladinOathOfDevotionSacredWeapon(nextCharacter);
@@ -3653,6 +3936,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       isPolarStrikesSelected &&
       selectedWeaponPolarStrikesState !== null &&
       !selectedWeaponPolarStrikesToggleDisabled;
+    const useEmpoweredStrikes =
+      action.attackKind === "unarmed" &&
+      isEmpoweredStrikesSelected &&
+      selectedWeaponEmpoweredStrikesState !== null &&
+      !selectedWeaponEmpoweredStrikesToggleDisabled;
     const useHandOfHarm =
       action.attackKind === "unarmed" &&
       isHandOfHarmSelected &&
@@ -3673,7 +3961,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedWeaponPsionicStrikeAvailable &&
       selectedWeaponPsionicStrikeFormula !== null;
     const effectiveAction =
-      (useDreadfulStrike || usePolarStrikes || useHandOfHarm || usePsionicStrike) &&
+      (useDreadfulStrike ||
+        usePolarStrikes ||
+        useEmpoweredStrikes ||
+        useHandOfHarm ||
+        usePsionicStrike) &&
       selectedWeaponEffectiveAction
         ? selectedWeaponEffectiveAction
         : action;
@@ -3697,6 +3989,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       effectiveAction.damageBonusEntries.length <= 0 &&
       !useDreadfulStrike &&
       !usePolarStrikes &&
+      !useStunningStrike &&
+      !useEmpoweredStrikes &&
       !usePsionicStrike &&
       !useHandOfHarm &&
       !useQuiveringPalm
@@ -3704,6 +3998,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       setIsDreadfulStrikeSelected(false);
       setIsPolarStrikesSelected(false);
       setIsStunningStrikeSelected(false);
+      setIsEmpoweredStrikesSelected(false);
       setIsHandOfHarmSelected(false);
       setIsQuiveringPalmSelected(false);
       setIsPsionicStrikeSelected(false);
@@ -3740,12 +4035,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return nextCharacter;
     });
 
-    setIsDreadfulStrikeSelected(false);
-    setIsPolarStrikesSelected(false);
-    setIsStunningStrikeSelected(false);
-    setIsHandOfHarmSelected(false);
-    setIsQuiveringPalmSelected(false);
-    setIsPsionicStrikeSelected(false);
+      setIsDreadfulStrikeSelected(false);
+      setIsPolarStrikesSelected(false);
+      setIsStunningStrikeSelected(false);
+      setIsEmpoweredStrikesSelected(false);
+      setIsHandOfHarmSelected(false);
+      setIsQuiveringPalmSelected(false);
+      setIsPsionicStrikeSelected(false);
   }
 
   function toggleFeatureOptionSelection(option: FeatureActionOptionCard) {
@@ -4030,6 +4326,49 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       formula: healingFormula,
       formulaDisplay: healingFormula,
       description: `${selectedFeatureAction.detail} ${diceCount} ${dieLabel} expended.`
+    });
+
+    closeActionDrawer();
+  }
+
+  function submitMonkElementalBurst() {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    const damageFormula = getMonkWarriorOfTheElementsElementalBurstDamageFormula(character);
+
+    if (!damageFormula) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateFeatureActionForCharacter(
+        preparedCharacter,
+        selectedFeatureAction.key
+      );
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
+    openDiceRoller({
+      title: selectedFeatureAction.name,
+      formula: damageFormula,
+      formulaDisplay: damageFormula,
+      description: selectedFeatureAction.detail
     });
 
     closeActionDrawer();
@@ -4685,6 +5024,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     closeActionDrawer();
   }
 
+  function updateMonkElementalAttunementResistanceDamageType(nextDamageType: DAMAGE_TYPE) {
+    onPersistCharacter((currentCharacter) =>
+      setMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection(
+        currentCharacter,
+        nextDamageType
+      )
+    );
+  }
+
   function renderActionDrawerBody() {
     if (!selectedAction) {
       return null;
@@ -4763,6 +5111,20 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     if (selectedAction.kind === "feature" && selectedAction.action.key === preserveLifeActionKey) {
       return <ClericPreserveLifeActionBody clericLevel={character.level} />;
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.action.key === monkElementalAttunementActionKey &&
+      hasMonkWarriorOfTheElementsElementalEpitome(character)
+    ) {
+      return (
+        <ElementalAttunementResistanceSelector
+          selectedDamageType={selectedMonkElementalAttunementResistanceDamageType}
+          onSelectDamageType={updateMonkElementalAttunementResistanceDamageType}
+          name="monk-elemental-attunement-resistance"
+        />
+      );
     }
 
     if (
@@ -5089,7 +5451,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           ) : null}
           {selectedWeaponStunningStrikeState ? (
             <FeatureOptInToggle
-              label="Stunnig Strike"
+              label="Stunning Strike"
               checked={isStunningStrikeSelected}
               disabled={selectedWeaponStunningStrikeToggleDisabled}
               muted={selectedWeaponStunningStrikeToggleDisabled}
@@ -5106,6 +5468,21 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                 targetLabel: "Damage"
               }}
               usageKey="stunning-strike"
+            />
+          ) : null}
+          {selectedWeaponEmpoweredStrikesState ? (
+            <FeatureOptInToggle
+              label="Empowered Strikes"
+              checked={isEmpoweredStrikesSelected}
+              disabled={selectedWeaponEmpoweredStrikesToggleDisabled}
+              muted={selectedWeaponEmpoweredStrikesToggleDisabled}
+              onCheckedChange={setIsEmpoweredStrikesSelected}
+              title={selectedWeaponEmpoweredStrikesState.disabledReason ?? undefined}
+              application={{
+                qualifierText: "Once per turn",
+                targetLabel: "Damage"
+              }}
+              usageKey="empowered-strikes"
             />
           ) : null}
           {selectedWeaponHandOfHarmState ? (
@@ -5197,6 +5574,22 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     const selectedFeaturePrimaryLabel = getFeatureActionDrawerPrimaryLabel(selectedAction.action);
+
+    if (selectedAction.kind === "feature" && isCommonActionKey(selectedAction.action.key)) {
+      return (
+        <CommonActionFooter
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionPaths={selectedCommonActionPathStates.map((path) => ({
+            ...path,
+            disabledReason:
+              path.id === "primary"
+                ? selectedCommonActionPrimaryDisabledReason
+                : selectedCommonActionSecondaryDisabledReason
+          }))}
+          onConfirmPath={(economyType) => executeCommonAction(selectedAction.action, economyType)}
+        />
+      );
+    }
 
     if (
       selectedAction.kind === "feature" &&
@@ -5290,6 +5683,50 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedAction.kind === "feature" &&
       selectedAction.drawer.kind === "confirm" &&
       selectedAction.execute.kind === "activate" &&
+      selectedAction.action.key === monkWholenessOfBodyActionKey &&
+      selectedMonkWholenessOfBodyHealingFormula
+    ) {
+      return (
+        <ElementalBurstActionFooter
+          actionName={selectedAction.action.name}
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onConfirm={() => submitMonkWholenessOfBody(selectedAction.action)}
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
+      selectedAction.action.key === monkPatientDefenseActionKey &&
+      selectedMonkPatientDefenseTemporaryHitPointsFormula
+    ) {
+      return (
+        <ElementalBurstActionFooter
+          actionName={selectedAction.action.name}
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onConfirm={submitMonkPatientDefense}
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
       selectedAction.action.key === fighterSecondWindActionKey
     ) {
       return (
@@ -5311,6 +5748,27 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onConfirm={() => executeFeatureActivate(selectedAction.action)}
           onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
           onGroupRecoverySelectedChange={setIsGroupRecoverySelected}
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
+      selectedAction.action.key === monkElementalBurstActionKey
+    ) {
+      return (
+        <ElementalBurstActionFooter
+          actionName={selectedAction.action.name}
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onConfirm={submitMonkElementalBurst}
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
         />
       );
     }
@@ -5795,12 +6253,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     if (selectedAction.execute.kind === "activate") {
       const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
+      const confirmAction =
+        isCommonActionKey(selectedAction.action.key) ? executeCommonAction : executeFeatureActivate;
 
       return (
         <button
           type="button"
           className={clsx(sheetStyles.castButton, styles.footerActionButton)}
-          onClick={() => executeFeatureActivate(selectedAction.action)}
+          onClick={() => confirmAction(selectedAction.action)}
           disabled={selectedFeatureActionPrimaryDisabledReason !== null}
         >
           <span>{selectedFeaturePrimaryLabel}</span>
@@ -5847,6 +6307,18 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       <section className={clsx(widgetShellStyles.widgetCard, styles.root)}>
         <header className={widgetShellStyles.widgetHeader}>
           <p className={widgetShellStyles.widgetTitle}>Actions</p>
+          <button
+            type="button"
+            className={clsx(
+              shared.editButton,
+              styles.commonActionsButton,
+              isCommonActionsOpen && styles.commonActionsButtonActive
+            )}
+            onClick={() => setIsCommonActionsOpen(true)}
+          >
+            <Swords size={16} />
+            Common Actions
+          </button>
         </header>
         {combatActions.length === 0 ? (
           <p className={shared.emptyText}>No actions available. Equip a weapon to roll attacks.</p>
@@ -5883,6 +6355,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         )}
       </section>
 
+      {isCommonActionsOpen ? (
+        <CommonActionsModal
+          character={character}
+          roundTracker={roundTracker}
+          actions={commonActionCards}
+          isActionDrawerOpen={selectedAction !== null}
+          onActionSelect={(action) => setSelectedActionKey(action.key)}
+          onClose={() => setIsCommonActionsOpen(false)}
+        />
+      ) : null}
+
       {selectedAction ? (
         <GameplayActionDrawer
           title={selectedAction.name}
@@ -5904,6 +6387,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               ? (selectedWeaponAction?.facts ?? [])
               : selectedAction.drawer.facts
           }
+          factsSectionTitle={selectedAction.kind === "weapon" ? undefined : selectedAction.drawer.factsSectionTitle}
           headerTags={selectedAction.kind === "weapon" ? [] : selectedAction.drawer.headerTags}
           helperText={selectedAction.drawer.helperText}
           warning={selectedDrawerWarning}

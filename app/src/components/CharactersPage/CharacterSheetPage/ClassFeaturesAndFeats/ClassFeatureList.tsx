@@ -1545,6 +1545,10 @@ function ClassFeatureList({
               character.className === "Barbarian" &&
               getBarbarianWildHeartAspectChoiceForCharacter(character) === null) ||
             (isUnlocked &&
+              featureRow.feature === CLASS_FEATURE.DIVINE_ORDER &&
+              character.className === "Cleric" &&
+              getClericDivineOrderChoiceForCharacter(character) === null) ||
+            (isUnlocked &&
               featureRow.feature === CLASS_FEATURE.PRIMAL_ORDER &&
               getDruidPrimalOrderChoiceForCharacter(character) === null) ||
             (isUnlocked &&

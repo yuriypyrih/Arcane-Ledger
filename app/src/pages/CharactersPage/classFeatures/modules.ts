@@ -160,10 +160,12 @@ import {
   activateMonkElementalBurst,
   activateMonkElementalAttunement,
   activateMonkFlurryOfBlows,
+  activateMonkPatientDefense,
   activateMonkHandOfHealing,
   activateMonkHandOfUltimateJustice,
   activateMonkQuiveringPalm,
   activateMonkShadowStep,
+  activateMonkStepOfTheWind,
   activateMonkSuperiorDefense,
   activateMonkWholenessOfBody,
   advanceMonkFeaturesForNewRound,
@@ -172,6 +174,7 @@ import {
   canUseMonkMartialArts,
   getMonkAbilityScoreBonuses,
   getMonkArmorClassModes,
+  getMonkCommonAction,
   getMonkDerivedStatusEntries,
   getMonkFeatureActions,
   getMonkMartialArtsDie,
@@ -183,11 +186,13 @@ import {
   monkHandOfUltimateJusticeActionKey,
   getMonkUnarmedDamageTypeLabel,
   monkFlurryOfBlowsActionKey,
+  monkPatientDefenseActionKey,
   monkCloakOfShadowActionKey,
   monkElementalBurstActionKey,
   monkElementalAttunementActionKey,
   monkQuiveringPalmActionKey,
   monkShadowStepActionKey,
+  monkStepOfTheWindActionKey,
   monkSuperiorDefenseActionKey,
   monkWholenessOfBodyActionKey,
   normalizeMonkFeatureState
@@ -635,6 +640,7 @@ const classFeatureModules = {
         savingThrowProficiencyEntries: getMonkSavingThrowProficiencyEntries(character),
         derivedStatusEntries: getMonkDerivedStatusEntries(character),
         reactionEntries: getMonkReactionEntries(character),
+        transformCommonAction: (action) => getMonkCommonAction(character, action),
         transformWeaponAction: (action) => getMonkWeaponAction(character, action),
         monkMartialArtsDie: getMonkMartialArtsDie(character),
         monkUnarmedDamageTypeLabel: getMonkUnarmedDamageTypeLabel(character),
@@ -644,6 +650,14 @@ const classFeatureModules = {
     handleAction(character, actionKey) {
       if (actionKey === monkFlurryOfBlowsActionKey) {
         return activateMonkFlurryOfBlows(character);
+      }
+
+      if (actionKey === monkPatientDefenseActionKey) {
+        return activateMonkPatientDefense(character);
+      }
+
+      if (actionKey === monkStepOfTheWindActionKey) {
+        return activateMonkStepOfTheWind(character);
       }
 
       if (actionKey === monkSuperiorDefenseActionKey) {

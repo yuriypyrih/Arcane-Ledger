@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import CellContainer from "../../../../CellContainer/CellContainer";
 import { useClassSpellEntries, usePreparedSpellEntries } from "../../../../../codex/classes";
 import {
+  DAMAGE_TYPE,
   MAGIC_SCHOOL,
   getSpellEntries,
   getSpellEntryById,
@@ -180,6 +181,7 @@ import {
 } from "./deflectAttacksReactionUtils";
 import DruidCosmicOmenReactionBody from "./DruidCosmicOmenReactionBody";
 import DruidStarryFormActionBody from "./DruidStarryFormActionBody";
+import ElementalAttunementResistanceSelector from "./ElementalAttunementResistanceSelector";
 import {
   createDefaultStatusDraftValues,
   getDerivedReactionStatusEntries,
@@ -204,6 +206,12 @@ import {
   druidCosmicOmenReactionId,
   druidStarryFormStatusSourceId
 } from "../../../../../pages/CharactersPage/classFeatures/druid/subclasses/druidCircleOfTheStars";
+import {
+  getMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection,
+  hasMonkWarriorOfTheElementsElementalEpitome,
+  isMonkWarriorOfTheElementsElementalAttunementStatusSourceId,
+  setMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection
+} from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheElements";
 import { wizardBladesingerSongOfDefenseReactionId } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
 import { bardCollegeOfDanceInspiringMovementReactionId } from "../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfDance";
 
@@ -571,6 +579,12 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       ? getPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter(
           character
         )
+      : null;
+  const selectedMonkElementalAttunementResistanceDamageType =
+    selectedStatusEntry?.sourceId &&
+    isMonkWarriorOfTheElementsElementalAttunementStatusSourceId(selectedStatusEntry.sourceId) &&
+    hasMonkWarriorOfTheElementsElementalEpitome(character)
+      ? getMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection(character)
       : null;
   const selectedRangerHunterSuperiorHuntersDefenseDamageType =
     selectedReactionEntry?.id === superiorHuntersDefenseReactionId
@@ -1410,6 +1424,15 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     );
   }
 
+  function updateMonkElementalAttunementResistanceDamageType(nextDamageType: DAMAGE_TYPE) {
+    onPersistCharacter((currentCharacter) =>
+      setMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection(
+        currentCharacter,
+        nextDamageType
+      )
+    );
+  }
+
   function updateRangerHunterSuperiorHuntersDefenseDamageType(nextValue: string) {
     onPersistCharacter((currentCharacter) =>
       setRangerHunterSuperiorHuntersDefenseDamageTypeSelectionForCharacter(
@@ -1727,6 +1750,17 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
                 hasTwinklingConstellations={hasDruidTwinklingConstellations}
                 disabled={!hasDruidTwinklingConstellations}
                 onSelectConstellation={updateDruidActiveStarryFormConstellation}
+              />
+            ) : selectedStatusEntry.sourceId &&
+              isMonkWarriorOfTheElementsElementalAttunementStatusSourceId(
+                selectedStatusEntry.sourceId
+              ) &&
+              hasMonkWarriorOfTheElementsElementalEpitome(character) ? (
+              <ElementalAttunementResistanceSelector
+                selectedDamageType={selectedMonkElementalAttunementResistanceDamageType}
+                onSelectDamageType={updateMonkElementalAttunementResistanceDamageType}
+                name="monk-elemental-attunement-active-resistance"
+                helperText="Change the Elemental Epitome resistance granted by the active Elemental Attunement."
               />
             ) : selectedStatusEntry.sourceId ===
               paladinOathOfTheNobleGeniesAuraOfElementalShieldingStatusSourceId ? (
