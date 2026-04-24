@@ -84,12 +84,10 @@ import {
   normalizeMonkWarriorOfShadowFeatureState
 } from "./subclasses/monkWarriorOfShadow";
 import {
-  activateMonkWarriorOfTheOpenHandQuiveringPalm,
   activateMonkWarriorOfTheOpenHandWholenessOfBody,
   getMonkWarriorOfTheOpenHandFleetStepFollowUpUsesRemaining,
   getMonkWarriorOfTheOpenHandWholenessOfBodyUsesTotal,
   grantMonkWarriorOfTheOpenHandFleetStepFollowUpUse,
-  monkQuiveringPalmActionKey,
   monkWholenessOfBodyActionKey,
   normalizeMonkWarriorOfTheOpenHandFeatureState,
   restoreMonkWarriorOfTheOpenHandWholenessOfBodyOnLongRest
@@ -140,7 +138,6 @@ export const monkHandOfUltimateJusticeActionKey = warriorOfMercyHandOfUltimateJu
 export { monkCloakOfShadowActionKey };
 export { monkShadowStepActionKey };
 export { monkWholenessOfBodyActionKey };
-export { monkQuiveringPalmActionKey };
 export { monkElementalAttunementActionKey };
 export { monkElementalBurstActionKey };
 
@@ -1151,10 +1148,6 @@ export function activateMonkElementalBurst(character: Character): Character {
 
 export function activateMonkWholenessOfBody(character: Character): Character {
   return activateMonkWarriorOfTheOpenHandWholenessOfBody(character);
-}
-
-export function activateMonkQuiveringPalm(character: Character): Character {
-  return activateMonkWarriorOfTheOpenHandQuiveringPalm(character);
 }
 
 export function expendMonkFocusPoint(character: Character): Character {

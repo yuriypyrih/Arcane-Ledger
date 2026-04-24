@@ -163,7 +163,6 @@ import {
   activateMonkPatientDefense,
   activateMonkHandOfHealing,
   activateMonkHandOfUltimateJustice,
-  activateMonkQuiveringPalm,
   activateMonkShadowStep,
   activateMonkStepOfTheWind,
   activateMonkSuperiorDefense,
@@ -190,7 +189,6 @@ import {
   monkCloakOfShadowActionKey,
   monkElementalBurstActionKey,
   monkElementalAttunementActionKey,
-  monkQuiveringPalmActionKey,
   monkShadowStepActionKey,
   monkStepOfTheWindActionKey,
   monkSuperiorDefenseActionKey,
@@ -678,10 +676,6 @@ const classFeatureModules = {
 
       if (actionKey === monkWholenessOfBodyActionKey) {
         return activateMonkWholenessOfBody(character);
-      }
-
-      if (actionKey === monkQuiveringPalmActionKey) {
-        return activateMonkQuiveringPalm(character);
       }
 
       if (actionKey === monkCloakOfShadowActionKey) {

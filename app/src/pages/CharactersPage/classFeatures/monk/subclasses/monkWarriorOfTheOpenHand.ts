@@ -18,7 +18,6 @@ import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 export const warriorOfTheOpenHandSubclassId = "monk-warrior-of-the-open-hand";
 export const monkWholenessOfBodyActionKey =
   "monk-warrior-of-the-open-hand-wholeness-of-body";
-export const monkQuiveringPalmActionKey = "monk-warrior-of-the-open-hand-quivering-palm";
 export const monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId =
   "feature-monk-warrior-of-the-open-hand-quivering-palm";
 export const monkWarriorOfTheOpenHandQuiveringPalmFocusCost = 4;
@@ -529,27 +528,6 @@ function getMonkWarriorOfTheOpenHandFeatureActions(
     });
   }
 
-  if (isMonkWarriorOfTheOpenHandQuiveringPalmActive(character)) {
-    actions.push({
-      key: monkQuiveringPalmActionKey,
-      name: quiveringPalmEffectName,
-      summary: "End the vibrations on the creature you marked.",
-      detail: "End the current Quivering Palm vibrations on the marked creature.",
-      breakdown: "End the active Quivering Palm",
-      economyType: ECONOMY_TYPE.ACTION,
-      actionCategory: ACTION_CATEGORY.FEATURE,
-      description: [...quiveringPalmDescription],
-      drawer: {
-        kind: "confirm",
-        eyebrow: "Warrior of the Open Hand",
-        description: [...quiveringPalmDescription]
-      },
-      execute: {
-        kind: "activate"
-      }
-    });
-  }
-
   return actions;
 }
 
@@ -571,11 +549,21 @@ export const getMonkWarriorOfTheOpenHandDerivedFeatureState: SubclassRuntimeReso
         return action;
       }
 
-      return appendSourcedDescriptionAddition(
+      let nextAction = appendSourcedDescriptionAddition(
         action,
         openHandTechniqueName,
         openHandTechniqueDescription
       );
+
+      if (hasMonkWarriorOfTheOpenHandQuiveringPalm(character)) {
+        nextAction = appendSourcedDescriptionAddition(
+          nextAction,
+          quiveringPalmEffectName,
+          quiveringPalmDescription
+        );
+      }
+
+      return nextAction;
     }
   };
 };

@@ -211,20 +211,20 @@ export const monkSubclassEntries: SubclassEntry[] = [
           "<strong>Push.</strong> The target must succeed on a <link:Strength Saving Throw>Strength saving throw</link> or be pushed up to 15 feet away from you.",
           "<strong>Topple.</strong> The target must succeed on a <link:Dexterity Saving Throw>Dexterity saving throw</link> or have the <link:Prone>Prone</link> condition."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.WHOLENESS_OF_BODY, {
         description: [
           "You gain the ability to heal yourself. As a Bonus Action, you can roll your Martial Arts die. You regain a number of Hit Points equal to the number rolled plus your <link:WIS>Wisdom</link> modifier (minimum of 1 Hit Point regained).",
           "You can use this feature a number of times equal to your <link:WIS>Wisdom</link> modifier (minimum of once), and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_11, CLASS_FEATURE.FLEET_STEP, {
         description: [
           "When you take a Bonus Action other than Step of the Wind, you can also use Step of the Wind immediately after that Bonus Action."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.QUIVERING_PALM, {
         description: [
@@ -233,7 +233,7 @@ export const monkSubclassEntries: SubclassEntry[] = [
           "When you end them, the target must make a <link:Constitution Saving Throw>Constitution saving throw</link>, taking <strong>10d12</strong> <link:Force>Force</link> damage on a failed save or half as much damage on a successful one.",
           "You can have only one creature under the effect of this feature at a time. You can end the vibrations harmlessly (no action required)."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       })
     ]
   }
