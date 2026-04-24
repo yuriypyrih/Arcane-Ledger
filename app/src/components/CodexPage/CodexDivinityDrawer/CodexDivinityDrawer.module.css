@@ -71,6 +71,17 @@
   gap: 0.75rem;
 }
 
+.castingTimeContent {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.42rem;
+}
+
+.castingTimeShape {
+  flex-shrink: 0;
+}
+
 .descriptionDivider {
   border: none;
   border-top: 1px solid rgba(75, 47, 29, 0.14);

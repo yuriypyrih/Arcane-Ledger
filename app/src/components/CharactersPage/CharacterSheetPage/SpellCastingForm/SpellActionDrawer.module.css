@@ -87,6 +87,13 @@
   min-width: 0;
 }
 
+.featureActionRadioGroup {
+  display: grid;
+  gap: 0.5rem;
+  margin-left: 1.4rem;
+  min-width: 0;
+}
+
 .featureActionSelectLabel {
   color: #8c4d14;
   font-size: 0.78rem;

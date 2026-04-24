@@ -1,10 +1,9 @@
-import {
-  type AbilityKey,
-  type CharacterCustomTraitEffect,
-  STATUS_DURATION_PRESET,
-  STATUS_DURATION_ROUND_TICK
-} from "../../../../../types";
+import { type AbilityKey, type CharacterCustomTraitEffect } from "../../../../../types";
 import { WEAPON_COMBAT_TYPE } from "../../../../../codex/entries";
+import {
+  defaultManualStatusDurationDraft,
+  type ManualStatusDurationType
+} from "./manualStatusDuration";
 
 const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
@@ -19,8 +18,8 @@ export type CustomTraitEffectDraft = {
 export type CustomTraitDraft = {
   name: string;
   description: string;
-  durationPreset: STATUS_DURATION_PRESET;
-  roundTickOn: STATUS_DURATION_ROUND_TICK;
+  durationType: ManualStatusDurationType;
+  durationValue: number;
   effects: CustomTraitEffectDraft[];
 };
 
@@ -70,8 +69,8 @@ export function createDefaultCustomTraitDraft(): CustomTraitDraft {
   return {
     name: "",
     description: "",
-    durationPreset: STATUS_DURATION_PRESET.INFINITE,
-    roundTickOn: STATUS_DURATION_ROUND_TICK.ROUND_START,
+    durationType: defaultManualStatusDurationDraft.type,
+    durationValue: defaultManualStatusDurationDraft.value,
     effects: [createCustomTraitEffectDraft()]
   };
 }

@@ -1,5 +1,6 @@
 import { Brain, Flame, Hexagon, Music, PawPrint, Sparkles } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import ActionShape, { getActionShapeForCastingTime } from "../../ActionShape";
 import CellContainer from "../../CellContainer/CellContainer";
 import SpellDescriptionContent from "../../SpellDescriptionContent";
 import { FEATS, type DivinityEntry, type SpellEntry } from "../../../codex/entries";
@@ -207,6 +208,7 @@ function CodexDivinityDrawer({
     resolvedDisplay.healing,
     resolvedDisplay.valueCell
   );
+  const castingTimeActionShape = getActionShapeForCastingTime(divinity.castingTime);
   const hasBaseDescription = resolvedDisplay.description.length > 0;
   const descriptionSections = resolvedDisplay.descriptionAdditions.filter(
     (section) => section.length > 0
@@ -260,7 +262,19 @@ function CodexDivinityDrawer({
           <OverlayDetailsGrid>
             <CellContainer
               label="Casting Time"
-              content={formatSpellCastingTime(divinity.castingTime)}
+              content={
+                <span className={styles.castingTimeContent}>
+                  <span>{formatSpellCastingTime(divinity.castingTime)}</span>
+                  {castingTimeActionShape ? (
+                    <ActionShape
+                      shape={castingTimeActionShape}
+                      isSelected
+                      size="small"
+                      className={styles.castingTimeShape}
+                    />
+                  ) : null}
+                </span>
+              }
             />
             <CellContainer label="Range" content={divinity.range} />
             <CellContainer label="Duration" content={divinity.duration} />

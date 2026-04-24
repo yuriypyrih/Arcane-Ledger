@@ -29,6 +29,15 @@
   appearance: textfield;
 }
 
-.inputInvalid {
+.inputInvalid,
+.input[data-range-invalid="true"],
+.input:out-of-range {
   border-color: rgba(169, 56, 32, 0.42);
+}
+
+.inputInvalid:focus,
+.input[data-range-invalid="true"]:focus,
+.input:out-of-range:focus {
+  border-color: rgba(169, 56, 32, 0.58);
+  box-shadow: 0 0 0 4px rgba(169, 56, 32, 0.12);
 }

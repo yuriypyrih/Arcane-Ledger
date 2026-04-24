@@ -2,13 +2,18 @@ import { CLASS_FEATURE, REACTION, type ReactionEntry } from "../../../../../code
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
 import {
+  STATUS_DURATION_ROUND_TICK,
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import type { WeaponAction } from "../../../gameplay";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
@@ -22,17 +27,27 @@ import {
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
+  FeatureIndicator,
   FeatureSpeedBonus
 } from "../../types";
-import { hasActivePaladinAuraOfProtection, hasPaladinFeature } from "../paladin";
+import {
+  expendPaladinChannelDivinityUse,
+  getPaladinChannelDivinityUsesRemaining,
+  hasActivePaladinAuraOfProtection,
+  hasPaladinFeature
+} from "../paladin";
 
 export const oathOfVengeanceSubclassId = "paladin-oath-of-vengeance";
 export const avengingAngelActionKey = "paladin-avenging-angel";
 export const frightfulAuraReactionId = "reaction-paladin-frightful-aura";
+export const relentlessAvengerReactionId = "reaction-paladin-relentless-avenger";
+export const soulOfVengeanceReactionId = "reaction-paladin-soul-of-vengeance";
 export const paladinOathOfVengeanceAvengingAngelStatusSourceId =
   "feature-paladin-oath-of-vengeance-avenging-angel";
 export const paladinOathOfVengeanceFrightfulAuraStatusSourceId =
   "feature-paladin-oath-of-vengeance-frightful-aura";
+export const paladinOathOfVengeanceVowOfEnmityStatusSourceId =
+  "feature-paladin-oath-of-vengeance-vow-of-enmity";
 
 const oathOfVengeanceSpellIdsByLevel = {
   3: resolveSpellIdsByName(["Bane", "Hunter's Mark"]),
@@ -43,9 +58,18 @@ const oathOfVengeanceSpellIdsByLevel = {
 } as const;
 const avengingAngelName = "Avenging Angel";
 const frightfulAuraName = "Frightful Aura";
+const relentlessAvengerName = "Relentless Avenger";
+const soulOfVengeanceName = "Soul of Vengeance";
+const vowOfEnmityName = "Vow of Enmity";
+const vowOfEnmityDurationTurns = 10;
 const avengingAngelUsesTotal = 1;
 const avengingAngelFallbackSpellSlotLevel = 5;
 const oathOfVengeanceSubclassEntry = getSubclassEntryById(oathOfVengeanceSubclassId);
+const vowOfEnmityAdvantageIndicator: FeatureIndicator = {
+  label: "Advantage",
+  tone: "advantage",
+  source: vowOfEnmityName
+};
 const frightfulAuraDescription = [
   "Whenever an enemy starts its turn in your Aura of Protection, that creature must succeed on a Wisdom saving throw or have the Frightened condition for 1 minute or until it takes any damage.",
   "Attack rolls against the Frightened creature have Advantage."
@@ -53,8 +77,19 @@ const frightfulAuraDescription = [
 
 type PaladinOathOfVengeanceCharacter = Pick<Character, "className"> &
   Partial<
-    Pick<Character, "classFeatureState" | "level" | "spellSlotsExpended" | "statusEntries" | "subclassId">
+    Pick<
+      Character,
+      "classFeatureState" | "level" | "spellSlotsExpended" | "statusEntries" | "subclassId"
+    >
   >;
+
+type VowOfEnmityAction = Pick<WeaponAction, "attackKind">;
+
+export type PaladinOathOfVengeanceVowOfEnmityOptionState = {
+  active: boolean;
+  disabled: boolean;
+  disabledReason?: string;
+};
 
 function getOathOfVengeanceFeatureDescriptionEntries(feature: CLASS_FEATURE): string[] {
   const featureRow = oathOfVengeanceSubclassEntry?.features.find((row) =>
@@ -78,6 +113,30 @@ const frightfulAuraReactionEntry: ReactionEntry = {
   sourceLabel: "Oath of Vengeance",
   description: [...frightfulAuraDescription]
 };
+const relentlessAvengerDescription = getOathOfVengeanceFeatureDescriptionEntries(
+  CLASS_FEATURE.RELENTLESS_AVENGER
+);
+const relentlessAvengerReactionEntry: ReactionEntry = {
+  id: relentlessAvengerReactionId,
+  reaction: REACTION.RELENTLESS_AVENGER,
+  name: relentlessAvengerName,
+  sourceType: "feature",
+  sourceFeature: CLASS_FEATURE.RELENTLESS_AVENGER,
+  sourceLabel: "Oath of Vengeance",
+  description: [...relentlessAvengerDescription]
+};
+const soulOfVengeanceDescription = getOathOfVengeanceFeatureDescriptionEntries(
+  CLASS_FEATURE.SOUL_OF_VENGEANCE
+);
+const soulOfVengeanceReactionEntry: ReactionEntry = {
+  id: soulOfVengeanceReactionId,
+  reaction: REACTION.SOUL_OF_VENGEANCE,
+  name: soulOfVengeanceName,
+  sourceType: "feature",
+  sourceFeature: CLASS_FEATURE.SOUL_OF_VENGEANCE,
+  sourceLabel: "Oath of Vengeance",
+  description: [...soulOfVengeanceDescription]
+};
 
 export function hasPaladinOathOfVengeanceAvengingAngelFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
@@ -86,6 +145,36 @@ export function hasPaladinOathOfVengeanceAvengingAngelFeature(
     character.className === "Paladin" &&
     character.subclassId === oathOfVengeanceSubclassId &&
     (character.level ?? 0) >= 20
+  );
+}
+
+export function hasPaladinOathOfVengeanceVowOfEnmity(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Paladin" &&
+    character.subclassId === oathOfVengeanceSubclassId &&
+    (character.level ?? 0) >= 3
+  );
+}
+
+function hasPaladinOathOfVengeanceRelentlessAvengerFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Paladin" &&
+    character.subclassId === oathOfVengeanceSubclassId &&
+    (character.level ?? 0) >= 7
+  );
+}
+
+function hasPaladinOathOfVengeanceSoulOfVengeanceFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return (
+    character.className === "Paladin" &&
+    character.subclassId === oathOfVengeanceSubclassId &&
+    (character.level ?? 0) >= 15
   );
 }
 
@@ -147,6 +236,16 @@ function getPaladinAuraRangeFeet(character: PaladinOathOfVengeanceCharacter): nu
     : 10;
 }
 
+function getPaladinChannelDivinityUsesRemainingForCharacter(
+  character: PaladinOathOfVengeanceCharacter
+): number {
+  return getPaladinChannelDivinityUsesRemaining({
+    className: character.className,
+    level: character.level ?? 0,
+    classFeatureState: character.classFeatureState ?? {}
+  });
+}
+
 export function hasActivePaladinOathOfVengeanceAvengingAngel(
   character: Pick<Character, "className"> &
     Partial<Pick<Character, "level" | "statusEntries" | "subclassId">>
@@ -162,6 +261,70 @@ export function hasActivePaladinOathOfVengeanceAvengingAngel(
   );
 }
 
+export function hasActivePaladinOathOfVengeanceVowOfEnmity(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "statusEntries" | "subclassId">>
+): boolean {
+  if (!hasPaladinOathOfVengeanceVowOfEnmity(character)) {
+    return false;
+  }
+
+  return normalizeCharacterStatusEntries(character.statusEntries).some(
+    (entry) =>
+      entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+      entry.sourceId === paladinOathOfVengeanceVowOfEnmityStatusSourceId
+  );
+}
+
+function isVowOfEnmityEligibleAction(action: VowOfEnmityAction | null): boolean {
+  return action?.attackKind === "weapon" || action?.attackKind === "unarmed";
+}
+
+export function getPaladinOathOfVengeanceVowOfEnmityOptionState(
+  character: PaladinOathOfVengeanceCharacter,
+  action: VowOfEnmityAction | null
+): PaladinOathOfVengeanceVowOfEnmityOptionState | null {
+  if (!hasPaladinOathOfVengeanceVowOfEnmity(character) || !isVowOfEnmityEligibleAction(action)) {
+    return null;
+  }
+
+  const isActive = hasActivePaladinOathOfVengeanceVowOfEnmity(character);
+  let disabledReason: string | undefined;
+
+  if (isActive) {
+    disabledReason = "Vow of Enmity is already active.";
+  } else if (getPaladinChannelDivinityUsesRemainingForCharacter(character) <= 0) {
+    disabledReason = "No Channel Divinity uses remaining.";
+  }
+
+  return {
+    active: isActive,
+    disabled: Boolean(disabledReason),
+    disabledReason
+  };
+}
+
+export function applyPaladinOathOfVengeanceVowOfEnmityAction(action: WeaponAction): WeaponAction {
+  if (
+    !isVowOfEnmityEligibleAction(action) ||
+    action.indicators.some(
+      (indicator) =>
+        indicator.label === vowOfEnmityAdvantageIndicator.label &&
+        indicator.tone === vowOfEnmityAdvantageIndicator.tone &&
+        (Array.isArray(indicator.source)
+          ? indicator.source.includes(vowOfEnmityName)
+          : indicator.source === vowOfEnmityName)
+    )
+  ) {
+    return action;
+  }
+
+  return {
+    ...action,
+    indicators: [...action.indicators, vowOfEnmityAdvantageIndicator]
+  };
+}
+
 function hasActivePaladinOathOfVengeanceFrightfulAura(
   character: PaladinOathOfVengeanceCharacter
 ): boolean {
@@ -173,6 +336,15 @@ function hasActivePaladinOathOfVengeanceFrightfulAura(
       statusEntries: character.statusEntries ?? []
     })
   );
+}
+
+function transformVowOfEnmityAction(
+  character: PaladinOathOfVengeanceCharacter,
+  action: WeaponAction
+): WeaponAction {
+  return hasActivePaladinOathOfVengeanceVowOfEnmity(character)
+    ? applyPaladinOathOfVengeanceVowOfEnmityAction(action)
+    : action;
 }
 
 function getPaladinOathOfVengeanceFeatureActions(
@@ -288,7 +460,7 @@ function getPaladinOathOfVengeanceDerivedStatusEntries(
       sourceId: paladinOathOfVengeanceFrightfulAuraStatusSourceId,
       group: STATUS_ENTRY_GROUP.AURAS,
       value: frightfulAuraName,
-      source: frightfulAuraName,
+      source: avengingAngelName,
       sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
       duration: {
         kind: STATUS_DURATION_KIND.INFINITE
@@ -301,9 +473,21 @@ function getPaladinOathOfVengeanceDerivedStatusEntries(
 function getPaladinOathOfVengeanceReactionEntries(
   character: PaladinOathOfVengeanceCharacter
 ): ReactionEntry[] {
-  return hasActivePaladinOathOfVengeanceFrightfulAura(character)
-    ? [frightfulAuraReactionEntry]
-    : [];
+  const reactionEntries: ReactionEntry[] = [];
+
+  if (hasPaladinOathOfVengeanceRelentlessAvengerFeature(character)) {
+    reactionEntries.push(relentlessAvengerReactionEntry);
+  }
+
+  if (hasPaladinOathOfVengeanceSoulOfVengeanceFeature(character)) {
+    reactionEntries.push(soulOfVengeanceReactionEntry);
+  }
+
+  if (hasActivePaladinOathOfVengeanceFrightfulAura(character)) {
+    reactionEntries.push(frightfulAuraReactionEntry);
+  }
+
+  return reactionEntries;
 }
 
 function getPaladinOathOfVengeanceSpeedBonuses(
@@ -341,6 +525,45 @@ export function applyPaladinOathOfVengeanceAvengingAngelStatus(character: Charac
           amount: 10
         },
         sourceId: paladinOathOfVengeanceAvengingAngelStatusSourceId
+      })
+    ]
+  };
+}
+
+export function activatePaladinOathOfVengeanceVowOfEnmity(character: Character): Character {
+  if (
+    !hasPaladinOathOfVengeanceVowOfEnmity(character) ||
+    hasActivePaladinOathOfVengeanceVowOfEnmity(character) ||
+    getPaladinChannelDivinityUsesRemainingForCharacter(character) <= 0
+  ) {
+    return character;
+  }
+
+  const nextCharacter = expendPaladinChannelDivinityUse(character);
+
+  if (nextCharacter === character) {
+    return character;
+  }
+
+  const nextStatusEntries = normalizeCharacterStatusEntries(nextCharacter.statusEntries).filter(
+    (entry) => entry.sourceId !== paladinOathOfVengeanceVowOfEnmityStatusSourceId
+  );
+
+  return {
+    ...nextCharacter,
+    statusEntries: [
+      ...nextStatusEntries,
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: vowOfEnmityName,
+        source: vowOfEnmityName,
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+        duration: {
+          kind: STATUS_DURATION_KIND.ROUNDS,
+          amount: vowOfEnmityDurationTurns,
+          tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
+        },
+        sourceId: paladinOathOfVengeanceVowOfEnmityStatusSourceId
       })
     ]
   };
@@ -424,9 +647,7 @@ export function restorePaladinOathOfVengeanceAvengingAngelOnLongRest(
   };
 }
 
-export const getPaladinOathOfVengeanceDerivedFeatureState: SubclassRuntimeResolver = (
-  character
-) =>
+export const getPaladinOathOfVengeanceDerivedFeatureState: SubclassRuntimeResolver = (character) =>
   character.className === "Paladin" &&
   character.subclassId === oathOfVengeanceSubclassId &&
   (character.level ?? 0) >= 3
@@ -438,6 +659,7 @@ export const getPaladinOathOfVengeanceDerivedFeatureState: SubclassRuntimeResolv
         featureActions: getPaladinOathOfVengeanceFeatureActions(character),
         derivedStatusEntries: getPaladinOathOfVengeanceDerivedStatusEntries(character),
         reactionEntries: getPaladinOathOfVengeanceReactionEntries(character),
-        speedBonuses: getPaladinOathOfVengeanceSpeedBonuses(character)
+        speedBonuses: getPaladinOathOfVengeanceSpeedBonuses(character),
+        transformWeaponAction: (action) => transformVowOfEnmityAction(character, action)
       }
     : {};

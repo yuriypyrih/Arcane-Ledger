@@ -3,6 +3,7 @@ import {
   DAMAGE_TYPE,
   REACTION,
   type ReactionEntry,
+  type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
@@ -13,24 +14,26 @@ import type {
   SkillProficiencyEntry
 } from "../../../../../types";
 import {
+  CONDITION_NAME,
   PROFICIENCY_OVERRIDE_POLICY,
   PROFICIENCY_SOURCE,
   PROF_LEVEL,
   SKILL,
   STATUS_DURATION_KIND,
+  STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
   getSkillProficiencyForSkillName,
   isSkillName
 } from "../../../../../types";
-import {
-  createSourcedDescriptionEntries,
-  descriptionValueSomeText
-} from "../../../actionModalDescriptions";
+import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
@@ -83,6 +86,11 @@ const oathOfTheNobleGeniesSpellIdsByLevel = {
 const divineSmiteSpellId = "spell-divine-smite";
 const geniesSplendorSource = "Genie's Splendor";
 const elementalSmiteSource = "Elemental Smite";
+const elementalSmiteDjinnisEscapeName = "Djinni's Escape";
+const elementalSmiteDjinnisEscapeStatusSourceId =
+  "feature-paladin-oath-of-the-noble-genies-elemental-smite-djinnis-escape";
+const elementalSmiteDjinnisEscapeDurationRounds = 2;
+const elementalSmiteEfreetisFuryBonusDamageDetail = "2d4 Fire";
 const auraOfElementalShieldingName = "Aura of Elemental Shielding";
 const elementalRebukeName = "Elemental Rebuke";
 const nobleScionName = "Noble Scion";
@@ -95,11 +103,33 @@ const minorWishDescription = [
   "When you or an ally in your Aura of Protection fails a D20 Test, you can take a Reaction to make the D20 Test succeed instead."
 ] as const;
 
+function stripElementalSmiteOptionLabel(
+  label: string,
+  entry: SpellDescriptionEntry | undefined
+): SpellDescriptionEntry | null {
+  if (!entry) {
+    return null;
+  }
+
+  if (typeof entry !== "string") {
+    return entry;
+  }
+
+  const prefix = `<strong>${label}.</strong> `;
+
+  return entry.startsWith(prefix) ? entry.slice(prefix.length) : entry;
+}
+
 type PaladinOathOfTheNobleGeniesCharacter = Pick<Character, "className"> &
   Partial<
     Pick<
       Character,
-      "abilities" | "classFeatureState" | "level" | "spellSlotsExpended" | "statusEntries" | "subclassId"
+      | "abilities"
+      | "classFeatureState"
+      | "level"
+      | "spellSlotsExpended"
+      | "statusEntries"
+      | "subclassId"
     >
   >;
 
@@ -116,6 +146,43 @@ function getOathOfTheNobleGeniesFeatureDescriptionEntries(feature: CLASS_FEATURE
 const elementalSmiteDescription = getOathOfTheNobleGeniesFeatureDescriptionEntries(
   CLASS_FEATURE.ELEMENTAL_SMITE
 );
+const elementalSmiteIntroDescription = elementalSmiteDescription[0]
+  ? [elementalSmiteDescription[0]]
+  : [];
+export const paladinOathOfTheNobleGeniesElementalSmiteOptions = [
+  {
+    key: "dao-crush",
+    label: "Dao's Crush",
+    descriptionEntries: [
+      stripElementalSmiteOptionLabel("Dao's Crush", elementalSmiteDescription[1])
+    ].filter((entry): entry is SpellDescriptionEntry => entry !== null)
+  },
+  {
+    key: "djinnis-escape",
+    label: "Djinni's Escape",
+    descriptionEntries: [
+      stripElementalSmiteOptionLabel("Djinni's Escape", elementalSmiteDescription[2]),
+      elementalSmiteDescription[3] ?? null
+    ].filter((entry): entry is SpellDescriptionEntry => entry !== null)
+  },
+  {
+    key: "efreetis-fury",
+    label: "Efreeti's Fury",
+    descriptionEntries: [
+      stripElementalSmiteOptionLabel("Efreeti's Fury", elementalSmiteDescription[4])
+    ].filter((entry): entry is SpellDescriptionEntry => entry !== null)
+  },
+  {
+    key: "marids-surge",
+    label: "Marid's Surge",
+    descriptionEntries: [
+      stripElementalSmiteOptionLabel("Marid's Surge", elementalSmiteDescription[5])
+    ].filter((entry): entry is SpellDescriptionEntry => entry !== null)
+  }
+] as const;
+
+export type PaladinOathOfTheNobleGeniesElementalSmiteOptionKey =
+  (typeof paladinOathOfTheNobleGeniesElementalSmiteOptions)[number]["key"];
 const elementalRebukeDescription = getOathOfTheNobleGeniesFeatureDescriptionEntries(
   CLASS_FEATURE.ELEMENTAL_REBUKE
 );
@@ -221,9 +288,8 @@ export function getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection(
 
   return (
     normalizePaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection(
-      (
-        character.classFeatureState?.paladin as Partial<CharacterPaladinFeatureState> | undefined
-      )?.nobleGeniesGeniesSplendorSkill
+      (character.classFeatureState?.paladin as Partial<CharacterPaladinFeatureState> | undefined)
+        ?.nobleGeniesGeniesSplendorSkill
     ) ?? null
   );
 }
@@ -236,9 +302,8 @@ export function getPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageType
   }
 
   return normalizePaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageType(
-    (
-      character.classFeatureState?.paladin as Partial<CharacterPaladinFeatureState> | undefined
-    )?.nobleGeniesAuraOfElementalShieldingDamageType
+    (character.classFeatureState?.paladin as Partial<CharacterPaladinFeatureState> | undefined)
+      ?.nobleGeniesAuraOfElementalShieldingDamageType
   );
 }
 
@@ -403,19 +468,64 @@ function appendElementalSmiteDescription(spell: SpellEntry): SpellEntry {
     return spell;
   }
 
-  const marker = `<strong>${elementalSmiteSource}.</strong>`;
+  return appendSourcedDescriptionAddition(
+    spell,
+    elementalSmiteSource,
+    elementalSmiteIntroDescription
+  );
+}
 
-  if (
-    descriptionValueSomeText({ description: spell.description }, (entry) => entry.includes(marker))
-  ) {
-    return spell;
+export function getPaladinOathOfTheNobleGeniesElementalSmiteDamageDetail(
+  baseDamageDetail: string,
+  option: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null
+): string {
+  return option === "efreetis-fury"
+    ? `${baseDamageDetail} + ${elementalSmiteEfreetisFuryBonusDamageDetail}`
+    : baseDamageDetail;
+}
+
+export function applyPaladinOathOfTheNobleGeniesElementalSmiteEffect(
+  character: Character,
+  option: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null
+): Character {
+  if (option !== "djinnis-escape") {
+    return character;
   }
 
+  const nextStatusEntries = normalizeCharacterStatusEntries(character.statusEntries).filter(
+    (entry) => entry.sourceId !== elementalSmiteDjinnisEscapeStatusSourceId
+  );
+  const duration = {
+    kind: STATUS_DURATION_KIND.ROUNDS as const,
+    amount: elementalSmiteDjinnisEscapeDurationRounds,
+    tickOn: STATUS_DURATION_ROUND_TICK.ROUND_END
+  };
+
   return {
-    ...spell,
-    description: [
-      ...spell.description,
-      ...createSourcedDescriptionEntries(elementalSmiteSource, elementalSmiteDescription)
+    ...character,
+    statusEntries: [
+      ...nextStatusEntries,
+      ...[DAMAGE_TYPE.BLUDGEONING, DAMAGE_TYPE.PIERCING, DAMAGE_TYPE.SLASHING].map((damageType) =>
+        createCharacterStatusEntry({
+          group: STATUS_ENTRY_GROUP.RESISTANCES,
+          value: damageType,
+          source: elementalSmiteDjinnisEscapeName,
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+          duration,
+          sourceId: elementalSmiteDjinnisEscapeStatusSourceId
+        })
+      ),
+      ...[CONDITION_NAME.GRAPPLED, CONDITION_NAME.PRONE, CONDITION_NAME.RESTRAINED].map(
+        (condition) =>
+          createCharacterStatusEntry({
+            group: STATUS_ENTRY_GROUP.IMMUNITIES,
+            value: condition,
+            source: elementalSmiteDjinnisEscapeName,
+            sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+            duration,
+            sourceId: elementalSmiteDjinnisEscapeStatusSourceId
+          })
+      )
     ]
   };
 }
@@ -431,9 +541,8 @@ function getPaladinOathOfTheNobleGeniesDerivedStatusEntries(
   });
 
   if (hasPaladinOathOfTheNobleGeniesAuraOfElementalShielding(character) && hasAuraOfProtection) {
-    const damageType = getPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelection(
-      character
-    );
+    const damageType =
+      getPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelection(character);
 
     if (damageType) {
       derivedStatusEntries.push(
@@ -583,7 +692,8 @@ function getPaladinOathOfTheNobleGeniesFeatureActions(
   }
 
   const usesRemaining = getPaladinOathOfTheNobleGeniesNobleScionUsesRemaining(character);
-  const fallbackSlotSummary = getPaladinOathOfTheNobleGeniesNobleScionFallbackSlotSummary(character);
+  const fallbackSlotSummary =
+    getPaladinOathOfTheNobleGeniesNobleScionFallbackSlotSummary(character);
   const showFallbackSlotInfo = usesRemaining <= 0 && fallbackSlotSummary.total > 0;
   const hasFallbackSlot = showFallbackSlotInfo && fallbackSlotSummary.remaining > 0;
   const isActive = hasActivePaladinOathOfTheNobleGeniesNobleScion(character);

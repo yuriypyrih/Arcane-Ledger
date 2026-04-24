@@ -32,3 +32,9 @@
   color: var(--color-ink-soft);
   font-size: 0.92rem;
 }
+
+.statusFormulaGrid {
+  display: grid;
+  gap: 0.55rem;
+  grid-template-columns: minmax(0, 1fr);
+}

@@ -196,6 +196,8 @@ import {
   normalizeMonkFeatureState
 } from "./monk/monk";
 import {
+  abjureFoesActionKey,
+  activateAbjureFoes,
   activateElderChampion,
   activateHolyNimbus,
   activateLivingLegend,
@@ -729,6 +731,10 @@ const classFeatureModules = {
 
       if (actionKey === holyNimbusActionKey) {
         return activateHolyNimbus(character);
+      }
+
+      if (actionKey === abjureFoesActionKey) {
+        return activateAbjureFoes(character);
       }
 
       if (actionKey === naturesWrathActionKey) {

@@ -15,12 +15,12 @@ import {
   STATUS_ENTRY_SOURCE_TYPE,
   WEAPON_PROFICIENCY
 } from "../../../../types";
+import { appendSourcedDescriptionAddition } from "../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
-import {
-  hasStatusCondition,
-  normalizeCharacterStatusEntries
-} from "../../statusEntries";
+import { hasStatusCondition, normalizeCharacterStatusEntries } from "../../statusEntries";
+import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
+import { createFeatureActionCardCost, createNamedUsageHeaderTags } from "../cardUsage";
 import {
   getEffectiveHitPointMaximumForCharacter,
   reconcileCharacterStatusConsequences
@@ -82,6 +82,7 @@ const layOnHandsRestoringTouchConditions = [
   CONDITION_NAME.STUNNED
 ] as const;
 const paladinWeaponMasteryOptions = getWeaponMasteryOptions();
+const restoringTouchFeatureName = "Restoring Touch";
 
 export type LayOnHandsTarget = "self" | "other";
 export type LayOnHandsCondition =
@@ -103,6 +104,14 @@ function getDivinityDescriptionLine(index: number): string {
   const line = divineSense?.description[index];
 
   return typeof line === "string" ? line : "";
+}
+
+function getPaladinChannelDivinityDescription(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): string[] {
+  return getFeatureDescriptionForCharacter(character, CLASS_FEATURE.CHANNEL_DIVINITY)
+    .filter((entry): entry is string => typeof entry === "string")
+    .slice(0, 3);
 }
 
 function getPaladinsSmiteDescription(): string[] {
@@ -581,8 +590,7 @@ export function getPaladinFeatureActions(
   if (hasPaladinFeature(character, CLASS_FEATURE.LAY_ON_HANDS)) {
     const totalPool = getPaladinHealingPoolTotal(character);
     const remainingPool = getPaladinHealingPoolRemaining(character);
-
-    featureActions.push({
+    const layOnHandsAction: FeatureActionCard = {
       key: paladinLayOnHandsActionKey,
       name: "Lay on Hands",
       sourceFeature: CLASS_FEATURE.LAY_ON_HANDS,
@@ -591,16 +599,13 @@ export function getPaladinFeatureActions(
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
       valueLabel: `Pool of Healing ${remainingPool}/${totalPool}`,
-      facts: [
-        {
-          label: "Pool Remaining",
-          value: `${remainingPool}`
-        }
-      ],
       drawer: {
         kind: "custom-form",
         eyebrow: "Paladin",
-        formKind: "lay-on-hands"
+        formKind: "lay-on-hands",
+        facts: [],
+        factsSectionTitle: null,
+        confirmLabel: "Heal"
       },
       execute: {
         kind: "custom-form",
@@ -608,7 +613,17 @@ export function getPaladinFeatureActions(
       },
       disabled: remainingPool <= 0,
       disabledReason: remainingPool <= 0 ? "Pool of Healing is empty." : undefined
-    });
+    };
+
+    featureActions.push(
+      hasPaladinFeature(character, CLASS_FEATURE.RESTORING_TOUCH)
+        ? appendSourcedDescriptionAddition(
+            layOnHandsAction,
+            restoringTouchFeatureName,
+            paladinFeatureMap[CLASS_FEATURE.RESTORING_TOUCH]?.description ?? []
+          )
+        : layOnHandsAction
+    );
   }
 
   if (hasPaladinFeature(character, CLASS_FEATURE.CHANNEL_DIVINITY)) {
@@ -620,8 +635,7 @@ export function getPaladinFeatureActions(
       name: "Channel Divinity",
       sourceFeature: CLASS_FEATURE.CHANNEL_DIVINITY,
       summary: "Choose a divine effect.",
-      detail:
-        "Use Divine Sense as a Bonus Action to detect Celestials, Fiends, and Undead within 60 feet.",
+      detail: "Open a divine effect and expend 1 Channel Divinity use.",
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.FEATURE,
       hideUsesTrackerOnCard: true,
@@ -629,6 +643,7 @@ export function getPaladinFeatureActions(
       usesInlineIcon: "pyromancy",
       usesRemaining,
       usesTotal: totalUses,
+      description: getPaladinChannelDivinityDescription(character),
       resources: [
         {
           kind: "tracker",
@@ -723,6 +738,9 @@ export function getPaladinFeatureActions(
   }
 
   if (hasPaladinFeature(character, CLASS_FEATURE.ABJURE_FOES)) {
+    const usesRemaining = getPaladinChannelDivinityUsesRemaining(character);
+    const usesTotal = getPaladinChannelDivinityUsesTotal(character);
+
     featureActions.push({
       key: abjureFoesActionKey,
       name: "Abjure Foes",
@@ -731,7 +749,28 @@ export function getPaladinFeatureActions(
       detail: "Use a Magic action to force nearby foes to resist your divine presence.",
       economyType: ECONOMY_TYPE.ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
-      consumesEconomyOnActivate: true
+      consumesEconomyOnActivate: true,
+      hideUsesTrackerOnCard: true,
+      usesInlineLabel: "Use 1",
+      usesInlineIcon: "pyromancy",
+      usesRemaining,
+      usesTotal,
+      headerTags: createNamedUsageHeaderTags(
+        createFeatureActionCardCost({
+          amountText: "1",
+          icon: "pyromancy"
+        }),
+        usesRemaining,
+        usesTotal,
+        {
+          label: "Channel Divinity"
+        }
+      ),
+      execute: {
+        kind: "activate"
+      },
+      disabled: usesRemaining <= 0,
+      disabledReason: usesRemaining <= 0 ? "No Channel Divinity uses remaining." : undefined
     });
   }
 
@@ -1003,6 +1042,18 @@ export function restoreUndyingSentinelOnLongRest(character: Character): Characte
 
 export function activateHolyNimbus(character: Character): Character {
   return devotionSubclass.activatePaladinOathOfDevotionHolyNimbus(character);
+}
+
+export function activateAbjureFoes(character: Character): Character {
+  if (!hasPaladinFeature(character, CLASS_FEATURE.ABJURE_FOES)) {
+    return character;
+  }
+
+  if (getPaladinChannelDivinityUsesRemaining(character) <= 0) {
+    return character;
+  }
+
+  return expendPaladinChannelDivinityUse(character);
 }
 
 export function activateNaturesWrath(character: Character): Character {

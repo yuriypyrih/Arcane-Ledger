@@ -12,6 +12,7 @@ import styles from "./ReactionEntryDrawer.module.css";
 type ReactionEntryDrawerProps = {
   reaction: ReactionEntry;
   actionWarning: string | null;
+  actionShapeAvailable?: boolean;
   headerBadges?: string[];
   headerTags?: FeatureActionHeaderTag[];
   facts?: FeatureActionFact[];
@@ -26,6 +27,7 @@ type ReactionEntryDrawerProps = {
 function ReactionEntryDrawer({
   reaction,
   actionWarning,
+  actionShapeAvailable = actionWarning === null,
   headerBadges = [],
   headerTags = [],
   facts = [],
@@ -61,7 +63,7 @@ function ReactionEntryDrawer({
                 <span>Take Reaction</span>
                 <ActionShape
                   shape="reaction"
-                  isSelected={actionWarning === null}
+                  isSelected={actionShapeAvailable}
                   className={styles.castActionShape}
                   aria-label="Reaction action state"
                 />

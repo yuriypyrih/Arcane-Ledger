@@ -1,11 +1,18 @@
 import clsx from "clsx";
 import type { ReactNode } from "react";
 import { DURATION, type SpellEntry } from "../../codex/entries";
-import ActionShape, { getActionShapeForCastingTime } from "../ActionShape";
+import ActionShape, { getActionShapeForCastingTime, type ActionShapeType } from "../ActionShape";
 import ConcentrationLabel from "../ConcentrationLabel";
 import SpellSubtitle from "../SpellSubtitle";
 import { formatSpellCastingTimeSummary, getSpellDurationDisplayParts } from "../../utils/codex";
 import styles from "./SpellListRow.module.css";
+
+type SpellListRowActionShape = {
+  key: string;
+  shape: ActionShapeType;
+  isSelected: boolean;
+  multiCount?: number;
+};
 
 type SpellListRowProps = {
   spell: SpellEntry;
@@ -16,6 +23,7 @@ type SpellListRowProps = {
   detailNoteTone?: "default" | "accent";
   alwaysPrepared?: boolean;
   alwaysSpellbook?: boolean;
+  actionShapes?: SpellListRowActionShape[];
   actionShapeSelected?: boolean;
   actionShapeMultiCount?: number;
   selectable?: boolean;
@@ -102,6 +110,7 @@ function SpellListRow({
   detailNoteTone = "default",
   alwaysPrepared = false,
   alwaysSpellbook = false,
+  actionShapes,
   actionShapeSelected = true,
   actionShapeMultiCount = 0,
   selectable = false,
@@ -114,20 +123,38 @@ function SpellListRow({
 }: SpellListRowProps) {
   const hasValueSummary = valueSummary.trim().length > 0;
   const hasDetailNote = (detailNote ?? "").trim().length > 0;
-  const actionShape = getActionShapeForCastingTime(spell.castingTime);
-  const metaContent = renderSpellRowMeta(spell, actionShape !== null, compactConcentrationDuration);
+  const derivedActionShape = getActionShapeForCastingTime(spell.castingTime);
+  const resolvedActionShapes =
+    actionShapes && actionShapes.length > 0
+      ? actionShapes
+      : derivedActionShape
+        ? [
+            {
+              key: "primary",
+              shape: derivedActionShape,
+              isSelected: actionShapeSelected,
+              multiCount: actionShapeMultiCount
+            }
+          ]
+        : [];
+  const metaContent = renderSpellRowMeta(
+    spell,
+    resolvedActionShapes.length > 0,
+    compactConcentrationDuration
+  );
   const metaNode =
-    !hasDetailNote && (actionShape || metaContent) ? (
+    !hasDetailNote && (resolvedActionShapes.length > 0 || metaContent) ? (
       <span className={styles.metaGroup}>
-        {actionShape ? (
+        {resolvedActionShapes.map((actionShape) => (
           <ActionShape
-            shape={actionShape}
-            isSelected={actionShapeSelected}
-            multiCount={actionShapeMultiCount}
+            key={actionShape.key}
+            shape={actionShape.shape}
+            isSelected={actionShape.isSelected}
+            multiCount={actionShape.multiCount ?? 0}
             size="small"
             className={styles.metaShape}
           />
-        ) : null}
+        ))}
         {metaContent ? <small className={styles.meta}>{metaContent}</small> : null}
       </span>
     ) : (

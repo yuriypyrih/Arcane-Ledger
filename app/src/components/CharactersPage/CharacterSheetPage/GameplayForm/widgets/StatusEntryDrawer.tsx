@@ -20,26 +20,16 @@ import {
   OverlayTitleRow,
   SheetDrawer
 } from "../../../../Overlay";
-import SelectInput from "../../../FormInputs/SelectInput";
-import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import {
-  durationPresetOptions,
-  isRoundDurationPreset,
   getStatusDurationLabel,
   getStatusEntryDescriptionContent,
   isExhaustionStatusEntry,
   getStatusEntrySourceLabel,
-  statusRoundTickOptions,
   getStatusEntryTitle
 } from "../../../../../pages/CharactersPage/traits";
 import type { Character, CharacterStatusEntry } from "../../../../../types";
-import {
-  EFFECT_NAME,
-  STATUS_DURATION_PRESET,
-  STATUS_DURATION_ROUND_TICK,
-  STATUS_ENTRY_GROUP
-} from "../../../../../types";
+import { EFFECT_NAME, STATUS_ENTRY_GROUP } from "../../../../../types";
 import type { ResolvedKeywordReference } from "../../../../../utils/codex/renderCodexRichText";
 import styles from "./StatusEntryDrawer.module.css";
 import {
@@ -47,6 +37,8 @@ import {
   isStatusEntryDurationEditable,
   isStatusEntryRemovable
 } from "./traitsWidgetUtils";
+import ManualStatusDurationFields from "./ManualStatusDurationFields";
+import type { ManualStatusDurationType } from "./manualStatusDuration";
 
 type StatusEntryDrawerProps = {
   character: Character;
@@ -55,10 +47,10 @@ type StatusEntryDrawerProps = {
   afterDetailsContent?: ReactNode;
   customFooterContent?: ReactNode;
   isEditingDuration: boolean;
-  durationPreset: STATUS_DURATION_PRESET;
-  roundTickOn: STATUS_DURATION_ROUND_TICK;
-  onDurationPresetChange: (preset: STATUS_DURATION_PRESET) => void;
-  onRoundTickOnChange: (tickOn: STATUS_DURATION_ROUND_TICK) => void;
+  durationType: ManualStatusDurationType;
+  durationValue: number;
+  onDurationTypeChange: (value: ManualStatusDurationType) => void;
+  onDurationValueChange: (value: number) => void;
   onStartEditDuration: () => void;
   onCancelEditDuration: () => void;
   onApplyDuration: () => void;
@@ -82,10 +74,10 @@ function StatusEntryDrawer({
   afterDetailsContent = null,
   customFooterContent = null,
   isEditingDuration,
-  durationPreset,
-  roundTickOn,
-  onDurationPresetChange,
-  onRoundTickOnChange,
+  durationType,
+  durationValue,
+  onDurationTypeChange,
+  onDurationValueChange,
   onStartEditDuration,
   onCancelEditDuration,
   onApplyDuration,
@@ -97,16 +89,13 @@ function StatusEntryDrawer({
   const canEditDuration = isStatusEntryDurationEditable(entry);
   const canRemove = isStatusEntryRemovable(entry);
   const isExhaustionEntry = isExhaustionStatusEntry(entry);
-  const showRoundTickSelector = isRoundDurationPreset(durationPreset);
   const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
   const [selectedDivinityReference, setSelectedDivinityReference] = useState<DivinityEntry | null>(
     null
   );
   const [selectedKeyword, setSelectedKeyword] = useState<ResolvedKeywordReference | null>(null);
-  const { description: descriptionEntries, descriptionAdditions } = getStatusEntryDescriptionContent(
-    entry,
-    character
-  );
+  const { description: descriptionEntries, descriptionAdditions } =
+    getStatusEntryDescriptionContent(entry, character);
   const hasBaseDescription = descriptionEntries.length > 0;
   const descriptionSections = descriptionAdditions.filter((section) => section.length > 0);
   const footerActions: FooterAction[] = isEditingDuration
@@ -229,10 +218,7 @@ function StatusEntryDrawer({
                   className={sheetStyles.spellDrawerDescriptionAdditionSection}
                 >
                   {hasBaseDescription || index > 0 ? (
-                    <hr
-                      className={sheetStyles.spellDrawerDescriptionDivider}
-                      aria-hidden="true"
-                    />
+                    <hr className={sheetStyles.spellDrawerDescriptionDivider} aria-hidden="true" />
                   ) : null}
                   <DescriptionContent
                     description={section}
@@ -266,40 +252,12 @@ function StatusEntryDrawer({
 
           {isEditingDuration ? (
             <div className={styles.durationEditor}>
-              <label className={shared.field}>
-                <span className={shared.fieldLabel}>Duration</span>
-                <SelectInput
-                  value={durationPreset}
-                  onChange={(event) =>
-                    onDurationPresetChange(event.target.value as STATUS_DURATION_PRESET)
-                  }
-                >
-                  {durationPresetOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </SelectInput>
-              </label>
-
-              {showRoundTickSelector ? (
-                <label className={shared.field}>
-                  <span className={shared.fieldLabel}>Round Tick</span>
-                  <SelectInput
-                    value={roundTickOn}
-                    onChange={(event) =>
-                      onRoundTickOnChange(event.target.value as STATUS_DURATION_ROUND_TICK)
-                    }
-                  >
-                    {statusRoundTickOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </SelectInput>
-                </label>
-              ) : null}
-
+              <ManualStatusDurationFields
+                durationType={durationType}
+                durationValue={durationValue}
+                onDurationTypeChange={onDurationTypeChange}
+                onDurationValueChange={onDurationValueChange}
+              />
             </div>
           ) : null}
         </OverlayBody>

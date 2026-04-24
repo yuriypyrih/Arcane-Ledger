@@ -50,7 +50,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
             "<strong>Level 13.</strong> <spell:Ice Storm>Ice Storm</spell>, <spell:Stoneskin>Stoneskin</spell>",
             "<strong>Level 17.</strong> <spell:Commune with Nature>Commune with Nature</spell>, <spell:Tree Stride>Tree Stride</spell>"
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.NATURES_WRATH, {
@@ -59,14 +59,14 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "Each creature of your choice that you can see within 15 feet of yourself must succeed on a <link:Strength Saving Throw>Strength saving throw</link> or have the <link:Restrained>Restrained</link> condition for 1 minute.",
           "A Restrained creature repeats the save at the end of each of its turns, ending the effect on itself on a success."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.AURA_OF_WARDING, {
         description: [
           "Ancient magic lies so heavily upon you that it forms an eldritch ward, blunting energy from beyond the Material Plane.",
           "You and your allies have <link:Resistance>Resistance</link> to <link:Necrotic>Necrotic</link>, <link:Psychic>Psychic</link>, and <link:Radiant>Radiant</link> damage while in your Aura of Protection."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_15, CLASS_FEATURE.UNDYING_SENTINEL, {
         description: [
@@ -74,7 +74,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "Once you use this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link>.",
           "Additionally, you can't be aged magically, and you cease visibly aging."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_20, CLASS_FEATURE.ELDER_CHAMPION, {
         description: [
@@ -85,7 +85,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "<strong>Regeneration.</strong> At the start of each of your turns, you regain 10 Hit Points.",
           "<strong>Swift Spells.</strong> Whenever you cast a spell that has a casting time of an action, you can cast it using a Bonus Action instead."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       })
     ]
   },
@@ -109,7 +109,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
             "<strong>Level 13.</strong> <spell:Freedom of Movement>Freedom of Movement</spell>, <spell:Guardian of Faith>Guardian of Faith</spell>",
             "<strong>Level 17.</strong> <spell:Commune>Commune</spell>, <spell:Flame Strike>Flame Strike</spell>"
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.SACRED_WEAPON, {
@@ -119,14 +119,14 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "The weapon also emits Bright Light in a 20-foot radius and Dim Light 20 feet beyond that.",
           "You can end this effect early, no action required. This effect also ends if you aren't carrying the weapon."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.AURA_OF_DEVOTION, {
         description: [
           "You and your allies have <link:Immunity>Immunity</link> to the <link:Charmed>Charmed</link> condition while in your Aura of Protection.",
           "If a Charmed ally enters the aura, that condition has no effect on that ally while there."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_15,
@@ -137,7 +137,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
             "Whenever you cast <spell:Divine Smite>Divine Smite</spell>, you and your allies have Half Cover while in your Aura of Protection.",
             "The aura has this benefit until the start of your next turn."
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_20, CLASS_FEATURE.HOLY_NIMBUS, {
@@ -149,7 +149,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "<strong>Radiant Damage.</strong> Whenever an enemy starts its turn in the aura, that creature takes <link:Radiant>Radiant</link> damage equal to your <link:CHA>Charisma</link> modifier plus your <link:Proficiency Bonus>Proficiency Bonus</link>.",
           "<strong>Sunlight.</strong> The aura is filled with Bright Light that is sunlight."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   },
@@ -173,15 +173,15 @@ export const paladinSubclassEntries: SubclassEntry[] = [
             "<strong>Level 13.</strong> <spell:Compulsion>Compulsion</spell>, <spell:Freedom of Movement>Freedom of Movement</spell>",
             "<strong>Level 17.</strong> <spell:Legend Lore>Legend Lore</spell>, <spell:Yolande's Regal Presence>Yolande's Regal Presence</spell>"
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.INSPIRING_SMITE, {
         description: [
           "Immediately after you cast <spell:Divine Smite>Divine Smite</spell>, you can expend one use of your Channel Divinity and distribute <link:Temporary Hit Points>Temporary Hit Points</link> to creatures of your choice within 30 feet of yourself, which can include you.",
-          "The total number of Temporary Hit Points equals <strong>2d8</strong> plus your Paladin level, divided among the chosen creatures however you like."
+          "The total number of Temporary Hit Points equals <strong>2d8</strong> plus your Paladin level, divided among the chosen creatures however you like. (This feature is only present as text, if you choose to apply it you have to deduct the channel divinity and distribute the temporary HP yourself)."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.PEERLESS_ATHLETE, {
         description: [
@@ -189,14 +189,14 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "For 1 hour, you have <link:Advantage>Advantage</link> on <link:STR>Strength</link> (<link:Athletics>Athletics</link>) and <link:DEX>Dexterity</link> (<link:Acrobatics>Acrobatics</link>) checks, and the distance of your Long and High Jumps increases by 10 feet.",
           "This extra distance costs movement as normal."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.AURA_OF_ALACRITY, {
         description: [
           "Your <link:Speed>Speed</link> increases by 10 feet.",
           "In addition, whenever an ally enters your Aura of Protection for the first time on a turn or starts their turn there, the ally's Speed increases by 10 feet until the end of their next turn."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_15, CLASS_FEATURE.GLORIOUS_DEFENSE, {
         description: [
@@ -205,7 +205,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "If the attack misses, you can make one attack with a weapon against the attacker as part of this Reaction if the attacker is within your weapon's range.",
           "You can use this feature a number of times equal to your Charisma modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_20, CLASS_FEATURE.LIVING_LEGEND, {
         description: [
@@ -216,7 +216,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "<strong>Saving Throw Reroll.</strong> If you fail a saving throw, you can take a Reaction to reroll it. You must use the new roll.",
           "<strong>Unerring Strike.</strong> Once on each of your turns when you make an attack roll with a weapon and miss, you can cause that attack to hit instead."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   },
@@ -237,7 +237,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "<strong>Efreeti's Fury.</strong> The target of your Divine Smite takes an extra <strong>2d4</strong> <link:Fire>Fire</link> damage, and fire jumps from the target to another creature you can see within 30 feet of yourself. The second creature also takes <strong>2d4</strong> Fire damage.",
           "<strong>Marid's Surge.</strong> The target of your Divine Smite and each creature of your choice in a 10-foot <link:Emanation>Emanation</link> originating from you make a <link:Strength Saving Throw>Strength saving throw</link> against your spell save DC. On a failed save, a creature is pushed 15 feet straight away from you and has the <link:Prone>Prone</link> condition."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.GENIE_SPELLS, {
         description: [
@@ -248,7 +248,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "<strong>Level 13.</strong> <spell:Conjure Minor Elementals>Conjure Minor Elementals</spell>, <spell:Summon Elemental>Summon Elemental</spell>",
           "<strong>Level 17.</strong> <spell:Banishing Smite>Banishing Smite</spell>, <spell:Contact Other Plane>Contact Other Plane</spell>"
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.GENIES_SPLENDOR, {
         description: [
@@ -256,7 +256,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "You can use a <link:Shield>Shield</link> and still gain this benefit.",
           "You also gain proficiency in one of the following skills of your choice: <link:Acrobatics>Acrobatics</link>, <link:Intimidation>Intimidation</link>, <link:Performance>Performance</link>, or <link:Persuasion>Persuasion</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_7,
@@ -267,7 +267,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
             "You and your allies have <link:Resistance>Resistance</link> to that damage type while in your Aura of Protection.",
             "At the start of each of your turns, you can change the damage type affected by this feature to one of the other listed options, no action required."
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_15, CLASS_FEATURE.ELEMENTAL_REBUKE, {
@@ -277,7 +277,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "On a successful save, the attacker takes half as much damage.",
           "You can use this feature a number of times equal to your Charisma modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_20, CLASS_FEATURE.NOBLE_SCION, {
         description: [
@@ -287,7 +287,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "<strong>Flight.</strong> You have a Fly Speed of 60 feet and can hover.",
           "<strong>Minor Wish.</strong> When you or an ally in your Aura of Protection fails a <strong>D20</strong> Test, you can take a Reaction to make the <strong>D20</strong> Test succeed instead."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       })
     ]
   },
@@ -311,7 +311,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
             "<strong>Level 13.</strong> <spell:Banishment>Banishment</spell>, <spell:Dimension Door>Dimension Door</spell>",
             "<strong>Level 17.</strong> <spell:Hold Monster>Hold Monster</spell>, <spell:Scrying>Scrying</spell>"
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.VOW_OF_ENMITY, {
@@ -320,7 +320,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "You have <link:Advantage>Advantage</link> on attack rolls against the creature for 1 minute or until you use this feature again.",
           "If the creature drops to 0 Hit Points before the vow ends, you can transfer the vow to a different creature within 30 feet of yourself, no action required."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_7, CLASS_FEATURE.RELENTLESS_AVENGER, {
         description: [
@@ -328,13 +328,13 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "You can then move up to half your Speed as part of the same Reaction.",
           "This movement doesn't provoke Opportunity Attacks."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_15, CLASS_FEATURE.SOUL_OF_VENGEANCE, {
         description: [
           "Immediately after a creature under the effect of your Vow of Enmity hits or misses with an attack roll, you can take a Reaction to make a melee attack against that creature if it's within range."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_20, CLASS_FEATURE.AVENGING_ANGEL, {
         description: [
@@ -345,7 +345,7 @@ export const paladinSubclassEntries: SubclassEntry[] = [
           "<strong>Frightful Aura.</strong> Whenever an enemy starts its turn in your Aura of Protection, that creature must succeed on a <link:Wisdom Saving Throw>Wisdom saving throw</link> or have the <link:Frightened>Frightened</link> condition for 1 minute or until it takes any damage.",
           "Attack rolls against the Frightened creature have <link:Advantage>Advantage</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   }

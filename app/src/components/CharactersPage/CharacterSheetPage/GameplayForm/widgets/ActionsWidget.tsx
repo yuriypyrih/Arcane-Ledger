@@ -9,7 +9,7 @@ import SpellListRow from "../../../../SpellListRow";
 import { MonsterEntryDrawer } from "../../../../MonsterEntryRenderer";
 import CharacterSpellDrawer from "../../SpellCastingForm/CharacterSpellDrawer";
 import SelectInput from "../../../FormInputs/SelectInput";
-import ActionShape from "../../../../ActionShape";
+import ActionShape, { getActionShapeForCastingTime } from "../../../../ActionShape";
 import RollStatePill from "../../../../RollStatePill/RollStatePill";
 import FeatureOptInToggle from "../../FeatureOptInToggle/FeatureOptInToggle";
 import type {
@@ -84,6 +84,7 @@ import {
   getSorceryPointsRemainingForCharacter,
   getLayOnHandsCurableConditionsForCharacter,
   getPaladinHealingPoolRemainingForCharacter,
+  getPaladinHealingPoolTotalForCharacter,
   getSavingThrowBonusesForCharacter,
   getSharedEconomyMultiCountForCharacterAction,
   getSpellEntryForCharacter,
@@ -109,6 +110,7 @@ import {
   createFreeCardUsage,
   createChargesOrResourceCardUsage,
   createFeatureActionCardCost,
+  createNamedUsageHeaderTags,
   createNamedResourceCardUsage
 } from "../../../../../pages/CharactersPage/classFeatures/cardUsage";
 import { appendSourcedDescriptionAddition } from "../../../../../pages/CharactersPage/actionModalDescriptions";
@@ -160,12 +162,27 @@ import {
   markFighterBattleMasterCombatSuperiorityUsedForCharacter
 } from "../../../../../pages/CharactersPage/classFeatures/fighter/fighter";
 import { fighterBattleMasterCombatSuperiorityActionKey } from "../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterBattleMaster";
-import { type LayOnHandsCondition } from "../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
+import {
+  paladinChannelDivinityActionKey,
+  type LayOnHandsCondition
+} from "../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
 import {
   activatePaladinOathOfDevotionSacredWeapon,
+  applyPaladinOathOfDevotionSacredWeaponAction,
   getPaladinOathOfDevotionSacredWeaponOptionState
 } from "../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfDevotion";
-import { hasPaladinOathOfTheNobleGeniesElementalSmite } from "../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
+import {
+  activatePaladinOathOfVengeanceVowOfEnmity,
+  applyPaladinOathOfVengeanceVowOfEnmityAction,
+  getPaladinOathOfVengeanceVowOfEnmityOptionState
+} from "../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfVengeance";
+import {
+  applyPaladinOathOfTheNobleGeniesElementalSmiteEffect,
+  getPaladinOathOfTheNobleGeniesElementalSmiteDamageDetail,
+  hasPaladinOathOfTheNobleGeniesElementalSmite,
+  paladinOathOfTheNobleGeniesElementalSmiteOptions,
+  type PaladinOathOfTheNobleGeniesElementalSmiteOptionKey
+} from "../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
 import { getRangerTirelessTemporaryHitPointsFormula } from "../../../../../pages/CharactersPage/classFeatures/ranger/ranger";
 import { getRangerGloomStalkerDreadAmbusherOptionState } from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerGloomStalker";
 import { getRangerWinterWalkerPolarStrikesOptionState } from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerWinterWalker";
@@ -209,6 +226,7 @@ import {
   isCommonActionKey
 } from "../../../../../pages/CharactersPage/commonActions";
 import {
+  ACTION_CATEGORY,
   ECONOMY_TYPE,
   getRoundTrackerResourceForEconomyType,
   type EconomyType
@@ -229,7 +247,10 @@ import {
   consumeRoundTrackerResourceForCharacter,
   prepareCharacterForRoundTrackerResourceConsumption
 } from "../gameplayStateUtils";
-import { getSpellOutcomeSummaryForCharacter } from "../../../../../pages/CharactersPage/spellOutcome";
+import {
+  getSpellDamageDetailForCharacter,
+  getSpellOutcomeSummaryForCharacter
+} from "../../../../../pages/CharactersPage/spellOutcome";
 import { formatFeatureActionOptionValueLabel } from "../../../../../pages/CharactersPage/actionOutcome";
 import {
   getSavingThrowLevelFromEntries,
@@ -280,9 +301,9 @@ import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
 import d20Icon from "../../../../../assets/svg/d20.svg";
 import { useAppSelector } from "../../../../../store";
 import styles from "./ActionsWidget.module.css";
+import { getSpellActionPathStates, getSpellActionPathWarning } from "../../spellActionPaths";
 import sharedModalStyles from "./FeatureActionModal.module.css";
 import arcaneRecoveryStyles from "./ArcaneRecoveryModal.module.css";
-import layOnHandsStyles from "./LayOnHandsModal.module.css";
 import fontOfMagicStyles from "./FontOfMagicModal.module.css";
 import SneakAttackActionBody, { type SneakAttackActionSelection } from "./SneakAttackModal";
 import divineStyles from "./DivineInterventionModal.module.css";
@@ -307,6 +328,11 @@ import {
 } from "./IndomitableAction";
 import PortentActionBody from "./PortentActionBody";
 import RadioContainerOption from "../../RadioContainerOption";
+import {
+  LayOnHandsActionBody,
+  LayOnHandsActionFooter,
+  type LayOnHandsTarget
+} from "./LayOnHandsAction";
 import { SorcererInnateSorceryActionFooter } from "./SorcererInnateSorceryAction";
 import ThirdEyeActionBody from "./ThirdEyeActionBody";
 import { WarlockAwakenedMindActionFooter } from "./WarlockAwakenedMindAction";
@@ -508,10 +534,7 @@ const codexWeaponEntriesByName = new Map<string, WeaponEntry>(
   getWeaponEntries().map((entry) => [entry.name, entry])
 );
 
-function resolveFeatureSavingThrowBonusTotal(
-  character: Character,
-  ability: AbilityKey
-): number {
+function resolveFeatureSavingThrowBonusTotal(character: Character, ability: AbilityKey): number {
   return getSavingThrowBonusesForCharacter(character, ability).reduce((total, bonus) => {
     if (bonus.abilityModifierSource) {
       const sourceValue = getAbilityModifierBreakdownForCharacter(
@@ -774,141 +797,6 @@ function ArcaneRecoveryActionBody({
           onClick={() => onRecover(selection)}
         >
           Recover Spell Slots
-        </button>
-      </div>
-    </>
-  );
-}
-
-function LayOnHandsActionBody({
-  conditionOptions,
-  remainingPool,
-  onSubmit
-}: {
-  conditionOptions: LayOnHandsCondition[];
-  remainingPool: number;
-  onSubmit: (options: {
-    target: "self" | "other";
-    poolSpendAmount: number;
-    conditions: LayOnHandsCondition[];
-  }) => void;
-}) {
-  const [target, setTarget] = useState<"self" | "other">("self");
-  const [poolSpendInput, setPoolSpendInput] = useState("0");
-  const [selectedConditions, setSelectedConditions] = useState<LayOnHandsCondition[]>([]);
-  const poolSpendAmount = Math.max(0, Math.floor(Number(poolSpendInput) || 0));
-  const conditionCost = selectedConditions.length * 5;
-  const totalCost = poolSpendAmount + conditionCost;
-  const notEnoughCapacity = totalCost > remainingPool;
-  const canSubmit = totalCost > 0 && !notEnoughCapacity;
-
-  function toggleCondition(condition: LayOnHandsCondition) {
-    setSelectedConditions((currentConditions) =>
-      currentConditions.includes(condition)
-        ? currentConditions.filter((entry) => entry !== condition)
-        : [...currentConditions, condition]
-    );
-  }
-
-  return (
-    <>
-      <div className={layOnHandsStyles.body}>
-        <div
-          className={layOnHandsStyles.targetSwitch}
-          role="tablist"
-          aria-label="Lay on Hands target"
-        >
-          <button
-            type="button"
-            role="tab"
-            aria-selected={target === "self"}
-            className={clsx(
-              layOnHandsStyles.targetButton,
-              target === "self" && layOnHandsStyles.targetButtonActive
-            )}
-            onClick={() => setTarget("self")}
-          >
-            Myself
-          </button>
-          <button
-            type="button"
-            role="tab"
-            aria-selected={target === "other"}
-            className={clsx(
-              layOnHandsStyles.targetButton,
-              target === "other" && layOnHandsStyles.targetButtonActive
-            )}
-            onClick={() => setTarget("other")}
-          >
-            Another
-          </button>
-        </div>
-
-        <label className={layOnHandsStyles.field}>
-          <span className={layOnHandsStyles.fieldLabel}>Heal Amount</span>
-          <input
-            className={layOnHandsStyles.fieldControl}
-            type="number"
-            min={0}
-            inputMode="numeric"
-            value={poolSpendInput}
-            onChange={(event) => setPoolSpendInput(event.target.value)}
-          />
-        </label>
-
-        <div className={layOnHandsStyles.field}>
-          <span className={layOnHandsStyles.fieldLabel}>Conditions to Cure</span>
-          <div className={layOnHandsStyles.conditionList}>
-            {conditionOptions.map((condition) => {
-              const isSelected = selectedConditions.includes(condition);
-
-              return (
-                <label
-                  key={condition}
-                  className={clsx(
-                    layOnHandsStyles.conditionOption,
-                    isSelected && layOnHandsStyles.conditionOptionSelected
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    className={layOnHandsStyles.conditionCheckbox}
-                    checked={isSelected}
-                    onChange={() => toggleCondition(condition)}
-                  />
-                  <span>{condition}</span>
-                </label>
-              );
-            })}
-          </div>
-        </div>
-
-        <CellContainer
-          className={layOnHandsStyles.capacityBlock}
-          labelClassName={layOnHandsStyles.capacityLabel}
-          contentClassName={layOnHandsStyles.capacityValue}
-          label="Pool of Healing"
-          content={`${remainingPool} remaining | ${totalCost} total spend`}
-        />
-      </div>
-
-      <div className={shared.formActions}>
-        {notEnoughCapacity ? (
-          <span className={layOnHandsStyles.warning}>Not enough capacity</span>
-        ) : null}
-        <button
-          type="button"
-          className={shared.saveButton}
-          disabled={!canSubmit}
-          onClick={() =>
-            onSubmit({
-              target,
-              poolSpendAmount,
-              conditions: selectedConditions
-            })
-          }
-        >
-          Heal
         </button>
       </div>
     </>
@@ -1629,6 +1517,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [selectedNatureMagicianSpellSlotLevel, setSelectedNatureMagicianSpellSlotLevel] = useState<
     number | null
   >(null);
+  const [selectedLayOnHandsTarget, setSelectedLayOnHandsTarget] =
+    useState<LayOnHandsTarget>("self");
+  const [selectedLayOnHandsPoolSpendInput, setSelectedLayOnHandsPoolSpendInput] = useState("0");
+  const [selectedLayOnHandsConditions, setSelectedLayOnHandsConditions] = useState<
+    LayOnHandsCondition[]
+  >([]);
   const [selectedBlessingOfTheTricksterTarget, setSelectedBlessingOfTheTricksterTarget] =
     useState<BlessingOfTheTricksterTarget>("self");
   const [selectedThirdEyeOptionKey, setSelectedThirdEyeOptionKey] =
@@ -1661,6 +1555,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     useState<MysticArcanumLevel | null>(null);
   const [useBeguilingMagicOnActionSpell, setUseBeguilingMagicOnActionSpell] = useState(false);
   const [useElementalSmiteOnActionSpell, setUseElementalSmiteOnActionSpell] = useState(false);
+  const [selectedElementalSmiteOptionOnActionSpell, setSelectedElementalSmiteOptionOnActionSpell] =
+    useState<PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null>(null);
   const [useFrozenHauntOnActionSpell, setUseFrozenHauntOnActionSpell] = useState(false);
   const [selectedFrozenHauntFallbackSlotLevel, setSelectedFrozenHauntFallbackSlotLevel] = useState(
     frozenHauntFallbackSpellSlotMinimumLevel
@@ -1673,6 +1569,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [isDreadfulStrikeSelected, setIsDreadfulStrikeSelected] = useState(false);
   const [isPolarStrikesSelected, setIsPolarStrikesSelected] = useState(false);
   const [isSacredWeaponSelected, setIsSacredWeaponSelected] = useState(false);
+  const [isVowOfEnmitySelected, setIsVowOfEnmitySelected] = useState(false);
   const [isStunningStrikeSelected, setIsStunningStrikeSelected] = useState(false);
   const [isHandOfHarmSelected, setIsHandOfHarmSelected] = useState(false);
   const [isFlurryOfHealingAndHarmSelected, setIsFlurryOfHealingAndHarmSelected] = useState(false);
@@ -1821,6 +1718,30 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       ? (selectableActions.find((combatAction) => combatAction.key === selectedActionKey) ?? null)
       : null;
   const selectedFeatureAction = selectedAction?.kind === "feature" ? selectedAction.action : null;
+  const isLayOnHandsActionSelected =
+    selectedAction?.kind === "feature" &&
+    selectedAction.drawer.kind === "custom-form" &&
+    selectedAction.drawer.formKind === "lay-on-hands";
+  const selectedLayOnHandsTotalPool = isLayOnHandsActionSelected
+    ? getPaladinHealingPoolTotalForCharacter(character)
+    : 0;
+  const selectedLayOnHandsRemainingPool = isLayOnHandsActionSelected
+    ? getPaladinHealingPoolRemainingForCharacter(character)
+    : 0;
+  const selectedLayOnHandsPoolSpendAmount = Math.max(
+    0,
+    Math.floor(Number(selectedLayOnHandsPoolSpendInput) || 0)
+  );
+  const selectedLayOnHandsTotalCost =
+    selectedLayOnHandsPoolSpendAmount + selectedLayOnHandsConditions.length * 5;
+  const selectedLayOnHandsWarning =
+    isLayOnHandsActionSelected && selectedLayOnHandsTotalCost > selectedLayOnHandsRemainingPool
+      ? "Not enough Pool of Healing remains for that use."
+      : null;
+  const canSubmitLayOnHands =
+    isLayOnHandsActionSelected &&
+    selectedLayOnHandsTotalCost > 0 &&
+    selectedLayOnHandsWarning === null;
   const selectedMonkElementalAttunementResistanceDamageType =
     selectedFeatureAction?.key === monkElementalAttunementActionKey
       ? getMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection(character)
@@ -1918,10 +1839,6 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedWeaponItemRecord
     ]
   );
-  const selectedWeaponAttackFormula = useMemo(
-    () => (selectedWeaponAction ? getWeaponAttackFormulaPresentation(selectedWeaponAction) : null),
-    [selectedWeaponAction]
-  );
   const selectedWeaponPsionicStrikeFormula = useMemo(
     () =>
       selectedWeaponAction?.attackKind === "weapon"
@@ -1935,6 +1852,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       : false;
   const selectedWeaponSacredWeaponState = useMemo(
     () => getPaladinOathOfDevotionSacredWeaponOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponVowOfEnmityState = useMemo(
+    () => getPaladinOathOfVengeanceVowOfEnmityOptionState(character, selectedWeaponAction),
     [character, selectedWeaponAction]
   );
   const selectedWeaponDreadAmbusherState = useMemo(
@@ -2073,6 +1994,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   ]);
   const selectedWeaponSacredWeaponToggleDisabled =
     selectedWeaponSacredWeaponState?.disabled ?? false;
+  const selectedWeaponVowOfEnmityToggleDisabled = selectedWeaponVowOfEnmityState?.disabled ?? false;
   const selectedWeaponDreadfulStrikeToggleDisabled =
     selectedWeaponDreadAmbusherState?.disabled ?? false;
   const selectedWeaponPolarStrikesToggleDisabled =
@@ -2103,6 +2025,22 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     let nextAction = selectedWeaponAction;
+
+    if (
+      isSacredWeaponSelected &&
+      selectedWeaponSacredWeaponState &&
+      !selectedWeaponSacredWeaponToggleDisabled
+    ) {
+      nextAction = applyPaladinOathOfDevotionSacredWeaponAction(character, nextAction);
+    }
+
+    if (
+      isVowOfEnmitySelected &&
+      selectedWeaponVowOfEnmityState &&
+      !selectedWeaponVowOfEnmityToggleDisabled
+    ) {
+      nextAction = applyPaladinOathOfVengeanceVowOfEnmityAction(nextAction);
+    }
 
     if (
       isDreadfulStrikeSelected &&
@@ -2162,10 +2100,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     return nextAction;
   }, [
+    character,
     isDreadfulStrikeSelected,
     isEmpoweredStrikesSelected,
     isHandOfHarmSelected,
     isPolarStrikesSelected,
+    isSacredWeaponSelected,
+    isVowOfEnmitySelected,
     isPsionicStrikeSelected,
     selectedWeaponAction,
     selectedWeaponDreadAmbusherState,
@@ -2176,29 +2117,37 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedWeaponHandOfHarmState,
     selectedWeaponPolarStrikesState,
     selectedWeaponPolarStrikesToggleDisabled,
+    selectedWeaponSacredWeaponState,
+    selectedWeaponSacredWeaponToggleDisabled,
+    selectedWeaponVowOfEnmityState,
+    selectedWeaponVowOfEnmityToggleDisabled,
     selectedWeaponPsionicStrikeAvailable,
     selectedWeaponPsionicStrikeFormula
   ]);
-  const selectedWeaponDamageFormula = useMemo(
-    () => {
-      if (!selectedWeaponEffectiveAction) {
-        return null;
-      }
-
-      const previewAction = nextRollCriticalHitOverride
-        ? applyCriticalHitToWeaponAction(selectedWeaponEffectiveAction)
-        : selectedWeaponEffectiveAction;
-      const formulaPresentation = getWeaponDamageFormulaPresentation(previewAction);
-
-      return nextRollCriticalHitOverride
-        ? {
-            ...formulaPresentation,
-            breakdown: appendCriticalHitToFormulaBreakdown(formulaPresentation.breakdown)
-          }
-        : formulaPresentation;
-    },
-    [nextRollCriticalHitOverride, selectedWeaponEffectiveAction]
+  const selectedWeaponAttackFormula = useMemo(
+    () =>
+      selectedWeaponEffectiveAction
+        ? getWeaponAttackFormulaPresentation(selectedWeaponEffectiveAction)
+        : null,
+    [selectedWeaponEffectiveAction]
   );
+  const selectedWeaponDamageFormula = useMemo(() => {
+    if (!selectedWeaponEffectiveAction) {
+      return null;
+    }
+
+    const previewAction = nextRollCriticalHitOverride
+      ? applyCriticalHitToWeaponAction(selectedWeaponEffectiveAction)
+      : selectedWeaponEffectiveAction;
+    const formulaPresentation = getWeaponDamageFormulaPresentation(previewAction);
+
+    return nextRollCriticalHitOverride
+      ? {
+          ...formulaPresentation,
+          breakdown: appendCriticalHitToFormulaBreakdown(formulaPresentation.breakdown)
+        }
+      : formulaPresentation;
+  }, [nextRollCriticalHitOverride, selectedWeaponEffectiveAction]);
   const selectedWeaponDrawerDescription = useMemo(
     () =>
       selectedWeaponAction
@@ -2210,8 +2159,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     [selectedWeaponAction, selectedWeaponItemRecord]
   );
   const selectedWeaponRollState = useMemo(
-    () => (selectedWeaponAction ? resolveFeatureIndicators(selectedWeaponAction.indicators) : null),
-    [selectedWeaponAction]
+    () =>
+      selectedWeaponEffectiveAction
+        ? resolveFeatureIndicators(selectedWeaponEffectiveAction.indicators)
+        : null,
+    [selectedWeaponEffectiveAction]
   );
   const selectedDrawerOptions = useMemo(
     () =>
@@ -2220,21 +2172,22 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         : [],
     [selectedAction]
   );
-  const selectedClericChannelDivinityRows = useMemo(
+  const selectedChannelDivinityRows = useMemo(
     () =>
-      selectedFeatureAction?.key === channelDivinityActionKey
+      selectedFeatureAction?.key === channelDivinityActionKey ||
+      selectedFeatureAction?.key === paladinChannelDivinityActionKey
         ? createChannelDivinityOptionRows(selectedFeatureAction, selectedDrawerOptions)
         : [],
     [selectedDrawerOptions, selectedFeatureAction]
   );
-  const selectedClericChannelDivinityRow = useMemo(
+  const selectedChannelDivinityRow = useMemo(
     () =>
       selectedChannelDivinityOptionKey
-        ? (selectedClericChannelDivinityRows.find(
+        ? (selectedChannelDivinityRows.find(
             (row) => row.option.key === selectedChannelDivinityOptionKey
           ) ?? null)
         : null,
-    [selectedChannelDivinityOptionKey, selectedClericChannelDivinityRows]
+    [selectedChannelDivinityOptionKey, selectedChannelDivinityRows]
   );
   const selectedWildShapeMonster = useMemo(
     () =>
@@ -2245,7 +2198,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     [selectedFeatureAction?.key, selectedWildShapeMonsterSlug, wildShapeKnownForms]
   );
   const showBardicInspirationFallbackSlotSelect =
-    selectedFeatureAction?.key === bardicInspirationActionKey && bardicInspirationUsesRemaining <= 0;
+    selectedFeatureAction?.key === bardicInspirationActionKey &&
+    bardicInspirationUsesRemaining <= 0;
   const selectedBardicInspirationFallbackSlotIsValid =
     selectedBardicInspirationSpellSlotLevel !== null &&
     bardicInspirationFallbackSpellSlotOptions.some(
@@ -2504,10 +2458,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return null;
     }
 
-    if (
-      selectedAction.kind === "feature" &&
-      isCommonActionKey(selectedAction.action.key)
-    ) {
+    if (selectedAction.kind === "feature" && isCommonActionKey(selectedAction.action.key)) {
       if (selectedCommonActionPathStates.some((path) => path.shapeState.isUsable)) {
         return null;
       }
@@ -2620,14 +2571,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         null)
       : null;
   const selectedBardicInspirationFallbackDisabledReason =
-    selectedFeatureAction?.key !== bardicInspirationActionKey || !showBardicInspirationFallbackSlotSelect
+    selectedFeatureAction?.key !== bardicInspirationActionKey ||
+    !showBardicInspirationFallbackSlotSelect
       ? selectedFeatureActionPrimaryDisabledReason
-      : selectedFeatureActionPrimaryDisabledReason ??
+      : (selectedFeatureActionPrimaryDisabledReason ??
         (bardicInspirationFallbackSpellSlotOptions.length <= 0
           ? "No spell slots remain to fuel Font of Inspiration."
           : !selectedBardicInspirationFallbackSlotIsValid
             ? "Select a spell slot to regain Bardic Inspiration."
-            : null);
+            : null));
   const showSelectedFlurryOfHealingAndHarmToggle =
     selectedAction?.kind === "feature" &&
     selectedAction.action.key === monkFlurryOfBlowsActionKey &&
@@ -2646,18 +2598,28 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       ? selectedFlurryOfHealingAndHarmActiveHelperText
       : null;
   const selectedHandOfHealingFlurryOfHealingAndHarmHelperText =
-    selectedFeatureAction?.key === monkHandOfHealingActionKey && selectedFlurryOfHealingAndHarmActive
+    selectedFeatureAction?.key === monkHandOfHealingActionKey &&
+    selectedFlurryOfHealingAndHarmActive
       ? selectedFlurryOfHealingAndHarmActiveHelperText
       : null;
-  const selectedClericChannelDivinityWarning = selectedClericChannelDivinityRow
+  const selectedChannelDivinityWarning = selectedChannelDivinityRow
     ? (selectedFeatureActionPrimaryDisabledReason ??
-      (selectedClericChannelDivinityRow.option.disabled
-        ? (selectedClericChannelDivinityRow.option.disabledReason ??
-          "This divinity is unavailable.")
+      (selectedChannelDivinityRow.option.disabled
+        ? (selectedChannelDivinityRow.option.disabledReason ?? "This divinity is unavailable.")
         : null) ??
-      selectedClericChannelDivinityRow.option.disabledReason ??
+      selectedChannelDivinityRow.option.disabledReason ??
       null)
     : null;
+  const selectedChannelDivinityActionShape = selectedChannelDivinityRow
+    ? getActionShapeForCastingTime(selectedChannelDivinityRow.entry.castingTime)
+    : null;
+  const selectedChannelDivinityShapeState = useMemo(
+    () =>
+      selectedChannelDivinityRow
+        ? getEconomyShapeState(selectedChannelDivinityRow.option.economyType, roundTracker)
+        : null,
+    [roundTracker, selectedChannelDivinityRow]
+  );
   const canSubmitSelectedWarriorOfTheGodsRoll =
     selectedWarriorOfTheGodsChargeCount > 0 &&
     selectedWarriorOfTheGodsChargeCount <= selectedWarriorOfTheGodsUsesRemaining;
@@ -2701,12 +2663,28 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   }, [selectedFeatureAction?.key, selectedWarriorOfTheGodsUsesRemaining]);
   const selectedDrawerWarning =
     selectedOptionWarning ??
+    selectedLayOnHandsWarning ??
     (selectedAction?.kind === "feature" &&
     selectedAction.drawer.kind === "custom-form" &&
     selectedAction.drawer.formKind === "font-of-magic" &&
     selectedFontOfMagicSelection !== null
       ? selectedFontOfMagicWarning
       : (selectedActionWarning ?? selectedRageSelectionWarning));
+  const selectedActionHeaderTags =
+    selectedAction?.kind === "weapon"
+      ? []
+      : isLayOnHandsActionSelected
+        ? createNamedUsageHeaderTags(
+            createFeatureActionCardCost({
+              amountText: `${selectedLayOnHandsTotalCost}`
+            }),
+            selectedLayOnHandsRemainingPool,
+            selectedLayOnHandsTotalPool,
+            {
+              label: "Pool of Healing"
+            }
+          )
+        : (selectedAction?.drawer.headerTags ?? []);
   const fixedSpellExecute =
     selectedAction?.kind === "feature" &&
     selectedAction.execute.kind === "spell" &&
@@ -2760,6 +2738,21 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     hasPaladinOathOfTheNobleGeniesElementalSmite(character);
   const selectedActionSpellElementalSmiteDisabled =
     selectedActionSpellSupportsElementalSmite && channelDivinityUsesRemaining <= 0;
+  const fixedSpellElementalSmiteDamageDetail = useMemo(() => {
+    if (!fixedSpellEntry || !useElementalSmiteOnActionSpell) {
+      return null;
+    }
+
+    return getPaladinOathOfTheNobleGeniesElementalSmiteDamageDetail(
+      getSpellDamageDetailForCharacter(character, fixedSpellEntry),
+      selectedElementalSmiteOptionOnActionSpell
+    );
+  }, [
+    character,
+    fixedSpellEntry,
+    selectedElementalSmiteOptionOnActionSpell,
+    useElementalSmiteOnActionSpell
+  ]);
   const selectedActionSpellFrozenHauntOptionState = useMemo(
     () =>
       getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter(
@@ -2788,6 +2781,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedActionSpellFrozenHauntOptionState?.fallbackSpellSlotLevels.includes(
       selectedFrozenHauntFallbackSlotLevel
     ) ?? false;
+  const fixedSpellActionPaths = useMemo(
+    () =>
+      fixedSpellEntry ? getSpellActionPathStates(character, fixedSpellEntry, roundTracker) : [],
+    [character, fixedSpellEntry, roundTracker]
+  );
   const fixedSpellFrozenHauntWarning =
     useFrozenHauntOnActionSpell && selectedActionSpellFrozenHauntOptionState
       ? selectedActionSpellFrozenHauntOptionState.usesRemaining > 0
@@ -2797,8 +2795,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             ? `Select a level ${frozenHauntFallbackSpellSlotMinimumLevel}+ spell slot for Frozen Haunt.`
             : null))
       : null;
+  const fixedSpellSharedCastWarning =
+    selectedActionBlockedReason ??
+    selectedFeatureAction?.disabledReason ??
+    fixedSpellFrozenHauntWarning;
   const fixedSpellCastWarning =
-    selectedFeatureActionPrimaryDisabledReason ?? fixedSpellFrozenHauntWarning;
+    fixedSpellSharedCastWarning ??
+    (spellcastingState.blocked ? null : getSpellActionPathWarning(fixedSpellActionPaths));
   const paladinAuraOfProtectionBonus = hasActivePaladinAuraOfProtectionForCharacter(character)
     ? Math.max(1, getAbilityModifierBreakdownForCharacter(character, "CHA").total)
     : 0;
@@ -2888,6 +2891,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedWildResurgenceMode(null);
     setSelectedWildResurgenceSpellSlotLevel(1);
     setSelectedNatureMagicianSpellSlotLevel(null);
+    setSelectedLayOnHandsTarget("self");
+    setSelectedLayOnHandsPoolSpendInput("0");
+    setSelectedLayOnHandsConditions([]);
     setSelectedBlessingOfTheTricksterTarget("self");
     setSelectedThirdEyeOptionKey(null);
     setSelectedStarryFormConstellation(null);
@@ -2897,6 +2903,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedWarriorOfTheGodsChargeCount(1);
     setUseBeguilingMagicOnActionSpell(false);
     setUseElementalSmiteOnActionSpell(false);
+    setSelectedElementalSmiteOptionOnActionSpell(null);
     setIsDiceRollerSettingsOpen(false);
     setIsFixedSpellDrawerOpen(false);
     setSelectedFixedSpellSlotLevel(1);
@@ -2911,6 +2918,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsDreadfulStrikeSelected(false);
     setIsPolarStrikesSelected(false);
     setIsSacredWeaponSelected(false);
+    setIsVowOfEnmitySelected(false);
     setIsStunningStrikeSelected(false);
     setIsEmpoweredStrikesSelected(false);
     setIsHandOfHarmSelected(false);
@@ -2954,6 +2962,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedWildResurgenceMode(null);
     setSelectedWildResurgenceSpellSlotLevel(1);
     setSelectedNatureMagicianSpellSlotLevel(null);
+    setSelectedLayOnHandsTarget("self");
+    setSelectedLayOnHandsPoolSpendInput("0");
+    setSelectedLayOnHandsConditions([]);
     setSelectedThirdEyeOptionKey(null);
     setSelectedStarryFormConstellation(null);
     setSelectedRageOptionKey(null);
@@ -2965,6 +2976,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsClairvoyantCombatantSelected(false);
     setIsPsionicStrikeSelected(false);
     setIsSacredWeaponSelected(false);
+    setIsVowOfEnmitySelected(false);
     setIsStunningStrikeSelected(false);
     setIsEmpoweredStrikesSelected(false);
     setIsHandOfHarmSelected(false);
@@ -2977,18 +2989,24 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return;
     }
 
-    if (selectedClericChannelDivinityRow) {
+    if (selectedChannelDivinityRow) {
       return;
     }
 
     setSelectedChannelDivinityOptionKey(null);
-  }, [selectedChannelDivinityOptionKey, selectedClericChannelDivinityRow]);
+  }, [selectedChannelDivinityOptionKey, selectedChannelDivinityRow]);
 
   useEffect(() => {
     if (!selectedWeaponSacredWeaponState || selectedWeaponSacredWeaponToggleDisabled) {
       setIsSacredWeaponSelected(false);
     }
   }, [selectedWeaponSacredWeaponState, selectedWeaponSacredWeaponToggleDisabled]);
+
+  useEffect(() => {
+    if (!selectedWeaponVowOfEnmityState || selectedWeaponVowOfEnmityToggleDisabled) {
+      setIsVowOfEnmitySelected(false);
+    }
+  }, [selectedWeaponVowOfEnmityState, selectedWeaponVowOfEnmityToggleDisabled]);
 
   useEffect(() => {
     if (!selectedWeaponStunningStrikeState || selectedWeaponStunningStrikeToggleDisabled) {
@@ -3213,6 +3231,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   useEffect(() => {
     setUseBeguilingMagicOnActionSpell(false);
     setUseElementalSmiteOnActionSpell(false);
+    setSelectedElementalSmiteOptionOnActionSpell(null);
     setUseFrozenHauntOnActionSpell(false);
     setSelectedFrozenHauntFallbackSlotLevel(frozenHauntFallbackSpellSlotMinimumLevel);
   }, [selectedActionSpellEntry?.id]);
@@ -3223,6 +3242,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     setUseElementalSmiteOnActionSpell(false);
+    setSelectedElementalSmiteOptionOnActionSpell(null);
   }, [selectedActionSpellElementalSmiteDisabled, selectedActionSpellSupportsElementalSmite]);
 
   useEffect(() => {
@@ -3455,8 +3475,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     const useFlurryOfHealingAndHarm =
-      isFlurryOfHealingAndHarmSelected &&
-      selectedFlurryOfHealingAndHarmUsesRemaining > 0;
+      isFlurryOfHealingAndHarmSelected && selectedFlurryOfHealingAndHarmUsesRemaining > 0;
 
     onPersistCharacter((currentCharacter) => {
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(
@@ -3527,7 +3546,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       description: selectedFeatureAction.detail,
       onResolvedResult: ({ result }) => {
         onPersistCharacter((currentCharacter) =>
-          applyRolledTemporaryHitPointsToCharacter(currentCharacter, result.total, "Patient Defense")
+          applyRolledTemporaryHitPointsToCharacter(
+            currentCharacter,
+            result.total,
+            "Patient Defense"
+          )
         );
       }
     });
@@ -3621,7 +3644,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           currentCharacter,
           roundTrackerResource
         );
-        const bardicUsesRemaining = getBardicInspirationUsesRemainingForCharacter(preparedCharacter);
+        const bardicUsesRemaining =
+          getBardicInspirationUsesRemainingForCharacter(preparedCharacter);
 
         if (bardicUsesRemaining <= 0 && !selectedBardicInspirationFallbackSlotIsValid) {
           return currentCharacter;
@@ -3631,7 +3655,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           bardicUsesRemaining > 0
             ? undefined
             : selectedBardicInspirationFallbackSlotIsValid
-              ? selectedBardicInspirationSpellSlotLevel ?? undefined
+              ? (selectedBardicInspirationSpellSlotLevel ?? undefined)
               : undefined;
         const nextCharacter = activateBardicInspirationForCharacter(
           preparedCharacter,
@@ -3900,18 +3924,36 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       isSacredWeaponSelected &&
       selectedWeaponSacredWeaponState !== null &&
       !selectedWeaponSacredWeaponToggleDisabled;
+    const useVowOfEnmity =
+      isVowOfEnmitySelected &&
+      selectedWeaponVowOfEnmityState !== null &&
+      !selectedWeaponVowOfEnmityToggleDisabled;
 
     onPersistCharacter((currentCharacter) => {
       const { preparedCharacter, preparedAction, roundTrackerResource } =
         resolvePreparedWeaponAction(currentCharacter, action, economyTypeOverride);
-      const attackFormula = getWeaponAttackFormulaPresentation(preparedAction).value;
-      const attackRollMode = getRollModeFromIndicators(preparedAction.indicators);
+      let effectivePreparedAction = preparedAction;
+
+      if (useSacredWeapon) {
+        effectivePreparedAction = applyPaladinOathOfDevotionSacredWeaponAction(
+          currentCharacter,
+          effectivePreparedAction
+        );
+      }
+
+      if (useVowOfEnmity) {
+        effectivePreparedAction =
+          applyPaladinOathOfVengeanceVowOfEnmityAction(effectivePreparedAction);
+      }
+
+      const attackFormula = getWeaponAttackFormulaPresentation(effectivePreparedAction).value;
+      const attackRollMode = getRollModeFromIndicators(effectivePreparedAction.indicators);
 
       openDiceRoller({
-        title: `${preparedAction.name} attack`,
+        title: `${effectivePreparedAction.name} attack`,
         formula: attackFormula,
         formulaDisplay: attackFormula,
-        description: `${preparedAction.name} attack roll`,
+        description: `${effectivePreparedAction.name} attack roll`,
         mode: attackRollMode,
         enableNextCriticalHitOnNatural20: true
       });
@@ -3922,12 +3964,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         nextCharacter = activatePaladinOathOfDevotionSacredWeapon(nextCharacter);
       }
 
+      if (useVowOfEnmity) {
+        nextCharacter = activatePaladinOathOfVengeanceVowOfEnmity(nextCharacter);
+      }
+
       return roundTrackerResource
         ? consumeWeaponAttackActionForCharacter(nextCharacter, preparedAction)
         : nextCharacter;
     });
 
     setIsSacredWeaponSelected(false);
+    setIsVowOfEnmitySelected(false);
   }
 
   function handleWeaponDamageRoll(action: WeaponAction) {
@@ -3965,12 +4012,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       isPsionicStrikeSelected &&
       selectedWeaponPsionicStrikeAvailable &&
       selectedWeaponPsionicStrikeFormula !== null;
+    const useSacredWeapon =
+      isSacredWeaponSelected &&
+      selectedWeaponSacredWeaponState !== null &&
+      !selectedWeaponSacredWeaponToggleDisabled;
     const effectiveAction =
       (useDreadfulStrike ||
         usePolarStrikes ||
         useEmpoweredStrikes ||
         useHandOfHarm ||
-        usePsionicStrike) &&
+        usePsionicStrike ||
+        useSacredWeapon) &&
       selectedWeaponEffectiveAction
         ? selectedWeaponEffectiveAction
         : action;
@@ -4040,13 +4092,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return nextCharacter;
     });
 
-      setIsDreadfulStrikeSelected(false);
-      setIsPolarStrikesSelected(false);
-      setIsStunningStrikeSelected(false);
-      setIsEmpoweredStrikesSelected(false);
-      setIsHandOfHarmSelected(false);
-      setIsQuiveringPalmSelected(false);
-      setIsPsionicStrikeSelected(false);
+    setIsDreadfulStrikeSelected(false);
+    setIsPolarStrikesSelected(false);
+    setIsStunningStrikeSelected(false);
+    setIsEmpoweredStrikesSelected(false);
+    setIsHandOfHarmSelected(false);
+    setIsQuiveringPalmSelected(false);
+    setIsPsionicStrikeSelected(false);
   }
 
   function toggleFeatureOptionSelection(option: FeatureActionOptionCard) {
@@ -4123,7 +4175,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     closeActionDrawer();
   }
 
-  function channelSelectedClericDivinity(row: ChannelDivinityOptionRow) {
+  function activateSelectedChannelDivinity(row: ChannelDivinityOptionRow) {
     onPersistCharacter((currentCharacter) => {
       const roundTrackerResource = getRoundTrackerResourceForEconomyType(row.option.economyType);
       const preparedCharacter = prepareCharacterForResourceConsumption(
@@ -4752,8 +4804,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   }
 
   function castFixedSpellAction(options?: {
+    roundTrackerResourceOverride?: "action" | "bonusAction" | "reaction" | null;
     useBeguilingMagic?: boolean;
     useElementalSmite?: boolean;
+    elementalSmiteOption?: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null;
     useFrozenHaunt?: boolean;
     frozenHauntFallbackSlotLevel?: number;
     castAsRitual?: boolean;
@@ -4767,6 +4821,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       options?.useElementalSmite === true &&
       selectedActionSpellSupportsElementalSmite &&
       channelDivinityUsesRemaining > 0;
+    const elementalSmiteOption = useElementalSmite ? (options?.elementalSmiteOption ?? null) : null;
     const useFrozenHaunt =
       options?.useFrozenHaunt === true && selectedActionSpellFrozenHauntOptionState !== null;
     const frozenHauntFallbackSlotLevel = useFrozenHaunt
@@ -4780,11 +4835,27 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     const slotLevel = Math.max(minimumSlotLevel, selectedFixedSpellSlotLevel);
     const castsWithoutSpellSlot =
       fixedSpellFreeCastSlotLevel !== null && slotLevel === fixedSpellFreeCastSlotLevel;
+    const roundTrackerResource =
+      options?.roundTrackerResourceOverride ??
+      fixedSpellActionPaths[0]?.roundTrackerResource ??
+      getRoundTrackerResourceForEconomyType(selectedFeatureAction.economyType);
+    const fixedSpellActionPath =
+      fixedSpellActionPaths.find((path) => path.roundTrackerResource === roundTrackerResource) ??
+      fixedSpellActionPaths[0] ??
+      null;
+    const sharedEconomyContext = fixedSpellActionPath
+      ? {
+          economyType: fixedSpellActionPath.economyType,
+          actionCategory: ACTION_CATEGORY.MAGIC,
+          spellLevel: fixedSpellEntry.spellLevel
+        }
+      : createEconomyMultiContextForFeatureAction(selectedFeatureAction);
+
+    if (useElementalSmite && elementalSmiteOption === null) {
+      return;
+    }
 
     onPersistCharacter((currentCharacter) => {
-      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
-        selectedFeatureAction.economyType
-      );
       const preparedCharacter = prepareCharacterForResourceConsumption(
         currentCharacter,
         roundTrackerResource
@@ -4897,7 +4968,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         ? consumeBeguilingMagicOrBardicInspirationForCharacter(nextCharacterWithConcentration)
         : nextCharacterWithConcentration;
       const nextCharacterWithElementalSmite = useElementalSmite
-        ? expendChannelDivinityUseForCharacter(nextCharacterWithBeguilingMagic)
+        ? applyPaladinOathOfTheNobleGeniesElementalSmiteEffect(
+            expendChannelDivinityUseForCharacter(nextCharacterWithBeguilingMagic),
+            elementalSmiteOption
+          )
         : nextCharacterWithBeguilingMagic;
       const nextCharacterWithFrozenHaunt = usesFrozenHauntCharge
         ? consumeRangerWinterWalkerFrozenHauntUseForCharacter(nextCharacterWithElementalSmite)
@@ -4913,13 +4987,23 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         fixedSpellEntry,
         { includeBardBattleMagic: !castAsRitual }
       );
+      const nextCharacterWithSharedMulti = roundTrackerResource
+        ? consumeSharedEconomyMultiForCharacterAction(
+            nextCharacterWithSpellCastEffects,
+            sharedEconomyContext
+          )
+        : nextCharacterWithSpellCastEffects;
+
+      if (nextCharacterWithSharedMulti !== nextCharacterWithSpellCastEffects) {
+        return nextCharacterWithSharedMulti;
+      }
 
       return roundTrackerResource
         ? consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithSpellCastEffects,
+            nextCharacterWithSharedMulti,
             roundTrackerResource
           )
-        : nextCharacterWithSpellCastEffects;
+        : nextCharacterWithSharedMulti;
     });
 
     closeActionDrawer();
@@ -5136,12 +5220,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     if (
       selectedAction.kind === "feature" &&
-      selectedAction.action.key === channelDivinityActionKey &&
-      selectedAction.drawer.kind === "options"
+      selectedAction.drawer.kind === "options" &&
+      selectedChannelDivinityRows.length > 0
     ) {
       return (
         <ClericChannelDivinityAction
-          rows={selectedClericChannelDivinityRows}
+          rows={selectedChannelDivinityRows}
           character={character}
           roundTracker={roundTracker}
           onOpenDivinity={(row) => setSelectedChannelDivinityOptionKey(row.option.key)}
@@ -5202,8 +5286,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         return (
           <LayOnHandsActionBody
             conditionOptions={getLayOnHandsCurableConditionsForCharacter(character)}
-            remainingPool={getPaladinHealingPoolRemainingForCharacter(character)}
-            onSubmit={submitLayOnHands}
+            target={selectedLayOnHandsTarget}
+            poolSpendInput={selectedLayOnHandsPoolSpendInput}
+            selectedConditions={selectedLayOnHandsConditions}
+            onTargetChange={setSelectedLayOnHandsTarget}
+            onPoolSpendInputChange={setSelectedLayOnHandsPoolSpendInput}
+            onSelectedConditionsChange={setSelectedLayOnHandsConditions}
           />
         );
       }
@@ -5456,6 +5544,24 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               usageKey="sacred-weapon"
             />
           ) : null}
+          {selectedWeaponVowOfEnmityState ? (
+            <FeatureOptInToggle
+              label="Vow of Enmity"
+              checked={Boolean(selectedWeaponVowOfEnmityState.active) || isVowOfEnmitySelected}
+              disabled={selectedWeaponVowOfEnmityToggleDisabled}
+              muted={selectedWeaponVowOfEnmityToggleDisabled}
+              onCheckedChange={setIsVowOfEnmitySelected}
+              title={selectedWeaponVowOfEnmityState.disabledReason ?? undefined}
+              usage={createNamedResourceCardUsage(
+                createFeatureActionCardCost({
+                  amountText: "1",
+                  icon: "pyromancy"
+                })
+              )}
+              application={{ targetLabel: "Attack" }}
+              usageKey="vow-of-enmity"
+            />
+          ) : null}
           {selectedWeaponStunningStrikeState ? (
             <FeatureOptInToggle
               label="Stunning Strike"
@@ -5580,7 +5686,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       );
     }
 
-    const selectedFeaturePrimaryLabel = getFeatureActionDrawerPrimaryLabel(selectedAction.action);
+    const selectedFeaturePrimaryLabel =
+      selectedAction.drawer.confirmLabel ??
+      getFeatureActionDrawerPrimaryLabel(selectedAction.action);
 
     if (selectedAction.kind === "feature" && isCommonActionKey(selectedAction.action.key)) {
       return (
@@ -5914,8 +6022,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     if (
       selectedAction.kind === "feature" &&
-      selectedAction.action.key === channelDivinityActionKey &&
-      selectedAction.drawer.kind === "options"
+      selectedAction.drawer.kind === "options" &&
+      selectedChannelDivinityRows.length > 0
     ) {
       return null;
     }
@@ -6012,6 +6120,29 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             />
           ) : null}
         </button>
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "custom-form" &&
+      selectedAction.drawer.formKind === "lay-on-hands"
+    ) {
+      return (
+        <LayOnHandsActionFooter
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null || !canSubmitLayOnHands}
+          onConfirm={() =>
+            submitLayOnHands({
+              target: selectedLayOnHandsTarget,
+              poolSpendAmount: selectedLayOnHandsPoolSpendAmount,
+              conditions: selectedLayOnHandsConditions
+            })
+          }
+        />
       );
     }
 
@@ -6260,8 +6391,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     if (selectedAction.execute.kind === "activate") {
       const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
-      const confirmAction =
-        isCommonActionKey(selectedAction.action.key) ? executeCommonAction : executeFeatureActivate;
+      const confirmAction = isCommonActionKey(selectedAction.action.key)
+        ? executeCommonAction
+        : executeFeatureActivate;
 
       return (
         <button
@@ -6394,8 +6526,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               ? (selectedWeaponAction?.facts ?? [])
               : selectedAction.drawer.facts
           }
-          factsSectionTitle={selectedAction.kind === "weapon" ? undefined : selectedAction.drawer.factsSectionTitle}
-          headerTags={selectedAction.kind === "weapon" ? [] : selectedAction.drawer.headerTags}
+          factsSectionTitle={
+            selectedAction.kind === "weapon" ? undefined : selectedAction.drawer.factsSectionTitle
+          }
+          headerTags={selectedActionHeaderTags}
           helperText={selectedAction.drawer.helperText}
           warning={selectedDrawerWarning}
           blockedReason={
@@ -6410,9 +6544,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         </GameplayActionDrawer>
       ) : null}
 
-      {selectedClericChannelDivinityRow ? (
+      {selectedChannelDivinityRow ? (
         <CodexDivinityDrawer
-          divinity={selectedClericChannelDivinityRow.entry}
+          divinity={selectedChannelDivinityRow.entry}
           character={character}
           resources={[
             {
@@ -6427,10 +6561,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onClose={() => setSelectedChannelDivinityOptionKey(null)}
           footer={
             <div className={styles.footerActionStack}>
-              {selectedClericChannelDivinityWarning ? (
+              {selectedChannelDivinityWarning ? (
                 <div className={styles.channelDivinityFooterMeta}>
                   <p className={styles.channelDivinityFooterWarning}>
-                    {selectedClericChannelDivinityWarning}
+                    {selectedChannelDivinityWarning}
                   </p>
                 </div>
               ) : null}
@@ -6441,10 +6575,20 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                   styles.footerActionButton,
                   styles.channelDivinityFooterButton
                 )}
-                onClick={() => channelSelectedClericDivinity(selectedClericChannelDivinityRow)}
-                disabled={selectedClericChannelDivinityWarning !== null}
+                onClick={() => activateSelectedChannelDivinity(selectedChannelDivinityRow)}
+                disabled={selectedChannelDivinityWarning !== null}
               >
-                Channel Divinity
+                <span className={styles.centeredFooterButtonContent}>
+                  <span>Use Channel Divinity</span>
+                  {selectedChannelDivinityActionShape ? (
+                    <ActionShape
+                      shape={selectedChannelDivinityActionShape}
+                      isSelected={selectedChannelDivinityShapeState?.isAvailable ?? true}
+                      multiCount={selectedChannelDivinityShapeState?.multiCount ?? 0}
+                      className={styles.footerActionShape}
+                    />
+                  ) : null}
+                </span>
               </button>
             </div>
           }
@@ -6455,6 +6599,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         <CharacterSpellDrawer
           character={character}
           spell={fixedSpellEntry}
+          damageDetailOverride={fixedSpellElementalSmiteDamageDetail}
           alwaysPrepared
           mode="standard"
           spellSlotTotals={fixedSpellSlotTotals}
@@ -6464,6 +6609,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           onClose={() => {
             setUseBeguilingMagicOnActionSpell(false);
             setUseElementalSmiteOnActionSpell(false);
+            setSelectedElementalSmiteOptionOnActionSpell(null);
             setUseFrozenHauntOnActionSpell(false);
             setSelectedFrozenHauntFallbackSlotLevel(frozenHauntFallbackSpellSlotMinimumLevel);
             setIsFixedSpellDrawerOpen(false);
@@ -6473,6 +6619,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               ...options,
               useBeguilingMagic: useBeguilingMagicOnActionSpell,
               useElementalSmite: useElementalSmiteOnActionSpell,
+              elementalSmiteOption: selectedElementalSmiteOptionOnActionSpell,
               useFrozenHaunt: useFrozenHauntOnActionSpell,
               frozenHauntFallbackSlotLevel: selectedFrozenHauntFallbackSlotLevel
             })
@@ -6484,9 +6631,26 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           actionContextText={fixedSpellActionContextText}
           actionAvailabilityText={fixedSpellActionAvailabilityText}
           actionWarning={fixedSpellCastWarning}
-          actionDisabled={fixedSpellCastWarning !== null}
+          actionDisabled={spellcastingState.blocked || fixedSpellSharedCastWarning !== null}
           blockedReason={spellcastingState.blocked ? spellcastingState.reason : null}
           allowRitualCasting={fixedSpellExecute.allowRitualCasting}
+          actionPaths={fixedSpellActionPaths
+            .map((path) => {
+              const actionShape = getActionShapeForEconomyType(path.economyType);
+
+              return actionShape
+                ? {
+                    id: path.id,
+                    actionLabel: fixedSpellExecute.actionLabel,
+                    actionShape,
+                    actionShapeAvailable: path.shapeState.isAvailable,
+                    actionShapeMultiCount: path.shapeState.multiCount,
+                    disabledReason: path.shapeState.disabledReason,
+                    roundTrackerResourceOverride: path.roundTrackerResource
+                  }
+                : null;
+            })
+            .filter((path): path is NonNullable<typeof path> => path !== null)}
           actionOptions={
             selectedActionSpellSupportsBeguilingMagic ||
             selectedActionSpellSupportsElementalSmite ||
@@ -6550,6 +6714,19 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                           checked: useElementalSmiteOnActionSpell,
                           onCheckedChange: setUseElementalSmiteOnActionSpell,
                           disabled: selectedActionSpellElementalSmiteDisabled,
+                          radioOptions: {
+                            value: selectedElementalSmiteOptionOnActionSpell,
+                            onValueChange: setSelectedElementalSmiteOptionOnActionSpell,
+                            required: true,
+                            placement: "body",
+                            options: paladinOathOfTheNobleGeniesElementalSmiteOptions.map(
+                              (option) => ({
+                                id: option.key,
+                                header: option.label,
+                                description: option.descriptionEntries
+                              })
+                            )
+                          },
                           usage: createNamedResourceCardUsage(
                             createFeatureActionCardCost({
                               amountText: "1",

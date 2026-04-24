@@ -1,30 +1,19 @@
 import { Plus } from "lucide-react";
 import TextInput from "../../../FormInputs/TextInput";
 import TextAreaInput from "../../../FormInputs/TextAreaInput";
-import SelectInput from "../../../FormInputs/SelectInput";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
-import {
-  durationPresetOptions,
-  isRoundDurationPreset,
-  statusRoundTickOptions
-} from "../../../../../pages/CharactersPage/traits";
-import {
-  STATUS_DURATION_PRESET,
-  STATUS_DURATION_ROUND_TICK
-} from "../../../../../types";
 import CustomTraitEffectEditorRow from "./CustomTraitEffectEditorRow";
-import {
-  customTraitTargetOptions,
-  type CustomTraitDraft
-} from "./customTraitDraft";
+import ManualStatusDurationFields from "./ManualStatusDurationFields";
+import { customTraitTargetOptions, type CustomTraitDraft } from "./customTraitDraft";
+import type { ManualStatusDurationType } from "./manualStatusDuration";
 import styles from "./CustomTraitBuilder.module.css";
 
 type CustomTraitBuilderProps = {
   draft: CustomTraitDraft;
   onNameChange: (value: string) => void;
   onDescriptionChange: (value: string) => void;
-  onDurationPresetChange: (preset: STATUS_DURATION_PRESET) => void;
-  onRoundTickOnChange: (tickOn: STATUS_DURATION_ROUND_TICK) => void;
+  onDurationTypeChange: (value: ManualStatusDurationType) => void;
+  onDurationValueChange: (value: number) => void;
   onEffectTargetChange: (effectId: string, value: string) => void;
   onEffectValueChange: (effectId: string, value: string) => void;
   onAddEffect: () => void;
@@ -35,15 +24,13 @@ function CustomTraitBuilder({
   draft,
   onNameChange,
   onDescriptionChange,
-  onDurationPresetChange,
-  onRoundTickOnChange,
+  onDurationTypeChange,
+  onDurationValueChange,
   onEffectTargetChange,
   onEffectValueChange,
   onAddEffect,
   onRemoveEffect
 }: CustomTraitBuilderProps) {
-  const showRoundTickSelector = isRoundDurationPreset(draft.durationPreset);
-
   return (
     <div className={styles.stack}>
       <div className={shared.formGrid}>
@@ -52,21 +39,12 @@ function CustomTraitBuilder({
           <TextInput value={draft.name} onChange={(event) => onNameChange(event.target.value)} />
         </label>
 
-        <label className={shared.field}>
-          <span className={shared.fieldLabel}>Duration</span>
-          <SelectInput
-            value={draft.durationPreset}
-            onChange={(event) =>
-              onDurationPresetChange(event.target.value as STATUS_DURATION_PRESET)
-            }
-          >
-            {durationPresetOptions.map((option) => (
-              <option key={option.value} value={option.value}>
-                {option.label}
-              </option>
-            ))}
-          </SelectInput>
-        </label>
+        <ManualStatusDurationFields
+          durationType={draft.durationType}
+          durationValue={draft.durationValue}
+          onDurationTypeChange={onDurationTypeChange}
+          onDurationValueChange={onDurationValueChange}
+        />
 
         <label className={shared.fieldWide}>
           <span className={shared.fieldLabel}>Description</span>
@@ -76,24 +54,6 @@ function CustomTraitBuilder({
             onChange={(event) => onDescriptionChange(event.target.value)}
           />
         </label>
-
-        {showRoundTickSelector ? (
-          <label className={shared.field}>
-            <span className={shared.fieldLabel}>Round Tick</span>
-            <SelectInput
-              value={draft.roundTickOn}
-              onChange={(event) =>
-                onRoundTickOnChange(event.target.value as STATUS_DURATION_ROUND_TICK)
-              }
-            >
-              {statusRoundTickOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </SelectInput>
-          </label>
-        ) : null}
       </div>
 
       <section className={styles.effectsSection}>

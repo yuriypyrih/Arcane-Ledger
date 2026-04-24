@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { Pencil, TriangleAlert, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import ActionShape, { getActionShapeForCastingTime } from "../../../ActionShape";
 import CellContainer from "../../../CellContainer/CellContainer";
 import DivinityListRow from "../../../DivinityListRow/DivinityListRow";
 import EldritchInvocationListRow from "../../../EldritchInvocationListRow";
@@ -30,7 +31,10 @@ import {
   normalizeRoundTracker,
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
-import { getRoundTrackerResourceForEconomyType } from "../../../../pages/CharactersPage/actionEconomy";
+import {
+  ACTION_CATEGORY,
+  getRoundTrackerResourceForEconomyType
+} from "../../../../pages/CharactersPage/actionEconomy";
 import {
   applyRangerWinterWalkerFrozenHauntStatusEntriesForCharacter,
   applySpellCastFeatureEffectsForCharacter,
@@ -76,7 +80,6 @@ import {
   hasActiveMantleOfMajestyForCharacter,
   getRitualOnlySpellIdsForCharacter,
   createEconomyMultiContextForSpell,
-  getSharedEconomyMultiCountForCharacterAction,
   getSpellbookSpellEntryForCharacter,
   getSpellEntryForCharacter,
   getSpellcastingStateForCharacter,
@@ -125,7 +128,13 @@ import {
   createNamedUsageHeaderTags
 } from "../../../../pages/CharactersPage/classFeatures/cardUsage";
 import { paladinChannelDivinityActionKey } from "../../../../pages/CharactersPage/classFeatures/paladin/paladin";
-import { hasPaladinOathOfTheNobleGeniesElementalSmite } from "../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
+import {
+  applyPaladinOathOfTheNobleGeniesElementalSmiteEffect,
+  getPaladinOathOfTheNobleGeniesElementalSmiteDamageDetail,
+  hasPaladinOathOfTheNobleGeniesElementalSmite,
+  paladinOathOfTheNobleGeniesElementalSmiteOptions,
+  type PaladinOathOfTheNobleGeniesElementalSmiteOptionKey
+} from "../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
 import {
   getSorceryPointsTotal,
   getSorceryPointsRemaining,
@@ -166,10 +175,15 @@ import {
   areSpellIdListsEqual,
   getRoundTrackerResourceForSpell
 } from "../../../../pages/CharactersPage/shared";
-import { getSpellOutcomeSummaryForCharacter } from "../../../../pages/CharactersPage/spellOutcome";
+import {
+  getSpellDamageDetailForCharacter,
+  getSpellOutcomeSummaryForCharacter
+} from "../../../../pages/CharactersPage/spellOutcome";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import { getActionShapeForEconomyType } from "../GameplayForm/gameplayWidgetUtils";
 import gameplayActionStyles from "../GameplayForm/widgets/GameplayActionDrawer.module.css";
+import { getSpellActionPathStates, getSpellActionPathWarning } from "../spellActionPaths";
 import styles from "./SpellCastingForm.module.css";
 import {
   consumeRoundTrackerResourceForCharacter,
@@ -333,6 +347,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const [useBlessingOfMoonlightOnSelectedSpell, setUseBlessingOfMoonlightOnSelectedSpell] =
     useState(false);
   const [useElementalSmiteOnSelectedSpell, setUseElementalSmiteOnSelectedSpell] = useState(false);
+  const [
+    selectedElementalSmiteOptionOnSelectedSpell,
+    setSelectedElementalSmiteOptionOnSelectedSpell
+  ] = useState<PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null>(null);
   const [useStarMapOnSelectedSpell, setUseStarMapOnSelectedSpell] = useState(false);
   const [useFeyReinforcementsOnSelectedSpell, setUseFeyReinforcementsOnSelectedSpell] =
     useState(false);
@@ -379,6 +397,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseWarGodsBlessingOnSelectedSpell(false);
     setUseBlessingOfMoonlightOnSelectedSpell(false);
     setUseElementalSmiteOnSelectedSpell(false);
+    setSelectedElementalSmiteOptionOnSelectedSpell(null);
     setUseFeyReinforcementsOnSelectedSpell(false);
     setUsePhantasmalCreaturesOnSelectedSpell(false);
     setUseMistyWandererOnSelectedSpell(false);
@@ -1087,27 +1106,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     () => normalizeRoundTracker(character.roundTracker),
     [character.roundTracker]
   );
-  const selectedSpellRoundTrackerResource = selectedSpell
-    ? getRoundTrackerResourceForSpell(selectedSpell)
-    : null;
-  const selectedSpellSharedMultiCount =
-    selectedSpell !== null
-      ? getSharedEconomyMultiCountForCharacterAction(
-          character,
-          createEconomyMultiContextForSpell(selectedSpell)
-        )
-      : 0;
-  const selectedSpellActionWarning =
-    selectedSpellRoundTrackerResource === "action" &&
-    selectedSpell !== null &&
-    !isRoundTrackerResourceAvailable(roundTracker, "action") &&
-    selectedSpellSharedMultiCount > 0
-      ? null
-      : getRoundTrackerActionWarning(selectedSpellRoundTrackerResource, roundTracker);
-  const selectedSpellActionShapeState = getActionShapeStateForRoundTrackerResource(
-    selectedSpellRoundTrackerResource,
-    roundTracker,
-    selectedSpellSharedMultiCount
+  const selectedSpellActionPaths = useMemo(
+    () => (selectedSpell ? getSpellActionPathStates(character, selectedSpell, roundTracker) : []),
+    [character, roundTracker, selectedSpell]
   );
   const selectedDivinityActionWarning = getRoundTrackerActionWarning(
     selectedDivinityRow
@@ -1115,6 +1116,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       : null,
     roundTracker
   );
+  const selectedDivinityActionShape = selectedDivinityRow
+    ? getActionShapeForCastingTime(selectedDivinityRow.entry.castingTime)
+    : null;
+  const selectedDivinityActionShapeState = selectedDivinityRow
+    ? getDivinityRowActionShapeState(selectedDivinityRow)
+    : null;
   const selectedSpellAlwaysPrepared = selectedSpell
     ? alwaysPreparedSpellIdSet.has(selectedSpell.id)
     : false;
@@ -1265,6 +1272,21 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     hasPaladinOathOfTheNobleGeniesElementalSmite(character);
   const selectedSpellElementalSmiteDisabled =
     selectedSpellSupportsElementalSmite && channelDivinityUsesRemaining <= 0;
+  const selectedSpellElementalSmiteDamageDetail = useMemo(() => {
+    if (!selectedSpellDisplay || !useElementalSmiteOnSelectedSpell) {
+      return null;
+    }
+
+    return getPaladinOathOfTheNobleGeniesElementalSmiteDamageDetail(
+      getSpellDamageDetailForCharacter(character, selectedSpellDisplay),
+      selectedElementalSmiteOptionOnSelectedSpell
+    );
+  }, [
+    character,
+    selectedElementalSmiteOptionOnSelectedSpell,
+    selectedSpellDisplay,
+    useElementalSmiteOnSelectedSpell
+  ]);
   const selectedSpellStepsOfTheFeyDisabled =
     selectedSpellSupportsStepsOfTheFey && warlockStepsOfTheFeyUsesRemaining <= 0;
   const selectedSpellMistyWandererDisabled =
@@ -1376,12 +1398,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             ? `Select a level ${frozenHauntFallbackSpellSlotMinimumLevel}+ spell slot for Frozen Haunt.`
             : null))
       : null;
-  const selectedSpellCastWarning =
+  const selectedSpellSharedCastWarning =
     spellcastingState.blocked && !selectedSpellCanIgnoreSpellcastingBlock
       ? spellcastingState.reason
-      : (selectedSpellActionWarning ??
-        selectedSpellPsionicSorceryWarning ??
-        selectedSpellFrozenHauntWarning);
+      : (selectedSpellPsionicSorceryWarning ?? selectedSpellFrozenHauntWarning);
+  const selectedSpellCastWarning =
+    selectedSpellSharedCastWarning ?? getSpellActionPathWarning(selectedSpellActionPaths);
 
   useEffect(() => {
     setUseBeguilingMagicOnSelectedSpell(false);
@@ -1389,6 +1411,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseWarGodsBlessingOnSelectedSpell(false);
     setUseBlessingOfMoonlightOnSelectedSpell(false);
     setUseElementalSmiteOnSelectedSpell(false);
+    setSelectedElementalSmiteOptionOnSelectedSpell(null);
     setUseStarMapOnSelectedSpell(false);
     setUseFeyReinforcementsOnSelectedSpell(false);
     setUsePhantasmalCreaturesOnSelectedSpell(false);
@@ -1440,6 +1463,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     }
 
     setUseElementalSmiteOnSelectedSpell(false);
+    setSelectedElementalSmiteOptionOnSelectedSpell(null);
   }, [selectedSpellElementalSmiteDisabled, selectedSpellSupportsElementalSmite]);
 
   useEffect(() => {
@@ -1509,18 +1533,21 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     }
   }, [selectedSpellFrozenHauntFallbackSlotLevelIsValid, selectedSpellFrozenHauntOptionState]);
 
-  function getSpellRowActionShapeState(spell: SpellEntry) {
-    const roundTrackerResource = getRoundTrackerResourceForSpell(spell);
-    const sharedEconomyMultiCount = getSharedEconomyMultiCountForCharacterAction(
-      character,
-      createEconomyMultiContextForSpell(spell)
-    );
+  function getSpellRowActionShapes(spell: SpellEntry) {
+    return getSpellActionPathStates(character, spell, roundTracker)
+      .map((path) => {
+        const actionShape = getActionShapeForEconomyType(path.economyType);
 
-    return getActionShapeStateForRoundTrackerResource(
-      roundTrackerResource,
-      roundTracker,
-      sharedEconomyMultiCount
-    );
+        return actionShape
+          ? {
+              key: path.id,
+              shape: actionShape,
+              isSelected: path.shapeState.isAvailable,
+              multiCount: path.shapeState.multiCount
+            }
+          : null;
+      })
+      .filter((path): path is NonNullable<typeof path> => path !== null);
   }
 
   function getDivinityRowActionShapeState(row: ChannelDivinityOptionRow) {
@@ -2033,12 +2060,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
   function castSelectedSpell(options?: {
     castAsRitual?: boolean;
+    roundTrackerResourceOverride?: RoundTrackerResource | null;
     useBeguilingMagic?: boolean;
     useMindMagic?: boolean;
     useWarGodsBlessing?: boolean;
     useStarMap?: boolean;
     useBlessingOfMoonlight?: boolean;
     useElementalSmite?: boolean;
+    elementalSmiteOption?: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null;
     useFeyReinforcements?: boolean;
     useFeyReinforcementsNoConcentration?: boolean;
     useFrozenHaunt?: boolean;
@@ -2055,7 +2084,21 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     }
 
     const spellLevel = getSpellLevel(selectedSpell);
-    const roundTrackerResource = getRoundTrackerResourceForSpell(selectedSpell);
+    const roundTrackerResource =
+      options?.roundTrackerResourceOverride ??
+      selectedSpellActionPaths[0]?.roundTrackerResource ??
+      getRoundTrackerResourceForSpell(selectedSpell);
+    const selectedSpellActionPath =
+      selectedSpellActionPaths.find((path) => path.roundTrackerResource === roundTrackerResource) ??
+      selectedSpellActionPaths[0] ??
+      null;
+    const sharedEconomyContext = selectedSpellActionPath
+      ? {
+          economyType: selectedSpellActionPath.economyType,
+          actionCategory: ACTION_CATEGORY.MAGIC,
+          spellLevel: selectedSpell.spellLevel
+        }
+      : createEconomyMultiContextForSpell(selectedSpell);
     const castAsRitual = options?.castAsRitual === true && selectedSpell.ritual === true;
     const useBeguilingMagic = options?.useBeguilingMagic === true;
     const useMindMagic =
@@ -2072,6 +2115,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       options?.useElementalSmite === true &&
       selectedSpellSupportsElementalSmite &&
       channelDivinityUsesRemaining > 0;
+    const elementalSmiteOption = useElementalSmite ? (options?.elementalSmiteOption ?? null) : null;
     const useStepsOfTheFey =
       options?.useStepsOfTheFey === true &&
       selectedSpellSupportsStepsOfTheFey &&
@@ -2130,6 +2174,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       return;
     }
 
+    if (useElementalSmite && elementalSmiteOption === null) {
+      return;
+    }
+
     if (spellLevel === 0) {
       if (roundTrackerResource) {
         onPersistCharacter((currentCharacter) => {
@@ -2155,10 +2203,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithMindMagic)
             : nextCharacterWithMindMagic;
           const nextCharacterWithElementalSmite = useElementalSmite
-            ? expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions)
+            ? applyPaladinOathOfTheNobleGeniesElementalSmiteEffect(
+                expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions),
+                elementalSmiteOption
+              )
             : nextCharacterWithSpellOptions;
 
-          const sharedEconomyContext = createEconomyMultiContextForSpell(selectedSpell);
           const nextCharacterWithSharedMulti = consumeSharedEconomyMultiForCharacterAction(
             nextCharacterWithElementalSmite,
             sharedEconomyContext
@@ -2197,7 +2247,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithMindMagic)
             : nextCharacterWithMindMagic;
           const nextCharacterWithElementalSmite = useElementalSmite
-            ? expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions)
+            ? applyPaladinOathOfTheNobleGeniesElementalSmiteEffect(
+                expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions),
+                elementalSmiteOption
+              )
             : nextCharacterWithSpellOptions;
 
           const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
@@ -2244,7 +2297,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithMindMagic)
           : nextCharacterWithMindMagic;
         const nextCharacterWithElementalSmite = useElementalSmite
-          ? expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions)
+          ? applyPaladinOathOfTheNobleGeniesElementalSmiteEffect(
+              expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions),
+              elementalSmiteOption
+            )
           : nextCharacterWithSpellOptions;
 
         const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
@@ -2447,7 +2503,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         ? consumeBlessingOfMoonlightUseForCharacter(nextCharacterWithWarGodsBlessing)
         : nextCharacterWithWarGodsBlessing;
       const nextCharacterWithElementalSmite = useElementalSmite
-        ? expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions)
+        ? applyPaladinOathOfTheNobleGeniesElementalSmiteEffect(
+            expendChannelDivinityUseForCharacter(nextCharacterWithSpellOptions),
+            elementalSmiteOption
+          )
         : nextCharacterWithSpellOptions;
       const nextCharacterWithNaturalRecovery = castsFreeViaNaturalRecovery
         ? consumeDruidNaturalRecoveryUseForCharacter(nextCharacterWithElementalSmite)
@@ -2500,24 +2559,19 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         );
       }
 
-      const sharedEconomyContext = createEconomyMultiContextForSpell(selectedSpell);
-      const nextCharacterWithSharedMulti =
-        roundTrackerResource === "action"
-          ? consumeSharedEconomyMultiForCharacterAction(
-              nextCharacterWithSpellCastEffects,
-              sharedEconomyContext
-            )
-          : nextCharacterWithSpellCastEffects;
+      const nextCharacterWithSharedMulti = roundTrackerResource
+        ? consumeSharedEconomyMultiForCharacterAction(
+            nextCharacterWithSpellCastEffects,
+            sharedEconomyContext
+          )
+        : nextCharacterWithSpellCastEffects;
 
       if (nextCharacterWithSharedMulti !== nextCharacterWithSpellCastEffects) {
         return nextCharacterWithSharedMulti;
       }
 
       return roundTrackerResource
-        ? consumeRoundTrackerResourceForCharacter(
-            nextCharacterWithFleetStep,
-            roundTrackerResource
-          )
+        ? consumeRoundTrackerResourceForCharacter(nextCharacterWithFleetStep, roundTrackerResource)
         : nextCharacterWithFleetStep;
     });
 
@@ -2737,7 +2791,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                 {group.spells.map((spell) => (
                   <li key={spell.id}>
                     {(() => {
-                      const actionShapeState = getSpellRowActionShapeState(spell);
+                      const actionShapes = getSpellRowActionShapes(spell);
 
                       return (
                         <SpellListRow
@@ -2753,7 +2807,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                               ? "Ritual from spellbook"
                               : wizardSpellbookOnlyIdSet.has(spell.id)
                                 ? "In Spellbook but not prepared"
-                              : undefined
+                                : undefined
                           }
                           detailNoteTone={
                             wizardSpellbookOnlyIdSet.has(spell.id) ? "accent" : "default"
@@ -2767,8 +2821,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                               : "default"
                           }
                           compactConcentrationDuration
-                          actionShapeSelected={actionShapeState.isSelected}
-                          actionShapeMultiCount={actionShapeState.multiCount}
+                          actionShapes={actionShapes}
                         />
                       );
                     })()}
@@ -2920,7 +2973,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           {group.spells.map((spell) => {
                             const isChecked = cantripDraftSet.has(spell.id);
                             const isDisabled = !isChecked && isCantripLimitReached;
-                            const actionShapeState = getSpellRowActionShapeState(spell);
+                            const actionShapes = getSpellRowActionShapes(spell);
 
                             return (
                               <li key={spell.id}>
@@ -2934,8 +2987,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                                   isSelected={isChecked}
                                   onSelect={() => toggleCantripDraft(spell.id)}
                                   disabled={isDisabled}
-                                  actionShapeSelected={actionShapeState.isSelected}
-                                  actionShapeMultiCount={actionShapeState.multiCount}
+                                  actionShapes={actionShapes}
                                   className={
                                     isDisabled ? styles.spellManagementChoiceDisabled : undefined
                                   }
@@ -3093,7 +3145,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                         const isDisabled =
                           !usesSpellbook &&
                           (isAlwaysPrepared || (!isChecked && isPreparedSpellLimitReached));
-                        const actionShapeState = getSpellRowActionShapeState(spell);
+                        const actionShapes = getSpellRowActionShapes(spell);
 
                         return (
                           <li key={spell.id}>
@@ -3119,8 +3171,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                                   : undefined
                               }
                               disabled={isDisabled}
-                              actionShapeSelected={actionShapeState.isSelected}
-                              actionShapeMultiCount={actionShapeState.multiCount}
+                              actionShapes={actionShapes}
                               className={
                                 isAlwaysPrepared ? styles.spellManagementChoiceDisabled : undefined
                               }
@@ -3141,6 +3192,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         <CharacterSpellDrawer
           character={character}
           spell={selectedSpellDisplay ?? selectedSpell}
+          damageDetailOverride={selectedSpellElementalSmiteDamageDetail}
           alwaysPrepared={selectedSpellAlwaysPrepared}
           alwaysSpellbook={selectedSpellAlwaysSpellbook}
           mode={selectedSpellViewMode}
@@ -3158,6 +3210,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               useStarMap: useStarMapOnSelectedSpell,
               useBlessingOfMoonlight: useBlessingOfMoonlightOnSelectedSpell,
               useElementalSmite: useElementalSmiteOnSelectedSpell,
+              elementalSmiteOption: selectedElementalSmiteOptionOnSelectedSpell,
               useFeyReinforcements: useFeyReinforcementsOnSelectedSpell,
               useFeyReinforcementsNoConcentration:
                 useFeyReinforcementsNoConcentrationOnSelectedSpell,
@@ -3228,10 +3281,24 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                   : null
           }
           actionWarning={selectedSpellCastWarning}
-          actionDisabled={selectedSpellCastWarning !== null}
+          actionDisabled={selectedSpellSharedCastWarning !== null}
           blockedReason={selectedSpellBlockedReason}
-          actionShapeAvailable={selectedSpellActionShapeState.isSelected}
-          actionShapeMultiCount={selectedSpellActionShapeState.multiCount}
+          actionPaths={selectedSpellActionPaths
+            .map((path) => {
+              const actionShape = getActionShapeForEconomyType(path.economyType);
+
+              return actionShape
+                ? {
+                    id: path.id,
+                    actionShape,
+                    actionShapeAvailable: path.shapeState.isAvailable,
+                    actionShapeMultiCount: path.shapeState.multiCount,
+                    disabledReason: path.shapeState.disabledReason,
+                    roundTrackerResourceOverride: path.roundTrackerResource
+                  }
+                : null;
+            })
+            .filter((path): path is NonNullable<typeof path> => path !== null)}
           actionOptions={
             selectedSpellSupportsWarGodsBlessing ||
             selectedSpellSupportsMindMagic ||
@@ -3426,6 +3493,19 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           checked: useElementalSmiteOnSelectedSpell,
                           onCheckedChange: setUseElementalSmiteOnSelectedSpell,
                           disabled: selectedSpellElementalSmiteDisabled,
+                          radioOptions: {
+                            value: selectedElementalSmiteOptionOnSelectedSpell,
+                            onValueChange: setSelectedElementalSmiteOptionOnSelectedSpell,
+                            required: true,
+                            placement: "body",
+                            options: paladinOathOfTheNobleGeniesElementalSmiteOptions.map(
+                              (option) => ({
+                                id: option.key,
+                                header: option.label,
+                                description: option.descriptionEntries
+                              })
+                            )
+                          },
                           headerTags: createNamedUsageHeaderTags(
                             createFeatureActionCardCost({
                               amountText: "1",
@@ -3676,7 +3756,19 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               <div className={sheetStyles.spellDrawerDetails}>
                 <CellContainer
                   label="Casting Time"
-                  content={formatSpellCastingTime(selectedDivinityRow.entry.castingTime)}
+                  content={
+                    <span className={styles.divinityCastingTimeContent}>
+                      <span>{formatSpellCastingTime(selectedDivinityRow.entry.castingTime)}</span>
+                      {selectedDivinityActionShape ? (
+                        <ActionShape
+                          shape={selectedDivinityActionShape}
+                          isSelected
+                          size="small"
+                          className={styles.divinityCastingTimeShape}
+                        />
+                      ) : null}
+                    </span>
+                  }
                 />
                 <CellContainer label="Range" content={selectedDivinityRow.entry.range} />
                 <CellContainer label="Duration" content={selectedDivinityRow.entry.duration} />
@@ -3753,7 +3845,17 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                   channelDivinityUsesRemaining <= 0 || selectedDivinityActionWarning !== null
                 }
               >
-                Channel Divinity
+                <span className={styles.divinityDrawerActionButtonContent}>
+                  <span>Use Channel Divinity</span>
+                  {selectedDivinityActionShape ? (
+                    <ActionShape
+                      shape={selectedDivinityActionShape}
+                      isSelected={selectedDivinityActionShapeState?.isSelected ?? true}
+                      multiCount={selectedDivinityActionShapeState?.multiCount ?? 0}
+                      className={styles.divinityDrawerActionButtonShape}
+                    />
+                  ) : null}
+                </span>
               </button>
             </div>
           </section>

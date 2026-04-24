@@ -11,14 +11,16 @@ import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptio
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
   createFeatureActionCardCost
 } from "../../cardUsage";
 import {
-  createDefaultFeatureActionDescription,
   getPreparedSpellIdsByLevel,
   resolveSpellIdsByName,
   type SubclassRuntimeResolver
@@ -33,9 +35,9 @@ import type {
 import {
   expendPaladinChannelDivinityUse,
   getPaladinChannelDivinityUsesRemaining,
-  getPaladinChannelDivinityUsesTotal,
-  paladinsSmiteActionKey
+  getPaladinChannelDivinityUsesTotal
 } from "../paladin";
+import type { SpellEntry } from "../../../../../codex/entries";
 
 export const oathOfGlorySubclassId = "paladin-oath-of-glory";
 export const peerlessAthleteActionKey = "paladin-peerless-athlete";
@@ -60,6 +62,7 @@ const gloriousDefenseName = "Glorious Defense";
 const livingLegendName = "Living Legend";
 const livingLegendUsesTotal = 1;
 const livingLegendFallbackSpellSlotLevel = 5;
+const divineSmiteSpellId = "spell-divine-smite";
 const oathOfGlorySubclassEntry = getSubclassEntryById(oathOfGlorySubclassId);
 const peerlessAthleteAdvantageIndicator = {
   label: "Advantage",
@@ -76,7 +79,12 @@ type PaladinOathOfGloryCharacter = Pick<Character, "className"> &
   Partial<
     Pick<
       Character,
-      "abilities" | "level" | "subclassId" | "classFeatureState" | "spellSlotsExpended" | "statusEntries"
+      | "abilities"
+      | "level"
+      | "subclassId"
+      | "classFeatureState"
+      | "spellSlotsExpended"
+      | "statusEntries"
     >
   >;
 
@@ -107,7 +115,9 @@ const peerlessAthleteDescription = getOathOfGloryFeatureDescriptionEntries(
 const gloriousDefenseDescription = getOathOfGloryFeatureDescriptionEntries(
   CLASS_FEATURE.GLORIOUS_DEFENSE
 );
-const livingLegendDescription = getOathOfGloryFeatureDescriptionEntries(CLASS_FEATURE.LIVING_LEGEND);
+const livingLegendDescription = getOathOfGloryFeatureDescriptionEntries(
+  CLASS_FEATURE.LIVING_LEGEND
+);
 const gloriousDefenseReactionEntry: ReactionEntry = {
   id: gloriousDefenseReactionId,
   reaction: REACTION.GLORIOUS_DEFENSE,
@@ -215,7 +225,8 @@ function getPaladinOathOfGloryLivingLegendFallbackSlotLevel(
 }
 
 export function hasActivePaladinOathOfGloryPeerlessAthlete(
-  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "statusEntries" | "subclassId">>
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "statusEntries" | "subclassId">>
 ): boolean {
   if (!isPaladinOathOfGlory(character)) {
     return false;
@@ -398,7 +409,8 @@ function getPaladinOathOfGloryFeatureActions(
         kind: "activate"
       },
       isActive: isLivingLegendActive,
-      disabled: isLivingLegendActive || (livingLegendUsesRemaining <= 0 && !hasLivingLegendFallbackSlot),
+      disabled:
+        isLivingLegendActive || (livingLegendUsesRemaining <= 0 && !hasLivingLegendFallbackSlot),
       disabledReason: isLivingLegendActive
         ? "Living Legend is already active."
         : livingLegendUsesRemaining <= 0 && !hasLivingLegendFallbackSlot
@@ -588,20 +600,12 @@ function getPaladinOathOfGloryReactionEntries(
     : [];
 }
 
-function appendInspiringSmiteDescription(action: FeatureActionCard): FeatureActionCard {
-  if (action.key !== paladinsSmiteActionKey) {
-    return action;
+function appendInspiringSmiteDescription(spell: SpellEntry): SpellEntry {
+  if (spell.id !== divineSmiteSpellId) {
+    return spell;
   }
 
-  const nextAction =
-    action.description?.length && action.description.length > 0
-      ? action
-      : {
-          ...action,
-          description: createDefaultFeatureActionDescription(action)
-        };
-
-  return appendSourcedDescriptionAddition(nextAction, "Inspiring Smite", inspiringSmiteDescription);
+  return appendSourcedDescriptionAddition(spell, "Inspiring Smite", inspiringSmiteDescription);
 }
 
 function getPaladinOathOfGlorySpeedBonuses(
@@ -678,6 +682,6 @@ export const getPaladinOathOfGloryDerivedFeatureState: SubclassRuntimeResolver =
         skillIndicators: getPaladinOathOfGlorySkillIndicators(character),
         speedBonuses: getPaladinOathOfGlorySpeedBonuses(character),
         reactionEntries: getPaladinOathOfGloryReactionEntries(character),
-        transformFeatureAction: appendInspiringSmiteDescription
+        transformSpellEntry: appendInspiringSmiteDescription
       }
     : {};

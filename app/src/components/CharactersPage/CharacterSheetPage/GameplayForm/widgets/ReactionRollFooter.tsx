@@ -3,19 +3,15 @@ import ActionShape from "../../../../ActionShape";
 import d20Icon from "../../../../../assets/svg/d20.svg";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
-import styles from "./DeflectAttacksReaction.module.css";
+import styles from "./ReactionRollFooter.module.css";
 
-const deflectAttacksLabel = "Deflect Attacks";
-
-type DeflectAttacksReactionFooterProps = {
+type ReactionRollFooterProps = {
+  actionName: string;
   disabled: boolean;
   onTakeReaction: () => void;
 };
 
-function DeflectAttacksReactionFooter({
-  disabled,
-  onTakeReaction
-}: DeflectAttacksReactionFooterProps) {
+function ReactionRollFooter({ actionName, disabled, onTakeReaction }: ReactionRollFooterProps) {
   return (
     <div className={styles.footerActions}>
       <button
@@ -36,11 +32,12 @@ function DeflectAttacksReactionFooter({
         </span>
       </button>
       <DiceRollerSettingsButton
-        actionName={deflectAttacksLabel}
+        actionName={actionName}
         className={clsx(sheetStyles.castButton, styles.settingsButton)}
+        ariaLabel="Open dice roller settings"
       />
     </div>
   );
 }
 
-export default DeflectAttacksReactionFooter;
+export default ReactionRollFooter;

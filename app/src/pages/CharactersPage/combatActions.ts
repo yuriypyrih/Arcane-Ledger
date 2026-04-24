@@ -59,7 +59,7 @@ type GameplayActionDrawerBase = {
 export type GameplayActionDrawerDefinition =
   | (GameplayActionDrawerBase & {
       kind: "confirm";
-      confirmLabel: string;
+      confirmLabel?: string;
     })
   | (GameplayActionDrawerBase & {
       kind: "options";
@@ -127,9 +127,7 @@ function createFeatureActionHeaderTags(action: FeatureActionCard): FeatureAction
   const consumeLegacyChargeTracker = () => {
     const legacyChargeTrackerIndex = legacyResources.findIndex(
       (resource, index) =>
-        !consumedLegacyResourceIndexes.has(index) &&
-        resource.kind === "tracker" &&
-        !resource.icon
+        !consumedLegacyResourceIndexes.has(index) && resource.kind === "tracker" && !resource.icon
     );
 
     if (legacyChargeTrackerIndex >= 0) {
@@ -147,7 +145,11 @@ function createFeatureActionHeaderTags(action: FeatureActionCard): FeatureAction
     });
 
   const appendUsageTag = () => {
-    if (!action.cardUsage || action.cardUsage.mode === "charges" || action.cardUsage.mode === "free") {
+    if (
+      !action.cardUsage ||
+      action.cardUsage.mode === "charges" ||
+      action.cardUsage.mode === "free"
+    ) {
       return;
     }
 
@@ -222,11 +224,15 @@ function createFeatureActionHeaderTags(action: FeatureActionCard): FeatureAction
         return;
       }
 
-      headerTags.push(createChargesHeaderTag(resource.current, resource.total, resource.supplementary));
+      headerTags.push(
+        createChargesHeaderTag(resource.current, resource.total, resource.supplementary)
+      );
       return;
     }
 
-    headerTags.push(createTextHeaderTag(resource.label, resource.value, resource.icon, resource.tone));
+    headerTags.push(
+      createTextHeaderTag(resource.label, resource.value, resource.icon, resource.tone)
+    );
   });
 
   return headerTags;
@@ -377,7 +383,7 @@ function createFeatureActionDrawer(
   const factsSectionTitle = action.drawer?.factsSectionTitle;
   const headerTags = createFeatureActionHeaderTags(action);
   const eyebrow = action.drawer?.eyebrow;
-  const confirmLabel = action.drawer?.confirmLabel ?? execute.label ?? action.name;
+  const confirmLabel = action.drawer?.confirmLabel ?? execute.label;
 
   if (drawerKind === "options") {
     return {

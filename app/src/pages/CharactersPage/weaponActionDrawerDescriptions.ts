@@ -1,4 +1,4 @@
-import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../codex/entries";
+import { CLASS_FEATURE, WEAPON_COMBAT_TYPE, type SpellDescriptionEntry } from "../../codex/entries";
 import type { Character } from "../../types";
 import { ECONOMY_TYPE } from "./actionEconomy";
 import { createSourcedDescriptionEntries } from "./actionModalDescriptions";
@@ -40,23 +40,88 @@ function getInjectedExtraAttackSection(
   return null;
 }
 
+function getInjectedRadiantStrikesSection(
+  character: WeaponActionDescriptionCharacter
+): SpellDescriptionEntry[] | null {
+  const description = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.RADIANT_STRIKES);
+
+  return description.length > 0
+    ? createSourcedDescriptionEntries("Radiant Strikes", description)
+    : null;
+}
+
+function getInjectedSacredWeaponSection(
+  character: WeaponActionDescriptionCharacter
+): SpellDescriptionEntry[] | null {
+  const description = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.SACRED_WEAPON);
+
+  return description.length > 0
+    ? createSourcedDescriptionEntries("Sacred Weapon", description)
+    : null;
+}
+
+function getInjectedVowOfEnmitySection(
+  character: WeaponActionDescriptionCharacter
+): SpellDescriptionEntry[] | null {
+  const description = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.VOW_OF_ENMITY);
+
+  return description.length > 0
+    ? createSourcedDescriptionEntries("Vow of Enmity", description)
+    : null;
+}
+
+function isWeaponOrUnarmedAction(action: Pick<WeaponAction, "attackKind">): boolean {
+  return action.attackKind === "weapon" || action.attackKind === "unarmed";
+}
+
+function isMeleeWeaponOrUnarmedAction(
+  action: Pick<WeaponAction, "attackKind" | "combatType">
+): boolean {
+  return (
+    action.attackKind === "unarmed" ||
+    (action.attackKind === "weapon" && action.combatType === WEAPON_COMBAT_TYPE.MELEE)
+  );
+}
+
 export function getWeaponActionDrawerDescriptionAdditions(
   character: WeaponActionDescriptionCharacter,
-  action: Pick<WeaponAction, "attackKind" | "economyType" | "descriptionAdditions">
+  action: Pick<WeaponAction, "attackKind" | "combatType" | "economyType" | "descriptionAdditions">
 ): SpellDescriptionEntry[][] {
-  if (action.economyType !== ECONOMY_TYPE.ACTION) {
+  if (!isWeaponOrUnarmedAction(action)) {
     return action.descriptionAdditions ?? [];
   }
 
-  if (action.attackKind !== "weapon" && action.attackKind !== "unarmed") {
-    return action.descriptionAdditions ?? [];
+  const injectedSections: SpellDescriptionEntry[][] = [];
+
+  if (action.economyType === ECONOMY_TYPE.ACTION) {
+    const injectedExtraAttackSection = getInjectedExtraAttackSection(character);
+
+    if (injectedExtraAttackSection) {
+      injectedSections.push(injectedExtraAttackSection);
+    }
   }
 
-  const injectedExtraAttackSection = getInjectedExtraAttackSection(character);
+  if (isMeleeWeaponOrUnarmedAction(action)) {
+    const injectedRadiantStrikesSection = getInjectedRadiantStrikesSection(character);
 
-  if (!injectedExtraAttackSection) {
-    return action.descriptionAdditions ?? [];
+    if (injectedRadiantStrikesSection) {
+      injectedSections.push(injectedRadiantStrikesSection);
+    }
   }
 
-  return [injectedExtraAttackSection, ...(action.descriptionAdditions ?? [])];
+  const injectedSacredWeaponSection = getInjectedSacredWeaponSection(character);
+
+  if (injectedSacredWeaponSection) {
+    injectedSections.push(injectedSacredWeaponSection);
+  }
+
+  const injectedVowOfEnmitySection = getInjectedVowOfEnmitySection(character);
+
+  if (injectedVowOfEnmitySection) {
+    injectedSections.push(injectedVowOfEnmitySection);
+  }
+
+  return injectedSections.length > 0
+    ? [...injectedSections, ...(action.descriptionAdditions ?? [])]
+    : (action.descriptionAdditions ?? []);
 }

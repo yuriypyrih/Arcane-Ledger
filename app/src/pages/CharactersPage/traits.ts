@@ -36,7 +36,6 @@ import {
   SENSE,
   STATUS_DURATION_KIND,
   STATUS_DURATION_ROUND_TICK,
-  STATUS_DURATION_PRESET,
   STATUS_ENTRY_GROUP,
   type Character,
   type CharacterStatusDuration,
@@ -71,6 +70,8 @@ import {
   rangerWinterWalkerBitingColdStatusSourceId,
   rangerWinterWalkerFrozenHauntStatusSourceId
 } from "./classFeatures/ranger/subclasses/rangerWinterWalker";
+import { paladinOathOfDevotionSacredWeaponStatusSourceId } from "./classFeatures/paladin/subclasses/paladinOathOfDevotion";
+import { paladinOathOfVengeanceVowOfEnmityStatusSourceId } from "./classFeatures/paladin/subclasses/paladinOathOfVengeance";
 import { getSorcererDraconicResilienceHitPointMaximumBonus } from "./classFeatures/sorcerer/subclasses/sorcererDraconicSorcery";
 import {
   isRogueArcaneTricksterSpellThiefStatusSourceId,
@@ -307,12 +308,6 @@ const paladinPeerlessAthleteDescription =
     ?.featureOverrides?.[
       CLASS_FEATURE.PEERLESS_ATHLETE
     ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
-const paladinAuraOfAlacrityDescription =
-  paladinOathOfGlorySubclassEntry?.features
-    .find((row) => row.classFeatures.includes(CLASS_FEATURE.AURA_OF_ALACRITY))
-    ?.featureOverrides?.[
-      CLASS_FEATURE.AURA_OF_ALACRITY
-    ]?.description?.filter((entry): entry is string => typeof entry === "string") ?? [];
 const paladinLivingLegendDescription =
   paladinOathOfGlorySubclassEntry?.features
     .find((row) => row.classFeatures.includes(CLASS_FEATURE.LIVING_LEGEND))
@@ -501,35 +496,6 @@ export const statusGroupTitles: Record<STATUS_ENTRY_GROUP, string> = {
   [STATUS_ENTRY_GROUP.CONDITIONS]: "Conditions"
 };
 
-export const durationPresetOptions: Array<{
-  value: STATUS_DURATION_PRESET;
-  label: string;
-}> = [
-  { value: STATUS_DURATION_PRESET.INFINITE, label: "Infinity" },
-  { value: STATUS_DURATION_PRESET.CONCENTRATION, label: "Concentration" },
-  { value: STATUS_DURATION_PRESET.SHORT_REST, label: "Short Rest" },
-  { value: STATUS_DURATION_PRESET.LONG_REST, label: "Long Rest" },
-  { value: STATUS_DURATION_PRESET.ONE_MINUTE, label: "1 minute" },
-  { value: STATUS_DURATION_PRESET.TEN_MINUTES, label: "10 minutes" },
-  { value: STATUS_DURATION_PRESET.ONE_HOUR, label: "1 hour" },
-  { value: STATUS_DURATION_PRESET.TWO_HOURS, label: "2 hours" },
-  { value: STATUS_DURATION_PRESET.EIGHT_HOURS, label: "8 hours" },
-  { value: STATUS_DURATION_PRESET.TWELVE_HOURS, label: "12 hours" },
-  { value: STATUS_DURATION_PRESET.TWENTY_FOUR_HOURS, label: "24 hours" },
-  ...Array.from({ length: 20 }, (_, index) => ({
-    value: roundCountToDurationPreset(index + 1),
-    label: `${index + 1} round${index === 0 ? "" : "s"}`
-  }))
-];
-
-export const statusRoundTickOptions: Array<{
-  value: STATUS_DURATION_ROUND_TICK;
-  label: string;
-}> = [
-  { value: STATUS_DURATION_ROUND_TICK.ROUND_START, label: "Round Start" },
-  { value: STATUS_DURATION_ROUND_TICK.ROUND_END, label: "Round End" }
-];
-
 export {
   advanceCharacterStatusEntries,
   applyLongRestToCharacterStatusEntries,
@@ -551,62 +517,6 @@ export {
   upsertManualStatusEntry
 } from "./statusEntries";
 
-function roundCountToDurationPreset(rounds: number): STATUS_DURATION_PRESET {
-  return [
-    STATUS_DURATION_PRESET.ONE_ROUND,
-    STATUS_DURATION_PRESET.TWO_ROUNDS,
-    STATUS_DURATION_PRESET.THREE_ROUNDS,
-    STATUS_DURATION_PRESET.FOUR_ROUNDS,
-    STATUS_DURATION_PRESET.FIVE_ROUNDS,
-    STATUS_DURATION_PRESET.SIX_ROUNDS,
-    STATUS_DURATION_PRESET.SEVEN_ROUNDS,
-    STATUS_DURATION_PRESET.EIGHT_ROUNDS,
-    STATUS_DURATION_PRESET.NINE_ROUNDS,
-    STATUS_DURATION_PRESET.TEN_ROUNDS,
-    STATUS_DURATION_PRESET.ELEVEN_ROUNDS,
-    STATUS_DURATION_PRESET.TWELVE_ROUNDS,
-    STATUS_DURATION_PRESET.THIRTEEN_ROUNDS,
-    STATUS_DURATION_PRESET.FOURTEEN_ROUNDS,
-    STATUS_DURATION_PRESET.FIFTEEN_ROUNDS,
-    STATUS_DURATION_PRESET.SIXTEEN_ROUNDS,
-    STATUS_DURATION_PRESET.SEVENTEEN_ROUNDS,
-    STATUS_DURATION_PRESET.EIGHTEEN_ROUNDS,
-    STATUS_DURATION_PRESET.NINETEEN_ROUNDS,
-    STATUS_DURATION_PRESET.TWENTY_ROUNDS
-  ][Math.max(0, Math.min(19, rounds - 1))];
-}
-
-function durationPresetToRoundCount(preset: STATUS_DURATION_PRESET): number | null {
-  const mapping = new Map<STATUS_DURATION_PRESET, number>([
-    [STATUS_DURATION_PRESET.ONE_ROUND, 1],
-    [STATUS_DURATION_PRESET.TWO_ROUNDS, 2],
-    [STATUS_DURATION_PRESET.THREE_ROUNDS, 3],
-    [STATUS_DURATION_PRESET.FOUR_ROUNDS, 4],
-    [STATUS_DURATION_PRESET.FIVE_ROUNDS, 5],
-    [STATUS_DURATION_PRESET.SIX_ROUNDS, 6],
-    [STATUS_DURATION_PRESET.SEVEN_ROUNDS, 7],
-    [STATUS_DURATION_PRESET.EIGHT_ROUNDS, 8],
-    [STATUS_DURATION_PRESET.NINE_ROUNDS, 9],
-    [STATUS_DURATION_PRESET.TEN_ROUNDS, 10],
-    [STATUS_DURATION_PRESET.ELEVEN_ROUNDS, 11],
-    [STATUS_DURATION_PRESET.TWELVE_ROUNDS, 12],
-    [STATUS_DURATION_PRESET.THIRTEEN_ROUNDS, 13],
-    [STATUS_DURATION_PRESET.FOURTEEN_ROUNDS, 14],
-    [STATUS_DURATION_PRESET.FIFTEEN_ROUNDS, 15],
-    [STATUS_DURATION_PRESET.SIXTEEN_ROUNDS, 16],
-    [STATUS_DURATION_PRESET.SEVENTEEN_ROUNDS, 17],
-    [STATUS_DURATION_PRESET.EIGHTEEN_ROUNDS, 18],
-    [STATUS_DURATION_PRESET.NINETEEN_ROUNDS, 19],
-    [STATUS_DURATION_PRESET.TWENTY_ROUNDS, 20]
-  ]);
-
-  return mapping.get(preset) ?? null;
-}
-
-export function isRoundDurationPreset(preset: STATUS_DURATION_PRESET): boolean {
-  return durationPresetToRoundCount(preset) !== null;
-}
-
 function isConditionName(value: unknown): value is CONDITION_NAME {
   return typeof value === "string" && conditionValues.has(value as CONDITION_NAME);
 }
@@ -616,9 +526,9 @@ function getExhaustionLevelFromConditionOption(value: string): ExhaustionLevel |
     return null;
   }
 
-  return normalizeExhaustionLevel(value.slice(exhaustionConditionOptionPrefix.length)) as
-    | ExhaustionLevel
-    | null;
+  return normalizeExhaustionLevel(
+    value.slice(exhaustionConditionOptionPrefix.length)
+  ) as ExhaustionLevel | null;
 }
 
 export function isExhaustionConditionOptionValue(
@@ -666,49 +576,6 @@ export function setCharacterExhaustionLevel(
   nextLevel: ExhaustionLevel | null
 ): CharacterStatusEntry[] {
   return setStoredCharacterExhaustionLevel(value, nextLevel);
-}
-
-export function createStatusDurationFromPreset(
-  preset: STATUS_DURATION_PRESET,
-  roundTickOn: STATUS_DURATION_ROUND_TICK = STATUS_DURATION_ROUND_TICK.ROUND_START
-): CharacterStatusDuration {
-  switch (preset) {
-    case STATUS_DURATION_PRESET.CONCENTRATION:
-      return {
-        kind: STATUS_DURATION_KIND.LINKED,
-        linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
-        linkedValue: EFFECT_NAME.CONCENTRATION
-      };
-    case STATUS_DURATION_PRESET.SHORT_REST:
-      return { kind: STATUS_DURATION_KIND.SHORT_REST };
-    case STATUS_DURATION_PRESET.LONG_REST:
-      return { kind: STATUS_DURATION_KIND.LONG_REST };
-    case STATUS_DURATION_PRESET.ONE_MINUTE:
-      return { kind: STATUS_DURATION_KIND.MINUTES, amount: 1 };
-    case STATUS_DURATION_PRESET.TEN_MINUTES:
-      return { kind: STATUS_DURATION_KIND.MINUTES, amount: 10 };
-    case STATUS_DURATION_PRESET.ONE_HOUR:
-      return { kind: STATUS_DURATION_KIND.HOURS, amount: 1 };
-    case STATUS_DURATION_PRESET.TWO_HOURS:
-      return { kind: STATUS_DURATION_KIND.HOURS, amount: 2 };
-    case STATUS_DURATION_PRESET.EIGHT_HOURS:
-      return { kind: STATUS_DURATION_KIND.HOURS, amount: 8 };
-    case STATUS_DURATION_PRESET.TWELVE_HOURS:
-      return { kind: STATUS_DURATION_KIND.HOURS, amount: 12 };
-    case STATUS_DURATION_PRESET.TWENTY_FOUR_HOURS:
-      return { kind: STATUS_DURATION_KIND.HOURS, amount: 24 };
-    case STATUS_DURATION_PRESET.INFINITE:
-      return { kind: STATUS_DURATION_KIND.INFINITE };
-    default: {
-      const roundCount = durationPresetToRoundCount(preset);
-
-      return {
-        kind: STATUS_DURATION_KIND.ROUNDS,
-        amount: roundCount ?? 1,
-        tickOn: roundTickOn
-      };
-    }
-  }
 }
 
 export function getExhaustionSpeedAdjustment(
@@ -875,12 +742,11 @@ function getDefaultStatusEntryDescriptionEntries(
   }
 
   if (entry.sourceId === paladinAuraOfAlacrityProtectionStatusSourceId) {
-    return [
-      ...(paladinFeatureMap[CLASS_FEATURE.AURA_OF_PROTECTION]?.description ?? [
+    return (
+      paladinFeatureMap[CLASS_FEATURE.AURA_OF_PROTECTION]?.description ?? [
         "An aura passively affects creatures or spaces around you."
-      ]),
-      ...paladinAuraOfAlacrityDescription
-    ];
+      ]
+    );
   }
 
   if (entry.sourceId === "feature-paladin-aura-of-courage") {
@@ -1310,6 +1176,54 @@ export function getStatusEntryDescriptionContent(
   description: SpellDescriptionEntry[];
   descriptionAdditions: SpellDescriptionEntry[][];
 } {
+  if (
+    entry.sourceId === paladinOathOfDevotionSacredWeaponStatusSourceId &&
+    character?.className === "Paladin"
+  ) {
+    const descriptionEntries = getFeatureDescriptionForCharacter(
+      character,
+      CLASS_FEATURE.SACRED_WEAPON
+    );
+
+    if (descriptionEntries.length > 0) {
+      return {
+        description: descriptionEntries,
+        descriptionAdditions: []
+      };
+    }
+  }
+
+  if (
+    entry.sourceId === paladinOathOfVengeanceVowOfEnmityStatusSourceId &&
+    character?.className === "Paladin"
+  ) {
+    const descriptionEntries = getFeatureDescriptionForCharacter(
+      character,
+      CLASS_FEATURE.VOW_OF_ENMITY
+    );
+
+    if (descriptionEntries.length > 0) {
+      return {
+        description: descriptionEntries,
+        descriptionAdditions: []
+      };
+    }
+  }
+
+  if (entry.sourceId === paladinHolyNimbusStatusSourceId && character?.className === "Paladin") {
+    const descriptionEntries = getFeatureDescriptionForCharacter(
+      character,
+      CLASS_FEATURE.HOLY_NIMBUS
+    );
+
+    if (descriptionEntries.length > 0) {
+      return {
+        description: descriptionEntries,
+        descriptionAdditions: []
+      };
+    }
+  }
+
   if (entry.sourceId === monkQuiveringPalmStatusSourceId && character?.className === "Monk") {
     const descriptionEntries = getFeatureDescriptionForCharacter(
       character,
@@ -1437,6 +1351,39 @@ export function getStatusEntryDescriptionContent(
   }
 
   if (
+    character?.className === "Paladin" &&
+    (entry.sourceId === "feature-paladin-aura-of-protection" ||
+      entry.sourceId === paladinAuraOfAlacrityProtectionStatusSourceId)
+  ) {
+    const descriptionAdditions: SpellDescriptionEntry[][] = [];
+    const auraOfAlacrityDescription =
+      entry.sourceId === paladinAuraOfAlacrityProtectionStatusSourceId
+        ? getFeatureDescriptionForCharacter(character, CLASS_FEATURE.AURA_OF_ALACRITY)
+        : [];
+    const auraExpansionDescription = getFeatureDescriptionForCharacter(
+      character,
+      CLASS_FEATURE.AURA_EXPANSION
+    );
+
+    if (auraOfAlacrityDescription.length > 0) {
+      descriptionAdditions.push(
+        createSourcedDescriptionEntries("Aura of Alacrity", auraOfAlacrityDescription)
+      );
+    }
+
+    if (auraExpansionDescription.length > 0) {
+      descriptionAdditions.push(
+        createSourcedDescriptionEntries("Aura Expansion", auraExpansionDescription)
+      );
+    }
+
+    return {
+      description: getDefaultStatusEntryDescriptionEntries(entry),
+      descriptionAdditions
+    };
+  }
+
+  if (
     entry.sourceId === fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId &&
     character?.className === "Fighter"
   ) {
@@ -1460,7 +1407,7 @@ export function getStatusEntryDescriptionContent(
               )
             ]
           : []
-      };
+    };
   }
 
   if (
@@ -1533,53 +1480,6 @@ export function getStatusDurationLabel(duration: CharacterStatusDuration): strin
       return `${duration.amount} round${duration.amount === 1 ? "" : "s"} (${getStatusDurationTickOnLabel(duration)})`;
     default:
       return "Infinite";
-  }
-}
-
-export function getStatusDurationPreset(duration: CharacterStatusDuration): STATUS_DURATION_PRESET {
-  switch (duration.kind) {
-    case STATUS_DURATION_KIND.CONCENTRATION:
-      return STATUS_DURATION_PRESET.CONCENTRATION;
-    case STATUS_DURATION_KIND.LINKED:
-      return duration.linkedGroup === STATUS_ENTRY_GROUP.EFFECTS &&
-        duration.linkedValue === EFFECT_NAME.CONCENTRATION
-        ? STATUS_DURATION_PRESET.CONCENTRATION
-        : STATUS_DURATION_PRESET.INFINITE;
-    case STATUS_DURATION_KIND.SHORT_REST:
-      return STATUS_DURATION_PRESET.SHORT_REST;
-    case STATUS_DURATION_KIND.LONG_REST:
-      return STATUS_DURATION_PRESET.LONG_REST;
-    case STATUS_DURATION_KIND.MINUTES:
-      switch (duration.amount) {
-        case 1:
-          return STATUS_DURATION_PRESET.ONE_MINUTE;
-        case 10:
-          return STATUS_DURATION_PRESET.TEN_MINUTES;
-        default:
-          return STATUS_DURATION_PRESET.INFINITE;
-      }
-    case STATUS_DURATION_KIND.HOURS:
-      switch (duration.amount) {
-        case 1:
-          return STATUS_DURATION_PRESET.ONE_HOUR;
-        case 2:
-          return STATUS_DURATION_PRESET.TWO_HOURS;
-        case 8:
-          return STATUS_DURATION_PRESET.EIGHT_HOURS;
-        case 12:
-          return STATUS_DURATION_PRESET.TWELVE_HOURS;
-        case 24:
-          return STATUS_DURATION_PRESET.TWENTY_FOUR_HOURS;
-        default:
-          return STATUS_DURATION_PRESET.INFINITE;
-      }
-    case STATUS_DURATION_KIND.DAYS:
-      return STATUS_DURATION_PRESET.INFINITE;
-    case STATUS_DURATION_KIND.ROUNDS:
-      return roundCountToDurationPreset(duration.amount);
-    case STATUS_DURATION_KIND.INFINITE:
-    default:
-      return STATUS_DURATION_PRESET.INFINITE;
   }
 }
 

@@ -2,13 +2,7 @@ import clsx from "clsx";
 import { Plus } from "lucide-react";
 import SelectInput from "../../../FormInputs/SelectInput";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
-import {
-  durationPresetOptions,
-  isRoundDurationPreset,
-  isExhaustionConditionOptionValue
-} from "../../../../../pages/CharactersPage/traits";
-import { STATUS_DURATION_PRESET, STATUS_DURATION_ROUND_TICK } from "../../../../../types";
-import { statusRoundTickOptions } from "../../../../../pages/CharactersPage/traits";
+import { isExhaustionConditionOptionValue } from "../../../../../pages/CharactersPage/traits";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -21,7 +15,9 @@ import {
 } from "../../../../Overlay";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import CustomTraitBuilder from "./CustomTraitBuilder";
+import ManualStatusDurationFields from "./ManualStatusDurationFields";
 import type { CustomTraitDraft, CustomTraitMode } from "./customTraitDraft";
+import type { ManualStatusDurationType } from "./manualStatusDuration";
 import styles from "./TraitEditorModal.module.css";
 import {
   formatTraitEditorOptionLabel,
@@ -34,19 +30,19 @@ type TraitEditorModalProps = {
   mode: CustomTraitMode;
   activeTab: TraitEditorTab;
   values: Record<TraitEditorTab, string>;
-  durationPreset: STATUS_DURATION_PRESET;
-  roundTickOn: STATUS_DURATION_ROUND_TICK;
+  durationType: ManualStatusDurationType;
+  durationValue: number;
   customTraitDraft: CustomTraitDraft;
   createDisabled: boolean;
   onModeChange: (mode: CustomTraitMode) => void;
   onTabChange: (tab: TraitEditorTab) => void;
   onValueChange: (tab: TraitEditorTab, value: string) => void;
-  onDurationPresetChange: (preset: STATUS_DURATION_PRESET) => void;
-  onRoundTickOnChange: (tickOn: STATUS_DURATION_ROUND_TICK) => void;
+  onDurationTypeChange: (value: ManualStatusDurationType) => void;
+  onDurationValueChange: (value: number) => void;
   onCustomTraitNameChange: (value: string) => void;
   onCustomTraitDescriptionChange: (value: string) => void;
-  onCustomTraitDurationPresetChange: (preset: STATUS_DURATION_PRESET) => void;
-  onCustomTraitRoundTickOnChange: (tickOn: STATUS_DURATION_ROUND_TICK) => void;
+  onCustomTraitDurationTypeChange: (value: ManualStatusDurationType) => void;
+  onCustomTraitDurationValueChange: (value: number) => void;
   onCustomTraitEffectTargetChange: (effectId: string, value: string) => void;
   onCustomTraitEffectValueChange: (effectId: string, value: string) => void;
   onAddCustomTraitEffect: () => void;
@@ -59,19 +55,19 @@ function TraitEditorModal({
   mode,
   activeTab,
   values,
-  durationPreset,
-  roundTickOn,
+  durationType,
+  durationValue,
   customTraitDraft,
   createDisabled,
   onModeChange,
   onTabChange,
   onValueChange,
-  onDurationPresetChange,
-  onRoundTickOnChange,
+  onDurationTypeChange,
+  onDurationValueChange,
   onCustomTraitNameChange,
   onCustomTraitDescriptionChange,
-  onCustomTraitDurationPresetChange,
-  onCustomTraitRoundTickOnChange,
+  onCustomTraitDurationTypeChange,
+  onCustomTraitDurationValueChange,
   onCustomTraitEffectTargetChange,
   onCustomTraitEffectValueChange,
   onAddCustomTraitEffect,
@@ -81,7 +77,6 @@ function TraitEditorModal({
 }: TraitEditorModalProps) {
   const isExhaustionSelection =
     activeTab === "conditions" && isExhaustionConditionOptionValue(values[activeTab]);
-  const showRoundTickSelector = isRoundDurationPreset(durationPreset) && !isExhaustionSelection;
   const isCustomTraitMode = mode === "custom-trait";
   const activeTabLabel = traitEditorTabs.find((tab) => tab.id === activeTab)?.label ?? "Conditions";
 
@@ -99,9 +94,7 @@ function TraitEditorModal({
               type="button"
               className={clsx(styles.modePill, isCustomTraitMode && styles.modePillActive)}
               aria-pressed={isCustomTraitMode}
-              onClick={() =>
-                onModeChange(isCustomTraitMode ? "quick-add" : "custom-trait")
-              }
+              onClick={() => onModeChange(isCustomTraitMode ? "quick-add" : "custom-trait")}
             >
               <Plus size={14} aria-hidden="true" />
               <span>Custom Feature Trait</span>
@@ -117,8 +110,8 @@ function TraitEditorModal({
             draft={customTraitDraft}
             onNameChange={onCustomTraitNameChange}
             onDescriptionChange={onCustomTraitDescriptionChange}
-            onDurationPresetChange={onCustomTraitDurationPresetChange}
-            onRoundTickOnChange={onCustomTraitRoundTickOnChange}
+            onDurationTypeChange={onCustomTraitDurationTypeChange}
+            onDurationValueChange={onCustomTraitDurationValueChange}
             onEffectTargetChange={onCustomTraitEffectTargetChange}
             onEffectValueChange={onCustomTraitEffectValueChange}
             onAddEffect={onAddCustomTraitEffect}
@@ -156,40 +149,13 @@ function TraitEditorModal({
                 </SelectInput>
               </label>
 
-              <label className={shared.field}>
-                <span className={shared.fieldLabel}>Duration</span>
-                <SelectInput
-                  value={durationPreset}
-                  disabled={isExhaustionSelection}
-                  onChange={(event) =>
-                    onDurationPresetChange(event.target.value as STATUS_DURATION_PRESET)
-                  }
-                >
-                  {durationPresetOptions.map((option) => (
-                    <option key={option.value} value={option.value}>
-                      {option.label}
-                    </option>
-                  ))}
-                </SelectInput>
-              </label>
-
-              {showRoundTickSelector ? (
-                <label className={shared.field}>
-                  <span className={shared.fieldLabel}>Round Tick</span>
-                  <SelectInput
-                    value={roundTickOn}
-                    onChange={(event) =>
-                      onRoundTickOnChange(event.target.value as STATUS_DURATION_ROUND_TICK)
-                    }
-                  >
-                    {statusRoundTickOptions.map((option) => (
-                      <option key={option.value} value={option.value}>
-                        {option.label}
-                      </option>
-                    ))}
-                  </SelectInput>
-                </label>
-              ) : null}
+              <ManualStatusDurationFields
+                durationType={durationType}
+                durationValue={durationValue}
+                disabled={isExhaustionSelection}
+                onDurationTypeChange={onDurationTypeChange}
+                onDurationValueChange={onDurationValueChange}
+              />
             </div>
           </div>
         )}

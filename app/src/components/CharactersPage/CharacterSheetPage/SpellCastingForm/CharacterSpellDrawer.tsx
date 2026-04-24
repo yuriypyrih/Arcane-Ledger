@@ -10,8 +10,14 @@ import ConcentrationLabel from "../../../ConcentrationLabel";
 import SpellSubtitle from "../../../SpellSubtitle";
 import SelectInput from "../../FormInputs/SelectInput";
 import SpellDescriptionContent from "../../../SpellDescriptionContent";
-import { ENTRY_CATEGORIES, KeywordTooltip, type SpellEntry } from "../../../../codex/entries";
+import {
+  ENTRY_CATEGORIES,
+  KeywordTooltip,
+  type SpellDescriptionEntry,
+  type SpellEntry
+} from "../../../../codex/entries";
 import type { Character } from "../../../../types";
+import type { RoundTrackerResource } from "../../../../pages/CharactersPage/combat";
 import {
   formatCodexLabel,
   formatCodexList,
@@ -34,6 +40,7 @@ import type {
 import FeatureOptInToggle, {
   type FeatureOptInToggleApplication
 } from "../FeatureOptInToggle/FeatureOptInToggle";
+import RadioContainerOption from "../RadioContainerOption";
 import FeatureActionHeaderTags from "../GameplayForm/widgets/FeatureActionHeaderTags";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import gameplayActionStyles from "../GameplayForm/widgets/GameplayActionDrawer.module.css";
@@ -43,13 +50,24 @@ import actionStyles from "./SpellActionDrawer.module.css";
 export type CharacterSpellDrawerMode = "standard" | "prepare-preview" | "divine-intervention";
 export type CharacterSpellDrawerActionOptions = {
   castAsRitual?: boolean;
+  roundTrackerResourceOverride?: RoundTrackerResource | null;
   useBeguilingMagic?: boolean;
   useMindMagic?: boolean;
   useStarMap?: boolean;
   useElementalSmite?: boolean;
+  elementalSmiteOption?: string | null;
   usePhantasmalCreatures?: boolean;
   usePsionicSorcery?: boolean;
   useTelekineticMaster?: boolean;
+};
+
+export type CharacterSpellDrawerActionRadioOption = {
+  id: string;
+  header: ReactNode;
+  subheader?: ReactNode;
+  breakdown?: ReactNode;
+  description?: SpellDescriptionEntry[];
+  disabled?: boolean;
 };
 
 export type CharacterSpellDrawerActionOption = {
@@ -61,6 +79,14 @@ export type CharacterSpellDrawerActionOption = {
   headerTags?: FeatureActionHeaderTag[];
   usage?: FeatureActionCardUsage;
   application?: FeatureOptInToggleApplication;
+  radioOptions?: {
+    value: string | null;
+    onValueChange: (value: string) => void;
+    options: CharacterSpellDrawerActionRadioOption[];
+    required?: boolean;
+    name?: string;
+    placement?: "footer" | "body";
+  };
   select?: {
     label: string;
     value: number;
@@ -71,6 +97,16 @@ export type CharacterSpellDrawerActionOption = {
       disabled?: boolean;
     }>;
   };
+};
+
+export type CharacterSpellDrawerActionPath = {
+  id: string;
+  actionLabel?: string;
+  actionShape: ActionShapeType;
+  actionShapeAvailable: boolean;
+  actionShapeMultiCount?: number;
+  disabledReason?: string | null;
+  roundTrackerResourceOverride?: RoundTrackerResource | null;
 };
 
 type CharacterSpellDrawerProps = {
@@ -96,10 +132,12 @@ type CharacterSpellDrawerProps = {
   ritualCastingRequired?: boolean;
   actionAvailabilityText?: string | null;
   actionContextText?: string | null;
+  actionPaths?: CharacterSpellDrawerActionPath[];
   actionShape?: ActionShapeType | null;
   actionShapeAvailable?: boolean;
   actionShapeMultiCount?: number;
   actionOptions?: CharacterSpellDrawerActionOption[];
+  damageDetailOverride?: string | null;
   backdropClassName?: string;
 };
 
@@ -144,10 +182,12 @@ function CharacterSpellDrawer({
   ritualCastingRequired = false,
   actionAvailabilityText = null,
   actionContextText = null,
+  actionPaths,
   actionShape = null,
   actionShapeAvailable = true,
   actionShapeMultiCount = 0,
   actionOptions = [],
+  damageDetailOverride = null,
   backdropClassName
 }: CharacterSpellDrawerProps) {
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
@@ -186,10 +226,9 @@ function CharacterSpellDrawer({
     : actionOptions;
   const visibleHeaderTags = visibleActionOptions.flatMap((option) =>
     option.headerTags?.length
-      ? (
-          option.usage?.mode === "charges-or-resource"
-            ? markUsageHeaderTagsAsFallback(option.headerTags)
-            : option.headerTags
+      ? (option.usage?.mode === "charges-or-resource"
+          ? markUsageHeaderTagsAsFallback(option.headerTags)
+          : option.headerTags
         ).map((tag, index) => ({
           key: `${option.id}-header-tag-${index}`,
           value: tag
@@ -204,9 +243,25 @@ function CharacterSpellDrawer({
     !isRitualCastingSelected;
   const effectiveBlockedReason =
     isRitualCastingSelected || ritualCastingRequired ? null : blockedReason;
+  const missingRequiredActionOptionSelection =
+    effectiveBlockedReason === null
+      ? (visibleActionOptions.find(
+          (option) =>
+            option.checked && option.radioOptions?.required && option.radioOptions.value === null
+        ) ?? null)
+      : null;
+  const requiredActionOptionWarning =
+    missingRequiredActionOptionSelection?.id === "elemental-smite"
+      ? "Choose an Elemental Smite effect."
+      : missingRequiredActionOptionSelection
+        ? `Choose a ${missingRequiredActionOptionSelection.label} option.`
+        : null;
   const isActionEnabled = shouldShowSlotControls
-    ? canCastAtSelectedSlot && !effectiveBlockedReason && !actionDisabled
-    : !effectiveBlockedReason && !actionDisabled;
+    ? canCastAtSelectedSlot &&
+      !effectiveBlockedReason &&
+      !actionDisabled &&
+      requiredActionOptionWarning === null
+    : !effectiveBlockedReason && !actionDisabled && requiredActionOptionWarning === null;
   const componentsTooltipEntry = KeywordTooltip.components ?? null;
   const badgeLabel =
     mode === "prepare-preview"
@@ -220,11 +275,73 @@ function CharacterSpellDrawer({
   const footerActionShape =
     actionShape ??
     (isRitualCastingSelected || ritualCastingRequired ? "nonCombat" : castingTimeActionShape);
-  const shouldUseFullWidthReactionLayout = footerActionShape === "reaction";
   const castingTimeActionShapeTitle = castingTimeActionShape
     ? getActionShapeTitle(castingTimeActionShape)
     : null;
-  const footerActionShapeTitle = footerActionShape ? getActionShapeTitle(footerActionShape) : null;
+  const visibleActionWarning =
+    requiredActionOptionWarning ?? (isSpentActionWarning(actionWarning) ? null : actionWarning);
+  const baseActionOptions = {
+    castAsRitual: ritualCastingRequired || isRitualCastingSelected,
+    useMindMagic:
+      !isRitualCastingSelected &&
+      actionOptions.some((option) => option.id === "mind-magic" && option.checked),
+    useStarMap: actionOptions.some((option) => option.id === "star-map" && option.checked),
+    useElementalSmite: actionOptions.some(
+      (option) => option.id === "elemental-smite" && option.checked
+    ),
+    elementalSmiteOption:
+      actionOptions.find((option) => option.id === "elemental-smite")?.radioOptions?.value ?? null,
+    usePsionicSorcery: actionOptions.some(
+      (option) => option.id === "psionic-sorcery" && option.checked
+    ),
+    usePhantasmalCreatures: actionOptions.some(
+      (option) => option.id === "phantasmal-creatures" && option.checked
+    ),
+    useTelekineticMaster: actionOptions.some(
+      (option) => option.id === "telekinetic-master" && option.checked
+    )
+  };
+  const resolvedActionPaths =
+    actionPaths && actionPaths.length > 0
+      ? actionPaths
+      : footerActionShape
+        ? [
+            {
+              id: "primary",
+              actionLabel,
+              actionShape: footerActionShape,
+              actionShapeAvailable,
+              actionShapeMultiCount,
+              disabledReason: !isActionEnabled
+                ? (effectiveBlockedReason ?? visibleActionWarning)
+                : null
+            }
+          ]
+        : [];
+  const castingTimeActionShapes =
+    actionPaths && actionPaths.length > 0
+      ? actionPaths.map((path) => ({
+          key: path.id,
+          shape: path.actionShape,
+          title: getActionShapeTitle(path.actionShape)
+        }))
+      : castingTimeActionShape
+        ? [
+            {
+              key: "primary",
+              shape: castingTimeActionShape,
+              title: castingTimeActionShapeTitle
+            }
+          ]
+        : [];
+  const shouldUseFullWidthReactionLayout =
+    resolvedActionPaths.length === 1 && resolvedActionPaths[0]?.actionShape === "reaction";
+  const shouldStackFooterActions =
+    shouldUseFullWidthReactionLayout ||
+    (!shouldShowSlotControls && resolvedActionPaths.length <= 1);
+  const bodyRadioActionOptions = visibleActionOptions.filter(
+    (option) => option.radioOptions?.placement === "body"
+  );
 
   useEffect(() => {
     if (!isComponentsTooltipOpen) {
@@ -304,7 +421,6 @@ function CharacterSpellDrawer({
   const relativeDescription = shouldShowSlotControls
     ? (availabilityText ?? (selectedSlotIsFreeCast ? slotText : null))
     : availabilityText;
-  const visibleActionWarning = isSpentActionWarning(actionWarning) ? null : actionWarning;
   const shouldShowTopRow =
     relativeDescription !== null ||
     ritualCastingAvailable ||
@@ -380,14 +496,19 @@ function CharacterSpellDrawer({
                 content={
                   <span className={styles.castingTimeContent}>
                     <span>{formatSpellCastingTime(spell.castingTime)}</span>
-                    {castingTimeActionShape ? (
-                      <ActionShape
-                        shape={castingTimeActionShape}
-                        isSelected
-                        size="small"
-                        className={styles.castingTimeShape}
-                        title={castingTimeActionShapeTitle ?? undefined}
-                      />
+                    {castingTimeActionShapes.length > 0 ? (
+                      <span className={styles.castingTimeShapeGroup}>
+                        {castingTimeActionShapes.map((shape) => (
+                          <ActionShape
+                            key={shape.key}
+                            shape={shape.shape}
+                            isSelected
+                            size="small"
+                            className={styles.castingTimeShape}
+                            title={shape.title ?? undefined}
+                          />
+                        ))}
+                      </span>
                     ) : null}
                   </span>
                 }
@@ -420,7 +541,7 @@ function CharacterSpellDrawer({
               />
               <CellContainer
                 label="Damage"
-                content={getSpellDamageDetailForCharacter(character, spell)}
+                content={damageDetailOverride ?? getSpellDamageDetailForCharacter(character, spell)}
               />
             </div>
 
@@ -461,6 +582,42 @@ function CharacterSpellDrawer({
                 ))}
               </div>
             ) : null}
+            {bodyRadioActionOptions.map((option) => (
+              <div
+                key={`${option.id}-body-radio-options`}
+                className={styles.bodyActionOptionSection}
+              >
+                <div
+                  className={styles.bodyActionRadioGroup}
+                  role="radiogroup"
+                  aria-label={`${option.label} options`}
+                >
+                  {option.radioOptions?.options.map((radioOption) => (
+                    <RadioContainerOption
+                      key={`${option.id}-${radioOption.id}`}
+                      header={radioOption.header}
+                      subheader={radioOption.subheader}
+                      breakdown={
+                        radioOption.description ? (
+                          <SpellDescriptionContent
+                            description={radioOption.description}
+                            className={styles.bodyActionOptionDescription}
+                            entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                            strongClassName={sheetStyles.spellDrawerDescriptionStrong}
+                          />
+                        ) : (
+                          radioOption.breakdown
+                        )
+                      }
+                      selected={option.radioOptions?.value === radioOption.id}
+                      onSelect={() => option.radioOptions?.onValueChange(radioOption.id)}
+                      disabled={option.disabled || !option.checked || radioOption.disabled}
+                      name={option.radioOptions?.name ?? `${spell.id}-${option.id}-options`}
+                    />
+                  ))}
+                </div>
+              </div>
+            ))}
           </div>
 
           {shouldShowActionFooter ? (
@@ -497,7 +654,33 @@ function CharacterSpellDrawer({
                               application={option.application}
                               usageKey={option.id}
                             />
-                            {option.checked && select ? (
+                            {option.radioOptions && option.radioOptions.placement !== "body" ? (
+                              <div
+                                className={actionStyles.featureActionRadioGroup}
+                                role="radiogroup"
+                                aria-label={`${option.label} options`}
+                              >
+                                {option.radioOptions.options.map((radioOption) => (
+                                  <RadioContainerOption
+                                    key={`${option.id}-${radioOption.id}`}
+                                    header={radioOption.header}
+                                    subheader={radioOption.subheader}
+                                    breakdown={radioOption.breakdown}
+                                    selected={option.radioOptions?.value === radioOption.id}
+                                    onSelect={() =>
+                                      option.radioOptions?.onValueChange(radioOption.id)
+                                    }
+                                    disabled={
+                                      option.disabled || !option.checked || radioOption.disabled
+                                    }
+                                    name={
+                                      option.radioOptions?.name ??
+                                      `${spell.id}-${option.id}-options`
+                                    }
+                                  />
+                                ))}
+                              </div>
+                            ) : option.checked && select ? (
                               <div className={actionStyles.featureActionSelectField}>
                                 <span className={actionStyles.featureActionSelectLabel}>
                                   {select.label}
@@ -550,9 +733,7 @@ function CharacterSpellDrawer({
                 <div
                   className={clsx(
                     actionStyles.castActionBottomRow,
-                    shouldUseFullWidthReactionLayout || !shouldShowSlotControls
-                      ? actionStyles.castActionBottomRowStacked
-                      : null
+                    shouldStackFooterActions ? actionStyles.castActionBottomRowStacked : null
                   )}
                 >
                   {shouldShowSlotControls ? (
@@ -583,50 +764,36 @@ function CharacterSpellDrawer({
                       </SelectInput>
                     </div>
                   ) : null}
-                  <button
-                    type="button"
-                    className={clsx(
-                      sheetStyles.castButton,
-                      actionStyles.castActionButton,
-                      isRitualCastingSelected || ritualCastingRequired
-                        ? actionStyles.ritualCastButton
-                        : null
-                    )}
-                    onClick={() =>
-                      onAction({
-                        castAsRitual: ritualCastingRequired || isRitualCastingSelected,
-                        useMindMagic:
-                          !isRitualCastingSelected &&
-                          actionOptions.some(
-                            (option) => option.id === "mind-magic" && option.checked
-                          ),
-                        useStarMap: actionOptions.some(
-                          (option) => option.id === "star-map" && option.checked
-                        ),
-                        usePsionicSorcery: actionOptions.some(
-                          (option) => option.id === "psionic-sorcery" && option.checked
-                        ),
-                        usePhantasmalCreatures: actionOptions.some(
-                          (option) => option.id === "phantasmal-creatures" && option.checked
-                        ),
-                        useTelekineticMaster: actionOptions.some(
-                          (option) => option.id === "telekinetic-master" && option.checked
-                        )
-                      })
-                    }
-                    disabled={!isActionEnabled}
-                  >
-                    <span>{actionLabel}</span>
-                    {footerActionShape ? (
+                  {resolvedActionPaths.map((path) => (
+                    <button
+                      key={path.id}
+                      type="button"
+                      className={clsx(
+                        sheetStyles.castButton,
+                        actionStyles.castActionButton,
+                        isRitualCastingSelected || ritualCastingRequired
+                          ? actionStyles.ritualCastButton
+                          : null
+                      )}
+                      onClick={() =>
+                        onAction({
+                          ...baseActionOptions,
+                          roundTrackerResourceOverride: path.roundTrackerResourceOverride
+                        })
+                      }
+                      disabled={!isActionEnabled || path.disabledReason !== null}
+                      title={path.disabledReason ?? undefined}
+                    >
+                      <span>{path.actionLabel ?? actionLabel}</span>
                       <ActionShape
-                        shape={footerActionShape}
-                        isSelected={actionShapeAvailable}
-                        multiCount={actionShapeMultiCount}
+                        shape={path.actionShape}
+                        isSelected={path.actionShapeAvailable}
+                        multiCount={path.actionShapeMultiCount ?? 0}
                         className={actionStyles.footerActionShape}
-                        title={footerActionShapeTitle ?? undefined}
+                        title={getActionShapeTitle(path.actionShape)}
                       />
-                    ) : null}
-                  </button>
+                    </button>
+                  ))}
                 </div>
               </div>
             </div>

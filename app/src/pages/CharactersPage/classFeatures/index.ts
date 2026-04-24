@@ -373,6 +373,10 @@ import {
   getWizardIllusionistPhantasmalCreaturesSpellOptionState,
   wizardIllusionistIllusorySelfReactionId
 } from "./wizard/subclasses/wizardIllusionist";
+import {
+  hasActivePaladinOathOfVengeanceVowOfEnmity,
+  soulOfVengeanceReactionId
+} from "./paladin/subclasses/paladinOathOfVengeance";
 import { getSubclassDerivedFeatureState } from "./subclasses";
 import {
   applyLayOnHands,
@@ -670,7 +674,12 @@ export function getFeatureWeaponActionsForCharacter(character: Character) {
 
 export function transformCommonActionForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "subclassId" | "abilities" | "equipment" | "inventoryItems" | "customEquipment">>,
+    Partial<
+      Pick<
+        Character,
+        "subclassId" | "abilities" | "equipment" | "inventoryItems" | "customEquipment"
+      >
+    >,
   action: FeatureActionCard
 ): FeatureActionCard {
   const baseFeatureState = collectActiveClassFeatureState(character);
@@ -3376,8 +3385,16 @@ export function consumeFaithfulSteedUseForCharacter(character: Character): Chara
 
 export const paladinGloriousDefenseReactionEntryId = gloriousDefenseReactionId;
 export const paladinElementalRebukeReactionEntryId = elementalRebukeReactionId;
+export const paladinSoulOfVengeanceReactionEntryId = soulOfVengeanceReactionId;
 export const rangerWinterWalkerChillingRetributionReactionEntryId = chillingRetributionReactionId;
 export const wizardIllusionistIllusorySelfReactionEntryId = wizardIllusionistIllusorySelfReactionId;
+
+export function hasActivePaladinOathOfVengeanceVowOfEnmityForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "statusEntries" | "subclassId">>
+): boolean {
+  return hasActivePaladinOathOfVengeanceVowOfEnmity(character);
+}
 
 export function getGloriousDefenseUsesTotalForCharacter(
   character: Pick<Character, "className"> &

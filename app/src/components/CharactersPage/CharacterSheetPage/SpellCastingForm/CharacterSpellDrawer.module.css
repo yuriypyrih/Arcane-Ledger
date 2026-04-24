@@ -94,6 +94,13 @@
   gap: 0.42rem;
 }
 
+.castingTimeShapeGroup {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.32rem;
+}
+
 .castingTimeShape {
   flex-shrink: 0;
 }
@@ -129,4 +136,20 @@
   gap: 0.85rem;
   min-height: 0;
   overflow: auto;
+}
+
+.bodyActionOptionSection {
+  display: grid;
+  gap: 0.75rem;
+  padding-bottom: 0.65rem;
+}
+
+.bodyActionRadioGroup {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.bodyActionOptionDescription {
+  display: grid;
+  gap: 0.55rem;
 }

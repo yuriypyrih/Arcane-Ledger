@@ -58,6 +58,7 @@ import {
   getFeatureReactionSpellForCharacter,
   getGloriousDefenseUsesRemainingForCharacter,
   getGloriousDefenseUsesTotalForCharacter,
+  hasActivePaladinOathOfVengeanceVowOfEnmityForCharacter,
   getPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter,
   getRangerHunterSuperiorHuntersDefenseDamageTypeSelectionForCharacter,
   getRogueScionOfTheThreeBloodthirstUsesRemainingForCharacter,
@@ -83,6 +84,7 @@ import {
   paladinElementalRebukeReactionEntryId,
   paladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeOptions,
   paladinGloriousDefenseReactionEntryId,
+  paladinSoulOfVengeanceReactionEntryId,
   clericWardingFlareReactionEntryId,
   rogueScionOfTheThreeBloodthirstReactionEntryId,
   rangerWinterWalkerChillingRetributionReactionEntryId,
@@ -130,13 +132,11 @@ import {
   upsertManualStatusEntry
 } from "../../../../../pages/CharactersPage/statusEntries";
 import {
-  getStatusDurationPreset,
-  getStatusDurationTickOn,
   isExhaustionConditionOptionValue,
   parseConditionOptionValue,
   reconcileCharacterStatusConsequences,
   statusGroupOrder,
-  statusGroupTitles,
+  statusGroupTitles
 } from "../../../../../pages/CharactersPage/traits";
 import type { ExhaustionLevel } from "../../../../../pages/CharactersPage/traits";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
@@ -156,9 +156,7 @@ import type {
   CharacterStatusValue
 } from "../../../../../types";
 import {
-  STATUS_DURATION_PRESET,
   STATUS_DURATION_KIND,
-  STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
@@ -185,12 +183,16 @@ import TraitEditorModal from "./TraitEditorModal";
 import ReactionEntryDrawer from "./ReactionEntryDrawer";
 import StatusEntryDrawer from "./StatusEntryDrawer";
 import TraitsConditionsSections from "./TraitsConditionsSections";
-import DeflectAttacksReactionFooter from "./DeflectAttacksReaction";
+import ReactionRollFooter from "./ReactionRollFooter";
 import {
   createDeflectAttacksReactionRollRequest,
   getDeflectAttacksReactionFacts,
   getSlowFallReactionFacts
 } from "./deflectAttacksReactionUtils";
+import {
+  createElementalRebukeReactionRollRequest,
+  getElementalRebukeReactionFacts
+} from "./elementalRebukeReactionUtils";
 import DruidCosmicOmenReactionBody from "./DruidCosmicOmenReactionBody";
 import DruidStarryFormActionBody from "./DruidStarryFormActionBody";
 import ElementalAttunementResistanceSelector from "./ElementalAttunementResistanceSelector";
@@ -205,9 +207,13 @@ import {
   createDefaultStatusDraftValues,
   getDerivedReactionStatusEntries,
   getTraitEditorGroup,
-  resolveStatusDurationPreset,
   type TraitEditorTab
 } from "./traitsWidgetUtils";
+import {
+  createManualStatusDuration,
+  defaultManualStatusDurationDraft,
+  getManualStatusDurationDraft
+} from "./manualStatusDuration";
 import { formatCodexLabel } from "../../../../../utils/codex";
 import { barbarianBerserkerRetaliationReactionId } from "../../../../../pages/CharactersPage/classFeatures/barbarian/subclasses/barbarianPathOfTheBerserker";
 import {
@@ -238,6 +244,10 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheOpenHand";
 import { wizardBladesingerSongOfDefenseReactionId } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
 import { bardCollegeOfDanceInspiringMovementReactionId } from "../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfDance";
+import {
+  getPaladinOathOfDevotionHolyNimbusRadiantDamageFormula,
+  paladinOathOfDevotionHolyNimbusStatusSourceId
+} from "../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfDevotion";
 
 type TraitsConditionsWidgetProps = {
   character: Character;
@@ -258,20 +268,20 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   const [statusDraftValues, setStatusDraftValues] = useState<Record<TraitEditorTab, string>>(
     createDefaultStatusDraftValues
   );
-  const [statusDraftDurationPreset, setStatusDraftDurationPreset] = useState(
-    STATUS_DURATION_PRESET.INFINITE
+  const [statusDraftDurationType, setStatusDraftDurationType] = useState(
+    defaultManualStatusDurationDraft.type
   );
-  const [statusDraftRoundTickOn, setStatusDraftRoundTickOn] = useState(
-    STATUS_DURATION_ROUND_TICK.ROUND_START
+  const [statusDraftDurationValue, setStatusDraftDurationValue] = useState(
+    defaultManualStatusDurationDraft.value
   );
   const [customTraitDraft, setCustomTraitDraft] = useState(createDefaultCustomTraitDraft);
   const [selectedStatusEntryId, setSelectedStatusEntryId] = useState<string | null>(null);
   const [isEditingStatusDuration, setIsEditingStatusDuration] = useState(false);
-  const [statusDrawerDurationPreset, setStatusDrawerDurationPreset] = useState(
-    STATUS_DURATION_PRESET.INFINITE
+  const [statusDrawerDurationType, setStatusDrawerDurationType] = useState(
+    defaultManualStatusDurationDraft.type
   );
-  const [statusDrawerRoundTickOn, setStatusDrawerRoundTickOn] = useState(
-    STATUS_DURATION_ROUND_TICK.ROUND_START
+  const [statusDrawerDurationValue, setStatusDrawerDurationValue] = useState(
+    defaultManualStatusDurationDraft.value
   );
   const [openedFeatureReactionSpellEntryId, setOpenedFeatureReactionSpellEntryId] = useState<
     string | null
@@ -724,47 +734,51 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
                         ? gloriousDefenseUsesRemaining <= 0
                           ? "No Glorious Defense charges remaining."
                           : null
-                        : selectedReactionEntry?.id === paladinElementalRebukeReactionEntryId
-                          ? elementalRebukeUsesRemaining <= 0
-                            ? "No Elemental Rebuke charges remaining."
+                        : selectedReactionEntry?.id === paladinSoulOfVengeanceReactionEntryId
+                          ? !hasActivePaladinOathOfVengeanceVowOfEnmityForCharacter(character)
+                            ? "Vow of Enmity must be active to use this reaction. Attack a creature with the Vow of Enmity option enabled."
                             : null
-                          : selectedReactionEntry?.id ===
-                              rogueScionOfTheThreeBloodthirstReactionEntryId
-                            ? bloodthirstUsesRemaining <= 0
-                              ? "No Bloodthirst uses remaining."
+                          : selectedReactionEntry?.id === paladinElementalRebukeReactionEntryId
+                            ? elementalRebukeUsesRemaining <= 0
+                              ? "No Elemental Rebuke charges remaining."
                               : null
                             : selectedReactionEntry?.id ===
-                                rangerWinterWalkerChillingRetributionReactionEntryId
-                              ? chillingRetributionUsesRemaining <= 0
-                                ? "No Chilling Retribution charges remaining."
+                                rogueScionOfTheThreeBloodthirstReactionEntryId
+                              ? bloodthirstUsesRemaining <= 0
+                                ? "No Bloodthirst uses remaining."
                                 : null
                               : selectedReactionEntry?.id ===
-                                  wizardIllusionistIllusorySelfReactionEntryId
-                                ? wizardIllusionistIllusorySelfUsesRemaining <= 0 &&
-                                  wizardIllusionistIllusorySelfFallbackSlotSummary.remaining <= 0
-                                  ? "No Illusory Self charge or level 2+ spell slots remaining."
+                                  rangerWinterWalkerChillingRetributionReactionEntryId
+                                ? chillingRetributionUsesRemaining <= 0
+                                  ? "No Chilling Retribution charges remaining."
                                   : null
                                 : selectedReactionEntry?.id ===
-                                    warlockBeguilingDefenseReactionEntryId
-                                  ? warlockBeguilingDefenseUsesRemaining <= 0 &&
-                                    warlockPactMagicSlotsRemaining <= 0
-                                    ? "No Beguiling Defense charges or Pact Magic spell slots remaining."
+                                    wizardIllusionistIllusorySelfReactionEntryId
+                                  ? wizardIllusionistIllusorySelfUsesRemaining <= 0 &&
+                                    wizardIllusionistIllusorySelfFallbackSlotSummary.remaining <= 0
+                                    ? "No Illusory Self charge or level 2+ spell slots remaining."
                                     : null
                                   : selectedReactionEntry?.id ===
-                                      wizardBladesingerSongOfDefenseReactionId
-                                    ? availableSongOfDefenseSpellSlotLevels.length <= 0
-                                      ? "No spell slots remaining."
-                                      : !availableSongOfDefenseSpellSlotLevels.includes(
-                                            selectedSongOfDefenseSpellSlotLevel
-                                          )
-                                        ? `No level ${selectedSongOfDefenseSpellSlotLevel} spell slots remaining.`
-                                        : null
+                                      warlockBeguilingDefenseReactionEntryId
+                                    ? warlockBeguilingDefenseUsesRemaining <= 0 &&
+                                      warlockPactMagicSlotsRemaining <= 0
+                                      ? "No Beguiling Defense charges or Pact Magic spell slots remaining."
+                                      : null
                                     : selectedReactionEntry?.id ===
-                                        rogueArcaneTricksterSpellThiefReactionId
-                                      ? spellThiefUsesRemaining <= 0
-                                        ? "No Spell Thief charges remaining."
-                                        : null
-                                      : null;
+                                        wizardBladesingerSongOfDefenseReactionId
+                                      ? availableSongOfDefenseSpellSlotLevels.length <= 0
+                                        ? "No spell slots remaining."
+                                        : !availableSongOfDefenseSpellSlotLevels.includes(
+                                              selectedSongOfDefenseSpellSlotLevel
+                                            )
+                                          ? `No level ${selectedSongOfDefenseSpellSlotLevel} spell slots remaining.`
+                                          : null
+                                      : selectedReactionEntry?.id ===
+                                          rogueArcaneTricksterSpellThiefReactionId
+                                        ? spellThiefUsesRemaining <= 0
+                                          ? "No Spell Thief charges remaining."
+                                          : null
+                                        : null;
   const selectedReactionResourceSummary =
     selectedReactionEntry?.id === druidCosmicOmenReactionId
       ? null
@@ -820,112 +834,118 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
               icon: "music"
             }
           )
-      : selectedReactionEntry?.id === clericGuidedStrikeReactionEntryId
-        ? createNamedUsageHeaderTags(
-            createFeatureActionCardCost({
-              amountText: "1",
-              icon: "pyromancy"
-            }),
-            channelDivinityUsesRemaining,
-            channelDivinityUsesTotal,
-            {
-              icon: "pyromancy"
-            }
-          )
-        : selectedReactionEntry?.id === clericWardingFlareReactionEntryId
-          ? [createChargesHeaderTag(wardingFlareUsesRemaining, wardingFlareUsesTotal)]
-          : selectedReactionEntry?.id === "reaction-psi-warrior-protective-field"
-            ? createNamedUsageHeaderTags(
-                createFeatureActionCardCost({
-                  amountText: "1",
-                  icon: "psi"
-                }),
-                getFighterPsiWarriorEnergyDiceRemainingForCharacter(character),
-                getFighterPsiWarriorEnergyDiceTotalForCharacter(character),
-                {
-                  icon: "psi"
-                }
-              )
-            : selectedReactionEntry?.id === paladinGloriousDefenseReactionEntryId
-              ? [createChargesHeaderTag(gloriousDefenseUsesRemaining, gloriousDefenseUsesTotal)]
-              : selectedReactionEntry?.id === paladinElementalRebukeReactionEntryId
-                ? [createChargesHeaderTag(elementalRebukeUsesRemaining, elementalRebukeUsesTotal)]
-                : selectedReactionEntry?.id === sorcererBendLuckReactionEntryId
-                  ? createNamedUsageHeaderTags(
-                      createFeatureActionCardCost({
-                        amountText: "1",
-                        icon: "sparkles"
-                      }),
-                      sorceryPointsRemaining,
-                      sorceryPointsTotal,
-                      {
-                        icon: "sparkles"
-                      }
-                    )
-                  : selectedReactionEntry?.id === sorcererRestoreBalanceReactionEntryId
-                    ? [createChargesHeaderTag(restoreBalanceUsesRemaining, restoreBalanceUsesTotal)]
-                    : selectedReactionEntry?.id === rogueScionOfTheThreeBloodthirstReactionEntryId
+        : selectedReactionEntry?.id === clericGuidedStrikeReactionEntryId
+          ? createNamedUsageHeaderTags(
+              createFeatureActionCardCost({
+                amountText: "1",
+                icon: "pyromancy"
+              }),
+              channelDivinityUsesRemaining,
+              channelDivinityUsesTotal,
+              {
+                icon: "pyromancy"
+              }
+            )
+          : selectedReactionEntry?.id === clericWardingFlareReactionEntryId
+            ? [createChargesHeaderTag(wardingFlareUsesRemaining, wardingFlareUsesTotal)]
+            : selectedReactionEntry?.id === "reaction-psi-warrior-protective-field"
+              ? createNamedUsageHeaderTags(
+                  createFeatureActionCardCost({
+                    amountText: "1",
+                    icon: "psi"
+                  }),
+                  getFighterPsiWarriorEnergyDiceRemainingForCharacter(character),
+                  getFighterPsiWarriorEnergyDiceTotalForCharacter(character),
+                  {
+                    icon: "psi"
+                  }
+                )
+              : selectedReactionEntry?.id === paladinGloriousDefenseReactionEntryId
+                ? [createChargesHeaderTag(gloriousDefenseUsesRemaining, gloriousDefenseUsesTotal)]
+                : selectedReactionEntry?.id === paladinElementalRebukeReactionEntryId
+                  ? [createChargesHeaderTag(elementalRebukeUsesRemaining, elementalRebukeUsesTotal)]
+                  : selectedReactionEntry?.id === sorcererBendLuckReactionEntryId
+                    ? createNamedUsageHeaderTags(
+                        createFeatureActionCardCost({
+                          amountText: "1",
+                          icon: "sparkles"
+                        }),
+                        sorceryPointsRemaining,
+                        sorceryPointsTotal,
+                        {
+                          icon: "sparkles"
+                        }
+                      )
+                    : selectedReactionEntry?.id === sorcererRestoreBalanceReactionEntryId
                       ? [
                           createChargesHeaderTag(
-                            bloodthirstUsesRemaining,
-                            bloodthirstUsesTotal,
-                            "Long Rest"
+                            restoreBalanceUsesRemaining,
+                            restoreBalanceUsesTotal
                           )
                         ]
-                      : selectedReactionEntry?.id ===
-                            rangerWinterWalkerChillingRetributionReactionEntryId
+                      : selectedReactionEntry?.id === rogueScionOfTheThreeBloodthirstReactionEntryId
                         ? [
                             createChargesHeaderTag(
-                              chillingRetributionUsesRemaining,
-                              chillingRetributionUsesTotal,
+                              bloodthirstUsesRemaining,
+                              bloodthirstUsesTotal,
                               "Long Rest"
                             )
                           ]
                         : selectedReactionEntry?.id ===
+                            rangerWinterWalkerChillingRetributionReactionEntryId
+                          ? [
+                              createChargesHeaderTag(
+                                chillingRetributionUsesRemaining,
+                                chillingRetributionUsesTotal,
+                                "Long Rest"
+                              )
+                            ]
+                          : selectedReactionEntry?.id ===
                               wizardIllusionistIllusorySelfReactionEntryId
-                          ? createChargesAndUsageHeaderTags(
-                              wizardIllusionistIllusorySelfUsesRemaining,
-                              wizardIllusionistIllusorySelfUsesTotal,
-                              createFeatureActionCardCost({
-                                amountText: "2+",
-                                resourceLabel: "Spell Slot"
-                              }),
-                              wizardIllusionistIllusorySelfFallbackSlotSummary.remaining,
-                              wizardIllusionistIllusorySelfFallbackSlotSummary.total,
-                              {
-                                label: "Spell Slots"
-                              },
-                              "Short Rest / Long Rest",
-                              {
-                                isFallback: true
-                              }
-                            )
-                          : selectedReactionEntry?.id === warlockBeguilingDefenseReactionEntryId
                             ? createChargesAndUsageHeaderTags(
-                                warlockBeguilingDefenseUsesRemaining,
-                                warlockBeguilingDefenseUsesTotal,
+                                wizardIllusionistIllusorySelfUsesRemaining,
+                                wizardIllusionistIllusorySelfUsesTotal,
                                 createFeatureActionCardCost({
-                                  resourceLabel: "Pact Magic Slot"
+                                  amountText: "2+",
+                                  resourceLabel: "Spell Slot"
                                 }),
-                                warlockPactMagicSlotsRemaining,
-                                warlockPactMagicSlotTotal,
+                                wizardIllusionistIllusorySelfFallbackSlotSummary.remaining,
+                                wizardIllusionistIllusorySelfFallbackSlotSummary.total,
                                 {
-                                  label: "Pact Magic Slots"
+                                  label: "Spell Slots"
                                 },
-                              "Long Rest",
-                              {
-                                isFallback: true
-                              }
-                            )
-                            : selectedReactionEntry?.id === rogueArcaneTricksterSpellThiefReactionId
-                              ? [
-                                  createChargesHeaderTag(
-                                    spellThiefUsesRemaining,
-                                    spellThiefUsesTotal,
-                                    "Long Rest"
-                                  )
-                                ]
-          : [];
+                                "Short Rest / Long Rest",
+                                {
+                                  isFallback: true
+                                }
+                              )
+                            : selectedReactionEntry?.id === warlockBeguilingDefenseReactionEntryId
+                              ? createChargesAndUsageHeaderTags(
+                                  warlockBeguilingDefenseUsesRemaining,
+                                  warlockBeguilingDefenseUsesTotal,
+                                  createFeatureActionCardCost({
+                                    resourceLabel: "Pact Magic Slot"
+                                  }),
+                                  warlockPactMagicSlotsRemaining,
+                                  warlockPactMagicSlotTotal,
+                                  {
+                                    label: "Pact Magic Slots"
+                                  },
+                                  "Long Rest",
+                                  {
+                                    isFallback: true
+                                  }
+                                )
+                              : selectedReactionEntry?.id ===
+                                  rogueArcaneTricksterSpellThiefReactionId
+                                ? [
+                                    createChargesHeaderTag(
+                                      spellThiefUsesRemaining,
+                                      spellThiefUsesTotal,
+                                      "Long Rest"
+                                    )
+                                  ]
+                                : [];
   const selectedReactionSelectionWarning =
     selectedReactionEntry?.id === superiorHuntersDefenseReactionId &&
     selectedRangerHunterSuperiorHuntersDefenseDamageType === null
@@ -938,17 +958,20 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     getRoundTrackerActionWarning("reaction", roundTracker) ??
     selectedReactionSelectionWarning ??
     selectedReactionResourceWarning;
+  const selectedReactionShapeAvailable =
+    getRoundTrackerActionWarning("reaction", roundTracker) === null;
   const selectedReactionBlockedReason = spellcastingState.blocked ? spellcastingState.reason : null;
   const isDeflectAttacksReaction = selectedReactionEntry?.id === "reaction-deflect-attacks";
+  const isElementalRebukeReaction =
+    selectedReactionEntry?.id === paladinElementalRebukeReactionEntryId;
   const isSlowFallReaction = selectedReactionEntry?.id === "reaction-slow-fall";
   const selectedReactionFacts = isDeflectAttacksReaction
     ? getDeflectAttacksReactionFacts(character)
-    : isSlowFallReaction
-      ? getSlowFallReactionFacts(character)
-      : [];
-  const selectedStatusEntryPreset = selectedStatusEntry
-    ? getStatusDurationPreset(selectedStatusEntry.duration)
-    : STATUS_DURATION_PRESET.INFINITE;
+    : isElementalRebukeReaction
+      ? getElementalRebukeReactionFacts(character)
+      : isSlowFallReaction
+        ? getSlowFallReactionFacts(character)
+        : [];
   const hasOverlayOpen = isTraitModalOpen || selectedStatusEntryId !== null;
 
   useBodyScrollLock(hasOverlayOpen);
@@ -961,7 +984,13 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setSelectedStatusEntryId(null);
-        closeTraitEditor();
+        setTraitEditorMode("quick-add");
+        setActiveTraitEditorTab("conditions");
+        setStatusDraftValues(createDefaultStatusDraftValues());
+        setStatusDraftDurationType(defaultManualStatusDurationDraft.type);
+        setStatusDraftDurationValue(defaultManualStatusDurationDraft.value);
+        setCustomTraitDraft(createDefaultCustomTraitDraft());
+        setIsTraitModalOpen(false);
       }
     }
 
@@ -987,13 +1016,12 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       return;
     }
 
-    setStatusDrawerDurationPreset(selectedStatusEntryPreset);
-    setStatusDrawerRoundTickOn(
-      getStatusDurationTickOn(selectedStatusEntry.duration) ??
-        STATUS_DURATION_ROUND_TICK.ROUND_START
-    );
+    const durationDraft = getManualStatusDurationDraft(selectedStatusEntry.duration);
+
+    setStatusDrawerDurationType(durationDraft.type);
+    setStatusDrawerDurationValue(durationDraft.value);
     setIsEditingStatusDuration(false);
-  }, [selectedStatusEntry, selectedStatusEntryId, selectedStatusEntryPreset]);
+  }, [selectedStatusEntry, selectedStatusEntryId]);
 
   useEffect(() => {
     if (!selectedReactionSpell) {
@@ -1034,8 +1062,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     setTraitEditorMode("quick-add");
     setActiveTraitEditorTab("conditions");
     setStatusDraftValues(createDefaultStatusDraftValues());
-    setStatusDraftDurationPreset(STATUS_DURATION_PRESET.INFINITE);
-    setStatusDraftRoundTickOn(STATUS_DURATION_ROUND_TICK.ROUND_START);
+    setStatusDraftDurationType(defaultManualStatusDurationDraft.type);
+    setStatusDraftDurationValue(defaultManualStatusDurationDraft.value);
     setCustomTraitDraft(createDefaultCustomTraitDraft());
   }
 
@@ -1063,12 +1091,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     const nextDuration: CharacterStatusDuration =
       parsedConditionValue?.conditionLevel !== undefined
         ? { kind: STATUS_DURATION_KIND.INFINITE }
-        : resolveStatusDurationPreset(
-            statusDraftDurationPreset,
-            nextGroup,
-            nextValue,
-            statusDraftRoundTickOn
-          );
+        : createManualStatusDuration(statusDraftDurationType, statusDraftDurationValue);
 
     onPersistCharacter((currentCharacter) =>
       reconcileCharacterStatusConsequences({
@@ -1083,8 +1106,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       })
     );
 
-    setStatusDraftDurationPreset(STATUS_DURATION_PRESET.INFINITE);
-    setStatusDraftRoundTickOn(STATUS_DURATION_ROUND_TICK.ROUND_START);
+    setStatusDraftDurationType(defaultManualStatusDurationDraft.type);
+    setStatusDraftDurationValue(defaultManualStatusDurationDraft.value);
     closeTraitEditor();
   }
 
@@ -1111,11 +1134,9 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
             value: customTraitDraft.name.trim(),
             source: "Manual",
             sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
-            duration: resolveStatusDurationPreset(
-              customTraitDraft.durationPreset,
-              STATUS_ENTRY_GROUP.EFFECTS,
-              customTraitDraft.name.trim(),
-              customTraitDraft.roundTickOn
+            duration: createManualStatusDuration(
+              customTraitDraft.durationType,
+              customTraitDraft.durationValue
             ),
             description: customTraitDraft.description.trim(),
             customEffects
@@ -1191,11 +1212,9 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
       return;
     }
 
-    const nextDuration = resolveStatusDurationPreset(
-      statusDrawerDurationPreset,
-      selectedStatusEntry.group,
-      selectedStatusEntry.value,
-      statusDrawerRoundTickOn
+    const nextDuration = createManualStatusDuration(
+      statusDrawerDurationType,
+      statusDrawerDurationValue
     );
 
     onPersistCharacter((currentCharacter) => ({
@@ -1505,6 +1524,15 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     }
   }
 
+  function takeElementalRebukeReaction() {
+    if (!isElementalRebukeReaction || selectedReactionActionWarning) {
+      return;
+    }
+
+    castSelectedReactionEntry();
+    openDiceRoller(createElementalRebukeReactionRollRequest(character));
+  }
+
   function detonateSelectedQuiveringPalm() {
     if (
       selectedStatusEntry?.sourceId !== monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId ||
@@ -1610,8 +1638,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           mode={traitEditorMode}
           activeTab={activeTraitEditorTab}
           values={statusDraftValues}
-          durationPreset={statusDraftDurationPreset}
-          roundTickOn={statusDraftRoundTickOn}
+          durationType={statusDraftDurationType}
+          durationValue={statusDraftDurationValue}
           customTraitDraft={customTraitDraft}
           createDisabled={traitCreateDisabled}
           onModeChange={setTraitEditorMode}
@@ -1623,12 +1651,12 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
             }));
 
             if (tab === "conditions" && isExhaustionConditionOptionValue(value)) {
-              setStatusDraftDurationPreset(STATUS_DURATION_PRESET.INFINITE);
-              setStatusDraftRoundTickOn(STATUS_DURATION_ROUND_TICK.ROUND_START);
+              setStatusDraftDurationType(defaultManualStatusDurationDraft.type);
+              setStatusDraftDurationValue(defaultManualStatusDurationDraft.value);
             }
           }}
-          onDurationPresetChange={setStatusDraftDurationPreset}
-          onRoundTickOnChange={setStatusDraftRoundTickOn}
+          onDurationTypeChange={setStatusDraftDurationType}
+          onDurationValueChange={setStatusDraftDurationValue}
           onCustomTraitNameChange={(value) =>
             setCustomTraitDraft((current) => ({
               ...current,
@@ -1641,16 +1669,16 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
               description: value
             }))
           }
-          onCustomTraitDurationPresetChange={(value) =>
+          onCustomTraitDurationTypeChange={(value) =>
             setCustomTraitDraft((current) => ({
               ...current,
-              durationPreset: value
+              durationType: value
             }))
           }
-          onCustomTraitRoundTickOnChange={(value) =>
+          onCustomTraitDurationValueChange={(value) =>
             setCustomTraitDraft((current) => ({
               ...current,
-              roundTickOn: value
+              durationValue: value
             }))
           }
           onCustomTraitEffectTargetChange={(effectId, value) =>
@@ -1798,16 +1826,26 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         <ReactionEntryDrawer
           reaction={selectedReactionEntry}
           actionWarning={selectedReactionActionWarning}
+          actionShapeAvailable={selectedReactionShapeAvailable}
           headerTags={selectedReactionHeaderTags}
           facts={selectedReactionFacts}
-          factsSectionTitle={isDeflectAttacksReaction ? null : undefined}
+          factsSectionTitle={
+            isDeflectAttacksReaction || isElementalRebukeReaction ? null : undefined
+          }
           headerBadges={[]}
           resourceSummary={selectedReactionResourceSummary}
           footerContent={
             isDeflectAttacksReaction ? (
-              <DeflectAttacksReactionFooter
+              <ReactionRollFooter
+                actionName="Deflect Attacks"
                 disabled={selectedReactionActionWarning !== null}
                 onTakeReaction={takeDeflectAttacksReaction}
+              />
+            ) : isElementalRebukeReaction ? (
+              <ReactionRollFooter
+                actionName="Elemental Rebuke"
+                disabled={selectedReactionActionWarning !== null}
+                onTakeReaction={takeElementalRebukeReaction}
               />
             ) : null
           }
@@ -1982,6 +2020,13 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           afterDetailsContent={
             selectedStatusEntry.sourceId === monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId ? (
               <QuiveringPalmStatusDrawerFormula />
+            ) : selectedStatusEntry.sourceId === paladinOathOfDevotionHolyNimbusStatusSourceId ? (
+              <div className={styles.statusFormulaGrid}>
+                <CellContainer
+                  label="Radiant Damage Formula"
+                  content={getPaladinOathOfDevotionHolyNimbusRadiantDamageFormula(character)}
+                />
+              </div>
             ) : null
           }
           customFooterContent={
@@ -1995,17 +2040,16 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
             ) : null
           }
           isEditingDuration={isEditingStatusDuration}
-          durationPreset={statusDrawerDurationPreset}
-          roundTickOn={statusDrawerRoundTickOn}
-          onDurationPresetChange={setStatusDrawerDurationPreset}
-          onRoundTickOnChange={setStatusDrawerRoundTickOn}
+          durationType={statusDrawerDurationType}
+          durationValue={statusDrawerDurationValue}
+          onDurationTypeChange={setStatusDrawerDurationType}
+          onDurationValueChange={setStatusDrawerDurationValue}
           onStartEditDuration={() => setIsEditingStatusDuration(true)}
           onCancelEditDuration={() => {
-            setStatusDrawerDurationPreset(getStatusDurationPreset(selectedStatusEntry.duration));
-            setStatusDrawerRoundTickOn(
-              getStatusDurationTickOn(selectedStatusEntry.duration) ??
-                STATUS_DURATION_ROUND_TICK.ROUND_START
-            );
+            const durationDraft = getManualStatusDurationDraft(selectedStatusEntry.duration);
+
+            setStatusDrawerDurationType(durationDraft.type);
+            setStatusDrawerDurationValue(durationDraft.value);
             setIsEditingStatusDuration(false);
           }}
           onApplyDuration={applyStatusEntryDuration}

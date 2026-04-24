@@ -1,25 +1,17 @@
 import { ACTION_TYPE, type ReactionEntry, type SpellEntry } from "../../../../../codex/entries";
 import {
-  createStatusDurationFromPreset,
   formatConditionOptionLabel,
   getConditionOptions,
   getDamageTypeOptions,
   getImmunityOptions,
-  normalizeStatusDurationRoundTick,
   isExhaustionStatusEntry,
   getSenseOptions
 } from "../../../../../pages/CharactersPage/traits";
-import type {
-  CharacterStatusDuration,
-  CharacterStatusEntry,
-  CharacterStatusValue
-} from "../../../../../types";
+import type { CharacterStatusDuration, CharacterStatusEntry } from "../../../../../types";
 import {
   CONDITION_NAME,
   EFFECT_NAME,
   STATUS_DURATION_KIND,
-  STATUS_DURATION_ROUND_TICK,
-  STATUS_DURATION_PRESET,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
@@ -202,6 +194,7 @@ export function isStatusEntryRemovable(entry: CharacterStatusEntry): boolean {
 export function isStatusEntryDurationEditable(entry: CharacterStatusEntry): boolean {
   return (
     isStatusEntryRemovable(entry) &&
+    entry.duration.kind !== STATUS_DURATION_KIND.CONCENTRATION &&
     entry.duration.kind !== STATUS_DURATION_KIND.LINKED &&
     !isExhaustionStatusEntry(entry)
   );
@@ -227,21 +220,4 @@ export function getStatusDrawerBadgeLabel(group: STATUS_ENTRY_GROUP): string {
     default:
       return "Condition";
   }
-}
-
-export function resolveStatusDurationPreset(
-  preset: STATUS_DURATION_PRESET,
-  group: STATUS_ENTRY_GROUP,
-  value: CharacterStatusValue,
-  roundTickOn: STATUS_DURATION_ROUND_TICK = STATUS_DURATION_ROUND_TICK.ROUND_START
-) {
-  if (
-    preset === STATUS_DURATION_PRESET.CONCENTRATION &&
-    group === STATUS_ENTRY_GROUP.EFFECTS &&
-    value === EFFECT_NAME.CONCENTRATION
-  ) {
-    return createStatusDurationFromPreset(STATUS_DURATION_PRESET.INFINITE);
-  }
-
-  return createStatusDurationFromPreset(preset, normalizeStatusDurationRoundTick(roundTickOn));
 }

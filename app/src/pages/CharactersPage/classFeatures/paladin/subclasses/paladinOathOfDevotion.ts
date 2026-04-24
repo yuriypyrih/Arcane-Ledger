@@ -9,20 +9,20 @@ import {
 } from "../../../../../types";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import type { WeaponAction } from "../../../gameplay";
+import type { AbilityModifierBonusEntry } from "../../../abilities";
+import { getProficiencyBonus, type WeaponAction } from "../../../gameplay";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import { createDefaultFeatureActionDescription } from "../../subclassRuntime";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
   createFeatureActionCardCost
 } from "../../cardUsage";
-import type {
-  DerivedFeatureStatusEntry,
-  FeatureActionCard,
-  FeatureDamageBonus
-} from "../../types";
+import type { DerivedFeatureStatusEntry, FeatureActionCard } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
 import {
@@ -52,8 +52,9 @@ const oathOfDevotionSpellIdsByLevel = {
   17: resolveSpellIdsByName(["Commune", "Flame Strike"])
 } as const;
 const sacredWeaponEffectName = "Sacred Weapon";
+const sacredWeaponAttackBonusLabel = "Sacred Weapons";
 const sacredWeaponActiveDescription = [
-  "While this trait lasts, your melee weapon hits gain bonus damage equal to your WIS modifier.",
+  "While this trait lasts, your melee weapon and unarmed strike attack rolls gain a bonus equal to your CHA modifier, minimum bonus of +1.",
   "Each hit can deal its normal main damage type or Radiant damage."
 ] as const;
 const auraOfDevotionName = "Aura of Devotion";
@@ -66,7 +67,12 @@ type PaladinOathOfDevotionCharacter = Pick<Character, "className"> &
   Partial<
     Pick<
       Character,
-      "abilities" | "classFeatureState" | "level" | "spellSlotsExpended" | "statusEntries" | "subclassId"
+      | "abilities"
+      | "classFeatureState"
+      | "level"
+      | "spellSlotsExpended"
+      | "statusEntries"
+      | "subclassId"
     >
   >;
 
@@ -100,6 +106,16 @@ function getWisdomModifier(character: Partial<Pick<Character, "abilities">>): nu
   }
 
   return Math.floor((wisdomScore - 10) / 2);
+}
+
+function getCharismaModifier(character: Partial<Pick<Character, "abilities">>): number {
+  const charismaScore = character.abilities?.CHA;
+
+  if (typeof charismaScore !== "number" || !Number.isFinite(charismaScore)) {
+    return 0;
+  }
+
+  return Math.floor((charismaScore - 10) / 2);
 }
 
 function getChannelDivinityUsesRemaining(character: PaladinOathOfDevotionCharacter): number {
@@ -227,10 +243,10 @@ export function isPaladinOathOfDevotionSacredWeaponActive(
   );
 }
 
-function isSacredWeaponMeleeWeaponAction(action: SacredWeaponAction | null): boolean {
+function isSacredWeaponEligibleAction(action: SacredWeaponAction | null): boolean {
   return (
-    action?.attackKind === "weapon" &&
-    action.combatType === WEAPON_COMBAT_TYPE.MELEE
+    action?.attackKind === "unarmed" ||
+    (action?.attackKind === "weapon" && action.combatType === WEAPON_COMBAT_TYPE.MELEE)
   );
 }
 
@@ -238,10 +254,7 @@ export function getPaladinOathOfDevotionSacredWeaponOptionState(
   character: PaladinOathOfDevotionCharacter,
   action: SacredWeaponAction | null
 ): PaladinOathOfDevotionSacredWeaponOptionState | null {
-  if (
-    !hasPaladinOathOfDevotionSacredWeapon(character) ||
-    !isSacredWeaponMeleeWeaponAction(action)
-  ) {
+  if (!hasPaladinOathOfDevotionSacredWeapon(character) || !isSacredWeaponEligibleAction(action)) {
     return null;
   }
 
@@ -257,6 +270,16 @@ export function getPaladinOathOfDevotionSacredWeaponOptionState(
     disabled: Boolean(disabledReason),
     disabledReason
   };
+}
+
+export function getPaladinOathOfDevotionHolyNimbusRadiantDamageFormula(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "abilities" | "level">>
+): string {
+  const wisdomModifier = getWisdomModifier(character);
+  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const totalRadiantDamage = wisdomModifier + proficiencyBonus;
+
+  return `${totalRadiantDamage} Radiant Damage = ${wisdomModifier} WIS + ${proficiencyBonus} Prof Bonus`;
 }
 
 export function activatePaladinOathOfDevotionSacredWeapon(character: Character): Character {
@@ -421,9 +444,7 @@ function stripWeaponDamageBonusLabels(
     }
 
     const suffix = ` + ${bonusLabel}`;
-    return currentLabel.endsWith(suffix)
-      ? currentLabel.slice(0, -suffix.length)
-      : currentLabel;
+    return currentLabel.endsWith(suffix) ? currentLabel.slice(0, -suffix.length) : currentLabel;
   }, damageLabel);
 }
 
@@ -457,59 +478,69 @@ function addRadiantDamageTypeOption(baseDamageLabel: string): string {
   return `${match[1].trim()} ${[...damageTypes, "Radiant"].join("/")}`;
 }
 
+function getSacredWeaponAttackBonusEntries(
+  action: WeaponAction,
+  attackBonus: number
+): AbilityModifierBonusEntry[] {
+  const existingEntries = action.abilityModifierBonusEntries.filter(
+    (entry) => entry.label !== sacredWeaponAttackBonusLabel
+  );
+
+  return attackBonus === 0
+    ? existingEntries
+    : [
+        ...existingEntries,
+        {
+          label: sacredWeaponAttackBonusLabel,
+          value: attackBonus
+        }
+      ];
+}
+
+export function applyPaladinOathOfDevotionSacredWeaponAction(
+  character: Partial<Pick<Character, "abilities">>,
+  action: WeaponAction
+): WeaponAction {
+  if (!isSacredWeaponEligibleAction(action)) {
+    return action;
+  }
+
+  const baseDamageLabel = stripWeaponDamageBonusLabels(
+    action.damageLabel,
+    action.damageBonusEntries
+  );
+  const nextBaseDamageLabel = addRadiantDamageTypeOption(baseDamageLabel);
+  const attackBonus = Math.max(1, getCharismaModifier(character));
+  const currentSacredWeaponAttackBonus = action.abilityModifierBonusEntries
+    .filter((entry) => entry.label === sacredWeaponAttackBonusLabel)
+    .reduce((total, entry) => total + entry.value, 0);
+  const nextAbilityModifierBonusEntries = getSacredWeaponAttackBonusEntries(action, attackBonus);
+  const nextAbilityModifier = action.abilityModifier - currentSacredWeaponAttackBonus + attackBonus;
+
+  return {
+    ...action,
+    abilityModifier: nextAbilityModifier,
+    abilityModifierBonusEntries: nextAbilityModifierBonusEntries,
+    damageLabel: buildWeaponDamageLabel(nextBaseDamageLabel, action.damageBonusEntries)
+  };
+}
+
 function transformSacredWeaponAction(
   character: PaladinOathOfDevotionCharacter,
   action: WeaponAction
 ): WeaponAction {
   if (
     !isPaladinOathOfDevotionSacredWeaponActive(character) ||
-    !isSacredWeaponMeleeWeaponAction(action)
+    !isSacredWeaponEligibleAction(action)
   ) {
     return action;
   }
 
-  const baseDamageLabel = stripWeaponDamageBonusLabels(action.damageLabel, action.damageBonusEntries);
-  const nextBaseDamageLabel = addRadiantDamageTypeOption(baseDamageLabel);
-  const nextAction =
-    nextBaseDamageLabel === baseDamageLabel
-      ? action
-      : {
-          ...action,
-          damageLabel: buildWeaponDamageLabel(nextBaseDamageLabel, action.damageBonusEntries)
-        };
-
   return appendSourcedDescriptionAddition(
-    nextAction,
+    applyPaladinOathOfDevotionSacredWeaponAction(character, action),
     sacredWeaponEffectName,
     sacredWeaponActiveDescription
   );
-}
-
-function getSacredWeaponDamageBonuses(
-  character: PaladinOathOfDevotionCharacter,
-  context: {
-    attackKind: "weapon" | "unarmed";
-    combatType?: WEAPON_COMBAT_TYPE | null;
-  }
-): FeatureDamageBonus[] {
-  if (
-    !isPaladinOathOfDevotionSacredWeaponActive(character) ||
-    context.attackKind !== "weapon" ||
-    context.combatType !== WEAPON_COMBAT_TYPE.MELEE
-  ) {
-    return [];
-  }
-
-  const wisdomModifier = getWisdomModifier(character);
-
-  return wisdomModifier !== 0
-    ? [
-        {
-          label: sacredWeaponEffectName,
-          value: wisdomModifier
-        }
-      ]
-    : [];
 }
 
 function getPaladinOathOfDevotionDerivedStatusEntries(
@@ -593,6 +624,13 @@ function getPaladinOathOfDevotionFeatureActions(
       usesTotal: holyNimbusUsesTotal,
       usesInlineLabel: showFallbackSlotInfo ? "| Use 5th Spell Slot" : undefined,
       description: [...holyNimbusDescription],
+      facts: [
+        {
+          label: "Radiant Damage Formula",
+          value: getPaladinOathOfDevotionHolyNimbusRadiantDamageFormula(character),
+          fullWidth: true
+        }
+      ],
       headerTags: createChargesAndUsageHeaderTags(
         usesRemaining,
         holyNimbusUsesTotal,
@@ -627,6 +665,7 @@ function getPaladinOathOfDevotionFeatureActions(
       drawer: {
         kind: "confirm",
         eyebrow: "Oath of Devotion",
+        factsSectionTitle: null,
         resources: [
           {
             kind: "tracker" as const,
@@ -694,7 +733,6 @@ export const getPaladinOathOfDevotionDerivedFeatureState: SubclassRuntimeResolve
         transformFeatureAction: hasPaladinOathOfDevotionSmiteOfProtection(character)
           ? appendSmiteOfProtectionDescription
           : undefined,
-        transformWeaponAction: (action) => transformSacredWeaponAction(character, action),
-        getWeaponDamageBonuses: (context) => getSacredWeaponDamageBonuses(character, context)
+        transformWeaponAction: (action) => transformSacredWeaponAction(character, action)
       }
     : {};

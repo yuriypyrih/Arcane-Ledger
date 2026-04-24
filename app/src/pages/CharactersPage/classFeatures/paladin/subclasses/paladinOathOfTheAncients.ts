@@ -1,4 +1,9 @@
-import { ACTION_TYPE, CLASS_FEATURE, DAMAGE_TYPE, type SpellEntry } from "../../../../../codex/entries";
+import {
+  ACTION_TYPE,
+  CLASS_FEATURE,
+  DAMAGE_TYPE,
+  type SpellEntry
+} from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character } from "../../../../../types";
 import {
@@ -220,22 +225,16 @@ export function hasActivePaladinOathOfTheAncientsElderChampion(
   );
 }
 
-function transformSpellToElderChampionBonusAction(spell: SpellEntry): SpellEntry {
-  return spell.castingTime.includes(ACTION_TYPE.ACTION)
-    ? {
-        ...spell,
-        castingTime: [ACTION_TYPE.BONUS_ACTION]
-      }
-    : spell;
-}
-
-function transformFeatureActionForElderChampion(action: FeatureActionCard): FeatureActionCard {
-  return action.execute?.kind === "spell" && action.economyType === ECONOMY_TYPE.ACTION
-    ? {
-        ...action,
-        economyType: ECONOMY_TYPE.BONUS_ACTION
-      }
-    : action;
+export function canUsePaladinOathOfTheAncientsElderChampionBonusActionPathForSpell(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "statusEntries" | "subclassId">>,
+  spell: Pick<SpellEntry, "castingTime" | "spellLevel">
+): boolean {
+  return (
+    hasActivePaladinOathOfTheAncientsElderChampion(character) &&
+    spell.spellLevel > 0 &&
+    spell.castingTime.includes(ACTION_TYPE.ACTION)
+  );
 }
 
 function getPaladinOathOfTheAncientsFeatureActions(
@@ -346,8 +345,7 @@ function getPaladinOathOfTheAncientsFeatureActions(
         kind: "activate"
       },
       disabled: usesRemaining <= 0,
-      disabledReason:
-        usesRemaining <= 0 ? "Undying Sentinel recharges on a Long Rest." : undefined
+      disabledReason: usesRemaining <= 0 ? "Undying Sentinel recharges on a Long Rest." : undefined
     });
   }
 
@@ -727,12 +725,6 @@ export const getPaladinOathOfTheAncientsDerivedFeatureState: SubclassRuntimeReso
           oathOfTheAncientsSpellIdsByLevel
         ),
         featureActions: getPaladinOathOfTheAncientsFeatureActions(character),
-        derivedStatusEntries: getPaladinOathOfTheAncientsDerivedStatusEntries(character),
-        transformFeatureAction: hasActivePaladinOathOfTheAncientsElderChampion(character)
-          ? transformFeatureActionForElderChampion
-          : undefined,
-        transformSpellEntry: hasActivePaladinOathOfTheAncientsElderChampion(character)
-          ? transformSpellToElderChampionBonusAction
-          : undefined
+        derivedStatusEntries: getPaladinOathOfTheAncientsDerivedStatusEntries(character)
       }
     : {};
