@@ -14,7 +14,7 @@ import { removeFeatureStatusEntryForCharacter } from "../../../../../pages/Chara
 import {
   advanceCharacterStatusEntries,
   normalizeCharacterStatusEntries
-} from "../../../../../pages/CharactersPage/traits";
+} from "../../../../../pages/CharactersPage/statusEntries";
 import { getRoundTrackerResourceMeta } from "../gameplayWidgetUtils";
 import RoundTrackerControl from "./RoundTrackerControl";
 import { consumeRoundTrackerResourceForCharacter, startCharacterTurn } from "../gameplayStateUtils";

@@ -11,7 +11,7 @@ import type {
   CharacterEquipmentItem,
   CharacterInventoryItem
 } from "../../types";
-import { getAbilityScoreForCharacter } from "./abilities";
+import { getAbilityModifierBreakdownForCharacter } from "./abilities";
 import {
   getArmorClassBonusesForCharacter,
   getArmorClassModesForCharacter,
@@ -376,10 +376,6 @@ export function setInventoryItemArmorWornState(
   return applyBodyArmorWearState(character, { kind: "inventory", inventoryItemId }, shouldWear);
 }
 
-function getAbilityModifier(score: number): number {
-  return Math.floor((score - 10) / 2);
-}
-
 function getHeldShieldBonus(character: Pick<Character, "equipment" | "inventoryItems">): number {
   const codexShieldBonus = character.equipment.reduce((highestShieldBonus, item) => {
     if (!item.onHand) {
@@ -487,16 +483,21 @@ function buildArmorClassBreakdownEntries(
       label: "Base",
       value: mode.baseValue
     },
-    ...mode.abilityModifiers.map((ability) => ({
-      label: ability,
-      value:
+    ...mode.abilityModifiers.flatMap((ability) => {
+      const breakdown = getAbilityModifierBreakdownForCharacter(character, ability);
+      const cappedBaseValue =
         mode.abilityModifierCaps?.[ability] === null || mode.abilityModifierCaps?.[ability] === undefined
-          ? getAbilityModifier(getAbilityScoreForCharacter(character, ability))
-          : Math.min(
-              getAbilityModifier(getAbilityScoreForCharacter(character, ability)),
-              mode.abilityModifierCaps[ability] ?? 0
-            )
-    }))
+          ? breakdown.baseValue
+          : Math.min(breakdown.baseValue, mode.abilityModifierCaps[ability] ?? 0);
+
+      return [
+        {
+          label: ability,
+          value: cappedBaseValue
+        },
+        ...breakdown.bonusEntries
+      ];
+    })
   ];
 
   if (mode.shieldAllowed && shieldBonus > 0) {

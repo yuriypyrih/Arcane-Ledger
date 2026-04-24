@@ -1,7 +1,10 @@
 import type { AbilityKey, Character, SkillName, SkillProficiencyEntry } from "../../types";
 import { PROF_LEVEL } from "../../types";
-import { getAbilityModifier, getProficiencyBonus } from "./gameplay";
-import { getAbilityScoreForCharacter } from "./abilities";
+import { getProficiencyBonus } from "./gameplay";
+import {
+  getAbilityModifierBreakdownForCharacter,
+  getAbilityModifierForCharacter
+} from "./abilities";
 import { getSkillBonusesForCharacter } from "./classFeatures";
 import { getResolvedSkillProficiencyEntry, getSkillProficiencyForName } from "./proficiency";
 import { skillGroupsByAbility } from "./skillDefinitions";
@@ -12,7 +15,12 @@ export type SkillRow = {
   name: SkillName;
   ability: AbilityKey;
   abilityLabel: string;
+  abilityModifierBase: number;
   abilityModifier: number;
+  abilityModifierBonusEntries: Array<{
+    label: string;
+    value: number;
+  }>;
   proficiencyBonus: number;
   proficiencyMultiplier: SkillProficiencyMultiplier;
   proficiencyContribution: number;
@@ -59,18 +67,18 @@ export function getSkillRowsByAbility(
           (entry) => entry.replacesBaseAbility && entry.abilityModifierSource
         );
         const effectiveAbility = replacementEntry?.abilityModifierSource ?? group.ability;
-        const effectiveAbilityModifier = getAbilityModifier(
-          getAbilityScoreForCharacter(character, effectiveAbility)
+        const effectiveAbilityModifierBreakdown = getAbilityModifierBreakdownForCharacter(
+          character,
+          effectiveAbility
         );
+        const effectiveAbilityModifier = effectiveAbilityModifierBreakdown.total;
         const bonusEntries = featureBonuses.flatMap((entry) => {
           if (entry.replacesBaseAbility && entry.abilityModifierSource) {
             return [];
           }
 
           if (entry.abilityModifierSource) {
-            const sourceValue = getAbilityModifier(
-              getAbilityScoreForCharacter(character, entry.abilityModifierSource)
-            );
+            const sourceValue = getAbilityModifierForCharacter(character, entry.abilityModifierSource);
 
             return [
               {
@@ -96,7 +104,9 @@ export function getSkillRowsByAbility(
           name: skill,
           ability: effectiveAbility,
           abilityLabel: replacementEntry?.label ?? group.ability,
+          abilityModifierBase: effectiveAbilityModifierBreakdown.baseValue,
           abilityModifier: effectiveAbilityModifier,
+          abilityModifierBonusEntries: effectiveAbilityModifierBreakdown.bonusEntries,
           proficiencyBonus,
           proficiencyMultiplier,
           proficiencyContribution,

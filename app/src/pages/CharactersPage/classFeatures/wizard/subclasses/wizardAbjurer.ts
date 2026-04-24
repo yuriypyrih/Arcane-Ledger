@@ -14,7 +14,7 @@ import {
   type Character
 } from "../../../../../types";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
-import { getAbilityModifier } from "../../../gameplay";
+import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
   createMagicTemporaryHitPointsAssignment,
   gainMagicTemporaryHitPointsAssignment,
@@ -151,7 +151,7 @@ export function getWizardAbjurerArcaneWardMaximumHitPoints(
 
   return Math.max(
     0,
-    Math.floor((character.level ?? 0) * 2 + getAbilityModifier(character.abilities?.INT ?? 10))
+    Math.floor((character.level ?? 0) * 2 + getAbilityModifierForCharacter(character, "INT"))
   );
 }
 

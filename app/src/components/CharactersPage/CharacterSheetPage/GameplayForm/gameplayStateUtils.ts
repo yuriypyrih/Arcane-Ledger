@@ -6,8 +6,10 @@ import {
 } from "../../../../pages/CharactersPage/classFeatures";
 import {
   advanceCharacterStatusEntries,
+  normalizeCharacterStatusEntries
+} from "../../../../pages/CharactersPage/statusEntries";
+import {
   getEffectiveHitPointMaximumForCharacter,
-  normalizeCharacterStatusEntries,
   reconcileCharacterStatusConsequences
 } from "../../../../pages/CharactersPage/traits";
 import type { HpDraft } from "../../../../pages/CharactersPage/CharacterSheetPage/types";

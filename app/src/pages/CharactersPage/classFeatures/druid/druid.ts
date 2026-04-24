@@ -23,7 +23,7 @@ import {
   type SkillName,
   type WeaponProficiencyEntry
 } from "../../../../types";
-import { normalizeCharacterStatusEntries } from "../../traits";
+import { normalizeCharacterStatusEntries } from "../../statusEntries";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import type { WeaponAction } from "../../gameplay";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";

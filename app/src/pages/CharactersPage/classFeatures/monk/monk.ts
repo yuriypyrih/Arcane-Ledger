@@ -58,7 +58,7 @@ import {
   createCharacterStatusEntry,
   hasStatusCondition,
   normalizeCharacterStatusEntries
-} from "../../traits";
+} from "../../statusEntries";
 import {
   activateMonkWarriorOfMercyHandOfHealing,
   getMonkWarriorOfMercyHandOfHealingFlurryUsesThisTurn,

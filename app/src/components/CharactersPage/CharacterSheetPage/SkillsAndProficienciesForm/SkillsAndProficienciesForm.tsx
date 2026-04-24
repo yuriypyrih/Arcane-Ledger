@@ -130,7 +130,11 @@ function SkillsAndProficienciesForm({
   );
 
   function formatSkillFormula(row: SkillRow): string {
-    const terms = [`${formatAbilityModifier(row.abilityModifier)} ${row.abilityLabel}`];
+    const terms = [`${formatAbilityModifier(row.abilityModifierBase)} ${row.abilityLabel}`];
+
+    row.abilityModifierBonusEntries.forEach((entry) => {
+      terms.push(`${formatAbilityModifier(entry.value)} ${entry.label}`);
+    });
 
     if (row.proficiencyMultiplier === 1) {
       terms.push(`${formatAbilityModifier(row.proficiencyContribution)} Proficiency Bonus`);
@@ -207,7 +211,11 @@ function SkillsAndProficienciesForm({
       {
         label: "Source",
         value: formatReferenceSourceLabel(
-          [...row.proficiencySourceLabels, ...row.bonusEntries.map((entry) => entry.label)],
+          [
+            ...row.proficiencySourceLabels,
+            ...row.abilityModifierBonusEntries.map((entry) => entry.label),
+            ...row.bonusEntries.map((entry) => entry.label)
+          ],
           "Ability modifier only"
         )
       },
@@ -348,7 +356,11 @@ function SkillsAndProficienciesForm({
                           const skillRollState = resolveFeatureIndicators(
                             skillIndicators[row.name]
                           );
-                          const hasAdditionalBonuses = row.bonusEntries.length > 0;
+                          const additionalBonusLabels = [
+                            ...row.abilityModifierBonusEntries.map((entry) => entry.label),
+                            ...row.bonusEntries.map((entry) => entry.label)
+                          ];
+                          const hasAdditionalBonuses = additionalBonusLabels.length > 0;
                           const skillDetailCards = getSkillReferenceDetailCards(row);
 
                           return (
@@ -384,9 +396,7 @@ function SkillsAndProficienciesForm({
                                     <span>{row.name}</span>
                                     {hasAdditionalBonuses ? (
                                       <span
-                                        title={row.bonusEntries
-                                          .map((entry) => entry.label)
-                                          .join(", ")}
+                                        title={additionalBonusLabels.join(", ")}
                                         className={styles.skillBonusIcon}
                                       >
                                         <ChevronsUp size={16} aria-hidden="true" />

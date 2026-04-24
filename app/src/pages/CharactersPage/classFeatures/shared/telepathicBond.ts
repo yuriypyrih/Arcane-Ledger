@@ -5,7 +5,7 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../traits";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../statusEntries";
 import type { FeatureActionCard } from "../types";
 
 type TelepathicBondCharacter = Partial<Pick<Character, "level" | "statusEntries">>;

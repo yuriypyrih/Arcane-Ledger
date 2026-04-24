@@ -374,7 +374,7 @@ export function shouldAdvanceBardCollegeOfValorFeaturesForNewRound(
 }
 
 function appendCombatInspirationDescription(
-  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  character: Partial<Pick<Character, "className" | "level" | "subclassId">>,
   action: FeatureActionCard
 ): FeatureActionCard {
   if (action.key !== bardicInspirationActionKey) {

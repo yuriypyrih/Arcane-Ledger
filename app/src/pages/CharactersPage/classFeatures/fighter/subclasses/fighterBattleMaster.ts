@@ -7,8 +7,9 @@ import {
 } from "../../../../../codex/subclasses/fighterBattleMaster";
 import type { Character, CharacterFighterFeatureState } from "../../../../../types";
 import { createSourcedDescriptionEntries } from "../../../actionModalDescriptions";
+import { getAbilityModifierForCharacter } from "../../../abilities";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { getAbilityModifier, getProficiencyBonus } from "../../../gameplay";
+import { getProficiencyBonus } from "../../../gameplay";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
@@ -532,8 +533,11 @@ function getCombatSuperiorityDescriptionAdditions(
     : [];
 }
 
-function getBattleMasterAbilityModifier(score: number | undefined): number {
-  return getAbilityModifier(Math.max(1, Math.floor(score ?? 10)));
+function getBattleMasterAbilityModifier(
+  character: BattleMasterCharacter,
+  ability: "STR" | "DEX"
+): number {
+  return getAbilityModifierForCharacter(character, ability);
 }
 
 function formatBattleMasterBreakdownTerm(value: number, label: string): string {
@@ -547,8 +551,8 @@ function getCombatSuperiorityFacts(character: BattleMasterCharacter): FeatureAct
     return [];
   }
 
-  const strengthModifier = getBattleMasterAbilityModifier(character.abilities.STR);
-  const dexterityModifier = getBattleMasterAbilityModifier(character.abilities.DEX);
+  const strengthModifier = getBattleMasterAbilityModifier(character, "STR");
+  const dexterityModifier = getBattleMasterAbilityModifier(character, "DEX");
   const chosenAbilityModifier = Math.max(strengthModifier, dexterityModifier);
   const chosenAbilityLabel = strengthModifier >= dexterityModifier ? "STR" : "DEX";
   const proficiencyBonus = getProficiencyBonus(character.level ?? 1);

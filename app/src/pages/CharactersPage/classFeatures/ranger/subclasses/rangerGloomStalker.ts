@@ -17,8 +17,8 @@ import {
   appendSourcedDescriptionAddition,
   descriptionValueSomeText
 } from "../../../actionModalDescriptions";
+import { getAbilityModifierForCharacter } from "../../../abilities";
 import type { WeaponAction } from "../../../gameplay";
-import { getAbilityModifier } from "../../../gameplay";
 import { getSavingThrowLevelFromEntries } from "../../../proficiencyResolvers";
 import {
   getPreparedSpellIdsByLevel,
@@ -145,13 +145,7 @@ function isRangerGloomStalker(character: RangerGloomStalkerCharacter): boolean {
 }
 
 function getWisdomModifier(character: Partial<Pick<Character, "abilities">>): number {
-  const wisdomScore = character.abilities?.WIS;
-
-  if (typeof wisdomScore !== "number" || !Number.isFinite(wisdomScore)) {
-    return 0;
-  }
-
-  return getAbilityModifier(wisdomScore);
+  return getAbilityModifierForCharacter(character, "WIS");
 }
 
 function getDreadfulStrikeFormula(character: RangerGloomStalkerCharacter): string {

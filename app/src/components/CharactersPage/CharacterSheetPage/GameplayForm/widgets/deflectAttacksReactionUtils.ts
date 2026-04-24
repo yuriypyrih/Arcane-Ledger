@@ -74,7 +74,7 @@ export function getDeflectAttacksReactionFacts(
           {
             label: "Reflected Damage Formula",
             value: formatFormulaValue(reflectedDamageFormula, [
-              formatDamageFormula(monkMartialArtsDie),
+              formatDamageFormula(monkMartialArtsDie!),
               formatLabeledModifier(dexterityModifier, "DEX")
             ].filter((term): term is string => term !== null)),
             fullWidth: true

@@ -1,12 +1,13 @@
 import type { Character } from "../../../../../types";
 
-type DruidCircleOfTheMoonCharacter = Pick<Character, "className" | "level"> &
-  Partial<Pick<Character, "subclassId">>;
+type DruidCircleOfTheMoonCharacter = Partial<
+  Pick<Character, "className" | "level" | "subclassId">
+>;
 
 export const circleOfTheMoonSubclassId = "druid-circle-of-the-moon";
 
-function getNormalizedDruidLevel(level: number): number {
-  return Math.max(1, Math.min(20, Math.floor(level)));
+function getNormalizedDruidLevel(level: number | undefined): number {
+  return Math.max(1, Math.min(20, Math.floor(level ?? 1)));
 }
 
 export function hasDruidCircleOfTheMoonSpellsFeature(

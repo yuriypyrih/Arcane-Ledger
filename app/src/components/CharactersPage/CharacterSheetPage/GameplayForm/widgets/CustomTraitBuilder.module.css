@@ -1,0 +1,82 @@
+.stack {
+  display: grid;
+  gap: 1rem;
+  min-height: 100%;
+}
+
+.effectsSection {
+  display: grid;
+  align-content: start;
+  gap: 0.8rem;
+  min-height: 0;
+}
+
+.effectsHeader {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.85rem;
+  justify-content: space-between;
+}
+
+.sectionEyebrow {
+  margin: 0 0 0.18rem;
+  color: var(--color-accent);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sectionTitle {
+  margin: 0;
+}
+
+.addEffectButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  border: 1px solid rgba(37, 80, 141, 0.16);
+  border-radius: 999px;
+  background: rgba(37, 80, 141, 0.08);
+  color: #25508d;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+  min-height: 40px;
+  padding: 0 0.86rem;
+  white-space: nowrap;
+}
+
+.effectsList {
+  display: grid;
+  align-content: start;
+  gap: 0.75rem;
+  min-height: 0;
+  overflow: auto;
+  padding-right: 0.12rem;
+}
+
+.effectCard {
+  display: grid;
+  gap: 0.65rem;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.9rem;
+}
+
+.effectIndex {
+  margin: 0;
+  color: var(--color-ink-soft);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+@media (max-width: 700px) {
+  .effectsHeader {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}

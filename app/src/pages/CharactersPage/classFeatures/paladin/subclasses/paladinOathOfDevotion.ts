@@ -11,7 +11,7 @@ import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptio
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import type { WeaponAction } from "../../../gameplay";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import { createDefaultFeatureActionDescription } from "../../subclassRuntime";
 import {
   createChargesAndUsageHeaderTags,

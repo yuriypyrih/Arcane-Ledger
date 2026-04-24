@@ -16,35 +16,46 @@
   gap: 0.65rem;
 }
 
-.durationEditorActions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
+.footer {
+  display: grid;
+  border-top: 1px solid rgba(75, 47, 29, 0.1);
+  background: linear-gradient(180deg, rgba(255, 252, 245, 0.24), rgba(246, 236, 221, 0.92));
+  gap: 0.65rem;
+  padding-top: 0.9rem;
 }
 
-.drawerFooter {
-  display: flex;
+.footerActionRow {
+  display: grid;
+  gap: 0.65rem;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  width: 100%;
+}
+
+.footerActionButton {
+  display: inline-flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.exhaustionActionRow {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.6rem;
-}
-
-.removeButton {
+  gap: 0.5rem;
+  justify-content: center;
   border: none;
-  border-radius: 12px;
-  background: rgba(197, 57, 43, 0.14);
-  color: #8a2519;
+  border-radius: 16px;
   cursor: pointer;
   font: inherit;
-  font-weight: 600;
-  min-height: 40px;
-  padding: 0 0.88rem;
+  font-weight: 700;
+  min-height: 46px;
+  padding: 0 0.9rem;
+  white-space: nowrap;
+  width: 100%;
+}
+
+.footerActionButtonNeutral {
+  background: rgba(75, 47, 29, 0.09);
+  color: var(--color-ink);
+}
+
+.footerActionButtonDanger {
+  background: rgba(197, 57, 43, 0.14);
+  color: #8a2519;
 }
 
 .inlineLinkButton {

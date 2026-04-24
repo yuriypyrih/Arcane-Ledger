@@ -4,6 +4,7 @@ import {
   getAbilityScoreBonusesForCharacter,
   type FeatureAbilityScoreBonus
 } from "./classFeatures";
+import { getCustomTraitAbilityModifierBonuses } from "./customTraitEffects";
 import { getFeatAbilityScoreBonusesForCharacter } from "./feats";
 
 export type AbilityScoreBreakdownEntry = {
@@ -16,6 +17,23 @@ export type AbilityScoreBreakdown = {
   total: number;
   entries: AbilityScoreBreakdownEntry[];
 };
+
+export type AbilityModifierBonusEntry = {
+  label: string;
+  value: number;
+};
+
+export type AbilityModifierBreakdown = {
+  ability: AbilityKey;
+  abilityScore: number;
+  baseValue: number;
+  bonusEntries: AbilityModifierBonusEntry[];
+  total: number;
+};
+
+type AbilityCharacterContext = Partial<
+  Pick<Character, "abilities" | "level" | "className" | "classFeatureState" | "feats" | "statusEntries">
+>;
 
 function normalizeAbilityScore(value: number): number {
   if (!Number.isFinite(value)) {
@@ -72,13 +90,23 @@ function sortAbilityScoreBonuses(
 }
 
 export function getAbilityScoreBreakdownForCharacter(
-  character: Pick<Character, "abilities" | "className" | "level" | "classFeatureState" | "feats">,
+  character: AbilityCharacterContext,
   ability: AbilityKey
 ): AbilityScoreBreakdown {
-  const baseScore = normalizeAbilityScore(character.abilities[ability]);
+  const baseScore = normalizeAbilityScore(character.abilities?.[ability] ?? 10);
   const relevantBonuses: FeatureAbilityScoreBonus[] = [
-    ...getAbilityScoreBonusesForCharacter(character),
-    ...getFeatAbilityScoreBonusesForCharacter(character)
+    ...(typeof character.className === "string"
+      ? getAbilityScoreBonusesForCharacter({
+          className: character.className,
+          level: character.level ?? 1,
+          classFeatureState: character.classFeatureState,
+          statusEntries: character.statusEntries
+        })
+      : []),
+    ...getFeatAbilityScoreBonusesForCharacter({
+      feats: character.feats ?? [],
+      level: character.level ?? 1
+    })
   ]
     .filter((bonus) => bonus.ability === ability)
     .sort(sortAbilityScoreBonuses);
@@ -119,14 +147,14 @@ export function getAbilityScoreBreakdownForCharacter(
 }
 
 export function getAbilityScoreForCharacter(
-  character: Pick<Character, "abilities" | "className" | "level" | "classFeatureState" | "feats">,
+  character: AbilityCharacterContext,
   ability: AbilityKey
 ): number {
   return getAbilityScoreBreakdownForCharacter(character, ability).total;
 }
 
 export function getAbilityScoresForCharacter(
-  character: Pick<Character, "abilities" | "className" | "level" | "classFeatureState" | "feats">
+  character: AbilityCharacterContext
 ): AbilityScores {
   return abilityKeys.reduce((scores, ability) => {
     scores[ability] = getAbilityScoreForCharacter(character, ability);
@@ -134,9 +162,26 @@ export function getAbilityScoresForCharacter(
   }, {} as AbilityScores);
 }
 
+export function getAbilityModifierBreakdownForCharacter(
+  character: AbilityCharacterContext,
+  ability: AbilityKey
+): AbilityModifierBreakdown {
+  const abilityScore = getAbilityScoreForCharacter(character, ability);
+  const baseValue = Math.floor((abilityScore - 10) / 2);
+  const bonusEntries = getCustomTraitAbilityModifierBonuses(character.statusEntries, ability);
+
+  return {
+    ability,
+    abilityScore,
+    baseValue,
+    bonusEntries,
+    total: baseValue + bonusEntries.reduce((sum, entry) => sum + entry.value, 0)
+  };
+}
+
 export function getAbilityModifierForCharacter(
-  character: Pick<Character, "abilities" | "className" | "level" | "classFeatureState" | "feats">,
+  character: AbilityCharacterContext,
   ability: AbilityKey
 ): number {
-  return Math.floor((getAbilityScoreForCharacter(character, ability) - 10) / 2);
+  return getAbilityModifierBreakdownForCharacter(character, ability).total;
 }

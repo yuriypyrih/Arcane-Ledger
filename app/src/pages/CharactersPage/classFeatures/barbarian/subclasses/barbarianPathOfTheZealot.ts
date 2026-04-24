@@ -10,7 +10,7 @@ import {
 } from "../../../../../types";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import { clampNumber } from "../../../shared";
 import type { WeaponAction } from "../../../gameplay";
 import {

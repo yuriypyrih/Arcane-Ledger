@@ -20,7 +20,7 @@ import type {
   WeaponFeatureContext
 } from "../../types";
 import { createSourcedDescriptionEntries, descriptionValueSomeText } from "../../../actionModalDescriptions";
-import { getAbilityModifier } from "../../../gameplay";
+import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
   getPreparedSpellIdsByLevel,
   resolveSpellIdsByName,
@@ -306,7 +306,7 @@ export function getRangerFeyWandererMistyWandererUsesTotal(
     return 0;
   }
 
-  return Math.max(1, getAbilityModifier(character.abilities?.WIS ?? 10));
+  return Math.max(1, getAbilityModifierForCharacter(character, "WIS"));
 }
 
 export function getRangerFeyWandererMistyWandererUsesRemaining(

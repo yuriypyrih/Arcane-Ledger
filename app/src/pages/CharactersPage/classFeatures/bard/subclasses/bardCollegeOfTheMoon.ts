@@ -36,7 +36,7 @@ import {
   appendUniqueDescriptionAddition
 } from "../../../actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import { createDefaultFeatureActionDescription } from "../../subclassRuntime";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type {
@@ -159,7 +159,7 @@ function extractFeatureDescriptionSection(
 }
 
 function getMoonFeatureDescriptionStrings(
-  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  character: Partial<Pick<Character, "className" | "level" | "subclassId">>,
   feature: CLASS_FEATURE
 ): string[] {
   return getFeatureDescriptionForCharacter(character, feature).filter(
@@ -168,7 +168,7 @@ function getMoonFeatureDescriptionStrings(
 }
 
 function getLunarVitalityDescription(
-  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+  character: Partial<Pick<Character, "className" | "level" | "subclassId">>
 ): SpellDescriptionEntry[] {
   return extractFeatureDescriptionSection(
     getMoonFeatureDescriptionStrings(character, CLASS_FEATURE.MOONS_INSPIRATION),
@@ -178,7 +178,7 @@ function getLunarVitalityDescription(
 }
 
 function getVibranceOfTheFullMoonDescription(
-  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+  character: Partial<Pick<Character, "className" | "level" | "subclassId">>
 ): SpellDescriptionEntry[] {
   return extractFeatureDescriptionSection(
     getMoonFeatureDescriptionStrings(character, CLASS_FEATURE.EVENTIDES_SPLENDOR),

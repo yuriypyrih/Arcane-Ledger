@@ -15,6 +15,10 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
+import {
+  getAbilityModifierBreakdownForCharacter,
+  getAbilityModifierForCharacter
+} from "../../../abilities";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import type {
   DerivedFeatureStatusEntry,
@@ -27,7 +31,7 @@ import {
   createCharacterStatusEntry,
   hasExhaustionAttackRollDisadvantage,
   normalizeCharacterStatusEntries
-} from "../../../traits";
+} from "../../../statusEntries";
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import {
@@ -145,10 +149,6 @@ function getCircleOfTheStarsFeatureDescription(
   );
 }
 
-function getAbilityModifier(score: number): number {
-  return Math.floor((score - 10) / 2);
-}
-
 function getProficiencyBonus(level: number): number {
   const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
   return Math.floor((normalizedLevel - 1) / 4) + 2;
@@ -199,10 +199,10 @@ export function normalizeDruidCircleOfTheStarsFeatureState(
   "starMapGuidingBoltUsesExpended" | "cosmicOmenSelection" | "cosmicOmenUsesExpended"
 > {
   const starMapGuidingBoltUsesTotal = hasDruidStarMapFeature(character)
-    ? Math.max(1, Math.floor((Math.max(1, Math.floor(character.abilities?.WIS ?? 10)) - 10) / 2))
+    ? Math.max(1, getAbilityModifierForCharacter(character, "WIS"))
     : 0;
   const cosmicOmenUsesTotal = hasDruidCosmicOmenFeature(character)
-    ? Math.max(1, getAbilityModifier(Math.max(1, Math.floor(character.abilities?.WIS ?? 10))))
+    ? Math.max(1, getAbilityModifierForCharacter(character, "WIS"))
     : 0;
 
   return {
@@ -353,7 +353,7 @@ export function getDruidStarMapGuidingBoltUsesTotal(
     Partial<Pick<Character, "subclassId" | "abilities">>
 ): number {
   return hasDruidStarMapFeature(character)
-    ? Math.max(1, getAbilityModifier(Math.max(1, Math.floor(character.abilities?.WIS ?? 10))))
+    ? Math.max(1, getAbilityModifierForCharacter(character, "WIS"))
     : 0;
 }
 
@@ -380,7 +380,7 @@ export function getDruidCosmicOmenUsesTotal(
     Partial<Pick<Character, "subclassId" | "abilities">>
 ): number {
   return hasDruidCosmicOmenFeature(character)
-    ? Math.max(1, getAbilityModifier(Math.max(1, Math.floor(character.abilities?.WIS ?? 10))))
+    ? Math.max(1, getAbilityModifierForCharacter(character, "WIS"))
     : 0;
 }
 
@@ -682,9 +682,8 @@ export function getCircleOfTheStarsWeaponActions(
     return [];
   }
 
-  const wisdomModifier = getAbilityModifier(
-    Math.max(1, Math.floor(character.abilities?.WIS ?? 10))
-  );
+  const wisdomModifierBreakdown = getAbilityModifierBreakdownForCharacter(character, "WIS");
+  const wisdomModifier = wisdomModifierBreakdown.total;
   const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
   const hasTwinklingConstellations = hasDruidTwinklingConstellationsFeature(character);
   const damageFormula = hasTwinklingConstellations ? "2d8" : "1d8";
@@ -701,9 +700,13 @@ export function getCircleOfTheStarsWeaponActions(
       rollDisplay: createRollDisplay(damageFormula, wisdomModifier),
       rollFormulaDisplay: createRollFormula(damageFormula, wisdomModifier),
       ability: "WIS",
+      abilityModifierBaseValue: wisdomModifierBreakdown.baseValue,
       abilityModifier: wisdomModifier,
+      abilityModifierBonusEntries: wisdomModifierBreakdown.bonusEntries,
       damageAbility: "WIS",
+      damageAbilityModifierBaseValue: wisdomModifierBreakdown.baseValue,
       damageAbilityModifier: wisdomModifier,
+      damageAbilityModifierBonusEntries: wisdomModifierBreakdown.bonusEntries,
       proficiencyLabel: "Spell attack",
       proficiencyBonus,
       totalModifier: wisdomModifier,

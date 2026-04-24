@@ -18,7 +18,7 @@ import {
   createSourcedDescriptionEntries,
   descriptionValueSomeText
 } from "../../../actionModalDescriptions";
-import { getAbilityModifier } from "../../../gameplay";
+import { getAbilityModifierForCharacter } from "../../../abilities";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import {
   getPreparedSpellIdsByLevel,
@@ -233,7 +233,7 @@ export function getWarlockArchfeyPatronStepsOfTheFeyUsesTotal(
     return 0;
   }
 
-  return Math.max(1, getAbilityModifier(character.abilities?.CHA ?? 10));
+  return Math.max(1, getAbilityModifierForCharacter(character, "CHA"));
 }
 
 export function getWarlockArchfeyPatronStepsOfTheFeyUsesRemaining(

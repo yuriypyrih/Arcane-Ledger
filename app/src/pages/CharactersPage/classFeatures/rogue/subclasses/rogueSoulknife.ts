@@ -17,10 +17,10 @@ import {
   appendSourcedDescriptionAddition,
   createSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
+import { getAbilityModifierForCharacter } from "../../../abilities";
 import { getResolvedCustomLoadoutEntries } from "../../../customEquipment";
 import {
   createWeaponAction,
-  getAbilityModifier,
   getProficiencyBonus,
   type WeaponAction
 } from "../../../gameplay";
@@ -32,7 +32,7 @@ import {
 import { createHeldDescriptorForInventoryItem } from "../../../inventoryItems";
 import { isShieldArmorEntry } from "../../../armor";
 import { getLoadoutCodexEntryByName } from "../../../proficiency";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import {
   getPsionicDiceTotalForLevel,
   getPsionicDieForLevel,
@@ -157,9 +157,9 @@ function hasFreeHandForPsychicBlade(character: RogueSoulknifeCharacter): boolean
   ]) < 2;
 }
 
-function getPsychicBladeAbility(character: Partial<Pick<Character, "abilities">>): "STR" | "DEX" {
-  const strengthModifier = getAbilityModifier(character.abilities?.STR ?? 10);
-  const dexterityModifier = getAbilityModifier(character.abilities?.DEX ?? 10);
+function getPsychicBladeAbility(character: RogueSoulknifeCharacter): "STR" | "DEX" {
+  const strengthModifier = getAbilityModifierForCharacter(character, "STR");
+  const dexterityModifier = getAbilityModifierForCharacter(character, "DEX");
 
   return dexterityModifier >= strengthModifier ? "DEX" : "STR";
 }
@@ -657,9 +657,10 @@ export function getRogueSoulknifeWeaponActions(character: RogueSoulknifeCharacte
   }
 
   const ability = getPsychicBladeAbility(character);
-  const abilityModifier = getAbilityModifier(character.abilities?.[ability] ?? 10);
+  const abilityModifier = getAbilityModifierForCharacter(character, ability);
   const baseAction = createWeaponAction(
     {
+      abilities: character.abilities,
       className: character.className,
       level: character.level ?? 1,
       subclassId: character.subclassId,

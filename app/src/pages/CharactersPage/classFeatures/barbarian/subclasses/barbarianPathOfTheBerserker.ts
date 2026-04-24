@@ -15,7 +15,7 @@ import type {
   FeatureDamageBonus,
   WeaponFeatureContext
 } from "../../types";
-import { removeCharacterConditionsForImmunities } from "../../../traits";
+import { removeCharacterConditionsForImmunities } from "../../../statusEntries";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 
 export const pathOfTheBerserkerSubclassId = "barbarian-path-of-the-berserker";

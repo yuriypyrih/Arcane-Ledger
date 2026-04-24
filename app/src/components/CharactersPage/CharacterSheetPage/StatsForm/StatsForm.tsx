@@ -7,8 +7,10 @@ import { createSourcedDescriptionEntries } from "../../../../pages/CharactersPag
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
 import type { AbilityKey, Character, CoreStats } from "../../../../types";
 import {
+  getAbilityModifierBreakdownForCharacter,
   getAbilityScoreBreakdownForCharacter,
-  getAbilityScoresForCharacter
+  getAbilityScoresForCharacter,
+  type AbilityModifierBonusEntry
 } from "../../../../pages/CharactersPage/abilities";
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
 import {
@@ -19,7 +21,6 @@ import {
 } from "../../../../pages/CharactersPage/constants";
 import {
   formatAbilityModifier,
-  getAbilityModifier,
   getHitDiceDisplayForCharacter,
   getInitiativeBreakdownForCharacter,
   getInitiativeForCharacter,
@@ -135,7 +136,9 @@ type AbilitySavingThrowCard = {
   ability: AbilityKey;
   score: number;
   modifier: string;
+  modifierBaseValue: number;
   modifierValue: number;
+  modifierBonusEntries: AbilityModifierBonusEntry[];
   isSavingThrowProficient: boolean;
   proficiencyContribution: number;
   proficiencyLabel?: string;
@@ -257,8 +260,18 @@ function formatD20Formula(modifier: number): string {
   return `1d20 ${modifier > 0 ? "+" : "-"} ${Math.abs(modifier)}`;
 }
 
-function formatAbilityModifierFormula(ability: AbilityKey, score: number): string {
-  return `${formatAbilityModifier(getAbilityModifier(score))} ${ability} Modifier = floor((${score} ${ability} - 10) / 2)`;
+function formatAbilityModifierFormula(
+  ability: AbilityKey,
+  score: number,
+  baseValue: number,
+  bonusEntries: AbilityModifierBonusEntry[] = []
+): string {
+  const terms = [
+    `floor((${score} ${ability} - 10) / 2)`,
+    ...bonusEntries.map((entry) => `${entry.value >= 0 ? "+" : "-"} ${Math.abs(entry.value)} ${entry.label}`)
+  ];
+
+  return `${formatAbilityModifier(baseValue + bonusEntries.reduce((sum, entry) => sum + entry.value, 0))} ${ability} Modifier = ${terms.join(" ")}`;
 }
 
 function formatAbilityScoreFormula(
@@ -278,12 +291,17 @@ function formatAbilityScoreFormula(
 function formatSavingThrowFormula(
   ability: AbilityKey,
   total: number,
-  abilityModifier: number,
+  abilityModifierBaseValue: number,
+  abilityModifierBonusEntries: AbilityModifierBonusEntry[],
   proficiencyContribution: number,
   proficiencyLabel?: string,
   bonusEntries: SavingThrowBonusEntry[] = []
 ): string {
-  const terms = [`${abilityModifier >= 0 ? "+" : ""}${abilityModifier} ${ability}`];
+  const terms = [`${abilityModifierBaseValue >= 0 ? "+" : ""}${abilityModifierBaseValue} ${ability}`];
+
+  abilityModifierBonusEntries.forEach((entry) => {
+    terms.push(`${entry.value >= 0 ? "+" : ""}${entry.value} ${entry.label}`);
+  });
 
   if (proficiencyContribution !== 0 && proficiencyLabel) {
     terms.push(
@@ -305,10 +323,13 @@ function formatSavingThrowFormula(
 
 function resolveFeatureSavingThrowBonusValue(
   bonus: FeatureSavingThrowBonus,
-  effectiveAbilities: Character["abilities"]
+  character: Character
 ): number {
   if (bonus.abilityModifierSource) {
-    const sourceValue = getAbilityModifier(effectiveAbilities[bonus.abilityModifierSource]);
+    const sourceValue = getAbilityModifierBreakdownForCharacter(
+      character,
+      bonus.abilityModifierSource
+    ).total;
     return typeof bonus.minimumValue === "number"
       ? Math.max(bonus.minimumValue, sourceValue)
       : sourceValue;
@@ -564,7 +585,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   const armorClassResolution = getArmorClassResolutionForCharacter(character);
   const armorClassBreakdown = armorClassResolution.activeFormula.breakdown;
   const paladinAuraOfProtectionBonus = hasActivePaladinAuraOfProtectionForCharacter(character)
-    ? Math.max(1, getAbilityModifier(effectiveAbilities.CHA))
+    ? Math.max(1, getAbilityModifierBreakdownForCharacter(character, "CHA").total)
     : 0;
   const displayedCoreStats: CoreStats = {
     ...(character.coreStats ?? createDefaultCoreStats()),
@@ -606,7 +627,8 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   const rogueSneakAttackFormula = getRogueSneakAttackFormulaForCharacter(character);
   const abilitySavingThrowCards: AbilitySavingThrowCard[] = abilityKeys.map((ability) => {
     const abilityScore = effectiveAbilities[ability];
-    const abilityModifierValue = getAbilityModifier(abilityScore);
+    const abilityModifierBreakdown = getAbilityModifierBreakdownForCharacter(character, ability);
+    const abilityModifierValue = abilityModifierBreakdown.total;
     const savingThrowProficiency = getSavingThrowProficiencyForAbilityKey(ability);
     const savingThrowLevel = getSavingThrowLevelFromEntries(
       character.savingThrowProficiencies,
@@ -617,7 +639,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
     const featureSavingThrowBonusEntries: SavingThrowBonusEntry[] =
       getSavingThrowBonusesForCharacter(character, ability).map((bonus) => ({
         label: bonus.label,
-        value: resolveFeatureSavingThrowBonusValue(bonus, effectiveAbilities)
+        value: resolveFeatureSavingThrowBonusValue(bonus, character)
       }));
     const savingThrowBonusEntries: SavingThrowBonusEntry[] = [
       ...(paladinAuraOfProtectionBonus > 0
@@ -652,7 +674,9 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
       ability,
       score: abilityScore,
       modifier: formatAbilityModifier(abilityModifierValue),
+      modifierBaseValue: abilityModifierBreakdown.baseValue,
       modifierValue: abilityModifierValue,
+      modifierBonusEntries: abilityModifierBreakdown.bonusEntries,
       isSavingThrowProficient: proficiencyMultiplier > 0,
       proficiencyContribution,
       proficiencyLabel,
@@ -1146,11 +1170,17 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
       abilityBreakdown.total,
       abilityBreakdown.entries
     );
-    const abilityModifierFormula = formatAbilityModifierFormula(ability, selectedCard.score);
+    const abilityModifierFormula = formatAbilityModifierFormula(
+      ability,
+      selectedCard.score,
+      selectedCard.modifierBaseValue,
+      selectedCard.modifierBonusEntries
+    );
     const savingThrowFormula = formatSavingThrowFormula(
       ability,
       selectedCard.totalSavingThrowValue,
-      selectedCard.modifierValue,
+      selectedCard.modifierBaseValue,
+      selectedCard.modifierBonusEntries,
       selectedCard.proficiencyContribution,
       selectedCard.proficiencyLabel,
       selectedCard.savingThrowBonusEntries

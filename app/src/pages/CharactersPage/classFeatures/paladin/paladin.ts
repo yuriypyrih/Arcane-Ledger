@@ -18,9 +18,11 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
 import {
-  getEffectiveHitPointMaximumForCharacter,
   hasStatusCondition,
-  normalizeCharacterStatusEntries,
+  normalizeCharacterStatusEntries
+} from "../../statusEntries";
+import {
+  getEffectiveHitPointMaximumForCharacter,
   reconcileCharacterStatusConsequences
 } from "../../traits";
 import type {

@@ -22,8 +22,7 @@ import {
 import type { Character } from "../../../types";
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../subclasses";
 
-type FeatureDescriptionCharacter = Pick<Character, "className" | "level"> &
-  Partial<Pick<Character, "subclassId">>;
+type FeatureDescriptionCharacter = Partial<Pick<Character, "className" | "level" | "subclassId">>;
 
 const classFeatureMapsByName: Record<string, Partial<Record<CLASS_FEATURE, FeatureMapEntry>>> = {
   Artificer: artificerFeatureMap,
@@ -49,11 +48,16 @@ function getBaseFeatureDetails(
   character: FeatureDescriptionCharacter,
   feature: CLASS_FEATURE
 ): FeatureMapEntry | null {
+  if (typeof character.className !== "string") {
+    return null;
+  }
+
+  const normalizedLevel = Math.max(1, Math.floor(character.level ?? 1));
   const classEntry = getClassEntryByName(character.className);
   const matchingRow = [...(classEntry?.features ?? [])]
     .filter(
       (featureRow) =>
-        featureRow.level <= character.level &&
+        featureRow.level <= normalizedLevel &&
         (featureRow.classFeatures.includes(feature) ||
           featureRow.featureOverrides?.[feature] !== undefined)
     )
@@ -68,8 +72,16 @@ export function getFeatureDescriptionForCharacter(
   character: FeatureDescriptionCharacter,
   feature: CLASS_FEATURE
 ): SpellDescriptionEntry[] {
-  const subclass = getSelectedSubclassForCharacter(character);
-  const subclassDetails = getSubclassFeatureDetails(subclass, character.level, feature);
+  if (typeof character.className !== "string") {
+    return [];
+  }
+
+  const normalizedLevel = Math.max(1, Math.floor(character.level ?? 1));
+  const subclass = getSelectedSubclassForCharacter({
+    className: character.className,
+    subclassId: character.subclassId
+  });
+  const subclassDetails = getSubclassFeatureDetails(subclass, normalizedLevel, feature);
 
   if (subclassDetails?.description.length) {
     return cloneDescription(subclassDetails.description);

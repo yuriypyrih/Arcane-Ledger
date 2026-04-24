@@ -54,9 +54,9 @@ import {
   normalizeTemporaryHitPointsSource
 } from "./shared";
 import { normalizeSubclassId } from "./subclasses";
+import { normalizeCharacterStatusEntries } from "./statusEntries";
 import {
   getEffectiveHitPointMaximumForCharacter,
-  normalizeCharacterStatusEntries,
   reconcileCharacterStatusConsequences
 } from "./traits";
 

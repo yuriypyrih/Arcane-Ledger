@@ -18,10 +18,12 @@ import type { AbilityKey, AbilityScores, Character, SkillName } from "../../type
 import { PROF_LEVEL, SKILL } from "../../types";
 import { formatCodexLabel, formatWeaponDamage, formatWeaponDamageFormula } from "../../utils/codex";
 import {
+  getAbilityModifierBreakdownForCharacter,
   getAbilityModifierForCharacter,
   getAbilityScoreForCharacter,
   getAbilityScoresForCharacter
 } from "./abilities";
+import type { AbilityModifierBonusEntry } from "./abilities";
 import {
   canUseMonkMartialArtsForCharacter,
   getAdditionalWeaponMasteriesForCharacter,
@@ -54,6 +56,7 @@ import {
 import { getWornBodyArmorTypeForCharacter } from "./armor";
 import { isMonkWeapon } from "./monkWeapons";
 import { normalizeCharacterFeats } from "./feats";
+import { getCustomTraitPassivePerceptionBonuses } from "./customTraitEffects";
 import {
   createHeldDescriptorForInventoryItem,
   getAdaptedItemWeapon,
@@ -97,9 +100,13 @@ export type WeaponAction = {
   rollDisplay: string;
   rollFormulaDisplay: string;
   ability: AbilityKey;
+  abilityModifierBaseValue: number;
   abilityModifier: number;
+  abilityModifierBonusEntries: AbilityModifierBonusEntry[];
   damageAbility?: AbilityKey;
+  damageAbilityModifierBaseValue?: number;
   damageAbilityModifier?: number;
+  damageAbilityModifierBonusEntries?: AbilityModifierBonusEntry[];
   proficiencyLabel: string;
   proficiencyBonus: number;
   totalModifier: number;
@@ -506,7 +513,7 @@ export function createWeaponAction(
     Character,
     "className" | "level" | "classFeatureState" | "statusEntries" | "subclassId"
   > &
-    Partial<Pick<Character, "roundTracker">>,
+    Partial<Pick<Character, "abilities" | "feats" | "roundTracker">>,
   options: {
     key: string;
     name: string;
@@ -532,6 +539,14 @@ export function createWeaponAction(
     skipFeatureDerivedLookups?: boolean;
   }
 ): WeaponAction {
+  const attackAbilityBreakdown =
+    !options.skipFeatureDerivedLookups && character.abilities
+      ? getAbilityModifierBreakdownForCharacter(character as Character, options.ability)
+      : {
+          baseValue: options.abilityModifier,
+          bonusEntries: [] as AbilityModifierBonusEntry[],
+          total: options.abilityModifier
+        };
   const damageBonusEntries = options.skipFeatureDerivedLookups
     ? []
     : getFeatureDamageBonusesForWeaponAction(character, {
@@ -555,8 +570,16 @@ export function createWeaponAction(
     damageBonusEntries,
     formatFeatureDamageBonusFormula
   );
-  const damageAbilityModifier = options.damageAbilityModifier ?? options.abilityModifier;
   const damageAbility = options.damageAbility ?? options.ability;
+  const damageAbilityBreakdown =
+    !options.skipFeatureDerivedLookups && character.abilities
+      ? getAbilityModifierBreakdownForCharacter(character as Character, damageAbility)
+      : {
+          baseValue: options.damageAbilityModifier ?? options.abilityModifier,
+          bonusEntries: [] as AbilityModifierBonusEntry[],
+          total: options.damageAbilityModifier ?? options.abilityModifier
+        };
+  const damageAbilityModifier = damageAbilityBreakdown.total;
   const totalModifier = damageAbilityModifier + getDamageBonusTotal(damageBonusEntries);
   const indicators = options.skipFeatureDerivedLookups
     ? []
@@ -592,9 +615,13 @@ export function createWeaponAction(
     rollDisplay: createRollDisplay(damageFormula, totalModifier),
     rollFormulaDisplay: createRollFormula(damageFormula, totalModifier),
     ability: options.ability,
-    abilityModifier: options.abilityModifier,
+    abilityModifierBaseValue: attackAbilityBreakdown.baseValue,
+    abilityModifier: attackAbilityBreakdown.total,
+    abilityModifierBonusEntries: attackAbilityBreakdown.bonusEntries,
     damageAbility,
+    damageAbilityModifierBaseValue: damageAbilityBreakdown.baseValue,
     damageAbilityModifier,
+    damageAbilityModifierBonusEntries: damageAbilityBreakdown.bonusEntries,
     proficiencyLabel: options.proficiencyLabel,
     proficiencyBonus: options.proficiencyBonus,
     totalModifier,
@@ -679,11 +706,13 @@ export function getSavingThrowProficienciesForClass(className: string): AbilityK
 }
 
 export function getInitiativeBreakdownForCharacter(character: Character): InitiativeBreakdown {
+  const dexterityModifierBreakdown = getAbilityModifierBreakdownForCharacter(character, "DEX");
   const entries: InitiativeBreakdownEntry[] = [
     {
       label: "DEX",
-      value: getAbilityModifierForCharacter(character, "DEX")
-    }
+      value: dexterityModifierBreakdown.baseValue
+    },
+    ...dexterityModifierBreakdown.bonusEntries
   ];
   const initiativeBonuses = getInitiativeBonusesForCharacter(character);
   const normalizedFeats = normalizeCharacterFeats(character.feats, character.level);
@@ -768,7 +797,14 @@ function getSkillModifierForCharacter(character: Character, skill: SkillName): n
 }
 
 export function getPassivePerceptionForCharacter(character: Character): number {
-  return 10 + getSkillModifierForCharacter(character, SKILL.PERCEPTION);
+  return (
+    10 +
+    getSkillModifierForCharacter(character, SKILL.PERCEPTION) +
+    getCustomTraitPassivePerceptionBonuses(character.statusEntries).reduce(
+      (sum, entry) => sum + entry.value,
+      0
+    )
+  );
 }
 
 function createUnarmedStrikeAction(
@@ -802,11 +838,9 @@ function createUnarmedStrikeAction(
             ? "finesse"
             : "strength";
   const ability = resolveWeaponAbility(attackAbilityRule, effectiveAbilityScores);
-  const abilityModifier = getAbilityModifier(getAbilityScoreForCharacter(character, ability));
+  const abilityModifier = getAbilityModifierForCharacter(character, ability);
   const damageAbility = unarmedStrikeConfig?.damageAbility ?? ability;
-  const damageAbilityModifier = getAbilityModifier(
-    getAbilityScoreForCharacter(character, damageAbility)
-  );
+  const damageAbilityModifier = getAbilityModifierForCharacter(character, damageAbility);
   const damageFormula =
     unarmedStrikeConfig?.damageFormula ??
     (options?.martialArtsDie ? `1${String(options.martialArtsDie).toLowerCase()}` : "1");
@@ -976,7 +1010,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
     }
 
     const ability = resolveWeaponAbility(weaponReference.abilityRule, effectiveAbilityScores);
-    const abilityModifier = getAbilityModifier(getAbilityScoreForCharacter(character, ability));
+    const abilityModifier = getAbilityModifierForCharacter(character, ability);
     const appliedWeaponProficiency = getAppliedWeaponProficiency(
       character.weaponProficiencies,
       equipmentDefinition.training,
@@ -1039,7 +1073,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
     }
 
     const ability = resolveWeaponAbility(weaponReference.abilityRule, effectiveAbilityScores);
-    const abilityModifier = getAbilityModifier(getAbilityScoreForCharacter(character, ability));
+    const abilityModifier = getAbilityModifierForCharacter(character, ability);
     const appliedWeaponProficiency = getAppliedWeaponProficiency(
       character.weaponProficiencies,
       weaponEntry.type.training,
@@ -1119,7 +1153,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
       }
 
       const ability = resolveWeaponAbility(weaponReference.abilityRule, effectiveAbilityScores);
-      const abilityModifier = getAbilityModifier(getAbilityScoreForCharacter(character, ability));
+      const abilityModifier = getAbilityModifierForCharacter(character, ability);
       const appliedWeaponProficiency = getAppliedWeaponProficiency(
         character.weaponProficiencies,
         weaponType.training,

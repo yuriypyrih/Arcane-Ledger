@@ -8,7 +8,7 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
-} from "../../../traits";
+} from "../../../statusEntries";
 import type { FeatureActionCard } from "../../types";
 import type { SubclassRuntimeCharacter } from "../../subclassRuntime";
 import { hasWizardDivinerFeature } from "./wizardDivinerShared";

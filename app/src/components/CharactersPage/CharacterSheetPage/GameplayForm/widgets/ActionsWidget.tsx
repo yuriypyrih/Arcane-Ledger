@@ -213,14 +213,16 @@ import {
   getRoundTrackerResourceForEconomyType,
   type EconomyType
 } from "../../../../../pages/CharactersPage/actionEconomy";
-import { getAbilityScoresForCharacter } from "../../../../../pages/CharactersPage/abilities";
+import {
+  getAbilityModifierBreakdownForCharacter,
+  getAbilityScoresForCharacter
+} from "../../../../../pages/CharactersPage/abilities";
 import {
   formatAbilityModifier,
-  getAbilityModifier,
   getProficiencyBonus,
   type WeaponAction
 } from "../../../../../pages/CharactersPage/gameplay";
-import { applySpellConcentrationToStatusEntries } from "../../../../../pages/CharactersPage/traits";
+import { applySpellConcentrationToStatusEntries } from "../../../../../pages/CharactersPage/statusEntries";
 import {
   applyRolledHealingToCharacter,
   applyRolledTemporaryHitPointsToCharacter,
@@ -351,6 +353,7 @@ import {
   grantMonkWarriorOfTheOpenHandFleetStepFollowUpUse,
   activateMonkWarriorOfTheOpenHandQuiveringPalmMark,
   getMonkWarriorOfTheOpenHandQuiveringPalmOptionState,
+  monkWarriorOfTheOpenHandQuiveringPalmFocusCost,
   getMonkWarriorOfTheOpenHandWholenessOfBodyHealingFormula,
   monkWholenessOfBodyActionKey,
   warriorOfTheOpenHandSubclassId
@@ -507,12 +510,14 @@ const codexWeaponEntriesByName = new Map<string, WeaponEntry>(
 
 function resolveFeatureSavingThrowBonusTotal(
   character: Character,
-  ability: AbilityKey,
-  effectiveAbilities: Character["abilities"]
+  ability: AbilityKey
 ): number {
   return getSavingThrowBonusesForCharacter(character, ability).reduce((total, bonus) => {
     if (bonus.abilityModifierSource) {
-      const sourceValue = getAbilityModifier(effectiveAbilities[bonus.abilityModifierSource]);
+      const sourceValue = getAbilityModifierBreakdownForCharacter(
+        character,
+        bonus.abilityModifierSource
+      ).total;
       return (
         total +
         (typeof bonus.minimumValue === "number"
@@ -1983,7 +1988,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         },
         {
           label: "Quivering Palm",
-          cost: 3,
+          cost: monkWarriorOfTheOpenHandQuiveringPalmFocusCost,
           selected: isQuiveringPalmSelected
         }
       ]
@@ -2018,7 +2023,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         },
         {
           label: "Quivering Palm",
-          cost: 3,
+          cost: monkWarriorOfTheOpenHandQuiveringPalmFocusCost,
           selected: isQuiveringPalmSelected
         }
       ]
@@ -2043,7 +2048,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       focusPointsRemaining: selectedWeaponFocusPointsRemaining,
       currentOption: {
         label: "Quivering Palm",
-        cost: 3
+        cost: monkWarriorOfTheOpenHandQuiveringPalmFocusCost
       },
       selectedOptions: [
         {
@@ -2795,12 +2800,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const fixedSpellCastWarning =
     selectedFeatureActionPrimaryDisabledReason ?? fixedSpellFrozenHauntWarning;
   const paladinAuraOfProtectionBonus = hasActivePaladinAuraOfProtectionForCharacter(character)
-    ? Math.max(1, getAbilityModifier(effectiveAbilities.CHA))
+    ? Math.max(1, getAbilityModifierBreakdownForCharacter(character, "CHA").total)
     : 0;
   const indomitableSavingThrowOptions = useMemo(
     () =>
       abilityKeys.map((ability) => {
-        const abilityModifier = getAbilityModifier(effectiveAbilities[ability]);
+        const abilityModifier = getAbilityModifierBreakdownForCharacter(character, ability).total;
         const savingThrowProficiency = getSavingThrowProficiencyForAbilityKey(ability);
         const savingThrowLevel = getSavingThrowLevelFromEntries(
           character.savingThrowProficiencies,
@@ -2812,7 +2817,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           abilityModifier +
           proficiencyContribution +
           paladinAuraOfProtectionBonus +
-          resolveFeatureSavingThrowBonusTotal(character, ability, effectiveAbilities);
+          resolveFeatureSavingThrowBonusTotal(character, ability);
         const fighterLevelBonus = Math.max(1, Math.floor(character.level));
         const totalWithIndomitable = total + fighterLevelBonus;
 
@@ -4393,7 +4398,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       (getRogueSoulknifeRendMindUsesRemaining(character) > 0 ||
         getRogueSoulknifePsionicDiceRemaining(character) > 0);
     const rendMindSaveDc =
-      8 + getAbilityModifier(character.abilities?.DEX ?? 10) + getProficiencyBonus(character.level);
+      8 +
+      getAbilityModifierBreakdownForCharacter(character, "DEX").total +
+      getProficiencyBonus(character.level);
     const baseDescription = selectedFeatureAction.detail.endsWith(".")
       ? selectedFeatureAction.detail
       : `${selectedFeatureAction.detail}.`;
@@ -5511,7 +5518,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               title={selectedWeaponQuiveringPalmDisabledReason ?? undefined}
               usage={createNamedResourceCardUsage(
                 createFeatureActionCardCost({
-                  amountText: "3",
+                  amountText: String(monkWarriorOfTheOpenHandQuiveringPalmFocusCost),
                   icon: "brain"
                 })
               )}

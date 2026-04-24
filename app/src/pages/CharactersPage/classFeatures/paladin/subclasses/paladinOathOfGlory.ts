@@ -9,9 +9,9 @@ import {
 } from "../../../../../types";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { getAbilityModifier } from "../../../gameplay";
+import { getAbilityModifierForCharacter } from "../../../abilities";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
@@ -156,7 +156,7 @@ export function getPaladinOathOfGloryGloriousDefenseUsesTotal(
     return 0;
   }
 
-  return Math.max(1, getAbilityModifier(character.abilities?.CHA ?? 10));
+  return Math.max(1, getAbilityModifierForCharacter(character, "CHA"));
 }
 
 export function getPaladinOathOfGloryGloriousDefenseUsesRemaining(

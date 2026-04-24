@@ -29,8 +29,8 @@ import {
   languageEntries
 } from "../../../../types";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
-import { getAbilityModifier } from "../../gameplay";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../traits";
+import { getAbilityModifierForCharacter } from "../../abilities";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../statusEntries";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
@@ -750,7 +750,7 @@ export function getRangerFavoredEnemyUsesRemaining(
 }
 
 function getRangerTirelessWisdomModifier(character: Partial<Pick<Character, "abilities">>): number {
-  return getAbilityModifier(character.abilities?.WIS ?? 10);
+  return getAbilityModifierForCharacter(character, "WIS");
 }
 
 export function getRangerTirelessUsesTotal(

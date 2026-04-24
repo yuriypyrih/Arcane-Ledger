@@ -29,7 +29,7 @@ import {
   isSkillName,
   languageEntries
 } from "../../../../../types";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import {
   createDefaultFeatureActionDescription,
   type SubclassRuntimeResolver
@@ -202,7 +202,7 @@ function createKnightlyEnvoySkillEntry(skill: SkillName): SkillProficiencyEntry 
 }
 
 function appendFeatureDescriptionSections(
-  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  character: Partial<Pick<Character, "className" | "level" | "subclassId">>,
   action: FeatureActionCard,
   actionKey: string,
   sections: Array<{

@@ -11,8 +11,10 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import {
   createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
+import {
   getEffectiveHitPointMaximumForCharacter,
-  normalizeCharacterStatusEntries,
   reconcileCharacterStatusConsequences
 } from "../../../traits";
 import {

@@ -8,8 +8,8 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { getAbilityModifier } from "../../../gameplay";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import { getAbilityModifierForCharacter } from "../../../abilities";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
@@ -191,7 +191,7 @@ export function getSorcererClockworkRestoreBalanceUsesTotal(
     return 0;
   }
 
-  return Math.max(1, getAbilityModifier(character.abilities?.CHA ?? 10));
+  return Math.max(1, getAbilityModifierForCharacter(character, "CHA"));
 }
 
 export function getSorcererClockworkRestoreBalanceUsesRemaining(

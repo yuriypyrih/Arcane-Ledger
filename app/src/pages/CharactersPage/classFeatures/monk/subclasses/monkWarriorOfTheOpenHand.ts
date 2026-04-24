@@ -10,7 +10,7 @@ import {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import type { WeaponAction } from "../../../gameplay";
 import type { FeatureActionCard, FeatureActionFact } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
@@ -21,12 +21,13 @@ export const monkWholenessOfBodyActionKey =
 export const monkQuiveringPalmActionKey = "monk-warrior-of-the-open-hand-quivering-palm";
 export const monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId =
   "feature-monk-warrior-of-the-open-hand-quivering-palm";
+export const monkWarriorOfTheOpenHandQuiveringPalmFocusCost = 4;
+export const monkWarriorOfTheOpenHandQuiveringPalmDamageFormula = "10d12";
 
 const warriorOfTheOpenHandSubclassEntry = getSubclassEntryById(warriorOfTheOpenHandSubclassId);
 const openHandTechniqueName = "Open Hand Technique";
 const wholenessOfBodyActionName = "Wholeness of Body";
 const quiveringPalmEffectName = "Quivering Palm";
-const quiveringPalmFocusCost = 3;
 const monkFlurryOfBlowsActionKey = "monk-flurry-of-blows";
 
 type MonkWarriorOfTheOpenHandCharacter = Pick<Character, "className"> &
@@ -415,8 +416,8 @@ export function getMonkWarriorOfTheOpenHandQuiveringPalmOptionState(
 
   const disabledReason = isMonkWarriorOfTheOpenHandQuiveringPalmActive(character)
     ? `${quiveringPalmEffectName} is already active.`
-    : getMonkFocusPointsRemaining(character) < quiveringPalmFocusCost
-      ? `You need ${quiveringPalmFocusCost} Focus Points to use ${quiveringPalmEffectName}.`
+    : getMonkFocusPointsRemaining(character) < monkWarriorOfTheOpenHandQuiveringPalmFocusCost
+      ? `You need ${monkWarriorOfTheOpenHandQuiveringPalmFocusCost} Focus Points to use ${quiveringPalmEffectName}.`
       : undefined;
 
   return {
@@ -437,7 +438,10 @@ export function activateMonkWarriorOfTheOpenHandQuiveringPalmMark(
     return character;
   }
 
-  const characterWithFocusSpent = spendMonkFocusPoints(character, quiveringPalmFocusCost);
+  const characterWithFocusSpent = spendMonkFocusPoints(
+    character,
+    monkWarriorOfTheOpenHandQuiveringPalmFocusCost
+  );
 
   if (!characterWithFocusSpent) {
     return character;

@@ -1,4 +1,5 @@
-import { DAMAGE_TYPE } from "../../codex/entries/enums";
+import type { SpellDurationPart } from "../../codex/entries";
+import { DAMAGE_TYPE, DURATION } from "../../codex/entries";
 import {
   CONDITION_NAME,
   EFFECT_NAME,
@@ -7,11 +8,13 @@ import {
   STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
+  type CharacterCustomTraitEffect,
   type CharacterStatusDuration,
   type CharacterStatusEntry,
   type CharacterStatusValue
-} from "../../types/traits";
-import { clampInteger } from "../../utils/numbers";
+} from "../../types";
+import { normalizeCharacterCustomTraitEffects } from "./customTraitEffects";
+import { clampInteger } from "./shared";
 
 const senseValues = new Set<SENSE>(Object.values(SENSE));
 const effectValues = new Set<EFFECT_NAME>(Object.values(EFFECT_NAME));
@@ -23,7 +26,7 @@ const statusSourceTypeValues = new Set<STATUS_ENTRY_SOURCE_TYPE>(
 );
 const exhaustionLevels = [1, 2, 3, 4, 5, 6] as const;
 
-function normalizeStatusDurationRoundTick(value: unknown): STATUS_DURATION_ROUND_TICK {
+export function normalizeStatusDurationRoundTick(value: unknown): STATUS_DURATION_ROUND_TICK {
   return value === STATUS_DURATION_ROUND_TICK.ROUND_END
     ? STATUS_DURATION_ROUND_TICK.ROUND_END
     : STATUS_DURATION_ROUND_TICK.ROUND_START;
@@ -41,7 +44,7 @@ function isConditionName(value: unknown): value is CONDITION_NAME {
   return typeof value === "string" && conditionValues.has(value as CONDITION_NAME);
 }
 
-function normalizeExhaustionLevel(value: unknown): number | null {
+export function normalizeExhaustionLevel(value: unknown): number | null {
   const normalizedValue = clampInteger(
     value,
     exhaustionLevels[0],
@@ -54,6 +57,14 @@ function normalizeExhaustionLevel(value: unknown): number | null {
     : null;
 }
 
+export function isExhaustionStatusEntry(
+  entry: Pick<CharacterStatusEntry, "group" | "value"> | null | undefined
+): boolean {
+  return (
+    entry?.group === STATUS_ENTRY_GROUP.CONDITIONS && entry.value === CONDITION_NAME.EXHAUSTION
+  );
+}
+
 function isSense(value: unknown): value is SENSE {
   return typeof value === "string" && senseValues.has(value as SENSE);
 }
@@ -64,6 +75,74 @@ function isEffectName(value: unknown): value is EFFECT_NAME {
 
 function isDamageType(value: unknown): value is DAMAGE_TYPE {
   return typeof value === "string" && damageTypeValues.has(value as DAMAGE_TYPE);
+}
+
+function parseSpellConcentrationDurationLabel(label: string): CharacterStatusDuration | null {
+  const normalizedLabel = label
+    .trim()
+    .toLowerCase()
+    .replace(/^up to\s+/, "");
+
+  if (!normalizedLabel) {
+    return {
+      kind: STATUS_DURATION_KIND.INFINITE
+    };
+  }
+
+  const roundMatch = normalizedLabel.match(/^(\d+)\s+rounds?$/);
+
+  if (roundMatch) {
+    return {
+      kind: STATUS_DURATION_KIND.ROUNDS,
+      amount: clampInteger(roundMatch[1], 1, 999, 1),
+      tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
+    };
+  }
+
+  const minuteMatch = normalizedLabel.match(/^(\d+)\s+minutes?$/);
+
+  if (minuteMatch) {
+    return {
+      kind: STATUS_DURATION_KIND.MINUTES,
+      amount: clampInteger(minuteMatch[1], 1, 999, 1)
+    };
+  }
+
+  const hourMatch = normalizedLabel.match(/^(\d+)\s+hours?$/);
+
+  if (hourMatch) {
+    return {
+      kind: STATUS_DURATION_KIND.HOURS,
+      amount: clampInteger(hourMatch[1], 1, 999, 1)
+    };
+  }
+
+  const dayMatch = normalizedLabel.match(/^(\d+)\s+days?$/);
+
+  if (dayMatch) {
+    return {
+      kind: STATUS_DURATION_KIND.DAYS,
+      amount: clampInteger(dayMatch[1], 1, 999, 1)
+    };
+  }
+
+  return null;
+}
+
+export function getSpellConcentrationDuration(
+  durationParts: SpellDurationPart[]
+): CharacterStatusDuration | null {
+  if (!durationParts.includes(DURATION.CONCENTRATION)) {
+    return null;
+  }
+
+  const detailText = durationParts
+    .filter((part) => part !== DURATION.CONCENTRATION)
+    .map((part) => String(part).trim())
+    .filter((part) => part.length > 0)
+    .join(", ");
+
+  return parseSpellConcentrationDurationLabel(detailText);
 }
 
 function normalizeStatusDuration(value: unknown): CharacterStatusDuration | null {
@@ -261,7 +340,12 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
       Number.isFinite(record.rangeFeet) &&
       record.rangeFeet > 0
         ? Math.floor(record.rangeFeet)
-        : null
+        : null,
+    description:
+      typeof record.description === "string" && record.description.trim().length > 0
+        ? record.description.trim()
+        : undefined,
+    customEffects: normalizeCharacterCustomTraitEffects(record.customEffects)
   };
 }
 
@@ -289,11 +373,117 @@ function normalizeLegacyConditionEntry(value: unknown, index: number): Character
     id: `legacy-condition-${index}-${record.name.toLowerCase().replace(/\s+/g, "-")}`,
     group: STATUS_ENTRY_GROUP.CONDITIONS,
     value: record.name,
+    conditionLevel: record.name === CONDITION_NAME.EXHAUSTION ? 1 : null,
+    disabled: false,
     source: "Manual",
     sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
     duration,
-    rangeFeet: null
+    rangeFeet: null,
+    customEffects: []
   };
+}
+
+function isLinkedToConcentration(duration: CharacterStatusDuration): boolean {
+  return (
+    duration.kind === STATUS_DURATION_KIND.LINKED &&
+    duration.linkedGroup === STATUS_ENTRY_GROUP.EFFECTS &&
+    duration.linkedValue === EFFECT_NAME.CONCENTRATION
+  );
+}
+
+function isLinkedStatusEntrySatisfied(
+  entry: CharacterStatusEntry,
+  entries: CharacterStatusEntry[]
+): boolean {
+  if (!entry.duration || entry.duration.kind !== STATUS_DURATION_KIND.LINKED) {
+    return true;
+  }
+
+  const linkedDuration = entry.duration;
+
+  return entries.some(
+    (candidate) =>
+      candidate.id !== entry.id &&
+      candidate.group === linkedDuration.linkedGroup &&
+      candidate.value === linkedDuration.linkedValue
+  );
+}
+
+function getImmuneConditionSet(
+  entries: ReadonlyArray<Pick<CharacterStatusEntry, "group" | "value">>
+): Set<CONDITION_NAME> {
+  return entries.reduce<Set<CONDITION_NAME>>((immuneConditions, entry) => {
+    if (entry.group === STATUS_ENTRY_GROUP.IMMUNITIES && isConditionName(entry.value)) {
+      immuneConditions.add(entry.value);
+    }
+
+    return immuneConditions;
+  }, new Set<CONDITION_NAME>());
+}
+
+function removeConditionEntriesBlockedByImmunities(
+  entries: CharacterStatusEntry[]
+): CharacterStatusEntry[] {
+  const immuneConditions = getImmuneConditionSet(entries);
+
+  if (immuneConditions.size === 0) {
+    return entries;
+  }
+
+  return entries.filter(
+    (entry) =>
+      !(
+        entry.group === STATUS_ENTRY_GROUP.CONDITIONS &&
+        isConditionName(entry.value) &&
+        immuneConditions.has(entry.value)
+      )
+  );
+}
+
+export function pruneLinkedStatusEntries(entries: CharacterStatusEntry[]): CharacterStatusEntry[] {
+  let currentEntries = entries;
+
+  while (true) {
+    const nextEntries = removeConditionEntriesBlockedByImmunities(
+      currentEntries.filter((entry) => isLinkedStatusEntrySatisfied(entry, currentEntries))
+    );
+
+    if (nextEntries.length === currentEntries.length) {
+      return nextEntries;
+    }
+
+    currentEntries = nextEntries;
+  }
+}
+
+function ensureLinkedStatusDependencies(entries: CharacterStatusEntry[]): CharacterStatusEntry[] {
+  let nextEntries = [...entries];
+  const hasConcentrationLinkedEntry = nextEntries.some((entry) =>
+    isLinkedToConcentration(entry.duration)
+  );
+  const hasConcentrationAnchor = nextEntries.some(
+    (entry) =>
+      entry.group === STATUS_ENTRY_GROUP.EFFECTS && entry.value === EFFECT_NAME.CONCENTRATION
+  );
+
+  if (hasConcentrationLinkedEntry && !hasConcentrationAnchor) {
+    const concentrationSourceEntry = nextEntries.find((entry) =>
+      isLinkedToConcentration(entry.duration)
+    );
+
+    nextEntries = [
+      ...nextEntries,
+      createCharacterStatusEntry({
+        group: STATUS_ENTRY_GROUP.EFFECTS,
+        value: EFFECT_NAME.CONCENTRATION,
+        source: concentrationSourceEntry?.source ?? "Manual",
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+        duration: { kind: STATUS_DURATION_KIND.INFINITE }
+      })
+    ];
+  }
+
+  return pruneLinkedStatusEntries(nextEntries);
 }
 
 export function normalizeCharacterStatusEntries(
@@ -330,6 +520,8 @@ export function createCharacterStatusEntry(options: {
   duration?: CharacterStatusDuration;
   sourceId?: string;
   rangeFeet?: number | null;
+  description?: string;
+  customEffects?: CharacterCustomTraitEffect[];
 }): CharacterStatusEntry {
   return {
     id: createStatusEntryId(),
@@ -350,6 +542,373 @@ export function createCharacterStatusEntry(options: {
       kind: STATUS_DURATION_KIND.INFINITE
     },
     sourceId: options.sourceId,
-    rangeFeet: options.rangeFeet ?? null
+    rangeFeet: options.rangeFeet ?? null,
+    description: options.description?.trim() || undefined,
+    customEffects: normalizeCharacterCustomTraitEffects(options.customEffects)
   };
+}
+
+export function resolveCharacterStatusEntries(
+  manualEntries: unknown,
+  derivedEntries: CharacterStatusEntry[] = []
+): CharacterStatusEntry[] {
+  const normalizedEntries = normalizeCharacterStatusEntries(manualEntries);
+  const derivedEntrySourceIds = new Set(
+    derivedEntries
+      .map((entry) => entry.sourceId)
+      .filter((sourceId): sourceId is string => typeof sourceId === "string" && sourceId.length > 0)
+  );
+  const overrideEntries = normalizedEntries.filter(
+    (entry) =>
+      entry.sourceType !== STATUS_ENTRY_SOURCE_TYPE.MANUAL &&
+      typeof entry.sourceId === "string" &&
+      entry.sourceId.length > 0
+  );
+  const standaloneEntries = normalizedEntries.filter(
+    (entry) =>
+      entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.MANUAL ||
+      typeof entry.sourceId !== "string" ||
+      entry.sourceId.length === 0
+  );
+  const overrideEntriesBySourceId = new Map<string, CharacterStatusEntry>();
+
+  overrideEntries.forEach((entry) => {
+    if (entry.sourceId) {
+      overrideEntriesBySourceId.set(entry.sourceId, entry);
+    }
+  });
+
+  const persistedFeatureEntries = overrideEntries.filter(
+    (entry) => entry.sourceId && !derivedEntrySourceIds.has(entry.sourceId)
+  );
+
+  return pruneLinkedStatusEntries([
+    ...standaloneEntries,
+    ...persistedFeatureEntries,
+    ...derivedEntries.map((entry) => {
+      const durationOverride = overrideEntriesBySourceId.get(entry.sourceId ?? entry.id);
+
+      return durationOverride && entry.duration.kind !== STATUS_DURATION_KIND.LINKED
+        ? {
+            ...entry,
+            duration: durationOverride.duration
+          }
+        : entry;
+    })
+  ]);
+}
+
+export function removeCharacterStatusEntry(
+  value: unknown,
+  entryId: string
+): CharacterStatusEntry[] {
+  return pruneLinkedStatusEntries(
+    normalizeCharacterStatusEntries(value).filter((entry) => entry.id !== entryId)
+  );
+}
+
+export function removeCharacterConditionsForImmunities(
+  value: unknown,
+  immunityEntries: ReadonlyArray<Pick<CharacterStatusEntry, "group" | "value">>
+): CharacterStatusEntry[] {
+  const entries = normalizeCharacterStatusEntries(value);
+  const immuneConditions = getImmuneConditionSet([...entries, ...immunityEntries]);
+
+  if (immuneConditions.size === 0) {
+    return entries;
+  }
+
+  return pruneLinkedStatusEntries(
+    entries.filter(
+      (entry) =>
+        !(
+          entry.group === STATUS_ENTRY_GROUP.CONDITIONS &&
+          isConditionName(entry.value) &&
+          immuneConditions.has(entry.value)
+        )
+    )
+  );
+}
+
+export function upsertManualStatusEntry(
+  value: unknown,
+  nextEntry: Omit<CharacterStatusEntry, "id" | "sourceType"> & {
+    sourceType?: STATUS_ENTRY_SOURCE_TYPE.MANUAL;
+  }
+): CharacterStatusEntry[] {
+  const entries = normalizeCharacterStatusEntries(value);
+  const existingEntry = entries.find(
+    (entry) =>
+      entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.MANUAL &&
+      entry.group === nextEntry.group &&
+      entry.value === nextEntry.value &&
+      (entry.rangeFeet ?? null) === (nextEntry.rangeFeet ?? null)
+  );
+
+  if (!existingEntry) {
+    return ensureLinkedStatusDependencies([
+      ...entries,
+      createCharacterStatusEntry({
+        ...nextEntry,
+        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL
+      })
+    ]);
+  }
+
+  return ensureLinkedStatusDependencies(
+    entries.map((entry) =>
+      entry.id === existingEntry.id
+        ? {
+            ...entry,
+            conditionLevel:
+              nextEntry.group === STATUS_ENTRY_GROUP.CONDITIONS &&
+              nextEntry.value === CONDITION_NAME.EXHAUSTION
+                ? (normalizeExhaustionLevel(nextEntry.conditionLevel) ?? 1)
+                : null,
+            source: nextEntry.source,
+            duration: nextEntry.duration,
+            rangeFeet: nextEntry.rangeFeet ?? null,
+            description: nextEntry.description?.trim() || undefined,
+            customEffects: normalizeCharacterCustomTraitEffects(nextEntry.customEffects)
+          }
+        : entry
+    )
+  );
+}
+
+export function updateCharacterStatusEntryDuration(
+  value: unknown,
+  entryToUpdate: CharacterStatusEntry,
+  duration: CharacterStatusDuration
+): CharacterStatusEntry[] {
+  const entries = normalizeCharacterStatusEntries(value);
+  const storedEntry = entries.find((entry) => entry.id === entryToUpdate.id);
+
+  if (storedEntry) {
+    return ensureLinkedStatusDependencies(
+      entries.map((entry) =>
+        entry.id === entryToUpdate.id
+          ? {
+              ...entry,
+              duration
+            }
+          : entry
+      )
+    );
+  }
+
+  const existingDurationOverride = entries.find(
+    (entry) =>
+      entry.sourceId === (entryToUpdate.sourceId ?? entryToUpdate.id) &&
+      entry.sourceType === entryToUpdate.sourceType &&
+      entry.group === entryToUpdate.group
+  );
+
+  if (existingDurationOverride) {
+    return ensureLinkedStatusDependencies(
+      entries.map((entry) =>
+        entry.id === existingDurationOverride.id
+          ? {
+              ...entry,
+              duration
+            }
+          : entry
+      )
+    );
+  }
+
+  return ensureLinkedStatusDependencies([
+    ...entries,
+    createCharacterStatusEntry({
+      group: entryToUpdate.group,
+      value: entryToUpdate.value,
+      conditionLevel: entryToUpdate.conditionLevel,
+      source: entryToUpdate.source,
+      sourceType: entryToUpdate.sourceType,
+      duration,
+      sourceId: entryToUpdate.sourceId ?? entryToUpdate.id,
+      rangeFeet: entryToUpdate.rangeFeet ?? null
+    })
+  ]);
+}
+
+export function applySpellConcentrationToStatusEntries(
+  value: unknown,
+  spell: { name: string; duration: SpellDurationPart[] },
+  options?: {
+    sourceId?: string;
+  }
+): CharacterStatusEntry[] {
+  const concentrationDuration = getSpellConcentrationDuration(spell.duration);
+  const entries = normalizeCharacterStatusEntries(value);
+
+  if (!concentrationDuration) {
+    return entries;
+  }
+
+  return ensureLinkedStatusDependencies([
+    ...entries.filter(
+      (entry) =>
+        !(
+          (entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+            entry.value === EFFECT_NAME.CONCENTRATION) ||
+          isLinkedToConcentration(entry.duration)
+        )
+    ),
+    createCharacterStatusEntry({
+      group: STATUS_ENTRY_GROUP.EFFECTS,
+      value: EFFECT_NAME.CONCENTRATION,
+      source: spell.name,
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+      duration: concentrationDuration,
+      sourceId: options?.sourceId
+    })
+  ]);
+}
+
+export function hasStatusCondition(value: unknown, condition: CONDITION_NAME): boolean {
+  return normalizeCharacterStatusEntries(value).some(
+    (entry) => entry.group === STATUS_ENTRY_GROUP.CONDITIONS && entry.value === condition
+  );
+}
+
+export function getExhaustionStatusEntry(value: unknown): CharacterStatusEntry | null {
+  return (
+    normalizeCharacterStatusEntries(value).find((entry) => isExhaustionStatusEntry(entry)) ?? null
+  );
+}
+
+export function getExhaustionLevel(value: unknown): number | null {
+  const exhaustionEntry = getExhaustionStatusEntry(value);
+
+  if (!exhaustionEntry) {
+    return null;
+  }
+
+  return normalizeExhaustionLevel(exhaustionEntry.conditionLevel) ?? 1;
+}
+
+export function setCharacterExhaustionLevel(
+  value: unknown,
+  nextLevel: number | null
+): CharacterStatusEntry[] {
+  const entries = normalizeCharacterStatusEntries(value);
+  const existingEntry = entries.find((entry) => isExhaustionStatusEntry(entry));
+
+  if (nextLevel === null) {
+    return ensureLinkedStatusDependencies(
+      entries.filter((entry) => !isExhaustionStatusEntry(entry))
+    );
+  }
+
+  if (existingEntry) {
+    return ensureLinkedStatusDependencies(
+      entries.map((entry) =>
+        entry.id === existingEntry.id
+          ? {
+              ...entry,
+              conditionLevel: normalizeExhaustionLevel(nextLevel) ?? 1,
+              duration: { kind: STATUS_DURATION_KIND.INFINITE }
+            }
+          : entry
+      )
+    );
+  }
+
+  return ensureLinkedStatusDependencies([
+    ...entries,
+    createCharacterStatusEntry({
+      group: STATUS_ENTRY_GROUP.CONDITIONS,
+      value: CONDITION_NAME.EXHAUSTION,
+      conditionLevel: normalizeExhaustionLevel(nextLevel) ?? 1,
+      source: "Manual",
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+      duration: { kind: STATUS_DURATION_KIND.INFINITE }
+    })
+  ]);
+}
+
+export function hasExhaustionAbilityCheckDisadvantage(value: unknown): boolean {
+  return (getExhaustionLevel(value) ?? 0) >= 1;
+}
+
+export function hasExhaustionAttackRollDisadvantage(value: unknown): boolean {
+  return (getExhaustionLevel(value) ?? 0) >= 3;
+}
+
+export function hasExhaustionSavingThrowDisadvantage(value: unknown): boolean {
+  return (getExhaustionLevel(value) ?? 0) >= 3;
+}
+
+export function advanceCharacterStatusEntries(
+  value: unknown,
+  tickOn: STATUS_DURATION_ROUND_TICK = STATUS_DURATION_ROUND_TICK.ROUND_START
+): CharacterStatusEntry[] {
+  return pruneLinkedStatusEntries(
+    normalizeCharacterStatusEntries(value).flatMap((entry) => {
+      if (entry.duration.kind !== STATUS_DURATION_KIND.ROUNDS) {
+        return [entry];
+      }
+
+      if (normalizeStatusDurationRoundTick(entry.duration.tickOn) !== tickOn) {
+        return [entry];
+      }
+
+      const nextAmount = entry.duration.amount - 1;
+
+      if (nextAmount <= 0) {
+        return [];
+      }
+
+      return [
+        {
+          ...entry,
+          duration: {
+            kind: STATUS_DURATION_KIND.ROUNDS,
+            amount: nextAmount,
+            tickOn: normalizeStatusDurationRoundTick(entry.duration.tickOn)
+          }
+        }
+      ];
+    })
+  );
+}
+
+export function applyShortRestToCharacterStatusEntries(value: unknown): CharacterStatusEntry[] {
+  return pruneLinkedStatusEntries(
+    normalizeCharacterStatusEntries(value).filter((entry) => {
+      switch (entry.duration.kind) {
+        case STATUS_DURATION_KIND.INFINITE:
+          return (
+            entry.group !== STATUS_ENTRY_GROUP.EFFECTS || entry.value !== EFFECT_NAME.CONCENTRATION
+          );
+        case STATUS_DURATION_KIND.LONG_REST:
+          return true;
+        case STATUS_DURATION_KIND.HOURS:
+        case STATUS_DURATION_KIND.DAYS:
+          return entry.duration.amount >= 1;
+        case STATUS_DURATION_KIND.SHORT_REST:
+        case STATUS_DURATION_KIND.MINUTES:
+        case STATUS_DURATION_KIND.ROUNDS:
+        case STATUS_DURATION_KIND.CONCENTRATION:
+          return false;
+        case STATUS_DURATION_KIND.LINKED:
+          return true;
+        default:
+          return true;
+      }
+    })
+  );
+}
+
+export function applyLongRestToCharacterStatusEntries(value: unknown): CharacterStatusEntry[] {
+  return pruneLinkedStatusEntries(
+    normalizeCharacterStatusEntries(value).filter(
+      (entry) =>
+        (entry.duration.kind === STATUS_DURATION_KIND.INFINITE ||
+          entry.duration.kind === STATUS_DURATION_KIND.LINKED ||
+          entry.duration.kind === STATUS_DURATION_KIND.DAYS) &&
+        (entry.group !== STATUS_ENTRY_GROUP.EFFECTS || entry.value !== EFFECT_NAME.CONCENTRATION)
+    )
+  );
 }

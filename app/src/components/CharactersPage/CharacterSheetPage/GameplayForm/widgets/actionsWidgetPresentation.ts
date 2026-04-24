@@ -9,6 +9,7 @@ import {
   formatAbilityModifier,
   type WeaponAction
 } from "../../../../../pages/CharactersPage/gameplay";
+import type { AbilityModifierBonusEntry } from "../../../../../pages/CharactersPage/abilities";
 import type { WeaponEntry } from "../../../../../codex/entries";
 import {
   formatCodexLabel,
@@ -234,6 +235,10 @@ function formatWeaponDamageBonusEntry(entry: WeaponAction["damageBonusEntries"][
   return entry.label;
 }
 
+function formatAbilityModifierBonusEntry(entry: AbilityModifierBonusEntry) {
+  return entry.value < 0 ? `-${Math.abs(entry.value)} ${entry.label}` : `${entry.value} ${entry.label}`;
+}
+
 function formatWeaponRangePrefix(formula: string) {
   const parsedRange = parseRollFormulaRange(formula);
 
@@ -260,7 +265,10 @@ export function getWeaponAttackFormulaPresentation(
   action: WeaponAction
 ): WeaponFormulaPresentation {
   const attackModifier = action.abilityModifier + action.proficiencyBonus;
-  const breakdownEntries = [`${formatAbilityModifier(action.abilityModifier)} ${action.ability}`];
+  const breakdownEntries = [
+    `${formatAbilityModifier(action.abilityModifierBaseValue)} ${action.ability}`,
+    ...action.abilityModifierBonusEntries.map((entry) => formatAbilityModifierBonusEntry(entry))
+  ];
 
   if (action.proficiencyBonus !== 0) {
     breakdownEntries.push(
@@ -281,7 +289,10 @@ export function getWeaponDamageFormulaPresentation(
   action: WeaponAction
 ): WeaponFormulaPresentation {
   const damageAbility = action.damageAbility ?? action.ability;
-  const damageAbilityModifier = action.damageAbilityModifier ?? action.abilityModifier;
+  const damageAbilityModifierBaseValue =
+    action.damageAbilityModifierBaseValue ?? action.abilityModifierBaseValue;
+  const damageAbilityModifierBonusEntries =
+    action.damageAbilityModifierBonusEntries ?? action.abilityModifierBonusEntries;
   const baseDamageLabel = stripAppendedWeaponBonusExpression(
     action.damageLabel,
     action,
@@ -295,6 +306,9 @@ export function getWeaponDamageFormulaPresentation(
   };
   const typedBonusGroups = new Map<string, DamageDisplayGroup>();
   const breakdownEntries: string[] = [];
+  const damageAbilityModifierTotal =
+    damageAbilityModifierBaseValue +
+    damageAbilityModifierBonusEntries.reduce((total, entry) => total + entry.value, 0);
 
   addExpressionToDamageGroup(mainDamageGroup, parsedBaseDamage.expression);
   mainDamageGroup.preferNumericFirst =
@@ -308,10 +322,15 @@ export function getWeaponDamageFormulaPresentation(
     breakdownEntries.push("Martial Arts");
   }
 
-  if (damageAbilityModifier !== 0) {
-    mainDamageGroup.numericTotal += damageAbilityModifier;
-    breakdownEntries.push(`${formatAbilityModifier(damageAbilityModifier)} ${damageAbility}`);
+  if (damageAbilityModifierBaseValue !== 0) {
+    mainDamageGroup.numericTotal += damageAbilityModifierBaseValue;
+    breakdownEntries.push(`${formatAbilityModifier(damageAbilityModifierBaseValue)} ${damageAbility}`);
   }
+
+  damageAbilityModifierBonusEntries.forEach((entry) => {
+    mainDamageGroup.numericTotal += entry.value;
+    breakdownEntries.push(formatAbilityModifierBonusEntry(entry));
+  });
 
   action.damageBonusEntries.forEach((entry) => {
     if (entry.value !== undefined) {
@@ -354,7 +373,7 @@ export function getWeaponDamageFormulaPresentation(
     }
   });
 
-  const damageFormula = appendRollModifier(action.damageFormula, damageAbilityModifier);
+  const damageFormula = appendRollModifier(action.damageFormula, damageAbilityModifierTotal);
   const { leadingTerms: mainLeadingTerms, trailingNumericTerm: mainTrailingNumericTerm } =
     formatMainDamageTerms(mainDamageGroup);
   const visibleTerms = [

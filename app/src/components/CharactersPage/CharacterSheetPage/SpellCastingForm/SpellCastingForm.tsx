@@ -150,7 +150,7 @@ import {
 import { getSpellSelectionInputStatusForCharacter } from "../../../../pages/CharactersPage/spellSelection";
 import { getFeatGrantedCantripEntriesForCharacter } from "../../../../pages/CharactersPage/feats";
 import { formatFeatureActionOptionRangeLabel } from "../../../../pages/CharactersPage/actionOutcome";
-import { applySpellConcentrationToStatusEntries } from "../../../../pages/CharactersPage/traits";
+import { applySpellConcentrationToStatusEntries } from "../../../../pages/CharactersPage/statusEntries";
 import { fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId } from "../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterPsiWarriorShared";
 import type {
   PersistCharacterUpdater,

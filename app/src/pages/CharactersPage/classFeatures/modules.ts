@@ -966,6 +966,7 @@ export function collectActiveClassFeatureState(
     subclassId: undefined,
     classFeatureState: {},
     skillProficiencies: [],
+    toolProficiencies: [],
     savingThrowProficiencies: [],
     spellSlotsExpended: [],
     statusEntries: [],

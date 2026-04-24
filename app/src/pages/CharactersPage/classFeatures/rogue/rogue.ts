@@ -25,7 +25,7 @@ import {
   languageEntries
 } from "../../../../types";
 import { normalizeRoundTracker } from "../../combat";
-import { hasStatusCondition } from "../../traits";
+import { hasStatusCondition } from "../../statusEntries";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,

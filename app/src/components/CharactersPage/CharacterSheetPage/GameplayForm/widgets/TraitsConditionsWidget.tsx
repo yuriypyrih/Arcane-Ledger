@@ -106,6 +106,7 @@ import {
   getFeatGrantedCantripEntriesForCharacter
 } from "../../../../../pages/CharactersPage/feats";
 import { normalizeRoundTracker } from "../../../../../pages/CharactersPage/combat";
+import { isCustomFeatureTraitStatusEntry } from "../../../../../pages/CharactersPage/customTraitEffects";
 import {
   getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
@@ -121,19 +122,21 @@ import {
   applySpellConcentrationToStatusEntries,
   createCharacterStatusEntry,
   getExhaustionLevel,
+  isExhaustionStatusEntry,
+  removeCharacterStatusEntry,
+  resolveCharacterStatusEntries,
+  setCharacterExhaustionLevel,
+  updateCharacterStatusEntryDuration,
+  upsertManualStatusEntry
+} from "../../../../../pages/CharactersPage/statusEntries";
+import {
   getStatusDurationPreset,
   getStatusDurationTickOn,
   isExhaustionConditionOptionValue,
-  isExhaustionStatusEntry,
   parseConditionOptionValue,
   reconcileCharacterStatusConsequences,
-  resolveCharacterStatusEntries,
-  setCharacterExhaustionLevel,
   statusGroupOrder,
   statusGroupTitles,
-  updateCharacterStatusEntryDuration,
-  upsertManualStatusEntry,
-  removeCharacterStatusEntry
 } from "../../../../../pages/CharactersPage/traits";
 import type { ExhaustionLevel } from "../../../../../pages/CharactersPage/traits";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
@@ -147,6 +150,7 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/cardUsage";
 import type {
   Character,
+  CharacterCustomTraitEffect,
   CharacterStatusDuration,
   CharacterStatusEntry,
   CharacterStatusValue
@@ -166,9 +170,17 @@ import SearchField from "../../../../SearchField";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import widgetShellStyles from "../GameplayWidgetShared.module.css";
-import { createDefaultDeathSaves } from "../gameplayStateUtils";
+import {
+  consumeRoundTrackerResourceForCharacter,
+  createDefaultDeathSaves
+} from "../gameplayStateUtils";
 import { getRoundTrackerActionWarning } from "../gameplayWidgetUtils";
 import styles from "./TraitsConditionsWidget.module.css";
+import CustomTraitEffectList from "./CustomTraitEffectList";
+import {
+  QuiveringPalmStatusDrawerActionRow,
+  QuiveringPalmStatusDrawerFormula
+} from "./QuiveringPalmStatusDrawerExtras";
 import TraitEditorModal from "./TraitEditorModal";
 import ReactionEntryDrawer from "./ReactionEntryDrawer";
 import StatusEntryDrawer from "./StatusEntryDrawer";
@@ -182,6 +194,13 @@ import {
 import DruidCosmicOmenReactionBody from "./DruidCosmicOmenReactionBody";
 import DruidStarryFormActionBody from "./DruidStarryFormActionBody";
 import ElementalAttunementResistanceSelector from "./ElementalAttunementResistanceSelector";
+import {
+  createCustomTraitEffectDraft,
+  createDefaultCustomTraitDraft,
+  isCustomTraitDraftValid,
+  parseCustomTraitEffectDraft,
+  type CustomTraitMode
+} from "./customTraitDraft";
 import {
   createDefaultStatusDraftValues,
   getDerivedReactionStatusEntries,
@@ -212,6 +231,11 @@ import {
   isMonkWarriorOfTheElementsElementalAttunementStatusSourceId,
   setMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection
 } from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheElements";
+import {
+  activateMonkWarriorOfTheOpenHandQuiveringPalm,
+  monkWarriorOfTheOpenHandQuiveringPalmDamageFormula,
+  monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId
+} from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheOpenHand";
 import { wizardBladesingerSongOfDefenseReactionId } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
 import { bardCollegeOfDanceInspiringMovementReactionId } from "../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfDance";
 
@@ -229,6 +253,7 @@ function formatSpellThiefSpellOptionLabel(spell: SpellEntry): string {
 
 function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditionsWidgetProps) {
   const [isTraitModalOpen, setIsTraitModalOpen] = useState(false);
+  const [traitEditorMode, setTraitEditorMode] = useState<CustomTraitMode>("quick-add");
   const [activeTraitEditorTab, setActiveTraitEditorTab] = useState<TraitEditorTab>("conditions");
   const [statusDraftValues, setStatusDraftValues] = useState<Record<TraitEditorTab, string>>(
     createDefaultStatusDraftValues
@@ -239,6 +264,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
   const [statusDraftRoundTickOn, setStatusDraftRoundTickOn] = useState(
     STATUS_DURATION_ROUND_TICK.ROUND_START
   );
+  const [customTraitDraft, setCustomTraitDraft] = useState(createDefaultCustomTraitDraft);
   const [selectedStatusEntryId, setSelectedStatusEntryId] = useState<string | null>(null);
   const [isEditingStatusDuration, setIsEditingStatusDuration] = useState(false);
   const [statusDrawerDurationPreset, setStatusDrawerDurationPreset] = useState(
@@ -586,6 +612,10 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     hasMonkWarriorOfTheElementsElementalEpitome(character)
       ? getMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection(character)
       : null;
+  const selectedQuiveringPalmActionWarning =
+    selectedStatusEntry?.sourceId === monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId
+      ? getRoundTrackerActionWarning("action", roundTracker)
+      : null;
   const selectedRangerHunterSuperiorHuntersDefenseDamageType =
     selectedReactionEntry?.id === superiorHuntersDefenseReactionId
       ? getRangerHunterSuperiorHuntersDefenseDamageTypeSelectionForCharacter(character)
@@ -931,7 +961,7 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     function handleKeyDown(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setSelectedStatusEntryId(null);
-        setIsTraitModalOpen(false);
+        closeTraitEditor();
       }
     }
 
@@ -1000,10 +1030,22 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     setSelectedSongOfDefenseSpellSlotLevel(preferredSlotLevel);
   }, [availableSongOfDefenseSpellSlotLevels, selectedReactionEntry?.id, spellSlotTotals]);
 
-  function openTraitEditor() {
+  function resetTraitEditorState() {
+    setTraitEditorMode("quick-add");
     setActiveTraitEditorTab("conditions");
+    setStatusDraftValues(createDefaultStatusDraftValues());
     setStatusDraftDurationPreset(STATUS_DURATION_PRESET.INFINITE);
     setStatusDraftRoundTickOn(STATUS_DURATION_ROUND_TICK.ROUND_START);
+    setCustomTraitDraft(createDefaultCustomTraitDraft());
+  }
+
+  function closeTraitEditor() {
+    resetTraitEditorState();
+    setIsTraitModalOpen(false);
+  }
+
+  function openTraitEditor() {
+    resetTraitEditorState();
     setIsTraitModalOpen(true);
   }
 
@@ -1043,7 +1085,55 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
 
     setStatusDraftDurationPreset(STATUS_DURATION_PRESET.INFINITE);
     setStatusDraftRoundTickOn(STATUS_DURATION_ROUND_TICK.ROUND_START);
-    setIsTraitModalOpen(false);
+    closeTraitEditor();
+  }
+
+  function addCustomTraitEntry() {
+    if (!isCustomTraitDraftValid(customTraitDraft)) {
+      return;
+    }
+
+    const customEffects = customTraitDraft.effects
+      .map((effect) => parseCustomTraitEffectDraft(effect))
+      .filter((effect): effect is CharacterCustomTraitEffect => effect !== null);
+
+    if (customEffects.length === 0) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) =>
+      reconcileCharacterStatusConsequences({
+        ...currentCharacter,
+        statusEntries: [
+          ...resolveCharacterStatusEntries(currentCharacter.statusEntries),
+          createCharacterStatusEntry({
+            group: STATUS_ENTRY_GROUP.EFFECTS,
+            value: customTraitDraft.name.trim(),
+            source: "Manual",
+            sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
+            duration: resolveStatusDurationPreset(
+              customTraitDraft.durationPreset,
+              STATUS_ENTRY_GROUP.EFFECTS,
+              customTraitDraft.name.trim(),
+              customTraitDraft.roundTickOn
+            ),
+            description: customTraitDraft.description.trim(),
+            customEffects
+          })
+        ]
+      })
+    );
+
+    closeTraitEditor();
+  }
+
+  function createTraitEntry() {
+    if (traitEditorMode === "custom-trait") {
+      addCustomTraitEntry();
+      return;
+    }
+
+    addStatusEntry();
   }
 
   function updateExhaustionLevel(nextLevel: ExhaustionLevel | null) {
@@ -1415,6 +1505,32 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     }
   }
 
+  function detonateSelectedQuiveringPalm() {
+    if (
+      selectedStatusEntry?.sourceId !== monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId ||
+      selectedQuiveringPalmActionWarning
+    ) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const nextCharacter = activateMonkWarriorOfTheOpenHandQuiveringPalm(currentCharacter);
+
+      if (nextCharacter === currentCharacter) {
+        return currentCharacter;
+      }
+
+      return consumeRoundTrackerResourceForCharacter(nextCharacter, "action");
+    });
+
+    openDiceRoller({
+      title: "Quivering Palm damage",
+      formula: monkWarriorOfTheOpenHandQuiveringPalmDamageFormula,
+      formulaDisplay: `${monkWarriorOfTheOpenHandQuiveringPalmDamageFormula} Force`,
+      description: "Quivering Palm damage roll"
+    });
+  }
+
   function updatePaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageType(nextValue: string) {
     onPersistCharacter((currentCharacter) =>
       setPaladinOathOfTheNobleGeniesAuraOfElementalShieldingDamageTypeSelectionForCharacter(
@@ -1462,6 +1578,10 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     selectedStatusEntry && isExhaustionStatusEntry(selectedStatusEntry)
       ? Math.max(1, Math.min(6, selectedStatusEntry.conditionLevel ?? 1))
       : null;
+  const traitCreateDisabled =
+    traitEditorMode === "custom-trait"
+      ? !isCustomTraitDraftValid(customTraitDraft)
+      : !statusDraftValues[activeTraitEditorTab]?.trim();
 
   return (
     <>
@@ -1487,10 +1607,14 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
 
       {isTraitModalOpen ? (
         <TraitEditorModal
+          mode={traitEditorMode}
           activeTab={activeTraitEditorTab}
           values={statusDraftValues}
           durationPreset={statusDraftDurationPreset}
           roundTickOn={statusDraftRoundTickOn}
+          customTraitDraft={customTraitDraft}
+          createDisabled={traitCreateDisabled}
+          onModeChange={setTraitEditorMode}
           onTabChange={setActiveTraitEditorTab}
           onValueChange={(tab, value) => {
             setStatusDraftValues((current) => ({
@@ -1505,8 +1629,73 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           }}
           onDurationPresetChange={setStatusDraftDurationPreset}
           onRoundTickOnChange={setStatusDraftRoundTickOn}
-          onSave={addStatusEntry}
-          onClose={() => setIsTraitModalOpen(false)}
+          onCustomTraitNameChange={(value) =>
+            setCustomTraitDraft((current) => ({
+              ...current,
+              name: value
+            }))
+          }
+          onCustomTraitDescriptionChange={(value) =>
+            setCustomTraitDraft((current) => ({
+              ...current,
+              description: value
+            }))
+          }
+          onCustomTraitDurationPresetChange={(value) =>
+            setCustomTraitDraft((current) => ({
+              ...current,
+              durationPreset: value
+            }))
+          }
+          onCustomTraitRoundTickOnChange={(value) =>
+            setCustomTraitDraft((current) => ({
+              ...current,
+              roundTickOn: value
+            }))
+          }
+          onCustomTraitEffectTargetChange={(effectId, value) =>
+            setCustomTraitDraft((current) => ({
+              ...current,
+              effects: current.effects.map((effect) =>
+                effect.id === effectId
+                  ? {
+                      ...effect,
+                      target: value
+                    }
+                  : effect
+              )
+            }))
+          }
+          onCustomTraitEffectValueChange={(effectId, value) =>
+            setCustomTraitDraft((current) => ({
+              ...current,
+              effects: current.effects.map((effect) =>
+                effect.id === effectId
+                  ? {
+                      ...effect,
+                      value
+                    }
+                  : effect
+              )
+            }))
+          }
+          onAddCustomTraitEffect={() =>
+            setCustomTraitDraft((current) => ({
+              ...current,
+              effects: [...current.effects, createCustomTraitEffectDraft()]
+            }))
+          }
+          onRemoveCustomTraitEffect={(effectId) =>
+            setCustomTraitDraft((current) => ({
+              ...current,
+              effects:
+                current.effects.length <= 1
+                  ? current.effects
+                  : current.effects.filter((effect) => effect.id !== effectId)
+            }))
+          }
+          onCreate={createTraitEntry}
+          onClose={closeTraitEditor}
         />
       ) : null}
 
@@ -1744,7 +1933,9 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           character={character}
           entry={selectedStatusEntry}
           customContent={
-            selectedStatusEntry.sourceId === druidStarryFormStatusSourceId ? (
+            isCustomFeatureTraitStatusEntry(selectedStatusEntry) ? (
+              <CustomTraitEffectList effects={selectedStatusEntry.customEffects} />
+            ) : selectedStatusEntry.sourceId === druidStarryFormStatusSourceId ? (
               <DruidStarryFormActionBody
                 selectedConstellation={selectedStarryFormConstellation}
                 hasTwinklingConstellations={hasDruidTwinklingConstellations}
@@ -1786,6 +1977,21 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
                   )}
                 </SelectInput>
               </label>
+            ) : null
+          }
+          afterDetailsContent={
+            selectedStatusEntry.sourceId === monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId ? (
+              <QuiveringPalmStatusDrawerFormula />
+            ) : null
+          }
+          customFooterContent={
+            !isEditingStatusDuration &&
+            selectedStatusEntry.sourceId === monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId ? (
+              <QuiveringPalmStatusDrawerActionRow
+                disabled={selectedQuiveringPalmActionWarning !== null}
+                disabledReason={selectedQuiveringPalmActionWarning}
+                onDetonate={detonateSelectedQuiveringPalm}
+              />
             ) : null
           }
           isEditingDuration={isEditingStatusDuration}

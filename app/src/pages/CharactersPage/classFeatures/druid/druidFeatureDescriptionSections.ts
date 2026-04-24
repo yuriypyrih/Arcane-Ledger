@@ -2,8 +2,9 @@ import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/ent
 import type { Character } from "../../../../types";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 
-export type DruidFeatureDescriptionCharacter = Pick<Character, "className" | "level"> &
-  Partial<Pick<Character, "classFeatureState" | "subclassId">>;
+export type DruidFeatureDescriptionCharacter = Partial<
+  Pick<Character, "classFeatureState" | "className" | "level" | "subclassId">
+>;
 
 const druidFeatureMinimumLevels: Partial<Record<CLASS_FEATURE, number>> = {
   [CLASS_FEATURE.WILD_SHAPE]: 2,
@@ -13,7 +14,7 @@ const druidFeatureMinimumLevels: Partial<Record<CLASS_FEATURE, number>> = {
 };
 
 export function hasDruidFeature(
-  character: Pick<Character, "className" | "level">,
+  character: Partial<Pick<Character, "className" | "level">>,
   feature: CLASS_FEATURE
 ): boolean {
   if (character.className !== "Druid") {
@@ -21,7 +22,7 @@ export function hasDruidFeature(
   }
 
   const minimumLevel = druidFeatureMinimumLevels[feature];
-  return typeof minimumLevel === "number" ? character.level >= minimumLevel : false;
+  return typeof minimumLevel === "number" ? (character.level ?? 0) >= minimumLevel : false;
 }
 
 export function getDruidFeatureDescription(

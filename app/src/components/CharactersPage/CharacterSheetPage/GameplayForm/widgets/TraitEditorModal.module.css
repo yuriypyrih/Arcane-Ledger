@@ -1,48 +1,110 @@
-.traitEditorModal {
-  width: min(820px, 100%);
-  max-height: 100%;
-  grid-template-rows: auto auto auto auto;
+.modalPanel {
+  width: min(840px, 100%);
 }
 
-.modalHeading {
+.modalPanelExpanded {
+  height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
+}
+
+.header {
+  border-bottom: 1px solid rgba(75, 47, 29, 0.1);
+  padding-bottom: 0.9rem;
+}
+
+.headerContent {
+  gap: 0.32rem;
+}
+
+.titleRow {
+  align-items: center;
+  justify-content: space-between;
+}
+
+.modePill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  border: 1px solid rgba(37, 80, 141, 0.16);
+  border-radius: 999px;
+  background: rgba(37, 80, 141, 0.08);
+  color: #25508d;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  min-height: 38px;
+  padding: 0 0.82rem;
+  white-space: nowrap;
+}
+
+.modePillActive {
+  background: linear-gradient(135deg, rgba(37, 80, 141, 0.16), rgba(37, 80, 141, 0.24));
+  border-color: rgba(37, 80, 141, 0.26);
+  box-shadow: 0 10px 24px rgba(37, 80, 141, 0.12);
+}
+
+.body {
+  gap: 0.95rem;
+  padding-top: 0.75rem;
+  padding-bottom: 0.95rem;
+}
+
+.bodyExpanded {
+  padding-bottom: 1rem;
+}
+
+.quickAddStack {
   display: grid;
-  gap: 0.22rem;
-}
-
-.modalTitle {
-  margin: 0;
+  gap: 0.95rem;
 }
 
 .tabRow {
-  display: inline-grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
-  gap: 0.2rem;
-  border-radius: 999px;
-  background: rgba(75, 47, 29, 0.08);
-  padding: 0.24rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
 }
 
 .tabButton {
-  border: none;
+  border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: 999px;
-  background: transparent;
+  background: rgba(255, 255, 255, 0.74);
   color: var(--color-ink-soft);
   cursor: pointer;
   font: inherit;
-  min-height: 36px;
-  padding: 0 0.86rem;
+  font-weight: 700;
+  min-height: 38px;
+  padding: 0 0.88rem;
   white-space: nowrap;
 }
 
 .tabButtonActive {
-  background: rgba(255, 255, 255, 0.95);
-  color: var(--color-ink);
-  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
+  border-color: rgba(47, 109, 224, 0.42);
+  background: rgba(47, 109, 224, 0.06);
+  color: #2f6de0;
 }
 
-@media (max-width: 620px) {
-  .tabRow {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+.footer {
+  border-top: 1px solid rgba(75, 47, 29, 0.1);
+  background: linear-gradient(180deg, rgba(255, 252, 245, 0.24), rgba(246, 236, 221, 0.92));
+  padding-top: 0.9rem;
+}
+
+.createButton {
+  align-items: center;
+  gap: 0.5rem;
+  justify-content: center;
+  margin-left: 0;
+  min-height: 48px;
+  width: 100%;
+}
+
+@media (max-width: 700px) {
+  .titleRow {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .modePill {
+    max-width: 100%;
   }
 }

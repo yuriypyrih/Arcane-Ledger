@@ -19,10 +19,8 @@ import {
   getRogueSoulknifeRendMindUsesRemaining,
   hasRogueSoulknifeRendMindFeature
 } from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueSoulknife";
-import {
-  getAbilityModifier,
-  getProficiencyBonus
-} from "../../../../../pages/CharactersPage/gameplay";
+import { getAbilityModifierForCharacter } from "../../../../../pages/CharactersPage/abilities";
+import { getProficiencyBonus } from "../../../../../pages/CharactersPage/gameplay";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./SneakAttackModal.module.css";
 
@@ -55,7 +53,7 @@ function SneakAttackActionBody({ action, character, onConfirm }: SneakAttackActi
   const psionicDiceRemaining = getRogueSoulknifePsionicDiceRemaining(character);
   const canUseRendMind = rendMindUsesRemaining > 0 || psionicDiceRemaining > 0;
   const rendMindSaveDc =
-    8 + getAbilityModifier(character.abilities?.DEX ?? 10) + getProficiencyBonus(character.level);
+    8 + getAbilityModifierForCharacter(character, "DEX") + getProficiencyBonus(character.level);
   const rendMindUsageLabel =
     rendMindUsesRemaining > 0
       ? "1 charge available"

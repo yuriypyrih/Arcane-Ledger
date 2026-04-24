@@ -15,7 +15,7 @@ import {
   appendSourcedDescriptionAddition,
   createSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
-import { getAbilityModifier } from "../../../gameplay";
+import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
   createDefaultFeatureActionDescription,
   resolveSpellIdsByName,
@@ -371,7 +371,7 @@ export function getRogueScionOfTheThreeBloodthirstUsesTotal(
     Partial<Pick<Character, "abilities" | "level" | "subclassId">>
 ): number {
   return hasRogueScionOfTheThreeBloodthirstFeature(character)
-    ? Math.max(1, getAbilityModifier(character.abilities?.INT ?? 10))
+    ? Math.max(1, getAbilityModifierForCharacter(character, "INT"))
     : 0;
 }
 

@@ -10,6 +10,7 @@ import {
   psiWarriorBulwarkOfForceDescription,
   psiWarriorPsionicStrikeDescription,
   psiWarriorPsiPoweredLeapDescription,
+  psiWarriorTelekineticMasterDescription,
   psiWarriorTelekineticMovementDescription,
   psiWarriorTelekineticThrustDescription
 } from "../../../../../codex/subclasses/fighterPsiWarrior";
@@ -24,14 +25,15 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
-import { getAbilityModifier, getProficiencyBonus } from "../../../gameplay";
+import { getAbilityModifierForCharacter } from "../../../abilities";
+import { getProficiencyBonus } from "../../../gameplay";
 import type { WeaponAction } from "../../../gameplay";
 import {
   getPsionicDiceTotalForLevel,
   getPsionicDieForLevel,
   type PsionicDie
 } from "../../psionicDice";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
@@ -130,7 +132,7 @@ function getPsiWarriorStateRecord(
 function getPsiWarriorIntelligenceModifier(
   character: Partial<Pick<Character, "abilities">>
 ): number {
-  return getAbilityModifier(character.abilities?.INT ?? 10);
+  return getAbilityModifierForCharacter(character, "INT");
 }
 
 function buildPsiWarriorFormula(die: PsionicDie | null, modifier: number): string | null {

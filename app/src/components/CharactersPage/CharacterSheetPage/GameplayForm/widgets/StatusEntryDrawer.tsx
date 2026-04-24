@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import { Check, Clock3, Minus, Plus, Trash2, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
 import type { DivinityEntry, SpellEntry } from "../../../../../codex/entries";
 import CellContainer from "../../../../../components/CellContainer/CellContainer";
@@ -51,6 +52,8 @@ type StatusEntryDrawerProps = {
   character: Character;
   entry: CharacterStatusEntry;
   customContent?: ReactNode;
+  afterDetailsContent?: ReactNode;
+  customFooterContent?: ReactNode;
   isEditingDuration: boolean;
   durationPreset: STATUS_DURATION_PRESET;
   roundTickOn: STATUS_DURATION_ROUND_TICK;
@@ -65,10 +68,19 @@ type StatusEntryDrawerProps = {
   onClose: () => void;
 };
 
+type FooterAction = {
+  label: string;
+  icon: typeof Clock3;
+  tone?: "accent" | "danger" | "neutral";
+  onClick: () => void;
+};
+
 function StatusEntryDrawer({
   character,
   entry,
   customContent = null,
+  afterDetailsContent = null,
+  customFooterContent = null,
   isEditingDuration,
   durationPreset,
   roundTickOn,
@@ -97,6 +109,60 @@ function StatusEntryDrawer({
   );
   const hasBaseDescription = descriptionEntries.length > 0;
   const descriptionSections = descriptionAdditions.filter((section) => section.length > 0);
+  const footerActions: FooterAction[] = isEditingDuration
+    ? [
+        {
+          label: "Apply Duration",
+          icon: Check,
+          onClick: onApplyDuration
+        },
+        {
+          label: "Cancel",
+          icon: X,
+          tone: "neutral",
+          onClick: onCancelEditDuration
+        }
+      ]
+    : isExhaustionEntry
+      ? [
+          {
+            label: "Increase",
+            icon: Plus,
+            onClick: onIncreaseExhaustion ?? (() => undefined)
+          },
+          {
+            label: "Decrease",
+            icon: Minus,
+            onClick: onDecreaseExhaustion ?? (() => undefined)
+          },
+          {
+            label: "Remove",
+            icon: Trash2,
+            tone: "danger",
+            onClick: onRemove
+          }
+        ]
+      : [
+          ...(canEditDuration
+            ? [
+                {
+                  label: "Edit Duration",
+                  icon: Clock3,
+                  onClick: onStartEditDuration
+                } satisfies FooterAction
+              ]
+            : []),
+          ...(canRemove
+            ? [
+                {
+                  label: "Remove",
+                  icon: Trash2,
+                  tone: "danger",
+                  onClick: onRemove
+                } satisfies FooterAction
+              ]
+            : [])
+        ];
 
   return (
     <>
@@ -196,6 +262,8 @@ function StatusEntryDrawer({
             ) : null}
           </OverlayDetailsGrid>
 
+          {afterDetailsContent}
+
           {isEditingDuration ? (
             <div className={styles.durationEditor}>
               <label className={shared.field}>
@@ -232,49 +300,44 @@ function StatusEntryDrawer({
                 </label>
               ) : null}
 
-              <div className={styles.durationEditorActions}>
-                <button type="button" className={shared.saveButton} onClick={onApplyDuration}>
-                  Apply
-                </button>
-                <button type="button" className={shared.cancelButton} onClick={onCancelEditDuration}>
-                  Cancel
-                </button>
-              </div>
             </div>
           ) : null}
         </OverlayBody>
 
-        {isExhaustionEntry ? (
-          <OverlayFooter>
-            <div className={styles.exhaustionActionRow}>
-              <button type="button" className={shared.saveButton} onClick={onIncreaseExhaustion}>
-                Increase Exhaustion
-              </button>
-              <button type="button" className={shared.cancelButton} onClick={onDecreaseExhaustion}>
-                Decrease Exhaustion
-              </button>
-              <button type="button" className={styles.removeButton} onClick={onRemove}>
-                Remove Exhaustion
-              </button>
-            </div>
-          </OverlayFooter>
-        ) : !isEditingDuration && (canEditDuration || canRemove) ? (
-          <OverlayFooter>
-            <div className={styles.drawerFooter}>
-              {canEditDuration ? (
-                <button type="button" className={shared.editButton} onClick={onStartEditDuration}>
-                  Edit Duration
-                </button>
-              ) : (
-                <span />
-              )}
+        {footerActions.length > 0 || customFooterContent ? (
+          <OverlayFooter className={styles.footer}>
+            {customFooterContent}
+            {footerActions.length > 0 ? (
+              <div
+                className={styles.footerActionRow}
+                style={{
+                  gridTemplateColumns: `repeat(${Math.max(1, footerActions.length)}, minmax(0, 1fr))`
+                }}
+              >
+                {footerActions.map((action) => {
+                  const Icon = action.icon;
 
-              {canRemove ? (
-                <button type="button" className={styles.removeButton} onClick={onRemove}>
-                  Remove
-                </button>
-              ) : null}
-            </div>
+                  return (
+                    <button
+                      key={action.label}
+                      type="button"
+                      className={clsx(
+                        styles.footerActionButton,
+                        action.tone === "danger"
+                          ? styles.footerActionButtonDanger
+                          : action.tone === "neutral"
+                            ? styles.footerActionButtonNeutral
+                            : sheetStyles.castButton
+                      )}
+                      onClick={action.onClick}
+                    >
+                      <Icon size={16} aria-hidden="true" />
+                      <span>{action.label}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            ) : null}
           </OverlayFooter>
         ) : null}
       </SheetDrawer>

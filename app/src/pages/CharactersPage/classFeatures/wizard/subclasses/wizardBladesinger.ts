@@ -22,10 +22,14 @@ import {
   type WeaponProficiencyEntry,
   type WizardBladesingerTrainingInWarAndSongSkill
 } from "../../../../../types";
+import {
+  getAbilityModifierBreakdownForCharacter,
+  getAbilityModifierForCharacter
+} from "../../../abilities";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
-import { getAbilityModifier, type WeaponAction } from "../../../gameplay";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import type { WeaponAction } from "../../../gameplay";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import type {
   FeatureActionCard,
   FeatureArmorClassBonus,
@@ -142,12 +146,18 @@ function getWizardBladesingerAdditionalAttackCount(
 }
 
 function getWizardBladesongIntelligenceModifier(
-  character: Partial<Pick<Character, "abilities">>
+  character: Partial<
+    Pick<Character, "abilities" | "classFeatureState" | "className" | "feats" | "level" | "statusEntries">
+  >
 ): number {
-  return getAbilityModifier(character.abilities?.INT ?? 10);
+  return getAbilityModifierForCharacter(character, "INT");
 }
 
-function getWizardBladesongBonusValue(character: Partial<Pick<Character, "abilities">>): number {
+function getWizardBladesongBonusValue(
+  character: Partial<
+    Pick<Character, "abilities" | "classFeatureState" | "className" | "feats" | "level" | "statusEntries">
+  >
+): number {
   return Math.max(1, getWizardBladesongIntelligenceModifier(character));
 }
 
@@ -743,14 +753,17 @@ function getWizardBladesongSkillIndicators(): SkillIndicatorMap {
 }
 
 function transformWizardBladesongWeaponAction(
-  character: Partial<Pick<Character, "abilities">>,
+  character: Partial<
+    Pick<Character, "abilities" | "classFeatureState" | "className" | "feats" | "level" | "statusEntries">
+  >,
   action: WeaponAction
 ): WeaponAction {
   if (action.attackKind !== "weapon" || action.proficiencyBonus <= 0) {
     return action;
   }
 
-  const intelligenceModifier = getWizardBladesongIntelligenceModifier(character);
+  const intelligenceModifierBreakdown = getAbilityModifierBreakdownForCharacter(character, "INT");
+  const intelligenceModifier = intelligenceModifierBreakdown.total;
   const currentDamageModifier = action.damageAbilityModifier ?? action.abilityModifier;
 
   if (
@@ -767,9 +780,13 @@ function transformWizardBladesongWeaponAction(
   return {
     ...action,
     ability: "INT" as const,
+    abilityModifierBaseValue: intelligenceModifierBreakdown.baseValue,
     abilityModifier: intelligenceModifier,
+    abilityModifierBonusEntries: intelligenceModifierBreakdown.bonusEntries,
     damageAbility: "INT" as const,
+    damageAbilityModifierBaseValue: intelligenceModifierBreakdown.baseValue,
     damageAbilityModifier: intelligenceModifier,
+    damageAbilityModifierBonusEntries: intelligenceModifierBreakdown.bonusEntries,
     totalModifier: nextTotalModifier,
     rollDisplay: createSignedFormula(action.damageFormula, nextTotalModifier, true),
     rollFormulaDisplay: createSignedFormula(action.damageFormula, nextTotalModifier, false),

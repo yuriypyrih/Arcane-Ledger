@@ -15,7 +15,14 @@ import {
   hasExhaustionAttackRollDisadvantage,
   hasExhaustionSavingThrowDisadvantage,
   removeCharacterStatusEntry
-} from "../traits";
+} from "../statusEntries";
+import {
+  getCustomTraitAbilityScoreBonuses,
+  getCustomTraitArmorClassBonuses,
+  getCustomTraitInitiativeBonuses,
+  getCustomTraitSavingThrowBonuses,
+  getCustomTraitWeaponDamageBonuses
+} from "../customTraitEffects";
 import {
   activateBardicInspiration,
   activateBardCollegeOfDanceInspiringMovement,
@@ -729,7 +736,14 @@ export function getFeatureDamageBonusesForWeaponAction(
 
   return [
     ...(baseFeatureState.getWeaponDamageBonuses?.(context) ?? []),
-    ...(subclassDerivedState.getWeaponDamageBonuses?.(context) ?? [])
+    ...(subclassDerivedState.getWeaponDamageBonuses?.(context) ?? []),
+    ...getCustomTraitWeaponDamageBonuses(character.statusEntries, {
+      attackKind: context.attackKind,
+      combatType: context.combatType
+    }).map((bonus) => ({
+      label: bonus.label,
+      value: bonus.value
+    }))
   ];
 }
 
@@ -811,14 +825,18 @@ export function getCoreStatIndicatorsForCharacter(
 
 export function getInitiativeBonusesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "abilities"> &
-    Partial<Pick<Character, "subclassId">>
+    Partial<Pick<Character, "statusEntries" | "subclassId">>
 ): FeatureInitiativeBonus[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
   const subclassDerivedState = getSubclassDerivedFeatureState(character);
 
   return [
     ...(baseFeatureState.getInitiativeBonuses?.() ?? []),
-    ...(subclassDerivedState.getInitiativeBonuses?.() ?? [])
+    ...(subclassDerivedState.getInitiativeBonuses?.() ?? []),
+    ...getCustomTraitInitiativeBonuses(character.statusEntries).map((bonus) => ({
+      label: bonus.label,
+      value: bonus.value
+    }))
   ];
 }
 
@@ -862,7 +880,7 @@ export function getSkillBonusesForCharacter(
 
 export function getSavingThrowBonusesForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "subclassId">>,
+    Partial<Pick<Character, "statusEntries" | "subclassId">>,
   ability: AbilityKey
 ): FeatureSavingThrowBonus[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
@@ -870,7 +888,11 @@ export function getSavingThrowBonusesForCharacter(
 
   return [
     ...(baseFeatureState.getSavingThrowBonuses?.(ability) ?? []),
-    ...(subclassDerivedState.getSavingThrowBonuses?.(ability) ?? [])
+    ...(subclassDerivedState.getSavingThrowBonuses?.(ability) ?? []),
+    ...getCustomTraitSavingThrowBonuses(character.statusEntries, ability).map((bonus) => ({
+      label: bonus.label,
+      value: bonus.value
+    }))
   ];
 }
 
@@ -914,7 +936,11 @@ export function getArmorClassBonusesForCharacter(
 
   return [
     ...(baseFeatureState.getArmorClassBonuses?.(context) ?? []),
-    ...(subclassDerivedState.getArmorClassBonuses?.(context) ?? [])
+    ...(subclassDerivedState.getArmorClassBonuses?.(context) ?? []),
+    ...getCustomTraitArmorClassBonuses(character.statusEntries).map((bonus) => ({
+      label: bonus.label,
+      value: bonus.value
+    }))
   ];
 }
 
@@ -940,12 +966,20 @@ export function getSpeedBonusesForCharacter(
 }
 
 export function getAbilityScoreBonusesForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "statusEntries">>
 ): FeatureAbilityScoreBonus[] {
   const baseFeatureState = collectActiveClassFeatureState(character);
   return [
     ...(baseFeatureState.abilityScoreBonuses ?? []),
-    ...(getSubclassDerivedFeatureState(character).abilityScoreBonuses ?? [])
+    ...(getSubclassDerivedFeatureState(character).abilityScoreBonuses ?? []),
+    ...abilityKeys.flatMap((ability) =>
+      getCustomTraitAbilityScoreBonuses(character.statusEntries, ability).map((bonus) => ({
+        ability,
+        label: bonus.label,
+        value: bonus.value
+      }))
+    )
   ];
 }
 

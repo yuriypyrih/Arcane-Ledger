@@ -24,7 +24,7 @@ import {
   descriptionValueSomeText
 } from "../../../actionModalDescriptions";
 import type { WeaponAction } from "../../../gameplay";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../traits";
+import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import {
   createDefaultFeatureActionDescription,
   type SubclassRuntimeResolver

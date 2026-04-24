@@ -8,7 +8,7 @@ import {
 } from "../../../../../types";
 import { formatWeaponDamageFormula } from "../../../../../utils/codex";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { getAbilityModifier } from "../../../gameplay";
+import { getAbilityModifierForCharacter } from "../../../abilities";
 import { swapTemporaryHitPointsAssignment } from "../../../shared";
 import {
   getPreparedSpellIdsByLevel,
@@ -104,7 +104,7 @@ function getWarlockCelestialPatronRadiantSoulDamageBonus(
   character: WarlockCelestialPatronCharacter
 ): number {
   return hasWarlockCelestialPatronRadiantSoul(character)
-    ? Math.max(0, getAbilityModifier(character.abilities?.CHA ?? 10))
+    ? Math.max(0, getAbilityModifierForCharacter(character, "CHA"))
     : 0;
 }
 
@@ -247,7 +247,7 @@ export function getWarlockCelestialPatronHealingLightMaxSpend(
     return 0;
   }
 
-  return Math.max(1, getAbilityModifier(character.abilities?.CHA ?? 10));
+  return Math.max(1, getAbilityModifierForCharacter(character, "CHA"));
 }
 
 export function normalizeWarlockCelestialPatronFeatureState(
@@ -471,7 +471,7 @@ export function getWarlockCelestialPatronCelestialResilienceTemporaryHitPoints(
 
   return Math.max(
     0,
-    Math.floor(character.level ?? 0) + getAbilityModifier(character.abilities?.CHA ?? 10)
+    Math.floor(character.level ?? 0) + getAbilityModifierForCharacter(character, "CHA")
   );
 }
 

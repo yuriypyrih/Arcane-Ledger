@@ -254,13 +254,15 @@ import { CLASS_FEATURE } from "../../../../../codex/entries";
 import { getSpellSlotTotalsForCharacter } from "../../../../../pages/CharactersPage/spellcasting";
 import {
   applyLongRestToCharacterStatusEntries,
-  type ExhaustionLevel,
   applyShortRestToCharacterStatusEntries,
-  getEffectiveHitPointMaximumForCharacter,
   getExhaustionLevel,
   normalizeCharacterStatusEntries,
-  reconcileCharacterStatusConsequences,
   setCharacterExhaustionLevel
+} from "../../../../../pages/CharactersPage/statusEntries";
+import {
+  type ExhaustionLevel,
+  getEffectiveHitPointMaximumForCharacter,
+  reconcileCharacterStatusConsequences,
 } from "../../../../../pages/CharactersPage/traits";
 import { createDefaultRoundTracker } from "../../../../../pages/CharactersPage/combat";
 import {

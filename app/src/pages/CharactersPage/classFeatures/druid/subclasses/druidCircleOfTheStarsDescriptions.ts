@@ -9,12 +9,13 @@ import {
   appendSourcedDescriptionAddition,
   createSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
-import { normalizeCharacterStatusEntries } from "../../../traits";
+import { normalizeCharacterStatusEntries } from "../../../statusEntries";
 import { getDruidFeatureDescriptionSection } from "../druidFeatureDescriptionSections";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 
-type DruidCircleOfTheStarsDescriptionCharacter = Pick<Character, "className" | "level"> &
-  Partial<Pick<Character, "subclassId" | "statusEntries">>;
+type DruidCircleOfTheStarsDescriptionCharacter = Partial<
+  Pick<Character, "className" | "level" | "statusEntries" | "subclassId">
+>;
 
 const starMapSource = "Star Map";
 const starryFormChaliceSource = "Starry Form / Chalice";
@@ -39,7 +40,7 @@ function hasDruidCircleOfTheStarsStarMapFeature(
   return (
     character.className === "Druid" &&
     character.subclassId === "druid-circle-of-the-stars" &&
-    Math.max(1, Math.min(20, Math.floor(character.level))) >= 3
+    Math.max(1, Math.min(20, Math.floor(character.level ?? 1))) >= 3
   );
 }
 
@@ -88,7 +89,7 @@ function hasDruidCircleOfTheStarsTwinklingConstellationsFeature(
   return (
     character.className === "Druid" &&
     character.subclassId === "druid-circle-of-the-stars" &&
-    Math.max(1, Math.min(20, Math.floor(character.level))) >= 10
+    Math.max(1, Math.min(20, Math.floor(character.level ?? 1))) >= 10
   );
 }
 
@@ -156,7 +157,7 @@ function hasDruidCircleOfTheStarsCosmicOmenFeature(
   return (
     character.className === "Druid" &&
     character.subclassId === "druid-circle-of-the-stars" &&
-    Math.max(1, Math.min(20, Math.floor(character.level))) >= 6
+    Math.max(1, Math.min(20, Math.floor(character.level ?? 1))) >= 6
   );
 }
 

@@ -26,7 +26,7 @@ import {
   hasStatusCondition,
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
-} from "../../traits";
+} from "../../statusEntries";
 import { createTextHeaderTag } from "../cardUsage";
 import { skillGroupsByAbility } from "../../skillDefinitions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";

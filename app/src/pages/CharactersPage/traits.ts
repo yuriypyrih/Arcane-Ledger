@@ -28,8 +28,8 @@ import {
   unbreakableMajestyDescription
 } from "../../codex/subclasses/bard";
 import { getSubclassEntryById } from "../../codex/subclasses";
-import type { SpellDescriptionEntry, SpellDurationPart } from "../../codex/entries";
-import { CLASS_FEATURE, DAMAGE_TYPE, DURATION } from "../../codex/entries";
+import type { SpellDescriptionEntry } from "../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE } from "../../codex/entries";
 import {
   CONDITION_NAME,
   EFFECT_NAME,
@@ -38,11 +38,9 @@ import {
   STATUS_DURATION_ROUND_TICK,
   STATUS_DURATION_PRESET,
   STATUS_ENTRY_GROUP,
-  STATUS_ENTRY_SOURCE_TYPE,
   type Character,
   type CharacterStatusDuration,
   type CharacterStatusEntry,
-  type CharacterStatusValue,
   type ImmunityValue
 } from "../../types";
 import { formatCodexLabel } from "../../utils/codex";
@@ -100,16 +98,18 @@ import { createSourcedDescriptionEntries } from "./actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "./classFeatures/featureDescriptions";
 import { getBarbarianPathOfTheWildHeartStatusDescriptionEntries } from "./classFeatures/barbarian/subclasses/barbarianPathOfTheWildHeart";
 import { getKeywordDescriptionLines } from "./keywordDescriptions";
-import { clampInteger } from "./shared";
+import {
+  getExhaustionLevel as getStoredExhaustionLevel,
+  hasStatusCondition,
+  isExhaustionStatusEntry,
+  normalizeCharacterStatusEntries,
+  normalizeExhaustionLevel,
+  normalizeStatusDurationRoundTick,
+  pruneLinkedStatusEntries,
+  setCharacterExhaustionLevel as setStoredCharacterExhaustionLevel
+} from "./statusEntries";
 
-const senseValues = new Set<SENSE>(Object.values(SENSE));
-const effectValues = new Set<EFFECT_NAME>(Object.values(EFFECT_NAME));
 const conditionValues = new Set<CONDITION_NAME>(Object.values(CONDITION_NAME));
-const damageTypeValues = new Set<DAMAGE_TYPE>(Object.values(DAMAGE_TYPE));
-const statusGroupValues = new Set<STATUS_ENTRY_GROUP>(Object.values(STATUS_ENTRY_GROUP));
-const statusSourceTypeValues = new Set<STATUS_ENTRY_SOURCE_TYPE>(
-  Object.values(STATUS_ENTRY_SOURCE_TYPE)
-);
 const exhaustionConditionOptionPrefix = "EXHAUSTION_LEVEL_";
 const inspiredEclipseStatusSourceId = "feature-bard-inspired-eclipse";
 const mantleOfMajestyStatusSourceId = "feature-bard-mantle-of-majesty";
@@ -530,6 +530,27 @@ export const statusRoundTickOptions: Array<{
   { value: STATUS_DURATION_ROUND_TICK.ROUND_END, label: "Round End" }
 ];
 
+export {
+  advanceCharacterStatusEntries,
+  applyLongRestToCharacterStatusEntries,
+  applyShortRestToCharacterStatusEntries,
+  applySpellConcentrationToStatusEntries,
+  createCharacterStatusEntry,
+  getExhaustionStatusEntry,
+  hasExhaustionAbilityCheckDisadvantage,
+  hasExhaustionAttackRollDisadvantage,
+  hasExhaustionSavingThrowDisadvantage,
+  hasStatusCondition,
+  isExhaustionStatusEntry,
+  normalizeCharacterStatusEntries,
+  normalizeStatusDurationRoundTick,
+  removeCharacterConditionsForImmunities,
+  removeCharacterStatusEntry,
+  resolveCharacterStatusEntries,
+  updateCharacterStatusEntryDuration,
+  upsertManualStatusEntry
+} from "./statusEntries";
+
 function roundCountToDurationPreset(rounds: number): STATUS_DURATION_PRESET {
   return [
     STATUS_DURATION_PRESET.ONE_ROUND,
@@ -586,35 +607,8 @@ export function isRoundDurationPreset(preset: STATUS_DURATION_PRESET): boolean {
   return durationPresetToRoundCount(preset) !== null;
 }
 
-export function normalizeStatusDurationRoundTick(value: unknown): STATUS_DURATION_ROUND_TICK {
-  return value === STATUS_DURATION_ROUND_TICK.ROUND_END
-    ? STATUS_DURATION_ROUND_TICK.ROUND_END
-    : STATUS_DURATION_ROUND_TICK.ROUND_START;
-}
-
-function createStatusEntryId(): string {
-  if (typeof globalThis.crypto?.randomUUID === "function") {
-    return globalThis.crypto.randomUUID();
-  }
-
-  return `status-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
 function isConditionName(value: unknown): value is CONDITION_NAME {
   return typeof value === "string" && conditionValues.has(value as CONDITION_NAME);
-}
-
-function normalizeExhaustionLevel(value: unknown): ExhaustionLevel | null {
-  const normalizedValue = clampInteger(
-    value,
-    exhaustionLevels[0],
-    exhaustionLevels[exhaustionLevels.length - 1] ?? 6,
-    1
-  );
-
-  return exhaustionLevels.includes(normalizedValue as ExhaustionLevel)
-    ? (normalizedValue as ExhaustionLevel)
-    : null;
 }
 
 function getExhaustionLevelFromConditionOption(value: string): ExhaustionLevel | null {
@@ -622,7 +616,9 @@ function getExhaustionLevelFromConditionOption(value: string): ExhaustionLevel |
     return null;
   }
 
-  return normalizeExhaustionLevel(value.slice(exhaustionConditionOptionPrefix.length));
+  return normalizeExhaustionLevel(value.slice(exhaustionConditionOptionPrefix.length)) as
+    | ExhaustionLevel
+    | null;
 }
 
 export function isExhaustionConditionOptionValue(
@@ -661,322 +657,15 @@ export function parseConditionOptionValue(value: string): {
     : null;
 }
 
-export function isExhaustionStatusEntry(
-  entry: Pick<CharacterStatusEntry, "group" | "value"> | null | undefined
-): boolean {
-  return (
-    entry?.group === STATUS_ENTRY_GROUP.CONDITIONS && entry.value === CONDITION_NAME.EXHAUSTION
-  );
+export function getExhaustionLevel(value: unknown): ExhaustionLevel | null {
+  return getStoredExhaustionLevel(value) as ExhaustionLevel | null;
 }
 
-function isSense(value: unknown): value is SENSE {
-  return typeof value === "string" && senseValues.has(value as SENSE);
-}
-
-function isEffectName(value: unknown): value is EFFECT_NAME {
-  return typeof value === "string" && effectValues.has(value as EFFECT_NAME);
-}
-
-function isDamageType(value: unknown): value is DAMAGE_TYPE {
-  return typeof value === "string" && damageTypeValues.has(value as DAMAGE_TYPE);
-}
-
-function parseSpellConcentrationDurationLabel(label: string): CharacterStatusDuration | null {
-  const normalizedLabel = label
-    .trim()
-    .toLowerCase()
-    .replace(/^up to\s+/, "");
-
-  if (!normalizedLabel) {
-    return {
-      kind: STATUS_DURATION_KIND.INFINITE
-    };
-  }
-
-  const roundMatch = normalizedLabel.match(/^(\d+)\s+rounds?$/);
-
-  if (roundMatch) {
-    return {
-      kind: STATUS_DURATION_KIND.ROUNDS,
-      amount: clampInteger(roundMatch[1], 1, 999, 1),
-      tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
-    };
-  }
-
-  const minuteMatch = normalizedLabel.match(/^(\d+)\s+minutes?$/);
-
-  if (minuteMatch) {
-    return {
-      kind: STATUS_DURATION_KIND.MINUTES,
-      amount: clampInteger(minuteMatch[1], 1, 999, 1)
-    };
-  }
-
-  const hourMatch = normalizedLabel.match(/^(\d+)\s+hours?$/);
-
-  if (hourMatch) {
-    return {
-      kind: STATUS_DURATION_KIND.HOURS,
-      amount: clampInteger(hourMatch[1], 1, 999, 1)
-    };
-  }
-
-  const dayMatch = normalizedLabel.match(/^(\d+)\s+days?$/);
-
-  if (dayMatch) {
-    return {
-      kind: STATUS_DURATION_KIND.DAYS,
-      amount: clampInteger(dayMatch[1], 1, 999, 1)
-    };
-  }
-
-  return null;
-}
-
-export function getSpellConcentrationDuration(
-  durationParts: SpellDurationPart[]
-): CharacterStatusDuration | null {
-  if (!durationParts.includes(DURATION.CONCENTRATION)) {
-    return null;
-  }
-
-  const detailText = durationParts
-    .filter((part) => part !== DURATION.CONCENTRATION)
-    .map((part) => String(part).trim())
-    .filter((part) => part.length > 0)
-    .join(", ");
-
-  return parseSpellConcentrationDurationLabel(detailText);
-}
-
-function normalizeStatusDuration(value: unknown): CharacterStatusDuration | null {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-
-  const record = value as Partial<CharacterStatusDuration>;
-
-  switch (record.kind) {
-    case STATUS_DURATION_KIND.INFINITE:
-      return { kind: STATUS_DURATION_KIND.INFINITE };
-    case STATUS_DURATION_KIND.CONCENTRATION:
-      return {
-        kind: STATUS_DURATION_KIND.LINKED,
-        linkedGroup: STATUS_ENTRY_GROUP.EFFECTS,
-        linkedValue: EFFECT_NAME.CONCENTRATION
-      };
-    case STATUS_DURATION_KIND.LINKED: {
-      const rawLinkedGroup = statusGroupValues.has(record.linkedGroup as STATUS_ENTRY_GROUP)
-        ? (record.linkedGroup as STATUS_ENTRY_GROUP)
-        : null;
-      const linkedGroup =
-        rawLinkedGroup === STATUS_ENTRY_GROUP.CONDITIONS &&
-        record.linkedValue === EFFECT_NAME.CONCENTRATION
-          ? STATUS_ENTRY_GROUP.EFFECTS
-          : rawLinkedGroup;
-
-      if (!linkedGroup) {
-        return null;
-      }
-
-      const linkedValue = normalizeStatusValue(linkedGroup, record.linkedValue);
-
-      if (!linkedValue) {
-        return null;
-      }
-
-      return {
-        kind: STATUS_DURATION_KIND.LINKED,
-        linkedGroup,
-        linkedValue
-      };
-    }
-    case STATUS_DURATION_KIND.SHORT_REST:
-      return { kind: STATUS_DURATION_KIND.SHORT_REST };
-    case STATUS_DURATION_KIND.LONG_REST:
-      return { kind: STATUS_DURATION_KIND.LONG_REST };
-    case STATUS_DURATION_KIND.MINUTES:
-      return Number.isFinite(record.amount)
-        ? {
-            kind: STATUS_DURATION_KIND.MINUTES,
-            amount: clampInteger(record.amount, 1, 999, 1)
-          }
-        : null;
-    case STATUS_DURATION_KIND.HOURS:
-      return Number.isFinite(record.amount)
-        ? {
-            kind: STATUS_DURATION_KIND.HOURS,
-            amount: clampInteger(record.amount, 1, 999, 1)
-          }
-        : null;
-    case STATUS_DURATION_KIND.DAYS:
-      return Number.isFinite(record.amount)
-        ? {
-            kind: STATUS_DURATION_KIND.DAYS,
-            amount: clampInteger(record.amount, 1, 999, 1)
-          }
-        : null;
-    case STATUS_DURATION_KIND.ROUNDS:
-      return {
-        kind: STATUS_DURATION_KIND.ROUNDS,
-        amount: clampInteger(record.amount, 1, 999, 1),
-        tickOn: normalizeStatusDurationRoundTick(record.tickOn)
-      };
-    default:
-      return null;
-  }
-}
-
-function normalizeLegacyDuration(roundsRemaining: unknown): CharacterStatusDuration | null {
-  const parsed = Number(roundsRemaining);
-
-  if (!Number.isFinite(parsed)) {
-    return null;
-  }
-
-  if (parsed === Number.POSITIVE_INFINITY || parsed === 0) {
-    return {
-      kind: STATUS_DURATION_KIND.INFINITE
-    };
-  }
-
-  return {
-    kind: STATUS_DURATION_KIND.ROUNDS,
-    amount: clampInteger(parsed, 1, 999, 1),
-    tickOn: STATUS_DURATION_ROUND_TICK.ROUND_START
-  };
-}
-
-function normalizeStatusValue(
-  group: STATUS_ENTRY_GROUP,
-  value: unknown
-): CharacterStatusValue | null {
-  if (group === STATUS_ENTRY_GROUP.AURAS) {
-    return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
-  }
-
-  switch (group) {
-    case STATUS_ENTRY_GROUP.EFFECTS:
-      return isEffectName(value)
-        ? value
-        : typeof value === "string" && value.trim().length > 0
-          ? value.trim()
-          : null;
-    case STATUS_ENTRY_GROUP.REACTIONS:
-      return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
-    case STATUS_ENTRY_GROUP.SENSES:
-      return isSense(value) ? value : null;
-    case STATUS_ENTRY_GROUP.RESISTANCES:
-    case STATUS_ENTRY_GROUP.VULNERABILITIES:
-      return isDamageType(value) ? value : null;
-    case STATUS_ENTRY_GROUP.IMMUNITIES:
-      return isDamageType(value) || isConditionName(value) ? value : null;
-    case STATUS_ENTRY_GROUP.CONDITIONS:
-      return isConditionName(value) ? value : null;
-    default:
-      return null;
-  }
-}
-
-function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-
-  const record = value as Partial<CharacterStatusEntry> & {
-    roundsRemaining?: unknown;
-  };
-  const rawGroup = statusGroupValues.has(record.group as STATUS_ENTRY_GROUP)
-    ? (record.group as STATUS_ENTRY_GROUP)
-    : null;
-  const group =
-    rawGroup === STATUS_ENTRY_GROUP.CONDITIONS && record.value === EFFECT_NAME.CONCENTRATION
-      ? STATUS_ENTRY_GROUP.EFFECTS
-      : rawGroup;
-
-  if (!group) {
-    return null;
-  }
-
-  const normalizedValue = normalizeStatusValue(group, record.value);
-
-  if (!normalizedValue) {
-    return null;
-  }
-
-  const source =
-    typeof record.source === "string" && record.source.trim().length > 0
-      ? record.source.trim()
-      : "Manual";
-  const sourceType = statusSourceTypeValues.has(record.sourceType as STATUS_ENTRY_SOURCE_TYPE)
-    ? (record.sourceType as STATUS_ENTRY_SOURCE_TYPE)
-    : STATUS_ENTRY_SOURCE_TYPE.MANUAL;
-  const duration = normalizeStatusDuration(record.duration) ??
-    normalizeLegacyDuration(record.roundsRemaining) ?? {
-      kind: STATUS_DURATION_KIND.INFINITE
-    };
-
-  return {
-    id:
-      typeof record.id === "string" && record.id.trim().length > 0
-        ? record.id
-        : createStatusEntryId(),
-    group,
-    value: normalizedValue,
-    conditionLevel:
-      group === STATUS_ENTRY_GROUP.CONDITIONS && normalizedValue === CONDITION_NAME.EXHAUSTION
-        ? (normalizeExhaustionLevel(record.conditionLevel) ?? 1)
-        : null,
-    disabled: record.disabled === true,
-    disabledReason:
-      typeof record.disabledReason === "string" && record.disabledReason.trim().length > 0
-        ? record.disabledReason.trim()
-        : undefined,
-    source,
-    sourceType,
-    duration,
-    sourceId:
-      typeof record.sourceId === "string" && record.sourceId.trim().length > 0
-        ? record.sourceId
-        : undefined,
-    rangeFeet:
-      typeof record.rangeFeet === "number" &&
-      Number.isFinite(record.rangeFeet) &&
-      record.rangeFeet > 0
-        ? Math.floor(record.rangeFeet)
-        : null
-  };
-}
-
-function normalizeLegacyConditionEntry(value: unknown, index: number): CharacterStatusEntry | null {
-  if (!value || typeof value !== "object") {
-    return null;
-  }
-
-  const record = value as {
-    name?: unknown;
-    roundsRemaining?: unknown;
-  };
-
-  if (!isConditionName(record.name)) {
-    return null;
-  }
-
-  const duration = normalizeLegacyDuration(record.roundsRemaining);
-
-  if (!duration) {
-    return null;
-  }
-
-  return {
-    id: `legacy-condition-${index}-${record.name.toLowerCase().replace(/\s+/g, "-")}`,
-    group: STATUS_ENTRY_GROUP.CONDITIONS,
-    value: record.name,
-    source: "Manual",
-    sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
-    duration,
-    rangeFeet: null
-  };
+export function setCharacterExhaustionLevel(
+  value: unknown,
+  nextLevel: ExhaustionLevel | null
+): CharacterStatusEntry[] {
+  return setStoredCharacterExhaustionLevel(value, nextLevel);
 }
 
 export function createStatusDurationFromPreset(
@@ -1020,354 +709,6 @@ export function createStatusDurationFromPreset(
       };
     }
   }
-}
-
-export function normalizeCharacterStatusEntries(
-  value: unknown,
-  legacyConditions?: unknown
-): CharacterStatusEntry[] {
-  const normalizedEntries = Array.isArray(value)
-    ? value
-        .map((entry) => normalizeStatusEntry(entry))
-        .filter((entry): entry is CharacterStatusEntry => entry !== null)
-    : [];
-
-  const migratedLegacyConditions = Array.isArray(legacyConditions)
-    ? legacyConditions
-        .map((entry, index) => normalizeLegacyConditionEntry(entry, index))
-        .filter((entry): entry is CharacterStatusEntry => entry !== null)
-    : [];
-
-  if (normalizedEntries.length > 0) {
-    return normalizedEntries;
-  }
-
-  return migratedLegacyConditions;
-}
-
-export function createCharacterStatusEntry(options: {
-  group: STATUS_ENTRY_GROUP;
-  value: CharacterStatusValue;
-  conditionLevel?: number | null;
-  disabled?: boolean;
-  disabledReason?: string;
-  source: string;
-  sourceType?: STATUS_ENTRY_SOURCE_TYPE;
-  duration?: CharacterStatusDuration;
-  sourceId?: string;
-  rangeFeet?: number | null;
-}): CharacterStatusEntry {
-  return {
-    id: createStatusEntryId(),
-    group: options.group,
-    value: options.value,
-    conditionLevel:
-      options.group === STATUS_ENTRY_GROUP.CONDITIONS && options.value === CONDITION_NAME.EXHAUSTION
-        ? (normalizeExhaustionLevel(options.conditionLevel) ?? 1)
-        : null,
-    disabled: options.disabled === true,
-    disabledReason:
-      typeof options.disabledReason === "string" && options.disabledReason.trim().length > 0
-        ? options.disabledReason.trim()
-        : undefined,
-    source: options.source.trim() || "Manual",
-    sourceType: options.sourceType ?? STATUS_ENTRY_SOURCE_TYPE.MANUAL,
-    duration: options.duration ?? {
-      kind: STATUS_DURATION_KIND.INFINITE
-    },
-    sourceId: options.sourceId,
-    rangeFeet: options.rangeFeet ?? null
-  };
-}
-
-export function resolveCharacterStatusEntries(
-  manualEntries: unknown,
-  derivedEntries: CharacterStatusEntry[] = []
-): CharacterStatusEntry[] {
-  const normalizedEntries = normalizeCharacterStatusEntries(manualEntries);
-  const derivedEntrySourceIds = new Set(
-    derivedEntries
-      .map((entry) => entry.sourceId)
-      .filter((sourceId): sourceId is string => typeof sourceId === "string" && sourceId.length > 0)
-  );
-  const overrideEntries = normalizedEntries.filter(
-    (entry) =>
-      entry.sourceType !== STATUS_ENTRY_SOURCE_TYPE.MANUAL &&
-      typeof entry.sourceId === "string" &&
-      entry.sourceId.length > 0
-  );
-  const standaloneEntries = normalizedEntries.filter(
-    (entry) =>
-      entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.MANUAL ||
-      typeof entry.sourceId !== "string" ||
-      entry.sourceId.length === 0
-  );
-  const overrideEntriesBySourceId = new Map<string, CharacterStatusEntry>();
-
-  overrideEntries.forEach((entry) => {
-    if (entry.sourceId) {
-      overrideEntriesBySourceId.set(entry.sourceId, entry);
-    }
-  });
-
-  const persistedFeatureEntries = overrideEntries.filter(
-    (entry) => entry.sourceId && !derivedEntrySourceIds.has(entry.sourceId)
-  );
-
-  return pruneLinkedStatusEntries([
-    ...standaloneEntries,
-    ...persistedFeatureEntries,
-    ...derivedEntries.map((entry) => {
-      const durationOverride = overrideEntriesBySourceId.get(entry.sourceId ?? entry.id);
-
-      return durationOverride && entry.duration.kind !== STATUS_DURATION_KIND.LINKED
-        ? {
-            ...entry,
-            duration: durationOverride.duration
-          }
-        : entry;
-    })
-  ]);
-}
-
-export function removeCharacterStatusEntry(
-  value: unknown,
-  entryId: string
-): CharacterStatusEntry[] {
-  return pruneLinkedStatusEntries(
-    normalizeCharacterStatusEntries(value).filter((entry) => entry.id !== entryId)
-  );
-}
-
-export function removeCharacterConditionsForImmunities(
-  value: unknown,
-  immunityEntries: ReadonlyArray<Pick<CharacterStatusEntry, "group" | "value">>
-): CharacterStatusEntry[] {
-  const entries = normalizeCharacterStatusEntries(value);
-  const immuneConditions = getImmuneConditionSet([...entries, ...immunityEntries]);
-
-  if (immuneConditions.size === 0) {
-    return entries;
-  }
-
-  return pruneLinkedStatusEntries(
-    entries.filter(
-      (entry) =>
-        !(
-          entry.group === STATUS_ENTRY_GROUP.CONDITIONS &&
-          isConditionName(entry.value) &&
-          immuneConditions.has(entry.value)
-        )
-    )
-  );
-}
-
-export function upsertManualStatusEntry(
-  value: unknown,
-  nextEntry: Omit<CharacterStatusEntry, "id" | "sourceType"> & {
-    sourceType?: STATUS_ENTRY_SOURCE_TYPE.MANUAL;
-  }
-): CharacterStatusEntry[] {
-  const entries = normalizeCharacterStatusEntries(value);
-  const existingEntry = entries.find(
-    (entry) =>
-      entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.MANUAL &&
-      entry.group === nextEntry.group &&
-      entry.value === nextEntry.value &&
-      (entry.rangeFeet ?? null) === (nextEntry.rangeFeet ?? null)
-  );
-
-  if (!existingEntry) {
-    return ensureLinkedStatusDependencies([
-      ...entries,
-      createCharacterStatusEntry({
-        ...nextEntry,
-        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL
-      })
-    ]);
-  }
-
-  return ensureLinkedStatusDependencies(
-    entries.map((entry) =>
-      entry.id === existingEntry.id
-        ? {
-            ...entry,
-            conditionLevel:
-              nextEntry.group === STATUS_ENTRY_GROUP.CONDITIONS &&
-              nextEntry.value === CONDITION_NAME.EXHAUSTION
-                ? (normalizeExhaustionLevel(nextEntry.conditionLevel) ?? 1)
-                : null,
-            source: nextEntry.source,
-            duration: nextEntry.duration,
-            rangeFeet: nextEntry.rangeFeet ?? null
-          }
-        : entry
-    )
-  );
-}
-
-export function updateCharacterStatusEntryDuration(
-  value: unknown,
-  entryToUpdate: CharacterStatusEntry,
-  duration: CharacterStatusDuration
-): CharacterStatusEntry[] {
-  const entries = normalizeCharacterStatusEntries(value);
-  const storedEntry = entries.find((entry) => entry.id === entryToUpdate.id);
-
-  if (storedEntry) {
-    return ensureLinkedStatusDependencies(
-      entries.map((entry) =>
-        entry.id === entryToUpdate.id
-          ? {
-              ...entry,
-              duration
-            }
-          : entry
-      )
-    );
-  }
-
-  const existingDurationOverride = entries.find(
-    (entry) =>
-      entry.sourceId === (entryToUpdate.sourceId ?? entryToUpdate.id) &&
-      entry.sourceType === entryToUpdate.sourceType &&
-      entry.group === entryToUpdate.group
-  );
-
-  if (existingDurationOverride) {
-    return ensureLinkedStatusDependencies(
-      entries.map((entry) =>
-        entry.id === existingDurationOverride.id
-          ? {
-              ...entry,
-              duration
-            }
-          : entry
-      )
-    );
-  }
-
-  return ensureLinkedStatusDependencies([
-    ...entries,
-    createCharacterStatusEntry({
-      group: entryToUpdate.group,
-      value: entryToUpdate.value,
-      conditionLevel: entryToUpdate.conditionLevel,
-      source: entryToUpdate.source,
-      sourceType: entryToUpdate.sourceType,
-      duration,
-      sourceId: entryToUpdate.sourceId ?? entryToUpdate.id,
-      rangeFeet: entryToUpdate.rangeFeet ?? null
-    })
-  ]);
-}
-
-export function applySpellConcentrationToStatusEntries(
-  value: unknown,
-  spell: { name: string; duration: SpellDurationPart[] },
-  options?: {
-    sourceId?: string;
-  }
-): CharacterStatusEntry[] {
-  const concentrationDuration = getSpellConcentrationDuration(spell.duration);
-  const entries = normalizeCharacterStatusEntries(value);
-
-  if (!concentrationDuration) {
-    return entries;
-  }
-
-  return ensureLinkedStatusDependencies([
-    ...entries.filter(
-      (entry) =>
-        !(
-          (entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
-            entry.value === EFFECT_NAME.CONCENTRATION) ||
-          isLinkedToConcentration(entry.duration)
-        )
-    ),
-    createCharacterStatusEntry({
-      group: STATUS_ENTRY_GROUP.EFFECTS,
-      value: EFFECT_NAME.CONCENTRATION,
-      source: spell.name,
-      sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
-      duration: concentrationDuration,
-      sourceId: options?.sourceId
-    })
-  ]);
-}
-
-export function hasStatusCondition(value: unknown, condition: CONDITION_NAME): boolean {
-  return normalizeCharacterStatusEntries(value).some(
-    (entry) => entry.group === STATUS_ENTRY_GROUP.CONDITIONS && entry.value === condition
-  );
-}
-
-export function getExhaustionStatusEntry(value: unknown): CharacterStatusEntry | null {
-  return (
-    normalizeCharacterStatusEntries(value).find((entry) => isExhaustionStatusEntry(entry)) ?? null
-  );
-}
-
-export function getExhaustionLevel(value: unknown): ExhaustionLevel | null {
-  const exhaustionEntry = getExhaustionStatusEntry(value);
-
-  if (!exhaustionEntry) {
-    return null;
-  }
-
-  return normalizeExhaustionLevel(exhaustionEntry.conditionLevel) ?? 1;
-}
-
-export function setCharacterExhaustionLevel(
-  value: unknown,
-  nextLevel: ExhaustionLevel | null
-): CharacterStatusEntry[] {
-  const entries = normalizeCharacterStatusEntries(value);
-  const existingEntry = entries.find((entry) => isExhaustionStatusEntry(entry));
-
-  if (nextLevel === null) {
-    return ensureLinkedStatusDependencies(
-      entries.filter((entry) => !isExhaustionStatusEntry(entry))
-    );
-  }
-
-  if (existingEntry) {
-    return ensureLinkedStatusDependencies(
-      entries.map((entry) =>
-        entry.id === existingEntry.id
-          ? {
-              ...entry,
-              conditionLevel: nextLevel,
-              duration: { kind: STATUS_DURATION_KIND.INFINITE }
-            }
-          : entry
-      )
-    );
-  }
-
-  return ensureLinkedStatusDependencies([
-    ...entries,
-    createCharacterStatusEntry({
-      group: STATUS_ENTRY_GROUP.CONDITIONS,
-      value: CONDITION_NAME.EXHAUSTION,
-      conditionLevel: nextLevel,
-      source: "Manual",
-      sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
-      duration: { kind: STATUS_DURATION_KIND.INFINITE }
-    })
-  ]);
-}
-
-export function hasExhaustionAbilityCheckDisadvantage(value: unknown): boolean {
-  return (getExhaustionLevel(value) ?? 0) >= 1;
-}
-
-export function hasExhaustionAttackRollDisadvantage(value: unknown): boolean {
-  return (getExhaustionLevel(value) ?? 0) >= 3;
-}
-
-export function hasExhaustionSavingThrowDisadvantage(value: unknown): boolean {
-  return (getExhaustionLevel(value) ?? 0) >= 3;
 }
 
 export function getExhaustionSpeedAdjustment(
@@ -1487,79 +828,6 @@ export function reconcileCharacterStatusConsequences(character: Character): Char
   };
 }
 
-export function advanceCharacterStatusEntries(
-  value: unknown,
-  tickOn: STATUS_DURATION_ROUND_TICK = STATUS_DURATION_ROUND_TICK.ROUND_START
-): CharacterStatusEntry[] {
-  return pruneLinkedStatusEntries(
-    normalizeCharacterStatusEntries(value).flatMap((entry) => {
-      if (entry.duration.kind !== STATUS_DURATION_KIND.ROUNDS) {
-        return [entry];
-      }
-
-      if (normalizeStatusDurationRoundTick(entry.duration.tickOn) !== tickOn) {
-        return [entry];
-      }
-
-      const nextAmount = entry.duration.amount - 1;
-
-      if (nextAmount <= 0) {
-        return [];
-      }
-
-      return [
-        {
-          ...entry,
-          duration: {
-            kind: STATUS_DURATION_KIND.ROUNDS,
-            amount: nextAmount,
-            tickOn: normalizeStatusDurationRoundTick(entry.duration.tickOn)
-          }
-        }
-      ];
-    })
-  );
-}
-
-export function applyShortRestToCharacterStatusEntries(value: unknown): CharacterStatusEntry[] {
-  return pruneLinkedStatusEntries(
-    normalizeCharacterStatusEntries(value).filter((entry) => {
-      switch (entry.duration.kind) {
-        case STATUS_DURATION_KIND.INFINITE:
-          return (
-            entry.group !== STATUS_ENTRY_GROUP.EFFECTS || entry.value !== EFFECT_NAME.CONCENTRATION
-          );
-        case STATUS_DURATION_KIND.LONG_REST:
-          return true;
-        case STATUS_DURATION_KIND.HOURS:
-        case STATUS_DURATION_KIND.DAYS:
-          return entry.duration.amount >= 1;
-        case STATUS_DURATION_KIND.SHORT_REST:
-        case STATUS_DURATION_KIND.MINUTES:
-        case STATUS_DURATION_KIND.ROUNDS:
-        case STATUS_DURATION_KIND.CONCENTRATION:
-          return false;
-        case STATUS_DURATION_KIND.LINKED:
-          return true;
-        default:
-          return true;
-      }
-    })
-  );
-}
-
-export function applyLongRestToCharacterStatusEntries(value: unknown): CharacterStatusEntry[] {
-  return pruneLinkedStatusEntries(
-    normalizeCharacterStatusEntries(value).filter(
-      (entry) =>
-        (entry.duration.kind === STATUS_DURATION_KIND.INFINITE ||
-          entry.duration.kind === STATUS_DURATION_KIND.LINKED ||
-          entry.duration.kind === STATUS_DURATION_KIND.DAYS) &&
-        (entry.group !== STATUS_ENTRY_GROUP.EFFECTS || entry.value !== EFFECT_NAME.CONCENTRATION)
-    )
-  );
-}
-
 export function getStatusEntryTitle(entry: CharacterStatusEntry): string {
   if (isExhaustionStatusEntry(entry)) {
     const exhaustionLevel = normalizeExhaustionLevel(entry.conditionLevel) ?? 1;
@@ -1585,6 +853,10 @@ export function getStatusEntryKeyword(entry: CharacterStatusEntry): string {
 function getDefaultStatusEntryDescriptionEntries(
   entry: CharacterStatusEntry
 ): SpellDescriptionEntry[] {
+  if (entry.description?.trim()) {
+    return [entry.description.trim()];
+  }
+
   if (isExhaustionStatusEntry(entry)) {
     const exhaustionLevel = normalizeExhaustionLevel(entry.conditionLevel) ?? 1;
 
@@ -2038,6 +1310,19 @@ export function getStatusEntryDescriptionContent(
   description: SpellDescriptionEntry[];
   descriptionAdditions: SpellDescriptionEntry[][];
 } {
+  if (entry.sourceId === monkQuiveringPalmStatusSourceId && character?.className === "Monk") {
+    const descriptionEntries = getFeatureDescriptionForCharacter(
+      character,
+      CLASS_FEATURE.QUIVERING_PALM
+    );
+
+    return {
+      description:
+        descriptionEntries.length > 0 ? descriptionEntries : [...monkQuiveringPalmTraitDescription],
+      descriptionAdditions: []
+    };
+  }
+
   if (
     entry.sourceId === "feature-rage" &&
     entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
@@ -2372,107 +1657,4 @@ function formatLinkedStatusDurationLabel(
   return typeof duration.linkedValue === "string"
     ? duration.linkedValue
     : formatCodexLabel(String(duration.linkedValue));
-}
-
-function isLinkedToConcentration(duration: CharacterStatusDuration): boolean {
-  return (
-    duration.kind === STATUS_DURATION_KIND.LINKED &&
-    duration.linkedGroup === STATUS_ENTRY_GROUP.EFFECTS &&
-    duration.linkedValue === EFFECT_NAME.CONCENTRATION
-  );
-}
-
-function isLinkedStatusEntrySatisfied(
-  entry: CharacterStatusEntry,
-  entries: CharacterStatusEntry[]
-): boolean {
-  if (!entry.duration || entry.duration.kind !== STATUS_DURATION_KIND.LINKED) {
-    return true;
-  }
-
-  const linkedDuration = entry.duration;
-
-  return entries.some(
-    (candidate) =>
-      candidate.id !== entry.id &&
-      candidate.group === linkedDuration.linkedGroup &&
-      candidate.value === linkedDuration.linkedValue
-  );
-}
-
-function getImmuneConditionSet(
-  entries: ReadonlyArray<Pick<CharacterStatusEntry, "group" | "value">>
-): Set<CONDITION_NAME> {
-  return entries.reduce<Set<CONDITION_NAME>>((immuneConditions, entry) => {
-    if (entry.group === STATUS_ENTRY_GROUP.IMMUNITIES && isConditionName(entry.value)) {
-      immuneConditions.add(entry.value);
-    }
-
-    return immuneConditions;
-  }, new Set<CONDITION_NAME>());
-}
-
-function removeConditionEntriesBlockedByImmunities(
-  entries: CharacterStatusEntry[]
-): CharacterStatusEntry[] {
-  const immuneConditions = getImmuneConditionSet(entries);
-
-  if (immuneConditions.size === 0) {
-    return entries;
-  }
-
-  return entries.filter(
-    (entry) =>
-      !(
-        entry.group === STATUS_ENTRY_GROUP.CONDITIONS &&
-        isConditionName(entry.value) &&
-        immuneConditions.has(entry.value)
-      )
-  );
-}
-
-function pruneLinkedStatusEntries(entries: CharacterStatusEntry[]): CharacterStatusEntry[] {
-  let currentEntries = entries;
-
-  while (true) {
-    const nextEntries = removeConditionEntriesBlockedByImmunities(
-      currentEntries.filter((entry) => isLinkedStatusEntrySatisfied(entry, currentEntries))
-    );
-
-    if (nextEntries.length === currentEntries.length) {
-      return nextEntries;
-    }
-
-    currentEntries = nextEntries;
-  }
-}
-
-function ensureLinkedStatusDependencies(entries: CharacterStatusEntry[]): CharacterStatusEntry[] {
-  let nextEntries = [...entries];
-  const hasConcentrationLinkedEntry = nextEntries.some((entry) =>
-    isLinkedToConcentration(entry.duration)
-  );
-  const hasConcentrationAnchor = nextEntries.some(
-    (entry) =>
-      entry.group === STATUS_ENTRY_GROUP.EFFECTS && entry.value === EFFECT_NAME.CONCENTRATION
-  );
-
-  if (hasConcentrationLinkedEntry && !hasConcentrationAnchor) {
-    const concentrationSourceEntry = nextEntries.find((entry) =>
-      isLinkedToConcentration(entry.duration)
-    );
-
-    nextEntries = [
-      ...nextEntries,
-      createCharacterStatusEntry({
-        group: STATUS_ENTRY_GROUP.EFFECTS,
-        value: EFFECT_NAME.CONCENTRATION,
-        source: concentrationSourceEntry?.source ?? "Manual",
-        sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
-        duration: { kind: STATUS_DURATION_KIND.INFINITE }
-      })
-    ];
-  }
-
-  return pruneLinkedStatusEntries(nextEntries);
 }

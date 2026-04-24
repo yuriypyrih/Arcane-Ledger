@@ -20,12 +20,13 @@ import {
   createSourcedDescriptionEntries,
   descriptionValueSomeText
 } from "../../../actionModalDescriptions";
-import { getAbilityModifier, type WeaponAction } from "../../../gameplay";
+import { getAbilityModifierForCharacter } from "../../../abilities";
+import type { WeaponAction } from "../../../gameplay";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries,
   removeCharacterConditionsForImmunities
-} from "../../../traits";
+} from "../../../statusEntries";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
   createDefaultFeatureActionDescription,
@@ -163,7 +164,7 @@ function isRangerWinterWalker(character: RangerWinterWalkerCharacter): boolean {
 }
 
 function getWisdomModifier(character: Partial<Pick<Character, "abilities">>): number {
-  return getAbilityModifier(character.abilities?.WIS ?? 10);
+  return getAbilityModifierForCharacter(character, "WIS");
 }
 
 function getFortifyingSoulTargetCount(character: RangerWinterWalkerCharacter): number {

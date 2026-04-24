@@ -61,10 +61,10 @@ const mantleOfMajestyActionKey = glamourSubclass.mantleOfMajestyActionKey;
 const unbreakableMajestyActionKey = glamourSubclass.unbreakableMajestyActionKey;
 const mantleOfMajestyStatusSourceId = glamourSubclass.mantleOfMajestyStatusSourceId;
 const unbreakableMajestyStatusSourceId = glamourSubclass.unbreakableMajestyStatusSourceId;
-const wordsOfCreationAlwaysPreparedSpellIds = [
+const wordsOfCreationAlwaysPreparedSpellIds: string[] = [
   "spell-power-word-heal",
   "spell-power-word-kill"
-] as const;
+];
 const bardExpertiseLevel2SourceLabel = "Level 2: Expertise";
 const bardExpertiseLevel9SourceLabel = "Level 9: Expertise";
 const bardExpertiseLevel2SourceKey = "bard-expertise-level-2";

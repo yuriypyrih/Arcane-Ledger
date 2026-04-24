@@ -1,4 +1,5 @@
-import type { DAMAGE_TYPE } from "../codex/entries";
+import type { DAMAGE_TYPE, WEAPON_COMBAT_TYPE } from "../codex/entries";
+import type { AbilityKey } from "./characters";
 
 export enum STATUS_ENTRY_GROUP {
   EFFECTS = "EFFECTS",
@@ -102,6 +103,40 @@ export type ImmunityValue = DAMAGE_TYPE | CONDITION_NAME;
 
 export type CharacterStatusValue = SENSE | EFFECT_NAME | CONDITION_NAME | DAMAGE_TYPE | string;
 
+export type CharacterCustomTraitEffect =
+  | {
+      type: "armorClass";
+      value: number;
+    }
+  | {
+      type: "initiative";
+      value: number;
+    }
+  | {
+      type: "passivePerception";
+      value: number;
+    }
+  | {
+      type: "abilityScore";
+      ability: AbilityKey;
+      value: number;
+    }
+  | {
+      type: "abilityModifier";
+      ability: AbilityKey;
+      value: number;
+    }
+  | {
+      type: "savingThrow";
+      ability: AbilityKey;
+      value: number;
+    }
+  | {
+      type: "weaponDamage";
+      attackKind: "unarmed" | WEAPON_COMBAT_TYPE.MELEE | WEAPON_COMBAT_TYPE.RANGED;
+      value: number;
+    };
+
 export type CharacterStatusDuration =
   | {
       kind: STATUS_DURATION_KIND.INFINITE;
@@ -150,4 +185,6 @@ export type CharacterStatusEntry = {
   duration: CharacterStatusDuration;
   sourceId?: string;
   rangeFeet?: number | null;
+  description?: string;
+  customEffects?: CharacterCustomTraitEffect[];
 };
