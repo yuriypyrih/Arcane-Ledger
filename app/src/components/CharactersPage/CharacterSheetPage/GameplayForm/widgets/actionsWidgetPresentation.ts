@@ -407,6 +407,7 @@ export function getWeaponDrawerDetails(
   itemRecord?: ItemRecord | null,
   options?: {
     hasActiveMastery?: boolean;
+    hasWeaponProficiency?: boolean;
   }
 ): WeaponDrawerDetail[] {
   if (action.details && action.details.length > 0) {
@@ -418,8 +419,17 @@ export function getWeaponDrawerDetails(
   }
 
   const adaptedItemWeapon = itemRecord ? adaptItemWeapon(itemRecord) : null;
+  const typeLabel = options?.hasWeaponProficiency
+    ? createElement(WeaponMasteryStatusLabel, {
+        label: "Type",
+        status: "PROFICIENT"
+      })
+    : "Type";
   const masteryLabel = options?.hasActiveMastery
-    ? createElement(WeaponMasteryStatusLabel)
+    ? createElement(WeaponMasteryStatusLabel, {
+        label: "Mastery",
+        status: "MASTERED"
+      })
     : "Mastery";
 
   if (adaptedItemWeapon) {
@@ -431,7 +441,7 @@ export function getWeaponDrawerDetails(
     return [
       {
         key: "type",
-        label: "Type",
+        label: typeLabel,
         value: formatWeaponType(adaptedItemWeapon.type)
       },
       {
@@ -462,7 +472,7 @@ export function getWeaponDrawerDetails(
     return [
       {
         key: "type",
-        label: "Type",
+        label: typeLabel,
         value: "Weapon"
       },
       {
@@ -491,7 +501,7 @@ export function getWeaponDrawerDetails(
   return [
     {
       key: "type",
-      label: "Type",
+      label: typeLabel,
       value: formatWeaponType(weaponEntry.type)
     },
     {

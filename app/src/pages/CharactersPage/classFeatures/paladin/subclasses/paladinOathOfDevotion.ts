@@ -12,6 +12,7 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import type { AbilityModifierBonusEntry } from "../../../abilities";
 import { getProficiencyBonus, type WeaponAction } from "../../../gameplay";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
+import { appendWeaponActionCardBonusLabel } from "../../../weaponActionCardBreakdown";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
@@ -22,7 +23,11 @@ import {
   createChargesOrResourceCardUsage,
   createFeatureActionCardCost
 } from "../../cardUsage";
-import type { DerivedFeatureStatusEntry, FeatureActionCard } from "../../types";
+import type {
+  DerivedFeatureStatusEntry,
+  FeatureActionCard,
+  FeatureDamageBonus
+} from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
 import {
@@ -537,7 +542,10 @@ function transformSacredWeaponAction(
   }
 
   return appendSourcedDescriptionAddition(
-    applyPaladinOathOfDevotionSacredWeaponAction(character, action),
+    appendWeaponActionCardBonusLabel(
+      applyPaladinOathOfDevotionSacredWeaponAction(character, action),
+      sacredWeaponEffectName
+    ),
     sacredWeaponEffectName,
     sacredWeaponActiveDescription
   );

@@ -11,13 +11,15 @@ type ItemInspectionContentProps = {
   className?: string;
   showHeader?: boolean;
   weaponMasteryActive?: boolean;
+  weaponProficient?: boolean;
 };
 
 function ItemInspectionContent({
   item,
   className,
   showHeader = true,
-  weaponMasteryActive = false
+  weaponMasteryActive = false,
+  weaponProficient = false
 }: ItemInspectionContentProps) {
   const presentation = buildItemDetailPresentation(item);
 
@@ -56,7 +58,9 @@ function ItemInspectionContent({
               <CellContainer
                 key={cell.label}
                 label={
-                  weaponMasteryActive && cell.label === "Mastery" ? (
+                  weaponProficient && cell.label === "Type" ? (
+                    <WeaponMasteryStatusLabel label="Type" status="PROFICIENT" />
+                  ) : weaponMasteryActive && cell.label === "Mastery" ? (
                     <WeaponMasteryStatusLabel />
                   ) : (
                     cell.label

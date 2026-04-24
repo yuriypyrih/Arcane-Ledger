@@ -8,6 +8,7 @@ import {
   formatAbilityModifier,
   type WeaponAction
 } from "../../../../pages/CharactersPage/gameplay";
+import { getWeaponActionCardBonusLabels } from "../../../../pages/CharactersPage/weaponActionCardBreakdown";
 import {
   isRoundTrackerResourceAvailable,
   type RoundTrackerResource
@@ -19,7 +20,7 @@ import {
 } from "../../../RollStatePill/rollState";
 
 function formatSignedValue(value: number): string {
-  return value >= 0 ? `+ ${value}` : `- ${Math.abs(value)}`;
+  return value >= 0 ? `+${value}` : `-${Math.abs(value)}`;
 }
 
 function formatProficiencyLabel(label: string): string {
@@ -110,50 +111,10 @@ export function getWeaponActionRollDescription(action: WeaponAction): string {
 }
 
 export function getWeaponActionBreakdown(action: WeaponAction): string {
-  const damageAbility = action.damageAbility ?? action.ability;
-  const damageAbilityModifier = action.damageAbilityModifier ?? action.abilityModifier;
-  const segments = [`${action.ability} ${formatSignedValue(action.abilityModifier)}`];
-
-  if (damageAbility !== action.ability || damageAbilityModifier !== action.abilityModifier) {
-    segments.push(`Damage ${damageAbility} ${formatSignedValue(damageAbilityModifier)}`);
-  }
-
-  if (action.damageBreakdownLabel) {
-    segments.push(action.damageBreakdownLabel);
-  }
-
-  if (hasVisibleWeaponProficiency(action)) {
-    segments.push(
-      `Prof. (${formatProficiencyLabel(action.proficiencyLabel)}) ${formatSignedValue(action.proficiencyBonus)}`
-    );
-  }
-
-  if (action.hasVersatileBonus) {
-    segments.push("+ Versatile Bonus");
-  }
-
-  if (action.hasGreatWeaponFighting) {
-    segments.push("+ Great Weapon Fighting");
-  }
-
-  if (action.hasMartialArtsDamageDie) {
-    segments.push("+ Martial Arts");
-  }
-
-  if (action.hasBatteringRootsBonus) {
-    segments.push("+ Battering Roots");
-  }
-
-  action.damageBonusEntries.forEach((entry) => {
-    if (entry.value !== undefined) {
-      segments.push(`${entry.label} ${formatSignedValue(entry.value)}`);
-      return;
-    }
-
-    segments.push(`+ ${entry.label}`);
-  });
-
-  return segments.join(" | ");
+  return [
+    `${action.cardBaseAbility} ${formatSignedValue(action.cardBaseAbilityModifier)}`,
+    ...getWeaponActionCardBonusLabels(action).map((label) => `+ ${label}`)
+  ].join(" | ");
 }
 
 function getRoundTrackerResourceLabel(resource: RoundTrackerResource): string {

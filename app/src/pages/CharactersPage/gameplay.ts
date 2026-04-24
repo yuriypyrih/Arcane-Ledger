@@ -100,8 +100,10 @@ export type WeaponAction = {
   rollDisplay: string;
   rollFormulaDisplay: string;
   ability: AbilityKey;
+  cardBaseAbility: AbilityKey;
   abilityModifierBaseValue: number;
   abilityModifier: number;
+  cardBaseAbilityModifier: number;
   abilityModifierBonusEntries: AbilityModifierBonusEntry[];
   damageAbility?: AbilityKey;
   damageAbilityModifierBaseValue?: number;
@@ -112,6 +114,7 @@ export type WeaponAction = {
   totalModifier: number;
   indicators: FeatureIndicator[];
   damageBonusEntries: FeatureDamageBonus[];
+  cardBonusLabels: string[];
   rollFormula: string;
   hasVersatileBonus: boolean;
   hasGreatWeaponFighting: boolean;
@@ -615,8 +618,10 @@ export function createWeaponAction(
     rollDisplay: createRollDisplay(damageFormula, totalModifier),
     rollFormulaDisplay: createRollFormula(damageFormula, totalModifier),
     ability: options.ability,
+    cardBaseAbility: options.ability,
     abilityModifierBaseValue: attackAbilityBreakdown.baseValue,
     abilityModifier: attackAbilityBreakdown.total,
+    cardBaseAbilityModifier: attackAbilityBreakdown.total,
     abilityModifierBonusEntries: attackAbilityBreakdown.bonusEntries,
     damageAbility,
     damageAbilityModifierBaseValue: damageAbilityBreakdown.baseValue,
@@ -627,6 +632,7 @@ export function createWeaponAction(
     totalModifier,
     indicators,
     damageBonusEntries,
+    cardBonusLabels: [],
     rollFormula: createRollFormula(rollFormulaBase, totalModifier),
     hasVersatileBonus: options.hasVersatileBonus,
     hasGreatWeaponFighting: options.hasGreatWeaponFighting,

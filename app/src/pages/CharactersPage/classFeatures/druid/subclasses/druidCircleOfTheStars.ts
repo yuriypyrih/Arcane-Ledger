@@ -700,8 +700,10 @@ export function getCircleOfTheStarsWeaponActions(
       rollDisplay: createRollDisplay(damageFormula, wisdomModifier),
       rollFormulaDisplay: createRollFormula(damageFormula, wisdomModifier),
       ability: "WIS",
+      cardBaseAbility: "WIS",
       abilityModifierBaseValue: wisdomModifierBreakdown.baseValue,
       abilityModifier: wisdomModifier,
+      cardBaseAbilityModifier: wisdomModifier,
       abilityModifierBonusEntries: wisdomModifierBreakdown.bonusEntries,
       damageAbility: "WIS",
       damageAbilityModifierBaseValue: wisdomModifierBreakdown.baseValue,
@@ -714,6 +716,7 @@ export function getCircleOfTheStarsWeaponActions(
         ? [exhaustionDisadvantageIndicator]
         : [],
       damageBonusEntries: [],
+      cardBonusLabels: [],
       rollFormula: createRollFormula(damageFormula, wisdomModifier),
       hasVersatileBonus: false,
       hasGreatWeaponFighting: false,

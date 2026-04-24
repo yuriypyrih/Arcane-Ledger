@@ -20,12 +20,12 @@ import type {
   WeaponFeatureContext
 } from "../../types";
 import { createSourcedDescriptionEntries, descriptionValueSomeText } from "../../../actionModalDescriptions";
-import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
   getPreparedSpellIdsByLevel,
   resolveSpellIdsByName,
   type SubclassRuntimeResolver
 } from "../../subclassRuntime";
+import { getRangerFeatAdjustedWisdomModifier } from "../abilityModifiers";
 
 export const feyWandererSubclassId = "ranger-fey-wanderer";
 export const rangerFeyWandererGiftOptions = [
@@ -300,18 +300,18 @@ export function getRangerFeyWandererFeyReinforcementsUsesRemaining(
 
 export function getRangerFeyWandererMistyWandererUsesTotal(
   character: Pick<Character, "className"> &
-    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+    Partial<Pick<Character, "abilities" | "feats" | "level" | "subclassId">>
 ): number {
   if (!hasRangerFeyWandererMistyWandererFeature(character)) {
     return 0;
   }
 
-  return Math.max(1, getAbilityModifierForCharacter(character, "WIS"));
+  return Math.max(1, getRangerFeatAdjustedWisdomModifier(character));
 }
 
 export function getRangerFeyWandererMistyWandererUsesRemaining(
   character: Pick<Character, "className"> &
-    Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "subclassId">>
+    Partial<Pick<Character, "abilities" | "classFeatureState" | "feats" | "level" | "subclassId">>
 ): number {
   const totalUses = getRangerFeyWandererMistyWandererUsesTotal(character);
   const usesExpended = character.classFeatureState?.ranger?.mistyWandererUsesExpended ?? 0;

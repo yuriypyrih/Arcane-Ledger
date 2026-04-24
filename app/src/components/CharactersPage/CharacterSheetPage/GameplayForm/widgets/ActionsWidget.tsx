@@ -258,6 +258,7 @@ import {
 } from "../../../../../pages/CharactersPage/proficiency";
 import { getFeatureDescriptionForCharacter } from "../../../../../pages/CharactersPage/classFeatures/featureDescriptions";
 import { hasActiveWeaponMastery } from "../../../../../pages/CharactersPage/weaponMasteryStatus";
+import { hasAppliedWeaponProficiency } from "../../../../../pages/CharactersPage/weaponProficiencyStatus";
 import {
   CLASS_FEATURE,
   ACTION_TYPE,
@@ -300,6 +301,7 @@ import {
 import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
 import d20Icon from "../../../../../assets/svg/d20.svg";
 import { useAppSelector } from "../../../../../store";
+import { adaptItemWeapon } from "../../../../../utils/items/adaptItemWeapon";
 import styles from "./ActionsWidget.module.css";
 import { getSpellActionPathStates, getSpellActionPathWarning } from "../../spellActionPaths";
 import sharedModalStyles from "./FeatureActionModal.module.css";
@@ -1820,6 +1822,43 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedWeaponEntry,
     selectedWeaponItemRecord
   ]);
+  const selectedWeaponHasProficiency = useMemo(() => {
+    if (!selectedWeaponAction) {
+      return false;
+    }
+
+    if (selectedWeaponItemRecord) {
+      const adaptedWeapon = adaptItemWeapon(selectedWeaponItemRecord);
+
+      if (!adaptedWeapon) {
+        return false;
+      }
+
+      return hasAppliedWeaponProficiency(character.weaponProficiencies, {
+        training: adaptedWeapon.type.training,
+        combatType: adaptedWeapon.type.combat,
+        properties: adaptedWeapon.properties,
+        name: selectedWeaponItemRecord.weapon?.name,
+        key: selectedWeaponItemRecord.weapon?.key
+      });
+    }
+
+    if (selectedWeaponEntry) {
+      return hasAppliedWeaponProficiency(character.weaponProficiencies, {
+        training: selectedWeaponEntry.type.training,
+        combatType: selectedWeaponEntry.type.combat,
+        properties: selectedWeaponEntry.properties,
+        baseWeapon: selectedWeaponEntry.baseWeapon
+      });
+    }
+
+    return false;
+  }, [
+    character.weaponProficiencies,
+    selectedWeaponAction,
+    selectedWeaponEntry,
+    selectedWeaponItemRecord
+  ]);
   const selectedWeaponDetails = useMemo(
     () =>
       selectedWeaponAction
@@ -1828,7 +1867,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             selectedWeaponEntry,
             selectedWeaponItemRecord,
             {
-              hasActiveMastery: selectedWeaponHasActiveMastery
+              hasActiveMastery: selectedWeaponHasActiveMastery,
+              hasWeaponProficiency: selectedWeaponHasProficiency
             }
           )
         : [],
@@ -1836,6 +1876,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedWeaponAction,
       selectedWeaponEntry,
       selectedWeaponHasActiveMastery,
+      selectedWeaponHasProficiency,
       selectedWeaponItemRecord
     ]
   );

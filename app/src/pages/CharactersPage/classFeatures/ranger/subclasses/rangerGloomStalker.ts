@@ -17,7 +17,6 @@ import {
   appendSourcedDescriptionAddition,
   descriptionValueSomeText
 } from "../../../actionModalDescriptions";
-import { getAbilityModifierForCharacter } from "../../../abilities";
 import type { WeaponAction } from "../../../gameplay";
 import { getSavingThrowLevelFromEntries } from "../../../proficiencyResolvers";
 import {
@@ -31,6 +30,7 @@ import type {
   FeatureInitiativeBonus,
   FeatureSavingThrowProficiencyEntry
 } from "../../types";
+import { getRangerFeatAdjustedWisdomModifier } from "../abilityModifiers";
 
 export const gloomStalkerSubclassId = "ranger-gloom-stalker";
 export const rangerGloomStalkerUmbralSightSenseSourceId =
@@ -60,7 +60,12 @@ type RangerGloomStalkerCharacter = Pick<Character, "className"> &
   Partial<
     Pick<
       Character,
-      "abilities" | "classFeatureState" | "level" | "savingThrowProficiencies" | "subclassId"
+      | "abilities"
+      | "classFeatureState"
+      | "feats"
+      | "level"
+      | "savingThrowProficiencies"
+      | "subclassId"
     >
   >;
 
@@ -144,8 +149,10 @@ function isRangerGloomStalker(character: RangerGloomStalkerCharacter): boolean {
   );
 }
 
-function getWisdomModifier(character: Partial<Pick<Character, "abilities">>): number {
-  return getAbilityModifierForCharacter(character, "WIS");
+function getWisdomModifier(
+  character: Partial<Pick<Character, "abilities" | "feats" | "level">>
+): number {
+  return getRangerFeatAdjustedWisdomModifier(character);
 }
 
 function getDreadfulStrikeFormula(character: RangerGloomStalkerCharacter): string {
@@ -364,7 +371,7 @@ function getRangerGloomStalkerIronMindSavingThrowProficiencyEntries(
 
 export function getRangerGloomStalkerDreadAmbusherUsesTotal(
   character: Pick<Character, "className"> &
-    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+    Partial<Pick<Character, "abilities" | "feats" | "level" | "subclassId">>
 ): number {
   return hasRangerGloomStalkerDreadAmbusherFeature(character)
     ? Math.max(1, getWisdomModifier(character))

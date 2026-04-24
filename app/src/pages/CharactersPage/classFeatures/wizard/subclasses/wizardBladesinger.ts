@@ -30,6 +30,7 @@ import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
 import type { WeaponAction } from "../../../gameplay";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import { appendWeaponActionCardBonusLabel } from "../../../weaponActionCardBreakdown";
 import type {
   FeatureActionCard,
   FeatureArmorClassBonus,
@@ -777,21 +778,24 @@ function transformWizardBladesongWeaponAction(
   const nextTotalModifier = intelligenceModifier + damageBonusTotal;
   const rollFormulaBase = stripTrailingModifier(action.rollFormula, action.totalModifier);
 
-  return {
-    ...action,
-    ability: "INT" as const,
-    abilityModifierBaseValue: intelligenceModifierBreakdown.baseValue,
-    abilityModifier: intelligenceModifier,
-    abilityModifierBonusEntries: intelligenceModifierBreakdown.bonusEntries,
-    damageAbility: "INT" as const,
-    damageAbilityModifierBaseValue: intelligenceModifierBreakdown.baseValue,
-    damageAbilityModifier: intelligenceModifier,
-    damageAbilityModifierBonusEntries: intelligenceModifierBreakdown.bonusEntries,
-    totalModifier: nextTotalModifier,
-    rollDisplay: createSignedFormula(action.damageFormula, nextTotalModifier, true),
-    rollFormulaDisplay: createSignedFormula(action.damageFormula, nextTotalModifier, false),
-    rollFormula: createSignedFormula(rollFormulaBase, nextTotalModifier, false)
-  };
+  return appendWeaponActionCardBonusLabel(
+    {
+      ...action,
+      ability: "INT" as const,
+      abilityModifierBaseValue: intelligenceModifierBreakdown.baseValue,
+      abilityModifier: intelligenceModifier,
+      abilityModifierBonusEntries: intelligenceModifierBreakdown.bonusEntries,
+      damageAbility: "INT" as const,
+      damageAbilityModifierBaseValue: intelligenceModifierBreakdown.baseValue,
+      damageAbilityModifier: intelligenceModifier,
+      damageAbilityModifierBonusEntries: intelligenceModifierBreakdown.bonusEntries,
+      totalModifier: nextTotalModifier,
+      rollDisplay: createSignedFormula(action.damageFormula, nextTotalModifier, true),
+      rollFormulaDisplay: createSignedFormula(action.damageFormula, nextTotalModifier, false),
+      rollFormula: createSignedFormula(rollFormulaBase, nextTotalModifier, false)
+    },
+    bladesongName
+  );
 }
 
 export const getWizardBladesingerDerivedFeatureState: SubclassRuntimeResolver = (character) => {

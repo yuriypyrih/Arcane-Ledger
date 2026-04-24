@@ -35,6 +35,7 @@ import {
 } from "../../../../pages/CharactersPage/classFeatures";
 import { getAbilityScoreForCharacter } from "../../../../pages/CharactersPage/abilities";
 import { hasActiveWeaponMastery } from "../../../../pages/CharactersPage/weaponMasteryStatus";
+import { hasAppliedWeaponProficiency } from "../../../../pages/CharactersPage/weaponProficiencyStatus";
 import {
   getKeywordReferences,
   type KeywordReference
@@ -76,6 +77,7 @@ import {
   getInventoryItemCountsByKey,
   getItemTransactionCost,
   getItemWeightValue,
+  getAdaptedItemWeapon,
   groupCharacterInventoryItems,
   isExtractableEquipmentPackRecord,
   isItemBodyArmorRecord,
@@ -651,6 +653,21 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     selectedAdditionalWeaponMasteries.length,
     selectedLoadoutEntryData
   ]);
+  const selectedWeaponHasProficiency = useMemo(() => {
+    if (
+      !selectedLoadoutEntryData ||
+      selectedLoadoutEntryData.category !== ENTRY_CATEGORIES.WEAPONS
+    ) {
+      return false;
+    }
+
+    return hasAppliedWeaponProficiency(character.weaponProficiencies, {
+      training: selectedLoadoutEntryData.type.training,
+      combatType: selectedLoadoutEntryData.type.combat,
+      properties: selectedLoadoutEntryData.properties,
+      baseWeapon: selectedLoadoutEntryData.baseWeapon
+    });
+  }, [character.weaponProficiencies, selectedLoadoutEntryData]);
   const selectedWeaponMasteryKeywords = useMemo(() => {
     if (
       !selectedLoadoutEntryData ||
@@ -751,6 +768,25 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         : false,
     [character.weaponProficiencies, selectedInventoryRecord]
   );
+  const selectedInventoryWeaponHasProficiency = useMemo(() => {
+    if (!selectedInventoryRecord) {
+      return false;
+    }
+
+    const adaptedWeapon = getAdaptedItemWeapon(selectedInventoryRecord);
+
+    if (!adaptedWeapon) {
+      return false;
+    }
+
+    return hasAppliedWeaponProficiency(character.weaponProficiencies, {
+      training: adaptedWeapon.type.training,
+      combatType: adaptedWeapon.type.combat,
+      properties: adaptedWeapon.properties,
+      name: selectedInventoryRecord.weapon?.name,
+      key: selectedInventoryRecord.weapon?.key
+    });
+  }, [character.weaponProficiencies, selectedInventoryRecord]);
   const selectedInventoryCount = selectedInventoryInspection
     ? (inventoryCountsByKey[selectedInventoryInspection.itemKey] ?? 0)
     : 0;
@@ -1993,7 +2029,13 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
                 {selectedLoadoutEntryData.category === ENTRY_CATEGORIES.WEAPONS ? (
                   <>
                     <CellContainer
-                      label="Type"
+                      label={
+                        selectedWeaponHasProficiency ? (
+                          <WeaponMasteryStatusLabel label="Type" status="PROFICIENT" />
+                        ) : (
+                          "Type"
+                        )
+                      }
                       content={`${formatWeaponType(selectedLoadoutEntryData.type)} weapon`}
                     />
                     <CellContainer
@@ -2196,6 +2238,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           headerContent={inventoryDrawerHeaderContent}
           footer={inventoryDrawerFooter}
           weaponMasteryActive={selectedInventoryWeaponHasActiveMastery}
+          weaponProficient={selectedInventoryWeaponHasProficiency}
         />
       ) : null}
 

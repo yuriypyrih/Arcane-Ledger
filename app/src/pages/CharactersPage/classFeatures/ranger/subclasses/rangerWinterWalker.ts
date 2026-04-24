@@ -20,7 +20,6 @@ import {
   createSourcedDescriptionEntries,
   descriptionValueSomeText
 } from "../../../actionModalDescriptions";
-import { getAbilityModifierForCharacter } from "../../../abilities";
 import type { WeaponAction } from "../../../gameplay";
 import {
   createCharacterStatusEntry,
@@ -35,6 +34,7 @@ import {
   type SubclassRuntimeResolver
 } from "../../subclassRuntime";
 import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureDamageBonus } from "../../types";
+import { getRangerFeatAdjustedWisdomModifier } from "../abilityModifiers";
 
 export const winterWalkerSubclassId = "ranger-winter-walker";
 export const rangerWinterWalkerBitingColdStatusSourceId = "feature-ranger-winter-walker-biting-cold";
@@ -65,7 +65,7 @@ const winterWalkerSpellIdsByLevel = {
 } as const;
 
 type RangerWinterWalkerCharacter = Pick<Character, "className"> &
-  Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "subclassId">>;
+  Partial<Pick<Character, "abilities" | "classFeatureState" | "feats" | "level" | "subclassId">>;
 
 type PolarStrikesAction = Pick<WeaponAction, "attackKind">;
 
@@ -163,8 +163,10 @@ function isRangerWinterWalker(character: RangerWinterWalkerCharacter): boolean {
   );
 }
 
-function getWisdomModifier(character: Partial<Pick<Character, "abilities">>): number {
-  return getAbilityModifierForCharacter(character, "WIS");
+function getWisdomModifier(
+  character: Partial<Pick<Character, "abilities" | "feats" | "level">>
+): number {
+  return getRangerFeatAdjustedWisdomModifier(character);
 }
 
 function getFortifyingSoulTargetCount(character: RangerWinterWalkerCharacter): number {
@@ -337,7 +339,7 @@ export function getRangerWinterWalkerFortifyingSoulUsesRemaining(
 
 export function getRangerWinterWalkerChillingRetributionUsesTotal(
   character: Pick<Character, "className"> &
-    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+    Partial<Pick<Character, "abilities" | "feats" | "level" | "subclassId">>
 ): number {
   return hasRangerWinterWalkerChillingRetributionFeature(character)
     ? Math.max(1, getWisdomModifier(character))

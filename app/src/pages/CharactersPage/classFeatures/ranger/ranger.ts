@@ -29,7 +29,6 @@ import {
   languageEntries
 } from "../../../../types";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
-import { getAbilityModifierForCharacter } from "../../abilities";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../statusEntries";
 import type {
   DerivedFeatureStatusEntry,
@@ -43,6 +42,7 @@ import type {
   SpeedFeatureContext
 } from "../types";
 import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
+import { getRangerFeatAdjustedWisdomModifier } from "./abilityModifiers";
 import * as feyWandererSubclass from "./subclasses/rangerFeyWanderer";
 import * as gloomStalkerSubclass from "./subclasses/rangerGloomStalker";
 import * as hunterSubclass from "./subclasses/rangerHunter";
@@ -229,7 +229,7 @@ function createRangerExpertiseEntry(
 
 function getRangerFeatureState(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "abilities" | "subclassId">>
+    Partial<Pick<Character, "abilities" | "feats" | "subclassId">>
 ): CharacterRangerFeatureState {
   return normalizeRangerFeatureState(character.classFeatureState?.ranger, character);
 }
@@ -237,7 +237,7 @@ function getRangerFeatureState(
 export function normalizeRangerFeatureState(
   value: unknown,
   character: Pick<Character, "className" | "level"> &
-    Partial<Pick<Character, "abilities" | "savingThrowProficiencies" | "subclassId">>
+    Partial<Pick<Character, "abilities" | "feats" | "savingThrowProficiencies" | "subclassId">>
 ): CharacterRangerFeatureState {
   const hasFavoredEnemy = hasRangerFeature(character, CLASS_FEATURE.FAVORED_ENEMY);
   const hasTireless = hasRangerFeature(character, CLASS_FEATURE.TIRELESS);
@@ -547,7 +547,7 @@ export function getRangerDerivedStatusEntries(
 
 export function getRangerFeatureActions(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "abilities">>
+    Partial<Pick<Character, "abilities" | "feats">>
 ): FeatureActionCard[] {
   const actions: FeatureActionCard[] = [];
 
@@ -739,7 +739,7 @@ export function getRangerFavoredEnemyUsesTotal(
 
 export function getRangerFavoredEnemyUsesRemaining(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "abilities">>
+    Partial<Pick<Character, "abilities" | "feats">>
 ): number {
   const totalUses = getRangerFavoredEnemyUsesTotal(character);
   const usesExpended =
@@ -749,12 +749,15 @@ export function getRangerFavoredEnemyUsesRemaining(
   return Math.max(0, totalUses - usesExpended);
 }
 
-function getRangerTirelessWisdomModifier(character: Partial<Pick<Character, "abilities">>): number {
-  return getAbilityModifierForCharacter(character, "WIS");
+function getRangerTirelessWisdomModifier(
+  character: Partial<Pick<Character, "abilities" | "feats" | "level">>
+): number {
+  return getRangerFeatAdjustedWisdomModifier(character);
 }
 
 export function getRangerTirelessUsesTotal(
-  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "abilities">>
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "abilities" | "feats">>
 ): number {
   if (!hasRangerFeature(character, CLASS_FEATURE.TIRELESS)) {
     return 0;
@@ -764,7 +767,8 @@ export function getRangerTirelessUsesTotal(
 }
 
 export function getRangerNaturesVeilUsesTotal(
-  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "abilities">>
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "abilities" | "feats">>
 ): number {
   if (!hasRangerFeature(character, CLASS_FEATURE.NATURES_VEIL)) {
     return 0;
@@ -781,7 +785,7 @@ export function getRangerWinterWalkerFortifyingSoulUsesTotal(
 
 export function getRangerWinterWalkerChillingRetributionUsesTotal(
   character: Pick<Character, "className" | "level"> &
-    Partial<Pick<Character, "abilities" | "subclassId">>
+    Partial<Pick<Character, "abilities" | "feats" | "subclassId">>
 ): number {
   return winterWalkerSubclass.getRangerWinterWalkerChillingRetributionUsesTotal(character);
 }
@@ -793,7 +797,7 @@ export function getRangerWinterWalkerFrozenHauntUsesTotal(
 }
 
 export function getRangerTirelessTemporaryHitPointsFormula(
-  character: Partial<Pick<Character, "abilities">>
+  character: Partial<Pick<Character, "abilities" | "feats" | "level">>
 ): string {
   const wisdomModifier = getRangerTirelessWisdomModifier(character);
 
@@ -915,28 +919,28 @@ export function getRangerFeyReinforcementsUsesRemaining(
 
 export function getRangerMistyWandererUsesTotal(
   character: Pick<Character, "className" | "level"> &
-    Partial<Pick<Character, "abilities" | "subclassId">>
+    Partial<Pick<Character, "abilities" | "feats" | "subclassId">>
 ): number {
   return feyWandererSubclass.getRangerFeyWandererMistyWandererUsesTotal(character);
 }
 
 export function getRangerMistyWandererUsesRemaining(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "abilities" | "subclassId">>
+    Partial<Pick<Character, "abilities" | "feats" | "subclassId">>
 ): number {
   return feyWandererSubclass.getRangerFeyWandererMistyWandererUsesRemaining(character);
 }
 
 export function getRangerGloomStalkerDreadAmbusherUsesTotal(
   character: Pick<Character, "className" | "level"> &
-    Partial<Pick<Character, "abilities" | "subclassId">>
+    Partial<Pick<Character, "abilities" | "feats" | "subclassId">>
 ): number {
   return gloomStalkerSubclass.getRangerGloomStalkerDreadAmbusherUsesTotal(character);
 }
 
 export function getRangerGloomStalkerDreadAmbusherUsesRemaining(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
-    Partial<Pick<Character, "abilities" | "subclassId">>
+    Partial<Pick<Character, "abilities" | "feats" | "subclassId">>
 ): number {
   return gloomStalkerSubclass.getRangerGloomStalkerDreadAmbusherUsesRemaining(character);
 }
