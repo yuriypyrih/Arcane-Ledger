@@ -64,6 +64,7 @@ import {
   consumeBarbarianWarriorOfTheGodsChargesForCharacter,
   convertSpellSlotToSorceryPointsForCharacter,
   consumeNonMagicActionForCharacter,
+  consumeSharedEconomyMultiForCharacterAction,
   consumeWeaponAttackActionForCharacter,
   createEconomyMultiContextForFeatureAction,
   createEconomyMultiContextForFeatureActionOption,
@@ -183,7 +184,10 @@ import {
   paladinOathOfTheNobleGeniesElementalSmiteOptions,
   type PaladinOathOfTheNobleGeniesElementalSmiteOptionKey
 } from "../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
-import { getRangerTirelessTemporaryHitPointsFormula } from "../../../../../pages/CharactersPage/classFeatures/ranger/ranger";
+import {
+  getRangerTirelessTemporaryHitPointsFormula,
+  tirelessActionKey
+} from "../../../../../pages/CharactersPage/classFeatures/ranger/ranger";
 import { getRangerGloomStalkerDreadAmbusherOptionState } from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerGloomStalker";
 import { getRangerWinterWalkerPolarStrikesOptionState } from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerWinterWalker";
 import {
@@ -5790,6 +5794,27 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           helperText={selectedHandOfHealingFlurryOfHealingAndHarmHelperText ?? undefined}
           isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
           onConfirmPath={executeMonkHandOfHealingPath}
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
+      selectedAction.action.key === tirelessActionKey
+    ) {
+      return (
+        <ElementalBurstActionFooter
+          actionName={selectedAction.action.name}
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onConfirm={() => executeFeatureActivate(selectedAction.action)}
           onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
         />
       );

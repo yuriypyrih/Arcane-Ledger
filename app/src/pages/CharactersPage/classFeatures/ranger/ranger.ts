@@ -29,10 +29,12 @@ import {
   languageEntries
 } from "../../../../types";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
+import { parseRollFormulaRange } from "../../actionOutcome";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../statusEntries";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
+  FeatureActionFact,
   FeatureInitiativeBonus,
   FeatureLanguageProficiencyEntry,
   FeatureSkillBonus,
@@ -558,6 +560,7 @@ export function getRangerFeatureActions(
     actions.push({
       key: favoredEnemyActionKey,
       name: "Favored Enemy",
+      sourceFeature: CLASS_FEATURE.FAVORED_ENEMY,
       summary: "Cast Hunter's Mark without a spell slot.",
       detail: "Open Hunter's Mark and cast it using your Favored Enemy charge.",
       breakdown: "Free Hunter's Mark",
@@ -596,6 +599,7 @@ export function getRangerFeatureActions(
     actions.push({
       key: tirelessActionKey,
       name: "Tireless",
+      sourceFeature: CLASS_FEATURE.TIRELESS,
       summary: `${minimumTemporaryHitPoints}~${maximumTemporaryHitPoints} Temp HP`,
       detail:
         "Use a Magic action to gain Temporary Hit Points equal to 1d8 plus your Wisdom modifier, minimum of 1.",
@@ -603,6 +607,7 @@ export function getRangerFeatureActions(
       actionCategory: ACTION_CATEGORY.MAGIC,
       usesRemaining,
       usesTotal: totalUses,
+      facts: getRangerTirelessTemporaryHitPointsFacts(character),
       drawer: {
         kind: "confirm",
         eyebrow: "Ranger"
@@ -623,6 +628,7 @@ export function getRangerFeatureActions(
     actions.push({
       key: naturesVeilActionKey,
       name: "Nature's Veil",
+      sourceFeature: CLASS_FEATURE.NATURES_VEIL,
       summary: "Invisible for 2 turns",
       detail: "Use a Bonus Action to gain the Invisible condition for 2 turns.",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
@@ -806,6 +812,37 @@ export function getRangerTirelessTemporaryHitPointsFormula(
   }
 
   return `1d8${wisdomModifier >= 0 ? "+" : ""}${wisdomModifier}`;
+}
+
+function getRangerTirelessTemporaryHitPointsFacts(
+  character: Partial<Pick<Character, "abilities" | "feats" | "level">>
+): FeatureActionFact[] {
+  const formula = getRangerTirelessTemporaryHitPointsFormula(character);
+  const parsedRange = parseRollFormulaRange(formula);
+
+  if (!parsedRange) {
+    return [
+      {
+        label: "Temporary Hit Points Formula",
+        value: formula,
+        fullWidth: true
+      }
+    ];
+  }
+
+  const minimum = Math.max(1, parsedRange.minimum);
+  const maximum = Math.max(1, parsedRange.maximum);
+  const rangeLabel =
+    minimum === maximum ? `${minimum} Temp HP` : `${minimum}~${maximum} Temp HP`;
+  const minimumLabel = parsedRange.minimum < 1 ? " (min 1)" : "";
+
+  return [
+    {
+      label: "Temporary Hit Points Formula",
+      value: `${rangeLabel} = ${formula}${minimumLabel}`,
+      fullWidth: true
+    }
+  ];
 }
 
 export function getRangerSpellDamageFormula(
@@ -1526,6 +1563,18 @@ export function getRangerSpeedBonuses(
     {
       label: rangerRovingSpeedBonusLabel,
       value: rangerRovingSpeedBonusValue
+    },
+    {
+      label: rangerRovingSpeedBonusLabel,
+      movementType: "climb",
+      value: 0,
+      setBaseFromWalkMultiplier: 1
+    },
+    {
+      label: rangerRovingSpeedBonusLabel,
+      movementType: "swim",
+      value: 0,
+      setBaseFromWalkMultiplier: 1
     }
   ];
 }

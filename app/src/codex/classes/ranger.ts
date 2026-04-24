@@ -240,8 +240,8 @@ export const rangerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
   [CLASS_FEATURE.TIRELESS]: {
     description: [
       "Primal forces now help fuel you on your journeys, granting you the following benefits.",
-      "<strong><link:Temporary Hit Points>Temporary Hit Points</link>.</strong> As a Magic action, you can give yourself a number of <link:Temporary Hit Points>Temporary Hit Points</link> equal to <strong>1d8</strong> plus your <link:WIS>Wisdom</link> modifier, minimum of 1. You can use this action a number of times equal to your <link:WIS>Wisdom</link> modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
-      "<strong>Decrease <link:Exhaustion>Exhaustion</link>.</strong> Whenever you finish a <link:short-rest>Short Rest</link>, your <link:Exhaustion>Exhaustion</link> level, if any, decreases by 1."
+      "<strong>Temporary Hit Points.</strong> As a Magic action, you can give yourself a number of <link:Temporary Hit Points>Temporary Hit Points</link> equal to <strong>1d8</strong> plus your <link:WIS>Wisdom</link> modifier, minimum of 1. You can use this action a number of times equal to your <link:WIS>Wisdom</link> modifier, minimum of once, and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>.",
+      "<strong>Decrease Exhaustion.</strong> Whenever you finish a <link:short-rest>Short Rest</link>, your <link:Exhaustion>Exhaustion</link> level, if any, decreases by 1."
     ],
     trackingState: TRACKER.TRACKED
   },
