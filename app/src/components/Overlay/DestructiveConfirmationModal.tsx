@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import ActionButton from "../ActionButton";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -48,12 +49,12 @@ function DestructiveConfirmationModal({
 
       <OverlayFooter>
         <div className={styles.footerActions}>
-          <button type="button" className={styles.cancelButton} onClick={onCancel}>
+          <ActionButton variant="GHOST" onClick={onCancel}>
             {cancelLabel}
-          </button>
-          <button type="button" className={styles.confirmButton} onClick={onConfirm}>
+          </ActionButton>
+          <ActionButton actionType="ERROR" onClick={onConfirm}>
             {confirmLabel}
-          </button>
+          </ActionButton>
         </div>
       </OverlayFooter>
     </SheetModal>

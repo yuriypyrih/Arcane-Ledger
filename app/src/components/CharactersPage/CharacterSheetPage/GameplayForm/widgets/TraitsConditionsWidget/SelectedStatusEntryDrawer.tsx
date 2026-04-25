@@ -1,3 +1,4 @@
+import ActionButton from "../../../../../ActionButton";
 import CellContainer from "../../../../../CellContainer/CellContainer";
 import type { DAMAGE_TYPE, ReactionEntry, SpellEntry } from "../../../../../../codex/entries";
 import { consumeRoundTrackerResourceForCharacter } from "../../gameplayStateUtils";
@@ -193,9 +194,9 @@ function SelectedStatusEntryDrawer({
         contentSurface="plain"
         showHeaderDivider
         footer={
-          <button type="button" className={shared.cancelButton} onClick={endSelectedWildShape}>
+          <ActionButton actionType="ERROR" variant="GHOST" onClick={endSelectedWildShape}>
             End Wild Shape
-          </button>
+          </ActionButton>
         }
       />
     );

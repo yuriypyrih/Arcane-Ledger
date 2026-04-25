@@ -1,0 +1,128 @@
+.button {
+  --action-button-fill-background: linear-gradient(135deg, #2f6de0, #4a8eff);
+  --action-button-fill-color: #f7fbff;
+  --action-button-outline-border: rgba(47, 109, 224, 0.46);
+  --action-button-outline-background: rgba(47, 109, 224, 0.08);
+  --action-button-outline-color: #2558b8;
+  --action-button-ghost-background: rgba(47, 109, 224, 0.1);
+  --action-button-ghost-color: #2558b8;
+  --action-button-focus: rgba(47, 109, 224, 0.45);
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-weight: 700;
+  justify-content: center;
+  min-height: 44px;
+  min-width: 0;
+  padding: 0 1.26rem;
+  text-align: center;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    box-shadow 140ms ease,
+    color 140ms ease,
+    filter 140ms ease,
+    opacity 140ms ease;
+}
+
+.typeSUCCESS {
+  --action-button-fill-background: linear-gradient(135deg, #287448, #3aa869);
+  --action-button-fill-color: #f6fff9;
+  --action-button-outline-border: rgba(40, 116, 72, 0.44);
+  --action-button-outline-background: rgba(40, 116, 72, 0.08);
+  --action-button-outline-color: #28693f;
+  --action-button-ghost-background: rgba(40, 116, 72, 0.1);
+  --action-button-ghost-color: #28693f;
+  --action-button-focus: rgba(40, 116, 72, 0.45);
+}
+
+.typeWARNING {
+  --action-button-fill-background: linear-gradient(135deg, #b75d14, #ee9432);
+  --action-button-fill-color: #fffaf3;
+  --action-button-outline-border: rgba(183, 93, 20, 0.42);
+  --action-button-outline-background: rgba(183, 93, 20, 0.09);
+  --action-button-outline-color: #8c4d14;
+  --action-button-ghost-background: rgba(183, 93, 20, 0.11);
+  --action-button-ghost-color: #8c4d14;
+  --action-button-focus: rgba(183, 93, 20, 0.42);
+}
+
+.typeERROR {
+  --action-button-fill-background: linear-gradient(135deg, #8f3428, #c84636);
+  --action-button-fill-color: #fffaf4;
+  --action-button-outline-border: rgba(143, 52, 40, 0.36);
+  --action-button-outline-background: rgba(143, 52, 40, 0.08);
+  --action-button-outline-color: #8f3428;
+  --action-button-ghost-background: rgba(197, 57, 43, 0.14);
+  --action-button-ghost-color: #8a2519;
+  --action-button-focus: rgba(143, 52, 40, 0.42);
+}
+
+.variantFILL {
+  background: var(--action-button-fill-background);
+  color: var(--action-button-fill-color);
+}
+
+.variantOUTLINE {
+  background: var(--action-button-outline-background);
+  border-color: var(--action-button-outline-border);
+  color: var(--action-button-outline-color);
+}
+
+.variantGHOST {
+  background: var(--action-button-ghost-background);
+  color: var(--action-button-ghost-color);
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.autoWidth {
+  width: auto;
+}
+
+.iconOnly {
+  aspect-ratio: 1;
+  flex: 0 0 auto;
+  min-width: 48px;
+  padding: 0;
+}
+
+.content {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.5rem;
+  justify-content: center;
+  min-width: 0;
+}
+
+.label {
+  min-width: 0;
+}
+
+.icon,
+.trailingBadge {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  justify-content: center;
+}
+
+.button svg {
+  flex: 0 0 auto;
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  filter: saturate(0.5);
+  opacity: 0.52;
+}
+
+.button:focus-visible {
+  box-shadow: 0 0 0 3px var(--action-button-focus);
+  outline: none;
+}

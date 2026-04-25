@@ -181,6 +181,7 @@ import {
 } from "../../../../pages/CharactersPage/spellOutcome";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import ActionButton from "../../../ActionButton";
 import { getActionShapeForEconomyType } from "../GameplayForm/gameplayWidgetUtils";
 import gameplayActionStyles from "../GameplayForm/widgets/GameplayActionDrawer.module.css";
 import { getSpellActionPathStates, getSpellActionPathWarning } from "../spellActionPaths";
@@ -3831,26 +3832,25 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                   </div>
                 ) : null}
               </div>
-              <button
-                type="button"
-                className={clsx(sheetStyles.castButton, styles.divinityDrawerActionButton)}
+              <ActionButton
+                className={styles.divinityDrawerActionButton}
                 onClick={channelSelectedDivinity}
                 disabled={
                   channelDivinityUsesRemaining <= 0 || selectedDivinityActionWarning !== null
                 }
-              >
-                <span className={styles.divinityDrawerActionButtonContent}>
-                  <span>Use Channel Divinity</span>
-                  {selectedDivinityActionShape ? (
+                trailingBadge={
+                  selectedDivinityActionShape ? (
                     <ActionShape
                       shape={selectedDivinityActionShape}
                       isSelected={selectedDivinityActionShapeState?.isSelected ?? true}
                       multiCount={selectedDivinityActionShapeState?.multiCount ?? 0}
                       className={styles.divinityDrawerActionButtonShape}
                     />
-                  ) : null}
-                </span>
-              </button>
+                  ) : null
+                }
+              >
+                Use Channel Divinity
+              </ActionButton>
             </div>
           </section>
         </div>

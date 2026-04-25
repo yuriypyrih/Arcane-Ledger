@@ -1,4 +1,4 @@
-import clsx from "clsx";
+import ActionButton from "../../../ActionButton";
 import d20Icon from "../../../../assets/svg/d20.svg";
 import DescriptionContent from "../../../DescriptionContent/DescriptionContent";
 import CellContainer from "../../../CellContainer/CellContainer";
@@ -22,7 +22,6 @@ import {
   overlayClassNames
 } from "../../../Overlay";
 import type { FeatureIndicator } from "../../../../pages/CharactersPage/classFeatures";
-import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import styles from "./SkillReferenceDrawer.module.css";
 
 export type SkillReferenceDetailCard = {
@@ -96,17 +95,16 @@ function SkillReferenceDrawer({ reference, rollAction, onClose }: SkillReference
       {rollAction ? (
         <OverlayFooter className={styles.footer}>
           <div className={styles.footerActions}>
-            <button
-              type="button"
-              className={clsx(sheetStyles.castButton, styles.rollButton)}
+            <ActionButton
+              className={styles.rollButton}
               onClick={rollAction.onRoll}
+              icon={<img src={d20Icon} alt="" className={styles.rollButtonIcon} />}
             >
-              <img src={d20Icon} alt="" className={styles.rollButtonIcon} />
-              <span>Roll</span>
-            </button>
+              Roll
+            </ActionButton>
             <DiceRollerSettingsButton
               actionName={reference.name}
-              className={clsx(sheetStyles.castButton, styles.settingsButton)}
+              className={styles.settingsButton}
               isOpen={rollAction.isDiceRollerSettingsOpen}
               onOpenChange={rollAction.onDiceRollerSettingsOpenChange}
             />

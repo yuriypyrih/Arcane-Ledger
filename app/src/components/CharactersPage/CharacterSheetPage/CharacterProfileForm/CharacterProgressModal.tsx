@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useEffect, useState } from "react";
+import ActionButton from "../../../ActionButton";
 import CellContainer from "../../../CellContainer/CellContainer";
 import NumberInput from "../../FormInputs/NumberInput";
 import {
@@ -367,17 +368,12 @@ function CharacterProgressModal({
       </OverlayBody>
 
       <OverlayFooter className={styles.footer}>
-        <button type="button" className={shared.cancelButton} onClick={closeModal}>
+        <ActionButton variant="GHOST" onClick={closeModal}>
           Cancel
-        </button>
-        <button
-          type="button"
-          className={shared.saveButton}
-          onClick={saveChanges}
-          disabled={saveDisabled}
-        >
+        </ActionButton>
+        <ActionButton onClick={saveChanges} disabled={saveDisabled}>
           Save
-        </button>
+        </ActionButton>
       </OverlayFooter>
     </SheetModal>
   );

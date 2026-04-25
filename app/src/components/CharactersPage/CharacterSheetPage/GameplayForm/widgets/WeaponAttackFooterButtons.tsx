@@ -1,7 +1,6 @@
-import clsx from "clsx";
+import ActionButton from "../../../../ActionButton";
 import ActionShape from "../../../../ActionShape";
 import type { EconomyType } from "../../../../../pages/CharactersPage/actionEconomy";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import d20Icon from "../../../../../assets/svg/d20.svg";
 import { getActionShapeForEconomyType } from "../gameplayWidgetUtils";
 import type { WeaponAttackPathState } from "./weaponActionEconomy";
@@ -38,17 +37,14 @@ function WeaponAttackFooterButtons({
         }
 
         return (
-          <button
+          <ActionButton
             key={`${actionName}-${pathState.id}`}
-            type="button"
-            className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
+            className={styles.weaponFooterButton}
             onClick={() => onAttack(pathState.economyType)}
             disabled={disabledReason !== null}
             title={disabledReason ?? undefined}
-          >
-            <span className={styles.centeredFooterButtonContent}>
-              <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
-              <span>Attack</span>
+            icon={<img src={d20Icon} alt="" className={styles.weaponFooterIcon} />}
+            trailingBadge={
               <span className={styles.footerActionShapeGroup}>
                 <ActionShape
                   shape={actionShape}
@@ -61,21 +57,22 @@ function WeaponAttackFooterButtons({
                   <span className={styles.footerActionCount}>{`x${pathState.totalUseCount}`}</span>
                 ) : null}
               </span>
-            </span>
-          </button>
+            }
+          >
+            Attack
+          </ActionButton>
         );
       })}
-      <button
-        type="button"
-        className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
+      <ActionButton
+        className={styles.weaponFooterButton}
         onClick={onDamage}
+        icon={<img src={d20Icon} alt="" className={styles.weaponFooterIcon} />}
       >
-        <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
-        <span>Damage</span>
-      </button>
+        Damage
+      </ActionButton>
       <DiceRollerSettingsButton
         actionName={actionName}
-        className={clsx(sheetStyles.castButton, styles.weaponFooterIconButton)}
+        className={styles.weaponFooterIconButton}
         isOpen={isDiceRollerSettingsOpen}
         aria-label="Open dice roller settings"
         onOpenChange={onDiceRollerSettingsOpenChange}

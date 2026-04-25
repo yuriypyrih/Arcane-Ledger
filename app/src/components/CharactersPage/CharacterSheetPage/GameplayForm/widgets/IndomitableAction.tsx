@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import ActionButton from "../../../../ActionButton";
 import ActionShape, { type ActionShapeType } from "../../../../ActionShape";
 import CellContainer from "../../../../CellContainer/CellContainer";
 import d20Icon from "../../../../../assets/svg/d20.svg";
@@ -90,28 +91,27 @@ export function IndomitableActionFooter({
 }: IndomitableActionFooterProps) {
   return (
     <div className={actionStyles.weaponFooterActions}>
-      <button
-        type="button"
-        className={clsx(sheetStyles.castButton, actionStyles.weaponFooterButton)}
+      <ActionButton
+        className={actionStyles.weaponFooterButton}
         onClick={onConfirm}
         disabled={disabled}
-      >
-        <span className={actionStyles.centeredFooterButtonContent}>
-          <img src={d20Icon} alt="" className={actionStyles.weaponFooterIcon} />
-          <span>{confirmLabel}</span>
-          {actionShape ? (
+        icon={<img src={d20Icon} alt="" className={actionStyles.weaponFooterIcon} />}
+        trailingBadge={
+          actionShape ? (
             <ActionShape
               shape={actionShape}
               isSelected={actionShapeAvailable}
               multiCount={actionShapeMultiCount}
               className={styles.footerActionShape}
             />
-          ) : null}
-        </span>
-      </button>
+          ) : null
+        }
+      >
+        {confirmLabel}
+      </ActionButton>
       <DiceRollerSettingsButton
         actionName={actionName}
-        className={clsx(sheetStyles.castButton, actionStyles.weaponFooterIconButton)}
+        className={actionStyles.weaponFooterIconButton}
         isOpen={isDiceRollerSettingsOpen}
         ariaLabel="Open dice roller settings"
         onOpenChange={onDiceRollerSettingsOpenChange}

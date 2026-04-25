@@ -1,6 +1,5 @@
-import clsx from "clsx";
+import ActionButton from "../../../ActionButton";
 import d20Icon from "../../../../assets/svg/d20.svg";
-import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import {
   createChargesCardUsage,
   createFeatureActionCardCost,
@@ -98,17 +97,16 @@ function InitiativeReferenceFooter({
         ) : null}
       </div>
       <div className={styles.initiativeActionButtons}>
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.initiativeRollButton)}
+        <ActionButton
+          className={styles.initiativeRollButton}
           onClick={onRollInitiative}
+          icon={<img src={d20Icon} alt="" className={styles.initiativeRollIcon} />}
         >
-          <img src={d20Icon} alt="" className={styles.initiativeRollIcon} />
-          <span>Roll Initiative</span>
-        </button>
+          Roll Initiative
+        </ActionButton>
         <DiceRollerSettingsButton
           actionName="Initiative"
-          className={clsx(sheetStyles.castButton, styles.initiativeSettingsButton)}
+          className={styles.initiativeSettingsButton}
           isOpen={isDiceRollerSettingsOpen}
           onOpenChange={onDiceRollerSettingsOpenChange}
         />

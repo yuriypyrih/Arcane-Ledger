@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { Cog } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import ActionButton from "../../../../ActionButton";
 import { useAppSelector } from "../../../../../store";
 import DiceRollerSettingsModal from "./DiceRollerSettingsModal";
 import styles from "./DiceRollerSettingsButton.module.css";
@@ -42,8 +43,7 @@ function DiceRollerSettingsButton({
 
   return (
     <>
-      <button
-        type="button"
+      <ActionButton
         className={clsx(
           styles.button,
           className,
@@ -54,9 +54,12 @@ function DiceRollerSettingsButton({
         )}
         onClick={() => setModalOpen(true)}
         aria-label={ariaLabel}
+        icon={children ? undefined : <Cog size={iconSize} />}
+        iconOnly={!children}
+        fullWidth={Boolean(children)}
       >
-        {children ?? <Cog size={iconSize} />}
-      </button>
+        {children}
+      </ActionButton>
       {isModalOpen ? (
         <DiceRollerSettingsModal actionName={actionName} onClose={() => setModalOpen(false)} />
       ) : null}

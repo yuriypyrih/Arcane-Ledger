@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { Plus } from "lucide-react";
+import ActionButton from "../../../../../ActionButton";
 import SelectInput from "../../../../FormInputs/SelectInput";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import { isExhaustionConditionOptionValue } from "../../../../../../pages/CharactersPage/traits";
@@ -13,7 +14,6 @@ import {
   OverlayTitleRow,
   SheetModal
 } from "../../../../../Overlay";
-import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import CustomTraitBuilder from "./CustomTraitBuilder";
 import ManualStatusDurationFields from "./ManualStatusDurationFields";
 import type { CustomTraitDraft, CustomTraitMode } from "./customTraitDraft";
@@ -162,15 +162,14 @@ function TraitEditorModal({
       </OverlayBody>
 
       <OverlayFooter className={styles.footer}>
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.createButton)}
+        <ActionButton
+          className={styles.createButton}
           onClick={onCreate}
           disabled={createDisabled}
+          icon={<Plus size={18} aria-hidden="true" />}
         >
-          <Plus size={18} aria-hidden="true" />
-          <span>Create</span>
-        </button>
+          Create
+        </ActionButton>
       </OverlayFooter>
     </SheetModal>
   );

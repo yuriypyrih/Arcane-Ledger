@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { Moon, X } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
+import ActionButton from "../../../../ActionButton";
 import type { Character } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { clampNumber } from "../../../../../pages/CharactersPage/CharacterSheetPage/utils";
@@ -286,12 +287,12 @@ function CampButton({ character, onPersistCharacter }: CampButtonProps) {
                   ))}
                 </div>
                 <div className={sheetStyles.restPopupActions}>
-                  <button type="button" className={sheetStyles.cancelButton} onClick={closePopup}>
+                  <ActionButton variant="GHOST" onClick={closePopup}>
                     Cancel
-                  </button>
-                  <button type="button" className={sheetStyles.castButton} onClick={confirmRest}>
+                  </ActionButton>
+                  <ActionButton onClick={confirmRest}>
                     Rest
-                  </button>
+                  </ActionButton>
                 </div>
               </div>
             ) : null}

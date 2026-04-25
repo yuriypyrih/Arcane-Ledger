@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { Check, Clock3, Minus, Plus, Trash2, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
+import ActionButton from "../../../../../ActionButton";
 import type { DivinityEntry, SpellEntry } from "../../../../../../codex/entries";
 import CellContainer from "../../../../../../components/CellContainer/CellContainer";
 import ConcentrationLabel from "../../../../../../components/ConcentrationLabel";
@@ -276,22 +277,16 @@ function StatusEntryDrawer({
                   const Icon = action.icon;
 
                   return (
-                    <button
+                    <ActionButton
                       key={action.label}
-                      type="button"
-                      className={clsx(
-                        styles.footerActionButton,
-                        action.tone === "danger"
-                          ? styles.footerActionButtonDanger
-                          : action.tone === "neutral"
-                            ? styles.footerActionButtonNeutral
-                            : sheetStyles.castButton
-                      )}
+                      className={styles.footerActionButton}
+                      actionType={action.tone === "danger" ? "ERROR" : "INFO"}
+                      variant={action.tone === "neutral" || action.tone === "danger" ? "GHOST" : "FILL"}
                       onClick={action.onClick}
+                      icon={<Icon size={16} aria-hidden="true" />}
                     >
-                      <Icon size={16} aria-hidden="true" />
-                      <span>{action.label}</span>
-                    </button>
+                      {action.label}
+                    </ActionButton>
                   );
                 })}
               </div>

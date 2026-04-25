@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { useState } from "react";
+import ActionButton from "../../../../ActionButton";
 import CellContainer from "../../../../CellContainer/CellContainer";
 import type { Character, CharacterWizardPortentRoll } from "../../../../../types";
 import { getWizardDivinerPortentRolls } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerPortent";
@@ -106,9 +107,7 @@ function PortentActionBody({ character, onSubmit }: PortentActionBodyProps) {
       </p>
 
       <div className={shared.formActions}>
-        <button
-          type="button"
-          className={shared.saveButton}
+        <ActionButton
           onClick={() =>
             onSubmit(
               draftRolls.map((draftRoll) => ({
@@ -119,7 +118,7 @@ function PortentActionBody({ character, onSubmit }: PortentActionBodyProps) {
           }
         >
           Save Portent
-        </button>
+        </ActionButton>
       </div>
     </>
   );

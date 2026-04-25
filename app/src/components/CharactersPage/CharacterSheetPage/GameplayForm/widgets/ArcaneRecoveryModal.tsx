@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { Minus, Plus, X } from "lucide-react";
 import { useMemo, useState } from "react";
+import ActionButton from "../../../../ActionButton";
 import CellContainer from "../../../../CellContainer/CellContainer";
 import type { Character } from "../../../../../types";
 import type { FeatureActionCard } from "../../../../../pages/CharactersPage/classFeatures";
@@ -173,14 +174,12 @@ function ArcaneRecoveryModal({ action, character, onRecover, onClose }: ArcaneRe
         )}
 
         <div className={sharedModalStyles.featureActionModalFooter}>
-          <button
-            type="button"
-            className={sheetStyles.castButton}
+          <ActionButton
             disabled={selectedLevelTotal <= 0}
             onClick={() => onRecover(selection)}
           >
             Recover Spell Slots
-          </button>
+          </ActionButton>
         </div>
       </section>
     </div>

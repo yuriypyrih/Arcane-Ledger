@@ -308,6 +308,7 @@ import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
 import d20Icon from "../../../../../assets/svg/d20.svg";
 import { useAppSelector } from "../../../../../store";
 import { adaptItemWeapon } from "../../../../../utils/items/adaptItemWeapon";
+import ActionButton from "../../../../ActionButton";
 import styles from "./ActionsWidget.module.css";
 import { getSpellActionPathStates, getSpellActionPathWarning } from "../../spellActionPaths";
 import sharedModalStyles from "./FeatureActionModal.module.css";
@@ -803,14 +804,12 @@ function ArcaneRecoveryActionBody({
       )}
 
       <div className={shared.formActions}>
-        <button
-          type="button"
-          className={sheetStyles.castButton}
+        <ActionButton
           disabled={selectedLevelTotal <= 0}
           onClick={() => onRecover(selection)}
         >
           Recover Spell Slots
-        </button>
+        </ActionButton>
       </div>
     </>
   );
@@ -5942,28 +5941,27 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
       return (
         <div className={styles.weaponFooterActions}>
-          <button
-            type="button"
-            className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
+          <ActionButton
+            className={styles.weaponFooterButton}
             onClick={() => executeFeatureActivate(selectedAction.action)}
             disabled={selectedFeatureActionPrimaryDisabledReason !== null}
-          >
-            <span className={styles.centeredFooterButtonContent}>
-              <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
-              <span>{selectedFeaturePrimaryLabel}</span>
-              {actionShape ? (
+            icon={<img src={d20Icon} alt="" className={styles.weaponFooterIcon} />}
+            trailingBadge={
+              actionShape ? (
                 <ActionShape
                   shape={actionShape}
                   isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
                   multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
                   className={styles.footerActionShape}
                 />
-              ) : null}
-            </span>
-          </button>
+              ) : null
+            }
+          >
+            {selectedFeaturePrimaryLabel}
+          </ActionButton>
           <DiceRollerSettingsButton
             actionName={selectedAction.action.name}
-            className={clsx(sheetStyles.castButton, styles.weaponFooterIconButton)}
+            className={styles.weaponFooterIconButton}
             isOpen={isDiceRollerSettingsOpen}
             aria-label="Open dice roller settings"
             onOpenChange={setIsDiceRollerSettingsOpen}
@@ -6178,22 +6176,23 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               usageKey="improved-shadow-step"
             />
           ) : null}
-          <button
-            type="button"
-            className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+          <ActionButton
+            className={styles.footerActionButton}
             onClick={() => executeFeatureActivate(selectedAction.action)}
             disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+            trailingBadge={
+              actionShape ? (
+                <ActionShape
+                  shape={actionShape}
+                  isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+                  multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+                  className={styles.footerActionShape}
+                />
+              ) : null
+            }
           >
-            <span>{selectedFeaturePrimaryLabel}</span>
-            {actionShape ? (
-              <ActionShape
-                shape={actionShape}
-                isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-                multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-                className={styles.footerActionShape}
-              />
-            ) : null}
-          </button>
+            {selectedFeaturePrimaryLabel}
+          </ActionButton>
         </div>
       );
     }
@@ -6220,9 +6219,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         : selectedOptionEconomyShapeState;
 
       return (
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+        <ActionButton
+          className={styles.footerActionButton}
           onClick={confirmSelectedFeatureOptions}
           disabled={
             (isMultiConfirm
@@ -6235,17 +6233,19 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             (selectedFeatureAction?.key === metamagicActionKey &&
               selectedMetamagicCost > getSorceryPointsRemainingForCharacter(character))
           }
+          trailingBadge={
+            selectedOptionShape && selectedOptionShapeState ? (
+              <ActionShape
+                shape={selectedOptionShape}
+                isSelected={selectedOptionShapeState.isAvailable}
+                multiCount={selectedOptionShapeState.multiCount}
+                className={styles.footerActionShape}
+              />
+            ) : null
+          }
         >
-          <span>{selectedFeaturePrimaryLabel}</span>
-          {selectedOptionShape && selectedOptionShapeState ? (
-            <ActionShape
-              shape={selectedOptionShape}
-              isSelected={selectedOptionShapeState.isAvailable}
-              multiCount={selectedOptionShapeState.multiCount}
-              className={styles.footerActionShape}
-            />
-          ) : null}
-        </button>
+          {selectedFeaturePrimaryLabel}
+        </ActionButton>
       );
     }
 
@@ -6282,22 +6282,23 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
 
       return (
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+        <ActionButton
+          className={styles.footerActionButton}
           onClick={submitBlessingOfTheTrickster}
           disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          trailingBadge={
+            actionShape ? (
+              <ActionShape
+                shape={actionShape}
+                isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+                multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+                className={styles.footerActionShape}
+              />
+            ) : null
+          }
         >
-          <span>{selectedFeaturePrimaryLabel}</span>
-          {actionShape ? (
-            <ActionShape
-              shape={actionShape}
-              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-              className={styles.footerActionShape}
-            />
-          ) : null}
-        </button>
+          {selectedFeaturePrimaryLabel}
+        </ActionButton>
       );
     }
 
@@ -6330,23 +6331,24 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedAction.drawer.formKind === "third-eye"
     ) {
       return (
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+        <ActionButton
+          className={styles.footerActionButton}
           onClick={submitThirdEye}
           disabled={
             selectedThirdEyeOptionKey === null ||
             selectedFeatureActionPrimaryDisabledReason !== null
           }
+          trailingBadge={
+            <ActionShape
+              shape="bonusAction"
+              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+              className={styles.footerActionShape}
+            />
+          }
         >
-          <span>{selectedFeaturePrimaryLabel}</span>
-          <ActionShape
-            shape="bonusAction"
-            isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-            multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-            className={styles.footerActionShape}
-          />
-        </button>
+          {selectedFeaturePrimaryLabel}
+        </ActionButton>
       );
     }
 
@@ -6356,21 +6358,22 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedAction.drawer.formKind === "wild-shape"
     ) {
       return (
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+        <ActionButton
+          className={styles.footerActionButton}
           onClick={submitWildShape}
           disabled={
             !selectedWildShapeMonster || selectedFeatureActionPrimaryDisabledReason !== null
           }
+          trailingBadge={
+            <ActionShape
+              shape="bonusAction"
+              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+              className={styles.footerActionShape}
+            />
+          }
         >
-          <span>{selectedFeaturePrimaryLabel}</span>
-          <ActionShape
-            shape="bonusAction"
-            isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-            className={styles.footerActionShape}
-          />
-        </button>
+          {selectedFeaturePrimaryLabel}
+        </ActionButton>
       );
     }
 
@@ -6380,22 +6383,23 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedAction.drawer.formKind === "starry-form"
     ) {
       return (
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+        <ActionButton
+          className={styles.footerActionButton}
           onClick={submitStarryForm}
           disabled={
             selectedFeatureActionPrimaryDisabledReason !== null ||
             selectedStarryFormConstellation === null
           }
+          trailingBadge={
+            <ActionShape
+              shape="bonusAction"
+              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+              className={styles.footerActionShape}
+            />
+          }
         >
-          <span>{selectedFeaturePrimaryLabel}</span>
-          <ActionShape
-            shape="bonusAction"
-            isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-            className={styles.footerActionShape}
-          />
-        </button>
+          {selectedFeaturePrimaryLabel}
+        </ActionButton>
       );
     }
 
@@ -6405,23 +6409,24 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedAction.drawer.formKind === "wild-companion"
     ) {
       return (
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+        <ActionButton
+          className={styles.footerActionButton}
           onClick={submitWildCompanion}
           disabled={
             selectedFeatureActionPrimaryDisabledReason !== null ||
             !canUseSelectedWildCompanionResource
           }
+          trailingBadge={
+            <ActionShape
+              shape="action"
+              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+              className={styles.footerActionShape}
+            />
+          }
         >
-          <span>{selectedFeaturePrimaryLabel}</span>
-          <ActionShape
-            shape="action"
-            isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-            multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-            className={styles.footerActionShape}
-          />
-        </button>
+          {selectedFeaturePrimaryLabel}
+        </ActionButton>
       );
     }
 
@@ -6431,16 +6436,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedAction.drawer.formKind === "nature-magician"
     ) {
       return (
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+        <ActionButton
+          className={styles.footerActionButton}
           onClick={submitNatureMagician}
           disabled={
             selectedFeatureActionPrimaryDisabledReason !== null || !selectedNatureMagicianOption
           }
         >
-          <span>{selectedFeaturePrimaryLabel}</span>
-        </button>
+          {selectedFeaturePrimaryLabel}
+        </ActionButton>
       );
     }
 
@@ -6450,16 +6454,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedAction.drawer.formKind === "wild-resurgence"
     ) {
       return (
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+        <ActionButton
+          className={styles.footerActionButton}
           onClick={submitWildResurgence}
           disabled={
             !canUseSelectedWildResurgenceMode || selectedFeatureActionPrimaryDisabledReason !== null
           }
         >
-          <span>{selectedFeaturePrimaryLabel}</span>
-        </button>
+          {selectedFeaturePrimaryLabel}
+        </ActionButton>
       );
     }
 
@@ -6469,9 +6472,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedAction.drawer.formKind === "font-of-magic"
     ) {
       return (
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+        <ActionButton
+          className={styles.footerActionButton}
           onClick={confirmFontOfMagicSelection}
           disabled={
             selectedFontOfMagicSelection === null ||
@@ -6479,16 +6481,18 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             (selectedFontOfMagicSelection.kind === "points-to-slot" &&
               selectedFontOfMagicWarning !== null)
           }
+          trailingBadge={
+            selectedFontOfMagicSelection?.kind === "points-to-slot" ? (
+              <ActionShape
+                shape="bonusAction"
+                isSelected={selectedFontOfMagicWarning === null}
+                className={styles.footerActionShape}
+              />
+            ) : null
+          }
         >
-          <span>{selectedFeaturePrimaryLabel}</span>
-          {selectedFontOfMagicSelection?.kind === "points-to-slot" ? (
-            <ActionShape
-              shape="bonusAction"
-              isSelected={selectedFontOfMagicWarning === null}
-              className={styles.footerActionShape}
-            />
-          ) : null}
-        </button>
+          {selectedFeaturePrimaryLabel}
+        </ActionButton>
       );
     }
 
@@ -6523,43 +6527,45 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
 
       return (
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+        <ActionButton
+          className={styles.footerActionButton}
           onClick={submitBrutalStrike}
           disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          trailingBadge={
+            actionShape ? (
+              <ActionShape
+                shape={actionShape}
+                isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+                multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+                className={styles.footerActionShape}
+              />
+            ) : null
+          }
         >
-          <span>{selectedFeaturePrimaryLabel}</span>
-          {actionShape ? (
-            <ActionShape
-              shape={actionShape}
-              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-              className={styles.footerActionShape}
-            />
-          ) : null}
-        </button>
+          {selectedFeaturePrimaryLabel}
+        </ActionButton>
       );
     }
 
     if (selectedAction.kind === "feature" && selectedAction.action.key === barbarianRageActionKey) {
       return (
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+        <ActionButton
+          className={styles.footerActionButton}
           onClick={submitRage}
           disabled={
             selectedRageSelectionWarning !== null ||
             selectedFeatureActionPrimaryDisabledReason !== null
           }
+          trailingBadge={
+            <ActionShape
+              shape="bonusAction"
+              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+              className={styles.footerActionShape}
+            />
+          }
         >
-          <span>{selectedFeaturePrimaryLabel}</span>
-          <ActionShape
-            shape="bonusAction"
-            isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-            className={styles.footerActionShape}
-          />
-        </button>
+          {selectedFeaturePrimaryLabel}
+        </ActionButton>
       );
     }
 
@@ -6574,22 +6580,23 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         : executeFeatureActivate;
 
       return (
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+        <ActionButton
+          className={styles.footerActionButton}
           onClick={() => confirmAction(selectedAction.action)}
           disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          trailingBadge={
+            actionShape ? (
+              <ActionShape
+                shape={actionShape}
+                isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+                multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+                className={styles.footerActionShape}
+              />
+            ) : null
+          }
         >
-          <span>{selectedFeaturePrimaryLabel}</span>
-          {actionShape ? (
-            <ActionShape
-              shape={actionShape}
-              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-              className={styles.footerActionShape}
-            />
-          ) : null}
-        </button>
+          {selectedFeaturePrimaryLabel}
+        </ActionButton>
       );
     }
 
@@ -6597,22 +6604,23 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
 
       return (
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.footerActionButton)}
+        <ActionButton
+          className={styles.footerActionButton}
           onClick={() => setIsFixedSpellDrawerOpen(true)}
           disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          trailingBadge={
+            actionShape ? (
+              <ActionShape
+                shape={actionShape}
+                isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
+                multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+                className={styles.footerActionShape}
+              />
+            ) : null
+          }
         >
-          <span>{selectedFeaturePrimaryLabel}</span>
-          {actionShape ? (
-            <ActionShape
-              shape={actionShape}
-              isSelected={selectedActionEconomyShapeState?.isAvailable ?? true}
-              multiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
-              className={styles.footerActionShape}
-            />
-          ) : null}
-        </button>
+          {selectedFeaturePrimaryLabel}
+        </ActionButton>
       );
     }
 
@@ -6746,28 +6754,23 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                   </p>
                 </div>
               ) : null}
-              <button
-                type="button"
-                className={clsx(
-                  sheetStyles.castButton,
-                  styles.footerActionButton,
-                  styles.channelDivinityFooterButton
-                )}
+              <ActionButton
+                className={clsx(styles.footerActionButton, styles.channelDivinityFooterButton)}
                 onClick={() => activateSelectedChannelDivinity(selectedChannelDivinityRow)}
                 disabled={selectedChannelDivinityWarning !== null}
-              >
-                <span className={styles.centeredFooterButtonContent}>
-                  <span>Use Channel Divinity</span>
-                  {selectedChannelDivinityActionShape ? (
+                trailingBadge={
+                  selectedChannelDivinityActionShape ? (
                     <ActionShape
                       shape={selectedChannelDivinityActionShape}
                       isSelected={selectedChannelDivinityShapeState?.isAvailable ?? true}
                       multiCount={selectedChannelDivinityShapeState?.multiCount ?? 0}
                       className={styles.footerActionShape}
                     />
-                  ) : null}
-                </span>
-              </button>
+                  ) : null
+                }
+              >
+                Use Channel Divinity
+              </ActionButton>
             </div>
           }
         />

@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import ActionButton from "../../../../ActionButton";
 import ActionShape, { type ActionShapeType } from "../../../../ActionShape";
 import SelectInput from "../../../FormInputs/SelectInput";
 import FeatureOptInToggle from "../../FeatureOptInToggle/FeatureOptInToggle";
@@ -6,7 +7,6 @@ import {
   createFeatureActionCardCost,
   createNamedResourceCardUsage
 } from "../../../../../pages/CharactersPage/classFeatures/cardUsage";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import actionStyles from "./ActionsWidget.module.css";
 
 type BardicInspirationActionFooterProps = {
@@ -100,26 +100,26 @@ export function BardicInspirationActionFooter({
             </SelectInput>
           </label>
         ) : null}
-        <button
-          type="button"
+        <ActionButton
           className={clsx(
-            sheetStyles.castButton,
             shouldUseSplitRow ? actionStyles.weaponFooterButton : actionStyles.footerActionButton
           )}
           onClick={onConfirm}
           disabled={disabled}
           title={disabledReason ?? undefined}
+          trailingBadge={
+            actionShape ? (
+              <ActionShape
+                shape={actionShape}
+                isSelected={actionShapeAvailable}
+                multiCount={actionShapeMultiCount}
+                className={actionStyles.footerActionShape}
+              />
+            ) : null
+          }
         >
-          <span>{confirmLabel}</span>
-          {actionShape ? (
-            <ActionShape
-              shape={actionShape}
-              isSelected={actionShapeAvailable}
-              multiCount={actionShapeMultiCount}
-              className={actionStyles.footerActionShape}
-            />
-          ) : null}
-        </button>
+          {confirmLabel}
+        </ActionButton>
       </div>
       {helperText ? <p className={actionStyles.footerHelperText}>{helperText}</p> : null}
     </div>

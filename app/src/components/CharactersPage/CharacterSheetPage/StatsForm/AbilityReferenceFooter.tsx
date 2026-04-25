@@ -1,6 +1,5 @@
-import clsx from "clsx";
+import ActionButton from "../../../ActionButton";
 import d20Icon from "../../../../assets/svg/d20.svg";
-import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import {
   createChargesCardUsage,
   createFeatureActionCardCost,
@@ -78,25 +77,23 @@ function AbilityReferenceFooter({
         />
       ) : null}
       <div className={styles.referenceRollActions}>
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.referenceRollButton)}
+        <ActionButton
+          className={styles.referenceRollButton}
           onClick={onRollMod}
+          icon={<img src={d20Icon} alt="" className={styles.referenceRollIcon} />}
         >
-          <img src={d20Icon} alt="" className={styles.referenceRollIcon} />
-          <span>Mod Roll</span>
-        </button>
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.referenceRollButton)}
+          Mod Roll
+        </ActionButton>
+        <ActionButton
+          className={styles.referenceRollButton}
           onClick={onRollSave}
+          icon={<img src={d20Icon} alt="" className={styles.referenceRollIcon} />}
         >
-          <img src={d20Icon} alt="" className={styles.referenceRollIcon} />
-          <span>Save Roll</span>
-        </button>
+          Save Roll
+        </ActionButton>
         <DiceRollerSettingsButton
           actionName={actionName}
-          className={clsx(sheetStyles.castButton, styles.referenceRollSettingsButton)}
+          className={styles.referenceRollSettingsButton}
           isOpen={isDiceRollerSettingsOpen}
           onOpenChange={onDiceRollerSettingsOpenChange}
         />

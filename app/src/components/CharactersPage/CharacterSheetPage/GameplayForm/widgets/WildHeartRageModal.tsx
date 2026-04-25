@@ -2,7 +2,7 @@ import type {
   FeatureActionCard,
   FeatureActionOptionCard
 } from "../../../../../pages/CharactersPage/classFeatures";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import ActionButton from "../../../../ActionButton";
 import { FeatureActionChoiceRow } from "./ActionCards";
 import FeatureActionOptionsModal from "./FeatureActionOptionsModal";
 import styles from "./FeatureActionModal.module.css";
@@ -46,14 +46,9 @@ function WildHeartRageModal({
       onClose={onClose}
       bodyClassName={styles.wildHeartRageOptionList}
       footer={
-        <button
-          type="button"
-          className={sheetStyles.castButton}
-          disabled={!canConfirm}
-          onClick={onConfirm}
-        >
+        <ActionButton disabled={!canConfirm} onClick={onConfirm}>
           Enter Rage
-        </button>
+        </ActionButton>
       }
     >
       <section className={styles.wildHeartRageSection}>

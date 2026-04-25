@@ -1,7 +1,6 @@
-import clsx from "clsx";
+import ActionButton from "../../../../ActionButton";
 import ActionShape, { type ActionShapeType } from "../../../../ActionShape";
 import FeatureOptInToggle from "../../FeatureOptInToggle/FeatureOptInToggle";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import {
   createChargesOrResourceCardUsage,
   createFeatureActionCardCost
@@ -55,22 +54,23 @@ export function WarlockAwakenedMindActionFooter({
         )}
         usageKey="clairvoyant-combatant"
       />
-      <button
-        type="button"
-        className={clsx(sheetStyles.castButton, styles.confirmButton)}
+      <ActionButton
+        className={styles.confirmButton}
         onClick={onConfirm}
         disabled={disabled}
+        trailingBadge={
+          actionShape ? (
+            <ActionShape
+              shape={actionShape}
+              isSelected={actionShapeAvailable}
+              multiCount={actionShapeMultiCount}
+              className={styles.footerActionShape}
+            />
+          ) : null
+        }
       >
-        <span>{confirmLabel}</span>
-        {actionShape ? (
-          <ActionShape
-            shape={actionShape}
-            isSelected={actionShapeAvailable}
-            multiCount={actionShapeMultiCount}
-            className={styles.footerActionShape}
-          />
-        ) : null}
-      </button>
+        {confirmLabel}
+      </ActionButton>
     </div>
   );
 }

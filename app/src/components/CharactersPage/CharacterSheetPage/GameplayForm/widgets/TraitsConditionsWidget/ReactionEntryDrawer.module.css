@@ -19,14 +19,6 @@
   width: 100%;
 }
 
-.castActionButtonContent {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
 .castActionShape {
   align-items: center;
   background: rgba(255, 255, 255, 0.76);

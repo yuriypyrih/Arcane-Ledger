@@ -1,11 +1,11 @@
 import type { ReactNode } from "react";
+import ActionButton from "../../../../../ActionButton";
 import ActionShape from "../../../../../ActionShape";
 import type { ReactionEntry } from "../../../../../../codex/entries";
 import type {
   FeatureActionFact,
   FeatureActionHeaderTag
 } from "../../../../../../pages/CharactersPage/classFeatures";
-import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import GameplayActionDrawer from "../GameplayActionDrawer";
 import styles from "./ReactionEntryDrawer.module.css";
 
@@ -53,22 +53,21 @@ function ReactionEntryDrawer({
         <div className={styles.footerActions}>
           {resourceSummary ? <p className={styles.castActionResource}>{resourceSummary}</p> : null}
           {footerContent ?? (
-            <button
-              type="button"
-              className={[sheetStyles.castButton, styles.castActionButton].join(" ")}
+            <ActionButton
+              className={styles.castActionButton}
               onClick={onCast}
               disabled={actionWarning !== null}
-            >
-              <span className={styles.castActionButtonContent}>
-                <span>Take Reaction</span>
+              trailingBadge={
                 <ActionShape
                   shape="reaction"
                   isSelected={actionShapeAvailable}
                   className={styles.castActionShape}
                   aria-label="Reaction action state"
                 />
-              </span>
-            </button>
+              }
+            >
+              Take Reaction
+            </ActionButton>
           )}
         </div>
       }

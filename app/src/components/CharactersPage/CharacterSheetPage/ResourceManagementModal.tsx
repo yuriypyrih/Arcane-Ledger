@@ -1,5 +1,5 @@
-import clsx from "clsx";
 import type { ReactNode } from "react";
+import ActionButton from "../../ActionButton";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -11,7 +11,6 @@ import {
   OverlayTitleRow,
   SheetModal
 } from "../../Overlay";
-import sheetStyles from "../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import styles from "./ResourceManagementModal.module.css";
 
 const RESOURCE_MANAGEMENT_DESCRIPTION =
@@ -70,16 +69,15 @@ function ResourceManagementModal({
           style={{ gridTemplateColumns: `repeat(${Math.max(1, actions.length)}, minmax(0, 1fr))` }}
         >
           {actions.map((action) => (
-            <button
+            <ActionButton
               key={action.label}
-              type="button"
-              className={clsx(sheetStyles.castButton, styles.footerButton)}
+              className={styles.footerButton}
               onClick={action.onClick}
               disabled={action.disabled}
               aria-label={action.ariaLabel ?? action.label}
             >
               {action.label}
-            </button>
+            </ActionButton>
           ))}
         </div>
       </OverlayFooter>

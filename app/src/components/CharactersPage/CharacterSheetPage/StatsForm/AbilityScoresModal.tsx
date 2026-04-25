@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { ChevronDown, ChevronUp, Save, X } from "lucide-react";
 import type { KeyboardEvent as ReactKeyboardEvent } from "react";
+import ActionButton from "../../../ActionButton";
 import NumberInput from "../../FormInputs/NumberInput";
 import { abilityKeys } from "../../../../pages/CharactersPage/constants";
 import type { AbilityKey } from "../../../../types";
@@ -241,14 +242,12 @@ function AbilityScoresModal({
         </div>
 
         <div className={shared.formActions}>
-          <button type="button" className={shared.saveButton} onClick={onSave}>
-            <Save size={16} />
+          <ActionButton onClick={onSave} icon={<Save size={16} />}>
             Save
-          </button>
-          <button type="button" className={shared.cancelButton} onClick={onClose}>
-            <X size={16} />
+          </ActionButton>
+          <ActionButton variant="GHOST" onClick={onClose} icon={<X size={16} />}>
             Cancel
-          </button>
+          </ActionButton>
         </div>
       </section>
     </div>

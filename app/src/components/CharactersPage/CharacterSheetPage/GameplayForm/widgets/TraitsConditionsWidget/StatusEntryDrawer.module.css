@@ -48,16 +48,6 @@
   width: 100%;
 }
 
-.footerActionButtonNeutral {
-  background: rgba(75, 47, 29, 0.09);
-  color: var(--color-ink);
-}
-
-.footerActionButtonDanger {
-  background: rgba(197, 57, 43, 0.14);
-  color: #8a2519;
-}
-
 .inlineLinkButton {
   border: none;
   background: transparent;

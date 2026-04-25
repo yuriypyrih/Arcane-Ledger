@@ -14,31 +14,6 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
-.cancelButton,
-.confirmButton {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14px;
-  cursor: pointer;
-  font: inherit;
-  font-weight: 800;
-  min-height: 44px;
-  padding: 0 1rem;
-}
-
-.cancelButton {
-  border: 1px solid rgba(75, 47, 29, 0.16);
-  background: rgba(255, 255, 255, 0.72);
-  color: var(--color-ink);
-}
-
-.confirmButton {
-  border: 1px solid rgba(143, 52, 40, 0.32);
-  background: #8f3428;
-  color: #fffaf4;
-}
-
 @media (max-width: 520px) {
   .footerActions {
     grid-template-columns: 1fr;

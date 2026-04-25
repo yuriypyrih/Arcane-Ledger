@@ -1,7 +1,7 @@
 import clsx from "clsx";
+import ActionButton from "../../../../ActionButton";
 import ActionShape, { type ActionShapeType } from "../../../../ActionShape";
 import type { LayOnHandsCondition } from "../../../../../pages/CharactersPage/classFeatures/paladin/paladin";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import RadioContainerOption from "../../RadioContainerOption";
 import actionStyles from "./ActionsWidget.module.css";
 import styles from "./LayOnHandsAction.module.css";
@@ -113,27 +113,22 @@ export function LayOnHandsActionFooter({
   onConfirm
 }: LayOnHandsActionFooterProps) {
   return (
-    <button
-      type="button"
-      className={clsx(
-        sheetStyles.castButton,
-        actionStyles.footerActionButton,
-        styles.confirmButton
-      )}
+    <ActionButton
+      className={clsx(actionStyles.footerActionButton, styles.confirmButton)}
       onClick={onConfirm}
       disabled={disabled}
-    >
-      <span className={clsx(actionStyles.centeredFooterButtonContent, styles.confirmButtonContent)}>
-        <span>{confirmLabel}</span>
-        {actionShape ? (
+      trailingBadge={
+        actionShape ? (
           <ActionShape
             shape={actionShape}
             isSelected={actionShapeAvailable}
             multiCount={actionShapeMultiCount}
             className={actionStyles.footerActionShape}
           />
-        ) : null}
-      </span>
-    </button>
+        ) : null
+      }
+    >
+      {confirmLabel}
+    </ActionButton>
   );
 }

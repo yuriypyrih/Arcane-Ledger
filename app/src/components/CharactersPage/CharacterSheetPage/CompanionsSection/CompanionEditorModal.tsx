@@ -1,6 +1,7 @@
 import { Search, Trash2 } from "lucide-react";
 import { useEffect, useId, useMemo, useState } from "react";
 import { fetchMonsterBySlug } from "../../../../api";
+import ActionButton from "../../../ActionButton";
 import {
   DestructiveConfirmationModal,
   OverlayBody,
@@ -529,26 +530,22 @@ function CompanionEditorModal({
         <OverlayFooter className={styles.editorFooter}>
           {isEditingExisting ? (
             <div className={styles.editorFooterActions}>
-              <button type="button" className={shared.saveButton} onClick={handleSave}>
+              <ActionButton onClick={handleSave}>
                 Save Changes
-              </button>
-              <button
-                type="button"
-                className={styles.deleteFooterButton}
+              </ActionButton>
+              <ActionButton
+                actionType="ERROR"
+                variant="GHOST"
                 onClick={() => setIsDeleteConfirmationOpen(true)}
+                icon={<Trash2 size={16} aria-hidden="true" />}
               >
-                <Trash2 size={16} aria-hidden="true" />
                 Delete
-              </button>
+              </ActionButton>
             </div>
           ) : (
-            <button
-              type="button"
-              className={styles.fullWidthCreateButton}
-              onClick={handleSave}
-            >
+            <ActionButton onClick={handleSave}>
               Create Companion
-            </button>
+            </ActionButton>
           )}
         </OverlayFooter>
       </SheetModal>
@@ -587,13 +584,9 @@ function CompanionEditorModal({
           drawerClassName={styles.previewDrawer}
           footer={
             previewStatus === "ready" && previewMonster ? (
-              <button
-                type="button"
-                className={shared.saveButton}
-                onClick={() => void handleSelectMonster(previewMonster)}
-              >
+              <ActionButton onClick={() => void handleSelectMonster(previewMonster)}>
                 Use Monster
-              </button>
+              </ActionButton>
             ) : null
           }
         />

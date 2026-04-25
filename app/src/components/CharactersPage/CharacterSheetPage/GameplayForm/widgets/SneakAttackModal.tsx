@@ -1,5 +1,6 @@
 import { BookOpen } from "lucide-react";
 import { useState } from "react";
+import ActionButton from "../../../../ActionButton";
 import CellContainer from "../../../../CellContainer/CellContainer";
 import KeywordReferenceDrawer from "../../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import RadioContainerOption from "../../RadioContainerOption";
@@ -166,9 +167,7 @@ function SneakAttackActionBody({ action, character, onConfirm }: SneakAttackActi
       ) : null}
 
       <div className={shared.formActions}>
-        <button
-          type="button"
-          className={shared.saveButton}
+        <ActionButton
           onClick={() =>
             onConfirm({
               effectKeys: selectedEffectKeys,
@@ -177,7 +176,7 @@ function SneakAttackActionBody({ action, character, onConfirm }: SneakAttackActi
           }
         >
           Sneak Attack
-        </button>
+        </ActionButton>
       </div>
 
       {selectedReferenceEffect ? (

@@ -83,11 +83,6 @@
   width: 100%;
 }
 
-.confirmButtonContent {
-  justify-content: center;
-  width: 100%;
-}
-
 @media (max-width: 720px) {
   .topRow {
     grid-template-columns: 1fr;

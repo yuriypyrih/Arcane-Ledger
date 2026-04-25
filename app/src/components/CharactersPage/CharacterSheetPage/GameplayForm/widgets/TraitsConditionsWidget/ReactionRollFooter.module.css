@@ -13,14 +13,6 @@
   flex: 1 1 0;
 }
 
-.rollButtonContent {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.5rem;
-  min-width: 0;
-}
-
 .rollButtonIcon {
   width: 18px;
   height: 18px;

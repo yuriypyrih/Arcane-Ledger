@@ -2,7 +2,7 @@ import type {
   FeatureActionCard,
   FeatureActionOptionCard
 } from "../../../../../pages/CharactersPage/classFeatures";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import ActionButton from "../../../../ActionButton";
 import RadioContainerOption from "../../RadioContainerOption";
 import FeatureActionOptionsModal from "./FeatureActionOptionsModal";
 import styles from "./FeatureActionModal.module.css";
@@ -41,9 +41,9 @@ function BrutalStrikeModal({
       onClose={onClose}
       bodyClassName={styles.brutalStrikeOptionList}
       footer={
-        <button type="button" className={sheetStyles.castButton} onClick={onConfirm}>
+        <ActionButton onClick={onConfirm}>
           Apply Brutal Strike
-        </button>
+        </ActionButton>
       }
     >
       {options.map((option) => {

@@ -1,5 +1,6 @@
 import clsx from "clsx";
 import { Sparkles, X } from "lucide-react";
+import ActionButton from "../../../../ActionButton";
 import type { Character } from "../../../../../types";
 import type { FeatureActionCard } from "../../../../../pages/CharactersPage/classFeatures";
 import {
@@ -179,9 +180,9 @@ function FontOfMagicModal({
         </div>
 
         <div className={shared.formActions}>
-          <button type="button" className={shared.cancelButton} onClick={onClose}>
+          <ActionButton variant="GHOST" onClick={onClose}>
             Close
-          </button>
+          </ActionButton>
         </div>
       </section>
     </div>

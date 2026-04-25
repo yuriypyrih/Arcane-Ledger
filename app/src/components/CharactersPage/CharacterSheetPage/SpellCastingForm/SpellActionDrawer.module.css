@@ -68,11 +68,6 @@
   color: var(--color-ink);
 }
 
-.ritualCastButton {
-  background: linear-gradient(135deg, #c96c14, #ee9432);
-  color: #fffaf3;
-}
-
 .featureActionToggle {
   display: grid;
   gap: 0.42rem;

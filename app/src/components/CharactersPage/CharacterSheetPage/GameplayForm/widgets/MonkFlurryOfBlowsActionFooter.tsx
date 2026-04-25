@@ -1,9 +1,8 @@
-import clsx from "clsx";
+import ActionButton from "../../../../ActionButton";
 import ActionShape from "../../../../ActionShape";
 import FeatureOptInToggle from "../../FeatureOptInToggle/FeatureOptInToggle";
 import type { EconomyType } from "../../../../../pages/CharactersPage/actionEconomy";
 import { createChargesCardUsage } from "../../../../../pages/CharactersPage/classFeatures/cardUsage";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import { getActionShapeForEconomyType, getEconomyShapeState } from "../gameplayWidgetUtils";
 import styles from "./ActionsWidget.module.css";
 
@@ -51,16 +50,13 @@ export function MonkFlurryOfBlowsActionFooter({
         />
       ) : null}
       <div className={styles.weaponFooterActions}>
-        <button
-          type="button"
-          className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
+        <ActionButton
+          className={styles.weaponFooterButton}
           onClick={onConfirm}
           disabled={confirmDisabledReason !== null}
           title={confirmDisabledReason ?? undefined}
-        >
-          <span className={styles.centeredFooterButtonContent}>
-            <span>{confirmLabel}</span>
-            {actionShape ? (
+          trailingBadge={
+            actionShape ? (
               <ActionShape
                 shape={actionShape}
                 isSelected={shapeState?.isAvailable ?? true}
@@ -68,9 +64,11 @@ export function MonkFlurryOfBlowsActionFooter({
                 showMultiCountLabel={false}
                 className={styles.footerActionShape}
               />
-            ) : null}
-          </span>
-        </button>
+            ) : null
+          }
+        >
+          {confirmLabel}
+        </ActionButton>
       </div>
     </div>
   );

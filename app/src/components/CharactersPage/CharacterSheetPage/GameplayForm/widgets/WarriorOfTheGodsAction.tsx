@@ -1,8 +1,7 @@
-import clsx from "clsx";
+import ActionButton from "../../../../ActionButton";
 import ActionShape, { type ActionShapeType } from "../../../../ActionShape";
 import CellContainer from "../../../../CellContainer/CellContainer";
 import d20Icon from "../../../../../assets/svg/d20.svg";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import styles from "./ActionsWidget.module.css";
 import sharedModalStyles from "./FeatureActionModal.module.css";
 import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
@@ -83,26 +82,27 @@ export function WarriorOfTheGodsActionFooter({
 }: WarriorOfTheGodsActionFooterProps) {
   return (
     <div className={styles.weaponFooterActions}>
-      <button
-        type="button"
-        className={clsx(sheetStyles.castButton, styles.weaponFooterButton)}
+      <ActionButton
+        className={styles.weaponFooterButton}
         onClick={onConfirm}
         disabled={disabled}
+        icon={<img src={d20Icon} alt="" className={styles.weaponFooterIcon} />}
+        trailingBadge={
+          actionShape ? (
+            <ActionShape
+              shape={actionShape}
+              isSelected={actionShapeAvailable}
+              multiCount={actionShapeMultiCount}
+              className={styles.footerActionShape}
+            />
+          ) : null
+        }
       >
-        <img src={d20Icon} alt="" className={styles.weaponFooterIcon} />
-        <span>{confirmLabel}</span>
-        {actionShape ? (
-          <ActionShape
-            shape={actionShape}
-            isSelected={actionShapeAvailable}
-            multiCount={actionShapeMultiCount}
-            className={styles.footerActionShape}
-          />
-        ) : null}
-      </button>
+        {confirmLabel}
+      </ActionButton>
       <DiceRollerSettingsButton
         actionName={actionName}
-        className={clsx(sheetStyles.castButton, styles.weaponFooterIconButton)}
+        className={styles.weaponFooterIconButton}
         isOpen={isDiceRollerSettingsOpen}
         aria-label="Open dice roller settings"
         onOpenChange={onDiceRollerSettingsOpenChange}

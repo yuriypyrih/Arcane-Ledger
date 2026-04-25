@@ -1,6 +1,7 @@
 import clsx from "clsx";
 import { X } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
+import ActionButton from "../../../ActionButton";
 import ActionShape, {
   getActionShapeForCastingTime,
   type ActionShapeType
@@ -767,16 +768,12 @@ function CharacterSpellDrawer({
                     </div>
                   ) : null}
                   {resolvedActionPaths.map((path) => (
-                    <button
+                    <ActionButton
                       key={path.id}
-                      type="button"
-                      className={clsx(
-                        sheetStyles.castButton,
-                        actionStyles.castActionButton,
-                        isRitualCastingSelected || ritualCastingRequired
-                          ? actionStyles.ritualCastButton
-                          : null
-                      )}
+                      className={actionStyles.castActionButton}
+                      actionType={
+                        isRitualCastingSelected || ritualCastingRequired ? "WARNING" : "INFO"
+                      }
                       onClick={() =>
                         onAction({
                           ...baseActionOptions,
@@ -785,16 +782,18 @@ function CharacterSpellDrawer({
                       }
                       disabled={!isActionEnabled || path.disabledReason !== null}
                       title={path.disabledReason ?? undefined}
+                      trailingBadge={
+                        <ActionShape
+                          shape={path.actionShape}
+                          isSelected={path.actionShapeAvailable}
+                          multiCount={path.actionShapeMultiCount ?? 0}
+                          className={actionStyles.footerActionShape}
+                          title={getActionShapeTitle(path.actionShape)}
+                        />
+                      }
                     >
-                      <span>{path.actionLabel ?? actionLabel}</span>
-                      <ActionShape
-                        shape={path.actionShape}
-                        isSelected={path.actionShapeAvailable}
-                        multiCount={path.actionShapeMultiCount ?? 0}
-                        className={actionStyles.footerActionShape}
-                        title={getActionShapeTitle(path.actionShape)}
-                      />
-                    </button>
+                      {path.actionLabel ?? actionLabel}
+                    </ActionButton>
                   ))}
                 </div>
               </div>

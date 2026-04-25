@@ -1,10 +1,10 @@
 import clsx from "clsx";
+import ActionButton from "../../../../ActionButton";
 import ActionShape from "../../../../ActionShape";
 import FeatureUsageLabel from "../../FeatureUsageLabel";
 import type { Character } from "../../../../../types";
 import type { FeatureActionCard } from "../../../../../pages/CharactersPage/classFeatures";
 import type { EconomyType } from "../../../../../pages/CharactersPage/actionEconomy";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import { getActionShapeForEconomyType } from "../gameplayWidgetUtils";
 import actionCardStyles from "./ActionCards.module.css";
 import actionStyles from "./ActionsWidget.module.css";
@@ -163,16 +163,13 @@ export function CommonActionFooter({
         }
 
         return (
-          <button
+          <ActionButton
             key={`common-action-${path.id}`}
-            type="button"
-            className={clsx(sheetStyles.castButton, actionStyles.weaponFooterButton)}
+            className={actionStyles.weaponFooterButton}
             onClick={() => onConfirmPath(path.economyType)}
             disabled={path.disabledReason !== null}
             title={path.disabledReason ?? undefined}
-          >
-            <span className={actionStyles.centeredFooterButtonContent}>
-              <span>{confirmLabel}</span>
+            trailingBadge={
               <span className={actionStyles.footerActionShapeGroup}>
                 <ActionShape
                   shape={actionShape}
@@ -185,8 +182,10 @@ export function CommonActionFooter({
                   <span className={actionStyles.footerActionCount}>{`x${path.totalUseCount}`}</span>
                 ) : null}
               </span>
-            </span>
-          </button>
+            }
+          >
+            {confirmLabel}
+          </ActionButton>
         );
       })}
     </div>

@@ -1,4 +1,5 @@
 import clsx from "clsx";
+import ActionButton from "../../../../../ActionButton";
 import ActionShape from "../../../../../ActionShape";
 import CellContainer from "../../../../../CellContainer/CellContainer";
 import d20Icon from "../../../../../../assets/svg/d20.svg";
@@ -41,16 +42,13 @@ export function QuiveringPalmStatusDrawerActionRow({
 }: QuiveringPalmStatusDrawerActionRowProps) {
   return (
     <div className={actionStyles.weaponFooterActions}>
-      <button
-        type="button"
-        className={clsx(sheetStyles.castButton, actionStyles.weaponFooterButton)}
+      <ActionButton
+        className={actionStyles.weaponFooterButton}
         onClick={onDetonate}
         disabled={disabled}
         title={disabledReason ?? undefined}
-      >
-        <span className={actionStyles.centeredFooterButtonContent}>
-          <img src={d20Icon} alt="" className={actionStyles.weaponFooterIcon} />
-          <span>Detonate Quivering Palm</span>
+        icon={<img src={d20Icon} alt="" className={actionStyles.weaponFooterIcon} />}
+        trailingBadge={
           <span className={actionStyles.footerActionShapeGroup}>
             <ActionShape
               shape="action"
@@ -59,11 +57,13 @@ export function QuiveringPalmStatusDrawerActionRow({
               className={actionStyles.footerActionShape}
             />
           </span>
-        </span>
-      </button>
+        }
+      >
+        Detonate Quivering Palm
+      </ActionButton>
       <DiceRollerSettingsButton
         actionName="Detonate Quivering Palm"
-        className={clsx(sheetStyles.castButton, actionStyles.weaponFooterIconButton)}
+        className={actionStyles.weaponFooterIconButton}
       />
     </div>
   );

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import ActionButton from "../../../../ActionButton";
 import CellContainer from "../../../../CellContainer/CellContainer";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import sharedModalStyles from "./FeatureActionModal.module.css";
@@ -45,14 +46,12 @@ function HealingLightActionBody({
       <CellContainer label="Healing Roll" content={selectedFormula} />
 
       <div className={shared.formActions}>
-        <button
-          type="button"
-          className={shared.saveButton}
+        <ActionButton
           disabled={selectedDiceCount <= 0}
           onClick={() => onSubmit(selectedDiceCount)}
         >
           Roll Healing
-        </button>
+        </ActionButton>
       </div>
     </>
   );
