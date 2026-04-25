@@ -1,5 +1,6 @@
 export { default as SheetDrawer } from "./SheetDrawer";
 export { default as SheetModal } from "./SheetModal";
+export { default as DestructiveConfirmationModal } from "./DestructiveConfirmationModal";
 export {
   OverlayBadge,
   OverlayBody,

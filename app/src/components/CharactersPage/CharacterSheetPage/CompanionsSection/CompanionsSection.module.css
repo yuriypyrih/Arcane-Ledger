@@ -4,6 +4,13 @@
   grid-template-columns: 1fr;
 }
 
+.companionCardShell {
+  display: grid;
+  align-items: stretch;
+  gap: 0.65rem;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
 .companionCard {
   display: flex;
   align-items: center;
@@ -15,12 +22,27 @@
   color: inherit;
   cursor: pointer;
   font: inherit;
+  min-width: 0;
   padding: 0.95rem;
   text-align: left;
   transition:
     transform 140ms ease,
     border-color 140ms ease,
     box-shadow 140ms ease;
+}
+
+.companionEditButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  align-self: stretch;
+  border: 1px solid rgba(75, 47, 29, 0.14);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.78);
+  color: var(--color-ink);
+  cursor: pointer;
+  min-width: 48px;
+  padding: 0;
 }
 
 .cardBody {
@@ -62,7 +84,7 @@
 }
 
 .editorModal {
-  width: min(1080px, 100%);
+  width: min(760px, 100%);
 }
 
 .browserBackdrop {
@@ -70,7 +92,8 @@
 }
 
 .browserModal {
-  width: min(1080px, 100%);
+  width: min(1180px, 100%);
+  height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
 }
 
 .previewBackdrop {
@@ -81,43 +104,45 @@
   z-index: 48;
 }
 
-.editorHeader {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 0.75rem;
-  padding: var(--overlay-panel-top-padding) var(--overlay-panel-inline-padding) 0.85rem;
+.editorBody {
+  gap: 1rem;
 }
 
-.closeButton {
+.editorFooter {
+  border-top: 1px solid rgba(75, 47, 29, 0.1);
+}
+
+.editorFooterActions {
+  display: grid;
+  gap: 0.7rem;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+
+.fullWidthCreateButton,
+.deleteFooterButton {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  border: none;
-  border-radius: 12px;
-  background: rgba(75, 47, 29, 0.08);
-  color: var(--color-ink);
+  border-radius: 14px;
   cursor: pointer;
-  min-height: 40px;
-  min-width: 40px;
-  padding: 0;
+  font: inherit;
+  font-weight: 800;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0 1rem;
 }
 
-.editorLayout {
-  display: grid;
-  gap: 0.9rem;
-  grid-template-columns: minmax(240px, 300px) minmax(0, 1fr);
-  padding: 0 var(--overlay-panel-inline-padding) var(--overlay-panel-bottom-padding);
+.fullWidthCreateButton {
+  width: 100%;
+  border: 1px solid rgba(143, 91, 56, 0.34);
+  background: var(--color-accent);
+  color: #fffaf4;
 }
 
-.editorPanel {
-  display: grid;
-  align-content: start;
-  gap: 0.9rem;
-  border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 20px;
-  background: rgba(255, 255, 255, 0.62);
-  padding: 0.95rem;
+.deleteFooterButton {
+  border: 1px solid rgba(143, 52, 40, 0.32);
+  background: rgba(143, 52, 40, 0.1);
+  color: #8f3428;
 }
 
 .panelHeader {
@@ -158,69 +183,11 @@
   opacity: 0.55;
 }
 
-.savedCompanionList {
-  display: grid;
-  gap: 0.65rem;
-  list-style: none;
-  margin: 0;
-  padding: 0;
-}
-
-.savedCompanionItem {
-  display: grid;
-  gap: 0.45rem;
-  grid-template-columns: minmax(0, 1fr) auto;
-}
-
-.savedCompanionButton {
-  display: grid;
-  gap: 0.18rem;
-  border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 16px;
-  background: rgba(255, 255, 255, 0.74);
-  color: inherit;
-  cursor: pointer;
-  font: inherit;
-  min-width: 0;
-  padding: 0.8rem;
-  text-align: left;
-}
-
-.savedCompanionButtonActive {
-  border-color: rgba(143, 91, 56, 0.42);
-  background: rgba(143, 91, 56, 0.12);
-}
-
-.savedCompanionType {
-  color: var(--color-accent);
-  font-size: 0.74rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.savedCompanionSummary {
-  color: var(--color-ink-soft);
-  font-size: 0.86rem;
-}
-
-.removeButton,
 .removeButtonText {
   border: none;
   color: #8f3428;
   cursor: pointer;
   font: inherit;
-}
-
-.removeButton {
-  align-self: start;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 12px;
-  background: rgba(143, 52, 40, 0.08);
-  min-height: 40px;
-  min-width: 40px;
-  padding: 0;
 }
 
 .removeButtonText {
@@ -233,19 +200,6 @@
 .monsterSection {
   display: grid;
   gap: 0.85rem;
-}
-
-.checkboxField {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  color: var(--color-ink);
-  font-size: 0.9rem;
-  min-height: 40px;
-}
-
-.checkboxField input {
-  accent-color: var(--color-accent);
 }
 
 .selectedMonsterCard {
@@ -284,12 +238,12 @@
   font-size: 0.9rem;
 }
 
-.browserPanel {
+.browserBody {
   display: grid;
   gap: 0.85rem;
   min-width: 0;
-  padding: var(--overlay-panel-top-padding) var(--overlay-panel-inline-padding)
-    var(--overlay-panel-bottom-padding);
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 .browserControls {
@@ -300,6 +254,14 @@
 
 .monsterTable {
   min-width: 0;
+  min-height: 0;
+  grid-template-rows: auto minmax(0, 1fr);
+}
+
+.monsterTableWrapper {
+  min-height: 0;
+  max-height: 100%;
+  overflow: auto;
 }
 
 .selectMonsterButton {
@@ -330,6 +292,13 @@
   gap: 1rem;
 }
 
+.companionHpControls {
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.74);
+  padding: 0.9rem;
+}
+
 .drawerSection {
   display: grid;
   gap: 0.7rem;
@@ -353,26 +322,6 @@
   white-space: pre-wrap;
 }
 
-.ruleReminderList {
-  display: grid;
-  gap: 0.65rem;
-}
-
-.ruleReminderCard {
-  display: grid;
-  gap: 0.28rem;
-  border: 1px solid rgba(75, 47, 29, 0.12);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.68);
-  padding: 0.8rem 0.9rem;
-}
-
-.ruleReminderCard p {
-  margin: 0;
-  color: var(--color-ink-soft);
-  line-height: 1.48;
-}
-
 .inheritedMonsterEntry {
   border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: 20px;
@@ -381,7 +330,6 @@
 }
 
 @media (max-width: 860px) {
-  .editorLayout,
   .browserControls {
     grid-template-columns: 1fr;
   }
@@ -401,15 +349,21 @@
 
 @media (max-width: 620px) {
   .companionCard,
-  .editorPanel,
+  .companionEditButton,
   .browserModal,
   .inheritedMonsterEntry {
     border-radius: 16px;
   }
 
   .cardHeader,
-  .editorHeader,
+  .companionCardShell,
+  .editorFooterActions,
   .panelHeader {
     display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .companionEditButton {
+    min-height: 42px;
   }
 }

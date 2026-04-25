@@ -260,6 +260,11 @@ import {
   setCharacterExhaustionLevel
 } from "../../../../../pages/CharactersPage/statusEntries";
 import {
+  applyLongRestToCharacterCompanions,
+  applyShortRestToCharacterCompanions,
+  hasFiniteCompanionDuration
+} from "../../../../../pages/CharactersPage/companions";
+import {
   type ExhaustionLevel,
   getEffectiveHitPointMaximumForCharacter,
   reconcileCharacterStatusConsequences,
@@ -317,7 +322,9 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const warPriestUsesTotal = getClericWarPriestUsesTotal(character);
   const wardingFlareUsesTotal = getClericWardingFlareUsesTotal(character);
   const improvedWardingFlareShortRestAvailable = hasClericImprovedWardingFlareFeature(character);
-  const hasTimedStatuses = normalizeCharacterStatusEntries(character.statusEntries).length > 0;
+  const hasTimedStatuses =
+    normalizeCharacterStatusEntries(character.statusEntries).length > 0 ||
+    hasFiniteCompanionDuration(character.companions);
   const exhaustionLevel = getExhaustionLevel(character.statusEntries);
   const tirelessUsesTotal = getRangerTirelessUsesTotal(character);
   const hasRogueScionDreadIncarnate = hasRogueScionOfTheThreeDreadIncarnateFeature(character);
@@ -405,10 +412,11 @@ export function createShortRestOptions(character: Character): RestOption[] {
             id: "update-statuses",
             label: "Update Traits & Conditions",
             detail:
-              "Ends Short Rest effects, durations below 1 hour, and Concentration-linked effects.",
+              "Ends Short Rest effects, durations below 1 hour, Concentration-linked effects, and matching companion durations.",
             apply: (currentCharacter: Character) => ({
               ...currentCharacter,
-              statusEntries: applyShortRestToCharacterStatusEntries(currentCharacter.statusEntries)
+              statusEntries: applyShortRestToCharacterStatusEntries(currentCharacter.statusEntries),
+              companions: applyShortRestToCharacterCompanions(currentCharacter.companions)
             })
           } satisfies RestOption
         ]
@@ -810,7 +818,9 @@ export function createLongRestOptions(character: Character): RestOption[] {
     getClericChannelDivinityUsesTotal(character),
     getPaladinChannelDivinityUsesTotal(character)
   );
-  const hasTimedStatuses = normalizeCharacterStatusEntries(character.statusEntries).length > 0;
+  const hasTimedStatuses =
+    normalizeCharacterStatusEntries(character.statusEntries).length > 0 ||
+    hasFiniteCompanionDuration(character.companions);
   const exhaustionLevel = getExhaustionLevel(character.statusEntries);
 
   return [
@@ -920,10 +930,12 @@ export function createLongRestOptions(character: Character): RestOption[] {
           {
             id: "update-statuses",
             label: "Update Traits & Conditions",
-            detail: "Ends Short Rest and Long Rest effects along with expiring timed statuses.",
+            detail:
+              "Ends Short Rest and Long Rest effects along with expiring timed statuses and companion durations.",
             apply: (currentCharacter: Character) => ({
               ...currentCharacter,
-              statusEntries: applyLongRestToCharacterStatusEntries(currentCharacter.statusEntries)
+              statusEntries: applyLongRestToCharacterStatusEntries(currentCharacter.statusEntries),
+              companions: applyLongRestToCharacterCompanions(currentCharacter.companions)
             })
           } satisfies RestOption
         ]

@@ -11,6 +11,7 @@ type ManualStatusDurationFieldsProps = {
   durationType: ManualStatusDurationType;
   durationValue: number;
   disabled?: boolean;
+  durationTypeOptions?: ReadonlyArray<{ value: ManualStatusDurationType; label: string }>;
   onDurationTypeChange: (value: ManualStatusDurationType) => void;
   onDurationValueChange: (value: number) => void;
 };
@@ -19,6 +20,7 @@ function ManualStatusDurationFields({
   durationType,
   durationValue,
   disabled = false,
+  durationTypeOptions = manualStatusDurationTypeOptions,
   onDurationTypeChange,
   onDurationValueChange
 }: ManualStatusDurationFieldsProps) {
@@ -33,7 +35,7 @@ function ManualStatusDurationFields({
           disabled={disabled}
           onChange={(event) => onDurationTypeChange(event.target.value as ManualStatusDurationType)}
         >
-          {manualStatusDurationTypeOptions.map((option) => (
+          {durationTypeOptions.map((option) => (
             <option key={option.value} value={option.value}>
               {option.label}
             </option>

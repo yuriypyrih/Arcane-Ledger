@@ -52,7 +52,7 @@ function getRangerBeastMasterFeatureActions(
 
   const companion = getBeastMasterCompanion(character);
   const hasCompanion = Boolean(companion);
-  const isCompanionDead = companion?.isDead === true;
+  const isCompanionDead = companion ? companion.currentHitPoints <= 0 : false;
 
   return [
     {

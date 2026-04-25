@@ -3,7 +3,7 @@ import { STATUS_DURATION_KIND, STATUS_DURATION_ROUND_TICK } from "../../../../..
 import { normalizeStatusDurationRoundTick } from "../../../../../../pages/CharactersPage/traits";
 
 export const manualStatusDurationTypeOptions = [
-  { value: "INFINITE", label: "Infinity" },
+  { value: "INFINITE", label: "Infinite" },
   { value: "ROUNDS_START", label: "Rounds (Start)" },
   { value: "ROUNDS_END", label: "Rounds (End)" },
   { value: "MINUTES", label: "Minutes" },
@@ -14,6 +14,10 @@ export const manualStatusDurationTypeOptions = [
 ] as const;
 
 export type ManualStatusDurationType = (typeof manualStatusDurationTypeOptions)[number]["value"];
+
+export const companionDurationTypeOptions = manualStatusDurationTypeOptions.filter(
+  (option) => option.value !== "MINUTES"
+);
 
 export type ManualStatusDurationDraft = {
   type: ManualStatusDurationType;

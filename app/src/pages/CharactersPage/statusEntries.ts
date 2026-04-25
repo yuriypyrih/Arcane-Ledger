@@ -223,6 +223,13 @@ function normalizeStatusDuration(value: unknown): CharacterStatusDuration | null
   }
 }
 
+export function normalizeCharacterStatusDuration(
+  value: unknown,
+  fallback: CharacterStatusDuration = { kind: STATUS_DURATION_KIND.INFINITE }
+): CharacterStatusDuration {
+  return normalizeStatusDuration(value) ?? fallback;
+}
+
 function normalizeLegacyDuration(roundsRemaining: unknown): CharacterStatusDuration | null {
   const parsed = Number(roundsRemaining);
 
@@ -258,6 +265,7 @@ function normalizeStatusValue(
         : typeof value === "string" && value.trim().length > 0
           ? value.trim()
           : null;
+    case STATUS_ENTRY_GROUP.COMPANIONS:
     case STATUS_ENTRY_GROUP.REACTIONS:
       return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
     case STATUS_ENTRY_GROUP.SENSES:

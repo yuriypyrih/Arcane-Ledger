@@ -204,6 +204,8 @@ export function getStatusDrawerBadgeLabel(group: STATUS_ENTRY_GROUP): string {
   switch (group) {
     case STATUS_ENTRY_GROUP.EFFECTS:
       return "Effect";
+    case STATUS_ENTRY_GROUP.COMPANIONS:
+      return "Companion";
     case STATUS_ENTRY_GROUP.REACTIONS:
       return "Reaction";
     case STATUS_ENTRY_GROUP.SENSES:

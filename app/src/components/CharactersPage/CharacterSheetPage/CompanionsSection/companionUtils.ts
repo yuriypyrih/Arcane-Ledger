@@ -1,39 +1,32 @@
 import { MONSTER_TYPE_OPTIONS } from "../../../../constants/monsters";
 import { getSpeciesEntries } from "../../../../codex/selectors";
-import {
-  beastMasterCompanionRole,
-  getCompanionStatBlock,
-  getDefaultCompanionMaxHitPoints,
-  isBeastMasterCompanion
-} from "../../../../pages/CharactersPage/beastMasterCompanions";
 import type { PrimalBeastKind } from "../../../../pages/CharactersPage/companionPrimalBeasts";
+import { PRIMAL_BEAST_MONSTER_TYPE } from "../../../../pages/CharactersPage/companionPrimalBeasts";
 import { speciesOptions } from "../../../../pages/CharactersPage/constants";
-import type { CharacterCompanion, MonsterOrdering, MonsterRecord } from "../../../../types";
+import type { CharacterCompanion, MonsterRecord } from "../../../../types";
+import {
+  defaultManualStatusDurationDraft,
+  getManualStatusDurationDraft,
+  type ManualStatusDurationType
+} from "../GameplayForm/widgets/TraitsConditionsWidget/manualStatusDuration";
 
 export type CompanionDraft = {
   id: string | null;
   name: string;
   description: string;
   type: string;
-  role: CharacterCompanion["role"] | null;
   primalBeastKind: PrimalBeastKind | null;
-  appearance: string;
   maxHitPoints: string;
   currentHitPoints: string;
-  isDead: boolean;
+  durationType: ManualStatusDurationType;
+  durationValue: number;
   inheritedCreatureEntry: MonsterRecord | null;
 };
 
-export const COMPANION_MONSTERS_PER_PAGE = 8;
-export const companionOrderingOptions: Array<{ value: MonsterOrdering; label: string }> = [
-  { value: "name", label: "Name (A-Z)" },
-  { value: "-name", label: "Name (Z-A)" },
-  { value: "cr", label: "CR (Low-High)" },
-  { value: "-cr", label: "CR (High-Low)" }
-];
+export const COMPANION_MONSTERS_PER_PAGE = 20;
 
 export const companionMonsterTypeOptions = Array.from(
-  new Set([...MONSTER_TYPE_OPTIONS, "Undead"])
+  new Set([...MONSTER_TYPE_OPTIONS, PRIMAL_BEAST_MONSTER_TYPE, "Undead"])
 ).sort((left, right) => left.localeCompare(right));
 
 export const companionSpeciesTypeOptions = Array.from(
@@ -56,72 +49,34 @@ export function createEmptyCompanionDraft(): CompanionDraft {
     name: "",
     description: "",
     type: "",
-    role: null,
     primalBeastKind: null,
-    appearance: "",
     maxHitPoints: "",
     currentHitPoints: "",
-    isDead: false,
+    durationType: defaultManualStatusDurationDraft.type,
+    durationValue: defaultManualStatusDurationDraft.value,
     inheritedCreatureEntry: null
   };
 }
 
 export function createDraftFromCompanion(companion: CharacterCompanion): CompanionDraft {
-  const defaultMaxHitPoints = getDefaultCompanionMaxHitPoints(companion);
+  const durationDraft = getManualStatusDurationDraft(companion.duration);
 
   return {
     id: companion.id,
     name: companion.name,
     description: companion.description,
     type: companion.type,
-    role: companion.role ?? null,
     primalBeastKind: companion.primalBeastKind ?? null,
-    appearance: companion.appearance ?? "",
-    maxHitPoints:
-      companion.maxHitPoints !== undefined
-        ? String(companion.maxHitPoints)
-        : defaultMaxHitPoints !== null
-          ? String(defaultMaxHitPoints)
-          : "",
-    currentHitPoints:
-      companion.currentHitPoints !== undefined
-        ? String(companion.currentHitPoints)
-        : companion.maxHitPoints !== undefined
-          ? String(companion.maxHitPoints)
-          : defaultMaxHitPoints !== null
-            ? String(defaultMaxHitPoints)
-            : "",
-    isDead: companion.isDead === true,
+    maxHitPoints: String(companion.maxHitPoints),
+    currentHitPoints: String(companion.currentHitPoints),
+    durationType: durationDraft.type,
+    durationValue: durationDraft.value,
     inheritedCreatureEntry: companion.inheritedCreatureEntry ?? null
   };
 }
 
-export function createBeastMasterCompanionDraft(kind: PrimalBeastKind): CompanionDraft {
-  const draft = createEmptyCompanionDraft();
-  const companion: CharacterCompanion = {
-    id: "",
-    name: "Primal Companion",
-    description: "",
-    type: "Beast",
-    role: beastMasterCompanionRole,
-    primalBeastKind: kind
-  };
-  const template = getCompanionStatBlock(companion);
-  const hitPoints = template?.hit_points ?? 1;
-
-  return {
-    ...draft,
-    name: template?.name ?? companion.name,
-    type: companion.type,
-    role: beastMasterCompanionRole,
-    primalBeastKind: kind,
-    maxHitPoints: String(hitPoints),
-    currentHitPoints: String(hitPoints)
-  };
-}
-
 export function getCompanionSourceLabel(companion: CharacterCompanion) {
-  if (isBeastMasterCompanion(companion) && companion.primalBeastKind) {
+  if (companion.primalBeastKind) {
     return "Primal Beast";
   }
 
@@ -132,7 +87,7 @@ export function getInheritedEntryLabel(
   companion: Pick<CharacterCompanion, "inheritedCreatureEntry">
 ) {
   if (!companion.inheritedCreatureEntry) {
-    return "Custom";
+    return "Manual";
   }
 
   const sourceLabel = [

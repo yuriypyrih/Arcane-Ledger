@@ -478,6 +478,7 @@ const exhaustionDescriptionEntries: SpellDescriptionEntry[] = [
 
 export const statusGroupOrder: STATUS_ENTRY_GROUP[] = [
   STATUS_ENTRY_GROUP.EFFECTS,
+  STATUS_ENTRY_GROUP.COMPANIONS,
   STATUS_ENTRY_GROUP.REACTIONS,
   STATUS_ENTRY_GROUP.SENSES,
   STATUS_ENTRY_GROUP.AURAS,
@@ -489,6 +490,7 @@ export const statusGroupOrder: STATUS_ENTRY_GROUP[] = [
 
 export const statusGroupTitles: Record<STATUS_ENTRY_GROUP, string> = {
   [STATUS_ENTRY_GROUP.EFFECTS]: "Features",
+  [STATUS_ENTRY_GROUP.COMPANIONS]: "Companions",
   [STATUS_ENTRY_GROUP.REACTIONS]: "Reactions",
   [STATUS_ENTRY_GROUP.SENSES]: "Senses",
   [STATUS_ENTRY_GROUP.AURAS]: "Auras",
@@ -511,6 +513,7 @@ export {
   hasStatusCondition,
   isExhaustionStatusEntry,
   normalizeCharacterStatusEntries,
+  normalizeCharacterStatusDuration,
   normalizeStatusDurationRoundTick,
   removeCharacterConditionsForImmunities,
   removeCharacterStatusEntry,

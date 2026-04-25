@@ -3,11 +3,9 @@ import { Shield, X } from "lucide-react";
 import { useEffect, useState } from "react";
 import NumberInput from "../../FormInputs/NumberInput";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
-import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./TemporaryHitPoints.module.css";
-import { assignManualTemporaryHitPointsForCharacter } from "../GameplayForm/hitPointState";
 import {
   normalizeTemporaryHitPoints,
   normalizeTemporaryHitPointsSource
@@ -16,13 +14,17 @@ import {
 type TemporaryHitPointsProps = {
   temporaryHitPoints: number;
   temporaryHitPointsSource?: string;
-  onPersistCharacter: PersistCharacterUpdater;
+  modalTitle?: string;
+  description?: string;
+  onSaveTemporaryHitPoints: (value: number) => void;
 };
 
 function TemporaryHitPoints({
   temporaryHitPoints,
   temporaryHitPointsSource,
-  onPersistCharacter
+  modalTitle = "Temporary Hit Points",
+  description = "When taking damage the temporary hit points are consumed first. They do not stack and they vanish after resting at a camp.",
+  onSaveTemporaryHitPoints
 }: TemporaryHitPointsProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [temporaryHitPointsDraft, setTemporaryHitPointsDraft] = useState(() =>
@@ -76,9 +78,7 @@ function TemporaryHitPoints({
   function saveTemporaryHitPoints() {
     const nextTemporaryHitPoints = normalizeTemporaryHitPoints(temporaryHitPointsDraft);
 
-    onPersistCharacter((currentCharacter) =>
-      assignManualTemporaryHitPointsForCharacter(currentCharacter, nextTemporaryHitPoints)
-    );
+    onSaveTemporaryHitPoints(nextTemporaryHitPoints);
 
     setTemporaryHitPointsDraft(nextTemporaryHitPoints);
     setIsModalOpen(false);
@@ -114,7 +114,7 @@ function TemporaryHitPoints({
             <div className={sheetStyles.restPopupHeader}>
               <div>
                 <h3 id="temp-hp-modal-title" className={sheetStyles.sheetPanelTitle}>
-                  Temporary Hit Points
+                  {modalTitle}
                 </h3>
               </div>
               <button
@@ -128,10 +128,7 @@ function TemporaryHitPoints({
             </div>
 
             <div className={styles.tempHpModalContent}>
-              <p className={styles.tempHpDescription}>
-                When taking damage the temporary hit points are consumed first. They do not stack
-                and they vanish after resting at a camp.
-              </p>
+              <p className={styles.tempHpDescription}>{description}</p>
               {normalizedTemporaryHitPoints > 0 && normalizedTemporaryHitPointsSource ? (
                 <p className={styles.tempHpSource}>
                   Source: <strong>{normalizedTemporaryHitPointsSource}</strong>

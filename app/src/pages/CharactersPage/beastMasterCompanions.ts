@@ -26,9 +26,14 @@ export function getBeastMasterCompanion(
   return character.companions?.find(isBeastMasterCompanion) ?? null;
 }
 
-export function getCompanionStatBlock(companion: CharacterCompanion): MonsterRecord | null {
+export function getCompanionStatBlock(
+  companion: CharacterCompanion,
+  character?: Pick<Character, "abilities" | "level">
+): MonsterRecord | null {
   return (
-    getPrimalBeastTemplate(companion.primalBeastKind) ?? companion.inheritedCreatureEntry ?? null
+    getPrimalBeastTemplate(companion.primalBeastKind, character) ??
+    companion.inheritedCreatureEntry ??
+    null
   );
 }
 
@@ -52,7 +57,7 @@ export function normalizeCompanionHitPoints(
 export function reviveBeastMasterCompanion(character: Character): Character {
   const companion = getBeastMasterCompanion(character);
 
-  if (!companion || companion.isDead !== true) {
+  if (!companion || companion.currentHitPoints > 0) {
     return character;
   }
 
@@ -67,7 +72,6 @@ export function reviveBeastMasterCompanion(character: Character): Character {
       currentCompanion.id === companion.id
         ? {
             ...currentCompanion,
-            isDead: false,
             maxHitPoints,
             currentHitPoints: maxHitPoints
           }

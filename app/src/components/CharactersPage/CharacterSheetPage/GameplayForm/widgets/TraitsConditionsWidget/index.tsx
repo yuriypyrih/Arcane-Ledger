@@ -3,9 +3,11 @@ import { Pencil } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useBodyScrollLock } from "../../../../../../lib/useBodyScrollLock";
 import { normalizeRoundTracker } from "../../../../../../pages/CharactersPage/combat";
+import { getCompanionIdFromStatusEntry } from "../../../../../../pages/CharactersPage/companions";
 import type { PersistCharacterUpdater } from "../../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type { Character } from "../../../../../../types";
 import { useDiceRollerPopup } from "../../../../../DicePage/DiceRollerPopup";
+import CompanionDrawer from "../../../CompanionsSection/CompanionDrawer";
 import CharacterSpellDrawer from "../../../SpellCastingForm/CharacterSpellDrawer";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import widgetShellStyles from "../../GameplayWidgetShared.module.css";
@@ -61,6 +63,10 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
     spellSlotTotals,
     spellSlotsRemaining
   });
+  const selectedCompanionId = getCompanionIdFromStatusEntry(selectedStatusEntry);
+  const selectedCompanion = selectedCompanionId
+    ? (character.companions.find((companion) => companion.id === selectedCompanionId) ?? null)
+    : null;
   const hasOverlayOpen = isTraitModalOpen || selectedStatusEntryId !== null;
 
   useBodyScrollLock(hasOverlayOpen);
@@ -172,10 +178,19 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
         roundTracker={roundTracker}
         selectedReactionEntry={selectedReactionEntry}
         selectedReactionSpell={reactionDrawerState.selectedReactionSpell}
-        selectedStatusEntry={selectedStatusEntry}
+        selectedStatusEntry={selectedCompanion ? null : selectedStatusEntry}
         setSelectedStatusEntryId={setSelectedStatusEntryId}
         {...statusDrawerState}
       />
+
+      {selectedCompanion ? (
+        <CompanionDrawer
+          character={character}
+          companion={selectedCompanion}
+          onPersistCharacter={onPersistCharacter}
+          onClose={() => setSelectedStatusEntryId(null)}
+        />
+      ) : null}
 
       {diceRollerPopup}
     </>

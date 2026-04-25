@@ -1,7 +1,7 @@
 import { Download, Eye, Trash2 } from "lucide-react";
-import { useState } from "react";
+import { useId, useState } from "react";
 import { Link } from "react-router-dom";
-import { SheetModal } from "../../Overlay";
+import { DestructiveConfirmationModal } from "../../Overlay";
 import { abilityKeys } from "../../../pages/CharactersPage/constants";
 import type { Character } from "../../../types";
 import { getClassSignatureStyle } from "../classSignature";
@@ -14,6 +14,7 @@ type CharacterListProps = {
 };
 
 function CharacterList({ characters, onDeleteCharacter }: CharacterListProps) {
+  const deleteTitleId = useId();
   const [pendingDeleteCharacter, setPendingDeleteCharacter] = useState<Character | null>(null);
 
   function handleDeleteConfirm() {
@@ -100,34 +101,20 @@ function CharacterList({ characters, onDeleteCharacter }: CharacterListProps) {
       )}
 
       {pendingDeleteCharacter ? (
-        <SheetModal
-          titleId="delete-character-title"
-          onClose={() => setPendingDeleteCharacter(null)}
-          backdropClassName={styles.modalBackdrop}
-          panelClassName={styles.modalCard}
-        >
-          <h4 id="delete-character-title">Delete character?</h4>
-          <p>
-            This will permanently remove <strong>{pendingDeleteCharacter.name}</strong> from your
-            roster.
-          </p>
-          <div className={styles.modalActions}>
-            <button
-              type="button"
-              className={styles.modalCancelButton}
-              onClick={() => setPendingDeleteCharacter(null)}
-            >
-              Cancel
-            </button>
-            <button
-              type="button"
-              className={styles.modalDeleteButton}
-              onClick={handleDeleteConfirm}
-            >
-              Delete
-            </button>
-          </div>
-        </SheetModal>
+        <DestructiveConfirmationModal
+          titleId={deleteTitleId}
+          title="Delete character?"
+          message={
+            <>
+              This will permanently remove <strong>{pendingDeleteCharacter.name}</strong> from your
+              roster.
+            </>
+          }
+          confirmLabel="Delete"
+          closeLabel="Close delete character confirmation"
+          onCancel={() => setPendingDeleteCharacter(null)}
+          onConfirm={handleDeleteConfirm}
+        />
       ) : null}
     </div>
   );

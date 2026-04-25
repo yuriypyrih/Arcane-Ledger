@@ -3,6 +3,7 @@ import type { AbilityKey } from "./characters";
 
 export enum STATUS_ENTRY_GROUP {
   EFFECTS = "EFFECTS",
+  COMPANIONS = "COMPANIONS",
   REACTIONS = "REACTIONS",
   SENSES = "SENSES",
   AURAS = "AURAS",

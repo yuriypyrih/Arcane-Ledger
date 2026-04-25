@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { HeartMinus, HeartPlus, Pencil, Save, X } from "lucide-react";
+import { Pencil, Save, X } from "lucide-react";
 import type { ChangeEvent } from "react";
 import { useEffect, useState } from "react";
 import NumberInput from "../../../FormInputs/NumberInput";
@@ -9,8 +9,8 @@ import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pa
 import { clampNumber } from "../../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { getAutomaticMaxHitPointsForCharacter } from "../../../../../pages/CharactersPage/gameplay";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../../../pages/CharactersPage/traits";
+import HitPointControls from "../../HitPointControls/HitPointControls";
 import MagicTemporaryHitPoints from "../../MagicTemporaryHitPoints";
-import TemporaryHitPoints from "../../TemporaryHitPoints";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import widgetShellStyles from "../GameplayWidgetShared.module.css";
 import {
@@ -25,6 +25,7 @@ import {
   applyDamageToCharacter,
   applyHealingToCharacter,
   applyHitPointEditToCharacter,
+  assignManualTemporaryHitPointsForCharacter,
   syncAutomaticHitPointsForCharacter
 } from "../hitPointState";
 import styles from "./HitPointsWidget.module.css";
@@ -40,7 +41,6 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
   const [hpModeDraft, setHpModeDraft] = useState<MaxHitPointsMode>(() =>
     normalizeMaxHitPointsMode(character.maxHitPointsMode)
   );
-  const [hitPointStep, setHitPointStep] = useState(1);
   const effectiveHitPoints = getEffectiveHitPointMaximumForCharacter(character);
 
   function getEffectiveHitPointsForBase(baseHitPoints: number): number {
@@ -84,20 +84,16 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
   const magicTemporaryHitPoints = normalizeMagicTemporaryHitPoints(character.magicTemporaryHitPoints);
   const magicTemporaryHitPointsFeature = getMagicTemporaryHitPointsFeatureForCharacter(character);
   const deathSaves = normalizeDeathSaves(character.deathSaves);
-  const currentHitPointPercent =
-    effectiveHitPoints > 0 ? (character.currentHitPoints / effectiveHitPoints) * 100 : 0;
-  const rawMagicTemporaryHitPointPercent =
-    effectiveHitPoints > 0 ? (magicTemporaryHitPoints / effectiveHitPoints) * 100 : 0;
-  const rawTemporaryHitPointPercent =
-    effectiveHitPoints > 0 ? (temporaryHitPoints / effectiveHitPoints) * 100 : 0;
-  const visibleTemporaryHitPointPercent = Math.min(
-    Math.max(0, 100 - currentHitPointPercent),
-    rawTemporaryHitPointPercent
-  );
-  const visibleMagicTemporaryHitPointPercent = Math.min(
-    Math.max(0, 100 - currentHitPointPercent - visibleTemporaryHitPointPercent),
-    rawMagicTemporaryHitPointPercent
-  );
+  const statusLabel =
+    deathSaves.failures >= 3
+      ? "Dead"
+      : deathSaves.successes >= 3
+        ? "Stable"
+        : character.currentHitPoints === 0
+          ? "Unconscious"
+          : character.currentHitPoints <= Math.ceil(effectiveHitPoints * 0.35)
+            ? "Critical"
+            : "Stable";
 
   function beginEditing() {
     setHpDraft(createHpDraft(character));
@@ -177,30 +173,6 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
     }));
   }
 
-  function updateHitPointStep(event: ChangeEvent<HTMLInputElement>) {
-    const normalizedValue = event.target.value.replace(/^0+(?=\d)/, "");
-    setHitPointStep(clampNumber(normalizedValue, 0, 999, 0));
-  }
-
-  function adjustHitPoints(direction: -1 | 1) {
-    const amount = clampNumber(hitPointStep, 0, 999, 0);
-
-    if (amount === 0) {
-      setHitPointStep(1);
-      return;
-    }
-
-    onPersistCharacter((currentCharacter) => {
-      if (direction > 0) {
-        return applyHealingToCharacter(currentCharacter, amount);
-      }
-
-      return applyDamageToCharacter(currentCharacter, amount);
-    });
-
-    setHitPointStep(1);
-  }
-
   return (
     <section className={clsx(widgetShellStyles.widgetCard, styles.root)}>
       <header className={widgetShellStyles.widgetHeader}>
@@ -274,99 +246,40 @@ function HitPointsWidget({ character, onPersistCharacter }: HitPointsWidgetProps
           </div>
         </div>
       ) : (
-        <>
-          <div className={styles.summary}>
-            <div className={styles.valueRow}>
-              <div className={styles.summaryCopy}>
-                <div className={styles.currentRow}>
-                  <strong>
-                    {character.currentHitPoints}/{effectiveHitPoints} HP
-                  </strong>
-                  <TemporaryHitPoints
-                    temporaryHitPoints={temporaryHitPoints}
-                    temporaryHitPointsSource={character.temporaryHitPointsSource}
-                    onPersistCharacter={onPersistCharacter}
-                  />
-                  {magicTemporaryHitPointsFeature ? (
-                    <MagicTemporaryHitPoints
-                      feature={magicTemporaryHitPointsFeature}
-                      magicTemporaryHitPoints={magicTemporaryHitPoints}
-                      magicTemporaryHitPointsSource={character.magicTemporaryHitPointsSource}
-                      onPersistCharacter={onPersistCharacter}
-                    />
-                  ) : null}
-                </div>
-
-                <span>
-                  {deathSaves.failures >= 3
-                    ? "Dead"
-                    : deathSaves.successes >= 3
-                      ? "Stable"
-                      : character.currentHitPoints === 0
-                        ? "Unconscious"
-                        : character.currentHitPoints <= Math.ceil(effectiveHitPoints * 0.35)
-                          ? "Critical"
-                          : "Stable"}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className={styles.actionRow}>
-            <div className={styles.barTrack}>
-              <div className={styles.barMeter}>
-                <div
-                  className={styles.barFill}
-                  style={{ width: `${Math.max(0, currentHitPointPercent)}%` }}
-                />
-                {visibleTemporaryHitPointPercent > 0 ? (
-                  <div
-                    className={styles.barTempFill}
-                    style={{
-                      left: `${Math.max(0, currentHitPointPercent)}%`,
-                      width: `${visibleTemporaryHitPointPercent}%`
-                    }}
-                  />
-                ) : null}
-                {visibleMagicTemporaryHitPointPercent > 0 ? (
-                  <div
-                    className={styles.barMagicTempFill}
-                    style={{
-                      left: `${Math.max(
-                        0,
-                        currentHitPointPercent + visibleTemporaryHitPointPercent
-                      )}%`,
-                      width: `${visibleMagicTemporaryHitPointPercent}%`
-                    }}
-                  />
-                ) : null}
-              </div>
-            </div>
-            <div className={styles.stepControl}>
-              <NumberInput
-                min={0}
-                className={styles.stepInput}
-                value={hitPointStep}
-                onChange={updateHitPointStep}
+        <HitPointControls
+          currentHitPoints={character.currentHitPoints}
+          maxHitPoints={effectiveHitPoints}
+          temporaryHitPoints={temporaryHitPoints}
+          temporaryHitPointsSource={character.temporaryHitPointsSource}
+          magicTemporaryHitPoints={magicTemporaryHitPoints}
+          statusText={statusLabel}
+          temporaryHitPointsDescription="When taking damage the temporary hit points are consumed first. They do not stack and they vanish after resting at a camp."
+          extraTemporaryHitPointControl={
+            magicTemporaryHitPointsFeature ? (
+              <MagicTemporaryHitPoints
+                feature={magicTemporaryHitPointsFeature}
+                magicTemporaryHitPoints={magicTemporaryHitPoints}
+                magicTemporaryHitPointsSource={character.magicTemporaryHitPointsSource}
+                onPersistCharacter={onPersistCharacter}
               />
-              <button
-                type="button"
-                className={clsx(styles.actionButton, styles.damageButton)}
-                onClick={() => adjustHitPoints(-1)}
-                title={`Deal ${hitPointStep} hit points`}
-              >
-                <HeartMinus size={20} />
-              </button>
-              <button
-                type="button"
-                className={clsx(styles.actionButton, styles.healButton)}
-                onClick={() => adjustHitPoints(1)}
-                title={`Heal ${hitPointStep} hit points`}
-              >
-                <HeartPlus size={20} />
-              </button>
-            </div>
-          </div>
-        </>
+            ) : null
+          }
+          onDamage={(amount) =>
+            onPersistCharacter((currentCharacter) =>
+              applyDamageToCharacter(currentCharacter, amount)
+            )
+          }
+          onHeal={(amount) =>
+            onPersistCharacter((currentCharacter) =>
+              applyHealingToCharacter(currentCharacter, amount)
+            )
+          }
+          onSaveTemporaryHitPoints={(value) =>
+            onPersistCharacter((currentCharacter) =>
+              assignManualTemporaryHitPointsForCharacter(currentCharacter, value)
+            )
+          }
+        />
       )}
     </section>
   );

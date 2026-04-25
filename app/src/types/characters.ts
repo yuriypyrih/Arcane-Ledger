@@ -20,7 +20,7 @@ import type { CharacterFeatEntry } from "./feats";
 import type { ItemRecord } from "./items";
 import type { MonsterRecord } from "./monsters";
 import type { SkillName } from "./skills";
-import type { CharacterStatusEntry } from "./traits";
+import type { CharacterStatusDuration, CharacterStatusEntry } from "./traits";
 
 export type AbilityKey = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 
@@ -129,10 +129,11 @@ export type CharacterCompanion = {
   type: string;
   role?: "beast-master";
   primalBeastKind?: "land" | "sea" | "sky";
-  maxHitPoints?: number;
-  currentHitPoints?: number;
-  isDead?: boolean;
-  appearance?: string;
+  maxHitPoints: number;
+  currentHitPoints: number;
+  temporaryHitPoints: number;
+  temporaryHitPointsSource?: string;
+  duration: CharacterStatusDuration;
   inheritedCreatureEntry?: MonsterRecord;
 };
 

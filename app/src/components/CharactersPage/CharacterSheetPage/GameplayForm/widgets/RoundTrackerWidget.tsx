@@ -15,6 +15,7 @@ import {
   advanceCharacterStatusEntries,
   normalizeCharacterStatusEntries
 } from "../../../../../pages/CharactersPage/statusEntries";
+import { advanceCharacterCompanionDurations } from "../../../../../pages/CharactersPage/companions";
 import { getRoundTrackerResourceMeta } from "../gameplayWidgetUtils";
 import RoundTrackerControl from "./RoundTrackerControl";
 import { consumeRoundTrackerResourceForCharacter, startCharacterTurn } from "../gameplayStateUtils";
@@ -72,7 +73,8 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
     );
     let nextCharacter: Character = {
       ...currentCharacter,
-      statusEntries: nextStatusEntries
+      statusEntries: nextStatusEntries,
+      companions: advanceCharacterCompanionDurations(currentCharacter.companions, tickOn)
     };
 
     expiredFeatureOverrideEntries.forEach((entry) => {

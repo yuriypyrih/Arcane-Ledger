@@ -222,6 +222,11 @@ function formatMonsterSenses(monster: MonsterRecord) {
 
 function formatMonsterChallengeRating(monster: MonsterRecord) {
   const challengeRating = getKnownMonsterText(monster.challenge_rating) ?? String(monster.cr);
+
+  if (/\bxp\b/i.test(challengeRating)) {
+    return challengeRating;
+  }
+
   const xp = CR_XP_BY_VALUE.get(monster.cr);
 
   return xp ? `${challengeRating} (${xpFormatter.format(xp)} XP)` : challengeRating;

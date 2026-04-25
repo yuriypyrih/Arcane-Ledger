@@ -8,6 +8,7 @@ import {
   advanceCharacterStatusEntries,
   normalizeCharacterStatusEntries
 } from "../../../../pages/CharactersPage/statusEntries";
+import { advanceCharacterCompanionDurations } from "../../../../pages/CharactersPage/companions";
 import {
   getEffectiveHitPointMaximumForCharacter,
   reconcileCharacterStatusConsequences
@@ -146,7 +147,11 @@ function advanceTimedStatusesForTurnStart(character: Character): Character {
   );
   let nextCharacter: Character = {
     ...character,
-    statusEntries: nextStatusEntries
+    statusEntries: nextStatusEntries,
+    companions: advanceCharacterCompanionDurations(
+      character.companions,
+      STATUS_DURATION_ROUND_TICK.ROUND_START
+    )
   };
 
   expiredFeatureOverrideEntries.forEach((entry) => {
