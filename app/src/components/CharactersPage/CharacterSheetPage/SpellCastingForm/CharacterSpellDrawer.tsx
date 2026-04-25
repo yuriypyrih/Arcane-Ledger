@@ -468,6 +468,8 @@ function CharacterSpellDrawer({
               <p className={sheetStyles.spellDrawerSummary}>
                 <SpellSubtitle spell={spell} />
               </p>
+            </div>
+            <div className={gameplayActionStyles.headerAside}>
               {visibleHeaderTags.length > 0 ? (
                 <div className={gameplayActionStyles.resourceBadgeRow}>
                   <FeatureActionHeaderTags
@@ -476,17 +478,17 @@ function CharacterSpellDrawer({
                   />
                 </div>
               ) : null}
+              <button
+                type="button"
+                className={sheetStyles.spellDrawerCloseButton}
+                onClick={onClose}
+                aria-label={
+                  mode === "prepare-preview" ? "Close spell preview" : "Close spell details"
+                }
+              >
+                <X size={18} />
+              </button>
             </div>
-            <button
-              type="button"
-              className={sheetStyles.spellDrawerCloseButton}
-              onClick={onClose}
-              aria-label={
-                mode === "prepare-preview" ? "Close spell preview" : "Close spell details"
-              }
-            >
-              <X size={18} />
-            </button>
           </div>
 
           <div className={sheetStyles.spellDrawerBody}>

@@ -127,6 +127,12 @@ export type CharacterCompanion = {
   name: string;
   description: string;
   type: string;
+  role?: "beast-master";
+  primalBeastKind?: "land" | "sea" | "sky";
+  maxHitPoints?: number;
+  currentHitPoints?: number;
+  isDead?: boolean;
+  appearance?: string;
   inheritedCreatureEntry?: MonsterRecord;
 };
 

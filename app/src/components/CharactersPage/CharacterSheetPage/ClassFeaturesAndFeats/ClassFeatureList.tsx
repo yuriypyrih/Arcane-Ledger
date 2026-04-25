@@ -2195,20 +2195,38 @@ function ClassFeatureList({
                         onOpenDivinityReference={onOpenDivinityReference}
                       />
                       {getAvailableRangerOtherworldlyGlamourSkills().length > 0 ? (
-                        <FeatureChoiceOptions
-                          featureKey={featureRow.key}
-                          groupName={`otherworldly-glamour-${character.id}`}
-                          isUnlocked={isUnlocked}
-                          selectedValue={getRangerOtherworldlyGlamourSkillSelection()}
-                          options={rangerOtherworldlyGlamourSkillOptions.filter((option) =>
-                            getAvailableRangerOtherworldlyGlamourSkills().includes(option.value)
-                          )}
-                          onChange={updateRangerOtherworldlyGlamourSkillSelection}
-                          onOpenKeyword={onOpenKeyword}
-                          onOpenFeatReference={onOpenFeatReference}
-                          onOpenSpellReference={onOpenSpellReference}
-                          onOpenDivinityReference={onOpenDivinityReference}
-                        />
+                        <div className={styles.featureSelectionGrid}>
+                          <label
+                            className={clsx(
+                              styles.featureSelectionField,
+                              !isUnlocked && styles.featureOptionRowDisabled
+                            )}
+                          >
+                            <span className={styles.featureSelectionLabel}>Bonus Skill</span>
+                            <SelectInput
+                              value={getRangerOtherworldlyGlamourSkillSelection() ?? ""}
+                              disabled={!isUnlocked}
+                              onChange={(event) =>
+                                updateRangerOtherworldlyGlamourSkillSelection(event.target.value)
+                              }
+                            >
+                              <option value="">Select a skill</option>
+                              {buildSkillSelectOptions(
+                                rangerOtherworldlyGlamourSkillOptions.map((option) => option.value),
+                                getAvailableRangerOtherworldlyGlamourSkills(),
+                                getRangerOtherworldlyGlamourSkillSelection()
+                              ).map((option) => (
+                                <option
+                                  key={`${featureRow.key}-${option.skill}`}
+                                  value={option.skill}
+                                  disabled={option.disabled}
+                                >
+                                  {option.label}
+                                </option>
+                              ))}
+                            </SelectInput>
+                          </label>
+                        </div>
                       ) : null}
                     </>
                   ) : isWizardSavantFeature(featureRow.feature) &&
@@ -2386,7 +2404,9 @@ function ClassFeatureList({
                         >
                           <span className={styles.featureSelectionLabel}>Bonus Skill</span>
                           <SelectInput
-                            value={getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection() ?? ""}
+                            value={
+                              getPaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection() ?? ""
+                            }
                             disabled={!isUnlocked}
                             onChange={(event) =>
                               updatePaladinOathOfTheNobleGeniesGeniesSplendorSkillSelection(
@@ -2616,16 +2636,16 @@ function ClassFeatureList({
                         onOpenSpellReference={onOpenSpellReference}
                         onOpenDivinityReference={onOpenDivinityReference}
                       />
-                        <div className={styles.featureSelectionGrid}>
-                          {[0, 1, 2].map((slotIndex) => {
-                            const currentValue =
-                              getBardLoreBonusProficiencySelections()[slotIndex] ?? "";
-                            const availableSkills =
-                              getAvailableBardLoreBonusProficiencySkills(slotIndex);
+                      <div className={styles.featureSelectionGrid}>
+                        {[0, 1, 2].map((slotIndex) => {
+                          const currentValue =
+                            getBardLoreBonusProficiencySelections()[slotIndex] ?? "";
+                          const availableSkills =
+                            getAvailableBardLoreBonusProficiencySkills(slotIndex);
 
-                            return (
-                              <label
-                                key={`${featureRow.key}-bonus-proficiency-slot-${slotIndex}`}
+                          return (
+                            <label
+                              key={`${featureRow.key}-bonus-proficiency-slot-${slotIndex}`}
                               className={clsx(
                                 styles.featureSelectionField,
                                 !isUnlocked && styles.featureOptionRowDisabled
@@ -2805,9 +2825,7 @@ function ClassFeatureList({
                             !isUnlocked && styles.featureOptionRowDisabled
                           )}
                         >
-                          <span className={styles.featureSelectionLabel}>
-                            Artisan&apos;s Tool
-                          </span>
+                          <span className={styles.featureSelectionLabel}>Artisan&apos;s Tool</span>
                           <SelectInput
                             value={getKnowledgeDomainBlessingsToolSelection() ?? ""}
                             disabled={!isUnlocked}

@@ -3561,12 +3561,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           checked: useMistyWandererOnSelectedSpell,
                           onCheckedChange: setUseMistyWandererOnSelectedSpell,
                           disabled: selectedSpellMistyWandererDisabled,
-                          headerTags: [
-                            createChargesHeaderTag(
-                              rangerMistyWandererUsesRemaining,
-                              rangerMistyWandererUsesTotal
-                            )
-                          ],
                           usage: createChargesCardUsage(
                             rangerMistyWandererUsesRemaining,
                             rangerMistyWandererUsesTotal
@@ -3582,12 +3576,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           checked: useFeyReinforcementsOnSelectedSpell,
                           onCheckedChange: setUseFeyReinforcementsOnSelectedSpell,
                           disabled: selectedSpellFeyReinforcementsDisabled,
-                          headerTags: [
-                            createChargesHeaderTag(
-                              rangerFeyReinforcementsUsesRemaining,
-                              rangerFeyReinforcementsUsesTotal
-                            )
-                          ],
                           usage: createChargesCardUsage(
                             rangerFeyReinforcementsUsesRemaining,
                             rangerFeyReinforcementsUsesTotal

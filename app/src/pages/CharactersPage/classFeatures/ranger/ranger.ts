@@ -63,12 +63,17 @@ import { getRangerFeatAdjustedWisdomModifier } from "./abilityModifiers";
 import * as feyWandererSubclass from "./subclasses/rangerFeyWanderer";
 import * as gloomStalkerSubclass from "./subclasses/rangerGloomStalker";
 import * as hunterSubclass from "./subclasses/rangerHunter";
+import * as beastMasterSubclass from "./subclasses/rangerBeastMaster";
 import * as winterWalkerSubclass from "./subclasses/rangerWinterWalker";
 
 export const favoredEnemyActionKey = "ranger-favored-enemy";
 export const tirelessActionKey = "ranger-tireless";
 export const naturesVeilActionKey = "ranger-natures-veil";
 export const fortifyingSoulActionKey = winterWalkerSubclass.fortifyingSoulActionKey;
+export const rangerBeastMasterCommandActionKey =
+  beastMasterSubclass.rangerBeastMasterCommandActionKey;
+export const rangerBeastMasterReviveActionKey =
+  beastMasterSubclass.rangerBeastMasterReviveActionKey;
 export const chillingRetributionReactionId = winterWalkerSubclass.chillingRetributionReactionId;
 const rangerWeaponMasterySource = "Weapon Mastery";
 const rangerWeaponMasterySelectionCount = 2;
@@ -1246,6 +1251,13 @@ export function consumeRangerFeyReinforcementsUse(character: Character): Charact
 
 export function consumeRangerMistyWandererUse(character: Character): Character {
   return feyWandererSubclass.consumeRangerFeyWandererMistyWandererUse(character);
+}
+
+export function activateRangerBeastMasterAction(
+  character: Character,
+  actionKey: string
+): Character {
+  return beastMasterSubclass.activateRangerBeastMasterAction(character, actionKey);
 }
 
 export function consumeRangerGloomStalkerDreadAmbusherUse(character: Character): Character {

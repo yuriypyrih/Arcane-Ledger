@@ -189,6 +189,7 @@ import {
   getRangerTirelessTemporaryHitPointsFormula,
   tirelessActionKey
 } from "../../../../../pages/CharactersPage/classFeatures/ranger/ranger";
+import { getRangerFeyWandererDreadfulStrikesOptionState } from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerFeyWanderer";
 import { getRangerGloomStalkerDreadAmbusherOptionState } from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerGloomStalker";
 import { getRangerWinterWalkerPolarStrikesOptionState } from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerWinterWalker";
 import {
@@ -1914,6 +1915,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     () => getRangerGloomStalkerDreadAmbusherOptionState(character, selectedWeaponAction),
     [character, selectedWeaponAction]
   );
+  const selectedWeaponFeyDreadfulStrikesState = useMemo(
+    () => getRangerFeyWandererDreadfulStrikesOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
   const selectedWeaponPolarStrikesState = useMemo(
     () => getRangerWinterWalkerPolarStrikesOptionState(character, selectedWeaponAction),
     [character, selectedWeaponAction]
@@ -2053,6 +2058,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const selectedWeaponVowOfEnmityToggleDisabled = selectedWeaponVowOfEnmityState?.disabled ?? false;
   const selectedWeaponDreadfulStrikeToggleDisabled =
     selectedWeaponDreadAmbusherState?.disabled ?? false;
+  const selectedWeaponFeyDreadfulStrikesToggleDisabled =
+    selectedWeaponFeyDreadfulStrikesState?.disabled ?? false;
   const selectedWeaponPolarStrikesToggleDisabled =
     selectedWeaponPolarStrikesState?.disabled ?? false;
   const selectedWeaponHuntersMarkTargetToggleDisabled = !selectedWeaponHuntersMarkTargetState;
@@ -2107,6 +2114,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       nextAction = applyWeaponDamageBonusPreview(
         nextAction,
         selectedWeaponDreadAmbusherState.damageBonus
+      );
+    }
+
+    if (
+      isDreadfulStrikeSelected &&
+      selectedWeaponFeyDreadfulStrikesState &&
+      !selectedWeaponFeyDreadfulStrikesToggleDisabled
+    ) {
+      nextAction = applyWeaponDamageBonusPreview(
+        nextAction,
+        selectedWeaponFeyDreadfulStrikesState.damageBonus
       );
     }
 
@@ -2180,6 +2198,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedWeaponAction,
     selectedWeaponDreadAmbusherState,
     selectedWeaponDreadfulStrikeToggleDisabled,
+    selectedWeaponFeyDreadfulStrikesState,
+    selectedWeaponFeyDreadfulStrikesToggleDisabled,
     selectedWeaponEmpoweredStrikesState,
     selectedWeaponEmpoweredStrikesToggleDisabled,
     selectedWeaponHandOfHarmToggleDisabled,
@@ -4082,6 +4102,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       isDreadfulStrikeSelected &&
       selectedWeaponDreadAmbusherState !== null &&
       !selectedWeaponDreadfulStrikeToggleDisabled;
+    const useFeyDreadfulStrikes =
+      isDreadfulStrikeSelected &&
+      selectedWeaponFeyDreadfulStrikesState !== null &&
+      !selectedWeaponFeyDreadfulStrikesToggleDisabled;
     const usePolarStrikes =
       action.attackKind === "weapon" &&
       isPolarStrikesSelected &&
@@ -4121,6 +4145,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       !selectedWeaponSacredWeaponToggleDisabled;
     const effectiveAction =
       (useDreadfulStrike ||
+        useFeyDreadfulStrikes ||
         usePolarStrikes ||
         useHuntersMarkTarget ||
         useEmpoweredStrikes ||
@@ -4149,6 +4174,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     if (
       effectiveAction.damageBonusEntries.length <= 0 &&
       !useDreadfulStrike &&
+      !useFeyDreadfulStrikes &&
       !usePolarStrikes &&
       !useStunningStrike &&
       !useEmpoweredStrikes &&
@@ -5616,6 +5642,21 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               )}
               application={{ targetLabel: "Damage" }}
               usageKey="dreadful-strike"
+            />
+          ) : null}
+          {selectedWeaponFeyDreadfulStrikesState ? (
+            <FeatureOptInToggle
+              label="Dreadful Strikes"
+              checked={isDreadfulStrikeSelected}
+              disabled={selectedWeaponFeyDreadfulStrikesToggleDisabled}
+              muted={selectedWeaponFeyDreadfulStrikesToggleDisabled}
+              onCheckedChange={setIsDreadfulStrikeSelected}
+              title={selectedWeaponFeyDreadfulStrikesState.disabledReason ?? undefined}
+              application={{
+                qualifierText: "Once per turn",
+                targetLabel: "Damage"
+              }}
+              usageKey="dreadful-strikes"
             />
           ) : null}
           {selectedWeaponPolarStrikesState ? (

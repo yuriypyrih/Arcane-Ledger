@@ -1,6 +1,12 @@
 import type { CharacterCompanion } from "../../types";
 import { normalizeMonsterRecord } from "../../utils/monsters";
 import { isObjectRecord, normalizeText } from "../../utils/normalize";
+import {
+  beastMasterCompanionRole,
+  getDefaultCompanionMaxHitPoints,
+  getNormalizedPrimalBeastKind,
+  normalizeCompanionHitPoints
+} from "./beastMasterCompanions";
 
 function normalizeCharacterCompanion(value: unknown, index: number): CharacterCompanion | null {
   if (!isObjectRecord(value)) {
@@ -15,13 +21,46 @@ function normalizeCharacterCompanion(value: unknown, index: number): CharacterCo
   }
 
   const inheritedCreatureEntry = normalizeMonsterRecord(value.inheritedCreatureEntry);
-
-  return {
+  const primalBeastKind = getNormalizedPrimalBeastKind(value.primalBeastKind);
+  const role = value.role === beastMasterCompanionRole ? beastMasterCompanionRole : undefined;
+  const baselineCompanion: CharacterCompanion = {
     id: normalizeText(value.id, `companion-${index}-${Date.now().toString(36)}`),
     name,
     description: normalizeText(value.description),
     type,
+    ...(role ? { role } : {}),
+    ...(primalBeastKind ? { primalBeastKind } : {}),
     ...(inheritedCreatureEntry ? { inheritedCreatureEntry } : {})
+  };
+  const defaultMaxHitPoints =
+    role === beastMasterCompanionRole ? getDefaultCompanionMaxHitPoints(baselineCompanion) : null;
+  const maxHitPoints =
+    role === beastMasterCompanionRole
+      ? Math.max(1, normalizeCompanionHitPoints(value.maxHitPoints, defaultMaxHitPoints) ?? 1)
+      : undefined;
+  const currentHitPoints =
+    role === beastMasterCompanionRole
+      ? Math.min(
+          maxHitPoints ?? 1,
+          normalizeCompanionHitPoints(
+            value.currentHitPoints,
+            maxHitPoints ?? defaultMaxHitPoints
+          ) ??
+            maxHitPoints ??
+            1
+        )
+      : undefined;
+
+  return {
+    ...baselineCompanion,
+    ...(role === beastMasterCompanionRole
+      ? {
+          appearance: normalizeText(value.appearance),
+          maxHitPoints,
+          currentHitPoints,
+          isDead: value.isDead === true || currentHitPoints === 0
+        }
+      : {})
   };
 }
 

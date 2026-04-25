@@ -235,6 +235,7 @@ import {
   setPaladinWeaponMasterySelections
 } from "./paladin/paladin";
 import {
+  activateRangerBeastMasterAction,
   activateRangerNaturesVeil,
   advanceRangerFeaturesForNewRound,
   applyLongRestToRangerFeatures,
@@ -255,6 +256,8 @@ import {
   fortifyingSoulActionKey,
   naturesVeilActionKey,
   normalizeRangerFeatureState,
+  rangerBeastMasterCommandActionKey,
+  rangerBeastMasterReviveActionKey,
   setRangerWeaponMasterySelections,
   tirelessActionKey,
   consumeRangerTirelessUse,
@@ -811,6 +814,13 @@ const classFeatureModules = {
 
       if (actionKey === naturesVeilActionKey) {
         return activateRangerNaturesVeil(character);
+      }
+
+      if (
+        actionKey === rangerBeastMasterCommandActionKey ||
+        actionKey === rangerBeastMasterReviveActionKey
+      ) {
+        return activateRangerBeastMasterAction(character, actionKey);
       }
 
       return null;

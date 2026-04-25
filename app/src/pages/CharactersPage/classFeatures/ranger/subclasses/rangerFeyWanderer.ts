@@ -1,4 +1,9 @@
-import { CLASS_FEATURE, REACTION, type ReactionEntry, type SpellEntry } from "../../../../../codex/entries";
+import {
+  CLASS_FEATURE,
+  REACTION,
+  type ReactionEntry,
+  type SpellEntry
+} from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import {
   PROFICIENCY_OVERRIDE_POLICY,
@@ -16,10 +21,10 @@ import type {
 import type {
   FeatureDamageBonus,
   FeatureSkillBonus,
-  FeatureSkillProficiencyEntry,
-  WeaponFeatureContext
+  FeatureSkillProficiencyEntry
 } from "../../types";
-import { createSourcedDescriptionEntries, descriptionValueSomeText } from "../../../actionModalDescriptions";
+import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import type { WeaponAction } from "../../../gameplay";
 import {
   getPreparedSpellIdsByLevel,
   resolveSpellIdsByName,
@@ -32,7 +37,8 @@ export const rangerFeyWandererGiftOptions = [
   {
     key: "illusory-butterflies",
     value: "illusory-butterflies",
-    content: "Illusory butterflies flutter around you while you take a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>."
+    content:
+      "Illusory butterflies flutter around you while you take a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>."
   },
   {
     key: "flowers-bloom",
@@ -42,8 +48,7 @@ export const rangerFeyWandererGiftOptions = [
   {
     key: "comforting-aroma",
     value: "comforting-aroma",
-    content:
-      "You faintly smell of cinnamon, lavender, nutmeg, or another comforting herb or spice."
+    content: "You faintly smell of cinnamon, lavender, nutmeg, or another comforting herb or spice."
   },
   {
     key: "dancing-shadow",
@@ -103,12 +108,22 @@ const feyWandererSpellIdsByLevel = {
 type RangerFeyWandererCharacter = Pick<Character, "className"> &
   Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>;
 
+type DreadfulStrikesAction = Pick<WeaponAction, "attackKind">;
+
+export type RangerFeyWandererDreadfulStrikesOptionState = {
+  damageBonus: FeatureDamageBonus;
+  disabled: boolean;
+  disabledReason?: string;
+};
+
 const dreadfulStrikesLabel = "Dreadful Strikes";
 const otherworldlyGlamourLabel = "Otherworldly Glamour";
 const beguilingTwistName = "Beguiling Twist";
 const feyReinforcementsUsesTotal = 1;
+const feyReinforcementsName = "Fey Reinforcements";
 const mistyWandererName = "Misty Wanderer";
 const mistyStepSpellId = "spell-misty-step";
+const summonFeySpellId = "spell-summon-fey";
 const otherworldlyGlamourCharismaSkills = [
   SKILL.DECEPTION,
   SKILL.INTIMIDATION,
@@ -116,9 +131,6 @@ const otherworldlyGlamourCharismaSkills = [
   SKILL.PERSUASION
 ] as const;
 const feyWandererSubclassEntry = getSubclassEntryById(feyWandererSubclassId);
-const mistyWandererSpellDescription = [
-  "In addition, whenever you cast Misty Step, you can bring along one willing creature you can see within 5 feet of yourself. That creature teleports to an unoccupied space of your choice within 5 feet of your destination space."
-] as const;
 
 function getRangerFeyWandererFeatureDescriptionEntries(feature: CLASS_FEATURE): string[] {
   const featureRow = feyWandererSubclassEntry?.features.find((row) =>
@@ -132,6 +144,15 @@ function getRangerFeyWandererFeatureDescriptionEntries(feature: CLASS_FEATURE): 
 
 const beguilingTwistDescription = getRangerFeyWandererFeatureDescriptionEntries(
   CLASS_FEATURE.BEGUILING_TWIST
+);
+const dreadfulStrikesDescription = getRangerFeyWandererFeatureDescriptionEntries(
+  CLASS_FEATURE.DREADFUL_STRIKES
+);
+const feyReinforcementsDescription = getRangerFeyWandererFeatureDescriptionEntries(
+  CLASS_FEATURE.FEY_REINFORCEMENTS
+);
+const mistyWandererDescription = getRangerFeyWandererFeatureDescriptionEntries(
+  CLASS_FEATURE.MISTY_WANDERER
 );
 const beguilingTwistReactionEntry: ReactionEntry = {
   id: "reaction-ranger-beguiling-twist",
@@ -153,34 +174,41 @@ function getDreadfulStrikesDamageFormula(
   return (character.level ?? 0) >= 11 ? "1d6" : "1d4";
 }
 
-function hasRangerFeyWandererDreadfulStrikesAvailable(character: RangerFeyWandererCharacter): boolean {
+function hasRangerFeyWandererDreadfulStrikesAvailable(
+  character: RangerFeyWandererCharacter
+): boolean {
   return (
     hasRangerFeyWandererDreadfulStrikesFeature(character) &&
     character.classFeatureState?.ranger?.dreadfulStrikesUsedThisTurn !== true
   );
 }
 
-function getRangerFeyWandererWeaponDamageBonuses(
-  character: RangerFeyWandererCharacter,
-  context: WeaponFeatureContext
-): FeatureDamageBonus[] {
+function createDreadfulStrikesDamageBonus(
+  character: RangerFeyWandererCharacter
+): FeatureDamageBonus | null {
   const damageFormula = getDreadfulStrikesDamageFormula(character);
 
-  if (
-    damageFormula === null ||
-    !hasRangerFeyWandererDreadfulStrikesAvailable(character) ||
-    context.attackKind !== "weapon"
-  ) {
-    return [];
+  if (damageFormula === null) {
+    return null;
   }
 
-  return [
-    {
-      label: dreadfulStrikesLabel,
-      formula: damageFormula,
-      displayLabel: `${damageFormula} Psychic`
-    }
-  ];
+  return {
+    label: dreadfulStrikesLabel,
+    formula: damageFormula,
+    displayLabel: `${damageFormula} Psychic`
+  };
+}
+
+function hasDreadfulStrikesAction(action: DreadfulStrikesAction | null): boolean {
+  return action?.attackKind === "weapon" || action?.attackKind === "unarmed";
+}
+
+function appendDreadfulStrikesDescription(action: WeaponAction): WeaponAction {
+  if (!hasDreadfulStrikesAction(action) || dreadfulStrikesDescription.length <= 0) {
+    return action;
+  }
+
+  return appendSourcedDescriptionAddition(action, dreadfulStrikesLabel, dreadfulStrikesDescription);
 }
 
 export function hasRangerFeyWandererDreadfulStrikesFeature(
@@ -191,6 +219,31 @@ export function hasRangerFeyWandererDreadfulStrikesFeature(
     character.subclassId === feyWandererSubclassId &&
     (character.level ?? 0) >= 3
   );
+}
+
+export function getRangerFeyWandererDreadfulStrikesOptionState(
+  character: RangerFeyWandererCharacter,
+  action: DreadfulStrikesAction | null
+): RangerFeyWandererDreadfulStrikesOptionState | null {
+  if (!hasRangerFeyWandererDreadfulStrikesFeature(character) || !hasDreadfulStrikesAction(action)) {
+    return null;
+  }
+
+  const damageBonus = createDreadfulStrikesDamageBonus(character);
+
+  if (!damageBonus) {
+    return null;
+  }
+
+  const disabledReason = hasRangerFeyWandererDreadfulStrikesAvailable(character)
+    ? undefined
+    : "Dreadful Strikes was already used this turn.";
+
+  return {
+    damageBonus,
+    disabled: Boolean(disabledReason),
+    disabledReason
+  };
 }
 
 export function hasRangerFeyWandererSpellsFeature(
@@ -234,7 +287,8 @@ export function hasRangerFeyWandererFeyReinforcementsFeature(
 }
 
 export function hasRangerFeyWandererMistyWandererFeature(
-  character: Pick<Character, "className"> & Partial<Pick<Character, "abilities" | "level" | "subclassId">>
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "level" | "subclassId">>
 ): boolean {
   return (
     character.className === "Ranger" &&
@@ -246,7 +300,8 @@ export function hasRangerFeyWandererMistyWandererFeature(
 export function normalizeRangerFeyWandererGiftSelection(
   value: unknown
 ): RangerFeyWandererGift | undefined {
-  return typeof value === "string" && rangerFeyWandererGiftOptionSet.has(value as RangerFeyWandererGift)
+  return typeof value === "string" &&
+    rangerFeyWandererGiftOptionSet.has(value as RangerFeyWandererGift)
     ? (value as RangerFeyWandererGift)
     : undefined;
 }
@@ -369,7 +424,9 @@ export function consumeRangerFeyWandererMistyWandererUse(character: Character): 
   };
 }
 
-export function restoreRangerFeyWandererFeyReinforcementsOnLongRest(character: Character): Character {
+export function restoreRangerFeyWandererFeyReinforcementsOnLongRest(
+  character: Character
+): Character {
   if (!hasRangerFeyWandererFeyReinforcementsFeature(character)) {
     return character;
   }
@@ -415,25 +472,46 @@ export function restoreRangerFeyWandererMistyWandererOnLongRest(character: Chara
   };
 }
 
+function appendFeyWandererSpellDescription(
+  spell: SpellEntry,
+  spellId: string,
+  sourceName: string,
+  descriptionEntries: readonly string[]
+): SpellEntry {
+  if (spell.id !== spellId || descriptionEntries.length <= 0) {
+    return spell;
+  }
+
+  return appendSourcedDescriptionAddition(spell, sourceName, descriptionEntries);
+}
+
+function appendFeyReinforcementsDescription(spell: SpellEntry): SpellEntry {
+  return appendFeyWandererSpellDescription(
+    spell,
+    summonFeySpellId,
+    feyReinforcementsName,
+    feyReinforcementsDescription
+  );
+}
+
 function appendMistyWandererDescription(spell: SpellEntry): SpellEntry {
-  if (spell.id !== mistyStepSpellId) {
-    return spell;
-  }
+  return appendFeyWandererSpellDescription(
+    spell,
+    mistyStepSpellId,
+    mistyWandererName,
+    mistyWandererDescription
+  );
+}
 
-  const marker = `<strong>${mistyWandererName}.</strong>`;
+function appendFeyWandererSpellDescriptions(character: RangerFeyWandererCharacter) {
+  return (spell: SpellEntry): SpellEntry => {
+    const spellWithFeyReinforcements = hasRangerFeyWandererFeyReinforcementsFeature(character)
+      ? appendFeyReinforcementsDescription(spell)
+      : spell;
 
-  if (
-    descriptionValueSomeText({ description: spell.description }, (entry) => entry.includes(marker))
-  ) {
-    return spell;
-  }
-
-  return {
-    ...spell,
-    description: [
-      ...spell.description,
-      ...createSourcedDescriptionEntries(mistyWandererName, mistyWandererSpellDescription)
-    ]
+    return hasRangerFeyWandererMistyWandererFeature(character)
+      ? appendMistyWandererDescription(spellWithFeyReinforcements)
+      : spellWithFeyReinforcements;
   };
 }
 
@@ -466,7 +544,9 @@ export function getRangerFeyWandererOtherworldlyGlamourSkillBonuses(
 ): FeatureSkillBonus[] {
   if (
     !hasRangerFeyWandererOtherworldlyGlamourFeature(character) ||
-    !otherworldlyGlamourCharismaSkills.includes(skill as (typeof otherworldlyGlamourCharismaSkills)[number])
+    !otherworldlyGlamourCharismaSkills.includes(
+      skill as (typeof otherworldlyGlamourCharismaSkills)[number]
+    )
   ) {
     return [];
   }
@@ -534,10 +614,13 @@ export const getRangerFeyWandererDerivedFeatureState: SubclassRuntimeResolver = 
         reactionEntries: hasRangerFeyWandererBeguilingTwistFeature(character)
           ? [beguilingTwistReactionEntry]
           : [],
-        transformSpellEntry: hasRangerFeyWandererMistyWandererFeature(character)
-          ? appendMistyWandererDescription
-          : undefined,
-        getWeaponDamageBonuses: (context) =>
-          getRangerFeyWandererWeaponDamageBonuses(character, context)
+        transformSpellEntry:
+          hasRangerFeyWandererFeyReinforcementsFeature(character) ||
+          hasRangerFeyWandererMistyWandererFeature(character)
+            ? appendFeyWandererSpellDescriptions(character)
+            : undefined,
+        transformWeaponAction: hasRangerFeyWandererDreadfulStrikesFeature(character)
+          ? appendDreadfulStrikesDescription
+          : undefined
       }
     : {};

@@ -24,7 +24,19 @@ import TextAreaInput from "../../FormInputs/TextAreaInput";
 import TextInput from "../../FormInputs/TextInput";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { MONSTER_SOURCE_OPTIONS } from "../../../../constants/monsters";
+import {
+  beastMasterCompanionRole,
+  getCompanionStatBlock,
+  isBeastMasterCharacter,
+  isBeastMasterCompanion
+} from "../../../../pages/CharactersPage/beastMasterCompanions";
 import { createCharacterCompanionId } from "../../../../pages/CharactersPage/companions";
+import {
+  getPrimalBeastTemplate,
+  isPrimalBeastKind,
+  primalBeastKindOptions,
+  type PrimalBeastKind
+} from "../../../../pages/CharactersPage/companionPrimalBeasts";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { useMonsterEntries } from "../../../../pages/CodexPage/useMonsterEntries";
 import type {
@@ -36,15 +48,18 @@ import type {
   MonsterRecord
 } from "../../../../types";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import { BeastMasterRuleReminders } from "./BeastMasterRuleReminders";
+import { getBeastMasterRuleReminders } from "./beastMasterRuleReminderUtils";
 import {
   companionMonsterTypeOptions,
   companionOrderingOptions,
   companionSpeciesTypeOptions,
   COMPANION_MONSTERS_PER_PAGE,
+  createBeastMasterCompanionDraft,
   createDraftFromCompanion,
   createEmptyCompanionDraft,
+  getCompanionSourceLabel,
   getExtraTypeOptions,
-  getInheritedEntryLabel,
   getMonsterSourceLabel,
   type CompanionDraft
 } from "./companionUtils";
@@ -57,7 +72,8 @@ type CompanionsSectionProps = {
 };
 
 function CompanionsSection({ character, className, onPersistCharacter }: CompanionsSectionProps) {
-  const companions = character.companions ?? [];
+  const companions = useMemo(() => character.companions ?? [], [character.companions]);
+  const hasBeastMasterSupport = isBeastMasterCharacter(character);
   const [isEditorOpen, setIsEditorOpen] = useState(false);
   const [selectedCompanionId, setSelectedCompanionId] = useState<string | null>(null);
 
@@ -73,7 +89,8 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
     }
   }, [companions, selectedCompanionId]);
 
-  const selectedCompanion = companions.find((companion) => companion.id === selectedCompanionId) ?? null;
+  const selectedCompanion =
+    companions.find((companion) => companion.id === selectedCompanionId) ?? null;
 
   function handleSaveCompanion(nextCompanion: CharacterCompanion) {
     onPersistCharacter((currentCharacter) => {
@@ -136,7 +153,7 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
                   <span className={styles.cardType}>{companion.type}</span>
                 </div>
                 <div className={styles.cardHeader}>
-                  <span className={styles.cardSource}>{getInheritedEntryLabel(companion)}</span>
+                  <span className={styles.cardSource}>{getCompanionSourceLabel(companion)}</span>
                 </div>
               </button>
             ))}
@@ -153,6 +170,7 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
       {isEditorOpen ? (
         <CompanionEditorModal
           companions={companions}
+          hasBeastMasterSupport={hasBeastMasterSupport}
           onSaveCompanion={handleSaveCompanion}
           onRemoveCompanion={handleRemoveCompanion}
           onClose={() => setIsEditorOpen(false)}
@@ -161,6 +179,7 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
 
       {selectedCompanion ? (
         <CompanionDrawer
+          character={character}
           companion={selectedCompanion}
           onClose={() => setSelectedCompanionId(null)}
         />
@@ -171,6 +190,7 @@ function CompanionsSection({ character, className, onPersistCharacter }: Compani
 
 type CompanionEditorModalProps = {
   companions: CharacterCompanion[];
+  hasBeastMasterSupport: boolean;
   onSaveCompanion: (companion: CharacterCompanion) => void;
   onRemoveCompanion: (companionId: string) => void;
   onClose: () => void;
@@ -178,6 +198,7 @@ type CompanionEditorModalProps = {
 
 function CompanionEditorModal({
   companions,
+  hasBeastMasterSupport,
   onSaveCompanion,
   onRemoveCompanion,
   onClose
@@ -206,7 +227,11 @@ function CompanionEditorModal({
     }, {})
   );
 
-  const isEditingExisting = Boolean(draft.id && companions.some((companion) => companion.id === draft.id));
+  const isEditingExisting = Boolean(
+    draft.id && companions.some((companion) => companion.id === draft.id)
+  );
+  const isBeastMasterDraft = draft.role === beastMasterCompanionRole;
+  const selectedPrimalBeastTemplate = getPrimalBeastTemplate(draft.primalBeastKind ?? undefined);
   const selectedMonsterSlug = draft.inheritedCreatureEntry?.slug ?? null;
   const extraTypeOptions = useMemo(
     () =>
@@ -227,10 +252,7 @@ function CompanionEditorModal({
     ordering: monsterOrdering
   });
   const monsters = payload?.results ?? [];
-  const totalPages = Math.max(
-    1,
-    Math.ceil((payload?.count ?? 0) / COMPANION_MONSTERS_PER_PAGE)
-  );
+  const totalPages = Math.max(1, Math.ceil((payload?.count ?? 0) / COMPANION_MONSTERS_PER_PAGE));
 
   useEffect(() => {
     setMonsterCache((currentCache) => {
@@ -318,13 +340,22 @@ function CompanionEditorModal({
     setMonsterNotice(null);
   }
 
+  function startNewBeastMasterDraft() {
+    setDraft(createBeastMasterCompanionDraft("land"));
+    setShowValidation(false);
+    setMonsterNotice(null);
+  }
+
   function loadCompanionIntoDraft(companion: CharacterCompanion) {
     setDraft(createDraftFromCompanion(companion));
     setShowValidation(false);
     setMonsterNotice(null);
   }
 
-  function handleDraftChange<Key extends keyof CompanionDraft>(key: Key, value: CompanionDraft[Key]) {
+  function handleDraftChange<Key extends keyof CompanionDraft>(
+    key: Key,
+    value: CompanionDraft[Key]
+  ) {
     setDraft((currentDraft) => ({
       ...currentDraft,
       [key]: value
@@ -338,7 +369,9 @@ function CompanionEditorModal({
 
     try {
       const resolvedMonster =
-        "document__slug" in monster ? monster : (monsterCache[slug] ?? (await fetchMonsterBySlug(slug)));
+        "document__slug" in monster
+          ? monster
+          : (monsterCache[slug] ?? (await fetchMonsterBySlug(slug)));
 
       setMonsterCache((currentCache) => ({
         ...currentCache,
@@ -348,6 +381,16 @@ function CompanionEditorModal({
         ...currentDraft,
         name: currentDraft.name.trim() ? currentDraft.name : resolvedMonster.name,
         type: resolvedMonster.type.trim() ? resolvedMonster.type : currentDraft.type,
+        primalBeastKind:
+          currentDraft.role === beastMasterCompanionRole ? null : currentDraft.primalBeastKind,
+        maxHitPoints:
+          currentDraft.role === beastMasterCompanionRole && !currentDraft.maxHitPoints.trim()
+            ? String(resolvedMonster.hit_points)
+            : currentDraft.maxHitPoints,
+        currentHitPoints:
+          currentDraft.role === beastMasterCompanionRole && !currentDraft.currentHitPoints.trim()
+            ? String(resolvedMonster.hit_points)
+            : currentDraft.currentHitPoints,
         inheritedCreatureEntry: resolvedMonster
       }));
       setIsMonsterBrowserOpen(false);
@@ -368,9 +411,88 @@ function CompanionEditorModal({
     setMonsterNotice(null);
   }
 
+  function handleRoleChange(nextRole: CharacterCompanion["role"] | null) {
+    if (nextRole === beastMasterCompanionRole) {
+      setDraft((currentDraft) => {
+        const kind = currentDraft.primalBeastKind ?? "land";
+        const template = getPrimalBeastTemplate(kind);
+        const hitPoints = currentDraft.maxHitPoints.trim()
+          ? currentDraft.maxHitPoints
+          : String(template?.hit_points ?? currentDraft.inheritedCreatureEntry?.hit_points ?? 1);
+
+        return {
+          ...currentDraft,
+          role: beastMasterCompanionRole,
+          primalBeastKind: currentDraft.inheritedCreatureEntry ? null : kind,
+          type: currentDraft.type.trim() ? currentDraft.type : "Beast",
+          name: currentDraft.name.trim()
+            ? currentDraft.name
+            : (template?.name ?? "Primal Companion"),
+          maxHitPoints: hitPoints,
+          currentHitPoints: currentDraft.currentHitPoints.trim()
+            ? currentDraft.currentHitPoints
+            : hitPoints
+        };
+      });
+      return;
+    }
+
+    setDraft((currentDraft) => ({
+      ...currentDraft,
+      role: null,
+      primalBeastKind: null,
+      appearance: "",
+      maxHitPoints: "",
+      currentHitPoints: "",
+      isDead: false
+    }));
+  }
+
+  function handlePrimalBeastKindChange(kind: PrimalBeastKind) {
+    const template = getPrimalBeastTemplate(kind);
+    const hitPoints = template?.hit_points ?? 1;
+
+    setDraft((currentDraft) => ({
+      ...currentDraft,
+      role: beastMasterCompanionRole,
+      primalBeastKind: kind,
+      inheritedCreatureEntry: null,
+      name:
+        !currentDraft.name.trim() ||
+        primalBeastKindOptions.some((option) => option.label === currentDraft.name)
+          ? (template?.name ?? currentDraft.name)
+          : currentDraft.name,
+      type: "Beast",
+      maxHitPoints: String(hitPoints),
+      currentHitPoints: String(hitPoints),
+      isDead: false
+    }));
+  }
+
+  function parseHitPointDraftValue(value: string, fallback: number) {
+    const parsedValue = Number(value);
+
+    if (!Number.isFinite(parsedValue)) {
+      return fallback;
+    }
+
+    return Math.max(0, Math.floor(parsedValue));
+  }
+
   function handleSave() {
     const name = draft.name.trim();
     const type = draft.type.trim();
+    const fallbackHitPoints =
+      selectedPrimalBeastTemplate?.hit_points ?? draft.inheritedCreatureEntry?.hit_points ?? 1;
+    const maxHitPoints = Math.max(
+      1,
+      parseHitPointDraftValue(draft.maxHitPoints, fallbackHitPoints)
+    );
+    const currentHitPoints = Math.min(
+      maxHitPoints,
+      parseHitPointDraftValue(draft.currentHitPoints, maxHitPoints)
+    );
+    const isDead = isBeastMasterDraft ? draft.isDead || currentHitPoints <= 0 : false;
 
     setShowValidation(true);
 
@@ -383,6 +505,16 @@ function CompanionEditorModal({
       name,
       description: draft.description.trim(),
       type,
+      ...(isBeastMasterDraft
+        ? {
+            role: beastMasterCompanionRole,
+            appearance: draft.appearance.trim(),
+            maxHitPoints,
+            currentHitPoints: isDead ? 0 : currentHitPoints,
+            isDead,
+            ...(draft.primalBeastKind ? { primalBeastKind: draft.primalBeastKind } : {})
+          }
+        : {}),
       ...(draft.inheritedCreatureEntry
         ? { inheritedCreatureEntry: draft.inheritedCreatureEntry }
         : {})
@@ -423,6 +555,16 @@ function CompanionEditorModal({
                 <Plus size={16} />
                 New
               </button>
+              {hasBeastMasterSupport ? (
+                <button
+                  type="button"
+                  className={styles.secondaryButton}
+                  onClick={startNewBeastMasterDraft}
+                >
+                  <Plus size={16} />
+                  Primal
+                </button>
+              ) : null}
             </div>
 
             {companions.length > 0 ? (
@@ -440,10 +582,12 @@ function CompanionEditorModal({
                         )}
                         onClick={() => loadCompanionIntoDraft(companion)}
                       >
-                        <span className={styles.savedCompanionType}>{companion.type}</span>
+                        <span className={styles.savedCompanionType}>
+                          {isBeastMasterCompanion(companion) ? "Primal Companion" : companion.type}
+                        </span>
                         <strong>{companion.name}</strong>
                         <span className={styles.savedCompanionSummary}>
-                          {getInheritedEntryLabel(companion)}
+                          {getCompanionSourceLabel(companion)}
                         </span>
                       </button>
                       <button
@@ -471,6 +615,51 @@ function CompanionEditorModal({
             </div>
 
             <div className={shared.formGrid}>
+              {hasBeastMasterSupport ? (
+                <label className={shared.fieldWide}>
+                  <span className={shared.fieldLabel}>Companion Role</span>
+                  <SelectInput
+                    value={draft.role ?? ""}
+                    onChange={(event) =>
+                      handleRoleChange(
+                        event.target.value === beastMasterCompanionRole
+                          ? beastMasterCompanionRole
+                          : null
+                      )
+                    }
+                  >
+                    <option value="">Regular companion</option>
+                    <option value={beastMasterCompanionRole}>Primal Companion</option>
+                  </SelectInput>
+                </label>
+              ) : null}
+
+              {isBeastMasterDraft ? (
+                <label className={shared.fieldWide}>
+                  <span className={shared.fieldLabel}>Primal Beast Template</span>
+                  <SelectInput
+                    value={draft.primalBeastKind ?? "custom"}
+                    onChange={(event) => {
+                      const nextKind = event.target.value;
+
+                      if (isPrimalBeastKind(nextKind)) {
+                        handlePrimalBeastKindChange(nextKind);
+                        return;
+                      }
+
+                      handleDraftChange("primalBeastKind", null);
+                    }}
+                  >
+                    {primalBeastKindOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                    <option value="custom">Monster-backed companion</option>
+                  </SelectInput>
+                </label>
+              ) : null}
+
               <label className={shared.field}>
                 <span className={shared.fieldLabel}>Name</span>
                 <TextInput
@@ -524,25 +713,86 @@ function CompanionEditorModal({
                   placeholder="Notes about personality, tactics, relationship, or appearance."
                 />
               </label>
+
+              {isBeastMasterDraft ? (
+                <>
+                  <label className={shared.fieldWide}>
+                    <span className={shared.fieldLabel}>Appearance</span>
+                    <TextAreaInput
+                      value={draft.appearance}
+                      onChange={(event) => handleDraftChange("appearance", event.target.value)}
+                      rows={3}
+                      placeholder="Animal form, primal markings, temperament, or bond details."
+                    />
+                  </label>
+
+                  <label className={shared.field}>
+                    <span className={shared.fieldLabel}>Current HP</span>
+                    <TextInput
+                      value={draft.currentHitPoints}
+                      onChange={(event) =>
+                        handleDraftChange("currentHitPoints", event.target.value)
+                      }
+                      placeholder="20"
+                    />
+                  </label>
+
+                  <label className={shared.field}>
+                    <span className={shared.fieldLabel}>Max HP</span>
+                    <TextInput
+                      value={draft.maxHitPoints}
+                      onChange={(event) => handleDraftChange("maxHitPoints", event.target.value)}
+                      placeholder="20"
+                    />
+                  </label>
+
+                  <label className={styles.checkboxField}>
+                    <input
+                      type="checkbox"
+                      checked={draft.isDead}
+                      onChange={(event) => handleDraftChange("isDead", event.target.checked)}
+                    />
+                    <span>Dead or awaiting revival</span>
+                  </label>
+                </>
+              ) : null}
             </div>
 
             <div className={styles.monsterSection}>
               <div className={styles.panelHeader}>
-                <h4 className={styles.panelTitle}>Use Monster Template</h4>
+                <h4 className={styles.panelTitle}>
+                  {isBeastMasterDraft ? "Monster-backed Primal Companion" : "Use Monster Template"}
+                </h4>
                 <button
                   type="button"
                   className={styles.secondaryButton}
                   onClick={() => setIsMonsterBrowserOpen(true)}
+                  disabled={isBeastMasterDraft && draft.primalBeastKind !== null}
                 >
                   <Search size={16} />
                   Browse Monsters
                 </button>
               </div>
 
+              {isBeastMasterDraft && draft.primalBeastKind !== null ? (
+                <div className={styles.selectedMonsterCard}>
+                  <div>
+                    <h5 className={styles.selectedMonsterTitle}>
+                      {selectedPrimalBeastTemplate?.name ?? "Primal Beast"}
+                    </h5>
+                    <p className={styles.selectedMonsterMeta}>
+                      Curated Beast Master template · placeholder stat block
+                    </p>
+                  </div>
+                </div>
+              ) : null}
+
               {draft.inheritedCreatureEntry ? (
                 <div className={styles.selectedMonsterCard}>
                   <div>
-                    <h5 className={styles.selectedMonsterTitle}>{draft.inheritedCreatureEntry.name}</h5>
+                    <h5 className={styles.selectedMonsterTitle}>
+                      {draft.inheritedCreatureEntry.name}
+                    </h5>
                     <p className={styles.selectedMonsterMeta}>
                       {draft.inheritedCreatureEntry.type || "Unknown type"} ·{" "}
                       {getMonsterSourceLabel(draft.inheritedCreatureEntry)}
@@ -803,20 +1053,31 @@ function MonsterBrowserModal({
 }
 
 type CompanionDrawerProps = {
+  character: Character;
   companion: CharacterCompanion;
   onClose: () => void;
 };
 
-function CompanionDrawer({ companion, onClose }: CompanionDrawerProps) {
+function CompanionDrawer({ character, companion, onClose }: CompanionDrawerProps) {
   const titleId = useId();
+  const isPrimalCompanion = isBeastMasterCompanion(companion);
+  const statBlock = getCompanionStatBlock(companion);
+  const ruleReminders = isPrimalCompanion ? getBeastMasterRuleReminders(character) : [];
+  const hpLabel =
+    companion.currentHitPoints !== undefined && companion.maxHitPoints !== undefined
+      ? `${companion.currentHitPoints}/${companion.maxHitPoints}`
+      : "Not tracked";
 
   return (
     <SheetDrawer titleId={titleId} onClose={onClose} drawerClassName={styles.drawerPanel}>
       <OverlayHeader>
         <OverlayHeaderContent>
-          <OverlayBadge>Companion</OverlayBadge>
+          <OverlayBadge>{isPrimalCompanion ? "Primal Companion" : "Companion"}</OverlayBadge>
           <OverlayTitle id={titleId}>{companion.name}</OverlayTitle>
-          <OverlaySummary>{companion.type}</OverlaySummary>
+          <OverlaySummary>
+            {companion.type}
+            {isPrimalCompanion ? ` · ${companion.isDead ? "Dead" : "Ready"} · HP ${hpLabel}` : ""}
+          </OverlaySummary>
         </OverlayHeaderContent>
         <OverlayCloseButton onClick={onClose} label="Close companion details" />
       </OverlayHeader>
@@ -824,18 +1085,35 @@ function CompanionDrawer({ companion, onClose }: CompanionDrawerProps) {
       <OverlayBody className={styles.drawerBody}>
         <OverlayDetailsGrid>
           <CellContainer label="Type" content={companion.type} />
+          {isPrimalCompanion ? (
+            <>
+              <CellContainer
+                label="Status"
+                content={companion.isDead ? "Dead or awaiting revival" : "Alive"}
+                breakdown="Tracked manually"
+              />
+              <CellContainer label="Hit Points" content={hpLabel} breakdown="Current / Maximum" />
+            </>
+          ) : null}
           <CellContainer
-            label="Inherited Entry"
-            content={
-              companion.inheritedCreatureEntry ? companion.inheritedCreatureEntry.name : "None"
-            }
+            label={isPrimalCompanion ? "Stat Block" : "Inherited Entry"}
+            content={statBlock ? statBlock.name : "None"}
             breakdown={
-              companion.inheritedCreatureEntry
-                ? getMonsterSourceLabel(companion.inheritedCreatureEntry)
+              statBlock
+                ? companion.primalBeastKind
+                  ? "Curated Beast Master template"
+                  : getMonsterSourceLabel(statBlock)
                 : "Fully custom companion"
             }
           />
         </OverlayDetailsGrid>
+
+        {isPrimalCompanion && companion.appearance?.trim() ? (
+          <section className={styles.drawerSection}>
+            <h4 className={styles.drawerSectionTitle}>Appearance</h4>
+            <p className={styles.drawerDescription}>{companion.appearance.trim()}</p>
+          </section>
+        ) : null}
 
         <section className={styles.drawerSection}>
           <h4 className={styles.drawerSectionTitle}>Custom Description</h4>
@@ -844,18 +1122,21 @@ function CompanionDrawer({ companion, onClose }: CompanionDrawerProps) {
           </p>
         </section>
 
-        {companion.inheritedCreatureEntry ? (
+        <BeastMasterRuleReminders reminders={ruleReminders} />
+
+        {statBlock ? (
           <section className={styles.drawerSection}>
             <div className={styles.drawerSectionHeader}>
               <div>
-                <p className={styles.panelEyebrow}>Inherited creature entry</p>
-                <h4 className={styles.drawerSectionTitle}>Monster reference</h4>
+                <p className={styles.panelEyebrow}>
+                  {companion.primalBeastKind ? "Primal beast template" : "Inherited creature entry"}
+                </p>
+                <h4 className={styles.drawerSectionTitle}>
+                  {companion.primalBeastKind ? "Companion stat block" : "Monster reference"}
+                </h4>
               </div>
             </div>
-            <MonsterEntryRenderer
-              monster={companion.inheritedCreatureEntry}
-              className={styles.inheritedMonsterEntry}
-            />
+            <MonsterEntryRenderer monster={statBlock} className={styles.inheritedMonsterEntry} />
           </section>
         ) : null}
       </OverlayBody>

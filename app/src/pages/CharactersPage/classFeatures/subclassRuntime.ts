@@ -98,6 +98,7 @@ export type SubclassRuntimeCharacter = Pick<Character, "className"> &
       | "feats"
       | "statusEntries"
       | "spellSlotsExpended"
+      | "companions"
     >
   >;
 
