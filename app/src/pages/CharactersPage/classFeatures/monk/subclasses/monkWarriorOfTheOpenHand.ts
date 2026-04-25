@@ -1,7 +1,6 @@
 import { monkFeatures, type MonkFeatureClassObj } from "../../../../../codex/classes";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
-import { parseRollFormulaRange } from "../../../actionOutcome";
 import type { Character, CharacterMonkFeatureState } from "../../../../../types";
 import {
   STATUS_DURATION_KIND,
@@ -10,6 +9,7 @@ import {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { formatFormulaCell, formatSignedFormulaTerm } from "../../../shared/formulas";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import type { WeaponAction } from "../../../gameplay";
 import type { FeatureActionCard, FeatureActionFact } from "../../types";
@@ -138,16 +138,6 @@ function hasMonkWarriorOfTheOpenHandQuiveringPalm(
   return hasMonkWarriorOfTheOpenHandTechnique(character) && (character.level ?? 0) >= 17;
 }
 
-function formatWholenessOfBodyWisdomModifierLabel(wisdomModifier: number): string {
-  if (wisdomModifier === 0) {
-    return "";
-  }
-
-  return wisdomModifier > 0
-    ? ` + ${wisdomModifier} WIS`
-    : ` - ${Math.abs(wisdomModifier)} WIS`;
-}
-
 export function getMonkWarriorOfTheOpenHandWholenessOfBodyUsesTotal(
   character: MonkWarriorOfTheOpenHandCharacter
 ): number {
@@ -204,23 +194,20 @@ function getMonkWarriorOfTheOpenHandWholenessOfBodyFacts(
     return [];
   }
 
-  const parsedRange = parseRollFormulaRange(healingFormula);
-  const minimum = parsedRange ? Math.max(1, parsedRange.minimum) : null;
-  const maximum = parsedRange ? Math.max(1, parsedRange.maximum) : null;
-  const formulaLabel = `${martialArtsDie}${formatWholenessOfBodyWisdomModifierLabel(
-    wisdomModifier
-  )}${parsedRange && parsedRange.minimum < 1 ? " (min 1)" : ""}`;
-  const value =
-    minimum === null || maximum === null
-      ? formulaLabel
-      : minimum === maximum
-        ? `${minimum} Heal = ${formulaLabel}`
-        : `${minimum}~${maximum} Heal = ${formulaLabel}`;
+  const formulaCell = formatFormulaCell({
+    formula: healingFormula,
+    displayTerms: [
+      martialArtsDie,
+      wisdomModifier !== 0 ? formatSignedFormulaTerm(wisdomModifier, "WIS") : null
+    ],
+    resultLabel: "Heal",
+    minimumValue: 1
+  });
 
   return [
     {
       label: "Self Heal Formula",
-      value,
+      value: formulaCell.value,
       fullWidth: true
     }
   ];

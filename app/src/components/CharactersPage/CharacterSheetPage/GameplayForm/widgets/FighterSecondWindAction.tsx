@@ -4,8 +4,11 @@ import CellContainer from "../../../../CellContainer/CellContainer";
 import FeatureOptInToggle from "../../FeatureOptInToggle/FeatureOptInToggle";
 import d20Icon from "../../../../../assets/svg/d20.svg";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import { parseRollFormulaRange } from "../../../../../pages/CharactersPage/actionOutcome";
 import { createChargesCardUsage } from "../../../../../pages/CharactersPage/classFeatures/cardUsage";
+import {
+  formatFormulaBreakdown,
+  formatFormulaCell
+} from "../../../../../pages/CharactersPage/shared/formulas";
 import actionStyles from "./ActionsWidget.module.css";
 import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
 import styles from "./FighterSecondWindAction.module.css";
@@ -33,18 +36,10 @@ type FighterSecondWindActionFooterProps = {
 };
 
 function formatHealingFormulaValue(formula: string) {
-  const parsedRange = parseRollFormulaRange(formula);
-  const normalizedFormula = formula.replace(/\+/g, " + ");
-
-  if (!parsedRange) {
-    return `Heal = ${normalizedFormula}`;
-  }
-
-  if (parsedRange.minimum === parsedRange.maximum) {
-    return `${parsedRange.minimum} Heal = ${normalizedFormula}`;
-  }
-
-  return `${parsedRange.minimum}~${parsedRange.maximum} Heal = ${normalizedFormula}`;
+  return formatFormulaCell({
+    formula,
+    resultLabel: "Heal"
+  }).value;
 }
 
 export function FighterSecondWindActionBody({
@@ -57,7 +52,7 @@ export function FighterSecondWindActionBody({
         className={styles.fullWidthCell}
         label="Second Wind Formula"
         content={formatHealingFormulaValue(healingFormula)}
-        breakdown="[= +Fighter Level]"
+        breakdown={formatFormulaBreakdown(["+ Fighter Level"])}
         contentClassName={styles.formulaValue}
         breakdownClassName={styles.formulaBreakdown}
       />
@@ -66,7 +61,7 @@ export function FighterSecondWindActionBody({
           className={styles.fullWidthCell}
           label="Group Recovery Formula"
           content={formatHealingFormulaValue(groupRecoveryFormula)}
-          breakdown="[= +Fighter Level]"
+          breakdown={formatFormulaBreakdown(["+ Fighter Level"])}
           contentClassName={styles.formulaValue}
           breakdownClassName={styles.formulaBreakdown}
         />

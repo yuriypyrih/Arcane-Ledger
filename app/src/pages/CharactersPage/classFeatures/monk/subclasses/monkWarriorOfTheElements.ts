@@ -1,7 +1,6 @@
 import { monkFeatures, type MonkFeatureClassObj } from "../../../../../codex/classes";
 import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
-import { parseRollFormulaRange } from "../../../actionOutcome";
 import type { Character, CharacterMonkFeatureState } from "../../../../../types";
 import {
   STATUS_DURATION_KIND,
@@ -10,6 +9,7 @@ import {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { formatFormulaCell } from "../../../shared/formulas";
 import type { WeaponAction } from "../../../gameplay";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
 import type {
@@ -177,18 +177,11 @@ function getElementalAttunementDamageTypeLabel(
 }
 
 function formatFormulaValue(formula: string, terms: string[]): string {
-  const parsedRange = parseRollFormulaRange(formula);
-  const formulaText = terms.filter(Boolean).join(" ");
-
-  if (!parsedRange) {
-    return formulaText;
-  }
-
-  if (parsedRange.minimum === parsedRange.maximum) {
-    return `${parsedRange.minimum} = ${formulaText}`;
-  }
-
-  return `${parsedRange.minimum}~${parsedRange.maximum} = ${formulaText}`;
+  return formatFormulaCell({
+    formula,
+    displayTerms: terms,
+    resultLabel: "Damage"
+  }).value;
 }
 
 export function isMonkWarriorOfTheElements(
@@ -429,8 +422,7 @@ export function getMonkWarriorOfTheElementsElementalBurstFacts(
     {
       label: "Damage Formula",
       value: formatFormulaValue(damageFormula, [
-        `3 * ${martialArtsDie}`,
-        "Acid/Cold/Fire/Lightning/Thunder"
+        `3 * ${martialArtsDie} Acid/Cold/Fire/Lightning/Thunder`
       ])
     }
   ];

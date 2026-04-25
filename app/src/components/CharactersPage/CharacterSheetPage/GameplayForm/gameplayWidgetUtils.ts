@@ -13,7 +13,7 @@ import {
   isRoundTrackerResourceAvailable,
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
-import { parseRollFormulaRange } from "../../../../pages/CharactersPage/actionOutcome";
+import { parseFormulaRange } from "../../../../pages/CharactersPage/shared/formulas";
 import {
   formatResolvedRollStateSummary,
   resolveFeatureIndicators
@@ -43,7 +43,7 @@ export function getDamageRangeLabel(
   modifier: number,
   fullRollFormula: string
 ): string {
-  const parsedRange = parseRollFormulaRange(fullRollFormula);
+  const parsedRange = parseFormulaRange(fullRollFormula);
   const damageExpression = formatDamageExpression(damageLabel, modifier);
 
   if (!parsedRange) {

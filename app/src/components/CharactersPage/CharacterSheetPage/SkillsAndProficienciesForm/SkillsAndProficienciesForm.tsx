@@ -28,6 +28,7 @@ import {
 import { getSkillRowsByAbility } from "../../../../pages/CharactersPage/skills";
 import type { SkillRow } from "../../../../pages/CharactersPage/skills";
 import { formatAbilityModifier } from "../../../../pages/CharactersPage/gameplay";
+import { formatD20Formula } from "../../../../pages/CharactersPage/shared";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { skillColumnLayout } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
@@ -147,14 +148,6 @@ function SkillsAndProficienciesForm({
     });
 
     return `${row.name} ${formatAbilityModifier(row.totalModifier)} = ${terms.join(" ")}`;
-  }
-
-  function formatD20Formula(modifier: number): string {
-    if (modifier === 0) {
-      return "1d20";
-    }
-
-    return `1d20 ${modifier > 0 ? "+" : "-"} ${Math.abs(modifier)}`;
   }
 
   function beginSkillTableEditing() {

@@ -6,76 +6,9 @@ import {
   getSpellDamageFormulaOverrideForCharacter
 } from "./classFeatures";
 import { getMainAbilityForClass } from "./gameplay";
+import { formatFormulaRangeLabel, parseFormulaRange } from "./shared/formulas";
 import { flattenSpellDescriptionLines } from "../../utils/codex/spellDescription";
 import { formatCodexLabel, formatWeaponDamage, formatWeaponDamageFormula } from "../../utils/codex";
-
-function parseFormulaRange(
-  formula: string,
-  modifierValue = 0
-): { minimum: number; maximum: number } | null {
-  const normalizedFormula = formula.replace(/\s+/g, "");
-
-  if (!normalizedFormula) {
-    return null;
-  }
-
-  const terms = normalizedFormula.match(/[+-]?[^+-]+/g);
-
-  if (!terms || terms.length === 0) {
-    return null;
-  }
-
-  let minimum = 0;
-  let maximum = 0;
-
-  for (const term of terms) {
-    const sign = term.startsWith("-") ? -1 : 1;
-    const rawTerm = term.replace(/^[+-]/, "");
-    const normalizedTerm = rawTerm.toUpperCase();
-
-    if (normalizedTerm === "MOD") {
-      minimum += sign * modifierValue;
-      maximum += sign * modifierValue;
-      continue;
-    }
-
-    const diceMatch = rawTerm.match(/^(\d+)d(\d+)$/i);
-
-    if (diceMatch) {
-      const count = Number(diceMatch[1]);
-      const sides = Number(diceMatch[2]);
-
-      if (!Number.isFinite(count) || !Number.isFinite(sides) || count <= 0 || sides <= 0) {
-        return null;
-      }
-
-      if (sign > 0) {
-        minimum += count;
-        maximum += count * sides;
-      } else {
-        minimum -= count * sides;
-        maximum -= count;
-      }
-
-      continue;
-    }
-
-    const value = Number(rawTerm);
-
-    if (!Number.isFinite(value)) {
-      return null;
-    }
-
-    minimum += sign * value;
-    maximum += sign * value;
-  }
-
-  return { minimum, maximum };
-}
-
-function formatOutcomeRange(minimum: number, maximum: number): string {
-  return minimum === maximum ? `${minimum}` : `${minimum}~${maximum}`;
-}
 
 function getSpellHealingFormula(spell: Pick<SpellEntry, "description">): string | null {
   const descriptionLines = flattenSpellDescriptionLines(spell.description);
@@ -158,7 +91,7 @@ export function getSpellOutcomeSummaryForCharacter(
       return "Damage";
     }
 
-    return `${formatOutcomeRange(range.minimum, range.maximum)} Damage`;
+    return `${formatFormulaRangeLabel(range)} Damage`;
   }
 
   if (spell.damage.length > 0) {
@@ -173,7 +106,7 @@ export function getSpellOutcomeSummaryForCharacter(
       return damageTypeLabel ? `${damageTypeLabel} Damage` : "Damage";
     }
 
-    return `${formatOutcomeRange(range.minimum, range.maximum)}${
+    return `${formatFormulaRangeLabel(range)}${
       damageTypeLabel ? ` ${damageTypeLabel}` : ""
     } Damage`;
   }
@@ -188,13 +121,17 @@ export function getSpellOutcomeSummaryForCharacter(
   const spellcastingModifier = mainAbility
     ? getAbilityModifierForCharacter(character, mainAbility)
     : 0;
-  const range = parseFormulaRange(healingFormula, spellcastingModifier);
+  const range = parseFormulaRange(healingFormula, {
+    substitutions: {
+      MOD: spellcastingModifier
+    }
+  });
 
   if (!range) {
     return "Heal";
   }
 
-  return `${formatOutcomeRange(range.minimum, range.maximum)} Heal`;
+  return `${formatFormulaRangeLabel(range)} Heal`;
 }
 
 export function getSpellDamageDetailForCharacter(

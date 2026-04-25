@@ -98,7 +98,7 @@ import {
   cloneAbilityScores,
   normalizeCustomAbilityScores
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
-import { getProficiencyMultiplier } from "../../../../pages/CharactersPage/shared";
+import { formatD20Formula, getProficiencyMultiplier } from "../../../../pages/CharactersPage/shared";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import AbilityReferenceFooter from "./AbilityReferenceFooter";
 import AbilityScoresModal from "./AbilityScoresModal";
@@ -250,14 +250,6 @@ function formatInitiativeFormula(
   );
 
   return `${formatAbilityModifier(total)} Initiative = ${terms.join(" ")}`;
-}
-
-function formatD20Formula(modifier: number): string {
-  if (modifier === 0) {
-    return "1d20";
-  }
-
-  return `1d20 ${modifier > 0 ? "+" : "-"} ${Math.abs(modifier)}`;
 }
 
 function formatAbilityModifierFormula(

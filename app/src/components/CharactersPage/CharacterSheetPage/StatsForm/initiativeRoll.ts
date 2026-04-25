@@ -2,6 +2,7 @@ import type { DICE } from "../../../../codex/entries";
 import type { RollMode } from "../../../../types";
 import type { InitiativeBreakdown } from "../../../../pages/CharactersPage/gameplay";
 import { formatAbilityModifier } from "../../../../pages/CharactersPage/gameplay";
+import { formatD20Formula } from "../../../../pages/CharactersPage/shared";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { applyRolledHealingToCharacter } from "../GameplayForm/gameplayStateUtils";
 import type {
@@ -44,14 +45,6 @@ function formatInitiativeFormula(initiativeBreakdown: InitiativeBreakdown): stri
   );
 
   return `${formatAbilityModifier(initiativeBreakdown.total)} Initiative = ${terms.join(" ")}`;
-}
-
-function formatD20Formula(modifier: number): string {
-  if (modifier === 0) {
-    return "1d20";
-  }
-
-  return `1d20 ${modifier > 0 ? "+" : "-"} ${Math.abs(modifier)}`;
 }
 
 function formatDieFormula(die: DICE): string {

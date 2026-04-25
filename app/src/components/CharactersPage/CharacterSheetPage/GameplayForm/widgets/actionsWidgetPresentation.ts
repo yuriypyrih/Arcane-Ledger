@@ -1,16 +1,17 @@
 import { createElement, type ReactNode } from "react";
 import type { SpellDescriptionEntry } from "../../../../../codex/entries";
 import type { ItemRecord, MonsterRecord } from "../../../../../types";
-import { parseRollFormulaRange } from "../../../../../pages/CharactersPage/actionOutcome";
 import { buildItemDetailPresentation } from "../../../../../pages/ItemCodexEntryPage/itemPresentation";
 import { adaptItemWeapon } from "../../../../../utils/items/adaptItemWeapon";
 import WeaponMasteryStatusLabel from "../../../../WeaponMasteryStatusLabel/WeaponMasteryStatusLabel";
-import {
-  formatAbilityModifier,
-  type WeaponAction
-} from "../../../../../pages/CharactersPage/gameplay";
+import type { WeaponAction } from "../../../../../pages/CharactersPage/gameplay";
 import type { AbilityModifierBonusEntry } from "../../../../../pages/CharactersPage/abilities";
 import type { WeaponEntry } from "../../../../../codex/entries";
+import {
+  formatFormulaBreakdown,
+  formatSignedFormulaTerm,
+  parseFormulaRange
+} from "../../../../../pages/CharactersPage/shared/formulas";
 import {
   formatCodexLabel,
   formatWeaponDamage,
@@ -76,22 +77,6 @@ function joinWeaponFormulaTerms(terms: string[]) {
 
     return `${expression} + ${term.replace(/^\+/, "").trim()}`;
   }, normalizedTerms[0]);
-}
-
-function joinWeaponBreakdownEntries(entries: string[]) {
-  const normalizedEntries = entries.map((entry) => entry.trim()).filter(Boolean);
-
-  if (normalizedEntries.length === 0) {
-    return "";
-  }
-
-  return normalizedEntries.slice(1).reduce((text, entry) => {
-    if (entry.startsWith("-")) {
-      return `${text} - ${entry.slice(1).trim()}`;
-    }
-
-    return `${text} + ${entry.replace(/^\+/, "").trim()}`;
-  }, normalizedEntries[0]);
 }
 
 type ParsedDamageDisplay = {
@@ -236,11 +221,11 @@ function formatWeaponDamageBonusEntry(entry: WeaponAction["damageBonusEntries"][
 }
 
 function formatAbilityModifierBonusEntry(entry: AbilityModifierBonusEntry) {
-  return entry.value < 0 ? `-${Math.abs(entry.value)} ${entry.label}` : `${entry.value} ${entry.label}`;
+  return formatSignedFormulaTerm(entry.value, entry.label);
 }
 
 function formatWeaponRangePrefix(formula: string) {
-  const parsedRange = parseRollFormulaRange(formula);
+  const parsedRange = parseFormulaRange(formula);
 
   if (!parsedRange) {
     return "Damage";
@@ -266,7 +251,7 @@ export function getWeaponAttackFormulaPresentation(
 ): WeaponFormulaPresentation {
   const attackModifier = action.abilityModifier + action.proficiencyBonus;
   const breakdownEntries = [
-    `${formatAbilityModifier(action.abilityModifierBaseValue)} ${action.ability}`,
+    formatSignedFormulaTerm(action.abilityModifierBaseValue, action.ability),
     ...action.abilityModifierBonusEntries.map((entry) => formatAbilityModifierBonusEntry(entry))
   ];
 
@@ -281,7 +266,7 @@ export function getWeaponAttackFormulaPresentation(
   return {
     label: "Attack Roll Formula",
     value: joinWeaponFormulaTerms(["d20", `${attackModifier}`]),
-    breakdown: `[= ${joinWeaponBreakdownEntries(breakdownEntries)}]`
+    breakdown: formatFormulaBreakdown(breakdownEntries)
   };
 }
 
@@ -324,7 +309,7 @@ export function getWeaponDamageFormulaPresentation(
 
   if (damageAbilityModifierBaseValue !== 0) {
     mainDamageGroup.numericTotal += damageAbilityModifierBaseValue;
-    breakdownEntries.push(`${formatAbilityModifier(damageAbilityModifierBaseValue)} ${damageAbility}`);
+    breakdownEntries.push(formatSignedFormulaTerm(damageAbilityModifierBaseValue, damageAbility));
   }
 
   damageAbilityModifierBonusEntries.forEach((entry) => {
@@ -389,7 +374,7 @@ export function getWeaponDamageFormulaPresentation(
     value: `${formatWeaponRangePrefix(damageFormula)} = ${joinWeaponFormulaTerms(visibleTerms)}`,
     breakdown:
       breakdownEntries.length > 0
-        ? `[= ${joinWeaponBreakdownEntries(breakdownEntries)}]`
+        ? formatFormulaBreakdown(breakdownEntries)
         : undefined
   };
 }

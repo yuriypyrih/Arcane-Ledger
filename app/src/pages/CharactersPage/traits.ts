@@ -5,6 +5,7 @@ import {
   rogueFeatureMap,
   sorcererFeatureMap
 } from "../../codex/classes";
+import { getSpellEntryById, getSpellEntryByName } from "../../codex/entries";
 import {
   blessingOfTheTricksterDescription,
   coronaOfLightDescription,
@@ -70,6 +71,7 @@ import {
   rangerWinterWalkerBitingColdStatusSourceId,
   rangerWinterWalkerFrozenHauntStatusSourceId
 } from "./classFeatures/ranger/subclasses/rangerWinterWalker";
+import { getRangerHuntersMarkConcentrationDescriptionAdditions } from "./classFeatures/ranger/ranger";
 import { paladinOathOfDevotionSacredWeaponStatusSourceId } from "./classFeatures/paladin/subclasses/paladinOathOfDevotion";
 import { paladinOathOfVengeanceVowOfEnmityStatusSourceId } from "./classFeatures/paladin/subclasses/paladinOathOfVengeance";
 import { getSorcererDraconicResilienceHitPointMaximumBonus } from "./classFeatures/sorcerer/subclasses/sorcererDraconicSorcery";
@@ -1169,6 +1171,34 @@ function getDefaultStatusEntryDescriptionEntries(
   }
 }
 
+function getConcentrationSourceSpellDescriptionAddition(
+  entry: CharacterStatusEntry
+): SpellDescriptionEntry[] {
+  if (entry.group !== STATUS_ENTRY_GROUP.EFFECTS || entry.value !== EFFECT_NAME.CONCENTRATION) {
+    return [];
+  }
+
+  const sourceSpell =
+    (entry.sourceSpellId ? getSpellEntryById(entry.sourceSpellId) : null) ??
+    getSpellEntryByName(entry.source);
+
+  if (!sourceSpell || sourceSpell.description.length === 0) {
+    return [];
+  }
+
+  return createSourcedDescriptionEntries(sourceSpell.name, sourceSpell.description);
+}
+
+function getConcentrationDescriptionAdditions(
+  entry: CharacterStatusEntry,
+  character?: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): SpellDescriptionEntry[][] {
+  return [
+    getConcentrationSourceSpellDescriptionAddition(entry),
+    ...(character ? getRangerHuntersMarkConcentrationDescriptionAdditions(character, entry) : [])
+  ].filter((section) => section.length > 0);
+}
+
 export function getStatusEntryDescriptionContent(
   entry: CharacterStatusEntry,
   character?: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
@@ -1404,9 +1434,10 @@ export function getStatusEntryDescriptionContent(
               createSourcedDescriptionEntries(
                 fighterPsiWarriorTelekineticMasterEffectName,
                 telekineticMasterDescription
-              )
-            ]
-          : []
+              ),
+              ...getConcentrationDescriptionAdditions(entry, character)
+            ].filter((section) => section.length > 0)
+          : getConcentrationDescriptionAdditions(entry, character)
     };
   }
 
@@ -1420,7 +1451,7 @@ export function getStatusEntryDescriptionContent(
 
   return {
     description: getDefaultStatusEntryDescriptionEntries(entry),
-    descriptionAdditions: []
+    descriptionAdditions: getConcentrationDescriptionAdditions(entry, character)
   };
 }
 

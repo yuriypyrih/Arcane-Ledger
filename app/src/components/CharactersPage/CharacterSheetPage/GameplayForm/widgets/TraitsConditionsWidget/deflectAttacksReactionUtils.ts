@@ -1,9 +1,13 @@
 import { getAbilityModifierForCharacter } from "../../../../../../pages/CharactersPage/abilities";
-import { parseRollFormulaRange } from "../../../../../../pages/CharactersPage/actionOutcome";
 import {
   getMonkMartialArtsDieForCharacter,
   type FeatureActionFact
 } from "../../../../../../pages/CharactersPage/classFeatures";
+import {
+  formatFormulaCell,
+  formatFormulaTerms,
+  formatSignedFormulaTerm
+} from "../../../../../../pages/CharactersPage/shared/formulas";
 import type { Character } from "../../../../../../types";
 import type { DiceRollerRequest } from "../../../../../DicePage/DiceRollerPopup";
 import type { DICE } from "../../../../../../codex/entries";
@@ -30,22 +34,15 @@ function formatLabeledModifier(value: number, label: string): string | null {
     return null;
   }
 
-  return `${value > 0 ? "+" : "-"} ${Math.abs(value)} ${label}`;
+  return formatSignedFormulaTerm(value, label);
 }
 
-function formatFormulaValue(formula: string, terms: string[]): string {
-  const parsedRange = parseRollFormulaRange(formula);
-  const formulaText = terms.filter(Boolean).join(" ");
-
-  if (!parsedRange) {
-    return formulaText;
-  }
-
-  if (parsedRange.minimum === parsedRange.maximum) {
-    return `${parsedRange.minimum} = ${formulaText}`;
-  }
-
-  return `${parsedRange.minimum}~${parsedRange.maximum} = ${formulaText}`;
+function formatFormulaValue(formula: string, terms: string[], resultLabel: string): string {
+  return formatFormulaCell({
+    formula,
+    displayTerms: terms,
+    resultLabel
+  }).value;
 }
 
 export function getDeflectAttacksReactionFacts(
@@ -68,7 +65,8 @@ export function getDeflectAttacksReactionFacts(
           "1d10",
           formatLabeledModifier(dexterityModifier, "DEX"),
           monkLevel > 0 ? `+ ${monkLevel} Monk Level` : null
-        ].filter((term): term is string => term !== null)
+        ].filter((term): term is string => term !== null),
+        "Damage Reduction"
       ),
       fullWidth: true
     },
@@ -81,7 +79,8 @@ export function getDeflectAttacksReactionFacts(
               [
                 formatDamageFormula(monkMartialArtsDie!),
                 formatLabeledModifier(dexterityModifier, "DEX")
-              ].filter((term): term is string => term !== null)
+              ].filter((term): term is string => term !== null),
+              "Damage"
             ),
             fullWidth: true
           }
@@ -120,23 +119,23 @@ export function createDeflectAttacksReactionRollRequest(
       {
         label: deflectAttacksLabel,
         formula: formatSignedFormula("1d10", [dexterityModifier, character.level]),
-        formulaDisplay: [
-          "1d10",
-          formatLabeledModifier(dexterityModifier, "DEX"),
-          `+ ${character.level} Monk Level`
-        ]
-          .filter((term): term is string => term !== null)
-          .join(" ")
+        formulaDisplay: formatFormulaTerms(
+          [
+            "1d10",
+            formatLabeledModifier(dexterityModifier, "DEX"),
+            `+ ${character.level} Monk Level`
+          ].filter((term): term is string => term !== null)
+        )
       },
       {
         label: reflectedDamageLabel,
         formula: formatSignedFormula(formatDamageFormula(monkMartialArtsDie), [dexterityModifier]),
-        formulaDisplay: [
-          formatDamageFormula(monkMartialArtsDie),
-          formatLabeledModifier(dexterityModifier, "DEX")
-        ]
-          .filter((term): term is string => term !== null)
-          .join(" ")
+        formulaDisplay: formatFormulaTerms(
+          [
+            formatDamageFormula(monkMartialArtsDie),
+            formatLabeledModifier(dexterityModifier, "DEX")
+          ].filter((term): term is string => term !== null)
+        )
       }
     ]
   };

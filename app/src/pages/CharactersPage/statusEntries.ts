@@ -335,6 +335,10 @@ function normalizeStatusEntry(value: unknown): CharacterStatusEntry | null {
       typeof record.sourceId === "string" && record.sourceId.trim().length > 0
         ? record.sourceId
         : undefined,
+    sourceSpellId:
+      typeof record.sourceSpellId === "string" && record.sourceSpellId.trim().length > 0
+        ? record.sourceSpellId
+        : undefined,
     rangeFeet:
       typeof record.rangeFeet === "number" &&
       Number.isFinite(record.rangeFeet) &&
@@ -519,6 +523,7 @@ export function createCharacterStatusEntry(options: {
   sourceType?: STATUS_ENTRY_SOURCE_TYPE;
   duration?: CharacterStatusDuration;
   sourceId?: string;
+  sourceSpellId?: string;
   rangeFeet?: number | null;
   description?: string;
   customEffects?: CharacterCustomTraitEffect[];
@@ -542,6 +547,7 @@ export function createCharacterStatusEntry(options: {
       kind: STATUS_DURATION_KIND.INFINITE
     },
     sourceId: options.sourceId,
+    sourceSpellId: options.sourceSpellId,
     rangeFeet: options.rangeFeet ?? null,
     description: options.description?.trim() || undefined,
     customEffects: normalizeCharacterCustomTraitEffects(options.customEffects)
@@ -734,7 +740,7 @@ export function updateCharacterStatusEntryDuration(
 
 export function applySpellConcentrationToStatusEntries(
   value: unknown,
-  spell: { name: string; duration: SpellDurationPart[] },
+  spell: { id?: string; name: string; duration: SpellDurationPart[] },
   options?: {
     sourceId?: string;
   }
@@ -761,7 +767,8 @@ export function applySpellConcentrationToStatusEntries(
       source: spell.name,
       sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
       duration: concentrationDuration,
-      sourceId: options?.sourceId
+      sourceId: options?.sourceId,
+      sourceSpellId: spell.id
     })
   ]);
 }

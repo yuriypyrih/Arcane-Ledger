@@ -3,8 +3,8 @@ import ActionShape from "../../../../../ActionShape";
 import CellContainer from "../../../../../CellContainer/CellContainer";
 import d20Icon from "../../../../../../assets/svg/d20.svg";
 import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import { parseRollFormulaRange } from "../../../../../../pages/CharactersPage/actionOutcome";
 import { monkWarriorOfTheOpenHandQuiveringPalmDamageFormula } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheOpenHand";
+import { formatFormulaCell } from "../../../../../../pages/CharactersPage/shared/formulas";
 import actionStyles from "../ActionsWidget.module.css";
 import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
 
@@ -15,13 +15,11 @@ type QuiveringPalmStatusDrawerActionRowProps = {
 };
 
 function getQuiveringPalmFormulaContent(): string {
-  const parsedRange = parseRollFormulaRange(monkWarriorOfTheOpenHandQuiveringPalmDamageFormula);
-
-  if (!parsedRange) {
-    return `Damage= ${monkWarriorOfTheOpenHandQuiveringPalmDamageFormula} Force`;
-  }
-
-  return `${parsedRange.minimum}~${parsedRange.maximum} Damage= ${monkWarriorOfTheOpenHandQuiveringPalmDamageFormula} Force`;
+  return formatFormulaCell({
+    formula: monkWarriorOfTheOpenHandQuiveringPalmDamageFormula,
+    displayTerms: [`${monkWarriorOfTheOpenHandQuiveringPalmDamageFormula} Force`],
+    resultLabel: "Damage"
+  }).value;
 }
 
 export function QuiveringPalmStatusDrawerFormula() {

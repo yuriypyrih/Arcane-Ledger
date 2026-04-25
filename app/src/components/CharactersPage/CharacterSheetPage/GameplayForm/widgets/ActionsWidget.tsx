@@ -185,6 +185,7 @@ import {
   type PaladinOathOfTheNobleGeniesElementalSmiteOptionKey
 } from "../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
 import {
+  getRangerTirelessTemporaryHitPointsFormulaDisplay,
   getRangerTirelessTemporaryHitPointsFormula,
   tirelessActionKey
 } from "../../../../../pages/CharactersPage/classFeatures/ranger/ranger";
@@ -355,6 +356,11 @@ import {
   applyWeaponDamageBonusPreview,
   createPsiWarriorPsionicStrikeDamageBonus
 } from "./fighterPsiWarriorWeapon";
+import {
+  applyRangerHuntersMarkTargetWeaponAction,
+  getRangerHuntersMarkTargetWeaponOptionState,
+  huntersMarkWeaponDamageBonusLabel
+} from "./rangerHuntersMarkWeapon";
 import {
   applyCriticalHitToWeaponAction,
   appendCriticalHitToFormulaBreakdown
@@ -1574,6 +1580,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [isPsionicStrikeSelected, setIsPsionicStrikeSelected] = useState(false);
   const [isDreadfulStrikeSelected, setIsDreadfulStrikeSelected] = useState(false);
   const [isPolarStrikesSelected, setIsPolarStrikesSelected] = useState(false);
+  const [isHuntersMarkTargetSelected, setIsHuntersMarkTargetSelected] = useState(false);
   const [isSacredWeaponSelected, setIsSacredWeaponSelected] = useState(false);
   const [isVowOfEnmitySelected, setIsVowOfEnmitySelected] = useState(false);
   const [isStunningStrikeSelected, setIsStunningStrikeSelected] = useState(false);
@@ -1911,6 +1918,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     () => getRangerWinterWalkerPolarStrikesOptionState(character, selectedWeaponAction),
     [character, selectedWeaponAction]
   );
+  const selectedWeaponHuntersMarkTargetState = useMemo(
+    () => getRangerHuntersMarkTargetWeaponOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
   const selectedWeaponFocusPointsRemaining = useMemo(
     () => getMonkFocusPointsRemainingForCharacter(character),
     [character]
@@ -2044,6 +2055,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedWeaponDreadAmbusherState?.disabled ?? false;
   const selectedWeaponPolarStrikesToggleDisabled =
     selectedWeaponPolarStrikesState?.disabled ?? false;
+  const selectedWeaponHuntersMarkTargetToggleDisabled = !selectedWeaponHuntersMarkTargetState;
   const selectedWeaponStunningStrikeToggleDisabled =
     selectedWeaponStunningStrikeDisabledReason !== null;
   const selectedWeaponEmpoweredStrikesToggleDisabled =
@@ -2110,6 +2122,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     if (
+      isHuntersMarkTargetSelected &&
+      selectedWeaponHuntersMarkTargetState &&
+      !selectedWeaponHuntersMarkTargetToggleDisabled
+    ) {
+      nextAction = applyRangerHuntersMarkTargetWeaponAction(
+        nextAction,
+        selectedWeaponHuntersMarkTargetState
+      );
+    }
+
+    if (
       isEmpoweredStrikesSelected &&
       selectedWeaponEmpoweredStrikesState &&
       !selectedWeaponEmpoweredStrikesToggleDisabled
@@ -2149,6 +2172,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     isDreadfulStrikeSelected,
     isEmpoweredStrikesSelected,
     isHandOfHarmSelected,
+    isHuntersMarkTargetSelected,
     isPolarStrikesSelected,
     isSacredWeaponSelected,
     isVowOfEnmitySelected,
@@ -2160,6 +2184,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedWeaponEmpoweredStrikesToggleDisabled,
     selectedWeaponHandOfHarmToggleDisabled,
     selectedWeaponHandOfHarmState,
+    selectedWeaponHuntersMarkTargetState,
+    selectedWeaponHuntersMarkTargetToggleDisabled,
     selectedWeaponPolarStrikesState,
     selectedWeaponPolarStrikesToggleDisabled,
     selectedWeaponSacredWeaponState,
@@ -2962,6 +2988,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsPsionicStrikeSelected(false);
     setIsDreadfulStrikeSelected(false);
     setIsPolarStrikesSelected(false);
+    setIsHuntersMarkTargetSelected(false);
     setIsSacredWeaponSelected(false);
     setIsVowOfEnmitySelected(false);
     setIsStunningStrikeSelected(false);
@@ -3022,6 +3049,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsPsionicStrikeSelected(false);
     setIsSacredWeaponSelected(false);
     setIsVowOfEnmitySelected(false);
+    setIsHuntersMarkTargetSelected(false);
     setIsStunningStrikeSelected(false);
     setIsEmpoweredStrikesSelected(false);
     setIsHandOfHarmSelected(false);
@@ -3052,6 +3080,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       setIsVowOfEnmitySelected(false);
     }
   }, [selectedWeaponVowOfEnmityState, selectedWeaponVowOfEnmityToggleDisabled]);
+
+  useEffect(() => {
+    if (selectedWeaponHuntersMarkTargetToggleDisabled) {
+      setIsHuntersMarkTargetSelected(false);
+    }
+  }, [selectedWeaponHuntersMarkTargetToggleDisabled]);
 
   useEffect(() => {
     if (!selectedWeaponStunningStrikeState || selectedWeaponStunningStrikeToggleDisabled) {
@@ -3852,6 +3886,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     if (effectKind === "tireless") {
       const temporaryHitPointsFormula = getRangerTirelessTemporaryHitPointsFormula(character);
+      const temporaryHitPointsFormulaDisplay =
+        getRangerTirelessTemporaryHitPointsFormulaDisplay(character);
 
       onPersistCharacter((currentCharacter) => {
         const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
@@ -3873,7 +3909,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       openDiceRoller({
         title: "Tireless",
         formula: temporaryHitPointsFormula,
-        formulaDisplay: temporaryHitPointsFormula,
+        formulaDisplay: temporaryHitPointsFormulaDisplay,
         description: `${action.detail} Minimum 1 Temporary Hit Points.`,
         onResolvedResult: ({ result }) => {
           onPersistCharacter((currentCharacter) =>
@@ -3973,6 +4009,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       isVowOfEnmitySelected &&
       selectedWeaponVowOfEnmityState !== null &&
       !selectedWeaponVowOfEnmityToggleDisabled;
+    const useHuntersMarkTarget =
+      isHuntersMarkTargetSelected &&
+      selectedWeaponHuntersMarkTargetState !== null &&
+      !selectedWeaponHuntersMarkTargetToggleDisabled;
 
     onPersistCharacter((currentCharacter) => {
       const { preparedCharacter, preparedAction, roundTrackerResource } =
@@ -3989,6 +4029,20 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       if (useVowOfEnmity) {
         effectivePreparedAction =
           applyPaladinOathOfVengeanceVowOfEnmityAction(effectivePreparedAction);
+      }
+
+      if (useHuntersMarkTarget) {
+        const huntersMarkState = getRangerHuntersMarkTargetWeaponOptionState(
+          currentCharacter,
+          effectivePreparedAction
+        );
+
+        if (huntersMarkState) {
+          effectivePreparedAction = applyRangerHuntersMarkTargetWeaponAction(
+            effectivePreparedAction,
+            huntersMarkState
+          );
+        }
       }
 
       const attackFormula = getWeaponAttackFormulaPresentation(effectivePreparedAction).value;
@@ -4033,6 +4087,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       isPolarStrikesSelected &&
       selectedWeaponPolarStrikesState !== null &&
       !selectedWeaponPolarStrikesToggleDisabled;
+    const useHuntersMarkTarget =
+      isHuntersMarkTargetSelected &&
+      selectedWeaponHuntersMarkTargetState !== null &&
+      !selectedWeaponHuntersMarkTargetToggleDisabled;
     const useEmpoweredStrikes =
       action.attackKind === "unarmed" &&
       isEmpoweredStrikesSelected &&
@@ -4064,6 +4122,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     const effectiveAction =
       (useDreadfulStrike ||
         usePolarStrikes ||
+        useHuntersMarkTarget ||
         useEmpoweredStrikes ||
         useHandOfHarm ||
         usePsionicStrike ||
@@ -4110,7 +4169,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     onPersistCharacter((currentCharacter) => {
       let nextCharacter = effectiveAction.damageBonusEntries.reduce(
         (updatedCharacter, entry) =>
-          markFeatureWeaponBonusUseForCharacter(updatedCharacter, entry.label),
+          entry.label === huntersMarkWeaponDamageBonusLabel
+            ? updatedCharacter
+            : markFeatureWeaponBonusUseForCharacter(updatedCharacter, entry.label),
         currentCharacter
       );
 
@@ -5531,6 +5592,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
       return (
         <div className={styles.footerActionStack}>
+          {selectedWeaponHuntersMarkTargetState ? (
+            <FeatureOptInToggle
+              label="Attacking a target with Hunter's Mark"
+              checked={isHuntersMarkTargetSelected}
+              disabled={selectedWeaponHuntersMarkTargetToggleDisabled}
+              muted={selectedWeaponHuntersMarkTargetToggleDisabled}
+              onCheckedChange={setIsHuntersMarkTargetSelected}
+              usageKey="hunters-mark-target"
+            />
+          ) : null}
           {selectedWeaponDreadAmbusherState ? (
             <FeatureOptInToggle
               label="Dreadful Strike"

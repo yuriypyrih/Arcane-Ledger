@@ -3,6 +3,7 @@ import type { Character } from "../../types";
 import { ECONOMY_TYPE } from "./actionEconomy";
 import { createSourcedDescriptionEntries } from "./actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "./classFeatures/featureDescriptions";
+import { getRangerPreciseHunterWeaponActionDescriptionAdditions } from "./classFeatures/ranger/ranger";
 import type { WeaponAction } from "./gameplay";
 
 type WeaponActionDescriptionCharacter = Pick<Character, "className" | "level"> &
@@ -120,6 +121,8 @@ export function getWeaponActionDrawerDescriptionAdditions(
   if (injectedVowOfEnmitySection) {
     injectedSections.push(injectedVowOfEnmitySection);
   }
+
+  injectedSections.push(...getRangerPreciseHunterWeaponActionDescriptionAdditions(character));
 
   return injectedSections.length > 0
     ? [...injectedSections, ...(action.descriptionAdditions ?? [])]

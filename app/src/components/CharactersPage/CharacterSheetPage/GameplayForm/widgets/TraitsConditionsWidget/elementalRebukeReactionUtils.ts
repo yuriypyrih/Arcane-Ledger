@@ -1,6 +1,10 @@
 import { getAbilityModifierForCharacter } from "../../../../../../pages/CharactersPage/abilities";
-import { parseRollFormulaRange } from "../../../../../../pages/CharactersPage/actionOutcome";
 import type { FeatureActionFact } from "../../../../../../pages/CharactersPage/classFeatures";
+import {
+  formatFormulaCell,
+  formatFormulaTerms,
+  formatSignedFormulaTerm
+} from "../../../../../../pages/CharactersPage/shared/formulas";
 import type { Character } from "../../../../../../types";
 import type { DiceRollerRequest } from "../../../../../DicePage/DiceRollerPopup";
 
@@ -12,24 +16,19 @@ function createElementalRebukeDamageFormula(charismaModifier: number): string {
 }
 
 function formatCharismaModifier(value: number): string {
-  return `${value >= 0 ? "+" : "-"} ${Math.abs(value)} CHA`;
+  return formatSignedFormulaTerm(value, "CHA");
 }
 
 function formatElementalRebukeFormulaValue(character: Pick<Character, "abilities">): string {
   const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
   const formula = createElementalRebukeDamageFormula(charismaModifier);
-  const parsedRange = parseRollFormulaRange(formula);
-  const formulaDisplay = `2d10 ${formatCharismaModifier(charismaModifier)}`;
+  const formulaDisplay = formatFormulaTerms(["2d10", formatCharismaModifier(charismaModifier)]);
 
-  if (!parsedRange) {
-    return formulaDisplay;
-  }
-
-  if (parsedRange.minimum === parsedRange.maximum) {
-    return `${parsedRange.minimum} = ${formulaDisplay}`;
-  }
-
-  return `${parsedRange.minimum}~${parsedRange.maximum} = ${formulaDisplay}`;
+  return formatFormulaCell({
+    formula,
+    displayTerms: [formulaDisplay],
+    resultLabel: "Damage"
+  }).value;
 }
 
 export function getElementalRebukeReactionFacts(
@@ -49,7 +48,7 @@ export function createElementalRebukeReactionRollRequest(
 ): DiceRollerRequest {
   const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
   const formula = createElementalRebukeDamageFormula(charismaModifier);
-  const formulaDisplay = `2d10 ${formatCharismaModifier(charismaModifier)}`;
+  const formulaDisplay = formatFormulaTerms(["2d10", formatCharismaModifier(charismaModifier)]);
 
   return {
     title: elementalRebukeLabel,

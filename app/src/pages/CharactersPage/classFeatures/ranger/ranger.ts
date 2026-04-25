@@ -1,8 +1,17 @@
 import { rangerFeatures } from "../../../../codex/classes";
-import { CLASS_FEATURE, type SpellEntry } from "../../../../codex/entries";
+import {
+  CLASS_FEATURE,
+  type SpellDescriptionEntry,
+  type SpellEntry
+} from "../../../../codex/entries";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
+import {
+  appendDescriptionAddition,
+  createSourcedDescriptionEntries
+} from "../../actionModalDescriptions";
 import type {
   Character,
+  CharacterStatusEntry,
   RangerHunterDefensiveTacticsChoice,
   RangerHunterPreyChoice,
   CharacterRangerFeatureState,
@@ -14,6 +23,7 @@ import type {
 } from "../../../../types";
 import {
   CONDITION_NAME,
+  EFFECT_NAME,
   LANGUAGE_PROFICIENCY,
   PROFICIENCY_OVERRIDE_POLICY,
   PROFICIENCY_SOURCE,
@@ -29,8 +39,13 @@ import {
   languageEntries
 } from "../../../../types";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
-import { parseRollFormulaRange } from "../../actionOutcome";
+import {
+  formatFormulaCell,
+  formatFormulaTerms,
+  formatSignedFormulaTerm
+} from "../../shared/formulas";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../statusEntries";
+import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
@@ -57,7 +72,11 @@ export const fortifyingSoulActionKey = winterWalkerSubclass.fortifyingSoulAction
 export const chillingRetributionReactionId = winterWalkerSubclass.chillingRetributionReactionId;
 const rangerWeaponMasterySource = "Weapon Mastery";
 const rangerWeaponMasterySelectionCount = 2;
-const huntersMarkSpellId = "spell-hunters-mark";
+export const huntersMarkSpellId = "spell-hunters-mark";
+const huntersMarkSpellName = "Hunter's Mark";
+const rangerRelentlessHunterSource = "Relentless Hunter";
+const rangerPreciseHunterSource = "Precise Hunter";
+const rangerFoeSlayerSource = "Foe Slayer";
 const rangerDeftExplorerSource = "Deft Explorer";
 const rangerExpertiseSource = "Level 9: Expertise";
 const rangerRovingSpeedBonusValue = 10;
@@ -145,8 +164,7 @@ function hasRangerFeyWandererMistyWandererFeature(
 }
 
 function hasRangerGloomStalkerDreadAmbusherFeature(
-  character: Pick<Character, "className" | "level"> &
-    Partial<Pick<Character, "subclassId">>
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ): boolean {
   return gloomStalkerSubclass.hasRangerGloomStalkerDreadAmbusherFeature(character);
 }
@@ -177,6 +195,86 @@ function hasRangerWinterWalkerFrozenHauntFeature(
 
 function getRangerAdditionalAttackCount(character: Pick<Character, "className" | "level">): number {
   return hasRangerFeature(character, CLASS_FEATURE.EXTRA_ATTACK) ? 1 : 0;
+}
+
+function getRangerSourcedFeatureDescriptionSection(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  feature: CLASS_FEATURE,
+  sourceName: string
+): SpellDescriptionEntry[] | null {
+  const description = getFeatureDescriptionForCharacter(character, feature);
+
+  return description.length > 0 ? createSourcedDescriptionEntries(sourceName, description) : null;
+}
+
+function getRangerHuntersMarkFeatureSourceName(feature: CLASS_FEATURE): string {
+  switch (feature) {
+    case CLASS_FEATURE.RELENTLESS_HUNTER:
+      return rangerRelentlessHunterSource;
+    case CLASS_FEATURE.PRECISE_HUNTER:
+      return rangerPreciseHunterSource;
+    case CLASS_FEATURE.FOE_SLAYER:
+      return rangerFoeSlayerSource;
+    default:
+      return String(feature);
+  }
+}
+
+function getRangerHuntersMarkFeatureDescriptionAdditions(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  features: CLASS_FEATURE[]
+): SpellDescriptionEntry[][] {
+  if (character.className !== "Ranger") {
+    return [];
+  }
+
+  return features.flatMap((feature) => {
+    if (!hasRangerFeature(character, feature)) {
+      return [];
+    }
+
+    const section = getRangerSourcedFeatureDescriptionSection(
+      character,
+      feature,
+      getRangerHuntersMarkFeatureSourceName(feature)
+    );
+
+    return section ? [section] : [];
+  });
+}
+
+export function isRangerHuntersMarkConcentrationStatusEntry(
+  entry: Pick<CharacterStatusEntry, "group" | "value" | "source"> &
+    Partial<Pick<CharacterStatusEntry, "sourceSpellId">>
+): boolean {
+  return (
+    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+    entry.value === EFFECT_NAME.CONCENTRATION &&
+    (entry.sourceSpellId === huntersMarkSpellId ||
+      entry.source.trim().toLowerCase() === huntersMarkSpellName.toLowerCase())
+  );
+}
+
+export function getRangerHuntersMarkConcentrationDescriptionAdditions(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  entry: Pick<CharacterStatusEntry, "group" | "value" | "source"> &
+    Partial<Pick<CharacterStatusEntry, "sourceSpellId">>
+): SpellDescriptionEntry[][] {
+  if (!isRangerHuntersMarkConcentrationStatusEntry(entry)) {
+    return [];
+  }
+
+  return getRangerHuntersMarkFeatureDescriptionAdditions(character, [
+    CLASS_FEATURE.RELENTLESS_HUNTER,
+    CLASS_FEATURE.PRECISE_HUNTER,
+    CLASS_FEATURE.FOE_SLAYER
+  ]);
+}
+
+export function getRangerPreciseHunterWeaponActionDescriptionAdditions(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): SpellDescriptionEntry[][] {
+  return getRangerHuntersMarkFeatureDescriptionAdditions(character, [CLASS_FEATURE.PRECISE_HUNTER]);
 }
 
 function normalizeRangerWeaponMasteries(selections: unknown): WEAPON_PROFICIENCY[] {
@@ -250,9 +348,8 @@ export function normalizeRangerFeatureState(
   const hasDreadfulStrikes = hasRangerFeyWandererDreadfulStrikesFeature(character);
   const hasWinterWalkerPolarStrikes = hasRangerWinterWalkerFrigidExplorerFeature(character);
   const hasDreadAmbusher = hasRangerGloomStalkerDreadAmbusherFeature(character);
-  const hasIronMind = gloomStalkerSubclass.getRangerGloomStalkerIronMindSavingThrowOptions(
-    character
-  ).length > 0;
+  const hasIronMind =
+    gloomStalkerSubclass.getRangerGloomStalkerIronMindSavingThrowOptions(character).length > 0;
   const hasHuntersPrey = hunterSubclass.hasRangerHunterHuntersPreyFeature(character);
   const hasDefensiveTactics = hunterSubclass.hasRangerHunterDefensiveTacticsFeature(character);
   const hasSuperiorHuntersDefense =
@@ -306,7 +403,9 @@ export function normalizeRangerFeatureState(
   const chillingRetributionTotal = hasChillingRetribution
     ? getRangerWinterWalkerChillingRetributionUsesTotal(character)
     : 0;
-  const frozenHauntTotal = hasFrozenHaunt ? getRangerWinterWalkerFrozenHauntUsesTotal(character) : 0;
+  const frozenHauntTotal = hasFrozenHaunt
+    ? getRangerWinterWalkerFrozenHauntUsesTotal(character)
+    : 0;
   const dreadAmbusherTotal = hasDreadAmbusher
     ? getRangerGloomStalkerDreadAmbusherUsesTotal(character)
     : 0;
@@ -814,32 +913,30 @@ export function getRangerTirelessTemporaryHitPointsFormula(
   return `1d8${wisdomModifier >= 0 ? "+" : ""}${wisdomModifier}`;
 }
 
+export function getRangerTirelessTemporaryHitPointsFormulaDisplay(
+  character: Partial<Pick<Character, "abilities" | "feats" | "level">>
+): string {
+  const wisdomModifier = getRangerTirelessWisdomModifier(character);
+
+  return formatFormulaTerms(["1d8", formatSignedFormulaTerm(wisdomModifier, "WIS")]);
+}
+
 function getRangerTirelessTemporaryHitPointsFacts(
   character: Partial<Pick<Character, "abilities" | "feats" | "level">>
 ): FeatureActionFact[] {
   const formula = getRangerTirelessTemporaryHitPointsFormula(character);
-  const parsedRange = parseRollFormulaRange(formula);
-
-  if (!parsedRange) {
-    return [
-      {
-        label: "Temporary Hit Points Formula",
-        value: formula,
-        fullWidth: true
-      }
-    ];
-  }
-
-  const minimum = Math.max(1, parsedRange.minimum);
-  const maximum = Math.max(1, parsedRange.maximum);
-  const rangeLabel =
-    minimum === maximum ? `${minimum} Temp HP` : `${minimum}~${maximum} Temp HP`;
-  const minimumLabel = parsedRange.minimum < 1 ? " (min 1)" : "";
+  const formulaDisplay = getRangerTirelessTemporaryHitPointsFormulaDisplay(character);
+  const formulaCell = formatFormulaCell({
+    formula,
+    displayTerms: [formulaDisplay],
+    resultLabel: "Temp HP",
+    minimumValue: 1
+  });
 
   return [
     {
       label: "Temporary Hit Points Formula",
-      value: `${rangeLabel} = ${formula}${minimumLabel}`,
+      value: formulaCell.value,
       fullWidth: true
     }
   ];
@@ -856,25 +953,26 @@ export function getRangerSpellDamageFormula(
     return null;
   }
 
-  return hasRangerFeature(character, CLASS_FEATURE.FOE_SLAYER) ? "1d10" : "1d6";
+  return "1d6";
 }
 
 export function getRangerSpellEntry(
   character: Pick<Character, "className" | "level">,
   spell: SpellEntry
 ): SpellEntry {
-  if (spell.id !== huntersMarkSpellId || !hasRangerFeature(character, CLASS_FEATURE.FOE_SLAYER)) {
+  if (spell.id !== huntersMarkSpellId) {
     return spell;
   }
 
-  return {
-    ...spell,
-    description: spell.description.map((entry, index) =>
-      index === 0 && typeof entry === "string"
-        ? entry.replace("extra 1d6 damage", "extra <strong>1d10</strong> damage")
-        : entry
-    )
-  };
+  const spellWithHunterDescriptionAdditions = getRangerHuntersMarkFeatureDescriptionAdditions(
+    character,
+    [CLASS_FEATURE.RELENTLESS_HUNTER, CLASS_FEATURE.PRECISE_HUNTER, CLASS_FEATURE.FOE_SLAYER]
+  ).reduce<SpellEntry>(
+    (nextSpell, descriptionAddition) => appendDescriptionAddition(nextSpell, descriptionAddition),
+    spell
+  );
+
+  return spellWithHunterDescriptionAdditions;
 }
 
 export function getRangerTirelessUsesRemaining(
@@ -1036,7 +1134,9 @@ export function getRangerHunterSuperiorHuntersDefenseDamageTypeSelection(
 
 export function setRangerHunterSuperiorHuntersDefenseDamageTypeSelection(
   character: Character,
-  selection: Parameters<typeof hunterSubclass.setRangerHunterSuperiorHuntersDefenseDamageTypeSelection>[1]
+  selection: Parameters<
+    typeof hunterSubclass.setRangerHunterSuperiorHuntersDefenseDamageTypeSelection
+  >[1]
 ): Character {
   return hunterSubclass.setRangerHunterSuperiorHuntersDefenseDamageTypeSelection(
     character,
@@ -1525,9 +1625,7 @@ export function getRangerSkillProficiencyEntries(
   });
 
   entries.push(
-    ...feyWandererSubclass.getRangerFeyWandererOtherworldlyGlamourSkillProficiencyEntries(
-      character
-    )
+    ...feyWandererSubclass.getRangerFeyWandererOtherworldlyGlamourSkillProficiencyEntries(character)
   );
 
   return entries;

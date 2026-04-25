@@ -31,7 +31,7 @@ import {
   getRoundTrackerResourceForEconomyType,
   type EconomyType
 } from "../../actionEconomy";
-import { parseRollFormulaRange } from "../../actionOutcome";
+import { formatFormulaCell } from "../../shared/formulas";
 import {
   consumeRoundTrackerResource,
   isRoundTrackerResourceAvailable
@@ -553,18 +553,11 @@ function getMonkMartialArtsDieLabel(
 }
 
 function formatFormulaValue(formula: string, terms: string[]): string {
-  const parsedRange = parseRollFormulaRange(formula);
-  const formulaText = terms.filter(Boolean).join(" ");
-
-  if (!parsedRange) {
-    return formulaText;
-  }
-
-  if (parsedRange.minimum === parsedRange.maximum) {
-    return `${parsedRange.minimum} Temp HP = ${formulaText}`;
-  }
-
-  return `${parsedRange.minimum}~${parsedRange.maximum} Temp HP = ${formulaText}`;
+  return formatFormulaCell({
+    formula,
+    displayTerms: terms,
+    resultLabel: "Temp HP"
+  }).value;
 }
 
 export function getMonkPatientDefenseTemporaryHitPointsFormula(

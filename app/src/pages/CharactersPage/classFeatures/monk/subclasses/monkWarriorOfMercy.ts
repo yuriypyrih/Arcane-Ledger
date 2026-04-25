@@ -1,6 +1,5 @@
 import { monkFeatures, type MonkFeatureClassObj } from "../../../../../codex/classes";
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/entries";
-import { parseRollFormulaRange } from "../../../actionOutcome";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, CharacterMonkFeatureState, SkillName } from "../../../../../types";
 import {
@@ -12,6 +11,7 @@ import {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { formatFormulaCell, formatSignedFormulaTerm } from "../../../shared/formulas";
 import {
   createChargesAndResourceCardUsage,
   createFeatureActionCardCost
@@ -398,22 +398,15 @@ function formatLabeledModifier(value: number, label: string): string | null {
     return null;
   }
 
-  return `${value > 0 ? "+" : "-"} ${Math.abs(value)} ${label}`;
+  return formatSignedFormulaTerm(value, label);
 }
 
 function formatFormulaValue(formula: string, terms: string[]): string {
-  const parsedRange = parseRollFormulaRange(formula);
-  const formulaText = terms.filter(Boolean).join(" ");
-
-  if (!parsedRange) {
-    return formulaText;
-  }
-
-  if (parsedRange.minimum === parsedRange.maximum) {
-    return `${parsedRange.minimum} = ${formulaText}`;
-  }
-
-  return `${parsedRange.minimum}~${parsedRange.maximum} = ${formulaText}`;
+  return formatFormulaCell({
+    formula,
+    displayTerms: terms,
+    resultLabel: "Heal"
+  }).value;
 }
 
 export function getMonkWarriorOfMercyHandOfHealingFormula(

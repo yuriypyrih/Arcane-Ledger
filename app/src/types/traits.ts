@@ -184,6 +184,7 @@ export type CharacterStatusEntry = {
   sourceType: STATUS_ENTRY_SOURCE_TYPE;
   duration: CharacterStatusDuration;
   sourceId?: string;
+  sourceSpellId?: string;
   rangeFeet?: number | null;
   description?: string;
   customEffects?: CharacterCustomTraitEffect[];

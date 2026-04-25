@@ -249,7 +249,7 @@ export const rangerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
     description: [
       "Taking damage can't break your <link:Concentration>Concentration</link> on <spell:Hunter's Mark>Hunter's Mark</spell>."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.NATURES_VEIL]: {
     description: [
@@ -262,7 +262,7 @@ export const rangerFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
     description: [
       "You have <link:Advantage>Advantage</link> on attack rolls against the creature currently marked by your <spell:Hunter's Mark>Hunter's Mark</spell>."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.FERAL_SENSES]: {
     description: [

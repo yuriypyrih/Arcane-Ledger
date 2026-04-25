@@ -2,6 +2,7 @@ import type {
   ArmorClassBreakdown,
   ArmorClassResolution
 } from "../../../../pages/CharactersPage/armor";
+import { formatSignedFormulaTerm } from "../../../../pages/CharactersPage/shared/formulas";
 import type { ReferenceDetailCard } from "./StatReferenceDrawer";
 
 function formatArmorClassTermLabel(label: string, source: string): string {
@@ -18,8 +19,7 @@ function formatArmorClassTermLabel(label: string, source: string): string {
 
 export function formatArmorClassFormula(breakdown: ArmorClassBreakdown): string {
   const terms = breakdown.entries.map(
-    (entry) =>
-      `${entry.value >= 0 ? "+" : ""}${entry.value} ${formatArmorClassTermLabel(entry.label, breakdown.source)}`
+    (entry) => formatSignedFormulaTerm(entry.value, formatArmorClassTermLabel(entry.label, breakdown.source))
   );
 
   return `${breakdown.total} AC = ${terms.join(" ")}`;
