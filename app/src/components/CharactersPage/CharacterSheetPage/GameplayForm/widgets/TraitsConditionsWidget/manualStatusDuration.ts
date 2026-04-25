@@ -1,6 +1,6 @@
-import type { CharacterStatusDuration } from "../../../../../types";
-import { STATUS_DURATION_KIND, STATUS_DURATION_ROUND_TICK } from "../../../../../types";
-import { normalizeStatusDurationRoundTick } from "../../../../../pages/CharactersPage/traits";
+import type { CharacterStatusDuration } from "../../../../../../types";
+import { STATUS_DURATION_KIND, STATUS_DURATION_ROUND_TICK } from "../../../../../../types";
+import { normalizeStatusDurationRoundTick } from "../../../../../../pages/CharactersPage/traits";
 
 export const manualStatusDurationTypeOptions = [
   { value: "INFINITE", label: "Infinity" },

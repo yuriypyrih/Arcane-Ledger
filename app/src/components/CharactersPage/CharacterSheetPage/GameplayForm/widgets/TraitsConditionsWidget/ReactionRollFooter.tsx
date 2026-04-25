@@ -1,8 +1,8 @@
 import clsx from "clsx";
-import ActionShape from "../../../../ActionShape";
-import d20Icon from "../../../../../assets/svg/d20.svg";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
+import ActionShape from "../../../../../ActionShape";
+import d20Icon from "../../../../../../assets/svg/d20.svg";
+import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
 import styles from "./ReactionRollFooter.module.css";
 
 type ReactionRollFooterProps = {

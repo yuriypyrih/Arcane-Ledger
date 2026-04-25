@@ -1,13 +1,13 @@
 import clsx from "clsx";
 import { Check, Clock3, Minus, Plus, Trash2, X } from "lucide-react";
 import { useState, type ReactNode } from "react";
-import type { DivinityEntry, SpellEntry } from "../../../../../codex/entries";
-import CellContainer from "../../../../../components/CellContainer/CellContainer";
-import ConcentrationLabel from "../../../../../components/ConcentrationLabel";
-import DescriptionContent from "../../../../../components/DescriptionContent/DescriptionContent";
-import KeywordReferenceDrawer from "../../../../../components/KeywordReferenceDrawer/KeywordReferenceDrawer";
-import CodexDivinityDrawer from "../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
-import CodexSpellDrawer from "../../../../CodexPage/CodexSpellDrawer/CodexSpellDrawer";
+import type { DivinityEntry, SpellEntry } from "../../../../../../codex/entries";
+import CellContainer from "../../../../../../components/CellContainer/CellContainer";
+import ConcentrationLabel from "../../../../../../components/ConcentrationLabel";
+import DescriptionContent from "../../../../../../components/DescriptionContent/DescriptionContent";
+import KeywordReferenceDrawer from "../../../../../../components/KeywordReferenceDrawer/KeywordReferenceDrawer";
+import CodexDivinityDrawer from "../../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
+import CodexSpellDrawer from "../../../../../CodexPage/CodexSpellDrawer/CodexSpellDrawer";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -19,18 +19,18 @@ import {
   OverlayTitle,
   OverlayTitleRow,
   SheetDrawer
-} from "../../../../Overlay";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+} from "../../../../../Overlay";
+import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import {
   getStatusDurationLabel,
   getStatusEntryDescriptionContent,
   isExhaustionStatusEntry,
   getStatusEntrySourceLabel,
   getStatusEntryTitle
-} from "../../../../../pages/CharactersPage/traits";
-import type { Character, CharacterStatusEntry } from "../../../../../types";
-import { EFFECT_NAME, STATUS_ENTRY_GROUP } from "../../../../../types";
-import type { ResolvedKeywordReference } from "../../../../../utils/codex/renderCodexRichText";
+} from "../../../../../../pages/CharactersPage/traits";
+import type { Character, CharacterStatusEntry } from "../../../../../../types";
+import { EFFECT_NAME, STATUS_ENTRY_GROUP } from "../../../../../../types";
+import type { ResolvedKeywordReference } from "../../../../../../utils/codex/renderCodexRichText";
 import styles from "./StatusEntryDrawer.module.css";
 import {
   getStatusDrawerBadgeLabel,

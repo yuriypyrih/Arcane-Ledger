@@ -3495,9 +3495,15 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           disabled: selectedSpellElementalSmiteDisabled,
                           radioOptions: {
                             value: selectedElementalSmiteOptionOnSelectedSpell,
-                            onValueChange: setSelectedElementalSmiteOptionOnSelectedSpell,
+                            onValueChange: (value: string) =>
+                              setSelectedElementalSmiteOptionOnSelectedSpell(
+                                value as Exclude<
+                                  typeof selectedElementalSmiteOptionOnSelectedSpell,
+                                  null
+                                >
+                              ),
                             required: true,
-                            placement: "body",
+                            placement: "body" as const,
                             options: paladinOathOfTheNobleGeniesElementalSmiteOptions.map(
                               (option) => ({
                                 id: option.key,

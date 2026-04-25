@@ -1,7 +1,7 @@
 import { Plus } from "lucide-react";
-import TextInput from "../../../FormInputs/TextInput";
-import TextAreaInput from "../../../FormInputs/TextAreaInput";
-import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import TextInput from "../../../../FormInputs/TextInput";
+import TextAreaInput from "../../../../FormInputs/TextAreaInput";
+import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import CustomTraitEffectEditorRow from "./CustomTraitEffectEditorRow";
 import ManualStatusDurationFields from "./ManualStatusDurationFields";
 import { customTraitTargetOptions, type CustomTraitDraft } from "./customTraitDraft";

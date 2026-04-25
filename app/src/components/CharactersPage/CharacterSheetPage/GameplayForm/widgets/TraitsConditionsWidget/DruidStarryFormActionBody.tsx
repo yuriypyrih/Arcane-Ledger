@@ -1,6 +1,6 @@
-import RadioContainerOption from "../../RadioContainerOption";
-import styles from "./ActionsWidget.module.css";
-import type { DruidStarryFormConstellation } from "../../../../../pages/CharactersPage/classFeatures/druid/druid";
+import RadioContainerOption from "../../../RadioContainerOption";
+import styles from "../ActionsWidget.module.css";
+import type { DruidStarryFormConstellation } from "../../../../../../pages/CharactersPage/classFeatures/druid/druid";
 
 function getConstellationOptions(hasTwinklingConstellations: boolean): Array<{
   value: DruidStarryFormConstellation;

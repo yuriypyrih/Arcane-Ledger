@@ -1,10 +1,8 @@
-import { type DAMAGE_TYPE } from "../../../../../codex/entries";
-import { formatCodexLabel } from "../../../../../utils/codex";
-import {
-  monkWarriorOfTheElementsElementalResistanceDamageTypeOptions
-} from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheElements";
-import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
-import RadioContainerOption from "../../RadioContainerOption";
+import { type DAMAGE_TYPE } from "../../../../../../codex/entries";
+import { formatCodexLabel } from "../../../../../../utils/codex";
+import { monkWarriorOfTheElementsElementalResistanceDamageTypeOptions } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheElements";
+import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import RadioContainerOption from "../../../RadioContainerOption";
 import styles from "./ElementalAttunementResistanceSelector.module.css";
 
 type ElementalAttunementResistanceSelectorProps = {

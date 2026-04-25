@@ -1,7 +1,7 @@
-import RadioContainerOption from "../../RadioContainerOption";
-import type { Character, DruidCosmicOmenSelection } from "../../../../../types";
-import { getDruidCircleOfTheStarsCosmicOmenOptionDescriptionEntries } from "../../../../../pages/CharactersPage/classFeatures/druid/subclasses/druidCircleOfTheStarsDescriptions";
-import { renderCodexRichText } from "../../../../../utils/codex/renderCodexRichText";
+import RadioContainerOption from "../../../RadioContainerOption";
+import type { Character, DruidCosmicOmenSelection } from "../../../../../../types";
+import { getDruidCircleOfTheStarsCosmicOmenOptionDescriptionEntries } from "../../../../../../pages/CharactersPage/classFeatures/druid/subclasses/druidCircleOfTheStarsDescriptions";
+import { renderCodexRichText } from "../../../../../../utils/codex/renderCodexRichText";
 import styles from "./DruidCosmicOmenReactionBody.module.css";
 
 const cosmicOmenOptions: Array<{

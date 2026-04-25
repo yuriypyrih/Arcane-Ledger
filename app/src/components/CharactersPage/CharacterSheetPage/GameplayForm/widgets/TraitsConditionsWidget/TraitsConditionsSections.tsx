@@ -1,15 +1,19 @@
 import clsx from "clsx";
 import type { CSSProperties } from "react";
-import ActionShape from "../../../../ActionShape";
-import ConcentrationLabel from "../../../../ConcentrationLabel";
+import ActionShape from "../../../../../ActionShape";
+import ConcentrationLabel from "../../../../../ConcentrationLabel";
 import {
   getStatusDurationTickOn,
   getStatusDurationShortLabel,
   getStatusEntrySourceLabel,
   getStatusEntryTitle
-} from "../../../../../pages/CharactersPage/traits";
-import type { CharacterStatusEntry } from "../../../../../types";
-import { EFFECT_NAME, STATUS_DURATION_ROUND_TICK, STATUS_ENTRY_GROUP } from "../../../../../types";
+} from "../../../../../../pages/CharactersPage/traits";
+import type { CharacterStatusEntry } from "../../../../../../types";
+import {
+  EFFECT_NAME,
+  STATUS_DURATION_ROUND_TICK,
+  STATUS_ENTRY_GROUP
+} from "../../../../../../types";
 import styles from "./TraitsConditionsSections.module.css";
 
 type StatusSection = {

@@ -1,8 +1,8 @@
 import clsx from "clsx";
 import { Plus } from "lucide-react";
-import SelectInput from "../../../FormInputs/SelectInput";
-import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
-import { isExhaustionConditionOptionValue } from "../../../../../pages/CharactersPage/traits";
+import SelectInput from "../../../../FormInputs/SelectInput";
+import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import { isExhaustionConditionOptionValue } from "../../../../../../pages/CharactersPage/traits";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -12,8 +12,8 @@ import {
   OverlayTitle,
   OverlayTitleRow,
   SheetModal
-} from "../../../../Overlay";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+} from "../../../../../Overlay";
+import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import CustomTraitBuilder from "./CustomTraitBuilder";
 import ManualStatusDurationFields from "./ManualStatusDurationFields";
 import type { CustomTraitDraft, CustomTraitMode } from "./customTraitDraft";

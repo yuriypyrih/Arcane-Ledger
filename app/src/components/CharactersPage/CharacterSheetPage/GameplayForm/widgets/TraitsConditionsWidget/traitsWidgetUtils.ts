@@ -1,4 +1,4 @@
-import { ACTION_TYPE, type ReactionEntry, type SpellEntry } from "../../../../../codex/entries";
+import { ACTION_TYPE, type ReactionEntry, type SpellEntry } from "../../../../../../codex/entries";
 import {
   formatConditionOptionLabel,
   getConditionOptions,
@@ -6,17 +6,17 @@ import {
   getImmunityOptions,
   isExhaustionStatusEntry,
   getSenseOptions
-} from "../../../../../pages/CharactersPage/traits";
-import type { CharacterStatusDuration, CharacterStatusEntry } from "../../../../../types";
+} from "../../../../../../pages/CharactersPage/traits";
+import type { CharacterStatusDuration, CharacterStatusEntry } from "../../../../../../types";
 import {
   CONDITION_NAME,
   EFFECT_NAME,
   STATUS_DURATION_KIND,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
-} from "../../../../../types";
-import { fighterPsiWarriorBulwarkOfForceStatusSourceId } from "../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterPsiWarriorShared";
-import { isRogueArcaneTricksterSpellThiefStatusSourceId } from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
+} from "../../../../../../types";
+import { fighterPsiWarriorBulwarkOfForceStatusSourceId } from "../../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterPsiWarriorShared";
+import { isRogueArcaneTricksterSpellThiefStatusSourceId } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 
 const monkSuperiorDefenseStatusSourceId = "feature-monk-superior-defense";
 

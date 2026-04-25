@@ -1,5 +1,5 @@
-import SelectInput from "../../../FormInputs/SelectInput";
-import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SelectInput from "../../../../FormInputs/SelectInput";
+import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import {
   isManualStatusDurationValueDisabled,
   manualStatusDurationTypeOptions,

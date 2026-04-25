@@ -1,8 +1,8 @@
-import { getAbilityModifierForCharacter } from "../../../../../pages/CharactersPage/abilities";
-import { parseRollFormulaRange } from "../../../../../pages/CharactersPage/actionOutcome";
-import type { FeatureActionFact } from "../../../../../pages/CharactersPage/classFeatures";
-import type { Character } from "../../../../../types";
-import type { DiceRollerRequest } from "../../../../DicePage/DiceRollerPopup";
+import { getAbilityModifierForCharacter } from "../../../../../../pages/CharactersPage/abilities";
+import { parseRollFormulaRange } from "../../../../../../pages/CharactersPage/actionOutcome";
+import type { FeatureActionFact } from "../../../../../../pages/CharactersPage/classFeatures";
+import type { Character } from "../../../../../../types";
+import type { DiceRollerRequest } from "../../../../../DicePage/DiceRollerPopup";
 
 const elementalRebukeLabel = "Elemental Rebuke";
 const elementalRebukeDamageLabel = "Damage";

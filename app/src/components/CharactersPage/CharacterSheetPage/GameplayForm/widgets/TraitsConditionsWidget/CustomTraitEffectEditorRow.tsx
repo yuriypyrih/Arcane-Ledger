@@ -1,7 +1,7 @@
 import { Trash2 } from "lucide-react";
-import NumberInput from "../../../FormInputs/NumberInput";
-import SelectInput from "../../../FormInputs/SelectInput";
-import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import NumberInput from "../../../../FormInputs/NumberInput";
+import SelectInput from "../../../../FormInputs/SelectInput";
+import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import type { CustomTraitEffectDraft, CustomTraitTargetOption } from "./customTraitDraft";
 import styles from "./CustomTraitEffectEditorRow.module.css";
 

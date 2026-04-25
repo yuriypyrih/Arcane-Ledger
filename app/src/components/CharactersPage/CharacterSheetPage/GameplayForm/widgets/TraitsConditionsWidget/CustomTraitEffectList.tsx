@@ -1,5 +1,5 @@
-import type { CharacterCustomTraitEffect } from "../../../../../types";
-import { formatCharacterCustomTraitEffectSummary } from "../../../../../pages/CharactersPage/customTraitEffects";
+import type { CharacterCustomTraitEffect } from "../../../../../../types";
+import { formatCharacterCustomTraitEffectSummary } from "../../../../../../pages/CharactersPage/customTraitEffects";
 import styles from "./CustomTraitEffectList.module.css";
 
 type CustomTraitEffectListProps = {

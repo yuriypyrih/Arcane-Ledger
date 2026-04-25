@@ -1,12 +1,12 @@
-import { getAbilityModifierForCharacter } from "../../../../../pages/CharactersPage/abilities";
-import { parseRollFormulaRange } from "../../../../../pages/CharactersPage/actionOutcome";
+import { getAbilityModifierForCharacter } from "../../../../../../pages/CharactersPage/abilities";
+import { parseRollFormulaRange } from "../../../../../../pages/CharactersPage/actionOutcome";
 import {
   getMonkMartialArtsDieForCharacter,
   type FeatureActionFact
-} from "../../../../../pages/CharactersPage/classFeatures";
-import type { Character } from "../../../../../types";
-import type { DiceRollerRequest } from "../../../../DicePage/DiceRollerPopup";
-import type { DICE } from "../../../../../codex/entries";
+} from "../../../../../../pages/CharactersPage/classFeatures";
+import type { Character } from "../../../../../../types";
+import type { DiceRollerRequest } from "../../../../../DicePage/DiceRollerPopup";
+import type { DICE } from "../../../../../../codex/entries";
 
 const deflectAttacksLabel = "Deflect Attacks";
 const reflectedDamageLabel = "Reflected Damage";
@@ -62,21 +62,27 @@ export function getDeflectAttacksReactionFacts(
   return [
     {
       label: "Reduced Damage Formula",
-      value: formatFormulaValue(deflectFormula, [
-        "1d10",
-        formatLabeledModifier(dexterityModifier, "DEX"),
-        monkLevel > 0 ? `+ ${monkLevel} Monk Level` : null
-      ].filter((term): term is string => term !== null)),
+      value: formatFormulaValue(
+        deflectFormula,
+        [
+          "1d10",
+          formatLabeledModifier(dexterityModifier, "DEX"),
+          monkLevel > 0 ? `+ ${monkLevel} Monk Level` : null
+        ].filter((term): term is string => term !== null)
+      ),
       fullWidth: true
     },
     ...(reflectedDamageFormula
       ? [
           {
             label: "Reflected Damage Formula",
-            value: formatFormulaValue(reflectedDamageFormula, [
-              formatDamageFormula(monkMartialArtsDie!),
-              formatLabeledModifier(dexterityModifier, "DEX")
-            ].filter((term): term is string => term !== null)),
+            value: formatFormulaValue(
+              reflectedDamageFormula,
+              [
+                formatDamageFormula(monkMartialArtsDie!),
+                formatLabeledModifier(dexterityModifier, "DEX")
+              ].filter((term): term is string => term !== null)
+            ),
             fullWidth: true
           }
         ]
@@ -84,9 +90,7 @@ export function getDeflectAttacksReactionFacts(
   ];
 }
 
-export function getSlowFallReactionFacts(
-  character: Pick<Character, "level">
-): FeatureActionFact[] {
+export function getSlowFallReactionFacts(character: Pick<Character, "level">): FeatureActionFact[] {
   const monkLevel = Math.max(0, Math.floor(character.level ?? 0));
   const reducedDamage = monkLevel * 5;
 
@@ -127,7 +131,10 @@ export function createDeflectAttacksReactionRollRequest(
       {
         label: reflectedDamageLabel,
         formula: formatSignedFormula(formatDamageFormula(monkMartialArtsDie), [dexterityModifier]),
-        formulaDisplay: [formatDamageFormula(monkMartialArtsDie), formatLabeledModifier(dexterityModifier, "DEX")]
+        formulaDisplay: [
+          formatDamageFormula(monkMartialArtsDie),
+          formatLabeledModifier(dexterityModifier, "DEX")
+        ]
           .filter((term): term is string => term !== null)
           .join(" ")
       }

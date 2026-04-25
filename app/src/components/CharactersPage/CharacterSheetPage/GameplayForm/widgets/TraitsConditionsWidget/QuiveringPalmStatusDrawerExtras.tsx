@@ -1,12 +1,12 @@
 import clsx from "clsx";
-import ActionShape from "../../../../ActionShape";
-import CellContainer from "../../../../CellContainer/CellContainer";
-import d20Icon from "../../../../../assets/svg/d20.svg";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import { parseRollFormulaRange } from "../../../../../pages/CharactersPage/actionOutcome";
-import { monkWarriorOfTheOpenHandQuiveringPalmDamageFormula } from "../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheOpenHand";
-import actionStyles from "./ActionsWidget.module.css";
-import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
+import ActionShape from "../../../../../ActionShape";
+import CellContainer from "../../../../../CellContainer/CellContainer";
+import d20Icon from "../../../../../../assets/svg/d20.svg";
+import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import { parseRollFormulaRange } from "../../../../../../pages/CharactersPage/actionOutcome";
+import { monkWarriorOfTheOpenHandQuiveringPalmDamageFormula } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheOpenHand";
+import actionStyles from "../ActionsWidget.module.css";
+import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
 
 type QuiveringPalmStatusDrawerActionRowProps = {
   disabled: boolean;

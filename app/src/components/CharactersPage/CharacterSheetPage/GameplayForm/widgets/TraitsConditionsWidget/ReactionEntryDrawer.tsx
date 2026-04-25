@@ -1,12 +1,12 @@
 import type { ReactNode } from "react";
-import ActionShape from "../../../../ActionShape";
-import type { ReactionEntry } from "../../../../../codex/entries";
+import ActionShape from "../../../../../ActionShape";
+import type { ReactionEntry } from "../../../../../../codex/entries";
 import type {
   FeatureActionFact,
   FeatureActionHeaderTag
-} from "../../../../../pages/CharactersPage/classFeatures";
-import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import GameplayActionDrawer from "./GameplayActionDrawer";
+} from "../../../../../../pages/CharactersPage/classFeatures";
+import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import GameplayActionDrawer from "../GameplayActionDrawer";
 import styles from "./ReactionEntryDrawer.module.css";
 
 type ReactionEntryDrawerProps = {

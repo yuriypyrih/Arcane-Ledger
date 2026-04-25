@@ -321,7 +321,7 @@ import { ClericPreserveLifeActionBody } from "./ClericPreserveLifeAction";
 import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
 import WeaponAttackFooterButtons from "./WeaponAttackFooterButtons";
 import ClericChannelDivinityAction from "./ClericChannelDivinityAction";
-import DruidStarryFormActionBody from "./DruidStarryFormActionBody";
+import DruidStarryFormActionBody from "./TraitsConditionsWidget/DruidStarryFormActionBody";
 import {
   FighterSecondWindActionBody,
   FighterSecondWindActionFooter
@@ -411,7 +411,7 @@ import {
   WeaponActionCard
 } from "./ActionCards";
 import { CommonActionFooter } from "./CommonAction";
-import ElementalAttunementResistanceSelector from "./ElementalAttunementResistanceSelector";
+import ElementalAttunementResistanceSelector from "./TraitsConditionsWidget/ElementalAttunementResistanceSelector";
 import { ElementalBurstActionFooter } from "./ElementalBurstAction";
 import {
   MonkHandOfHealingActionCard,
@@ -5732,7 +5732,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     const selectedFeaturePrimaryLabel =
-      selectedAction.drawer.confirmLabel ??
+      ("confirmLabel" in selectedAction.drawer ? selectedAction.drawer.confirmLabel : undefined) ??
       getFeatureActionDrawerPrimaryLabel(selectedAction.action);
 
     if (selectedAction.kind === "feature" && isCommonActionKey(selectedAction.action.key)) {
@@ -6782,9 +6782,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                           disabled: selectedActionSpellElementalSmiteDisabled,
                           radioOptions: {
                             value: selectedElementalSmiteOptionOnActionSpell,
-                            onValueChange: setSelectedElementalSmiteOptionOnActionSpell,
+                            onValueChange: (value: string) =>
+                              setSelectedElementalSmiteOptionOnActionSpell(
+                                value as Exclude<
+                                  typeof selectedElementalSmiteOptionOnActionSpell,
+                                  null
+                                >
+                              ),
                             required: true,
-                            placement: "body",
+                            placement: "body" as const,
                             options: paladinOathOfTheNobleGeniesElementalSmiteOptions.map(
                               (option) => ({
                                 id: option.key,

@@ -1,5 +1,5 @@
-import { type AbilityKey, type CharacterCustomTraitEffect } from "../../../../../types";
-import { WEAPON_COMBAT_TYPE } from "../../../../../codex/entries";
+import { type AbilityKey, type CharacterCustomTraitEffect } from "../../../../../../types";
+import { WEAPON_COMBAT_TYPE } from "../../../../../../codex/entries";
 import {
   defaultManualStatusDurationDraft,
   type ManualStatusDurationType
