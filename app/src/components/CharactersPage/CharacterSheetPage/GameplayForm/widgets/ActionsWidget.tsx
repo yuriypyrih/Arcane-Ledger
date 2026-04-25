@@ -103,6 +103,7 @@ import {
   transformCommonActionForCharacter,
   type FeatureActionCard,
   type FeatureActionExecuteConfig,
+  type FeatureActionHeaderTag,
   type FeatureActionOptionCard
 } from "../../../../../pages/CharactersPage/classFeatures";
 import { bardicInspirationActionKey } from "../../../../../pages/CharactersPage/classFeatures/bard/bard";
@@ -191,6 +192,7 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/ranger/ranger";
 import { getRangerFeyWandererDreadfulStrikesOptionState } from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerFeyWanderer";
 import { getRangerGloomStalkerDreadAmbusherOptionState } from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerGloomStalker";
+import { rangerBeastMasterReviveActionKey } from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerBeastMaster";
 import { getRangerWinterWalkerPolarStrikesOptionState } from "../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerWinterWalker";
 import {
   innateSorceryActionKey,
@@ -318,6 +320,7 @@ import SneakAttackActionBody, { type SneakAttackActionSelection } from "./SneakA
 import divineStyles from "./DivineInterventionModal.module.css";
 import GameplayActionDrawer from "./GameplayActionDrawer";
 import { BardicInspirationActionFooter } from "./BardicInspirationActionFooter";
+import { BeastMasterReviveActionFooter } from "./BeastMasterReviveActionFooter";
 import CodexDivinityDrawer from "../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import BlessingOfTheTricksterActionBody from "./BlessingOfTheTricksterActionBody";
 import { ClericPreserveLifeActionBody } from "./ClericPreserveLifeAction";
@@ -1521,6 +1524,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     useState<WildCompanionResourceKind>("wild-shape");
   const [selectedBardicInspirationSpellSlotLevel, setSelectedBardicInspirationSpellSlotLevel] =
     useState<number | null>(null);
+  const [selectedBeastMasterReviveSpellSlotLevel, setSelectedBeastMasterReviveSpellSlotLevel] =
+    useState<number | null>(null);
   const [selectedWildCompanionSpellSlotLevel, setSelectedWildCompanionSpellSlotLevel] = useState(1);
   const [selectedWildResurgenceMode, setSelectedWildResurgenceMode] =
     useState<WildResurgenceMode | null>(null);
@@ -1686,8 +1691,25 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       ),
     [fixedSpellSlotTotals, fixedSpellSlotsRemaining]
   );
+  const beastMasterReviveSpellSlotOptions = useMemo(
+    () =>
+      fixedSpellSlotTotals.flatMap((total, index) =>
+        total > 0 && (fixedSpellSlotsRemaining[index] ?? 0) > 0
+          ? [
+              {
+                level: index + 1,
+                remaining: fixedSpellSlotsRemaining[index] ?? 0,
+                total
+              }
+            ]
+          : []
+      ),
+    [fixedSpellSlotTotals, fixedSpellSlotsRemaining]
+  );
   const firstAvailableBardicInspirationSpellSlotLevel =
     bardicInspirationFallbackSpellSlotOptions[0]?.level ?? null;
+  const firstAvailableBeastMasterReviveSpellSlotLevel =
+    beastMasterReviveSpellSlotOptions[0]?.level ?? null;
   const firstAvailableWildCompanionSpellSlotLevel =
     wildCompanionSpellSlotOptions.find((slot) => slot.remaining > 0)?.level ?? null;
   const wildResurgenceAvailableSpellSlotLevels = useMemo(
@@ -2295,6 +2317,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     bardicInspirationFallbackSpellSlotOptions.some(
       (slot) => slot.level === selectedBardicInspirationSpellSlotLevel
     );
+  const selectedBeastMasterReviveSpellSlot =
+    selectedBeastMasterReviveSpellSlotLevel !== null
+      ? (beastMasterReviveSpellSlotOptions.find(
+          (slot) => slot.level === selectedBeastMasterReviveSpellSlotLevel
+        ) ?? null)
+      : null;
   const selectedWildCompanionSpellSlotRemaining =
     fixedSpellSlotsRemaining[selectedWildCompanionSpellSlotLevel - 1] ?? 0;
   const canUseSelectedWildCompanionResource =
@@ -2670,6 +2698,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           : !selectedBardicInspirationFallbackSlotIsValid
             ? "Select a spell slot to regain Bardic Inspiration."
             : null));
+  const selectedBeastMasterReviveDisabledReason =
+    selectedFeatureAction?.key !== rangerBeastMasterReviveActionKey
+      ? selectedFeatureActionPrimaryDisabledReason
+      : (selectedFeatureActionPrimaryDisabledReason ??
+        (beastMasterReviveSpellSlotOptions.length <= 0
+          ? "No spell slots remain to revive your Primal Companion."
+          : !selectedBeastMasterReviveSpellSlot
+            ? "Select a spell slot to revive your Primal Companion."
+            : null));
   const showSelectedFlurryOfHealingAndHarmToggle =
     selectedAction?.kind === "feature" &&
     selectedAction.action.key === monkFlurryOfBlowsActionKey &&
@@ -2760,7 +2797,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedFontOfMagicSelection !== null
       ? selectedFontOfMagicWarning
       : (selectedActionWarning ?? selectedRageSelectionWarning));
-  const selectedActionHeaderTags =
+  const selectedActionHeaderTags: FeatureActionHeaderTag[] =
     selectedAction?.kind === "weapon"
       ? []
       : isLayOnHandsActionSelected
@@ -2774,7 +2811,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               label: "Pool of Healing"
             }
           )
-        : (selectedAction?.drawer.headerTags ?? []);
+        : selectedFeatureAction?.key === rangerBeastMasterReviveActionKey
+          ? [
+              {
+                kind: "text",
+                label: "Spell Slot",
+                value: selectedBeastMasterReviveSpellSlot
+                  ? `Use 1 out of ${selectedBeastMasterReviveSpellSlot.remaining}/${selectedBeastMasterReviveSpellSlot.total} Spell Slots`
+                  : "No Spell Slots"
+              }
+            ]
+          : (selectedAction?.drawer.headerTags ?? []);
   const fixedSpellExecute =
     selectedAction?.kind === "feature" &&
     selectedAction.execute.kind === "spell" &&
@@ -3049,6 +3096,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedWildShapePreviewMonster(null);
     setSelectedWildShapePreviewStatus("ready");
     setSelectedWildCompanionResource("wild-shape");
+    setSelectedBeastMasterReviveSpellSlotLevel(null);
     setSelectedWildCompanionSpellSlotLevel(1);
     setSelectedWildResurgenceMode(null);
     setSelectedWildResurgenceSpellSlotLevel(1);
@@ -3243,6 +3291,23 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     firstAvailableBardicInspirationSpellSlotLevel,
     selectedFeatureAction?.key,
     showBardicInspirationFallbackSlotSelect
+  ]);
+
+  useEffect(() => {
+    if (selectedFeatureAction?.key !== rangerBeastMasterReviveActionKey) {
+      return;
+    }
+
+    setSelectedBeastMasterReviveSpellSlotLevel((currentValue) =>
+      currentValue !== null &&
+      beastMasterReviveSpellSlotOptions.some((slot) => slot.level === currentValue)
+        ? currentValue
+        : firstAvailableBeastMasterReviveSpellSlotLevel
+    );
+  }, [
+    beastMasterReviveSpellSlotOptions,
+    firstAvailableBeastMasterReviveSpellSlotLevel,
+    selectedFeatureAction?.key
   ]);
 
   useEffect(() => {
@@ -3659,6 +3724,62 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   function executeFeatureActivate(action: FeatureActionCard) {
     const effectKind =
       action.execute?.kind === "activate" ? (action.execute.effectKind ?? "default") : "default";
+
+    if (action.key === rangerBeastMasterReviveActionKey) {
+      const spellSlotLevel = selectedBeastMasterReviveSpellSlotLevel;
+
+      if (spellSlotLevel === null) {
+        return;
+      }
+
+      onPersistCharacter((currentCharacter) => {
+        const spellSlotTotals = getSpellSlotTotalsForCharacter(
+          currentCharacter.className,
+          currentCharacter.level
+        );
+        const spellSlotsExpended = normalizeSpellSlotsExpended(
+          currentCharacter.spellSlotsExpended,
+          spellSlotTotals
+        );
+        const slotIndex = spellSlotLevel - 1;
+        const selectedSlotRemaining = Math.max(
+          0,
+          (spellSlotTotals[slotIndex] ?? 0) - (spellSlotsExpended[slotIndex] ?? 0)
+        );
+
+        if (selectedSlotRemaining <= 0) {
+          return currentCharacter;
+        }
+
+        const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+        const preparedCharacter = prepareCharacterForResourceConsumption(
+          currentCharacter,
+          roundTrackerResource
+        );
+        const nextCharacter = activateFeatureActionForCharacter(preparedCharacter, action.key);
+
+        if (nextCharacter === preparedCharacter) {
+          return currentCharacter;
+        }
+
+        const nextSpellSlotsExpended = normalizeSpellSlotsExpended(
+          nextCharacter.spellSlotsExpended,
+          spellSlotTotals
+        );
+        nextSpellSlotsExpended[slotIndex] = (nextSpellSlotsExpended[slotIndex] ?? 0) + 1;
+
+        const nextCharacterWithSpellSlot = {
+          ...nextCharacter,
+          spellSlotsExpended: nextSpellSlotsExpended
+        };
+
+        return roundTrackerResource
+          ? consumeRoundTrackerResourceForCharacter(nextCharacterWithSpellSlot, roundTrackerResource)
+          : nextCharacterWithSpellSlot;
+      });
+      closeActionDrawer();
+      return;
+    }
 
     if (
       action.key === monkStepOfTheWindActionKey &&
@@ -6144,6 +6265,32 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               ? selectedBardicInspirationFallbackDisabledReason
               : null
           }
+          onConfirm={() => executeFeatureActivate(selectedAction.action)}
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
+      selectedAction.action.key === rangerBeastMasterReviveActionKey
+    ) {
+      return (
+        <BeastMasterReviveActionFooter
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedBeastMasterReviveDisabledReason !== null}
+          disabledReason={
+            selectedBeastMasterReviveDisabledReason !== selectedFeatureActionPrimaryDisabledReason
+              ? selectedBeastMasterReviveDisabledReason
+              : null
+          }
+          spellSlotOptions={beastMasterReviveSpellSlotOptions}
+          selectedSpellSlotLevel={selectedBeastMasterReviveSpellSlotLevel}
+          onSelectedSpellSlotLevelChange={setSelectedBeastMasterReviveSpellSlotLevel}
           onConfirm={() => executeFeatureActivate(selectedAction.action)}
         />
       );

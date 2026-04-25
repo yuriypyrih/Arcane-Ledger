@@ -1,7 +1,10 @@
 import { CLASS_FEATURE } from "../../../../../codex/entries";
+import type { SpellDescriptionEntry } from "../../../../../codex/entries";
 import type { Character } from "../../../../../types";
+import { createSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 import {
   getBeastMasterCompanion,
+  isPrimalBeastCompanion,
   isBeastMasterCharacter,
   reviveBeastMasterCompanion
 } from "../../../beastMasterCompanions";
@@ -17,29 +20,42 @@ type BeastMasterRuntimeCharacter = Pick<Character, "className"> &
   Partial<Pick<Character, "level" | "subclassId" | "companions">>;
 
 const commandDescription = [
-  "In combat, your primal beast acts during your turn. It can move and use its Reaction on its own, but it takes the Dodge action unless you command it.",
-  "As a Bonus Action, command the beast to take an action in its stat block or some other action. You can also sacrifice one attack from your Attack action to command it to take Beast's Strike.",
-  "If you have the Incapacitated condition, the beast acts on its own and is not limited to Dodge."
+  "<strong>The Beast in Combat.</strong> In combat, the beast acts during your turn. It can move and use its Reaction on its own, but the only action it takes is the Dodge action unless you take a Bonus Action to command it to take an action in its stat block or some other action.",
+  "You can also sacrifice one of your attacks when you take the Attack action to command the beast to take the Beast's Strike action.",
+  "If you have the <link:Incapacitated>Incapacitated</link> condition, the beast acts on its own and isn't limited to the Dodge action."
 ];
 
 const exceptionalTrainingDescription = [
-  "Exceptional Training: when you command the beast with a Bonus Action, it can also use its Bonus Action to Dash, Disengage, Dodge, or Help. Its attacks can deal Force damage instead of their normal damage type."
+  "When you take a Bonus Action to command your Primal Companion beast to take an action, you can also command it to take the Dash, Disengage, Dodge, or Help action using its Bonus Action.",
+  "In addition, whenever it hits with an attack roll and deals damage, it can deal your choice of <link:Force>Force</link> damage or its normal damage type."
 ];
 
 const bestialFuryDescription = [
-  "Bestial Fury: when you command Beast's Strike, the beast can use it twice. The first time each turn it hits your Hunter's Mark target, it can add the spell's bonus damage as Force damage."
+  "When you command your Primal Companion beast to take the Beast's Strike action, the beast can use it twice.",
+  "In addition, the first time each turn it hits a creature under the effect of your <spell:Hunter's Mark>Hunter's Mark</spell> spell, the beast deals extra <link:Force>Force</link> damage equal to the bonus damage of that spell."
+];
+
+const shareSpellsDescription = [
+  "When you cast a spell targeting yourself, you can also affect your Primal Companion beast with the spell if the beast is within 30 feet of you."
 ];
 
 const reviveDescription = [
-  "If your primal beast has died within the last hour, you can take a Magic action to touch it and expend a spell slot. The beast returns to life after 1 minute with all its Hit Points restored.",
-  "V1 reminder: spend the spell slot manually in Spellcasting after using this action."
+  "<strong>Restoring or Replacing the Beast.</strong> If the beast has died within the last hour, you can take a Magic action to touch it and expend a spell slot. The beast returns to life after 1 minute with all its Hit Points restored."
 ];
 
-function getCommandDescription(character: BeastMasterRuntimeCharacter): string[] {
+function getCommandDescriptionAdditions(
+  character: BeastMasterRuntimeCharacter
+): SpellDescriptionEntry[][] {
   return [
-    ...commandDescription,
-    ...((character.level ?? 0) >= 7 ? exceptionalTrainingDescription : []),
-    ...((character.level ?? 0) >= 11 ? bestialFuryDescription : [])
+    ...((character.level ?? 0) >= 7
+      ? [createSourcedDescriptionEntries("Exceptional Training", exceptionalTrainingDescription)]
+      : []),
+    ...((character.level ?? 0) >= 11
+      ? [createSourcedDescriptionEntries("Bestial Fury", bestialFuryDescription)]
+      : []),
+    ...((character.level ?? 0) >= 15
+      ? [createSourcedDescriptionEntries("Share Spells", shareSpellsDescription)]
+      : [])
   ];
 }
 
@@ -53,6 +69,14 @@ function getRangerBeastMasterFeatureActions(
   const companion = getBeastMasterCompanion(character);
   const hasCompanion = Boolean(companion);
   const isCompanionDead = companion ? companion.currentHitPoints <= 0 : false;
+  const hasPrimalBeast = Boolean(character.companions?.some(isPrimalBeastCompanion));
+  const hasDeadPrimalBeast = Boolean(
+    character.companions?.some(
+      (currentCompanion) =>
+        isPrimalBeastCompanion(currentCompanion) && currentCompanion.currentHitPoints <= 0
+    )
+  );
+  const commandDescriptionAdditions = getCommandDescriptionAdditions(character);
 
   return [
     {
@@ -65,22 +89,21 @@ function getRangerBeastMasterFeatureActions(
       detail:
         "Command your primal companion to act, or use one Attack action attack to trigger Beast's Strike.",
       breakdown: "Command beast",
-      description: getCommandDescription(character),
+      description: commandDescription,
+      descriptionAdditions: commandDescriptionAdditions,
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
       consumesEconomyOnActivate: true,
       drawer: {
         kind: "confirm",
         eyebrow: "Beast Master",
-        description: getCommandDescription(character),
-        helperText: isCompanionDead
-          ? "Your primal companion is marked dead. Revive it before commanding it."
-          : undefined,
-        confirmLabel: "Command Beast"
+        description: commandDescription,
+        descriptionAdditions: commandDescriptionAdditions,
+        confirmLabel: "Use Command"
       },
       execute: {
         kind: "activate",
-        label: "Command Beast"
+        label: "Use Command"
       },
       disabled: !hasCompanion || isCompanionDead,
       disabledReason: !hasCompanion
@@ -89,39 +112,36 @@ function getRangerBeastMasterFeatureActions(
           ? "Your Primal Companion is marked dead."
           : undefined
     },
-    ...(isCompanionDead
-      ? [
-          {
-            key: rangerBeastMasterReviveActionKey,
-            name: "Revive Primal Companion",
-            sourceFeature: CLASS_FEATURE.PRIMAL_COMPANION,
-            summary: "Restore your beast after spending a spell slot.",
-            detail:
-              "Use a Magic action to touch the dead beast, spend a spell slot manually, and restore it after 1 minute.",
-            breakdown: "Restore beast",
-            description: reviveDescription,
-            economyType: ECONOMY_TYPE.ACTION,
-            actionCategory: ACTION_CATEGORY.MAGIC,
-            drawer: {
-              kind: "confirm",
-              eyebrow: "Beast Master",
-              description: reviveDescription,
-              resources: [
-                {
-                  kind: "text",
-                  label: "Spell Slot",
-                  value: "Spend manually"
-                }
-              ],
-              confirmLabel: "Mark Revived"
-            },
-            execute: {
-              kind: "activate",
-              label: "Mark Revived"
-            }
-          } satisfies FeatureActionCard
-        ]
-      : [])
+    {
+      key: rangerBeastMasterReviveActionKey,
+      name: "Revive Primal Companion",
+      sourceFeature: CLASS_FEATURE.PRIMAL_COMPANION,
+      summary: hasDeadPrimalBeast
+        ? "Restore your beast after spending a spell slot."
+        : "Available when a primal beast is at 0 HP.",
+      detail:
+        "Use a Magic action to touch the dead beast, expend a spell slot, and restore it after 1 minute.",
+      breakdown: "Restore beast",
+      description: reviveDescription,
+      economyType: ECONOMY_TYPE.ACTION,
+      actionCategory: ACTION_CATEGORY.MAGIC,
+      drawer: {
+        kind: "confirm",
+        eyebrow: "Beast Master",
+        description: reviveDescription,
+        confirmLabel: "Use Revive"
+      },
+      execute: {
+        kind: "activate",
+        label: "Use Revive"
+      },
+      disabled: !hasDeadPrimalBeast,
+      disabledReason: !hasPrimalBeast
+        ? "Create a Primal Companion in the Companions section first."
+        : !hasDeadPrimalBeast
+          ? "No Primal Beast is at 0 HP."
+          : undefined
+    }
   ];
 }
 

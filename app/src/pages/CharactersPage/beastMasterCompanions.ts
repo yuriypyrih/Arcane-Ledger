@@ -1,5 +1,9 @@
 import type { Character, CharacterCompanion, MonsterRecord } from "../../types";
-import { getPrimalBeastTemplate, isPrimalBeastKind } from "./companionPrimalBeasts";
+import {
+  getPrimalBeastTemplate,
+  isPrimalBeastKind,
+  PRIMAL_BEAST_MONSTER_TYPE
+} from "./companionPrimalBeasts";
 
 export const beastMasterCompanionRole = "beast-master" as const;
 export const beastMasterSubclassId = "ranger-beast-master";
@@ -24,6 +28,14 @@ export function getBeastMasterCompanion(
   character: Partial<Pick<Character, "companions">>
 ): CharacterCompanion | null {
   return character.companions?.find(isBeastMasterCompanion) ?? null;
+}
+
+export function isPrimalBeastCompanion(companion: CharacterCompanion): boolean {
+  return (
+    isBeastMasterCompanion(companion) ||
+    companion.type === PRIMAL_BEAST_MONSTER_TYPE ||
+    Boolean(companion.primalBeastKind)
+  );
 }
 
 export function getCompanionStatBlock(
@@ -55,25 +67,21 @@ export function normalizeCompanionHitPoints(
 }
 
 export function reviveBeastMasterCompanion(character: Character): Character {
-  const companion = getBeastMasterCompanion(character);
+  const hasDeadPrimalBeast = character.companions.some(
+    (companion) => isPrimalBeastCompanion(companion) && companion.currentHitPoints <= 0
+  );
 
-  if (!companion || companion.currentHitPoints > 0) {
+  if (!hasDeadPrimalBeast) {
     return character;
   }
-
-  const maxHitPoints = Math.max(
-    1,
-    companion.maxHitPoints ?? getDefaultCompanionMaxHitPoints(companion) ?? 1
-  );
 
   return {
     ...character,
     companions: character.companions.map((currentCompanion) =>
-      currentCompanion.id === companion.id
+      isPrimalBeastCompanion(currentCompanion) && currentCompanion.currentHitPoints <= 0
         ? {
             ...currentCompanion,
-            maxHitPoints,
-            currentHitPoints: maxHitPoints
+            currentHitPoints: 1
           }
         : currentCompanion
     )
