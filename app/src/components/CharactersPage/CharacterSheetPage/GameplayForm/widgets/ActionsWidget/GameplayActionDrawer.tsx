@@ -6,7 +6,6 @@ import type {
   SpellEntry
 } from "../../../../../../codex/entries";
 import DescriptionContent from "../../../../../DescriptionContent/DescriptionContent";
-import CellContainer from "../../../../../CellContainer/CellContainer";
 import KeywordReferenceDrawer from "../../../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import CodexDivinityDrawer from "../../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
 import CodexFeatDrawer from "../../../../../CodexPage/CodexFeatDrawer/CodexFeatDrawer";
@@ -28,6 +27,7 @@ import type {
   FeatureActionHeaderTag
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import type { ResolvedKeywordReference } from "../../../../../../utils/codex/renderCodexRichText";
+import FeatureActionFacts from "./FeatureActionFacts";
 import FeatureActionHeaderTags from "./FeatureActionHeaderTags";
 import styles from "./GameplayActionDrawer.module.css";
 
@@ -50,18 +50,6 @@ type GameplayActionDrawerProps = {
   backdropClassName?: string;
   drawerClassName?: string;
 };
-
-function getToneClassName(tone: FeatureActionFact["tone"], classes: Record<string, string>) {
-  if (tone === "danger") {
-    return classes.danger;
-  }
-
-  if (tone === "accent") {
-    return classes.accent;
-  }
-
-  return "";
-}
 
 function GameplayActionDrawer({
   title,
@@ -194,27 +182,7 @@ function GameplayActionDrawer({
               </div>
             ) : null}
 
-            {facts.length > 0 ? (
-              <section className={styles.section}>
-                {factsSectionTitle ? <h4 className={styles.sectionTitle}>{factsSectionTitle}</h4> : null}
-                <div className={styles.factGrid}>
-                  {facts.map((fact, index) => (
-                    <CellContainer
-                      key={`${title}-fact-${index}`}
-                      label={fact.label}
-                      content={fact.value}
-                      breakdown={fact.breakdown}
-                      className={fact.fullWidth ? styles.factFullWidth : undefined}
-                      contentClassName={getToneClassName(fact.tone, {
-                        danger: styles.factValueDanger,
-                        accent: styles.factValueAccent
-                      })}
-                      breakdownClassName={styles.factBreakdown}
-                    />
-                  ))}
-                </div>
-              </section>
-            ) : null}
+            <FeatureActionFacts title={title} facts={facts} sectionTitle={factsSectionTitle} />
 
             {children}
           </OverlayBody>

@@ -36,15 +36,19 @@ import { getSpellLevel } from "../../../../pages/CharactersPage/spellcasting";
 import { getSpellDamageDetailForCharacter } from "../../../../pages/CharactersPage/spellOutcome";
 import type {
   FeatureActionCardUsage,
+  FeatureActionFact,
   FeatureActionHeaderTag
 } from "../../../../pages/CharactersPage/classFeatures";
 import FeatureOptInToggle, {
   type FeatureOptInToggleApplication
 } from "../FeatureOptInToggle/FeatureOptInToggle";
 import RadioContainerOption from "../RadioContainerOption";
+import FeatureActionFacts from "../GameplayForm/widgets/ActionsWidget/FeatureActionFacts";
 import FeatureActionHeaderTags from "../GameplayForm/widgets/ActionsWidget/FeatureActionHeaderTags";
+import DiceRollerSettingsButton from "../GameplayForm/widgets/DiceRollerSettingsButton";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import gameplayActionStyles from "../GameplayForm/widgets/ActionsWidget/GameplayActionDrawer.module.css";
+import d20Icon from "../../../../assets/svg/d20.svg";
 import styles from "./CharacterSpellDrawer.module.css";
 import actionStyles from "./SpellActionDrawer.module.css";
 
@@ -138,6 +142,11 @@ type CharacterSpellDrawerProps = {
   actionShapeAvailable?: boolean;
   actionShapeMultiCount?: number;
   actionOptions?: CharacterSpellDrawerActionOption[];
+  facts?: FeatureActionFact[];
+  factsSectionTitle?: string | null;
+  showActionDiceControls?: boolean;
+  isDiceRollerSettingsOpen?: boolean;
+  onDiceRollerSettingsOpenChange?: (isOpen: boolean) => void;
   damageDetailOverride?: string | null;
   backdropClassName?: string;
 };
@@ -188,6 +197,11 @@ function CharacterSpellDrawer({
   actionShapeAvailable = true,
   actionShapeMultiCount = 0,
   actionOptions = [],
+  facts = [],
+  factsSectionTitle = null,
+  showActionDiceControls = false,
+  isDiceRollerSettingsOpen = false,
+  onDiceRollerSettingsOpenChange,
   damageDetailOverride = null,
   backdropClassName
 }: CharacterSpellDrawerProps) {
@@ -338,8 +352,9 @@ function CharacterSpellDrawer({
   const shouldUseFullWidthReactionLayout =
     resolvedActionPaths.length === 1 && resolvedActionPaths[0]?.actionShape === "reaction";
   const shouldStackFooterActions =
-    shouldUseFullWidthReactionLayout ||
-    (!shouldShowSlotControls && resolvedActionPaths.length <= 1);
+    !showActionDiceControls &&
+    (shouldUseFullWidthReactionLayout ||
+      (!shouldShowSlotControls && resolvedActionPaths.length <= 1));
   const bodyRadioActionOptions = visibleActionOptions.filter(
     (option) => option.radioOptions?.placement === "body"
   );
@@ -585,6 +600,7 @@ function CharacterSpellDrawer({
                 ))}
               </div>
             ) : null}
+            <FeatureActionFacts title={spell.name} facts={facts} sectionTitle={factsSectionTitle} />
             {bodyRadioActionOptions.map((option) => (
               <div
                 key={`${option.id}-body-radio-options`}
@@ -782,6 +798,11 @@ function CharacterSpellDrawer({
                       }
                       disabled={!isActionEnabled || path.disabledReason !== null}
                       title={path.disabledReason ?? undefined}
+                      icon={
+                        showActionDiceControls ? (
+                          <img src={d20Icon} alt="" className={actionStyles.castActionIcon} />
+                        ) : undefined
+                      }
                       trailingBadge={
                         <ActionShape
                           shape={path.actionShape}
@@ -795,6 +816,14 @@ function CharacterSpellDrawer({
                       {path.actionLabel ?? actionLabel}
                     </ActionButton>
                   ))}
+                  {showActionDiceControls ? (
+                    <DiceRollerSettingsButton
+                      actionName={spell.name}
+                      className={actionStyles.castActionSettingsButton}
+                      isOpen={isDiceRollerSettingsOpen}
+                      onOpenChange={onDiceRollerSettingsOpenChange}
+                    />
+                  ) : null}
                 </div>
               </div>
             </div>

@@ -17,10 +17,14 @@ import {
 import {
   appendDescriptionAddition,
   appendSourcedDescriptionAddition,
-  createSourcedDescriptionEntries,
   descriptionValueSomeText
 } from "../../../actionModalDescriptions";
 import type { WeaponAction } from "../../../gameplay";
+import {
+  formatFormulaCell,
+  formatFormulaTerms,
+  formatSignedFormulaTerm
+} from "../../../shared/formulas";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries,
@@ -33,7 +37,12 @@ import {
   resolveSpellIdsByName,
   type SubclassRuntimeResolver
 } from "../../subclassRuntime";
-import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureDamageBonus } from "../../types";
+import type {
+  DerivedFeatureStatusEntry,
+  FeatureActionCard,
+  FeatureActionFact,
+  FeatureDamageBonus
+} from "../../types";
 import { getRangerFeatAdjustedWisdomModifier } from "../abilityModifiers";
 
 export const winterWalkerSubclassId = "ranger-winter-walker";
@@ -135,6 +144,7 @@ const bitingColdDescription = extractFeatureDescriptionSection(
   frigidExplorerDescription,
   "<strong>Biting Cold.</strong>"
 );
+const bitingColdHunterMarkDescription = bitingColdDescription.slice(0, 1);
 const polarStrikesDescription = extractFeatureDescriptionSection(
   frigidExplorerDescription,
   "<strong>Polar Strikes.</strong>"
@@ -222,19 +232,11 @@ function appendBitingColdWeaponDescription(action: WeaponAction): WeaponAction {
 }
 
 function appendBitingColdSpellDescription(spell: SpellEntry): SpellEntry {
-  if (
-    bitingColdDescription.length <= 0 ||
-    descriptionValueSomeText({ description: spell.description }, (entry) =>
-      entry.includes("<strong>Biting Cold.</strong>")
-    )
-  ) {
+  if (spell.id !== huntersMarkSpellId || bitingColdHunterMarkDescription.length <= 0) {
     return spell;
   }
 
-  return {
-    ...spell,
-    description: [...spell.description, ...bitingColdDescription]
-  };
+  return appendSourcedDescriptionAddition(spell, bitingColdName, bitingColdHunterMarkDescription);
 }
 
 function hasPolarStrikesAction(action: PolarStrikesAction | null): boolean {
@@ -280,10 +282,110 @@ export function hasRangerWinterWalkerFrigidExplorerFeature(
   return isRangerWinterWalker(character);
 }
 
-function hasRangerWinterWalkerHuntersRimeFeature(
+export function hasRangerWinterWalkerHuntersRimeFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return isRangerWinterWalker(character);
+}
+
+export function getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormula(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): string | null {
+  if (!hasRangerWinterWalkerHuntersRimeFeature(character)) {
+    return null;
+  }
+
+  return `1d10 + ${Math.max(1, character.level ?? 0)}`;
+}
+
+export function getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplay(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): string | null {
+  if (!hasRangerWinterWalkerHuntersRimeFeature(character)) {
+    return null;
+  }
+
+  return formatFormulaTerms([
+    "1d10",
+    formatSignedFormulaTerm(Math.max(1, character.level ?? 0), "Ranger level")
+  ]);
+}
+
+export function getRangerWinterWalkerHuntersRimeTemporaryHitPointsFacts(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): FeatureActionFact[] {
+  const formula = getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormula(character);
+  const formulaDisplay = getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplay(character);
+
+  if (!formula || !formulaDisplay) {
+    return [];
+  }
+
+  const formulaCell = formatFormulaCell({
+    formula,
+    displayTerms: [formulaDisplay],
+    resultLabel: "Temp HP",
+    minimumValue: 1
+  });
+
+  return [
+    {
+      label: "Temporary Hit Points Formula",
+      value: formulaCell.value,
+      breakdown: formulaCell.breakdown,
+      fullWidth: true
+    }
+  ];
+}
+
+export function getRangerWinterWalkerFortifyingSoulHealingFormula(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): string | null {
+  if (!hasRangerWinterWalkerFortifyingSoulFeature(character)) {
+    return null;
+  }
+
+  return `1d10 + ${Math.max(1, character.level ?? 0)}`;
+}
+
+export function getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): string | null {
+  if (!hasRangerWinterWalkerFortifyingSoulFeature(character)) {
+    return null;
+  }
+
+  return formatFormulaTerms([
+    "1d10",
+    formatSignedFormulaTerm(Math.max(1, character.level ?? 0), "Ranger level")
+  ]);
+}
+
+export function getRangerWinterWalkerFortifyingSoulHealingFacts(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): FeatureActionFact[] {
+  const formula = getRangerWinterWalkerFortifyingSoulHealingFormula(character);
+  const formulaDisplay = getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay(character);
+
+  if (!formula || !formulaDisplay) {
+    return [];
+  }
+
+  const formulaCell = formatFormulaCell({
+    formula,
+    displayTerms: [formulaDisplay],
+    resultLabel: "Heal",
+    minimumValue: 1
+  });
+
+  return [
+    {
+      label: "Healing Formula",
+      value: formulaCell.value,
+      breakdown: formulaCell.breakdown,
+      fullWidth: true
+    }
+  ];
 }
 
 function hasRangerWinterWalkerSpellsFeature(
@@ -621,7 +723,10 @@ function getRangerWinterWalkerFeatureActions(
   const usesTotal = getRangerWinterWalkerFortifyingSoulUsesTotal(character);
   const usesRemaining = getRangerWinterWalkerFortifyingSoulUsesRemaining(character);
   const targetCount = getFortifyingSoulTargetCount(character);
-  const healingFormula = `1d10 + ${Math.max(1, character.level ?? 0)}`;
+  const healingFormula =
+    getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay(character) ??
+    `1d10 + ${Math.max(1, character.level ?? 0)}`;
+  const healingFacts = getRangerWinterWalkerFortifyingSoulHealingFacts(character);
   const creatureLabel = targetCount === 1 ? "creature" : "creatures";
 
   return [
@@ -650,6 +755,8 @@ function getRangerWinterWalkerFeatureActions(
         kind: "confirm",
         eyebrow: "Winter Walker",
         description: [...fortifyingSoulDescription],
+        facts: healingFacts,
+        factsSectionTitle: null,
         resources: [
           {
             kind: "tracker",
@@ -700,21 +807,7 @@ function appendHuntersRimeSpellDescription(spell: SpellEntry): SpellEntry {
     return spell;
   }
 
-  const marker = `<strong>${huntersRimeSource}.</strong>`;
-
-  if (
-    descriptionValueSomeText({ description: spell.description }, (entry) => entry.includes(marker))
-  ) {
-    return spell;
-  }
-
-  return {
-    ...spell,
-    description: [
-      ...spell.description,
-      ...createSourcedDescriptionEntries(huntersRimeSource, huntersRimeDescription)
-    ]
-  };
+  return appendSourcedDescriptionAddition(spell, huntersRimeSource, huntersRimeDescription);
 }
 
 function appendFrozenHauntSpellDescription(spell: SpellEntry): SpellEntry {
@@ -722,21 +815,7 @@ function appendFrozenHauntSpellDescription(spell: SpellEntry): SpellEntry {
     return spell;
   }
 
-  const marker = `<strong>${frozenHauntName}.</strong>`;
-
-  if (
-    descriptionValueSomeText({ description: spell.description }, (entry) => entry.includes(marker))
-  ) {
-    return spell;
-  }
-
-  return {
-    ...spell,
-    description: [
-      ...spell.description,
-      ...createSourcedDescriptionEntries(frozenHauntName, frozenHauntDescription)
-    ]
-  };
+  return appendSourcedDescriptionAddition(spell, frozenHauntName, frozenHauntDescription);
 }
 
 export function getRangerWinterWalkerPolarStrikesOptionState(

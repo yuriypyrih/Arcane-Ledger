@@ -65,6 +65,7 @@ type ActionsWidgetUiState = {
   isClairvoyantCombatantSelected: boolean;
   isPsionicStrikeSelected: boolean;
   isDreadfulStrikeSelected: boolean;
+  isColossusSlayerSelected: boolean;
   isPolarStrikesSelected: boolean;
   isHuntersMarkTargetSelected: boolean;
   isSacredWeaponSelected: boolean;
@@ -146,6 +147,7 @@ function createInitialState(frozenHauntFallbackSpellSlotMinimumLevel: number): A
     isClairvoyantCombatantSelected: false,
     isPsionicStrikeSelected: false,
     isDreadfulStrikeSelected: false,
+    isColossusSlayerSelected: false,
     isPolarStrikesSelected: false,
     isHuntersMarkTargetSelected: false,
     isSacredWeaponSelected: false,
@@ -197,6 +199,7 @@ function getActionDrawerResetState(): Partial<ActionsWidgetUiState> {
     isClairvoyantCombatantSelected: false,
     isPsionicStrikeSelected: false,
     isDreadfulStrikeSelected: false,
+    isColossusSlayerSelected: false,
     isPolarStrikesSelected: false,
     isHuntersMarkTargetSelected: false,
     isSacredWeaponSelected: false,
@@ -237,6 +240,7 @@ function getActionSelectionResetState(): Partial<ActionsWidgetUiState> {
     isGroupRecoverySelected: false,
     isClairvoyantCombatantSelected: false,
     isPsionicStrikeSelected: false,
+    isColossusSlayerSelected: false,
     isSacredWeaponSelected: false,
     isVowOfEnmitySelected: false,
     isHuntersMarkTargetSelected: false,
@@ -410,6 +414,7 @@ export function useActionsWidgetUiState(
       ),
       setIsPsionicStrikeSelected: createFieldSetter(dispatch, "isPsionicStrikeSelected"),
       setIsDreadfulStrikeSelected: createFieldSetter(dispatch, "isDreadfulStrikeSelected"),
+      setIsColossusSlayerSelected: createFieldSetter(dispatch, "isColossusSlayerSelected"),
       setIsPolarStrikesSelected: createFieldSetter(dispatch, "isPolarStrikesSelected"),
       setIsHuntersMarkTargetSelected: createFieldSetter(dispatch, "isHuntersMarkTargetSelected"),
       setIsSacredWeaponSelected: createFieldSetter(dispatch, "isSacredWeaponSelected"),

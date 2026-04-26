@@ -7,6 +7,7 @@ import DivinityListRow from "../../../DivinityListRow/DivinityListRow";
 import EldritchInvocationListRow from "../../../EldritchInvocationListRow";
 import SpellListRow from "../../../SpellListRow";
 import SpellDescriptionContent from "../../../SpellDescriptionContent";
+import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import CharacterSpellDrawer, { type CharacterSpellDrawerMode } from "./CharacterSpellDrawer";
 import EldritchInvocationDrawer from "./EldritchInvocationDrawer";
 import SpellSlotActionSheet from "./SpellSlotActionSheet";
@@ -75,6 +76,9 @@ import {
   getRangerMistyWandererUsesRemainingForCharacter,
   getRangerMistyWandererUsesTotalForCharacter,
   getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter,
+  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFactsForCharacter,
+  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplayForCharacter,
+  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaForCharacter,
   getWarlockStepsOfTheFeyUsesRemainingForCharacter,
   getWarlockStepsOfTheFeyUsesTotalForCharacter,
   hasActiveMantleOfMajestyForCharacter,
@@ -187,6 +191,7 @@ import gameplayActionStyles from "../GameplayForm/widgets/ActionsWidget/Gameplay
 import { getSpellActionPathStates, getSpellActionPathWarning } from "../spellActionPaths";
 import styles from "./SpellCastingForm.module.css";
 import {
+  applyRolledTemporaryHitPointsToCharacter,
   consumeRoundTrackerResourceForCharacter,
   prepareCharacterForRoundTrackerResourceConsumption
 } from "../GameplayForm/gameplayStateUtils";
@@ -224,6 +229,7 @@ type WizardSpellViewFilter = "all" | "prepared";
 const wizardSignatureSpellLevel = 3;
 const frozenHauntFallbackSpellSlotMinimumLevel = 4;
 const guidingBoltSpellId = "spell-guiding-bolt";
+const huntersMarkSpellId = "spell-hunters-mark";
 const mistyStepSpellId = "spell-misty-step";
 const summonFeySpellId = "spell-summon-fey";
 const telekinesisSpellId = "spell-telekinesis";
@@ -370,6 +376,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const [useFrozenHauntOnSelectedSpell, setUseFrozenHauntOnSelectedSpell] = useState(false);
   const [selectedFrozenHauntFallbackSlotLevel, setSelectedFrozenHauntFallbackSlotLevel] =
     useState(4);
+  const [
+    isSelectedSpellDiceRollerSettingsOpen,
+    setIsSelectedSpellDiceRollerSettingsOpen
+  ] = useState(false);
   const [activeSpellSlotSheetLevel, setActiveSpellSlotSheetLevel] = useState<number | null>(null);
   const [spellManagementMode, setSpellManagementMode] = useState<SpellManagementMode | null>(null);
   const [cantripDraftIds, setCantripDraftIds] = useState<string[]>([]);
@@ -379,6 +389,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const [activePreparedSpellLevel, setActivePreparedSpellLevel] = useState(1);
   const [activeWizardSpellFilter, setActiveWizardSpellFilter] =
     useState<WizardSpellViewFilter>("prepared");
+  const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   useBodyScrollLock(
     Boolean(
@@ -407,6 +418,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUsePsionicSorceryOnSelectedSpell(false);
     setUseTelekineticMasterOnSelectedSpell(false);
     setUseFrozenHauntOnSelectedSpell(false);
+    setIsSelectedSpellDiceRollerSettingsOpen(false);
     setSelectedFrozenHauntFallbackSlotLevel(frozenHauntFallbackSpellSlotMinimumLevel);
   }, []);
   const closeSelectedDivinity = useCallback(() => {
@@ -439,6 +451,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
     function handleKeyDown(event: globalThis.KeyboardEvent) {
       if (event.key === "Escape") {
+        if (isSelectedSpellDiceRollerSettingsOpen) {
+          setIsSelectedSpellDiceRollerSettingsOpen(false);
+          return;
+        }
+
         if (selectedSpell) {
           closeSelectedSpell();
           return;
@@ -474,6 +491,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     closeSelectedDivinity,
     closeSelectedInvocation,
     closeSelectedSpell,
+    isSelectedSpellDiceRollerSettingsOpen,
     selectedDivinityOptionKey,
     selectedInvocation,
     selectedSpell,
@@ -1356,6 +1374,18 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       ),
     [character, selectedSpell, selectedSpellProjectedSpellSlotsExpended, spellSlotTotals]
   );
+  const selectedSpellHuntersRimeTemporaryHitPointsFormula =
+    selectedSpell?.id === huntersMarkSpellId
+      ? getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaForCharacter(character)
+      : null;
+  const selectedSpellHuntersRimeTemporaryHitPointsFormulaDisplay =
+    selectedSpell?.id === huntersMarkSpellId
+      ? getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplayForCharacter(character)
+      : null;
+  const selectedSpellFacts =
+    selectedSpell?.id === huntersMarkSpellId
+      ? getRangerWinterWalkerHuntersRimeTemporaryHitPointsFactsForCharacter(character)
+      : [];
   const selectedSpellProjectedSpellSlotsRemaining = useMemo(
     () =>
       spellSlotTotals.map((total, index) =>
@@ -2059,6 +2089,26 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setSelectedInvocation(option);
   }
 
+  function rollHuntersRimeTemporaryHitPointsForSpellCast(spell: Pick<SpellEntry, "id" | "name">) {
+    if (spell.id !== huntersMarkSpellId || !selectedSpellHuntersRimeTemporaryHitPointsFormula) {
+      return;
+    }
+
+    openDiceRoller({
+      title: "Hunter's Rime",
+      formula: selectedSpellHuntersRimeTemporaryHitPointsFormula,
+      formulaDisplay:
+        selectedSpellHuntersRimeTemporaryHitPointsFormulaDisplay ??
+        selectedSpellHuntersRimeTemporaryHitPointsFormula,
+      description: `When you cast ${spell.name}, you gain Temporary Hit Points.`,
+      onResolvedResult: ({ result }) => {
+        onPersistCharacter((currentCharacter) =>
+          applyRolledTemporaryHitPointsToCharacter(currentCharacter, result.total, "Hunter's Rime")
+        );
+      }
+    });
+  }
+
   function castSelectedSpell(options?: {
     castAsRitual?: boolean;
     roundTrackerResourceOverride?: RoundTrackerResource | null;
@@ -2270,6 +2320,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         });
       }
 
+      rollHuntersRimeTemporaryHitPointsForSpellCast(selectedSpell);
       closeSelectedSpell();
       return;
     }
@@ -2322,6 +2373,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           : nextCharacterWithFleetStep;
       });
 
+      rollHuntersRimeTemporaryHitPointsForSpellCast(selectedSpell);
       closeSelectedSpell();
       return;
     }
@@ -2576,6 +2628,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         : nextCharacterWithFleetStep;
     });
 
+    rollHuntersRimeTemporaryHitPointsForSpellCast(selectedSpell);
     closeSelectedSpell();
   }
 
@@ -3284,6 +3337,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           actionWarning={selectedSpellCastWarning}
           actionDisabled={selectedSpellSharedCastWarning !== null}
           blockedReason={selectedSpellBlockedReason}
+          facts={selectedSpellFacts}
+          factsSectionTitle={null}
+          showActionDiceControls={selectedSpellHuntersRimeTemporaryHitPointsFormula !== null}
+          isDiceRollerSettingsOpen={isSelectedSpellDiceRollerSettingsOpen}
+          onDiceRollerSettingsOpenChange={setIsSelectedSpellDiceRollerSettingsOpen}
           actionPaths={selectedSpellActionPaths
             .map((path) => {
               const actionShape = getActionShapeForEconomyType(path.economyType);
@@ -3855,6 +3913,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           </section>
         </div>
       ) : null}
+      {diceRollerPopup}
     </article>
   );
 }

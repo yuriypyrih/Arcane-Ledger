@@ -181,9 +181,11 @@ import {
   consumeRangerWinterWalkerPolarStrikesUse,
   chillingRetributionReactionId,
   markRangerDreadfulStrikesUsed,
+  markRangerHunterColossusSlayerUsed,
   consumeRangerNaturesVeilUse,
   consumeRangerTirelessUse,
   consumeRangerWeaponAttack,
+  markRangerHunterHordeBreakerUsed,
   getRangerDeftExplorerExpertiseSelection,
   getRangerDeftExplorerLanguageSelections,
   getRangerFeyReinforcementsUsesRemaining,
@@ -199,6 +201,12 @@ import {
   getRangerMistyWandererUsesRemaining,
   getRangerMistyWandererUsesTotal,
   getRangerWinterWalkerFrozenHauntSpellOptionState,
+  getRangerWinterWalkerFortifyingSoulHealingFacts,
+  getRangerWinterWalkerFortifyingSoulHealingFormula,
+  getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay,
+  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFacts,
+  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormula,
+  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplay,
   getRangerWinterWalkerChillingRetributionUsesRemaining,
   getRangerWinterWalkerChillingRetributionUsesTotal,
   getRangerWinterWalkerFrozenHauntUsesRemaining,
@@ -225,6 +233,7 @@ import {
   setRangerDeftExplorerLanguageSelections,
   setRangerFeyWandererGiftSelection,
   setRangerHunterDefensiveTacticsChoice,
+  setRangerHunterHordeBreakerActionKey,
   setRangerHunterPreyChoice,
   setRangerHunterSuperiorHuntersDefenseDamageTypeSelection,
   setRangerGloomStalkerIronMindSavingThrowSelection,
@@ -3182,6 +3191,42 @@ export function getRangerWinterWalkerFrozenHauntUsesRemainingForCharacter(
   return getRangerWinterWalkerFrozenHauntUsesRemaining(character);
 }
 
+export function getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): string | null {
+  return getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormula(character);
+}
+
+export function getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplayForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): string | null {
+  return getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplay(character);
+}
+
+export function getRangerWinterWalkerHuntersRimeTemporaryHitPointsFactsForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): FeatureActionFact[] {
+  return getRangerWinterWalkerHuntersRimeTemporaryHitPointsFacts(character);
+}
+
+export function getRangerWinterWalkerFortifyingSoulHealingFormulaForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): string | null {
+  return getRangerWinterWalkerFortifyingSoulHealingFormula(character);
+}
+
+export function getRangerWinterWalkerFortifyingSoulHealingFormulaDisplayForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): string | null {
+  return getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay(character);
+}
+
+export function getRangerWinterWalkerFortifyingSoulHealingFactsForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): FeatureActionFact[] {
+  return getRangerWinterWalkerFortifyingSoulHealingFacts(character);
+}
+
 export function getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
     Partial<Pick<Character, "abilities" | "subclassId">>,
@@ -3600,6 +3645,10 @@ export function markFeatureWeaponBonusUseForCharacter(
     return markRangerDreadfulStrikesUsed(character);
   }
 
+  if (label === "Colossus Slayer") {
+    return markRangerHunterColossusSlayerUsed(character);
+  }
+
   if (label === monkWarriorOfMercyHandOfHarmBonusLabel) {
     return consumeMonkWarriorOfMercyHandOfHarm(character);
   }
@@ -3609,6 +3658,17 @@ export function markFeatureWeaponBonusUseForCharacter(
   }
 
   return character;
+}
+
+export function markRangerHunterHordeBreakerUsedForCharacter(character: Character): Character {
+  return markRangerHunterHordeBreakerUsed(character);
+}
+
+export function setRangerHunterHordeBreakerActionKeyForCharacter(
+  character: Character,
+  actionKey: string | null
+): Character {
+  return setRangerHunterHordeBreakerActionKey(character, actionKey);
 }
 
 export function getMonkFlurryOfBlowsAttackMultiCountForCharacter(

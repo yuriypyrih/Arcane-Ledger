@@ -78,6 +78,9 @@ import {
   getSharedEconomyMultiCountForCharacterAction,
   getSpellcastingStateForCharacter,
   getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter,
+  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFactsForCharacter,
+  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplayForCharacter,
+  getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaForCharacter,
   getWarlockHealingLightDiceRemainingForCharacter,
   getWarlockHealingLightMaxSpendForCharacter,
   getWarlockMysticArcanumSelectionsForCharacter,
@@ -85,6 +88,8 @@ import {
   hasActivePaladinAuraOfProtectionForCharacter,
   restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter,
   markFeatureWeaponBonusUseForCharacter,
+  markRangerHunterHordeBreakerUsedForCharacter,
+  setRangerHunterHordeBreakerActionKeyForCharacter,
   spendWarlockHealingLightDiceForCharacter,
   type FeatureActionCard,
   type FeatureActionHeaderTag,
@@ -155,6 +160,10 @@ import {
   type PaladinOathOfTheNobleGeniesElementalSmiteOptionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
 import {
+  fortifyingSoulActionKey,
+  getRangerWinterWalkerFortifyingSoulHealingFormula,
+  getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay,
+  huntersMarkSpellId,
   getRangerTirelessTemporaryHitPointsFormulaDisplay,
   getRangerTirelessTemporaryHitPointsFormula,
   tirelessActionKey
@@ -203,6 +212,7 @@ import {
   getProficiencyBonus,
   type WeaponAction
 } from "../../../../../../pages/CharactersPage/gameplay";
+import { isRoundTrackerResourceAvailable } from "../../../../../../pages/CharactersPage/combat";
 import { applySpellConcentrationToStatusEntries } from "../../../../../../pages/CharactersPage/statusEntries";
 import {
   applyRolledHealingToCharacter,
@@ -253,6 +263,7 @@ import styles from "./ActionsWidget.module.css";
 import { getSpellActionPathStates, getSpellActionPathWarning } from "../../../spellActionPaths";
 import SneakAttackActionBody, { type SneakAttackActionSelection } from "./SneakAttackModal";
 import GameplayActionDrawer from "./GameplayActionDrawer";
+import ActionDiceConfirmFooter from "./ActionDiceConfirmFooter";
 import { BardicInspirationActionFooter } from "./BardicInspirationActionFooter";
 import { BeastMasterReviveActionFooter } from "./BeastMasterReviveActionFooter";
 import CodexDivinityDrawer from "../../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
@@ -291,6 +302,7 @@ import {
   getRangerHuntersMarkTargetWeaponOptionState,
   huntersMarkWeaponDamageBonusLabel
 } from "./rangerHuntersMarkWeapon";
+import RangerHunterWeaponOptions from "./RangerHunterWeaponOptions";
 import { applyCriticalHitToWeaponAction } from "./weaponCriticalHit";
 import {
   consumeMonkStunningStrike
@@ -459,6 +471,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsPsionicStrikeSelected,
     isDreadfulStrikeSelected,
     setIsDreadfulStrikeSelected,
+    isColossusSlayerSelected,
+    setIsColossusSlayerSelected,
     isPolarStrikesSelected,
     setIsPolarStrikesSelected,
     isHuntersMarkTargetSelected,
@@ -624,6 +638,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       ? (selectableActions.find((combatAction) => combatAction.key === selectedActionKey) ?? null)
       : null;
   const selectedFeatureAction = selectedAction?.kind === "feature" ? selectedAction.action : null;
+  const isHordeBreakerSelected =
+    selectedAction?.kind === "weapon" &&
+    selectedAction.action.key === character.classFeatureState?.ranger?.hunterHordeBreakerActionKey;
   const isLayOnHandsActionSelected =
     selectedAction?.kind === "feature" &&
     selectedAction.drawer.kind === "custom-form" &&
@@ -692,6 +709,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedWeaponVowOfEnmityState,
     selectedWeaponDreadAmbusherState,
     selectedWeaponFeyDreadfulStrikesState,
+    selectedWeaponColossusSlayerState,
+    selectedWeaponHordeBreakerState,
     selectedWeaponPolarStrikesState,
     selectedWeaponHuntersMarkTargetState,
     selectedWeaponStunningStrikeState,
@@ -705,6 +724,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedWeaponVowOfEnmityToggleDisabled,
     selectedWeaponDreadfulStrikeToggleDisabled,
     selectedWeaponFeyDreadfulStrikesToggleDisabled,
+    selectedWeaponColossusSlayerToggleDisabled,
+    selectedWeaponHordeBreakerToggleDisabled,
     selectedWeaponPolarStrikesToggleDisabled,
     selectedWeaponHuntersMarkTargetToggleDisabled,
     selectedWeaponStunningStrikeToggleDisabled,
@@ -725,6 +746,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     customWeaponEntriesById,
     nextRollCriticalHitOverride,
     isDreadfulStrikeSelected,
+    isColossusSlayerSelected,
     isEmpoweredStrikesSelected,
     isHandOfHarmSelected,
     isHuntersMarkTargetSelected,
@@ -958,8 +980,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return [];
     }
 
-    return getWeaponAttackPathStates(character, selectedAction.action, roundTracker);
-  }, [character, roundTracker, selectedAction]);
+    return getWeaponAttackPathStates(
+      character,
+      selectedWeaponEffectiveAction ?? selectedAction.action,
+      roundTracker
+    );
+  }, [character, roundTracker, selectedAction, selectedWeaponEffectiveAction]);
   const selectedHandOfHealingActionPathStates = useMemo(() => {
     if (
       !selectedAction ||
@@ -1358,6 +1384,18 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       ),
     [character, fixedSpellEntry, fixedSpellSlotTotals, fixedSpellSlotsExpended]
   );
+  const fixedSpellHuntersRimeTemporaryHitPointsFormula =
+    fixedSpellEntry?.id === huntersMarkSpellId
+      ? getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaForCharacter(character)
+      : null;
+  const fixedSpellHuntersRimeTemporaryHitPointsFormulaDisplay =
+    fixedSpellEntry?.id === huntersMarkSpellId
+      ? getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplayForCharacter(character)
+      : null;
+  const fixedSpellFacts =
+    fixedSpellEntry?.id === huntersMarkSpellId
+      ? getRangerWinterWalkerHuntersRimeTemporaryHitPointsFactsForCharacter(character)
+      : [];
   const selectedActionSpellFrozenHauntFallbackSlotOptions = useMemo(
     () =>
       (selectedActionSpellFrozenHauntOptionState?.fallbackSpellSlotLevels ?? []).map(
@@ -2355,6 +2393,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return;
     }
 
+    if (action.key === fortifyingSoulActionKey) {
+      activateFeatureAction(action);
+      rollFortifyingSoulHealing(action);
+      closeActionDrawer();
+      return;
+    }
+
     if (effectKind === "tireless") {
       const temporaryHitPointsFormula = getRangerTirelessTemporaryHitPointsFormula(character);
       const temporaryHitPointsFormulaDisplay =
@@ -2484,6 +2529,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       isHuntersMarkTargetSelected &&
       selectedWeaponHuntersMarkTargetState !== null &&
       !selectedWeaponHuntersMarkTargetToggleDisabled;
+    const useHordeBreaker =
+      isHordeBreakerSelected &&
+      selectedWeaponHordeBreakerState !== null &&
+      !selectedWeaponHordeBreakerToggleDisabled;
+    const shouldSpendHordeBreakerOnThisAttack =
+      useHordeBreaker &&
+      economyTypeOverride !== ECONOMY_TYPE.BONUS_ACTION &&
+      !isRoundTrackerResourceAvailable(character.roundTracker, "action") &&
+      (character.classFeatureState?.ranger?.extraAttacksRemainingThisTurn ?? 0) <= 0;
 
     onPersistCharacter((currentCharacter) => {
       const { preparedCharacter, preparedAction, roundTrackerResource } =
@@ -2538,6 +2592,16 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         nextCharacter = activatePaladinOathOfVengeanceVowOfEnmity(nextCharacter);
       }
 
+      const shouldSpendHordeBreaker =
+        shouldSpendHordeBreakerOnThisAttack &&
+        roundTrackerResource === "action" &&
+        !isRoundTrackerResourceAvailable(currentCharacter.roundTracker, "action") &&
+        (currentCharacter.classFeatureState?.ranger?.extraAttacksRemainingThisTurn ?? 0) <= 0;
+
+      if (shouldSpendHordeBreaker) {
+        nextCharacter = markRangerHunterHordeBreakerUsedForCharacter(nextCharacter);
+      }
+
       return roundTrackerResource
         ? consumeWeaponAttackActionForCharacter(nextCharacter, preparedAction)
         : nextCharacter;
@@ -2557,6 +2621,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       isDreadfulStrikeSelected &&
       selectedWeaponFeyDreadfulStrikesState !== null &&
       !selectedWeaponFeyDreadfulStrikesToggleDisabled;
+    const useColossusSlayer =
+      isColossusSlayerSelected &&
+      selectedWeaponColossusSlayerState !== null &&
+      !selectedWeaponColossusSlayerToggleDisabled;
     const usePolarStrikes =
       action.attackKind === "weapon" &&
       isPolarStrikesSelected &&
@@ -2597,6 +2665,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     const effectiveAction =
       (useDreadfulStrike ||
         useFeyDreadfulStrikes ||
+        useColossusSlayer ||
         usePolarStrikes ||
         useHuntersMarkTarget ||
         useEmpoweredStrikes ||
@@ -2626,6 +2695,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       effectiveAction.damageBonusEntries.length <= 0 &&
       !useDreadfulStrike &&
       !useFeyDreadfulStrikes &&
+      !useColossusSlayer &&
       !usePolarStrikes &&
       !useStunningStrike &&
       !useEmpoweredStrikes &&
@@ -2634,6 +2704,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       !useQuiveringPalm
     ) {
       setIsDreadfulStrikeSelected(false);
+      setIsColossusSlayerSelected(false);
       setIsPolarStrikesSelected(false);
       setIsStunningStrikeSelected(false);
       setIsEmpoweredStrikesSelected(false);
@@ -2676,6 +2747,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     });
 
     setIsDreadfulStrikeSelected(false);
+    setIsColossusSlayerSelected(false);
     setIsPolarStrikesSelected(false);
     setIsStunningStrikeSelected(false);
     setIsEmpoweredStrikesSelected(false);
@@ -3386,6 +3458,42 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     createSpellSlotFromSorceryPoints(selectedFontOfMagicSelection.spellSlotLevel);
   }
 
+  function rollFixedSpellHuntersRimeTemporaryHitPoints(spell: Pick<SpellEntry, "id" | "name">) {
+    if (spell.id !== huntersMarkSpellId || !fixedSpellHuntersRimeTemporaryHitPointsFormula) {
+      return;
+    }
+
+    openDiceRoller({
+      title: "Hunter's Rime",
+      formula: fixedSpellHuntersRimeTemporaryHitPointsFormula,
+      formulaDisplay:
+        fixedSpellHuntersRimeTemporaryHitPointsFormulaDisplay ??
+        fixedSpellHuntersRimeTemporaryHitPointsFormula,
+      description: `When you cast ${spell.name}, you gain Temporary Hit Points.`,
+      onResolvedResult: ({ result }) => {
+        onPersistCharacter((currentCharacter) =>
+          applyRolledTemporaryHitPointsToCharacter(currentCharacter, result.total, "Hunter's Rime")
+        );
+      }
+    });
+  }
+
+  function rollFortifyingSoulHealing(action: FeatureActionCard) {
+    const healingFormula = getRangerWinterWalkerFortifyingSoulHealingFormula(character);
+    const healingFormulaDisplay = getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay(character);
+
+    if (!healingFormula) {
+      return;
+    }
+
+    openDiceRoller({
+      title: action.name,
+      formula: healingFormula,
+      formulaDisplay: healingFormulaDisplay ?? healingFormula,
+      description: action.detail
+    });
+  }
+
   function castFixedSpellAction(options?: {
     roundTrackerResourceOverride?: "action" | "bonusAction" | "reaction" | null;
     useBeguilingMagic?: boolean;
@@ -3589,6 +3697,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         : nextCharacterWithSharedMulti;
     });
 
+    rollFixedSpellHuntersRimeTemporaryHitPoints(fixedSpellEntry);
     closeActionDrawer();
   }
 
@@ -4110,6 +4219,23 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               usageKey="dreadful-strikes"
             />
           ) : null}
+          <RangerHunterWeaponOptions
+            colossusSlayerState={selectedWeaponColossusSlayerState}
+            hordeBreakerState={selectedWeaponHordeBreakerState}
+            isColossusSlayerSelected={isColossusSlayerSelected}
+            isHordeBreakerSelected={isHordeBreakerSelected}
+            colossusSlayerDisabled={selectedWeaponColossusSlayerToggleDisabled}
+            hordeBreakerDisabled={selectedWeaponHordeBreakerToggleDisabled}
+            onColossusSlayerChange={setIsColossusSlayerSelected}
+            onHordeBreakerChange={(checked) =>
+              onPersistCharacter((currentCharacter) =>
+                setRangerHunterHordeBreakerActionKeyForCharacter(
+                  currentCharacter,
+                  checked && selectedAction.kind === "weapon" ? selectedAction.action.key : null
+                )
+              )
+            }
+          />
           {selectedWeaponPolarStrikesState ? (
             <FeatureOptInToggle
               label="Polar Strikes"
@@ -5051,6 +5177,26 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return null;
     }
 
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.action.key === fortifyingSoulActionKey &&
+      selectedAction.execute.kind === "activate"
+    ) {
+      return (
+        <ActionDiceConfirmFooter
+          actionName={selectedAction.name}
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onConfirm={() => executeFeatureActivate(selectedAction.action)}
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+        />
+      );
+    }
+
     if (selectedAction.execute.kind === "activate") {
       const actionShape = getActionShapeForEconomyType(selectedAction.economyType);
       const confirmAction = isCommonActionKey(selectedAction.action.key)
@@ -5228,6 +5374,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           setSelectedElementalSmiteOptionOnActionSpell(null);
           setUseFrozenHauntOnActionSpell(false);
           setSelectedFrozenHauntFallbackSlotLevel(frozenHauntFallbackSpellSlotMinimumLevel);
+          setIsDiceRollerSettingsOpen(false);
           setIsFixedSpellDrawerOpen(false);
         }}
         onCastFixedSpellAction={castFixedSpellAction}
@@ -5236,6 +5383,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         fixedSpellFreeCastSlotLevel={fixedSpellFreeCastSlotLevel}
         fixedSpellActionContextText={fixedSpellActionContextText}
         fixedSpellActionAvailabilityText={fixedSpellActionAvailabilityText}
+        fixedSpellFacts={fixedSpellFacts}
+        fixedSpellShowActionDiceControls={
+          fixedSpellHuntersRimeTemporaryHitPointsFormula !== null
+        }
+        isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+        onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
         fixedSpellCastWarning={fixedSpellCastWarning}
         fixedSpellSharedCastWarning={fixedSpellSharedCastWarning}
         spellcastingBlocked={spellcastingState.blocked}

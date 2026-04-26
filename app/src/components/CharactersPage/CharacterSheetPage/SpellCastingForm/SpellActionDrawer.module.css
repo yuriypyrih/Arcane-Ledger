@@ -110,6 +110,20 @@
   width: 100%;
 }
 
+.castActionIcon {
+  display: block;
+  filter: brightness(0) invert(1);
+  height: 1.05rem;
+  object-fit: contain;
+  width: 1.05rem;
+}
+
+.castActionSettingsButton {
+  flex: 0 0 44px;
+  min-height: 44px;
+  min-width: 44px;
+}
+
 .footerActionShape {
   align-items: center;
   background: rgba(255, 255, 255, 0.76);

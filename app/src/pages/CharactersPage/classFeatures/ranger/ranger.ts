@@ -273,7 +273,7 @@ export function getRangerHuntersMarkConcentrationDescriptionAdditions(
     CLASS_FEATURE.RELENTLESS_HUNTER,
     CLASS_FEATURE.PRECISE_HUNTER,
     CLASS_FEATURE.FOE_SLAYER
-  ]);
+  ]).concat(hunterSubclass.getRangerHunterHuntersMarkDescriptionAdditions(character));
 }
 
 export function getRangerPreciseHunterWeaponActionDescriptionAdditions(
@@ -514,6 +514,18 @@ export function normalizeRangerFeatureState(
     dreadAmbusherUsedThisTurn: hasDreadAmbusher
       ? record.dreadAmbusherUsedThisTurn === true
       : undefined,
+    hunterColossusSlayerUsedThisTurn: hasHuntersPrey
+      ? record.hunterColossusSlayerUsedThisTurn === true
+      : undefined,
+    hunterHordeBreakerUsedThisTurn: hasHuntersPrey
+      ? record.hunterHordeBreakerUsedThisTurn === true
+      : undefined,
+    hunterHordeBreakerActionKey:
+      hasHuntersPrey &&
+      typeof record.hunterHordeBreakerActionKey === "string" &&
+      record.hunterHordeBreakerActionKey.trim().length > 0
+        ? record.hunterHordeBreakerActionKey
+        : undefined,
     ironMindSavingThrow: hasIronMind
       ? gloomStalkerSubclass.normalizeRangerGloomStalkerIronMindSavingThrowSelection(
           record.ironMindSavingThrow
@@ -1025,6 +1037,44 @@ export function getRangerWinterWalkerFrozenHauntUsesRemaining(
   return winterWalkerSubclass.getRangerWinterWalkerFrozenHauntUsesRemaining(character);
 }
 
+export function getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormula(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): string | null {
+  return winterWalkerSubclass.getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormula(character);
+}
+
+export function getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplay(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): string | null {
+  return winterWalkerSubclass.getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplay(
+    character
+  );
+}
+
+export function getRangerWinterWalkerHuntersRimeTemporaryHitPointsFacts(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): FeatureActionFact[] {
+  return winterWalkerSubclass.getRangerWinterWalkerHuntersRimeTemporaryHitPointsFacts(character);
+}
+
+export function getRangerWinterWalkerFortifyingSoulHealingFormula(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): string | null {
+  return winterWalkerSubclass.getRangerWinterWalkerFortifyingSoulHealingFormula(character);
+}
+
+export function getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): string | null {
+  return winterWalkerSubclass.getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay(character);
+}
+
+export function getRangerWinterWalkerFortifyingSoulHealingFacts(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): FeatureActionFact[] {
+  return winterWalkerSubclass.getRangerWinterWalkerFortifyingSoulHealingFacts(character);
+}
+
 export function getRangerWinterWalkerFrozenHauntSpellOptionState(
   character: Pick<Character, "className" | "level" | "classFeatureState"> &
     Partial<Pick<Character, "abilities" | "subclassId">>,
@@ -1428,7 +1478,9 @@ export function applyLongRestToRangerFeatures(character: Character): Character {
     (rangerState.extraAttacksRemainingThisTurn ?? 0) === 0 &&
     rangerState.dreadfulStrikesUsedThisTurn !== true &&
     rangerState.winterWalkerPolarStrikesUsedThisTurn !== true &&
-    rangerState.dreadAmbusherUsedThisTurn !== true
+    rangerState.dreadAmbusherUsedThisTurn !== true &&
+    rangerState.hunterColossusSlayerUsedThisTurn !== true &&
+    rangerState.hunterHordeBreakerUsedThisTurn !== true
   ) {
     return restoredCharacter;
   }
@@ -1442,7 +1494,9 @@ export function applyLongRestToRangerFeatures(character: Character): Character {
         extraAttacksRemainingThisTurn: 0,
         dreadfulStrikesUsedThisTurn: false,
         winterWalkerPolarStrikesUsedThisTurn: false,
-        dreadAmbusherUsedThisTurn: false
+        dreadAmbusherUsedThisTurn: false,
+        hunterColossusSlayerUsedThisTurn: false,
+        hunterHordeBreakerUsedThisTurn: false
       }
     }
   };
@@ -1455,7 +1509,9 @@ export function applyShortRestToRangerFeatures(character: Character): Character 
     (rangerState.extraAttacksRemainingThisTurn ?? 0) === 0 &&
     rangerState.dreadfulStrikesUsedThisTurn !== true &&
     rangerState.winterWalkerPolarStrikesUsedThisTurn !== true &&
-    rangerState.dreadAmbusherUsedThisTurn !== true
+    rangerState.dreadAmbusherUsedThisTurn !== true &&
+    rangerState.hunterColossusSlayerUsedThisTurn !== true &&
+    rangerState.hunterHordeBreakerUsedThisTurn !== true
   ) {
     return character;
   }
@@ -1469,7 +1525,9 @@ export function applyShortRestToRangerFeatures(character: Character): Character 
         extraAttacksRemainingThisTurn: 0,
         dreadfulStrikesUsedThisTurn: false,
         winterWalkerPolarStrikesUsedThisTurn: false,
-        dreadAmbusherUsedThisTurn: false
+        dreadAmbusherUsedThisTurn: false,
+        hunterColossusSlayerUsedThisTurn: false,
+        hunterHordeBreakerUsedThisTurn: false
       }
     }
   };
@@ -1480,7 +1538,8 @@ export function advanceRangerFeaturesForNewRound(character: Character): Characte
     getRangerAdditionalAttackCount(character) <= 0 &&
     !hasRangerFeyWandererDreadfulStrikesFeature(character) &&
     !hasRangerWinterWalkerFrigidExplorerFeature(character) &&
-    !hasRangerGloomStalkerDreadAmbusherFeature(character)
+    !hasRangerGloomStalkerDreadAmbusherFeature(character) &&
+    !hunterSubclass.hasRangerHunterHuntersPreyFeature(character)
   ) {
     return character;
   }
@@ -1491,7 +1550,9 @@ export function advanceRangerFeaturesForNewRound(character: Character): Characte
     (rangerState.extraAttacksRemainingThisTurn ?? 0) === 0 &&
     rangerState.dreadfulStrikesUsedThisTurn !== true &&
     rangerState.winterWalkerPolarStrikesUsedThisTurn !== true &&
-    rangerState.dreadAmbusherUsedThisTurn !== true
+    rangerState.dreadAmbusherUsedThisTurn !== true &&
+    rangerState.hunterColossusSlayerUsedThisTurn !== true &&
+    rangerState.hunterHordeBreakerUsedThisTurn !== true
   ) {
     return character;
   }
@@ -1505,7 +1566,9 @@ export function advanceRangerFeaturesForNewRound(character: Character): Characte
         extraAttacksRemainingThisTurn: 0,
         dreadfulStrikesUsedThisTurn: false,
         winterWalkerPolarStrikesUsedThisTurn: false,
-        dreadAmbusherUsedThisTurn: false
+        dreadAmbusherUsedThisTurn: false,
+        hunterColossusSlayerUsedThisTurn: false,
+        hunterHordeBreakerUsedThisTurn: false
       }
     }
   };
@@ -1532,6 +1595,21 @@ export function markRangerDreadfulStrikesUsed(character: Character): Character {
       }
     }
   };
+}
+
+export function markRangerHunterColossusSlayerUsed(character: Character): Character {
+  return hunterSubclass.markRangerHunterColossusSlayerUsed(character);
+}
+
+export function markRangerHunterHordeBreakerUsed(character: Character): Character {
+  return hunterSubclass.markRangerHunterHordeBreakerUsed(character);
+}
+
+export function setRangerHunterHordeBreakerActionKey(
+  character: Character,
+  actionKey: string | null
+): Character {
+  return hunterSubclass.setRangerHunterHordeBreakerActionKey(character, actionKey);
 }
 
 export function getRangerInitiativeBonuses(

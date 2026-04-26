@@ -20,6 +20,10 @@ import {
 } from "../../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfVengeance";
 import { getRangerFeyWandererDreadfulStrikesOptionState } from "../../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerFeyWanderer";
 import { getRangerGloomStalkerDreadAmbusherOptionState } from "../../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerGloomStalker";
+import {
+  getRangerHunterColossusSlayerOptionState,
+  getRangerHunterHordeBreakerOptionState
+} from "../../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerHunter";
 import { getRangerWinterWalkerPolarStrikesOptionState } from "../../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerWinterWalker";
 import {
   getFighterPsiWarriorPsionicStrikeFormulaForCharacter,
@@ -66,6 +70,7 @@ type UseSelectedWeaponActionModelArgs = {
   customWeaponEntriesById: Map<string, ResolvedCustomWeaponEntry>;
   nextRollCriticalHitOverride: boolean;
   isDreadfulStrikeSelected: boolean;
+  isColossusSlayerSelected: boolean;
   isEmpoweredStrikesSelected: boolean;
   isHandOfHarmSelected: boolean;
   isHuntersMarkTargetSelected: boolean;
@@ -84,6 +89,7 @@ export function useSelectedWeaponActionModel({
   customWeaponEntriesById,
   nextRollCriticalHitOverride,
   isDreadfulStrikeSelected,
+  isColossusSlayerSelected,
   isEmpoweredStrikesSelected,
   isHandOfHarmSelected,
   isHuntersMarkTargetSelected,
@@ -220,6 +226,14 @@ export function useSelectedWeaponActionModel({
   );
   const selectedWeaponFeyDreadfulStrikesState = useMemo(
     () => getRangerFeyWandererDreadfulStrikesOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponColossusSlayerState = useMemo(
+    () => getRangerHunterColossusSlayerOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponHordeBreakerState = useMemo(
+    () => getRangerHunterHordeBreakerOptionState(character, selectedWeaponAction),
     [character, selectedWeaponAction]
   );
   const selectedWeaponPolarStrikesState = useMemo(
@@ -363,6 +377,10 @@ export function useSelectedWeaponActionModel({
     selectedWeaponDreadAmbusherState?.disabled ?? false;
   const selectedWeaponFeyDreadfulStrikesToggleDisabled =
     selectedWeaponFeyDreadfulStrikesState?.disabled ?? false;
+  const selectedWeaponColossusSlayerToggleDisabled =
+    selectedWeaponColossusSlayerState?.disabled ?? false;
+  const selectedWeaponHordeBreakerToggleDisabled =
+    selectedWeaponHordeBreakerState?.disabled ?? false;
   const selectedWeaponPolarStrikesToggleDisabled =
     selectedWeaponPolarStrikesState?.disabled ?? false;
   const selectedWeaponHuntersMarkTargetToggleDisabled = !selectedWeaponHuntersMarkTargetState;
@@ -432,6 +450,17 @@ export function useSelectedWeaponActionModel({
     }
 
     if (
+      isColossusSlayerSelected &&
+      selectedWeaponColossusSlayerState &&
+      !selectedWeaponColossusSlayerToggleDisabled
+    ) {
+      nextAction = applyWeaponDamageBonusPreview(
+        nextAction,
+        selectedWeaponColossusSlayerState.damageBonus
+      );
+    }
+
+    if (
       isPolarStrikesSelected &&
       selectedWeaponPolarStrikesState &&
       !selectedWeaponPolarStrikesToggleDisabled
@@ -491,6 +520,7 @@ export function useSelectedWeaponActionModel({
   }, [
     character,
     isDreadfulStrikeSelected,
+    isColossusSlayerSelected,
     isEmpoweredStrikesSelected,
     isHandOfHarmSelected,
     isHuntersMarkTargetSelected,
@@ -503,6 +533,8 @@ export function useSelectedWeaponActionModel({
     selectedWeaponDreadfulStrikeToggleDisabled,
     selectedWeaponFeyDreadfulStrikesState,
     selectedWeaponFeyDreadfulStrikesToggleDisabled,
+    selectedWeaponColossusSlayerState,
+    selectedWeaponColossusSlayerToggleDisabled,
     selectedWeaponEmpoweredStrikesState,
     selectedWeaponEmpoweredStrikesToggleDisabled,
     selectedWeaponHandOfHarmToggleDisabled,
@@ -573,6 +605,8 @@ export function useSelectedWeaponActionModel({
     selectedWeaponVowOfEnmityState,
     selectedWeaponDreadAmbusherState,
     selectedWeaponFeyDreadfulStrikesState,
+    selectedWeaponColossusSlayerState,
+    selectedWeaponHordeBreakerState,
     selectedWeaponPolarStrikesState,
     selectedWeaponHuntersMarkTargetState,
     selectedWeaponFocusPointsRemaining,
@@ -587,6 +621,8 @@ export function useSelectedWeaponActionModel({
     selectedWeaponVowOfEnmityToggleDisabled,
     selectedWeaponDreadfulStrikeToggleDisabled,
     selectedWeaponFeyDreadfulStrikesToggleDisabled,
+    selectedWeaponColossusSlayerToggleDisabled,
+    selectedWeaponHordeBreakerToggleDisabled,
     selectedWeaponPolarStrikesToggleDisabled,
     selectedWeaponHuntersMarkTargetToggleDisabled,
     selectedWeaponStunningStrikeToggleDisabled,

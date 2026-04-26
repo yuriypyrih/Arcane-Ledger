@@ -128,6 +128,9 @@ export type CharacterRangerFeatureState = {
   winterWalkerPolarStrikesUsedThisTurn?: boolean;
   dreadAmbusherUsesExpended?: number;
   dreadAmbusherUsedThisTurn?: boolean;
+  hunterColossusSlayerUsedThisTurn?: boolean;
+  hunterHordeBreakerUsedThisTurn?: boolean;
+  hunterHordeBreakerActionKey?: string;
   ironMindSavingThrow?: SAVING_THROW_PROFICIENCY;
   huntersPreyChoice?: RangerHunterPreyChoice;
   defensiveTacticsChoice?: RangerHunterDefensiveTacticsChoice;

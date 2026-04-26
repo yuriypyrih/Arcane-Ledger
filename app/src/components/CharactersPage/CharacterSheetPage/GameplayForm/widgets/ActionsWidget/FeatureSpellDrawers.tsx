@@ -5,7 +5,8 @@ import type { Character } from "../../../../../../types";
 import type { SpellEntry } from "../../../../../../codex/entries";
 import type {
   FeatureActionCard,
-  FeatureActionExecuteConfig
+  FeatureActionExecuteConfig,
+  FeatureActionFact
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import {
   createChargesOrResourceCardUsage,
@@ -69,6 +70,10 @@ type FeatureSpellDrawersProps = {
   fixedSpellFreeCastSlotLevel: number | null;
   fixedSpellActionContextText: string | null;
   fixedSpellActionAvailabilityText: string | null;
+  fixedSpellFacts: FeatureActionFact[];
+  fixedSpellShowActionDiceControls: boolean;
+  isDiceRollerSettingsOpen: boolean;
+  onDiceRollerSettingsOpenChange: (isOpen: boolean) => void;
   fixedSpellCastWarning: string | null;
   fixedSpellSharedCastWarning: string | null;
   spellcastingBlocked: boolean;
@@ -161,6 +166,10 @@ function FeatureSpellDrawers({
   fixedSpellFreeCastSlotLevel,
   fixedSpellActionContextText,
   fixedSpellActionAvailabilityText,
+  fixedSpellFacts,
+  fixedSpellShowActionDiceControls,
+  isDiceRollerSettingsOpen,
+  onDiceRollerSettingsOpenChange,
   fixedSpellCastWarning,
   fixedSpellSharedCastWarning,
   spellcastingBlocked,
@@ -240,6 +249,11 @@ function FeatureSpellDrawers({
           freeCastSlotLevel={fixedSpellFreeCastSlotLevel}
           actionContextText={fixedSpellActionContextText}
           actionAvailabilityText={fixedSpellActionAvailabilityText}
+          facts={fixedSpellFacts}
+          factsSectionTitle={null}
+          showActionDiceControls={fixedSpellShowActionDiceControls}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onDiceRollerSettingsOpenChange={onDiceRollerSettingsOpenChange}
           actionWarning={fixedSpellCastWarning}
           actionDisabled={spellcastingBlocked || fixedSpellSharedCastWarning !== null}
           blockedReason={spellcastingBlocked ? spellcastingBlockedReason : null}
