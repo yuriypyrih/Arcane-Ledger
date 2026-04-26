@@ -1,6 +1,12 @@
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
-import type { Character } from "../../../../../types";
+import type { Character, ToolProficiencyEntry } from "../../../../../types";
+import {
+  PROFICIENCY_OVERRIDE_POLICY,
+  PROFICIENCY_SOURCE,
+  PROF_LEVEL,
+  TOOL_PROFICIENCY
+} from "../../../../../types";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import type { WeaponAction } from "../../../gameplay";
 import {
@@ -14,6 +20,7 @@ import { rogueSneakAttackActionKey, rogueSteadyAimActionKey } from "../rogue";
 export const assassinSubclassId = "rogue-assassin";
 
 const assassinateSource = "Assassinate";
+const assassinsToolsSource = "Assassin's Tools";
 const surprisingStrikesSource = "Surprising Strikes";
 const rovingAimSource = "Roving Aim";
 const envenomWeaponsSource = "Envenom Weapons";
@@ -145,6 +152,22 @@ function getRogueAssassinCoreStatIndicators(
   };
 }
 
+function getRogueAssassinToolProficiencyEntries(
+  character: RogueAssassinCharacter
+): ToolProficiencyEntry[] {
+  if (!hasRogueAssassinFeature(character, 3)) {
+    return [];
+  }
+
+  return [TOOL_PROFICIENCY.DISGUISE_KIT, TOOL_PROFICIENCY.POISONERS_KIT].map((proficiency) => ({
+    source: PROFICIENCY_SOURCE.CLASS,
+    sourceStr: assassinsToolsSource,
+    proficiency,
+    proficiencyLevel: PROF_LEVEL.PROFICIENT,
+    overridePolicy: PROFICIENCY_OVERRIDE_POLICY.LOCKED
+  }));
+}
+
 function appendWeaponDescriptionSection(
   action: WeaponAction,
   sourceName: string,
@@ -210,6 +233,7 @@ export const getRogueAssassinDerivedFeatureState: SubclassRuntimeResolver = (cha
   hasRogueAssassinFeature(character, 3)
     ? {
         coreStatIndicators: getRogueAssassinCoreStatIndicators(character),
+        toolProficiencyEntries: getRogueAssassinToolProficiencyEntries(character),
         transformWeaponAction: (action) =>
           appendWeaponDescriptionSection(
             action,

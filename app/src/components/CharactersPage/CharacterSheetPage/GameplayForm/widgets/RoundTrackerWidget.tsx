@@ -1,4 +1,6 @@
 import { useState } from "react";
+import clsx from "clsx";
+import { Swords } from "lucide-react";
 import ActionShape from "../../../../ActionShape";
 import ResourceManagementModal from "../../ResourceManagementModal";
 import type { Character, CharacterStatusEntry } from "../../../../../types";
@@ -7,6 +9,7 @@ import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPag
 import {
   finishRoundTrackerTurn,
   normalizeRoundTracker,
+  setRoundTrackerCombatState,
   setRoundTrackerResourceAvailability,
   type RoundTrackerResource
 } from "../../../../../pages/CharactersPage/combat";
@@ -19,6 +22,10 @@ import { advanceCharacterCompanionDurations } from "../../../../../pages/Charact
 import { getRoundTrackerResourceMeta } from "../gameplayWidgetUtils";
 import RoundTrackerControl from "./RoundTrackerControl";
 import { consumeRoundTrackerResourceForCharacter, startCharacterTurn } from "../gameplayStateUtils";
+import styles from "./RoundTrackerControl.module.css";
+
+const COMBAT_MANAGEMENT_DESCRIPTION =
+  "Here you can manually control the combat state. Some effects and conditions change their behavior based on whether you are in combat or not. When you roll initiative, combat always starts automatically.";
 
 type RoundTrackerWidgetProps = {
   character: Character;
@@ -44,6 +51,7 @@ function getExpiredFeatureOverrideEntries(
 
 function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidgetProps) {
   const [selectedResource, setSelectedResource] = useState<RoundTrackerResource | null>(null);
+  const [isCombatManagementOpen, setIsCombatManagementOpen] = useState(false);
   const roundTracker = normalizeRoundTracker(character.roundTracker);
   const isSelectedResourceAvailable =
     selectedResource === "action"
@@ -115,11 +123,23 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
     }));
   }
 
+  function setCombatState(isInCombat: boolean) {
+    onPersistCharacter((currentCharacter) => ({
+      ...currentCharacter,
+      roundTracker: setRoundTrackerCombatState(currentCharacter.roundTracker, isInCombat)
+    }));
+  }
+
+  const combatTitle = roundTracker.isInCombat
+    ? `In Combat (Round ${roundTracker.combatRound})`
+    : "Out of Combat";
+
   return (
     <>
       <RoundTrackerControl
         roundTracker={roundTracker}
         onSelectResource={setSelectedResource}
+        onSelectCombat={() => setIsCombatManagementOpen(true)}
         onStartTurn={startTurn}
         onFinishRound={finishRound}
       />
@@ -150,6 +170,43 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
               onClick: () => resetResource(selectedResource),
               disabled: isSelectedResourceAvailable,
               ariaLabel: `Reset ${selectedMeta.title.toLowerCase()}`
+            }
+          ]}
+        />
+      ) : null}
+
+      {isCombatManagementOpen ? (
+        <ResourceManagementModal
+          titleId="round-tracker-combat-title"
+          title={combatTitle}
+          closeLabel="Close combat resource management"
+          onClose={() => setIsCombatManagementOpen(false)}
+          description={COMBAT_MANAGEMENT_DESCRIPTION}
+          titleAccessory={
+            <span
+              className={clsx(
+                styles.button,
+                styles.combatButton,
+                styles.combatTitleButton,
+                roundTracker.isInCombat && styles.combatButtonActive
+              )}
+              aria-hidden="true"
+            >
+              <Swords size={17} aria-hidden="true" />
+            </span>
+          }
+          actions={[
+            {
+              label: "Start Combat",
+              onClick: () => setCombatState(true),
+              disabled: roundTracker.isInCombat,
+              ariaLabel: "Start combat"
+            },
+            {
+              label: "End Combat",
+              onClick: () => setCombatState(false),
+              disabled: !roundTracker.isInCombat,
+              ariaLabel: "End combat"
             }
           ]}
         />

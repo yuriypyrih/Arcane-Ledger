@@ -58,6 +58,9 @@ export type CharacterCurrencies = {
 
 export type CharacterRoundTracker = {
   turnStarted: boolean;
+  isInCombat: boolean;
+  combatRound: number;
+  combatRoundAdvancePending: boolean;
   actionAvailable: boolean;
   bonusActionAvailable: boolean;
   reactionAvailable: boolean;

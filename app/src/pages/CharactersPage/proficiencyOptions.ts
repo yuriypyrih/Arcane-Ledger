@@ -53,6 +53,7 @@ export const toolProficiencyLabels: Record<TOOL_PROFICIENCY, string> = {
   [TOOL_PROFICIENCY.THIEVES_TOOLKIT]: "Thieves' Tools",
   [TOOL_PROFICIENCY.SMITHS_TOOLKIT]: "Smith's Tools",
   [TOOL_PROFICIENCY.DISGUISE_KIT]: "Disguise Kit",
+  [TOOL_PROFICIENCY.POISONERS_KIT]: "Poisoner's Kit",
   [TOOL_PROFICIENCY.DISARM_KIT]: "Disarm Kit",
   [TOOL_PROFICIENCY.HERBALISM_KIT]: "Herbalism Kit",
   [TOOL_PROFICIENCY.ALCHEMISTS_SUPPLIES]: "Alchemist's Supplies",

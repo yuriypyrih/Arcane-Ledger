@@ -17,6 +17,7 @@ import {
   applySuperiorInspirationOnInitiativeForCharacter,
   expendBardicInspirationUseForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
+import { setRoundTrackerCombatState } from "../../../../pages/CharactersPage/combat";
 import type { Character } from "../../../../types";
 import { formatRollResultTotal } from "../../../../utils/dice";
 
@@ -80,7 +81,10 @@ export function applyInitiativeRollCharacterEffects(
     nextCharacter = expendBardicInspirationUseForCharacter(nextCharacter);
   }
 
-  return nextCharacter;
+  return {
+    ...nextCharacter,
+    roundTracker: setRoundTrackerCombatState(nextCharacter.roundTracker, true)
+  };
 }
 
 export function createInitiativeRollRequest(

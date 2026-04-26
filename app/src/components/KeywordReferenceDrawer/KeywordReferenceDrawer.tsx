@@ -150,6 +150,7 @@ function KeywordReferenceDrawer({
             }
           ]}
           badgeLabel="Keyword"
+          backdropClassName={backdropClassName}
           onClose={() => setSelectedKeyword(null)}
         />
       ) : null}

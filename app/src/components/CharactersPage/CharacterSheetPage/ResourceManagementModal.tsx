@@ -44,6 +44,11 @@ function ResourceManagementModal({
   description = RESOURCE_MANAGEMENT_DESCRIPTION,
   titleAccessory
 }: ResourceManagementModalProps) {
+  function handleActionClick(action: ResourceManagementModalAction) {
+    action.onClick();
+    onClose();
+  }
+
   return (
     <SheetModal titleId={titleId} onClose={onClose}>
       <OverlayHeader>
@@ -72,7 +77,7 @@ function ResourceManagementModal({
             <ActionButton
               key={action.label}
               className={styles.footerButton}
-              onClick={action.onClick}
+              onClick={() => handleActionClick(action)}
               disabled={action.disabled}
               aria-label={action.ariaLabel ?? action.label}
             >

@@ -1,4 +1,5 @@
-import { FastForward, Play } from "lucide-react";
+import clsx from "clsx";
+import { FastForward, Play, Swords } from "lucide-react";
 import ActionShape from "../../../../ActionShape";
 import type { RoundTrackerResource } from "../../../../../pages/CharactersPage/combat";
 import styles from "./RoundTrackerControl.module.css";
@@ -9,8 +10,10 @@ type RoundTrackerControlProps = {
     actionAvailable: boolean;
     bonusActionAvailable: boolean;
     reactionAvailable: boolean;
+    isInCombat: boolean;
   };
   onSelectResource: (resource: RoundTrackerResource) => void;
+  onSelectCombat: () => void;
   onStartTurn: () => void;
   onFinishRound: () => void;
 };
@@ -18,11 +21,27 @@ type RoundTrackerControlProps = {
 function RoundTrackerControl({
   roundTracker,
   onSelectResource,
+  onSelectCombat,
   onStartTurn,
   onFinishRound
 }: RoundTrackerControlProps) {
   return (
     <div className={styles.root} aria-label="Round tracker">
+      <button
+        type="button"
+        className={clsx(
+          styles.button,
+          styles.combatButton,
+          roundTracker.isInCombat && styles.combatButtonActive
+        )}
+        onClick={onSelectCombat}
+        aria-pressed={roundTracker.isInCombat}
+        aria-label={roundTracker.isInCombat ? "In Combat" : "Out of Combat"}
+        title={roundTracker.isInCombat ? "In Combat" : "Out of Combat"}
+      >
+        <Swords size={17} aria-hidden="true" />
+      </button>
+      <span className={styles.divider} aria-hidden="true" />
       <ActionShape
         shape="action"
         isSelected={roundTracker.actionAvailable}
@@ -47,9 +66,14 @@ function RoundTrackerControl({
         aria-label={roundTracker.reactionAvailable ? "Reaction available" : "Reaction spent"}
         title={roundTracker.reactionAvailable ? "Reaction available" : "Reaction spent"}
       />
+      <span className={styles.divider} aria-hidden="true" />
       <button
         type="button"
-        className={styles.button}
+        className={clsx(
+          styles.button,
+          styles.turnButton,
+          roundTracker.turnStarted && styles.turnButtonActive
+        )}
         onClick={roundTracker.turnStarted ? onFinishRound : onStartTurn}
         aria-label={roundTracker.turnStarted ? "Finish turn" : "Start turn"}
         title={roundTracker.turnStarted ? "Finish turn" : "Start turn"}

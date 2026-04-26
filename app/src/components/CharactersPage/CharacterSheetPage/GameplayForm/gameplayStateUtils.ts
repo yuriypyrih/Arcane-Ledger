@@ -166,7 +166,7 @@ export function startCharacterTurn(character: Character): Character {
 
   return {
     ...nextCharacter,
-    roundTracker: startRoundTrackerTurn()
+    roundTracker: startRoundTrackerTurn(nextCharacter.roundTracker)
   };
 }
 

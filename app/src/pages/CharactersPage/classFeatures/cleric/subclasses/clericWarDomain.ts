@@ -313,7 +313,7 @@ export function activateClericWarPriest(character: Character): Character {
 
   return {
     ...character,
-    roundTracker: roundTracker.turnStarted ? roundTracker : startRoundTrackerTurn(),
+    roundTracker: roundTracker.turnStarted ? roundTracker : startRoundTrackerTurn(roundTracker),
     classFeatureState: {
       ...character.classFeatureState,
       cleric: {
@@ -344,7 +344,7 @@ export function consumeClericWarPriestWeaponAttack(
   return {
     ...character,
     roundTracker: consumeRoundTrackerResource(
-      roundTracker.turnStarted ? roundTracker : startRoundTrackerTurn(),
+      roundTracker.turnStarted ? roundTracker : startRoundTrackerTurn(roundTracker),
       "bonusAction"
     ),
     classFeatureState: {

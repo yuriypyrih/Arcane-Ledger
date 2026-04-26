@@ -4,7 +4,7 @@
   gap: 0.18rem;
   flex: 0 0 auto;
   border-radius: 999px;
-  background: rgba(75, 47, 29, 0.08);
+  background: #f1e9e0;
   padding: 0.2rem;
 }
 
@@ -21,12 +21,57 @@
   min-height: 34px;
   min-width: 34px;
   padding: 0;
-  transition: background-color 160ms ease, color 160ms ease;
+  transition: background-color 160ms ease, color 160ms ease, outline-color 160ms ease;
 }
 
 .button:hover {
   background: rgba(255, 255, 255, 0.92);
   color: var(--color-accent);
+}
+
+.combatButton {
+  position: relative;
+}
+
+.combatButtonActive {
+  background:
+    radial-gradient(circle at 50% 82%, rgba(255, 183, 77, 0.82) 0 16%, transparent 34%),
+    linear-gradient(145deg, #d53b2f, #8f1717);
+  color: #fff8ec;
+  box-shadow: 0 0 0 1px rgba(255, 210, 138, 0.58), 0 0 12px rgba(213, 59, 47, 0.42);
+}
+
+.combatButtonActive:hover {
+  background:
+    radial-gradient(circle at 50% 82%, rgba(255, 207, 112, 0.92) 0 17%, transparent 35%),
+    linear-gradient(145deg, #e44d35, #9c1e1b);
+  color: #fff;
+}
+
+.combatTitleButton {
+  cursor: default;
+  pointer-events: none;
+}
+
+.divider {
+  align-self: stretch;
+  inline-size: 1px;
+  margin: 0.18rem 0.16rem;
+  border-radius: 999px;
+  background: rgba(46, 32, 23, 0.24);
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.38);
+}
+
+.turnButton {
+  position: relative;
+}
+
+.turnButtonActive {
+  color: #3d6fdd;
+}
+
+.turnButtonActive:hover {
+  color: #3d6fdd;
 }
 
 .button:focus-visible {
