@@ -183,7 +183,7 @@ import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/Cha
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import ActionButton from "../../../ActionButton";
 import { getActionShapeForEconomyType } from "../GameplayForm/gameplayWidgetUtils";
-import gameplayActionStyles from "../GameplayForm/widgets/GameplayActionDrawer.module.css";
+import gameplayActionStyles from "../GameplayForm/widgets/ActionsWidget/GameplayActionDrawer.module.css";
 import { getSpellActionPathStates, getSpellActionPathWarning } from "../spellActionPaths";
 import styles from "./SpellCastingForm.module.css";
 import {

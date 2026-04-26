@@ -6,7 +6,7 @@ import type {
   FeatureActionFact,
   FeatureActionHeaderTag
 } from "../../../../../../pages/CharactersPage/classFeatures";
-import GameplayActionDrawer from "../GameplayActionDrawer";
+import GameplayActionDrawer from "../ActionsWidget/GameplayActionDrawer";
 import styles from "./ReactionEntryDrawer.module.css";
 
 type ReactionEntryDrawerProps = {

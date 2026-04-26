@@ -6,7 +6,7 @@ import d20Icon from "../../../../../../assets/svg/d20.svg";
 import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import { monkWarriorOfTheOpenHandQuiveringPalmDamageFormula } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheOpenHand";
 import { formatFormulaCell } from "../../../../../../pages/CharactersPage/shared/formulas";
-import actionStyles from "../ActionsWidget.module.css";
+import actionStyles from "../ActionsWidget/ActionsWidget.module.css";
 import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
 
 type QuiveringPalmStatusDrawerActionRowProps = {

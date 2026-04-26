@@ -1,0 +1,604 @@
+import { useMemo } from "react";
+import type { Character } from "../../../../../../types";
+import type { GameplayActionDefinition } from "../../../../../../pages/CharactersPage/combatActions";
+import {
+  type FeatureActionCard,
+  getMonkFocusPointsRemainingForCharacter
+} from "../../../../../../pages/CharactersPage/classFeatures";
+import {
+  createFeatureActionCardCost,
+  createFreeCardUsage,
+  createNamedResourceCardUsage
+} from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
+import {
+  applyPaladinOathOfDevotionSacredWeaponAction,
+  getPaladinOathOfDevotionSacredWeaponOptionState
+} from "../../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfDevotion";
+import {
+  applyPaladinOathOfVengeanceVowOfEnmityAction,
+  getPaladinOathOfVengeanceVowOfEnmityOptionState
+} from "../../../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfVengeance";
+import { getRangerFeyWandererDreadfulStrikesOptionState } from "../../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerFeyWanderer";
+import { getRangerGloomStalkerDreadAmbusherOptionState } from "../../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerGloomStalker";
+import { getRangerWinterWalkerPolarStrikesOptionState } from "../../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerWinterWalker";
+import {
+  getFighterPsiWarriorPsionicStrikeFormulaForCharacter,
+  hasFighterPsiWarriorPsionicStrikeAvailableForCharacter
+} from "../../../../../../pages/CharactersPage/classFeatures/fighter/fighter";
+import { getMonkStunningStrikeOptionState } from "../../../../../../pages/CharactersPage/classFeatures/monk/monkStunningStrike";
+import { getMonkWarriorOfTheElementsEmpoweredStrikesOptionState } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheElements";
+import { getMonkWarriorOfMercyHandOfHarmOptionState } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfMercy";
+import {
+  getMonkWarriorOfTheOpenHandQuiveringPalmOptionState,
+  monkWarriorOfTheOpenHandQuiveringPalmFocusCost
+} from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheOpenHand";
+import { getMonkWarriorOfShadowImprovedShadowStepOptionState } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfShadow";
+import type { ResolvedCustomWeaponEntry } from "../../../../../../pages/CharactersPage/customEquipment";
+import { hasActiveWeaponMastery } from "../../../../../../pages/CharactersPage/weaponMasteryStatus";
+import { hasAppliedWeaponProficiency } from "../../../../../../pages/CharactersPage/weaponProficiencyStatus";
+import { adaptItemWeapon } from "../../../../../../utils/items/adaptItemWeapon";
+import {
+  appendCriticalHitToFormulaBreakdown,
+  applyCriticalHitToWeaponAction
+} from "./weaponCriticalHit";
+import {
+  getWeaponAttackFormulaPresentation,
+  getWeaponDamageFormulaPresentation,
+  getWeaponDrawerDescription,
+  getWeaponDrawerDetails
+} from "./actionsWidgetPresentation";
+import {
+  applyWeaponDamageBonusPreview,
+  createPsiWarriorPsionicStrikeDamageBonus
+} from "./fighterPsiWarriorWeapon";
+import {
+  applyRangerHuntersMarkTargetWeaponAction,
+  getRangerHuntersMarkTargetWeaponOptionState
+} from "./rangerHuntersMarkWeapon";
+import { getMonkFocusComboDisabledReason } from "./monkWeaponFocusCombos";
+import { codexWeaponEntriesByName } from "./actionHelpers";
+import { resolveFeatureIndicators } from "../../../../../RollStatePill/rollState";
+
+type UseSelectedWeaponActionModelArgs = {
+  character: Character;
+  selectedAction: GameplayActionDefinition | null;
+  selectedFeatureAction: FeatureActionCard | null;
+  customWeaponEntriesById: Map<string, ResolvedCustomWeaponEntry>;
+  nextRollCriticalHitOverride: boolean;
+  isDreadfulStrikeSelected: boolean;
+  isEmpoweredStrikesSelected: boolean;
+  isHandOfHarmSelected: boolean;
+  isHuntersMarkTargetSelected: boolean;
+  isPolarStrikesSelected: boolean;
+  isPsionicStrikeSelected: boolean;
+  isQuiveringPalmSelected: boolean;
+  isSacredWeaponSelected: boolean;
+  isStunningStrikeSelected: boolean;
+  isVowOfEnmitySelected: boolean;
+};
+
+export function useSelectedWeaponActionModel({
+  character,
+  selectedAction,
+  selectedFeatureAction,
+  customWeaponEntriesById,
+  nextRollCriticalHitOverride,
+  isDreadfulStrikeSelected,
+  isEmpoweredStrikesSelected,
+  isHandOfHarmSelected,
+  isHuntersMarkTargetSelected,
+  isPolarStrikesSelected,
+  isPsionicStrikeSelected,
+  isQuiveringPalmSelected,
+  isSacredWeaponSelected,
+  isStunningStrikeSelected,
+  isVowOfEnmitySelected
+}: UseSelectedWeaponActionModelArgs) {
+  const selectedWeaponAction = selectedAction?.kind === "weapon" ? selectedAction.action : null;
+  const selectedWeaponEntry = useMemo(() => {
+    if (!selectedWeaponAction) {
+      return null;
+    }
+
+    if (selectedWeaponAction.key.startsWith("custom-")) {
+      return customWeaponEntriesById.get(selectedWeaponAction.key.replace(/^custom-/, "")) ?? null;
+    }
+
+    return codexWeaponEntriesByName.get(selectedWeaponAction.name) ?? null;
+  }, [customWeaponEntriesById, selectedWeaponAction]);
+  const selectedWeaponItemRecord = useMemo(() => {
+    if (!selectedWeaponAction || !selectedWeaponAction.key.startsWith("inventory-")) {
+      return null;
+    }
+
+    const inventoryItemId = selectedWeaponAction.key.replace(/^inventory-/, "");
+
+    return character.inventoryItems.find((entry) => entry.id === inventoryItemId)?.item ?? null;
+  }, [character.inventoryItems, selectedWeaponAction]);
+  const selectedWeaponHasActiveMastery = useMemo(() => {
+    if (!selectedWeaponAction) {
+      return false;
+    }
+
+    if (selectedWeaponEntry?.baseWeapon) {
+      return hasActiveWeaponMastery(character.weaponProficiencies, {
+        baseWeapon: selectedWeaponEntry.baseWeapon
+      });
+    }
+
+    if (selectedWeaponItemRecord?.weapon) {
+      return hasActiveWeaponMastery(character.weaponProficiencies, selectedWeaponItemRecord.weapon);
+    }
+
+    return false;
+  }, [
+    character.weaponProficiencies,
+    selectedWeaponAction,
+    selectedWeaponEntry,
+    selectedWeaponItemRecord
+  ]);
+  const selectedWeaponHasProficiency = useMemo(() => {
+    if (!selectedWeaponAction) {
+      return false;
+    }
+
+    if (selectedWeaponItemRecord) {
+      const adaptedWeapon = adaptItemWeapon(selectedWeaponItemRecord);
+
+      if (!adaptedWeapon) {
+        return false;
+      }
+
+      return hasAppliedWeaponProficiency(character.weaponProficiencies, {
+        training: adaptedWeapon.type.training,
+        combatType: adaptedWeapon.type.combat,
+        properties: adaptedWeapon.properties,
+        name: selectedWeaponItemRecord.weapon?.name,
+        key: selectedWeaponItemRecord.weapon?.key
+      });
+    }
+
+    if (selectedWeaponEntry) {
+      return hasAppliedWeaponProficiency(character.weaponProficiencies, {
+        training: selectedWeaponEntry.type.training,
+        combatType: selectedWeaponEntry.type.combat,
+        properties: selectedWeaponEntry.properties,
+        baseWeapon: selectedWeaponEntry.baseWeapon
+      });
+    }
+
+    return false;
+  }, [
+    character.weaponProficiencies,
+    selectedWeaponAction,
+    selectedWeaponEntry,
+    selectedWeaponItemRecord
+  ]);
+  const selectedWeaponDetails = useMemo(
+    () =>
+      selectedWeaponAction
+        ? getWeaponDrawerDetails(
+            selectedWeaponAction,
+            selectedWeaponEntry,
+            selectedWeaponItemRecord,
+            {
+              hasActiveMastery: selectedWeaponHasActiveMastery,
+              hasWeaponProficiency: selectedWeaponHasProficiency
+            }
+          )
+        : [],
+    [
+      selectedWeaponAction,
+      selectedWeaponEntry,
+      selectedWeaponHasActiveMastery,
+      selectedWeaponHasProficiency,
+      selectedWeaponItemRecord
+    ]
+  );
+  const selectedWeaponPsionicStrikeFormula = useMemo(
+    () =>
+      selectedWeaponAction?.attackKind === "weapon"
+        ? getFighterPsiWarriorPsionicStrikeFormulaForCharacter(character)
+        : null,
+    [character, selectedWeaponAction?.attackKind]
+  );
+  const selectedWeaponPsionicStrikeAvailable =
+    selectedWeaponAction?.attackKind === "weapon"
+      ? hasFighterPsiWarriorPsionicStrikeAvailableForCharacter(character)
+      : false;
+  const selectedWeaponSacredWeaponState = useMemo(
+    () => getPaladinOathOfDevotionSacredWeaponOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponVowOfEnmityState = useMemo(
+    () => getPaladinOathOfVengeanceVowOfEnmityOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponDreadAmbusherState = useMemo(
+    () => getRangerGloomStalkerDreadAmbusherOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponFeyDreadfulStrikesState = useMemo(
+    () => getRangerFeyWandererDreadfulStrikesOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponPolarStrikesState = useMemo(
+    () => getRangerWinterWalkerPolarStrikesOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponHuntersMarkTargetState = useMemo(
+    () => getRangerHuntersMarkTargetWeaponOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponFocusPointsRemaining = useMemo(
+    () => getMonkFocusPointsRemainingForCharacter(character),
+    [character]
+  );
+  const selectedWeaponStunningStrikeState = useMemo(
+    () => getMonkStunningStrikeOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponEmpoweredStrikesState = useMemo(
+    () => getMonkWarriorOfTheElementsEmpoweredStrikesOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponHandOfHarmState = useMemo(
+    () => getMonkWarriorOfMercyHandOfHarmOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponQuiveringPalmState = useMemo(
+    () => getMonkWarriorOfTheOpenHandQuiveringPalmOptionState(character, selectedWeaponAction),
+    [character, selectedWeaponAction]
+  );
+  const selectedWeaponHandOfHarmDisabledReason = useMemo(() => {
+    if (!selectedWeaponHandOfHarmState) {
+      return null;
+    }
+
+    if (selectedWeaponHandOfHarmState.disabledReason) {
+      return selectedWeaponHandOfHarmState.disabledReason;
+    }
+
+    return getMonkFocusComboDisabledReason({
+      focusPointsRemaining: selectedWeaponFocusPointsRemaining,
+      currentOption: {
+        label: "Hand of Harm",
+        cost: selectedWeaponHandOfHarmState.focusPointCost
+      },
+      selectedOptions: [
+        {
+          label: "Stunning Strike",
+          cost: selectedWeaponStunningStrikeState?.focusPointCost ?? 1,
+          selected: isStunningStrikeSelected
+        },
+        {
+          label: "Quivering Palm",
+          cost: monkWarriorOfTheOpenHandQuiveringPalmFocusCost,
+          selected: isQuiveringPalmSelected
+        }
+      ]
+    });
+  }, [
+    isQuiveringPalmSelected,
+    isStunningStrikeSelected,
+    selectedWeaponFocusPointsRemaining,
+    selectedWeaponHandOfHarmState,
+    selectedWeaponStunningStrikeState
+  ]);
+  const selectedWeaponStunningStrikeDisabledReason = useMemo(() => {
+    if (!selectedWeaponStunningStrikeState) {
+      return null;
+    }
+
+    if (selectedWeaponStunningStrikeState.disabledReason) {
+      return selectedWeaponStunningStrikeState.disabledReason;
+    }
+
+    return getMonkFocusComboDisabledReason({
+      focusPointsRemaining: selectedWeaponFocusPointsRemaining,
+      currentOption: {
+        label: "Stunning Strike",
+        cost: selectedWeaponStunningStrikeState.focusPointCost
+      },
+      selectedOptions: [
+        {
+          label: "Hand of Harm",
+          cost: selectedWeaponHandOfHarmState?.focusPointCost ?? 1,
+          selected: isHandOfHarmSelected
+        },
+        {
+          label: "Quivering Palm",
+          cost: monkWarriorOfTheOpenHandQuiveringPalmFocusCost,
+          selected: isQuiveringPalmSelected
+        }
+      ]
+    });
+  }, [
+    isHandOfHarmSelected,
+    isQuiveringPalmSelected,
+    selectedWeaponFocusPointsRemaining,
+    selectedWeaponHandOfHarmState,
+    selectedWeaponStunningStrikeState
+  ]);
+  const selectedWeaponQuiveringPalmDisabledReason = useMemo(() => {
+    if (!selectedWeaponQuiveringPalmState) {
+      return null;
+    }
+
+    if (selectedWeaponQuiveringPalmState.disabledReason) {
+      return selectedWeaponQuiveringPalmState.disabledReason;
+    }
+
+    return getMonkFocusComboDisabledReason({
+      focusPointsRemaining: selectedWeaponFocusPointsRemaining,
+      currentOption: {
+        label: "Quivering Palm",
+        cost: monkWarriorOfTheOpenHandQuiveringPalmFocusCost
+      },
+      selectedOptions: [
+        {
+          label: "Stunning Strike",
+          cost: selectedWeaponStunningStrikeState?.focusPointCost ?? 1,
+          selected: isStunningStrikeSelected
+        },
+        {
+          label: "Hand of Harm",
+          cost: selectedWeaponHandOfHarmState?.focusPointCost ?? 1,
+          selected: isHandOfHarmSelected
+        }
+      ]
+    });
+  }, [
+    isHandOfHarmSelected,
+    isStunningStrikeSelected,
+    selectedWeaponFocusPointsRemaining,
+    selectedWeaponHandOfHarmState,
+    selectedWeaponQuiveringPalmState,
+    selectedWeaponStunningStrikeState
+  ]);
+  const selectedWeaponSacredWeaponToggleDisabled =
+    selectedWeaponSacredWeaponState?.disabled ?? false;
+  const selectedWeaponVowOfEnmityToggleDisabled = selectedWeaponVowOfEnmityState?.disabled ?? false;
+  const selectedWeaponDreadfulStrikeToggleDisabled =
+    selectedWeaponDreadAmbusherState?.disabled ?? false;
+  const selectedWeaponFeyDreadfulStrikesToggleDisabled =
+    selectedWeaponFeyDreadfulStrikesState?.disabled ?? false;
+  const selectedWeaponPolarStrikesToggleDisabled =
+    selectedWeaponPolarStrikesState?.disabled ?? false;
+  const selectedWeaponHuntersMarkTargetToggleDisabled = !selectedWeaponHuntersMarkTargetState;
+  const selectedWeaponStunningStrikeToggleDisabled =
+    selectedWeaponStunningStrikeDisabledReason !== null;
+  const selectedWeaponEmpoweredStrikesToggleDisabled =
+    selectedWeaponEmpoweredStrikesState?.disabled ?? false;
+  const selectedWeaponHandOfHarmToggleDisabled = selectedWeaponHandOfHarmDisabledReason !== null;
+  const selectedWeaponHandOfHarmUsage =
+    selectedWeaponHandOfHarmState?.focusPointCost === 0
+      ? createFreeCardUsage()
+      : createNamedResourceCardUsage(
+          createFeatureActionCardCost({
+            amountText: String(selectedWeaponHandOfHarmState?.focusPointCost ?? 1),
+            icon: "brain"
+          })
+        );
+  const selectedWeaponQuiveringPalmToggleDisabled =
+    selectedWeaponQuiveringPalmDisabledReason !== null;
+  const selectedImprovedShadowStepState = useMemo(
+    () => getMonkWarriorOfShadowImprovedShadowStepOptionState(character, selectedFeatureAction),
+    [character, selectedFeatureAction]
+  );
+  const selectedWeaponEffectiveAction = useMemo(() => {
+    if (!selectedWeaponAction) {
+      return null;
+    }
+
+    let nextAction = selectedWeaponAction;
+
+    if (
+      isSacredWeaponSelected &&
+      selectedWeaponSacredWeaponState &&
+      !selectedWeaponSacredWeaponToggleDisabled
+    ) {
+      nextAction = applyPaladinOathOfDevotionSacredWeaponAction(character, nextAction);
+    }
+
+    if (
+      isVowOfEnmitySelected &&
+      selectedWeaponVowOfEnmityState &&
+      !selectedWeaponVowOfEnmityToggleDisabled
+    ) {
+      nextAction = applyPaladinOathOfVengeanceVowOfEnmityAction(nextAction);
+    }
+
+    if (
+      isDreadfulStrikeSelected &&
+      selectedWeaponDreadAmbusherState &&
+      !selectedWeaponDreadfulStrikeToggleDisabled
+    ) {
+      nextAction = applyWeaponDamageBonusPreview(
+        nextAction,
+        selectedWeaponDreadAmbusherState.damageBonus
+      );
+    }
+
+    if (
+      isDreadfulStrikeSelected &&
+      selectedWeaponFeyDreadfulStrikesState &&
+      !selectedWeaponFeyDreadfulStrikesToggleDisabled
+    ) {
+      nextAction = applyWeaponDamageBonusPreview(
+        nextAction,
+        selectedWeaponFeyDreadfulStrikesState.damageBonus
+      );
+    }
+
+    if (
+      isPolarStrikesSelected &&
+      selectedWeaponPolarStrikesState &&
+      !selectedWeaponPolarStrikesToggleDisabled
+    ) {
+      nextAction = applyWeaponDamageBonusPreview(
+        nextAction,
+        selectedWeaponPolarStrikesState.damageBonus
+      );
+    }
+
+    if (
+      isHuntersMarkTargetSelected &&
+      selectedWeaponHuntersMarkTargetState &&
+      !selectedWeaponHuntersMarkTargetToggleDisabled
+    ) {
+      nextAction = applyRangerHuntersMarkTargetWeaponAction(
+        nextAction,
+        selectedWeaponHuntersMarkTargetState
+      );
+    }
+
+    if (
+      isEmpoweredStrikesSelected &&
+      selectedWeaponEmpoweredStrikesState &&
+      !selectedWeaponEmpoweredStrikesToggleDisabled
+    ) {
+      nextAction = applyWeaponDamageBonusPreview(
+        nextAction,
+        selectedWeaponEmpoweredStrikesState.damageBonus
+      );
+    }
+
+    if (
+      isHandOfHarmSelected &&
+      selectedWeaponHandOfHarmState &&
+      !selectedWeaponHandOfHarmToggleDisabled
+    ) {
+      nextAction = applyWeaponDamageBonusPreview(
+        nextAction,
+        selectedWeaponHandOfHarmState.damageBonus
+      );
+    }
+
+    if (
+      nextAction.attackKind === "weapon" &&
+      isPsionicStrikeSelected &&
+      selectedWeaponPsionicStrikeAvailable &&
+      selectedWeaponPsionicStrikeFormula
+    ) {
+      nextAction = applyWeaponDamageBonusPreview(
+        nextAction,
+        createPsiWarriorPsionicStrikeDamageBonus(selectedWeaponPsionicStrikeFormula)
+      );
+    }
+
+    return nextAction;
+  }, [
+    character,
+    isDreadfulStrikeSelected,
+    isEmpoweredStrikesSelected,
+    isHandOfHarmSelected,
+    isHuntersMarkTargetSelected,
+    isPolarStrikesSelected,
+    isSacredWeaponSelected,
+    isVowOfEnmitySelected,
+    isPsionicStrikeSelected,
+    selectedWeaponAction,
+    selectedWeaponDreadAmbusherState,
+    selectedWeaponDreadfulStrikeToggleDisabled,
+    selectedWeaponFeyDreadfulStrikesState,
+    selectedWeaponFeyDreadfulStrikesToggleDisabled,
+    selectedWeaponEmpoweredStrikesState,
+    selectedWeaponEmpoweredStrikesToggleDisabled,
+    selectedWeaponHandOfHarmToggleDisabled,
+    selectedWeaponHandOfHarmState,
+    selectedWeaponHuntersMarkTargetState,
+    selectedWeaponHuntersMarkTargetToggleDisabled,
+    selectedWeaponPolarStrikesState,
+    selectedWeaponPolarStrikesToggleDisabled,
+    selectedWeaponSacredWeaponState,
+    selectedWeaponSacredWeaponToggleDisabled,
+    selectedWeaponVowOfEnmityState,
+    selectedWeaponVowOfEnmityToggleDisabled,
+    selectedWeaponPsionicStrikeAvailable,
+    selectedWeaponPsionicStrikeFormula
+  ]);
+  const selectedWeaponAttackFormula = useMemo(
+    () =>
+      selectedWeaponEffectiveAction
+        ? getWeaponAttackFormulaPresentation(selectedWeaponEffectiveAction)
+        : null,
+    [selectedWeaponEffectiveAction]
+  );
+  const selectedWeaponDamageFormula = useMemo(() => {
+    if (!selectedWeaponEffectiveAction) {
+      return null;
+    }
+
+    const previewAction = nextRollCriticalHitOverride
+      ? applyCriticalHitToWeaponAction(selectedWeaponEffectiveAction)
+      : selectedWeaponEffectiveAction;
+    const formulaPresentation = getWeaponDamageFormulaPresentation(previewAction);
+
+    return nextRollCriticalHitOverride
+      ? {
+          ...formulaPresentation,
+          breakdown: appendCriticalHitToFormulaBreakdown(formulaPresentation.breakdown)
+        }
+      : formulaPresentation;
+  }, [nextRollCriticalHitOverride, selectedWeaponEffectiveAction]);
+  const selectedWeaponDrawerDescription = useMemo(
+    () =>
+      selectedWeaponAction
+        ? getWeaponDrawerDescription(selectedWeaponAction, selectedWeaponItemRecord)
+        : {
+            description: [],
+            descriptionAdditions: []
+          },
+    [selectedWeaponAction, selectedWeaponItemRecord]
+  );
+  const selectedWeaponRollState = useMemo(
+    () =>
+      selectedWeaponEffectiveAction
+        ? resolveFeatureIndicators(selectedWeaponEffectiveAction.indicators)
+        : null,
+    [selectedWeaponEffectiveAction]
+  );
+
+  return {
+    selectedWeaponAction,
+    selectedWeaponEntry,
+    selectedWeaponItemRecord,
+    selectedWeaponHasActiveMastery,
+    selectedWeaponHasProficiency,
+    selectedWeaponDetails,
+    selectedWeaponPsionicStrikeFormula,
+    selectedWeaponPsionicStrikeAvailable,
+    selectedWeaponSacredWeaponState,
+    selectedWeaponVowOfEnmityState,
+    selectedWeaponDreadAmbusherState,
+    selectedWeaponFeyDreadfulStrikesState,
+    selectedWeaponPolarStrikesState,
+    selectedWeaponHuntersMarkTargetState,
+    selectedWeaponFocusPointsRemaining,
+    selectedWeaponStunningStrikeState,
+    selectedWeaponEmpoweredStrikesState,
+    selectedWeaponHandOfHarmState,
+    selectedWeaponQuiveringPalmState,
+    selectedWeaponHandOfHarmDisabledReason,
+    selectedWeaponStunningStrikeDisabledReason,
+    selectedWeaponQuiveringPalmDisabledReason,
+    selectedWeaponSacredWeaponToggleDisabled,
+    selectedWeaponVowOfEnmityToggleDisabled,
+    selectedWeaponDreadfulStrikeToggleDisabled,
+    selectedWeaponFeyDreadfulStrikesToggleDisabled,
+    selectedWeaponPolarStrikesToggleDisabled,
+    selectedWeaponHuntersMarkTargetToggleDisabled,
+    selectedWeaponStunningStrikeToggleDisabled,
+    selectedWeaponEmpoweredStrikesToggleDisabled,
+    selectedWeaponHandOfHarmToggleDisabled,
+    selectedWeaponHandOfHarmUsage,
+    selectedWeaponQuiveringPalmToggleDisabled,
+    selectedImprovedShadowStepState,
+    selectedWeaponEffectiveAction,
+    selectedWeaponAttackFormula,
+    selectedWeaponDamageFormula,
+    selectedWeaponDrawerDescription,
+    selectedWeaponRollState
+  };
+}

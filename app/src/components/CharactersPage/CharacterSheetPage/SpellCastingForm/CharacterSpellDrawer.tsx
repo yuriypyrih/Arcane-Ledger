@@ -42,9 +42,9 @@ import FeatureOptInToggle, {
   type FeatureOptInToggleApplication
 } from "../FeatureOptInToggle/FeatureOptInToggle";
 import RadioContainerOption from "../RadioContainerOption";
-import FeatureActionHeaderTags from "../GameplayForm/widgets/FeatureActionHeaderTags";
+import FeatureActionHeaderTags from "../GameplayForm/widgets/ActionsWidget/FeatureActionHeaderTags";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
-import gameplayActionStyles from "../GameplayForm/widgets/GameplayActionDrawer.module.css";
+import gameplayActionStyles from "../GameplayForm/widgets/ActionsWidget/GameplayActionDrawer.module.css";
 import styles from "./CharacterSpellDrawer.module.css";
 import actionStyles from "./SpellActionDrawer.module.css";
 
