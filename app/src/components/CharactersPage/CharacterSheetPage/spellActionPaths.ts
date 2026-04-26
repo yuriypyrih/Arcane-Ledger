@@ -12,6 +12,7 @@ import {
   getSharedEconomyMultiCountForCharacterAction
 } from "../../../pages/CharactersPage/classFeatures/economyMulti";
 import { canUsePaladinOathOfTheAncientsElderChampionBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheAncients";
+import { canUseRogueArcaneTricksterMageHandLegerdemainBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 import type { RoundTrackerResource } from "../../../pages/CharactersPage/combat";
 import { getEconomyShapeState } from "./GameplayForm/gameplayWidgetUtils";
 
@@ -57,7 +58,7 @@ function createSpellActionPathState(
 
 export function getSpellActionPathStates(
   character: Character,
-  spell: Pick<SpellEntry, "castingTime" | "spellLevel">,
+  spell: Pick<SpellEntry, "id" | "castingTime" | "spellLevel">,
   roundTracker: RoundTrackerAvailability
 ): SpellActionPathState[] {
   const primaryEconomyType = getEconomyTypeForSpell(spell);
@@ -67,7 +68,8 @@ export function getSpellActionPathStates(
 
   if (
     primaryEconomyType === ECONOMY_TYPE.ACTION &&
-    canUsePaladinOathOfTheAncientsElderChampionBonusActionPathForSpell(character, spell)
+    (canUsePaladinOathOfTheAncientsElderChampionBonusActionPathForSpell(character, spell) ||
+      canUseRogueArcaneTricksterMageHandLegerdemainBonusActionPathForSpell(character, spell))
   ) {
     actionPaths.push(
       createSpellActionPathState(

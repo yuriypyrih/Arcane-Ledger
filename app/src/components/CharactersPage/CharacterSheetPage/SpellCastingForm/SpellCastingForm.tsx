@@ -99,8 +99,6 @@ import {
   getWizardSpellMasterySpellIdsForCharacter,
   getWizardIllusionistPhantasmalCreaturesSpellOptionStateForCharacter,
   setWarlockInvocationSelectionIdsForCharacter,
-  syncWizardSignatureSpellsToSpellbookForCharacter,
-  syncWizardSpellMasterySelectionsToSpellbookForCharacter,
   type FeatureActionOptionCard
 } from "../../../../pages/CharactersPage/classFeatures";
 import {
@@ -190,6 +188,10 @@ import { getActionShapeForEconomyType } from "../GameplayForm/gameplayWidgetUtil
 import gameplayActionStyles from "../GameplayForm/widgets/ActionsWidget/GameplayActionDrawer.module.css";
 import { getSpellActionPathStates, getSpellActionPathWarning } from "../spellActionPaths";
 import styles from "./SpellCastingForm.module.css";
+import {
+  applyCantripDraftToCharacter,
+  applyPreparedSpellDraftToCharacter
+} from "./spellManagementDrafts";
 import {
   applyRolledTemporaryHitPointsToCharacter,
   consumeRoundTrackerResourceForCharacter,
@@ -437,66 +439,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         : currentCharacter,
     []
   );
-
-  useEffect(() => {
-    if (
-      activeSpellSlotSheetLevel === null &&
-      !selectedSpell &&
-      !selectedDivinityOptionKey &&
-      !selectedInvocation &&
-      !spellManagementMode
-    ) {
-      return;
-    }
-
-    function handleKeyDown(event: globalThis.KeyboardEvent) {
-      if (event.key === "Escape") {
-        if (isSelectedSpellDiceRollerSettingsOpen) {
-          setIsSelectedSpellDiceRollerSettingsOpen(false);
-          return;
-        }
-
-        if (selectedSpell) {
-          closeSelectedSpell();
-          return;
-        }
-
-        if (selectedDivinityOptionKey) {
-          closeSelectedDivinity();
-          return;
-        }
-
-        if (selectedInvocation) {
-          closeSelectedInvocation();
-          return;
-        }
-
-        if (activeSpellSlotSheetLevel !== null) {
-          closeSpellSlotActionSheet();
-          return;
-        }
-
-        setSpellManagementMode(null);
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [
-    activeSpellSlotSheetLevel,
-    closeSpellSlotActionSheet,
-    closeSelectedDivinity,
-    closeSelectedInvocation,
-    closeSelectedSpell,
-    isSelectedSpellDiceRollerSettingsOpen,
-    selectedDivinityOptionKey,
-    selectedInvocation,
-    selectedSpell,
-    spellManagementMode
-  ]);
 
   const baseClassSpellEntries = useClassSpellEntries(character.className, character.subclassId);
   const featGrantedCantripEntries = useMemo(
@@ -1680,90 +1622,6 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   ]);
 
   useEffect(() => {
-    if (spellManagementMode !== "cantrips") {
-      return;
-    }
-
-    const nextCantripIds = normalizeTrackedSpellIds(cantripDraftIds, cantripOptions, cantripLimit);
-
-    if (areSpellIdListsEqual(selectedCantripIds, nextCantripIds)) {
-      return;
-    }
-
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      cantripIds: nextCantripIds
-    }));
-  }, [
-    cantripDraftIds,
-    cantripLimit,
-    cantripOptions,
-    onPersistCharacter,
-    selectedCantripIds,
-    spellManagementMode
-  ]);
-
-  useEffect(() => {
-    if (spellManagementMode !== "prepared-spells") {
-      return;
-    }
-
-    const nextSpellbookIds = usesSpellbook
-      ? normalizeSpellbookSpellIds(spellbookDraftIds, spellPreparationOptions).filter(
-          (spellId) => !alwaysSpellbookSpellIdSet.has(spellId)
-        )
-      : [];
-    const nextAvailableSpellbookIdSet = new Set(
-      normalizeSpellbookSpellIds(nextSpellbookIds, spellPreparationOptions, alwaysSpellbookSpellIds)
-    );
-    const nextPreparedSpellIds = normalizePreparedSpellIds(
-      usesSpellbook
-        ? preparedSpellDraftIds.filter((spellId) => nextAvailableSpellbookIdSet.has(spellId))
-        : preparedSpellDraftIds,
-      spellPreparationOptions,
-      preparedSpellLimit,
-      alwaysPreparedSpellIds
-    );
-
-    const spellbookUnchanged = areSpellIdListsEqual(
-      selectedManualSpellbookSpellIds,
-      nextSpellbookIds
-    );
-    const preparedUnchanged = areSpellIdListsEqual(selectedPreparedSpellIds, nextPreparedSpellIds);
-
-    if (spellbookUnchanged && preparedUnchanged) {
-      return;
-    }
-
-    onPersistCharacter((currentCharacter) => {
-      const nextCharacter = {
-        ...currentCharacter,
-        spellbookSpellIds: nextSpellbookIds,
-        preparedSpellIds: nextPreparedSpellIds
-      };
-
-      return currentCharacter.className === "Wizard"
-        ? syncWizardSignatureSpellsToSpellbookForCharacter(
-            syncWizardSpellMasterySelectionsToSpellbookForCharacter(nextCharacter)
-          )
-        : nextCharacter;
-    });
-  }, [
-    alwaysSpellbookSpellIdSet,
-    alwaysSpellbookSpellIds,
-    alwaysPreparedSpellIds,
-    onPersistCharacter,
-    preparedSpellDraftIds,
-    preparedSpellLimit,
-    selectedManualSpellbookSpellIds,
-    selectedPreparedSpellIds,
-    spellPreparationOptions,
-    spellbookDraftIds,
-    spellManagementMode,
-    usesSpellbook
-  ]);
-
-  useEffect(() => {
     if (spellManagementMode !== "eldritch-invocations") {
       return;
     }
@@ -1817,6 +1675,106 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const beginInvocationManagement = useCallback(() => {
     setSpellManagementMode("eldritch-invocations");
   }, []);
+
+  const closeSpellManagementModal = useCallback(() => {
+    if (spellManagementMode === "cantrips") {
+      onPersistCharacter((currentCharacter) =>
+        applyCantripDraftToCharacter(currentCharacter, {
+          cantripDraftIds,
+          cantripLimit,
+          cantripOptions
+        })
+      );
+    } else if (spellManagementMode === "prepared-spells") {
+      onPersistCharacter((currentCharacter) =>
+        applyPreparedSpellDraftToCharacter(currentCharacter, {
+          alwaysPreparedSpellIds,
+          alwaysSpellbookSpellIds,
+          preparedSpellDraftIds,
+          preparedSpellLimit,
+          spellPreparationOptions,
+          spellbookDraftIds,
+          usesSpellbook
+        })
+      );
+    }
+
+    setSpellManagementMode(null);
+  }, [
+    alwaysPreparedSpellIds,
+    alwaysSpellbookSpellIds,
+    cantripDraftIds,
+    cantripLimit,
+    cantripOptions,
+    onPersistCharacter,
+    preparedSpellDraftIds,
+    preparedSpellLimit,
+    spellManagementMode,
+    spellPreparationOptions,
+    spellbookDraftIds,
+    usesSpellbook
+  ]);
+
+  useEffect(() => {
+    if (
+      activeSpellSlotSheetLevel === null &&
+      !selectedSpell &&
+      !selectedDivinityOptionKey &&
+      !selectedInvocation &&
+      !spellManagementMode
+    ) {
+      return;
+    }
+
+    function handleKeyDown(event: globalThis.KeyboardEvent) {
+      if (event.key === "Escape") {
+        if (isSelectedSpellDiceRollerSettingsOpen) {
+          setIsSelectedSpellDiceRollerSettingsOpen(false);
+          return;
+        }
+
+        if (selectedSpell) {
+          closeSelectedSpell();
+          return;
+        }
+
+        if (selectedDivinityOptionKey) {
+          closeSelectedDivinity();
+          return;
+        }
+
+        if (selectedInvocation) {
+          closeSelectedInvocation();
+          return;
+        }
+
+        if (activeSpellSlotSheetLevel !== null) {
+          closeSpellSlotActionSheet();
+          return;
+        }
+
+        closeSpellManagementModal();
+      }
+    }
+
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [
+    activeSpellSlotSheetLevel,
+    closeSpellManagementModal,
+    closeSpellSlotActionSheet,
+    closeSelectedDivinity,
+    closeSelectedInvocation,
+    closeSelectedSpell,
+    isSelectedSpellDiceRollerSettingsOpen,
+    selectedDivinityOptionKey,
+    selectedInvocation,
+    selectedSpell,
+    spellManagementMode
+  ]);
 
   const updateSpellSlotsExpended = useCallback(
     (slotLevel: number, delta: number) => {
@@ -2903,7 +2861,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         <div
           className={sheetStyles.spellManagementBackdrop}
           role="presentation"
-          onClick={() => setSpellManagementMode(null)}
+          onClick={closeSpellManagementModal}
         >
           <section
             className={sheetStyles.spellManagementModal}
@@ -2928,7 +2886,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               <button
                 type="button"
                 className={sheetStyles.spellManagementCloseButton}
-                onClick={() => setSpellManagementMode(null)}
+                onClick={closeSpellManagementModal}
                 aria-label="Close spell options"
               >
                 <X size={18} />

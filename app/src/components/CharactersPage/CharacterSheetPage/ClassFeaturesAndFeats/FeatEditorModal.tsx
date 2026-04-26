@@ -86,7 +86,7 @@ function FeatEditorModal({
             </h3>
             <OverlaySummary className={shared.helperText}>
               {context.mode === "class-feature"
-                ? "Choose one feat for this class feature. Your selection will be applied immediately."
+                ? "Choose one feat for this class feature. Your selection will be saved when this editor closes."
                 : "Always choose the appropriate feats based on your class features or your DM's instructions."}
             </OverlaySummary>
           </div>

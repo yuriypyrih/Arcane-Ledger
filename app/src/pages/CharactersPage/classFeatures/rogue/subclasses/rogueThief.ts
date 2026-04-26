@@ -35,7 +35,9 @@ export function hasRogueThiefSupremeSneakFeature(character: RogueThiefCharacter)
 }
 
 function getRogueThiefFeatureDescriptionEntries(feature: CLASS_FEATURE): string[] {
-  const featureRow = thiefSubclassEntry?.features.find((row) => row.classFeatures.includes(feature));
+  const featureRow = thiefSubclassEntry?.features.find((row) =>
+    row.classFeatures.includes(feature)
+  );
 
   return (featureRow?.featureOverrides?.[feature]?.description ?? []).filter(
     (entry): entry is string => typeof entry === "string"
@@ -72,7 +74,6 @@ export function getRogueThiefSneakAttackEffectDefinitions(
       key: "stealth-attack",
       name: "Stealth Attack",
       costDice: 1,
-      referenceTitle: "Stealth Attack",
       referenceDescription: [...supremeSneakEffectDescription]
     }
   ];

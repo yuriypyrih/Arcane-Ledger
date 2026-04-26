@@ -43,6 +43,8 @@ export const antagonize: SpellEntry = {
     "You whisper magical words that antagonize one creature of your choice within range. The target must make a Wisdom saving throw. On a failed save, the target takes <strong>4d4</strong> Psychic damage and must immediately use its Reaction to make a melee attack against another creature of your choice that you can see. If the target can't make this attack, for example, because there is no one within its reach or because its Reaction is unavailable, the target instead has Disadvantage on the next attack roll it makes before the start of your next turn. On a successful save, the target takes half as much damage only.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by <strong>1d4</strong> for each slot level above 3rd."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D4, DAMAGE_TYPE.PSYCHIC],
     [DICE.D4, DAMAGE_TYPE.PSYCHIC],
@@ -72,6 +74,7 @@ export const ashardalonsStride: SpellEntry = {
     "When you move within 5 feet of a creature or an object that isn't being worn or carried, it takes <strong>1d6</strong> Fire damage from your trail of heat. A creature or object can take this damage only once during a turn.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, increase your Speed by 5 feet for each spell slot level above 3rd. The spell deals an additional <strong>1d6</strong> Fire damage for each slot level above 3rd."
   ],
+  isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.FIRE]],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
@@ -135,6 +138,8 @@ export const bestowCurse: SpellEntry = {
     "A Remove Curse spell ends this effect. At the DM's option, you may choose an alternative curse effect, but it should be no more powerful than those described above. The DM has final say on such a curse's effect.",
     "<strong>At Higher Levels.</strong> If you cast this spell using a spell slot of 4th level or higher, the duration is Concentration, up to 10 minutes. If you use a spell slot of 5th level or higher, the duration is 8 hours. If you use a spell slot of 7th level or higher, the duration is 24 hours. If you use a 9th-level spell slot, the spell lasts until it is dispelled. Using a spell slot of 5th level or higher grants a duration that doesn't require Concentration."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 3
@@ -153,6 +158,8 @@ export const blindingSmite: SpellEntry = {
     "The next time you hit a creature with a melee weapon attack during this spell's duration, your weapon flares with a bright light, and the attack deals an extra <strong>3d8</strong> Radiant damage to the target. Additionally, the target must succeed on a Constitution saving throw or be Blinded until the spell ends.",
     "A creature Blinded by this spell makes another Constitution saving throw at the end of each of its turns. On a successful save, it is no longer Blinded."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.RADIANT],
     [DICE.D8, DAMAGE_TYPE.RADIANT],
@@ -196,6 +203,8 @@ export const callLightning: SpellEntry = {
     "If you are outdoors in stormy conditions when you cast this spell, the spell gives you control over the existing storm instead of creating a new one. Under such conditions, the spell's damage increases by <strong>1d10</strong>.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by <strong>1d10</strong> for each slot level above 3rd."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.LIGHTNING],
     [DICE.D10, DAMAGE_TYPE.LIGHTNING],
@@ -287,6 +296,8 @@ export const conjureBarrage: SpellEntry = {
   description: [
     "You throw a nonmagical weapon or fire a piece of nonmagical ammunition into the air to create a cone of identical weapons that shoot forward and then disappear. Each creature in a 60-foot cone must succeed on a Dexterity saving throw. A creature takes <strong>3d8</strong> damage on a failed save, or half as much damage on a successful one. The damage type is the same as that of the weapon or ammunition used as a component."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.RANGER],
   spellLevel: 3
@@ -362,6 +373,7 @@ export const crusadersMantle: SpellEntry = {
   description: [
     "Holy power radiates from you in an aura with a 30-foot radius, awakening boldness in friendly creatures. Until the spell ends, the aura moves with you, centered on you. While in the aura, each non-hostile creature in the aura, including you, deals an extra <strong>1d4</strong> Radiant damage when it hits with a weapon attack."
   ],
+  isDamagingSpell: true,
   damage: [[DICE.D4, DAMAGE_TYPE.RADIANT]],
   spellLists: [SPELL_LIST_CLASS.PALADIN],
   spellLevel: 3
@@ -432,6 +444,7 @@ export const elementalWeapon: SpellEntry = {
     "A nonmagical weapon you touch becomes a magic weapon. Choose one of the following damage types: Acid, Cold, Fire, Lightning, or Thunder. For the duration, the weapon has a +1 bonus to attack rolls and deals an extra <strong>1d4</strong> damage of the chosen type when it hits.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th or 6th level, the bonus to attack rolls increases to +2 and the extra damage increases to <strong>2d4</strong>. When you use a spell slot of 7th level or higher, the bonus increases to +3 and the extra damage increases to <strong>3d4</strong>."
   ],
+  isDamagingSpell: true,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
@@ -455,6 +468,7 @@ export const enemiesAbound: SpellEntry = {
     "You reach into the mind of one creature you can see and force it to make an Intelligence saving throw. A creature automatically succeeds if it is immune to being Frightened. On a failed save, the target loses the ability to distinguish friend from foe, regarding all creatures it can see as enemies until the spell ends. Each time the target takes damage, it can repeat the saving throw, ending the effect on itself on a success.",
     "Whenever the affected creature chooses another creature as a target, it must choose the target at random from among the creatures it can see within range of the attack, spell, or other ability it's using. If an enemy provokes an Opportunity Attack from the affected creature, the creature must make that attack if it is able to."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
@@ -478,6 +492,8 @@ export const eruptingEarth: SpellEntry = {
     "Choose a point you can see on the ground within range. A fountain of churned earth and stone erupts in a 20-foot cube centered on that point. Each creature in that area must make a Dexterity saving throw. A creature takes <strong>3d12</strong> Bludgeoning damage on a failed save, or half as much damage on a successful one. Additionally, the ground in that area becomes difficult terrain until cleared away. Each 5-foot-square portion of the area requires at least 1 minute to clear by hand.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by <strong>1d12</strong> for each slot level above 3rd."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D12, DAMAGE_TYPE.BLUDGEONING],
     [DICE.D12, DAMAGE_TYPE.BLUDGEONING],
@@ -502,6 +518,7 @@ export const fastFriends: SpellEntry = {
     "When the spell ends, the creature knows it was Charmed by you.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, you can target one additional creature for each slot level above 3rd."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 3
@@ -520,6 +537,7 @@ export const fear: SpellEntry = {
     "You project a phantasmal image of a creature's worst fears. Each creature in a 30-foot cone must succeed on a Wisdom saving throw or drop whatever it is holding and become Frightened for the duration.",
     "While Frightened by this spell, a creature must take the Dash action and move away from you by the safest available route on each of its turns, unless there is nowhere to move. If the creature ends its turn in a location where it doesn't have line of sight to you, the creature can make a Wisdom saving throw. On a successful save, the spell ends for that creature."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
@@ -567,6 +585,8 @@ export const fireball: SpellEntry = {
     "A bright streak flashes from your pointing finger to a point you choose within range then blossoms with a low roar into an explosion of flame. Each creature in a 20-foot radius must make a Dexterity saving throw. A target takes <strong>8d6</strong> Fire damage on a failed save, or half as much damage on a successful one. The fire spreads around corners. It ignites flammable objects in the area that aren't being worn or carried.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by <strong>1d6</strong> for each slot level above 3rd."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.FIRE],
     [DICE.D6, DAMAGE_TYPE.FIRE],
@@ -594,6 +614,7 @@ export const flameArrows: SpellEntry = {
     "You touch a quiver containing arrows or bolts. When a target is hit by a ranged weapon attack using a piece of ammunition drawn from the quiver, the target takes an extra <strong>1d6</strong> Fire damage. The spell's magic ends on the piece of ammunition when it hits or misses, and the spell ends when twelve pieces of ammunition have been drawn from the quiver.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the number of pieces of ammunition you can affect with this spell increases by two for each slot level above 3rd."
   ],
+  isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.FIRE]],
   spellLists: [
     SPELL_LIST_CLASS.DRUID,
@@ -618,6 +639,7 @@ export const flameStride: SpellEntry = {
     "The billowing flames of a dragon cover your feet, granting you explosive speed. For the duration, your Speed increases by 20 feet and moving doesn't provoke Opportunity Attacks. When you move within 5 feet of a creature or object that isn't being worn or carried, it takes <strong>1d6</strong> Fire damage from your trail of heat. A creature or object can take this damage only once during a turn.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, increase your Speed by 5 feet for each slot level above 3rd. Additionally, the spell deals an additional <strong>1d6</strong> Fire damage for each slot level above 3rd."
   ],
+  isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.FIRE]],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
@@ -716,6 +738,8 @@ export const glyphOfWarding: SpellEntry = {
     "<strong>Spell Glyph.</strong> You can store a prepared spell of 3rd level or lower in the glyph by casting it as part of creating the glyph. The spell must target a single creature or an area. The spell being stored has no immediate effect when cast in this way. When the glyph is triggered, the stored spell is cast. If the spell has a target, it targets the creature that triggered the glyph. If the spell affects an area, the area is centered on that creature. If the spell summons hostile creatures or creates harmful objects or traps, they appear as close as possible to the intruder and attack it. If the spell requires Concentration, it lasts until the end of its full duration.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage of an Explosive Runes glyph increases by <strong>1d8</strong> for each slot level above 3rd. If you create a Spell Glyph, you can store any spell of up to the same level as the slot you use for the Glyph of Warding."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
@@ -762,6 +786,8 @@ export const haywire: SpellEntry = {
     "<strong>6.</strong> The device is usable as normal.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the radius of the sphere affected by the spell increases by 5 feet for each slot level above 3rd."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.LIGHTNING],
     [DICE.D6, DAMAGE_TYPE.LIGHTNING],
@@ -811,6 +837,8 @@ export const hungerOfHadar: SpellEntry = {
     "You open a gateway to the dark between the stars, a region infested with unknown horrors. A 20-foot-radius sphere of blackness and bitter cold appears, centered on a point within range and lasting for the duration. This void is filled with a cacophony of soft whispers and slurping noises that can be heard up to 30 feet away. No light, magical or otherwise, can illuminate the area, and creatures fully within the area are Blinded.",
     "The void creates a warp in the fabric of space, and the area is difficult terrain. Any creature that starts its turn in the area takes <strong>2d6</strong> Cold damage. Any creature that ends its turn in the area must succeed on a Dexterity saving throw or take <strong>2d6</strong> Acid damage as milky, otherworldly tentacles rub against it."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK],
   spellLevel: 3
@@ -829,6 +857,7 @@ export const hypnoticPattern: SpellEntry = {
     "You create a twisting pattern of colors that weaves through the air inside a 30-foot cube within range. The pattern appears for a moment and vanishes. Each creature in the area who sees the pattern must make a Wisdom saving throw. On a failed save, the creature becomes Charmed for the duration. While Charmed by this spell, the creature is Incapacitated and has a Speed of 0.",
     "The spell ends for an affected creature if it takes any damage or if someone else uses an action to shake the creature out of its stupor."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
@@ -852,6 +881,7 @@ export const inciteGreed: SpellEntry = {
     "When you cast this spell, you present the gem used as the material component and choose any number of creatures within range that can see you. Each target must succeed on a Wisdom saving throw or be Charmed by you until the spell ends, or until you or your companions do anything harmful to it. While Charmed in this way, a creature can do nothing but use its movement to approach you in a safe manner. While an affected creature is within 5 feet of you, it cannot move, but simply stares greedily at the gem you present.",
     "At the end of each of its turns, an affected target can make a Wisdom saving throw. If it succeeds, this effect ends for that target."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.CLERIC,
@@ -937,6 +967,7 @@ export const lifeTransference: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by <strong>1d8</strong> for each slot level above 3rd."
   ],
   isHealingSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
@@ -962,6 +993,8 @@ export const lightningArrow: SpellEntry = {
     "The piece of ammunition or weapon then returns to its normal form.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage for both effects of the spell increases by <strong>1d8</strong> for each slot level above 3rd."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.LIGHTNING],
     [DICE.D8, DAMAGE_TYPE.LIGHTNING],
@@ -986,6 +1019,8 @@ export const lightningBolt: SpellEntry = {
     "The Lightning ignites flammable objects in the area that aren't being worn or carried.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by <strong>1d6</strong> for each slot level above 3rd."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.LIGHTNING],
     [DICE.D6, DAMAGE_TYPE.LIGHTNING],
@@ -1018,6 +1053,7 @@ export const magicCircle: SpellEntry = {
     "When you cast this spell, you can elect to cause its magic to operate in the reverse direction, preventing a creature of the specified type from leaving the cylinder and protecting targets outside it.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the duration increases by 1 hour for each slot level above 3rd."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.CLERIC,
@@ -1105,6 +1141,8 @@ export const melfsMinuteMeteors: SpellEntry = {
     "You create six tiny meteors in your space. They float in the air and orbit you for the spell's duration. When you cast the spell, and as a Bonus Action on each of your turns thereafter, you can expend one or two of the meteors, sending them streaking toward a point or points you choose within 120 feet of you. Once a meteor reaches its destination or impacts against a solid surface, the meteor explodes. Each creature within 5 feet of the point where the meteor explodes must make a Dexterity saving throw. A creature takes <strong>2d6</strong> Fire damage on a failed save, or half as much damage on a successful one.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the number of meteors created increases by two for each slot level above 3rd."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.FIRE],
     [DICE.D6, DAMAGE_TYPE.FIRE]
@@ -1241,6 +1279,8 @@ export const psionicBlast: SpellEntry = {
     "You unleash a destructive wave of mental power in a 30-foot cone. Each creature in the area must make a Dexterity saving throw. On a failed save, a target takes <strong>5d8</strong> Force damage, is pushed 20 feet directly away from you, and is knocked Prone. On a successful save, a target takes half as much damage and isn't pushed or knocked Prone.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by <strong>1d8</strong> for each slot level above 3rd."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.FORCE],
     [DICE.D8, DAMAGE_TYPE.FORCE],
@@ -1266,6 +1306,8 @@ export const pulseWave: SpellEntry = {
     "In addition, unsecured objects that are completely within the cone are likewise pulled or pushed 15 feet.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by <strong>1d6</strong> and the distance pulled or pushed increases by 5 feet for each slot level above 3rd."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.FORCE],
     [DICE.D6, DAMAGE_TYPE.FORCE],
@@ -1355,6 +1397,7 @@ export const sleetStorm: SpellEntry = {
     "The ground in the area is covered with slick ice, making it difficult terrain. When a creature enters the spell's area for the first time on a turn or starts its turn there, it must make a Dexterity saving throw. On a failed save, it falls Prone.",
     "If a creature starts its turn in the spell's area and is Concentrating on a spell, the creature must make a successful Constitution saving throw against your spell save DC or lose Concentration."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 3
@@ -1375,6 +1418,7 @@ export const slow: SpellEntry = {
     "If the creature attempts to cast a spell with a casting time of 1 action, roll a <strong>d20</strong>. On an 11 or higher, the spell doesn't take effect until the creature's next turn, and the creature must use its action on that turn to complete the spell. If it can't, the spell is wasted.",
     "A creature affected by this spell makes another Wisdom saving throw at the end of each of its turns. On a successful save, the effect ends for it."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 3
@@ -1433,6 +1477,8 @@ export const spiritGuardians: SpellEntry = {
     "When you cast this spell, you can designate any number of creatures you can see to be unaffected by it. An affected creature's Speed is halved in the area, and when the creature enters the area for the first time on a turn or starts its turn there, it must make a Wisdom saving throw. On a failed save, the creature takes <strong>3d8</strong> Radiant damage if you are good or neutral or <strong>3d8</strong> Necrotic damage if you are evil. On a successful save, the creature takes half as much damage.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by <strong>1d8</strong> for each slot level above 3rd."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 3
@@ -1453,6 +1499,7 @@ export const spiritShroud: SpellEntry = {
     "In addition, any creature of your choice that you can see that starts its turn within 10 feet of you has its Speed reduced by 10 feet until the start of your next turn.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by <strong>1d8</strong> for every two slot levels above 3rd."
   ],
+  isDamagingSpell: true,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.CLERIC,
@@ -1477,6 +1524,7 @@ export const stinkingCloud: SpellEntry = {
     "Each creature that is completely within the cloud at the start of its turn must make a Constitution saving throw against poison. On a failed save, the creature spends its action that turn retching and reeling. Creatures that don't need to breathe or are immune to poison automatically succeed on this saving throw.",
     "A moderate wind, at least 10 miles per hour, disperses the cloud after 4 rounds. A strong wind, at least 20 miles per hour, disperses it after 1 round."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 3
@@ -1511,6 +1559,8 @@ export const summonFey: SpellEntry = {
     "<strong>Mirthful.</strong> The Fey can force one creature it can see within 10 feet of it to make a Wisdom saving throw against your spell save DC. Unless the save succeeds, the target is Charmed by you and the Fey for 1 minute or until the target takes any damage.",
     "<strong>Tricksy.</strong> The Fey can fill a 5-foot cube within 5 feet of it with magical darkness, which lasts until the end of its next turn."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.PIERCING],
     [DICE.D6, DAMAGE_TYPE.FORCE]
@@ -1578,6 +1628,8 @@ export const summonShadowspawn: SpellEntry = {
     "<strong>Dreadful Scream.</strong> 1/Day. The spirit screams. Each creature within 30 feet of it must succeed on a Wisdom saving throw against your spell save DC or be Frightened of the spirit for 1 minute. The Frightened creature can repeat the saving throw at the end of each of its turns, ending the effect on itself on a success.",
     "<strong>Shadow Stealth.</strong> Fear only. While in dim light or darkness, the spirit takes the Hide action."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [[DICE.D12, DAMAGE_TYPE.COLD]],
   spellLists: [SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 3
@@ -1613,6 +1665,8 @@ export const summonUndead: SpellEntry = {
     "<strong>Grave Bolt.</strong> Skeletal only. Ranged Spell Attack: your spell attack modifier to hit, range 150 ft., one target. Hit: <strong>2d4</strong> + 3 + the spell's level Necrotic damage.",
     "<strong>Rotting Claw.</strong> Putrid only. Melee Weapon Attack: your spell attack modifier to hit, reach 5 ft., one target. Hit: <strong>1d6</strong> + 3 + the spell's level Slashing damage. If the target is Poisoned, it must succeed on a Constitution saving throw against your spell save DC or be Paralyzed until the end of its next turn."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 3
@@ -1648,6 +1702,8 @@ export const summonWarriorSpirit: SpellEntry = {
     "<strong>Unarmed Strike.</strong> Monk only. Melee Weapon Attack: your spell attack modifier to hit, reach 5 ft., one target. Hit: <strong>1d4</strong> + 3 + the spell's level Bludgeoning damage, and the target must succeed on a Strength saving throw against your spell save DC or be knocked Prone.",
     "<strong>Flurry of Blows.</strong> Monk only. The monk makes one Unarmed Strike attack."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 3
@@ -1667,6 +1723,8 @@ export const thunderStep: SpellEntry = {
     "You can bring along objects as long as their weight doesn't exceed what you can carry. You can also teleport one willing creature of your size or smaller who is carrying gear up to its carrying capacity. The creature must be within 5 feet of you when you cast this spell, and there must be an unoccupied space within 5 feet of your destination space for the creature to appear in; otherwise, the creature is left behind.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by <strong>1d10</strong> for each slot level above 3rd."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.THUNDER],
     [DICE.D10, DAMAGE_TYPE.THUNDER],
@@ -1688,6 +1746,8 @@ export const tidalWave: SpellEntry = {
   description: [
     "You conjure up a wave of water that crashes down on an area within range. The area can be up to 30 feet long, up to 10 feet wide, and up to 10 feet tall. Each creature in that area must make a Dexterity saving throw. On a failure, a creature takes <strong>4d8</strong> Bludgeoning damage and is knocked Prone. On a success, a creature takes half as much damage and isn't knocked Prone. The water then spreads out across the ground in all directions, extinguishing unprotected flames in its area and within 30 feet of it."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.BLUDGEONING],
     [DICE.D8, DAMAGE_TYPE.BLUDGEONING],
@@ -1722,6 +1782,7 @@ export const tinyServant: SpellEntry = {
     "<strong>Senses.</strong> Blindsight 60 ft., blind beyond this radius, passive Perception 10.",
     "<strong>Slam.</strong> Melee Weapon Attack: +5 to hit, reach 5 ft., one target. Hit: <strong>1d4</strong> + 3 Bludgeoning damage."
   ],
+  isDamagingSpell: true,
   damage: [[DICE.D4, DAMAGE_TYPE.BLUDGEONING]],
   spellLists: [SPELL_LIST_CLASS.WIZARD, SPELL_LIST_CLASS.ARTIFICER],
   spellLevel: 3
@@ -1764,6 +1825,7 @@ export const vampiricTouch: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, the damage increases by <strong>1d6</strong> for each slot level above 3rd."
   ],
   isHealingSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.NECROTIC],
     [DICE.D6, DAMAGE_TYPE.NECROTIC],
@@ -1871,6 +1933,8 @@ export const windWall: SpellEntry = {
     "When the wall appears, each creature within its area must make a Strength saving throw. A creature takes <strong>3d8</strong> Bludgeoning damage on a failed save, or half as much damage on a successful one.",
     "The strong wind keeps fog, smoke, and other gases at bay. Small or smaller flying creatures or objects can't pass through the wall. Loose, lightweight materials brought into the wall fly upward. Arrows, bolts, and other ordinary projectiles launched at targets behind the wall are deflected upward and automatically miss. Boulders hurled by giants or siege engines, and similar projectiles, are unaffected. Creatures in gaseous form can't pass through it."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.BLUDGEONING],
     [DICE.D8, DAMAGE_TYPE.BLUDGEONING],

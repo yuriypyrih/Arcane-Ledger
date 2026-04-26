@@ -42,7 +42,11 @@ const dreadAllegianceResistanceSourceIdPrefix =
 type RogueScionOfTheThreeCharacter = Pick<Character, "className"> &
   Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "subclassId">>;
 
-const dreadAllegianceChoices = ["bane", "bhaal", "myrkul"] as const satisfies readonly RogueScionOfTheThreeDreadAllegianceChoice[];
+const dreadAllegianceChoices = [
+  "bane",
+  "bhaal",
+  "myrkul"
+] as const satisfies readonly RogueScionOfTheThreeDreadAllegianceChoice[];
 const dreadAllegianceChoiceSet = new Set<RogueScionOfTheThreeDreadAllegianceChoice>(
   dreadAllegianceChoices
 );
@@ -224,7 +228,6 @@ export function getRogueScionOfTheThreeSneakAttackEffectDefinitions(
       key: "terrify",
       name: "Terrify",
       costDice: 1,
-      referenceTitle: "Terrify",
       referenceDescription: strikeFearDescription.slice(1).filter(Boolean)
     }
   ];

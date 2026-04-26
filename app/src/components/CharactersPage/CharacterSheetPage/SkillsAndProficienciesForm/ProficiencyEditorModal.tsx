@@ -58,6 +58,10 @@ import TextInput from "../../FormInputs/TextInput";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import RadioContainerOption from "../RadioContainerOption";
 import styles from "./ProficiencyEditorModal.module.css";
+import {
+  applyProficiencyEditorDraftToCharacter,
+  createProficiencyEditorDraft
+} from "./proficiencyDrafts";
 
 export type ProficiencyEditorTab =
   | "skills"
@@ -98,12 +102,22 @@ function ProficiencyEditorModal({
   onPersistCharacter
 }: ProficiencyEditorModalProps) {
   const [activeTab, setActiveTab] = useState<ProficiencyEditorTab>(initialTab);
+  const [proficiencyDraft, setProficiencyDraft] = useState(() =>
+    createProficiencyEditorDraft(character)
+  );
   const [customLanguageNameDraft, setCustomLanguageNameDraft] = useState("");
   const [customLanguageDescriptionDraft, setCustomLanguageDescriptionDraft] = useState("");
 
   const displayedLanguageProficiencyEntries = getDisplayLanguageProficiencyEntries(
-    character.languageProficiencies
+    proficiencyDraft.languageProficiencies
   );
+
+  function saveAndClose() {
+    onPersistCharacter((currentCharacter) =>
+      applyProficiencyEditorDraftToCharacter(currentCharacter, proficiencyDraft)
+    );
+    onClose();
+  }
 
   function updateSkillLevel(skillName: string, nextLevel: PROF_LEVEL) {
     const skillProficiency = getSkillProficiencyForName(skillName);
@@ -112,10 +126,10 @@ function ProficiencyEditorModal({
       return;
     }
 
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
+    setProficiencyDraft((currentDraft) => ({
+      ...currentDraft,
       skillProficiencies: upsertManualSkillEntry(
-        currentCharacter.skillProficiencies,
+        currentDraft.skillProficiencies,
         skillProficiency,
         nextLevel
       )
@@ -127,15 +141,15 @@ function ProficiencyEditorModal({
   }
 
   function updateWeaponProficiency(proficiency: WEAPON_PROFICIENCY, isSelected: boolean) {
-    onPersistCharacter((currentCharacter) => {
-      if (hasLockedWeaponEntry(currentCharacter.weaponProficiencies, proficiency)) {
-        return currentCharacter;
+    setProficiencyDraft((currentDraft) => {
+      if (hasLockedWeaponEntry(currentDraft.weaponProficiencies, proficiency)) {
+        return currentDraft;
       }
 
       return {
-        ...currentCharacter,
+        ...currentDraft,
         weaponProficiencies: setManualWeaponEntry(
-          currentCharacter.weaponProficiencies,
+          currentDraft.weaponProficiencies,
           proficiency,
           isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
         )
@@ -147,15 +161,15 @@ function ProficiencyEditorModal({
     proficiency: SAVING_THROW_PROFICIENCY,
     isSelected: boolean
   ) {
-    onPersistCharacter((currentCharacter) => {
-      if (hasLockedSavingThrowEntry(currentCharacter.savingThrowProficiencies, proficiency)) {
-        return currentCharacter;
+    setProficiencyDraft((currentDraft) => {
+      if (hasLockedSavingThrowEntry(currentDraft.savingThrowProficiencies, proficiency)) {
+        return currentDraft;
       }
 
       return {
-        ...currentCharacter,
+        ...currentDraft,
         savingThrowProficiencies: setManualSavingThrowEntry(
-          currentCharacter.savingThrowProficiencies,
+          currentDraft.savingThrowProficiencies,
           proficiency,
           isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
         )
@@ -164,15 +178,15 @@ function ProficiencyEditorModal({
   }
 
   function updateArmorProficiency(proficiency: ARMOR_PROFICIENCY, isSelected: boolean) {
-    onPersistCharacter((currentCharacter) => {
-      if (hasLockedArmorEntry(currentCharacter.armorProficiencies, proficiency)) {
-        return currentCharacter;
+    setProficiencyDraft((currentDraft) => {
+      if (hasLockedArmorEntry(currentDraft.armorProficiencies, proficiency)) {
+        return currentDraft;
       }
 
       return {
-        ...currentCharacter,
+        ...currentDraft,
         armorProficiencies: setManualArmorEntry(
-          currentCharacter.armorProficiencies,
+          currentDraft.armorProficiencies,
           proficiency,
           isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
         )
@@ -181,15 +195,15 @@ function ProficiencyEditorModal({
   }
 
   function updateToolProficiency(proficiency: ToolProficiency, isSelected: boolean) {
-    onPersistCharacter((currentCharacter) => {
-      if (hasLockedToolEntry(currentCharacter.toolProficiencies, proficiency)) {
-        return currentCharacter;
+    setProficiencyDraft((currentDraft) => {
+      if (hasLockedToolEntry(currentDraft.toolProficiencies, proficiency)) {
+        return currentDraft;
       }
 
       return {
-        ...currentCharacter,
+        ...currentDraft,
         toolProficiencies: setManualToolEntry(
-          currentCharacter.toolProficiencies,
+          currentDraft.toolProficiencies,
           proficiency,
           isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
         )
@@ -198,15 +212,15 @@ function ProficiencyEditorModal({
   }
 
   function updateLanguageProficiency(proficiency: LANGUAGE_PROFICIENCY, isSelected: boolean) {
-    onPersistCharacter((currentCharacter) => {
-      if (hasLockedLanguageEntry(currentCharacter.languageProficiencies, proficiency)) {
-        return currentCharacter;
+    setProficiencyDraft((currentDraft) => {
+      if (hasLockedLanguageEntry(currentDraft.languageProficiencies, proficiency)) {
+        return currentDraft;
       }
 
       return {
-        ...currentCharacter,
+        ...currentDraft,
         languageProficiencies: setManualLanguageEntry(
-          currentCharacter.languageProficiencies,
+          currentDraft.languageProficiencies,
           proficiency,
           isSelected ? PROF_LEVEL.PROFICIENT : PROF_LEVEL.NONE
         )
@@ -221,10 +235,10 @@ function ProficiencyEditorModal({
       return;
     }
 
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
+    setProficiencyDraft((currentDraft) => ({
+      ...currentDraft,
       languageProficiencies: addManualCustomLanguageEntry(
-        currentCharacter.languageProficiencies,
+        currentDraft.languageProficiencies,
         normalizedName,
         customLanguageDescriptionDraft.trim()
       )
@@ -234,10 +248,10 @@ function ProficiencyEditorModal({
   }
 
   function removeLanguage(proficiency: LanguageProficiency) {
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
+    setProficiencyDraft((currentDraft) => ({
+      ...currentDraft,
       languageProficiencies: setManualLanguageEntry(
-        currentCharacter.languageProficiencies,
+        currentDraft.languageProficiencies,
         proficiency,
         PROF_LEVEL.NONE
       )
@@ -299,7 +313,8 @@ function ProficiencyEditorModal({
         const proficiency = getSkillProficiencyForName(skillName);
 
         return proficiency
-          ? getSkillLevelFromEntries(character.skillProficiencies, proficiency) !== PROF_LEVEL.NONE
+          ? getSkillLevelFromEntries(proficiencyDraft.skillProficiencies, proficiency) !==
+              PROF_LEVEL.NONE
           : false;
       },
       updateSkillProficiency,
@@ -309,7 +324,7 @@ function ProficiencyEditorModal({
           const proficiency = getSkillProficiencyForName(skillName);
 
           return proficiency
-            ? hasLockedSkillEntry(character.skillProficiencies, proficiency)
+            ? hasLockedSkillEntry(proficiencyDraft.skillProficiencies, proficiency)
             : false;
         }
       }
@@ -320,7 +335,7 @@ function ProficiencyEditorModal({
     return renderToggleEditor(
       options,
       (proficiency) =>
-        getLanguageLevelFromEntries(character.languageProficiencies, proficiency) !==
+        getLanguageLevelFromEntries(proficiencyDraft.languageProficiencies, proficiency) !==
         PROF_LEVEL.NONE,
       updateLanguageProficiency,
       {
@@ -336,12 +351,12 @@ function ProficiencyEditorModal({
     return renderToggleEditor(
       savingThrowProficiencyOptions,
       (proficiency) =>
-        getSavingThrowLevelFromEntries(character.savingThrowProficiencies, proficiency) !==
+        getSavingThrowLevelFromEntries(proficiencyDraft.savingThrowProficiencies, proficiency) !==
         PROF_LEVEL.NONE,
       updateSavingThrowProficiency,
       {
         isDisabled: (proficiency) =>
-          hasLockedSavingThrowEntry(character.savingThrowProficiencies, proficiency)
+          hasLockedSavingThrowEntry(proficiencyDraft.savingThrowProficiencies, proficiency)
       }
     );
   }
@@ -376,7 +391,7 @@ function ProficiencyEditorModal({
             {renderToggleEditor(
               grantedLanguageEntries.map((entry) => entry.proficiency as LANGUAGE_PROFICIENCY),
               (proficiency) =>
-                getLanguageLevelFromEntries(character.languageProficiencies, proficiency) !==
+                getLanguageLevelFromEntries(proficiencyDraft.languageProficiencies, proficiency) !==
                 PROF_LEVEL.NONE,
               updateLanguageProficiency,
               {
@@ -416,7 +431,7 @@ function ProficiencyEditorModal({
           {customLanguageEntries.length > 0 ? (
             <ul className={styles.customLanguageList}>
               {customLanguageEntries.map((entry) => {
-                const matchingCharacterEntry = character.languageProficiencies.find(
+                const matchingCharacterEntry = proficiencyDraft.languageProficiencies.find(
                   (currentEntry) => currentEntry.proficiency === entry.proficiency
                 );
 
@@ -456,9 +471,10 @@ function ProficiencyEditorModal({
       isWeaponMasteryProficiency(proficiency)
     );
     const isWeaponSelected = (proficiency: WEAPON_PROFICIENCY) =>
-      getWeaponLevelFromEntries(character.weaponProficiencies, proficiency) !== PROF_LEVEL.NONE;
+      getWeaponLevelFromEntries(proficiencyDraft.weaponProficiencies, proficiency) !==
+      PROF_LEVEL.NONE;
     const isWeaponDisabled = (proficiency: WEAPON_PROFICIENCY) =>
-      hasLockedWeaponEntry(character.weaponProficiencies, proficiency);
+      hasLockedWeaponEntry(proficiencyDraft.weaponProficiencies, proficiency);
 
     return (
       <div className={styles.editorSectionStack}>
@@ -495,22 +511,24 @@ function ProficiencyEditorModal({
         return renderToggleEditor(
           armorProficiencyOptions,
           (proficiency) =>
-            getArmorLevelFromEntries(character.armorProficiencies, proficiency) !== PROF_LEVEL.NONE,
+            getArmorLevelFromEntries(proficiencyDraft.armorProficiencies, proficiency) !==
+            PROF_LEVEL.NONE,
           updateArmorProficiency,
           {
             isDisabled: (proficiency) =>
-              hasLockedArmorEntry(character.armorProficiencies, proficiency)
+              hasLockedArmorEntry(proficiencyDraft.armorProficiencies, proficiency)
           }
         );
       case "tools":
         return renderToggleEditor(
           groupedToolProficiencyOptions,
           (proficiency) =>
-            getToolLevelFromEntries(character.toolProficiencies, proficiency) !== PROF_LEVEL.NONE,
+            getToolLevelFromEntries(proficiencyDraft.toolProficiencies, proficiency) !==
+            PROF_LEVEL.NONE,
           updateToolProficiency,
           {
             isDisabled: (proficiency) =>
-              hasLockedToolEntry(character.toolProficiencies, proficiency)
+              hasLockedToolEntry(proficiencyDraft.toolProficiencies, proficiency)
           }
         );
       case "languages":
@@ -523,7 +541,7 @@ function ProficiencyEditorModal({
   return (
     <SheetModal
       titleId="character-proficiency-editor-title"
-      onClose={onClose}
+      onClose={saveAndClose}
       panelClassName={styles.modalPanel}
     >
       <OverlayHeader>
@@ -532,10 +550,10 @@ function ProficiencyEditorModal({
             <OverlayTitle id="character-proficiency-editor-title">Edit Proficiencies</OverlayTitle>
           </OverlayTitleRow>
           <OverlaySummary className={shared.helperText}>
-            Changes here are applied immediately as manual overrides.
+            Manual overrides are saved when this editor closes.
           </OverlaySummary>
         </OverlayHeaderContent>
-        <OverlayCloseButton label="Close proficiency editor" onClick={onClose} />
+        <OverlayCloseButton label="Close proficiency editor" onClick={saveAndClose} />
       </OverlayHeader>
 
       <OverlayBody className={styles.body}>

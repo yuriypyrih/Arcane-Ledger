@@ -160,6 +160,7 @@ export type CharacterRogueFeatureState = {
   expertise?: CharacterRogueExpertiseState;
   sneakAttackUsedThisTurn?: boolean;
   steadyAimActive?: boolean;
+  steadyAimAttackAdvantageAvailable?: boolean;
   spellThiefUsesExpended?: number;
   strokeOfLuckUsesExpended?: number;
   thievesCantLanguage?: LanguageProficiency;

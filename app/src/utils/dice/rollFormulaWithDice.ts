@@ -32,14 +32,14 @@ function getDevD20Roll(): number | null {
 
 function appendModeD20Dice(
   dice: RolledDie[],
-  firstAdjusted: number,
-  secondAdjusted: number,
+  firstValue: number,
+  secondValue: number,
   selectedIndex: 0 | 1,
   diceIndex: number,
   mode: Exclude<RollMode, "normal">,
   naturalOutcome: NaturalOutcome
 ) {
-  const values = [firstAdjusted, secondAdjusted] as const;
+  const values = [firstValue, secondValue] as const;
 
   values.forEach((value, index) => {
     dice.push({
@@ -60,8 +60,6 @@ function getModeD20Roll(
 ): {
   firstRaw: number;
   secondRaw: number;
-  firstAdjusted: number;
-  secondAdjusted: number;
   selectedIndex: 0 | 1;
   chosenRaw: number;
   chosenAdjusted: number;
@@ -73,24 +71,14 @@ function getModeD20Roll(
     firstRaw = forcedFirstRaw;
   }
 
-  const firstAdjusted = Math.max(firstRaw, minimum);
-  const secondAdjusted = Math.max(secondRaw, minimum);
   const selectedIndex =
-    mode === "advantage"
-      ? firstAdjusted >= secondAdjusted
-        ? 0
-        : 1
-      : firstAdjusted <= secondAdjusted
-        ? 0
-        : 1;
+    mode === "advantage" ? (firstRaw >= secondRaw ? 0 : 1) : firstRaw <= secondRaw ? 0 : 1;
   const chosenRaw = selectedIndex === 0 ? firstRaw : secondRaw;
-  const chosenAdjusted = selectedIndex === 0 ? firstAdjusted : secondAdjusted;
+  const chosenAdjusted = Math.max(chosenRaw, minimum);
 
   return {
     firstRaw,
     secondRaw,
-    firstAdjusted,
-    secondAdjusted,
     selectedIndex,
     chosenRaw,
     chosenAdjusted
@@ -117,18 +105,22 @@ export function rollFormulaWithDice(input: string, mode: RollMode): RollFormulaW
     const rawRolls = Array.from({ length: normalRollCount }, () => rollDie(term.sides));
 
     if (applyModeToTerm) {
-      const { firstAdjusted, secondAdjusted, selectedIndex, chosenRaw, chosenAdjusted } =
-        getModeD20Roll(
-          term.minimum,
-          mode,
-          devD20Roll !== null && !devD20Consumed ? devD20Roll : null
-        );
-      const selectedNaturalOutcome = getNaturalOutcome(chosenRaw);
+      const { firstRaw, secondRaw, selectedIndex, chosenRaw, chosenAdjusted } = getModeD20Roll(
+        term.minimum,
+        mode,
+        devD20Roll !== null && !devD20Consumed ? devD20Roll : null
+      );
+      const selectedNaturalOutcome =
+        chosenRaw === chosenAdjusted ? getNaturalOutcome(chosenRaw) : null;
+      const firstDisplayValue = selectedIndex === 0 ? chosenAdjusted : firstRaw;
+      const secondDisplayValue = selectedIndex === 1 ? chosenAdjusted : secondRaw;
+      const modeDetail =
+        term.minimum > 1
+          ? `${mode} d20 raw [${firstRaw}, ${secondRaw}] -> ${chosenRaw}; minimum ${term.minimum} -> ${chosenAdjusted}`
+          : `${mode} d20 [${firstRaw}, ${secondRaw}] -> ${chosenAdjusted}`;
 
       total += chosenAdjusted * term.sign;
-      detailParts.push(
-        `${term.sign === -1 ? "-" : ""}${mode} d20 [${firstAdjusted}, ${secondAdjusted}] -> ${chosenAdjusted}`
-      );
+      detailParts.push(`${term.sign === -1 ? "-" : ""}${modeDetail}`);
       modeApplied = mode;
       advantageConsumed = true;
       if (devD20Roll !== null && !devD20Consumed) {
@@ -136,8 +128,8 @@ export function rollFormulaWithDice(input: string, mode: RollMode): RollFormulaW
       }
       appendModeD20Dice(
         dice,
-        firstAdjusted,
-        secondAdjusted,
+        firstDisplayValue,
+        secondDisplayValue,
         selectedIndex,
         diceIndex,
         mode,
@@ -156,6 +148,9 @@ export function rollFormulaWithDice(input: string, mode: RollMode): RollFormulaW
     }
 
     const adjustedRolls = rawRolls.map((value) => Math.max(value, term.minimum));
+    const rollDetails = rawRolls.map((value, index) =>
+      value === adjustedRolls[index] ? `${value}` : `${value}->${adjustedRolls[index]}`
+    );
 
     const subtotal = adjustedRolls.reduce((sum, value) => sum + value, 0) * term.sign;
     total += subtotal;
@@ -163,7 +158,7 @@ export function rollFormulaWithDice(input: string, mode: RollMode): RollFormulaW
       detailParts.push(
         `${term.sign === -1 ? "-" : ""}${adjustedRolls.length}d${term.sides}${
           term.minimum > 1 ? `m${term.minimum}` : ""
-        } [${adjustedRolls.join(", ")}]`
+        } [${rollDetails.join(", ")}]`
       );
     }
 
@@ -175,7 +170,9 @@ export function rollFormulaWithDice(input: string, mode: RollMode): RollFormulaW
 
     adjustedRolls.forEach((value, index) => {
       const dieNaturalOutcome =
-        !countedD20Resolved && term.sides === 20 ? getNaturalOutcome(rawRolls[index]) : null;
+        !countedD20Resolved && term.sides === 20 && rawRolls[index] === value
+          ? getNaturalOutcome(rawRolls[index])
+          : null;
 
       dice.push({
         id: createDiceId(supportedSides, diceIndex),

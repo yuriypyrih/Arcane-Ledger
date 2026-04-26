@@ -2239,6 +2239,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           footer={inventoryDrawerFooter}
           weaponMasteryActive={selectedInventoryWeaponHasActiveMastery}
           weaponProficient={selectedInventoryWeaponHasProficiency}
+          onOpenWeaponReference={openWeaponReference}
         />
       ) : null}
 

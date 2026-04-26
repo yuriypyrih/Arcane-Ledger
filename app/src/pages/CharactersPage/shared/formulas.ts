@@ -10,6 +10,22 @@ export type ParseFormulaRangeOptions = {
 
 type FormulaTerm = string | null | undefined | false;
 
+export type FormulaDieDisplayConstraint =
+  | {
+      kind: "minimum";
+      value: number;
+    }
+  | {
+      kind: "maximum";
+      value: number;
+    }
+  | {
+      kind: "override";
+      from: number;
+      to: number;
+      value: number;
+    };
+
 const formulaTokenPattern = /[+-]?[^+-]+/g;
 
 function normalizeFormulaTerm(term: string): string {
@@ -138,6 +154,29 @@ export function formatFormulaTerms(terms: FormulaTerm[]): string {
   }, firstExpression);
 }
 
+export function formatFormulaDieDisplayTerm(
+  term: string,
+  constraints: FormulaDieDisplayConstraint[] = []
+): string {
+  const constraintLabels = constraints.flatMap((constraint) => {
+    if (constraint.kind === "minimum") {
+      return Number.isFinite(constraint.value) ? [`(MIN:${constraint.value})`] : [];
+    }
+
+    if (constraint.kind === "maximum") {
+      return Number.isFinite(constraint.value) ? [`(MAX:${constraint.value})`] : [];
+    }
+
+    return Number.isFinite(constraint.from) &&
+      Number.isFinite(constraint.to) &&
+      Number.isFinite(constraint.value)
+      ? [`(OVERRIDE:${constraint.from}-${constraint.to}->${constraint.value})`]
+      : [];
+  });
+
+  return [term.trim(), ...constraintLabels].filter(Boolean).join(" ");
+}
+
 export function formatFormulaExpression(formula: string): string {
   const terms = formula.replace(/\s+/g, "").match(formulaTokenPattern);
 
@@ -217,8 +256,10 @@ export function formatFormulaCell({
   const resultRangeLabel =
     minimum === maximum ? `${minimum} ${resultLabel}` : `${minimum}~${maximum} ${resultLabel}`;
   const minimumSuffix =
-    typeof minimumValue === "number" && Number.isFinite(minimumValue) && range.minimum < minimumValue
-      ? ` ${minimumLabel ?? `(min ${minimumValue})`}`
+    typeof minimumValue === "number" &&
+    Number.isFinite(minimumValue) &&
+    range.minimum < minimumValue
+      ? ` ${minimumLabel ?? `(MIN:${minimumValue})`}`
       : "";
 
   return {

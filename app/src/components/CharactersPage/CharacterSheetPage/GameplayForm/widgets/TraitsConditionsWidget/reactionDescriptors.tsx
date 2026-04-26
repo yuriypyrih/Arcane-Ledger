@@ -649,14 +649,9 @@ const descriptors: ReactionDescriptor[] = [
       context.spellThiefUsesRemaining <= 0 ? "No Spell Thief charges remaining." : null,
     getSelectionWarning: (context) =>
       context.selectedSpellThiefSpell === null ? "Select a spell." : null,
-    getResourceSummary: (context) =>
-      `${context.spellThiefUsesRemaining}/${context.spellThiefUsesTotal} charges | Long Rest`,
+    getResourceSummary: () => null,
     getHeaderTags: (context) => [
-      createChargesHeaderTag(
-        context.spellThiefUsesRemaining,
-        context.spellThiefUsesTotal,
-        "Long Rest"
-      )
+      createChargesHeaderTag(context.spellThiefUsesRemaining, context.spellThiefUsesTotal)
     ],
     renderCustomContent: renderSpellThiefSelector,
     apply: applySpellThief,

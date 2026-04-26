@@ -23,6 +23,8 @@ export const acidSplash: SpellEntry = {
     "You hurl a bubble of acid. Choose one creature you can see within range, or choose two creatures you can see within range that are within 5 feet of each other. A target must succeed on a Dexterity saving throw or take <strong>1d6</strong> Acid damage.",
     "<strong>At Higher Levels.</strong> This spell's damage increases by <strong>1d6</strong> when you reach 5th level (<strong>2d6</strong>), 11th level (<strong>3d6</strong>), and 17th level (<strong>4d6</strong>)."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.ACID]],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
@@ -63,6 +65,7 @@ export const boomingBlade: SpellEntry = {
     "You brandish the weapon used in the spell's casting and make a melee attack with it against one creature within 5 feet of you. On a hit, the target suffers the weapon attack's normal effects and then becomes sheathed in booming energy until the start of your next turn. If the target willingly moves 5 feet or more before then, the target takes <strong>1d8</strong> Thunder damage, and the spell ends.",
     "<strong>At Higher Levels.</strong> At 5th level, the melee attack deals an extra <strong>1d8</strong> Thunder damage to the target on a hit, and the damage the target takes for moving increases to <strong>2d8</strong>. Both damage rolls increase by <strong>1d8</strong> at 11th level (<strong>2d8</strong> and <strong>3d8</strong>) and again at 17th level (<strong>3d8</strong> and <strong>4d8</strong>)."
   ],
+  isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.THUNDER]],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
@@ -86,6 +89,7 @@ export const chillTouch: SpellEntry = {
     "You create a ghostly, skeletal hand in the space of a creature within range. Make a ranged spell attack against the creature to assail it with the chill of the grave. On a hit, the target takes <strong>1d8</strong> Necrotic damage, and it can't regain Hit Points until the start of your next turn. Until then, the hand clings to the target. If you hit an Undead target, it also has Disadvantage on attack rolls against you until the end of your next turn.",
     "<strong>At Higher Levels.</strong> This spell's damage increases by <strong>1d8</strong> when you reach 5th level (<strong>2d8</strong>), 11th level (<strong>3d8</strong>), and 17th level (<strong>4d8</strong>)."
   ],
+  isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.NECROTIC]],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
@@ -131,6 +135,8 @@ export const createBonfire: SpellEntry = {
     "You create a bonfire on ground that you can see within range. Until the spell ends, the bonfire fills a 5-foot cube. Any creature in the bonfire's space when you cast the spell must succeed on a Dexterity saving throw or take <strong>1d8</strong> Fire damage. A creature must also make the saving throw when it enters the bonfire's space for the first time on a turn or ends its turn there.",
     "<strong>At Higher Levels.</strong> The spell's damage increases by <strong>1d8</strong> when you reach 5th level (<strong>2d8</strong>), 11th level (<strong>3d8</strong>), and 17th level (<strong>4d8</strong>)."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.FIRE]],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
@@ -226,6 +232,7 @@ export const eldritchBlast: SpellEntry = {
     "A beam of crackling energy streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, the target takes <strong>1d10</strong> Force damage.",
     "<strong>At Higher Levels.</strong> The spell creates more than one beam when you reach higher levels: two beams at 5th level, three beams at 11th level, and four beams at 17th level. You can direct the beams at the same target or at different ones. Make a separate attack roll for each beam."
   ],
+  isDamagingSpell: true,
   damage: [[DICE.D10, DAMAGE_TYPE.FORCE]],
   spellLists: [SPELL_LIST_CLASS.WARLOCK],
   spellLevel: 0
@@ -263,6 +270,7 @@ export const fireBolt: SpellEntry = {
     "You hurl a mote of fire at a creature or object within range. Make a ranged spell attack against the target. On a hit, the target takes <strong>1d10</strong> Fire damage. A flammable object hit by this spell ignites if it isn't being worn or carried.",
     "<strong>At Higher Levels.</strong> This spell's damage increases by <strong>1d10</strong> when you reach 5th level (<strong>2d10</strong>), 11th level (<strong>3d10</strong>), and 17th level (<strong>4d10</strong>)."
   ],
+  isDamagingSpell: true,
   damage: [[DICE.D10, DAMAGE_TYPE.FIRE]],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
@@ -304,6 +312,8 @@ export const frostbite: SpellEntry = {
     "You cause numbing frost to form on one creature that you can see within range. The target must make a Constitution saving throw. On a failed save, the target takes <strong>1d6</strong> Cold damage, and it has Disadvantage on the next weapon attack roll it makes before the end of its next turn.",
     "<strong>At Higher Levels.</strong> The spell's damage increases by <strong>1d6</strong> when you reach 5th level (<strong>2d6</strong>), 11th level (<strong>3d6</strong>), and 17th level (<strong>4d6</strong>)."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.COLD]],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
@@ -328,6 +338,7 @@ export const greenFlameBlade: SpellEntry = {
     "You brandish the weapon used in the spell's casting and make a melee attack with it against one creature within 5 feet of you. On a hit, the target suffers the weapon attack's normal effects, and you can cause green fire to leap from the target to a different creature of your choice that you can see within 5 feet of it. The second creature takes Fire damage equal to your spellcasting ability modifier.",
     "<strong>At Higher Levels.</strong> At 5th level, the melee attack deals an extra <strong>1d8</strong> Fire damage to the target on a hit, and the fire damage to the second creature increases to <strong>1d8</strong> + your spellcasting ability modifier. Both damage rolls increase by <strong>1d8</strong> at 11th level (<strong>2d8</strong> and <strong>2d8</strong>) and 17th level (<strong>3d8</strong> and <strong>3d8</strong>)."
   ],
+  isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.FIRE]],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
@@ -370,6 +381,7 @@ export const gust: SpellEntry = {
     "You create a small blast of air capable of moving one object that is neither held nor carried and that weighs no more than 5 pounds. The object is pushed up to 10 feet away from you. It isn't pushed with enough force to cause damage.",
     "You create a harmless sensory affect using air, such as causing leaves to rustle, wind to slam shutters shut, or your clothing to ripple in a breeze."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
@@ -388,6 +400,8 @@ export const handOfRadiance: SpellEntry = {
     "You raise your hand, and burning radiance erupts from it. Each creature of your choice that you can see within 5 feet of you must succeed on a Constitution saving throw or take <strong>1d6</strong> Radiant damage.",
     "<strong>At Higher Levels.</strong> The spell's damage increases by <strong>1d6</strong> when you reach 5th level (<strong>2d6</strong>), 11th level (<strong>3d6</strong>), and 17th level (<strong>4d6</strong>)."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.RADIANT]],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 0
@@ -406,6 +420,8 @@ export const infestation: SpellEntry = {
     "You cause a cloud of mites, fleas, and other parasites to appear momentarily on one creature you can see within range. The target must succeed on a Constitution saving throw, or it takes <strong>1d6</strong> Poison damage and moves 5 feet in a random direction if it can move and its Speed is at least 5 feet. Roll a <strong>d4</strong> for the direction: 1, north; 2, south; 3, east; or 4, west. This movement doesn't provoke opportunity attacks, and if the direction rolled is blocked, the target doesn't move.",
     "<strong>At Higher Levels.</strong> The spell's damage increases by <strong>1d6</strong> when you reach 5th level (<strong>2d6</strong>), 11th level (<strong>3d6</strong>), and 17th level (<strong>4d6</strong>)."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.POISON]],
   spellLists: [
     SPELL_LIST_CLASS.DRUID,
@@ -429,6 +445,7 @@ export const light: SpellEntry = {
     "You touch one object that is no larger than 10 feet in any dimension. Until the spell ends, the object sheds bright light in a 20-foot radius and dim light for an additional 20 feet. The light can be colored as you like. Completely covering the object with something opaque blocks the light. The spell ends if you cast it again or dismiss it as an action.",
     "If you target an object held or worn by a hostile creature, that creature must succeed on a Dexterity saving throw to avoid the spell."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
@@ -453,6 +470,8 @@ export const lightningLure: SpellEntry = {
     "You create a lash of lightning energy that strikes at one creature of your choice that you can see within 15 feet of you. The target must succeed on a Strength saving throw or be pulled up to 10 feet in a straight line toward you and then take <strong>1d8</strong> Lightning damage if it is within 5 feet of you.",
     "<strong>At Higher Levels.</strong> This spell's damage increases by <strong>1d8</strong> when you reach 5th level (<strong>2d8</strong>), 11th level (<strong>3d8</strong>), and 17th level (<strong>4d8</strong>)."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.LIGHTNING]],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
@@ -501,6 +520,7 @@ export const magicStone: SpellEntry = {
     "You touch one to three pebbles and imbue them with magic. You or someone else can make a ranged spell attack with one of the pebbles by throwing it or hurling it with a sling. If thrown, it has a range of 60 feet. If someone else attacks with the pebble, that attacker adds your spellcasting ability modifier, not the attacker's, to the attack roll. On a hit, the target takes Bludgeoning damage equal to <strong>1d6</strong> + your spellcasting ability modifier. Hit or miss, the spell then ends on the stone.",
     "If you cast this spell again, the spell ends early on any pebbles still affected by it."
   ],
+  isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.BLUDGEONING]],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WARLOCK],
   spellLevel: 0
@@ -567,6 +587,8 @@ export const mindSliver: SpellEntry = {
     "You drive a disorienting spike of psychic energy into the mind of one creature you can see within range. The target must succeed on an Intelligence saving throw or take <strong>1d6</strong> Psychic damage and subtract <strong>1d4</strong> from the next saving throw it makes before the end of your next turn.",
     "<strong>At Higher Levels.</strong> This spell's damage increases by <strong>1d6</strong> when you reach certain levels: 5th level (<strong>2d6</strong>), 11th level (<strong>3d6</strong>), and 17th level (<strong>4d6</strong>)."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.PSYCHIC]],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
@@ -648,6 +670,8 @@ export const poisonSpray: SpellEntry = {
     "You extend your hand toward a creature you can see within range and project a puff of noxious gas from your palm. The creature must succeed on a Constitution saving throw or take <strong>1d12</strong> Poison damage.",
     "<strong>At Higher Levels.</strong> This spell's damage increases by <strong>1d12</strong> when you reach 5th level (<strong>2d12</strong>), 11th level (<strong>3d12</strong>), and 17th level (<strong>4d12</strong>)."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [[DICE.D12, DAMAGE_TYPE.POISON]],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
@@ -702,6 +726,7 @@ export const primalSavagery: SpellEntry = {
     "You channel primal magic to cause your teeth or fingernails to sharpen, ready to deliver a corrosive attack. Make a melee spell attack against one creature within 5 feet of you. On a hit, the target takes <strong>1d10</strong> Acid damage. After you make the attack, your teeth or fingernails return to normal.",
     "<strong>At Higher Levels.</strong> The spell's damage increases by <strong>1d10</strong> when you reach 5th level (<strong>2d10</strong>), 11th level (<strong>3d10</strong>), and 17th level (<strong>4d10</strong>)."
   ],
+  isDamagingSpell: true,
   damage: [[DICE.D10, DAMAGE_TYPE.ACID]],
   spellLists: [SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
@@ -721,6 +746,7 @@ export const produceFlame: SpellEntry = {
     "You can also attack with the flame, although doing so ends the spell. When you cast this spell, or as an action on a later turn, you can hurl the flame at a creature within 30 feet of you. Make a ranged spell attack. On a hit, the target takes <strong>1d8</strong> Fire damage.",
     "<strong>At Higher Levels.</strong> This spell's damage increases by <strong>1d8</strong> when you reach 5th level (<strong>2d8</strong>), 11th level (<strong>3d8</strong>), and 17th level (<strong>4d8</strong>)."
   ],
+  isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.FIRE]],
   spellLists: [SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
@@ -739,6 +765,7 @@ export const rayOfFrost: SpellEntry = {
     "A frigid beam of blue-white light streaks toward a creature within range. Make a ranged spell attack against the target. On a hit, it takes <strong>1d8</strong> Cold damage, and its Speed is reduced by 10 feet until the start of your next turn.",
     "<strong>At Higher Levels.</strong> The spell's damage increases by <strong>1d8</strong> when you reach 5th level (<strong>2d8</strong>), 11th level (<strong>3d8</strong>), and 17th level (<strong>4d8</strong>)."
   ],
+  isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.COLD]],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
@@ -774,6 +801,8 @@ export const sacredFlame: SpellEntry = {
     "Flame-like radiance descends on a creature that you can see within range. The target must succeed on a Dexterity saving throw or take <strong>1d8</strong> Radiant damage. The target gains no benefit from cover for this saving throw.",
     "<strong>At Higher Levels.</strong> The spell's damage increases by <strong>1d8</strong> when you reach 5th level (<strong>2d8</strong>), 11th level (<strong>3d8</strong>), and 17th level (<strong>4d8</strong>)."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.RADIANT]],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 0
@@ -792,6 +821,8 @@ export const sappingSting: SpellEntry = {
     "You sap the vitality of one creature you can see in range. The target must succeed on a Constitution saving throw or take <strong>1d4</strong> Necrotic damage and fall Prone.",
     "<strong>At Higher Levels.</strong> This spell's damage increases by <strong>1d4</strong> when you reach 5th level (<strong>2d4</strong>), 11th level (<strong>3d4</strong>), and 17th level (<strong>4d4</strong>)."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [[DICE.D4, DAMAGE_TYPE.NECROTIC]],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
@@ -831,6 +862,7 @@ export const shillelagh: SpellEntry = {
   description: [
     "The wood of a club or quarterstaff you are holding is imbued with nature's power. For the duration, you can use your spellcasting ability instead of Strength for the attack and damage rolls of melee attacks using that weapon, and the weapon's damage die becomes a <strong>d8</strong>. The weapon also becomes magical, if it isn't already. The spell ends if you cast it again or if you let go of the weapon."
   ],
+  isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
@@ -849,6 +881,7 @@ export const shockingGrasp: SpellEntry = {
     "Lightning springs from your hand to deliver a shock to a creature you try to touch. Make a melee spell attack against the target. You have Advantage on the attack roll if the target is wearing armor made of metal. On a hit, the target takes <strong>1d8</strong> Lightning damage, and it can't take reactions until the start of its next turn.",
     "<strong>At Higher Levels.</strong> The spell's damage increases by <strong>1d8</strong> when you reach 5th level (<strong>2d8</strong>), 11th level (<strong>3d8</strong>), and 17th level (<strong>4d8</strong>)."
   ],
+  isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.LIGHTNING]],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
@@ -884,6 +917,7 @@ export const starryWisp: SpellEntry = {
     "You launch a mote of light at one creature or object within range. Make a ranged spell attack against the target. On a hit, the target takes <strong>1d8</strong> Radiant damage, and until the end of your next turn, it emits Dim Light in a 10-foot radius and can't benefit from the Invisible condition.",
     "<strong>At Higher Levels.</strong> The spell's damage increases by <strong>1d8</strong> when you reach 5th level (<strong>2d8</strong>), 11th level (<strong>3d8</strong>), and 17th level (<strong>4d8</strong>)."
   ],
+  isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.RADIANT]],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
@@ -902,6 +936,8 @@ export const swordBurst: SpellEntry = {
     "You create a momentary circle of spectral blades that sweep around you. All other creatures within 5 feet of you must succeed on a Dexterity saving throw or take <strong>1d6</strong> Force damage.",
     "<strong>At Higher Levels.</strong> This spell's damage increases by <strong>1d6</strong> when you reach 5th level (<strong>2d6</strong>), 11th level (<strong>3d6</strong>), and 17th level (<strong>4d6</strong>)."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.FORCE]],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
@@ -949,6 +985,7 @@ export const thornWhip: SpellEntry = {
     "You create a long, vine-like whip covered in thorns that lashes out at your command toward a creature in range. Make a melee spell attack against the target. If the attack hits, the creature takes <strong>1d6</strong> Piercing damage, and if the creature is Large or smaller, you pull the creature up to 10 feet closer to you.",
     "<strong>At Higher Levels.</strong> This spell's damage increases by <strong>1d6</strong> when you reach 5th level (<strong>2d6</strong>), 11th level (<strong>3d6</strong>), and 17th level (<strong>4d6</strong>)."
   ],
+  isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.PIERCING]],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
@@ -967,6 +1004,8 @@ export const thunderclap: SpellEntry = {
     "You create a burst of thunderous sound, which can be heard 100 feet away. Each creature other than you within 5 feet of you must make a Constitution saving throw. On a failed save, the creature takes <strong>1d6</strong> Thunder damage.",
     "<strong>At Higher Levels.</strong> The spell's damage increases by <strong>1d6</strong> when you reach 5th level (<strong>2d6</strong>), 11th level (<strong>3d6</strong>), and 17th level (<strong>4d6</strong>)."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.THUNDER]],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
@@ -992,6 +1031,8 @@ export const tollTheDead: SpellEntry = {
     "You point at one creature you can see within range, and the sound of a dolorous bell fills the air around it for a moment. The target must succeed on a Wisdom saving throw or take <strong>1d8</strong> Necrotic damage. If the target is missing any of its Hit Points, it instead takes <strong>1d12</strong> Necrotic damage.",
     "<strong>At Higher Levels.</strong> The spell's damage increases by one die when you reach 5th level (<strong>2d8</strong> or <strong>2d12</strong>), 11th level (<strong>3d8</strong> or <strong>3d12</strong>), and 17th level (<strong>4d8</strong> or <strong>4d12</strong>)."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
     [DICE.D12, DAMAGE_TYPE.NECROTIC]
@@ -1035,6 +1076,8 @@ export const viciousMockery: SpellEntry = {
     "You unleash a string of insults laced with subtle enchantments at a creature you can see within range. If the target can hear you, though it need not understand you, it must succeed on a Wisdom saving throw or take <strong>1d4</strong> Psychic damage and have Disadvantage on the next attack roll it makes before the end of its next turn.",
     "<strong>At Higher Levels.</strong> This spell's damage increases by <strong>1d4</strong> when you reach 5th level (<strong>2d4</strong>), 11th level (<strong>3d4</strong>), and 17th level (<strong>4d4</strong>)."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [[DICE.D4, DAMAGE_TYPE.PSYCHIC]],
   spellLists: [SPELL_LIST_CLASS.BARD],
   spellLevel: 0
@@ -1070,6 +1113,8 @@ export const wordOfRadiance: SpellEntry = {
     "You utter a divine word, and burning radiance erupts from you. Each creature of your choice that you can see within range must succeed on a Constitution saving throw or take <strong>1d6</strong> Radiant damage.",
     "<strong>At Higher Levels.</strong> The spell's damage increases by <strong>1d6</strong> when you reach 5th level (<strong>2d6</strong>), 11th level (<strong>3d6</strong>), and 17th level (<strong>4d6</strong>)."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.RADIANT]],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 0

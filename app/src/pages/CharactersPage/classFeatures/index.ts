@@ -242,11 +242,14 @@ import {
 } from "./ranger/ranger";
 import {
   getRogueExpertiseSelections,
+  getRogueSkillReferenceDescriptionAdditions,
+  getRogueSkillRollD20Minimum,
   getRogueSpellThiefUsesRemaining,
   getRogueSpellThiefUsesTotal,
   getRogueStrokeOfLuckUsesRemaining,
   getRogueStrokeOfLuckUsesTotal,
   consumeRogueSpellThiefUse,
+  consumeRogueWeaponAttack,
   restoreRogueStrokeOfLuckOnLongRest,
   restoreRogueSpellThiefOnLongRest,
   restoreRogueStrokeOfLuckOnShortRest,
@@ -546,6 +549,7 @@ import type { CharacterStatusEntry } from "../../../types";
 import {
   getSpellEntryById,
   type ReactionEntry,
+  type SpellDescriptionEntry,
   type SpellEntry,
   type WEAPON_COMBAT_TYPE,
   type WEAPON_MASTERY,
@@ -875,6 +879,28 @@ export function getSkillIndicatorsForCharacter(
     subclassDerivedState.skillIndicators ?? {},
     exhaustionIndicators
   );
+}
+
+export function getSkillReferenceDescriptionAdditionsForCharacter(
+  character: Pick<Character, "className" | "level">,
+  _skill: SkillName
+): SpellDescriptionEntry[][] {
+  if (character.className === "Rogue") {
+    return getRogueSkillReferenceDescriptionAdditions(character);
+  }
+
+  return [];
+}
+
+export function getSkillRollD20MinimumForCharacter(
+  character: Pick<Character, "className" | "level">,
+  _skill: SkillName
+): number | null {
+  if (character.className === "Rogue") {
+    return getRogueSkillRollD20Minimum(character);
+  }
+
+  return null;
 }
 
 export function getWeaponAttackIndicatorsForCharacter(
@@ -3713,6 +3739,10 @@ export function consumeWeaponAttackActionForCharacter(
 
   if (character.className === "Paladin") {
     return consumePaladinWeaponAttack(character);
+  }
+
+  if (character.className === "Rogue") {
+    return consumeRogueWeaponAttack(character, action);
   }
 
   if (character.className === "Fighter") {

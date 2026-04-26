@@ -4,11 +4,15 @@ import {
   getSharedEconomyMultiCountForCharacterAction,
   type FeatureActionCard
 } from "../../../../../../pages/CharactersPage/classFeatures";
-import { ECONOMY_TYPE, type EconomyType } from "../../../../../../pages/CharactersPage/actionEconomy";
+import {
+  ECONOMY_TYPE,
+  type EconomyType
+} from "../../../../../../pages/CharactersPage/actionEconomy";
 import {
   getMonkCommonActionBonusPathAdditionalUseCount,
   hasMonkFocusCommonActionBonusPath
 } from "../../../../../../pages/CharactersPage/classFeatures/monk/monk";
+import { hasRogueCunningActionCommonActionBonusPath } from "../../../../../../pages/CharactersPage/classFeatures/rogue/rogue";
 import { getEconomyShapeState } from "../../gameplayWidgetUtils";
 
 type RoundTrackerAvailability = {
@@ -77,7 +81,10 @@ function getSecondaryCommonActionPathState(
   action: FeatureActionCard,
   roundTracker: RoundTrackerAvailability
 ): CommonActionPathState | null {
-  if (!hasMonkFocusCommonActionBonusPath(character, action.key)) {
+  const hasMonkBonusPath = hasMonkFocusCommonActionBonusPath(character, action.key);
+  const hasRogueBonusPath = hasRogueCunningActionCommonActionBonusPath(character, action.key);
+
+  if (!hasMonkBonusPath && !hasRogueBonusPath) {
     return null;
   }
 
@@ -87,7 +94,7 @@ function getSecondaryCommonActionPathState(
   };
   const additionalUseCount =
     getCommonActionAdditionalUseCount(character, bonusAction) +
-    getMonkCommonActionBonusPathAdditionalUseCount(character, action.key);
+    (hasMonkBonusPath ? getMonkCommonActionBonusPathAdditionalUseCount(character, action.key) : 0);
   const shapeState = getEconomyShapeState(
     ECONOMY_TYPE.BONUS_ACTION,
     roundTracker,

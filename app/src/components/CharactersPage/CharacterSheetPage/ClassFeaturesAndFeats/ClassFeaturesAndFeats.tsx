@@ -23,12 +23,6 @@ import {
 } from "../../../../pages/CharactersPage/feats";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
-  addFeatGrantedSkillEntries,
-  addFeatGrantedToolEntries,
-  removeFeatGrantedSkillEntries,
-  removeFeatGrantedToolEntries
-} from "../../../../pages/CharactersPage/proficiency";
-import {
   getSelectedSubclassForCharacter,
   getSubclassFeatureDetails,
   getSubclassFeatureRowsForCharacter
@@ -51,9 +45,14 @@ import {
   createPendingFeatStateForFeat,
   decodePendingBlessedWarriorChoice,
   decodePendingDruidicWarriorChoice,
-  decodePendingSkilledChoice,
-  splitSkilledSelections
+  decodePendingSkilledChoice
 } from "./featEditorUtils";
+import {
+  applyFeatEditorDraftToCharacter,
+  createFeatEditorDraft,
+  removeFeatFromDraft,
+  upsertFeatInDraft
+} from "./featDrafts";
 import {
   createClassFeatureFeatSource,
   createFeatEntryForContext,
@@ -107,6 +106,7 @@ function ClassFeaturesAndFeats({
   const [pendingFeatState, setPendingFeatState] = useState<PendingFeatState>(
     createEmptyPendingFeatState
   );
+  const [featEditorDraft, setFeatEditorDraft] = useState(() => createFeatEditorDraft(character));
   const [selectedFeatReference, setSelectedFeatReference] = useState<SelectedFeatReference | null>(
     null
   );
@@ -337,6 +337,10 @@ function ClassFeaturesAndFeats({
     setPendingFeatState(createEmptyPendingFeatState());
   }
 
+  function resetFeatEditorDraft() {
+    setFeatEditorDraft(createFeatEditorDraft(character));
+  }
+
   function getClassFeatureSourceContext() {
     return featEditorContext.mode === "class-feature" ? featEditorContext.source : null;
   }
@@ -362,128 +366,22 @@ function ClassFeaturesAndFeats({
     );
   }
 
-  function removeSkilledProficienciesFromCharacter(
-    currentCharacter: Character,
-    entryToRemove: CharacterFeatEntry
-  ): Character {
-    if (entryToRemove.feat !== FEATS.SKILLED || !entryToRemove.skilled) {
-      return currentCharacter;
-    }
-
-    const { skills, tools } = splitSkilledSelections(entryToRemove.skilled);
-
-    return {
-      ...currentCharacter,
-      skillProficiencies: removeFeatGrantedSkillEntries(
-        currentCharacter.skillProficiencies ?? [],
-        skills,
-        "Skilled",
-        entryToRemove.id
-      ),
-      toolProficiencies: removeFeatGrantedToolEntries(
-        currentCharacter.toolProficiencies ?? [],
-        tools,
-        "Skilled",
-        entryToRemove.id
-      )
-    };
-  }
-
   function upsertFeatForContext(featEntry: CharacterFeatEntry) {
     const sourceContext = getClassFeatureSourceContext();
-    const skilledSelections =
-      featEntry.feat === FEATS.SKILLED ? splitSkilledSelections(featEntry.skilled) : null;
+    const nextDraft = upsertFeatInDraft(featEditorDraft, featEntry, sourceContext);
 
-    onPersistCharacter((currentCharacter) => {
-      const existingEntries = sourceContext
-        ? (currentCharacter.feats ?? []).filter((entry) =>
-            isFeatFromClassFeatureSource(entry, sourceContext.level, sourceContext.feature)
-          )
-        : [];
-      let nextCharacter = currentCharacter;
-
-      existingEntries.forEach((entry) => {
-        nextCharacter = removeSkilledProficienciesFromCharacter(nextCharacter, entry);
-      });
-
-      const nextFeats = sourceContext
-        ? [
-            ...(nextCharacter.feats ?? []).filter(
-              (entry) =>
-                !isFeatFromClassFeatureSource(entry, sourceContext.level, sourceContext.feature)
-            ),
-            featEntry
-          ]
-        : [...(nextCharacter.feats ?? []), featEntry];
-
-      if (!skilledSelections) {
-        return {
-          ...nextCharacter,
-          feats: nextFeats
-        };
-      }
-
-      return {
-        ...nextCharacter,
-        feats: nextFeats,
-        skillProficiencies: addFeatGrantedSkillEntries(
-          nextCharacter.skillProficiencies ?? [],
-          skilledSelections.skills,
-          "Skilled",
-          featEntry.id
-        ),
-        toolProficiencies: addFeatGrantedToolEntries(
-          nextCharacter.toolProficiencies ?? [],
-          skilledSelections.tools,
-          "Skilled",
-          featEntry.id
-        )
-      };
-    });
+    setFeatEditorDraft(nextDraft);
 
     if (sourceContext) {
-      closeFeatEditor();
+      closeFeatEditor(nextDraft);
       return;
     }
 
     resetPendingFeatState();
   }
 
-  function updateCharacterFeats(
-    updater: (currentFeats: CharacterFeatEntry[]) => CharacterFeatEntry[]
-  ) {
-    const nextFeats = updater(character.feats ?? []);
-
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      feats: nextFeats
-    }));
-  }
-
   function removeFeat(entryToRemove: CharacterFeatEntry) {
-    if (entryToRemove.feat !== FEATS.SKILLED || !entryToRemove.skilled) {
-      updateCharacterFeats((current) => current.filter((entry) => entry.id !== entryToRemove.id));
-      return;
-    }
-
-    const { skills, tools } = splitSkilledSelections(entryToRemove.skilled);
-
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      feats: (currentCharacter.feats ?? []).filter((entry) => entry.id !== entryToRemove.id),
-      skillProficiencies: removeFeatGrantedSkillEntries(
-        currentCharacter.skillProficiencies ?? [],
-        skills,
-        "Skilled",
-        entryToRemove.id
-      ),
-      toolProficiencies: removeFeatGrantedToolEntries(
-        currentCharacter.toolProficiencies ?? [],
-        tools,
-        "Skilled",
-        entryToRemove.id
-      )
-    }));
+    setFeatEditorDraft((currentDraft) => removeFeatFromDraft(currentDraft, entryToRemove));
 
     setSelectedFeatReference((current) =>
       current?.entry?.id === entryToRemove.id ? null : current
@@ -523,7 +421,10 @@ function ClassFeaturesAndFeats({
     setSelectedDivinityReference(divinity);
   }
 
-  function closeFeatEditor() {
+  function closeFeatEditor(draft = featEditorDraft) {
+    onPersistCharacter((currentCharacter) =>
+      applyFeatEditorDraftToCharacter(currentCharacter, draft)
+    );
     resetPendingFeatState();
     setFeatEditorContext({ mode: "general" });
     setIsFeatModalOpen(false);
@@ -531,6 +432,7 @@ function ClassFeaturesAndFeats({
 
   function openFeatEditor() {
     resetPendingFeatState();
+    resetFeatEditorDraft();
     setFeatEditorContext({ mode: "general" });
     setActiveFeatCategory(FEAT_CATEGORY.GENERAL);
     setIsFeatModalOpen(true);
@@ -541,6 +443,7 @@ function ClassFeaturesAndFeats({
     const linkedFeatDefinition = linkedFeat ? getFeatDefinition(linkedFeat.feat) : null;
 
     resetPendingFeatState();
+    resetFeatEditorDraft();
     setFeatEditorContext({
       mode: "class-feature",
       source: createClassFeatureFeatSource(level, feature)
@@ -832,7 +735,7 @@ function ClassFeaturesAndFeats({
           activeFeatCategory={activeFeatCategory}
           visibleFeatCategories={visibleFeatCategories}
           visibleFeatDefinitionsByCategory={visibleFeatDefinitionsByCategory}
-          selectedFeats={selectedFeats}
+          selectedFeats={featEditorDraft.feats}
           pendingFeatState={pendingFeatState}
           blessedWarriorCantripOptions={blessedWarriorCantripOptions}
           druidicWarriorCantripOptions={druidicWarriorCantripOptions}

@@ -270,6 +270,7 @@ import {
   applyLongRestToRogueFeatures,
   applyShortRestToRogueFeatures,
   consumeRogueStrokeOfLuckUse,
+  getRogueCommonAction,
   getRogueDerivedStatusEntries,
   getRogueFeatureActions,
   getRogueLanguageProficiencyEntries,
@@ -282,6 +283,7 @@ import {
   getRogueWeaponMasteryOptions,
   getRogueWeaponMasterySelectionCount,
   getRogueWeaponMasterySelections,
+  getRogueWeaponAction,
   getRogueWeaponProficiencyEntries,
   normalizeRogueFeatureState,
   rogueSneakAttackActionKey,
@@ -848,6 +850,8 @@ const classFeatureModules = {
           getRogueWeaponMasterySelections(character),
           setRogueWeaponMasterySelections
         ),
+        transformCommonAction: (action) => getRogueCommonAction(character, action),
+        transformWeaponAction: (action) => getRogueWeaponAction(character, action),
         derivedStatusEntries: getRogueDerivedStatusEntries(character),
         rogueSneakAttackDiceCount: getRogueSneakAttackDiceCount(character),
         rogueSneakAttackFormula: getRogueSneakAttackFormula(character) ?? "0"

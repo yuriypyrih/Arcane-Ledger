@@ -197,8 +197,9 @@ function CodexEntryPage() {
   const [selectedKeywordReference, setSelectedKeywordReference] =
     useState<ResolvedKeywordReference | null>(null);
   const [selectedSpellReference, setSelectedSpellReference] = useState<SpellEntry | null>(null);
-  const [selectedDivinityReference, setSelectedDivinityReference] =
-    useState<DivinityEntry | null>(null);
+  const [selectedDivinityReference, setSelectedDivinityReference] = useState<DivinityEntry | null>(
+    null
+  );
   const [selectedFeatReference, setSelectedFeatReference] = useState<SelectedFeatReference | null>(
     null
   );
@@ -215,12 +216,11 @@ function CodexEntryPage() {
     entry?.category === ENTRY_CATEGORIES.ARMOR ||
     entry?.category === ENTRY_CATEGORIES.SPELLS;
   const classFeatureItems =
-    entry?.category === ENTRY_CATEGORIES.CLASSES
-      ? createResolvedFeatureItems(entry.features)
-      : [];
+    entry?.category === ENTRY_CATEGORIES.CLASSES ? createResolvedFeatureItems(entry.features) : [];
   const classPrimaryAbility =
     entry?.category === ENTRY_CATEGORIES.CLASSES ? getPrimaryAbilityForClass(entry.name) : null;
-  const classStarterPack = entry?.category === ENTRY_CATEGORIES.CLASSES ? entry.starterPack ?? null : null;
+  const classStarterPack =
+    entry?.category === ENTRY_CATEGORIES.CLASSES ? (entry.starterPack ?? null) : null;
   const classSavingThrows =
     entry?.category === ENTRY_CATEGORIES.CLASSES
       ? getSavingThrowAbilityKeysForClass(entry.name)
@@ -243,53 +243,6 @@ function CodexEntryPage() {
       : 0;
   const classFeaturesSectionKey =
     entry?.category === ENTRY_CATEGORIES.CLASSES ? `class-features-${entry.id}` : null;
-
-  useEffect(() => {
-    if (!isComponentsTooltipOpen) {
-      return undefined;
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        if (selectedFeatReference) {
-          setSelectedFeatReference(null);
-          return;
-        }
-
-        if (selectedKeywordReference) {
-          setSelectedKeywordReference(null);
-          return;
-        }
-
-        if (selectedDivinityReference) {
-          setSelectedDivinityReference(null);
-          return;
-        }
-
-        if (selectedSpellReference) {
-          setSelectedSpellReference(null);
-          return;
-        }
-
-        if (selectedWeaponReference) {
-          setSelectedWeaponReference(null);
-          return;
-        }
-
-        setIsComponentsTooltipOpen(false);
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [
-    isComponentsTooltipOpen,
-    selectedWeaponReference,
-    selectedKeywordReference,
-    selectedSpellReference,
-    selectedDivinityReference,
-    selectedFeatReference
-  ]);
 
   useEffect(() => {
     if (!entry || entry.category !== ENTRY_CATEGORIES.SPELLS) {
@@ -381,97 +334,96 @@ function CodexEntryPage() {
                     {"rarity" in entry ? <RarityPill rarity={entry.rarity} /> : null}
                   </div>
                   <p className={sheetStyles.spellDrawerSummary}>
-                    {entry.category === ENTRY_CATEGORIES.SPELLS
-                      ? <SpellSubtitle spell={entry} />
-                      : entry.summary}
+                    {entry.category === ENTRY_CATEGORIES.SPELLS ? (
+                      <SpellSubtitle spell={entry} />
+                    ) : (
+                      entry.summary
+                    )}
                   </p>
                 </div>
               </div>
 
-                <div className={sheetStyles.spellDrawerBody}>
-                  <div className={sheetStyles.spellDrawerDetails}>
-                    {entry.category === ENTRY_CATEGORIES.WEAPONS ? (
-                      <>
-                        <CellContainer
-                          label="Type"
-                          content={`${formatWeaponType(entry.type)} weapon`}
-                        />
-                        <CellContainer label="Damage" content={formatWeaponDamage(entry.damage)} />
-                        <CellContainer
-                          type="button"
-                          as="button"
-                          className={styles.drawerDetailButton}
-                          label="Properties"
-                          content={formatWeaponProperties(entry)}
-                          onClick={() =>
-                            openWeaponReference(
-                              "Properties",
-                              entry.properties.map((property) => formatCodexLabel(property))
-                            )
-                          }
-                        />
-                        <CellContainer
-                          type="button"
-                          as="button"
-                          className={styles.drawerDetailButton}
-                          label="Mastery"
-                          content={formatCodexLabel(entry.mastery)}
-                          onClick={() =>
-                            openWeaponReference("Mastery", [formatCodexLabel(entry.mastery)])
-                          }
-                        />
-                        <CellContainer label="Weight" content={formatWeaponWeight(entry.weight)} />
-                        <CellContainer label="Cost" content={formatWeaponCost(entry.cost)} />
-                      </>
-                    ) : null}
+              <div className={sheetStyles.spellDrawerBody}>
+                <div className={sheetStyles.spellDrawerDetails}>
+                  {entry.category === ENTRY_CATEGORIES.WEAPONS ? (
+                    <>
+                      <CellContainer
+                        label="Type"
+                        content={`${formatWeaponType(entry.type)} weapon`}
+                      />
+                      <CellContainer label="Damage" content={formatWeaponDamage(entry.damage)} />
+                      <CellContainer
+                        type="button"
+                        as="button"
+                        className={styles.drawerDetailButton}
+                        label="Properties"
+                        content={formatWeaponProperties(entry)}
+                        onClick={() =>
+                          openWeaponReference(
+                            "Properties",
+                            entry.properties.map((property) => formatCodexLabel(property))
+                          )
+                        }
+                      />
+                      <CellContainer
+                        type="button"
+                        as="button"
+                        className={styles.drawerDetailButton}
+                        label="Mastery"
+                        content={formatCodexLabel(entry.mastery)}
+                        onClick={() =>
+                          openWeaponReference("Mastery", [formatCodexLabel(entry.mastery)])
+                        }
+                      />
+                      <CellContainer label="Weight" content={formatWeaponWeight(entry.weight)} />
+                      <CellContainer label="Cost" content={formatWeaponCost(entry.cost)} />
+                    </>
+                  ) : null}
 
-                    {entry.category === ENTRY_CATEGORIES.ARMOR ? (
-                      <>
-                        {!isShieldArmorEntry(entry) ? (
-                          <CellContainer label="Type" content={formatCodexList(entry.tags)} />
-                        ) : null}
-                        {!isShieldArmorEntry(entry) ? (
-                          <CellContainer
-                            label="Armor Base"
-                            content={entry.armorBase > 0 ? entry.armorBase : "-"}
-                          />
-                        ) : null}
+                  {entry.category === ENTRY_CATEGORIES.ARMOR ? (
+                    <>
+                      {!isShieldArmorEntry(entry) ? (
+                        <CellContainer label="Type" content={formatCodexList(entry.tags)} />
+                      ) : null}
+                      {!isShieldArmorEntry(entry) ? (
                         <CellContainer
-                          label="Weight"
-                          content={formatEquipmentWeight(entry.weight)}
+                          label="Armor Base"
+                          content={entry.armorBase > 0 ? entry.armorBase : "-"}
                         />
-                        <CellContainer label="Cost" content={formatEquipmentCost(entry.cost)} />
-                      </>
-                    ) : null}
+                      ) : null}
+                      <CellContainer label="Weight" content={formatEquipmentWeight(entry.weight)} />
+                      <CellContainer label="Cost" content={formatEquipmentCost(entry.cost)} />
+                    </>
+                  ) : null}
 
-                    {entry.category === ENTRY_CATEGORIES.SPELLS ? (
-                      <>
-                        <CellContainer
-                          label="Casting Time"
-                          content={formatSpellCastingTime(entry.castingTime)}
-                        />
-                        <CellContainer label="Range" content={entry.range} />
-                        <CellContainer
-                          type="button"
-                          as="button"
-                          className={styles.drawerDetailButton}
-                          label="Components"
-                          content={formatSpellComponents(entry.components)}
-                          onClick={() => {
-                            if (componentsTooltipEntry) {
-                              setIsComponentsTooltipOpen(true);
-                            }
-                          }}
-                        />
-                        <CellContainer label="Duration" content={entry.duration} />
-                        <CellContainer
-                          label="Spell Lists"
-                          content={formatCodexList(entry.spellLists)}
-                        />
-                        <CellContainer label="Damage" content={formatWeaponDamage(entry.damage)} />
-                      </>
-                    ) : null}
-                  </div>
+                  {entry.category === ENTRY_CATEGORIES.SPELLS ? (
+                    <>
+                      <CellContainer
+                        label="Casting Time"
+                        content={formatSpellCastingTime(entry.castingTime)}
+                      />
+                      <CellContainer label="Range" content={entry.range} />
+                      <CellContainer
+                        type="button"
+                        as="button"
+                        className={styles.drawerDetailButton}
+                        label="Components"
+                        content={formatSpellComponents(entry.components)}
+                        onClick={() => {
+                          if (componentsTooltipEntry) {
+                            setIsComponentsTooltipOpen(true);
+                          }
+                        }}
+                      />
+                      <CellContainer label="Duration" content={entry.duration} />
+                      <CellContainer
+                        label="Spell Lists"
+                        content={formatCodexList(entry.spellLists)}
+                      />
+                      <CellContainer label="Damage" content={formatWeaponDamage(entry.damage)} />
+                    </>
+                  ) : null}
+                </div>
 
                 {entry.category === ENTRY_CATEGORIES.SPELLS ? (
                   <SpellDescriptionContent
@@ -520,7 +472,9 @@ function CodexEntryPage() {
                     </div>
                     <div className={styles.detailItem}>
                       <span>Hit Point Die</span>
-                      <strong>{classStarterPack?.hitPointDieLabel ?? formatCodexLabel(entry.hitPointDie)}</strong>
+                      <strong>
+                        {classStarterPack?.hitPointDieLabel ?? formatCodexLabel(entry.hitPointDie)}
+                      </strong>
                     </div>
                     <div className={styles.detailItem}>
                       <span>Saving Throws</span>
@@ -538,7 +492,9 @@ function CodexEntryPage() {
                     </div>
                     <div className={styles.detailItem}>
                       <span>Weapon Masteries</span>
-                      <strong>{classWeaponMasteryCount > 0 ? classWeaponMasteryCount : "None"}</strong>
+                      <strong>
+                        {classWeaponMasteryCount > 0 ? classWeaponMasteryCount : "None"}
+                      </strong>
                     </div>
                     <div className={styles.detailItem}>
                       <span>Armor Training</span>
@@ -779,51 +735,21 @@ function CodexEntryPage() {
         />
       ) : null}
 
-      {entry && entry.category === ENTRY_CATEGORIES.SPELLS && isComponentsTooltipOpen ? (
-        <div
-          className={styles.modalBackdrop}
-          role="presentation"
-          onClick={() => setIsComponentsTooltipOpen(false)}
-        >
-          <div
-            className={styles.modal}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="spell-components-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className={styles.modalHeader}>
-              <div>
-                <p className={styles.modalEyebrow}>Spell Reference</p>
-                <h3 id="spell-components-title">{componentsTooltipEntry?.title ?? "Components"}</h3>
-              </div>
-              <button
-                type="button"
-                className={styles.closeButton}
-                onClick={() => setIsComponentsTooltipOpen(false)}
-                aria-label="Close components tooltip"
-              >
-                ×
-              </button>
-            </div>
-            <div className={styles.componentTooltipList}>
-              {componentsTooltipEntry ? (
-                <article className={styles.componentTooltipItem}>
-                  <SpellDescriptionContent
-                    description={componentsTooltipEntry.description}
-                    className={styles.componentTooltipDescription}
-                    entryClassName={featureDisclosureStyles.descriptionLine}
-                    linkClassName={featureDisclosureStyles.inlineLinkButton}
-                    onOpenKeyword={setSelectedKeywordReference}
-                    onOpenSpell={setSelectedSpellReference}
-                    onOpenDivinity={setSelectedDivinityReference}
-                    onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
-                  />
-                </article>
-              ) : null}
-            </div>
-          </div>
-        </div>
+      {entry &&
+      entry.category === ENTRY_CATEGORIES.SPELLS &&
+      isComponentsTooltipOpen &&
+      componentsTooltipEntry ? (
+        <KeywordReferenceDrawer
+          title={componentsTooltipEntry.title}
+          entries={[
+            {
+              title: componentsTooltipEntry.title,
+              description: componentsTooltipEntry.description
+            }
+          ]}
+          badgeLabel="Keyword"
+          onClose={() => setIsComponentsTooltipOpen(false)}
+        />
       ) : null}
     </section>
   );

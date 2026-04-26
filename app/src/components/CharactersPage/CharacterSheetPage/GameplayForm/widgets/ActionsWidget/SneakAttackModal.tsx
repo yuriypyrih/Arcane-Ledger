@@ -1,8 +1,5 @@
-import { BookOpen } from "lucide-react";
-import { useState } from "react";
-import ActionButton from "../../../../../ActionButton";
 import CellContainer from "../../../../../CellContainer/CellContainer";
-import KeywordReferenceDrawer from "../../../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
+import DescriptionContent from "../../../../../DescriptionContent/DescriptionContent";
 import RadioContainerOption from "../../../RadioContainerOption";
 import type { Character } from "../../../../../../types";
 import type { FeatureActionCard } from "../../../../../../pages/CharactersPage/classFeatures";
@@ -10,8 +7,9 @@ import {
   getRogueSneakAttackDiceCount,
   getRogueSneakAttackEffectDefinitions,
   getRogueSneakAttackEffectDiceCost,
+  getRogueSneakAttackFormula,
   getRogueSneakAttackMaxEffects,
-  getRogueSneakAttackValueLabel,
+  rogueCunningStrikeSavingThrowDescription,
   type RogueSneakAttackEffectDefinition,
   type RogueSneakAttackEffectKey
 } from "../../../../../../pages/CharactersPage/classFeatures/rogue/rogue";
@@ -22,6 +20,7 @@ import {
 } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueSoulknife";
 import { getAbilityModifierForCharacter } from "../../../../../../pages/CharactersPage/abilities";
 import { getProficiencyBonus } from "../../../../../../pages/CharactersPage/gameplay";
+import { formatFormulaCell } from "../../../../../../pages/CharactersPage/shared/formulas";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./SneakAttackModal.module.css";
 
@@ -33,22 +32,29 @@ export type SneakAttackActionSelection = {
 type SneakAttackActionBodyProps = {
   action: FeatureActionCard;
   character: Character;
-  onConfirm: (selection: SneakAttackActionSelection) => void;
+  selection: SneakAttackActionSelection;
+  onSelectionChange: (selection: SneakAttackActionSelection) => void;
 };
 
-function SneakAttackActionBody({ action, character, onConfirm }: SneakAttackActionBodyProps) {
-  const [selectedEffectKeys, setSelectedEffectKeys] = useState<RogueSneakAttackEffectKey[]>([]);
-  const [selectedReferenceEffect, setSelectedReferenceEffect] =
-    useState<RogueSneakAttackEffectDefinition | null>(null);
-  const [selectedRendMind, setSelectedRendMind] = useState(false);
+function SneakAttackActionBody({
+  action,
+  character,
+  selection,
+  onSelectionChange
+}: SneakAttackActionBodyProps) {
+  const selectedEffectKeys = selection.effectKeys;
   const effectDefinitions = getRogueSneakAttackEffectDefinitions(character);
   const maxEffects = getRogueSneakAttackMaxEffects(character);
   const totalDiceCount = getRogueSneakAttackDiceCount(character);
   const selectedEffectCost = getRogueSneakAttackEffectDiceCost(character, selectedEffectKeys);
-  const previewValueLabel =
-    getRogueSneakAttackValueLabel(character, selectedEffectKeys) ??
+  const previewFormula =
+    getRogueSneakAttackFormula(character, selectedEffectKeys) ??
     action.valueLabel ??
     action.summary;
+  const previewFormulaCell = formatFormulaCell({
+    formula: previewFormula,
+    resultLabel: "Damage"
+  });
   const hasRendMind = hasRogueSoulknifeRendMindFeature(character);
   const rendMindUsesRemaining = getRogueSoulknifeRendMindUsesRemaining(character);
   const psionicDiceRemaining = getRogueSoulknifePsionicDiceRemaining(character);
@@ -63,19 +69,26 @@ function SneakAttackActionBody({ action, character, onConfirm }: SneakAttackActi
         : "No charge or Psionic Die remaining";
 
   function toggleEffect(effect: RogueSneakAttackEffectDefinition) {
-    setSelectedEffectKeys((currentKeys) => {
-      if (currentKeys.includes(effect.key)) {
-        return currentKeys.filter((key) => key !== effect.key);
-      }
+    const currentKeys = selection.effectKeys;
 
-      if (
-        currentKeys.length >= maxEffects ||
-        getRogueSneakAttackEffectDiceCost(character, currentKeys) + effect.costDice > totalDiceCount
-      ) {
-        return currentKeys;
-      }
+    if (currentKeys.includes(effect.key)) {
+      onSelectionChange({
+        ...selection,
+        effectKeys: currentKeys.filter((key) => key !== effect.key)
+      });
+      return;
+    }
 
-      return [...currentKeys, effect.key];
+    if (
+      currentKeys.length >= maxEffects ||
+      getRogueSneakAttackEffectDiceCost(character, currentKeys) + effect.costDice > totalDiceCount
+    ) {
+      return;
+    }
+
+    onSelectionChange({
+      ...selection,
+      effectKeys: [...currentKeys, effect.key]
     });
   }
 
@@ -83,8 +96,9 @@ function SneakAttackActionBody({ action, character, onConfirm }: SneakAttackActi
     <>
       <CellContainer
         className={styles.sneakAttackPreviewCard}
-        label="Damage"
-        content={previewValueLabel}
+        label="Formula"
+        content={previewFormulaCell.value}
+        breakdown={previewFormulaCell.breakdown}
       />
 
       {effectDefinitions.length > 0 ? (
@@ -96,6 +110,9 @@ function SneakAttackActionBody({ action, character, onConfirm }: SneakAttackActi
                 Choose up to {maxEffects} effect{maxEffects === 1 ? "" : "s"}. Each effect reduces
                 the Sneak Attack dice you roll.
               </p>
+              {rogueCunningStrikeSavingThrowDescription ? (
+                <p className={shared.helperText}>{rogueCunningStrikeSavingThrowDescription}</p>
+              ) : null}
             </div>
             <span className={styles.sneakAttackEffectSpend}>{selectedEffectCost}d6 spent</span>
           </div>
@@ -111,25 +128,19 @@ function SneakAttackActionBody({ action, character, onConfirm }: SneakAttackActi
               return (
                 <RadioContainerOption
                   key={effect.key}
-                  header={effect.name}
-                  breakdown={
-                    <span className={styles.sneakAttackEffectMeta}>{`Cost: ${effect.costDice}d6`}</span>
+                  header={
+                    <DescriptionContent
+                      description={effect.referenceDescription}
+                      className={styles.sneakAttackEffectDescription}
+                      entryClassName={styles.sneakAttackEffectDescriptionLine}
+                      strongClassName={styles.sneakAttackEffectDescriptionStrong}
+                    />
                   }
                   selected={isSelected}
                   disabled={isDisabled}
                   indicatorType="checkbox"
                   onSelect={() => toggleEffect(effect)}
                   className={styles.sneakAttackEffectOption}
-                  aside={
-                    <button
-                      type="button"
-                      className={styles.sneakAttackReferenceButton}
-                      onClick={() => setSelectedReferenceEffect(effect)}
-                      aria-label={`Open ${effect.name} reference`}
-                    >
-                      <BookOpen size={16} />
-                    </button>
-                  }
                 />
               );
             })}
@@ -154,44 +165,21 @@ function SneakAttackActionBody({ action, character, onConfirm }: SneakAttackActi
             subheader={`Wis Save DC ${rendMindSaveDc} | ${
               rendMindUsesRemaining > 0 ? "Long Rest charge" : "Use 1 Psionic Die"
             }`}
-            selected={selectedRendMind}
+            selected={selection.useRendMind}
             disabled={!canUseRendMind}
             indicatorType="checkbox"
-            onSelect={() => setSelectedRendMind((current) => !current)}
+            onSelect={() =>
+              onSelectionChange({
+                ...selection,
+                useRendMind: !selection.useRendMind
+              })
+            }
           />
 
           {!canUseRendMind ? (
             <p className={styles.rendMindWarning}>Rend Mind needs a charge or 1 Psionic Die.</p>
           ) : null}
         </div>
-      ) : null}
-
-      <div className={shared.formActions}>
-        <ActionButton
-          onClick={() =>
-            onConfirm({
-              effectKeys: selectedEffectKeys,
-              useRendMind: selectedRendMind && canUseRendMind
-            })
-          }
-        >
-          Sneak Attack
-        </ActionButton>
-      </div>
-
-      {selectedReferenceEffect ? (
-        <KeywordReferenceDrawer
-          title={selectedReferenceEffect.referenceTitle}
-          badgeLabel="Keyword"
-          backdropClassName={styles.sneakAttackReferenceDrawerBackdrop}
-          entries={[
-            {
-              title: "",
-              description: selectedReferenceEffect.referenceDescription
-            }
-          ]}
-          onClose={() => setSelectedReferenceEffect(null)}
-        />
       ) : null}
     </>
   );

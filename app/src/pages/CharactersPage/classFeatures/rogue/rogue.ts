@@ -1,6 +1,10 @@
 import { rogueFeatureMap, rogueFeatures } from "../../../../codex/classes";
 import { CLASS_FEATURE, getReactionEntryById, type ReactionEntry } from "../../../../codex/entries";
-import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
+import {
+  ACTION_CATEGORY,
+  ECONOMY_TYPE,
+  getRoundTrackerResourceForEconomyType
+} from "../../actionEconomy";
 import type {
   Character,
   CharacterRogueFeatureState,
@@ -24,15 +28,22 @@ import {
   WEAPON_PROFICIENCY,
   languageEntries
 } from "../../../../types";
-import { normalizeRoundTracker } from "../../combat";
+import {
+  appendSourcedDescriptionAddition,
+  createSourcedDescriptionEntries
+} from "../../actionModalDescriptions";
+import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
+import type { WeaponAction } from "../../gameplay";
 import { hasStatusCondition } from "../../statusEntries";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
+  FeatureIndicator,
   FeatureLanguageProficiencyEntry,
   FeatureSavingThrowProficiencyEntry,
   FeatureSkillProficiencyEntry,
   FeatureSpeedBonus,
+  WeaponAttackConsumptionContext,
   FeatureWeaponProficiencyEntry
 } from "../types";
 import { arcaneTricksterSubclassId } from "./subclasses/rogueArcaneTrickster";
@@ -63,6 +74,12 @@ import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../we
 export const rogueSneakAttackActionKey = "rogue-sneak-attack";
 export const rogueSteadyAimActionKey = "rogue-steady-aim";
 export const rogueStrokeOfLuckActionKey = "rogue-stroke-of-luck";
+const rogueCunningActionCommonActionBonusPathKeys = new Set([
+  "common-action-dash",
+  "common-action-disengage",
+  "common-action-hide"
+]);
+const rogueCunningActionSource = "Cunning Action";
 const rogueLevel1ExpertiseSource = "Level 1: Expertise";
 const rogueLevel6ExpertiseSource = "Level 6: Expertise";
 const rogueThievesCantSource = "Thieves' Cant";
@@ -70,7 +87,13 @@ const rogueWeaponMasterySource = "Weapon Mastery";
 const rogueWeaponMasterySelectionCount = 2;
 const rogueSlipperyMindSource = "Slippery Mind";
 const rogueSteadyAimSource = "Steady Aim";
-const rogueEvasionSourceId = "feature-rogue-evasion";
+const rogueReliableTalentSource = "Reliable Talent";
+const rogueReliableTalentD20Minimum = 10;
+const rogueSteadyAimAdvantageIndicator: FeatureIndicator = {
+  label: "Advantage",
+  tone: "advantage",
+  source: rogueSteadyAimSource
+};
 const rogueElusiveSourceId = "feature-rogue-elusive";
 const rogueDisabledByIncapacitatedReason = "Disabled by Incapacitated";
 export type { RogueSneakAttackEffectDefinition, RogueSneakAttackEffectKey } from "./types";
@@ -90,11 +113,17 @@ function getRogueFeatureDescriptionLines(feature: CLASS_FEATURE): string[] {
 const rogueCunningStrikeDescriptionLines = getRogueFeatureDescriptionLines(
   CLASS_FEATURE.CUNNING_STRIKE
 );
+const rogueCunningActionDescriptionLines = getRogueFeatureDescriptionLines(
+  CLASS_FEATURE.CUNNING_ACTION
+);
 const rogueDeviousStrikesDescriptionLines = getRogueFeatureDescriptionLines(
   CLASS_FEATURE.DEVIOUS_STRIKES
 );
 const rogueSteadyAimDescriptionLines = getRogueFeatureDescriptionLines(CLASS_FEATURE.STEADY_AIM);
-const rogueCunningStrikeSavingThrowDescription = rogueCunningStrikeDescriptionLines[2];
+const rogueReliableTalentDescriptionLines = getRogueFeatureDescriptionLines(
+  CLASS_FEATURE.RELIABLE_TALENT
+);
+export const rogueCunningStrikeSavingThrowDescription = rogueCunningStrikeDescriptionLines[2];
 
 const baseRogueSneakAttackEffectDefinitions: Array<
   RogueSneakAttackEffectDefinition & {
@@ -106,9 +135,7 @@ const baseRogueSneakAttackEffectDefinitions: Array<
     name: "Poison",
     costDice: 1,
     requiredFeature: CLASS_FEATURE.CUNNING_STRIKE,
-    referenceTitle: "Poison",
     referenceDescription: [
-      rogueCunningStrikeSavingThrowDescription,
       rogueCunningStrikeDescriptionLines[3],
       rogueCunningStrikeDescriptionLines[4]
     ].filter((entry): entry is string => Boolean(entry))
@@ -118,18 +145,15 @@ const baseRogueSneakAttackEffectDefinitions: Array<
     name: "Trip",
     costDice: 1,
     requiredFeature: CLASS_FEATURE.CUNNING_STRIKE,
-    referenceTitle: "Trip",
-    referenceDescription: [
-      rogueCunningStrikeSavingThrowDescription,
-      rogueCunningStrikeDescriptionLines[5]
-    ].filter((entry): entry is string => Boolean(entry))
+    referenceDescription: [rogueCunningStrikeDescriptionLines[5]].filter((entry): entry is string =>
+      Boolean(entry)
+    )
   },
   {
     key: "withdraw",
     name: "Withdraw",
     costDice: 1,
     requiredFeature: CLASS_FEATURE.CUNNING_STRIKE,
-    referenceTitle: "Withdraw",
     referenceDescription: [rogueCunningStrikeDescriptionLines[6]].filter((entry): entry is string =>
       Boolean(entry)
     )
@@ -139,33 +163,27 @@ const baseRogueSneakAttackEffectDefinitions: Array<
     name: "Daze",
     costDice: 2,
     requiredFeature: CLASS_FEATURE.DEVIOUS_STRIKES,
-    referenceTitle: "Daze",
-    referenceDescription: [
-      rogueCunningStrikeSavingThrowDescription,
-      rogueDeviousStrikesDescriptionLines[1]
-    ].filter((entry): entry is string => Boolean(entry))
+    referenceDescription: [rogueDeviousStrikesDescriptionLines[1]].filter(
+      (entry): entry is string => Boolean(entry)
+    )
   },
   {
     key: "knock-out",
     name: "Knock Out",
     costDice: 6,
     requiredFeature: CLASS_FEATURE.DEVIOUS_STRIKES,
-    referenceTitle: "Knock Out",
-    referenceDescription: [
-      rogueCunningStrikeSavingThrowDescription,
-      rogueDeviousStrikesDescriptionLines[2]
-    ].filter((entry): entry is string => Boolean(entry))
+    referenceDescription: [rogueDeviousStrikesDescriptionLines[2]].filter(
+      (entry): entry is string => Boolean(entry)
+    )
   },
   {
     key: "obscure",
     name: "Obscure",
     costDice: 3,
     requiredFeature: CLASS_FEATURE.DEVIOUS_STRIKES,
-    referenceTitle: "Obscure",
-    referenceDescription: [
-      rogueCunningStrikeSavingThrowDescription,
-      rogueDeviousStrikesDescriptionLines[3]
-    ].filter((entry): entry is string => Boolean(entry))
+    referenceDescription: [rogueDeviousStrikesDescriptionLines[3]].filter(
+      (entry): entry is string => Boolean(entry)
+    )
   }
 ];
 
@@ -257,12 +275,6 @@ function getRogueFeatureState(
     Partial<Pick<Character, "abilities" | "subclassId">>
 ): CharacterRogueFeatureState {
   return normalizeRogueFeatureState(character.classFeatureState?.rogue, character);
-}
-
-function hasRogueSneakAttackTriggerWindow(character: Pick<Character, "roundTracker">): boolean {
-  const roundTracker = normalizeRoundTracker(character.roundTracker);
-
-  return !roundTracker.actionAvailable || !roundTracker.bonusActionAvailable;
 }
 
 export function normalizeRogueFeatureState(
@@ -379,6 +391,9 @@ export function normalizeRogueFeatureState(
         : undefined,
     sneakAttackUsedThisTurn: hasSneakAttack ? Boolean(record.sneakAttackUsedThisTurn) : undefined,
     steadyAimActive: hasSteadyAim ? Boolean(record.steadyAimActive) : undefined,
+    steadyAimAttackAdvantageAvailable: hasSteadyAim
+      ? Boolean(record.steadyAimAttackAdvantageAvailable ?? record.steadyAimActive)
+      : undefined,
     spellThiefUsesExpended: hasSpellThief
       ? Math.max(
           0,
@@ -411,7 +426,7 @@ export function normalizeRogueFeatureState(
 }
 
 export function getRogueFeatureActions(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "roundTracker">
+  character: Pick<Character, "className" | "level" | "classFeatureState">
 ): FeatureActionCard[] {
   const actions: FeatureActionCard[] = [];
 
@@ -421,17 +436,15 @@ export function getRogueFeatureActions(
     const valueLabel = getRogueSneakAttackValueLabel(character);
     const rogueState = getRogueFeatureState(character);
     const sneakAttackUsedThisTurn = rogueState.sneakAttackUsedThisTurn === true;
-    const canActivate = !sneakAttackUsedThisTurn && hasRogueSneakAttackTriggerWindow(character);
     const disabledReason = sneakAttackUsedThisTurn
       ? "Sneak Attack has already been used this turn."
-      : !canActivate
-        ? "Use an attack or magic action first."
-        : undefined;
+      : undefined;
 
     if (formula && valueLabel && diceCount > 0) {
       actions.push({
         key: rogueSneakAttackActionKey,
         name: "Sneak Attack",
+        sourceFeature: CLASS_FEATURE.SNEAK_ATTACK,
         summary: valueLabel,
         detail: "Once per turn after a hit",
         valueLabel,
@@ -441,6 +454,7 @@ export function getRogueFeatureActions(
         drawer: {
           kind: "custom-form",
           eyebrow: "Rogue",
+          facts: [],
           formKind: "sneak-attack"
         },
         execute: {
@@ -479,6 +493,7 @@ export function getRogueFeatureActions(
     actions.push({
       key: rogueStrokeOfLuckActionKey,
       name: "Stroke of Luck",
+      sourceFeature: CLASS_FEATURE.STROKE_OF_LUCK,
       summary: "You can turn Failure into Success",
       detail: "You can turn Failure into Success",
       breakdown: "Turn failure to success",
@@ -493,6 +508,79 @@ export function getRogueFeatureActions(
   }
 
   return actions;
+}
+
+export function hasRogueCunningActionCommonActionBonusPath(
+  character: Pick<Character, "className" | "level">,
+  actionKey: string
+): boolean {
+  return (
+    hasRogueFeature(character, CLASS_FEATURE.CUNNING_ACTION) &&
+    rogueCunningActionCommonActionBonusPathKeys.has(actionKey)
+  );
+}
+
+export function getRogueCommonAction(
+  character: Pick<Character, "className" | "level">,
+  action: FeatureActionCard
+): FeatureActionCard {
+  return hasRogueCunningActionCommonActionBonusPath(character, action.key)
+    ? appendSourcedDescriptionAddition(
+        action,
+        rogueCunningActionSource,
+        rogueCunningActionDescriptionLines
+      )
+    : action;
+}
+
+export function getRogueSkillReferenceDescriptionAdditions(
+  character: Pick<Character, "className" | "level">
+) {
+  return hasRogueFeature(character, CLASS_FEATURE.RELIABLE_TALENT)
+    ? [
+        createSourcedDescriptionEntries(
+          rogueReliableTalentSource,
+          rogueReliableTalentDescriptionLines
+        )
+      ]
+    : [];
+}
+
+export function getRogueSkillRollD20Minimum(
+  character: Pick<Character, "className" | "level">
+): number | null {
+  return hasRogueFeature(character, CLASS_FEATURE.RELIABLE_TALENT)
+    ? rogueReliableTalentD20Minimum
+    : null;
+}
+
+function hasRogueSteadyAimAdvantageIndicator(action: Pick<WeaponAction, "indicators">): boolean {
+  return action.indicators.some(
+    (indicator) =>
+      indicator.label === rogueSteadyAimAdvantageIndicator.label &&
+      indicator.tone === rogueSteadyAimAdvantageIndicator.tone &&
+      (Array.isArray(indicator.source)
+        ? indicator.source.includes(rogueSteadyAimSource)
+        : indicator.source === rogueSteadyAimSource)
+  );
+}
+
+export function getRogueWeaponAction(
+  character: Pick<Character, "className" | "level" | "classFeatureState">,
+  action: WeaponAction
+): WeaponAction {
+  if (getRogueFeatureState(character).steadyAimAttackAdvantageAvailable !== true) {
+    return action;
+  }
+
+  if (hasRogueSteadyAimAdvantageIndicator(action)) {
+    return action;
+  }
+
+  return {
+    ...action,
+    indicators: [...action.indicators, rogueSteadyAimAdvantageIndicator]
+  };
 }
 
 export function getRogueReactionEntries(
@@ -547,22 +635,6 @@ export function getRogueDerivedStatusEntries(
 ): DerivedFeatureStatusEntry[] {
   const disabled = hasStatusCondition(character.statusEntries, CONDITION_NAME.INCAPACITATED);
   const derivedEntries: DerivedFeatureStatusEntry[] = [];
-
-  if (hasRogueFeature(character, CLASS_FEATURE.EVASION)) {
-    derivedEntries.push({
-      id: rogueEvasionSourceId,
-      sourceId: rogueEvasionSourceId,
-      group: STATUS_ENTRY_GROUP.EFFECTS,
-      value: "Evasion",
-      source: "Evasion",
-      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
-      duration: {
-        kind: STATUS_DURATION_KIND.INFINITE
-      },
-      disabled,
-      disabledReason: disabled ? rogueDisabledByIncapacitatedReason : undefined
-    });
-  }
 
   if (hasRogueFeature(character, CLASS_FEATURE.ELUSIVE)) {
     derivedEntries.push({
@@ -904,10 +976,7 @@ export function getRogueLanguageProficiencyEntries(
 }
 
 export function activateRogueSneakAttack(character: Character): Character {
-  if (
-    !hasRogueFeature(character, CLASS_FEATURE.SNEAK_ATTACK) ||
-    !hasRogueSneakAttackTriggerWindow(character)
-  ) {
+  if (!hasRogueFeature(character, CLASS_FEATURE.SNEAK_ATTACK)) {
     return character;
   }
 
@@ -946,7 +1015,43 @@ export function activateRogueSteadyAim(character: Character): Character {
       ...character.classFeatureState,
       rogue: {
         ...rogueState,
-        steadyAimActive: true
+        steadyAimActive: true,
+        steadyAimAttackAdvantageAvailable: true
+      }
+    }
+  };
+}
+
+export function consumeRogueWeaponAttack(
+  character: Character,
+  action: WeaponAttackConsumptionContext
+): Character {
+  const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+
+  if (
+    !roundTrackerResource ||
+    !isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource)
+  ) {
+    return character;
+  }
+
+  const rogueState = getRogueFeatureState(character);
+  const consumedCharacter = {
+    ...character,
+    roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)
+  };
+
+  if (rogueState.steadyAimAttackAdvantageAvailable !== true) {
+    return consumedCharacter;
+  }
+
+  return {
+    ...consumedCharacter,
+    classFeatureState: {
+      ...consumedCharacter.classFeatureState,
+      rogue: {
+        ...rogueState,
+        steadyAimAttackAdvantageAvailable: false
       }
     }
   };
@@ -1010,7 +1115,11 @@ export function advanceRogueFeaturesForNewRound(character: Character): Character
 
   const rogueState = getRogueFeatureState(character);
 
-  if (rogueState.sneakAttackUsedThisTurn !== true && rogueState.steadyAimActive !== true) {
+  if (
+    rogueState.sneakAttackUsedThisTurn !== true &&
+    rogueState.steadyAimActive !== true &&
+    rogueState.steadyAimAttackAdvantageAvailable !== true
+  ) {
     return character;
   }
 
@@ -1021,7 +1130,8 @@ export function advanceRogueFeaturesForNewRound(character: Character): Character
       rogue: {
         ...rogueState,
         sneakAttackUsedThisTurn: false,
-        steadyAimActive: false
+        steadyAimActive: false,
+        steadyAimAttackAdvantageAvailable: false
       }
     }
   };
@@ -1084,7 +1194,12 @@ export function applyShortRestToRogueFeatures(character: Character): Character {
     )
   );
 
-  if (getRogueFeatureState(restoredCharacter).steadyAimActive !== true) {
+  const restoredRogueState = getRogueFeatureState(restoredCharacter);
+
+  if (
+    restoredRogueState.steadyAimActive !== true &&
+    restoredRogueState.steadyAimAttackAdvantageAvailable !== true
+  ) {
     return restoredCharacter;
   }
 
@@ -1093,8 +1208,9 @@ export function applyShortRestToRogueFeatures(character: Character): Character {
     classFeatureState: {
       ...restoredCharacter.classFeatureState,
       rogue: {
-        ...getRogueFeatureState(restoredCharacter),
-        steadyAimActive: false
+        ...restoredRogueState,
+        steadyAimActive: false,
+        steadyAimAttackAdvantageAvailable: false
       }
     }
   };

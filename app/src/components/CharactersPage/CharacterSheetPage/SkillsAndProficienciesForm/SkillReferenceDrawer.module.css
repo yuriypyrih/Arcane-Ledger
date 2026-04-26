@@ -11,6 +11,29 @@
   gap: 0.75rem;
 }
 
+.detailStack {
+  grid-template-columns: 1fr;
+}
+
+.formulaCard {
+  grid-column: 1 / -1;
+}
+
+.formulaContentRow {
+  display: block;
+}
+
+.formulaValue {
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.formulaBreakdown {
+  margin-left: 0;
+  margin-top: 0.22rem;
+  text-align: left;
+}
+
 .footerActions {
   display: flex;
   align-items: center;

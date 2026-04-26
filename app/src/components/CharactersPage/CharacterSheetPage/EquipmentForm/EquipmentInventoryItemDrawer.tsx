@@ -13,6 +13,7 @@ type EquipmentInventoryItemDrawerProps = {
   headerContent?: ReactNode;
   weaponMasteryActive?: boolean;
   weaponProficient?: boolean;
+  onOpenWeaponReference?: (title: string, keywords: string[]) => void;
 };
 
 function EquipmentInventoryItemDrawer({
@@ -22,7 +23,8 @@ function EquipmentInventoryItemDrawer({
   footer,
   headerContent,
   weaponMasteryActive = false,
-  weaponProficient = false
+  weaponProficient = false,
+  onOpenWeaponReference
 }: EquipmentInventoryItemDrawerProps) {
   const resolvedHeaderContent =
     headerContent ??
@@ -92,6 +94,7 @@ function EquipmentInventoryItemDrawer({
               showHeader={false}
               weaponMasteryActive={weaponMasteryActive}
               weaponProficient={weaponProficient}
+              onOpenWeaponReference={onOpenWeaponReference}
             />
           ) : null}
         </div>

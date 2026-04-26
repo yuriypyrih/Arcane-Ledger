@@ -51,7 +51,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "<strong>Spellcasting Ability.</strong> <link:INT>Intelligence</link> is your spellcasting ability for your Wizard spells.",
           "<strong>Spellcasting Focus.</strong> You can use an <link:Arcane Focus>Arcane Focus</link> as a Spellcasting Focus for your Wizard spells."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
@@ -61,14 +61,14 @@ export const rogueSubclassEntries: SubclassEntry[] = [
             "When you cast <spell:Mage Hand>Mage Hand</spell>, you can cast it as a Bonus Action, and you can make the spectral hand <link:Invisible>Invisible</link>.",
             "You can control the hand as a Bonus Action, and through it, you can make Dexterity (<link:Sleight of Hand>Sleight of Hand</link>) checks."
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_9, CLASS_FEATURE.MAGICAL_AMBUSH, {
         description: [
           "If you have the <link:Invisible>Invisible</link> condition when you cast a spell on a creature, it has <link:Disadvantage>Disadvantage</link> on any saving throw it makes against the spell on the same turn."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_13,
@@ -78,7 +78,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
             "You gain the ability to distract targets with your <spell:Mage Hand>Mage Hand</spell>.",
             "When you use the Trip option of your Cunning Strike on a creature, you can also use that option on another creature within 5 feet of the spectral hand."
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.SPELL_THIEF, {
@@ -89,7 +89,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "For the next 8 hours, you have the spell prepared. The creature can't cast it until the 8 hours have passed.",
           "Once you steal a spell with this feature, you can't use this feature again until you finish a <link:long-rest>Long Rest</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       })
     ]
   },

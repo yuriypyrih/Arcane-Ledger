@@ -1,7 +1,6 @@
 import { useState } from "react";
 import CellContainer from "../../CellContainer/CellContainer";
 import ConcentrationLabel from "../../ConcentrationLabel";
-import DescriptionContent from "../../DescriptionContent/DescriptionContent";
 import SpellSubtitle from "../../SpellSubtitle";
 import SpellDescriptionContent from "../../SpellDescriptionContent";
 import {
@@ -22,7 +21,6 @@ import {
   OverlayTitle,
   OverlayTitleRow,
   SheetDrawer,
-  SheetModal,
   overlayClassNames
 } from "../../Overlay";
 import KeywordReferenceDrawer from "../../KeywordReferenceDrawer/KeywordReferenceDrawer";
@@ -162,47 +160,18 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
         </OverlayBody>
       </SheetDrawer>
 
-      {isComponentsTooltipOpen ? (
-        <SheetModal
-          titleId="codex-spell-components-title"
+      {isComponentsTooltipOpen && componentsTooltipEntry ? (
+        <KeywordReferenceDrawer
+          title={componentsTooltipEntry.title}
+          entries={[
+            {
+              title: componentsTooltipEntry.title,
+              description: componentsTooltipEntry.description
+            }
+          ]}
+          badgeLabel="Keyword"
           onClose={() => setIsComponentsTooltipOpen(false)}
-          backdropClassName={styles.modalBackdrop}
-          panelClassName={styles.modal}
-        >
-          <div className={styles.modalHeader}>
-            <div>
-              <p className={styles.modalEyebrow}>Spell Reference</p>
-              <h3 id="codex-spell-components-title" className={styles.modalTitle}>
-                {componentsTooltipEntry?.title ?? "Components"}
-              </h3>
-            </div>
-            <button
-              type="button"
-              className={styles.closeButton}
-              onClick={() => setIsComponentsTooltipOpen(false)}
-              aria-label="Close components tooltip"
-            >
-              ×
-            </button>
-          </div>
-          <OverlayBody className={styles.modalBody}>
-            {componentsTooltipEntry ? (
-              <article className={styles.tooltipCard}>
-                <DescriptionContent
-                  description={componentsTooltipEntry.description}
-                  className={styles.tooltipDescription}
-                  entryClassName={`${overlayClassNames.descriptionLine} ${styles.tooltipDescriptionLine}`}
-                  strongClassName={overlayClassNames.descriptionStrong}
-                  linkClassName={styles.inlineLinkButton}
-                  onOpenKeyword={setSelectedKeyword}
-                  onOpenSpell={setSelectedSpellReference}
-                  onOpenDivinity={setSelectedDivinityReference}
-                  onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
-                />
-              </article>
-            ) : null}
-          </OverlayBody>
-        </SheetModal>
+        />
       ) : null}
 
       {selectedSpellReference ? (

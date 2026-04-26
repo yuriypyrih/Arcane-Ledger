@@ -8,6 +8,7 @@ import ActionShape, {
 } from "../../../ActionShape";
 import CellContainer from "../../../CellContainer/CellContainer";
 import ConcentrationLabel from "../../../ConcentrationLabel";
+import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import SpellSubtitle from "../../../SpellSubtitle";
 import SelectInput from "../../FormInputs/SelectInput";
 import SpellDescriptionContent from "../../../SpellDescriptionContent";
@@ -24,8 +25,7 @@ import {
   formatCodexList,
   formatSpellCastingTime,
   formatSpellComponents,
-  getSpellDurationDisplayParts,
-  renderCodexInlineText
+  getSpellDurationDisplayParts
 } from "../../../../utils/codex";
 import {
   clampNumber,
@@ -34,6 +34,7 @@ import {
 import { markUsageHeaderTagsAsFallback } from "../../../../pages/CharactersPage/classFeatures/cardUsage";
 import { getSpellLevel } from "../../../../pages/CharactersPage/spellcasting";
 import { getSpellDamageDetailForCharacter } from "../../../../pages/CharactersPage/spellOutcome";
+import { isRogueArcaneTricksterMagicalAmbushActiveForSpell } from "../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 import type {
   FeatureActionCardUsage,
   FeatureActionFact,
@@ -350,7 +351,9 @@ function CharacterSpellDrawer({
           ]
         : [];
   const shouldUseFullWidthReactionLayout =
-    resolvedActionPaths.length === 1 && resolvedActionPaths[0]?.actionShape === "reaction";
+    !shouldShowSlotControls &&
+    resolvedActionPaths.length === 1 &&
+    resolvedActionPaths[0]?.actionShape === "reaction";
   const shouldStackFooterActions =
     !showActionDiceControls &&
     (shouldUseFullWidthReactionLayout ||
@@ -358,24 +361,12 @@ function CharacterSpellDrawer({
   const bodyRadioActionOptions = visibleActionOptions.filter(
     (option) => option.radioOptions?.placement === "body"
   );
-
-  useEffect(() => {
-    if (!isComponentsTooltipOpen) {
-      return;
-    }
-
-    function handleKeyDown(event: globalThis.KeyboardEvent) {
-      if (event.key === "Escape") {
-        closeComponentsTooltip();
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isComponentsTooltipOpen]);
+  const actionContextTexts = [
+    actionContextText,
+    isRogueArcaneTricksterMagicalAmbushActiveForSpell(character, spell)
+      ? "Magical Ambush is active"
+      : null
+  ].filter((value): value is string => value !== null && value.length > 0);
 
   useEffect(() => {
     if (shouldShowSlotControls) {
@@ -443,7 +434,7 @@ function CharacterSpellDrawer({
     actionOptions.length > 0 ||
     visibleActionWarning !== null ||
     effectiveBlockedReason !== null ||
-    actionContextText !== null;
+    actionContextTexts.length > 0;
 
   return (
     <>
@@ -743,9 +734,14 @@ function CharacterSpellDrawer({
                           ) : null}
                         </div>
                       ) : null}
-                      {actionContextText ? (
-                        <p className={actionStyles.castActionContext}>{actionContextText}</p>
-                      ) : null}
+                      {actionContextTexts.map((contextText, index) => (
+                        <p
+                          key={`${spell.id}-action-context-${index}`}
+                          className={actionStyles.castActionContext}
+                        >
+                          {contextText}
+                        </p>
+                      ))}
                     </div>
                   </div>
                 ) : null}
@@ -831,52 +827,18 @@ function CharacterSpellDrawer({
         </section>
       </div>
 
-      {isComponentsTooltipOpen ? (
-        <div
-          className={clsx(sheetStyles.spellDrawerBackdrop, styles.componentsDrawerBackdrop)}
-          role="presentation"
-          onClick={closeComponentsTooltip}
-        >
-          <section
-            className={clsx(sheetStyles.spellDrawer, styles.componentsDrawer)}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="spell-components-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className={sheetStyles.spellDrawerHeader}>
-              <div className={sheetStyles.spellDrawerHeaderContent}>
-                <p className={sheetStyles.spellDrawerBadge}>Keyword</p>
-                <div className={sheetStyles.spellDrawerTitleRow}>
-                  <h3 id="spell-components-title" className={sheetStyles.spellDrawerTitle}>
-                    {componentsTooltipEntry?.title ?? "Components"}
-                  </h3>
-                </div>
-              </div>
-              <button
-                type="button"
-                className={sheetStyles.spellDrawerCloseButton}
-                onClick={closeComponentsTooltip}
-                aria-label="Close components details"
-              >
-                <X size={18} />
-              </button>
-            </div>
-
-            <div
-              className={clsx(sheetStyles.spellDrawerDescriptionList, styles.componentsDrawerBody)}
-            >
-              {componentsTooltipEntry?.description.map((line, index) => (
-                <p
-                  key={`components-description-${index}`}
-                  className={sheetStyles.spellDrawerDescriptionLine}
-                >
-                  {renderCodexInlineText(line, sheetStyles.spellDrawerDescriptionStrong)}
-                </p>
-              ))}
-            </div>
-          </section>
-        </div>
+      {isComponentsTooltipOpen && componentsTooltipEntry ? (
+        <KeywordReferenceDrawer
+          title={componentsTooltipEntry.title}
+          entries={[
+            {
+              title: componentsTooltipEntry.title,
+              description: componentsTooltipEntry.description
+            }
+          ]}
+          badgeLabel="Keyword"
+          onClose={closeComponentsTooltip}
+        />
       ) : null}
     </>
   );

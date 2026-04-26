@@ -7,7 +7,11 @@ import SelectInput from "../../FormInputs/SelectInput";
 import type { Character, SkillProficiencyEntry } from "../../../../types";
 import { PROF_LEVEL } from "../../../../types";
 import { getKeywordDescription } from "../../../../pages/CharactersPage/keywordDescriptions";
-import { getSkillIndicatorsForCharacter } from "../../../../pages/CharactersPage/classFeatures";
+import {
+  getSkillIndicatorsForCharacter,
+  getSkillReferenceDescriptionAdditionsForCharacter,
+  getSkillRollD20MinimumForCharacter
+} from "../../../../pages/CharactersPage/classFeatures";
 import type { FeatureIndicator } from "../../../../pages/CharactersPage/classFeatures";
 import {
   getDisplayArmorProficiencyEntries,
@@ -27,8 +31,12 @@ import {
 } from "../../../../pages/CharactersPage/proficiency";
 import { getSkillRowsByAbility } from "../../../../pages/CharactersPage/skills";
 import type { SkillRow } from "../../../../pages/CharactersPage/skills";
-import { formatAbilityModifier } from "../../../../pages/CharactersPage/gameplay";
-import { formatD20Formula } from "../../../../pages/CharactersPage/shared";
+import {
+  formatD20Formula,
+  formatFormulaCell,
+  formatFormulaDieDisplayTerm,
+  formatSignedFormulaTerm
+} from "../../../../pages/CharactersPage/shared";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { skillColumnLayout } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import RollStatePill from "../../../RollStatePill/RollStatePill";
@@ -130,24 +138,38 @@ function SkillsAndProficienciesForm({
     (section) => section.entries.length > 0
   );
 
-  function formatSkillFormula(row: SkillRow): string {
-    const terms = [`${formatAbilityModifier(row.abilityModifierBase)} ${row.abilityLabel}`];
+  function formatSkillRollFormula(modifier: number, d20Minimum: number | null): string {
+    const d20Term = d20Minimum ? `1d20m${d20Minimum}` : "1d20";
+
+    if (modifier === 0) {
+      return d20Term;
+    }
+
+    return `${d20Term} ${modifier > 0 ? "+" : "-"} ${Math.abs(modifier)}`;
+  }
+
+  function getSkillFormulaDisplayTerms(row: SkillRow, d20Minimum: number | null = null): string[] {
+    const d20Term = formatFormulaDieDisplayTerm(
+      "1d20",
+      d20Minimum ? [{ kind: "minimum", value: d20Minimum }] : []
+    );
+    const terms = [d20Term, formatSignedFormulaTerm(row.abilityModifierBase, row.abilityLabel)];
 
     row.abilityModifierBonusEntries.forEach((entry) => {
-      terms.push(`${formatAbilityModifier(entry.value)} ${entry.label}`);
+      terms.push(formatSignedFormulaTerm(entry.value, entry.label));
     });
 
     if (row.proficiencyMultiplier === 1) {
-      terms.push(`${formatAbilityModifier(row.proficiencyContribution)} Proficiency Bonus`);
+      terms.push(formatSignedFormulaTerm(row.proficiencyContribution, "Proficiency Bonus"));
     } else if (row.proficiencyMultiplier === 2) {
-      terms.push(`${formatAbilityModifier(row.proficiencyContribution)} Proficiency Bonus x2`);
+      terms.push(formatSignedFormulaTerm(row.proficiencyContribution, "Proficiency Bonus x2"));
     }
 
     row.bonusEntries.forEach((entry) => {
-      terms.push(`${formatAbilityModifier(entry.value)} ${entry.label}`);
+      terms.push(formatSignedFormulaTerm(entry.value, entry.label));
     });
 
-    return `${row.name} ${formatAbilityModifier(row.totalModifier)} = ${terms.join(" ")}`;
+    return terms;
   }
 
   function beginSkillTableEditing() {
@@ -199,22 +221,27 @@ function SkillsAndProficienciesForm({
     return normalizedLabels.length > 0 ? normalizedLabels.join(", ") : fallback;
   }
 
-  function getSkillReferenceDetailCards(row: SkillRow): SkillReferenceDetailCard[] {
+  function getSkillReferenceDetailCards({
+    row,
+    rollFormula,
+    d20Minimum
+  }: {
+    row: SkillRow;
+    rollFormula: string;
+    d20Minimum: number | null;
+  }): SkillReferenceDetailCard[] {
+    const formulaCell = formatFormulaCell({
+      formula: rollFormula,
+      displayTerms: getSkillFormulaDisplayTerms(row, d20Minimum),
+      resultLabel: row.name
+    });
+
     return [
       {
-        label: "Source",
-        value: formatReferenceSourceLabel(
-          [
-            ...row.proficiencySourceLabels,
-            ...row.abilityModifierBonusEntries.map((entry) => entry.label),
-            ...row.bonusEntries.map((entry) => entry.label)
-          ],
-          "Ability modifier only"
-        )
-      },
-      {
         label: "Formula",
-        value: formatSkillFormula(row)
+        value: formulaCell.value,
+        breakdown: formulaCell.breakdown,
+        variant: "formula"
       }
     ];
   }
@@ -224,7 +251,11 @@ function SkillsAndProficienciesForm({
     indicators?: FeatureIndicator[],
     detailCards?: SkillReferenceDetailCard[],
     rollModifier?: number,
-    rollDescription?: string
+    rollDescription?: string,
+    additionalDescription?: SelectedSkillReference["additionalDescription"],
+    descriptionAdditions?: SelectedSkillReference["descriptionAdditions"],
+    rollFormula?: string,
+    rollFormulaDisplay?: string
   ) {
     const description = getKeywordDescription(keyword);
 
@@ -239,7 +270,11 @@ function SkillsAndProficienciesForm({
       indicators: indicators?.length ? indicators : undefined,
       detailCards,
       rollModifier,
-      rollDescription
+      rollDescription,
+      additionalDescription,
+      descriptionAdditions,
+      rollFormula,
+      rollFormulaDisplay
     });
   }
 
@@ -248,12 +283,14 @@ function SkillsAndProficienciesForm({
       return;
     }
 
-    const rollFormula = formatD20Formula(selectedKeyword.rollModifier);
+    const rollFormula =
+      selectedKeyword.rollFormula ?? formatD20Formula(selectedKeyword.rollModifier);
+    const rollFormulaDisplay = selectedKeyword.rollFormulaDisplay ?? rollFormula;
 
     openDiceRoller({
       title: selectedKeyword.name,
       formula: rollFormula,
-      formulaDisplay: rollFormula,
+      formulaDisplay: rollFormulaDisplay,
       description: selectedKeyword.rollDescription ?? selectedKeyword.description,
       mode: getRollModeFromIndicators(selectedKeyword.indicators)
     });
@@ -354,7 +391,28 @@ function SkillsAndProficienciesForm({
                             ...row.bonusEntries.map((entry) => entry.label)
                           ];
                           const hasAdditionalBonuses = additionalBonusLabels.length > 0;
-                          const skillDetailCards = getSkillReferenceDetailCards(row);
+                          const reliableTalentD20Minimum = getSkillRollD20MinimumForCharacter(
+                            character,
+                            row.name
+                          );
+                          const skillDescriptionAdditions =
+                            getSkillReferenceDescriptionAdditionsForCharacter(character, row.name);
+                          const skillAdditionalDescription = skillDescriptionAdditions.flatMap(
+                            (section) => section
+                          );
+                          const skillRollFormula = formatSkillRollFormula(
+                            row.totalModifier,
+                            reliableTalentD20Minimum
+                          );
+                          const skillDetailCards = getSkillReferenceDetailCards({
+                            row,
+                            rollFormula: skillRollFormula,
+                            d20Minimum: reliableTalentD20Minimum
+                          });
+                          const skillFormulaDescription =
+                            typeof skillDetailCards[0]?.value === "string"
+                              ? skillDetailCards[0].value
+                              : undefined;
 
                           return (
                             <li
@@ -381,7 +439,11 @@ function SkillsAndProficienciesForm({
                                       skillIndicators[row.name],
                                       skillDetailCards,
                                       row.totalModifier,
-                                      formatSkillFormula(row)
+                                      skillFormulaDescription,
+                                      skillAdditionalDescription,
+                                      undefined,
+                                      skillRollFormula,
+                                      skillRollFormula
                                     )
                                   }
                                 >

@@ -142,6 +142,8 @@ export type SpellEntry = {
   description: SpellDescriptionEntry[];
   descriptionAdditions?: SpellDescriptionEntry[][];
   isHealingSpell?: boolean;
+  isSavingThrowSpell?: boolean;
+  isDamagingSpell?: boolean;
   damage: WeaponDamage;
   spellLists: SPELL_LIST_CLASS[];
   spellLevel: number;

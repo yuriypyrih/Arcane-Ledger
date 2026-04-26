@@ -32,8 +32,6 @@
 .sneakAttackEffectsList {
   display: grid;
   gap: 0.55rem;
-  max-height: 340px;
-  overflow: auto;
   padding-right: 0.2rem;
 }
 
@@ -41,30 +39,21 @@
   width: 100%;
 }
 
-.sneakAttackEffectMeta {
-  color: var(--color-ink-soft);
-  font-size: 0.76rem;
+.sneakAttackEffectDescription {
+  display: grid;
+  gap: 0.38rem;
 }
 
-.sneakAttackReferenceButton {
-  align-items: center;
-  border: 1px solid rgba(75, 47, 29, 0.16);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.82);
-  color: #8a4d26;
-  cursor: pointer;
-  display: inline-flex;
-  justify-content: center;
-  min-width: 46px;
-  padding: 0.7rem;
+.sneakAttackEffectDescriptionLine {
+  margin: 0;
+  color: rgba(46, 32, 23, 0.78);
+  font-size: 0.82rem;
+  font-weight: 500;
+  line-height: 1.45;
 }
 
-.sneakAttackReferenceButton:hover {
-  background: rgba(181, 86, 42, 0.08);
-}
-
-.sneakAttackReferenceDrawerBackdrop {
-  z-index: 48;
+.sneakAttackEffectDescriptionStrong {
+  color: #2e2017;
 }
 
 .rendMindSection {

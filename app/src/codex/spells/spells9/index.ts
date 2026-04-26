@@ -45,6 +45,7 @@ export const bladeOfDisaster: SpellEntry = {
     "As a Bonus Action on your turn, you can move the blade up to 30 feet to an unoccupied space you can see and then make up to two melee spell attacks with it again.",
     "The blade can harmlessly pass through any barrier, including a Wall of Force."
   ],
+  isDamagingSpell: true,
   damage: [
     [DICE.D12, DAMAGE_TYPE.FORCE],
     [DICE.D12, DAMAGE_TYPE.FORCE],
@@ -130,6 +131,7 @@ export const imprisonment: SpellEntry = {
       ]
     }
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
@@ -185,6 +187,7 @@ export const massPolymorph: SpellEntry = {
     "The creature is limited in the actions it can perform by the nature of its new form. It can't speak, cast spells, or do anything else that requires hands or speech. The target's gear melds into the new form.",
     "The target can't activate, use, wield, or otherwise benefit from any of its equipment."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
@@ -204,6 +207,8 @@ export const meteorSwarm: SpellEntry = {
     "A creature takes <strong>20d6</strong> Fire damage and <strong>20d6</strong> Bludgeoning damage on a failed save, or half as much damage on a successful one. A creature in the area of more than one fiery burst is affected only once.",
     "The spell damages objects in the area and ignites flammable objects that aren't being worn or carried."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
@@ -278,6 +283,8 @@ export const prismaticWall: SpellEntry = {
       ]
     }
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
@@ -297,6 +304,8 @@ export const psychicScream: SpellEntry = {
     "Each target must make an Intelligence saving throw. On a failed save, a target takes <strong>14d6</strong> Psychic damage and is Stunned. On a successful save, a target takes half as much damage and isn't Stunned. If a target is killed by this damage, its head explodes, assuming it has one.",
     "A Stunned target can make an Intelligence saving throw at the end of each of its turns. On a successful save, the stunning effect ends."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
@@ -337,6 +346,8 @@ export const ravenousVoid: SpellEntry = {
     "A creature that starts its turn within 100 feet of the sphere must succeed on a Strength saving throw or be pulled straight toward the sphere's center, ending in an unoccupied space as close to the center as possible. A creature that enters the sphere for the first time on a turn or starts its turn there takes <strong>5d10</strong> Force damage and is Restrained until it is no longer in the sphere. If the sphere is in the air, the Restrained creature hovers inside the sphere.",
     "A creature can use its action to make a Strength check against your spell save DC, ending this Restrained condition on itself or another creature in the sphere that it can reach. A creature reduced to 0 Hit Points by this spell is annihilated, along with any nonmagical items it is wearing or carrying."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.FORCE],
     [DICE.D10, DAMAGE_TYPE.FORCE],
@@ -393,6 +404,8 @@ export const stormOfVengeance: SpellEntry = {
       ]
     }
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID],
   spellLevel: 9
@@ -411,6 +424,8 @@ export const timeRavage: SpellEntry = {
     "You target a creature you can see within range, putting its physical form through the devastation of rapid aging. The target must make a Constitution saving throw, taking <strong>10d12</strong> Necrotic damage on a failed save, or half as much damage on a successful one.",
     "If the save fails, the target also ages to the point where it has only 30 days left before it dies of old age. In this aged state, the target has disadvantage on attack rolls, Ability Checks, and saving throws, and its walking speed is halved. Only the wish spell or the greater restoration spell cast with a 9th-level spell slot can end these effects and restore the target to its previous age."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D12, DAMAGE_TYPE.NECROTIC],
     [DICE.D12, DAMAGE_TYPE.NECROTIC],
@@ -468,6 +483,7 @@ export const truePolymorph: SpellEntry = {
       ]
     }
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
@@ -506,6 +522,8 @@ export const weird: SpellEntry = {
     "Each creature in a 30-foot-radius sphere centered on a point of your choice within range must make a Wisdom saving throw. On a failed save, a creature becomes Frightened for the duration.",
     "The illusion calls on the creature's deepest fears, manifesting its worst nightmares as an implacable threat. At the end of each of the Frightened creature's turns, it must succeed on a Wisdom saving throw or take <strong>4d10</strong> Psychic damage. On a successful save, the spell ends for that creature."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.PSYCHIC],
     [DICE.D10, DAMAGE_TYPE.PSYCHIC],

@@ -82,6 +82,7 @@ export const crownOfStars: SpellEntry = {
     "If you have four or more motes remaining, they shed bright light in a 30-foot radius and dim light for an additional 30 feet. If you have one to three motes remaining, they shed dim light in a 30-foot radius.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 8th level or higher, the number of motes created increases by two for each slot level above 7th."
   ],
+  isDamagingSpell: true,
   damage: [
     [DICE.D12, DAMAGE_TYPE.RADIANT],
     [DICE.D12, DAMAGE_TYPE.RADIANT],
@@ -108,6 +109,8 @@ export const delayedBlastFireball: SpellEntry = {
     "The fire damages objects in the area and ignites flammable objects that aren't being worn or carried.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 8th level or higher, the base damage increases by <strong>1d6</strong> for each slot level above 7th."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.FIRE],
     [DICE.D6, DAMAGE_TYPE.FIRE],
@@ -149,6 +152,7 @@ export const divineWord: SpellEntry = {
     },
     "Regardless of its current Hit Points, a Celestial, an Elemental, a Fey, or a Fiend that fails its save is forced back to its plane of origin, if it isn't there already, and can't return to your current plane for 24 hours by any means short of a Wish spell."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 7
@@ -175,6 +179,8 @@ export const draconicTransformation: SpellEntry = {
       ]
     }
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.FORCE],
     [DICE.D8, DAMAGE_TYPE.FORCE],
@@ -251,6 +257,8 @@ export const fingerOfDeath: SpellEntry = {
     "You send negative energy coursing through a creature that you can see within range, causing it searing pain. The target must make a Constitution saving throw. It takes <strong>7d8</strong> + 30 Necrotic damage on a failed save, or half as much damage on a successful one.",
     "A Humanoid killed by this spell rises at the start of your next turn as a zombie that is permanently under your command, following your verbal orders to the best of its ability."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
@@ -269,6 +277,8 @@ export const fireStorm: SpellEntry = {
     "A storm made up of sheets of roaring flame appears in a location you choose within range. The area of the storm consists of up to ten 10-foot cubes, which you can arrange as you wish. Each cube must have at least one face adjacent to the face of another cube. Each creature in the area must make a Dexterity saving throw. It takes <strong>7d10</strong> Fire damage on a failed save, or half as much damage on a successful save.",
     "The fire damages objects in the area and ignites flammable objects that aren't being worn or carried. If you choose, plant life in the area is unaffected by this spell."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.FIRE],
     [DICE.D10, DAMAGE_TYPE.FIRE],
@@ -305,6 +315,7 @@ export const forcecage: SpellEntry = {
     "A creature inside the cage can't leave it by nonmagical means. If the creature tries to use teleportation or interplanar travel to leave the cage, it must first make a Charisma saving throw. On a success, the creature can use that magic to exit the cage. On a failure, the creature can't exit the cage and wastes the use of the spell or effect. The cage also extends into the Ethereal Plane, blocking ethereal travel.",
     "This spell can't be dispelled by Dispel Magic."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
@@ -363,6 +374,7 @@ export const mordenkainensSword: SpellEntry = {
     "You create a sword-shaped plane of force that hovers within range. It lasts for the duration.",
     "When the sword appears, you make a melee spell attack against a target of your choice within 5 feet of the sword. On a hit, the target takes <strong>3d10</strong> Force damage. Until the spell ends, you can use a Bonus Action on each of your turns to move the sword up to 20 feet to a spot you can see and repeat this attack against the same target or a different one."
   ],
+  isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.FORCE],
     [DICE.D10, DAMAGE_TYPE.FORCE],
@@ -386,6 +398,7 @@ export const planeShift: SpellEntry = {
     "Alternatively, if you know the sigil sequence of a Teleportation Circle on another plane of existence, this spell can take you to that circle. If the Teleportation Circle is too small to hold all the creatures you transported, they appear in the closest unoccupied spaces next to the circle.",
     "You can use this spell to banish an unwilling creature to another plane. Choose a creature within your reach and make a melee spell attack against it. On a hit, the creature must make a Charisma saving throw. If the creature fails the save, it is transported to a random location on the plane of existence you specify. A creature so transported must find its own way back to your current plane of existence."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.CLERIC,
@@ -411,6 +424,7 @@ export const powerWordPain: SpellEntry = {
     "While the target is affected by crippling pain, any Speed it has can be no higher than 10 feet. The target also has disadvantage on attack rolls, Ability Checks, and saving throws, other than Constitution saving throws. Finally, if the target tries to cast a spell, it must first succeed on a Constitution saving throw, or the casting fails and the spell is wasted.",
     "A target suffering this pain can make a Constitution saving throw at the end of each of its turns. On a successful save, the pain ends."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
@@ -442,6 +456,8 @@ export const prismaticSpray: SpellEntry = {
       ]
     }
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
@@ -521,6 +537,7 @@ export const reverseGravity: SpellEntry = {
     "If some solid object, such as a ceiling, is encountered in this fall, falling objects and creatures strike it just as they would during a normal downward fall. If an object or creature reaches the top of the area without striking anything, it remains there, oscillating slightly, for the duration.",
     "At the end of the duration, affected objects and creatures fall back down."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
@@ -595,6 +612,8 @@ export const symbol: SpellEntry = {
       ]
     }
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
@@ -672,6 +691,7 @@ export const templeOfTheGods: SpellEntry = {
     "The temple is made from opaque magical force that extends into the Ethereal Plane, thus blocking ethereal travel into the temple's interior. Nothing can physically pass through the temple's exterior. It can't be dispelled by Dispel Magic, and Antimagic Field has no effect on it. A Disintegrate spell destroys the temple instantly.",
     "Casting this spell on the same spot every day for a year makes this effect permanent."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 7
@@ -690,6 +710,8 @@ export const tetherEssence: SpellEntry = {
     "Two creatures you can see within range must make a Constitution saving throw, with disadvantage if they are within 30 feet of each other. Either creature can willingly fail the save. If either save succeeds, the spell has no effect.",
     "If both saves fail, the creatures are magically linked for the duration, regardless of the distance between them. When damage is dealt to one of them, the same damage is dealt to the other one. If Hit Points are restored to one of them, the same number of Hit Points are restored to the other one. If either of the tethered creatures is reduced to 0 Hit Points, the spell ends on both. If the spell ends on one creature, it ends on both."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
@@ -710,6 +732,8 @@ export const whirlwind: SpellEntry = {
     "When a creature starts its turn Restrained by the whirlwind, the creature is pulled 5 feet higher inside it, unless the creature is at the top. A Restrained creature moves with the whirlwind and falls when the spell ends, unless the creature has some means to stay aloft.",
     "A Restrained creature can use an action to make a Strength or Dexterity check against your spell save DC. If successful, the creature is no longer Restrained by the whirlwind and is hurled <strong>3d6</strong> x 10 feet away from it in a random direction."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
     [DICE.D6, DAMAGE_TYPE.BLUDGEONING],

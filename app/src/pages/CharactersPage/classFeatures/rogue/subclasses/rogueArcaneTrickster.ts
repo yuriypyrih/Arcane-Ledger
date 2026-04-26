@@ -6,17 +6,16 @@ import {
   type SpellEntry
 } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
-import { CONDITION_NAME, STATUS_DURATION_KIND, STATUS_ENTRY_GROUP, STATUS_ENTRY_SOURCE_TYPE } from "../../../../../types";
 import {
-  createSourcedDescriptionEntries,
-  descriptionValueSomeText
-} from "../../../actionModalDescriptions";
+  CONDITION_NAME,
+  STATUS_DURATION_KIND,
+  STATUS_ENTRY_GROUP,
+  STATUS_ENTRY_SOURCE_TYPE
+} from "../../../../../types";
+import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { hasStatusCondition } from "../../../statusEntries";
 import type { DerivedFeatureStatusEntry } from "../../types";
-import {
-  resolveSpellIdsByName,
-  transformSpellToBonusAction,
-  type SubclassRuntimeResolver
-} from "../../subclassRuntime";
+import { resolveSpellIdsByName, type SubclassRuntimeResolver } from "../../subclassRuntime";
 
 export const arcaneTricksterSubclassId = "rogue-arcane-trickster";
 export const rogueArcaneTricksterMagicalAmbushStatusSourceId =
@@ -58,6 +57,9 @@ function getRogueArcaneTricksterFeatureDescriptionEntries(feature: CLASS_FEATURE
 const mageHandLegerdemainDescription = getRogueArcaneTricksterFeatureDescriptionEntries(
   CLASS_FEATURE.MAGE_HAND_LEGERDEMAIN
 );
+const magicalAmbushDescription = getRogueArcaneTricksterFeatureDescriptionEntries(
+  CLASS_FEATURE.MAGICAL_AMBUSH
+);
 const spellThiefDescription = getRogueArcaneTricksterFeatureDescriptionEntries(
   CLASS_FEATURE.SPELL_THIEF
 );
@@ -79,7 +81,8 @@ export function isRogueArcaneTricksterSpellThiefStatusSourceId(
   value: string | null | undefined
 ): value is `${typeof rogueArcaneTricksterSpellThiefStatusSourceIdPrefix}${string}` {
   return (
-    typeof value === "string" && value.startsWith(rogueArcaneTricksterSpellThiefStatusSourceIdPrefix)
+    typeof value === "string" &&
+    value.startsWith(rogueArcaneTricksterSpellThiefStatusSourceIdPrefix)
   );
 }
 
@@ -134,25 +137,11 @@ function appendArcaneTricksterSpellDescription(
   sourceName: string,
   descriptionEntries: readonly string[]
 ): SpellEntry {
-  if (spell.id !== mageHandSpellId || descriptionEntries.length <= 0) {
+  if (descriptionEntries.length <= 0) {
     return spell;
   }
 
-  const marker = `<strong>${sourceName}.</strong>`;
-
-  if (
-    descriptionValueSomeText({ description: spell.description }, (entry) => entry.includes(marker))
-  ) {
-    return spell;
-  }
-
-  return {
-    ...spell,
-    description: [
-      ...spell.description,
-      ...createSourcedDescriptionEntries(sourceName, descriptionEntries)
-    ]
-  };
+  return appendSourcedDescriptionAddition(spell, sourceName, descriptionEntries);
 }
 
 function getRogueArcaneTricksterDerivedStatusEntries(
@@ -186,32 +175,52 @@ function transformArcaneTricksterSpell(
   character: Parameters<SubclassRuntimeResolver>[0],
   spell: SpellEntry
 ): SpellEntry {
-  if (!hasRogueArcaneTricksterFeature(character, 3) || spell.id !== mageHandSpellId) {
+  if (!hasRogueArcaneTricksterFeature(character, 3)) {
     return spell;
   }
 
-  let nextSpell = transformSpellToBonusAction(mageHandSpellId, spell);
+  let nextSpell =
+    spell.id === mageHandSpellId
+      ? appendArcaneTricksterSpellDescription(
+          spell,
+          mageHandLegerdemainSource,
+          mageHandLegerdemainDescription
+        )
+      : spell;
 
-  if (!nextSpell.castingTime.includes(ACTION_TYPE.BONUS_ACTION)) {
-    nextSpell = {
-      ...nextSpell,
-      castingTime: [ACTION_TYPE.BONUS_ACTION]
-    };
+  if (spell.id === mageHandSpellId && hasRogueArcaneTricksterFeature(character, 13)) {
+    nextSpell = appendArcaneTricksterSpellDescription(
+      nextSpell,
+      versatileTricksterSource,
+      versatileTricksterDescription
+    );
   }
 
-  nextSpell = appendArcaneTricksterSpellDescription(
-    nextSpell,
-    mageHandLegerdemainSource,
-    mageHandLegerdemainDescription
-  );
-
-  return hasRogueArcaneTricksterFeature(character, 13)
-    ? appendArcaneTricksterSpellDescription(
-        nextSpell,
-        versatileTricksterSource,
-        versatileTricksterDescription
-      )
+  return hasRogueArcaneTricksterFeature(character, 9) && spell.isSavingThrowSpell === true
+    ? appendArcaneTricksterSpellDescription(nextSpell, magicalAmbushName, magicalAmbushDescription)
     : nextSpell;
+}
+
+export function isRogueArcaneTricksterMagicalAmbushActiveForSpell(
+  character: Parameters<SubclassRuntimeResolver>[0],
+  spell: Pick<SpellEntry, "isSavingThrowSpell">
+): boolean {
+  return (
+    hasRogueArcaneTricksterFeature(character, 9) &&
+    spell.isSavingThrowSpell === true &&
+    hasStatusCondition(character.statusEntries, CONDITION_NAME.INVISIBLE)
+  );
+}
+
+export function canUseRogueArcaneTricksterMageHandLegerdemainBonusActionPathForSpell(
+  character: Parameters<SubclassRuntimeResolver>[0],
+  spell: Pick<SpellEntry, "id" | "castingTime">
+): boolean {
+  return (
+    hasRogueArcaneTricksterFeature(character, 3) &&
+    spell.id === mageHandSpellId &&
+    spell.castingTime.includes(ACTION_TYPE.ACTION)
+  );
 }
 
 export const getRogueArcaneTricksterDerivedFeatureState: SubclassRuntimeResolver = (character) =>

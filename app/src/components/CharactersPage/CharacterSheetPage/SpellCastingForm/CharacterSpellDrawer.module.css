@@ -122,22 +122,6 @@
   outline-offset: 2px;
 }
 
-.componentsDrawerBackdrop {
-  z-index: 49;
-}
-
-.componentsDrawer {
-  width: min(640px, 100%);
-}
-
-.componentsDrawerBody {
-  display: grid;
-  flex: 1 1 auto;
-  gap: 0.85rem;
-  min-height: 0;
-  overflow: auto;
-}
-
 .bodyActionOptionSection {
   display: grid;
   gap: 0.75rem;

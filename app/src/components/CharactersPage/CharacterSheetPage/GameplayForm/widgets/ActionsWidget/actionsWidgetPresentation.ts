@@ -29,6 +29,8 @@ type WeaponDrawerDetail = {
   key: string;
   label: ReactNode;
   value: ReactNode;
+  referenceTitle?: string;
+  referenceKeywords?: string[];
 };
 
 type WeaponDrawerDescription = {
@@ -77,6 +79,10 @@ function joinWeaponFormulaTerms(terms: string[]) {
 
     return `${expression} + ${term.replace(/^\+/, "").trim()}`;
   }, normalizedTerms[0]);
+}
+
+function normalizeWeaponReferenceLabels(labels: string[]) {
+  return labels.map((label) => label.replace(/\s*\([^)]*\)\s*$/, "").trim()).filter(Boolean);
 }
 
 type ParsedDamageDisplay = {
@@ -372,10 +378,7 @@ export function getWeaponDamageFormulaPresentation(
   return {
     label: "Damage Roll Formula",
     value: `${formatWeaponRangePrefix(damageFormula)} = ${joinWeaponFormulaTerms(visibleTerms)}`,
-    breakdown:
-      breakdownEntries.length > 0
-        ? formatFormulaBreakdown(breakdownEntries)
-        : undefined
+    breakdown: breakdownEntries.length > 0 ? formatFormulaBreakdown(breakdownEntries) : undefined
   };
 }
 
@@ -439,12 +442,16 @@ export function getWeaponDrawerDetails(
       {
         key: "properties",
         label: "Properties",
-        value: adaptedItemWeapon.propertyLabels.join(", ") || "None"
+        value: adaptedItemWeapon.propertyLabels.join(", ") || "None",
+        referenceTitle: "Properties",
+        referenceKeywords: normalizeWeaponReferenceLabels(adaptedItemWeapon.propertyLabels)
       },
       {
         key: "mastery",
         label: masteryLabel,
-        value: adaptedItemWeapon.masteryLabels.join(", ") || "None"
+        value: adaptedItemWeapon.masteryLabels.join(", ") || "None",
+        referenceTitle: "Mastery",
+        referenceKeywords: normalizeWeaponReferenceLabels(adaptedItemWeapon.masteryLabels)
       }
     ];
   }
@@ -497,12 +504,16 @@ export function getWeaponDrawerDetails(
     {
       key: "properties",
       label: "Properties",
-      value: formatWeaponProperties(weaponEntry)
+      value: formatWeaponProperties(weaponEntry),
+      referenceTitle: "Properties",
+      referenceKeywords: weaponEntry.properties.map((property) => formatCodexLabel(property))
     },
     {
       key: "mastery",
       label: masteryLabel,
-      value: weaponEntry.mastery ? formatCodexLabel(weaponEntry.mastery) : "None"
+      value: weaponEntry.mastery ? formatCodexLabel(weaponEntry.mastery) : "None",
+      referenceTitle: "Mastery",
+      referenceKeywords: weaponEntry.mastery ? [formatCodexLabel(weaponEntry.mastery)] : []
     }
   ];
 }

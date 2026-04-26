@@ -12,6 +12,5 @@ export type RogueSneakAttackEffectDefinition = {
   key: RogueSneakAttackEffectKey;
   name: string;
   costDice: number;
-  referenceTitle: string;
   referenceDescription: string[];
 };

@@ -1,16 +1,14 @@
 import clsx from "clsx";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import CellContainer from "../../../../../CellContainer/CellContainer";
 import { useDiceRollerPopup } from "../../../../../DicePage/DiceRollerPopup";
+import KeywordReferenceDrawer from "../../../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import ActionShape, { getActionShapeForCastingTime } from "../../../../../ActionShape";
 import RollStatePill from "../../../../../RollStatePill/RollStatePill";
 import FeatureOptInToggle from "../../../FeatureOptInToggle/FeatureOptInToggle";
-import type {
-  Character,
-  CharacterWizardPortentRoll,
-  MonsterRecord
-} from "../../../../../../types";
+import type { Character, CharacterWizardPortentRoll, MonsterRecord } from "../../../../../../types";
 import { abilityKeys } from "../../../../../../pages/CharactersPage/constants";
+import { getKeywordReferences } from "../../../../../../pages/CharactersPage/keywordDescriptions";
 import {
   activateBardicInspirationForCharacter,
   activateInnateSorceryForCharacter,
@@ -179,9 +177,7 @@ import {
   getWarlockClairvoyantCombatantUsesTotal
 } from "../../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import { awakenedMindActionKey } from "../../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockGreatOldOnePatron";
-import {
-  type ArcaneRecoverySelection
-} from "../../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
+import { type ArcaneRecoverySelection } from "../../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
 import { setWizardDivinerPortentRolls } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerPortent";
 import { activateWizardDivinerThirdEye } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerThirdEye";
 import {
@@ -220,9 +216,7 @@ import {
   consumeRoundTrackerResourceForCharacter,
   prepareCharacterForRoundTrackerResourceConsumption
 } from "../../gameplayStateUtils";
-import {
-  getSpellDamageDetailForCharacter
-} from "../../../../../../pages/CharactersPage/spellOutcome";
+import { getSpellDamageDetailForCharacter } from "../../../../../../pages/CharactersPage/spellOutcome";
 import {
   getSavingThrowLevelFromEntries,
   getSavingThrowProficiencyForAbilityKey
@@ -284,10 +278,7 @@ import {
   type IndomitableOption
 } from "./IndomitableAction";
 import PortentActionBody from "./PortentActionBody";
-import {
-  LayOnHandsActionBody,
-  LayOnHandsActionFooter,
-} from "./LayOnHandsAction";
+import { LayOnHandsActionBody, LayOnHandsActionFooter } from "./LayOnHandsAction";
 import { SorcererInnateSorceryActionFooter } from "./SorcererInnateSorceryAction";
 import ThirdEyeActionBody from "./ThirdEyeActionBody";
 import { WarlockAwakenedMindActionFooter } from "./WarlockAwakenedMindAction";
@@ -304,9 +295,7 @@ import {
 } from "./rangerHuntersMarkWeapon";
 import RangerHunterWeaponOptions from "./RangerHunterWeaponOptions";
 import { applyCriticalHitToWeaponAction } from "./weaponCriticalHit";
-import {
-  consumeMonkStunningStrike
-} from "../../../../../../pages/CharactersPage/classFeatures/monk/monkStunningStrike";
+import { consumeMonkStunningStrike } from "../../../../../../pages/CharactersPage/classFeatures/monk/monkStunningStrike";
 import {
   activateMonkFlurryOfBlows,
   getMonkPatientDefenseTemporaryHitPointsFormula,
@@ -373,9 +362,7 @@ import {
   resolveFeatureSavingThrowBonusTotal,
   shouldConsumeMonkFleetStepFollowUp
 } from "./actionHelpers";
-import type {
-  ActionsWidgetProps,
-} from "./types";
+import type { ActionsWidgetProps } from "./types";
 import { useActionsWidgetUiState } from "./useActionsWidgetUiState";
 import { useActionsWidgetActions } from "./useActionsWidgetActions";
 import { useSelectedWeaponActionModel } from "./useSelectedWeaponActionModel";
@@ -384,8 +371,18 @@ import FeatureSpellDrawers from "./FeatureSpellDrawers";
 import WildShapePreviewDrawer from "./WildShapePreviewDrawer";
 
 const frozenHauntFallbackSpellSlotMinimumLevel = 4;
+const initialSneakAttackActionSelection: SneakAttackActionSelection = {
+  effectKeys: [],
+  useRendMind: false
+};
 
 function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
+  const [sneakAttackActionSelection, setSneakAttackActionSelection] =
+    useState<SneakAttackActionSelection>(initialSneakAttackActionSelection);
+  const [selectedWeaponDetailReference, setSelectedWeaponDetailReference] = useState<{
+    title: string;
+    entries: ReturnType<typeof getKeywordReferences>;
+  } | null>(null);
   const {
     isCommonActionsOpen,
     setIsCommonActionsOpen,
@@ -1511,7 +1508,21 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     character.level >= 3;
 
   function closeActionDrawer() {
+    setSelectedWeaponDetailReference(null);
     resetActionDrawerState();
+  }
+
+  function openWeaponDetailReference(title: string, keywords: string[] | undefined) {
+    const referenceEntries = keywords ? getKeywordReferences(keywords) : [];
+
+    if (referenceEntries.length === 0) {
+      return;
+    }
+
+    setSelectedWeaponDetailReference({
+      title,
+      entries: referenceEntries
+    });
   }
 
   function prepareCharacterForResourceConsumption(
@@ -1537,6 +1548,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
   useEffect(() => {
     resetActionSelectionState();
+    setSneakAttackActionSelection(initialSneakAttackActionSelection);
   }, [selectedActionKey, resetActionSelectionState]);
 
   useEffect(() => {
@@ -2143,7 +2155,10 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         };
 
         return roundTrackerResource
-          ? consumeRoundTrackerResourceForCharacter(nextCharacterWithSpellSlot, roundTrackerResource)
+          ? consumeRoundTrackerResourceForCharacter(
+              nextCharacterWithSpellSlot,
+              roundTrackerResource
+            )
           : nextCharacterWithSpellSlot;
       });
       closeActionDrawer();
@@ -3480,7 +3495,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
   function rollFortifyingSoulHealing(action: FeatureActionCard) {
     const healingFormula = getRangerWinterWalkerFortifyingSoulHealingFormula(character);
-    const healingFormulaDisplay = getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay(character);
+    const healingFormulaDisplay =
+      getRangerWinterWalkerFortifyingSoulHealingFormulaDisplay(character);
 
     if (!healingFormula) {
       return;
@@ -3825,13 +3841,30 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return (
         <div className={styles.weaponDrawerBody}>
           <div className={sheetStyles.spellDrawerDetails}>
-            {selectedWeaponDetails.map((detail) => (
-              <CellContainer
-                key={`${selectedAction.key}-${detail.key}`}
-                label={detail.label}
-                content={detail.value}
-              />
-            ))}
+            {selectedWeaponDetails.map((detail) => {
+              const detailKey = `${selectedAction.key}-${detail.key}`;
+
+              if (detail.referenceKeywords?.length) {
+                return (
+                  <CellContainer
+                    key={detailKey}
+                    as="button"
+                    type="button"
+                    className={styles.weaponDetailButton}
+                    label={detail.label}
+                    content={detail.value}
+                    onClick={() =>
+                      openWeaponDetailReference(
+                        detail.referenceTitle ?? String(detail.label),
+                        detail.referenceKeywords
+                      )
+                    }
+                  />
+                );
+              }
+
+              return <CellContainer key={detailKey} label={detail.label} content={detail.value} />;
+            })}
           </div>
 
           <div className={clsx(sheetStyles.spellDrawerDetails, styles.weaponFormulaList)}>
@@ -4013,7 +4046,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           <SneakAttackActionBody
             action={selectedAction.action}
             character={character}
-            onConfirm={submitSneakAttack}
+            selection={sneakAttackActionSelection}
+            onSelectionChange={setSneakAttackActionSelection}
           />
         );
       }
@@ -4423,6 +4457,26 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     const selectedFeaturePrimaryLabel =
       ("confirmLabel" in selectedAction.drawer ? selectedAction.drawer.confirmLabel : undefined) ??
       getFeatureActionDrawerPrimaryLabel(selectedAction.action);
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "custom-form" &&
+      selectedAction.drawer.formKind === "sneak-attack"
+    ) {
+      return (
+        <ActionDiceConfirmFooter
+          actionName={selectedAction.action.name}
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onConfirm={() => submitSneakAttack(sneakAttackActionSelection)}
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+        />
+      );
+    }
 
     if (selectedAction.kind === "feature" && isCommonActionKey(selectedAction.action.key)) {
       return (
@@ -5384,9 +5438,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         fixedSpellActionContextText={fixedSpellActionContextText}
         fixedSpellActionAvailabilityText={fixedSpellActionAvailabilityText}
         fixedSpellFacts={fixedSpellFacts}
-        fixedSpellShowActionDiceControls={
-          fixedSpellHuntersRimeTemporaryHitPointsFormula !== null
-        }
+        fixedSpellShowActionDiceControls={fixedSpellHuntersRimeTemporaryHitPointsFormula !== null}
         isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
         onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
         fixedSpellCastWarning={fixedSpellCastWarning}
@@ -5444,6 +5496,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         monsterSlug={selectedWildShapePreviewSlug}
         onClose={() => setSelectedWildShapePreviewSlug(null)}
       />
+
+      {selectedWeaponDetailReference ? (
+        <KeywordReferenceDrawer
+          title={selectedWeaponDetailReference.title}
+          entries={selectedWeaponDetailReference.entries}
+          onClose={() => setSelectedWeaponDetailReference(null)}
+        />
+      ) : null}
 
       {diceRollerPopup}
     </>

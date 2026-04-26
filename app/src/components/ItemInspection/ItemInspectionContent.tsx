@@ -12,16 +12,34 @@ type ItemInspectionContentProps = {
   showHeader?: boolean;
   weaponMasteryActive?: boolean;
   weaponProficient?: boolean;
+  onOpenWeaponReference?: (title: string, keywords: string[]) => void;
 };
+
+function normalizeWeaponReferenceLabels(labels: string[]) {
+  return labels.map((label) => label.replace(/\s*\([^)]*\)\s*$/, "").trim()).filter(Boolean);
+}
 
 function ItemInspectionContent({
   item,
   className,
   showHeader = true,
   weaponMasteryActive = false,
-  weaponProficient = false
+  weaponProficient = false,
+  onOpenWeaponReference
 }: ItemInspectionContentProps) {
   const presentation = buildItemDetailPresentation(item);
+  const weaponReferenceKeywords = {
+    Properties: normalizeWeaponReferenceLabels(presentation.weapon?.propertyLabels ?? []),
+    Mastery: normalizeWeaponReferenceLabels(presentation.weapon?.masteryLabels ?? [])
+  };
+
+  function getWeaponReferenceKeywords(label: string) {
+    if (label !== "Properties" && label !== "Mastery") {
+      return [];
+    }
+
+    return weaponReferenceKeywords[label];
+  }
 
   return (
     <article className={className ?? styles.card}>
@@ -54,22 +72,41 @@ function ItemInspectionContent({
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Weapon Details</h2>
           <div className={styles.cellGrid}>
-            {presentation.weaponCells.map((cell) => (
-              <CellContainer
-                key={cell.label}
-                label={
-                  weaponProficient && cell.label === "Type" ? (
-                    <WeaponMasteryStatusLabel label="Type" status="PROFICIENT" />
-                  ) : weaponMasteryActive && cell.label === "Mastery" ? (
-                    <WeaponMasteryStatusLabel />
-                  ) : (
-                    cell.label
-                  )
-                }
-                content={cell.value}
-                breakdown={cell.note ?? undefined}
-              />
-            ))}
+            {presentation.weaponCells.map((cell) => {
+              const referenceKeywords = getWeaponReferenceKeywords(cell.label);
+              const label =
+                weaponProficient && cell.label === "Type" ? (
+                  <WeaponMasteryStatusLabel label="Type" status="PROFICIENT" />
+                ) : weaponMasteryActive && cell.label === "Mastery" ? (
+                  <WeaponMasteryStatusLabel />
+                ) : (
+                  cell.label
+                );
+
+              if (onOpenWeaponReference && referenceKeywords.length > 0) {
+                return (
+                  <CellContainer
+                    key={cell.label}
+                    as="button"
+                    type="button"
+                    className={styles.referenceCell}
+                    label={label}
+                    content={cell.value}
+                    breakdown={cell.note ?? undefined}
+                    onClick={() => onOpenWeaponReference(cell.label, referenceKeywords)}
+                  />
+                );
+              }
+
+              return (
+                <CellContainer
+                  key={cell.label}
+                  label={label}
+                  content={cell.value}
+                  breakdown={cell.note ?? undefined}
+                />
+              );
+            })}
           </div>
         </section>
       ) : null}

@@ -23,6 +23,8 @@ export const abiDalzimsHorridWilting: SpellEntry = {
     "You draw the moisture from every creature in a 30-foot cube centered on a point you choose within range. Each creature in that area must make a Constitution saving throw. Constructs and Undead aren't affected, and plants and water Elementals make this saving throw with disadvantage. A creature takes <strong>12d8</strong> Necrotic damage on a failed save, or half as much damage on a successful one.",
     "Nonmagical plants in the area that aren't creatures, such as trees and shrubs, wither and die instantly."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
@@ -112,6 +114,7 @@ export const antipathySympathy: SpellEntry = {
       ]
     }
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
@@ -205,6 +208,8 @@ export const darkStar: SpellEntry = {
     "For the duration, the spell's area is difficult terrain. A creature with Darkvision can't see through the magical darkness, and nonmagical light can't illuminate it. No sound can be created within or pass through the area. Any creature or object entirely inside the sphere is immune to Thunder damage, and creatures are Deafened while entirely inside it. Casting a spell that includes a verbal component is impossible there.",
     "Any creature that enters the spell's area for the first time on a turn or starts its turn there must make a Constitution saving throw. The creature takes <strong>8d10</strong> Force damage on a failed save or half as much damage on a successful save. A creature reduced to 0 Hit Points by this damage is disintegrated. A disintegrated creature and everything it is wearing and carrying, except magic items, are reduced to a pile of fine gray dust."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.FORCE],
     [DICE.D10, DAMAGE_TYPE.FORCE],
@@ -253,6 +258,7 @@ export const dominateMonster: SpellEntry = {
     "Each time the target takes damage, it makes a new Wisdom saving throw against the spell. If the saving throw succeeds, the spell ends.",
     "<strong>At Higher Levels.</strong> When you cast this spell with a 9th-level spell slot, the duration is concentration, up to 8 hours."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
@@ -286,6 +292,8 @@ export const earthquake: SpellEntry = {
       ]
     }
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER],
   spellLevel: 8
@@ -305,6 +313,8 @@ export const feeblemind: SpellEntry = {
     "On a failed save, the creature's Intelligence and Charisma scores become 1. The creature can't cast spells, activate magic items, understand language, or communicate in any intelligible way. The creature can, however, identify its friends, follow them, and even protect them.",
     "At the end of every 30 days, the creature can repeat its saving throw against this spell. If it succeeds on its saving throw, the spell ends. The spell can also be ended by Greater Restoration, Heal, or Wish."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
@@ -350,6 +360,7 @@ export const holyAura: SpellEntry = {
     "Divine light washes out from you and coalesces in a soft radiance in a 30-foot radius around you. Creatures of your choice in that radius when you cast this spell shed dim light in a 5-foot radius and have advantage on all saving throws, and other creatures have disadvantage on attack rolls against them until the spell ends.",
     "In addition, when a Fiend or an Undead hits an affected creature with a melee attack, the aura flashes with brilliant light. The attacker must succeed on a Constitution saving throw or be Blinded until the spell ends."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 8
@@ -371,6 +382,8 @@ export const illusoryDragon: SpellEntry = {
     "When you create the dragon, choose a damage type: Acid, Cold, Fire, Lightning, Necrotic, or Poison. Each creature in the cone must make an Intelligence saving throw, taking <strong>7d6</strong> damage of the chosen type on a failed save, or half as much damage on a successful one.",
     "The illusion is tangible because of the shadow stuff used to create it, but attacks miss it automatically. It succeeds on all saving throws, and it is immune to all damage and conditions. A creature that uses an action to examine the dragon can determine that it is an illusion by succeeding on an Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through it and has advantage on saving throws against its breath."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
@@ -390,6 +403,8 @@ export const incendiaryCloud: SpellEntry = {
     "When the cloud appears, each creature in it must make a Dexterity saving throw. A creature takes <strong>10d8</strong> Fire damage on a failed save, or half as much damage on a successful one. A creature must also make this saving throw when it enters the spell's area for the first time on a turn or ends its turn there.",
     "The cloud moves 10 feet directly away from you in a direction that you choose at the start of each of your turns."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.FIRE],
     [DICE.D8, DAMAGE_TYPE.FIRE],
@@ -419,6 +434,8 @@ export const maddeningDarkness: SpellEntry = {
     "Magical darkness spreads from a point you choose within range to fill a 60-foot-radius sphere until the spell ends. The darkness spreads around corners. A creature with Darkvision can't see through this darkness. Nonmagical light, as well as light created by spells of 8th level or lower, can't illuminate the area. Shrieks, gibbering, and mad laughter can be heard within the sphere.",
     "Whenever a creature starts its turn in the sphere, it must make a Wisdom saving throw, taking <strong>8d8</strong> Psychic damage on a failed save, or half as much damage on a successful one."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.PSYCHIC],
     [DICE.D8, DAMAGE_TYPE.PSYCHIC],
@@ -505,6 +522,7 @@ export const powerWordStun: SpellEntry = {
     "You speak a word of power that can overwhelm the mind of one creature you can see within range, leaving it dumbfounded. If the target has 150 Hit Points or fewer, it is Stunned. Otherwise, the spell has no effect.",
     "The Stunned target must make a Constitution saving throw at the end of each of its turns. On a successful save, this stunning effect ends."
   ],
+  isSavingThrowSpell: true,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
@@ -538,6 +556,8 @@ export const realityBreak: SpellEntry = {
     },
     "At the end of each of its turns, the affected target can repeat the Wisdom saving throw, ending the spell on itself on a success."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
@@ -557,6 +577,8 @@ export const sunburst: SpellEntry = {
     "A creature Blinded by this spell makes another Constitution saving throw at the end of each of its turns. On a successful save, it is no longer Blinded.",
     "This spell dispels any darkness in its area that was created by a spell."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.RADIANT],
     [DICE.D6, DAMAGE_TYPE.RADIANT],
@@ -613,6 +635,8 @@ export const tsunami: SpellEntry = {
     "At the start of each of your turns after the wall appears, the wall, along with any creatures in it, moves 50 feet away from you. Any Huge or smaller creature inside the wall or whose space the wall enters when it moves must succeed on a Strength saving throw or take <strong>5d10</strong> Bludgeoning damage. A creature can take this damage only once per round. At the end of the turn, the wall's height is reduced by 50 feet, and the damage creatures take from the spell on subsequent rounds is reduced by <strong>1d10</strong>. When the wall reaches 0 feet in height, the spell ends.",
     "A creature caught in the wall can move by swimming. Because of the force of the wave, though, the creature must make a successful Strength (Athletics) check against your spell save DC in order to move at all. If it fails the check, it can't move. A creature that moves out of the area falls to the ground."
   ],
+  isSavingThrowSpell: true,
+  isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.BLUDGEONING],
     [DICE.D10, DAMAGE_TYPE.BLUDGEONING],

@@ -8,6 +8,7 @@ This repository centers on a persistent local character sheet, codex-derived rul
 2. This project should not contain tests. Do not add unit tests, component tests, integration tests, test configs, test helpers, or test-only dependencies unless the user explicitly reverses this policy.
 3. Preserve derivation-driven architecture. Keep class behavior, spell access, actions, recoveries, statuses, and companion/monster behavior derived from shared state and codex/runtime modules rather than duplicating logic across screens.
 4. Favor house cleaning when touching a feature area. Remove dead helpers, stale scripts, outdated docs, and leftover scaffolding when it is safe to do so.
+5. Do not start, request approval for, or ask the user to run browser/dev-server verification unless the user explicitly asks for it. Use static verification such as linting or builds by default.
 
 Current large-file hotspots that should be split instead of expanded further:
 - `app/src/components/CharactersPage/CharacterSheetPage/GameplayForm/widgets/ActionsWidget.tsx`
