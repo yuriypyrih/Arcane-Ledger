@@ -1,4 +1,5 @@
 import {
+  ABILITY_TYPES,
   ACTION_TYPE,
   DURATION,
   DAMAGE_TYPE,
@@ -43,6 +44,7 @@ export const bladeBarrier: SpellEntry = {
     "When a creature enters the wall's area for the first time on a turn or starts its turn there, the creature must make a Dexterity saving throw. On a failed save, the creature takes <strong>6d10</strong> Slashing damage. On a successful save, the creature takes half as much damage."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.SLASHING],
@@ -72,6 +74,7 @@ export const bonesOfTheEarth: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, you can create two additional pillars for each slot level above 6th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
@@ -100,6 +103,7 @@ export const chainLightning: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, one additional bolt leaps from the first target to another target for each slot level above 6th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.LIGHTNING],
@@ -131,6 +135,7 @@ export const circleOfDeath: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, the damage increases by <strong>2d6</strong> for each slot level above 6th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.NECROTIC],
@@ -253,6 +258,7 @@ export const disintegrate: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, the damage increases by <strong>3d6</strong> for each slot level above 6th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -338,6 +344,7 @@ export const eyebite: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
@@ -408,6 +415,7 @@ export const fleshToStone: SpellEntry = {
     "If the creature is physically broken while Petrified, it suffers from similar deformities if it reverts to its original state. If you maintain your Concentration on this spell for the entire possible duration, the creature is turned to stone until the effect is removed."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.DRUID,
@@ -473,6 +481,7 @@ export const gravityFissure: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, the damage increases by <strong>1d8</strong> for each slot level above 6th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.FORCE],
@@ -542,6 +551,7 @@ export const harm: SpellEntry = {
     "You unleash a virulent disease on a creature that you can see within range. The target must make a Constitution saving throw. On a failed save, it takes <strong>14d6</strong> Necrotic damage, or half as much damage on a successful save. The damage can't reduce the target's Hit Points below 1. If the target fails the saving throw, its Hit Point maximum is reduced for 1 hour by an amount equal to the Necrotic damage it took. Any effect that removes a disease allows a creature's Hit Point maximum to return to normal before that time passes."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.NECROTIC],
@@ -622,6 +632,7 @@ export const investitureOfFlame: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [],
   spellLists: [
@@ -656,6 +667,7 @@ export const investitureOfIce: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [],
   spellLists: [
@@ -689,6 +701,7 @@ export const investitureOfStone: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.DRUID,
@@ -721,6 +734,7 @@ export const investitureOfWind: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [],
   spellLists: [
@@ -751,6 +765,7 @@ export const magicJar: SpellEntry = {
     "When the spell ends, the container is destroyed."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CHA,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 6
@@ -773,6 +788,7 @@ export const massSuggestion: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a 7th-level spell slot, the duration is 10 days. When you use an 8th-level spell slot, the duration is 30 days. When you use a 9th-level spell slot, the duration is a year and a day."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
@@ -798,6 +814,7 @@ export const mentalPrison: SpellEntry = {
     "If the target is moved out of the illusion, makes a melee attack through it, or reaches any part of its body through it, the target takes <strong>10d10</strong> Psychic damage, and the spell ends."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.INT,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
@@ -875,6 +892,7 @@ export const otilukesFreezingSphere: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, the damage increases by <strong>1d6</strong> for each slot level above 6th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.COLD],
@@ -906,6 +924,7 @@ export const ottosIrresistibleDance: SpellEntry = {
     "A dancing creature must use all its movement to dance without leaving its space and has Disadvantage on Dexterity saving throws and attack rolls. While the target is affected by this spell, other creatures have Advantage on attack rolls against it. As an action, a dancing creature makes a Wisdom saving throw to regain control of itself. On a successful save, the spell ends."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 6
@@ -994,6 +1013,7 @@ export const psychicCrush: SpellEntry = {
     "The Stunned target can make an Intelligence saving throw at the end of each of its turns. On a successful save, the spell ends on the target."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.INT,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
@@ -1026,6 +1046,7 @@ export const scatter: SpellEntry = {
     "The air quivers around up to five creatures of your choice that you can see within range. An unwilling creature must succeed on a Wisdom saving throw to resist this spell. You teleport each affected target to an unoccupied space that you can see within 120 feet of you. That space must be on the ground or on a floor."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 6
@@ -1094,6 +1115,7 @@ export const sunbeam: SpellEntry = {
     "For the duration, a mote of brilliant radiance shines in your hand. It sheds bright light in a 30-foot radius and dim light for an additional 30 feet. The light is sunlight."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.RADIANT],
@@ -1166,7 +1188,6 @@ export const tensersTransformation: SpellEntry = {
     },
     "Immediately after the spell ends, you must succeed on a DC 15 Constitution saving throw or suffer one level of Exhaustion."
   ],
-  isSavingThrowSpell: true,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
@@ -1229,6 +1250,7 @@ export const wallOfIce: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, the damage the wall deals when it appears increases by <strong>2d6</strong>, and the damage from passing through the sheet of frigid air increases by <strong>1d6</strong> for each slot level above 6th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
@@ -1251,6 +1273,7 @@ export const wallOfThorns: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th level or higher, both types of damage increase by <strong>1d8</strong> for each slot level above 6th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID],

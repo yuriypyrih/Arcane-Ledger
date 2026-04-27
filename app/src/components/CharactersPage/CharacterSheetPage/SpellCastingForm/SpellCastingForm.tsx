@@ -182,6 +182,7 @@ import {
   getSpellDamageDetailForCharacter,
   getSpellOutcomeSummaryForCharacter
 } from "../../../../pages/CharactersPage/spellOutcome";
+import { getSpellAttackRollFormulaForCharacter } from "../../../../pages/CharactersPage/shared/spellFormulas";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import ActionButton from "../../../ActionButton";
@@ -1323,6 +1324,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpell?.id === huntersMarkSpellId
       ? getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplayForCharacter(character)
       : null;
+  const selectedSpellAttackRollFormula = selectedSpellDisplay
+    ? getSpellAttackRollFormulaForCharacter(selectedSpellDisplay, character)
+    : null;
   const selectedSpellFacts =
     selectedSpell?.id === huntersMarkSpellId
       ? getRangerWinterWalkerHuntersRimeTemporaryHitPointsFactsForCharacter(character)
@@ -2066,6 +2070,22 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     });
   }
 
+  function rollSpellAttackForSpellCast(spell: Pick<SpellEntry, "isAttackSpell" | "name">) {
+    const attackRollFormula = getSpellAttackRollFormulaForCharacter(spell, character);
+
+    if (!attackRollFormula) {
+      return;
+    }
+
+    openDiceRoller({
+      title: `${spell.name} attack`,
+      formula: attackRollFormula.formula,
+      formulaDisplay: attackRollFormula.formulaDisplay,
+      description: "Roll to hit the target's Armor Class.",
+      enableNextCriticalHitOnNatural20: true
+    });
+  }
+
   function castSelectedSpell(options?: {
     castAsRitual?: boolean;
     roundTrackerResourceOverride?: RoundTrackerResource | null;
@@ -2278,6 +2298,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       }
 
       rollHuntersRimeTemporaryHitPointsForSpellCast(selectedSpell);
+      rollSpellAttackForSpellCast(selectedSpell);
       closeSelectedSpell();
       return;
     }
@@ -2331,6 +2352,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       });
 
       rollHuntersRimeTemporaryHitPointsForSpellCast(selectedSpell);
+      rollSpellAttackForSpellCast(selectedSpell);
       closeSelectedSpell();
       return;
     }
@@ -2586,6 +2608,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     });
 
     rollHuntersRimeTemporaryHitPointsForSpellCast(selectedSpell);
+    rollSpellAttackForSpellCast(selectedSpell);
     closeSelectedSpell();
   }
 
@@ -3296,7 +3319,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           blockedReason={selectedSpellBlockedReason}
           facts={selectedSpellFacts}
           factsSectionTitle={null}
-          showActionDiceControls={selectedSpellHuntersRimeTemporaryHitPointsFormula !== null}
+          showActionDiceControls={
+            selectedSpellHuntersRimeTemporaryHitPointsFormula !== null ||
+            selectedSpellAttackRollFormula !== null
+          }
           isDiceRollerSettingsOpen={isSelectedSpellDiceRollerSettingsOpen}
           onDiceRollerSettingsOpenChange={setIsSelectedSpellDiceRollerSettingsOpen}
           actionPaths={selectedSpellActionPaths

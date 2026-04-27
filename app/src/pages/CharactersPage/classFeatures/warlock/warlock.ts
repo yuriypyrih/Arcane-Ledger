@@ -261,14 +261,6 @@ function getWarlockKnownCantripEntries(character: Pick<Character, "cantripIds">)
     );
 }
 
-function spellHasAttackRoll(spell: Pick<SpellEntry, "description">): boolean {
-  return spell.description.some(
-    (entry) =>
-      typeof entry === "string" &&
-      /\b(?:make|requires?)\b.*\b(?:melee|ranged)?\s*spell attack\b/i.test(entry)
-  );
-}
-
 function getSpellRangeFeet(spell: Pick<SpellEntry, "range">): number | null {
   const match = spell.range.match(/(\d+)\s*feet\b/i);
 
@@ -299,7 +291,7 @@ function getEligibleWarlockCantripEntries(
       return (getSpellRangeFeet(spell) ?? 0) >= 10;
     }
 
-    return spellHasAttackRoll(spell);
+    return spell.isAttackSpell === true;
   });
 }
 

@@ -285,6 +285,10 @@ export type RestOption = {
   id: string;
   label: string;
   detail?: string;
+  charges?: {
+    current: number;
+    total: number;
+  };
   defaultSelected?: boolean;
   disabled?: boolean;
   emphasis?: "default" | "feature";
@@ -682,6 +686,10 @@ export function createShortRestOptions(character: Character): RestOption[] {
             label: "Sorcerous Restoration",
             detail:
               "Optional Sorcerer feature. Regain Sorcery Points equal to half your Sorcerer level.",
+            charges: {
+              current: sorcerousRestorationUsesRemaining,
+              total: sorcerousRestorationUsesTotal
+            },
             defaultSelected: false,
             disabled: sorcerousRestorationUsesRemaining <= 0,
             emphasis: "feature",

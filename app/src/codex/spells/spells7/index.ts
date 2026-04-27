@@ -1,4 +1,5 @@
 import {
+  ABILITY_TYPES,
   ACTION_TYPE,
   DURATION,
   DAMAGE_TYPE,
@@ -82,6 +83,7 @@ export const crownOfStars: SpellEntry = {
     "If you have four or more motes remaining, they shed bright light in a 30-foot radius and dim light for an additional 30 feet. If you have one to three motes remaining, they shed dim light in a 30-foot radius.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 8th level or higher, the number of motes created increases by two for each slot level above 7th."
   ],
+  isAttackSpell: true,
   isDamagingSpell: true,
   damage: [
     [DICE.D12, DAMAGE_TYPE.RADIANT],
@@ -110,6 +112,7 @@ export const delayedBlastFireball: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 8th level or higher, the base damage increases by <strong>1d6</strong> for each slot level above 7th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.FIRE],
@@ -153,6 +156,7 @@ export const divineWord: SpellEntry = {
     "Regardless of its current Hit Points, a Celestial, an Elemental, a Fey, or a Fiend that fails its save is forced back to its plane of origin, if it isn't there already, and can't return to your current plane for 24 hours by any means short of a Wish spell."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CHA,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 7
@@ -180,6 +184,7 @@ export const draconicTransformation: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.FORCE],
@@ -258,6 +263,7 @@ export const fingerOfDeath: SpellEntry = {
     "A Humanoid killed by this spell rises at the start of your next turn as a zombie that is permanently under your command, following your verbal orders to the best of its ability."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
@@ -278,6 +284,7 @@ export const fireStorm: SpellEntry = {
     "The fire damages objects in the area and ignites flammable objects that aren't being worn or carried. If you choose, plant life in the area is unaffected by this spell."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.FIRE],
@@ -316,6 +323,7 @@ export const forcecage: SpellEntry = {
     "This spell can't be dispelled by Dispel Magic."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CHA,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
@@ -374,6 +382,7 @@ export const mordenkainensSword: SpellEntry = {
     "You create a sword-shaped plane of force that hovers within range. It lasts for the duration.",
     "When the sword appears, you make a melee spell attack against a target of your choice within 5 feet of the sword. On a hit, the target takes <strong>3d10</strong> Force damage. Until the spell ends, you can use a Bonus Action on each of your turns to move the sword up to 20 feet to a spot you can see and repeat this attack against the same target or a different one."
   ],
+  isAttackSpell: true,
   isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.FORCE],
@@ -399,6 +408,8 @@ export const planeShift: SpellEntry = {
     "You can use this spell to banish an unwilling creature to another plane. Choose a creature within your reach and make a melee spell attack against it. On a hit, the creature must make a Charisma saving throw. If the creature fails the save, it is transported to a random location on the plane of existence you specify. A creature so transported must find its own way back to your current plane of existence."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CHA,
+  isAttackSpell: true,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.CLERIC,
@@ -425,6 +436,7 @@ export const powerWordPain: SpellEntry = {
     "A target suffering this pain can make a Constitution saving throw at the end of each of its turns. On a successful save, the pain ends."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
@@ -457,6 +469,7 @@ export const prismaticSpray: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -538,6 +551,7 @@ export const reverseGravity: SpellEntry = {
     "At the end of the duration, affected objects and creatures fall back down."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
@@ -613,6 +627,7 @@ export const symbol: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: null,
   isDamagingSpell: true,
   damage: [],
   spellLists: [
@@ -692,6 +707,7 @@ export const templeOfTheGods: SpellEntry = {
     "Casting this spell on the same spot every day for a year makes this effect permanent."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CHA,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 7
@@ -711,6 +727,7 @@ export const tetherEssence: SpellEntry = {
     "If both saves fail, the creatures are magically linked for the duration, regardless of the distance between them. When damage is dealt to one of them, the same damage is dealt to the other one. If Hit Points are restored to one of them, the same number of Hit Points are restored to the other one. If either of the tethered creatures is reduced to 0 Hit Points, the spell ends on both. If the spell ends on one creature, it ends on both."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
@@ -733,6 +750,7 @@ export const whirlwind: SpellEntry = {
     "A Restrained creature can use an action to make a Strength or Dexterity check against your spell save DC. If successful, the creature is no longer Restrained by the whirlwind and is hurled <strong>3d6</strong> x 10 feet away from it in a random direction."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.BLUDGEONING],

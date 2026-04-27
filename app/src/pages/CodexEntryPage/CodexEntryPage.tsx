@@ -56,6 +56,10 @@ import {
   getPrimaryAbilityForClass,
   getSavingThrowAbilityKeysForClass
 } from "../CharactersPage/proficiencyClassData";
+import {
+  getSpellAttackFormulaCell,
+  getSpellSaveFormulaCell
+} from "../CharactersPage/shared/spellFormulas";
 import { getToolProficiencyLabel } from "../CharactersPage/proficiencyOptions";
 import {
   formatStarterPackStartingEquipmentSummary,
@@ -211,6 +215,12 @@ function CodexEntryPage() {
     entry && entry.category === ENTRY_CATEGORIES.SPELLS
       ? (KeywordTooltip.components ?? null)
       : null;
+  const spellFormulaCells =
+    entry?.category === ENTRY_CATEGORIES.SPELLS
+      ? [getSpellSaveFormulaCell(entry), getSpellAttackFormulaCell(entry)].filter(
+          (cell): cell is NonNullable<typeof cell> => cell !== null
+        )
+      : [];
   const isDrawerStyledEntry =
     entry?.category === ENTRY_CATEGORIES.WEAPONS ||
     entry?.category === ENTRY_CATEGORIES.ARMOR ||
@@ -426,17 +436,32 @@ function CodexEntryPage() {
                 </div>
 
                 {entry.category === ENTRY_CATEGORIES.SPELLS ? (
-                  <SpellDescriptionContent
-                    description={entry.description}
-                    className={`${sheetStyles.spellDrawerDescriptionList} ${sheetStyles.spellDrawerDescriptionSection}`}
-                    entryClassName={sheetStyles.spellDrawerDescriptionLine}
-                    strongClassName={sheetStyles.spellDrawerDescriptionStrong}
-                    linkClassName={featureDisclosureStyles.inlineLinkButton}
-                    onOpenKeyword={setSelectedKeywordReference}
-                    onOpenSpell={setSelectedSpellReference}
-                    onOpenDivinity={setSelectedDivinityReference}
-                    onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
-                  />
+                  <>
+                    <SpellDescriptionContent
+                      description={entry.description}
+                      className={`${sheetStyles.spellDrawerDescriptionList} ${sheetStyles.spellDrawerDescriptionSection}`}
+                      entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                      strongClassName={sheetStyles.spellDrawerDescriptionStrong}
+                      linkClassName={featureDisclosureStyles.inlineLinkButton}
+                      onOpenKeyword={setSelectedKeywordReference}
+                      onOpenSpell={setSelectedSpellReference}
+                      onOpenDivinity={setSelectedDivinityReference}
+                      onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
+                    />
+                    {spellFormulaCells.length > 0 ? (
+                      <div className={sheetStyles.spellDrawerDetails}>
+                        {spellFormulaCells.map((cell) => (
+                          <CellContainer
+                            key={cell.label}
+                            className={sheetStyles.spellDrawerFormulaCell}
+                            label={cell.label}
+                            content={cell.content}
+                            breakdown={cell.breakdown}
+                          />
+                        ))}
+                      </div>
+                    ) : null}
+                  </>
                 ) : null}
               </div>
             </div>

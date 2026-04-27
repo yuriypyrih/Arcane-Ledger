@@ -1,4 +1,5 @@
 import {
+  ABILITY_TYPES,
   ACTION_TYPE,
   DURATION,
   DAMAGE_TYPE,
@@ -24,6 +25,7 @@ export const abiDalzimsHorridWilting: SpellEntry = {
     "Nonmagical plants in the area that aren't creatures, such as trees and shrubs, wither and die instantly."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
@@ -115,6 +117,7 @@ export const antipathySympathy: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
@@ -209,6 +212,7 @@ export const darkStar: SpellEntry = {
     "Any creature that enters the spell's area for the first time on a turn or starts its turn there must make a Constitution saving throw. The creature takes <strong>8d10</strong> Force damage on a failed save or half as much damage on a successful save. A creature reduced to 0 Hit Points by this damage is disintegrated. A disintegrated creature and everything it is wearing and carrying, except magic items, are reduced to a pile of fine gray dust."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.FORCE],
@@ -259,6 +263,7 @@ export const dominateMonster: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell with a 9th-level spell slot, the duration is concentration, up to 8 hours."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
@@ -293,6 +298,7 @@ export const earthquake: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER],
@@ -314,6 +320,7 @@ export const feeblemind: SpellEntry = {
     "At the end of every 30 days, the creature can repeat its saving throw against this spell. If it succeeds on its saving throw, the spell ends. The spell can also be ended by Greater Restoration, Heal, or Wish."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.INT,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
@@ -361,6 +368,7 @@ export const holyAura: SpellEntry = {
     "In addition, when a Fiend or an Undead hits an affected creature with a melee attack, the aura flashes with brilliant light. The attacker must succeed on a Constitution saving throw or be Blinded until the spell ends."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 8
@@ -383,6 +391,7 @@ export const illusoryDragon: SpellEntry = {
     "The illusion is tangible because of the shadow stuff used to create it, but attacks miss it automatically. It succeeds on all saving throws, and it is immune to all damage and conditions. A creature that uses an action to examine the dragon can determine that it is an illusion by succeeding on an Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through it and has advantage on saving throws against its breath."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
@@ -404,6 +413,7 @@ export const incendiaryCloud: SpellEntry = {
     "The cloud moves 10 feet directly away from you in a direction that you choose at the start of each of your turns."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.FIRE],
@@ -435,6 +445,7 @@ export const maddeningDarkness: SpellEntry = {
     "Whenever a creature starts its turn in the sphere, it must make a Wisdom saving throw, taking <strong>8d8</strong> Psychic damage on a failed save, or half as much damage on a successful one."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.PSYCHIC],
@@ -523,6 +534,7 @@ export const powerWordStun: SpellEntry = {
     "The Stunned target must make a Constitution saving throw at the end of each of its turns. On a successful save, this stunning effect ends."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
@@ -557,6 +569,7 @@ export const realityBreak: SpellEntry = {
     "At the end of each of its turns, the affected target can repeat the Wisdom saving throw, ending the spell on itself on a success."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
@@ -578,6 +591,7 @@ export const sunburst: SpellEntry = {
     "This spell dispels any darkness in its area that was created by a spell."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.RADIANT],
@@ -636,6 +650,7 @@ export const tsunami: SpellEntry = {
     "A creature caught in the wall can move by swimming. Because of the force of the wave, though, the creature must make a successful Strength (Athletics) check against your spell save DC in order to move at all. If it fails the check, it can't move. A creature that moves out of the area falls to the ground."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.STR,
   isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.BLUDGEONING],

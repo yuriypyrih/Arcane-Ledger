@@ -33,6 +33,10 @@ import {
   getSpellDurationDisplayParts,
   formatWeaponDamage
 } from "../../../utils/codex";
+import {
+  getSpellAttackFormulaCell,
+  getSpellSaveFormulaCell
+} from "../../../pages/CharactersPage/shared/spellFormulas";
 import CodexDivinityDrawer from "../CodexDivinityDrawer/CodexDivinityDrawer";
 import CodexFeatDrawer from "../CodexFeatDrawer/CodexFeatDrawer";
 import styles from "./CodexSpellDrawer.module.css";
@@ -59,6 +63,10 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
   );
   const componentsTooltipEntry = KeywordTooltip.components ?? null;
   const spellDuration = getSpellDurationDisplayParts(spell.duration);
+  const spellFormulaCells = [
+    getSpellSaveFormulaCell(spell),
+    getSpellAttackFormulaCell(spell)
+  ].filter((cell): cell is NonNullable<typeof cell> => cell !== null);
 
   return (
     <>
@@ -157,6 +165,19 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
             onOpenDivinity={setSelectedDivinityReference}
             onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
           />
+          {spellFormulaCells.length > 0 ? (
+            <OverlayDetailsGrid>
+              {spellFormulaCells.map((cell) => (
+                <CellContainer
+                  key={cell.label}
+                  className={styles.formulaCell}
+                  label={cell.label}
+                  content={cell.content}
+                  breakdown={cell.breakdown}
+                />
+              ))}
+            </OverlayDetailsGrid>
+          ) : null}
         </OverlayBody>
       </SheetDrawer>
 

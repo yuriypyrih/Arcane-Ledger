@@ -1,4 +1,5 @@
 import {
+  ABILITY_TYPES,
   ACTION_TYPE,
   DURATION,
   DAMAGE_TYPE,
@@ -137,6 +138,7 @@ export const bigbysHand: SpellEntry = {
     },
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 6th level or higher, the damage from the Clenched Fist option increases by <strong>2d8</strong> and the damage from the Grasping Hand option increases by <strong>2d6</strong> for each slot level above 5th."
   ],
+  isAttackSpell: true,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -177,6 +179,7 @@ export const cloudkill: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 6th level or higher, the damage increases by <strong>1d8</strong> for each slot level above 5th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.POISON],
@@ -284,6 +287,7 @@ export const coneOfCold: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 6th level or higher, the damage increases by <strong>1d8</strong> for each slot level above 5th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.COLD],
@@ -332,6 +336,7 @@ export const conjureVolley: SpellEntry = {
     "You fire a piece of nonmagical ammunition from a ranged weapon or throw a nonmagical weapon into the air and choose a point within range. Hundreds of duplicates of the ammunition or weapon fall in a volley from above and then disappear. Each creature in a 40-foot-radius, 20-foot-high cylinder centered on that point must make a Dexterity saving throw. A creature takes <strong>8d8</strong> damage on a failed save, or half as much damage on a successful one. The damage type is the same as that of the ammunition or weapon."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.RANGER],
@@ -372,7 +377,6 @@ export const contactOtherPlane: SpellEntry = {
     "You mentally contact a demigod, the spirit of a long-dead sage, or some other mysterious entity from another plane. Contacting this extraplanar intelligence can strain or even break your mind. When you cast this spell, make a DC 15 Intelligence saving throw. On a failure, you take <strong>6d6</strong> Psychic damage and are insane until you finish a Long Rest. While insane, you can't take actions, can't understand what other creatures say, can't read, and speak only in gibberish. A Greater Restoration spell cast on you ends this effect.",
     'On a successful save, you can ask the entity up to five questions. You must ask your questions before the spell ends. The DM answers each question with one word, such as "yes," "no," "maybe," "never," "irrelevant," or "unclear," if the entity doesn\'t know the answer to the question. If a one-word answer would be misleading, the DM might instead offer a short phrase as an answer.'
   ],
-  isSavingThrowSpell: true,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
@@ -413,6 +417,8 @@ export const contagion: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
+  isAttackSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID],
   spellLevel: 5
@@ -440,6 +446,7 @@ export const controlWinds: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.STR,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 5
@@ -528,6 +535,7 @@ export const dawn: SpellEntry = {
     "A creature must also make this saving throw whenever it ends its turn in the cylinder. If you're within 60 feet of the cylinder, you can move it up to 60 feet as a Bonus Action on your turn."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.RADIANT],
@@ -552,6 +560,7 @@ export const destructiveWave: SpellEntry = {
     "You strike the ground, creating a burst of divine energy that ripples outward from you. Each creature you choose within 30 feet of you must succeed on a Constitution saving throw or take <strong>5d6</strong> Thunder damage, as well as <strong>5d6</strong> Radiant or Necrotic damage, your choice, and be knocked Prone. A creature that succeeds on its saving throw takes half as much damage and isn't knocked Prone."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.PALADIN],
@@ -579,6 +588,8 @@ export const dispelEvilAndGood: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CHA,
+  isAttackSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.PALADIN],
   spellLevel: 5
@@ -601,6 +612,7 @@ export const dominatePerson: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a 6th-level spell slot, the duration is Concentration, up to 10 minutes. When you use a 7th-level spell slot, the duration is Concentration, up to 1 hour. When you use a spell slot of 8th level or higher, the duration is Concentration, up to 8 hours."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 5
@@ -622,6 +634,7 @@ export const dream: SpellEntry = {
     "If you have a body part, lock of hair, clipping from a nail, or similar portion of the target's body, the target makes its saving throw with Disadvantage."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
@@ -644,6 +657,7 @@ export const enervation: SpellEntry = {
   ],
   isHealingSpell: true,
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
@@ -686,6 +700,7 @@ export const flameStrike: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 6th level or higher, the Fire damage or the Radiant damage, your choice, increases by <strong>1d6</strong> for each slot level above 5th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.FIRE],
@@ -717,6 +732,7 @@ export const geas: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 7th or 8th level, the duration is 1 year. When you cast this spell using a spell slot of 9th level, the spell lasts until it is ended by one of the spells mentioned above."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.PSYCHIC],
@@ -799,6 +815,7 @@ export const hallow: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CHA,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 5
@@ -818,6 +835,7 @@ export const holdMonster: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 6th level or higher, you can target one additional creature for each slot level above 5th. The creatures must be within 30 feet of each other when you target them."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
@@ -842,6 +860,7 @@ export const holyWeapon: SpellEntry = {
     "As a Bonus Action on your turn, you can dismiss this spell and cause the weapon to emit a burst of radiance. Each creature of your choice that you can see within 30 feet of the weapon must make a Constitution saving throw. On a failed save, a creature takes <strong>4d8</strong> Radiant damage and is Blinded for 1 minute. On a successful save, a creature takes half as much damage and isn't Blinded. At the end of each of its turns, a Blinded creature can make a Constitution saving throw, ending the effect on itself on a success."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.PALADIN],
@@ -863,6 +882,7 @@ export const immolation: SpellEntry = {
     "If damage from this spell kills a target, the target is turned to ash."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.FIRE],
@@ -915,6 +935,7 @@ export const insectPlague: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 6th level or higher, the damage increases by <strong>1d10</strong> for each slot level above 5th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.PIERCING],
@@ -957,6 +978,7 @@ export const maelstrom: SpellEntry = {
     "A mass of 5-foot-deep water appears and swirls in a 30-foot radius centered on a point you can see within range. The point must be on ground or in a body of water. Until the spell ends, that area is difficult terrain, and any creature that starts its turn there must succeed on a Strength saving throw or take <strong>6d6</strong> Bludgeoning damage and be pulled 10 feet toward the center."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.STR,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
@@ -1026,6 +1048,7 @@ export const modifyMemory: SpellEntry = {
     "<strong>At Higher Levels.</strong> If you cast this spell using a spell slot of 6th level or higher, you can alter the target's memories of an event that took place up to 7 days ago at 6th level, 30 days ago at 7th level, 1 year ago at 8th level, or any time in the creature's past at 9th level."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 5
@@ -1045,6 +1068,7 @@ export const negativeEnergyFlood: SpellEntry = {
     "If you target an Undead with this spell, the target doesn't make a saving throw. Instead, roll <strong>5d12</strong>. The target gains half the total as temporary Hit Points."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
     [DICE.D12, DAMAGE_TYPE.NECROTIC],
@@ -1090,6 +1114,7 @@ export const planarBinding: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of a higher level, the duration increases to 10 days with a 6th-level slot, 30 days with a 7th-level slot, 180 days with an 8th-level slot, or 1 year and 1 day with a 9th-level spell slot."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CHA,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
@@ -1215,6 +1240,7 @@ export const scrying: SpellEntry = {
     "Instead of targeting a creature, you can choose a location you have seen before as the target of this spell. When you do, the sensor appears at that location and doesn't move."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
@@ -1242,6 +1268,7 @@ export const seeming: SpellEntry = {
     "A creature can use its action to inspect a target and make an Intelligence (Investigation) check against your spell save DC. If it succeeds, it becomes aware that the target is disguised."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CHA,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 5
@@ -1260,6 +1287,7 @@ export const shutdown: SpellEntry = {
     "This spell shuts down all electronic devices within range that are not wielded by or under the direct control of a creature. If an electronic device within range is used by a creature, that creature must succeed on a Constitution saving throw to prevent the device from being shut down. While the spell remains active, no electronic device within range can be started or restarted."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 5
@@ -1301,6 +1329,7 @@ export const steelWindStrike: SpellEntry = {
     "You flourish the weapon used in the casting and then vanish to strike like the wind. Choose up to five creatures you can see within range. Make a melee spell attack against each target. On a hit, a target takes <strong>6d10</strong> Force damage.",
     "You can then teleport to an unoccupied space you can see within 5 feet of one of the targets you hit or missed."
   ],
+  isAttackSpell: true,
   isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.FORCE],
@@ -1374,7 +1403,6 @@ export const summonDraconicSpirit: SpellEntry = {
       ]
     }
   ],
-  isSavingThrowSpell: true,
   isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.PIERCING]],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -1413,6 +1441,7 @@ export const synapticStatic: SpellEntry = {
     "After a failed save, a target has muddled thoughts for 1 minute. During that time, it rolls a <strong>d6</strong> and subtracts the number rolled from all its attack rolls and ability checks, as well as its Constitution saving throws to maintain Concentration. The target can make an Intelligence saving throw at the end of each of its turns, ending the effect on itself on a success."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.INT,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
@@ -1497,6 +1526,7 @@ export const temporalShunt: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 6th level or higher, you can target one additional creature for each slot level above 5th. All targets must be within 30 feet of each other."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 5
@@ -1523,6 +1553,7 @@ export const transmuteRock: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.STR,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD, SPELL_LIST_CLASS.ARTIFICER],
@@ -1584,6 +1615,8 @@ export const wallOfLight: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 6th level or higher, the damage increases by <strong>1d8</strong> for each slot level above 5th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
+  isAttackSpell: true,
   isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.RADIANT],
@@ -1613,6 +1646,7 @@ export const wallOfStone: SpellEntry = {
     "If you maintain your Concentration on this spell for its whole duration, the wall becomes permanent and can't be dispelled. Otherwise, the wall disappears when the spell ends."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
@@ -1646,6 +1680,8 @@ export const wrathOfNature: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
+  isAttackSpell: true,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],

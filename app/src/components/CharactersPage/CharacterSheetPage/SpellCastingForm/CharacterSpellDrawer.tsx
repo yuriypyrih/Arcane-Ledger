@@ -35,6 +35,10 @@ import { markUsageHeaderTagsAsFallback } from "../../../../pages/CharactersPage/
 import { orderDescriptionAdditionSections } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import { getSpellLevel } from "../../../../pages/CharactersPage/spellcasting";
 import { getSpellDamageDetailForCharacter } from "../../../../pages/CharactersPage/spellOutcome";
+import {
+  getSpellAttackFormulaCell,
+  getSpellSaveFormulaCell
+} from "../../../../pages/CharactersPage/shared/spellFormulas";
 import { isRogueArcaneTricksterMagicalAmbushActiveForSpell } from "../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 import type {
   FeatureActionCardUsage,
@@ -368,6 +372,10 @@ function CharacterSpellDrawer({
       ? "Magical Ambush is active"
       : null
   ].filter((value): value is string => value !== null && value.length > 0);
+  const spellFormulaCells = [
+    getSpellSaveFormulaCell(spell, character),
+    getSpellAttackFormulaCell(spell, character)
+  ].filter((cell): cell is NonNullable<typeof cell> => cell !== null);
 
   useEffect(() => {
     if (shouldShowSlotControls) {
@@ -590,6 +598,19 @@ function CharacterSpellDrawer({
                       strongClassName={sheetStyles.spellDrawerDescriptionStrong}
                     />
                   </div>
+                ))}
+              </div>
+            ) : null}
+            {spellFormulaCells.length > 0 ? (
+              <div className={sheetStyles.spellDrawerDetails}>
+                {spellFormulaCells.map((cell) => (
+                  <CellContainer
+                    key={cell.label}
+                    className={sheetStyles.spellDrawerFormulaCell}
+                    label={cell.label}
+                    content={cell.content}
+                    breakdown={cell.breakdown}
+                  />
                 ))}
               </div>
             ) : null}

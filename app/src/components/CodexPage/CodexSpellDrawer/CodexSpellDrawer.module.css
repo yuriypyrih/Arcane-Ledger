@@ -19,6 +19,10 @@
   outline-offset: 2px;
 }
 
+.formulaCell {
+  grid-column: 1 / -1;
+}
+
 .concentrationDetailValue {
   display: inline-flex;
   align-items: center;

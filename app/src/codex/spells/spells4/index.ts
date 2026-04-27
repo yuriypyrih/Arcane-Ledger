@@ -1,4 +1,5 @@
 import {
+  ABILITY_TYPES,
   ACTION_TYPE,
   DURATION,
   DAMAGE_TYPE,
@@ -79,6 +80,7 @@ export const banishment: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, you can target one additional creature for each slot level above 4th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CHA,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.CLERIC,
@@ -105,6 +107,7 @@ export const blight: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by <strong>1d8</strong> for each slot level above 4th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
@@ -139,6 +142,7 @@ export const charmMonster: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, you can target one additional creature for each slot level above 4th. The creatures must be within 30 feet of each other when you target them."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
@@ -164,6 +168,7 @@ export const compulsion: SpellEntry = {
     "A target isn't compelled to move into an obviously deadly hazard, such as a fire pit, but it will provoke Opportunity Attacks to move in the designated direction."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD],
   spellLevel: 4
@@ -189,6 +194,7 @@ export const confusion: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the radius of the sphere increases by 5 feet for each slot level above 4th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
@@ -324,6 +330,7 @@ export const controlWater: SpellEntry = {
     "The first time each turn that an object enters the vortex, the object takes <strong>2d8</strong> Bludgeoning damage, and this damage occurs each round it remains in the vortex."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.STR,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
@@ -408,6 +415,7 @@ export const dominateBeast: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell with a 5th-level spell slot, the duration is Concentration, up to 10 minutes. When you use a 6th-level spell slot, the duration is Concentration, up to 1 hour. When you use a spell slot of 7th level or higher, the duration is Concentration, up to 8 hours."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.SORCERER],
   spellLevel: 4
@@ -426,6 +434,7 @@ export const egoWhip: SpellEntry = {
     "You lash the mind of one creature you can see within range, filling it with despair. The target must succeed on an Intelligence saving throw or suffer Disadvantage on attack rolls, ability checks, and saving throws, and it can't cast spells. At the end of each of its turns, the target can make another Intelligence saving throw. On a success, the spell ends on the target."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.INT,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
@@ -450,6 +459,7 @@ export const elementalBane: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, you can target one additional creature for each slot level above 4th. The creatures must be within 30 feet of each other when you target them."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [],
   spellLists: [
@@ -476,6 +486,7 @@ export const evardsBlackTentacles: SpellEntry = {
     "A creature Restrained by the tentacles can use its action to make a Strength or Dexterity check, its choice, against your spell save DC. On a success, it frees itself."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
@@ -639,6 +650,7 @@ export const graspingVine: SpellEntry = {
     "Until the spell ends, you can direct the vine to lash out at the same creature or another one as a Bonus Action on each of your turns."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
   spellLevel: 4
@@ -658,6 +670,7 @@ export const gravitySinkhole: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by <strong>1d10</strong> for each slot level above 4th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.FORCE],
@@ -701,6 +714,7 @@ export const guardianOfFaith: SpellEntry = {
     "Any creature hostile to you that moves to a space within 10 feet of the guardian for the first time on a turn must succeed on a Dexterity saving throw. The creature takes 20 Radiant damage on a failed save, or half as much damage on a successful one. The guardian vanishes when it has dealt a total of 60 damage."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [[20, DAMAGE_TYPE.RADIANT]],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
@@ -773,6 +787,7 @@ export const iceStorm: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the Bludgeoning damage increases by <strong>1d8</strong> for each slot level above 4th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.BLUDGEONING],
@@ -898,6 +913,7 @@ export const otilukesResilientSphere: SpellEntry = {
     "A Disintegrate spell targeting the globe destroys it without harming anything inside it."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
@@ -918,6 +934,7 @@ export const phantasmalKiller: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by <strong>1d10</strong> for each slot level above 4th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.PSYCHIC],
@@ -946,6 +963,7 @@ export const polymorph: SpellEntry = {
     "The target's gear melds into the new form. The creature can't activate, use, wield, or otherwise benefit from any of its equipment. This spell can't affect a target that has 0 Hit Points."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
@@ -971,6 +989,7 @@ export const raulothimsPsychicLance: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by <strong>1d6</strong> for each slot level above 4th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.INT,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
@@ -1026,6 +1045,7 @@ export const sickeningRadiance: SpellEntry = {
     "When a creature moves into the spell's area for the first time on a turn or starts its turn there, that creature must succeed on a Constitution saving throw or take <strong>4d10</strong> Radiant damage, and it suffers one level of Exhaustion and emits a dim, greenish light in a 5-foot radius. This light makes it impossible for the creature to benefit from being Invisible. The light and any levels of Exhaustion caused by this spell go away when the spell ends."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.RADIANT],
@@ -1065,7 +1085,6 @@ export const spiritOfDeath: SpellEntry = {
     "<strong>Reaping Scythe.</strong> Melee Weapon Attack: your spell attack modifier to hit, with Advantage, reach 5 ft., one target. Hit: <strong>1d8</strong> + 3 + the spell's level Necrotic damage.",
     "<strong>Haunt Creature.</strong> The spirit targets a creature it can see within 10 feet of itself and begins haunting it. While the target is haunted, you and the spirit sense the direction and distance to the target if it is on the same plane of existence as you. Additionally, if the target starts its turn within 10 feet of the spirit, the target must succeed on a Wisdom saving throw against your spell save DC or have the Frightened condition until the start of the target's next turn. The target remains haunted until it dies, the spirit disappears, or the spirit uses this action again."
   ],
-  isSavingThrowSpell: true,
   isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.NECROTIC]],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
@@ -1085,6 +1104,7 @@ export const staggeringSmite: SpellEntry = {
     "The next time you hit a creature with a melee weapon attack during this spell's duration, your weapon pierces both body and mind, and the attack deals an extra <strong>4d6</strong> Psychic damage to the target. The target must make a Wisdom saving throw. On a failed save, it has Disadvantage on attack rolls and ability checks, and can't take Reactions, until the end of its next turn."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
@@ -1157,6 +1177,8 @@ export const stormSphere: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases for each of its effects by <strong>1d6</strong> for each slot level above 4th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.STR,
+  isAttackSpell: true,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -1236,7 +1258,6 @@ export const summonGreaterDemon: SpellEntry = {
     "As part of casting the spell, you can form a circle on the ground with the blood used as a material component. The circle is large enough to encompass your space. While the spell lasts, the summoned demon can't cross the circle or harm it, and it can't target anyone within it. Using the material component in this manner consumes it when the spell ends.",
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the Challenge Rating increases by 1 for each slot level above 4th."
   ],
-  isSavingThrowSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
@@ -1294,6 +1315,7 @@ export const vitriolicSphere: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the initial damage increases by <strong>2d4</strong> for each slot level above 4th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -1316,6 +1338,7 @@ export const wallOfFire: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the damage increases by <strong>1d8</strong> for each slot level above 4th."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [
     [DICE.D8, DAMAGE_TYPE.FIRE],
@@ -1345,6 +1368,7 @@ export const waterySphere: SpellEntry = {
     "When the spell ends, the sphere falls to the ground and extinguishes all normal flames within 30 feet of it. Any creature Restrained by the sphere is knocked Prone in the space where it falls."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.STR,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4

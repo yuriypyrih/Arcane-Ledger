@@ -13,6 +13,7 @@ import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import type { RestType } from "./restOptions";
 import { createLongRestOptions, createShortRestOptions } from "./restOptions";
+import CampRestOption from "./CampRestOption";
 import styles from "./CampButton.module.css";
 
 type CampButtonProps = {
@@ -77,11 +78,19 @@ function CampButton({ character, onPersistCharacter }: CampButtonProps) {
     const nextOptions = restType === "short" ? shortRestOptions : longRestOptions;
     setSelectedRestType(restType);
     setSelectedRestOptionIds(
-      nextOptions.filter((option) => option.defaultSelected !== false).map((option) => option.id)
+      nextOptions
+        .filter((option) => option.defaultSelected !== false && option.disabled !== true)
+        .map((option) => option.id)
     );
   }
 
   function toggleRestOption(optionId: string) {
+    const selectedOption = selectedRestOptions.find((option) => option.id === optionId);
+
+    if (selectedOption?.disabled === true) {
+      return;
+    }
+
     setSelectedRestOptionIds((currentOptionIds) =>
       currentOptionIds.includes(optionId)
         ? currentOptionIds.filter((id) => id !== optionId)
@@ -91,7 +100,7 @@ function CampButton({ character, onPersistCharacter }: CampButtonProps) {
 
   function toggleAllRestOptions() {
     const selectableOptionIds = selectedRestOptions
-      .filter((option) => option.defaultSelected !== false)
+      .filter((option) => option.defaultSelected !== false && option.disabled !== true)
       .map((option) => option.id);
 
     setSelectedRestOptionIds((currentOptionIds) =>
@@ -115,7 +124,7 @@ function CampButton({ character, onPersistCharacter }: CampButtonProps) {
           : createLongRestOptions(currentCharacter);
       const selectedOptionIdSet = new Set(selectedRestOptionIds);
       const restedCharacter = availableOptions.reduce((nextCharacter, option) => {
-        if (!selectedOptionIdSet.has(option.id)) {
+        if (!selectedOptionIdSet.has(option.id) || option.disabled === true) {
           return nextCharacter;
         }
 
@@ -229,61 +238,23 @@ function CampButton({ character, onPersistCharacter }: CampButtonProps) {
                 </div>
                 <div className={sheetStyles.restChecklist}>
                   {selectedRestOptions.slice(0, 2).map((option) => (
-                    <label
+                    <CampRestOption
                       key={option.id}
-                      className={clsx(
-                        sheetStyles.restChecklistItem,
-                        option.emphasis === "feature" && styles.featureRestChecklistItem,
-                        option.disabled === true && styles.featureRestChecklistItemDisabled
-                      )}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedRestOptionIds.includes(option.id)}
-                        onChange={() => toggleRestOption(option.id)}
-                      />
-                      <span className={styles.restChecklistText}>
-                        <span className={styles.restChecklistTitleRow}>
-                          <span>{option.label}</span>
-                          {option.emphasis === "feature" ? (
-                            <span className={styles.featureRestBadge}>Feature</span>
-                          ) : null}
-                        </span>
-                        {option.emphasis === "feature" && option.detail ? (
-                          <span className={styles.featureRestDetail}>{option.detail}</span>
-                        ) : null}
-                      </span>
-                    </label>
+                      option={option}
+                      selected={selectedRestOptionIds.includes(option.id)}
+                      onToggle={toggleRestOption}
+                    />
                   ))}
                   {selectedRestOptions.length > 2 ? (
                     <div className={sheetStyles.restChecklistDivider} aria-hidden="true" />
                   ) : null}
                   {selectedRestOptions.slice(2).map((option) => (
-                    <label
+                    <CampRestOption
                       key={option.id}
-                      className={clsx(
-                        sheetStyles.restChecklistItem,
-                        option.emphasis === "feature" && styles.featureRestChecklistItem,
-                        option.disabled === true && styles.featureRestChecklistItemDisabled
-                      )}
-                    >
-                      <input
-                        type="checkbox"
-                        checked={selectedRestOptionIds.includes(option.id)}
-                        onChange={() => toggleRestOption(option.id)}
-                      />
-                      <span className={styles.restChecklistText}>
-                        <span className={styles.restChecklistTitleRow}>
-                          <span>{option.label}</span>
-                          {option.emphasis === "feature" ? (
-                            <span className={styles.featureRestBadge}>Feature</span>
-                          ) : null}
-                        </span>
-                        {option.emphasis === "feature" && option.detail ? (
-                          <span className={styles.featureRestDetail}>{option.detail}</span>
-                        ) : null}
-                      </span>
-                    </label>
+                      option={option}
+                      selected={selectedRestOptionIds.includes(option.id)}
+                      onToggle={toggleRestOption}
+                    />
                   ))}
                 </div>
                 <div className={sheetStyles.restPopupActions}>

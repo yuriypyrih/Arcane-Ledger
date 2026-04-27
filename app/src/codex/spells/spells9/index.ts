@@ -1,4 +1,5 @@
 import {
+  ABILITY_TYPES,
   ACTION_TYPE,
   DURATION,
   DAMAGE_TYPE,
@@ -132,6 +133,7 @@ export const imprisonment: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
@@ -188,6 +190,7 @@ export const massPolymorph: SpellEntry = {
     "The target can't activate, use, wield, or otherwise benefit from any of its equipment."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
@@ -208,6 +211,7 @@ export const meteorSwarm: SpellEntry = {
     "The spell damages objects in the area and ignites flammable objects that aren't being worn or carried."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
@@ -284,6 +288,7 @@ export const prismaticWall: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WIZARD],
@@ -305,6 +310,7 @@ export const psychicScream: SpellEntry = {
     "A Stunned target can make an Intelligence saving throw at the end of each of its turns. On a successful save, the stunning effect ends."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.INT,
   isDamagingSpell: true,
   damage: [
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
@@ -347,6 +353,7 @@ export const ravenousVoid: SpellEntry = {
     "A creature can use its action to make a Strength check against your spell save DC, ending this Restrained condition on itself or another creature in the sphere that it can reach. A creature reduced to 0 Hit Points by this spell is annihilated, along with any nonmagical items it is wearing or carrying."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.STR,
   isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.FORCE],
@@ -405,6 +412,7 @@ export const stormOfVengeance: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.DRUID],
@@ -425,6 +433,7 @@ export const timeRavage: SpellEntry = {
     "If the save fails, the target also ages to the point where it has only 30 days left before it dies of old age. In this aged state, the target has disadvantage on attack rolls, Ability Checks, and saving throws, and its walking speed is halved. Only the wish spell or the greater restoration spell cast with a 9th-level spell slot can end these effects and restore the target to its previous age."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [
     [DICE.D12, DAMAGE_TYPE.NECROTIC],
@@ -484,6 +493,7 @@ export const truePolymorph: SpellEntry = {
     }
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
@@ -523,6 +533,7 @@ export const weird: SpellEntry = {
     "The illusion calls on the creature's deepest fears, manifesting its worst nightmares as an implacable threat. At the end of each of the Frightened creature's turns, it must succeed on a Wisdom saving throw or take <strong>4d10</strong> Psychic damage. On a successful save, the spell ends for that creature."
   ],
   isSavingThrowSpell: true,
+  savingThrowAbility: ABILITY_TYPES.WIS,
   isDamagingSpell: true,
   damage: [
     [DICE.D10, DAMAGE_TYPE.PSYCHIC],

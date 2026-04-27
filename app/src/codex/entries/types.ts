@@ -143,6 +143,8 @@ export type SpellEntry = {
   descriptionAdditions?: SpellDescriptionEntry[][];
   isHealingSpell?: boolean;
   isSavingThrowSpell?: boolean;
+  savingThrowAbility?: ABILITY_TYPES | null;
+  isAttackSpell?: boolean;
   isDamagingSpell?: boolean;
   damage: WeaponDamage;
   spellLists: SPELL_LIST_CLASS[];
