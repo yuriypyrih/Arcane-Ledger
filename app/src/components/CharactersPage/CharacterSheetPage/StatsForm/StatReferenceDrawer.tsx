@@ -8,6 +8,7 @@ import {
   formatResolvedRollStateDetailText,
   resolveFeatureIndicators
 } from "../../../RollStatePill/rollState";
+import { orderDescriptionAdditionSections } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -73,8 +74,9 @@ type StatReferenceDrawerProps = {
 };
 
 function StatReferenceDrawer({ reference, footer = null, onClose }: StatReferenceDrawerProps) {
-  const descriptionSections =
-    reference.descriptionAdditions?.filter((section) => section.length > 0) ?? [];
+  const descriptionSections = orderDescriptionAdditionSections(
+    reference.descriptionAdditions ?? []
+  );
   const hasBaseDescriptionContent =
     Boolean(reference.summaryText) || Boolean(reference.descriptionItems?.length);
   const hasDescriptionContent = hasBaseDescriptionContent || descriptionSections.length > 0;
@@ -190,9 +192,7 @@ function StatReferenceDrawer({ reference, footer = null, onClose }: StatReferenc
                     detailCard.variant === "formula" ? styles.referenceFormulaValue : undefined
                   }
                   breakdownClassName={
-                    detailCard.variant === "formula"
-                      ? styles.referenceFormulaBreakdown
-                      : undefined
+                    detailCard.variant === "formula" ? styles.referenceFormulaBreakdown : undefined
                   }
                 />
               ))}

@@ -7,7 +7,7 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import type { AbilityModifierBonusEntry } from "../../../abilities";
 import { getProficiencyBonus, type WeaponAction } from "../../../gameplay";
@@ -23,11 +23,7 @@ import {
   createChargesOrResourceCardUsage,
   createFeatureActionCardCost
 } from "../../cardUsage";
-import type {
-  DerivedFeatureStatusEntry,
-  FeatureActionCard,
-  FeatureDamageBonus
-} from "../../types";
+import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureDamageBonus } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getPreparedSpellIdsByLevel, resolveSpellIdsByName } from "../../subclassRuntime";
 import {
@@ -541,13 +537,15 @@ function transformSacredWeaponAction(
     return action;
   }
 
-  return appendSourcedDescriptionAddition(
+  return appendFeatureSourcedDescriptionAddition(
     appendWeaponActionCardBonusLabel(
       applyPaladinOathOfDevotionSacredWeaponAction(character, action),
       sacredWeaponEffectName
     ),
-    sacredWeaponEffectName,
-    sacredWeaponActiveDescription
+    character,
+    CLASS_FEATURE.SACRED_WEAPON,
+    sacredWeaponActiveDescription,
+    sacredWeaponEffectName
   );
 }
 
@@ -707,7 +705,10 @@ function getPaladinOathOfDevotionFeatureActions(
   ];
 }
 
-function appendSmiteOfProtectionDescription(action: FeatureActionCard): FeatureActionCard {
+function appendSmiteOfProtectionDescription(
+  character: PaladinOathOfDevotionCharacter,
+  action: FeatureActionCard
+): FeatureActionCard {
   if (action.key !== paladinsSmiteActionKey) {
     return action;
   }
@@ -720,10 +721,12 @@ function appendSmiteOfProtectionDescription(action: FeatureActionCard): FeatureA
           description: createDefaultFeatureActionDescription(action)
         };
 
-  return appendSourcedDescriptionAddition(
+  return appendFeatureSourcedDescriptionAddition(
     nextAction,
-    "Smite of Protection",
-    smiteOfProtectionDescription
+    character,
+    CLASS_FEATURE.SMITE_OF_PROTECTION,
+    smiteOfProtectionDescription,
+    "Smite of Protection"
   );
 }
 
@@ -739,7 +742,7 @@ export const getPaladinOathOfDevotionDerivedFeatureState: SubclassRuntimeResolve
         featureActions: getPaladinOathOfDevotionFeatureActions(character),
         derivedStatusEntries: getPaladinOathOfDevotionDerivedStatusEntries(character),
         transformFeatureAction: hasPaladinOathOfDevotionSmiteOfProtection(character)
-          ? appendSmiteOfProtectionDescription
+          ? (action) => appendSmiteOfProtectionDescription(character, action)
           : undefined,
         transformWeaponAction: (action) => transformSacredWeaponAction(character, action)
       }

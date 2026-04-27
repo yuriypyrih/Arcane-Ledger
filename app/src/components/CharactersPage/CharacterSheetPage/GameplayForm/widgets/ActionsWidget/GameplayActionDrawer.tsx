@@ -26,6 +26,7 @@ import type {
   FeatureActionFact,
   FeatureActionHeaderTag
 } from "../../../../../../pages/CharactersPage/classFeatures";
+import { orderDescriptionAdditionSections } from "../../../../../../pages/CharactersPage/actionModalDescriptions";
 import type { ResolvedKeywordReference } from "../../../../../../utils/codex/renderCodexRichText";
 import FeatureActionFacts from "./FeatureActionFacts";
 import FeatureActionHeaderTags from "./FeatureActionHeaderTags";
@@ -80,7 +81,7 @@ function GameplayActionDrawer({
     label: string;
   } | null>(null);
   const hasBaseDescription = description.length > 0;
-  const descriptionSections = descriptionAdditions.filter((section) => section.length > 0);
+  const descriptionSections = orderDescriptionAdditionSections(descriptionAdditions);
 
   return (
     <>

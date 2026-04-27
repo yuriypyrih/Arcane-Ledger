@@ -1,7 +1,7 @@
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import type { SpellDescriptionEntry } from "../../../../../codex/entries";
 import type { Character } from "../../../../../types";
-import { createSourcedDescriptionEntries } from "../../../actionModalDescriptions";
+import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 import {
   getBeastMasterCompanion,
   isPrimalBeastCompanion,
@@ -48,13 +48,34 @@ function getCommandDescriptionAdditions(
 ): SpellDescriptionEntry[][] {
   return [
     ...((character.level ?? 0) >= 7
-      ? [createSourcedDescriptionEntries("Exceptional Training", exceptionalTrainingDescription)]
+      ? [
+          createFeatureSourcedDescriptionEntries(
+            character,
+            CLASS_FEATURE.EXCEPTIONAL_TRAINING,
+            exceptionalTrainingDescription,
+            "Exceptional Training"
+          )
+        ]
       : []),
     ...((character.level ?? 0) >= 11
-      ? [createSourcedDescriptionEntries("Bestial Fury", bestialFuryDescription)]
+      ? [
+          createFeatureSourcedDescriptionEntries(
+            character,
+            CLASS_FEATURE.BESTIAL_FURY,
+            bestialFuryDescription,
+            "Bestial Fury"
+          )
+        ]
       : []),
     ...((character.level ?? 0) >= 15
-      ? [createSourcedDescriptionEntries("Share Spells", shareSpellsDescription)]
+      ? [
+          createFeatureSourcedDescriptionEntries(
+            character,
+            CLASS_FEATURE.SHARE_SPELLS,
+            shareSpellsDescription,
+            "Share Spells"
+          )
+        ]
       : [])
   ];
 }

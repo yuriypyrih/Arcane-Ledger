@@ -1,8 +1,8 @@
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
 import type { AbilityKey, Character } from "../../../../types";
 import {
-  appendSourcedDescriptionAddition,
-  createSourcedDescriptionEntries
+  appendFeatureSourcedDescriptionAddition,
+  createFeatureSourcedDescriptionEntries
 } from "../../actionModalDescriptions";
 import type { WeaponAction } from "../../gameplay";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
@@ -80,7 +80,9 @@ function createInitiativeFeatureSection(
 ): SpellDescriptionEntry[][] {
   const description = getFeatureDescriptionForCharacter(character, feature);
 
-  return description.length > 0 ? [createSourcedDescriptionEntries(sourceName, description)] : [];
+  return description.length > 0
+    ? [createFeatureSourcedDescriptionEntries(character, feature, description, sourceName)]
+    : [];
 }
 
 function createFeatureSection(
@@ -90,7 +92,9 @@ function createFeatureSection(
 ): SpellDescriptionEntry[][] {
   const description = getFeatureDescriptionForCharacter(character, feature);
 
-  return description.length > 0 ? [createSourcedDescriptionEntries(sourceName, description)] : [];
+  return description.length > 0
+    ? [createFeatureSourcedDescriptionEntries(character, feature, description, sourceName)]
+    : [];
 }
 
 function appendFeatureDescriptionSection<
@@ -99,7 +103,7 @@ function appendFeatureDescriptionSection<
   const description = getFeatureDescriptionForCharacter(character, feature);
 
   return description.length > 0
-    ? appendSourcedDescriptionAddition(value, sourceName, description)
+    ? appendFeatureSourcedDescriptionAddition(value, character, feature, description, sourceName)
     : value;
 }
 
@@ -115,9 +119,7 @@ function isMonkDisengageCommonAction(
   return action.key === "common-action-disengage";
 }
 
-function isMonkDashCommonAction(
-  action: Pick<MonkCommonActionDescriptionAction, "key">
-): boolean {
+function isMonkDashCommonAction(action: Pick<MonkCommonActionDescriptionAction, "key">): boolean {
   return action.key === "common-action-dash";
 }
 
@@ -163,24 +165,28 @@ export function appendMonkWeaponDescriptionSections<T extends MonkWeaponDescript
   return nextAction;
 }
 
-export function appendMonkCommonActionDescriptionSections<T extends MonkCommonActionDescriptionAction>(
-  action: T
-): T {
+export function appendMonkCommonActionDescriptionSections<
+  T extends MonkCommonActionDescriptionAction
+>(action: T, character: MonkDescriptionCharacter): T {
   let nextAction = action;
 
   if (isMonkDisengageCommonAction(nextAction)) {
-    nextAction = appendSourcedDescriptionAddition(
+    nextAction = appendFeatureSourcedDescriptionAddition(
       nextAction,
-      patientDefenseSource,
-      patientDefenseCommonActionDescription
+      character,
+      CLASS_FEATURE.MONKS_FOCUS,
+      patientDefenseCommonActionDescription,
+      patientDefenseSource
     );
   }
 
   if (isMonkDashCommonAction(nextAction)) {
-    nextAction = appendSourcedDescriptionAddition(
+    nextAction = appendFeatureSourcedDescriptionAddition(
       nextAction,
-      stepOfTheWindSource,
-      stepOfTheWindCommonActionDescription
+      character,
+      CLASS_FEATURE.MONKS_FOCUS,
+      stepOfTheWindCommonActionDescription,
+      stepOfTheWindSource
     );
   }
 
@@ -241,7 +247,14 @@ export function getMonkPatientDefenseDescriptionAdditions(
   );
 
   return heightenedFocusDescription.length > 0
-    ? [createSourcedDescriptionEntries(heightenedFocusSource, heightenedFocusDescription)]
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.HEIGHTENED_FOCUS,
+          heightenedFocusDescription,
+          heightenedFocusSource
+        )
+      ]
     : [];
 }
 
@@ -263,7 +276,10 @@ export function getMonkStepOfTheWindDescriptionAdditions(
     CLASS_FEATURE.HEIGHTENED_FOCUS,
     isStepOfTheWindDescriptionEntry
   );
-  const fleetStepDescription = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.FLEET_STEP);
+  const fleetStepDescription = getFeatureDescriptionForCharacter(
+    character,
+    CLASS_FEATURE.FLEET_STEP
+  );
   const elementalEpitomeDescription = getFeatureDescriptionSlice(
     character,
     CLASS_FEATURE.ELEMENTAL_EPITOME,
@@ -272,13 +288,34 @@ export function getMonkStepOfTheWindDescriptionAdditions(
 
   return [
     ...(heightenedFocusDescription.length > 0
-      ? [createSourcedDescriptionEntries(heightenedFocusSource, heightenedFocusDescription)]
+      ? [
+          createFeatureSourcedDescriptionEntries(
+            character,
+            CLASS_FEATURE.HEIGHTENED_FOCUS,
+            heightenedFocusDescription,
+            heightenedFocusSource
+          )
+        ]
       : []),
     ...(fleetStepDescription.length > 0
-      ? [createSourcedDescriptionEntries(fleetStepSource, fleetStepDescription)]
+      ? [
+          createFeatureSourcedDescriptionEntries(
+            character,
+            CLASS_FEATURE.FLEET_STEP,
+            fleetStepDescription,
+            fleetStepSource
+          )
+        ]
       : []),
     ...(elementalEpitomeDescription.length > 0
-      ? [createSourcedDescriptionEntries(elementalEpitomeSource, elementalEpitomeDescription)]
+      ? [
+          createFeatureSourcedDescriptionEntries(
+            character,
+            CLASS_FEATURE.ELEMENTAL_EPITOME,
+            elementalEpitomeDescription,
+            elementalEpitomeSource
+          )
+        ]
       : [])
   ];
 }
@@ -293,6 +330,13 @@ export function getMonkFlurryOfBlowsDescriptionAdditions(
   );
 
   return heightenedFocusDescription.length > 0
-    ? [createSourcedDescriptionEntries(heightenedFocusSource, heightenedFocusDescription)]
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.HEIGHTENED_FOCUS,
+          heightenedFocusDescription,
+          heightenedFocusSource
+        )
+      ]
     : [];
 }

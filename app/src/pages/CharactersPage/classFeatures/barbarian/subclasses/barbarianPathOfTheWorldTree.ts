@@ -6,7 +6,7 @@ import {
   getReactionEntryById
 } from "../../../../../codex/entries";
 import { getAbilityModifierForCharacter } from "../../../abilities";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { formatSignedLabel } from "../../../shared/numbers";
 import type { Character, CharacterRageFeatureState } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
@@ -138,6 +138,7 @@ export function getBarbarianPathOfTheWorldTreeAdditionalWeaponMasteries(
 }
 
 function appendBatteringRootsDescription(
+  character: Parameters<SubclassRuntimeResolver>[0],
   action: WeaponAction,
   descriptionEntries: ReturnType<typeof getFeatureDescriptionForCharacter>
 ): WeaponAction {
@@ -145,7 +146,13 @@ function appendBatteringRootsDescription(
     return action;
   }
 
-  return appendSourcedDescriptionAddition(action, batteringRootsSource, descriptionEntries);
+  return appendFeatureSourcedDescriptionAddition(
+    action,
+    character,
+    CLASS_FEATURE.BATTERING_ROOTS,
+    descriptionEntries,
+    batteringRootsSource
+  );
 }
 
 export function getBarbarianPathOfTheWorldTreeFeatureAction(
@@ -171,9 +178,7 @@ export function getBarbarianPathOfTheWorldTreeFeatureAction(
     consumesEconomyOnActivate: true,
     disabled,
     disabledReason:
-      rageState.active !== true
-        ? "Travel Along the Tree requires Rage to be active."
-        : undefined
+      rageState.active !== true ? "Travel Along the Tree requires Rage to be active." : undefined
   };
 }
 
@@ -239,7 +244,9 @@ export const getBarbarianPathOfTheWorldTreeDerivedFeatureState: SubclassRuntimeR
   }
 
   const branchesOfTheTree = getReactionEntryById(barbarianWorldTreeBranchesOfTheTreeReactionId);
-  const batteringRootsDescription = hasBarbarianPathOfTheWorldTreeBatteringRoots(normalizedCharacter)
+  const batteringRootsDescription = hasBarbarianPathOfTheWorldTreeBatteringRoots(
+    normalizedCharacter
+  )
     ? getFeatureDescriptionForCharacter(normalizedCharacter, CLASS_FEATURE.BATTERING_ROOTS)
     : [];
 
@@ -248,7 +255,7 @@ export const getBarbarianPathOfTheWorldTreeDerivedFeatureState: SubclassRuntimeR
     ...(batteringRootsDescription.length > 0
       ? {
           transformWeaponAction: (action: WeaponAction) =>
-            appendBatteringRootsDescription(action, batteringRootsDescription)
+            appendBatteringRootsDescription(character, action, batteringRootsDescription)
         }
       : {})
   };

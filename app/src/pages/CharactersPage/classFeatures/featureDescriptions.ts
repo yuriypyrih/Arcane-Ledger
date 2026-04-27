@@ -24,6 +24,12 @@ import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../s
 
 type FeatureDescriptionCharacter = Partial<Pick<Character, "className" | "level" | "subclassId">>;
 
+export type FeatureDescriptionMetadata = {
+  description: SpellDescriptionEntry[];
+  level: number;
+  name: string;
+};
+
 const classFeatureMapsByName: Record<string, Partial<Record<CLASS_FEATURE, FeatureMapEntry>>> = {
   Artificer: artificerFeatureMap,
   Barbarian: barbarianFeatureMap,
@@ -44,10 +50,17 @@ function cloneDescription(description?: string[]): SpellDescriptionEntry[] {
   return description ? [...description] : [];
 }
 
-function getBaseFeatureDetails(
+function formatClassFeatureName(feature: CLASS_FEATURE): string {
+  return feature
+    .split("_")
+    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+    .join(" ");
+}
+
+function getBaseFeatureMetadata(
   character: FeatureDescriptionCharacter,
   feature: CLASS_FEATURE
-): FeatureMapEntry | null {
+): FeatureDescriptionMetadata | null {
   if (typeof character.className !== "string") {
     return null;
   }
@@ -63,8 +76,57 @@ function getBaseFeatureDetails(
     )
     .sort((left, right) => right.level - left.level)[0];
 
+  const details =
+    matchingRow?.featureOverrides?.[feature] ??
+    classFeatureMapsByName[character.className]?.[feature];
+
+  return details
+    ? {
+        description: cloneDescription(details.description),
+        level: matchingRow?.level ?? normalizedLevel,
+        name: formatClassFeatureName(feature)
+      }
+    : null;
+}
+
+function getSubclassFeatureMetadata(
+  character: FeatureDescriptionCharacter,
+  feature: CLASS_FEATURE
+): FeatureDescriptionMetadata | null {
+  if (typeof character.className !== "string") {
+    return null;
+  }
+
+  const normalizedLevel = Math.max(1, Math.floor(character.level ?? 1));
+  const subclass = getSelectedSubclassForCharacter({
+    className: character.className,
+    subclassId: character.subclassId
+  });
+  const matchingRow = [...(subclass?.features ?? [])]
+    .filter(
+      (featureRow) =>
+        featureRow.level <= normalizedLevel &&
+        (featureRow.classFeatures.includes(feature) ||
+          featureRow.featureOverrides?.[feature] !== undefined)
+    )
+    .sort((left, right) => right.level - left.level)[0];
+  const details = matchingRow?.featureOverrides?.[feature];
+
+  return details
+    ? {
+        description: cloneDescription(details.description),
+        level: matchingRow.level,
+        name: formatClassFeatureName(feature)
+      }
+    : null;
+}
+
+export function getFeatureDescriptionMetadataForCharacter(
+  character: FeatureDescriptionCharacter,
+  feature: CLASS_FEATURE
+): FeatureDescriptionMetadata | null {
   return (
-    matchingRow?.featureOverrides?.[feature] ?? classFeatureMapsByName[character.className]?.[feature] ?? null
+    getSubclassFeatureMetadata(character, feature) ?? getBaseFeatureMetadata(character, feature)
   );
 }
 
@@ -87,5 +149,5 @@ export function getFeatureDescriptionForCharacter(
     return cloneDescription(subclassDetails.description);
   }
 
-  return cloneDescription(getBaseFeatureDetails(character, feature)?.description);
+  return getBaseFeatureMetadata(character, feature)?.description ?? [];
 }

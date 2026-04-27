@@ -20,16 +20,12 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import {
-  appendSourcedDescriptionAddition,
-  createSourcedDescriptionEntries
+  appendFeatureSourcedDescriptionAddition,
+  createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { getResolvedCustomLoadoutEntries } from "../../../customEquipment";
-import {
-  createWeaponAction,
-  getProficiencyBonus,
-  type WeaponAction
-} from "../../../gameplay";
+import { createWeaponAction, getProficiencyBonus, type WeaponAction } from "../../../gameplay";
 import {
   createHeldShieldDescriptor,
   createHeldWeaponDescriptor,
@@ -38,7 +34,10 @@ import {
 import { createHeldDescriptorForInventoryItem } from "../../../inventoryItems";
 import { isShieldArmorEntry } from "../../../armor";
 import { getLoadoutCodexEntryByName } from "../../../proficiency";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import {
   getPsionicDiceTotalForLevel,
   getPsionicDieForLevel,
@@ -59,11 +58,9 @@ import { rogueSneakAttackActionKey } from "../rogue";
 
 export const soulknifeSubclassId = "rogue-soulknife";
 export const rogueSoulknifePsychicBladeWeaponActionKey = "rogue-soulknife-psychic-blade";
-export const rogueSoulknifeBonusPsychicBladeWeaponActionKey =
-  "rogue-soulknife-bonus-psychic-blade";
+export const rogueSoulknifeBonusPsychicBladeWeaponActionKey = "rogue-soulknife-bonus-psychic-blade";
 export const rogueSoulknifePsychicWhispersActionKey = "rogue-soulknife-psychic-whispers";
-export const rogueSoulknifePsychicTeleportationActionKey =
-  "rogue-soulknife-psychic-teleportation";
+export const rogueSoulknifePsychicTeleportationActionKey = "rogue-soulknife-psychic-teleportation";
 export const rogueSoulknifePsychicVeilActionKey = "rogue-soulknife-psychic-veil";
 
 const soulknifeSourceLabel = "Psychic Blades";
@@ -73,7 +70,6 @@ const homingStrikesName = "Homing Strikes";
 const psychicWhispersName = "Psychic Whispers";
 const psychicTeleportationName = "Psychic Teleportation";
 const psychicVeilName = "Psychic Veil";
-const rendMindName = "Rend Mind";
 const rogueSoulknifePsychicVeilStatusSourceId = "feature-rogue-soulknife-psychic-veil";
 const rogueSoulknifePsionicFallbackCost = 1;
 const rogueSoulknifePsychicTeleportationCost = 1;
@@ -160,10 +156,7 @@ const psychicWhispersDescription = stripFeatureDescriptionHeading(
 );
 const soulBladesDescription = getRogueSoulknifeFeatureDescriptionEntries(CLASS_FEATURE.SOUL_BLADES);
 const homingStrikesDescription = stripFeatureDescriptionHeading(
-  extractFeatureDescriptionSection(
-    soulBladesDescription,
-    `<strong>${homingStrikesName}.</strong>`
-  ),
+  extractFeatureDescriptionSection(soulBladesDescription, `<strong>${homingStrikesName}.</strong>`),
   `<strong>${homingStrikesName}.</strong>`
 );
 const psychicTeleportationDescription = stripFeatureDescriptionHeading(
@@ -606,16 +599,17 @@ export function activateRogueSoulknifePsychicTeleportation(character: Character)
 }
 
 function appendFeatureActionDescriptionSection(
+  character: RogueSoulknifeCharacter,
   action: FeatureActionCard,
   actionKey: string,
-  sourceName: string,
+  feature: CLASS_FEATURE,
   descriptionEntries: readonly string[]
 ): FeatureActionCard {
   if (action.key !== actionKey || descriptionEntries.length === 0) {
     return action;
   }
 
-  return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
+  return appendFeatureSourcedDescriptionAddition(action, character, feature, descriptionEntries);
 }
 
 function getPsionicDieSideCount(psionicDie: PsionicDie): number {
@@ -681,9 +675,7 @@ export function getRogueSoulknifeRendMindSavingThrowDc(
   }
 
   return (
-    8 +
-    getAbilityModifierForCharacter(character, "DEX") +
-    getProficiencyBonus(character.level ?? 1)
+    8 + getAbilityModifierForCharacter(character, "DEX") + getProficiencyBonus(character.level ?? 1)
   );
 }
 
@@ -749,7 +741,8 @@ function getRogueSoulknifePsychicWhispersAction(
     key: rogueSoulknifePsychicWhispersActionKey,
     name: psychicWhispersName,
     summary: "Telepathic link for Psionic Die hours",
-    detail: "Roll one Psionic Die; the chosen creatures can speak telepathically for that many hours.",
+    detail:
+      "Roll one Psionic Die; the chosen creatures can speak telepathically for that many hours.",
     breakdown: "Telepathy for rolled hours",
     description: psychicWhispersDescription,
     economyType: ECONOMY_TYPE.ACTION,
@@ -831,15 +824,10 @@ function getRogueSoulknifePsychicTeleportationAction(
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
     cardUsage: createNamedResourceCardUsage(psionicDieCost),
-    headerTags: createNamedUsageHeaderTags(
-      psionicDieCost,
-      psionicDiceRemaining,
-      psionicDiceTotal,
-      {
-        label: "Psionic Dice",
-        icon: "psi"
-      }
-    ),
+    headerTags: createNamedUsageHeaderTags(psionicDieCost, psionicDiceRemaining, psionicDiceTotal, {
+      label: "Psionic Dice",
+      icon: "psi"
+    }),
     facts: formulaFact ? [formulaFact] : [],
     resources: [
       {
@@ -968,9 +956,10 @@ function transformRogueSoulknifeFeatureAction(
   }
 
   const actionWithDescription = appendFeatureActionDescriptionSection(
+    character,
     action,
     rogueSneakAttackActionKey,
-    rendMindName,
+    CLASS_FEATURE.REND_MIND,
     rendMindDescription
   );
 
@@ -1038,7 +1027,14 @@ export function getRogueSoulknifeFeatureEquipmentEntries(
 function getRogueSoulknifePsychicBladeDescriptionAdditions(character: RogueSoulknifeCharacter) {
   const descriptionAdditions = [
     ...(hasRogueSoulknifeSoulBladesFeature(character)
-      ? [createSourcedDescriptionEntries(homingStrikesName, homingStrikesDescription)]
+      ? [
+          createFeatureSourcedDescriptionEntries(
+            character,
+            CLASS_FEATURE.SOUL_BLADES,
+            homingStrikesDescription,
+            homingStrikesName
+          )
+        ]
       : [])
   ];
 

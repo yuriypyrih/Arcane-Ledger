@@ -1,6 +1,6 @@
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../codex/entries";
 import type { Character } from "../../../types";
-import { createSourcedDescriptionEntries } from "../actionModalDescriptions";
+import { createFeatureSourcedDescriptionEntries } from "../actionModalDescriptions";
 import { getBarbarianPersistentRageInitiativeDescriptionAdditions } from "./barbarian/barbarianDescriptionSections";
 import { getFeatureDescriptionForCharacter } from "./featureDescriptions";
 import { getMonkInitiativeDescriptionAdditions } from "./monk/monkDescriptionSections";
@@ -27,15 +27,22 @@ function getBardInitiativeDescriptionAdditions(
 
   if (tandemFootworkDescription.length > 0) {
     descriptionAdditions.push(
-      createSourcedDescriptionEntries(tandemFootworkSource, tandemFootworkDescription)
+      createFeatureSourcedDescriptionEntries(
+        character,
+        CLASS_FEATURE.TANDEM_FOOTWORK,
+        tandemFootworkDescription,
+        tandemFootworkSource
+      )
     );
   }
 
   if (superiorInspirationDescription.length > 0) {
     descriptionAdditions.push(
-      createSourcedDescriptionEntries(
-        superiorInspirationSource,
-        superiorInspirationDescription
+      createFeatureSourcedDescriptionEntries(
+        character,
+        CLASS_FEATURE.SUPERIOR_INSPIRATION,
+        superiorInspirationDescription,
+        superiorInspirationSource
       )
     );
   }

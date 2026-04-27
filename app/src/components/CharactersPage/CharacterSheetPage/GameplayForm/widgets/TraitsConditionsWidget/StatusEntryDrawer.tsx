@@ -22,6 +22,7 @@ import {
   SheetDrawer
 } from "../../../../../Overlay";
 import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import { orderDescriptionAdditionSections } from "../../../../../../pages/CharactersPage/actionModalDescriptions";
 import {
   getStatusDurationLabel,
   getStatusEntryDescriptionContent,
@@ -98,7 +99,7 @@ function StatusEntryDrawer({
   const { description: descriptionEntries, descriptionAdditions } =
     getStatusEntryDescriptionContent(entry, character);
   const hasBaseDescription = descriptionEntries.length > 0;
-  const descriptionSections = descriptionAdditions.filter((section) => section.length > 0);
+  const descriptionSections = orderDescriptionAdditionSections(descriptionAdditions);
   const footerActions: FooterAction[] = isEditingDuration
     ? [
         {
@@ -281,7 +282,9 @@ function StatusEntryDrawer({
                       key={action.label}
                       className={styles.footerActionButton}
                       actionType={action.tone === "danger" ? "ERROR" : "INFO"}
-                      variant={action.tone === "neutral" || action.tone === "danger" ? "GHOST" : "FILL"}
+                      variant={
+                        action.tone === "neutral" || action.tone === "danger" ? "GHOST" : "FILL"
+                      }
                       onClick={action.onClick}
                       icon={<Icon size={16} aria-hidden="true" />}
                     >

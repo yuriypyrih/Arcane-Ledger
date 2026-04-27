@@ -4,6 +4,7 @@ import ActionShape, { getActionShapeForCastingTime } from "../../ActionShape";
 import CellContainer from "../../CellContainer/CellContainer";
 import SpellDescriptionContent from "../../SpellDescriptionContent";
 import { FEATS, type DivinityEntry, type SpellEntry } from "../../../codex/entries";
+import { orderDescriptionAdditionSections } from "../../../pages/CharactersPage/actionModalDescriptions";
 import {
   OverlayBadge,
   OverlayBody,
@@ -210,8 +211,8 @@ function CodexDivinityDrawer({
   );
   const castingTimeActionShape = getActionShapeForCastingTime(divinity.castingTime);
   const hasBaseDescription = resolvedDisplay.description.length > 0;
-  const descriptionSections = resolvedDisplay.descriptionAdditions.filter(
-    (section) => section.length > 0
+  const descriptionSections = orderDescriptionAdditionSections(
+    resolvedDisplay.descriptionAdditions
   );
 
   return (

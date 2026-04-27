@@ -11,6 +11,7 @@ import {
   formatResolvedRollStateDetailText,
   resolveFeatureIndicators
 } from "../../../RollStatePill/rollState";
+import { orderDescriptionAdditionSections } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -59,13 +60,11 @@ type SkillReferenceDrawerProps = {
 
 function SkillReferenceDrawer({ reference, rollAction, onClose }: SkillReferenceDrawerProps) {
   const rollState = resolveFeatureIndicators(reference.indicators);
-  const descriptionSections =
-    reference.descriptionAdditions?.filter((section) => section.length > 0) ?? [];
   const additionalDescription = reference.additionalDescription?.filter(Boolean) ?? [];
-  const injectedDescriptionSections = [
+  const injectedDescriptionSections = orderDescriptionAdditionSections([
     ...(additionalDescription.length > 0 ? [additionalDescription] : []),
-    ...descriptionSections
-  ];
+    ...(reference.descriptionAdditions ?? [])
+  ]);
 
   return (
     <SheetDrawer titleId="character-skill-reference-title" onClose={onClose} onEscape={onClose}>

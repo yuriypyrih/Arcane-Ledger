@@ -32,10 +32,7 @@ import {
   type EconomyType
 } from "../../actionEconomy";
 import { formatFormulaCell } from "../../shared/formulas";
-import {
-  consumeRoundTrackerResource,
-  isRoundTrackerResourceAvailable
-} from "../../combat";
+import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
 import type { WeaponAction } from "../../gameplay";
 import {
   getResolvedCustomLoadoutEntries,
@@ -109,7 +106,7 @@ import {
   getMonkStepOfTheWindBaseDescription,
   getMonkStepOfTheWindDescriptionAdditions
 } from "./monkDescriptionSections";
-import { appendSourcedDescriptionAddition } from "../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../actionModalDescriptions";
 import {
   createFeatureActionCardCost,
   createFreeCardUsage,
@@ -171,7 +168,10 @@ const superiorDefenseDurationRounds = 10;
 const deflectEnergySource = "Deflect Energy";
 const selfRestorationStatusSourceId = "feature-monk-self-restoration";
 const superiorDefenseStatusSourceId = "feature-monk-superior-defense";
-const monkFocusCommonActionBonusPathKeys = new Set(["common-action-dash", "common-action-disengage"]);
+const monkFocusCommonActionBonusPathKeys = new Set([
+  "common-action-dash",
+  "common-action-disengage"
+]);
 const nonForceDamageTypes = (Object.values(DAMAGE_TYPE) as DAMAGE_TYPE[]).filter(
   (damageType) => damageType !== DAMAGE_TYPE.FORCE
 );
@@ -205,9 +205,7 @@ function getMonkFeatureState(
   return normalizeMonkFeatureState(character.classFeatureState?.monk, character);
 }
 
-function hasMonkSuperiorDefenseStatus(
-  character: Pick<Character, "statusEntries">
-): boolean {
+function hasMonkSuperiorDefenseStatus(character: Pick<Character, "statusEntries">): boolean {
   return normalizeCharacterStatusEntries(character.statusEntries).some(
     (entry) => entry.sourceId === superiorDefenseStatusSourceId
   );
@@ -648,14 +646,9 @@ export function getMonkFeatureActions(
       icon: "brain"
     });
     const focusCardUsage = createNamedResourceCardUsage(focusPointCost);
-    const focusHeaderTags = createNamedUsageHeaderTags(
-      focusPointCost,
-      focusRemaining,
-      focusTotal,
-      {
-        icon: "brain"
-      }
-    );
+    const focusHeaderTags = createNamedUsageHeaderTags(focusPointCost, focusRemaining, focusTotal, {
+      icon: "brain"
+    });
     const flurryStrikeCount = getMonkFlurryOfBlowsStrikeCount(character);
     const flurryFacts = getMonkFlurryOfBlowsFacts(character);
     const shadowFlurryActive = isMonkWarriorOfShadowCloakOfShadowActive(character);
@@ -675,7 +668,7 @@ export function getMonkFeatureActions(
         ? "No Focus Points remaining."
         : martialArtsDisabledReason
           ? martialArtsDisabledReason
-        : undefined;
+          : undefined;
 
     actions.push({
       key: monkFlurryOfBlowsActionKey,
@@ -686,12 +679,8 @@ export function getMonkFeatureActions(
         : `Expend 1 Focus Point to make ${flurryStrikeCount} Unarmed Strikes as a Bonus Action.`,
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
-      cardUsage: shadowFlurryActive
-        ? createFreeCardUsage()
-        : focusCardUsage,
-      headerTags: shadowFlurryActive
-        ? undefined
-        : focusHeaderTags,
+      cardUsage: shadowFlurryActive ? createFreeCardUsage() : focusCardUsage,
+      headerTags: shadowFlurryActive ? undefined : focusHeaderTags,
       usesLabel: shadowFlurryActive ? undefined : "1",
       usesIcon: shadowFlurryActive ? undefined : "brain",
       usesTone: !shadowFlurryActive && focusRemaining <= 0 ? "danger" : "default",
@@ -715,7 +704,8 @@ export function getMonkFeatureActions(
       name: "Patient Defense",
       sourceFeature: CLASS_FEATURE.MONKS_FOCUS,
       summary: "Take Disengage and Dodge as a Bonus Action.",
-      detail: "Expend 1 Focus Point to take both the Disengage and Dodge actions as a Bonus Action.",
+      detail:
+        "Expend 1 Focus Point to take both the Disengage and Dodge actions as a Bonus Action.",
       breakdown: "Bonus Disengage + Dodge",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
@@ -832,10 +822,12 @@ export function getMonkReactionEntries(
 
       reactionEntries.push(
         deflectEnergyDescription.length > 0
-          ? appendSourcedDescriptionAddition(
+          ? appendFeatureSourcedDescriptionAddition(
               deflectAttacks,
-              deflectEnergySource,
-              deflectEnergyDescription
+              character,
+              CLASS_FEATURE.DEFLECT_ENERGY,
+              deflectEnergyDescription,
+              deflectEnergySource
             )
           : deflectAttacks
       );
@@ -885,7 +877,7 @@ export function getMonkCommonAction(
   action: FeatureActionCard
 ): FeatureActionCard {
   return hasMonkFeature(character, CLASS_FEATURE.MONKS_FOCUS)
-    ? appendMonkCommonActionDescriptionSections(action)
+    ? appendMonkCommonActionDescriptionSections(action, character)
     : action;
 }
 

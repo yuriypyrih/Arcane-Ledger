@@ -15,7 +15,7 @@ import {
   STATUS_ENTRY_SOURCE_TYPE,
   WEAPON_PROFICIENCY
 } from "../../../../types";
-import { appendSourcedDescriptionAddition } from "../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
 import { hasStatusCondition, normalizeCharacterStatusEntries } from "../../statusEntries";
@@ -617,10 +617,12 @@ export function getPaladinFeatureActions(
 
     featureActions.push(
       hasPaladinFeature(character, CLASS_FEATURE.RESTORING_TOUCH)
-        ? appendSourcedDescriptionAddition(
+        ? appendFeatureSourcedDescriptionAddition(
             layOnHandsAction,
-            restoringTouchFeatureName,
-            paladinFeatureMap[CLASS_FEATURE.RESTORING_TOUCH]?.description ?? []
+            character,
+            CLASS_FEATURE.RESTORING_TOUCH,
+            paladinFeatureMap[CLASS_FEATURE.RESTORING_TOUCH]?.description ?? [],
+            restoringTouchFeatureName
           )
         : layOnHandsAction
     );

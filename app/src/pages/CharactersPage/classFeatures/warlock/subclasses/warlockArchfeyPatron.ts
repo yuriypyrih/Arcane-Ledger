@@ -16,7 +16,8 @@ import {
 } from "../../../../../types";
 import {
   createSourcedDescriptionEntries,
-  descriptionValueSomeText
+  descriptionValueSomeText,
+  getFeatureSourceNameForCharacter
 } from "../../../actionModalDescriptions";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
@@ -125,14 +126,21 @@ function getWarlockArchfeyPatronPactMagicSlotsRemaining(
 }
 
 function appendArchfeyPatronDescription(
+  character:
+    | (Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>)
+    | null,
   spell: SpellEntry,
-  sourceName: string,
+  feature: CLASS_FEATURE,
+  fallbackSourceName: string,
   descriptionEntries: readonly string[]
 ): SpellEntry {
   if (spell.id !== mistyStepSpellId || descriptionEntries.length === 0) {
     return spell;
   }
 
+  const sourceName = character
+    ? getFeatureSourceNameForCharacter(character, feature, fallbackSourceName)
+    : fallbackSourceName;
   const marker = `<strong>${sourceName}.</strong>`;
 
   if (
@@ -150,15 +158,40 @@ function appendArchfeyPatronDescription(
   };
 }
 
-function appendStepsOfTheFeyDescription(spell: SpellEntry): SpellEntry {
-  return appendArchfeyPatronDescription(spell, stepsOfTheFeyName, stepsOfTheFeySpellDescription);
+function appendStepsOfTheFeyDescription(
+  spell: SpellEntry,
+  character:
+    | (Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>)
+    | null = null
+): SpellEntry {
+  return appendArchfeyPatronDescription(
+    character,
+    spell,
+    CLASS_FEATURE.STEPS_OF_THE_FEY,
+    stepsOfTheFeyName,
+    stepsOfTheFeySpellDescription
+  );
 }
 
-function appendMistyEscapeDescription(spell: SpellEntry): SpellEntry {
-  return appendArchfeyPatronDescription(spell, mistyEscapeName, mistyEscapeSpellDescription);
+function appendMistyEscapeDescription(
+  spell: SpellEntry,
+  character:
+    | (Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>)
+    | null = null
+): SpellEntry {
+  return appendArchfeyPatronDescription(
+    character,
+    spell,
+    CLASS_FEATURE.MISTY_ESCAPE,
+    mistyEscapeName,
+    mistyEscapeSpellDescription
+  );
 }
 
-function appendBewitchingMagicDescription(spell: SpellEntry): SpellEntry {
+function appendBewitchingMagicDescription(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  spell: SpellEntry
+): SpellEntry {
   if (
     bewitchingMagicDescription.length === 0 ||
     spell.castingTime.length !== 1 ||
@@ -168,7 +201,12 @@ function appendBewitchingMagicDescription(spell: SpellEntry): SpellEntry {
     return spell;
   }
 
-  const marker = `<strong>${bewitchingMagicName}.</strong>`;
+  const sourceName = getFeatureSourceNameForCharacter(
+    character,
+    CLASS_FEATURE.BEWITCHING_MAGIC,
+    bewitchingMagicName
+  );
+  const marker = `<strong>${sourceName}.</strong>`;
 
   if (
     descriptionValueSomeText({ description: spell.description }, (entry) => entry.includes(marker))
@@ -180,7 +218,7 @@ function appendBewitchingMagicDescription(spell: SpellEntry): SpellEntry {
     ...spell,
     description: [
       ...spell.description,
-      ...createSourcedDescriptionEntries(bewitchingMagicName, bewitchingMagicDescription)
+      ...createSourcedDescriptionEntries(sourceName, bewitchingMagicDescription)
     ]
   };
 }
@@ -478,11 +516,11 @@ function getWarlockArchfeyPatronTransformedSpell(
   spell: SpellEntry
 ): SpellEntry {
   const nextSpell = hasWarlockArchfeyPatronMistyEscapeFeature(character)
-    ? appendMistyEscapeDescription(appendStepsOfTheFeyDescription(spell))
-    : appendStepsOfTheFeyDescription(spell);
+    ? appendMistyEscapeDescription(appendStepsOfTheFeyDescription(spell, character), character)
+    : appendStepsOfTheFeyDescription(spell, character);
 
   return hasWarlockArchfeyPatronBewitchingMagicFeature(character)
-    ? appendBewitchingMagicDescription(nextSpell)
+    ? appendBewitchingMagicDescription(character, nextSpell)
     : nextSpell;
 }
 

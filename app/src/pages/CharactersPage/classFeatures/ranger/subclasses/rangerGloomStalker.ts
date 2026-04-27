@@ -14,7 +14,7 @@ import {
 } from "../../../../../types";
 import {
   appendDescriptionAddition,
-  appendSourcedDescriptionAddition,
+  appendFeatureSourcedDescriptionAddition,
   descriptionValueSomeText
 } from "../../../actionModalDescriptions";
 import type { WeaponAction } from "../../../gameplay";
@@ -159,7 +159,9 @@ function getDreadfulStrikeFormula(character: RangerGloomStalkerCharacter): strin
   return hasRangerGloomStalkerStalkersFlurryFeature(character) ? "2d8" : "2d6";
 }
 
-function createDreadfulStrikeDamageBonus(character: RangerGloomStalkerCharacter): FeatureDamageBonus {
+function createDreadfulStrikeDamageBonus(
+  character: RangerGloomStalkerCharacter
+): FeatureDamageBonus {
   const dreadfulStrikeFormula = getDreadfulStrikeFormula(character);
 
   return {
@@ -193,7 +195,13 @@ function appendStalkersFlurryDescription(
     return action;
   }
 
-  return appendSourcedDescriptionAddition(action, stalkersFlurrySource, stalkersFlurryDescription);
+  return appendFeatureSourcedDescriptionAddition(
+    action,
+    character,
+    CLASS_FEATURE.STALKERS_FLURRY,
+    stalkersFlurryDescription,
+    stalkersFlurrySource
+  );
 }
 
 function hasDreadAmbusherAction(action: DreadAmbusherAction | null): boolean {
@@ -391,10 +399,7 @@ export function getRangerGloomStalkerDreadAmbusherOptionState(
   character: RangerGloomStalkerCharacter,
   action: DreadAmbusherAction | null
 ): RangerGloomStalkerDreadAmbusherOptionState | null {
-  if (
-    !hasRangerGloomStalkerDreadAmbusherFeature(character) ||
-    !hasDreadAmbusherAction(action)
-  ) {
+  if (!hasRangerGloomStalkerDreadAmbusherFeature(character) || !hasDreadAmbusherAction(action)) {
     return null;
   }
 
@@ -522,7 +527,8 @@ export const getRangerGloomStalkerDerivedFeatureState: SubclassRuntimeResolver =
           ? () => [dreadAmbusherInitiativeBonus]
           : undefined,
         transformWeaponAction: hasRangerGloomStalkerDreadAmbusherFeature(character)
-          ? (action) => appendStalkersFlurryDescription(character, appendDreadAmbusherDescription(action))
+          ? (action) =>
+              appendStalkersFlurryDescription(character, appendDreadAmbusherDescription(action))
           : undefined
       }
     : {};

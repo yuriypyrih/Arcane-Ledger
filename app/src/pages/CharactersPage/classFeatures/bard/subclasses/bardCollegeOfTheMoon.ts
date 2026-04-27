@@ -32,11 +32,14 @@ import {
   getSkillProficiencyForSkillName
 } from "../../../../../types";
 import {
-  appendSourcedDescriptionAddition,
+  appendFeatureSourcedDescriptionAddition,
   appendUniqueDescriptionAddition
 } from "../../../actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import { createDefaultFeatureActionDescription } from "../../subclassRuntime";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type {
@@ -495,7 +498,7 @@ export function shouldAdvanceBardCollegeOfTheMoonFeaturesForNewRound(
 ): boolean {
   return Boolean(
     hasCollegeOfTheMoonMoonsInspiration(character) &&
-      character.classFeatureState?.bard?.lunarVitalityUsedThisTurn
+    character.classFeatureState?.bard?.lunarVitalityUsedThisTurn
   );
 }
 
@@ -611,15 +614,20 @@ function appendInspiredEclipseDescription(
   );
 }
 
-function appendBlessingOfMoonlightDescription(spell: SpellEntry): SpellEntry {
+function appendBlessingOfMoonlightDescription(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  spell: SpellEntry
+): SpellEntry {
   if (spell.id !== moonbeamSpellId) {
     return spell;
   }
 
-  return appendSourcedDescriptionAddition(
+  return appendFeatureSourcedDescriptionAddition(
     spell,
-    "Blessing of Moonlight",
-    blessingOfMoonlightDescription
+    character,
+    CLASS_FEATURE.BLESSING_OF_MOONLIGHT,
+    blessingOfMoonlightDescription,
+    "Blessing of Moonlight"
   );
 }
 
@@ -677,10 +685,12 @@ function getBardCollegeOfTheMoonLunarVitalityAction(
     const vibranceDescription = getVibranceOfTheFullMoonDescription(character);
 
     if (vibranceDescription.length > 0) {
-      action = appendSourcedDescriptionAddition(
+      action = appendFeatureSourcedDescriptionAddition(
         action,
-        eventidesSplendorVibranceSourceLabel,
-        vibranceDescription
+        character,
+        CLASS_FEATURE.EVENTIDES_SPLENDOR,
+        vibranceDescription,
+        eventidesSplendorVibranceSourceLabel
       );
     }
   }
@@ -704,7 +714,7 @@ export const getBardCollegeOfTheMoonDerivedFeatureState: SubclassRuntimeResolver
         ? [moonbeamSpellId]
         : [],
     transformSpellEntry: hasCollegeOfTheMoonBlessingOfMoonlight(character)
-      ? appendBlessingOfMoonlightDescription
+      ? (spell) => appendBlessingOfMoonlightDescription(character, spell)
       : undefined
   };
 };

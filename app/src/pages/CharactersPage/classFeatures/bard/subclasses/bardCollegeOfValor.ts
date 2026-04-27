@@ -12,7 +12,7 @@ import {
   PROF_LEVEL,
   WEAPON_PROFICIENCY
 } from "../../../../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ECONOMY_TYPE } from "../../../actionEconomy";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
@@ -381,15 +381,17 @@ function appendCombatInspirationDescription(
     return action;
   }
 
-  return appendSourcedDescriptionAddition(
+  return appendFeatureSourcedDescriptionAddition(
     {
       ...action,
       description: action.description?.length
         ? [...action.description]
         : createDefaultFeatureActionDescription(action)
     },
-    combatInspirationSource,
-    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.COMBAT_INSPIRATION)
+    character,
+    CLASS_FEATURE.COMBAT_INSPIRATION,
+    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.COMBAT_INSPIRATION),
+    combatInspirationSource
   );
 }
 

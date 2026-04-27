@@ -4,7 +4,7 @@ import {
 } from "../../../../../codex/subclasses/druid";
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/entries";
 import type { Character } from "../../../../../types";
-import { createSourcedDescriptionEntries } from "../../../actionModalDescriptions";
+import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 
 type DruidCircleOfTheSeaDescriptionCharacter = Pick<Character, "className" | "level"> &
@@ -34,7 +34,12 @@ export function getDruidCircleOfTheSeaWrathOfTheSeaDescriptionAdditions(
 
     if (stormbornDescription.length > 0) {
       descriptionAdditions.push(
-        createSourcedDescriptionEntries(stormbornSource, stormbornDescription)
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.STORMBORN,
+          stormbornDescription,
+          stormbornSource
+        )
       );
     }
   }
@@ -47,7 +52,12 @@ export function getDruidCircleOfTheSeaWrathOfTheSeaDescriptionAdditions(
 
     if (oceanicGiftDescription.length > 0) {
       descriptionAdditions.push(
-        createSourcedDescriptionEntries(oceanicGiftSource, oceanicGiftDescription)
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.OCEANIC_GIFT,
+          oceanicGiftDescription,
+          oceanicGiftSource
+        )
       );
     }
   }

@@ -21,7 +21,7 @@ import {
   PROF_LEVEL,
   PROFICIENCY_SOURCE
 } from "../../../../types";
-import { appendSourcedDescriptionAddition } from "../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../actionModalDescriptions";
 import { getFeatAbilityScoreBonusesForCharacter } from "../../feats";
 import {
   createFeatureActionCardCost,
@@ -584,10 +584,12 @@ export function getBardSpellEntry(
     return spell;
   }
 
-  return appendSourcedDescriptionAddition(
+  return appendFeatureSourcedDescriptionAddition(
     spell,
-    "Words of Creation",
-    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.WORDS_OF_CREATION)
+    character,
+    CLASS_FEATURE.WORDS_OF_CREATION,
+    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.WORDS_OF_CREATION),
+    "Words of Creation"
   );
 }
 
@@ -939,7 +941,10 @@ function getBardSpellSlotAvailability(
 function getBardicInspirationDrawerDescription(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
 ) {
-  const baseDescription = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.BARDIC_INSPIRATION);
+  const baseDescription = getFeatureDescriptionForCharacter(
+    character,
+    CLASS_FEATURE.BARDIC_INSPIRATION
+  );
 
   if (!hasFontOfInspiration(character)) {
     return {
@@ -948,13 +953,15 @@ function getBardicInspirationDrawerDescription(
     };
   }
 
-  const describedAction = appendSourcedDescriptionAddition(
+  const describedAction = appendFeatureSourcedDescriptionAddition(
     {
       description: baseDescription,
       descriptionAdditions: [] as SpellDescriptionEntry[][]
     },
-    "Font of Inspiration",
-    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.FONT_OF_INSPIRATION)
+    character,
+    CLASS_FEATURE.FONT_OF_INSPIRATION,
+    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.FONT_OF_INSPIRATION),
+    "Font of Inspiration"
   );
 
   return {
@@ -979,11 +986,11 @@ export function getBardFeatureAction(
   const bardicDieLabel = bardicDie ? bardicDie.toLowerCase() : "die";
   const fontOfInspirationUnlocked = hasFontOfInspiration(character);
   const spellSlotAvailability = getBardSpellSlotAvailability(character);
-  const hasFallbackSpellSlot = fontOfInspirationUnlocked && spellSlotAvailability.remainingCount > 0;
-  const spellSlotLabel =
-    fontOfInspirationUnlocked
-      ? `${spellSlotAvailability.remainingCount}/${spellSlotAvailability.totalCount} spell slots`
-      : undefined;
+  const hasFallbackSpellSlot =
+    fontOfInspirationUnlocked && spellSlotAvailability.remainingCount > 0;
+  const spellSlotLabel = fontOfInspirationUnlocked
+    ? `${spellSlotAvailability.remainingCount}/${spellSlotAvailability.totalCount} spell slots`
+    : undefined;
   const bardicInspirationDrawerDescription = getBardicInspirationDrawerDescription(character);
   const drawerResources: FeatureActionResource[] = [
     {
@@ -1006,30 +1013,28 @@ export function getBardFeatureAction(
   ];
 
   const disabled = usesRemaining <= 0 && !hasFallbackSpellSlot;
-  const disabledReason =
-    disabled
-      ? fontOfInspirationUnlocked
-        ? "No Bardic Inspiration uses or spell slots remaining."
-        : "No Bardic Inspiration uses remaining."
-      : undefined;
-  const cardUsage =
-    fontOfInspirationUnlocked
-      ? createNamedResourceOrResourceCardUsage(
-          createFeatureActionCardCost({
-            amountText: "1",
-            icon: "music"
-          }),
-          createFeatureActionCardCost({
-            amountText: "1+",
-            resourceLabel: "Spell Slot"
-          })
-        )
-      : createNamedResourceCardUsage(
-          createFeatureActionCardCost({
-            amountText: "1",
-            icon: "music"
-          })
-        );
+  const disabledReason = disabled
+    ? fontOfInspirationUnlocked
+      ? "No Bardic Inspiration uses or spell slots remaining."
+      : "No Bardic Inspiration uses remaining."
+    : undefined;
+  const cardUsage = fontOfInspirationUnlocked
+    ? createNamedResourceOrResourceCardUsage(
+        createFeatureActionCardCost({
+          amountText: "1",
+          icon: "music"
+        }),
+        createFeatureActionCardCost({
+          amountText: "1+",
+          resourceLabel: "Spell Slot"
+        })
+      )
+    : createNamedResourceCardUsage(
+        createFeatureActionCardCost({
+          amountText: "1",
+          icon: "music"
+        })
+      );
   const headerTags = [
     ...createNamedUsageHeaderTags(
       createFeatureActionCardCost({

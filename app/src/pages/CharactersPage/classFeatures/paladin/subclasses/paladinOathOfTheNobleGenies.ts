@@ -26,7 +26,7 @@ import {
   getSkillProficiencyForSkillName,
   isSkillName
 } from "../../../../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
@@ -463,15 +463,20 @@ function getPaladinOathOfTheNobleGeniesSkillProficiencyEntries(
   return entry ? [entry] : [];
 }
 
-function appendElementalSmiteDescription(spell: SpellEntry): SpellEntry {
+function appendElementalSmiteDescription(
+  character: PaladinOathOfTheNobleGeniesCharacter,
+  spell: SpellEntry
+): SpellEntry {
   if (spell.id !== divineSmiteSpellId) {
     return spell;
   }
 
-  return appendSourcedDescriptionAddition(
+  return appendFeatureSourcedDescriptionAddition(
     spell,
-    elementalSmiteSource,
-    elementalSmiteIntroDescription
+    character,
+    CLASS_FEATURE.ELEMENTAL_SMITE,
+    elementalSmiteIntroDescription,
+    elementalSmiteSource
   );
 }
 
@@ -915,7 +920,7 @@ export const getPaladinOathOfTheNobleGeniesDerivedFeatureState: SubclassRuntimeR
           oathOfTheNobleGeniesSpellIdsByLevel
         ),
         featureActions: getPaladinOathOfTheNobleGeniesFeatureActions(character),
-        transformSpellEntry: appendElementalSmiteDescription,
+        transformSpellEntry: (spell) => appendElementalSmiteDescription(character, spell),
         getArmorClassModes: (context) => [
           {
             key: "paladin-oath-of-the-noble-genies-genies-splendor",

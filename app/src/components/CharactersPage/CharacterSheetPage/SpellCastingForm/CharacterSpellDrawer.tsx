@@ -32,6 +32,7 @@ import {
   spellSlotLevels
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { markUsageHeaderTagsAsFallback } from "../../../../pages/CharactersPage/classFeatures/cardUsage";
+import { orderDescriptionAdditionSections } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import { getSpellLevel } from "../../../../pages/CharactersPage/spellcasting";
 import { getSpellDamageDetailForCharacter } from "../../../../pages/CharactersPage/spellOutcome";
 import { isRogueArcaneTricksterMagicalAmbushActiveForSpell } from "../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
@@ -411,8 +412,9 @@ function CharacterSpellDrawer({
   }, [actionOptions, isRitualCastingSelected]);
 
   const hasBaseDescription = spell.description.length > 0;
-  const spellDescriptionSections =
-    spell.descriptionAdditions?.filter((section) => section.length > 0) ?? [];
+  const spellDescriptionSections = orderDescriptionAdditionSections(
+    spell.descriptionAdditions ?? []
+  );
   const availabilityText =
     isRitualCastingSelected || ritualCastingRequired
       ? (actionAvailabilityText ??

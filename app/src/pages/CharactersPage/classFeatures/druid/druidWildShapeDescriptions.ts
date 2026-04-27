@@ -1,5 +1,5 @@
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
-import { createSourcedDescriptionEntries } from "../../actionModalDescriptions";
+import { createFeatureSourcedDescriptionEntries } from "../../actionModalDescriptions";
 import {
   type DruidFeatureDescriptionCharacter,
   getDruidFeatureDescription,
@@ -40,7 +40,12 @@ export function getDruidWildShapeActionDescriptionAdditions(
 
     if (beastSpellsDescription.length > 0) {
       descriptionAdditions.push(
-        createSourcedDescriptionEntries(beastSpellsSource, beastSpellsDescription)
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.BEAST_SPELLS,
+          beastSpellsDescription,
+          beastSpellsSource
+        )
       );
     }
   }

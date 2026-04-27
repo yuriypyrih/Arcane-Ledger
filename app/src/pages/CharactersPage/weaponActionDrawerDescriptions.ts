@@ -1,7 +1,7 @@
 import { CLASS_FEATURE, WEAPON_COMBAT_TYPE, type SpellDescriptionEntry } from "../../codex/entries";
 import type { Character } from "../../types";
 import { ECONOMY_TYPE } from "./actionEconomy";
-import { createSourcedDescriptionEntries } from "./actionModalDescriptions";
+import { createFeatureSourcedDescriptionEntries } from "./actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "./classFeatures/featureDescriptions";
 import { getRangerPreciseHunterWeaponActionDescriptionAdditions } from "./classFeatures/ranger/ranger";
 import type { WeaponAction } from "./gameplay";
@@ -34,7 +34,12 @@ function getInjectedExtraAttackSection(
     const description = getFeatureDescriptionForCharacter(character, config.feature);
 
     if (description.length > 0) {
-      return createSourcedDescriptionEntries(config.label, description);
+      return createFeatureSourcedDescriptionEntries(
+        character,
+        config.feature,
+        description,
+        config.label
+      );
     }
   }
 
@@ -47,7 +52,12 @@ function getInjectedRadiantStrikesSection(
   const description = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.RADIANT_STRIKES);
 
   return description.length > 0
-    ? createSourcedDescriptionEntries("Radiant Strikes", description)
+    ? createFeatureSourcedDescriptionEntries(
+        character,
+        CLASS_FEATURE.RADIANT_STRIKES,
+        description,
+        "Radiant Strikes"
+      )
     : null;
 }
 
@@ -57,7 +67,12 @@ function getInjectedSacredWeaponSection(
   const description = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.SACRED_WEAPON);
 
   return description.length > 0
-    ? createSourcedDescriptionEntries("Sacred Weapon", description)
+    ? createFeatureSourcedDescriptionEntries(
+        character,
+        CLASS_FEATURE.SACRED_WEAPON,
+        description,
+        "Sacred Weapon"
+      )
     : null;
 }
 
@@ -67,7 +82,12 @@ function getInjectedVowOfEnmitySection(
   const description = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.VOW_OF_ENMITY);
 
   return description.length > 0
-    ? createSourcedDescriptionEntries("Vow of Enmity", description)
+    ? createFeatureSourcedDescriptionEntries(
+        character,
+        CLASS_FEATURE.VOW_OF_ENMITY,
+        description,
+        "Vow of Enmity"
+      )
     : null;
 }
 

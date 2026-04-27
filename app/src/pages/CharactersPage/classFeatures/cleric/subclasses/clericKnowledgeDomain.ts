@@ -1,8 +1,4 @@
-import {
-  CLASS_FEATURE,
-  MAGIC_SCHOOL,
-  type SpellEntry
-} from "../../../../../codex/entries";
+import { CLASS_FEATURE, MAGIC_SCHOOL, type SpellEntry } from "../../../../../codex/entries";
 import { divineForeknowledgeDescription } from "../../../../../codex/subclasses/cleric";
 import type {
   Character,
@@ -21,12 +17,9 @@ import {
   STATUS_ENTRY_GROUP,
   type SkillName
 } from "../../../../../types";
-import {
-  artisanToolProficiencies,
-  type ToolProficiency
-} from "../../../proficiencyOptions";
+import { artisanToolProficiencies, type ToolProficiency } from "../../../proficiencyOptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import {
   getSavingThrowLevelFromEntries,
   getSkillProficiencyForName
@@ -247,7 +240,10 @@ export function normalizeClericKnowledgeDomainFeatureState(
     knowledgeBlessingsSkills: hasBlessingsOfKnowledge
       ? Array.from(
           new Set(
-            (Array.isArray(value.knowledgeBlessingsSkills) ? value.knowledgeBlessingsSkills : []).filter(
+            (Array.isArray(value.knowledgeBlessingsSkills)
+              ? value.knowledgeBlessingsSkills
+              : []
+            ).filter(
               (skill): skill is SkillName =>
                 typeof skill === "string" &&
                 knowledgeDomainBlessingsSkillOptions.some((option) => option === skill)
@@ -350,7 +346,8 @@ export function setKnowledgeDomainBlessingsToolSelection(
     character.classFeatureState?.cleric,
     character
   );
-  const nextSelection = selection && isKnowledgeDomainBlessingsTool(selection) ? selection : undefined;
+  const nextSelection =
+    selection && isKnowledgeDomainBlessingsTool(selection) ? selection : undefined;
 
   return {
     ...character,
@@ -411,17 +408,20 @@ export function getClericKnowledgeDomainMindMagicSpellEntry(
   const descriptionEntries = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.MIND_MAGIC);
 
   return descriptionEntries.length > 0
-    ? appendSourcedDescriptionAddition(spell, mindMagicSource, descriptionEntries)
+    ? appendFeatureSourcedDescriptionAddition(
+        spell,
+        character,
+        CLASS_FEATURE.MIND_MAGIC,
+        descriptionEntries,
+        mindMagicSource
+      )
     : spell;
 }
 
 export function isKnowledgeDomainUnfetteredMindLockedToInt(
   character: Pick<Character, "className"> &
     Partial<
-      Pick<
-        Character,
-        "level" | "savingThrowProficiencies" | "subclassId" | "classFeatureState"
-      >
+      Pick<Character, "level" | "savingThrowProficiencies" | "subclassId" | "classFeatureState">
     >
 ): boolean {
   return (

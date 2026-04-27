@@ -10,12 +10,9 @@ import {
   getSkillProficiencyForSkillName
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { formatFormulaCell, formatSignedFormulaTerm } from "../../../shared/formulas";
-import {
-  createChargesAndResourceCardUsage,
-  createFeatureActionCardCost
-} from "../../cardUsage";
+import { createChargesAndResourceCardUsage, createFeatureActionCardCost } from "../../cardUsage";
 import type {
   FeatureActionCard,
   FeatureActionFact,
@@ -98,16 +95,26 @@ function getMonkFeatureRow(level: number | undefined): MonkFeatureClassObj | nul
 }
 
 function appendWeaponDescriptionSection<T extends { description?: SpellDescriptionEntry[] }>(
+  character: MonkWarriorOfMercyCharacter,
   action: T,
+  feature: CLASS_FEATURE,
   sourceName: string,
   descriptionEntries: readonly string[]
 ): T {
-  return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries) as T;
+  return appendFeatureSourcedDescriptionAddition(
+    action,
+    character,
+    feature,
+    descriptionEntries,
+    sourceName
+  ) as T;
 }
 
 function appendFeatureActionDescriptionEntries(
+  character: MonkWarriorOfMercyCharacter,
   action: FeatureActionCard,
   actionKey: string,
+  feature: CLASS_FEATURE,
   sourceName: string,
   descriptionEntries: readonly string[]
 ): FeatureActionCard {
@@ -115,7 +122,13 @@ function appendFeatureActionDescriptionEntries(
     return action;
   }
 
-  return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
+  return appendFeatureSourcedDescriptionAddition(
+    action,
+    character,
+    feature,
+    descriptionEntries,
+    sourceName
+  );
 }
 
 function getRawWisdomModifier(character: Partial<Pick<Character, "abilities">>): number | null {
@@ -153,7 +166,9 @@ function getMonkFocusPointsRemaining(
 function getMonkFlurryOfBlowsUsesRemaining(
   character: Partial<Pick<Character, "classFeatureState">>
 ): number {
-  const rawFlurryUses = Number(character.classFeatureState?.monk?.flurryOfBlowsAttacksRemainingThisTurn);
+  const rawFlurryUses = Number(
+    character.classFeatureState?.monk?.flurryOfBlowsAttacksRemainingThisTurn
+  );
 
   return Number.isFinite(rawFlurryUses) ? Math.max(0, Math.floor(rawFlurryUses)) : 0;
 }
@@ -253,8 +268,7 @@ export function getMonkWarriorOfMercyHandOfUltimateMercyUsesRemaining(
 
   return Math.max(
     0,
-    totalUses -
-      (Number.isFinite(usesExpended) ? Math.max(0, Math.floor(usesExpended)) : 0)
+    totalUses - (Number.isFinite(usesExpended) ? Math.max(0, Math.floor(usesExpended)) : 0)
   );
 }
 
@@ -337,18 +351,19 @@ export function normalizeMonkWarriorOfMercyFeatureState(
     warriorOfMercyHandOfHealingFlurryUsesThisTurn: hasMonkWarriorOfMercyHandOfHealing(character)
       ? Math.max(0, Math.min(handOfHealingFlurryUseCap, handOfHealingFlurryUsesThisTurn))
       : 0,
-    warriorOfMercyFlurryOfHealingAndHarmUsesExpended:
-      hasMonkWarriorOfMercyFlurryOfHealingAndHarm(character)
-        ? Number.isFinite(flurryOfHealingAndHarmUsesExpended)
-          ? Math.max(
-              0,
-              Math.min(
-                flurryOfHealingAndHarmUsesTotal,
-                Math.floor(flurryOfHealingAndHarmUsesExpended)
-              )
+    warriorOfMercyFlurryOfHealingAndHarmUsesExpended: hasMonkWarriorOfMercyFlurryOfHealingAndHarm(
+      character
+    )
+      ? Number.isFinite(flurryOfHealingAndHarmUsesExpended)
+        ? Math.max(
+            0,
+            Math.min(
+              flurryOfHealingAndHarmUsesTotal,
+              Math.floor(flurryOfHealingAndHarmUsesExpended)
             )
-          : 0
-        : 0,
+          )
+        : 0
+      : 0,
     warriorOfMercyFlurryOfHealingAndHarmActive: flurryOfHealingAndHarmActive,
     warriorOfMercyHandOfUltimateMercyUsesExpended: hasMonkWarriorOfMercyHandOfUltimateMercy(
       character
@@ -545,7 +560,8 @@ export function getMonkWarriorOfMercyFeatureActions(
 
   const focusPointsRemaining = getMonkFocusPointsRemaining(character);
   const focusPointsTotal = getMonkFocusPointsTotal(character);
-  const flurryHealingUsesRemaining = getMonkWarriorOfMercyHandOfHealingFlurryUsesRemaining(character);
+  const flurryHealingUsesRemaining =
+    getMonkWarriorOfMercyHandOfHealingFlurryUsesRemaining(character);
   const handOfHealingFacts = getMonkWarriorOfMercyHandOfHealingFacts(character);
 
   const actions: FeatureActionCard[] = [
@@ -602,7 +618,8 @@ export function getMonkWarriorOfMercyFeatureActions(
       key: monkHandOfUltimateJusticeActionKey,
       name: handOfUltimateJusticeActionName,
       summary: "Return a creature to life.",
-      detail: "Expend 5 Focus Points to return a creature that died within the past 24 hours to life.",
+      detail:
+        "Expend 5 Focus Points to return a creature that died within the past 24 hours to life.",
       breakdown: "Revive with 4d10 + WIS",
       economyType: ECONOMY_TYPE.ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
@@ -664,8 +681,10 @@ export function activateMonkWarriorOfMercyHandOfHealing(
 
   if (mode === "flurry_bonus_action") {
     const sharedFlurryUsesRemaining = getMonkFlurryOfBlowsUsesRemaining(character);
-    const flurryHealingUsesRemaining = getMonkWarriorOfMercyHandOfHealingFlurryUsesRemaining(character);
-    const flurryHealingUsesThisTurn = getMonkWarriorOfMercyHandOfHealingFlurryUsesThisTurn(character);
+    const flurryHealingUsesRemaining =
+      getMonkWarriorOfMercyHandOfHealingFlurryUsesRemaining(character);
+    const flurryHealingUsesThisTurn =
+      getMonkWarriorOfMercyHandOfHealingFlurryUsesThisTurn(character);
 
     if (flurryHealingUsesRemaining <= 0) {
       return character;
@@ -841,16 +860,20 @@ export const getMonkWarriorOfMercyDerivedFeatureState: SubclassRuntimeResolver =
     featureActions: getMonkWarriorOfMercyFeatureActions(character),
     transformFeatureAction: (action) => {
       let nextAction = appendFeatureActionDescriptionEntries(
+        character,
         action,
         monkFlurryOfBlowsActionKey,
+        CLASS_FEATURE.HAND_OF_HEALING,
         handOfHealingSource,
         handOfHealingFlurryDescription
       );
 
       if (hasMonkWarriorOfMercyFlurryOfHealingAndHarm(character)) {
         nextAction = appendFeatureActionDescriptionEntries(
+          character,
           nextAction,
           monkFlurryOfBlowsActionKey,
+          CLASS_FEATURE.FLURRY_OF_HEALING_AND_HARM,
           flurryOfHealingAndHarmSource,
           flurryOfHealingAndHarmDescription
         );
@@ -858,8 +881,10 @@ export const getMonkWarriorOfMercyDerivedFeatureState: SubclassRuntimeResolver =
 
       return hasMonkWarriorOfMercyPhysiciansTouch(character)
         ? appendFeatureActionDescriptionEntries(
+            character,
             nextAction,
             monkHandOfHealingActionKey,
+            CLASS_FEATURE.PHYSICIANS_TOUCH,
             "Physician's Touch: Hand of Healing",
             physiciansTouchHandOfHealingDescription
           )
@@ -872,14 +897,18 @@ export const getMonkWarriorOfMercyDerivedFeatureState: SubclassRuntimeResolver =
       }
 
       const actionWithHandOfHarm = appendWeaponDescriptionSection(
+        character,
         action,
+        CLASS_FEATURE.HAND_OF_HARM,
         "Hand of Harm",
         handOfHarmDescription
       );
 
       return hasMonkWarriorOfMercyPhysiciansTouch(character)
         ? appendWeaponDescriptionSection(
+            character,
             actionWithHandOfHarm,
+            CLASS_FEATURE.PHYSICIANS_TOUCH,
             "Physician's Touch: Hand of Harm",
             physiciansTouchHandOfHarmDescription
           )

@@ -20,11 +20,14 @@ import {
 } from "../../../../../types";
 import {
   appendDescriptionAddition,
-  appendSourcedDescriptionAddition,
-  createSourcedDescriptionEntries
+  appendFeatureSourcedDescriptionAddition,
+  createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
 import type { WeaponAction } from "../../../gameplay";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import {
   createDefaultFeatureActionDescription,
   type SubclassRuntimeResolver
@@ -32,8 +35,7 @@ import {
 import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureDamageBonus } from "../../types";
 
 export const hunterSubclassId = "ranger-hunter";
-export const rangerHunterEscapeTheHordeStatusSourceId =
-  "feature-ranger-hunter-escape-the-horde";
+export const rangerHunterEscapeTheHordeStatusSourceId = "feature-ranger-hunter-escape-the-horde";
 export const rangerHunterMultiattackDefenseStatusSourceId =
   "feature-ranger-hunter-multiattack-defense";
 export const superiorHuntersDefenseReactionId = "reaction-ranger-superior-hunters-defense";
@@ -214,7 +216,9 @@ export function getRangerHunterPreyChoice(
     return null;
   }
 
-  return normalizeRangerHunterPreyChoice(character.classFeatureState?.ranger?.huntersPreyChoice) ?? null;
+  return (
+    normalizeRangerHunterPreyChoice(character.classFeatureState?.ranger?.huntersPreyChoice) ?? null
+  );
 }
 
 export function setRangerHunterPreyChoice(
@@ -301,7 +305,9 @@ export function setRangerHunterSuperiorHuntersDefenseDamageTypeSelection(
   }
 
   const normalizedSelection =
-    selection === null ? undefined : normalizeRangerHunterSuperiorHuntersDefenseDamageType(selection);
+    selection === null
+      ? undefined
+      : normalizeRangerHunterSuperiorHuntersDefenseDamageType(selection);
 
   return {
     ...character,
@@ -403,10 +409,12 @@ function appendHuntersPreyDescription(
   }
 
   if (superiorHuntersPreyDescriptionEntries.length > 0) {
-    nextAction = appendSourcedDescriptionAddition(
+    nextAction = appendFeatureSourcedDescriptionAddition(
       nextAction,
-      superiorHuntersPreySource,
-      superiorHuntersPreyDescriptionEntries
+      character,
+      CLASS_FEATURE.SUPERIOR_HUNTERS_PREY,
+      superiorHuntersPreyDescriptionEntries,
+      superiorHuntersPreySource
     );
   }
 
@@ -428,7 +436,10 @@ function applySelectedHordeBreakerWeaponAction(
   return applyRangerHunterHordeBreakerWeaponAction(action);
 }
 
-function appendHuntersLoreToFeatureAction(action: FeatureActionCard): FeatureActionCard {
+function appendHuntersLoreToFeatureAction(
+  character: RangerHunterCharacter,
+  action: FeatureActionCard
+): FeatureActionCard {
   if (
     action.key !== favoredEnemyActionKey ||
     (huntersLoreDescription.length <= 0 && superiorHuntersPreyDescription.length <= 0)
@@ -445,19 +456,30 @@ function appendHuntersLoreToFeatureAction(action: FeatureActionCard): FeatureAct
         };
 
   if (huntersLoreDescription.length > 0) {
-    nextAction = appendSourcedDescriptionAddition(nextAction, huntersLoreSource, huntersLoreDescription);
+    nextAction = appendFeatureSourcedDescriptionAddition(
+      nextAction,
+      character,
+      CLASS_FEATURE.HUNTERS_LORE,
+      huntersLoreDescription,
+      huntersLoreSource
+    );
   }
 
   return superiorHuntersPreyDescription.length > 0
-    ? appendSourcedDescriptionAddition(
+    ? appendFeatureSourcedDescriptionAddition(
         nextAction,
-        superiorHuntersPreySource,
-        superiorHuntersPreyDescription
+        character,
+        CLASS_FEATURE.SUPERIOR_HUNTERS_PREY,
+        superiorHuntersPreyDescription,
+        superiorHuntersPreySource
       )
     : nextAction;
 }
 
-function appendHunterSpellDescription(character: RangerHunterCharacter, spell: SpellEntry): SpellEntry {
+function appendHunterSpellDescription(
+  character: RangerHunterCharacter,
+  spell: SpellEntry
+): SpellEntry {
   if (
     spell.id !== huntersMarkSpellId ||
     (huntersLoreDescription.length <= 0 && superiorHuntersPreyDescription.length <= 0)
@@ -468,10 +490,12 @@ function appendHunterSpellDescription(character: RangerHunterCharacter, spell: S
   let nextSpell = spell;
 
   if (hasRangerHunterHuntersLoreFeature(character) && huntersLoreDescription.length > 0) {
-    nextSpell = appendSourcedDescriptionAddition(
+    nextSpell = appendFeatureSourcedDescriptionAddition(
       nextSpell,
-      huntersLoreSource,
-      huntersLoreDescription
+      character,
+      CLASS_FEATURE.HUNTERS_LORE,
+      huntersLoreDescription,
+      huntersLoreSource
     );
   }
 
@@ -482,10 +506,12 @@ function appendHunterSpellDescription(character: RangerHunterCharacter, spell: S
     return nextSpell;
   }
 
-  return appendSourcedDescriptionAddition(
+  return appendFeatureSourcedDescriptionAddition(
     nextSpell,
-    superiorHuntersPreySource,
-    superiorHuntersPreyDescription
+    character,
+    CLASS_FEATURE.SUPERIOR_HUNTERS_PREY,
+    superiorHuntersPreyDescription,
+    superiorHuntersPreySource
   );
 }
 
@@ -495,7 +521,14 @@ export function getRangerHunterHuntersMarkDescriptionAdditions(
   const additions: SpellDescriptionEntry[][] = [];
 
   if (hasRangerHunterHuntersLoreFeature(character) && huntersLoreDescription.length > 0) {
-    additions.push(createSourcedDescriptionEntries(huntersLoreSource, huntersLoreDescription));
+    additions.push(
+      createFeatureSourcedDescriptionEntries(
+        character,
+        CLASS_FEATURE.HUNTERS_LORE,
+        huntersLoreDescription,
+        huntersLoreSource
+      )
+    );
   }
 
   if (
@@ -503,7 +536,12 @@ export function getRangerHunterHuntersMarkDescriptionAdditions(
     superiorHuntersPreyDescription.length > 0
   ) {
     additions.push(
-      createSourcedDescriptionEntries(superiorHuntersPreySource, superiorHuntersPreyDescription)
+      createFeatureSourcedDescriptionEntries(
+        character,
+        CLASS_FEATURE.SUPERIOR_HUNTERS_PREY,
+        superiorHuntersPreyDescription,
+        superiorHuntersPreySource
+      )
     );
   }
 
@@ -541,7 +579,8 @@ export function getRangerHunterColossusSlayerOptionState(
     return null;
   }
 
-  const usedThisTurn = character.classFeatureState?.ranger?.hunterColossusSlayerUsedThisTurn === true;
+  const usedThisTurn =
+    character.classFeatureState?.ranger?.hunterColossusSlayerUsedThisTurn === true;
 
   return {
     damageBonus: createColossusSlayerDamageBonus(),
@@ -697,8 +736,8 @@ export const getRangerHunterDerivedFeatureState: SubclassRuntimeResolver = (char
         transformFeatureAction:
           hasRangerHunterHuntersLoreFeature(character) ||
           hasRangerHunterSuperiorHuntersPreyFeature(character)
-          ? appendHuntersLoreToFeatureAction
-          : undefined,
+            ? (action) => appendHuntersLoreToFeatureAction(character, action)
+            : undefined,
         transformWeaponAction: hasRangerHunterHuntersPreyFeature(character)
           ? (action) =>
               applySelectedHordeBreakerWeaponAction(
@@ -709,7 +748,7 @@ export const getRangerHunterDerivedFeatureState: SubclassRuntimeResolver = (char
         transformSpellEntry:
           hasRangerHunterHuntersLoreFeature(character) ||
           hasRangerHunterSuperiorHuntersPreyFeature(character)
-          ? (spell) => appendHunterSpellDescription(character, spell)
-          : undefined
+            ? (spell) => appendHunterSpellDescription(character, spell)
+            : undefined
       }
     : {};

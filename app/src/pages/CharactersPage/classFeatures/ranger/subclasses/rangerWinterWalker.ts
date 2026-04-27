@@ -16,7 +16,7 @@ import {
 } from "../../../../../types";
 import {
   appendDescriptionAddition,
-  appendSourcedDescriptionAddition,
+  appendFeatureSourcedDescriptionAddition,
   descriptionValueSomeText
 } from "../../../actionModalDescriptions";
 import type { WeaponAction } from "../../../gameplay";
@@ -46,7 +46,8 @@ import type {
 import { getRangerFeatAdjustedWisdomModifier } from "../abilityModifiers";
 
 export const winterWalkerSubclassId = "ranger-winter-walker";
-export const rangerWinterWalkerBitingColdStatusSourceId = "feature-ranger-winter-walker-biting-cold";
+export const rangerWinterWalkerBitingColdStatusSourceId =
+  "feature-ranger-winter-walker-biting-cold";
 export const rangerWinterWalkerColdResistanceSourceId =
   "feature-ranger-winter-walker-cold-resistance";
 export const fortifyingSoulActionKey = "ranger-winter-walker-fortifying-soul";
@@ -130,7 +131,9 @@ function extractFeatureDescriptionSection(
 const frigidExplorerDescription = getRangerWinterWalkerFeatureDescriptionEntries(
   CLASS_FEATURE.FRIGID_EXPLORER
 );
-const huntersRimeDescription = getRangerWinterWalkerFeatureDescriptionEntries(CLASS_FEATURE.HUNTERS_RIME);
+const huntersRimeDescription = getRangerWinterWalkerFeatureDescriptionEntries(
+  CLASS_FEATURE.HUNTERS_RIME
+);
 const fortifyingSoulDescription = getRangerWinterWalkerFeatureDescriptionEntries(
   CLASS_FEATURE.FORTIFYING_SOUL
 );
@@ -231,12 +234,21 @@ function appendBitingColdWeaponDescription(action: WeaponAction): WeaponAction {
   return appendDescriptionAddition(action, bitingColdDescription);
 }
 
-function appendBitingColdSpellDescription(spell: SpellEntry): SpellEntry {
+function appendBitingColdSpellDescription(
+  character: RangerWinterWalkerCharacter,
+  spell: SpellEntry
+): SpellEntry {
   if (spell.id !== huntersMarkSpellId || bitingColdHunterMarkDescription.length <= 0) {
     return spell;
   }
 
-  return appendSourcedDescriptionAddition(spell, bitingColdName, bitingColdHunterMarkDescription);
+  return appendFeatureSourcedDescriptionAddition(
+    spell,
+    character,
+    CLASS_FEATURE.FRIGID_EXPLORER,
+    bitingColdHunterMarkDescription,
+    bitingColdName
+  );
 }
 
 function hasPolarStrikesAction(action: PolarStrikesAction | null): boolean {
@@ -315,7 +327,8 @@ export function getRangerWinterWalkerHuntersRimeTemporaryHitPointsFacts(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): FeatureActionFact[] {
   const formula = getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormula(character);
-  const formulaDisplay = getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplay(character);
+  const formulaDisplay =
+    getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplay(character);
 
   if (!formula || !formulaDisplay) {
     return [];
@@ -483,13 +496,16 @@ export function getRangerWinterWalkerFrozenHauntFallbackSpellSlotLevels(
   spellSlotTotals: readonly number[],
   spellSlotsExpended: readonly number[]
 ): number[] {
-  return Array.from({ length: Math.max(0, 10 - frozenHauntFallbackSpellSlotMinimumLevel) }, (_, index) => {
-    const slotLevel = index + frozenHauntFallbackSpellSlotMinimumLevel;
-    const total = spellSlotTotals[slotLevel - 1] ?? 0;
-    const expended = spellSlotsExpended[slotLevel - 1] ?? 0;
+  return Array.from(
+    { length: Math.max(0, 10 - frozenHauntFallbackSpellSlotMinimumLevel) },
+    (_, index) => {
+      const slotLevel = index + frozenHauntFallbackSpellSlotMinimumLevel;
+      const total = spellSlotTotals[slotLevel - 1] ?? 0;
+      const expended = spellSlotsExpended[slotLevel - 1] ?? 0;
 
-    return total - expended > 0 ? slotLevel : null;
-  }).filter((slotLevel): slotLevel is number => slotLevel !== null);
+      return total - expended > 0 ? slotLevel : null;
+    }
+  ).filter((slotLevel): slotLevel is number => slotLevel !== null);
 }
 
 export function getRangerWinterWalkerFrozenHauntSpellOptionState(
@@ -766,7 +782,7 @@ function getRangerWinterWalkerFeatureActions(
             supplementary: "Long Rest",
             cost: 1
           }
-        ],
+        ]
       },
       execute: {
         kind: "activate"
@@ -786,7 +802,10 @@ function getRangerWinterWalkerReactionEntries(
     : [];
 }
 
-function appendHuntersRimeToFeatureAction(action: FeatureActionCard): FeatureActionCard {
+function appendHuntersRimeToFeatureAction(
+  character: RangerWinterWalkerCharacter,
+  action: FeatureActionCard
+): FeatureActionCard {
   if (action.key !== favoredEnemyActionKey || huntersRimeDescription.length <= 0) {
     return action;
   }
@@ -799,33 +818,54 @@ function appendHuntersRimeToFeatureAction(action: FeatureActionCard): FeatureAct
           description: createDefaultFeatureActionDescription(action)
         };
 
-  return appendSourcedDescriptionAddition(nextAction, huntersRimeSource, huntersRimeDescription);
+  return appendFeatureSourcedDescriptionAddition(
+    nextAction,
+    character,
+    CLASS_FEATURE.HUNTERS_RIME,
+    huntersRimeDescription,
+    huntersRimeSource
+  );
 }
 
-function appendHuntersRimeSpellDescription(spell: SpellEntry): SpellEntry {
+function appendHuntersRimeSpellDescription(
+  character: RangerWinterWalkerCharacter,
+  spell: SpellEntry
+): SpellEntry {
   if (spell.id !== huntersMarkSpellId || huntersRimeDescription.length <= 0) {
     return spell;
   }
 
-  return appendSourcedDescriptionAddition(spell, huntersRimeSource, huntersRimeDescription);
+  return appendFeatureSourcedDescriptionAddition(
+    spell,
+    character,
+    CLASS_FEATURE.HUNTERS_RIME,
+    huntersRimeDescription,
+    huntersRimeSource
+  );
 }
 
-function appendFrozenHauntSpellDescription(spell: SpellEntry): SpellEntry {
+function appendFrozenHauntSpellDescription(
+  character: RangerWinterWalkerCharacter,
+  spell: SpellEntry
+): SpellEntry {
   if (spell.id !== huntersMarkSpellId || frozenHauntDescription.length <= 0) {
     return spell;
   }
 
-  return appendSourcedDescriptionAddition(spell, frozenHauntName, frozenHauntDescription);
+  return appendFeatureSourcedDescriptionAddition(
+    spell,
+    character,
+    CLASS_FEATURE.FROZEN_HAUNT,
+    frozenHauntDescription,
+    frozenHauntName
+  );
 }
 
 export function getRangerWinterWalkerPolarStrikesOptionState(
   character: RangerWinterWalkerCharacter,
   action: PolarStrikesAction | null
 ): RangerWinterWalkerPolarStrikesOptionState | null {
-  if (
-    !hasRangerWinterWalkerFrigidExplorerFeature(character) ||
-    !hasPolarStrikesAction(action)
-  ) {
+  if (!hasRangerWinterWalkerFrigidExplorerFeature(character) || !hasPolarStrikesAction(action)) {
     return null;
   }
 
@@ -879,16 +919,17 @@ export const getRangerWinterWalkerDerivedFeatureState: SubclassRuntimeResolver =
         derivedStatusEntries: getRangerWinterWalkerDerivedStatusEntries(character),
         reactionEntries: getRangerWinterWalkerReactionEntries(character),
         transformFeatureAction: hasRangerWinterWalkerHuntersRimeFeature(character)
-          ? appendHuntersRimeToFeatureAction
+          ? (action) => appendHuntersRimeToFeatureAction(character, action)
           : undefined,
         transformSpellEntry: hasRangerWinterWalkerFrigidExplorerFeature(character)
           ? (spell) => {
               const nextSpell = appendHuntersRimeSpellDescription(
-                appendBitingColdSpellDescription(spell)
+                character,
+                appendBitingColdSpellDescription(character, spell)
               );
 
               return hasRangerWinterWalkerFrozenHauntFeature(character)
-                ? appendFrozenHauntSpellDescription(nextSpell)
+                ? appendFrozenHauntSpellDescription(character, nextSpell)
                 : nextSpell;
             }
           : undefined,

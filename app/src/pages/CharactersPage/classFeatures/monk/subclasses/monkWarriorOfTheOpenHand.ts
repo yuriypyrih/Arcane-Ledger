@@ -8,16 +8,18 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { formatFormulaCell, formatSignedFormulaTerm } from "../../../shared/formulas";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import type { WeaponAction } from "../../../gameplay";
 import type { FeatureActionCard, FeatureActionFact } from "../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 
 export const warriorOfTheOpenHandSubclassId = "monk-warrior-of-the-open-hand";
-export const monkWholenessOfBodyActionKey =
-  "monk-warrior-of-the-open-hand-wholeness-of-body";
+export const monkWholenessOfBodyActionKey = "monk-warrior-of-the-open-hand-wholeness-of-body";
 export const monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId =
   "feature-monk-warrior-of-the-open-hand-quivering-palm";
 export const monkWarriorOfTheOpenHandQuiveringPalmFocusCost = 4;
@@ -180,7 +182,9 @@ export function getMonkWarriorOfTheOpenHandWholenessOfBodyHealingFormula(
     return martialArtsDie;
   }
 
-  return wisdomModifier > 0 ? `${martialArtsDie}+${wisdomModifier}` : `${martialArtsDie}${wisdomModifier}`;
+  return wisdomModifier > 0
+    ? `${martialArtsDie}+${wisdomModifier}`
+    : `${martialArtsDie}${wisdomModifier}`;
 }
 
 function getMonkWarriorOfTheOpenHandWholenessOfBodyFacts(
@@ -235,7 +239,9 @@ export function normalizeMonkWarriorOfTheOpenHandFeatureState(
   | "warriorOfTheOpenHandWholenessOfBodyUsesExpended"
   | "warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn"
 > {
-  const wholenessOfBodyUsesExpended = Number(value?.warriorOfTheOpenHandWholenessOfBodyUsesExpended);
+  const wholenessOfBodyUsesExpended = Number(
+    value?.warriorOfTheOpenHandWholenessOfBodyUsesExpended
+  );
   const wholenessOfBodyUsesTotal = getMonkWarriorOfTheOpenHandWholenessOfBodyUsesTotal(character);
   const fleetStepFollowUpUsesRemainingThisTurn = Number(
     value?.warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn
@@ -249,13 +255,12 @@ export function normalizeMonkWarriorOfTheOpenHandFeatureState(
         ? Math.max(0, Math.min(wholenessOfBodyUsesTotal, Math.floor(wholenessOfBodyUsesExpended)))
         : 0
       : 0,
-    warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn: hasMonkWarriorOfTheOpenHandFleetStep(
-      character
-    )
-      ? Number.isFinite(fleetStepFollowUpUsesRemainingThisTurn)
-        ? Math.max(0, Math.floor(fleetStepFollowUpUsesRemainingThisTurn))
+    warriorOfTheOpenHandFleetStepFollowUpUsesRemainingThisTurn:
+      hasMonkWarriorOfTheOpenHandFleetStep(character)
+        ? Number.isFinite(fleetStepFollowUpUsesRemainingThisTurn)
+          ? Math.max(0, Math.floor(fleetStepFollowUpUsesRemainingThisTurn))
+          : 0
         : 0
-      : 0
   };
 }
 
@@ -279,7 +284,9 @@ export function grantMonkWarriorOfTheOpenHandFleetStepFollowUpUse(character: Cha
   };
 }
 
-export function consumeMonkWarriorOfTheOpenHandFleetStepFollowUpUse(character: Character): Character {
+export function consumeMonkWarriorOfTheOpenHandFleetStepFollowUpUse(
+  character: Character
+): Character {
   const usesRemaining = getMonkWarriorOfTheOpenHandFleetStepFollowUpUsesRemaining(character);
 
   if (usesRemaining <= 0) {
@@ -396,7 +403,10 @@ export function getMonkWarriorOfTheOpenHandQuiveringPalmOptionState(
   character: MonkWarriorOfTheOpenHandCharacter,
   action: OpenHandWeaponAction | null
 ): MonkWarriorOfTheOpenHandQuiveringPalmOptionState | null {
-  if (!hasMonkWarriorOfTheOpenHandQuiveringPalm(character) || !isOpenHandUnarmedStrikeAction(action)) {
+  if (
+    !hasMonkWarriorOfTheOpenHandQuiveringPalm(character) ||
+    !isOpenHandUnarmedStrikeAction(action)
+  ) {
     return null;
   }
 
@@ -412,9 +422,7 @@ export function getMonkWarriorOfTheOpenHandQuiveringPalmOptionState(
   };
 }
 
-export function activateMonkWarriorOfTheOpenHandQuiveringPalmMark(
-  character: Character
-): Character {
+export function activateMonkWarriorOfTheOpenHandQuiveringPalmMark(character: Character): Character {
   const optionState = getMonkWarriorOfTheOpenHandQuiveringPalmOptionState(character, {
     key: "unarmed-strike",
     attackKind: "unarmed"
@@ -465,7 +473,9 @@ export function activateMonkWarriorOfTheOpenHandQuiveringPalm(character: Charact
     (entry) => entry.sourceId !== monkWarriorOfTheOpenHandQuiveringPalmStatusSourceId
   );
 
-  if (nextStatusEntries.length === normalizeCharacterStatusEntries(character.statusEntries).length) {
+  if (
+    nextStatusEntries.length === normalizeCharacterStatusEntries(character.statusEntries).length
+  ) {
     return character;
   }
 
@@ -529,24 +539,34 @@ export const getMonkWarriorOfTheOpenHandDerivedFeatureState: SubclassRuntimeReso
     featureActions: getMonkWarriorOfTheOpenHandFeatureActions(character),
     transformFeatureAction: (action) =>
       action.key === monkFlurryOfBlowsActionKey
-        ? appendSourcedDescriptionAddition(action, openHandTechniqueName, openHandTechniqueDescription)
+        ? appendFeatureSourcedDescriptionAddition(
+            action,
+            character,
+            CLASS_FEATURE.OPEN_HAND_TECHNIQUE,
+            openHandTechniqueDescription,
+            openHandTechniqueName
+          )
         : action,
     transformWeaponAction: (action) => {
       if (!isOpenHandUnarmedStrikeAction(action)) {
         return action;
       }
 
-      let nextAction = appendSourcedDescriptionAddition(
+      let nextAction = appendFeatureSourcedDescriptionAddition(
         action,
-        openHandTechniqueName,
-        openHandTechniqueDescription
+        character,
+        CLASS_FEATURE.OPEN_HAND_TECHNIQUE,
+        openHandTechniqueDescription,
+        openHandTechniqueName
       );
 
       if (hasMonkWarriorOfTheOpenHandQuiveringPalm(character)) {
-        nextAction = appendSourcedDescriptionAddition(
+        nextAction = appendFeatureSourcedDescriptionAddition(
           nextAction,
-          quiveringPalmEffectName,
-          quiveringPalmDescription
+          character,
+          CLASS_FEATURE.QUIVERING_PALM,
+          quiveringPalmDescription,
+          quiveringPalmEffectName
         );
       }
 

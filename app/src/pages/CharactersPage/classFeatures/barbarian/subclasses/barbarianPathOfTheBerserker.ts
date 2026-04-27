@@ -1,8 +1,18 @@
-import { CONDITION_NAME, EFFECT_NAME, STATUS_DURATION_KIND, STATUS_ENTRY_GROUP, STATUS_ENTRY_SOURCE_TYPE } from "../../../../../types";
-import type { Character, CharacterRageFeatureState, CharacterStatusEntry } from "../../../../../types";
+import {
+  CONDITION_NAME,
+  EFFECT_NAME,
+  STATUS_DURATION_KIND,
+  STATUS_ENTRY_GROUP,
+  STATUS_ENTRY_SOURCE_TYPE
+} from "../../../../../types";
+import type {
+  Character,
+  CharacterRageFeatureState,
+  CharacterStatusEntry
+} from "../../../../../types";
 import { CLASS_FEATURE, getReactionEntryById } from "../../../../../codex/entries";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { createSourcedDescriptionEntries } from "../../../actionModalDescriptions";
+import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
@@ -260,7 +270,14 @@ export function getBarbarianPathOfTheBerserkerRecklessAttackDescriptionAdditions
 
   const frenzyDescription = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.FRENZY);
   return frenzyDescription.length > 0
-    ? [createSourcedDescriptionEntries(frenzyDamageBonusLabel, frenzyDescription)]
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.FRENZY,
+          frenzyDescription,
+          frenzyDamageBonusLabel
+        )
+      ]
     : [];
 }
 

@@ -6,7 +6,7 @@ import {
   getFighterBattleMasterManeuverReferenceKey
 } from "../../../../../codex/subclasses/fighterBattleMaster";
 import type { Character, CharacterFighterFeatureState } from "../../../../../types";
-import { createSourcedDescriptionEntries } from "../../../actionModalDescriptions";
+import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getProficiencyBonus } from "../../../gameplay";
@@ -529,7 +529,14 @@ function getCombatSuperiorityDescriptionAdditions(
   );
 
   return relentlessDescription.length > 0
-    ? [createSourcedDescriptionEntries("Relentless", relentlessDescription)]
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.RELENTLESS,
+          relentlessDescription,
+          "Relentless"
+        )
+      ]
     : [];
 }
 

@@ -39,8 +39,8 @@ import { getFeatAbilityScoreBonusesForCharacter } from "../../feats";
 import type { WeaponAction } from "../../gameplay";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import {
-  appendSourcedDescriptionAddition,
-  createSourcedDescriptionEntries
+  appendFeatureSourcedDescriptionAddition,
+  createFeatureSourcedDescriptionEntries
 } from "../../actionModalDescriptions";
 import type {
   AbilityCheckIndicatorMap,
@@ -242,7 +242,13 @@ function appendClericLifeDomainHealingSpellDescriptions(
     const descriptionEntries = getFeatureDescriptionForCharacter(character, feature);
 
     return descriptionEntries.length > 0
-      ? appendSourcedDescriptionAddition(nextSpell, sourceName, descriptionEntries)
+      ? appendFeatureSourcedDescriptionAddition(
+          nextSpell,
+          character,
+          feature,
+          descriptionEntries,
+          sourceName
+        )
       : nextSpell;
   }, spell);
 }
@@ -264,7 +270,14 @@ function getClericSupremeHealingDivinityDescriptionAdditions(
   );
 
   return descriptionEntries.length > 0
-    ? [createSourcedDescriptionEntries(supremeHealingSource, descriptionEntries)]
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.SUPREME_HEALING,
+          descriptionEntries,
+          supremeHealingSource
+        )
+      ]
     : [];
 }
 
@@ -331,7 +344,12 @@ export function getClericResolvedDivinityDisplay(
       searUndeadDescription.length > 0
         ? [
             ...healingDescriptionAdditions,
-            createSourcedDescriptionEntries("Sear Undead", searUndeadDescription)
+            createFeatureSourcedDescriptionEntries(
+              character,
+              CLASS_FEATURE.SEAR_UNDEAD,
+              searUndeadDescription,
+              "Sear Undead"
+            )
           ]
         : healingDescriptionAdditions
   };

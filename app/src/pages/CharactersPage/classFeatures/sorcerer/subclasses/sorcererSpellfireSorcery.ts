@@ -7,8 +7,11 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import {
   createDefaultFeatureActionDescription,
@@ -123,9 +126,7 @@ export const spellfireCrownOfSpellfireDescription = getSpellfireFeatureDescripti
   CLASS_FEATURE.CROWN_OF_SPELLFIRE
 );
 
-function hasSorcererSpellfireAbsorbSpellsFeature(
-  character: SpellfireSorceryCharacter
-): boolean {
+function hasSorcererSpellfireAbsorbSpellsFeature(character: SpellfireSorceryCharacter): boolean {
   return (
     character.className === "Sorcerer" &&
     character.subclassId === spellfireSorcerySubclassId &&
@@ -143,19 +144,27 @@ function hasSorcererSpellfireCrownOfSpellfireFeature(
   );
 }
 
-function appendAbsorbSpellsCounterspellDescription(spell: SpellEntry): SpellEntry {
+function appendAbsorbSpellsCounterspellDescription(
+  character: SpellfireSorceryCharacter,
+  spell: SpellEntry
+): SpellEntry {
   if (!counterspellSpellId || spell.id !== counterspellSpellId) {
     return spell;
   }
 
-  return appendSourcedDescriptionAddition(
+  return appendFeatureSourcedDescriptionAddition(
     spell,
-    "Absorb Spells",
-    absorbSpellsCounterspellDescription
+    character,
+    CLASS_FEATURE.ABSORB_SPELLS,
+    absorbSpellsCounterspellDescription,
+    "Absorb Spells"
   );
 }
 
-function appendCrownOfSpellfireDescription(action: FeatureActionCard): FeatureActionCard {
+function appendCrownOfSpellfireDescription(
+  character: SpellfireSorceryCharacter,
+  action: FeatureActionCard
+): FeatureActionCard {
   if (
     action.key !== sorcererInnateSorceryActionKey ||
     spellfireCrownOfSpellfireDescription.length <= 0
@@ -163,15 +172,17 @@ function appendCrownOfSpellfireDescription(action: FeatureActionCard): FeatureAc
     return action;
   }
 
-  return appendSourcedDescriptionAddition(
+  return appendFeatureSourcedDescriptionAddition(
     {
       ...action,
       description: action.description?.length
         ? [...action.description]
         : createDefaultFeatureActionDescription(action)
     },
-    spellfireCrownOfSpellfireName,
-    spellfireCrownOfSpellfireDescription
+    character,
+    CLASS_FEATURE.CROWN_OF_SPELLFIRE,
+    spellfireCrownOfSpellfireDescription,
+    spellfireCrownOfSpellfireName
   );
 }
 
@@ -232,7 +243,9 @@ export function activateSorcererSpellfireCrownOfSpellfire(character: Character):
   let nextCharacter = character;
 
   if (usesRemaining > 0) {
-    const currentExpended = Number(character.classFeatureState?.sorcerer?.crownOfSpellfireUsesExpended);
+    const currentExpended = Number(
+      character.classFeatureState?.sorcerer?.crownOfSpellfireUsesExpended
+    );
     const nextExpended = Math.max(
       0,
       Math.min(
@@ -284,7 +297,9 @@ export function activateSorcererSpellfireCrownOfSpellfire(character: Character):
   };
 }
 
-export function restoreSorcererSpellfireCrownOfSpellfireOnLongRest(character: Character): Character {
+export function restoreSorcererSpellfireCrownOfSpellfireOnLongRest(
+  character: Character
+): Character {
   if (!hasSorcererSpellfireCrownOfSpellfireFeature(character)) {
     return character;
   }
@@ -313,10 +328,10 @@ export const getSorcererSpellfireSorceryDerivedFeatureState: SubclassRuntimeReso
           ...((character.level ?? 0) >= 6 ? spellfireSorceryBonusSpellIdsByLevel[6] : [])
         ],
         transformFeatureAction: hasSorcererSpellfireCrownOfSpellfireFeature(character)
-          ? appendCrownOfSpellfireDescription
+          ? (action) => appendCrownOfSpellfireDescription(character, action)
           : undefined,
         transformSpellEntry: hasSorcererSpellfireAbsorbSpellsFeature(character)
-          ? appendAbsorbSpellsCounterspellDescription
+          ? (spell) => appendAbsorbSpellsCounterspellDescription(character, spell)
           : undefined,
         speedBonuses: getSorcererSpellfireCrownOfSpellfireSpeedBonuses(character)
       }

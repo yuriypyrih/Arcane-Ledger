@@ -6,7 +6,7 @@ import {
   type SpellEntry
 } from "../../../../codex/entries";
 import type { DruidElementalFuryChoice } from "../../../../types";
-import { appendSourcedDescriptionAddition } from "../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../actionModalDescriptions";
 import type { WeaponAction } from "../../gameplay";
 import {
   type DruidFeatureDescriptionCharacter,
@@ -42,7 +42,9 @@ function getSpellRangeFeet(spell: Pick<SpellEntry, "range">): number | null {
 
 function appendElementalFuryDescriptions<T extends SpellEntry | WeaponAction>(
   value: T,
+  character: DruidElementalFuryCharacter,
   sections: Array<{
+    feature: CLASS_FEATURE;
     source: string;
     description: SpellDescriptionEntry[];
   }>
@@ -50,7 +52,13 @@ function appendElementalFuryDescriptions<T extends SpellEntry | WeaponAction>(
   return sections.reduce(
     (currentValue, section) =>
       section.description.length > 0
-        ? appendSourcedDescriptionAddition(currentValue, section.source, section.description)
+        ? appendFeatureSourcedDescriptionAddition(
+            currentValue,
+            character,
+            section.feature,
+            section.description,
+            section.source
+          )
         : currentValue,
     value
   );
@@ -69,6 +77,7 @@ function getWeaponDescriptionSections(
   character: DruidElementalFuryCharacter,
   elementalFuryChoice: DruidElementalFuryChoice | null
 ): Array<{
+  feature: CLASS_FEATURE;
   source: string;
   description: SpellDescriptionEntry[];
 }> {
@@ -78,6 +87,7 @@ function getWeaponDescriptionSections(
 
   const sections = [
     {
+      feature: CLASS_FEATURE.ELEMENTAL_FURY,
       source: primalStrikeSource,
       description: getDruidFeatureDescriptionSection(
         character,
@@ -90,6 +100,7 @@ function getWeaponDescriptionSections(
 
   if (hasDruidFeature(character, CLASS_FEATURE.IMPROVED_ELEMENTAL_FURY)) {
     sections.push({
+      feature: CLASS_FEATURE.IMPROVED_ELEMENTAL_FURY,
       source: improvedPrimalStrikeSource,
       description: getDruidFeatureDescriptionSection(
         character,
@@ -108,6 +119,7 @@ function getSpellDescriptionSections(
   elementalFuryChoice: DruidElementalFuryChoice | null,
   spell: SpellEntry
 ): Array<{
+  feature: CLASS_FEATURE;
   source: string;
   description: SpellDescriptionEntry[];
 }> {
@@ -122,12 +134,14 @@ function getSpellDescriptionSections(
   }
 
   const sections: Array<{
+    feature: CLASS_FEATURE;
     source: string;
     description: SpellDescriptionEntry[];
   }> = [];
 
   if (spell.damage.length > 0) {
     sections.push({
+      feature: CLASS_FEATURE.ELEMENTAL_FURY,
       source: potentSpellcastingSource,
       description: getDruidFeatureDescriptionSection(
         character,
@@ -143,6 +157,7 @@ function getSpellDescriptionSections(
     (getSpellRangeFeet(spell) ?? 0) >= 10
   ) {
     sections.push({
+      feature: CLASS_FEATURE.IMPROVED_ELEMENTAL_FURY,
       source: improvedPotentSpellcastingSource,
       description: getDruidFeatureDescriptionSection(
         character,
@@ -167,6 +182,7 @@ export function getDruidElementalFuryWeaponAction(
 
   return appendElementalFuryDescriptions(
     action,
+    character,
     getWeaponDescriptionSections(character, elementalFuryChoice)
   );
 }
@@ -178,6 +194,7 @@ export function getDruidElementalFurySpellEntry(
 ): SpellEntry {
   return appendElementalFuryDescriptions(
     spell,
+    character,
     getSpellDescriptionSections(character, elementalFuryChoice, spell)
   );
 }

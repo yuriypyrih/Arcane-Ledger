@@ -8,10 +8,13 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { formatFormulaCell } from "../../../shared/formulas";
 import type { WeaponAction } from "../../../gameplay";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import type {
   DerivedFeatureStatusEntry,
   FeatureActionCard,
@@ -20,14 +23,10 @@ import type {
   FeatureSpeedBonus,
   FeatureUnarmedStrikeConfig
 } from "../../types";
-import {
-  resolveSpellIdsByName,
-  type SubclassRuntimeResolver
-} from "../../subclassRuntime";
+import { resolveSpellIdsByName, type SubclassRuntimeResolver } from "../../subclassRuntime";
 
 export const warriorOfTheElementsSubclassId = "monk-warrior-of-the-elements";
-export const monkElementalAttunementActionKey =
-  "monk-warrior-of-the-elements-elemental-attunement";
+export const monkElementalAttunementActionKey = "monk-warrior-of-the-elements-elemental-attunement";
 export const monkElementalAttunementStatusSourceId =
   "feature-monk-warrior-of-the-elements-elemental-attunement";
 export const monkElementalAttunementStrideStatusSourceId =
@@ -184,9 +183,7 @@ function formatFormulaValue(formula: string, terms: string[]): string {
   }).value;
 }
 
-export function isMonkWarriorOfTheElements(
-  character: MonkWarriorOfTheElementsCharacter
-): boolean {
+export function isMonkWarriorOfTheElements(character: MonkWarriorOfTheElementsCharacter): boolean {
   return (
     character.className === "Monk" &&
     character.subclassId === warriorOfTheElementsSubclassId &&
@@ -256,9 +253,8 @@ export function setMonkWarriorOfTheElementsElementalResistanceDamageTypeSelectio
   }
 
   const monkState = character.classFeatureState?.monk ?? {};
-  const normalizedSelection = normalizeMonkWarriorOfTheElementsElementalResistanceDamageType(
-    selection
-  );
+  const normalizedSelection =
+    normalizeMonkWarriorOfTheElementsElementalResistanceDamageType(selection);
 
   return {
     ...character,
@@ -277,16 +273,18 @@ export function normalizeMonkWarriorOfTheElementsFeatureState(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): Partial<CharacterMonkFeatureState> {
   return {
-    warriorOfTheElementsElementalResistanceDamageType:
-      hasMonkWarriorOfTheElementsElementalEpitome(character)
-        ? normalizeMonkWarriorOfTheElementsElementalResistanceDamageType(
-            value.warriorOfTheElementsElementalResistanceDamageType
-          )
-        : undefined,
-    warriorOfTheElementsEmpoweredStrikesUsedThisTurn:
-      hasMonkWarriorOfTheElementsElementalEpitome(character)
-        ? value.warriorOfTheElementsEmpoweredStrikesUsedThisTurn === true
-        : undefined
+    warriorOfTheElementsElementalResistanceDamageType: hasMonkWarriorOfTheElementsElementalEpitome(
+      character
+    )
+      ? normalizeMonkWarriorOfTheElementsElementalResistanceDamageType(
+          value.warriorOfTheElementsElementalResistanceDamageType
+        )
+      : undefined,
+    warriorOfTheElementsEmpoweredStrikesUsedThisTurn: hasMonkWarriorOfTheElementsElementalEpitome(
+      character
+    )
+      ? value.warriorOfTheElementsEmpoweredStrikesUsedThisTurn === true
+      : undefined
   };
 }
 
@@ -318,10 +316,7 @@ export function isMonkWarriorOfTheElementsElementalAttunementActive(
   );
 }
 
-function spendMonkFocusPoints(
-  character: Character,
-  focusPointCost: number
-): Character | null {
+function spendMonkFocusPoints(character: Character, focusPointCost: number): Character | null {
   const focusPointsRemaining = getMonkFocusPointsRemaining(character);
 
   if (focusPointsRemaining < focusPointCost) {
@@ -429,12 +424,20 @@ export function getMonkWarriorOfTheElementsElementalBurstFacts(
 }
 
 function appendElementalAttunementDescriptionAddition(
+  character: MonkWarriorOfTheElementsCharacter,
   action: FeatureActionCard,
+  feature: CLASS_FEATURE,
   sourceName: string,
   descriptionEntries: readonly string[]
 ): FeatureActionCard {
   return descriptionEntries.length > 0
-    ? appendSourcedDescriptionAddition(action, sourceName, descriptionEntries)
+    ? appendFeatureSourcedDescriptionAddition(
+        action,
+        character,
+        feature,
+        descriptionEntries,
+        sourceName
+      )
     : action;
 }
 
@@ -458,8 +461,7 @@ function getMonkWarriorOfTheElementsElementalAttunementAction(
     key: monkElementalAttunementActionKey,
     name: elementalAttunementEffectName,
     summary: "Imbue yourself with elemental energy for 10 minutes.",
-    detail:
-      "Expend 1 Focus Point to gain the Reach and Elemental Strikes benefits for 10 minutes.",
+    detail: "Expend 1 Focus Point to gain the Reach and Elemental Strikes benefits for 10 minutes.",
     breakdown: "10-minute elemental aura",
     economyType: ECONOMY_TYPE.ACTION,
     actionCategory: ACTION_CATEGORY.MAGIC,
@@ -490,7 +492,9 @@ function getMonkWarriorOfTheElementsElementalAttunementAction(
 
   if (hasMonkWarriorOfTheElementsStrideOfTheElements(character)) {
     action = appendElementalAttunementDescriptionAddition(
+      character,
       action,
+      CLASS_FEATURE.STRIDE_OF_THE_ELEMENTS,
       strideOfTheElementsName,
       strideOfTheElementsDescription
     );
@@ -498,7 +502,9 @@ function getMonkWarriorOfTheElementsElementalAttunementAction(
 
   if (hasMonkWarriorOfTheElementsElementalEpitome(character)) {
     action = appendElementalAttunementDescriptionAddition(
+      character,
       action,
+      CLASS_FEATURE.ELEMENTAL_EPITOME,
       elementalEpitomeName,
       elementalEpitomeDescription
     );
@@ -580,20 +586,24 @@ function transformMonkWarriorOfTheElementsWeaponAction(
     return action;
   }
 
-  let nextAction = appendSourcedDescriptionAddition(
+  let nextAction = appendFeatureSourcedDescriptionAddition(
     action,
-    elementalAttunementEffectName,
-    elementalAttunementTraitDescription
+    character,
+    CLASS_FEATURE.ELEMENTAL_ATTUNEMENT,
+    elementalAttunementTraitDescription,
+    elementalAttunementEffectName
   );
 
   if (
     hasMonkWarriorOfTheElementsElementalEpitome(character) &&
     empoweredStrikesDescription.length > 0
   ) {
-    nextAction = appendSourcedDescriptionAddition(
+    nextAction = appendFeatureSourcedDescriptionAddition(
       nextAction,
-      elementalEpitomeName,
-      empoweredStrikesDescription
+      character,
+      CLASS_FEATURE.ELEMENTAL_EPITOME,
+      empoweredStrikesDescription,
+      elementalEpitomeName
     );
   }
 

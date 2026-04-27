@@ -2,8 +2,8 @@ import { CLASS_FEATURE, REACTION, type ReactionEntry } from "../../../../../code
 import type { Character, CharacterBardFeatureState } from "../../../../../types";
 import { SKILL } from "../../../../../types";
 import {
-  appendSourcedDescriptionAddition,
-  createSourcedDescriptionEntries
+  appendFeatureSourcedDescriptionAddition,
+  createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
 import { isItemShieldRecord } from "../../../inventoryItems";
 import { getEquipmentByName } from "../../../proficiencyCodexData";
@@ -237,20 +237,25 @@ function shouldAppendAgileStrikesDescription(action: FeatureActionCard): boolean
   return searchableText.includes("bardic inspiration") && searchableText.includes("expend");
 }
 
-function appendAgileStrikesDescription(action: FeatureActionCard): FeatureActionCard {
+function appendAgileStrikesDescription(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  action: FeatureActionCard
+): FeatureActionCard {
   if (!shouldAppendAgileStrikesDescription(action)) {
     return action;
   }
 
-  return appendSourcedDescriptionAddition(
+  return appendFeatureSourcedDescriptionAddition(
     {
       ...action,
       description: action.description?.length
         ? [...action.description]
         : createDefaultFeatureActionDescription(action)
     },
-    agileStrikesSource,
-    [agileStrikesDescription]
+    character,
+    CLASS_FEATURE.DAZZLING_FOOTWORK,
+    [agileStrikesDescription],
+    agileStrikesSource
   );
 }
 
@@ -278,7 +283,12 @@ function getBardCollegeOfDanceInspiringMovementReactionEntry(
     description: hasActiveCollegeOfDanceCombatBenefits(character)
       ? [
           ...description,
-          ...createSourcedDescriptionEntries(agileStrikesSource, [agileStrikesDescription])
+          ...createFeatureSourcedDescriptionEntries(
+            character,
+            CLASS_FEATURE.DAZZLING_FOOTWORK,
+            [agileStrikesDescription],
+            agileStrikesSource
+          )
         ]
       : description
   };
@@ -301,7 +311,7 @@ export const getBardCollegeOfDanceDerivedFeatureState: SubclassRuntimeResolver =
         }
       : {},
     transformFeatureAction: hasActiveCollegeOfDanceCombatBenefits(character)
-      ? appendAgileStrikesDescription
+      ? (action) => appendAgileStrikesDescription(character, action)
       : undefined,
     getArmorClassModes: (context) => {
       if (!hasBardCollegeOfDanceDazzlingFootworkFeature(character)) {

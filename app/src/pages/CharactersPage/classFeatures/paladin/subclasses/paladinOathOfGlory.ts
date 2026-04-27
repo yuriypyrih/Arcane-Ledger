@@ -7,7 +7,7 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
@@ -600,12 +600,21 @@ function getPaladinOathOfGloryReactionEntries(
     : [];
 }
 
-function appendInspiringSmiteDescription(spell: SpellEntry): SpellEntry {
+function appendInspiringSmiteDescription(
+  character: PaladinOathOfGloryCharacter,
+  spell: SpellEntry
+): SpellEntry {
   if (spell.id !== divineSmiteSpellId) {
     return spell;
   }
 
-  return appendSourcedDescriptionAddition(spell, "Inspiring Smite", inspiringSmiteDescription);
+  return appendFeatureSourcedDescriptionAddition(
+    spell,
+    character,
+    CLASS_FEATURE.INSPIRING_SMITE,
+    inspiringSmiteDescription,
+    "Inspiring Smite"
+  );
 }
 
 function getPaladinOathOfGlorySpeedBonuses(
@@ -682,6 +691,6 @@ export const getPaladinOathOfGloryDerivedFeatureState: SubclassRuntimeResolver =
         skillIndicators: getPaladinOathOfGlorySkillIndicators(character),
         speedBonuses: getPaladinOathOfGlorySpeedBonuses(character),
         reactionEntries: getPaladinOathOfGloryReactionEntries(character),
-        transformSpellEntry: appendInspiringSmiteDescription
+        transformSpellEntry: (spell) => appendInspiringSmiteDescription(character, spell)
       }
     : {};

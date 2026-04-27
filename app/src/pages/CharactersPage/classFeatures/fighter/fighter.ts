@@ -104,8 +104,8 @@ import {
   restoreFighterPsiWarriorTelekineticMovementOnShortRest as restoreFighterPsiWarriorTelekineticMovementOnShortRestInternal
 } from "./subclasses/fighterPsiWarrior";
 import {
-  appendSourcedDescriptionAddition,
-  createSourcedDescriptionEntries
+  appendFeatureSourcedDescriptionAddition,
+  createFeatureSourcedDescriptionEntries
 } from "../../actionModalDescriptions";
 
 export const fighterSecondWindActionKey = "fighter-second-wind";
@@ -133,7 +133,14 @@ function getFighterSecondWindDescriptionAdditions(
   const tacticalShiftDescription = getFighterFeatureDescription(CLASS_FEATURE.TACTICAL_SHIFT);
 
   return tacticalShiftDescription.length > 0
-    ? [createSourcedDescriptionEntries("Tactical Shift", tacticalShiftDescription)]
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.TACTICAL_SHIFT,
+          tacticalShiftDescription,
+          "Tactical Shift"
+        )
+      ]
     : [];
 }
 
@@ -155,7 +162,13 @@ export function getFighterWeaponAction(
 
     nextAction =
       tacticalMasterDescription.length > 0
-        ? appendSourcedDescriptionAddition(nextAction, "Tactical Master", tacticalMasterDescription)
+        ? appendFeatureSourcedDescriptionAddition(
+            nextAction,
+            character,
+            CLASS_FEATURE.TACTICAL_MASTER,
+            tacticalMasterDescription,
+            "Tactical Master"
+          )
         : nextAction;
   }
 
@@ -166,7 +179,13 @@ export function getFighterWeaponAction(
   const studiedAttacksDescription = getFighterFeatureDescription(CLASS_FEATURE.STUDIED_ATTACKS);
 
   return studiedAttacksDescription.length > 0
-    ? appendSourcedDescriptionAddition(nextAction, "Studied Attacks", studiedAttacksDescription)
+    ? appendFeatureSourcedDescriptionAddition(
+        nextAction,
+        character,
+        CLASS_FEATURE.STUDIED_ATTACKS,
+        studiedAttacksDescription,
+        "Studied Attacks"
+      )
     : nextAction;
 }
 

@@ -12,10 +12,13 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
@@ -36,8 +39,7 @@ export const mantleOfInspirationActionKey = "bard-mantle-of-inspiration";
 export const mantleOfMajestyActionKey = "bard-mantle-of-majesty";
 export const unbreakableMajestyActionKey = "bard-unbreakable-majesty";
 export const mantleOfMajestyStatusSourceId = "feature-bard-mantle-of-majesty";
-export const mantleOfMajestyConcentrationSourceId =
-  "feature-bard-mantle-of-majesty-concentration";
+export const mantleOfMajestyConcentrationSourceId = "feature-bard-mantle-of-majesty-concentration";
 export const unbreakableMajestyStatusSourceId = "feature-bard-unbreakable-majesty";
 
 const glamourBeguilingMagicSpellIds = ["spell-charm-person", "spell-mirror-image"] as const;
@@ -231,16 +233,17 @@ function appendBeguilingMagicDescription(
 ): SpellEntry {
   if (
     !hasBardCollegeOfGlamourBeguilingMagicFeature(character) ||
-    (spell.magicSchool !== MAGIC_SCHOOL.ENCHANTMENT &&
-      spell.magicSchool !== MAGIC_SCHOOL.ILLUSION)
+    (spell.magicSchool !== MAGIC_SCHOOL.ENCHANTMENT && spell.magicSchool !== MAGIC_SCHOOL.ILLUSION)
   ) {
     return spell;
   }
 
-  return appendSourcedDescriptionAddition(
+  return appendFeatureSourcedDescriptionAddition(
     spell,
-    "Beguiling Magic",
-    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.BEGUILING_MAGIC)
+    character,
+    CLASS_FEATURE.BEGUILING_MAGIC,
+    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.BEGUILING_MAGIC),
+    "Beguiling Magic"
   );
 }
 
@@ -504,9 +507,7 @@ export function applyBardCollegeOfGlamourMantleOfMajestyStatus(character: Charac
   };
 }
 
-export function applyBardCollegeOfGlamourUnbreakableMajestyStatus(
-  character: Character
-): Character {
+export function applyBardCollegeOfGlamourUnbreakableMajestyStatus(character: Character): Character {
   const nextStatusEntries = normalizeCharacterStatusEntries(character.statusEntries).filter(
     (entry) => entry.sourceId !== unbreakableMajestyStatusSourceId
   );
@@ -540,13 +541,14 @@ export function activateBardCollegeOfGlamourUnbreakableMajesty(character: Charac
   }
 
   return applyBardCollegeOfGlamourUnbreakableMajestyStatus(
-    consumeBardCollegeOfGlamourUnbreakableMajestyUse(character, character.classFeatureState?.bard ?? {})
+    consumeBardCollegeOfGlamourUnbreakableMajestyUse(
+      character,
+      character.classFeatureState?.bard ?? {}
+    )
   );
 }
 
-export function activateBardCollegeOfGlamourMantleOfInspiration(
-  character: Character
-): Character {
+export function activateBardCollegeOfGlamourMantleOfInspiration(character: Character): Character {
   if (!hasCollegeOfGlamourMantleOfInspiration(character)) {
     return character;
   }

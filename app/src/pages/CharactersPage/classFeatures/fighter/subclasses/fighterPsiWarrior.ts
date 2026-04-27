@@ -23,7 +23,7 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { getProficiencyBonus } from "../../../gameplay";
@@ -33,7 +33,10 @@ import {
   getPsionicDieForLevel,
   type PsionicDie
 } from "../../psionicDice";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
@@ -150,17 +153,28 @@ function buildPsiWarriorFormula(die: PsionicDie | null, modifier: number): strin
 }
 
 function appendWeaponDescriptionSection(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
   action: WeaponAction,
+  feature: CLASS_FEATURE,
   sourceName: string,
   descriptionEntries: readonly string[]
 ): WeaponAction {
-  return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
+  return appendFeatureSourcedDescriptionAddition(
+    action,
+    character,
+    feature,
+    descriptionEntries,
+    sourceName
+  );
 }
 
 function getTelekineticMasterDescriptionEntries(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): SpellDescriptionEntry[] {
-  const descriptionEntries = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.TELEKINETIC_MASTER);
+  const descriptionEntries = getFeatureDescriptionForCharacter(
+    character,
+    CLASS_FEATURE.TELEKINETIC_MASTER
+  );
 
   return descriptionEntries.length > 0
     ? descriptionEntries
@@ -175,10 +189,12 @@ function appendTelekineticMasterSpellDescription(
     return spell;
   }
 
-  return appendSourcedDescriptionAddition(
+  return appendFeatureSourcedDescriptionAddition(
     spell,
-    fighterPsiWarriorTelekineticMasterEffectName,
-    getTelekineticMasterDescriptionEntries(character)
+    character,
+    CLASS_FEATURE.TELEKINETIC_MASTER,
+    getTelekineticMasterDescriptionEntries(character),
+    fighterPsiWarriorTelekineticMasterEffectName
   );
 }
 
@@ -231,7 +247,9 @@ function applyPsiWarriorWeaponDescriptionAdditions(
 
   if (hasFighterPsiWarriorPsionicPower(character)) {
     nextAction = appendWeaponDescriptionSection(
+      character,
       nextAction,
+      CLASS_FEATURE.PSIONIC_POWER,
       psiWarriorPsionicStrikeSource,
       psiWarriorPsionicStrikeDescription
     );
@@ -239,7 +257,9 @@ function applyPsiWarriorWeaponDescriptionAdditions(
 
   if (hasFighterPsiWarriorTelekineticAdept(character)) {
     nextAction = appendWeaponDescriptionSection(
+      character,
       nextAction,
+      CLASS_FEATURE.TELEKINETIC_ADEPT,
       psiWarriorTelekineticThrustSource,
       psiWarriorTelekineticThrustDescription
     );

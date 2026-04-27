@@ -12,7 +12,7 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { hasStatusCondition } from "../../../statusEntries";
 import type { DerivedFeatureStatusEntry } from "../../types";
 import { resolveSpellIdsByName, type SubclassRuntimeResolver } from "../../subclassRuntime";
@@ -133,7 +133,9 @@ function getRogueArcaneTricksterSpellThiefStatusEntries(
 }
 
 function appendArcaneTricksterSpellDescription(
+  character: Parameters<SubclassRuntimeResolver>[0],
   spell: SpellEntry,
+  feature: CLASS_FEATURE,
   sourceName: string,
   descriptionEntries: readonly string[]
 ): SpellEntry {
@@ -141,7 +143,13 @@ function appendArcaneTricksterSpellDescription(
     return spell;
   }
 
-  return appendSourcedDescriptionAddition(spell, sourceName, descriptionEntries);
+  return appendFeatureSourcedDescriptionAddition(
+    spell,
+    character,
+    feature,
+    descriptionEntries,
+    sourceName
+  );
 }
 
 function getRogueArcaneTricksterDerivedStatusEntries(
@@ -182,7 +190,9 @@ function transformArcaneTricksterSpell(
   let nextSpell =
     spell.id === mageHandSpellId
       ? appendArcaneTricksterSpellDescription(
+          character,
           spell,
+          CLASS_FEATURE.MAGE_HAND_LEGERDEMAIN,
           mageHandLegerdemainSource,
           mageHandLegerdemainDescription
         )
@@ -190,14 +200,22 @@ function transformArcaneTricksterSpell(
 
   if (spell.id === mageHandSpellId && hasRogueArcaneTricksterFeature(character, 13)) {
     nextSpell = appendArcaneTricksterSpellDescription(
+      character,
       nextSpell,
+      CLASS_FEATURE.VERSATILE_TRICKSTER,
       versatileTricksterSource,
       versatileTricksterDescription
     );
   }
 
   return hasRogueArcaneTricksterFeature(character, 9) && spell.isSavingThrowSpell === true
-    ? appendArcaneTricksterSpellDescription(nextSpell, magicalAmbushName, magicalAmbushDescription)
+    ? appendArcaneTricksterSpellDescription(
+        character,
+        nextSpell,
+        CLASS_FEATURE.MAGICAL_AMBUSH,
+        magicalAmbushName,
+        magicalAmbushDescription
+      )
     : nextSpell;
 }
 

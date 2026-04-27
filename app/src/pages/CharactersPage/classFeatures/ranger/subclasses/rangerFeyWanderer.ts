@@ -23,7 +23,7 @@ import type {
   FeatureSkillBonus,
   FeatureSkillProficiencyEntry
 } from "../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import type { WeaponAction } from "../../../gameplay";
 import {
   getPreparedSpellIdsByLevel,
@@ -203,12 +203,21 @@ function hasDreadfulStrikesAction(action: DreadfulStrikesAction | null): boolean
   return action?.attackKind === "weapon" || action?.attackKind === "unarmed";
 }
 
-function appendDreadfulStrikesDescription(action: WeaponAction): WeaponAction {
+function appendDreadfulStrikesDescription(
+  character: RangerFeyWandererCharacter,
+  action: WeaponAction
+): WeaponAction {
   if (!hasDreadfulStrikesAction(action) || dreadfulStrikesDescription.length <= 0) {
     return action;
   }
 
-  return appendSourcedDescriptionAddition(action, dreadfulStrikesLabel, dreadfulStrikesDescription);
+  return appendFeatureSourcedDescriptionAddition(
+    action,
+    character,
+    CLASS_FEATURE.DREADFUL_STRIKES,
+    dreadfulStrikesDescription,
+    dreadfulStrikesLabel
+  );
 }
 
 export function hasRangerFeyWandererDreadfulStrikesFeature(
@@ -473,8 +482,10 @@ export function restoreRangerFeyWandererMistyWandererOnLongRest(character: Chara
 }
 
 function appendFeyWandererSpellDescription(
+  character: RangerFeyWandererCharacter,
   spell: SpellEntry,
   spellId: string,
+  feature: CLASS_FEATURE,
   sourceName: string,
   descriptionEntries: readonly string[]
 ): SpellEntry {
@@ -482,22 +493,38 @@ function appendFeyWandererSpellDescription(
     return spell;
   }
 
-  return appendSourcedDescriptionAddition(spell, sourceName, descriptionEntries);
+  return appendFeatureSourcedDescriptionAddition(
+    spell,
+    character,
+    feature,
+    descriptionEntries,
+    sourceName
+  );
 }
 
-function appendFeyReinforcementsDescription(spell: SpellEntry): SpellEntry {
+function appendFeyReinforcementsDescription(
+  character: RangerFeyWandererCharacter,
+  spell: SpellEntry
+): SpellEntry {
   return appendFeyWandererSpellDescription(
+    character,
     spell,
     summonFeySpellId,
+    CLASS_FEATURE.FEY_REINFORCEMENTS,
     feyReinforcementsName,
     feyReinforcementsDescription
   );
 }
 
-function appendMistyWandererDescription(spell: SpellEntry): SpellEntry {
+function appendMistyWandererDescription(
+  character: RangerFeyWandererCharacter,
+  spell: SpellEntry
+): SpellEntry {
   return appendFeyWandererSpellDescription(
+    character,
     spell,
     mistyStepSpellId,
+    CLASS_FEATURE.MISTY_WANDERER,
     mistyWandererName,
     mistyWandererDescription
   );
@@ -506,11 +533,11 @@ function appendMistyWandererDescription(spell: SpellEntry): SpellEntry {
 function appendFeyWandererSpellDescriptions(character: RangerFeyWandererCharacter) {
   return (spell: SpellEntry): SpellEntry => {
     const spellWithFeyReinforcements = hasRangerFeyWandererFeyReinforcementsFeature(character)
-      ? appendFeyReinforcementsDescription(spell)
+      ? appendFeyReinforcementsDescription(character, spell)
       : spell;
 
     return hasRangerFeyWandererMistyWandererFeature(character)
-      ? appendMistyWandererDescription(spellWithFeyReinforcements)
+      ? appendMistyWandererDescription(character, spellWithFeyReinforcements)
       : spellWithFeyReinforcements;
   };
 }
@@ -620,7 +647,7 @@ export const getRangerFeyWandererDerivedFeatureState: SubclassRuntimeResolver = 
             ? appendFeyWandererSpellDescriptions(character)
             : undefined,
         transformWeaponAction: hasRangerFeyWandererDreadfulStrikesFeature(character)
-          ? appendDreadfulStrikesDescription
+          ? (action) => appendDreadfulStrikesDescription(character, action)
           : undefined
       }
     : {};

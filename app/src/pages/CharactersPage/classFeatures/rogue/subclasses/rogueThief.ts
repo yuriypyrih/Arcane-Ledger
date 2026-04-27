@@ -3,8 +3,8 @@ import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, SkillName } from "../../../../../types";
 import { SKILL } from "../../../../../types";
 import {
-  appendSourcedDescriptionAddition,
-  createSourcedDescriptionEntries
+  appendFeatureSourcedDescriptionAddition,
+  createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { FeatureActionCard, FeatureSpeedBonus } from "../../types";
@@ -14,7 +14,6 @@ import type { RogueSneakAttackEffectDefinition } from "../types";
 export const thiefSubclassId = "rogue-thief";
 const fastHandsSource = "Fast Hands";
 const secondStoryWorkSource = "Second-Story Work";
-const supremeSneakSource = "Supreme Sneak";
 const thiefsReflexesSource = "Thief's Reflexes";
 const thiefSubclassEntry = getSubclassEntryById(thiefSubclassId);
 
@@ -74,7 +73,14 @@ export function getRogueThiefSkillReferenceDescriptionAdditions(
     return [];
   }
 
-  return [createSourcedDescriptionEntries(fastHandsSource, fastHandsDescription)];
+  return [
+    createFeatureSourcedDescriptionEntries(
+      character,
+      CLASS_FEATURE.FAST_HANDS,
+      fastHandsDescription,
+      fastHandsSource
+    )
+  ];
 }
 
 export function getRogueThiefInitiativeDescriptionAdditions(character: RogueThiefCharacter) {
@@ -82,7 +88,14 @@ export function getRogueThiefInitiativeDescriptionAdditions(character: RogueThie
     return [];
   }
 
-  return [createSourcedDescriptionEntries(thiefsReflexesSource, thiefsReflexesDescription)];
+  return [
+    createFeatureSourcedDescriptionEntries(
+      character,
+      CLASS_FEATURE.THIEFS_REFLEXES,
+      thiefsReflexesDescription,
+      thiefsReflexesSource
+    )
+  ];
 }
 
 function getRogueThiefSpeedBonuses(character: RogueThiefCharacter): FeatureSpeedBonus[] {
@@ -118,23 +131,28 @@ export function getRogueThiefSneakAttackEffectDefinitions(
 }
 
 function appendFeatureActionDescriptionSection(
+  character: RogueThiefCharacter,
   action: FeatureActionCard,
   actionKey: string,
-  sourceName: string,
+  feature: CLASS_FEATURE,
   descriptionEntries: readonly string[]
 ): FeatureActionCard {
   if (action.key !== actionKey || descriptionEntries.length === 0) {
     return action;
   }
 
-  return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
+  return appendFeatureSourcedDescriptionAddition(action, character, feature, descriptionEntries);
 }
 
-function transformRogueThiefFeatureAction(action: FeatureActionCard): FeatureActionCard {
+function transformRogueThiefFeatureAction(
+  character: RogueThiefCharacter,
+  action: FeatureActionCard
+): FeatureActionCard {
   return appendFeatureActionDescriptionSection(
+    character,
     action,
     rogueSneakAttackActionKey,
-    supremeSneakSource,
+    CLASS_FEATURE.SUPREME_SNEAK,
     supremeSneakEffectDescription
   );
 }
@@ -144,7 +162,7 @@ export const getRogueThiefDerivedFeatureState: SubclassRuntimeResolver = (charac
     ? {
         speedBonuses: getRogueThiefSpeedBonuses(character),
         transformFeatureAction: hasRogueThiefSupremeSneakFeature(character)
-          ? transformRogueThiefFeatureAction
+          ? (action) => transformRogueThiefFeatureAction(character, action)
           : undefined
       }
     : {};

@@ -34,8 +34,8 @@ import {
   languageEntries
 } from "../../../../types";
 import {
-  appendSourcedDescriptionAddition,
-  createSourcedDescriptionEntries
+  appendFeatureSourcedDescriptionAddition,
+  createFeatureSourcedDescriptionEntries
 } from "../../actionModalDescriptions";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../combat";
 import type { WeaponAction } from "../../gameplay";
@@ -303,8 +303,7 @@ export function normalizeRogueFeatureState(
   const hasDreadAllegiance = hasRogueScionOfTheThreeDreadAllegianceFeature(character);
   const bloodthirstUsesTotal = getRogueScionOfTheThreeBloodthirstUsesTotal(character);
   const soulknifePsionicDiceTotal = getRogueSoulknifePsionicDiceTotal(character);
-  const soulknifePsychicWhispersUsesTotal =
-    getRogueSoulknifePsychicWhispersUsesTotal(character);
+  const soulknifePsychicWhispersUsesTotal = getRogueSoulknifePsychicWhispersUsesTotal(character);
   const soulknifePsychicVeilUsesTotal = getRogueSoulknifePsychicVeilUsesTotal(character);
   const soulknifeRendMindUsesTotal = getRogueSoulknifeRendMindUsesTotal(character);
   const hasSpellThief =
@@ -561,10 +560,12 @@ export function getRogueCommonAction(
   action: FeatureActionCard
 ): FeatureActionCard {
   return hasRogueCunningActionCommonActionBonusPath(character, action.key)
-    ? appendSourcedDescriptionAddition(
+    ? appendFeatureSourcedDescriptionAddition(
         action,
-        rogueCunningActionSource,
-        rogueCunningActionDescriptionLines
+        character,
+        CLASS_FEATURE.CUNNING_ACTION,
+        rogueCunningActionDescriptionLines,
+        rogueCunningActionSource
       )
     : action;
 }
@@ -574,9 +575,11 @@ export function getRogueSkillReferenceDescriptionAdditions(
 ) {
   return hasRogueFeature(character, CLASS_FEATURE.RELIABLE_TALENT)
     ? [
-        createSourcedDescriptionEntries(
-          rogueReliableTalentSource,
-          rogueReliableTalentDescriptionLines
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.RELIABLE_TALENT,
+          rogueReliableTalentDescriptionLines,
+          rogueReliableTalentSource
         )
       ]
     : [];
@@ -1120,7 +1123,10 @@ export function consumeRogueWeaponAttack(
     return character;
   }
 
-  const consumedCharacter = isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource)
+  const consumedCharacter = isRoundTrackerResourceAvailable(
+    character.roundTracker,
+    roundTrackerResource
+  )
     ? {
         ...character,
         roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)

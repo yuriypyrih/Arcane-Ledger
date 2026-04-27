@@ -7,7 +7,7 @@ import {
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import {
   appendDescriptionAddition,
-  createSourcedDescriptionEntries
+  createFeatureSourcedDescriptionEntries
 } from "../../actionModalDescriptions";
 import type {
   Character,
@@ -209,7 +209,9 @@ function getRangerSourcedFeatureDescriptionSection(
 ): SpellDescriptionEntry[] | null {
   const description = getFeatureDescriptionForCharacter(character, feature);
 
-  return description.length > 0 ? createSourcedDescriptionEntries(sourceName, description) : null;
+  return description.length > 0
+    ? createFeatureSourcedDescriptionEntries(character, feature, description, sourceName)
+    : null;
 }
 
 function getRangerHuntersMarkFeatureSourceName(feature: CLASS_FEATURE): string {

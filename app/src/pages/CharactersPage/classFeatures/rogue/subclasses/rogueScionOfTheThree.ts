@@ -13,14 +13,11 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import {
-  appendSourcedDescriptionAddition,
-  createSourcedDescriptionEntries
+  appendFeatureSourcedDescriptionAddition,
+  createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
 import { getAbilityModifierForCharacter } from "../../../abilities";
-import {
-  resolveSpellIdsByName,
-  type SubclassDerivedFeatureState
-} from "../../subclassRuntime";
+import { resolveSpellIdsByName, type SubclassDerivedFeatureState } from "../../subclassRuntime";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureActionFact } from "../../types";
 import type { WeaponAction } from "../../../gameplay";
@@ -207,10 +204,20 @@ function getRogueScionOfTheThreeBloodthirstReactionDescription(
   return [
     ...bloodthirstDescription,
     ...(hasRogueScionOfTheThreeAuraOfMalevolenceFeature(character)
-      ? createSourcedDescriptionEntries(auraOfMalevolenceSource, auraOfMalevolenceDescription)
+      ? createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.AURA_OF_MALEVOLENCE,
+          auraOfMalevolenceDescription,
+          auraOfMalevolenceSource
+        )
       : []),
     ...(hasRogueScionOfTheThreeDreadIncarnateFeature(character)
-      ? createSourcedDescriptionEntries(cutthroatSource, cutthroatDescription)
+      ? createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.DREAD_INCARNATE,
+          cutthroatDescription,
+          cutthroatSource
+        )
       : [])
   ];
 }
@@ -247,16 +254,17 @@ export function getRogueScionOfTheThreeSneakAttackEffectDefinitions(
 }
 
 function appendFeatureActionDescriptionSection(
+  character: RogueScionOfTheThreeCharacter,
   action: FeatureActionCard,
   actionKey: string,
-  sourceName: string,
+  feature: CLASS_FEATURE,
   descriptionEntries: readonly string[]
 ): FeatureActionCard {
   if (action.key !== actionKey || descriptionEntries.length === 0) {
     return action;
   }
 
-  return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
+  return appendFeatureSourcedDescriptionAddition(action, character, feature, descriptionEntries);
 }
 
 function transformRogueScionOfTheThreeFeatureAction(
@@ -268,9 +276,10 @@ function transformRogueScionOfTheThreeFeatureAction(
   }
 
   return appendFeatureActionDescriptionSection(
+    character,
     action,
     rogueSneakAttackActionKey,
-    murderousIntentSource,
+    CLASS_FEATURE.DREAD_INCARNATE,
     murderousIntentDescription
   );
 }

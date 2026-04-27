@@ -1,5 +1,5 @@
 import { CLASS_FEATURE, MAGIC_SCHOOL, type SpellEntry } from "../../../../../codex/entries";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import type { SubclassRuntimeCharacter } from "../../subclassRuntime";
 import {
   getWizardDivinerFeatureDescriptionEntries,
@@ -26,9 +26,11 @@ export function transformWizardDivinerExpertDivinationSpell(
     return spell;
   }
 
-  return appendSourcedDescriptionAddition(
+  return appendFeatureSourcedDescriptionAddition(
     spell,
-    expertDivinationName,
-    expertDivinationDescription
+    character,
+    CLASS_FEATURE.EXPERT_DIVINATION,
+    expertDivinationDescription,
+    expertDivinationName
   );
 }

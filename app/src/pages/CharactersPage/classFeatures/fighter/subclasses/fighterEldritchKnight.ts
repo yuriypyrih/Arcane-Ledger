@@ -1,6 +1,6 @@
 import { ACTION_TYPE, CLASS_FEATURE, type SpellEntry } from "../../../../../codex/entries";
 import type { Character, CharacterFighterFeatureState } from "../../../../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
@@ -38,12 +38,11 @@ export function getFighterEldritchKnightWarMagicSpellLevels(
 function getFighterEldritchKnightWarMagicUsesThisTurn(
   character: FighterEldritchKnightCharacter
 ): number {
-  const fighterState =
-    character.classFeatureState?.fighter as
-      | (Partial<CharacterFighterFeatureState> & {
-          eldritchKnightWarMagicUsedThisTurn?: unknown;
-        })
-      | undefined;
+  const fighterState = character.classFeatureState?.fighter as
+    | (Partial<CharacterFighterFeatureState> & {
+        eldritchKnightWarMagicUsedThisTurn?: unknown;
+      })
+    | undefined;
   const currentValue = fighterState?.eldritchKnightWarMagicUsesThisTurn;
 
   if (Number.isFinite(Number(currentValue))) {
@@ -253,16 +252,26 @@ export function consumeFighterEldritchKnightActionCantrip(character: Character):
 }
 
 function appendWeaponDescriptionSection(
+  character: Parameters<SubclassRuntimeResolver>[0],
   action: WeaponAction,
+  feature: CLASS_FEATURE,
   sourceName: string,
   descriptionEntries: readonly string[]
 ): WeaponAction {
-  return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
+  return appendFeatureSourcedDescriptionAddition(
+    action,
+    character,
+    feature,
+    descriptionEntries,
+    sourceName
+  );
 }
 
 function appendFeatureActionDescriptionEntries(
+  character: Parameters<SubclassRuntimeResolver>[0],
   action: FeatureActionCard,
   actionKey: string,
+  feature: CLASS_FEATURE,
   sourceName: string,
   descriptionEntries: readonly string[]
 ): FeatureActionCard {
@@ -270,7 +279,13 @@ function appendFeatureActionDescriptionEntries(
     return action;
   }
 
-  return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
+  return appendFeatureSourcedDescriptionAddition(
+    action,
+    character,
+    feature,
+    descriptionEntries,
+    sourceName
+  );
 }
 
 export const getFighterEldritchKnightDerivedFeatureState: SubclassRuntimeResolver = (character) => {
@@ -296,8 +311,10 @@ export const getFighterEldritchKnightDerivedFeatureState: SubclassRuntimeResolve
     transformFeatureAction: hasArcaneCharge
       ? (action) =>
           appendFeatureActionDescriptionEntries(
+            character,
             action,
             fighterActionSurgeActionKey,
+            CLASS_FEATURE.ARCANE_CHARGE,
             arcaneChargeSource,
             arcaneChargeDescription
           )
@@ -306,7 +323,9 @@ export const getFighterEldritchKnightDerivedFeatureState: SubclassRuntimeResolve
       ? (action) =>
           action.attackKind === "weapon"
             ? appendWeaponDescriptionSection(
+                character,
                 action,
+                CLASS_FEATURE.ELDRITCH_STRIKE,
                 eldritchStrikeSource,
                 eldritchStrikeDescription
               )

@@ -177,6 +177,7 @@ import {
   areSpellIdListsEqual,
   getRoundTrackerResourceForSpell
 } from "../../../../pages/CharactersPage/shared";
+import { orderDescriptionAdditionSections } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import {
   getSpellDamageDetailForCharacter,
   getSpellOutcomeSummaryForCharacter
@@ -378,10 +379,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const [useFrozenHauntOnSelectedSpell, setUseFrozenHauntOnSelectedSpell] = useState(false);
   const [selectedFrozenHauntFallbackSlotLevel, setSelectedFrozenHauntFallbackSlotLevel] =
     useState(4);
-  const [
-    isSelectedSpellDiceRollerSettingsOpen,
-    setIsSelectedSpellDiceRollerSettingsOpen
-  ] = useState(false);
+  const [isSelectedSpellDiceRollerSettingsOpen, setIsSelectedSpellDiceRollerSettingsOpen] =
+    useState(false);
   const [activeSpellSlotSheetLevel, setActiveSpellSlotSheetLevel] = useState<number | null>(null);
   const [spellManagementMode, setSpellManagementMode] = useState<SpellManagementMode | null>(null);
   const [cantripDraftIds, setCantripDraftIds] = useState<string[]>([]);
@@ -3792,10 +3791,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               {(() => {
                 const descriptionEntries =
                   selectedDivinityDisplay?.description ?? selectedDivinityRow.entry.description;
-                const descriptionSections =
-                  selectedDivinityDisplay?.descriptionAdditions?.filter(
-                    (section) => section.length > 0
-                  ) ?? [];
+                const descriptionSections = orderDescriptionAdditionSections(
+                  selectedDivinityDisplay?.descriptionAdditions ?? []
+                );
                 const hasBaseDescription = descriptionEntries.length > 0;
 
                 return hasBaseDescription || descriptionSections.length > 0 ? (

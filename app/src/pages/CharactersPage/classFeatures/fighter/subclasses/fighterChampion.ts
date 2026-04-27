@@ -4,7 +4,7 @@ import {
   fighterChampionSuperiorCriticalDescription
 } from "../../../../../codex/subclasses/fighterChampion";
 import { SKILL, type Character } from "../../../../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import { restoreHeroicInspirationForCharacter } from "../../../heroicInspiration";
 import type { WeaponAction } from "../../../gameplay";
@@ -87,11 +87,19 @@ function getFighterChampionSkillIndicators(
 }
 
 function appendWeaponDescriptionSection(
+  character: Parameters<SubclassRuntimeResolver>[0],
   action: WeaponAction,
-  sourceName: string,
-  descriptionEntries: string[]
+  feature: CLASS_FEATURE,
+  descriptionEntries: string[],
+  sourceName: string
 ): WeaponAction {
-  return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
+  return appendFeatureSourcedDescriptionAddition(
+    action,
+    character,
+    feature,
+    descriptionEntries,
+    sourceName
+  );
 }
 
 function getRemarkableAthleteCriticalHitDescription(
@@ -110,6 +118,9 @@ export const getFighterChampionDerivedFeatureState: SubclassRuntimeResolver = (c
   const criticalFeatureSource = hasFighterChampionSuperiorCritical(character)
     ? superiorCriticalSource
     : improvedCriticalSource;
+  const criticalFeature = hasFighterChampionSuperiorCritical(character)
+    ? CLASS_FEATURE.SUPERIOR_CRITICAL
+    : CLASS_FEATURE.IMPROVED_CRITICAL;
   const criticalFeatureDescription = hasFighterChampionSuperiorCritical(character)
     ? fighterChampionSuperiorCriticalDescription
     : fighterChampionImprovedCriticalDescription;
@@ -122,9 +133,17 @@ export const getFighterChampionDerivedFeatureState: SubclassRuntimeResolver = (c
     skillIndicators: getFighterChampionSkillIndicators(character),
     transformWeaponAction: (action) =>
       appendWeaponDescriptionSection(
-        appendWeaponDescriptionSection(action, criticalFeatureSource, criticalFeatureDescription),
-        remarkableAthleteSource,
-        remarkableAthleteDescription
+        character,
+        appendWeaponDescriptionSection(
+          character,
+          action,
+          criticalFeature,
+          criticalFeatureDescription,
+          criticalFeatureSource
+        ),
+        CLASS_FEATURE.REMARKABLE_ATHLETE,
+        remarkableAthleteDescription,
+        remarkableAthleteSource
       )
   };
 };

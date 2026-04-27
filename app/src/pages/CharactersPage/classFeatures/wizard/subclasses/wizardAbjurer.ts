@@ -13,7 +13,7 @@ import {
   STATUS_ENTRY_SOURCE_TYPE,
   type Character
 } from "../../../../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
   createMagicTemporaryHitPointsAssignment,
@@ -22,10 +22,7 @@ import {
   normalizeMagicTemporaryHitPointsSource
 } from "../../../shared";
 import type { DerivedFeatureStatusEntry, MagicTemporaryHitPointsFeature } from "../../types";
-import {
-  transformSpellToBonusAction,
-  type SubclassRuntimeResolver
-} from "../../subclassRuntime";
+import { transformSpellToBonusAction, type SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getWizardSavantSpellIdsFromFeatureState } from "../savant";
 
 export const abjurerSubclassId = "wizard-abjurer";
@@ -36,8 +33,7 @@ const arcaneWardModalTitle = "Arcane Ward Magical Temporary HP";
 const projectedWardReactionId = "reaction-wizard-abjurer-projected-ward";
 const projectedWardName = "Projected Ward";
 const spellBreakerName = "Spell Breaker";
-export const wizardAbjurerSpellResistanceStatusSourceId =
-  "feature-wizard-abjurer-spell-resistance";
+export const wizardAbjurerSpellResistanceStatusSourceId = "feature-wizard-abjurer-spell-resistance";
 const arcaneWardDescription =
   "This ward absorbs incoming damage before normal Temporary HP. Its maximum equals twice your character level plus your Intelligence modifier, it gains 2 Magical Temporary HP per spell slot level whenever you cast an Abjuration spell with a spell slot, and it resets to 0 on a Long Rest.";
 const abjurerSubclassEntry = getSubclassEntryById(abjurerSubclassId);
@@ -103,15 +99,20 @@ function getWizardAbjurerSpellBreakerAlwaysPreparedSpellIds(): string[] {
   );
 }
 
-function transformWizardAbjurerSpellBreakerSpell(spell: SpellEntry): SpellEntry {
+function transformWizardAbjurerSpellBreakerSpell(
+  character: Parameters<SubclassRuntimeResolver>[0],
+  spell: SpellEntry
+): SpellEntry {
   if (spell.id !== counterspellSpellId && spell.id !== dispelMagicSpellId) {
     return spell;
   }
 
-  const nextSpell = appendSourcedDescriptionAddition(
+  const nextSpell = appendFeatureSourcedDescriptionAddition(
     spell,
-    spellBreakerName,
-    spellBreakerDescription
+    character,
+    CLASS_FEATURE.SPELL_BREAKER,
+    spellBreakerDescription,
+    spellBreakerName
   );
 
   return spell.id === dispelMagicSpellId
@@ -212,7 +213,8 @@ export function applyWizardAbjurerArcaneWardAfterSpellCast(
   );
 
   if (
-    nextMagicTemporaryHitPointsAssignment.magicTemporaryHitPoints === currentMagicTemporaryHitPoints &&
+    nextMagicTemporaryHitPointsAssignment.magicTemporaryHitPoints ===
+      currentMagicTemporaryHitPoints &&
     nextMagicTemporaryHitPointsAssignment.magicTemporaryHitPointsSource ===
       currentMagicTemporaryHitPointsSource
   ) {
@@ -261,12 +263,9 @@ export const getWizardAbjurerDerivedFeatureState: SubclassRuntimeResolver = (cha
         }),
         derivedStatusEntries: getWizardAbjurerDerivedStatusEntries(character),
         magicTemporaryHitPointsFeature: getWizardAbjurerMagicTemporaryHitPointsFeature(character),
-        reactionEntries:
-          character.level >= 6
-            ? [projectedWardReactionEntry]
-            : [],
+        reactionEntries: character.level >= 6 ? [projectedWardReactionEntry] : [],
         transformSpellEntry: hasWizardAbjurerSpellBreakerFeature(character)
-          ? transformWizardAbjurerSpellBreakerSpell
+          ? (spell) => transformWizardAbjurerSpellBreakerSpell(character, spell)
           : undefined
       }
     : {};

@@ -11,14 +11,14 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import type { WeaponAction } from "../../../gameplay";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
-import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureIndicator } from "../../types";
 import {
-  resolveSpellIdsByName,
-  type SubclassRuntimeResolver
-} from "../../subclassRuntime";
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
+import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureIndicator } from "../../types";
+import { resolveSpellIdsByName, type SubclassRuntimeResolver } from "../../subclassRuntime";
 
 export const warriorOfShadowSubclassId = "monk-warrior-of-shadow";
 export const monkShadowArtsDarknessActionKey = "monk-warrior-of-shadow-shadow-arts-darkness";
@@ -38,7 +38,8 @@ const shadowStepAdvantageIndicator: FeatureIndicator = {
   tone: "advantage",
   source: shadowStepAdvantageSource
 };
-const cloakOfShadowInvisibleStatusSourceId = "feature-monk-warrior-of-shadow-cloak-of-shadow-invisible";
+const cloakOfShadowInvisibleStatusSourceId =
+  "feature-monk-warrior-of-shadow-cloak-of-shadow-invisible";
 const cloakOfShadowDurationRounds = 10;
 const cloakOfShadowFocusCost = 3;
 
@@ -61,11 +62,15 @@ function getWarriorOfShadowFeatureDescriptionEntries(feature: CLASS_FEATURE): st
   );
 }
 
-const shadowArtsDescription = getWarriorOfShadowFeatureDescriptionEntries(CLASS_FEATURE.SHADOW_ARTS);
+const shadowArtsDescription = getWarriorOfShadowFeatureDescriptionEntries(
+  CLASS_FEATURE.SHADOW_ARTS
+);
 const shadowArtsDarknessDescription = shadowArtsDescription.filter((entry) =>
   entry.startsWith("<strong>Darkness.</strong>")
 );
-const shadowStepDescription = getWarriorOfShadowFeatureDescriptionEntries(CLASS_FEATURE.SHADOW_STEP);
+const shadowStepDescription = getWarriorOfShadowFeatureDescriptionEntries(
+  CLASS_FEATURE.SHADOW_STEP
+);
 const improvedShadowStepDescription = getWarriorOfShadowFeatureDescriptionEntries(
   CLASS_FEATURE.IMPROVED_SHADOW_STEP
 );
@@ -228,7 +233,10 @@ export function getMonkWarriorOfShadowImprovedShadowStepOptionState(
   character: MonkWarriorOfShadowCharacter,
   action: ShadowFeatureAction | null
 ): MonkWarriorOfShadowImprovedShadowStepOptionState | null {
-  if (!hasMonkWarriorOfShadowImprovedShadowStep(character) || action?.key !== monkShadowStepActionKey) {
+  if (
+    !hasMonkWarriorOfShadowImprovedShadowStep(character) ||
+    action?.key !== monkShadowStepActionKey
+  ) {
     return null;
   }
 
@@ -387,12 +395,17 @@ export function activateMonkWarriorOfShadowCloakOfShadow(character: Character): 
   };
 }
 
-function appendImprovedShadowStepDescription(action: FeatureActionCard): FeatureActionCard {
+function appendImprovedShadowStepDescription(
+  character: MonkWarriorOfShadowCharacter,
+  action: FeatureActionCard
+): FeatureActionCard {
   return action.key === monkShadowStepActionKey && improvedShadowStepDescription.length > 0
-    ? appendSourcedDescriptionAddition(
+    ? appendFeatureSourcedDescriptionAddition(
         action,
-        "Improved Shadow Step",
-        improvedShadowStepDescription
+        character,
+        CLASS_FEATURE.IMPROVED_SHADOW_STEP,
+        improvedShadowStepDescription,
+        "Improved Shadow Step"
       )
     : action;
 }
@@ -484,7 +497,8 @@ function getMonkWarriorOfShadowFeatureActions(
       key: monkShadowStepActionKey,
       name: "Shadow Step",
       summary: "Teleport up to 60 feet through shadow.",
-      detail: "Teleport between areas of Dim Light or Darkness and gain Advantage on your next melee attack this turn.",
+      detail:
+        "Teleport between areas of Dim Light or Darkness and gain Advantage on your next melee attack this turn.",
       breakdown: "Bonus Action teleport with Advantage",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.FEATURE,
@@ -502,7 +516,7 @@ function getMonkWarriorOfShadowFeatureActions(
 
     actions.push(
       hasMonkWarriorOfShadowImprovedShadowStep(character)
-        ? appendImprovedShadowStepDescription(shadowStepAction)
+        ? appendImprovedShadowStepDescription(character, shadowStepAction)
         : shadowStepAction
     );
   }

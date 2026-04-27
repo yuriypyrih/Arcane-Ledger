@@ -5,7 +5,7 @@ import {
   type SpellEntry
 } from "../../../../codex/entries";
 import type { Character, ClericBlessedStrikesChoice } from "../../../../types";
-import { appendSourcedDescriptionAddition } from "../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../actionModalDescriptions";
 import type { WeaponAction } from "../../gameplay";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 import { hasClericFeature } from "./clericFeatureState";
@@ -77,7 +77,9 @@ function getClericFeatureSection(
 
 function appendBlessedStrikesDescriptions<T extends SpellEntry | WeaponAction>(
   value: T,
+  character: ClericBlessedStrikesCharacter,
   sections: Array<{
+    feature: CLASS_FEATURE;
     source: string;
     description: SpellDescriptionEntry[];
   }>
@@ -85,7 +87,13 @@ function appendBlessedStrikesDescriptions<T extends SpellEntry | WeaponAction>(
   return sections.reduce(
     (currentValue, section) =>
       section.description.length > 0
-        ? appendSourcedDescriptionAddition(currentValue, section.source, section.description)
+        ? appendFeatureSourcedDescriptionAddition(
+            currentValue,
+            character,
+            section.feature,
+            section.description,
+            section.source
+          )
         : currentValue,
     value
   );
@@ -95,6 +103,7 @@ function getWeaponDescriptionSections(
   character: ClericBlessedStrikesCharacter,
   blessedStrikesChoice: ClericBlessedStrikesChoice | null
 ): Array<{
+  feature: CLASS_FEATURE;
   source: string;
   description: SpellDescriptionEntry[];
 }> {
@@ -104,13 +113,19 @@ function getWeaponDescriptionSections(
 
   const sections = [
     {
+      feature: CLASS_FEATURE.BLESSED_STRIKES,
       source: divineStrikeSource,
-      description: getClericFeatureSection(character, CLASS_FEATURE.BLESSED_STRIKES, divineStrikeHeading)
+      description: getClericFeatureSection(
+        character,
+        CLASS_FEATURE.BLESSED_STRIKES,
+        divineStrikeHeading
+      )
     }
   ];
 
   if (hasClericFeature(character, CLASS_FEATURE.IMPROVED_BLESSED_STRIKES)) {
     sections.push({
+      feature: CLASS_FEATURE.IMPROVED_BLESSED_STRIKES,
       source: improvedDivineStrikeSource,
       description: getClericFeatureSection(
         character,
@@ -127,6 +142,7 @@ function getSpellDescriptionSections(
   character: ClericBlessedStrikesCharacter,
   blessedStrikesChoice: ClericBlessedStrikesChoice | null
 ): Array<{
+  feature: CLASS_FEATURE;
   source: string;
   description: SpellDescriptionEntry[];
 }> {
@@ -136,6 +152,7 @@ function getSpellDescriptionSections(
 
   const sections = [
     {
+      feature: CLASS_FEATURE.BLESSED_STRIKES,
       source: potentSpellcastingSource,
       description: getClericFeatureSection(
         character,
@@ -147,6 +164,7 @@ function getSpellDescriptionSections(
 
   if (hasClericFeature(character, CLASS_FEATURE.IMPROVED_BLESSED_STRIKES)) {
     sections.push({
+      feature: CLASS_FEATURE.IMPROVED_BLESSED_STRIKES,
       source: improvedPotentSpellcastingSource,
       description: getClericFeatureSection(
         character,
@@ -170,6 +188,7 @@ export function getClericBlessedStrikesWeaponAction(
 
   return appendBlessedStrikesDescriptions(
     action,
+    character,
     getWeaponDescriptionSections(character, blessedStrikesChoice)
   );
 }
@@ -185,6 +204,7 @@ export function getClericBlessedStrikesSpellEntry(
 
   return appendBlessedStrikesDescriptions(
     spell,
+    character,
     getSpellDescriptionSections(character, blessedStrikesChoice)
   );
 }

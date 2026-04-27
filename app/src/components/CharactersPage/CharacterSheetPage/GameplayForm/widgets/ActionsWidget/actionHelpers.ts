@@ -1,15 +1,17 @@
 import type { Character, AbilityKey } from "../../../../../../types";
 import {
   ACTION_TYPE,
+  CLASS_FEATURE,
   type SpellEntry,
   type WeaponEntry
 } from "../../../../../../codex/entries";
 import { getWeaponEntries } from "../../../../../../codex/selectors";
-import { appendSourcedDescriptionAddition } from "../../../../../../pages/CharactersPage/actionModalDescriptions";
-import { ECONOMY_TYPE, type EconomyType } from "../../../../../../pages/CharactersPage/actionEconomy";
+import { appendFeatureSourcedDescriptionAddition } from "../../../../../../pages/CharactersPage/actionModalDescriptions";
 import {
-  getAbilityModifierBreakdownForCharacter
-} from "../../../../../../pages/CharactersPage/abilities";
+  ECONOMY_TYPE,
+  type EconomyType
+} from "../../../../../../pages/CharactersPage/actionEconomy";
+import { getAbilityModifierBreakdownForCharacter } from "../../../../../../pages/CharactersPage/abilities";
 import {
   getSavingThrowBonusesForCharacter,
   getSpellEntryForCharacter,
@@ -19,9 +21,7 @@ import {
 import { getSpellEntryById } from "../../../../../../codex/entries";
 import type { GameplayActionDefinition } from "../../../../../../pages/CharactersPage/combatActions";
 import { warriorOfTheOpenHandSubclassId } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheOpenHand";
-import {
-  monkStepOfTheWindActionKey
-} from "../../../../../../pages/CharactersPage/classFeatures/monk/monk";
+import { monkStepOfTheWindActionKey } from "../../../../../../pages/CharactersPage/classFeatures/monk/monk";
 import {
   getMonkWarriorOfTheOpenHandFleetStepFollowUpUsesRemaining,
   grantMonkWarriorOfTheOpenHandFleetStepFollowUpUse
@@ -137,26 +137,33 @@ export function resolveFeatureSavingThrowBonusTotal(
   }, 0);
 }
 
-function createContactPatronSpellEntry(spell: SpellEntry): SpellEntry {
-  return {
-    ...spell,
-    description: [
-      "<strong>Contact Patron.</strong> You mentally contact your patron directly. This casting doesn't expend a spell slot, and you automatically succeed on the DC 15 Intelligence saving throw.",
-      ...spell.description.slice(1)
-    ]
-  };
+function createContactPatronSpellEntry(character: Character, spell: SpellEntry): SpellEntry {
+  return appendFeatureSourcedDescriptionAddition(
+    {
+      ...spell,
+      description: spell.description.slice(1)
+    },
+    character,
+    CLASS_FEATURE.CONTACT_PATRON,
+    [
+      "You mentally contact your patron directly. This casting doesn't expend a spell slot, and you automatically succeed on the DC 15 Intelligence saving throw."
+    ],
+    "Contact Patron"
+  );
 }
 
-function createShadowArtsDarknessSpellEntry(spell: SpellEntry): SpellEntry {
-  return appendSourcedDescriptionAddition(
+function createShadowArtsDarknessSpellEntry(character: Character, spell: SpellEntry): SpellEntry {
+  return appendFeatureSourcedDescriptionAddition(
     {
       ...spell,
       components: []
     },
-    "Shadow Arts",
+    character,
+    CLASS_FEATURE.SHADOW_ARTS,
     [
       "This casting doesn't expend a spell slot or spell components. You can see within the spell's area when you cast it with this feature, and while the spell persists, you can move its area to a space within 60 feet of yourself at the start of each of your turns."
-    ]
+    ],
+    "Shadow Arts"
   );
 }
 
@@ -177,11 +184,11 @@ export function getFixedSpellEntryForExecute(
   const transformedSpell = getSpellEntryForCharacter(character, spell);
 
   if (execute.effectKind === "contact-patron") {
-    return createContactPatronSpellEntry(transformedSpell);
+    return createContactPatronSpellEntry(character, transformedSpell);
   }
 
   if (execute.effectKind === "shadow-arts-darkness") {
-    return createShadowArtsDarknessSpellEntry(transformedSpell);
+    return createShadowArtsDarknessSpellEntry(character, transformedSpell);
   }
 
   if (execute.effectKind === "mantle-of-majesty") {

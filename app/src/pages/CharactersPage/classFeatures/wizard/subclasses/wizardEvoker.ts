@@ -1,6 +1,6 @@
 import { CLASS_FEATURE, MAGIC_SCHOOL, type SpellEntry } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import type { Character } from "../../../../../types";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 import { getWizardSavantSpellIdsFromFeatureState } from "../savant";
@@ -59,12 +59,21 @@ function hasWizardEvokerEmpoweredEvocationFeature(
   );
 }
 
-function appendWizardEvokerPotentCantripDescription(spell: SpellEntry): SpellEntry {
+function appendWizardEvokerPotentCantripDescription(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  spell: SpellEntry
+): SpellEntry {
   if (spell.spellLevel !== 0 || spell.damage.length <= 0) {
     return spell;
   }
 
-  return appendSourcedDescriptionAddition(spell, potentCantripName, potentCantripDescription);
+  return appendFeatureSourcedDescriptionAddition(
+    spell,
+    character,
+    CLASS_FEATURE.POTENT_CANTRIP,
+    potentCantripDescription,
+    potentCantripName
+  );
 }
 
 export function getWizardEvokerSpellbookSpellEntry(
@@ -76,14 +85,22 @@ export function getWizardEvokerSpellbookSpellEntry(
   }
 
   const spellWithSculptSpells = hasWizardEvokerSculptSpellsFeature(character)
-    ? appendSourcedDescriptionAddition(spell, "Sculpt Spells", sculptSpellsDescription)
+    ? appendFeatureSourcedDescriptionAddition(
+        spell,
+        character,
+        CLASS_FEATURE.SCULPT_SPELLS,
+        sculptSpellsDescription,
+        "Sculpt Spells"
+      )
     : spell;
 
   return hasWizardEvokerEmpoweredEvocationFeature(character)
-    ? appendSourcedDescriptionAddition(
+    ? appendFeatureSourcedDescriptionAddition(
         spellWithSculptSpells,
-        "Empowered Evocation",
-        empoweredEvocationDescription
+        character,
+        CLASS_FEATURE.EMPOWERED_EVOCATION,
+        empoweredEvocationDescription,
+        "Empowered Evocation"
       )
     : spellWithSculptSpells;
 }
@@ -98,7 +115,7 @@ export const getWizardEvokerDerivedFeatureState: SubclassRuntimeResolver = (char
           classFeatureState: character.classFeatureState
         }),
         transformSpellEntry: hasWizardEvokerPotentCantripFeature(character)
-          ? appendWizardEvokerPotentCantripDescription
+          ? (spell) => appendWizardEvokerPotentCantripDescription(character, spell)
           : undefined
       }
     : {};

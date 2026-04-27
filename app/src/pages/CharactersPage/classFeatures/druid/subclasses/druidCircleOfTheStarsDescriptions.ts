@@ -6,8 +6,8 @@ import {
 } from "../../../../../codex/entries";
 import type { Character, DruidCosmicOmenSelection } from "../../../../../types";
 import {
-  appendSourcedDescriptionAddition,
-  createSourcedDescriptionEntries
+  appendFeatureSourcedDescriptionAddition,
+  createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
 import { normalizeCharacterStatusEntries } from "../../../statusEntries";
 import { getDruidFeatureDescriptionSection } from "../druidFeatureDescriptionSections";
@@ -69,7 +69,13 @@ export function getDruidCircleOfTheStarsGuidingBoltSpellEntry(
   const descriptionEntries = getDruidCircleOfTheStarsGuidingBoltDescriptionEntries(character);
 
   return descriptionEntries.length > 0
-    ? appendSourcedDescriptionAddition(spell, starMapSource, descriptionEntries)
+    ? appendFeatureSourcedDescriptionAddition(
+        spell,
+        character,
+        CLASS_FEATURE.STAR_MAP,
+        descriptionEntries,
+        starMapSource
+      )
     : spell;
 }
 
@@ -108,7 +114,14 @@ export function getDruidCircleOfTheStarsTwinklingConstellationsDescriptionAdditi
     getDruidCircleOfTheStarsTwinklingConstellationsDescriptionEntries(character);
 
   return descriptionEntries.length > 0
-    ? [createSourcedDescriptionEntries(twinklingConstellationsSource, descriptionEntries)]
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.TWINKLING_CONSTELLATIONS,
+          descriptionEntries,
+          twinklingConstellationsSource
+        )
+      ]
     : [];
 }
 
@@ -139,14 +152,22 @@ export function getDruidCircleOfTheStarsChaliceHealingSpellEntry(
 
   const nextSpell =
     descriptionEntries.length > 0
-      ? appendSourcedDescriptionAddition(spell, starryFormChaliceSource, descriptionEntries)
+      ? appendFeatureSourcedDescriptionAddition(
+          spell,
+          character,
+          CLASS_FEATURE.STARRY_FORM,
+          descriptionEntries,
+          starryFormChaliceSource
+        )
       : spell;
 
   return twinklingDescriptionEntries.length > 0
-    ? appendSourcedDescriptionAddition(
+    ? appendFeatureSourcedDescriptionAddition(
         nextSpell,
-        twinklingConstellationsSource,
-        twinklingDescriptionEntries
+        character,
+        CLASS_FEATURE.TWINKLING_CONSTELLATIONS,
+        twinklingDescriptionEntries,
+        twinklingConstellationsSource
       )
     : nextSpell;
 }

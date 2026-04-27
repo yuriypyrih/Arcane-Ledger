@@ -15,8 +15,10 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import {
+  createFeatureSourcedDescriptionEntries,
   createSourcedDescriptionEntries,
-  descriptionValueSomeText
+  descriptionValueSomeText,
+  getFeatureSourceNameForCharacter
 } from "../../../actionModalDescriptions";
 import {
   activateTelepathicBond,
@@ -170,8 +172,7 @@ function getWarlockGreatOldOnePatronPactMagicSlotLevel(
 }
 
 function getWarlockGreatOldOnePatronPactMagicSlotsRemaining(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "spellSlotsExpended">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "spellSlotsExpended">>
 ): number {
   const pactMagicSlotLevel = getWarlockGreatOldOnePatronPactMagicSlotLevel(character);
 
@@ -192,13 +193,15 @@ function getWarlockGreatOldOnePatronPactMagicSlotsRemaining(
 
 function getAwakenedMindDescriptionAdditions(
   character: WarlockGreatOldOnePatronCharacter
-): Array<ReturnType<typeof createSourcedDescriptionEntries>> | undefined {
+): ReturnType<typeof createFeatureSourcedDescriptionEntries>[] | undefined {
   return hasWarlockGreatOldOnePatronClairvoyantCombatant(character) &&
     clairvoyantCombatantDescription.length > 0
     ? [
-        createSourcedDescriptionEntries(
-          clairvoyantCombatantName,
-          clairvoyantCombatantDescription
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.CLAIRVOYANT_COMBATANT,
+          clairvoyantCombatantDescription,
+          clairvoyantCombatantName
         )
       ]
     : undefined;
@@ -215,8 +218,7 @@ export function getWarlockGreatOldOnePatronClairvoyantCombatantUsesRemaining(
     Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
 ): number {
   const totalUses = getWarlockGreatOldOnePatronClairvoyantCombatantUsesTotal(character);
-  const usesExpended =
-    character.classFeatureState?.warlock?.clairvoyantCombatantUsesExpended ?? 0;
+  const usesExpended = character.classFeatureState?.warlock?.clairvoyantCombatantUsesExpended ?? 0;
 
   return Math.max(0, totalUses - usesExpended);
 }
@@ -232,14 +234,10 @@ export function normalizeWarlockGreatOldOnePatronFeatureState(
 
   return {
     clairvoyantCombatantUsesExpended:
-      clairvoyantCombatantUsesTotal > 0 &&
-      Number.isFinite(rawClairvoyantCombatantUsesExpended)
+      clairvoyantCombatantUsesTotal > 0 && Number.isFinite(rawClairvoyantCombatantUsesExpended)
         ? Math.max(
             0,
-            Math.min(
-              clairvoyantCombatantUsesTotal,
-              Math.floor(rawClairvoyantCombatantUsesExpended)
-            )
+            Math.min(clairvoyantCombatantUsesTotal, Math.floor(rawClairvoyantCombatantUsesExpended))
           )
         : clairvoyantCombatantUsesTotal > 0
           ? 0
@@ -341,14 +339,17 @@ function spellQualifiesForWarlockGreatOldOnePatronPsychicSpells(
 }
 
 function appendGreatOldOnePatronSpellDescription(
+  character: WarlockGreatOldOnePatronCharacter,
   spell: SpellEntry,
-  sourceName: string,
+  feature: CLASS_FEATURE,
+  fallbackSourceName: string,
   descriptionEntries: readonly string[]
 ): SpellEntry {
   if (descriptionEntries.length <= 0) {
     return spell;
   }
 
+  const sourceName = getFeatureSourceNameForCharacter(character, feature, fallbackSourceName);
   const marker = `<strong>${sourceName}.</strong>`;
 
   if (
@@ -366,27 +367,50 @@ function appendGreatOldOnePatronSpellDescription(
   };
 }
 
-function appendPsychicSpellsDescription(spell: SpellEntry): SpellEntry {
+function appendPsychicSpellsDescription(
+  character: WarlockGreatOldOnePatronCharacter,
+  spell: SpellEntry
+): SpellEntry {
   if (!spellQualifiesForWarlockGreatOldOnePatronPsychicSpells(spell)) {
     return spell;
   }
 
   return appendGreatOldOnePatronSpellDescription(
+    character,
     spell,
+    CLASS_FEATURE.PSYCHIC_SPELLS,
     psychicSpellsName,
     psychicSpellsDescription
   );
 }
 
-function appendEldritchHexDescription(spell: SpellEntry): SpellEntry {
+function appendEldritchHexDescription(
+  character: WarlockGreatOldOnePatronCharacter,
+  spell: SpellEntry
+): SpellEntry {
   return spell.id === hexSpellId
-    ? appendGreatOldOnePatronSpellDescription(spell, eldritchHexName, eldritchHexDescription)
+    ? appendGreatOldOnePatronSpellDescription(
+        character,
+        spell,
+        CLASS_FEATURE.ELDRITCH_HEX,
+        eldritchHexName,
+        eldritchHexDescription
+      )
     : spell;
 }
 
-function appendCreateThrallDescription(spell: SpellEntry): SpellEntry {
+function appendCreateThrallDescription(
+  character: WarlockGreatOldOnePatronCharacter,
+  spell: SpellEntry
+): SpellEntry {
   return spell.id === summonAberrationSpellId
-    ? appendGreatOldOnePatronSpellDescription(spell, createThrallName, createThrallDescription)
+    ? appendGreatOldOnePatronSpellDescription(
+        character,
+        spell,
+        CLASS_FEATURE.CREATE_THRALL,
+        createThrallName,
+        createThrallDescription
+      )
     : spell;
 }
 
@@ -415,7 +439,10 @@ function getWarlockGreatOldOnePatronDerivedStatusEntries(
 function getWarlockGreatOldOnePatronAlwaysPreparedSpellIds(
   character: WarlockGreatOldOnePatronCharacter
 ): string[] {
-  const spellIds = getPreparedSpellIdsByLevel(character.level ?? 0, greatOldOnePatronSpellIdsByLevel);
+  const spellIds = getPreparedSpellIdsByLevel(
+    character.level ?? 0,
+    greatOldOnePatronSpellIdsByLevel
+  );
 
   if (!hasWarlockGreatOldOnePatronEldritchHex(character)) {
     return spellIds;
@@ -428,16 +455,15 @@ function getWarlockGreatOldOnePatronTransformedSpell(
   character: WarlockGreatOldOnePatronCharacter,
   spell: SpellEntry
 ): SpellEntry {
-  const psychicSpell =
-    hasWarlockGreatOldOnePatronPsychicSpells(character)
-      ? appendPsychicSpellsDescription(spell)
-      : spell;
+  const psychicSpell = hasWarlockGreatOldOnePatronPsychicSpells(character)
+    ? appendPsychicSpellsDescription(character, spell)
+    : spell;
   const eldritchHexSpell = hasWarlockGreatOldOnePatronEldritchHex(character)
-    ? appendEldritchHexDescription(psychicSpell)
+    ? appendEldritchHexDescription(character, psychicSpell)
     : psychicSpell;
 
   return hasWarlockGreatOldOnePatronCreateThrall(character)
-    ? appendCreateThrallDescription(eldritchHexSpell)
+    ? appendCreateThrallDescription(character, eldritchHexSpell)
     : eldritchHexSpell;
 }
 

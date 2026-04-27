@@ -7,7 +7,10 @@ import {
   PROF_LEVEL,
   TOOL_PROFICIENCY
 } from "../../../../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import {
+  appendFeatureSourcedDescriptionAddition,
+  createFeatureSourcedDescriptionEntries
+} from "../../../actionModalDescriptions";
 import { getAbilityModifierBreakdownForCharacter } from "../../../abilities";
 import { getProficiencyBonus } from "../../../gameplay";
 import type { WeaponAction } from "../../../gameplay";
@@ -23,7 +26,6 @@ const assassinsToolsSource = "Assassin's Tools";
 const surprisingStrikesSource = "Surprising Strikes";
 const rovingAimSource = "Roving Aim";
 const envenomWeaponsSource = "Envenom Weapons";
-const deathStrikeSource = "Death Strike";
 const assassinSubclassEntry = getSubclassEntryById(assassinSubclassId);
 const assassinateAdvantageIndicator = {
   label: "Advantage",
@@ -131,19 +133,6 @@ const rovingAimDescription = stripFeatureDescriptionHeading(
   `<strong>${rovingAimSource}.</strong>`
 );
 
-function createSourcedDescriptionEntries(
-  sourceName: string,
-  descriptionEntries: readonly string[]
-): string[] {
-  const [firstEntry, ...remainingEntries] = descriptionEntries;
-
-  if (!firstEntry) {
-    return [];
-  }
-
-  return [`<strong>${sourceName}.</strong> ${firstEntry}`, ...remainingEntries];
-}
-
 function getRogueAssassinCoreStatIndicators(
   character: RogueAssassinCharacter
 ): CoreStatIndicatorMap {
@@ -173,8 +162,9 @@ function getRogueAssassinToolProficiencyEntries(
 }
 
 function appendWeaponDescriptionSection(
+  character: RogueAssassinCharacter,
   action: WeaponAction,
-  sourceName: string,
+  feature: CLASS_FEATURE,
   descriptionEntries: readonly string[]
 ): WeaponAction {
   if (
@@ -184,7 +174,7 @@ function appendWeaponDescriptionSection(
     return action;
   }
 
-  return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
+  return appendFeatureSourcedDescriptionAddition(action, character, feature, descriptionEntries);
 }
 
 function createDefaultFeatureActionFacts(action: FeatureActionCard): FeatureActionFact[] {
@@ -246,20 +236,17 @@ function appendUniqueFeatureActionFact(
 }
 
 function appendFeatureActionDescriptionSection(
+  character: RogueAssassinCharacter,
   action: FeatureActionCard,
   actionKey: string,
-  sourceName: string,
+  feature: CLASS_FEATURE,
   descriptionEntries: readonly string[]
 ): FeatureActionCard {
   if (action.key !== actionKey || descriptionEntries.length === 0) {
     return action;
   }
 
-  return appendSourcedDescriptionAddition(
-    action,
-    sourceName,
-    descriptionEntries
-  );
+  return appendFeatureSourcedDescriptionAddition(action, character, feature, descriptionEntries);
 }
 
 function transformRogueAssassinFeatureAction(
@@ -270,27 +257,30 @@ function transformRogueAssassinFeatureAction(
 
   if (hasRogueAssassinFeature(character, 3)) {
     nextAction = appendFeatureActionDescriptionSection(
+      character,
       nextAction,
       rogueSneakAttackActionKey,
-      surprisingStrikesSource,
+      CLASS_FEATURE.ASSASSINATE,
       surprisingStrikesDescription
     );
   }
 
   if (hasRogueAssassinInfiltrationExpertise(character)) {
     nextAction = appendFeatureActionDescriptionSection(
+      character,
       nextAction,
       rogueSteadyAimActionKey,
-      rovingAimSource,
+      CLASS_FEATURE.INFILTRATION_EXPERTISE,
       rovingAimDescription
     );
   }
 
   if (hasRogueAssassinDeathStrike(character)) {
     nextAction = appendFeatureActionDescriptionSection(
+      character,
       nextAction,
       rogueSneakAttackActionKey,
-      deathStrikeSource,
+      CLASS_FEATURE.DEATH_STRIKE,
       deathStrikeDescription
     );
 
@@ -312,8 +302,9 @@ export const getRogueAssassinDerivedFeatureState: SubclassRuntimeResolver = (cha
         toolProficiencyEntries: getRogueAssassinToolProficiencyEntries(character),
         transformWeaponAction: (action) =>
           appendWeaponDescriptionSection(
+            character,
             action,
-            surprisingStrikesSource,
+            CLASS_FEATURE.ASSASSINATE,
             surprisingStrikesDescription
           ),
         transformFeatureAction: (action) => transformRogueAssassinFeatureAction(character, action)
@@ -328,5 +319,10 @@ export function getRogueAssassinSneakAttackEffectDescriptionAdditions(
     return [];
   }
 
-  return createSourcedDescriptionEntries(envenomWeaponsSource, envenomWeaponsDescription);
+  return createFeatureSourcedDescriptionEntries(
+    character,
+    CLASS_FEATURE.ENVENOM_WEAPONS,
+    envenomWeaponsDescription,
+    envenomWeaponsSource
+  ).filter((entry): entry is string => typeof entry === "string");
 }

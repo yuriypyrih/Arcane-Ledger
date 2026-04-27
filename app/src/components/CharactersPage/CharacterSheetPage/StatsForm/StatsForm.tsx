@@ -3,7 +3,7 @@ import { ChevronsUp, Pencil, Pentagon } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
-import { createSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
+import { createFeatureSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
 import type { AbilityKey, Character, CoreStats } from "../../../../types";
 import {
@@ -101,7 +101,10 @@ import {
   cloneAbilityScores,
   normalizeCustomAbilityScores
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
-import { formatD20Formula, getProficiencyMultiplier } from "../../../../pages/CharactersPage/shared";
+import {
+  formatD20Formula,
+  getProficiencyMultiplier
+} from "../../../../pages/CharactersPage/shared";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import AbilityReferenceFooter from "./AbilityReferenceFooter";
 import AbilityScoresModal from "./AbilityScoresModal";
@@ -113,10 +116,7 @@ import StatReferenceDrawer, {
   type SelectedStatReference
 } from "./StatReferenceDrawer";
 import { getArmorClassReferenceDetailCards } from "./armorClassReference";
-import {
-  applyInitiativeRollCharacterEffects,
-  createInitiativeRollRequest
-} from "./initiativeRoll";
+import { applyInitiativeRollCharacterEffects, createInitiativeRollRequest } from "./initiativeRoll";
 import styles from "./StatsForm.module.css";
 
 type CharacterStatsFormProps = {
@@ -273,7 +273,9 @@ function formatAbilityModifierFormula(
 ): string {
   const terms = [
     `floor((${score} ${ability} - 10) / 2)`,
-    ...bonusEntries.map((entry) => `${entry.value >= 0 ? "+" : "-"} ${Math.abs(entry.value)} ${entry.label}`)
+    ...bonusEntries.map(
+      (entry) => `${entry.value >= 0 ? "+" : "-"} ${Math.abs(entry.value)} ${entry.label}`
+    )
   ];
 
   return `${formatAbilityModifier(baseValue + bonusEntries.reduce((sum, entry) => sum + entry.value, 0))} ${ability} Modifier = ${terms.join(" ")}`;
@@ -302,7 +304,9 @@ function formatSavingThrowFormula(
   proficiencyLabel?: string,
   bonusEntries: SavingThrowBonusEntry[] = []
 ): string {
-  const terms = [`${abilityModifierBaseValue >= 0 ? "+" : ""}${abilityModifierBaseValue} ${ability}`];
+  const terms = [
+    `${abilityModifierBaseValue >= 0 ? "+" : ""}${abilityModifierBaseValue} ${ability}`
+  ];
 
   abilityModifierBonusEntries.forEach((entry) => {
     terms.push(`${entry.value >= 0 ? "+" : ""}${entry.value} ${entry.label}`);
@@ -362,7 +366,14 @@ function getStrengthDescriptionAdditions(character: Character): SpellDescription
   );
 
   return indomitableMightDescription.length > 0
-    ? [createSourcedDescriptionEntries("Indomitable Might", indomitableMightDescription)]
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.INDOMITABLE_MIGHT,
+          indomitableMightDescription,
+          "Indomitable Might"
+        )
+      ]
     : [];
 }
 
@@ -373,7 +384,14 @@ function getFanaticalFocusDescriptionAdditions(character: Character): SpellDescr
   );
 
   return fanaticalFocusDescription.length > 0
-    ? [createSourcedDescriptionEntries("Fanatical Focus", fanaticalFocusDescription)]
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.FANATICAL_FOCUS,
+          fanaticalFocusDescription,
+          "Fanatical Focus"
+        )
+      ]
     : [];
 }
 
@@ -384,7 +402,14 @@ function getLeadingEvasionDescriptionAdditions(character: Character): SpellDescr
   );
 
   return leadingEvasionDescription.length > 0
-    ? [createSourcedDescriptionEntries("Leading Evasion", leadingEvasionDescription)]
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.LEADING_EVASION,
+          leadingEvasionDescription,
+          "Leading Evasion"
+        )
+      ]
     : [];
 }
 
@@ -395,7 +420,14 @@ function getSpeedDescriptionAdditions(character: Character): SpellDescriptionEnt
   );
 
   return acrobaticMovementDescription.length > 0
-    ? [createSourcedDescriptionEntries("Acrobatic Movement", acrobaticMovementDescription)]
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.ACROBATIC_MOVEMENT,
+          acrobaticMovementDescription,
+          "Acrobatic Movement"
+        )
+      ]
     : [];
 }
 
@@ -403,7 +435,14 @@ function getEvasionDescriptionAdditions(character: Character): SpellDescriptionE
   const evasionDescription = getFeatureDescriptionForCharacter(character, CLASS_FEATURE.EVASION);
 
   return evasionDescription.length > 0
-    ? [createSourcedDescriptionEntries("Evasion", evasionDescription)]
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.EVASION,
+          evasionDescription,
+          "Evasion"
+        )
+      ]
     : [];
 }
 
@@ -509,8 +548,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   const [useTandemFootworkOnInitiative, setUseTandemFootworkOnInitiative] = useState(false);
   const [isDiceRollerSettingsOpen, setIsDiceRollerSettingsOpen] = useState(false);
   const [isIndomitableSaveSelected, setIsIndomitableSaveSelected] = useState(false);
-  const [isDisciplinedSurvivorSaveSelected, setIsDisciplinedSurvivorSaveSelected] =
-    useState(false);
+  const [isDisciplinedSurvivorSaveSelected, setIsDisciplinedSurvivorSaveSelected] = useState(false);
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
   useBodyScrollLock(
@@ -554,8 +592,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   const persistentRageUsesRemaining =
     getBarbarianPersistentRageUsesRemainingForCharacter(character);
   const hasPersistentRage = persistentRageUsesTotal > 0;
-  const uncannyMetabolismUsesTotal =
-    getMonkUncannyMetabolismUsesTotalForCharacter(character);
+  const uncannyMetabolismUsesTotal = getMonkUncannyMetabolismUsesTotalForCharacter(character);
   const uncannyMetabolismUsesRemaining =
     getMonkUncannyMetabolismUsesRemainingForCharacter(character);
   const hasUncannyMetabolism = uncannyMetabolismUsesTotal > 0;
@@ -703,8 +740,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
               ? "Fanatical Focus active"
               : undefined,
       showSavingThrowBoostIcon: ability === "DEX" && hasEvasion,
-      savingThrowBoostIconLabel:
-        ability === "DEX" && hasEvasion ? "Evasion active" : undefined,
+      savingThrowBoostIconLabel: ability === "DEX" && hasEvasion ? "Evasion active" : undefined,
       modifierIndicators,
       modifierRollState,
       savingThrowIndicators: saveIndicators,
@@ -1155,7 +1191,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
               const additions = getSpeedDescriptionAdditions(character);
               return additions.length > 0 ? additions : undefined;
             })()
-        : undefined;
+          : undefined;
 
     setSelectedStatReference({
       keyword: card.label,
@@ -1424,7 +1460,9 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
                         <ChevronsUp
                           size={16}
                           className={styles.savingThrowBoostIcon}
-                          aria-label={card.savingThrowBoostIconLabel ?? "Saving throw feature boost active"}
+                          aria-label={
+                            card.savingThrowBoostIconLabel ?? "Saving throw feature boost active"
+                          }
                         />
                       ) : null}
                     </span>

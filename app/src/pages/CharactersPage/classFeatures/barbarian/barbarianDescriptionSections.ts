@@ -1,6 +1,6 @@
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
-import { createSourcedDescriptionEntries } from "../../actionModalDescriptions";
+import { createFeatureSourcedDescriptionEntries } from "../../actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 import { hasBarbarianPathOfTheBerserkerMindlessRage } from "./subclasses/barbarianPathOfTheBerserker";
 import {
@@ -40,7 +40,14 @@ export function getBarbarianPersistentRageInitiativeDescriptionAdditions(
   const { initiativeEntries } = getPersistentRageDescriptionSplit(character);
 
   return initiativeEntries.length > 0
-    ? [createSourcedDescriptionEntries(persistentRageSource, initiativeEntries)]
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.PERSISTENT_RAGE,
+          initiativeEntries,
+          persistentRageSource
+        )
+      ]
     : [];
 }
 
@@ -56,13 +63,23 @@ export function getBarbarianRageActionDescriptionAdditions(
 
   if (persistentRageRageEntries.length > 0) {
     descriptionAdditions.push(
-      createSourcedDescriptionEntries(persistentRageSource, persistentRageRageEntries)
+      createFeatureSourcedDescriptionEntries(
+        character,
+        CLASS_FEATURE.PERSISTENT_RAGE,
+        persistentRageRageEntries,
+        persistentRageSource
+      )
     );
   }
 
   if (instinctivePounceDescription.length > 0) {
     descriptionAdditions.push(
-      createSourcedDescriptionEntries(instinctivePounceSource, instinctivePounceDescription)
+      createFeatureSourcedDescriptionEntries(
+        character,
+        CLASS_FEATURE.INSTINCTIVE_POUNCE,
+        instinctivePounceDescription,
+        instinctivePounceSource
+      )
     );
   }
 
@@ -74,7 +91,12 @@ export function getBarbarianRageActionDescriptionAdditions(
 
     if (vitalityOfTheTreeDescription.length > 0) {
       descriptionAdditions.push(
-        createSourcedDescriptionEntries(vitalityOfTheTreeSource, vitalityOfTheTreeDescription)
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.VITALITY_OF_THE_TREE,
+          vitalityOfTheTreeDescription,
+          vitalityOfTheTreeSource
+        )
       );
     }
   }
@@ -87,7 +109,12 @@ export function getBarbarianRageActionDescriptionAdditions(
 
     if (travelAlongTheTreeDescription.length > 0) {
       descriptionAdditions.push(
-        createSourcedDescriptionEntries(travelAlongTheTreeSource, travelAlongTheTreeDescription)
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.TRAVEL_ALONG_THE_TREE,
+          travelAlongTheTreeDescription,
+          travelAlongTheTreeSource
+        )
       );
     }
   }
@@ -100,7 +127,12 @@ export function getBarbarianRageActionDescriptionAdditions(
 
     if (divineFuryDescription.length > 0) {
       descriptionAdditions.push(
-        createSourcedDescriptionEntries(divineFurySource, divineFuryDescription)
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.DIVINE_FURY,
+          divineFuryDescription,
+          divineFurySource
+        )
       );
     }
   }
@@ -113,7 +145,12 @@ export function getBarbarianRageActionDescriptionAdditions(
 
     if (mindlessRageDescription.length > 0) {
       descriptionAdditions.push(
-        createSourcedDescriptionEntries(mindlessRageSource, mindlessRageDescription)
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.MINDLESS_RAGE,
+          mindlessRageDescription,
+          mindlessRageSource
+        )
       );
     }
   }

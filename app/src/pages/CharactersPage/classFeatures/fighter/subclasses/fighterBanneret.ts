@@ -6,7 +6,7 @@ import {
   banneretSharedResilienceDescription,
   banneretTeamTacticsDescription
 } from "../../../../../codex/subclasses/fighterBanneret";
-import { getReactionEntryById } from "../../../../../codex/entries";
+import { CLASS_FEATURE, getReactionEntryById } from "../../../../../codex/entries";
 import type {
   Character,
   CharacterFighterFeatureState,
@@ -29,7 +29,10 @@ import {
   isSkillName,
   languageEntries
 } from "../../../../../types";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import {
   createDefaultFeatureActionDescription,
   type SubclassRuntimeResolver
@@ -42,7 +45,7 @@ import type {
   FeatureSkillProficiencyEntry
 } from "../../types";
 import {
-  appendSourcedDescriptionAddition,
+  appendFeatureSourcedDescriptionAddition,
   descriptionValueSomeText
 } from "../../../actionModalDescriptions";
 import {
@@ -206,6 +209,7 @@ function appendFeatureDescriptionSections(
   action: FeatureActionCard,
   actionKey: string,
   sections: Array<{
+    feature: CLASS_FEATURE;
     sourceName: string;
     descriptionEntries: string[];
   }>
@@ -218,14 +222,14 @@ function appendFeatureDescriptionSections(
     ? [...action.description]
     : action.sourceFeature
       ? getFeatureDescriptionForCharacter(character, action.sourceFeature)
-    : createDefaultFeatureActionDescription(action);
+      : createDefaultFeatureActionDescription(action);
   let nextAction: FeatureActionCard = {
     ...action,
     description
   };
   let hasChanges = false;
 
-  sections.forEach(({ sourceName, descriptionEntries }) => {
+  sections.forEach(({ feature, sourceName, descriptionEntries }) => {
     if (
       descriptionValueSomeText(nextAction, (entry) =>
         entry.includes(`<strong>${sourceName}.</strong>`)
@@ -234,7 +238,13 @@ function appendFeatureDescriptionSections(
       return;
     }
 
-    nextAction = appendSourcedDescriptionAddition(nextAction, sourceName, descriptionEntries);
+    nextAction = appendFeatureSourcedDescriptionAddition(
+      nextAction,
+      character,
+      feature,
+      descriptionEntries,
+      sourceName
+    );
     hasChanges = true;
   });
 
@@ -517,12 +527,14 @@ export const getFighterBanneretDerivedFeatureState: SubclassRuntimeResolver = (c
         fighterSecondWindActionKey,
         [
           {
+            feature: CLASS_FEATURE.GROUP_RECOVERY,
             sourceName: "Group Recovery",
             descriptionEntries: getFighterBanneretGroupRecoveryDescriptionEntries(character)
           },
           ...(hasFighterBanneretTeamTactics(character)
             ? [
                 {
+                  feature: CLASS_FEATURE.TEAM_TACTICS,
                   sourceName: "Team Tactics",
                   descriptionEntries: teamTacticsDescriptionEntries
                 }
@@ -531,16 +543,22 @@ export const getFighterBanneretDerivedFeatureState: SubclassRuntimeResolver = (c
         ]
       );
 
-      return appendFeatureDescriptionSections(character, secondWindAction, fighterActionSurgeActionKey, [
-        ...(hasFighterBanneretFeature(character, 10)
-          ? [
-              {
-                sourceName: "Rallying Surge",
-                descriptionEntries: getFighterBanneretRallyingSurgeDescriptionEntries(character)
-              }
-            ]
-          : [])
-      ]);
+      return appendFeatureDescriptionSections(
+        character,
+        secondWindAction,
+        fighterActionSurgeActionKey,
+        [
+          ...(hasFighterBanneretFeature(character, 10)
+            ? [
+                {
+                  feature: CLASS_FEATURE.RALLYING_SURGE,
+                  sourceName: "Rallying Surge",
+                  descriptionEntries: getFighterBanneretRallyingSurgeDescriptionEntries(character)
+                }
+              ]
+            : [])
+        ]
+      );
     },
     reactionEntries: hasFighterBanneretSharedResilience(character)
       ? (() => {

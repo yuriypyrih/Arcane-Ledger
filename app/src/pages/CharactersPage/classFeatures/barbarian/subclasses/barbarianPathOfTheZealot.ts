@@ -8,9 +8,12 @@ import {
   type Character,
   type CharacterRageFeatureState
 } from "../../../../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import { clampNumber } from "../../../shared";
 import type { WeaponAction } from "../../../gameplay";
 import {
@@ -320,7 +323,8 @@ function applyBarbarianPathOfTheZealotZealousPresenceStatus(character: Character
 }
 
 export function getBarbarianPathOfTheZealotWeaponDamageBonuses(
-  character: Pick<Character, "level" | "roundTracker" | "className"> & Partial<Pick<Character, "subclassId">>,
+  character: Pick<Character, "level" | "roundTracker" | "className"> &
+    Partial<Pick<Character, "subclassId">>,
   rageState: CharacterRageFeatureState,
   context: WeaponFeatureContext,
   isRaging: boolean
@@ -430,7 +434,8 @@ export function getBarbarianPathOfTheZealotRageStatusEntries(
 } {
   const nextNormalizedStatusEntries = normalizeCharacterStatusEntries(statusEntries).filter(
     (entry) =>
-      entry.sourceId !== fanaticalFocusStatusSourceId && entry.sourceId !== rageOfTheGodsStatusSourceId
+      entry.sourceId !== fanaticalFocusStatusSourceId &&
+      entry.sourceId !== rageOfTheGodsStatusSourceId
   );
   const nextRageLinkedStatusEntries = hasBarbarianPathOfTheZealotFanaticalFocus(character)
     ? [
@@ -656,10 +661,17 @@ export function restoreBarbarianPathOfTheZealotRageOfTheGodsOnLongRest(
 }
 
 function appendDivineFuryDescription(
+  character: Parameters<SubclassRuntimeResolver>[0],
   action: WeaponAction,
   descriptionEntries: ReturnType<typeof getFeatureDescriptionForCharacter>
 ): WeaponAction {
-  return appendSourcedDescriptionAddition(action, divineFurySource, descriptionEntries);
+  return appendFeatureSourcedDescriptionAddition(
+    action,
+    character,
+    CLASS_FEATURE.DIVINE_FURY,
+    descriptionEntries,
+    divineFurySource
+  );
 }
 
 export const getBarbarianPathOfTheZealotDerivedFeatureState: SubclassRuntimeResolver = (
@@ -683,7 +695,7 @@ export const getBarbarianPathOfTheZealotDerivedFeatureState: SubclassRuntimeReso
   return divineFuryDescription.length > 0
     ? {
         transformWeaponAction: (action: WeaponAction) =>
-          appendDivineFuryDescription(action, divineFuryDescription)
+          appendDivineFuryDescription(character, action, divineFuryDescription)
       }
     : {};
 };

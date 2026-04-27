@@ -97,7 +97,10 @@ import {
   wizardDivinerThirdEyeSeeInvisibilityStatusSourceId
 } from "./classFeatures/wizard/subclasses/wizardDivinerThirdEyeConfig";
 import { getBarbarianRageDescriptionContent } from "./classFeatures/barbarian/barbarianDescriptionSections";
-import { createSourcedDescriptionEntries } from "./actionModalDescriptions";
+import {
+  createFeatureSourcedDescriptionEntries,
+  createSourcedDescriptionEntries
+} from "./actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "./classFeatures/featureDescriptions";
 import { getBarbarianPathOfTheWildHeartStatusDescriptionEntries } from "./classFeatures/barbarian/subclasses/barbarianPathOfTheWildHeart";
 import { getKeywordDescriptionLines } from "./keywordDescriptions";
@@ -259,14 +262,33 @@ function getMonkElementalAttunementDescriptionContent(
     descriptionAdditions: [
       ...(hasStrideOfTheElements && monkStrideOfTheElementsDescription.length > 0
         ? [
-            createSourcedDescriptionEntries(
-              "Stride of the Elements",
-              monkStrideOfTheElementsDescription
-            )
+            character
+              ? createFeatureSourcedDescriptionEntries(
+                  character,
+                  CLASS_FEATURE.STRIDE_OF_THE_ELEMENTS,
+                  monkStrideOfTheElementsDescription,
+                  "Stride of the Elements"
+                )
+              : createSourcedDescriptionEntries(
+                  "Stride of the Elements",
+                  monkStrideOfTheElementsDescription
+                )
           ]
         : []),
       ...(hasElementalEpitome && monkElementalEpitomeDescription.length > 0
-        ? [createSourcedDescriptionEntries("Elemental Epitome", monkElementalEpitomeDescription)]
+        ? [
+            character
+              ? createFeatureSourcedDescriptionEntries(
+                  character,
+                  CLASS_FEATURE.ELEMENTAL_EPITOME,
+                  monkElementalEpitomeDescription,
+                  "Elemental Epitome"
+                )
+              : createSourcedDescriptionEntries(
+                  "Elemental Epitome",
+                  monkElementalEpitomeDescription
+                )
+          ]
         : [])
     ]
   };
@@ -1361,9 +1383,11 @@ export function getStatusEntryDescriptionContent(
       descriptionAdditions:
         twinklingConstellationsDescription.length > 0
           ? [
-              createSourcedDescriptionEntries(
-                "Twinkling Constellations",
-                twinklingConstellationsDescription
+              createFeatureSourcedDescriptionEntries(
+                character,
+                CLASS_FEATURE.TWINKLING_CONSTELLATIONS,
+                twinklingConstellationsDescription,
+                "Twinkling Constellations"
               )
             ]
           : []
@@ -1400,13 +1424,23 @@ export function getStatusEntryDescriptionContent(
 
     if (auraOfAlacrityDescription.length > 0) {
       descriptionAdditions.push(
-        createSourcedDescriptionEntries("Aura of Alacrity", auraOfAlacrityDescription)
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.AURA_OF_ALACRITY,
+          auraOfAlacrityDescription,
+          "Aura of Alacrity"
+        )
       );
     }
 
     if (auraExpansionDescription.length > 0) {
       descriptionAdditions.push(
-        createSourcedDescriptionEntries("Aura Expansion", auraExpansionDescription)
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.AURA_EXPANSION,
+          auraExpansionDescription,
+          "Aura Expansion"
+        )
       );
     }
 
@@ -1434,9 +1468,11 @@ export function getStatusEntryDescriptionContent(
       descriptionAdditions:
         telekineticMasterDescription.length > 0
           ? [
-              createSourcedDescriptionEntries(
-                fighterPsiWarriorTelekineticMasterEffectName,
-                telekineticMasterDescription
+              createFeatureSourcedDescriptionEntries(
+                character,
+                CLASS_FEATURE.TELEKINETIC_MASTER,
+                telekineticMasterDescription,
+                fighterPsiWarriorTelekineticMasterEffectName
               ),
               ...getConcentrationDescriptionAdditions(entry, character)
             ].filter((section) => section.length > 0)

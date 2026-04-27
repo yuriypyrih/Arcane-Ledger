@@ -1,5 +1,5 @@
 import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/entries";
-import { createSourcedDescriptionEntries } from "../../../actionModalDescriptions";
+import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 import {
   type DruidFeatureDescriptionCharacter,
   getDruidFeatureDescription,
@@ -29,7 +29,12 @@ export function getDruidCircleOfTheMoonWildShapeDescriptionAdditions(
 
     if (improvedCircleFormsDescription.length > 0) {
       descriptionAdditions.push(
-        createSourcedDescriptionEntries(improvedCircleFormsSource, improvedCircleFormsDescription)
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.IMPROVED_CIRCLE_FORMS,
+          improvedCircleFormsDescription,
+          improvedCircleFormsSource
+        )
       );
     }
   }
@@ -44,9 +49,11 @@ export function getDruidCircleOfTheMoonWildShapeDescriptionAdditions(
 
     if (improvedLunarRadianceDescription.length > 0) {
       descriptionAdditions.push(
-        createSourcedDescriptionEntries(
-          lunarFormImprovedLunarRadianceSource,
-          improvedLunarRadianceDescription
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.LUNAR_FORM,
+          improvedLunarRadianceDescription,
+          lunarFormImprovedLunarRadianceSource
         )
       );
     }
@@ -70,6 +77,13 @@ export function getDruidCircleOfTheMoonMoonlightStepDescriptionAdditions(
   );
 
   return sharedMoonlightDescription.length > 0
-    ? [createSourcedDescriptionEntries(lunarFormSharedMoonlightSource, sharedMoonlightDescription)]
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.LUNAR_FORM,
+          sharedMoonlightDescription,
+          lunarFormSharedMoonlightSource
+        )
+      ]
     : [];
 }

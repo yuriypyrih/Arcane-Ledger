@@ -16,7 +16,7 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getPreparedSpellIdsByLevel } from "../../subclassRuntime";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
@@ -287,10 +287,12 @@ function getClericLightDomainWardingFlareReactionEntry(
     return reactionEntry;
   }
 
-  return appendSourcedDescriptionAddition(
+  return appendFeatureSourcedDescriptionAddition(
     reactionEntry,
-    improvedWardingFlareSource,
-    improvedDescription
+    character,
+    CLASS_FEATURE.IMPROVED_WARDING_FLARE,
+    improvedDescription,
+    improvedWardingFlareSource
   );
 }
 

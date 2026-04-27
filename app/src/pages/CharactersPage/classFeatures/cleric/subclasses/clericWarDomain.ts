@@ -12,7 +12,7 @@ import {
   type Character,
   type CharacterClericFeatureState
 } from "../../../../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
   consumeRoundTrackerResource,
@@ -222,10 +222,12 @@ function getClericWarGodsBlessingSpellEntry(
     return spell;
   }
 
-  return appendSourcedDescriptionAddition(
+  return appendFeatureSourcedDescriptionAddition(
     spell,
-    warGodsBlessingName,
-    getWarGodsBlessingDescription(character)
+    character,
+    CLASS_FEATURE.WAR_GODS_BLESSING,
+    getWarGodsBlessingDescription(character),
+    warGodsBlessingName
   );
 }
 
@@ -419,10 +421,12 @@ export const getClericWarDomainDerivedFeatureState: SubclassRuntimeResolver = (c
         reactionEntries: [getClericGuidedStrikeReactionEntry(character)],
         transformSpellEntry: (spell) => getClericWarGodsBlessingSpellEntry(character, spell),
         transformWeaponAction: (action) =>
-          appendSourcedDescriptionAddition(
+          appendFeatureSourcedDescriptionAddition(
             action,
-            guidedStrikeName,
-            getGuidedStrikeDescription(character)
+            character,
+            CLASS_FEATURE.GUIDED_STRIKE,
+            getGuidedStrikeDescription(character),
+            guidedStrikeName
           ),
         alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
           character.level ?? 0,

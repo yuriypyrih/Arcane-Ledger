@@ -15,10 +15,13 @@ import {
   type Character,
   type CharacterWizardFeatureState
 } from "../../../../../types";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import {
   resolveSpellIdsByName,
   type SubclassRuntimeCharacter,
@@ -28,10 +31,8 @@ import type { FeatureActionCard } from "../../types";
 import { getWizardSavantSpellIdsFromFeatureState } from "../savant";
 
 export const illusionistSubclassId = "wizard-illusionist";
-export const wizardIllusionistIllusorySelfReactionId =
-  "reaction-wizard-illusionist-illusory-self";
-export const wizardIllusionistIllusoryRealityActionKey =
-  "wizard-illusionist-illusory-reality";
+export const wizardIllusionistIllusorySelfReactionId = "reaction-wizard-illusionist-illusory-self";
+export const wizardIllusionistIllusoryRealityActionKey = "wizard-illusionist-illusory-reality";
 export const wizardIllusionistIllusoryRealityStatusSourceId =
   "feature-wizard-illusionist-illusory-reality";
 const improvedIllusionsName = "Improved Illusions";
@@ -182,7 +183,9 @@ function getWizardIllusionistSpellSlotsRemaining(
     spellSlotTotals
   );
 
-  return spellSlotTotals.map((total, index) => Math.max(0, total - (spellSlotsExpended[index] ?? 0)));
+  return spellSlotTotals.map((total, index) =>
+    Math.max(0, total - (spellSlotsExpended[index] ?? 0))
+  );
 }
 
 function getImprovedIllusionsRange(range: string): string {
@@ -209,15 +212,21 @@ function getImprovedIllusionsComponents(
     : components;
 }
 
-function appendImprovedIllusionsSpellDescription(spell: SpellEntry): SpellEntry {
+function appendImprovedIllusionsSpellDescription(
+  character: Pick<WizardIllusionistCharacter, "className"> &
+    Partial<Pick<WizardIllusionistCharacter, "level" | "subclassId">>,
+  spell: SpellEntry
+): SpellEntry {
   if (spell.magicSchool !== MAGIC_SCHOOL.ILLUSION) {
     return spell;
   }
 
-  const nextSpell = appendSourcedDescriptionAddition(
+  const nextSpell = appendFeatureSourcedDescriptionAddition(
     spell,
-    improvedIllusionsName,
-    improvedIllusionsDescription
+    character,
+    CLASS_FEATURE.IMPROVED_ILLUSIONS,
+    improvedIllusionsDescription,
+    improvedIllusionsName
   );
   const nextRange = getImprovedIllusionsRange(spell.range);
   const nextComponents = getImprovedIllusionsComponents(spell.components);
@@ -233,12 +242,18 @@ function appendImprovedIllusionsSpellDescription(spell: SpellEntry): SpellEntry 
   };
 }
 
-function appendPhantasmalCreaturesSpellDescription(spell: SpellEntry): SpellEntry {
+function appendPhantasmalCreaturesSpellDescription(
+  character: Pick<WizardIllusionistCharacter, "className"> &
+    Partial<Pick<WizardIllusionistCharacter, "level" | "subclassId">>,
+  spell: SpellEntry
+): SpellEntry {
   return phantasmalCreaturesSpellIdSet.has(spell.id)
-    ? appendSourcedDescriptionAddition(
+    ? appendFeatureSourcedDescriptionAddition(
         spell,
-        phantasmalCreaturesName,
-        phantasmalCreaturesDescription
+        character,
+        CLASS_FEATURE.PHANTASMAL_CREATURES,
+        phantasmalCreaturesDescription,
+        phantasmalCreaturesName
       )
     : spell;
 }
@@ -249,11 +264,11 @@ function transformWizardIllusionistSpell(
   spell: SpellEntry
 ): SpellEntry {
   const spellWithImprovedIllusions = hasWizardIllusionistImprovedIllusionsFeature(character)
-    ? appendImprovedIllusionsSpellDescription(spell)
+    ? appendImprovedIllusionsSpellDescription(character, spell)
     : spell;
 
   return hasWizardIllusionistPhantasmalCreaturesFeature(character)
-    ? appendPhantasmalCreaturesSpellDescription(spellWithImprovedIllusions)
+    ? appendPhantasmalCreaturesSpellDescription(character, spellWithImprovedIllusions)
     : spellWithImprovedIllusions;
 }
 
@@ -508,7 +523,10 @@ export function consumeWizardIllusionistIllusorySelfUse(character: Character): C
           ...wizardState,
           illusorySelfUsesExpended: Math.min(
             usesTotal,
-            normalizeWizardIllusionistUsesExpended(wizardState.illusorySelfUsesExpended, usesTotal) + 1
+            normalizeWizardIllusionistUsesExpended(
+              wizardState.illusorySelfUsesExpended,
+              usesTotal
+            ) + 1
           )
         }
       }
@@ -526,7 +544,10 @@ export function consumeWizardIllusionistIllusorySelfUse(character: Character): C
     character.level,
     character.subclassId
   );
-  const spellSlotsExpended = normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals);
+  const spellSlotsExpended = normalizeSpellSlotsExpended(
+    character.spellSlotsExpended,
+    spellSlotTotals
+  );
   const nextSpellSlotsExpended = [...spellSlotsExpended];
   nextSpellSlotsExpended[fallbackSlotLevel - 1] =
     (nextSpellSlotsExpended[fallbackSlotLevel - 1] ?? 0) + 1;
@@ -549,8 +570,10 @@ export function restoreWizardIllusionistPhantasmalCreaturesOnLongRest(
   const wizardState = getWizardIllusionistFeatureState(character);
 
   if (
-    normalizeWizardIllusionistUsesExpended(wizardState.phantasmalCreaturesUsesExpended, usesTotal) <=
-    0
+    normalizeWizardIllusionistUsesExpended(
+      wizardState.phantasmalCreaturesUsesExpended,
+      usesTotal
+    ) <= 0
   ) {
     return character;
   }

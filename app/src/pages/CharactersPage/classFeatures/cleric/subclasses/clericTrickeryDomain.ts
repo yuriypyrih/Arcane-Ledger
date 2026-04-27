@@ -5,7 +5,7 @@ import {
   invokeDuplicityDescription,
   trickstersTranspositionDescription
 } from "../../../../../codex/subclasses/cleric";
-import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import type { Character, CharacterStatusEntry } from "../../../../../types";
 import {
   SKILL,
@@ -16,11 +16,7 @@ import {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getPreparedSpellIdsByLevel, type SubclassRuntimeResolver } from "../../subclassRuntime";
-import type {
-  FeatureActionCard,
-  FeatureIndicator,
-  SkillIndicatorMap
-} from "../../types";
+import type { FeatureActionCard, FeatureIndicator, SkillIndicatorMap } from "../../types";
 import {
   expendClericChannelDivinityUse,
   getClericChannelDivinityUsesRemaining,
@@ -138,17 +134,21 @@ export function getClericInvokeDuplicityDescriptionAdditions(
     descriptionAdditions: [] as SpellDescriptionEntry[][]
   };
   const withTrickstersTransposition = hasClericTrickeryDomainFeature(character, 6)
-    ? appendSourcedDescriptionAddition(
+    ? appendFeatureSourcedDescriptionAddition(
         invokeDuplicityDescriptionCarrier,
-        trickstersTranspositionSource,
-        trickstersTranspositionDescription
+        character,
+        CLASS_FEATURE.TRICKSTERS_TRANSPOSITION,
+        trickstersTranspositionDescription,
+        trickstersTranspositionSource
       )
     : invokeDuplicityDescriptionCarrier;
   const withImprovedDuplicity = hasClericTrickeryDomainFeature(character, 17)
-    ? appendSourcedDescriptionAddition(
+    ? appendFeatureSourcedDescriptionAddition(
         withTrickstersTransposition,
-        improvedDuplicitySource,
-        improvedDuplicityDescription
+        character,
+        CLASS_FEATURE.IMPROVED_DUPLICITY,
+        improvedDuplicityDescription,
+        improvedDuplicitySource
       )
     : withTrickstersTransposition;
 
