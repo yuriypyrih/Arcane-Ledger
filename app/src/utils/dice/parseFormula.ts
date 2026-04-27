@@ -4,6 +4,7 @@ type DiceTerm = {
   count: number;
   sides: number;
   minimum: number;
+  multiplier: number;
   sign: 1 | -1;
 };
 
@@ -45,18 +46,19 @@ export function parseFormula(input: string): ParsedFormula {
       throw new Error(`Invalid formula segment: "${token}"`);
     }
 
-    const diceMatch = value.match(/^(\d*)d(\d+)(?:m(\d+))?$/);
+    const diceMatch = value.match(/^(\d*)d(\d+)(?:m(\d+))?(?:\*(\d+))?$/);
 
     if (diceMatch) {
       const count = Number(diceMatch[1] || "1");
       const sides = Number(diceMatch[2]);
       const minimum = Number(diceMatch[3] || "1");
+      const multiplier = Number(diceMatch[4] || "1");
 
-      if (count < 1 || sides < 2 || minimum < 1 || minimum > sides) {
+      if (count < 1 || sides < 2 || minimum < 1 || minimum > sides || multiplier < 1) {
         throw new Error(`Invalid dice term: "${token}"`);
       }
 
-      parsed.diceTerms.push({ count, sides, minimum, sign });
+      parsed.diceTerms.push({ count, sides, minimum, multiplier, sign });
       continue;
     }
 

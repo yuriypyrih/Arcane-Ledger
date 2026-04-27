@@ -126,6 +126,10 @@ export function useSelectedWeaponActionModel({
       return false;
     }
 
+    if (selectedWeaponAction.hasActiveMastery) {
+      return true;
+    }
+
     if (selectedWeaponEntry?.baseWeapon) {
       return hasActiveWeaponMastery(character.weaponProficiencies, {
         baseWeapon: selectedWeaponEntry.baseWeapon

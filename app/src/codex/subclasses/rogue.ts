@@ -107,13 +107,14 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "<strong>Initiative.</strong> You have <link:Advantage>Advantage</link> on <link:Initiative>Initiative</link> rolls.",
           "<strong>Surprising Strikes.</strong> During the first round of each combat, you have <link:Advantage>Advantage</link> on attack rolls against any creature that hasn't taken a turn. If your Sneak Attack hits any target during that round, the target takes extra damage of the weapon's type equal to your Rogue level."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.ASSASSINS_TOOLS, {
         description: [
-          "You gain a <link:Disguise Kit>Disguise Kit</link> and a Poisoner's Kit, and you have proficiency with them."
+          "You gain a <link:Disguise Kit>Disguise Kit</link> and a Poisoner's Kit, and you have proficiency with them.",
+          "(Add the tools yourself to your inventory)"
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_9,
@@ -124,7 +125,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
             "<strong>Masterful Mimicry.</strong> You can unerringly mimic another person's speech, handwriting, or both if you have spent at least 1 hour studying them.",
             "<strong>Roving Aim.</strong> Your <link:Speed>Speed</link> isn't reduced to 0 by using Steady Aim."
           ],
-          ...notTracked
+          trackingState: TRACKER.SEMI_TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_13, CLASS_FEATURE.ENVENOM_WEAPONS, {
@@ -132,13 +133,13 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "When you use the Poison option of your Cunning Strike, the target also takes <strong>2d6</strong> <link:Poison>Poison</link> damage whenever it fails the saving throw.",
           "This damage ignores <link:Resistance>Resistance</link> to Poison damage."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.DEATH_STRIKE, {
         description: [
           "When you hit with your Sneak Attack on the first round of a combat, the target must succeed on a <link:Constitution Saving Throw>Constitution saving throw</link> (DC 8 plus your <link:DEX>Dexterity</link> modifier and <link:Proficiency Bonus>Proficiency Bonus</link>), or the attack's damage is doubled against the target."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   },
@@ -156,7 +157,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "You can then make one melee attack.",
           "You can use this feature a number of times equal to your <link:INT>Intelligence</link> modifier (minimum of once), and you regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.DREAD_ALLEGIANCE, {
         description: [
@@ -165,7 +166,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "<strong>Bhaal.</strong> <link:Poison>Poison</link> resistance and <spell:Blade Ward>Blade Ward</spell>.",
           "<strong>Myrkul.</strong> <link:Necrotic>Necrotic</link> resistance and <spell:Chill Touch>Chill Touch</spell>."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_9, CLASS_FEATURE.STRIKE_FEAR, {
         description: [
@@ -174,7 +175,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "While the target is Frightened in this way, you have <link:Advantage>Advantage</link> on attack rolls against the target.",
           "The Frightened target repeats the save at the end of each of its turns, ending the effect on itself on a success."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_13,
@@ -185,7 +186,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
             "When you use Bloodthirst and teleport, each creature of your choice within 10 feet of either the space you left or your destination space takes damage equal to your <link:INT>Intelligence</link> modifier.",
             "The damage type is the same as the damage <link:Resistance>Resistance</link> granted by your choice in Dread Allegiance, and damage dealt by this feature ignores Resistance."
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.DREAD_INCARNATE, {
@@ -194,7 +195,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "<strong>Cutthroat.</strong> You regain one expended use of Bloodthirst when you finish a <link:short-rest>Short Rest</link>.",
           "<strong>Murderous Intent.</strong> When you roll for your Sneak Attack damage, you can treat a roll of 1 or 2 on the die as a 3."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       })
     ]
   },
@@ -212,12 +213,12 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "The Soulknife Energy Dice table shows the die size and number of these dice you have when you reach certain Rogue levels: level 3, four <strong>d6s</strong>; level 5, six <strong>d8s</strong>; level 9, eight <strong>d8s</strong>; level 11, eight <strong>d10s</strong>; level 13, ten <strong>d10s</strong>; level 17, twelve <strong>d12s</strong>.",
           "Any features in this subclass that use a Psionic Energy Die use only the dice from this subclass. Some of your powers expend a Psionic Energy Die as specified in a power's description, and you can't use a power if it requires you to use a die when all your Psionic Energy Dice are expended.",
           "You regain one of your expended Psionic Energy Dice when you finish a <link:short-rest>Short Rest</link>, and you regain all of them when you finish a <link:long-rest>Long Rest</link>.",
-          "<strong>Psi-Bolstered Knack.</strong> If you fail an ability check using a skill or tool with which you have proficiency, you can roll one Psionic Energy Die and add the number rolled to the check, potentially turning failure into success. The die is expended only if the roll then succeeds.",
+          "<strong>Psi-Bolstered Knack.</strong> If you fail an ability check using a skill or tool with which you have proficiency, you can roll one Psionic Energy Die and add the number rolled to the check, potentially turning failure into success. The die is expended only if the roll then succeeds. (Remove the Psionic die manually)",
           "<strong>Psychic Whispers.</strong> As a Magic action, choose one or more creatures you can see, up to a number of creatures equal to your <link:Proficiency Bonus>Proficiency Bonus</link>, and then roll one Psionic Energy Die.",
           "For a number of hours equal to the number rolled, the chosen creatures can speak telepathically with you, and you can speak telepathically with them as long as you and the other creature are within 1 mile of each other.",
           "The first time you use Psychic Whispers after each <link:long-rest>Long Rest</link>, you don't expend the Psionic Energy Die. All other times you use the power, you expend the die."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.PSYCHIC_BLADES, {
         description: [
@@ -228,7 +229,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "The blade vanishes immediately after it hits or misses its target, and it leaves no mark if it deals damage.",
           "After you attack with the blade on your turn, you can make a melee or ranged attack with a second psychic blade as a Bonus Action on the same turn if your other hand is free to create it. The damage die of this bonus attack is <strong>1d4</strong> instead of <strong>1d6</strong>."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_9, CLASS_FEATURE.SOUL_BLADES, {
         description: [
@@ -236,7 +237,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "<strong>Homing Strikes.</strong> If you make an attack roll with your Psychic Blade and miss the target, you can roll one Psionic Energy Die and add the number rolled to the attack roll. If this causes the attack to hit, the die is expended.",
           "<strong>Psychic Teleportation.</strong> As a Bonus Action, you manifest a Psychic Blade, expend one Psionic Energy Die and roll it, and throw the blade at an unoccupied space you can see up to a number of feet away equal to 10 times the number rolled. You then teleport to that space, and the blade vanishes."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_13, CLASS_FEATURE.PSYCHIC_VEIL, {
         description: [
@@ -244,7 +245,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "This invisibility ends early immediately after you deal damage to a creature or force a creature to make a saving throw.",
           "Once you use this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link> unless you expend a Psionic Energy Die, no action required, to restore your use of it."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.REND_MIND, {
         description: [
@@ -253,7 +254,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "The Stunned target repeats the save at the end of each of its turns, ending the effect on itself on a success.",
           "Once you use this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link> unless you expend one Psionic Energy Die, no action required, to restore your use of it."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       })
     ]
   },
@@ -271,7 +272,7 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "<strong>Sleight of Hand.</strong> Make a Dexterity (<link:Sleight of Hand>Sleight of Hand</link>) check to pick a lock or disarm a trap with Thieves' Tools or to pick a pocket.",
           "<strong>Use an Object.</strong> Take the Utilize action, or take the Magic action to use a magic item that requires that action."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.SECOND_STORY_WORK, {
         description: [
@@ -279,14 +280,14 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "<strong>Climber.</strong> You gain a Climb Speed equal to your <link:Speed>Speed</link>.",
           "<strong>Jumper.</strong> You can determine your jump distance using your <link:DEX>Dexterity</link> rather than your <link:STR>Strength</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_9, CLASS_FEATURE.SUPREME_SNEAK, {
         description: [
           "You gain the following Cunning Strike option.",
           "<strong>Stealth Attack (Cost: 1d6).</strong> If you have the Hide action's <link:Invisible>Invisible</link> condition, this attack doesn't end that condition on you if you end the turn behind Three-Quarters Cover or Total Cover."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_13, CLASS_FEATURE.USE_MAGIC_DEVICE, {
         description: [
@@ -296,14 +297,14 @@ export const rogueSubclassEntries: SubclassEntry[] = [
           "<strong>Scrolls.</strong> You can use any Spell Scroll, using <link:INT>Intelligence</link> as your spellcasting ability for the spell.",
           "If the spell is a cantrip or a level 1 spell, you can cast it reliably. If the scroll contains a higher-level spell, you must first succeed on an <link:INT>Intelligence</link> (<link:Arcana>Arcana</link>) check (DC 10 plus the spell's level). On a successful check, you cast the spell from the scroll. On a failed check, the scroll disintegrates."
         ],
-        ...notTracked
+        trackingState: TRACKER.NOT_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_17, CLASS_FEATURE.THIEFS_REFLEXES, {
         description: [
           "You are adept at laying ambushes and quickly escaping danger.",
           "You can take two turns during the first round of any combat. You take your first turn at your normal <link:Initiative>Initiative</link> and your second turn at your Initiative minus 10."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       })
     ]
   }

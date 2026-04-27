@@ -77,20 +77,23 @@ export function parseFormulaRange(
   for (const term of terms) {
     const sign = term.startsWith("-") ? -1 : 1;
     const rawTerm = term.replace(/^[+-]/, "");
-    const diceMatch = rawTerm.match(/^(\d*)d(\d+)(?:m(\d+))?$/i);
+    const diceMatch = rawTerm.match(/^(\d*)d(\d+)(?:m(\d+))?(?:\*(\d+))?$/i);
 
     if (diceMatch) {
       const count = Number(diceMatch[1] || "1");
       const sides = Number(diceMatch[2]);
       const minimumPerDie = diceMatch[3] ? Number(diceMatch[3]) : 1;
+      const multiplier = diceMatch[4] ? Number(diceMatch[4]) : 1;
 
       if (
         !Number.isFinite(count) ||
         !Number.isFinite(sides) ||
         !Number.isFinite(minimumPerDie) ||
+        !Number.isFinite(multiplier) ||
         count <= 0 ||
         sides <= 0 ||
-        minimumPerDie <= 0
+        minimumPerDie <= 0 ||
+        multiplier <= 0
       ) {
         return null;
       }
@@ -98,11 +101,11 @@ export function parseFormulaRange(
       hasDice = true;
 
       if (sign > 0) {
-        minimum += count * Math.min(minimumPerDie, sides);
-        maximum += count * sides;
+        minimum += count * Math.min(minimumPerDie, sides) * multiplier;
+        maximum += count * sides * multiplier;
       } else {
-        minimum -= count * sides;
-        maximum -= count * Math.min(minimumPerDie, sides);
+        minimum -= count * sides * multiplier;
+        maximum -= count * Math.min(minimumPerDie, sides) * multiplier;
       }
 
       continue;

@@ -32,12 +32,14 @@ type InitiativeRollRequestOptions = InitiativeCharacterEffectOptions & {
   initiativeBreakdown: InitiativeBreakdown;
   bardicInspirationDie: DICE | null;
   monkMartialArtsDie: DICE | null;
+  hasThiefsReflexes: boolean;
   characterLevel: number;
   onPersistCharacter: PersistCharacterUpdater;
   rollMode?: RollMode;
 };
 
 const initiativeLabel = "Initiative";
+const thiefsReflexesLabel = "Thief's Reflexes";
 const uncannyMetabolishLabel = "Uncanny Metabolish:";
 
 function formatInitiativeFormula(initiativeBreakdown: InitiativeBreakdown): string {
@@ -58,6 +60,17 @@ function formatDualRollToast(resolvedResult: DiceRollerResolvedResult): string {
   );
 
   return `Action Used: ${parts.join(" | ")}`;
+}
+
+function appendInitiativeDescription(
+  description: string,
+  addition: string | null
+): string {
+  if (!addition) {
+    return description;
+  }
+
+  return `${description}${description.endsWith(".") ? "" : "."} ${addition}`;
 }
 
 export function applyInitiativeRollCharacterEffects(
@@ -101,13 +114,46 @@ export function createInitiativeRollRequest(
   const initiativeDescription = tandemFootworkFormula
     ? `${initiativeFormulaDescription}. Tandem Footwork adds ${tandemFootworkFormula}.`
     : initiativeFormulaDescription;
+  const describedInitiative = appendInitiativeDescription(
+    initiativeDescription,
+    options.hasThiefsReflexes
+      ? "Thief's Reflexes shows your second first-round turn at Initiative minus 10."
+      : null
+  );
+  const initiativeEntry = {
+    label: initiativeLabel,
+    formula: initiativeRollFormula,
+    formulaDisplay: initiativeRollFormula
+  };
+  const thiefsReflexesEntry = options.hasThiefsReflexes
+    ? {
+        label: thiefsReflexesLabel,
+        formula: `${initiativeRollFormula} - 10`,
+        formulaDisplay: "Initiative - 10",
+        derivedResult: {
+          sourceEntryIndex: 0,
+          totalOffset: -10,
+          breakdownLabel: initiativeLabel
+        }
+      }
+    : null;
 
   if (!options.useUncannyMetabolismOnInitiative || !options.monkMartialArtsDie) {
+    if (thiefsReflexesEntry) {
+      return {
+        title: initiativeLabel,
+        description: describedInitiative,
+        mode: options.rollMode,
+        entries: [initiativeEntry, thiefsReflexesEntry],
+        getFullManualToastText: formatDualRollToast
+      };
+    }
+
     return {
       title: initiativeLabel,
       formula: initiativeRollFormula,
       formulaDisplay: initiativeRollFormula,
-      description: initiativeDescription,
+      description: describedInitiative,
       mode: options.rollMode
     };
   }
@@ -116,14 +162,14 @@ export function createInitiativeRollRequest(
 
   return {
     title: initiativeLabel,
-    description: `${initiativeDescription}. Uncanny Metabolism restores all Focus Points and heals for your Monk level plus the Martial Arts die result.`,
+    description: appendInitiativeDescription(
+      describedInitiative,
+      "Uncanny Metabolism restores all Focus Points and heals for your Monk level plus the Martial Arts die result."
+    ),
     mode: options.rollMode,
     entries: [
-      {
-        label: initiativeLabel,
-        formula: initiativeRollFormula,
-        formulaDisplay: initiativeRollFormula
-      },
+      initiativeEntry,
+      ...(thiefsReflexesEntry ? [thiefsReflexesEntry] : []),
       {
         label: uncannyMetabolishLabel,
         formula: `${martialArtsFormula} + ${options.characterLevel}`,

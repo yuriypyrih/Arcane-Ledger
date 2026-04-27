@@ -173,9 +173,11 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueScionOfTheThree";
 import {
   getRogueSoulknifePsionicDiceTotal,
+  getRogueSoulknifePsychicWhispersUsesTotal,
   getRogueSoulknifePsychicVeilUsesTotal,
   getRogueSoulknifeRendMindUsesTotal,
   restoreAllRogueSoulknifePsionicDice,
+  restoreRogueSoulknifePsychicWhispersOnLongRest,
   restoreRogueSoulknifePsychicVeilOnLongRest,
   restoreRogueSoulknifeRendMindOnLongRest,
   restoreRogueSoulknifePsionicDie
@@ -773,6 +775,8 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const rangerFortifyingSoulUsesTotal = getRangerWinterWalkerFortifyingSoulUsesTotal(character);
   const rogueBloodthirstUsesTotal = getRogueScionOfTheThreeBloodthirstUsesTotal(character);
   const rogueSoulknifePsionicDiceTotal = getRogueSoulknifePsionicDiceTotal(character);
+  const rogueSoulknifePsychicWhispersUsesTotal =
+    getRogueSoulknifePsychicWhispersUsesTotal(character);
   const rogueSoulknifePsychicVeilUsesTotal = getRogueSoulknifePsychicVeilUsesTotal(character);
   const rogueSoulknifeRendMindUsesTotal = getRogueSoulknifeRendMindUsesTotal(character);
   const rogueSpellThiefUsesTotal = getRogueSpellThiefUsesTotal(character);
@@ -1730,6 +1734,16 @@ export function createLongRestOptions(character: Character): RestOption[] {
             label: "Restore all Psionic Dice",
             apply: (currentCharacter: Character) =>
               restoreAllRogueSoulknifePsionicDice(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(rogueSoulknifePsychicWhispersUsesTotal > 0
+      ? [
+          {
+            id: "restore-rogue-soulknife-psychic-whispers",
+            label: "Restore Psychic Whispers",
+            apply: (currentCharacter: Character) =>
+              restoreRogueSoulknifePsychicWhispersOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

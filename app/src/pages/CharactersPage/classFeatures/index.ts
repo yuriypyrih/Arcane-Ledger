@@ -259,12 +259,17 @@ import {
 } from "./rogue/rogue";
 import {
   consumeRogueScionOfTheThreeBloodthirstUse,
+  getRogueScionOfTheThreeAuraOfMalevolenceFormulaFact,
   getRogueScionOfTheThreeDreadAllegianceChoice,
   getRogueScionOfTheThreeBloodthirstUsesRemaining,
   getRogueScionOfTheThreeBloodthirstUsesTotal,
   rogueScionOfTheThreeBloodthirstReactionId,
   setRogueScionOfTheThreeDreadAllegianceChoice
 } from "./rogue/subclasses/rogueScionOfTheThree";
+import {
+  getRogueThiefSkillReferenceDescriptionAdditions,
+  hasRogueThiefThiefsReflexesFeature
+} from "./rogue/subclasses/rogueThief";
 import {
   expendRogueSoulknifePsionicDie,
   getRogueSoulknifePsionicDiceRemaining,
@@ -882,14 +887,23 @@ export function getSkillIndicatorsForCharacter(
 }
 
 export function getSkillReferenceDescriptionAdditionsForCharacter(
-  character: Pick<Character, "className" | "level">,
-  _skill: SkillName
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  skill: SkillName
 ): SpellDescriptionEntry[][] {
+  const descriptionAdditions: SpellDescriptionEntry[][] = [];
+
   if (character.className === "Rogue") {
-    return getRogueSkillReferenceDescriptionAdditions(character);
+    descriptionAdditions.push(...getRogueSkillReferenceDescriptionAdditions(character));
+    descriptionAdditions.push(...getRogueThiefSkillReferenceDescriptionAdditions(character, skill));
   }
 
-  return [];
+  return descriptionAdditions;
+}
+
+export function hasRogueThiefThiefsReflexesForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): boolean {
+  return hasRogueThiefThiefsReflexesFeature(character);
 }
 
 export function getSkillRollD20MinimumForCharacter(
@@ -3169,6 +3183,15 @@ export function consumeRogueScionOfTheThreeBloodthirstUseForCharacter(
   character: Character
 ): Character {
   return consumeRogueScionOfTheThreeBloodthirstUse(character);
+}
+
+export function getRogueScionOfTheThreeAuraOfMalevolenceFactsForCharacter(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "classFeatureState" | "level" | "subclassId">>
+): FeatureActionFact[] {
+  const formulaFact = getRogueScionOfTheThreeAuraOfMalevolenceFormulaFact(character);
+
+  return formulaFact ? [formulaFact] : [];
 }
 
 export function expendRogueSoulknifePsionicDieForCharacter(character: Character): Character {

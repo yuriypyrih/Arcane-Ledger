@@ -182,12 +182,22 @@ import { setWizardDivinerPortentRolls } from "../../../../../../pages/Characters
 import { activateWizardDivinerThirdEye } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerThirdEye";
 import {
   getRogueSneakAttackEffectDefinitions,
-  getRogueSneakAttackFormula
+  getRogueSneakAttackFormula,
+  getRogueSneakAttackFormulaDisplay
 } from "../../../../../../pages/CharactersPage/classFeatures/rogue/rogue";
 import {
   consumeRogueSoulknifeRendMindUse,
   getRogueSoulknifePsionicDiceRemaining,
-  getRogueSoulknifeRendMindUsesRemaining
+  getRogueSoulknifePsychicTeleportationRollFormula,
+  getRogueSoulknifePsychicTeleportationRollFormulaDisplay,
+  getRogueSoulknifePsychicWhispersRollFormula,
+  getRogueSoulknifePsychicWhispersRollFormulaDisplay,
+  getRogueSoulknifeRendMindSavingThrowDc,
+  getRogueSoulknifeRendMindUsesRemaining,
+  getRogueSoulknifeRendMindUsesTotal,
+  hasRogueSoulknifeRendMindFeature,
+  rogueSoulknifePsychicTeleportationActionKey,
+  rogueSoulknifePsychicWhispersActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueSoulknife";
 import {
   getCombatActionsForCharacter,
@@ -209,7 +219,10 @@ import {
   type WeaponAction
 } from "../../../../../../pages/CharactersPage/gameplay";
 import { isRoundTrackerResourceAvailable } from "../../../../../../pages/CharactersPage/combat";
-import { applySpellConcentrationToStatusEntries } from "../../../../../../pages/CharactersPage/statusEntries";
+import {
+  applySpellConcentrationToStatusEntries,
+  removeInvisibleConditionFromCharacter
+} from "../../../../../../pages/CharactersPage/statusEntries";
 import {
   applyRolledHealingToCharacter,
   applyRolledTemporaryHitPointsToCharacter,
@@ -2706,60 +2719,17 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       description: `${damageAction.name} damage roll`
     });
 
-    if (
-      effectiveAction.damageBonusEntries.length <= 0 &&
-      !useDreadfulStrike &&
-      !useFeyDreadfulStrikes &&
-      !useColossusSlayer &&
-      !usePolarStrikes &&
-      !useStunningStrike &&
-      !useEmpoweredStrikes &&
-      !usePsionicStrike &&
-      !useHandOfHarm &&
-      !useQuiveringPalm
-    ) {
-      setIsDreadfulStrikeSelected(false);
-      setIsColossusSlayerSelected(false);
-      setIsPolarStrikesSelected(false);
-      setIsStunningStrikeSelected(false);
-      setIsEmpoweredStrikesSelected(false);
-      setIsHandOfHarmSelected(false);
-      setIsQuiveringPalmSelected(false);
-      setIsPsionicStrikeSelected(false);
-      return;
-    }
-
-    onPersistCharacter((currentCharacter) => {
-      let nextCharacter = effectiveAction.damageBonusEntries.reduce(
-        (updatedCharacter, entry) =>
-          entry.label === huntersMarkWeaponDamageBonusLabel
-            ? updatedCharacter
-            : markFeatureWeaponBonusUseForCharacter(updatedCharacter, entry.label),
-        currentCharacter
-      );
-
-      if (usePsionicStrike) {
-        nextCharacter = consumeFighterPsiWarriorPsionicStrikeForCharacter(nextCharacter);
-      }
-
-      if (useDreadfulStrike) {
-        nextCharacter = consumeRangerGloomStalkerDreadAmbusherUseForCharacter(nextCharacter);
-      }
-
-      if (usePolarStrikes) {
-        nextCharacter = consumeRangerWinterWalkerPolarStrikesUseForCharacter(nextCharacter);
-      }
-
-      if (useQuiveringPalm) {
-        nextCharacter = activateMonkWarriorOfTheOpenHandQuiveringPalmMark(nextCharacter);
-      }
-
-      if (useStunningStrike) {
-        nextCharacter = consumeMonkStunningStrike(nextCharacter);
-      }
-
-      return nextCharacter;
-    });
+    const hasDamageRollSideEffects =
+      effectiveAction.damageBonusEntries.length > 0 ||
+      useDreadfulStrike ||
+      useFeyDreadfulStrikes ||
+      useColossusSlayer ||
+      usePolarStrikes ||
+      useStunningStrike ||
+      useEmpoweredStrikes ||
+      usePsionicStrike ||
+      useHandOfHarm ||
+      useQuiveringPalm;
 
     setIsDreadfulStrikeSelected(false);
     setIsColossusSlayerSelected(false);
@@ -2769,6 +2739,42 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setIsHandOfHarmSelected(false);
     setIsQuiveringPalmSelected(false);
     setIsPsionicStrikeSelected(false);
+
+    onPersistCharacter((currentCharacter) => {
+      let nextCharacter = currentCharacter;
+
+      if (hasDamageRollSideEffects) {
+        nextCharacter = effectiveAction.damageBonusEntries.reduce(
+          (updatedCharacter, entry) =>
+            entry.label === huntersMarkWeaponDamageBonusLabel
+              ? updatedCharacter
+              : markFeatureWeaponBonusUseForCharacter(updatedCharacter, entry.label),
+          nextCharacter
+        );
+
+        if (usePsionicStrike) {
+          nextCharacter = consumeFighterPsiWarriorPsionicStrikeForCharacter(nextCharacter);
+        }
+
+        if (useDreadfulStrike) {
+          nextCharacter = consumeRangerGloomStalkerDreadAmbusherUseForCharacter(nextCharacter);
+        }
+
+        if (usePolarStrikes) {
+          nextCharacter = consumeRangerWinterWalkerPolarStrikesUseForCharacter(nextCharacter);
+        }
+
+        if (useQuiveringPalm) {
+          nextCharacter = activateMonkWarriorOfTheOpenHandQuiveringPalmMark(nextCharacter);
+        }
+
+        if (useStunningStrike) {
+          nextCharacter = consumeMonkStunningStrike(nextCharacter);
+        }
+      }
+
+      return removeInvisibleConditionFromCharacter(nextCharacter);
+    });
   }
 
   function toggleFeatureOptionSelection(option: FeatureActionOptionCard) {
@@ -3112,17 +3118,19 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return;
     }
 
+    const sneakAttackFormulaDisplay =
+      getRogueSneakAttackFormulaDisplay(character, effectKeys) ?? sneakAttackFormula;
+
     const selectedEffects = getRogueSneakAttackEffectDefinitions(character).filter((effect) =>
       effectKeys.includes(effect.key)
     );
+    const hasRendMind = hasRogueSoulknifeRendMindFeature(character);
     const canUseRendMind =
       useRendMind &&
+      hasRendMind &&
       (getRogueSoulknifeRendMindUsesRemaining(character) > 0 ||
         getRogueSoulknifePsionicDiceRemaining(character) > 0);
-    const rendMindSaveDc =
-      8 +
-      getAbilityModifierBreakdownForCharacter(character, "DEX").total +
-      getProficiencyBonus(character.level);
+    const rendMindSaveDc = getRogueSoulknifeRendMindSavingThrowDc(character);
     const baseDescription = selectedFeatureAction.detail.endsWith(".")
       ? selectedFeatureAction.detail
       : `${selectedFeatureAction.detail}.`;
@@ -3131,7 +3139,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedEffects.length > 0
         ? `Cunning Strike: ${selectedEffects.map((effect) => effect.name).join(", ")}.`
         : null,
-      canUseRendMind ? `Rend Mind: Wisdom save DC ${rendMindSaveDc} or Stunned for 1 minute.` : null
+      canUseRendMind && rendMindSaveDc !== null
+        ? `Rend Mind: Wisdom save DC ${rendMindSaveDc} or Stunned for 1 minute.`
+        : null
     ]
       .filter((entry): entry is string => Boolean(entry))
       .join(" ");
@@ -3154,8 +3164,49 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     openDiceRoller({
       title: "Sneak Attack",
       formula: sneakAttackFormula,
-      formulaDisplay: sneakAttackFormula,
+      formulaDisplay: sneakAttackFormulaDisplay,
       description
+    });
+
+    closeActionDrawer();
+  }
+
+  function submitRogueSoulknifePsionicDieRollAction(action: FeatureActionCard) {
+    const rollFormula =
+      action.key === rogueSoulknifePsychicWhispersActionKey
+        ? getRogueSoulknifePsychicWhispersRollFormula(character)
+        : getRogueSoulknifePsychicTeleportationRollFormula(character);
+    const rollFormulaDisplay =
+      action.key === rogueSoulknifePsychicWhispersActionKey
+        ? getRogueSoulknifePsychicWhispersRollFormulaDisplay(character)
+        : getRogueSoulknifePsychicTeleportationRollFormulaDisplay(character);
+
+    if (!rollFormula) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateFeatureActionForCharacter(preparedCharacter, action.key);
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
+    openDiceRoller({
+      title: action.name,
+      formula: rollFormula,
+      formulaDisplay: rollFormulaDisplay ?? rollFormula,
+      description: action.detail
     });
 
     closeActionDrawer();
@@ -4463,6 +4514,66 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedAction.drawer.kind === "custom-form" &&
       selectedAction.drawer.formKind === "sneak-attack"
     ) {
+      const hasRendMind = hasRogueSoulknifeRendMindFeature(character);
+      const rendMindUsesRemaining = getRogueSoulknifeRendMindUsesRemaining(character);
+      const rendMindUsesTotal = getRogueSoulknifeRendMindUsesTotal(character);
+      const rendMindCanUse =
+        rendMindUsesRemaining > 0 || getRogueSoulknifePsionicDiceRemaining(character) > 0;
+
+      return (
+        <div className={styles.footerActionStack}>
+          {hasRendMind ? (
+            <FeatureOptInToggle
+              label="Rend Mind"
+              checked={sneakAttackActionSelection.useRendMind}
+              disabled={!rendMindCanUse}
+              muted={!rendMindCanUse}
+              title={
+                rendMindCanUse ? undefined : "Rend Mind needs a charge or 1 Psionic Die remaining."
+              }
+              onCheckedChange={(checked) =>
+                setSneakAttackActionSelection({
+                  ...sneakAttackActionSelection,
+                  useRendMind: checked
+                })
+              }
+              metaItems={[
+                {
+                  kind: "tracker",
+                  current: rendMindUsesRemaining,
+                  total: rendMindUsesTotal
+                },
+                {
+                  kind: "cost",
+                  label: "Use 1 Psionic Die instead",
+                  icon: "psi"
+                }
+              ]}
+              usageKey="rend-mind"
+            />
+          ) : null}
+          <ActionDiceConfirmFooter
+            actionName={selectedAction.action.name}
+            confirmLabel={selectedFeaturePrimaryLabel}
+            actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+            actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+            actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+            disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+            isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+            onConfirm={() => submitSneakAttack(sneakAttackActionSelection)}
+            onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+          />
+        </div>
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
+      (selectedAction.action.key === rogueSoulknifePsychicWhispersActionKey ||
+        selectedAction.action.key === rogueSoulknifePsychicTeleportationActionKey)
+    ) {
       return (
         <ActionDiceConfirmFooter
           actionName={selectedAction.action.name}
@@ -4472,7 +4583,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
           disabled={selectedFeatureActionPrimaryDisabledReason !== null}
           isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
-          onConfirm={() => submitSneakAttack(sneakAttackActionSelection)}
+          onConfirm={() => submitRogueSoulknifePsionicDieRollAction(selectedAction.action)}
           onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
         />
       );

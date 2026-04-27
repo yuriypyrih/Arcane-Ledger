@@ -120,6 +120,7 @@ export type WeaponAction = {
   hasGreatWeaponFighting: boolean;
   hasMartialArtsDamageDie: boolean;
   hasBatteringRootsBonus: boolean;
+  hasActiveMastery?: boolean;
   isBatteringRootsEligible?: boolean;
   drawerEyebrow?: string;
   description?: SpellDescriptionEntry[];
@@ -539,6 +540,7 @@ export function createWeaponAction(
     hasVersatileBonus: boolean;
     hasGreatWeaponFighting: boolean;
     hasMartialArtsDamageDie?: boolean;
+    hasActiveMastery?: boolean;
     skipFeatureDerivedLookups?: boolean;
   }
 ): WeaponAction {
@@ -638,6 +640,7 @@ export function createWeaponAction(
     hasGreatWeaponFighting: options.hasGreatWeaponFighting,
     hasMartialArtsDamageDie: Boolean(options.hasMartialArtsDamageDie),
     hasBatteringRootsBonus,
+    hasActiveMastery: options.hasActiveMastery,
     isBatteringRootsEligible
   };
 }

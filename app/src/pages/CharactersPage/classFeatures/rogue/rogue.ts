@@ -1,5 +1,10 @@
 import { rogueFeatureMap, rogueFeatures } from "../../../../codex/classes";
-import { CLASS_FEATURE, getReactionEntryById, type ReactionEntry } from "../../../../codex/entries";
+import {
+  CLASS_FEATURE,
+  WEAPON_COMBAT_TYPE,
+  getReactionEntryById,
+  type ReactionEntry
+} from "../../../../codex/entries";
 import {
   ACTION_CATEGORY,
   ECONOMY_TYPE,
@@ -48,17 +53,22 @@ import type {
 } from "../types";
 import { arcaneTricksterSubclassId } from "./subclasses/rogueArcaneTrickster";
 import {
+  consumeRogueScionOfTheThreeBloodthirstMeleeAttack,
   getRogueScionOfTheThreeBloodthirstUsesTotal,
+  getRogueScionOfTheThreeBloodthirstMeleeAttackMultiCount,
   hasRogueScionOfTheThreeDreadAllegianceFeature,
+  hasRogueScionOfTheThreeDreadIncarnateFeature,
   normalizeRogueScionOfTheThreeDreadAllegianceChoice,
   restoreRogueScionOfTheThreeBloodthirstOnShortRest,
   restoreRogueScionOfTheThreeBloodthirstOnLongRest
 } from "./subclasses/rogueScionOfTheThree";
 import {
   getRogueSoulknifePsionicDiceTotal,
+  getRogueSoulknifePsychicWhispersUsesTotal,
   getRogueSoulknifePsychicVeilUsesTotal,
   getRogueSoulknifeRendMindUsesTotal,
   restoreAllRogueSoulknifePsionicDice,
+  restoreRogueSoulknifePsychicWhispersOnLongRest,
   restoreRogueSoulknifePsychicVeilOnLongRest,
   restoreRogueSoulknifeRendMindOnLongRest,
   restoreRogueSoulknifePsionicDie
@@ -70,6 +80,7 @@ import {
 } from "./subclasses";
 import type { RogueSneakAttackEffectDefinition, RogueSneakAttackEffectKey } from "./types";
 import { getWeaponMasteryOptions, normalizeWeaponMasterySelections } from "../weaponMastery";
+import { formatFormulaDieDisplayTerm } from "../../shared/formulas";
 
 export const rogueSneakAttackActionKey = "rogue-sneak-attack";
 export const rogueSteadyAimActionKey = "rogue-steady-aim";
@@ -89,6 +100,7 @@ const rogueSlipperyMindSource = "Slippery Mind";
 const rogueSteadyAimSource = "Steady Aim";
 const rogueReliableTalentSource = "Reliable Talent";
 const rogueReliableTalentD20Minimum = 10;
+const rogueDreadIncarnateSneakAttackMinimumPerDie = 3;
 const rogueSteadyAimAdvantageIndicator: FeatureIndicator = {
   label: "Advantage",
   tone: "advantage",
@@ -291,6 +303,8 @@ export function normalizeRogueFeatureState(
   const hasDreadAllegiance = hasRogueScionOfTheThreeDreadAllegianceFeature(character);
   const bloodthirstUsesTotal = getRogueScionOfTheThreeBloodthirstUsesTotal(character);
   const soulknifePsionicDiceTotal = getRogueSoulknifePsionicDiceTotal(character);
+  const soulknifePsychicWhispersUsesTotal =
+    getRogueSoulknifePsychicWhispersUsesTotal(character);
   const soulknifePsychicVeilUsesTotal = getRogueSoulknifePsychicVeilUsesTotal(character);
   const soulknifeRendMindUsesTotal = getRogueSoulknifeRendMindUsesTotal(character);
   const hasSpellThief =
@@ -309,6 +323,7 @@ export function normalizeRogueFeatureState(
     !hasDreadAllegiance &&
     bloodthirstUsesTotal <= 0 &&
     soulknifePsionicDiceTotal <= 0 &&
+    soulknifePsychicWhispersUsesTotal <= 0 &&
     soulknifePsychicVeilUsesTotal <= 0 &&
     soulknifeRendMindUsesTotal <= 0 &&
     !hasSpellThief &&
@@ -331,6 +346,15 @@ export function normalizeRogueFeatureState(
     : [];
 
   return {
+    bloodthirstMeleeAttacksRemainingThisTurn:
+      bloodthirstUsesTotal > 0
+        ? Math.max(
+            0,
+            Number.isFinite(Number(record.bloodthirstMeleeAttacksRemainingThisTurn))
+              ? Math.floor(Number(record.bloodthirstMeleeAttacksRemainingThisTurn))
+              : 0
+          )
+        : undefined,
     bloodthirstUsesExpended:
       bloodthirstUsesTotal > 0
         ? Math.max(
@@ -354,6 +378,18 @@ export function normalizeRogueFeatureState(
               soulknifePsionicDiceTotal,
               Number.isFinite(Number(record.soulknifePsionicDiceExpended))
                 ? Math.floor(Number(record.soulknifePsionicDiceExpended))
+                : 0
+            )
+          )
+        : undefined,
+    soulknifePsychicWhispersUsesExpended:
+      soulknifePsychicWhispersUsesTotal > 0
+        ? Math.max(
+            0,
+            Math.min(
+              soulknifePsychicWhispersUsesTotal,
+              Number.isFinite(Number(record.soulknifePsychicWhispersUsesExpended))
+                ? Math.floor(Number(record.soulknifePsychicWhispersUsesExpended))
                 : 0
             )
           )
@@ -756,6 +792,33 @@ export function getRogueSneakAttackRemainingDiceCount(
   );
 }
 
+function getRogueSneakAttackMinimumPerDie(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): number {
+  return hasRogueScionOfTheThreeDreadIncarnateFeature(character)
+    ? rogueDreadIncarnateSneakAttackMinimumPerDie
+    : 1;
+}
+
+function getRogueSneakAttackDiceTerm(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  diceCount: number,
+  options?: {
+    display?: boolean;
+  }
+): string {
+  const diceTerm = `${diceCount}d6`;
+  const minimumPerDie = getRogueSneakAttackMinimumPerDie(character);
+
+  if (minimumPerDie <= 1) {
+    return diceTerm;
+  }
+
+  return options?.display
+    ? formatFormulaDieDisplayTerm(diceTerm, [{ kind: "minimum", value: minimumPerDie }])
+    : `${diceTerm}m${minimumPerDie}`;
+}
+
 export function getRogueSneakAttackFormula(
   character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
   effectKeys: RogueSneakAttackEffectKey[] = []
@@ -766,7 +829,20 @@ export function getRogueSneakAttackFormula(
 
   const diceCount = getRogueSneakAttackRemainingDiceCount(character, effectKeys);
 
-  return diceCount > 0 ? `${diceCount}d6` : "0";
+  return diceCount > 0 ? getRogueSneakAttackDiceTerm(character, diceCount) : "0";
+}
+
+export function getRogueSneakAttackFormulaDisplay(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>,
+  effectKeys: RogueSneakAttackEffectKey[] = []
+): string | null {
+  if (!hasRogueFeature(character, CLASS_FEATURE.SNEAK_ATTACK)) {
+    return null;
+  }
+
+  const diceCount = getRogueSneakAttackRemainingDiceCount(character, effectKeys);
+
+  return diceCount > 0 ? getRogueSneakAttackDiceTerm(character, diceCount, { display: true }) : "0";
 }
 
 export function getRogueSneakAttackValueLabel(
@@ -780,8 +856,14 @@ export function getRogueSneakAttackValueLabel(
   }
 
   const diceCount = getRogueSneakAttackRemainingDiceCount(character, effectKeys);
+  const minimumPerDie = getRogueSneakAttackMinimumPerDie(character);
+  const minimumDamage = diceCount * minimumPerDie;
+  const maximumDamage = diceCount * 6;
+  const formulaDisplay = getRogueSneakAttackFormulaDisplay(character, effectKeys) ?? formula;
 
-  return diceCount > 0 ? `${diceCount}~${diceCount * 6} Damage (${formula})` : "0 Damage (0)";
+  return diceCount > 0
+    ? `${minimumDamage}~${maximumDamage} Damage (${formulaDisplay})`
+    : "0 Damage (0)";
 }
 
 export function getRogueExpertiseSelections(
@@ -1027,19 +1109,30 @@ export function consumeRogueWeaponAttack(
   action: WeaponAttackConsumptionContext
 ): Character {
   const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
+  const isBloodthirstMeleeAttack =
+    action.economyType === ECONOMY_TYPE.ACTION &&
+    action.actionCategory === ACTION_CATEGORY.ATTACK &&
+    (action.attackKind === "unarmed" ||
+      (action.attackKind === "weapon" && action.combatType === WEAPON_COMBAT_TYPE.MELEE));
+  const rogueState = getRogueFeatureState(character);
 
-  if (
-    !roundTrackerResource ||
-    !isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource)
-  ) {
+  if (!roundTrackerResource) {
     return character;
   }
 
-  const rogueState = getRogueFeatureState(character);
-  const consumedCharacter = {
-    ...character,
-    roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)
-  };
+  const consumedCharacter = isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource)
+    ? {
+        ...character,
+        roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)
+      }
+    : isBloodthirstMeleeAttack &&
+        getRogueScionOfTheThreeBloodthirstMeleeAttackMultiCount(character) > 0
+      ? consumeRogueScionOfTheThreeBloodthirstMeleeAttack(character)
+      : character;
+
+  if (consumedCharacter === character) {
+    return character;
+  }
 
   if (rogueState.steadyAimAttackAdvantageAvailable !== true) {
     return consumedCharacter;
@@ -1050,7 +1143,7 @@ export function consumeRogueWeaponAttack(
     classFeatureState: {
       ...consumedCharacter.classFeatureState,
       rogue: {
-        ...rogueState,
+        ...getRogueFeatureState(consumedCharacter),
         steadyAimAttackAdvantageAvailable: false
       }
     }
@@ -1108,7 +1201,8 @@ export function consumeRogueSpellThiefUse(character: Character): Character {
 export function advanceRogueFeaturesForNewRound(character: Character): Character {
   if (
     !hasRogueFeature(character, CLASS_FEATURE.SNEAK_ATTACK) &&
-    !hasRogueFeature(character, CLASS_FEATURE.STEADY_AIM)
+    !hasRogueFeature(character, CLASS_FEATURE.STEADY_AIM) &&
+    getRogueScionOfTheThreeBloodthirstMeleeAttackMultiCount(character) <= 0
   ) {
     return character;
   }
@@ -1118,7 +1212,8 @@ export function advanceRogueFeaturesForNewRound(character: Character): Character
   if (
     rogueState.sneakAttackUsedThisTurn !== true &&
     rogueState.steadyAimActive !== true &&
-    rogueState.steadyAimAttackAdvantageAvailable !== true
+    rogueState.steadyAimAttackAdvantageAvailable !== true &&
+    (rogueState.bloodthirstMeleeAttacksRemainingThisTurn ?? 0) <= 0
   ) {
     return character;
   }
@@ -1129,6 +1224,7 @@ export function advanceRogueFeaturesForNewRound(character: Character): Character
       ...character.classFeatureState,
       rogue: {
         ...rogueState,
+        bloodthirstMeleeAttacksRemainingThisTurn: 0,
         sneakAttackUsedThisTurn: false,
         steadyAimActive: false,
         steadyAimAttackAdvantageAvailable: false
@@ -1197,6 +1293,7 @@ export function applyShortRestToRogueFeatures(character: Character): Character {
   const restoredRogueState = getRogueFeatureState(restoredCharacter);
 
   if (
+    (restoredRogueState.bloodthirstMeleeAttacksRemainingThisTurn ?? 0) <= 0 &&
     restoredRogueState.steadyAimActive !== true &&
     restoredRogueState.steadyAimAttackAdvantageAvailable !== true
   ) {
@@ -1209,6 +1306,7 @@ export function applyShortRestToRogueFeatures(character: Character): Character {
       ...restoredCharacter.classFeatureState,
       rogue: {
         ...restoredRogueState,
+        bloodthirstMeleeAttacksRemainingThisTurn: 0,
         steadyAimActive: false,
         steadyAimAttackAdvantageAvailable: false
       }
@@ -1222,7 +1320,9 @@ export function applyLongRestToRogueFeatures(character: Character): Character {
       restoreRogueSpellThiefOnLongRest(
         restoreRogueSoulknifeRendMindOnLongRest(
           restoreRogueSoulknifePsychicVeilOnLongRest(
-            restoreAllRogueSoulknifePsionicDice(restoreRogueStrokeOfLuckOnLongRest(character))
+            restoreRogueSoulknifePsychicWhispersOnLongRest(
+              restoreAllRogueSoulknifePsionicDice(restoreRogueStrokeOfLuckOnLongRest(character))
+            )
           )
         )
       )

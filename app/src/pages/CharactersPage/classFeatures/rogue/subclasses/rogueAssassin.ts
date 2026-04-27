@@ -8,12 +8,11 @@ import {
   TOOL_PROFICIENCY
 } from "../../../../../types";
 import { appendSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { getAbilityModifierBreakdownForCharacter } from "../../../abilities";
+import { getProficiencyBonus } from "../../../gameplay";
 import type { WeaponAction } from "../../../gameplay";
-import {
-  createDefaultFeatureActionDescription,
-  type SubclassRuntimeResolver
-} from "../../subclassRuntime";
-import type { CoreStatIndicatorMap, FeatureActionCard } from "../../types";
+import type { SubclassRuntimeResolver } from "../../subclassRuntime";
+import type { CoreStatIndicatorMap, FeatureActionCard, FeatureActionFact } from "../../types";
 import type { RogueSneakAttackEffectKey } from "../types";
 import { rogueSneakAttackActionKey, rogueSteadyAimActionKey } from "../rogue";
 
@@ -33,7 +32,12 @@ const assassinateAdvantageIndicator = {
 };
 
 type RogueAssassinCharacter = Pick<Character, "className"> &
-  Partial<Pick<Character, "level" | "subclassId">>;
+  Partial<
+    Pick<
+      Character,
+      "abilities" | "classFeatureState" | "feats" | "level" | "statusEntries" | "subclassId"
+    >
+  >;
 
 function hasRogueAssassinFeature(character: RogueAssassinCharacter, minimumLevel: number): boolean {
   return (
@@ -173,11 +177,72 @@ function appendWeaponDescriptionSection(
   sourceName: string,
   descriptionEntries: readonly string[]
 ): WeaponAction {
-  if (action.attackKind !== "weapon" || descriptionEntries.length === 0) {
+  if (
+    (action.attackKind !== "weapon" && action.attackKind !== "unarmed") ||
+    descriptionEntries.length === 0
+  ) {
     return action;
   }
 
   return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
+}
+
+function createDefaultFeatureActionFacts(action: FeatureActionCard): FeatureActionFact[] {
+  if (action.facts && action.facts.length > 0) {
+    return [...action.facts];
+  }
+
+  return action.valueLabel
+    ? [
+        {
+          label: "Value",
+          value: action.valueLabel
+        }
+      ]
+    : [];
+}
+
+function getRogueAssassinDeathStrikeSavingThrowFormulaFact(
+  character: RogueAssassinCharacter
+): FeatureActionFact {
+  const dexterityModifier = getAbilityModifierBreakdownForCharacter(character, "DEX").total;
+  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const saveDc = 8 + dexterityModifier + proficiencyBonus;
+
+  return {
+    label: "Death Strike Saving Throw Formula",
+    value: `Constitution DC ${saveDc} = DC 8 + ${dexterityModifier} DEX + ${proficiencyBonus} Prof. Bonus`,
+    fullWidth: true
+  };
+}
+
+function appendUniqueFeatureActionFact(
+  action: FeatureActionCard,
+  fact: FeatureActionFact
+): FeatureActionCard {
+  const drawerFacts = action.drawer?.facts;
+  const facts = drawerFacts ? [...drawerFacts] : createDefaultFeatureActionFacts(action);
+
+  if (facts.some((entry) => entry.label === fact.label)) {
+    return drawerFacts ? { ...action, drawer: { ...action.drawer!, facts } } : { ...action, facts };
+  }
+
+  const nextFacts = [...facts, fact];
+
+  if (drawerFacts) {
+    return {
+      ...action,
+      drawer: {
+        ...action.drawer!,
+        facts: nextFacts
+      }
+    };
+  }
+
+  return {
+    ...action,
+    facts: nextFacts
+  };
 }
 
 function appendFeatureActionDescriptionSection(
@@ -191,12 +256,7 @@ function appendFeatureActionDescriptionSection(
   }
 
   return appendSourcedDescriptionAddition(
-    {
-      ...action,
-      description: action.description?.length
-        ? [...action.description]
-        : createDefaultFeatureActionDescription(action)
-    },
+    action,
     sourceName,
     descriptionEntries
   );
@@ -207,6 +267,15 @@ function transformRogueAssassinFeatureAction(
   action: FeatureActionCard
 ): FeatureActionCard {
   let nextAction = action;
+
+  if (hasRogueAssassinFeature(character, 3)) {
+    nextAction = appendFeatureActionDescriptionSection(
+      nextAction,
+      rogueSneakAttackActionKey,
+      surprisingStrikesSource,
+      surprisingStrikesDescription
+    );
+  }
 
   if (hasRogueAssassinInfiltrationExpertise(character)) {
     nextAction = appendFeatureActionDescriptionSection(
@@ -224,6 +293,13 @@ function transformRogueAssassinFeatureAction(
       deathStrikeSource,
       deathStrikeDescription
     );
+
+    if (nextAction.key === rogueSneakAttackActionKey) {
+      nextAction = appendUniqueFeatureActionFact(
+        nextAction,
+        getRogueAssassinDeathStrikeSavingThrowFormulaFact(character)
+      );
+    }
   }
 
   return nextAction;
@@ -240,10 +316,7 @@ export const getRogueAssassinDerivedFeatureState: SubclassRuntimeResolver = (cha
             surprisingStrikesSource,
             surprisingStrikesDescription
           ),
-        transformFeatureAction:
-          hasRogueAssassinInfiltrationExpertise(character) || hasRogueAssassinDeathStrike(character)
-            ? (action) => transformRogueAssassinFeatureAction(character, action)
-            : undefined
+        transformFeatureAction: (action) => transformRogueAssassinFeatureAction(character, action)
       }
     : {};
 

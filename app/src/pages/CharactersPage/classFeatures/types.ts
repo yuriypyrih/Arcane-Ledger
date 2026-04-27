@@ -296,7 +296,7 @@ export type EconomyMultiAttackKind = "weapon" | "unarmed";
 
 export type WeaponAttackConsumptionContext = Pick<
   WeaponAction,
-  "key" | "economyType" | "actionCategory" | "attackKind"
+  "key" | "economyType" | "actionCategory" | "attackKind" | "combatType"
 >;
 
 export type EconomyMultiActionContext = {

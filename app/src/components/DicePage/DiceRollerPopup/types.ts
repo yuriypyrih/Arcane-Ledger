@@ -5,12 +5,22 @@ export type DiceRollerRequestEntry = {
   label?: string;
   formula: string;
   formulaDisplay?: string;
+  derivedResult?: {
+    sourceEntryIndex: number;
+    totalOffset: number;
+    breakdownLabel?: string;
+  };
 };
 
 export type DiceRollerResolvedRequestEntry = {
   label?: string;
   formula: string;
   formulaDisplay: string;
+  derivedResult?: {
+    sourceEntryIndex: number;
+    totalOffset: number;
+    breakdownLabel?: string;
+  };
 };
 
 export type DiceRollerResolvedEntryResult = {

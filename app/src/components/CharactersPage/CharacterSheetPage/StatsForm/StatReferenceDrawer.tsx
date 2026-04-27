@@ -32,6 +32,7 @@ export type ReferenceIndicatorSection = {
 export type ReferenceDetailCard = {
   label: string;
   value: string;
+  breakdown?: ReactNode;
   variant?: "default" | "formula";
 };
 
@@ -178,6 +179,7 @@ function StatReferenceDrawer({ reference, footer = null, onClose }: StatReferenc
                   key={`${reference.keyword}-${detailCard.label}`}
                   label={detailCard.label}
                   content={detailCard.value}
+                  breakdown={detailCard.breakdown}
                   className={
                     detailCard.variant === "formula" ? styles.referenceFormulaCard : undefined
                   }
@@ -186,6 +188,11 @@ function StatReferenceDrawer({ reference, footer = null, onClose }: StatReferenc
                   }
                   contentClassName={
                     detailCard.variant === "formula" ? styles.referenceFormulaValue : undefined
+                  }
+                  breakdownClassName={
+                    detailCard.variant === "formula"
+                      ? styles.referenceFormulaBreakdown
+                      : undefined
                   }
                 />
               ))}

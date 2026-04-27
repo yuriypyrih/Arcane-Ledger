@@ -397,9 +397,6 @@ function SkillsAndProficienciesForm({
                           );
                           const skillDescriptionAdditions =
                             getSkillReferenceDescriptionAdditionsForCharacter(character, row.name);
-                          const skillAdditionalDescription = skillDescriptionAdditions.flatMap(
-                            (section) => section
-                          );
                           const skillRollFormula = formatSkillRollFormula(
                             row.totalModifier,
                             reliableTalentD20Minimum
@@ -440,8 +437,8 @@ function SkillsAndProficienciesForm({
                                       skillDetailCards,
                                       row.totalModifier,
                                       skillFormulaDescription,
-                                      skillAdditionalDescription,
                                       undefined,
+                                      skillDescriptionAdditions,
                                       skillRollFormula,
                                       skillRollFormula
                                     )

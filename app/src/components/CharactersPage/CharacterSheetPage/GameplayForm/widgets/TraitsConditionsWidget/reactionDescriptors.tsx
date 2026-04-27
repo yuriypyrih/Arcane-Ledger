@@ -43,6 +43,7 @@ import {
   getFighterIndomitableUsesRemainingForCharacter,
   getFighterPsiWarriorEnergyDiceRemainingForCharacter,
   getFighterPsiWarriorEnergyDiceTotalForCharacter,
+  getRogueScionOfTheThreeAuraOfMalevolenceFactsForCharacter,
   paladinElementalRebukeReactionEntryId,
   paladinGloriousDefenseReactionEntryId,
   paladinSoulOfVengeanceReactionEntryId,
@@ -509,16 +510,13 @@ const descriptors: ReactionDescriptor[] = [
   },
   {
     id: rogueScionOfTheThreeBloodthirstReactionEntryId,
+    getFacts: (context) =>
+      getRogueScionOfTheThreeAuraOfMalevolenceFactsForCharacter(context.character),
     getResourceWarning: (context) =>
       context.bloodthirstUsesRemaining <= 0 ? "No Bloodthirst uses remaining." : null,
-    getResourceSummary: (context) =>
-      `${context.bloodthirstUsesRemaining}/${context.bloodthirstUsesTotal} uses | Long Rest`,
+    getResourceSummary: () => null,
     getHeaderTags: (context) => [
-      createChargesHeaderTag(
-        context.bloodthirstUsesRemaining,
-        context.bloodthirstUsesTotal,
-        "Long Rest"
-      )
+      createChargesHeaderTag(context.bloodthirstUsesRemaining, context.bloodthirstUsesTotal)
     ],
     apply: consumeRogueScionOfTheThreeBloodthirstUseForCharacter,
     skipReactionWhenUnchanged: true

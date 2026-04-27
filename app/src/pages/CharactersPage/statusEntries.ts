@@ -8,6 +8,7 @@ import {
   STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE,
+  type Character,
   type CharacterCustomTraitEffect,
   type CharacterStatusDuration,
   type CharacterStatusEntry,
@@ -63,6 +64,12 @@ export function isExhaustionStatusEntry(
   return (
     entry?.group === STATUS_ENTRY_GROUP.CONDITIONS && entry.value === CONDITION_NAME.EXHAUSTION
   );
+}
+
+function isInvisibleStatusEntry(
+  entry: Pick<CharacterStatusEntry, "group" | "value"> | null | undefined
+): boolean {
+  return entry?.group === STATUS_ENTRY_GROUP.CONDITIONS && entry.value === CONDITION_NAME.INVISIBLE;
 }
 
 function isSense(value: unknown): value is SENSE {
@@ -619,6 +626,27 @@ export function removeCharacterStatusEntry(
   return pruneLinkedStatusEntries(
     normalizeCharacterStatusEntries(value).filter((entry) => entry.id !== entryId)
   );
+}
+
+export function removeInvisibleConditionFromStatusEntries(value: unknown): CharacterStatusEntry[] {
+  const entries = normalizeCharacterStatusEntries(value);
+  const nextEntries = entries.filter((entry) => !isInvisibleStatusEntry(entry));
+
+  return nextEntries.length === entries.length ? entries : pruneLinkedStatusEntries(nextEntries);
+}
+
+export function removeInvisibleConditionFromCharacter(character: Character): Character {
+  const entries = normalizeCharacterStatusEntries(character.statusEntries);
+  const nextEntries = entries.filter((entry) => !isInvisibleStatusEntry(entry));
+
+  if (nextEntries.length === entries.length) {
+    return character;
+  }
+
+  return {
+    ...character,
+    statusEntries: pruneLinkedStatusEntries(nextEntries)
+  };
 }
 
 export function removeCharacterConditionsForImmunities(

@@ -152,9 +152,11 @@ export type CharacterRogueExpertiseState = {
 };
 
 export type CharacterRogueFeatureState = {
+  bloodthirstMeleeAttacksRemainingThisTurn?: number;
   bloodthirstUsesExpended?: number;
   dreadAllegianceChoice?: RogueScionOfTheThreeDreadAllegianceChoice;
   soulknifePsionicDiceExpended?: number;
+  soulknifePsychicWhispersUsesExpended?: number;
   soulknifePsychicVeilUsesExpended?: number;
   soulknifeRendMindUsesExpended?: number;
   expertise?: CharacterRogueExpertiseState;

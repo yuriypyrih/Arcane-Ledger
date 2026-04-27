@@ -183,7 +183,7 @@ export const keywordDescriptions = {
     Incapacitated:
       "You can't take actions or reactions. Many other conditions build on top of this one.",
     Invisible:
-      "You can't be seen without special senses or magic. You usually have Advantage on attacks, and attacks against you have Disadvantage.",
+      "You can't be seen without special senses or magic. You usually have Advantage on attacks, and attacks against you have Disadvantage. If you attack and deal damage to a creature, this condition ends.",
     Paralyzed:
       "You are Incapacitated and can't move or speak. You automatically fail Strength and Dexterity saving throws, and nearby hits become especially dangerous.",
     Petrified:

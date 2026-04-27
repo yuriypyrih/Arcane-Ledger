@@ -3,6 +3,7 @@ import {
   CLASS_FEATURE,
   DAMAGE_TYPE,
   REACTION,
+  WEAPON_COMBAT_TYPE,
   type ReactionEntry
 } from "../../../../../codex/entries";
 import type { Character, RogueScionOfTheThreeDreadAllegianceChoice } from "../../../../../types";
@@ -17,14 +18,15 @@ import {
 } from "../../../actionModalDescriptions";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import {
-  createDefaultFeatureActionDescription,
   resolveSpellIdsByName,
   type SubclassDerivedFeatureState
 } from "../../subclassRuntime";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
-import type { DerivedFeatureStatusEntry, FeatureActionCard } from "../../types";
+import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureActionFact } from "../../types";
+import type { WeaponAction } from "../../../gameplay";
 import type { RogueSneakAttackEffectDefinition } from "../types";
 import { rogueSneakAttackActionKey } from "../rogue";
+import { formatCodexLabel } from "../../../../../utils/codex";
 
 export const scionOfTheThreeSubclassId = "rogue-scion-of-the-three";
 export const rogueScionOfTheThreeBloodthirstReactionId =
@@ -35,6 +37,7 @@ const bloodthirstName = "Bloodthirst";
 const bloodthirstSourceLabel = "Scion of the Three";
 const dreadAllegianceSource = "Dread Allegiance";
 const auraOfMalevolenceSource = "Aura of Malevolence";
+const cutthroatSource = "Cutthroat";
 const murderousIntentSource = "Murderous Intent";
 const dreadAllegianceResistanceSourceIdPrefix =
   "feature-rogue-scion-of-the-three-dread-allegiance-resistance-";
@@ -138,6 +141,13 @@ const murderousIntentDescription = stripFeatureDescriptionHeading(
   ),
   `<strong>${murderousIntentSource}.</strong>`
 );
+const cutthroatDescription = stripFeatureDescriptionHeading(
+  extractFeatureDescriptionSection(
+    dreadIncarnateDescription,
+    `<strong>${cutthroatSource}.</strong>`
+  ),
+  `<strong>${cutthroatSource}.</strong>`
+);
 
 function hasRogueScionOfTheThreeFeature(
   character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
@@ -194,12 +204,15 @@ export function hasRogueScionOfTheThreeDreadIncarnateFeature(
 function getRogueScionOfTheThreeBloodthirstReactionDescription(
   character: RogueScionOfTheThreeCharacter
 ): ReactionEntry["description"] {
-  return hasRogueScionOfTheThreeAuraOfMalevolenceFeature(character)
-    ? [
-        ...bloodthirstDescription,
-        ...createSourcedDescriptionEntries(auraOfMalevolenceSource, auraOfMalevolenceDescription)
-      ]
-    : bloodthirstDescription;
+  return [
+    ...bloodthirstDescription,
+    ...(hasRogueScionOfTheThreeAuraOfMalevolenceFeature(character)
+      ? createSourcedDescriptionEntries(auraOfMalevolenceSource, auraOfMalevolenceDescription)
+      : []),
+    ...(hasRogueScionOfTheThreeDreadIncarnateFeature(character)
+      ? createSourcedDescriptionEntries(cutthroatSource, cutthroatDescription)
+      : [])
+  ];
 }
 
 function getRogueScionOfTheThreeBloodthirstReactionEntry(
@@ -243,16 +256,7 @@ function appendFeatureActionDescriptionSection(
     return action;
   }
 
-  return appendSourcedDescriptionAddition(
-    {
-      ...action,
-      description: action.description?.length
-        ? [...action.description]
-        : createDefaultFeatureActionDescription(action)
-    },
-    sourceName,
-    descriptionEntries
-  );
+  return appendSourcedDescriptionAddition(action, sourceName, descriptionEntries);
 }
 
 function transformRogueScionOfTheThreeFeatureAction(
@@ -269,6 +273,34 @@ function transformRogueScionOfTheThreeFeatureAction(
     murderousIntentSource,
     murderousIntentDescription
   );
+}
+
+function isBloodthirstMeleeAttackAction(
+  action: Pick<WeaponAction, "actionCategory" | "attackKind" | "combatType" | "economyType">
+): boolean {
+  return (
+    action.economyType === "action" &&
+    action.actionCategory === "attack" &&
+    (action.attackKind === "unarmed" ||
+      (action.attackKind === "weapon" && action.combatType === WEAPON_COMBAT_TYPE.MELEE))
+  );
+}
+
+function transformRogueScionOfTheThreeWeaponAction(
+  character: RogueScionOfTheThreeCharacter,
+  action: WeaponAction
+): WeaponAction {
+  const bloodthirstMeleeAttackCount =
+    getRogueScionOfTheThreeBloodthirstMeleeAttackMultiCount(character);
+
+  if (bloodthirstMeleeAttackCount <= 0 || !isBloodthirstMeleeAttackAction(action)) {
+    return action;
+  }
+
+  return {
+    ...action,
+    economyMultiCount: (action.economyMultiCount ?? 0) + bloodthirstMeleeAttackCount
+  };
 }
 
 export function normalizeRogueScionOfTheThreeDreadAllegianceChoice(
@@ -326,6 +358,26 @@ function getRogueScionOfTheThreeDreadAllegianceConfig(
   return choice ? dreadAllegianceChoiceConfig[choice] : null;
 }
 
+export function getRogueScionOfTheThreeAuraOfMalevolenceFormulaFact(
+  character: RogueScionOfTheThreeCharacter
+): FeatureActionFact | null {
+  if (!hasRogueScionOfTheThreeAuraOfMalevolenceFeature(character)) {
+    return null;
+  }
+
+  const config = getRogueScionOfTheThreeDreadAllegianceConfig(character);
+  const intelligenceModifier = getAbilityModifierForCharacter(character, "INT");
+  const damageTypeLabel = config
+    ? formatCodexLabel(config.damageType)
+    : "Dread Allegiance Damage Type";
+
+  return {
+    label: "Aura of Malevolence Formula",
+    value: `${intelligenceModifier} Damage = ${intelligenceModifier} INT ${damageTypeLabel}`,
+    fullWidth: true
+  };
+}
+
 function getRogueScionOfTheThreeDreadAllegianceDerivedStatusEntries(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): DerivedFeatureStatusEntry[] {
@@ -363,6 +415,7 @@ function collectRogueScionOfTheThreeDerivedFeatureState(
     reactionEntries: [getRogueScionOfTheThreeBloodthirstReactionEntry(character)],
     alwaysPreparedSpellIds: dreadAllegianceConfig?.alwaysPreparedSpellIds ?? [],
     derivedStatusEntries: getRogueScionOfTheThreeDreadAllegianceDerivedStatusEntries(character),
+    transformWeaponAction: (action) => transformRogueScionOfTheThreeWeaponAction(character, action),
     transformFeatureAction: hasRogueScionOfTheThreeDreadIncarnateFeature(character)
       ? (action) => transformRogueScionOfTheThreeFeatureAction(character, action)
       : undefined
@@ -387,6 +440,18 @@ export function getRogueScionOfTheThreeBloodthirstUsesRemaining(
   return Math.max(0, totalUses - usesExpended);
 }
 
+export function getRogueScionOfTheThreeBloodthirstMeleeAttackMultiCount(
+  character: RogueScionOfTheThreeCharacter
+): number {
+  if (!hasRogueScionOfTheThreeBloodthirstFeature(character)) {
+    return 0;
+  }
+
+  const remaining = character.classFeatureState?.rogue?.bloodthirstMeleeAttacksRemainingThisTurn;
+
+  return Number.isFinite(Number(remaining)) ? Math.max(0, Math.floor(Number(remaining))) : 0;
+}
+
 export function consumeRogueScionOfTheThreeBloodthirstUse(character: Character): Character {
   const totalUses = getRogueScionOfTheThreeBloodthirstUsesTotal(character);
 
@@ -407,7 +472,30 @@ export function consumeRogueScionOfTheThreeBloodthirstUse(character: Character):
       ...character.classFeatureState,
       rogue: {
         ...rogueState,
+        bloodthirstMeleeAttacksRemainingThisTurn:
+          (rogueState.bloodthirstMeleeAttacksRemainingThisTurn ?? 0) + 1,
         bloodthirstUsesExpended: usesExpended + 1
+      }
+    }
+  };
+}
+
+export function consumeRogueScionOfTheThreeBloodthirstMeleeAttack(character: Character): Character {
+  const remaining = getRogueScionOfTheThreeBloodthirstMeleeAttackMultiCount(character);
+
+  if (remaining <= 0) {
+    return character;
+  }
+
+  const rogueState = character.classFeatureState?.rogue ?? {};
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      rogue: {
+        ...rogueState,
+        bloodthirstMeleeAttacksRemainingThisTurn: remaining - 1
       }
     }
   };
@@ -420,7 +508,10 @@ export function restoreRogueScionOfTheThreeBloodthirstOnLongRest(character: Char
 
   const rogueState = character.classFeatureState?.rogue ?? {};
 
-  if ((rogueState.bloodthirstUsesExpended ?? 0) === 0) {
+  if (
+    (rogueState.bloodthirstUsesExpended ?? 0) === 0 &&
+    (rogueState.bloodthirstMeleeAttacksRemainingThisTurn ?? 0) <= 0
+  ) {
     return character;
   }
 
@@ -430,6 +521,7 @@ export function restoreRogueScionOfTheThreeBloodthirstOnLongRest(character: Char
       ...character.classFeatureState,
       rogue: {
         ...rogueState,
+        bloodthirstMeleeAttacksRemainingThisTurn: 0,
         bloodthirstUsesExpended: 0
       }
     }
@@ -447,7 +539,7 @@ export function restoreRogueScionOfTheThreeBloodthirstOnShortRest(character: Cha
   const rogueState = character.classFeatureState?.rogue ?? {};
   const usesExpended = rogueState.bloodthirstUsesExpended ?? 0;
 
-  if (usesExpended <= 0) {
+  if (usesExpended <= 0 && (rogueState.bloodthirstMeleeAttacksRemainingThisTurn ?? 0) <= 0) {
     return character;
   }
 
@@ -457,6 +549,7 @@ export function restoreRogueScionOfTheThreeBloodthirstOnShortRest(character: Cha
       ...character.classFeatureState,
       rogue: {
         ...rogueState,
+        bloodthirstMeleeAttacksRemainingThisTurn: 0,
         bloodthirstUsesExpended: Math.max(0, usesExpended - 1)
       }
     }

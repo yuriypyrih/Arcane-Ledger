@@ -1,8 +1,10 @@
 import type { SpeciesEntry } from "../../codex/entries";
 import { getSpeciesEntryByName } from "../../codex/selectors";
-import type { Character } from "../../types";
+import type { AbilityKey, Character } from "../../types";
 import { getSpeedBonusesForCharacter } from "./classFeatures";
+import { hasRogueThiefSecondStoryWorkFeature } from "./classFeatures/rogue/subclasses/rogueThief";
 import type { FeatureSpeedBonus, MovementSpeedType } from "./classFeatures/types";
+import { getAbilityModifierForCharacter, getAbilityScoreForCharacter } from "./abilities";
 import { getWornBodyArmorTypeForCharacter } from "./armor";
 import { getExhaustionSpeedAdjustment } from "./traits";
 
@@ -39,6 +41,19 @@ export type MovementSpeedBreakdown = {
 
 export type MovementSpeedBreakdownMap = Record<MovementSpeedType, MovementSpeedBreakdown>;
 
+export type JumpDistanceType = "long" | "high";
+
+export type JumpDistanceBreakdown = {
+  type: JumpDistanceType;
+  label: string;
+  total: number;
+  ability: AbilityKey;
+  abilityValue: number;
+  sourceLabel?: string;
+};
+
+export type JumpDistanceBreakdownMap = Record<`${JumpDistanceType}Jump`, JumpDistanceBreakdown>;
+
 const movementSpeedTypes = [
   "walk",
   "climb",
@@ -61,6 +76,8 @@ const defaultMovementMultipliers: Record<Exclude<MovementSpeedType, "walk">, num
   fly: null,
   burrow: null
 };
+
+const secondStoryWorkSource = "Second-Story Work";
 
 function getMovementSpeedBonuses(
   character: Character,
@@ -231,6 +248,46 @@ export function getMovementSpeedBreakdownsForCharacter(
     swim: createDerivedMovementSpeedBreakdown(character, "swim", walk.total ?? 0),
     fly: createDerivedMovementSpeedBreakdown(character, "fly", walk.total ?? 0),
     burrow: createDerivedMovementSpeedBreakdown(character, "burrow", walk.total ?? 0)
+  };
+}
+
+function getJumpDistanceAbility(character: Character): { ability: AbilityKey; sourceLabel?: string } {
+  if (hasRogueThiefSecondStoryWorkFeature(character)) {
+    return {
+      ability: "DEX",
+      sourceLabel: secondStoryWorkSource
+    };
+  }
+
+  return {
+    ability: "STR"
+  };
+}
+
+export function getJumpDistanceBreakdownsForCharacter(
+  character: Character
+): JumpDistanceBreakdownMap {
+  const { ability, sourceLabel } = getJumpDistanceAbility(character);
+  const abilityScore = getAbilityScoreForCharacter(character, ability);
+  const abilityModifier = getAbilityModifierForCharacter(character, ability);
+
+  return {
+    longJump: {
+      type: "long",
+      label: "Long Jump",
+      total: abilityScore,
+      ability,
+      abilityValue: abilityScore,
+      sourceLabel
+    },
+    highJump: {
+      type: "high",
+      label: "High Jump",
+      total: 3 + abilityModifier,
+      ability,
+      abilityValue: abilityModifier,
+      sourceLabel
+    }
   };
 }
 

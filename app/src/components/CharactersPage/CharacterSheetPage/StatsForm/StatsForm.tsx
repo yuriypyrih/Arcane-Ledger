@@ -34,9 +34,11 @@ import {
 } from "../../../../pages/CharactersPage/armor";
 import {
   canCharacterHover,
+  getJumpDistanceBreakdownsForCharacter,
   getMovementSpeedBreakdownsForCharacter,
   hasModifiedSpecialMovementForCharacter,
   getSpeedBreakdownForCharacter,
+  type JumpDistanceBreakdown,
   getSpeedForCharacter
 } from "../../../../pages/CharactersPage/speed";
 import {
@@ -64,6 +66,7 @@ import {
   getRogueSoulknifePsionicDieForCharacter,
   getRogueSneakAttackDiceCountForCharacter,
   getRogueSneakAttackFormulaForCharacter,
+  hasRogueThiefThiefsReflexesForCharacter,
   getSavingThrowBonusesForCharacter,
   hasActivePaladinAuraOfProtectionForCharacter,
   getSavingThrowIndicatorsForCharacter,
@@ -239,6 +242,16 @@ function formatMovementFormula(
   });
 
   return `${movement.total} ft = ${terms.join(" ")}`;
+}
+
+function formatJumpDistanceFormula(jump: JumpDistanceBreakdown): string {
+  const sourceSuffix = jump.sourceLabel ? ` (${jump.sourceLabel})` : "";
+
+  if (jump.type === "high") {
+    return `${jump.total} ft = 3 (Base) ${formatAbilityModifier(jump.abilityValue)} ${jump.ability}${sourceSuffix}`;
+  }
+
+  return `${jump.total} ft = ${jump.abilityValue} ${jump.ability} Score${sourceSuffix}`;
 }
 
 function formatInitiativeFormula(
@@ -593,6 +606,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
   const savingThrowIndicators = getSavingThrowIndicatorsForCharacter(character);
   const speedBreakdown = getSpeedBreakdownForCharacter(character);
   const movementSpeedBreakdowns = getMovementSpeedBreakdownsForCharacter(character);
+  const jumpDistanceBreakdowns = getJumpDistanceBreakdownsForCharacter(character);
   const hasModifiedSpecialMovement = hasModifiedSpecialMovementForCharacter(character);
   const characterCanHover = canCharacterHover(character);
   const initiativeBreakdown = getInitiativeBreakdownForCharacter(character);
@@ -617,6 +631,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
     getRogueSoulknifePsionicDiceRemainingForCharacter(character);
   const rogueSneakAttackDiceCount = getRogueSneakAttackDiceCountForCharacter(character);
   const rogueSneakAttackFormula = getRogueSneakAttackFormulaForCharacter(character);
+  const hasThiefsReflexes = hasRogueThiefThiefsReflexesForCharacter(character);
   const abilitySavingThrowCards: AbilitySavingThrowCard[] = abilityKeys.map((ability) => {
     const abilityScore = effectiveAbilities[ability];
     const abilityModifierBreakdown = getAbilityModifierBreakdownForCharacter(character, ability);
@@ -741,6 +756,18 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
               {
                 label: "BURROW FORMULA",
                 value: formatMovementFormula(movementSpeedBreakdowns.burrow),
+                variant: "formula"
+              },
+              {
+                label: "LONG JUMP FORMULA",
+                value: formatJumpDistanceFormula(jumpDistanceBreakdowns.longJump),
+                breakdown: "[requires 10 ft running start]",
+                variant: "formula"
+              },
+              {
+                label: "HIGH JUMP FORMULA",
+                value: formatJumpDistanceFormula(jumpDistanceBreakdowns.highJump),
+                breakdown: "[requires 10 ft running start]",
                 variant: "formula"
               },
               {
@@ -1256,6 +1283,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
         initiativeBreakdown,
         bardicInspirationDie,
         monkMartialArtsDie,
+        hasThiefsReflexes,
         usePersistentRageOnInitiative,
         useTandemFootworkOnInitiative,
         useUncannyMetabolismOnInitiative,

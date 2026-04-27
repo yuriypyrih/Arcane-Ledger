@@ -292,7 +292,11 @@ import {
   setRogueWeaponMasterySelections
 } from "./rogue/rogue";
 import {
+  activateRogueSoulknifePsychicTeleportation,
+  activateRogueSoulknifePsychicWhispers,
   activateRogueSoulknifePsychicVeil,
+  rogueSoulknifePsychicTeleportationActionKey,
+  rogueSoulknifePsychicWhispersActionKey,
   rogueSoulknifePsychicVeilActionKey
 } from "./rogue/subclasses/rogueSoulknife";
 import {
@@ -868,6 +872,14 @@ const classFeatureModules = {
 
       if (actionKey === rogueSoulknifePsychicVeilActionKey) {
         return activateRogueSoulknifePsychicVeil(character);
+      }
+
+      if (actionKey === rogueSoulknifePsychicWhispersActionKey) {
+        return activateRogueSoulknifePsychicWhispers(character);
+      }
+
+      if (actionKey === rogueSoulknifePsychicTeleportationActionKey) {
+        return activateRogueSoulknifePsychicTeleportation(character);
       }
 
       if (actionKey === rogueStrokeOfLuckActionKey) {

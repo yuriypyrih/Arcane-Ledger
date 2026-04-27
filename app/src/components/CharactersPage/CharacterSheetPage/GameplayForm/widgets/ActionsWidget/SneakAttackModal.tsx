@@ -8,18 +8,12 @@ import {
   getRogueSneakAttackEffectDefinitions,
   getRogueSneakAttackEffectDiceCost,
   getRogueSneakAttackFormula,
+  getRogueSneakAttackFormulaDisplay,
   getRogueSneakAttackMaxEffects,
   rogueCunningStrikeSavingThrowDescription,
   type RogueSneakAttackEffectDefinition,
   type RogueSneakAttackEffectKey
 } from "../../../../../../pages/CharactersPage/classFeatures/rogue/rogue";
-import {
-  getRogueSoulknifePsionicDiceRemaining,
-  getRogueSoulknifeRendMindUsesRemaining,
-  hasRogueSoulknifeRendMindFeature
-} from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueSoulknife";
-import { getAbilityModifierForCharacter } from "../../../../../../pages/CharactersPage/abilities";
-import { getProficiencyBonus } from "../../../../../../pages/CharactersPage/gameplay";
 import { formatFormulaCell } from "../../../../../../pages/CharactersPage/shared/formulas";
 import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./SneakAttackModal.module.css";
@@ -51,22 +45,13 @@ function SneakAttackActionBody({
     getRogueSneakAttackFormula(character, selectedEffectKeys) ??
     action.valueLabel ??
     action.summary;
+  const previewFormulaDisplay =
+    getRogueSneakAttackFormulaDisplay(character, selectedEffectKeys) ?? previewFormula;
   const previewFormulaCell = formatFormulaCell({
     formula: previewFormula,
+    displayTerms: [previewFormulaDisplay],
     resultLabel: "Damage"
   });
-  const hasRendMind = hasRogueSoulknifeRendMindFeature(character);
-  const rendMindUsesRemaining = getRogueSoulknifeRendMindUsesRemaining(character);
-  const psionicDiceRemaining = getRogueSoulknifePsionicDiceRemaining(character);
-  const canUseRendMind = rendMindUsesRemaining > 0 || psionicDiceRemaining > 0;
-  const rendMindSaveDc =
-    8 + getAbilityModifierForCharacter(character, "DEX") + getProficiencyBonus(character.level);
-  const rendMindUsageLabel =
-    rendMindUsesRemaining > 0
-      ? "1 charge available"
-      : psionicDiceRemaining > 0
-        ? "Use 1 Psionic Die"
-        : "No charge or Psionic Die remaining";
 
   function toggleEffect(effect: RogueSneakAttackEffectDefinition) {
     const currentKeys = selection.effectKeys;
@@ -95,8 +80,7 @@ function SneakAttackActionBody({
   return (
     <>
       <CellContainer
-        className={styles.sneakAttackPreviewCard}
-        label="Formula"
+        label="Sneak Attack Damage Formula"
         content={previewFormulaCell.value}
         breakdown={previewFormulaCell.breakdown}
       />
@@ -148,39 +132,6 @@ function SneakAttackActionBody({
         </div>
       ) : null}
 
-      {hasRendMind ? (
-        <div className={styles.rendMindSection}>
-          <div className={styles.rendMindHeader}>
-            <div>
-              <h4 className={styles.sneakAttackEffectsTitle}>Rend Mind</h4>
-              <p className={shared.helperText}>
-                Opt in when the triggering Sneak Attack used your Psychic Blade.
-              </p>
-            </div>
-            <span className={styles.rendMindTag}>{rendMindUsageLabel}</span>
-          </div>
-
-          <RadioContainerOption
-            header="Rend Mind"
-            subheader={`Wis Save DC ${rendMindSaveDc} | ${
-              rendMindUsesRemaining > 0 ? "Long Rest charge" : "Use 1 Psionic Die"
-            }`}
-            selected={selection.useRendMind}
-            disabled={!canUseRendMind}
-            indicatorType="checkbox"
-            onSelect={() =>
-              onSelectionChange({
-                ...selection,
-                useRendMind: !selection.useRendMind
-              })
-            }
-          />
-
-          {!canUseRendMind ? (
-            <p className={styles.rendMindWarning}>Rend Mind needs a charge or 1 Psionic Die.</p>
-          ) : null}
-        </div>
-      ) : null}
     </>
   );
 }

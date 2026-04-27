@@ -4,6 +4,7 @@ import { createSourcedDescriptionEntries } from "../actionModalDescriptions";
 import { getBarbarianPersistentRageInitiativeDescriptionAdditions } from "./barbarian/barbarianDescriptionSections";
 import { getFeatureDescriptionForCharacter } from "./featureDescriptions";
 import { getMonkInitiativeDescriptionAdditions } from "./monk/monkDescriptionSections";
+import { getRogueThiefInitiativeDescriptionAdditions } from "./rogue/subclasses/rogueThief";
 
 type InitiativeDescriptionCharacter = Pick<Character, "className" | "level"> &
   Partial<Pick<Character, "subclassId">>;
@@ -48,6 +49,7 @@ export function getInitiativeReferenceDescriptionAdditions(
   return [
     ...getBarbarianPersistentRageInitiativeDescriptionAdditions(character),
     ...getBardInitiativeDescriptionAdditions(character),
-    ...getMonkInitiativeDescriptionAdditions(character)
+    ...getMonkInitiativeDescriptionAdditions(character),
+    ...getRogueThiefInitiativeDescriptionAdditions(character)
   ];
 }

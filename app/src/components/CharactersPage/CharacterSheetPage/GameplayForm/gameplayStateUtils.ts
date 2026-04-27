@@ -16,8 +16,6 @@ import {
 import type { HpDraft } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
   consumeRoundTrackerResource,
-  isRoundTrackerResourceAvailable,
-  normalizeRoundTracker,
   startRoundTrackerTurn,
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
@@ -174,13 +172,21 @@ export function prepareCharacterForRoundTrackerResourceConsumption(
   character: Character,
   resource: RoundTrackerResource
 ): Character {
+  void resource;
+
+  // Paused while investigating round auto-start bugs. Re-enable this block to start a turn
+  // automatically before spending an action, bonus action, or reaction.
+  /*
   const roundTracker = normalizeRoundTracker(character.roundTracker);
   const shouldAutoStartTurn =
-    (resource === "action" || resource === "bonusAction") &&
+    (resource === "action" || resource === "bonusAction" || resource === "reaction") &&
     !roundTracker.turnStarted &&
     isRoundTrackerResourceAvailable(roundTracker, resource);
 
   return shouldAutoStartTurn ? startCharacterTurn(character) : character;
+  */
+
+  return character;
 }
 
 export function consumeRoundTrackerResourceForCharacter(

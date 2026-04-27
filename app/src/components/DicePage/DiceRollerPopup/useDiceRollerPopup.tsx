@@ -51,7 +51,8 @@ function normalizeRequest(
     entries: entries.map((entry) => ({
       label: entry.label,
       formula: entry.formula,
-      formulaDisplay: entry.formulaDisplay ?? entry.formula
+      formulaDisplay: entry.formulaDisplay ?? entry.formula,
+      derivedResult: entry.derivedResult
     }))
   };
 }
@@ -63,11 +64,50 @@ function prefixDiceIds(dice: RolledDie[], prefix: string): RolledDie[] {
   }));
 }
 
+function formatDerivedResultBreakdown(
+  source: DiceRollerResolvedEntryResult,
+  totalOffset: number,
+  breakdownLabel?: string
+): string {
+  const label = breakdownLabel ?? source.label?.trim() ?? "Roll";
+  const offsetText =
+    totalOffset >= 0 ? `+ ${totalOffset}` : `- ${Math.abs(totalOffset)}`;
+
+  return `${source.result.total} ${label} ${offsetText}`;
+}
+
 function createEntryResult(
   request: DiceRollerResolvedRequest,
-  entryIndex: number
+  entryIndex: number,
+  previousResults: DiceRollerResolvedEntryResult[]
 ): DiceRollerResolvedEntryResult {
   const entry = request.entries[entryIndex]!;
+
+  if (entry.derivedResult) {
+    const source = previousResults[entry.derivedResult.sourceEntryIndex];
+
+    if (!source) {
+      throw new Error("Derived dice result source is not available.");
+    }
+
+    return {
+      label: entry.label,
+      request: entry,
+      result: {
+        formula: entry.formula,
+        total: source.result.total + entry.derivedResult.totalOffset,
+        breakdown: formatDerivedResultBreakdown(
+          source,
+          entry.derivedResult.totalOffset,
+          entry.derivedResult.breakdownLabel
+        ),
+        modeApplied: "normal",
+        naturalOutcome: null
+      },
+      dice: []
+    };
+  }
+
   const { dice, ...result } = rollFormulaWithDice(entry.formula, request.mode);
 
   return {
@@ -113,8 +153,12 @@ function createPopupState(
 ): DiceRollerPopupState {
   try {
     const normalizedRequest = normalizeRequest(request, modeOverride);
-    const results = normalizedRequest.entries.map((_, index) =>
-      createEntryResult(normalizedRequest, index)
+    const results = normalizedRequest.entries.reduce<DiceRollerResolvedEntryResult[]>(
+      (resolvedResults, _, index) => [
+        ...resolvedResults,
+        createEntryResult(normalizedRequest, index, resolvedResults)
+      ],
+      []
     );
     const primaryResult = results[0]?.result ?? null;
     const dice = results.flatMap((entry) => entry.dice);

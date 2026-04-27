@@ -118,9 +118,10 @@ export function rollFormulaWithDice(input: string, mode: RollMode): RollFormulaW
         term.minimum > 1
           ? `${mode} d20 raw [${firstRaw}, ${secondRaw}] -> ${chosenRaw}; minimum ${term.minimum} -> ${chosenAdjusted}`
           : `${mode} d20 [${firstRaw}, ${secondRaw}] -> ${chosenAdjusted}`;
+      const multiplierDetail = term.multiplier > 1 ? ` * ${term.multiplier}` : "";
 
-      total += chosenAdjusted * term.sign;
-      detailParts.push(`${term.sign === -1 ? "-" : ""}${modeDetail}`);
+      total += chosenAdjusted * term.multiplier * term.sign;
+      detailParts.push(`${term.sign === -1 ? "-" : ""}${modeDetail}${multiplierDetail}`);
       modeApplied = mode;
       advantageConsumed = true;
       if (devD20Roll !== null && !devD20Consumed) {
@@ -152,13 +153,14 @@ export function rollFormulaWithDice(input: string, mode: RollMode): RollFormulaW
       value === adjustedRolls[index] ? `${value}` : `${value}->${adjustedRolls[index]}`
     );
 
-    const subtotal = adjustedRolls.reduce((sum, value) => sum + value, 0) * term.sign;
+    const subtotal =
+      adjustedRolls.reduce((sum, value) => sum + value, 0) * term.multiplier * term.sign;
     total += subtotal;
     if (adjustedRolls.length > 0) {
       detailParts.push(
         `${term.sign === -1 ? "-" : ""}${adjustedRolls.length}d${term.sides}${
           term.minimum > 1 ? `m${term.minimum}` : ""
-        } [${rollDetails.join(", ")}]`
+        }${term.multiplier > 1 ? `*${term.multiplier}` : ""} [${rollDetails.join(", ")}]`
       );
     }
 
