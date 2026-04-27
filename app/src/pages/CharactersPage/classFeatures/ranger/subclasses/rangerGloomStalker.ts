@@ -12,11 +12,7 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
-import {
-  appendDescriptionAddition,
-  appendFeatureSourcedDescriptionAddition,
-  descriptionValueSomeText
-} from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import type { WeaponAction } from "../../../gameplay";
 import { getSavingThrowLevelFromEntries } from "../../../proficiencyResolvers";
 import {
@@ -171,16 +167,21 @@ function createDreadfulStrikeDamageBonus(
   };
 }
 
-function appendDreadAmbusherDescription(action: WeaponAction): WeaponAction {
-  if (
-    action.attackKind !== "weapon" ||
-    dreadfulStrikeDescription.length <= 0 ||
-    descriptionValueSomeText(action, (entry) => entry.includes("<strong>Dreadful Strike.</strong>"))
-  ) {
+function appendDreadAmbusherDescription(
+  character: RangerGloomStalkerCharacter,
+  action: WeaponAction
+): WeaponAction {
+  if (action.attackKind !== "weapon" || dreadfulStrikeDescription.length <= 0) {
     return action;
   }
 
-  return appendDescriptionAddition(action, dreadfulStrikeDescription);
+  return appendFeatureSourcedDescriptionAddition(
+    action,
+    character,
+    CLASS_FEATURE.DREAD_AMBUSHER,
+    dreadfulStrikeDescription,
+    "Dread Ambusher"
+  );
 }
 
 function appendStalkersFlurryDescription(
@@ -528,7 +529,10 @@ export const getRangerGloomStalkerDerivedFeatureState: SubclassRuntimeResolver =
           : undefined,
         transformWeaponAction: hasRangerGloomStalkerDreadAmbusherFeature(character)
           ? (action) =>
-              appendStalkersFlurryDescription(character, appendDreadAmbusherDescription(action))
+              appendStalkersFlurryDescription(
+                character,
+                appendDreadAmbusherDescription(character, action)
+              )
           : undefined
       }
     : {};
