@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Footprints } from "lucide-react";
+import { SportShoe } from "lucide-react";
 import type { Character } from "../../../../../../types";
 import type { GameplayActionDefinition } from "../../../../../../pages/CharactersPage/combatActions";
 import { monkHandOfHealingActionKey } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfMercy";
@@ -40,7 +40,7 @@ function ActionsGrid({
           )}
           onClick={onCommonActionsOpen}
         >
-          <Footprints size={16} />
+          <SportShoe size={16} />
           Common Actions
         </button>
       </header>
