@@ -413,10 +413,22 @@ const descriptors: ReactionDescriptor[] = [
   },
   {
     id: sorcererBendLuckReactionEntryId,
+    footerActionName: "Bend Luck",
+    createRollRequest: () => ({
+      title: "Bend Luck",
+      description: "Bend Luck modifier roll",
+      formula: "1d4",
+      formulaDisplay: "1d4",
+      entries: [
+        {
+          label: "Modifier",
+          formula: "1d4",
+          formulaDisplay: "1d4"
+        }
+      ]
+    }),
     getResourceWarning: (context) =>
       context.sorceryPointsRemaining <= 0 ? "You need 1 Sorcery Point." : null,
-    getResourceSummary: (context) =>
-      `${context.sorceryPointsRemaining} Sorcery Points remaining | Cost: 1`,
     getHeaderTags: (context) =>
       createNamedUsageHeaderTags(
         createFeatureActionCardCost({
@@ -436,8 +448,7 @@ const descriptors: ReactionDescriptor[] = [
     id: sorcererRestoreBalanceReactionEntryId,
     getResourceWarning: (context) =>
       context.restoreBalanceUsesRemaining <= 0 ? "No Restore Balance uses remaining." : null,
-    getResourceSummary: (context) =>
-      `${context.restoreBalanceUsesRemaining}/${context.restoreBalanceUsesTotal} uses | Long Rest`,
+    getResourceSummary: () => null,
     getHeaderTags: (context) => [
       createChargesHeaderTag(context.restoreBalanceUsesRemaining, context.restoreBalanceUsesTotal)
     ],

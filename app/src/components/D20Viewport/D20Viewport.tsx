@@ -127,7 +127,7 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
       const visuals = nextDice.map((die, index) => {
         const spinScale = index < 4 ? 0.58 : 0.7;
         const naturalOutcome = die.naturalOutcome ?? null;
-        const valueLabelSize = naturalOutcome ? 1.18 : 1.06;
+        const valueLabelSize = die.sides === 100 ? 1.72 : naturalOutcome ? 1.18 : 1.06;
         const root = new THREE.Group();
         const shapeData = createDieShape(die.sides, die.theme ?? "default", naturalOutcome);
         const valueLabel = createPlaneMesh(
@@ -138,14 +138,19 @@ function D20Viewport({ dice, rollToken, onRollComplete }: D20ViewportProps) {
           0
         );
         const typeTexture = createTypeTexture(`d${die.sides}`);
+        const typeLabelHeight = die.sides === 100 ? 0.7 : 0.48;
         const typeLabel = createPlaneMesh(
           typeTexture.texture,
-          0.46 * typeTexture.aspect,
-          0.48,
+          (die.sides === 100 ? 0.68 : 0.46) * typeTexture.aspect,
+          typeLabelHeight,
           shapeData.typeLabelY,
           shapeData.typeLabelZ
         );
-        const { start, end } = getDiePositions(index, nextDice.length);
+        const { start, end } = getDiePositions(
+          index,
+          nextDice.length,
+          nextDice.map((entry) => entry.sides)
+        );
 
         valueLabel.visible = false;
         root.position.copy(start);

@@ -1,6 +1,12 @@
 import * as THREE from "three";
 import type { DieTheme, NaturalOutcome } from "../../types";
-import { CRIMSON_RED_THEME, EMERALD_GREEN_THEME, ROYAL_BLUE_THEME } from "./constants";
+import {
+  CRIMSON_RED_THEME,
+  CUSTOM_YELLOW_THEME,
+  EMERALD_GREEN_THEME,
+  ROYAL_BLUE_THEME,
+  WILD_MAGIC_PURPLE_THEME
+} from "./constants";
 import { createRoughnessTexture } from "./textures";
 
 function getTheme(theme: DieTheme) {
@@ -10,6 +16,14 @@ function getTheme(theme: DieTheme) {
 
   if (theme === "disadvantage") {
     return CRIMSON_RED_THEME;
+  }
+
+  if (theme === "wildMagic") {
+    return WILD_MAGIC_PURPLE_THEME;
+  }
+
+  if (theme === "custom") {
+    return CUSTOM_YELLOW_THEME;
   }
 
   return ROYAL_BLUE_THEME;

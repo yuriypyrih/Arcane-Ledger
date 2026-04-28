@@ -1,11 +1,14 @@
-import clsx from "clsx";
 import { Sparkles } from "lucide-react";
 import type { Character } from "../../../../../../../types";
-import { getSorceryPointsRemainingForCharacter } from "../../../../../../../pages/CharactersPage/classFeatures";
+import {
+  getSorceryPointsRemainingForCharacter,
+  getSorceryPointsTotalForCharacter
+} from "../../../../../../../pages/CharactersPage/classFeatures";
 import {
   getSpellSlotTotalsForCharacter,
   normalizeSpellSlotsExpended
 } from "../../../../../../../pages/CharactersPage/spellcasting";
+import RadioContainerOption from "../../../../RadioContainerOption";
 import shared from "../../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import type { FontOfMagicSelection } from "../types";
 import styles from "../FontOfMagicModal.module.css";
@@ -17,6 +20,15 @@ type FontOfMagicActionBodyProps = {
   onSelectSelection: (selection: FontOfMagicSelection) => void;
 };
 
+function SorceryPointValue({ value }: { value: number }) {
+  return (
+    <span className={styles.fontOfMagicSorceryPointValue}>
+      <span>{value}</span>
+      <Sparkles size={14} aria-hidden="true" />
+    </span>
+  );
+}
+
 function FontOfMagicActionBody({
   actionWarning,
   character,
@@ -24,6 +36,7 @@ function FontOfMagicActionBody({
   onSelectSelection
 }: FontOfMagicActionBodyProps) {
   const sorceryPointsRemaining = getSorceryPointsRemainingForCharacter(character);
+  const sorceryPointsTotal = getSorceryPointsTotalForCharacter(character);
   const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
@@ -48,7 +61,9 @@ function FontOfMagicActionBody({
           ? "You don't have spell slots of this level."
           : remainingSlots <= 0
             ? "No spell slots of this level remain."
-            : null;
+            : sorceryPointsRemaining + spellSlotLevel > sorceryPointsTotal
+              ? `Converting this slot would exceed your Sorcery Point maximum (${sorceryPointsTotal}).`
+              : null;
 
       return {
         spellSlotLevel,
@@ -72,32 +87,29 @@ function FontOfMagicActionBody({
         {spellSlotToPointOptions.length > 0 ? (
           <div className={styles.fontOfMagicOptionGrid}>
             {spellSlotToPointOptions.map((option) => (
-              <button
+              <RadioContainerOption
                 key={`font-of-magic-slot-to-points-${option.spellSlotLevel}`}
-                type="button"
-                className={clsx(
-                  styles.fontOfMagicOptionButton,
+                className={styles.fontOfMagicOptionCard}
+                name="font-of-magic-selection"
+                header={
+                  <span className={styles.fontOfMagicOptionHeader}>
+                    <span>Level {option.spellSlotLevel} Spell Slot</span>
+                    <span aria-hidden="true">-&gt;</span>
+                    <SorceryPointValue value={option.spellSlotLevel} />
+                  </span>
+                }
+                selected={
                   selectedSelection?.kind === "slot-to-points" &&
-                    selectedSelection.spellSlotLevel === option.spellSlotLevel &&
-                    styles.fontOfMagicOptionButtonSelected
-                )}
+                  selectedSelection.spellSlotLevel === option.spellSlotLevel
+                }
                 disabled={option.disabledReason !== null}
-                onClick={() =>
+                onSelect={() =>
                   onSelectSelection({
                     kind: "slot-to-points",
                     spellSlotLevel: option.spellSlotLevel
                   })
                 }
-              >
-                <strong className={styles.fontOfMagicCompactLabel}>
-                  <span>Level {option.spellSlotLevel} Slot</span>
-                  <span aria-hidden="true">-&gt;</span>
-                  <span className={styles.fontOfMagicSparkleValue}>
-                    <span>{option.spellSlotLevel}</span>
-                    <Sparkles size={14} />
-                  </span>
-                </strong>
-              </button>
+              />
             ))}
           </div>
         ) : (
@@ -127,32 +139,29 @@ function FontOfMagicActionBody({
                   : null);
 
             return (
-              <button
+              <RadioContainerOption
                 key={`font-of-magic-points-to-slot-${rule.spellSlotLevel}`}
-                type="button"
-                className={clsx(
-                  styles.fontOfMagicOptionButton,
+                className={styles.fontOfMagicOptionCard}
+                name="font-of-magic-selection"
+                header={
+                  <span className={styles.fontOfMagicOptionHeader}>
+                    <SorceryPointValue value={rule.sorceryPointCost} />
+                    <span aria-hidden="true">-&gt;</span>
+                    <span>Level {rule.spellSlotLevel} Spell Slot</span>
+                  </span>
+                }
+                selected={
                   selectedSelection?.kind === "points-to-slot" &&
-                    selectedSelection.spellSlotLevel === rule.spellSlotLevel &&
-                    styles.fontOfMagicOptionButtonSelected
-                )}
+                  selectedSelection.spellSlotLevel === rule.spellSlotLevel
+                }
                 disabled={disabledReason !== null}
-                onClick={() =>
+                onSelect={() =>
                   onSelectSelection({
                     kind: "points-to-slot",
                     spellSlotLevel: rule.spellSlotLevel
                   })
                 }
-              >
-                <strong className={styles.fontOfMagicCompactLabel}>
-                  <span className={styles.fontOfMagicSparkleValue}>
-                    <span>{rule.sorceryPointCost}</span>
-                    <Sparkles size={14} />
-                  </span>
-                  <span aria-hidden="true">-&gt;</span>
-                  <span>Level {rule.spellSlotLevel} Slot</span>
-                </strong>
-              </button>
+              />
             );
           })}
         </div>

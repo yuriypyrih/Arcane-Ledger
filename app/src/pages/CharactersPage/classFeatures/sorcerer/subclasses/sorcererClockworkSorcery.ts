@@ -330,7 +330,6 @@ function getSorcererClockworkFeatureActions(
       breakdown: "Create ward of order",
       economyType: ECONOMY_TYPE.ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
-      valueLabel: "Uses Sorcery Points",
       description: bastionOfLawDescription,
       resources:
         totalPoints > 0
@@ -349,10 +348,6 @@ function getSorcererClockworkFeatureActions(
         kind: "options",
         eyebrow: "Clockwork Sorcery",
         description: bastionOfLawDescription,
-        helperText:
-          remainingPoints > 0
-            ? "Choose how many Sorcery Points to spend. The ward lasts until you finish a Long Rest or use Bastion of Law again."
-            : "You need at least 1 Sorcery Point to create a ward.",
         optionSelection: "single-confirm"
       },
       execute: {
@@ -436,12 +431,6 @@ function getSorcererClockworkFeatureActions(
         kind: "confirm",
         eyebrow: "Clockwork Sorcery",
         description: tranceOfOrderDescription,
-        helperText:
-          usesRemaining > 0
-            ? "Enter Trance of Order for 10 turns."
-            : fallbackAvailable
-              ? `Your normal use is depleted, so activating this feature will spend ${tranceOfOrderFallbackSorceryPointCost} Sorcery Points.`
-              : `You need ${tranceOfOrderFallbackSorceryPointCost} Sorcery Points to activate ${tranceOfOrderName} again.`,
         resources:
           totalPoints > 0
             ? [
@@ -540,12 +529,6 @@ function getSorcererClockworkFeatureActions(
         kind: "confirm",
         eyebrow: "Clockwork Sorcery",
         description: clockworkCavalcadeDescription,
-        helperText:
-          usesRemaining > 0
-            ? "Use Clockwork Cavalcade."
-            : fallbackAvailable
-              ? `Your normal use is depleted, so activating this feature will spend ${clockworkCavalcadeFallbackSorceryPointCost} Sorcery Points.`
-              : `You need ${clockworkCavalcadeFallbackSorceryPointCost} Sorcery Points to activate ${clockworkCavalcadeName} again.`,
         resources:
           totalPoints > 0
             ? [

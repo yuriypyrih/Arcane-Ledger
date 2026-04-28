@@ -29,6 +29,22 @@ function createD20Shape(theme: DieTheme, naturalOutcome: NaturalOutcome): {
   return { group, valueLabelY: 1.82, typeLabelY: 2.62, typeLabelZ: -1.22 };
 }
 
+function createD100Shape(theme: DieTheme, naturalOutcome: NaturalOutcome): {
+  group: THREE.Group;
+  valueLabelY: number;
+  typeLabelY: number;
+  typeLabelZ: number;
+} {
+  const group = new THREE.Group();
+  addSolidGeometry(
+    group,
+    new THREE.IcosahedronGeometry(2.44, 0).toNonIndexed(),
+    createMaterialSet(theme, naturalOutcome),
+    0.9
+  );
+  return { group, valueLabelY: 3.38, typeLabelY: 4.54, typeLabelZ: -2.18 };
+}
+
 function createD4Shape(theme: DieTheme, naturalOutcome: NaturalOutcome): {
   group: THREE.Group;
   valueLabelY: number;
@@ -114,6 +130,14 @@ export function createDieShape(
   typeLabelY: number;
   typeLabelZ: number;
 } {
+  if (theme === "custom") {
+    return createD20Shape(theme, naturalOutcome);
+  }
+
+  if (sides === 100) {
+    return createD100Shape(theme, naturalOutcome);
+  }
+
   if (sides === 4) {
     return createD4Shape(theme, naturalOutcome);
   }
@@ -214,9 +238,27 @@ export function getTargetQuaternion(sides: number, value: number): THREE.Quatern
   return new THREE.Quaternion().setFromAxisAngle(UP_AXIS, twistAngle).multiply(liftToTop);
 }
 
+function getDieLayoutFootprint(sides: number): {
+  x: number;
+  z: number;
+} {
+  if (sides === 100) {
+    return {
+      x: 5.35,
+      z: 4.7
+    };
+  }
+
+  return {
+    x: 2.7,
+    z: 2.35
+  };
+}
+
 export function getDiePositions(
   index: number,
-  total: number
+  total: number,
+  diceSides: number[] = []
 ): {
   start: THREE.Vector3;
   end: THREE.Vector3;
@@ -225,8 +267,19 @@ export function getDiePositions(
   const rows = Math.ceil(total / columns);
   const column = index % columns;
   const row = Math.floor(index / columns);
-  const spacingX = 2.7;
-  const spacingZ = 2.35;
+  const gridFootprint = diceSides.length > 0
+    ? diceSides
+        .map(getDieLayoutFootprint)
+        .reduce(
+          (maxFootprint, footprint) => ({
+            x: Math.max(maxFootprint.x, footprint.x),
+            z: Math.max(maxFootprint.z, footprint.z)
+          }),
+          getDieLayoutFootprint(20)
+        )
+    : getDieLayoutFootprint(20);
+  const spacingX = gridFootprint.x;
+  const spacingZ = gridFootprint.z;
   const width = (columns - 1) * spacingX;
   const depth = (rows - 1) * spacingZ;
   const end = new THREE.Vector3(

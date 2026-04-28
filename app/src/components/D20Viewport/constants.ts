@@ -32,6 +32,22 @@ export const CRIMSON_RED_THEME = {
   glow: "#fca5a5"
 };
 
+export const WILD_MAGIC_PURPLE_THEME = {
+  body: "#7c3aed",
+  emissive: "#2e1065",
+  lacquer: "#ddd6fe",
+  edge: "#f5f3ff",
+  glow: "#c084fc"
+};
+
+export const CUSTOM_YELLOW_THEME = {
+  body: "#eab308",
+  emissive: "#4a3100",
+  lacquer: "#fef3c7",
+  edge: "#fff7d6",
+  glow: "#fde047"
+};
+
 const d20FaceGeometry = new THREE.IcosahedronGeometry(1.14, 0).toNonIndexed();
 export const d20Faces = buildFaces(d20FaceGeometry);
 d20FaceGeometry.dispose();

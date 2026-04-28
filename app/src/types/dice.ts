@@ -1,6 +1,6 @@
 export type RollMode = "normal" | "advantage" | "disadvantage";
 
-export type DieTheme = "default" | "advantage" | "disadvantage";
+export type DieTheme = "default" | "advantage" | "disadvantage" | "wildMagic" | "custom";
 
 export type NaturalOutcome = "natural20" | "natural1" | null;
 
@@ -20,13 +20,13 @@ export type D20RollResult = {
   naturalOutcome: NaturalOutcome;
 };
 
-export type DiceSides = 4 | 6 | 8 | 10 | 12 | 20;
+export type DiceSides = 4 | 6 | 8 | 10 | 12 | 20 | 100;
 
 export type DiceSelection = Record<DiceSides, number>;
 
 export type RolledDie = {
   id: string;
-  sides: DiceSides;
+  sides: number;
   value: number;
   counted?: boolean;
   theme?: DieTheme;

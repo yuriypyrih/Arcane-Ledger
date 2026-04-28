@@ -1,4 +1,4 @@
-import type { DiceSides, NaturalOutcome, RollMode, RollResult, RolledDie } from "../../types";
+import type { DieTheme, NaturalOutcome, RollMode, RollResult, RolledDie } from "../../types";
 import { createDiceId } from "./createDiceId";
 import { getNaturalOutcome } from "./naturalOutcome";
 import { normalizeFormula } from "./normalizeFormula";
@@ -12,10 +12,14 @@ export type RollFormulaWithDiceResult = RollResult & {
   dice: RolledDie[];
 };
 
-const supportedDiceSides = new Set<number>([4, 6, 8, 10, 12, 20]);
+const supportedDiceSides = new Set<number>([4, 6, 8, 10, 12, 20, 100]);
 
-function asSupportedDiceSides(sides: number): DiceSides | null {
-  return supportedDiceSides.has(sides) ? (sides as DiceSides) : null;
+function getDieTheme(sides: number): DieTheme {
+  if (!supportedDiceSides.has(sides)) {
+    return "custom";
+  }
+
+  return sides === 100 ? "wildMagic" : "default";
 }
 
 function getDevD20Roll(): number | null {
@@ -164,12 +168,6 @@ export function rollFormulaWithDice(input: string, mode: RollMode): RollFormulaW
       );
     }
 
-    const supportedSides = asSupportedDiceSides(term.sides);
-
-    if (!supportedSides) {
-      continue;
-    }
-
     adjustedRolls.forEach((value, index) => {
       const dieNaturalOutcome =
         !countedD20Resolved && term.sides === 20 && rawRolls[index] === value
@@ -177,11 +175,11 @@ export function rollFormulaWithDice(input: string, mode: RollMode): RollFormulaW
           : null;
 
       dice.push({
-        id: createDiceId(supportedSides, diceIndex),
-        sides: supportedSides,
+        id: createDiceId(term.sides, diceIndex),
+        sides: term.sides,
         value,
         counted: true,
-        theme: "default",
+        theme: getDieTheme(term.sides),
         naturalOutcome: dieNaturalOutcome ?? undefined
       });
 

@@ -7,7 +7,17 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
-import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import {
+  appendFeatureSourcedDescriptionAddition,
+  createFeatureSourcedDescriptionEntries
+} from "../../../actionModalDescriptions";
+import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import { getAbilityModifierForCharacter } from "../../../abilities";
+import {
+  formatFormulaCell,
+  formatFormulaTerms,
+  formatSignedFormulaTerm
+} from "../../../shared/formulas";
 import {
   createCharacterStatusEntry,
   normalizeCharacterStatusEntries
@@ -18,9 +28,11 @@ import {
   getPreparedSpellIdsByLevel,
   resolveSpellIdsByName
 } from "../../subclassRuntime";
-import type { FeatureActionCard, FeatureSpeedBonus } from "../../types";
+import type { FeatureActionCard, FeatureActionFact, FeatureSpeedBonus } from "../../types";
 
 export const spellfireSorcerySubclassId = "sorcerer-spellfire-sorcery";
+export const sorcererSpellfireBurstActionKey = "sorcerer-spellfire-sorcery-spellfire-burst";
+export const spellfireBurstName = "Spellfire Burst";
 export const spellfireCrownOfSpellfireName = "Crown of Spellfire";
 export const spellfireCrownOfSpellfireStatusSourceId =
   "feature-sorcerer-spellfire-sorcery-crown-of-spellfire";
@@ -121,10 +133,53 @@ function getSpellfireFeatureDescriptionEntries(feature: CLASS_FEATURE): string[]
 
 const absorbSpellsCounterspellDescription = getSpellfireFeatureDescriptionEntries(
   CLASS_FEATURE.ABSORB_SPELLS
-).slice(1);
+);
+const spellfireBurstDescription = getSpellfireFeatureDescriptionEntries(
+  CLASS_FEATURE.SPELLFIRE_BURST
+);
+const honedSpellfireDescription = getSpellfireFeatureDescriptionEntries(
+  CLASS_FEATURE.HONED_SPELLFIRE
+);
 export const spellfireCrownOfSpellfireDescription = getSpellfireFeatureDescriptionEntries(
   CLASS_FEATURE.CROWN_OF_SPELLFIRE
 );
+
+function hasSorcererSpellfireBurstFeature(character: SpellfireSorceryCharacter): boolean {
+  return (
+    character.className === "Sorcerer" &&
+    character.subclassId === spellfireSorcerySubclassId &&
+    (character.level ?? 0) >= 3
+  );
+}
+
+export function hasSorcererSpellfireBurstFeatureForCharacter(
+  character: SpellfireSorceryCharacter
+): boolean {
+  return hasSorcererSpellfireBurstFeature(character);
+}
+
+function hasSorcererSpellfireHonedSpellfireFeature(character: SpellfireSorceryCharacter): boolean {
+  return (
+    character.className === "Sorcerer" &&
+    character.subclassId === spellfireSorcerySubclassId &&
+    (character.level ?? 0) >= 14
+  );
+}
+
+function getSorcererSpellfireBurstDescriptionAdditions(
+  character: SpellfireSorceryCharacter
+): FeatureActionCard["descriptionAdditions"] {
+  return hasSorcererSpellfireHonedSpellfireFeature(character) && honedSpellfireDescription.length > 0
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.HONED_SPELLFIRE,
+          honedSpellfireDescription,
+          "Honed Spellfire"
+        )
+      ]
+    : [];
+}
 
 function hasSorcererSpellfireAbsorbSpellsFeature(character: SpellfireSorceryCharacter): boolean {
   return (
@@ -142,6 +197,142 @@ function hasSorcererSpellfireCrownOfSpellfireFeature(
     character.subclassId === spellfireSorcerySubclassId &&
     (character.level ?? 0) >= 18
   );
+}
+
+type SpellfireBurstFormula = {
+  formula: string;
+  formulaDisplay: string;
+  fact: FeatureActionFact;
+};
+
+function getSorcererSpellfireBurstBolsteringFlamesFormula(
+  character: SpellfireSorceryCharacter
+): SpellfireBurstFormula {
+  const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
+  const sorcererLevel = Math.max(1, Math.floor(character.level ?? 1));
+  const honedBonus = hasSorcererSpellfireHonedSpellfireFeature(character) ? sorcererLevel : 0;
+  const formulaTerms = [
+    "1d4",
+    charismaModifier !== 0 ? String(charismaModifier) : null,
+    honedBonus > 0 ? String(honedBonus) : null
+  ];
+  const displayTerms = [
+    "1d4",
+    charismaModifier !== 0 ? formatSignedFormulaTerm(charismaModifier, "CHA") : null,
+    honedBonus > 0 ? formatSignedFormulaTerm(honedBonus, "Sorcerer Level") : null
+  ];
+  const formula = formatFormulaTerms(formulaTerms);
+  const formulaCell = formatFormulaCell({
+    formula,
+    displayTerms,
+    resultLabel: "Temporary HP"
+  });
+
+  return {
+    formula,
+    formulaDisplay: formulaCell.value.replace(/^.* = /, ""),
+    fact: {
+      label: "Bolstering Flames Formula",
+      value: formulaCell.value,
+      fullWidth: true
+    }
+  };
+}
+
+function getSorcererSpellfireBurstRadiantFireFormula(
+  character: SpellfireSorceryCharacter
+): SpellfireBurstFormula {
+  const formula = hasSorcererSpellfireHonedSpellfireFeature(character) ? "1d8" : "1d4";
+  const formulaCell = formatFormulaCell({
+    formula,
+    displayTerms: [`${formula} Fire/Radiant`],
+    resultLabel: "Damage"
+  });
+
+  return {
+    formula,
+    formulaDisplay: `${formula} Fire/Radiant`,
+    fact: {
+      label: "Radiant Fire Formula",
+      value: formulaCell.value,
+      fullWidth: true
+    }
+  };
+}
+
+export function getSorcererSpellfireBurstBolsteringFlamesRollFormula(
+  character: SpellfireSorceryCharacter
+): SpellfireBurstFormula {
+  return getSorcererSpellfireBurstBolsteringFlamesFormula(character);
+}
+
+export function getSorcererSpellfireBurstRadiantFireRollFormula(
+  character: SpellfireSorceryCharacter
+): SpellfireBurstFormula {
+  return getSorcererSpellfireBurstRadiantFireFormula(character);
+}
+
+function getSorcererSpellfireBurstAction(
+  character: SpellfireSorceryCharacter
+): FeatureActionCard | null {
+  if (!hasSorcererSpellfireBurstFeature(character)) {
+    return null;
+  }
+
+  const usedThisTurn = character.classFeatureState?.sorcerer?.spellfireBurstUsedThisTurn === true;
+  const bolsteringFlamesFormula =
+    getSorcererSpellfireBurstBolsteringFlamesFormula(character).fact;
+  const radiantFireFormula = getSorcererSpellfireBurstRadiantFireFormula(character).fact;
+  const descriptionAdditions = getSorcererSpellfireBurstDescriptionAdditions(character);
+
+  return {
+    key: sorcererSpellfireBurstActionKey,
+    name: spellfireBurstName,
+    sourceFeature: CLASS_FEATURE.SPELLFIRE_BURST,
+    summary: "Unleash bolstering flame or radiant fire.",
+    detail: "Unleash one Spellfire Burst effect.",
+    breakdown: "Once per turn",
+    economyType: ECONOMY_TYPE.FREE,
+    actionCategory: ACTION_CATEGORY.FEATURE,
+    description: spellfireBurstDescription,
+    descriptionAdditions,
+    facts: [bolsteringFlamesFormula, radiantFireFormula],
+    drawer: {
+      kind: "custom-form",
+      eyebrow: "Spellfire Sorcery",
+      description: spellfireBurstDescription,
+      descriptionAdditions,
+      facts: [bolsteringFlamesFormula, radiantFireFormula],
+      factsSectionTitle: "Formulas",
+      formKind: "spellfire-burst"
+    },
+    execute: {
+      kind: "custom-form",
+      formKind: "spellfire-burst"
+    },
+    disabled: usedThisTurn,
+    disabledReason: usedThisTurn ? "Spellfire Burst has already been used this turn." : undefined
+  };
+}
+
+export function activateSorcererSpellfireBurst(character: Character): Character {
+  if (
+    !hasSorcererSpellfireBurstFeature(character) ||
+    character.classFeatureState?.sorcerer?.spellfireBurstUsedThisTurn === true
+  ) {
+    return character;
+  }
+
+  return {
+    ...character,
+    classFeatureState: {
+      ...character.classFeatureState,
+      sorcerer: {
+        ...character.classFeatureState?.sorcerer,
+        spellfireBurstUsedThisTurn: true
+      }
+    }
+  };
 }
 
 function appendAbsorbSpellsCounterspellDescription(
@@ -323,6 +514,12 @@ export const getSorcererSpellfireSorceryDerivedFeatureState: SubclassRuntimeReso
   character.subclassId === spellfireSorcerySubclassId &&
   (character.level ?? 0) >= 3
     ? {
+        featureActions: [
+          ...(() => {
+            const spellfireBurstAction = getSorcererSpellfireBurstAction(character);
+            return spellfireBurstAction ? [spellfireBurstAction] : [];
+          })()
+        ],
         alwaysPreparedSpellIds: [
           ...getPreparedSpellIdsByLevel(character.level ?? 0, spellfireSorcerySpellIdsByLevel),
           ...((character.level ?? 0) >= 6 ? spellfireSorceryBonusSpellIdsByLevel[6] : [])

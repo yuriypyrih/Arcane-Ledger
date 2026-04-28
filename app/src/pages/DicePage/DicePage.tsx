@@ -1,11 +1,17 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { History } from "lucide-react";
 import D20Viewport from "../../components/D20Viewport";
 import DiceControls from "../../components/DicePage/DiceControls";
 import RollHistoryDrawer from "../../components/DicePage/RollHistoryDrawer";
 import RollResultPopup from "../../components/DicePage/RollResultPopup";
 import type { DiceSelection, DiceSides, RolledDie } from "../../types";
-import { createEmptySelection, rollDicePool, selectableDice } from "../../utils/dice";
+import {
+  createEmptySelection,
+  getCustomDiceCount,
+  parseCustomDiceText,
+  rollDicePool,
+  selectableDice
+} from "../../utils/dice";
 import { createResultPopup, createRollRecord } from "./utils";
 import styles from "./DicePage.module.css";
 import type { ResultPopup, RollRecord } from "./types";
@@ -18,8 +24,11 @@ function DicePage() {
   const [historyOpen, setHistoryOpen] = useState(false);
   const [resultPopup, setResultPopup] = useState<ResultPopup | null>(null);
   const [error, setError] = useState("");
+  const [customDiceText, setCustomDiceText] = useState("");
 
-  const totalSelectedDice = selectableDice.reduce((sum, sides) => sum + selection[sides], 0);
+  const customDiceCount = useMemo(() => getCustomDiceCount(customDiceText), [customDiceText]);
+  const totalSelectedDice =
+    selectableDice.reduce((sum, sides) => sum + selection[sides], 0) + customDiceCount;
 
   function adjustSelection(sides: DiceSides, delta: 1 | -1) {
     setSelection((current) => {
@@ -37,12 +46,13 @@ function DicePage() {
         throw new Error("Select at least one die before rolling.");
       }
 
-      const result = rollDicePool(selection);
+      const result = rollDicePool(selection, parseCustomDiceText(customDiceText));
       const record: RollRecord = createRollRecord(result);
 
       setHistory((current) => [record, ...current].slice(0, 12));
       setCurrentDice(result.dice);
       setSelection(createEmptySelection());
+      setCustomDiceText("");
       setResultPopup(null);
       setRollToken((current) => current + 1);
       setError("");
@@ -69,8 +79,11 @@ function DicePage() {
         <div className={styles.controlsOverlay}>
           <DiceControls
             selection={selection}
+            customDiceText={customDiceText}
+            customDiceCount={customDiceCount}
             totalSelectedDice={totalSelectedDice}
             onAdjustSelection={adjustSelection}
+            onCustomDiceTextChange={setCustomDiceText}
             onRoll={commitRoll}
           />
         </div>

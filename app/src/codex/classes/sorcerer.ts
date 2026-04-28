@@ -205,7 +205,7 @@ export const sorcererFeatures: SorcererFeatureClassObj[] = [
           "You gain an Epic Boon feat, or another feat of your choice for which you qualify.",
           "<feat:BOON_OF_DIMENSIONAL_TRAVEL>Boon of Dimensional Travel</feat> is recommended."
         ],
-        trackingState: TRACKER.NOT_TRACKED
+        trackingState: TRACKER.TRACKED
       }
     },
     sorceryPoints: 19,
@@ -272,7 +272,7 @@ export const sorcererFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>>
       "When you finish a <link:short-rest>Short Rest</link>, you can regain expended Sorcery Points, but no more than a number equal to half your Sorcerer level, rounded down.",
       "Once you use this feature, you can't do so again until you finish a <link:long-rest>Long Rest</link>."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.SORCERY_INCARNATE]: {
     description: [

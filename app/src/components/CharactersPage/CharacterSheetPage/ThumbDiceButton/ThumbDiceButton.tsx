@@ -1,11 +1,18 @@
 import clsx from "clsx";
 import { Cog, X } from "lucide-react";
-import { useState } from "react";
+import { useState, type FormEvent } from "react";
 import { useDiceRollerPopup } from "../../../DicePage/DiceRollerPopup";
 import DiceRollerSettingsButton from "../GameplayForm/widgets/DiceRollerSettingsButton";
 import d20Icon from "../../../../assets/svg/d20.svg";
 import type { DiceSelection, DiceSides, RollMode } from "../../../../types";
-import { createEmptySelection, selectableDice } from "../../../../utils/dice";
+import {
+  createEmptySelection,
+  formatCustomDiceText,
+  getCustomDiceCount,
+  parseCustomDiceText,
+  selectableDice,
+  type CustomDiceTerm
+} from "../../../../utils/dice";
 import styles from "./ThumbDiceButton.module.css";
 
 const modeOptions: Array<{ mode: RollMode; label: string; ariaLabel: string }> = [
@@ -26,24 +33,29 @@ const modeOptions: Array<{ mode: RollMode; label: string; ariaLabel: string }> =
   }
 ];
 
-function buildDiceFormula(selection: DiceSelection): string {
-  const terms = selectableDice
+function buildDiceFormula(selection: DiceSelection, customDiceTerms: CustomDiceTerm[]): string {
+  const standardTerms = selectableDice
     .map((sides) => {
       const count = selection[sides];
       return count > 0 ? `${count}d${sides}` : null;
     })
     .filter((term): term is string => term !== null);
 
-  return terms.join(" + ");
+  const customTerms = customDiceTerms.map((term) => `${term.count}d${term.sides}`);
+
+  return [...standardTerms, ...customTerms].join(" + ");
 }
 
-function buildDiceDescription(selection: DiceSelection): string {
-  const terms = selectableDice
+function buildDiceDescription(selection: DiceSelection, customDiceTerms: CustomDiceTerm[]): string {
+  const standardTerms = selectableDice
     .map((sides) => {
       const count = selection[sides];
       return count > 0 ? `${count} x d${sides}` : null;
     })
     .filter((term): term is string => term !== null);
+
+  const customTerms = customDiceTerms.map((term) => `${term.count} x d${term.sides}`);
+  const terms = [...standardTerms, ...customTerms];
 
   return terms.length > 0 ? `Selected: ${terms.join(", ")}` : "No dice selected.";
 }
@@ -51,11 +63,17 @@ function buildDiceDescription(selection: DiceSelection): string {
 function ThumbDiceButton() {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isDiceRollerSettingsOpen, setIsDiceRollerSettingsOpen] = useState(false);
+  const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [selection, setSelection] = useState<DiceSelection>(createEmptySelection);
+  const [customDiceText, setCustomDiceText] = useState("");
+  const [customDraftText, setCustomDraftText] = useState("");
+  const [customError, setCustomError] = useState("");
   const [mode, setMode] = useState<RollMode>("normal");
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
 
-  const totalSelectedDice = selectableDice.reduce((sum, sides) => sum + selection[sides], 0);
+  const customDiceCount = getCustomDiceCount(customDiceText);
+  const totalSelectedDice =
+    selectableDice.reduce((sum, sides) => sum + selection[sides], 0) + customDiceCount;
 
   function adjustSelection(sides: DiceSides, delta: 1 | -1) {
     setSelection((currentSelection) => {
@@ -71,7 +89,27 @@ function ThumbDiceButton() {
   function closeThumbPanel() {
     setIsExpanded(false);
     setIsDiceRollerSettingsOpen(false);
+    setIsCustomModalOpen(false);
     setMode("normal");
+  }
+
+  function openCustomModal() {
+    setCustomDraftText(customDiceText);
+    setCustomError("");
+    setIsCustomModalOpen(true);
+  }
+
+  function submitCustomDice(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+
+    try {
+      const terms = parseCustomDiceText(customDraftText);
+      setCustomDiceText(formatCustomDiceText(terms));
+      setCustomError("");
+      setIsCustomModalOpen(false);
+    } catch (error) {
+      setCustomError(error instanceof Error ? error.message : "Enter valid custom dice.");
+    }
   }
 
   function handleThumbClick() {
@@ -85,14 +123,17 @@ function ThumbDiceButton() {
       return;
     }
 
+    const customDiceTerms = parseCustomDiceText(customDiceText);
+
     openDiceRoller({
       title: "Quick roll",
-      formula: buildDiceFormula(selection),
-      description: buildDiceDescription(selection),
+      formula: buildDiceFormula(selection, customDiceTerms),
+      description: buildDiceDescription(selection, customDiceTerms),
       mode
     });
 
     setSelection(createEmptySelection());
+    setCustomDiceText("");
     closeThumbPanel();
   }
 
@@ -170,6 +211,21 @@ function ThumbDiceButton() {
                   ) : null}
                 </button>
               ))}
+              <button
+                type="button"
+                className={clsx(
+                  styles.dieButton,
+                  styles.customDieButton,
+                  customDiceCount > 0 && styles.dieButtonActive
+                )}
+                disabled={!isExpanded}
+                onClick={openCustomModal}
+              >
+                <span>Custom Dice</span>
+                {customDiceCount > 0 ? (
+                  <span className={styles.countBadge}>{customDiceCount}</span>
+                ) : null}
+              </button>
             </div>
           </div>
         </div>
@@ -191,6 +247,50 @@ function ThumbDiceButton() {
           {triggerLabel}
         </button>
       </div>
+
+      {isCustomModalOpen ? (
+        <div
+          className={styles.modalBackdrop}
+          role="presentation"
+          onClick={() => setIsCustomModalOpen(false)}
+        >
+          <form
+            className={styles.customModal}
+            onSubmit={submitCustomDice}
+            onClick={(event) => event.stopPropagation()}
+          >
+            <div className={styles.customModalHeader}>
+              <h3>Custom Dice</h3>
+              <button
+                type="button"
+                className={styles.customModalClose}
+                onClick={() => setIsCustomModalOpen(false)}
+                aria-label="Close custom dice"
+              >
+                x
+              </button>
+            </div>
+            <label className={styles.customField}>
+              <span>Dice</span>
+              <input
+                value={customDraftText}
+                onChange={(event) => setCustomDraftText(event.target.value)}
+                placeholder="1d7,2d25"
+                autoFocus
+              />
+            </label>
+            <p className={styles.customHint}>
+              Enter custom dice separated by commas, for example 1d7,2d25. Leave empty to clear.
+            </p>
+            {customError ? <p className={styles.customError}>{customError}</p> : null}
+            <div className={styles.customModalActions}>
+              <button type="submit" className={styles.customAddButton}>
+                Add
+              </button>
+            </div>
+          </form>
+        </div>
+      ) : null}
 
       {diceRollerPopup}
     </>

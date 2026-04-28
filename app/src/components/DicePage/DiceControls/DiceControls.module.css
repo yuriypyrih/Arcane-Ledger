@@ -71,6 +71,10 @@
   color: #f7e9d1;
 }
 
+.customDieButton {
+  grid-column: span 2;
+}
+
 .countBadge {
   display: inline-flex;
   align-items: center;
@@ -113,6 +117,114 @@
   font-size: clamp(0.95rem, 2vw, 1.1rem);
   letter-spacing: 0.04em;
   text-transform: uppercase;
+}
+
+.modalBackdrop {
+  align-items: center;
+  background: rgba(14, 9, 6, 0.44);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 1rem;
+  position: fixed;
+  z-index: 60;
+}
+
+.customModal {
+  background: #fff8ee;
+  border: 1px solid rgba(92, 62, 36, 0.18);
+  border-radius: 8px;
+  box-shadow: 0 26px 70px rgba(20, 12, 8, 0.32);
+  color: #26180f;
+  display: grid;
+  gap: 0.85rem;
+  max-width: min(24rem, calc(100vw - 2rem));
+  padding: 1rem;
+  width: 100%;
+}
+
+.customModalHeader {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.customModalHeader h3 {
+  font-size: 1rem;
+  line-height: 1.1;
+  margin: 0;
+}
+
+.customModalClose {
+  align-items: center;
+  background: rgba(78, 49, 28, 0.08);
+  border: 1px solid rgba(78, 49, 28, 0.12);
+  border-radius: 999px;
+  color: #4b2f1d;
+  cursor: pointer;
+  display: inline-flex;
+  font: inherit;
+  font-size: 0.82rem;
+  height: 1.8rem;
+  justify-content: center;
+  line-height: 1;
+  width: 1.8rem;
+}
+
+.customField {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.customField span {
+  color: rgba(38, 24, 15, 0.72);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.customField input {
+  background: rgba(255, 255, 255, 0.72);
+  border: 1px solid rgba(78, 49, 28, 0.2);
+  border-radius: 8px;
+  color: #26180f;
+  font: inherit;
+  min-height: 2.45rem;
+  padding: 0 0.75rem;
+  width: 100%;
+}
+
+.customHint {
+  color: rgba(38, 24, 15, 0.56);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.customError {
+  color: #9f1d1d;
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.35;
+  margin: 0;
+}
+
+.customModalActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.customAddButton {
+  background: #347ac4;
+  border: none;
+  border-radius: 8px;
+  color: #fff8ee;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  min-height: 2.3rem;
+  padding: 0 1rem;
 }
 
 @media (max-width: 720px) {

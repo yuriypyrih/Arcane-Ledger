@@ -310,6 +310,7 @@ import {
   getSorcererDraconicElementalAffinityDamageTypeSelection,
   getSorcererSubclassRestoreBalanceUsesRemaining,
   getSorcererSubclassRestoreBalanceUsesTotal,
+  restoreSorcererSubclassFeaturesOnSpellCast,
   restoreSorcererSubclassFeaturesOnSpellSlotCast,
   setSorcererDraconicElementalAffinityDamageTypeSelection,
   sorcererDraconicElementalAffinityDamageTypeOptions,
@@ -553,6 +554,7 @@ import type {
 import type { CharacterStatusEntry } from "../../../types";
 import {
   getSpellEntryById,
+  SPELL_LIST_CLASS,
   type ReactionEntry,
   type SpellDescriptionEntry,
   type SpellEntry,
@@ -1283,7 +1285,7 @@ export function activateBardicInspirationForCharacter(
 
 export function applySpellCastFeatureEffectsForCharacter(
   character: Character,
-  spell: Pick<SpellEntry, "id" | "castingTime" | "magicSchool" | "spellLevel">,
+  spell: Pick<SpellEntry, "id" | "castingTime" | "magicSchool" | "spellLevel" | "spellLists">,
   options?: {
     includeBardBattleMagic?: boolean;
     spellSlotLevel?: number | null;
@@ -1293,9 +1295,17 @@ export function applySpellCastFeatureEffectsForCharacter(
     options?.includeBardBattleMagic === false
       ? character
       : applyBardBattleMagicAfterSpellCast(character, spell);
+  const nextCharacterWithSorcererEffects =
+    spell.spellLevel > 0 && spell.spellLists.includes(SPELL_LIST_CLASS.SORCERER)
+      ? restoreSorcererSubclassFeaturesOnSpellCast(nextCharacter)
+      : nextCharacter;
 
   return applyWarlockFeaturesAfterSpellCast(
-    applyWizardFeaturesAfterSpellCast(nextCharacter, spell, options?.spellSlotLevel),
+    applyWizardFeaturesAfterSpellCast(
+      nextCharacterWithSorcererEffects,
+      spell,
+      options?.spellSlotLevel
+    ),
     spell
   );
 }

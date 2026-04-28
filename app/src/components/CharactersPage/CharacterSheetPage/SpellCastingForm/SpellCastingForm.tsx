@@ -142,7 +142,13 @@ import {
   getSorceryPointsRemaining,
   spendSorceryPoints
 } from "../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
-import { canUseSorcererSubclassPsionicSorceryForSpell } from "../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses";
+import {
+  canUseSorcererSubclassPsionicSorceryForSpell,
+  canUseSorcererSubclassTamedSurgeForSpell,
+  consumeSorcererSubclassTamedSurgeUseForCharacter,
+  getSorcererSubclassTamedSurgeUsesRemaining,
+  getSorcererSubclassTamedSurgeUsesTotal
+} from "../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses";
 import {
   getAlwaysPreparedSpellIds,
   getCantripLimitForCharacter,
@@ -375,6 +381,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   ] = useState(false);
   const [useNaturalRecoveryOnSelectedSpell, setUseNaturalRecoveryOnSelectedSpell] = useState(false);
   const [usePsionicSorceryOnSelectedSpell, setUsePsionicSorceryOnSelectedSpell] = useState(false);
+  const [useTamedSurgeOnSelectedSpell, setUseTamedSurgeOnSelectedSpell] = useState(false);
   const [useTelekineticMasterOnSelectedSpell, setUseTelekineticMasterOnSelectedSpell] =
     useState(false);
   const [useFrozenHauntOnSelectedSpell, setUseFrozenHauntOnSelectedSpell] = useState(false);
@@ -418,6 +425,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseFeyReinforcementsNoConcentrationOnSelectedSpell(false);
     setUseNaturalRecoveryOnSelectedSpell(false);
     setUsePsionicSorceryOnSelectedSpell(false);
+    setUseTamedSurgeOnSelectedSpell(false);
     setUseTelekineticMasterOnSelectedSpell(false);
     setUseFrozenHauntOnSelectedSpell(false);
     setIsSelectedSpellDiceRollerSettingsOpen(false);
@@ -575,6 +583,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   );
   const sorceryPointsRemaining = useMemo(() => getSorceryPointsRemaining(character), [character]);
   const sorceryPointsTotal = useMemo(() => getSorceryPointsTotal(character), [character]);
+  const tamedSurgeUsesRemaining = useMemo(
+    () => getSorcererSubclassTamedSurgeUsesRemaining(character),
+    [character]
+  );
+  const tamedSurgeUsesTotal = useMemo(
+    () => getSorcererSubclassTamedSurgeUsesTotal(character),
+    [character]
+  );
   const usesPreparedSpells = usesPreparedSpellsForCharacter(
     character.className,
     character.level,
@@ -1142,6 +1158,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpell !== null &&
     getSpellLevel(selectedSpell) > 0 &&
     canUseSorcererSubclassPsionicSorceryForSpell(character, selectedSpell.id);
+  const selectedSpellSupportsTamedSurge =
+    selectedSpell !== null && canUseSorcererSubclassTamedSurgeForSpell(character, selectedSpell);
   const selectedSpellSupportsMindMagic = canUseClericMindMagicForSpell(
     character,
     selectedSpell,
@@ -1262,6 +1280,19 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellSupportsTelekineticMaster &&
     fighterPsiWarriorTelekineticMasterUsesRemaining <= 0 &&
     fighterPsiWarriorEnergyDiceRemaining <= 0;
+  const selectedSpellCastOptionSkipsSpellSlot =
+    (selectedSpellSupportsMindMagic && useMindMagicOnSelectedSpell) ||
+    (selectedSpellSupportsWarGodsBlessing && useWarGodsBlessingOnSelectedSpell) ||
+    (selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) ||
+    (selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell) ||
+    (selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell) ||
+    (selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell) ||
+    (selectedSpellSupportsFeyReinforcements && useFeyReinforcementsOnSelectedSpell) ||
+    (selectedSpellSupportsPhantasmalCreatures && usePhantasmalCreaturesOnSelectedSpell) ||
+    (selectedSpellSupportsTelekineticMaster && useTelekineticMasterOnSelectedSpell);
+  const selectedSpellTamedSurgeDisabled =
+    selectedSpellSupportsTamedSurge &&
+    (tamedSurgeUsesRemaining <= 0 || selectedSpellCastOptionSkipsSpellSlot);
   const selectedSpellPsionicSorceryWarning =
     usePsionicSorceryOnSelectedSpell &&
     selectedSpellSupportsPsionicSorcery &&
@@ -1432,6 +1463,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
     setUsePsionicSorceryOnSelectedSpell(false);
   }, [selectedSpellPsionicSorceryDisabled, selectedSpellSupportsPsionicSorcery]);
+
+  useEffect(() => {
+    if (selectedSpellSupportsTamedSurge && !selectedSpellTamedSurgeDisabled) {
+      return;
+    }
+
+    setUseTamedSurgeOnSelectedSpell(false);
+  }, [selectedSpellSupportsTamedSurge, selectedSpellTamedSurgeDisabled]);
 
   useEffect(() => {
     if (!selectedSpellSupportsElementalSmite || !selectedSpellElementalSmiteDisabled) {
@@ -2070,7 +2109,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     });
   }
 
-  function rollSpellAttackForSpellCast(spell: Pick<SpellEntry, "isAttackSpell" | "name">) {
+  function rollSpellAttackForSpellCast(
+    spell: Pick<SpellEntry, "isAttackSpell" | "isSavingThrowSpell" | "name" | "spellLists">
+  ) {
     const attackRollFormula = getSpellAttackRollFormulaForCharacter(spell, character);
 
     if (!attackRollFormula) {
@@ -2082,6 +2123,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       formula: attackRollFormula.formula,
       formulaDisplay: attackRollFormula.formulaDisplay,
       description: "Roll to hit the target's Armor Class.",
+      mode: attackRollFormula.rollMode,
       enableNextCriticalHitOnNatural20: true
     });
   }
@@ -2105,6 +2147,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useStepsOfTheFey?: boolean;
     useNaturalRecovery?: boolean;
     usePsionicSorcery?: boolean;
+    useTamedSurge?: boolean;
     useTelekineticMaster?: boolean;
   }) {
     if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpellcastingBlock)) {
@@ -2165,6 +2208,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     const useNaturalRecovery = options?.useNaturalRecovery === true;
     const usePsionicSorcery =
       options?.usePsionicSorcery === true && selectedSpellSupportsPsionicSorcery;
+    const useTamedSurge =
+      options?.useTamedSurge === true &&
+      selectedSpellSupportsTamedSurge &&
+      tamedSurgeUsesRemaining > 0;
     const useTelekineticMaster =
       options?.useTelekineticMaster === true &&
       selectedSpellSupportsTelekineticMaster &&
@@ -2564,14 +2611,18 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         ? consumeRangerWinterWalkerFrozenHauntUseForCharacter(nextCharacterWithPhantasmalCreatures)
         : nextCharacterWithPhantasmalCreatures;
       const spellConsumedSpellSlot = !castsWithoutSpellSlot || shouldSpendFrozenHauntFallbackSlot;
+      const nextCharacterWithTamedSurge =
+        useTamedSurge && spellConsumedSpellSlot
+          ? consumeSorcererSubclassTamedSurgeUseForCharacter(nextCharacterWithFrozenHaunt)
+          : nextCharacterWithFrozenHaunt;
       const spellCastFeatureEffectSlotLevel = spellConsumedSpellSlot
         ? shouldSpendFrozenHauntFallbackSlot
           ? frozenHauntFallbackSlotLevel
           : slotLevel
         : null;
       const nextCharacterWithSorcererSubclassRecharge = spellConsumedSpellSlot
-        ? restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(nextCharacterWithFrozenHaunt)
-        : nextCharacterWithFrozenHaunt;
+        ? restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(nextCharacterWithTamedSurge)
+        : nextCharacterWithTamedSurge;
       const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
         nextCharacterWithSorcererSubclassRecharge,
         selectedSpell,
@@ -3255,6 +3306,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               useStepsOfTheFey: useStepsOfTheFeyOnSelectedSpell,
               useNaturalRecovery: useNaturalRecoveryOnSelectedSpell,
               usePsionicSorcery: usePsionicSorceryOnSelectedSpell,
+              useTamedSurge: useTamedSurgeOnSelectedSpell,
               useTelekineticMaster: useTelekineticMasterOnSelectedSpell
             })
           }
@@ -3298,6 +3350,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                             ? fighterPsiWarriorTelekineticMasterUsesRemaining > 0
                               ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
                               : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
+                            : selectedSpellSupportsTamedSurge && useTamedSurgeOnSelectedSpell
+                              ? "Tamed Surge will be spent after this spell consumes a spell slot."
                             : selectedSpellUnderMantleOfMajesty
                               ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
                               : null
@@ -3355,6 +3409,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             selectedSpellSupportsPhantasmalCreatures ||
             selectedSpellFrozenHauntOptionState !== null ||
             selectedSpellSupportsNaturalRecovery ||
+            selectedSpellSupportsTamedSurge ||
             selectedSpellSupportsTelekineticMaster
               ? [
                   ...(selectedSpellSupportsWarGodsBlessing
@@ -3459,6 +3514,21 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                               icon: "sparkles"
                             })
                           )
+                        }
+                      ]
+                    : []),
+                  ...(selectedSpellSupportsTamedSurge
+                    ? [
+                        {
+                          id: "tamed-surge",
+                          label: "Tamed Surge",
+                          checked: useTamedSurgeOnSelectedSpell,
+                          onCheckedChange: setUseTamedSurgeOnSelectedSpell,
+                          disabled: selectedSpellTamedSurgeDisabled,
+                          headerTags: [
+                            createChargesHeaderTag(tamedSurgeUsesRemaining, tamedSurgeUsesTotal)
+                          ],
+                          usage: createChargesCardUsage(tamedSurgeUsesRemaining, tamedSurgeUsesTotal)
                         }
                       ]
                     : []),

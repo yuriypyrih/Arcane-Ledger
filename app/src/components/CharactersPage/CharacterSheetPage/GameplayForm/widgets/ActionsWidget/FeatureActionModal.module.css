@@ -92,6 +92,40 @@
   gap: 0.6rem;
 }
 
+.metamagicOptionList {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.metamagicOptionCard {
+  width: 100%;
+}
+
+.metamagicOptionCost {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.22rem;
+}
+
+.metamagicOptionCost svg {
+  color: currentColor;
+  stroke: currentColor;
+}
+
+.metamagicOptionDescription {
+  display: grid;
+  gap: 0.42rem;
+}
+
+.metamagicOptionDescriptionLine {
+  margin: 0;
+}
+
+.metamagicOptionDescriptionStrong {
+  color: var(--color-ink);
+}
+
 @media (max-width: 720px) {
   .featureActionOptionGrid {
     grid-template-columns: 1fr;

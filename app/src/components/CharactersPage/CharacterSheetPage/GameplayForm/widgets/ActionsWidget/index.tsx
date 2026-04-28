@@ -70,6 +70,7 @@ import {
   getSorcererSpellfireCrownOfSpellfireUsesRemainingForCharacter,
   getSorcererSpellfireCrownOfSpellfireUsesTotalForCharacter,
   getSorceryPointsRemainingForCharacter,
+  getSorceryPointsTotalForCharacter,
   getLayOnHandsCurableConditionsForCharacter,
   getPaladinHealingPoolRemainingForCharacter,
   getPaladinHealingPoolTotalForCharacter,
@@ -172,6 +173,21 @@ import {
   metamagicActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
 import {
+  sorcererWarpingImplosionActionKey,
+  sorcererWarpingImplosionDamageFormula,
+  sorcererWarpingImplosionDamageFormulaDisplay
+} from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererAberrantSorcery";
+import {
+  getSorcererSpellfireBurstBolsteringFlamesRollFormula,
+  getSorcererSpellfireBurstRadiantFireRollFormula,
+  sorcererSpellfireBurstActionKey
+} from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererSpellfireSorcery";
+import {
+  hasSorcererControlledChaosFeatureForCharacter,
+  sorcererTidesOfChaosActionKey,
+  sorcererWildMagicSurgeActionKey
+} from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererWildMagicSorcery";
+import {
   activateWarlockAwakenedMind,
   getWarlockClairvoyantCombatantUsesRemaining,
   getWarlockClairvoyantCombatantUsesTotal
@@ -264,7 +280,7 @@ import {
 } from "../../../../../RollStatePill/rollState";
 import { useBodyScrollLock } from "../../../../../../lib/useBodyScrollLock";
 import d20Icon from "../../../../../../assets/svg/d20.svg";
-import { useAppSelector } from "../../../../../../store";
+import { setNextRollModeOverride, useAppDispatch, useAppSelector } from "../../../../../../store";
 import ActionButton from "../../../../../ActionButton";
 import styles from "./ActionsWidget.module.css";
 import { getSpellActionPathStates, getSpellActionPathWarning } from "../../../spellActionPaths";
@@ -348,6 +364,12 @@ import ElementalAttunementResistanceSelector from "../TraitsConditionsWidget/Ele
 import { ElementalBurstActionFooter } from "./ElementalBurstAction";
 import { MonkHandOfHealingActionFooter } from "./MonkHandOfHealingAction";
 import { MonkFlurryOfBlowsActionFooter } from "./MonkFlurryOfBlowsActionFooter";
+import {
+  SpellfireBurstActionBody,
+  SpellfireBurstActionFooter,
+  type SpellfireBurstEffect,
+  type SpellfireBurstTarget
+} from "./SpellfireBurstAction";
 import CommonActionsModal from "./CommonActionsModal";
 import { getCommonActionPathStates } from "./commonActionEconomy";
 import { getMonkHandOfHealingActionPathStates } from "./monkHandOfHealingActionUtils";
@@ -356,6 +378,7 @@ import BrutalStrikeActionBody from "./forms/BrutalStrikeActionBody";
 import DivineInterventionActionBody from "./forms/DivineInterventionActionBody";
 import FeatureOptionsActionBody from "./forms/FeatureOptionsActionBody";
 import FontOfMagicActionBody from "./forms/FontOfMagicActionBody";
+import MetamagicOptionsActionBody from "./forms/MetamagicOptionsActionBody";
 import MysticArcanumActionBody from "./forms/MysticArcanumActionBody";
 import NatureMagicianActionBody from "./forms/NatureMagicianActionBody";
 import RageActionBody from "./forms/RageActionBody";
@@ -390,8 +413,11 @@ const initialSneakAttackActionSelection: SneakAttackActionSelection = {
 };
 
 function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
+  const dispatch = useAppDispatch();
   const [sneakAttackActionSelection, setSneakAttackActionSelection] =
     useState<SneakAttackActionSelection>(initialSneakAttackActionSelection);
+  const [selectedSpellfireBurstTarget, setSelectedSpellfireBurstTarget] =
+    useState<SpellfireBurstTarget>("self");
   const [selectedWeaponDetailReference, setSelectedWeaponDetailReference] = useState<{
     title: string;
     entries: ReturnType<typeof getKeywordReferences>;
@@ -958,10 +984,66 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         : 0,
     [character, selectedActionOptionKeys, selectedFeatureAction]
   );
-  const selectedFontOfMagicWarning =
-    selectedFontOfMagicSelection?.kind === "points-to-slot"
-      ? getRoundTrackerActionWarning("bonusAction", roundTracker)
+  const selectedFontOfMagicWarning = useMemo(() => {
+    if (!selectedFontOfMagicSelection) {
+      return null;
+    }
+
+    if (selectedFontOfMagicSelection.kind === "points-to-slot") {
+      const actionWarning = getRoundTrackerActionWarning("bonusAction", roundTracker);
+
+      if (actionWarning) {
+        return actionWarning;
+      }
+
+      const spellSlotLevel = selectedFontOfMagicSelection.spellSlotLevel;
+      const sorceryPointCostBySpellSlotLevel: Record<number, number> = {
+        1: 2,
+        2: 3,
+        3: 5,
+        4: 6,
+        5: 7
+      };
+      const sorceryPointCost = sorceryPointCostBySpellSlotLevel[spellSlotLevel] ?? null;
+
+      if ((fixedSpellSlotsExpended[spellSlotLevel - 1] ?? 0) <= 0) {
+        return "You already have all of those spell slots.";
+      }
+
+      return sorceryPointCost !== null &&
+        getSorceryPointsRemainingForCharacter(character) < sorceryPointCost
+        ? `You need ${sorceryPointCost} Sorcery Points.`
+        : null;
+    }
+
+    const spellSlotLevel = selectedFontOfMagicSelection.spellSlotLevel;
+    const spellSlotIndex = spellSlotLevel - 1;
+    const spellSlotTotal = fixedSpellSlotTotals[spellSlotIndex] ?? 0;
+    const spellSlotsRemaining = Math.max(
+      0,
+      spellSlotTotal - (fixedSpellSlotsExpended[spellSlotIndex] ?? 0)
+    );
+    const sorceryPointsRemaining = getSorceryPointsRemainingForCharacter(character);
+    const sorceryPointsTotal = getSorceryPointsTotalForCharacter(character);
+
+    if (spellSlotTotal <= 0) {
+      return "You don't have spell slots of this level.";
+    }
+
+    if (spellSlotsRemaining <= 0) {
+      return "No spell slots of this level remain.";
+    }
+
+    return sorceryPointsRemaining + spellSlotLevel > sorceryPointsTotal
+      ? `Converting this slot would exceed your Sorcery Point maximum (${sorceryPointsTotal}).`
       : null;
+  }, [
+    character,
+    fixedSpellSlotTotals,
+    fixedSpellSlotsExpended,
+    roundTracker,
+    selectedFontOfMagicSelection
+  ]);
   const selectedActionEconomyShapeState = useMemo(() => {
     if (!selectedAction) {
       return null;
@@ -1562,6 +1644,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   useEffect(() => {
     resetActionSelectionState();
     setSneakAttackActionSelection(initialSneakAttackActionSelection);
+    setSelectedSpellfireBurstTarget("self");
   }, [selectedActionKey, resetActionSelectionState]);
 
   useEffect(() => {
@@ -2505,6 +2588,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     activateFeatureAction(action);
+    if (action.key === sorcererTidesOfChaosActionKey) {
+      dispatch(setNextRollModeOverride("advantage"));
+    }
     closeActionDrawer();
   }
 
@@ -3105,6 +3191,128 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     });
 
     closeActionDrawer();
+  }
+
+  function submitSorcererWarpingImplosion() {
+    if (!selectedFeatureAction) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const roundTrackerResource = getRoundTrackerResourceForEconomyType(
+        selectedFeatureAction.economyType
+      );
+      const preparedCharacter = prepareCharacterForResourceConsumption(
+        currentCharacter,
+        roundTrackerResource
+      );
+      const nextCharacter = activateFeatureActionForCharacter(
+        preparedCharacter,
+        selectedFeatureAction.key
+      );
+
+      if (nextCharacter === preparedCharacter) {
+        return currentCharacter;
+      }
+
+      return roundTrackerResource
+        ? consumeRoundTrackerResourceForCharacter(nextCharacter, roundTrackerResource)
+        : nextCharacter;
+    });
+
+    openDiceRoller({
+      title: selectedFeatureAction.name,
+      formula: sorcererWarpingImplosionDamageFormula,
+      formulaDisplay: sorcererWarpingImplosionDamageFormulaDisplay,
+      description: "3~30 Damage = 3d10 Force"
+    });
+
+    closeActionDrawer();
+  }
+
+  function submitSorcererSpellfireBurst(effect: SpellfireBurstEffect) {
+    if (!selectedFeatureAction || selectedFeatureAction.key !== sorcererSpellfireBurstActionKey) {
+      return;
+    }
+
+    const formula =
+      effect === "bolstering-flames"
+        ? getSorcererSpellfireBurstBolsteringFlamesRollFormula(character)
+        : getSorcererSpellfireBurstRadiantFireRollFormula(character);
+    const title = effect === "bolstering-flames" ? "Bolstering Flames" : "Radiant Fire";
+
+    onPersistCharacter((currentCharacter) => {
+      const nextCharacter = activateFeatureActionForCharacter(
+        currentCharacter,
+        selectedFeatureAction.key
+      );
+
+      return nextCharacter === currentCharacter ? currentCharacter : nextCharacter;
+    });
+
+    openDiceRoller({
+      title,
+      formula: formula.formula,
+      formulaDisplay: formula.formulaDisplay,
+      description: formula.fact.value,
+      onResolvedResult:
+        effect === "bolstering-flames" && selectedSpellfireBurstTarget === "self"
+          ? ({ result }) => {
+              onPersistCharacter((currentCharacter) =>
+                applyRolledTemporaryHitPointsToCharacter(
+                  currentCharacter,
+                  result.total,
+                  "Bolstering Flames"
+                )
+              );
+            }
+          : undefined
+    });
+
+    closeActionDrawer();
+  }
+
+  function submitSorcererWildMagicSurge() {
+    if (!selectedFeatureAction || selectedFeatureAction.key !== sorcererWildMagicSurgeActionKey) {
+      return;
+    }
+
+    onPersistCharacter((currentCharacter) => {
+      const nextCharacter = activateFeatureActionForCharacter(
+        currentCharacter,
+        selectedFeatureAction.key
+      );
+
+      return nextCharacter === currentCharacter ? currentCharacter : nextCharacter;
+    });
+
+    const hasControlledChaos = hasSorcererControlledChaosFeatureForCharacter(character);
+
+    openDiceRoller(
+      hasControlledChaos
+        ? {
+            title: selectedFeatureAction.name,
+            description: "Roll twice on the Wild Magic Surge table and use either number.",
+            entries: [
+              {
+                label: "First Roll",
+                formula: "1d100",
+                formulaDisplay: "1d100"
+              },
+              {
+                label: "Second Roll",
+                formula: "1d100",
+                formulaDisplay: "1d100"
+              }
+            ]
+          }
+        : {
+            title: selectedFeatureAction.name,
+            formula: "1d100",
+            formulaDisplay: "1d100",
+            description: "Roll on the Wild Magic Surge table."
+          }
+    );
   }
 
   function submitSneakAttack({ effectKeys, useRendMind }: SneakAttackActionSelection) {
@@ -4010,6 +4218,19 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     }
 
     if (selectedAction.drawer.kind === "options") {
+      if (selectedAction.action.key === metamagicActionKey) {
+        return (
+          <MetamagicOptionsActionBody
+            options={selectedAction.drawer.options}
+            selectedOptionKeys={selectedActionOptionKeys}
+            selectionLimit={
+              selectedAction.drawer.selectionLimit ?? selectedAction.drawer.options.length
+            }
+            onToggleOption={toggleFeatureOptionSelection}
+          />
+        );
+      }
+
       return (
         <FeatureOptionsActionBody
           action={selectedAction}
@@ -4099,6 +4320,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             character={character}
             selection={sneakAttackActionSelection}
             onSelectionChange={setSneakAttackActionSelection}
+          />
+        );
+      }
+
+      if (selectedAction.drawer.formKind === "spellfire-burst") {
+        return (
+          <SpellfireBurstActionBody
+            selectedTarget={selectedSpellfireBurstTarget}
+            onSelectTarget={setSelectedSpellfireBurstTarget}
           />
         );
       }
@@ -4571,6 +4801,48 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       selectedAction.kind === "feature" &&
       selectedAction.drawer.kind === "confirm" &&
       selectedAction.execute.kind === "activate" &&
+      selectedAction.action.key === sorcererWildMagicSurgeActionKey
+    ) {
+      return (
+        <ActionDiceConfirmFooter
+          actionName={selectedAction.action.name}
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionShape={null}
+          actionShapeAvailable
+          actionShapeMultiCount={0}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onConfirm={submitSorcererWildMagicSurge}
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
+      selectedAction.action.key === sorcererWarpingImplosionActionKey
+    ) {
+      return (
+        <ActionDiceConfirmFooter
+          actionName={selectedAction.action.name}
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onConfirm={submitSorcererWarpingImplosion}
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
       (selectedAction.action.key === rogueSoulknifePsychicWhispersActionKey ||
         selectedAction.action.key === rogueSoulknifePsychicTeleportationActionKey)
     ) {
@@ -5021,6 +5293,22 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     if (
       selectedAction.kind === "feature" &&
       selectedAction.drawer.kind === "custom-form" &&
+      selectedAction.drawer.formKind === "spellfire-burst"
+    ) {
+      return (
+        <SpellfireBurstActionFooter
+          actionName={selectedAction.name}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onUseEffect={submitSorcererSpellfireBurst}
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "custom-form" &&
       selectedAction.drawer.formKind === "indomitable"
     ) {
       return (
@@ -5247,8 +5535,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           disabled={
             selectedFontOfMagicSelection === null ||
             selectedFeatureActionPrimaryDisabledReason !== null ||
-            (selectedFontOfMagicSelection.kind === "points-to-slot" &&
-              selectedFontOfMagicWarning !== null)
+            selectedFontOfMagicWarning !== null
           }
           trailingBadge={
             selectedFontOfMagicSelection?.kind === "points-to-slot" ? (

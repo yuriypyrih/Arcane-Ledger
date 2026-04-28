@@ -311,6 +311,7 @@ import {
   metamagicActionKey,
   normalizeSorcererFeatureState
 } from "./sorcerer/sorcerer";
+import { getSorcererSpellEntry } from "./sorcerer/innateSorcerySpell";
 import {
   activateWarlockFeatureAction,
   advanceWarlockFeaturesForNewRound,
@@ -901,7 +902,8 @@ const classFeatureModules = {
         actions: getSorcererFeatureActions(character),
         actionOptions: {
           [metamagicActionKey]: getSorcererMetamagicOptionsForAction(character)
-        }
+        },
+        transformSpellEntry: (spell) => getSorcererSpellEntry(character, spell)
       };
     },
     handleAction(character, actionKey) {

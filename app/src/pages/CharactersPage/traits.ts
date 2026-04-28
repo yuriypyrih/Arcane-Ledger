@@ -74,7 +74,11 @@ import {
 import { getRangerHuntersMarkConcentrationDescriptionAdditions } from "./classFeatures/ranger/ranger";
 import { paladinOathOfDevotionSacredWeaponStatusSourceId } from "./classFeatures/paladin/subclasses/paladinOathOfDevotion";
 import { paladinOathOfVengeanceVowOfEnmityStatusSourceId } from "./classFeatures/paladin/subclasses/paladinOathOfVengeance";
-import { getSorcererDraconicResilienceHitPointMaximumBonus } from "./classFeatures/sorcerer/subclasses/sorcererDraconicSorcery";
+import {
+  dragonWingsDescription,
+  getSorcererDraconicResilienceHitPointMaximumBonus,
+  sorcererDragonWingsStatusSourceId
+} from "./classFeatures/sorcerer/subclasses/sorcererDraconicSorcery";
 import {
   isRogueArcaneTricksterSpellThiefStatusSourceId,
   rogueArcaneTricksterMagicalAmbushStatusSourceId
@@ -157,6 +161,8 @@ const sorcererTelepathicSpeechStatusSourceId =
   "feature-sorcerer-aberrant-sorcery-telepathic-speech";
 const warlockAwakenedMindStatusSourceId = "feature-warlock-great-old-one-patron-awakened-mind";
 const sorcererPsychicDefensesStatusSourceId = "feature-sorcerer-aberrant-sorcery-psychic-defenses";
+const sorcererPsychicDefensesTraitStatusSourceId =
+  "feature-sorcerer-aberrant-sorcery-psychic-defenses-trait";
 const sorcererClockworkBastionOfLawStatusSourceId =
   "feature-sorcerer-clockwork-sorcery-bastion-of-law";
 const sorcererClockworkTranceOfOrderStatusSourceId =
@@ -1031,7 +1037,10 @@ function getDefaultStatusEntryDescriptionEntries(
       : ["A current effect or trait that may change how your character plays."];
   }
 
-  if (entry.sourceId === sorcererPsychicDefensesStatusSourceId) {
+  if (
+    entry.sourceId === sorcererPsychicDefensesStatusSourceId ||
+    entry.sourceId === sorcererPsychicDefensesTraitStatusSourceId
+  ) {
     return sorcererPsychicDefensesDescription.length > 0
       ? sorcererPsychicDefensesDescription
       : ["A current effect or trait that may change how your character plays."];
@@ -1055,6 +1064,12 @@ function getDefaultStatusEntryDescriptionEntries(
   if (entry.sourceId === sorcererSpellfireCrownOfSpellfireStatusSourceId) {
     return sorcererCrownOfSpellfireDescription.length > 0
       ? sorcererCrownOfSpellfireDescription
+      : ["A current effect or trait that may change how your character plays."];
+  }
+
+  if (entry.sourceId === sorcererDragonWingsStatusSourceId) {
+    return dragonWingsDescription.length > 0
+      ? dragonWingsDescription
       : ["A current effect or trait that may change how your character plays."];
   }
 

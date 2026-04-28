@@ -1,5 +1,5 @@
 import { sorcererFeatures } from "../../../../../codex/classes";
-import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries";
+import { CLASS_FEATURE, DAMAGE_TYPE, type SpellEntry } from "../../../../../codex/entries";
 import type { Character } from "../../../../../types";
 import {
   STATUS_DURATION_KIND,
@@ -7,8 +7,12 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import { getAbilityModifierForCharacter } from "../../../abilities";
+import { getProficiencyBonus } from "../../../gameplay";
 import { getSelectedSubclassForCharacter, getSubclassFeatureDetails } from "../../../subclasses";
 import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
+import { formatFormulaCell, formatSignedFormulaTerm } from "../../../shared/formulas";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
@@ -34,6 +38,8 @@ export const sorcererTelepathicSpeechStatusSourceId =
   "feature-sorcerer-aberrant-sorcery-telepathic-speech";
 export const sorcererPsychicDefensesStatusSourceId =
   "feature-sorcerer-aberrant-sorcery-psychic-defenses";
+export const sorcererPsychicDefensesTraitStatusSourceId =
+  "feature-sorcerer-aberrant-sorcery-psychic-defenses-trait";
 export const sorcererRevelationInFleshActionKey =
   "sorcerer-aberrant-sorcery-revelation-in-flesh";
 export const sorcererWarpingImplosionActionKey =
@@ -68,6 +74,8 @@ const revelationInFleshDurationMinutes = 10;
 const warpingImplosionName = "Warping Implosion";
 const warpingImplosionUsesTotal = 1;
 const warpingImplosionFallbackSorceryPointCost = 5;
+export const sorcererWarpingImplosionDamageFormula = "3d10";
+export const sorcererWarpingImplosionDamageFormulaDisplay = "3d10 Force";
 
 type RevelationInFleshAlterationDefinition = {
   key: string;
@@ -169,6 +177,16 @@ function getSorcererAberrantSorceryPointsRemaining(
         ? Math.max(0, Math.min(totalPoints, Math.floor(expendedPoints)))
         : 0)
   );
+}
+
+function getSorcererAberrantSpellSaveDc(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "abilities" | "classFeatureState" | "feats" | "level" | "statusEntries">>
+): number {
+  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
+
+  return 8 + proficiencyBonus + charismaModifier;
 }
 
 function spendSorcererAberrantSorceryPoints(character: Character, cost: number): Character {
@@ -283,6 +301,22 @@ export function canUseSorcererAberrantPsionicSorceryForSpell(
   return (
     hasSorcererAberrantPsionicSorceryFeature(character) &&
     getSorcererAberrantPsionicSpellIds(character).includes(spellId)
+  );
+}
+
+function transformSorcererAberrantPsionicSorcerySpell(
+  character: Parameters<SubclassRuntimeResolver>[0],
+  spell: SpellEntry
+): SpellEntry {
+  if (!canUseSorcererAberrantPsionicSorceryForSpell(character, spell.id)) {
+    return spell;
+  }
+
+  return appendFeatureSourcedDescriptionAddition(
+    spell,
+    character,
+    CLASS_FEATURE.PSIONIC_SORCERY,
+    getSorcererAberrantFeatureDescription(character, CLASS_FEATURE.PSIONIC_SORCERY)
   );
 }
 
@@ -452,6 +486,46 @@ function getSorcererAberrantRevelationInFleshSpeedBonuses(
   return speedBonuses;
 }
 
+function getSorcererAberrantWarpingImplosionFacts(
+  character: Parameters<SubclassRuntimeResolver>[0]
+): FeatureActionCard["facts"] {
+  const spellSaveDc = getSorcererAberrantSpellSaveDc(character);
+  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
+  const saveFormulaCell = formatFormulaCell({
+    formula: String(spellSaveDc),
+    displayTerms: [
+      "DC 8 (Base)",
+      formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus"),
+      formatSignedFormulaTerm(charismaModifier, "CHA")
+    ],
+    breakdownTerms: [
+      "DC 8 (Base)",
+      formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus"),
+      formatSignedFormulaTerm(charismaModifier, "CHA")
+    ]
+  });
+  const damageFormulaCell = formatFormulaCell({
+    formula: sorcererWarpingImplosionDamageFormula,
+    displayTerms: [sorcererWarpingImplosionDamageFormulaDisplay],
+    resultLabel: "Damage"
+  });
+
+  return [
+    {
+      label: "Strength Save DC Formula",
+      value: `Strength DC ${spellSaveDc} = ${saveFormulaCell.value}`,
+      breakdown: saveFormulaCell.breakdown,
+      fullWidth: true
+    },
+    {
+      label: "Damage Formula",
+      value: damageFormulaCell.value,
+      fullWidth: true
+    }
+  ];
+}
+
 function getSorcererAberrantDerivedStatusEntries(
   character: Parameters<SubclassRuntimeResolver>[0]
 ): DerivedFeatureStatusEntry[] {
@@ -465,6 +539,17 @@ function getSorcererAberrantDerivedStatusEntries(
       sourceId: sorcererPsychicDefensesStatusSourceId,
       group: STATUS_ENTRY_GROUP.RESISTANCES,
       value: DAMAGE_TYPE.PSYCHIC,
+      source: psychicDefensesName,
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.INFINITE
+      }
+    },
+    {
+      id: sorcererPsychicDefensesTraitStatusSourceId,
+      sourceId: sorcererPsychicDefensesTraitStatusSourceId,
+      group: STATUS_ENTRY_GROUP.EFFECTS,
+      value: psychicDefensesName,
       source: psychicDefensesName,
       sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
       duration: {
@@ -593,9 +678,11 @@ function getSorcererAberrantSorceryFeatureActions(
         }
       ),
       description: getSorcererAberrantFeatureDescription(character, CLASS_FEATURE.WARPING_IMPLOSION),
+      facts: getSorcererAberrantWarpingImplosionFacts(character),
       drawer: {
         kind: "confirm",
         eyebrow: "Aberrant Sorcery",
+        factsSectionTitle: "Formulas",
         description: getSorcererAberrantFeatureDescription(
           character,
           CLASS_FEATURE.WARPING_IMPLOSION
@@ -621,7 +708,8 @@ export function activateSorcererAberrantTelepathicSpeech(character: Character): 
     name: telepathicSpeechName,
     source: telepathicSpeechSource,
     sourceId: sorcererTelepathicSpeechStatusSourceId,
-    durationMinutes: getTelepathicBondDurationMinutes(character.level)
+    durationMinutes: getTelepathicBondDurationMinutes(character.level),
+    sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL
   });
 }
 
@@ -661,7 +749,7 @@ export function activateSorcererAberrantRevelationInFlesh(
           group: STATUS_ENTRY_GROUP.EFFECTS,
           value: alteration.name,
           source: revelationInFleshName,
-          sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+          sourceType: STATUS_ENTRY_SOURCE_TYPE.MANUAL,
           duration: {
             kind: STATUS_DURATION_KIND.MINUTES,
             amount: revelationInFleshDurationMinutes
@@ -745,6 +833,8 @@ export const getSorcererAberrantSorceryDerivedFeatureState: SubclassRuntimeResol
         alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
           character.level ?? 0,
           aberrantSorcerySpellIdsByLevel
-        )
+        ),
+        transformSpellEntry: (spell) =>
+          transformSorcererAberrantPsionicSorcerySpell(character, spell)
       }
     : {};

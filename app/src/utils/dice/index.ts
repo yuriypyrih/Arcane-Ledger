@@ -1,4 +1,10 @@
 export { createEmptySelection } from "./createEmptySelection";
+export {
+  formatCustomDiceText,
+  getCustomDiceCount,
+  parseCustomDiceText,
+  type CustomDiceTerm
+} from "./customDice";
 export { selectableDice } from "./constants";
 export {
   formatRollResultTotal,

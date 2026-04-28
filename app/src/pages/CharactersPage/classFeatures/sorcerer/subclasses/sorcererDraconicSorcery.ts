@@ -30,7 +30,8 @@ const elementalAffinityName = "Elemental Affinity";
 const dragonWingsName = "Dragon Wings";
 const sorcererDraconicElementalAffinitySourceId =
   "feature-sorcerer-draconic-sorcery-elemental-affinity";
-const sorcererDragonWingsStatusSourceId = "feature-sorcerer-draconic-sorcery-dragon-wings";
+export const sorcererDragonWingsStatusSourceId =
+  "feature-sorcerer-draconic-sorcery-dragon-wings";
 const draconicSorcerySubclassEntry = getSubclassEntryById(draconicSorcerySubclassId);
 const dragonWingsUsesTotal = 1;
 const dragonWingsDurationHours = 1;
@@ -54,7 +55,9 @@ function getDraconicFeatureDescriptionEntries(feature: CLASS_FEATURE): string[] 
   ).filter((entry): entry is string => typeof entry === "string");
 }
 
-const dragonWingsDescription = getDraconicFeatureDescriptionEntries(CLASS_FEATURE.DRAGON_WINGS);
+export const dragonWingsDescription = getDraconicFeatureDescriptionEntries(
+  CLASS_FEATURE.DRAGON_WINGS
+);
 
 export const sorcererDraconicElementalAffinityDamageTypeOptions = [
   DAMAGE_TYPE.ACID,

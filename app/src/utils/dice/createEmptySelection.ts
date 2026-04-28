@@ -7,6 +7,7 @@ export function createEmptySelection(): DiceSelection {
     8: 0,
     10: 0,
     12: 0,
-    20: 0
+    20: 0,
+    100: 0
   };
 }

@@ -136,6 +136,10 @@
   background: rgba(255, 245, 229, 0.28);
 }
 
+.customDieButton {
+  grid-column: span 2;
+}
+
 .countBadge {
   display: inline-flex;
   align-items: center;
@@ -185,6 +189,111 @@
   font-size: clamp(0.96rem, 1.9vw, 1.12rem);
   letter-spacing: 0.05em;
   text-transform: uppercase;
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1.25rem;
+  background: rgba(10, 7, 5, 0.54);
+  z-index: 44;
+}
+
+.customModal {
+  display: grid;
+  gap: 0.75rem;
+  width: min(24rem, 100%);
+  border: 1px solid rgba(255, 235, 210, 0.24);
+  border-radius: 10px;
+  background: rgba(20, 13, 9, 0.98);
+  box-shadow: 0 24px 56px rgba(8, 5, 3, 0.54);
+  color: #f7e9d1;
+  padding: 1rem;
+  pointer-events: auto;
+}
+
+.customModalHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.customModalHeader h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.customModalClose {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 245, 229, 0.14);
+  color: #f7e9d1;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 700;
+}
+
+.customField {
+  display: grid;
+  gap: 0.38rem;
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.customField input {
+  min-height: 2.75rem;
+  border: 1px solid rgba(255, 235, 210, 0.28);
+  border-radius: 8px;
+  background: rgba(255, 245, 229, 0.08);
+  color: #fff8ee;
+  font: inherit;
+  padding: 0 0.78rem;
+}
+
+.customField input:focus {
+  border-color: rgba(255, 215, 112, 0.72);
+  outline: none;
+}
+
+.customHint,
+.customError {
+  margin: 0;
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.customHint {
+  color: rgba(247, 233, 209, 0.68);
+}
+
+.customError {
+  color: #ffb2a8;
+}
+
+.customModalActions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.customAddButton {
+  min-height: 2.38rem;
+  border: none;
+  border-radius: 8px;
+  background: #f3d079;
+  color: #22160c;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 800;
+  padding: 0 1rem;
 }
 
 @media (max-width: 640px) {

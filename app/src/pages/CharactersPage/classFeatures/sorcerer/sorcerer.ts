@@ -28,6 +28,8 @@ import {
   getSorcererSubclassTamedSurgeUsesTotal,
   getSorcererSubclassTidesOfChaosUsesTotal,
   getSorcererSubclassTranceOfOrderUsesTotal,
+  hasSorcererSubclassSpellfireBurstFeature,
+  hasSorcererSubclassWildMagicSurgeFeature,
   normalizeSorcererDraconicElementalAffinityDamageType,
   restoreSorcererSubclassFeaturesOnLongRest
 } from "./subclasses";
@@ -38,6 +40,10 @@ import {
   createFeatureActionCardCost
 } from "../cardUsage";
 import type { FeatureActionCard, FeatureActionOptionCard } from "../types";
+import {
+  getSorcererInnateSorceryDescriptionAdditions,
+  getSorcererMetamagicDescriptionAdditions
+} from "./sorcererDescriptionSections";
 
 export const innateSorceryActionKey = "sorcerer-innate-sorcery";
 export const fontOfMagicActionKey = "sorcerer-font-of-magic";
@@ -248,6 +254,16 @@ function getSorcererFeatureDescription(feature: CLASS_FEATURE): string[] {
   );
 }
 
+function getFontOfMagicFeatureDescription(): string[] {
+  return getSorcererFeatureDescription(CLASS_FEATURE.FONT_OF_MAGIC).filter(
+    (entry) => !/^<strong>Creating Spell Slots\.<\/strong> Level \d+ slot:/u.test(entry)
+  );
+}
+
+function getMetamagicFeatureDescription(): string[] {
+  return getSorcererFeatureDescription(CLASS_FEATURE.METAMAGIC).slice(0, 2);
+}
+
 export function hasActiveInnateSorcery(character: Pick<Character, "statusEntries">): boolean {
   return normalizeCharacterStatusEntries(character.statusEntries).some(
     (entry) => entry.sourceId === sorcererInnateSorcerySourceId
@@ -356,6 +372,8 @@ export function normalizeSorcererFeatureState(
   const metamagicSelectionCount = getSorcererMetamagicSelectionCount(character);
   const clockworkCavalcadeUsesTotal = getSorcererSubclassClockworkCavalcadeUsesTotal(character);
   const crownOfSpellfireUsesTotal = getSorcererSubclassCrownOfSpellfireUsesTotal(character);
+  const hasSpellfireBurst = hasSorcererSubclassSpellfireBurstFeature(character);
+  const hasWildMagicSurge = hasSorcererSubclassWildMagicSurgeFeature(character);
   const restoreBalanceUsesTotal = getSorcererSubclassRestoreBalanceUsesTotal(character);
   const tamedSurgeUsesTotal = getSorcererSubclassTamedSurgeUsesTotal(character);
   const tidesOfChaosUsesTotal = getSorcererSubclassTidesOfChaosUsesTotal(character);
@@ -367,6 +385,8 @@ export function normalizeSorcererFeatureState(
     !hasSorcerousRestoration &&
     !hasArcaneApotheosis &&
     !hasDraconicElementalAffinity &&
+    !hasSpellfireBurst &&
+    !hasWildMagicSurge &&
     dragonWingsUsesTotal <= 0 &&
     clockworkCavalcadeUsesTotal <= 0 &&
     crownOfSpellfireUsesTotal <= 0 &&
@@ -393,6 +413,8 @@ export function normalizeSorcererFeatureState(
   const restoreBalanceUsesExpended = Number(record.restoreBalanceUsesExpended);
   const tranceOfOrderUsesExpended = Number(record.tranceOfOrderUsesExpended);
   const warpingImplosionUsesExpended = Number(record.warpingImplosionUsesExpended);
+  const wildMagicSurgeUsedThisTurn = record.wildMagicSurgeUsedThisTurn === true;
+  const spellfireBurstUsedThisTurn = record.spellfireBurstUsedThisTurn === true;
   const arcaneApotheosisFreeMetamagicUsedThisTurn =
     record.arcaneApotheosisFreeMetamagicUsedThisTurn === true;
 
@@ -449,6 +471,8 @@ export function normalizeSorcererFeatureState(
     warpingImplosionUsesExpended: Number.isFinite(warpingImplosionUsesExpended)
       ? Math.max(0, Math.min(1, Math.floor(warpingImplosionUsesExpended)))
       : 0,
+    wildMagicSurgeUsedThisTurn: hasWildMagicSurge ? wildMagicSurgeUsedThisTurn : false,
+    spellfireBurstUsedThisTurn: hasSpellfireBurst ? spellfireBurstUsedThisTurn : false,
     arcaneApotheosisFreeMetamagicUsedThisTurn: hasArcaneApotheosis
       ? arcaneApotheosisFreeMetamagicUsedThisTurn
       : false,
@@ -647,6 +671,10 @@ export function getSorcererFeatureActions(
     const isActive = hasActiveInnateSorcery(character);
     const remainingUses = getInnateSorceryUsesRemaining(character);
     const fallbackSorceryPointCost = getInnateSorceryActivationSorceryPointCost(character);
+    const hasSorceryIncarnate = hasSorcererFeature(character, CLASS_FEATURE.SORCERY_INCARNATE);
+    const displayedFallbackSorceryPointCost = hasSorceryIncarnate
+      ? sorceryIncarnateInnateSorceryCost
+      : fallbackSorceryPointCost;
     const fallbackAvailable =
       fallbackSorceryPointCost > 0 &&
       getSorceryPointsRemaining(character) >= fallbackSorceryPointCost;
@@ -666,15 +694,16 @@ export function getSorcererFeatureActions(
       detail: "Unleash inner magic for 10 rounds.",
       breakdown: "10-round magic surge",
       description: getSorcererFeatureDescription(CLASS_FEATURE.INNATE_SORCERY),
+      descriptionAdditions: getSorcererInnateSorceryDescriptionAdditions(character),
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
       cardUsage:
-        fallbackSorceryPointCost > 0
+        displayedFallbackSorceryPointCost > 0
           ? createChargesOrResourceCardUsage(
               remainingUses,
               getInnateSorceryUsesTotal(character),
               createFeatureActionCardCost({
-                amountText: String(fallbackSorceryPointCost),
+                amountText: String(displayedFallbackSorceryPointCost),
                 icon: "sparkles"
               })
             )
@@ -682,18 +711,18 @@ export function getSorcererFeatureActions(
       usesRemaining: remainingUses,
       usesTotal: getInnateSorceryUsesTotal(character),
       usesInlineLabel:
-        remainingUses <= 0 && fallbackSorceryPointCost > 0
-          ? `| Use ${fallbackSorceryPointCost}`
+        displayedFallbackSorceryPointCost > 0
+          ? `| Use ${displayedFallbackSorceryPointCost}`
           : undefined,
-      usesInlineIcon: remainingUses <= 0 && fallbackSorceryPointCost > 0 ? "sparkles" : undefined,
-      usesInlineSuffix: remainingUses <= 0 && fallbackSorceryPointCost > 0 ? "instead" : undefined,
+      usesInlineIcon: displayedFallbackSorceryPointCost > 0 ? "sparkles" : undefined,
+      usesInlineSuffix: displayedFallbackSorceryPointCost > 0 ? "instead" : undefined,
       headerTags:
-        fallbackSorceryPointCost > 0
+        displayedFallbackSorceryPointCost > 0
           ? createChargesAndUsageHeaderTags(
               remainingUses,
               getInnateSorceryUsesTotal(character),
               createFeatureActionCardCost({
-                amountText: String(fallbackSorceryPointCost),
+                amountText: String(displayedFallbackSorceryPointCost),
                 icon: "sparkles"
               }),
               getSorceryPointsRemaining(character),
@@ -716,18 +745,20 @@ export function getSorcererFeatureActions(
       summary: "Convert spell slots and Sorcery Points.",
       detail: "Convert spell slots and Sorcery Points.",
       breakdown: "Convert slots and SP",
+      sourceFeature: CLASS_FEATURE.FONT_OF_MAGIC,
+      description: getFontOfMagicFeatureDescription(),
       economyType: ECONOMY_TYPE.BONUS_ACTION,
       actionCategory: ACTION_CATEGORY.MAGIC,
-      valueLabel: "Uses Sorcery Points",
       drawer: {
         kind: "custom-form",
         eyebrow: "Sorcerer",
+        factsSectionTitle: null,
         formKind: "font-of-magic"
       },
-    execute: {
-      kind: "custom-form",
-      formKind: "font-of-magic"
-    },
+      execute: {
+        kind: "custom-form",
+        formKind: "font-of-magic"
+      },
       ignoreEconomyAvailability: true
     });
   }
@@ -749,18 +780,21 @@ export function getSorcererFeatureActions(
       summary: "Infuse your next spell.",
       detail: "Spend Sorcery Points to infuse your next spell.",
       breakdown: "Empower next spell",
+      sourceFeature: CLASS_FEATURE.METAMAGIC,
+      description: getMetamagicFeatureDescription(),
+      descriptionAdditions: getSorcererMetamagicDescriptionAdditions(character),
       economyType: ECONOMY_TYPE.FREE,
       actionCategory: ACTION_CATEGORY.MAGIC,
-      valueLabel: "Uses Sorcery Points",
       drawer: {
         kind: "options",
         eyebrow: "Sorcerer",
+        factsSectionTitle: null,
         optionSelection: "multi-confirm",
         optionSelectionLimit: getSorcererMetamagicSelectionLimitForAction(character)
       },
-    execute: {
-      kind: "option"
-    },
+      execute: {
+        kind: "option"
+      },
       disabled: Boolean(disabledReason),
       disabledReason
     });
@@ -780,6 +814,7 @@ export function getSorcererMetamagicOptionsForAction(
     name: option.name,
     summary: `Cost: ${formatSorceryPointCostLabel(option.cost)}`,
     detail: option.description[0] ?? option.summary,
+    description: option.description,
     breakdown: option.summary,
     usesLabel: String(option.cost),
     usesIcon: "sparkles",
@@ -1165,13 +1200,21 @@ export function applyLongRestToSorcererFeatures(character: Character): Character
 }
 
 export function advanceSorcererFeaturesForNewRound(character: Character): Character {
-  if (!hasSorcererFeature(character, CLASS_FEATURE.ARCANE_APOTHEOSIS)) {
+  const hasArcaneApotheosis = hasSorcererFeature(character, CLASS_FEATURE.ARCANE_APOTHEOSIS);
+  const hasSpellfireBurst = hasSorcererSubclassSpellfireBurstFeature(character);
+  const hasWildMagicSurge = hasSorcererSubclassWildMagicSurgeFeature(character);
+
+  if (!hasArcaneApotheosis && !hasSpellfireBurst && !hasWildMagicSurge) {
     return character;
   }
 
   const sorcererState = getSorcererFeatureState(character);
 
-  if (!sorcererState.arcaneApotheosisFreeMetamagicUsedThisTurn) {
+  if (
+    !sorcererState.arcaneApotheosisFreeMetamagicUsedThisTurn &&
+    !sorcererState.spellfireBurstUsedThisTurn &&
+    !sorcererState.wildMagicSurgeUsedThisTurn
+  ) {
     return character;
   }
 
@@ -1181,7 +1224,15 @@ export function advanceSorcererFeaturesForNewRound(character: Character): Charac
       ...character.classFeatureState,
       sorcerer: {
         ...sorcererState,
-        arcaneApotheosisFreeMetamagicUsedThisTurn: false
+        arcaneApotheosisFreeMetamagicUsedThisTurn: hasArcaneApotheosis
+          ? false
+          : sorcererState.arcaneApotheosisFreeMetamagicUsedThisTurn,
+        spellfireBurstUsedThisTurn: hasSpellfireBurst
+          ? false
+          : sorcererState.spellfireBurstUsedThisTurn,
+        wildMagicSurgeUsedThisTurn: hasWildMagicSurge
+          ? false
+          : sorcererState.wildMagicSurgeUsedThisTurn
       }
     }
   };

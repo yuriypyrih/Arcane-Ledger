@@ -21,6 +21,7 @@ type TelepathicBondActionConfig = {
 type ActivateTelepathicBondConfig = Pick<TelepathicBondActionConfig, "name" | "sourceId"> & {
   source: string;
   durationMinutes: number;
+  sourceType?: STATUS_ENTRY_SOURCE_TYPE;
 };
 
 export function getTelepathicBondDurationMinutes(level: number | undefined): number {
@@ -83,7 +84,7 @@ export function activateTelepathicBond(
         group: STATUS_ENTRY_GROUP.EFFECTS,
         value: config.name,
         source: config.source,
-        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+        sourceType: config.sourceType ?? STATUS_ENTRY_SOURCE_TYPE.FEATURE,
         duration: {
           kind: STATUS_DURATION_KIND.MINUTES,
           amount: config.durationMinutes

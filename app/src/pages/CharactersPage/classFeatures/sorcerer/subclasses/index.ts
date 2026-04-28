@@ -48,25 +48,32 @@ import {
   sorcererDraconicElementalAffinityDamageTypeOptions
 } from "./sorcererDraconicSorcery";
 import {
+  activateSorcererSpellfireBurst,
   activateSorcererSpellfireCrownOfSpellfire,
   getSorcererSpellfireCrownOfSpellfireFallbackSorceryPointCost,
   getSorcererSpellfireCrownOfSpellfireUsesRemaining,
   getSorcererSpellfireCrownOfSpellfireUsesTotal,
   getSorcererSpellfireSorceryDerivedFeatureState,
+  hasSorcererSpellfireBurstFeatureForCharacter,
   restoreSorcererSpellfireCrownOfSpellfireOnLongRest,
+  sorcererSpellfireBurstActionKey,
   spellfireSorcerySubclassId
 } from "./sorcererSpellfireSorcery";
 import {
   sorcererBendLuckReactionId,
-  activateSorcererWildMagicTamedSurge,
+  activateSorcererWildMagicSurge,
   activateSorcererWildMagicTidesOfChaos,
+  canUseSorcererWildMagicTamedSurgeForSpell,
+  consumeSorcererWildMagicTamedSurgeUse,
   getSorcererWildMagicSorceryDerivedFeatureState,
+  getSorcererWildMagicTamedSurgeUsesRemaining,
   getSorcererWildMagicTamedSurgeUsesTotal,
   getSorcererWildMagicTidesOfChaosUsesTotal,
+  hasSorcererWildMagicSurgeFeatureForCharacter,
   restoreSorcererWildMagicFeaturesOnLongRest,
-  restoreSorcererWildMagicTidesOfChaosOnSpellSlotCast,
-  sorcererTamedSurgeActionKey,
+  restoreSorcererWildMagicTidesOfChaosOnSpellCast,
   sorcererTidesOfChaosActionKey,
+  sorcererWildMagicSurgeActionKey,
   wildMagicSorcerySubclassId
 } from "./sorcererWildMagicSorcery";
 
@@ -141,17 +148,24 @@ export function activateSorcererSubclassFeatureAction(
   }
 
   if (
-    character.subclassId === wildMagicSorcerySubclassId &&
-    actionKey === sorcererTidesOfChaosActionKey
+    character.subclassId === spellfireSorcerySubclassId &&
+    actionKey === sorcererSpellfireBurstActionKey
   ) {
-    return activateSorcererWildMagicTidesOfChaos(character);
+    return activateSorcererSpellfireBurst(character);
   }
 
   if (
     character.subclassId === wildMagicSorcerySubclassId &&
-    actionKey === sorcererTamedSurgeActionKey
+    actionKey === sorcererWildMagicSurgeActionKey
   ) {
-    return activateSorcererWildMagicTamedSurge(character);
+    return activateSorcererWildMagicSurge(character);
+  }
+
+  if (
+    character.subclassId === wildMagicSorcerySubclassId &&
+    actionKey === sorcererTidesOfChaosActionKey
+  ) {
+    return activateSorcererWildMagicTidesOfChaos(character);
   }
 
   return null;
@@ -218,6 +232,22 @@ export function getSorcererSubclassWarpingImplosionUsesTotal(
   return character.subclassId === aberrantSorcerySubclassId
     ? getSorcererAberrantWarpingImplosionUsesTotal(character)
     : 0;
+}
+
+export function hasSorcererSubclassSpellfireBurstFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return character.className === "Sorcerer" && character.subclassId === spellfireSorcerySubclassId
+    ? hasSorcererSpellfireBurstFeatureForCharacter(character)
+    : false;
+}
+
+export function hasSorcererSubclassWildMagicSurgeFeature(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): boolean {
+  return character.className === "Sorcerer" && character.subclassId === wildMagicSorcerySubclassId
+    ? hasSorcererWildMagicSurgeFeatureForCharacter(character)
+    : false;
 }
 
 export function getSorcererSubclassTranceOfOrderUsesTotal(
@@ -317,6 +347,42 @@ export function getSorcererSubclassTamedSurgeUsesTotal(
     : 0;
 }
 
+export function getSorcererSubclassTamedSurgeUsesRemaining(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
+): number {
+  if (character.className !== "Sorcerer" || !character.subclassId) {
+    return 0;
+  }
+
+  return character.subclassId === wildMagicSorcerySubclassId
+    ? getSorcererWildMagicTamedSurgeUsesRemaining(character)
+    : 0;
+}
+
+export function canUseSorcererSubclassTamedSurgeForSpell(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  spell: Parameters<typeof canUseSorcererWildMagicTamedSurgeForSpell>[1]
+): boolean {
+  if (character.className !== "Sorcerer" || !character.subclassId) {
+    return false;
+  }
+
+  return character.subclassId === wildMagicSorcerySubclassId
+    ? canUseSorcererWildMagicTamedSurgeForSpell(character, spell)
+    : false;
+}
+
+export function consumeSorcererSubclassTamedSurgeUseForCharacter(character: Character): Character {
+  if (character.className !== "Sorcerer" || !character.subclassId) {
+    return character;
+  }
+
+  return character.subclassId === wildMagicSorcerySubclassId
+    ? consumeSorcererWildMagicTamedSurgeUse(character)
+    : character;
+}
+
 export const sorcererRestoreBalanceReactionId = sorcererClockworkRestoreBalanceReactionId;
 export const sorcererBendLuckReactionEntryId = sorcererBendLuckReactionId;
 
@@ -384,7 +450,17 @@ export function restoreSorcererSubclassFeaturesOnSpellSlotCast(character: Charac
   }
 
   return character.subclassId === wildMagicSorcerySubclassId
-    ? restoreSorcererWildMagicTidesOfChaosOnSpellSlotCast(character)
+    ? restoreSorcererWildMagicTidesOfChaosOnSpellCast(character)
+    : character;
+}
+
+export function restoreSorcererSubclassFeaturesOnSpellCast(character: Character): Character {
+  if (character.className !== "Sorcerer" || !character.subclassId) {
+    return character;
+  }
+
+  return character.subclassId === wildMagicSorcerySubclassId
+    ? restoreSorcererWildMagicTidesOfChaosOnSpellCast(character)
     : character;
 }
 

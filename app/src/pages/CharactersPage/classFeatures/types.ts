@@ -163,6 +163,7 @@ export type FeatureActionFormKind =
   | "third-eye"
   | "starry-form"
   | "sneak-attack"
+  | "spellfire-burst"
   | "wild-companion"
   | "wild-resurgence"
   | "wild-shape"

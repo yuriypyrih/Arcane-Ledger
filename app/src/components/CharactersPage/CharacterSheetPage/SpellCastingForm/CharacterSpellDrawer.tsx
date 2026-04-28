@@ -39,6 +39,7 @@ import {
   getSpellAttackFormulaCell,
   getSpellSaveFormulaCell
 } from "../../../../pages/CharactersPage/shared/spellFormulas";
+import { isInnateSorceryActiveForSpell } from "../../../../pages/CharactersPage/classFeatures/sorcerer/innateSorcerySpell";
 import { isRogueArcaneTricksterMagicalAmbushActiveForSpell } from "../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 import type {
   FeatureActionCardUsage,
@@ -69,6 +70,7 @@ export type CharacterSpellDrawerActionOptions = {
   elementalSmiteOption?: string | null;
   usePhantasmalCreatures?: boolean;
   usePsionicSorcery?: boolean;
+  useTamedSurge?: boolean;
   useTelekineticMaster?: boolean;
 };
 
@@ -315,6 +317,9 @@ function CharacterSpellDrawer({
     usePsionicSorcery: actionOptions.some(
       (option) => option.id === "psionic-sorcery" && option.checked
     ),
+    useTamedSurge: actionOptions.some(
+      (option) => option.id === "tamed-surge" && option.checked
+    ),
     usePhantasmalCreatures: actionOptions.some(
       (option) => option.id === "phantasmal-creatures" && option.checked
     ),
@@ -370,6 +375,9 @@ function CharacterSpellDrawer({
     actionContextText,
     isRogueArcaneTricksterMagicalAmbushActiveForSpell(character, spell)
       ? "Magical Ambush is active"
+      : null,
+    isInnateSorceryActiveForSpell(character, spell)
+      ? "Innate Sorcery is Active"
       : null
   ].filter((value): value is string => value !== null && value.length > 0);
   const spellFormulaCells = [

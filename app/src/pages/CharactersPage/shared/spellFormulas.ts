@@ -1,5 +1,7 @@
 import { ABILITY_TYPES, type SpellEntry } from "../../../codex/entries";
+import type { RollMode } from "../../../types";
 import type { AbilityKey, Character } from "../../../types";
+import { isInnateSorceryActiveForSpell } from "../classFeatures/sorcerer/innateSorcerySpell";
 import { getAbilityModifierForCharacter } from "../abilities";
 import { getProficiencyBonus } from "../gameplay";
 import {
@@ -21,6 +23,8 @@ export type SpellAttackRollFormula = {
   formula: string;
   formulaDisplay: string;
   attackBonus: number;
+  rollMode?: RollMode;
+  hasInnateSorceryAdvantage?: boolean;
 };
 
 const spellcastingAbilityByClassName: Record<string, AbilityKey> = {
@@ -67,7 +71,10 @@ export function getSpellcastingAbilityForCharacter(character: Character): Abilit
 }
 
 export function getSpellSaveFormulaCell(
-  spell: Pick<SpellEntry, "isSavingThrowSpell" | "savingThrowAbility">,
+  spell: Pick<
+    SpellEntry,
+    "isAttackSpell" | "isSavingThrowSpell" | "savingThrowAbility" | "spellLists"
+  >,
   character?: Character | null
 ): SpellFormulaCell | null {
   if (spell.isSavingThrowSpell !== true) {
@@ -92,13 +99,15 @@ export function getSpellSaveFormulaCell(
 
   const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
   const abilityModifier = getAbilityModifierForCharacter(character, spellcastingAbility);
-  const dc = 8 + proficiencyBonus + abilityModifier;
+  const innateSorceryBonus = isInnateSorceryActiveForSpell(character, spell) ? 1 : 0;
+  const dc = 8 + proficiencyBonus + abilityModifier + innateSorceryBonus;
   const formulaCell = formatFormulaCell({
     formula: String(dc),
     displayTerms: [
       "DC 8 (Base)",
       formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus"),
-      formatSignedFormulaTerm(abilityModifier, spellcastingAbility)
+      formatSignedFormulaTerm(abilityModifier, spellcastingAbility),
+      innateSorceryBonus > 0 ? formatSignedFormulaTerm(innateSorceryBonus, "Innate Sorcery") : null
     ]
   });
 
@@ -110,7 +119,7 @@ export function getSpellSaveFormulaCell(
 }
 
 export function getSpellAttackRollFormulaForCharacter(
-  spell: Pick<SpellEntry, "isAttackSpell">,
+  spell: Pick<SpellEntry, "isAttackSpell" | "isSavingThrowSpell" | "spellLists">,
   character: Character
 ): SpellAttackRollFormula | null {
   if (spell.isAttackSpell !== true) {
@@ -126,6 +135,7 @@ export function getSpellAttackRollFormulaForCharacter(
   const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
   const abilityModifier = getAbilityModifierForCharacter(character, spellcastingAbility);
   const attackBonus = proficiencyBonus + abilityModifier;
+  const innateSorceryActive = isInnateSorceryActiveForSpell(character, spell);
   const displayTerms = [
     "1d20",
     formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus"),
@@ -135,12 +145,14 @@ export function getSpellAttackRollFormulaForCharacter(
   return {
     formula: formatD20Formula(attackBonus),
     formulaDisplay: formatFormulaTerms(displayTerms),
-    attackBonus
+    attackBonus,
+    rollMode: innateSorceryActive ? "advantage" : undefined,
+    hasInnateSorceryAdvantage: innateSorceryActive
   };
 }
 
 export function getSpellAttackFormulaCell(
-  spell: Pick<SpellEntry, "isAttackSpell">,
+  spell: Pick<SpellEntry, "isAttackSpell" | "isSavingThrowSpell" | "spellLists">,
   character?: Character | null
 ): SpellFormulaCell | null {
   if (spell.isAttackSpell !== true) {
@@ -166,7 +178,8 @@ export function getSpellAttackFormulaCell(
 
   const formulaCell = formatFormulaCell({
     formula: attackRollFormula.formula,
-    displayTerms: [attackRollFormula.formulaDisplay]
+    displayTerms: [attackRollFormula.formulaDisplay],
+    breakdownTerms: attackRollFormula.hasInnateSorceryAdvantage ? ["+Advantage"] : undefined
   });
   const attackRange = parseFormulaRange(attackRollFormula.formula);
 

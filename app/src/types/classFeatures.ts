@@ -181,6 +181,8 @@ export type CharacterSorcererFeatureState = {
   tranceOfOrderUsesExpended?: number;
   clockworkCavalcadeUsesExpended?: number;
   warpingImplosionUsesExpended?: number;
+  wildMagicSurgeUsedThisTurn?: boolean;
+  spellfireBurstUsedThisTurn?: boolean;
   arcaneApotheosisFreeMetamagicUsedThisTurn?: boolean;
   metamagicSelections?: string[];
   draconicElementalAffinityDamageType?: DAMAGE_TYPE;
