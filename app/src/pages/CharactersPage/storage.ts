@@ -273,13 +273,54 @@ export function normalizeCharacter(value: unknown): Character | null {
     ...createDefaultAbilities(),
     ...(record.abilities ?? {})
   };
+  const normalizedFeats = normalizeCharacterFeats(record.feats, normalizedLevel);
+  const rawPersistedCantripIds = Array.isArray(record.cantripIds)
+    ? record.cantripIds.filter((spellId): spellId is string => typeof spellId === "string")
+    : [];
+  const preliminaryClassFeatureState = normalizeCharacterClassFeatureState(
+    record.classFeatureState,
+    {
+      className: normalizedClassName,
+      level: normalizedLevel,
+      subclassId: normalizedSubclassId,
+      abilities: normalizedAbilities,
+      cantripIds: rawPersistedCantripIds,
+      feats: normalizedFeats
+    }
+  );
+  const rawCantripIds = Array.isArray(record.cantripIds)
+    ? rawPersistedCantripIds
+    : getDefaultCantripIdsForCharacter(
+        normalizedClassName,
+        normalizedLevel,
+        preliminaryClassFeatureState,
+        normalizedSubclassId
+      );
+  const cantripLimit = getCantripLimitForCharacter(
+    normalizedClassName,
+    normalizedLevel,
+    preliminaryClassFeatureState,
+    normalizedSubclassId
+  );
+  const cantripSelectionOptionIds = new Set(
+    getCantripSelectionOptionsForCharacter(
+      normalizedClassName,
+      normalizedLevel,
+      normalizedSubclassId
+    ).map((spell) => spell.id)
+  );
+  const normalizedCantripIds = [...new Set(rawCantripIds)]
+    .filter((spellId) => cantripSelectionOptionIds.has(spellId))
+    .slice(0, cantripLimit ?? Number.POSITIVE_INFINITY);
   const normalizedClassFeatureState = normalizeCharacterClassFeatureState(
     record.classFeatureState,
     {
       className: normalizedClassName,
       level: normalizedLevel,
       subclassId: normalizedSubclassId,
-      abilities: normalizedAbilities
+      abilities: normalizedAbilities,
+      cantripIds: normalizedCantripIds,
+      feats: normalizedFeats
     }
   );
   const normalizedProficiencies = normalizeCharacterProficiencies({
@@ -312,30 +353,6 @@ export function normalizeCharacter(value: unknown): Character | null {
     : rawKnownSpellIds.length > 0
       ? rawKnownSpellIds
       : (defaults.preparedSpellIds ?? []);
-  const rawCantripIds = Array.isArray(record.cantripIds)
-    ? record.cantripIds.filter((spellId): spellId is string => typeof spellId === "string")
-    : getDefaultCantripIdsForCharacter(
-        normalizedClassName,
-        normalizedLevel,
-        normalizedClassFeatureState,
-        normalizedSubclassId
-      );
-  const cantripLimit = getCantripLimitForCharacter(
-    normalizedClassName,
-    normalizedLevel,
-    normalizedClassFeatureState,
-    normalizedSubclassId
-  );
-  const cantripSelectionOptionIds = new Set(
-    getCantripSelectionOptionsForCharacter(
-      normalizedClassName,
-      normalizedLevel,
-      normalizedSubclassId
-    ).map((spell) => spell.id)
-  );
-  const normalizedCantripIds = [...new Set(rawCantripIds)]
-    .filter((spellId) => cantripSelectionOptionIds.has(spellId))
-    .slice(0, cantripLimit ?? Number.POSITIVE_INFINITY);
   const preparedSpellLimit = getPreparedSpellLimitForCharacter(
     normalizedClassName,
     normalizedLevel,
@@ -449,7 +466,6 @@ export function normalizeCharacter(value: unknown): Character | null {
   const normalizedRoundTracker = normalizeRoundTracker(record.roundTracker);
   const normalizedDeathSaves = normalizeDeathSaves(record.deathSaves);
   const normalizedCompanions = normalizeCharacterCompanions(record.companions);
-  const normalizedFeats = normalizeCharacterFeats(record.feats, normalizedLevel);
   const normalizedTemporaryHitPointsAssignment = createTemporaryHitPointsAssignment(
     clampNumber(record.temporaryHitPoints, 0, 999, defaults.temporaryHitPoints),
     normalizeTemporaryHitPointsSource(record.temporaryHitPointsSource)

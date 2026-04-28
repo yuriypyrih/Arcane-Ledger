@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { Hand, Minus, Package, Plus, Shield, TicketMinus, TicketPlus, X } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import CellContainer from "../../../CellContainer/CellContainer";
 import coinCopperIcon from "../../../../assets/svg/coin-copper.svg";
 import coinElectrumIcon from "../../../../assets/svg/coin-electrum.svg";
@@ -8,6 +8,7 @@ import coinGoldIcon from "../../../../assets/svg/coin.svg";
 import coinPlatinumIcon from "../../../../assets/svg/coin-platinum.svg";
 import coinSilverIcon from "../../../../assets/svg/coin-silver.svg";
 import CurrencyInlineDisplay from "../../../CurrencyInlineDisplay";
+import { deferModalCommit } from "../../../Overlay";
 import NumberInput from "../../FormInputs/NumberInput";
 import RarityPill, { hasDisplayableRarity } from "../../../CodexPage/RarityPill";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
@@ -96,6 +97,10 @@ import EquipmentInventoryItemDrawerFooter, {
   type EquipmentInventoryDrawerAction
 } from "./EquipmentInventoryItemDrawerFooter";
 import EquipmentItemBrowserModal from "./EquipmentItemBrowserModal";
+import {
+  applyAddEquipmentDraftToCharacter,
+  createAddEquipmentDraftCharacter
+} from "./equipmentDrafts";
 import InlineToggleButton from "../InlineToggleButton";
 import styles from "./EquipmentForm.module.css";
 import { useItemEntry } from "../../../../pages/ItemCodexEntryPage/useItemEntry";
@@ -299,10 +304,7 @@ function formatOnHandLabel(onHandCount: number): string {
 }
 
 function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFormProps) {
-  const customEquipment = useMemo(
-    () => character.customEquipment ?? [],
-    [character.customEquipment]
-  );
+  const isAddModalCommittingRef = useRef(false);
   const [selectedLoadoutEntry, setSelectedLoadoutEntry] =
     useState<SelectedLoadoutEntryState | null>(null);
   const [selectedInventoryInspection, setSelectedInventoryInspection] =
@@ -313,6 +315,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const [activeCurrencyKey, setActiveCurrencyKey] = useState<CurrencyKey>("gold");
   const [currencyAmountDraft, setCurrencyAmountDraft] = useState(0);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isAddModalCommitting, setIsAddModalCommitting] = useState(false);
+  const [addEquipmentDraftCharacter, setAddEquipmentDraftCharacter] =
+    useState<Character | null>(null);
   const [isCustomEquipmentModalOpen, setIsCustomEquipmentModalOpen] = useState(false);
   const [customEditorMode, setCustomEditorMode] = useState<"create" | "edit">("create");
   const [editingCustomEquipmentId, setEditingCustomEquipmentId] = useState<string | null>(null);
@@ -321,12 +326,72 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const [pendingDeleteCustomEquipmentId, setPendingDeleteCustomEquipmentId] = useState<
     string | null
   >(null);
-  const closeAddModal = useCallback(() => {
-    setIsAddModalOpen(false);
-    setSelectedInventoryInspection((currentSelection) =>
-      currentSelection?.source === "browser" ? null : currentSelection
-    );
-  }, []);
+  const equipmentCharacter = addEquipmentDraftCharacter ?? character;
+  const customEquipment = useMemo(
+    () => equipmentCharacter.customEquipment ?? [],
+    [equipmentCharacter.customEquipment]
+  );
+  const closeAddModal = useCallback(
+    (options?: { afterClose?: () => void }) => {
+      if (isAddModalCommittingRef.current) {
+        return;
+      }
+
+      isAddModalCommittingRef.current = true;
+      setIsAddModalCommitting(true);
+
+      deferModalCommit(() => {
+        try {
+          if (addEquipmentDraftCharacter) {
+            onPersistCharacter((currentCharacter) =>
+              applyAddEquipmentDraftToCharacter(currentCharacter, addEquipmentDraftCharacter)
+            );
+          }
+
+          setAddEquipmentDraftCharacter(null);
+          setIsAddModalOpen(false);
+          setSelectedInventoryInspection((currentSelection) =>
+            currentSelection?.source === "browser" ? null : currentSelection
+          );
+          setIsAddModalCommitting(false);
+          isAddModalCommittingRef.current = false;
+          options?.afterClose?.();
+        } catch (error) {
+          isAddModalCommittingRef.current = false;
+          setIsAddModalCommitting(false);
+          throw error;
+        }
+      });
+    },
+    [addEquipmentDraftCharacter, onPersistCharacter]
+  );
+
+  function openAddModal() {
+    if (isAddModalCommittingRef.current) {
+      isAddModalCommittingRef.current = false;
+    }
+    setIsAddModalCommitting(false);
+    setSelectedWeaponReference(null);
+    setSelectedLoadoutEntry(null);
+    setSelectedInventoryInspection(null);
+    setIsCurrencyDrawerOpen(false);
+    setAddEquipmentDraftCharacter(createAddEquipmentDraftCharacter(character));
+    setIsAddModalOpen(true);
+  }
+
+  function updateEquipmentCharacter(
+    updater: (currentCharacter: Character) => Character,
+    options?: { stage?: boolean }
+  ) {
+    if (options?.stage) {
+      setAddEquipmentDraftCharacter((currentDraft) =>
+        updater(currentDraft ?? createAddEquipmentDraftCharacter(character))
+      );
+      return;
+    }
+
+    onPersistCharacter(updater);
+  }
 
   const hasBackdrop = Boolean(
     selectedWeaponReference ||
@@ -411,12 +476,12 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     currencyKeys.forEach((currencyKey) => {
       nextCurrencies[currencyKey] = Math.max(
         0,
-        Math.floor(clampNumber(character.currencies[currencyKey], 0, 999999999, 0))
+        Math.floor(clampNumber(equipmentCharacter.currencies[currencyKey], 0, 999999999, 0))
       );
     });
 
     return nextCurrencies;
-  }, [character.currencies]);
+  }, [equipmentCharacter.currencies]);
   const activeCurrencyDefinition =
     currencyDefinitions.find((currency) => currency.key === activeCurrencyKey) ??
     currencyDefinitions[2];
@@ -431,12 +496,12 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     [customEquipment]
   );
   const featureEquipmentEntries = useMemo(
-    () => getFeatureEquipmentEntriesForCharacter(character),
-    [character]
+    () => getFeatureEquipmentEntriesForCharacter(equipmentCharacter),
+    [equipmentCharacter]
   );
   const selectedLoadoutItems = useMemo(
     () => [
-      ...character.equipment.flatMap<LoadoutGroupItem>((item) => {
+      ...equipmentCharacter.equipment.flatMap<LoadoutGroupItem>((item) => {
         const entry = getLoadoutCodexEntryByName(item.name);
 
         if (!entry) {
@@ -477,19 +542,19 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           }) satisfies LoadoutGroupItem
       )
     ],
-    [character.equipment, featureEquipmentEntries, resolvedCustomEquipmentEntries]
+    [equipmentCharacter.equipment, featureEquipmentEntries, resolvedCustomEquipmentEntries]
   );
   const selectedEquipmentGroups = useMemo(
     () => groupEquipmentItems(selectedLoadoutItems),
     [selectedLoadoutItems]
   );
   const inventoryCountsByKey = useMemo(
-    () => getInventoryItemCountsByKey(character.inventoryItems),
-    [character.inventoryItems]
+    () => getInventoryItemCountsByKey(equipmentCharacter.inventoryItems),
+    [equipmentCharacter.inventoryItems]
   );
   const groupedInventoryItems = useMemo(
-    () => groupCharacterInventoryItems(character.inventoryItems),
-    [character.inventoryItems]
+    () => groupCharacterInventoryItems(equipmentCharacter.inventoryItems),
+    [equipmentCharacter.inventoryItems]
   );
   const inventoryEquipmentGroups = useMemo(
     () => groupInventoryEquipmentItems(groupedInventoryItems),
@@ -510,7 +575,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       ) / 100,
     [groupedInventoryItems, selectedLoadoutItems]
   );
-  const carryingCapacity = Math.max(0, getAbilityScoreForCharacter(character, "STR") * 15);
+  const carryingCapacity = Math.max(0, getAbilityScoreForCharacter(equipmentCharacter, "STR") * 15);
   const isOverCarryingCapacity = carriedWeight > carryingCapacity;
   const editingCustomEquipment = editingCustomEquipmentId
     ? (findCustomEquipmentById(customEquipment, editingCustomEquipmentId) ?? null)
@@ -527,7 +592,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const isSelectedFeatureManagedEntry = Boolean(selectedLoadoutEntry?.featureManagedSource);
   const heldWeaponDescriptors = useMemo(
     () => [
-      ...character.equipment
+      ...equipmentCharacter.equipment
         .filter((item) => item.onHand)
         .flatMap<HeldWeaponDescriptor>((item) => {
           const entry = getLoadoutCodexEntryByName(item.name);
@@ -539,7 +604,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           const heldDescriptor = createHeldDescriptorForEntry(`codex-${entry.id}`, entry);
           return heldDescriptor ? [heldDescriptor] : [];
         }),
-      ...character.inventoryItems
+      ...equipmentCharacter.inventoryItems
         .filter((item) => item.onHand)
         .flatMap<HeldWeaponDescriptor>((item) => {
           const heldDescriptor = createHeldDescriptorForInventoryItem(
@@ -557,7 +622,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         )
         .map((entry) => createHeldWeaponDescriptor(`custom-${entry.customEquipmentId}`, entry))
     ],
-    [character.equipment, character.inventoryItems, resolvedCustomEquipmentEntries]
+    [equipmentCharacter.equipment, equipmentCharacter.inventoryItems, resolvedCustomEquipmentEntries]
   );
   const selectedHandDescriptor = useMemo(() => {
     if (
@@ -592,9 +657,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     }
 
     return Boolean(
-      getCharacterEquipmentItem(character.equipment, selectedLoadoutEntryData.name)?.onHand
+      getCharacterEquipmentItem(equipmentCharacter.equipment, selectedLoadoutEntryData.name)?.onHand
     );
-  }, [character.equipment, customEquipment, selectedLoadoutEntry, selectedLoadoutEntryData]);
+  }, [equipmentCharacter.equipment, customEquipment, selectedLoadoutEntry, selectedLoadoutEntryData]);
   const isSelectedArmorWorn = useMemo(() => {
     if (
       !selectedLoadoutEntryData ||
@@ -613,9 +678,9 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     }
 
     return Boolean(
-      getCharacterEquipmentItem(character.equipment, selectedLoadoutEntryData.name)?.worn
+      getCharacterEquipmentItem(equipmentCharacter.equipment, selectedLoadoutEntryData.name)?.worn
     );
-  }, [character.equipment, customEquipment, selectedLoadoutEntry, selectedLoadoutEntryData]);
+  }, [equipmentCharacter.equipment, customEquipment, selectedLoadoutEntry, selectedLoadoutEntryData]);
   const isSelectedShield =
     selectedLoadoutEntryData?.category === ENTRY_CATEGORIES.ARMOR &&
     isShieldArmorEntry(selectedLoadoutEntryData);
@@ -729,36 +794,42 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const selectedInventoryCopy = useMemo(
     () =>
       selectedInventoryInspection
-        ? findFirstInventoryCopyByKey(character.inventoryItems, selectedInventoryInspection.itemKey)
+        ? findFirstInventoryCopyByKey(
+            equipmentCharacter.inventoryItems,
+            selectedInventoryInspection.itemKey
+          )
         : null,
-    [character.inventoryItems, selectedInventoryInspection]
+    [equipmentCharacter.inventoryItems, selectedInventoryInspection]
   );
   const selectedHeldInventoryCopies = useMemo(
     () =>
       selectedInventoryInspection
         ? findHeldInventoryCopiesByKey(
-            character.inventoryItems,
+            equipmentCharacter.inventoryItems,
             selectedInventoryInspection.itemKey
           )
         : [],
-    [character.inventoryItems, selectedInventoryInspection]
+    [equipmentCharacter.inventoryItems, selectedInventoryInspection]
   );
   const selectedAvailableInventoryCopy = useMemo(
     () =>
       selectedInventoryInspection
         ? findAvailableInventoryCopyByKey(
-            character.inventoryItems,
+            equipmentCharacter.inventoryItems,
             selectedInventoryInspection.itemKey
           )
         : null,
-    [character.inventoryItems, selectedInventoryInspection]
+    [equipmentCharacter.inventoryItems, selectedInventoryInspection]
   );
   const selectedWornInventoryCopy = useMemo(
     () =>
       selectedInventoryInspection
-        ? findWornInventoryCopyByKey(character.inventoryItems, selectedInventoryInspection.itemKey)
+        ? findWornInventoryCopyByKey(
+            equipmentCharacter.inventoryItems,
+            selectedInventoryInspection.itemKey
+          )
         : null,
-    [character.inventoryItems, selectedInventoryInspection]
+    [equipmentCharacter.inventoryItems, selectedInventoryInspection]
   );
   const selectedInventoryRecord = selectedInventoryGroup?.item ?? selectedInventoryItem ?? null;
   const selectedInventoryWeaponHasActiveMastery = useMemo(
@@ -805,7 +876,11 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       : null;
   const selectedInventoryDualDescriptors =
     selectedInventoryGroup && selectedInventoryCount >= 2
-      ? getPreferredInventoryCopiesByKey(character.inventoryItems, selectedInventoryGroup.key, 2)
+      ? getPreferredInventoryCopiesByKey(
+          equipmentCharacter.inventoryItems,
+          selectedInventoryGroup.key,
+          2
+        )
           .map((copy) => createHeldDescriptorForInventoryItem(`inventory-${copy.id}`, copy.item))
           .filter((entry): entry is HeldWeaponDescriptor => entry !== null)
       : [];
@@ -866,10 +941,13 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   }
 
   function openCustomEquipmentCreator() {
-    closeAddModal();
-    setIsCustomEquipmentModalOpen(true);
-    setCustomEditorMode("create");
-    setEditingCustomEquipmentId(null);
+    closeAddModal({
+      afterClose: () => {
+        setIsCustomEquipmentModalOpen(true);
+        setCustomEditorMode("create");
+        setEditingCustomEquipmentId(null);
+      }
+    });
   }
 
   function openCustomEquipmentEditor(customEquipmentId: string) {
@@ -981,7 +1059,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     setSelectedLoadoutEntry(null);
     setSelectedInventoryInspection({
       itemKey: item.key,
-      initialItem: findOwnedInventoryItemRecord(character.inventoryItems, item.key),
+      initialItem: findOwnedInventoryItemRecord(equipmentCharacter.inventoryItems, item.key),
       source: "browser"
     });
   }
@@ -1005,10 +1083,13 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       return;
     }
 
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      inventoryItems: [...currentCharacter.inventoryItems, createCharacterInventoryItem(item)]
-    }));
+    updateEquipmentCharacter(
+      (currentCharacter) => ({
+        ...currentCharacter,
+        inventoryItems: [...currentCharacter.inventoryItems, createCharacterInventoryItem(item)]
+      }),
+      { stage: selectedInventoryInspection?.source === "browser" }
+    );
   }
 
   function buyInventoryItemCopy(item: ItemRecord) {
@@ -1022,27 +1103,30 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       return;
     }
 
-    onPersistCharacter((currentCharacter) => {
-      const currentCurrencyAmount = Math.max(
-        0,
-        Math.floor(
-          clampNumber(currentCharacter.currencies[transactionCost.currencyKey], 0, 999999999, 0)
-        )
-      );
+    updateEquipmentCharacter(
+      (currentCharacter) => {
+        const currentCurrencyAmount = Math.max(
+          0,
+          Math.floor(
+            clampNumber(currentCharacter.currencies[transactionCost.currencyKey], 0, 999999999, 0)
+          )
+        );
 
-      if (currentCurrencyAmount < transactionCost.amount) {
-        return currentCharacter;
-      }
+        if (currentCurrencyAmount < transactionCost.amount) {
+          return currentCharacter;
+        }
 
-      return {
-        ...currentCharacter,
-        currencies: {
-          ...currentCharacter.currencies,
-          [transactionCost.currencyKey]: currentCurrencyAmount - transactionCost.amount
-        },
-        inventoryItems: [...currentCharacter.inventoryItems, createCharacterInventoryItem(item)]
-      };
-    });
+        return {
+          ...currentCharacter,
+          currencies: {
+            ...currentCharacter.currencies,
+            [transactionCost.currencyKey]: currentCurrencyAmount - transactionCost.amount
+          },
+          inventoryItems: [...currentCharacter.inventoryItems, createCharacterInventoryItem(item)]
+        };
+      },
+      { stage: selectedInventoryInspection?.source === "browser" }
+    );
   }
 
   function removeInventoryItemCopy(itemKey: string, options?: { closeDrawer?: boolean }) {
@@ -1050,16 +1134,19 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       return;
     }
 
-    onPersistCharacter((currentCharacter) => {
-      if (!currentCharacter.inventoryItems.some((entry) => entry.item.key === itemKey)) {
-        return currentCharacter;
-      }
+    updateEquipmentCharacter(
+      (currentCharacter) => {
+        if (!currentCharacter.inventoryItems.some((entry) => entry.item.key === itemKey)) {
+          return currentCharacter;
+        }
 
-      return {
-        ...currentCharacter,
-        inventoryItems: removeOneInventoryItemCopyByKey(currentCharacter.inventoryItems, itemKey)
-      };
-    });
+        return {
+          ...currentCharacter,
+          inventoryItems: removeOneInventoryItemCopyByKey(currentCharacter.inventoryItems, itemKey)
+        };
+      },
+      { stage: selectedInventoryInspection?.source === "browser" }
+    );
 
     if (options?.closeDrawer) {
       closeInventoryItemDrawer();
@@ -1079,27 +1166,30 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       return;
     }
 
-    onPersistCharacter((currentCharacter) => {
-      if (!currentCharacter.inventoryItems.some((entry) => entry.item.key === itemKey)) {
-        return currentCharacter;
-      }
+    updateEquipmentCharacter(
+      (currentCharacter) => {
+        if (!currentCharacter.inventoryItems.some((entry) => entry.item.key === itemKey)) {
+          return currentCharacter;
+        }
 
-      const currentCurrencyAmount = Math.max(
-        0,
-        Math.floor(
-          clampNumber(currentCharacter.currencies[transactionCost.currencyKey], 0, 999999999, 0)
-        )
-      );
+        const currentCurrencyAmount = Math.max(
+          0,
+          Math.floor(
+            clampNumber(currentCharacter.currencies[transactionCost.currencyKey], 0, 999999999, 0)
+          )
+        );
 
-      return {
-        ...currentCharacter,
-        currencies: {
-          ...currentCharacter.currencies,
-          [transactionCost.currencyKey]: currentCurrencyAmount + transactionCost.amount
-        },
-        inventoryItems: removeOneInventoryItemCopyByKey(currentCharacter.inventoryItems, itemKey)
-      };
-    });
+        return {
+          ...currentCharacter,
+          currencies: {
+            ...currentCharacter.currencies,
+            [transactionCost.currencyKey]: currentCurrencyAmount + transactionCost.amount
+          },
+          inventoryItems: removeOneInventoryItemCopyByKey(currentCharacter.inventoryItems, itemKey)
+        };
+      },
+      { stage: selectedInventoryInspection?.source === "browser" }
+    );
 
     if (options?.closeDrawer) {
       closeInventoryItemDrawer();
@@ -1125,30 +1215,33 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     try {
       const payload = await fetchItemPackContents(packKey);
 
-      onPersistCharacter((currentCharacter) => {
-        let nextInventoryItems = currentCharacter.inventoryItems;
+      updateEquipmentCharacter(
+        (currentCharacter) => {
+          let nextInventoryItems = currentCharacter.inventoryItems;
 
-        payload.contents.forEach((entry) => {
-          nextInventoryItems = addInventoryItemCopies(
-            nextInventoryItems,
-            entry.item,
-            entry.quantity
-          );
-        });
+          payload.contents.forEach((entry) => {
+            nextInventoryItems = addInventoryItemCopies(
+              nextInventoryItems,
+              entry.item,
+              entry.quantity
+            );
+          });
 
-        if (source === "inventory") {
-          nextInventoryItems = removeOneInventoryItemCopyByKey(nextInventoryItems, packKey);
-        }
+          if (source === "inventory") {
+            nextInventoryItems = removeOneInventoryItemCopyByKey(nextInventoryItems, packKey);
+          }
 
-        if (nextInventoryItems === currentCharacter.inventoryItems) {
-          return currentCharacter;
-        }
+          if (nextInventoryItems === currentCharacter.inventoryItems) {
+            return currentCharacter;
+          }
 
-        return {
-          ...currentCharacter,
-          inventoryItems: nextInventoryItems
-        };
-      });
+          return {
+            ...currentCharacter,
+            inventoryItems: nextInventoryItems
+          };
+        },
+        { stage: source === "browser" }
+      );
     } catch (error) {
       console.error("Failed to extract equipment pack contents.", error);
     } finally {
@@ -1282,38 +1375,61 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       return;
     }
 
-    onPersistCharacter((currentCharacter) => {
-      if (isSelectedInventoryOnHand) {
-        const heldCopies = findHeldInventoryCopiesByKey(
-          currentCharacter.inventoryItems,
-          selectedInventoryInspection.itemKey
-        );
+    updateEquipmentCharacter(
+      (currentCharacter) => {
+        if (isSelectedInventoryOnHand) {
+          const heldCopies = findHeldInventoryCopiesByKey(
+            currentCharacter.inventoryItems,
+            selectedInventoryInspection.itemKey
+          );
 
-        if (heldCopies.length === 0) {
-          return currentCharacter;
-        }
-
-        if (heldCopies.length >= 2) {
-          const copyToKeepId = heldCopies[0]?.id;
-
-          if (!copyToKeepId) {
+          if (heldCopies.length === 0) {
             return currentCharacter;
           }
+
+          if (heldCopies.length >= 2) {
+            const copyToKeepId = heldCopies[0]?.id;
+
+            if (!copyToKeepId) {
+              return currentCharacter;
+            }
+
+            return {
+              ...currentCharacter,
+              inventoryItems: currentCharacter.inventoryItems.map((entry) =>
+                entry.item.key === selectedInventoryInspection.itemKey
+                  ? {
+                      ...entry,
+                      onHand: entry.id === copyToKeepId
+                    }
+                  : entry
+              )
+            };
+          }
+
+          const targetCopy = heldCopies[0];
 
           return {
             ...currentCharacter,
             inventoryItems: currentCharacter.inventoryItems.map((entry) =>
-              entry.item.key === selectedInventoryInspection.itemKey
+              entry.id === targetCopy.id
                 ? {
                     ...entry,
-                    onHand: entry.id === copyToKeepId
+                    onHand: false
                   }
                 : entry
             )
           };
         }
 
-        const targetCopy = heldCopies[0];
+        const targetCopy = findAvailableInventoryCopyByKey(
+          currentCharacter.inventoryItems,
+          selectedInventoryInspection.itemKey
+        );
+
+        if (!targetCopy) {
+          return currentCharacter;
+        }
 
         return {
           ...currentCharacter,
@@ -1321,34 +1437,14 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
             entry.id === targetCopy.id
               ? {
                   ...entry,
-                  onHand: false
+                  onHand: !entry.onHand
                 }
               : entry
           )
         };
-      }
-
-      const targetCopy = findAvailableInventoryCopyByKey(
-        currentCharacter.inventoryItems,
-        selectedInventoryInspection.itemKey
-      );
-
-      if (!targetCopy) {
-        return currentCharacter;
-      }
-
-      return {
-        ...currentCharacter,
-        inventoryItems: currentCharacter.inventoryItems.map((entry) =>
-          entry.id === targetCopy.id
-            ? {
-                ...entry,
-                onHand: !entry.onHand
-              }
-            : entry
-        )
-      };
-    });
+      },
+      { stage: selectedInventoryInspection.source === "browser" }
+    );
   }
 
   function swapSelectedInventoryItemToHand() {
@@ -1360,26 +1456,29 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       return;
     }
 
-    onPersistCharacter((currentCharacter) => {
-      const targetCopy = findAvailableInventoryCopyByKey(
-        currentCharacter.inventoryItems,
-        selectedInventoryInspection.itemKey
-      );
+    updateEquipmentCharacter(
+      (currentCharacter) => {
+        const targetCopy = findAvailableInventoryCopyByKey(
+          currentCharacter.inventoryItems,
+          selectedInventoryInspection.itemKey
+        );
 
-      if (!targetCopy) {
-        return currentCharacter;
-      }
+        if (!targetCopy) {
+          return currentCharacter;
+        }
 
-      const clearedCharacter = clearCharacterHandOccupants(currentCharacter);
+        const clearedCharacter = clearCharacterHandOccupants(currentCharacter);
 
-      return {
-        ...clearedCharacter,
-        inventoryItems: clearedCharacter.inventoryItems.map((entry) => ({
-          ...entry,
-          onHand: entry.id === targetCopy.id
-        }))
-      };
-    });
+        return {
+          ...clearedCharacter,
+          inventoryItems: clearedCharacter.inventoryItems.map((entry) => ({
+            ...entry,
+            onHand: entry.id === targetCopy.id
+          }))
+        };
+      },
+      { stage: selectedInventoryInspection.source === "browser" }
+    );
   }
 
   function toggleSelectedInventoryItemDualOnHand() {
@@ -1392,41 +1491,44 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       return;
     }
 
-    onPersistCharacter((currentCharacter) => {
-      const targetCopyIds = getPreferredInventoryCopiesByKey(
-        currentCharacter.inventoryItems,
-        selectedInventoryInspection.itemKey,
-        2
-      ).map((entry) => entry.id);
+    updateEquipmentCharacter(
+      (currentCharacter) => {
+        const targetCopyIds = getPreferredInventoryCopiesByKey(
+          currentCharacter.inventoryItems,
+          selectedInventoryInspection.itemKey,
+          2
+        ).map((entry) => entry.id);
 
-      if (targetCopyIds.length < 2) {
-        return currentCharacter;
-      }
+        if (targetCopyIds.length < 2) {
+          return currentCharacter;
+        }
 
-      if (canSelectedInventoryBeDualEquipped) {
+        if (canSelectedInventoryBeDualEquipped) {
+          return {
+            ...currentCharacter,
+            inventoryItems: currentCharacter.inventoryItems.map((entry) =>
+              targetCopyIds.includes(entry.id)
+                ? {
+                    ...entry,
+                    onHand: true
+                  }
+                : entry
+            )
+          };
+        }
+
+        const clearedCharacter = clearCharacterHandOccupants(currentCharacter);
+
         return {
-          ...currentCharacter,
-          inventoryItems: currentCharacter.inventoryItems.map((entry) =>
-            targetCopyIds.includes(entry.id)
-              ? {
-                  ...entry,
-                  onHand: true
-                }
-              : entry
-          )
+          ...clearedCharacter,
+          inventoryItems: clearedCharacter.inventoryItems.map((entry) => ({
+            ...entry,
+            onHand: targetCopyIds.includes(entry.id)
+          }))
         };
-      }
-
-      const clearedCharacter = clearCharacterHandOccupants(currentCharacter);
-
-      return {
-        ...clearedCharacter,
-        inventoryItems: clearedCharacter.inventoryItems.map((entry) => ({
-          ...entry,
-          onHand: targetCopyIds.includes(entry.id)
-        }))
-      };
-    });
+      },
+      { stage: selectedInventoryInspection.source === "browser" }
+    );
   }
 
   function toggleSelectedInventoryArmorWorn() {
@@ -1442,43 +1544,48 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       return;
     }
 
-    onPersistCharacter((currentCharacter) =>
-      setInventoryItemArmorWornState(
-        currentCharacter,
-        selectedInventoryCopy.id,
-        !isSelectedInventoryArmorWorn
-      )
+    updateEquipmentCharacter(
+      (currentCharacter) =>
+        setInventoryItemArmorWornState(
+          currentCharacter,
+          selectedInventoryCopy.id,
+          !isSelectedInventoryArmorWorn
+        ),
+      { stage: selectedInventoryInspection.source === "browser" }
     );
   }
 
   function adjustCurrencyBalance(mode: "spend" | "gain") {
     const amount = Math.max(0, Math.floor(clampNumber(currencyAmountDraft, 0, 999999999, 0)));
 
-    onPersistCharacter((currentCharacter) => {
-      const currentCurrencyAmount = Math.max(
-        0,
-        Math.floor(clampNumber(currentCharacter.currencies[activeCurrencyKey], 0, 999999999, 0))
-      );
+    updateEquipmentCharacter(
+      (currentCharacter) => {
+        const currentCurrencyAmount = Math.max(
+          0,
+          Math.floor(clampNumber(currentCharacter.currencies[activeCurrencyKey], 0, 999999999, 0))
+        );
 
-      if (mode === "spend" && currentCurrencyAmount < amount) {
-        return currentCharacter;
-      }
-
-      const nextAmount =
-        mode === "spend" ? currentCurrencyAmount - amount : currentCurrencyAmount + amount;
-
-      if (nextAmount === currentCurrencyAmount) {
-        return currentCharacter;
-      }
-
-      return {
-        ...currentCharacter,
-        currencies: {
-          ...currentCharacter.currencies,
-          [activeCurrencyKey]: nextAmount
+        if (mode === "spend" && currentCurrencyAmount < amount) {
+          return currentCharacter;
         }
-      };
-    });
+
+        const nextAmount =
+          mode === "spend" ? currentCurrencyAmount - amount : currentCurrencyAmount + amount;
+
+        if (nextAmount === currentCurrencyAmount) {
+          return currentCharacter;
+        }
+
+        return {
+          ...currentCharacter,
+          currencies: {
+            ...currentCharacter.currencies,
+            [activeCurrencyKey]: nextAmount
+          }
+        };
+      },
+      { stage: isAddModalOpen }
+    );
 
     setCurrencyAmountDraft(0);
   }
@@ -1667,7 +1774,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           <button
             type="button"
             className={shared.editButton}
-            onClick={() => setIsAddModalOpen(true)}
+            onClick={openAddModal}
           >
             <Plus size={16} />
             Add
@@ -1802,6 +1909,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
 
       <EquipmentItemBrowserModal
         isOpen={isAddModalOpen}
+        isClosing={isAddModalCommitting}
         currencySummary={
           <span className={styles.currencyPillSummary}>
             {currencyDefinitions.map((currency) => (

@@ -145,6 +145,14 @@
   color: #a63729;
 }
 
+.spellManagementModalPanel {
+  width: min(760px, 100%);
+}
+
+.spellManagementModalBody {
+  gap: 0.88rem;
+}
+
 .spellGroup {
   display: grid;
   gap: 0.45rem;

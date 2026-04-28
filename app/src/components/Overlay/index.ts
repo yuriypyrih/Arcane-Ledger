@@ -15,4 +15,5 @@ export {
   OverlayTitleRow
 } from "./OverlayLayout";
 export { overlayClassNames } from "./overlayClassNames";
+export { deferModalCommit } from "./deferModalCommit";
 export * from "./useDismissableOverlay";

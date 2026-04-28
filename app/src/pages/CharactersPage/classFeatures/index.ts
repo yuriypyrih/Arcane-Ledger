@@ -336,6 +336,7 @@ import {
   getWarlockInvocationOptions,
   getWarlockInvocationSelectionIds,
   getWarlockLearnedInvocationOptions,
+  normalizeWarlockInvocationSelectionIds,
   getWarlockMysticArcanumSelections,
   getWarlockMysticArcanumSpellId,
   getWarlockMysticArcanumSpellOptions,
@@ -641,7 +642,7 @@ export {
 export function normalizeCharacterClassFeatureState(
   value: unknown,
   character: Pick<Character, "className" | "level"> &
-    Partial<Pick<Character, "abilities" | "subclassId">>
+    Partial<Pick<Character, "abilities" | "cantripIds" | "feats" | "subclassId">>
 ): CharacterClassFeatureState {
   const record =
     value && typeof value === "object" ? (value as Partial<CharacterClassFeatureState>) : {};
@@ -2455,6 +2456,14 @@ export function getWarlockInvocationSelectionIdsForCharacter(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">
 ) {
   return getWarlockInvocationSelectionIds(character);
+}
+
+export function normalizeWarlockInvocationSelectionIdsForCharacter(
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats"> &
+    Partial<Pick<Character, "abilities" | "subclassId">>,
+  selectionIds: string[]
+) {
+  return normalizeWarlockInvocationSelectionIds(character, selectionIds);
 }
 
 export function getWarlockInvocationOptionsForCharacter(

@@ -551,7 +551,7 @@ export type ClassFeatureModule<TStateKey extends keyof CharacterClassFeatureStat
   normalizeState: (
     value: unknown,
     character: Pick<Character, "className" | "level"> &
-      Partial<Pick<Character, "abilities" | "subclassId">>
+      Partial<Pick<Character, "abilities" | "cantripIds" | "feats" | "subclassId">>
   ) => CharacterClassFeatureState[TStateKey];
   collectDerived: (character: CollectedClassFeatureCharacter) => ClassFeatureDerivedState;
   handleAction?: (character: Character, actionKey: string) => Character | null;

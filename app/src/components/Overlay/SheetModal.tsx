@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { createPortal } from "react-dom";
+import { LoaderCircle } from "lucide-react";
 import styles from "./Overlay.module.css";
 import { useDismissableOverlay } from "./useDismissableOverlay";
 
@@ -9,6 +10,8 @@ type SheetModalProps = {
   onEscape?: () => void;
   children: ReactNode;
   backdropClassName?: string;
+  busyLabel?: string;
+  isBusy?: boolean;
   panelClassName?: string;
 };
 
@@ -18,12 +21,14 @@ function SheetModal({
   onEscape,
   children,
   backdropClassName,
+  busyLabel = "Saving changes",
+  isBusy = false,
   panelClassName
 }: SheetModalProps) {
   const { onBackdropClick, onContentClick } = useDismissableOverlay({
     isOpen: true,
-    onClose,
-    onEscape
+    onClose: isBusy ? () => undefined : onClose,
+    onEscape: isBusy ? () => undefined : onEscape
   });
 
   if (typeof document === "undefined") {
@@ -37,13 +42,24 @@ function SheetModal({
       onClick={onBackdropClick}
     >
       <section
-        className={[styles.modalPanel, panelClassName ?? ""].join(" ").trim()}
+        className={[styles.modalPanel, isBusy ? styles.modalPanelBusy : "", panelClassName ?? ""]
+          .join(" ")
+          .trim()}
         role="dialog"
         aria-modal="true"
+        aria-busy={isBusy}
         aria-labelledby={titleId}
         onClick={onContentClick}
       >
         {children}
+        {isBusy ? (
+          <div className={styles.busyScrim} role="status" aria-live="polite">
+            <div className={styles.busyIndicator}>
+              <LoaderCircle size={34} className={styles.busySpinner} aria-hidden="true" />
+              <span>{busyLabel}</span>
+            </div>
+          </div>
+        ) : null}
       </section>
     </div>,
     document.body

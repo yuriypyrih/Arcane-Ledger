@@ -13,6 +13,7 @@
   --overlay-panel-inline-padding: 1rem;
   --overlay-panel-top-padding: 1rem;
   --overlay-panel-bottom-padding: 1rem;
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 0;
@@ -25,6 +26,13 @@
   box-shadow: 0 24px 60px rgba(38, 23, 14, 0.24);
   overflow: hidden;
   overscroll-behavior: contain;
+}
+
+.modalPanelBusy > :not(.busyScrim) {
+  filter: saturate(0.74);
+  opacity: 0.42;
+  pointer-events: none;
+  user-select: none;
 }
 
 .drawerBackdrop {
@@ -118,6 +126,36 @@
   padding: 0;
 }
 
+.closeButton:disabled {
+  cursor: wait;
+  opacity: 0.58;
+}
+
+.busyScrim {
+  position: absolute;
+  inset: 0;
+  z-index: 8;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 252, 245, 0.64);
+  backdrop-filter: blur(1.5px);
+}
+
+.busyIndicator {
+  display: grid;
+  justify-items: center;
+  gap: 0.56rem;
+  color: var(--color-accent);
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.busySpinner {
+  animation: overlaySpin 0.85s linear infinite;
+}
+
 .body {
   display: grid;
   flex: 1 1 auto;
@@ -171,6 +209,12 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes overlaySpin {
+  to {
+    transform: rotate(360deg);
   }
 }
 

@@ -1,6 +1,9 @@
 import type { SpellEntry } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
 import {
+  getWarlockInvocationSelectionIdsForCharacter,
+  normalizeWarlockInvocationSelectionIdsForCharacter,
+  setWarlockInvocationSelectionIdsForCharacter,
   syncWizardSignatureSpellsToSpellbookForCharacter,
   syncWizardSpellMasterySelectionsToSpellbookForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
@@ -26,6 +29,21 @@ type PreparedSpellDraftOptions = {
   spellbookDraftIds: string[];
   usesSpellbook: boolean;
 };
+
+type InvocationDraftOptions = {
+  invocationDraftIds: string[];
+};
+
+export type SpellManagementDraft = {
+  cantripDraftIds: string[];
+  invocationDraftIds: string[];
+  preparedSpellDraftIds: string[];
+  spellbookDraftIds: string[];
+};
+
+type SpellManagementDraftOptions = CantripDraftOptions &
+  PreparedSpellDraftOptions &
+  InvocationDraftOptions;
 
 function getManualSpellbookSpellIds(
   spellIds: unknown,
@@ -122,4 +140,32 @@ export function applyPreparedSpellDraftToCharacter(
     spellbookSpellIds: nextSpellbookIds,
     preparedSpellIds: nextPreparedSpellIds
   });
+}
+
+export function applyInvocationDraftToCharacter(
+  currentCharacter: Character,
+  { invocationDraftIds }: InvocationDraftOptions
+): Character {
+  const nextInvocationIds = normalizeWarlockInvocationSelectionIdsForCharacter(
+    currentCharacter,
+    invocationDraftIds
+  );
+  const currentInvocationIds = getWarlockInvocationSelectionIdsForCharacter(currentCharacter);
+
+  return areSpellIdListsEqual(currentInvocationIds, nextInvocationIds)
+    ? currentCharacter
+    : setWarlockInvocationSelectionIdsForCharacter(currentCharacter, nextInvocationIds);
+}
+
+export function applySpellManagementDraftToCharacter(
+  currentCharacter: Character,
+  options: SpellManagementDraftOptions
+): Character {
+  const characterWithCantrips = applyCantripDraftToCharacter(currentCharacter, options);
+  const characterWithPreparedSpells = applyPreparedSpellDraftToCharacter(
+    characterWithCantrips,
+    options
+  );
+
+  return applyInvocationDraftToCharacter(characterWithPreparedSpells, options);
 }

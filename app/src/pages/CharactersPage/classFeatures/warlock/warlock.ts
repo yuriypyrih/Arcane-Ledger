@@ -133,6 +133,11 @@ export type WarlockEldritchInvocationOption = {
   isPlaceholder: boolean;
 };
 
+type WarlockInvocationCharacter = Pick<Character, "className" | "level"> &
+  Partial<
+    Pick<Character, "abilities" | "cantripIds" | "classFeatureState" | "feats" | "subclassId">
+  >;
+
 function isMysticArcanumLevel(value: number): value is MysticArcanumLevel {
   return value === 6 || value === 7 || value === 8 || value === 9;
 }
@@ -190,8 +195,7 @@ function parseSelectionId(selectionId: string): {
 }
 
 function getWarlockFeatureState(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats"> &
-    Partial<Pick<Character, "abilities" | "subclassId">>
+  character: WarlockInvocationCharacter
 ): CharacterWarlockFeatureState {
   return normalizeWarlockFeatureState(character.classFeatureState?.warlock, character);
 }
@@ -246,7 +250,9 @@ export function getWarlockPactMagicSlotsExpended(
   return spellSlotsExpended[slotLevel - 1] ?? 0;
 }
 
-function getWarlockKnownCantripEntries(character: Pick<Character, "cantripIds">): SpellEntry[] {
+function getWarlockKnownCantripEntries(
+  character: Partial<Pick<Character, "cantripIds">>
+): SpellEntry[] {
   const rawIds = Array.isArray(character.cantripIds)
     ? character.cantripIds.filter((entry): entry is string => typeof entry === "string")
     : [];
@@ -273,7 +279,7 @@ function getSpellRangeFeet(spell: Pick<SpellEntry, "range">): number | null {
 }
 
 function getEligibleWarlockCantripEntries(
-  character: Pick<Character, "cantripIds">,
+  character: Partial<Pick<Character, "cantripIds">>,
   rule: "damaging" | "damaging-range-10" | "damaging-attack-roll"
 ): SpellEntry[] {
   return getWarlockKnownCantripEntries(character).filter((spell) => {
@@ -375,14 +381,37 @@ function createPlaceholderOption(
   };
 }
 
+function getInvocationDependencyDepth(
+  invocationId: ELDRITCH_INVOCATION,
+  visitedInvocationIds = new Set<ELDRITCH_INVOCATION>()
+): number {
+  if (visitedInvocationIds.has(invocationId)) {
+    return 0;
+  }
+
+  const invocation = getEldritchInvocationEntryById(invocationId);
+  const dependencyIds = (invocation?.prerequisites ?? [])
+    .map((requirement) => (requirement.type === "invocation" ? requirement.invocation : null))
+    .filter((dependencyId): dependencyId is ELDRITCH_INVOCATION => dependencyId !== null);
+
+  if (dependencyIds.length === 0) {
+    return 0;
+  }
+
+  const nextVisitedInvocationIds = new Set(visitedInvocationIds).add(invocationId);
+
+  return Math.max(
+    ...dependencyIds.map(
+      (dependencyId) => 1 + getInvocationDependencyDepth(dependencyId, nextVisitedInvocationIds)
+    )
+  );
+}
+
 function sortSelectionIdsForNormalization(selectionIds: string[]): string[] {
   return selectionIds
     .map((selectionId, index) => {
       const { invocationId } = parseSelectionId(selectionId);
-      const invocation = invocationId ? getEldritchInvocationEntryById(invocationId) : null;
-      const dependencyDepth = (invocation?.prerequisites ?? []).filter(
-        (requirement) => requirement.type === "invocation"
-      ).length;
+      const dependencyDepth = invocationId ? getInvocationDependencyDepth(invocationId) : 0;
 
       return {
         selectionId,
@@ -396,6 +425,44 @@ function sortSelectionIdsForNormalization(selectionIds: string[]): string[] {
         : left.dependencyDepth - right.dependencyDepth
     )
     .map((entry) => entry.selectionId);
+}
+
+function normalizeWarlockInvocationSelectionIdsForState(
+  character: WarlockInvocationCharacter,
+  selectionIds: string[]
+): string[] {
+  const limit = getWarlockEldritchInvocationLimit(character);
+  const candidateSelectionIds = [...new Set(sortSelectionIdsForNormalization(selectionIds))];
+  const optionMap = new Map(
+    getWarlockInvocationOptions(character, candidateSelectionIds).map((option) => [
+      option.selectionId,
+      option
+    ])
+  );
+  const acceptedSelectionIds: string[] = [];
+  const acceptedBaseInvocationIds = new Set<ELDRITCH_INVOCATION>();
+
+  for (const selectionId of candidateSelectionIds) {
+    if (acceptedSelectionIds.length >= limit) {
+      break;
+    }
+
+    const option = optionMap.get(selectionId);
+    const { invocationId } = parseSelectionId(selectionId);
+
+    if (!option || !invocationId || option.isPlaceholder || !option.isQualified) {
+      continue;
+    }
+
+    if (!meetsInvocationPrerequisites(option.invocation, character, acceptedBaseInvocationIds)) {
+      continue;
+    }
+
+    acceptedSelectionIds.push(selectionId);
+    acceptedBaseInvocationIds.add(invocationId);
+  }
+
+  return acceptedSelectionIds;
 }
 
 export function hasWarlockFeature(
@@ -420,9 +487,20 @@ export function getWarlockEldritchInvocationLimit(
 }
 
 export function getWarlockInvocationSelectionIds(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">
+  character: WarlockInvocationCharacter
 ): string[] {
   return getWarlockFeatureState(character).eldritchInvocationIds ?? [];
+}
+
+export function normalizeWarlockInvocationSelectionIds(
+  character: WarlockInvocationCharacter,
+  selectionIds: string[]
+): string[] {
+  if (character.className !== "Warlock") {
+    return [];
+  }
+
+  return normalizeWarlockInvocationSelectionIdsForState(character, selectionIds);
 }
 
 export function getWarlockMysticArcanumSpellOptions(
@@ -506,7 +584,7 @@ export function getContactPatronUsesRemaining(
 }
 
 export function getWarlockInvocationOptions(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">,
+  character: WarlockInvocationCharacter,
   selectedIds: string[] = getWarlockInvocationSelectionIds(character)
 ): WarlockEldritchInvocationOption[] {
   if (!hasWarlockFeature(character, CLASS_FEATURE.ELDRITCH_INVOCATIONS)) {
@@ -580,7 +658,7 @@ export function getWarlockInvocationOptions(
 }
 
 export function getWarlockLearnedInvocationOptions(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "cantripIds" | "feats">
+  character: WarlockInvocationCharacter
 ): WarlockEldritchInvocationOption[] {
   const selectedIds = getWarlockInvocationSelectionIds(character);
   const optionMap = new Map(
@@ -638,8 +716,7 @@ export function getWarlockInvocationBlockingSelectionNames(
 
 export function normalizeWarlockFeatureState(
   value: unknown,
-  character: Pick<Character, "className" | "level" | "cantripIds" | "feats"> &
-    Partial<Pick<Character, "abilities" | "subclassId">>
+  character: WarlockInvocationCharacter
 ): CharacterWarlockFeatureState {
   if (!hasWarlockFeature(character, CLASS_FEATURE.ELDRITCH_INVOCATIONS)) {
     return {};
@@ -652,34 +729,10 @@ export function normalizeWarlockFeatureState(
         (selectionId): selectionId is string => typeof selectionId === "string"
       )
     : [];
-  const limit = getWarlockEldritchInvocationLimit(character);
-  let normalizedSelectionIds = [...new Set(sortSelectionIdsForNormalization(rawSelectionIds))];
-
-  for (let iteration = 0; iteration < 3; iteration += 1) {
-    const optionMap = new Map(
-      getWarlockInvocationOptions(character, normalizedSelectionIds).map((option) => [
-        option.selectionId,
-        option
-      ])
-    );
-
-    const nextSelectionIds = normalizedSelectionIds
-      .filter((selectionId) => {
-        const option = optionMap.get(selectionId);
-        return Boolean(option && option.isQualified && !option.isPlaceholder);
-      })
-      .slice(0, limit);
-
-    if (
-      nextSelectionIds.length === normalizedSelectionIds.length &&
-      nextSelectionIds.every((selectionId, index) => selectionId === normalizedSelectionIds[index])
-    ) {
-      normalizedSelectionIds = nextSelectionIds;
-      break;
-    }
-
-    normalizedSelectionIds = nextSelectionIds;
-  }
+  const normalizedSelectionIds = normalizeWarlockInvocationSelectionIdsForState(
+    character,
+    rawSelectionIds
+  );
 
   const totalMagicalCunningUses = getWarlockMagicalCunningUsesTotal(character);
   const rawMagicalCunningUsesExpended = Number(record.magicalCunningUsesExpended);
