@@ -9,7 +9,6 @@ import styles from "./GameplayForm.module.css";
 import BardicInspirationWidget from "./widgets/BardicInspirationWidget";
 import DivinityPointsWidget from "./widgets/DivinityPointsWidget";
 import HeroicInspirationWidget from "./widgets/HeroicInspirationWidget";
-import HealingLightDiceWidget from "./widgets/HealingLightDiceWidget";
 import FocusPointsWidget from "./widgets/FocusPointsWidget";
 import FighterSecondWindWidget from "./widgets/FighterSecondWindWidget";
 import PsiEnergyDiceWidget from "./widgets/PsiEnergyDiceWidget";
@@ -91,7 +90,6 @@ function GameplayForm({
         </div>
         <div className={styles.gameplayHeaderControls}>
           <HeroicInspirationWidget character={character} onPersistCharacter={onPersistCharacter} />
-          <HealingLightDiceWidget character={character} onPersistCharacter={onPersistCharacter} />
           <RagePointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <FocusPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <FighterSecondWindWidget character={character} onPersistCharacter={onPersistCharacter} />

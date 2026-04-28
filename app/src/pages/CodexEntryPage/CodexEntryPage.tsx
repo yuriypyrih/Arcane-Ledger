@@ -41,6 +41,7 @@ import {
   formatEquipmentWeight,
   formatSpellCastingTime,
   formatSpellComponents,
+  formatSpellHealing,
   formatWeaponCost,
   formatWeaponDamage,
   formatWeaponProperties,
@@ -76,6 +77,12 @@ const abilityDisplayOrder = [
   ABILITY_TYPES.WIS,
   ABILITY_TYPES.CHA
 ];
+
+function hasSpellHealing(spell: Pick<SpellEntry, "healing">): boolean {
+  return Array.isArray(spell.healing)
+    ? spell.healing.length > 0
+    : spell.healing.label.trim().length > 0;
+}
 const orderedWeaponProficiencies = [
   GENERAL_PROFICIENCIES.SIMPLE_WEAPONS,
   GENERAL_PROFICIENCIES.MARTIAL_WEAPONS
@@ -430,7 +437,20 @@ function CodexEntryPage() {
                         label="Spell Lists"
                         content={formatCodexList(entry.spellLists)}
                       />
-                      <CellContainer label="Damage" content={formatWeaponDamage(entry.damage)} />
+                      <CellContainer
+                        label={
+                          entry.damage.length > 0
+                            ? "Damage"
+                            : hasSpellHealing(entry)
+                              ? "Healing"
+                              : "Damage"
+                        }
+                        content={
+                          entry.damage.length > 0
+                            ? formatWeaponDamage(entry.damage)
+                            : formatSpellHealing(entry.healing)
+                        }
+                      />
                     </>
                   ) : null}
                 </div>

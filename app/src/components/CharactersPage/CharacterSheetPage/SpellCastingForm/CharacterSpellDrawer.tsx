@@ -72,6 +72,7 @@ export type CharacterSpellDrawerActionOptions = {
   usePsionicSorcery?: boolean;
   useTamedSurge?: boolean;
   useTelekineticMaster?: boolean;
+  useRadiantSoul?: boolean;
 };
 
 export type CharacterSpellDrawerActionRadioOption = {
@@ -175,6 +176,12 @@ function getActionShapeTitle(shape: ActionShapeType): string {
 
 function isSpentActionWarning(value: string | null): boolean {
   return value !== null && /^You already used the .+ for this turn$/.test(value);
+}
+
+function hasSpellHealing(spell: Pick<SpellEntry, "healing">): boolean {
+  return Array.isArray(spell.healing)
+    ? spell.healing.length > 0
+    : spell.healing.label.trim().length > 0;
 }
 
 function CharacterSpellDrawer({
@@ -317,15 +324,14 @@ function CharacterSpellDrawer({
     usePsionicSorcery: actionOptions.some(
       (option) => option.id === "psionic-sorcery" && option.checked
     ),
-    useTamedSurge: actionOptions.some(
-      (option) => option.id === "tamed-surge" && option.checked
-    ),
+    useTamedSurge: actionOptions.some((option) => option.id === "tamed-surge" && option.checked),
     usePhantasmalCreatures: actionOptions.some(
       (option) => option.id === "phantasmal-creatures" && option.checked
     ),
     useTelekineticMaster: actionOptions.some(
       (option) => option.id === "telekinetic-master" && option.checked
-    )
+    ),
+    useRadiantSoul: actionOptions.some((option) => option.id === "radiant-soul" && option.checked)
   };
   const resolvedActionPaths =
     actionPaths && actionPaths.length > 0
@@ -376,9 +382,7 @@ function CharacterSpellDrawer({
     isRogueArcaneTricksterMagicalAmbushActiveForSpell(character, spell)
       ? "Magical Ambush is active"
       : null,
-    isInnateSorceryActiveForSpell(character, spell)
-      ? "Innate Sorcery is Active"
-      : null
+    isInnateSorceryActiveForSpell(character, spell) ? "Innate Sorcery is Active" : null
   ].filter((value): value is string => value !== null && value.length > 0);
   const spellFormulaCells = [
     getSpellSaveFormulaCell(spell, character),
@@ -567,7 +571,9 @@ function CharacterSpellDrawer({
                 content={formatCodexList(spell.spellLists) || "None"}
               />
               <CellContainer
-                label="Damage"
+                label={
+                  spell.damage.length > 0 ? "Damage" : hasSpellHealing(spell) ? "Healing" : "Damage"
+                }
                 content={damageDetailOverride ?? getSpellDamageDetailForCharacter(character, spell)}
               />
             </div>

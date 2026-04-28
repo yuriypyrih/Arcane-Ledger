@@ -1,0 +1,55 @@
+.body {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(8rem, 0.8fr) minmax(12rem, 1.2fr);
+  align-items: end;
+}
+
+.field {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.fieldLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.select {
+  min-height: 46px;
+}
+
+.targetSwitch {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-radius: 999px;
+  background: rgba(75, 47, 29, 0.08);
+  padding: 0.24rem;
+  width: 100%;
+}
+
+.targetButton {
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--color-ink-soft);
+  cursor: pointer;
+  font: inherit;
+  min-height: 38px;
+  padding: 0 0.92rem;
+}
+
+.targetButtonActive {
+  background: rgba(255, 255, 255, 0.95);
+  box-shadow: 0 8px 18px rgba(54, 34, 21, 0.08);
+  color: var(--color-ink);
+}
+
+@media (max-width: 720px) {
+  .body {
+    grid-template-columns: 1fr;
+  }
+}

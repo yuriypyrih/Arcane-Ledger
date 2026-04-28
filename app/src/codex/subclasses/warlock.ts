@@ -46,7 +46,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "<strong>Level 7.</strong> <spell:Dominate Beast>Dominate Beast</spell>, <spell:Greater Invisibility>Greater Invisibility</spell>",
           "<strong>Level 9.</strong> <spell:Dominate Person>Dominate Person</spell>, <spell:Seeming>Seeming</spell>"
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.STEPS_OF_THE_FEY, {
         description: [
@@ -56,7 +56,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "<strong>Refreshing Step.</strong> Immediately after you teleport, you or one creature you can see within 10 feet of yourself gains <strong>1d10</strong> <link:Temporary Hit Points>Temporary Hit Points</link>.",
           "<strong>Taunting Step.</strong> Creatures within 5 feet of the space you left must succeed on a <link:Wisdom Saving Throw>Wisdom saving throw</link> against your spell save DC or have <link:Disadvantage>Disadvantage</link> on attack rolls against creatures other than you until the start of your next turn."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.MISTY_ESCAPE, {
         description: [
@@ -65,7 +65,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "<strong>Disappearing Step.</strong> You have the <link:Invisible>Invisible</link> condition until the start of your next turn or until immediately after you make an attack roll, deal damage, or cast a spell.",
           "<strong>Dreadful Step.</strong> Creatures within 5 feet of the space you left or the space you appear in (your choice) must succeed on a <link:Wisdom Saving Throw>Wisdom saving throw</link> against your spell save DC or take <strong>2d10</strong> <link:Psychic>Psychic</link> damage."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.BEGUILING_DEFENSES, {
         description: [
@@ -75,14 +75,14 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "On a failed save, the attacker takes <link:Psychic>Psychic</link> damage equal to the damage you take.",
           "Once you use this Reaction, you can't use it again until you finish a <link:long-rest>Long Rest</link> unless you expend a Pact Magic spell slot (no action required) to restore your use of it."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.BEWITCHING_MAGIC, {
         description: [
           "Your patron grants you the ability to weave your magic with teleportation.",
           "Immediately after you cast an Enchantment or Illusion spell using an action and a spell slot, you can cast <spell:Misty Step>Misty Step</spell> as part of the same action and without expending a spell slot."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       })
     ]
   },
@@ -102,7 +102,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "<strong>Level 7.</strong> <spell:Guardian of Faith>Guardian of Faith</spell>, <spell:Wall of Fire>Wall of Fire</spell>",
           "<strong>Level 9.</strong> <spell:Greater Restoration>Greater Restoration</spell>, <spell:Summon Celestial>Summon Celestial</spell>"
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.HEALING_LIGHT, {
         description: [
@@ -113,7 +113,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "Roll the dice you expend, and restore a number of Hit Points equal to the roll's total.",
           "Your pool regains all expended dice when you finish a <link:long-rest>Long Rest</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.RADIANT_SOUL, {
         description: [
@@ -121,7 +121,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "You have <link:Resistance>Resistance</link> to <link:Radiant>Radiant</link> damage.",
           "Once per turn, when a spell you cast deals <link:Radiant>Radiant</link> or <link:Fire>Fire</link> damage, you can add your <link:CHA>Charisma</link> modifier to that spell's damage against one of the spell's targets."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_10,
@@ -133,7 +133,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
             "Additionally, choose up to five creatures you can see when you gain the points.",
             "Those creatures each gain <link:Temporary Hit Points>Temporary Hit Points</link> equal to half your Warlock level plus your <link:CHA>Charisma</link> modifier."
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.SEARING_VENGEANCE, {
@@ -143,7 +143,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "Each creature of your choice that is within 30 feet of the creature takes <link:Radiant>Radiant</link> damage equal to <strong>2d8</strong> plus your <link:CHA>Charisma</link> modifier, and each has the <link:Blinded>Blinded</link> condition until the end of the current turn.",
           "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.NOT_TRACKED
       })
     ]
   },

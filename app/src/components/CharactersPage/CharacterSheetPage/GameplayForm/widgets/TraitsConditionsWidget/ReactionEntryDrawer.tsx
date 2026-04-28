@@ -20,6 +20,8 @@ type ReactionEntryDrawerProps = {
   resourceSummary?: string | null;
   customContent?: ReactNode;
   footerContent?: ReactNode;
+  actionLabel?: string;
+  actionDisabled?: boolean;
   onCast: () => void;
   onClose: () => void;
 };
@@ -35,6 +37,8 @@ function ReactionEntryDrawer({
   resourceSummary = null,
   customContent = null,
   footerContent = null,
+  actionLabel = "Take Reaction",
+  actionDisabled = actionWarning !== null,
   onCast,
   onClose
 }: ReactionEntryDrawerProps) {
@@ -56,7 +60,7 @@ function ReactionEntryDrawer({
             <ActionButton
               className={styles.castActionButton}
               onClick={onCast}
-              disabled={actionWarning !== null}
+              disabled={actionDisabled}
               trailingBadge={
                 <ActionShape
                   shape="reaction"
@@ -66,7 +70,7 @@ function ReactionEntryDrawer({
                 />
               }
             >
-              Take Reaction
+              {actionLabel}
             </ActionButton>
           )}
         </div>

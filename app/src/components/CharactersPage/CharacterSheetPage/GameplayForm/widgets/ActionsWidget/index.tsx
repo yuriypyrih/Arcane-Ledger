@@ -291,7 +291,7 @@ import {
   FighterSecondWindActionBody,
   FighterSecondWindActionFooter
 } from "./FighterSecondWindAction";
-import HealingLightActionBody from "./HealingLightActionBody";
+import HealingLightActionBody, { type HealingLightTarget } from "./HealingLightActionBody";
 import {
   IndomitableActionBody,
   IndomitableActionFooter,
@@ -410,6 +410,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     useState<SneakAttackActionSelection>(initialSneakAttackActionSelection);
   const [selectedSpellfireBurstTarget, setSelectedSpellfireBurstTarget] =
     useState<SpellfireBurstTarget>("self");
+  const [selectedHealingLightDiceCount, setSelectedHealingLightDiceCount] = useState(1);
+  const [selectedHealingLightTarget, setSelectedHealingLightTarget] =
+    useState<HealingLightTarget>("self");
   const [selectedWeaponDetailReference, setSelectedWeaponDetailReference] = useState<{
     title: string;
     entries: ReturnType<typeof getKeywordReferences>;
@@ -784,6 +787,18 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedSecondWindGroupRecoveryUsesTotal > 0
       ? getFighterGroupRecoveryHealingFormula(character)
       : null;
+  const isHealingLightActionSelected = selectedFeatureAction?.drawer?.formKind === "healing-light";
+  const selectedHealingLightDiceRemaining = isHealingLightActionSelected
+    ? getWarlockHealingLightDiceRemainingForCharacter(character)
+    : 0;
+  const selectedHealingLightMaxDicePerUse = isHealingLightActionSelected
+    ? getWarlockHealingLightMaxSpendForCharacter(character)
+    : 0;
+  const selectedHealingLightMaxSelectableDice = Math.min(
+    10,
+    selectedHealingLightDiceRemaining,
+    selectedHealingLightMaxDicePerUse
+  );
   const selectedMonkPatientDefenseTemporaryHitPointsFormula =
     selectedFeatureAction?.key === monkPatientDefenseActionKey
       ? getMonkPatientDefenseTemporaryHitPointsFormula(character)
@@ -1232,6 +1247,19 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       return Math.max(1, Math.min(selectedWarriorOfTheGodsUsesRemaining, currentCount));
     });
   }, [selectedFeatureAction?.key, selectedWarriorOfTheGodsUsesRemaining]);
+  useEffect(() => {
+    if (!isHealingLightActionSelected) {
+      return;
+    }
+
+    setSelectedHealingLightDiceCount((currentCount) => {
+      if (selectedHealingLightMaxSelectableDice <= 0) {
+        return 1;
+      }
+
+      return Math.max(1, Math.min(selectedHealingLightMaxSelectableDice, currentCount));
+    });
+  }, [isHealingLightActionSelected, selectedHealingLightMaxSelectableDice]);
   const selectedDrawerWarning =
     selectedOptionWarning ??
     selectedLayOnHandsWarning ??
@@ -2981,7 +3009,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     closeActionDrawer();
   }
 
-  function submitHealingLight(diceCount: number) {
+  function submitHealingLight(diceCount: number, target: HealingLightTarget) {
     if (!selectedFeatureAction || diceCount <= 0) {
       return;
     }
@@ -3012,7 +3040,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       title: selectedFeatureAction.name,
       formula: healingFormula,
       formulaDisplay: healingFormula,
-      description: `${selectedFeatureAction.detail} ${diceCount} ${dieLabel} expended.`
+      description: `${selectedFeatureAction.detail} ${diceCount} ${dieLabel} expended.`,
+      onResolvedResult:
+        target === "self"
+          ? ({ result }) => {
+              onPersistCharacter((currentCharacter) =>
+                applyRolledHealingToCharacter(currentCharacter, result.total)
+              );
+            }
+          : undefined
     });
 
     closeActionDrawer();
@@ -4164,9 +4200,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       if (selectedAction.drawer.formKind === "healing-light") {
         return (
           <HealingLightActionBody
-            remainingDice={getWarlockHealingLightDiceRemainingForCharacter(character)}
-            maxDicePerUse={getWarlockHealingLightMaxSpendForCharacter(character)}
-            onSubmit={submitHealingLight}
+            remainingDice={selectedHealingLightDiceRemaining}
+            maxDicePerUse={selectedHealingLightMaxDicePerUse}
+            selectedDiceCount={selectedHealingLightDiceCount}
+            selectedTarget={selectedHealingLightTarget}
+            onSelectedDiceCountChange={setSelectedHealingLightDiceCount}
+            onSelectedTargetChange={setSelectedHealingLightTarget}
           />
         );
       }
@@ -4662,6 +4701,32 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
             onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
           />
         </div>
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "custom-form" &&
+      selectedAction.drawer.formKind === "healing-light"
+    ) {
+      const selectedDiceCanBeUsed =
+        selectedHealingLightDiceCount > 0 &&
+        selectedHealingLightDiceCount <= selectedHealingLightMaxSelectableDice;
+
+      return (
+        <ActionDiceConfirmFooter
+          actionName={selectedAction.action.name}
+          confirmLabel="Use Healing Light"
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null || !selectedDiceCanBeUsed}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onConfirm={() =>
+            submitHealingLight(selectedHealingLightDiceCount, selectedHealingLightTarget)
+          }
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+        />
       );
     }
 

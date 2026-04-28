@@ -1290,6 +1290,7 @@ export function applySpellCastFeatureEffectsForCharacter(
   options?: {
     includeBardBattleMagic?: boolean;
     spellSlotLevel?: number | null;
+    useRadiantSoul?: boolean;
   }
 ): Character {
   const nextCharacter =
@@ -1307,7 +1308,8 @@ export function applySpellCastFeatureEffectsForCharacter(
       spell,
       options?.spellSlotLevel
     ),
-    spell
+    spell,
+    { useRadiantSoul: options?.useRadiantSoul }
   );
 }
 
@@ -2959,6 +2961,7 @@ export function getFeatureReactionSpellForCharacter(
 
     return spell
       ? warlockReactionSpellDefinition.transformSpellEntry(
+          character,
           getSpellEntryForCharacter(character, spell)
         )
       : null;

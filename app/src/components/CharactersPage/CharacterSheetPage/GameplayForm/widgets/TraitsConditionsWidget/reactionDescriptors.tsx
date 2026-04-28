@@ -72,8 +72,13 @@ import {
   rogueArcaneTricksterSpellThiefReactionId
 } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 import { wizardBladesingerSongOfDefenseReactionId } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
-import type { ReactionEntry, SpellEntry } from "../../../../../../codex/entries";
+import {
+  ABILITY_TYPES,
+  type ReactionEntry,
+  type SpellEntry
+} from "../../../../../../codex/entries";
 import { formatCodexLabel } from "../../../../../../utils/codex";
+import { getSpellSaveFormulaCell } from "../../../../../../pages/CharactersPage/shared/spellFormulas";
 import DruidCosmicOmenReactionBody from "./DruidCosmicOmenReactionBody";
 import {
   createDeflectAttacksReactionRollRequest,
@@ -291,6 +296,32 @@ function renderBranchesOfTheTreeDcFormula(context: ReactionDescriptorContext): R
   return (
     <div className={sheetStyles.spellDrawerDetails}>
       <CellContainer label="DC Formula" content={context.selectedBranchesOfTheTreeDcFormula} />
+    </div>
+  );
+}
+
+function renderBeguilingDefenseDcFormula(context: ReactionDescriptorContext): ReactNode {
+  const formulaCell = getSpellSaveFormulaCell(
+    {
+      isAttackSpell: false,
+      isSavingThrowSpell: true,
+      savingThrowAbility: ABILITY_TYPES.WIS,
+      spellLists: []
+    },
+    context.character
+  );
+
+  if (!formulaCell) {
+    return null;
+  }
+
+  return (
+    <div className={styles.reactionCustomContent}>
+      <CellContainer
+        label="Wisdom DC Formula"
+        content={formulaCell.content}
+        breakdown={formulaCell.breakdown}
+      />
     </div>
   );
 }
@@ -591,12 +622,6 @@ const descriptors: ReactionDescriptor[] = [
       context.warlockPactMagicSlotsRemaining <= 0
         ? "No Beguiling Defense charges or Pact Magic spell slots remaining."
         : null,
-    getResourceSummary: (context) =>
-      `${context.warlockBeguilingDefenseUsesRemaining}/${context.warlockBeguilingDefenseUsesTotal} charge${context.warlockBeguilingDefenseUsesTotal === 1 ? "" : "s"} | Long Rest${
-        context.warlockPactMagicSlotTotal > 0
-          ? ` | Fallback: 1 Pact Magic spell slot (${context.warlockPactMagicSlotsRemaining}/${context.warlockPactMagicSlotTotal})`
-          : ""
-      }`,
     getHeaderTags: (context) =>
       createChargesAndUsageHeaderTags(
         context.warlockBeguilingDefenseUsesRemaining,
@@ -614,6 +639,7 @@ const descriptors: ReactionDescriptor[] = [
           isFallback: true
         }
       ),
+    renderCustomContent: renderBeguilingDefenseDcFormula,
     apply: consumeWarlockBeguilingDefenseUseForCharacter,
     skipReactionWhenUnchanged: true
   },

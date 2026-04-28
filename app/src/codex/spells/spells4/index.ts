@@ -25,6 +25,7 @@ export const arcaneEye: SpellEntry = {
     "As an action, you can move the eye up to 30 feet in any direction. There is no limit to how far away from you the eye can move, but it can't enter another plane of existence. A solid barrier blocks the eye's movement, but the eye can pass through an opening as small as 1 inch in diameter."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -43,6 +44,7 @@ export const auraOfLife: SpellEntry = {
   ],
   isHealingSpell: true,
   damage: [],
+  healing: [1],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.PALADIN],
   spellLevel: 4
 };
@@ -60,6 +62,7 @@ export const auraOfPurity: SpellEntry = {
     "Purifying energy radiates from you in an aura with a 30-foot radius. Until the spell ends, the aura moves with you, centered on you. Each non-hostile creature in the aura, including you, can't become diseased, has Resistance to Poison damage, and has Advantage on saving throws against effects that cause any of the following conditions: Blinded, Charmed, Deafened, Frightened, Paralyzed, Poisoned, and Stunned."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.PALADIN],
   spellLevel: 4
 };
@@ -82,6 +85,7 @@ export const banishment: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CHA,
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.CLERIC,
     SPELL_LIST_CLASS.PALADIN,
@@ -119,6 +123,7 @@ export const blight: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
     [DICE.D8, DAMAGE_TYPE.NECROTIC]
   ],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.DRUID,
     SPELL_LIST_CLASS.SORCERER,
@@ -144,6 +149,7 @@ export const charmMonster: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.DRUID,
@@ -170,6 +176,7 @@ export const compulsion: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD],
   spellLevel: 4
 };
@@ -196,6 +203,7 @@ export const confusion: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.DRUID,
@@ -220,6 +228,7 @@ export const conjureBarlgura: SpellEntry = {
     "As part of casting the spell, you can scribe a circle on the ground using the blood of an intelligent Humanoid slain within the past 24 hours. The circle is large enough to encompass your space. The summoned barlgura cannot cross the circle or target anyone in it while the spell lasts."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -240,6 +249,7 @@ export const conjureKnowbot: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the spell's duration increases to 1 hour. Additionally, your telepathic bond with the knowbot is effective out to a range of 1,000 feet, and if you leave the range of the bond, the knowbot continues performing its last directed task until the spell expires."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -264,6 +274,7 @@ export const conjureMinorElementals: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using certain higher-level spell slots, you choose one of the summoning options above, and more creatures appear: twice as many with a 6th-level slot and three times as many with an 8th-level slot."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -283,6 +294,7 @@ export const conjureShadowDemon: SpellEntry = {
     "As part of casting the spell, you can scribe a circle on the ground using the blood of an intelligent Humanoid slain within the past 24 hours. The circle is large enough to encompass your space. The summoned shadow demon cannot cross the circle or target anyone in it while the spell lasts."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -307,6 +319,7 @@ export const conjureWoodlandBeings: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using certain higher-level spell slots, you choose one of the summoning options above, and more creatures appear: twice as many with a 6th-level slot and three times as many with an 8th-level slot."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
   spellLevel: 4
 };
@@ -332,7 +345,11 @@ export const controlWater: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.STR,
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [DICE.D8, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D8, DAMAGE_TYPE.BLUDGEONING]
+  ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -350,6 +367,7 @@ export const deathWard: SpellEntry = {
     "You touch a creature and grant it a measure of protection from death. The first time the target would drop to 0 Hit Points as a result of taking damage, the target instead drops to 1 Hit Point, and the spell ends. If the spell is still in effect when the target is subjected to an effect that would kill it instantaneously without dealing damage, that effect is instead negated against the target, and the spell ends."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.PALADIN],
   spellLevel: 4
 };
@@ -369,6 +387,7 @@ export const dimensionDoor: SpellEntry = {
     "If you would arrive in a place already occupied by an object or a creature, you and any creature traveling with you each take <strong>4d6</strong> Force damage, and the spell fails to teleport you."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.SORCERER,
@@ -394,6 +413,7 @@ export const divination: SpellEntry = {
     "If you cast this spell two or more times before finishing your next Long Rest, there is a cumulative 25 percent chance for each casting after the first that you get a random reading. The DM makes this roll in secret."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -417,6 +437,7 @@ export const dominateBeast: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.SORCERER],
   spellLevel: 4
 };
@@ -436,6 +457,7 @@ export const egoWhip: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.INT,
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.SORCERER,
@@ -461,7 +483,29 @@ export const elementalBane: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.THUNDER
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.THUNDER
+      ]
+    ]
+  ],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.DRUID,
     SPELL_LIST_CLASS.WARLOCK,
@@ -493,6 +537,7 @@ export const evardsBlackTentacles: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
     [DICE.D6, DAMAGE_TYPE.BLUDGEONING]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -512,6 +557,7 @@ export const fabricate: SpellEntry = {
     "Creatures or magic items can't be created or transmuted by this spell. You also can't use it to create items that ordinarily require a high degree of craftsmanship, such as jewelry, weapons, glass, or armor, unless you have proficiency with the type of artisan's tools used to craft such objects."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -530,6 +576,7 @@ export const findGreaterSteed: SpellEntry = {
     "You control the mount in combat. While the mount is within 1 mile of you, you can communicate with it telepathically. While mounted on it, you can make any spell you cast that targets only you also target the mount. The mount disappears temporarily when it drops to 0 Hit Points or when you dismiss it as an action. Casting this spell again re-summons the bonded mount, with all its Hit Points restored and any conditions removed. You can't have more than one mount bonded by this spell or Find Steed at the same time. As an action, you can release a mount from its bond, causing it to disappear permanently. Whenever the mount disappears, it leaves behind any objects it was wearing or carrying."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.PALADIN],
   spellLevel: 4
 };
@@ -549,7 +596,11 @@ export const fireShield: SpellEntry = {
     "In addition, whenever a creature within 5 feet of you hits you with a melee attack, the shield erupts with flame. The attacker takes <strong>2d8</strong> Fire damage from a warm shield, or <strong>2d8</strong> Cold damage from a cold shield."
   ],
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [DICE.D8, [DAMAGE_TYPE.FIRE, DAMAGE_TYPE.COLD]],
+    [DICE.D8, [DAMAGE_TYPE.FIRE, DAMAGE_TYPE.COLD]]
+  ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -568,6 +619,7 @@ export const freedomOfMovement: SpellEntry = {
     "The target can also spend 5 feet of movement to automatically escape from nonmagical restraints, such as manacles or a creature that has it Grappled. Finally, being underwater imposes no penalties on the target's movement or attacks."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.BARD,
@@ -594,6 +646,7 @@ export const galdersSpeedyCourier: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using an 8th-level spell slot, you can send the chest to a creature on a different plane of existence from you."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -612,6 +665,7 @@ export const gateSeal: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 6th level or higher, the spell lasts until dispelled."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -632,6 +686,7 @@ export const giantInsect: SpellEntry = {
     "The DM might allow you to choose different targets. For example, if you transform a bee, its giant version might have the same statistics as a giant wasp."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID],
   spellLevel: 4
 };
@@ -652,6 +707,7 @@ export const graspingVine: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
   spellLevel: 4
 };
@@ -679,6 +735,7 @@ export const gravitySinkhole: SpellEntry = {
     [DICE.D10, DAMAGE_TYPE.FORCE],
     [DICE.D10, DAMAGE_TYPE.FORCE]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -696,6 +753,7 @@ export const greaterInvisibility: SpellEntry = {
     "You or a creature you touch becomes Invisible until the spell ends. Anything the target is wearing or carrying is Invisible as long as it is on the target's person."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -717,6 +775,7 @@ export const guardianOfFaith: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [[20, DAMAGE_TYPE.RADIANT]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 4
 };
@@ -744,7 +803,8 @@ export const guardianOfNature: SpellEntry = {
     "While you are on the ground, the ground within 15 feet of you is difficult terrain for your enemies."
   ],
   isDamagingSpell: true,
-  damage: [],
+  damage: [[DICE.D6, DAMAGE_TYPE.FORCE]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
   spellLevel: 4
 };
@@ -763,6 +823,7 @@ export const hallucinatoryTerrain: SpellEntry = {
     "The tactile characteristics of the terrain are unchanged, so creatures entering the area are likely to see through the illusion. If the difference isn't obvious by touch, a creature carefully examining the illusion can attempt an Intelligence (Investigation) check against your spell save DC to disbelieve it. A creature who discerns the illusion for what it is sees it as a vague image superimposed on the terrain."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.DRUID,
@@ -797,6 +858,7 @@ export const iceStorm: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.COLD],
     [DICE.D6, DAMAGE_TYPE.COLD]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -816,6 +878,7 @@ export const leomundsSecretChest: SpellEntry = {
     "After 60 days, there is a cumulative 5 percent chance per day that the spell's effect ends. This effect ends if you cast this spell again, if the smaller replica chest is destroyed, or if you choose to end the spell as an action. If the spell ends and the larger chest is on the Ethereal Plane, it is irretrievably lost."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -835,6 +898,7 @@ export const locateCreature: SpellEntry = {
     "This spell can't locate a creature if running water at least 10 feet wide blocks a direct path between you and the creature."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.CLERIC,
@@ -867,6 +931,7 @@ export const mordenkainensFaithfulHound: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.PIERCING],
     [DICE.D8, DAMAGE_TYPE.PIERCING]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -893,6 +958,7 @@ export const mordenkainensPrivateSanctum: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, you can increase the size of the cube by 100 feet for each slot level beyond 4th. Thus you could protect a cube that can be up to 200 feet on one side by using a spell slot of 5th level."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -915,6 +981,7 @@ export const otilukesResilientSphere: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -942,6 +1009,7 @@ export const phantasmalKiller: SpellEntry = {
     [DICE.D10, DAMAGE_TYPE.PSYCHIC],
     [DICE.D10, DAMAGE_TYPE.PSYCHIC]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -965,6 +1033,7 @@ export const polymorph: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.DRUID,
@@ -1000,6 +1069,7 @@ export const raulothimsPsychicLance: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
     [DICE.D6, DAMAGE_TYPE.PSYCHIC]
   ],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.SORCERER,
@@ -1027,6 +1097,7 @@ export const shadowOfMoil: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
     [DICE.D8, DAMAGE_TYPE.NECROTIC]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK],
   spellLevel: 4
 };
@@ -1053,6 +1124,7 @@ export const sickeningRadiance: SpellEntry = {
     [DICE.D10, DAMAGE_TYPE.RADIANT],
     [DICE.D10, DAMAGE_TYPE.RADIANT]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -1087,6 +1159,7 @@ export const spiritOfDeath: SpellEntry = {
   ],
   isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.NECROTIC]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -1112,6 +1185,7 @@ export const staggeringSmite: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
     [DICE.D6, DAMAGE_TYPE.PSYCHIC]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.PALADIN],
   spellLevel: 4
 };
@@ -1129,6 +1203,7 @@ export const stoneShape: SpellEntry = {
     "You touch a stone object of Medium size or smaller or a section of stone no more than 5 feet in any dimension and form it into any shape that suits your purpose. So, for example, you could shape a large rock into a weapon, idol, or coffer, or make a small passage through a wall, as long as the wall is less than 5 feet thick. You could also shape a stone door or its frame to seal the door shut. The object you create can have up to two hinges and a latch, but finer mechanical detail isn't possible."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.CLERIC,
@@ -1151,6 +1226,7 @@ export const stoneskin: SpellEntry = {
     "This spell turns the flesh of a willing creature you touch as hard as stone. Until the spell ends, the target has Resistance to nonmagical Bludgeoning, Piercing, and Slashing damage."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.DRUID,
@@ -1180,7 +1256,15 @@ export const stormSphere: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.STR,
   isAttackSpell: true,
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
+    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
+    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
+    [DICE.D6, DAMAGE_TYPE.LIGHTNING]
+  ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -1200,6 +1284,7 @@ export const summonAberration: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, use the higher level wherever the spell's level appears on the stat block."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -1219,6 +1304,7 @@ export const summonConstruct: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 4th level or higher, use the higher level wherever the spell's level appears in the stat block."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -1238,6 +1324,7 @@ export const summonElemental: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, use the higher level wherever the spell's level appears in the stat block."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -1259,6 +1346,7 @@ export const summonGreaterDemon: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, the Challenge Rating increases by 1 for each slot level above 4th."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -1278,6 +1366,7 @@ export const synchronicity: SpellEntry = {
     "In the event that two or more creatures under the effect of Synchronicity are attempting to avoid being inconvenienced by each other, the creatures engage in a contest of Charisma each time the effects of the spells would oppose each other."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -1297,6 +1386,7 @@ export const systemBackdoor: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 5th level or higher, you are able to bypass technomagic spells if the spell's level is equal to or less than the level of the spell slot you used."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -1317,7 +1407,24 @@ export const vitriolicSphere: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [DICE.D4, DAMAGE_TYPE.ACID],
+    [DICE.D4, DAMAGE_TYPE.ACID],
+    [DICE.D4, DAMAGE_TYPE.ACID],
+    [DICE.D4, DAMAGE_TYPE.ACID],
+    [DICE.D4, DAMAGE_TYPE.ACID],
+    [DICE.D4, DAMAGE_TYPE.ACID],
+    [DICE.D4, DAMAGE_TYPE.ACID],
+    [DICE.D4, DAMAGE_TYPE.ACID],
+    [DICE.D4, DAMAGE_TYPE.ACID],
+    [DICE.D4, DAMAGE_TYPE.ACID],
+    [DICE.D4, DAMAGE_TYPE.ACID],
+    [DICE.D4, DAMAGE_TYPE.ACID],
+    [DICE.D4, DAMAGE_TYPE.ACID],
+    [DICE.D4, DAMAGE_TYPE.ACID],
+    [DICE.D4, DAMAGE_TYPE.ACID]
+  ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -1347,6 +1454,7 @@ export const wallOfFire: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.FIRE],
     [DICE.D8, DAMAGE_TYPE.FIRE]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };
@@ -1370,6 +1478,7 @@ export const waterySphere: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.STR,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 4
 };

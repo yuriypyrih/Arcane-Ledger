@@ -41,6 +41,7 @@ export const abiDalzimsHorridWilting: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
     [DICE.D8, DAMAGE_TYPE.NECROTIC]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
@@ -60,6 +61,7 @@ export const animalShapes: SpellEntry = {
     "The target's gear melds into the new form. The target can't activate, wield, or otherwise benefit from any of its equipment."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID],
   spellLevel: 8
 };
@@ -91,6 +93,7 @@ export const antimagicField: SpellEntry = {
     }
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
@@ -119,6 +122,7 @@ export const antipathySympathy: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
@@ -137,6 +141,7 @@ export const clone: SpellEntry = {
     "At any time after the clone matures, if the original creature dies, its soul transfers to the clone, provided that the soul is free and willing to return. The clone is physically identical to the original and has the same personality, memories, and abilities, but none of the original's equipment. The original creature's physical remains, if they still exist, become inert and can't thereafter be restored to life, since the creature's soul is elsewhere."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
@@ -193,6 +198,7 @@ export const controlWeather: SpellEntry = {
     }
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
@@ -224,6 +230,7 @@ export const darkStar: SpellEntry = {
     [DICE.D10, DAMAGE_TYPE.FORCE],
     [DICE.D10, DAMAGE_TYPE.FORCE]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
@@ -242,6 +249,7 @@ export const demiplane: SpellEntry = {
     "Each time you cast this spell, you can create a new demiplane, or have the shadowy door connect to a demiplane you created with a previous casting of this spell. Additionally, if you know the nature and contents of a demiplane created by a casting of this spell by another creature, you can have the shadowy door connect to its demiplane instead."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
@@ -265,6 +273,7 @@ export const dominateMonster: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.SORCERER,
@@ -300,7 +309,14 @@ export const earthquake: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING]
+  ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER],
   spellLevel: 8
 };
@@ -328,6 +344,7 @@ export const feeblemind: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
     [DICE.D6, DAMAGE_TYPE.PSYCHIC]
   ],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.DRUID,
@@ -350,6 +367,7 @@ export const glibness: SpellEntry = {
     "Until the spell ends, when you make a Charisma check, you can replace the number you roll with a 15. Additionally, no matter what you say, magic that would determine if you are telling the truth indicates that you are being truthful."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WARLOCK],
   spellLevel: 8
 };
@@ -370,6 +388,7 @@ export const holyAura: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 8
 };
@@ -393,7 +412,86 @@ export const illusoryDragon: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.NECROTIC,
+        DAMAGE_TYPE.POISON
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.NECROTIC,
+        DAMAGE_TYPE.POISON
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.NECROTIC,
+        DAMAGE_TYPE.POISON
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.NECROTIC,
+        DAMAGE_TYPE.POISON
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.NECROTIC,
+        DAMAGE_TYPE.POISON
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.NECROTIC,
+        DAMAGE_TYPE.POISON
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.NECROTIC,
+        DAMAGE_TYPE.POISON
+      ]
+    ]
+  ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
@@ -427,6 +525,7 @@ export const incendiaryCloud: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.FIRE],
     [DICE.D8, DAMAGE_TYPE.FIRE]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
@@ -457,6 +556,7 @@ export const maddeningDarkness: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.PSYCHIC],
     [DICE.D8, DAMAGE_TYPE.PSYCHIC]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
@@ -476,6 +576,7 @@ export const maze: SpellEntry = {
     "When the spell ends, the target reappears in the space it left or, if that space is occupied, in the nearest unoccupied space."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
@@ -499,6 +600,7 @@ export const mightyFortress: SpellEntry = {
     "Casting this spell on the same spot once every 7 days for a year makes the fortress permanent."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
@@ -516,6 +618,7 @@ export const mindBlank: SpellEntry = {
     "Until the spell ends, one willing creature you touch is immune to Psychic damage, any effect that would sense its emotions or read its thoughts, Divination spells, and the Charmed condition. The spell even foils Wish spells and spells or effects of similar power used to affect the target's mind or to gain information about the target."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
@@ -536,6 +639,7 @@ export const powerWordStun: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.SORCERER,
@@ -571,7 +675,19 @@ export const realityBreak: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [DICE.D12, [DAMAGE_TYPE.FORCE, DAMAGE_TYPE.COLD, DAMAGE_TYPE.PSYCHIC]],
+    [DICE.D12, [DAMAGE_TYPE.FORCE, DAMAGE_TYPE.COLD, DAMAGE_TYPE.PSYCHIC]],
+    [DICE.D12, [DAMAGE_TYPE.FORCE, DAMAGE_TYPE.COLD, DAMAGE_TYPE.PSYCHIC]],
+    [DICE.D12, [DAMAGE_TYPE.FORCE, DAMAGE_TYPE.COLD, DAMAGE_TYPE.PSYCHIC]],
+    [DICE.D12, [DAMAGE_TYPE.FORCE, DAMAGE_TYPE.COLD, DAMAGE_TYPE.PSYCHIC]],
+    [DICE.D12, [DAMAGE_TYPE.FORCE, DAMAGE_TYPE.COLD, DAMAGE_TYPE.PSYCHIC]],
+    [DICE.D12, [DAMAGE_TYPE.FORCE, DAMAGE_TYPE.COLD, DAMAGE_TYPE.PSYCHIC]],
+    [DICE.D12, [DAMAGE_TYPE.FORCE, DAMAGE_TYPE.COLD, DAMAGE_TYPE.PSYCHIC]],
+    [DICE.D12, [DAMAGE_TYPE.FORCE, DAMAGE_TYPE.COLD, DAMAGE_TYPE.PSYCHIC]],
+    [DICE.D12, [DAMAGE_TYPE.FORCE, DAMAGE_TYPE.COLD, DAMAGE_TYPE.PSYCHIC]]
+  ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
@@ -607,6 +723,7 @@ export const sunburst: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.RADIANT],
     [DICE.D6, DAMAGE_TYPE.RADIANT]
   ],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.CLERIC,
     SPELL_LIST_CLASS.DRUID,
@@ -630,6 +747,7 @@ export const telepathy: SpellEntry = {
     "Until the spell ends, you and the target can instantaneously share words, images, sounds, and other sensory messages with one another through the link, and the target recognizes you as the creature it is communicating with. The spell enables a creature with an Intelligence score of at least 1 to understand the meaning of your words and take in the scope of any sensory messages you send to it."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 8
 };
@@ -660,6 +778,7 @@ export const tsunami: SpellEntry = {
     [DICE.D10, DAMAGE_TYPE.BLUDGEONING],
     [DICE.D10, DAMAGE_TYPE.BLUDGEONING]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID],
   spellLevel: 8
 };

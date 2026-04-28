@@ -14,6 +14,8 @@ import {
   type EquipmentCost,
   type DivinityEntry,
   type DivinityValue,
+  type SpellHealing,
+  type SpellHealingAmount,
   type WeaponDamage,
   type WeaponDamageAmount,
   type WeaponDamageType,
@@ -215,6 +217,63 @@ function collapseWeaponDamage(damage: WeaponDamage) {
   }));
 }
 
+function isSpellHealingLabel(healing: SpellHealing): healing is { label: string } {
+  return !Array.isArray(healing);
+}
+
+function formatSpellHealingAmount(
+  amount: SpellHealingAmount,
+  count: number,
+  spellcastingAbilityLabel: string,
+  spellcastingAbilityModifier?: number | null
+): string {
+  if (amount === "spellcastingAbility") {
+    if (typeof spellcastingAbilityModifier === "number") {
+      const value = spellcastingAbilityModifier * count;
+      return `${value} ${spellcastingAbilityLabel}`;
+    }
+
+    return count === 1 ? spellcastingAbilityLabel : `${count} ${spellcastingAbilityLabel}`;
+  }
+
+  return formatGroupedAmount(amount, count);
+}
+
+function joinHealingParts(parts: string[]): string {
+  return parts.reduce((result, part) => {
+    if (!result) {
+      return part;
+    }
+
+    if (part.startsWith("-")) {
+      return `${result} - ${part.slice(1).trim()}`;
+    }
+
+    return `${result} + ${part}`;
+  }, "");
+}
+
+function collapseSpellHealingAmounts(healing: SpellHealingAmount[]) {
+  const countsByKey = new Map<string, number>();
+  const orderedAmounts: SpellHealingAmount[] = [];
+
+  healing.forEach((amount) => {
+    const key = String(amount);
+
+    if (!countsByKey.has(key)) {
+      orderedAmounts.push(amount);
+      countsByKey.set(key, 0);
+    }
+
+    countsByKey.set(key, (countsByKey.get(key) ?? 0) + 1);
+  });
+
+  return orderedAmounts.map((amount) => ({
+    amount,
+    count: countsByKey.get(String(amount)) ?? 1
+  }));
+}
+
 function formatRangeLabel(range: WeaponRange): string {
   const baseRange = `Range ${range.normal}/${range.long}`;
   return range.ammunition ? `${baseRange}; ${range.ammunition}` : baseRange;
@@ -240,6 +299,44 @@ export function formatWeaponDamageFormula(damage: WeaponDamage): string {
 
   return collapseWeaponDamage(damage)
     .map(({ amount, count }) => formatGroupedWeaponDamageAmount(amount, count))
+    .join(" + ");
+}
+
+export function formatSpellHealing(
+  healing: SpellHealing,
+  options: { spellcastingAbilityLabel?: string; spellcastingAbilityModifier?: number | null } = {}
+): string {
+  if (isSpellHealingLabel(healing)) {
+    return healing.label;
+  }
+
+  if (healing.length === 0) {
+    return "None";
+  }
+
+  const spellcastingAbilityLabel = options.spellcastingAbilityLabel ?? "Spell MOD";
+
+  return joinHealingParts(
+    collapseSpellHealingAmounts(healing).map(({ amount, count }) =>
+      formatSpellHealingAmount(
+        amount,
+        count,
+        spellcastingAbilityLabel,
+        options.spellcastingAbilityModifier
+      )
+    )
+  );
+}
+
+export function formatSpellHealingFormula(healing: SpellHealing): string {
+  if (isSpellHealingLabel(healing) || healing.length === 0) {
+    return "";
+  }
+
+  return collapseSpellHealingAmounts(healing)
+    .map(({ amount, count }) =>
+      amount === "spellcastingAbility" ? "MOD" : formatGroupedAmount(amount, count)
+    )
     .join(" + ");
 }
 

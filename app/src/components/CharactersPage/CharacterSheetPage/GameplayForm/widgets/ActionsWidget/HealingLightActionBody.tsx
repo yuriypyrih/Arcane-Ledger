@@ -1,59 +1,76 @@
-import { useState } from "react";
-import ActionButton from "../../../../../ActionButton";
-import CellContainer from "../../../../../CellContainer/CellContainer";
-import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
-import sharedModalStyles from "./FeatureActionModal.module.css";
+import clsx from "clsx";
+import SelectInput from "../../../../FormInputs/SelectInput";
+import styles from "./HealingLightActionBody.module.css";
+
+export type HealingLightTarget = "self" | "other";
 
 type HealingLightActionBodyProps = {
   remainingDice: number;
   maxDicePerUse: number;
-  onSubmit: (diceCount: number) => void;
+  selectedDiceCount: number;
+  selectedTarget: HealingLightTarget;
+  onSelectedDiceCountChange: (diceCount: number) => void;
+  onSelectedTargetChange: (target: HealingLightTarget) => void;
 };
 
 function HealingLightActionBody({
   remainingDice,
   maxDicePerUse,
-  onSubmit
+  selectedDiceCount,
+  selectedTarget,
+  onSelectedDiceCountChange,
+  onSelectedTargetChange
 }: HealingLightActionBodyProps) {
-  const maxSelectableDice = Math.min(remainingDice, maxDicePerUse);
-  const [diceInput, setDiceInput] = useState(() => (maxSelectableDice > 0 ? "1" : "0"));
-  const selectedDiceCount = Math.max(
-    0,
-    Math.min(maxSelectableDice, Math.floor(Number(diceInput) || 0))
-  );
-  const selectedFormula = selectedDiceCount > 0 ? `${selectedDiceCount}d6` : "Choose dice to roll";
+  const maxSelectableDice = Math.min(10, remainingDice, maxDicePerUse);
+  const diceOptions = Array.from({ length: 10 }, (_, index) => index + 1);
 
   return (
-    <>
-      <label className={sharedModalStyles.chargeSpendField}>
-        <span className={sharedModalStyles.chargeSpendLabel}>Healing d6 to Expend</span>
-        <input
-          className={sharedModalStyles.chargeSpendInput}
-          type="number"
-          min={1}
-          max={maxSelectableDice}
-          inputMode="numeric"
-          value={diceInput}
-          onChange={(event) => setDiceInput(event.target.value)}
-        />
+    <div className={styles.body}>
+      <label className={styles.field}>
+        <span className={styles.fieldLabel}>Healing d6</span>
+        <SelectInput
+          className={styles.select}
+          value={String(selectedDiceCount)}
+          disabled={maxSelectableDice <= 0}
+          onChange={(event) => onSelectedDiceCountChange(Number(event.target.value) || 1)}
+        >
+          {diceOptions.map((diceCount) => (
+            <option
+              key={`healing-light-${diceCount}`}
+              value={diceCount}
+              disabled={diceCount > maxSelectableDice}
+            >
+              {diceCount}
+            </option>
+          ))}
+        </SelectInput>
       </label>
 
-      <CellContainer
-        label="Healing d6"
-        content={`${remainingDice} available | ${maxSelectableDice} max per use`}
-      />
-
-      <CellContainer label="Healing Roll" content={selectedFormula} />
-
-      <div className={shared.formActions}>
-        <ActionButton
-          disabled={selectedDiceCount <= 0}
-          onClick={() => onSubmit(selectedDiceCount)}
+      <div className={styles.targetSwitch} role="tablist" aria-label="Healing Light target">
+        <button
+          type="button"
+          className={clsx(
+            styles.targetButton,
+            selectedTarget === "self" && styles.targetButtonActive
+          )}
+          aria-pressed={selectedTarget === "self"}
+          onClick={() => onSelectedTargetChange("self")}
         >
-          Roll Healing
-        </ActionButton>
+          Myself
+        </button>
+        <button
+          type="button"
+          className={clsx(
+            styles.targetButton,
+            selectedTarget === "other" && styles.targetButtonActive
+          )}
+          aria-pressed={selectedTarget === "other"}
+          onClick={() => onSelectedTargetChange("other")}
+        >
+          Another
+        </button>
       </div>
-    </>
+    </div>
   );
 }
 

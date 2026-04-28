@@ -162,13 +162,17 @@ export function useReactionDrawerState({
     getWizardIllusionistIllusorySelfUsesRemainingForCharacter(character);
   const wizardIllusionistIllusorySelfFallbackSlotSummary =
     getWizardIllusionistIllusorySelfFallbackSlotSummaryForCharacter(character);
-  const selectedFeatureReactionSpell = useMemo(() => {
-    if (!selectedReactionEntry || openedFeatureReactionSpellEntryId !== selectedReactionEntry.id) {
+  const selectedFeatureReactionSpellPreview = useMemo(() => {
+    if (!selectedReactionEntry) {
       return null;
     }
 
     return getFeatureReactionSpellForCharacter(character, selectedReactionEntry.id);
-  }, [character, openedFeatureReactionSpellEntryId, selectedReactionEntry]);
+  }, [character, selectedReactionEntry]);
+  const selectedFeatureReactionSpell =
+    selectedReactionEntry && openedFeatureReactionSpellEntryId === selectedReactionEntry.id
+      ? selectedFeatureReactionSpellPreview
+      : null;
   const selectedReactionSpell =
     selectedStatusEntry?.group === STATUS_ENTRY_GROUP.REACTIONS &&
     selectedStatusEntry.sourceId?.startsWith("reaction-spell-")
@@ -365,6 +369,12 @@ export function useReactionDrawerState({
     selectedReactionDescriptor && reactionDescriptorContext
       ? selectedReactionDescriptor.getFactsSectionTitle?.(reactionDescriptorContext)
       : undefined;
+  const selectedReactionActionLabel = selectedFeatureReactionSpellPreview
+    ? `Open ${selectedFeatureReactionSpellPreview.name}`
+    : "Take Reaction";
+  const selectedReactionActionDisabled = selectedFeatureReactionSpellPreview
+    ? false
+    : selectedReactionActionWarning !== null;
   const selectedReactionCustomContent =
     selectedReactionDescriptor && reactionDescriptorContext
       ? (selectedReactionDescriptor.renderCustomContent?.(reactionDescriptorContext) ?? null)
@@ -541,7 +551,7 @@ export function useReactionDrawerState({
   }
 
   function castSelectedReactionEntry() {
-    if (!selectedReactionEntry || selectedReactionActionWarning || !reactionDescriptorContext) {
+    if (!selectedReactionEntry || !reactionDescriptorContext) {
       return;
     }
 
@@ -552,6 +562,10 @@ export function useReactionDrawerState({
 
     if (featureReactionSpell) {
       setOpenedFeatureReactionSpellEntryId(selectedReactionEntry.id);
+      return;
+    }
+
+    if (selectedReactionActionWarning) {
       return;
     }
 
@@ -659,6 +673,8 @@ export function useReactionDrawerState({
     openedFeatureReactionSpellEntryId,
     reactionSpellActionOptions,
     selectedReactionActionWarning,
+    selectedReactionActionDisabled,
+    selectedReactionActionLabel,
     selectedReactionBlockedReason,
     selectedReactionCustomContent,
     selectedReactionFacts,

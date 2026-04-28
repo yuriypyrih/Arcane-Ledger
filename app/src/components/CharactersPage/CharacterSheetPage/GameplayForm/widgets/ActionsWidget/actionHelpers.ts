@@ -139,10 +139,7 @@ export function resolveFeatureSavingThrowBonusTotal(
 
 function createContactPatronSpellEntry(character: Character, spell: SpellEntry): SpellEntry {
   return appendFeatureSourcedDescriptionAddition(
-    {
-      ...spell,
-      description: spell.description.slice(1)
-    },
+    spell,
     character,
     CLASS_FEATURE.CONTACT_PATRON,
     [

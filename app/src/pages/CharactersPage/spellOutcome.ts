@@ -7,43 +7,13 @@ import {
 } from "./classFeatures";
 import { getMainAbilityForClass } from "./gameplay";
 import { formatFormulaRangeLabel, parseFormulaRange } from "./shared/formulas";
-import { flattenSpellDescriptionLines } from "../../utils/codex/spellDescription";
-import { formatCodexLabel, formatWeaponDamage, formatWeaponDamageFormula } from "../../utils/codex";
-
-function getSpellHealingFormula(spell: Pick<SpellEntry, "description">): string | null {
-  const descriptionLines = flattenSpellDescriptionLines(spell.description);
-  const healingPatterns = [
-    /regains? (?:a number of )?hit points equal to ([^.]+)/i,
-    /causing (?:it|them) to regain ([^.]+?) hit points/i,
-    /regain ([^.]+?) hit points/i
-  ];
-
-  for (const line of descriptionLines) {
-    for (const pattern of healingPatterns) {
-      const match = line.match(pattern);
-
-      if (!match?.[1]) {
-        continue;
-      }
-
-      const normalizedTokens = match[1]
-        .replace(/your spellcasting ability modifier/gi, "MOD")
-        .replace(/your ability modifier/gi, "MOD")
-        .replace(/\bplus\b/gi, "+")
-        .match(/(\d+d\d+|\d+|MOD)/gi);
-
-      if (!normalizedTokens || normalizedTokens.length === 0) {
-        continue;
-      }
-
-      return normalizedTokens
-        .map((token) => (token.toUpperCase() === "MOD" ? "MOD" : token.toLowerCase()))
-        .join("+");
-    }
-  }
-
-  return null;
-}
+import {
+  formatCodexLabel,
+  formatSpellHealing,
+  formatSpellHealingFormula,
+  formatWeaponDamage,
+  formatWeaponDamageFormula
+} from "../../utils/codex";
 
 function getSpellDamageTypeLabel(damage: WeaponDamage): string {
   const labels: string[] = [];
@@ -76,6 +46,28 @@ function getSpellDamageBonusForCharacter(
 
 function formatSignedModifier(value: number): string {
   return value >= 0 ? `+ ${value}` : `- ${Math.abs(value)}`;
+}
+
+function getSpellcastingAbilityModifier(
+  character: Pick<Character, "className" | "abilities">
+): number {
+  const mainAbility = getMainAbilityForClass(character.className);
+
+  return mainAbility ? getAbilityModifierForCharacter(character, mainAbility) : 0;
+}
+
+function getSpellHealingFormatOptions(character: Pick<Character, "className" | "abilities">): {
+  spellcastingAbilityLabel: string;
+  spellcastingAbilityModifier: number | null;
+} {
+  const mainAbility = getMainAbilityForClass(character.className);
+
+  return {
+    spellcastingAbilityLabel: mainAbility ?? "Spell MOD",
+    spellcastingAbilityModifier: mainAbility
+      ? getAbilityModifierForCharacter(character, mainAbility)
+      : null
+  };
 }
 
 export function getSpellOutcomeSummaryForCharacter(
@@ -111,19 +103,15 @@ export function getSpellOutcomeSummaryForCharacter(
     } Damage`;
   }
 
-  const healingFormula = getSpellHealingFormula(spell);
+  const healingFormula = formatSpellHealingFormula(spell.healing);
 
   if (!healingFormula) {
-    return "";
+    return Array.isArray(spell.healing) ? "" : `${spell.healing.label} Heal`;
   }
 
-  const mainAbility = getMainAbilityForClass(character.className);
-  const spellcastingModifier = mainAbility
-    ? getAbilityModifierForCharacter(character, mainAbility)
-    : 0;
   const range = parseFormulaRange(healingFormula, {
     substitutions: {
-      MOD: spellcastingModifier
+      MOD: getSpellcastingAbilityModifier(character)
     }
   });
 
@@ -145,7 +133,7 @@ export function getSpellDamageDetailForCharacter(
   }
 
   if (spell.damage.length === 0) {
-    return "None";
+    return formatSpellHealing(spell.healing, getSpellHealingFormatOptions(character));
   }
 
   const damageBonus = getSpellDamageBonusForCharacter(character, spell);

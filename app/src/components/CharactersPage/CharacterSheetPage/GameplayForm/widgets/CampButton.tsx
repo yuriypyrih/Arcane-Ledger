@@ -11,7 +11,7 @@ import { hasWarlockFeature } from "../../../../../pages/CharactersPage/classFeat
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
-import type { RestType } from "./restOptions";
+import type { RestOption, RestType } from "./restOptions";
 import { createLongRestOptions, createShortRestOptions } from "./restOptions";
 import CampRestOption from "./CampRestOption";
 import styles from "./CampButton.module.css";
@@ -20,6 +20,27 @@ type CampButtonProps = {
   character: Character;
   onPersistCharacter: PersistCharacterUpdater;
 };
+
+const primaryRestOptionIds = new Set([
+  "reduce-exhaustion",
+  "restore-hit-points",
+  "reset-round-tracker",
+  "update-statuses"
+]);
+
+function getGroupedRestOptions(options: RestOption[]) {
+  const primaryOptions = options.filter((option) => primaryRestOptionIds.has(option.id));
+  const secondaryOptions = options.filter(
+    (option) => !primaryRestOptionIds.has(option.id) && option.emphasis !== "feature"
+  );
+  const featureOptions = options.filter((option) => option.emphasis === "feature");
+
+  return {
+    primaryOptions,
+    secondaryOptions,
+    featureOptions
+  };
+}
 
 function CampButton({ character, onPersistCharacter }: CampButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
@@ -39,6 +60,10 @@ function CampButton({ character, onPersistCharacter }: CampButtonProps) {
           ? longRestOptions
           : [],
     [longRestOptions, selectedRestType, shortRestOptions]
+  );
+  const groupedRestOptions = useMemo(
+    () => getGroupedRestOptions(selectedRestOptions),
+    [selectedRestOptions]
   );
 
   useBodyScrollLock(isOpen);
@@ -237,7 +262,7 @@ function CampButton({ character, onPersistCharacter }: CampButtonProps) {
                   </button>
                 </div>
                 <div className={sheetStyles.restChecklist}>
-                  {selectedRestOptions.slice(0, 2).map((option) => (
+                  {groupedRestOptions.primaryOptions.map((option) => (
                     <CampRestOption
                       key={option.id}
                       option={option}
@@ -245,10 +270,19 @@ function CampButton({ character, onPersistCharacter }: CampButtonProps) {
                       onToggle={toggleRestOption}
                     />
                   ))}
-                  {selectedRestOptions.length > 2 ? (
+                  {groupedRestOptions.secondaryOptions.length > 0 ||
+                  groupedRestOptions.featureOptions.length > 0 ? (
                     <div className={sheetStyles.restChecklistDivider} aria-hidden="true" />
                   ) : null}
-                  {selectedRestOptions.slice(2).map((option) => (
+                  {groupedRestOptions.secondaryOptions.map((option) => (
+                    <CampRestOption
+                      key={option.id}
+                      option={option}
+                      selected={selectedRestOptionIds.includes(option.id)}
+                      onToggle={toggleRestOption}
+                    />
+                  ))}
+                  {groupedRestOptions.featureOptions.map((option) => (
                     <CampRestOption
                       key={option.id}
                       option={option}

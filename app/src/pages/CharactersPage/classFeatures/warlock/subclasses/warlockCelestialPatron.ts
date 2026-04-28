@@ -1,4 +1,9 @@
-import { CLASS_FEATURE, DAMAGE_TYPE, getSpellEntryById } from "../../../../../codex/entries";
+import {
+  CLASS_FEATURE,
+  DAMAGE_TYPE,
+  getSpellEntryById,
+  type SpellEntry
+} from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, CharacterWarlockFeatureState } from "../../../../../types";
 import {
@@ -6,24 +11,34 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
-import { formatWeaponDamageFormula } from "../../../../../utils/codex";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { swapTemporaryHitPointsAssignment } from "../../../shared";
+import {
+  createFeatureActionCardCost,
+  createNamedResourceCardUsage,
+  createNamedUsageHeaderTags
+} from "../../cardUsage";
 import {
   getPreparedSpellIdsByLevel,
   resolveSpellIdsByName,
   type SubclassRuntimeResolver
 } from "../../subclassRuntime";
-import type { DerivedFeatureStatusEntry, FeatureActionCard } from "../../types";
+import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureActionFact } from "../../types";
 
 export const celestialPatronSubclassId = "warlock-celestial-patron";
 
+const magicalCunningActionKey = "warlock-magical-cunning";
 const healingLightActionKey = "warlock-celestial-patron-healing-light";
 export const searingVengeanceActionKey = "warlock-celestial-patron-searing-vengeance";
 const radiantSoulName = "Radiant Soul";
+const radiantSoulDamageDescription = [
+  "Once per turn, when a spell you cast deals Radiant or Fire damage, you can add your Charisma modifier to that spell's damage against one of the spell's targets."
+];
 const radiantSoulResistanceSourceId = "feature-warlock-celestial-patron-radiant-soul-resistance";
 const celestialResilienceName = "Celestial Resilience";
+const celestialResilienceFormulaLabel = "Celestial Resiliance Temporary HP Formula";
 const searingVengeanceName = "Searing Vengeance";
 const celestialPatronSubclassEntry = getSubclassEntryById(celestialPatronSubclassId);
 const celestialPatronSpellIdsByLevel = {
@@ -59,6 +74,9 @@ const healingLightDescription = getCelestialPatronFeatureDescriptionEntries(
 const searingVengeanceDescription = getCelestialPatronFeatureDescriptionEntries(
   CLASS_FEATURE.SEARING_VENGEANCE
 );
+const celestialResilienceDescription = getCelestialPatronFeatureDescriptionEntries(
+  CLASS_FEATURE.CELESTIAL_RESILIENCE
+);
 
 function hasWarlockCelestialPatronHealingLight(
   character: WarlockCelestialPatronCharacter
@@ -70,9 +88,7 @@ function hasWarlockCelestialPatronHealingLight(
   );
 }
 
-function hasWarlockCelestialPatronRadiantSoul(
-  character: WarlockCelestialPatronCharacter
-): boolean {
+function hasWarlockCelestialPatronRadiantSoul(character: WarlockCelestialPatronCharacter): boolean {
   return (
     character.className === "Warlock" &&
     character.subclassId === celestialPatronSubclassId &&
@@ -100,7 +116,7 @@ function hasWarlockCelestialPatronSearingVengeance(
   );
 }
 
-function getWarlockCelestialPatronRadiantSoulDamageBonus(
+export function getWarlockCelestialPatronRadiantSoulDamageBonus(
   character: WarlockCelestialPatronCharacter
 ): number {
   return hasWarlockCelestialPatronRadiantSoul(character)
@@ -108,9 +124,9 @@ function getWarlockCelestialPatronRadiantSoulDamageBonus(
     : 0;
 }
 
-function spellQualifiesForWarlockCelestialPatronRadiantSoul(spellId: string): boolean {
-  const spell = getSpellEntryById(spellId);
-
+function spellQualifiesForWarlockCelestialPatronRadiantSoul(
+  spell: Pick<SpellEntry, "damage"> | null
+): boolean {
   if (!spell || spell.damage.length <= 0) {
     return false;
   }
@@ -119,6 +135,61 @@ function spellQualifiesForWarlockCelestialPatronRadiantSoul(spellId: string): bo
     (Array.isArray(damageType) ? damageType : [damageType]).some(
       (entry) => entry === DAMAGE_TYPE.FIRE || entry === DAMAGE_TYPE.RADIANT
     )
+  );
+}
+
+export function canUseWarlockCelestialPatronRadiantSoulForSpell(
+  character: WarlockCelestialPatronCharacter,
+  spell: Pick<SpellEntry, "damage"> | null
+): boolean {
+  return (
+    spellSupportsWarlockCelestialPatronRadiantSoul(character, spell) &&
+    getWarlockCelestialPatronRadiantSoulDamageBonus(character) > 0 &&
+    character.classFeatureState?.warlock?.radiantSoulUsedThisTurn !== true
+  );
+}
+
+export function spellSupportsWarlockCelestialPatronRadiantSoul(
+  character: WarlockCelestialPatronCharacter,
+  spell: Pick<SpellEntry, "damage"> | null
+): boolean {
+  return (
+    hasWarlockCelestialPatronRadiantSoul(character) &&
+    spellQualifiesForWarlockCelestialPatronRadiantSoul(spell)
+  );
+}
+
+export function getWarlockCelestialPatronRadiantSoulDamageDetail(
+  character: WarlockCelestialPatronCharacter,
+  spell: Pick<SpellEntry, "damage"> | null,
+  baseDamageDetail: string
+): string {
+  if (!canUseWarlockCelestialPatronRadiantSoulForSpell(character, spell)) {
+    return baseDamageDetail;
+  }
+
+  const damageBonus = getWarlockCelestialPatronRadiantSoulDamageBonus(character);
+
+  return `${baseDamageDetail} + ${damageBonus} CHA (${radiantSoulName})`;
+}
+
+function getWarlockCelestialPatronRadiantSoulSpellEntry(
+  character: WarlockCelestialPatronCharacter,
+  spell: SpellEntry
+): SpellEntry {
+  if (
+    !hasWarlockCelestialPatronRadiantSoul(character) ||
+    !spellQualifiesForWarlockCelestialPatronRadiantSoul(spell)
+  ) {
+    return spell;
+  }
+
+  return appendFeatureSourcedDescriptionAddition(
+    spell,
+    character,
+    CLASS_FEATURE.RADIANT_SOUL,
+    radiantSoulDamageDescription,
+    radiantSoulName
   );
 }
 
@@ -167,37 +238,16 @@ function getWarlockCelestialPatronDerivedStatusEntries(
   ];
 }
 
-function getWarlockCelestialPatronRadiantSoulDamageFormulaOverride(
-  character: WarlockCelestialPatronCharacter,
-  spellId: string
-): string | null {
-  if (
-    !hasWarlockCelestialPatronRadiantSoul(character) ||
-    character.classFeatureState?.warlock?.radiantSoulUsedThisTurn === true ||
-    !spellQualifiesForWarlockCelestialPatronRadiantSoul(spellId)
-  ) {
-    return null;
-  }
-
-  const spell = getSpellEntryById(spellId);
-  const damageBonus = getWarlockCelestialPatronRadiantSoulDamageBonus(character);
-
-  if (!spell || spell.damage.length <= 0 || damageBonus <= 0) {
-    return null;
-  }
-
-  return `${formatWeaponDamageFormula(spell.damage)} + ${damageBonus}`;
-}
-
 export function applyWarlockCelestialPatronFeaturesAfterSpellCast(
   character: Character,
-  spellId: string
+  spellId: string,
+  options: { useRadiantSoul?: boolean } = {}
 ): Character {
+  const spell = getSpellEntryById(spellId);
+
   if (
-    !hasWarlockCelestialPatronRadiantSoul(character) ||
-    character.classFeatureState?.warlock?.radiantSoulUsedThisTurn === true ||
-    getWarlockCelestialPatronRadiantSoulDamageBonus(character) <= 0 ||
-    !spellQualifiesForWarlockCelestialPatronRadiantSoul(spellId)
+    options.useRadiantSoul !== true ||
+    !canUseWarlockCelestialPatronRadiantSoulForSpell(character, spell)
   ) {
     return character;
   }
@@ -393,7 +443,9 @@ export function getWarlockCelestialPatronSearingVengeanceUsesRemaining(
   character: WarlockCelestialPatronCharacter
 ): number {
   const totalUses = getWarlockCelestialPatronSearingVengeanceUsesTotal(character);
-  const rawUsesExpended = Number(character.classFeatureState?.warlock?.searingVengeanceUsesExpended);
+  const rawUsesExpended = Number(
+    character.classFeatureState?.warlock?.searingVengeanceUsesExpended
+  );
 
   return Math.max(
     0,
@@ -508,6 +560,72 @@ export function applyWarlockCelestialPatronFeaturesOnLongRest(character: Charact
   );
 }
 
+function getWarlockCelestialPatronCelestialResilienceFormulaFact(
+  character: WarlockCelestialPatronCharacter
+): FeatureActionFact | null {
+  if (!hasWarlockCelestialPatronCelestialResilience(character)) {
+    return null;
+  }
+
+  const warlockLevel = Math.max(0, Math.floor(character.level ?? 0));
+  const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
+  const temporaryHitPoints =
+    getWarlockCelestialPatronCelestialResilienceTemporaryHitPoints(character);
+  const formulaContent = `${temporaryHitPoints} Temporary Hp = ${warlockLevel} Warlock Level + ${charismaModifier} CHA`;
+
+  return {
+    label: celestialResilienceFormulaLabel,
+    value: formulaContent,
+    fullWidth: true
+  };
+}
+
+function appendCelestialResilienceFormulaFact(
+  facts: FeatureActionFact[],
+  fact: FeatureActionFact | null
+): FeatureActionFact[] {
+  if (!fact || facts.some((entry) => entry.label === fact.label)) {
+    return facts;
+  }
+
+  return [...facts, fact];
+}
+
+function transformWarlockCelestialPatronFeatureAction(
+  character: WarlockCelestialPatronCharacter,
+  action: FeatureActionCard
+): FeatureActionCard {
+  if (
+    action.key !== magicalCunningActionKey ||
+    !hasWarlockCelestialPatronCelestialResilience(character)
+  ) {
+    return action;
+  }
+
+  const actionWithDescription = appendFeatureSourcedDescriptionAddition(
+    action,
+    character,
+    CLASS_FEATURE.CELESTIAL_RESILIENCE,
+    celestialResilienceDescription,
+    celestialResilienceName
+  );
+  const drawer = actionWithDescription.drawer;
+  const facts = appendCelestialResilienceFormulaFact(
+    drawer?.facts ?? actionWithDescription.facts ?? [],
+    getWarlockCelestialPatronCelestialResilienceFormulaFact(character)
+  );
+
+  return {
+    ...actionWithDescription,
+    drawer: {
+      ...(drawer ?? {}),
+      kind: drawer?.kind ?? "confirm",
+      facts,
+      factsSectionTitle: null
+    }
+  };
+}
+
 function getWarlockCelestialPatronSearingVengeanceAction(
   character: WarlockCelestialPatronCharacter
 ): FeatureActionCard | null {
@@ -548,8 +666,6 @@ function getWarlockCelestialPatronHealingLightAction(
 
   const totalDice = getWarlockCelestialPatronHealingLightDiceTotal(character);
   const remainingDice = getWarlockCelestialPatronHealingLightDiceRemaining(character);
-  const maxSpend = getWarlockCelestialPatronHealingLightMaxSpend(character);
-  const maxSpendNow = Math.min(remainingDice, maxSpend);
 
   return {
     key: healingLightActionKey,
@@ -559,37 +675,27 @@ function getWarlockCelestialPatronHealingLightAction(
     breakdown: "Spend dice to heal",
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
-    usesInlineLabel: "Spend",
-    usesInlineIcon: "sparkles",
-    usesInlineSuffix: "Healing d6",
+    cardUsage: createNamedResourceCardUsage(
+      createFeatureActionCardCost({
+        resourceLabel: "Healing d6"
+      })
+    ),
     description: [...healingLightDescription],
-    facts: [
-      {
-        label: "Max per Use",
-        value: `${maxSpend}d6`
-      }
-    ],
-    resources: [
-      {
-        kind: "tracker",
-        label: "Healing d6",
-        current: remainingDice,
-        total: totalDice,
-        icon: "sparkles"
-      }
-    ],
     drawer: {
       kind: "custom-form",
       eyebrow: "Celestial Patron",
       formKind: "healing-light",
       description: [...healingLightDescription],
-      helperText: `Choose up to ${maxSpendNow} Healing d6 to expend.`,
-      facts: [
+      headerTags: createNamedUsageHeaderTags(
+        createFeatureActionCardCost({
+          resourceLabel: "Healing d6"
+        }),
+        remainingDice,
+        totalDice,
         {
-          label: "Max per Use",
-          value: `${maxSpend}d6`
+          label: "d6"
         }
-      ]
+      )
     },
     execute: {
       kind: "custom-form",
@@ -619,8 +725,10 @@ export const getWarlockCelestialPatronDerivedFeatureState: SubclassRuntimeResolv
       (action): action is FeatureActionCard => action !== null
     ),
     derivedStatusEntries: getWarlockCelestialPatronDerivedStatusEntries(character),
-    getSpellDamageFormulaOverride: (spell) =>
-      getWarlockCelestialPatronRadiantSoulDamageFormulaOverride(character, spell.id),
+    transformFeatureAction: (action) =>
+      transformWarlockCelestialPatronFeatureAction(character, action),
+    transformSpellEntry: (spell) =>
+      getWarlockCelestialPatronRadiantSoulSpellEntry(character, spell),
     alwaysPreparedSpellIds: getPreparedSpellIdsByLevel(
       character.level ?? 0,
       celestialPatronSpellIdsByLevel

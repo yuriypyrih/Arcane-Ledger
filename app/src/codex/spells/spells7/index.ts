@@ -26,6 +26,7 @@ export const conjureCelestial: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a 9th-level spell slot, you summon a Celestial of Challenge Rating 5 or lower."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 7
 };
@@ -46,6 +47,7 @@ export const conjureHezrou: SpellEntry = {
     "As part of casting the spell, you can scribe a circle on the ground using the blood of an intelligent Humanoid slain within the past 24 hours. The circle is large enough to encompass your space. The summoned hezrou cannot cross the circle or target anyone in it while the spell lasts."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -65,6 +67,7 @@ export const createMagen: SpellEntry = {
     "Any magen you create with this spell obeys your commands without question."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -91,6 +94,7 @@ export const crownOfStars: SpellEntry = {
     [DICE.D12, DAMAGE_TYPE.RADIANT],
     [DICE.D12, DAMAGE_TYPE.RADIANT]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -128,6 +132,7 @@ export const delayedBlastFireball: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.FIRE],
     [DICE.D6, DAMAGE_TYPE.FIRE]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -158,6 +163,7 @@ export const divineWord: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CHA,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 7
 };
@@ -194,6 +200,7 @@ export const draconicTransformation: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.FORCE],
     [DICE.D8, DAMAGE_TYPE.FORCE]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -213,6 +220,7 @@ export const dreamOfTheBlueVeil: SpellEntry = {
     "The spell ends early on a creature if that creature takes any damage, and the creature isn't transported. If you take any damage, the spell ends for you and all other creatures, with none of you being transported."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.SORCERER,
@@ -239,6 +247,7 @@ export const etherealness: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 8th level or higher, you can target up to three willing creatures, including you, for each slot level above 7th. The creatures must be within 10 feet of you when you cast the spell."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.CLERIC,
@@ -265,7 +274,17 @@ export const fingerOfDeath: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [DICE.D8, DAMAGE_TYPE.NECROTIC],
+    [DICE.D8, DAMAGE_TYPE.NECROTIC],
+    [DICE.D8, DAMAGE_TYPE.NECROTIC],
+    [DICE.D8, DAMAGE_TYPE.NECROTIC],
+    [DICE.D8, DAMAGE_TYPE.NECROTIC],
+    [DICE.D8, DAMAGE_TYPE.NECROTIC],
+    [DICE.D8, DAMAGE_TYPE.NECROTIC],
+    [30, DAMAGE_TYPE.NECROTIC]
+  ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -295,6 +314,7 @@ export const fireStorm: SpellEntry = {
     [DICE.D10, DAMAGE_TYPE.FIRE],
     [DICE.D10, DAMAGE_TYPE.FIRE]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER],
   spellLevel: 7
 };
@@ -325,6 +345,7 @@ export const forcecage: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CHA,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -345,6 +366,7 @@ export const mirageArcane: SpellEntry = {
     "Creatures with Truesight can see through the illusion to the terrain's true form. However, all other elements of the illusion remain, so while the creature is aware of the illusion's presence, the creature can still physically interact with the illusion."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -365,6 +387,7 @@ export const mordenkainensMagnificentMansion: SpellEntry = {
     "Each servant can perform any task a normal Human servant could perform, but they can't attack or take any action that would directly harm another creature. Thus the servants can fetch things, clean, mend, fold clothes, light fires, serve food, pour wine, and so on. The servants can go anywhere in the mansion but can't leave it. Furnishings and other objects created by this spell dissipate into smoke if removed from the mansion. When the spell ends, any creatures or objects inside the extradimensional space are expelled into the open spaces nearest to the entrance."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -389,6 +412,7 @@ export const mordenkainensSword: SpellEntry = {
     [DICE.D10, DAMAGE_TYPE.FORCE],
     [DICE.D10, DAMAGE_TYPE.FORCE]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -411,6 +435,7 @@ export const planeShift: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.CHA,
   isAttackSpell: true,
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.CLERIC,
     SPELL_LIST_CLASS.DRUID,
@@ -438,6 +463,7 @@ export const powerWordPain: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -471,7 +497,109 @@ export const prismaticSpray: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ]
+  ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -492,6 +620,7 @@ export const projectImage: SpellEntry = {
     "Physical interaction with the image reveals it to be an illusion, because things can pass through it. A creature that uses its action to examine the image can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through the image, and any noise it makes sounds hollow to the creature."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -511,6 +640,7 @@ export const regenerate: SpellEntry = {
   ],
   isHealingSpell: true,
   damage: [],
+  healing: [DICE.D8, DICE.D8, DICE.D8, DICE.D8, 15],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID],
   spellLevel: 7
 };
@@ -532,6 +662,7 @@ export const resurrection: SpellEntry = {
     "Casting this spell to restore life to a creature that has been dead for one year or longer taxes you greatly. Until you finish a Long Rest, you can't cast spells again, and you have disadvantage on all attack rolls, Ability Checks, and saving throws."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC],
   spellLevel: 7
 };
@@ -553,6 +684,7 @@ export const reverseGravity: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -572,6 +704,7 @@ export const sequester: SpellEntry = {
     'You can set a condition for the spell to end early. The condition can be anything you choose, but it must occur or be visible within 1 mile of the target. Examples include "after 1,000 years" or "when the tarrasque awakes." This spell also ends if the target takes any damage.'
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -592,6 +725,7 @@ export const simulacrum: SpellEntry = {
     "If you cast this spell again, any currently active duplicates you created with this spell are instantly destroyed."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -629,7 +763,19 @@ export const symbol: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: null,
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [DICE.D10, DAMAGE_TYPE.NECROTIC],
+    [DICE.D10, DAMAGE_TYPE.NECROTIC],
+    [DICE.D10, DAMAGE_TYPE.NECROTIC],
+    [DICE.D10, DAMAGE_TYPE.NECROTIC],
+    [DICE.D10, DAMAGE_TYPE.NECROTIC],
+    [DICE.D10, DAMAGE_TYPE.NECROTIC],
+    [DICE.D10, DAMAGE_TYPE.NECROTIC],
+    [DICE.D10, DAMAGE_TYPE.NECROTIC],
+    [DICE.D10, DAMAGE_TYPE.NECROTIC],
+    [DICE.D10, DAMAGE_TYPE.NECROTIC]
+  ],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.CLERIC,
@@ -683,6 +829,7 @@ export const teleport: SpellEntry = {
     }
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -709,6 +856,7 @@ export const templeOfTheGods: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CHA,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 7
 };
@@ -728,8 +876,8 @@ export const tetherEssence: SpellEntry = {
   ],
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
-  isDamagingSpell: true,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };
@@ -764,6 +912,7 @@ export const whirlwind: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
     [DICE.D6, DAMAGE_TYPE.BLUDGEONING]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 7
 };

@@ -52,6 +52,8 @@ type EntryWithRarity = {
 export type WeaponDamageAmount = DICE | number;
 export type WeaponDamageType = DAMAGE_TYPE | DAMAGE_TYPE[];
 export type WeaponDamage = Array<[WeaponDamageAmount, WeaponDamageType]>;
+export type SpellHealingAmount = WeaponDamageAmount | "spellcastingAbility";
+export type SpellHealing = SpellHealingAmount[] | { label: string };
 export type WeaponType = {
   combat: WEAPON_COMBAT_TYPE;
   training: WEAPON_TRAINING;
@@ -147,6 +149,7 @@ export type SpellEntry = {
   isAttackSpell?: boolean;
   isDamagingSpell?: boolean;
   damage: WeaponDamage;
+  healing: SpellHealing;
   spellLists: SPELL_LIST_CLASS[];
   spellLevel: number;
   ritual?: boolean;

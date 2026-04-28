@@ -30,6 +30,7 @@ import {
   formatCodexList,
   formatSpellCastingTime,
   formatSpellComponents,
+  formatSpellHealing,
   getSpellDurationDisplayParts,
   formatWeaponDamage
 } from "../../../utils/codex";
@@ -50,6 +51,12 @@ type CodexSpellDrawerProps = {
   spell: SpellEntry;
   onClose: () => void;
 };
+
+function hasSpellHealing(spell: Pick<SpellEntry, "healing">): boolean {
+  return Array.isArray(spell.healing)
+    ? spell.healing.length > 0
+    : spell.healing.label.trim().length > 0;
+}
 
 function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
   const [isComponentsTooltipOpen, setIsComponentsTooltipOpen] = useState(false);
@@ -151,7 +158,16 @@ function CodexSpellDrawer({ spell, onClose }: CodexSpellDrawerProps) {
               label="Spell Lists"
               content={formatCodexList(spell.spellLists) || "None"}
             />
-            <CellContainer label="Damage" content={formatWeaponDamage(spell.damage)} />
+            <CellContainer
+              label={
+                spell.damage.length > 0 ? "Damage" : hasSpellHealing(spell) ? "Healing" : "Damage"
+              }
+              content={
+                spell.damage.length > 0
+                  ? formatWeaponDamage(spell.damage)
+                  : formatSpellHealing(spell.healing)
+              }
+            />
           </OverlayDetailsGrid>
 
           <SpellDescriptionContent

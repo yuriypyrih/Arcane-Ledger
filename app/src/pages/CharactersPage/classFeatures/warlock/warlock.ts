@@ -16,10 +16,12 @@ import {
   type WarlockFeatureClassObj
 } from "../../../../codex/classes";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
+import { createFeatureSourcedDescriptionEntries } from "../../actionModalDescriptions";
 import { getFeatDefinitionsByCategory } from "../../feats";
 import type { Character, CharacterWarlockFeatureState } from "../../../../types";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../spellcasting";
 import type { FeatureActionCard } from "../types";
+import { getFeatureDescriptionForCharacter } from "../featureDescriptions";
 import {
   beguilingDefenseReactionId,
   consumeWarlockArchfeyPatronBeguilingDefenseUse,
@@ -486,9 +488,7 @@ export function getWarlockEldritchInvocationLimit(
   return Math.max(0, getWarlockFeatureRow(character.level)?.eldritchInvocations ?? 0);
 }
 
-export function getWarlockInvocationSelectionIds(
-  character: WarlockInvocationCharacter
-): string[] {
+export function getWarlockInvocationSelectionIds(character: WarlockInvocationCharacter): string[] {
   return getWarlockFeatureState(character).eldritchInvocationIds ?? [];
 }
 
@@ -1009,6 +1009,14 @@ export function getWarlockFeatureActions(
     const usesTotal = getWarlockMagicalCunningUsesTotal(character);
     const expendedPactMagicSlots = getWarlockPactMagicSlotsExpended(character);
     const restoresAllPactMagicSlots = hasWarlockFeature(character, CLASS_FEATURE.ELDRITCH_MASTER);
+    const eldritchMasterDescriptionAddition = restoresAllPactMagicSlots
+      ? createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.ELDRITCH_MASTER,
+          getFeatureDescriptionForCharacter(character, CLASS_FEATURE.ELDRITCH_MASTER),
+          "Eldritch Master"
+        )
+      : [];
     const disabledReason =
       usesRemaining <= 0
         ? "Magical Cunning recharges on a Long Rest."
@@ -1019,6 +1027,7 @@ export function getWarlockFeatureActions(
     actions.push({
       key: magicalCunningActionKey,
       name: "Magical Cunning",
+      sourceFeature: CLASS_FEATURE.MAGICAL_CUNNING,
       summary: restoresAllPactMagicSlots
         ? "Restore all your Pact Magic spell slots."
         : "Restore half your Pact Magic spell slots.",
@@ -1030,6 +1039,10 @@ export function getWarlockFeatureActions(
       actionCategory: ACTION_CATEGORY.MAGIC,
       usesRemaining,
       usesTotal,
+      descriptionAdditions:
+        eldritchMasterDescriptionAddition.length > 0
+          ? [eldritchMasterDescriptionAddition]
+          : undefined,
       disabled: Boolean(disabledReason),
       disabledReason
     });
@@ -1041,6 +1054,7 @@ export function getWarlockFeatureActions(
     actions.push({
       key: contactPatronActionKey,
       name: "Contact Patron",
+      sourceFeature: CLASS_FEATURE.CONTACT_PATRON,
       summary: "Cast Contact Other Plane without a spell slot.",
       detail: "Open Contact Other Plane and cast it to contact your patron directly.",
       breakdown: "Auto-succeed on the saving throw",
@@ -1410,9 +1424,10 @@ export function restoreWarlockHurlThroughHellOnLongRest(character: Character): C
 
 export function applyWarlockFeaturesAfterSpellCast(
   character: Character,
-  spell: Pick<SpellEntry, "id">
+  spell: Pick<SpellEntry, "id">,
+  options: { useRadiantSoul?: boolean } = {}
 ): Character {
-  return applyWarlockCelestialPatronFeaturesAfterSpellCast(character, spell.id);
+  return applyWarlockCelestialPatronFeaturesAfterSpellCast(character, spell.id, options);
 }
 
 export function applyShortRestToWarlockFeatures(character: Character): Character {

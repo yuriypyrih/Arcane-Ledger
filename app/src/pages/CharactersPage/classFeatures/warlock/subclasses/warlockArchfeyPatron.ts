@@ -5,6 +5,7 @@ import {
   MAGIC_SCHOOL,
   REACTION,
   type ReactionEntry,
+  type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../../codex/entries";
 import type { Character, CharacterWarlockFeatureState } from "../../../../../types";
@@ -14,11 +15,7 @@ import {
   STATUS_ENTRY_GROUP,
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
-import {
-  createSourcedDescriptionEntries,
-  descriptionValueSomeText,
-  getFeatureSourceNameForCharacter
-} from "../../../actionModalDescriptions";
+import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDescriptions";
 import { getAbilityModifierForCharacter } from "../../../abilities";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import {
@@ -39,6 +36,8 @@ const mistyEscapeName = "Misty Escape";
 const beguilingDefensesName = "Beguiling Defenses";
 const beguilingDefenseName = "Beguiling Defense";
 const bewitchingMagicName = "Bewitching Magic";
+const mistyEscapeReactionDescription =
+  "You can cast Misty Step as a Reaction in response to taking damage.";
 const beguilingDefensesCharmedImmunitySourceId =
   "feature-warlock-archfey-beguiling-defenses-charmed";
 const archfeyPatronSpellIdsByLevel = {
@@ -56,22 +55,18 @@ const archfeyPatronSpellIdsByLevel = {
 const archfeyPatronSubclassEntry = getSubclassEntryById(archfeyPatronSubclassId);
 const archfeyPatronSourceLabel = archfeyPatronSubclassEntry?.name ?? "Archfey Patron";
 
-function getArchfeyPatronFeatureDescriptionEntries(feature: CLASS_FEATURE): string[] {
+function getArchfeyPatronFeatureDescriptionEntries(
+  feature: CLASS_FEATURE
+): SpellDescriptionEntry[] {
   const featureRow = archfeyPatronSubclassEntry?.features.find((row) =>
     row.classFeatures.includes(feature)
   );
 
-  return (featureRow?.featureOverrides?.[feature]?.description ?? []).filter(
-    (entry): entry is string => typeof entry === "string"
-  );
+  return featureRow?.featureOverrides?.[feature]?.description ?? [];
 }
 
-const stepsOfTheFeySpellDescription = getArchfeyPatronFeatureDescriptionEntries(
+const stepsOfTheFeyDescription = getArchfeyPatronFeatureDescriptionEntries(
   CLASS_FEATURE.STEPS_OF_THE_FEY
-).filter(
-  (entry) =>
-    entry.startsWith("<strong>Refreshing Step.</strong>") ||
-    entry.startsWith("<strong>Taunting Step.</strong>")
 );
 const mistyEscapeDescription = getArchfeyPatronFeatureDescriptionEntries(
   CLASS_FEATURE.MISTY_ESCAPE
@@ -81,12 +76,6 @@ const beguilingDefensesDescription = getArchfeyPatronFeatureDescriptionEntries(
 );
 const bewitchingMagicDescription = getArchfeyPatronFeatureDescriptionEntries(
   CLASS_FEATURE.BEWITCHING_MAGIC
-);
-const mistyEscapeReactionDescription = mistyEscapeDescription.slice(0, 1);
-const mistyEscapeSpellDescription = mistyEscapeDescription.filter(
-  (entry) =>
-    entry.startsWith("<strong>Disappearing Step.</strong>") ||
-    entry.startsWith("<strong>Dreadful Step.</strong>")
 );
 
 function getWarlockArchfeyPatronPactMagicSlotLevel(
@@ -126,65 +115,48 @@ function getWarlockArchfeyPatronPactMagicSlotsRemaining(
 }
 
 function appendArchfeyPatronDescription(
-  character:
-    | (Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>)
-    | null,
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
   spell: SpellEntry,
   feature: CLASS_FEATURE,
   fallbackSourceName: string,
-  descriptionEntries: readonly string[]
+  descriptionEntries: readonly SpellDescriptionEntry[]
 ): SpellEntry {
   if (spell.id !== mistyStepSpellId || descriptionEntries.length === 0) {
     return spell;
   }
 
-  const sourceName = character
-    ? getFeatureSourceNameForCharacter(character, feature, fallbackSourceName)
-    : fallbackSourceName;
-  const marker = `<strong>${sourceName}.</strong>`;
-
-  if (
-    descriptionValueSomeText({ description: spell.description }, (entry) => entry.includes(marker))
-  ) {
-    return spell;
-  }
-
-  return {
-    ...spell,
-    description: [
-      ...spell.description,
-      ...createSourcedDescriptionEntries(sourceName, descriptionEntries)
-    ]
-  };
+  return appendFeatureSourcedDescriptionAddition(
+    spell,
+    character,
+    feature,
+    descriptionEntries,
+    fallbackSourceName
+  );
 }
 
 function appendStepsOfTheFeyDescription(
   spell: SpellEntry,
-  character:
-    | (Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>)
-    | null = null
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): SpellEntry {
   return appendArchfeyPatronDescription(
     character,
     spell,
     CLASS_FEATURE.STEPS_OF_THE_FEY,
     stepsOfTheFeyName,
-    stepsOfTheFeySpellDescription
+    stepsOfTheFeyDescription
   );
 }
 
 function appendMistyEscapeDescription(
   spell: SpellEntry,
-  character:
-    | (Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>)
-    | null = null
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): SpellEntry {
   return appendArchfeyPatronDescription(
     character,
     spell,
     CLASS_FEATURE.MISTY_ESCAPE,
     mistyEscapeName,
-    mistyEscapeSpellDescription
+    mistyEscapeDescription
   );
 }
 
@@ -194,33 +166,22 @@ function appendBewitchingMagicDescription(
 ): SpellEntry {
   if (
     bewitchingMagicDescription.length === 0 ||
-    spell.castingTime.length !== 1 ||
-    spell.castingTime[0] !== ACTION_TYPE.ACTION ||
-    (spell.magicSchool !== MAGIC_SCHOOL.ENCHANTMENT && spell.magicSchool !== MAGIC_SCHOOL.ILLUSION)
+    (spell.id !== mistyStepSpellId &&
+      (spell.castingTime.length !== 1 ||
+        spell.castingTime[0] !== ACTION_TYPE.ACTION ||
+        (spell.magicSchool !== MAGIC_SCHOOL.ENCHANTMENT &&
+          spell.magicSchool !== MAGIC_SCHOOL.ILLUSION)))
   ) {
     return spell;
   }
 
-  const sourceName = getFeatureSourceNameForCharacter(
+  return appendFeatureSourcedDescriptionAddition(
+    spell,
     character,
     CLASS_FEATURE.BEWITCHING_MAGIC,
+    bewitchingMagicDescription,
     bewitchingMagicName
   );
-  const marker = `<strong>${sourceName}.</strong>`;
-
-  if (
-    descriptionValueSomeText({ description: spell.description }, (entry) => entry.includes(marker))
-  ) {
-    return spell;
-  }
-
-  return {
-    ...spell,
-    description: [
-      ...spell.description,
-      ...createSourcedDescriptionEntries(sourceName, bewitchingMagicDescription)
-    ]
-  };
 }
 
 export function hasWarlockArchfeyPatronStepsOfTheFeyFeature(
@@ -466,7 +427,7 @@ const mistyEscapeReactionEntry: ReactionEntry = {
   sourceType: "feature",
   sourceFeature: CLASS_FEATURE.MISTY_ESCAPE,
   sourceLabel: archfeyPatronSourceLabel,
-  description: mistyEscapeReactionDescription
+  description: [mistyEscapeReactionDescription]
 };
 const beguilingDefenseReactionEntry: ReactionEntry = {
   id: beguilingDefenseReactionId,
@@ -500,8 +461,14 @@ function getWarlockArchfeyPatronDerivedStatusEntries(
   ];
 }
 
-export function getWarlockArchfeyPatronMistyEscapeReactionSpell(spell: SpellEntry): SpellEntry {
-  const transformedSpell = appendMistyEscapeDescription(appendStepsOfTheFeyDescription(spell));
+export function getWarlockArchfeyPatronMistyEscapeReactionSpell(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  spell: SpellEntry
+): SpellEntry {
+  const transformedSpell = appendMistyEscapeDescription(
+    appendStepsOfTheFeyDescription(spell, character),
+    character
+  );
 
   return transformedSpell.id === mistyStepSpellId
     ? {
@@ -526,7 +493,10 @@ function getWarlockArchfeyPatronTransformedSpell(
 
 export type WarlockArchfeyPatronFeatureReactionSpellDefinition = {
   spellId: string;
-  transformSpellEntry: (spell: SpellEntry) => SpellEntry;
+  transformSpellEntry: (
+    character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+    spell: SpellEntry
+  ) => SpellEntry;
 };
 
 export function getWarlockArchfeyPatronFeatureReactionSpellDefinition(

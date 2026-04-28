@@ -27,6 +27,7 @@ export const astralProjection: SpellEntry = {
     "The spell might also end early for you or one of your companions. A successful dispel magic spell used against an astral or physical body ends the spell for that creature. If a creature's original body or its astral form drops to 0 Hit Points, the spell ends for that creature. If the spell ends and the silver cord is intact, the cord pulls the creature's astral form back to its body, ending its state of suspended animation. If you are returned to your body prematurely, your companions remain in their astral forms and must find their own way back to their bodies, usually by dropping to 0 Hit Points."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
 };
@@ -53,6 +54,7 @@ export const bladeOfDisaster: SpellEntry = {
     [DICE.D12, DAMAGE_TYPE.FORCE],
     [DICE.D12, DAMAGE_TYPE.FORCE]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
 };
@@ -71,6 +73,7 @@ export const foresight: SpellEntry = {
     "Additionally, other creatures have disadvantage on attack rolls against the target for the duration. This spell immediately ends if you cast it again before its duration ends."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.DRUID,
@@ -96,6 +99,7 @@ export const gate: SpellEntry = {
     "When you cast this spell, you can speak the name of a specific creature. A pseudonym, title, or nickname doesn't work. If that creature is on a plane other than the one you are on, the portal opens in the named creature's immediate vicinity and draws the creature through it to the nearest unoccupied space on your side of the portal. You gain no special power over the creature, and it is free to act as the DM deems appropriate. It might leave, attack you, or help you."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.CLERIC,
     SPELL_LIST_CLASS.SORCERER,
@@ -135,6 +139,7 @@ export const imprisonment: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
 };
@@ -150,6 +155,7 @@ export const invulnerability: SpellEntry = {
   duration: [DURATION.CONCENTRATION, "up to 10 minutes"],
   description: ["You are immune to all damage until the spell ends."],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
 };
@@ -169,6 +175,7 @@ export const massHeal: SpellEntry = {
   ],
   isHealingSpell: true,
   damage: [],
+  healing: [700],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 9
 };
@@ -192,6 +199,7 @@ export const massPolymorph: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
 };
@@ -213,7 +221,49 @@ export const meteorSwarm: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.FIRE],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING]
+  ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
 };
@@ -233,6 +283,7 @@ export const powerWordHeal: SpellEntry = {
   ],
   isHealingSpell: true,
   damage: [],
+  healing: { label: "All HP" },
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC],
   spellLevel: 9
 };
@@ -250,6 +301,7 @@ export const powerWordKill: SpellEntry = {
     "You utter a word of power that can compel one creature you can see within range to die instantly. If the creature you chose has 100 Hit Points or fewer, it dies. Otherwise, the spell has no effect."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.SORCERER,
@@ -290,7 +342,109 @@ export const prismaticWall: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.COLD
+      ]
+    ]
+  ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
 };
@@ -328,6 +482,7 @@ export const psychicScream: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
     [DICE.D6, DAMAGE_TYPE.PSYCHIC]
   ],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.SORCERER,
@@ -362,6 +517,7 @@ export const ravenousVoid: SpellEntry = {
     [DICE.D10, DAMAGE_TYPE.FORCE],
     [DICE.D10, DAMAGE_TYPE.FORCE]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
 };
@@ -384,6 +540,7 @@ export const shapechange: SpellEntry = {
     "During this spell's duration, you can use your action to assume a different form following the same restrictions and rules for the original form, with one exception: if your new form has more Hit Points than your current one, your Hit Points remain at their current value."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
 };
@@ -414,7 +571,25 @@ export const stormOfVengeance: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [DICE.D6, DAMAGE_TYPE.THUNDER],
+    [DICE.D6, DAMAGE_TYPE.THUNDER],
+    [DICE.D6, DAMAGE_TYPE.ACID],
+    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
+    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
+    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
+    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
+    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
+    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
+    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
+    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
+    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
+    [DICE.D6, DAMAGE_TYPE.LIGHTNING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.BLUDGEONING],
+    [DICE.D6, DAMAGE_TYPE.COLD]
+  ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID],
   spellLevel: 9
 };
@@ -447,6 +622,7 @@ export const timeRavage: SpellEntry = {
     [DICE.D12, DAMAGE_TYPE.NECROTIC],
     [DICE.D12, DAMAGE_TYPE.NECROTIC]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
 };
@@ -465,6 +641,7 @@ export const timeStop: SpellEntry = {
     "This spell ends if one of the actions you use during this period, or any effects that you create during this period, affects a creature other than you or an object being worn or carried by someone other than you. In addition, the spell ends if you move to a place more than 1,000 feet from the location where you cast it."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
 };
@@ -495,6 +672,7 @@ export const truePolymorph: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
 };
@@ -514,6 +692,7 @@ export const trueResurrection: SpellEntry = {
     "The spell can even provide a new body if the original no longer exists, in which case you must speak the creature's name. The creature then appears in an unoccupied space you choose within 10 feet of you."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID],
   spellLevel: 9
 };
@@ -541,6 +720,7 @@ export const weird: SpellEntry = {
     [DICE.D10, DAMAGE_TYPE.PSYCHIC],
     [DICE.D10, DAMAGE_TYPE.PSYCHIC]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
 };
@@ -573,6 +753,7 @@ export const wish: SpellEntry = {
     "The stress of casting this spell to produce any effect other than duplicating another spell weakens you. After enduring that stress, each time you cast a spell until you finish a Long Rest, you take <strong>1d10</strong> Necrotic damage per level of that spell. This damage can't be reduced or prevented in any way. In addition, your Strength drops to 3, if it isn't 3 or lower already, for <strong>2d4</strong> days. For each of those days that you spend resting and doing nothing more than light activity, your remaining recovery time decreases by 2 days. Finally, there is a 33 percent chance that you are unable to cast wish ever again if you suffer this stress."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 9
 };

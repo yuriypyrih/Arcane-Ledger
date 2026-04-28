@@ -140,14 +140,18 @@ import { applySpellConcentrationToStatusEntries } from "../../../../pages/Charac
 import { fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId } from "../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterPsiWarriorShared";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import type { WarlockEldritchInvocationOption } from "../../../../pages/CharactersPage/classFeatures/warlock/warlock";
+import { hasWarlockArchfeyPatronBewitchingMagicFeature } from "../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockArchfeyPatron";
+import {
+  canUseWarlockCelestialPatronRadiantSoulForSpell,
+  getWarlockCelestialPatronRadiantSoulDamageDetail,
+  spellSupportsWarlockCelestialPatronRadiantSoul
+} from "../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockCelestialPatron";
 import {
   clampNumber,
   formatSpellGroupTitle,
   spellSlotLevels
 } from "../../../../pages/CharactersPage/CharacterSheetPage/utils";
-import {
-  getRoundTrackerResourceForSpell
-} from "../../../../pages/CharactersPage/shared";
+import { getRoundTrackerResourceForSpell } from "../../../../pages/CharactersPage/shared";
 import { orderDescriptionAdditionSections } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import {
   getSpellDamageDetailForCharacter,
@@ -288,6 +292,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const [usePhantasmalCreaturesOnSelectedSpell, setUsePhantasmalCreaturesOnSelectedSpell] =
     useState(false);
   const [useStepsOfTheFeyOnSelectedSpell, setUseStepsOfTheFeyOnSelectedSpell] = useState(false);
+  const [useBewitchingMagicOnSelectedSpell, setUseBewitchingMagicOnSelectedSpell] = useState(false);
   const [useMistyWandererOnSelectedSpell, setUseMistyWandererOnSelectedSpell] = useState(false);
   const [
     useFeyReinforcementsNoConcentrationOnSelectedSpell,
@@ -298,6 +303,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const [useTamedSurgeOnSelectedSpell, setUseTamedSurgeOnSelectedSpell] = useState(false);
   const [useTelekineticMasterOnSelectedSpell, setUseTelekineticMasterOnSelectedSpell] =
     useState(false);
+  const [useRadiantSoulOnSelectedSpell, setUseRadiantSoulOnSelectedSpell] = useState(false);
   const [useFrozenHauntOnSelectedSpell, setUseFrozenHauntOnSelectedSpell] = useState(false);
   const [selectedFrozenHauntFallbackSlotLevel, setSelectedFrozenHauntFallbackSlotLevel] =
     useState(4);
@@ -330,12 +336,15 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setSelectedElementalSmiteOptionOnSelectedSpell(null);
     setUseFeyReinforcementsOnSelectedSpell(false);
     setUsePhantasmalCreaturesOnSelectedSpell(false);
+    setUseStepsOfTheFeyOnSelectedSpell(false);
     setUseMistyWandererOnSelectedSpell(false);
+    setUseBewitchingMagicOnSelectedSpell(false);
     setUseFeyReinforcementsNoConcentrationOnSelectedSpell(false);
     setUseNaturalRecoveryOnSelectedSpell(false);
     setUsePsionicSorceryOnSelectedSpell(false);
     setUseTamedSurgeOnSelectedSpell(false);
     setUseTelekineticMasterOnSelectedSpell(false);
+    setUseRadiantSoulOnSelectedSpell(false);
     setUseFrozenHauntOnSelectedSpell(false);
     setIsSelectedSpellDiceRollerSettingsOpen(false);
     setSelectedFrozenHauntFallbackSlotLevel(frozenHauntFallbackSpellSlotMinimumLevel);
@@ -925,6 +934,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   );
   const selectedSpellSupportsStepsOfTheFey =
     selectedSpell?.id === mistyStepSpellId && warlockStepsOfTheFeyUsesTotal > 0;
+  const selectedSpellSupportsBewitchingMagic =
+    selectedSpell?.id === mistyStepSpellId &&
+    hasWarlockArchfeyPatronBewitchingMagicFeature(character);
   const selectedSpellSupportsMistyWanderer =
     selectedSpell?.id === mistyStepSpellId && rangerMistyWandererUsesTotal > 0;
   const selectedSpellSupportsFeyReinforcements =
@@ -1005,20 +1017,42 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     hasPaladinOathOfTheNobleGeniesElementalSmite(character);
   const selectedSpellElementalSmiteDisabled =
     selectedSpellSupportsElementalSmite && channelDivinityUsesRemaining <= 0;
-  const selectedSpellElementalSmiteDamageDetail = useMemo(() => {
-    if (!selectedSpellDisplay || !useElementalSmiteOnSelectedSpell) {
+  const selectedSpellSupportsRadiantSoul = spellSupportsWarlockCelestialPatronRadiantSoul(
+    character,
+    selectedSpellDisplay
+  );
+  const selectedSpellRadiantSoulDisabled =
+    selectedSpellSupportsRadiantSoul &&
+    !canUseWarlockCelestialPatronRadiantSoulForSpell(character, selectedSpellDisplay);
+  const selectedSpellDamageDetailOverride = useMemo(() => {
+    if (
+      !selectedSpellDisplay ||
+      (!useElementalSmiteOnSelectedSpell && !useRadiantSoulOnSelectedSpell)
+    ) {
       return null;
     }
 
-    return getPaladinOathOfTheNobleGeniesElementalSmiteDamageDetail(
-      getSpellDamageDetailForCharacter(character, selectedSpellDisplay),
-      selectedElementalSmiteOptionOnSelectedSpell
-    );
+    const baseDamageDetail = getSpellDamageDetailForCharacter(character, selectedSpellDisplay);
+    const elementalSmiteDamageDetail = useElementalSmiteOnSelectedSpell
+      ? getPaladinOathOfTheNobleGeniesElementalSmiteDamageDetail(
+          baseDamageDetail,
+          selectedElementalSmiteOptionOnSelectedSpell
+        )
+      : baseDamageDetail;
+
+    return useRadiantSoulOnSelectedSpell
+      ? getWarlockCelestialPatronRadiantSoulDamageDetail(
+          character,
+          selectedSpellDisplay,
+          elementalSmiteDamageDetail
+        )
+      : elementalSmiteDamageDetail;
   }, [
     character,
     selectedElementalSmiteOptionOnSelectedSpell,
     selectedSpellDisplay,
-    useElementalSmiteOnSelectedSpell
+    useElementalSmiteOnSelectedSpell,
+    useRadiantSoulOnSelectedSpell
   ]);
   const selectedSpellStepsOfTheFeyDisabled =
     selectedSpellSupportsStepsOfTheFey && warlockStepsOfTheFeyUsesRemaining <= 0;
@@ -1040,6 +1074,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     (selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) ||
     (selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell) ||
     (selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell) ||
+    (selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell) ||
     (selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell) ||
     (selectedSpellSupportsFeyReinforcements && useFeyReinforcementsOnSelectedSpell) ||
     (selectedSpellSupportsPhantasmalCreatures && usePhantasmalCreaturesOnSelectedSpell) ||
@@ -1177,11 +1212,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUseFeyReinforcementsOnSelectedSpell(false);
     setUsePhantasmalCreaturesOnSelectedSpell(false);
     setUseStepsOfTheFeyOnSelectedSpell(false);
+    setUseBewitchingMagicOnSelectedSpell(false);
     setUseMistyWandererOnSelectedSpell(false);
     setUseFeyReinforcementsNoConcentrationOnSelectedSpell(false);
     setUseNaturalRecoveryOnSelectedSpell(false);
     setUsePsionicSorceryOnSelectedSpell(false);
     setUseTelekineticMasterOnSelectedSpell(false);
+    setUseRadiantSoulOnSelectedSpell(false);
     setUseFrozenHauntOnSelectedSpell(false);
     setSelectedFrozenHauntFallbackSlotLevel(frozenHauntFallbackSpellSlotMinimumLevel);
   }, [selectedSpell?.id]);
@@ -1236,12 +1273,28 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   }, [selectedSpellElementalSmiteDisabled, selectedSpellSupportsElementalSmite]);
 
   useEffect(() => {
+    if (!selectedSpellSupportsRadiantSoul || !selectedSpellRadiantSoulDisabled) {
+      return;
+    }
+
+    setUseRadiantSoulOnSelectedSpell(false);
+  }, [selectedSpellRadiantSoulDisabled, selectedSpellSupportsRadiantSoul]);
+
+  useEffect(() => {
     if (!selectedSpellSupportsStepsOfTheFey || !selectedSpellStepsOfTheFeyDisabled) {
       return;
     }
 
     setUseStepsOfTheFeyOnSelectedSpell(false);
   }, [selectedSpellStepsOfTheFeyDisabled, selectedSpellSupportsStepsOfTheFey]);
+
+  useEffect(() => {
+    if (selectedSpellSupportsBewitchingMagic) {
+      return;
+    }
+
+    setUseBewitchingMagicOnSelectedSpell(false);
+  }, [selectedSpellSupportsBewitchingMagic]);
 
   useEffect(() => {
     if (!selectedSpellSupportsMistyWanderer || !selectedSpellMistyWandererDisabled) {
@@ -1590,10 +1643,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     usePhantasmalCreatures?: boolean;
     useMistyWanderer?: boolean;
     useStepsOfTheFey?: boolean;
+    useBewitchingMagic?: boolean;
     useNaturalRecovery?: boolean;
     usePsionicSorcery?: boolean;
     useTamedSurge?: boolean;
     useTelekineticMaster?: boolean;
+    useRadiantSoul?: boolean;
   }) {
     if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpellcastingBlock)) {
       return;
@@ -1636,6 +1691,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       options?.useStepsOfTheFey === true &&
       selectedSpellSupportsStepsOfTheFey &&
       warlockStepsOfTheFeyUsesRemaining > 0;
+    const useBewitchingMagic =
+      options?.useBewitchingMagic === true && selectedSpellSupportsBewitchingMagic;
     const useMistyWanderer =
       options?.useMistyWanderer === true &&
       selectedSpellSupportsMistyWanderer &&
@@ -1662,6 +1719,9 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       selectedSpellSupportsTelekineticMaster &&
       (fighterPsiWarriorTelekineticMasterUsesRemaining > 0 ||
         fighterPsiWarriorEnergyDiceRemaining > 0);
+    const useRadiantSoul =
+      options?.useRadiantSoul === true &&
+      canUseWarlockCelestialPatronRadiantSoulForSpell(character, selectedSpellDisplay);
     const useFrozenHaunt =
       options?.useFrozenHaunt === true && selectedSpellFrozenHauntOptionState !== null;
     const frozenHauntFallbackSlotLevel = useFrozenHaunt
@@ -1737,13 +1797,15 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           if (nextCharacterWithSharedMulti !== nextCharacterWithElementalSmite) {
             return applySpellCastFeatureEffectsForCharacter(
               nextCharacterWithSharedMulti,
-              selectedSpell
+              selectedSpell,
+              { useRadiantSoul }
             );
           }
 
           const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
             nextCharacterWithElementalSmite,
-            selectedSpell
+            selectedSpell,
+            { useRadiantSoul }
           );
           const nextCharacterWithFleetStep = grantMonkFleetStepFollowUpForSpellCastIfEligible(
             nextCharacterWithSpellCastEffects,
@@ -1775,7 +1837,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
           const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
             nextCharacterWithElementalSmite,
-            selectedSpell
+            selectedSpell,
+            { useRadiantSoul }
           );
 
           return {
@@ -1828,7 +1891,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
           nextCharacterWithElementalSmite,
           selectedSpell,
-          { includeBardBattleMagic: false }
+          { includeBardBattleMagic: false, useRadiantSoul }
         );
         const nextCharacterWithFleetStep = grantMonkFleetStepFollowUpForSpellCastIfEligible(
           nextCharacterWithSpellCastEffects,
@@ -1855,6 +1918,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       useWarGodsBlessing ||
       useStarMap ||
       useStepsOfTheFey ||
+      useBewitchingMagic ||
       useMistyWanderer ||
       useFeyReinforcements ||
       usePhantasmalCreatures
@@ -1876,6 +1940,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     const castsFreeViaWarGodsBlessing = useWarGodsBlessing;
     const castsFreeViaPsionicSorcery = usePsionicSorcery && sorceryPointsRemaining >= slotLevel;
     const castsFreeViaStepsOfTheFey = useStepsOfTheFey;
+    const castsFreeViaBewitchingMagic = useBewitchingMagic;
     const castsFreeViaMistyWanderer = useMistyWanderer;
     const castsFreeViaFeyReinforcements = useFeyReinforcements;
     const castsFreeViaPhantasmalCreatures = usePhantasmalCreatures;
@@ -1889,6 +1954,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       castsFreeViaWarGodsBlessing ||
       castsFreeViaPsionicSorcery ||
       castsFreeViaStepsOfTheFey ||
+      castsFreeViaBewitchingMagic ||
       castsFreeViaMistyWanderer ||
       castsFreeViaFeyReinforcements ||
       castsFreeViaPhantasmalCreatures ||
@@ -2072,7 +2138,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         nextCharacterWithSorcererSubclassRecharge,
         selectedSpell,
         {
-          spellSlotLevel: spellCastFeatureEffectSlotLevel
+          spellSlotLevel: spellCastFeatureEffectSlotLevel,
+          useRadiantSoul
         }
       );
       const nextCharacterWithFleetStep = grantMonkFleetStepFollowUpForSpellCastIfEligible(
@@ -2400,10 +2467,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
           spellPreparationOptions={spellPreparationOptions}
           suspendEscapeClose={Boolean(
             activeSpellSlotSheetLevel !== null ||
-              selectedSpell ||
-              selectedDivinityOptionKey ||
-              selectedInvocation ||
-              isSelectedSpellDiceRollerSettingsOpen
+            selectedSpell ||
+            selectedDivinityOptionKey ||
+            selectedInvocation ||
+            isSelectedSpellDiceRollerSettingsOpen
           )}
           usesPreparedSpells={usesPreparedSpells}
           usesSpellbook={usesSpellbook}
@@ -2414,7 +2481,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         <CharacterSpellDrawer
           character={character}
           spell={selectedSpellDisplay ?? selectedSpell}
-          damageDetailOverride={selectedSpellElementalSmiteDamageDetail}
+          damageDetailOverride={selectedSpellDamageDetailOverride}
           alwaysPrepared={selectedSpellAlwaysPrepared}
           alwaysSpellbook={selectedSpellAlwaysSpellbook}
           mode={selectedSpellViewMode}
@@ -2441,10 +2508,12 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               usePhantasmalCreatures: usePhantasmalCreaturesOnSelectedSpell,
               useMistyWanderer: useMistyWandererOnSelectedSpell,
               useStepsOfTheFey: useStepsOfTheFeyOnSelectedSpell,
+              useBewitchingMagic: useBewitchingMagicOnSelectedSpell,
               useNaturalRecovery: useNaturalRecoveryOnSelectedSpell,
               usePsionicSorcery: usePsionicSorceryOnSelectedSpell,
               useTamedSurge: useTamedSurgeOnSelectedSpell,
-              useTelekineticMaster: useTelekineticMasterOnSelectedSpell
+              useTelekineticMaster: useTelekineticMasterOnSelectedSpell,
+              useRadiantSoul: useRadiantSoulOnSelectedSpell
             })
           }
           actionConsumesSpellSlot={
@@ -2455,6 +2524,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             !(selectedSpellSupportsStarMap && useStarMapOnSelectedSpell) &&
             !(selectedSpellSupportsPsionicSorcery && usePsionicSorceryOnSelectedSpell) &&
             !(selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell) &&
+            !(selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell) &&
             !(selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell) &&
             !(selectedSpellSupportsFeyReinforcements && useFeyReinforcementsOnSelectedSpell) &&
             !(selectedSpellSupportsPhantasmalCreatures && usePhantasmalCreaturesOnSelectedSpell) &&
@@ -2473,25 +2543,29 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                 : selectedSpellSupportsStarMap && useStarMapOnSelectedSpell
                   ? "Star Map lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
                   : selectedSpellSupportsStepsOfTheFey && useStepsOfTheFeyOnSelectedSpell
-                    ? "Steps of the Fey lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                    : selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell
-                      ? "Misty Wanderer lets you cast this spell without expending a spell slot."
-                      : selectedSpellSupportsFeyReinforcements &&
-                          useFeyReinforcementsOnSelectedSpell
-                        ? "Fey Reinforcements lets you cast this spell without expending a spell slot."
-                        : selectedSpellSupportsPhantasmalCreatures &&
-                            usePhantasmalCreaturesOnSelectedSpell
-                          ? "Phantasmal Creatures lets you cast this spell without expending a spell slot. This shared use recharges on a Long Rest, and the summoned creature has half Hit Points."
-                          : selectedSpellSupportsTelekineticMaster &&
-                              useTelekineticMasterOnSelectedSpell
-                            ? fighterPsiWarriorTelekineticMasterUsesRemaining > 0
-                              ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
-                              : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
-                            : selectedSpellSupportsTamedSurge && useTamedSurgeOnSelectedSpell
-                              ? "Tamed Surge will be spent after this spell consumes a spell slot."
-                            : selectedSpellUnderMantleOfMajesty
-                              ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
-                              : null
+                    ? selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell
+                      ? "Steps of the Fey and Bewitching Magic both let you cast this spell without expending a spell slot. Steps of the Fey still spends one use."
+                      : "Steps of the Fey lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                    : selectedSpellSupportsBewitchingMagic && useBewitchingMagicOnSelectedSpell
+                      ? "Bewitching Magic lets you cast this spell without expending a spell slot."
+                      : selectedSpellSupportsMistyWanderer && useMistyWandererOnSelectedSpell
+                        ? "Misty Wanderer lets you cast this spell without expending a spell slot."
+                        : selectedSpellSupportsFeyReinforcements &&
+                            useFeyReinforcementsOnSelectedSpell
+                          ? "Fey Reinforcements lets you cast this spell without expending a spell slot."
+                          : selectedSpellSupportsPhantasmalCreatures &&
+                              usePhantasmalCreaturesOnSelectedSpell
+                            ? "Phantasmal Creatures lets you cast this spell without expending a spell slot. This shared use recharges on a Long Rest, and the summoned creature has half Hit Points."
+                            : selectedSpellSupportsTelekineticMaster &&
+                                useTelekineticMasterOnSelectedSpell
+                              ? fighterPsiWarriorTelekineticMasterUsesRemaining > 0
+                                ? "Telekinetic Master lets you cast this spell without expending a spell slot. This use recharges on a Long Rest."
+                                : "Telekinetic Master lets you cast this spell without expending a spell slot by using 1 Psi Energy Die."
+                              : selectedSpellSupportsTamedSurge && useTamedSurgeOnSelectedSpell
+                                ? "Tamed Surge will be spent after this spell consumes a spell slot."
+                                : selectedSpellUnderMantleOfMajesty
+                                  ? "Mantle of Majesty is active. Cast at level 1 without expending a spell slot, or upcast normally."
+                                  : null
           }
           actionContextText={
             selectedSpellSupportsWarGodsBlessing &&
@@ -2541,13 +2615,15 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             selectedSpellSupportsBlessingOfMoonlight ||
             selectedSpellSupportsElementalSmite ||
             selectedSpellSupportsStepsOfTheFey ||
+            selectedSpellSupportsBewitchingMagic ||
             selectedSpellSupportsMistyWanderer ||
             selectedSpellSupportsFeyReinforcements ||
             selectedSpellSupportsPhantasmalCreatures ||
             selectedSpellFrozenHauntOptionState !== null ||
             selectedSpellSupportsNaturalRecovery ||
             selectedSpellSupportsTamedSurge ||
-            selectedSpellSupportsTelekineticMaster
+            selectedSpellSupportsTelekineticMaster ||
+            selectedSpellSupportsRadiantSoul
               ? [
                   ...(selectedSpellSupportsWarGodsBlessing
                     ? [
@@ -2665,7 +2741,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                           headerTags: [
                             createChargesHeaderTag(tamedSurgeUsesRemaining, tamedSurgeUsesTotal)
                           ],
-                          usage: createChargesCardUsage(tamedSurgeUsesRemaining, tamedSurgeUsesTotal)
+                          usage: createChargesCardUsage(
+                            tamedSurgeUsesRemaining,
+                            tamedSurgeUsesTotal
+                          )
                         }
                       ]
                     : []),
@@ -2734,6 +2813,17 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                         }
                       ]
                     : []),
+                  ...(selectedSpellSupportsRadiantSoul
+                    ? [
+                        {
+                          id: "radiant-soul",
+                          label: "Radiant Soul | Once per turn",
+                          checked: useRadiantSoulOnSelectedSpell,
+                          onCheckedChange: setUseRadiantSoulOnSelectedSpell,
+                          disabled: selectedSpellRadiantSoulDisabled
+                        }
+                      ]
+                    : []),
                   ...(selectedSpellSupportsElementalSmite
                     ? [
                         {
@@ -2799,6 +2889,16 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
                             warlockStepsOfTheFeyUsesRemaining,
                             warlockStepsOfTheFeyUsesTotal
                           )
+                        }
+                      ]
+                    : []),
+                  ...(selectedSpellSupportsBewitchingMagic
+                    ? [
+                        {
+                          id: "bewitching-magic",
+                          label: "Bewitching Magic | Free Cast",
+                          checked: useBewitchingMagicOnSelectedSpell,
+                          onCheckedChange: setUseBewitchingMagicOnSelectedSpell
                         }
                       ]
                     : []),

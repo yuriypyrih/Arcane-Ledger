@@ -11,6 +11,8 @@ export {
   formatSpellCastingTime,
   formatSpellCastingTimeSummary,
   formatSpellComponents,
+  formatSpellHealing,
+  formatSpellHealingFormula,
   getSpellDurationDisplayParts,
   formatSpellDuration,
   formatSpellDurationPart,

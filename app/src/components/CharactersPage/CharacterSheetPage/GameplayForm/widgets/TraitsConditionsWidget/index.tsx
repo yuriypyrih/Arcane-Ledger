@@ -121,9 +121,6 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           selectedSpellSlotLevel={reactionDrawerState.selectedReactionSpellSlotLevel}
           onSelectedSpellSlotLevelChange={reactionDrawerState.setSelectedReactionSpellSlotLevel}
           onClose={reactionDrawerState.closeSelectedReaction}
-          actionLabel={
-            reactionDrawerState.openedFeatureReactionSpellEntryId ? "Take Reaction" : undefined
-          }
           onAction={(options) =>
             reactionDrawerState.castSelectedReactionSpell({
               ...options,
@@ -165,6 +162,8 @@ function TraitsConditionsWidget({ character, onPersistCharacter }: TraitsConditi
           headerBadges={[]}
           resourceSummary={reactionDrawerState.selectedReactionResourceSummary}
           footerContent={reactionDrawerState.selectedReactionFooterContent}
+          actionLabel={reactionDrawerState.selectedReactionActionLabel}
+          actionDisabled={reactionDrawerState.selectedReactionActionDisabled}
           customContent={reactionDrawerState.selectedReactionCustomContent}
           onCast={reactionDrawerState.castSelectedReactionEntry}
           onClose={reactionDrawerState.closeSelectedReaction}

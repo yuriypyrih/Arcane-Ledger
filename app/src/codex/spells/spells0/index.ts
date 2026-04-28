@@ -28,6 +28,7 @@ export const acidSplash: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.ACID]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
@@ -45,6 +46,7 @@ export const bladeWard: SpellEntry = {
     "You extend your hand and trace a sigil of warding in the air. Until the end of your next turn, you have resistance against bludgeoning, piercing, and slashing damage dealt by weapon attacks."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.SORCERER,
@@ -69,6 +71,7 @@ export const boomingBlade: SpellEntry = {
   ],
   isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.THUNDER]],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.SORCERER,
@@ -94,6 +97,7 @@ export const chillTouch: SpellEntry = {
   isAttackSpell: true,
   isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.NECROTIC]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
@@ -116,6 +120,7 @@ export const controlFlames: SpellEntry = {
     "If you cast this spell multiple times, you can have up to three of its non-instantaneous effects active at a time, and you can dismiss such an effect as an action."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.DRUID,
@@ -142,6 +147,7 @@ export const createBonfire: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.FIRE]],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.DRUID,
@@ -166,6 +172,7 @@ export const dancingLights: SpellEntry = {
     "As a Bonus Action on your turn, you can move the lights up to 60 feet to a new spot within range. A light must be within 20 feet of another light created by this spell, and a light winks out if it exceeds the spell's range."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.BARD,
@@ -192,6 +199,7 @@ export const druidcraft: SpellEntry = {
     "You instantly light or snuff out a candle, a torch, or a small campfire."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
 };
@@ -214,6 +222,7 @@ export const elementalism: SpellEntry = {
     "<strong>Sculpt Element.</strong> You cause dirt, sand, fire, smoke, mist, or water that can fit in a 1-foot Cube to assume a crude shape (such as that of a creature) for 1 hour."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.DRUID,
@@ -239,6 +248,7 @@ export const eldritchBlast: SpellEntry = {
   isAttackSpell: true,
   isDamagingSpell: true,
   damage: [[DICE.D10, DAMAGE_TYPE.FORCE]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK],
   spellLevel: 0
 };
@@ -258,6 +268,7 @@ export const encodeThoughts: SpellEntry = {
     "Casting this spell while holding a thought strand allows you to instantly receive whatever memory, idea, or message the thought strand contains. Casting Detect Thoughts on the strand has the same effect."
   ],
   damage: [],
+  healing: [],
   spellLists: [],
   spellLevel: 0
 };
@@ -278,6 +289,7 @@ export const fireBolt: SpellEntry = {
   isAttackSpell: true,
   isDamagingSpell: true,
   damage: [[DICE.D10, DAMAGE_TYPE.FIRE]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
@@ -296,6 +308,7 @@ export const friends: SpellEntry = {
     "A creature prone to violence might attack you. Another creature might seek retribution in other ways, at the DM's discretion, depending on the nature of your interaction with it."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.SORCERER,
@@ -322,6 +335,7 @@ export const frostbite: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.COLD]],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.DRUID,
@@ -347,6 +361,7 @@ export const greenFlameBlade: SpellEntry = {
   ],
   isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.FIRE]],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.SORCERER,
@@ -369,6 +384,7 @@ export const guidance: SpellEntry = {
     "You touch one willing creature. Once before the spell ends, the target can roll a <strong>d4</strong> and add the number rolled to one ability check of its choice. It can roll the die before or after making the ability check. The spell then ends."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
 };
@@ -391,6 +407,7 @@ export const gust: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.STR,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
@@ -412,6 +429,7 @@ export const handOfRadiance: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.RADIANT]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 0
 };
@@ -433,6 +451,7 @@ export const infestation: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.POISON]],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.DRUID,
     SPELL_LIST_CLASS.SORCERER,
@@ -458,6 +477,7 @@ export const light: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.BARD,
@@ -485,6 +505,7 @@ export const lightningLure: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.STR,
   isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.LIGHTNING]],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.SORCERER,
@@ -509,6 +530,7 @@ export const mageHand: SpellEntry = {
     "The hand can't attack, activate magical items, or carry more than 10 pounds."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.BARD,
@@ -535,6 +557,7 @@ export const magicStone: SpellEntry = {
   isAttackSpell: true,
   isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.BLUDGEONING]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.WARLOCK],
   spellLevel: 0
 };
@@ -553,6 +576,7 @@ export const mending: SpellEntry = {
     "This spell can physically repair a magic item or construct, but the spell can't restore magic to such an object."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.BARD,
@@ -578,6 +602,7 @@ export const message: SpellEntry = {
     "You can cast this spell through solid objects if you are familiar with the target and know it is beyond the barrier. Magical silence, 1 foot of stone, 1 inch of common metal, a thin sheet of lead, or 3 feet of wood blocks the spell. The spell doesn't have to follow a straight line and can travel freely around corners or through openings."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.BARD,
@@ -604,6 +629,7 @@ export const mindSliver: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.INT,
   isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.PSYCHIC]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
@@ -624,6 +650,7 @@ export const minorIllusion: SpellEntry = {
     "If a creature uses its action to examine the sound or image, the creature can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the illusion becomes faint to the creature."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.SORCERER,
@@ -650,6 +677,7 @@ export const moldEarth: SpellEntry = {
     "If you cast this spell multiple times, you can have no more than two of its non-instantaneous effects active at a time, and you can dismiss such an effect as an action."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
@@ -667,6 +695,7 @@ export const onOff: SpellEntry = {
     "This cantrip allows you to activate or deactivate any electronic device within range, as long as the device has a clearly defined on or off function that can be easily accessed from the outside of the device. Any device that requires a software-based shutdown sequence to activate or deactivate cannot be affected by On/Off."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
@@ -688,6 +717,7 @@ export const poisonSpray: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [[DICE.D12, DAMAGE_TYPE.POISON]],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.DRUID,
@@ -718,6 +748,7 @@ export const prestidigitation: SpellEntry = {
     "If you cast this spell multiple times, you can have up to three of its non-instantaneous effects active at a time, and you can dismiss such an effect as an action."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.BARD,
@@ -744,6 +775,7 @@ export const primalSavagery: SpellEntry = {
   isAttackSpell: true,
   isDamagingSpell: true,
   damage: [[DICE.D10, DAMAGE_TYPE.ACID]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
 };
@@ -765,6 +797,7 @@ export const produceFlame: SpellEntry = {
   isAttackSpell: true,
   isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.FIRE]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
 };
@@ -785,6 +818,7 @@ export const rayOfFrost: SpellEntry = {
   isAttackSpell: true,
   isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.COLD]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
@@ -802,6 +836,7 @@ export const resistance: SpellEntry = {
     "You touch one willing creature. Once before the spell ends, the target can roll a <strong>d4</strong> and add the number rolled to one saving throw of its choice. It can roll the die before or after the saving throw. The spell then ends."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
 };
@@ -823,6 +858,7 @@ export const sacredFlame: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.RADIANT]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 0
 };
@@ -844,6 +880,7 @@ export const sappingSting: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [[DICE.D4, DAMAGE_TYPE.NECROTIC]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
@@ -866,6 +903,7 @@ export const shapeWater: SpellEntry = {
     "If you cast this spell multiple times, you can have no more than two of its non-instantaneous effects active at a time, and you can dismiss such an effect as an action."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
@@ -883,7 +921,8 @@ export const shillelagh: SpellEntry = {
     "The wood of a club or quarterstaff you are holding is imbued with nature's power. For the duration, you can use your spellcasting ability instead of Strength for the attack and damage rolls of melee attacks using that weapon, and the weapon's damage die becomes a <strong>d8</strong>. The weapon also becomes magical, if it isn't already. The spell ends if you cast it again or if you let go of the weapon."
   ],
   isDamagingSpell: true,
-  damage: [],
+  damage: [[DICE.D8, DAMAGE_TYPE.BLUDGEONING]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
 };
@@ -904,6 +943,7 @@ export const shockingGrasp: SpellEntry = {
   isAttackSpell: true,
   isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.LIGHTNING]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
@@ -921,6 +961,7 @@ export const spareTheDying: SpellEntry = {
     "You touch a living creature that has 0 Hit Points. The creature becomes stable. This spell has no effect on Undead or constructs."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.CLERIC],
   spellLevel: 0
 };
@@ -941,6 +982,7 @@ export const starryWisp: SpellEntry = {
   isAttackSpell: true,
   isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.RADIANT]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
 };
@@ -962,6 +1004,7 @@ export const swordBurst: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.FORCE]],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.SORCERER,
@@ -991,6 +1034,7 @@ export const thaumaturgy: SpellEntry = {
     "If you cast this spell multiple times, you can have up to three of its 1-minute effects active at a time, and you can dismiss such an effect as an action."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 0
 };
@@ -1011,6 +1055,7 @@ export const thornWhip: SpellEntry = {
   isAttackSpell: true,
   isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.PIERCING]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.DRUID],
   spellLevel: 0
 };
@@ -1032,6 +1077,7 @@ export const thunderclap: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.THUNDER]],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.BARD,
@@ -1063,6 +1109,7 @@ export const tollTheDead: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.NECROTIC],
     [DICE.D12, DAMAGE_TYPE.NECROTIC]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 0
 };
@@ -1080,6 +1127,7 @@ export const trueStrike: SpellEntry = {
     "You extend your hand and point a finger at a target in range. Your magic grants you a brief insight into the target's defenses. On your next turn, you gain Advantage on your first attack roll against the target, provided that this spell hasn't ended."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.SORCERER,
@@ -1106,6 +1154,7 @@ export const viciousMockery: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.WIS,
   isDamagingSpell: true,
   damage: [[DICE.D4, DAMAGE_TYPE.PSYCHIC]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD],
   spellLevel: 0
 };
@@ -1123,6 +1172,7 @@ export const virtue: SpellEntry = {
     "You touch one creature, imbuing it with vitality. If the target has at least 1 Hit Point, it gains a number of Temporary Hit Points equal to <strong>1d4</strong> + your spellcasting ability modifier. The Temporary Hit Points are lost when the spell ends."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 0
 };
@@ -1144,6 +1194,7 @@ export const wordOfRadiance: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.RADIANT]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 0
 };

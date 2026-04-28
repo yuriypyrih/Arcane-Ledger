@@ -28,7 +28,19 @@ export const absorbElements: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the extra damage increases by <strong>1d6</strong> for each slot level above 1st."
   ],
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.THUNDER
+      ]
+    ]
+  ],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.DRUID,
@@ -60,6 +72,7 @@ export const acidStream: SpellEntry = {
     [DICE.D4, DAMAGE_TYPE.ACID],
     [DICE.D4, DAMAGE_TYPE.ACID]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -79,6 +92,7 @@ export const alarm: SpellEntry = {
     "A mental alarm alerts you with a ping in your mind if you are within 1 mile of the warded area. This ping awakens you if you are sleeping. An audible alarm produces the sound of a hand bell for 10 seconds within 60 feet."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.RANGER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -99,6 +113,7 @@ export const animalFriendship: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
   spellLevel: 1
 };
@@ -118,7 +133,20 @@ export const arcaneWeapon: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd level or higher, you can maintain your Concentration on the spell for up to 8 hours."
   ],
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.THUNDER
+      ]
+    ]
+  ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER],
   spellLevel: 1
 };
@@ -138,6 +166,7 @@ export const armorOfAgathys: SpellEntry = {
   ],
   isDamagingSpell: true,
   damage: [[5, DAMAGE_TYPE.COLD]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK],
   spellLevel: 1
 };
@@ -162,6 +191,7 @@ export const armsOfHadar: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.NECROTIC],
     [DICE.D6, DAMAGE_TYPE.NECROTIC]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK],
   spellLevel: 1
 };
@@ -182,6 +212,7 @@ export const bane: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CHA,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC],
   spellLevel: 1
 };
@@ -199,6 +230,7 @@ export const beastBond: SpellEntry = {
     "You establish a telepathic link with one Beast you touch that is friendly to you or Charmed by you. The spell fails if the Beast's Intelligence is 4 or higher. Until the spell ends, the link is active while you and the Beast are within line of sight of each other. Through the link, the Beast can understand your telepathic messages to it, and it can telepathically communicate simple emotions and concepts back to you. While the link is active, the Beast gains Advantage on attack rolls against any creature within 5 feet of you that you can see."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
   spellLevel: 1
 };
@@ -217,6 +249,7 @@ export const bless: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.PALADIN],
   spellLevel: 1
 };
@@ -243,6 +276,7 @@ export const burningHands: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.FIRE],
     [DICE.D6, DAMAGE_TYPE.FIRE]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -268,6 +302,7 @@ export const catapult: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.BLUDGEONING],
     [DICE.D8, DAMAGE_TYPE.BLUDGEONING]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -288,6 +323,7 @@ export const causeFear: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -312,6 +348,7 @@ export const ceremony: SpellEntry = {
     "Wedding. You touch adult Humanoids willing to be bonded together in marriage. For the next 7 days, each target gains a +2 bonus to AC while they are within 30 feet of each other. A creature can benefit from this rite again only if widowed."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.PALADIN],
   spellLevel: 1
 };
@@ -333,7 +370,48 @@ export const chaosBolt: SpellEntry = {
   ],
   isAttackSpell: true,
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [
+      DICE.D8,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.FORCE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.PSYCHIC,
+        DAMAGE_TYPE.THUNDER
+      ]
+    ],
+    [
+      DICE.D8,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.FORCE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.PSYCHIC,
+        DAMAGE_TYPE.THUNDER
+      ]
+    ],
+    [
+      DICE.D6,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.FORCE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.PSYCHIC,
+        DAMAGE_TYPE.THUNDER
+      ]
+    ]
+  ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER],
   spellLevel: 1
 };
@@ -354,6 +432,7 @@ export const charmPerson: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.DRUID,
@@ -379,7 +458,42 @@ export const chromaticOrb: SpellEntry = {
   ],
   isAttackSpell: true,
   isDamagingSpell: true,
-  damage: [],
+  damage: [
+    [
+      DICE.D8,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.THUNDER
+      ]
+    ],
+    [
+      DICE.D8,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.THUNDER
+      ]
+    ],
+    [
+      DICE.D8,
+      [
+        DAMAGE_TYPE.ACID,
+        DAMAGE_TYPE.COLD,
+        DAMAGE_TYPE.FIRE,
+        DAMAGE_TYPE.LIGHTNING,
+        DAMAGE_TYPE.POISON,
+        DAMAGE_TYPE.THUNDER
+      ]
+    ]
+  ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -399,6 +513,7 @@ export const colorSpray: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, roll an additional <strong>2d10</strong> for each slot level above 1st."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -424,6 +539,7 @@ export const command: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.PALADIN],
   spellLevel: 1
 };
@@ -444,6 +560,7 @@ export const compelledDuel: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.PALADIN],
   spellLevel: 1
 };
@@ -463,6 +580,7 @@ export const comprehendLanguages: SpellEntry = {
     "This spell doesn't decode secret messages in a text or glyph, such as an arcane sigil, that isn't part of a written language."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.SORCERER,
@@ -488,6 +606,7 @@ export const createOrDestroyWater: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, you create or destroy 10 additional gallons of water, or the size of the cube increases by 5 feet, for each slot level above 1st."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID],
   spellLevel: 1
 };
@@ -507,6 +626,7 @@ export const cureWounds: SpellEntry = {
   ],
   isHealingSpell: true,
   damage: [],
+  healing: [DICE.D8, "spellcastingAbility"],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.BARD,
@@ -533,6 +653,7 @@ export const detectMagic: SpellEntry = {
     "The spell can penetrate most barriers, but is blocked by 1 foot of stone, 1 inch of common metal, a thin sheet of lead, or 3 feet of wood or dirt."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.BARD,
@@ -561,6 +682,7 @@ export const detectPoisonAndDisease: SpellEntry = {
     "The spell can penetrate most barriers, but is blocked by 1 foot of stone, 1 inch of common metal, a thin sheet of lead, or 3 feet of wood or dirt."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.CLERIC,
     SPELL_LIST_CLASS.DRUID,
@@ -584,6 +706,7 @@ export const disguiseSelf: SpellEntry = {
     "The changes wrought by this spell fail to hold up to physical inspection. For example, if you use this spell to add a hat to your outfit, objects pass through the hat, and anyone who touches it would feel nothing or would feel your head and hair. If you use this spell to appear thinner than you are, the hand of someone who reaches out to touch you would bump into you while it was seemingly still in midair. To discern that you are disguised, a creature can use its action to inspect your appearance and must succeed on an Intelligence (Investigation) check against your spell save DC."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.BARD,
@@ -614,6 +737,7 @@ export const dissonantWhispers: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.PSYCHIC],
     [DICE.D6, DAMAGE_TYPE.PSYCHIC]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD],
   spellLevel: 1
 };
@@ -632,6 +756,7 @@ export const distortValue: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a higher spell slot, you increase the size of the object by 1 foot per spell slot over 1st."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.SORCERER,
@@ -655,6 +780,7 @@ export const divineFavor: SpellEntry = {
   ],
   isDamagingSpell: true,
   damage: [[DICE.D4, DAMAGE_TYPE.RADIANT]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.PALADIN],
   spellLevel: 1
 };
@@ -677,6 +803,7 @@ export const divineSmite: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.RADIANT],
     [DICE.D8, DAMAGE_TYPE.RADIANT]
   ],
+  healing: [],
   spellLists: [],
   spellLevel: 1
 };
@@ -698,6 +825,7 @@ export const earthTremor: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.BLUDGEONING]],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.DRUID,
@@ -725,6 +853,7 @@ export const ensnaringStrike: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.STR,
   isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.PIERCING]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.RANGER],
   spellLevel: 1
 };
@@ -746,6 +875,7 @@ export const entangle: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.STR,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
   spellLevel: 1
 };
@@ -763,6 +893,7 @@ export const expeditiousRetreat: SpellEntry = {
     "This spell allows you to move at an incredible pace. When you cast this spell, and then as a Bonus Action on each of your turns until the spell ends, you can take the Dash action."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.SORCERER,
@@ -789,6 +920,7 @@ export const faerieFire: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID],
   spellLevel: 1
 };
@@ -807,6 +939,7 @@ export const falseLife: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, you gain 5 additional Temporary Hit Points for each slot level above 1st."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -827,6 +960,7 @@ export const featherFall: SpellEntry = {
     "Choose up to five falling creatures within range. A falling creature's rate of descent slows to 60 feet per round until the spell ends. If the creature lands before the spell ends, it takes no falling damage and can land on its feet, and the spell ends for that creature."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.BARD,
@@ -855,6 +989,7 @@ export const findFamiliar: SpellEntry = {
     "Finally, when you cast a spell with a range of Touch, your familiar can deliver the spell as if it had cast the spell. Your familiar must be within 100 feet of you, and it must use its reaction to deliver the spell when you cast it. If the spell requires an attack roll, you use your attack modifier for the roll."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -873,6 +1008,7 @@ export const fogCloud: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, the radius of the fog increases by 20 feet for each slot level above 1st."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.DRUID,
     SPELL_LIST_CLASS.RANGER,
@@ -903,6 +1039,7 @@ export const frostFingers: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.COLD],
     [DICE.D8, DAMAGE_TYPE.COLD]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -920,6 +1057,7 @@ export const giftOfAlacrity: SpellEntry = {
     "You touch a willing creature. For the duration, the target can add <strong>1d8</strong> to its Initiative rolls."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -939,6 +1077,7 @@ export const goodberry: SpellEntry = {
   ],
   isHealingSpell: true,
   damage: [],
+  healing: [1],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
   spellLevel: 1
 };
@@ -959,6 +1098,7 @@ export const grease: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -984,6 +1124,7 @@ export const guidingBolt: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.RADIANT],
     [DICE.D6, DAMAGE_TYPE.RADIANT]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 1
 };
@@ -1003,6 +1144,7 @@ export const guidingHand: SpellEntry = {
     "If you don't move toward the hand, it remains in place until you do and beckons for you to follow once every <strong>1d4</strong> minutes."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.CLERIC,
@@ -1029,6 +1171,7 @@ export const hailOfThorns: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.DEX,
   isDamagingSpell: true,
   damage: [[DICE.D10, DAMAGE_TYPE.PIERCING]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.RANGER],
   spellLevel: 1
 };
@@ -1048,6 +1191,7 @@ export const healingElixir: SpellEntry = {
   ],
   isHealingSpell: true,
   damage: [],
+  healing: [DICE.D4, DICE.D4, 2],
   spellLists: [SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1067,6 +1211,7 @@ export const healingWord: SpellEntry = {
   ],
   isHealingSpell: true,
   damage: [],
+  healing: [DICE.D4, "spellcastingAbility"],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.DRUID],
   spellLevel: 1
 };
@@ -1094,6 +1239,7 @@ export const hellishRebuke: SpellEntry = {
     [DICE.D10, DAMAGE_TYPE.FIRE],
     [DICE.D10, DAMAGE_TYPE.FIRE]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK],
   spellLevel: 1
 };
@@ -1112,6 +1258,7 @@ export const heroism: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.PALADIN],
   spellLevel: 1
 };
@@ -1133,6 +1280,7 @@ export const hex: SpellEntry = {
   ],
   isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.NECROTIC]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WARLOCK],
   spellLevel: 1
 };
@@ -1152,7 +1300,8 @@ export const huntersMark: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 3rd or 4th level, you can maintain your Concentration on the spell for up to 8 hours. When you use a spell slot of 5th level or higher, you can maintain your Concentration on the spell for up to 24 hours."
   ],
   isDamagingSpell: true,
-  damage: [],
+  damage: [[DICE.D6, [DAMAGE_TYPE.BLUDGEONING, DAMAGE_TYPE.PIERCING, DAMAGE_TYPE.SLASHING]]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.RANGER],
   spellLevel: 1
 };
@@ -1179,6 +1328,7 @@ export const iceKnife: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.COLD],
     [DICE.D6, DAMAGE_TYPE.COLD]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1199,6 +1349,7 @@ export const idInsinuation: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.WIS,
   isDamagingSpell: true,
   damage: [[DICE.D12, DAMAGE_TYPE.PSYCHIC]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1218,6 +1369,7 @@ export const identify: SpellEntry = {
     "If you instead touch a creature throughout the casting, you learn what spells, if any, are currently affecting it."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1238,6 +1390,7 @@ export const illusoryScript: SpellEntry = {
     "Should the spell be dispelled, the original script and the illusion both disappear. A creature with Truesight can read the hidden message."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1258,6 +1411,7 @@ export const infallibleRelay: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CHA,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1282,6 +1436,7 @@ export const inflictWounds: SpellEntry = {
     [DICE.D10, DAMAGE_TYPE.NECROTIC],
     [DICE.D10, DAMAGE_TYPE.NECROTIC]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC],
   spellLevel: 1
 };
@@ -1306,6 +1461,7 @@ export const jimsMagicMissile: SpellEntry = {
     [DICE.D4, DAMAGE_TYPE.FORCE],
     [DICE.D4, DAMAGE_TYPE.FORCE]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1323,6 +1479,7 @@ export const jump: SpellEntry = {
     "You touch a creature. The creature's jump distance is tripled until the spell ends."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.DRUID,
@@ -1347,6 +1504,7 @@ export const longstrider: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, you can target one additional creature for each slot level above 1st."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.BARD,
@@ -1370,6 +1528,7 @@ export const mageArmor: SpellEntry = {
     "You touch a willing creature who isn't wearing armor, and a protective magical force surrounds it until the spell ends. The target's base AC becomes 13 + its Dexterity modifier. The spell ends if the target dons armor or if you dismiss the spell as an action."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1389,6 +1548,7 @@ export const magicMissile: SpellEntry = {
   ],
   isDamagingSpell: true,
   damage: [[DICE.D4, DAMAGE_TYPE.FORCE]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1414,6 +1574,7 @@ export const magnifyGravity: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.FORCE],
     [DICE.D8, DAMAGE_TYPE.FORCE]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1432,6 +1593,7 @@ export const protectionFromEvilAndGood: SpellEntry = {
     "The protection grants several benefits. Creatures of those types have Disadvantage on attack rolls against the target. The target also can't be Charmed, Frightened, or possessed by them. If the target is already Charmed, Frightened, or possessed by such a creature, the target has Advantage on any new saving throw against the relevant effect."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.CLERIC,
     SPELL_LIST_CLASS.DRUID,
@@ -1457,6 +1619,7 @@ export const puppet: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CON,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1475,6 +1638,7 @@ export const purifyFoodAndDrink: SpellEntry = {
     "All nonmagical food and drink within a 5-foot-radius sphere centered on a point of your choice within range is purified and rendered free of poison and disease."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.CLERIC,
@@ -1505,6 +1669,7 @@ export const rayOfSickness: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.POISON],
     [DICE.D8, DAMAGE_TYPE.POISON]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1522,6 +1687,7 @@ export const remoteAccess: SpellEntry = {
     "You can use any electronic device within range as if it were in your hands. This is not a telekinesis effect. Rather, this spell allows you to simulate a device's mechanical functions electronically. You are able to access only functions that a person using the device manually would be able to access. You can use Remote Access with only one device at a time."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1542,6 +1708,7 @@ export const sanctuary: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.CLERIC],
   spellLevel: 1
 };
@@ -1564,6 +1731,7 @@ export const searingSmite: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.CON,
   isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.FIRE]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.PALADIN, SPELL_LIST_CLASS.RANGER],
   spellLevel: 1
 };
@@ -1581,6 +1749,7 @@ export const senseEmotion: SpellEntry = {
     "You attune your senses to pick up the emotions of others for the duration. When you cast the spell, and as your action on each turn until the spell ends, you can focus your senses on one Humanoid you can see within 30 feet of you. You instantly learn the target's prevailing emotion, whether it's love, anger, pain, fear, calm, or something else. If the target isn't actually Humanoid or it is immune to being Charmed, you sense that it is calm."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1601,6 +1770,7 @@ export const shield: SpellEntry = {
     "An invisible barrier of magical force appears and protects you. Until the start of your next turn, you have a +5 bonus to AC, including against the triggering attack, and you take no damage from Magic Missile."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1618,6 +1788,7 @@ export const shieldOfFaith: SpellEntry = {
     "A shimmering field appears and surrounds a creature of your choice within range, granting it a +2 bonus to AC for the duration."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.CLERIC, SPELL_LIST_CLASS.PALADIN],
   spellLevel: 1
 };
@@ -1637,6 +1808,7 @@ export const silentImage: SpellEntry = {
     "Physical interaction with the image reveals it to be an illusion, because things can pass through it. A creature that uses its action to examine the image can determine that it is an illusion with a successful Intelligence (Investigation) check against your spell save DC. If a creature discerns the illusion for what it is, the creature can see through the image."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1658,6 +1830,7 @@ export const silveryBarbs: SpellEntry = {
     "You can then choose a different creature you can see within range, and you can choose yourself. The chosen creature has Advantage on the next attack roll, ability check, or saving throw it makes within 1 minute. A creature can be empowered by only one use of this spell at a time."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1677,6 +1850,7 @@ export const sleep: SpellEntry = {
     "<strong>At Higher Levels.</strong> When you cast this spell using a spell slot of 2nd level or higher, roll an additional <strong>2d8</strong> for each slot level above 1st."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1700,6 +1874,7 @@ export const snare: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.DEX,
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.ARTIFICER,
     SPELL_LIST_CLASS.DRUID,
@@ -1723,6 +1898,7 @@ export const speakWithAnimals: SpellEntry = {
     "You gain the ability to comprehend and verbally communicate with Beasts for the duration. The knowledge and awareness of many Beasts is limited by their Intelligence, but at minimum, Beasts can give you information about nearby locations and monsters, including whatever they can perceive or have perceived within the past day. You might be able to persuade a Beast to perform a small favor for you, at the DM's discretion."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
   spellLevel: 1
 };
@@ -1740,6 +1916,7 @@ export const suddenAwakening: SpellEntry = {
     "Each sleeping creature you choose within range awakens, and then each Prone creature within range can stand up without expending any movement."
   ],
   damage: [],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.RANGER,
@@ -1769,6 +1946,7 @@ export const tashasCausticBrew: SpellEntry = {
     [DICE.D4, DAMAGE_TYPE.ACID],
     [DICE.D4, DAMAGE_TYPE.ACID]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.ARTIFICER, SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1789,6 +1967,7 @@ export const tashasHideousLaughter: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.WIS,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1809,6 +1988,7 @@ export const tensersFloatingDisk: SpellEntry = {
     "If you move more than 100 feet from the disk, typically because it can't move around an obstacle to follow you, the spell ends."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1832,6 +2012,7 @@ export const thunderousSmite: SpellEntry = {
     [DICE.D6, DAMAGE_TYPE.THUNDER],
     [DICE.D6, DAMAGE_TYPE.THUNDER]
   ],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.PALADIN],
   spellLevel: 1
 };
@@ -1857,6 +2038,7 @@ export const thunderwave: SpellEntry = {
     [DICE.D8, DAMAGE_TYPE.THUNDER],
     [DICE.D8, DAMAGE_TYPE.THUNDER]
   ],
+  healing: [],
   spellLists: [
     SPELL_LIST_CLASS.BARD,
     SPELL_LIST_CLASS.DRUID,
@@ -1882,6 +2064,7 @@ export const unearthlyChorus: SpellEntry = {
   isSavingThrowSpell: true,
   savingThrowAbility: ABILITY_TYPES.CHA,
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD],
   spellLevel: 1
 };
@@ -1902,6 +2085,7 @@ export const unseenServant: SpellEntry = {
     "If you command the servant to perform a task that would move it more than 60 feet away from you, the spell ends."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.BARD, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1925,6 +2109,7 @@ export const wildCunning: SpellEntry = {
     "Have the spirits instantly break down a campsite, which includes putting out a fire, taking down tents, packing up bags, and burying any rubbish."
   ],
   damage: [],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.DRUID, SPELL_LIST_CLASS.RANGER],
   spellLevel: 1
 };
@@ -1945,6 +2130,7 @@ export const witchBolt: SpellEntry = {
   isAttackSpell: true,
   isDamagingSpell: true,
   damage: [[DICE.D12, DAMAGE_TYPE.LIGHTNING]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.SORCERER, SPELL_LIST_CLASS.WARLOCK, SPELL_LIST_CLASS.WIZARD],
   spellLevel: 1
 };
@@ -1965,6 +2151,7 @@ export const wrathfulSmite: SpellEntry = {
   savingThrowAbility: ABILITY_TYPES.WIS,
   isDamagingSpell: true,
   damage: [[DICE.D6, DAMAGE_TYPE.PSYCHIC]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.PALADIN],
   spellLevel: 1
 };
@@ -1984,6 +2171,7 @@ export const zephyrStrike: SpellEntry = {
   ],
   isDamagingSpell: true,
   damage: [[DICE.D8, DAMAGE_TYPE.FORCE]],
+  healing: [],
   spellLists: [SPELL_LIST_CLASS.RANGER],
   spellLevel: 1
 };
