@@ -2,6 +2,7 @@ import type { Character, CharacterStatusEntry } from "../../../../types";
 import { STATUS_DURATION_ROUND_TICK, STATUS_ENTRY_SOURCE_TYPE } from "../../../../types";
 import {
   advanceFeatureStateForNewRound,
+  clearRoundScopedFeatureStateForCharacter,
   removeFeatureStatusEntryForCharacter
 } from "../../../../pages/CharactersPage/classFeatures";
 import {
@@ -16,6 +17,7 @@ import {
 import type { HpDraft } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
   consumeRoundTrackerResource,
+  shouldTrackRoundScopedResources,
   startRoundTrackerTurn,
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
@@ -194,9 +196,12 @@ export function consumeRoundTrackerResourceForCharacter(
   resource: RoundTrackerResource
 ): Character {
   const preparedCharacter = prepareCharacterForRoundTrackerResourceConsumption(character, resource);
-
-  return {
+  const nextCharacter = {
     ...preparedCharacter,
     roundTracker: consumeRoundTrackerResource(preparedCharacter.roundTracker, resource)
   };
+
+  return shouldTrackRoundScopedResources(nextCharacter.roundTracker)
+    ? nextCharacter
+    : clearRoundScopedFeatureStateForCharacter(nextCharacter);
 }

@@ -32,6 +32,7 @@ import {
 import {
   isRoundTrackerResourceAvailable,
   normalizeRoundTracker,
+  shouldTrackRoundScopedResources,
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
 import {
@@ -192,7 +193,8 @@ function grantMonkFleetStepFollowUpForSpellCastIfEligible(
   character: Character,
   roundTrackerResource: RoundTrackerResource | null
 ): Character {
-  return roundTrackerResource === "bonusAction" &&
+  return shouldTrackRoundScopedResources(character.roundTracker) &&
+    roundTrackerResource === "bonusAction" &&
     character.className === "Monk" &&
     character.subclassId === warriorOfTheOpenHandSubclassId &&
     character.level >= 11
@@ -245,7 +247,11 @@ function getRoundTrackerActionWarning(
   resource: RoundTrackerResource | null,
   roundTracker: ReturnType<typeof normalizeRoundTracker>
 ): string | null {
-  if (!resource || isRoundTrackerResourceAvailable(roundTracker, resource)) {
+  if (
+    !resource ||
+    !shouldTrackRoundScopedResources(roundTracker) ||
+    isRoundTrackerResourceAvailable(roundTracker, resource)
+  ) {
     return null;
   }
 
@@ -260,6 +266,13 @@ function getActionShapeStateForRoundTrackerResource(
   isSelected: boolean;
   multiCount: number;
 } {
+  if (!shouldTrackRoundScopedResources(roundTracker)) {
+    return {
+      isSelected: true,
+      multiCount: 0
+    };
+  }
+
   const isSelected = !resource || isRoundTrackerResourceAvailable(roundTracker, resource);
 
   return {

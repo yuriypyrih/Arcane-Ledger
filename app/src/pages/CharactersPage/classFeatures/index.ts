@@ -9,7 +9,11 @@ import type {
 import type { WeaponAction } from "../gameplay";
 import { getRoundTrackerResourceForEconomyType } from "../actionEconomy";
 import { abilityKeys } from "../constants";
-import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../combat";
+import {
+  consumeRoundTrackerResource,
+  isRoundTrackerResourceAvailable,
+  shouldTrackRoundScopedResources
+} from "../combat";
 import {
   hasExhaustionAbilityCheckDisadvantage,
   hasExhaustionAttackRollDisadvantage,
@@ -639,6 +643,96 @@ export {
   createEconomyMultiContextForWeaponAction,
   getSharedEconomyMultiCountForCharacterAction
 };
+
+const roundScopedBooleanStateKeys = new Set([
+  "brutalStrikePending",
+  "battleMagicBonusAttackAvailable",
+  "frenzyPending",
+  "psiWarriorTelekineticMasterBonusAttackAvailable",
+  "spellcastWeaponBonusActionAvailable",
+  "steadyAimActive",
+  "steadyAimAttackAdvantageAvailable",
+  "warPriestBonusAttackAvailable",
+  "warriorOfMercyFlurryOfHealingAndHarmActive",
+  "warriorOfShadowShadowStepAdvantageActive"
+]);
+
+const roundScopedNumberStateKeys = new Set(["retaliationAttacksRemaining"]);
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function isRoundScopedBooleanStateKey(key: string): boolean {
+  return key.endsWith("UsedThisTurn") || roundScopedBooleanStateKeys.has(key);
+}
+
+function isRoundScopedNumberStateKey(key: string): boolean {
+  return (
+    key.endsWith("RemainingThisTurn") ||
+    key.endsWith("UsesThisTurn") ||
+    roundScopedNumberStateKeys.has(key)
+  );
+}
+
+function clearRoundScopedFeatureStateRecord(
+  stateRecord: Record<string, unknown>
+): Record<string, unknown> {
+  let nextStateRecord: Record<string, unknown> | null = null;
+
+  Object.entries(stateRecord).forEach(([key, value]) => {
+    let nextValue = value;
+
+    if (isRoundScopedBooleanStateKey(key) && value === true) {
+      nextValue = false;
+    } else if (isRoundScopedNumberStateKey(key) && typeof value === "number" && value !== 0) {
+      nextValue = 0;
+    }
+
+    if (nextValue !== value) {
+      nextStateRecord = nextStateRecord ?? { ...stateRecord };
+      nextStateRecord[key] = nextValue;
+    }
+  });
+
+  return nextStateRecord ?? stateRecord;
+}
+
+export function clearRoundScopedFeatureStateForCharacter(character: Character): Character {
+  const featureState = character.classFeatureState;
+
+  if (!featureState) {
+    return character;
+  }
+
+  let nextFeatureState: Record<string, unknown> | null = null;
+
+  Object.entries(featureState).forEach(([stateKey, stateValue]) => {
+    if (!isRecord(stateValue)) {
+      return;
+    }
+
+    const nextStateValue = clearRoundScopedFeatureStateRecord(stateValue);
+
+    if (nextStateValue !== stateValue) {
+      nextFeatureState = nextFeatureState ?? { ...featureState };
+      nextFeatureState[stateKey] = nextStateValue;
+    }
+  });
+
+  return nextFeatureState
+    ? {
+        ...character,
+        classFeatureState: nextFeatureState as CharacterClassFeatureState
+      }
+    : character;
+}
+
+function clearRoundScopedFeatureStateIfOutOfCombat(character: Character): Character {
+  return shouldTrackRoundScopedResources(character.roundTracker)
+    ? character
+    : clearRoundScopedFeatureStateForCharacter(character);
+}
 
 export function normalizeCharacterClassFeatureState(
   value: unknown,
@@ -1287,14 +1381,18 @@ export function applyBardBattleMagicAfterSpellCastForCharacter(
   character: Character,
   spell: Pick<SpellEntry, "castingTime">
 ): Character {
-  return applyBardBattleMagicAfterSpellCast(character, spell);
+  return clearRoundScopedFeatureStateIfOutOfCombat(
+    applyBardBattleMagicAfterSpellCast(character, spell)
+  );
 }
 
 export function activateBardicInspirationForCharacter(
   character: Character,
   fallbackSpellSlotLevel?: number
 ): Character {
-  return activateBardicInspiration(character, fallbackSpellSlotLevel);
+  return clearRoundScopedFeatureStateIfOutOfCombat(
+    activateBardicInspiration(character, fallbackSpellSlotLevel)
+  );
 }
 
 export function applySpellCastFeatureEffectsForCharacter(
@@ -1315,14 +1413,16 @@ export function applySpellCastFeatureEffectsForCharacter(
       ? restoreSorcererSubclassFeaturesOnSpellCast(nextCharacter)
       : nextCharacter;
 
-  return applyWarlockFeaturesAfterSpellCast(
-    applyWizardFeaturesAfterSpellCast(
-      nextCharacterWithSorcererEffects,
+  return clearRoundScopedFeatureStateIfOutOfCombat(
+    applyWarlockFeaturesAfterSpellCast(
+      applyWizardFeaturesAfterSpellCast(
+        nextCharacterWithSorcererEffects,
+        spell,
+        options?.spellSlotLevel
+      ),
       spell,
-      options?.spellSlotLevel
-    ),
-    spell,
-    { useRadiantSoul: options?.useRadiantSoul }
+      { useRadiantSoul: options?.useRadiantSoul }
+    )
   );
 }
 
@@ -1924,7 +2024,7 @@ export function expendFighterPsiWarriorEnergyDieForCharacter(character: Characte
 }
 
 export function consumeFighterPsiWarriorPsionicStrikeForCharacter(character: Character): Character {
-  return consumeFighterPsiWarriorPsionicStrike(character);
+  return clearRoundScopedFeatureStateIfOutOfCombat(consumeFighterPsiWarriorPsionicStrike(character));
 }
 
 export function restoreFighterPsiWarriorEnergyDieForCharacter(character: Character): Character {
@@ -2239,7 +2339,7 @@ export function activateInnateSorceryForCharacter(
   character: Character,
   options?: Parameters<typeof activateInnateSorcery>[1]
 ) {
-  return activateInnateSorcery(character, options);
+  return clearRoundScopedFeatureStateIfOutOfCombat(activateInnateSorcery(character, options));
 }
 
 export function getSorcererSpellfireCrownOfSpellfireUsesTotalForCharacter(
@@ -2746,13 +2846,17 @@ export function activateDruidWildResurgenceWildShapeRecoveryForCharacter(
   character: Character,
   spellSlotLevel: number
 ): Character {
-  return activateDruidWildResurgenceWildShapeRecovery(character, spellSlotLevel);
+  return clearRoundScopedFeatureStateIfOutOfCombat(
+    activateDruidWildResurgenceWildShapeRecovery(character, spellSlotLevel)
+  );
 }
 
 export function activateDruidWildResurgenceLevelOneSpellSlotRecoveryForCharacter(
   character: Character
 ): Character {
-  return activateDruidWildResurgenceLevelOneSpellSlotRecovery(character);
+  return clearRoundScopedFeatureStateIfOutOfCombat(
+    activateDruidWildResurgenceLevelOneSpellSlotRecovery(character)
+  );
 }
 
 export function restoreDruidWildShapeUseForCharacter(character: Character): Character {
@@ -3012,9 +3116,9 @@ export function activateFeatureActionForCharacter(
   character: Character,
   actionKey: string
 ): Character {
-  return (
+  return clearRoundScopedFeatureStateIfOutOfCombat(
     getActiveClassFeatureModule(character.className)?.handleAction?.(character, actionKey) ??
-    character
+      character
   );
 }
 
@@ -3022,7 +3126,9 @@ export function activateClericBlessingOfTheTricksterForCharacter(
   character: Character,
   target: "self" | "other"
 ): Character {
-  return activateClericBlessingOfTheTrickster(character, target);
+  return clearRoundScopedFeatureStateIfOutOfCombat(
+    activateClericBlessingOfTheTrickster(character, target)
+  );
 }
 
 export const clericWardingFlareReactionEntryId = wardingFlareReactionEntryId;
@@ -3345,13 +3451,17 @@ export function consumeRangerMistyWandererUseForCharacter(character: Character):
 export function consumeRangerGloomStalkerDreadAmbusherUseForCharacter(
   character: Character
 ): Character {
-  return consumeRangerGloomStalkerDreadAmbusherUse(character);
+  return clearRoundScopedFeatureStateIfOutOfCombat(
+    consumeRangerGloomStalkerDreadAmbusherUse(character)
+  );
 }
 
 export function consumeRangerWinterWalkerPolarStrikesUseForCharacter(
   character: Character
 ): Character {
-  return consumeRangerWinterWalkerPolarStrikesUse(character);
+  return clearRoundScopedFeatureStateIfOutOfCombat(
+    consumeRangerWinterWalkerPolarStrikesUse(character)
+  );
 }
 
 export function consumeRangerWinterWalkerChillingRetributionUseForCharacter(
@@ -3705,47 +3815,50 @@ export function markFeatureWeaponBonusUseForCharacter(
   character: Character,
   label: string
 ): Character {
+  const finalize = (nextCharacter: Character) =>
+    clearRoundScopedFeatureStateIfOutOfCombat(nextCharacter);
+
   if (label === "Divine Fury") {
-    return consumeBarbarianDivineFuryBonus(character);
+    return finalize(consumeBarbarianDivineFuryBonus(character));
   }
 
   if (label === "Brutal Strike") {
-    return consumeBarbarianBrutalStrikeBonus(character);
+    return finalize(consumeBarbarianBrutalStrikeBonus(character));
   }
 
   if (label === "Frenzy") {
-    return consumeBarbarianFrenzyBonus(character);
+    return finalize(consumeBarbarianFrenzyBonus(character));
   }
 
   if (label === "Divine Strike" || label === "Blessed Strikes") {
-    return markClericBlessedStrikeUsed(character);
+    return finalize(markClericBlessedStrikeUsed(character));
   }
 
   if (label === "Primal Strike") {
-    return markDruidPrimalStrikeUsed(character);
+    return finalize(markDruidPrimalStrikeUsed(character));
   }
 
   if (label === "Dreadful Strikes") {
-    return markRangerDreadfulStrikesUsed(character);
+    return finalize(markRangerDreadfulStrikesUsed(character));
   }
 
   if (label === "Colossus Slayer") {
-    return markRangerHunterColossusSlayerUsed(character);
+    return finalize(markRangerHunterColossusSlayerUsed(character));
   }
 
   if (label === monkWarriorOfMercyHandOfHarmBonusLabel) {
-    return consumeMonkWarriorOfMercyHandOfHarm(character);
+    return finalize(consumeMonkWarriorOfMercyHandOfHarm(character));
   }
 
   if (label === "Empowered Strikes") {
-    return consumeMonkWarriorOfTheElementsEmpoweredStrikes(character);
+    return finalize(consumeMonkWarriorOfTheElementsEmpoweredStrikes(character));
   }
 
   return character;
 }
 
 export function markRangerHunterHordeBreakerUsedForCharacter(character: Character): Character {
-  return markRangerHunterHordeBreakerUsed(character);
+  return clearRoundScopedFeatureStateIfOutOfCombat(markRangerHunterHordeBreakerUsed(character));
 }
 
 export function setRangerHunterHordeBreakerActionKeyForCharacter(
@@ -3771,59 +3884,63 @@ export function consumeWeaponAttackActionForCharacter(
   character: Character,
   action: WeaponAttackConsumptionContext
 ): Character {
+  const finalize = (nextCharacter: Character) =>
+    clearRoundScopedFeatureStateIfOutOfCombat(nextCharacter);
+
   if (character.className === "Barbarian") {
-    return consumeBarbarianWeaponAttack(character);
+    return finalize(consumeBarbarianWeaponAttack(character));
   }
 
   if (character.className === "Bard") {
-    return consumeBardWeaponAttack(character, action);
+    return finalize(consumeBardWeaponAttack(character, action));
   }
 
   if (character.className === "Cleric") {
     const nextCharacter = consumeClericWeaponAttack(character, action);
 
     if (nextCharacter !== character) {
-      return nextCharacter;
+      return finalize(nextCharacter);
     }
   }
 
   if (character.className === "Monk") {
-    return consumeMonkWeaponAttack(character, action);
+    return finalize(consumeMonkWeaponAttack(character, action));
   }
 
   if (character.className === "Ranger") {
-    return consumeRangerWeaponAttack(character);
+    return finalize(consumeRangerWeaponAttack(character));
   }
 
   if (character.className === "Paladin") {
-    return consumePaladinWeaponAttack(character);
+    return finalize(consumePaladinWeaponAttack(character));
   }
 
   if (character.className === "Rogue") {
-    return consumeRogueWeaponAttack(character, action);
+    return finalize(consumeRogueWeaponAttack(character, action));
   }
 
   if (character.className === "Fighter") {
-    return consumeFighterWeaponAttack(character, action);
+    return finalize(consumeFighterWeaponAttack(character, action));
   }
 
   if (character.className === "Wizard") {
     const nextCharacter = consumeWizardWeaponAttack(character, action);
 
     if (nextCharacter !== character) {
-      return nextCharacter;
+      return finalize(nextCharacter);
     }
   }
 
   const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
 
-  return roundTrackerResource &&
-    isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource)
-    ? {
-        ...character,
-        roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)
-      }
-    : character;
+  return finalize(
+    roundTrackerResource && isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource)
+      ? {
+          ...character,
+          roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)
+        }
+      : character
+  );
 }
 
 export function consumeNonMagicActionForCharacter(
@@ -3836,17 +3953,19 @@ export function consumeNonMagicActionForCharacter(
   );
 
   if (nextCharacter !== character) {
-    return nextCharacter;
+    return clearRoundScopedFeatureStateIfOutOfCombat(nextCharacter);
   }
 
   const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
 
-  return roundTrackerResource
-    ? {
-        ...character,
-        roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)
-      }
-    : character;
+  return clearRoundScopedFeatureStateIfOutOfCombat(
+    roundTrackerResource
+      ? {
+          ...character,
+          roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)
+        }
+      : character
+  );
 }
 
 export function activateFeatureActionOptionForCharacter(
@@ -3854,7 +3973,7 @@ export function activateFeatureActionOptionForCharacter(
   actionKey: string,
   optionKey: string
 ): Character {
-  return (
+  return clearRoundScopedFeatureStateIfOutOfCombat(
     getActiveClassFeatureModule(character.className)?.handleActionOption?.(
       character,
       actionKey,
@@ -3868,7 +3987,7 @@ export function activateFeatureActionOptionsForCharacter(
   actionKey: string,
   optionKeys: string[]
 ): Character {
-  return (
+  return clearRoundScopedFeatureStateIfOutOfCombat(
     getActiveClassFeatureModule(character.className)?.handleActionOptions?.(
       character,
       actionKey,

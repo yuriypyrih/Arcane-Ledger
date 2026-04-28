@@ -10,7 +10,7 @@ import { appendFeatureSourcedDescriptionAddition } from "../../../actionModalDes
 import { formatSignedLabel } from "../../../shared/numbers";
 import type { Character, CharacterRageFeatureState } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
-import { normalizeRoundTracker } from "../../../combat";
+import { normalizeRoundTracker, shouldTrackRoundScopedResources } from "../../../combat";
 import type { WeaponAction } from "../../../gameplay";
 import { swapTemporaryHitPointsAssignment } from "../../../shared";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
@@ -108,9 +108,11 @@ export function hasBarbarianPathOfTheWorldTreeBatteringRootsBonus(
     Partial<Pick<Character, "subclassId">>,
   context: BatteringRootsWeaponContext
 ): boolean {
+  const roundTracker = normalizeRoundTracker(character.roundTracker);
+
   return (
     hasBarbarianPathOfTheWorldTreeBatteringRoots(character) &&
-    normalizeRoundTracker(character.roundTracker).turnStarted &&
+    (!shouldTrackRoundScopedResources(roundTracker) || roundTracker.turnStarted) &&
     isBatteringRootsEligibleWeapon(context)
   );
 }

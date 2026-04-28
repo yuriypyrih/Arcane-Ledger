@@ -9,9 +9,11 @@ import { ECONOMY_TYPE, type EconomyType } from "../../../../../../pages/Characte
 import {
   getMonkWarriorOfMercyHandOfHealingFlurryUsesRemaining
 } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfMercy";
+import { shouldTrackRoundScopedResources } from "../../../../../../pages/CharactersPage/combat";
 import { getEconomyShapeState } from "../../gameplayWidgetUtils";
 
 type RoundTrackerAvailability = {
+  isInCombat?: boolean;
   actionAvailable: boolean;
   bonusActionAvailable: boolean;
   reactionAvailable: boolean;
@@ -75,8 +77,13 @@ function getPrimaryHandOfHealingActionPathState(
 }
 
 function getSecondaryHandOfHealingActionPathState(
-  character: Character
+  character: Character,
+  roundTracker: RoundTrackerAvailability
 ): MonkHandOfHealingActionPathState | null {
+  if (!shouldTrackRoundScopedResources(roundTracker)) {
+    return null;
+  }
+
   const flurryUsesRemaining = getMonkWarriorOfMercyHandOfHealingFlurryUsesRemaining(character);
 
   if (flurryUsesRemaining <= 0) {
@@ -104,7 +111,7 @@ export function getMonkHandOfHealingActionPathStates(
   roundTracker: RoundTrackerAvailability
 ): MonkHandOfHealingActionPathState[] {
   const primaryPath = getPrimaryHandOfHealingActionPathState(character, action, roundTracker);
-  const secondaryPath = getSecondaryHandOfHealingActionPathState(character);
+  const secondaryPath = getSecondaryHandOfHealingActionPathState(character, roundTracker);
 
   return secondaryPath ? [primaryPath, secondaryPath] : [primaryPath];
 }

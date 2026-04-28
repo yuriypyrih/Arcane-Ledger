@@ -30,8 +30,10 @@ import {
 } from "../spellcasting";
 import {
   getAlwaysSpellbookSpellIdsForCharacter,
+  clearRoundScopedFeatureStateForCharacter,
   normalizeCharacterClassFeatureState
 } from "../classFeatures";
+import { shouldTrackRoundScopedResources } from "../combat";
 import { reconcileCharacterStatusConsequences } from "../traits";
 import {
   characterSheetDomains,
@@ -81,7 +83,7 @@ function normalizeStatusRuntime(character: Character): Character {
 }
 
 function normalizeFeatureRuntime(character: Character): Character {
-  return {
+  const normalizedCharacter = {
     ...character,
     classFeatureState: normalizeCharacterClassFeatureState(character.classFeatureState, {
       className: character.className,
@@ -92,6 +94,10 @@ function normalizeFeatureRuntime(character: Character): Character {
       feats: character.feats
     })
   };
+
+  return shouldTrackRoundScopedResources(normalizedCharacter.roundTracker)
+    ? normalizedCharacter
+    : clearRoundScopedFeatureStateForCharacter(normalizedCharacter);
 }
 
 function normalizeSpellRuntime(character: Character): Character {

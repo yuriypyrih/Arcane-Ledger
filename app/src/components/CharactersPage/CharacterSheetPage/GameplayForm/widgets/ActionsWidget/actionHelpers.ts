@@ -26,7 +26,10 @@ import {
   getMonkWarriorOfTheOpenHandFleetStepFollowUpUsesRemaining,
   grantMonkWarriorOfTheOpenHandFleetStepFollowUpUse
 } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheOpenHand";
-import { isRoundTrackerResourceAvailable } from "../../../../../../pages/CharactersPage/combat";
+import {
+  isRoundTrackerResourceAvailable,
+  shouldTrackRoundScopedResources
+} from "../../../../../../pages/CharactersPage/combat";
 
 export const codexWeaponEntriesByName = new Map<string, WeaponEntry>(
   getWeaponEntries().map((entry) => [entry.name, entry])
@@ -41,11 +44,15 @@ export function getFeatureActionDrawerPrimaryLabel(
 }
 
 export function shouldGrantMonkFleetStepFollowUp(
-  character: Pick<Character, "className" | "level" | "subclassId" | "classFeatureState">,
+  character: Pick<
+    Character,
+    "className" | "level" | "subclassId" | "classFeatureState" | "roundTracker"
+  >,
   actionKey: string,
   economyType: EconomyType
 ): boolean {
   return (
+    shouldTrackRoundScopedResources(character.roundTracker) &&
     economyType === ECONOMY_TYPE.BONUS_ACTION &&
     character.className === "Monk" &&
     character.subclassId === warriorOfTheOpenHandSubclassId &&
@@ -72,6 +79,7 @@ export function shouldConsumeMonkFleetStepFollowUp(
   >
 ): boolean {
   return (
+    shouldTrackRoundScopedResources(character.roundTracker) &&
     getMonkWarriorOfTheOpenHandFleetStepFollowUpUsesRemaining(character) > 0 &&
     !isRoundTrackerResourceAvailable(character.roundTracker, "bonusAction")
   );

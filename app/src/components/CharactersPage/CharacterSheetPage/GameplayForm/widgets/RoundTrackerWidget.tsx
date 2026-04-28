@@ -13,7 +13,10 @@ import {
   setRoundTrackerResourceAvailability,
   type RoundTrackerResource
 } from "../../../../../pages/CharactersPage/combat";
-import { removeFeatureStatusEntryForCharacter } from "../../../../../pages/CharactersPage/classFeatures";
+import {
+  clearRoundScopedFeatureStateForCharacter,
+  removeFeatureStatusEntryForCharacter
+} from "../../../../../pages/CharactersPage/classFeatures";
 import {
   advanceCharacterStatusEntries,
   normalizeCharacterStatusEntries
@@ -124,10 +127,14 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
   }
 
   function setCombatState(isInCombat: boolean) {
-    onPersistCharacter((currentCharacter) => ({
-      ...currentCharacter,
-      roundTracker: setRoundTrackerCombatState(currentCharacter.roundTracker, isInCombat)
-    }));
+    onPersistCharacter((currentCharacter) => {
+      const nextCharacter = clearRoundScopedFeatureStateForCharacter(currentCharacter);
+
+      return {
+        ...nextCharacter,
+        roundTracker: setRoundTrackerCombatState(nextCharacter.roundTracker, isInCombat)
+      };
+    });
   }
 
   const combatTitle = roundTracker.isInCombat
@@ -138,7 +145,11 @@ function RoundTrackerWidget({ character, onPersistCharacter }: RoundTrackerWidge
     <>
       <RoundTrackerControl
         roundTracker={roundTracker}
-        onSelectResource={setSelectedResource}
+        onSelectResource={(resource) => {
+          if (roundTracker.isInCombat) {
+            setSelectedResource(resource);
+          }
+        }}
         onSelectCombat={() => setIsCombatManagementOpen(true)}
         onStartTurn={startTurn}
         onFinishRound={finishRound}

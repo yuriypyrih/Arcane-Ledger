@@ -14,9 +14,11 @@ import {
 import { canUsePaladinOathOfTheAncientsElderChampionBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheAncients";
 import { canUseRogueArcaneTricksterMageHandLegerdemainBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 import type { RoundTrackerResource } from "../../../pages/CharactersPage/combat";
+import { shouldTrackRoundScopedResources } from "../../../pages/CharactersPage/combat";
 import { getEconomyShapeState } from "./GameplayForm/gameplayWidgetUtils";
 
 type RoundTrackerAvailability = {
+  isInCombat?: boolean;
   actionAvailable: boolean;
   bonusActionAvailable: boolean;
   reactionAvailable: boolean;
@@ -67,6 +69,7 @@ export function getSpellActionPathStates(
   ];
 
   if (
+    shouldTrackRoundScopedResources(roundTracker) &&
     primaryEconomyType === ECONOMY_TYPE.ACTION &&
     (canUsePaladinOathOfTheAncientsElderChampionBonusActionPathForSpell(character, spell) ||
       canUseRogueArcaneTricksterMageHandLegerdemainBonusActionPathForSpell(character, spell))

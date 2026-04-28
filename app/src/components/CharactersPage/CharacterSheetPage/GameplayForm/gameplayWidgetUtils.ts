@@ -11,6 +11,7 @@ import {
 import { getWeaponActionCardBonusLabels } from "../../../../pages/CharactersPage/weaponActionCardBreakdown";
 import {
   isRoundTrackerResourceAvailable,
+  shouldTrackRoundScopedResources,
   type RoundTrackerResource
 } from "../../../../pages/CharactersPage/combat";
 import { parseFormulaRange } from "../../../../pages/CharactersPage/shared/formulas";
@@ -132,12 +133,17 @@ function getRoundTrackerResourceLabel(resource: RoundTrackerResource): string {
 export function getRoundTrackerActionWarning(
   resource: RoundTrackerResource | null,
   roundTracker: {
+    isInCombat?: boolean;
     actionAvailable: boolean;
     bonusActionAvailable: boolean;
     reactionAvailable: boolean;
   }
 ): string | null {
-  if (!resource || isRoundTrackerResourceAvailable(roundTracker, resource)) {
+  if (
+    !resource ||
+    !shouldTrackRoundScopedResources(roundTracker) ||
+    isRoundTrackerResourceAvailable(roundTracker, resource)
+  ) {
     return null;
   }
 
@@ -163,6 +169,7 @@ export function getActionShapeForEconomyType(economyType: EconomyType): ActionSh
 export function getEconomyShapeState(
   economyType: EconomyType,
   roundTracker: {
+    isInCombat?: boolean;
     actionAvailable: boolean;
     bonusActionAvailable: boolean;
     reactionAvailable: boolean;
@@ -174,6 +181,15 @@ export function getEconomyShapeState(
   isUsable: boolean;
   disabledReason: string | null;
 } {
+  if (!shouldTrackRoundScopedResources(roundTracker)) {
+    return {
+      isAvailable: true,
+      multiCount: 0,
+      isUsable: true,
+      disabledReason: null
+    };
+  }
+
   const disabledReason = getRoundTrackerActionWarning(
     getRoundTrackerResourceForEconomyType(economyType),
     roundTracker

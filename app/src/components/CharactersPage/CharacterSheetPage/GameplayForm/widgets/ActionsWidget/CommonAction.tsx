@@ -14,6 +14,7 @@ import {
 } from "./commonActionEconomy";
 
 type RoundTrackerAvailability = {
+  isInCombat?: boolean;
   actionAvailable: boolean;
   bonusActionAvailable: boolean;
   reactionAvailable: boolean;

@@ -5,7 +5,7 @@ import {
   ECONOMY_TYPE,
   getRoundTrackerResourceForEconomyType
 } from "../actionEconomy";
-import { isRoundTrackerResourceAvailable } from "../combat";
+import { isRoundTrackerResourceAvailable, shouldTrackRoundScopedResources } from "../combat";
 import type { WeaponAction } from "../gameplay";
 import {
   consumeBarbarianWeaponAttack,
@@ -461,6 +461,10 @@ export function getSharedEconomyMultiCountForCharacterAction(
   character: SharedEconomyMultiCharacter,
   context: EconomyMultiActionContext
 ): number {
+  if (!shouldTrackRoundScopedResources(character.roundTracker)) {
+    return 0;
+  }
+
   return getSharedEconomyMultiPools(character).reduce(
     (total, pool) => total + getAccessiblePoolCount(pool, context),
     0
@@ -471,6 +475,10 @@ export function consumeSharedEconomyMultiForCharacterAction(
   character: Character,
   context: EconomyMultiActionContext
 ): Character {
+  if (!shouldTrackRoundScopedResources(character.roundTracker)) {
+    return character;
+  }
+
   const matchingPool = getPoolCandidatesForConsumption(character, context)[0];
 
   if (!matchingPool) {

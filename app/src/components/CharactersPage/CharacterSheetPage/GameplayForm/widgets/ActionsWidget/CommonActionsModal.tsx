@@ -16,6 +16,7 @@ import { CommonActionCard } from "./CommonAction";
 import styles from "./CommonActionsModal.module.css";
 
 type RoundTrackerAvailability = {
+  isInCombat?: boolean;
   actionAvailable: boolean;
   bonusActionAvailable: boolean;
   reactionAvailable: boolean;

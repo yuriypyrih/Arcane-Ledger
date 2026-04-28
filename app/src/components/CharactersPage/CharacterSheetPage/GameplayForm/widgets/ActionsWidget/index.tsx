@@ -48,6 +48,7 @@ import {
   consumeRangerFavoredEnemyUseForCharacter,
   consumeRangerTirelessUseForCharacter,
   consumeBarbarianWarriorOfTheGodsChargesForCharacter,
+  clearRoundScopedFeatureStateForCharacter,
   convertSpellSlotToSorceryPointsForCharacter,
   consumeNonMagicActionForCharacter,
   consumeSharedEconomyMultiForCharacterAction,
@@ -227,7 +228,10 @@ import {
   getProficiencyBonus,
   type WeaponAction
 } from "../../../../../../pages/CharactersPage/gameplay";
-import { isRoundTrackerResourceAvailable } from "../../../../../../pages/CharactersPage/combat";
+import {
+  isRoundTrackerResourceAvailable,
+  shouldTrackRoundScopedResources
+} from "../../../../../../pages/CharactersPage/combat";
 import {
   applySpellConcentrationToStatusEntries,
   removeInvisibleConditionFromCharacter
@@ -2364,17 +2368,20 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           currentCharacter,
           roundTrackerResource
         );
+        const shouldUseTurnGate = shouldTrackRoundScopedResources(preparedCharacter.roundTracker);
         const alreadyUsedThisTurn =
           getFighterBattleMasterCombatSuperiorityUsedThisTurnForCharacter(preparedCharacter);
         const superiorityDiceRemaining =
           getFighterBattleMasterSuperiorityDiceRemainingForCharacter(preparedCharacter);
 
-        if (alreadyUsedThisTurn || superiorityDiceRemaining <= 0) {
+        if ((shouldUseTurnGate && alreadyUsedThisTurn) || superiorityDiceRemaining <= 0) {
           return currentCharacter;
         }
 
         let nextCharacter = expendFighterBattleMasterSuperiorityDieForCharacter(preparedCharacter);
-        nextCharacter = markFighterBattleMasterCombatSuperiorityUsedForCharacter(nextCharacter);
+        nextCharacter = shouldUseTurnGate
+          ? markFighterBattleMasterCombatSuperiorityUsedForCharacter(nextCharacter)
+          : nextCharacter;
 
         if (nextCharacter === preparedCharacter) {
           return currentCharacter;
@@ -2571,6 +2578,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       !selectedWeaponHordeBreakerToggleDisabled;
     const shouldSpendHordeBreakerOnThisAttack =
       useHordeBreaker &&
+      shouldTrackRoundScopedResources(character.roundTracker) &&
       economyTypeOverride !== ECONOMY_TYPE.BONUS_ACTION &&
       !isRoundTrackerResourceAvailable(character.roundTracker, "action") &&
       (character.classFeatureState?.ranger?.extraAttacksRemainingThisTurn ?? 0) <= 0;
@@ -2630,6 +2638,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
       const shouldSpendHordeBreaker =
         shouldSpendHordeBreakerOnThisAttack &&
+        shouldTrackRoundScopedResources(currentCharacter.roundTracker) &&
         roundTrackerResource === "action" &&
         !isRoundTrackerResourceAvailable(currentCharacter.roundTracker, "action") &&
         (currentCharacter.classFeatureState?.ranger?.extraAttacksRemainingThisTurn ?? 0) <= 0;
@@ -2781,7 +2790,12 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         }
       }
 
-      return removeInvisibleConditionFromCharacter(nextCharacter);
+      const nextCharacterWithInvisibleConditionsRemoved =
+        removeInvisibleConditionFromCharacter(nextCharacter);
+
+      return shouldTrackRoundScopedResources(nextCharacterWithInvisibleConditionsRemoved.roundTracker)
+        ? nextCharacterWithInvisibleConditionsRemoved
+        : clearRoundScopedFeatureStateForCharacter(nextCharacterWithInvisibleConditionsRemoved);
     });
   }
 

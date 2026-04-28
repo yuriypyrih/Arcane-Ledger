@@ -32,6 +32,10 @@ export function normalizeRoundTracker(value: unknown): CharacterRoundTracker {
   const record = value as Partial<CharacterRoundTracker>;
   const isInCombat = typeof record.isInCombat === "boolean" ? record.isInCombat : false;
 
+  if (!isInCombat) {
+    return createDefaultRoundTracker();
+  }
+
   return {
     turnStarted: typeof record.turnStarted === "boolean" ? record.turnStarted : false,
     isInCombat,
@@ -47,6 +51,14 @@ export function normalizeRoundTracker(value: unknown): CharacterRoundTracker {
     reactionAvailable:
       typeof record.reactionAvailable === "boolean" ? record.reactionAvailable : true
   };
+}
+
+export function isRoundTrackerInCombat(value: unknown): boolean {
+  return normalizeRoundTracker(value).isInCombat;
+}
+
+export function shouldTrackRoundScopedResources(value: unknown): boolean {
+  return isRoundTrackerInCombat(value);
 }
 
 export function isRoundTrackerResourceAvailable(
@@ -70,14 +82,13 @@ export function isRoundTrackerResourceAvailable(
 export function startRoundTrackerTurn(value?: unknown): CharacterRoundTracker {
   const tracker = normalizeRoundTracker(value);
   const combatRound =
-    tracker.isInCombat && tracker.combatRoundAdvancePending
+    tracker.combatRoundAdvancePending
       ? Math.max(1, tracker.combatRound) + 1
-      : tracker.isInCombat
-        ? Math.max(1, tracker.combatRound)
-        : 0;
+      : Math.max(1, tracker.combatRound);
 
   return {
     ...tracker,
+    isInCombat: true,
     actionAvailable: true,
     bonusActionAvailable: true,
     reactionAvailable: true,
@@ -90,11 +101,15 @@ export function startRoundTrackerTurn(value?: unknown): CharacterRoundTracker {
 export function finishRoundTrackerTurn(value: unknown): CharacterRoundTracker {
   const tracker = normalizeRoundTracker(value);
 
+  if (!tracker.isInCombat) {
+    return tracker;
+  }
+
   return {
     ...tracker,
     turnStarted: false,
-    combatRound: tracker.isInCombat ? Math.max(1, tracker.combatRound) : 0,
-    combatRoundAdvancePending: tracker.isInCombat
+    combatRound: Math.max(1, tracker.combatRound),
+    combatRoundAdvancePending: true
   };
 }
 
@@ -104,11 +119,19 @@ export function setRoundTrackerCombatState(
 ): CharacterRoundTracker {
   const tracker = normalizeRoundTracker(value);
 
+  if (!isInCombat) {
+    return createDefaultRoundTracker();
+  }
+
   return {
     ...tracker,
-    isInCombat,
-    combatRound: isInCombat ? Math.max(1, tracker.combatRound) : 0,
-    combatRoundAdvancePending: false
+    isInCombat: true,
+    turnStarted: false,
+    combatRound: Math.max(1, tracker.combatRound),
+    combatRoundAdvancePending: false,
+    actionAvailable: true,
+    bonusActionAvailable: true,
+    reactionAvailable: true
   };
 }
 
@@ -118,6 +141,10 @@ export function setRoundTrackerResourceAvailability(
   isAvailable: boolean
 ): CharacterRoundTracker {
   const tracker = normalizeRoundTracker(value);
+
+  if (!tracker.isInCombat) {
+    return tracker;
+  }
 
   switch (resource) {
     case "action":

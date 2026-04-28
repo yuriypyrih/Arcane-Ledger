@@ -29,7 +29,7 @@ import type {
   FeatureSpeedBonus,
   WeaponFeatureContext
 } from "../../types";
-import { normalizeRoundTracker } from "../../../combat";
+import { normalizeRoundTracker, shouldTrackRoundScopedResources } from "../../../combat";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
 
 export const pathOfTheZealotSubclassId = "barbarian-path-of-the-zealot";
@@ -329,10 +329,12 @@ export function getBarbarianPathOfTheZealotWeaponDamageBonuses(
   context: WeaponFeatureContext,
   isRaging: boolean
 ): FeatureDamageBonus[] {
+  const roundTracker = normalizeRoundTracker(character.roundTracker);
+
   if (
     !hasBarbarianPathOfTheZealotDivineFury(character) ||
     !isRaging ||
-    !normalizeRoundTracker(character.roundTracker).turnStarted ||
+    (shouldTrackRoundScopedResources(roundTracker) && !roundTracker.turnStarted) ||
     (context.attackKind !== "weapon" && context.attackKind !== "unarmed") ||
     rageState.divineFuryUsedThisTurn === true
   ) {

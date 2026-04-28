@@ -10,6 +10,7 @@ import type {
   DiceRollerResolvedResult
 } from "../../../DicePage/DiceRollerPopup";
 import {
+  clearRoundScopedFeatureStateForCharacter,
   applyArchdruidOnInitiativeForCharacter,
   applyMonkUncannyMetabolismOnInitiativeForCharacter,
   applyPerfectFocusOnInitiativeForCharacter,
@@ -77,7 +78,9 @@ export function applyInitiativeRollCharacterEffects(
   currentCharacter: Character,
   options: InitiativeCharacterEffectOptions
 ): Character {
-  let nextCharacter = applySuperiorInspirationOnInitiativeForCharacter(currentCharacter);
+  let nextCharacter = clearRoundScopedFeatureStateForCharacter(currentCharacter);
+
+  nextCharacter = applySuperiorInspirationOnInitiativeForCharacter(nextCharacter);
   nextCharacter = applyArchdruidOnInitiativeForCharacter(nextCharacter);
 
   if (options.useUncannyMetabolismOnInitiative) {

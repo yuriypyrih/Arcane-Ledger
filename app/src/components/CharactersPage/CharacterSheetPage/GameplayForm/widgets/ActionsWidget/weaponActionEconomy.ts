@@ -7,10 +7,12 @@ import {
   hasBattleMagicBonusWeaponAttackForCharacter
 } from "../../../../../../pages/CharactersPage/classFeatures";
 import { ECONOMY_TYPE, type EconomyType } from "../../../../../../pages/CharactersPage/actionEconomy";
+import { shouldTrackRoundScopedResources } from "../../../../../../pages/CharactersPage/combat";
 import type { WeaponAction } from "../../../../../../pages/CharactersPage/gameplay";
 import { getEconomyShapeState } from "../../gameplayWidgetUtils";
 
 type RoundTrackerAvailability = {
+  isInCombat?: boolean;
   actionAvailable: boolean;
   bonusActionAvailable: boolean;
   reactionAvailable: boolean;
@@ -78,8 +80,13 @@ function getTotalUseCount(
 
 function getPrimaryWeaponAttackAdditionalUseCount(
   character: Character,
-  action: WeaponAction
+  action: WeaponAction,
+  roundTracker: RoundTrackerAvailability
 ): number {
+  if (!shouldTrackRoundScopedResources(roundTracker)) {
+    return 0;
+  }
+
   return (
     (action.economyMultiCount ?? 0) +
     getSharedEconomyMultiCountForCharacterAction(character, createEconomyMultiContextForWeaponAction(action))
@@ -91,7 +98,11 @@ export function getPrimaryWeaponAttackPathState(
   action: WeaponAction,
   roundTracker: RoundTrackerAvailability
 ): WeaponAttackPathState {
-  const additionalUseCount = getPrimaryWeaponAttackAdditionalUseCount(character, action);
+  const additionalUseCount = getPrimaryWeaponAttackAdditionalUseCount(
+    character,
+    action,
+    roundTracker
+  );
   const shapeState = getEconomyShapeState(
     action.economyType,
     roundTracker,
@@ -112,6 +123,10 @@ export function getSecondaryWeaponAttackPathState(
   action: WeaponAction,
   roundTracker: RoundTrackerAvailability
 ): WeaponAttackPathState | null {
+  if (!shouldTrackRoundScopedResources(roundTracker)) {
+    return null;
+  }
+
   if (!hasSecondaryBonusWeaponAttackForCharacter(character, action)) {
     return null;
   }

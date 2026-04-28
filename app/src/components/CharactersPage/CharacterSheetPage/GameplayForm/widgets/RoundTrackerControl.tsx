@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { FastForward, Play, Swords } from "lucide-react";
+import { CirclePlay, CircleStop, Swords } from "lucide-react";
 import ActionShape from "../../../../ActionShape";
 import type { RoundTrackerResource } from "../../../../../pages/CharactersPage/combat";
 import styles from "./RoundTrackerControl.module.css";
@@ -25,8 +25,33 @@ function RoundTrackerControl({
   onStartTurn,
   onFinishRound
 }: RoundTrackerControlProps) {
+  const getResourceLabel = (
+    availableLabel: string,
+    spentLabel: string,
+    outOfCombatLabel: string,
+    isAvailable: boolean
+  ) => (!roundTracker.isInCombat ? outOfCombatLabel : isAvailable ? availableLabel : spentLabel);
+
   return (
     <div className={styles.root} aria-label="Round tracker">
+      <button
+        type="button"
+        className={clsx(
+          styles.button,
+          styles.turnButton,
+          roundTracker.isInCombat && !roundTracker.turnStarted && styles.turnButtonActive,
+          roundTracker.turnStarted && styles.turnButtonStop
+        )}
+        onClick={roundTracker.turnStarted ? onFinishRound : onStartTurn}
+        aria-label={roundTracker.turnStarted ? "End round" : "Start round"}
+        title={roundTracker.turnStarted ? "End round" : "Start round"}
+      >
+        {roundTracker.turnStarted ? (
+          <CircleStop className={styles.turnButtonIcon} strokeWidth={1} aria-hidden="true" />
+        ) : (
+          <CirclePlay className={styles.turnButtonIcon} strokeWidth={1} aria-hidden="true" />
+        )}
+      </button>
       <button
         type="button"
         className={clsx(
@@ -45,45 +70,69 @@ function RoundTrackerControl({
       <ActionShape
         shape="action"
         isSelected={roundTracker.actionAvailable}
-        onSelect={() => onSelectResource("action")}
+        onSelect={() => {
+          if (roundTracker.isInCombat) {
+            onSelectResource("action");
+          }
+        }}
         className={styles.button}
-        aria-label={roundTracker.actionAvailable ? "Action available" : "Action spent"}
-        title={roundTracker.actionAvailable ? "Action available" : "Action spent"}
+        aria-label={getResourceLabel(
+          "Action available",
+          "Action spent",
+          "Action free out of combat",
+          roundTracker.actionAvailable
+        )}
+        title={getResourceLabel(
+          "Action available",
+          "Action spent",
+          "Action free out of combat",
+          roundTracker.actionAvailable
+        )}
       />
       <ActionShape
         shape="bonusAction"
         isSelected={roundTracker.bonusActionAvailable}
-        onSelect={() => onSelectResource("bonusAction")}
+        onSelect={() => {
+          if (roundTracker.isInCombat) {
+            onSelectResource("bonusAction");
+          }
+        }}
         className={styles.button}
-        aria-label={roundTracker.bonusActionAvailable ? "Bonus action available" : "Bonus action spent"}
-        title={roundTracker.bonusActionAvailable ? "Bonus action available" : "Bonus action spent"}
+        aria-label={getResourceLabel(
+          "Bonus action available",
+          "Bonus action spent",
+          "Bonus action free out of combat",
+          roundTracker.bonusActionAvailable
+        )}
+        title={getResourceLabel(
+          "Bonus action available",
+          "Bonus action spent",
+          "Bonus action free out of combat",
+          roundTracker.bonusActionAvailable
+        )}
       />
       <ActionShape
         shape="reaction"
         isSelected={roundTracker.reactionAvailable}
-        onSelect={() => onSelectResource("reaction")}
+        onSelect={() => {
+          if (roundTracker.isInCombat) {
+            onSelectResource("reaction");
+          }
+        }}
         className={styles.button}
-        aria-label={roundTracker.reactionAvailable ? "Reaction available" : "Reaction spent"}
-        title={roundTracker.reactionAvailable ? "Reaction available" : "Reaction spent"}
+        aria-label={getResourceLabel(
+          "Reaction available",
+          "Reaction spent",
+          "Reaction free out of combat",
+          roundTracker.reactionAvailable
+        )}
+        title={getResourceLabel(
+          "Reaction available",
+          "Reaction spent",
+          "Reaction free out of combat",
+          roundTracker.reactionAvailable
+        )}
       />
-      <span className={styles.divider} aria-hidden="true" />
-      <button
-        type="button"
-        className={clsx(
-          styles.button,
-          styles.turnButton,
-          roundTracker.turnStarted && styles.turnButtonActive
-        )}
-        onClick={roundTracker.turnStarted ? onFinishRound : onStartTurn}
-        aria-label={roundTracker.turnStarted ? "Finish turn" : "Start turn"}
-        title={roundTracker.turnStarted ? "Finish turn" : "Start turn"}
-      >
-        {roundTracker.turnStarted ? (
-          <FastForward size={15} aria-hidden="true" />
-        ) : (
-          <Play size={15} aria-hidden="true" />
-        )}
-      </button>
     </div>
   );
 }

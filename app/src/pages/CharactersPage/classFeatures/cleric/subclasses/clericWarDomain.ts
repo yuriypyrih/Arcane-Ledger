@@ -18,6 +18,7 @@ import {
   consumeRoundTrackerResource,
   isRoundTrackerResourceAvailable,
   normalizeRoundTracker,
+  shouldTrackRoundScopedResources,
   startRoundTrackerTurn
 } from "../../../combat";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
@@ -312,16 +313,20 @@ export function activateClericWarPriest(character: Character): Character {
   const rawClericState = character.classFeatureState?.cleric ?? {};
   const warDomainState = normalizeClericWarDomainFeatureState(rawClericState, character);
   const roundTracker = normalizeRoundTracker(character.roundTracker);
+  const shouldTrackRound = shouldTrackRoundScopedResources(roundTracker);
 
   return {
     ...character,
-    roundTracker: roundTracker.turnStarted ? roundTracker : startRoundTrackerTurn(roundTracker),
+    roundTracker:
+      shouldTrackRound && !roundTracker.turnStarted
+        ? startRoundTrackerTurn(roundTracker)
+        : roundTracker,
     classFeatureState: {
       ...character.classFeatureState,
       cleric: {
         ...rawClericState,
         warPriestUsesExpended: (warDomainState.warPriestUsesExpended ?? 0) + 1,
-        warPriestBonusAttackAvailable: true
+        warPriestBonusAttackAvailable: shouldTrackRound
       }
     }
   };
@@ -333,6 +338,7 @@ export function consumeClericWarPriestWeaponAttack(
 ): Character {
   if (
     action.economyType !== ECONOMY_TYPE.BONUS_ACTION ||
+    !shouldTrackRoundScopedResources(character.roundTracker) ||
     !hasClericWarPriestBonusAttackAvailable(character) ||
     (action.attackKind !== "weapon" && action.attackKind !== "unarmed") ||
     !isRoundTrackerResourceAvailable(character.roundTracker, "bonusAction")

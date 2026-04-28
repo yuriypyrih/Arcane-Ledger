@@ -28,6 +28,7 @@ import styles from "./ActionCards.module.css";
 import modalStyles from "./FeatureActionModal.module.css";
 
 type RoundTrackerAvailability = {
+  isInCombat?: boolean;
   actionAvailable: boolean;
   bonusActionAvailable: boolean;
   reactionAvailable: boolean;

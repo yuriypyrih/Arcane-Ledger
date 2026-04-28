@@ -8,6 +8,7 @@ import {
   ECONOMY_TYPE,
   type EconomyType
 } from "../../../../../../pages/CharactersPage/actionEconomy";
+import { shouldTrackRoundScopedResources } from "../../../../../../pages/CharactersPage/combat";
 import {
   getMonkCommonActionBonusPathAdditionalUseCount,
   hasMonkFocusCommonActionBonusPath
@@ -16,6 +17,7 @@ import { hasRogueCunningActionCommonActionBonusPath } from "../../../../../../pa
 import { getEconomyShapeState } from "../../gameplayWidgetUtils";
 
 type RoundTrackerAvailability = {
+  isInCombat?: boolean;
   actionAvailable: boolean;
   bonusActionAvailable: boolean;
   reactionAvailable: boolean;
@@ -52,8 +54,9 @@ function getPrimaryCommonActionPathState(
   action: FeatureActionCard,
   roundTracker: RoundTrackerAvailability
 ): CommonActionPathState {
-  const additionalUseCount =
-    (action.economyMultiCount ?? 0) + getCommonActionAdditionalUseCount(character, action);
+  const additionalUseCount = shouldTrackRoundScopedResources(roundTracker)
+    ? (action.economyMultiCount ?? 0) + getCommonActionAdditionalUseCount(character, action)
+    : 0;
   const shapeState = getEconomyShapeState(action.economyType, roundTracker, additionalUseCount);
   const disabledReason =
     action.disabled === true ? (action.disabledReason ?? "This action is unavailable.") : null;
@@ -81,6 +84,10 @@ function getSecondaryCommonActionPathState(
   action: FeatureActionCard,
   roundTracker: RoundTrackerAvailability
 ): CommonActionPathState | null {
+  if (!shouldTrackRoundScopedResources(roundTracker)) {
+    return null;
+  }
+
   const hasMonkBonusPath = hasMonkFocusCommonActionBonusPath(character, action.key);
   const hasRogueBonusPath = hasRogueCunningActionCommonActionBonusPath(character, action.key);
 

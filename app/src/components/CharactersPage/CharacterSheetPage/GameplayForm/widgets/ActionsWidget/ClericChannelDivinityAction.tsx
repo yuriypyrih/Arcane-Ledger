@@ -10,6 +10,7 @@ import type { ChannelDivinityOptionRow } from "../../../channelDivinityUtils";
 import styles from "./ClericChannelDivinityAction.module.css";
 
 type RoundTrackerAvailability = {
+  isInCombat?: boolean;
   actionAvailable: boolean;
   bonusActionAvailable: boolean;
   reactionAvailable: boolean;

@@ -66,12 +66,26 @@
   position: relative;
 }
 
+.turnButtonIcon {
+  display: block;
+  width: 34px;
+  height: 34px;
+}
+
 .turnButtonActive {
   color: #3d6fdd;
 }
 
 .turnButtonActive:hover {
   color: #3d6fdd;
+}
+
+.turnButtonStop {
+  color: #c7352f;
+}
+
+.turnButtonStop:hover {
+  color: #c7352f;
 }
 
 .button:focus-visible {

@@ -16,6 +16,7 @@ import {
 import DiceRollerSettingsButton from "../DiceRollerSettingsButton";
 
 type RoundTrackerAvailability = {
+  isInCombat?: boolean;
   actionAvailable: boolean;
   bonusActionAvailable: boolean;
   reactionAvailable: boolean;
