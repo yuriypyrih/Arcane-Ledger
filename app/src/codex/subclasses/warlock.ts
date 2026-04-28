@@ -163,24 +163,24 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "<strong>Level 7.</strong> <spell:Fire Shield>Fire Shield</spell>, <spell:Wall of Fire>Wall of Fire</spell>",
           "<strong>Level 9.</strong> <spell:Geas>Geas</spell>, <spell:Insect Plague>Insect Plague</spell>"
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.DARK_ONES_BLESSING, {
         description: [
           "When you reduce an enemy to 0 Hit Points, you gain <link:Temporary Hit Points>Temporary Hit Points</link> equal to your <link:CHA>Charisma</link> modifier plus your Warlock level (minimum of 1 Temporary Hit Point).",
           "You also gain this benefit if someone else reduces an enemy within 10 feet of you to 0 Hit Points."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.DARK_ONES_OWN_LUCK, {
         description: [
           "You can call on your fiendish patron to alter fate in your favor.",
           "When you make an ability check or a saving throw, you can use this feature to add <strong>1d10</strong> to your roll.",
-          "You can do so after seeing the roll but before any of the roll's effects occur.",
+          "You can do so after seeing the roll but before any of the roll's effects occur. (The tracking of uses and rolling of the 1d10 die happens in the Actions Widget of gameplay dashboard).",
           "You can use this feature a number of times equal to your <link:CHA>Charisma</link> modifier (minimum of once), but you can use it no more than once per roll.",
           "You regain all expended uses when you finish a <link:long-rest>Long Rest</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_10,
@@ -190,7 +190,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
             "Choose one damage type, other than <link:Force>Force</link>, whenever you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",
             "You have <link:Resistance>Resistance</link> to that damage type until you choose a different one with this feature."
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.HURL_THROUGH_HELL, {
@@ -200,7 +200,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "The target takes <strong>8d10</strong> <link:Psychic>Psychic</link> damage if it isn't a Fiend, and it has the <link:Incapacitated>Incapacitated</link> condition until the end of your next turn, when it returns to the space it previously occupied or the nearest unoccupied space.",
           "Once you use this feature, you can't use it again until you finish a <link:long-rest>Long Rest</link> unless you expend a Pact Magic spell slot (no action required) to restore your use of it."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       })
     ]
   },
@@ -223,7 +223,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
             "<strong>Level 7.</strong> <spell:Confusion>Confusion</spell>, <spell:Summon Aberration>Summon Aberration</spell>",
             "<strong>Level 9.</strong> <spell:Modify Memory>Modify Memory</spell>, <spell:Telekinesis>Telekinesis</spell>"
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.AWAKENED_MIND, {
@@ -235,14 +235,14 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "The telepathic connection lasts for a number of minutes equal to your Warlock level.",
           "It ends early if you use this feature to connect with a different creature."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.PSYCHIC_SPELLS, {
         description: [
           "When you cast a Warlock spell that deals damage, you can change its damage type to <link:Psychic>Psychic</link>.",
           "In addition, when you cast a Warlock spell that is an Enchantment or Illusion, you can do so without Verbal or Somatic components."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_6,
@@ -253,7 +253,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
             "On a failed save, the creature has <link:Disadvantage>Disadvantage</link> on attack rolls against you, and you have <link:Advantage>Advantage</link> on attack rolls against that creature for the duration of the bond.",
             "Once you use this feature, you can't use it again until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link> unless you expend a Pact Magic spell slot (no action required) to restore your use of it."
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.ELDRITCH_HEX, {
@@ -262,14 +262,14 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "You always have the <spell:Hex>Hex</spell> spell prepared.",
           "When you cast <spell:Hex>Hex</spell> and choose an ability, the target also has <link:Disadvantage>Disadvantage</link> on saving throws of the chosen ability for the duration of the spell."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.THOUGHT_SHIELD, {
         description: [
           "Your thoughts can't be read by telepathy or other means unless you allow it.",
           "You also have <link:Resistance>Resistance</link> to <link:Psychic>Psychic</link> damage, and whenever a creature deals <link:Psychic>Psychic</link> damage to you, that creature takes the same amount of damage that you take."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.CREATE_THRALL, {
         description: [
@@ -277,7 +277,7 @@ export const warlockSubclassEntries: SubclassEntry[] = [
           "If you do so, the spell's duration becomes 1 minute for that casting, and when summoned, the Aberration has a number of <link:Temporary Hit Points>Temporary Hit Points</link> equal to your Warlock level plus your <link:CHA>Charisma</link> modifier.",
           "In addition, the first time each turn the Aberration hits a creature under the effect of your <spell:Hex>Hex</spell>, the Aberration deals extra <link:Psychic>Psychic</link> damage to the target equal to the bonus damage of that spell."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       })
     ]
   }

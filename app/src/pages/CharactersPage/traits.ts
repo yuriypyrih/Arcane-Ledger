@@ -100,6 +100,7 @@ import {
   wizardDivinerThirdEyeSeeInvisibilityDescription,
   wizardDivinerThirdEyeSeeInvisibilityStatusSourceId
 } from "./classFeatures/wizard/subclasses/wizardDivinerThirdEyeConfig";
+import { thoughtShieldStatusSourceId } from "./classFeatures/warlock/subclasses/warlockGreatOldOnePatron";
 import { getBarbarianRageDescriptionContent } from "./classFeatures/barbarian/barbarianDescriptionSections";
 import {
   createFeatureSourcedDescriptionEntries,
@@ -1420,6 +1421,20 @@ export function getStatusEntryDescriptionContent(
         descriptionEntries.length > 0 ? descriptionEntries : [...invokeDuplicityDescription],
       descriptionAdditions: getClericInvokeDuplicityDescriptionAdditions(character)
     };
+  }
+
+  if (entry.sourceId === thoughtShieldStatusSourceId && character?.className === "Warlock") {
+    const descriptionEntries = getFeatureDescriptionForCharacter(
+      character,
+      CLASS_FEATURE.THOUGHT_SHIELD
+    );
+
+    if (descriptionEntries.length > 0) {
+      return {
+        description: descriptionEntries,
+        descriptionAdditions: []
+      };
+    }
   }
 
   if (

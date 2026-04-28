@@ -1,4 +1,5 @@
 import {
+  ABILITY_TYPES,
   CLASS_FEATURE,
   DAMAGE_TYPE,
   MAGIC_SCHOOL,
@@ -15,11 +16,10 @@ import {
   STATUS_ENTRY_SOURCE_TYPE
 } from "../../../../../types";
 import {
-  createFeatureSourcedDescriptionEntries,
-  createSourcedDescriptionEntries,
-  descriptionValueSomeText,
-  getFeatureSourceNameForCharacter
+  appendFeatureSourcedDescriptionAddition,
+  createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
+import { getSpellSaveFormulaCell } from "../../../shared/spellFormulas";
 import {
   activateTelepathicBond,
   createTelepathicBondFeatureAction,
@@ -30,16 +30,18 @@ import {
   resolveSpellIdsByName,
   type SubclassRuntimeResolver
 } from "../../subclassRuntime";
-import type { DerivedFeatureStatusEntry, FeatureActionCard } from "../../types";
+import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureActionFact } from "../../types";
 
 export const greatOldOnePatronSubclassId = "warlock-great-old-one-patron";
 export const awakenedMindActionKey = "warlock-great-old-one-patron-awakened-mind";
 
 const awakenedMindName = "Awakened Mind";
-const awakenedMindStatusSourceId = "feature-warlock-great-old-one-patron-awakened-mind";
+export const awakenedMindStatusSourceId = "feature-warlock-great-old-one-patron-awakened-mind";
 const clairvoyantCombatantName = "Clairvoyant Combatant";
 const eldritchHexName = "Eldritch Hex";
 const thoughtShieldName = "Thought Shield";
+export const thoughtShieldStatusSourceId =
+  "feature-warlock-great-old-one-patron-thought-shield";
 const thoughtShieldPsychicResistanceSourceId =
   "feature-warlock-great-old-one-patron-thought-shield-psychic-resistance";
 const createThrallName = "Create Thrall";
@@ -87,6 +89,9 @@ const clairvoyantCombatantDescription = getGreatOldOnePatronFeatureDescriptionEn
 );
 const eldritchHexDescription = getGreatOldOnePatronFeatureDescriptionEntries(
   CLASS_FEATURE.ELDRITCH_HEX
+);
+const thoughtShieldDescription = getGreatOldOnePatronFeatureDescriptionEntries(
+  CLASS_FEATURE.THOUGHT_SHIELD
 );
 const createThrallDescription = getGreatOldOnePatronFeatureDescriptionEntries(
   CLASS_FEATURE.CREATE_THRALL
@@ -203,6 +208,35 @@ function getAwakenedMindDescriptionAdditions(
           clairvoyantCombatantDescription,
           clairvoyantCombatantName
         )
+      ]
+    : undefined;
+}
+
+function getAwakenedMindFacts(
+  character: WarlockGreatOldOnePatronCharacter
+): FeatureActionFact[] | undefined {
+  if (!hasWarlockGreatOldOnePatronClairvoyantCombatant(character)) {
+    return undefined;
+  }
+
+  const spellDcFormulaCell = getSpellSaveFormulaCell(
+    {
+      isAttackSpell: false,
+      isSavingThrowSpell: true,
+      savingThrowAbility: ABILITY_TYPES.WIS,
+      spellLists: [SPELL_LIST_CLASS.WARLOCK]
+    },
+    character as Character
+  );
+
+  return spellDcFormulaCell
+    ? [
+        {
+          label: spellDcFormulaCell.label,
+          value: spellDcFormulaCell.content,
+          breakdown: spellDcFormulaCell.breakdown,
+          fullWidth: true
+        }
       ]
     : undefined;
 }
@@ -345,26 +379,13 @@ function appendGreatOldOnePatronSpellDescription(
   fallbackSourceName: string,
   descriptionEntries: readonly string[]
 ): SpellEntry {
-  if (descriptionEntries.length <= 0) {
-    return spell;
-  }
-
-  const sourceName = getFeatureSourceNameForCharacter(character, feature, fallbackSourceName);
-  const marker = `<strong>${sourceName}.</strong>`;
-
-  if (
-    descriptionValueSomeText({ description: spell.description }, (entry) => entry.includes(marker))
-  ) {
-    return spell;
-  }
-
-  return {
-    ...spell,
-    description: [
-      ...spell.description,
-      ...createSourcedDescriptionEntries(sourceName, descriptionEntries)
-    ]
-  };
+  return appendFeatureSourcedDescriptionAddition(
+    spell,
+    character,
+    feature,
+    descriptionEntries,
+    fallbackSourceName
+  );
 }
 
 function appendPsychicSpellsDescription(
@@ -422,6 +443,18 @@ function getWarlockGreatOldOnePatronDerivedStatusEntries(
   }
 
   return [
+    {
+      id: thoughtShieldStatusSourceId,
+      sourceId: thoughtShieldStatusSourceId,
+      group: STATUS_ENTRY_GROUP.EFFECTS,
+      value: thoughtShieldName,
+      source: greatOldOnePatronSourceLabel,
+      sourceType: STATUS_ENTRY_SOURCE_TYPE.FEATURE,
+      duration: {
+        kind: STATUS_DURATION_KIND.INFINITE
+      },
+      description: thoughtShieldDescription.join("\n\n")
+    },
     {
       id: thoughtShieldPsychicResistanceSourceId,
       sourceId: thoughtShieldPsychicResistanceSourceId,
@@ -489,7 +522,9 @@ function getWarlockGreatOldOnePatronFeatureActions(
         ? {
             drawer: {
               ...awakenedMindAction.drawer,
-              descriptionAdditions: getAwakenedMindDescriptionAdditions(character)
+              descriptionAdditions: getAwakenedMindDescriptionAdditions(character),
+              facts: getAwakenedMindFacts(character),
+              factsSectionTitle: null
             }
           }
         : {})

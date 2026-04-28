@@ -1804,24 +1804,39 @@ function ClassFeatureList({
                         onOpenSpellReference={onOpenSpellReference}
                         onOpenDivinityReference={onOpenDivinityReference}
                       />
-                      <FeatureChoiceOptions
-                        featureKey={featureRow.key}
-                        groupName={`fiendish-resilience-${character.id}`}
-                        isUnlocked={isUnlocked}
-                        selectedValue={getWarlockFiendishResilienceDamageTypeSelection()}
-                        options={warlockFiendPatronFiendishResilienceDamageTypeOptions.map(
-                          (damageType) => ({
-                            key: damageType,
-                            value: damageType,
-                            content: getDamageTypeChoiceContent(damageType)
-                          })
-                        )}
-                        onChange={updateWarlockFiendishResilienceDamageTypeSelection}
-                        onOpenKeyword={onOpenKeyword}
-                        onOpenFeatReference={onOpenFeatReference}
-                        onOpenSpellReference={onOpenSpellReference}
-                        onOpenDivinityReference={onOpenDivinityReference}
-                      />
+                      <div className={styles.featureSelectionGrid}>
+                        <label
+                          className={clsx(
+                            styles.featureSelectionField,
+                            !isUnlocked && styles.featureOptionRowDisabled
+                          )}
+                        >
+                          <span className={styles.featureSelectionLabel}>Resistance</span>
+                          <SelectInput
+                            value={getWarlockFiendishResilienceDamageTypeSelection() ?? ""}
+                            disabled={!isUnlocked}
+                            invalid={isUnlocked && isWarlockFiendishResilienceInputRequired()}
+                            onChange={(event) => {
+                              const nextDamageType = event.target.value as DAMAGE_TYPE;
+
+                              if (nextDamageType) {
+                                updateWarlockFiendishResilienceDamageTypeSelection(
+                                  nextDamageType
+                                );
+                              }
+                            }}
+                          >
+                            <option value="">Select a damage type</option>
+                            {warlockFiendPatronFiendishResilienceDamageTypeOptions.map(
+                              (damageType) => (
+                                <option key={`${featureRow.key}-${damageType}`} value={damageType}>
+                                  {formatCodexLabel(damageType)}
+                                </option>
+                              )
+                            )}
+                          </SelectInput>
+                        </label>
+                      </div>
                       <FeatureDescriptionLines
                         featureKey={featureRow.key}
                         lines={featureDetails.description.slice(1)}

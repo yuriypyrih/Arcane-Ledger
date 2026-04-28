@@ -360,6 +360,7 @@ import {
   warlockFiendPatronFiendishResilienceDamageTypeOptions,
   warlockBeguilingDefenseReactionId
 } from "./warlock/warlock";
+import { getWarlockFiendPatronDarkOnesOwnLuckDescriptionAdditions } from "./warlock/subclasses/warlockFiendPatron";
 import {
   activateArcaneRecovery,
   applyWizardFeaturesAfterSpellCast,
@@ -899,6 +900,18 @@ export function getSkillReferenceDescriptionAdditionsForCharacter(
     descriptionAdditions.push(...getRogueSkillReferenceDescriptionAdditions(character));
     descriptionAdditions.push(...getRogueThiefSkillReferenceDescriptionAdditions(character, skill));
   }
+
+  descriptionAdditions.push(...getWarlockFiendPatronDarkOnesOwnLuckDescriptionAdditions(character));
+
+  return descriptionAdditions;
+}
+
+export function getSavingThrowReferenceDescriptionAdditionsForCharacter(
+  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+): SpellDescriptionEntry[][] {
+  const descriptionAdditions: SpellDescriptionEntry[][] = [];
+
+  descriptionAdditions.push(...getWarlockFiendPatronDarkOnesOwnLuckDescriptionAdditions(character));
 
   return descriptionAdditions;
 }

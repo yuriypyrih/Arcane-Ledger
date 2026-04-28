@@ -180,8 +180,10 @@ import {
 } from "../../../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses/sorcererWildMagicSorcery";
 import {
   activateWarlockAwakenedMind,
+  darkOnesOwnLuckActionKey,
   getWarlockClairvoyantCombatantUsesRemaining,
-  getWarlockClairvoyantCombatantUsesTotal
+  getWarlockClairvoyantCombatantUsesTotal,
+  hurlThroughHellActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import { awakenedMindActionKey } from "../../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockGreatOldOnePatron";
 import { type ArcaneRecoverySelection } from "../../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
@@ -2394,6 +2396,30 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         title: "Tactical Mind",
         formula: "1d10",
         formulaDisplay: "1d10",
+        description: action.detail
+      });
+      closeActionDrawer();
+      return;
+    }
+
+    if (action.key === darkOnesOwnLuckActionKey) {
+      activateFeatureAction(action);
+      openDiceRoller({
+        title: action.name,
+        formula: "1d10",
+        formulaDisplay: "1d10",
+        description: action.detail
+      });
+      closeActionDrawer();
+      return;
+    }
+
+    if (action.key === hurlThroughHellActionKey) {
+      activateFeatureAction(action);
+      openDiceRoller({
+        title: action.name,
+        formula: "8d10",
+        formulaDisplay: "8d10",
         description: action.detail
       });
       closeActionDrawer();
@@ -5560,6 +5586,46 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
     if (selectedAction.drawer.kind !== "confirm") {
       return null;
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.action.key === darkOnesOwnLuckActionKey &&
+      selectedAction.execute.kind === "activate"
+    ) {
+      return (
+        <ActionDiceConfirmFooter
+          actionName={selectedAction.name}
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onConfirm={() => executeFeatureActivate(selectedAction.action)}
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.action.key === hurlThroughHellActionKey &&
+      selectedAction.execute.kind === "activate"
+    ) {
+      return (
+        <ActionDiceConfirmFooter
+          actionName={selectedAction.name}
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedFeatureActionPrimaryDisabledReason !== null}
+          isDiceRollerSettingsOpen={isDiceRollerSettingsOpen}
+          onConfirm={() => executeFeatureActivate(selectedAction.action)}
+          onDiceRollerSettingsOpenChange={setIsDiceRollerSettingsOpen}
+        />
+      );
     }
 
     if (

@@ -1,4 +1,8 @@
-import { CLASS_FEATURE, DAMAGE_TYPE } from "../../../../../codex/entries";
+import {
+  CLASS_FEATURE,
+  DAMAGE_TYPE,
+  type SpellDescriptionEntry
+} from "../../../../../codex/entries";
 import { warlockFeatures } from "../../../../../codex/classes";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
 import type { Character, CharacterWarlockFeatureState } from "../../../../../types";
@@ -9,14 +13,17 @@ import {
 } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import { getAbilityModifierForCharacter } from "../../../abilities";
+import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
+import { getProficiencyBonus } from "../../../gameplay";
 import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "../../../spellcasting";
 import { swapTemporaryHitPointsAssignment } from "../../../shared";
+import { formatFormulaCell, formatSignedFormulaTerm } from "../../../shared/formulas";
 import {
   createChargesAndUsageHeaderTags,
   createChargesOrResourceCardUsage,
   createFeatureActionCardCost
 } from "../../cardUsage";
-import type { DerivedFeatureStatusEntry, FeatureActionCard } from "../../types";
+import type { DerivedFeatureStatusEntry, FeatureActionCard, FeatureActionFact } from "../../types";
 import {
   getPreparedSpellIdsByLevel,
   resolveSpellIdsByName,
@@ -36,6 +43,7 @@ const fiendPatronSpellIdsByLevel = {
 } as const;
 const darkOnesBlessingName = "Dark One's Blessing";
 const darkOnesOwnLuckName = "Dark One's Own Luck";
+const darkOnesBlessingFormulaLabel = "Temporary HP Formula";
 const fiendishResilienceName = "Fiendish Resilience";
 const hurlThroughHellName = "Hurl Through Hell";
 const fiendishResilienceSourceId = "feature-warlock-fiend-patron-fiendish-resilience";
@@ -224,6 +232,43 @@ export function getWarlockFiendPatronDarkOnesBlessingTemporaryHitPoints(
   );
 }
 
+function getWarlockFiendPatronDarkOnesBlessingFormulaFact(
+  character: WarlockFiendPatronCharacter
+): FeatureActionFact {
+  const warlockLevel = Math.max(0, Math.floor(character.level ?? 0));
+  const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
+  const temporaryHitPoints = getWarlockFiendPatronDarkOnesBlessingTemporaryHitPoints(character);
+
+  return {
+    label: darkOnesBlessingFormulaLabel,
+    value: `${temporaryHitPoints} Temporary HP = ${warlockLevel} Warlock Level + ${charismaModifier} CHA`,
+    fullWidth: true
+  };
+}
+
+function getWarlockFiendPatronHurlThroughHellSpellDcFact(
+  character: WarlockFiendPatronCharacter
+): FeatureActionFact {
+  const proficiencyBonus = getProficiencyBonus(character.level ?? 1);
+  const charismaModifier = getAbilityModifierForCharacter(character, "CHA");
+  const dc = 8 + proficiencyBonus + charismaModifier;
+  const formulaCell = formatFormulaCell({
+    formula: String(dc),
+    displayTerms: [
+      "DC 8 (Base)",
+      formatSignedFormulaTerm(proficiencyBonus, "Prof. Bonus"),
+      formatSignedFormulaTerm(charismaModifier, "CHA")
+    ]
+  });
+
+  return {
+    label: "Spell DC Formula",
+    value: `Charisma save DC ${dc} = ${formulaCell.value}`,
+    breakdown: formulaCell.breakdown,
+    fullWidth: true
+  };
+}
+
 export function applyWarlockFiendPatronDarkOnesBlessing(character: Character): Character {
   const grantedTemporaryHitPoints =
     getWarlockFiendPatronDarkOnesBlessingTemporaryHitPoints(character);
@@ -265,6 +310,23 @@ export function getWarlockFiendPatronDarkOnesOwnLuckUsesRemaining(
     0,
     totalUses - (Number.isFinite(rawUsesExpended) ? Math.max(0, Math.floor(rawUsesExpended)) : 0)
   );
+}
+
+export function getWarlockFiendPatronDarkOnesOwnLuckDescriptionAdditions(
+  character: WarlockFiendPatronCharacter
+): SpellDescriptionEntry[][] {
+  if (!hasWarlockFiendPatronDarkOnesOwnLuck(character) || darkOnesOwnLuckDescription.length <= 0) {
+    return [];
+  }
+
+  const descriptionEntries = createFeatureSourcedDescriptionEntries(
+    character,
+    CLASS_FEATURE.DARK_ONES_OWN_LUCK,
+    darkOnesOwnLuckDescription.slice(0, 3),
+    darkOnesOwnLuckName
+  );
+
+  return descriptionEntries.length > 0 ? [descriptionEntries] : [];
 }
 
 export function getWarlockFiendPatronHurlThroughHellUsesTotal(
@@ -488,6 +550,7 @@ function getWarlockFiendPatronDarkOnesBlessingAction(
 
   const grantedTemporaryHitPoints =
     getWarlockFiendPatronDarkOnesBlessingTemporaryHitPoints(character);
+  const temporaryHitPointsFormulaFact = getWarlockFiendPatronDarkOnesBlessingFormulaFact(character);
 
   return {
     key: darkOnesBlessingActionKey,
@@ -502,7 +565,8 @@ function getWarlockFiendPatronDarkOnesBlessingAction(
       kind: "confirm",
       eyebrow: "Fiend Patron",
       description: [...darkOnesBlessingDescription],
-      helperText: `Gain ${grantedTemporaryHitPoints} Temporary Hit Points.`
+      facts: [temporaryHitPointsFormulaFact],
+      factsSectionTitle: null
     },
     execute: {
       kind: "activate"
@@ -564,6 +628,7 @@ function getWarlockFiendPatronHurlThroughHellAction(
       : 0;
   const hasFallbackSlot = usesRemaining <= 0 && pactMagicSlotsRemaining > 0 && pactMagicSlotLevel > 0;
   const disabled = usesRemaining <= 0 && !hasFallbackSlot;
+  const spellDcFact = getWarlockFiendPatronHurlThroughHellSpellDcFact(character);
   const resources = [
     {
       kind: "tracker" as const,
@@ -609,6 +674,7 @@ function getWarlockFiendPatronHurlThroughHellAction(
     usesInlineIcon: hasFallbackSlot ? "sparkles" : undefined,
     usesInlineSuffix: hasFallbackSlot ? "instead" : undefined,
     description: [...hurlThroughHellDescription],
+    facts: [spellDcFact],
     headerTags: createChargesAndUsageHeaderTags(
       usesRemaining,
       usesTotal,
@@ -626,6 +692,7 @@ function getWarlockFiendPatronHurlThroughHellAction(
       kind: "confirm",
       eyebrow: "Fiend Patron",
       description: [...hurlThroughHellDescription],
+      factsSectionTitle: null,
       helperText: hasFallbackSlot
         ? "Your free use is spent. Activating this now expends one Pact Magic spell slot."
         : pactMagicSlotsTotal > 0

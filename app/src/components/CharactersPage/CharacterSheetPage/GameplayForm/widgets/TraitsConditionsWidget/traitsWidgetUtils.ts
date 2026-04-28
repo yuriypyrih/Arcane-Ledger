@@ -17,6 +17,7 @@ import {
 } from "../../../../../../types";
 import { fighterPsiWarriorBulwarkOfForceStatusSourceId } from "../../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterPsiWarriorShared";
 import { isRogueArcaneTricksterSpellThiefStatusSourceId } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
+import { awakenedMindStatusSourceId } from "../../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockGreatOldOnePatron";
 
 const monkSuperiorDefenseStatusSourceId = "feature-monk-superior-defense";
 
@@ -182,6 +183,15 @@ export function isStatusEntryRemovable(entry: CharacterStatusEntry): boolean {
     entry.sourceId === monkSuperiorDefenseStatusSourceId;
 
   if (isSuperiorDefenseEffect) {
+    return true;
+  }
+
+  const isAwakenedMindEffect =
+    entry.sourceType === STATUS_ENTRY_SOURCE_TYPE.FEATURE &&
+    entry.group === STATUS_ENTRY_GROUP.EFFECTS &&
+    entry.sourceId === awakenedMindStatusSourceId;
+
+  if (isAwakenedMindEffect) {
     return true;
   }
 
