@@ -1,8 +1,17 @@
 import type { AbilityScores, AttributeMode, Character } from "../../../types";
+import type { CharacterSheetDomain } from "./domains";
 
 export type SkillLevel = "none" | "proficient" | "expert";
 export type SpellManagementMode = "menu" | "cantrips" | "prepared-spells" | "eldritch-invocations";
-export type PersistCharacterUpdater = (updater: (current: Character) => Character) => void;
+export type PersistCharacterOptions = {
+  domains?: CharacterSheetDomain[];
+  normalize?: "full" | "targeted" | false;
+  flush?: boolean;
+};
+export type PersistCharacterUpdater = (
+  updater: (current: Character) => Character,
+  options?: PersistCharacterOptions
+) => void;
 export type QueueCharacterSave = (nextCharacter: Character) => void;
 
 export type IdentityDraft = {

@@ -31,7 +31,10 @@ import {
   createHeldWeaponDescriptor,
   getHeldWeaponSlotCount
 } from "../../../inventory";
-import { createHeldDescriptorForInventoryItem } from "../../../inventoryItems";
+import {
+  createHeldDescriptorForInventoryItem,
+  createHeldInventoryItemCopyReferences
+} from "../../../inventoryItems";
 import { isShieldArmorEntry } from "../../../armor";
 import { getLoadoutCodexEntryByName } from "../../../proficiency";
 import {
@@ -193,14 +196,12 @@ function getPsychicBladeHeldSlotCount(character: RogueSoulknifeCharacter): numbe
 
     return [];
   });
-  const heldInventoryDescriptors = (character.inventoryItems ?? []).flatMap((entry) => {
-    if (!entry.onHand) {
-      return [];
-    }
-
-    const descriptor = createHeldDescriptorForInventoryItem(`inventory-${entry.id}`, entry.item);
-    return descriptor ? [descriptor] : [];
-  });
+  const heldInventoryDescriptors = (character.inventoryItems ?? [])
+    .flatMap(createHeldInventoryItemCopyReferences)
+    .flatMap((entry) => {
+      const descriptor = createHeldDescriptorForInventoryItem(`inventory-${entry.id}`, entry.item);
+      return descriptor ? [descriptor] : [];
+    });
   const heldCustomDescriptors = getResolvedCustomLoadoutEntries(character.customEquipment ?? [])
     .filter(
       (

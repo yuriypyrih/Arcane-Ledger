@@ -80,7 +80,8 @@ export type CharacterEquipmentItem = {
 export type CharacterInventoryItem = {
   id: string;
   item: ItemRecord;
-  onHand: boolean;
+  quantity: number;
+  onHandQuantity: number;
   worn: boolean;
 };
 

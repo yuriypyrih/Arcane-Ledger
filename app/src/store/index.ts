@@ -1,6 +1,12 @@
 export { useAppDispatch, useAppSelector } from "./hooks";
 export { store, type AppDispatch, type RootState } from "./store";
 export {
+  commitActiveCharacterSheet,
+  markActiveCharacterSheetPersisted,
+  setActiveCharacterSheet,
+  type ActiveCharacterSheetState
+} from "./activeCharacterSheetSlice";
+export {
   clearNextRollCriticalHitOverride,
   clearNextRollModeOverride,
   clearNextRollOverrides,

@@ -71,8 +71,59 @@ export type ItemListItem = {
   sourceTitle: string;
 };
 
-export type ItemDetailRecord = Open5eItemRecord & {
+export type ItemDetailReference = {
+  key: string;
+  name: string;
+};
+
+export type ItemDetailDocumentReference = ItemDetailReference & {
+  display_name: string | null;
+};
+
+export type ItemDetailWeaponPropertyReference = {
+  name: string;
+  type: string | null;
+};
+
+export type ItemDetailWeaponPropertyRecord = {
+  property: ItemDetailWeaponPropertyReference;
+  detail: string | null;
+};
+
+export type ItemDetailWeaponRecord = {
+  name: string;
+  damage_dice: string;
+  damage_type: ItemDetailReference;
+  is_martial: boolean;
+  properties: ItemDetailWeaponPropertyRecord[];
+};
+
+export type ItemDetailArmorRecord = {
+  category: string;
+  ac_base: number;
+  ac_display: string;
+  ac_add_dexmod: boolean;
+  ac_cap_dexmod: number | null;
+  grants_stealth_disadvantage: boolean;
+  strength_score_required: number | null;
+};
+
+export type ItemDetailRecord = {
   id: string;
+  key?: string;
+  name?: string;
+  desc?: string | null;
+  category?: ItemDetailReference | null;
+  rarity?: ItemDetailReference | null;
+  is_magic_item?: boolean;
+  weapon?: ItemDetailWeaponRecord | null;
+  armor?: ItemDetailArmorRecord | null;
+  weight?: string | null;
+  weight_unit?: string | null;
+  cost?: string | null;
+  requires_attunement?: boolean;
+  attunement_detail?: string | null;
+  document?: ItemDetailDocumentReference | null;
 };
 
 export type ItemListQuery = {

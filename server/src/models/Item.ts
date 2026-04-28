@@ -46,10 +46,6 @@ function isOpen5eDocumentReference(value: unknown): value is Open5eDocumentRefer
   return true;
 }
 
-function isOpen5eKeyedReferenceList(value: unknown) {
-  return Array.isArray(value) && value.every(isOpen5eKeyedReference);
-}
-
 function isOpen5eWeaponPropertyReference(value: unknown): value is Open5eWeaponPropertyReference {
   return (
     isObjectRecord(value) &&

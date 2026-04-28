@@ -14,6 +14,7 @@ import SpellManagementModal from "./SpellManagementModal";
 import SpellSlotActionSheet from "./SpellSlotActionSheet";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { useClassSpellEntries, usePreparedSpellEntries } from "../../../../codex/classes";
+import { getSpellcastingRuntimeForCharacter } from "../../../../pages/CharactersPage/characterRuntime/spellcastingRuntime";
 import {
   ACTION_TYPE,
   CLASS_FEATURE,
@@ -53,41 +54,16 @@ import {
   consumeWarlockStepsOfTheFeyUseForCharacter,
   consumeSharedEconomyMultiForCharacterAction,
   expendChannelDivinityUseForCharacter,
-  getBlessingOfMoonlightUsesRemainingForCharacter,
-  getBlessingOfMoonlightUsesTotalForCharacter,
-  getChannelDivinityUsesRemainingForCharacter,
-  getChannelDivinityUsesTotalForCharacter,
-  getAlwaysPreparedSpellIdsForCharacter,
-  getAlwaysSpellbookSpellIdsForCharacter,
-  getBardicInspirationUsesRemainingForCharacter,
-  getBardicInspirationUsesTotalForCharacter,
-  getBeguilingMagicUsesRemainingForCharacter,
-  getBeguilingMagicUsesTotalForCharacter,
-  getDruidNaturalRecoveryUsesRemainingForCharacter,
   getDruidStarMapGuidingBoltUsesRemainingForCharacter,
-  getDruidStarMapGuidingBoltUsesTotalForCharacter,
-  getFeatureActionsForCharacter,
   getFeatureActionOptionsForCharacter,
-  getFighterPsiWarriorEnergyDiceRemainingForCharacter,
-  getFighterPsiWarriorEnergyDiceTotalForCharacter,
-  getFighterPsiWarriorTelekineticMasterUsesRemainingForCharacter,
-  getFighterPsiWarriorTelekineticMasterUsesTotalForCharacter,
-  getRangerFeyReinforcementsUsesRemainingForCharacter,
-  getRangerFeyReinforcementsUsesTotalForCharacter,
-  getRangerMistyWandererUsesRemainingForCharacter,
-  getRangerMistyWandererUsesTotalForCharacter,
   getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter,
   getRangerWinterWalkerHuntersRimeTemporaryHitPointsFactsForCharacter,
   getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplayForCharacter,
   getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaForCharacter,
-  getWarlockStepsOfTheFeyUsesRemainingForCharacter,
-  getWarlockStepsOfTheFeyUsesTotalForCharacter,
   hasActiveMantleOfMajestyForCharacter,
-  getRitualOnlySpellIdsForCharacter,
   createEconomyMultiContextForSpell,
   getSpellbookSpellEntryForCharacter,
   getSpellEntryForCharacter,
-  getSpellcastingStateForCharacter,
   getWarlockEldritchInvocationLimitForCharacter,
   restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter,
   getWarlockInvocationSelectionIdsForCharacter,
@@ -136,21 +112,16 @@ import {
   type PaladinOathOfTheNobleGeniesElementalSmiteOptionKey
 } from "../../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheNobleGenies";
 import {
-  getSorceryPointsTotal,
   getSorceryPointsRemaining,
   spendSorceryPoints
 } from "../../../../pages/CharactersPage/classFeatures/sorcerer/sorcerer";
 import {
   canUseSorcererSubclassPsionicSorceryForSpell,
   canUseSorcererSubclassTamedSurgeForSpell,
-  consumeSorcererSubclassTamedSurgeUseForCharacter,
-  getSorcererSubclassTamedSurgeUsesRemaining,
-  getSorcererSubclassTamedSurgeUsesTotal
+  consumeSorcererSubclassTamedSurgeUseForCharacter
 } from "../../../../pages/CharactersPage/classFeatures/sorcerer/subclasses";
 import {
   getAlwaysPreparedSpellIds,
-  getCantripLimitForCharacter,
-  getPreparedSpellLimitForCharacter,
   getSpellLevel,
   getSpellSlotTotalsForCharacter,
   hasClassFeatureForCharacter,
@@ -252,16 +223,6 @@ function groupSpellsByLevel(spells: SpellEntry[]): SpellGroup[] {
       level,
       spells: [...levelSpells].sort((left, right) => left.name.localeCompare(right.name))
     }));
-}
-
-function getHighestSpellSlotLevel(spellSlotTotals: number[]): number {
-  for (let index = spellSlotTotals.length - 1; index >= 0; index -= 1) {
-    if ((spellSlotTotals[index] ?? 0) > 0) {
-      return index + 1;
-    }
-  }
-
-  return 0;
 }
 
 function getRoundTrackerResourceLabel(resource: RoundTrackerResource): string {
@@ -404,18 +365,13 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       ),
     [character]
   );
-  const featureAlwaysPreparedSpellIds = useMemo(
-    () => getAlwaysPreparedSpellIdsForCharacter(character),
+  const spellcastingRuntime = useMemo(
+    () => getSpellcastingRuntimeForCharacter(character),
     [character]
   );
-  const featureAlwaysSpellbookSpellIds = useMemo(
-    () => getAlwaysSpellbookSpellIdsForCharacter(character),
-    [character]
-  );
-  const featureRitualOnlySpellIds = useMemo(
-    () => getRitualOnlySpellIdsForCharacter(character),
-    [character]
-  );
+  const featureAlwaysPreparedSpellIds = spellcastingRuntime.featureAlwaysPreparedSpellIds;
+  const featureAlwaysSpellbookSpellIds = spellcastingRuntime.featureAlwaysSpellbookSpellIds;
+  const featureRitualOnlySpellIds = spellcastingRuntime.featureRitualOnlySpellIds;
   const basePreparedSpellPoolEntries = usePreparedSpellEntries(
     character.className,
     character.level,
@@ -426,7 +382,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     featGrantedCantripEntries.length > 0 ||
     featureAlwaysPreparedSpellIds.length > 0 ||
     featureAlwaysSpellbookSpellIds.length > 0;
-  const spellcastingState = getSpellcastingStateForCharacter(character);
+  const spellcastingState = spellcastingRuntime.spellcastingState;
 
   useEffect(() => {
     if (canCastSpells) {
@@ -462,7 +418,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     () => basePreparedSpellPoolEntries.map((spell) => getSpellEntryForCharacter(character, spell)),
     [basePreparedSpellPoolEntries, character]
   );
-  const featureActions = useMemo(() => getFeatureActionsForCharacter(character), [character]);
+  const featureActions = spellcastingRuntime.featureActions;
   const channelDivinityAction = useMemo(
     () =>
       featureActions.find(
@@ -510,132 +466,47 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         : null,
     [character, selectedDivinityRow]
   );
-  const channelDivinityUsesTotal = useMemo(
-    () => getChannelDivinityUsesTotalForCharacter(character),
-    [character]
-  );
-  const channelDivinityUsesRemaining = useMemo(
-    () => getChannelDivinityUsesRemainingForCharacter(character),
-    [character]
-  );
-  const bardicInspirationUsesTotal = useMemo(
-    () => getBardicInspirationUsesTotalForCharacter(character),
-    [character]
-  );
-  const sorceryPointsRemaining = useMemo(() => getSorceryPointsRemaining(character), [character]);
-  const sorceryPointsTotal = useMemo(() => getSorceryPointsTotal(character), [character]);
-  const tamedSurgeUsesRemaining = useMemo(
-    () => getSorcererSubclassTamedSurgeUsesRemaining(character),
-    [character]
-  );
-  const tamedSurgeUsesTotal = useMemo(
-    () => getSorcererSubclassTamedSurgeUsesTotal(character),
-    [character]
-  );
+  const channelDivinityUsesTotal = spellcastingRuntime.channelDivinityUsesTotal;
+  const channelDivinityUsesRemaining = spellcastingRuntime.channelDivinityUsesRemaining;
+  const bardicInspirationUsesTotal = spellcastingRuntime.bardicInspirationUsesTotal;
+  const sorceryPointsRemaining = spellcastingRuntime.sorceryPointsRemaining;
+  const sorceryPointsTotal = spellcastingRuntime.sorceryPointsTotal;
+  const tamedSurgeUsesRemaining = spellcastingRuntime.tamedSurgeUsesRemaining;
+  const tamedSurgeUsesTotal = spellcastingRuntime.tamedSurgeUsesTotal;
   const usesPreparedSpells = usesPreparedSpellsForCharacter(
     character.className,
     character.level,
     character.subclassId
   );
-  const cantripLimit = getCantripLimitForCharacter(
-    character.className,
-    character.level,
-    character.classFeatureState,
-    character.subclassId
-  );
-  const preparedSpellLimit = getPreparedSpellLimitForCharacter(
-    character.className,
-    character.level,
-    character.subclassId
-  );
-  const spellSlotTotals = useMemo(
-    () =>
-      getSpellSlotTotalsForCharacter(character.className, character.level, character.subclassId),
-    [character.className, character.level, character.subclassId]
-  );
-  const spellSlotsExpended = useMemo(
-    () => normalizeSpellSlotsExpended(character.spellSlotsExpended, spellSlotTotals),
-    [character.spellSlotsExpended, spellSlotTotals]
-  );
-  const spellSlotsRemaining = useMemo(
-    () =>
-      spellSlotTotals.map((total, index) => Math.max(0, total - (spellSlotsExpended[index] ?? 0))),
-    [spellSlotTotals, spellSlotsExpended]
-  );
-  const beguilingMagicUsesTotal = useMemo(
-    () => getBeguilingMagicUsesTotalForCharacter(character),
-    [character.className, character.level, character.subclassId]
-  );
-  const beguilingMagicUsesRemaining = useMemo(
-    () => getBeguilingMagicUsesRemainingForCharacter(character),
-    [character.classFeatureState, character.className, character.level, character.subclassId]
-  );
-  const blessingOfMoonlightUsesTotal = useMemo(
-    () => getBlessingOfMoonlightUsesTotalForCharacter(character),
-    [character.className, character.level, character.subclassId]
-  );
-  const blessingOfMoonlightUsesRemaining = useMemo(
-    () => getBlessingOfMoonlightUsesRemainingForCharacter(character),
-    [character.classFeatureState, character.className, character.level, character.subclassId]
-  );
-  const druidNaturalRecoveryUsesRemaining = useMemo(
-    () => getDruidNaturalRecoveryUsesRemainingForCharacter(character),
-    [character.classFeatureState, character.className, character.level, character.subclassId]
-  );
-  const druidStarMapGuidingBoltUsesTotal = useMemo(
-    () => getDruidStarMapGuidingBoltUsesTotalForCharacter(character),
-    [character.abilities, character.className, character.level, character.subclassId]
-  );
-  const druidStarMapGuidingBoltUsesRemaining = useMemo(
-    () => getDruidStarMapGuidingBoltUsesRemainingForCharacter(character),
-    [
-      character.abilities,
-      character.classFeatureState,
-      character.className,
-      character.level,
-      character.subclassId
-    ]
-  );
-  const rangerFeyReinforcementsUsesTotal =
-    getRangerFeyReinforcementsUsesTotalForCharacter(character);
+  const cantripLimit = spellcastingRuntime.cantripLimit;
+  const preparedSpellLimit = spellcastingRuntime.preparedSpellLimit;
+  const spellSlotTotals = spellcastingRuntime.spellSlotTotals;
+  const spellSlotsExpended = spellcastingRuntime.spellSlotsExpended;
+  const spellSlotsRemaining = spellcastingRuntime.spellSlotsRemaining;
+  const beguilingMagicUsesTotal = spellcastingRuntime.beguilingMagicUsesTotal;
+  const beguilingMagicUsesRemaining = spellcastingRuntime.beguilingMagicUsesRemaining;
+  const blessingOfMoonlightUsesTotal = spellcastingRuntime.blessingOfMoonlightUsesTotal;
+  const blessingOfMoonlightUsesRemaining = spellcastingRuntime.blessingOfMoonlightUsesRemaining;
+  const druidNaturalRecoveryUsesRemaining = spellcastingRuntime.druidNaturalRecoveryUsesRemaining;
+  const druidStarMapGuidingBoltUsesTotal = spellcastingRuntime.druidStarMapGuidingBoltUsesTotal;
+  const druidStarMapGuidingBoltUsesRemaining =
+    spellcastingRuntime.druidStarMapGuidingBoltUsesRemaining;
+  const rangerFeyReinforcementsUsesTotal = spellcastingRuntime.rangerFeyReinforcementsUsesTotal;
   const rangerFeyReinforcementsUsesRemaining =
-    getRangerFeyReinforcementsUsesRemainingForCharacter(character);
-  const rangerMistyWandererUsesTotal = getRangerMistyWandererUsesTotalForCharacter(character);
-  const rangerMistyWandererUsesRemaining =
-    getRangerMistyWandererUsesRemainingForCharacter(character);
-  const warlockStepsOfTheFeyUsesTotal = getWarlockStepsOfTheFeyUsesTotalForCharacter(character);
-  const warlockStepsOfTheFeyUsesRemaining =
-    getWarlockStepsOfTheFeyUsesRemainingForCharacter(character);
-  const fighterPsiWarriorTelekineticMasterUsesTotal = useMemo(
-    () => getFighterPsiWarriorTelekineticMasterUsesTotalForCharacter(character),
-    [character.className, character.level, character.subclassId]
-  );
-  const fighterPsiWarriorTelekineticMasterUsesRemaining = useMemo(
-    () => getFighterPsiWarriorTelekineticMasterUsesRemainingForCharacter(character),
-    [character.classFeatureState, character.className, character.level, character.subclassId]
-  );
-  const fighterPsiWarriorEnergyDiceRemaining = useMemo(
-    () => getFighterPsiWarriorEnergyDiceRemainingForCharacter(character),
-    [character.classFeatureState, character.className, character.level, character.subclassId]
-  );
-  const fighterPsiWarriorEnergyDiceTotal = useMemo(
-    () => getFighterPsiWarriorEnergyDiceTotalForCharacter(character),
-    [character.className, character.level, character.subclassId]
-  );
-  const bardicInspirationUsesRemaining = useMemo(
-    () => getBardicInspirationUsesRemainingForCharacter(character),
-    [
-      character.abilities,
-      character.classFeatureState,
-      character.className,
-      character.feats,
-      character.level
-    ]
-  );
-  const highestSpellSlotLevel = useMemo(
-    () => getHighestSpellSlotLevel(spellSlotTotals),
-    [spellSlotTotals]
-  );
+    spellcastingRuntime.rangerFeyReinforcementsUsesRemaining;
+  const rangerMistyWandererUsesTotal = spellcastingRuntime.rangerMistyWandererUsesTotal;
+  const rangerMistyWandererUsesRemaining = spellcastingRuntime.rangerMistyWandererUsesRemaining;
+  const warlockStepsOfTheFeyUsesTotal = spellcastingRuntime.warlockStepsOfTheFeyUsesTotal;
+  const warlockStepsOfTheFeyUsesRemaining = spellcastingRuntime.warlockStepsOfTheFeyUsesRemaining;
+  const fighterPsiWarriorTelekineticMasterUsesTotal =
+    spellcastingRuntime.fighterPsiWarriorTelekineticMasterUsesTotal;
+  const fighterPsiWarriorTelekineticMasterUsesRemaining =
+    spellcastingRuntime.fighterPsiWarriorTelekineticMasterUsesRemaining;
+  const fighterPsiWarriorEnergyDiceRemaining =
+    spellcastingRuntime.fighterPsiWarriorEnergyDiceRemaining;
+  const fighterPsiWarriorEnergyDiceTotal = spellcastingRuntime.fighterPsiWarriorEnergyDiceTotal;
+  const bardicInspirationUsesRemaining = spellcastingRuntime.bardicInspirationUsesRemaining;
+  const highestSpellSlotLevel = spellcastingRuntime.highestSpellSlotLevel;
   const cantripOptions = useMemo(
     () => classSpellEntries.filter((spell) => getSpellLevel(spell) === 0),
     [classSpellEntries]

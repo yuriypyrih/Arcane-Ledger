@@ -9,7 +9,7 @@ export function clearCharacterHandOccupants(character: Character): Character {
     })),
     inventoryItems: character.inventoryItems.map((entry) => ({
       ...entry,
-      onHand: false
+      onHandQuantity: 0
     })),
     customEquipment: character.customEquipment.map((entry) =>
       entry.kind === "weapon"

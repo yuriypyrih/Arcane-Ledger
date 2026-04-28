@@ -20,10 +20,11 @@ import { formatCodexLabel, formatWeaponDamage, formatWeaponDamageFormula } from 
 import {
   getAbilityModifierBreakdownForCharacter,
   getAbilityModifierForCharacter,
-  getAbilityScoreForCharacter,
   getAbilityScoresForCharacter
 } from "./abilities";
 import type { AbilityModifierBonusEntry } from "./abilities";
+import { getEquipmentRuntimeForCharacter } from "./characterRuntime/equipmentRuntime";
+import { measureCharacterRuntime } from "./characterRuntime/performance";
 import {
   canUseMonkMartialArtsForCharacter,
   getAdditionalWeaponMasteriesForCharacter,
@@ -131,6 +132,8 @@ export type WeaponAction = {
     value: string;
   }>;
 };
+
+const weaponActionsByCharacter = new WeakMap<Character, WeaponAction[]>();
 
 export type InitiativeBreakdownEntry = {
   label: string;
@@ -885,15 +888,16 @@ function createUnarmedStrikeAction(
   };
 }
 
-export function getWeaponActionsForCharacter(character: Character): WeaponAction[] {
+function createWeaponActionsForCharacter(character: Character): WeaponAction[] {
   const proficiencyBonus = getProficiencyBonus(character.level);
   const effectiveAbilityScores = getAbilityScoresForCharacter(character);
   const hasGreatWeaponFighting = hasGreatWeaponFightingFeat(character);
+  const equipmentRuntime = getEquipmentRuntimeForCharacter(character);
   const heldCustomWeapons = getResolvedCustomLoadoutEntries(character.customEquipment).filter(
     (entry): entry is ResolvedCustomWeaponEntry =>
       entry.category === ENTRY_CATEGORIES.WEAPONS && entry.onHand
   );
-  const heldInventoryItems = character.inventoryItems.filter((entry) => entry.onHand);
+  const heldInventoryItems = equipmentRuntime.heldInventoryCopies;
   const heldInventoryWeapons = heldInventoryItems.filter((entry) => Boolean(entry.item.weapon));
   const heldCodexWeapons = character.equipment.filter((item) => item.onHand);
   const heldCodexWeaponEntries = heldCodexWeapons.reduce<WeaponEntry[]>((entries, item) => {
@@ -949,10 +953,7 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
   const heldCustomWeaponDescriptors = heldCustomWeapons.map((entry) =>
     createHeldWeaponDescriptor(`custom-${entry.customEquipmentId}`, entry)
   );
-  const heldInventoryWeaponDescriptors = heldInventoryItems.flatMap((entry) => {
-    const descriptor = createHeldDescriptorForInventoryItem(`inventory-${entry.id}`, entry.item);
-    return descriptor ? [descriptor] : [];
-  });
+  const heldInventoryWeaponDescriptors = equipmentRuntime.heldInventoryDescriptors;
   const heldWeaponDescriptors: HeldWeaponDescriptor[] = [
     ...heldCodexWeaponDescriptors,
     ...heldInventoryWeaponDescriptors,
@@ -1213,4 +1214,18 @@ export function getWeaponActionsForCharacter(character: Character): WeaponAction
   return resolvedWeaponActions.map((action) =>
     transformWeaponActionForCharacter(character, action)
   );
+}
+
+export function getWeaponActionsForCharacter(character: Character): WeaponAction[] {
+  const cachedActions = weaponActionsByCharacter.get(character);
+
+  if (cachedActions) {
+    return cachedActions;
+  }
+
+  const weaponActions = measureCharacterRuntime("character-sheet:weapon-actions", () =>
+    createWeaponActionsForCharacter(character)
+  );
+  weaponActionsByCharacter.set(character, weaponActions);
+  return weaponActions;
 }

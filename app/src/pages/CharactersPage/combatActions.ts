@@ -1,6 +1,7 @@
 import type { SpellDescriptionEntry } from "../../codex/entries";
 import type { Character } from "../../types";
 import type { ActionCategory, EconomyType } from "./actionEconomy";
+import { measureCharacterRuntime } from "./characterRuntime/performance";
 import {
   createChargesHeaderTag,
   createFeatureActionHeaderTagPool,
@@ -95,6 +96,8 @@ export type GameplayActionDefinition =
       execute: GameplayActionExecuteDefinition;
       drawer: GameplayActionDrawerDefinition;
     });
+
+const combatActionsByCharacter = new WeakMap<Character, GameplayActionDefinition[]>();
 
 function createTextResource(
   label: string,
@@ -540,12 +543,23 @@ function createWeaponActionDefinition(
 }
 
 export function getCombatActionsForCharacter(character: Character): GameplayActionDefinition[] {
-  const featureActions = getFeatureActionsForCharacter(character).map((action) =>
-    createFeatureActionDefinition(character, action)
-  );
-  const weaponActions = getWeaponActionsForCharacter(character).map((action) =>
-    createWeaponActionDefinition(character, action)
-  );
+  const cachedActions = combatActionsByCharacter.get(character);
 
-  return [...featureActions, ...weaponActions];
+  if (cachedActions) {
+    return cachedActions;
+  }
+
+  const actions = measureCharacterRuntime("character-sheet:combat-actions", () => {
+    const featureActions = getFeatureActionsForCharacter(character).map((action) =>
+      createFeatureActionDefinition(character, action)
+    );
+    const weaponActions = getWeaponActionsForCharacter(character).map((action) =>
+      createWeaponActionDefinition(character, action)
+    );
+
+    return [...featureActions, ...weaponActions];
+  });
+
+  combatActionsByCharacter.set(character, actions);
+  return actions;
 }

@@ -40,9 +40,7 @@ import {
   createSpellSlotFromSorceryPointsForCharacter,
   consumeFaithfulSteedUseForCharacter,
   consumePaladinsSmiteUseForCharacter,
-  getDruidNatureMagicianOptionsForCharacter,
   hasDruidTwinklingConstellationsFeatureForCharacter,
-  getDruidWildResurgenceAvailableSpellSlotLevelsForCharacter,
   getDruidWildResurgenceSpellSlotRecoveryUsesRemainingForCharacter,
   getDruidWildShapeKnownFormsForCharacter,
   getDruidWildShapeUsesRemainingForCharacter,
@@ -58,8 +56,6 @@ import {
   createEconomyMultiContextForFeatureActionOption,
   expendMonkFocusPointForCharacter,
   getBardicInspirationUsesRemainingForCharacter,
-  getBeguilingMagicUsesRemainingForCharacter,
-  getBeguilingMagicUsesTotalForCharacter,
   getChannelDivinityUsesRemainingForCharacter,
   getChannelDivinityUsesTotalForCharacter,
   getInnateSorceryActivationSorceryPointCostForCharacter,
@@ -72,10 +68,7 @@ import {
   getSorceryPointsRemainingForCharacter,
   getSorceryPointsTotalForCharacter,
   getLayOnHandsCurableConditionsForCharacter,
-  getPaladinHealingPoolRemainingForCharacter,
-  getPaladinHealingPoolTotalForCharacter,
   getSharedEconomyMultiCountForCharacterAction,
-  getSpellcastingStateForCharacter,
   getRangerWinterWalkerFrozenHauntSpellOptionStateForCharacter,
   getRangerWinterWalkerHuntersRimeTemporaryHitPointsFactsForCharacter,
   getRangerWinterWalkerHuntersRimeTemporaryHitPointsFormulaDisplayForCharacter,
@@ -128,7 +121,6 @@ import {
   consumeFighterBattleMasterKnowYourEnemyForCharacter,
   expendFighterBattleMasterSuperiorityDieForCharacter,
   getFighterBattleMasterCombatSuperiorityUsedThisTurnForCharacter,
-  getFighterBattleMasterSuperiorityDieForCharacter,
   getFighterBattleMasterSuperiorityDiceRemainingForCharacter,
   applyFighterTeamTacticsStatus,
   consumeFighterGroupRecoveryUse,
@@ -139,7 +131,6 @@ import {
   getFighterSecondWindHealingFormula,
   markFighterBattleMasterCombatSuperiorityUsedForCharacter
 } from "../../../../../../pages/CharactersPage/classFeatures/fighter/fighter";
-import { fighterBattleMasterCombatSuperiorityActionKey } from "../../../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterBattleMaster";
 import {
   paladinChannelDivinityActionKey,
   type LayOnHandsCondition
@@ -353,7 +344,6 @@ import {
 } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfShadow";
 import {
   getMonkWarriorOfTheElementsElementalBurstDamageFormula,
-  getMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection,
   hasMonkWarriorOfTheElementsElementalEpitome,
   monkElementalAttunementActionKey,
   monkElementalBurstActionKey,
@@ -401,6 +391,8 @@ import {
 import type { ActionsWidgetProps } from "./types";
 import { useActionsWidgetUiState } from "./useActionsWidgetUiState";
 import { useActionsWidgetActions } from "./useActionsWidgetActions";
+import { useActionResourceOptionModel } from "./useActionResourceOptionModel";
+import { useSelectedActionModel } from "./useSelectedActionModel";
 import { useSelectedWeaponActionModel } from "./useSelectedWeaponActionModel";
 import ActionsGrid from "./ActionsGrid";
 import FeatureSpellDrawers from "./FeatureSpellDrawers";
@@ -544,174 +536,50 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectableActions,
     customWeaponEntriesById
   } = useActionsWidgetActions(character);
-  const spellcastingState = getSpellcastingStateForCharacter(character);
-  const beguilingMagicUsesTotal = useMemo(
-    () => getBeguilingMagicUsesTotalForCharacter(character),
-    [character.className, character.level, character.subclassId]
-  );
-  const beguilingMagicUsesRemaining = useMemo(
-    () => getBeguilingMagicUsesRemainingForCharacter(character),
-    [character.classFeatureState, character.className, character.level, character.subclassId]
-  );
-  const bardicInspirationUsesRemaining = useMemo(
-    () => getBardicInspirationUsesRemainingForCharacter(character),
-    [
-      character.abilities,
-      character.classFeatureState,
-      character.className,
-      character.feats,
-      character.level
-    ]
-  );
+  const {
+    spellcastingState,
+    beguilingMagicUsesTotal,
+    beguilingMagicUsesRemaining,
+    bardicInspirationUsesRemaining,
+    fixedSpellSlotTotals,
+    fixedSpellSlotsExpended,
+    fixedSpellSlotsRemaining,
+    wildCompanionSpellSlotOptions,
+    bardicInspirationFallbackSpellSlotOptions,
+    beastMasterReviveSpellSlotOptions,
+    firstAvailableBardicInspirationSpellSlotLevel,
+    firstAvailableBeastMasterReviveSpellSlotLevel,
+    firstAvailableWildCompanionSpellSlotLevel,
+    wildResurgenceAvailableSpellSlotLevels,
+    wildResurgenceSpellSlotOptions,
+    firstAvailableWildResurgenceSpellSlotLevel,
+    natureMagicianOptions
+  } = useActionResourceOptionModel(character);
   const mantleOfMajestyUsesRemaining = useMemo(
     () => getMantleOfMajestyUsesRemainingForCharacter(character),
     [character.classFeatureState, character.className, character.level, character.subclassId]
   );
-  const fixedSpellSlotTotals = useMemo(
-    () => getSpellSlotTotalsForCharacter(character.className, character.level),
-    [character.className, character.level]
-  );
-  const fixedSpellSlotsExpended = useMemo(
-    () => normalizeSpellSlotsExpended(character.spellSlotsExpended, fixedSpellSlotTotals),
-    [character.spellSlotsExpended, fixedSpellSlotTotals]
-  );
-  const fixedSpellSlotsRemaining = useMemo(
-    () =>
-      fixedSpellSlotTotals.map((total, index) =>
-        Math.max(0, total - (fixedSpellSlotsExpended[index] ?? 0))
-      ),
-    [fixedSpellSlotTotals, fixedSpellSlotsExpended]
-  );
-  const wildCompanionSpellSlotOptions = useMemo(
-    () =>
-      fixedSpellSlotTotals.flatMap((total, index) =>
-        total > 0
-          ? [
-              {
-                level: index + 1,
-                remaining: fixedSpellSlotsRemaining[index] ?? 0,
-                total
-              }
-            ]
-          : []
-      ),
-    [fixedSpellSlotTotals, fixedSpellSlotsRemaining]
-  );
-  const bardicInspirationFallbackSpellSlotOptions = useMemo(
-    () =>
-      fixedSpellSlotTotals.flatMap((total, index) =>
-        total > 0 && (fixedSpellSlotsRemaining[index] ?? 0) > 0
-          ? [
-              {
-                level: index + 1,
-                remaining: fixedSpellSlotsRemaining[index] ?? 0,
-                total
-              }
-            ]
-          : []
-      ),
-    [fixedSpellSlotTotals, fixedSpellSlotsRemaining]
-  );
-  const beastMasterReviveSpellSlotOptions = useMemo(
-    () =>
-      fixedSpellSlotTotals.flatMap((total, index) =>
-        total > 0 && (fixedSpellSlotsRemaining[index] ?? 0) > 0
-          ? [
-              {
-                level: index + 1,
-                remaining: fixedSpellSlotsRemaining[index] ?? 0,
-                total
-              }
-            ]
-          : []
-      ),
-    [fixedSpellSlotTotals, fixedSpellSlotsRemaining]
-  );
-  const firstAvailableBardicInspirationSpellSlotLevel =
-    bardicInspirationFallbackSpellSlotOptions[0]?.level ?? null;
-  const firstAvailableBeastMasterReviveSpellSlotLevel =
-    beastMasterReviveSpellSlotOptions[0]?.level ?? null;
-  const firstAvailableWildCompanionSpellSlotLevel =
-    wildCompanionSpellSlotOptions.find((slot) => slot.remaining > 0)?.level ?? null;
-  const wildResurgenceAvailableSpellSlotLevels = useMemo(
-    () => getDruidWildResurgenceAvailableSpellSlotLevelsForCharacter(character),
-    [
-      character.classFeatureState,
-      character.className,
-      character.level,
-      character.spellSlotsExpended
-    ]
-  );
-  const wildResurgenceSpellSlotOptions = useMemo(
-    () =>
-      fixedSpellSlotTotals.flatMap((total, index) =>
-        total > 0 && wildResurgenceAvailableSpellSlotLevels.includes(index + 1)
-          ? [
-              {
-                level: index + 1,
-                remaining: fixedSpellSlotsRemaining[index] ?? 0,
-                total
-              }
-            ]
-          : []
-      ),
-    [fixedSpellSlotTotals, fixedSpellSlotsRemaining, wildResurgenceAvailableSpellSlotLevels]
-  );
-  const firstAvailableWildResurgenceSpellSlotLevel =
-    wildResurgenceSpellSlotOptions.find((slot) => slot.remaining > 0)?.level ?? null;
-  const natureMagicianOptions = useMemo(
-    () => getDruidNatureMagicianOptionsForCharacter(character),
-    [
-      character.classFeatureState,
-      character.className,
-      character.level,
-      character.spellSlotsExpended
-    ]
-  );
   const effectiveAbilities = useMemo(() => getAbilityScoresForCharacter(character), [character]);
-  const selectedAction =
-    selectedActionKey !== null
-      ? (selectableActions.find((combatAction) => combatAction.key === selectedActionKey) ?? null)
-      : null;
-  const selectedFeatureAction = selectedAction?.kind === "feature" ? selectedAction.action : null;
-  const isHordeBreakerSelected =
-    selectedAction?.kind === "weapon" &&
-    selectedAction.action.key === character.classFeatureState?.ranger?.hunterHordeBreakerActionKey;
-  const isLayOnHandsActionSelected =
-    selectedAction?.kind === "feature" &&
-    selectedAction.drawer.kind === "custom-form" &&
-    selectedAction.drawer.formKind === "lay-on-hands";
-  const selectedLayOnHandsTotalPool = isLayOnHandsActionSelected
-    ? getPaladinHealingPoolTotalForCharacter(character)
-    : 0;
-  const selectedLayOnHandsRemainingPool = isLayOnHandsActionSelected
-    ? getPaladinHealingPoolRemainingForCharacter(character)
-    : 0;
-  const selectedLayOnHandsPoolSpendAmount = Math.max(
-    0,
-    Math.floor(Number(selectedLayOnHandsPoolSpendInput) || 0)
-  );
-  const selectedLayOnHandsTotalCost =
-    selectedLayOnHandsPoolSpendAmount + selectedLayOnHandsConditions.length * 5;
-  const selectedLayOnHandsWarning =
-    isLayOnHandsActionSelected && selectedLayOnHandsTotalCost > selectedLayOnHandsRemainingPool
-      ? "Not enough Pool of Healing remains for that use."
-      : null;
-  const canSubmitLayOnHands =
-    isLayOnHandsActionSelected &&
-    selectedLayOnHandsTotalCost > 0 &&
-    selectedLayOnHandsWarning === null;
-  const selectedMonkElementalAttunementResistanceDamageType =
-    selectedFeatureAction?.key === monkElementalAttunementActionKey
-      ? getMonkWarriorOfTheElementsElementalResistanceDamageTypeSelection(character)
-      : null;
-  const selectedCombatSuperiorityDie =
-    selectedFeatureAction?.key === fighterBattleMasterCombatSuperiorityActionKey
-      ? getFighterBattleMasterSuperiorityDieForCharacter(character)
-      : null;
-  const selectedActionBadges = selectedCombatSuperiorityDie
-    ? [`Current ${selectedCombatSuperiorityDie.toUpperCase()}`]
-    : [];
+  const {
+    selectedAction,
+    selectedFeatureAction,
+    isHordeBreakerSelected,
+    isLayOnHandsActionSelected,
+    selectedLayOnHandsTotalPool,
+    selectedLayOnHandsRemainingPool,
+    selectedLayOnHandsPoolSpendAmount,
+    selectedLayOnHandsTotalCost,
+    selectedLayOnHandsWarning,
+    canSubmitLayOnHands,
+    selectedMonkElementalAttunementResistanceDamageType,
+    selectedActionBadges
+  } = useSelectedActionModel({
+    character,
+    selectableActions,
+    selectedActionKey,
+    selectedLayOnHandsPoolSpendInput,
+    selectedLayOnHandsConditions
+  });
   const wildShapeKnownForms = useMemo(
     () => getDruidWildShapeKnownFormsForCharacter(character),
     [character.classFeatureState, character.className, character.level]

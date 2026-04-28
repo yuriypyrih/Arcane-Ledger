@@ -45,6 +45,7 @@ import {
   getHeldWeaponSlotCount
 } from "../../inventory";
 import {
+  createHeldInventoryItemCopyReferences,
   createHeldDescriptorForInventoryItem,
   getItemWeaponProperties,
   getItemWeaponType,
@@ -236,7 +237,7 @@ function getMonkCombatState(
   >
 ): MonkCombatState {
   const heldCodexEquipment = character.equipment.filter((item) => item.onHand);
-  const heldInventoryItems = character.inventoryItems.filter((item) => item.onHand);
+  const heldInventoryItems = character.inventoryItems.flatMap(createHeldInventoryItemCopyReferences);
   const heldCodexWeapons = heldCodexEquipment.reduce<WeaponEntry[]>((entries, item) => {
     const weaponEntry = codexWeaponEntriesByName.get(item.name);
     return weaponEntry ? [...entries, weaponEntry] : entries;

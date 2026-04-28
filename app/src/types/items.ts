@@ -1,52 +1,31 @@
-export type Open5eKeyedReference = {
+export type ItemDetailReference = {
   name: string;
   key: string;
-  url: string;
-  [key: string]: unknown;
 };
 
-export type Open5eDocumentReference = {
+export type ItemDetailDocumentReference = ItemDetailReference & {
+  display_name: string | null;
+};
+
+export type ItemDetailWeaponPropertyReference = {
   name: string;
-  key: string;
-  type?: string;
-  display_name?: string;
-  publisher?: Open5eKeyedReference | null;
-  gamesystem?: Open5eKeyedReference | null;
-  permalink?: string | null;
-  [key: string]: unknown;
+  type: string | null;
 };
 
-export type Open5eWeaponPropertyReference = {
-  name: string;
-  url: string;
-  key?: string;
-  type?: string | null;
-  desc?: string | null;
-  [key: string]: unknown;
-};
-
-export type Open5eItemWeaponPropertyRecord = {
-  property: Open5eWeaponPropertyReference;
+export type ItemDetailWeaponPropertyRecord = {
+  property: ItemDetailWeaponPropertyReference;
   detail: string | null;
 };
 
-export type Open5eItemWeaponRecord = {
+export type ItemDetailWeaponRecord = {
   name: string;
-  key: string;
-  url: string;
   damage_dice: string;
-  damage_type: Open5eKeyedReference;
-  distance_unit: string;
-  is_improvised: boolean;
+  damage_type: ItemDetailReference;
   is_martial: boolean;
-  is_simple: boolean;
-  properties: Open5eItemWeaponPropertyRecord[];
+  properties: ItemDetailWeaponPropertyRecord[];
 };
 
-export type Open5eItemArmorRecord = {
-  name: string;
-  key: string;
-  url: string;
+export type ItemDetailArmorRecord = {
   category: string;
   ac_base: number;
   ac_display: string;
@@ -90,23 +69,20 @@ export type ItemListItem = {
 
 export type ItemRecord = {
   id: string;
-  url?: string;
   key?: string;
   name?: string;
   desc?: string | null;
-  category?: Open5eKeyedReference | null;
-  rarity?: Open5eKeyedReference | null;
+  category?: ItemDetailReference | null;
+  rarity?: ItemDetailReference | null;
   is_magic_item?: boolean;
-  weapon?: Open5eItemWeaponRecord | null;
-  armor?: Open5eItemArmorRecord | null;
-  size?: Open5eKeyedReference | null;
+  weapon?: ItemDetailWeaponRecord | null;
+  armor?: ItemDetailArmorRecord | null;
   weight?: string | null;
   weight_unit?: string | null;
   cost?: string | null;
   requires_attunement?: boolean;
   attunement_detail?: string | null;
-  document?: Open5eDocumentReference | null;
-  [key: string]: unknown;
+  document?: ItemDetailDocumentReference | null;
 };
 
 export type ItemFilterOption = {

@@ -17,7 +17,7 @@ import {
   getAlwaysPreparedSpellIdsForCharacter,
   getCantripLimitBonusForCharacter
 } from "./classFeatures";
-import { getSpellSlotTotalsForCharacter, normalizeSpellSlotsExpended } from "./spellSlots";
+import { getSpellSlotTotalsForCharacter } from "./spellSlots";
 
 const arcaneTricksterRequiredCantripId = "spell-mage-hand";
 

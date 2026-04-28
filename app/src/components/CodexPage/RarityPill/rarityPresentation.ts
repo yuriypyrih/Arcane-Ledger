@@ -1,8 +1,8 @@
 import { RARITY_TYPES } from "../../../codex/entries";
-import type { Open5eKeyedReference } from "../../../types";
+import type { ItemDetailReference } from "../../../types";
 import { formatCodexLabel } from "../../../utils/codex";
 
-export type RarityPillValue = RARITY_TYPES | Open5eKeyedReference | string | null | undefined;
+export type RarityPillValue = RARITY_TYPES | ItemDetailReference | string | null | undefined;
 
 type RarityAppearance = {
   color: string;

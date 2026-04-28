@@ -339,6 +339,7 @@ import type {
 } from "./types";
 
 const emptyFeatureDerivedState: ClassFeatureDerivedState = {};
+const activeClassFeatureStateCache = new WeakMap<object, ClassFeatureDerivedState>();
 
 function createWeaponMasteryState(
   selectionCount: number,
@@ -983,6 +984,12 @@ export function collectActiveClassFeatureState(
       >
     >
 ): ClassFeatureDerivedState {
+  const cachedState = activeClassFeatureStateCache.get(character);
+
+  if (cachedState) {
+    return cachedState;
+  }
+
   const activeModule = getActiveClassFeatureModule(character.className);
 
   if (!activeModule) {
@@ -1008,5 +1015,8 @@ export function collectActiveClassFeatureState(
     ...character
   };
 
-  return activeModule.collectDerived(safeCharacter);
+  const derivedState = activeModule.collectDerived(safeCharacter);
+
+  activeClassFeatureStateCache.set(character, derivedState);
+  return derivedState;
 }

@@ -49,10 +49,17 @@ const subclassRuntimeDispatchers: Record<
   Warlock: getWarlockSubclassDerivedFeatureState,
   Wizard: getWizardSubclassDerivedFeatureState
 };
+const subclassDerivedFeatureStateCache = new WeakMap<object, SubclassDerivedFeatureState>();
 
 export function getSubclassDerivedFeatureState(
   character: SubclassRuntimeCharacter
 ): SubclassDerivedFeatureState {
+  const cachedState = subclassDerivedFeatureStateCache.get(character);
+
+  if (cachedState) {
+    return cachedState;
+  }
+
   const subclass = getSelectedSubclassForCharacter(character);
 
   if (!subclass) {
@@ -61,5 +68,8 @@ export function getSubclassDerivedFeatureState(
 
   const dispatcher = subclassRuntimeDispatchers[subclass.className];
 
-  return dispatcher ? dispatcher({ ...character, subclassId: subclass.id }) : {};
+  const derivedState = dispatcher ? dispatcher({ ...character, subclassId: subclass.id }) : {};
+
+  subclassDerivedFeatureStateCache.set(character, derivedState);
+  return derivedState;
 }

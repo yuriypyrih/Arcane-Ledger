@@ -103,7 +103,7 @@ function hasExplicitArmorWornState(value: unknown): boolean {
   });
 }
 
-function normalizeCurrencies(
+export function normalizeCharacterCurrencies(
   value: unknown,
   fallbackCurrencies: Character["currencies"]
 ): Character["currencies"] {
@@ -458,7 +458,7 @@ export function normalizeCharacter(value: unknown): Character | null {
       customEquipment: normalizedArmorWearState.customEquipment
     }
   );
-  const normalizedCurrencies = normalizeCurrencies(record.currencies, defaults.currencies);
+  const normalizedCurrencies = normalizeCharacterCurrencies(record.currencies, defaults.currencies);
   const normalizedMaxHitPointsMode =
     record.maxHitPointsMode === "automatic" || record.maxHitPointsMode === "custom"
       ? record.maxHitPointsMode
@@ -597,6 +597,20 @@ export function loadCharacters(): Character[] {
 
 export function saveCharacters(characters: Character[]) {
   saveStoredCharacterRecords(characters);
+}
+
+export function upsertTrustedCharacter(character: Character): Character {
+  if (!Number.isFinite(character.id)) {
+    throw new Error("Unable to save character: invalid character id.");
+  }
+
+  const characters = loadStoredCharacterRecords();
+  const nextCharacters = characters.some((entry) => getStoredCharacterId(entry) === character.id)
+    ? characters.map((entry) => (getStoredCharacterId(entry) === character.id ? character : entry))
+    : [character, ...characters];
+
+  saveStoredCharacterRecords(nextCharacters);
+  return character;
 }
 
 export function findCharacter(characterId: number): Character | undefined {

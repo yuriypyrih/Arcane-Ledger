@@ -38,6 +38,7 @@ import {
 } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfTheOpenHand";
 import { getMonkWarriorOfShadowImprovedShadowStepOptionState } from "../../../../../../pages/CharactersPage/classFeatures/monk/subclasses/monkWarriorOfShadow";
 import type { ResolvedCustomWeaponEntry } from "../../../../../../pages/CharactersPage/customEquipment";
+import { findInventoryItemStackById } from "../../../../../../pages/CharactersPage/inventoryItems";
 import { hasActiveWeaponMastery } from "../../../../../../pages/CharactersPage/weaponMasteryStatus";
 import { hasAppliedWeaponProficiency } from "../../../../../../pages/CharactersPage/weaponProficiencyStatus";
 import { adaptItemWeapon } from "../../../../../../utils/items/adaptItemWeapon";
@@ -119,7 +120,7 @@ export function useSelectedWeaponActionModel({
 
     const inventoryItemId = selectedWeaponAction.key.replace(/^inventory-/, "");
 
-    return character.inventoryItems.find((entry) => entry.id === inventoryItemId)?.item ?? null;
+    return findInventoryItemStackById(character.inventoryItems, inventoryItemId)?.item ?? null;
   }, [character.inventoryItems, selectedWeaponAction]);
   const selectedWeaponHasActiveMastery = useMemo(() => {
     if (!selectedWeaponAction) {
@@ -163,8 +164,7 @@ export function useSelectedWeaponActionModel({
         training: adaptedWeapon.type.training,
         combatType: adaptedWeapon.type.combat,
         properties: adaptedWeapon.properties,
-        name: selectedWeaponItemRecord.weapon?.name,
-        key: selectedWeaponItemRecord.weapon?.key
+        name: selectedWeaponItemRecord.weapon?.name
       });
     }
 

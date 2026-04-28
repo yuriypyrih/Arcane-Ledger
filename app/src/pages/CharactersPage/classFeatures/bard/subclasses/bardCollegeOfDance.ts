@@ -5,7 +5,7 @@ import {
   appendFeatureSourcedDescriptionAddition,
   createFeatureSourcedDescriptionEntries
 } from "../../../actionModalDescriptions";
-import { isItemShieldRecord } from "../../../inventoryItems";
+import { getInventoryItemOnHandQuantity, isItemShieldRecord } from "../../../inventoryItems";
 import { getEquipmentByName } from "../../../proficiencyCodexData";
 import { getFeatureDescriptionForCharacter } from "../../featureDescriptions";
 import type { SubclassRuntimeResolver } from "../../subclassRuntime";
@@ -98,7 +98,7 @@ function hasShieldEquipped(
       return equipmentDefinition?.category === "armor" && equipmentDefinition.type === "shield";
     }) ||
     (character.inventoryItems ?? []).some(
-      (entry) => entry.onHand && isItemShieldRecord(entry.item)
+      (entry) => getInventoryItemOnHandQuantity(entry) > 0 && isItemShieldRecord(entry.item)
     ) ||
     (character.customEquipment ?? []).some(
       (entry) => entry.kind === "armor" && entry.armorType === "shield" && entry.worn

@@ -8,7 +8,7 @@ import {
   type WeaponDamage,
   type WeaponType
 } from "../../codex/entries";
-import type { ItemRecord, Open5eItemWeaponPropertyRecord } from "../../types";
+import type { ItemDetailWeaponPropertyRecord, ItemRecord } from "../../types";
 
 export type AdaptedItemWeaponRecord = {
   type: WeaponType;
@@ -105,7 +105,7 @@ export function parseItemWeaponDamage(
   return Array.from({ length: count }, () => [die, damageType] as WeaponDamage[number]);
 }
 
-function formatItemWeaponPropertyLabel(entry: Open5eItemWeaponPropertyRecord) {
+function formatItemWeaponPropertyLabel(entry: ItemDetailWeaponPropertyRecord) {
   const name = entry.property.name?.trim();
 
   if (!name) {
@@ -132,7 +132,7 @@ export function inferItemWeaponCombatType(item: ItemRecord): WEAPON_COMBAT_TYPE 
 }
 
 function parseVersatileWeaponDamage(
-  propertyEntries: Open5eItemWeaponPropertyRecord[],
+  propertyEntries: ItemDetailWeaponPropertyRecord[],
   damageTypeKey: string | null | undefined
 ): WeaponDamage | null {
   const versatileEntry = propertyEntries.find((entry) => entry.property.name === "Versatile");

@@ -12,11 +12,21 @@ import {
 } from "../../utils/items/adaptItemWeapon";
 import type { HeldWeaponDescriptor } from "./inventory";
 
+export type InventoryItemCopyReference = {
+  id: string;
+  stackId: string;
+  copyIndex: number;
+  item: ItemRecord;
+  onHand: boolean;
+  worn: boolean;
+};
+
 export type GroupedInventoryItem = {
   key: string;
   name: string;
   item: ItemRecord;
-  copies: CharacterInventoryItem[];
+  stack: CharacterInventoryItem;
+  copies: InventoryItemCopyReference[];
   count: number;
   onHand: boolean;
   onHandCount: number;
@@ -47,6 +57,13 @@ function normalizeBoolean(value: unknown): boolean {
   return value === true;
 }
 
+function normalizeStackNumber(value: unknown, fallback: number, min = 0): number {
+  const parsedValue = Number(value);
+  const safeValue = Number.isFinite(parsedValue) ? parsedValue : fallback;
+
+  return Math.max(min, Math.floor(safeValue));
+}
+
 function normalizeItemRecord(value: unknown): ItemRecord | null {
   if (!value || typeof value !== "object") {
     return null;
@@ -67,32 +84,81 @@ function normalizeItemRecord(value: unknown): ItemRecord | null {
   };
 }
 
-function getItemCopyRemovalRank(item: CharacterInventoryItem): number {
-  if (!item.onHand && !item.worn) {
-    return 0;
-  }
+function normalizeInventoryStack(entry: CharacterInventoryItem): CharacterInventoryItem {
+  const quantity = Math.max(1, Math.floor(entry.quantity));
 
-  if (item.onHand || item.worn) {
-    return 1;
-  }
+  return {
+    ...entry,
+    quantity,
+    onHandQuantity: Math.min(quantity, Math.max(0, Math.floor(entry.onHandQuantity))),
+    worn: Boolean(entry.worn)
+  };
+}
 
-  return 2;
+function createInventoryCopyId(stackId: string, copyIndex: number): string {
+  return `${stackId}:${copyIndex}`;
+}
+
+export function getInventoryItemStackIdFromCopyId(copyId: string): string {
+  return copyId.split(":")[0] ?? copyId;
+}
+
+export function createInventoryItemCopyReferences(
+  entry: CharacterInventoryItem
+): InventoryItemCopyReference[] {
+  const quantity = getInventoryItemQuantity(entry);
+  const onHandQuantity = getInventoryItemOnHandQuantity(entry);
+
+  return Array.from({ length: quantity }, (_, index) => ({
+    id: createInventoryCopyId(entry.id, index),
+    stackId: entry.id,
+    copyIndex: index,
+    item: entry.item,
+    onHand: index < onHandQuantity,
+    worn: entry.worn && index === 0
+  }));
+}
+
+export function createHeldInventoryItemCopyReferences(
+  entry: CharacterInventoryItem
+): InventoryItemCopyReference[] {
+  return createInventoryItemCopyReferences(entry).filter((copy) => copy.onHand);
+}
+
+export function createPreferredInventoryItemCopyReferences(
+  entry: CharacterInventoryItem,
+  count: number
+): InventoryItemCopyReference[] {
+  return createInventoryItemCopyReferences(entry)
+    .sort((left, right) => Number(right.onHand) - Number(left.onHand))
+    .slice(0, Math.max(0, Math.floor(count)));
 }
 
 export function createCharacterInventoryItem(
   item: ItemRecord,
   options?: {
     id?: string;
+    quantity?: number;
+    onHandQuantity?: number;
     onHand?: boolean;
     worn?: boolean;
   }
 ): CharacterInventoryItem {
-  return {
+  const quantity = normalizeStackNumber(options?.quantity, 1, 1);
+  const onHandQuantity =
+    options?.onHandQuantity !== undefined
+      ? normalizeStackNumber(options.onHandQuantity, 0)
+      : options?.onHand
+        ? 1
+        : 0;
+
+  return normalizeInventoryStack({
     id: options?.id?.trim() || createInventoryItemId(),
     item,
-    onHand: Boolean(options?.onHand),
+    quantity,
+    onHandQuantity,
     worn: Boolean(options?.worn)
-  };
+  });
 }
 
 export function isCharacterInventoryItem(value: unknown): value is CharacterInventoryItem {
@@ -101,7 +167,11 @@ export function isCharacterInventoryItem(value: unknown): value is CharacterInve
   }
 
   const record = value as Partial<CharacterInventoryItem>;
-  return typeof record.id === "string" && normalizeItemRecord(record.item) !== null;
+  return (
+    typeof record.id === "string" &&
+    normalizeItemRecord(record.item) !== null &&
+    getInventoryItemQuantity(record as CharacterInventoryItem) > 0
+  );
 }
 
 export function normalizeCharacterInventoryItems(value: unknown): CharacterInventoryItem[] {
@@ -109,27 +179,58 @@ export function normalizeCharacterInventoryItems(value: unknown): CharacterInven
     return [];
   }
 
-  return value.reduce<CharacterInventoryItem[]>((items, entry) => {
+  const stacksByKey = new Map<string, CharacterInventoryItem>();
+
+  value.forEach((entry) => {
     if (!entry || typeof entry !== "object") {
-      return items;
+      return;
     }
 
-    const record = entry as Partial<CharacterInventoryItem>;
+    const record = entry as Partial<CharacterInventoryItem> & {
+      onHand?: unknown;
+      quantity?: unknown;
+      onHandQuantity?: unknown;
+    };
     const item = normalizeItemRecord(record.item);
 
     if (!item) {
-      return items;
+      return;
     }
 
-    return [
-      ...items,
-      createCharacterInventoryItem(item, {
-        id: typeof record.id === "string" ? record.id : undefined,
-        onHand: normalizeBoolean(record.onHand),
-        worn: normalizeBoolean(record.worn)
+    const key = getItemRecordKey(item);
+    const quantity =
+      record.quantity !== undefined ? normalizeStackNumber(record.quantity, 1, 1) : 1;
+    const onHandQuantity =
+      record.onHandQuantity !== undefined
+        ? normalizeStackNumber(record.onHandQuantity, 0)
+        : normalizeBoolean(record.onHand)
+          ? 1
+          : 0;
+    const stack = createCharacterInventoryItem(item, {
+      id: typeof record.id === "string" ? record.id : undefined,
+      quantity,
+      onHandQuantity,
+      worn: normalizeBoolean(record.worn)
+    });
+    const existingStack = stacksByKey.get(key);
+
+    if (!existingStack) {
+      stacksByKey.set(key, stack);
+      return;
+    }
+
+    stacksByKey.set(
+      key,
+      normalizeInventoryStack({
+        ...existingStack,
+        quantity: existingStack.quantity + stack.quantity,
+        onHandQuantity: existingStack.onHandQuantity + stack.onHandQuantity,
+        worn: existingStack.worn || stack.worn
       })
-    ];
-  }, []);
+    );
+  });
+
+  return [...stacksByKey.values()].map(normalizeInventoryStack);
 }
 
 export function getItemRecordKey(item: ItemRecord | null | undefined): string {
@@ -140,11 +241,43 @@ export function getItemRecordName(item: ItemRecord | null | undefined): string {
   return typeof item?.name === "string" ? item.name : "Unknown Item";
 }
 
+export function getInventoryItemQuantity(entry: CharacterInventoryItem): number {
+  return normalizeStackNumber(entry.quantity, 1, 1);
+}
+
+export function getInventoryItemOnHandQuantity(entry: CharacterInventoryItem): number {
+  return Math.min(getInventoryItemQuantity(entry), normalizeStackNumber(entry.onHandQuantity, 0));
+}
+
+export function getInventoryItemAvailableQuantity(entry: CharacterInventoryItem): number {
+  return Math.max(0, getInventoryItemQuantity(entry) - getInventoryItemOnHandQuantity(entry));
+}
+
+export function isInventoryItemOnHand(entry: CharacterInventoryItem): boolean {
+  return getInventoryItemOnHandQuantity(entry) > 0;
+}
+
+export function findInventoryItemStackByKey(
+  inventoryItems: CharacterInventoryItem[],
+  itemKey: string
+): CharacterInventoryItem | null {
+  return inventoryItems.find((entry) => getItemRecordKey(entry.item) === itemKey) ?? null;
+}
+
+export function findInventoryItemStackById(
+  inventoryItems: CharacterInventoryItem[],
+  stackId: string
+): CharacterInventoryItem | null {
+  const resolvedStackId = getInventoryItemStackIdFromCopyId(stackId);
+
+  return inventoryItems.find((entry) => entry.id === resolvedStackId) ?? null;
+}
+
 export function findOwnedInventoryItemRecord(
   inventoryItems: CharacterInventoryItem[],
   itemKey: string
 ): ItemRecord | null {
-  return inventoryItems.find((entry) => getItemRecordKey(entry.item) === itemKey)?.item ?? null;
+  return findInventoryItemStackByKey(inventoryItems, itemKey)?.item ?? null;
 }
 
 export function getInventoryItemCountsByKey(
@@ -157,7 +290,7 @@ export function getInventoryItemCountsByKey(
       return counts;
     }
 
-    counts[key] = (counts[key] ?? 0) + 1;
+    counts[key] = getInventoryItemQuantity(entry);
     return counts;
   }, {});
 }
@@ -165,31 +298,24 @@ export function getInventoryItemCountsByKey(
 export function groupCharacterInventoryItems(
   inventoryItems: CharacterInventoryItem[]
 ): GroupedInventoryItem[] {
-  const grouped = new Map<string, CharacterInventoryItem[]>();
+  return inventoryItems
+    .map((stack) => {
+      const count = getInventoryItemQuantity(stack);
+      const onHandCount = getInventoryItemOnHandQuantity(stack);
 
-  inventoryItems.forEach((entry) => {
-    const key = getItemRecordKey(entry.item);
-
-    if (!key) {
-      return;
-    }
-
-    const existingEntries = grouped.get(key) ?? [];
-    existingEntries.push(entry);
-    grouped.set(key, existingEntries);
-  });
-
-  return [...grouped.entries()]
-    .map(([key, copies]) => ({
-      key,
-      name: getItemRecordName(copies[0]?.item),
-      item: copies[0]!.item,
-      copies,
-      count: copies.length,
-      onHand: copies.some((copy) => copy.onHand),
-      onHandCount: copies.filter((copy) => copy.onHand).length,
-      worn: copies.some((copy) => copy.worn)
-    }))
+      return {
+        key: getItemRecordKey(stack.item),
+        name: getItemRecordName(stack.item),
+        item: stack.item,
+        stack,
+        copies: createInventoryItemCopyReferences(stack),
+        count,
+        onHand: onHandCount > 0,
+        onHandCount,
+        worn: Boolean(stack.worn)
+      };
+    })
+    .filter((entry) => entry.key)
     .sort((left, right) => left.name.localeCompare(right.name));
 }
 
@@ -320,81 +446,155 @@ export function addInventoryItemCopies(
   item: ItemRecord,
   quantity = 1
 ): CharacterInventoryItem[] {
-  const normalizedQuantity = Math.max(0, Math.floor(quantity));
+  const normalizedQuantity = normalizeStackNumber(quantity, 0);
 
   if (!item.key || normalizedQuantity === 0) {
     return inventoryItems;
   }
 
-  return [
-    ...inventoryItems,
-    ...Array.from({ length: normalizedQuantity }, () => createCharacterInventoryItem(item))
-  ];
+  const existingStack = findInventoryItemStackByKey(inventoryItems, item.key);
+
+  if (!existingStack) {
+    return [
+      ...inventoryItems,
+      createCharacterInventoryItem(item, {
+        quantity: normalizedQuantity
+      })
+    ];
+  }
+
+  return inventoryItems.map((entry) =>
+    entry.id === existingStack.id
+      ? normalizeInventoryStack({
+          ...entry,
+          quantity: getInventoryItemQuantity(entry) + normalizedQuantity
+        })
+      : entry
+  );
+}
+
+export function setInventoryItemOnHandQuantityByKey(
+  inventoryItems: CharacterInventoryItem[],
+  itemKey: string,
+  onHandQuantity: number
+): CharacterInventoryItem[] {
+  return inventoryItems.map((entry) =>
+    getItemRecordKey(entry.item) === itemKey
+      ? normalizeInventoryStack({
+          ...entry,
+          onHandQuantity
+        })
+      : entry
+  );
+}
+
+export function setInventoryItemWornStateById(
+  inventoryItems: CharacterInventoryItem[],
+  inventoryItemId: string,
+  worn: boolean
+): CharacterInventoryItem[] {
+  const stackId = getInventoryItemStackIdFromCopyId(inventoryItemId);
+
+  return inventoryItems.map((entry) => ({
+    ...entry,
+    worn: entry.id === stackId ? worn : false
+  }));
+}
+
+export function clearInventoryItemOnHandQuantities(
+  inventoryItems: CharacterInventoryItem[]
+): CharacterInventoryItem[] {
+  return inventoryItems.map((entry) => ({
+    ...entry,
+    onHandQuantity: 0
+  }));
 }
 
 export function findFirstInventoryCopyByKey(
   inventoryItems: CharacterInventoryItem[],
   itemKey: string
-): CharacterInventoryItem | null {
-  return inventoryItems.find((entry) => getItemRecordKey(entry.item) === itemKey) ?? null;
+): InventoryItemCopyReference | null {
+  const stack = findInventoryItemStackByKey(inventoryItems, itemKey);
+
+  return stack ? (createInventoryItemCopyReferences(stack)[0] ?? null) : null;
 }
 
 export function findHeldInventoryCopyByKey(
   inventoryItems: CharacterInventoryItem[],
   itemKey: string
-): CharacterInventoryItem | null {
+): InventoryItemCopyReference | null {
   return findHeldInventoryCopiesByKey(inventoryItems, itemKey)[0] ?? null;
 }
 
 export function findHeldInventoryCopiesByKey(
   inventoryItems: CharacterInventoryItem[],
   itemKey: string
-): CharacterInventoryItem[] {
-  return inventoryItems.filter((entry) => getItemRecordKey(entry.item) === itemKey && entry.onHand);
+): InventoryItemCopyReference[] {
+  const stack = findInventoryItemStackByKey(inventoryItems, itemKey);
+
+  return stack ? createHeldInventoryItemCopyReferences(stack) : [];
 }
 
 export function findAvailableInventoryCopyByKey(
   inventoryItems: CharacterInventoryItem[],
   itemKey: string
-): CharacterInventoryItem | null {
-  return inventoryItems.find(
-    (entry) => getItemRecordKey(entry.item) === itemKey && !entry.onHand
-  ) ?? null;
+): InventoryItemCopyReference | null {
+  const stack = findInventoryItemStackByKey(inventoryItems, itemKey);
+
+  if (!stack || getInventoryItemAvailableQuantity(stack) <= 0) {
+    return null;
+  }
+
+  return createInventoryItemCopyReferences(stack).find((copy) => !copy.onHand) ?? null;
 }
 
 export function getPreferredInventoryCopiesByKey(
   inventoryItems: CharacterInventoryItem[],
   itemKey: string,
   count: number
-): CharacterInventoryItem[] {
-  return [...inventoryItems]
-    .filter((entry) => getItemRecordKey(entry.item) === itemKey)
-    .sort((left, right) => Number(right.onHand) - Number(left.onHand))
-    .slice(0, Math.max(0, count));
+): InventoryItemCopyReference[] {
+  const stack = findInventoryItemStackByKey(inventoryItems, itemKey);
+
+  return stack ? createPreferredInventoryItemCopyReferences(stack, count) : [];
 }
 
 export function findWornInventoryCopyByKey(
   inventoryItems: CharacterInventoryItem[],
   itemKey: string
-): CharacterInventoryItem | null {
-  return inventoryItems.find(
-    (entry) => getItemRecordKey(entry.item) === itemKey && entry.worn
-  ) ?? null;
+): InventoryItemCopyReference | null {
+  const stack = findInventoryItemStackByKey(inventoryItems, itemKey);
+
+  if (!stack?.worn) {
+    return null;
+  }
+
+  return createInventoryItemCopyReferences(stack)[0] ?? null;
 }
 
 export function removeOneInventoryItemCopyByKey(
   inventoryItems: CharacterInventoryItem[],
   itemKey: string
 ): CharacterInventoryItem[] {
-  const targetCopy =
-    [...inventoryItems]
-      .filter((entry) => getItemRecordKey(entry.item) === itemKey)
-      .sort((left, right) => getItemCopyRemovalRank(left) - getItemCopyRemovalRank(right))[0] ??
-    null;
+  const targetStack = findInventoryItemStackByKey(inventoryItems, itemKey);
 
-  if (!targetCopy) {
+  if (!targetStack) {
     return inventoryItems;
   }
 
-  return inventoryItems.filter((entry) => entry.id !== targetCopy.id);
+  const nextQuantity = getInventoryItemQuantity(targetStack) - 1;
+
+  if (nextQuantity <= 0) {
+    return inventoryItems.filter((entry) => entry.id !== targetStack.id);
+  }
+
+  return inventoryItems.map((entry) =>
+    entry.id === targetStack.id
+      ? normalizeInventoryStack({
+          ...entry,
+          quantity: nextQuantity,
+          onHandQuantity: Math.min(getInventoryItemOnHandQuantity(entry), nextQuantity),
+          worn: entry.worn && nextQuantity > 0
+        })
+      : entry
+  );
 }

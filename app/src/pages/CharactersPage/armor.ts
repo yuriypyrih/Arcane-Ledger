@@ -19,6 +19,8 @@ import {
 } from "./classFeatures";
 import { getFeatArmorClassBonusesForCharacter } from "./feats";
 import {
+  getInventoryItemOnHandQuantity,
+  getInventoryItemStackIdFromCopyId,
   getItemArmorType,
   isItemBodyArmorRecord,
   isItemShieldRecord
@@ -310,6 +312,8 @@ function applyBodyArmorWearState(
     | { kind: "custom"; customEquipmentId: string },
   shouldWear: boolean
 ): Character {
+  const inventoryTargetId =
+    target.kind === "inventory" ? getInventoryItemStackIdFromCopyId(target.inventoryItemId) : null;
   const isValidBodyArmorTarget =
     target.kind === "codex"
       ? (() => {
@@ -318,7 +322,7 @@ function applyBodyArmorWearState(
         })()
       : target.kind === "inventory"
         ? character.inventoryItems.some(
-            (entry) => entry.id === target.inventoryItemId && isItemBodyArmorRecord(entry.item)
+            (entry) => entry.id === inventoryTargetId && isItemBodyArmorRecord(entry.item)
           )
       : character.customEquipment.some(
           (entry) =>
@@ -339,7 +343,7 @@ function applyBodyArmorWearState(
     })),
     inventoryItems: character.inventoryItems.map((entry) => ({
       ...entry,
-      worn: shouldWear && target.kind === "inventory" ? entry.id === target.inventoryItemId : false
+      worn: shouldWear && target.kind === "inventory" ? entry.id === inventoryTargetId : false
     })),
     customEquipment: character.customEquipment.map((entry) =>
       entry.kind === "armor" && entry.armorType !== "shield"
@@ -391,7 +395,7 @@ function getHeldShieldBonus(character: Pick<Character, "equipment" | "inventoryI
     return Math.max(highestShieldBonus, armorEntry.shieldBonus);
   }, 0);
   const inventoryShieldBonus = character.inventoryItems.reduce((highestShieldBonus, item) => {
-    if (!item.onHand || !isItemShieldRecord(item.item)) {
+    if (getInventoryItemOnHandQuantity(item) <= 0 || !isItemShieldRecord(item.item)) {
       return highestShieldBonus;
     }
 

@@ -1,18 +1,20 @@
 import { useMemo } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
-  CharacterProfileForm,
-  ClassFeaturesAndFeats,
-  CompanionsSection,
-  CharacterStatsForm,
-  EquipmentForm,
-  GameplayForm,
-  SkillsAndProficienciesForm,
-  SpellCastingForm,
   ThumbDiceButton
 } from "../../../components/CharactersPage/CharacterSheetPage";
 import styles from "./CharacterSheetPage.module.css";
 import { useCharacterSheetPersistence } from "./useCharacterSheetPersistence";
+import {
+  CharacterProfileSection,
+  CompanionsSheetSection,
+  EquipmentSheetSection,
+  FeaturesSection,
+  GameplaySection,
+  SkillsSection,
+  SpellcastingSection,
+  StatsSection
+} from "./CharacterSheetSections";
 
 function CharacterSheetPage() {
   const navigate = useNavigate();
@@ -47,44 +49,36 @@ function CharacterSheetPage() {
       </button>
 
       <div className={styles.cascadeStack}>
-        <CharacterProfileForm
-          character={character}
+        <CharacterProfileSection
           className={styles.cascadeOne}
           onPersistCharacter={persistCharacter}
         />
-        <GameplayForm
-          character={character}
+        <GameplaySection
           className={styles.cascadeTwo}
           onPersistCharacter={persistCharacter}
           onQueueHitPointCharacter={queueHitPointCharacterSave}
         />
-        <CharacterStatsForm
-          character={character}
+        <StatsSection
           className={styles.cascadeThree}
           onPersistCharacter={persistCharacter}
         />
-        <SkillsAndProficienciesForm
-          character={character}
+        <SkillsSection
           className={styles.cascadeFive}
           onPersistCharacter={persistCharacter}
         />
-        <ClassFeaturesAndFeats
-          character={character}
+        <FeaturesSection
           className={styles.cascadeFour}
           onPersistCharacter={persistCharacter}
         />
-        <CompanionsSection
-          character={character}
+        <CompanionsSheetSection
           className={styles.cascadeSix}
           onPersistCharacter={persistCharacter}
         />
-        <EquipmentForm
-          character={character}
+        <EquipmentSheetSection
           className={styles.cascadeSeven}
           onPersistCharacter={persistCharacter}
         />
-        <SpellCastingForm
-          character={character}
+        <SpellcastingSection
           className={styles.cascadeEight}
           onPersistCharacter={persistCharacter}
         />
