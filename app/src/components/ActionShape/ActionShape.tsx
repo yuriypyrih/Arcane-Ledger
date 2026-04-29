@@ -11,6 +11,7 @@ type ActionShapeProps = {
   multiCount?: number;
   showMultiCountLabel?: boolean;
   onSelect?: () => void;
+  disabled?: boolean;
   className?: string;
   shapeClassName?: string;
   size?: "default" | "small";
@@ -25,6 +26,7 @@ function ActionShape({
   multiCount = 0,
   showMultiCountLabel = true,
   onSelect,
+  disabled = false,
   className,
   shapeClassName,
   size = "default",
@@ -95,6 +97,7 @@ function ActionShape({
         type="button"
         className={clsx(sharedClassName, styles.button)}
         onClick={onSelect}
+        disabled={disabled}
         aria-pressed={resolvedIsSelected}
         aria-label={ariaLabel}
         title={title}

@@ -142,6 +142,7 @@ type CharacterSpellDrawerProps = {
   actionConsumesSpellSlot?: boolean;
   minimumActionSpellSlotLevel?: number;
   freeCastSlotLevel?: number | null;
+  freeCastAvailabilityText?: string | null;
   allowRitualCasting?: boolean;
   ritualCastingRequired?: boolean;
   actionAvailabilityText?: string | null;
@@ -203,6 +204,7 @@ function CharacterSpellDrawer({
   actionConsumesSpellSlot = true,
   minimumActionSpellSlotLevel = 1,
   freeCastSlotLevel = null,
+  freeCastAvailabilityText = null,
   allowRitualCasting = false,
   ritualCastingRequired = false,
   actionAvailabilityText = null,
@@ -377,8 +379,11 @@ function CharacterSpellDrawer({
   const bodyRadioActionOptions = visibleActionOptions.filter(
     (option) => option.radioOptions?.placement === "body"
   );
+  const freeCastContextText =
+    selectedSlotIsFreeCast && freeCastAvailabilityText ? freeCastAvailabilityText : null;
   const actionContextTexts = [
     actionContextText,
+    freeCastContextText,
     isRogueArcaneTricksterMagicalAmbushActiveForSpell(character, spell)
       ? "Magical Ambush is active"
       : null,
@@ -443,12 +448,13 @@ function CharacterSpellDrawer({
   const slotText =
     availabilityText ??
     (selectedSlotIsFreeCast
-      ? `You can cast this spell at level ${normalizedSelectedSpellSlotLevel} without expending a spell slot.`
+      ? (freeCastAvailabilityText ??
+        `You can cast this spell at level ${normalizedSelectedSpellSlotLevel} without expending a spell slot.`)
       : `${selectedSpellRemainingSlots ?? 0} slot${
           (selectedSpellRemainingSlots ?? 0) === 1 ? "" : "s"
         } remaining at level ${normalizedSelectedSpellSlotLevel}.`);
   const relativeDescription = shouldShowSlotControls
-    ? (availabilityText ?? (selectedSlotIsFreeCast ? slotText : null))
+    ? (availabilityText ?? (selectedSlotIsFreeCast && !freeCastContextText ? slotText : null))
     : availabilityText;
   const shouldShowTopRow =
     relativeDescription !== null ||

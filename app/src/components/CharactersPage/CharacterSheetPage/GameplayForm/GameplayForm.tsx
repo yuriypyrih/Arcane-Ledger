@@ -1,7 +1,10 @@
 import clsx from "clsx";
 import { CircleHelp } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { CLASS_FEATURE } from "../../../../codex/entries";
 import type { Character } from "../../../../types";
+import { createFeatureSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
+import { getFeatureDescriptionForCharacter } from "../../../../pages/CharactersPage/classFeatures/featureDescriptions";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { normalizeRoundTracker } from "../../../../pages/CharactersPage/combat";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
@@ -42,6 +45,11 @@ function GameplayForm({
   const [isRoundStartFlashActive, setIsRoundStartFlashActive] = useState(false);
   const roundTracker = normalizeRoundTracker(character.roundTracker);
   const previousTurnStartedRef = useRef(roundTracker.turnStarted);
+  const shortRestAdditionalDescription = createFeatureSourcedDescriptionEntries(
+    character,
+    CLASS_FEATURE.MEMORIZE_SPELL,
+    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.MEMORIZE_SPELL)
+  );
 
   useEffect(() => {
     const wasTurnStarted = previousTurnStartedRef.current;
@@ -104,7 +112,11 @@ function GameplayForm({
           <SorceryPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <DivinityPointsWidget character={character} onPersistCharacter={onPersistCharacter} />
           <RoundTrackerWidget character={character} onPersistCharacter={onPersistCharacter} />
-          <CampButton character={character} onPersistCharacter={onPersistCharacter} />
+          <CampButton
+            character={character}
+            onPersistCharacter={onPersistCharacter}
+            shortRestAdditionalDescription={shortRestAdditionalDescription}
+          />
         </div>
       </div>
 

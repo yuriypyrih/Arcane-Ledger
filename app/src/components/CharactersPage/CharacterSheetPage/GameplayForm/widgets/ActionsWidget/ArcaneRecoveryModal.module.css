@@ -29,19 +29,20 @@
 .arcaneRecoveryCard {
   display: grid;
   gap: 0.65rem;
-  border: 1px solid rgba(75, 47, 29, 0.16);
-  border-radius: 14px;
+  border: 1px solid rgba(75, 47, 29, 0.12);
+  border-radius: 12px;
   background: rgba(255, 255, 255, 0.82);
   padding: 0.8rem 0.85rem;
 }
 
 .arcaneRecoveryCardHeader {
   display: grid;
-  gap: 0.14rem;
+  gap: 0.12rem;
 }
 
 .arcaneRecoveryCardTitle {
   font-size: 0.94rem;
+  line-height: 1.28;
 }
 
 .arcaneRecoveryCardMeta {
@@ -58,10 +59,10 @@
 
 .arcaneRecoveryControlButton {
   align-items: center;
-  border: 1px solid rgba(75, 47, 29, 0.14);
+  border: 1px solid transparent;
   border-radius: 12px;
-  background: rgba(255, 250, 241, 0.94);
-  color: var(--color-ink);
+  background: linear-gradient(135deg, #2f6de0, #4a8eff);
+  color: #f7fbff;
   cursor: pointer;
   display: inline-flex;
   font: inherit;
@@ -69,6 +70,21 @@
   min-height: 38px;
   min-width: 38px;
   padding: 0;
+  transition:
+    background 140ms ease,
+    border-color 140ms ease,
+    color 140ms ease,
+    filter 140ms ease,
+    opacity 140ms ease;
+}
+
+.arcaneRecoveryControlButton:hover:not(:disabled) {
+  filter: brightness(1.04);
+}
+
+.arcaneRecoveryControlButton:focus-visible {
+  box-shadow: 0 0 0 3px rgba(47, 109, 224, 0.28);
+  outline: none;
 }
 
 .arcaneRecoveryControlButton:disabled {
@@ -78,7 +94,7 @@
 
 .arcaneRecoveryCount {
   color: #25508d;
-  font-size: 1rem;
+  font-size: 0.94rem;
   font-weight: 700;
   text-align: center;
 }

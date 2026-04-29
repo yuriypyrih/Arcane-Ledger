@@ -2,6 +2,69 @@
   min-height: 40px;
 }
 
+.headerAside {
+  align-items: center;
+  display: inline-flex;
+  flex: 0 0 auto;
+  gap: 0.55rem;
+  justify-content: flex-end;
+}
+
+.resourceBadge {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  gap: 0.38rem;
+  min-height: 38px;
+  background: rgba(75, 47, 29, 0.08);
+  color: var(--color-ink);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  padding: 0.28rem 0.62rem;
+  white-space: nowrap;
+}
+
+.resourceBadgeLabel {
+  color: var(--color-ink-soft);
+  font-size: 0.72rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.resourceBadgeValue {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.28rem;
+}
+
+.body {
+  padding-bottom: 0;
+}
+
+.restOptionGrid {
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.restTypeOption {
+  min-height: 126px;
+}
+
+.restChecklistSection {
+  display: grid;
+  gap: 0.55rem;
+  min-height: 0;
+}
+
+.hitDiceControlRow {
+  align-items: start;
+  display: grid;
+  gap: 0.65rem;
+  grid-template-columns: minmax(4.4rem, auto) minmax(0, 1fr);
+}
+
 .restChecklistHeader {
   display: flex;
   align-items: center;
@@ -31,4 +94,92 @@
   font-weight: 700;
   line-height: 1.2;
   white-space: nowrap;
+}
+
+.additionalDescription {
+  border-top: 1px solid rgba(75, 47, 29, 0.14);
+  padding-top: 0.65rem;
+}
+
+.footer {
+  align-items: center;
+  border-top: 1px solid rgba(75, 47, 29, 0.1);
+  display: flex;
+  gap: 0.72rem;
+  justify-content: space-between;
+  padding-top: 0.9rem;
+}
+
+.hitDiceInputLabel {
+  align-items: start;
+  color: var(--color-ink-soft);
+  display: grid;
+  flex: 0 0 auto;
+  font-size: 0.78rem;
+  font-weight: 800;
+  gap: 0.3rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.hitDiceInput {
+  max-width: 4.2rem;
+  min-width: 3.6rem;
+  text-align: center;
+}
+
+.hitDiceFormulaCell {
+  align-self: start;
+}
+
+.footerActions {
+  align-items: center;
+  display: flex;
+  flex: 1 1 auto;
+  gap: 0.52rem;
+  justify-content: flex-end;
+  margin-left: auto;
+  min-width: 0;
+}
+
+.restButton {
+  flex: 1 1 auto;
+}
+
+.restButtonIcon {
+  block-size: 1.1rem;
+  filter: brightness(0) invert(1);
+  inline-size: 1.1rem;
+}
+
+@media (max-width: 620px) {
+  .headerAside {
+    gap: 0.4rem;
+  }
+
+  .resourceBadge {
+    font-size: 0.68rem;
+    padding-inline: 0.48rem;
+  }
+
+  .restOptionGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .footer {
+    align-items: stretch;
+    flex-wrap: wrap;
+  }
+
+  .footerActions {
+    flex: 1 1 auto;
+  }
+
+  .restButton {
+    min-width: 0;
+  }
+
+  .hitDiceControlRow {
+    grid-template-columns: 1fr;
+  }
 }

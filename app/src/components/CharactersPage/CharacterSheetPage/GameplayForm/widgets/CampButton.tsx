@@ -1,28 +1,61 @@
 import clsx from "clsx";
-import { Moon, X } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { Moon } from "lucide-react";
+import { useId, useMemo, useState } from "react";
 import ActionButton from "../../../../ActionButton";
+import d20Icon from "../../../../../assets/svg/d20.svg";
+import type { SpellDescriptionEntry } from "../../../../../codex/entries";
+import DescriptionContent from "../../../../DescriptionContent/DescriptionContent";
+import CellContainer from "../../../../CellContainer/CellContainer";
 import type { Character } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { clampNumber } from "../../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { useBodyScrollLock } from "../../../../../lib/useBodyScrollLock";
+import {
+  getHitDiceRemainingForCharacter,
+  getHitDieFormulaForClass
+} from "../../../../../pages/CharactersPage/gameplay";
+import { getAbilityModifierForCharacter } from "../../../../../pages/CharactersPage/abilities";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../../../pages/CharactersPage/traits";
 import { hasWarlockFeature } from "../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
+import {
+  formatFormulaCell,
+  formatFormulaTerms,
+  formatSignedFormulaTerm
+} from "../../../../../pages/CharactersPage/shared/formulas";
+import {
+  OverlayBody,
+  OverlayCloseButton,
+  OverlayEyebrow,
+  OverlayFooter,
+  OverlayHeader,
+  OverlayHeaderContent,
+  OverlayTitle,
+  OverlayTitleRow,
+  SheetModal
+} from "../../../../Overlay";
+import { useDiceRollerPopup } from "../../../../DicePage/DiceRollerPopup";
 import sheetStyles from "../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import RadioContainerOption from "../../RadioContainerOption";
+import NumberInput from "../../../FormInputs/NumberInput";
 import type { RestOption, RestType } from "./restOptions";
 import { createLongRestOptions, createShortRestOptions } from "./restOptions";
 import CampRestOption from "./CampRestOption";
+import DiceRollerSettingsButton from "./DiceRollerSettingsButton";
+import { applyRolledHealingToCharacter } from "../gameplayStateUtils";
 import styles from "./CampButton.module.css";
 
 type CampButtonProps = {
   character: Character;
   onPersistCharacter: PersistCharacterUpdater;
+  additionalDescription?: SpellDescriptionEntry[];
+  shortRestAdditionalDescription?: SpellDescriptionEntry[];
 };
 
 const primaryRestOptionIds = new Set([
   "reduce-exhaustion",
+  "restore-half-hit-dice",
   "restore-hit-points",
   "reset-round-tracker",
   "update-statuses"
@@ -42,16 +75,94 @@ function getGroupedRestOptions(options: RestOption[]) {
   };
 }
 
-function CampButton({ character, onPersistCharacter }: CampButtonProps) {
+function getHitDiceBaseFormulaForCount(character: Character, count: number): string {
+  const hitDieFormula = getHitDieFormulaForClass(character.className);
+  const die = hitDieFormula.replace(/^1/i, "");
+
+  return `${count}${die}`;
+}
+
+function appendFormulaModifier(formula: string, modifier: number): string {
+  if (modifier === 0) {
+    return formula;
+  }
+
+  return `${formula}${modifier > 0 ? "+" : "-"}${Math.abs(modifier)}`;
+}
+
+function getHitDiceFormulaForCount(character: Character, count: number): string {
+  const constitutionModifier = getAbilityModifierForCharacter(character, "CON");
+  const modifierTotal = count * constitutionModifier;
+
+  return appendFormulaModifier(getHitDiceBaseFormulaForCount(character, count), modifierTotal);
+}
+
+function getHitDiceFormulaDisplayForCount(character: Character, count: number): string {
+  return formatFormulaTerms(getHitDiceFormulaDisplayTermsForCount(character, count));
+}
+
+function getHitDiceFormulaDisplayTermsForCount(character: Character, count: number): string[] {
+  const baseFormula = getHitDiceBaseFormulaForCount(character, count);
+  const constitutionModifier = getAbilityModifierForCharacter(character, "CON");
+  const modifierTotal = count * constitutionModifier;
+
+  return [
+    baseFormula,
+    modifierTotal !== 0 ? formatSignedFormulaTerm(modifierTotal, "CON") : null
+  ].filter((term): term is string => Boolean(term));
+}
+
+function getHitDieLabel(character: Character): string {
+  return getHitDieFormulaForClass(character.className).replace(/^1/i, "").toUpperCase();
+}
+
+function getHitDiceHealingFormulaCell(character: Character, count: number) {
+  if (count <= 0) {
+    return {
+      value: "0 Healing"
+    };
+  }
+
+  return formatFormulaCell({
+    formula: getHitDiceFormulaForCount(character, count),
+    displayTerms: getHitDiceFormulaDisplayTermsForCount(character, count),
+    resultLabel: "Healing"
+  });
+}
+
+function CampButton({
+  character,
+  onPersistCharacter,
+  additionalDescription,
+  shortRestAdditionalDescription = []
+}: CampButtonProps) {
+  const titleId = useId().replace(/:/g, "");
   const [isOpen, setIsOpen] = useState(false);
   const [selectedRestType, setSelectedRestType] = useState<RestType | null>(null);
   const [selectedRestOptionIds, setSelectedRestOptionIds] = useState<string[]>([]);
+  const [shortRestHitDiceCount, setShortRestHitDiceCount] = useState(0);
+  const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
   const shortRestsUsedToday = clampNumber(character.shortRestsUsedToday, 0, 2, 0);
   const shortRestsRemaining = Math.max(0, 2 - shortRestsUsedToday);
-  const shortRestHealAmount = Math.ceil(getEffectiveHitPointMaximumForCharacter(character) / 2);
+  const totalHitDice = Math.max(1, Math.floor(character.level));
+  const availableHitDice = getHitDiceRemainingForCharacter(character);
+  const hitDieLabel = getHitDieLabel(character);
+  const effectiveHitPointMaximum = getEffectiveHitPointMaximumForCharacter(character);
   const shortRestOptions = useMemo(() => createShortRestOptions(character), [character]);
   const longRestOptions = useMemo(() => createLongRestOptions(character), [character]);
   const hasWarlockPactMagic = hasWarlockFeature(character, CLASS_FEATURE.PACT_MAGIC);
+  const normalizedShortRestHitDiceCount = Math.min(
+    availableHitDice,
+    Math.max(0, Math.floor(shortRestHitDiceCount))
+  );
+  const hitDiceHealingFormulaCell = getHitDiceHealingFormulaCell(
+    character,
+    normalizedShortRestHitDiceCount
+  );
+  const selectedRestAdditionalDescription =
+    selectedRestType === "short" && shortRestAdditionalDescription.length > 0
+      ? shortRestAdditionalDescription
+      : additionalDescription;
   const selectedRestOptions = useMemo(
     () =>
       selectedRestType === "short"
@@ -68,24 +179,10 @@ function CampButton({ character, onPersistCharacter }: CampButtonProps) {
 
   useBodyScrollLock(isOpen);
 
-  useEffect(() => {
-    if (!isOpen) {
-      return;
-    }
-
-    function handleKeyDown(event: KeyboardEvent) {
-      if (event.key === "Escape") {
-        closePopup();
-      }
-    }
-
-    window.addEventListener("keydown", handleKeyDown);
-    return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isOpen]);
-
   function openPopup() {
     setSelectedRestType(null);
     setSelectedRestOptionIds([]);
+    setShortRestHitDiceCount(0);
     setIsOpen(true);
   }
 
@@ -93,6 +190,7 @@ function CampButton({ character, onPersistCharacter }: CampButtonProps) {
     setIsOpen(false);
     setSelectedRestType(null);
     setSelectedRestOptionIds([]);
+    setShortRestHitDiceCount(0);
   }
 
   function selectRestType(restType: RestType) {
@@ -102,6 +200,7 @@ function CampButton({ character, onPersistCharacter }: CampButtonProps) {
 
     const nextOptions = restType === "short" ? shortRestOptions : longRestOptions;
     setSelectedRestType(restType);
+    setShortRestHitDiceCount(0);
     setSelectedRestOptionIds(
       nextOptions
         .filter((option) => option.defaultSelected !== false && option.disabled !== true)
@@ -134,17 +233,24 @@ function CampButton({ character, onPersistCharacter }: CampButtonProps) {
   }
 
   function confirmRest() {
-    if (!selectedRestType) {
+    const restType = selectedRestType;
+
+    if (!restType) {
       return;
     }
 
-    if (selectedRestType === "short" && shortRestsRemaining <= 0) {
+    if (restType === "short" && shortRestsRemaining <= 0) {
       return;
     }
+
+    const hitDiceToSpend =
+      restType === "short"
+        ? Math.min(availableHitDice, Math.max(0, Math.floor(shortRestHitDiceCount)))
+        : 0;
 
     onPersistCharacter((currentCharacter) => {
       const availableOptions =
-        selectedRestType === "short"
+        restType === "short"
           ? createShortRestOptions(currentCharacter)
           : createLongRestOptions(currentCharacter);
       const selectedOptionIdSet = new Set(selectedRestOptionIds);
@@ -155,17 +261,40 @@ function CampButton({ character, onPersistCharacter }: CampButtonProps) {
 
         return option.apply(nextCharacter);
       }, currentCharacter);
+      const currentHitDiceRemaining = getHitDiceRemainingForCharacter(restedCharacter);
 
       return {
         ...restedCharacter,
+        hitDiceRemaining:
+          restType === "short"
+            ? Math.max(0, currentHitDiceRemaining - hitDiceToSpend)
+            : restedCharacter.hitDiceRemaining,
         shortRestsUsedToday:
-          selectedRestType === "short"
+          restType === "short"
             ? clampNumber((restedCharacter.shortRestsUsedToday ?? 0) + 1, 0, 2, 0)
             : 0
       };
     });
 
     closePopup();
+
+    if (restType === "short" && hitDiceToSpend > 0) {
+      const formula = getHitDiceFormulaForCount(character, hitDiceToSpend);
+      const formulaDisplay = getHitDiceFormulaDisplayForCount(character, hitDiceToSpend);
+
+      openDiceRoller({
+        title: "Short Rest Hit Dice",
+        description: `Roll ${hitDiceToSpend} ${hitDieLabel} Hit Dice.`,
+        formula,
+        formulaDisplay,
+        getFullManualToastText: ({ result }) => `Rolled ${result.total} Hit Dice healing.`,
+        onResolvedResult: ({ result }) => {
+          onPersistCharacter((currentCharacter) =>
+            applyRolledHealingToCharacter(currentCharacter, result.total)
+          );
+        }
+      });
+    }
   }
 
   return (
@@ -176,79 +305,75 @@ function CampButton({ character, onPersistCharacter }: CampButtonProps) {
       </button>
 
       {isOpen ? (
-        <div className={sheetStyles.restPopupBackdrop} role="presentation" onClick={closePopup}>
-          <section
-            className={sheetStyles.restPopupCard}
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="rest-popup-title"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className={sheetStyles.restPopupHeader}>
-              <div>
-                <p className={sheetStyles.eyebrow}>Camp</p>
-                <h3 id="rest-popup-title" className={sheetStyles.sheetPanelTitle}>
-                  Choose your rest
-                </h3>
-              </div>
-              <button
-                type="button"
-                className={sheetStyles.spellManagementCloseButton}
-                onClick={closePopup}
-                aria-label="Close rest options"
-              >
-                <X size={18} />
-              </button>
+        <SheetModal titleId={titleId} onClose={closePopup} onEscape={closePopup}>
+          <OverlayHeader>
+            <OverlayHeaderContent>
+              <OverlayEyebrow>Camp</OverlayEyebrow>
+              <OverlayTitleRow>
+                <OverlayTitle id={titleId}>Choose your rest</OverlayTitle>
+              </OverlayTitleRow>
+            </OverlayHeaderContent>
+            <div className={styles.headerAside}>
+              <span className={styles.resourceBadge}>
+                <span className={styles.resourceBadgeLabel}>HP</span>
+                <span className={styles.resourceBadgeValue}>
+                  {character.currentHitPoints}/{effectiveHitPointMaximum}
+                </span>
+              </span>
+              <span className={styles.resourceBadge}>
+                <span className={styles.resourceBadgeLabel}>Hit Dice</span>
+                <span className={styles.resourceBadgeValue}>
+                  {hitDieLabel} {availableHitDice}/{totalHitDice}
+                </span>
+              </span>
+              <OverlayCloseButton label="Close rest options" onClick={closePopup} />
             </div>
+          </OverlayHeader>
 
-            <div className={sheetStyles.restOptionGrid}>
-              <button
-                type="button"
-                className={clsx(
-                  sheetStyles.restOptionButton,
-                  selectedRestType === "short" && sheetStyles.restOptionButtonActive
-                )}
-                onClick={() => selectRestType("short")}
+          <OverlayBody className={styles.body}>
+            <div className={styles.restOptionGrid} role="radiogroup" aria-label="Rest type">
+              <RadioContainerOption
+                name="camp-rest-type"
+                header="Short Rest"
+                selected={selectedRestType === "short"}
+                onSelect={() => selectRestType("short")}
                 disabled={shortRestsRemaining <= 0}
-              >
-                <strong>Short rest</strong>
-                <small>Heal {shortRestHealAmount} HP (half your max HP).</small>
-                <div
-                  className={sheetStyles.shortRestDots}
-                  aria-label={`${shortRestsRemaining} short rests remaining today`}
-                >
-                  {Array.from({ length: 2 }, (_, index) => (
-                    <span
-                      key={index}
-                      className={clsx(
-                        sheetStyles.shortRestDot,
-                        index < shortRestsRemaining && sheetStyles.shortRestDotActive
-                      )}
-                    />
-                  ))}
-                </div>
-              </button>
+                breakdown="Spend Hit Dice and refresh Short Rest resources."
+                aside={
+                  <div
+                    className={sheetStyles.shortRestDots}
+                    aria-label={`${shortRestsRemaining} short rests remaining today`}
+                  >
+                    {Array.from({ length: 2 }, (_, index) => (
+                      <span
+                        key={index}
+                        className={clsx(
+                          sheetStyles.shortRestDot,
+                          index < shortRestsRemaining && sheetStyles.shortRestDotActive
+                        )}
+                      />
+                    ))}
+                  </div>
+                }
+                className={styles.restTypeOption}
+              />
 
-              <button
-                type="button"
-                className={clsx(
-                  sheetStyles.restOptionButton,
-                  selectedRestType === "long" && sheetStyles.restOptionButtonActive
-                )}
-                onClick={() => selectRestType("long")}
-              >
-                <strong>Long rest</strong>
-                <small>
-                  {hasWarlockPactMagic
-                    ? "Restore full HP and refresh Pact Magic spell slots."
-                    : "Restore full HP and refresh all spell slots."}
-                </small>
-                <span className={sheetStyles.longRestNote}>Also resets short rests.</span>
-              </button>
+              <RadioContainerOption
+                name="camp-rest-type"
+                header="Long Rest"
+                selected={selectedRestType === "long"}
+                onSelect={() => selectRestType("long")}
+                breakdown={
+                  hasWarlockPactMagic
+                    ? "Restore full HP, refresh Pact Magic spell slots, and reset short rests."
+                    : "Restore full HP, refresh all spell slots, and reset short rests."
+                }
+                className={styles.restTypeOption}
+              />
             </div>
 
             {selectedRestType ? (
-              <div className={sheetStyles.restChecklistSection}>
+              <div className={styles.restChecklistSection}>
                 <div className={styles.restChecklistHeader}>
                   <p className={sheetStyles.restChecklistHeading}>
                     {selectedRestType === "short" ? "Short Rest Effects" : "Long Rest Effects"}
@@ -291,19 +416,75 @@ function CampButton({ character, onPersistCharacter }: CampButtonProps) {
                     />
                   ))}
                 </div>
-                <div className={sheetStyles.restPopupActions}>
-                  <ActionButton variant="GHOST" onClick={closePopup}>
-                    Cancel
-                  </ActionButton>
-                  <ActionButton onClick={confirmRest}>
-                    Rest
-                  </ActionButton>
-                </div>
+                {selectedRestAdditionalDescription?.length ? (
+                  <div className={styles.additionalDescription}>
+                    <DescriptionContent
+                      description={selectedRestAdditionalDescription}
+                      className={sheetStyles.spellDrawerDescriptionList}
+                      entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                      strongClassName={sheetStyles.spellDrawerDescriptionStrong}
+                    />
+                  </div>
+                ) : null}
               </div>
             ) : null}
-          </section>
-        </div>
+
+            {selectedRestType === "short" ? (
+              <div className={styles.hitDiceControlRow}>
+                <label className={styles.hitDiceInputLabel}>
+                  <span>Hit Dice</span>
+                  <NumberInput
+                    className={styles.hitDiceInput}
+                    value={normalizedShortRestHitDiceCount}
+                    min={0}
+                    max={availableHitDice}
+                    step={1}
+                    onChange={(event) =>
+                      setShortRestHitDiceCount(
+                        clampNumber(event.currentTarget.valueAsNumber, 0, availableHitDice, 0)
+                      )
+                    }
+                    aria-label="Hit Dice to spend"
+                  />
+                </label>
+                <CellContainer
+                  label="Healing Formula"
+                  content={hitDiceHealingFormulaCell.value}
+                  breakdown={hitDiceHealingFormulaCell.breakdown}
+                  className={styles.hitDiceFormulaCell}
+                />
+              </div>
+            ) : null}
+          </OverlayBody>
+
+          {selectedRestType ? (
+            <OverlayFooter className={styles.footer}>
+              <div className={styles.footerActions}>
+                <ActionButton
+                  className={styles.restButton}
+                  onClick={confirmRest}
+                  disabled={!selectedRestType}
+                  icon={
+                    selectedRestType === "short" ? (
+                      <img src={d20Icon} alt="" className={styles.restButtonIcon} />
+                    ) : undefined
+                  }
+                  fullWidth
+                >
+                  Rest
+                </ActionButton>
+                {selectedRestType === "short" ? (
+                  <DiceRollerSettingsButton
+                    actionName="Short Rest Hit Dice"
+                    ariaLabel="Open short rest dice settings"
+                  />
+                ) : null}
+              </div>
+            </OverlayFooter>
+          ) : null}
+        </SheetModal>
       ) : null}
+      {diceRollerPopup}
     </>
   );
 }

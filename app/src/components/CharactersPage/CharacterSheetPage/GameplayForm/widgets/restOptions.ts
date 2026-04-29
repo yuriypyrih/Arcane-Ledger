@@ -253,6 +253,7 @@ import {
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerPortent";
 import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pages/CharactersPage/classFeatures";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
+import { getHitDiceRemainingForCharacter } from "../../../../../pages/CharactersPage/gameplay";
 import { getSpellSlotTotalsForCharacter } from "../../../../../pages/CharactersPage/spellcasting";
 import {
   applyLongRestToCharacterStatusEntries,
@@ -269,7 +270,7 @@ import {
 import {
   type ExhaustionLevel,
   getEffectiveHitPointMaximumForCharacter,
-  reconcileCharacterStatusConsequences,
+  reconcileCharacterStatusConsequences
 } from "../../../../../pages/CharactersPage/traits";
 import { createDefaultRoundTracker } from "../../../../../pages/CharactersPage/combat";
 import {
@@ -296,7 +297,6 @@ export type RestOption = {
 };
 
 export function createShortRestOptions(character: Character): RestOption[] {
-  const shortRestHealAmount = Math.ceil(getEffectiveHitPointMaximumForCharacter(character) / 2);
   const spellSlotTotal = getSpellSlotTotalsForCharacter(
     character.className,
     character.level,
@@ -347,28 +347,6 @@ export function createShortRestOptions(character: Character): RestOption[] {
   const clairvoyantCombatantUsesTotal = getWarlockClairvoyantCombatantUsesTotal(character);
 
   return [
-    {
-      id: "restore-hit-points",
-      label: `Heal ${shortRestHealAmount} HP`,
-      detail: "Restores half your max HP, up to your hit point maximum.",
-      apply: (currentCharacter) => {
-        const effectiveHitPoints = getEffectiveHitPointMaximumForCharacter(currentCharacter);
-        const nextCurrentHitPoints = Math.max(
-          0,
-          Math.min(
-            effectiveHitPoints,
-            currentCharacter.currentHitPoints + Math.ceil(effectiveHitPoints / 2)
-          )
-        );
-
-        return reconcileCharacterStatusConsequences({
-          ...currentCharacter,
-          currentHitPoints: nextCurrentHitPoints,
-          deathSaves:
-            nextCurrentHitPoints > 0 ? createDefaultDeathSaves() : currentCharacter.deathSaves
-        });
-      }
-    },
     {
       id: "reset-round-tracker",
       label: "Reset round tracker",
@@ -875,6 +853,23 @@ export function createLongRestOptions(character: Character): RestOption[] {
           currentHitPoints: getEffectiveHitPointMaximumForCharacter(currentCharacter),
           deathSaves: createDefaultDeathSaves()
         })
+    },
+    {
+      id: "restore-half-hit-dice",
+      label: "Restore Half of the Hit Dice",
+      detail: "Restore half your missing Hit Dice, rounded down, with a minimum of 1.",
+      apply: (currentCharacter: Character) => {
+        const totalHitDice = Math.max(1, Math.floor(currentCharacter.level));
+        const availableHitDice = getHitDiceRemainingForCharacter(currentCharacter);
+        const missingHitDice = Math.max(0, totalHitDice - availableHitDice);
+        const restoredHitDice =
+          missingHitDice <= 0 ? 0 : Math.max(1, Math.floor(missingHitDice / 2));
+
+        return {
+          ...currentCharacter,
+          hitDiceRemaining: Math.min(totalHitDice, availableHitDice + restoredHitDice)
+        };
+      }
     },
     {
       id: "reset-round-tracker",

@@ -778,6 +778,13 @@ export function getArcaneRecoveryRecoveryLevelLimit(
     : 0;
 }
 
+export function getArcaneRecoverySelectionLevelTotal(selection: ArcaneRecoverySelection): number {
+  return ([1, 2, 3, 4, 5] as const).reduce(
+    (total, slotLevel) => total + (selection[slotLevel] ?? 0) * slotLevel,
+    0
+  );
+}
+
 export function getWizardFeatureActions(
   character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended">
 ): FeatureActionCard[] {
@@ -799,6 +806,7 @@ export function getWizardFeatureActions(
     {
       key: arcaneRecoveryActionKey,
       name: "Arcane Recovery",
+      sourceFeature: CLASS_FEATURE.ARCANE_RECOVERY,
       summary: "Recover expended spell slots.",
       detail:
         "Recover expended spell slots with a combined level up to half your Wizard level, rounded up. Slots recovered this way must be level 5 or lower.",
@@ -812,10 +820,10 @@ export function getWizardFeatureActions(
         eyebrow: "Wizard",
         formKind: "arcane-recovery"
       },
-    execute: {
-      kind: "custom-form",
-      formKind: "arcane-recovery"
-    },
+      execute: {
+        kind: "custom-form",
+        formKind: "arcane-recovery"
+      },
       disabled: Boolean(disabledReason),
       disabledReason
     }

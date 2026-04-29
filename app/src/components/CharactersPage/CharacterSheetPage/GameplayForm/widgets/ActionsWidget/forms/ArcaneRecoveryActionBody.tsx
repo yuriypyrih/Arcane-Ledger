@@ -1,9 +1,10 @@
 import { Minus, Plus } from "lucide-react";
-import { useMemo, useState } from "react";
-import ActionButton from "../../../../../../ActionButton";
+import { useMemo } from "react";
 import type { Character } from "../../../../../../../types";
 import {
   type ArcaneRecoverySelection,
+  type ArcaneRecoverySlotLevel,
+  getArcaneRecoverySelectionLevelTotal,
   getArcaneRecoveryRecoveryLevelLimit
 } from "../../../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
 import {
@@ -15,21 +16,22 @@ import styles from "../ArcaneRecoveryModal.module.css";
 
 type ArcaneRecoveryActionBodyProps = {
   character: Character;
-  onRecover: (selection: ArcaneRecoverySelection) => void;
+  selection: ArcaneRecoverySelection;
+  onSelectionChange: (selection: ArcaneRecoverySelection) => void;
 };
 
-function ArcaneRecoveryActionBody({ character, onRecover }: ArcaneRecoveryActionBodyProps) {
-  const [selection, setSelection] = useState<ArcaneRecoverySelection>({});
+function ArcaneRecoveryActionBody({
+  character,
+  selection,
+  onSelectionChange
+}: ArcaneRecoveryActionBodyProps) {
   const recoveryLimit = getArcaneRecoveryRecoveryLevelLimit(character);
   const spellSlotTotals = getSpellSlotTotalsForCharacter(character.className, character.level);
   const spellSlotsExpended = normalizeSpellSlotsExpended(
     character.spellSlotsExpended,
     spellSlotTotals
   );
-  const selectedLevelTotal = ([1, 2, 3, 4, 5] as const).reduce(
-    (total, slotLevel) => total + (selection[slotLevel] ?? 0) * slotLevel,
-    0
-  );
+  const selectedLevelTotal = getArcaneRecoverySelectionLevelTotal(selection);
   const availableOptions = useMemo(
     () =>
       ([1, 2, 3, 4, 5] as const)
@@ -48,31 +50,29 @@ function ArcaneRecoveryActionBody({ character, onRecover }: ArcaneRecoveryAction
     [selection, spellSlotTotals, spellSlotsExpended]
   );
 
-  function updateSelection(slotLevel: 1 | 2 | 3 | 4 | 5, delta: -1 | 1) {
-    setSelection((current) => {
-      const currentCount = current[slotLevel] ?? 0;
-      const expendedCount = spellSlotsExpended[slotLevel - 1] ?? 0;
-      const currentTotal = ([1, 2, 3, 4, 5] as const).reduce(
-        (total, level) => total + (current[level] ?? 0) * level,
-        0
-      );
-      const nextCount =
-        delta < 0
-          ? Math.max(0, currentCount - 1)
-          : Math.min(
-              expendedCount,
-              currentCount + 1,
-              currentCount + Math.floor((recoveryLimit - currentTotal) / slotLevel)
-            );
+  function updateSelection(slotLevel: ArcaneRecoverySlotLevel, delta: -1 | 1) {
+    const currentCount = selection[slotLevel] ?? 0;
+    const expendedCount = spellSlotsExpended[slotLevel - 1] ?? 0;
+    const currentTotal = getArcaneRecoverySelectionLevelTotal(selection);
+    const nextCount =
+      delta < 0
+        ? Math.max(0, currentCount - 1)
+        : Math.min(
+            expendedCount,
+            currentCount + 1,
+            currentCount + Math.floor((recoveryLimit - currentTotal) / slotLevel)
+          );
 
-      return nextCount <= 0
-        ? Object.fromEntries(
-            Object.entries(current).filter(([level]) => Number(level) !== slotLevel)
-          )
-        : {
-            ...current,
-            [slotLevel]: nextCount
-          };
+    if (nextCount <= 0) {
+      const nextSelection = { ...selection };
+      delete nextSelection[slotLevel];
+      onSelectionChange(nextSelection);
+      return;
+    }
+
+    onSelectionChange({
+      ...selection,
+      [slotLevel]: nextCount
     });
   }
 
@@ -97,8 +97,9 @@ function ArcaneRecoveryActionBody({ character, onRecover }: ArcaneRecoveryAction
                 className={styles.arcaneRecoveryCard}
               >
                 <div className={styles.arcaneRecoveryCardHeader}>
-                  <strong>{`Level ${option.slotLevel} Slot`}</strong>
-                  <small>{`${option.expendedSlots} expended`}</small>
+                  <strong className={styles.arcaneRecoveryCardTitle}>
+                    {`Level ${option.slotLevel} slot ${option.expendedSlots}/${option.totalSlots}`}
+                  </strong>
                 </div>
                 <div className={styles.arcaneRecoveryControlRow}>
                   <button
@@ -110,7 +111,9 @@ function ArcaneRecoveryActionBody({ character, onRecover }: ArcaneRecoveryAction
                   >
                     <Minus size={15} />
                   </button>
-                  <span className={styles.arcaneRecoveryCount}>{option.selectedCount}</span>
+                  <span className={styles.arcaneRecoveryCount}>
+                    {`Recover ${option.selectedCount}`}
+                  </span>
                   <button
                     type="button"
                     className={styles.arcaneRecoveryControlButton}
@@ -130,12 +133,6 @@ function ArcaneRecoveryActionBody({ character, onRecover }: ArcaneRecoveryAction
           No expended spell slots of level 1-5 can be recovered right now.
         </p>
       )}
-
-      <div className={shared.formActions}>
-        <ActionButton disabled={selectedLevelTotal <= 0} onClick={() => onRecover(selection)}>
-          Recover Spell Slots
-        </ActionButton>
-      </div>
     </>
   );
 }

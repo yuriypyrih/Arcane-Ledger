@@ -25,6 +25,8 @@ function RoundTrackerControl({
   onStartTurn,
   onFinishRound
 }: RoundTrackerControlProps) {
+  const areRoundResourcesDisabled = !roundTracker.isInCombat;
+
   const getResourceLabel = (
     availableLabel: string,
     spentLabel: string,
@@ -70,12 +72,9 @@ function RoundTrackerControl({
       <ActionShape
         shape="action"
         isSelected={roundTracker.actionAvailable}
-        onSelect={() => {
-          if (roundTracker.isInCombat) {
-            onSelectResource("action");
-          }
-        }}
-        className={styles.button}
+        onSelect={() => onSelectResource("action")}
+        disabled={areRoundResourcesDisabled}
+        className={clsx(styles.button, areRoundResourcesDisabled && styles.resourceButtonDisabled)}
         aria-label={getResourceLabel(
           "Action available",
           "Action spent",
@@ -92,12 +91,9 @@ function RoundTrackerControl({
       <ActionShape
         shape="bonusAction"
         isSelected={roundTracker.bonusActionAvailable}
-        onSelect={() => {
-          if (roundTracker.isInCombat) {
-            onSelectResource("bonusAction");
-          }
-        }}
-        className={styles.button}
+        onSelect={() => onSelectResource("bonusAction")}
+        disabled={areRoundResourcesDisabled}
+        className={clsx(styles.button, areRoundResourcesDisabled && styles.resourceButtonDisabled)}
         aria-label={getResourceLabel(
           "Bonus action available",
           "Bonus action spent",
@@ -114,12 +110,9 @@ function RoundTrackerControl({
       <ActionShape
         shape="reaction"
         isSelected={roundTracker.reactionAvailable}
-        onSelect={() => {
-          if (roundTracker.isInCombat) {
-            onSelectResource("reaction");
-          }
-        }}
-        className={styles.button}
+        onSelect={() => onSelectResource("reaction")}
+        disabled={areRoundResourcesDisabled}
+        className={clsx(styles.button, areRoundResourcesDisabled && styles.resourceButtonDisabled)}
         aria-label={getResourceLabel(
           "Reaction available",
           "Reaction spent",

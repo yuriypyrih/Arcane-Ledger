@@ -36,7 +36,7 @@ function RadioContainerOption({
   className
 }: RadioContainerOptionProps) {
   return (
-    <div
+    <label
       className={clsx(
         styles.root,
         selected && styles.selected,
@@ -51,7 +51,7 @@ function RadioContainerOption({
           {actionBadge}
         </div>
       ) : null}
-      <label className={styles.label}>
+      <div className={styles.label}>
         <input
           type={indicatorType}
           name={name}
@@ -68,9 +68,9 @@ function RadioContainerOption({
           {subheader ? <div className={styles.subheader}>{subheader}</div> : null}
           {breakdown ? <div className={styles.breakdown}>{breakdown}</div> : null}
         </div>
-      </label>
+      </div>
       {aside ? <div className={clsx(styles.aside, asideClassName)}>{aside}</div> : null}
-    </div>
+    </label>
   );
 }
 

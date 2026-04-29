@@ -2544,6 +2544,11 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             !(selectedSpellSupportsTelekineticMaster && useTelekineticMasterOnSelectedSpell)
           }
           freeCastSlotLevel={selectedSpellFreeCastSlotLevel}
+          freeCastAvailabilityText={
+            selectedSpellIsWizardSpellMastery
+              ? "Due to Spell Mastery, this spell can be cast without expending a spell slot if cast at its base level."
+              : null
+          }
           allowRitualCasting={
             selectedSpellCanCastAsRitualFromSpellbook || selectedSpellCanOnlyBeCastAsRitual
           }

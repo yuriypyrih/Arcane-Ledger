@@ -29,6 +29,17 @@
   color: var(--color-accent);
 }
 
+.resourceButtonDisabled {
+  opacity: 0.74;
+}
+
+.resourceButtonDisabled,
+.resourceButtonDisabled:hover {
+  background: transparent;
+  color: var(--color-ink);
+  cursor: default;
+}
+
 .combatButton {
   position: relative;
 }

@@ -187,7 +187,10 @@ import {
   hurlThroughHellActionKey
 } from "../../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import { awakenedMindActionKey } from "../../../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockGreatOldOnePatron";
-import { type ArcaneRecoverySelection } from "../../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
+import {
+  getArcaneRecoverySelectionLevelTotal,
+  type ArcaneRecoverySelection
+} from "../../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
 import { setWizardDivinerPortentRolls } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerPortent";
 import { activateWizardDivinerThirdEye } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerThirdEye";
 import {
@@ -419,6 +422,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const [selectedHealingLightDiceCount, setSelectedHealingLightDiceCount] = useState(1);
   const [selectedHealingLightTarget, setSelectedHealingLightTarget] =
     useState<HealingLightTarget>("self");
+  const [selectedArcaneRecoverySelection, setSelectedArcaneRecoverySelection] =
+    useState<ArcaneRecoverySelection>({});
   const [selectedWeaponDetailReference, setSelectedWeaponDetailReference] = useState<{
     title: string;
     entries: ReturnType<typeof getKeywordReferences>;
@@ -1547,6 +1552,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     resetActionSelectionState();
     setSneakAttackActionSelection(initialSneakAttackActionSelection);
     setSelectedSpellfireBurstTarget("self");
+    setSelectedArcaneRecoverySelection({});
   }, [selectedActionKey, resetActionSelectionState]);
 
   useEffect(() => {
@@ -4210,7 +4216,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       }
 
       if (selectedAction.drawer.formKind === "arcane-recovery") {
-        return <ArcaneRecoveryActionBody character={character} onRecover={submitArcaneRecovery} />;
+        return (
+          <ArcaneRecoveryActionBody
+            character={character}
+            selection={selectedArcaneRecoverySelection}
+            onSelectionChange={setSelectedArcaneRecoverySelection}
+          />
+        );
       }
 
       if (selectedAction.drawer.formKind === "indomitable") {
@@ -5256,6 +5268,29 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
                 className={styles.footerActionShape}
               />
             ) : null
+          }
+        >
+          {selectedFeaturePrimaryLabel}
+        </ActionButton>
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "custom-form" &&
+      selectedAction.drawer.formKind === "arcane-recovery"
+    ) {
+      const selectedArcaneRecoveryLevelTotal = getArcaneRecoverySelectionLevelTotal(
+        selectedArcaneRecoverySelection
+      );
+
+      return (
+        <ActionButton
+          className={styles.footerActionButton}
+          onClick={() => submitArcaneRecovery(selectedArcaneRecoverySelection)}
+          disabled={
+            selectedFeatureActionPrimaryDisabledReason !== null ||
+            selectedArcaneRecoveryLevelTotal <= 0
           }
         >
           {selectedFeaturePrimaryLabel}
