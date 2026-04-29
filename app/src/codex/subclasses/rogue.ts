@@ -27,8 +27,6 @@ function createSubclassFeatureRow(
   };
 }
 
-const notTracked = { trackingState: TRACKER.NOT_TRACKED } as const;
-
 export const rogueSubclassEntries: SubclassEntry[] = [
   {
     id: "rogue-arcane-trickster",

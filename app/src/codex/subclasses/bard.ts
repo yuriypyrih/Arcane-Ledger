@@ -66,7 +66,6 @@ function createSubclassFeatureRow(
   };
 }
 
-const notTracked = { trackingState: TRACKER.NOT_TRACKED } as const;
 export const inspiringMovementDescription = [
   "When an enemy you can see ends its turn within 5 feet of you, you can take a Reaction and expend one use of your Bardic Inspiration to move up to half your Speed.",
   "Then one ally of your choice within 30 feet of you can also move up to half their Speed using their Reaction.",

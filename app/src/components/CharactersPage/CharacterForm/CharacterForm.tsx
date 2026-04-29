@@ -67,6 +67,7 @@ import {
   normalizeStarterPackSelectionValues,
   resolveStarterPackChoiceCurrencies
 } from "./starterPackUtils";
+import { randomNamePrefixes, randomNameSuffixes } from "./characterRandomNames";
 import styles from "./CharacterForm.module.css";
 
 type CharacterFormProps = {
@@ -352,45 +353,6 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
     }
   );
 }
-
-const randomNamePrefixes = [
-  "Arin",
-  "Bryn",
-  "Cora",
-  "Dain",
-  "Eira",
-  "Fen",
-  "Galen",
-  "Ilya",
-  "Kael",
-  "Lyra",
-  "Mira",
-  "Nox",
-  "Orin",
-  "Rhea",
-  "Soren",
-  "Thalia",
-  "Vale",
-  "Zara"
-];
-
-const randomNameSuffixes = [
-  "Ashwhisper",
-  "Blackwood",
-  "Brightmantle",
-  "Dawnbreaker",
-  "Emberfall",
-  "Gloomwater",
-  "Ironbloom",
-  "Moonbrook",
-  "Nightbloom",
-  "Ravenscar",
-  "Silverstep",
-  "Stormvale",
-  "Sunspire",
-  "Thornhollow",
-  "Wildmere"
-];
 
 function getRandomInt(min: number, max: number): number {
   return Math.floor(Math.random() * (max - min + 1)) + min;

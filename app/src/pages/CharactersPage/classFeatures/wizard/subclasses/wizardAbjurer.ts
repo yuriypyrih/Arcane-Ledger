@@ -5,6 +5,7 @@ import {
   getSpellEntryByName,
   type ReactionEntry,
   MAGIC_SCHOOL,
+  type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";

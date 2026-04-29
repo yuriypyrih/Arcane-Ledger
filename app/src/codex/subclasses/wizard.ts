@@ -34,8 +34,6 @@ function createSchoolSavantDescription(schoolName: string): string[] {
   ];
 }
 
-const notTracked = { trackingState: TRACKER.NOT_TRACKED } as const;
-
 export const wizardSubclassEntries: SubclassEntry[] = [
   {
     id: "wizard-abjurer",

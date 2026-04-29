@@ -1,5 +1,6 @@
 import clsx from "clsx";
-import FeatureUsageLabel, { renderFeatureUsageIcon } from "../FeatureUsageLabel";
+import FeatureUsageLabel from "../FeatureUsageLabel";
+import { renderFeatureUsageIcon } from "../featureUsageIcons";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import type {
   FeatureActionCardUsage,

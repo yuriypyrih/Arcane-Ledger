@@ -27,7 +27,6 @@ function createSubclassFeatureRow(
   };
 }
 
-const notTracked = { trackingState: TRACKER.NOT_TRACKED } as const;
 export const naturesSanctuaryDescription = [
   "As a Magic action, you can expend a use of your Wild Shape and cause spectral trees and vines to appear in a 15-foot Cube on the ground within 120 feet of yourself.",
   "They last there for 1 minute or until you have the <link:Incapacitated>Incapacitated</link> condition or die.",

@@ -1,8 +1,5 @@
 import type {
-  AbilityKey,
   ArmorProficiencyEntry,
-  CharacterDraft,
-  CharacterEquipmentItem,
   LanguageProficiency,
   LanguageProficiencyEntry,
   SavingThrowProficiencyEntry,
@@ -23,34 +20,23 @@ import {
   WEAPON_PROFICIENCY,
   getSkillNameForProficiency as getSharedSkillNameForProficiency
 } from "../../../types";
-import { languageEntries } from "../../../types";
 import { TOOL_PROFICIENCIES as LEGACY_TOOL_PROFICIENCIES } from "../../../codex/entries";
 import {
-  createCustomLanguageProficiency,
   getCustomLanguageNameFromProficiency,
   isCustomLanguageProficiency,
-  isLanguageProficiency,
   languageProficiencyLabels,
   skillsOptions,
   toolProficiencyLabels
 } from "../proficiencyOptions";
-import {
-  getWeaponProficiencyLabel,
-  getWeaponProficiencyOptionsForClass
-} from "../proficiencyWeaponLabels";
+import { getWeaponProficiencyLabel } from "../proficiencyWeaponLabels";
 import { getSkillProficiencyForName } from "../proficiencyResolvers";
-import type { WeaponType } from "../proficiencyWeaponLabels";
 import type { ToolProficiency } from "../proficiencyOptions";
-import type { ClassProficiencyProfile } from "../proficiencyClassData";
 import type {
   GrantedProficiency,
   GrantedProficiencyKind,
-  GrantedSkillProficiency,
-  NormalizeCharacterProficienciesOptions,
   ProficiencyDisplayEntry,
   ProficiencyEntry,
-  ResolvedProficiencyEntry,
-  ResolvedSkillProficiencies
+  ResolvedProficiencyEntry
 } from "./types";
 
 export type {

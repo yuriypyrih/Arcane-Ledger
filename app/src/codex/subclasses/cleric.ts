@@ -88,8 +88,6 @@ function createSubclassFeatureRow(
   };
 }
 
-const notTracked = { trackingState: TRACKER.NOT_TRACKED } as const;
-
 export const clericSubclassEntries: SubclassEntry[] = [
   {
     id: "cleric-knowledge-domain",

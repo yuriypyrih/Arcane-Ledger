@@ -1,20 +1,11 @@
 import clsx from "clsx";
-import { Brain, Flame, Hexagon, Music, PawPrint, Pentagon, Sparkles, Wind } from "lucide-react";
-import type { ReactNode } from "react";
-import animaIcon from "../../../assets/svg/anima.svg";
-import pyromancyIcon from "../../../assets/svg/pyromancy.svg";
 import sheetStyles from "../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import type {
   FeatureActionCardUsage,
   FeatureActionCardUsageCharges,
-  FeatureActionCardUsageCost,
-  FeatureActionIcon
+  FeatureActionCardUsageCost
 } from "../../../pages/CharactersPage/classFeatures";
-
-type FeatureUsageIconOptions = {
-  iconClassName?: string;
-  imageIconClassName?: string;
-};
+import { renderFeatureUsageIcon, type FeatureUsageIconOptions } from "./featureUsageIcons";
 
 type FeatureUsageLabelProps = FeatureUsageIconOptions & {
   usage: FeatureActionCardUsage;
@@ -25,53 +16,6 @@ type FeatureUsageLabelProps = FeatureUsageIconOptions & {
   operatorClassName?: string;
   dotsClassName?: string;
 };
-
-export function renderFeatureUsageIcon(
-  icon?: FeatureActionIcon,
-  { iconClassName, imageIconClassName }: FeatureUsageIconOptions = {}
-): ReactNode {
-  if (icon === "anima") {
-    return <img src={animaIcon} alt="" className={imageIconClassName} />;
-  }
-
-  if (icon === "brain") {
-    return <Brain size={14} strokeWidth={2.1} className={iconClassName} />;
-  }
-
-  if (icon === "sparkles") {
-    return <Sparkles size={14} strokeWidth={2.1} className={iconClassName} />;
-  }
-
-  if (icon === "music") {
-    return <Music size={14} strokeWidth={2.1} className={iconClassName} />;
-  }
-
-  if (icon === "flame") {
-    return <Flame size={14} strokeWidth={2.1} className={iconClassName} />;
-  }
-
-  if (icon === "superiority") {
-    return <Pentagon size={14} strokeWidth={2.1} className={iconClassName} />;
-  }
-
-  if (icon === "wind") {
-    return <Wind size={14} strokeWidth={2.1} className={iconClassName} />;
-  }
-
-  if (icon === "paw") {
-    return <PawPrint size={14} strokeWidth={2.1} className={iconClassName} />;
-  }
-
-  if (icon === "psi") {
-    return <Hexagon size={14} strokeWidth={2.1} className={iconClassName} />;
-  }
-
-  if (icon === "pyromancy") {
-    return <img src={pyromancyIcon} alt="" className={imageIconClassName} />;
-  }
-
-  return null;
-}
 
 function renderFeatureUsageCost(
   usageKey: string,

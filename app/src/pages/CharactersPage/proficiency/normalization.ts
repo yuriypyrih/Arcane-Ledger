@@ -24,7 +24,6 @@ import { getSkillProficiencyForName } from "../proficiencyResolvers";
 import {
   getAutomaticProficiencyCollectionsForCharacter,
   normalizeManualSkillSelections,
-  normalizeSkillSelectionsForClass,
   normalizeToolProficiencySelections,
   splitLegacySkillSelectionsForClass,
   splitLegacyToolSelectionsForClass
@@ -35,7 +34,6 @@ import {
   createSkillEntry,
   createToolEntry,
   dedupe,
-  getLegacyToolProficiency,
   isArmorProficiency,
   isProfLevel,
   isProficiencyOverridePolicy,
@@ -46,7 +44,6 @@ import {
   isWeaponProficiency,
   mergeProficiencyEntries,
   normalizeProficiencyEntries,
-  proficiencyLevelRank,
   stripAutomaticEntries
 } from "./core";
 import {

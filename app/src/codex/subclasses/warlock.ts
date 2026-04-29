@@ -27,8 +27,6 @@ function createSubclassFeatureRow(
   };
 }
 
-const notTracked = { trackingState: TRACKER.NOT_TRACKED } as const;
-
 export const warlockSubclassEntries: SubclassEntry[] = [
   {
     id: "warlock-archfey-patron",

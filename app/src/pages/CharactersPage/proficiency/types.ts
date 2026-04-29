@@ -1,7 +1,6 @@
 import type {
   ArmorProficiencyEntry,
   CharacterClassFeatureState,
-  LanguageProficiency,
   LanguageProficiencyEntry,
   SavingThrowProficiencyEntry,
   SkillName,

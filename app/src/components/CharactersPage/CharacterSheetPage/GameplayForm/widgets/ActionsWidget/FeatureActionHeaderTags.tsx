@@ -1,8 +1,6 @@
 import clsx from "clsx";
 import type { FeatureActionFact, FeatureActionHeaderTag } from "../../../../../../pages/CharactersPage/classFeatures";
-import {
-  renderFeatureUsageIcon
-} from "../../../FeatureUsageLabel";
+import { renderFeatureUsageIcon } from "../../../featureUsageIcons";
 import sheetStyles from "../../../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import styles from "./GameplayActionDrawer.module.css";
 

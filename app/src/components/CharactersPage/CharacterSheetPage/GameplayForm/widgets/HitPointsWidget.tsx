@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import NumberInput from "../../../FormInputs/NumberInput";
 import type { Character } from "../../../../../types";
 import type { PersistCharacterUpdater } from "../../../../../pages/CharactersPage/CharacterSheetPage/types";
-import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pages/CharactersPage/classFeatures";
+import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pages/CharactersPage/classFeatures/magicTemporaryHitPoints";
 import { clampNumber } from "../../../../../pages/CharactersPage/CharacterSheetPage/utils";
 import { getAutomaticMaxHitPointsForCharacter } from "../../../../../pages/CharactersPage/gameplay";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../../../pages/CharactersPage/traits";

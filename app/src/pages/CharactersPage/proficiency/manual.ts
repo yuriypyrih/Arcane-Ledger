@@ -54,7 +54,6 @@ import {
   getProficiencyLabel,
   getResolvedProficiencyEntry,
   getResolvedSkillSourceLabels,
-  getSkillNameFromProficiency,
   getStoredManualOverrideEntry,
   hasLockedNonManualPositiveEntry,
   mergeProficiencyEntries,

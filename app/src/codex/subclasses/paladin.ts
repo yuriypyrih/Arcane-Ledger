@@ -27,8 +27,6 @@ function createSubclassFeatureRow(
   };
 }
 
-const notTracked = { trackingState: TRACKER.NOT_TRACKED } as const;
-
 export const paladinSubclassEntries: SubclassEntry[] = [
   {
     id: "paladin-oath-of-the-ancients",
