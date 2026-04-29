@@ -73,6 +73,7 @@ export type CharacterSpellDrawerActionOptions = {
   useTamedSurge?: boolean;
   useTelekineticMaster?: boolean;
   useRadiantSoul?: boolean;
+  useOverchannel?: boolean;
 };
 
 export type CharacterSpellDrawerActionRadioOption = {
@@ -333,7 +334,8 @@ function CharacterSpellDrawer({
     useTelekineticMaster: actionOptions.some(
       (option) => option.id === "telekinetic-master" && option.checked
     ),
-    useRadiantSoul: actionOptions.some((option) => option.id === "radiant-soul" && option.checked)
+    useRadiantSoul: actionOptions.some((option) => option.id === "radiant-soul" && option.checked),
+    useOverchannel: actionOptions.some((option) => option.id === "overchannel" && option.checked)
   };
   const resolvedActionPaths =
     actionPaths && actionPaths.length > 0

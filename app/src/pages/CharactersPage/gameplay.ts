@@ -101,12 +101,14 @@ export type WeaponAction = {
   rollDisplay: string;
   rollFormulaDisplay: string;
   ability: AbilityKey;
+  abilityFormulaLabel?: string;
   cardBaseAbility: AbilityKey;
   abilityModifierBaseValue: number;
   abilityModifier: number;
   cardBaseAbilityModifier: number;
   abilityModifierBonusEntries: AbilityModifierBonusEntry[];
   damageAbility?: AbilityKey;
+  damageAbilityFormulaLabel?: string;
   damageAbilityModifierBaseValue?: number;
   damageAbilityModifier?: number;
   damageAbilityModifierBonusEntries?: AbilityModifierBonusEntry[];

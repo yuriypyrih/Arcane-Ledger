@@ -40,7 +40,8 @@ type RestDescriptionRule = {
   subclassId?: string;
   feature: CLASS_FEATURE;
   restKeys: RestKey[];
-  slices: DescriptionSlice[];
+  includeFullDescription?: boolean;
+  slices?: DescriptionSlice[];
 };
 
 type FeatureDescriptionMetadata = {
@@ -77,10 +78,7 @@ const restDescriptionRules: RestDescriptionRule[] = [
     className: "Artificer",
     feature: CLASS_FEATURE.SPELLCASTING,
     restKeys: ["longRest"],
-    slices: [
-      { entryIndex: 2, start: "Whenever you finish" },
-      { entryIndex: 8 }
-    ]
+    slices: [{ entryIndex: 2, start: "Whenever you finish" }, { entryIndex: 8 }]
   },
   {
     className: "Artificer",
@@ -254,10 +252,7 @@ const restDescriptionRules: RestDescriptionRule[] = [
     className: "Wizard",
     feature: CLASS_FEATURE.SPELLCASTING,
     restKeys: ["longRest"],
-    slices: [
-      { entryIndex: 1, start: "Whenever you finish" },
-      { entryIndex: 10 }
-    ]
+    slices: [{ entryIndex: 1, start: "Whenever you finish" }, { entryIndex: 10 }]
   },
   {
     className: "Wizard",
@@ -276,7 +271,7 @@ const restDescriptionRules: RestDescriptionRule[] = [
     subclassId: "wizard-diviner",
     feature: CLASS_FEATURE.PORTENT,
     restKeys: ["longRest"],
-    slices: [{ entryIndex: 1 }, { entryIndex: 5 }]
+    includeFullDescription: true
   }
 ];
 
@@ -428,9 +423,11 @@ export function getRestDescriptionInjectionsForCharacter(
       return;
     }
 
-    const entries = rule.slices
-      .map((slice) => extractDescriptionSlice(metadata.description, slice))
-      .filter((entry): entry is SpellDescriptionEntry => Boolean(entry));
+    const entries = rule.includeFullDescription
+      ? [...metadata.description]
+      : (rule.slices ?? [])
+          .map((slice) => extractDescriptionSlice(metadata.description, slice))
+          .filter((entry): entry is SpellDescriptionEntry => Boolean(entry));
 
     if (entries.length === 0) {
       return;

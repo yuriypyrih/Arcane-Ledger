@@ -240,6 +240,7 @@ import {
   getWizardBladesongUsesTotal,
   restoreWizardBladesongOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
+import { restoreWizardAbjurerArcaneWardOnLongRest } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardAbjurer";
 import {
   getWizardIllusionistIllusorySelfUsesTotal,
   getWizardIllusionistPhantasmalCreaturesUsesTotal,
@@ -251,6 +252,10 @@ import {
   getWizardDivinerPortentUsesTotal,
   restoreWizardDivinerPortentOnLongRest
 } from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerPortent";
+import {
+  hasWizardEvokerOverchannelFeature,
+  restoreWizardEvokerOverchannelOnLongRest
+} from "../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardEvoker";
 import { getMagicTemporaryHitPointsFeatureForCharacter } from "../../../../../pages/CharactersPage/classFeatures";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import { getHitDiceRemainingForCharacter } from "../../../../../pages/CharactersPage/gameplay";
@@ -690,6 +695,8 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const magicTemporaryHitPoints = normalizeMagicTemporaryHitPoints(
     character.magicTemporaryHitPoints
   );
+  const arcaneWardResetAvailable =
+    restoreWizardAbjurerArcaneWardOnLongRest(character) !== character;
   const temporaryHitPoints = normalizeTemporaryHitPoints(character.temporaryHitPoints);
   const rageUsesTotal = getBarbarianRageUsesTotal(character);
   const hasBarbarianRelentlessRage = hasBarbarianRelentlessRageFeature(character);
@@ -789,6 +796,7 @@ export function createLongRestOptions(character: Character): RestOption[] {
   const wizardIllusionistPhantasmalCreaturesUsesTotal =
     getWizardIllusionistPhantasmalCreaturesUsesTotal(character);
   const wizardDivinerPortentUsesTotal = getWizardDivinerPortentUsesTotal(character);
+  const hasWizardEvokerOverchannel = hasWizardEvokerOverchannelFeature(character);
   const wizardSignatureSpellIds = getWizardSignatureSpellIds(character);
   const darkOnesOwnLuckUsesTotal = getWarlockDarkOnesOwnLuckUsesTotal(character);
   const hurlThroughHellUsesTotal = getWarlockHurlThroughHellUsesTotal(character);
@@ -906,17 +914,20 @@ export function createLongRestOptions(character: Character): RestOption[] {
           } satisfies RestOption
         ]
       : []),
-    ...(magicTemporaryHitPointsFeature && magicTemporaryHitPoints > 0
+    ...(magicTemporaryHitPointsFeature && (magicTemporaryHitPoints > 0 || arcaneWardResetAvailable)
       ? [
           {
             id: "clear-magic-temporary-hit-points",
             label: `Reset ${magicTemporaryHitPointsFeature.modalTitle}`,
             detail: "Reset this Magical Temporary HP pool to 0.",
             emphasis: "feature",
-            apply: (currentCharacter: Character) => ({
-              ...currentCharacter,
-              ...createMagicTemporaryHitPointsAssignment(0)
-            })
+            apply: (currentCharacter: Character) =>
+              arcaneWardResetAvailable
+                ? restoreWizardAbjurerArcaneWardOnLongRest(currentCharacter)
+                : {
+                    ...currentCharacter,
+                    ...createMagicTemporaryHitPointsAssignment(0)
+                  }
           } satisfies RestOption
         ]
       : []),
@@ -1659,6 +1670,17 @@ export function createLongRestOptions(character: Character): RestOption[] {
             detail: "Clear old foretelling rolls and ready new Portent rolls.",
             apply: (currentCharacter: Character) =>
               restoreWizardDivinerPortentOnLongRest(currentCharacter)
+          } satisfies RestOption
+        ]
+      : []),
+    ...(hasWizardEvokerOverchannel
+      ? [
+          {
+            id: "restore-overchannel",
+            label: "Restore Overchannel",
+            detail: "Reset Overchannel Necrotic backlash.",
+            apply: (currentCharacter: Character) =>
+              restoreWizardEvokerOverchannelOnLongRest(currentCharacter)
           } satisfies RestOption
         ]
       : []),

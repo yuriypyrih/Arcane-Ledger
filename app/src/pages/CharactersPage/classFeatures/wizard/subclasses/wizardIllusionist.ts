@@ -44,6 +44,7 @@ const illusorySelfUsesTotal = 1;
 const illusorySelfFallbackMinimumSlotLevel = 2;
 const illusoryRealityDurationRounds = 10;
 const illusionistSubclassEntry = getSubclassEntryById(illusionistSubclassId);
+const minorIllusionSpellId = "spell-minor-illusion";
 const improvedIllusionsAlwaysPreparedSpellIds = resolveSpellIdsByName(["Minor Illusion"]);
 const phantasmalCreaturesAlwaysPreparedSpellIds = resolveSpellIdsByName([
   "Summon Beast",
@@ -69,9 +70,10 @@ function getWizardIllusionistFeatureDescriptionEntries(feature: CLASS_FEATURE): 
   );
 }
 
-const improvedIllusionsDescription = getWizardIllusionistFeatureDescriptionEntries(
+const improvedIllusionsFullDescription = getWizardIllusionistFeatureDescriptionEntries(
   CLASS_FEATURE.IMPROVED_ILLUSIONS
-).slice(0, 1);
+);
+const improvedIllusionsDescription = improvedIllusionsFullDescription.slice(0, 1);
 const phantasmalCreaturesDescription = getWizardIllusionistFeatureDescriptionEntries(
   CLASS_FEATURE.PHANTASMAL_CREATURES
 );
@@ -225,7 +227,9 @@ function appendImprovedIllusionsSpellDescription(
     spell,
     character,
     CLASS_FEATURE.IMPROVED_ILLUSIONS,
-    improvedIllusionsDescription,
+    spell.id === minorIllusionSpellId
+      ? improvedIllusionsFullDescription
+      : improvedIllusionsDescription,
     improvedIllusionsName
   );
   const nextRange = getImprovedIllusionsRange(spell.range);
@@ -310,8 +314,7 @@ function getWizardIllusionistIllusoryRealityFeatureAction(
     description: wizardIllusionistIllusoryRealityDescription,
     drawer: {
       kind: "confirm",
-      eyebrow: "Illusionist",
-      helperText: "Activating this creates an Illusory Reality trait that lasts for 10 turns."
+      eyebrow: "Illusionist"
     },
     execute: {
       kind: "activate"

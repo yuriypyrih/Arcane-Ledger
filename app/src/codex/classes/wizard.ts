@@ -229,7 +229,7 @@ export const wizardFeatureMap: Partial<Record<CLASS_FEATURE, FeatureMapEntry>> =
     description: [
       "Whenever you finish a <link:short-rest>Short Rest</link>, you can study your spellbook and replace one of the level 1+ Wizard spells you have prepared for your Spellcasting feature with another level 1+ spell from the book."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   [CLASS_FEATURE.SPELL_MASTERY]: {
     description: [

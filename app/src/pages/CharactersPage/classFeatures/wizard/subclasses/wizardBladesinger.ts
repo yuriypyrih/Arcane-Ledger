@@ -3,6 +3,7 @@ import {
   CLASS_FEATURE,
   REACTION,
   type ReactionEntry,
+  type SpellDescriptionEntry,
   type SpellEntry
 } from "../../../../../codex/entries";
 import { getSubclassEntryById } from "../../../../../codex/subclasses";
@@ -16,6 +17,7 @@ import {
   STATUS_DURATION_ROUND_TICK,
   STATUS_ENTRY_GROUP,
   WEAPON_PROFICIENCY,
+  type AbilityKey,
   type Character,
   type CharacterWizardFeatureState,
   type SkillProficiencyEntry,
@@ -27,9 +29,13 @@ import {
   getAbilityModifierForCharacter
 } from "../../../abilities";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
+import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 import { consumeRoundTrackerResource, isRoundTrackerResourceAvailable } from "../../../combat";
 import type { WeaponAction } from "../../../gameplay";
-import { createCharacterStatusEntry, normalizeCharacterStatusEntries } from "../../../statusEntries";
+import {
+  createCharacterStatusEntry,
+  normalizeCharacterStatusEntries
+} from "../../../statusEntries";
 import { appendWeaponActionCardBonusLabel } from "../../../weaponActionCardBreakdown";
 import type {
   FeatureActionCard,
@@ -51,6 +57,7 @@ export const wizardBladesingerTrainingInWarAndSongSkillOptions: WizardBladesinge
   [SKILL.ACROBATICS, SKILL.ATHLETICS, SKILL.PERFORMANCE, SKILL.PERSUASION];
 
 const bladesongName = "Bladesong";
+const bladeworkName = "Bladework";
 const songOfDefenseName = "Song of Defense";
 const trainingInWarAndSongName = "Training in War and Song";
 const bladesongDurationRounds = 10;
@@ -81,8 +88,17 @@ function getWizardBladesingerFeatureDescriptionEntries(feature: CLASS_FEATURE): 
 export const wizardBladesingerBladesongDescription = getWizardBladesingerFeatureDescriptionEntries(
   CLASS_FEATURE.BLADESONG
 );
+const wizardBladesingerBladeworkDescription = wizardBladesingerBladesongDescription.filter(
+  (entry) => entry.includes("<strong>Bladework.</strong>")
+);
+const wizardBladesingerFocusDescription = wizardBladesingerBladesongDescription.filter((entry) =>
+  entry.includes("<strong>Focus.</strong>")
+);
 const wizardBladesingerSongOfDefenseDescription = getWizardBladesingerFeatureDescriptionEntries(
   CLASS_FEATURE.SONG_OF_DEFENSE
+);
+const wizardBladesingerSongOfVictoryDescription = getWizardBladesingerFeatureDescriptionEntries(
+  CLASS_FEATURE.SONG_OF_VICTORY
 );
 const wizardBladesingerSongOfDefenseReactionEntry: ReactionEntry = {
   id: wizardBladesingerSongOfDefenseReactionId,
@@ -148,7 +164,10 @@ function getWizardBladesingerAdditionalAttackCount(
 
 function getWizardBladesongIntelligenceModifier(
   character: Partial<
-    Pick<Character, "abilities" | "classFeatureState" | "className" | "feats" | "level" | "statusEntries">
+    Pick<
+      Character,
+      "abilities" | "classFeatureState" | "className" | "feats" | "level" | "statusEntries"
+    >
   >
 ): number {
   return getAbilityModifierForCharacter(character, "INT");
@@ -156,7 +175,10 @@ function getWizardBladesongIntelligenceModifier(
 
 function getWizardBladesongBonusValue(
   character: Partial<
-    Pick<Character, "abilities" | "classFeatureState" | "className" | "feats" | "level" | "statusEntries">
+    Pick<
+      Character,
+      "abilities" | "classFeatureState" | "className" | "feats" | "level" | "statusEntries"
+    >
   >
 ): number {
   return Math.max(1, getWizardBladesongIntelligenceModifier(character));
@@ -592,6 +614,75 @@ export function getWizardBladesongUsesRemaining(
   return Math.max(0, usesTotal - (character.classFeatureState?.wizard?.bladesongUsesExpended ?? 0));
 }
 
+export function getWizardBladesingerBladeworkWeaponActionDescriptionAdditions(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "statusEntries" | "subclassId">>,
+  action: Pick<WeaponAction, "attackKind" | "proficiencyBonus">
+): SpellDescriptionEntry[][] {
+  if (
+    action.attackKind !== "weapon" ||
+    action.proficiencyBonus <= 0 ||
+    !hasActiveWizardBladesong(character) ||
+    wizardBladesingerBladeworkDescription.length <= 0
+  ) {
+    return [];
+  }
+
+  return [
+    createFeatureSourcedDescriptionEntries(
+      character,
+      CLASS_FEATURE.BLADESONG,
+      wizardBladesingerBladeworkDescription,
+      bladesongName
+    )
+  ];
+}
+
+export function getWizardBladesingerFocusSavingThrowDescriptionAdditions(
+  character: Pick<Character, "className"> &
+    Partial<Pick<Character, "level" | "statusEntries" | "subclassId">>,
+  ability: AbilityKey
+): SpellDescriptionEntry[][] {
+  if (
+    ability !== "CON" ||
+    !hasActiveWizardBladesong(character) ||
+    wizardBladesingerFocusDescription.length <= 0
+  ) {
+    return [];
+  }
+
+  return [
+    createFeatureSourcedDescriptionEntries(
+      character,
+      CLASS_FEATURE.BLADESONG,
+      wizardBladesingerFocusDescription,
+      bladesongName
+    )
+  ];
+}
+
+export function getWizardBladesingerSongOfVictoryWeaponActionDescriptionAdditions(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>,
+  action: Pick<WeaponAction, "attackKind">
+): SpellDescriptionEntry[][] {
+  if (
+    action.attackKind !== "weapon" ||
+    !hasWizardBladesingerSpellcastWeaponBonusActionFeature(character) ||
+    wizardBladesingerSongOfVictoryDescription.length <= 0
+  ) {
+    return [];
+  }
+
+  return [
+    createFeatureSourcedDescriptionEntries(
+      character,
+      CLASS_FEATURE.SONG_OF_VICTORY,
+      wizardBladesingerSongOfVictoryDescription,
+      "Song of Victory"
+    )
+  ];
+}
+
 export function getWizardBladesongFeatureAction(
   character: Pick<Character, "className"> &
     Partial<
@@ -629,8 +720,7 @@ export function getWizardBladesongFeatureAction(
         : undefined,
     drawer: {
       kind: "confirm",
-      eyebrow: "Bladesinger",
-      helperText: "Activating this creates a Bladesong trait that lasts for 10 turns."
+      eyebrow: "Bladesinger"
     },
     execute: {
       kind: "activate"
@@ -755,7 +845,10 @@ function getWizardBladesongSkillIndicators(): SkillIndicatorMap {
 
 function transformWizardBladesongWeaponAction(
   character: Partial<
-    Pick<Character, "abilities" | "classFeatureState" | "className" | "feats" | "level" | "statusEntries">
+    Pick<
+      Character,
+      "abilities" | "classFeatureState" | "className" | "feats" | "level" | "statusEntries"
+    >
   >,
   action: WeaponAction
 ): WeaponAction {
@@ -782,10 +875,12 @@ function transformWizardBladesongWeaponAction(
     {
       ...action,
       ability: "INT" as const,
+      abilityFormulaLabel: "INT (Bladework)",
       abilityModifierBaseValue: intelligenceModifierBreakdown.baseValue,
       abilityModifier: intelligenceModifier,
       abilityModifierBonusEntries: intelligenceModifierBreakdown.bonusEntries,
       damageAbility: "INT" as const,
+      damageAbilityFormulaLabel: "INT (Bladework)",
       damageAbilityModifierBaseValue: intelligenceModifierBreakdown.baseValue,
       damageAbilityModifier: intelligenceModifier,
       damageAbilityModifierBonusEntries: intelligenceModifierBreakdown.bonusEntries,
@@ -794,7 +889,7 @@ function transformWizardBladesongWeaponAction(
       rollFormulaDisplay: createSignedFormula(action.damageFormula, nextTotalModifier, false),
       rollFormula: createSignedFormula(rollFormulaBase, nextTotalModifier, false)
     },
-    bladesongName
+    bladeworkName
   );
 }
 
@@ -804,10 +899,9 @@ export const getWizardBladesingerDerivedFeatureState: SubclassRuntimeResolver = 
 
   return {
     featureActions: bladesongAction ? [bladesongAction] : [],
-    reactionEntries:
-      bladesongActive && hasWizardBladesingerSongOfDefenseFeature(character)
-        ? [wizardBladesingerSongOfDefenseReactionEntry]
-        : [],
+    reactionEntries: hasWizardBladesingerSongOfDefenseFeature(character)
+      ? [wizardBladesingerSongOfDefenseReactionEntry]
+      : [],
     weaponProficiencyEntries:
       getWizardBladesingerTrainingInWarAndSongWeaponProficiencyEntries(character),
     skillProficiencyEntries:

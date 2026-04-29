@@ -7,10 +7,13 @@ import type {
 } from "../../subclassRuntime";
 import {
   abjurerSubclassId,
+  activateWizardAbjurerArcaneWard,
   applyWizardAbjurerArcaneWardAfterSpellCast,
   getWizardAbjurerDerivedFeatureState,
   restoreWizardAbjurerArcaneWardOnLongRest
 } from "./wizardAbjurer";
+
+export { wizardAbjurerArcaneWardActionKey } from "./wizardAbjurer";
 import {
   advanceWizardBladesingerFeaturesForNewRound,
   activateWizardBladesong,
@@ -26,7 +29,8 @@ import { restoreWizardDivinerPortentOnLongRest } from "./wizardDivinerPortent";
 import {
   evokerSubclassId,
   getWizardEvokerDerivedFeatureState,
-  getWizardEvokerSpellbookSpellEntry
+  getWizardEvokerSpellbookSpellEntry,
+  restoreWizardEvokerOverchannelOnLongRest
 } from "./wizardEvoker";
 import {
   activateWizardIllusionistIllusoryReality,
@@ -49,6 +53,7 @@ const wizardLongRestRestorers: Record<string, (character: Character) => Characte
   [abjurerSubclassId]: restoreWizardAbjurerArcaneWardOnLongRest,
   [bladesingerSubclassId]: restoreWizardBladesongOnLongRest,
   [divinerSubclassId]: restoreWizardDivinerPortentOnLongRest,
+  [evokerSubclassId]: restoreWizardEvokerOverchannelOnLongRest,
   [illusionistSubclassId]: (character) =>
     restoreWizardIllusionistIllusorySelfOnLongRest(
       restoreWizardIllusionistPhantasmalCreaturesOnLongRest(character)
@@ -108,6 +113,13 @@ export function activateWizardSubclassFeatureAction(
   }
 
   return null;
+}
+
+export function activateWizardAbjurerArcaneWardFeatureAction(
+  character: Character,
+  spellSlotLevel: number
+): Character {
+  return activateWizardAbjurerArcaneWard(character, spellSlotLevel);
 }
 
 export function getWizardSubclassSpellbookSpellEntry(

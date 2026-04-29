@@ -302,12 +302,16 @@ export function normalizeWizardFeatureState(
   const rawBladesongUsesExpended = Number(record?.bladesongUsesExpended);
   const rawPhantasmalCreaturesUsesExpended = Number(record?.phantasmalCreaturesUsesExpended);
   const rawIllusorySelfUsesExpended = Number(record?.illusorySelfUsesExpended);
+  const rawOverchannelUsesSinceLongRest = Number(record?.overchannelUsesSinceLongRest);
+  const hasArcaneWard = character.subclassId === "wizard-abjurer" && (character.level ?? 0) >= 3;
+  const hasOverchannel = character.subclassId === "wizard-evoker" && (character.level ?? 0) >= 14;
 
   return {
     arcaneRecoveryUsesExpended:
       hasArcaneRecovery && Number.isFinite(rawArcaneRecoveryUsesExpended)
         ? Math.max(0, Math.min(arcaneRecoveryUsesTotal, Math.floor(rawArcaneRecoveryUsesExpended)))
         : 0,
+    arcaneWardCreatedThisLongRest: hasArcaneWard && record?.arcaneWardCreatedThisLongRest === true,
     bladesongUsesExpended: Number.isFinite(rawBladesongUsesExpended)
       ? Math.max(
           0,
@@ -335,6 +339,10 @@ export function normalizeWizardFeatureState(
     illusorySelfUsesExpended:
       illusorySelfUsesTotal > 0 && Number.isFinite(rawIllusorySelfUsesExpended)
         ? Math.max(0, Math.min(illusorySelfUsesTotal, Math.floor(rawIllusorySelfUsesExpended)))
+        : 0,
+    overchannelUsesSinceLongRest:
+      hasOverchannel && Number.isFinite(rawOverchannelUsesSinceLongRest)
+        ? Math.max(0, Math.floor(rawOverchannelUsesSinceLongRest))
         : 0,
     spellMasterySpellIds: hasSpellMastery
       ? normalizeWizardSpellMasterySpellIds(record?.spellMasterySpellIds)

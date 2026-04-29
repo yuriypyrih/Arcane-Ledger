@@ -464,7 +464,9 @@ function getAbilityDescriptionAdditions(
 
   descriptionAdditions.push(...getFanaticalFocusDescriptionAdditions(character));
   descriptionAdditions.push(...getMonkAbilityDescriptionAdditions(character, ability));
-  descriptionAdditions.push(...getSavingThrowReferenceDescriptionAdditionsForCharacter(character));
+  descriptionAdditions.push(
+    ...getSavingThrowReferenceDescriptionAdditionsForCharacter(character, ability)
+  );
 
   return descriptionAdditions.length > 0 ? descriptionAdditions : undefined;
 }

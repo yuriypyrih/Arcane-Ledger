@@ -5,6 +5,7 @@ import {
   getCantripDamageBonusForCharacter,
   getSpellDamageFormulaOverrideForCharacter
 } from "./classFeatures";
+import { getWizardEvokerEmpoweredEvocationDamageDetail } from "./classFeatures/wizard/subclasses/wizardEvoker";
 import { getMainAbilityForClass } from "./gameplay";
 import { formatFormulaRangeLabel, parseFormulaRange } from "./shared/formulas";
 import {
@@ -123,7 +124,8 @@ export function getSpellOutcomeSummaryForCharacter(
 }
 
 export function getSpellDamageDetailForCharacter(
-  character: Pick<Character, "className" | "abilities" | "level" | "classFeatureState" | "feats">,
+  character: Pick<Character, "className" | "abilities" | "level" | "classFeatureState" | "feats"> &
+    Partial<Pick<Character, "subclassId">>,
   spell: SpellEntry
 ): string {
   const damageFormulaOverride = getSpellDamageFormulaOverrideForCharacter(character, spell);
@@ -139,8 +141,16 @@ export function getSpellDamageDetailForCharacter(
   const damageBonus = getSpellDamageBonusForCharacter(character, spell);
 
   if (damageBonus === 0) {
-    return formatWeaponDamage(spell.damage);
+    return getWizardEvokerEmpoweredEvocationDamageDetail(
+      character,
+      spell,
+      formatWeaponDamage(spell.damage)
+    );
   }
 
-  return `${formatWeaponDamage(spell.damage)} ${formatSignedModifier(damageBonus)} WIS (Potent Spellcasting)`;
+  return getWizardEvokerEmpoweredEvocationDamageDetail(
+    character,
+    spell,
+    `${formatWeaponDamage(spell.damage)} ${formatSignedModifier(damageBonus)} WIS (Potent Spellcasting)`
+  );
 }

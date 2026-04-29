@@ -45,14 +45,10 @@ export const wizardSubclassEntries: SubclassEntry[] = [
     summary:
       "Your study of magic is focused on spells that block, banish, or protect, ending harmful effects, banishing evil influences, and protecting the weak. Abjurers are sought when baleful spirits require exorcism, when locations must be guarded against magical spying, and when portals to other planes of existence must be closed. Adventuring parties value Abjurers for the protection they provide against a variety of hostile magic and other attacks.",
     features: [
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
-        CLASS_FEATURE.ABJURATION_SAVANT,
-        {
-          description: createSchoolSavantDescription("Abjuration"),
-          ...notTracked
-        }
-      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.ABJURATION_SAVANT, {
+        description: createSchoolSavantDescription("Abjuration"),
+        trackingState: TRACKER.TRACKED
+      }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.ARCANE_WARD, {
         description: [
           "You can weave magic around yourself for protection. When you cast an Abjuration spell with a spell slot, you can simultaneously use a strand of the spell's magic to create a magical ward on yourself that lasts until you finish a <link:long-rest>Long Rest</link>.",
@@ -64,42 +60,30 @@ export const wizardSubclassEntries: SubclassEntry[] = [
           "Alternatively, as a Bonus Action, you can expend a spell slot, and the ward regains a number of Hit Points equal to twice the level of the spell slot expended.",
           "Once you create the ward, you can't create it again until you finish a <link:long-rest>Long Rest</link>."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_6,
-        CLASS_FEATURE.PROJECTED_WARD,
-        {
-          description: [
-            "When a creature that you can see within 30 feet of yourself takes damage, you can take a Reaction to cause your Arcane Ward to absorb that damage.",
-            "If this damage reduces the ward to 0 Hit Points, the warded creature takes any remaining damage.",
-            "If that creature has any <link:Resistance>Resistances</link> or <link:Vulnerability>Vulnerabilities</link>, apply them before reducing the ward's Hit Points."
-          ],
-          ...notTracked
-        }
-      ),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_10,
-        CLASS_FEATURE.SPELL_BREAKER,
-        {
-          description: [
-            "You always have the <spell:Counterspell>Counterspell</spell> and <spell:Dispel Magic>Dispel Magic</spell> spells prepared.",
-            "In addition, you can cast <spell:Dispel Magic>Dispel Magic</spell> as a Bonus Action, and you can add your <link:Proficiency Bonus>Proficiency Bonus</link> to its ability check.",
-            "When you cast either spell with a spell slot, that slot isn't expended if the spell fails to stop a spell."
-          ],
-          ...notTracked
-        }
-      ),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_14,
-        CLASS_FEATURE.SPELL_RESISTANCE,
-        {
-          description: [
-            "You have <link:Advantage>Advantage</link> on saving throws against spells, and you have <link:Resistance>Resistance</link> to the damage of spells."
-          ],
-          ...notTracked
-        }
-      )
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.PROJECTED_WARD, {
+        description: [
+          "When a creature that you can see within 30 feet of yourself takes damage, you can take a Reaction to cause your Arcane Ward to absorb that damage.",
+          "If this damage reduces the ward to 0 Hit Points, the warded creature takes any remaining damage.",
+          "If that creature has any <link:Resistance>Resistances</link> or <link:Vulnerability>Vulnerabilities</link>, apply them before reducing the ward's Hit Points."
+        ],
+        trackingState: TRACKER.TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.SPELL_BREAKER, {
+        description: [
+          "You always have the <spell:Counterspell>Counterspell</spell> and <spell:Dispel Magic>Dispel Magic</spell> spells prepared.",
+          "In addition, you can cast <spell:Dispel Magic>Dispel Magic</spell> as a Bonus Action, and you can add your <link:Proficiency Bonus>Proficiency Bonus</link> to its ability check.",
+          "When you cast either spell with a spell slot, that slot isn't expended if the spell fails to stop a spell."
+        ],
+        trackingState: TRACKER.TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.SPELL_RESISTANCE, {
+        description: [
+          "You have <link:Advantage>Advantage</link> on saving throws against spells, and you have <link:Resistance>Resistance</link> to the damage of spells."
+        ],
+        trackingState: TRACKER.TRACKED
+      })
     ]
   },
   {
@@ -123,7 +107,7 @@ export const wizardSubclassEntries: SubclassEntry[] = [
           "<strong>Bladework.</strong> Whenever you attack with a weapon with which you have proficiency, you can use your <link:INT>Intelligence</link> modifier for the attack and damage rolls instead of using Strength or Dexterity.",
           "<strong>Focus.</strong> When you make a <link:Constitution Saving Throw>Constitution saving throw</link> to maintain <link:Concentration>Concentration</link>, you can add your <link:INT>Intelligence</link> modifier to the total."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_3,
@@ -134,7 +118,7 @@ export const wizardSubclassEntries: SubclassEntry[] = [
             "You can use a Melee weapon with which you have proficiency as a Spellcasting Focus for your Wizard spells.",
             "You also gain proficiency in one of the following skills of your choice: <link:Acrobatics>Acrobatics</link>, <link:Athletics>Athletics</link>, <link:Performance>Performance</link>, or <link:Persuasion>Persuasion</link>."
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.EXTRA_ATTACK, {
@@ -142,28 +126,20 @@ export const wizardSubclassEntries: SubclassEntry[] = [
           "You can attack twice, instead of once, whenever you take the Attack action on your turn.",
           "Moreover, you can cast one of your Wizard cantrips that has a casting time of an action in place of one of those attacks."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       }),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_10,
-        CLASS_FEATURE.SONG_OF_DEFENSE,
-        {
-          description: [
-            "When you take damage while your Bladesong is active, you can take a Reaction to expend one spell slot and reduce the damage taken by an amount equal to five times the spell slot's level."
-          ],
-          ...notTracked
-        }
-      ),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_14,
-        CLASS_FEATURE.SONG_OF_VICTORY,
-        {
-          description: [
-            "After you cast a spell that has a casting time of an action, you can make one attack with a weapon as a Bonus Action."
-          ],
-          ...notTracked
-        }
-      )
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.SONG_OF_DEFENSE, {
+        description: [
+          "When you take damage while your Bladesong is active, you can take a Reaction to expend one spell slot and reduce the damage taken by an amount equal to five times the spell slot's level."
+        ],
+        trackingState: TRACKER.TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.SONG_OF_VICTORY, {
+        description: [
+          "After you cast a spell that has a casting time of an action, you can make one attack with a weapon as a Bonus Action."
+        ],
+        trackingState: TRACKER.TRACKED
+      })
     ]
   },
   {
@@ -174,14 +150,10 @@ export const wizardSubclassEntries: SubclassEntry[] = [
     summary:
       "The counsel of a Diviner is sought by those who want a clearer understanding of the past, present, and future. As a Diviner, you strive to part the veils of space, time, and consciousness. You work to master spells of discernment, remote viewing, supernatural knowledge, and foresight.",
     features: [
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
-        CLASS_FEATURE.DIVINATION_SAVANT,
-        {
-          description: createSchoolSavantDescription("Divination"),
-          ...notTracked
-        }
-      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.DIVINATION_SAVANT, {
+        description: createSchoolSavantDescription("Divination"),
+        trackingState: TRACKER.TRACKED
+      }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.PORTENT, {
         description: [
           "Glimpses of the future begin to press on your awareness.",
@@ -191,20 +163,17 @@ export const wizardSubclassEntries: SubclassEntry[] = [
           "Each foretelling roll can be used only once.",
           "When you finish a <link:long-rest>Long Rest</link>, you lose any unused foretelling rolls."
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_6,
-        CLASS_FEATURE.EXPERT_DIVINATION,
-        {
-          description: [
-            "Casting Divination spells comes so easily to you that it expends only a fraction of your spellcasting efforts.",
-            "When you cast a Divination spell using a level 2+ spell slot, you regain one expended spell slot.",
-            "The slot you regain must be of a level lower than the slot you expended and can't be higher than level 5."
-          ],
-          ...notTracked
-        }
-      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.EXPERT_DIVINATION, {
+        description: [
+          "Casting Divination spells comes so easily to you that it expends only a fraction of your spellcasting efforts.",
+          "When you cast a Divination spell using a level 2+ spell slot, you regain one expended spell slot.",
+          "The slot you regain must be of a level lower than the slot you expended and can't be higher than level 5.",
+          "(You have to manually add the lower spell slot)."
+        ],
+        trackingState: TRACKER.SEMI_TRACKED
+      }),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.THE_THIRD_EYE, {
         description: [
           "You can increase your powers of perception.",
@@ -212,21 +181,17 @@ export const wizardSubclassEntries: SubclassEntry[] = [
           "You can't use this feature again until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",
           "<strong>Darkvision.</strong> You gain <link:Darkvision>Darkvision</link> with a range of 120 feet.",
           "<strong>Greater Comprehension.</strong> You can read any language.",
-          "<strong>See Invisibility.</strong> You can cast <spell:See Invisibility>See Invisibility</spell> without expending a spell slot."
+          "<strong>See Invisibility.</strong> You can cast <spell:See Invisibility>See Invisibility</spell> without expending a spell slot. (Not Tracked)"
         ],
-        ...notTracked
+        trackingState: TRACKER.SEMI_TRACKED
       }),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_14,
-        CLASS_FEATURE.GREATER_PORTENT,
-        {
-          description: [
-            "The visions in your dreams intensify and paint a more accurate picture in your mind of what is to come.",
-            "Roll three <strong>d20s</strong> for your Portent feature rather than two."
-          ],
-          ...notTracked
-        }
-      )
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.GREATER_PORTENT, {
+        description: [
+          "The visions in your dreams intensify and paint a more accurate picture in your mind of what is to come.",
+          "Roll three <strong>d20s</strong> for your Portent feature rather than two."
+        ],
+        trackingState: TRACKER.TRACKED
+      })
     ]
   },
   {
@@ -237,37 +202,25 @@ export const wizardSubclassEntries: SubclassEntry[] = [
     summary:
       "Your studies focus on magic that creates powerful elemental effects such as bitter cold, searing flame, rolling thunder, crackling lightning, and burning acid. Some Evokers find employment in military forces, serving as artillery to blast armies from afar. Others use their power to protect others, while some seek their own gain.",
     features: [
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
-        CLASS_FEATURE.EVOCATION_SAVANT,
-        {
-          description: createSchoolSavantDescription("Evocation"),
-          ...notTracked
-        }
-      ),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
-        CLASS_FEATURE.POTENT_CANTRIP,
-        {
-          description: [
-            "Your damaging cantrips affect even creatures that avoid the brunt of the effect.",
-            "When you cast a cantrip at a creature and you miss with the attack roll or the target succeeds on a saving throw against the cantrip, the target takes half the cantrip's damage (if any) but suffers no additional effect from the cantrip."
-          ],
-          ...notTracked
-        }
-      ),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_6,
-        CLASS_FEATURE.SCULPT_SPELLS,
-        {
-          description: [
-            "You can create pockets of relative safety within the effects of your evocations.",
-            "When you cast an Evocation spell that affects other creatures that you can see, you can choose a number of them equal to 1 plus the spell's level.",
-            "The chosen creatures automatically succeed on their saving throws against the spell, and they take no damage if they would normally take half damage on a successful save."
-          ],
-          ...notTracked
-        }
-      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.EVOCATION_SAVANT, {
+        description: createSchoolSavantDescription("Evocation"),
+        trackingState: TRACKER.TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.POTENT_CANTRIP, {
+        description: [
+          "Your damaging cantrips affect even creatures that avoid the brunt of the effect.",
+          "When you cast a cantrip at a creature and you miss with the attack roll or the target succeeds on a saving throw against the cantrip, the target takes half the cantrip's damage (if any) but suffers no additional effect from the cantrip."
+        ],
+        trackingState: TRACKER.TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_6, CLASS_FEATURE.SCULPT_SPELLS, {
+        description: [
+          "You can create pockets of relative safety within the effects of your evocations.",
+          "When you cast an Evocation spell that affects other creatures that you can see, you can choose a number of them equal to 1 plus the spell's level.",
+          "The chosen creatures automatically succeed on their saving throws against the spell, and they take no damage if they would normally take half damage on a successful save."
+        ],
+        trackingState: TRACKER.TRACKED
+      }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_10,
         CLASS_FEATURE.EMPOWERED_EVOCATION,
@@ -275,7 +228,7 @@ export const wizardSubclassEntries: SubclassEntry[] = [
           description: [
             "Whenever you cast a Wizard spell from the Evocation school, you can add your <link:INT>Intelligence</link> modifier to one damage roll of that spell."
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
       createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.OVERCHANNEL, {
@@ -287,7 +240,7 @@ export const wizardSubclassEntries: SubclassEntry[] = [
           "This damage ignores <link:Resistance>Resistance</link> and <link:Immunity>Immunity</link>.",
           "Each time you use this feature again before finishing a <link:long-rest>Long Rest</link>, the Necrotic damage per spell level increases by <strong>1d12</strong>."
         ],
-        ...notTracked
+        trackingState: TRACKER.TRACKED
       })
     ]
   },
@@ -299,28 +252,20 @@ export const wizardSubclassEntries: SubclassEntry[] = [
     summary:
       "You specialize in magic that dazzles the senses and tricks the mind, and the illusions you craft make the impossible seem real.",
     features: [
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
-        CLASS_FEATURE.ILLUSION_SAVANT,
-        {
-          description: createSchoolSavantDescription("Illusion"),
-          ...notTracked
-        }
-      ),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_3,
-        CLASS_FEATURE.IMPROVED_ILLUSIONS,
-        {
-          description: [
-            "You can cast Illusion spells without providing <link:v>Verbal</link> components, and if an Illusion spell you cast has a range of 10+ feet, the range increases by 60 feet.",
-            "You also know the <spell:Minor Illusion>Minor Illusion</spell> cantrip.",
-            "If you already know it, you learn a different Wizard cantrip of your choice.",
-            "The cantrip doesn't count against your number of cantrips known.",
-            "You can create both a sound and an image with a single casting of <spell:Minor Illusion>Minor Illusion</spell>, and you can cast it as a Bonus Action."
-          ],
-          ...notTracked
-        }
-      ),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.ILLUSION_SAVANT, {
+        description: createSchoolSavantDescription("Illusion"),
+        trackingState: TRACKER.TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_3, CLASS_FEATURE.IMPROVED_ILLUSIONS, {
+        description: [
+          "You can cast Illusion spells without providing <link:v>Verbal</link> components, and if an Illusion spell you cast has a range of 10+ feet, the range increases by 60 feet.",
+          "You also know the <spell:Minor Illusion>Minor Illusion</spell> cantrip.",
+          "If you already know it, you learn a different Wizard cantrip of your choice.",
+          "The cantrip doesn't count against your number of cantrips known.",
+          "You can create both a sound and an image with a single casting of <spell:Minor Illusion>Minor Illusion</spell>, and you can cast it as a Bonus Action."
+        ],
+        trackingState: TRACKER.TRACKED
+      }),
       createSubclassFeatureRow(
         SUBCLASS_FEATURE_LEVELS.LEVEL_6,
         CLASS_FEATURE.PHANTASMAL_CREATURES,
@@ -331,36 +276,28 @@ export const wizardSubclassEntries: SubclassEntry[] = [
             "You can cast the Illusion version of each spell without expending a spell slot, but casting it without a slot halves the creature's Hit Points.",
             "Once you cast either spell without a spell slot, you must finish a <link:long-rest>Long Rest</link> before you can cast the spell in that way again."
           ],
-          ...notTracked
+          trackingState: TRACKER.TRACKED
         }
       ),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_10,
-        CLASS_FEATURE.ILLUSORY_SELF,
-        {
-          description: [
-            "When a creature hits you with an attack roll, you can take a Reaction to interpose an illusory duplicate of yourself between the attacker and yourself.",
-            "The attack automatically misses you, then the illusion dissipates.",
-            "Once you use this feature, you can't use it again until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",
-            "You can also restore your use of it by expending a level 2+ spell slot (no action required)."
-          ],
-          ...notTracked
-        }
-      ),
-      createSubclassFeatureRow(
-        SUBCLASS_FEATURE_LEVELS.LEVEL_14,
-        CLASS_FEATURE.ILLUSORY_REALITY,
-        {
-          description: [
-            "You have learned to weave shadow magic into your illusions to give them a semi-reality.",
-            "When you cast an Illusion spell with a spell slot, you can choose one inanimate, nonmagical object that is part of the illusion and make that object real.",
-            "You can do this on your turn as a Bonus Action while the spell is ongoing.",
-            "The object remains real for 1 minute, during which it can't deal damage or give any conditions.",
-            "For example, you can create an illusion of a bridge over a chasm and then make it real and cross it."
-          ],
-          ...notTracked
-        }
-      )
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_10, CLASS_FEATURE.ILLUSORY_SELF, {
+        description: [
+          "When a creature hits you with an attack roll, you can take a Reaction to interpose an illusory duplicate of yourself between the attacker and yourself.",
+          "The attack automatically misses you, then the illusion dissipates.",
+          "Once you use this feature, you can't use it again until you finish a <link:short-rest>Short Rest</link> or <link:long-rest>Long Rest</link>.",
+          "You can also restore your use of it by expending a level 2+ spell slot (no action required)."
+        ],
+        trackingState: TRACKER.TRACKED
+      }),
+      createSubclassFeatureRow(SUBCLASS_FEATURE_LEVELS.LEVEL_14, CLASS_FEATURE.ILLUSORY_REALITY, {
+        description: [
+          "You have learned to weave shadow magic into your illusions to give them a semi-reality.",
+          "When you cast an Illusion spell with a spell slot, you can choose one inanimate, nonmagical object that is part of the illusion and make that object real.",
+          "You can do this on your turn as a Bonus Action while the spell is ongoing.",
+          "The object remains real for 1 minute, during which it can't deal damage or give any conditions.",
+          "For example, you can create an illusion of a bridge over a chasm and then make it real and cross it."
+        ],
+        trackingState: TRACKER.TRACKED
+      })
     ]
   }
 ];

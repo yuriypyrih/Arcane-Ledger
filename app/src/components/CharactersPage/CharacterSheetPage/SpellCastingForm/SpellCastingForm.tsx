@@ -148,6 +148,12 @@ import {
   spellSupportsWarlockCelestialPatronRadiantSoul
 } from "../../../../pages/CharactersPage/classFeatures/warlock/subclasses/warlockCelestialPatron";
 import {
+  applyWizardEvokerOverchannelUse,
+  canUseWizardEvokerOverchannelForSpellSlot,
+  getWizardEvokerOverchannelNecroticDamageFormula,
+  spellQualifiesForWizardEvokerOverchannel
+} from "../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardEvoker";
+import {
   clampNumber,
   formatSpellGroupTitle,
   spellSlotLevels
@@ -317,6 +323,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const [useTelekineticMasterOnSelectedSpell, setUseTelekineticMasterOnSelectedSpell] =
     useState(false);
   const [useRadiantSoulOnSelectedSpell, setUseRadiantSoulOnSelectedSpell] = useState(false);
+  const [useOverchannelOnSelectedSpell, setUseOverchannelOnSelectedSpell] = useState(false);
   const [useFrozenHauntOnSelectedSpell, setUseFrozenHauntOnSelectedSpell] = useState(false);
   const [selectedFrozenHauntFallbackSlotLevel, setSelectedFrozenHauntFallbackSlotLevel] =
     useState(4);
@@ -1037,6 +1044,19 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
   const selectedSpellRadiantSoulDisabled =
     selectedSpellSupportsRadiantSoul &&
     !canUseWarlockCelestialPatronRadiantSoulForSpell(character, selectedSpellDisplay);
+  const selectedSpellSupportsOverchannel = spellQualifiesForWizardEvokerOverchannel(
+    character,
+    selectedSpellDisplay
+  );
+  const selectedSpellOverchannelDisabled =
+    selectedSpellSupportsOverchannel &&
+    !canUseWizardEvokerOverchannelForSpellSlot(
+      character,
+      selectedSpellDisplay,
+      selectedSpellSlotLevel
+    );
+  const selectedSpellOverchannelNecroticDamage =
+    getWizardEvokerOverchannelNecroticDamageFormula(character);
   const selectedSpellDamageDetailOverride = useMemo(() => {
     if (
       !selectedSpellDisplay ||
@@ -1232,6 +1252,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     setUsePsionicSorceryOnSelectedSpell(false);
     setUseTelekineticMasterOnSelectedSpell(false);
     setUseRadiantSoulOnSelectedSpell(false);
+    setUseOverchannelOnSelectedSpell(false);
     setUseFrozenHauntOnSelectedSpell(false);
     setSelectedFrozenHauntFallbackSlotLevel(frozenHauntFallbackSpellSlotMinimumLevel);
   }, [selectedSpell?.id]);
@@ -1251,6 +1272,14 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
 
     setUseWarGodsBlessingOnSelectedSpell(false);
   }, [selectedSpellSupportsWarGodsBlessing, selectedSpellWarGodsBlessingDisabled]);
+
+  useEffect(() => {
+    if (!selectedSpellSupportsOverchannel || !selectedSpellOverchannelDisabled) {
+      return;
+    }
+
+    setUseOverchannelOnSelectedSpell(false);
+  }, [selectedSpellOverchannelDisabled, selectedSpellSupportsOverchannel]);
 
   useEffect(() => {
     if (!selectedSpellSupportsStarMap || !selectedSpellStarMapDisabled) {
@@ -1662,6 +1691,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     useTamedSurge?: boolean;
     useTelekineticMaster?: boolean;
     useRadiantSoul?: boolean;
+    useOverchannel?: boolean;
   }) {
     if (!selectedSpell || (spellcastingState.blocked && !selectedSpellCanIgnoreSpellcastingBlock)) {
       return;
@@ -1735,6 +1765,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     const useRadiantSoul =
       options?.useRadiantSoul === true &&
       canUseWarlockCelestialPatronRadiantSoulForSpell(character, selectedSpellDisplay);
+    const wantsOverchannel = options?.useOverchannel === true && selectedSpellSupportsOverchannel;
     const useFrozenHaunt =
       options?.useFrozenHaunt === true && selectedSpellFrozenHauntOptionState !== null;
     const frozenHauntFallbackSlotLevel = useFrozenHaunt
@@ -1972,6 +2003,10 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
       castsFreeViaFeyReinforcements ||
       castsFreeViaPhantasmalCreatures ||
       castsFreeViaTelekineticMaster;
+    const useOverchannel =
+      wantsOverchannel &&
+      !castsWithoutSpellSlot &&
+      canUseWizardEvokerOverchannelForSpellSlot(character, selectedSpellDisplay, slotLevel);
 
     if (usePsionicSorcery && sorceryPointsRemaining < slotLevel) {
       return;
@@ -2139,14 +2174,17 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
         useTamedSurge && spellConsumedSpellSlot
           ? consumeSorcererSubclassTamedSurgeUseForCharacter(nextCharacterWithFrozenHaunt)
           : nextCharacterWithFrozenHaunt;
+      const nextCharacterWithOverchannel = useOverchannel
+        ? applyWizardEvokerOverchannelUse(nextCharacterWithTamedSurge)
+        : nextCharacterWithTamedSurge;
       const spellCastFeatureEffectSlotLevel = spellConsumedSpellSlot
         ? shouldSpendFrozenHauntFallbackSlot
           ? frozenHauntFallbackSlotLevel
           : slotLevel
         : null;
       const nextCharacterWithSorcererSubclassRecharge = spellConsumedSpellSlot
-        ? restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(nextCharacterWithTamedSurge)
-        : nextCharacterWithTamedSurge;
+        ? restoreSorcererSubclassFeaturesOnSpellSlotCastForCharacter(nextCharacterWithOverchannel)
+        : nextCharacterWithOverchannel;
       const nextCharacterWithSpellCastEffects = applySpellCastFeatureEffectsForCharacter(
         nextCharacterWithSorcererSubclassRecharge,
         selectedSpell,
@@ -2526,7 +2564,8 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
               usePsionicSorcery: usePsionicSorceryOnSelectedSpell,
               useTamedSurge: useTamedSurgeOnSelectedSpell,
               useTelekineticMaster: useTelekineticMasterOnSelectedSpell,
-              useRadiantSoul: useRadiantSoulOnSelectedSpell
+              useRadiantSoul: useRadiantSoulOnSelectedSpell,
+              useOverchannel: useOverchannelOnSelectedSpell
             })
           }
           actionConsumesSpellSlot={
@@ -2641,8 +2680,20 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
             selectedSpellSupportsNaturalRecovery ||
             selectedSpellSupportsTamedSurge ||
             selectedSpellSupportsTelekineticMaster ||
-            selectedSpellSupportsRadiantSoul
+            selectedSpellSupportsRadiantSoul ||
+            selectedSpellSupportsOverchannel
               ? [
+                  ...(selectedSpellSupportsOverchannel
+                    ? [
+                        {
+                          id: "overchannel",
+                          label: `Overchannel | take ${selectedSpellOverchannelNecroticDamage} Necrotic damage on Cast`,
+                          checked: useOverchannelOnSelectedSpell,
+                          onCheckedChange: setUseOverchannelOnSelectedSpell,
+                          disabled: selectedSpellOverchannelDisabled
+                        }
+                      ]
+                    : []),
                   ...(selectedSpellSupportsWarGodsBlessing
                     ? [
                         {

@@ -312,17 +312,30 @@ export function normalizeCharacter(value: unknown): Character | null {
   const normalizedCantripIds = [...new Set(rawCantripIds)]
     .filter((spellId) => cantripSelectionOptionIds.has(spellId))
     .slice(0, cantripLimit ?? Number.POSITIVE_INFINITY);
-  const normalizedClassFeatureState = normalizeCharacterClassFeatureState(
-    record.classFeatureState,
-    {
-      className: normalizedClassName,
-      level: normalizedLevel,
-      subclassId: normalizedSubclassId,
-      abilities: normalizedAbilities,
-      cantripIds: normalizedCantripIds,
-      feats: normalizedFeats
-    }
-  );
+  let normalizedClassFeatureState = normalizeCharacterClassFeatureState(record.classFeatureState, {
+    className: normalizedClassName,
+    level: normalizedLevel,
+    subclassId: normalizedSubclassId,
+    abilities: normalizedAbilities,
+    cantripIds: normalizedCantripIds,
+    feats: normalizedFeats
+  });
+  const hasLegacyArcaneWardMagicTemporaryHitPoints =
+    normalizedClassName === "Wizard" &&
+    normalizedSubclassId === "wizard-abjurer" &&
+    normalizedLevel >= 3 &&
+    normalizedClassFeatureState.wizard?.arcaneWardCreatedThisLongRest !== true &&
+    clampNumber(record.magicTemporaryHitPoints, 0, 999, 0) > 0;
+
+  if (hasLegacyArcaneWardMagicTemporaryHitPoints) {
+    normalizedClassFeatureState = {
+      ...normalizedClassFeatureState,
+      wizard: {
+        ...normalizedClassFeatureState.wizard,
+        arcaneWardCreatedThisLongRest: true
+      }
+    };
+  }
   const normalizedProficiencies = normalizeCharacterProficiencies({
     className: normalizedClassName,
     level: normalizedLevel,

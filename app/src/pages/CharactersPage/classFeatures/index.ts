@@ -397,6 +397,8 @@ import {
   getWizardIllusionistPhantasmalCreaturesSpellOptionState,
   wizardIllusionistIllusorySelfReactionId
 } from "./wizard/subclasses/wizardIllusionist";
+import { getWizardAbjurerSpellResistanceSavingThrowDescriptionAdditions } from "./wizard/subclasses/wizardAbjurer";
+import { getWizardBladesingerFocusSavingThrowDescriptionAdditions } from "./wizard/subclasses/wizardBladesinger";
 import {
   hasActivePaladinOathOfVengeanceVowOfEnmity,
   soulOfVengeanceReactionId
@@ -1001,11 +1003,19 @@ export function getSkillReferenceDescriptionAdditionsForCharacter(
 }
 
 export function getSavingThrowReferenceDescriptionAdditionsForCharacter(
-  character: Pick<Character, "className" | "level"> & Partial<Pick<Character, "subclassId">>
+  character: Pick<Character, "className" | "level"> &
+    Partial<Pick<Character, "statusEntries" | "subclassId">>,
+  ability: AbilityKey
 ): SpellDescriptionEntry[][] {
   const descriptionAdditions: SpellDescriptionEntry[][] = [];
 
   descriptionAdditions.push(...getWarlockFiendPatronDarkOnesOwnLuckDescriptionAdditions(character));
+  descriptionAdditions.push(
+    ...getWizardAbjurerSpellResistanceSavingThrowDescriptionAdditions(character)
+  );
+  descriptionAdditions.push(
+    ...getWizardBladesingerFocusSavingThrowDescriptionAdditions(character, ability)
+  );
 
   return descriptionAdditions;
 }
@@ -2024,7 +2034,9 @@ export function expendFighterPsiWarriorEnergyDieForCharacter(character: Characte
 }
 
 export function consumeFighterPsiWarriorPsionicStrikeForCharacter(character: Character): Character {
-  return clearRoundScopedFeatureStateIfOutOfCombat(consumeFighterPsiWarriorPsionicStrike(character));
+  return clearRoundScopedFeatureStateIfOutOfCombat(
+    consumeFighterPsiWarriorPsionicStrike(character)
+  );
 }
 
 export function restoreFighterPsiWarriorEnergyDieForCharacter(character: Character): Character {
@@ -3934,7 +3946,8 @@ export function consumeWeaponAttackActionForCharacter(
   const roundTrackerResource = getRoundTrackerResourceForEconomyType(action.economyType);
 
   return finalize(
-    roundTrackerResource && isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource)
+    roundTrackerResource &&
+      isRoundTrackerResourceAvailable(character.roundTracker, roundTrackerResource)
       ? {
           ...character,
           roundTracker: consumeRoundTrackerResource(character.roundTracker, roundTrackerResource)

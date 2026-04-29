@@ -1,8 +1,6 @@
-import { CLASS_FEATURE } from "../../../../../codex/entries";
-import type {
-  Character,
-  CharacterWizardPortentRoll
-} from "../../../../../types";
+import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../../../codex/entries";
+import type { Character, CharacterWizardPortentRoll } from "../../../../../types";
+import { createFeatureSourcedDescriptionEntries } from "../../../actionModalDescriptions";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import type { FeatureActionCard } from "../../types";
 import {
@@ -18,8 +16,7 @@ const wizardDivinerPortentBaseCount = 2;
 const wizardDivinerGreaterPortentCount = 3;
 
 function hasWizardDivinerGreaterPortent(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "subclassId">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): boolean {
   return hasWizardDivinerFeature(character, 14);
 }
@@ -27,14 +24,16 @@ function hasWizardDivinerGreaterPortent(
 function normalizeWizardDivinerPortentRollValue(value: unknown): number | undefined {
   const numericValue = Number(value);
 
-  if (!Number.isFinite(numericValue)) {
+  if (
+    !Number.isFinite(numericValue) ||
+    !Number.isInteger(numericValue) ||
+    numericValue < wizardDivinerPortentRollMinimum ||
+    numericValue > wizardDivinerPortentRollMaximum
+  ) {
     return undefined;
   }
 
-  return Math.max(
-    wizardDivinerPortentRollMinimum,
-    Math.min(wizardDivinerPortentRollMaximum, Math.floor(numericValue))
-  );
+  return numericValue;
 }
 
 function areWizardDivinerPortentRollsEqual(
@@ -59,9 +58,31 @@ function getWizardDivinerPortentRollSummary(portentRolls: CharacterWizardPortent
   return portentRolls.map((roll) => roll.value ?? "--").join(" / ");
 }
 
+function getWizardDivinerGreaterPortentDescriptionAdditions(
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
+): SpellDescriptionEntry[][] {
+  if (!hasWizardDivinerGreaterPortent(character)) {
+    return [];
+  }
+
+  const descriptionEntries = getWizardDivinerFeatureDescriptionEntries(
+    CLASS_FEATURE.GREATER_PORTENT
+  );
+
+  return descriptionEntries.length > 0
+    ? [
+        createFeatureSourcedDescriptionEntries(
+          character,
+          CLASS_FEATURE.GREATER_PORTENT,
+          descriptionEntries,
+          "Greater Portent"
+        )
+      ]
+    : [];
+}
+
 export function getWizardDivinerPortentUsesTotal(
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "subclassId">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): number {
   if (!hasWizardDivinerFeature(character, 3)) {
     return 0;
@@ -74,8 +95,7 @@ export function getWizardDivinerPortentUsesTotal(
 
 export function normalizeWizardDivinerPortentRolls(
   value: unknown,
-  character: Pick<Character, "className"> &
-    Partial<Pick<Character, "level" | "subclassId">>
+  character: Pick<Character, "className"> & Partial<Pick<Character, "level" | "subclassId">>
 ): CharacterWizardPortentRoll[] | undefined {
   const usesTotal = getWizardDivinerPortentUsesTotal(character);
 
@@ -104,8 +124,10 @@ export function getWizardDivinerPortentRolls(
     Partial<Pick<Character, "classFeatureState" | "level" | "subclassId">>
 ): CharacterWizardPortentRoll[] {
   return (
-    normalizeWizardDivinerPortentRolls(character.classFeatureState?.wizard?.portentRolls, character) ??
-    []
+    normalizeWizardDivinerPortentRolls(
+      character.classFeatureState?.wizard?.portentRolls,
+      character
+    ) ?? []
   );
 }
 
@@ -144,12 +166,11 @@ export function getWizardDivinerPortentFeatureAction(
     usesTotal,
     usesSupplementaryLabel: `Rolls ${getWizardDivinerPortentRollSummary(portentRolls)}`,
     description: portentDescription.length > 0 ? portentDescription : undefined,
+    descriptionAdditions: getWizardDivinerGreaterPortentDescriptionAdditions(character),
     drawer: {
       kind: "custom-form",
       formKind: "portent",
-      eyebrow: "Diviner",
-      helperText:
-        "Enter the d20 results you rolled after your last Long Rest and mark a roll used once it replaces a d20 test."
+      eyebrow: "Diviner"
     }
   };
 }
@@ -191,8 +212,5 @@ export function restoreWizardDivinerPortentOnLongRest(character: Character): Cha
     return character;
   }
 
-  return setWizardDivinerPortentRolls(
-    character,
-    createWizardDivinerEmptyPortentRolls(usesTotal)
-  );
+  return setWizardDivinerPortentRolls(character, createWizardDivinerEmptyPortentRolls(usesTotal));
 }

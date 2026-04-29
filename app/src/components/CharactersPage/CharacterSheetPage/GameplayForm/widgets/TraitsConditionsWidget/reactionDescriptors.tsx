@@ -71,7 +71,10 @@ import {
   isRogueArcaneTricksterSpellThiefStatusSourceId,
   rogueArcaneTricksterSpellThiefReactionId
 } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
-import { wizardBladesingerSongOfDefenseReactionId } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
+import {
+  hasActiveWizardBladesong,
+  wizardBladesingerSongOfDefenseReactionId
+} from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
 import {
   ABILITY_TYPES,
   type ReactionEntry,
@@ -172,6 +175,10 @@ function spendSongOfDefenseSpellSlot(
   currentCharacter: Character,
   context: ReactionDescriptorContext
 ): Character {
+  if (!hasActiveWizardBladesong(currentCharacter)) {
+    return currentCharacter;
+  }
+
   const slotLevel = Math.max(
     1,
     Math.min(9, Math.floor(context.selectedSongOfDefenseSpellSlotLevel || 1))
@@ -588,12 +595,7 @@ const descriptors: ReactionDescriptor[] = [
       context.wizardIllusionistIllusorySelfFallbackSlotSummary.remaining <= 0
         ? "No Illusory Self charge or level 2+ spell slots remaining."
         : null,
-    getResourceSummary: (context) =>
-      `${context.wizardIllusionistIllusorySelfUsesRemaining}/${context.wizardIllusionistIllusorySelfUsesTotal} charge | Short Rest / Long Rest${
-        context.wizardIllusionistIllusorySelfFallbackSlotSummary.total > 0
-          ? ` | Fallback: 1 level 2+ spell slot (${context.wizardIllusionistIllusorySelfFallbackSlotSummary.remaining}/${context.wizardIllusionistIllusorySelfFallbackSlotSummary.total})`
-          : ""
-      }`,
+    getResourceSummary: () => null,
     getHeaderTags: (context) =>
       createChargesAndUsageHeaderTags(
         context.wizardIllusionistIllusorySelfUsesRemaining,
@@ -607,7 +609,7 @@ const descriptors: ReactionDescriptor[] = [
         {
           label: "Spell Slots"
         },
-        "Short Rest / Long Rest",
+        undefined,
         {
           isFallback: true
         }
@@ -653,8 +655,7 @@ const descriptors: ReactionDescriptor[] = [
             )
           ? `No level ${context.selectedSongOfDefenseSpellSlotLevel} spell slots remaining.`
           : null,
-    getResourceSummary: (context) =>
-      `Reduce damage by ${context.selectedSongOfDefenseDamageReduction} | Level ${context.selectedSongOfDefenseSpellSlotLevel} slot (${context.spellSlotsRemaining[context.selectedSongOfDefenseSpellSlotLevel - 1] ?? 0} remaining)`,
+    getResourceSummary: () => null,
     renderCustomContent: renderSongOfDefenseSlotSelector,
     apply: spendSongOfDefenseSpellSlot,
     skipReactionWhenUnchanged: true

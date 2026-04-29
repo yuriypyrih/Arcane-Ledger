@@ -195,6 +195,7 @@ export type CharacterWizardPortentRoll = {
 
 export type CharacterWizardFeatureState = {
   arcaneRecoveryUsesExpended?: number;
+  arcaneWardCreatedThisLongRest?: boolean;
   bladesongUsesExpended?: number;
   trainingInWarAndSongSkill?: WizardBladesingerTrainingInWarAndSongSkill;
   extraAttacksRemainingThisTurn?: number;
@@ -204,6 +205,7 @@ export type CharacterWizardFeatureState = {
   savantSpellIds?: string[];
   phantasmalCreaturesUsesExpended?: number;
   illusorySelfUsesExpended?: number;
+  overchannelUsesSinceLongRest?: number;
   spellMasterySpellIds?: Partial<Record<1 | 2, string>>;
   signatureSpellIds?: string[];
   expendedSignatureSpellIds?: string[];

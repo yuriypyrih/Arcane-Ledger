@@ -11,7 +11,6 @@ import {
   getSpellSlotTotalsForCharacter,
   normalizeSpellSlotsExpended
 } from "../../../../../../../pages/CharactersPage/spellcasting";
-import shared from "../../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "../ArcaneRecoveryModal.module.css";
 
 type ArcaneRecoveryActionBodyProps = {
@@ -128,11 +127,7 @@ function ArcaneRecoveryActionBody({
             );
           })}
         </div>
-      ) : (
-        <p className={shared.emptyText}>
-          No expended spell slots of level 1-5 can be recovered right now.
-        </p>
-      )}
+      ) : null}
     </>
   );
 }

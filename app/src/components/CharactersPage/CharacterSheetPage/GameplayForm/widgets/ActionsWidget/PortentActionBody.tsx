@@ -1,12 +1,11 @@
 import clsx from "clsx";
 import { useState } from "react";
-import ActionButton from "../../../../../ActionButton";
-import CellContainer from "../../../../../CellContainer/CellContainer";
 import type { Character, CharacterWizardPortentRoll } from "../../../../../../types";
 import { getWizardDivinerPortentRolls } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerPortent";
-import shared from "../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import sharedModalStyles from "./FeatureActionModal.module.css";
 import styles from "./PortentActionBody.module.css";
+
+export const portentActionFormId = "wizard-diviner-portent-form";
 
 type PortentDraftRoll = {
   value: string;
@@ -21,17 +20,16 @@ type PortentActionBodyProps = {
 function normalizePortentDraftValue(value: string): number | undefined {
   const numericValue = Number(value);
 
-  if (!Number.isFinite(numericValue)) {
+  if (
+    !Number.isFinite(numericValue) ||
+    !Number.isInteger(numericValue) ||
+    numericValue < 1 ||
+    numericValue > 20
+  ) {
     return undefined;
   }
 
-  return Math.max(1, Math.min(20, Math.floor(numericValue)));
-}
-
-function formatPortentRollSummary(draftRolls: PortentDraftRoll[]): string {
-  return draftRolls
-    .map((draftRoll) => normalizePortentDraftValue(draftRoll.value) ?? "--")
-    .join(" / ");
+  return numericValue;
 }
 
 function PortentActionBody({ character, onSubmit }: PortentActionBodyProps) {
@@ -42,8 +40,6 @@ function PortentActionBody({ character, onSubmit }: PortentActionBodyProps) {
       used: roll.used === true
     }))
   );
-  const readyCount = draftRolls.filter((roll) => !roll.used).length;
-  const rollSummary = formatPortentRollSummary(draftRolls);
 
   function updateDraftRoll(index: number, updates: Partial<PortentDraftRoll>) {
     setDraftRolls((currentDraftRolls) =>
@@ -53,13 +49,24 @@ function PortentActionBody({ character, onSubmit }: PortentActionBodyProps) {
     );
   }
 
-  return (
-    <>
-      <div className={styles.portentSummaryGrid}>
-        <CellContainer label="Charges Ready" content={`${readyCount}/${draftRolls.length} available`} />
-        <CellContainer label="Foretelling Rolls" content={rollSummary} />
-      </div>
+  function submitPortentDrafts() {
+    onSubmit(
+      draftRolls.map((draftRoll) => ({
+        value: normalizePortentDraftValue(draftRoll.value),
+        used: draftRoll.used
+      }))
+    );
+  }
 
+  return (
+    <form
+      id={portentActionFormId}
+      className={styles.portentForm}
+      onSubmit={(event) => {
+        event.preventDefault();
+        submitPortentDrafts();
+      }}
+    >
       <div className={styles.portentRollGrid}>
         {draftRolls.map((draftRoll, index) => (
           <div
@@ -68,9 +75,7 @@ function PortentActionBody({ character, onSubmit }: PortentActionBodyProps) {
           >
             <div className={styles.portentRollHeader}>
               <strong className={styles.portentRollTitle}>{`Roll ${index + 1}`}</strong>
-              <span className={styles.portentRollStatus}>
-                {draftRoll.used ? "Used" : "Ready"}
-              </span>
+              <span className={styles.portentRollStatus}>{draftRoll.used ? "Used" : "Ready"}</span>
             </div>
 
             <label className={sharedModalStyles.chargeSpendField}>
@@ -100,27 +105,7 @@ function PortentActionBody({ character, onSubmit }: PortentActionBodyProps) {
           </div>
         ))}
       </div>
-
-      <p className={shared.helperText}>
-        Enter the d20 results from your last Long Rest and mark each roll off once it has been
-        spent.
-      </p>
-
-      <div className={shared.formActions}>
-        <ActionButton
-          onClick={() =>
-            onSubmit(
-              draftRolls.map((draftRoll) => ({
-                value: normalizePortentDraftValue(draftRoll.value),
-                used: draftRoll.used
-              }))
-            )
-          }
-        >
-          Save Portent
-        </ActionButton>
-      </div>
-    </>
+    </form>
   );
 }
 

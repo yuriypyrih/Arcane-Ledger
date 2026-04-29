@@ -4,10 +4,14 @@ import { ECONOMY_TYPE } from "./actionEconomy";
 import { createFeatureSourcedDescriptionEntries } from "./actionModalDescriptions";
 import { getFeatureDescriptionForCharacter } from "./classFeatures/featureDescriptions";
 import { getRangerPreciseHunterWeaponActionDescriptionAdditions } from "./classFeatures/ranger/ranger";
+import {
+  getWizardBladesingerBladeworkWeaponActionDescriptionAdditions,
+  getWizardBladesingerSongOfVictoryWeaponActionDescriptionAdditions
+} from "./classFeatures/wizard/subclasses/wizardBladesinger";
 import type { WeaponAction } from "./gameplay";
 
 type WeaponActionDescriptionCharacter = Pick<Character, "className" | "level"> &
-  Partial<Pick<Character, "subclassId">>;
+  Partial<Pick<Character, "statusEntries" | "subclassId">>;
 
 const extraAttackFeaturePriority: Array<{
   feature: CLASS_FEATURE;
@@ -106,7 +110,10 @@ function isMeleeWeaponOrUnarmedAction(
 
 export function getWeaponActionDrawerDescriptionAdditions(
   character: WeaponActionDescriptionCharacter,
-  action: Pick<WeaponAction, "attackKind" | "combatType" | "economyType" | "descriptionAdditions">
+  action: Pick<
+    WeaponAction,
+    "attackKind" | "combatType" | "economyType" | "descriptionAdditions" | "proficiencyBonus"
+  >
 ): SpellDescriptionEntry[][] {
   if (!isWeaponOrUnarmedAction(action)) {
     return action.descriptionAdditions ?? [];
@@ -143,6 +150,12 @@ export function getWeaponActionDrawerDescriptionAdditions(
   }
 
   injectedSections.push(...getRangerPreciseHunterWeaponActionDescriptionAdditions(character));
+  injectedSections.push(
+    ...getWizardBladesingerBladeworkWeaponActionDescriptionAdditions(character, action)
+  );
+  injectedSections.push(
+    ...getWizardBladesingerSongOfVictoryWeaponActionDescriptionAdditions(character, action)
+  );
 
   return injectedSections.length > 0
     ? [...injectedSections, ...(action.descriptionAdditions ?? [])]

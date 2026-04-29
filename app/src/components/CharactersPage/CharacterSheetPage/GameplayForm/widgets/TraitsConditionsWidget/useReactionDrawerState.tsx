@@ -77,7 +77,10 @@ import type {
 import { STATUS_ENTRY_GROUP } from "../../../../../../types";
 import { superiorHuntersDefenseReactionId } from "../../../../../../pages/CharactersPage/classFeatures/ranger/subclasses/rangerHunter";
 import { getBarbarianPathOfTheWorldTreeBranchesOfTheTreeDcFormula } from "../../../../../../pages/CharactersPage/classFeatures/barbarian/subclasses/barbarianPathOfTheWorldTree";
-import { wizardBladesingerSongOfDefenseReactionId } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
+import {
+  hasActiveWizardBladesong,
+  wizardBladesingerSongOfDefenseReactionId
+} from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardBladesinger";
 import { rogueArcaneTricksterSpellThiefReactionId } from "../../../../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
 import ReactionRollFooter from "./ReactionRollFooter";
 import {
@@ -346,10 +349,18 @@ export function useReactionDrawerState({
     selectedReactionDescriptor && reactionDescriptorContext
       ? (selectedReactionDescriptor.getSelectionWarning?.(reactionDescriptorContext) ?? null)
       : null;
+  const selectedReactionInactiveBladesongWarning =
+    selectedReactionEntry?.id === wizardBladesingerSongOfDefenseReactionId &&
+    !hasActiveWizardBladesong(character)
+      ? "Bladesong is not active."
+      : null;
   const selectedReactionActionWarning =
     getRoundTrackerActionWarning("reaction", roundTracker) ??
+    selectedReactionInactiveBladesongWarning ??
     selectedReactionSelectionWarning ??
     selectedReactionResourceWarning;
+  const selectedReactionDisabledByInactiveBladesong =
+    selectedReactionInactiveBladesongWarning !== null;
   const selectedReactionShapeAvailable =
     getRoundTrackerActionWarning("reaction", roundTracker) === null;
   const selectedReactionBlockedReason = spellcastingState.blocked ? spellcastingState.reason : null;
@@ -374,7 +385,7 @@ export function useReactionDrawerState({
     : "Take Reaction";
   const selectedReactionActionDisabled = selectedFeatureReactionSpellPreview
     ? false
-    : selectedReactionActionWarning !== null;
+    : selectedReactionActionWarning !== null || selectedReactionDisabledByInactiveBladesong;
   const selectedReactionCustomContent =
     selectedReactionDescriptor && reactionDescriptorContext
       ? (selectedReactionDescriptor.renderCustomContent?.(reactionDescriptorContext) ?? null)
@@ -565,7 +576,7 @@ export function useReactionDrawerState({
       return;
     }
 
-    if (selectedReactionActionWarning) {
+    if (selectedReactionActionDisabled) {
       return;
     }
 

@@ -256,8 +256,9 @@ export function getWeaponAttackFormulaPresentation(
   action: WeaponAction
 ): WeaponFormulaPresentation {
   const attackModifier = action.abilityModifier + action.proficiencyBonus;
+  const abilityFormulaLabel = action.abilityFormulaLabel ?? action.ability;
   const breakdownEntries = [
-    formatSignedFormulaTerm(action.abilityModifierBaseValue, action.ability),
+    formatSignedFormulaTerm(action.abilityModifierBaseValue, abilityFormulaLabel),
     ...action.abilityModifierBonusEntries.map((entry) => formatAbilityModifierBonusEntry(entry))
   ];
 
@@ -280,6 +281,8 @@ export function getWeaponDamageFormulaPresentation(
   action: WeaponAction
 ): WeaponFormulaPresentation {
   const damageAbility = action.damageAbility ?? action.ability;
+  const damageAbilityFormulaLabel =
+    action.damageAbilityFormulaLabel ?? action.abilityFormulaLabel ?? damageAbility;
   const damageAbilityModifierBaseValue =
     action.damageAbilityModifierBaseValue ?? action.abilityModifierBaseValue;
   const damageAbilityModifierBonusEntries =
@@ -315,7 +318,9 @@ export function getWeaponDamageFormulaPresentation(
 
   if (damageAbilityModifierBaseValue !== 0) {
     mainDamageGroup.numericTotal += damageAbilityModifierBaseValue;
-    breakdownEntries.push(formatSignedFormulaTerm(damageAbilityModifierBaseValue, damageAbility));
+    breakdownEntries.push(
+      formatSignedFormulaTerm(damageAbilityModifierBaseValue, damageAbilityFormulaLabel)
+    );
   }
 
   damageAbilityModifierBonusEntries.forEach((entry) => {

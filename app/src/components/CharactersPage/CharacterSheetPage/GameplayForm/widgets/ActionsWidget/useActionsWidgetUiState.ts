@@ -1,10 +1,4 @@
-import {
-  useCallback,
-  useMemo,
-  useReducer,
-  type Dispatch,
-  type SetStateAction
-} from "react";
+import { useCallback, useMemo, useReducer, type Dispatch, type SetStateAction } from "react";
 import type { AbilityKey } from "../../../../../../types";
 import type { SpellEntry } from "../../../../../../codex/entries";
 import type { MysticArcanumLevel } from "../../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
@@ -29,6 +23,7 @@ type ActionsWidgetUiState = {
   selectedWildShapeMonsterSlug: string | null;
   selectedWildCompanionResource: WildCompanionResourceKind;
   selectedBardicInspirationSpellSlotLevel: number | null;
+  selectedArcaneWardSpellSlotLevel: number | null;
   selectedBeastMasterReviveSpellSlotLevel: number | null;
   selectedWildCompanionSpellSlotLevel: number;
   selectedWildResurgenceMode: WildResurgenceMode | null;
@@ -54,9 +49,7 @@ type ActionsWidgetUiState = {
   selectedMysticArcanumSpellLevel: MysticArcanumLevel | null;
   useBeguilingMagicOnActionSpell: boolean;
   useElementalSmiteOnActionSpell: boolean;
-  selectedElementalSmiteOptionOnActionSpell:
-    | PaladinOathOfTheNobleGeniesElementalSmiteOptionKey
-    | null;
+  selectedElementalSmiteOptionOnActionSpell: PaladinOathOfTheNobleGeniesElementalSmiteOptionKey | null;
   useFrozenHauntOnActionSpell: boolean;
   selectedFrozenHauntFallbackSlotLevel: number;
   isCrownOfSpellfireSelected: boolean;
@@ -103,7 +96,9 @@ type ActionsWidgetUiStateResult = ActionsWidgetUiState &
     resetActionSelectionState: () => void;
   };
 
-function createInitialState(frozenHauntFallbackSpellSlotMinimumLevel: number): ActionsWidgetUiState {
+function createInitialState(
+  frozenHauntFallbackSpellSlotMinimumLevel: number
+): ActionsWidgetUiState {
   return {
     isCommonActionsOpen: false,
     selectedActionKey: null,
@@ -113,6 +108,7 @@ function createInitialState(frozenHauntFallbackSpellSlotMinimumLevel: number): A
     selectedWildShapeMonsterSlug: null,
     selectedWildCompanionResource: "wild-shape",
     selectedBardicInspirationSpellSlotLevel: null,
+    selectedArcaneWardSpellSlotLevel: null,
     selectedBeastMasterReviveSpellSlotLevel: null,
     selectedWildCompanionSpellSlotLevel: 1,
     selectedWildResurgenceMode: null,
@@ -170,6 +166,7 @@ function getActionDrawerResetState(): Partial<ActionsWidgetUiState> {
     selectedWildShapePreviewSlug: null,
     selectedWildCompanionResource: "wild-shape",
     selectedBardicInspirationSpellSlotLevel: null,
+    selectedArcaneWardSpellSlotLevel: null,
     selectedWildCompanionSpellSlotLevel: 1,
     selectedWildResurgenceMode: null,
     selectedWildResurgenceSpellSlotLevel: 1,
@@ -223,6 +220,7 @@ function getActionSelectionResetState(): Partial<ActionsWidgetUiState> {
     selectedWildShapePreviewSlug: null,
     selectedWildCompanionResource: "wild-shape",
     selectedBeastMasterReviveSpellSlotLevel: null,
+    selectedArcaneWardSpellSlotLevel: null,
     selectedWildCompanionSpellSlotLevel: 1,
     selectedWildResurgenceMode: null,
     selectedWildResurgenceSpellSlotLevel: 1,
@@ -304,10 +302,7 @@ function createFieldSetter<K extends keyof ActionsWidgetUiState>(
 export function useActionsWidgetUiState(
   frozenHauntFallbackSpellSlotMinimumLevel: number
 ): ActionsWidgetUiStateResult {
-  const reducer = useMemo(
-    () => createActionsWidgetUiReducer(),
-    []
-  );
+  const reducer = useMemo(() => createActionsWidgetUiReducer(), []);
   const [state, dispatch] = useReducer(
     reducer,
     frozenHauntFallbackSpellSlotMinimumLevel,
@@ -332,6 +327,10 @@ export function useActionsWidgetUiState(
         dispatch,
         "selectedBardicInspirationSpellSlotLevel"
       ),
+      setSelectedArcaneWardSpellSlotLevel: createFieldSetter(
+        dispatch,
+        "selectedArcaneWardSpellSlotLevel"
+      ),
       setSelectedBeastMasterReviveSpellSlotLevel: createFieldSetter(
         dispatch,
         "selectedBeastMasterReviveSpellSlotLevel"
@@ -354,10 +353,7 @@ export function useActionsWidgetUiState(
         dispatch,
         "selectedLayOnHandsPoolSpendInput"
       ),
-      setSelectedLayOnHandsConditions: createFieldSetter(
-        dispatch,
-        "selectedLayOnHandsConditions"
-      ),
+      setSelectedLayOnHandsConditions: createFieldSetter(dispatch, "selectedLayOnHandsConditions"),
       setSelectedBlessingOfTheTricksterTarget: createFieldSetter(
         dispatch,
         "selectedBlessingOfTheTricksterTarget"

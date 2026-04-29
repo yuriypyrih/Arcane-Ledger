@@ -1,9 +1,5 @@
 import type { Character } from "../../../../../types";
-import {
-  SENSE,
-  STATUS_DURATION_KIND,
-  STATUS_ENTRY_GROUP
-} from "../../../../../types";
+import { SENSE, STATUS_DURATION_KIND, STATUS_ENTRY_GROUP } from "../../../../../types";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../../actionEconomy";
 import {
   createCharacterStatusEntry,
@@ -84,15 +80,11 @@ export function getWizardDivinerThirdEyeFeatureAction(
     economyType: ECONOMY_TYPE.BONUS_ACTION,
     actionCategory: ACTION_CATEGORY.FEATURE,
     description:
-      wizardDivinerThirdEyeDescription.length > 0
-        ? wizardDivinerThirdEyeDescription
-        : undefined,
+      wizardDivinerThirdEyeDescription.length > 0 ? wizardDivinerThirdEyeDescription : undefined,
     drawer: {
       kind: "custom-form",
       formKind: "third-eye",
-      eyebrow: "Diviner",
-      helperText:
-        "Choose one benefit. It lasts until you start or finish a Short Rest or Long Rest."
+      eyebrow: "Diviner"
     },
     isActive: activeOption !== null,
     disabled: activeOption !== null,

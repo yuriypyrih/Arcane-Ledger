@@ -191,6 +191,7 @@ import {
   getArcaneRecoverySelectionLevelTotal,
   type ArcaneRecoverySelection
 } from "../../../../../../pages/CharactersPage/classFeatures/wizard/wizard";
+import { wizardAbjurerArcaneWardActionKey } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses";
 import { setWizardDivinerPortentRolls } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerPortent";
 import { activateWizardDivinerThirdEye } from "../../../../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardDivinerThirdEye";
 import {
@@ -287,6 +288,7 @@ import { getSpellActionPathStates, getSpellActionPathWarning } from "../../../sp
 import SneakAttackActionBody, { type SneakAttackActionSelection } from "./SneakAttackModal";
 import GameplayActionDrawer from "./GameplayActionDrawer";
 import ActionDiceConfirmFooter from "./ActionDiceConfirmFooter";
+import { ArcaneWardActionFooter } from "./ArcaneWardActionFooter";
 import { BardicInspirationActionFooter } from "./BardicInspirationActionFooter";
 import { BeastMasterReviveActionFooter } from "./BeastMasterReviveActionFooter";
 import CodexDivinityDrawer from "../../../../../CodexPage/CodexDivinityDrawer/CodexDivinityDrawer";
@@ -306,7 +308,7 @@ import {
   IndomitableActionFooter,
   type IndomitableOption
 } from "./IndomitableAction";
-import PortentActionBody from "./PortentActionBody";
+import PortentActionBody, { portentActionFormId } from "./PortentActionBody";
 import { LayOnHandsActionBody, LayOnHandsActionFooter } from "./LayOnHandsAction";
 import { SorcererInnateSorceryActionFooter } from "./SorcererInnateSorceryAction";
 import ThirdEyeActionBody from "./ThirdEyeActionBody";
@@ -317,6 +319,11 @@ import {
   getWeaponAttackFormulaPresentation,
   getWeaponDamageFormulaPresentation
 } from "./actionsWidgetPresentation";
+import {
+  applyArcaneWardActionUse,
+  getArcaneWardDisabledReason,
+  getArcaneWardSpellSlotOptions
+} from "./arcaneWardAction";
 import {
   applyRangerHuntersMarkTargetWeaponAction,
   getRangerHuntersMarkTargetWeaponOptionState,
@@ -445,6 +452,8 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     setSelectedWildCompanionResource,
     selectedBardicInspirationSpellSlotLevel,
     setSelectedBardicInspirationSpellSlotLevel,
+    selectedArcaneWardSpellSlotLevel,
+    setSelectedArcaneWardSpellSlotLevel,
     selectedBeastMasterReviveSpellSlotLevel,
     setSelectedBeastMasterReviveSpellSlotLevel,
     selectedWildCompanionSpellSlotLevel,
@@ -715,6 +724,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     bardicInspirationFallbackSpellSlotOptions.some(
       (slot) => slot.level === selectedBardicInspirationSpellSlotLevel
     );
+  const arcaneWardSpellSlotOptions = useMemo(
+    () => getArcaneWardSpellSlotOptions(fixedSpellSlotTotals, fixedSpellSlotsRemaining),
+    [fixedSpellSlotTotals, fixedSpellSlotsRemaining]
+  );
+  const firstAvailableArcaneWardSpellSlotLevel = arcaneWardSpellSlotOptions[0]?.level ?? null;
+  const selectedArcaneWardSpellSlotIsValid =
+    selectedArcaneWardSpellSlotLevel !== null &&
+    arcaneWardSpellSlotOptions.some((slot) => slot.level === selectedArcaneWardSpellSlotLevel);
   const selectedBeastMasterReviveSpellSlot =
     selectedBeastMasterReviveSpellSlotLevel !== null
       ? (beastMasterReviveSpellSlotOptions.find(
@@ -1168,6 +1185,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
           : !selectedBardicInspirationFallbackSlotIsValid
             ? "Select a spell slot to regain Bardic Inspiration."
             : null));
+  const selectedArcaneWardDisabledReason =
+    selectedFeatureAction?.key !== wizardAbjurerArcaneWardActionKey
+      ? selectedFeatureActionPrimaryDisabledReason
+      : getArcaneWardDisabledReason(
+          selectedFeatureActionPrimaryDisabledReason,
+          arcaneWardSpellSlotOptions,
+          selectedArcaneWardSpellSlotIsValid
+        );
   const selectedBeastMasterReviveDisabledReason =
     selectedFeatureAction?.key !== rangerBeastMasterReviveActionKey
       ? selectedFeatureActionPrimaryDisabledReason
@@ -1679,6 +1704,24 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   ]);
 
   useEffect(() => {
+    if (selectedFeatureAction?.key !== wizardAbjurerArcaneWardActionKey) {
+      return;
+    }
+
+    setSelectedArcaneWardSpellSlotLevel((currentValue) =>
+      currentValue !== null &&
+      arcaneWardSpellSlotOptions.some((slot) => slot.level === currentValue)
+        ? currentValue
+        : firstAvailableArcaneWardSpellSlotLevel
+    );
+  }, [
+    arcaneWardSpellSlotOptions,
+    firstAvailableArcaneWardSpellSlotLevel,
+    selectedFeatureAction?.key,
+    setSelectedArcaneWardSpellSlotLevel
+  ]);
+
+  useEffect(() => {
     if (selectedFeatureAction?.key !== rangerBeastMasterReviveActionKey) {
       return;
     }
@@ -2109,6 +2152,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   function executeFeatureActivate(action: FeatureActionCard) {
     const effectKind =
       action.execute?.kind === "activate" ? (action.execute.effectKind ?? "default") : "default";
+
+    if (action.key === wizardAbjurerArcaneWardActionKey) {
+      onPersistCharacter((currentCharacter) =>
+        applyArcaneWardActionUse(currentCharacter, action, selectedArcaneWardSpellSlotLevel)
+      );
+      closeActionDrawer();
+      return;
+    }
 
     if (action.key === rangerBeastMasterReviveActionKey) {
       const spellSlotLevel = selectedBeastMasterReviveSpellSlotLevel;
@@ -2799,7 +2850,9 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
       const nextCharacterWithInvisibleConditionsRemoved =
         removeInvisibleConditionFromCharacter(nextCharacter);
 
-      return shouldTrackRoundScopedResources(nextCharacterWithInvisibleConditionsRemoved.roundTracker)
+      return shouldTrackRoundScopedResources(
+        nextCharacterWithInvisibleConditionsRemoved.roundTracker
+      )
         ? nextCharacterWithInvisibleConditionsRemoved
         : clearRoundScopedFeatureStateForCharacter(nextCharacterWithInvisibleConditionsRemoved);
     });
@@ -4701,6 +4754,22 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     if (
       selectedAction.kind === "feature" &&
       selectedAction.drawer.kind === "custom-form" &&
+      selectedAction.drawer.formKind === "portent"
+    ) {
+      return (
+        <ActionButton
+          className={styles.footerActionButton}
+          type="submit"
+          form={portentActionFormId}
+        >
+          Save Portent
+        </ActionButton>
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "custom-form" &&
       selectedAction.drawer.formKind === "sneak-attack"
     ) {
       const hasRendMind = hasRogueSoulknifeRendMindFeature(character);
@@ -5144,6 +5213,32 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
               ? selectedBardicInspirationFallbackDisabledReason
               : null
           }
+          onConfirm={() => executeFeatureActivate(selectedAction.action)}
+        />
+      );
+    }
+
+    if (
+      selectedAction.kind === "feature" &&
+      selectedAction.drawer.kind === "confirm" &&
+      selectedAction.execute.kind === "activate" &&
+      selectedAction.action.key === wizardAbjurerArcaneWardActionKey
+    ) {
+      return (
+        <ArcaneWardActionFooter
+          confirmLabel={selectedFeaturePrimaryLabel}
+          actionShape={getActionShapeForEconomyType(selectedAction.economyType)}
+          actionShapeAvailable={selectedActionEconomyShapeState?.isAvailable ?? true}
+          actionShapeMultiCount={selectedActionEconomyShapeState?.multiCount ?? 0}
+          disabled={selectedArcaneWardDisabledReason !== null}
+          disabledReason={
+            selectedArcaneWardDisabledReason !== selectedFeatureActionPrimaryDisabledReason
+              ? selectedArcaneWardDisabledReason
+              : null
+          }
+          spellSlotOptions={arcaneWardSpellSlotOptions}
+          selectedSpellSlotLevel={selectedArcaneWardSpellSlotLevel}
+          onSelectedSpellSlotLevelChange={setSelectedArcaneWardSpellSlotLevel}
           onConfirm={() => executeFeatureActivate(selectedAction.action)}
         />
       );

@@ -13,8 +13,8 @@ import {
 } from "../../../pages/CharactersPage/classFeatures/economyMulti";
 import { canUsePaladinOathOfTheAncientsElderChampionBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/paladin/subclasses/paladinOathOfTheAncients";
 import { canUseRogueArcaneTricksterMageHandLegerdemainBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/rogue/subclasses/rogueArcaneTrickster";
+import { canUseWizardAbjurerSpellBreakerBonusActionPathForSpell } from "../../../pages/CharactersPage/classFeatures/wizard/subclasses/wizardAbjurer";
 import type { RoundTrackerResource } from "../../../pages/CharactersPage/combat";
-import { shouldTrackRoundScopedResources } from "../../../pages/CharactersPage/combat";
 import { getEconomyShapeState } from "./GameplayForm/gameplayWidgetUtils";
 
 type RoundTrackerAvailability = {
@@ -69,10 +69,10 @@ export function getSpellActionPathStates(
   ];
 
   if (
-    shouldTrackRoundScopedResources(roundTracker) &&
     primaryEconomyType === ECONOMY_TYPE.ACTION &&
     (canUsePaladinOathOfTheAncientsElderChampionBonusActionPathForSpell(character, spell) ||
-      canUseRogueArcaneTricksterMageHandLegerdemainBonusActionPathForSpell(character, spell))
+      canUseRogueArcaneTricksterMageHandLegerdemainBonusActionPathForSpell(character, spell) ||
+      canUseWizardAbjurerSpellBreakerBonusActionPathForSpell(character, spell))
   ) {
     actionPaths.push(
       createSpellActionPathState(
