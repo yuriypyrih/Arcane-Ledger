@@ -123,8 +123,11 @@ export function formatD20RollFormula(modifier: number): string {
   return `1d20${modifier >= 0 ? "+" : ""}${modifier}`;
 }
 
+type FeatureSavingThrowBonusContext = Parameters<typeof getSavingThrowBonusesForCharacter>[0] &
+  Parameters<typeof getAbilityModifierBreakdownForCharacter>[0];
+
 export function resolveFeatureSavingThrowBonusTotal(
-  character: Character,
+  character: FeatureSavingThrowBonusContext,
   ability: AbilityKey
 ): number {
   return getSavingThrowBonusesForCharacter(character, ability).reduce((total, bonus) => {

@@ -225,10 +225,7 @@ import {
   getRoundTrackerResourceForEconomyType,
   type EconomyType
 } from "../../../../../../pages/CharactersPage/actionEconomy";
-import {
-  getAbilityModifierBreakdownForCharacter,
-  getAbilityScoresForCharacter
-} from "../../../../../../pages/CharactersPage/abilities";
+import { getAbilityModifierBreakdownForCharacter } from "../../../../../../pages/CharactersPage/abilities";
 import {
   getProficiencyBonus,
   type WeaponAction
@@ -558,6 +555,19 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     (state) => state.diceRoller.nextRollCriticalHitOverride
   );
   const { openDiceRoller, diceRollerPopup } = useDiceRollerPopup();
+  const {
+    abilities,
+    classFeatureState,
+    className,
+    feats,
+    level,
+    savingThrowProficiencies,
+    statusEntries,
+    subclassId
+  } = character;
+  const bardFeatureState = classFeatureState?.bard;
+  const druidFeatureState = classFeatureState?.druid;
+  const monkFeatureState = classFeatureState?.monk;
 
   const {
     roundTracker,
@@ -586,10 +596,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     natureMagicianOptions
   } = useActionResourceOptionModel(character);
   const mantleOfMajestyUsesRemaining = useMemo(
-    () => getMantleOfMajestyUsesRemainingForCharacter(character),
-    [character.classFeatureState, character.className, character.level, character.subclassId]
+    () =>
+      getMantleOfMajestyUsesRemainingForCharacter({
+        classFeatureState: { bard: bardFeatureState },
+        className,
+        level,
+        subclassId
+      }),
+    [bardFeatureState, className, level, subclassId]
   );
-  const effectiveAbilities = useMemo(() => getAbilityScoresForCharacter(character), [character]);
   const {
     selectedAction,
     selectedFeatureAction,
@@ -611,8 +626,14 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     selectedLayOnHandsConditions
   });
   const wildShapeKnownForms = useMemo(
-    () => getDruidWildShapeKnownFormsForCharacter(character),
-    [character.classFeatureState, character.className, character.level]
+    () =>
+      getDruidWildShapeKnownFormsForCharacter({
+        classFeatureState: { druid: druidFeatureState },
+        className,
+        level,
+        subclassId
+      }),
+    [className, druidFeatureState, level, subclassId]
   );
   const wildShapeMonsterCache = useMemo(
     () =>
@@ -623,16 +644,28 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     [wildShapeKnownForms]
   );
   const wildShapeUsesTotal = useMemo(
-    () => getDruidWildShapeUsesTotalForCharacter(character),
-    [character.className, character.level]
+    () => getDruidWildShapeUsesTotalForCharacter({ className, level }),
+    [className, level]
   );
   const wildShapeUsesRemaining = useMemo(
-    () => getDruidWildShapeUsesRemainingForCharacter(character),
-    [character.classFeatureState, character.className, character.level]
+    () =>
+      getDruidWildShapeUsesRemainingForCharacter({
+        classFeatureState: { druid: druidFeatureState },
+        className,
+        level,
+        subclassId
+      }),
+    [className, druidFeatureState, level, subclassId]
   );
   const wildResurgenceSpellSlotRecoveryUsesRemaining = useMemo(
-    () => getDruidWildResurgenceSpellSlotRecoveryUsesRemainingForCharacter(character),
-    [character.classFeatureState, character.className, character.level]
+    () =>
+      getDruidWildResurgenceSpellSlotRecoveryUsesRemainingForCharacter({
+        classFeatureState: { druid: druidFeatureState },
+        className,
+        level,
+        subclassId
+      }),
+    [className, druidFeatureState, level, subclassId]
   );
   const {
     selectedWeaponAction,
@@ -1019,16 +1052,37 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
     return getCommonActionPathStates(character, selectedAction.action, roundTracker);
   }, [character, roundTracker, selectedAction]);
   const selectedFlurryOfHealingAndHarmUsesTotal = useMemo(
-    () => getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesTotal(character),
-    [character]
+    () =>
+      getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesTotal({
+        abilities,
+        classFeatureState: { monk: monkFeatureState },
+        className,
+        level,
+        subclassId
+      }),
+    [abilities, className, level, monkFeatureState, subclassId]
   );
   const selectedFlurryOfHealingAndHarmUsesRemaining = useMemo(
-    () => getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesRemaining(character),
-    [character]
+    () =>
+      getMonkWarriorOfMercyFlurryOfHealingAndHarmUsesRemaining({
+        abilities,
+        classFeatureState: { monk: monkFeatureState },
+        className,
+        level,
+        subclassId
+      }),
+    [abilities, className, level, monkFeatureState, subclassId]
   );
   const selectedFlurryOfHealingAndHarmActive = useMemo(
-    () => isMonkWarriorOfMercyFlurryOfHealingAndHarmActive(character),
-    [character]
+    () =>
+      isMonkWarriorOfMercyFlurryOfHealingAndHarmActive({
+        abilities,
+        classFeatureState: { monk: monkFeatureState },
+        className,
+        level,
+        subclassId
+      }),
+    [abilities, className, level, monkFeatureState, subclassId]
   );
   const selectedFlurryOfHealingAndHarmActiveHelperText = selectedFlurryOfHealingAndHarmActive
     ? "Flurry of Healing And Harm is active for this turn"
@@ -1289,7 +1343,11 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
 
       return Math.max(1, Math.min(selectedWarriorOfTheGodsUsesRemaining, currentCount));
     });
-  }, [selectedFeatureAction?.key, selectedWarriorOfTheGodsUsesRemaining]);
+  }, [
+    selectedFeatureAction?.key,
+    selectedWarriorOfTheGodsUsesRemaining,
+    setSelectedWarriorOfTheGodsChargeCount
+  ]);
   useEffect(() => {
     if (!isHealingLightActionSelected) {
       return;
@@ -1466,26 +1524,58 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const fixedSpellCastWarning =
     fixedSpellSharedCastWarning ??
     (spellcastingState.blocked ? null : getSpellActionPathWarning(fixedSpellActionPaths));
-  const paladinAuraOfProtectionBonus = hasActivePaladinAuraOfProtectionForCharacter(character)
-    ? Math.max(1, getAbilityModifierBreakdownForCharacter(character, "CHA").total)
+  const paladinAuraOfProtectionBonus = hasActivePaladinAuraOfProtectionForCharacter({
+    className,
+    level,
+    statusEntries
+  })
+    ? Math.max(
+        1,
+        getAbilityModifierBreakdownForCharacter(
+          {
+            abilities,
+            classFeatureState,
+            className,
+            feats,
+            level,
+            statusEntries
+          },
+          "CHA"
+        ).total
+      )
     : 0;
   const indomitableSavingThrowOptions = useMemo(
     () =>
       abilityKeys.map((ability) => {
-        const abilityModifier = getAbilityModifierBreakdownForCharacter(character, ability).total;
+        const abilityContext = {
+          abilities,
+          classFeatureState,
+          className,
+          feats,
+          level,
+          statusEntries
+        };
+        const savingThrowBonusContext = {
+          ...abilityContext,
+          subclassId
+        };
+        const abilityModifier = getAbilityModifierBreakdownForCharacter(
+          abilityContext,
+          ability
+        ).total;
         const savingThrowProficiency = getSavingThrowProficiencyForAbilityKey(ability);
         const savingThrowLevel = getSavingThrowLevelFromEntries(
-          character.savingThrowProficiencies,
+          savingThrowProficiencies,
           savingThrowProficiency
         );
         const proficiencyContribution =
-          getProficiencyBonus(character.level) * getProficiencyMultiplier(savingThrowLevel);
+          getProficiencyBonus(level) * getProficiencyMultiplier(savingThrowLevel);
         const total =
           abilityModifier +
           proficiencyContribution +
           paladinAuraOfProtectionBonus +
-          resolveFeatureSavingThrowBonusTotal(character, ability);
-        const fighterLevelBonus = Math.max(1, Math.floor(character.level));
+          resolveFeatureSavingThrowBonusTotal(savingThrowBonusContext, ability);
+        const fighterLevelBonus = Math.max(1, Math.floor(level));
         const totalWithIndomitable = total + fighterLevelBonus;
 
         return {
@@ -1496,10 +1586,15 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         };
       }),
     [
-      character.level,
-      character.savingThrowProficiencies,
-      effectiveAbilities,
-      paladinAuraOfProtectionBonus
+      abilities,
+      classFeatureState,
+      className,
+      feats,
+      level,
+      paladinAuraOfProtectionBonus,
+      savingThrowProficiencies,
+      statusEntries,
+      subclassId
     ]
   );
   const selectedIndomitableOption =

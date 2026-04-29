@@ -14,9 +14,17 @@ type MysticArcanumActionBodyProps = {
 };
 
 function MysticArcanumActionBody({ character, onSpellSelect }: MysticArcanumActionBodyProps) {
+  const { cantripIds, classFeatureState, className, feats, level } = character;
   const selections = useMemo(
-    () => getWarlockMysticArcanumSelectionsForCharacter(character),
-    [character]
+    () =>
+      getWarlockMysticArcanumSelectionsForCharacter({
+        cantripIds,
+        classFeatureState,
+        className,
+        feats,
+        level
+      }),
+    [cantripIds, classFeatureState, className, feats, level]
   );
   const spells = useMemo(
     () =>

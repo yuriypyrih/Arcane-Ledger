@@ -1410,7 +1410,8 @@ export function getDruidWildShapeRulesForCharacter(
 }
 
 export function getDruidWildShapeKnownFormsForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
 ) {
   return getDruidWildShapeKnownForms(character);
 }
@@ -1428,7 +1429,8 @@ export function getDruidWildShapeUsesTotalForCharacter(
 }
 
 export function getDruidWildShapeUsesRemainingForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
 ) {
   return getDruidWildShapeUsesRemaining(character);
 }
@@ -1506,7 +1508,8 @@ export function getDruidNatureMagicianUsesRemainingForCharacter(
 }
 
 export function getDruidNatureMagicianOptionsForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended">
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended"> &
+    Partial<Pick<Character, "subclassId">>
 ) {
   return getDruidNatureMagicianOptions(character);
 }
@@ -1518,13 +1521,15 @@ export function getDruidWildResurgenceSpellSlotRecoveryUsesTotalForCharacter(
 }
 
 export function getDruidWildResurgenceSpellSlotRecoveryUsesRemainingForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "classFeatureState"> &
+    Partial<Pick<Character, "subclassId">>
 ) {
   return getDruidWildResurgenceSpellSlotRecoveryUsesRemaining(character);
 }
 
 export function getDruidWildResurgenceAvailableSpellSlotLevelsForCharacter(
-  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended">
+  character: Pick<Character, "className" | "level" | "classFeatureState" | "spellSlotsExpended"> &
+    Partial<Pick<Character, "subclassId">>
 ) {
   return getDruidWildResurgenceAvailableSpellSlotLevels(character);
 }

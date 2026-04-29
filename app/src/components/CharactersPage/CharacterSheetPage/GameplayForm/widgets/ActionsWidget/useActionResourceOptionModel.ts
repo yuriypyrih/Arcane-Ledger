@@ -10,6 +10,8 @@ import {
 } from "../../../../../../pages/CharactersPage/characterRuntime/spellcastingRuntime";
 
 export function useActionResourceOptionModel(character: Character) {
+  const { classFeatureState, className, level, spellSlotsExpended, subclassId } = character;
+  const druidFeatureState = classFeatureState?.druid;
   const spellcastingRuntime = useMemo(
     () => getSpellcastingRuntimeForCharacter(character, { includeSubclassSlots: false }),
     [character]
@@ -28,8 +30,15 @@ export function useActionResourceOptionModel(character: Character) {
   const firstAvailableWildCompanionSpellSlotLevel =
     wildCompanionSpellSlotOptions.find((slot) => slot.remaining > 0)?.level ?? null;
   const wildResurgenceAvailableSpellSlotLevels = useMemo(
-    () => getDruidWildResurgenceAvailableSpellSlotLevelsForCharacter(character),
-    [character]
+    () =>
+      getDruidWildResurgenceAvailableSpellSlotLevelsForCharacter({
+        classFeatureState: { druid: druidFeatureState },
+        className,
+        level,
+        spellSlotsExpended,
+        subclassId
+      }),
+    [className, druidFeatureState, level, spellSlotsExpended, subclassId]
   );
   const wildResurgenceSpellSlotOptions = useMemo<SpellSlotRuntimeOption[]>(
     () =>
@@ -49,8 +58,15 @@ export function useActionResourceOptionModel(character: Character) {
   const firstAvailableWildResurgenceSpellSlotLevel =
     wildResurgenceSpellSlotOptions.find((slot) => slot.remaining > 0)?.level ?? null;
   const natureMagicianOptions = useMemo(
-    () => getDruidNatureMagicianOptionsForCharacter(character),
-    [character]
+    () =>
+      getDruidNatureMagicianOptionsForCharacter({
+        classFeatureState: { druid: druidFeatureState },
+        className,
+        level,
+        spellSlotsExpended,
+        subclassId
+      }),
+    [className, druidFeatureState, level, spellSlotsExpended, subclassId]
   );
 
   return {

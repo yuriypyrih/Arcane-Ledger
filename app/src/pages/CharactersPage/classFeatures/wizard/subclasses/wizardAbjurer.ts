@@ -352,7 +352,7 @@ function getWizardAbjurerArcaneWardFeatureActions(
       key: wizardAbjurerArcaneWardActionKey,
       name: arcaneWardLabel,
       sourceFeature: CLASS_FEATURE.ARCANE_WARD,
-      summary: "Expend a spell slot to create or replenish your ward.",
+      summary: "Magical Temporary HP",
       detail:
         "Expend a spell slot as a Bonus Action. The first creation this Long Rest fills the ward; later uses restore twice the slot level.",
       economyType: ECONOMY_TYPE.BONUS_ACTION,
