@@ -1,10 +1,8 @@
 import clsx from "clsx";
 import { CircleHelp } from "lucide-react";
-import { useEffect, useRef, useState } from "react";
-import { CLASS_FEATURE } from "../../../../codex/entries";
+import { useEffect, useMemo, useRef, useState } from "react";
 import type { Character } from "../../../../types";
-import { createFeatureSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
-import { getFeatureDescriptionForCharacter } from "../../../../pages/CharactersPage/classFeatures/featureDescriptions";
+import { getRestDescriptionInjectionsForCharacter } from "../../../../pages/CharactersPage/classFeatures/restDescriptionInjections";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import { normalizeRoundTracker } from "../../../../pages/CharactersPage/combat";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
@@ -45,10 +43,9 @@ function GameplayForm({
   const [isRoundStartFlashActive, setIsRoundStartFlashActive] = useState(false);
   const roundTracker = normalizeRoundTracker(character.roundTracker);
   const previousTurnStartedRef = useRef(roundTracker.turnStarted);
-  const shortRestAdditionalDescription = createFeatureSourcedDescriptionEntries(
-    character,
-    CLASS_FEATURE.MEMORIZE_SPELL,
-    getFeatureDescriptionForCharacter(character, CLASS_FEATURE.MEMORIZE_SPELL)
+  const restDescriptionInjections = useMemo(
+    () => getRestDescriptionInjectionsForCharacter(character),
+    [character]
   );
 
   useEffect(() => {
@@ -115,7 +112,8 @@ function GameplayForm({
           <CampButton
             character={character}
             onPersistCharacter={onPersistCharacter}
-            shortRestAdditionalDescription={shortRestAdditionalDescription}
+            shortRestAdditionalDescription={restDescriptionInjections.shortRest}
+            longRestAdditionalDescription={restDescriptionInjections.longRest}
           />
         </div>
       </div>

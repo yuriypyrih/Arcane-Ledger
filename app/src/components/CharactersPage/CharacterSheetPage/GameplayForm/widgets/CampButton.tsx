@@ -16,6 +16,7 @@ import {
 } from "../../../../../pages/CharactersPage/gameplay";
 import { getAbilityModifierForCharacter } from "../../../../../pages/CharactersPage/abilities";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../../../pages/CharactersPage/traits";
+import type { RestDescriptionInjectionSection } from "../../../../../pages/CharactersPage/classFeatures/restDescriptionInjections";
 import { hasWarlockFeature } from "../../../../../pages/CharactersPage/classFeatures/warlock/warlock";
 import { CLASS_FEATURE } from "../../../../../codex/entries";
 import {
@@ -50,7 +51,8 @@ type CampButtonProps = {
   character: Character;
   onPersistCharacter: PersistCharacterUpdater;
   additionalDescription?: SpellDescriptionEntry[];
-  shortRestAdditionalDescription?: SpellDescriptionEntry[];
+  shortRestAdditionalDescription?: RestDescriptionInjectionSection[];
+  longRestAdditionalDescription?: RestDescriptionInjectionSection[];
 };
 
 const primaryRestOptionIds = new Set([
@@ -134,7 +136,8 @@ function CampButton({
   character,
   onPersistCharacter,
   additionalDescription,
-  shortRestAdditionalDescription = []
+  shortRestAdditionalDescription = [],
+  longRestAdditionalDescription = []
 }: CampButtonProps) {
   const titleId = useId().replace(/:/g, "");
   const [isOpen, setIsOpen] = useState(false);
@@ -160,9 +163,19 @@ function CampButton({
     normalizedShortRestHitDiceCount
   );
   const selectedRestAdditionalDescription =
-    selectedRestType === "short" && shortRestAdditionalDescription.length > 0
-      ? shortRestAdditionalDescription
-      : additionalDescription;
+    selectedRestType === "short"
+      ? shortRestAdditionalDescription.length > 0
+        ? shortRestAdditionalDescription
+        : additionalDescription
+          ? [additionalDescription]
+          : []
+      : selectedRestType === "long"
+        ? longRestAdditionalDescription.length > 0
+          ? longRestAdditionalDescription
+          : additionalDescription
+            ? [additionalDescription]
+            : []
+        : [];
   const selectedRestOptions = useMemo(
     () =>
       selectedRestType === "short"
@@ -373,60 +386,66 @@ function CampButton({
             </div>
 
             {selectedRestType ? (
-              <div className={styles.restChecklistSection}>
-                <div className={styles.restChecklistHeader}>
-                  <p className={sheetStyles.restChecklistHeading}>
-                    {selectedRestType === "short" ? "Short Rest Effects" : "Long Rest Effects"}
-                  </p>
-                  <button
-                    type="button"
-                    className={styles.restChecklistLink}
-                    onClick={toggleAllRestOptions}
-                  >
-                    {selectedRestOptionIds.length > 0 ? "Unselect All" : "Select All"}
-                  </button>
-                </div>
-                <div className={sheetStyles.restChecklist}>
-                  {groupedRestOptions.primaryOptions.map((option) => (
-                    <CampRestOption
-                      key={option.id}
-                      option={option}
-                      selected={selectedRestOptionIds.includes(option.id)}
-                      onToggle={toggleRestOption}
-                    />
-                  ))}
-                  {groupedRestOptions.secondaryOptions.length > 0 ||
-                  groupedRestOptions.featureOptions.length > 0 ? (
-                    <div className={sheetStyles.restChecklistDivider} aria-hidden="true" />
-                  ) : null}
-                  {groupedRestOptions.secondaryOptions.map((option) => (
-                    <CampRestOption
-                      key={option.id}
-                      option={option}
-                      selected={selectedRestOptionIds.includes(option.id)}
-                      onToggle={toggleRestOption}
-                    />
-                  ))}
-                  {groupedRestOptions.featureOptions.map((option) => (
-                    <CampRestOption
-                      key={option.id}
-                      option={option}
-                      selected={selectedRestOptionIds.includes(option.id)}
-                      onToggle={toggleRestOption}
-                    />
-                  ))}
-                </div>
-                {selectedRestAdditionalDescription?.length ? (
+              <>
+                {selectedRestAdditionalDescription.length > 0 ? (
                   <div className={styles.additionalDescription}>
-                    <DescriptionContent
-                      description={selectedRestAdditionalDescription}
-                      className={sheetStyles.spellDrawerDescriptionList}
-                      entryClassName={sheetStyles.spellDrawerDescriptionLine}
-                      strongClassName={sheetStyles.spellDrawerDescriptionStrong}
-                    />
+                    {selectedRestAdditionalDescription.map((description, index) => (
+                      <DescriptionContent
+                        key={index}
+                        description={description}
+                        className={styles.additionalDescriptionSection}
+                        entryClassName={sheetStyles.spellDrawerDescriptionLine}
+                        strongClassName={sheetStyles.spellDrawerDescriptionStrong}
+                      />
+                    ))}
                   </div>
                 ) : null}
-              </div>
+
+                <div className={styles.restChecklistSection}>
+                  <div className={styles.restChecklistHeader}>
+                    <p className={sheetStyles.restChecklistHeading}>
+                      {selectedRestType === "short" ? "Short Rest Effects" : "Long Rest Effects"}
+                    </p>
+                    <button
+                      type="button"
+                      className={styles.restChecklistLink}
+                      onClick={toggleAllRestOptions}
+                    >
+                      {selectedRestOptionIds.length > 0 ? "Unselect All" : "Select All"}
+                    </button>
+                  </div>
+                  <div className={sheetStyles.restChecklist}>
+                    {groupedRestOptions.primaryOptions.map((option) => (
+                      <CampRestOption
+                        key={option.id}
+                        option={option}
+                        selected={selectedRestOptionIds.includes(option.id)}
+                        onToggle={toggleRestOption}
+                      />
+                    ))}
+                    {groupedRestOptions.secondaryOptions.length > 0 ||
+                    groupedRestOptions.featureOptions.length > 0 ? (
+                      <div className={sheetStyles.restChecklistDivider} aria-hidden="true" />
+                    ) : null}
+                    {groupedRestOptions.secondaryOptions.map((option) => (
+                      <CampRestOption
+                        key={option.id}
+                        option={option}
+                        selected={selectedRestOptionIds.includes(option.id)}
+                        onToggle={toggleRestOption}
+                      />
+                    ))}
+                    {groupedRestOptions.featureOptions.map((option) => (
+                      <CampRestOption
+                        key={option.id}
+                        option={option}
+                        selected={selectedRestOptionIds.includes(option.id)}
+                        onToggle={toggleRestOption}
+                      />
+                    ))}
+                  </div>
+                </div>
+              </>
             ) : null}
 
             {selectedRestType === "short" ? (

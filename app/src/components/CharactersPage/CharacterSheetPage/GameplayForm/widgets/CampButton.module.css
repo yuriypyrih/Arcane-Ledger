@@ -98,7 +98,19 @@
 
 .additionalDescription {
   border-top: 1px solid rgba(75, 47, 29, 0.14);
+  display: grid;
+  gap: 0.75rem;
   padding-top: 0.65rem;
+}
+
+.additionalDescriptionSection {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.additionalDescriptionSection + .additionalDescriptionSection {
+  border-top: 1px solid rgba(75, 47, 29, 0.14);
+  padding-top: 0.75rem;
 }
 
 .footer {
@@ -107,6 +119,7 @@
   display: flex;
   gap: 0.72rem;
   justify-content: space-between;
+  margin-top: 0.9rem;
   padding-top: 0.9rem;
 }
 
