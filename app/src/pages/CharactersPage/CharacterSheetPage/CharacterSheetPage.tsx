@@ -1,8 +1,6 @@
 import { useMemo } from "react";
-import { Link, useNavigate, useParams } from "react-router-dom";
-import {
-  ThumbDiceButton
-} from "../../../components/CharactersPage/CharacterSheetPage";
+import { Link, useParams } from "react-router-dom";
+import { ThumbDiceButton } from "../../../components/CharactersPage/CharacterSheetPage";
 import styles from "./CharacterSheetPage.module.css";
 import { useCharacterSheetPersistence } from "./useCharacterSheetPersistence";
 import {
@@ -17,19 +15,14 @@ import {
 } from "./CharacterSheetSections";
 
 function CharacterSheetPage() {
-  const navigate = useNavigate();
   const { characterId } = useParams();
   const parsedCharacterId = useMemo(() => Number(characterId), [characterId]);
-  const { character, persistCharacter, queueHitPointCharacterSave } = useCharacterSheetPersistence(
-    parsedCharacterId
-  );
+  const { character, persistCharacter, queueHitPointCharacterSave } =
+    useCharacterSheetPersistence(parsedCharacterId);
 
   if (!character) {
     return (
       <section className={styles.page}>
-        <button type="button" className={styles.backButton} onClick={() => navigate("/characters")}>
-          Go back
-        </button>
         <article className={styles.notFoundCard}>
           <p className={styles.eyebrow}>Character sheet</p>
           <h2>Character not found</h2>
@@ -44,10 +37,6 @@ function CharacterSheetPage() {
 
   return (
     <section className={styles.page}>
-      <button type="button" className={styles.backButton} onClick={() => navigate("/characters")}>
-        Go back
-      </button>
-
       <div className={styles.cascadeStack}>
         <CharacterProfileSection
           className={styles.cascadeOne}
@@ -58,18 +47,9 @@ function CharacterSheetPage() {
           onPersistCharacter={persistCharacter}
           onQueueHitPointCharacter={queueHitPointCharacterSave}
         />
-        <StatsSection
-          className={styles.cascadeThree}
-          onPersistCharacter={persistCharacter}
-        />
-        <SkillsSection
-          className={styles.cascadeFive}
-          onPersistCharacter={persistCharacter}
-        />
-        <FeaturesSection
-          className={styles.cascadeFour}
-          onPersistCharacter={persistCharacter}
-        />
+        <StatsSection className={styles.cascadeThree} onPersistCharacter={persistCharacter} />
+        <SkillsSection className={styles.cascadeFive} onPersistCharacter={persistCharacter} />
+        <FeaturesSection className={styles.cascadeFour} onPersistCharacter={persistCharacter} />
         <CompanionsSheetSection
           className={styles.cascadeSix}
           onPersistCharacter={persistCharacter}

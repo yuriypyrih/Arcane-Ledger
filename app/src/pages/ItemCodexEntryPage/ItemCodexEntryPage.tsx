@@ -13,7 +13,7 @@ function ItemCodexEntryPage() {
   return (
     <section className={styles.page}>
       <button type="button" className={styles.backButton} onClick={() => navigate(backToCodexPath)}>
-        Go back
+        Back to library
       </button>
 
       {status === "loading" ? (
@@ -28,7 +28,7 @@ function ItemCodexEntryPage() {
           <h2>Item unavailable</h2>
           <p>The selected item could not be loaded.</p>
           <Link to={backToCodexPath} className={styles.linkButton}>
-            Back to codex
+            Back to library
           </Link>
         </article>
       ) : null}
@@ -38,7 +38,7 @@ function ItemCodexEntryPage() {
           <h2>Item not found</h2>
           <p>The selected item could not be found.</p>
           <Link to={backToCodexPath} className={styles.linkButton}>
-            Back to codex
+            Back to library
           </Link>
         </article>
       ) : null}

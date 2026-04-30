@@ -7,7 +7,6 @@ const CharacterSheetPage = lazy(() => import("./pages/CharactersPage/CharacterSh
 const CharactersPage = lazy(() => import("./pages/CharactersPage"));
 const CodexEntryPage = lazy(() => import("./pages/CodexEntryPage"));
 const CodexPage = lazy(() => import("./pages/CodexPage"));
-const DicePage = lazy(() => import("./pages/DicePage"));
 const HomePage = lazy(() => import("./pages/HomePage"));
 const ItemCodexEntryPage = lazy(() => import("./pages/ItemCodexEntryPage"));
 const MonsterCodexEntryPage = lazy(() => import("./pages/MonsterCodexEntryPage"));
@@ -22,7 +21,7 @@ function RouteFallback() {
         color: "var(--color-ink-soft)"
       }}
     >
-          <h2 style={{ margin: 0, color: "var(--color-ink)" }}>Loading...</h2>
+      <h2 style={{ margin: 0, color: "var(--color-ink)" }}>Loading...</h2>
       <p style={{ margin: 0 }}>Preparing the next page.</p>
     </section>
   );
@@ -34,7 +33,6 @@ function App() {
       <Routes>
         <Route element={<AppShell />}>
           <Route index element={<HomePage />} />
-          <Route path="/dice" element={<DicePage />} />
           <Route path="/characters" element={<CharactersPage />} />
           <Route path="/characters/new" element={<CharacterBuilderPage />} />
           <Route path="/characters/:characterId/edit" element={<CharacterBuilderPage />} />

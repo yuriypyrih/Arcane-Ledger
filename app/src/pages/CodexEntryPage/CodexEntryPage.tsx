@@ -312,29 +312,29 @@ function CodexEntryPage() {
   return (
     <section className={styles.page}>
       <button type="button" className={styles.backButton} onClick={() => navigate(backToCodexPath)}>
-        Go back
+        Back to library
       </button>
 
       {status === "loading" ? (
         <article className={styles.card}>
           <h2>Loading entry...</h2>
-          <p>Loading codex data.</p>
+          <p>Loading library data.</p>
         </article>
       ) : null}
 
       {status === "error" ? (
         <article className={styles.card}>
           <h2>Entry unavailable</h2>
-          <p>The codex data could not be loaded.</p>
+          <p>The library data could not be loaded.</p>
         </article>
       ) : null}
 
       {status === "ready" && !entry ? (
         <article className={styles.card}>
           <h2>Entry not found</h2>
-          <p>The selected codex entry does not exist.</p>
+          <p>The selected library entry does not exist.</p>
           <Link to={backToCodexPath} className={styles.linkButton}>
-            Back to codex
+            Back to library
           </Link>
         </article>
       ) : null}

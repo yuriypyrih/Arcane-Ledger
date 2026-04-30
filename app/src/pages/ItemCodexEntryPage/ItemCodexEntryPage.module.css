@@ -5,16 +5,27 @@
 
 .backButton,
 .linkButton {
+  display: inline-flex;
+  align-items: center;
   justify-self: start;
-  border: 1px solid rgba(75, 47, 29, 0.16);
+  border: 1px solid rgba(75, 47, 29, 0.1);
   border-radius: 999px;
-  background: rgba(255, 250, 241, 0.9);
-  color: var(--color-accent);
+  background: rgba(255, 250, 241, 0.42);
+  color: var(--color-ink-soft);
   cursor: pointer;
   font: inherit;
-  font-size: 0.92rem;
-  padding: 0.38rem 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  min-height: 28px;
+  padding: 0 0.62rem;
   text-decoration: none;
+}
+
+.backButton:hover,
+.linkButton:hover {
+  border-color: rgba(75, 47, 29, 0.18);
+  background: rgba(255, 250, 241, 0.68);
+  color: var(--color-ink);
 }
 
 .card {

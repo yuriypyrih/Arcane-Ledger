@@ -88,13 +88,10 @@ function CodexPage() {
     query,
     spellClassFilter,
     spellLevelFilter
-  } = useMemo(
-    () => parseCodexSearchState(searchParams, categories),
-    [categories, searchParams]
+  } = useMemo(() => parseCodexSearchState(searchParams, categories), [categories, searchParams]);
+  const { payload: itemFilterOptionsPayload } = useItemFilterOptions(
+    category === ENTRY_CATEGORIES.ITEMS
   );
-  const {
-    payload: itemFilterOptionsPayload
-  } = useItemFilterOptions(category === ENTRY_CATEGORIES.ITEMS);
   const sanitizedItemFilters = useMemo(
     () =>
       sanitizeItemBrowserScopedFilters(
@@ -120,10 +117,7 @@ function CodexPage() {
       itemTab
     ]
   );
-  const {
-    payload: itemPayload,
-    status: itemStatus
-  } = useItemEntries({
+  const { payload: itemPayload, status: itemStatus } = useItemEntries({
     enabled: category === ENTRY_CATEGORIES.ITEMS,
     page: currentPage,
     limit: ITEMS_PER_PAGE,
@@ -139,10 +133,7 @@ function CodexPage() {
     source: itemSourceFilter,
     ordering: itemOrdering
   });
-  const {
-    payload: monsterPayload,
-    status: monsterStatus
-  } = useMonsterEntries({
+  const { payload: monsterPayload, status: monsterStatus } = useMonsterEntries({
     enabled: category === ENTRY_CATEGORIES.MONSTERS,
     page: currentPage,
     limit: MONSTERS_PER_PAGE,
@@ -255,16 +246,16 @@ function CodexPage() {
       ? Math.max(1, Math.ceil(sortedEntries.length / SPELLS_PER_PAGE))
       : category === ENTRY_CATEGORIES.ITEMS
         ? Math.max(1, Math.ceil((itemPayload?.count ?? 0) / ITEMS_PER_PAGE))
-      : category === ENTRY_CATEGORIES.MONSTERS
-        ? Math.max(1, Math.ceil((monsterPayload?.count ?? 0) / MONSTERS_PER_PAGE))
-        : 1;
+        : category === ENTRY_CATEGORIES.MONSTERS
+          ? Math.max(1, Math.ceil((monsterPayload?.count ?? 0) / MONSTERS_PER_PAGE))
+          : 1;
   const safeCurrentPage = Math.min(currentPage, totalPages);
 
   useEffect(() => {
     if (
-      ((category === ENTRY_CATEGORIES.SPELLS && status !== "ready") ||
-        (category === ENTRY_CATEGORIES.ITEMS && itemStatus !== "ready") ||
-        (category === ENTRY_CATEGORIES.MONSTERS && monsterStatus !== "ready")) ||
+      (category === ENTRY_CATEGORIES.SPELLS && status !== "ready") ||
+      (category === ENTRY_CATEGORIES.ITEMS && itemStatus !== "ready") ||
+      (category === ENTRY_CATEGORIES.MONSTERS && monsterStatus !== "ready") ||
       (category !== ENTRY_CATEGORIES.SPELLS &&
         category !== ENTRY_CATEGORIES.MONSTERS &&
         category !== ENTRY_CATEGORIES.ITEMS) ||
@@ -483,7 +474,7 @@ function CodexPage() {
       ? "Feat entries are loaded from the character feature registry and show implementation tracking."
       : isItemCategory
         ? "Item entries are loaded from the local backend and exposed with backend-driven filters."
-        : "Starter entries are currently hardcoded in src/codex/entries.";
+        : "Starter entries are bundled with the app.";
 
   return (
     <section className={styles.page}>
@@ -491,7 +482,7 @@ function CodexPage() {
         <div className={styles.header}>
           <div>
             <p className={styles.eyebrow}>Encyclopedia</p>
-            <h2 className={styles.title}>Search the codex.</h2>
+            <h2 className={styles.title}>Search the library.</h2>
           </div>
           <p className={styles.description}>{headerDescription}</p>
         </div>

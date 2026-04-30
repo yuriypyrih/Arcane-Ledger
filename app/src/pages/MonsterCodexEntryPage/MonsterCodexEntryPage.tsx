@@ -13,7 +13,7 @@ function MonsterCodexEntryPage() {
   return (
     <section className={styles.page}>
       <button type="button" className={styles.backButton} onClick={() => navigate(backToCodexPath)}>
-        Go back
+        Back to library
       </button>
 
       {status === "loading" ? (
@@ -28,7 +28,7 @@ function MonsterCodexEntryPage() {
           <h2>Monster unavailable</h2>
           <p>The selected monster could not be loaded.</p>
           <Link to={backToCodexPath} className={styles.linkButton}>
-            Back to codex
+            Back to library
           </Link>
         </article>
       ) : null}
@@ -38,14 +38,12 @@ function MonsterCodexEntryPage() {
           <h2>Monster not found</h2>
           <p>The selected monster could not be found.</p>
           <Link to={backToCodexPath} className={styles.linkButton}>
-            Back to codex
+            Back to library
           </Link>
         </article>
       ) : null}
 
-      {status === "ready" && monster ? (
-        <MonsterEntryRenderer monster={monster} />
-      ) : null}
+      {status === "ready" && monster ? <MonsterEntryRenderer monster={monster} /> : null}
     </section>
   );
 }

@@ -548,7 +548,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       ),
     [configuredStarterPack, normalizedStarterPackSelectionValues, resolvedToolSelections]
   );
-  const requiredStarterPackSelections = (configuredStarterPack?.startingEquipmentSelections ?? []).filter(
+  const requiredStarterPackSelections = (
+    configuredStarterPack?.startingEquipmentSelections ?? []
+  ).filter(
     (selection) =>
       selectedStarterEquipmentChoice?.some(
         (reference) => reference.type === "selected-tool" && reference.selectionId === selection.id
@@ -685,7 +687,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }, [resolvedStartingEquipmentChoiceIndex, setValue, starterEquipmentChoices]);
 
   useEffect(() => {
-    if (areStringMapsEqual(resolvedStarterPackSelectionValues, normalizedStarterPackSelectionValues)) {
+    if (
+      areStringMapsEqual(resolvedStarterPackSelectionValues, normalizedStarterPackSelectionValues)
+    ) {
       return;
     }
 
@@ -908,7 +912,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         : "True Neutral",
       skills: normalizedSkills,
       toolProficiencies: normalizedTools,
-      equipment: [...new Set((draftValues.equipment ?? []).map((item) => item.trim()).filter(Boolean))],
+      equipment: [
+        ...new Set((draftValues.equipment ?? []).map((item) => item.trim()).filter(Boolean))
+      ],
       abilities: normalizedAbilities
     };
   }
@@ -918,7 +924,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const configuredStarterPack = getClassStarterPack(normalizedDraft.className);
     const selectedChoice =
       !isEditing && configuredStarterPack && values.startingEquipmentChoiceIndex.length > 0
-        ? (configuredStarterPack.startingEquipment[Number(values.startingEquipmentChoiceIndex)] ?? null)
+        ? (configuredStarterPack.startingEquipment[Number(values.startingEquipmentChoiceIndex)] ??
+          null)
         : null;
 
     if (!selectedChoice) {
@@ -1039,8 +1046,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       randomClassToolLimit
     );
     const randomStarterPack = getClassStarterPack(randomClassName);
-    const randomStartingEquipmentChoiceIndex =
-      randomStarterPack?.startingEquipment.length ? "0" : "";
+    const randomStartingEquipmentChoiceIndex = randomStarterPack?.startingEquipment.length
+      ? "0"
+      : "";
     const randomStarterPackSelectionValues = normalizeStarterPackSelectionValues(
       randomStarterPack,
       randomToolSelections,
@@ -1053,34 +1061,37 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       randomMode === "pointBuy" ? randomizedAbilities : createRandomPointBuyAbilities();
     const randomizedCustomAbilities =
       randomMode === "custom" ? randomizedAbilities : createRandomCustomAbilities();
-    const randomizedDraft = createFormValues({
-      ...createEmptyCharacter(),
-      name: createRandomName(),
-      species: getRandomItem(speciesOptions),
-      className: randomClassName,
-      subclassId: getRandomSubclassIdForClass(randomClassName),
-      level: 1,
-      xp: 0,
-      hitPoints: getRandomInt(8, 90),
-      currentHitPoints: 0,
-      maxHitPointsMode: Math.random() < 0.5 ? "automatic" : "custom",
-      attributeMode: randomMode,
-      abilities: randomizedAbilities,
-      alignment: getRandomItem(alignmentOptions),
-      background: createRandomBackground(),
-      backgroundNotes: "",
-      currencies: createDefaultCurrencies(),
-      skills: pickRandomSubset(
-        randomClassSkillOptions,
-        randomClassSkillLimit,
-        randomClassSkillLimit
-      ),
-      toolProficiencies: randomToolSelections,
-      equipment: []
-    }, {
-      startingEquipmentChoiceIndex: randomStartingEquipmentChoiceIndex,
-      starterPackSelectionValues: randomStarterPackSelectionValues
-    });
+    const randomizedDraft = createFormValues(
+      {
+        ...createEmptyCharacter(),
+        name: createRandomName(),
+        species: getRandomItem(speciesOptions),
+        className: randomClassName,
+        subclassId: getRandomSubclassIdForClass(randomClassName),
+        level: 1,
+        xp: 0,
+        hitPoints: getRandomInt(8, 90),
+        currentHitPoints: 0,
+        maxHitPointsMode: Math.random() < 0.5 ? "automatic" : "custom",
+        attributeMode: randomMode,
+        abilities: randomizedAbilities,
+        alignment: getRandomItem(alignmentOptions),
+        background: createRandomBackground(),
+        backgroundNotes: "",
+        currencies: createDefaultCurrencies(),
+        skills: pickRandomSubset(
+          randomClassSkillOptions,
+          randomClassSkillLimit,
+          randomClassSkillLimit
+        ),
+        toolProficiencies: randomToolSelections,
+        equipment: []
+      },
+      {
+        startingEquipmentChoiceIndex: randomStartingEquipmentChoiceIndex,
+        starterPackSelectionValues: randomStarterPackSelectionValues
+      }
+    );
     randomizedDraft.currentHitPoints = randomizedDraft.hitPoints;
 
     reset(randomizedDraft);
@@ -1512,7 +1523,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           </div>
           <div className={styles.summaryCard}>
             <strong>Weapon Masteries</strong>
-            <span>{starterPack.weaponMasteryCount > 0 ? starterPack.weaponMasteryCount : "None"}</span>
+            <span>
+              {starterPack.weaponMasteryCount > 0 ? starterPack.weaponMasteryCount : "None"}
+            </span>
           </div>
         </div>
 
@@ -1816,10 +1829,6 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
   return (
     <div className={styles.page}>
-      <button type="button" className={styles.backButton} onClick={onBack}>
-        Go back
-      </button>
-
       <div className={styles.header}>
         <p className={styles.eyebrow}>Character forge</p>
         <h2 className={styles.title}>

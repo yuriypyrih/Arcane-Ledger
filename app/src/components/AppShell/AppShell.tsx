@@ -1,22 +1,18 @@
-import { Outlet, useLocation } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 import ToastHost from "../ToastViewport";
 import PrimaryNav from "./PrimaryNav";
 import { navigationLinks } from "./navigationLinks";
 import styles from "./AppShell.module.css";
 
 function AppShell() {
-  const { pathname } = useLocation();
-  const isDiceRoute = pathname.startsWith("/dice");
-
   return (
     <div className={styles.shell}>
       <header className={styles.header}>
-        <div>
-          <h1 className={styles.title}>D&D Companion</h1>
+        <div className={styles.headerInner}>
+          <PrimaryNav links={navigationLinks} />
         </div>
-        <PrimaryNav links={navigationLinks} />
       </header>
-      <main className={[styles.main, isDiceRoute ? styles.mainFullBleed : ""].join(" ").trim()}>
+      <main className={styles.main}>
         <Outlet />
       </main>
       <ToastHost />

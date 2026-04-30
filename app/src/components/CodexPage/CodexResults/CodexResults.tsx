@@ -93,7 +93,7 @@ function CodexResults({
       {status === "loading" ? (
         <div className={styles.grid}>
           <article className={styles.card}>
-            <h4>Loading codex...</h4>
+            <h4>Loading library...</h4>
             <p>Loading hardcoded starter entries.</p>
           </article>
         </div>
@@ -102,8 +102,8 @@ function CodexResults({
       {status === "error" ? (
         <div className={styles.grid}>
           <article className={styles.card}>
-            <h4>Codex unavailable</h4>
-            <p>Codex entries could not be loaded.</p>
+            <h4>Library unavailable</h4>
+            <p>Library entries could not be loaded.</p>
           </article>
         </div>
       ) : null}

@@ -1,3 +1,4 @@
+import { Home, Menu } from "lucide-react";
 import { NavLink } from "react-router-dom";
 import type { NavigationLink } from "../navigationLinks";
 import styles from "./PrimaryNav.module.css";
@@ -9,19 +10,42 @@ type PrimaryNavProps = {
 function PrimaryNav({ links }: PrimaryNavProps) {
   return (
     <nav className={styles.nav} aria-label="Primary">
-      {links.map(({ to, label, icon: Icon }) => (
+      <div className={styles.leftCluster}>
         <NavLink
-          key={to}
-          to={to}
+          to="/"
           className={({ isActive }) =>
-            isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+            isActive ? `${styles.brandLink} ${styles.navLinkActive}` : styles.brandLink
           }
-          end={to === "/"}
+          end
+          aria-label="D&D Companion home"
         >
-          <Icon size={16} />
-          <span>{label}</span>
+          <Home size={16} aria-hidden="true" />
+          <span>D&amp;D Companion</span>
         </NavLink>
-      ))}
+        <div className={styles.linkGroup}>
+          {links.map(({ to, label, icon: Icon }) => (
+            <NavLink
+              key={to}
+              to={to}
+              className={({ isActive }) =>
+                isActive ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink
+              }
+            >
+              <Icon size={15} aria-hidden="true" />
+              <span>{label}</span>
+            </NavLink>
+          ))}
+        </div>
+      </div>
+      <button
+        type="button"
+        className={styles.menuButton}
+        disabled
+        aria-label="More options"
+        title="More options"
+      >
+        <Menu size={17} aria-hidden="true" />
+      </button>
     </nav>
   );
 }
