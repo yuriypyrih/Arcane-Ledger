@@ -10,19 +10,26 @@
 }
 
 .modalPanel {
-  --overlay-panel-inline-padding: 1rem;
-  --overlay-panel-top-padding: 1rem;
-  --overlay-panel-bottom-padding: 1rem;
+  --overlay-panel-inline-padding: 0.95rem;
+  --overlay-panel-top-padding: 0.95rem;
+  --overlay-panel-bottom-padding: 0.95rem;
+  --overlay-panel-section-gap: 0.92rem;
+  --overlay-panel-background: rgba(255, 252, 245, 0.98);
+  --overlay-panel-header-background: linear-gradient(
+    165deg,
+    rgba(255, 252, 245, 0.99),
+    rgba(246, 236, 221, 0.99)
+  );
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: var(--overlay-panel-section-gap);
   min-height: 0;
   width: min(700px, 100%);
   max-height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
   border: 1px solid rgba(75, 47, 29, 0.2);
   border-radius: 24px;
-  background: linear-gradient(165deg, rgba(255, 252, 245, 0.98), rgba(246, 236, 221, 0.98));
+  background: var(--overlay-panel-background);
   box-shadow: 0 24px 60px rgba(38, 23, 14, 0.24);
   overflow: hidden;
   overscroll-behavior: contain;
@@ -51,15 +58,22 @@
   --overlay-panel-inline-padding: 0.95rem;
   --overlay-panel-top-padding: 0.95rem;
   --overlay-panel-bottom-padding: 0.95rem;
+  --overlay-panel-section-gap: 0.92rem;
+  --overlay-panel-background: rgba(255, 252, 245, 0.98);
+  --overlay-panel-header-background: linear-gradient(
+    160deg,
+    rgba(255, 252, 245, 0.99),
+    rgba(245, 234, 218, 0.99)
+  );
   display: flex;
   flex-direction: column;
-  gap: 0;
+  gap: var(--overlay-panel-section-gap);
   min-height: 0;
   width: min(920px, 100%);
   max-height: calc(100dvh - (var(--overlay-backdrop-padding) * 2));
   border: 1px solid rgba(75, 47, 29, 0.22);
   border-radius: 24px 24px 18px 18px;
-  background: linear-gradient(160deg, rgba(255, 252, 245, 0.99), rgba(245, 234, 218, 0.99));
+  background: var(--overlay-panel-background);
   box-shadow: 0 28px 70px rgba(32, 18, 12, 0.35);
   overflow: hidden;
   animation: drawerSlideUp 220ms cubic-bezier(0.22, 1, 0.36, 1);
@@ -70,6 +84,10 @@
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--overlay-panel-header-background);
   padding: var(--overlay-panel-top-padding) var(--overlay-panel-inline-padding) 0.82rem;
 }
 
@@ -163,8 +181,8 @@
   min-height: 0;
   overflow: auto;
   overscroll-behavior: contain;
-  padding: 0 calc(var(--overlay-panel-inline-padding) - 0.12rem)
-    var(--overlay-panel-bottom-padding) var(--overlay-panel-inline-padding);
+  padding: 0 calc(var(--overlay-panel-inline-padding) - 0.12rem) var(--overlay-panel-bottom-padding)
+    var(--overlay-panel-inline-padding);
 }
 
 .body:last-child {
@@ -219,6 +237,12 @@
 }
 
 @media (max-width: 820px) {
+  .modalPanel {
+    --overlay-panel-inline-padding: 0.85rem;
+    --overlay-panel-top-padding: 0.85rem;
+    --overlay-panel-bottom-padding: 0.85rem;
+  }
+
   .drawerPanel {
     border-radius: 20px;
     --overlay-panel-inline-padding: 0.85rem;
@@ -241,9 +265,9 @@
   }
 
   .modalPanel {
-    --overlay-panel-inline-padding: 0.85rem;
-    --overlay-panel-top-padding: 0.85rem;
-    --overlay-panel-bottom-padding: 0.85rem;
+    --overlay-panel-inline-padding: 0.75rem;
+    --overlay-panel-top-padding: 0.75rem;
+    --overlay-panel-bottom-padding: 0.75rem;
   }
 
   .drawerPanel {
@@ -251,5 +275,4 @@
     --overlay-panel-top-padding: 0.75rem;
     --overlay-panel-bottom-padding: 0.75rem;
   }
-
 }
