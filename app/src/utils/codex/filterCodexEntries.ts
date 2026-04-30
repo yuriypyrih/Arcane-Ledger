@@ -7,10 +7,12 @@ import {
 } from "../../codex/entries";
 import { flattenSpellDescriptionLines } from "./spellDescription";
 
-export type CodexFilterCategory = CodexCategory;
+export const CODEX_FEATS_CATEGORY = "FEATS" as const;
+
+export type CodexFilterCategory = CodexCategory | typeof CODEX_FEATS_CATEGORY;
 
 export function getCodexCategories(): CodexFilterCategory[] {
-  return ENTRY_CATEGORY_VALUES;
+  return [...ENTRY_CATEGORY_VALUES, CODEX_FEATS_CATEGORY];
 }
 
 function enumToSearchText(value: string): string {
@@ -25,6 +27,10 @@ export function filterCodexEntries(
   spellClassFilter: SPELL_LIST_CLASS | null = null
 ): CodexEntry[] {
   const normalizedQuery = query.trim().toLowerCase();
+
+  if (category === CODEX_FEATS_CATEGORY) {
+    return [];
+  }
 
   return entries.filter((entry) => {
     const matchesCategory = entry.category === category;

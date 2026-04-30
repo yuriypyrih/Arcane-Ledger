@@ -1,4 +1,4 @@
-import { ENTRY_CATEGORIES, SPELL_LIST_CLASS } from "../../codex/entries";
+import { ENTRY_CATEGORIES, FEAT_CATEGORY, SPELL_LIST_CLASS } from "../../codex/entries";
 import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../constants/monsters";
 import {
   DEFAULT_ITEM_BROWSER_TAB,
@@ -10,6 +10,7 @@ import {
   type MonsterOrdering
 } from "../../types";
 import type { CodexFilterCategory } from "../../utils/codex";
+import { CODEX_FEATS_CATEGORY } from "../../utils/codex";
 
 export const SPELLS_PER_PAGE = 20;
 export const MONSTERS_PER_PAGE = 50;
@@ -29,6 +30,7 @@ export const ITEM_ARMOR_TYPE_PARAM = "itemArmorType";
 export const ITEM_RARITY_PARAM = "itemRarity";
 export const ITEM_SOURCE_PARAM = "itemSource";
 export const ITEM_ORDER_PARAM = "itemOrder";
+export const FEAT_CATEGORY_PARAM = "featCategory";
 export const PAGE_PARAM = "page";
 export const QUERY_PARAM = "q";
 
@@ -54,6 +56,7 @@ const ITEM_TABS = new Set<ItemBrowserTab>(["all", "weapons", "armor", "gear"]);
 const ITEM_ATTACK_TYPES = new Set<ItemAttackType>(["melee", "range"]);
 const ITEM_PROFICIENCY_TYPES = new Set<ItemProficiencyType>(["simple", "martial"]);
 const ITEM_ARMOR_TYPES = new Set<ItemArmorType>(["light", "medium", "heavy"]);
+const FEAT_CATEGORIES = new Set<FEAT_CATEGORY>(Object.values(FEAT_CATEGORY));
 
 export type ParsedCodexSearchState = {
   category: CodexFilterCategory;
@@ -73,6 +76,7 @@ export type ParsedCodexSearchState = {
   itemRarityFilter: string | null;
   itemSourceFilter: string | null;
   itemOrdering: ItemOrdering;
+  featCategoryFilter: FEAT_CATEGORY | null;
   currentPage: number;
 };
 
@@ -196,6 +200,7 @@ export function parseCodexSearchState(
     itemRarityFilter: parseOptionalFilter(searchParams.get(ITEM_RARITY_PARAM)),
     itemSourceFilter: parseOptionalFilter(searchParams.get(ITEM_SOURCE_PARAM)),
     itemOrdering: parseItemOrdering(searchParams.get(ITEM_ORDER_PARAM)),
+    featCategoryFilter: parseEnumFilter(searchParams.get(FEAT_CATEGORY_PARAM), FEAT_CATEGORIES),
     currentPage: parsePageValue(searchParams.get(PAGE_PARAM))
   };
 }
@@ -227,6 +232,11 @@ export function clearItemSearchParams(searchParams: URLSearchParams): URLSearchP
   return searchParams;
 }
 
+export function clearFeatSearchParams(searchParams: URLSearchParams): URLSearchParams {
+  searchParams.delete(FEAT_CATEGORY_PARAM);
+  return searchParams;
+}
+
 export function clearCategoryScopedSearchParams(
   searchParams: URLSearchParams,
   category: CodexFilterCategory
@@ -241,6 +251,10 @@ export function clearCategoryScopedSearchParams(
 
   if (category !== ENTRY_CATEGORIES.ITEMS) {
     clearItemSearchParams(searchParams);
+  }
+
+  if (category !== CODEX_FEATS_CATEGORY) {
+    clearFeatSearchParams(searchParams);
   }
 
   return searchParams;
@@ -263,6 +277,7 @@ export function hasCategoryScopedSearchParams(searchParams: URLSearchParams): bo
     searchParams.has(ITEM_RARITY_PARAM) ||
     searchParams.has(ITEM_SOURCE_PARAM) ||
     searchParams.has(ITEM_ORDER_PARAM) ||
+    searchParams.has(FEAT_CATEGORY_PARAM) ||
     searchParams.has(PAGE_PARAM)
   );
 }

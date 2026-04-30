@@ -34,6 +34,7 @@ import type {
 import { getToolProficiencyLabel } from "./proficiencyOptions";
 import { getSpellEntriesForSpellListClass } from "../../codex/classes/spellAccess";
 import { SPELL_LIST_CLASS, type SpellEntry } from "../../codex/entries";
+import { phb2024MissingFeatDefinitions } from "./featDefinitions/phb2024Missing";
 
 export type FeatDefinition = FeatureMapEntry & {
   feat: FEATS;
@@ -305,7 +306,8 @@ export const featDefinitions: FeatDefinition[] = [
       "<strong>Truesight.</strong> You have Truesight with a range of 60 feet."
     ],
     trackingState: TRACKER.TRACKED
-  }
+  },
+  ...phb2024MissingFeatDefinitions
 ];
 
 const featDefinitionsByFeat = new Map(

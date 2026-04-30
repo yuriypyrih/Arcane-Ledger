@@ -1,4 +1,4 @@
-export { filterCodexEntries, getCodexCategories } from "./filterCodexEntries";
+export { CODEX_FEATS_CATEGORY, filterCodexEntries, getCodexCategories } from "./filterCodexEntries";
 export type { CodexFilterCategory } from "./filterCodexEntries";
 export {
   formatEquipmentCost,

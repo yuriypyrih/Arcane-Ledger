@@ -84,11 +84,12 @@ function FeatEditorModal({
             <h3 id="character-feat-editor-title" className={styles.headingTitle}>
               {context.mode === "class-feature" ? "Choose Feat" : "Edit Feats"}
             </h3>
-            <OverlaySummary className={shared.helperText}>
-              {context.mode === "class-feature"
-                ? "Choose one feat for this class feature. Your selection will be saved when this editor closes."
-                : "Always choose the appropriate feats based on your class features or your DM's instructions."}
-            </OverlaySummary>
+            {context.mode === "class-feature" ? (
+              <OverlaySummary className={shared.helperText}>
+                Choose one feat for this class feature. Your selection will be saved when this editor
+                closes.
+              </OverlaySummary>
+            ) : null}
           </div>
         </OverlayHeaderContent>
         <OverlayCloseButton label="Close feat editor" onClick={onClose} />

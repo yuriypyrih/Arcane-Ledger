@@ -2,13 +2,24 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import CodexFilters from "../../components/CodexPage/CodexFilters";
 import CodexResults from "../../components/CodexPage/CodexResults";
+import FeatCodexList from "../../components/CodexPage/FeatCodexList";
 import ItemCodexTable from "../../components/CodexPage/ItemCodexTable";
 import { sanitizeItemBrowserScopedFilters } from "../../components/ItemBrowser/itemBrowser";
 import MonsterCodexTable from "../../components/CodexPage/MonsterCodexTable";
 import CodexSpellDrawer from "../../components/CodexPage/CodexSpellDrawer";
 import { MONSTER_SOURCE_OPTIONS, MONSTER_TYPE_OPTIONS } from "../../constants/monsters";
-import { filterCodexEntries, getCodexCategories, type CodexFilterCategory } from "../../utils/codex";
-import { ENTRY_CATEGORIES, SPELL_LIST_CLASS, type SpellEntry } from "../../codex/entries";
+import {
+  CODEX_FEATS_CATEGORY,
+  filterCodexEntries,
+  getCodexCategories,
+  type CodexFilterCategory
+} from "../../utils/codex";
+import {
+  ENTRY_CATEGORIES,
+  FEAT_CATEGORY,
+  SPELL_LIST_CLASS,
+  type SpellEntry
+} from "../../codex/entries";
 import { useCodexEntries } from "./useCodexEntries";
 import {
   clearCategoryScopedSearchParams,
@@ -24,6 +35,7 @@ import {
   ITEM_RARITY_PARAM,
   ITEM_SOURCE_PARAM,
   ITEM_TAB_PARAM,
+  FEAT_CATEGORY_PARAM,
   MONSTERS_PER_PAGE,
   MONSTER_ORDER_PARAM,
   MONSTER_SOURCE_PARAM,
@@ -72,6 +84,7 @@ function CodexPage() {
     itemRarityFilter,
     itemSourceFilter,
     itemTab,
+    featCategoryFilter,
     query,
     spellClassFilter,
     spellLevelFilter
@@ -438,6 +451,15 @@ function CodexPage() {
     },
     [searchParams, setSearchParams]
   );
+  const handleFeatCategoryFilterChange = useCallback(
+    (value: FEAT_CATEGORY | null) => {
+      const nextSearchParams = new URLSearchParams(searchParams);
+      setSearchParamValue(nextSearchParams, FEAT_CATEGORY_PARAM, value);
+      resetPageSearchParam(nextSearchParams);
+      setSearchParams(nextSearchParams, { replace: true });
+    },
+    [searchParams, setSearchParams]
+  );
   const handlePageChange = useCallback(
     (page: number) => {
       const nextPage = Math.max(1, Math.min(totalPages, page));
@@ -452,13 +474,16 @@ function CodexPage() {
     setSelectedSpell(spell);
   }, []);
   const codexSearch = searchParams.toString();
+  const isFeatCategory = category === CODEX_FEATS_CATEGORY;
   const isMonsterCategory = category === ENTRY_CATEGORIES.MONSTERS;
   const isItemCategory = category === ENTRY_CATEGORIES.ITEMS;
   const headerDescription = isMonsterCategory
     ? "Monster entries are loaded from the local backend and kept paginated at 50 per page."
-    : isItemCategory
-      ? "Item entries are loaded from the local backend and exposed with backend-driven filters."
-    : "Starter entries are currently hardcoded in src/codex/entries.";
+    : isFeatCategory
+      ? "Feat entries are loaded from the character feature registry and show implementation tracking."
+      : isItemCategory
+        ? "Item entries are loaded from the local backend and exposed with backend-driven filters."
+        : "Starter entries are currently hardcoded in src/codex/entries.";
 
   return (
     <section className={styles.page}>
@@ -490,6 +515,7 @@ function CodexPage() {
           itemArmorTypeFilter={sanitizedItemFilters.armorType}
           itemRarityFilter={itemRarityFilter}
           itemSourceFilter={itemSourceFilter}
+          featCategoryFilter={featCategoryFilter}
           itemFilterOptions={itemFilterOptionsPayload}
           onQueryChange={handleQueryChange}
           onCategoryChange={updateCategory}
@@ -506,6 +532,7 @@ function CodexPage() {
           onItemArmorTypeFilterChange={handleItemArmorTypeFilterChange}
           onItemRarityFilterChange={handleItemRarityFilterChange}
           onItemSourceFilterChange={handleItemSourceFilterChange}
+          onFeatCategoryFilterChange={handleFeatCategoryFilterChange}
         />
       </div>
 
@@ -533,6 +560,8 @@ function CodexPage() {
           ordering={itemOrdering}
           onOrderingChange={handleItemOrderingChange}
         />
+      ) : isFeatCategory ? (
+        <FeatCodexList query={query} featCategoryFilter={featCategoryFilter} />
       ) : (
         <CodexResults
           entries={visibleEntries}
