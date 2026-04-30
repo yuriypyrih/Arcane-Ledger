@@ -16,7 +16,7 @@
   justify-items: center;
   gap: 0.25rem;
   border-radius: 12px;
-  background: rgba(75, 47, 29, 0.07);
+  background: var(--color-panel-muted);
   min-height: 56px;
   max-width: 70px;
   padding: 0.42rem 0.28rem;
@@ -74,7 +74,7 @@
   inline-size: 9px;
   border: 1px solid rgba(47, 120, 255, 0.42);
   border-radius: 2px;
-  background: rgba(255, 255, 255, 0.8);
+  background: var(--color-panel-surface);
 }
 
 .spellSlotSquareFilled {
@@ -93,7 +93,7 @@
   margin-top: 0.85rem;
   border: 1px solid rgba(75, 47, 29, 0.14);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.82);
+  background: var(--color-panel-surface);
   overflow: hidden;
   width: fit-content;
 }
@@ -227,7 +227,7 @@
   flex: 0 0 auto;
   border: 1px solid rgba(75, 47, 29, 0.14);
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--color-panel-surface);
   color: var(--color-ink-soft);
   cursor: pointer;
   font: inherit;
@@ -355,7 +355,7 @@
 
 .divinityDrawerActionButtonShape {
   align-items: center;
-  background: rgba(255, 255, 255, 0.76);
+  background: var(--color-panel-surface);
   border-radius: 999px;
   flex-shrink: 0;
   justify-content: center;

@@ -3,7 +3,7 @@
   width: 100%;
   border: 1px solid rgba(75, 47, 29, 0.16);
   border-radius: 14px;
-  background: rgba(255, 255, 255, 0.78);
+  background: var(--color-panel-surface);
   color: var(--color-ink);
   cursor: pointer;
   font: inherit;
@@ -53,11 +53,11 @@
 
 .selectableCardSelected {
   border-color: rgba(47, 120, 255, 0.42);
-  background: rgba(47, 120, 255, 0.08);
+  background: #eef5ff;
 }
 
 .spellMasteryHighlight {
-  background: rgba(47, 120, 255, 0.11);
+  background: #eaf3ff;
   border-color: rgba(47, 120, 255, 0.36);
 }
 

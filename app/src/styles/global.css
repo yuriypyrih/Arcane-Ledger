@@ -5,8 +5,20 @@
   font-weight: 400;
   color: #2e2017;
   background:
-    radial-gradient(circle at top, rgba(217, 184, 146, 0.45), transparent 30%),
-    linear-gradient(180deg, #efe4d3 0%, #f4efe6 50%, #e7dcc8 100%);
+    linear-gradient(
+      180deg,
+      rgba(239, 228, 211, 0.02) 0%,
+      rgba(244, 239, 230, 0.66) 50%,
+      rgba(231, 220, 200, 0.04) 100%
+    ),
+    url("../assets/img/paper-background.jpg");
+  background-attachment: fixed, fixed;
+  background-color: #efe4d3;
+  background-position:
+    top center,
+    center;
+  background-repeat: no-repeat, no-repeat;
+  background-size: auto, cover;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
@@ -14,7 +26,9 @@
   --color-ink: #2e2017;
   --color-ink-soft: #664b38;
   --color-accent: #8f5b38;
-  --color-panel-strong: rgba(255, 250, 241, 0.98);
+  --color-panel-strong: #fffaf1;
+  --color-panel-surface: #fffdf8;
+  --color-panel-muted: #f3eadf;
   --space-shell-gutter: clamp(0.5rem, 2.2vw, 1.35rem);
   --space-page-gap: clamp(0.65rem, 2vw, 1.35rem);
   --space-section-gap: clamp(0.6rem, 1.7vw, 1.1rem);
@@ -65,10 +79,10 @@ body::before {
   content: "";
   position: fixed;
   inset: 0;
-  background-image:
-    linear-gradient(rgba(75, 47, 29, 0.03) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(75, 47, 29, 0.03) 1px, transparent 1px);
-  background-size: 22px 22px;
+  /*background-image:*/
+  /*  linear-gradient(rgba(75, 47, 29, 0.03) 1px, transparent 1px),*/
+  /*  linear-gradient(90deg, rgba(75, 47, 29, 0.03) 1px, transparent 1px);*/
+  /*background-size: 22px 22px;*/
   pointer-events: none;
 }
 
