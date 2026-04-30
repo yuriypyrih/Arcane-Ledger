@@ -4,12 +4,17 @@ import { ALL_SKILLS, TOOL_PROFICIENCY } from "../../types";
 import { abilityKeys } from "./constants";
 import type {
   AbilityKey,
+  ARMOR_PROFICIENCY,
   BlessedWarriorChoice,
   Character,
   CharacterFeatEntry,
   CharacterStatusEntry,
+  CrafterChoice,
   DruidicWarriorChoice,
-  SkillName
+  LanguageProficiency,
+  SAVING_THROW_PROFICIENCY,
+  SkillName,
+  WEAPON_PROFICIENCY
 } from "../../types";
 import {
   SENSE,
@@ -35,14 +40,60 @@ import { getToolProficiencyLabel } from "./proficiencyOptions";
 import { getSpellEntriesForSpellListClass } from "../../codex/classes/spellAccess";
 import { SPELL_LIST_CLASS, type SpellEntry } from "../../codex/entries";
 import { phb2024MissingFeatDefinitions } from "./featDefinitions/phb2024Missing";
+import { getCrafterChoiceSummary, normalizeCrafterChoice } from "./crafterFeat";
 
 export type FeatDefinition = FeatureMapEntry & {
   feat: FEATS;
   label: string;
   category: FEAT_CATEGORY;
   prerequisite?: string;
+  requirements?: FeatRequirement[];
   repeatable?: boolean;
 };
+
+export type FeatProficiencyRequirement =
+  | {
+      kind: "armor";
+      proficiency: ARMOR_PROFICIENCY;
+    }
+  | {
+      kind: "language";
+      proficiency: LanguageProficiency;
+    }
+  | {
+      kind: "savingThrow";
+      proficiency: SAVING_THROW_PROFICIENCY;
+    }
+  | {
+      kind: "skill";
+      proficiency: SkillName;
+    }
+  | {
+      kind: "tool";
+      proficiency: TOOL_PROFICIENCY;
+    }
+  | {
+      kind: "weapon";
+      proficiency: WEAPON_PROFICIENCY;
+    };
+
+export type FeatRequirement =
+  | {
+      type: "minimum-level";
+      level: number;
+    }
+  | {
+      type: "minimum-ability-score";
+      abilities: AbilityKey[];
+      score: number;
+    }
+  | {
+      type: "proficiency";
+      proficiency: FeatProficiencyRequirement;
+    }
+  | {
+      type: "spellcasting-or-pact-magic";
+    };
 
 const abilityKeySet = new Set<AbilityKey>(abilityKeys);
 const skillNameSet = new Set<SkillName>(ALL_SKILLS);
@@ -92,10 +143,10 @@ export const featDefinitions: FeatDefinition[] = [
     category: FEAT_CATEGORY.ORIGIN,
     description: [
       "You gain the following benefits.",
-      "<strong>Initiative Proficiency.</strong> When you roll Initiative, you can add your Proficiency Bonus to the roll. <link:tracked>Tracked</link>",
-      "<strong>Initiative Swap.</strong> Immediately after you roll Initiative, you can swap your Initiative with the Initiative of one willing ally in the same combat. You can't make this swap if you or the ally has the Incapacitated condition. <link:not-tracked>Not Tracked</link>"
+      "<strong>Initiative Proficiency.</strong> When you roll Initiative, you can add your Proficiency Bonus to the roll.",
+      "<strong>Initiative Swap.</strong> Immediately after you roll Initiative, you can swap your Initiative with the Initiative of one willing ally in the same combat. You can't make this swap if you or the ally has the Incapacitated condition."
     ],
-    trackingState: TRACKER.SEMI_TRACKED
+    trackingState: TRACKER.TRACKED
   },
   {
     feat: FEATS.MAGIC_INITIATE,
@@ -287,7 +338,7 @@ export const featDefinitions: FeatDefinition[] = [
     feat: FEATS.BOON_OF_SPELL_RECALL,
     label: "Boon of Spell Recall",
     category: FEAT_CATEGORY.EPIC_BOON,
-    prerequisite: "Level 19+, Spellcasting Feature",
+    prerequisite: "Level 19+, Spellcasting or Pact Magic Feature",
     description: [
       "You gain the following benefits.",
       "<strong>Ability Score Increase.</strong> Increase your Intelligence, Wisdom, or Charisma score by 1, to a maximum of 30. <link:tracked>Tracked</link>",
@@ -593,6 +644,7 @@ export function normalizeCharacterFeats(
       feat === FEATS.DRUIDIC_WARRIOR
         ? normalizeDruidicWarriorChoice(record.druidicWarrior)
         : undefined;
+    const crafter = feat === FEATS.CRAFTER ? normalizeCrafterChoice(record.crafter) : undefined;
     const epicBoonAbilityChoice = epicBoonAbilityIncreaseFeatOptions.has(feat)
       ? normalizeEpicBoonAbilityChoice(feat, record.epicBoonAbilityChoice)
       : undefined;
@@ -613,6 +665,7 @@ export function normalizeCharacterFeats(
         abilityScoreImprovement,
         blessedWarrior,
         druidicWarrior,
+        crafter,
         boonOfIrresistibleOffense,
         epicBoonAbilityChoice,
         skilled
@@ -629,6 +682,7 @@ export function createCharacterFeatEntry(
     abilityScoreImprovement?: AbilityScoreImprovementChoice;
     blessedWarrior?: BlessedWarriorChoice;
     druidicWarrior?: DruidicWarriorChoice;
+    crafter?: CrafterChoice;
     boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
     epicBoonAbilityChoice?: EpicBoonAbilityChoice;
     skilled?: SkilledChoice;
@@ -643,6 +697,7 @@ export function createCharacterFeatEntry(
       feat === FEATS.ABILITY_SCORE_IMPROVEMENT ? options?.abilityScoreImprovement : undefined,
     blessedWarrior: feat === FEATS.BLESSED_WARRIOR ? options?.blessedWarrior : undefined,
     druidicWarrior: feat === FEATS.DRUIDIC_WARRIOR ? options?.druidicWarrior : undefined,
+    crafter: feat === FEATS.CRAFTER ? options?.crafter : undefined,
     boonOfIrresistibleOffense:
       feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE ? options?.boonOfIrresistibleOffense : undefined,
     epicBoonAbilityChoice: epicBoonAbilityIncreaseFeatOptions.has(feat)
@@ -749,6 +804,10 @@ export function getCharacterFeatSummary(entry: CharacterFeatEntry): string | nul
 
   if (entry.feat === FEATS.DRUIDIC_WARRIOR) {
     return getDruidicWarriorChoiceSummary(entry.druidicWarrior);
+  }
+
+  if (entry.feat === FEATS.CRAFTER) {
+    return getCrafterChoiceSummary(entry.crafter);
   }
 
   if (entry.feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE) {

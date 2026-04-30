@@ -1,16 +1,46 @@
-import { CLASS_FEATURE, type SpellDescriptionEntry } from "../../../codex/entries";
+import { CLASS_FEATURE, FEATS, type SpellDescriptionEntry } from "../../../codex/entries";
 import type { Character } from "../../../types";
-import { createFeatureSourcedDescriptionEntries } from "../actionModalDescriptions";
+import {
+  createFeatureSourcedDescriptionEntries,
+  createSourcedDescriptionEntries
+} from "../actionModalDescriptions";
+import { getFeatDefinition, normalizeCharacterFeats } from "../feats";
 import { getBarbarianPersistentRageInitiativeDescriptionAdditions } from "./barbarian/barbarianDescriptionSections";
 import { getFeatureDescriptionForCharacter } from "./featureDescriptions";
 import { getMonkInitiativeDescriptionAdditions } from "./monk/monkDescriptionSections";
 import { getRogueThiefInitiativeDescriptionAdditions } from "./rogue/subclasses/rogueThief";
 
-type InitiativeDescriptionCharacter = Pick<Character, "className" | "level"> &
+type InitiativeDescriptionCharacter = Pick<Character, "className" | "feats" | "level"> &
   Partial<Pick<Character, "subclassId">>;
 
+const alertInitiativeSwapSource = "Alert";
 const tandemFootworkSource = "Tandem Footwork";
 const superiorInspirationSource = "Superior Inspiration";
+
+function descriptionEntryIncludesText(entry: SpellDescriptionEntry, text: string): boolean {
+  return typeof entry === "string"
+    ? entry.includes(text)
+    : entry.items.some((item) => item.includes(text));
+}
+
+function getAlertInitiativeDescriptionAdditions(
+  character: InitiativeDescriptionCharacter
+): SpellDescriptionEntry[][] {
+  const feats = normalizeCharacterFeats(character.feats, character.level);
+
+  if (!feats.some((entry) => entry.feat === FEATS.ALERT)) {
+    return [];
+  }
+
+  const initiativeSwapDescription =
+    getFeatDefinition(FEATS.ALERT)?.description.filter((entry) =>
+      descriptionEntryIncludesText(entry, "Initiative Swap")
+    ) ?? [];
+
+  return initiativeSwapDescription.length > 0
+    ? [createSourcedDescriptionEntries(alertInitiativeSwapSource, initiativeSwapDescription)]
+    : [];
+}
 
 function getBardInitiativeDescriptionAdditions(
   character: InitiativeDescriptionCharacter
@@ -54,6 +84,7 @@ export function getInitiativeReferenceDescriptionAdditions(
   character: InitiativeDescriptionCharacter
 ): SpellDescriptionEntry[][] {
   return [
+    ...getAlertInitiativeDescriptionAdditions(character),
     ...getBarbarianPersistentRageInitiativeDescriptionAdditions(character),
     ...getBardInitiativeDescriptionAdditions(character),
     ...getMonkInitiativeDescriptionAdditions(character),

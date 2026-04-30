@@ -1,6 +1,6 @@
 import clsx from "clsx";
 import { ChevronDown, CircleHelp, Pencil } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   CLASS_FEATURE,
   FEAT_CATEGORY,
@@ -21,6 +21,7 @@ import {
   getFeatDefinition,
   getFeatDefinitionsByCategory
 } from "../../../../pages/CharactersPage/feats";
+import { getFeatEligibilityForCharacter } from "../../../../pages/CharactersPage/featEligibility";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
 import {
   getSelectedSubclassForCharacter,
@@ -44,6 +45,7 @@ import {
   createEmptyPendingFeatState,
   createPendingFeatStateForFeat,
   decodePendingBlessedWarriorChoice,
+  decodePendingCrafterChoice,
   decodePendingDruidicWarriorChoice,
   decodePendingSkilledChoice
 } from "./featEditorUtils";
@@ -51,7 +53,8 @@ import {
   applyFeatEditorDraftToCharacter,
   createFeatEditorDraft,
   removeFeatFromDraft,
-  upsertFeatInDraft
+  upsertFeatInDraft,
+  type FeatEditorDraft
 } from "./featDrafts";
 import {
   createClassFeatureFeatSource,
@@ -62,6 +65,7 @@ import {
 import styles from "./ClassFeaturesAndFeats.module.css";
 import type {
   FeatEditorContext,
+  FeatEligibilityByFeat,
   FeatureRow,
   PendingFeatState,
   SelectedDivinityReference,
@@ -106,7 +110,10 @@ function ClassFeaturesAndFeats({
   const [pendingFeatState, setPendingFeatState] = useState<PendingFeatState>(
     createEmptyPendingFeatState
   );
-  const [featEditorDraft, setFeatEditorDraft] = useState(() => createFeatEditorDraft(character));
+  const [featEditorDraft, setFeatEditorDraftState] = useState(() =>
+    createFeatEditorDraft(character)
+  );
+  const featEditorDraftRef = useRef(featEditorDraft);
   const [selectedFeatReference, setSelectedFeatReference] = useState<SelectedFeatReference | null>(
     null
   );
@@ -255,41 +262,45 @@ function ClassFeaturesAndFeats({
   }, [character.className, featEditorContext]);
   const visibleFeatDefinitionsByCategory = useMemo(
     () =>
-      featCategoryTabs.reduce<Record<FEAT_CATEGORY, (typeof featDefinitionsByCategory)[FEAT_CATEGORY.GENERAL]>>(
+      featCategoryTabs.reduce<
+        Record<FEAT_CATEGORY, (typeof featDefinitionsByCategory)[FEAT_CATEGORY.GENERAL]>
+      >(
         (groups, category) => {
           const additionalFightingStyleFeatSet = new Set(fightingStyleExtraFeatOptions);
 
-          groups[category] = featDefinitionsByCategory[category].filter((definition) => {
-            const isFightingStyleContext =
-              featEditorContext.mode === "class-feature" &&
-              (featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE ||
-                featEditorContext.source.feature === CLASS_FEATURE.ADDITIONAL_FIGHTING_STYLE);
-
-            if (definition.feat === FEATS.BLESSED_WARRIOR) {
-              return (
+          groups[category] = featDefinitionsByCategory[category]
+            .filter((definition) => {
+              const isFightingStyleContext =
                 featEditorContext.mode === "class-feature" &&
-                featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE &&
-                character.className === "Paladin"
-              );
-            }
+                (featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE ||
+                  featEditorContext.source.feature === CLASS_FEATURE.ADDITIONAL_FIGHTING_STYLE);
 
-            if (definition.feat === FEATS.DRUIDIC_WARRIOR) {
-              return (
-                featEditorContext.mode === "class-feature" &&
-                featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE &&
-                character.className === "Ranger"
-              );
-            }
+              if (definition.feat === FEATS.BLESSED_WARRIOR) {
+                return (
+                  featEditorContext.mode === "class-feature" &&
+                  featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE &&
+                  character.className === "Paladin"
+                );
+              }
 
-            if (isFightingStyleContext) {
-              return (
-                definition.category === FEAT_CATEGORY.FIGHTING_STYLE ||
-                additionalFightingStyleFeatSet.has(definition.feat)
-              );
-            }
+              if (definition.feat === FEATS.DRUIDIC_WARRIOR) {
+                return (
+                  featEditorContext.mode === "class-feature" &&
+                  featEditorContext.source.feature === CLASS_FEATURE.FIGHTING_STYLE &&
+                  character.className === "Ranger"
+                );
+              }
 
-            return true;
-          });
+              if (isFightingStyleContext) {
+                return (
+                  definition.category === FEAT_CATEGORY.FIGHTING_STYLE ||
+                  additionalFightingStyleFeatSet.has(definition.feat)
+                );
+              }
+
+              return true;
+            })
+            .sort((left, right) => left.label.localeCompare(right.label));
 
           return groups;
         },
@@ -300,13 +311,43 @@ function ClassFeaturesAndFeats({
           [FEAT_CATEGORY.EPIC_BOON]: []
         }
       ),
-    [character.className, featDefinitionsByCategory, featEditorContext, fightingStyleExtraFeatOptions]
+    [
+      character.className,
+      featDefinitionsByCategory,
+      featEditorContext,
+      fightingStyleExtraFeatOptions
+    ]
   );
   const visibleFeatCategories = useMemo(
     () =>
       featCategoryTabs.filter((category) => visibleFeatDefinitionsByCategory[category].length > 0),
     [visibleFeatDefinitionsByCategory]
   );
+  const featEligibilityCharacter = useMemo<Character>(
+    () => ({
+      ...character,
+      level:
+        featEditorContext.mode === "class-feature"
+          ? featEditorContext.source.level
+          : character.level,
+      feats: featEditorDraft.feats,
+      skillProficiencies: featEditorDraft.skillProficiencies,
+      toolProficiencies: featEditorDraft.toolProficiencies
+    }),
+    [character, featEditorContext, featEditorDraft]
+  );
+  const featEligibilityByFeat = useMemo<FeatEligibilityByFeat>(() => {
+    return featCategoryTabs.reduce<FeatEligibilityByFeat>((eligibilityByFeat, category) => {
+      visibleFeatDefinitionsByCategory[category].forEach((definition) => {
+        eligibilityByFeat[definition.feat] = getFeatEligibilityForCharacter(
+          featEligibilityCharacter,
+          definition
+        );
+      });
+
+      return eligibilityByFeat;
+    }, {});
+  }, [featEligibilityCharacter, visibleFeatDefinitionsByCategory]);
 
   useEffect(() => {
     const validFeatureKeys = new Set(allFeatures.map((featureRow) => featureRow.key));
@@ -337,6 +378,18 @@ function ClassFeaturesAndFeats({
     setPendingFeatState(createEmptyPendingFeatState());
   }
 
+  function setFeatEditorDraft(
+    draftOrUpdater: FeatEditorDraft | ((currentDraft: FeatEditorDraft) => FeatEditorDraft)
+  ) {
+    const nextDraft =
+      typeof draftOrUpdater === "function"
+        ? draftOrUpdater(featEditorDraftRef.current)
+        : draftOrUpdater;
+
+    featEditorDraftRef.current = nextDraft;
+    setFeatEditorDraftState(nextDraft);
+  }
+
   function resetFeatEditorDraft() {
     setFeatEditorDraft(createFeatEditorDraft(character));
   }
@@ -357,6 +410,14 @@ function ClassFeaturesAndFeats({
     });
   }
 
+  function isFeatEligibleForCurrentEditor(feat: FEATS): boolean {
+    const definition = getFeatDefinition(feat);
+
+    return definition
+      ? getFeatEligibilityForCharacter(featEligibilityCharacter, definition).isEligible
+      : false;
+  }
+
   function getLinkedFeatForFeature(
     level: number,
     feature: CLASS_FEATURE
@@ -367,16 +428,14 @@ function ClassFeaturesAndFeats({
   }
 
   function upsertFeatForContext(featEntry: CharacterFeatEntry) {
+    if (!isFeatEligibleForCurrentEditor(featEntry.feat)) {
+      return;
+    }
+
     const sourceContext = getClassFeatureSourceContext();
     const nextDraft = upsertFeatInDraft(featEditorDraft, featEntry, sourceContext);
 
     setFeatEditorDraft(nextDraft);
-
-    if (sourceContext) {
-      closeFeatEditor(nextDraft);
-      return;
-    }
-
     resetPendingFeatState();
   }
 
@@ -421,9 +480,11 @@ function ClassFeaturesAndFeats({
     setSelectedDivinityReference(divinity);
   }
 
-  function closeFeatEditor(draft = featEditorDraft) {
+  function closeFeatEditor(draft?: FeatEditorDraft) {
+    const draftToPersist = draft ?? featEditorDraftRef.current;
+
     onPersistCharacter((currentCharacter) =>
-      applyFeatEditorDraftToCharacter(currentCharacter, draft)
+      applyFeatEditorDraftToCharacter(currentCharacter, draftToPersist)
     );
     resetPendingFeatState();
     setFeatEditorContext({ mode: "general" });
@@ -455,6 +516,10 @@ function ClassFeaturesAndFeats({
   }
 
   function addFeat(feat: FEATS) {
+    if (!isFeatEligibleForCurrentEditor(feat)) {
+      return;
+    }
+
     const pendingState = createPendingFeatStateForFeat(feat);
 
     if (pendingState) {
@@ -533,6 +598,26 @@ function ClassFeaturesAndFeats({
     upsertFeatForContext(
       createContextualFeatEntry(FEATS.DRUIDIC_WARRIOR, {
         druidicWarrior
+      })
+    );
+  }
+
+  function savePendingCrafterChoice() {
+    const choice = pendingFeatState.crafterChoice;
+
+    if (!choice) {
+      return;
+    }
+
+    const crafter = decodePendingCrafterChoice(choice);
+
+    if (!crafter) {
+      return;
+    }
+
+    upsertFeatForContext(
+      createContextualFeatEntry(FEATS.CRAFTER, {
+        crafter
       })
     );
   }
@@ -632,97 +717,99 @@ function ClassFeaturesAndFeats({
 
         {isExpanded ? (
           <div id="class-features-and-feats-content" className={styles.sectionStack}>
-          <section className={styles.subsection} aria-labelledby="character-feats-title">
-            <div className={styles.subsectionHeader}>
-              <h3 id="character-feats-title" className={styles.subsectionTitle}>
-                Feats
-              </h3>
-              <button
-                type="button"
-                className={shared.editButton}
-                onClick={openFeatEditor}
-                disabled={isFeatModalOpen}
-              >
-                <Pencil size={16} />
-                Edit
-              </button>
-            </div>
-            <FeatList
-              feats={selectedFeats}
-              emptyText="No feats added yet."
-              onOpenFeatReference={openFeatReference}
-              renderTrackingButton={renderTrackingButton}
-            />
-          </section>
+            <section className={styles.subsection} aria-labelledby="character-feats-title">
+              <div className={styles.subsectionHeader}>
+                <h3 id="character-feats-title" className={styles.subsectionTitle}>
+                  Feats
+                </h3>
+                <button
+                  type="button"
+                  className={shared.editButton}
+                  onClick={openFeatEditor}
+                  disabled={isFeatModalOpen}
+                >
+                  <Pencil size={16} />
+                  Edit
+                </button>
+              </div>
+              <FeatList
+                feats={selectedFeats}
+                emptyText="No feats added yet."
+                onOpenFeatReference={openFeatReference}
+                renderTrackingButton={renderTrackingButton}
+              />
+            </section>
 
-          <section className={styles.subsection} aria-labelledby="character-class-features-title">
-            <div className={styles.subsectionHeader}>
-              <h3 id="character-class-features-title" className={styles.subsectionTitle}>
-                Class Features
-              </h3>
-            </div>
+            <section className={styles.subsection} aria-labelledby="character-class-features-title">
+              <div className={styles.subsectionHeader}>
+                <h3 id="character-class-features-title" className={styles.subsectionTitle}>
+                  Class Features
+                </h3>
+              </div>
 
-            {unlockedFeatures.length > 0 ? (
-              <>
-                <ClassFeatureList
-                  character={character}
-                  features={unlockedFeatures}
-                  expandedFeatureKeys={expandedFeatureKeys}
-                  onToggleFeature={toggleFeature}
-                  getLinkedFeatForFeature={getLinkedFeatForFeature}
-                  onOpenFeatEditorForFeature={openFeatEditorForFeature}
-                  onOpenKeyword={openKeyword}
-                  onOpenFeatReference={openFeatReference}
-                  onOpenSpellReference={openSpellReference}
-                  onOpenDivinityReference={openDivinityReference}
-                  onPersistCharacter={onPersistCharacter}
-                  renderTrackingButton={renderTrackingButton}
-                  getCharacterFeatSummary={(entry) => (entry ? getCharacterFeatSummary(entry) : null)}
-                  getFeatDefinition={getFeatDefinition}
-                />
+              {unlockedFeatures.length > 0 ? (
+                <>
+                  <ClassFeatureList
+                    character={character}
+                    features={unlockedFeatures}
+                    expandedFeatureKeys={expandedFeatureKeys}
+                    onToggleFeature={toggleFeature}
+                    getLinkedFeatForFeature={getLinkedFeatForFeature}
+                    onOpenFeatEditorForFeature={openFeatEditorForFeature}
+                    onOpenKeyword={openKeyword}
+                    onOpenFeatReference={openFeatReference}
+                    onOpenSpellReference={openSpellReference}
+                    onOpenDivinityReference={openDivinityReference}
+                    onPersistCharacter={onPersistCharacter}
+                    renderTrackingButton={renderTrackingButton}
+                    getCharacterFeatSummary={(entry) =>
+                      entry ? getCharacterFeatSummary(entry) : null
+                    }
+                    getFeatDefinition={getFeatDefinition}
+                  />
 
-                {futureFeatures.length > 0 ? (
-                  <>
-                    <InlineToggleButton
-                      label={
-                        isFutureFeaturesVisible
-                          ? "Hide unlockable features"
-                          : "Show unlockable features"
-                      }
-                      expanded={isFutureFeaturesVisible}
-                      onClick={() => setIsFutureFeaturesVisible((current) => !current)}
-                    />
-                    {isFutureFeaturesVisible ? (
-                      <ClassFeatureList
-                        character={character}
-                        features={futureFeatures}
-                        expandedFeatureKeys={expandedFeatureKeys}
-                        onToggleFeature={toggleFeature}
-                        getLinkedFeatForFeature={getLinkedFeatForFeature}
-                        onOpenFeatEditorForFeature={openFeatEditorForFeature}
-                        onOpenKeyword={openKeyword}
-                        onOpenFeatReference={openFeatReference}
-                        onOpenSpellReference={openSpellReference}
-                        onOpenDivinityReference={openDivinityReference}
-                        onPersistCharacter={onPersistCharacter}
-                        renderTrackingButton={renderTrackingButton}
-                        getCharacterFeatSummary={(entry) =>
-                          entry ? getCharacterFeatSummary(entry) : null
+                  {futureFeatures.length > 0 ? (
+                    <>
+                      <InlineToggleButton
+                        label={
+                          isFutureFeaturesVisible
+                            ? "Hide unlockable features"
+                            : "Show unlockable features"
                         }
-                        getFeatDefinition={getFeatDefinition}
+                        expanded={isFutureFeaturesVisible}
+                        onClick={() => setIsFutureFeaturesVisible((current) => !current)}
                       />
-                    ) : null}
-                  </>
-                ) : null}
-              </>
-            ) : (
-              <p className={shared.emptyText}>
-                {classEntry
-                  ? "No class features are available for this level yet."
-                  : "No class feature progression is available for this class yet."}
-              </p>
-            )}
-          </section>
+                      {isFutureFeaturesVisible ? (
+                        <ClassFeatureList
+                          character={character}
+                          features={futureFeatures}
+                          expandedFeatureKeys={expandedFeatureKeys}
+                          onToggleFeature={toggleFeature}
+                          getLinkedFeatForFeature={getLinkedFeatForFeature}
+                          onOpenFeatEditorForFeature={openFeatEditorForFeature}
+                          onOpenKeyword={openKeyword}
+                          onOpenFeatReference={openFeatReference}
+                          onOpenSpellReference={openSpellReference}
+                          onOpenDivinityReference={openDivinityReference}
+                          onPersistCharacter={onPersistCharacter}
+                          renderTrackingButton={renderTrackingButton}
+                          getCharacterFeatSummary={(entry) =>
+                            entry ? getCharacterFeatSummary(entry) : null
+                          }
+                          getFeatDefinition={getFeatDefinition}
+                        />
+                      ) : null}
+                    </>
+                  ) : null}
+                </>
+              ) : (
+                <p className={shared.emptyText}>
+                  {classEntry
+                    ? "No class features are available for this level yet."
+                    : "No class feature progression is available for this class yet."}
+                </p>
+              )}
+            </section>
           </div>
         ) : null}
       </article>
@@ -735,6 +822,8 @@ function ClassFeaturesAndFeats({
           activeFeatCategory={activeFeatCategory}
           visibleFeatCategories={visibleFeatCategories}
           visibleFeatDefinitionsByCategory={visibleFeatDefinitionsByCategory}
+          featEligibilityByFeat={featEligibilityByFeat}
+          toolProficiencies={featEditorDraft.toolProficiencies}
           selectedFeats={featEditorDraft.feats}
           pendingFeatState={pendingFeatState}
           blessedWarriorCantripOptions={blessedWarriorCantripOptions}
@@ -749,6 +838,7 @@ function ClassFeaturesAndFeats({
           onSavePendingAbilityScoreImprovement={savePendingAbilityScoreImprovement}
           onSavePendingBoonOfIrresistibleOffense={savePendingBoonOfIrresistibleOffense}
           onSavePendingBlessedWarriorChoice={savePendingBlessedWarriorChoice}
+          onSavePendingCrafterChoice={savePendingCrafterChoice}
           onSavePendingDruidicWarriorChoice={savePendingDruidicWarriorChoice}
           onSavePendingEpicBoonAbilityChoice={savePendingEpicBoonAbilityChoice}
           onSavePendingSkilledChoice={savePendingSkilledChoice}

@@ -1,11 +1,8 @@
 import clsx from "clsx";
 import type { Dispatch, SetStateAction } from "react";
 import { FEAT_CATEGORY, FEATS, type SpellEntry } from "../../../../codex/entries";
-import {
-  getFeatCategoryLabel,
-  type FeatDefinition
-} from "../../../../pages/CharactersPage/feats";
-import type { CharacterFeatEntry } from "../../../../types";
+import { getFeatCategoryLabel, type FeatDefinition } from "../../../../pages/CharactersPage/feats";
+import type { CharacterFeatEntry, ToolProficiencyEntry } from "../../../../types";
 import {
   OverlayBody,
   OverlayCloseButton,
@@ -19,6 +16,7 @@ import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.m
 import FeatEditorCard from "./FeatEditorCard";
 import styles from "./FeatEditorModal.module.css";
 import type {
+  FeatEligibilityByFeat,
   FeatEditorContext,
   PendingFeatState,
   TrackingButtonRenderer
@@ -29,6 +27,8 @@ type FeatEditorModalProps = {
   activeFeatCategory: FEAT_CATEGORY;
   visibleFeatCategories: FEAT_CATEGORY[];
   visibleFeatDefinitionsByCategory: Record<FEAT_CATEGORY, FeatDefinition[]>;
+  featEligibilityByFeat: FeatEligibilityByFeat;
+  toolProficiencies: ToolProficiencyEntry[];
   selectedFeats: CharacterFeatEntry[];
   pendingFeatState: PendingFeatState;
   blessedWarriorCantripOptions: SpellEntry[];
@@ -43,6 +43,7 @@ type FeatEditorModalProps = {
   onSavePendingAbilityScoreImprovement: () => void;
   onSavePendingBoonOfIrresistibleOffense: () => void;
   onSavePendingBlessedWarriorChoice: () => void;
+  onSavePendingCrafterChoice: () => void;
   onSavePendingDruidicWarriorChoice: () => void;
   onSavePendingEpicBoonAbilityChoice: () => void;
   onSavePendingSkilledChoice: () => void;
@@ -53,6 +54,8 @@ function FeatEditorModal({
   activeFeatCategory,
   visibleFeatCategories,
   visibleFeatDefinitionsByCategory,
+  featEligibilityByFeat,
+  toolProficiencies,
   selectedFeats,
   pendingFeatState,
   blessedWarriorCantripOptions,
@@ -67,6 +70,7 @@ function FeatEditorModal({
   onSavePendingAbilityScoreImprovement,
   onSavePendingBoonOfIrresistibleOffense,
   onSavePendingBlessedWarriorChoice,
+  onSavePendingCrafterChoice,
   onSavePendingDruidicWarriorChoice,
   onSavePendingEpicBoonAbilityChoice,
   onSavePendingSkilledChoice
@@ -79,15 +83,17 @@ function FeatEditorModal({
     >
       <OverlayHeader>
         <OverlayHeaderContent>
-          <OverlayEyebrow>{context.mode === "class-feature" ? "Class Feature" : "Build"}</OverlayEyebrow>
+          <OverlayEyebrow>
+            {context.mode === "class-feature" ? "Class Feature" : "Build"}
+          </OverlayEyebrow>
           <div className={styles.heading}>
             <h3 id="character-feat-editor-title" className={styles.headingTitle}>
               {context.mode === "class-feature" ? "Choose Feat" : "Edit Feats"}
             </h3>
             {context.mode === "class-feature" ? (
               <OverlaySummary className={shared.helperText}>
-                Choose one feat for this class feature. Your selection will be saved when this editor
-                closes.
+                Choose one feat for this class feature. Your selection will be saved when this
+                editor closes.
               </OverlaySummary>
             ) : null}
           </div>
@@ -119,6 +125,8 @@ function FeatEditorModal({
             <FeatEditorCard
               key={featDefinition.feat}
               featDefinition={featDefinition}
+              featEligibility={featEligibilityByFeat[featDefinition.feat]}
+              toolProficiencies={toolProficiencies}
               selectedEntries={selectedFeats.filter((entry) => entry.feat === featDefinition.feat)}
               pendingFeatState={pendingFeatState}
               blessedWarriorCantripOptions={blessedWarriorCantripOptions}
@@ -131,6 +139,7 @@ function FeatEditorModal({
               onSavePendingAbilityScoreImprovement={onSavePendingAbilityScoreImprovement}
               onSavePendingBoonOfIrresistibleOffense={onSavePendingBoonOfIrresistibleOffense}
               onSavePendingBlessedWarriorChoice={onSavePendingBlessedWarriorChoice}
+              onSavePendingCrafterChoice={onSavePendingCrafterChoice}
               onSavePendingDruidicWarriorChoice={onSavePendingDruidicWarriorChoice}
               onSavePendingEpicBoonAbilityChoice={onSavePendingEpicBoonAbilityChoice}
               onSavePendingSkilledChoice={onSavePendingSkilledChoice}

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import type { Character, LanguageProficiency } from "../../../../types";
 import {
   ARMOR_PROFICIENCY,
@@ -60,7 +60,8 @@ import RadioContainerOption from "../RadioContainerOption";
 import styles from "./ProficiencyEditorModal.module.css";
 import {
   applyProficiencyEditorDraftToCharacter,
-  createProficiencyEditorDraft
+  createProficiencyEditorDraft,
+  type ProficiencyEditorDraft
 } from "./proficiencyDrafts";
 
 export type ProficiencyEditorTab =
@@ -102,9 +103,10 @@ function ProficiencyEditorModal({
   onPersistCharacter
 }: ProficiencyEditorModalProps) {
   const [activeTab, setActiveTab] = useState<ProficiencyEditorTab>(initialTab);
-  const [proficiencyDraft, setProficiencyDraft] = useState(() =>
+  const [proficiencyDraft, setProficiencyDraftState] = useState(() =>
     createProficiencyEditorDraft(character)
   );
+  const proficiencyDraftRef = useRef(proficiencyDraft);
   const [customLanguageNameDraft, setCustomLanguageNameDraft] = useState("");
   const [customLanguageDescriptionDraft, setCustomLanguageDescriptionDraft] = useState("");
 
@@ -112,9 +114,23 @@ function ProficiencyEditorModal({
     proficiencyDraft.languageProficiencies
   );
 
+  function setProficiencyDraft(
+    draftOrUpdater:
+      | ProficiencyEditorDraft
+      | ((currentDraft: ProficiencyEditorDraft) => ProficiencyEditorDraft)
+  ) {
+    const nextDraft =
+      typeof draftOrUpdater === "function"
+        ? draftOrUpdater(proficiencyDraftRef.current)
+        : draftOrUpdater;
+
+    proficiencyDraftRef.current = nextDraft;
+    setProficiencyDraftState(nextDraft);
+  }
+
   function saveAndClose() {
     onPersistCharacter((currentCharacter) =>
-      applyProficiencyEditorDraftToCharacter(currentCharacter, proficiencyDraft)
+      applyProficiencyEditorDraftToCharacter(currentCharacter, proficiencyDraftRef.current)
     );
     onClose();
   }

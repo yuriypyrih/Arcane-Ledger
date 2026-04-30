@@ -22,26 +22,18 @@
     border-color 160ms ease;
 }
 
-.interactiveCard:hover,
-.interactiveCard:focus-visible {
-  background: rgba(255, 255, 255, 0.88);
-  border-color: rgba(75, 47, 29, 0.18);
-}
-
 .interactiveCard:focus-visible {
   outline: 2px solid rgba(119, 63, 28, 0.24);
   outline-offset: 2px;
 }
 
 .selectedCard {
-  background: rgba(143, 91, 56, 0.12);
-  border-color: rgba(143, 91, 56, 0.28);
+  background: rgba(47, 120, 255, 0.04);
+  border-color: #2f78ff;
 }
 
-.selectedCard:hover,
-.selectedCard:focus-visible {
-  background: rgba(143, 91, 56, 0.16);
-  border-color: rgba(143, 91, 56, 0.34);
+.unavailableCard {
+  background: rgba(112, 111, 106, 0.07);
 }
 
 .headerRow {
@@ -84,6 +76,13 @@
 .summary {
   color: var(--color-ink);
   font-size: 0.88rem;
+}
+
+.metaUnavailable {
+  margin: 0;
+  color: #8b3321;
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .repeatable {

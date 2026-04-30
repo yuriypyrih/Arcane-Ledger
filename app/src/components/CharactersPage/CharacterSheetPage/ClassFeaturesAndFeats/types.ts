@@ -13,9 +13,11 @@ import type {
   BlessedWarriorChoice,
   CharacterFeatEntry,
   CharacterFeatSource,
+  CrafterChoice,
   DruidicWarriorChoice,
   SkilledChoice
 } from "../../../../types";
+import type { FeatEligibilityResult } from "../../../../pages/CharactersPage/featEligibility";
 
 export type FeatureRow = {
   key: string;
@@ -26,6 +28,8 @@ export type FeatureRow = {
 };
 
 export type TrackingButtonRenderer = (trackingState: TRACKER) => ReactNode;
+
+export type FeatEligibilityByFeat = Partial<Record<FEATS, FeatEligibilityResult>>;
 
 export type SelectedKeyword = {
   key: string;
@@ -59,6 +63,10 @@ export type PendingDruidicWarriorChoice = {
   cantripIds: [string, string];
 };
 
+export type PendingCrafterChoice = {
+  toolProficiencies: [string, string, string];
+};
+
 export type PendingEpicBoonAbilityChoice = {
   feat: FEATS;
   ability: AbilityKey;
@@ -83,11 +91,16 @@ export type PendingFeatState = {
   abilityScoreImprovement: PendingAbilityScoreImprovement | null;
   boonOfIrresistibleOffense: PendingBoonOfIrresistibleOffense | null;
   blessedWarriorChoice: PendingBlessedWarriorChoice | null;
+  crafterChoice: PendingCrafterChoice | null;
   druidicWarriorChoice: PendingDruidicWarriorChoice | null;
   epicBoonAbilityChoice: PendingEpicBoonAbilityChoice | null;
   skilledChoice: PendingSkilledChoice | null;
 };
 
-export type RepeatableFeatChoice = BlessedWarriorChoice | DruidicWarriorChoice | SkilledChoice;
+export type RepeatableFeatChoice =
+  | BlessedWarriorChoice
+  | CrafterChoice
+  | DruidicWarriorChoice
+  | SkilledChoice;
 
 export type FeatCategoryTabs = FEAT_CATEGORY[];

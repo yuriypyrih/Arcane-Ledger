@@ -2,6 +2,7 @@ import { X } from "lucide-react";
 import type { ReactNode } from "react";
 import ItemInspectionContent, { ItemInspectionHeader } from "../../../ItemInspection";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
+import type { SpellDescriptionEntry } from "../../../../codex/entries";
 import type { CodexStatus, ItemRecord } from "../../../../types";
 import styles from "./EquipmentInventoryItemDrawer.module.css";
 
@@ -11,6 +12,8 @@ type EquipmentInventoryItemDrawerProps = {
   onClose: () => void;
   footer?: ReactNode;
   headerContent?: ReactNode;
+  descriptionAdditions?: SpellDescriptionEntry[];
+  costSuffix?: ReactNode;
   weaponMasteryActive?: boolean;
   weaponProficient?: boolean;
   onOpenWeaponReference?: (title: string, keywords: string[]) => void;
@@ -22,6 +25,8 @@ function EquipmentInventoryItemDrawer({
   onClose,
   footer,
   headerContent,
+  descriptionAdditions,
+  costSuffix,
   weaponMasteryActive = false,
   weaponProficient = false,
   onOpenWeaponReference
@@ -92,6 +97,8 @@ function EquipmentInventoryItemDrawer({
             <ItemInspectionContent
               item={item}
               showHeader={false}
+              descriptionAdditions={descriptionAdditions}
+              costSuffix={costSuffix}
               weaponMasteryActive={weaponMasteryActive}
               weaponProficient={weaponProficient}
               onOpenWeaponReference={onOpenWeaponReference}

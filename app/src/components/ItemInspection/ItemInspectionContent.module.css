@@ -59,6 +59,11 @@
   grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 }
 
+.costSuffix {
+  color: var(--color-ink-soft);
+  font-size: 0.88em;
+}
+
 .referenceCell {
   border: none;
   color: inherit;

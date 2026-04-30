@@ -11,6 +11,10 @@ import {
   getSkilledChoiceSummary
 } from "../../../../pages/CharactersPage/feats";
 import {
+  getCrafterChoiceSummary,
+  isCrafterFastCraftingTool
+} from "../../../../pages/CharactersPage/crafterFeat";
+import {
   skillsOptions,
   toolProficiencyOptions,
   type ToolProficiency
@@ -18,6 +22,7 @@ import {
 import type {
   BlessedWarriorChoice,
   CharacterFeatEntry,
+  CrafterChoice,
   DruidicWarriorChoice,
   SkillName,
   SkilledChoice,
@@ -27,6 +32,7 @@ import type {
   PendingAbilityScoreImprovement,
   PendingBlessedWarriorChoice,
   PendingBoonOfIrresistibleOffense,
+  PendingCrafterChoice,
   PendingDruidicWarriorChoice,
   PendingEpicBoonAbilityChoice,
   PendingFeatState,
@@ -38,6 +44,8 @@ const skilledToolOptionSet = new Set<string>(toolProficiencyOptions);
 
 export const skilledNoneOptionValue = "none";
 export const skilledSelectionIndices = [0, 1, 2] as const;
+export const crafterNoneOptionValue = "none";
+export const crafterSelectionIndices = [0, 1, 2] as const;
 
 function createDefaultPendingCantripChoice(
   options: SpellEntry[],
@@ -114,6 +122,7 @@ export function createEmptyPendingFeatState(): PendingFeatState {
     abilityScoreImprovement: null,
     boonOfIrresistibleOffense: null,
     blessedWarriorChoice: null,
+    crafterChoice: null,
     druidicWarriorChoice: null,
     epicBoonAbilityChoice: null,
     skilledChoice: null
@@ -149,6 +158,16 @@ export function createDefaultPendingDruidicWarriorChoice(): PendingDruidicWarrio
       "Guidance",
       "Starry Wisp"
     ])
+  };
+}
+
+export function createDefaultPendingCrafterChoice(): PendingCrafterChoice {
+  return {
+    toolProficiencies: [
+      crafterNoneOptionValue,
+      crafterNoneOptionValue,
+      crafterNoneOptionValue
+    ]
   };
 }
 
@@ -202,6 +221,13 @@ export function createPendingFeatStateForFeat(feat: FEATS): PendingFeatState | n
     };
   }
 
+  if (feat === FEATS.CRAFTER) {
+    return {
+      ...createEmptyPendingFeatState(),
+      crafterChoice: createDefaultPendingCrafterChoice()
+    };
+  }
+
   const epicBoonAbilityChoice = createDefaultPendingEpicBoonAbilityChoice(feat);
 
   if (epicBoonAbilityChoice) {
@@ -244,6 +270,30 @@ export function decodePendingDruidicWarriorChoice(
   choice: PendingDruidicWarriorChoice
 ): DruidicWarriorChoice | null {
   return decodePendingCantripChoice<DruidicWarriorChoice>(choice, getDruidicWarriorCantripOptions());
+}
+
+export function decodePendingCrafterChoice(choice: PendingCrafterChoice): CrafterChoice | null {
+  const toolProficiencies = choice.toolProficiencies.filter(isCrafterFastCraftingTool);
+  const uniqueToolProficiencies = [...new Set(toolProficiencies)];
+
+  if (uniqueToolProficiencies.length !== 3) {
+    return null;
+  }
+
+  return {
+    toolProficiencies: uniqueToolProficiencies as CrafterChoice["toolProficiencies"]
+  };
+}
+
+export function isPendingCrafterChoiceValid(choice: PendingCrafterChoice): boolean {
+  return (
+    new Set(choice.toolProficiencies).size === choice.toolProficiencies.length &&
+    decodePendingCrafterChoice(choice) !== null
+  );
+}
+
+export function getPendingCrafterChoiceSummary(choice: PendingCrafterChoice): string | null {
+  return getCrafterChoiceSummary(decodePendingCrafterChoice(choice) ?? undefined);
 }
 
 export function isPendingDruidicWarriorChoiceValid(choice: PendingDruidicWarriorChoice): boolean {
@@ -303,6 +353,10 @@ export function splitSkilledSelections(choice?: SkilledChoice): {
       tools: []
     }
   );
+}
+
+export function getCrafterToolSelections(choice?: CrafterChoice): ToolProficiency[] {
+  return choice?.toolProficiencies ? [...choice.toolProficiencies] : [];
 }
 
 export function groupFeatEntriesByFeat(feats: CharacterFeatEntry[]): Array<{

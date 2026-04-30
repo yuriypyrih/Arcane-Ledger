@@ -196,6 +196,10 @@ Other shared mechanics worth knowing about:
 - derived status and trait systems let gameplay and class features surface passive or temporary effects in one place
 - monster records now feed both codex reference surfaces and live character features such as companions and wild shape
 
+### Proficiency Choice Inputs
+
+When adding feat, class-feature, or similar proficiency choice inputs, reuse the existing sheet dropdown component (`SelectInput`) and the shared option helpers such as `buildSkillSelectOptions`, `buildToolSelectOptions`, and `getSelectableUnproficientToolOptions` where applicable. Choice dropdowns should start empty with a `-` option unless an existing saved choice is being edited. Options that are unavailable because the character already has that proficiency, has expertise, or selected the option in another slot should stay visible but disabled instead of being hidden.
+
 ## Editing Expectations
 
 - Split large files instead of letting them grow. Prefer targeted helper files over adding another 100 lines to an existing hotspot.

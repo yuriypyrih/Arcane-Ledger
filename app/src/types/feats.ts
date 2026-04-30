@@ -30,6 +30,10 @@ export type DruidicWarriorChoice = {
   cantripIds: [string, string];
 };
 
+export type CrafterChoice = {
+  toolProficiencies: [TOOL_PROFICIENCY, TOOL_PROFICIENCY, TOOL_PROFICIENCY];
+};
+
 export type SkilledFeatSelection =
   | {
       kind: "skill";
@@ -62,6 +66,7 @@ export type CharacterFeatEntry = {
   abilityScoreImprovement?: AbilityScoreImprovementChoice;
   blessedWarrior?: BlessedWarriorChoice;
   druidicWarrior?: DruidicWarriorChoice;
+  crafter?: CrafterChoice;
   boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
   epicBoonAbilityChoice?: EpicBoonAbilityChoice;
   skilled?: SkilledChoice;

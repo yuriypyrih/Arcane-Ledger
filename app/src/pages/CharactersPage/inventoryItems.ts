@@ -37,6 +37,11 @@ type InventoryTransactionCost = EquipmentCost & {
   currencyKey: CurrencyKey;
 };
 
+type InventoryTransactionCostOptions = {
+  multiplier?: number;
+  rounding?: "ceil" | "floor" | "round";
+};
+
 const currencyKeyByType: Record<CURRENCY_TYPE, CurrencyKey> = {
   [CURRENCY_TYPE.CP]: "copper",
   [CURRENCY_TYPE.SP]: "silver",
@@ -44,6 +49,77 @@ const currencyKeyByType: Record<CURRENCY_TYPE, CurrencyKey> = {
   [CURRENCY_TYPE.GP]: "gold",
   [CURRENCY_TYPE.PP]: "platinum"
 };
+
+const currencyCopperValueByType: Record<CURRENCY_TYPE, number> = {
+  [CURRENCY_TYPE.CP]: 1,
+  [CURRENCY_TYPE.SP]: 10,
+  [CURRENCY_TYPE.EP]: 50,
+  [CURRENCY_TYPE.GP]: 100,
+  [CURRENCY_TYPE.PP]: 1000
+};
+
+function getCopperValue(cost: EquipmentCost): number {
+  return cost.amount * currencyCopperValueByType[cost.currency];
+}
+
+function normalizeCopperValueToCost(copperValue: number): EquipmentCost {
+  const normalizedCopperValue = Math.max(0, Math.floor(copperValue));
+
+  if (normalizedCopperValue >= 1000 && normalizedCopperValue % 1000 === 0) {
+    return {
+      amount: normalizedCopperValue / 1000,
+      currency: CURRENCY_TYPE.PP
+    };
+  }
+
+  if (normalizedCopperValue >= 100 && normalizedCopperValue % 100 === 0) {
+    return {
+      amount: normalizedCopperValue / 100,
+      currency: CURRENCY_TYPE.GP
+    };
+  }
+
+  if (normalizedCopperValue >= 50 && normalizedCopperValue % 50 === 0) {
+    return {
+      amount: normalizedCopperValue / 50,
+      currency: CURRENCY_TYPE.EP
+    };
+  }
+
+  if (normalizedCopperValue >= 10 && normalizedCopperValue % 10 === 0) {
+    return {
+      amount: normalizedCopperValue / 10,
+      currency: CURRENCY_TYPE.SP
+    };
+  }
+
+  return {
+    amount: normalizedCopperValue,
+    currency: CURRENCY_TYPE.CP
+  };
+}
+
+function applyTransactionMultiplier(
+  copperValue: number,
+  options?: InventoryTransactionCostOptions
+) {
+  const multiplier = options?.multiplier ?? 1;
+  const scaledValue = copperValue * multiplier;
+
+  if (!Number.isFinite(scaledValue) || scaledValue <= 0) {
+    return 0;
+  }
+
+  if (options?.rounding === "ceil") {
+    return Math.ceil(scaledValue);
+  }
+
+  if (options?.rounding === "floor") {
+    return Math.floor(scaledValue);
+  }
+
+  return Math.round(scaledValue);
+}
 
 function createInventoryItemId() {
   if (typeof globalThis.crypto?.randomUUID === "function") {
@@ -426,7 +502,8 @@ export function createHeldDescriptorForInventoryItem(
 }
 
 export function getItemTransactionCost(
-  item: Pick<ItemRecord, "cost">
+  item: Pick<ItemRecord, "cost">,
+  options?: InventoryTransactionCostOptions
 ): InventoryTransactionCost | null {
   const resolvedCurrency = parseItemCost(item.cost);
 
@@ -434,10 +511,14 @@ export function getItemTransactionCost(
     return null;
   }
 
+  const transactionCost = normalizeCopperValueToCost(
+    applyTransactionMultiplier(getCopperValue(resolvedCurrency), options)
+  );
+
   return {
-    amount: resolvedCurrency.amount,
-    currency: resolvedCurrency.currency,
-    currencyKey: currencyKeyByType[resolvedCurrency.currency]
+    amount: transactionCost.amount,
+    currency: transactionCost.currency,
+    currencyKey: currencyKeyByType[transactionCost.currency]
   };
 }
 

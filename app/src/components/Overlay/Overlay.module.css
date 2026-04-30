@@ -190,7 +190,8 @@
 }
 
 .footer {
-  padding: 0 var(--overlay-panel-inline-padding) var(--overlay-panel-bottom-padding);
+  border-top: 1px solid rgba(75, 47, 29, 0.1);
+  padding: 0.9rem var(--overlay-panel-inline-padding) var(--overlay-panel-bottom-padding);
 }
 
 .detailsGrid {

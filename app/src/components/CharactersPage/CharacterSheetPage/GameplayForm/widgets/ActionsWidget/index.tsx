@@ -1236,6 +1236,13 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
         selectedAction.action.disabledReason ??
         null)
       : null;
+  const selectedWildShapeSelectionWarning =
+    selectedAction?.kind === "feature" &&
+    selectedAction.drawer.kind === "custom-form" &&
+    selectedAction.drawer.formKind === "wild-shape" &&
+    wildShapeKnownForms.length <= 0
+      ? "No Beast Shapes are selected yet."
+      : null;
   const selectedBardicInspirationFallbackDisabledReason =
     selectedFeatureAction?.key !== bardicInspirationActionKey ||
     !showBardicInspirationFallbackSlotSelect
@@ -1364,6 +1371,7 @@ function ActionsWidget({ character, onPersistCharacter }: ActionsWidgetProps) {
   const selectedDrawerWarning =
     selectedOptionWarning ??
     selectedLayOnHandsWarning ??
+    selectedWildShapeSelectionWarning ??
     (selectedAction?.kind === "feature" &&
     selectedAction.drawer.kind === "custom-form" &&
     selectedAction.drawer.formKind === "font-of-magic" &&

@@ -1,6 +1,8 @@
 import CellContainer from "../CellContainer/CellContainer";
+import type { ReactNode } from "react";
 import DescriptionContent from "../DescriptionContent/DescriptionContent";
 import { buildItemDetailPresentation } from "../../pages/ItemCodexEntryPage/itemPresentation";
+import type { SpellDescriptionEntry } from "../../codex/entries";
 import type { ItemRecord } from "../../types";
 import ItemInspectionHeader from "./ItemInspectionHeader";
 import WeaponMasteryStatusLabel from "../WeaponMasteryStatusLabel/WeaponMasteryStatusLabel";
@@ -10,6 +12,8 @@ type ItemInspectionContentProps = {
   item: ItemRecord;
   className?: string;
   showHeader?: boolean;
+  descriptionAdditions?: SpellDescriptionEntry[];
+  costSuffix?: ReactNode;
   weaponMasteryActive?: boolean;
   weaponProficient?: boolean;
   onOpenWeaponReference?: (title: string, keywords: string[]) => void;
@@ -23,11 +27,14 @@ function ItemInspectionContent({
   item,
   className,
   showHeader = true,
+  descriptionAdditions = [],
+  costSuffix,
   weaponMasteryActive = false,
   weaponProficient = false,
   onOpenWeaponReference
 }: ItemInspectionContentProps) {
   const presentation = buildItemDetailPresentation(item);
+  const description = [...presentation.description, ...descriptionAdditions];
   const weaponReferenceKeywords = {
     Properties: normalizeWeaponReferenceLabels(presentation.weapon?.propertyLabels ?? []),
     Mastery: normalizeWeaponReferenceLabels(presentation.weapon?.masteryLabels ?? [])
@@ -45,10 +52,10 @@ function ItemInspectionContent({
     <article className={className ?? styles.card}>
       {showHeader ? <ItemInspectionHeader item={item} /> : null}
 
-      {presentation.description.length > 0 ? (
+      {description.length > 0 ? (
         <section className={styles.section}>
           <DescriptionContent
-            description={presentation.description}
+            description={description}
             className={styles.descriptionBlock}
             entryClassName={styles.descriptionParagraph}
           />
@@ -57,14 +64,25 @@ function ItemInspectionContent({
 
       <section className={styles.section}>
         <div className={styles.cellGrid}>
-          {presentation.stapleCells.map((cell) => (
-            <CellContainer
-              key={cell.label}
-              label={cell.label}
-              content={cell.value}
-              breakdown={cell.note ?? undefined}
-            />
-          ))}
+          {presentation.stapleCells.map((cell) => {
+            const content =
+              cell.label === "Cost" && costSuffix ? (
+                <>
+                  {cell.value} <span className={styles.costSuffix}>{costSuffix}</span>
+                </>
+              ) : (
+                cell.value
+              );
+
+            return (
+              <CellContainer
+                key={cell.label}
+                label={cell.label}
+                content={content}
+                breakdown={cell.note ?? undefined}
+              />
+            );
+          })}
         </div>
       </section>
 

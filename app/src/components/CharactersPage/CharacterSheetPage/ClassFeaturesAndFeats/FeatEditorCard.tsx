@@ -12,35 +12,51 @@ import {
 import {
   getToolProficiencyLabel,
   skillsOptions,
-  toolProficiencyOptions
+  toolProficiencyOptions,
+  type ToolProficiency
 } from "../../../../pages/CharactersPage/proficiencyOptions";
-import type { AbilityKey, CharacterFeatEntry } from "../../../../types";
+import { crafterFastCraftingToolProficiencies } from "../../../../pages/CharactersPage/crafterFeat";
+import type { AbilityKey, CharacterFeatEntry, ToolProficiencyEntry } from "../../../../types";
+import type { FeatEligibilityResult } from "../../../../pages/CharactersPage/featEligibility";
+import ActionButton from "../../../ActionButton";
+import SelectInput from "../../FormInputs/SelectInput";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import cardStyles from "./FeatCards.module.css";
 import modalStyles from "./FeatEditorModal.module.css";
 import {
   getPendingBlessedWarriorChoiceSummary,
+  getPendingCrafterChoiceSummary,
   getPendingDruidicWarriorChoiceSummary,
   getPendingSkilledChoiceSummary,
   getRepeatableFeatEntrySummary,
   isPendingBlessedWarriorChoiceValid,
+  isPendingCrafterChoiceValid,
   isPendingDruidicWarriorChoiceValid,
   isPendingSkilledChoiceValid,
+  crafterNoneOptionValue,
+  crafterSelectionIndices,
   skilledNoneOptionValue,
   skilledSelectionIndices,
   triggerActionOnEnterOrSpace
 } from "./featEditorUtils";
-import { updateSelectionAtIndex } from "./helpers";
+import {
+  buildToolSelectOptions,
+  getSelectableUnproficientToolOptions,
+  updateSelectionAtIndex
+} from "./helpers";
 import type {
   PendingAbilityScoreImprovement,
   PendingBlessedWarriorChoice,
   PendingDruidicWarriorChoice,
+  PendingCrafterChoice,
   PendingFeatState,
   TrackingButtonRenderer
 } from "./types";
 
 type FeatEditorCardProps = {
   featDefinition: FeatDefinition;
+  featEligibility?: FeatEligibilityResult;
+  toolProficiencies: ToolProficiencyEntry[];
   selectedEntries: CharacterFeatEntry[];
   pendingFeatState: PendingFeatState;
   blessedWarriorCantripOptions: SpellEntry[];
@@ -53,6 +69,7 @@ type FeatEditorCardProps = {
   onSavePendingAbilityScoreImprovement: () => void;
   onSavePendingBoonOfIrresistibleOffense: () => void;
   onSavePendingBlessedWarriorChoice: () => void;
+  onSavePendingCrafterChoice: () => void;
   onSavePendingDruidicWarriorChoice: () => void;
   onSavePendingEpicBoonAbilityChoice: () => void;
   onSavePendingSkilledChoice: () => void;
@@ -70,6 +87,7 @@ type SelectFieldProps = {
   label: string;
   value: string;
   options: Array<{
+    disabled?: boolean;
     label: string;
     value: string;
   }>;
@@ -101,21 +119,31 @@ type SingleAbilityEditorProps = {
   onChange: (nextValue: string) => void;
 };
 
+type CrafterChoiceEditorProps = {
+  choice: PendingCrafterChoice;
+  summary: string | null;
+  isValid: boolean;
+  toolProficiencies: ToolProficiencyEntry[];
+  onCancel: () => void;
+  onSave: () => void;
+  onChange: (selectionIndex: number, nextValue: string) => void;
+};
+
 function SelectField({ label, value, options, onChange }: SelectFieldProps) {
   return (
     <label className={modalStyles.field}>
       <span>{label}</span>
-      <select
+      <SelectInput
         className={modalStyles.select}
         value={value}
         onChange={(event) => onChange(event.target.value)}
       >
         {options.map((option) => (
-          <option key={option.value} value={option.value}>
+          <option key={option.value} value={option.value} disabled={option.disabled}>
             {option.label}
           </option>
         ))}
-      </select>
+      </SelectInput>
     </label>
   );
 }
@@ -169,15 +197,14 @@ function CantripChoiceEditor({
       onCancel={onCancel}
       footer={
         <div className={modalStyles.editorActions}>
-          <button
-            type="button"
-            className={shared.saveButton}
+          <ActionButton
+            icon={<Plus size={16} />}
+            fullWidth={false}
             disabled={!isValid}
             onClick={onSave}
           >
-            <Plus size={16} />
             Add Feat
-          </button>
+          </ActionButton>
         </div>
       }
     >
@@ -219,10 +246,9 @@ function SingleAbilityEditor({
       onCancel={onCancel}
       footer={
         <div className={modalStyles.editorActions}>
-          <button type="button" className={shared.saveButton} onClick={onSave}>
-            <Plus size={16} />
+          <ActionButton icon={<Plus size={16} />} fullWidth={false} onClick={onSave}>
             Add Feat
-          </button>
+          </ActionButton>
         </div>
       }
     >
@@ -238,6 +264,83 @@ function SingleAbilityEditor({
         />
       </div>
       <p className={modalStyles.summary}>{summary}</p>
+    </InlineEditorFrame>
+  );
+}
+
+function CrafterChoiceEditor({
+  choice,
+  summary,
+  isValid,
+  toolProficiencies,
+  onCancel,
+  onSave,
+  onChange
+}: CrafterChoiceEditorProps) {
+  return (
+    <InlineEditorFrame
+      title="Crafter"
+      cancelLabel="Cancel crafter tool selection"
+      onCancel={onCancel}
+      footer={
+        <div className={modalStyles.editorActions}>
+          <ActionButton
+            icon={<Plus size={16} />}
+            fullWidth={false}
+            disabled={!isValid}
+            onClick={onSave}
+          >
+            Add Feat
+          </ActionButton>
+        </div>
+      }
+    >
+      <div className={modalStyles.singleFieldGrid}>
+        {crafterSelectionIndices.map((selectionIndex) => {
+          const currentValue = choice.toolProficiencies[selectionIndex];
+          const currentTool =
+            currentValue === crafterNoneOptionValue ? null : (currentValue as ToolProficiency);
+          const blockedSelections = choice.toolProficiencies.filter(
+            (tool, index) => index !== selectionIndex && tool !== crafterNoneOptionValue
+          ) as ToolProficiency[];
+          const availableTools = getSelectableUnproficientToolOptions(
+            { toolProficiencies },
+            crafterFastCraftingToolProficiencies,
+            currentTool,
+            blockedSelections
+          );
+
+          return (
+            <SelectField
+              key={`crafter-tool-${selectionIndex}`}
+              label={`Tool ${selectionIndex + 1}`}
+              value={currentValue}
+              options={[
+                {
+                  label: "-",
+                  value: crafterNoneOptionValue
+                },
+                ...buildToolSelectOptions(
+                  crafterFastCraftingToolProficiencies,
+                  availableTools,
+                  currentTool
+                ).map((option) => ({
+                  disabled: option.disabled,
+                  label: option.label,
+                  value: option.tool
+                }))
+              ]}
+              onChange={(nextValue) => onChange(selectionIndex, nextValue)}
+            />
+          );
+        })}
+      </div>
+      {summary ? <p className={modalStyles.summary}>{summary}</p> : null}
+      {!isValid ? (
+        <p className={modalStyles.validation}>
+          Choose three different Artisan&apos;s Tools from the Fast Crafting table.
+        </p>
+      ) : null}
     </InlineEditorFrame>
   );
 }
@@ -263,15 +366,14 @@ function AbilityScoreImprovementEditor({
       onCancel={onCancel}
       footer={
         <div className={modalStyles.editorActions}>
-          <button
-            type="button"
-            className={shared.saveButton}
+          <ActionButton
+            icon={<Plus size={16} />}
+            fullWidth={false}
             disabled={isInvalidSplitChoice}
             onClick={onSave}
           >
-            <Plus size={16} />
             Add Feat
-          </button>
+          </ActionButton>
         </div>
       }
     >
@@ -366,6 +468,8 @@ function AbilityScoreImprovementEditor({
 
 function renderInlineEditor({
   featDefinition,
+  featEligibility,
+  toolProficiencies,
   pendingFeatState,
   blessedWarriorCantripOptions,
   druidicWarriorCantripOptions,
@@ -373,17 +477,18 @@ function renderInlineEditor({
   onSavePendingAbilityScoreImprovement,
   onSavePendingBoonOfIrresistibleOffense,
   onSavePendingBlessedWarriorChoice,
+  onSavePendingCrafterChoice,
   onSavePendingDruidicWarriorChoice,
   onSavePendingEpicBoonAbilityChoice,
   onSavePendingSkilledChoice
 }: Omit<
   FeatEditorCardProps,
-  | "selectedEntries"
-  | "renderTrackingButton"
-  | "onOpenFeatReference"
-  | "onAddFeat"
-  | "onRemoveFeat"
+  "selectedEntries" | "renderTrackingButton" | "onOpenFeatReference" | "onAddFeat" | "onRemoveFeat"
 >) {
+  if (featEligibility && !featEligibility.isEligible) {
+    return null;
+  }
+
   if (
     featDefinition.feat === FEATS.ABILITY_SCORE_IMPROVEMENT &&
     pendingFeatState.abilityScoreImprovement
@@ -508,6 +613,41 @@ function renderInlineEditor({
     );
   }
 
+  if (featDefinition.feat === FEATS.CRAFTER && pendingFeatState.crafterChoice) {
+    const crafterChoice = pendingFeatState.crafterChoice;
+
+    return (
+      <CrafterChoiceEditor
+        choice={crafterChoice}
+        summary={getPendingCrafterChoiceSummary(crafterChoice)}
+        isValid={isPendingCrafterChoiceValid(crafterChoice)}
+        toolProficiencies={toolProficiencies}
+        onCancel={() =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            crafterChoice: null
+          }))
+        }
+        onSave={onSavePendingCrafterChoice}
+        onChange={(selectionIndex, nextValue) =>
+          onPendingFeatStateChange((current) => ({
+            ...current,
+            crafterChoice: current.crafterChoice
+              ? {
+                  toolProficiencies: updateSelectionAtIndex(
+                    current.crafterChoice.toolProficiencies,
+                    3,
+                    selectionIndex,
+                    nextValue
+                  ) as PendingCrafterChoice["toolProficiencies"]
+                }
+              : current.crafterChoice
+          }))
+        }
+      />
+    );
+  }
+
   if (
     pendingFeatState.epicBoonAbilityChoice &&
     pendingFeatState.epicBoonAbilityChoice.feat === featDefinition.feat
@@ -559,15 +699,14 @@ function renderInlineEditor({
         }
         footer={
           <div className={modalStyles.editorActions}>
-            <button
-              type="button"
-              className={shared.saveButton}
+            <ActionButton
+              icon={<Plus size={16} />}
+              fullWidth={false}
               disabled={!isPendingSkilledChoiceValid(skilledChoice)}
               onClick={onSavePendingSkilledChoice}
             >
-              <Plus size={16} />
               Add Feat
-            </button>
+            </ActionButton>
           </div>
         }
       >
@@ -617,9 +756,7 @@ function renderInlineEditor({
           ))}
         </div>
         {getPendingSkilledChoiceSummary(skilledChoice) ? (
-          <p className={modalStyles.summary}>
-            {getPendingSkilledChoiceSummary(skilledChoice)}
-          </p>
+          <p className={modalStyles.summary}>{getPendingSkilledChoiceSummary(skilledChoice)}</p>
         ) : null}
         {!isPendingSkilledChoiceValid(skilledChoice) ? (
           <p className={modalStyles.validation}>Choose three different skills or tools.</p>
@@ -633,6 +770,8 @@ function renderInlineEditor({
 
 function FeatEditorCard({
   featDefinition,
+  featEligibility,
+  toolProficiencies,
   selectedEntries,
   pendingFeatState,
   blessedWarriorCantripOptions,
@@ -645,20 +784,24 @@ function FeatEditorCard({
   onSavePendingAbilityScoreImprovement,
   onSavePendingBoonOfIrresistibleOffense,
   onSavePendingBlessedWarriorChoice,
+  onSavePendingCrafterChoice,
   onSavePendingDruidicWarriorChoice,
   onSavePendingEpicBoonAbilityChoice,
   onSavePendingSkilledChoice
 }: FeatEditorCardProps) {
   const isRepeatable = Boolean(featDefinition.repeatable);
   const isSelected = selectedEntries.length > 0;
-  const isAddDisabled = !isRepeatable && isSelected;
+  const unmetRequirementText = featEligibility?.unmetRequirements.join(" ") ?? "";
+  const isRequirementBlocked = featEligibility ? !featEligibility.isEligible : false;
+  const isAddDisabled = (!isRepeatable && isSelected) || isRequirementBlocked;
 
   return (
     <article
       className={clsx(
         cardStyles.card,
         cardStyles.interactiveCard,
-        isSelected && cardStyles.selectedCard
+        isSelected && cardStyles.selectedCard,
+        isRequirementBlocked && cardStyles.unavailableCard
       )}
       role="button"
       tabIndex={0}
@@ -677,7 +820,9 @@ function FeatEditorCard({
         </div>
       </div>
       {featDefinition.prerequisite ? (
-        <p className={cardStyles.meta}>{`Prerequisite: ${featDefinition.prerequisite}`}</p>
+        <p
+          className={clsx(cardStyles.meta, isRequirementBlocked && cardStyles.metaUnavailable)}
+        >{`Prerequisite: ${featDefinition.prerequisite}`}</p>
       ) : null}
       {isRepeatable && selectedEntries.length > 0 ? (
         <ul className={cardStyles.selectedList}>
@@ -703,6 +848,8 @@ function FeatEditorCard({
       ) : null}
       {renderInlineEditor({
         featDefinition,
+        featEligibility,
+        toolProficiencies,
         pendingFeatState,
         blessedWarriorCantripOptions,
         druidicWarriorCantripOptions,
@@ -710,6 +857,7 @@ function FeatEditorCard({
         onSavePendingAbilityScoreImprovement,
         onSavePendingBoonOfIrresistibleOffense,
         onSavePendingBlessedWarriorChoice,
+        onSavePendingCrafterChoice,
         onSavePendingDruidicWarriorChoice,
         onSavePendingEpicBoonAbilityChoice,
         onSavePendingSkilledChoice
@@ -720,6 +868,7 @@ function FeatEditorCard({
             type="button"
             className={clsx(shared.editButton, modalStyles.addButton)}
             disabled={isAddDisabled}
+            title={unmetRequirementText || undefined}
             onClick={(event) => {
               event.stopPropagation();
               onAddFeat(featDefinition.feat);

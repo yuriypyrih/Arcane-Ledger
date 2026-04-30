@@ -2,7 +2,6 @@ import { BookOpen } from "lucide-react";
 import type { MonsterRecord } from "../../../../../../../types";
 import RadioContainerOption from "../../../../RadioContainerOption";
 import { formatWildShapeMonsterMeta } from "../actionsWidgetPresentation";
-import shared from "../../../../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "../ActionsWidget.module.css";
 
 type WildShapeActionBodyProps = {
@@ -19,7 +18,7 @@ function WildShapeActionBody({
   onPreviewMonster
 }: WildShapeActionBodyProps) {
   if (monsters.length === 0) {
-    return <p className={shared.emptyText}>No Beast Shapes are selected yet.</p>;
+    return null;
   }
 
   return (

@@ -112,6 +112,11 @@ import styles from "./EquipmentForm.module.css";
 import { useItemEntry } from "../../../../pages/ItemCodexEntryPage/useItemEntry";
 import WeaponMasteryStatusLabel from "../../../WeaponMasteryStatusLabel/WeaponMasteryStatusLabel";
 import { getEquipmentRuntimeForCharacter } from "../../../../pages/CharactersPage/characterRuntime/equipmentRuntime";
+import {
+  crafterDiscountDescription,
+  formatCrafterDiscountCostSuffix,
+  getCrafterDiscountMultiplier
+} from "../../../../pages/CharactersPage/crafterFeat";
 
 type EquipmentFormProps = {
   character: Character;
@@ -703,7 +708,19 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     ? selectedHeldInventoryCopies.length
     : 0;
   const selectedInventoryTransactionCost = selectedInventoryRecord
-    ? getItemTransactionCost(selectedInventoryRecord)
+    ? getItemTransactionCost(selectedInventoryRecord, {
+        multiplier: getCrafterDiscountMultiplier(character, selectedInventoryRecord),
+        rounding: "ceil"
+      })
+    : null;
+  const selectedInventorySaleCost = selectedInventoryRecord
+    ? getItemTransactionCost(selectedInventoryRecord, {
+        multiplier: 0.5,
+        rounding: "floor"
+      })
+    : null;
+  const selectedInventoryCrafterDiscountSuffix = selectedInventoryRecord
+    ? formatCrafterDiscountCostSuffix(character, selectedInventoryRecord)
     : null;
   const selectedInventoryHandDescriptor =
     selectedInventoryGroup && selectedAvailableInventoryCopy
@@ -938,7 +955,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       return;
     }
 
-    const transactionCost = getItemTransactionCost(item);
+    const transactionCost = getItemTransactionCost(item, {
+      multiplier: getCrafterDiscountMultiplier(character, item),
+      rounding: "ceil"
+    });
 
     if (!transactionCost || transactionCost.amount <= 0) {
       return;
@@ -1001,7 +1021,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
       return;
     }
 
-    const transactionCost = getItemTransactionCost(item);
+    const transactionCost = getItemTransactionCost(item, {
+      multiplier: 0.5,
+      rounding: "floor"
+    });
 
     if (!transactionCost || transactionCost.amount <= 0) {
       return;
@@ -1467,8 +1490,8 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
           disabled:
             !selectedInventoryRecord ||
             selectedInventoryCount <= 0 ||
-            !selectedInventoryTransactionCost ||
-            selectedInventoryTransactionCost.amount <= 0,
+            !selectedInventorySaleCost ||
+            selectedInventorySaleCost.amount <= 0,
           onClick: () => {
             if (selectedInventoryRecord) {
               sellInventoryItemCopy(selectedInventoryRecord);
@@ -1527,9 +1550,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield, normalizeCurrencyAmountInput,
     normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
     openWeaponReference, pendingDeleteCustomEquipment, removeEquipmentItem, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedEquipmentGroups, selectedInventoryInspection, selectedInventoryItemStatus,
-    selectedInventoryRecord, selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery,
+    selectedInventoryCrafterDiscountSuffix, selectedInventoryRecord, selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery,
     selectedWeaponHasProficiency, selectedWeaponMasteryKeywords, selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsGeneralEquipmentExpanded,
     setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, sheetStyles, shouldOfferHandSwap, styles, swapEntryToHand, toggleArmorWorn,
+    crafterDiscountDescription,
     toggleEntryOnHand
   });
 }
