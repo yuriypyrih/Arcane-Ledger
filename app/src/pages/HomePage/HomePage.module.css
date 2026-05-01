@@ -73,7 +73,7 @@
 }
 
 .primaryAction {
-  background: linear-gradient(135deg, #5e3a24, #8f5b38);
+  background: var(--gradient-primary-action);
   color: #fff8ee;
 }
 

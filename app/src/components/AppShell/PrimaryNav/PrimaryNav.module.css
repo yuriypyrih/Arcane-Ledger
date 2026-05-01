@@ -31,7 +31,7 @@
   border: 1px solid transparent;
   border-radius: 999px;
   background: transparent;
-  color: rgba(255, 248, 238, 0.76);
+  color: rgba(255, 244, 225, 0.82);
   min-height: 34px;
   text-decoration: none;
   transition:
@@ -42,7 +42,7 @@
 
 .brandLink {
   gap: 0.3rem;
-  color: #fff8ee;
+  color: #fff4df;
   font-family: "Palatino Linotype", "Book Antiqua", Georgia, serif;
   font-size: 1.02rem;
   font-weight: 700;
@@ -60,15 +60,16 @@
 
 .brandLink:hover,
 .navLink:hover {
-  background: rgba(255, 248, 238, 0.09);
-  border-color: rgba(255, 248, 238, 0.12);
+  background: rgba(255, 198, 112, 0.14);
+  border-color: rgba(255, 218, 164, 0.2);
   color: #fff8ee;
 }
 
 .navLinkActive {
-  background: rgba(210, 141, 64, 0.2);
-  border-color: rgba(255, 218, 164, 0.2);
+  background: rgba(196, 81, 43, 0.34);
+  border-color: rgba(255, 205, 128, 0.32);
   color: #fff8ee;
+  box-shadow: 0 0 0 1px rgba(255, 244, 225, 0.04) inset;
 }
 
 .menuButton {

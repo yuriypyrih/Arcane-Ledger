@@ -40,7 +40,7 @@
   align-items: center;
   justify-content: center;
   border-radius: 18px;
-  background: linear-gradient(135deg, #5e3a24, #8f5b38);
+  background: var(--gradient-primary-action);
   color: #fff8ee;
   min-height: 54px;
   padding: 0 1.25rem;

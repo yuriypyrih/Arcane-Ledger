@@ -125,7 +125,7 @@
 }
 
 .saveButton {
-  background: linear-gradient(135deg, #5e3a24, #8f5b38);
+  background: var(--gradient-primary-action);
   color: #fff8ee;
 }
 
@@ -136,7 +136,7 @@
 }
 
 .saveButton:disabled {
-  background: linear-gradient(135deg, rgba(94, 58, 36, 0.58), rgba(143, 91, 56, 0.58));
+  background: linear-gradient(135deg, rgba(33, 75, 157, 0.58), rgba(74, 142, 255, 0.58));
   color: rgba(255, 248, 238, 0.82);
 }
 
@@ -174,13 +174,13 @@
 }
 
 .choiceChip input {
-  accent-color: #8f5b38;
+  accent-color: var(--color-accent);
   margin: 0;
 }
 
 .choiceChipActive {
-  background: rgba(143, 91, 56, 0.18);
-  border-color: rgba(143, 91, 56, 0.42);
+  background: rgba(47, 99, 197, 0.14);
+  border-color: rgba(47, 99, 197, 0.36);
 }
 
 .tagList {

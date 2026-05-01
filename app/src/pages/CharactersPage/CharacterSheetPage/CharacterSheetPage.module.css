@@ -1,7 +1,7 @@
 .page {
   display: grid;
   gap: var(--space-page-gap);
-  max-width: 1120px;
+  max-width: 1200px;
   margin: 0 auto;
   padding-bottom: calc(env(safe-area-inset-bottom, 0px) + clamp(6.8rem, 12vw, 9.2rem));
 }
@@ -37,7 +37,7 @@
   justify-content: center;
   justify-self: start;
   border-radius: 16px;
-  background: linear-gradient(135deg, #5e3a24, #8f5b38);
+  background: var(--gradient-primary-action);
   color: #fff8ee;
   min-height: 46px;
   padding: 0 1rem;
@@ -121,7 +121,7 @@
 }
 
 .saveButton {
-  background: linear-gradient(135deg, #5e3a24, #8f5b38);
+  background: var(--gradient-primary-action);
   color: #fff8ee;
 }
 

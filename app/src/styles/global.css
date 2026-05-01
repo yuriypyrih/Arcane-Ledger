@@ -23,12 +23,12 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --color-ink: #2e2017;
-  --color-ink-soft: #664b38;
-  --color-accent: #8f5b38;
+  --color-ink: #24150f;
+  --color-ink-soft: #5f3f2c;
+  --color-accent: #a24d2d;
   --color-panel-strong: #fffaf1;
   --color-panel-surface: #fffdf8;
-  --color-panel-muted: #f3eadf;
+  --color-panel-muted: #f1e4d5;
   --space-shell-gutter: clamp(0.5rem, 2.2vw, 1.35rem);
   --space-page-gap: clamp(0.65rem, 2vw, 1.35rem);
   --space-section-gap: clamp(0.6rem, 1.7vw, 1.1rem);

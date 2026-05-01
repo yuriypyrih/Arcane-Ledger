@@ -313,7 +313,7 @@
 }
 
 .alignmentOptionActive {
-  background: linear-gradient(135deg, #5e3a24, #8f5b38);
+  background: var(--gradient-primary-action);
   box-shadow: 0 10px 22px rgba(54, 34, 21, 0.16);
   color: #fff8ee;
 }
@@ -433,8 +433,8 @@
 }
 
 .radioChoiceCardActive {
-  background: rgba(143, 91, 56, 0.18);
-  border-color: rgba(143, 91, 56, 0.42);
+  background: rgba(47, 99, 197, 0.14);
+  border-color: rgba(47, 99, 197, 0.36);
 }
 
 .grantedSkillList {
@@ -479,12 +479,12 @@
 }
 
 .choiceOptionActive {
-  background: rgba(143, 91, 56, 0.18);
-  border-color: rgba(143, 91, 56, 0.42);
+  background: rgba(47, 99, 197, 0.14);
+  border-color: rgba(47, 99, 197, 0.36);
 }
 
 .choiceCheckbox {
-  accent-color: #8f5b38;
+  accent-color: var(--color-accent);
   block-size: 16px;
   inline-size: 16px;
   margin: 0;
@@ -498,7 +498,7 @@
 
 .primaryButton {
   border-radius: 18px;
-  background: linear-gradient(135deg, #5e3a24, #8f5b38);
+  background: var(--gradient-primary-action);
   color: #fff8ee;
   min-height: 52px;
   padding: 0 1.2rem;

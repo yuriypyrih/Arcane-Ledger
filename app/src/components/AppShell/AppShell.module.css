@@ -11,10 +11,12 @@
   min-height: 52px;
   max-height: 64px;
   margin: 0 calc(var(--shell-gutter) * -1) var(--space-page-gap);
-  border-bottom: 1px solid rgba(255, 244, 225, 0.08);
-  background: linear-gradient(180deg, rgba(42, 27, 18, 0.98), rgba(31, 20, 14, 0.98));
+  border-bottom: 1px solid rgba(255, 221, 164, 0.18);
+  background:
+    linear-gradient(90deg, rgba(97, 39, 29, 0.34), rgba(166, 84, 42, 0.16), rgba(54, 28, 20, 0)),
+    linear-gradient(180deg, rgba(42, 22, 17, 0.99), rgba(25, 15, 12, 0.99));
   backdrop-filter: blur(10px);
-  box-shadow: 0 6px 18px rgba(32, 18, 12, 0.16);
+  box-shadow: 0 2px 6px rgba(32, 18, 12, 0.9);
 }
 
 .headerInner {
