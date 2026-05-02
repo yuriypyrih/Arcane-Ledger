@@ -298,6 +298,116 @@ export function createPendingFeatStateForFeat(feat: FEATS): PendingFeatState | n
   return null;
 }
 
+function encodeSkilledSelection(selection: SkilledFeatSelection): string {
+  return selection.kind === "skill" ? `skill:${selection.skill}` : `tool:${selection.tool}`;
+}
+
+export function createPendingFeatStateForEntry(entry: CharacterFeatEntry): PendingFeatState | null {
+  const fallbackState = createPendingFeatStateForFeat(entry.feat);
+
+  if (entry.feat === FEATS.ABILITY_SCORE_IMPROVEMENT && entry.abilityScoreImprovement) {
+    return {
+      ...createEmptyPendingFeatState(),
+      abilityScoreImprovement:
+        entry.abilityScoreImprovement.mode === "single"
+          ? {
+              mode: "single",
+              primaryAbility: entry.abilityScoreImprovement.primaryAbility,
+              secondaryAbility: "DEX"
+            }
+          : {
+              mode: "split",
+              primaryAbility: entry.abilityScoreImprovement.primaryAbility,
+              secondaryAbility: entry.abilityScoreImprovement.secondaryAbility
+            }
+    };
+  }
+
+  if (entry.feat === FEATS.BLESSED_WARRIOR && entry.blessedWarrior) {
+    return {
+      ...createEmptyPendingFeatState(),
+      blessedWarriorChoice: {
+        cantripIds: entry.blessedWarrior.cantripIds
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.DRUIDIC_WARRIOR && entry.druidicWarrior) {
+    return {
+      ...createEmptyPendingFeatState(),
+      druidicWarriorChoice: {
+        cantripIds: entry.druidicWarrior.cantripIds
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.CRAFTER && entry.crafter) {
+    return {
+      ...createEmptyPendingFeatState(),
+      crafterChoice: {
+        toolProficiencies: entry.crafter.toolProficiencies
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.MAGIC_INITIATE && entry.magicInitiate) {
+    return {
+      ...createEmptyPendingFeatState(),
+      magicInitiateChoice: {
+        spellList: entry.magicInitiate.spellList,
+        lockedSpellList:
+          entry.source.type === "background" ? entry.magicInitiate.spellList : undefined,
+        cantripIds: entry.magicInitiate.cantripIds,
+        levelOneSpellId: entry.magicInitiate.levelOneSpellId,
+        spellcastingAbility: entry.magicInitiate.spellcastingAbility
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.MUSICIAN && entry.musician) {
+    return {
+      ...createEmptyPendingFeatState(),
+      musicianChoice: {
+        toolProficiencies: entry.musician.toolProficiencies
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE && entry.boonOfIrresistibleOffense) {
+    return {
+      ...createEmptyPendingFeatState(),
+      boonOfIrresistibleOffense: {
+        ability: entry.boonOfIrresistibleOffense.ability
+      }
+    };
+  }
+
+  if (entry.epicBoonAbilityChoice) {
+    return {
+      ...createEmptyPendingFeatState(),
+      epicBoonAbilityChoice: {
+        feat: entry.feat,
+        ability: entry.epicBoonAbilityChoice.ability
+      }
+    };
+  }
+
+  if (entry.feat === FEATS.SKILLED && entry.skilled) {
+    return {
+      ...createEmptyPendingFeatState(),
+      skilledChoice: {
+        selections: entry.skilled.selections.map(encodeSkilledSelection) as [
+          string,
+          string,
+          string
+        ]
+      }
+    };
+  }
+
+  return fallbackState;
+}
+
 export function decodePendingBlessedWarriorChoice(
   choice: PendingBlessedWarriorChoice
 ): BlessedWarriorChoice | null {

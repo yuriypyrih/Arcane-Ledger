@@ -213,6 +213,7 @@ export function normalizeCharacterProficiencies(
     options.species,
     options.background,
     {
+      backgroundChoices: options.backgroundChoices,
       level: options.level,
       subclassId: options.subclassId,
       classFeatureState: options.classFeatureState,

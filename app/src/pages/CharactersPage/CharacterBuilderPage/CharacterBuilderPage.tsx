@@ -44,6 +44,7 @@ function CharacterBuilderPage() {
         },
         alignment: existingCharacter.alignment,
         background: existingCharacter.background,
+        backgroundChoices: existingCharacter.backgroundChoices,
         backgroundNotes: existingCharacter.backgroundNotes,
         currencies: existingCharacter.currencies,
         skills: getSelectedClassSkillSelectionsFromEntries(

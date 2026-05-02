@@ -1,11 +1,13 @@
 import { BookOpen, Clock3, Plus, ScrollText, Shield, Users } from "lucide-react";
 import { useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import ActionButton from "../../components/ActionButton";
 import { getClassSignatureStyle } from "../../components/CharactersPage/classSignature";
 import { loadCharacters } from "../CharactersPage/storage";
 import styles from "./HomePage.module.css";
 
 function HomePage() {
+  const navigate = useNavigate();
   const [characters] = useState(() => loadCharacters());
   const visibleCharacters = useMemo(() => characters.slice(0, 5), [characters]);
 
@@ -17,11 +19,14 @@ function HomePage() {
           <h2 className={styles.title}>Dashboard</h2>
         </div>
         <div className={styles.headerActions}>
-          <Link to="/characters/new" className={styles.primaryAction}>
-            <Plus size={16} aria-hidden="true" />
-            <span>New Character</span>
-          </Link>
-          <Link to="/codex" className={styles.secondaryAction}>
+          <ActionButton
+            icon={<Plus size={16} aria-hidden="true" />}
+            fullWidth={false}
+            onClick={() => navigate("/characters/new")}
+          >
+            New Character
+          </ActionButton>
+          <Link to="/library" className={styles.secondaryAction}>
             <BookOpen size={16} aria-hidden="true" />
             <span>Library</span>
           </Link>

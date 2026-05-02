@@ -59,6 +59,18 @@ function formatEnumLabel(value: string): string {
     .join(" ");
 }
 
+function formatCategoryOptionLabel(category: CodexFilterCategory): string {
+  if (category === ENTRY_CATEGORIES.ITEMS) {
+    return "Equipment";
+  }
+
+  if (category === ENTRY_CATEGORIES.MONSTERS) {
+    return "Bestiary";
+  }
+
+  return formatEnumLabel(category);
+}
+
 function formatSpellLevelOptionLabel(level: number | null): string {
   if (level === null) {
     return "All";
@@ -123,7 +135,7 @@ function CodexFilters({
 }: CodexFiltersProps) {
   const searchPlaceholder =
     category === ENTRY_CATEGORIES.ITEMS
-      ? "Search by name, rarity, category, or source..."
+      ? "Search equipment by name, rarity, category, or source..."
       : category === CODEX_FEATS_CATEGORY
         ? "Search feats by name, category, prerequisite, or description..."
         : "Search based on name, rarity, type..";
@@ -139,7 +151,7 @@ function CodexFilters({
         >
           {categories.map((item) => (
             <option key={item} value={item}>
-              {formatEnumLabel(item)}
+              {formatCategoryOptionLabel(item)}
             </option>
           ))}
         </select>

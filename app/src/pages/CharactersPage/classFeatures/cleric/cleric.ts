@@ -36,6 +36,7 @@ import {
   formatDivinityValueFormula
 } from "../../../../utils/codex";
 import { getFeatAbilityScoreBonusesForCharacter } from "../../featRuntime";
+import { getBackgroundAbilityScoreBonusesForCharacter } from "../../backgrounds";
 import type { WeaponAction } from "../../gameplay";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import {
@@ -131,12 +132,16 @@ function getAppliedAbilityScoreBonus(
 }
 
 function getFeatAdjustedAbilityScore(
-  character: Pick<Character, "abilities" | "level" | "feats">,
+  character: Pick<Character, "abilities" | "level" | "feats"> &
+    Partial<Pick<Character, "background" | "backgroundChoices">>,
   ability: AbilityKey
 ): number {
   let total = Math.max(1, Math.floor(character.abilities[ability]));
 
-  getFeatAbilityScoreBonusesForCharacter(character)
+  [
+    ...getBackgroundAbilityScoreBonusesForCharacter(character),
+    ...getFeatAbilityScoreBonusesForCharacter(character)
+  ]
     .filter((bonus) => bonus.ability === ability)
     .sort((left, right) => {
       const leftHasCap = left.maxScore !== null && left.maxScore !== undefined;
@@ -162,7 +167,8 @@ function getFeatAdjustedAbilityScore(
 }
 
 function getClericWisdomModifier(
-  character: Pick<Character, "abilities" | "level" | "feats">
+  character: Pick<Character, "abilities" | "level" | "feats"> &
+    Partial<Pick<Character, "background" | "backgroundChoices">>
 ): number {
   return Math.floor((getFeatAdjustedAbilityScore(character, "WIS") - 10) / 2);
 }
@@ -172,7 +178,10 @@ function getClericProficiencyBonus(level: number): number {
   return Math.floor((normalizedLevel - 1) / 4) + 2;
 }
 
-function getClericSpellSaveDc(character: Pick<Character, "level" | "abilities" | "feats">): number {
+function getClericSpellSaveDc(
+  character: Pick<Character, "level" | "abilities" | "feats"> &
+    Partial<Pick<Character, "background" | "backgroundChoices">>
+): number {
   return 8 + getClericProficiencyBonus(character.level) + getClericWisdomModifier(character);
 }
 

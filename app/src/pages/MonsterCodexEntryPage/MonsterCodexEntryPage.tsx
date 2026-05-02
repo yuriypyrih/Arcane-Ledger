@@ -8,7 +8,8 @@ function MonsterCodexEntryPage() {
   const { slug } = useParams();
   const [searchParams] = useSearchParams();
   const { monster, status } = useMonsterEntry(slug);
-  const backToCodexPath = searchParams.toString().length > 0 ? `/codex?${searchParams}` : "/codex";
+  const backToCodexPath =
+    searchParams.toString().length > 0 ? `/library?${searchParams}` : "/library";
 
   return (
     <section className={styles.page}>

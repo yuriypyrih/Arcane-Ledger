@@ -43,6 +43,7 @@ import FeatList from "./FeatList";
 import FeatReferenceDrawer from "./FeatReferenceDrawer";
 import {
   createEmptyPendingFeatState,
+  createPendingFeatStateForEntry,
   createPendingFeatStateForFeat,
   decodePendingBlessedWarriorChoice,
   decodePendingCrafterChoice,
@@ -55,6 +56,7 @@ import {
   applyFeatEditorDraftToCharacter,
   createFeatEditorDraft,
   removeFeatFromDraft,
+  updateFeatInDraft,
   upsertFeatInDraft,
   type FeatEditorDraft
 } from "./featDrafts";
@@ -112,6 +114,7 @@ function ClassFeaturesAndFeats({
   const [pendingFeatState, setPendingFeatState] = useState<PendingFeatState>(
     createEmptyPendingFeatState
   );
+  const [editingFeatEntryId, setEditingFeatEntryId] = useState<string | null>(null);
   const [featEditorDraft, setFeatEditorDraftState] = useState(() =>
     createFeatEditorDraft(character)
   );
@@ -378,6 +381,7 @@ function ClassFeaturesAndFeats({
 
   function resetPendingFeatState() {
     setPendingFeatState(createEmptyPendingFeatState());
+    setEditingFeatEntryId(null);
   }
 
   function setFeatEditorDraft(
@@ -434,6 +438,23 @@ function ClassFeaturesAndFeats({
       return;
     }
 
+    const editingEntry = editingFeatEntryId
+      ? featEditorDraftRef.current.feats.find((entry) => entry.id === editingFeatEntryId)
+      : null;
+
+    if (editingEntry && editingEntry.feat === featEntry.feat) {
+      const nextDraft = updateFeatInDraft(featEditorDraftRef.current, editingEntry, {
+        ...featEntry,
+        id: editingEntry.id,
+        source: editingEntry.source,
+        takenAtLevel: editingEntry.takenAtLevel
+      });
+
+      setFeatEditorDraft(nextDraft);
+      resetPendingFeatState();
+      return;
+    }
+
     const sourceContext = getClassFeatureSourceContext();
     const nextDraft = upsertFeatInDraft(featEditorDraftRef.current, featEntry, sourceContext);
 
@@ -443,6 +464,9 @@ function ClassFeaturesAndFeats({
 
   function removeFeat(entryToRemove: CharacterFeatEntry) {
     setFeatEditorDraft((currentDraft) => removeFeatFromDraft(currentDraft, entryToRemove));
+    setEditingFeatEntryId((currentEntryId) =>
+      currentEntryId === entryToRemove.id ? null : currentEntryId
+    );
 
     setSelectedFeatReference((current) =>
       current?.entry?.id === entryToRemove.id ? null : current
@@ -525,11 +549,27 @@ function ClassFeaturesAndFeats({
     const pendingState = createPendingFeatStateForFeat(feat);
 
     if (pendingState) {
+      setEditingFeatEntryId(null);
       setPendingFeatState(pendingState);
       return;
     }
 
     upsertFeatForContext(createContextualFeatEntry(feat));
+  }
+
+  function editFeat(entry: CharacterFeatEntry) {
+    if (!isFeatEligibleForCurrentEditor(entry.feat)) {
+      return;
+    }
+
+    const pendingState = createPendingFeatStateForEntry(entry);
+
+    if (!pendingState) {
+      return;
+    }
+
+    setEditingFeatEntryId(entry.id);
+    setPendingFeatState(pendingState);
   }
 
   function savePendingAbilityScoreImprovement() {
@@ -873,6 +913,7 @@ function ClassFeaturesAndFeats({
           onClose={closeFeatEditor}
           onSelectCategory={setActiveFeatCategory}
           onAddFeat={addFeat}
+          onEditFeat={editFeat}
           onRemoveFeat={removeFeat}
           onOpenFeatReference={openFeatReference}
           onPendingFeatStateChange={setPendingFeatState}

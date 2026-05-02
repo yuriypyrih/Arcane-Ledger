@@ -1,140 +1,514 @@
+import { TOOL_PROFICIENCY } from "../../types/proficiencies";
 import { SKILL } from "../../types/skills";
 import {
+  starterPackChoice,
+  starterPackCurrency,
+  starterPackItem,
+  starterPackSelectedTool
+} from "../classes/starterPack";
+import {
   BACKGROUND_TYPES,
+  CURRENCY_TYPE,
   ENTRY_CATEGORIES,
-  TOOL_PROFICIENCIES
+  FEATS,
+  SPELL_LIST_CLASS
 } from "./enums";
 import type { BackgroundEntry } from "./types";
 
 export const backgroundEntries: BackgroundEntry[] = [
   {
-    id: "background-acolyte",
+    id: "background-acolyte-2024",
     name: "Acolyte",
     category: ENTRY_CATEGORIES.BACKGROUNDS,
     tags: [BACKGROUND_TYPES.RELIGIOUS],
+    source: "PHB'24",
+    page: 178,
+    abilityScoreOptions: ["INT", "WIS", "CHA"],
+    originFeat: FEATS.MAGIC_INITIATE,
+    originFeatSpellList: SPELL_LIST_CLASS.CLERIC,
     grantedSkillProficiencies: [SKILL.INSIGHT, SKILL.RELIGION],
-    grantedToolProficiencies: [],
-    summary:
-      "You served a temple or sacred order, learning doctrine and ritual discipline.\nFaith, ceremony, and counsel shaped how you deal with conflict and hardship."
+    grantedToolProficiencies: [TOOL_PROFICIENCY.CALLIGRAPHERS_SUPPLIES],
+    starterPack: {
+      recommendedStartingEquipmentIndex: 0,
+      startingEquipment: [
+        starterPackChoice(
+          starterPackItem("srd-2024_calligraphers-supplies", "Calligrapher's Supplies"),
+          starterPackItem("srd-2024_book", "Book (prayers)"),
+          starterPackItem("srd-2024_holy-symbol-amulet", "Holy Symbol"),
+          starterPackItem("srd-2024_parchment", "Parchment", 10),
+          starterPackItem("srd-2024_robe", "Robe"),
+          starterPackCurrency(8, CURRENCY_TYPE.GP)
+        ),
+        starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.GP))
+      ]
+    },
+    summary: ""
   },
   {
-    id: "background-charlatan",
+    id: "background-artisan-2024",
+    name: "Artisan",
+    category: ENTRY_CATEGORIES.BACKGROUNDS,
+    tags: [BACKGROUND_TYPES.CRAFT],
+    source: "PHB'24",
+    page: 179,
+    abilityScoreOptions: ["STR", "DEX", "INT"],
+    originFeat: FEATS.CRAFTER,
+    grantedSkillProficiencies: [SKILL.INVESTIGATION, SKILL.PERSUASION],
+    grantedToolProficiencies: [],
+    toolProficiencyChoices: [
+      TOOL_PROFICIENCY.ALCHEMISTS_SUPPLIES,
+      TOOL_PROFICIENCY.BREWERS_SUPPLIES,
+      TOOL_PROFICIENCY.CALLIGRAPHERS_SUPPLIES,
+      TOOL_PROFICIENCY.CARPENTERS_TOOLS,
+      TOOL_PROFICIENCY.CARTOGRAPHERS_TOOLS,
+      TOOL_PROFICIENCY.COBBLERS_TOOLS,
+      TOOL_PROFICIENCY.COOKS_UTENSILS,
+      TOOL_PROFICIENCY.GLASSBLOWERS_TOOLS,
+      TOOL_PROFICIENCY.JEWELERS_TOOLS,
+      TOOL_PROFICIENCY.LEATHERWORKERS_TOOLS,
+      TOOL_PROFICIENCY.MASONS_TOOLS,
+      TOOL_PROFICIENCY.PAINTERS_SUPPLIES,
+      TOOL_PROFICIENCY.POTTERS_TOOLS,
+      TOOL_PROFICIENCY.SMITHS_TOOLKIT,
+      TOOL_PROFICIENCY.TINKERS_TOOLS,
+      TOOL_PROFICIENCY.WEAVERS_TOOLS,
+      TOOL_PROFICIENCY.WOODCARVERS_TOOLS
+    ],
+    toolProficiencyChoiceLabel: "Artisan's Tools",
+    starterPack: {
+      recommendedToolProficiency: TOOL_PROFICIENCY.SMITHS_TOOLKIT,
+      recommendedStartingEquipmentIndex: 0,
+      startingEquipment: [
+        starterPackChoice(
+          starterPackSelectedTool("Artisan's Tools"),
+          starterPackItem("srd-2024_pouch", "Pouch", 2),
+          starterPackItem("srd-2024_clothes-travelers", "Traveler's Clothes"),
+          starterPackCurrency(32, CURRENCY_TYPE.GP)
+        ),
+        starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.GP))
+      ]
+    },
+    summary: ""
+  },
+  {
+    id: "background-charlatan-2024",
     name: "Charlatan",
     category: ENTRY_CATEGORIES.BACKGROUNDS,
     tags: [BACKGROUND_TYPES.UNDERWORLD],
+    source: "PHB'24",
+    page: 180,
+    abilityScoreOptions: ["DEX", "CON", "CHA"],
+    originFeat: FEATS.SKILLED,
     grantedSkillProficiencies: [SKILL.DECEPTION, SKILL.SLEIGHT_OF_HAND],
-    grantedToolProficiencies: [TOOL_PROFICIENCIES.DISGUIDE_KIT],
-    summary:
-      "You survived by lies, false identities, and confidence games.\nReading people quickly and selling a believable story became second nature."
+    grantedToolProficiencies: [TOOL_PROFICIENCY.FORGERY_KIT],
+    starterPack: {
+      recommendedStartingEquipmentIndex: 0,
+      startingEquipment: [
+        starterPackChoice(
+          starterPackItem("srd-2024_forgery-kit", "Forgery Kit"),
+          starterPackItem("srd-2024_costume", "Costume"),
+          starterPackItem("srd-2024_clothes-fine", "Fine Clothes"),
+          starterPackCurrency(15, CURRENCY_TYPE.GP)
+        ),
+        starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.GP))
+      ]
+    },
+    summary: ""
   },
   {
-    id: "background-criminal-spy",
-    name: "Criminal / Spy",
+    id: "background-criminal-2024",
+    name: "Criminal",
     category: ENTRY_CATEGORIES.BACKGROUNDS,
     tags: [BACKGROUND_TYPES.UNDERWORLD],
-    grantedSkillProficiencies: [SKILL.STEALTH, SKILL.DECEPTION],
-    grantedToolProficiencies: [TOOL_PROFICIENCIES.THIEVES_TOOLKIT],
-    summary:
-      "You worked in the shadows as a thief, smuggler, assassin, or informant.\nYou know covert routes, coded dealings, and how to disappear when pressure rises."
+    source: "PHB'24",
+    page: 180,
+    abilityScoreOptions: ["DEX", "CON", "INT"],
+    originFeat: FEATS.ALERT,
+    grantedSkillProficiencies: [SKILL.SLEIGHT_OF_HAND, SKILL.STEALTH],
+    grantedToolProficiencies: [TOOL_PROFICIENCY.THIEVES_TOOLKIT],
+    starterPack: {
+      recommendedStartingEquipmentIndex: 0,
+      startingEquipment: [
+        starterPackChoice(
+          starterPackItem("srd-2024_dagger", "Dagger", 2),
+          starterPackItem("srd-2024_thieves-tools", "Thieves' Tools"),
+          starterPackItem("srd-2024_crowbar", "Crowbar"),
+          starterPackItem("srd-2024_pouch", "Pouch", 2),
+          starterPackItem("srd-2024_clothes-travelers", "Traveler's Clothes"),
+          starterPackCurrency(16, CURRENCY_TYPE.GP)
+        ),
+        starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.GP))
+      ]
+    },
+    summary: ""
   },
   {
-    id: "background-entertainer",
+    id: "background-entertainer-2024",
     name: "Entertainer",
     category: ENTRY_CATEGORIES.BACKGROUNDS,
     tags: [BACKGROUND_TYPES.PERFORMER],
-    grantedSkillProficiencies: [SKILL.PERFORMANCE, SKILL.ACROBATICS],
-    grantedToolProficiencies: [TOOL_PROFICIENCIES.DISGUIDE_KIT],
-    summary:
-      "You lived by performance, whether through music, drama, spectacle, or arena display.\nCrowd control, showmanship, and timing are part of your everyday instincts."
+    source: "PHB'24",
+    page: 180,
+    abilityScoreOptions: ["STR", "DEX", "CHA"],
+    originFeat: FEATS.MUSICIAN,
+    grantedSkillProficiencies: [SKILL.ACROBATICS, SKILL.PERFORMANCE],
+    grantedToolProficiencies: [],
+    toolProficiencyChoices: [
+      TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_BAGPIPES,
+      TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_DRUM,
+      TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_DULCIMER,
+      TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_FLUTE,
+      TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_HORN,
+      TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_LUTE,
+      TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_LYRE,
+      TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_PAN_FLUTE,
+      TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_SHAWM,
+      TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_VIOL
+    ],
+    toolProficiencyChoiceLabel: "Musical Instrument",
+    starterPack: {
+      recommendedToolProficiency: TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_LUTE,
+      recommendedStartingEquipmentIndex: 0,
+      startingEquipment: [
+        starterPackChoice(
+          starterPackSelectedTool("Musical Instrument"),
+          starterPackItem("srd-2024_costume", "Costume", 2),
+          starterPackItem("srd-2024_mirror", "Mirror"),
+          starterPackItem("srd-2024_perfume", "Perfume"),
+          starterPackItem("srd-2024_clothes-travelers", "Traveler's Clothes"),
+          starterPackCurrency(11, CURRENCY_TYPE.GP)
+        ),
+        starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.GP))
+      ]
+    },
+    summary: ""
   },
   {
-    id: "background-folk-hero",
-    name: "Folk Hero",
+    id: "background-farmer-2024",
+    name: "Farmer",
     category: ENTRY_CATEGORIES.BACKGROUNDS,
     tags: [BACKGROUND_TYPES.COMMONER],
-    grantedSkillProficiencies: [SKILL.ANIMAL_HANDLING, SKILL.SURVIVAL],
-    grantedToolProficiencies: [TOOL_PROFICIENCIES.SMITHS_TOOLKIT],
-    summary:
-      "You were once an ordinary local who stood up when others could not.\nCommunities trust your grit, practical judgment, and willingness to shoulder risk."
+    source: "PHB'24",
+    page: 180,
+    abilityScoreOptions: ["STR", "CON", "WIS"],
+    originFeat: FEATS.TOUGH,
+    grantedSkillProficiencies: [SKILL.ANIMAL_HANDLING, SKILL.NATURE],
+    grantedToolProficiencies: [TOOL_PROFICIENCY.CARPENTERS_TOOLS],
+    starterPack: {
+      recommendedStartingEquipmentIndex: 0,
+      startingEquipment: [
+        starterPackChoice(
+          starterPackItem("srd-2024_sickle", "Sickle"),
+          starterPackItem("srd-2024_carpenters-tools", "Carpenter's Tools"),
+          starterPackItem("srd-2024_healers-kit", "Healer's Kit"),
+          starterPackItem("srd_pot-iron", "Iron Pot"),
+          starterPackItem("srd-2024_shovel", "Shovel"),
+          starterPackCurrency(30, CURRENCY_TYPE.GP)
+        ),
+        starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.GP))
+      ]
+    },
+    summary: ""
   },
   {
-    id: "background-guild-artisan-merchant",
-    name: "Guild Artisan / Merchant",
+    id: "background-guard-2024",
+    name: "Guard",
     category: ENTRY_CATEGORIES.BACKGROUNDS,
-    tags: [BACKGROUND_TYPES.CRAFT],
-    grantedSkillProficiencies: [SKILL.PERSUASION, SKILL.INSIGHT],
-    grantedToolProficiencies: [TOOL_PROFICIENCIES.SMITHS_TOOLKIT],
-    summary:
-      "You trained within trade systems built on craft, contracts, and reputation.\nYou understand negotiation, supply networks, and the cost of poor workmanship."
+    tags: [BACKGROUND_TYPES.MILITARY],
+    source: "PHB'24",
+    page: 181,
+    abilityScoreOptions: ["STR", "INT", "WIS"],
+    originFeat: FEATS.ALERT,
+    grantedSkillProficiencies: [SKILL.ATHLETICS, SKILL.PERCEPTION],
+    grantedToolProficiencies: [],
+    toolProficiencyChoices: [
+      TOOL_PROFICIENCY.GAMING_SET_DICE,
+      TOOL_PROFICIENCY.GAMING_SET_DRAGONCHESS,
+      TOOL_PROFICIENCY.GAMING_SET_PLAYING_CARDS,
+      TOOL_PROFICIENCY.GAMING_SET_THREE_DRAGON_ANTE
+    ],
+    toolProficiencyChoiceLabel: "Gaming Set",
+    starterPack: {
+      recommendedToolProficiency: TOOL_PROFICIENCY.GAMING_SET_PLAYING_CARDS,
+      recommendedStartingEquipmentIndex: 0,
+      startingEquipment: [
+        starterPackChoice(
+          starterPackItem("srd-2024_spear", "Spear"),
+          starterPackItem("srd-2024_light-crossbow", "Light Crossbow"),
+          starterPackItem("srd-2024_bolts-20", "Bolts (20)"),
+          starterPackSelectedTool("Gaming Set"),
+          starterPackItem("srd-2024_lantern-hooded", "Hooded Lantern"),
+          starterPackItem("srd-2024_manacles", "Manacles"),
+          starterPackItem("srd-2024_quiver", "Quiver"),
+          starterPackItem("srd-2024_clothes-travelers", "Traveler's Clothes"),
+          starterPackCurrency(12, CURRENCY_TYPE.GP)
+        ),
+        starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.GP))
+      ]
+    },
+    summary: ""
   },
   {
-    id: "background-hermit",
+    id: "background-guide-2024",
+    name: "Guide",
+    category: ENTRY_CATEGORIES.BACKGROUNDS,
+    tags: [BACKGROUND_TYPES.WILDERNESS],
+    source: "PHB'24",
+    page: 181,
+    abilityScoreOptions: ["DEX", "CON", "WIS"],
+    originFeat: FEATS.MAGIC_INITIATE,
+    originFeatSpellList: SPELL_LIST_CLASS.DRUID,
+    grantedSkillProficiencies: [SKILL.STEALTH, SKILL.SURVIVAL],
+    grantedToolProficiencies: [TOOL_PROFICIENCY.CARTOGRAPHERS_TOOLS],
+    starterPack: {
+      recommendedStartingEquipmentIndex: 0,
+      startingEquipment: [
+        starterPackChoice(
+          starterPackItem("srd-2024_shortbow", "Shortbow"),
+          starterPackItem("srd-2024_arrows-20", "Arrows (20)"),
+          starterPackItem("srd-2024_cartographers-tools", "Cartographer's Tools"),
+          starterPackItem("srd-2024_bedroll", "Bedroll"),
+          starterPackItem("srd-2024_quiver", "Quiver"),
+          starterPackItem("srd-2024_tent", "Tent"),
+          starterPackItem("srd-2024_clothes-travelers", "Traveler's Clothes"),
+          starterPackCurrency(3, CURRENCY_TYPE.GP)
+        ),
+        starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.GP))
+      ]
+    },
+    summary: ""
+  },
+  {
+    id: "background-hermit-2024",
     name: "Hermit",
     category: ENTRY_CATEGORIES.BACKGROUNDS,
     tags: [BACKGROUND_TYPES.RECLUSIVE],
+    source: "PHB'24",
+    page: 182,
+    abilityScoreOptions: ["CON", "WIS", "CHA"],
+    originFeat: FEATS.HEALER,
     grantedSkillProficiencies: [SKILL.MEDICINE, SKILL.RELIGION],
-    grantedToolProficiencies: [],
-    summary:
-      "You spent years in seclusion seeking insight, healing, or spiritual clarity.\nPatience, contemplation, and self-reliance define how you approach danger."
+    grantedToolProficiencies: [TOOL_PROFICIENCY.HERBALISM_KIT],
+    starterPack: {
+      recommendedStartingEquipmentIndex: 0,
+      startingEquipment: [
+        starterPackChoice(
+          starterPackItem("srd-2024_quarterstaff", "Quarterstaff"),
+          starterPackItem("srd-2024_herbalism-kit", "Herbalism Kit"),
+          starterPackItem("srd-2024_bedroll", "Bedroll"),
+          starterPackItem("srd-2024_book", "Book (philosophy)"),
+          starterPackItem("srd-2024_lamp", "Lamp"),
+          starterPackItem("srd-2024_oil", "Oil", 3),
+          starterPackItem("srd-2024_clothes-travelers", "Traveler's Clothes"),
+          starterPackCurrency(16, CURRENCY_TYPE.GP)
+        ),
+        starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.GP))
+      ]
+    },
+    summary: ""
   },
   {
-    id: "background-noble",
+    id: "background-merchant-2024",
+    name: "Merchant",
+    category: ENTRY_CATEGORIES.BACKGROUNDS,
+    tags: [BACKGROUND_TYPES.CRAFT],
+    source: "PHB'24",
+    page: 182,
+    abilityScoreOptions: ["CON", "INT", "CHA"],
+    originFeat: FEATS.LUCKY,
+    grantedSkillProficiencies: [SKILL.ANIMAL_HANDLING, SKILL.PERSUASION],
+    grantedToolProficiencies: [TOOL_PROFICIENCY.NAVIGATORS_TOOLS],
+    starterPack: {
+      recommendedStartingEquipmentIndex: 0,
+      startingEquipment: [
+        starterPackChoice(
+          starterPackItem("srd-2024_navigators-tools", "Navigator's Tools"),
+          starterPackItem("srd-2024_pouch", "Pouch", 2),
+          starterPackItem("srd-2024_clothes-travelers", "Traveler's Clothes"),
+          starterPackCurrency(22, CURRENCY_TYPE.GP)
+        ),
+        starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.GP))
+      ]
+    },
+    summary: ""
+  },
+  {
+    id: "background-noble-2024",
     name: "Noble",
     category: ENTRY_CATEGORIES.BACKGROUNDS,
     tags: [BACKGROUND_TYPES.NOBILITY],
+    source: "PHB'24",
+    page: 183,
+    abilityScoreOptions: ["STR", "INT", "CHA"],
+    originFeat: FEATS.SKILLED,
     grantedSkillProficiencies: [SKILL.HISTORY, SKILL.PERSUASION],
     grantedToolProficiencies: [],
-    summary:
-      "You were raised among titles, etiquette, and political obligations.\nYou navigate status and protocol with ease, even outside courtly circles."
+    toolProficiencyChoices: [
+      TOOL_PROFICIENCY.GAMING_SET_DICE,
+      TOOL_PROFICIENCY.GAMING_SET_DRAGONCHESS,
+      TOOL_PROFICIENCY.GAMING_SET_PLAYING_CARDS,
+      TOOL_PROFICIENCY.GAMING_SET_THREE_DRAGON_ANTE
+    ],
+    toolProficiencyChoiceLabel: "Gaming Set",
+    starterPack: {
+      recommendedToolProficiency: TOOL_PROFICIENCY.GAMING_SET_PLAYING_CARDS,
+      recommendedStartingEquipmentIndex: 0,
+      startingEquipment: [
+        starterPackChoice(
+          starterPackSelectedTool("Gaming Set"),
+          starterPackItem("srd-2024_clothes-fine", "Fine Clothes"),
+          starterPackItem("srd-2024_perfume", "Perfume"),
+          starterPackCurrency(29, CURRENCY_TYPE.GP)
+        ),
+        starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.GP))
+      ]
+    },
+    summary: ""
   },
   {
-    id: "background-outlander",
-    name: "Outlander",
-    category: ENTRY_CATEGORIES.BACKGROUNDS,
-    tags: [BACKGROUND_TYPES.WILDERNESS],
-    grantedSkillProficiencies: [SKILL.ATHLETICS, SKILL.SURVIVAL],
-    grantedToolProficiencies: [],
-    summary:
-      "You grew up far from cities, relying on instinct and endurance to survive.\nTracks, weather, and rough terrain are familiar ground rather than obstacles."
-  },
-  {
-    id: "background-sage",
+    id: "background-sage-2024",
     name: "Sage",
     category: ENTRY_CATEGORIES.BACKGROUNDS,
     tags: [BACKGROUND_TYPES.SCHOLAR],
+    source: "PHB'24",
+    page: 183,
+    abilityScoreOptions: ["CON", "INT", "WIS"],
+    originFeat: FEATS.MAGIC_INITIATE,
+    originFeatSpellList: SPELL_LIST_CLASS.WIZARD,
     grantedSkillProficiencies: [SKILL.ARCANA, SKILL.HISTORY],
-    grantedToolProficiencies: [],
-    summary:
-      "You devoted your life to study, archives, and disciplined research.\nQuestions drive you forward, and knowledge is your most trusted weapon."
+    grantedToolProficiencies: [TOOL_PROFICIENCY.CALLIGRAPHERS_SUPPLIES],
+    starterPack: {
+      recommendedStartingEquipmentIndex: 0,
+      startingEquipment: [
+        starterPackChoice(
+          starterPackItem("srd-2024_quarterstaff", "Quarterstaff"),
+          starterPackItem("srd-2024_calligraphers-supplies", "Calligrapher's Supplies"),
+          starterPackItem("srd-2024_book", "Book (history)"),
+          starterPackItem("srd-2024_parchment", "Parchment", 8),
+          starterPackItem("srd-2024_robe", "Robe"),
+          starterPackCurrency(8, CURRENCY_TYPE.GP)
+        ),
+        starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.GP))
+      ]
+    },
+    summary: ""
   },
   {
-    id: "background-sailor-pirate",
-    name: "Sailor / Pirate",
+    id: "background-sailor-2024",
+    name: "Sailor",
     category: ENTRY_CATEGORIES.BACKGROUNDS,
     tags: [BACKGROUND_TYPES.SEAFARING],
-    grantedSkillProficiencies: [SKILL.ATHLETICS, SKILL.PERCEPTION],
-    grantedToolProficiencies: [TOOL_PROFICIENCIES.THIEVES_TOOLKIT],
-    summary:
-      "You learned life at sea, from deck labor and storm discipline to boarding actions.\nYou are steady under pressure and skilled at reading movement and intent."
+    source: "PHB'24",
+    page: 184,
+    abilityScoreOptions: ["STR", "DEX", "WIS"],
+    originFeat: FEATS.TAVERN_BRAWLER,
+    grantedSkillProficiencies: [SKILL.ACROBATICS, SKILL.PERCEPTION],
+    grantedToolProficiencies: [TOOL_PROFICIENCY.NAVIGATORS_TOOLS],
+    starterPack: {
+      recommendedStartingEquipmentIndex: 0,
+      startingEquipment: [
+        starterPackChoice(
+          starterPackItem("srd-2024_dagger", "Dagger"),
+          starterPackItem("srd-2024_navigators-tools", "Navigator's Tools"),
+          starterPackItem("srd-2024_rope", "Rope"),
+          starterPackItem("srd-2024_clothes-travelers", "Traveler's Clothes"),
+          starterPackCurrency(20, CURRENCY_TYPE.GP)
+        ),
+        starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.GP))
+      ]
+    },
+    summary: ""
   },
   {
-    id: "background-soldier",
+    id: "background-scribe-2024",
+    name: "Scribe",
+    category: ENTRY_CATEGORIES.BACKGROUNDS,
+    tags: [BACKGROUND_TYPES.SCHOLAR],
+    source: "PHB'24",
+    page: 184,
+    abilityScoreOptions: ["DEX", "INT", "WIS"],
+    originFeat: FEATS.SKILLED,
+    grantedSkillProficiencies: [SKILL.INVESTIGATION, SKILL.PERCEPTION],
+    grantedToolProficiencies: [TOOL_PROFICIENCY.CALLIGRAPHERS_SUPPLIES],
+    starterPack: {
+      recommendedStartingEquipmentIndex: 0,
+      startingEquipment: [
+        starterPackChoice(
+          starterPackItem("srd-2024_calligraphers-supplies", "Calligrapher's Supplies"),
+          starterPackItem("srd-2024_clothes-fine", "Fine Clothes"),
+          starterPackItem("srd-2024_lamp", "Lamp"),
+          starterPackItem("srd-2024_oil", "Oil", 3),
+          starterPackItem("srd-2024_parchment", "Parchment", 12),
+          starterPackCurrency(23, CURRENCY_TYPE.GP)
+        ),
+        starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.GP))
+      ]
+    },
+    summary: ""
+  },
+  {
+    id: "background-soldier-2024",
     name: "Soldier",
     category: ENTRY_CATEGORIES.BACKGROUNDS,
     tags: [BACKGROUND_TYPES.MILITARY],
+    source: "PHB'24",
+    page: 185,
+    abilityScoreOptions: ["STR", "DEX", "CON"],
+    originFeat: FEATS.SAVAGE_ATTACKER,
     grantedSkillProficiencies: [SKILL.ATHLETICS, SKILL.INTIMIDATION],
-    grantedToolProficiencies: [TOOL_PROFICIENCIES.DISARM_KIT],
-    summary:
-      "You served in structured military ranks and field campaigns.\nDrill, tactics, and chain-of-command discipline still shape your decisions."
+    grantedToolProficiencies: [],
+    toolProficiencyChoices: [
+      TOOL_PROFICIENCY.GAMING_SET_DICE,
+      TOOL_PROFICIENCY.GAMING_SET_DRAGONCHESS,
+      TOOL_PROFICIENCY.GAMING_SET_PLAYING_CARDS,
+      TOOL_PROFICIENCY.GAMING_SET_THREE_DRAGON_ANTE
+    ],
+    toolProficiencyChoiceLabel: "Gaming Set",
+    starterPack: {
+      recommendedToolProficiency: TOOL_PROFICIENCY.GAMING_SET_PLAYING_CARDS,
+      recommendedStartingEquipmentIndex: 0,
+      startingEquipment: [
+        starterPackChoice(
+          starterPackItem("srd-2024_spear", "Spear"),
+          starterPackItem("srd-2024_shortbow", "Shortbow"),
+          starterPackItem("srd-2024_arrows-20", "Arrows (20)"),
+          starterPackSelectedTool("Gaming Set"),
+          starterPackItem("srd-2024_healers-kit", "Healer's Kit"),
+          starterPackItem("srd-2024_quiver", "Quiver"),
+          starterPackItem("srd-2024_clothes-travelers", "Traveler's Clothes"),
+          starterPackCurrency(14, CURRENCY_TYPE.GP)
+        ),
+        starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.GP))
+      ]
+    },
+    summary: ""
   },
   {
-    id: "background-urchin",
-    name: "Urchin",
+    id: "background-wayfarer-2024",
+    name: "Wayfarer",
     category: ENTRY_CATEGORIES.BACKGROUNDS,
     tags: [BACKGROUND_TYPES.URBAN_SURVIVAL],
-    grantedSkillProficiencies: [SKILL.SLEIGHT_OF_HAND, SKILL.STEALTH],
-    grantedToolProficiencies: [TOOL_PROFICIENCIES.THIEVES_TOOLKIT],
-    summary:
-      "You survived on city streets through caution, speed, and improvisation.\nYou notice hidden opportunities quickly and rarely waste resources."
+    source: "PHB'24",
+    page: 185,
+    abilityScoreOptions: ["DEX", "WIS", "CHA"],
+    originFeat: FEATS.LUCKY,
+    grantedSkillProficiencies: [SKILL.INSIGHT, SKILL.STEALTH],
+    grantedToolProficiencies: [TOOL_PROFICIENCY.THIEVES_TOOLKIT],
+    starterPack: {
+      recommendedStartingEquipmentIndex: 0,
+      startingEquipment: [
+        starterPackChoice(
+          starterPackItem("srd-2024_dagger", "Dagger", 2),
+          starterPackItem("srd-2024_thieves-tools", "Thieves' Tools"),
+          starterPackItem("srd-2024_gaming-set-playing-cards", "Gaming Set (playing cards)"),
+          starterPackItem("srd-2024_bedroll", "Bedroll"),
+          starterPackItem("srd-2024_pouch", "Pouch", 2),
+          starterPackItem("srd-2024_clothes-travelers", "Traveler's Clothes"),
+          starterPackCurrency(16, CURRENCY_TYPE.GP)
+        ),
+        starterPackChoice(starterPackCurrency(50, CURRENCY_TYPE.GP))
+      ]
+    },
+    summary: ""
   }
 ];

@@ -2,6 +2,7 @@ import { DEFAULT_ITEM_BROWSER_TAB } from "../types";
 import type {
   ItemArmorType,
   ItemAttackType,
+  ItemBatchLookupRecord,
   ItemBrowserTab,
   ItemPackContentsRecord,
   ItemFilterOptions,
@@ -11,7 +12,7 @@ import type {
   ItemRecord,
   PaginatedApiResponse
 } from "../types";
-import { apiGet } from "./client";
+import { apiGet, apiPost } from "./client";
 
 export type FetchItemListParams = {
   page?: number;
@@ -91,6 +92,10 @@ export async function fetchItemList({
 
 export async function fetchItemByKey(key: string) {
   return apiGet<ItemRecord>(`items/${key}`);
+}
+
+export async function fetchItemsByKeys(keys: string[]) {
+  return apiPost<ItemBatchLookupRecord>("items/batch", { keys });
 }
 
 export async function fetchItemPackContents(key: string) {

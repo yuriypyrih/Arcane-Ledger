@@ -12,6 +12,7 @@ import {
   removeFeatGrantedSkillEntries,
   removeFeatGrantedToolEntries
 } from "../../../../pages/CharactersPage/proficiency";
+import { isFeatEntryRemovable } from "../../../../pages/CharactersPage/feats";
 import { isFeatFromClassFeatureSource } from "./helpers";
 import {
   getCrafterToolSelections,
@@ -111,50 +112,9 @@ function removeFeatGrantedProficienciesFromDraft(
   );
 }
 
-export function createFeatEditorDraft(character: Character): FeatEditorDraft {
-  return {
-    feats: character.feats ?? [],
-    skillProficiencies: character.skillProficiencies,
-    toolProficiencies: character.toolProficiencies
-  };
-}
-
-export function applyFeatEditorDraftToCharacter(
-  currentCharacter: Character,
-  draft: FeatEditorDraft
-): Character {
-  if (
-    areDraftListsEqual(currentCharacter.feats ?? [], draft.feats) &&
-    areDraftListsEqual(currentCharacter.skillProficiencies, draft.skillProficiencies) &&
-    areDraftListsEqual(currentCharacter.toolProficiencies, draft.toolProficiencies)
-  ) {
-    return currentCharacter;
-  }
-
-  return {
-    ...currentCharacter,
-    feats: draft.feats,
-    skillProficiencies: draft.skillProficiencies,
-    toolProficiencies: draft.toolProficiencies
-  };
-}
-
-export function removeFeatFromDraft(
+function addFeatGrantedProficienciesToDraft(
   draft: FeatEditorDraft,
-  entryToRemove: CharacterFeatEntry
-): FeatEditorDraft {
-  const nextDraft = removeFeatGrantedProficienciesFromDraft(draft, entryToRemove);
-
-  return {
-    ...nextDraft,
-    feats: nextDraft.feats.filter((entry) => entry.id !== entryToRemove.id)
-  };
-}
-
-export function upsertFeatInDraft(
-  draft: FeatEditorDraft,
-  featEntry: CharacterFeatEntry,
-  sourceContext: ClassFeatureFeatSource | null
+  featEntry: CharacterFeatEntry
 ): FeatEditorDraft {
   const skilledSelections =
     featEntry.feat === FEATS.SKILLED ? splitSkilledSelections(featEntry.skilled) : null;
@@ -166,34 +126,7 @@ export function upsertFeatInDraft(
     featEntry.feat === FEATS.MUSICIAN && featEntry.musician
       ? getMusicianToolSelections(featEntry.musician)
       : null;
-  const existingEntries = sourceContext
-    ? draft.feats.filter((entry) =>
-        isFeatFromClassFeatureSource(entry, sourceContext.level, sourceContext.feature)
-      )
-    : [];
   let nextDraft = draft;
-
-  existingEntries.forEach((entry) => {
-    nextDraft = removeFeatGrantedProficienciesFromDraft(nextDraft, entry);
-  });
-
-  const nextFeats = sourceContext
-    ? [
-        ...nextDraft.feats.filter(
-          (entry) => !isFeatFromClassFeatureSource(entry, sourceContext.level, sourceContext.feature)
-        ),
-        featEntry
-      ]
-    : [...nextDraft.feats, featEntry];
-
-  nextDraft = {
-    ...nextDraft,
-    feats: nextFeats
-  };
-
-  if (!skilledSelections && !crafterToolSelections && !musicianToolSelections) {
-    return nextDraft;
-  }
 
   nextDraft = skilledSelections
     ? {
@@ -236,4 +169,97 @@ export function upsertFeatInDraft(
         )
       }
     : nextDraft;
+}
+
+export function createFeatEditorDraft(character: Character): FeatEditorDraft {
+  return {
+    feats: character.feats ?? [],
+    skillProficiencies: character.skillProficiencies,
+    toolProficiencies: character.toolProficiencies
+  };
+}
+
+export function applyFeatEditorDraftToCharacter(
+  currentCharacter: Character,
+  draft: FeatEditorDraft
+): Character {
+  if (
+    areDraftListsEqual(currentCharacter.feats ?? [], draft.feats) &&
+    areDraftListsEqual(currentCharacter.skillProficiencies, draft.skillProficiencies) &&
+    areDraftListsEqual(currentCharacter.toolProficiencies, draft.toolProficiencies)
+  ) {
+    return currentCharacter;
+  }
+
+  return {
+    ...currentCharacter,
+    feats: draft.feats,
+    skillProficiencies: draft.skillProficiencies,
+    toolProficiencies: draft.toolProficiencies
+  };
+}
+
+export function removeFeatFromDraft(
+  draft: FeatEditorDraft,
+  entryToRemove: CharacterFeatEntry
+): FeatEditorDraft {
+  if (!isFeatEntryRemovable(entryToRemove)) {
+    return draft;
+  }
+
+  const nextDraft = removeFeatGrantedProficienciesFromDraft(draft, entryToRemove);
+
+  return {
+    ...nextDraft,
+    feats: nextDraft.feats.filter((entry) => entry.id !== entryToRemove.id)
+  };
+}
+
+export function updateFeatInDraft(
+  draft: FeatEditorDraft,
+  previousEntry: CharacterFeatEntry,
+  nextEntry: CharacterFeatEntry
+): FeatEditorDraft {
+  const nextDraft = removeFeatGrantedProficienciesFromDraft(draft, previousEntry);
+
+  return addFeatGrantedProficienciesToDraft(
+    {
+      ...nextDraft,
+      feats: nextDraft.feats.map((entry) => (entry.id === previousEntry.id ? nextEntry : entry))
+    },
+    nextEntry
+  );
+}
+
+export function upsertFeatInDraft(
+  draft: FeatEditorDraft,
+  featEntry: CharacterFeatEntry,
+  sourceContext: ClassFeatureFeatSource | null
+): FeatEditorDraft {
+  const existingEntries = sourceContext
+    ? draft.feats.filter((entry) =>
+        isFeatFromClassFeatureSource(entry, sourceContext.level, sourceContext.feature)
+      )
+    : [];
+  let nextDraft = draft;
+
+  existingEntries.forEach((entry) => {
+    nextDraft = removeFeatGrantedProficienciesFromDraft(nextDraft, entry);
+  });
+
+  const nextFeats = sourceContext
+    ? [
+        ...nextDraft.feats.filter(
+          (entry) => !isFeatFromClassFeatureSource(entry, sourceContext.level, sourceContext.feature)
+        ),
+        featEntry
+      ]
+    : [...nextDraft.feats, featEntry];
+
+  nextDraft = {
+    ...nextDraft,
+    feats: nextFeats
+  };
+
+  return addFeatGrantedProficienciesToDraft(nextDraft, featEntry);
 }

@@ -1,5 +1,5 @@
 import { Suspense, lazy } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Navigate, Route, Routes, useLocation } from "react-router-dom";
 import AppShell from "./components/AppShell";
 
 const CharacterBuilderPage = lazy(() => import("./pages/CharactersPage/CharacterBuilderPage"));
@@ -27,6 +27,22 @@ function RouteFallback() {
   );
 }
 
+function LegacyCodexRedirect() {
+  const location = useLocation();
+  const pathname = location.pathname.replace(/^\/codex/, "/library");
+
+  return (
+    <Navigate
+      replace
+      to={{
+        pathname,
+        search: location.search,
+        hash: location.hash
+      }}
+    />
+  );
+}
+
 function App() {
   return (
     <Suspense fallback={<RouteFallback />}>
@@ -37,10 +53,11 @@ function App() {
           <Route path="/characters/new" element={<CharacterBuilderPage />} />
           <Route path="/characters/:characterId/edit" element={<CharacterBuilderPage />} />
           <Route path="/characters/:characterId" element={<CharacterSheetPage />} />
-          <Route path="/codex" element={<CodexPage />} />
-          <Route path="/codex/items/:key" element={<ItemCodexEntryPage />} />
-          <Route path="/codex/monsters/:slug" element={<MonsterCodexEntryPage />} />
-          <Route path="/codex/:entryId" element={<CodexEntryPage />} />
+          <Route path="/library" element={<CodexPage />} />
+          <Route path="/library/items/:key" element={<ItemCodexEntryPage />} />
+          <Route path="/library/monsters/:slug" element={<MonsterCodexEntryPage />} />
+          <Route path="/library/:entryId" element={<CodexEntryPage />} />
+          <Route path="/codex/*" element={<LegacyCodexRedirect />} />
           <Route path="*" element={<Navigate replace to="/" />} />
         </Route>
       </Routes>

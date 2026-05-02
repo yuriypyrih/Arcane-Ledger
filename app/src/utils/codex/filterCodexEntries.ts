@@ -1,6 +1,5 @@
 import {
   ENTRY_CATEGORIES,
-  ENTRY_CATEGORY_VALUES,
   SPELL_LIST_CLASS,
   type CodexCategory,
   type CodexEntry
@@ -11,8 +10,18 @@ export const CODEX_FEATS_CATEGORY = "FEATS" as const;
 
 export type CodexFilterCategory = CodexCategory | typeof CODEX_FEATS_CATEGORY;
 
+const LIBRARY_FILTER_CATEGORIES: CodexFilterCategory[] = [
+  ENTRY_CATEGORIES.CLASSES,
+  ENTRY_CATEGORIES.SPECIES,
+  ENTRY_CATEGORIES.BACKGROUNDS,
+  CODEX_FEATS_CATEGORY,
+  ENTRY_CATEGORIES.ITEMS,
+  ENTRY_CATEGORIES.MONSTERS,
+  ENTRY_CATEGORIES.SPELLS
+];
+
 export function getCodexCategories(): CodexFilterCategory[] {
-  return [...ENTRY_CATEGORY_VALUES, CODEX_FEATS_CATEGORY];
+  return [...LIBRARY_FILTER_CATEGORIES];
 }
 
 function enumToSearchText(value: string): string {

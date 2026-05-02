@@ -13,6 +13,7 @@ import type {
   SavingThrowProficiencyEntry,
   SkillProficiencyEntry,
   ToolProficiencyEntry,
+  TOOL_PROFICIENCY,
   WeaponProficiencyEntry
 } from "./proficiencies";
 import type { CharacterClassFeatureState } from "./classFeatures";
@@ -27,6 +28,27 @@ export type AbilityKey = "STR" | "DEX" | "CON" | "INT" | "WIS" | "CHA";
 export type AttributeMode = "custom" | "pointBuy";
 
 export type AbilityScores = Record<AbilityKey, number>;
+
+export type CharacterBackgroundAbilityScoreIncrease =
+  | {
+      mode: "two-one";
+      primaryAbility: AbilityKey;
+      secondaryAbility: AbilityKey;
+    }
+  | {
+      mode: "one-one-one";
+      abilities: [AbilityKey, AbilityKey, AbilityKey];
+    };
+
+export type CharacterBackgroundEquipmentMode = "equipment" | "gold";
+
+export type CharacterBackgroundChoices = {
+  abilityScoreIncrease?: CharacterBackgroundAbilityScoreIncrease;
+  skillProficiencies?: SkillName[];
+  toolProficiencies?: TOOL_PROFICIENCY[];
+  toolProficiency?: TOOL_PROFICIENCY;
+  equipmentMode?: CharacterBackgroundEquipmentMode;
+};
 
 export type CoreStats = {
   armorClass: string;
@@ -172,6 +194,7 @@ export type Character = {
   abilities: AbilityScores;
   alignment: Alignment;
   background: string;
+  backgroundChoices?: CharacterBackgroundChoices;
   backgroundNotes: string;
   currencies: CharacterCurrencies;
   skillProficiencies: SkillProficiencyEntry[];
@@ -219,6 +242,7 @@ export type CharacterDraft = {
   abilities: AbilityScores;
   alignment: Alignment;
   background: string;
+  backgroundChoices?: CharacterBackgroundChoices;
   backgroundNotes: string;
   currencies: CharacterCurrencies;
   skills: SkillName[];

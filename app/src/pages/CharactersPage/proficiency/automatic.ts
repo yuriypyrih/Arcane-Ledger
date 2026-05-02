@@ -1,5 +1,6 @@
 import type {
   CharacterClassFeatureState,
+  CharacterBackgroundChoices,
   CharacterDraft,
   CharacterEquipmentItem,
   CharacterProficiencyCollections,
@@ -14,7 +15,10 @@ import {
   PROF_LEVEL,
   SKILL_PROFICIENCY
 } from "../../../types";
-import { isSkillName, getSkillNameForProficiency as getSharedSkillNameForProficiency } from "../../../types";
+import {
+  isSkillName,
+  getSkillNameForProficiency as getSharedSkillNameForProficiency
+} from "../../../types";
 import {
   createCharacterEquipmentItem,
   getCharacterEquipmentNames,
@@ -50,6 +54,11 @@ import {
 } from "../proficiencyWeaponLabels";
 import { getSkillProficiencyForName } from "../proficiencyResolvers";
 import {
+  getBackgroundSkillProficiencies,
+  getBackgroundToolProficiencies,
+  normalizeBackgroundChoices
+} from "../backgrounds";
+import {
   buildGrantedEntriesFromCollections,
   createArmorEntry,
   createSavingThrowEntry,
@@ -59,6 +68,7 @@ import {
   dedupe,
   getLegacyToolProficiency,
   getSourceLabel,
+  isToolProficiency,
   mergeProficiencyEntries,
   skillOptionSet
 } from "./core";
@@ -107,7 +117,9 @@ export function getAvailableEquipmentNamesForClass(className: string): string[] 
   return getAvailableEquipmentForClass(className).map((item) => item.name);
 }
 
-export function normalizeToolProficiencySelections(selectedToolProficiencies: string[]): ToolProficiency[] {
+export function normalizeToolProficiencySelections(
+  selectedToolProficiencies: string[]
+): ToolProficiency[] {
   return dedupe(
     selectedToolProficiencies
       .map((toolProficiency) => getLegacyToolProficiency(toolProficiency) ?? toolProficiency)
@@ -121,27 +133,41 @@ function normalizeSkillName(value: string): SkillName | null {
   return isSkillName(value) ? value : null;
 }
 
-function getBackgroundGrantedSkillProficiencies(background: string): SkillName[] {
+function getBackgroundGrantedSkillProficiencies(
+  background: string,
+  backgroundChoices?: CharacterBackgroundChoices
+): SkillName[] {
   const entry = getBackgroundEntryByName(background);
 
   if (!entry) {
     return [];
   }
 
-  return entry.grantedSkillProficiencies
+  const normalizedChoices = normalizeBackgroundChoices(background, backgroundChoices);
+
+  return getBackgroundSkillProficiencies(background, normalizedChoices)
     .map((skill) => normalizeSkillName(skill))
     .filter((skill): skill is SkillName => skill !== null);
 }
 
-function getBackgroundGrantedToolProficiencies(background: string): ToolProficiency[] {
+function normalizeStoredToolProficiency(value: string): ToolProficiency | null {
+  return getLegacyToolProficiency(value) ?? (isToolProficiency(value) ? value : null);
+}
+
+function getBackgroundGrantedToolProficiencies(
+  background: string,
+  backgroundChoices?: CharacterBackgroundChoices
+): ToolProficiency[] {
   const entry = getBackgroundEntryByName(background);
 
   if (!entry) {
     return [];
   }
 
-  return entry.grantedToolProficiencies
-    .map((toolProficiency) => getLegacyToolProficiency(toolProficiency))
+  const normalizedChoices = normalizeBackgroundChoices(background, backgroundChoices);
+
+  return getBackgroundToolProficiencies(background, normalizedChoices)
+    .map((toolProficiency) => normalizeStoredToolProficiency(toolProficiency))
     .filter((toolProficiency): toolProficiency is ToolProficiency => toolProficiency !== null);
 }
 
@@ -189,6 +215,7 @@ function getAutomaticSkillEntries(
   className: string,
   species: string,
   background = "",
+  backgroundChoices?: CharacterBackgroundChoices,
   selectedClassSkills: SkillName[] = []
 ): SkillProficiencyEntry[] {
   const classSourceLabel = className.trim() || undefined;
@@ -213,7 +240,7 @@ function getAutomaticSkillEntries(
           PROF_LEVEL.PROFICIENT
         )
       ),
-    ...getBackgroundGrantedSkillProficiencies(background)
+    ...getBackgroundGrantedSkillProficiencies(background, backgroundChoices)
       .map((skill) => getSkillProficiencyForName(skill))
       .filter((skill): skill is SKILL_PROFICIENCY => skill !== null)
       .map((skill) =>
@@ -300,6 +327,7 @@ function getAutomaticToolEntries(
   className: string,
   species: string,
   background = "",
+  backgroundChoices?: CharacterBackgroundChoices,
   selectedClassTools: ToolProficiency[] = []
 ): ToolProficiencyEntry[] {
   const classSourceLabel = className.trim() || undefined;
@@ -323,7 +351,7 @@ function getAutomaticToolEntries(
         PROF_LEVEL.PROFICIENT
       )
     ),
-    ...getBackgroundGrantedToolProficiencies(background).map((toolProficiency) =>
+    ...getBackgroundGrantedToolProficiencies(background, backgroundChoices).map((toolProficiency) =>
       createToolEntry(
         toolProficiency,
         PROFICIENCY_SOURCE.BACKGROUND,
@@ -386,8 +414,8 @@ function getFeatureProficiencyCollectionsForCharacter(
 export function normalizeSkillSelectionsForClass(
   className: string,
   selectedSkills: string[],
-  species = "",
-  background = ""
+  _species = "",
+  _background = ""
 ): SkillName[] {
   const profile = getClassProficiencyProfile(className);
 
@@ -396,15 +424,9 @@ export function normalizeSkillSelectionsForClass(
   }
 
   const allowedSkillSet = new Set<string>(profile.skillProficiencyOptions);
-  const grantedSkillSet = new Set<string>(
-    getGrantedSkillProficienciesForCharacter(className, species, background).map(
-      (entry) => entry.skill
-    )
-  );
 
   return dedupe(selectedSkills)
     .filter((skill): skill is SkillName => allowedSkillSet.has(skill))
-    .filter((skill) => !grantedSkillSet.has(skill))
     .slice(0, profile.skillProficiencyCount);
 }
 
@@ -497,6 +519,7 @@ export function getAutomaticProficiencyCollectionsForCharacter(
   species: string,
   background = "",
   options?: {
+    backgroundChoices?: CharacterBackgroundChoices;
     level?: number;
     subclassId?: string;
     classFeatureState?: CharacterClassFeatureState;
@@ -520,7 +543,13 @@ export function getAutomaticProficiencyCollectionsForCharacter(
 
   return {
     skillProficiencies: mergeProficiencyEntries([
-      ...getAutomaticSkillEntries(className, species, background, normalizedSelectedClassSkills),
+      ...getAutomaticSkillEntries(
+        className,
+        species,
+        background,
+        options?.backgroundChoices,
+        normalizedSelectedClassSkills
+      ),
       ...featureCollections.skillProficiencies
     ]),
     savingThrowProficiencies: mergeProficiencyEntries([
@@ -536,7 +565,13 @@ export function getAutomaticProficiencyCollectionsForCharacter(
       ...featureCollections.armorProficiencies
     ]),
     toolProficiencies: mergeProficiencyEntries([
-      ...getAutomaticToolEntries(className, species, background, normalizedSelectedClassTools),
+      ...getAutomaticToolEntries(
+        className,
+        species,
+        background,
+        options?.backgroundChoices,
+        normalizedSelectedClassTools
+      ),
       ...featureCollections.toolProficiencies
     ]),
     languageProficiencies: featureCollections.languageProficiencies
@@ -556,11 +591,12 @@ export function getGrantedProficienciesForCharacter(
 export function getGrantedSkillProficienciesForCharacter(
   className: string,
   species: string,
-  background = ""
+  background = "",
+  backgroundChoices?: CharacterBackgroundChoices
 ): GrantedSkillProficiency[] {
   const grantedBySkill = new Map<SkillName, Set<string>>();
 
-  getAutomaticSkillEntries(className, species, background).forEach((entry) => {
+  getAutomaticSkillEntries(className, species, background, backgroundChoices).forEach((entry) => {
     const skill = getSharedSkillNameForProficiency(entry.proficiency);
     const sources = grantedBySkill.get(skill) ?? new Set<string>();
     sources.add(getSourceLabel(entry.source, entry.sourceStr));
@@ -653,9 +689,15 @@ export function resolveSkillProficienciesForCharacter(
   className: string,
   species: string,
   background: string,
-  selectedSkills: string[]
+  selectedSkills: string[],
+  backgroundChoices?: CharacterBackgroundChoices
 ): ResolvedSkillProficiencies {
-  const granted = getGrantedSkillProficienciesForCharacter(className, species, background);
+  const granted = getGrantedSkillProficienciesForCharacter(
+    className,
+    species,
+    background,
+    backgroundChoices
+  );
   const manual = normalizeSkillSelectionsForClass(className, selectedSkills, species, background);
   const all = dedupe([...granted.map((entry) => entry.skill), ...manual]).filter(
     (skill): skill is SkillName => skillOptionSet.has(skill)

@@ -374,12 +374,14 @@
 
 .classSetupGrid {
   display: grid;
+  align-items: start;
   gap: 1rem;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
 
 .choiceGroup {
   display: grid;
+  align-self: start;
   gap: 0.75rem;
   border: 1px solid rgba(75, 47, 29, 0.12);
   border-radius: 20px;

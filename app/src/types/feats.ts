@@ -72,6 +72,10 @@ export type CharacterFeatSource =
       type: "class-feature";
       feature: CLASS_FEATURE;
       level: number;
+    }
+  | {
+      type: "background";
+      background: string;
     };
 
 export type CharacterFeatEntry = {

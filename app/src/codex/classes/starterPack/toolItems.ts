@@ -48,6 +48,14 @@ const toolItemMappings: Partial<Record<TOOL_PROFICIENCY, StarterPackToolItemMapp
     label: "Herbalism Kit",
     itemKey: "srd-2024_herbalism-kit"
   },
+  [TOOL_PROFICIENCY.FORGERY_KIT]: {
+    label: "Forgery Kit",
+    itemKey: "srd-2024_forgery-kit"
+  },
+  [TOOL_PROFICIENCY.NAVIGATORS_TOOLS]: {
+    label: "Navigator's Tools",
+    itemKey: "srd-2024_navigators-tools"
+  },
   [TOOL_PROFICIENCY.ALCHEMISTS_SUPPLIES]: {
     label: "Alchemist's Supplies",
     itemKey: "srd-2024_alchemists-supplies"
@@ -155,6 +163,22 @@ const toolItemMappings: Partial<Record<TOOL_PROFICIENCY, StarterPackToolItemMapp
   [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_VIOL]: {
     label: "Viol",
     itemKey: "srd-2024_musical-instrument-viol"
+  },
+  [TOOL_PROFICIENCY.GAMING_SET_DICE]: {
+    label: "Dice Set",
+    itemKey: "srd-2024_gaming-set-dice"
+  },
+  [TOOL_PROFICIENCY.GAMING_SET_DRAGONCHESS]: {
+    label: "Dragonchess Set",
+    itemKey: "srd-2024_gaming-set-dragonchess"
+  },
+  [TOOL_PROFICIENCY.GAMING_SET_PLAYING_CARDS]: {
+    label: "Playing Card Set",
+    itemKey: "srd-2024_gaming-set-playing-cards"
+  },
+  [TOOL_PROFICIENCY.GAMING_SET_THREE_DRAGON_ANTE]: {
+    label: "Three-Dragon Ante Set",
+    itemKey: "srd-2024_gaming-set-three-dragon-ante"
   }
 };
 

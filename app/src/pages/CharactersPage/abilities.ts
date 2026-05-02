@@ -6,6 +6,7 @@ import {
 } from "./classFeatures";
 import { getCustomTraitAbilityModifierBonuses } from "./customTraitEffects";
 import { getFeatAbilityScoreBonusesForCharacter } from "./featRuntime";
+import { getBackgroundAbilityScoreBonusesForCharacter } from "./backgrounds";
 
 export type AbilityScoreBreakdownEntry = {
   label: string;
@@ -32,7 +33,17 @@ export type AbilityModifierBreakdown = {
 };
 
 type AbilityCharacterContext = Partial<
-  Pick<Character, "abilities" | "level" | "className" | "classFeatureState" | "feats" | "statusEntries">
+  Pick<
+    Character,
+    | "abilities"
+    | "level"
+    | "className"
+    | "classFeatureState"
+    | "feats"
+    | "statusEntries"
+    | "background"
+    | "backgroundChoices"
+  >
 >;
 
 function normalizeAbilityScore(value: number): number {
@@ -103,6 +114,7 @@ export function getAbilityScoreBreakdownForCharacter(
           statusEntries: character.statusEntries
         })
       : []),
+    ...getBackgroundAbilityScoreBonusesForCharacter(character),
     ...getFeatAbilityScoreBonusesForCharacter({
       feats: character.feats ?? [],
       level: character.level ?? 1

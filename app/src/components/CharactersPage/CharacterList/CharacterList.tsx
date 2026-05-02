@@ -1,6 +1,7 @@
 import { Download, Eye, Plus, Trash2 } from "lucide-react";
 import { useId, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import ActionButton from "../../ActionButton";
 import { DestructiveConfirmationModal } from "../../Overlay";
 import { abilityKeys } from "../../../pages/CharactersPage/constants";
 import type { Character } from "../../../types";
@@ -15,6 +16,7 @@ type CharacterListProps = {
 
 function CharacterList({ characters, onDeleteCharacter }: CharacterListProps) {
   const deleteTitleId = useId();
+  const navigate = useNavigate();
   const [pendingDeleteCharacter, setPendingDeleteCharacter] = useState<Character | null>(null);
 
   function handleDeleteConfirm() {
@@ -35,10 +37,13 @@ function CharacterList({ characters, onDeleteCharacter }: CharacterListProps) {
         </div>
         <div className={styles.listHeaderActions}>
           <span className={styles.listCount}>{characters.length} total</span>
-          <Link to="/characters/new" className={styles.createButton}>
-            <Plus size={16} aria-hidden="true" />
-            <span>New Character</span>
-          </Link>
+          <ActionButton
+            icon={<Plus size={16} aria-hidden="true" />}
+            fullWidth={false}
+            onClick={() => navigate("/characters/new")}
+          >
+            New Character
+          </ActionButton>
         </div>
       </div>
 

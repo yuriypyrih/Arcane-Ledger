@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import CodexFilters from "../../components/CodexPage/CodexFilters";
+import CodexDisclosureList from "../../components/CodexPage/CodexDisclosureList";
 import CodexResults from "../../components/CodexPage/CodexResults";
 import FeatCodexList from "../../components/CodexPage/FeatCodexList";
 import ItemCodexTable from "../../components/CodexPage/ItemCodexTable";
@@ -468,12 +469,14 @@ function CodexPage() {
   const isFeatCategory = category === CODEX_FEATS_CATEGORY;
   const isMonsterCategory = category === ENTRY_CATEGORIES.MONSTERS;
   const isItemCategory = category === ENTRY_CATEGORIES.ITEMS;
+  const isBackgroundCategory = category === ENTRY_CATEGORIES.BACKGROUNDS;
+  const isSpeciesCategory = category === ENTRY_CATEGORIES.SPECIES;
   const headerDescription = isMonsterCategory
-    ? "Monster entries are loaded from the local backend and kept paginated at 50 per page."
+    ? "Bestiary entries are loaded from the local backend and kept paginated at 50 per page."
     : isFeatCategory
       ? "Feat entries are loaded from the character feature registry and show implementation tracking."
       : isItemCategory
-        ? "Item entries are loaded from the local backend and exposed with backend-driven filters."
+        ? "Equipment entries are loaded from the local backend and exposed with backend-driven filters."
         : "Starter entries are bundled with the app.";
 
   return (
@@ -538,6 +541,7 @@ function CodexPage() {
           onPageChange={handlePageChange}
           ordering={monsterOrdering}
           onOrderingChange={handleMonsterOrderingChange}
+          heading="Bestiary Entries"
         />
       ) : isItemCategory ? (
         <ItemCodexTable
@@ -550,9 +554,16 @@ function CodexPage() {
           onPageChange={handlePageChange}
           ordering={itemOrdering}
           onOrderingChange={handleItemOrderingChange}
+          heading="Equipment Entries"
         />
       ) : isFeatCategory ? (
         <FeatCodexList query={query} featCategoryFilter={featCategoryFilter} />
+      ) : isBackgroundCategory || isSpeciesCategory ? (
+        <CodexDisclosureList
+          entries={visibleEntries}
+          status={status}
+          category={isBackgroundCategory ? ENTRY_CATEGORIES.BACKGROUNDS : ENTRY_CATEGORIES.SPECIES}
+        />
       ) : (
         <CodexResults
           entries={visibleEntries}

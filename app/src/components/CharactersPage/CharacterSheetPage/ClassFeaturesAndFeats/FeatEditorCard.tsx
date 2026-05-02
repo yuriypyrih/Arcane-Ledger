@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { Plus, X } from "lucide-react";
+import { Pencil, Plus, X } from "lucide-react";
 import type { Dispatch, ReactNode, SetStateAction } from "react";
 import { FEATS, getFeatureTrackingState, type SpellEntry } from "../../../../codex/entries";
 import { abilityKeys } from "../../../../pages/CharactersPage/constants";
@@ -13,6 +13,7 @@ import {
   isMagicInitiateSpellList,
   magicInitiateSpellListOptions,
   magicInitiateSpellcastingAbilityOptions,
+  isFeatEntryRemovable,
   type FeatDefinition
 } from "../../../../pages/CharactersPage/feats";
 import {
@@ -44,6 +45,7 @@ import {
   isPendingMagicInitiateChoiceValid,
   isPendingMusicianChoiceValid,
   isPendingSkilledChoiceValid,
+  createPendingFeatStateForFeat,
   crafterNoneOptionValue,
   crafterSelectionIndices,
   magicInitiateCantripSelectionIndices,
@@ -81,6 +83,7 @@ type FeatEditorCardProps = {
   renderTrackingButton: TrackingButtonRenderer;
   onOpenFeatReference: (feat: FEATS) => void;
   onAddFeat: (feat: FEATS) => void;
+  onEditFeat: (entry: CharacterFeatEntry) => void;
   onRemoveFeat: (entry: CharacterFeatEntry) => void;
   onPendingFeatStateChange: Dispatch<SetStateAction<PendingFeatState>>;
   onSavePendingAbilityScoreImprovement: () => void;
@@ -105,6 +108,7 @@ type InlineEditorFrameProps = {
 type SelectFieldProps = {
   label: string;
   value: string;
+  disabled?: boolean;
   options: Array<{
     disabled?: boolean;
     label: string;
@@ -168,13 +172,14 @@ type MagicInitiateChoiceEditorProps = {
   onChange: (nextChoice: PendingMagicInitiateChoice) => void;
 };
 
-function SelectField({ label, value, options, onChange }: SelectFieldProps) {
+function SelectField({ label, value, disabled, options, onChange }: SelectFieldProps) {
   return (
     <label className={modalStyles.field}>
       <span>{label}</span>
       <SelectInput
         className={modalStyles.select}
         value={value}
+        disabled={disabled}
         onChange={(event) => onChange(event.target.value)}
       >
         {options.map((option) => (
@@ -469,6 +474,9 @@ function MagicInitiateChoiceEditor({
   onChange
 }: MagicInitiateChoiceEditorProps) {
   const selectedSpellList = isMagicInitiateSpellList(choice.spellList) ? choice.spellList : null;
+  const lockedSpellList = isMagicInitiateSpellList(choice.lockedSpellList)
+    ? choice.lockedSpellList
+    : null;
   const usedSpellLists = new Set(
     selectedEntries
       .map((entry) => entry.magicInitiate?.spellList)
@@ -501,13 +509,20 @@ function MagicInitiateChoiceEditor({
         <SelectField
           label="Spell List"
           value={choice.spellList}
+          disabled={Boolean(lockedSpellList)}
           options={[
-            {
-              label: "-",
-              value: magicInitiateNoneOptionValue
-            },
+            ...(lockedSpellList
+              ? []
+              : [
+                  {
+                    label: "-",
+                    value: magicInitiateNoneOptionValue
+                  }
+                ]),
             ...magicInitiateSpellListOptions.map((spellList) => ({
-              disabled: usedSpellLists.has(spellList),
+              disabled: lockedSpellList
+                ? spellList !== lockedSpellList
+                : usedSpellLists.has(spellList),
               label: getMagicInitiateSpellListLabel(spellList),
               value: spellList
             }))
@@ -749,7 +764,7 @@ function renderInlineEditor({
   onSavePendingSkilledChoice
 }: Omit<
   FeatEditorCardProps,
-  "renderTrackingButton" | "onOpenFeatReference" | "onAddFeat" | "onRemoveFeat"
+  "renderTrackingButton" | "onOpenFeatReference" | "onAddFeat" | "onEditFeat" | "onRemoveFeat"
 >) {
   if (featEligibility && !featEligibility.isEligible) {
     return null;
@@ -1106,6 +1121,7 @@ function FeatEditorCard({
   renderTrackingButton,
   onOpenFeatReference,
   onAddFeat,
+  onEditFeat,
   onRemoveFeat,
   onPendingFeatStateChange,
   onSavePendingAbilityScoreImprovement,
@@ -1120,6 +1136,7 @@ function FeatEditorCard({
 }: FeatEditorCardProps) {
   const isRepeatable = Boolean(featDefinition.repeatable);
   const isSelected = selectedEntries.length > 0;
+  const canEditFeat = createPendingFeatStateForFeat(featDefinition.feat) !== null;
   const unmetRequirementText = featEligibility?.unmetRequirements.join(" ") ?? "";
   const isRequirementBlocked = featEligibility ? !featEligibility.isEligible : false;
   const isAddDisabled = (!isRepeatable && isSelected) || isRequirementBlocked;
@@ -1160,17 +1177,32 @@ function FeatEditorCard({
               <span className={cardStyles.selectedText}>
                 {getRepeatableFeatEntrySummary(entry)}
               </span>
-              <button
-                type="button"
-                className={cardStyles.selectedRemoveButton}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onRemoveFeat(entry);
-                }}
-                aria-label={`Remove ${featDefinition.label}`}
-              >
-                <X size={14} />
-              </button>
+              {canEditFeat ? (
+                <button
+                  type="button"
+                  className={cardStyles.selectedRemoveButton}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onEditFeat(entry);
+                  }}
+                  aria-label={`Edit ${featDefinition.label}`}
+                >
+                  <Pencil size={14} />
+                </button>
+              ) : null}
+              {isFeatEntryRemovable(entry) ? (
+                <button
+                  type="button"
+                  className={cardStyles.selectedRemoveButton}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onRemoveFeat(entry);
+                  }}
+                  aria-label={`Remove ${featDefinition.label}`}
+                >
+                  <X size={14} />
+                </button>
+              ) : null}
             </li>
           ))}
         </ul>
@@ -1209,22 +1241,36 @@ function FeatEditorCard({
             <Plus size={16} />
             {isRepeatable && isSelected ? "Add Another" : isAddDisabled ? "Added" : "Add"}
           </button>
-        ) : (
-          <button
-            type="button"
-            className={clsx(shared.editButton, modalStyles.removeActionButton)}
-            onClick={(event) => {
-              event.stopPropagation();
-
-              if (selectedEntries[0]) {
-                onRemoveFeat(selectedEntries[0]);
-              }
-            }}
-          >
-            <X size={16} />
-            Remove
-          </button>
-        )}
+        ) : selectedEntries[0] ? (
+          <>
+            {canEditFeat ? (
+              <button
+                type="button"
+                className={clsx(shared.editButton, modalStyles.addButton)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onEditFeat(selectedEntries[0]);
+                }}
+              >
+                <Pencil size={16} />
+                Edit
+              </button>
+            ) : null}
+            {isFeatEntryRemovable(selectedEntries[0]) ? (
+              <button
+                type="button"
+                className={clsx(shared.editButton, modalStyles.removeActionButton)}
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onRemoveFeat(selectedEntries[0]);
+                }}
+              >
+                <X size={16} />
+                Remove
+              </button>
+            ) : null}
+          </>
+        ) : null}
       </div>
     </article>
   );

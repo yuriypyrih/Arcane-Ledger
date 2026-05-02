@@ -78,7 +78,7 @@ function CodexResults({
 
   function openEntry(entryId: string) {
     navigate({
-      pathname: `/codex/${entryId}`,
+      pathname: `/library/${entryId}`,
       search: search.length > 0 ? `?${search}` : ""
     });
   }

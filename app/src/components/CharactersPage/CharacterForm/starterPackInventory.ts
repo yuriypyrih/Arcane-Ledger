@@ -2,8 +2,8 @@ import {
   getStarterPackToolItemMapping,
   type StarterPackEquipmentChoice
 } from "../../../codex/classes/starterPack";
-import { fetchItemByKey } from "../../../api/items";
-import type { CharacterInventoryItem } from "../../../types";
+import { fetchItemsByKeys } from "../../../api/items";
+import type { CharacterInventoryItem, ItemRecord } from "../../../types";
 import { addInventoryItemCopies } from "../../../pages/CharactersPage/inventoryItems";
 
 type StarterPackResolutionContext = {
@@ -146,29 +146,55 @@ export async function materializeStarterPackChoiceToInventory(
   const { requests, warnings } = resolveStarterPackRequests(choice, context);
   let nextInventoryItems = [...inventoryItems];
   const nextWarnings = [...warnings];
+  const requestKeys = [...new Set(requests.map((request) => request.itemKey))];
+
+  if (requestKeys.length === 0) {
+    return {
+      inventoryItems: nextInventoryItems,
+      warnings: [...new Set(nextWarnings)]
+    };
+  }
+
+  let itemsByKey = new Map<string, ItemRecord>();
+
+  try {
+    const payload = await fetchItemsByKeys(requestKeys);
+
+    itemsByKey = new Map(
+      payload.items
+        .filter((item): item is ItemRecord & { key: string } => typeof item.key === "string")
+        .map((item) => [item.key, item])
+    );
+
+    if (payload.message) {
+      nextWarnings.push(payload.message);
+    }
+  } catch {
+    nextWarnings.push(
+      "Couldn't fetch starter equipment from the backend, so it was skipped during character creation."
+    );
+
+    return {
+      inventoryItems: nextInventoryItems,
+      warnings: [...new Set(nextWarnings)]
+    };
+  }
 
   for (const request of requests) {
-    if (request.type === "item") {
-      try {
-        const item = await fetchItemByKey(request.itemKey);
-        nextInventoryItems = addInventoryItemCopies(nextInventoryItems, item, request.quantity);
-      } catch {
-        nextWarnings.push(
-          `Couldn't fetch ${request.label} from the backend, so it was skipped during character creation.`
-        );
-      }
+    const item = itemsByKey.get(request.itemKey);
 
-      continue;
-    }
-
-    try {
-      const item = await fetchItemByKey(request.itemKey);
-      nextInventoryItems = addInventoryItemCopies(nextInventoryItems, item, 1);
-    } catch {
+    if (!item) {
       nextWarnings.push(
         `Couldn't fetch ${request.label} from the backend, so it was skipped during character creation.`
       );
+      continue;
     }
+
+    nextInventoryItems = addInventoryItemCopies(
+      nextInventoryItems,
+      item,
+      request.type === "item" ? request.quantity : 1
+    );
   }
 
   return {

@@ -135,3 +135,9 @@ export type ItemPackContentsRecord = {
   contents: ItemPackContent[];
   missingReferences: ItemPackMissingReference[];
 };
+
+export type ItemBatchLookupRecord = {
+  items: ItemRecord[];
+  invalidKeys: string[];
+  message?: string;
+};

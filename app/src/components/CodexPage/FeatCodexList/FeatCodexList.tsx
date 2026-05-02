@@ -63,8 +63,8 @@ function FeatCodexList({ query, featCategoryFilter }: FeatCodexListProps) {
     null
   );
   const normalizedQuery = query.trim().toLowerCase();
-  const visibleFeatDefinitions = useMemo(
-    () =>
+  const visibleFeatDefinitions = useMemo(() => {
+    const filteredFeatDefinitions =
       normalizedQuery.length === 0
         ? featDefinitions.filter(
             (definition) => featCategoryFilter === null || definition.category === featCategoryFilter
@@ -73,9 +73,12 @@ function FeatCodexList({ query, featCategoryFilter }: FeatCodexListProps) {
             (definition) =>
               (featCategoryFilter === null || definition.category === featCategoryFilter) &&
               getFeatSearchText(definition).includes(normalizedQuery)
-          ),
-    [featCategoryFilter, normalizedQuery]
-  );
+          );
+
+    return [...filteredFeatDefinitions].sort((left, right) =>
+      left.label.localeCompare(right.label)
+    );
+  }, [featCategoryFilter, normalizedQuery]);
 
   function toggleFeatKey(featKey: string) {
     setExpandedFeatKeys((currentKeys) =>

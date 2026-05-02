@@ -2,6 +2,7 @@ import type { FilterQuery, PipelineStage } from "mongoose";
 import { ItemModel } from "../models/Item.js";
 import {
   ITEM_NO_RARITY_FILTER_VALUE,
+  type ItemBatchLookupRecord,
   type ItemArmorType,
   type ItemAttackType,
   type ItemBrowserTab,
@@ -574,6 +575,42 @@ export async function getItemByKey(key: string) {
   const record = await ItemModel.findOne({ key }).lean<Open5eItemRecord | null>().exec();
 
   return record ? serializeItemRecord(record) : null;
+}
+
+export async function getItemsByKeys(keys: string[]): Promise<ItemBatchLookupRecord> {
+  const uniqueKeys = [...new Set(keys.map((key) => key.trim()).filter(Boolean))];
+
+  if (uniqueKeys.length === 0) {
+    return {
+      items: [],
+      invalidKeys: []
+    };
+  }
+
+  const records = await ItemModel.find({ key: { $in: uniqueKeys } })
+    .lean<Open5eItemRecord[]>()
+    .exec();
+  const recordsByKey = new Map(
+    records
+      .filter(
+        (record): record is Open5eItemRecord & { key: string } => typeof record.key === "string"
+      )
+      .map((record) => [record.key, record])
+  );
+  const items = uniqueKeys
+    .map((key) => recordsByKey.get(key))
+    .filter((record): record is Open5eItemRecord & { key: string } => Boolean(record))
+    .map(serializeItemRecord);
+  const invalidKeys = uniqueKeys.filter((key) => !recordsByKey.has(key));
+
+  return {
+    items,
+    invalidKeys,
+    message:
+      invalidKeys.length > 0
+        ? `Ignored ${invalidKeys.length} invalid item key${invalidKeys.length === 1 ? "" : "s"}: ${invalidKeys.join(", ")}.`
+        : undefined
+  };
 }
 
 export async function listItemFilterOptions(): Promise<ItemFilterOptions> {

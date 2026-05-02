@@ -6,9 +6,14 @@ import type {
   AbilityKey,
   AbilityScores,
   AttributeMode,
+  CharacterBackgroundChoices,
   CharacterDraft,
+  CharacterFeatEntry,
+  MagicInitiateChoice,
   SkillName
 } from "../../../types";
+import { TOOL_PROFICIENCY } from "../../../types";
+import { FEATS } from "../../../codex/entries";
 import { getClassStarterPack } from "../../../codex/classes/starterPack";
 import {
   POINT_BUY_BUDGET,
@@ -37,6 +42,25 @@ import {
   resolveSkillProficienciesForCharacter
 } from "../../../pages/CharactersPage/proficiency";
 import { getToolProficiencyLabel } from "../../../pages/CharactersPage/proficiencyOptions";
+import {
+  groupedToolProficiencyOptions,
+  musicalInstrumentToolProficiencies,
+  skillsOptions
+} from "../../../pages/CharactersPage/proficiencyOptions";
+import {
+  createDefaultBackgroundOriginFeatEntry,
+  getBackgroundEntry,
+  getBackgroundEquipmentChoice,
+  getBackgroundToolChoiceOptions,
+  normalizeBackgroundChoices
+} from "../../../pages/CharactersPage/backgrounds";
+import {
+  getMagicInitiateCantripOptions,
+  getFeatLabel,
+  getMagicInitiateLevelOneSpellOptions,
+  magicInitiateSpellcastingAbilityOptions
+} from "../../../pages/CharactersPage/feats";
+import { crafterFastCraftingToolProficiencies } from "../../../pages/CharactersPage/crafterFeat";
 import { normalizeLevelAndXp } from "../../../pages/CharactersPage/experience";
 import { getAutomaticMaxHitPointsForCharacter } from "../../../pages/CharactersPage/gameplay";
 import { getEffectiveHitPointMaximumForCharacter } from "../../../pages/CharactersPage/traits";
@@ -44,10 +68,13 @@ import {
   getSubclassOptionsForClassName,
   normalizeSubclassId
 } from "../../../pages/CharactersPage/subclasses";
+import ActionButton from "../../ActionButton";
+import CellContainer from "../../CellContainer/CellContainer";
 import NumberInput from "../FormInputs/NumberInput";
 import SelectInput from "../FormInputs/SelectInput";
 import TextAreaInput from "../FormInputs/TextAreaInput";
 import TextInput from "../FormInputs/TextInput";
+import RadioContainerOption from "../CharacterSheetPage/RadioContainerOption";
 import abilityEditorStyles from "../CharacterSheetPage/StatsForm/AbilityScoresModal.module.css";
 import {
   type ClassBuildPlan,
@@ -118,6 +145,89 @@ function areStringMapsEqual(left: Record<string, string>, right: Record<string, 
   return keys.every((key) => (left[key] ?? "") === (right[key] ?? ""));
 }
 
+function areJsonValuesEqual(left: unknown, right: unknown): boolean {
+  return JSON.stringify(left ?? null) === JSON.stringify(right ?? null);
+}
+
+function addCurrencies(
+  left: CharacterDraft["currencies"],
+  right: CharacterDraft["currencies"]
+): CharacterDraft["currencies"] {
+  const currencies = createDefaultCurrencies();
+
+  Object.keys({ ...left, ...right }).forEach((currencyKey) => {
+    currencies[currencyKey] = (left[currencyKey] ?? 0) + (right[currencyKey] ?? 0);
+  });
+
+  return currencies;
+}
+
+function getBackgroundPreferredAbilities(className: string): AbilityKey[] {
+  const buildPlan = getBuildPlan(className);
+  return [buildPlan.primary, buildPlan.secondary, buildPlan.tertiary];
+}
+
+function getNormalizedBackgroundChoices(
+  background: string,
+  choices: CharacterBackgroundChoices | undefined,
+  className: string
+): CharacterBackgroundChoices | undefined {
+  return normalizeBackgroundChoices(background, choices, {
+    preferredAbilities: getBackgroundPreferredAbilities(className)
+  });
+}
+
+function getBackgroundFeatEntry(
+  feats: CharacterFeatEntry[] | undefined,
+  background: string
+): CharacterFeatEntry | null {
+  const entry = getBackgroundEntry(background);
+
+  if (!entry) {
+    return null;
+  }
+
+  return (
+    feats?.find(
+      (featEntry) =>
+        featEntry.source?.type === "background" &&
+        featEntry.source.background === entry.name &&
+        featEntry.feat === entry.originFeat
+    ) ?? createDefaultBackgroundOriginFeatEntry(entry.name, 1)
+  );
+}
+
+function upsertBackgroundFeatEntry(
+  feats: CharacterFeatEntry[] | undefined,
+  background: string,
+  nextEntry: CharacterFeatEntry
+): CharacterFeatEntry[] {
+  const entry = getBackgroundEntry(background);
+  const nonBackgroundFeats = (feats ?? []).filter(
+    (featEntry) => featEntry.source?.type !== "background"
+  );
+
+  if (!entry) {
+    return nonBackgroundFeats;
+  }
+
+  return [...nonBackgroundFeats, nextEntry];
+}
+
+function createRandomBackgroundState(
+  className: string
+): Pick<CharacterDraft, "background" | "backgroundChoices" | "feats"> {
+  const background = createRandomBackground();
+  const backgroundChoices = getNormalizedBackgroundChoices(background, undefined, className);
+  const backgroundOriginFeat = createDefaultBackgroundOriginFeatEntry(background, 1);
+
+  return {
+    background,
+    backgroundChoices,
+    feats: backgroundOriginFeat ? [backgroundOriginFeat] : []
+  };
+}
+
 function createFormValues(
   draft: CharacterDraft,
   options?: {
@@ -136,20 +246,27 @@ function createFormValues(
 
 function getEffectiveHitPointMaximumForDraft(
   draft: Pick<CharacterDraft, "className" | "hitPoints"> &
-    Partial<Pick<CharacterDraft, "level" | "subclassId" | "statusEntries">>
+    Partial<Pick<CharacterDraft, "level" | "subclassId" | "statusEntries" | "feats">>
 ): number {
   return getEffectiveHitPointMaximumForCharacter({
     className: draft.className,
     subclassId: draft.subclassId,
     level: draft.level,
     hitPoints: draft.hitPoints,
-    statusEntries: draft.statusEntries ?? []
+    statusEntries: draft.statusEntries ?? [],
+    feats: draft.feats
   });
 }
 
-function createBasicProfileSnapshot(values: CharacterFormValues): CharacterFormValues {
+function createBasicProfileSnapshot(
+  values: CharacterFormValues,
+  options?: {
+    includeBackgroundDefaults?: boolean;
+  }
+): CharacterFormValues {
   const defaults = createEmptyCharacter();
   const normalizedProgress = normalizeLevelAndXp(values.level, values.xp);
+  const includeBackgroundDefaults = options?.includeBackgroundDefaults ?? true;
 
   return createFormValues(
     {
@@ -159,6 +276,13 @@ function createBasicProfileSnapshot(values: CharacterFormValues): CharacterFormV
       className: values.className,
       subclassId: values.subclassId,
       background: values.background,
+      backgroundChoices: includeBackgroundDefaults
+        ? getNormalizedBackgroundChoices(
+            values.background,
+            values.backgroundChoices,
+            values.className
+          )
+        : undefined,
       level: normalizedProgress.level,
       xp: normalizedProgress.xp,
       attributeMode: "pointBuy",
@@ -170,6 +294,37 @@ function createBasicProfileSnapshot(values: CharacterFormValues): CharacterFormV
       starterPackSelectionValues: {}
     }
   );
+}
+
+function isBackgroundAbilityScoreIncreaseReady(
+  allowedAbilities: readonly AbilityKey[],
+  choice: CharacterBackgroundChoices["abilityScoreIncrease"] | undefined
+): boolean {
+  if (!choice) {
+    return false;
+  }
+
+  const allowedAbilitySet = new Set<AbilityKey>(allowedAbilities);
+
+  if (choice.mode === "two-one") {
+    return (
+      allowedAbilitySet.has(choice.primaryAbility) &&
+      allowedAbilitySet.has(choice.secondaryAbility) &&
+      choice.primaryAbility !== choice.secondaryAbility
+    );
+  }
+
+  return (
+    choice.abilities.length === 3 &&
+    new Set(choice.abilities).size === 3 &&
+    choice.abilities.every((ability) => allowedAbilitySet.has(ability))
+  );
+}
+
+function isBackgroundEquipmentModeReady(
+  value: CharacterBackgroundChoices["equipmentMode"] | undefined
+): boolean {
+  return value === "equipment" || value === "gold";
 }
 
 function getAbilityPriorityOrder(plan: ClassBuildPlan): AbilityKey[] {
@@ -214,12 +369,13 @@ function createFallbackRecommendedSkills(
   species: string,
   className: string,
   background: string,
+  backgroundChoices: CharacterBackgroundChoices | undefined,
   buildPlan: ClassBuildPlan
 ): SkillName[] {
   const availableClassSkills = getSkillProficiencyOptionsForClass(className);
   const targetCount = getSkillSelectionLimitForClass(className);
   const grantedSkillSet = new Set(
-    getGrantedSkillProficienciesForCharacter(className, species, background).map(
+    getGrantedSkillProficienciesForCharacter(className, species, background, backgroundChoices).map(
       (entry) => entry.skill
     )
   );
@@ -240,6 +396,20 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
   const normalizedProgress = normalizeLevelAndXp(profile.level, profile.xp);
   const starterPack = getResolvedStarterPack(profile.className);
   const configuredStarterPack = getClassStarterPack(profile.className);
+  const buildPlan = getBuildPlan(profile.className);
+  const backgroundChoices = getNormalizedBackgroundChoices(
+    profile.background,
+    profile.backgroundChoices,
+    profile.className
+  );
+  const backgroundEquipmentChoice = getBackgroundEquipmentChoice(
+    profile.background,
+    backgroundChoices
+  );
+  const backgroundOriginFeat = createDefaultBackgroundOriginFeatEntry(
+    profile.background,
+    normalizedProgress.level
+  );
 
   if (starterPack.hasConfiguredStarterPack && starterPack.recommendedAbilityScores) {
     const abilities = cloneAbilities(starterPack.recommendedAbilityScores);
@@ -247,7 +417,8 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
       getGrantedSkillProficienciesForCharacter(
         profile.className,
         profile.species,
-        profile.background
+        profile.background,
+        backgroundChoices
       ).map((entry) => entry.skill)
     );
     const recommendedSkills = normalizeSelection(
@@ -273,8 +444,12 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
       className: profile.className,
       level: normalizedProgress.level,
       abilities,
-      classFeatureState: profile.classFeatureState ?? {}
+      classFeatureState: profile.classFeatureState ?? {},
+      background: profile.background,
+      backgroundChoices
     });
+    const classCurrencies = resolveStarterPackChoiceCurrencies(recommendedChoice);
+    const backgroundCurrencies = resolveStarterPackChoiceCurrencies(backgroundEquipmentChoice);
 
     return createFormValues(
       {
@@ -284,6 +459,7 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
         className: profile.className,
         subclassId: profile.subclassId,
         background: profile.background,
+        backgroundChoices,
         level: normalizedProgress.level,
         xp: normalizedProgress.xp,
         hitPoints,
@@ -292,10 +468,11 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
         attributeMode: "pointBuy",
         abilities,
         alignment: "True Neutral",
-        currencies: resolveStarterPackChoiceCurrencies(recommendedChoice),
+        currencies: addCurrencies(classCurrencies, backgroundCurrencies),
         skills: recommendedSkills,
         toolProficiencies: recommendedTools,
-        equipment: []
+        equipment: [],
+        feats: backgroundOriginFeat ? [backgroundOriginFeat] : []
       },
       {
         defaultHitPointMode: "automatic",
@@ -308,7 +485,6 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
     );
   }
 
-  const buildPlan = getBuildPlan(profile.className);
   const abilities = createFallbackRecommendedAbilities(
     profile.species,
     normalizedProgress.level,
@@ -318,7 +494,9 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
     className: profile.className,
     level: normalizedProgress.level,
     abilities,
-    classFeatureState: profile.classFeatureState ?? {}
+    classFeatureState: profile.classFeatureState ?? {},
+    background: profile.background,
+    backgroundChoices
   });
 
   return createFormValues(
@@ -329,6 +507,7 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
       className: profile.className,
       subclassId: profile.subclassId,
       background: profile.background,
+      backgroundChoices,
       level: normalizedProgress.level,
       xp: normalizedProgress.xp,
       hitPoints,
@@ -337,14 +516,16 @@ function createRecommendedCharacterDraft(profile: CharacterFormValues): Characte
       attributeMode: "pointBuy",
       abilities,
       alignment: "True Neutral",
-      currencies: createDefaultCurrencies(),
+      currencies: resolveStarterPackChoiceCurrencies(backgroundEquipmentChoice),
       skills: createFallbackRecommendedSkills(
         profile.species,
         profile.className,
         profile.background,
+        backgroundChoices,
         buildPlan
       ),
-      equipment: []
+      equipment: [],
+      feats: backgroundOriginFeat ? [backgroundOriginFeat] : []
     },
     {
       defaultHitPointMode: "automatic",
@@ -464,10 +645,12 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     defaultValues: initialFormValues
   });
   const [
+    selectedName,
     selectedClassName,
     selectedSubclassId,
     selectedSpecies,
     selectedBackground,
+    selectedBackgroundChoices,
     selectedLevel,
     attributeMode,
     abilities,
@@ -477,14 +660,17 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     selectedToolProficiencies,
     selectedCurrencies,
     selectedStartingEquipmentChoiceIndex,
-    selectedStarterPackSelectionValues
+    selectedStarterPackSelectionValues,
+    selectedFeats
   ] = useWatch({
     control,
     name: [
+      "name",
       "className",
       "subclassId",
       "species",
       "background",
+      "backgroundChoices",
       "level",
       "attributeMode",
       "abilities",
@@ -494,13 +680,29 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       "toolProficiencies",
       "currencies",
       "startingEquipmentChoiceIndex",
-      "starterPackSelectionValues"
+      "starterPackSelectionValues",
+      "feats"
     ]
   });
+  const resolvedName = selectedName ?? initialFormValues.name;
   const resolvedClassName = selectedClassName ?? initialFormValues.className;
   const resolvedSubclassId = selectedSubclassId ?? initialFormValues.subclassId ?? "";
   const resolvedSpecies = selectedSpecies ?? initialFormValues.species;
   const resolvedBackground = selectedBackground ?? initialFormValues.background;
+  const resolvedBackgroundChoiceInput =
+    selectedBackgroundChoices ?? initialFormValues.backgroundChoices;
+  const resolvedBackgroundChoices = useMemo(
+    () =>
+      getNormalizedBackgroundChoices(
+        resolvedBackground,
+        resolvedBackgroundChoiceInput,
+        resolvedClassName
+      ),
+    [resolvedBackground, resolvedBackgroundChoiceInput, resolvedClassName]
+  );
+  const displayedBackgroundChoices = isEditing
+    ? resolvedBackgroundChoices
+    : resolvedBackgroundChoiceInput;
   const resolvedLevel = selectedLevel ?? initialFormValues.level;
   const resolvedAttributeMode = attributeMode ?? initialFormValues.attributeMode;
   const resolvedAbilities = abilities ?? initialFormValues.abilities;
@@ -518,9 +720,45 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     () => selectedStarterPackSelectionValues ?? {},
     [selectedStarterPackSelectionValues]
   );
+  const resolvedFeats = useMemo(
+    () => selectedFeats ?? initialFormValues.feats ?? [],
+    [initialFormValues.feats, selectedFeats]
+  );
   const availableSubclassOptions = getSubclassOptionsForClassName(resolvedClassName);
   const starterPack = getResolvedStarterPack(resolvedClassName);
   const configuredStarterPack = getClassStarterPack(resolvedClassName);
+  const backgroundEntry = getBackgroundEntry(resolvedBackground);
+  const backgroundToolOptions = getBackgroundToolChoiceOptions(resolvedBackground);
+  const backgroundToolSelectionOptions =
+    backgroundEntry && backgroundToolOptions.length > 0
+      ? backgroundToolOptions
+      : groupedToolProficiencyOptions;
+  const selectedBackgroundSkillProficiencies = displayedBackgroundChoices?.skillProficiencies ?? [];
+  const selectedBackgroundToolProficiencies =
+    displayedBackgroundChoices?.toolProficiencies ??
+    (displayedBackgroundChoices?.toolProficiency
+      ? [displayedBackgroundChoices.toolProficiency]
+      : []);
+  const selectedBackgroundEquipmentChoice = useMemo(() => {
+    if (
+      !isEditing &&
+      wizardStep === 2 &&
+      backgroundEntry &&
+      !isBackgroundEquipmentModeReady(displayedBackgroundChoices?.equipmentMode)
+    ) {
+      return null;
+    }
+
+    return getBackgroundEquipmentChoice(resolvedBackground, resolvedBackgroundChoices);
+  }, [
+    backgroundEntry,
+    displayedBackgroundChoices?.equipmentMode,
+    isEditing,
+    resolvedBackground,
+    resolvedBackgroundChoices,
+    wizardStep
+  ]);
+  const selectedBackgroundFeatEntry = getBackgroundFeatEntry(resolvedFeats, resolvedBackground);
   const availableSkillOptions = starterPack.skillProficiencies;
   const skillSelectionLimit = starterPack.skillProficiencySelectionCount;
   const { choices: availableToolOptions, count: toolSelectionLimit } =
@@ -560,7 +798,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     className: resolvedClassName,
     level: resolvedLevel,
     abilities: resolvedAbilities,
-    classFeatureState: getValues("classFeatureState") ?? {}
+    classFeatureState: getValues("classFeatureState") ?? {},
+    background: resolvedBackground,
+    backgroundChoices: resolvedBackgroundChoices
   });
   const lastCustomAbilitiesRef = useRef(cloneAbilities(initialFormValues.abilities));
   const lastPointBuyAbilitiesRef = useRef(
@@ -573,12 +813,10 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     resolvedClassName,
     resolvedSpecies,
     resolvedBackground,
-    resolvedSkills
+    resolvedSkills,
+    resolvedBackgroundChoices
   );
-  const grantedSkillSet = new Set(resolvedSkillSelections.granted.map((entry) => entry.skill));
-  const availableManualSkillOptions = availableSkillOptions.filter(
-    (skill) => !grantedSkillSet.has(skill)
-  );
+  const availableManualSkillOptions = availableSkillOptions;
   const selectedSkillCount = resolvedSkillSelections.manual.length;
   const selectedToolCount = resolvedToolSelections.length;
   const buildRequiresSkillSelection = skillSelectionLimit > 0;
@@ -592,14 +830,47 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   const isStarterPackSelectionReady = requiredStarterPackSelections.every(
     (selection) => normalizedStarterPackSelectionValues[selection.id]?.length > 0
   );
+  const isBackgroundAbilitySelectionReady =
+    !backgroundEntry ||
+    isEditing ||
+    isBackgroundAbilityScoreIncreaseReady(
+      backgroundEntry.abilityScoreOptions,
+      displayedBackgroundChoices?.abilityScoreIncrease
+    );
+  const isBackgroundSkillSelectionReady =
+    !backgroundEntry || isEditing || selectedBackgroundSkillProficiencies.length === 2;
+  const isBackgroundToolSelectionReady =
+    !backgroundEntry ||
+    isEditing ||
+    (selectedBackgroundToolProficiencies.length === 1 &&
+      backgroundToolSelectionOptions.includes(selectedBackgroundToolProficiencies[0]));
+  const isBackgroundEquipmentSelectionReady =
+    !backgroundEntry ||
+    isEditing ||
+    isBackgroundEquipmentModeReady(displayedBackgroundChoices?.equipmentMode);
+  const isBackgroundSetupReady =
+    isBackgroundAbilitySelectionReady &&
+    isBackgroundSkillSelectionReady &&
+    isBackgroundToolSelectionReady &&
+    isBackgroundEquipmentSelectionReady;
   const isPointBuyReady = resolvedAttributeMode !== "pointBuy" || pointBuyRemaining === 0;
   const isBuildSetupReady =
     isSkillSelectionReady &&
     isToolSelectionReady &&
     isEquipmentChoiceReady &&
     isStarterPackSelectionReady &&
+    isBackgroundSetupReady &&
     isPointBuyReady &&
     (resolvedMaxHitPointsMode !== "custom" || automaticHitPoints > 0);
+  const isCoreProfileReady =
+    resolvedClassName.trim().length > 0 &&
+    resolvedSpecies.trim().length > 0 &&
+    resolvedBackground.trim().length > 0 &&
+    resolvedName.trim().length > 0 &&
+    (!availableSubclassOptions.length || resolvedSubclassId.trim().length > 0) &&
+    Number.isFinite(resolvedLevel) &&
+    resolvedLevel >= 1 &&
+    resolvedLevel <= 20;
 
   const creationTitleByStep: Record<CreationStep, string> = {
     1: "Create a new character",
@@ -664,6 +935,36 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   }, [getValues, resolvedBackground, resolvedClassName, resolvedSpecies, setValue]);
 
   useEffect(() => {
+    if (!isEditing && wizardStep === 2) {
+      return;
+    }
+
+    const currentChoices = getValues("backgroundChoices");
+
+    if (!areJsonValuesEqual(currentChoices, resolvedBackgroundChoices)) {
+      setValue("backgroundChoices", resolvedBackgroundChoices, {
+        shouldDirty: true,
+        shouldValidate: true
+      });
+    }
+  }, [getValues, isEditing, resolvedBackgroundChoices, setValue, wizardStep]);
+
+  useEffect(() => {
+    const currentFeats = getValues("feats") ?? [];
+    const backgroundFeat = getBackgroundFeatEntry(currentFeats, resolvedBackground);
+    const nextFeats = backgroundFeat
+      ? upsertBackgroundFeatEntry(currentFeats, resolvedBackground, backgroundFeat)
+      : currentFeats.filter((featEntry) => featEntry.source?.type !== "background");
+
+    if (!areJsonValuesEqual(currentFeats, nextFeats)) {
+      setValue("feats", nextFeats, {
+        shouldDirty: true,
+        shouldValidate: true
+      });
+    }
+  }, [getValues, resolvedBackground, setValue]);
+
+  useEffect(() => {
     const normalizedSubclassId = normalizeSubclassId(resolvedSubclassId, resolvedClassName) ?? "";
 
     if (resolvedSubclassId !== normalizedSubclassId) {
@@ -704,47 +1005,63 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
   ]);
 
   useEffect(() => {
-    if (!selectedStarterEquipmentChoice) {
-      if (!isEditing && !areCurrenciesEqual(resolvedCurrencies, createDefaultCurrencies())) {
-        setValue("currencies", createDefaultCurrencies(), {
-          shouldDirty: true
-        });
-      }
-
-      return;
-    }
-
-    const nextCurrencies = resolveStarterPackChoiceCurrencies(selectedStarterEquipmentChoice);
+    const classCurrencies = resolveStarterPackChoiceCurrencies(selectedStarterEquipmentChoice);
+    const backgroundCurrencies = resolveStarterPackChoiceCurrencies(
+      selectedBackgroundEquipmentChoice
+    );
+    const nextCurrencies = addCurrencies(classCurrencies, backgroundCurrencies);
 
     if (!areCurrenciesEqual(resolvedCurrencies, nextCurrencies)) {
       setValue("currencies", nextCurrencies, {
         shouldDirty: true
       });
     }
-  }, [isEditing, resolvedCurrencies, selectedStarterEquipmentChoice, setValue]);
+  }, [
+    isEditing,
+    resolvedCurrencies,
+    selectedBackgroundEquipmentChoice,
+    selectedStarterEquipmentChoice,
+    setValue
+  ]);
 
   useEffect(() => {
     let cancelled = false;
 
-    if (!selectedStarterEquipmentChoice) {
-      setStarterPackWarnings([]);
+    if (!selectedStarterEquipmentChoice && !selectedBackgroundEquipmentChoice) {
+      setStarterPackWarnings((currentWarnings) =>
+        currentWarnings.length === 0 ? currentWarnings : []
+      );
       return undefined;
     }
 
-    void previewStarterPackChoiceWarnings(selectedStarterEquipmentChoice, {
-      selectedToolProficiencies: resolvedToolSelections,
-      selectionValues: normalizedStarterPackSelectionValues
-    })
-      .then((warnings) => {
+    void Promise.all([
+      previewStarterPackChoiceWarnings(selectedStarterEquipmentChoice, {
+        selectedToolProficiencies: resolvedToolSelections,
+        selectionValues: normalizedStarterPackSelectionValues
+      }),
+      previewStarterPackChoiceWarnings(selectedBackgroundEquipmentChoice, {
+        selectedToolProficiencies: resolvedBackgroundChoices?.toolProficiency
+          ? [resolvedBackgroundChoices.toolProficiency]
+          : [],
+        selectionValues: {}
+      })
+    ])
+      .then(([classWarnings, backgroundWarnings]) => {
         if (!cancelled) {
-          setStarterPackWarnings(warnings);
+          const nextWarnings = [...classWarnings, ...backgroundWarnings];
+          setStarterPackWarnings((currentWarnings) =>
+            areStringArraysEqual(currentWarnings, nextWarnings) ? currentWarnings : nextWarnings
+          );
         }
       })
       .catch(() => {
         if (!cancelled) {
-          setStarterPackWarnings([
+          const nextWarnings = [
             "Couldn't preview starter equipment from the backend. Character creation will still continue without unresolved items."
-          ]);
+          ];
+          setStarterPackWarnings((currentWarnings) =>
+            areStringArraysEqual(currentWarnings, nextWarnings) ? currentWarnings : nextWarnings
+          );
         }
       });
 
@@ -753,7 +1070,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     };
   }, [
     normalizedStarterPackSelectionValues,
+    resolvedBackgroundChoices,
     resolvedToolSelections,
+    selectedBackgroundEquipmentChoice,
     selectedStarterEquipmentChoice
   ]);
 
@@ -837,6 +1156,198 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     );
   }
 
+  function commitBackgroundChoices(nextChoices: CharacterBackgroundChoices | undefined) {
+    setValue("backgroundChoices", nextChoices, {
+      shouldDirty: true,
+      shouldValidate: true
+    });
+  }
+
+  function getBackgroundChoiceDraftBase(): CharacterBackgroundChoices {
+    return getValues("backgroundChoices") ?? {};
+  }
+
+  function toggleBackgroundSkillProficiency(skill: SkillName) {
+    const currentChoices = getBackgroundChoiceDraftBase();
+    const currentSkills = currentChoices.skillProficiencies ?? [];
+    const nextSkills = currentSkills.includes(skill)
+      ? currentSkills.filter((selectedSkill) => selectedSkill !== skill)
+      : currentSkills.length >= 2
+        ? currentSkills
+        : [...currentSkills, skill];
+
+    commitBackgroundChoices({
+      ...currentChoices,
+      skillProficiencies: normalizeSelection(nextSkills, skillsOptions)
+    });
+  }
+
+  function commitBackgroundToolProficiency(tool: TOOL_PROFICIENCY) {
+    const currentChoices = getBackgroundChoiceDraftBase();
+
+    commitBackgroundChoices({
+      ...currentChoices,
+      toolProficiencies: [tool],
+      toolProficiency: backgroundToolOptions.includes(tool) ? tool : currentChoices.toolProficiency
+    });
+  }
+
+  function updateBackgroundAbilityMode(mode: "two-one" | "one-one-one") {
+    if (!backgroundEntry) {
+      return;
+    }
+
+    if (mode === "one-one-one") {
+      commitBackgroundChoices({
+        ...getBackgroundChoiceDraftBase(),
+        abilityScoreIncrease: {
+          mode,
+          abilities: backgroundEntry.abilityScoreOptions
+        }
+      });
+      return;
+    }
+
+    const preferredAbilities = getBackgroundPreferredAbilities(resolvedClassName).filter(
+      (ability) => backgroundEntry.abilityScoreOptions.includes(ability)
+    );
+    commitBackgroundChoices({
+      ...getBackgroundChoiceDraftBase(),
+      abilityScoreIncrease: {
+        mode,
+        primaryAbility: preferredAbilities[0] ?? backgroundEntry.abilityScoreOptions[0],
+        secondaryAbility: preferredAbilities[1] ?? backgroundEntry.abilityScoreOptions[1]
+      }
+    });
+  }
+
+  function updateBackgroundTwoOneAbility(
+    kind: "primaryAbility" | "secondaryAbility",
+    ability: AbilityKey
+  ) {
+    if (!backgroundEntry || !resolvedBackgroundChoices?.abilityScoreIncrease) {
+      return;
+    }
+
+    const currentChoice = resolvedBackgroundChoices.abilityScoreIncrease;
+    const fallbackAbility =
+      backgroundEntry.abilityScoreOptions.find((option) => option !== ability) ??
+      backgroundEntry.abilityScoreOptions[0];
+    const nextChoice =
+      currentChoice.mode === "two-one"
+        ? {
+            ...currentChoice,
+            [kind]: ability,
+            [kind === "primaryAbility" ? "secondaryAbility" : "primaryAbility"]:
+              currentChoice[kind === "primaryAbility" ? "secondaryAbility" : "primaryAbility"] ===
+              ability
+                ? fallbackAbility
+                : currentChoice[kind === "primaryAbility" ? "secondaryAbility" : "primaryAbility"]
+          }
+        : {
+            mode: "two-one" as const,
+            primaryAbility: ability,
+            secondaryAbility: fallbackAbility
+          };
+
+    commitBackgroundChoices({
+      ...getBackgroundChoiceDraftBase(),
+      abilityScoreIncrease: nextChoice
+    });
+  }
+
+  function commitBackgroundFeat(nextEntry: CharacterFeatEntry) {
+    setValue("feats", upsertBackgroundFeatEntry(resolvedFeats, resolvedBackground, nextEntry), {
+      shouldDirty: true,
+      shouldValidate: true
+    });
+  }
+
+  function updateBackgroundMagicInitiate(partialChoice: Partial<MagicInitiateChoice>) {
+    if (!selectedBackgroundFeatEntry?.magicInitiate) {
+      return;
+    }
+
+    commitBackgroundFeat({
+      ...selectedBackgroundFeatEntry,
+      magicInitiate: {
+        ...selectedBackgroundFeatEntry.magicInitiate,
+        ...partialChoice
+      }
+    });
+  }
+
+  function updateBackgroundToolFeatSelection(
+    feat: FEATS.CRAFTER | FEATS.MUSICIAN,
+    index: number,
+    tool: TOOL_PROFICIENCY
+  ) {
+    if (!selectedBackgroundFeatEntry) {
+      return;
+    }
+
+    if (feat === FEATS.CRAFTER && selectedBackgroundFeatEntry.crafter) {
+      const toolProficiencies = [...selectedBackgroundFeatEntry.crafter.toolProficiencies] as [
+        TOOL_PROFICIENCY,
+        TOOL_PROFICIENCY,
+        TOOL_PROFICIENCY
+      ];
+      toolProficiencies[index] = tool;
+      commitBackgroundFeat({
+        ...selectedBackgroundFeatEntry,
+        crafter: {
+          toolProficiencies
+        }
+      });
+    }
+
+    if (feat === FEATS.MUSICIAN && selectedBackgroundFeatEntry.musician) {
+      const toolProficiencies = [...selectedBackgroundFeatEntry.musician.toolProficiencies] as [
+        TOOL_PROFICIENCY,
+        TOOL_PROFICIENCY,
+        TOOL_PROFICIENCY
+      ];
+      toolProficiencies[index] = tool;
+      commitBackgroundFeat({
+        ...selectedBackgroundFeatEntry,
+        musician: {
+          toolProficiencies
+        }
+      });
+    }
+  }
+
+  function updateBackgroundSkilledSelection(index: number, value: string) {
+    if (!selectedBackgroundFeatEntry?.skilled) {
+      return;
+    }
+
+    const selections = [...selectedBackgroundFeatEntry.skilled.selections] as NonNullable<
+      CharacterFeatEntry["skilled"]
+    >["selections"];
+
+    if (value.startsWith("skill:")) {
+      selections[index] = {
+        kind: "skill",
+        skill: value.slice("skill:".length) as SkillName
+      };
+    }
+
+    if (value.startsWith("tool:")) {
+      selections[index] = {
+        kind: "tool",
+        tool: value.slice("tool:".length) as TOOL_PROFICIENCY
+      };
+    }
+
+    commitBackgroundFeat({
+      ...selectedBackgroundFeatEntry,
+      skilled: {
+        selections
+      }
+    });
+  }
+
   function normalizeDraft(values: CharacterFormValues): CharacterDraft {
     const {
       startingEquipmentChoiceIndex: _unusedStartingEquipmentChoiceIndex,
@@ -846,9 +1357,13 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     const normalizedProgress = normalizeLevelAndXp(draftValues.level, draftValues.xp);
     const normalizedClassName = draftValues.className.trim();
     const normalizedBackground = draftValues.background.trim();
-    const resolvedNormalizedBackground = backgroundOptions.includes(normalizedBackground)
-      ? normalizedBackground
-      : "";
+    const resolvedNormalizedBackground =
+      backgroundOptions.includes(normalizedBackground) || isEditing ? normalizedBackground : "";
+    const normalizedBackgroundChoices = getNormalizedBackgroundChoices(
+      resolvedNormalizedBackground,
+      draftValues.backgroundChoices,
+      normalizedClassName
+    );
     const normalizedAbilities =
       draftValues.attributeMode === "pointBuy"
         ? normalizePointBuyAbilities(draftValues.abilities)
@@ -859,7 +1374,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             className: normalizedClassName,
             level: normalizedProgress.level,
             abilities: normalizedAbilities,
-            classFeatureState: draftValues.classFeatureState ?? {}
+            classFeatureState: draftValues.classFeatureState ?? {},
+            background: resolvedNormalizedBackground,
+            backgroundChoices: normalizedBackgroundChoices
           })
         : clampNumber(String(draftValues.hitPoints), 1, 999, automaticHitPoints);
     const normalizedSkills = normalizeSkillSelectionsForClass(
@@ -874,12 +1391,17 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
     );
     const normalizedSubclassId =
       normalizeSubclassId(draftValues.subclassId, normalizedClassName) ?? "";
+    const backgroundFeat = getBackgroundFeatEntry(draftValues.feats, resolvedNormalizedBackground);
+    const normalizedFeats = backgroundFeat
+      ? upsertBackgroundFeatEntry(draftValues.feats, resolvedNormalizedBackground, backgroundFeat)
+      : (draftValues.feats ?? []).filter((featEntry) => featEntry.source?.type !== "background");
     const normalizedCurrentHitPointMaximum = getEffectiveHitPointMaximumForDraft({
       className: normalizedClassName,
       subclassId: normalizedSubclassId,
       level: normalizedProgress.level,
       hitPoints: normalizedHitPoints,
-      statusEntries: draftValues.statusEntries ?? []
+      statusEntries: draftValues.statusEntries ?? [],
+      feats: normalizedFeats
     });
 
     return {
@@ -906,6 +1428,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
           : undefined,
       maxHitPointsMode: draftValues.maxHitPointsMode ?? "automatic",
       background: resolvedNormalizedBackground,
+      backgroundChoices: normalizedBackgroundChoices,
       backgroundNotes: draftValues.backgroundNotes.trim(),
       alignment: alignmentOptions.includes(draftValues.alignment)
         ? draftValues.alignment
@@ -915,7 +1438,8 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       equipment: [
         ...new Set((draftValues.equipment ?? []).map((item) => item.trim()).filter(Boolean))
       ],
-      abilities: normalizedAbilities
+      abilities: normalizedAbilities,
+      feats: normalizedFeats
     };
   }
 
@@ -927,8 +1451,11 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         ? (configuredStarterPack.startingEquipment[Number(values.startingEquipmentChoiceIndex)] ??
           null)
         : null;
+    const selectedBackgroundChoice = !isEditing
+      ? getBackgroundEquipmentChoice(normalizedDraft.background, normalizedDraft.backgroundChoices)
+      : null;
 
-    if (!selectedChoice) {
+    if (!selectedChoice && !selectedBackgroundChoice) {
       await onSubmit(normalizedDraft);
       return;
     }
@@ -938,7 +1465,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       normalizedDraft.toolProficiencies ?? [],
       values.starterPackSelectionValues
     );
-    const materializedStarterPack = await materializeStarterPackChoiceToInventory(
+    const materializedClassStarterPack = await materializeStarterPackChoiceToInventory(
       normalizedDraft.inventoryItems,
       selectedChoice,
       {
@@ -946,11 +1473,24 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         selectionValues: normalizedSelectionValues
       }
     );
+    const materializedBackgroundStarterPack = await materializeStarterPackChoiceToInventory(
+      materializedClassStarterPack.inventoryItems,
+      selectedBackgroundChoice,
+      {
+        selectedToolProficiencies: normalizedDraft.backgroundChoices?.toolProficiency
+          ? [normalizedDraft.backgroundChoices.toolProficiency]
+          : [],
+        selectionValues: {}
+      }
+    );
 
-    setStarterPackWarnings(materializedStarterPack.warnings);
+    setStarterPackWarnings([
+      ...materializedClassStarterPack.warnings,
+      ...materializedBackgroundStarterPack.warnings
+    ]);
     await onSubmit({
       ...normalizedDraft,
-      inventoryItems: materializedStarterPack.inventoryItems
+      inventoryItems: materializedBackgroundStarterPack.inventoryItems
     });
   }
 
@@ -990,7 +1530,9 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
       return;
     }
 
-    const snapshot = createBasicProfileSnapshot(getValues());
+    const snapshot = createBasicProfileSnapshot(getValues(), {
+      includeBackgroundDefaults: false
+    });
     setStepOneSnapshot(snapshot);
     reset(snapshot);
     setWizardStep(2);
@@ -1017,25 +1559,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
 
   function handleRandomize() {
     const randomClassName = getRandomItem(classOptions);
-
-    if (!isEditing && wizardStep === 1) {
-      reset(
-        createFormValues({
-          ...createEmptyCharacter(),
-          name: createRandomName(),
-          species: getRandomItem(speciesOptions),
-          className: randomClassName,
-          subclassId: getRandomSubclassIdForClass(randomClassName),
-          background: createRandomBackground(),
-          backgroundNotes: "",
-          level: 1,
-          maxHitPointsMode: "automatic",
-          attributeMode: "pointBuy"
-        })
-      );
-      return;
-    }
-
+    const randomBackgroundState = createRandomBackgroundState(randomClassName);
     const randomClassSkillOptions = getSkillProficiencyOptionsForClass(randomClassName);
     const randomClassSkillLimit = getSkillSelectionLimitForClass(randomClassName);
     const { choices: randomClassToolOptions, count: randomClassToolLimit } =
@@ -1076,7 +1600,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         attributeMode: randomMode,
         abilities: randomizedAbilities,
         alignment: getRandomItem(alignmentOptions),
-        background: createRandomBackground(),
+        ...randomBackgroundState,
         backgroundNotes: "",
         currencies: createDefaultCurrencies(),
         skills: pickRandomSubset(
@@ -1489,44 +2013,42 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         </div>
 
         <div className={styles.summaryGrid}>
-          <div className={styles.summaryCard}>
-            <strong>Primary Ability</strong>
-            <span>{starterPack.primaryAbility ?? "Not configured yet"}</span>
-          </div>
-          <div className={styles.summaryCard}>
-            <strong>Hit Point Die</strong>
-            <span>{starterPack.hitPointDieLabel ?? "Not configured yet"}</span>
-          </div>
-          <div className={styles.summaryCard}>
-            <strong>Saving Throws</strong>
-            <span>
-              {starterPack.savingThrowProficiencies.length > 0
+          <CellContainer
+            label="Primary Ability"
+            content={starterPack.primaryAbility ?? "Not configured yet"}
+          />
+          <CellContainer
+            label="Hit Point Die"
+            content={starterPack.hitPointDieLabel ?? "Not configured yet"}
+          />
+          <CellContainer
+            label="Saving Throws"
+            content={
+              starterPack.savingThrowProficiencies.length > 0
                 ? starterPack.savingThrowProficiencies.join(", ")
-                : "Not configured yet"}
-            </span>
-          </div>
-          <div className={styles.summaryCard}>
-            <strong>Weapons</strong>
-            <span>
-              {starterPack.weaponProficiencies.length > 0
+                : "Not configured yet"
+            }
+          />
+          <CellContainer
+            label="Weapons"
+            content={
+              starterPack.weaponProficiencies.length > 0
                 ? starterPack.weaponProficiencies.join(", ")
-                : "Not configured yet"}
-            </span>
-          </div>
-          <div className={styles.summaryCard}>
-            <strong>Armor</strong>
-            <span>
-              {starterPack.armorTrainingProficiencies.length > 0
+                : "Not configured yet"
+            }
+          />
+          <CellContainer
+            label="Armor"
+            content={
+              starterPack.armorTrainingProficiencies.length > 0
                 ? starterPack.armorTrainingProficiencies.join(", ")
-                : "Not configured yet"}
-            </span>
-          </div>
-          <div className={styles.summaryCard}>
-            <strong>Weapon Masteries</strong>
-            <span>
-              {starterPack.weaponMasteryCount > 0 ? starterPack.weaponMasteryCount : "None"}
-            </span>
-          </div>
+                : "Not configured yet"
+            }
+          />
+          <CellContainer
+            label="Weapon Masteries"
+            content={starterPack.weaponMasteryCount > 0 ? starterPack.weaponMasteryCount : "None"}
+          />
         </div>
 
         <div className={styles.classSetupGrid}>
@@ -1554,28 +2076,48 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
             ) : null}
 
             <div className={styles.choiceGrid}>
-              {availableManualSkillOptions.map((skill) => (
-                <label
-                  key={skill}
-                  className={clsx(
-                    styles.choiceOption,
-                    resolvedSkillSelections.manual.includes(skill) && styles.choiceOptionActive
-                  )}
-                >
-                  <input
-                    type="checkbox"
-                    value={skill}
-                    className={styles.choiceCheckbox}
-                    disabled={
-                      !resolvedSkillSelections.manual.includes(skill) &&
-                      buildRequiresSkillSelection &&
-                      selectedSkillCount >= skillSelectionLimit
-                    }
-                    {...register("skills")}
+              {availableManualSkillOptions.map((skill) => {
+                const isActive = resolvedSkillSelections.manual.includes(skill);
+                const disabled =
+                  !isActive &&
+                  buildRequiresSkillSelection &&
+                  selectedSkillCount >= skillSelectionLimit;
+
+                return (
+                  <RadioContainerOption
+                    key={skill}
+                    header={skill}
+                    selected={isActive}
+                    onSelect={() => {
+                      if (disabled) {
+                        return;
+                      }
+
+                      const nextSkills = isActive
+                        ? resolvedSkillSelections.manual.filter(
+                            (selectedSkill) => selectedSkill !== skill
+                          )
+                        : [...resolvedSkillSelections.manual, skill];
+
+                      setValue(
+                        "skills",
+                        normalizeSkillSelectionsForClass(
+                          resolvedClassName,
+                          nextSkills,
+                          resolvedSpecies,
+                          resolvedBackground
+                        ),
+                        {
+                          shouldDirty: true,
+                          shouldValidate: true
+                        }
+                      );
+                    }}
+                    disabled={disabled}
+                    indicatorType="checkbox"
                   />
-                  <span>{skill}</span>
-                </label>
-              ))}
+                );
+              })}
             </div>
 
             {attemptedBuildAdvance && !isSkillSelectionReady ? (
@@ -1606,21 +2148,34 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                 <div className={styles.choiceGrid}>
                   {availableToolOptions.map((tool) => {
                     const isActive = resolvedToolSelections.includes(tool);
+                    const disabled = !isActive && selectedToolCount >= toolSelectionLimit;
 
                     return (
-                      <label
+                      <RadioContainerOption
                         key={tool}
-                        className={clsx(styles.choiceOption, isActive && styles.choiceOptionActive)}
-                      >
-                        <input
-                          type="checkbox"
-                          value={tool}
-                          className={styles.choiceCheckbox}
-                          disabled={!isActive && selectedToolCount >= toolSelectionLimit}
-                          {...register("toolProficiencies")}
-                        />
-                        <span>{getToolProficiencyLabel(tool)}</span>
-                      </label>
+                        header={getToolProficiencyLabel(tool)}
+                        selected={isActive}
+                        onSelect={() => {
+                          if (disabled) {
+                            return;
+                          }
+
+                          const nextTools = isActive
+                            ? resolvedToolSelections.filter((selectedTool) => selectedTool !== tool)
+                            : [...resolvedToolSelections, tool];
+
+                          setValue(
+                            "toolProficiencies",
+                            normalizeToolSelectionsForClass(resolvedClassName, nextTools),
+                            {
+                              shouldDirty: true,
+                              shouldValidate: true
+                            }
+                          );
+                        }}
+                        disabled={disabled}
+                        indicatorType="checkbox"
+                      />
                     );
                   })}
                 </div>
@@ -1653,28 +2208,21 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     const isActive = resolvedStartingEquipmentChoiceIndex === String(choiceIndex);
 
                     return (
-                      <button
+                      <RadioContainerOption
                         key={choiceIndex}
-                        type="button"
-                        className={clsx(
-                          styles.radioChoiceCard,
-                          isActive && styles.radioChoiceCardActive
-                        )}
-                        onClick={() =>
+                        header={`Option ${String.fromCharCode(65 + choiceIndex)}`}
+                        selected={isActive}
+                        onSelect={() =>
                           setValue("startingEquipmentChoiceIndex", String(choiceIndex), {
                             shouldDirty: true,
                             shouldValidate: true
                           })
                         }
-                      >
-                        <strong>Option {String.fromCharCode(65 + choiceIndex)}</strong>
-                        <span>
-                          {formatStarterPackEquipmentChoice(choice, choiceIndex, {
-                            includeOptionLabel: false,
-                            selectionLabels: starterPackSelectionLabels
-                          })}
-                        </span>
-                      </button>
+                        breakdown={formatStarterPackEquipmentChoice(choice, choiceIndex, {
+                          includeOptionLabel: false,
+                          selectionLabels: starterPackSelectionLabels
+                        })}
+                      />
                     );
                   })}
                 </div>
@@ -1695,14 +2243,11 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                     ) : null}
                     <div className={styles.choiceGrid}>
                       {selectionOptions.map((option) => (
-                        <button
+                        <RadioContainerOption
                           key={option.value}
-                          type="button"
-                          className={clsx(
-                            styles.choiceOption,
-                            selectedValue === option.value && styles.choiceOptionActive
-                          )}
-                          onClick={() =>
+                          header={option.label}
+                          selected={selectedValue === option.value}
+                          onSelect={() =>
                             setValue(
                               "starterPackSelectionValues",
                               {
@@ -1715,9 +2260,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
                               }
                             )
                           }
-                        >
-                          <span>{option.label}</span>
-                        </button>
+                        />
                       ))}
                     </div>
                   </div>
@@ -1750,6 +2293,442 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         </div>
 
         <input type="hidden" {...register("startingEquipmentChoiceIndex")} />
+      </section>
+    );
+  }
+
+  function renderBackgroundOriginFeatControls() {
+    if (!backgroundEntry || !selectedBackgroundFeatEntry) {
+      return <p className={styles.helperText}>Choose a supported background first.</p>;
+    }
+
+    if (
+      backgroundEntry.originFeat === FEATS.MAGIC_INITIATE &&
+      selectedBackgroundFeatEntry.magicInitiate
+    ) {
+      const choice = selectedBackgroundFeatEntry.magicInitiate;
+      const cantripOptions = getMagicInitiateCantripOptions(choice.spellList);
+      const levelOneSpellOptions = getMagicInitiateLevelOneSpellOptions(choice.spellList);
+
+      return (
+        <div className={styles.classSetupGrid}>
+          <label className={styles.field}>
+            <span>Spell list</span>
+            <SelectInput className={styles.fieldInput} value={choice.spellList} disabled>
+              <option value={choice.spellList}>{choice.spellList}</option>
+            </SelectInput>
+          </label>
+
+          <label className={styles.field}>
+            <span>Spellcasting ability</span>
+            <SelectInput
+              className={styles.fieldInput}
+              value={choice.spellcastingAbility}
+              onChange={(event) =>
+                updateBackgroundMagicInitiate({
+                  spellcastingAbility: event.target
+                    .value as MagicInitiateChoice["spellcastingAbility"]
+                })
+              }
+            >
+              {magicInitiateSpellcastingAbilityOptions.map((ability) => (
+                <option key={ability} value={ability}>
+                  {ability}
+                </option>
+              ))}
+            </SelectInput>
+          </label>
+
+          {choice.cantripIds.map((cantripId, index) => (
+            <label key={`magic-initiate-cantrip-${index}`} className={styles.field}>
+              <span>Cantrip {index + 1}</span>
+              <SelectInput
+                className={styles.fieldInput}
+                value={cantripId}
+                onChange={(event) => {
+                  const cantripIds = [...choice.cantripIds] as MagicInitiateChoice["cantripIds"];
+                  cantripIds[index] = event.target.value;
+                  updateBackgroundMagicInitiate({ cantripIds });
+                }}
+              >
+                {cantripOptions.map((spell) => (
+                  <option
+                    key={spell.id}
+                    value={spell.id}
+                    disabled={choice.cantripIds.includes(spell.id) && spell.id !== cantripId}
+                  >
+                    {spell.name}
+                  </option>
+                ))}
+              </SelectInput>
+            </label>
+          ))}
+
+          <label className={styles.field}>
+            <span>Level 1 spell</span>
+            <SelectInput
+              className={styles.fieldInput}
+              value={choice.levelOneSpellId}
+              onChange={(event) =>
+                updateBackgroundMagicInitiate({
+                  levelOneSpellId: event.target.value
+                })
+              }
+            >
+              {levelOneSpellOptions.map((spell) => (
+                <option key={spell.id} value={spell.id}>
+                  {spell.name}
+                </option>
+              ))}
+            </SelectInput>
+          </label>
+        </div>
+      );
+    }
+
+    if (backgroundEntry.originFeat === FEATS.CRAFTER && selectedBackgroundFeatEntry.crafter) {
+      const selectedTools = selectedBackgroundFeatEntry.crafter.toolProficiencies;
+
+      return (
+        <div className={styles.classSetupGrid}>
+          {selectedTools.map((selectedTool, index) => (
+            <label key={`crafter-tool-${index}`} className={styles.field}>
+              <span>Crafter tool {index + 1}</span>
+              <SelectInput
+                className={styles.fieldInput}
+                value={selectedTool}
+                onChange={(event) =>
+                  updateBackgroundToolFeatSelection(
+                    FEATS.CRAFTER,
+                    index,
+                    event.target.value as TOOL_PROFICIENCY
+                  )
+                }
+              >
+                {crafterFastCraftingToolProficiencies.map((tool) => (
+                  <option
+                    key={tool}
+                    value={tool}
+                    disabled={selectedTools.includes(tool) && tool !== selectedTool}
+                  >
+                    {getToolProficiencyLabel(tool)}
+                  </option>
+                ))}
+              </SelectInput>
+            </label>
+          ))}
+        </div>
+      );
+    }
+
+    if (backgroundEntry.originFeat === FEATS.MUSICIAN && selectedBackgroundFeatEntry.musician) {
+      const selectedTools = selectedBackgroundFeatEntry.musician.toolProficiencies;
+
+      return (
+        <div className={styles.classSetupGrid}>
+          {selectedTools.map((selectedTool, index) => (
+            <label key={`musician-tool-${index}`} className={styles.field}>
+              <span>Instrument {index + 1}</span>
+              <SelectInput
+                className={styles.fieldInput}
+                value={selectedTool}
+                onChange={(event) =>
+                  updateBackgroundToolFeatSelection(
+                    FEATS.MUSICIAN,
+                    index,
+                    event.target.value as TOOL_PROFICIENCY
+                  )
+                }
+              >
+                {musicalInstrumentToolProficiencies.map((tool) => (
+                  <option
+                    key={tool}
+                    value={tool}
+                    disabled={selectedTools.includes(tool) && tool !== selectedTool}
+                  >
+                    {getToolProficiencyLabel(tool)}
+                  </option>
+                ))}
+              </SelectInput>
+            </label>
+          ))}
+        </div>
+      );
+    }
+
+    if (backgroundEntry.originFeat === FEATS.SKILLED && selectedBackgroundFeatEntry.skilled) {
+      const selectedValues = selectedBackgroundFeatEntry.skilled.selections.map((selection) =>
+        selection.kind === "skill" ? `skill:${selection.skill}` : `tool:${selection.tool}`
+      );
+
+      return (
+        <div className={styles.classSetupGrid}>
+          {selectedValues.map((selectedValue, index) => (
+            <label key={`skilled-selection-${index}`} className={styles.field}>
+              <span>Skilled choice {index + 1}</span>
+              <SelectInput
+                className={styles.fieldInput}
+                value={selectedValue}
+                onChange={(event) => updateBackgroundSkilledSelection(index, event.target.value)}
+              >
+                <optgroup label="Skills">
+                  {skillsOptions.map((skill) => {
+                    const value = `skill:${skill}`;
+
+                    return (
+                      <option
+                        key={value}
+                        value={value}
+                        disabled={selectedValues.includes(value) && value !== selectedValue}
+                      >
+                        {skill}
+                      </option>
+                    );
+                  })}
+                </optgroup>
+                <optgroup label="Tools">
+                  {groupedToolProficiencyOptions.map((tool) => {
+                    const value = `tool:${tool}`;
+
+                    return (
+                      <option
+                        key={value}
+                        value={value}
+                        disabled={selectedValues.includes(value) && value !== selectedValue}
+                      >
+                        {getToolProficiencyLabel(tool)}
+                      </option>
+                    );
+                  })}
+                </optgroup>
+              </SelectInput>
+            </label>
+          ))}
+        </div>
+      );
+    }
+
+    return (
+      <p className={styles.helperText}>
+        {getFeatLabel(backgroundEntry.originFeat)} is granted by this background and has no setup
+        choices.
+      </p>
+    );
+  }
+
+  function renderBackgroundSetupSection() {
+    const abilityScoreIncrease = displayedBackgroundChoices?.abilityScoreIncrease;
+    const twoOneChoice = abilityScoreIncrease?.mode === "two-one" ? abilityScoreIncrease : null;
+
+    return (
+      <section className={styles.sectionCard}>
+        <div className={styles.sectionHeader}>
+          <div>
+            <p className={styles.sectionEyebrow}>Background</p>
+          </div>
+          <span>{backgroundEntry?.name ?? "Choose a background first"}</span>
+        </div>
+
+        {!backgroundEntry ? (
+          <div className={styles.placeholderCard}>
+            <p>Choose a supported 2024 background in the core profile step.</p>
+          </div>
+        ) : (
+          <div className={styles.classSetupGrid}>
+            <fieldset className={styles.choiceGroup}>
+              <legend>Ability Scores</legend>
+              <p className={styles.helperText}>
+                Choose either +2/+1 or +1/+1/+1 among{" "}
+                {backgroundEntry.abilityScoreOptions.join(", ")}.
+              </p>
+              <div
+                className={styles.segmentedControl}
+                role="tablist"
+                aria-label="Background ability mode"
+              >
+                <button
+                  type="button"
+                  className={clsx(
+                    styles.segmentButton,
+                    abilityScoreIncrease?.mode === "two-one" && styles.segmentButtonActive
+                  )}
+                  onClick={() => updateBackgroundAbilityMode("two-one")}
+                >
+                  +2/+1
+                </button>
+                <button
+                  type="button"
+                  className={clsx(
+                    styles.segmentButton,
+                    abilityScoreIncrease?.mode === "one-one-one" && styles.segmentButtonActive
+                  )}
+                  onClick={() => updateBackgroundAbilityMode("one-one-one")}
+                >
+                  +1/+1/+1
+                </button>
+              </div>
+
+              {twoOneChoice ? (
+                <div className={styles.classSetupGrid}>
+                  <label className={styles.field}>
+                    <span>+2 ability</span>
+                    <SelectInput
+                      className={styles.fieldInput}
+                      value={twoOneChoice.primaryAbility}
+                      onChange={(event) =>
+                        updateBackgroundTwoOneAbility(
+                          "primaryAbility",
+                          event.target.value as AbilityKey
+                        )
+                      }
+                    >
+                      {backgroundEntry.abilityScoreOptions.map((ability) => (
+                        <option
+                          key={ability}
+                          value={ability}
+                          disabled={ability === twoOneChoice.secondaryAbility}
+                        >
+                          {ability}
+                        </option>
+                      ))}
+                    </SelectInput>
+                  </label>
+
+                  <label className={styles.field}>
+                    <span>+1 ability</span>
+                    <SelectInput
+                      className={styles.fieldInput}
+                      value={twoOneChoice.secondaryAbility}
+                      onChange={(event) =>
+                        updateBackgroundTwoOneAbility(
+                          "secondaryAbility",
+                          event.target.value as AbilityKey
+                        )
+                      }
+                    >
+                      {backgroundEntry.abilityScoreOptions.map((ability) => (
+                        <option
+                          key={ability}
+                          value={ability}
+                          disabled={ability === twoOneChoice.primaryAbility}
+                        >
+                          {ability}
+                        </option>
+                      ))}
+                    </SelectInput>
+                  </label>
+                </div>
+              ) : abilityScoreIncrease?.mode === "one-one-one" ? (
+                <p className={styles.helperText}>
+                  {backgroundEntry.abilityScoreOptions.map((ability) => `${ability} +1`).join(", ")}
+                </p>
+              ) : (
+                <p className={styles.helperText}>Choose an ability increase mode.</p>
+              )}
+              {attemptedBuildAdvance && !isBackgroundAbilitySelectionReady ? (
+                <p className={styles.errorText}>
+                  Choose a background ability score increase before continuing.
+                </p>
+              ) : null}
+            </fieldset>
+
+            <fieldset className={styles.choiceGroup}>
+              <legend>Proficiencies</legend>
+              <p className={styles.helperText}>Choose exactly 2 background skills.</p>
+              <div className={styles.choiceGrid}>
+                {skillsOptions.map((skill) => {
+                  const isActive = selectedBackgroundSkillProficiencies.includes(skill);
+                  const disabled = !isActive && selectedBackgroundSkillProficiencies.length >= 2;
+
+                  return (
+                    <RadioContainerOption
+                      key={skill}
+                      header={skill}
+                      selected={isActive}
+                      onSelect={() => {
+                        if (disabled) {
+                          return;
+                        }
+
+                        toggleBackgroundSkillProficiency(skill);
+                      }}
+                      disabled={disabled}
+                      indicatorType="checkbox"
+                    />
+                  );
+                })}
+              </div>
+              {attemptedBuildAdvance && !isBackgroundSkillSelectionReady ? (
+                <p className={styles.errorText}>
+                  Choose exactly 2 background skills before continuing.
+                </p>
+              ) : null}
+
+              <p className={styles.helperText}>
+                Choose one {backgroundEntry.toolProficiencyChoiceLabel ?? "background tool"}.
+              </p>
+              <div className={styles.choiceGrid}>
+                {backgroundToolSelectionOptions.map((tool) => {
+                  const isActive = selectedBackgroundToolProficiencies.includes(tool);
+
+                  return (
+                    <RadioContainerOption
+                      key={tool}
+                      header={getToolProficiencyLabel(tool)}
+                      selected={isActive}
+                      onSelect={() => commitBackgroundToolProficiency(tool)}
+                    />
+                  );
+                })}
+              </div>
+              {attemptedBuildAdvance && !isBackgroundToolSelectionReady ? (
+                <p className={styles.errorText}>
+                  Choose the background tool proficiency before continuing.
+                </p>
+              ) : null}
+            </fieldset>
+
+            <fieldset className={styles.choiceGroup}>
+              <legend>Origin Feat</legend>
+              <p className={styles.helperText}>
+                {getFeatLabel(backgroundEntry.originFeat)} is granted by this background.
+              </p>
+              {renderBackgroundOriginFeatControls()}
+            </fieldset>
+
+            <fieldset className={styles.choiceGroup}>
+              <legend>Starting Equipment</legend>
+              <div className={styles.radioChoiceGrid}>
+                {backgroundEntry.starterPack.startingEquipment.map((choice, choiceIndex) => {
+                  const equipmentMode = choiceIndex === 1 ? "gold" : "equipment";
+                  const isActive = displayedBackgroundChoices?.equipmentMode === equipmentMode;
+
+                  return (
+                    <RadioContainerOption
+                      key={choiceIndex}
+                      header={`Option ${String.fromCharCode(65 + choiceIndex)}`}
+                      selected={isActive}
+                      onSelect={() =>
+                        commitBackgroundChoices({
+                          ...getBackgroundChoiceDraftBase(),
+                          equipmentMode
+                        })
+                      }
+                      breakdown={formatStarterPackEquipmentChoice(choice, choiceIndex, {
+                        includeOptionLabel: false
+                      })}
+                    />
+                  );
+                })}
+              </div>
+              {attemptedBuildAdvance && !isBackgroundEquipmentSelectionReady ? (
+                <p className={styles.errorText}>
+                  Choose a background starting equipment option before continuing.
+                </p>
+              ) : null}
+            </fieldset>
+          </div>
+        )}
       </section>
     );
   }
@@ -1904,11 +2883,7 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
               "Species",
               "Species-specific builder choices will appear here in a future pass."
             )}
-            {renderFutureSection(
-              "",
-              "Background",
-              "Background-specific builder choices will appear here in a future pass."
-            )}
+            {renderBackgroundSetupSection()}
           </>
         ) : null}
 
@@ -1917,71 +2892,66 @@ function CharacterForm({ isEditing, initialValues, onSubmit, onBack }: Character
         <div className={styles.actions}>
           {isEditing ? (
             <>
-              <button type="submit" className={styles.primaryButton}>
+              <ActionButton type="submit" fullWidth={false}>
                 Update character
-              </button>
-              <button type="button" className={styles.secondaryButton} onClick={onBack}>
+              </ActionButton>
+              <ActionButton type="button" fullWidth={false} onClick={onBack}>
                 Cancel
-              </button>
+              </ActionButton>
             </>
           ) : null}
 
           {!isEditing && wizardStep === 1 ? (
             <>
-              <button
+              <ActionButton
                 type="button"
-                className={styles.primaryButton}
+                fullWidth={false}
+                disabled={!isCoreProfileReady}
                 onClick={() => {
                   void handleRecommendedCreate();
                 }}
               >
                 Create with recommended build
-              </button>
-              <button
+              </ActionButton>
+              <ActionButton
                 type="button"
-                className={styles.secondaryButton}
+                fullWidth={false}
+                disabled={!isCoreProfileReady}
                 onClick={() => {
                   void handleStartCustomization();
                 }}
               >
                 Customize based on your needs
-              </button>
+              </ActionButton>
             </>
           ) : null}
 
           {!isEditing && wizardStep === 2 ? (
             <>
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                onClick={handleBackToStepOne}
-              >
+              <ActionButton type="button" fullWidth={false} onClick={handleBackToStepOne}>
                 Back (reset changes)
-              </button>
-              <button
+              </ActionButton>
+              <ActionButton
                 type="button"
-                className={styles.primaryButton}
+                fullWidth={false}
+                disabled={!isBuildSetupReady}
                 onClick={() => {
                   void handleProceedToNotes();
                 }}
               >
                 Proceed
-              </button>
+              </ActionButton>
             </>
           ) : null}
 
           {!isEditing && wizardStep === 3 ? (
             <>
-              <button
-                type="button"
-                className={styles.secondaryButton}
-                onClick={() => setWizardStep(2)}
-              >
+              <ActionButton type="button" fullWidth={false} onClick={() => setWizardStep(2)}>
                 Back
-              </button>
-              <button type="submit" className={styles.primaryButton}>
+              </ActionButton>
+              <ActionButton type="submit" fullWidth={false}>
                 Create Character
-              </button>
+              </ActionButton>
             </>
           ) : null}
         </div>

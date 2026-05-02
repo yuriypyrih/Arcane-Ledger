@@ -25,6 +25,12 @@ export const musicalInstrumentToolProficiencies: ToolProficiency[] = [
   TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_SHAWM,
   TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_VIOL
 ];
+export const gamingSetToolProficiencies: ToolProficiency[] = [
+  TOOL_PROFICIENCY.GAMING_SET_DICE,
+  TOOL_PROFICIENCY.GAMING_SET_DRAGONCHESS,
+  TOOL_PROFICIENCY.GAMING_SET_PLAYING_CARDS,
+  TOOL_PROFICIENCY.GAMING_SET_THREE_DRAGON_ANTE
+];
 export const artisanToolProficiencies: ToolProficiency[] = [
   TOOL_PROFICIENCY.ALCHEMISTS_SUPPLIES,
   TOOL_PROFICIENCY.BREWERS_SUPPLIES,
@@ -53,9 +59,11 @@ export const toolProficiencyLabels: Record<TOOL_PROFICIENCY, string> = {
   [TOOL_PROFICIENCY.THIEVES_TOOLKIT]: "Thieves' Tools",
   [TOOL_PROFICIENCY.SMITHS_TOOLKIT]: "Smith's Tools",
   [TOOL_PROFICIENCY.DISGUISE_KIT]: "Disguise Kit",
+  [TOOL_PROFICIENCY.FORGERY_KIT]: "Forgery Kit",
   [TOOL_PROFICIENCY.POISONERS_KIT]: "Poisoner's Kit",
   [TOOL_PROFICIENCY.DISARM_KIT]: "Disarm Kit",
   [TOOL_PROFICIENCY.HERBALISM_KIT]: "Herbalism Kit",
+  [TOOL_PROFICIENCY.NAVIGATORS_TOOLS]: "Navigator's Tools",
   [TOOL_PROFICIENCY.ALCHEMISTS_SUPPLIES]: "Alchemist's Supplies",
   [TOOL_PROFICIENCY.BREWERS_SUPPLIES]: "Brewer's Supplies",
   [TOOL_PROFICIENCY.CALLIGRAPHERS_SUPPLIES]: "Calligrapher's Supplies",
@@ -81,13 +89,18 @@ export const toolProficiencyLabels: Record<TOOL_PROFICIENCY, string> = {
   [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_LYRE]: "Lyre",
   [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_PAN_FLUTE]: "Pan Flute",
   [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_SHAWM]: "Shawm",
-  [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_VIOL]: "Viol"
+  [TOOL_PROFICIENCY.MUSICAL_INSTRUMENT_VIOL]: "Viol",
+  [TOOL_PROFICIENCY.GAMING_SET_DICE]: "Dice Set",
+  [TOOL_PROFICIENCY.GAMING_SET_DRAGONCHESS]: "Dragonchess Set",
+  [TOOL_PROFICIENCY.GAMING_SET_PLAYING_CARDS]: "Playing Card Set",
+  [TOOL_PROFICIENCY.GAMING_SET_THREE_DRAGON_ANTE]: "Three-Dragon Ante Set"
 };
 
 const artisanToolProficiencySet = new Set<ToolProficiency>(artisanToolProficiencies);
 const musicalInstrumentToolProficiencySet = new Set<ToolProficiency>(
   musicalInstrumentToolProficiencies
 );
+const gamingSetToolProficiencySet = new Set<ToolProficiency>(gamingSetToolProficiencies);
 
 function sortToolProficienciesAlphabetically(
   toolProficiencies: readonly ToolProficiency[]
@@ -100,10 +113,13 @@ function sortToolProficienciesAlphabetically(
 export const groupedToolProficiencyOptions: ToolProficiency[] = [
   ...sortToolProficienciesAlphabetically(artisanToolProficiencies),
   ...sortToolProficienciesAlphabetically(musicalInstrumentToolProficiencies),
+  ...sortToolProficienciesAlphabetically(gamingSetToolProficiencies),
   ...sortToolProficienciesAlphabetically(
     toolProficiencyOptions.filter(
       (tool) =>
-        !artisanToolProficiencySet.has(tool) && !musicalInstrumentToolProficiencySet.has(tool)
+        !artisanToolProficiencySet.has(tool) &&
+        !musicalInstrumentToolProficiencySet.has(tool) &&
+        !gamingSetToolProficiencySet.has(tool)
     )
   )
 ];

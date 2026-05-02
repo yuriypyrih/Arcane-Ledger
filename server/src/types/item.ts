@@ -197,6 +197,12 @@ export type ItemPackContentsRecord = {
   missingReferences: ItemPackMissingReference[];
 };
 
+export type ItemBatchLookupRecord = {
+  items: ItemDetailRecord[];
+  invalidKeys: string[];
+  message?: string;
+};
+
 export type Open5eItemRecord = {
   url?: string;
   key?: string;

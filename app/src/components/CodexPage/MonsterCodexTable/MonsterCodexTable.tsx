@@ -20,6 +20,7 @@ type MonsterCodexTableProps = {
   onMonsterClick?: (monster: MonsterListItem) => void;
   renderNamePrefix?: (monster: MonsterListItem) => ReactNode;
   getRowTone?: (monster: MonsterListItem) => MonsterTableRowTone | null;
+  heading?: string;
   className?: string;
   tableWrapperClassName?: string;
   paginationClassName?: string;
@@ -117,6 +118,7 @@ function MonsterCodexTable({
   onMonsterClick,
   renderNamePrefix,
   getRowTone,
+  heading = "Monster Entries",
   className,
   tableWrapperClassName,
   paginationClassName
@@ -132,7 +134,7 @@ function MonsterCodexTable({
     }
 
     navigate({
-      pathname: `/codex/monsters/${monster.slug}`,
+      pathname: `/library/monsters/${monster.slug}`,
       search: search.length > 0 ? `?${search}` : ""
     });
   }
@@ -210,7 +212,7 @@ function MonsterCodexTable({
   return (
     <div className={getContainerClassName(styles.layout, className)}>
       <div className={styles.resultsHeader}>
-        <h3>Monster Entries</h3>
+        <h3>{heading}</h3>
         <div className={styles.resultsMeta}>
           <span className={styles.totalLabel}>{totalEntriesLabel}</span>
           {status === "ready" && monsters.length > 0 ? (

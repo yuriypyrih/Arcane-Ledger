@@ -12,14 +12,15 @@ import { createDefaultRoundTracker } from "./combat";
 export const abilityKeys: AbilityKey[] = ["STR", "DEX", "CON", "INT", "WIS", "CHA"];
 
 export const speciesOptions = [
+  "Aasimar",
   "Dragonborn",
   "Dwarf",
   "Elf",
   "Gnome",
-  "Half-Elf",
-  "Half-Orc",
+  "Goliath",
   "Halfling",
   "Human",
+  "Orc",
   "Tiefling"
 ];
 
@@ -100,6 +101,7 @@ export function createEmptyCharacter(): CharacterDraft {
     abilities: createDefaultAbilities(),
     alignment: "True Neutral",
     background: "",
+    backgroundChoices: undefined,
     backgroundNotes: "",
     currencies: createDefaultCurrencies(),
     skills: [],

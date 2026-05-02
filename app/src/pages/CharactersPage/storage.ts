@@ -41,6 +41,10 @@ import { normalizeLevelAndXp } from "./experience";
 import { normalizeCustomEquipmentEntries } from "./customEquipment";
 import { normalizeCharacterCompanions } from "./companions";
 import { normalizeCharacterFeats } from "./feats";
+import {
+  normalizeBackgroundChoices,
+  reconcileBackgroundOriginFeatEntries
+} from "./backgrounds";
 import { normalizeCharacterInventoryItems } from "./inventoryItems";
 import {
   normalizeHeroicInspiration,
@@ -184,6 +188,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     armorClassFormulaSelection?: unknown;
     currencies?: unknown;
     backgroundNotes?: unknown;
+    backgroundChoices?: unknown;
     savingThrowProficiencies?: unknown;
     hitDiceRemaining?: unknown;
     maxHitPointsMode?: unknown;
@@ -232,9 +237,11 @@ export function normalizeCharacter(value: unknown): Character | null {
       ? record.backgroundNotes.trim()
       : defaults.backgroundNotes;
   const normalizedSubclassId = normalizeSubclassId(record.subclassId, normalizedClassName);
-  const resolvedBackground = isBackgroundName(normalizedBackground)
-    ? normalizedBackground
-    : defaults.background;
+  const resolvedBackground = normalizedBackground || defaults.background;
+  const normalizedBackgroundChoices = normalizeBackgroundChoices(
+    isBackgroundName(resolvedBackground) ? resolvedBackground : "",
+    record.backgroundChoices
+  );
   const rawSkills = Array.isArray(record.skills)
     ? (record.skills as unknown[]).filter((skill): skill is string => typeof skill === "string")
     : defaults.skills;
@@ -273,7 +280,11 @@ export function normalizeCharacter(value: unknown): Character | null {
     ...createDefaultAbilities(),
     ...(record.abilities ?? {})
   };
-  const normalizedFeats = normalizeCharacterFeats(record.feats, normalizedLevel);
+  const normalizedFeats = reconcileBackgroundOriginFeatEntries(
+    normalizeCharacterFeats(record.feats, normalizedLevel),
+    isBackgroundName(resolvedBackground) ? resolvedBackground : "",
+    normalizedLevel
+  );
   const rawPersistedCantripIds = Array.isArray(record.cantripIds)
     ? record.cantripIds.filter((spellId): spellId is string => typeof spellId === "string")
     : [];
@@ -341,6 +352,7 @@ export function normalizeCharacter(value: unknown): Character | null {
     level: normalizedLevel,
     species: normalizedSpecies,
     background: resolvedBackground,
+    backgroundChoices: normalizedBackgroundChoices,
     subclassId: normalizedSubclassId,
     classFeatureState: normalizedClassFeatureState,
     skillProficiencies: record.skillProficiencies,
@@ -536,6 +548,7 @@ export function normalizeCharacter(value: unknown): Character | null {
         ? (record.alignment as Character["alignment"])
         : defaults.alignment,
     background: resolvedBackground,
+    backgroundChoices: normalizedBackgroundChoices,
     backgroundNotes: normalizedBackgroundNotes,
     currencies: normalizedCurrencies,
     skillProficiencies: normalizedProficiencies.skillProficiencies,

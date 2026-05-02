@@ -1,8 +1,16 @@
 import type { AbilityKey, Character } from "../../../../types";
 import { getFeatAbilityScoreBonusesForCharacter } from "../../featRuntime";
+import { getBackgroundAbilityScoreBonusesForCharacter } from "../../backgrounds";
 
-type RangerAbilityModifierCharacter = Partial<Pick<Character, "abilities" | "feats" | "level">>;
-type FeatAbilityScoreBonus = ReturnType<typeof getFeatAbilityScoreBonusesForCharacter>[number];
+type RangerAbilityModifierCharacter = Partial<
+  Pick<Character, "abilities" | "background" | "backgroundChoices" | "feats" | "level">
+>;
+type AbilityScoreBonus = {
+  ability: AbilityKey;
+  value: number;
+  maxScore?: number | null;
+  order?: number;
+};
 
 function normalizeAbilityScore(value: number | undefined): number {
   if (typeof value !== "number" || !Number.isFinite(value)) {
@@ -35,8 +43,8 @@ function getAppliedAbilityScoreBonus(
 }
 
 function sortFeatAbilityScoreBonuses(
-  left: FeatAbilityScoreBonus,
-  right: FeatAbilityScoreBonus
+  left: AbilityScoreBonus,
+  right: AbilityScoreBonus
 ): number {
   const leftHasCap = left.maxScore !== null && left.maxScore !== undefined;
   const rightHasCap = right.maxScore !== null && right.maxScore !== undefined;
@@ -58,10 +66,16 @@ function getFeatAdjustedAbilityScore(
 ): number {
   let total = normalizeAbilityScore(character.abilities?.[ability] ?? 10);
 
-  getFeatAbilityScoreBonusesForCharacter({
-    feats: character.feats ?? [],
-    level: character.level ?? 1
-  })
+  [
+    ...getBackgroundAbilityScoreBonusesForCharacter({
+      background: character.background,
+      backgroundChoices: character.backgroundChoices
+    }),
+    ...getFeatAbilityScoreBonusesForCharacter({
+      feats: character.feats ?? [],
+      level: character.level ?? 1
+    })
+  ]
     .filter((bonus) => bonus.ability === ability)
     .sort(sortFeatAbilityScoreBonuses)
     .forEach((bonus) => {

@@ -8,7 +8,8 @@ function ItemCodexEntryPage() {
   const { key } = useParams();
   const [searchParams] = useSearchParams();
   const { item, status } = useItemEntry(key);
-  const backToCodexPath = searchParams.toString().length > 0 ? `/codex?${searchParams}` : "/codex";
+  const backToCodexPath =
+    searchParams.toString().length > 0 ? `/library?${searchParams}` : "/library";
 
   return (
     <section className={styles.page}>

@@ -36,6 +36,7 @@ type FeatEditorModalProps = {
   onClose: () => void;
   onSelectCategory: (category: FEAT_CATEGORY) => void;
   onAddFeat: (feat: FEATS) => void;
+  onEditFeat: (entry: CharacterFeatEntry) => void;
   onRemoveFeat: (entry: CharacterFeatEntry) => void;
   onOpenFeatReference: (feat: FEATS) => void;
   onPendingFeatStateChange: Dispatch<SetStateAction<PendingFeatState>>;
@@ -65,6 +66,7 @@ function FeatEditorModal({
   onClose,
   onSelectCategory,
   onAddFeat,
+  onEditFeat,
   onRemoveFeat,
   onOpenFeatReference,
   onPendingFeatStateChange,
@@ -138,6 +140,7 @@ function FeatEditorModal({
               renderTrackingButton={renderTrackingButton}
               onOpenFeatReference={onOpenFeatReference}
               onAddFeat={onAddFeat}
+              onEditFeat={onEditFeat}
               onRemoveFeat={onRemoveFeat}
               onPendingFeatStateChange={onPendingFeatStateChange}
               onSavePendingAbilityScoreImprovement={onSavePendingAbilityScoreImprovement}

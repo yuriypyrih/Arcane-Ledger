@@ -67,6 +67,7 @@ export type PendingDruidicWarriorChoice = {
 
 export type PendingMagicInitiateChoice = {
   spellList: string;
+  lockedSpellList?: MagicInitiateChoice["spellList"];
   cantripIds: [string, string];
   levelOneSpellId: string;
   spellcastingAbility: string;

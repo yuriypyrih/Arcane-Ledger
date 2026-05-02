@@ -456,28 +456,39 @@ function normalizeCharacterFeatSource(value: unknown, takenAtLevel: number): Cha
 
   const record = value as Partial<CharacterFeatSource>;
 
-  if (record.type !== "class-feature") {
-    return {
-      type: "manual"
-    };
+  if (record.type === "background") {
+    return typeof record.background === "string" && record.background.trim().length > 0
+      ? {
+          type: "background",
+          background: record.background.trim()
+        }
+      : {
+          type: "manual"
+        };
   }
 
-  if (typeof record.feature !== "string") {
-    return {
-      type: "manual"
-    };
-  }
+  if (record.type === "class-feature") {
+    if (typeof record.feature !== "string") {
+      return {
+        type: "manual"
+      };
+    }
 
-  if (deprecatedSubclassPlaceholderFeatures.has(record.feature as CLASS_FEATURE)) {
+    if (deprecatedSubclassPlaceholderFeatures.has(record.feature as CLASS_FEATURE)) {
+      return {
+        type: "manual"
+      };
+    }
+
     return {
-      type: "manual"
+      type: "class-feature",
+      feature: record.feature as CLASS_FEATURE,
+      level: clampFeatLevel(record.level, takenAtLevel)
     };
   }
 
   return {
-    type: "class-feature",
-    feature: record.feature as CLASS_FEATURE,
-    level: clampFeatLevel(record.level, takenAtLevel)
+    type: "manual"
   };
 }
 
@@ -1011,6 +1022,10 @@ export function getCharacterFeatSourceLabel(entry: CharacterFeatEntry): string {
     return "MANUAL";
   }
 
+  if (entry.source.type === "background") {
+    return `Background: ${entry.source.background}`;
+  }
+
   if (entry.source.feature === CLASS_FEATURE.ABILITY_SCORE_IMPROVEMENT) {
     return `Level ${entry.source.level}: ASI`;
   }
@@ -1020,6 +1035,20 @@ export function getCharacterFeatSourceLabel(entry: CharacterFeatEntry): string {
 
 export function isFeatRepeatable(feat: FEATS): boolean {
   return Boolean(getFeatDefinition(feat)?.repeatable);
+}
+
+export function isFeatFromBackgroundSource(
+  entry: CharacterFeatEntry,
+  background?: string
+): boolean {
+  return (
+    entry.source.type === "background" &&
+    (background === undefined || entry.source.background === background)
+  );
+}
+
+export function isFeatEntryRemovable(entry: CharacterFeatEntry): boolean {
+  return !isFeatFromBackgroundSource(entry);
 }
 
 export function getFeatTrackingState(feat: FEATS): TRACKER {

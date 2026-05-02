@@ -136,9 +136,19 @@ const speciesEntriesByName = new Map<string, SpeciesEntry>(
   getSpeciesEntries().map((entry) => [entry.name, entry])
 );
 
-export const backgroundOptions = [...backgroundEntriesByName.keys()].sort((left, right) =>
-  left.localeCompare(right)
-);
+function sortBackgroundOptions(left: string, right: string): number {
+  if (left === "Acolyte") {
+    return -1;
+  }
+
+  if (right === "Acolyte") {
+    return 1;
+  }
+
+  return left.localeCompare(right);
+}
+
+export const backgroundOptions = [...backgroundEntriesByName.keys()].sort(sortBackgroundOptions);
 
 export function getBackgroundEntryByName(backgroundName: string): BackgroundEntry | undefined {
   return backgroundEntriesByName.get(backgroundName);

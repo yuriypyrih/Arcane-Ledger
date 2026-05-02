@@ -1,6 +1,7 @@
 import { Router } from "express";
 import {
   getItem,
+  getItemBatch,
   getItemFilters,
   getItemPackContents,
   getItems
@@ -11,6 +12,7 @@ const itemRoutes = Router();
 
 itemRoutes.get("/meta", getItemFilters);
 itemRoutes.get("/", validateItemListQuery, getItems);
+itemRoutes.post("/batch", getItemBatch);
 itemRoutes.get("/:key/pack-contents", getItemPackContents);
 itemRoutes.get("/:key", getItem);
 

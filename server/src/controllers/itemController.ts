@@ -3,7 +3,12 @@ import { AppError } from "../errors/AppError.js";
 import { asyncHandler } from "../middleware/asyncHandler.js";
 import type { ItemListQueryLocals } from "../types/item.js";
 import { createPaginationEnvelope } from "../utils/pagination.js";
-import { getItemByKey, listItemFilterOptions, listItems } from "../services/itemService.js";
+import {
+  getItemByKey,
+  getItemsByKeys,
+  listItemFilterOptions,
+  listItems
+} from "../services/itemService.js";
 import { getItemPackContentsByKey } from "../services/itemPackService.js";
 
 export const getItems = asyncHandler(
@@ -31,6 +36,30 @@ export const getItem = asyncHandler(async (request: Request, response: Response)
   }
 
   response.json(item);
+});
+
+export const getItemBatch = asyncHandler(async (request: Request, response: Response) => {
+  if (!Array.isArray(request.body?.keys)) {
+    throw new AppError("Request body must include a keys array.", 400, "INVALID_ITEM_KEYS");
+  }
+
+  const rawKeys = request.body.keys as unknown[];
+  const validKeys = rawKeys.filter(
+    (key): key is string => typeof key === "string" && key.trim().length > 0
+  );
+  const invalidValueCount = rawKeys.length - validKeys.length;
+  const lookup = await getItemsByKeys(validKeys);
+  const messageParts = [
+    invalidValueCount > 0
+      ? `Ignored ${invalidValueCount} invalid item key value${invalidValueCount === 1 ? "" : "s"}.`
+      : null,
+    lookup.message ?? null
+  ].filter(Boolean);
+
+  response.json({
+    ...lookup,
+    message: messageParts.length > 0 ? messageParts.join(" ") : undefined
+  });
 });
 
 export const getItemFilters = asyncHandler(async (_request: Request, response: Response) => {

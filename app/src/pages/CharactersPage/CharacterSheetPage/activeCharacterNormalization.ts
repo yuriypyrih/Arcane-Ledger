@@ -226,6 +226,7 @@ function normalizeProficiencyRuntime(character: Character): Character {
     level: character.level,
     species: character.species,
     background: character.background,
+    backgroundChoices: character.backgroundChoices,
     subclassId: character.subclassId,
     classFeatureState: character.classFeatureState,
     skillProficiencies: character.skillProficiencies,

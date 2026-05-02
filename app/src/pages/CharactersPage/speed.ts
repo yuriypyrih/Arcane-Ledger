@@ -1,5 +1,3 @@
-import type { SpeciesEntry } from "../../codex/entries";
-import { getSpeciesEntryByName } from "../../codex/selectors";
 import type { AbilityKey, Character } from "../../types";
 import { getSpeedBonusesForCharacter } from "./classFeatures";
 import { hasRogueThiefSecondStoryWorkFeature } from "./classFeatures/rogue/subclasses/rogueThief";
@@ -88,9 +86,7 @@ function getMovementSpeedBonuses(
   }).filter((bonus) => (bonus.movementType ?? "walk") === movementType);
 }
 
-function getSetTotalOverride(
-  bonuses: FeatureSpeedBonus[]
-): number | null {
+function getSetTotalOverride(bonuses: FeatureSpeedBonus[]): number | null {
   return bonuses.reduce<number | null>((currentOverride, bonus) => {
     if (typeof bonus.setTotal !== "number") {
       return currentOverride;
@@ -137,15 +133,15 @@ function resolveTotalFromBaseAndBonuses(
   };
 }
 
-function createWalkSpeedBreakdown(
-  character: Character,
-  speciesEntry: SpeciesEntry | null
-): MovementSpeedBreakdown {
-  const baseSpeed = speciesEntry?.speed ?? 30;
-  const source = speciesEntry?.name ?? "Species";
+function createWalkSpeedBreakdown(character: Character): MovementSpeedBreakdown {
+  const baseSpeed = 30;
+  const source = "Base";
   const bonuses = getMovementSpeedBonuses(character, "walk");
   const { total: preExhaustionTotal, entries } = resolveTotalFromBaseAndBonuses(baseSpeed, bonuses);
-  const exhaustionAdjustment = getExhaustionSpeedAdjustment(preExhaustionTotal, character.statusEntries);
+  const exhaustionAdjustment = getExhaustionSpeedAdjustment(
+    preExhaustionTotal,
+    character.statusEntries
+  );
 
   if (exhaustionAdjustment && exhaustionAdjustment.value !== 0) {
     entries.push(exhaustionAdjustment);
@@ -154,7 +150,10 @@ function createWalkSpeedBreakdown(
   return {
     type: "walk",
     label: movementLabels.walk,
-    total: Math.max(0, entries.reduce((total, entry) => total + entry.value, baseSpeed)),
+    total: Math.max(
+      0,
+      entries.reduce((total, entry) => total + entry.value, baseSpeed)
+    ),
     source,
     baseExpression: {
       kind: "fixed",
@@ -172,13 +171,16 @@ function getMovementBaseExpression(
   bonuses: FeatureSpeedBonus[]
 ): MovementSpeedBaseExpression {
   const defaultMultiplier = defaultMovementMultipliers[movementType];
-  const multiplierOverrideBonus = bonuses.reduce<FeatureSpeedBonus | null>((currentValue, bonus) => {
-    if (typeof bonus.setBaseFromWalkMultiplier !== "number") {
-      return currentValue;
-    }
+  const multiplierOverrideBonus = bonuses.reduce<FeatureSpeedBonus | null>(
+    (currentValue, bonus) => {
+      if (typeof bonus.setBaseFromWalkMultiplier !== "number") {
+        return currentValue;
+      }
 
-    return bonus;
-  }, null);
+      return bonus;
+    },
+    null
+  );
   const multiplierOverride =
     typeof multiplierOverrideBonus?.setBaseFromWalkMultiplier === "number"
       ? multiplierOverrideBonus.setBaseFromWalkMultiplier
@@ -239,8 +241,7 @@ function createDerivedMovementSpeedBreakdown(
 export function getMovementSpeedBreakdownsForCharacter(
   character: Character
 ): MovementSpeedBreakdownMap {
-  const speciesEntry = getSpeciesEntryByName(character.species) as SpeciesEntry | null;
-  const walk = createWalkSpeedBreakdown(character, speciesEntry);
+  const walk = createWalkSpeedBreakdown(character);
 
   return {
     walk,
@@ -251,7 +252,10 @@ export function getMovementSpeedBreakdownsForCharacter(
   };
 }
 
-function getJumpDistanceAbility(character: Character): { ability: AbilityKey; sourceLabel?: string } {
+function getJumpDistanceAbility(character: Character): {
+  ability: AbilityKey;
+  sourceLabel?: string;
+} {
   if (hasRogueThiefSecondStoryWorkFeature(character)) {
     return {
       ability: "DEX",

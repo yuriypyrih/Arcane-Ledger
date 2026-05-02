@@ -16,12 +16,16 @@ import KeywordReferenceDrawer from "../../components/KeywordReferenceDrawer/Keyw
 import SpellDescriptionContent from "../../components/SpellDescriptionContent";
 import SpellSubtitle from "../../components/SpellSubtitle";
 import {
-  ABILITY_TYPES,
+  formatBackgroundAbilityScoreOptions,
+  formatBackgroundEquipmentOptions,
+  formatBackgroundOriginFeat,
+  formatBackgroundProficiencies
+} from "../../components/CodexPage/backgroundPresentation";
+import {
   CLASS_FEATURE,
   ENTRY_CATEGORIES,
   FEATS,
   FeatureMap,
-  GENERAL_PROFICIENCIES,
   KeywordTooltip,
   TRACKER,
   getFeatureTrackingState,
@@ -69,66 +73,11 @@ import {
 import { useCodexEntry } from "./useCodexEntry";
 import styles from "./CodexEntryPage.module.css";
 
-const abilityDisplayOrder = [
-  ABILITY_TYPES.STR,
-  ABILITY_TYPES.DEX,
-  ABILITY_TYPES.CON,
-  ABILITY_TYPES.INT,
-  ABILITY_TYPES.WIS,
-  ABILITY_TYPES.CHA
-];
-
 function hasSpellHealing(spell: Pick<SpellEntry, "healing">): boolean {
   return Array.isArray(spell.healing)
     ? spell.healing.length > 0
     : spell.healing.label.trim().length > 0;
 }
-const orderedWeaponProficiencies = [
-  GENERAL_PROFICIENCIES.SIMPLE_WEAPONS,
-  GENERAL_PROFICIENCIES.MARTIAL_WEAPONS
-];
-const orderedArmorProficiencies = [
-  GENERAL_PROFICIENCIES.LIGHT_ARMOR,
-  GENERAL_PROFICIENCIES.MEDIUM_ARMOR,
-  GENERAL_PROFICIENCIES.HEAVY_ARMOR,
-  GENERAL_PROFICIENCIES.SHIELDS
-];
-
-function formatAbilityBonusList(abilityBonuses: Partial<Record<ABILITY_TYPES, number>>): string {
-  const parts = abilityDisplayOrder
-    .filter((ability) => (abilityBonuses[ability] ?? 0) !== 0)
-    .map((ability) => {
-      const bonusValue = abilityBonuses[ability] ?? 0;
-      return `${ability} ${bonusValue >= 0 ? "+" : ""}${bonusValue}`;
-    });
-
-  return parts.length > 0 ? parts.join(", ") : "None";
-}
-
-function formatInnateProficiencyList({
-  grantedSkillProficiencies,
-  innateProficiencies,
-  grantedToolProficiencies
-}: {
-  grantedSkillProficiencies: string[];
-  innateProficiencies: string[];
-  grantedToolProficiencies: string[];
-}): string {
-  const innateSet = new Set(innateProficiencies);
-  const orderedProficiencies = [
-    ...grantedSkillProficiencies,
-    ...orderedWeaponProficiencies
-      .filter((proficiency) => innateSet.has(proficiency))
-      .map((proficiency) => formatCodexLabel(proficiency)),
-    ...orderedArmorProficiencies
-      .filter((proficiency) => innateSet.has(proficiency))
-      .map((proficiency) => formatCodexLabel(proficiency)),
-    ...grantedToolProficiencies.map((proficiency) => formatCodexLabel(proficiency))
-  ];
-
-  return orderedProficiencies.length > 0 ? orderedProficiencies.join(", ") : "None";
-}
-
 function formatSelectableProficiencyList(values: string[], count: number): string {
   if (values.length === 0 || count <= 0) {
     return "None";
@@ -217,7 +166,7 @@ function CodexEntryPage() {
   const [expandedSectionKeys, setExpandedSectionKeys] = useState<string[]>([]);
   const [expandedFeatureKeys, setExpandedFeatureKeys] = useState<string[]>([]);
   const codexSearch = searchParams.toString();
-  const backToCodexPath = codexSearch.length > 0 ? `/codex?${codexSearch}` : "/codex";
+  const backToCodexPath = codexSearch.length > 0 ? `/library?${codexSearch}` : "/library";
   const componentsTooltipEntry =
     entry && entry.category === ENTRY_CATEGORIES.SPELLS
       ? (KeywordTooltip.components ?? null)
@@ -496,10 +445,10 @@ function CodexEntryPage() {
                 <h2>{entry.name}</h2>
                 {"rarity" in entry ? <RarityPill rarity={entry.rarity} /> : null}
               </div>
-              <p>{entry.summary}</p>
+              {entry.summary.trim().length > 0 ? <p>{entry.summary}</p> : null}
 
               <div className={styles.detailsGrid}>
-                {"tags" in entry ? (
+                {"tags" in entry && entry.category !== ENTRY_CATEGORIES.BACKGROUNDS ? (
                   <div className={styles.detailItem}>
                     <span>Types</span>
                     <strong>{formatCodexList(entry.tags)}</strong>
@@ -581,39 +530,52 @@ function CodexEntryPage() {
                 {entry.category === ENTRY_CATEGORIES.SPECIES ? (
                   <>
                     <div className={styles.detailItem}>
+                      <span>Source</span>
+                      <strong>
+                        {entry.source}, p{entry.page}
+                      </strong>
+                    </div>
+                    <div className={styles.detailItem}>
                       <span>Speed</span>
                       <strong>{entry.speed} ft</strong>
-                    </div>
-                    <div className={styles.detailItem}>
-                      <span>Ability Bonuses</span>
-                      <strong>{formatAbilityBonusList(entry.abilityBonuses)}</strong>
-                    </div>
-                    <div className={styles.detailItem}>
-                      <span>Granted Proficiencies</span>
-                      <strong>
-                        {formatInnateProficiencyList({
-                          grantedSkillProficiencies: entry.grantedSkillProficiencies,
-                          innateProficiencies: entry.innateProficiencies,
-                          grantedToolProficiencies: entry.grantedToolProficiencies
-                        })}
-                      </strong>
                     </div>
                   </>
                 ) : null}
 
                 {entry.category === ENTRY_CATEGORIES.BACKGROUNDS ? (
-                  <div className={styles.detailItem}>
-                    <span>Granted Proficiencies</span>
-                    <strong>
-                      {formatInnateProficiencyList({
-                        grantedSkillProficiencies: entry.grantedSkillProficiencies,
-                        innateProficiencies: [],
-                        grantedToolProficiencies: entry.grantedToolProficiencies
-                      })}
-                    </strong>
-                  </div>
+                  <>
+                    <div className={styles.detailItem}>
+                      <span>Ability Scores</span>
+                      <strong>{formatBackgroundAbilityScoreOptions(entry)}</strong>
+                    </div>
+                    <div className={styles.detailItem}>
+                      <span>Feat</span>
+                      <strong>{formatBackgroundOriginFeat(entry)}</strong>
+                    </div>
+                    <div className={styles.detailItem}>
+                      <span>Skill + Tool Proficiencies</span>
+                      <strong>{formatBackgroundProficiencies(entry)}</strong>
+                    </div>
+                    <div className={`${styles.detailItem} ${styles.detailItemFullWidth}`}>
+                      <span>Equipment</span>
+                      <strong>{formatBackgroundEquipmentOptions(entry)}</strong>
+                    </div>
+                  </>
                 ) : null}
               </div>
+
+              {entry.category === ENTRY_CATEGORIES.SPECIES ? (
+                <SpellDescriptionContent
+                  description={entry.description}
+                  className={featureDisclosureStyles.descriptionList}
+                  entryClassName={featureDisclosureStyles.descriptionLine}
+                  linkClassName={featureDisclosureStyles.inlineLinkButton}
+                  onOpenKeyword={setSelectedKeywordReference}
+                  onOpenSpell={setSelectedSpellReference}
+                  onOpenDivinity={setSelectedDivinityReference}
+                  onOpenFeat={(feat, label) => setSelectedFeatReference({ feat, label })}
+                />
+              ) : null}
             </>
           )}
         </article>

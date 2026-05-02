@@ -30,7 +30,7 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
       SKILL.PERCEPTION,
       SKILL.INSIGHT
     ],
-    background: "Guild Artisan / Merchant",
+    background: "Artisan",
     alignment: "Lawful Neutral"
   },
   Barbarian: {
@@ -44,7 +44,7 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
       SKILL.PERCEPTION,
       SKILL.ANIMAL_HANDLING
     ],
-    background: "Outlander",
+    background: "Farmer",
     alignment: "Chaotic Neutral"
   },
   Bard: {
@@ -142,7 +142,7 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
       SKILL.NATURE,
       SKILL.ATHLETICS
     ],
-    background: "Outlander",
+    background: "Guide",
     alignment: "Neutral Good"
   },
   Rogue: {
@@ -156,7 +156,7 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
       SKILL.ACROBATICS,
       SKILL.INVESTIGATION
     ],
-    background: "Criminal / Spy",
+    background: "Criminal",
     alignment: "Chaotic Neutral"
   },
   Sorcerer: {
@@ -203,29 +203,10 @@ const classBuildPlans: Record<string, ClassBuildPlan> = {
   }
 };
 
-export const speciesAbilityBonuses: Partial<Record<string, Partial<Record<AbilityKey, number>>>> = {
-  Dragonborn: { STR: 2, CHA: 1 },
-  Dwarf: { CON: 2, WIS: 1 },
-  Elf: { DEX: 2, INT: 1 },
-  Gnome: { INT: 2, DEX: 1 },
-  "Half-Elf": { CHA: 2, DEX: 1, CON: 1 },
-  "Half-Orc": { STR: 2, CON: 1 },
-  Halfling: { DEX: 2, CHA: 1 },
-  Human: { STR: 1, DEX: 1, CON: 1, INT: 1, WIS: 1, CHA: 1 },
-  Tiefling: { CHA: 2, INT: 1 }
-};
+export const speciesAbilityBonuses: Partial<Record<string, Partial<Record<AbilityKey, number>>>> =
+  {};
 
-export const speciesSkillAffinity: Partial<Record<string, SkillName[]>> = {
-  Dragonborn: [SKILL.INTIMIDATION, SKILL.PERSUASION, SKILL.ATHLETICS],
-  Dwarf: [SKILL.HISTORY, SKILL.INSIGHT, SKILL.SURVIVAL],
-  Elf: [SKILL.PERCEPTION, SKILL.STEALTH, SKILL.ARCANA],
-  Gnome: [SKILL.ARCANA, SKILL.INVESTIGATION, SKILL.HISTORY],
-  "Half-Elf": [SKILL.PERSUASION, SKILL.INSIGHT, SKILL.DECEPTION],
-  "Half-Orc": [SKILL.ATHLETICS, SKILL.INTIMIDATION, SKILL.SURVIVAL],
-  Halfling: [SKILL.STEALTH, SKILL.PERCEPTION, SKILL.PERSUASION],
-  Human: [SKILL.INSIGHT, SKILL.PERCEPTION, SKILL.PERSUASION],
-  Tiefling: [SKILL.DECEPTION, SKILL.ARCANA, SKILL.INTIMIDATION]
-};
+export const speciesSkillAffinity: Partial<Record<string, SkillName[]>> = {};
 
 export function getBuildPlan(className: string): ClassBuildPlan {
   return classBuildPlans[className] ?? fallbackBuildPlan;

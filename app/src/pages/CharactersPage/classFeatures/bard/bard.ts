@@ -23,6 +23,7 @@ import {
 } from "../../../../types";
 import { appendFeatureSourcedDescriptionAddition } from "../../actionModalDescriptions";
 import { getFeatAbilityScoreBonusesForCharacter } from "../../featRuntime";
+import { getBackgroundAbilityScoreBonusesForCharacter } from "../../backgrounds";
 import {
   createFeatureActionCardCost,
   markUsageHeaderTagsAsFallback,
@@ -164,11 +165,15 @@ function getAppliedAbilityScoreBonus(
 }
 
 function getBardCharismaModifier(
-  character: Pick<Character, "abilities" | "level" | "feats">
+  character: Pick<Character, "abilities" | "level" | "feats"> &
+    Partial<Pick<Character, "background" | "backgroundChoices">>
 ): number {
   let total = Math.max(1, Math.floor(character.abilities.CHA));
 
-  getFeatAbilityScoreBonusesForCharacter(character)
+  [
+    ...getBackgroundAbilityScoreBonusesForCharacter(character),
+    ...getFeatAbilityScoreBonusesForCharacter(character)
+  ]
     .filter((bonus) => bonus.ability === "CHA")
     .sort((left, right) => {
       const leftHasCap = left.maxScore !== null && left.maxScore !== undefined;

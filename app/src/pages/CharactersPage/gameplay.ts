@@ -681,7 +681,8 @@ function getHitDieMaximumForClass(className: string): number {
 }
 
 export function getAutomaticMaxHitPointsForCharacter(
-  character: Pick<Character, "className" | "level" | "abilities" | "classFeatureState">
+  character: Pick<Character, "className" | "level" | "abilities" | "classFeatureState"> &
+    Partial<Pick<Character, "background" | "backgroundChoices">>
 ): number {
   const hitDieMaximum = getHitDieMaximumForClass(character.className);
   const hitDieAverage = Math.floor(hitDieMaximum / 2) + 1;

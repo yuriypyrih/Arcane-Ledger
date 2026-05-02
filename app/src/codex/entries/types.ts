@@ -21,16 +21,19 @@ import type {
   SPECIES_TYPES,
   SPELL_COMPONENT,
   SPELL_LIST_CLASS,
+  TOOL_PROFICIENCIES,
   TRACKER,
   WEAPON_BASE,
-  TOOL_PROFICIENCIES,
   WEAPON_COMBAT_TYPE,
   WEAPON_MASTERY,
   WEAPON_PROPERTY,
   WEAPON_TRAINING
 } from "./enums";
 import { ENTRY_CATEGORIES } from "./enums";
-import type { ClassStarterPack } from "../classes/starterPack/type";
+import type { ClassStarterPack, StarterPackEquipmentChoice } from "../classes/starterPack/type";
+import type { FEATS } from "./enums";
+import type { AbilityKey } from "../../types/characters";
+import type { TOOL_PROFICIENCY } from "../../types/proficiencies";
 import type { SkillName } from "../../types/skills";
 
 export type CodexCategory = ENTRY_CATEGORIES;
@@ -211,11 +214,26 @@ export type ItemEntry = BaseCodexEntry<ENTRY_CATEGORIES.ITEMS, ITEM_TYPES> & {
   cost: EquipmentCost;
 };
 export type BackgroundEntry = BaseCodexEntry<ENTRY_CATEGORIES.BACKGROUNDS, BACKGROUND_TYPES> & {
+  source: "PHB'24";
+  page: number;
+  abilityScoreOptions: [AbilityKey, AbilityKey, AbilityKey];
+  originFeat: FEATS;
+  originFeatSpellList?: SPELL_LIST_CLASS.CLERIC | SPELL_LIST_CLASS.DRUID | SPELL_LIST_CLASS.WIZARD;
   grantedSkillProficiencies: SkillName[];
-  grantedToolProficiencies: TOOL_PROFICIENCIES[];
+  grantedToolProficiencies: TOOL_PROFICIENCY[];
+  toolProficiencyChoices?: TOOL_PROFICIENCY[];
+  toolProficiencyChoiceLabel?: string;
+  starterPack: {
+    recommendedToolProficiency?: TOOL_PROFICIENCY;
+    startingEquipment: StarterPackEquipmentChoice[];
+    recommendedStartingEquipmentIndex: number;
+  };
 };
 export type SpeciesEntry = BaseCodexEntry<ENTRY_CATEGORIES.SPECIES, SPECIES_TYPES> & {
+  source: "PHB'24";
+  page: number;
   speed: number;
+  description: SpellDescriptionEntry[];
   abilityBonuses: Partial<Record<ABILITY_TYPES, number>>;
   innateProficiencies: GENERAL_PROFICIENCIES[];
   grantedSkillProficiencies: SkillName[];
