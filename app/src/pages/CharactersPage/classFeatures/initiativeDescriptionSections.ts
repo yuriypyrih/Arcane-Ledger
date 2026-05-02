@@ -4,7 +4,8 @@ import {
   createFeatureSourcedDescriptionEntries,
   createSourcedDescriptionEntries
 } from "../actionModalDescriptions";
-import { getFeatDefinition, normalizeCharacterFeats } from "../feats";
+import { hasFeatForCharacter } from "../featRuntime";
+import { getFeatDefinition } from "../feats";
 import { getBarbarianPersistentRageInitiativeDescriptionAdditions } from "./barbarian/barbarianDescriptionSections";
 import { getFeatureDescriptionForCharacter } from "./featureDescriptions";
 import { getMonkInitiativeDescriptionAdditions } from "./monk/monkDescriptionSections";
@@ -26,9 +27,7 @@ function descriptionEntryIncludesText(entry: SpellDescriptionEntry, text: string
 function getAlertInitiativeDescriptionAdditions(
   character: InitiativeDescriptionCharacter
 ): SpellDescriptionEntry[][] {
-  const feats = normalizeCharacterFeats(character.feats, character.level);
-
-  if (!feats.some((entry) => entry.feat === FEATS.ALERT)) {
+  if (!hasFeatForCharacter(character, FEATS.ALERT)) {
     return [];
   }
 

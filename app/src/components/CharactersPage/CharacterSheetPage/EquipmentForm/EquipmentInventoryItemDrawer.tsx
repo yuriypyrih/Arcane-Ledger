@@ -12,6 +12,7 @@ type EquipmentInventoryItemDrawerProps = {
   onClose: () => void;
   footer?: ReactNode;
   headerContent?: ReactNode;
+  additionalDescription?: SpellDescriptionEntry[];
   descriptionAdditions?: SpellDescriptionEntry[][];
   costSuffix?: ReactNode;
   weaponMasteryActive?: boolean;
@@ -25,6 +26,7 @@ function EquipmentInventoryItemDrawer({
   onClose,
   footer,
   headerContent,
+  additionalDescription,
   descriptionAdditions,
   costSuffix,
   weaponMasteryActive = false,
@@ -97,6 +99,7 @@ function EquipmentInventoryItemDrawer({
             <ItemInspectionContent
               item={item}
               showHeader={false}
+              additionalDescription={additionalDescription}
               descriptionAdditions={descriptionAdditions}
               costSuffix={costSuffix}
               weaponMasteryActive={weaponMasteryActive}

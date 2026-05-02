@@ -35,7 +35,7 @@ import {
   formatDivinityValue,
   formatDivinityValueFormula
 } from "../../../../utils/codex";
-import { getFeatAbilityScoreBonusesForCharacter } from "../../feats";
+import { getFeatAbilityScoreBonusesForCharacter } from "../../featRuntime";
 import type { WeaponAction } from "../../gameplay";
 import { ACTION_CATEGORY, ECONOMY_TYPE } from "../../actionEconomy";
 import {

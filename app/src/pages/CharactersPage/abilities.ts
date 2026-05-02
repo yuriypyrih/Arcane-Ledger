@@ -5,7 +5,7 @@ import {
   type FeatureAbilityScoreBonus
 } from "./classFeatures";
 import { getCustomTraitAbilityModifierBonuses } from "./customTraitEffects";
-import { getFeatAbilityScoreBonusesForCharacter } from "./feats";
+import { getFeatAbilityScoreBonusesForCharacter } from "./featRuntime";
 
 export type AbilityScoreBreakdownEntry = {
   label: string;

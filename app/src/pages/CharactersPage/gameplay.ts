@@ -56,7 +56,7 @@ import {
 } from "./inventory";
 import { getWornBodyArmorTypeForCharacter } from "./armor";
 import { isMonkWeapon } from "./monkWeapons";
-import { normalizeCharacterFeats } from "./feats";
+import { hasFeatForCharacter } from "./featRuntime";
 import { getCustomTraitPassivePerceptionBonuses } from "./customTraitEffects";
 import {
   createHeldDescriptorForInventoryItem,
@@ -341,9 +341,7 @@ function getSelectedWeaponDamage(
 }
 
 function hasGreatWeaponFightingFeat(character: Pick<Character, "feats" | "level">): boolean {
-  return normalizeCharacterFeats(character.feats, character.level).some(
-    (entry) => entry.feat === FEATS.GREAT_WEAPON_FIGHTING
-  );
+  return hasFeatForCharacter(character, FEATS.GREAT_WEAPON_FIGHTING);
 }
 
 function canUseGreatWeaponFighting(
@@ -729,7 +727,6 @@ export function getInitiativeBreakdownForCharacter(character: Character): Initia
     ...dexterityModifierBreakdown.bonusEntries
   ];
   const initiativeBonuses = getInitiativeBonusesForCharacter(character);
-  const normalizedFeats = normalizeCharacterFeats(character.feats, character.level);
 
   initiativeBonuses.forEach((bonus) => {
     const value = bonus.abilityModifierSource
@@ -754,7 +751,7 @@ export function getInitiativeBreakdownForCharacter(character: Character): Initia
     });
   });
 
-  if (normalizedFeats.some((entry) => entry.feat === FEATS.ALERT)) {
+  if (hasFeatForCharacter(character, FEATS.ALERT)) {
     entries.push({
       label: "Proficiency Bonus (Alert)",
       value: getProficiencyBonus(character.level)

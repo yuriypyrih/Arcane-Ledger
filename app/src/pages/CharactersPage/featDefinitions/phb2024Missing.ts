@@ -140,7 +140,7 @@ export const phb2024MissingFeatDefinitions: FeatDefinition[] = [
       crafterFastCraftingDescription,
       "<strong>Fast Crafting Table.</strong> Carpenter's Tools: Ladder, Torch; Leatherworker's Tools: Crossbow Bolt Case, Map or Scroll Case, Pouch; Mason's Tools: Block and Tackle; Potter's Tools: Jug, Lamp; Smith's Tools: Ball Bearings, Bucket, Caltrops, Grappling Hook, Iron Pot; Tinker's Tools: Bell, Shovel, Tinderbox; Weaver's Tools: Basket, Rope, Net, Tent; Woodcarver's Tools: Club, Greatclub, Quarterstaff."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.CROSSBOW_EXPERT,
@@ -265,7 +265,7 @@ export const phb2024MissingFeatDefinitions: FeatDefinition[] = [
       "<strong>Battle Medic.</strong> If you have a Healer's Kit, you can expend one use of it and tend to a creature within 5 feet of yourself as a Utilize action. That creature can expend one of its Hit Point Dice, and you then roll that die. The creature regains a number of Hit Points equal to the roll plus your Proficiency Bonus.",
       "<strong>Healing Rerolls.</strong> Whenever you roll a die to determine the number of Hit Points you restore with a spell or with this feat's Battle Medic benefit, you can reroll the die if it rolls a 1, and you must use the new roll."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.HEAVILY_ARMORED,
@@ -348,7 +348,7 @@ export const phb2024MissingFeatDefinitions: FeatDefinition[] = [
       "<strong>Advantage.</strong> When you roll a d20 for a D20 Test, you can spend 1 Luck Point to give yourself Advantage on the roll.",
       "<strong>Disadvantage.</strong> When a creature rolls a d20 for an attack roll against you, you can spend 1 Luck Point to impose Disadvantage on that roll."
     ],
-    trackingState: TRACKER.NOT_TRACKED
+    trackingState: TRACKER.SEMI_TRACKED
   },
   {
     feat: FEATS.MAGE_SLAYER,

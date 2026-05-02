@@ -13,6 +13,7 @@ type ItemInspectionContentProps = {
   item: ItemRecord;
   className?: string;
   showHeader?: boolean;
+  additionalDescription?: SpellDescriptionEntry[];
   descriptionAdditions?: SpellDescriptionEntry[][];
   costSuffix?: ReactNode;
   weaponMasteryActive?: boolean;
@@ -28,6 +29,7 @@ function ItemInspectionContent({
   item,
   className,
   showHeader = true,
+  additionalDescription = [],
   descriptionAdditions = [],
   costSuffix,
   weaponMasteryActive = false,
@@ -36,7 +38,10 @@ function ItemInspectionContent({
 }: ItemInspectionContentProps) {
   const presentation = buildItemDetailPresentation(item);
   const hasBaseDescription = presentation.description.length > 0;
-  const descriptionSections = orderDescriptionAdditionSections(descriptionAdditions);
+  const descriptionSections = orderDescriptionAdditionSections([
+    ...(additionalDescription.length > 0 ? [additionalDescription] : []),
+    ...descriptionAdditions
+  ]);
   const weaponReferenceKeywords = {
     Properties: normalizeWeaponReferenceLabels(presentation.weapon?.propertyLabels ?? []),
     Mastery: normalizeWeaponReferenceLabels(presentation.weapon?.masteryLabels ?? [])

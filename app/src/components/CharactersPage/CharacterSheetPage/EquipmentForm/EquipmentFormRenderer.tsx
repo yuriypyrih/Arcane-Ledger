@@ -11,7 +11,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
     getItemWeightValue, groupedInventoryItems, hasDisplayableRarity, inventoryDrawerFooter, inventoryDrawerHeaderContent, inventoryEquipmentGroups, isAddModalCommitting, isAddModalOpen, isCurrencyDrawerOpen,
     isCustomEquipmentModalOpen, isGeneralEquipmentExpanded, isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield,
     normalizeCurrencyAmountInput, normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
-    openWeaponReference, pendingDeleteCustomEquipment, removeEquipmentItem, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedEquipmentGroups, selectedInventoryDescriptionAdditions,
+    openWeaponReference, pendingDeleteCustomEquipment, removeEquipmentItem, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedEquipmentGroups, selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions,
     selectedInventoryInspection, selectedInventoryItemStatus, selectedInventoryRecord,
     selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery, selectedWeaponHasProficiency, selectedWeaponMasteryKeywords,
     selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsGeneralEquipmentExpanded, setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared,
@@ -637,6 +637,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
           onClose={closeInventoryItemDrawer}
           headerContent={inventoryDrawerHeaderContent}
           footer={inventoryDrawerFooter}
+          additionalDescription={selectedInventoryAdditionalDescription}
           descriptionAdditions={selectedInventoryDescriptionAdditions}
           weaponMasteryActive={selectedInventoryWeaponHasActiveMastery}
           weaponProficient={selectedInventoryWeaponHasProficiency}

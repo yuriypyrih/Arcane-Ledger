@@ -13,7 +13,7 @@ import NumberInput from "../../FormInputs/NumberInput";
 import RarityPill, { hasDisplayableRarity } from "../../../CodexPage/RarityPill";
 import { useBodyScrollLock } from "../../../../lib/useBodyScrollLock";
 import { fetchItemPackContents } from "../../../../api";
-import { ENTRY_CATEGORIES, FEATS } from "../../../../codex/entries";
+import { ENTRY_CATEGORIES } from "../../../../codex/entries";
 import { currencyKeys, type Character, type CurrencyKey } from "../../../../types";
 import {
   formatEquipmentWeight,
@@ -82,7 +82,10 @@ import {
   crafterDiscountRuleText,
   isCrafterDiscountEligibleItem
 } from "../../../../pages/CharactersPage/crafterFeat";
-import { normalizeCharacterFeats } from "../../../../pages/CharactersPage/feats";
+import {
+  characterHasCrafterDiscount,
+  getFeatItemAdditionalDescriptionForCharacter
+} from "../../../../pages/CharactersPage/featRuntime";
 import { createSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import type { ItemRecord } from "../../../../types";
@@ -364,9 +367,10 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
   const canSpendCurrency = activeCurrencyAmount >= normalizedCurrencyAmount;
   const hasCrafterDiscountFeat = useMemo(
     () =>
-      normalizeCharacterFeats(equipmentCharacter.feats, equipmentCharacter.level).some(
-        (entry) => entry.feat === FEATS.CRAFTER
-      ),
+      characterHasCrafterDiscount({
+        feats: equipmentCharacter.feats,
+        level: equipmentCharacter.level
+      }),
     [equipmentCharacter.feats, equipmentCharacter.level]
   );
   const resolvedCustomEquipmentEntries = useMemo(
@@ -735,6 +739,17 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
         ? [createSourcedDescriptionEntries("Crafter: Discount", [crafterDiscountRuleText])]
         : [],
     [selectedInventoryHasCrafterDiscount]
+  );
+  const selectedInventoryAdditionalDescription = useMemo(
+    () =>
+      getFeatItemAdditionalDescriptionForCharacter(
+        {
+          feats: equipmentCharacter.feats,
+          level: equipmentCharacter.level
+        },
+        selectedInventoryRecord
+      ),
+    [equipmentCharacter.feats, equipmentCharacter.level, selectedInventoryRecord]
   );
   const selectedInventoryHandDescriptor =
     selectedInventoryGroup && selectedAvailableInventoryCopy
@@ -1561,7 +1576,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     isHandEquippableEntry, isOverCarryingCapacity, isSelectedArmorWorn, isSelectedCustomEntry, isSelectedEntryOnHand, isSelectedFeatureManagedEntry, isSelectedShield, normalizeCurrencyAmountInput,
     normalizedCurrencies, openAddModal, openCurrencyModal, openCustomEquipmentCreator, openCustomEquipmentEditor, openInventoryInspectionFromBrowser, openInventoryInspectionFromLoadout, openLoadoutEntryDetails,
     openWeaponReference, pendingDeleteCustomEquipment, removeEquipmentItem, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedEquipmentGroups, selectedInventoryInspection, selectedInventoryItemStatus,
-    selectedInventoryDescriptionAdditions, selectedInventoryRecord, selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery,
+    selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions, selectedInventoryRecord, selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery,
     selectedWeaponHasProficiency, selectedWeaponMasteryKeywords, selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsGeneralEquipmentExpanded,
     setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, sheetStyles, shouldOfferHandSwap, styles, swapEntryToHand, toggleArmorWorn,
     toggleEntryOnHand

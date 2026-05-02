@@ -135,7 +135,7 @@ import {
   usesPreparedSpellsForCharacter
 } from "../../../../pages/CharactersPage/spellcasting";
 import { getSpellSelectionInputStatusForCharacter } from "../../../../pages/CharactersPage/spellSelection";
-import { getFeatGrantedCantripEntriesForCharacter } from "../../../../pages/CharactersPage/feats";
+import { getFeatGrantedCantripEntriesForCharacter } from "../../../../pages/CharactersPage/featRuntime";
 import { formatFeatureActionOptionRangeLabel } from "../../../../pages/CharactersPage/actionOutcome";
 import { applySpellConcentrationToStatusEntries } from "../../../../pages/CharactersPage/statusEntries";
 import { fighterPsiWarriorTelekineticMasterConcentrationStatusSourceId } from "../../../../pages/CharactersPage/classFeatures/fighter/subclasses/fighterPsiWarriorShared";

@@ -48,6 +48,10 @@ export type SkilledChoice = {
   selections: [SkilledFeatSelection, SkilledFeatSelection, SkilledFeatSelection];
 };
 
+export type LuckyChoice = {
+  pointsExpended: number;
+};
+
 export type CharacterFeatSource =
   | {
       type: "manual";
@@ -70,4 +74,5 @@ export type CharacterFeatEntry = {
   boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
   epicBoonAbilityChoice?: EpicBoonAbilityChoice;
   skilled?: SkilledChoice;
+  lucky?: LuckyChoice;
 };

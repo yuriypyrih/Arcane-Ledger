@@ -6,21 +6,14 @@ import type {
   AbilityKey,
   ARMOR_PROFICIENCY,
   BlessedWarriorChoice,
-  Character,
   CharacterFeatEntry,
-  CharacterStatusEntry,
   CrafterChoice,
   DruidicWarriorChoice,
   LanguageProficiency,
+  LuckyChoice,
   SAVING_THROW_PROFICIENCY,
   SkillName,
   WEAPON_PROFICIENCY
-} from "../../types";
-import {
-  SENSE,
-  STATUS_DURATION_KIND,
-  STATUS_ENTRY_GROUP,
-  STATUS_ENTRY_SOURCE_TYPE
 } from "../../types";
 import type {
   AbilityScoreImprovementChoice,
@@ -31,11 +24,6 @@ import type {
   SkilledFeatSelection
 } from "../../types/feats";
 import { formatCodexLabel } from "../../utils/codex";
-import type {
-  ArmorClassFeatureContext,
-  FeatureAbilityScoreBonus,
-  FeatureArmorClassBonus
-} from "./classFeatures";
 import { getToolProficiencyLabel } from "./proficiencyOptions";
 import { getSpellEntriesForSpellListClass } from "../../codex/classes/spellAccess";
 import { SPELL_LIST_CLASS, type SpellEntry } from "../../codex/entries";
@@ -625,6 +613,28 @@ function normalizeSkilledChoice(value: unknown): SkilledChoice | undefined {
   };
 }
 
+function getFeatProficiencyBonusForLevel(level: number): number {
+  const normalizedLevel = Math.max(1, Math.min(20, Math.floor(level)));
+  return Math.floor((normalizedLevel - 1) / 4) + 2;
+}
+
+function normalizeLuckyChoice(value: unknown, currentLevel: number): LuckyChoice | undefined {
+  if (!value || typeof value !== "object") {
+    return undefined;
+  }
+
+  const rawPointsExpended = Number((value as Partial<LuckyChoice>).pointsExpended);
+  const pointsExpended = Number.isFinite(rawPointsExpended) ? Math.floor(rawPointsExpended) : 0;
+  const maxPoints = getFeatProficiencyBonusForLevel(currentLevel);
+  const normalizedPointsExpended = Math.max(0, Math.min(maxPoints, pointsExpended));
+
+  return normalizedPointsExpended > 0
+    ? {
+        pointsExpended: normalizedPointsExpended
+      }
+    : undefined;
+}
+
 function createFeatEntryId(feat: FEATS): string {
   return `${feat}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 }
@@ -759,6 +769,8 @@ export function normalizeCharacterFeats(
       ? normalizeEpicBoonAbilityChoice(feat, record.epicBoonAbilityChoice)
       : undefined;
     const skilled = feat === FEATS.SKILLED ? normalizeSkilledChoice(record.skilled) : undefined;
+    const lucky =
+      feat === FEATS.LUCKY ? normalizeLuckyChoice(record.lucky, currentLevel) : undefined;
 
     return [
       {
@@ -778,7 +790,8 @@ export function normalizeCharacterFeats(
         crafter,
         boonOfIrresistibleOffense,
         epicBoonAbilityChoice,
-        skilled
+        skilled,
+        lucky
       }
     ];
   });
@@ -796,6 +809,7 @@ export function createCharacterFeatEntry(
     boonOfIrresistibleOffense?: BoonOfIrresistibleOffenseChoice;
     epicBoonAbilityChoice?: EpicBoonAbilityChoice;
     skilled?: SkilledChoice;
+    lucky?: LuckyChoice;
   }
 ): CharacterFeatEntry {
   return {
@@ -813,7 +827,8 @@ export function createCharacterFeatEntry(
     epicBoonAbilityChoice: epicBoonAbilityIncreaseFeatOptions.has(feat)
       ? options?.epicBoonAbilityChoice
       : undefined,
-    skilled: feat === FEATS.SKILLED ? options?.skilled : undefined
+    skilled: feat === FEATS.SKILLED ? options?.skilled : undefined,
+    lucky: feat === FEATS.LUCKY ? options?.lucky : undefined
   };
 }
 
@@ -958,155 +973,8 @@ export function getDruidicWarriorCantripOptions(): SpellEntry[] {
   return druidicWarriorCantripOptions;
 }
 
-export function getFeatGrantedCantripEntriesForCharacter(
-  character: Pick<Character, "feats" | "level">
-): SpellEntry[] {
-  const feats = normalizeCharacterFeats(character.feats, character.level);
-  const featCantrips = new Map<string, SpellEntry>();
-
-  feats.forEach((entry) => {
-    if (entry.feat === FEATS.BLESSED_WARRIOR && entry.blessedWarrior) {
-      entry.blessedWarrior.cantripIds.forEach((cantripId) => {
-        const cantrip = blessedWarriorCantripOptionsById.get(cantripId);
-
-        if (cantrip) {
-          featCantrips.set(cantrip.id, cantrip);
-        }
-      });
-      return;
-    }
-
-    if (entry.feat === FEATS.DRUIDIC_WARRIOR && entry.druidicWarrior) {
-      entry.druidicWarrior.cantripIds.forEach((cantripId) => {
-        const cantrip = druidicWarriorCantripOptionsById.get(cantripId);
-
-        if (cantrip) {
-          featCantrips.set(cantrip.id, cantrip);
-        }
-      });
-    }
-  });
-
-  return [...featCantrips.values()].sort((left, right) => left.name.localeCompare(right.name));
-}
-
-export function getFeatAbilityScoreBonusesForCharacter(
-  character: Pick<Character, "feats" | "level">
-): FeatureAbilityScoreBonus[] {
-  const feats = normalizeCharacterFeats(character.feats, character.level);
-
-  return feats.flatMap((entry, index) => {
-    const order = entry.takenAtLevel + index / 100;
-
-    if (entry.feat === FEATS.ABILITY_SCORE_IMPROVEMENT && entry.abilityScoreImprovement) {
-      if (entry.abilityScoreImprovement.mode === "single") {
-        return [
-          {
-            ability: entry.abilityScoreImprovement.primaryAbility,
-            label: "Ability Score Improvement",
-            value: 2,
-            maxScore: 20,
-            order
-          }
-        ];
-      }
-
-      return [
-        {
-          ability: entry.abilityScoreImprovement.primaryAbility,
-          label: "Ability Score Improvement",
-          value: 1,
-          maxScore: 20,
-          order
-        },
-        {
-          ability: entry.abilityScoreImprovement.secondaryAbility,
-          label: "Ability Score Improvement",
-          value: 1,
-          maxScore: 20,
-          order
-        }
-      ];
-    }
-
-    if (entry.feat === FEATS.BOON_OF_IRRESISTIBLE_OFFENSE && entry.boonOfIrresistibleOffense) {
-      return [
-        {
-          ability: entry.boonOfIrresistibleOffense.ability,
-          label: "Boon of Irresistible Offense",
-          value: 1,
-          maxScore: 30,
-          order
-        }
-      ];
-    }
-
-    if (entry.epicBoonAbilityChoice) {
-      return [
-        {
-          ability: entry.epicBoonAbilityChoice.ability,
-          label: getFeatLabel(entry.feat),
-          value: 1,
-          maxScore: 30,
-          order
-        }
-      ];
-    }
-
-    return [];
-  });
-}
-
 export function getEpicBoonAbilityOptions(feat: FEATS): AbilityKey[] | null {
   const options = epicBoonAbilityIncreaseFeatOptions.get(feat);
 
   return options ? [...options] : null;
-}
-
-export function getFeatArmorClassBonusesForCharacter(
-  character: Pick<Character, "feats" | "level">,
-  context: ArmorClassFeatureContext
-): FeatureArmorClassBonus[] {
-  if (!context.hasWornBodyArmor) {
-    return [];
-  }
-
-  const feats = normalizeCharacterFeats(character.feats, character.level);
-
-  if (!feats.some((entry) => entry.feat === FEATS.DEFENSE)) {
-    return [];
-  }
-
-  return [
-    {
-      label: "Defense",
-      value: 1
-    }
-  ];
-}
-
-export function getFeatDerivedStatusEntriesForCharacter(
-  character: Pick<Character, "feats" | "level">
-): CharacterStatusEntry[] {
-  const feats = normalizeCharacterFeats(character.feats, character.level);
-
-  return feats.flatMap((entry, index) => {
-    if (entry.feat !== FEATS.BOON_OF_TRUESIGHT) {
-      return [];
-    }
-
-    return [
-      {
-        id: `feat-boon-of-truesight-${index}`,
-        group: STATUS_ENTRY_GROUP.SENSES,
-        value: SENSE.TRUESIGHT,
-        source: "Boon of Truesight",
-        sourceType: STATUS_ENTRY_SOURCE_TYPE.FEAT,
-        duration: {
-          kind: STATUS_DURATION_KIND.INFINITE
-        },
-        rangeFeet: 60
-      }
-    ];
-  });
 }

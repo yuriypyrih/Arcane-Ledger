@@ -85,6 +85,13 @@
   width: 100%;
 }
 
+.luckyFooterActions {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+}
+
 .footerHelperText {
   margin: 0;
   color: var(--color-accent);

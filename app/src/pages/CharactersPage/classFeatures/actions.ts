@@ -28,6 +28,7 @@ import {
   getCustomTraitSavingThrowBonuses,
   getCustomTraitWeaponDamageBonuses
 } from "../customTraitEffects";
+import { getFeatActionsForCharacter } from "../featRuntime";
 import {
   activateBardicInspiration,
   activateBardCollegeOfDanceInspiringMovement,
@@ -584,7 +585,9 @@ export function getFeatureActionsForCharacter(character: Character): FeatureActi
     ? actions.map(subclassDerivedState.transformFeatureAction)
     : actions;
 
-  return transformedActions.map(normalizeFeatureActionCardUsage);
+  return [...transformedActions, ...getFeatActionsForCharacter(character)].map(
+    normalizeFeatureActionCardUsage
+  );
 }
 
 export function getFeatureEquipmentEntriesForCharacter(

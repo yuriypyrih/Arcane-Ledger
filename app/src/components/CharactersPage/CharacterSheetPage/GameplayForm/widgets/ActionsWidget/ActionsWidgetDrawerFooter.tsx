@@ -97,6 +97,12 @@ import {
   createNamedUsageHeaderTags,
   createNamedResourceCardUsage
 } from "../../../../../../pages/CharactersPage/classFeatures/cardUsage";
+import {
+  luckyFeatActionKey,
+  resetLuckyPointForCharacter,
+  restoreLuckyPointsForCharacter,
+  spendLuckyPointForCharacter
+} from "../../../../../../pages/CharactersPage/featRuntime";
 import { mantleOfInspirationActionKey } from "../../../../../../pages/CharactersPage/classFeatures/bard/subclasses/bardCollegeOfGlamour";
 import {
   channelDivinityActionKey,
@@ -422,7 +428,7 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     arcaneWardSpellSlotOptions, bardicInspirationFallbackSpellSlotOptions, beastMasterReviveSpellSlotOptions, canSubmitLayOnHands, canSubmitSelectedWarriorOfTheGodsRoll, canUseInspiredEclipse, canUseSelectedWildCompanionResource, canUseSelectedWildResurgenceMode, character, confirmFontOfMagicSelection, confirmSelectedFeatureOptions, executeCommonAction,
     executeFeatureActivate, executeMonkFlurryOfBlowsAction, executeMonkHandOfHealingPath, fixedSpellSlotTotals, fixedSpellSlotsRemaining, handleWeaponAttackRoll, handleWeaponDamageRoll, indomitableSavingThrowOptions, isClairvoyantCombatantSelected, isColossusSlayerSelected, isCrownOfSpellfireSelected, isDiceRollerSettingsOpen,
     isDreadfulStrikeSelected, isEmpoweredStrikesSelected, isFlurryOfHealingAndHarmSelected, isGroupRecoverySelected, isHandOfHarmSelected, isHordeBreakerSelected, isHuntersMarkTargetSelected, isImprovedShadowStepSelected, isInspiredEclipseSelected, isPolarStrikesSelected, isPsionicStrikeSelected, isQuiveringPalmSelected,
-    isRageOfTheGodsSelected, isSacredWeaponSelected, isStunningStrikeSelected, isVowOfEnmitySelected, natureMagicianOptions, onPersistCharacter, openMysticArcanumSpell, openWeaponDetailReference, roundTracker, selectedAction, selectedActionEconomyShapeState, selectedActionOptionKeys,
+    isRageOfTheGodsSelected, isSacredWeaponSelected, isStunningStrikeSelected, isVowOfEnmitySelected, natureMagicianOptions, onPersistCharacter, closeActionDrawer, openMysticArcanumSpell, openWeaponDetailReference, roundTracker, selectedAction, selectedActionEconomyShapeState, selectedActionOptionKeys,
     selectedArcaneRecoverySelection, selectedArcaneWardDisabledReason, selectedArcaneWardSpellSlotLevel, selectedBardicInspirationFallbackDisabledReason, selectedBardicInspirationSpellSlotLevel, selectedBeastMasterReviveDisabledReason, selectedBeastMasterReviveSpellSlotLevel, selectedBlessingOfTheTricksterTarget, selectedChannelDivinityRows, selectedClairvoyantCombatantToggleDisabled, selectedClairvoyantCombatantToggleDisabledReason, selectedClairvoyantCombatantUsesRemaining,
     selectedClairvoyantCombatantUsesTotal, selectedCommonActionPathStates, selectedCommonActionPrimaryDisabledReason, selectedCommonActionSecondaryDisabledReason, selectedCrownOfSpellfireBlockedReason, selectedCrownOfSpellfireFallbackSorceryPointCost, selectedCrownOfSpellfireUsesRemaining, selectedCrownOfSpellfireUsesTotal, selectedDrawerOption, selectedFeatureAction, selectedFeatureActionPrimaryDisabledReason, selectedFlurryOfBlowsPrimaryDisabledReason,
     selectedFlurryOfHealingAndHarmDisabledReason, selectedFlurryOfHealingAndHarmUsesRemaining, selectedFlurryOfHealingAndHarmUsesTotal, selectedFontOfMagicSelection, selectedFontOfMagicWarning, selectedHandOfHealingActionPathStates, selectedHandOfHealingFlurryOfHealingAndHarmHelperText, selectedHealingLightDiceCount, selectedHealingLightDiceRemaining, selectedHealingLightMaxDicePerUse, selectedHealingLightMaxSelectableDice, selectedHealingLightTarget,
@@ -697,6 +703,47 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
     const selectedFeaturePrimaryLabel =
       ("confirmLabel" in selectedAction.drawer ? selectedAction.drawer.confirmLabel : undefined) ??
       getFeatureActionDrawerPrimaryLabel(selectedAction.action);
+
+    if (selectedAction.kind === "feature" && selectedAction.action.key === luckyFeatActionKey) {
+      const luckyPointsRemaining = selectedAction.action.usesRemaining ?? 0;
+      const luckyPointsTotal = selectedAction.action.usesTotal ?? 0;
+      const luckyPointsAreFull = luckyPointsRemaining >= luckyPointsTotal;
+
+      return (
+        <div className={styles.luckyFooterActions}>
+          <ActionButton
+            className={styles.footerActionButton}
+            onClick={() => {
+              onPersistCharacter(spendLuckyPointForCharacter);
+              closeActionDrawer();
+            }}
+            disabled={luckyPointsRemaining <= 0}
+          >
+            Use 1
+          </ActionButton>
+          <ActionButton
+            className={styles.footerActionButton}
+            onClick={() => {
+              onPersistCharacter(resetLuckyPointForCharacter);
+              closeActionDrawer();
+            }}
+            disabled={luckyPointsAreFull}
+          >
+            Reset 1
+          </ActionButton>
+          <ActionButton
+            className={styles.footerActionButton}
+            onClick={() => {
+              onPersistCharacter(restoreLuckyPointsForCharacter);
+              closeActionDrawer();
+            }}
+            disabled={luckyPointsAreFull}
+          >
+            Reset All
+          </ActionButton>
+        </div>
+      );
+    }
 
     if (
       selectedAction.kind === "feature" &&
@@ -1792,4 +1839,3 @@ export function renderActionDrawerFooter(context: Record<string, any>) {
 
     return null;
   }
-

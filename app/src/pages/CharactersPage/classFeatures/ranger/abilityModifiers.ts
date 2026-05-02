@@ -1,5 +1,5 @@
 import type { AbilityKey, Character } from "../../../../types";
-import { getFeatAbilityScoreBonusesForCharacter } from "../../feats";
+import { getFeatAbilityScoreBonusesForCharacter } from "../../featRuntime";
 
 type RangerAbilityModifierCharacter = Partial<Pick<Character, "abilities" | "feats" | "level">>;
 type FeatAbilityScoreBonus = ReturnType<typeof getFeatAbilityScoreBonusesForCharacter>[number];

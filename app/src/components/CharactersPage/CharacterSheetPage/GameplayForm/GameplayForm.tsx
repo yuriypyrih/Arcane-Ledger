@@ -4,11 +4,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { Character } from "../../../../types";
 import { getRestDescriptionInjectionsForCharacter } from "../../../../pages/CharactersPage/classFeatures/restDescriptionInjections";
 import type { PersistCharacterUpdater } from "../../../../pages/CharactersPage/CharacterSheetPage/types";
-import { FEATS } from "../../../../codex/entries";
 import { normalizeRoundTracker } from "../../../../pages/CharactersPage/combat";
 import { createSourcedDescriptionEntries } from "../../../../pages/CharactersPage/actionModalDescriptions";
 import { crafterFastCraftingRuleText } from "../../../../pages/CharactersPage/crafterFeat";
-import { normalizeCharacterFeats } from "../../../../pages/CharactersPage/feats";
+import { characterHasCrafterDiscount } from "../../../../pages/CharactersPage/featRuntime";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
 import styles from "./GameplayForm.module.css";
 import BardicInspirationWidget from "./widgets/BardicInspirationWidget";
@@ -53,9 +52,10 @@ function GameplayForm({
   );
   const longRestDescriptionInjections = useMemo(() => {
     const additions = [...restDescriptionInjections.longRest];
-    const hasCrafterFeat = normalizeCharacterFeats(character.feats, character.level).some(
-      (entry) => entry.feat === FEATS.CRAFTER
-    );
+    const hasCrafterFeat = characterHasCrafterDiscount({
+      feats: character.feats,
+      level: character.level
+    });
 
     if (hasCrafterFeat) {
       additions.push(
