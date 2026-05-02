@@ -7,3 +7,5 @@ export { default as SkillsAndProficienciesForm } from "./SkillsAndProficienciesF
 export { default as EquipmentForm } from "./EquipmentForm";
 export { default as SpellCastingForm } from "./SpellCastingForm";
 export { default as ThumbDiceButton } from "./ThumbDiceButton";
+export { default as SheetSurface } from "./SheetSurface";
+export type { SheetSurfaceBorderSize, SheetSurfaceProps } from "./SheetSurface";

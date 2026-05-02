@@ -14,7 +14,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
     openWeaponReference, pendingDeleteCustomEquipment, removeEquipmentItem, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedEquipmentGroups, selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions,
     selectedInventoryInspection, selectedInventoryItemStatus, selectedInventoryRecord,
     selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery, selectedWeaponHasProficiency, selectedWeaponMasteryKeywords,
-    selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsGeneralEquipmentExpanded, setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared,
+    selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsGeneralEquipmentExpanded, setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, SheetSurface,
     sheetStyles, shouldOfferHandSwap, styles, swapEntryToHand, toggleArmorWorn, toggleEntryOnHand
   } = context;
 
@@ -118,8 +118,11 @@ export function renderEquipmentForm(context: Record<string, any>) {
                   {visibleGroupItems.map((entry) =>
                     entry.kind === "legacy" ? (
                       <li key={entry.key}>
-                        <button
+                        <SheetSurface
+                          as="button"
                           type="button"
+                          borderSize="sm"
+                          hoverBorder
                           className={styles.equipmentItemButton}
                           onClick={() => openLoadoutEntryDetails(entry.item)}
                         >
@@ -147,12 +150,15 @@ export function renderEquipmentForm(context: Record<string, any>) {
                               <RarityPill rarity={entry.item.entry.rarity} />
                             ) : null}
                           </span>
-                        </button>
+                        </SheetSurface>
                       </li>
                     ) : (
                       <li key={entry.key}>
-                        <button
+                        <SheetSurface
+                          as="button"
                           type="button"
+                          borderSize="sm"
+                          hoverBorder
                           className={styles.equipmentItemButton}
                           onClick={() => openInventoryInspectionFromLoadout(entry.item)}
                         >
@@ -181,7 +187,7 @@ export function renderEquipmentForm(context: Record<string, any>) {
                               <RarityPill rarity={entry.item.item.rarity} />
                             ) : null}
                           </span>
-                        </button>
+                        </SheetSurface>
                       </li>
                     )
                   )}

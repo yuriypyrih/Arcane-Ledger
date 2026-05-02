@@ -45,6 +45,7 @@ import {
   resolveFeatureIndicators
 } from "../../../RollStatePill/rollState";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetSurface from "../SheetSurface";
 import ProficiencyEditorModal, { type ProficiencyEditorTab } from "./ProficiencyEditorModal";
 import SkillReferenceDrawer, {
   type SelectedSkillReference,
@@ -306,8 +307,11 @@ function SkillsAndProficienciesForm({
             const keyword = getProficiencyKeyword(entry.proficiency);
 
             return (
-              <li
+              <SheetSurface
+                as="li"
                 key={`${section.title}:${entry.proficiency}:${entry.sourceLabels.join("|")}:${entry.proficiencyLevel}`}
+                borderSize="md"
+                hoverBorder
                 className={styles.proficiencyPill}
               >
                 <button
@@ -325,7 +329,7 @@ function SkillsAndProficienciesForm({
                   <span>{label}</span>
                   <small>{entry.sourceLabels.join(", ")}</small>
                 </button>
-              </li>
+              </SheetSurface>
             );
           })}
         </ul>
@@ -412,8 +416,11 @@ function SkillsAndProficienciesForm({
                               : undefined;
 
                           return (
-                            <li
+                            <SheetSurface
+                              as="li"
                               key={row.name}
+                              borderSize="sm"
+                              hoverBorder
                               className={clsx(
                                 styles.skillRow,
                                 isSkillTableEditing && styles.skillRowEditing,
@@ -517,7 +524,7 @@ function SkillsAndProficienciesForm({
                                   </option>
                                 </SelectInput>
                               ) : null}
-                            </li>
+                            </SheetSurface>
                           );
                         })}
                       </ul>

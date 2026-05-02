@@ -1,6 +1,7 @@
 import { Pentagon } from "lucide-react";
 import type { MonsterRecord } from "../../types";
 import { renderCodexRichText } from "../../utils/codex/renderCodexRichText";
+import SheetSurface from "../CharactersPage/CharacterSheetPage/SheetSurface";
 import statsStyles from "../CharactersPage/CharacterSheetPage/StatsForm/StatsForm.module.css";
 import {
   buildMonsterActionGroups,
@@ -90,7 +91,7 @@ function AbilityCell({
     : ability.modifier;
 
   return (
-    <div className={`${statsStyles.modifierCard} ${styles.abilityCard}`}>
+    <SheetSurface borderSize="xl" className={`${statsStyles.modifierCard} ${styles.abilityCard}`}>
       <div className={statsStyles.modifierLabelRow}>
         <span className={statsStyles.modifierLabel}>{label}</span>
         <span className={statsStyles.scoreBadge} aria-label={`${label} score ${ability.score}`}>
@@ -111,7 +112,7 @@ function AbilityCell({
           </strong>
         </div>
       </div>
-    </div>
+    </SheetSurface>
   );
 }
 

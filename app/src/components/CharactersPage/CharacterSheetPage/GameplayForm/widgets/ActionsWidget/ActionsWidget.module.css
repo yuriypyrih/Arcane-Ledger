@@ -38,20 +38,10 @@
 }
 
 .weaponDetailButton {
-  border: none;
   color: inherit;
   cursor: pointer;
   font: inherit;
   text-align: left;
-}
-
-.weaponDetailButton:hover {
-  background: rgba(75, 47, 29, 0.11);
-}
-
-.weaponDetailButton:focus-visible {
-  outline: 2px solid rgba(143, 91, 56, 0.5);
-  outline-offset: 2px;
 }
 
 .weaponFormulaList {

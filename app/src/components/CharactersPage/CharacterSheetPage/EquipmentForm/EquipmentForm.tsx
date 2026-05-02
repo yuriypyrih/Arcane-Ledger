@@ -90,6 +90,7 @@ import { createSourcedDescriptionEntries } from "../../../../pages/CharactersPag
 import KeywordReferenceDrawer from "../../../KeywordReferenceDrawer/KeywordReferenceDrawer";
 import type { ItemRecord } from "../../../../types";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetSurface from "../SheetSurface";
 import CustomEquipmentEditor from "../CustomEquipmentEditor";
 import EquipmentInventoryItemDrawer from "./EquipmentInventoryItemDrawer";
 import EquipmentInventoryItemDrawerHeader from "./EquipmentInventoryItemDrawerHeader";
@@ -1578,7 +1579,7 @@ function EquipmentForm({ character, className, onPersistCharacter }: EquipmentFo
     openWeaponReference, pendingDeleteCustomEquipment, removeEquipmentItem, saveCustomEquipment, selectedAdditionalWeaponMasteries, selectedEquipmentGroups, selectedInventoryInspection, selectedInventoryItemStatus,
     selectedInventoryAdditionalDescription, selectedInventoryDescriptionAdditions, selectedInventoryRecord, selectedInventoryWeaponHasActiveMastery, selectedInventoryWeaponHasProficiency, selectedLoadoutEntry, selectedLoadoutEntryData, selectedLoadoutItems, selectedLoadoutSummary, selectedWeaponHasActiveMastery,
     selectedWeaponHasProficiency, selectedWeaponMasteryKeywords, selectedWeaponMasteryLabel, selectedWeaponReference, setActiveCurrencyKey, setCurrencyAmountDraft, setIsCurrencyDrawerOpen, setIsGeneralEquipmentExpanded,
-    setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, sheetStyles, shouldOfferHandSwap, styles, swapEntryToHand, toggleArmorWorn,
+    setPendingDeleteCustomEquipmentId, setSelectedWeaponReference, shared, SheetSurface, sheetStyles, shouldOfferHandSwap, styles, swapEntryToHand, toggleArmorWorn,
     toggleEntryOnHand
   });
 }

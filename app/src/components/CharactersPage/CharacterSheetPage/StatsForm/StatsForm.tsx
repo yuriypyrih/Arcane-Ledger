@@ -107,6 +107,7 @@ import {
   getProficiencyMultiplier
 } from "../../../../pages/CharactersPage/shared";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetSurface from "../SheetSurface";
 import AbilityReferenceFooter from "./AbilityReferenceFooter";
 import AbilityScoresModal from "./AbilityScoresModal";
 import ArmorClassFormulaFooter from "./ArmorClassFormulaFooter";
@@ -1355,9 +1356,12 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
             const rollState = resolveFeatureIndicators(card.indicators);
 
             return (
-              <button
+              <SheetSurface
+                as="button"
                 key={card.key}
                 type="button"
+                borderSize="xl"
+                hoverBorder
                 className={clsx(styles.modifierCard, styles.modifierCardButton)}
                 onClick={() => openCoreStatReference(card)}
               >
@@ -1375,7 +1379,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
                     <ChevronsUp size={18} className={styles.coreStatValueIcon} aria-hidden="true" />
                   ) : null}
                 </strong>
-              </button>
+              </SheetSurface>
             );
           })}
         </div>
@@ -1409,9 +1413,12 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
               card.sharedRollState ?? card.savingThrowRollState ?? card.modifierRollState;
 
             return (
-              <button
+              <SheetSurface
+                as="button"
                 key={card.ability}
                 type="button"
+                borderSize="xl"
+                hoverBorder
                 className={clsx(styles.modifierCard, styles.modifierCardButton)}
                 onClick={() => openAbilityReference(card.ability)}
               >
@@ -1472,7 +1479,7 @@ function CharacterStatsForm({ character, className, onPersistCharacter }: Charac
                     </span>
                   </span>
                 </div>
-              </button>
+              </SheetSurface>
             );
           })}
         </div>

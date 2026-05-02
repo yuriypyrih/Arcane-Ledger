@@ -174,6 +174,7 @@ import {
 import { getSpellAttackRollFormulaForCharacter } from "../../../../pages/CharactersPage/shared/spellFormulas";
 import sheetStyles from "../../../../pages/CharactersPage/CharacterSheetPage/CharacterSheetPage.module.css";
 import shared from "../CharacterSheetSectionShared/CharacterSheetSectionShared.module.css";
+import SheetSurface from "../SheetSurface";
 import ActionButton from "../../../ActionButton";
 import { getActionShapeForEconomyType } from "../GameplayForm/gameplayWidgetUtils";
 import gameplayActionStyles from "../GameplayForm/widgets/ActionsWidget/GameplayActionDrawer.module.css";
@@ -1858,7 +1859,7 @@ function SpellCastingForm({ character, className, onPersistCharacter }: SpellCas
     selectedSpellViewMode, selectedSpellWarGodsBlessingDisabled, setActiveSpellSlotSheetLevel, setActiveWizardSpellFilter, setIsSelectedSpellDiceRollerSettingsOpen, setIsSpellManagementModalOpen, setSelectedElementalSmiteOptionOnSelectedSpell, setSelectedFrozenHauntFallbackSlotLevel,
     setSelectedSpellSlotLevel, setUseBeguilingMagicOnSelectedSpell, setUseBewitchingMagicOnSelectedSpell, setUseBlessingOfMoonlightOnSelectedSpell, setUseElementalSmiteOnSelectedSpell, setUseFeyReinforcementsNoConcentrationOnSelectedSpell, setUseFeyReinforcementsOnSelectedSpell, setUseFrozenHauntOnSelectedSpell,
     setUseMagicInitiateOnSelectedSpell, setUseMindMagicOnSelectedSpell, setUseMistyWandererOnSelectedSpell, setUseNaturalRecoveryOnSelectedSpell, setUseOverchannelOnSelectedSpell, setUsePhantasmalCreaturesOnSelectedSpell, setUsePsionicSorceryOnSelectedSpell, setUseRadiantSoulOnSelectedSpell, setUseStarMapOnSelectedSpell,
-    setUseStepsOfTheFeyOnSelectedSpell, setUseTamedSurgeOnSelectedSpell, setUseTelekineticMasterOnSelectedSpell, setUseWarGodsBlessingOnSelectedSpell, shared, sheetStyles, sorceryPointsRemaining, sorceryPointsTotal,
+    setUseStepsOfTheFeyOnSelectedSpell, setUseTamedSurgeOnSelectedSpell, setUseTelekineticMasterOnSelectedSpell, setUseWarGodsBlessingOnSelectedSpell, shared, SheetSurface, sheetStyles, sorceryPointsRemaining, sorceryPointsTotal,
     spellOutcomeSummariesById, spellPreparationOptions, spellSlotLevels, spellSlotTotals, spellSlotsRemaining, spellbookSpellEntriesById, spellcastingChannelDivinityRows, spellcastingState,
     styles, tamedSurgeUsesRemaining, tamedSurgeUsesTotal, updateSpellSlotsExpended, useBeguilingMagicOnSelectedSpell, useBewitchingMagicOnSelectedSpell, useBlessingOfMoonlightOnSelectedSpell, useElementalSmiteOnSelectedSpell,
     useFeyReinforcementsNoConcentrationOnSelectedSpell, useFeyReinforcementsOnSelectedSpell, useFrozenHauntOnSelectedSpell, useMagicInitiateOnSelectedSpell, useMindMagicOnSelectedSpell, useMistyWandererOnSelectedSpell, useNaturalRecoveryOnSelectedSpell, useOverchannelOnSelectedSpell, usePhantasmalCreaturesOnSelectedSpell,

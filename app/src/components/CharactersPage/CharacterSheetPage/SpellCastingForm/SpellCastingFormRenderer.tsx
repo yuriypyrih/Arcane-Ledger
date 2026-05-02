@@ -23,7 +23,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
     selectedSpellSupportsStepsOfTheFey, selectedSpellSupportsTamedSurge, selectedSpellSupportsTelekineticMaster, selectedSpellSupportsWarGodsBlessing, selectedSpellTamedSurgeDisabled, selectedSpellTelekineticMasterDisabled, selectedSpellUnderMantleOfMajesty, selectedSpellViewMode, selectedSpellWarGodsBlessingDisabled,
     setActiveSpellSlotSheetLevel, setActiveWizardSpellFilter, setIsSelectedSpellDiceRollerSettingsOpen, setIsSpellManagementModalOpen, setSelectedElementalSmiteOptionOnSelectedSpell, setSelectedFrozenHauntFallbackSlotLevel, setSelectedSpellSlotLevel, setUseBeguilingMagicOnSelectedSpell, setUseBewitchingMagicOnSelectedSpell,
     setUseBlessingOfMoonlightOnSelectedSpell, setUseElementalSmiteOnSelectedSpell, setUseFeyReinforcementsNoConcentrationOnSelectedSpell, setUseFeyReinforcementsOnSelectedSpell, setUseFrozenHauntOnSelectedSpell, setUseMagicInitiateOnSelectedSpell, setUseMindMagicOnSelectedSpell, setUseMistyWandererOnSelectedSpell, setUseNaturalRecoveryOnSelectedSpell, setUseOverchannelOnSelectedSpell,
-    setUsePhantasmalCreaturesOnSelectedSpell, setUsePsionicSorceryOnSelectedSpell, setUseRadiantSoulOnSelectedSpell, setUseStarMapOnSelectedSpell, setUseStepsOfTheFeyOnSelectedSpell, setUseTamedSurgeOnSelectedSpell, setUseTelekineticMasterOnSelectedSpell, setUseWarGodsBlessingOnSelectedSpell, shared,
+    setUsePhantasmalCreaturesOnSelectedSpell, setUsePsionicSorceryOnSelectedSpell, setUseRadiantSoulOnSelectedSpell, setUseStarMapOnSelectedSpell, setUseStepsOfTheFeyOnSelectedSpell, setUseTamedSurgeOnSelectedSpell, setUseTelekineticMasterOnSelectedSpell, setUseWarGodsBlessingOnSelectedSpell, shared, SheetSurface,
     sheetStyles, sorceryPointsRemaining, sorceryPointsTotal, spellOutcomeSummariesById, spellPreparationOptions, spellSlotLevels, spellSlotTotals, spellSlotsRemaining, spellbookSpellEntriesById,
     spellcastingChannelDivinityRows, spellcastingState, styles, tamedSurgeUsesRemaining, tamedSurgeUsesTotal, updateSpellSlotsExpended, useBeguilingMagicOnSelectedSpell, useBewitchingMagicOnSelectedSpell, useBlessingOfMoonlightOnSelectedSpell,
     useElementalSmiteOnSelectedSpell, useFeyReinforcementsNoConcentrationOnSelectedSpell, useFeyReinforcementsOnSelectedSpell, useFrozenHauntOnSelectedSpell, useMagicInitiateOnSelectedSpell, useMindMagicOnSelectedSpell, useMistyWandererOnSelectedSpell, useNaturalRecoveryOnSelectedSpell, useOverchannelOnSelectedSpell, usePhantasmalCreaturesOnSelectedSpell,
@@ -78,9 +78,12 @@ export function renderSpellCastingForm(context: Record<string, any>) {
           const remainingSlots = spellSlotsRemaining[slotLevel - 1] ?? 0;
 
           return (
-            <button
+            <SheetSurface
+              as="button"
               key={slotLevel}
               type="button"
+              borderSize="sm"
+              hoverBorder
               className={clsx(
                 styles.spellSlotCard,
                 styles.spellSlotCardButton,
@@ -110,7 +113,7 @@ export function renderSpellCastingForm(context: Record<string, any>) {
                   ))}
                 </div>
               )}
-            </button>
+            </SheetSurface>
           );
         })}
       </div>

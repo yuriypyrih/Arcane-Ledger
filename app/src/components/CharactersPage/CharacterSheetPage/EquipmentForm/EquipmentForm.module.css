@@ -44,19 +44,12 @@
   align-items: center;
   gap: 0.7rem;
   width: 100%;
-  border: none;
-  border-radius: 12px;
-  background: rgba(75, 47, 29, 0.07);
   color: var(--color-ink);
   cursor: pointer;
   font: inherit;
   min-height: 34px;
   padding: 0 0.72rem;
   text-align: left;
-}
-
-.equipmentItemButton:hover {
-  background: #eadccc;
 }
 
 .equipmentItemName {

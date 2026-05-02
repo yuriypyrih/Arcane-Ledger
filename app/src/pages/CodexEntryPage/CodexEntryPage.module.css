@@ -105,28 +105,11 @@
 }
 
 .detailButton {
-  border: 0;
-  border-radius: 16px;
-  background: rgba(255, 250, 241, 0.9);
   color: inherit;
   cursor: pointer;
   font: inherit;
   padding: 0.6rem 0.75rem;
   text-align: left;
-  transition:
-    border-color 120ms ease,
-    box-shadow 120ms ease,
-    transform 120ms ease;
-}
-
-.detailButton:hover {
-  box-shadow: 0 10px 26px rgba(54, 34, 21, 0.08);
-  transform: translateY(-1px);
-}
-
-.detailButton:focus-visible {
-  outline: 2px solid rgba(117, 76, 36, 0.4);
-  outline-offset: 2px;
 }
 
 .detailItem strong {
@@ -149,24 +132,10 @@
 }
 
 .drawerDetailButton {
-  border: 0;
   color: inherit;
   cursor: pointer;
   font: inherit;
   text-align: left;
-  transition:
-    box-shadow 120ms ease,
-    transform 120ms ease;
-}
-
-.drawerDetailButton:hover {
-  box-shadow: 0 10px 26px rgba(54, 34, 21, 0.08);
-  transform: translateY(-1px);
-}
-
-.drawerDetailButton:focus-visible {
-  outline: 2px solid rgba(117, 76, 36, 0.4);
-  outline-offset: 2px;
 }
 
 @media (max-width: 900px) {

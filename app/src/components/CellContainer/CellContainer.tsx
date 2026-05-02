@@ -1,10 +1,10 @@
 import clsx from "clsx";
 import {
-  createElement,
   type ButtonHTMLAttributes,
   type HTMLAttributes,
   type ReactNode
 } from "react";
+import SheetSurface from "../CharactersPage/CharacterSheetPage/SheetSurface";
 import styles from "./CellContainer.module.css";
 
 type CellContainerBaseProps = {
@@ -40,13 +40,14 @@ function CellContainer(props: CellContainerProps) {
     ...elementProps
   } = props as CellContainerProps & { as: "div" | "button" };
 
-  return createElement(
-    as,
-    {
-      className: clsx(styles.root, as === "button" && styles.buttonRoot, className),
-      ...elementProps
-    },
-    <>
+  return (
+    <SheetSurface
+      as={as}
+      borderSize="md"
+      hoverBorder={as === "button"}
+      className={clsx(styles.root, as === "button" && styles.buttonRoot, className)}
+      {...elementProps}
+    >
       <div className={clsx(styles.label, labelClassName)}>{label}</div>
       {content !== undefined || breakdown !== undefined ? (
         <div className={clsx(styles.contentRow, contentRowClassName)}>
@@ -58,7 +59,7 @@ function CellContainer(props: CellContainerProps) {
           ) : null}
         </div>
       ) : null}
-    </>
+    </SheetSurface>
   );
 }
 
